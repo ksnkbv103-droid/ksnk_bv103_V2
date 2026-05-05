@@ -1,0 +1,28 @@
+# Gate tối thiểu (Pha A): production build + typecheck.
+# ESLint đang có nợ trong repo — chạy `npm run lint` / `npm run verify:full` local khi dọn rule.
+# MDM: sau migration chạy `npm run verify:mdm:post-migration` (remote) hoặc `verify:mdm:post-migration:local`.
+# Cần Supabase linked / DB local + env; không chạy trên PR mặc định. Thêm job + secrets nếu muốn tự động hóa.
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-role
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: node scripts/guard-legacy-table-names.mjs
+      - run: npm run build
