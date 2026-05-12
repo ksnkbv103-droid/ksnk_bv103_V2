@@ -26,7 +26,12 @@ type RBACSnapshot = {
   userData: UserDataProfile | null;
 };
 
-const RBAC_CACHE_TTL_MS = 15_000;
+/**
+ * 5 phút — đủ ngắn để admin đổi quyền không phải đăng xuất quá lâu;
+ * vẫn tự refresh ngay khi `onAuthStateChange` (đăng xuất / refresh token).
+ * Trước đây 15 s gây bão query `v_auth_user_permissions` mỗi lần điều hướng.
+ */
+const RBAC_CACHE_TTL_MS = 5 * 60_000;
 let rbacCache: { userId: string; snapshot: RBACSnapshot; cachedAt: number } | null = null;
 let rbacInFlight: Promise<RBACSnapshot> | null = null;
 

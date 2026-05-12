@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { getVSTSessionDetail } from "../actions/vst.actions";
 import { getCategoriesByType } from "../../quan-tri-he-thong/danh-muc/actions/danh-muc.actions";
+import { getCategoriesByTypeCached } from "@/lib/client-cache/danh-muc-cache";
 import type { VSTFormPerson } from "../lib/vst-form-model";
 
 export type VstDmRow = { id?: string; ten_danh_muc?: string; ten_khoa?: string };
@@ -74,9 +75,9 @@ export function useVstPrint() {
     try {
       const [detailRes, nnRes, kRes, kvRes] = await Promise.all([
         getVSTSessionDetail(sessionId),
-        getCategoriesByType("NGHE_NGHIEP"),
-        getCategoriesByType("KHOA_PHONG"),
-        getCategoriesByType("KHU_VUC_GIAM_SAT"),
+        getCategoriesByTypeCached("NGHE_NGHIEP", getCategoriesByType),
+        getCategoriesByTypeCached("KHOA_PHONG", getCategoriesByType),
+        getCategoriesByTypeCached("KHU_VUC_GIAM_SAT", getCategoriesByType),
       ]);
 
       let settled = false;
