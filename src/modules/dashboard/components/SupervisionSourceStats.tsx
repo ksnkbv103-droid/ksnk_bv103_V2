@@ -91,9 +91,9 @@ export const SupervisionSourceStats: React.FC<SupervisionSourceStatsProps> = ({
       <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
         <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
           <h3 className="mb-8 text-sm font-black uppercase tracking-widest text-slate-900">Tỉ lệ cơ cấu nguồn giám sát (Tổng hợp)</h3>
-          <div className="flex flex-col items-center gap-8 md:flex-row">
-            <div className="h-[240px] w-full md:w-1/2">
-              <ResponsiveContainer width="100%" height="100%">
+          <div className="flex min-w-0 flex-col items-center gap-8 md:flex-row">
+            <div className="h-[240px] w-full min-w-0 shrink-0 md:w-1/2">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <PieChart>
                   <Pie
                     data={pieData}

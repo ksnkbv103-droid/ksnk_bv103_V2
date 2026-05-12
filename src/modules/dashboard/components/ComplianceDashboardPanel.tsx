@@ -171,7 +171,13 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
   return <div className="rounded-2xl border border-slate-100 bg-white p-4"><h3 className="mb-3 text-[11px] font-black uppercase text-slate-700">{title}</h3>{children}</div>;
 }
 function ChartWrap({ children }: { children: React.ReactNode }) {
-  return <div className="h-[280px]"><ResponsiveContainer width="100%" height="100%">{children as any}</ResponsiveContainer></div>;
+  return (
+    <div className="h-[280px] w-full min-w-0">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+        {children as React.ReactElement}
+      </ResponsiveContainer>
+    </div>
+  );
 }
 function SimpleRateTable({ rows }: { rows: Array<{ id: string; ten: string; ty_le: number; tong: number; dat: number; so_phien: number }> }) {
   return (

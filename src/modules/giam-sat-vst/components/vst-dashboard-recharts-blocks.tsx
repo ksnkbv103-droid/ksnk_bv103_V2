@@ -24,8 +24,8 @@ export function VstTrendStyleLineChart({ data }: { data: TyLePoint[] }) {
   }
   const tiltLabels = data.length > 6;
   return (
-    <div className="h-[300px]">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="h-[300px] w-full min-w-0">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: tiltLabels ? 28 : 8 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
           <XAxis
@@ -65,8 +65,8 @@ export function KhoaComplianceBarChart({ rows }: { rows: KhoaBarRow[] }) {
   const h = Math.min(1200, Math.max(320, rows.length * 26 + 56));
 
   return (
-    <div className="w-full" style={{ height: h }}>
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full min-w-0" style={{ height: h }}>
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart layout="vertical" data={rows} margin={{ top: 8, right: 52, left: 4, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
           <XAxis
@@ -118,8 +118,8 @@ export function RateBarChart({
     return <div className="text-xs text-slate-400 py-4 text-center">Không có dữ liệu so sánh</div>;
 
   return (
-    <div style={{ height: heightPx }} className="min-h-[200px]">
-      <ResponsiveContainer width="100%" height="100%">
+    <div style={{ height: heightPx }} className="min-h-[200px] w-full min-w-0">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart data={rows} margin={{ top: 20 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
           <XAxis dataKey="ten" tick={{ fill: "#64748b", fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} />

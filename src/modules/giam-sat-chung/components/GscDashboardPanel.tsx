@@ -48,8 +48,8 @@ export default function GscDashboardPanel({ payload, loading, tuNgay, denNgay, o
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="rounded-3xl border border-slate-100 bg-white p-5">
             <h3 className="mb-3 text-[11px] font-black uppercase text-slate-700">Xu hướng điểm theo tháng</h3>
-            <div className="h-[280px]">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-[280px] w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <LineChart data={payload.monthly}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="label" tick={{ fill: "#94a3b8", fontSize: 10 }} />
@@ -62,8 +62,8 @@ export default function GscDashboardPanel({ payload, loading, tuNgay, denNgay, o
           </div>
           <div className="rounded-3xl border border-slate-100 bg-white p-5">
             <h3 className="mb-3 text-[11px] font-black uppercase text-slate-700">Theo loại bảng kiểm</h3>
-            <div className="h-[280px]">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-[280px] w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={payload.by_loai_bang_kiem}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="loai_bang_kiem" tick={{ fill: "#64748b", fontSize: 9 }} />

@@ -34,8 +34,8 @@ export function VstDashboardQualitySection({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="flex flex-col items-center p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
           <p className="text-[11px] font-bold uppercase text-emerald-800 mb-2">Đúng kỹ thuật</p>
-          <div className="w-24 h-24 relative">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="relative h-24 w-24 min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <PieChart>
                 <Pie
                   data={[
@@ -67,8 +67,8 @@ export function VstDashboardQualitySection({
 
         <div className="flex flex-col items-center p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
           <p className="text-[11px] font-bold uppercase text-emerald-800 mb-2">Đủ thời gian</p>
-          <div className="w-24 h-24 relative">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="relative h-24 w-24 min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <PieChart>
                 <Pie
                   data={[

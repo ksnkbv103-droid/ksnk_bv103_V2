@@ -19,62 +19,68 @@ import { ensureRbacAdmin } from "@/modules/quan-tri-he-thong/phan-quyen/actions/
 import { unstable_cache } from "next/cache";
 
 export async function syncAccountLinkAction() {
-  const supabase = await createServerSupabaseUserClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user?.id || !user.email) return { success: false, error: "Không tìm thấy phiên đăng nhập." };
-
-  const getCachedSync = unstable_cache(
-    async (userId: string, userEmail: string) => {
-      // 1. Kiểm tra xem đã liên kết chưa
-      const { data: existing } = await supabase
-        .from("mdm_nhan_su")
-        .select("id")
-        .eq("auth_user_id", userId)
-        .eq("is_active", true)
-        .maybeSingle();
-
-      if (existing) return { success: true, linked: true, nhanSuId: existing.id };
-
-      // 2. Nếu chưa, thử tự động liên kết qua email
-      const emailNorm = normalizeEmail(userEmail);
-      const adminClient = createAdminSupabaseClient();
-      
-      const { data: match, error: matchErr } = await adminClient
-        .from("mdm_nhan_su")
-        .select("id, auth_user_id")
-        .eq("email", emailNorm)
-        .eq("is_active", true)
-        .maybeSingle();
-
-      if (matchErr || !match) {
-        return { success: true, linked: false, message: "Không tìm thấy hồ sơ khớp email." };
-      }
-
-      if (match.auth_user_id && match.auth_user_id !== userId) {
-        return { success: true, linked: false, message: "Hồ sơ này đã được liên kết với tài khoản khác." };
-      }
-
-      // 3. Thực hiện liên kết
-      const { error: upErr } = await adminClient
-        .from("mdm_nhan_su")
-        .update({ auth_user_id: userId })
-        .eq("id", match.id);
-
-      if (upErr) return { success: false, error: "Lỗi khi cập nhật liên kết: " + upErr.message };
-
-      return { success: true, linked: true, nhanSuId: match.id, autoLinked: true };
-    },
-    [`account-sync-${user.id}`],
-    { revalidate: 3600, tags: [`account_sync_${user.id}`] }
-  );
-
   try {
-    const res = await getCachedSync(user.id, user.email);
-    if (res.autoLinked) revalidatePath("/");
-    return res;
+    const supabase = await createServerSupabaseUserClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user?.id || !user.email) return { success: false, error: "Không tìm thấy phiên đăng nhập." };
+
+    const getCachedSync = unstable_cache(
+      async (userId: string, userEmail: string) => {
+        // 1. Kiểm tra xem đã liên kết chưa
+        const { data: existing } = await supabase
+          .from("mdm_nhan_su")
+          .select("id")
+          .eq("auth_user_id", userId)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (existing) return { success: true, linked: true, nhanSuId: existing.id };
+
+        // 2. Nếu chưa, thử tự động liên kết qua email
+        const emailNorm = normalizeEmail(userEmail);
+        const adminClient = createAdminSupabaseClient();
+
+        const { data: match, error: matchErr } = await adminClient
+          .from("mdm_nhan_su")
+          .select("id, auth_user_id")
+          .eq("email", emailNorm)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (matchErr || !match) {
+          return { success: true, linked: false, message: "Không tìm thấy hồ sơ khớp email." };
+        }
+
+        if (match.auth_user_id && match.auth_user_id !== userId) {
+          return { success: true, linked: false, message: "Hồ sơ này đã được liên kết với tài khoản khác." };
+        }
+
+        // 3. Thực hiện liên kết
+        const { error: upErr } = await adminClient
+          .from("mdm_nhan_su")
+          .update({ auth_user_id: userId })
+          .eq("id", match.id);
+
+        if (upErr) return { success: false, error: "Lỗi khi cập nhật liên kết: " + upErr.message };
+
+        return { success: true, linked: true, nhanSuId: match.id, autoLinked: true };
+      },
+      [`account-sync-${user.id}`],
+      { revalidate: 3600, tags: [`account_sync_${user.id}`] }
+    );
+
+    try {
+      const res = await getCachedSync(user.id, user.email);
+      if (res.autoLinked) revalidatePath("/");
+      return res;
+    } catch (error) {
+      console.error("syncAccountLinkAction error:", error);
+      return { success: false, error: "Lỗi hệ thống khi đồng bộ tài khoản." };
+    }
   } catch (error) {
-    console.error("syncAccountLinkAction error:", error);
+    // Phòng env thiếu / Supabase down — không để gate gây 500 cho cả layout.
+    console.error("[account-link] syncAccountLinkAction config error:", error);
     return { success: false, error: "Lỗi hệ thống khi đồng bộ tài khoản." };
   }
 }
