@@ -64,23 +64,34 @@ export default function GiamSatHeader({
   const loading = parentFeedsKhoaKhu ? headerDataLoading : loadingSelf;
 
   useEffect(() => {
+    let cancelled = false;
     async function loadData() {
       if (parentFeedsKhoaKhu) {
         setLoadingSelf(false);
         return;
       }
       setLoadingSelf(true);
-      const result = await mdmGetSupervisionMasterDataBundle({ permissionContext: "admin" });
-      if (result.success) {
-        setKhoasLocal(result.data.khoas || []);
-        setKhuVucsLocal(result.data.khuVucs || []);
-        setNgheNghiepsLocal(result.data.ngheNghieps || []);
-        setAllNhanSusLocal((result.data.nhanSus || []) as NhanSuOption[]);
-        setHistoryLocationsLocal(result.data.historyLocations || []);
+      try {
+        const result = await mdmGetSupervisionMasterDataBundle({ permissionContext: "admin" });
+        if (cancelled) return;
+        if (result.success) {
+          setKhoasLocal(result.data.khoas || []);
+          setKhuVucsLocal(result.data.khuVucs || []);
+          setNgheNghiepsLocal(result.data.ngheNghieps || []);
+          setAllNhanSusLocal((result.data.nhanSus || []) as NhanSuOption[]);
+          setHistoryLocationsLocal(result.data.historyLocations || []);
+        }
+      } catch (error) {
+        if (cancelled) return;
+        console.error("[GiamSatHeader] loadData error:", error);
+      } finally {
+        if (!cancelled) setLoadingSelf(false);
       }
-      setLoadingSelf(false);
     }
     loadData();
+    return () => {
+      cancelled = true;
+    };
   }, [parentFeedsKhoaKhu]);
 
   const [isCollapsed, setIsCollapsed] = useState(false);

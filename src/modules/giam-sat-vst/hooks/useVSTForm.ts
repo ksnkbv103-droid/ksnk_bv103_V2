@@ -37,24 +37,38 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
   const [currentHoSoId, setCurrentHoSoId] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     async function loadInitialData() {
       setInitialLoading(true);
-      const result = await mdmGetSupervisionMasterDataBundle({ permissionContext: "vst", includeNhanSu: true });
-      if (result.success) {
-        setKhoas(result.data.khoas || []);
-        setKhuVucs(result.data.khuVucs || []);
-        setNhanSus(result.data.nhanSus || []);
-        setNgheNghieps(result.data.ngheNghieps || []);
-        setHistoryLocations(result.data.historyLocations || []);
-        const selfId = result.data.currentHoSoId;
-        setCurrentHoSoId(selfId || null);
-        if (selfId) {
-          setSession((prev) => ({ ...prev, nguoi_giam_sat_id: prev.nguoi_giam_sat_id || selfId }));
+      try {
+        const result = await mdmGetSupervisionMasterDataBundle({ permissionContext: "vst", includeNhanSu: true });
+        if (cancelled) return;
+        if (result.success) {
+          setKhoas(result.data.khoas || []);
+          setKhuVucs(result.data.khuVucs || []);
+          setNhanSus(result.data.nhanSus || []);
+          setNgheNghieps(result.data.ngheNghieps || []);
+          setHistoryLocations(result.data.historyLocations || []);
+          const selfId = result.data.currentHoSoId;
+          setCurrentHoSoId(selfId || null);
+          if (selfId) {
+            setSession((prev) => ({ ...prev, nguoi_giam_sat_id: prev.nguoi_giam_sat_id || selfId }));
+          }
+        } else {
+          toast.error(result.error || "Lỗi tải danh mục.");
         }
+      } catch (err) {
+        if (cancelled) return;
+        console.error("[VSTForm] loadInitialData error:", err);
+        toast.error("Không tải được danh mục. Vui lòng kiểm tra cấu hình máy chủ hoặc thử lại.");
+      } finally {
+        if (!cancelled) setInitialLoading(false);
       }
-      setInitialLoading(false);
     }
     loadInitialData();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const {
