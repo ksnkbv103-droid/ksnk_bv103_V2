@@ -76,6 +76,7 @@ function NavLinkRow({
   return (
     <Link
       href={item.href}
+      prefetch={false}
       onClick={onClose}
       aria-current={isActive ? "page" : undefined}
       className={`app-shell-focus flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors touch-manipulation ${
@@ -174,6 +175,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-5 md:px-5">
         <Link
           href="/"
+          prefetch={false}
           className="app-shell-focus flex min-w-0 flex-1 items-center gap-3 rounded-2xl outline-offset-2"
           aria-label="Về trang chủ"
         >

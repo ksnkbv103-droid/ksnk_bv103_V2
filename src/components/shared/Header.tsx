@@ -83,6 +83,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
             </p>
             <Link
               href="/tai-khoan/doi-mat-khau"
+              prefetch={false}
               className="app-shell-focus hidden shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 sm:inline-flex sm:px-4 sm:text-sm touch-manipulation"
             >
               Đổi mật khẩu
@@ -99,6 +100,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         {sessionResolved && !userEmail ? (
           <Link
             href="/login"
+            prefetch={false}
             className="app-shell-focus inline-flex min-h-10 shrink-0 items-center rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)] sm:text-sm touch-manipulation"
           >
             Đăng nhập
