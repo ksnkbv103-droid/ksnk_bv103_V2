@@ -24,6 +24,8 @@ interface GiamSatHeaderProps {
   showGiamSatCaNhan?: boolean;
   /** VST: khóa “Người giám sát” = hồ sơ đăng nhập (đồng bộ SSO). */
   lockedSupervisorHoSoId?: string | null;
+  /** Khi tải bundle MDM thất bại: ẩn banner “Quản trị viên / chưa liên kết” (tránh hiểu nhầm khi chưa có dữ liệu). */
+  suppressStaffIdentityBanner?: boolean;
 }
 
 export default function GiamSatHeader({ 
@@ -35,6 +37,7 @@ export default function GiamSatHeader({
   headerDataLoading = false,
   showGiamSatCaNhan = true,
   lockedSupervisorHoSoId = null,
+  suppressStaffIdentityBanner = false,
 }: GiamSatHeaderProps) {
   const toText = (value: unknown): string => String(value ?? "").trim();
   const resolveNhanSuKhoaId = (ns: NhanSuOption): string => {
@@ -174,6 +177,7 @@ export default function GiamSatHeader({
             historyLocations={displayHistory}
             loading={loading}
             lockedSupervisorHoSoId={lockedSupervisorHoSoId ?? undefined}
+            suppressStaffIdentityBanner={suppressStaffIdentityBanner}
           />
           
           {showGiamSatCaNhan && session.is_giam_sat_ca_nhan && (

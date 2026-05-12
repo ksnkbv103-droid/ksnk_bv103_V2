@@ -25,6 +25,8 @@ interface GiamSatHeaderFieldsProps {
   loading: boolean;
   /** Khóa chọn NG — luôn dùng UUID hồ sơ đăng nhập hiện tại */
   lockedSupervisorHoSoId?: string | null;
+  /** Ẩn banner Quản trị viên / chưa liên kết (khi bundle MDM lỗi). */
+  suppressStaffIdentityBanner?: boolean;
 }
 
 const CACH_THUC_GIAM_SAT_OPTIONS = [
@@ -62,6 +64,7 @@ export default function GiamSatHeaderFields({
   historyLocations,
   loading,
   lockedSupervisorHoSoId,
+  suppressStaffIdentityBanner = false,
 }: GiamSatHeaderFieldsProps) {
   const locked = String(lockedSupervisorHoSoId || "").trim();
   const { isAdmin, loading: permLoading } = usePermission();
@@ -89,7 +92,7 @@ export default function GiamSatHeaderFields({
         2. Nếu chưa liên kết + Admin: Cho phép chọn người giám sát bất kỳ.
         3. Nếu chưa liên kết + User: Hiện cảnh báo yêu cầu liên kết.
       */}
-      {!locked && headerIdentityReady && (
+      {!locked && headerIdentityReady && !suppressStaffIdentityBanner && (
         <div className={`col-span-full p-4 rounded-2xl border-2 transition-all ${
           isAdmin ? "bg-indigo-50 border-indigo-100 shadow-sm" : "bg-amber-50 border-amber-100 animate-in fade-in slide-in-from-top-1"
         }`}>

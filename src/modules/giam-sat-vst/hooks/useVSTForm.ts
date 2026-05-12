@@ -35,15 +35,19 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
   const [initialLoading, setInitialLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [currentHoSoId, setCurrentHoSoId] = useState<string | null>(null);
+  /** true khi bundle MDM thất bại — ẩn banner “Quản trị viên / chưa liên kết” để tránh hiểu nhầm khi chưa có dữ liệu. */
+  const [masterDataFetchFailed, setMasterDataFetchFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     async function loadInitialData() {
       setInitialLoading(true);
+      setMasterDataFetchFailed(false);
       try {
         const result = await mdmGetSupervisionMasterDataBundle({ permissionContext: "vst", includeNhanSu: true });
         if (cancelled) return;
         if (result.success) {
+          setMasterDataFetchFailed(false);
           setKhoas(result.data.khoas || []);
           setKhuVucs(result.data.khuVucs || []);
           setNhanSus(result.data.nhanSus || []);
@@ -55,10 +59,24 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
             setSession((prev) => ({ ...prev, nguoi_giam_sat_id: prev.nguoi_giam_sat_id || selfId }));
           }
         } else {
+          setMasterDataFetchFailed(true);
+          setKhoas([]);
+          setKhuVucs([]);
+          setNhanSus([]);
+          setNgheNghieps([]);
+          setHistoryLocations([]);
+          setCurrentHoSoId(null);
           toast.error(result.error || "Lỗi tải danh mục.");
         }
       } catch (err) {
         if (cancelled) return;
+        setMasterDataFetchFailed(true);
+        setKhoas([]);
+        setKhuVucs([]);
+        setNhanSus([]);
+        setNgheNghieps([]);
+        setHistoryLocations([]);
+        setCurrentHoSoId(null);
         console.error("[VSTForm] loadInitialData error:", err);
         toast.error("Không tải được danh mục. Vui lòng kiểm tra cấu hình máy chủ hoặc thử lại.");
       } finally {
@@ -108,6 +126,7 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
     nhanSus, ngheNghieps, historyLocations,
     loading, initialLoading, timeLeft,
     currentHoSoId,
+    masterDataFetchFailed,
     updatePerson, toggleMoment, updateAction, updateAssessment, openOpportunity, submitOpportunity, handleFinalSave
   };
 }

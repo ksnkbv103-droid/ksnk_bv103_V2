@@ -33,6 +33,7 @@ export default function VSTForm({
     nhanSus, ngheNghieps, historyLocations,
     loading, initialLoading, timeLeft,
     currentHoSoId,
+    masterDataFetchFailed,
     updatePerson, toggleMoment, updateAction, updateAssessment, openOpportunity, submitOpportunity, handleFinalSave
   } = useVSTForm(onSuccess, editingSessionId ?? null);
 
@@ -183,6 +184,7 @@ export default function VSTForm({
             headerDataLoading={initialLoading}
             showGiamSatCaNhan={false}
             lockedSupervisorHoSoId={currentHoSoId}
+            suppressStaffIdentityBanner={masterDataFetchFailed}
           />
           
           {timeLeft !== null && (
