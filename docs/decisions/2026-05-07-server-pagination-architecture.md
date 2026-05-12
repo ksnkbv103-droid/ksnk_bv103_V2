@@ -1,0 +1,12 @@
+## Chuyển GSC/VST sang Server-side Pagination
+- **Ngày:** 2026-05-07
+- **Người quyết định:** Admin + AI Agent
+- **Vấn đề:** Trang lịch sử giám sát (GSC, VST) tải rất chậm — fetch toàn bộ hàng ngàn bản ghi về client, filter/sort bằng JavaScript trên trình duyệt.
+- **Phương án A:** React Query + client-side virtual scrolling — giữ full-fetch nhưng render ảo.
+  - Ưu: Không cần sửa Server Action.
+  - Nhược: Vẫn tải hàng ngàn rows vào RAM browser. Mobile crash.
+- **Phương án B:** Server-side Pagination (`useServerPaginatedTable` + `.range()` + `ilike` search).
+  - Ưu: Client chỉ nhận 20 rows/trang. DB thực hiện filter/sort/count.
+  - Nhược: Cần viết hàm phân trang mới cho mỗi module.
+- **Chọn:** Phương án B — **Lý do:** Phù hợp với Supabase native API (`.range()`, `.ilike()`), không cần thêm thư viện bên thứ ba, giảm ~99% dữ liệu truyền về client. Tạo hook tái sử dụng `useServerPaginatedTable` giảm công sức lặp.
+- **Hệ quả:** Mọi bảng lịch sử mới cũng phải dùng pattern này. `useDataTable` chỉ dùng cho bảng danh mục nhỏ (< 200 rows).

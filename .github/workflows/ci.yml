@@ -1,4 +1,4 @@
-# Gate tối thiểu (Pha A): production build + typecheck.
+# Gate tối thiểu (Pha A): Vitest (CSSD/domain) + production build + typecheck.
 # ESLint đang có nợ trong repo — chạy `npm run lint` / `npm run verify:full` local khi dọn rule.
 # MDM: sau migration chạy `npm run verify:mdm:post-migration` (remote) hoặc `verify:mdm:post-migration:local`.
 # Cần Supabase linked / DB local + env; không chạy trên PR mặc định. Thêm job + secrets nếu muốn tự động hóa.
@@ -25,4 +25,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node scripts/guard-legacy-table-names.mjs
+      - run: npm run test:cssd
+      - run: npm run verify:engineering
       - run: npm run build

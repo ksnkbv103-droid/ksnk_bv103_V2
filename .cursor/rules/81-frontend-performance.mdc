@@ -1,0 +1,36 @@
+---
+description: Frontend performance rules for KSNK data tables and components
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Frontend Performance (BV103)
+
+Áp dụng khi viết/sửa **bảng dữ liệu, hook lấy dữ liệu, Server Actions trả danh sách**.
+
+## Bảng dữ liệu (Data Tables)
+
+1. **Bảng lịch sử / giao dịch (`fact_*`):** Bắt buộc dùng `useServerPaginatedTable` + `AdvancedDataTable` với prop `serverPagination`. KHÔNG dùng `useDataTable` cho các bảng này.
+2. **Bảng danh mục nhỏ (< 200 rows):** Được dùng `useDataTable` (client-side filter/sort).
+3. **Phân trang:** Mặc định 20 rows/trang. Tối đa 50.
+4. **Tìm kiếm:** Server Actions dùng `.ilike()` hoặc `.or()` trên DB. KHÔNG filter trên Array phía client cho bảng lớn.
+5. **Sắp xếp:** Server Actions dùng `.order()`. KHÔNG sort Array phía client cho bảng lớn.
+
+## Server Actions
+
+6. **Hàm trả danh sách lớn** phải nhận params `{ page, pageSize, search, sortKey, sortDir }` và trả `{ data, totalCount }`.
+7. **Hàm đếm:** Dùng `.select("id", { count: "exact", head: true })` — nhẹ, không tải payload.
+8. **Hàm verify quyền (`verifyPermission`):** Chỉ 1 query qua View. Không "3 query tuần tự".
+9. **Promise.all:** Song song hóa request độc lập. KHÔNG gọi tuần tự khi không cần kết quả trước đó.
+
+## Dropdown & Form
+
+10. **Dropdown nhân sự (> 200 người):** Dùng Async/Searchable Select — gõ chữ → query DB. KHÔNG tải hết vào `<select>`.
+11. **Dropdown danh mục nhỏ (< 200):** Được fetch 1 lần khi mở form.
+12. **Form values:** KHÔNG gán `null` cho `value` prop. Dùng `""` (string rỗng) hoặc `undefined`.
+
+## React Rendering
+
+13. **Bảng > 100 rows render cùng lúc:** Cân nhắc Virtualization (react-window). Không bắt buộc nếu đã phân trang.
+14. **`useMemo` / `useCallback`:** Dùng cho computed data nặng, column definitions, và fetch handlers. Tránh re-render không cần thiết.
+15. **Debounce search:** 300ms delay trước khi gọi Server Action. Hook `useServerPaginatedTable` đã tích hợp sẵn.

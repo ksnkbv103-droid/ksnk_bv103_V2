@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "react-dev": {
+      "source": "softaworks/agent-toolkit",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/react-dev/SKILL.md",
+      "computedHash": "ce738985cbff5079c560709e534b5c93bbdff9bbb638e7569654521de39db0e5"
+    },
+    "reviewing-code": {
+      "source": "spencerpauly/awesome-cursor-skills",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/reviewing-code/SKILL.md",
+      "computedHash": "ada79d2ffe7657f293efb2a02d54bf35820015fc48fd1fc4ffac4962d3d4711b"
+    },
+    "smart-db-bv103": {
+      "source": "local/bv103",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/smart-db-bv103/SKILL.md",
+      "computedHash": "90f63573c8f5c88e36e48d15db99f4872284cbf41e810d890e18de2a6cbdd09b"
+    },
+    "supabase": {
+      "source": "supabase/agent-skills",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/supabase/SKILL.md",
+      "computedHash": "41f4694e5e8114215fb2c4b1b72f373dddec52eb784ec92ed8d8a6885cb0f197"
+    }
+  }
+}

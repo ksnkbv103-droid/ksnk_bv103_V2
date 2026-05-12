@@ -1,0 +1,60 @@
+"use server";
+
+import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { verifyPermission } from "@/lib/server-permission";
+import type { Station } from "../types/cssd.types";
+import { safeRevalidate, tableHasColumn } from "./cssd-action-common";
+import {
+  executeWorkflowStationScan,
+  fetchLatestActiveWorkflowByQr,
+  type WorkflowQuyTrinhInput,
+} from "../workflow/application/cssd-workflow-application";
+
+async function cssdScanOperatorLabel(): Promise<string> {
+  try {
+    const uc = await createServerSupabaseUserClient();
+    const { data } = await uc.auth.getUser();
+    const email = data.user?.email?.trim();
+    if (email) return email;
+    return "CSSD";
+  } catch {
+    return "CSSD";
+  }
+}
+
+
+export async function scanQR(maQR: string, station: Station, extraPayload?: Record<string, any>) {
+  const supabase = createAdminSupabaseClient();
+  await verifyPermission("CSSD_WORKFLOW", "edit");
+
+  /** TK chỉ qua phiếu/mẻ (/cssd-erp/batch): không có quét «trạm tiệt khuẩn» trên luồng 6 trạm. */
+  if (station === "TIET_KHUAN") {
+    throw new Error(
+      "Không xử lý tiệt khuẩn bằng quét tại trang này khi chưa có phiếu mẻ. Vào CSSD → Mẻ tiệt khuẩn (/cssd-erp/batch): tạo phiếu, rồi quét QR bộ trong màn hình mẻ.",
+    );
+  }
+
+  const code = String(maQR || "").trim().toUpperCase();
+  const operatorLabel = await cssdScanOperatorLabel();
+
+  // 1. Thực hiện nghiệp vụ qua RPC tập trung (Atomicity & Speed)
+  const result = await executeWorkflowStationScan(supabase, {
+    maQR: code,
+    station,
+    quyTrinh: {} as any, // quyTrinh no longer needed for primary logic
+    hasDongBangColumn: true,
+    operatorLabel,
+    extraPayload,
+  });
+
+  safeRevalidate("/cssd-erp");
+
+  // 2. Lấy tên bộ từ View phẳng để hiển thị (Performance)
+  const { data: viewRow } = await supabase
+    .from("v_fact_quy_trinh_full")
+    .select("ten_bo")
+    .eq("ma_qr_quy_trinh", code)
+    .maybeSingle();
+
+  return { success: true as const, tenBoDungCu: (viewRow as any)?.ten_bo || code };
+}

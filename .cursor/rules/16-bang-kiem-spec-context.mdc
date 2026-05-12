@@ -1,0 +1,11 @@
+---
+description: Bảng kiểm (quản trị) — neo mapping & ma trận UI/action/DB
+globs: src/modules/quan-tri-he-thong/bang-kiem/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Bảng kiểm — ngữ cảnh spec
+
+- [`docs/specs/10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md)
+- [`docs/specs/PREP0_UI_ACTION_DB_MATRIX.md`](../../docs/specs/PREP0_UI_ACTION_DB_MATRIX.md) khi đổi import/export hoặc action lưu
+- `src/lib/permission-registry.ts` — quyền module `BANG_KIEM` (ví dụ `import`)

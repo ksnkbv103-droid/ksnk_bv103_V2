@@ -1,0 +1,16 @@
+---
+description: KSNK code style and file size constraints
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Code Style and Size
+
+- Keep each component/action/hook file at or below 180 lines when possible.
+- Split large files by single responsibility immediately.
+- Use `kebab-case` for file and folder names.
+- Use `camelCase` for variables and function names.
+- Write code comments in Vietnamese with diacritics when comments are needed.
+- In UI labels, prefer "và" instead of "&".
+- Avoid `any`; prefer explicit types or narrow unknown values.
+- Keep functions focused: one function should handle one clear responsibility.

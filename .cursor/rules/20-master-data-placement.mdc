@@ -1,0 +1,14 @@
+---
+description: Enforce master data location and structure
+globs: src/modules/{cssd-erp,quan-tri-he-thong}/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Master Data Placement
+
+- Danh mục lõi: khai qua **domain-registry** → bảng `dm_*`; **không** thêm bảng `dict_*` mới làm lớp danh mục chuẩn.
+- All master data modules must live under `src/modules/quan-tri-he-thong/danh-muc/`.
+- Do not place master data screens inside `cssd-erp` module.
+- Before rebuilding a module, remove old module structure cleanly first.
+- After rebuild/refactor, provide updated folder structure for verification.
+- If master data code is found in the wrong module, move it to the correct location instead of duplicating.

@@ -1,26 +1,298 @@
 @import "tailwindcss";
 
+/* ============================================
+   BIẾN MÀU THƯƠNG HIỆU - BỆNH VIỆN QUÂN Y 103
+   ============================================ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primary - Xanh Quân đội */
+  --primary: #026f17;
+  --primary-hover: #015a12;
+  --primary-light: #e6f2e6;
+
+  /* Accent - Vàng Hổ Phách */
+  --accent: #f59e0b;
+  --accent-hover: #d97706;
+
+  /* Trạng thái */
+  --danger: #ef4444;
+  --success: #026f17;
+  --warning: #f59e0b;
+
+  /* Nền */
+  --bg-body: #f8fafc;
+  --bg-panel: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.85);
+
+  /* Text */
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+
+  /* Elevated surfaces (chuẩn ứng dụng MIS chuyên nghiệp) */
+  --shadow-app-soft: 0 1px 2px rgb(15 23 42 / 0.05), 0 10px 24px rgb(15 23 42 / 0.04);
+  --shadow-app-header: 0 1px 0 rgb(15 23 42 / 0.06);
+
+  --radius-shell: 1rem;
+  --radius-table: 0.875rem;
+
+  color-scheme: light;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* ============================================
+   BASE STYLES
+   ============================================ */
+@layer base {
+  * {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  html, body {
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-primary);
+    @apply pointer-events-auto;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 700;
+    letter-spacing: -0.025em;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ============================================
+   COMPONENT STYLES
+   ============================================ */
+@layer components {
+
+  /* Premium Card */
+  .premium-card {
+    @apply rounded-3xl border border-gray-200 bg-white shadow-sm transition-all duration-300;
+  }
+
+  .premium-card:hover {
+    @apply shadow-lg border-gray-300;
+  }
+
+  /* Glass Panel */
+  .glass-panel {
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+  }
+
+  /* Button styles */
+  .btn-primary {
+    @apply px-6 py-3 rounded-full bg-[var(--primary)] text-white font-semibold hover:bg-[var(--primary-hover)] transition-all duration-200 flex items-center justify-center gap-2 shadow-sm;
+  }
+
+  .btn-accent {
+    @apply px-6 py-3 rounded-full bg-[var(--accent)] text-white font-semibold hover:bg-[var(--accent-hover)] transition-all duration-200 flex items-center justify-center gap-2 shadow-sm;
+  }
+
+  /* Input & Select */
+  .input {
+    @apply w-full px-4 py-3 rounded-full border border-gray-300 focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none transition-all duration-200;
+  }
+
+  .select {
+    @apply w-full px-4 py-3 rounded-full border border-gray-300 focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none bg-white transition-all duration-200;
+  }
+
+  /* Label */
+  .form-label {
+    @apply block text-xs font-black text-[var(--primary)]/70 uppercase tracking-[0.15em] mb-1.5;
+  }
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+@layer utilities {
+  .heading-module {
+    @apply text-3xl font-black text-[var(--primary)] uppercase tracking-tighter;
+  }
+
+  .stat-value {
+    @apply text-4xl font-black text-[var(--primary)] tabular-nums;
+  }
+
+  .section-label {
+    @apply text-[10px] font-black text-[var(--primary)]/30 uppercase tracking-[0.15em];
+  }
+
+  /* Vùng bảng / nội dung trong shell ứng dụng — phân lớp nền rõ nhưng không lòe */
+  .app-data-shell {
+    border-radius: var(--radius-shell);
+    background: var(--bg-panel);
+    box-shadow: var(--shadow-app-soft);
+    border: 1px solid rgb(226 232 240 / 0.95);
+  }
+
+  /* Trạng thái & focus thống nhất (accessible) */
+  .app-shell-focus:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--bg-body), 0 0 0 4px var(--primary);
+  }
+}
+
+/* ============================================
+   PRINT STYLES - CHUẨN A4 QUÂN Y 103
+   ============================================ */
+
+@page {
+  size: A4 portrait;
+  margin: 15mm 12mm 15mm 15mm;
+}
+
+@media print {
+  /* Chỉ in vùng #print-area để tránh mọi lớp vỏ UI bên ngoài */
+  body * {
+    visibility: hidden !important;
+  }
+  #print-area,
+  #print-area * {
+    visibility: visible !important;
+  }
+
+  /* 1. Reset nền trắng — cho phép nội dung tràn nhiều trang */
+  html, body {
+    font-family: 'Times New Roman', serif !important;
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 2. Ẩn các thành phần UI mặc định */
+  aside,
+  nav,
+  header:not(.print-header),
+  footer:not(.print-footer),
+  .no-print,
+  [role="tablist"],
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+
+  /* 3. Vùng in A4 — KHÔNG dùng position:fixed (Chrome chỉ in 1 trang, cắt phần còn lại) */
+  .print-area, #print-area {
+    display: block !important;
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    background: white !important;
+    font-family: 'Times New Roman', Times, serif !important;
+    border: none !important;
+    border-radius: 0 !important;
+    outline: none !important;
+    overflow: visible !important;
+  }
+  
+  .print-a4-page {
+    width: 100% !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    background: white !important;
+    font-family: 'Times New Roman', Times, serif !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  /* 3b. Phẳng hóa vùng in: bỏ bóng, lớp kính, bo góc trang trí */
+  .print-area,
+  .print-area *,
+  #print-area,
+  #print-area * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .print-area .print-content div,
+  #print-area .print-content div {
+    border-radius: 0 !important;
+  }
+  .print-content {
+    background: #fff !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  /* 4. Bảng: phẳng, không nền màu */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border: 1px solid #000 !important;
+    font-family: 'Times New Roman', Times, serif !important;
+  }
+
+  /* Cho phép tách hàng giữa các trang — tránh một hàng quá cao bị cắt / chỉ in một trang */
+  tr {
+    page-break-inside: auto !important;
+  }
+
+  th, td {
+    border: 1px solid #000 !important;
+    padding: 6px 8px !important;
+    font-size: 13px !important;
+    font-family: 'Times New Roman', Times, serif !important;
+  }
+
+  th {
+    background-color: #fff !important;
+    color: #000 !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    font-size: 12px !important;
+    letter-spacing: 0.03em !important;
+  }
+
+  /* 5. Tiện ích */
+  .page-break {
+    page-break-after: always !important;
+  }
+  
+  .break-inside-avoid {
+    page-break-inside: avoid !important;
+  }
+
+  /* 6. Card/panel khi in: phẳng hoàn toàn, không viền/khung */
+  .premium-card, .glass-panel {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+  }
+  .app-data-shell {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+}
+
+.overlay-mobile {
+  pointer-events: auto !important;
 }

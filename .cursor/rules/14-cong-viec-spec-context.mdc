@@ -1,0 +1,13 @@
+---
+description: Quản lý công việc — neo luồng & mapping
+globs: src/modules/quan-ly-cong-viec/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Công việc mạng lưới — ngữ cảnh spec
+
+Trước khi sửa task, minh chứng, import, notification:
+
+1. [`docs/specs/working/03-journeys-and-flows-catalog.md`](../../docs/specs/working/03-journeys-and-flows-catalog.md) — luồng công việc / mạng lưới (nếu có mục tương ứng)
+2. [`docs/specs/10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md)
+3. [`docs/specs/PREP0_UI_ACTION_DB_MATRIX.md`](../../docs/specs/PREP0_UI_ACTION_DB_MATRIX.md) khi đổi UI/action/DB

@@ -1,0 +1,15 @@
+---
+description: BV103 — lõi (tối giản token)
+alwaysApply: true
+---
+
+# Core KSNK 103
+
+- Chuẩn cao nhất: [`AGENTS.md`](../../AGENTS.md).
+- **Một file thực thi + checklist PR:** [`docs/specs/working/LEAN_EXECUTION_BV103.md`](../../docs/specs/working/LEAN_EXECUTION_BV103.md).
+- **Skill allowlist:** [`docs/specs/SKILLS_CATALOG.md`](../../docs/specs/SKILLS_CATALOG.md).
+- **Đọc tối thiểu theo diff:** [`docs/specs/READ_MINIMUM_BY_CHANGE.md`](../../docs/specs/READ_MINIMUM_BY_CHANGE.md).
+- **Phân cấp:** `AGENTS.md` → rule có **glob** trên file đang sửa (`12–16` theo module) → `docs/specs`.
+- **Một module / nhịp:** không audit cả repo khi sửa điểm nhỏ — xem `LEAN_EXECUTION`.
+- **Trước khi xong** task đụng Server Action / `fact_*`: `npm run verify:engineering` (hoặc `verify:full` trước push).
+- Self-check: đúng module; ranh giới CSSD vs MDM; mapping DB khớp [`10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md).

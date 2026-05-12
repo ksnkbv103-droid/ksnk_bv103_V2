@@ -1,0 +1,16 @@
+---
+description: Mobile-first and touch optimization requirements
+globs: src/**/*.{tsx,css}
+alwaysApply: false
+---
+
+# Mobile and Touch Requirements
+
+- During feature delivery, keep mobile/tablet layouts usable without visual breakage.
+- Apply full mobile-first/touch hardening after core logic and data flow are stable.
+- Interactive controls (button/card/input) should include:
+  - `touch-manipulation`
+  - `pointer-events-auto`
+  - `-webkit-tap-highlight-color: transparent`
+- Mobile sidebar should use overlay and explicit toggle behavior.
+- Keep touch targets easy to tap on mobile screens.

@@ -1,0 +1,16 @@
+---
+description: Giám sát (VST / GSC) — neo spec domain & mapping
+globs: src/modules/giam-sat-*/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Giám sát — ngữ cảnh spec
+
+Trước khi sửa form, phiên quan sát, điểm số, import/export:
+
+1. [`docs/specs/working/01-domain-checklist-ubiquitous-language.md`](../../docs/specs/working/01-domain-checklist-ubiquitous-language.md)
+2. [`docs/specs/working/03-journeys-and-flows-catalog.md`](../../docs/specs/working/03-journeys-and-flows-catalog.md) — luồng giám sát liên quan
+3. [`docs/specs/10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md)
+4. [`docs/specs/working/06-clinical-ui-ux-guidelines.md`](../../docs/specs/working/06-clinical-ui-ux-guidelines.md) khi đụng UI tại hiện trường
+
+**Nhắc domain:** VST tối đa **3 đối tượng** một phiên (trừ khi có yêu cầu mới). Fact: ưu tiên đính chính + soft-delete khi phù hợp.

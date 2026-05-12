@@ -1,0 +1,25 @@
+---
+description: Architecture boundaries and source of truth
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Architecture and Boundaries
+
+- `src/lib/permission-registry.ts` is the single source of truth for modules and permissions.
+- Any new module must be registered in permission registry.
+- Master nền: mọi loại đã khai trong `domain-registry` → bảng `dm_*` tương ứng; hub `danh_muc_tuy_bien` đã sunset (migration drop bảng).
+- Incident reporting must follow Configuration-Driven Hybrid EAV (`su_co` + `su_co_chi_tiet`).
+- CSSD ERP must stay in business workflow scope only (view/status operations).
+- Before creating new folders/files, verify they respect the existing module boundaries.
+- If a change spans multiple modules, keep business logic reusable and avoid cross-module coupling.
+- Keep schema and application in sync: when DB fields change, update actions/types/forms/tables in the same change set.
+- Avoid ad-hoc column renames; use clear migrations and rollback-safe steps.
+
+## Domain spec alignment (BV103)
+
+- Canonical engineering rules remain `AGENTS.md`; narrative BRD/DDD/NFR/UI lâm sàng live under `docs/specs/` (see `docs/specs/README.md`, split files `01–09`, `docs/specs/10-bv103-implementation-mapping.md`, and **đọc tối thiểu:** `docs/specs/READ_MINIMUM_BY_CHANGE.md`).
+- **CSSD sterilization split:** business rules for heat vs non-heat paths and batch completeness belong in server actions / DB constraints—no bypassing validated transitions.
+- **Hand hygiene / multi-subject audits:** when the product requires it, cap concurrent observed subjects per session at **three** unless an explicit new requirement changes it.
+- **Sensitive facts:** prefer amendment flows and soft-delete patterns over hard deletes for traceability (no project-wide Postgres change-log table; `fact_activity_log` removed).
+- **Future HIS/LIS:** design inputs/validation so payloads can later map to interoperability standards (e.g. FHIR-shaped JSON); the app stack stays Next.js Server Actions + Supabase unless the project explicitly adds a REST BFF.

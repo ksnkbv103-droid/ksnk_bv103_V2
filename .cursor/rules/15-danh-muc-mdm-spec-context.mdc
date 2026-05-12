@@ -1,0 +1,16 @@
+---
+description: Danh mục / MDM / import master — neo ADR & boundary
+globs: src/modules/quan-tri-he-thong/danh-muc/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Danh mục & MDM — ngữ cảnh spec
+
+Trước khi thêm/sửa CRUD, import, registry:
+
+1. [`docs/specs/working/02-adr-dm-dict-domain-registry.md`](../../docs/specs/working/02-adr-dm-dict-domain-registry.md)
+2. [`docs/specs/working/04-system-boundaries-and-master-data.md`](../../docs/specs/working/04-system-boundaries-and-master-data.md)
+3. [`docs/specs/10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md)
+4. Cùng rule folder: `20-master-data-placement.mdc`
+
+**Không** thêm `dict_*` mới làm chuẩn; danh mục lõi qua **domain-registry** → `dm_*`.

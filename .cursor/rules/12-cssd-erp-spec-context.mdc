@@ -1,0 +1,16 @@
+---
+description: CSSD ERP — bắt buộc neo spec luồng & mapping trước khi đổi sâu
+globs: src/modules/cssd-erp/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# CSSD ERP — ngữ cảnh spec
+
+Trước khi chốt thiết kế / sửa lớn server action hoặc schema CSSD:
+
+1. [`docs/specs/working/03-journeys-and-flows-catalog.md`](../../docs/specs/working/03-journeys-and-flows-catalog.md) — luồng CSSD (làm sạch / HLD / tiệt khuẩn, mẻ, quét).
+2. [`docs/specs/working/07-physical-erd-specification.md`](../../docs/specs/working/07-physical-erd-specification.md) — khi đụng bảng/FK vật lý.
+3. [`docs/specs/10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md) — tên bảng/cột thật BV103.
+4. `AGENTS.md` — ranh giới: CSSD không ôm master data nền; master qua `quan-tri-he-thong/danh-muc`.
+
+**Luật nghiệp vụ:** tiệt khuẩn theo nhiệt/phi nhiệt; bộ chỉ đạt vô khuẩn khi **mọi** thành phần/mẻ liên quan đạt — không shortcut trong action.
