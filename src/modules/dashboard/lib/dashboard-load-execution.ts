@@ -1,5 +1,6 @@
 import { getDashboardSummaryTable } from "../actions/compliance-dashboard.actions";
 import { getOverviewDashboardBundle } from "../actions/overview-dashboard-bundle.actions";
+import { getDashboardGapBundle } from "../actions/gap-dashboard-bundle.actions";
 import type { DashboardSummaryRow } from "../compliance-dashboard.types";
 import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
 import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
@@ -28,6 +29,8 @@ export type DashboardLoadInput = {
   fetchPayloadsForType: FetchFn;
   /** Tham số filter cho bundle overview (1 POST thay vì 2× fetch client). */
   overviewBundleArgs?: OverviewDashboardBundleInput | null;
+  /** Tham số cho tab Đối soát (1 POST thay vì 3× fetch client). */
+  gapBundleArgs?: OverviewDashboardBundleInput | null;
 };
 
 export type DashboardLoadResult = {
@@ -95,13 +98,22 @@ export async function executeDashboardLoad(input: DashboardLoadInput): Promise<D
       gsc = res.gsc;
     }
   } else if (input.activeTab === "gap") {
-    const [resKq, resCheo, resTgs] = await Promise.all([
-      input.fetchPayloadsForType("KSNK", bangKiemForFetch),
-      input.fetchPayloadsForType("CHEO", bangKiemForFetch),
-      input.fetchPayloadsForType("TU_GIAM_SAT", bangKiemForFetch),
-    ]);
-    vstGap = { kq: resKq.vst, cheo: resCheo.vst, tgs: resTgs.vst };
-    complianceGap = buildComplianceGapMap(resKq, resCheo, resTgs, input.tuNgay, input.denNgay);
+    if (input.gapBundleArgs) {
+      const gap = await getDashboardGapBundle({
+        ...input.gapBundleArgs,
+        bangKiemOverride: bangKiemForFetch,
+      });
+      vstGap = gap.vstGap;
+      complianceGap = gap.complianceGap;
+    } else {
+      const [resKq, resCheo, resTgs] = await Promise.all([
+        input.fetchPayloadsForType("KSNK", bangKiemForFetch),
+        input.fetchPayloadsForType("CHEO", bangKiemForFetch),
+        input.fetchPayloadsForType("TU_GIAM_SAT", bangKiemForFetch),
+      ]);
+      vstGap = { kq: resKq.vst, cheo: resCheo.vst, tgs: resTgs.vst };
+      complianceGap = buildComplianceGapMap(resKq, resCheo, resTgs, input.tuNgay, input.denNgay);
+    }
   }
 
   return {

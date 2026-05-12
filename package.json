@@ -16,6 +16,7 @@
     "pilot:ship": "npm run env:check && npm run verify:engineering && npm run build && npm run mdm:migrate && npm run trial:db:precheck",
     "trial:db:precheck": "npx supabase db query --linked --agent=no -f scripts/sql/trial-four-modules-precheck.sql -o table",
     "trial:db:precheck:local": "npx supabase db query --local --agent=no -f scripts/sql/trial-four-modules-precheck.sql -o table",
+    "pilot:dashboard:explain:linked": "npx supabase db query --linked --agent=no -f scripts/sql/pilot-dashboard-rpc-explain-01-summary.sql && npx supabase db query --linked --agent=no -f scripts/sql/pilot-dashboard-rpc-explain-02-compliance-multi.sql && npx supabase db query --linked --agent=no -f scripts/sql/pilot-dashboard-rpc-explain-03-vst.sql",
     "mdm:refresh": "node scripts/mdm-governance-refresh.mjs",
     "mdm:coverage:gate": "node scripts/mdm-coverage-gate.mjs",
     "mdm:fallback:audit": "node scripts/mdm-fallback-audit.mjs",

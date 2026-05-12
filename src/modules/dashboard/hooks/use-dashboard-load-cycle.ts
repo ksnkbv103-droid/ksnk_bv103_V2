@@ -100,6 +100,19 @@ export function useDashboardLoadCycle(args: {
     if (!initDone) return;
     setLoading(true);
     try {
+      const sharedBundleArgs = {
+        selectedBangKiemMas,
+        selectedKhoiIds,
+        selectedKhoaIds,
+        selectedNgheIds,
+        selectedKhuVucIds,
+        tuNgay,
+        denNgay,
+        khoiOptionCount,
+        khoaOptionCount,
+        ngheOptionCount,
+        khuOptionCount,
+      };
       const out = await executeDashboardLoad({
         tuNgay,
         denNgay,
@@ -109,22 +122,8 @@ export function useDashboardLoadCycle(args: {
         filterOptions,
         activeTab,
         fetchPayloadsForType,
-        overviewBundleArgs:
-          activeTab === "overview"
-            ? {
-                selectedBangKiemMas,
-                selectedKhoiIds,
-                selectedKhoaIds,
-                selectedNgheIds,
-                selectedKhuVucIds,
-                tuNgay,
-                denNgay,
-                khoiOptionCount,
-                khoaOptionCount,
-                ngheOptionCount,
-                khuOptionCount,
-              }
-            : null,
+        overviewBundleArgs: activeTab === "overview" ? sharedBundleArgs : null,
+        gapBundleArgs: activeTab === "gap" ? sharedBundleArgs : null,
       });
       setSummaryTable(out.summaryRows);
       if (out.nextBangKiemSelection) {

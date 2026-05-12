@@ -1,18 +1,7 @@
 "use client";
 
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  LabelList,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
+import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
 import type { KhoaBarRow } from "./vst-dashboard-panel-derive";
 
 type TyLePoint = { label: string; ty_le: number };
@@ -24,8 +13,7 @@ export function VstTrendStyleLineChart({ data }: { data: TyLePoint[] }) {
   }
   const tiltLabels = data.length > 6;
   return (
-    <div className="h-[300px] w-full min-w-0">
-      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+    <Bv103ResponsiveChart className="h-[300px] w-full min-w-0">
         <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: tiltLabels ? 28 : 8 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
           <XAxis
@@ -52,8 +40,7 @@ export function VstTrendStyleLineChart({ data }: { data: TyLePoint[] }) {
             activeDot={{ r: 6, fill: "#026f17", stroke: "#fff", strokeWidth: 2 }}
           />
         </LineChart>
-      </ResponsiveContainer>
-    </div>
+    </Bv103ResponsiveChart>
   );
 }
 
@@ -65,8 +52,7 @@ export function KhoaComplianceBarChart({ rows }: { rows: KhoaBarRow[] }) {
   const h = Math.min(1200, Math.max(320, rows.length * 26 + 56));
 
   return (
-    <div className="w-full min-w-0" style={{ height: h }}>
-      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+    <Bv103ResponsiveChart className="w-full min-w-0" style={{ height: h }}>
         <BarChart layout="vertical" data={rows} margin={{ top: 8, right: 52, left: 4, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
           <XAxis
@@ -102,8 +88,7 @@ export function KhoaComplianceBarChart({ rows }: { rows: KhoaBarRow[] }) {
             />
           </Bar>
         </BarChart>
-      </ResponsiveContainer>
-    </div>
+    </Bv103ResponsiveChart>
   );
 }
 
@@ -118,8 +103,7 @@ export function RateBarChart({
     return <div className="text-xs text-slate-400 py-4 text-center">Không có dữ liệu so sánh</div>;
 
   return (
-    <div style={{ height: heightPx }} className="min-h-[200px] w-full min-w-0">
-      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+    <Bv103ResponsiveChart style={{ height: heightPx }} className="min-h-[200px] w-full min-w-0">
         <BarChart data={rows} margin={{ top: 20 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
           <XAxis dataKey="ten" tick={{ fill: "#64748b", fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} />
@@ -140,7 +124,6 @@ export function RateBarChart({
             />
           </Bar>
         </BarChart>
-      </ResponsiveContainer>
-    </div>
+    </Bv103ResponsiveChart>
   );
 }

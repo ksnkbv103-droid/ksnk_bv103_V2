@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
+import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
 import { Users, Eye, ClipboardList } from "lucide-react";
 import type { MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
 
@@ -93,7 +94,7 @@ export const SupervisionSourceStats: React.FC<SupervisionSourceStatsProps> = ({
           <h3 className="mb-8 text-sm font-black uppercase tracking-widest text-slate-900">Tỉ lệ cơ cấu nguồn giám sát (Tổng hợp)</h3>
           <div className="flex min-w-0 flex-col items-center gap-8 md:flex-row">
             <div className="h-[240px] w-full min-w-0 shrink-0 md:w-1/2">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <Bv103ResponsiveChart className="h-full w-full">
                 <PieChart>
                   <Pie
                     data={pieData}
@@ -110,7 +111,7 @@ export const SupervisionSourceStats: React.FC<SupervisionSourceStatsProps> = ({
                   </Pie>
                   <Tooltip />
                 </PieChart>
-              </ResponsiveContainer>
+              </Bv103ResponsiveChart>
             </div>
             <div className="w-full space-y-4 md:w-1/2">
               {pieData.map((s) => (

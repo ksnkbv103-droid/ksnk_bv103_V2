@@ -303,6 +303,18 @@ Lặp bảng **G2** trên URL production.
 
 ---
 
+## Phần I — Hiệu năng pilot (ôn định sau deploy)
+
+| Việc | Ghi chú |
+|------|---------|
+| **Khoảng ngày mặc định** | Command Center + fallback server dùng `BV103_ANALYTICS_DEFAULT_MONTHS` ([`src/lib/bv103-analytics-default-range.ts`](../../../src/lib/bv103-analytics-default-range.ts)). Rút ngắn khoảng mặc định giảm tải RPC; nhu cầu 12 tháng → chỉnh trong bộ lọc UI. |
+| **Một POST / tab** | Dashboard: overview & tab Đối soát đã gom bundle server — tránh tự thêm N lần gọi action cho cùng một màn. |
+| **Session** | Next 16: [`src/proxy.ts`](../../../src/proxy.ts) làm mới cookie trước RSC — không thêm `middleware.ts` song song. |
+| **Đo thật** | `npm run pilot:dashboard:explain:linked` — chạy `EXPLAIN (ANALYZE, BUFFERS)` lần lượt cho `rpc_get_dashboard_summary_table`, `rpc_get_compliance_dashboard_multi_v1` (1 mã `dm_bang_kiem` để tránh trùng temp table trong multi), `rpc_get_vst_dashboard_v2` (~6 tháng). Hoặc SQL Editor với các file trong `scripts/sql/pilot-dashboard-rpc-explain-0*.sql`. |
+| **Index** | Chỉ thêm index khi `EXPLAIN (ANALYZE)` chứng minh sequential scan lớn trên `fact_*` theo cột lọc ngày/khoa — khớp [`SMART_DB_PRAGMATIC_PLAYBOOK.md`](../SMART_DB_PRAGMATIC_PLAYBOOK.md). |
+
+---
+
 ## Tóm tắt lệnh theo thứ tự (copy-paste)
 
 **Một lệnh gộp** (sau khi đã có `.env.local` + `supabase link` — xem Phần B/C/D):

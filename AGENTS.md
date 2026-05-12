@@ -1,7 +1,7 @@
 # KSNK 103 — AGENTS.md (V8 · tối giản)
 
 > BV103 — Khoa Kiểm soát nhiễm khuẩn · Quân y 103  
-> **Chuẩn cao nhất trong repo.** Cập nhật: 11/05/2026.
+> **Chuẩn cao nhất trong repo.** Cập nhật: 13/05/2026.
 
 ## Ưu tiên sản phẩm (1 câu)
 
@@ -28,6 +28,24 @@
 | Index spec | [`docs/specs/README.md`](docs/specs/README.md) |
 | Admin client audit | [`docs/specs/working/SUPABASE_ADMIN_CLIENT_AUDIT_BV103.md`](docs/specs/working/SUPABASE_ADMIN_CLIENT_AUDIT_BV103.md) |
 | **Deploy pilot 4 module** (Quản trị, GSC, VST, Dashboard) | [`docs/specs/working/DEPLOY_FOUR_MODULES_BV103.md`](docs/specs/working/DEPLOY_FOUR_MODULES_BV103.md) |
+
+## Tiết kiệm token & quota (agent + người vận hành)
+
+- **Một vòng deploy = một gói tín hiệu:** đính kèm log lỗi đầy đủ (CI / build / runtime) + URL bước tái hiện; tránh nhắn nhiều lần “vẫn lỗi” không có log.  
+- **Đọc tối thiểu:** [`READ_MINIMUM_BY_CHANGE.md`](docs/specs/READ_MINIMUM_BY_CHANGE.md) + diff nhỏ; không mở rộng phạm vi “dọn cả repo” khi chỉ cần sửa một lỗi deploy.  
+- **Xác minh trước khi hỏi AI:** `npm run build` / `npm run verify:engineering` local giống gate CI càng gần càng tốt — giảm vòng lặp đoán mò trên máy agent.  
+- **Không nhân đôi ngữ cảnh:** một task → một thread rõ ràng; tách PR lớn thành mảnh nhỏ thay vì một phiên chat kéo dài nhiều chủ đề.  
+- **Kỹ năng có giới hạn:** tối đa **2 skill / phiên** (đã nêu ở trên) — chỉ bật skill khi thật sự cần.
+
+## Hiệu năng, tải trang & code “thông minh” (tránh chậm + tránh lỗi)
+
+- **Giảm round-trip:** gom nhiều gọi server vào **một Server Action** khi cùng một màn hình cần dữ liệu song song (ví dụ bundle dashboard); tránh N lần POST từ client cho một thao tác người dùng.  
+- **Tránh waterfall không cần thiết:** sau khi đảm bảo đúng nghiệp vụ, ưu tiên `Promise.all` trên server thay vì chuỗi `await` dài từ client.  
+- **Route nặng (chart / bundle lớn):** cân nhắc `next/dynamic` + tách view — **không** đổi hành vi nghiệp vụ chỉ để “gọn file”; mục tiêu là **giảm JS ban đầu** và tránh hydrate tốn kém nếu không cần SSR.  
+- **Auth & tác vụ phụ:** làm mới session qua **`src/proxy.ts`** (Next 16 — thay `middleware.ts`) và **hoãn** tác vụ không chặn UI (idle / sau tải chính) — không hy sinh kiểm tra bắt buộc (inactive, quyền).  
+- **Đo trước khi tối ưu sâu:** Network waterfall + thời gian RPC; tối ưu DB (index, RPC) thường mang lại nhiều hơn so với chỉnh JSX.  
+- **Khoảng ngày mặc định analytics:** hằng số `BV103_ANALYTICS_DEFAULT_MONTHS` trong [`src/lib/bv103-analytics-default-range.ts`](src/lib/bv103-analytics-default-range.ts) — chỉnh **một chỗ**; tăng tháng = tải RPC nặng hơn.  
+- **An toàn khi tối ưu:** không bỏ gate quyền / soft-delete / ranh giới module để “nhanh hơn”; mọi thay đổi perf phải **verify** (`verify:engineering` / build) khi đụng Action hoặc `fact_*`.
 
 ## Kiến trúc & dữ liệu (tóm tắt)
 

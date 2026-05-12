@@ -25,6 +25,15 @@ function shouldRunGateTask(key: string, ttlMs: number) {
   return true;
 }
 
+/** Tránh tranh băng thông với tải dashboard lần đầu — chạy sau idle hoặc trễ nhẹ. */
+function scheduleNonUrgent(fn: () => void) {
+  if (typeof requestIdleCallback !== "undefined") {
+    requestIdleCallback(() => fn(), { timeout: 4000 });
+    return;
+  }
+  setTimeout(fn, 300);
+}
+
 /** Đăng xuất nếu hồ sơ nhân sự bị vô hiệu hóa; Tự động liên kết tài khoản nếu cần. */
 export default function StaffSessionGate() {
   const pathname = usePathname();
@@ -51,16 +60,21 @@ export default function StaffSessionGate() {
         }
       }
 
-      // 2. Tự động liên kết tài khoản (ngầm)
+      // 2. Tự động liên kết tài khoản (ngầm) — hoãn để không chặn tải trang chính
       const shouldSync = shouldRunGateTask("staff_gate_link_sync_at", STAFF_GATE_LINK_SYNC_TTL_MS);
       if (shouldSync) {
-        const linkRes = await syncAccountLinkAction();
-        if (linkRes.success && "autoLinked" in linkRes && linkRes.autoLinked) {
-          toast.success(`Hệ thống đã tự động liên kết tài khoản với hồ sơ: ${linkRes.nhanSuId}`, {
-            description: "Việc liên kết giúp ghi nhận chính xác người thực hiện công việc.",
-            duration: 5000
-          });
-        }
+        scheduleNonUrgent(() => {
+          void (async () => {
+            const linkRes = await syncAccountLinkAction();
+            if (cancelled) return;
+            if (linkRes.success && "autoLinked" in linkRes && linkRes.autoLinked) {
+              toast.success(`Hệ thống đã tự động liên kết tài khoản với hồ sơ: ${linkRes.nhanSuId}`, {
+                description: "Việc liên kết giúp ghi nhận chính xác người thực hiện công việc.",
+                duration: 5000,
+              });
+            }
+          })();
+        });
       }
     };
 
@@ -75,7 +89,9 @@ export default function StaffSessionGate() {
           router.replace("/login");
           router.refresh();
         }
-        await syncAccountLinkAction();
+        scheduleNonUrgent(() => {
+          void syncAccountLinkAction();
+        });
       })();
     });
 

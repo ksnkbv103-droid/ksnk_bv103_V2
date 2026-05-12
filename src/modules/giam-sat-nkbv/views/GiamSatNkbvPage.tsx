@@ -3,7 +3,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BarChart3, LayoutList, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { format, startOfMonth, subMonths } from "date-fns";
+import { format } from "date-fns";
+import { bv103DefaultTuNgayFromToday } from "@/lib/bv103-analytics-default-range";
 import { vi } from "date-fns/locale";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import {
@@ -83,7 +84,7 @@ export default function GiamSatNkbvPage() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [draft, setDraft] = useState<NkbvCaseLike | null>(null);
   const [mainTab, setMainTab] = useState<"cases" | "dashboard">("cases");
-  const [dashTu, setDashTu] = useState(() => format(startOfMonth(subMonths(new Date(), 11)), "yyyy-MM-dd"));
+  const [dashTu, setDashTu] = useState(() => bv103DefaultTuNgayFromToday());
   const [dashDen, setDashDen] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const [dashPayload, setDashPayload] = useState<NkbvDashboardPayload | null>(null);
   const [dashLoading, setDashLoading] = useState(false);

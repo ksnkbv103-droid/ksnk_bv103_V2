@@ -2,7 +2,6 @@
 
 import React from "react";
 import {
-  ResponsiveContainer,
   BarChart,
   Bar,
   XAxis,
@@ -14,6 +13,7 @@ import {
   Line,
   Cell,
 } from "recharts";
+import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
 import { Activity, Layers, PieChart, ShieldCheck, Warehouse } from "lucide-react";
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
 
@@ -139,8 +139,7 @@ export default function NkbvDashboardPanel({
               <h3 className="mb-4 text-[11px] font-black uppercase tracking-widest text-slate-700">
                 Xu hướng phiếu theo tháng
               </h3>
-              <div className="h-[280px] w-full min-h-[260px] min-w-0">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <Bv103ResponsiveChart className="h-[280px] w-full min-h-[260px] min-w-0">
                   <LineChart data={payload.monthly} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="label" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
@@ -158,16 +157,14 @@ export default function NkbvDashboardPanel({
                       dot={{ r: 4, fill: "#026f17" }}
                     />
                   </LineChart>
-                </ResponsiveContainer>
-              </div>
+              </Bv103ResponsiveChart>
             </div>
 
             <div className="premium-card rounded-[36px] border border-slate-50 bg-white p-6 shadow-xl shadow-slate-200/40">
               <h3 className="mb-4 text-[11px] font-black uppercase tracking-widest text-slate-700">
                 Phân bố theo loại HAI/NKBV
               </h3>
-              <div className="h-[280px] w-full min-h-[260px] min-w-0">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <Bv103ResponsiveChart className="h-[280px] w-full min-h-[260px] min-w-0">
                   <BarChart layout="vertical" data={payload.by_loai.slice(0, 8)} margin={{ left: 8, right: 16 }}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                     <XAxis type="number" allowDecimals={false} tick={{ fill: "#94a3b8", fontSize: 10 }} />
@@ -179,16 +176,14 @@ export default function NkbvDashboardPanel({
                       ))}
                     </Bar>
                   </BarChart>
-                </ResponsiveContainer>
-              </div>
+              </Bv103ResponsiveChart>
             </div>
 
             <div className="premium-card rounded-[36px] border border-slate-50 bg-white p-6 shadow-xl shadow-slate-200/40">
               <h3 className="mb-4 text-[11px] font-black uppercase tracking-widest text-slate-700">
                 Theo trạng thái xử lý
               </h3>
-              <div className="h-[260px] w-full min-h-[240px] min-w-0">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <Bv103ResponsiveChart className="h-[260px] w-full min-h-[240px] min-w-0">
                   <BarChart data={payload.by_trang_thai}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="ten" interval={0} angle={-12} height={72} tick={{ fill: "#64748b", fontSize: 9 }} />
@@ -196,16 +191,14 @@ export default function NkbvDashboardPanel({
                     <Tooltip />
                     <Bar dataKey="so_phieu" fill="#475569" name="Phiếu" radius={[12, 12, 0, 0]} barSize={28} />
                   </BarChart>
-                </ResponsiveContainer>
-              </div>
+              </Bv103ResponsiveChart>
             </div>
 
             <div className="premium-card rounded-[36px] border border-slate-50 bg-white p-6 shadow-xl shadow-slate-200/40">
               <h3 className="mb-4 text-[11px] font-black uppercase tracking-widest text-slate-700">
                 Khoa có nhiều phiếu (top trong khoảng)
               </h3>
-              <div className="h-[260px] w-full min-h-[240px] min-w-0">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <Bv103ResponsiveChart className="h-[260px] w-full min-h-[240px] min-w-0">
                   <BarChart layout="vertical" data={payload.top_khoa} margin={{ left: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                     <XAxis type="number" allowDecimals={false} />
@@ -213,8 +206,7 @@ export default function NkbvDashboardPanel({
                     <Tooltip />
                     <Bar dataKey="so_phieu" fill="#2563eb" radius={[0, 10, 10, 0]} barSize={20} />
                   </BarChart>
-                </ResponsiveContainer>
-              </div>
+              </Bv103ResponsiveChart>
             </div>
           </div>
 

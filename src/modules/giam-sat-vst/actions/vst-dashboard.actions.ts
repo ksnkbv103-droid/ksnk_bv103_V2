@@ -1,6 +1,7 @@
 "use server";
 
-import { format, parseISO, startOfMonth, subMonths } from "date-fns";
+import { format, parseISO } from "date-fns";
+import { bv103DefaultTuNgayFromDenIso } from "@/lib/bv103-analytics-default-range";
 import { getCachedDmKhoaPhongAll, getCachedDmKhoiKhoa } from "@/lib/cache/master-data-cache";
 import {
   aggregateRateRowsByKhoi,
@@ -76,8 +77,8 @@ export async function getVstDashboardPayload(filters: VstDashboardFilters = {}) 
     assertOptionalIsoDay(filters.den_ngay, "den_ngay");
 
     const denStr = filters.den_ngay?.trim() || format(new Date(), "yyyy-MM-dd");
-    let tuStr = filters.tu_ngay?.trim() || format(startOfMonth(subMonths(parseISO(denStr), 11)), "yyyy-MM-dd");
-    if (parseISO(tuStr) > parseISO(denStr)) tuStr = format(startOfMonth(subMonths(parseISO(denStr), 11)), "yyyy-MM-dd");
+    let tuStr = filters.tu_ngay?.trim() || bv103DefaultTuNgayFromDenIso(denStr);
+    if (parseISO(tuStr) > parseISO(denStr)) tuStr = bv103DefaultTuNgayFromDenIso(denStr);
 
     const khoaIds = (filters.khoa_ids || [])
       .map((x) => String(x || "").trim())

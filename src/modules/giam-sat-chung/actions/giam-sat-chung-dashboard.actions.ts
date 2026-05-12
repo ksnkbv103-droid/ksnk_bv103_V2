@@ -1,6 +1,7 @@
 "use server";
 
-import { format, parseISO, startOfMonth, subMonths } from "date-fns";
+import { format, parseISO, startOfMonth } from "date-fns";
+import { bv103DefaultTuNgayFromDenIso } from "@/lib/bv103-analytics-default-range";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
@@ -14,8 +15,8 @@ export async function getGscDashboardPayload(filters: GscDashboardFilters = {}) 
   const scope = await getActorKsnkScope();
 
   const denStr = filters.den_ngay?.trim() || format(new Date(), "yyyy-MM-dd");
-  let tuStr = filters.tu_ngay?.trim() || format(startOfMonth(subMonths(parseISO(denStr), 11)), "yyyy-MM-dd");
-  if (parseISO(tuStr) > parseISO(denStr)) tuStr = format(startOfMonth(subMonths(parseISO(denStr), 11)), "yyyy-MM-dd");
+  let tuStr = filters.tu_ngay?.trim() || bv103DefaultTuNgayFromDenIso(denStr);
+  if (parseISO(tuStr) > parseISO(denStr)) tuStr = bv103DefaultTuNgayFromDenIso(denStr);
 
   let sq = supabase
     .from("v_gsc_dashboard_rows")

@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
+import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
 import type { ComplianceDashboardGroupRow, ComplianceDashboardPayload } from "../compliance-dashboard.types";
 import { aggregateRateRowsByKhoi } from "../lib/aggregate-rate-rows-by-khoi";
 
@@ -172,11 +173,9 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
 }
 function ChartWrap({ children }: { children: React.ReactNode }) {
   return (
-    <div className="h-[280px] w-full min-w-0">
-      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-        {children as React.ReactElement}
-      </ResponsiveContainer>
-    </div>
+    <Bv103ResponsiveChart className="h-[280px] w-full min-w-0">
+      {children as React.ReactElement}
+    </Bv103ResponsiveChart>
   );
 }
 function SimpleRateTable({ rows }: { rows: Array<{ id: string; ten: string; ty_le: number; tong: number; dat: number; so_phien: number }> }) {

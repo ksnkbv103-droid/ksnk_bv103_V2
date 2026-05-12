@@ -2,7 +2,8 @@
 
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
-import { format, parseISO, startOfMonth, subMonths } from "date-fns";
+import { format, parseISO } from "date-fns";
+import { bv103DefaultTuNgayFromDenIso } from "@/lib/bv103-analytics-default-range";
 import { aggregateNkbvDashboard, type NkbvCasRowMinimal, type NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
 
 type GiamSatNkbvDashboardFilters = {
@@ -18,14 +19,12 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
   await verifyPermission("GIAM_SAT_NKBV", "view");
 
   const denStr = filters.den_ngay?.trim() || format(new Date(), "yyyy-MM-dd");
-  let tuStr =
-    filters.tu_ngay?.trim() ||
-    format(startOfMonth(subMonths(parseISO(denStr), 11)), "yyyy-MM-dd");
+  let tuStr = filters.tu_ngay?.trim() || bv103DefaultTuNgayFromDenIso(denStr);
 
   let tuD = parseISO(tuStr);
   const denD = parseISO(denStr);
   if (tuD > denD) {
-    tuStr = format(startOfMonth(subMonths(denD, 11)), "yyyy-MM-dd");
+    tuStr = bv103DefaultTuNgayFromDenIso(denStr);
     tuD = parseISO(tuStr);
   }
 

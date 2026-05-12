@@ -1,6 +1,7 @@
 "use server";
 
-import { format, parseISO, startOfMonth, subMonths } from "date-fns";
+import { format, parseISO } from "date-fns";
+import { bv103DefaultTuNgayFromDenIso } from "@/lib/bv103-analytics-default-range";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
@@ -126,7 +127,7 @@ export async function getComplianceDashboardPayloads(filters: ComplianceDashboar
   const p_khu_vuc_ids = isNetwork ? null : (f.khu_vuc_ids ?? []).length > 0 ? f.khu_vuc_ids ?? null : null;
 
   const denStr = f.den_ngay?.trim() || format(new Date(), "yyyy-MM-dd");
-  const tuStr = f.tu_ngay?.trim() || format(startOfMonth(subMonths(parseISO(denStr), 11)), "yyyy-MM-dd");
+  const tuStr = f.tu_ngay?.trim() || bv103DefaultTuNgayFromDenIso(denStr);
 
   const bksAll = (f.bang_kiem_mas ?? []).map((x) => String(x || "").trim()).filter(Boolean);
   const gscSelectionKeys = bksAll.filter((x) => x !== "VST_WHO");

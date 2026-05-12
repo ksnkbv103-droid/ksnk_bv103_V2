@@ -1,7 +1,8 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
-import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
+import { Cell, Pie, PieChart } from "recharts";
+import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
 
 type ErrorBreakdown = {
   ty_le_dung_ky_thuat?: number | null;
@@ -35,7 +36,7 @@ export function VstDashboardQualitySection({
         <div className="flex flex-col items-center p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
           <p className="text-[11px] font-bold uppercase text-emerald-800 mb-2">Đúng kỹ thuật</p>
           <div className="relative h-24 w-24 min-w-0">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <Bv103ResponsiveChart className="h-full w-full">
               <PieChart>
                 <Pie
                   data={[
@@ -55,7 +56,7 @@ export function VstDashboardQualitySection({
                   <Cell fill="#d1fae5" />
                 </Pie>
               </PieChart>
-            </ResponsiveContainer>
+            </Bv103ResponsiveChart>
             <div className="absolute inset-0 flex items-center justify-center font-black text-emerald-700">
               {error?.ty_le_dung_ky_thuat || 0}%
             </div>
@@ -68,7 +69,7 @@ export function VstDashboardQualitySection({
         <div className="flex flex-col items-center p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
           <p className="text-[11px] font-bold uppercase text-emerald-800 mb-2">Đủ thời gian</p>
           <div className="relative h-24 w-24 min-w-0">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <Bv103ResponsiveChart className="h-full w-full">
               <PieChart>
                 <Pie
                   data={[
@@ -88,7 +89,7 @@ export function VstDashboardQualitySection({
                   <Cell fill="#d1fae5" />
                 </Pie>
               </PieChart>
-            </ResponsiveContainer>
+            </Bv103ResponsiveChart>
             <div className="absolute inset-0 flex items-center justify-center font-black text-emerald-700">
               {error?.ty_le_du_thoi_gian || 0}%
             </div>

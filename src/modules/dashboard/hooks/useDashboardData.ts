@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { format, startOfMonth, subMonths } from "date-fns";
+import { format } from "date-fns";
+import { bv103DefaultTuNgayFromToday } from "@/lib/bv103-analytics-default-range";
 import { getComplianceFilterOptions } from "../actions/compliance-dashboard.actions";
 import type { DashboardSummaryRow } from "../compliance-dashboard.types";
 import { type ComplianceDashboardPayload } from "../compliance-dashboard.types";
@@ -18,7 +19,7 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
   const [selectedKhoaIds, setSelectedKhoaIds] = useState<string[]>([]);
   const [selectedNgheIds, setSelectedNgheIds] = useState<string[]>([]);
   const [selectedKhuVucIds, setSelectedKhuVucIds] = useState<string[]>([]);
-  const [tuNgay, setTuNgay] = useState(() => format(startOfMonth(subMonths(new Date(), 11)), "yyyy-MM-dd"));
+  const [tuNgay, setTuNgay] = useState(() => bv103DefaultTuNgayFromToday());
   const [denNgay, setDenNgay] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const [loading, setLoading] = useState(false);
   const [vstPayload, setVstPayload] = useState<VstDashboardPayload | null>(null);
