@@ -17,6 +17,51 @@ export type VstPrintData = {
   nhanSus: { id: string; ho_ten: string }[];
 };
 
+/**
+ * Đóng phiên in an toàn trên mobile: `afterprint` thường không chạy (Safari iOS),
+ * nên thêm `matchMedia('print')` + timeout dự phòng để gỡ `printData` / `isPrinting`.
+ */
+function attachPrintSessionFinish(onFinish: () => void): () => void {
+  let done = false;
+  const once = () => {
+    if (done) return;
+    done = true;
+    onFinish();
+  };
+
+  const onAfterPrint = () => once();
+  window.addEventListener("afterprint", onAfterPrint);
+
+  const mq = typeof window.matchMedia === "function" ? window.matchMedia("print") : null;
+  const onPrintMq = () => {
+    if (mq && !mq.matches) once();
+  };
+  if (mq) {
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", onPrintMq);
+    } else {
+      mq.addListener(onPrintMq);
+    }
+  }
+
+  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+  const looksMobile = /iPhone|iPad|iPod|Android/i.test(ua);
+  const fallbackMs = looksMobile ? 25_000 : 45_000;
+  const timer = window.setTimeout(once, fallbackMs);
+
+  return () => {
+    window.removeEventListener("afterprint", onAfterPrint);
+    if (mq) {
+      if (typeof mq.removeEventListener === "function") {
+        mq.removeEventListener("change", onPrintMq);
+      } else {
+        mq.removeListener(onPrintMq);
+      }
+    }
+    window.clearTimeout(timer);
+  };
+}
+
 export function useVstPrint() {
   const [printingSessionId, setPrintingSessionId] = useState<string | null>(null);
   const [isPrinting, setIsPrinting] = useState(false);
@@ -35,12 +80,12 @@ export function useVstPrint() {
       ]);
 
       let settled = false;
-      let timer: number | null = null;
+      let detachPrintFinish: (() => void) | null = null;
       const finish = () => {
         if (settled) return;
         settled = true;
-        if (timer !== null) window.clearTimeout(timer);
-        window.removeEventListener("afterprint", finish);
+        detachPrintFinish?.();
+        detachPrintFinish = null;
         setPrintData(null);
         setPrintingSessionId(null);
         setIsPrinting(false);
@@ -103,9 +148,8 @@ export function useVstPrint() {
           globalThis.requestAnimationFrame(() => resolve())),
       );
 
-      window.addEventListener("afterprint", finish);
+      detachPrintFinish = attachPrintSessionFinish(finish);
       window.print();
-      timer = window.setTimeout(finish, 45_000);
     } catch (error) {
       console.error("Print error:", error);
       toast.error("Không in được phiếu");

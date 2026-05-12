@@ -1,4 +1,5 @@
 import { getDashboardSummaryTable } from "../actions/compliance-dashboard.actions";
+import { getOverviewDashboardBundle } from "../actions/overview-dashboard-bundle.actions";
 import type { DashboardSummaryRow } from "../compliance-dashboard.types";
 import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
 import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
@@ -9,6 +10,7 @@ import {
 } from "./dashboard-hook-helpers";
 import { buildComplianceGapMap } from "./build-compliance-gap-map";
 import type { DashboardTabType } from "../hooks/dashboard-types";
+import type { OverviewDashboardBundleInput } from "../actions/overview-dashboard-bundle.actions";
 
 type FetchFn = (
   sType: "ALL" | "KSNK" | "CHEO" | "TU_GIAM_SAT",
@@ -24,6 +26,8 @@ export type DashboardLoadInput = {
   filterOptions: ComplianceDashboardPayload["options"] | null;
   activeTab: DashboardTabType;
   fetchPayloadsForType: FetchFn;
+  /** Tham số filter cho bundle overview (1 POST thay vì 2× fetch client). */
+  overviewBundleArgs?: OverviewDashboardBundleInput | null;
 };
 
 export type DashboardLoadResult = {
@@ -68,13 +72,23 @@ export async function executeDashboardLoad(input: DashboardLoadInput): Promise<D
   if (input.activeTab === "overview" || input.activeTab === "ksnk" || input.activeTab === "cheo" || input.activeTab === "tu_giam_sat") {
     const tabToType = { overview: "ALL", ksnk: "KSNK", cheo: "CHEO", tu_giam_sat: "TU_GIAM_SAT" } as const;
     if (input.activeTab === "overview") {
-      const [res, tgs] = await Promise.all([
-        input.fetchPayloadsForType("ALL", bangKiemForFetch),
-        input.fetchPayloadsForType("TU_GIAM_SAT", bangKiemForFetch),
-      ]);
-      vst = res.vst;
-      gsc = res.gsc;
-      tuGiamSatParticipation = mergeParticipationRows(tgs.vst, tgs.gsc);
+      if (input.overviewBundleArgs) {
+        const bundle = await getOverviewDashboardBundle({
+          ...input.overviewBundleArgs,
+          bangKiemOverride: bangKiemForFetch,
+        });
+        vst = bundle.vst;
+        gsc = bundle.gsc;
+        tuGiamSatParticipation = bundle.tuGiamSatParticipation;
+      } else {
+        const [res, tgs] = await Promise.all([
+          input.fetchPayloadsForType("ALL", bangKiemForFetch),
+          input.fetchPayloadsForType("TU_GIAM_SAT", bangKiemForFetch),
+        ]);
+        vst = res.vst;
+        gsc = res.gsc;
+        tuGiamSatParticipation = mergeParticipationRows(tgs.vst, tgs.gsc);
+      }
     } else {
       const res = await input.fetchPayloadsForType(tabToType[input.activeTab], bangKiemForFetch);
       vst = res.vst;

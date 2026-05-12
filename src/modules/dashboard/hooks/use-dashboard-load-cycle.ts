@@ -109,6 +109,22 @@ export function useDashboardLoadCycle(args: {
         filterOptions,
         activeTab,
         fetchPayloadsForType,
+        overviewBundleArgs:
+          activeTab === "overview"
+            ? {
+                selectedBangKiemMas,
+                selectedKhoiIds,
+                selectedKhoaIds,
+                selectedNgheIds,
+                selectedKhuVucIds,
+                tuNgay,
+                denNgay,
+                khoiOptionCount,
+                khoaOptionCount,
+                ngheOptionCount,
+                khuOptionCount,
+              }
+            : null,
       });
       setSummaryTable(out.summaryRows);
       if (out.nextBangKiemSelection) {
@@ -134,7 +150,13 @@ export function useDashboardLoadCycle(args: {
     selectedKhoiIds,
     selectedKhoaIds,
     selectedBangKiemMas,
+    selectedNgheIds,
+    selectedKhuVucIds,
     filterOptions,
+    khoiOptionCount,
+    khoaOptionCount,
+    ngheOptionCount,
+    khuOptionCount,
     setLoading,
     setSummaryTable,
     setSelectedBangKiemMas,
@@ -147,7 +169,6 @@ export function useDashboardLoadCycle(args: {
 
   useEffect(() => {
     if (!initDone) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-deps
     void loadDashboard();
   }, [initDone, loadDashboard]);
 
