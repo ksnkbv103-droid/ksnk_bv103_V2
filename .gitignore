@@ -37,6 +37,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# Supabase CLI — thư mục trạng thái local (project ref, pooler URL; không commit)
+/supabase/.temp/
+
 # vercel
 .vercel
 
