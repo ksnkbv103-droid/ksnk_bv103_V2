@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { format, startOfMonth, subMonths } from "date-fns";
-import { getComplianceFilterOptions, type DashboardSummaryRow } from "../actions/compliance-dashboard.actions";
+import { getComplianceFilterOptions } from "../actions/compliance-dashboard.actions";
+import type { DashboardSummaryRow } from "../compliance-dashboard.types";
 import { type ComplianceDashboardPayload } from "../compliance-dashboard.types";
-import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.actions";
+import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
 import { resolveDashboardFilterUi } from "../lib/resolve-dashboard-filter-ui";
 import { useDashboardExportReport } from "./use-dashboard-export-report";
 import { useDashboardLoadCycle } from "./use-dashboard-load-cycle";

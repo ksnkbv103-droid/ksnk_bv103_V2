@@ -4,18 +4,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { coMeTietKhuanChuaKetThucTheoThietBi } from "../helpers/assert-thiet-bi-cho-me-tiet-khuan";
 import { getErrorMessage, mapFkError } from "./cssd-action-common";
-
-export type FactBaoTriRow = {
-  id: string;
-  ma_phieu: string;
-  thiet_bi_id: string;
-  trang_thai: string;
-  ly_do: string | null;
-  ket_qua_ghi_nhan: string | null;
-  thoi_gian_bat_dau: string | null;
-  thoi_gian_ket_thuc: string | null;
-  ten_thiet_bi?: string | null;
-};
+import type { FactBaoTriRow } from "./cssd-bao-tri.types";
 
 /** Danh sách phiếu bảo trì (mới nhất trước). */
 export async function listFactBaoTriThietBiAction(): Promise<

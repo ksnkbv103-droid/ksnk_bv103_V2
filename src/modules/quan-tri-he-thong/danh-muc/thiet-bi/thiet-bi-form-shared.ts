@@ -1,4 +1,4 @@
-import type { ThietBiRow } from "../actions/thiet-bi.actions";
+import type { ThietBiRow } from "../actions/thiet-bi.types";
 
 export type ThietBiFormValues = {
   id?: string;

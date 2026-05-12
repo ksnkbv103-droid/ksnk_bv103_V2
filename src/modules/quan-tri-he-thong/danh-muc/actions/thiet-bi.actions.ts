@@ -10,22 +10,7 @@ import {
   toggleMasterStatus,
   upsertMasterRow,
 } from "./master-crud-core";
-
-export type ThietBiRow = {
-  id: string;
-  ma_thiet_bi: string | null;
-  ten_thiet_bi: string | null;
-  loai_thiet_bi: string | null;
-  trang_thai: string | null;
-  hang_san_xuat: string | null;
-  nam_san_xuat: number | null;
-  ngay_dua_vao_su_dung: string | null;
-  chu_ky_bao_tri_ngay: number | null;
-  ngay_bao_tri_gan_nhat: string | null;
-  ngay_bao_tri_tiep_theo: string | null;
-  ghi_chu: string | null;
-  is_active: boolean;
-};
+import type { ThietBiRow } from "./thiet-bi.types";
 
 export async function getThietBiRowsAction() {
   await verifyPermission("THIET_BI", "view");
@@ -33,8 +18,6 @@ export async function getThietBiRowsAction() {
   if (!result.success) return result;
   return { success: true as const, data: result.data as ThietBiRow[] };
 }
-
-export type LoaiMayTietKhuanOption = { id: string; ma_loai_may: string; ten_loai_may: string };
 
 /** Danh sách loại máy tiệt khuẩn (khai báo) — dùng cho form thiết bị. */
 export async function getLoaiMayTietKhuanOptionsAction() {

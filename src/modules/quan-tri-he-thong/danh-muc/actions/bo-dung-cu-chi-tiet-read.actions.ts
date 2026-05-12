@@ -3,28 +3,7 @@
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { revalidatePath } from "next/cache";
-
-/** Dòng chi tiết trong bộ — dùng màn Danh mục bộ (xem nhanh thành phần). */
-export type BoDungCuChiTietPreviewRow = {
-  id: string;
-  ma_chi_tiet: string | null;
-  ten_chi_tiet: string | null;
-  ten_dung_cu_le: string | null;
-  bo_dung_cu_id: string | null;
-  loai_dung_cu_id: string | null;
-  so_luong: number | null;
-  max_suds_count: number | null;
-  trong_luong: unknown;
-  ghi_chu: string | null;
-  is_active: boolean | null;
-  loai_dung_cu: { ma_danh_muc: string | null; ten_danh_muc: string | null } | null;
-};
-
-export type BoRefByLoai = {
-  id: string;
-  ma_bo: string | null;
-  ten_bo: string | null;
-};
+import type { BoDungCuChiTietPreviewRow, BoRefByLoai } from "./bo-dung-cu-chi-tiet.types";
 
 /** Danh sách dụng cụ chi tiết thuộc một bộ (`dm_bo_dung_cu_chi_tiet`). Quyền `BO_DC.view`. */
 export async function getBoDungCuChiTietPreviewAction(boDungCuId: string) {

@@ -10,9 +10,11 @@ import {
   appendChiTietIssueNoteAction,
   getBoRefsByLoaiAction,
   getBoDungCuChiTietPreviewAction,
-  type BoRefByLoai,
-  type BoDungCuChiTietPreviewRow,
 } from "../actions/bo-dung-cu-chi-tiet-read.actions";
+import type {
+  BoRefByLoai,
+  BoDungCuChiTietPreviewRow,
+} from "../actions/bo-dung-cu-chi-tiet.types";
 
 type Props = {
   /** `null` = chưa chọn bộ */

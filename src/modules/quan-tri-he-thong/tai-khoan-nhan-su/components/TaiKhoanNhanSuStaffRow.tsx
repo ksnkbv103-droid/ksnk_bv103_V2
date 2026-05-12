@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import type { StaffAuthRow } from "../actions/tai-khoan-nhan-su.actions";
+import type { StaffAuthRow } from "@/types/nhan-su";
 export default function TaiKhoanNhanSuStaffRow({
   r,
   availableRoles = [],

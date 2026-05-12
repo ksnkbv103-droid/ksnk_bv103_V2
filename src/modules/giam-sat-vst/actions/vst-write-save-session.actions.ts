@@ -23,7 +23,7 @@ import {
 
 import { vstSaveSessionSchema } from "@/lib/validations";
 
-export type SaveVSTSessionOpts = { existingSessionId?: string | null };
+type SaveVSTSessionOpts = { existingSessionId?: string | null };
 
 /** Lưu phiên mới hoặc cập nhật tại chỗ (cùng UUID) — chỉ chủ phiên, trong 30 phút. */
 export async function saveVSTSession(

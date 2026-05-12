@@ -16,8 +16,8 @@ import {
   ketThucBaoTriThietBiAction,
   listFactBaoTriThietBiAction,
   listThietBiCoTheBatDauBaoTriAction,
-  type FactBaoTriRow,
 } from "../actions/read.actions";
+import type { FactBaoTriRow } from "../actions/cssd-bao-tri.types";
 
 const MODULE_KEY = "CSSD_ME_TIET_KHUAN";
 

@@ -1,10 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  getLoaiMayTietKhuanOptionsAction,
-  type LoaiMayTietKhuanOption,
-} from "../actions/thiet-bi.actions";
+import { getLoaiMayTietKhuanOptionsAction } from "../actions/thiet-bi.actions";
+import type { LoaiMayTietKhuanOption } from "../actions/thiet-bi.types";
 
 /** Chọn loại máy từ `dm_loai_may_tiet_khuan` (đồng bộ với khai báo danh mục). */
 export function ThietBiLoaiMayField({

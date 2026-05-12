@@ -63,7 +63,7 @@ export async function getCongViecList() {
   return data || [];
 }
 
-export type CongViecUpdateInput = Partial<CongViecInput> & {
+type CongViecUpdateInput = Partial<CongViecInput> & {
   trang_thai?: string;
   phan_tram_hoan_thanh?: number;
 };

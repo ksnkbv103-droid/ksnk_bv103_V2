@@ -5,7 +5,7 @@ import { X, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import BoDungCuTextField from "../dung-cu/bo-dung-cu-form-field";
-import type { HoaChatRow } from "../actions/hoa-chat.actions";
+import type { HoaChatRow } from "../actions/hoa-chat.types";
 import { saveHoaChatAction } from "../actions/hoa-chat.actions";
 
 function mapForm(row: HoaChatRow | null) {

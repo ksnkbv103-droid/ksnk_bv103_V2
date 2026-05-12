@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import HoaChatFormModal from "./hoa-chat-form-modal";
 import { HOA_CHAT_COLUMN_MAP } from "./hoa-chat-import";
 import { getHoaChatColumns } from "./hoa-chat-columns";
-import type { HoaChatRow } from "../actions/hoa-chat.actions";
+import type { HoaChatRow } from "../actions/hoa-chat.types";
 import {
   getHoaChatRowsAction,
   softDeleteHoaChatAction,

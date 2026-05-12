@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import BoDungCuTextField from "../dung-cu/bo-dung-cu-form-field";
 import { ThietBiLoaiMayField } from "./thiet-bi-loai-may-field";
-import type { ThietBiRow } from "../actions/thiet-bi.actions";
+import type { ThietBiRow } from "../actions/thiet-bi.types";
 import { saveThietBiAction } from "../actions/thiet-bi.actions";
 import { mapThietBiToForm, type ThietBiFormValues } from "./thiet-bi-form-shared";
 

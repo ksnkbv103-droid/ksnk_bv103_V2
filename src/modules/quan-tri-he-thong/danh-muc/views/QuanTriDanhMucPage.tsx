@@ -7,10 +7,8 @@ import { LayoutGrid, List, Settings, Beaker, Building2, Users, ClipboardList, Da
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import RBACMatrixView from "@/modules/quan-tri-he-thong/phan-quyen/views/RBACMatrixView";
 import { usePermission } from "@/hooks/usePermission";
-import {
-  mdmGetTrungTamDanhMucStats,
-  type TrungTamDanhMucStatsPayload,
-} from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
+import { mdmGetTrungTamDanhMucStats } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
+import type { TrungTamDanhMucStatsPayload } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.types";
 import { DM_HUB_LABELS, getRegistryEntriesForChuyenBietHub } from "@/lib/master-data/domain-registry";
 import { getDanhMucAdminPath } from "@/lib/master-data/danh-muc-admin-routes";
 import QuanTriDanhMucTabStrip from "./QuanTriDanhMucTabStrip";

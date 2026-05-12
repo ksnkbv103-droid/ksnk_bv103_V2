@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import KhoaPhongFormModal from "./khoa-phong-form-modal";
 import { KHOA_PHONG_COLUMN_MAP } from "./khoa-phong-import";
 import { getKhoaPhongColumns } from "./khoa-phong-columns";
-import type { KhoaPhongRow } from "../actions/khoa-phong.actions";
+import type { KhoaPhongRow } from "../actions/khoa-phong.types";
 import {
   getKhoiKhoaOptionsAction,
   getKhoaPhongRowsAction,

@@ -8,11 +8,11 @@ import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import type { NkbvListSortKey } from "@/lib/validations/nkbv-list-pagination";
 import { NKBV_LIST_SORT_KEYS, nkbvListPaginationSchema } from "@/lib/validations/nkbv-list-pagination";
 
-export type GiamSatNkbvFilters = {
+type GiamSatNkbvFilters = {
   khoa_ghi_nhan_id?: string;
 };
 
-export type ListGiamSatNkbvCasParams = GiamSatNkbvFilters & {
+type ListGiamSatNkbvCasParams = GiamSatNkbvFilters & {
   page: number;
   pageSize?: number;
   search?: string;

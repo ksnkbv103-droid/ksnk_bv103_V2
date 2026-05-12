@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import ThietBiFormModal from "./thiet-bi-form-modal";
 import { THIET_BI_COLUMN_MAP } from "./thiet-bi-import";
 import { getThietBiColumns } from "./thiet-bi-columns";
-import type { ThietBiRow } from "../actions/thiet-bi.actions";
+import type { ThietBiRow } from "../actions/thiet-bi.types";
 import {
   getThietBiRowsAction,
   softDeleteManyThietBiAction,

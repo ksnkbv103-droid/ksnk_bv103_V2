@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
-import type { KhoaPhongRow } from "../actions/khoa-phong.actions";
+import type { KhoaPhongRow } from "../actions/khoa-phong.types";
 
 interface ActionCells {
   renderStatusCell: (item: KhoaPhongRow) => ReactNode;

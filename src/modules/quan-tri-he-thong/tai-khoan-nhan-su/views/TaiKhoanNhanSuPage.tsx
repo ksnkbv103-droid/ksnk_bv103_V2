@@ -9,8 +9,8 @@ import {
   listStaffAuthOverview,
   provisionStaffAuthAccount,
   setStaffKsnkRbacRole,
-  type StaffAuthRow,
 } from "../actions/tai-khoan-nhan-su.actions";
+import type { StaffAuthRow } from "@/types/nhan-su";
 
 
 export default function TaiKhoanNhanSuPage() {

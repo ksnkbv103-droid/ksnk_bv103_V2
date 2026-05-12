@@ -2,7 +2,8 @@ import {
   getComplianceDashboardPayloads,
 } from "../actions/compliance-dashboard.actions";
 import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
-import { getVstDashboardPayload, type VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.actions";
+import { getVstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.actions";
+import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
 import { effectiveFilterIds } from "./dashboard-hook-helpers";
 
 export type SupervisionTabFilter = "ALL" | "KSNK" | "CHEO" | "TU_GIAM_SAT";

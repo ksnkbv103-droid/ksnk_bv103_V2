@@ -3,11 +3,9 @@
 import {
   getSupervisionMasterDataBundle,
 } from "../danh-muc/actions/master-data-gateway.actions";
-import {
-  getTrungTamDanhMucStatsAction,
-  type DanhMucStat,
-  type TrungTamDanhMucStatsPayload,
-} from "../danh-muc/actions/danh-muc-hybrid.actions";
+import { getTrungTamDanhMucStatsAction } from "../danh-muc/actions/danh-muc-hybrid.actions";
+import type { TrungTamDanhMucStatsPayload } from "../danh-muc/actions/danh-muc-hybrid.types";
+import type { MdmGatewayResult } from "./mdm-gateway.types";
 import {
   listGenericDmAction,
   suggestNextGenericDmMaAction,
@@ -16,12 +14,6 @@ import {
   softDeleteGenericDmAction,
   softDeleteManyGenericDmAction,
 } from "../danh-muc/actions/generic-dm.actions";
-
-export type MdmGatewayResult<T> =
-  | { success: true; data: T }
-  | { success: false; error: string };
-
-export type { DanhMucStat, TrungTamDanhMucStatsPayload };
 
 export async function mdmGetSupervisionMasterDataBundle(options: {
   includeNhanSu?: boolean;

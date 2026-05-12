@@ -3,7 +3,7 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 
-export interface CreateDeXuatInput {
+interface CreateDeXuatInput {
   tieu_de: string;
   mo_ta?: string;
   loai_pham_vi: "NOI_BO" | "MANG_LUOI";

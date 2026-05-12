@@ -5,7 +5,7 @@ import { X, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import BoDungCuTextField from "../dung-cu/bo-dung-cu-form-field";
-import type { KhoaPhongRow } from "../actions/khoa-phong.actions";
+import type { KhoaPhongRow } from "../actions/khoa-phong.types";
 import { saveKhoaPhongAction } from "../actions/khoa-phong.actions";
 
 function mapForm(row: KhoaPhongRow | null) {

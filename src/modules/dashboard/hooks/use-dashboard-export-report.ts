@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
 import { getDashboardPrintHtml } from "../lib/dashboard-print-template";
-import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.actions";
+import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
 
 type OptionRow = { id: string; label: string };
 

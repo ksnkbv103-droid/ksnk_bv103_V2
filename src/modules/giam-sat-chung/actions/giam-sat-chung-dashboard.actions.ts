@@ -4,22 +4,7 @@ import { format, parseISO, startOfMonth, subMonths } from "date-fns";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
-
-export type GscDashboardPayload = {
-  tu_ngay: string;
-  den_ngay: string;
-  kpis: {
-    tong_phien: number;
-    diem_tb: number;
-    dat_chuan_90: number;
-    duoi_chuan_90: number;
-    ty_le_dat_tieu_chi: number;
-  };
-  monthly: { ky: string; label: string; so_phien: number; diem_tb: number }[];
-  by_loai_bang_kiem: { loai_bang_kiem: string; so_phien: number }[];
-  by_khoa: { ten_khoa: string; so_phien: number }[];
-  by_ket_qua: { ket_qua: string; so_luong: number }[];
-};
+import type { GscDashboardPayload } from "./giam-sat-chung-dashboard.types";
 
 type GscDashboardFilters = { khoa_id?: string; khoa_ids?: string[]; tu_ngay?: string; den_ngay?: string };
 

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
-import type { HoaChatRow } from "../actions/hoa-chat.actions";
+import type { HoaChatRow } from "../actions/hoa-chat.types";
 
 interface ActionCells {
   renderStatusCell: (item: HoaChatRow) => ReactNode;

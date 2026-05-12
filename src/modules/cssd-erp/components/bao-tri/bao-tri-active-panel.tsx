@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import type { FactBaoTriRow } from "../../actions/cssd-bao-tri-list.actions";
+import type { FactBaoTriRow } from "../../actions/cssd-bao-tri.types";
 
 type Props = {
   rows: FactBaoTriRow[];

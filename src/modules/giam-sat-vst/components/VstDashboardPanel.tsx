@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import { Activity, BarChart3, ShieldCheck, TrendingUp, AlertTriangle } from "lucide-react";
-import type { VstDashboardPayload } from "../actions/vst-dashboard.actions";
+import type { VstDashboardPayload } from "../actions/vst-dashboard.types";
 import { deriveKhoaBarRows, deriveMomentWhoRows } from "./vst-dashboard-panel-derive";
 import { MomentWhoMergedTable } from "./vst-dashboard-moment-table";
 import { VstDashboardQualitySection } from "./vst-dashboard-quality-section";

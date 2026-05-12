@@ -5,7 +5,7 @@ import { verifyPermission } from "@/lib/server-permission";
 import { format, parseISO, startOfMonth, subMonths } from "date-fns";
 import { aggregateNkbvDashboard, type NkbvCasRowMinimal, type NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
 
-export type GiamSatNkbvDashboardFilters = {
+type GiamSatNkbvDashboardFilters = {
   khoa_ghi_nhan_id?: string;
   khoa_ghi_nhan_ids?: string[];
   tu_ngay?: string;

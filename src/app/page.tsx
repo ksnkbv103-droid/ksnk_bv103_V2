@@ -6,7 +6,7 @@ import { useDashboardData } from "@/modules/dashboard/hooks/useDashboardData";
 import { buildEmptyComplianceDashboardPayload } from "@/modules/dashboard/compliance-dashboard.types";
 import { SupervisionSourceStats } from "@/modules/dashboard/components/SupervisionSourceStats";
 import VstDashboardPanel from "@/modules/giam-sat-vst/components/VstDashboardPanel";
-import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.actions";
+import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
 import ComplianceDashboardPanel from "@/modules/dashboard/components/ComplianceDashboardPanel";
 import type { ComplianceDashboardPayload } from "@/modules/dashboard/compliance-dashboard.types";
 import { GapAnalysisPanel } from "@/modules/dashboard/components/GapAnalysisPanel";

@@ -5,7 +5,7 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import { unstable_cache } from "next/cache";
 import { cache } from "react";
 
-export type PermissionCheck = { moduleKey: string; action: string };
+type PermissionCheck = { moduleKey: string; action: string };
 
 function isTrustedAdminEmail(email: string | undefined): boolean {
   const e = String(email || "").toLowerCase().trim();

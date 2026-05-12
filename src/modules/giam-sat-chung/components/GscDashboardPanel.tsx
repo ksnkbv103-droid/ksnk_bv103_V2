@@ -3,7 +3,7 @@
 import React from "react";
 import { Activity, ShieldCheck, Target, TrendingUp, ClipboardList } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import type { GscDashboardPayload } from "../actions/giam-sat-chung-dashboard.actions";
+import type { GscDashboardPayload } from "../actions/giam-sat-chung-dashboard.types";
 
 type Props = {
   payload: GscDashboardPayload | null;

@@ -3,15 +3,7 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { getActorAuthUserId } from "@/lib/actor-auth-server";
-
-export type ActorKsnkScope = {
-  roles: string[];
-  actorNhanSuId: string | null;
-  actorKhoaId: string | null;
-  isAdmin: boolean;
-  isNhanVienKsnk: boolean;
-  isMangLuoiKsnk: boolean;
-};
+import type { ActorKsnkScope } from "@/lib/actor-ksnk-scope.types";
 
 function normRole(r: unknown): string {
   return String(r || "").trim().toUpperCase();

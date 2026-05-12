@@ -3,18 +3,7 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "../../actions/verify-permission";
 import { getAllRegistryEntries } from "@/lib/master-data/domain-registry";
-
-/** Thống kê một bảng master trên Trung tâm Danh mục. */
-export type DanhMucStat = { count: number; last?: string };
-
-/** Payload `data` khi `getTrungTamDanhMucStatsAction` thành công. */
-export type TrungTamDanhMucStatsPayload = Record<
-  "loai" | "bo" | "le" | "tb" | "hc" | "khoa" | "ns" | "bk" | "tk",
-  DanhMucStat
-> & {
-  /** Đếm theo từng `loaiDanhMuc` trong domain-registry (tab Danh mục chuyên biệt). */
-  registryByLoai?: Record<string, DanhMucStat>;
-};
+import type { DanhMucStat } from "./danh-muc-hybrid.types";
 
 /** Thống kê nhanh cho Trung tâm Danh mục (chỉ đếm bảng dm_* / master — không còn hub). */
 export async function getTrungTamDanhMucStatsAction(options?: { includeRegistry?: boolean }) {

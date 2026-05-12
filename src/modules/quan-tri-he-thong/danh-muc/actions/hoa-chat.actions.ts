@@ -8,19 +8,7 @@ import {
   toggleMasterStatus,
   upsertMasterRow,
 } from "./master-crud-core";
-
-export type HoaChatRow = {
-  id: string;
-  ma_hoa_chat: string | null;
-  ten_hoa_chat: string | null;
-  loai_hoa_chat: string | null;
-  don_vi_tinh: string | null;
-  quy_cach: string | null;
-  nong_do: string | null;
-  han_su_dung: string | null;
-  ghi_chu: string | null;
-  is_active: boolean;
-};
+import type { HoaChatRow } from "./hoa-chat.types";
 
 export async function getHoaChatRowsAction() {
   await verifyPermission("HOA_CHAT", "view");

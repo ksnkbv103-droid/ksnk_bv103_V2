@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
-import type { ThietBiRow } from "../actions/thiet-bi.actions";
+import type { ThietBiRow } from "../actions/thiet-bi.types";
 
 interface ActionCells {
   renderStatusCell: (item: ThietBiRow) => ReactNode;

@@ -45,6 +45,34 @@ export type ComplianceDashboardPayload = {
   participation: { id: string; ten: string; so_phien: number }[];
 };
 
+export type ComplianceDashboardFilters = {
+  bang_kiem_mas?: string[];
+  khoi_ids?: string[];
+  khoa_ids?: string[];
+  nghe_nghiep_ids?: string[];
+  khu_vuc_ids?: string[];
+  tu_ngay?: string;
+  den_ngay?: string;
+  include_options?: boolean;
+  supervision_type?: 'ALL' | 'KSNK' | 'CHEO' | 'TU_GIAM_SAT';
+};
+
+export type DashboardSummaryRow = {
+  ma_bk: string;
+  ten_bk: string;
+  tong: number;
+  ksnk: number;
+  tu_gs: number;
+  cheo: number;
+};
+
+export type DashboardSummaryTableFilters = {
+  tu_ngay: string;
+  den_ngay: string;
+  khoi_ids?: string[];
+  khoa_ids?: string[];
+};
+
 export function buildEmptyComplianceDashboardPayload(
   tuStr: string,
   denStr: string

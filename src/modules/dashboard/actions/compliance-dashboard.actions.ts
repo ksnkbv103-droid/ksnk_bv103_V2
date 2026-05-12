@@ -17,29 +17,11 @@ import {
   type ComplianceDashboardViolationRow as ViolationRow,
   buildEmptyComplianceDashboardPayload,
 } from "../compliance-dashboard.types";
-
-export type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
-
-export type ComplianceDashboardFilters = {
-  bang_kiem_mas?: string[];
-  khoi_ids?: string[];
-  khoa_ids?: string[];
-  nghe_nghiep_ids?: string[];
-  khu_vuc_ids?: string[];
-  tu_ngay?: string;
-  den_ngay?: string;
-  include_options?: boolean;
-  supervision_type?: 'ALL' | 'KSNK' | 'CHEO' | 'TU_GIAM_SAT';
-};
-
-export type DashboardSummaryRow = {
-  ma_bk: string;
-  ten_bk: string;
-  tong: number;
-  ksnk: number;
-  tu_gs: number;
-  cheo: number;
-};
+import type {
+  ComplianceDashboardFilters,
+  DashboardSummaryRow,
+  DashboardSummaryTableFilters,
+} from "../compliance-dashboard.types";
 
 const dashboardSummaryTableFiltersSchema = z.object({
   tu_ngay: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "tu_ngay YYYY-MM-DD"),
@@ -47,8 +29,6 @@ const dashboardSummaryTableFiltersSchema = z.object({
   khoi_ids: z.array(z.string().min(1)).optional(),
   khoa_ids: z.array(z.string().min(1)).optional(),
 });
-
-export type DashboardSummaryTableFilters = z.infer<typeof dashboardSummaryTableFiltersSchema>;
 
 export async function getDashboardSummaryTable(filters: DashboardSummaryTableFilters) {
   const parsed = dashboardSummaryTableFiltersSchema.safeParse(filters);

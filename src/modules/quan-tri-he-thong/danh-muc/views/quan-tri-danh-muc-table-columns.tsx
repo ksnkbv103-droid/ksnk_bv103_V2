@@ -3,7 +3,7 @@
 import React from "react";
 import { ArrowRight, Clock } from "lucide-react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
-import type { DanhMucStat } from "../actions/danh-muc-hybrid.actions";
+import type { DanhMucStat } from "../actions/danh-muc-hybrid.types";
 
 export type MasterCardRow = {
   id: string;

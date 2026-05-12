@@ -25,7 +25,7 @@ import {
   SUPERVISION_SESSION_MUTATION_EXPIRED_VI,
 } from "@/lib/supervision-mutation-window";
 
-export type SaveGiamSatChungOpts = { existingSessionId?: string | null };
+type SaveGiamSatChungOpts = { existingSessionId?: string | null };
 
 /** Lưu phiên mới hoặc cập nhật tại chỗ (cùng UUID) nếu `existingSessionId` — chỉ chủ phiên, trong 30 phút. */
 export async function saveGiamSatChung(

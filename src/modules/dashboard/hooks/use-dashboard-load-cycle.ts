@@ -1,7 +1,7 @@
 import { useCallback, useEffect, type Dispatch, type SetStateAction } from "react";
 import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
-import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.actions";
-import type { DashboardSummaryRow } from "../actions/compliance-dashboard.actions";
+import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
+import type { DashboardSummaryRow } from "../compliance-dashboard.types";
 import { fetchDashboardPayloadsForSupervisionType } from "../lib/fetch-dashboard-payloads-for-type";
 import { executeDashboardLoad, shouldUpdateBangKiemSelection } from "../lib/dashboard-load-execution";
 import type { DashboardTabType } from "./dashboard-types";

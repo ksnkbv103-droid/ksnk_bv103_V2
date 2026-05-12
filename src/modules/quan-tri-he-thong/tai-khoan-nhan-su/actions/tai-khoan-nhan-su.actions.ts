@@ -12,7 +12,6 @@ function err(e: unknown) {
 }
 
 import type { StaffAuthRow } from "@/types/nhan-su";
-export type { StaffAuthRow };
 
 /** Danh sách nhân sự + trạng thái liên kết Auth + vai trò RBAC (chỉ quản trị). */
 export async function listStaffAuthOverview(params: {

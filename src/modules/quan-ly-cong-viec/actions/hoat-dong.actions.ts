@@ -3,7 +3,7 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 
-export interface CreateHoatDongInput {
+interface CreateHoatDongInput {
   id_cong_viec: string;
   loai_hoat_dong: "PHAN_CONG" | "DE_XUAT" | "BAO_CAO_TIEN_DO" | "PHE_DUYET" | "CAP_NHAT" | "HOAN_THANH";
   noi_dung?: string;
