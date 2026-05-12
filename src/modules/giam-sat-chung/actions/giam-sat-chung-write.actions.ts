@@ -90,11 +90,21 @@ export async function saveGiamSatChung(
         throw new Error("Giám sát lại qua camera: vui lòng nhập đủ Ngày giám sát và khung giờ Từ – Đến ở phần đầu phiên.");
       }
     }
-    const nhanVienNorm = await normalizeHoSoNhanVienOptionalOrThrow(
-      supabase,
-      sessionData.nhan_vien_id,
-      "Đối tượng (nhân viên)",
-    );
+    /** Nhập tay tên đối tượng (không có hồ sơ mdm_nhan_su) — bỏ qua FK check, lưu chuỗi tên. */
+    const isManualNv = Boolean(sessionData.is_manual_nhan_vien);
+    const tenManualNv = isManualNv
+      ? String(sessionData.ten_manual_nhan_vien ?? "").trim() || null
+      : null;
+    if (isManualNv && !tenManualNv) {
+      throw new Error("Vui lòng nhập tên đối tượng (đã chọn 'Nhập tay').");
+    }
+    const nhanVienNorm = isManualNv
+      ? null
+      : await normalizeHoSoNhanVienOptionalOrThrow(
+          supabase,
+          sessionData.nhan_vien_id,
+          "Đối tượng (nhân viên)",
+        );
     const loaiBkCanonical = await resolveCanonicalLoaiBangKiemForPersist(supabase, sessionData.loai_bang_kiem);
     const thoiGianGhiNhan = isReplayCameraSupervisionCachThuc(cach)
       ? String(sessionData.thoi_gian_ket_thuc ?? "").trim() || new Date().toISOString()
@@ -110,6 +120,8 @@ export async function saveGiamSatChung(
       nguoi_giam_sat_id: nguoiGsNorm,
       is_giam_sat_ca_nhan: sessionData.is_giam_sat_ca_nhan || false,
       nhan_vien_id: nhanVienNorm,
+      is_manual_nhan_vien: isManualNv,
+      ten_manual_nhan_vien: tenManualNv,
       nghe_nghiep_id: sessionData.nghe_nghiep_id || null,
       ngay_giam_sat: parseNgayGiamSatOrNull(sessionData.ngay_giam_sat),
       thoi_gian_bat_dau: String(sessionData.thoi_gian_bat_dau ?? "").trim() || null,

@@ -6,17 +6,24 @@
  */
 import { z } from "zod";
 
+/** UUID tùy chọn — chuỗi rỗng "" được coi như null (form thường set "" khi user clear chọn). */
+const optionalUuid = (msg: string) =>
+  z.preprocess(
+    (v) => (typeof v === "string" && v.trim() === "" ? null : v),
+    z.string().uuid(msg).nullable().optional(),
+  );
+
 // ============================================================
 // Phiên giám sát (Session)
 // ============================================================
 
 export const gscSessionSchema = z.object({
   khoa_id: z.string().uuid("Khoa không hợp lệ"),
-  khu_vuc_id: z.string().uuid("Khu vực không hợp lệ").nullable().optional(),
-  nguoi_giam_sat_id: z.string().uuid("Người giám sát không hợp lệ").nullable().optional(),
-  nhan_vien_id: z.string().uuid("Nhân viên không hợp lệ").nullable().optional(),
-  nghe_nghiep_id: z.string().uuid("Nghề nghiệp không hợp lệ").nullable().optional(),
-  bang_kiem_id: z.string().uuid("Bảng kiểm không hợp lệ").nullable().optional(),
+  khu_vuc_id: optionalUuid("Khu vực không hợp lệ"),
+  nguoi_giam_sat_id: optionalUuid("Người giám sát không hợp lệ"),
+  nhan_vien_id: optionalUuid("Nhân viên không hợp lệ"),
+  nghe_nghiep_id: optionalUuid("Nghề nghiệp không hợp lệ"),
+  bang_kiem_id: optionalUuid("Bảng kiểm không hợp lệ"),
   loai_bang_kiem: z.string().optional(),
   ten_bang_kiem: z.string().min(1, "Tên bảng kiểm không được trống").optional(),
   hinh_thuc_giam_sat: z.enum(["Tự giám sát", "Giám sát khách quan"]).optional(),
@@ -34,6 +41,9 @@ export const gscSessionSchema = z.object({
   ghi_chu_chung: z.string().optional(),
   is_active: z.boolean().default(true),
   is_giam_sat_ca_nhan: z.boolean().optional(),
+  /** Nhập tay tên đối tượng (không có hồ sơ mdm_nhan_su). */
+  is_manual_nhan_vien: z.boolean().optional(),
+  ten_manual_nhan_vien: z.string().optional(),
 });
 
 export type GscSessionInput = z.infer<typeof gscSessionSchema>;

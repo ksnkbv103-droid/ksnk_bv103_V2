@@ -16,6 +16,9 @@ export type GscSessionInput = Record<string, unknown> & {
   nghe_nghiep_id?: string;
   nguoi_giam_sat_id?: string;
   nhan_vien_id?: string;
+  /** Cho phép nhập tay tên đối tượng khi không có hồ sơ mdm_nhan_su. */
+  is_manual_nhan_vien?: boolean;
+  ten_manual_nhan_vien?: string;
 };
 export type ExistingSessionRow = { id?: string };
 
