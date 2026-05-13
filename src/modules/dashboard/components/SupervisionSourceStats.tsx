@@ -19,7 +19,9 @@ type SupervisionSourceStatsProps = {
   khoiOptions: MultiSelectOption[];
 };
 
-const COLORS = ["#026f17", "#0ea5e9", "#f59e0b"];
+/** Bảng màu 3 nguồn giám sát (Chuyên trách / Tự / Chéo); fallback xám khi vượt. */
+const PIE_COLORS = ["#026f17", "#0ea5e9", "#f59e0b"] as const;
+const PIE_COLOR_FALLBACK = "#94a3b8";
 
 export const SupervisionSourceStats: React.FC<SupervisionSourceStatsProps> = ({
   sources,
@@ -36,7 +38,7 @@ export const SupervisionSourceStats: React.FC<SupervisionSourceStatsProps> = ({
   const pieData = sources.map((s, i) => ({
     name: s.ten,
     value: s.so_phien,
-    color: i === 0 ? "#026f17" : i === 1 ? "#0ea5e9" : "#f59e0b",
+    color: PIE_COLORS[i] ?? PIE_COLOR_FALLBACK,
   }));
 
   const khoaScope = useMemo(() => {
