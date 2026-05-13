@@ -201,19 +201,44 @@ export default function GiamSatHeaderFields({
 
       <div className="space-y-2">
         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">3. Vị trí (Phòng/Bed)</label>
+        {/*
+          Không dùng <input list> + <datalist>: trên Chrome/Android và một số WebView,
+          hành vi gần như combobox — khó hoặc không gõ được vị trí mới, chỉ chọn từ gợi ý.
+          Ô text thuần + nút gợi ý bên dưới = gõ tùy ý + vẫn có lịch sử nhanh.
+        */}
         <input
           className="input h-12 w-full rounded-2xl bg-slate-50 border-2 border-slate-100 px-4 font-bold text-slate-700 focus:border-[#026f17] focus:bg-white transition-all outline-none"
-          placeholder="Nhập hoặc chọn..."
-          list="history-locations-shared"
+          placeholder="Gõ vị trí (phòng, giường, khu…) — không bắt chọn từ danh sách"
+          autoComplete="off"
           value={session.vi_tri}
           onChange={(e) => {
             const nextVal = e.target.value;
             setSession((prev) => ({ ...prev, vi_tri: nextVal }));
           }}
         />
-        <datalist id="history-locations-shared">
-          {historyLocations.map((loc, idx) => <option key={idx} value={loc} />)}
-        </datalist>
+        {historyLocations.length > 0 ? (
+          <div className="space-y-1.5 rounded-xl border border-slate-100 bg-slate-50/80 p-2">
+            <p className="px-1 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+              Gợi ý từ phiên đã lưu (bấm để điền — vẫn sửa tay được)
+            </p>
+            <div className="flex max-h-28 flex-wrap gap-1.5 overflow-y-auto overscroll-contain px-0.5 pb-0.5">
+              {historyLocations.slice(0, 80).map((loc, idx) => (
+                <button
+                  key={`${idx}-${loc.slice(0, 48)}`}
+                  type="button"
+                  className="max-w-full truncate rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-left text-[10px] font-semibold text-slate-700 shadow-sm transition-colors hover:border-[#026f17]/40 hover:bg-[#026f17]/5"
+                  title={loc}
+                  onClick={() => setSession((prev) => ({ ...prev, vi_tri: loc }))}
+                >
+                  {loc}
+                </button>
+              ))}
+            </div>
+            {historyLocations.length > 80 ? (
+              <p className="px-1 text-[9px] text-slate-400">Hiển thị 80 / {historyLocations.length} vị trí — gõ tay nếu không thấy.</p>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       <div className="space-y-2">
