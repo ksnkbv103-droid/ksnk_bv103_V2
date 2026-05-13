@@ -1,16 +1,17 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { normalizeAndValidateDmKhoaPhong, validateDanhMucIdByType } from "@/lib/master-data/validation";
+import type { SmartImportDmSessionCache } from "../lib/smart-import/dm-import-session-cache";
 import { addResolvedLoaiValues } from "@/lib/master-data/repository";
 import {
   LOAI_CHUC_DANH,
   LOAI_CHUC_VU,
   LOAI_VAI_TRO_HE_THONG_KSNK,
-} from "@/modules/quan-tri-he-thong/nhan-su/actions/data";
+} from "@/modules/quan-tri-he-thong/nhan-su/lib/nhan-su-dm-ma-loai";
 import {
   normalizeDmBoDungCuChiTiet,
   normalizeDmHoaChat,
   normalizeDmThietBi,
-} from "./smart-import-normalizers";
+} from "../lib/smart-import/dm-row-normalizers";
 import {
   resolveBoDungCuIdForImport,
   resolveKhoiForKhoaPhongImport,
@@ -30,6 +31,7 @@ export async function resolveSmartImportScopeForTable(
   tableName: string,
   scopeSafeRest: Record<string, unknown>,
   rowNumber: number,
+  nhanSuDmSessionCache?: SmartImportDmSessionCache,
 ): Promise<ScopeResolveResult> {
   let row = scopeSafeRest;
   if (tableName === "dm_bo_dung_cu_chi_tiet") {
@@ -61,7 +63,7 @@ export async function resolveSmartImportScopeForTable(
     row = normalizeDmHoaChat(row);
   }
   if (tableName === "mdm_nhan_su") {
-    const resolved = await resolveNhanSuParentIdsForImport(supabase, row);
+    const resolved = await resolveNhanSuParentIdsForImport(supabase, row, nhanSuDmSessionCache);
     if (!resolved.ok) return { ok: false, error: `Dòng ${rowNumber || "?"}: ${resolved.error}` };
     row = resolved.row;
     try {

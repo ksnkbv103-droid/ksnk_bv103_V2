@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { NhanSu } from "./data";
+import type { NhanSu } from "../types";
 
 type DmIdMa = { id?: string };
 

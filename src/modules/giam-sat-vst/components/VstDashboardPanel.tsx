@@ -48,7 +48,7 @@ export default function VstDashboardPanel({ payload, loading }: Props) {
           { icon: AlertTriangle, label: "Bỏ sót", value: String(k?.bo_sot ?? 0), color: "text-red-500" },
           { icon: TrendingUp, label: "Tỷ lệ tuân thủ", value: `${k?.ty_le_tuan_thu ?? 0}%`, color: "text-[#026f17]" },
         ].map((x) => (
-          <div key={x.label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div key={x.label} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <p className="text-[11px] font-bold uppercase text-slate-500">{x.label}</p>
               <x.icon className={`h-4 w-4 ${x.color || "text-slate-400"}`} />
@@ -60,21 +60,16 @@ export default function VstDashboardPanel({ payload, loading }: Props) {
 
       {payload ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm col-span-1 lg:col-span-3">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm col-span-1 lg:col-span-3">
             <h3 className="mb-4 text-sm font-bold uppercase text-slate-800">Xu hướng tỷ lệ tuân thủ</h3>
             <VstTrendStyleLineChart
               data={(payload.trend || []).map((t) => ({ label: t.label, ty_le: Number(t.ty_le) || 0 }))}
             />
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm col-span-1 lg:col-span-3">
-            <h3 className="mb-2 text-sm font-bold uppercase text-slate-800">So sánh theo Khoa / Phòng</h3>
-            <p className="mb-3 text-[11px] text-slate-500 leading-relaxed">
-              Liệt kê <strong>tất cả</strong> khoa có dữ liệu (theo bộ lọc). Cột nằm ngang: dưới là tỷ lệ thấp hơn, trên là cao hơn. Đỏ = trong 10 khoa tỷ lệ{" "}
-              <strong>thấp nhất</strong>, xanh = trong 10 khoa <strong>cao nhất</strong>, xám = giữa; cam = khoa vừa thuộc cả hai nhóm (khi tổng số khoa &lt; 20).
-              Số trên đầu mỗi cột là <strong>tỷ lệ tuân thủ %</strong> (đạt ÷ tổng cơ hội).
-            </p>
-            <div className="mb-2 flex flex-wrap gap-4 text-[10px] font-semibold text-slate-600">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm col-span-1 lg:col-span-3">
+            <h3 className="mb-3 text-sm font-bold uppercase text-slate-800">So sánh theo Khoa / Phòng</h3>
+            <div className="mb-3 flex flex-wrap gap-3 text-[10px] font-semibold text-slate-600">
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-sm bg-[#026f17]" /> 10 khoa cao nhất
               </span>
@@ -101,32 +96,25 @@ export default function VstDashboardPanel({ payload, loading }: Props) {
             tyLeLamDungGangTheoBoSot={tyLeLamDungGangTheoBoSot}
           />
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm col-span-1 lg:col-span-3 space-y-4">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm col-span-1 lg:col-span-3 space-y-4">
             <h3 className="text-sm font-bold uppercase text-slate-800">5 thời điểm WHO — gộp bỏ sót &amp; tuân thủ</h3>
-            <MomentWhoMergedTable
-              rows={momentTableRows}
-              hint="Ô thời điểm trên form lưu các mốc cách nhau bằng dấu phẩy; một cơ hội chọn 2 mốc thì đếm 2. Tỉ lệ mỗi cột = số lần mốc đó ÷ tổng cột đó (mỗi nhóm cộng 100%). Dòng “Chưa ghi…” khi ô trống hoặc không tách được mốc."
-            />
+            <MomentWhoMergedTable rows={momentTableRows} />
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm col-span-1 lg:col-span-3">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm col-span-1 lg:col-span-3">
             <h3 className="mb-4 text-sm font-bold uppercase text-slate-800">So sánh theo Nghề nghiệp</h3>
             <RateBarChart rows={compareTop.doi_tuong} heightPx={280} />
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm col-span-1 lg:col-span-3">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm col-span-1 lg:col-span-3">
             <h3 className="mb-4 text-sm font-bold uppercase text-slate-800">So sánh theo Khối</h3>
-            <p className="mb-3 text-[11px] text-slate-500">
-              Gộp theo <strong>dm_khoi_khoa</strong> của khoa hiệu lực trên từng cơ hội (khớp <strong>khoi_id</strong> trên{" "}
-              <strong>dm_khoa_phong</strong>). Tỷ lệ = đạt ÷ tổng cơ hội.
-            </p>
             <RateBarChart
               rows={khoiCompareRows}
               heightPx={Math.min(720, Math.max(280, khoiCompareRows.length * 36 + 80))}
             />
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm col-span-1 lg:col-span-3">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm col-span-1 lg:col-span-3">
             <h3 className="mb-4 text-sm font-bold uppercase text-slate-800">So sánh theo Khu vực giám sát</h3>
             <RateBarChart
               rows={payload.by_khu_vuc ?? []}
@@ -135,7 +123,7 @@ export default function VstDashboardPanel({ payload, loading }: Props) {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center h-64 text-slate-400 bg-white rounded-2xl border border-slate-200 border-dashed">
+        <div className="flex flex-col items-center justify-center h-64 text-slate-400 bg-white rounded-xl border border-slate-200 border-dashed">
           <Activity className="h-10 w-10 mb-4 opacity-50" />
           <p className="text-sm font-semibold">
             {loading ? "Đang trích xuất dữ liệu phân tích..." : "Chưa có dữ liệu để phân tích trong bộ lọc này."}

@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Plus, Search, RefreshCw } from "lucide-react";
-import type { NhanSu } from "../../actions/data";
+import type { NhanSu } from "../../types";
 
 interface NhanSuToolbarProps {
   search: string;

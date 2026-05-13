@@ -12,12 +12,30 @@ import type { TrungTamDanhMucStatsPayload } from "@/modules/quan-tri-he-thong/ac
 import { DM_HUB_LABELS, getRegistryEntriesForChuyenBietHub } from "@/lib/master-data/domain-registry";
 import { getDanhMucAdminPath } from "@/lib/master-data/danh-muc-admin-routes";
 import QuanTriDanhMucTabStrip from "./QuanTriDanhMucTabStrip";
+import SearchBar from "@/components/shared/SearchBar";
 import {
   buildMasterHubColumns,
   buildRegistryColumns,
   type HubRegistryRow,
   type MasterCardRow,
 } from "./quan-tri-danh-muc-table-columns";
+
+function filterMasterHub(rows: MasterCardRow[], q: string) {
+  const t = q.trim().toLowerCase();
+  if (!t) return rows;
+  return rows.filter((r) => r.name.toLowerCase().includes(t) || r.path.toLowerCase().includes(t));
+}
+
+function filterRegistryHub(rows: HubRegistryRow[], q: string) {
+  const t = q.trim().toLowerCase();
+  if (!t) return rows;
+  return rows.filter(
+    (r) =>
+      r.name.toLowerCase().includes(t) ||
+      r.path.toLowerCase().includes(t) ||
+      (r.subtitle != null && String(r.subtitle).toLowerCase().includes(t)),
+  );
+}
 
 export default function QuanTriDanhMucPage() {
   const router = useRouter();
@@ -27,6 +45,8 @@ export default function QuanTriDanhMucPage() {
   const [loading, setLoading] = useState(true);
   const [registryLoaded, setRegistryLoaded] = useState(false);
   const [registryLoading, setRegistryLoading] = useState(false);
+  const [hubSearch, setHubSearch] = useState("");
+  const [registrySearch, setRegistrySearch] = useState("");
   /** Một hook — tránh gọi RBAC/client Supabase hai lần (hai `useModulePermission` cũ). */
   const { loading: permLoading, isAdmin, canView, canEdit } = usePermission();
   const canViewDanhMuc = canView("DANH_MUC");
@@ -37,8 +57,6 @@ export default function QuanTriDanhMucPage() {
   useEffect(() => {
     if (!canViewDanhMuc && canConfigureRbac && activeTab !== "PHAN_QUYEN") setActiveTab("PHAN_QUYEN");
   }, [canViewDanhMuc, canConfigureRbac, activeTab]);
-
-  const go = useCallback((path: string) => router.push(path), [router]);
 
   useEffect(() => {
     if (searchParams.get("tab") === "dm_registry") setActiveTab("DM_REGISTRY");
@@ -122,6 +140,17 @@ export default function QuanTriDanhMucPage() {
     }));
   }, [stats.registryByLoai]);
 
+  const go = useCallback((path: string) => router.push(path), [router]);
+
+  const filteredHub = useMemo(
+    () => filterMasterHub(masterListWithTaiKhoan, hubSearch),
+    [masterListWithTaiKhoan, hubSearch],
+  );
+  const filteredRegistry = useMemo(
+    () => filterRegistryHub(hubDmList, registrySearch),
+    [hubDmList, registrySearch],
+  );
+
   const columnsHub = useMemo(() => buildMasterHubColumns(go), [go]);
   const columnsRegistry = useMemo(() => buildRegistryColumns(go), [go]);
 
@@ -165,31 +194,34 @@ export default function QuanTriDanhMucPage() {
       />
 
       {activeTab === "DANH_MUC" && canViewDanhMuc ? (
-        <section className="app-data-shell overflow-hidden p-2" aria-labelledby="tab-danhmuc-hub">
-          <AdvancedDataTable
-            columns={columnsHub}
-            data={masterListWithTaiKhoan}
-            loading={loading}
-            onRowClick={(r) => go(r.path)}
-          />
+        <section className="space-y-4" aria-labelledby="tab-danhmuc-hub">
+          <div className="app-data-shell overflow-hidden p-2">
+            <div className="mb-2 min-w-0 px-1">
+              <SearchBar value={hubSearch} onChange={setHubSearch} placeholder="Tìm danh mục…" />
+            </div>
+            <AdvancedDataTable
+              columns={columnsHub}
+              data={filteredHub}
+              loading={loading}
+              onRowClick={(r) => go(r.path)}
+              hideSearch
+              tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
+            />
+          </div>
         </section>
       ) : activeTab === "DM_REGISTRY" && canViewDanhMuc ? (
         <section className="space-y-4" aria-labelledby="tab-dm-registry">
-          <aside className="rounded-xl border border-sky-200/70 bg-gradient-to-br from-sky-50/80 to-white px-4 py-3 text-sm leading-relaxed text-slate-700 shadow-sm ring-1 ring-sky-900/5">
-            <p>
-              Đây là các bảng <code className="rounded-md bg-white/80 px-1.5 py-0.5 font-mono text-xs text-slate-800 ring-1 ring-slate-200/80">dm_*</code>{" "}
-              theo registry (một loại một bảng nguồn dữ liệu).
-              <strong className="font-semibold text-slate-900"> Khoa phòng</strong> và{" "}
-              <strong className="font-semibold text-slate-900">Loại dụng cụ</strong> nên chỉnh sửa từ{" "}
-              <em>Trung tâm danh mục</em> để đồng bộ biểu mẫu và thống kê.
-            </p>
-          </aside>
           <div className="app-data-shell overflow-hidden p-2">
+            <div className="mb-2 min-w-0 px-1">
+              <SearchBar value={registrySearch} onChange={setRegistrySearch} placeholder="Tìm theo tên hoặc bảng…" />
+            </div>
             <AdvancedDataTable
               columns={columnsRegistry}
-              data={hubDmList}
+              data={filteredRegistry}
               loading={loading || registryLoading}
               onRowClick={(r) => go(r.path)}
+              hideSearch
+              tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
             />
           </div>
         </section>

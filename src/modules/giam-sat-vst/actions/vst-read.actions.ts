@@ -3,12 +3,8 @@
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { buildDisplayMaps, toDistinctIds } from "@/lib/master-data/gateway";
-import {
-  khuTenFromSessionRow,
-  type VstObservationLite,
-  type VstSessionRow,
-  vstReadErrorMessage,
-} from "../lib/vst-read-utils";
+import { vstReadErrorMessage } from "../lib/vst-read-utils";
+import { VST_OBSERVATION_ROW_SELECT, VST_SESSIONS_FULL_VIEW_SELECT } from "../lib/vst-read-view-select";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 
@@ -20,7 +16,7 @@ export async function getVSTSessions() {
     const scope = await getActorKsnkScope();
     let q = supabase
       .from("v_fact_giam_sat_vst_sessions_full")
-      .select("*")
+      .select(VST_SESSIONS_FULL_VIEW_SELECT)
       .order("created_at", { ascending: false })
       .limit(100);
     if (scope.isMangLuoiKsnk) {
@@ -66,7 +62,7 @@ export async function getVSTSessionsPaginated(params: {
     const scope = await getActorKsnkScope();
 
     const page = params.page ?? 1;
-    const size = Math.min(Math.max(params.pageSize ?? 20, 10), 100);
+    const size = Math.min(Math.max(params.pageSize ?? 20, 10), 50);
     const from = (page - 1) * size;
     const to = from + size - 1;
     const rawSort = String(params.sortKey || "").trim();
@@ -111,7 +107,7 @@ export async function getVSTSessionsPaginated(params: {
     // 2. DATA — 1 trang
     let dataQ = supabase
       .from("v_fact_giam_sat_vst_sessions_full")
-      .select("*")
+      .select(VST_SESSIONS_FULL_VIEW_SELECT)
       .order(sortCol, { ascending })
       .range(from, to);
     if (scope.isMangLuoiKsnk) {
@@ -147,7 +143,7 @@ export async function getVSTSessionDetail(sessionId: string) {
     // 1. Fetch Session Metadata from View (Smart DB pattern)
     const { data: sessionView, error: sErr } = await supabase
       .from("v_fact_giam_sat_vst_sessions_full")
-      .select("*")
+      .select(VST_SESSIONS_FULL_VIEW_SELECT)
       .eq("id", sessionId)
       .single();
 
@@ -173,7 +169,7 @@ export async function getVSTSessionDetail(sessionId: string) {
     // 2. Fetch Observations
     const { data: observations, error: oErr } = await supabase
       .from("fact_giam_sat_vst")
-      .select("*")
+      .select(VST_OBSERVATION_ROW_SELECT)
       .eq("session_id", sessionId);
     
     if (oErr) throw oErr;

@@ -1,12 +1,15 @@
 "use server";
 
+import { getCachedDmKhoaPhong, getCachedDmNgheNghiep } from "@/lib/cache/master-data-cache";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
+import { sanitizeBusinessMaPrefix } from "@/lib/master-data/business-ma-prefix";
 import { type NhanSu } from "../types";
 import { verifyPermission } from "../../actions/verify-permission";
 import { buildNhanSuExportRows } from "./nhan-su-read-export-rows";
 import { errNhanSu } from "./nhan-su-read-errors";
 import { enrichNhanSuListRows } from "./nhan-su-read-list-enrich";
-import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
+import { NHAN_SU_EXPORT_VIEW_SELECT } from "../lib/nhan-su-export-view-select";
 
 /**
  * Lấy danh sách nhân sự với tìm kiếm và phân trang
@@ -31,7 +34,7 @@ export async function getNhanSus(params: {
 
     let query = supabase
       .from("v_mdm_nhan_su_full")
-      .select("*", { count: "exact" });
+      .select(NHAN_SU_EXPORT_VIEW_SELECT, { count: "exact" });
 
     const searchFilter = buildSupabaseSearchFilter(search, [
       "ho_ten",
@@ -89,19 +92,27 @@ export async function getNhanSus(params: {
 }
 
 /**
- * Lấy toàn bộ mã nhân viên để phục vụ sinh mã tự động
+ * Gợi ý mã nhân viên kế tiếp theo tiền tố (một RPC, không tải danh sách ma_nv).
  */
-export async function getAllMaNhanSu() {
+export async function suggestNextMaNhanSuMaAction(prefixRaw: string) {
   const supabase = await createServerSupabaseUserClient();
   try {
     await verifyPermission("NHAN_SU", "view");
-    const { data, error } = await supabase
-      .from("mdm_nhan_su")
-      .select("ma_nv");
+    const prefix = sanitizeBusinessMaPrefix(prefixRaw);
+    if (!prefix) {
+      return { success: false as const, error: "Tiền tố mã không hợp lệ." };
+    }
+    const { data, error } = await supabase.rpc("rpc_mdm_nhan_su_max_numeric_suffix", {
+      p_prefix: prefix,
+    });
     if (error) throw error;
-    return { success: true, data };
+    const maxSuffix = typeof data === "number" ? data : Number.parseInt(String(data ?? "0"), 10);
+    const maxSafe = Number.isFinite(maxSuffix) ? maxSuffix : 0;
+    const nextNum = maxSafe + 1;
+    const nextCode = `${prefix}${nextNum.toString().padStart(3, "0")}`;
+    return { success: true as const, nextCode };
   } catch (error: unknown) {
-    return { success: false, error: errNhanSu(error) };
+    return { success: false as const, error: errNhanSu(error) };
   }
 }
 
@@ -114,7 +125,7 @@ export async function getNhanSuExportData() {
     await verifyPermission("NHAN_SU", "view");
     const { data, error } = await supabase
       .from("v_mdm_nhan_su_full")
-      .select("*")
+      .select(NHAN_SU_EXPORT_VIEW_SELECT)
       .order("is_active", { ascending: false })
       .order("ma_nv");
     if (error) throw error;
@@ -128,8 +139,6 @@ export async function getNhanSuExportData() {
     return { success: false, error: errNhanSu(error) };
   }
 }
-
-import { getCachedDmKhoaPhong, getCachedDmNgheNghiep } from "@/lib/cache/master-data-cache";
 
 /**
  * Lấy danh mục dùng cho form Nhân sự.

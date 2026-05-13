@@ -1,10 +1,15 @@
 import { useCallback, useEffect, type Dispatch, type SetStateAction } from "react";
 import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
 import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
-import type { DashboardSummaryRow, DashboardKsnkStaffSupervisionRow } from "../compliance-dashboard.types";
+import type {
+  DashboardSummaryRow,
+  DashboardKhoaOverviewRow,
+  DashboardKsnkStaffSupervisionRow,
+} from "../compliance-dashboard.types";
 import { fetchDashboardPayloadsForSupervisionType } from "../lib/fetch-dashboard-payloads-for-type";
 import { executeDashboardLoad, shouldUpdateBangKiemSelection } from "../lib/dashboard-load-execution";
 import type { DashboardTabType } from "./dashboard-types";
+import type { DashboardLoadInput } from "../lib/dashboard-load-execution";
 
 type GapCompliance = Record<
   string,
@@ -40,6 +45,8 @@ export function useDashboardLoadCycle(args: {
   setTuGiamSatParticipationByKhoa: (v: ParticipationRow[]) => void;
   setKsnkStaffSupervision: (v: DashboardKsnkStaffSupervisionRow[]) => void;
   setShowKsnkStaffWorkload: (v: boolean) => void;
+  setKhoaOverviewRows: (v: DashboardKhoaOverviewRow[]) => void;
+  widgetAccess: NonNullable<DashboardLoadInput["widgetAccess"]>;
 }) {
   const {
     initDone,
@@ -66,6 +73,8 @@ export function useDashboardLoadCycle(args: {
     setTuGiamSatParticipationByKhoa,
     setKsnkStaffSupervision,
     setShowKsnkStaffWorkload,
+    setKhoaOverviewRows,
+    widgetAccess,
   } = args;
 
   const fetchPayloadsForType = useCallback(
@@ -128,10 +137,12 @@ export function useDashboardLoadCycle(args: {
         filterOptions,
         activeTab,
         fetchPayloadsForType,
-        overviewBundleArgs: activeTab === "overview" ? sharedBundleArgs : null,
-        gapBundleArgs: activeTab === "gap" ? sharedBundleArgs : null,
+        overviewBundleArgs: activeTab === "overview" && widgetAccess.overview ? sharedBundleArgs : null,
+        gapBundleArgs: activeTab === "gap" && widgetAccess.gap ? sharedBundleArgs : null,
+        widgetAccess,
       });
       setSummaryTable(out.summaryRows);
+      setKhoaOverviewRows(out.khoaOverviewRows);
       if (out.nextBangKiemSelection) {
         const next = out.nextBangKiemSelection;
         setSelectedBangKiemMas((prev) => (shouldUpdateBangKiemSelection(prev, next) ? next : prev));
@@ -174,6 +185,8 @@ export function useDashboardLoadCycle(args: {
     setTuGiamSatParticipationByKhoa,
     setKsnkStaffSupervision,
     setShowKsnkStaffWorkload,
+    setKhoaOverviewRows,
+    widgetAccess,
   ]);
 
   useEffect(() => {

@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, type SetStateAction } from "react";
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
 import type { ChecklistResult, ChecklistTemplate } from "@/types/giam-sat-chung";
 import { saveGiamSatChung } from "../actions/giam-sat-chung.actions";
+import type { GscSessionInput } from "../actions/giam-sat-chung-write-helpers";
 import { loadGscTemplateOptions, switchGscTemplateByBangKiemId, type GscTemplateOption } from "../lib/gsc-form-template-sync";
 import { toast } from "sonner";
 import { useGiamSatHeader } from "@/hooks/useGiamSatHeader";
@@ -11,6 +12,10 @@ import { mergeGscSessionWithDbPrintLabels, snapshotGscSessionForPrint } from "..
 import { useGscDbPrintLabels } from "./use-gsc-db-print-labels";
 import { formatUnknownError } from "@/lib/supabase-error-message";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
+import {
+  enqueueOfflineGscSave,
+  isLikelyOfflineOrNetworkFailure,
+} from "@/lib/offline-pending-supervision-save";
 
 function hasSessionDiff(
   prev: Record<string, unknown>,
@@ -48,6 +53,7 @@ export function useGiamSatChungForm(
     ngheNghieps,
     nhanSus,
     historyLocations,
+    historyLocationRows,
     currentHoSoId,
   } = useGiamSatHeader("gsc", true);
 
@@ -64,6 +70,10 @@ export function useGiamSatChungForm(
     nhan_vien_id: "",
     is_manual_nhan_vien: false,
     ten_manual_nhan_vien: "",
+    is_bo_sung_nguoi_benh: false,
+    ma_nguoi_benh: "",
+    ten_nguoi_benh: "",
+    so_giuong_nguoi_benh: "",
     ghi_chu_chung: "",
     thoi_gian_bat_dau: "" as string | undefined,
     thoi_gian_ket_thuc: "" as string | undefined,
@@ -95,6 +105,10 @@ export function useGiamSatChungForm(
       ghi_chu_chung: String((s as any).ghi_chu_chung ?? ""),
       thoi_gian_bat_dau: s.thoi_gian_bat_dau,
       thoi_gian_ket_thuc: s.thoi_gian_ket_thuc,
+      is_bo_sung_nguoi_benh: Boolean(s.is_bo_sung_nguoi_benh),
+      ma_nguoi_benh: String(s.ma_nguoi_benh ?? ""),
+      ten_nguoi_benh: String(s.ten_nguoi_benh ?? ""),
+      so_giuong_nguoi_benh: String(s.so_giuong_nguoi_benh ?? ""),
     }));
   }, [editSession, setSelectedKhoa, setSelectedKhuVuc, setNgayGiamSat]);
 
@@ -176,15 +190,45 @@ export function useGiamSatChungForm(
         khu_vuc_id: selectedKhuVuc,
         ngay_giam_sat: ngayGiamSat,
         loai_bang_kiem: template.id,
-      };
+      } as GscSessionInput;
       const sid = String(opts?.editingSessionId ?? "").trim();
+
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        enqueueOfflineGscSave({
+          session: payload,
+          results,
+          existingSessionId: sid || null,
+        });
+        toast.message(
+          "Đã lưu vào hàng đợi ngoại tuyến. Hệ thống sẽ gửi phiên khi có mạng trở lại (tự động hoặc khi bạn mở lại ứng dụng).",
+        );
+        return;
+      }
+
       const res = await saveGiamSatChung(payload, results, sid ? { existingSessionId: sid } : undefined);
       if (res.success) {
         toast.success(sid ? "Đã cập nhật phiên giám sát." : "Đã lưu kết quả!");
         onSuccess();
       } else toast.error("Lỗi: " + res.error);
     } catch (error: unknown) {
-      toast.error("Lỗi: " + formatUnknownError(error));
+      if (isLikelyOfflineOrNetworkFailure(error)) {
+        const payload = {
+          ...session,
+          khoa_id: selectedKhoa,
+          khu_vuc_id: selectedKhuVuc,
+          ngay_giam_sat: ngayGiamSat,
+          loai_bang_kiem: template.id,
+        } as GscSessionInput;
+        const sid = String(opts?.editingSessionId ?? "").trim();
+        enqueueOfflineGscSave({
+          session: payload,
+          results,
+          existingSessionId: sid || null,
+        });
+        toast.message("Mạng không ổn định — đã giữ phiên trong hàng đợi ngoại tuyến để gửi sau.");
+      } else {
+        toast.error("Lỗi: " + formatUnknownError(error));
+      }
     } finally {
       setLoading(false);
     }
@@ -249,6 +293,7 @@ export function useGiamSatChungForm(
     ngheNghieps,
     nhanSus,
     historyLocations,
+    historyLocationRows,
     handleSwitchTemplate,
     handleSave,
     score,

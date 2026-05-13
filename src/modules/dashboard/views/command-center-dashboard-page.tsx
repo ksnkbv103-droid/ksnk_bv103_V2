@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { Users, Eye, ClipboardList, Filter, LayoutDashboard, FileBarChart, Printer } from "lucide-react";
+import { Users, Eye, ClipboardList, Filter, LayoutDashboard, FileBarChart } from "lucide-react";
 import { useDashboardData } from "@/modules/dashboard/hooks/useDashboardData";
 import { buildEmptyComplianceDashboardPayload } from "@/modules/dashboard/compliance-dashboard.types";
 import { SupervisionSourceStats } from "@/modules/dashboard/components/SupervisionSourceStats";
@@ -58,9 +58,9 @@ function GscComplianceDashboardBlocks(props: {
         const p = compliancePayloads[bk] ?? buildEmptyComplianceDashboardPayload(tuNgay, denNgay);
         if (onlyWithSessions && !gscPayloadHasSessions(p)) return null;
         return (
-          <div key={bk} className="space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-r-2xl border-l-4 border-blue-600 bg-blue-50 px-6 py-4">
-              <h4 className="text-sm font-black uppercase tracking-widest text-blue-900">{bkLabelMap.get(bk) || bk}</h4>
+          <div key={bk} className="space-y-4">
+            <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-4 py-2.5">
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-800">{bkLabelMap.get(bk) || bk}</h4>
             </div>
             <ComplianceDashboardPanel
               payload={p}
@@ -84,20 +84,30 @@ export function CommandCenterDashboardPage() {
     selectedNgheIds, setSelectedNgheIds,
     selectedKhuVucIds, setSelectedKhuVucIds,
     tuNgay, setTuNgay, denNgay, setDenNgay,
-    loading, vstPayload, compliancePayloads, vstGapPayloads, complianceGapPayloads, summaryTable, tuGiamSatParticipationByKhoa, ksnkStaffSupervision, showKsnkStaffWorkload,
+    loading, vstPayload, compliancePayloads, vstGapPayloads, complianceGapPayloads, summaryTable, khoaOverviewRows, ksnkStaffSupervision, showKsnkStaffWorkload,
     bangKiemOptions, khoiOptions, khoaOptions, ngheOptions, khuVucOptions, bkLabelMap,
     exportCurrentReport, openDialog, setOpenDialog,
     nhanXetDanhGia, setNhanXetDanhGia, kienNghiDeXuat, setKienNghiDeXuat,
-    loadDashboard, initDone
+    loadDashboard, initDone,
+    ccWidgets,
   } = useDashboardData();
 
-  const tabs = [
-    { id: "overview", label: "Cơ cấu nguồn", icon: LayoutDashboard },
-    { id: "ksnk", label: "Chuyên trách", icon: Eye },
-    { id: "cheo", label: "Giám sát chéo", icon: ClipboardList },
-    { id: "tu_giam_sat", label: "Tự giám sát", icon: Users },
-    { id: "gap", label: "Đối soát & Lệch", icon: FileBarChart },
+  const allTabs = [
+    { id: "overview" as const, label: "Cơ cấu nguồn", icon: LayoutDashboard },
+    { id: "ksnk" as const, label: "Chuyên trách", icon: Eye },
+    { id: "cheo" as const, label: "Giám sát chéo", icon: ClipboardList },
+    { id: "tu_giam_sat" as const, label: "Tự giám sát", icon: Users },
+    { id: "gap" as const, label: "Đối soát & Lệch", icon: FileBarChart },
   ] as const;
+
+  const visibleTabs = useMemo(() => {
+    return allTabs.filter((t) => {
+      if (t.id === "overview") return ccWidgets.overview;
+      if (t.id === "ksnk" || t.id === "cheo" || t.id === "tu_giam_sat") return ccWidgets.supervision;
+      if (t.id === "gap") return ccWidgets.gap;
+      return true;
+    });
+  }, [ccWidgets.overview, ccWidgets.supervision, ccWidgets.gap]);
 
   const overviewSources = useMemo(() => {
     const ksnk = summaryTable.reduce((acc, row) => acc + (row.ksnk || 0), 0);
@@ -116,50 +126,60 @@ export function CommandCenterDashboardPage() {
   if (loading && !initDone) return <div className="flex h-[45vh] items-center justify-center"><div className="h-9 w-9 animate-spin rounded-full border-4 border-[#026f17] border-t-transparent" /></div>;
 
   return (
-    <div className="mx-auto max-w-[1600px] space-y-8 p-6 pb-24">
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 uppercase italic">Command Center</h1>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Hệ thống chỉ huy & Giám sát KSNK Bệnh viện 103</p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 rounded-2xl bg-white border border-slate-200 p-1 shadow-sm">
-            {tabs.map((t) => (
-              <button key={t.id} onClick={() => setActiveTab(t.id)} className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-black transition-all ${activeTab === t.id ? "bg-[#026f17] text-white shadow-lg shadow-[#026f17]/20" : "text-slate-500 hover:bg-slate-50"}`}>
-                <t.icon className="h-4 w-4" />
-                {t.label}
-              </button>
-            ))}
+    <div className="mx-auto max-w-[1600px] space-y-6 p-4 pb-20 md:p-6 md:pb-24">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+          <h1 className="text-xl font-semibold tracking-tight text-slate-900 md:text-2xl">Command Center</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex flex-wrap gap-0.5 rounded-lg border border-slate-200 bg-slate-100/90 p-0.5">
+              {visibleTabs.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setActiveTab(t.id)}
+                  className={`inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold transition-colors ${
+                    activeTab === t.id ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/80" : "text-slate-600 hover:bg-white/70"
+                  }`}
+                >
+                  <t.icon className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
+                  {t.label}
+                </button>
+              ))}
+            </div>
           </div>
-          <button onClick={exportCurrentReport} className="flex h-11 items-center gap-2 rounded-2xl bg-white border border-slate-200 px-5 text-xs font-black text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">
-            <Printer className="h-4 w-4" /> Báo cáo (PDF)
-          </button>
         </div>
-      </div>
 
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center gap-2 text-slate-400">
-          <Filter className="h-4 w-4" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Bộ lọc chỉ huy</span>
+        <div className="mt-4 border-t border-slate-100 pt-4">
+          <div className="mb-3 flex items-center gap-2 text-slate-500">
+            <Filter className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            <span className="text-[11px] font-semibold uppercase tracking-wide">Bộ lọc</span>
+          </div>
+          <DashboardFilterPanel
+            tuNgay={tuNgay}
+            setTuNgay={setTuNgay}
+            denNgay={denNgay}
+            setDenNgay={setDenNgay}
+            bangKiemOptions={bangKiemOptions}
+            selectedBangKiemMas={selectedBangKiemMas}
+            setSelectedBangKiemMas={setSelectedBangKiemMas}
+            khoiOptions={khoiOptions}
+            selectedKhoiIds={selectedKhoiIds}
+            setSelectedKhoiIds={setSelectedKhoiIds}
+            khoaOptions={khoaOptions}
+            selectedKhoaIds={selectedKhoaIds}
+            setSelectedKhoaIds={setSelectedKhoaIds}
+            ngheOptions={ngheOptions}
+            selectedNgheIds={selectedNgheIds}
+            setSelectedNgheIds={setSelectedNgheIds}
+            khuVucOptions={khuVucOptions}
+            selectedKhuVucIds={selectedKhuVucIds}
+            setSelectedKhuVucIds={setSelectedKhuVucIds}
+            onRefresh={loadDashboard}
+            onOpenComment={() => setOpenDialog("nhan_xet")}
+            onOpenRecommendation={() => setOpenDialog("kien_nghi")}
+            onExport={ccWidgets.exportPdf ? exportCurrentReport : undefined}
+          />
         </div>
-        <DashboardFilterPanel
-          tuNgay={tuNgay} setTuNgay={setTuNgay}
-          denNgay={denNgay} setDenNgay={setDenNgay}
-          bangKiemOptions={bangKiemOptions} selectedBangKiemMas={selectedBangKiemMas} setSelectedBangKiemMas={setSelectedBangKiemMas}
-          khoiOptions={khoiOptions} selectedKhoiIds={selectedKhoiIds} setSelectedKhoiIds={setSelectedKhoiIds}
-          khoaOptions={khoaOptions} selectedKhoaIds={selectedKhoaIds} setSelectedKhoaIds={setSelectedKhoaIds}
-          ngheOptions={ngheOptions} selectedNgheIds={selectedNgheIds} setSelectedNgheIds={setSelectedNgheIds}
-          khuVucOptions={khuVucOptions} selectedKhuVucIds={selectedKhuVucIds} setSelectedKhuVucIds={setSelectedKhuVucIds}
-          onRefresh={loadDashboard}
-          onOpenComment={() => setOpenDialog("nhan_xet")}
-          onOpenRecommendation={() => setOpenDialog("kien_nghi")}
-          onExport={exportCurrentReport}
-        />
-        <p className="mt-4 text-[10px] font-medium leading-relaxed text-slate-500">
-          Sau khi sửa <span className="font-bold text-slate-600">nhân sự / khoa</span> trên Quản trị: số liệu chỉ cập nhật khi tải lại từ server — bấm{" "}
-          <span className="font-black text-[#026f17]">Cập nhật</span>, đổi ngày lọc, hoặc chuyển lại tab trình duyệt này (không có đồng bộ realtime).
-        </p>
       </div>
 
       <div className="app-data-shell">
@@ -167,7 +187,7 @@ export function CommandCenterDashboardPage() {
           <div className="space-y-8">
             <SupervisionSourceStats
               sources={overviewSources}
-              participationTuGiamSat={tuGiamSatParticipationByKhoa}
+              khoaOverviewRows={khoaOverviewRows}
               ksnkStaffSupervision={ksnkStaffSupervision}
               showKsnkStaffWorkload={showKsnkStaffWorkload}
               khoaOptions={khoaOptions}
@@ -176,9 +196,9 @@ export function CommandCenterDashboardPage() {
               khoiOptions={khoiOptions}
             />
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-              <h3 className="mb-6 text-sm font-black uppercase tracking-widest text-slate-900">Liệt kê các chuyên đề giám sát</h3>
-              <div className="overflow-hidden rounded-2xl border border-slate-100">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-800">Liệt kê các chuyên đề giám sát</h3>
+              <div className="overflow-hidden rounded-lg border border-slate-200">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400">
                     <tr>
@@ -210,22 +230,29 @@ export function CommandCenterDashboardPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="mt-4 text-sm text-slate-500">
-                Bảng tổng hợp theo chuyên đề (mọi nguồn trong khoảng lọc). Biểu đồ chi tiết từng bảng kiểm (Giám sát chung) chỉ có ở các tab{" "}
-                <span className="font-semibold text-slate-700">Chuyên trách</span>,{" "}
-                <span className="font-semibold text-slate-700">Giám sát chéo</span> và{" "}
-                <span className="font-semibold text-slate-700">Tự giám sát</span>.
-              </p>
             </div>
           </div>
         )}
 
         {(activeTab === "ksnk" || activeTab === "cheo" || activeTab === "tu_giam_sat") && (
           <div className="space-y-12 animate-in fade-in duration-500">
+            {activeTab === "tu_giam_sat" && (
+              <SupervisionSourceStats
+                variant="tableOnly"
+                sources={overviewSources}
+                khoaOverviewRows={khoaOverviewRows}
+                ksnkStaffSupervision={[]}
+                showKsnkStaffWorkload={false}
+                khoaOptions={khoaOptions}
+                selectedKhoaIds={selectedKhoaIds}
+                selectedKhoiIds={selectedKhoiIds}
+                khoiOptions={khoiOptions}
+              />
+            )}
             {selectedBangKiemMas.includes("VST_WHO") && vstPayloadHasData(vstPayload) && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 border-l-4 border-emerald-600 bg-emerald-50 px-6 py-4 rounded-r-2xl">
-                  <h4 className="text-sm font-black uppercase tracking-widest text-emerald-900">Vệ sinh tay (WHO)</h4>
+              <div className="space-y-4">
+                <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-4 py-2.5">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-emerald-900">Vệ sinh tay (WHO)</h4>
                 </div>
                 <VstDashboardPanel payload={vstPayload} loading={loading} />
               </div>

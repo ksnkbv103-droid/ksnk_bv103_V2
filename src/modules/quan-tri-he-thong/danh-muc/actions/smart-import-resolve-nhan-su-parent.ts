@@ -1,12 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SmartImportDmSessionCache } from "../lib/smart-import/dm-import-session-cache";
+import { createDmImportSessionCache } from "../lib/smart-import/dm-import-session-cache";
 import { finalizeNhanSuImportRow } from "./smart-import-nhan-su-import-row-finalize";
-import { DM_TABLE_BY_LOAI, isImportMaEmpty, normalizeImportMa } from "./smart-import-resolvers-shared";
+import { isImportMaEmpty, normalizeImportMa } from "./smart-import-resolvers-shared";
 
 export async function resolveNhanSuParentIdsForImport(
   supabase: SupabaseClient,
   row: Record<string, unknown>,
+  sessionCache?: SmartImportDmSessionCache,
 ): Promise<{ ok: true; row: Record<string, unknown> } | { ok: false; error: string }> {
   const sb = supabase;
+  const dm = sessionCache ?? createDmImportSessionCache(sb);
   const out = { ...row };
   const notes: string[] = [];
   const addNote = (msg: string) => {
@@ -43,63 +47,18 @@ export async function resolveNhanSuParentIdsForImport(
     out.vai_tro_he_thong_id = null;
     addNote("Bỏ qua chuc_danh_id/vai_tro_he_thong_id vì contract import chỉ nhận mã nghiệp vụ.");
   }
-  async function resolveDanhMucId(maLookup: string, loai: string) {
-    if (!maLookup) return null;
-    const dmTarget = DM_TABLE_BY_LOAI[loai];
-
-    if (loai === "VAI_TRO_HE_THONG_KSNK") {
-      const { data: roleRows, error: roleErr } = await sb.from("dm_roles").select("id, name");
-      if (roleErr) return { error: roleErr.message } as const;
-      const matched = (roleRows || []).find((r) => normalizeImportMa((r as { name?: string }).name) === maLookup) as
-        | { id?: string }
-        | undefined;
-      if (matched?.id) return matched.id;
-      return null;
-    }
-
-    if (loai === "KHOA_PHONG") {
-      const { data: khoa, error: khoaErr } = await sb
-        .from("dm_khoa_phong")
-        .select("id")
-        .eq("ma_khoa", maLookup)
-        .limit(1)
-        .maybeSingle();
-      if (khoaErr) return { error: khoaErr.message } as const;
-      if (khoa && typeof khoa === "object" && "id" in khoa && (khoa as { id?: string }).id)
-        return (khoa as { id: string }).id;
-    }
-
-    if (dmTarget) {
-      const { data, error } = await sb
-        .from(dmTarget.table)
-        .select("id")
-        .eq(dmTarget.ma, maLookup)
-        .limit(1)
-        .maybeSingle();
-      if (error) return { error: error.message } as const;
-      if (data && typeof data === "object" && "id" in data && (data as { id?: string }).id)
-        return (data as { id: string }).id;
-      return null;
-    }
-
-    return null;
-  }
-  const khoaResolved = await resolveDanhMucId(maKhoa, "KHOA_PHONG");
+  const khoaResolved = await dm.resolveDanhMucId(maKhoa, "KHOA_PHONG");
   if (khoaResolved && typeof khoaResolved === "object" && "error" in khoaResolved)
     return { ok: false, error: khoaResolved.error };
   if (maKhoa && !khoaResolved) addNote(`ma_khoa (${maKhoa}) không tồn tại trong dm_khoa_phong -> để trống khoa_id.`);
-  const toResolved = await resolveDanhMucId(maTo, "TO_CONG_TAC");
+  const toResolved = await dm.resolveDanhMucId(maTo, "TO_CONG_TAC");
   if (toResolved && typeof toResolved === "object" && "error" in toResolved)
     return { ok: false, error: toResolved.error };
   let toId = typeof toResolved === "string" ? toResolved : null;
   if (maTo && !toId && tenToCongTac) {
-    const { data: toRows, error: toTenErr } = await sb
-      .from("dm_to_cong_tac")
-      .select("id, ma_to, ten_to")
-      .eq("ten_to", tenToCongTac)
-      .limit(5);
-    if (toTenErr) return { ok: false, error: toTenErr.message };
-    const list = (toRows || []) as { id: string; ma_to?: string; ten_to?: string }[];
+    const pack = await dm.getToCongTacRowsByTen(tenToCongTac);
+    if (!pack.ok) return { ok: false, error: pack.error };
+    const list = pack.rows;
     if (list.length === 1) toId = list[0].id;
     else if (list.length > 1) {
       return {
@@ -112,13 +71,9 @@ export async function resolveNhanSuParentIdsForImport(
     addNote(`ma_to (${maTo}) không tồn tại trong dm_to_cong_tac -> để trống to_id.`);
   }
   if (!maTo && tenToCongTac && !toId) {
-    const { data: toRows, error: toTenErr } = await sb
-      .from("dm_to_cong_tac")
-      .select("id, ten_to")
-      .eq("ten_to", tenToCongTac)
-      .limit(5);
-    if (toTenErr) return { ok: false, error: toTenErr.message };
-    const list = (toRows || []) as { id: string; ten_to?: string }[];
+    const pack = await dm.getToCongTacRowsByTen(tenToCongTac);
+    if (!pack.ok) return { ok: false, error: pack.error };
+    const list = pack.rows;
     if (list.length === 1) toId = list[0].id;
     else if (list.length > 1) {
       return {
@@ -130,15 +85,15 @@ export async function resolveNhanSuParentIdsForImport(
       addNote(`ten_to_cong_tac (${tenToCongTac}) không tồn tại trong dm_to_cong_tac -> để trống to_id.`);
     }
   }
-  const chucVuResolved = await resolveDanhMucId(maChucVu, "CHUC_VU");
+  const chucVuResolved = await dm.resolveDanhMucId(maChucVu, "CHUC_VU");
   if (chucVuResolved && typeof chucVuResolved === "object" && "error" in chucVuResolved)
     return { ok: false, error: chucVuResolved.error };
   if (maChucVu && !chucVuResolved) addNote(`ma_chuc_vu (${maChucVu}) không tồn tại -> để trống chuc_vu_id.`);
-  const chucDanhResolved = await resolveDanhMucId(maChucDanh, "CHUC_DANH");
+  const chucDanhResolved = await dm.resolveDanhMucId(maChucDanh, "CHUC_DANH");
   if (chucDanhResolved && typeof chucDanhResolved === "object" && "error" in chucDanhResolved)
     return { ok: false, error: chucDanhResolved.error };
   if (maChucDanh && !chucDanhResolved) addNote(`ma_chuc_danh (${maChucDanh}) không tồn tại -> để trống chuc_danh_id.`);
-  const vaiTroResolved = await resolveDanhMucId(maVaiTroKsnk, "VAI_TRO_HE_THONG_KSNK");
+  const vaiTroResolved = await dm.resolveDanhMucId(maVaiTroKsnk, "VAI_TRO_HE_THONG_KSNK");
   if (vaiTroResolved && typeof vaiTroResolved === "object" && "error" in vaiTroResolved)
     return { ok: false, error: vaiTroResolved.error };
   if (maVaiTroKsnk && !vaiTroResolved) {
@@ -147,19 +102,16 @@ export async function resolveNhanSuParentIdsForImport(
 
   let ngheNghiepId: string | null = null;
   if (maNgheNghiep) {
-    const byMa = await resolveDanhMucId(maNgheNghiep, "NGHE_NGHIEP");
+    const byMa = await dm.resolveDanhMucId(maNgheNghiep, "NGHE_NGHIEP");
     if (byMa && typeof byMa === "object" && "error" in byMa) return { ok: false, error: byMa.error };
     ngheNghiepId = typeof byMa === "string" ? byMa : null;
     if (!ngheNghiepId) {
       addNote(`ma_nghe_nghiep (${maNgheNghiep}) không tồn tại -> để trống nghe_nghiep_id.`);
     }
   } else if (tenNgheNghiep) {
-    const { data: nnRows, error: nnErr } = await sb.from("dm_nghe_nghiep").select("id, ten_nghe_nghiep");
-    if (nnErr) return { ok: false, error: nnErr.message };
-    const matched = (nnRows || []).find(
-      (r) => normalizeImportMa((r as { ten_nghe_nghiep?: string }).ten_nghe_nghiep) === normalizeImportMa(tenNgheNghiep),
-    ) as { id?: string } | undefined;
-    ngheNghiepId = matched?.id || null;
+    const byTen = await dm.resolveNgheNghiepIdByTen(tenNgheNghiep);
+    if (byTen && typeof byTen === "object" && "error" in byTen) return { ok: false, error: byTen.error };
+    ngheNghiepId = typeof byTen === "string" ? byTen : null;
     if (!ngheNghiepId) {
       addNote(`nghe_nghiep (${tenNgheNghiep}) không tồn tại -> để trống nghe_nghiep_id.`);
     }

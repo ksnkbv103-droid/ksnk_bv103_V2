@@ -25,11 +25,28 @@ function isCouncilPerm(p: PermRow): boolean {
   return act(p) === "view";
 }
 
+function isDashboardFamilyView(p: PermRow): boolean {
+  const m = mod(p);
+  const a = act(p);
+  if (a !== "view") return false;
+  return (
+    m === "DASHBOARD" ||
+    m === "DASHBOARD_CC_OVERVIEW" ||
+    m === "DASHBOARD_CC_SUPERVISION" ||
+    m === "DASHBOARD_CC_GAP"
+  );
+}
+
+function isDashboardCcExport(p: PermRow): boolean {
+  return mod(p) === "DASHBOARD_CC_EXPORT" && act(p) === "export";
+}
+
 /** Nhập liệu mạng lưới — giám sát + công việc + sự cố + xem dashboard/danh mục. */
 function isNetworkOperatorPerm(p: PermRow): boolean {
   const m = mod(p);
   const a = act(p);
-  if (m === "DASHBOARD" && a === "view") return true;
+  if (isDashboardFamilyView(p)) return true;
+  if (isDashboardCcExport(p)) return true;
   if (m === "DANH_MUC" && a === "view") return true;
   if (m === "GIAM_SAT_NKBV" && a === "view") return true;
   if (m === "BAO_SU_CO" && ["view", "create"].includes(a)) return true;
@@ -46,7 +63,9 @@ function isKsnkStaffPerm(p: PermRow): boolean {
 
   if (m === "PHAN_QUYEN") return a === "view";
 
-  if (m === "DASHBOARD" && a === "view") return true;
+  if (isDashboardFamilyView(p)) return true;
+  if (isDashboardCcExport(p)) return true;
+
   if (m === "DANH_MUC" && a === "view") return true;
 
   if (["NHAN_SU", "BANG_KIEM", "CONG_VIEC"].includes(m)) {

@@ -1,3 +1,5 @@
+/** Chuẩn hóa field theo từng bảng DM trước khi upsert (logic thuần). */
+
 export function normalizeDmBoDungCuChiTiet(rest: Record<string, unknown>): Record<string, unknown> {
   const out = { ...rest };
   const ten = String(out.ten_chi_tiet ?? out.ten_dung_cu_le ?? "").trim();
@@ -52,5 +54,11 @@ export function normalizeDmHoaChat(rest: Record<string, unknown>): Record<string
 }
 
 export function buildImportErrorMessage(rowErrors: string[], dbErrors: string[]) {
-  return [`Import dừng do ${rowErrors.length + dbErrors.length} lỗi.`, rowErrors.length ? `Lỗi dữ liệu:\n${rowErrors.slice(0, 10).join("\n")}` : "", dbErrors.length ? `Lỗi DB:\n${dbErrors.slice(0, 10).join("\n")}` : ""].filter(Boolean).join("\n\n");
+  return [
+    `Import dừng do ${rowErrors.length + dbErrors.length} lỗi.`,
+    rowErrors.length ? `Lỗi dữ liệu:\n${rowErrors.slice(0, 10).join("\n")}` : "",
+    dbErrors.length ? `Lỗi DB:\n${dbErrors.slice(0, 10).join("\n")}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }

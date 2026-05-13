@@ -1,13 +1,15 @@
 "use server";
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { mapDanhMucOptions, mapKhoaOptions } from "@/lib/master-data/gateway";
 import { verifyPermission } from "@/lib/server-permission";
-import { enrichHoSoForSupervisionUi } from "@/lib/master-data/nhan-su-enrich";
 
 type LoadOptions = {
   includeNhanSu?: boolean;
   includeNgheNghiep?: boolean;
+  /**
+   * Gợi ý vị trí từ `fact_giam_sat_vst_sessions` — mặc định **tắt** (dữ liệu import cũ hay sai);
+   * chỉ bật khi truyền `true` (tính năng có thể bật lại sau khi có nguồn sạch).
+   */
   includeHistoryLocations?: boolean;
   /**
    * admin: DANH_MUC (màn quản trị / công việc…).
@@ -15,15 +17,11 @@ type LoadOptions = {
    */
   permissionContext?: "admin" | "vst" | "gsc" | "nkbv";
 };
-type LocationRow = { vi_tri_cu_the?: string | null };
-type DmOptionRow = {
-  id?: string;
-  is_active?: boolean;
-  ma_khu_vuc?: string;
-  ten_khu_vuc?: string;
-  ma_nghe_nghiep?: string;
-  ten_nghe_nghiep?: string;
-};
+
+/** Một dòng gợi ý vị trí (khoa + chuỗi) — chỉ dùng khi `includeHistoryLocations: true`. */
+export type VstSessionLocationHistoryRow = { khoa_id: string | null; vi_tri_cu_the: string };
+
+type LocationRow = { vi_tri_cu_the?: string | null; khoa_id?: string | null };
 
 import { unstable_cache } from "next/cache";
 
@@ -31,7 +29,7 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
   const ctx = options.permissionContext ?? "admin";
   const includeNhanSu = options.includeNhanSu === true; // Default false for header performance
   const includeNgheNghiep = options.includeNgheNghiep !== false;
-  const includeHistory = options.includeHistoryLocations !== false;
+  const includeHistory = options.includeHistoryLocations === true;
 
   try {
     if (ctx === "admin") {
@@ -69,7 +67,7 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
       includeHistory
         ? supabase
             .from("fact_giam_sat_vst_sessions")
-            .select("vi_tri_cu_the")
+            .select("vi_tri_cu_the, khoa_id")
             .eq("is_active", true)
             .not("vi_tri_cu_the", "is", null)
             .order("created_at", { ascending: false })
@@ -86,14 +84,21 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
     if (locationRes.error) throw locationRes.error;
     if (khuVucFallbackRes.error) throw khuVucFallbackRes.error;
 
-    const historyLocations = Array.from(
-      new Set(
-        (locationRes.data as LocationRow[] || []).map((d) => String(d.vi_tri_cu_the || "")).filter(Boolean)
-      )
-    );
+    const historyLocationRows: VstSessionLocationHistoryRow[] = [];
+    const seenPair = new Set<string>();
+    for (const d of (locationRes.data as LocationRow[]) || []) {
+      const text = String(d.vi_tri_cu_the || "").trim();
+      if (!text) continue;
+      const kid = d.khoa_id ? String(d.khoa_id) : null;
+      const key = `${kid ?? ""}\t${text}`;
+      if (seenPair.has(key)) continue;
+      seenPair.add(key);
+      historyLocationRows.push({ khoa_id: kid, vi_tri_cu_the: text });
+    }
+    const historyLocations = Array.from(new Set(historyLocationRows.map((r) => r.vi_tri_cu_the)));
 
     const rawNhanSuRows = ((nhanSuRes.data || []) as Record<string, unknown>[]) || [];
-    const nhanSusEnriched = rawNhanSuRows.map(x => ({
+    let nhanSusEnriched = rawNhanSuRows.map((x) => ({
       ...x,
       chuc_danh: x.ten_chuc_danh || x.chuc_danh,
       chuc_vu: x.ten_chuc_vu || x.chuc_vu,
@@ -116,6 +121,43 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
       }
     } catch { /* Ignore */ }
 
+    /**
+     * Danh sách nhân sự giới hạn 1000 — người đăng nhập có thể không nằm trong trang đó,
+     * khiến in phiếu / tra cứu `ho_ten` theo `nguoi_giam_sat_id` trả về trống hoặc chỉ UUID.
+     * Luôn đưa hồ sơ của actor vào đầu mảng khi thiếu.
+     */
+    if (includeNhanSu && currentHoSoId) {
+      const selfKey = String(currentHoSoId).trim();
+      const hasSelf = nhanSusEnriched.some(
+        (n) => String((n as Record<string, unknown>).id ?? "").trim() === selfKey,
+      );
+      if (!hasSelf) {
+        try {
+          const { data: selfRow, error: selfErr } = await supabase
+            .from("v_mdm_nhan_su_full")
+            .select("*")
+            .eq("id", selfKey)
+            .eq("is_active", true)
+            .maybeSingle();
+          if (!selfErr && selfRow) {
+            const x = selfRow as Record<string, unknown>;
+            nhanSusEnriched = [
+              {
+                ...x,
+                chuc_danh: x.ten_chuc_danh || x.chuc_danh,
+                chuc_vu: x.ten_chuc_vu || x.chuc_vu,
+                vai_tro_he_thong_ksnk: x.ten_vai_tro || x.vai_tro_he_thong_ksnk,
+                ten_nghe_nghiep_dm: x.ten_nghe_nghiep,
+              },
+              ...nhanSusEnriched,
+            ];
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+
     const rpcKhuVucs = Array.isArray(registry?.KHU_VUC_GIAM_SAT) ? registry.KHU_VUC_GIAM_SAT : [];
     const fallbackKhuVucs = (khuVucFallbackRes.data || []).map((x) => ({
       id: String(x.id || ""),
@@ -133,6 +175,7 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
         ngheNghieps: (registry.NGHE_NGHIEP || []).map((x: any) => ({ id: x.id, ma_danh_muc: x.ma, ten_danh_muc: x.ten })),
         nhanSus: nhanSusEnriched,
         historyLocations,
+        historyLocationRows,
       },
     };
   } catch (error: unknown) {

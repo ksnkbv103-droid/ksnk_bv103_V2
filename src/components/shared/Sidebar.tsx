@@ -24,8 +24,6 @@ import {
   NAV_GATE_CONG_VIEC,
   NAV_GATE_CSSD,
   NAV_GATE_DASHBOARD,
-  NAV_GATE_DASHBOARD_COMPLIANCE,
-  NAV_GATE_DASHBOARD_NKBV,
   NAV_GATE_DM_HUB,
   NAV_GATE_GSC,
   NAV_GATE_NKBV,
@@ -166,56 +164,64 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
   return (
     <aside
       className={`
-      fixed md:sticky left-0 top-0 z-[10000] flex h-full w-[17.5rem] flex-col
+      fixed md:sticky left-0 top-0 z-[10000] flex min-h-0 w-[17.5rem] flex-col md:min-h-screen
       border-r border-slate-200/90 bg-[var(--bg-panel)] transition-transform duration-300
       ${isOpen ? "translate-x-0 pointer-events-auto" : "-translate-x-full md:translate-x-0 pointer-events-none md:pointer-events-auto"}
       touch-manipulation
     `}
     >
-      <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-5 md:px-5">
-        <Link
-          href="/"
-          prefetch={false}
-          className="app-shell-focus flex min-w-0 flex-1 items-center gap-3 rounded-2xl outline-offset-2"
-          aria-label="Về trang chủ"
-        >
-          <Image
-            src="/brand/logo-bv103.png"
-            alt=""
-            width={64}
-            height={64}
-            className="h-16 w-16 shrink-0 bg-transparent object-contain drop-shadow-[0_6px_18px_rgba(15,23,42,0.12)]"
-            priority
-          />
-          <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
-            <p className="truncate whitespace-nowrap text-[11px] font-bold leading-tight tracking-wide text-slate-900 md:text-xs">
-              BỆNH VIỆN QUÂN Y 103
-            </p>
-            <p className="truncate whitespace-nowrap text-[10px] font-semibold leading-tight text-[var(--primary)] md:text-[11px]">
-              Khoa Kiểm soát nhiễm khuẩn
-            </p>
-          </div>
-        </Link>
-        <button
-          type="button"
-          onClick={onClose}
-          className="app-shell-focus shrink-0 rounded-xl p-2.5 text-slate-500 hover:bg-slate-100 md:hidden"
-          aria-label="Đóng menu"
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
+      <div className="shrink-0 border-b border-slate-100 px-4 pb-4 pt-5 md:px-5">
+        <div className="flex items-center justify-between gap-3">
+          <Link
+            href="/"
+            prefetch={false}
+            className="app-shell-focus flex min-w-0 flex-1 items-center gap-3 rounded-2xl outline-offset-2"
+            aria-label="Về trang chủ"
+          >
+            <Image
+              src="/brand/logo-bv103.png"
+              alt=""
+              width={64}
+              height={64}
+              className="h-16 w-16 shrink-0 bg-transparent object-contain drop-shadow-[0_6px_18px_rgba(15,23,42,0.12)]"
+              priority
+            />
+            <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
+              <p className="truncate whitespace-nowrap text-[11px] font-bold leading-tight tracking-wide text-slate-900 md:text-xs">
+                BỆNH VIỆN QUÂN Y 103
+              </p>
+              <p className="truncate whitespace-nowrap text-[10px] font-semibold leading-tight text-[var(--primary)] md:text-[11px]">
+                Khoa Kiểm soát nhiễm khuẩn
+              </p>
+            </div>
+          </Link>
+          <button
+            type="button"
+            onClick={onClose}
+            className="app-shell-focus shrink-0 rounded-xl p-2.5 text-slate-500 hover:bg-slate-100 md:hidden"
+            aria-label="Đóng menu"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Điều hướng chính">
+      <nav className="custom-scrollbar min-h-0 flex-1 overflow-y-auto px-3 py-4" aria-label="Điều hướng chính">
         <Suspense
           fallback={<div className="px-2 py-8 text-center text-xs font-medium text-slate-400">Đang tải menu…</div>}
         >
           <SidebarNavLinks onClose={onClose} />
         </Suspense>
       </nav>
+
+      <div className="mt-auto shrink-0 border-t border-slate-200/80 px-3 py-3 text-center">
+        <p className="text-[10px] font-medium leading-snug text-slate-500 md:text-[11px]">
+          Số hóa quy trình kiểm soát nhiễm khuẩn
+        </p>
+      </div>
     </aside>
   );
 }

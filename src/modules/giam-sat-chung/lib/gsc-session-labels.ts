@@ -35,6 +35,8 @@ export function resolveGscNguoiGiamSatTen(session: Record<string, unknown>, nhan
   const wrap = session.nguoi_giam_sat as { ho_ten?: string } | undefined;
   const name = String(wrap?.ho_ten || "").trim();
   if (name && name !== "—") return name;
+  const fromView = String(session.ten_nguoi_giam_sat || "").trim();
+  if (fromView && fromView !== "—") return fromView;
   const id = String(session.nguoi_giam_sat_id || "").trim();
   if (!id) return "—";
   const row = nhanSus.find((n) => sameId(n.id, id));

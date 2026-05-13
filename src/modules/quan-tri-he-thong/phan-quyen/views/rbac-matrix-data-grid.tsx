@@ -55,10 +55,10 @@ export function RBACMatrixDataGrid({
 
   return (
     <div className="overflow-hidden border border-slate-200 rounded-2xl bg-white shadow-sm">
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+      <div className="custom-scrollbar max-h-[min(calc(100dvh-220px),720px)] overflow-auto overscroll-contain">
+        <table className="w-full min-w-[720px] border-collapse">
+          <thead className="sticky top-0 z-30 bg-slate-50 shadow-[0_1px_0_rgb(226_232_240)]">
+            <tr className="border-b border-slate-200">
               <th className="p-4 text-left min-w-[240px] sticky left-0 bg-slate-50 z-40 border-r border-slate-200">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cấu trúc Module</span>
               </th>

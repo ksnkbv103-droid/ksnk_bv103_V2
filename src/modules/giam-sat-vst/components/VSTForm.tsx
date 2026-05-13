@@ -30,7 +30,7 @@ export default function VSTForm({
     persons,
     setPersons,
     khoas, khuVucs,
-    nhanSus, ngheNghieps, historyLocations,
+    nhanSus, ngheNghieps, historyLocations, historyLocationRows,
     loading, initialLoading, timeLeft,
     currentHoSoId,
     masterDataFetchFailed,
@@ -181,6 +181,7 @@ export default function VSTForm({
             ngheNghieps={ngheNghieps}
             nhanSus={nhanSus}
             historyLocations={historyLocations}
+            historyLocationRows={historyLocationRows}
             headerDataLoading={initialLoading}
             showGiamSatCaNhan={false}
             lockedSupervisorHoSoId={currentHoSoId}

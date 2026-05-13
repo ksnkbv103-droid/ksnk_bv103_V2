@@ -6,6 +6,10 @@ import { ActionType, MomentType, VSTObservation } from "../data";
 import { saveVSTSession } from "../actions/vst-write-save-session.actions";
 import { toast } from "sonner";
 import {
+  enqueueOfflineVstSave,
+  isLikelyOfflineOrNetworkFailure,
+} from "@/lib/offline-pending-supervision-save";
+import {
   createDefaultVSTFormPersons,
   createNewOpp,
   type ExtendedOpportunity,
@@ -127,14 +131,43 @@ export function useVSTFormHandlers(
 
     setLoading(true);
     const sid = String(editingSessionId ?? "").trim();
-    const res = await saveVSTSession(sessionPayload as SessionInput, observations, sid ? { existingSessionId: sid } : undefined);
-    if (res.success) {
-      toast.success(res.message);
-      setSession((prev) => ({ ...prev, thoi_gian_ket_thuc: ketThucIso }));
-      setPersons(createDefaultVSTFormPersons());
-      onSuccess();
-    } else toast.error(res.error);
-    setLoading(false);
+    try {
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        enqueueOfflineVstSave({
+          session: sessionPayload as SessionInput,
+          observations,
+          existingSessionId: sid || null,
+        });
+        toast.message(
+          "Đã lưu vào hàng đợi ngoại tuyến. Hệ thống sẽ gửi phiên khi có mạng trở lại (tự động hoặc khi bạn mở lại ứng dụng).",
+        );
+        return;
+      }
+      const res = await saveVSTSession(
+        sessionPayload as SessionInput,
+        observations,
+        sid ? { existingSessionId: sid } : undefined,
+      );
+      if (res.success) {
+        toast.success(res.message);
+        setSession((prev) => ({ ...prev, thoi_gian_ket_thuc: ketThucIso }));
+        setPersons(createDefaultVSTFormPersons());
+        onSuccess();
+      } else toast.error(res.error);
+    } catch (err: unknown) {
+      if (isLikelyOfflineOrNetworkFailure(err)) {
+        enqueueOfflineVstSave({
+          session: sessionPayload as SessionInput,
+          observations,
+          existingSessionId: sid || null,
+        });
+        toast.message("Mạng không ổn định — đã giữ phiên trong hàng đợi ngoại tuyến để gửi sau.");
+      } else {
+        toast.error(err instanceof Error ? err.message : "Lỗi lưu phiên");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const submitOpportunity = (pIdx: number, oIdx: number) => {

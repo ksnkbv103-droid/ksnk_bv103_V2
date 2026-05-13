@@ -16,34 +16,52 @@ interface VSTAssessmentSectionProps {
   ) => void;
 }
 
+const segBase =
+  "min-w-[3.25rem] px-3 py-2 text-[10px] font-semibold uppercase tracking-wide transition-colors first:rounded-l-lg last:rounded-r-lg border-y border-r last:border-r-0 border-slate-200 first:border-l";
+const segInactive = "bg-white text-slate-500 hover:bg-slate-50";
+const segYes = "bg-[var(--primary)] text-white border-[var(--primary)]";
+const segNo = "bg-rose-600 text-white border-rose-600";
+
 export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment }: VSTAssessmentSectionProps) {
   if (opp.hanh_dong && opp.hanh_dong !== "Bỏ sót") {
     return (
-      <div className="space-y-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-100 animate-in fade-in duration-300">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold text-slate-600">Đúng kỹ thuật?</span>
-          <div className="flex gap-1">
-            <button 
-              onClick={() => updateAssessment(pIdx, oIdx, "dung_ky_thuat", true)} 
-              className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${opp.dung_ky_thuat === true ? "bg-[#026f17] text-white" : "bg-white text-slate-300 border border-slate-100"}`}
-            >Có</button>
-            <button 
-              onClick={() => updateAssessment(pIdx, oIdx, "dung_ky_thuat", false)} 
-              className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${opp.dung_ky_thuat === false ? "bg-red-500 text-white" : "bg-white text-slate-300 border border-slate-100"}`}
-            >Không</button>
+      <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/40 p-3 animate-in fade-in duration-300">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-[10px] font-medium text-slate-600">Đúng kỹ thuật?</span>
+          <div className="inline-flex overflow-hidden rounded-lg shadow-sm" role="group" aria-label="Đúng kỹ thuật">
+            <button
+              type="button"
+              onClick={() => updateAssessment(pIdx, oIdx, "dung_ky_thuat", true)}
+              className={`${segBase} ${opp.dung_ky_thuat === true ? segYes : segInactive}`}
+            >
+              Có
+            </button>
+            <button
+              type="button"
+              onClick={() => updateAssessment(pIdx, oIdx, "dung_ky_thuat", false)}
+              className={`${segBase} ${opp.dung_ky_thuat === false ? segNo : segInactive}`}
+            >
+              Không
+            </button>
           </div>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold text-slate-600">Đủ thời gian?</span>
-          <div className="flex gap-1">
-            <button 
-              onClick={() => updateAssessment(pIdx, oIdx, "du_thoi_gian", true)} 
-              className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${opp.du_thoi_gian === true ? "bg-[#026f17] text-white" : "bg-white text-slate-300 border border-slate-100"}`}
-            >Có</button>
-            <button 
-              onClick={() => updateAssessment(pIdx, oIdx, "du_thoi_gian", false)} 
-              className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${opp.du_thoi_gian === false ? "bg-red-500 text-white" : "bg-white text-slate-300 border border-slate-100"}`}
-            >Không</button>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-[10px] font-medium text-slate-600">Đủ thời gian?</span>
+          <div className="inline-flex overflow-hidden rounded-lg shadow-sm" role="group" aria-label="Đủ thời gian">
+            <button
+              type="button"
+              onClick={() => updateAssessment(pIdx, oIdx, "du_thoi_gian", true)}
+              className={`${segBase} ${opp.du_thoi_gian === true ? segYes : segInactive}`}
+            >
+              Có
+            </button>
+            <button
+              type="button"
+              onClick={() => updateAssessment(pIdx, oIdx, "du_thoi_gian", false)}
+              className={`${segBase} ${opp.du_thoi_gian === false ? segNo : segInactive}`}
+            >
+              Không
+            </button>
           </div>
         </div>
       </div>
@@ -52,17 +70,23 @@ export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment
 
   if (opp.hanh_dong === "Bỏ sót") {
     return (
-      <div className="flex items-center justify-between p-3 bg-red-50 rounded-2xl border border-red-100 animate-in zoom-in-95">
-        <span className="text-[9px] font-black text-red-600 uppercase tracking-tighter">Lạm dụng găng?</span>
-        <div className="flex gap-1">
-          <button 
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-rose-200 bg-rose-50/50 p-3 animate-in zoom-in-95">
+        <span className="text-[10px] font-semibold uppercase tracking-wide text-rose-800">Lạm dụng găng?</span>
+        <div className="inline-flex overflow-hidden rounded-lg shadow-sm" role="group">
+          <button
+            type="button"
             onClick={() => updateAssessment(pIdx, oIdx, "co_deo_gang", true)}
-            className={`px-4 py-2 rounded-lg text-[8px] font-black transition-all ${opp.co_deo_gang === true ? "bg-red-500 text-white shadow-md" : "bg-white text-red-500 border border-red-200"}`}
-          >CÓ</button>
-          <button 
+            className={`${segBase} ${opp.co_deo_gang === true ? segNo : segInactive}`}
+          >
+            Có
+          </button>
+          <button
+            type="button"
             onClick={() => updateAssessment(pIdx, oIdx, "co_deo_gang", false)}
-            className={`px-4 py-2 rounded-lg text-[8px] font-black transition-all ${opp.co_deo_gang === false ? "bg-[#026f17] text-white shadow-md" : "bg-white text-[#026f17] border border-[#026f17]/20"}`}
-          >KHÔNG</button>
+            className={`${segBase} ${opp.co_deo_gang === false ? segYes : segInactive}`}
+          >
+            Không
+          </button>
         </div>
       </div>
     );

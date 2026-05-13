@@ -43,6 +43,7 @@ export default function GiamSatChungForm({
     ngheNghieps,
     nhanSus,
     historyLocations,
+    historyLocationRows,
     handleSave,
     score,
     sessionForPrint,
@@ -87,9 +88,12 @@ export default function GiamSatChungForm({
           ngheNghieps={ngheNghieps}
           nhanSus={nhanSus}
           historyLocations={historyLocations}
+          historyLocationRows={historyLocationRows}
           headerDataLoading={headerLoading}
           showGiamSatCaNhan={true}
           lockedSupervisorHoSoId={currentHoSoId}
+          deferLocationHistoryUntilTyped
+          showBoSungNguoiBenhToggle
         />
 
         <GiamSatChungFormActions
@@ -115,7 +119,7 @@ export default function GiamSatChungForm({
 
         <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <label className="text-[11px] font-semibold uppercase tracking-widest text-[var(--primary)]">
-            Ghi chú / Nhận xét / Kiến nghị
+            Nhận xét / Kiến nghị
           </label>
           <textarea
             className="min-h-[120px] w-full rounded-lg border border-slate-300 bg-white p-4 text-sm text-slate-700 outline-none transition-colors focus:border-[var(--primary)]"

@@ -1,5 +1,6 @@
 "use server";
 
+import { verifyDashboardOverviewWidget } from "../lib/dashboard-command-center-access";
 import { fetchDashboardPayloadsForSupervisionType } from "../lib/fetch-dashboard-payloads-for-type";
 import { mergeParticipationRows } from "../lib/dashboard-hook-helpers";
 import type { FetchDashboardPayloadsInput } from "../lib/fetch-dashboard-payloads-for-type";
@@ -21,6 +22,7 @@ export async function getOverviewDashboardBundle(p: OverviewDashboardBundleInput
   ksnkStaffSupervision: DashboardKsnkStaffSupervisionRow[];
   showKsnkStaffWorkload: boolean;
 }> {
+  await verifyDashboardOverviewWidget();
   const [res, tgs, ksnkBundle] = await Promise.all([
     fetchDashboardPayloadsForSupervisionType({ ...p, sType: "ALL" }),
     fetchDashboardPayloadsForSupervisionType({ ...p, sType: "TU_GIAM_SAT" }),

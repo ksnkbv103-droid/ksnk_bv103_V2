@@ -4,6 +4,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { usePermission } from "@/hooks/usePermission";
 import TaiKhoanNhanSuStaffRow from "../components/TaiKhoanNhanSuStaffRow";
+import SearchBar from "@/components/shared/SearchBar";
+import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import {
   getAvailableRolesAction,
   listStaffAuthOverview,
@@ -90,46 +92,36 @@ export default function TaiKhoanNhanSuPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-black uppercase tracking-tight text-[#026f17]">Tài khoản và vai trò KSNK</h1>
-        <p className="text-sm text-slate-600">
-          Danh sách nhân viên toàn viện: tạo tài khoản đăng nhập (theo email hồ sơ) và gán một trong các vai trò hệ
-          thống KSNK.
-        </p>
-      </header>
+      <KsnkPageHeader
+        title="Tài khoản và vai trò KSNK"
+        actions={
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="bv103-control-h shrink-0 rounded-lg bg-[#026f17] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#015a12]"
+          >
+            Tải lại
+          </button>
+        }
+      />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <div>
-          <label className="block text-xs font-bold uppercase text-slate-500">Tìm kiếm</label>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="mt-1 min-h-11 rounded-xl border border-slate-200 px-3 text-sm"
-            placeholder="Mã NV, họ tên, email…"
-          />
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 bg-slate-50/70 p-3">
+          <SearchBar value={search} onChange={setSearch} placeholder="Mã NV, họ tên, email…" />
         </div>
-        <button
-          type="button"
-          onClick={() => void load()}
-          className="min-h-11 rounded-xl bg-[#026f17] px-4 text-sm font-bold uppercase text-white"
-        >
-          Tải lại
-        </button>
-      </div>
-
-      <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs font-black uppercase text-slate-500">
-            <tr>
-              <th className="p-3">Mã NV</th>
-              <th className="p-3">Họ tên</th>
-              <th className="p-3">Email</th>
-              <th className="p-3">Hoạt động</th>
-              <th className="p-3">Tài khoản</th>
-              <th className="p-3">Vai trò</th>
-              <th className="p-3">Thao tác</th>
-            </tr>
-          </thead>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] table-fixed border-collapse text-left text-sm">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-black uppercase text-slate-500">
+              <tr>
+                <th className="w-[9%] p-3">Mã NV</th>
+                <th className="w-[17%] p-3">Họ tên</th>
+                <th className="w-[22%] p-3">Email</th>
+                <th className="w-[8%] p-3">Hoạt động</th>
+                <th className="w-[11%] p-3">Tài khoản</th>
+                <th className="w-[13%] p-3">Vai trò</th>
+                <th className="w-[20%] p-3">Thao tác</th>
+              </tr>
+            </thead>
           <tbody>
             {loading ? (
               <tr>
@@ -157,6 +149,7 @@ export default function TaiKhoanNhanSuPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

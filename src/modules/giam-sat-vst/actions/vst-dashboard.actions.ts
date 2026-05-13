@@ -9,6 +9,7 @@ import {
 } from "@/modules/dashboard/lib/aggregate-rate-rows-by-khoi";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { verifyCommandCenterShell } from "@/modules/dashboard/lib/dashboard-command-center-access";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import type { VstDashboardPayload, VstDashboardFilters } from "./vst-dashboard.types";
 
@@ -71,6 +72,7 @@ export async function getVstDashboardPayload(filters: VstDashboardFilters = {}) 
   const supabase = await createServerSupabaseUserClient();
   try {
     await verifyPermission("GIAM_SAT_VST", "view");
+    await verifyCommandCenterShell();
     const scope = await getActorKsnkScope();
 
     assertOptionalIsoDay(filters.tu_ngay, "tu_ngay");

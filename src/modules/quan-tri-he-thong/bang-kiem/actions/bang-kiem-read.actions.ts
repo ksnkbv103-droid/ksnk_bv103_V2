@@ -1,10 +1,12 @@
 "use server";
 
+import { sanitizeBusinessMaPrefix } from "@/lib/master-data/business-ma-prefix";
 import { createServerSupabaseUserClient, createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "../../actions/verify-permission";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
 import type { DanhMucBangKiem, TieuChiBangKiem } from "../bang-kiem.types";
+import { DM_TIEU_CHI_BANG_KIEM_ROW_SELECT } from "../lib/bang-kiem-dm-tieu-chi-select";
 
 function errMsg(e: unknown) {
   if (e instanceof Error) return e.message;
@@ -64,18 +66,28 @@ export async function getExportData() {
   }
 }
 
-export async function getAllMaBangKiem() {
+/**
+ * Gợi ý mã bảng kiểm kế tiếp theo tiền tố (một RPC, không tải toàn bộ ma_bk).
+ */
+export async function suggestNextBangKiemMaAction(prefixRaw: string) {
   const supabase = await createServerSupabaseUserClient();
   try {
     await verifyPermission("BANG_KIEM", "view");
-    const { data, error } = await supabase.from("dm_bang_kiem").select("ma_bk").eq("is_active", true);
+    const prefix = sanitizeBusinessMaPrefix(prefixRaw);
+    if (!prefix) {
+      return { success: false as const, error: "Tiền tố mã không hợp lệ." };
+    }
+    const { data, error } = await supabase.rpc("rpc_dm_bang_kiem_max_numeric_suffix", {
+      p_prefix: prefix,
+    });
     if (error) throw error;
-    return {
-      success: true,
-      data: (data || []).map((d: { ma_bk?: string }) => ({ ma: d.ma_bk })),
-    };
+    const maxSuffix = typeof data === "number" ? data : Number.parseInt(String(data ?? "0"), 10);
+    const maxSafe = Number.isFinite(maxSuffix) ? maxSuffix : 0;
+    const nextNum = maxSafe + 1;
+    const nextCode = `${prefix}${nextNum.toString().padStart(3, "0")}`;
+    return { success: true as const, nextCode };
   } catch (error: unknown) {
-    return { success: false, error: errMsg(error) };
+    return { success: false as const, error: errMsg(error) };
   }
 }
 
@@ -83,7 +95,7 @@ export async function getTieuChis(bangKiemId: string, activeOnly = false) {
   try {
     await verifyPermission("BANG_KIEM_DETAIL", "view");
     const supabase = createAdminSupabaseClient();
-    let query = supabase.from("dm_tieu_chi_bang_kiem").select("*").eq("bang_kiem_id", bangKiemId);
+    let query = supabase.from("dm_tieu_chi_bang_kiem").select(DM_TIEU_CHI_BANG_KIEM_ROW_SELECT).eq("bang_kiem_id", bangKiemId);
     if (activeOnly) query = query.eq("is_active", true);
     const { data, error } = await query.order("stt", { ascending: true });
     if (error) throw error;
@@ -98,7 +110,7 @@ export async function getTieuChisForGiamSatChung(bangKiemId: string, activeOnly 
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
     const supabase = createAdminSupabaseClient();
-    let query = supabase.from("dm_tieu_chi_bang_kiem").select("*").eq("bang_kiem_id", bangKiemId);
+    let query = supabase.from("dm_tieu_chi_bang_kiem").select(DM_TIEU_CHI_BANG_KIEM_ROW_SELECT).eq("bang_kiem_id", bangKiemId);
     if (activeOnly) query = query.eq("is_active", true);
     const { data, error } = await query.order("stt", { ascending: true });
     if (error) throw error;

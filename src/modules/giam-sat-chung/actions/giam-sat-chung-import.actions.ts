@@ -14,6 +14,7 @@ import {
   optionalFkFromUnknown,
   validateGscModeFields,
 } from "./giam-sat-chung-write-helpers";
+import { chunkIdsForSupabaseInFilter, collectImportSessionIdsFromRows } from "@/lib/supervision/import-session-ids";
 import { resolveCanonicalLoaiBangKiemForPersist } from "../lib/resolve-loai-bang-kiem-persist";
 
 /** Import / upsert phiên Giám sát chung (theo ma_phien hoặc id). */
@@ -22,9 +23,19 @@ export async function importGiamSatChungData(rows: Record<string, unknown>[]) {
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "import");
     const actorAuthUserId = await getActorAuthUserId();
-    const { data: existing, error: exErr } = await supabase.from("fact_giam_sat_chung_sessions").select("id");
-    if (exErr) throw exErr;
-    const existingIds = new Set(((existing || []) as ExistingSessionRow[]).map((x) => x.id).filter(Boolean) as string[]);
+    const sessionIdsFromFile = collectImportSessionIdsFromRows(rows || []);
+    const existingIds = new Set<string>();
+    for (const chunk of chunkIdsForSupabaseInFilter(sessionIdsFromFile)) {
+      const { data: existingChunk, error: exErr } = await supabase
+        .from("fact_giam_sat_chung_sessions")
+        .select("id")
+        .in("id", chunk);
+      if (exErr) throw exErr;
+      for (const row of (existingChunk || []) as ExistingSessionRow[]) {
+        const id = String(row.id || "").trim();
+        if (id) existingIds.add(id);
+      }
+    }
     for (const row of rows || []) {
       const sessionId = String(row.ma_phien || row.id || "").trim();
       const khoaRowNorm = await normalizeAndValidateDmKhoaPhong({

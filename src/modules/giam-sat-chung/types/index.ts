@@ -25,7 +25,8 @@ export interface GscSessionHistoryRow {
   hinh_thuc_giam_sat: string;
   cach_thuc_giam_sat: string;
   loai_bang_kiem: string | null;
-  ghi_chu_chung: string | null;
+  /** Có thể thiếu khi đọc list tối giản (không select `ghi_chu_chung`). */
+  ghi_chu_chung?: string | null;
   
   // Joined fields from view
   ten_khoa?: string;
@@ -38,6 +39,10 @@ export interface GscSessionHistoryRow {
   ten_nguoi_giam_sat?: string;
   ten_nghe_nghiep?: string;
   is_seen?: boolean;
+  is_bo_sung_nguoi_benh?: boolean;
+  ma_nguoi_benh?: string | null;
+  ten_nguoi_benh?: string | null;
+  so_giuong_nguoi_benh?: string | null;
 }
 
 export type GscFilters = {

@@ -9,6 +9,7 @@ import KsnkPageShell from "./KsnkPageShell";
 import { pathnameUsesPhase1KsnkUnifiedContentShell } from "@/lib/app-shell-scope";
 import { supabase } from "@/lib/supabase";
 import StaffSessionGate from "@/components/auth/StaffSessionGate";
+import SupervisionOfflineSyncListener from "@/components/shared/SupervisionOfflineSyncListener";
 
 export default function ClientLayoutWrapper({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,8 +29,11 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
       if (!mounted) return;
       if (!hasSession && !isLoginPage) {
         router.replace("/login");
-      } else if (hasSession && isLoginPage) {
+        return;
+      }
+      if (hasSession && isLoginPage) {
         router.replace("/");
+        return;
       }
       setCheckingAuth(false);
     };
@@ -60,10 +64,11 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
   return (
     <div className="flex min-h-screen bg-slate-50 touch-manipulation pointer-events-auto">
       <StaffSessionGate />
+      <SupervisionOfflineSyncListener />
       {/* Sidebar quản lý z-index nội bộ */}
       <Sidebar isOpen={isOpen} onClose={closeSidebar} />
       
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex flex-1 flex-col min-w-0 min-h-0">
         <Header onMenuClick={toggleSidebar} />
         <main className="relative z-0 flex-1 touch-manipulation p-4 md:p-8 pointer-events-auto">
           {pathnameUsesPhase1KsnkUnifiedContentShell(pathname) ? (

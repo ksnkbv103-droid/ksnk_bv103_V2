@@ -5,7 +5,8 @@ import React, { useState, useEffect } from "react";
 import { X, Save } from "lucide-react";
 import { useGenerateMa } from "@/hooks/useGenerateMa";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
-import { getAllMaBangKiem, getHinhThucGiamSatOptionsForBangKiemAction } from "../actions/bang-kiem.actions";
+import { getHinhThucGiamSatOptionsForBangKiemAction, suggestNextBangKiemMaAction } from "../actions/bang-kiem.actions";
+import { BANG_KIEM_DEFAULT_MA_BK_PREFIX } from "../lib/bang-kiem-ma-prefix";
 import BangKiemFormFields, { BangKiemFormState } from "./bang-kiem-form-fields";
 
 interface Props {
@@ -29,7 +30,9 @@ function mapInitial(initialData?: Record<string, unknown>): BangKiemFormState {
 }
 
 export default function BangKiemForm({ initialData, onClose, onSave }: Props) {
-  const { maTuDong } = useGenerateMa("BK", undefined, getAllMaBangKiem);
+  const { maTuDong } = useGenerateMa(BANG_KIEM_DEFAULT_MA_BK_PREFIX, undefined, () =>
+    suggestNextBangKiemMaAction(BANG_KIEM_DEFAULT_MA_BK_PREFIX),
+  );
   const [formData, setFormData] = useState<BangKiemFormState>(() => mapInitial(initialData));
   const [hinhThucRows, setHinhThucRows] = useState<RegistrySelectRow[]>([]);
   const [hinhThucLoading, setHinhThucLoading] = useState(true);

@@ -4,13 +4,13 @@ import type { MomentWhoRow } from "./vst-dashboard-panel-derive";
 import { formatPctOneDecimal } from "./vst-dashboard-math";
 
 /** Bảng một: 5 thời điểm WHO — cột bỏ sót + tuân thủ (cùng cách tách dấu phẩy như RPC). */
-export function MomentWhoMergedTable({ rows, hint }: { rows: MomentWhoRow[]; hint: string }) {
+export function MomentWhoMergedTable({ rows, hint }: { rows: MomentWhoRow[]; hint?: string }) {
   const totalBoSot = rows.reduce((s, r) => s + r.n_bo_sot, 0);
   const totalDat = rows.reduce((s, r) => s + r.n_dat, 0);
 
   return (
     <div>
-      <p className="mb-3 text-[11px] text-slate-500 leading-snug">{hint}</p>
+      {hint ? <p className="mb-3 text-[11px] text-slate-500 leading-snug">{hint}</p> : null}
       <div className="overflow-x-auto rounded-xl border border-slate-100">
         <table className="min-w-full text-sm">
           <thead>

@@ -1,4 +1,3 @@
-import { ChecklistResult } from "@/types/giam-sat-chung";
 import { HINH_THUC_KHACH_QUAN, HINH_THUC_TU_GIAM_SAT } from "@/lib/supervision-policy";
 
 export const HINH_THUC_GIAM_SAT_OPTIONS = [HINH_THUC_TU_GIAM_SAT, HINH_THUC_KHACH_QUAN] as const;
@@ -19,6 +18,10 @@ export type GscSessionInput = Record<string, unknown> & {
   /** Cho phép nhập tay tên đối tượng khi không có hồ sơ mdm_nhan_su. */
   is_manual_nhan_vien?: boolean;
   ten_manual_nhan_vien?: string;
+  is_bo_sung_nguoi_benh?: boolean;
+  ma_nguoi_benh?: string;
+  ten_nguoi_benh?: string;
+  so_giuong_nguoi_benh?: string;
 };
 export type ExistingSessionRow = { id?: string };
 

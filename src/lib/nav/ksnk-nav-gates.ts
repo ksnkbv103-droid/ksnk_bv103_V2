@@ -15,7 +15,15 @@ export type NavGate = {
   requireEveryView?: boolean;
 };
 
-export const NAV_GATE_DASHBOARD: NavGate = { id: "dash", moduleKeys: ["DASHBOARD"] };
+export const NAV_GATE_DASHBOARD: NavGate = {
+  id: "dash",
+  moduleKeys: [
+    "DASHBOARD",
+    "DASHBOARD_CC_OVERVIEW",
+    "DASHBOARD_CC_SUPERVISION",
+    "DASHBOARD_CC_GAP",
+  ],
+};
 /** Trùng quyền với action dashboard Giám sát tuân thủ (DASHBOARD + GIAM_SAT_CHUNG). */
 export const NAV_GATE_DASHBOARD_COMPLIANCE: NavGate = {
   id: "dash-compliance",

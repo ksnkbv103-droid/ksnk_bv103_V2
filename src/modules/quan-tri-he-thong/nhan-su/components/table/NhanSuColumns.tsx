@@ -3,7 +3,7 @@
 import React from "react";
 import { Edit2, Trash2 } from "lucide-react";
 import { Column } from "@/components/shared/AdvancedDataTable";
-import { NhanSu } from "../../actions/data";
+import type { NhanSu } from "../../types";
 
 /**
  * Định nghĩa cột cho bảng Nhân sự - Tách ra để NhanSuTable gọn hơn

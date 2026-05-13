@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getAllMaNhanSu, getNhanSuFormOptionsAction } from "../actions/nhan-su-read.actions";
+import { getNhanSuFormOptionsAction, suggestNextMaNhanSuMaAction } from "../actions/nhan-su-read.actions";
+import { NHAN_SU_DEFAULT_MA_NV_PREFIX } from "../lib/nhan-su-ma-prefix";
 import { saveNhanSuAction } from "../actions/nhan-su-write.actions";
-import { NhanSu } from "../actions/data";
+import type { NhanSu } from "../types";
 import { toast } from "sonner";
 import NhanSuFormFields from "./form/NhanSuFormFields";
 import { useGenerateMa } from "@/hooks/useGenerateMa";
@@ -15,7 +16,9 @@ interface Props {
 }
 
 export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) {
-  const { maTuDong } = useGenerateMa("NV", undefined, getAllMaNhanSu);
+  const { maTuDong } = useGenerateMa(NHAN_SU_DEFAULT_MA_NV_PREFIX, undefined, () =>
+    suggestNextMaNhanSuMaAction(NHAN_SU_DEFAULT_MA_NV_PREFIX),
+  );
   const [loading, setLoading] = useState(false);
   const [khoas, setKhoas] = useState<{ id: string; ten_danh_muc: string }[]>([]);
   const [chucDanhs, setChucDanhs] = useState<{ id: string; ten_danh_muc: string }[]>([]);

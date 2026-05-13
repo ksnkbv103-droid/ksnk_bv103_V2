@@ -20,7 +20,9 @@ export default function TaiKhoanNhanSuStaffRow({
     <tr className="border-b border-slate-100">
       <td className="p-3 font-mono text-xs">{r.ma_nv}</td>
       <td className="p-3 font-medium">{r.ho_ten || "—"}</td>
-      <td className="p-3 text-xs">{r.email || "—"}</td>
+      <td className="max-w-0 truncate p-3 text-xs" title={r.email || undefined}>
+        {r.email || "—"}
+      </td>
       <td className="p-3">{r.is_active === false ? "Không" : "Có"}</td>
       <td className="p-3 text-xs">{r.auth_user_id ? "Đã liên kết" : "Chưa"}</td>
       <td className="p-3 text-xs">

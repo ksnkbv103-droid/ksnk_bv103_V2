@@ -53,7 +53,7 @@ export default function StaffSessionGate() {
         const res = await checkStaffSessionAllowed();
         if (cancelled) return;
         if (!res.ok && "reason" in res && res.reason === "inactive") {
-          await supabase.auth.signOut();
+          await supabase.auth.signOut({ scope: "local" });
           router.replace("/login");
           router.refresh();
           return;
@@ -85,7 +85,7 @@ export default function StaffSessionGate() {
       void (async () => {
         const res = await checkStaffSessionAllowed();
         if (!res.ok && "reason" in res && res.reason === "inactive") {
-          await supabase.auth.signOut();
+          await supabase.auth.signOut({ scope: "local" });
           router.replace("/login");
           router.refresh();
         }

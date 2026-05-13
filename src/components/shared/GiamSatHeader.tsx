@@ -6,8 +6,10 @@ import { MasterOption } from "@/lib/master-data/gateway";
 import { matchesNhanSuProfessionFilter } from "@/lib/master-data/nhan-su-enrich";
 import { mdmGetSupervisionMasterDataBundle } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
 import GiamSatHeaderPersonalFields from "./GiamSatHeaderPersonalFields";
+import GiamSatHeaderPatientFields from "./GiamSatHeaderPatientFields";
 import GiamSatHeaderFields from "./GiamSatHeaderFields";
 import type { GiamSatSession, NhanSuOption } from "./giam-sat-header.types";
+import type { VstSessionLocationHistoryRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/master-data-gateway.actions";
 
 export type { GiamSatSession, NhanSuOption };
 
@@ -15,6 +17,7 @@ interface GiamSatHeaderProps {
   session: GiamSatSession;
   setSession: Dispatch<SetStateAction<GiamSatSession>>;
   historyLocations?: string[];
+  historyLocationRows?: VstSessionLocationHistoryRow[];
   khoas?: MasterOption[];
   khuVucs?: MasterOption[];
   ngheNghieps?: MasterOption[];
@@ -26,11 +29,16 @@ interface GiamSatHeaderProps {
   lockedSupervisorHoSoId?: string | null;
   /** Khi tải bundle MDM thất bại: ẩn banner “Quản trị viên / chưa liên kết” (tránh hiểu nhầm khi chưa có dữ liệu). */
   suppressStaffIdentityBanner?: boolean;
+  /** GSC: gợi ý vị trí chỉ sau khi gõ; lọc theo từ khóa + khoa. */
+  deferLocationHistoryUntilTyped?: boolean;
+  /** GSC: hiện tùy chọn bổ sung mã/tên/giường người bệnh. */
+  showBoSungNguoiBenhToggle?: boolean;
 }
 
 export default function GiamSatHeader({ 
   session, setSession, 
   historyLocations: externalHistory,
+  historyLocationRows: externalHistoryRows,
   khoas: externalKhoas, khuVucs: externalKhuVucs,
   ngheNghieps: externalNgheNghieps,
   nhanSus: externalNhanSus,
@@ -38,6 +46,8 @@ export default function GiamSatHeader({
   showGiamSatCaNhan = true,
   lockedSupervisorHoSoId = null,
   suppressStaffIdentityBanner = false,
+  deferLocationHistoryUntilTyped = false,
+  showBoSungNguoiBenhToggle = false,
 }: GiamSatHeaderProps) {
   const toText = (value: unknown): string => String(value ?? "").trim();
   const resolveNhanSuKhoaId = (ns: NhanSuOption): string => {
@@ -56,6 +66,7 @@ export default function GiamSatHeader({
   const [ngheNghiepsLocal, setNgheNghiepsLocal] = useState<MasterOption[]>([]);
   const [allNhanSusLocal, setAllNhanSusLocal] = useState<NhanSuOption[]>([]);
   const [historyLocationsLocal, setHistoryLocationsLocal] = useState<string[]>([]);
+  const [historyLocationRowsLocal, setHistoryLocationRowsLocal] = useState<VstSessionLocationHistoryRow[]>([]);
   const [loadingSelf, setLoadingSelf] = useState(true);
 
   const parentFeedsKhoaKhu = externalKhoas !== undefined && externalKhuVucs !== undefined;
@@ -64,6 +75,7 @@ export default function GiamSatHeader({
   const displayNgheNghieps = externalNgheNghieps !== undefined ? externalNgheNghieps : ngheNghiepsLocal;
   const displayNhanSus = externalNhanSus !== undefined ? externalNhanSus : allNhanSusLocal;
   const displayHistory = externalHistory !== undefined ? externalHistory : historyLocationsLocal;
+  const displayHistoryRows = externalHistoryRows !== undefined ? externalHistoryRows : historyLocationRowsLocal;
   const loading = parentFeedsKhoaKhu ? headerDataLoading : loadingSelf;
 
   useEffect(() => {
@@ -83,6 +95,7 @@ export default function GiamSatHeader({
           setNgheNghiepsLocal(result.data.ngheNghieps || []);
           setAllNhanSusLocal((result.data.nhanSus || []) as NhanSuOption[]);
           setHistoryLocationsLocal(result.data.historyLocations || []);
+          setHistoryLocationRowsLocal(result.data.historyLocationRows || []);
         }
       } catch (error) {
         if (cancelled) return;
@@ -115,6 +128,12 @@ export default function GiamSatHeader({
     [displayNhanSus, session.khoa_id, session.nghe_nghiep_id, displayNgheNghieps],
   );
 
+  const showPersonalPanel = Boolean(showGiamSatCaNhan && session.is_giam_sat_ca_nhan);
+  const showPatientPanel = Boolean(showBoSungNguoiBenhToggle && session.is_bo_sung_nguoi_benh);
+  const optionalPanelCount = (showPersonalPanel ? 1 : 0) + (showPatientPanel ? 1 : 0);
+  const headerGridCols =
+    optionalPanelCount === 0 ? "lg:grid-cols-1" : optionalPanelCount === 1 ? "lg:grid-cols-2" : "lg:grid-cols-3";
+  const patientLabelStart = showPersonalPanel ? 8 : 5;
   const selectedKhoaName = displayKhoas.find(k => k.id === session.khoa_id)?.ten_danh_muc || "Chưa chọn khoa";
   const selectedKhuVucName = displayKhuVucs.find(k => k.id === session.khu_vuc_id)?.ten_danh_muc || "Chưa chọn khu vực";
 
@@ -142,32 +161,68 @@ export default function GiamSatHeader({
             {isCollapsed ? 'Mở rộng' : 'Thu gọn'}
           </button>
 
-          {!isCollapsed && showGiamSatCaNhan && (
-            <label className="flex items-center gap-2 cursor-pointer group">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter group-hover:text-[#026f17] transition-colors">
-                Giám sát cá nhân?
-              </span>
-              <input
-                type="checkbox"
-                className="h-5 w-5 accent-[#026f17]"
-                checked={Boolean(session.is_giam_sat_ca_nhan)}
-                onChange={(e) =>
-                  setSession((prev) => ({
-                    ...prev,
-                    is_giam_sat_ca_nhan: e.target.checked,
-                    ...(e.target.checked
-                      ? {}
-                      : { nghe_nghiep_id: "", nhan_vien_id: "", is_manual_nhan_vien: false, ten_manual_nhan_vien: "" }),
-                  }))
-                }
-              />
-            </label>
+          {!isCollapsed && (
+            <div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-2">
+              {showGiamSatCaNhan && (
+                <label className="flex cursor-pointer items-center gap-2 group">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter group-hover:text-[#026f17] transition-colors">
+                    Giám sát nhân viên?
+                  </span>
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 accent-[#026f17]"
+                    checked={Boolean(session.is_giam_sat_ca_nhan)}
+                    onChange={(e) =>
+                      setSession((prev) => ({
+                        ...prev,
+                        is_giam_sat_ca_nhan: e.target.checked,
+                        ...(e.target.checked
+                          ? {}
+                          : {
+                              nghe_nghiep_id: "",
+                              nhan_vien_id: "",
+                              is_manual_nhan_vien: false,
+                              ten_manual_nhan_vien: "",
+                            }),
+                      }))
+                    }
+                  />
+                </label>
+              )}
+              {showBoSungNguoiBenhToggle && (
+                <label className="flex cursor-pointer items-center gap-2 group">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter group-hover:text-[#026f17] transition-colors">
+                    Bổ sung người bệnh?
+                  </span>
+                  <input
+                    type="checkbox"
+                    className="h-5 w-5 accent-[#026f17]"
+                    checked={Boolean(session.is_bo_sung_nguoi_benh)}
+                    onChange={(e) =>
+                      setSession((prev) => ({
+                        ...prev,
+                        is_bo_sung_nguoi_benh: e.target.checked,
+                        ...(e.target.checked
+                          ? {}
+                          : {
+                              ma_nguoi_benh: "",
+                              ten_nguoi_benh: "",
+                              so_giuong_nguoi_benh: "",
+                            }),
+                      }))
+                    }
+                  />
+                </label>
+              )}
+            </div>
           )}
         </div>
       </div>
 
       {!isCollapsed && (
-        <div className="grid grid-cols-1 gap-6 overflow-visible md:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div
+          className={`grid grid-cols-1 items-start gap-5 overflow-visible md:grid-cols-2 md:gap-6 ${headerGridCols} animate-in fade-in slide-in-from-top-2 duration-300 lg:gap-6`}
+        >
           <GiamSatHeaderFields
             session={session}
             setSession={setSession}
@@ -175,13 +230,28 @@ export default function GiamSatHeader({
             khuVucs={displayKhuVucs}
             allNhanSus={displayNhanSus}
             historyLocations={displayHistory}
+            historyLocationRows={displayHistoryRows}
+            deferLocationHistoryUntilTyped={deferLocationHistoryUntilTyped}
             loading={loading}
             lockedSupervisorHoSoId={lockedSupervisorHoSoId ?? undefined}
             suppressStaffIdentityBanner={suppressStaffIdentityBanner}
           />
-          
-          {showGiamSatCaNhan && session.is_giam_sat_ca_nhan && (
-            <GiamSatHeaderPersonalFields session={session} setSession={setSession} ngheNghieps={displayNgheNghieps} filteredNhanSus={filteredNhanSus} />
+
+          {showPersonalPanel && (
+            <GiamSatHeaderPersonalFields
+              session={session}
+              setSession={setSession}
+              ngheNghieps={displayNgheNghieps}
+              filteredNhanSus={filteredNhanSus}
+            />
+          )}
+
+          {showPatientPanel && (
+            <GiamSatHeaderPatientFields
+              session={session}
+              setSession={setSession}
+              labelStartIndex={patientLabelStart}
+            />
           )}
         </div>
       )}

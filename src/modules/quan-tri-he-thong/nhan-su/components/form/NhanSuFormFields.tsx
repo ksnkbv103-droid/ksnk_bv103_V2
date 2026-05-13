@@ -3,7 +3,7 @@
 
 import React from "react";
 import { Sparkles } from "lucide-react";
-import type { NhanSu } from "@/modules/quan-tri-he-thong/nhan-su/actions/data";
+import type { NhanSu } from "@/modules/quan-tri-he-thong/nhan-su/types";
 import NhanSuFormFieldsOrg from "./NhanSuFormFieldsOrg";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 

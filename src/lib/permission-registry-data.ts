@@ -9,8 +9,28 @@ import { ModuleConfig } from "./permission-registry";
 export const MODULE_REGISTRY: ModuleConfig[] = [
   {
     code: "DASHBOARD",
-    displayName: "Bảng điều khiển (Dashboard)",
+    displayName: "Command Center — quyền tổng (tương thích trước khi tách widget)",
     actions: ["VIEW"],
+  },
+  {
+    code: "DASHBOARD_CC_OVERVIEW",
+    displayName: "Command Center — Tab Cơ cấu nguồn & tổng hợp",
+    actions: ["VIEW"],
+  },
+  {
+    code: "DASHBOARD_CC_SUPERVISION",
+    displayName: "Command Center — Tab Chuyên trách / Chéo / Tự giám sát",
+    actions: ["VIEW"],
+  },
+  {
+    code: "DASHBOARD_CC_GAP",
+    displayName: "Command Center — Tab Đối soát & Lệch",
+    actions: ["VIEW"],
+  },
+  {
+    code: "DASHBOARD_CC_EXPORT",
+    displayName: "Command Center — Xuất / in báo cáo PDF",
+    actions: ["EXPORT"],
   },
   {
     code: "DANH_MUC",

@@ -12,7 +12,6 @@ import ChecklistTemplateTable from "../components/ChecklistTemplateTable";
 import { toast } from "sonner";
 import type { ChecklistResult, ChecklistTemplate } from "@/types/giam-sat-chung";
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
-import type { GscHistoryRow } from "../lib/gsc-read-utils";
 import {
   KsnkSupervisionHero,
   KsnkSupervisionPanel,

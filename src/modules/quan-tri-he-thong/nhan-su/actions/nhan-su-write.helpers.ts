@@ -1,11 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { NhanSu } from "../types";
 import {
   LOAI_CHUC_DANH,
   LOAI_CHUC_VU,
   LOAI_TO_CONG_TAC,
   LOAI_VAI_TRO_HE_THONG_KSNK,
-  type NhanSu,
-} from "./data";
+} from "../lib/nhan-su-dm-ma-loai";
 import { normalizeDanhMucNullableByLoai } from "@/lib/master-data/fk-normalize";
 import { normalizeAndValidateDmKhoaPhong, validateDanhMucIdByType } from "@/lib/master-data/validation";
 

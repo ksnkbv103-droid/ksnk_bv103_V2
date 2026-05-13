@@ -4,6 +4,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { MasterOption } from "@/lib/master-data/gateway";
 import { mdmGetSupervisionMasterDataBundle } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
+import type { VstSessionLocationHistoryRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/master-data-gateway.actions";
 
 export type GiamSatHeaderPermissionContext = "admin" | "vst" | "gsc" | "nkbv";
 
@@ -17,6 +18,7 @@ export function useGiamSatHeader(permissionContext: GiamSatHeaderPermissionConte
   const [ngheNghieps, setNgheNghieps] = useState<MasterOption[]>([]);
   const [nhanSus, setNhanSus] = useState<Record<string, unknown>[]>([]);
   const [historyLocations, setHistoryLocations] = useState<string[]>([]);
+  const [historyLocationRows, setHistoryLocationRows] = useState<VstSessionLocationHistoryRow[]>([]);
   const [currentHoSoId, setCurrentHoSoId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -37,6 +39,7 @@ export function useGiamSatHeader(permissionContext: GiamSatHeaderPermissionConte
           setNgheNghieps(result.data.ngheNghieps || []);
           setNhanSus(result.data.nhanSus || []);
           setHistoryLocations(result.data.historyLocations || []);
+          setHistoryLocationRows((result.data as { historyLocationRows?: VstSessionLocationHistoryRow[] }).historyLocationRows || []);
           setCurrentHoSoId(result.data.currentHoSoId ?? null);
         }
       } catch (error) {
@@ -61,6 +64,7 @@ export function useGiamSatHeader(permissionContext: GiamSatHeaderPermissionConte
     ngheNghieps,
     nhanSus,
     historyLocations,
+    historyLocationRows,
     currentHoSoId,
     loading,
     

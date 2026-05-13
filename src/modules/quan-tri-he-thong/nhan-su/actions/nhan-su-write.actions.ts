@@ -2,7 +2,7 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
-import type { NhanSu } from "./data";
+import type { NhanSu } from "../types";
 import { softDeleteManySafeRows, softDeleteSafeRow, upsertSafeRow } from "../../actions/master-crud-safe-core";
 import { formatHoSoNhanSuWriteError } from "./nhan-su-fk-normalize";
 import { buildSaveNhanSuMergedFields } from "./nhan-su-write.helpers";

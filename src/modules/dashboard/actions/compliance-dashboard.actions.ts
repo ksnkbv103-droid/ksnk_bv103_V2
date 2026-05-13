@@ -1,13 +1,16 @@
 "use server";
 
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { bv103DefaultTuNgayFromDenIso } from "@/lib/bv103-analytics-default-range";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { verifyAnyPermission, verifyPermissions } from "@/lib/server-permission";
+import {
+  verifyCommandCenterShell,
+} from "../lib/dashboard-command-center-access";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { getCachedDmKhoaPhong, getCachedDmNgheNghiep, getCachedDmKhuVucGiamSat, getCachedDmKhoiKhoa } from "@/lib/cache/master-data-cache";
+import { effectiveFilterIds } from "../lib/dashboard-hook-helpers";
 import {
   complianceDashboardFiltersSchema,
   type ParsedComplianceDashboardFilters,
@@ -22,6 +25,7 @@ import type {
   ComplianceDashboardFilters,
   DashboardSummaryRow,
   DashboardSummaryTableFilters,
+  DashboardKhoaOverviewRow,
 } from "../compliance-dashboard.types";
 
 const dashboardSummaryTableFiltersSchema = z.object({
@@ -38,7 +42,7 @@ export async function getDashboardSummaryTable(filters: DashboardSummaryTableFil
   }
   const f = parsed.data;
   const supabase = await createServerSupabaseUserClient();
-  await verifyComplianceDashboardAccess();
+  await verifyCommandCenterShell();
 
   const scope = await getActorKsnkScope();
   const isNetwork = scope.isMangLuoiKsnk;
@@ -55,13 +59,115 @@ export async function getDashboardSummaryTable(filters: DashboardSummaryTableFil
   return { success: true as const, data: data as DashboardSummaryRow[] };
 }
 
-/** Dashboard tuân thủ: cần quyền xem DASHBOARD + ít nhất một nguồn giám sát (GSC hoặc VST) để khớp dữ liệu hiển thị. */
-async function verifyComplianceDashboardAccess() {
-  await verifyPermissions([{ moduleKey: "DASHBOARD", action: "view" }]);
-  await verifyAnyPermission([
-    { moduleKey: "GIAM_SAT_CHUNG", action: "view" },
-    { moduleKey: "GIAM_SAT_VST", action: "view" },
-  ]);
+const dashboardKhoaOverviewFiltersSchema = z.object({
+  tu_ngay: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "tu_ngay YYYY-MM-DD"),
+  den_ngay: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "den_ngay YYYY-MM-DD"),
+  selectedKhoiIds: z.array(z.string()),
+  selectedKhoaIds: z.array(z.string()),
+  selectedNgheIds: z.array(z.string()),
+  selectedKhuVucIds: z.array(z.string()),
+  khoiOptionCount: z.number().int().nonnegative(),
+  khoaOptionCount: z.number().int().nonnegative(),
+  ngheOptionCount: z.number().int().nonnegative(),
+  khuOptionCount: z.number().int().nonnegative(),
+});
+
+/** Chuẩn hóa kết quả RPC jsonb (mảng dòng khoa) — tránh mất dữ liệu khi client trả string / double-encode. */
+function parseRpcKhoaOverviewJson(raw: unknown): unknown[] {
+  if (raw == null) return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === "string") {
+    const s = raw.trim();
+    if (!s) return [];
+    try {
+      const once = JSON.parse(s) as unknown;
+      if (Array.isArray(once)) return once;
+      if (typeof once === "string") {
+        try {
+          const twice = JSON.parse(once) as unknown;
+          if (Array.isArray(twice)) return twice;
+        } catch {
+          /* ignore */
+        }
+      }
+    } catch {
+      return [];
+    }
+  }
+  if (typeof raw === "object" && "khoa_id" in (raw as object)) return [raw];
+  return [];
+}
+
+/** Tab Cơ cấu nguồn: bảng theo khoa — Tự giám sát (RPC `rpc_get_dashboard_khoa_overview_rows`). */
+export async function getDashboardKhoaOverviewRows(
+  filters: z.infer<typeof dashboardKhoaOverviewFiltersSchema>,
+): Promise<{ success: true; data: DashboardKhoaOverviewRow[] } | { success: false; error: string }> {
+  const parsed = dashboardKhoaOverviewFiltersSchema.safeParse(filters);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues.map((i) => i.message).join("; ") || "Tham số không hợp lệ" };
+  }
+  const f = parsed.data;
+  const supabase = await createServerSupabaseUserClient();
+  await verifyCommandCenterShell();
+
+  const scope = await getActorKsnkScope();
+  const isNetwork = scope.isMangLuoiKsnk;
+
+  const effKhoi = isNetwork ? null : effectiveFilterIds(f.selectedKhoiIds, f.khoiOptionCount);
+  const effKhoa = isNetwork ? (scope.actorKhoaId ? [scope.actorKhoaId] : null) : effectiveFilterIds(f.selectedKhoaIds, f.khoaOptionCount);
+  const effNghe = isNetwork ? null : effectiveFilterIds(f.selectedNgheIds, f.ngheOptionCount);
+  const effKhu = isNetwork ? null : effectiveFilterIds(f.selectedKhuVucIds, f.khuOptionCount);
+
+  const { data, error } = await supabase.rpc("rpc_get_dashboard_khoa_overview_rows", {
+    p_tu_ngay: f.tu_ngay,
+    p_den_ngay: f.den_ngay,
+    p_khoi_ids: effKhoi && effKhoi.length > 0 ? effKhoi : null,
+    p_khoa_ids: effKhoa && effKhoa.length > 0 ? effKhoa : null,
+    p_nghe_nghiep_ids: effNghe && effNghe.length > 0 ? effNghe : null,
+    p_khu_vuc_ids: effKhu && effKhu.length > 0 ? effKhu : null,
+  });
+  if (error) return { success: false, error: error.message };
+  const arr = parseRpcKhoaOverviewJson(data);
+  const num = (v: unknown) => Number(v ?? 0) || 0;
+
+  const mapOne = (x: Record<string, unknown>): DashboardKhoaOverviewRow => {
+    const khoa_id = String(x.khoa_id ?? "");
+    const ten_khoa = String(x.ten_khoa ?? "—");
+
+    // RPC 9 cột (migration 13204): lấy đúng nhánh Tự GS.
+    if (x.ksnk_vst_co_hoi !== undefined || x.cheo_vst_co_hoi !== undefined) {
+      return {
+        khoa_id,
+        ten_khoa,
+        tu_gs_vst_co_hoi: num(x.tu_gs_vst_co_hoi),
+        tu_gs_vst_phien: num(x.tu_gs_vst_phien),
+        tu_gs_gsc_phien: num(x.tu_gs_gsc_phien),
+      };
+    }
+
+    // RPC phẳng cũ (13203): vst_* gộp mọi nguồn — không tách TGS; chỉ GSC đúng nhánh TGS.
+    if (x.vst_co_hoi !== undefined || x.vst_phien !== undefined) {
+      return {
+        khoa_id,
+        ten_khoa,
+        tu_gs_vst_co_hoi: num(x.vst_co_hoi),
+        tu_gs_vst_phien: num(x.vst_phien),
+        tu_gs_gsc_phien: num(x.gsc_tu_gs),
+      };
+    }
+
+    // RPC chỉ TGS (13205) hoặc tương đương.
+    return {
+      khoa_id,
+      ten_khoa,
+      tu_gs_vst_co_hoi: num(x.tu_gs_vst_co_hoi),
+      tu_gs_vst_phien: num(x.tu_gs_vst_phien),
+      tu_gs_gsc_phien: num(x.tu_gs_gsc_phien),
+    };
+  };
+
+  const rows: DashboardKhoaOverviewRow[] = arr.map((x) => mapOne(x as Record<string, unknown>));
+  return { success: true, data: rows };
 }
 
 async function loadComplianceFilterOptionsData(supabase: SupabaseClient) {
@@ -97,7 +203,7 @@ async function loadComplianceFilterOptionsData(supabase: SupabaseClient) {
 
 export async function getComplianceFilterOptions() {
   const supabase = await createServerSupabaseUserClient();
-  await verifyComplianceDashboardAccess();
+  await verifyCommandCenterShell();
   return loadComplianceFilterOptionsData(supabase);
 }
 
@@ -112,7 +218,7 @@ export async function getComplianceDashboardPayloads(filters: ComplianceDashboar
   const f: ParsedComplianceDashboardFilters = parsed.data;
 
   const supabase = await createServerSupabaseUserClient();
-  await verifyComplianceDashboardAccess();
+  await verifyCommandCenterShell();
   const scope = await getActorKsnkScope();
   const isNetwork = scope.isMangLuoiKsnk;
   const p_khoi_ids = isNetwork ? null : (f.khoi_ids ?? []).length > 0 ? f.khoi_ids ?? null : null;

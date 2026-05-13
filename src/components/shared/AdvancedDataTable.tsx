@@ -1,12 +1,14 @@
 // src/components/shared/AdvancedDataTable.tsx
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 import SearchBar from "./SearchBar";
 import ServerPaginationBar from "./ServerPaginationBar";
 import DataTableBody from "./DataTableBody";
 import { useDataTable } from "@/hooks/useDataTable";
+import { useMinWidth } from "@/hooks/use-min-width";
 
 /**
  * Định nghĩa cột cho bảng
@@ -54,6 +56,12 @@ interface AdvancedDataTableProps<T> {
   serverPagination?: ServerPaginationConfig;
   /** Gắn thêm class cho &lt;table&gt; (ví dụ `table-fixed` để khớp độ rộng cột). */
   tableClassName?: string;
+  /**
+   * `inline` (mặc định): thanh tìm trong khối bảng.
+   * `header`: từ breakpoint lg, portal ô tìm lên `#bv103-header-toolbar-slot` trong Header (một bảng / trang);
+   * dưới lg vẫn hiển thị inline để không chật mobile.
+   */
+  searchPlacement?: "inline" | "header";
 }
 
 export default function AdvancedDataTable<T extends { id: string | number }>({
@@ -62,8 +70,20 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
   onRowClick, bulkActions,
   emptyMessage = "Không có dữ liệu hiển thị",
   loading = false, enableMultiSelect = false, hideSearch = false,
-  onDeleteSelected, onSearch, onSort, searchValue, rowClassName, serverPagination, tableClassName
+  onDeleteSelected, onSearch, onSort, searchValue, rowClassName, serverPagination, tableClassName,
+  searchPlacement = "inline",
 }: AdvancedDataTableProps<T>) {
+  const headerPortal = searchPlacement === "header";
+  const isLgUp = useMinWidth(1024, false, headerPortal);
+  const [headerSlotEl, setHeaderSlotEl] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!headerPortal) {
+      setHeaderSlotEl(null);
+      return;
+    }
+    setHeaderSlotEl(document.getElementById("bv103-header-toolbar-slot"));
+  }, [headerPortal]);
   const searchableKeys = useMemo(() => columns.map(col => col.accessorKey as keyof T), [columns]);
 
   const {
@@ -79,25 +99,51 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
   const onSortAction = (key: keyof T) => { if (onSort) onSort(String(key)); else internalHandleSort(key); };
   const finalSearchTerm = searchValue !== undefined ? searchValue : searchTerm;
 
+  const useHeaderSearchPortal = searchPlacement === "header" && !hideSearch && isLgUp && Boolean(headerSlotEl);
+  const showInlineSearch = !hideSearch && (searchPlacement === "inline" || (searchPlacement === "header" && !isLgUp));
+
+  const searchBarNode = !hideSearch ? (
+    <SearchBar
+      value={finalSearchTerm}
+      onChange={onSearchAction}
+      placeholder={searchPlaceholder}
+      className={useHeaderSearchPortal ? "w-full max-w-xl" : "min-w-0 flex-1 basis-[min(100%,14rem)] sm:max-w-md"}
+    />
+  ) : null;
+
+  const toolbarRowNeeded =
+    showInlineSearch || (selectedIds.size > 0 && (enableMultiSelect || bulkActions));
+
   return (
-    <div className="space-y-4 w-full animate-in fade-in duration-500">
-      {/* Thanh công cụ */}
-      {(!hideSearch || (selectedIds.size > 0 && (enableMultiSelect || bulkActions))) && (
-        <div className="flex flex-col md:flex-row items-center gap-4 no-print transition-all duration-300">
-          {!hideSearch && (
-            <SearchBar value={finalSearchTerm} onChange={onSearchAction} placeholder={searchPlaceholder} className="flex-1" />
-          )}
-          
+    <div className="w-full space-y-3 animate-in fade-in duration-500">
+      {useHeaderSearchPortal && headerSlotEl && searchBarNode
+        ? createPortal(searchBarNode, headerSlotEl)
+        : null}
+
+      {toolbarRowNeeded && (
+        <div
+          className={`flex w-full flex-wrap items-center gap-2 no-print transition-all duration-300 ${
+            !showInlineSearch && selectedIds.size > 0 ? "justify-end" : ""
+          }`}
+        >
+          {showInlineSearch ? searchBarNode : null}
+
           {selectedIds.size > 0 && (enableMultiSelect || bulkActions) && (
-            <div className="flex items-center gap-2 p-1.5 bg-[#026f17]/5 border border-[#026f17]/10 rounded-2xl animate-in slide-in-from-top-2">
-              <span className="text-[10px] font-black text-[#026f17] uppercase px-4 whitespace-nowrap">Đã chọn {selectedIds.size} mục</span>
+            <div
+              className={`flex flex-wrap items-center gap-2 rounded-lg border border-[#026f17]/15 bg-[#026f17]/5 p-1 animate-in slide-in-from-top-2 ${
+                showInlineSearch ? "ml-auto" : ""
+              }`}
+            >
+              <span className="whitespace-nowrap px-3 text-[10px] font-semibold uppercase tracking-wide text-[#026f17]">
+                Đã chọn {selectedIds.size} mục
+              </span>
               {enableMultiSelect && onDeleteSelected && (
                 <button
                   type="button"
                   onClick={() => onDeleteSelected(selectedItems)}
-                  className="flex h-9 items-center gap-2 rounded-xl bg-red-50 px-4 text-[10px] font-black uppercase tracking-widest text-red-700 transition-all hover:bg-red-500 hover:text-white"
+                  className="bv103-control-h inline-flex items-center gap-2 rounded-lg bg-red-50 px-3 text-xs font-semibold text-red-700 transition-colors hover:bg-red-600 hover:text-white"
                 >
-                  <Trash2 size={13} aria-hidden /> Xóa
+                  <Trash2 size={14} aria-hidden /> Xóa
                 </button>
               )}
               {bulkActions && bulkActions(selectedItems)}
@@ -108,10 +154,10 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
 
       {/* Bảng dữ liệu chính */}
       <div className="overflow-hidden rounded-[var(--radius-table)] bg-white ring-1 ring-slate-200/90">
-        <div className="overflow-x-auto">
-          <table className={tableClassName ?? "w-full border-collapse text-left"}>
-            <thead>
-              <tr className="border-b border-slate-200/90 bg-slate-50/95">
+        <div className="custom-scrollbar max-h-[min(520px,62dvh)] overflow-auto overscroll-contain">
+          <table className={tableClassName ?? "w-full min-w-[640px] border-collapse text-left"}>
+            <thead className="sticky top-0 z-20 bg-slate-50/95 shadow-[0_1px_0_rgb(226_232_240/0.95)] backdrop-blur-sm">
+              <tr className="border-b border-slate-200/90">
                 {enableMultiSelect && (
                   <th className="p-4 w-12 text-center no-print">
                     <input type="checkbox" className="w-5 h-5 rounded-lg border-2 border-slate-200 text-[#026f17] focus:ring-[#026f17] transition-all cursor-pointer"
@@ -135,7 +181,7 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-50 bg-white">
               <DataTableBody
                 columns={columns}
                 data={displayData}

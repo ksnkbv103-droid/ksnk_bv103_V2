@@ -1,6 +1,6 @@
 /**
  * Chuẩn hóa giá trị ô Excel → khớp Postgres (ngày serial, timestamp, bỏ object lồng).
- * Gọi trên server trước insert/update smart-import.
+ * Logic thuần — gọi từ Server Action trước insert/update smart-import.
  */
 
 const DATE_ONLY_FIELDS = new Set([
@@ -63,7 +63,7 @@ export function normalizeImportedRowTypedValues(_tableName: string, row: Record<
   return out;
 }
 
-/** Bỏ cột không phảu scalar (join PostgREST), undefined, và kỹ thuật. */
+/** Bỏ cột không phải scalar (join PostgREST), undefined, và kỹ thuật. */
 export function sanitizeSmartImportRowPayload(row: Record<string, unknown>): Record<string, unknown> {
   const o: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(row)) {

@@ -16,15 +16,26 @@ import {
   validateVstModeFields,
   vstWriteErrorMessage,
 } from "./vst-write.helpers";
+import { chunkIdsForSupabaseInFilter, collectImportSessionIdsFromRows } from "@/lib/supervision/import-session-ids";
 
 export async function importVSTData(rows: ImportRow[]) {
   const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("GIAM_SAT_VST", "import");
     const actorAuthUserId = await getActorAuthUserId();
-    const { data: existing, error: exErr } = await supabase.from("fact_giam_sat_vst_sessions").select("id");
-    if (exErr) throw exErr;
-    const existingIds = new Set(((existing || []) as ExistingSessionRow[]).map((x) => x.id).filter(Boolean) as string[]);
+    const sessionIdsFromFile = collectImportSessionIdsFromRows(rows || []);
+    const existingIds = new Set<string>();
+    for (const chunk of chunkIdsForSupabaseInFilter(sessionIdsFromFile)) {
+      const { data: existingChunk, error: exErr } = await supabase
+        .from("fact_giam_sat_vst_sessions")
+        .select("id")
+        .in("id", chunk);
+      if (exErr) throw exErr;
+      for (const row of (existingChunk || []) as ExistingSessionRow[]) {
+        const id = String(row.id || "").trim();
+        if (id) existingIds.add(id);
+      }
+    }
     for (const row of rows || []) {
       const sessionId = String(row.ma_phien || row.id || "").trim();
       const khoaNorm = await normalizeAndValidateDmKhoaPhong({

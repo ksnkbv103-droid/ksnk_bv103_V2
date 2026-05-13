@@ -66,6 +66,21 @@ export async function verifyPermission(moduleKey: string, action: string) {
   await verifyPermissions([{ moduleKey, action }]);
 }
 
+/**
+ * Vai trò `ADMIN` trên RBAC + email trusted (AGENTS): được sửa/xóa mọi phiên giám sát,
+ * bỏ qua ràng buộc chủ phiên và cửa sổ 30 phút ở tầng server action.
+ */
+export async function hasRBACAdminSupervisionBypass(): Promise<boolean> {
+  const userSb = await createServerSupabaseUserClient();
+  const {
+    data: { user },
+  } = await userSb.auth.getUser();
+  if (!user?.id) return false;
+  if (isTrustedAdminEmail(user.email)) return true;
+  const { roles } = await getPermissionsRequestScope(user.id);
+  return roles.includes("ADMIN");
+}
+
 /** Ít nhất một cặp (module, action) phải khớp — OR. Dùng cho đọc danh mục dùng chung nhiều module. */
 export async function verifyAnyPermission(alternatives: readonly PermissionCheck[]) {
   if (!alternatives.length) return;

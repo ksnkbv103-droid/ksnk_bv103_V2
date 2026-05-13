@@ -13,7 +13,7 @@ export const factListPaginationSchema = z.object({
     .number()
     .int()
     .min(1)
-    .max(100)
+    .max(50)
     .default(FACT_LIST_DEFAULT_PAGE_SIZE),
   search: z.string().max(500).default(""),
   sortKey: z.string().max(64).optional(),

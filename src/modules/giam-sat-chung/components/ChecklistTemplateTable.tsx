@@ -33,12 +33,8 @@ export default function ChecklistTemplateTable({
 }: ChecklistTemplateTableProps) {
   return (
     <div className="animate-in fade-in duration-300 space-y-5">
-      <div className="flex items-start gap-3 border-b border-slate-100 pb-3 no-print">
-        <span className="mt-1.5 hidden h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)] sm:block" aria-hidden />
-        <div>
-          <h3 className="text-base font-semibold text-slate-900">Danh mục bảng kiểm</h3>
-          <p className="mt-0.5 max-w-xl text-xs text-slate-500">Chọn một mẫu để mở form giám sát theo tiêu chí đã cấu hình.</p>
-        </div>
+      <div className="flex items-center gap-2 border-b border-slate-100 pb-3 no-print">
+        <h3 className="text-base font-semibold text-slate-900">Danh mục bảng kiểm</h3>
       </div>
 
       <AdvancedDataTable

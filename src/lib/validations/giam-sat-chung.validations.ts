@@ -44,6 +44,10 @@ export const gscSessionSchema = z.object({
   /** Nhập tay tên đối tượng (không có hồ sơ mdm_nhan_su). */
   is_manual_nhan_vien: z.boolean().optional(),
   ten_manual_nhan_vien: z.string().optional(),
+  is_bo_sung_nguoi_benh: z.boolean().optional(),
+  ma_nguoi_benh: z.string().max(200).optional(),
+  ten_nguoi_benh: z.string().max(300).optional(),
+  so_giuong_nguoi_benh: z.string().max(120).optional(),
 });
 
 export type GscSessionInput = z.infer<typeof gscSessionSchema>;

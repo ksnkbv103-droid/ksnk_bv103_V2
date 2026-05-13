@@ -2,10 +2,11 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath, unstable_cache, revalidateTag } from "next/cache";
-import { DanhMuc } from "./data";
+import type { DanhMuc } from "../lib/danh-muc-flat-record";
 import { addResolvedLoaiValues, getDanhMucItemById } from "@/lib/master-data/repository";
 import { verifyPermission } from "../../actions/verify-permission";
 import { verifyAnyPermission } from "@/lib/server-permission";
+import { DASHBOARD_CC_WIDGET } from "@/lib/dashboard-command-center-widget-keys";
 import { getRegistryEntry } from "@/lib/master-data/domain-registry";
 import { buildNextDmBusinessCode, buildMigratedUpsertPayload, setDanhMucActiveFlag } from "@/lib/master-data/danh-muc-routing";
 
@@ -16,6 +17,9 @@ function errDanhMuc(e: unknown) {
 /** Đọc dropdown danh mục: đặt ở đầu `getCategoriesByType` (không đặt trong callback `unstable_cache` — tránh cache chung bỏ qua kiểm tra quyền). */
 const VIEW_ANY_FOR_DM_CATEGORIES = [
   { moduleKey: "DASHBOARD", action: "view" },
+  { moduleKey: DASHBOARD_CC_WIDGET.OVERVIEW, action: "view" },
+  { moduleKey: DASHBOARD_CC_WIDGET.SUPERVISION, action: "view" },
+  { moduleKey: DASHBOARD_CC_WIDGET.GAP, action: "view" },
   { moduleKey: "DANH_MUC", action: "view" },
   { moduleKey: "NHAN_SU", action: "view" },
   { moduleKey: "PHAN_QUYEN", action: "view" },

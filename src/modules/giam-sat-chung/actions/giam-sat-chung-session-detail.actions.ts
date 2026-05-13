@@ -3,6 +3,7 @@
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { enrichGscHistoryRows } from "../lib/gsc-read-utils";
+import { GSC_RESULTS_ROW_SELECT, GSC_SESSIONS_FULL_DETAIL_SELECT } from "../lib/gsc-read-view-select";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 
 function getErrorMessage(error: unknown): string {
@@ -24,7 +25,7 @@ export async function getGiamSatChungSessionForViewBundle(sessionId: string) {
     // 1. Fetch Session Metadata from View (Smart DB pattern)
     const { data: ses, error: sErr } = await supabase
       .from("v_fact_giam_sat_chung_sessions_full")
-      .select("*")
+      .select(GSC_SESSIONS_FULL_DETAIL_SELECT)
       .eq("id", id)
       .single();
 
@@ -43,13 +44,13 @@ export async function getGiamSatChungSessionForViewBundle(sessionId: string) {
     // 2. Fetch Results
     const { data: rs, error: rErr } = await supabase
       .from("fact_giam_sat_chung_results")
-      .select("*")
+      .select(GSC_RESULTS_ROW_SELECT)
       .eq("session_id", id);
     
     if (rErr) throw rErr;
 
     // 3. Enrich and Map back to expected format
-    const enriched = enrichGscHistoryRows([ses])[0];
+    const enriched = enrichGscHistoryRows([ses as Record<string, unknown>])[0];
     const row = { ...enriched, results: rs || [] };
     
     return { success: true as const, data: row };

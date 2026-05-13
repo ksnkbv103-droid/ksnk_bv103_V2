@@ -25,33 +25,32 @@ export default function SearchBar({
 }: SearchBarProps) {
   return (
     <div className={`relative group w-full ${className}`}>
-      {/* Icon Search cố định bên trái */}
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#026f17] transition-colors pointer-events-none">
-        <Search size={18} strokeWidth={2.5} />
+      <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#026f17]">
+        <Search size={16} strokeWidth={2.25} aria-hidden />
       </div>
 
-      {/* Input chính với phong cách glass-panel và bo tròn cực đại */}
       <input
-        type="text"
+        type="search"
+        autoComplete="off"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full h-12 pl-12 pr-12 rounded-2xl bg-white border-2 border-slate-100 font-bold text-slate-700 placeholder:text-slate-300 focus:border-[#026f17] focus:bg-white focus:shadow-lg focus:shadow-[#026f17]/5 transition-all outline-none text-sm"
+        className="bv103-control-h w-full rounded-lg border border-slate-200 bg-white pl-9 pr-9 text-sm font-medium text-slate-800 shadow-sm outline-none transition-[box-shadow,border-color] placeholder:text-slate-400 focus:border-[#026f17]/40 focus:ring-2 focus:ring-[#026f17]/15"
       />
 
-      {/* Nút Xóa (X) hiển thị khi có nội dung */}
-      {value && (
+      {value ? (
         <button
+          type="button"
           onClick={() => {
             onChange("");
-            if (onClear) onClear();
+            onClear?.();
           }}
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all active:scale-90"
+          className="bv103-control-h absolute right-1 top-1/2 flex w-8 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
           title="Xóa tìm kiếm"
         >
-          <X size={16} strokeWidth={3} />
+          <X size={15} strokeWidth={2.5} aria-hidden />
         </button>
-      )}
+      ) : null}
     </div>
   );
 }

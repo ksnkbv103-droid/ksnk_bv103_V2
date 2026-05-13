@@ -5,9 +5,10 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { revalidatePath } from "next/cache";
 import { formatHoSoKhoaFkViolation, formatHoSoNhanSuWriteError } from "@/modules/quan-tri-he-thong/nhan-su/actions/nhan-su-fk-normalize";
-import { buildImportErrorMessage } from "./smart-import-normalizers";
+import { createDmImportSessionCache } from "../lib/smart-import/dm-import-session-cache";
+import { buildImportErrorMessage } from "../lib/smart-import/dm-row-normalizers";
 import { resolveSmartImportScopeForTable, withResolvedLoaiValues } from "./smart-import-per-table";
-import { normalizeImportedRowTypedValues, sanitizeSmartImportRowPayload } from "./smart-import-row-sanitize";
+import { normalizeImportedRowTypedValues, sanitizeSmartImportRowPayload } from "../lib/smart-import/row-typed-values";
 import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
 
 interface SmartImportConfig {
@@ -32,6 +33,8 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
     }
     await verifyPermission(importModule, "import");
     const supabase = createAdminSupabaseClient();
+    const nhanSuDmSessionCache =
+      config.tableName === "mdm_nhan_su" ? createDmImportSessionCache(supabase) : undefined;
 
     let query = supabase.from(config.tableName).select(config.uniqueKey);
     if (config.fixedValues) {
@@ -79,6 +82,7 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
         config.tableName,
         scopeSafeRest as Record<string, unknown>,
         rowNumber,
+        nhanSuDmSessionCache,
       );
       if (!scoped.ok) {
         rowErrors.push(scoped.error);

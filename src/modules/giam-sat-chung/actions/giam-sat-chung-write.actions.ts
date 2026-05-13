@@ -7,7 +7,7 @@ import { normalizeHoSoNhanVienOptionalOrThrow } from "@/lib/master-data/fk-norma
 import { normalizeAndValidateDmKhoaPhong, validateDanhMucIdByType } from "@/lib/master-data/validation";
 import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
 import { resolveSupervisorPolicy } from "@/lib/supervision-policy";
-import { verifyPermission } from "@/lib/server-permission";
+import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
 import { formatUnknownError } from "@/lib/supabase-error-message";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import {
@@ -110,6 +110,12 @@ export async function saveGiamSatChung(
       ? String(sessionData.thoi_gian_ket_thuc ?? "").trim() || new Date().toISOString()
       : new Date().toISOString();
 
+    const boSungRaw = Boolean(sessionData.is_bo_sung_nguoi_benh);
+    const maNb = String(sessionData.ma_nguoi_benh ?? "").trim() || null;
+    const tenNb = String(sessionData.ten_nguoi_benh ?? "").trim() || null;
+    const giuongNb = String(sessionData.so_giuong_nguoi_benh ?? "").trim() || null;
+    const boSungEffective = boSungRaw && Boolean(maNb || tenNb || giuongNb);
+
     const sessionPayload = {
       loai_bang_kiem: loaiBkCanonical,
       khoa_id: khoaNorm,
@@ -129,13 +135,17 @@ export async function saveGiamSatChung(
       thoi_gian_ghi_nhan: thoiGianGhiNhan,
       tong_diem: calculateScore(results),
       ghi_chu_chung: sessionData.ghi_chu_chung,
+      is_bo_sung_nguoi_benh: boSungEffective,
+      ma_nguoi_benh: boSungEffective ? maNb : null,
+      ten_nguoi_benh: boSungEffective ? tenNb : null,
+      so_giuong_nguoi_benh: boSungEffective ? giuongNb : null,
     };
 
     let sessionId: string;
 
     if (existingSessionId) {
-      const actorNhanSuId = await getActorNhanSuId();
-      if (!actorNhanSuId) throw new Error("Không xác định được người giám sát của bạn.");
+      const adminBypass = await hasRBACAdminSupervisionBypass();
+      if (!adminBypass && !actorNhanSuId) throw new Error("Không xác định được người giám sát của bạn.");
 
       const { data: existing, error: exErr } = await supabase
         .from("fact_giam_sat_chung_sessions")
@@ -145,11 +155,13 @@ export async function saveGiamSatChung(
       if (exErr) throw exErr;
       if (!existing) throw new Error("Phiên không còn tồn tại.");
       if (existing.is_active === false) throw new Error("Phiên đã bị vô hiệu, không sửa được.");
-      if (String(existing.nguoi_giam_sat_id || "") !== String(actorNhanSuId)) {
-        throw new Error("Chỉ người giám sát đã ghi nhận phiên này mới được sửa.");
-      }
-      if (isSupervisionSessionMutationExpired(existing.created_at)) {
-        throw new Error(SUPERVISION_SESSION_MUTATION_EXPIRED_VI);
+      if (!adminBypass) {
+        if (String(existing.nguoi_giam_sat_id || "") !== String(actorNhanSuId)) {
+          throw new Error("Chỉ người giám sát đã ghi nhận phiên này mới được sửa.");
+        }
+        if (isSupervisionSessionMutationExpired(existing.created_at)) {
+          throw new Error(SUPERVISION_SESSION_MUTATION_EXPIRED_VI);
+        }
       }
 
       const { error: upErr } = await supabase

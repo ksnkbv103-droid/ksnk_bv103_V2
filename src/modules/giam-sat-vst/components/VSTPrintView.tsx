@@ -32,8 +32,10 @@ export default function VSTPrintView({ session, persons, ngheNghieps, khoas, khu
     "—";
   const viTri = String(session.vi_tri_cu_the || session.vi_tri || "").trim() || "—";
   const ngayGS = (session.ngay_giam_sat as string) || (session.created_at as string) || new Date().toISOString();
+  const tenGsFlat = String((session as { ten_nguoi_giam_sat?: string }).ten_nguoi_giam_sat || "").trim();
   const nguoiGs =
     (session.nguoi_giam_sat as { ho_ten?: string } | undefined)?.ho_ten?.trim() ||
+    (tenGsFlat && tenGsFlat !== "—" ? tenGsFlat : "") ||
     nhanSus.find((n) => sameId(n.id, session.nguoi_giam_sat_id))?.ho_ten ||
     String(session.nguoi_giam_sat_id || "").trim() ||
     "—";

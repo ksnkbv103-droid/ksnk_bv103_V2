@@ -1,17 +1,20 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
-import { Users, Eye, ClipboardList } from "lucide-react";
+import { Users, Eye, ClipboardList, ArrowDown, ArrowUp } from "lucide-react";
 import type { MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
-import type { DashboardKsnkStaffSupervisionRow } from "@/modules/dashboard/compliance-dashboard.types";
+import type {
+  DashboardKhoaOverviewRow,
+  DashboardKsnkStaffSupervisionRow,
+} from "@/modules/dashboard/compliance-dashboard.types";
 
 type SupervisionSourceStatsProps = {
   sources: { ten: string; so_phien: number }[];
-  /** Phiên tự giám sát theo khoa (đã lọc nguồn TGS), gộp VST + giám sát chung. */
-  participationTuGiamSat: { id: string; ten: string; so_phien: number }[];
-  /** Nhân viên KSNK: cơ hội VST + phiên VST + phiên GSC (chuyên trách), theo bộ lọc ngày/khoa. */
+  /** `tableOnly`: chỉ bảng theo khoa (tab Tự giám sát); `full`: KPI + pie + bảng (tab Cơ cấu nguồn). */
+  variant?: "full" | "tableOnly";
+  /** Theo khoa — Tự giám sát: cơ hội VST, phiên VST, phiên GSC (RPC + mapper tương thích bản RPC cũ). */
+  khoaOverviewRows: DashboardKhoaOverviewRow[];
   ksnkStaffSupervision: DashboardKsnkStaffSupervisionRow[];
-  /** Chỉ true với nhân sự KSNK / mạng lưới / quản trị — ẩn hoàn toàn với khoa khác. */
   showKsnkStaffWorkload: boolean;
   khoaOptions: MultiSelectOption[];
   selectedKhoaIds: string[];
@@ -19,13 +22,35 @@ type SupervisionSourceStatsProps = {
   khoiOptions: MultiSelectOption[];
 };
 
-/** Bảng màu 3 nguồn giám sát (Chuyên trách / Tự / Chéo); fallback xám khi vượt. */
 const PIE_COLORS = ["#026f17", "#0ea5e9", "#f59e0b"] as const;
 const PIE_COLOR_FALLBACK = "#94a3b8";
 
+function normKhoaId(id: string) {
+  return String(id || "").trim().toLowerCase();
+}
+
+type KhoaTuGsSortKey = "tu_gs_vst_co_hoi" | "tu_gs_vst_phien" | "tu_gs_gsc_phien" | "ten";
+
+function compareTuGsRows(
+  a: { ten: string; tu_gs_vst_co_hoi: number; tu_gs_vst_phien: number; tu_gs_gsc_phien: number },
+  b: { ten: string; tu_gs_vst_co_hoi: number; tu_gs_vst_phien: number; tu_gs_gsc_phien: number },
+  key: KhoaTuGsSortKey,
+  desc: boolean,
+) {
+  if (key === "ten") {
+    const c = a.ten.localeCompare(b.ten, "vi");
+    return desc ? -c : c;
+  }
+  const va = a[key];
+  const vb = b[key];
+  if (va !== vb) return desc ? vb - va : va - vb;
+  return a.ten.localeCompare(b.ten, "vi");
+}
+
 export const SupervisionSourceStats: React.FC<SupervisionSourceStatsProps> = ({
   sources,
-  participationTuGiamSat,
+  variant = "full",
+  khoaOverviewRows,
   ksnkStaffSupervision,
   showKsnkStaffWorkload,
   khoaOptions,
@@ -33,6 +58,9 @@ export const SupervisionSourceStats: React.FC<SupervisionSourceStatsProps> = ({
   selectedKhoiIds,
   khoiOptions,
 }) => {
+  const [tuGsSortKey, setTuGsSortKey] = useState<KhoaTuGsSortKey>("tu_gs_vst_co_hoi");
+  const [tuGsSortDesc, setTuGsSortDesc] = useState(true);
+
   const total = sources.reduce((acc, curr) => acc + curr.so_phien, 0);
 
   const pieData = sources.map((s, i) => ({
@@ -53,28 +81,141 @@ export const SupervisionSourceStats: React.FC<SupervisionSourceStatsProps> = ({
     return byKhoi.filter((k) => set.has(k.id));
   }, [khoaOptions, selectedKhoaIds, selectedKhoiIds, khoiOptions.length]);
 
-  const participationMap = useMemo(
-    () => new Map(participationTuGiamSat.map((p) => [p.id, p] as const)),
-    [participationTuGiamSat]
-  );
+  const khoaTuGsRows = useMemo(() => {
+    const fromRpc = new Map<
+      string,
+      { ten: string; tu_gs_vst_co_hoi: number; tu_gs_vst_phien: number; tu_gs_gsc_phien: number }
+    >();
+    for (const r of khoaOverviewRows) {
+      fromRpc.set(normKhoaId(r.khoa_id), {
+        ten: String(r.ten_khoa || "").trim() || "—",
+        tu_gs_vst_co_hoi: r.tu_gs_vst_co_hoi ?? 0,
+        tu_gs_vst_phien: r.tu_gs_vst_phien ?? 0,
+        tu_gs_gsc_phien: r.tu_gs_gsc_phien ?? 0,
+      });
+    }
 
-  const khoaTuGiamRows = useMemo(() => {
-    const rows = khoaScope.map((k) => {
-      const hit = participationMap.get(k.id);
+    const seenCatalog = new Set<string>();
+    const fromCatalog = khoaScope.map((k) => {
+      const kid = normKhoaId(k.id);
+      seenCatalog.add(kid);
+      const hit = fromRpc.get(kid);
       return {
         id: k.id,
-        ten: k.label || hit?.ten || "—",
-        so_phien: hit?.so_phien ?? 0,
+        ten: String(k.label || "").trim() || hit?.ten || "—",
+        tu_gs_vst_co_hoi: hit?.tu_gs_vst_co_hoi ?? 0,
+        tu_gs_vst_phien: hit?.tu_gs_vst_phien ?? 0,
+        tu_gs_gsc_phien: hit?.tu_gs_gsc_phien ?? 0,
       };
     });
-    return [...rows].sort((a, b) => a.so_phien - b.so_phien);
-  }, [khoaScope, participationMap]);
+
+    const extras: typeof fromCatalog = [];
+    for (const r of khoaOverviewRows) {
+      const kid = normKhoaId(r.khoa_id);
+      if (!kid || seenCatalog.has(kid)) continue;
+      extras.push({
+        id: r.khoa_id,
+        ten: String(r.ten_khoa || "—").trim() || "—",
+        tu_gs_vst_co_hoi: r.tu_gs_vst_co_hoi ?? 0,
+        tu_gs_vst_phien: r.tu_gs_vst_phien ?? 0,
+        tu_gs_gsc_phien: r.tu_gs_gsc_phien ?? 0,
+      });
+    }
+
+    const combined = [...extras, ...fromCatalog];
+    return [...combined].sort((a, b) => compareTuGsRows(a, b, tuGsSortKey, tuGsSortDesc));
+  }, [khoaScope, khoaOverviewRows, tuGsSortKey, tuGsSortDesc]);
+
+  const toggleTuGsSort = (key: KhoaTuGsSortKey) => {
+    if (key === tuGsSortKey) {
+      setTuGsSortDesc((d) => !d);
+    } else {
+      setTuGsSortKey(key);
+      setTuGsSortDesc(key === "ten" ? false : true);
+    }
+  };
+
+  const sortHeader = (key: KhoaTuGsSortKey, label: string, align: "left" | "right") => {
+    const active = tuGsSortKey === key;
+    const Icon = active && tuGsSortDesc ? ArrowDown : ArrowUp;
+    return (
+      <th className={`px-2 py-2.5 sm:px-3 ${align === "right" ? "text-right" : "text-left"}`}>
+        <button
+          type="button"
+          onClick={() => toggleTuGsSort(key)}
+          className={`inline-flex max-w-full items-center gap-1 font-black uppercase tracking-wider transition-colors ${
+            active ? "text-amber-950" : "text-slate-500 hover:text-slate-800"
+          } ${align === "right" ? "ml-auto flex-row-reverse" : ""}`}
+        >
+          <span className="truncate">{label}</span>
+          {active ? <Icon className="h-3 w-3 shrink-0 opacity-80" aria-hidden /> : null}
+        </button>
+      </th>
+    );
+  };
+
+  const khoaTuGsTable = (
+    <>
+      <div className="mb-3 shrink-0">
+        <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Khoa/Phòng — Tự giám sát</h3>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-auto rounded-lg border border-slate-200/90 xl:max-h-[220px]">
+        <table className="w-full text-left text-[11px] sm:text-xs">
+              <thead className="sticky top-0 z-[1] bg-slate-50 text-[9px] uppercase tracking-wider text-slate-500 sm:text-[10px]">
+                <tr>
+                  <th className="px-2 py-2.5 font-black sm:px-3">STT</th>
+                  {sortHeader("ten", "Khoa/Phòng", "left")}
+                  {sortHeader("tu_gs_vst_co_hoi", "Cơ hội VST", "right")}
+                  {sortHeader("tu_gs_vst_phien", "Phiên VST", "right")}
+                  {sortHeader("tu_gs_gsc_phien", "Phiên GSC (TG)", "right")}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {khoaTuGsRows.map((p, i) => (
+                  <tr key={p.id} className="hover:bg-slate-50/50">
+                    <td className="px-2 py-2 font-bold text-slate-400 sm:px-3 sm:py-2.5">{i + 1}</td>
+                    <td className="max-w-[10rem] truncate px-2 py-2 font-bold text-slate-700 sm:max-w-none sm:px-3 sm:py-2.5">
+                      {p.ten}
+                    </td>
+                    <td className="px-2 py-2 text-right font-black text-amber-950 sm:px-3 sm:py-2.5">
+                      {p.tu_gs_vst_co_hoi.toLocaleString()}
+                    </td>
+                    <td className="px-2 py-2 text-right font-black text-amber-900 sm:px-3 sm:py-2.5">
+                      {p.tu_gs_vst_phien.toLocaleString()}
+                    </td>
+                    <td className="px-2 py-2 text-right font-black text-amber-800 sm:px-3 sm:py-2.5">
+                      {p.tu_gs_gsc_phien.toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+                {khoaTuGsRows.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
+                      Chưa có khoa trong phạm vi lọc
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+      </div>
+    </>
+  );
+
+  if (variant === "tableOnly") {
+    return (
+      <div className="animate-in fade-in duration-500">
+        <div className="flex max-h-[min(320px,70vh)] min-h-0 min-w-0 flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 xl:max-h-[320px]">
+          {khoaTuGsTable}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {sources.map((s, i) => (
-          <div key={s.ten} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div key={s.ten} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-4">
               <div
                 className="flex h-12 w-12 items-center justify-center rounded-2xl"
@@ -98,19 +239,21 @@ export const SupervisionSourceStats: React.FC<SupervisionSourceStatsProps> = ({
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
-        <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h3 className="mb-8 text-sm font-black uppercase tracking-widest text-slate-900">Tỉ lệ cơ cấu nguồn giám sát (Tổng hợp)</h3>
-          <div className="flex min-w-0 flex-col items-center gap-8 md:flex-row">
-            <div className="h-[240px] w-full min-w-0 shrink-0 md:w-1/2">
+      <div className="grid grid-cols-1 gap-8 xl:grid-cols-2 xl:items-stretch">
+        <div className="flex min-h-[280px] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:min-h-[300px] sm:p-6 xl:h-[320px] xl:min-h-[320px] xl:max-h-[320px]">
+          <h3 className="mb-4 shrink-0 text-sm font-black uppercase tracking-widest text-slate-900">
+            Tỉ lệ cơ cấu nguồn giám sát (Tổng hợp)
+          </h3>
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col items-center gap-4 md:flex-row md:gap-6">
+            <div className="h-[180px] w-full min-w-0 shrink-0 sm:h-[200px] md:h-[220px] md:w-[48%] xl:h-[230px]">
               <Bv103ResponsiveChart className="h-full w-full">
                 <PieChart>
                   <Pie
                     data={pieData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
+                    innerRadius={48}
+                    outerRadius={82}
                     paddingAngle={5}
                     dataKey="value"
                   >
@@ -122,14 +265,14 @@ export const SupervisionSourceStats: React.FC<SupervisionSourceStatsProps> = ({
                 </PieChart>
               </Bv103ResponsiveChart>
             </div>
-            <div className="w-full space-y-4 md:w-1/2">
+            <div className="w-full min-w-0 flex-1 space-y-2 overflow-y-auto md:w-[52%]">
               {pieData.map((s) => (
                 <div key={s.name} className="flex items-center justify-between border-b border-slate-50 pb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: s.color }} />
-                    <span className="text-xs font-bold text-slate-600">{s.name}</span>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <div className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: s.color }} />
+                    <span className="truncate text-xs font-bold text-slate-600">{s.name}</span>
                   </div>
-                  <div className="text-right">
+                  <div className="shrink-0 text-right">
                     <span className="text-sm font-black text-slate-900">
                       {((s.value / (total || 1)) * 100).toFixed(1)}%
                     </span>
@@ -141,65 +284,19 @@ export const SupervisionSourceStats: React.FC<SupervisionSourceStatsProps> = ({
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <div className="mb-6">
-            <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">
-              Khoa/Phòng trong phạm vi lọc — phiên tự giám sát
-            </h3>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-tighter text-slate-400 italic">
-              Liệt kê theo khoa đã chọn (hoặc toàn bộ trong khối đã chọn); sắp xếp số phiên từ thấp đến cao
-            </p>
-          </div>
-
-          <div className="max-h-[320px] overflow-auto rounded-2xl border border-slate-100">
-            <table className="w-full text-left text-xs">
-              <thead className="sticky top-0 bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                <tr>
-                  <th className="px-4 py-3">STT</th>
-                  <th className="px-4 py-3">Khoa/Phòng</th>
-                  <th className="px-4 py-3 text-right">Phiên tự GS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {khoaTuGiamRows.map((p, i) => (
-                  <tr key={p.id} className="transition-colors hover:bg-slate-50/50">
-                    <td className="px-4 py-3 font-bold text-slate-400">{i + 1}</td>
-                    <td className="px-4 py-3 font-bold text-slate-700">{p.ten}</td>
-                    <td className="px-4 py-3 text-right">
-                      <span
-                        className={`inline-flex items-center justify-center rounded px-2 py-1 font-black ${
-                          p.so_phien === 0 ? "bg-red-50 text-red-500" : "bg-slate-50 text-slate-900"
-                        }`}
-                      >
-                        {p.so_phien}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-                {khoaTuGiamRows.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="px-4 py-8 text-center text-slate-400">
-                      Chưa có khoa trong phạm vi lọc
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:min-h-[300px] sm:p-6 xl:h-[320px] xl:min-h-[320px] xl:max-h-[320px]">
+          {khoaTuGsTable}
         </div>
       </div>
 
       {showKsnkStaffWorkload && (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <div className="mb-6">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <div className="mb-4">
             <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">
               Nhân viên Khoa KSNK — hoạt động giám sát chuyên trách
             </h3>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-tighter text-slate-400 italic">
-              Cơ hội vệ sinh tay (dòng VST) và phiên VST/GS chung do nhân sự KSNK làm người giám sát — gồm mọi phân loại nguồn (chuyên trách, tự giám sát, chéo). Danh sách: khoa KSNK trong MDM hoặc trường vai trò KSNK; cùng bộ lọc ngày/khoa phía trên.
-            </p>
           </div>
-          <div className="max-h-[360px] overflow-auto rounded-2xl border border-slate-100">
+          <div className="max-h-[360px] overflow-auto rounded-lg border border-slate-200/90">
             <table className="w-full text-left text-xs">
               <thead className="sticky top-0 bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400">
                 <tr>
@@ -218,9 +315,15 @@ export const SupervisionSourceStats: React.FC<SupervisionSourceStatsProps> = ({
                       <td className="px-4 py-3 font-bold text-slate-400">{i + 1}</td>
                       <td className="px-4 py-3 font-bold text-slate-800">{row.ho_ten}</td>
                       <td className="px-4 py-3 text-slate-500">{row.ma_nv}</td>
-                      <td className="px-4 py-3 text-right font-black text-emerald-800">{row.so_co_hoi_vst.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right font-black text-emerald-700">{row.so_phien_vst.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-right font-black text-sky-800">{row.so_phien_gsc.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right font-black text-emerald-800">
+                        {row.so_co_hoi_vst.toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-right font-black text-emerald-700">
+                        {row.so_phien_vst.toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-right font-black text-sky-800">
+                        {row.so_phien_gsc.toLocaleString()}
+                      </td>
                     </tr>
                   );
                 })}

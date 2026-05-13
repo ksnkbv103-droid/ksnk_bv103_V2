@@ -18,6 +18,7 @@ import {
 export async function mdmGetSupervisionMasterDataBundle(options: {
   includeNhanSu?: boolean;
   includeNgheNghiep?: boolean;
+  /** Mặc định không tải gợi ý vị trí từ phiên VST (tránh dữ liệu import cũ). */
   includeHistoryLocations?: boolean;
   permissionContext?: "admin" | "vst" | "gsc" | "nkbv";
 } = {}) {

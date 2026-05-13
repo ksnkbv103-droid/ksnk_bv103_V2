@@ -57,6 +57,15 @@ export type ComplianceDashboardFilters = {
   supervision_type?: 'ALL' | 'KSNK' | 'CHEO' | 'TU_GIAM_SAT';
 };
 
+/** Tab Cơ cấu nguồn: một dòng khoa — Tự giám sát (VST cơ hội, phiên VST, phiên GSC). */
+export type DashboardKhoaOverviewRow = {
+  khoa_id: string;
+  ten_khoa: string;
+  tu_gs_vst_co_hoi: number;
+  tu_gs_vst_phien: number;
+  tu_gs_gsc_phien: number;
+};
+
 export type DashboardSummaryRow = {
   ma_bk: string;
   ten_bk: string;

@@ -45,11 +45,8 @@ export default function QuanTriHeThongPage() {
             <Settings className="h-6 w-6 text-[var(--primary)]" aria-hidden />
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Khối quản trị</p>
-            <h1 className="mt-0.5 text-xl font-semibold tracking-tight text-slate-900 md:text-2xl">Quản trị hệ thống</h1>
-            <p className="mt-1 max-w-xl text-sm leading-relaxed text-slate-600">
-              Master data, danh mục theo registry và ma trận phân quyền RBAC trong một không gian làm việc thống nhất.
-            </p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Quản trị</p>
+            <h1 className="mt-0.5 text-xl font-semibold tracking-tight text-slate-900 md:text-2xl">Hệ thống</h1>
           </div>
         </div>
       </header>

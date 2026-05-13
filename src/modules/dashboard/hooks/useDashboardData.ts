@@ -1,13 +1,18 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { format } from "date-fns";
 import { bv103DefaultTuNgayFromToday } from "@/lib/bv103-analytics-default-range";
 import { getComplianceFilterOptions } from "../actions/compliance-dashboard.actions";
-import type { DashboardSummaryRow, DashboardKsnkStaffSupervisionRow } from "../compliance-dashboard.types";
+import type {
+  DashboardSummaryRow,
+  DashboardKhoaOverviewRow,
+  DashboardKsnkStaffSupervisionRow,
+} from "../compliance-dashboard.types";
 import { type ComplianceDashboardPayload } from "../compliance-dashboard.types";
 import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
 import { resolveDashboardFilterUi } from "../lib/resolve-dashboard-filter-ui";
 import { useDashboardExportReport } from "./use-dashboard-export-report";
 import { useDashboardLoadCycle } from "./use-dashboard-load-cycle";
+import { useDashboardCommandCenterWidgets } from "./use-dashboard-cc-widgets";
 import type { DashboardHeaderFallback, DashboardTabType } from "./dashboard-types";
 
 export type { DashboardTabType as TabType, DashboardHeaderFallback } from "./dashboard-types";
@@ -25,6 +30,7 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
   const [vstPayload, setVstPayload] = useState<VstDashboardPayload | null>(null);
   const [compliancePayloads, setCompliancePayloads] = useState<Record<string, ComplianceDashboardPayload>>({});
   const [summaryTable, setSummaryTable] = useState<DashboardSummaryRow[]>([]);
+  const [khoaOverviewRows, setKhoaOverviewRows] = useState<DashboardKhoaOverviewRow[]>([]);
   const [vstGapPayloads, setVstGapPayloads] = useState<{
     kq: VstDashboardPayload | null;
     cheo: VstDashboardPayload | null;
@@ -43,6 +49,37 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
   const [openDialog, setOpenDialog] = useState<"nhan_xet" | "kien_nghi" | null>(null);
   const [nhanXetDanhGia, setNhanXetDanhGia] = useState("");
   const [kienNghiDeXuat, setKienNghiDeXuat] = useState("");
+
+  const ccWidgets = useDashboardCommandCenterWidgets();
+
+  const widgetAccess = useMemo(
+    () => ({
+      overview: ccWidgets.overview,
+      supervision: ccWidgets.supervision,
+      gap: ccWidgets.gap,
+    }),
+    [ccWidgets.overview, ccWidgets.supervision, ccWidgets.gap],
+  );
+
+  const tabCoercedRef = useRef(false);
+  useEffect(() => {
+    if (!initDone || ccWidgets.loading || tabCoercedRef.current) return;
+    if (ccWidgets.overview) {
+      tabCoercedRef.current = true;
+      return;
+    }
+    if (ccWidgets.supervision) {
+      setActiveTab("ksnk");
+      tabCoercedRef.current = true;
+      return;
+    }
+    if (ccWidgets.gap) {
+      setActiveTab("gap");
+      tabCoercedRef.current = true;
+      return;
+    }
+    tabCoercedRef.current = true;
+  }, [initDone, ccWidgets.loading, ccWidgets.overview, ccWidgets.supervision, ccWidgets.gap]);
 
   const { bangKiemOptions, khoiOptions, khoaOptions, ngheOptions, khuVucOptions, bkLabelMap } = resolveDashboardFilterUi(
     filterOptions,
@@ -91,6 +128,8 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
     setTuGiamSatParticipationByKhoa,
     setKsnkStaffSupervision,
     setShowKsnkStaffWorkload,
+    setKhoaOverviewRows,
+    widgetAccess,
   });
 
   const loadDashboardRef = useRef(loadDashboard);
@@ -166,6 +205,7 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
     vstGapPayloads,
     complianceGapPayloads,
     summaryTable,
+    khoaOverviewRows,
     tuGiamSatParticipationByKhoa,
     ksnkStaffSupervision,
     showKsnkStaffWorkload,
@@ -184,5 +224,6 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
     setKienNghiDeXuat,
     loadDashboard,
     initDone,
+    ccWidgets,
   };
 }

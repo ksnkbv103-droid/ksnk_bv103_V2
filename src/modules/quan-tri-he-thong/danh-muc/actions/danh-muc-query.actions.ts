@@ -3,7 +3,7 @@
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "../../actions/verify-permission";
 import { getRegistryEntry } from "@/lib/master-data/domain-registry";
-import type { DanhMuc } from "./data";
+import type { DanhMuc } from "../lib/danh-muc-flat-record";
 
 function mapDmRowToDanhMuc(loai: string, row: Record<string, unknown>): DanhMuc {
   const reg = getRegistryEntry(loai);

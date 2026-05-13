@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { mdmGetSupervisionMasterDataBundle } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
+import type { VstSessionLocationHistoryRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/master-data-gateway.actions";
 import { toast } from "sonner";
 import { createDefaultVSTFormPersons, type VSTFormPerson, useVSTFormHandlers } from "./useVSTFormHandlers";
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
@@ -31,6 +32,7 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
   const [khuVucs, setKhuVucs] = useState<MasterOption[]>([]);
   const [ngheNghieps, setNgheNghieps] = useState<MasterOption[]>([]);
   const [historyLocations, setHistoryLocations] = useState<string[]>([]);
+  const [historyLocationRows, setHistoryLocationRows] = useState<VstSessionLocationHistoryRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
@@ -53,6 +55,9 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
           setNhanSus(result.data.nhanSus || []);
           setNgheNghieps(result.data.ngheNghieps || []);
           setHistoryLocations(result.data.historyLocations || []);
+          setHistoryLocationRows(
+            (result.data as { historyLocationRows?: VstSessionLocationHistoryRow[] }).historyLocationRows || [],
+          );
           const selfId = result.data.currentHoSoId;
           setCurrentHoSoId(selfId || null);
           if (selfId) {
@@ -65,6 +70,7 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
           setNhanSus([]);
           setNgheNghieps([]);
           setHistoryLocations([]);
+          setHistoryLocationRows([]);
           setCurrentHoSoId(null);
           toast.error(result.error || "Lỗi tải danh mục.");
         }
@@ -76,8 +82,8 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
         setNhanSus([]);
         setNgheNghieps([]);
         setHistoryLocations([]);
+        setHistoryLocationRows([]);
         setCurrentHoSoId(null);
-        console.error("[VSTForm] loadInitialData error:", err);
         toast.error("Không tải được danh mục. Vui lòng kiểm tra cấu hình máy chủ hoặc thử lại.");
       } finally {
         if (!cancelled) setInitialLoading(false);
@@ -123,7 +129,7 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
     session, setSession,
     persons, setPersons,
     khoas, khuVucs,
-    nhanSus, ngheNghieps, historyLocations,
+    nhanSus, ngheNghieps, historyLocations, historyLocationRows,
     loading, initialLoading, timeLeft,
     currentHoSoId,
     masterDataFetchFailed,

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DM_HUB_LABELS } from "@/lib/master-data/domain-registry";
 import GenericDmEditModal from "./GenericDmEditModal";
@@ -17,6 +17,18 @@ export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: stri
   const canDelete = allowed.delete;
   const m = useGenericDmMasterPageModel(loaiDanhMuc, canMutate, canDelete);
   const title = DM_HUB_LABELS[m.key] || loaiDanhMuc;
+  const maCol = m.reg?.maColumn ?? "ma";
+  const tenCol = m.reg?.tenColumn ?? "ten";
+  const [listSearch, setListSearch] = useState("");
+  const filteredRows = useMemo(() => {
+    const t = listSearch.trim().toLowerCase();
+    if (!t) return m.rows;
+    return m.rows.filter(
+      (r) =>
+        String(r[maCol] ?? "").toLowerCase().includes(t) ||
+        String(r[tenCol] ?? "").toLowerCase().includes(t),
+    );
+  }, [listSearch, m.rows, maCol, tenCol]);
 
   if (!m.reg) {
     return (
@@ -39,16 +51,16 @@ export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: stri
       <GenericDmHubRedirectBanner registryKey={m.key} />
       <GenericDmMasterHeader
         title={title}
-        sourceTable={m.reg.sourceTable}
-        registryKey={m.key}
         onBack={() => router.push("/quan-tri-he-thong")}
         onCreate={() => void m.openCreate()}
         canCreate={canMutate}
       />
       <GenericDmMasterDataTable
         columns={m.columns}
-        rows={m.rows}
+        rows={filteredRows}
         loading={m.loading}
+        listSearch={listSearch}
+        onListSearchChange={setListSearch}
         canDelete={canDelete}
         registryKey={m.key}
         onReload={() => void m.load()}

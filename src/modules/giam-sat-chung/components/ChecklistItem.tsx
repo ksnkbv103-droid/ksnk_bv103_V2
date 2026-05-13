@@ -66,37 +66,37 @@ export default function ChecklistItem({ criterion, result, onChange = () => {}, 
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Đạt / Có */}
           <button
+            type="button"
             onClick={() => onChange({ ...result, value: "DAT" })}
-            className={`h-12 flex-1 rounded-2xl border-2 px-6 text-[11px] font-black uppercase tracking-wider transition-all md:flex-none ${
+            className={`h-11 min-w-[5.5rem] flex-1 rounded-xl border px-4 text-xs font-semibold uppercase tracking-wide transition-colors md:h-10 md:flex-none ${
               result.value === "DAT"
-                ? "border-[#026f17] bg-[#026f17] text-white shadow-lg shadow-[#026f17]/20"
-                : "border-slate-200 bg-slate-50 text-slate-700 hover:border-[#026f17]/30 hover:bg-white"
+                ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-sm"
+                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
             }`}
           >
-            ✅ Đạt
+            Đạt
           </button>
 
-          {/* Không Đạt */}
           <button
+            type="button"
             onClick={() => onChange({ ...result, value: "KHONG_DAT" })}
-            className={`h-12 flex-1 rounded-2xl border-2 px-6 text-[11px] font-black uppercase tracking-wider transition-all md:flex-none ${
+            className={`h-11 min-w-[5.5rem] flex-1 rounded-xl border px-4 text-xs font-semibold uppercase tracking-wide transition-colors md:h-10 md:flex-none ${
               result.value === "KHONG_DAT"
-                ? "border-red-500 bg-red-500 text-white shadow-lg shadow-red-500/20"
-                : "border-slate-200 bg-slate-50 text-slate-700 hover:border-red-300 hover:bg-white"
+                ? "border-rose-600 bg-rose-600 text-white shadow-sm"
+                : "border-slate-200 bg-white text-slate-600 hover:border-rose-200 hover:bg-rose-50/60"
             }`}
           >
-            ❌ K.Đạt
+            Không đạt
           </button>
 
-          {/* Không áp dụng */}
           <button
+            type="button"
             onClick={() => onChange({ ...result, value: "NA" })}
-            className={`h-12 flex-1 rounded-2xl border-2 px-6 text-[11px] font-black uppercase tracking-wider transition-all md:flex-none ${
+            className={`h-11 min-w-[5.5rem] flex-1 rounded-xl border px-4 text-xs font-semibold uppercase tracking-wide transition-colors md:h-10 md:flex-none ${
               result.value === "NA"
-                ? "border-slate-400 bg-slate-400 text-white shadow-lg shadow-slate-400/20"
-                : "border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-white"
+                ? "border-slate-500 bg-slate-600 text-white shadow-sm"
+                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
             }`}
           >
             N/A

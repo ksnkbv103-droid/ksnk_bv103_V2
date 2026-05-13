@@ -6,6 +6,10 @@ import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import { mapDanhMucOptions } from "@/lib/master-data/gateway";
 import { GscSessionHistoryRow, ChecklistResultValue } from "../types";
 import { enrichGscHistoryRows } from "../lib/gsc-read-utils";
+import {
+  GSC_RESULTS_ROW_SELECT,
+  GSC_SESSIONS_FULL_LIST_SELECT,
+} from "../lib/gsc-read-view-select";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 
@@ -43,7 +47,7 @@ export async function getGiamSatChungHistory(loaiBangKiem?: string) {
     
     let query = supabase
       .from("v_fact_giam_sat_chung_sessions_full")
-      .select("*")
+      .select(GSC_SESSIONS_FULL_LIST_SELECT)
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .limit(GSC_FULL_HISTORY_ROW_CAP);
@@ -57,27 +61,26 @@ export async function getGiamSatChungHistory(loaiBangKiem?: string) {
     const { data: sessions, error } = await query;
     if (error) throw error;
 
-    const typedSessions = (sessions || []) as GscSessionHistoryRow[];
-    const sessionIds = typedSessions.map((x) => x.id);
+    const sessionRows = (sessions ?? []) as Record<string, unknown>[];
+    const sessionIds = sessionRows.map((x) => String(x.id ?? ""));
 
     // Lấy kết quả chi tiết cho các phiên
     const resultMap = new Map<string, GscResultRow[]>();
     if (sessionIds.length) {
       const { data: resultsRows, error: rsErr } = await supabase
         .from("fact_giam_sat_chung_results")
-        .select("*")
+        .select(GSC_RESULTS_ROW_SELECT)
         .in("session_id", sessionIds);
       if (rsErr) throw rsErr;
-      (resultsRows || []).forEach((r: GscResultRow) => {
-        const sid = String(r.session_id || "");
+      (resultsRows ?? []).forEach((r) => {
+        const row = r as GscResultRow;
+        const sid = String(row.session_id || "");
         if (!resultMap.has(sid)) resultMap.set(sid, []);
-        resultMap.get(sid)!.push(r);
+        resultMap.get(sid)!.push(row);
       });
     }
 
-    const enriched = enrichGscHistoryRows(
-      typedSessions as unknown as Record<string, unknown>[],
-    ).map((x) => ({
+    const enriched = enrichGscHistoryRows(sessionRows).map((x) => ({
       ...x,
       is_seen: Boolean(x.is_seen),
       results: resultMap.get(String(x.id)) || [],
@@ -107,7 +110,7 @@ export async function getGiamSatChungHistoryPaginated(params: {
     const scope = await getActorKsnkScope();
 
     const page = params.page ?? 1;
-    const size = Math.min(Math.max(params.pageSize ?? 20, 10), 100);
+    const size = Math.min(Math.max(params.pageSize ?? 20, 10), 50);
     const from = (page - 1) * size;
     const to = from + size - 1;
     const rawSort = String(params.sortKey || "").trim();
@@ -150,7 +153,7 @@ export async function getGiamSatChungHistoryPaginated(params: {
     // 2. DATA — đúng 1 trang
     let dataQ = supabase
       .from("v_fact_giam_sat_chung_sessions_full")
-      .select("*")
+      .select(GSC_SESSIONS_FULL_LIST_SELECT)
       .eq("is_active", true)
       .order(sortCol, { ascending })
       .range(from, to);
@@ -164,7 +167,7 @@ export async function getGiamSatChungHistoryPaginated(params: {
     if (error) throw error;
 
     // Enrich nhẹ — KHÔNG fetch results (lazy load khi xem chi tiết)
-    const enriched = enrichGscHistoryRows(sessions as unknown as Record<string, unknown>[]).map((x) => ({
+    const enriched = enrichGscHistoryRows((sessions ?? []) as Record<string, unknown>[]).map((x) => ({
       ...x,
       is_seen: Boolean(x.is_seen),
     }));

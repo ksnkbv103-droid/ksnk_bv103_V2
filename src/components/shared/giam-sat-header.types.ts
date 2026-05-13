@@ -24,4 +24,9 @@ export type GiamSatSession = {
   nhan_vien_id?: string;
   is_manual_nhan_vien?: boolean;
   ten_manual_nhan_vien?: string;
+  /** GSC: bổ sung người bệnh đang chăm sóc (gói phòng ngừa NKBV). */
+  is_bo_sung_nguoi_benh?: boolean;
+  ma_nguoi_benh?: string;
+  ten_nguoi_benh?: string;
+  so_giuong_nguoi_benh?: string;
 };

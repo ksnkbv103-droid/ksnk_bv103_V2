@@ -21,7 +21,7 @@ export default function HistoryTable({
   onEditSessionId?: (sessionId: string) => void;
 }) {
   const { allowed } = useModulePermission(MODULE_KEY);
-  const { isPrinting, printingSessionId, printData, onPrint } = useVstPrint();
+  const { isPrinting: _isPrinting, printingSessionId, printData, onPrint } = useVstPrint();
 
   const fetchAction = useCallback(async (params: ServerPaginationParams) => {
     const res = await getVSTSessionsPaginated({

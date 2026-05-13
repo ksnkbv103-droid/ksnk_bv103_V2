@@ -6,6 +6,13 @@ import { getCategoriesByType } from "@/modules/quan-tri-he-thong/danh-muc/action
 
 type MaRow = Record<string, unknown>;
 
+/** Kết quả từ `customAction`: có thể trả `nextCode` (server đã tính max) hoặc `data` để hook tính client. */
+export type MaGenerateCustomResult = {
+  success: boolean;
+  nextCode?: string;
+  data?: MaRow[];
+};
+
 function pickMaToken(row: MaRow): string {
   const v =
     row.ma_danh_muc ??
@@ -27,7 +34,7 @@ function pickMaToken(row: MaRow): string {
 export function useGenerateMa(
   prefix: string,
   loaiDanhMuc?: string,
-  customAction?: () => Promise<{ success: boolean; data?: MaRow[] }>,
+  customAction?: () => Promise<MaGenerateCustomResult>,
 ) {
   const [maTuDong, setMaTuDong] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -38,6 +45,11 @@ export function useGenerateMa(
       let data: MaRow[] = [];
       if (customAction) {
         const res = await customAction();
+        if (res.success && typeof res.nextCode === "string" && res.nextCode.trim() !== "") {
+          const next = res.nextCode.trim();
+          setMaTuDong(next);
+          return next;
+        }
         if (res.success) data = res.data || [];
       } else if (loaiDanhMuc) {
         const res = await getCategoriesByType(loaiDanhMuc);
@@ -68,7 +80,6 @@ export function useGenerateMa(
   }, [prefix, loaiDanhMuc, customAction]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- sinh mã khi đổi prefix / loại danh mục
     void generateMa();
   }, [generateMa]);
 

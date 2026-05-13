@@ -26,6 +26,10 @@ type RBACSnapshot = {
   userData: UserDataProfile | null;
 };
 
+/** Cột view `v_auth_user_permissions` — khớp `20260707004_fix_auth_performance_index.sql`. */
+const V_AUTH_USER_PERMISSIONS_SELECT =
+  "staff_id,auth_user_id,ho_ten,ma_nv,email,khoa_id,is_active,ten_khoa_phong,ma_khoa_phong,roles,permissions" as const;
+
 /**
  * 5 phút — đủ ngắn để admin đổi quyền không phải đăng xuất quá lâu;
  * vẫn tự refresh ngay khi `onAuthStateChange` (đăng xuất / refresh token).
@@ -60,7 +64,7 @@ export function usePermission(moduleKey?: string, action: string = "view") {
     async function fetchRBAC(user: User): Promise<RBACSnapshot> {
       const { data: authData, error: authErr } = await supabase
         .from("v_auth_user_permissions")
-        .select("*")
+        .select(V_AUTH_USER_PERMISSIONS_SELECT)
         .eq("auth_user_id", user.id)
         .maybeSingle();
 
@@ -99,6 +103,8 @@ export function usePermission(moduleKey?: string, action: string = "view") {
 
     async function loadRBAC(user: User | null) {
       if (!user) {
+        rbacCache = null;
+        rbacInFlight = null;
         setUserRoles([]);
         setPermissions([]);
         setUserEmail("");
@@ -163,6 +169,7 @@ export function usePermission(moduleKey?: string, action: string = "view") {
     canEdit: api.canEdit,
     canDelete: api.canDelete,
     canImport: api.canImport,
+    canExport: api.canExport,
     allowed,
     canManageNS: api.canManageNS,
     canImportNS: api.canImportNS,

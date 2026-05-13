@@ -11,7 +11,7 @@ import {
   SUPERVISION_SESSION_MUTATION_EXPIRED_VI,
 } from "@/lib/supervision-mutation-window";
 import { resolveSupervisorPolicy } from "@/lib/supervision-policy";
-import { verifyPermission } from "@/lib/server-permission";
+import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
 import {
   formatVstKhoaFkViolation,
   logVstSaveDebug,
@@ -101,7 +101,8 @@ export async function saveVSTSession(
     let sessionId: string;
 
     if (existingSessionId) {
-      if (!actorNhanSuId) throw new Error("Không xác định được người giám sát của bạn.");
+      const adminBypass = await hasRBACAdminSupervisionBypass();
+      if (!adminBypass && !actorNhanSuId) throw new Error("Không xác định được người giám sát của bạn.");
 
       const { data: existing, error: exErr } = await supabase
         .from("fact_giam_sat_vst_sessions")
@@ -113,11 +114,13 @@ export async function saveVSTSession(
       if (typeof existing.is_active === "boolean" && existing.is_active === false) {
         throw new Error("Phiên đã bị vô hiệu, không sửa được.");
       }
-      if (String(existing.nguoi_giam_sat_id || "") !== String(actorNhanSuId)) {
-        throw new Error("Chỉ người giám sát đã ghi nhận phiên này mới được sửa.");
-      }
-      if (isSupervisionSessionMutationExpired(existing.created_at)) {
-        throw new Error(SUPERVISION_SESSION_MUTATION_EXPIRED_VI);
+      if (!adminBypass) {
+        if (String(existing.nguoi_giam_sat_id || "") !== String(actorNhanSuId)) {
+          throw new Error("Chỉ người giám sát đã ghi nhận phiên này mới được sửa.");
+        }
+        if (isSupervisionSessionMutationExpired(existing.created_at)) {
+          throw new Error(SUPERVISION_SESSION_MUTATION_EXPIRED_VI);
+        }
       }
 
       const { error: delObsErr } = await supabase.from("fact_giam_sat_vst").delete().eq("session_id", existingSessionId);

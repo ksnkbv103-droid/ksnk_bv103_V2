@@ -2,7 +2,7 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
-import { verifyPermission } from "@/lib/server-permission";
+import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
 import { formatVstKhoaFkViolation, vstWriteErrorMessage } from "./vst-write.helpers";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import {
@@ -20,8 +20,9 @@ export async function deleteVSTSessions(sessionIds: string[]) {
     const ids = (sessionIds || []).map(String).filter(Boolean);
     if (!ids.length) return { success: true };
 
+    const adminBypass = await hasRBACAdminSupervisionBypass();
     const actorNhanSuId = await getActorNhanSuId();
-    if (!actorNhanSuId) {
+    if (!adminBypass && !actorNhanSuId) {
       return { success: false, error: "Không xác định được người giám sát của bạn." };
     }
 
@@ -37,12 +38,14 @@ export async function deleteVSTSessions(sessionIds: string[]) {
       return { success: false, error: "Phiên không còn tồn tại." };
     }
 
-    const notOwner = ids.filter((id) => {
-      const r = rowById.get(String(id));
-      return String(r?.nguoi_giam_sat_id || "") !== String(actorNhanSuId);
-    });
-    if (notOwner.length) {
-      return { success: false, error: VST_OWNER_ONLY_VI };
+    if (!adminBypass) {
+      const notOwner = ids.filter((id) => {
+        const r = rowById.get(String(id));
+        return String(r?.nguoi_giam_sat_id || "") !== String(actorNhanSuId);
+      });
+      if (notOwner.length) {
+        return { success: false, error: VST_OWNER_ONLY_VI };
+      }
     }
 
     const inactive = ids.filter((id) => {
@@ -77,8 +80,9 @@ export async function assertCanEditVSTSession(sessionId: string) {
     const id = String(sessionId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã phiên." };
 
+    const adminBypass = await hasRBACAdminSupervisionBypass();
     const actorNhanSuId = await getActorNhanSuId();
-    if (!actorNhanSuId) return { success: false as const, error: "Không xác định được người giám sát của bạn." };
+    if (!adminBypass && !actorNhanSuId) return { success: false as const, error: "Không xác định được người giám sát của bạn." };
 
     const { data: row, error: qErr } = await supabase
       .from("fact_giam_sat_vst_sessions")
@@ -93,12 +97,14 @@ export async function assertCanEditVSTSession(sessionId: string) {
       return { success: false as const, error: "Phiên đã bị vô hiệu, không sửa được." };
     }
 
-    if (String(row.nguoi_giam_sat_id || "") !== String(actorNhanSuId)) {
-      return { success: false as const, error: VST_OWNER_ONLY_VI };
-    }
+    if (!adminBypass) {
+      if (String(row.nguoi_giam_sat_id || "") !== String(actorNhanSuId)) {
+        return { success: false as const, error: VST_OWNER_ONLY_VI };
+      }
 
-    if (isSupervisionSessionMutationExpired(row.created_at)) {
-      return { success: false as const, error: SUPERVISION_SESSION_MUTATION_EXPIRED_VI };
+      if (isSupervisionSessionMutationExpired(row.created_at)) {
+        return { success: false as const, error: SUPERVISION_SESSION_MUTATION_EXPIRED_VI };
+      }
     }
 
     return { success: true as const };

@@ -194,15 +194,6 @@ export default function RBACMatrixView() {
           <h1 className="text-3xl font-black text-slate-800 tracking-tight uppercase">
             Ma trận <span className="text-[#026f17]">Phân quyền</span>
           </h1>
-          <p className="text-slate-500 text-sm max-w-xl">
-            Quản lý quyền hạn truy cập các module nghiệp vụ cho từng nhóm vai trò trong bệnh viện.
-          </p>
-          <p className="text-[11px] text-slate-600 max-w-2xl leading-relaxed border-l-2 border-amber-400/80 pl-3 mt-2">
-            <strong className="text-slate-800">ADMIN:</strong> Khi đăng nhập, tài khoản có vai trò ADMIN (hoặc email tin cậy){" "}
-            <strong>luôn được full quyền</strong> dù DB chưa ghi từng dòng — ma trận vẫn hiển thị đủ ô để bạn{" "}
-            <strong>Lưu</strong> và đồng bộ xuống database. Dùng hàng <strong>Bật nhanh / Tắt nhanh</strong> trên mỗi cột vai trò để gán
-            cả cột Xem, Sửa, Xóa… một lượt.
-          </p>
         </div>
         <div className="flex items-center gap-2.5">
           <button
@@ -238,11 +229,6 @@ export default function RBACMatrixView() {
         onBulkSetActionForRole={bulkSetActionForRole}
         onBulkSetAllForRole={bulkSetAllForRole}
       />
-
-
-      <div className="text-center mt-10">
-        <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.5em]">End of Security Configuration Page</p>
-      </div>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 "use server";
 
+import { verifyDashboardGapWidget } from "../lib/dashboard-command-center-access";
 import { fetchDashboardPayloadsForSupervisionType } from "../lib/fetch-dashboard-payloads-for-type";
 import { buildComplianceGapMap } from "../lib/build-compliance-gap-map";
 import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
@@ -17,6 +18,7 @@ export async function getDashboardGapBundle(p: OverviewDashboardBundleInput): Pr
     { kq: ComplianceDashboardPayload; cheo: ComplianceDashboardPayload; tgs: ComplianceDashboardPayload }
   >;
 }> {
+  await verifyDashboardGapWidget();
   const [resKq, resCheo, resTgs] = await Promise.all([
     fetchDashboardPayloadsForSupervisionType({ ...p, sType: "KSNK" }),
     fetchDashboardPayloadsForSupervisionType({ ...p, sType: "CHEO" }),

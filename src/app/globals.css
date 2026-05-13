@@ -35,6 +35,11 @@
   --radius-shell: 1rem;
   --radius-table: 0.875rem;
 
+  /* Chuẩn touch / MIS: nút, ô nhập, thanh tìm (đồng bộ chiều cao) */
+  --bv103-control-h: 2.5rem;
+  --bv103-page-title: 1.25rem;
+  --bv103-page-title-md: 1.5rem;
+
   color-scheme: light;
 }
 
@@ -74,6 +79,12 @@
    COMPONENT STYLES
    ============================================ */
 @layer components {
+
+  /** Nút / ô chọn cùng chiều cao app (ưu tiên dùng class này cho hàng công cụ). */
+  .bv103-control-h {
+    min-height: var(--bv103-control-h);
+    height: var(--bv103-control-h);
+  }
 
   /* Premium Card */
   .premium-card {
@@ -143,6 +154,29 @@
   .app-shell-focus:focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px var(--bg-body), 0 0 0 4px var(--primary);
+  }
+
+  /** Danh sách dài trong dropdown / panel: thanh cuộn mảnh, gutter ổn định */
+  .custom-scrollbar {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(148 163 184 / 0.65) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgb(148 163 184 / 0.65);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
   }
 }
 

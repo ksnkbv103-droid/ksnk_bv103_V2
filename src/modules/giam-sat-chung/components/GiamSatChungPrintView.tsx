@@ -121,6 +121,22 @@ export default function GiamSatChungPrintView({
               </p>
             </div>
           ) : null}
+          {session.is_bo_sung_nguoi_benh ||
+          String(session.ma_nguoi_benh || "").trim() ||
+          String(session.ten_nguoi_benh || "").trim() ||
+          String(session.so_giuong_nguoi_benh || "").trim() ? (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 8px", marginTop: "4px" }}>
+              <p style={{ margin: 0, fontSize: "13px" }}>
+                <strong>Mã người bệnh:</strong> {String(session.ma_nguoi_benh || "").trim() || "—"}
+              </p>
+              <p style={{ margin: 0, fontSize: "13px" }}>
+                <strong>Tên người bệnh:</strong> {String(session.ten_nguoi_benh || "").trim() || "—"}
+              </p>
+              <p style={{ margin: 0, fontSize: "13px", gridColumn: "1 / -1" }}>
+                <strong>Số giường:</strong> {String(session.so_giuong_nguoi_benh || "").trim() || "—"}
+              </p>
+            </div>
+          ) : null}
         </div>
 
         <div style={{ borderBottom: "1px solid #000", marginBottom: "10px", marginTop: "4px" }} />

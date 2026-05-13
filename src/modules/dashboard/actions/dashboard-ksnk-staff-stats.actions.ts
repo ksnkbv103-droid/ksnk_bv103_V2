@@ -2,7 +2,10 @@
 
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
-import { verifyAnyPermission, verifyPermissions } from "@/lib/server-permission";
+import {
+  verifyCommandCenterShell,
+  verifyDashboardOverviewWidget,
+} from "../lib/dashboard-command-center-access";
 import { effectiveFilterIds } from "../lib/dashboard-hook-helpers";
 import type { DashboardKsnkStaffSupervisionRow } from "../compliance-dashboard.types";
 import type { FetchDashboardPayloadsInput } from "../lib/fetch-dashboard-payloads-for-type";
@@ -32,12 +35,9 @@ function normalizeKsnkStaffRows(raw: unknown): DashboardKsnkStaffSupervisionRow[
   });
 }
 
-async function verifyComplianceDashboardAccess() {
-  await verifyPermissions([{ moduleKey: "DASHBOARD", action: "view" }]);
-  await verifyAnyPermission([
-    { moduleKey: "GIAM_SAT_CHUNG", action: "view" },
-    { moduleKey: "GIAM_SAT_VST", action: "view" },
-  ]);
+async function verifyOverviewStaffWorkloadRpc() {
+  await verifyCommandCenterShell();
+  await verifyDashboardOverviewWidget();
 }
 
 function matchesKsnkVaiTroText(v: string | null | undefined): boolean {
@@ -92,7 +92,7 @@ async function resolveViewerMaySeeKsnkStaffWorkloadWithScope(scope: ActorKsnkSco
 
 /** Thống kê nhân viên KSNK — chỉ trả dữ liệu khi viewer thuộc KSNK / ADMIN; cùng ranh giới bộ lọc dashboard. */
 export async function fetchKsnkStaffSupervisionForOverview(p: OverviewBundleInput): Promise<KsnkStaffSupervisionBundle> {
-  await verifyComplianceDashboardAccess();
+  await verifyOverviewStaffWorkloadRpc();
   const scope = await getActorKsnkScope();
   const showKsnkStaffWorkload = await resolveViewerMaySeeKsnkStaffWorkloadWithScope(scope);
   if (!showKsnkStaffWorkload) {

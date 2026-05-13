@@ -6,7 +6,6 @@ type Props = {
 };
 
 export function ParticipationStats({ khoaOptions, participation }: Props) {
-  const allKhoaIds = khoaOptions.map((k) => k.id);
   const partKhoaIds = participation.filter((p) => p.so_phien > 0).map((p) => p.id);
   const missingKhoas = khoaOptions.filter((k) => !partKhoaIds.includes(k.id));
 
