@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { bv103DefaultTuNgayFromToday } from "@/lib/bv103-analytics-default-range";
 import { getComplianceFilterOptions } from "../actions/compliance-dashboard.actions";
-import type { DashboardSummaryRow } from "../compliance-dashboard.types";
+import type { DashboardSummaryRow, DashboardKsnkStaffSupervisionRow } from "../compliance-dashboard.types";
 import { type ComplianceDashboardPayload } from "../compliance-dashboard.types";
 import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
 import { resolveDashboardFilterUi } from "../lib/resolve-dashboard-filter-ui";
@@ -36,6 +36,8 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
   const [tuGiamSatParticipationByKhoa, setTuGiamSatParticipationByKhoa] = useState<
     { id: string; ten: string; so_phien: number }[]
   >([]);
+  const [ksnkStaffSupervision, setKsnkStaffSupervision] = useState<DashboardKsnkStaffSupervisionRow[]>([]);
+  const [showKsnkStaffWorkload, setShowKsnkStaffWorkload] = useState(false);
   const [filterOptions, setFilterOptions] = useState<ComplianceDashboardPayload["options"] | null>(null);
   const [initDone, setInitDone] = useState(false);
   const [openDialog, setOpenDialog] = useState<"nhan_xet" | "kien_nghi" | null>(null);
@@ -87,7 +89,35 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
     setVstGapPayloads,
     setComplianceGapPayloads,
     setTuGiamSatParticipationByKhoa,
+    setKsnkStaffSupervision,
+    setShowKsnkStaffWorkload,
   });
+
+  const loadDashboardRef = useRef(loadDashboard);
+  useEffect(() => {
+    loadDashboardRef.current = loadDashboard;
+  }, [loadDashboard]);
+
+  /** MDM / danh mục đổi ngoài màn hình này — không có realtime; tải lại khi quay về tab hoặc BFCache. */
+  useEffect(() => {
+    if (!initDone) return;
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const schedule = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      clearTimeout(t);
+      t = setTimeout(() => void loadDashboardRef.current(), 400);
+    };
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) schedule();
+    };
+    document.addEventListener("visibilitychange", schedule);
+    window.addEventListener("pageshow", onPageShow);
+    return () => {
+      document.removeEventListener("visibilitychange", schedule);
+      window.removeEventListener("pageshow", onPageShow);
+      clearTimeout(t);
+    };
+  }, [initDone]);
 
   useEffect(() => {
     let cancelled = false;
@@ -137,6 +167,8 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
     complianceGapPayloads,
     summaryTable,
     tuGiamSatParticipationByKhoa,
+    ksnkStaffSupervision,
+    showKsnkStaffWorkload,
     bangKiemOptions,
     khoiOptions,
     khoaOptions,

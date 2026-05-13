@@ -44,4 +44,9 @@ SELECT
     SELECT 1 FROM pg_proc p
     JOIN pg_namespace n ON n.oid = p.pronamespace
     WHERE n.nspname = 'public' AND p.proname = 'rpc_get_registry_options'
-  ) AS rpc_registry_options_ok;
+  ) AS rpc_registry_options_ok,
+  EXISTS (
+    SELECT 1 FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public' AND p.proname = 'rpc_get_dashboard_ksnk_staff_supervision_stats'
+  ) AS rpc_dashboard_ksnk_staff_stats_ok;

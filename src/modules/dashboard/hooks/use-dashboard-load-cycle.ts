@@ -1,7 +1,7 @@
 import { useCallback, useEffect, type Dispatch, type SetStateAction } from "react";
 import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
 import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
-import type { DashboardSummaryRow } from "../compliance-dashboard.types";
+import type { DashboardSummaryRow, DashboardKsnkStaffSupervisionRow } from "../compliance-dashboard.types";
 import { fetchDashboardPayloadsForSupervisionType } from "../lib/fetch-dashboard-payloads-for-type";
 import { executeDashboardLoad, shouldUpdateBangKiemSelection } from "../lib/dashboard-load-execution";
 import type { DashboardTabType } from "./dashboard-types";
@@ -38,6 +38,8 @@ export function useDashboardLoadCycle(args: {
   ) => void;
   setComplianceGapPayloads: (v: GapCompliance) => void;
   setTuGiamSatParticipationByKhoa: (v: ParticipationRow[]) => void;
+  setKsnkStaffSupervision: (v: DashboardKsnkStaffSupervisionRow[]) => void;
+  setShowKsnkStaffWorkload: (v: boolean) => void;
 }) {
   const {
     initDone,
@@ -62,6 +64,8 @@ export function useDashboardLoadCycle(args: {
     setVstGapPayloads,
     setComplianceGapPayloads,
     setTuGiamSatParticipationByKhoa,
+    setKsnkStaffSupervision,
+    setShowKsnkStaffWorkload,
   } = args;
 
   const fetchPayloadsForType = useCallback(
@@ -118,6 +122,8 @@ export function useDashboardLoadCycle(args: {
         denNgay,
         selectedKhoiIds,
         selectedKhoaIds,
+        selectedNgheIds,
+        selectedKhuVucIds,
         selectedBangKiemMas,
         filterOptions,
         activeTab,
@@ -135,6 +141,8 @@ export function useDashboardLoadCycle(args: {
       setVstGapPayloads(out.vstGap);
       setComplianceGapPayloads(out.complianceGap ?? {});
       setTuGiamSatParticipationByKhoa(out.tuGiamSatParticipation);
+      setKsnkStaffSupervision(out.ksnkStaffSupervision);
+      setShowKsnkStaffWorkload(out.showKsnkStaffWorkload);
     } catch (err) {
       console.error("[Dashboard] loadDashboard error:", err);
     } finally {
@@ -164,6 +172,8 @@ export function useDashboardLoadCycle(args: {
     setVstGapPayloads,
     setComplianceGapPayloads,
     setTuGiamSatParticipationByKhoa,
+    setKsnkStaffSupervision,
+    setShowKsnkStaffWorkload,
   ]);
 
   useEffect(() => {

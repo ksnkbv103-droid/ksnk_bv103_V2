@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";

@@ -4,7 +4,11 @@ import React from "react";
 import type { LucideIcon } from "lucide-react";
 import RBACPermissionCell from "../components/RBACPermissionCell";
 import { getModuleDisplayName } from "@/lib/permission-registry";
-import type { RBACPermissionRow, RBACRoleRow } from "../rbac.types";
+import {
+  RBAC_MATRIX_ROLE_HEADER_LABEL,
+  type RBACPermissionRow,
+  type RBACRoleRow,
+} from "../rbac.types";
 
 export type RbacMatrixActionCol = {
   key: string;
@@ -58,9 +62,13 @@ export function RBACMatrixDataGrid({
               <th className="p-4 text-left min-w-[240px] sticky left-0 bg-slate-50 z-40 border-r border-slate-200">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cấu trúc Module</span>
               </th>
-              {roles.map((role: RBACRoleRow) => (
+              {roles.map((role: RBACRoleRow) => {
+                const key = String(role.name ?? "").trim().toUpperCase();
+                const headerLabel = RBAC_MATRIX_ROLE_HEADER_LABEL[key] ?? role.name;
+                return (
                 <th key={role.id} className="p-3 text-center min-w-[200px] border-r border-slate-200 last:border-r-0 align-top">
-                  <p className="text-[11px] font-black text-slate-700 uppercase tracking-wider">{role.name}</p>
+                  <p className="text-[11px] font-black text-slate-700 uppercase tracking-wider leading-snug">{headerLabel}</p>
+                  <p className="mt-0.5 text-[8px] font-mono font-bold text-slate-400 tracking-tight">{role.name}</p>
                   <div className="flex justify-center gap-2.5 mt-2">
                     {actions.map((a) => (
                       <span key={a.key} className="text-[9px] font-bold text-slate-300" title={a.full}>
@@ -113,7 +121,8 @@ export function RBACMatrixDataGrid({
                     </div>
                   </div>
                 </th>
-              ))}
+                );
+              })}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">

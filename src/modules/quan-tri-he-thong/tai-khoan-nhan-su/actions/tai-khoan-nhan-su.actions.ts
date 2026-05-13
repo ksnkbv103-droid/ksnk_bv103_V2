@@ -12,6 +12,10 @@ function err(e: unknown) {
 }
 
 import type { StaffAuthRow } from "@/types/nhan-su";
+import {
+  RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER,
+  selectRolesForStaffKsnkAssignment,
+} from "@/modules/quan-tri-he-thong/phan-quyen/rbac.types";
 
 /** Danh sách nhân sự + trạng thái liên kết Auth + vai trò RBAC (chỉ quản trị). */
 export async function listStaffAuthOverview(params: {
@@ -60,7 +64,8 @@ export async function getAvailableRolesAction() {
     const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase.from("dm_roles").select("id, name").order("name");
     if (error) throw error;
-    return { success: true as const, data: data || [] };
+    const rows = selectRolesForStaffKsnkAssignment(data || []);
+    return { success: true as const, data: rows };
   } catch (e: unknown) {
     return { success: false as const, error: err(e) };
   }
@@ -76,13 +81,24 @@ export async function setStaffKsnkRbacRole(params: {
     await ensureRbacAdmin();
     const supabase = createAdminSupabaseClient();
 
-    const roleNorm = params.roleName.trim(); // Không uppercase vì vai trò có thể viết hoa thường tuỳ ý trong DB
-    
-    // Kiểm tra role tồn tại trong DB thay vì mảng cứng
+    const roleNorm = params.roleName.trim();
+
+    const roleUpper = roleNorm.toUpperCase();
+    const canonicalName =
+      RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER.find((x) => x === roleUpper) ?? null;
+    if (!canonicalName) {
+      return {
+        success: false as const,
+        error:
+          "Chỉ được gán một trong: Hội đồng KSNK, Nhân viên khoa KSNK, Tổ trưởng tổ KSNK khoa, Thành viên mạng lưới KSNK.",
+      };
+    }
+
+    // Kiểm tra role tồn tại trong DB
     const { data: roleExists } = await supabase
       .from("dm_roles")
       .select("id")
-      .eq("name", roleNorm)
+      .eq("name", canonicalName)
       .maybeSingle();
 
     if (!roleExists) {
@@ -92,7 +108,7 @@ export async function setStaffKsnkRbacRole(params: {
     // Sử dụng RPC nguyên tử để tránh lỗi mất quyền khi thực hiện nhiều bước
     const { data, error } = await supabase.rpc("rpc_assign_staff_ksnk_role", {
       p_staff_id: params.staffId,
-      p_role_name: roleNorm
+      p_role_name: canonicalName,
     });
 
     if (error) throw error;

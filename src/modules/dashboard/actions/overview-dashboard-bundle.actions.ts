@@ -3,8 +3,9 @@
 import { fetchDashboardPayloadsForSupervisionType } from "../lib/fetch-dashboard-payloads-for-type";
 import { mergeParticipationRows } from "../lib/dashboard-hook-helpers";
 import type { FetchDashboardPayloadsInput } from "../lib/fetch-dashboard-payloads-for-type";
-import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
+import type { ComplianceDashboardPayload, DashboardKsnkStaffSupervisionRow } from "../compliance-dashboard.types";
 import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
+import { fetchKsnkStaffSupervisionForOverview } from "./dashboard-ksnk-staff-stats.actions";
 
 export type OverviewDashboardBundleInput = Omit<FetchDashboardPayloadsInput, "sType">;
 
@@ -17,14 +18,19 @@ export async function getOverviewDashboardBundle(p: OverviewDashboardBundleInput
   vst: VstDashboardPayload | null;
   gsc: Record<string, ComplianceDashboardPayload>;
   tuGiamSatParticipation: ReturnType<typeof mergeParticipationRows>;
+  ksnkStaffSupervision: DashboardKsnkStaffSupervisionRow[];
+  showKsnkStaffWorkload: boolean;
 }> {
-  const [res, tgs] = await Promise.all([
+  const [res, tgs, ksnkBundle] = await Promise.all([
     fetchDashboardPayloadsForSupervisionType({ ...p, sType: "ALL" }),
     fetchDashboardPayloadsForSupervisionType({ ...p, sType: "TU_GIAM_SAT" }),
+    fetchKsnkStaffSupervisionForOverview(p),
   ]);
   return {
     vst: res.vst,
     gsc: res.gsc,
     tuGiamSatParticipation: mergeParticipationRows(tgs.vst, tgs.gsc),
+    ksnkStaffSupervision: ksnkBundle.rows,
+    showKsnkStaffWorkload: ksnkBundle.showKsnkStaffWorkload,
   };
 }

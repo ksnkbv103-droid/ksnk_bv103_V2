@@ -84,7 +84,7 @@ export function CommandCenterDashboardPage() {
     selectedNgheIds, setSelectedNgheIds,
     selectedKhuVucIds, setSelectedKhuVucIds,
     tuNgay, setTuNgay, denNgay, setDenNgay,
-    loading, vstPayload, compliancePayloads, vstGapPayloads, complianceGapPayloads, summaryTable, tuGiamSatParticipationByKhoa,
+    loading, vstPayload, compliancePayloads, vstGapPayloads, complianceGapPayloads, summaryTable, tuGiamSatParticipationByKhoa, ksnkStaffSupervision, showKsnkStaffWorkload,
     bangKiemOptions, khoiOptions, khoaOptions, ngheOptions, khuVucOptions, bkLabelMap,
     exportCurrentReport, openDialog, setOpenDialog,
     nhanXetDanhGia, setNhanXetDanhGia, kienNghiDeXuat, setKienNghiDeXuat,
@@ -156,6 +156,10 @@ export function CommandCenterDashboardPage() {
           onOpenRecommendation={() => setOpenDialog("kien_nghi")}
           onExport={exportCurrentReport}
         />
+        <p className="mt-4 text-[10px] font-medium leading-relaxed text-slate-500">
+          Sau khi sửa <span className="font-bold text-slate-600">nhân sự / khoa</span> trên Quản trị: số liệu chỉ cập nhật khi tải lại từ server — bấm{" "}
+          <span className="font-black text-[#026f17]">Cập nhật</span>, đổi ngày lọc, hoặc chuyển lại tab trình duyệt này (không có đồng bộ realtime).
+        </p>
       </div>
 
       <div className="app-data-shell">
@@ -164,6 +168,8 @@ export function CommandCenterDashboardPage() {
             <SupervisionSourceStats
               sources={overviewSources}
               participationTuGiamSat={tuGiamSatParticipationByKhoa}
+              ksnkStaffSupervision={ksnkStaffSupervision}
+              showKsnkStaffWorkload={showKsnkStaffWorkload}
               khoaOptions={khoaOptions}
               selectedKhoaIds={selectedKhoaIds}
               selectedKhoiIds={selectedKhoiIds}

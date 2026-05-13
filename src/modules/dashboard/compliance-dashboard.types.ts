@@ -73,6 +73,16 @@ export type DashboardSummaryTableFilters = {
   khoa_ids?: string[];
 };
 
+/** Tab Cơ cấu nguồn: nhân viên KSNK — cơ hội VST + phiên VST + phiên GSC (nguồn chuyên trách). */
+export type DashboardKsnkStaffSupervisionRow = {
+  id: string;
+  ho_ten: string;
+  ma_nv: string;
+  so_co_hoi_vst: number;
+  so_phien_vst: number;
+  so_phien_gsc: number;
+};
+
 export function buildEmptyComplianceDashboardPayload(
   tuStr: string,
   denStr: string

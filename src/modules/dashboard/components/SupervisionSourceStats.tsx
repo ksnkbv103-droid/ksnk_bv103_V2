@@ -3,11 +3,16 @@ import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
 import { Users, Eye, ClipboardList } from "lucide-react";
 import type { MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
+import type { DashboardKsnkStaffSupervisionRow } from "@/modules/dashboard/compliance-dashboard.types";
 
 type SupervisionSourceStatsProps = {
   sources: { ten: string; so_phien: number }[];
   /** Phiên tự giám sát theo khoa (đã lọc nguồn TGS), gộp VST + giám sát chung. */
   participationTuGiamSat: { id: string; ten: string; so_phien: number }[];
+  /** Nhân viên KSNK: cơ hội VST + phiên VST + phiên GSC (chuyên trách), theo bộ lọc ngày/khoa. */
+  ksnkStaffSupervision: DashboardKsnkStaffSupervisionRow[];
+  /** Chỉ true với nhân sự KSNK / mạng lưới / quản trị — ẩn hoàn toàn với khoa khác. */
+  showKsnkStaffWorkload: boolean;
   khoaOptions: MultiSelectOption[];
   selectedKhoaIds: string[];
   selectedKhoiIds: string[];
@@ -19,6 +24,8 @@ const COLORS = ["#026f17", "#0ea5e9", "#f59e0b"];
 export const SupervisionSourceStats: React.FC<SupervisionSourceStatsProps> = ({
   sources,
   participationTuGiamSat,
+  ksnkStaffSupervision,
+  showKsnkStaffWorkload,
   khoaOptions,
   selectedKhoaIds,
   selectedKhoiIds,
@@ -179,6 +186,54 @@ export const SupervisionSourceStats: React.FC<SupervisionSourceStatsProps> = ({
           </div>
         </div>
       </div>
+
+      {showKsnkStaffWorkload && (
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="mb-6">
+            <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">
+              Nhân viên Khoa KSNK — hoạt động giám sát chuyên trách
+            </h3>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-tighter text-slate-400 italic">
+              Cơ hội vệ sinh tay (dòng VST) và phiên VST/GS chung do nhân sự KSNK làm người giám sát — gồm mọi phân loại nguồn (chuyên trách, tự giám sát, chéo). Danh sách: khoa KSNK trong MDM hoặc trường vai trò KSNK; cùng bộ lọc ngày/khoa phía trên.
+            </p>
+          </div>
+          <div className="max-h-[360px] overflow-auto rounded-2xl border border-slate-100">
+            <table className="w-full text-left text-xs">
+              <thead className="sticky top-0 bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                <tr>
+                  <th className="px-4 py-3">STT</th>
+                  <th className="px-4 py-3">Họ tên</th>
+                  <th className="px-4 py-3">Mã NV</th>
+                  <th className="px-4 py-3 text-right">Cơ hội VST</th>
+                  <th className="px-4 py-3 text-right">Phiên VST</th>
+                  <th className="px-4 py-3 text-right">Phiên GS chung</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {ksnkStaffSupervision.map((row, i) => {
+                  return (
+                    <tr key={row.id} className="transition-colors hover:bg-slate-50/50">
+                      <td className="px-4 py-3 font-bold text-slate-400">{i + 1}</td>
+                      <td className="px-4 py-3 font-bold text-slate-800">{row.ho_ten}</td>
+                      <td className="px-4 py-3 text-slate-500">{row.ma_nv}</td>
+                      <td className="px-4 py-3 text-right font-black text-emerald-800">{row.so_co_hoi_vst.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right font-black text-emerald-700">{row.so_phien_vst.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-right font-black text-sky-800">{row.so_phien_gsc.toLocaleString()}</td>
+                    </tr>
+                  );
+                })}
+                {ksnkStaffSupervision.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                      Chưa có nhân viên KSNK trong danh mục hoặc chưa tải dữ liệu
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

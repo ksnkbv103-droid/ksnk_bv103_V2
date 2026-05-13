@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { Shield, Lock, RefreshCw } from "lucide-react";
 import type { RBACDataSuccess, RBACPermissionRow, RBACRoleRow } from "../rbac.types";
+import { selectRolesForRbacMatrixColumns } from "../rbac.types";
 import { RBAC_ACTION_FALLBACK_META, RBAC_ACTION_META } from "./rbac-matrix-action-meta";
 import { RBACMatrixDataGrid } from "./rbac-matrix-data-grid";
 
@@ -148,7 +149,7 @@ export default function RBACMatrixView() {
   const moduleNames = Array.from(
     new Set((data?.permissions || []).map((p: RBACPermissionRow) => p.module_name)),
   ) as string[];
-  const roles = data?.roles || [];
+  const roles = selectRolesForRbacMatrixColumns(data?.roles || []);
   const actionKeys = (
     Array.from(new Set((data?.permissions || []).map((p: RBACPermissionRow) => p.action))) as string[]
   ).sort((a, b) => (RBAC_ACTION_META[a]?.order ?? 99) - (RBAC_ACTION_META[b]?.order ?? 99));

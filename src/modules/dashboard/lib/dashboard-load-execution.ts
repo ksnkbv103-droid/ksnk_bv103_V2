@@ -1,7 +1,8 @@
 import { getDashboardSummaryTable } from "../actions/compliance-dashboard.actions";
 import { getOverviewDashboardBundle } from "../actions/overview-dashboard-bundle.actions";
+import { fetchKsnkStaffSupervisionForOverview } from "../actions/dashboard-ksnk-staff-stats.actions";
 import { getDashboardGapBundle } from "../actions/gap-dashboard-bundle.actions";
-import type { DashboardSummaryRow } from "../compliance-dashboard.types";
+import type { DashboardSummaryRow, DashboardKsnkStaffSupervisionRow } from "../compliance-dashboard.types";
 import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
 import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
 import {
@@ -23,6 +24,8 @@ export type DashboardLoadInput = {
   denNgay: string;
   selectedKhoiIds: string[];
   selectedKhoaIds: string[];
+  selectedNgheIds: string[];
+  selectedKhuVucIds: string[];
   selectedBangKiemMas: string[];
   filterOptions: ComplianceDashboardPayload["options"] | null;
   activeTab: DashboardTabType;
@@ -44,6 +47,8 @@ export type DashboardLoadResult = {
     { kq: ComplianceDashboardPayload; cheo: ComplianceDashboardPayload; tgs: ComplianceDashboardPayload }
   > | null;
   tuGiamSatParticipation: ReturnType<typeof mergeParticipationRows>;
+  ksnkStaffSupervision: DashboardKsnkStaffSupervisionRow[];
+  showKsnkStaffWorkload: boolean;
 };
 
 export async function executeDashboardLoad(input: DashboardLoadInput): Promise<DashboardLoadResult> {
@@ -71,6 +76,8 @@ export async function executeDashboardLoad(input: DashboardLoadInput): Promise<D
   let vstGap: DashboardLoadResult["vstGap"] = null;
   let complianceGap: DashboardLoadResult["complianceGap"] = null;
   let tuGiamSatParticipation: DashboardLoadResult["tuGiamSatParticipation"] = [];
+  let ksnkStaffSupervision: DashboardKsnkStaffSupervisionRow[] = [];
+  let showKsnkStaffWorkload = false;
 
   if (input.activeTab === "overview" || input.activeTab === "ksnk" || input.activeTab === "cheo" || input.activeTab === "tu_giam_sat") {
     const tabToType = { overview: "ALL", ksnk: "KSNK", cheo: "CHEO", tu_giam_sat: "TU_GIAM_SAT" } as const;
@@ -83,14 +90,31 @@ export async function executeDashboardLoad(input: DashboardLoadInput): Promise<D
         vst = bundle.vst;
         gsc = bundle.gsc;
         tuGiamSatParticipation = bundle.tuGiamSatParticipation;
+        ksnkStaffSupervision = bundle.ksnkStaffSupervision;
+        showKsnkStaffWorkload = bundle.showKsnkStaffWorkload;
       } else {
-        const [res, tgs] = await Promise.all([
+        const [res, tgs, ksnkBundle] = await Promise.all([
           input.fetchPayloadsForType("ALL", bangKiemForFetch),
           input.fetchPayloadsForType("TU_GIAM_SAT", bangKiemForFetch),
+          fetchKsnkStaffSupervisionForOverview({
+            selectedBangKiemMas: input.selectedBangKiemMas,
+            selectedKhoiIds: input.selectedKhoiIds,
+            selectedKhoaIds: input.selectedKhoaIds,
+            selectedNgheIds: input.selectedNgheIds,
+            selectedKhuVucIds: input.selectedKhuVucIds,
+            tuNgay: input.tuNgay,
+            denNgay: input.denNgay,
+            khoiOptionCount: input.filterOptions?.khoi?.length ?? 0,
+            khoaOptionCount: input.filterOptions?.khoa?.length ?? 0,
+            ngheOptionCount: input.filterOptions?.nghe_nghiep?.length ?? 0,
+            khuOptionCount: input.filterOptions?.khu_vuc?.length ?? 0,
+          }),
         ]);
         vst = res.vst;
         gsc = res.gsc;
         tuGiamSatParticipation = mergeParticipationRows(tgs.vst, tgs.gsc);
+        ksnkStaffSupervision = ksnkBundle.rows;
+        showKsnkStaffWorkload = ksnkBundle.showKsnkStaffWorkload;
       }
     } else {
       const res = await input.fetchPayloadsForType(tabToType[input.activeTab], bangKiemForFetch);
@@ -124,6 +148,8 @@ export async function executeDashboardLoad(input: DashboardLoadInput): Promise<D
     vstGap,
     complianceGap,
     tuGiamSatParticipation,
+    ksnkStaffSupervision,
+    showKsnkStaffWorkload,
   };
 }
 

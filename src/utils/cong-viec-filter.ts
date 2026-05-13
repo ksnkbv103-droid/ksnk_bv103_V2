@@ -55,10 +55,26 @@ export function taskMatchesStatusTab(tab: string, rawTrangThai?: string | null):
   return normalizeCongViecStatusCode(rawTrangThai) === mapped;
 }
 
-export function filterTasks(tasks: any[], statusTab: string, searchQuery: string) {
+/** Tối thiểu các trường dùng khi lọc tab + tìm kiếm (view/API có thể thêm cột). */
+export type FilterableCongViecTask = {
+  ma_trang_thai?: string | null;
+  trang_thai?: string | null;
+  ma_cong_viec?: string | null;
+  ma_cv?: string | null;
+  ten_cong_viec?: string | null;
+  tieu_de?: string | null;
+  mo_ta?: string | null;
+  ten_nguoi_thuc_hien?: string | null;
+  ten_nguoi_giao?: string | null;
+  ten_nguoi_de_xuat?: string | null;
+  ten_khoa_thuc_hien?: string | null;
+  ten_to_cong_tac?: string | null;
+};
+
+export function filterTasks(tasks: FilterableCongViecTask[], statusTab: string, searchQuery: string) {
   const normalizedQuery = String(searchQuery || "").trim().toLowerCase();
 
-  return (tasks || []).filter((task: any) => {
+  return (tasks || []).filter((task: FilterableCongViecTask) => {
     const maTrangThai = task?.ma_trang_thai || task?.trang_thai;
     if (!taskMatchesStatusTab(statusTab, maTrangThai)) return false;
     if (!normalizedQuery) return true;
