@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { History, ArrowUpRight, ArrowDownLeft, AlertCircle, RefreshCw } from "lucide-react";
+import { History, ArrowUpRight, ArrowDownLeft, RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
 

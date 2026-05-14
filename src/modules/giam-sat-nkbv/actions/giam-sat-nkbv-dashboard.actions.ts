@@ -4,7 +4,7 @@ import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { format, parseISO } from "date-fns";
 import { bv103DefaultTuNgayFromDenIso } from "@/lib/bv103-analytics-default-range";
-import { aggregateNkbvDashboard, type NkbvCasRowMinimal, type NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
+import { aggregateNkbvDashboard, type NkbvCasRowMinimal } from "../lib/nkbv-dashboard-aggregate";
 
 type GiamSatNkbvDashboardFilters = {
   khoa_ghi_nhan_id?: string;

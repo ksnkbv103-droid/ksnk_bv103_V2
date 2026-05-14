@@ -2,99 +2,97 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
-import { congViecSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
-import { verifyPermission } from "@/lib/server-permission";
+import { verifyPermission, hasRBACAdminSupervisionBypass } from "@/lib/server-permission";
 
 /**
- * Tạo công việc mới (V2.2 — chuẩn tên cột DB)
+ * Luồng nghiệp vụ (nhận việc, gia hạn) — CRUD form dùng `cong-viec.actions` (`createCongViec` / `updateCongViec`).
  */
-export async function createCongViec(payload: CongViecInput) {
-  // 1. Kiểm tra quyền
-  await verifyPermission("QUAN_LY_CONG_VIEC", "create");
 
-  // 2. Validate dữ liệu
-  const parsed = congViecSchema.safeParse(payload);
-  if (!parsed.success) {
-    return { success: false as const, error: "Dữ liệu không hợp lệ: " + parsed.error.issues.map(i => i.message).join(", ") };
-  }
-
+/**
+ * Người phụ trách xác nhận đã nhận nhiệm vụ.
+ */
+export async function xacNhanDaNhanCongViec(id: string) {
+  await verifyPermission("CONG_VIEC", "view");
   const supabase = createAdminSupabaseClient();
   const actorNhanSuId = await getActorNhanSuId();
 
-  try {
-    const { data, error } = await supabase
-      .from("fact_cong_viec")
-      .insert({
-        ...parsed.data,
-        trang_thai: "CHUA_BAT_DAU",
-        phan_tram_hoan_thanh: 0,
-        is_active: true,
-        nguoi_tao_id: actorNhanSuId,
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+  const { data: cur, error: fetchErr } = await supabase
+    .from("fact_cong_viec")
+    .select("id, trang_thai, is_active, nguoi_phu_trach_id")
+    .eq("id", id)
+    .maybeSingle();
 
-    if (error) throw error;
+  if (fetchErr || !cur) throw new Error("Không tìm thấy công việc.");
 
-    // 3. Ghi log hoạt động ban đầu
-    await supabase.from("fact_cong_viec_hoat_dong").insert({
-      id_cong_viec: data.id,
-      loai_hoat_dong: "PHAN_CONG",
-      nguoi_thuc_hien_id: actorNhanSuId,
-      noi_dung: "Khởi tạo công việc",
-    });
-
-    revalidatePath("/quan-ly-cong-viec");
-    return { success: true as const, data };
-  } catch (e: any) {
-    return { success: false as const, error: e.message || "Lỗi hệ thống khi tạo công việc" };
+  const adminBypass = await hasRBACAdminSupervisionBypass();
+  const isAssignee =
+    Boolean(actorNhanSuId && cur.nguoi_phu_trach_id) &&
+    String(actorNhanSuId) === String(cur.nguoi_phu_trach_id);
+  if (!adminBypass && !isAssignee) {
+    await verifyPermission("CONG_VIEC", "edit");
   }
+
+  const canAccept =
+    cur.trang_thai === "CHO_NHAN_VIEC" ||
+    (cur.trang_thai === "CHUA_BAT_DAU" && cur.is_active && cur.nguoi_phu_trach_id);
+
+  if (!canAccept) {
+    throw new Error("Công việc không ở trạng thái chờ nhận nhiệm vụ.");
+  }
+
+  const { data: updated, error } = await supabase
+    .from("fact_cong_viec")
+    .update({
+      trang_thai: "DANG_THUC_HIEN",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("trang_thai", cur.trang_thai as string)
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!updated) {
+    throw new Error("Không cập nhật được trạng thái (đã nhận việc trước đó hoặc trạng thái đã đổi).");
+  }
+
+  await supabase.from("fact_cong_viec_hoat_dong").insert({
+    id_cong_viec: id,
+    loai_hoat_dong: "CAP_NHAT",
+    nguoi_thuc_hien_id: actorNhanSuId,
+    noi_dung: "Đã xác nhận nhận nhiệm vụ",
+  });
+
+  revalidatePath("/quan-ly-cong-viec");
+  return { success: true as const };
 }
 
 /**
- * Cập nhật tiến độ / trạng thái
+ * Gia hạn hạn hoàn thành (cấp trên).
  */
-export async function updateCongViecProgress(
-  id: string, 
-  progress: number, 
-  noi_dung: string,
-  trang_thai_moi?: string
-) {
-  await verifyPermission("QUAN_LY_CONG_VIEC", "edit");
+export async function giaHanCongViec(id: string, hanMoi: string, lyDo: string) {
+  await verifyPermission("CONG_VIEC", "edit");
   const supabase = createAdminSupabaseClient();
   const actorNhanSuId = await getActorNhanSuId();
 
-  try {
-    // 1. Cập nhật bảng chính
-    const updateData: Record<string, unknown> = { 
-      phan_tram_hoan_thanh: progress,
-      updated_at: new Date().toISOString() 
-    };
-    if (trang_thai_moi) updateData.trang_thai = trang_thai_moi;
-    if (progress === 100) updateData.trang_thai = "HOAN_THANH";
+  const { error } = await supabase
+    .from("fact_cong_viec")
+    .update({
+      han_hoan_thanh: hanMoi,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
 
-    const { error: errUpdate } = await supabase
-      .from("fact_cong_viec")
-      .update(updateData)
-      .eq("id", id);
-    
-    if (errUpdate) throw errUpdate;
+  if (error) throw new Error(error.message);
 
-    // 2. Ghi timeline
-    await supabase.from("fact_cong_viec_hoat_dong").insert({
-      id_cong_viec: id,
-      loai_hoat_dong: "BAO_CAO_TIEN_DO",
-      nguoi_thuc_hien_id: actorNhanSuId,
-      noi_dung,
-      phan_tram_hoan_thanh: progress,
-      trang_thai: trang_thai_moi || null,
-    });
+  await supabase.from("fact_cong_viec_hoat_dong").insert({
+    id_cong_viec: id,
+    loai_hoat_dong: "CAP_NHAT",
+    nguoi_thuc_hien_id: actorNhanSuId,
+    noi_dung: `Gia hạn hạn hoàn thành: ${lyDo}`,
+  });
 
-    revalidatePath("/quan-ly-cong-viec");
-    return { success: true as const };
-  } catch (e: any) {
-    return { success: false as const, error: e.message };
-  }
+  revalidatePath("/quan-ly-cong-viec");
+  return { success: true as const };
 }

@@ -13,7 +13,7 @@ type Props = {
 
 export default function GenericDmMasterHeader({ title, onBack, onCreate, canCreate = true }: Props) {
   return (
-    <header className="flex flex-col gap-4 rounded-[32px] border border-slate-100 border-l-4 border-l-[#026f17] bg-white p-6 shadow-sm sm:flex-row sm:justify-between">
+    <header className="flex flex-col gap-4 rounded-2xl border border-slate-100 border-l-4 border-l-[#026f17] bg-white p-6 shadow-sm sm:flex-row sm:justify-between">
       <div className="flex items-start gap-4">
         <button
           type="button"

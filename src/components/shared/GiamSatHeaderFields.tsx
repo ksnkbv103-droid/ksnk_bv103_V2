@@ -111,7 +111,7 @@ export default function GiamSatHeaderFields({
   }, [locked, setSession, allNhanSus]);
 
   return (
-    <div className="min-w-0 space-y-5">
+    <div className="min-w-0 space-y-4">
       {/* 
         Người giám sát Flow:
         1. Nếu đã liên kết: Ẩn (đã khóa theo hồ sơ).
@@ -119,19 +119,21 @@ export default function GiamSatHeaderFields({
         3. Nếu chưa liên kết + User: Hiện cảnh báo yêu cầu liên kết.
       */}
       {!locked && headerIdentityReady && !suppressStaffIdentityBanner && (
-        <div className={`p-4 rounded-2xl border-2 transition-all ${
-          isAdmin ? "bg-indigo-50 border-indigo-100 shadow-sm" : "bg-amber-50 border-amber-100 animate-in fade-in slide-in-from-top-1"
-        }`}>
-          <div className="flex items-start gap-4">
-            <div className={`p-2 rounded-xl ${isAdmin ? "bg-indigo-100 text-indigo-600" : "bg-amber-100 text-amber-600"}`}>
-              {isAdmin ? <ShieldCheck className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+        <div
+          className={`rounded-lg border px-3 py-3 sm:px-4 ${
+            isAdmin ? "border-indigo-200/80 bg-indigo-50/70" : "border-amber-200/80 bg-amber-50/70"
+          }`}
+        >
+          <div className="flex items-start gap-3">
+            <div className={`shrink-0 rounded-md p-1.5 ${isAdmin ? "bg-indigo-100 text-indigo-600" : "bg-amber-100 text-amber-600"}`}>
+              {isAdmin ? <ShieldCheck className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
             </div>
-            <div className="flex-1 space-y-3">
+            <div className="flex-1 space-y-2">
               <div>
-                <p className={`text-[11px] font-black uppercase tracking-tight mb-0.5 ${isAdmin ? "text-indigo-800" : "text-amber-800"}`}>
-                  {isAdmin ? "🔧 Chế độ Quản trị viên (Hệ thống)" : "⚠️ Tài khoản chưa liên kết hồ sơ"}
+                <p className={`mb-0.5 text-[11px] font-semibold uppercase tracking-wide ${isAdmin ? "text-indigo-900" : "text-amber-900"}`}>
+                  {isAdmin ? "Chế độ Quản trị viên (Hệ thống)" : "Tài khoản chưa liên kết hồ sơ"}
                 </p>
-                <p className={`text-[10px] font-bold leading-tight ${isAdmin ? "text-indigo-700" : "text-amber-700"}`}>
+                <p className={`text-[10px] font-medium leading-snug ${isAdmin ? "text-indigo-800" : "text-amber-800"}`}>
                   {isAdmin 
                     ? "Bạn đang truy cập với quyền Quản trị. Để thực hiện các thao tác ghi nhận dữ liệu (Giám sát), vui lòng chọn một nhân sự đại diện dưới đây."
                     : "Tài khoản của bạn chưa được liên kết với hồ sơ nhân sự. Vui lòng liên kết để thực hiện các nghiệp vụ giám sát chuyên sâu."}
@@ -139,8 +141,8 @@ export default function GiamSatHeaderFields({
               </div>
 
               {isAdmin ? (
-                <div className="space-y-1.5 pt-1">
-                  <label className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Chọn người thực hiện giám sát</label>
+                <div className="space-y-1 pt-0.5">
+                  <label className="text-[9px] font-semibold uppercase tracking-wide text-indigo-600">Chọn người thực hiện giám sát</label>
                   <SearchableSelect
                     value={session.nguoi_giam_sat_id}
                     onChange={(val) => setSession(prev => ({ 
@@ -158,9 +160,10 @@ export default function GiamSatHeaderFields({
                   />
                 </div>
               ) : (
-                <button 
-                  onClick={() => window.location.href = "/quan-tri-he-thong/tai-khoan-nhan-su"}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-[10px] font-bold hover:bg-amber-700 transition-colors shadow-sm"
+                <button
+                  type="button"
+                  onClick={() => (window.location.href = "/quan-tri-he-thong/tai-khoan-nhan-su")}
+                  className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-3 py-1.5 text-[10px] font-semibold text-white transition-colors hover:bg-amber-700"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   Đi đến trang liên kết hồ sơ
@@ -171,10 +174,10 @@ export default function GiamSatHeaderFields({
         </div>
       )}
 
-      <div className="rounded-xl border border-slate-200/80 bg-gradient-to-b from-slate-50/90 to-white p-3 shadow-sm sm:p-4">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4 lg:gap-4">
-          <div className="flex h-full min-h-0 min-w-0 flex-col gap-1.5 rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">1. Khoa</label>
+      <div className="min-w-0">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-x-5 lg:gap-y-4">
+          <div className="flex min-h-0 min-w-0 flex-col gap-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">1. Khoa</label>
             <SearchableSelect
               value={session.khoa_id}
               onChange={(nextKhoaId) =>
@@ -196,8 +199,8 @@ export default function GiamSatHeaderFields({
             />
           </div>
 
-          <div className="flex h-full min-h-0 min-w-0 flex-col gap-1.5 rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">2. Khu vực</label>
+          <div className="flex min-h-0 min-w-0 flex-col gap-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">2. Khu vực</label>
             <SearchableSelect
               value={session.khu_vuc_id}
               onChange={(nextKhuVucId) => setSession({ ...session, khu_vuc_id: nextKhuVucId })}
@@ -211,7 +214,7 @@ export default function GiamSatHeaderFields({
               disabled={loading}
             />
             {!loading && khuVucs.length === 0 && (
-              <div className="mt-1 space-y-2 rounded-lg border border-amber-200 bg-amber-50/60 p-2">
+              <div className="mt-1 space-y-1.5 rounded-md border border-amber-200/80 bg-amber-50/50 p-2">
                 <p className="text-[9px] font-semibold leading-snug text-amber-700">
                   Chưa có khu vực trong <code className="text-[8px]">dm_khu_vuc_giam_sat</code>.
                 </p>
@@ -220,7 +223,7 @@ export default function GiamSatHeaderFields({
                   onClick={() => {
                     window.location.href = getDanhMucAdminPath("KHU_VUC_GIAM_SAT");
                   }}
-                  className="inline-flex h-8 w-full items-center justify-center rounded-lg bg-amber-600 px-2 text-[9px] font-bold text-white hover:bg-amber-700 transition-colors"
+                  className="inline-flex h-8 w-full items-center justify-center rounded-md bg-amber-600 px-2 text-[9px] font-semibold text-white transition-colors hover:bg-amber-700"
                 >
                   Khai báo khu vực
                 </button>
@@ -228,10 +231,10 @@ export default function GiamSatHeaderFields({
             )}
           </div>
 
-          <div className="flex h-full min-h-0 min-w-0 flex-col gap-1.5 rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm sm:col-span-2 lg:col-span-1">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">3. Vị trí</label>
+          <div className="flex min-h-0 min-w-0 flex-col gap-1 sm:col-span-2 lg:col-span-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">3. Vị trí</label>
             <input
-              className="input h-11 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-3 text-sm font-bold text-slate-700 transition-all outline-none focus:border-[#026f17] focus:bg-white lg:h-12 lg:rounded-2xl lg:px-4"
+              className="input h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 outline-none transition-colors focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]/20 lg:h-11"
               placeholder={
                 deferLocationHistoryUntilTyped
                   ? "Gõ vị trí; gợi ý khi có chữ"
@@ -259,14 +262,14 @@ export default function GiamSatHeaderFields({
               <p className="text-[9px] leading-snug text-slate-500">Không trùng từ khóa — gõ tay nếu cần.</p>
             ) : null}
             {locationChipsSource.length > 0 ? (
-              <div className="min-w-0 space-y-1 rounded-lg border border-slate-100 bg-slate-50/80 p-2">
-                <p className="px-0.5 text-[8px] font-bold uppercase tracking-wider text-slate-400">Gợi ý</p>
+              <div className="min-w-0 space-y-1 rounded-md bg-slate-50/90 p-2">
+                <p className="px-0.5 text-[8px] font-semibold uppercase tracking-wide text-slate-500">Gợi ý</p>
                 <div className="flex max-h-[8.5rem] min-h-0 flex-wrap gap-1 overflow-y-auto overscroll-contain custom-scrollbar">
                   {locationChipsSource.slice(0, 80).map((loc, idx) => (
                     <button
                       key={`${idx}-${loc.slice(0, 48)}`}
                       type="button"
-                      className="max-w-full truncate rounded-md border border-slate-200 bg-white px-2 py-0.5 text-left text-[9px] font-semibold text-slate-700 shadow-sm transition-colors hover:border-[#026f17]/40 hover:bg-[#026f17]/5"
+                      className="max-w-full truncate rounded-md border border-slate-200/90 bg-white px-2 py-0.5 text-left text-[9px] font-medium text-slate-700 transition-colors hover:border-[#026f17]/35 hover:bg-[#026f17]/5"
                       title={loc}
                       onClick={() => setSession((prev) => ({ ...prev, vi_tri: loc }))}
                     >
@@ -281,8 +284,8 @@ export default function GiamSatHeaderFields({
             ) : null}
           </div>
 
-          <div className="flex h-full min-h-0 min-w-0 flex-col gap-1.5 rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm sm:col-span-2 lg:col-span-1">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">4. Cách thức</label>
+          <div className="flex min-h-0 min-w-0 flex-col gap-1 sm:col-span-2 lg:col-span-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">4. Cách thức</label>
             <SearchableSelect
               value={session.cach_thuc_giam_sat || ""}
               onChange={(nextCachThuc) =>
@@ -301,15 +304,15 @@ export default function GiamSatHeaderFields({
       </div>
 
       {isReplayCameraSupervisionCachThuc(session.cach_thuc_giam_sat) ? (
-        <div className="space-y-3 rounded-2xl border-2 border-amber-200/80 bg-amber-50/50 p-4 md:grid md:grid-cols-3 md:gap-4 md:space-y-0">
-          <p className="md:col-span-3 text-[10px] font-black uppercase tracking-widest text-amber-800">
+        <div className="space-y-3 rounded-lg border border-amber-200/70 bg-amber-50/40 p-3 md:grid md:grid-cols-3 md:gap-4 md:space-y-0">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-900 md:col-span-3">
             Giám sát lại qua camera — nhập một lần cho cả phiên (không nhập lại từng cơ hội)
           </p>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ngày giám sát</label>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">Ngày giám sát</label>
             <input
               type="date"
-              className="input h-11 w-full rounded-xl border-2 border-slate-100 bg-white px-3 text-xs font-bold text-slate-800"
+              className="input h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800"
               value={session.ngay_giam_sat || ""}
               onChange={(e) => {
                 const v = e.target.value;
@@ -328,12 +331,12 @@ export default function GiamSatHeaderFields({
               }}
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Từ giờ</label>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">Từ giờ</label>
             <input
               type="time"
               step={60}
-              className="input h-11 w-full rounded-xl border-2 border-slate-100 bg-white px-3 text-xs font-bold text-slate-800"
+              className="input h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800"
               value={timeLocalHmFromIso(session.thoi_gian_bat_dau)}
               onChange={(e) => {
                 setSession((prev) => {
@@ -344,12 +347,12 @@ export default function GiamSatHeaderFields({
               }}
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Đến giờ</label>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">Đến giờ</label>
             <input
               type="time"
               step={60}
-              className="input h-11 w-full rounded-xl border-2 border-slate-100 bg-white px-3 text-xs font-bold text-slate-800"
+              className="input h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800"
               value={timeLocalHmFromIso(session.thoi_gian_ket_thuc)}
               onChange={(e) => {
                 setSession((prev) => {

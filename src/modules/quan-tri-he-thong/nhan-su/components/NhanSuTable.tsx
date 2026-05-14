@@ -259,7 +259,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
         </div>
       </header>
 
-      <div className="bg-white p-2 rounded-[32px] border border-slate-100 shadow-sm overflow-hidden min-h-[500px]">
+      <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[500px]">
         <AdvancedDataTable
           columns={columns}
           data={data}

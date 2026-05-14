@@ -93,10 +93,15 @@ export async function executeDashboardLoad(input: DashboardLoadInput): Promise<D
   const khoaOverviewRows =
     khoaOverviewRes.success ? khoaOverviewRes.data : [];
 
+  /** Luôn tôn trọng bảng kiểm người dùng đã chọn; chỉ auto-gợi ý khi chưa chọn (mảng rỗng). */
   let bangKiemForFetch =
-    input.selectedBangKiemMas.length > 0 ? input.selectedBangKiemMas : ["VST_WHO"];
+    input.selectedBangKiemMas.length > 0 ? [...input.selectedBangKiemMas] : ["VST_WHO"];
   let nextBangKiemSelection: string[] | null = null;
-  if (input.filterOptions?.bang_kiem?.length && summaryRows.length > 0) {
+  if (
+    input.selectedBangKiemMas.length === 0 &&
+    input.filterOptions?.bang_kiem?.length &&
+    summaryRows.length > 0
+  ) {
     const withData = pickBangKiemOptionIdsWithSessionData(input.filterOptions.bang_kiem, summaryRows);
     if (withData.length > 0) {
       bangKiemForFetch = withData;

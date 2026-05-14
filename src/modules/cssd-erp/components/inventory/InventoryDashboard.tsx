@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import { ShieldCheck, Layers, AlertTriangle, Trash2, CalendarClock } from "lucide-react";
+import { ShieldCheck, Layers, Trash2, CalendarClock } from "lucide-react";
 
 interface Props { data: any[]; }
 

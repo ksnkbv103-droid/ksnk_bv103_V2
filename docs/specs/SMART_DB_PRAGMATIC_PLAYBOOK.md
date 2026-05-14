@@ -54,11 +54,22 @@ Mục tiêu: tối ưu hiệu năng, giảm lỗi, **không** over-engineer.
 
 > **Ngưỡng nâng cấp:** Khi bảng > 100.000 rows và người dùng thường xuyên xem trang 50+, chuyển sang **Cursor-based (Keyset) Pagination** thay OFFSET.
 
-### 3c. Caching Danh mục (Master Data Caching)
+### 3c. Caching danh mục tĩnh (Master Data Caching)
 
-- Danh mục **tĩnh/ít thay đổi** (khoa phòng, nghề nghiệp, khu vực, vi khuẩn, kháng sinh): Cache phía server bằng `unstable_cache` (Next.js) hoặc in-memory Map, TTL 5-15 phút.
+- Danh mục **tĩnh/ít thay đổi** (khoa phòng, nghề nghiệp, khu vực, vi khuẩn, kháng sinh): cache phía server (`unstable_cache` trong `src/lib/cache/master-data-cache.ts`, hoặc `Map` + TTL 5–15 phút).
 - Danh mục **động** (bệnh nhân, kết quả xét nghiệm): **KHÔNG cache** hoặc TTL < 30 giây.
-- Khi mutation (thêm/sửa/xóa danh mục): **revalidatePath/revalidateTag** ngay lập tức.
+- Sau mutation danh mục: **`revalidatePath` / `revalidateTag`** ngay — tránh UI “treo” bản cũ.
+- **KHÔNG cache:** dữ liệu bệnh nhân, XN, phiên giám sát đang mở / nhạy cảm.
+- **Pattern mẫu (Next `unstable_cache`):**
+
+  ```typescript
+  import { unstable_cache } from "next/cache";
+  export const getCachedKhoaPhong = unstable_cache(
+    async () => { /* fetch từ DB */ },
+    ["khoa-phong"],
+    { revalidate: 600, tags: ["khoa-phong"] }
+  );
+  ```
 
 ### 3d. Background Jobs & Báo cáo nặng
 
@@ -80,34 +91,6 @@ Mục tiêu: tối ưu hiệu năng, giảm lỗi, **không** over-engineer.
 - `verifyPermission()` phải dùng **1 query duy nhất** qua View `v_auth_user_permissions`.
 - Cấm quay lại pattern "3 query tuần tự" (getUser → roles → permissions).
 - Admin email bypass: kiểm tra từ `ADMIN_EMAILS` trước khi query DB.
-
----
-
-## 4. Làm có điều kiện (đúng lúc, đúng phạm vi)
-
-- **Materialized view / bảng tổng hợp:** Báo cáo nặng, chấp nhận trễ vài phút; lịch refresh; không thay mọi view.
-- **Audit bằng trigger:** BV103 **không** dùng bảng log chung `fact_activity_log` (đã gỡ). Nếu sau này cần vết nghiệp vụ, thiết kế theo từng bảng (cột `updated_at` / bản ghi đính chính / log tối thiểu có chủ đích), tránh trigger ghi full JSON mỗi UPDATE.
-- **Temporal / versioning (`valid_from` / `valid_to`):** Thực thể nhạy cảm (nhân sự–khoa, phân quyền, danh mục ảnh hưởng báo cáo).
-- **RLS sâu:** Khi mô hình user/session thống nhất, giảm rủi ro quên `WHERE`.
-- **Virtualization (react-window):** Chỉ khi cần render > 100 dòng cùng lúc (Antibiogram grid, bảng kháng sinh đồ).
-- **Table Partitioning:** Chỉ khi bảng `fact_*` vượt 5-10 triệu rows.
-
-### 3g. Cache danh mục tĩnh (Master Data Caching)
-
-- **Đối tượng cache:** `dm_khoa_phong`, `dm_nghe_nghiep`, `dm_khu_vuc_giam_sat`, danh mục vi khuẩn, kháng sinh.
-- **Kỹ thuật:** `unstable_cache` (Next.js) hoặc in-memory `Map` với TTL 5-15 phút.
-- **Invalidation:** Gọi `revalidateTag("khoa-phong")` hoặc `revalidatePath(...)` ngay sau mutation (thêm/sửa/xóa danh mục).
-- **Pattern chuẩn:**
-  ```typescript
-  // src/lib/cache/cached-master-data.ts
-  import { unstable_cache } from "next/cache";
-  export const getCachedKhoaPhong = unstable_cache(
-    async () => { /* fetch từ DB */ },
-    ["khoa-phong"],
-    { revalidate: 600, tags: ["khoa-phong"] }
-  );
-  ```
-- **KHÔNG cache:** Dữ liệu bệnh nhân, kết quả xét nghiệm, phiên giám sát đang mở.
 
 ### 3h. Rà soát INDEX bắt buộc (Index Audit Workflow)
 
@@ -155,6 +138,17 @@ Mục tiêu: tối ưu hiệu năng, giảm lỗi, **không** over-engineer.
 
 ---
 
+## 4. Làm có điều kiện (đúng lúc, đúng phạm vi)
+
+- **Materialized view / bảng tổng hợp:** Báo cáo nặng, chấp nhận trễ vài phút; lịch refresh; không thay mọi view.
+- **Audit bằng trigger:** BV103 **không** dùng bảng log chung `fact_activity_log` (đã gỡ). Nếu sau này cần vết nghiệp vụ, thiết kế theo từng bảng (cột `updated_at` / bản ghi đính chính / log tối thiểu có chủ đích), tránh trigger ghi full JSON mỗi UPDATE.
+- **Temporal / versioning (`valid_from` / `valid_to`):** Thực thể nhạy cảm (nhân sự–khoa, phân quyền, danh mục ảnh hưởng báo cáo).
+- **RLS sâu:** Khi mô hình user/session thống nhất, giảm rủi ro quên `WHERE`.
+- **Virtualization (react-window):** Chỉ khi cần render > 100 dòng cùng lúc (Antibiogram grid, bảng kháng sinh đồ).
+- **Table Partitioning:** Chỉ khi bảng `fact_*` vượt 5-10 triệu rows.
+
+---
+
 ## 5. Hoãn / chỉ khi quy mô đòi hỏi
 
 - **EDA đầy đủ** (NOTIFY/LISTEN làm backbone): Dễ phức tạp delivery, retry, idempotency.
@@ -172,6 +166,20 @@ Mục tiêu: tối ưu hiệu năng, giảm lỗi, **không** over-engineer.
 3. **Chặt biên + cache + quan sát cơ bản.**
 4. **Temporal / cột vết tối thiểu** theo từng nhóm bảng quan trọng nếu cần — không dùng lại trigger log JSON toàn cục (`fact_activity_log` đã gỡ).
 5. Chỉ sau đó xét **EDA / IaC rộng** nếu vận hành thật sự cần.
+
+---
+
+## 7. BV103 — Cách triển khai Smart DB trong code (hiện trạng)
+
+- **Luồng chuẩn:** `UI (RSC/client)` → **Server Action** (`*.actions.ts`) → **Supabase** (`createServerSupabaseUserClient` / `createAdminSupabaseClient`) → bảng `dm_*` / `mdm_*` / `fact_*` hoặc **view** `v_*` / **RPC** `rpc_*`.
+- **Push-down (đã dùng):** View tổng hợp (vd. `v_fact_giam_sat_*_full`, `v_mdm_nhan_su_full`) để join một lần thay vì N query từ app; dashboard tuân thủ gọi **RPC** tổng hợp (`rpc_get_dashboard_*`, `rpc_get_compliance_dashboard_multi_v1`) — giảm round-trip so với tách nhiều action.
+- **Phân trang / giới hạn:** Bảng lịch sử `fact_*` dùng `.range` + `count: 'exact'` khi cần; script gate `scripts/engineering-contract-gate.mjs` cảnh báo read action đọc `fact_*` mà không có `range` / `limit` / `rpc` / `single` (chế độ strict: `ENGINEERING_GATE_STRICT=1`).
+- **Cột rõ ràng:** Ưu tiên `.select('cột1,cột2' as const)` thay `*` trên view rộng — giảm payload và giữ inference TypeScript; tránh chuỗi `.join()` thuần (mất literal).
+- **Cache master:** `getCachedDmKhoaPhong`, `getCachedDmNgheNghiep`, … trong `src/lib/cache/master-data-cache.ts` — dùng lại cho dropdown lặp; không cache phiên giám sát / bệnh nhân.
+- **Phiên & proxy:** `src/proxy.ts` chỉ `getUser` + cookie — **không** thêm query DB; RBAC client `usePermission` cache 5 phút + một request đồng thời tới `v_auth_user_permissions`.
+- **Đo DB:** Pilot `EXPLAIN` — `scripts/sql/pilot-dashboard-rpc-explain-*.sql`; cửa sổ tháng mặc định `BV103_ANALYTICS_DEFAULT_MONTHS` trong `src/lib/bv103-analytics-default-range.ts`.
+
+**Ảnh hưởng hiệu năng:** Smart DB **có** ảnh hưởng trực tiếp (tốt nếu làm đúng: ít round-trip, index đúng, RPC gọn; xấu nếu `select *` + full scan + N+1). Tối ưu UI không bù được query nặng lặp lại.
 
 ---
 

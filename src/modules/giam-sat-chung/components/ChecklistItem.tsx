@@ -3,6 +3,7 @@
 
 import React, { useState } from "react";
 import { ChecklistCriterion, ChecklistResult } from "@/types/giam-sat-chung";
+import { gscFormChrome } from "../lib/gsc-form-chrome";
 
 interface ChecklistItemProps {
   criterion: ChecklistCriterion;
@@ -26,7 +27,9 @@ export default function ChecklistItem({ criterion, result, onChange = () => {}, 
 
   if (readOnly) {
     return (
-      <div className="premium-card glass-panel pointer-events-none flex flex-col justify-between gap-4 border-l-4 border-slate-200 bg-white p-5 md:flex-row md:items-center">
+      <div
+        className={`${gscFormChrome.panelShell} pointer-events-none flex flex-col justify-between gap-4 border-l-4 border-slate-200 md:flex-row md:items-center`}
+      >
         <div className="flex-1 space-y-1">
           <div className="flex items-start gap-2">
             <span className="mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-slate-100 px-1 text-xs font-bold text-slate-700">
@@ -54,7 +57,7 @@ export default function ChecklistItem({ criterion, result, onChange = () => {}, 
   }
 
   return (
-    <div className="premium-card glass-panel border-l-4 border-transparent bg-white p-5 transition-all hover:border-[#026f17]">
+    <div className={`${gscFormChrome.panelShell} border-l-4 border-transparent transition-all hover:border-[#026f17]`}>
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div className="flex-1 space-y-1">
           <div className="flex items-start gap-2">
@@ -103,11 +106,12 @@ export default function ChecklistItem({ criterion, result, onChange = () => {}, 
           </button>
 
           <button
+            type="button"
             onClick={() => setNoteOpen((v) => !v)}
-            className={`h-12 rounded-2xl border-2 px-4 text-[11px] font-bold uppercase tracking-wider transition-all ${
+            className={`${gscFormChrome.noteToggle} ${
               noteOpen || String(result.note || "").trim()
-                ? "border-amber-400 bg-amber-50 text-amber-700"
-                : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-white"
+                ? "border-amber-200/90 bg-amber-50/90 text-amber-900 hover:bg-amber-50"
+                : "border-slate-200/90 bg-white text-slate-700 hover:bg-slate-50"
             }`}
           >
             {noteOpen ? "Ẩn ghi chú" : "Bổ sung ghi chú"}
@@ -117,11 +121,11 @@ export default function ChecklistItem({ criterion, result, onChange = () => {}, 
 
       {noteOpen ? (
         <div className="mt-3 space-y-1 border-t border-slate-100 pt-3">
-          <label className="text-[11px] font-semibold text-slate-700">Ghi chú bổ sung cho tiêu chí</label>
+          <label className={gscFormChrome.labelBlock}>Ghi chú bổ sung cho tiêu chí</label>
           <textarea
             value={result.note || ""}
             onChange={(e) => onChange({ ...result, note: e.target.value })}
-            className="min-h-[84px] w-full rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-800 outline-none transition-colors focus:border-[var(--primary)]"
+            className={gscFormChrome.textareaCriterionNote}
             placeholder="Nhập ghi chú bổ sung (nếu có)..."
           />
         </div>

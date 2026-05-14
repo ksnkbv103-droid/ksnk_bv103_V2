@@ -129,7 +129,7 @@ export function BoDungCuChiTietPanel({
 
   return (
     <section
-      className="rounded-[32px] border border-emerald-100/80 bg-gradient-to-br from-white to-emerald-50/30 p-6 shadow-sm"
+      className="rounded-2xl border border-emerald-100/80 bg-gradient-to-br from-white to-emerald-50/30 p-6 shadow-sm"
       aria-label="Dụng cụ chi tiết trong bộ đã chọn"
     >
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

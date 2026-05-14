@@ -22,7 +22,7 @@ const MODULE_KEY = "CSSD_WORKFLOW";
  */
 export default function CSSDERPPage() {
   const qrInputRef = useRef<HTMLInputElement>(null);
-  const { currentStation, scanStations, waitingList, loading, lastScan, scanSuccess, selectStation, handleQRScan, refresh } = useCSSDWorkflow();
+  const { currentStation, scanStations, waitingList, loading: _workflowLoading, lastScan, scanSuccess, selectStation, handleQRScan, refresh } = useCSSDWorkflow();
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
   const [maCaMoId, setMaCaMoId] = useState("");
   const { loading: permLoading, allowed } = useModulePermission(MODULE_KEY);
@@ -83,7 +83,7 @@ export default function CSSDERPPage() {
           Quản lý <span className="text-[#026f17]">CSSD</span>
         </>
       }
-      subtitle="Bệnh viện Quân y 103 — Khoa KSNK. Chọn trạm và quét mã QR đã đăng ký (in từ danh mục bộ, trang Giám sát kho CSSD); không nhận mã tự bịa."
+      subtitle="Chọn trạm làm việc và quét mã QR đã in từ danh mục."
       actions={
         <button
           type="button"
@@ -193,9 +193,6 @@ export default function CSSDERPPage() {
                 Xác nhận
               </button>
             </div>
-            <p className="px-4 text-center text-[10px] font-medium leading-relaxed text-slate-500">
-              Mỗi bộ vật lý cần có mã tạo từ <strong className="text-slate-700">CSSD → Giám sát kho</strong> (chọn bộ trong danh mục rồi in nhãn). Chưa có mã thì không quét được tại trạm.
-            </p>
             {scanSuccess ? (
               <QRScanSuccessCard
                 {...lastScan}

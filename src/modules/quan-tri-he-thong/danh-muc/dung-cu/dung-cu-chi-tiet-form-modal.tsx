@@ -85,7 +85,7 @@ export default function DungCuChiTietFormModal({
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md touch-manipulation pointer-events-auto">
       <form
         onSubmit={submit}
-        className="bg-white w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-[32px] p-8 space-y-4 shadow-2xl border-t-[6px] border-[#026f17]"
+        className="bg-white w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-2xl p-8 space-y-4 shadow-2xl border-t-[6px] border-[#026f17]"
       >
         <div className="flex justify-between items-start gap-4">
           <div>

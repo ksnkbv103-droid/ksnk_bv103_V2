@@ -34,6 +34,8 @@
 
   --radius-shell: 1rem;
   --radius-table: 0.875rem;
+  /** Bo điều khiển form (≈ Tailwind rounded-xl); class TS: `bv103LayoutChrome` @see BV103_LAYOUT_PRIMITIVES */
+  --radius-control: 0.75rem;
 
   /* Chuẩn touch / MIS: nút, ô nhập, thanh tìm (đồng bộ chiều cao) */
   --bv103-control-h: 2.5rem;

@@ -2,7 +2,7 @@
 "use client";
 
 import React from "react";
-import { QrCode, HardDrive, Camera, FileText } from "lucide-react";
+import { QrCode, Camera, FileText } from "lucide-react";
 
 interface Props {
   typeTen: string;

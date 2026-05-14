@@ -29,7 +29,7 @@ export default function QuanLyNhanSuPage() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Module Title */}
-      <div className="flex justify-between items-center bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm">
+      <div className="flex justify-between items-center bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <span className="text-2xl">👥</span>

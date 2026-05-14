@@ -85,7 +85,7 @@ export default function LoaiDungCuFormModal({
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-      <form onSubmit={save} className="bg-white w-full max-w-2xl rounded-[32px] p-8 space-y-4 shadow-2xl border-t-[6px] border-[#026f17] max-h-[90vh] overflow-y-auto">
+      <form onSubmit={save} className="bg-white w-full max-w-2xl rounded-2xl p-8 space-y-4 shadow-2xl border-t-[6px] border-[#026f17] max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-black text-[#026f17] uppercase tracking-widest">
             {isEdit ? "Cập nhật loại dụng cụ" : "Thêm loại dụng cụ"}

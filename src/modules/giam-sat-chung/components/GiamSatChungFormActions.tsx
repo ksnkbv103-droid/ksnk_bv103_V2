@@ -12,19 +12,23 @@ interface GiamSatChungFormActionsProps {
 
 export default function GiamSatChungFormActions({ loading, headerLoading, onPrint, onSave }: GiamSatChungFormActionsProps) {
   return (
-    <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-4 animate-in slide-in-from-bottom-8 duration-500 no-print">
-      <button 
+    <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-3 animate-in slide-in-from-bottom-8 duration-500 no-print">
+      <button
+        type="button"
         onClick={onPrint}
         title="In phiếu A4"
-        className="w-14 h-14 rounded-full bg-slate-800 text-white font-bold shadow-[0_8px_30px_rgb(0,0,0,0.2)] hover:bg-slate-900 transition-all flex items-center justify-center border-2 border-white/20 hover:scale-110 self-end"
+        className="app-shell-focus flex h-12 w-12 shrink-0 items-center justify-center self-end rounded-xl border border-slate-200/90 bg-slate-800 text-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/10 transition-colors hover:bg-slate-900"
       >
-        <span className="text-xl">🖨️</span>
+        <span className="text-lg" aria-hidden>
+          🖨️
+        </span>
       </button>
 
-      <button 
+      <button
+        type="button"
         disabled={loading || headerLoading}
         onClick={onSave}
-        className="h-16 px-8 rounded-[32px] bg-[#026f17] text-white font-black uppercase tracking-widest shadow-[0_10px_40px_rgba(2,111,23,0.4)] hover:bg-[#015a12] active:scale-95 transition-all flex items-center justify-center gap-3 border border-white/20"
+        className="app-shell-focus flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#026f17]/20 bg-[#026f17] px-6 py-3 text-[10px] font-semibold uppercase tracking-wide text-white shadow-[var(--shadow-app-soft)] ring-1 ring-[#026f17]/20 transition-colors hover:bg-[#025a12] disabled:opacity-50"
       >
         {loading ? (
           <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />

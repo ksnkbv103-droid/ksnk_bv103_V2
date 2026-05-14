@@ -54,10 +54,34 @@ const getActivityConfig = (loai: string) => {
         label: "Phê duyệt" 
       };
     case "HOAN_THANH":
-      return { 
-        icon: <CheckCircle className="h-4 w-4" />, 
+      return {
+        icon: <CheckCircle className="h-4 w-4" />,
         color: "bg-emerald-50 text-emerald-700 border-emerald-100",
-        label: "Hoàn thành" 
+        label: "Hoàn thành",
+      };
+    case "XAC_NHAN_NHAN":
+      return {
+        icon: <User className="h-4 w-4" />,
+        color: "bg-sky-50 text-sky-700 border-sky-100",
+        label: "Xác nhận nhận việc",
+      };
+    case "DUYET_HOAN_THANH":
+      return {
+        icon: <Award className="h-4 w-4" />,
+        color: "bg-emerald-50 text-emerald-800 border-emerald-100",
+        label: "Nghiệm thu đạt",
+      };
+    case "TU_CHOI_HOAN_THANH":
+      return {
+        icon: <Clock className="h-4 w-4" />,
+        color: "bg-amber-50 text-amber-800 border-amber-100",
+        label: "Trả làm lại",
+      };
+    case "GIA_HAN":
+      return {
+        icon: <Clock className="h-4 w-4" />,
+        color: "bg-indigo-50 text-indigo-700 border-indigo-100",
+        label: "Gia hạn",
       };
     default:
       return { 
@@ -71,7 +95,7 @@ const getActivityConfig = (loai: string) => {
 export function ActivityTimeline({ activities }: ActivityTimelineProps) {
   if (!activities || activities.length === 0) {
     return (
-      <div className="text-center py-16 bg-slate-50/50 rounded-[2.5rem] border-2 border-dashed border-slate-100">
+      <div className="rounded-2xl border-2 border-dashed border-slate-100 bg-slate-50/50 py-16 text-center">
         <div className="mx-auto w-16 h-16 rounded-full bg-white flex items-center justify-center mb-4 shadow-sm">
           <Clock className="h-8 w-8 text-slate-300" />
         </div>
@@ -96,7 +120,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
 
             {/* Content Card */}
             <div className="flex-1 pb-8">
-              <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm group-hover:shadow-md transition-all">
+              <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all group-hover:shadow-md">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-black text-slate-800">

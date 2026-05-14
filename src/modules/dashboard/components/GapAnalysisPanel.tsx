@@ -41,7 +41,7 @@ export function GapAnalysisPanel({ title, kq, cheo, tgs }: Props) {
     });
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-[var(--shadow-app-soft)]">
       <h3 className="mb-6 text-sm font-black uppercase tracking-widest text-slate-800">{title} — Đối soát tỉ lệ tuân thủ</h3>
       <div className="overflow-x-auto rounded-2xl border border-slate-100">
         <table className="min-w-full text-sm">

@@ -1,7 +1,14 @@
 // src/hooks/useDataTable.ts
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+
+export type UseDataTableOptions = {
+  /** > 0: lọc client theo từ khóa sau debounce (ms); 0 = lọc ngay mỗi lần gõ. */
+  searchDebounceMs?: number;
+  /** true: không lọc client (dữ liệu đã lọc phía server / controlled search). */
+  skipFiltering?: boolean;
+};
 
 /**
  * Hook quản lý logic cho Bảng dữ liệu (Tìm kiếm, Sắp xếp, Chọn nhiều)
@@ -10,8 +17,11 @@ import { useState, useMemo } from "react";
  */
 export function useDataTable<T extends { id: string | number }>(
   initialData: T[],
-  searchableKeys: (keyof T)[] = []
+  searchableKeys: (keyof T)[] = [],
+  options?: UseDataTableOptions
 ) {
+  const searchDebounceMs = options?.searchDebounceMs ?? 0;
+  const skipFiltering = options?.skipFiltering ?? false;
   const normalizeSearchText = (value: unknown) =>
     String(value ?? "")
       .normalize("NFD")
@@ -25,8 +35,20 @@ export function useDataTable<T extends { id: string | number }>(
 
   // --- State ---
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: keyof T; direction: 'asc' | 'desc' } | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string | number>>(new Set());
+
+  useEffect(() => {
+    if (searchDebounceMs <= 0) {
+      setDebouncedSearchTerm(searchTerm);
+      return;
+    }
+    const t = window.setTimeout(() => setDebouncedSearchTerm(searchTerm), searchDebounceMs);
+    return () => window.clearTimeout(t);
+  }, [searchTerm, searchDebounceMs]);
+
+  const filterTerm = searchDebounceMs > 0 ? debouncedSearchTerm : searchTerm;
 
   // --- Handlers ---
 
@@ -74,8 +96,8 @@ export function useDataTable<T extends { id: string | number }>(
     let result = [...initialData];
 
     // Lọc theo từ khóa tìm kiếm (Nâng cao: hỗ trợ tìm kiếm trên toàn bộ các giá trị thuộc tính)
-    if (searchTerm && searchableKeys.length > 0) {
-      const keywords = normalizeSearchText(searchTerm).split(/\s+/).filter(Boolean);
+    if (!skipFiltering && filterTerm && searchableKeys.length > 0) {
+      const keywords = normalizeSearchText(filterTerm).split(/\s+/).filter(Boolean);
       
       result = result.filter(item => {
         const haystack = searchableKeys
@@ -102,7 +124,7 @@ export function useDataTable<T extends { id: string | number }>(
     }
 
     return result;
-  }, [initialData, searchTerm, sortConfig, searchableKeys]);
+  }, [initialData, filterTerm, sortConfig, searchableKeys, skipFiltering]);
 
   // Các item đang được chọn
   const selectedItems = useMemo(() => 

@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import { AlertTriangle, CheckCircle2, Clock, ListTodo } from "lucide-react";
+import { isChoNghiemThuHoanThanh, isChoNhanViec, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 
 interface Props {
   tasks: any[];
@@ -11,7 +12,12 @@ export function DashboardStats({ tasks }: Props) {
   const stats = useMemo(() => {
     const total = tasks.length;
     const completed = tasks.filter((t) => t.trang_thai === "HOAN_THANH").length;
-    const inProgress = tasks.filter((t) => t.trang_thai === "DANG_THUC_HIEN").length;
+    const inProgress = tasks.filter((t) => {
+      if (t.trang_thai === "QUA_HAN") return true;
+      if (t.trang_thai !== "DANG_THUC_HIEN") return false;
+      const pct = Number(t.phan_tram_hoan_thanh ?? 0);
+      return pct < 100;
+    }).length;
     
     // Tính toán việc quá hạn: Trang thái QUA_HAN hoặc (Chưa xong & Hạn chót < Hôm nay)
     const today = new Date();
@@ -25,12 +31,29 @@ export function DashboardStats({ tasks }: Props) {
       return false;
     });
 
+    const gateDeXuat = tasks.filter((t) => isDeXuatChoDuyet(t)).length;
+    const gateNhan = tasks.filter((t) => isChoNhanViec(t)).length;
+    const gateNghiemThu = tasks.filter((t) => isChoNghiemThuHoanThanh(t)).length;
+
+    const nearDeadline = tasks.filter((t) => {
+      if (!t.han_hoan_thanh) return false;
+      if (t.trang_thai === "HOAN_THANH" || t.trang_thai === "DA_HUY") return false;
+      const d = new Date(t.han_hoan_thanh);
+      d.setHours(0, 0, 0, 0);
+      const diff = (d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+      return diff >= 0 && diff <= 2;
+    }).length;
+
     return {
       total,
       completed,
       inProgress,
       overdueCount: overdueTasks.length,
       overdueTasks,
+      gateDeXuat,
+      gateNhan,
+      gateNghiemThu,
+      nearDeadline,
     };
   }, [tasks]);
 
@@ -43,18 +66,66 @@ export function DashboardStats({ tasks }: Props) {
 
   if (!tasks || tasks.length === 0) return null;
 
+  const gatePills: { key: string; label: string; value: number; className: string }[] = [];
+  if (stats.gateDeXuat > 0) {
+    gatePills.push({
+      key: "dexuat",
+      label: "Chờ phê đề xuất",
+      value: stats.gateDeXuat,
+      className: "border-violet-100 bg-violet-50/80 text-violet-900",
+    });
+  }
+  if (stats.gateNhan > 0) {
+    gatePills.push({
+      key: "nhan",
+      label: "Chờ nhận việc",
+      value: stats.gateNhan,
+      className: "border-sky-100 bg-sky-50/80 text-sky-900",
+    });
+  }
+  if (stats.gateNghiemThu > 0) {
+    gatePills.push({
+      key: "nghiemthu",
+      label: "Chờ nghiệm thu",
+      value: stats.gateNghiemThu,
+      className: "border-orange-100 bg-orange-50/80 text-orange-900",
+    });
+  }
+  if (stats.nearDeadline > 0) {
+    gatePills.push({
+      key: "near",
+      label: "Sắp đến hạn (≤2 ngày)",
+      value: stats.nearDeadline,
+      className: "border-amber-100 bg-amber-50/80 text-amber-950",
+    });
+  }
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="flex min-w-0 flex-nowrap items-stretch gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]">
         {cards.map((card, i) => (
-          <div key={i} className={`flex items-center gap-4 p-5 rounded-2xl border ${card.border} ${card.bg} shadow-sm transition-all hover:shadow-md`}>
-            <div className={`flex items-center justify-center w-12 h-12 rounded-full ${card.bg === 'bg-white' ? 'bg-slate-50' : 'bg-white'} ${card.color}`}>
-              <card.icon size={20} strokeWidth={2.5} />
+          <div
+            key={i}
+            className={`flex min-w-[9.5rem] shrink-0 items-center gap-3 rounded-xl border px-3 py-2.5 shadow-sm ${card.border} ${card.bg}`}
+          >
+            <div
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${card.bg === "bg-white" ? "bg-slate-50" : "bg-white"} ${card.color}`}
+            >
+              <card.icon size={18} strokeWidth={2.5} />
             </div>
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{card.label}</p>
-              <h4 className={`text-2xl font-bold ${card.color}`}>{card.value}</h4>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
+              <p className={`text-xl font-bold leading-tight ${card.color}`}>{card.value}</p>
             </div>
+          </div>
+        ))}
+        {gatePills.map((p) => (
+          <div
+            key={p.key}
+            className={`flex min-w-[9rem] shrink-0 flex-col justify-center rounded-xl border px-3 py-2.5 text-xs shadow-sm ${p.className}`}
+          >
+            <span className="font-semibold uppercase tracking-wide opacity-90">{p.label}</span>
+            <span className="text-lg font-bold tabular-nums leading-tight">{p.value}</span>
           </div>
         ))}
       </div>

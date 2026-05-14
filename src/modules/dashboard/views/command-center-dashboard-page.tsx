@@ -1,23 +1,33 @@
 "use client";
 
 import React, { useMemo } from "react";
+import dynamic from "next/dynamic";
 import { Users, Eye, ClipboardList, Filter, LayoutDashboard, FileBarChart } from "lucide-react";
 import { useDashboardData } from "@/modules/dashboard/hooks/useDashboardData";
 import { buildEmptyComplianceDashboardPayload } from "@/modules/dashboard/compliance-dashboard.types";
-import { SupervisionSourceStats } from "@/modules/dashboard/components/SupervisionSourceStats";
-import VstDashboardPanel from "@/modules/giam-sat-vst/components/VstDashboardPanel";
-import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
-import ComplianceDashboardPanel from "@/modules/dashboard/components/ComplianceDashboardPanel";
 import type { ComplianceDashboardPayload } from "@/modules/dashboard/compliance-dashboard.types";
 import { GapAnalysisPanel } from "@/modules/dashboard/components/GapAnalysisPanel";
 import { DashboardFilterPanel } from "@/modules/dashboard/components/DashboardFilterPanel";
 
-function vstPayloadHasData(p: VstDashboardPayload | null | undefined): boolean {
-  if (!p?.kpis) return false;
-  return (p.kpis.tong_co_hoi ?? 0) > 0 || (p.kpis.tong_phien ?? 0) > 0;
-}
+const chartChunkFallback = (className: string) => (
+  <div className={`animate-pulse rounded-xl border border-slate-200 bg-slate-50/90 ${className}`} />
+);
 
-/** Chỉ hiện dashboard GSC khi đã có ít nhất một phiên giám sát (theo RPC trong khoảng lọc + tab nguồn). */
+const ComplianceDashboardPanel = dynamic(
+  () => import("@/modules/dashboard/components/ComplianceDashboardPanel"),
+  { ssr: false, loading: () => chartChunkFallback("min-h-[200px] w-full") },
+);
+
+const SupervisionSourceStats = dynamic(
+  () => import("@/modules/dashboard/components/SupervisionSourceStats").then((m) => ({ default: m.SupervisionSourceStats })),
+  { ssr: false, loading: () => chartChunkFallback("min-h-[240px] w-full") },
+);
+
+const VstDashboardPanel = dynamic(() => import("@/modules/giam-sat-vst/components/VstDashboardPanel"), {
+  ssr: false,
+  loading: () => chartChunkFallback("min-h-[200px] w-full"),
+});
+
 function gscPayloadHasSessions(p: ComplianceDashboardPayload | null | undefined): boolean {
   if (!p?.summary) return false;
   return (p.summary.tong_phien ?? 0) > 0;
@@ -249,7 +259,7 @@ export function CommandCenterDashboardPage() {
                 khoiOptions={khoiOptions}
               />
             )}
-            {selectedBangKiemMas.includes("VST_WHO") && vstPayloadHasData(vstPayload) && (
+            {selectedBangKiemMas.includes("VST_WHO") && (
               <div className="space-y-4">
                 <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-4 py-2.5">
                   <h4 className="text-xs font-semibold uppercase tracking-wide text-emerald-900">Vệ sinh tay (WHO)</h4>
@@ -267,14 +277,14 @@ export function CommandCenterDashboardPage() {
               bkLabelMap={bkLabelMap}
               khoaCatalog={khoaOptions}
               khoiCatalog={khoiOptions}
-              onlyWithSessions
+              onlyWithSessions={false}
             />
           </div>
         )}
 
         {activeTab === "gap" && (
           <div className="space-y-6">
-            {selectedBangKiemMas.includes("VST_WHO") && vstGapPayloads?.kq && vstPayloadHasData(vstGapPayloads.kq) && (
+            {selectedBangKiemMas.includes("VST_WHO") && vstGapPayloads?.kq && (
               <GapAnalysisPanel title="Vệ sinh tay (WHO)" kq={vstGapPayloads.kq.by_khoa} cheo={vstGapPayloads.cheo?.by_khoa || []} tgs={vstGapPayloads.tgs?.by_khoa || []} />
             )}
             {selectedBangKiemMas
@@ -282,9 +292,6 @@ export function CommandCenterDashboardPage() {
               .map((bk) => {
                 const p = complianceGapPayloads[bk];
                 if (!p) return null;
-                const gapHasSessions =
-                  gscPayloadHasSessions(p.kq) || gscPayloadHasSessions(p.cheo) || gscPayloadHasSessions(p.tgs);
-                if (!gapHasSessions) return null;
                 return (
                   <GapAnalysisPanel
                     key={bk}
@@ -300,8 +307,8 @@ export function CommandCenterDashboardPage() {
       </div>
 
       {openDialog && (
-        <div className="fixed inset-0 z-[500] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-2xl rounded-[2.5rem] border border-white bg-white p-8 shadow-2xl animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-[500] flex items-center justify-center bg-slate-900/50 p-4">
+          <div className="w-full max-w-2xl animate-in rounded-2xl border border-white bg-white p-8 shadow-2xl duration-300 zoom-in-95">
             <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">{openDialog === "nhan_xet" ? "Nhận xét & Đánh giá" : "Kiến nghị & Đề xuất"}</h3>
             <textarea className="mt-6 min-h-[200px] w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none focus:border-[#026f17] focus:ring-4 focus:ring-[#026f17]/5 transition-all" value={openDialog === "nhan_xet" ? nhanXetDanhGia : kienNghiDeXuat} onChange={(e) => (openDialog === "nhan_xet" ? setNhanXetDanhGia(e.target.value) : setKienNghiDeXuat(e.target.value))} />
             <div className="mt-8 flex justify-end gap-3">

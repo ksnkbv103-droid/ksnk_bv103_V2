@@ -37,14 +37,12 @@ export default function GiamSatHeaderPersonalFields({
   };
 
   return (
-    <div className="min-w-0 space-y-4">
-      <div className="rounded-xl border border-[#026f17]/15 bg-gradient-to-b from-[#026f17]/[0.05] to-white p-4 shadow-sm sm:p-5">
-        <p className="mb-3 border-b border-[#026f17]/15 pb-2 text-[10px] font-black uppercase tracking-widest text-[#026f17]/85">
-          Đối tượng được giám sát (nhân viên)
-        </p>
+    <div className="min-w-0">
+      <div className="rounded-lg border border-slate-200/90 bg-slate-50/35 p-4 sm:p-4">
+        <p className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-slate-700">Đối tượng được giám sát (nhân viên)</p>
         <div className="space-y-4">
-          <div className="min-w-0 space-y-1.5">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-[#026f17]">5. Nghề nghiệp nhân viên</label>
+          <div className="min-w-0 space-y-1">
+            <label className="block text-[10px] font-semibold uppercase tracking-wide text-slate-600">5. Nghề nghiệp nhân viên</label>
             <SearchableSelect
               value={session.nghe_nghiep_id || ""}
               onChange={(nextNgheId) => setSession({ ...session, nghe_nghiep_id: nextNgheId, nhan_vien_id: "" })}
@@ -55,17 +53,17 @@ export default function GiamSatHeaderPersonalFields({
               }))}
               placeholder="-- Chọn nghề nghiệp --"
               searchPlaceholder="Tìm nghề nghiệp..."
-              className="border-slate-200 bg-white text-slate-800 ring-1 ring-[var(--primary)]/15"
+              className="border-slate-200 bg-white text-slate-800"
             />
           </div>
 
-          <div className="min-w-0 space-y-1.5">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-[#026f17]">
+          <div className="min-w-0 space-y-1">
+            <label className="block text-[10px] font-semibold uppercase tracking-wide text-slate-600">
               {session.is_manual_nhan_vien ? "6. Nhập tên nhân viên" : "6. Tên nhân viên"}
             </label>
             {session.is_manual_nhan_vien ? (
               <input
-                className="input h-12 w-full rounded-2xl border-2 border-amber-100 bg-amber-50 px-4 font-bold text-amber-900 outline-none transition-all focus:border-[#026f17] focus:bg-white"
+                className="input h-10 w-full rounded-lg border border-slate-200 bg-white px-3 font-medium text-slate-900 outline-none transition-colors focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]/20"
                 placeholder="Nhập họ tên nhân viên..."
                 value={session.ten_manual_nhan_vien || ""}
                 onChange={(e) => setSession({ ...session, ten_manual_nhan_vien: e.target.value })}
@@ -88,18 +86,18 @@ export default function GiamSatHeaderPersonalFields({
                 }))}
                 placeholder={requireKhoa ? "-- Chọn Khoa trước --" : "-- Chọn nhân viên --"}
                 searchPlaceholder="Tìm nhân viên..."
-                className="border-slate-200 bg-white text-slate-800 ring-1 ring-[var(--primary)]/15"
+                className="border-slate-200 bg-white text-slate-800"
                 disabled={requireKhoa}
               />
             )}
             {requireKhoa && (
-              <p className="text-[10px] font-semibold text-amber-600 animate-pulse">Chọn Khoa trước để lọc danh sách nhân viên.</p>
+              <p className="text-[10px] font-medium text-amber-700">Chọn Khoa trước để lọc danh sách nhân viên.</p>
             )}
           </div>
 
-          <div className="min-w-0 space-y-1.5">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-[#026f17]">7. Ngoài danh mục</label>
-            <label className="flex min-h-[3rem] w-full cursor-pointer items-center gap-3 rounded-2xl border-2 border-emerald-200 bg-emerald-50 px-4 py-2.5 transition-colors hover:bg-emerald-100/80">
+          <div className="min-w-0 space-y-1">
+            <label className="block text-[10px] font-semibold uppercase tracking-wide text-slate-600">7. Ngoài danh mục</label>
+            <label className="flex min-h-[2.75rem] w-full cursor-pointer items-center gap-3 rounded-lg border border-emerald-200/80 bg-emerald-50/50 px-3 py-2 transition-colors hover:bg-emerald-50/90">
               <input
                 type="checkbox"
                 className="h-5 w-5 shrink-0 accent-[#026f17]"
@@ -113,7 +111,7 @@ export default function GiamSatHeaderPersonalFields({
                   })
                 }
               />
-              <span className="min-w-0 text-xs font-semibold leading-snug text-emerald-900 sm:text-sm">
+              <span className="min-w-0 text-xs font-medium leading-snug text-emerald-900 sm:text-sm">
                 Nhập tay, không chọn từ danh sách nhân sự
               </span>
             </label>

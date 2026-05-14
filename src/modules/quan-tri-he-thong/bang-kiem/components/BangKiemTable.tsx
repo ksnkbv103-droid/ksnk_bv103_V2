@@ -11,6 +11,7 @@ import BangKiemForm from "./BangKiemForm";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import type { DanhMucBangKiem } from "../bang-kiem.types";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 export type BangKiemTablePermission = Partial<{
   import: boolean;
@@ -104,8 +105,8 @@ export default function BangKiemTable({
     isFormOpen && ((editingBK != null && allowEdit) || (editingBK == null && allowCreate));
 
   return (
-    <div className="premium-card glass-panel p-0 overflow-hidden min-h-[400px] animate-in fade-in">
-      <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-white shadow-sm gap-4 flex-wrap">
+    <div className={`min-h-[400px] overflow-hidden p-0 animate-in fade-in ${bv103LayoutChrome.panelSurface}`}>
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 bg-white p-6">
         <div className="flex gap-3 flex-wrap">
           <button type="button" onClick={() => exportTemplate()} className="h-10 px-5 bg-slate-50 text-slate-500 rounded-xl font-black uppercase text-[10px] flex items-center gap-2 hover:bg-slate-100 transition-all shadow-sm"><Download size={14} /> Export dữ liệu mẫu</button>
           {allowImport ? (
@@ -119,27 +120,29 @@ export default function BangKiemTable({
           <button type="button" onClick={() => { setEditingBK(null); setIsFormOpen(true); }} className="h-10 px-6 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase text-[10px] shadow-lg flex items-center gap-2 active:scale-95 transition-all"><Plus size={16} /> Thêm Bảng kiểm</button>
         ) : null}
       </div>
-      <AdvancedDataTable
-        columns={columns}
-        data={data}
-        loading={loading}
-        enableMultiSelect={allowDelete}
-        onRowClick={(row) => onSelectBK(row)}
-        rowClassName={(row) =>
-          row.id === selectedBKId ? "bg-[#026f17]/5 border-l-4 border-l-[#026f17]" : ""
-        }
-        onDeleteSelected={
-          allowDelete
-            ? (items) => {
-                if (confirm(`Xóa ${items.length} bảng kiểm?`)) {
-                  void Promise.all(items.map((i) => deleteBangKiem(i.id))).then(() =>
-                    setRefreshKey((k) => k + 1),
-                  );
+      <div className="px-4 pb-2 sm:px-6">
+        <AdvancedDataTable
+          columns={columns}
+          data={data}
+          loading={loading}
+          enableMultiSelect={allowDelete}
+          onRowClick={(row) => onSelectBK(row)}
+          rowClassName={(row) =>
+            row.id === selectedBKId ? "bg-[#026f17]/5 border-l-4 border-l-[#026f17]" : ""
+          }
+          onDeleteSelected={
+            allowDelete
+              ? (items) => {
+                  if (confirm(`Xóa ${items.length} bảng kiểm?`)) {
+                    void Promise.all(items.map((i) => deleteBangKiem(i.id))).then(() =>
+                      setRefreshKey((k) => k + 1),
+                    );
+                  }
                 }
-              }
-            : undefined
-        }
-      />
+              : undefined
+          }
+        />
+      </div>
       {showForm ? (
         <BangKiemForm
           initialData={editingBK ?? undefined}

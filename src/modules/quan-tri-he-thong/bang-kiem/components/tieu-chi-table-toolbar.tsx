@@ -23,7 +23,7 @@ export default function TieuChiTableToolbar({
   onFileChange,
 }: TieuChiTableToolbarProps) {
   return (
-    <div className="p-6 border-b border-slate-50 flex flex-wrap items-center justify-between gap-4">
+    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 bg-white p-6">
       <div className="flex items-center gap-3">
         <span className="text-[10px] font-black text-[#026f17] uppercase tracking-widest">Tiêu chí chi tiết</span>
         <div className="flex gap-2">
@@ -55,7 +55,7 @@ export default function TieuChiTableToolbar({
         <button
           type="button"
           onClick={onAdd}
-          className="flex items-center gap-2 px-6 py-2.5 bg-[#026f17] text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 shadow-lg shadow-[#026f17]/20"
+          className="flex items-center gap-2 rounded-xl bg-[#026f17] px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-sm transition-colors hover:bg-[#025a12]"
         >
           <Plus className="w-3 h-3" /> Thêm
         </button>

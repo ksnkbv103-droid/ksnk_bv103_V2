@@ -8,7 +8,7 @@
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
-import { getErrorMessage, safeRevalidate, tableHasColumn } from "./cssd-action-common";
+import { safeRevalidate, tableHasColumn } from "./cssd-action-common";
 import { executeIncidentReportAndRollback } from "../incident/application/cssd-incident-application";
 import type { Station } from "../types/cssd.types";
 

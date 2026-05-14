@@ -25,6 +25,7 @@
 
 ## 4) Frontend / quota
 
+- **Layout / form mới:** ưu tiên [`bv103-layout-chrome.ts`](../../../src/lib/bv103-layout-chrome.ts) / `lib/*-chrome.ts` — tránh magic `rounded-[32px]`; trước merge PR chỉnh UI lớn có thể chạy `npm run layout:drift-check`. Chi tiết: [`BV103_LAYOUT_PRIMITIVES.md`](./BV103_LAYOUT_PRIMITIVES.md).
 - Ưu tiên hook/component có sẵn; copy logic từ 2 nơi → tách hook.
 - Trả lời user ngắn: file đã sửa, build/verify, bước tiếp theo.
 - Thay đổi lớn: 3 dòng (mục tiêu / đang làm / tác động); sau mỗi nhóm thay đổi lớn: “Giải thích dễ hiểu” (trước/sau, có cần thao tác tay).

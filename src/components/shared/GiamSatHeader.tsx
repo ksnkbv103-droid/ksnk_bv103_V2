@@ -138,13 +138,15 @@ export default function GiamSatHeader({
   const selectedKhuVucName = displayKhuVucs.find(k => k.id === session.khu_vuc_id)?.ten_danh_muc || "Chưa chọn khu vực";
 
   return (
-    <div className={`premium-card glass-panel overflow-visible bg-white/95 border-b-4 border-[#026f17] shadow-xl animate-in fade-in slide-in-from-top-4 transition-all duration-500 ${isCollapsed ? 'p-3' : 'p-6 space-y-6'}`}>
-      <div className={`flex items-center justify-between ${!isCollapsed ? 'border-b border-slate-100 pb-4' : ''}`}>
-        <div className="flex flex-1 min-w-0 items-center gap-3 cursor-pointer" onClick={() => setIsCollapsed(!isCollapsed)}>
+    <div
+      className={`overflow-visible rounded-2xl border border-slate-200/90 bg-white shadow-sm transition-[padding] duration-200 ${isCollapsed ? "p-3" : "space-y-4 p-4 sm:p-5"}`}
+    >
+      <div className={`flex items-center justify-between gap-3 ${!isCollapsed ? "border-b border-slate-100 pb-3" : ""}`}>
+        <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-3" onClick={() => setIsCollapsed(!isCollapsed)}>
           <div className="flex items-center gap-3">
-            <div className={`bg-[#026f17] rounded-full shrink-0 transition-all ${isCollapsed ? 'w-1 h-4' : 'w-2 h-8'}`} />
+            <div className={`shrink-0 rounded-full bg-[#026f17] transition-all ${isCollapsed ? "h-4 w-1" : "h-7 w-1.5"}`} />
             <div>
-              <h2 className={`font-black text-[#026f17] uppercase tracking-widest transition-all ${isCollapsed ? 'text-[10px]' : 'text-sm'}`}>
+              <h2 className={`font-semibold text-[#026f17] uppercase tracking-wide transition-all ${isCollapsed ? "text-[10px]" : "text-xs sm:text-sm"}`}>
                 {isCollapsed ? `Phiên GS: ${selectedKhoaName} - ${selectedKhuVucName}` : 'Thông tin phiên giám sát'}
               </h2>
               {isCollapsed && <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Nhấn để mở rộng cấu hình</p>}
@@ -156,7 +158,7 @@ export default function GiamSatHeader({
           
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-[10px] font-black text-slate-500 hover:bg-slate-100 transition-all uppercase tracking-widest"
+            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600 transition-colors hover:bg-slate-50"
           >
             {isCollapsed ? 'Mở rộng' : 'Thu gọn'}
           </button>
@@ -165,7 +167,7 @@ export default function GiamSatHeader({
             <div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-2">
               {showGiamSatCaNhan && (
                 <label className="flex cursor-pointer items-center gap-2 group">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter group-hover:text-[#026f17] transition-colors">
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide group-hover:text-[#026f17] transition-colors">
                     Giám sát nhân viên?
                   </span>
                   <input
@@ -191,7 +193,7 @@ export default function GiamSatHeader({
               )}
               {showBoSungNguoiBenhToggle && (
                 <label className="flex cursor-pointer items-center gap-2 group">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter group-hover:text-[#026f17] transition-colors">
+                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide group-hover:text-[#026f17] transition-colors">
                     Bổ sung người bệnh?
                   </span>
                   <input
@@ -221,7 +223,7 @@ export default function GiamSatHeader({
 
       {!isCollapsed && (
         <div
-          className={`grid grid-cols-1 items-start gap-5 overflow-visible md:grid-cols-2 md:gap-6 ${headerGridCols} animate-in fade-in slide-in-from-top-2 duration-300 lg:gap-6`}
+          className={`grid grid-cols-1 items-start gap-4 overflow-visible md:grid-cols-2 md:gap-5 ${headerGridCols} lg:gap-5`}
         >
           <GiamSatHeaderFields
             session={session}

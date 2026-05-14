@@ -1,7 +1,7 @@
 // src/app/tai-khoan/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { User, Shield, Link as LinkIcon, AlertTriangle, CheckCircle, Search, LogOut } from "lucide-react";
 import { usePermission, type UserDataProfile } from "@/hooks/usePermission";
 import { manualLinkAccountAction } from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/account-link-governance.actions";
@@ -31,7 +31,15 @@ export default function AccountPage() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut({ scope: "local" });
+      if (error) {
+        toast.error("Không đăng xuất được: " + error.message);
+        return;
+      }
+    } catch (e) {
+      console.warn("[tai-khoan] signOut", e);
+    }
     window.location.href = "/login";
   };
 

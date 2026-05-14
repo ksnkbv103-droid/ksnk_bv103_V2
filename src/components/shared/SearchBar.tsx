@@ -24,7 +24,7 @@ export default function SearchBar({
   className = ""
 }: SearchBarProps) {
   return (
-    <div className={`relative group w-full ${className}`}>
+    <div className={`relative group w-full min-w-0 ${className}`}>
       <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#026f17]">
         <Search size={16} strokeWidth={2.25} aria-hidden />
       </div>

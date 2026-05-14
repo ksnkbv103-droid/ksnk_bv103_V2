@@ -10,14 +10,22 @@ export interface CongViec {
   id: string;
   tieu_de: string;
   mo_ta?: string | null;
-  loai_pham_vi: "NOI_BO" | "MANG_LUOI";
   loai_cong_viec: "DINH_KY" | "DOT_XUAT" | "KHAN_CAP";
   muc_do_uu_tien: "THAP" | "TRUNG_BINH" | "CAO";
-  trang_thai: "CHUA_BAT_DAU" | "DANG_THUC_HIEN" | "HOAN_THANH" | "QUA_HAN" | "DA_HUY";
+  trang_thai:
+    | "DE_XUAT_CHO_DUYET"
+    | "CHO_NHAN_VIEC"
+    | "CHUA_BAT_DAU"
+    | "DANG_THUC_HIEN"
+    | "CHO_XAC_NHAN_HOAN_THANH"
+    | "HOAN_THANH"
+    | "QUA_HAN"
+    | "DA_HUY";
   han_hoan_thanh?: string | null;
   phan_tram_hoan_thanh: number;
 
   nguoi_tao_id?: string | null;
+  nguoi_giao_viec_id?: string | null;
   nguoi_phu_trach_id?: string | null;
   khoa_thuc_hien_id?: string | null;
   to_cong_tac_id?: string | null;
@@ -30,6 +38,7 @@ export interface CongViec {
 // ---------- View v_fact_cong_viec_full (thêm join) ----------
 export interface CongViecView extends CongViec {
   nguoi_tao_ten?: string | null;
+  nguoi_giao_ten?: string | null;
   nguoi_phu_trach_ten?: string | null;
   khoa_thuc_hien_ten?: string | null;
   to_cong_tac_ten?: string | null;
@@ -41,7 +50,6 @@ export interface CongViecView extends CongViec {
 export interface CongViecInput {
   tieu_de: string;
   mo_ta?: string | null;
-  loai_pham_vi: "NOI_BO" | "MANG_LUOI";
   loai_cong_viec: "DINH_KY" | "DOT_XUAT" | "KHAN_CAP";
   muc_do_uu_tien?: "THAP" | "TRUNG_BINH" | "CAO";
   han_hoan_thanh?: string | null;
@@ -55,7 +63,17 @@ export interface CongViecInput {
 export interface HoatDong {
   id: string;
   id_cong_viec: string;
-  loai_hoat_dong: "PHAN_CONG" | "DE_XUAT" | "BAO_CAO_TIEN_DO" | "PHE_DUYET" | "CAP_NHAT" | "HOAN_THANH";
+  loai_hoat_dong:
+    | "PHAN_CONG"
+    | "DE_XUAT"
+    | "BAO_CAO_TIEN_DO"
+    | "PHE_DUYET"
+    | "CAP_NHAT"
+    | "HOAN_THANH"
+    | "XAC_NHAN_NHAN"
+    | "DUYET_HOAN_THANH"
+    | "TU_CHOI_HOAN_THANH"
+    | "GIA_HAN";
   nguoi_thuc_hien_id?: string | null;
   trang_thai?: string | null;
   noi_dung?: string | null;

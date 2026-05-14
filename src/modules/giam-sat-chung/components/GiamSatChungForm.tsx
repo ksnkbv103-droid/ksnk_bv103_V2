@@ -8,6 +8,7 @@ import ChecklistItem from "./ChecklistItem";
 import type { ChecklistTemplate } from "@/types/giam-sat-chung";
 import GiamSatChungPrintView from "./GiamSatChungPrintView";
 import GiamSatChungFormActions from "./GiamSatChungFormActions";
+import { gscFormChrome } from "../lib/gsc-form-chrome";
 import { useGiamSatChungForm } from "../hooks/use-giam-sat-chung-form";
 import type { ChecklistResult } from "@/types/giam-sat-chung";
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
@@ -117,12 +118,10 @@ export default function GiamSatChungForm({
           })}
         </div>
 
-        <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <label className="text-[11px] font-semibold uppercase tracking-widest text-[var(--primary)]">
-            Nhận xét / Kiến nghị
-          </label>
+        <div className={`space-y-3 ${gscFormChrome.panelShell}`}>
+          <label className={gscFormChrome.labelBlockAccent}>Nhận xét / Kiến nghị</label>
           <textarea
-            className="min-h-[120px] w-full rounded-lg border border-slate-300 bg-white p-4 text-sm text-slate-700 outline-none transition-colors focus:border-[var(--primary)]"
+            className={gscFormChrome.textareaLarge}
             value={session.ghi_chu_chung}
             onChange={(e) => setSession({ ...session, ghi_chu_chung: e.target.value })}
           />

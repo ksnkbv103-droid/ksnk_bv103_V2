@@ -3,12 +3,8 @@
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import type { Station } from "../types/cssd.types";
-import { safeRevalidate, tableHasColumn } from "./cssd-action-common";
-import {
-  executeWorkflowStationScan,
-  fetchLatestActiveWorkflowByQr,
-  type WorkflowQuyTrinhInput,
-} from "../workflow/application/cssd-workflow-application";
+import { safeRevalidate } from "./cssd-action-common";
+import { executeWorkflowStationScan } from "../workflow/application/cssd-workflow-application";
 
 async function cssdScanOperatorLabel(): Promise<string> {
   try {
@@ -38,7 +34,7 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
   const operatorLabel = await cssdScanOperatorLabel();
 
   // 1. Thực hiện nghiệp vụ qua RPC tập trung (Atomicity & Speed)
-  const result = await executeWorkflowStationScan(supabase, {
+  await executeWorkflowStationScan(supabase, {
     maQR: code,
     station,
     quyTrinh: {} as any, // quyTrinh no longer needed for primary logic

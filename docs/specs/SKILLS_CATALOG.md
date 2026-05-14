@@ -12,7 +12,7 @@ Skill trong `.agents/skills/` **chỉ bổ trợ kỹ thuật**; không thay [`A
 |-------|--------|
 | [`smart-db-bv103`](../../.agents/skills/smart-db-bv103/SKILL.md) | Migration, RPC, index, batch, import nặng — kèm [`SMART_DB_PRAGMATIC_PLAYBOOK.md`](./SMART_DB_PRAGMATIC_PLAYBOOK.md) |
 | [`supabase`](../../.agents/skills/supabase/SKILL.md) | Auth, RLS, client SSR, migration, Storage |
-| [`react-dev`](../../.agents/skills/react-dev/SKILL.md) | React + TypeScript, component, hooks |
+| [`react-dev`](../../.agents/skills/react-dev/SKILL.md) | React + TypeScript, component, hooks; layout BV103 → [`BV103_LAYOUT_PRIMITIVES.md`](./working/BV103_LAYOUT_PRIMITIVES.md) |
 | [`reviewing-code`](../../.agents/skills/reviewing-code/SKILL.md) | Review PR / diff (PR lớn: chia nhỏ PR trước, hạn chế review song song tốn token) |
 
 ## Cài lại tạm khi thật cần

@@ -128,7 +128,7 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-[32px] w-full max-w-2xl overflow-hidden shadow-2xl premium-card animate-in zoom-in-95 duration-300">
+      <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl premium-card animate-in zoom-in-95 duration-300">
         <div className="bg-[#026f17] p-8 text-white">
           <h3 className="text-2xl font-black uppercase tracking-tight">
             {initialData?.id ? "Cập nhật Hồ sơ Nhân sự" : "Thêm Nhân sự mới"}

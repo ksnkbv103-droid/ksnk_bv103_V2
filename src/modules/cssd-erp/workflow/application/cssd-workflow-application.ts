@@ -1,9 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Station } from "../../types/cssd.types";
-import { lifecycleEventCodeForAdvance, previousWorkflowStation, validateStationAdvance } from "../domain/cssd-state-engine";
-import { assertLedgerDuChoCapPhat, syncThanhPhanTuTemplate } from "../../asset/domain/cssd-asset-ledger";
+import { previousWorkflowStation } from "../domain/cssd-state-engine";
 import { insertCssdLifecycleEvent } from "../../shared/application/cssd-lifecycle-events";
-import { assertMergeGateForCapPhat } from "./cssd-merge-gate";
 
 export type WorkflowQuyTrinhInput = {
   id: string;

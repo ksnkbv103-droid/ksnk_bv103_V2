@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import type { LucideIcon } from "lucide-react";
 import RBACPermissionCell from "../components/RBACPermissionCell";
-import { getModuleDisplayName } from "@/lib/permission-registry";
+import { getModuleDisplayName, MODULE_GROUPS, MODULE_TO_GROUP } from "@/lib/permission-registry";
 import {
   RBAC_MATRIX_ROLE_HEADER_LABEL,
   type RBACPermissionRow,
@@ -31,8 +31,6 @@ type Props = {
   onBulkSetAllForRole: (roleId: string, enable: boolean) => void;
 };
 
-import { MODULE_GROUPS, MODULE_TO_GROUP } from "@/lib/permission-registry";
-
 export function RBACMatrixDataGrid({
   roles,
   moduleNames,
@@ -43,6 +41,14 @@ export function RBACMatrixDataGrid({
   onBulkSetActionForRole,
   onBulkSetAllForRole,
 }: Props) {
+  const permLookup = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const p of permissions) {
+      m.set(`${p.module_name}::${p.action}`, p.id);
+    }
+    return m;
+  }, [permissions]);
+
   // Phân nhóm module
   const groupedModules = moduleNames.reduce((acc, mod) => {
     const groupKey = MODULE_TO_GROUP[mod] || "SYSTEM";
@@ -55,7 +61,7 @@ export function RBACMatrixDataGrid({
 
   return (
     <div className="overflow-hidden border border-slate-200 rounded-2xl bg-white shadow-sm">
-      <div className="custom-scrollbar max-h-[min(calc(100dvh-220px),720px)] overflow-auto overscroll-contain">
+      <div className="custom-scrollbar max-h-[min(calc(100dvh-13rem),720px)] overflow-auto overscroll-contain">
         <table className="w-full min-w-[720px] border-collapse">
           <thead className="sticky top-0 z-30 bg-slate-50 shadow-[0_1px_0_rgb(226_232_240)]">
             <tr className="border-b border-slate-200">
@@ -164,7 +170,7 @@ export function RBACMatrixDataGrid({
                         >
                           <RBACPermissionCell
                             actions={actions}
-                            permissions={permissions}
+                            permLookup={permLookup}
                             moduleName={moduleName}
                             roleName={role.name}
                             rolePerms={matrix[role.id]}

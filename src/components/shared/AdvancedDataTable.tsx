@@ -62,6 +62,11 @@ interface AdvancedDataTableProps<T> {
    * dưới lg vẫn hiển thị inline để không chật mobile.
    */
   searchPlacement?: "inline" | "header";
+  /**
+   * Ô tìm giãn theo chiều ngang vùng bảng (mặc định true — lịch sử phiên, danh sách rộng).
+   * Chỉ đặt `false` khi cần giới hạn chiều rộng trong layout chật (ví dụ panel phụ).
+   */
+  searchStretchToContainer?: boolean;
 }
 
 export default function AdvancedDataTable<T extends { id: string | number }>({
@@ -72,6 +77,7 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
   loading = false, enableMultiSelect = false, hideSearch = false,
   onDeleteSelected, onSearch, onSort, searchValue, rowClassName, serverPagination, tableClassName,
   searchPlacement = "inline",
+  searchStretchToContainer = true,
 }: AdvancedDataTableProps<T>) {
   const headerPortal = searchPlacement === "header";
   const isLgUp = useMinWidth(1024, false, headerPortal);
@@ -92,7 +98,10 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
     handleSearch: internalHandleSearch,
     handleSort: internalHandleSort,
     toggleSelectRow, toggleSelectAll,
-  } = useDataTable(data, searchableKeys);
+  } = useDataTable(data, searchableKeys, {
+    searchDebounceMs: onSearch || onSort ? 0 : 220,
+    skipFiltering: Boolean(onSearch),
+  });
 
   const displayData = (onSearch || onSort) ? data : internalProcessedData;
   const onSearchAction = onSearch || internalHandleSearch;
@@ -107,7 +116,13 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
       value={finalSearchTerm}
       onChange={onSearchAction}
       placeholder={searchPlaceholder}
-      className={useHeaderSearchPortal ? "w-full max-w-xl" : "min-w-0 flex-1 basis-[min(100%,14rem)] sm:max-w-md"}
+      className={
+        useHeaderSearchPortal
+          ? "min-w-0 w-full max-w-none"
+          : searchStretchToContainer
+            ? "min-w-0 w-full max-w-none grow basis-full sm:basis-0 sm:flex-1"
+            : "min-w-0 w-full max-w-none flex-1 basis-0 sm:max-w-2xl"
+      }
     />
   ) : null;
 
@@ -115,14 +130,14 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
     showInlineSearch || (selectedIds.size > 0 && (enableMultiSelect || bulkActions));
 
   return (
-    <div className="w-full space-y-3 animate-in fade-in duration-500">
+    <div className="w-full min-w-0 space-y-3 animate-in fade-in duration-500">
       {useHeaderSearchPortal && headerSlotEl && searchBarNode
         ? createPortal(searchBarNode, headerSlotEl)
         : null}
 
       {toolbarRowNeeded && (
         <div
-          className={`flex w-full flex-wrap items-center gap-2 no-print transition-all duration-300 ${
+          className={`flex w-full min-w-0 flex-wrap items-center gap-2 no-print transition-all duration-300 ${
             !showInlineSearch && selectedIds.size > 0 ? "justify-end" : ""
           }`}
         >
@@ -156,7 +171,7 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
       <div className="overflow-hidden rounded-[var(--radius-table)] bg-white ring-1 ring-slate-200/90">
         <div className="custom-scrollbar max-h-[min(520px,62dvh)] overflow-auto overscroll-contain">
           <table className={tableClassName ?? "w-full min-w-[640px] border-collapse text-left"}>
-            <thead className="sticky top-0 z-20 bg-slate-50/95 shadow-[0_1px_0_rgb(226_232_240/0.95)] backdrop-blur-sm">
+            <thead className="sticky top-0 z-20 bg-slate-50/95 shadow-[0_1px_0_rgb(226_232_240/0.95)]">
               <tr className="border-b border-slate-200/90">
                 {enableMultiSelect && (
                   <th className="p-4 w-12 text-center no-print">

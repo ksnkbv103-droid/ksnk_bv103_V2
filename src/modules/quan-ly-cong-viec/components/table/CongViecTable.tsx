@@ -3,8 +3,11 @@ import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { MoreHorizontal, Clock, AlertCircle, Eye, EyeOff, Printer, CheckCircle2 } from "lucide-react";
-import { updateCongViec, deleteCongViec } from "../../actions/cong-viec.actions";
+import { updateCongViec, deleteCongViec, xacNhanHoanThanh } from "../../actions/cong-viec.actions";
+import { pheDuyetDeXuat } from "../../actions/dexuat.actions";
+import { isChoNghiemThuHoanThanh } from "../../lib/qlcv-workflow-display";
 import { toast } from "sonner";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import CongViecPrintView from "../CongViecPrintView";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
@@ -53,14 +56,18 @@ export default function CongViecTable({ tasks, onEdit, loading, onRefresh, serve
   const [printingTask, setPrintingTask] = useState<any>(null);
 
   const handleQuickDone = async (task: any) => {
-    if (!confirm("Xác nhận hoàn thành công việc này?")) return;
+    const pseudo = {
+      trang_thai: String(task.trang_thai || task.ma_trang_thai || ""),
+      phan_tram_hoan_thanh: task.phan_tram_hoan_thanh ?? task.tien_do,
+    };
+    if (!isChoNghiemThuHoanThanh(pseudo)) {
+      toast.error("Chỉ nghiệm thu nhanh khi việc đang chờ xác nhận hoàn thành.");
+      return;
+    }
+    if (!confirm("Nghiệm thu và đóng công việc này?")) return;
     try {
-      await updateCongViec(task.id, {
-        tieu_de: String(task.ten_cong_viec ?? task.tieu_de ?? ""),
-        phan_tram_hoan_thanh: 100,
-        trang_thai: "HOAN_THANH",
-      });
-      toast.success("Đã hoàn thành công việc!");
+      await xacNhanHoanThanh(task.id);
+      toast.success("Đã nghiệm thu và đóng công việc!");
       onRefresh?.();
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Cập nhật thất bại");
@@ -68,13 +75,10 @@ export default function CongViecTable({ tasks, onEdit, loading, onRefresh, serve
   };
 
   const handleApprove = async (task: any) => {
-    if (!confirm("Phê duyệt và bắt đầu thực hiện công việc này?")) return;
+    if (!confirm("Phê duyệt đề xuất này (kích hoạt theo phân công hiện có)?")) return;
     try {
-      await updateCongViec(task.id, {
-        tieu_de: String(task.ten_cong_viec ?? task.tieu_de ?? ""),
-        trang_thai: "DANG_THUC_HIEN",
-      });
-      toast.success("Đã phê duyệt công việc!");
+      await pheDuyetDeXuat(task.id, true);
+      toast.success("Đã phê duyệt đề xuất!");
       onRefresh?.();
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Cập nhật thất bại");
@@ -107,8 +111,8 @@ export default function CongViecTable({ tasks, onEdit, loading, onRefresh, serve
       cell: (item: any) => !item ? null : (
         <div className="flex flex-col py-1 gap-2">
           <div className="flex items-center gap-2">
-            <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${item.ma_loai_cong_viec === 'MANG_LUOI' ? 'bg-indigo-50 text-indigo-500 border border-indigo-100' : 'bg-slate-50 text-slate-500 border border-slate-100'}`}>
-              {item.ma_loai_cong_viec === 'MANG_LUOI' ? 'Mạng lưới' : 'Nội bộ'}
+            <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-slate-50 text-slate-500 border border-slate-100">
+              Nội bộ Khoa
             </span>
             <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
               {item.ma_cong_viec || `#${item.id?.substring(0, 8)}`}
@@ -214,11 +218,15 @@ export default function CongViecTable({ tasks, onEdit, loading, onRefresh, serve
               <CheckCircle2 className="w-4 h-4" />
             </button>
           )}
-          {item.ma_trang_thai !== "HOAN_THANH" && item.ma_trang_thai !== "DE_XUAT_CHO_DUYET" && (
+          {(item.ma_trang_thai === "CHO_XAC_NHAN_HOAN_THANH" ||
+            isChoNghiemThuHoanThanh({
+              trang_thai: item.ma_trang_thai || item.trang_thai,
+              phan_tram_hoan_thanh: item.phan_tram_hoan_thanh ?? item.tien_do,
+            })) && (
             <button
               onClick={() => handleQuickDone(item)}
               className="p-2 hover:bg-green-50 text-green-500 rounded-full transition-colors"
-              title="Xong nhanh"
+              title="Nghiệm thu nhanh"
             >
               <CheckCircle2 className="w-4 h-4" />
             </button>
@@ -250,7 +258,7 @@ export default function CongViecTable({ tasks, onEdit, loading, onRefresh, serve
   ];
 
   return (
-    <div className="premium-card glass-panel p-0 border-none shadow-xl rounded-[32px] overflow-hidden">
+    <div className={`${bv103LayoutChrome.panelSurface} overflow-hidden p-0`}>
       {printingTask && <CongViecPrintView task={printingTask} />}
       <div className="print:hidden">
         <AdvancedDataTable

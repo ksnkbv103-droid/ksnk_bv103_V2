@@ -1,7 +1,7 @@
 # KSNK 103 — AGENTS.md (V8 · tối giản)
 
 > BV103 — Khoa Kiểm soát nhiễm khuẩn · Quân y 103  
-> **Chuẩn cao nhất trong repo.** Cập nhật: 13/05/2026.
+> **Chuẩn cao nhất trong repo.** Cập nhật: 14/05/2026.
 
 ## Ưu tiên sản phẩm (1 câu)
 
@@ -28,6 +28,7 @@
 | Index spec | [`docs/specs/README.md`](docs/specs/README.md) |
 | Admin client audit | [`docs/specs/working/SUPABASE_ADMIN_CLIENT_AUDIT_BV103.md`](docs/specs/working/SUPABASE_ADMIN_CLIENT_AUDIT_BV103.md) |
 | **Deploy pilot 4 module** (Quản trị, GSC, VST, Dashboard) | [`docs/specs/working/DEPLOY_FOUR_MODULES_BV103.md`](docs/specs/working/DEPLOY_FOUR_MODULES_BV103.md) |
+| **Layout shell & primitive UI** (đồng bộ form/panel, module mới) | [`docs/specs/working/BV103_LAYOUT_PRIMITIVES.md`](docs/specs/working/BV103_LAYOUT_PRIMITIVES.md) |
 
 ## Tiết kiệm token & quota (agent + người vận hành)
 
@@ -54,7 +55,22 @@
 - **Đặt tên:** FK `*_id`, mã `ma_*`, tên `ten_*`, `is_active`, `created_at` / `updated_at`.  
 - **Luồng:** `UI → Action → DB → Báo cáo`. Không tính năng ngoài yêu cầu rõ ràng.
 
-## Vòng chất lượng ngắn
+## Cấu trúc file trong module (bảo dưỡng, tránh manh mún)
+
+- **Khung chuẩn BV103:** mỗi bounded context trong [`src/modules/<ten>/`](src/modules) với `actions/`, `components/`, `hooks/`, `lib/`, `types/` (đã dùng ở QLCV, GSC, VST, …). Logic nghiệp vụ **không** nhét dài vào `page.tsx` nếu đã có chỗ trong module.
+- **Một trách nhiệm / một lớp:** *trách nhiệm* = một lý do đổi code (ví dụ chỉ quyền & cổng QLCV → `lib/qlcv-access.ts`). *Lớp* = **UI** (điều hướng, hiển thị, gọi action) tách khỏi **policy thuần** (`lib/`) và **I/O + gate** (`actions/` + `verifyPermission`).
+- **Tên rõ:** ưu tiên hậu tố/tiền tố theo vai trò: `*-access.ts`, `*-workflow*.ts`, `*-validations.ts` — tránh `utils.ts` / `helpers.ts` chung chung.
+- **Ít nhánh:** ưu tiên hàm thuần / bảng trạng thái thay vì `if` lồng nhau trong component; điều kiện phức tạp đưa xuống `lib/` có kiểu rõ.
+- **Test được:** phần **thuần** (không gọi DB) đặt trong `lib/` để test đơn vị; Server Action mỏng: xác thực quyền → gọi `lib/` → Supabase.
+- **Không tách “vì sợ file dài”:** tránh file 10–20 dòng chỉ bọc một lần gọi. Chỉ tách component/panel khi **lặp**, **khó đọc** (ví dụ page ~400+ dòng với nhiều khối độc lập), hoặc **test/review** thực sự khó — tách cùng thư mục module (`XxxHeader.tsx`, `XxxTablePanel.tsx`).
+- **Agent:** khi sửa một luồng, ưu tiên **`lib/` + `actions/`** trong đúng module; không refactor rộng ngoài phạm vi diff nếu [`READ_MINIMUM_BY_CHANGE.md`](docs/specs/READ_MINIMUM_BY_CHANGE.md) không yêu cầu.
+
+## Layout UI — shell, primitive, tránh “card lồng card”
+
+- **Shell:** khối bọc ngoài (nền + viền + bo + shadow + padding); **nội dung** nằm bên trong — tách ranh giới thị giác khỏi logic hook.  
+- **Đồng bộ:** token toàn app trong `globals.css`; **class lặp theo module** gom vào `lib/<module>-*-chrome.ts` (hoặc primitive trong `components/shared/` khi ≥3 module dùng chung) — chi tiết và lộ trình: [`BV103_LAYOUT_PRIMITIVES.md`](docs/specs/working/BV103_LAYOUT_PRIMITIVES.md).  
+- **Layer:** ưu tiên **1–2 tầng nâng** cho vùng nội dung chính; không chồng border + ring + shadow chỉ để “tách bạch” nếu không mang lại hierarchy rõ.  
+- **SSOT class:** [`src/lib/bv103-layout-chrome.ts`](src/lib/bv103-layout-chrome.ts); gợi ý drift: `npm run layout:drift-check`.
 
 - **Detect → Model → Fix → Verify** — xem [`LEAN_EXECUTION_BV103.md`](docs/specs/working/LEAN_EXECUTION_BV103.md).  
 - **Trước khi xong** task đụng Server Action / `fact_*`: `npm run verify:engineering` (hoặc `verify:full` trước push).

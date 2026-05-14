@@ -45,6 +45,7 @@
     "engineering:contract:gate": "node scripts/engineering-contract-gate.mjs",
     "engineering:contract:gate:strict": "ENGINEERING_GATE_STRICT=1 node scripts/engineering-contract-gate.mjs",
     "verify:engineering": "npm run engineering:baseline && npm run engineering:contract:gate",
+    "layout:drift-check": "node scripts/check-layout-drift.mjs",
     "brand:logo-circular-alpha": "node scripts/brand-circular-alpha-logo.mjs",
     "vst:moment-rpc:linked": "npx supabase db query --linked --agent=no -f supabase/migrations/20260511112_rpc_get_vst_moment_table_hanh_dong_normalize.sql -o table",
     "ops:dashboard-sql:linked": "npx supabase db query --linked --agent=no -f supabase/migrations/20260511113_compliance_multi_always_return_checklist.sql -o table && npx supabase db query --linked --agent=no -f supabase/migrations/20260511112_rpc_get_vst_moment_table_hanh_dong_normalize.sql -o table",

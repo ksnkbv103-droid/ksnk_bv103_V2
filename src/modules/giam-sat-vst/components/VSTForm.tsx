@@ -198,7 +198,7 @@ export default function VSTForm({
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid min-h-0 grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 xl:items-start [&>_*]:min-h-0">
           {persons.map((p, idx) => (
             <VSTPersonColumn 
               key={p.id_col}

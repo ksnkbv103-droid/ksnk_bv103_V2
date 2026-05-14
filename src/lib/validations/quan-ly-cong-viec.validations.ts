@@ -1,22 +1,48 @@
 import { z } from "zod";
 
+/** Form / client hay gửi `""` thay vì `null` — Postgres UUID / optional FK cần null. */
+function qlcvEmptyToNull(v: unknown): unknown {
+  if (v === undefined) return undefined;
+  if (v === null) return null;
+  if (typeof v === "string" && v.trim() === "") return null;
+  return v;
+}
+
+const optionalUuid = (field: string) =>
+  z.preprocess(
+    qlcvEmptyToNull,
+    z.union([z.string().uuid(`${field} không hợp lệ`), z.null()]).optional(),
+  );
+
 /**
  * Zod Schema cho Quản lý công việc v2.2
  * Khớp 100% với DB: fact_cong_viec (migration 20260510002 + 003)
  */
+/** Trạng thái công việc nội bộ KSNK (máy trạng thái + ba cổng) */
+export const CONG_VIEC_TRANG_THAI = [
+  "DE_XUAT_CHO_DUYET",
+  "CHO_NHAN_VIEC",
+  "CHUA_BAT_DAU",
+  "DANG_THUC_HIEN",
+  "CHO_XAC_NHAN_HOAN_THANH",
+  "HOAN_THANH",
+  "QUA_HAN",
+  "DA_HUY",
+] as const;
+export type CongViecTrangThai = (typeof CONG_VIEC_TRANG_THAI)[number];
+
 export const congViecSchema = z.object({
-  tieu_de: z.string().min(1, "Tiêu đề không được để trống"),
-  mo_ta: z.string().optional().nullable(),
-  loai_pham_vi: z.enum(["NOI_BO", "MANG_LUOI"]).default("NOI_BO"),
+  tieu_de: z.string().trim().min(1, "Tiêu đề không được để trống"),
+  mo_ta: z.preprocess(qlcvEmptyToNull, z.union([z.string(), z.null()]).optional()),
   loai_cong_viec: z.enum(["DINH_KY", "DOT_XUAT", "KHAN_CAP"]).default("DOT_XUAT"),
   muc_do_uu_tien: z.enum(["THAP", "TRUNG_BINH", "CAO"]).default("TRUNG_BINH"),
 
-  nguoi_phu_trach_id: z.string().uuid("Người phụ trách không hợp lệ").optional().nullable(),
-  khoa_thuc_hien_id: z.string().uuid("Khoa thực hiện không hợp lệ").optional().nullable(),
-  to_cong_tac_id: z.string().uuid("Tổ công tác không hợp lệ").optional().nullable(),
+  nguoi_phu_trach_id: optionalUuid("Người phụ trách"),
+  khoa_thuc_hien_id: optionalUuid("Khoa thực hiện"),
+  to_cong_tac_id: optionalUuid("Tổ công tác"),
 
-  han_hoan_thanh: z.string().optional().nullable(),
-  cong_viec_cha_id: z.string().uuid().optional().nullable(),
+  han_hoan_thanh: z.preprocess(qlcvEmptyToNull, z.union([z.string().min(1), z.null()]).optional()),
+  cong_viec_cha_id: optionalUuid("Công việc cha"),
 });
 
 export type CongViecInput = z.infer<typeof congViecSchema>;

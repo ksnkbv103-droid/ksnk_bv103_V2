@@ -6,6 +6,7 @@ import BangKiemTable from "../components/BangKiemTable";
 import TieuChiTable from "../components/TieuChiTable";
 import type { DanhMucBangKiem } from "../bang-kiem.types";
 import { usePermission } from "@/hooks/usePermission";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 export default function BangKiemView() {
   const { loading, canView, canCreate, canEdit, canDelete, canImport } = usePermission();
@@ -34,7 +35,9 @@ export default function BangKiemView() {
   }
   if (!bk.view) {
     return (
-      <div className="mx-auto max-w-xl rounded-3xl border border-slate-200 bg-white p-10 text-center font-black uppercase tracking-widest text-slate-400">
+      <div
+        className={`mx-auto max-w-xl p-10 text-center font-black uppercase tracking-widest text-slate-400 ${bv103LayoutChrome.panelSurface}`}
+      >
         Bạn không có quyền truy cập Danh mục Bảng kiểm
       </div>
     );
@@ -85,7 +88,9 @@ export default function BangKiemView() {
                 }}
               />
             ) : (
-              <div className="h-full min-h-[400px] bg-white rounded-[40px] border border-amber-100 flex flex-col items-center justify-center text-slate-500 gap-4 px-8 text-center">
+              <div
+                className={`flex h-full min-h-[400px] flex-col items-center justify-center gap-4 border border-amber-100/90 px-8 text-center text-slate-500 ${bv103LayoutChrome.panelSurface}`}
+              >
                 <p className="text-[11px] font-black uppercase tracking-widest text-amber-700">Không có quyền xem Tiêu chí</p>
                 <p className="text-[10px] font-bold text-slate-400 max-w-sm leading-relaxed">
                   Bạn được xem danh mục bảng kiểm nhưng chưa được cấp quyền module Tiêu chí bảng kiểm (BANG_KIEM_DETAIL). Liên hệ quản trị để được cấp quyền VIEW.
@@ -93,7 +98,9 @@ export default function BangKiemView() {
               </div>
             )
           ) : (
-            <div className="h-full min-h-[400px] bg-white rounded-[40px] border-4 border-dashed border-slate-100 flex flex-col items-center justify-center text-slate-300 gap-6 shadow-sm">
+            <div
+              className={`flex h-full min-h-[400px] flex-col items-center justify-center gap-6 border-2 border-dashed border-slate-200/80 text-slate-300 ${bv103LayoutChrome.panelSurface}`}
+            >
               <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center text-5xl">📋</div>
               <div className="text-center space-y-2 px-10">
                 <p className="text-[12px] font-black uppercase tracking-[0.2em] text-slate-400">Layer Tiêu Chí</p>

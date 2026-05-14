@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Check, X, AlertCircle, User, Globe, Calendar, Edit3 } from "lucide-react";
+import { Check, X, AlertCircle, User, Calendar, Edit3 } from "lucide-react";
 import { getPendingDeXuat, pheDuyetDeXuat } from "../actions/dexuat.actions";
 import { 
   Dialog, 
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { CongViecForm } from "./CongViecForm";
 
-export function DeXuatApprovalList() {
+export function DeXuatApprovalList({ onApproved }: { onApproved?: () => void }) {
   const [deXuatList, setDeXuatList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -40,7 +40,8 @@ export function DeXuatApprovalList() {
     try {
       await pheDuyetDeXuat(id, false, "Không phù hợp với kế hoạch hiện tại");
       toast.success("Đã từ chối đề xuất.");
-      fetchDeXuat();
+      await fetchDeXuat();
+      onApproved?.();
     } catch (error: any) {
       toast.error(error.message || "Lỗi khi từ chối");
     } finally {
@@ -51,14 +52,14 @@ export function DeXuatApprovalList() {
   if (loading) return (
     <div className="space-y-4">
       {[1, 2].map(i => (
-        <div key={i} className="h-40 bg-slate-50 animate-pulse rounded-[2.5rem] border border-slate-100" />
+        <div key={i} className="h-40 animate-pulse rounded-2xl border border-slate-100 bg-slate-50" />
       ))}
     </div>
   );
 
   if (deXuatList.length === 0) {
     return (
-      <div className="bg-white p-20 rounded-[3rem] border-2 border-dashed border-slate-100 text-center animate-in fade-in duration-700">
+      <div className="animate-in fade-in rounded-2xl border-2 border-dashed border-slate-100 bg-white p-20 text-center duration-700">
         <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
           <Check size={32} />
         </div>
@@ -79,19 +80,16 @@ export function DeXuatApprovalList() {
 
       <div className="grid grid-cols-1 gap-4">
         {deXuatList.map((item) => (
-          <div key={item.id} className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
-            <div className="absolute left-0 top-0 bottom-0 w-2 bg-amber-400 opacity-50" />
+          <div key={item.id} className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-400/80" />
             
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pl-3">
               <div className="flex-1 space-y-4">
                 <div>
                   <h4 className="text-lg font-black text-slate-800 leading-tight">{item.tieu_de}</h4>
-                  <div className="flex flex-wrap gap-4 mt-2">
+                  <div className="mt-2 flex flex-wrap gap-4">
                     <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                       <User size={12} className="text-[#026f17]" /> Người đề xuất: {item.nguoi_tao_ten}
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      <Globe size={12} className="text-blue-500" /> {item.loai_pham_vi === "NOI_BO" ? "Nội bộ Khoa" : "Mạng lưới"}
                     </div>
                     <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                       <Calendar size={12} className="text-amber-500" /> {new Date(item.created_at).toLocaleDateString("vi-VN")}
@@ -106,7 +104,7 @@ export function DeXuatApprovalList() {
                 <button
                   disabled={!!processingId}
                   onClick={() => handleReject(item.id)}
-                  className="h-12 w-12 rounded-2xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center disabled:opacity-50"
+                  className="bv103-control-h flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition-colors hover:bg-red-600 hover:text-white disabled:opacity-50"
                   title="Từ chối đề xuất"
                 >
                   <X size={20} />
@@ -114,7 +112,7 @@ export function DeXuatApprovalList() {
                 <button
                   disabled={!!processingId}
                   onClick={() => setSelectedDeXuat(item)}
-                  className="h-12 px-8 rounded-2xl bg-[#026f17] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[#026f17]/20 hover:scale-[1.05] active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50"
+                  className="bv103-control-h inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#026f17] px-6 text-[10px] font-black uppercase tracking-widest text-white shadow-sm transition-colors hover:bg-[#015a12] disabled:opacity-50"
                 >
                   <Edit3 size={16} /> Xem xét & Giao việc
                 </button>
@@ -125,8 +123,9 @@ export function DeXuatApprovalList() {
       </div>
 
       {/* Dialog xem xét và phê duyệt (Chuyển thành giao việc) */}
-      <Dialog open={!!selectedDeXuat} onOpenChange={(open) => !open && setSelectedDeXuat(null)}>
-        <DialogContent className="max-w-4xl bg-slate-50 rounded-[3rem] p-8 border-white">
+      {/* modal={false}: cho phép tương tác SearchableSelect (portal) trong Dialog */}
+      <Dialog modal={false} open={!!selectedDeXuat} onOpenChange={(open) => !open && setSelectedDeXuat(null)}>
+        <DialogContent className="max-w-4xl rounded-xl border border-slate-200 bg-slate-50 p-6 shadow-xl">
           <DialogHeader className="mb-6">
             <DialogTitle className="text-xl font-black text-slate-800 uppercase tracking-tight text-center">Rà soát & Phê duyệt đề xuất</DialogTitle>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mt-2">
@@ -137,10 +136,11 @@ export function DeXuatApprovalList() {
           {selectedDeXuat && (
             <CongViecForm 
               initialData={selectedDeXuat}
-              onSuccess={() => {
+              onSuccess={async () => {
                 toast.success("Đã phê duyệt và kích hoạt công việc thành công!");
                 setSelectedDeXuat(null);
-                fetchDeXuat();
+                await fetchDeXuat();
+                onApproved?.();
               }}
               onCancel={() => setSelectedDeXuat(null)}
             />

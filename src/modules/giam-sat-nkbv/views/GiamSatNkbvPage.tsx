@@ -27,9 +27,14 @@ import {
   updateGiamSatNkbvCa,
 } from "../actions/giam-sat-nkbv.actions";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
+import dynamic from "next/dynamic";
 import NkbvCaseEditor, { type NkbvCaseLike } from "../components/NkbvCaseEditor";
-import NkbvDashboardPanel from "../components/NkbvDashboardPanel";
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
+
+const NkbvDashboardPanel = dynamic(() => import("../components/NkbvDashboardPanel"), {
+  ssr: false,
+  loading: () => <div className="h-56 animate-pulse rounded-2xl border border-slate-200 bg-slate-50/90" />,
+});
 
 const MODULE_KEY = "GIAM_SAT_NKBV";
 
@@ -276,7 +281,6 @@ export default function GiamSatNkbvPage() {
       <KsnkSupervisionHero
         eyebrow="Giai đoạn 3 — MVP"
         title="Giám sát Nhiễm khuẩn BV (NKBV)"
-        description="Ghi nhận ca HAI thủ công: loại nhiễm, trạng thái xử lý, trích yếu lâm sàng. Chuẩn bị cho tích hợp HIS / Rules CDC sau."
         trailing={
           <KsnkSupervisionTabList
             tabs={supervisionTabs}

@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { Download, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -9,9 +10,13 @@ import { useModulePermission } from "@/hooks/useModulePermission";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { useImportExport } from "@/hooks/useImportExport";
 import ReportFilters from "../components/report/ReportFilters";
-import ReportCharts from "../components/report/ReportCharts";
 import ReportDashboard from "../components/report/ReportDashboard";
 import CSSDPageShell from "../components/layout/cssd-page-shell";
+
+const ReportCharts = dynamic(() => import("../components/report/ReportCharts"), {
+  ssr: false,
+  loading: () => <div className="h-72 animate-pulse rounded-xl border border-slate-200 bg-slate-50" />,
+});
 
 const STATIONS = ['TIEP_NHAN', 'LAM_SACH', 'QC', 'DONG_GOI', 'TIET_KHUAN', 'CAP_PHAT'];
 

@@ -55,8 +55,11 @@
 
 | Spec term | Module | Bảng / thực thể thật | Ghi chú |
 |-----------|--------|---------------------|---------|
-| `TaskScope` INTERNAL / NETWORK | `quan-ly-cong-viec` | **`cong_viec.loai_cong_viec`** (`NOI_BO` ≈ nội bộ, `MANG_LUOI` ≈ mạng lưới) | Spec `fact_tasks.task_scope` — mapping khái niệm; bảng thật là **`cong_viec`**. |
-| `Task` lifecycle | `quan-ly-cong-viec` | `cong_viec.trang_thai`, `tien_do`, … | Không dùng enum TODO/IN_PROGRESS của spec nguyên bản; đối chiếu `cong-viec-read.actions.ts`. |
+| `TaskScope` nội bộ Khoa | `quan-ly-cong-viec` | **Phạm vi cố định nội bộ KSNK** (không còn cột `loai_pham_vi` trên `fact_cong_viec`; đã drop `20260715001_qlcv_drop_loai_pham_vi_spawn_fn_and_file.sql`) | Trước đó: backfill `MANG_LUOI`→`NOI_BO` (`20260513207_qlcv_noi_bo_workflow_dinh_ky.sql`). |
+| Ba cổng (phê đề xuất / nhận việc / nghiệm thu xong) | `quan-ly-cong-viec` | **`fact_cong_viec.trang_thai`**: `DE_XUAT_CHO_DUYET`, `CHO_NHAN_VIEC`, `CHUA_BAT_DAU`, `DANG_THUC_HIEN`, `CHO_XAC_NHAN_HOAN_THANH`, `HOAN_THANH`, … | Timeline **`fact_cong_viec_hoat_dong`** mở rộng loại: `XAC_NHAN_NHAN`, `DUYET_HOAN_THANH`, `TU_CHOI_HOAN_THANH`, `GIA_HAN`. |
+| Người giao (RACI) | `quan-ly-cong-viec` | **`fact_cong_viec.nguoi_giao_viec_id`** → `mdm_nhan_su` | Ghi khi phê duyệt đề xuất / tạo việc trực tiếp. |
+| Việc định kỳ (mẫu → instance) | `quan-ly-cong-viec` | **`public.fact_cong_viec_dinh_ky`**; instance có **`fact_cong_viec.dinh_ky_mau_id`** | RPC idempotent: **`public.fn_fact_cong_viec_spawn_dinh_ky_hom_nay()`** (`20260513207_qlcv_noi_bo_workflow_dinh_ky.sql`). |
+| `Task` lifecycle (legacy naming trong spec) | `quan-ly-cong-viec` | `fact_cong_viec` (view list **`v_fact_cong_viec_full`** khi schema v2.1) | Không dùng enum TODO/IN_PROGRESS của spec nguyên bản; đối chiếu actions trong `quan-ly-cong-viec/actions/`. |
 
 ---
 
@@ -89,6 +92,8 @@
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-07-15 | **QLCV:** bỏ cột `loai_pham_vi` trên `fact_cong_viec`, cập nhật `fn_fact_cong_viec_spawn_dinh_ky_hom_nay` + view liên quan; drop bảng `fact_cong_viec_file` (`20260715001_qlcv_drop_loai_pham_vi_spawn_fn_and_file.sql`). |
+| 2026-05-13 | **QLCV nội bộ KSNK:** `fact_cong_viec` — backfill `MANG_LUOI`→`NOI_BO`, thêm `nguoi_giao_viec_id`, `dinh_ky_mau_id`, mở rộng `trang_thai` + `fact_cong_viec_hoat_dong`; bảng **`fact_cong_viec_dinh_ky`** + RPC **`fn_fact_cong_viec_spawn_dinh_ky_hom_nay()`** (`20260513207_qlcv_noi_bo_workflow_dinh_ky.sql`). |
 | 2026-06-07 | **Kho hóa chất/vật tư KSNK:** `fact_kho_hoa_chat_giao_dich` (NHAP/XUAT/DIEU_CHINH có dấu) + tồn lô tính trực tiếp từ ledger; `dm_hoa_chat.nguong_ton_toi_thieu`; module **`KSNK_KHO_HOACHAT`**, trang **`/cssd-erp/kho-hoa-chat`** (`20260607002_fact_kho_hoa_chat_ksnk.sql`). |
 | 2026-06-07 | **Phiếu bảo trì thiết bị CSSD:** bảng **`fact_bao_tri_thiet_bi`**; đồng bộ **`dm_thiet_bi`** (REPAIRING khi đang bảo trì, READY khi xong/hủy); cập nhật ngày bảo trì sau hoàn thành; chặn tạo mẻ TK / thêm bộ vào mẻ khi máy không READY (`20260607001_fact_bao_tri_thiet_bi.sql`). |
 | 2026-06-06 | **CSSD workflow tái cấu trúc:** `fact_cssd_lifecycle_event`, `fact_quy_trinh_thanh_phan`, cột `fact_quy_trinh.is_dong_bang`, `quy_trinh_cha_id`, `ma_vai_tro_bo`; domino rollback sự cố + QC mẻ không đạt; merge gate cấp phát SUB; SSOT domain `cssd-state-engine` / `cssd-incident-policy` (`20260606001_cssd_workflow_lifecycle_asset.sql`). Checklist tay: [`CSSD_REFACTOR_VERIFY_CHECKLIST.md`](./working/CSSD_REFACTOR_VERIFY_CHECKLIST.md). |

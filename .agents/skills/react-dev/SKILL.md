@@ -21,6 +21,12 @@ NOT for: non-React TypeScript, vanilla JS React
 
 </when_to_use>
 
+## BV103 — layout shell & primitive (khi sửa UI module)
+
+- **Shell:** wrapper ngoài (border, radius, shadow, padding); nội dung bên trong — đừng nhân đôi logic hook với chuỗi class dài trên mọi component.
+- **Đồng bộ:** token + [`bv103-layout-chrome.ts`](../../src/lib/bv103-layout-chrome.ts) + `npm run layout:drift-check` khi refactor layout; chi tiết [`BV103_LAYOUT_PRIMITIVES.md`](../../docs/specs/working/BV103_LAYOUT_PRIMITIVES.md).
+- **Layer:** hạn chế nhiều card lồng + ring + shadow cùng mục đích; 1–2 tầng nâng cho vùng chính là đủ trừ khi có lý do hierarchy.
+
 <react_19_changes>
 
 React 19 breaking changes require migration. Key patterns:

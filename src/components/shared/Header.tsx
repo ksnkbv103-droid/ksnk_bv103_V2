@@ -75,7 +75,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         */}
         <div
           id="bv103-header-toolbar-slot"
-          className="hidden min-h-[var(--bv103-control-h)] w-full min-w-0 max-w-xl shrink-0 lg:flex lg:items-center"
+          className="hidden min-h-[var(--bv103-control-h)] min-w-0 flex-1 basis-0 justify-end lg:flex lg:max-w-[min(100%,48rem)] lg:items-center"
           aria-live="polite"
         />
       </div>
