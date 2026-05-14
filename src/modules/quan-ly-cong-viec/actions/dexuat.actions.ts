@@ -4,7 +4,6 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { verifyPermission } from "@/lib/server-permission";
-import { QLCV_FACT_CONG_VIEC_INSERT_LOAI_PHAM_VI } from "../lib/qlcv-fact-cong-viec-insert-scope";
 import { congViecSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
 
 interface CreateDeXuatInput {
@@ -36,7 +35,6 @@ export async function createDeXuat(input: CreateDeXuatInput) {
   const { data, error } = await supabase
     .from("fact_cong_viec")
     .insert({
-      ...QLCV_FACT_CONG_VIEC_INSERT_LOAI_PHAM_VI,
       tieu_de: tieuDe,
       mo_ta: moTaRaw === "" ? null : moTaRaw,
       loai_cong_viec: input.loai_cong_viec || "DOT_XUAT",

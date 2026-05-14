@@ -11,7 +11,6 @@ import { congViecSchema, type CongViecInput } from "@/lib/validations/quan-ly-co
 import { assigneeBlockedFromTaskCrud, creatorMayDeleteOwnTask } from "../lib/qlcv-access";
 import { QLCV_ROOT_TASK_LIST_MAX } from "../lib/qlcv-query-limits";
 import { QLCV_ROOT_TASK_VIEW_SELECT } from "../lib/qlcv-root-list-select";
-import { QLCV_FACT_CONG_VIEC_INSERT_LOAI_PHAM_VI } from "../lib/qlcv-fact-cong-viec-insert-scope";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getPendingDeXuat } from "./dexuat.actions";
 
@@ -48,7 +47,6 @@ export async function createCongViec(input: CongViecInput) {
   const { data, error } = await supabase
     .from("fact_cong_viec")
     .insert({
-      ...QLCV_FACT_CONG_VIEC_INSERT_LOAI_PHAM_VI,
       tieu_de: payload.tieu_de,
       mo_ta: payload.mo_ta,
       loai_cong_viec: payload.loai_cong_viec,
