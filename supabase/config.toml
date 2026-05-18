@@ -1,0 +1,29 @@
+# supabase/config.toml
+# Production-ready Supabase CLI configuration for KSNK BV103 (ksnk-bv103-prod)
+# Added to resolve CLI linking and db push issues for production.
+# Date: 2026-05-19
+
+[api]
+enabled = true
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = false
+
+[auth]
+enabled = true
+# site_url and additional_redirect_urls should be set in Supabase Dashboard
+# or via environment for your production Vercel URL (e.g. https://ksnk-bv103.vercel.app)
+
+[storage]
+enabled = true
+
+# IMPORTANT:
+# 1. Run `supabase login` and `supabase link --project-ref <PROD_PROJECT_REF>` for prod.
+# 2. Use `SUPABASE_SERVICE_ROLE_KEY` from prod project in your prod .env.
+# 3. Migrations in supabase/migrations/ include RLS, RPCs, views for VST/GSC/Dashboard/QLCV/CSS D.
+# 4. After linking, use `npm run mdm:migrate` or `supabase db push`.
+# 5. For safety on prod, prefer `supabase db diff` first to see pending changes.
