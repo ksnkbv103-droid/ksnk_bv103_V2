@@ -1,7 +1,8 @@
-# Gate: ESLint (full + CSSD architecture) + Vitest + engineering contract + production build.
-# E2E Playwright: chạy khi có secrets E2E_USER_* (optional job).
-# MDM post-migration: `npm run verify:mdm:post-migration` (local/linked, không trên PR mặc định).
-name: CI
+# Enhanced CI Pipeline - Security, Quality & Engineering Gates (2025-2026 standards)
+# Compliant with ADR-001: Security & CI Enhancement
+# Includes: Secret scanning, Dependency audit, stricter quality gates
+
+name: CI - Security + Quality + Build
 
 on:
   push:
@@ -9,8 +10,29 @@ on:
   pull_request:
     branches: [main, master, develop]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Secret Scanning (GitHub + custom)
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+
+      - name: NPM Audit (Security)
+        run: npm audit --audit-level=high --production
+        continue-on-error: false
+
   verify:
+    needs: security
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
@@ -24,17 +46,26 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm ci
-      - run: node scripts/guard-legacy-table-names.mjs
-      - run: npm run lint
-      - run: npm run lint:cssd-architecture
-      - run: npm run test:cssd
-      - run: npm run test:pilot
-      - run: npm run verify:engineering
-      - run: npm run build
+      
+      - name: Guard Legacy Table Names
+        run: node scripts/guard-legacy-table-names.mjs
+      
+      - name: Lint (ESLint + CSSD Architecture)
+        run: npm run lint && npm run lint:cssd-architecture
+      
+      - name: Test (CSSD + Pilot)
+        run: npm run test:cssd && npm run test:pilot
+      
+      - name: Engineering Contract Verify
+        run: npm run verify:engineering
+      
+      - name: Production Build
+        run: npm run build
 
   e2e:
     runs-on: ubuntu-latest
     continue-on-error: true
+    needs: verify
     env:
       E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
       E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
