@@ -97,7 +97,9 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
             <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-emerald-800">Đang lọc</span>
           ) : null}
         </button>
-        <p className="text-[11px] text-slate-500">Khối, khoa, đối tượng, khu vực — dùng khi cần thu hẹp sâu hơn.</p>
+        <p className="text-[11px] text-slate-500">
+          Khối, khoa, đối tượng, khu vực — áp dụng sau khi bấm Cập nhật hoặc ~0,4s khi đổi lọc.
+        </p>
       </div>
 
       {showAdvanced ? (

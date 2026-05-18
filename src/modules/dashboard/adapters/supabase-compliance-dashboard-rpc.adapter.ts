@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { useComplianceDashboardMultiV2 } from "@/lib/bv103-feature-config";
+import { isComplianceDashboardMultiV2Enabled } from "@/lib/bv103-feature-config";
 import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
 import type {
   ComplianceMultiRpcParams,
@@ -20,7 +20,7 @@ type RpcRow = {
 export function createSupabaseComplianceDashboardRpcAdapter(
   supabase: SupabaseClient,
 ): IComplianceDashboardRpcPort {
-  const rpcName = useComplianceDashboardMultiV2()
+  const rpcName = isComplianceDashboardMultiV2Enabled()
     ? "rpc_get_compliance_dashboard_multi_v2"
     : "rpc_get_compliance_dashboard_multi_v1";
 

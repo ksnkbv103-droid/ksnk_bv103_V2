@@ -114,7 +114,24 @@ export async function resolveSupervisorPolicy(params: ResolveSupervisorPolicyPar
   const isNetworkAtSelectedKhoa = Boolean(
     isNetworkRole && selectedKhoaId && String(profile.khoa_id || "") === String(selectedKhoaId),
   );
-  const derivedHinhThuc = isNetworkAtSelectedKhoa ? HINH_THUC_TU_GIAM_SAT : HINH_THUC_CHUYEN_TRACH;
+  const crossKhoa = Boolean(
+    selectedKhoaId &&
+      profile.khoa_id &&
+      String(profile.khoa_id) !== String(selectedKhoaId),
+  );
+
+  let derivedHinhThuc: string;
+  if (isNetworkAtSelectedKhoa) {
+    derivedHinhThuc = HINH_THUC_TU_GIAM_SAT;
+  } else if (isKsnkDept) {
+    // Nhân sự KSNK giám sát (kể cả tại khoa khác) = chuyên trách.
+    derivedHinhThuc = HINH_THUC_CHUYEN_TRACH;
+  } else if (crossKhoa) {
+    // Giám sát viên thuộc khoa khác khoa được giám sát = chéo.
+    derivedHinhThuc = HINH_THUC_GIAM_SAT_CHEO;
+  } else {
+    derivedHinhThuc = HINH_THUC_CHUYEN_TRACH;
+  }
 
   return {
     profile,

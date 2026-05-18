@@ -6,6 +6,11 @@ import { Users, Eye, ClipboardList, Filter, LayoutDashboard, FileBarChart } from
 import { useDashboardData } from "@/modules/dashboard/hooks/useDashboardData";
 import { buildEmptyComplianceDashboardPayload } from "@/modules/dashboard/compliance-dashboard.types";
 import type { ComplianceDashboardPayload } from "@/modules/dashboard/compliance-dashboard.types";
+import {
+  gscPayloadHasSessions,
+  listGscBangKiemKeysToRender,
+  resolveCompliancePayloadForKey,
+} from "@/modules/dashboard/lib/dashboard-hook-helpers";
 import { GapAnalysisPanel } from "@/modules/dashboard/components/GapAnalysisPanel";
 import { DashboardFilterPanel } from "@/modules/dashboard/components/DashboardFilterPanel";
 
@@ -27,11 +32,6 @@ const VstDashboardPanel = dynamic(() => import("@/modules/giam-sat-vst/component
   ssr: false,
   loading: () => chartChunkFallback("min-h-[200px] w-full"),
 });
-
-function gscPayloadHasSessions(p: ComplianceDashboardPayload | null | undefined): boolean {
-  if (!p?.summary) return false;
-  return (p.summary.tong_phien ?? 0) > 0;
-}
 
 type KhoaOpt = { id: string; label?: string; khoi_id?: string };
 type KhoiOpt = { id: string; label: string };
@@ -62,12 +62,22 @@ function GscComplianceDashboardBlocks(props: {
     onlyWithSessions = true,
     onExport,
   } = props;
-  const gscKeys = selectedBangKiemMas.filter((bk) => bk !== "VST_WHO");
-  if (gscKeys.length === 0) return null;
+  const gscKeys = listGscBangKiemKeysToRender(selectedBangKiemMas, compliancePayloads, onlyWithSessions);
+  const gscSelectedCount = selectedBangKiemMas.filter((bk) => bk !== "VST_WHO").length;
+  if (gscKeys.length === 0) {
+    if (gscSelectedCount === 0) return null;
+    return (
+      <p className="rounded-lg border border-dashed border-slate-200 bg-slate-50/80 px-4 py-6 text-center text-sm text-slate-500">
+        Không có bảng kiểm Giám sát chung nào có phiên trong khoảng lọc và tab nguồn giám sát hiện tại.
+      </p>
+    );
+  }
   return (
     <>
       {gscKeys.map((bk) => {
-        const p = compliancePayloads[bk] ?? buildEmptyComplianceDashboardPayload(tuNgay, denNgay);
+        const p =
+          resolveCompliancePayloadForKey(bk, compliancePayloads) ??
+          buildEmptyComplianceDashboardPayload(tuNgay, denNgay);
         if (onlyWithSessions && !gscPayloadHasSessions(p)) return null;
         return (
           <div key={bk} className="space-y-4">
@@ -97,7 +107,7 @@ export function CommandCenterDashboardPage() {
     selectedNgheIds, setSelectedNgheIds,
     selectedKhuVucIds, setSelectedKhuVucIds,
     tuNgay, setTuNgay, denNgay, setDenNgay,
-    loading, vstPayload, compliancePayloads, vstGapPayloads, complianceGapPayloads, summaryTable, khoaOverviewRows, ksnkStaffSupervision, showKsnkStaffWorkload,
+    loading, loadError, vstPayload, compliancePayloads, vstGapPayloads, complianceGapPayloads, summaryTable, khoaOverviewRows, ksnkStaffSupervision, showKsnkStaffWorkload,
     bangKiemOptions, khoiOptions, khoaOptions, ngheOptions, khuVucOptions, bkLabelMap,
     exportCurrentReport, openDialog, setOpenDialog,
     nhanXetDanhGia, setNhanXetDanhGia, kienNghiDeXuat, setKienNghiDeXuat,
@@ -135,6 +145,13 @@ export function CommandCenterDashboardPage() {
   }, [summaryTable]);
 
   const summaryRowsWithData = useMemo(() => summaryTable.filter((row) => row.tong > 0), [summaryTable]);
+
+  const tuGsOverviewSources = useMemo(
+    () => [{ ten: "Tự giám sát", so_phien: summaryTable.reduce((acc, row) => acc + (row.tu_gs || 0), 0) }],
+    [summaryTable],
+  );
+
+  const hasStaleContent = summaryTable.length > 0 || Object.keys(compliancePayloads).length > 0;
 
   if (loading && !initDone) {
     return (
@@ -198,7 +215,7 @@ export function CommandCenterDashboardPage() {
             khuVucOptions={khuVucOptions}
             selectedKhuVucIds={selectedKhuVucIds}
             setSelectedKhuVucIds={setSelectedKhuVucIds}
-            onRefresh={loadDashboard}
+            onRefresh={() => void loadDashboard({ force: true, useCache: false })}
             onOpenComment={() => setOpenDialog("nhan_xet")}
             onOpenRecommendation={() => setOpenDialog("kien_nghi")}
             onExport={ccWidgets.exportPdf ? exportCurrentReport : undefined}
@@ -206,7 +223,25 @@ export function CommandCenterDashboardPage() {
         </div>
       </div>
 
-      <div className="app-data-shell">
+      {loadError ? (
+        <div
+          role="alert"
+          className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+        >
+          {loadError}
+          <button
+            type="button"
+            className="ml-3 font-semibold underline"
+            onClick={() => void loadDashboard({ force: true, useCache: false })}
+          >
+            Thử lại
+          </button>
+        </div>
+      ) : null}
+
+      <div
+        className={`app-data-shell transition-opacity duration-200 ${loading && hasStaleContent ? "pointer-events-none opacity-60" : ""}`}
+      >
         {activeTab === "overview" && (
           <div className="space-y-8">
             <SupervisionSourceStats
@@ -263,7 +298,7 @@ export function CommandCenterDashboardPage() {
             {activeTab === "tu_giam_sat" && (
               <SupervisionSourceStats
                 variant="tableOnly"
-                sources={overviewSources}
+                sources={tuGsOverviewSources}
                 khoaOverviewRows={khoaOverviewRows}
                 ksnkStaffSupervision={[]}
                 showKsnkStaffWorkload={false}
@@ -273,7 +308,7 @@ export function CommandCenterDashboardPage() {
                 khoiOptions={khoiOptions}
               />
             )}
-            {selectedBangKiemMas.includes("VST_WHO") && (
+            {selectedBangKiemMas.includes("VST_WHO") && (vstPayload?.kpis?.tong_phien ?? 0) > 0 && (
               <div className="space-y-4">
                 <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-4 py-2.5">
                   <h4 className="text-xs font-semibold uppercase tracking-wide text-emerald-900">Vệ sinh tay (WHO)</h4>
@@ -291,7 +326,7 @@ export function CommandCenterDashboardPage() {
               bkLabelMap={bkLabelMap}
               khoaCatalog={khoaOptions}
               khoiCatalog={khoiOptions}
-              onlyWithSessions={false}
+              onlyWithSessions
               onExport={ccWidgets.exportPdf ? exportCurrentReport : undefined}
             />
           </div>
@@ -299,11 +334,18 @@ export function CommandCenterDashboardPage() {
 
         {activeTab === "gap" && (
           <div className="space-y-6">
-            {selectedBangKiemMas.includes("VST_WHO") && vstGapPayloads?.kq && (
+            {selectedBangKiemMas.includes("VST_WHO") &&
+              (vstGapPayloads?.kq?.kpis?.tong_phien ?? 0) > 0 &&
+              vstGapPayloads?.kq && (
               <GapAnalysisPanel title="Vệ sinh tay (WHO)" kq={vstGapPayloads.kq.by_khoa} cheo={vstGapPayloads.cheo?.by_khoa || []} tgs={vstGapPayloads.tgs?.by_khoa || []} />
             )}
             {selectedBangKiemMas
               .filter((bk) => bk !== "VST_WHO")
+              .filter((bk) => {
+                const p = complianceGapPayloads[bk];
+                if (!p) return false;
+                return [p.kq, p.cheo, p.tgs].some((x) => (x?.by_khoa?.length ?? 0) > 0);
+              })
               .map((bk) => {
                 const p = complianceGapPayloads[bk];
                 if (!p) return null;

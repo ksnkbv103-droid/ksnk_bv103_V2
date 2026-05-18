@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
-import CSSDSubNav from "../components/navigation/CSSDSubNav";
+import CssdModuleChrome from "../components/layout/CssdModuleChrome";
 import KhoHoaChatMoveSheet, { type MoveMode } from "../components/kho-hoa-chat/kho-hoa-chat-move-sheet";
 import KhoHoaChatOverview from "../components/kho-hoa-chat/kho-hoa-chat-overview";
 import KhoHoaChatTables from "../components/kho-hoa-chat/kho-hoa-chat-tables";
@@ -194,12 +194,12 @@ export default function KhoHoaChatKsnkPage() {
 
   if (!allowed.view) {
     return (
-      <div className={CSSD_PAGE_OUTER}>
-        <CSSDSubNav />
+      <CSSDPageShell title={<span className="text-[#026f17]">Kho hóa chất &amp; vật tư</span>} subtitle="Không có quyền truy cập.">
+        <CssdModuleChrome />
         <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-600">
           Bạn không có quyền module Kho hóa chất — liên hệ quản trị (KSNK_KHO_HOACHAT).
         </div>
-      </div>
+      </CSSDPageShell>
     );
   }
 
@@ -232,6 +232,7 @@ export default function KhoHoaChatKsnkPage() {
         ) : null
       }
     >
+      <CssdModuleChrome />
       <div className="space-y-6">
         <div className={CSSD_UI_TAB_GROUP}>
           <button

@@ -2,6 +2,7 @@
  * Bounded context entrypoint: Instrument catalog / physical label registration.
  */
 export { default as CSSDInstrumentCatalogPage } from "../../views/CSSDCatalogPage";
+export { dieuChuyenThanhPhanGiuaHaiQrAction } from "../../actions/cssd-asset.actions";
 export {
   listActiveBoDungCuForCssdLabel,
   registerPhysicalBoLabelFromDmAction,

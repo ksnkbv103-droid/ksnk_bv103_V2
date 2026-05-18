@@ -1,8 +1,9 @@
 // src/modules/cssd-erp/views/CSSDReportPage.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Download, Printer, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
@@ -13,6 +14,8 @@ import { useImportExport } from "@/hooks/useImportExport";
 import ReportFilters from "../components/report/ReportFilters";
 import ReportDashboard from "../components/report/ReportDashboard";
 import CSSDPageShell from "../components/layout/cssd-page-shell";
+import CssdModuleChrome from "../components/layout/CssdModuleChrome";
+import { CSSD_ROUTES } from "@/lib/cssd-routes";
 import {
   CSSD_UI_ACTION_PRIMARY,
   CSSD_UI_ACTION_SECONDARY,
@@ -31,7 +34,9 @@ const ReportCharts = dynamic(() => import("../components/report/ReportCharts"), 
 const STATIONS = ["TIEP_NHAN", "LAM_SACH", "QC", "DONG_GOI", "TIET_KHUAN", "CAP_PHAT"] as const;
 type ReportTab = "OVERVIEW" | "INCIDENT" | "ACCOUNTABILITY";
 
-export default function CSSDReportPage() {
+function CSSDReportPageInner() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
   const { allowed } = useModulePermission("CSSD_REPORT");
   const { exportTemplate } = useImportExport({
     moduleKey: "CSSD_REPORT",
@@ -46,7 +51,15 @@ export default function CSSDReportPage() {
     },
     onImport: async () => ({ success: true }),
   });
-  const [tab, setTab] = useState<ReportTab>("OVERVIEW");
+  const initialTab: ReportTab =
+    tabParam === "incident" ? "INCIDENT" : tabParam === "accountability" ? "ACCOUNTABILITY" : "OVERVIEW";
+  const [tab, setTab] = useState<ReportTab>(initialTab);
+
+  useEffect(() => {
+    if (tabParam === "incident") setTab("INCIDENT");
+    else if (tabParam === "accountability") setTab("ACCOUNTABILITY");
+    else if (tabParam === "overview" || !tabParam) setTab("OVERVIEW");
+  }, [tabParam]);
   const [filters, setFilters] = useState({
     from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
     to: new Date().toISOString().split("T")[0],
@@ -127,7 +140,7 @@ export default function CSSDReportPage() {
       actions={
         <>
           <Link
-            href="/cssd-erp/su-co"
+            href={CSSD_ROUTES.suCo}
             className={`${CSSD_UI_ACTION_SECONDARY} h-10 inline-flex flex-1 items-center justify-center gap-2 sm:flex-none`}
           >
             <AlertTriangle size={18} aria-hidden />
@@ -142,6 +155,7 @@ export default function CSSDReportPage() {
         </>
       }
     >
+      <CssdModuleChrome />
       <ReportFilters filters={filters} setFilters={setFilters} stations={[...STATIONS]} />
       <div className={CSSD_UI_TAB_GROUP}>
         <button onClick={() => setTab("OVERVIEW")} className={`rounded-lg px-4 py-2 text-xs font-semibold ${tab === "OVERVIEW" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE}`}>
@@ -241,5 +255,19 @@ export default function CSSDReportPage() {
         </div>
       )}
     </CSSDPageShell>
+  );
+}
+
+export default function CSSDReportPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-[40vh] items-center justify-center" aria-busy="true">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[var(--primary)]" />
+        </div>
+      }
+    >
+      <CSSDReportPageInner />
+    </Suspense>
   );
 }

@@ -1,7 +1,7 @@
 // src/modules/cssd-erp/components/history/QRHistoryViewer.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Search, History, CheckCircle2, AlertTriangle, Clock, User, QrCode } from "lucide-react";
 import { toast } from "sonner";
 import { fetchCssdQrHistory } from "../../actions/cssd-qr-history.actions";
@@ -18,13 +18,18 @@ interface HistoryLog {
  * Component Truy vết lịch sử bộ dụng cụ (QR History Viewer)
  * Tối ưu Mobile-first, hiển thị Timeline dọc chuẩn Quân y (#026f17 + #FFD700).
  */
-export default function QRHistoryViewer() {
-  const [code, setCode] = useState("");
+type Props = {
+  /** Mã QR ban đầu (từ URL hoặc sau quét). */
+  initialQr?: string;
+};
+
+export default function QRHistoryViewer({ initialQr }: Props) {
+  const [code, setCode] = useState(() => String(initialQr || "").trim().toUpperCase());
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<HistoryLog[]>([]);
   const [process, setProcess] = useState<any>(null);
+  const autoFetched = useRef<string | null>(null);
 
-  // Truy vấn lịch sử từ quy_trinh và nhat_ky_quet
   const fetchHistory = async (qr: string) => {
     if (!qr.trim()) return toast.error("Vui lòng nhập mã QR");
     setLoading(true);
@@ -41,6 +46,14 @@ export default function QRHistoryViewer() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const seed = String(initialQr || "").trim().toUpperCase();
+    if (!seed || autoFetched.current === seed) return;
+    autoFetched.current = seed;
+    setCode(seed);
+    void fetchHistory(seed);
+  }, [initialQr]);
 
   return (
     <div className="w-full max-w-xl mx-auto space-y-6 touch-manipulation pointer-events-auto">
@@ -75,7 +88,8 @@ export default function QRHistoryViewer() {
             <div className="relative z-10">
               <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-1">{process.ma_vach_qr}</h3>
               <p className="text-[10px] font-black text-[#026f17] uppercase tracking-widest flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-[#FFD700] rounded-full" /> Trạng thái: {process.trang_thai_hien_tai.replace('_', ' ')}
+                <span className="w-1.5 h-1.5 bg-[#FFD700] rounded-full" /> Trạng thái:{" "}
+                {String(process.trang_thai_hien_tai || "").replace(/_/g, " ")}
               </p>
             </div>
             {process.is_red_alert && (
@@ -99,7 +113,7 @@ export default function QRHistoryViewer() {
                 <div className={`p-5 rounded-[28px] border transition-all active:scale-[0.98] ${log.hanh_dong === 'REPORT_INCIDENT' ? 'bg-red-50/50 border-red-100 shadow-red-50' : 'bg-white border-slate-100 shadow-sm'}`}>
                   <div className="flex justify-between items-start mb-2">
                     <span className={`text-[10px] font-black uppercase tracking-widest ${log.hanh_dong === 'REPORT_INCIDENT' ? 'text-red-600' : 'text-[#026f17]'}`}>
-                      TRẠM {log.tram.replace('_', ' ')}
+                      TRẠM {String(log.tram || "").replace(/_/g, " ")}
                     </span>
                     <span className="text-[9px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-full">
                       {new Date(log.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}

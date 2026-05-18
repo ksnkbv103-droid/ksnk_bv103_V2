@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FlameKindling } from "lucide-react";
+import { CSSD_ROUTES } from "@/lib/cssd-routes";
 
 /**
  * Ô không phải trạm quét: dẫn tới phiếu/mẻ tiệt khuẩn — bắt buộc có phiếu rồi mới quét bộ vào mẻ.
@@ -9,7 +10,7 @@ import { FlameKindling } from "lucide-react";
 export default function CssdBatchMeLinkChip() {
   return (
     <Link
-      href="/cssd-erp/batch"
+      href={CSSD_ROUTES.erpBatch}
       className="app-shell-focus group flex min-h-[120px] flex-col items-center justify-center gap-4 rounded-[32px] border-2 border-dashed border-amber-300 bg-gradient-to-br from-amber-50 to-white p-6 text-center shadow-sm transition-colors hover:border-amber-500 hover:bg-amber-50"
     >
       <div className="text-amber-600 transition-all group-hover:scale-105">

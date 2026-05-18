@@ -1,8 +1,9 @@
 // src/modules/cssd-erp/views/CSSDERPPage.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Clock, QrCode, AlertTriangle, WashingMachine, Microscope, Box, Truck } from "lucide-react";
 import { useCSSDWorkflow } from "../hooks/useCSSDWorkflow";
@@ -16,6 +17,10 @@ import CssdBatchMeLinkChip from "../components/workflow/cssd-batch-me-link-chip"
 import { useModulePermission } from "@/hooks/useModulePermission";
 import type { Station } from "../types/cssd.types";
 import { CSSD_UI_PANEL, CSSD_UI_SECTION_TITLE } from "../shared/ui/cssd-ui-chrome";
+import WorkflowManualOpsPanel from "../components/workflow/WorkflowManualOpsPanel";
+import { SCAN_STATIONS } from "../workflow/domain/cssd-stations";
+import { isValidStation } from "../workflow/domain/cssd-state-engine";
+import { CSSD_ROUTES } from "@/lib/cssd-routes";
 
 const MODULE_KEY = "CSSD_WORKFLOW";
 
@@ -24,9 +29,19 @@ const MODULE_KEY = "CSSD_WORKFLOW";
  * Đã bổ sung thanh điều hướng Module (Sub-menu).
  */
 export default function CSSDERPPage({ suppressShell = false }: { suppressShell?: boolean } = {}) {
+  const searchParams = useSearchParams();
   const { currentStation, scanStations, waitingList, loading: _workflowLoading, lastScan, scanSuccess, selectStation, handleQRScan, refresh } = useCSSDWorkflow();
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
   const [maCaMoId, setMaCaMoId] = useState("");
+
+  const stationParam = searchParams.get("station");
+  useEffect(() => {
+    const raw = stationParam?.trim().toUpperCase() || "";
+    if (!raw || !isValidStation(raw) || raw === "TIET_KHUAN") return;
+    if (!(SCAN_STATIONS as readonly string[]).includes(raw)) return;
+    selectStation(raw as Station);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- chỉ khi ?station= đổi trên URL
+  }, [stationParam]);
   const { loading: permLoading, allowed } = useModulePermission(MODULE_KEY);
   const { allowed: incidentAllowed } = useModulePermission("BAO_SU_CO");
   const canViewWorkflow = allowed.view;
@@ -164,10 +179,18 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
               onConfirm={submitWorkflowQr}
             />
             {scanSuccess ? (
-              <QRScanSuccessCard
-                {...lastScan}
-                tramDisplay={currentStation?.replace(/_/g, " ") || "CSSD"}
-              />
+              <>
+                <QRScanSuccessCard
+                  {...lastScan}
+                  tramDisplay={currentStation?.replace(/_/g, " ") || "CSSD"}
+                />
+                {lastScan?.qrCode && !lastScan?.isOffline ? (
+                  <WorkflowManualOpsPanel
+                    qrCode={lastScan.qrCode}
+                    onSuccess={() => refresh()}
+                  />
+                ) : null}
+              </>
             ) : (
               <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 py-16 text-slate-400">
                 <QrCode size={36} className="opacity-40" />
@@ -197,7 +220,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
         <div className="flex flex-wrap items-center justify-end gap-2">
           {canCreateIncident ? (
             <Link
-              href="/cssd-erp/su-co"
+              href={CSSD_ROUTES.suCo}
               className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
             >
               Trang ghi nhận sự cố

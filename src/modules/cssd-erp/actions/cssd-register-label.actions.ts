@@ -4,7 +4,7 @@ import { randomBytes } from "crypto";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { buildQuyTrinhTramPatch } from "../lib/cssd-tram-persist";
-import { getErrorMessage, mapFkError, safeRevalidate } from "./cssd-action-common";
+import { getErrorMessage, mapFkError, revalidateCssdInventorySurfaces } from "./cssd-action-common";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 
 async function verifyCanRegisterPhysicalLabel(): Promise<void> {
@@ -129,8 +129,7 @@ export async function registerPhysicalBoLabelFromDmAction(boDungCuId: string): P
       if (insErr) return { success: false, error: mapFkError(insErr.message) };
     }
 
-    safeRevalidate("/cssd-erp");
-    safeRevalidate("/cssd-erp/inventory");
+    revalidateCssdInventorySurfaces();
 
     return {
       success: true,
@@ -189,8 +188,7 @@ export async function registerSplitSubQrFromMainMaAction(maQrMain: string): Prom
     });
     if (insSubErr) return { success: false, error: mapFkError(insSubErr.message) };
 
-    safeRevalidate("/cssd-erp");
-    safeRevalidate("/cssd-erp/inventory");
+    revalidateCssdInventorySurfaces();
 
     return { success: true, ma_vach_qr_phu: subQr, quy_trinh_cha_id: mainId };
   } catch (e: unknown) {

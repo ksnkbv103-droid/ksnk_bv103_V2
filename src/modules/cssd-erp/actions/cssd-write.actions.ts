@@ -5,7 +5,14 @@ import { normalizeNullableFk } from "@/lib/master-data/fk-normalize";
 import type { Station } from "../types/cssd.types";
 import { verifyPermission } from "@/lib/server-permission";
 import { buildQuyTrinhTramPatch } from "../lib/cssd-tram-persist";
-import { getErrorMessage, mapFkError, safeRevalidate, STEPS, tableHasColumn } from "./cssd-action-common";
+import {
+  getErrorMessage,
+  mapFkError,
+  revalidateCssdInventorySurfaces,
+  revalidateCssdWorkflowSurfaces,
+  STEPS,
+  tableHasColumn,
+} from "./cssd-action-common";
 import { cssdImportRowSchema } from "@/lib/validations/cssd-erp.validations";
 import { insertCssdLifecycleEvent } from "../shared/application/cssd-lifecycle-events";
 
@@ -74,7 +81,7 @@ export async function reportInventoryIssue(input: {
   const { error: logErr } = await supabase.from("fact_nhat_ky_quet").insert(logPayload);
   if (logErr) throw new Error(mapFkError(logErr.message));
 
-  safeRevalidate("/cssd-erp");
+  revalidateCssdWorkflowSurfaces();
   return { success: true as const };
 }
 
@@ -142,7 +149,8 @@ export async function importCSSDData(rows: Record<string, unknown>[]) {
     if (rowErrors.length || dbErrors.length) {
       return { success: false, error: `Import loi. Row errors: ${rowErrors.join(" | ")}. DB errors: ${dbErrors.join(" | ")}` };
     }
-    safeRevalidate("/cssd-erp");
+    revalidateCssdInventorySurfaces();
+    revalidateCssdWorkflowSurfaces();
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: getErrorMessage(error) };

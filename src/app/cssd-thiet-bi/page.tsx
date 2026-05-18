@@ -1,24 +1,49 @@
 "use client";
 
-import React, { useState } from "react";
-import { Settings2, Wrench } from "lucide-react";
+import React, { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Settings2, Wrench, Flame } from "lucide-react";
 import { CSSDMaintenancePage } from "@/modules/cssd-erp/contexts/maintenance/entrypoint";
 import ThietBiMasterPage from "@/modules/quan-tri-he-thong/danh-muc/thiet-bi/ThietBiMasterPage";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
+import CssdModuleChrome from "@/modules/cssd-erp/components/layout/CssdModuleChrome";
+import { CSSD_ROUTES } from "@/lib/cssd-routes";
 import { CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_GROUP, CSSD_UI_TAB_IDLE } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 
-export default function Page() {
-  const [activeTab, setActiveTab] = useState<"CATALOG" | "MAINTENANCE">("CATALOG");
+type ThietBiTab = "CATALOG" | "MAINTENANCE";
+
+function CssdThietBiPageInner() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState<ThietBiTab>(
+    tabParam === "maintenance" || tabParam === "bao-tri" ? "MAINTENANCE" : "CATALOG",
+  );
+
+  useEffect(() => {
+    if (tabParam === "maintenance" || tabParam === "bao-tri") setActiveTab("MAINTENANCE");
+    else if (tabParam === "catalog" || !tabParam) setActiveTab("CATALOG");
+  }, [tabParam]);
 
   return (
     <CSSDPageShell
       title={
         <>
-          Máy móc & Thiết bị <span className="text-[#026f17]">KSNK</span>
+          Máy móc &amp; Thiết bị <span className="text-[#026f17]">KSNK</span>
         </>
       }
-      subtitle="Quản lý danh mục thiết bị và theo dõi lịch sử bảo dưỡng, sửa chữa."
+      subtitle="Danh mục thiết bị tiệt khuẩn / rửa và lịch sử bảo dưỡng, sửa chữa (chặn mẻ khi máy đang bảo trì)."
     >
+      <CssdModuleChrome>
+        <Link
+          href={CSSD_ROUTES.erpBatch}
+          className="inline-flex items-center gap-2 rounded-xl border border-amber-200/90 bg-amber-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-amber-900 hover:bg-amber-100"
+        >
+          <Flame className="h-4 w-4 shrink-0" aria-hidden />
+          Mẻ tiệt khuẩn
+        </Link>
+      </CssdModuleChrome>
+
       <div className="space-y-6">
         <div className={CSSD_UI_TAB_GROUP}>
           <button
@@ -28,7 +53,7 @@ export default function Page() {
               activeTab === "CATALOG" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
             }`}
           >
-            <Settings2 size={14} /> Danh mục Thiết bị KSNK
+            <Settings2 size={14} /> Danh mục thiết bị
           </button>
           <button
             type="button"
@@ -37,7 +62,7 @@ export default function Page() {
               activeTab === "MAINTENANCE" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
             }`}
           >
-            <Wrench size={14} /> Lịch sử bảo dưỡng & Sửa chữa
+            <Wrench size={14} /> Bảo dưỡng &amp; sửa chữa
           </button>
         </div>
 
@@ -50,5 +75,19 @@ export default function Page() {
         </div>
       </div>
     </CSSDPageShell>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-[40vh] items-center justify-center" aria-busy="true">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[var(--primary)]" />
+        </div>
+      }
+    >
+      <CssdThietBiPageInner />
+    </Suspense>
   );
 }

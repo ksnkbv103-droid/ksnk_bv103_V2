@@ -2,7 +2,9 @@
 
 > **Cập nhật:** 14/05/2026  
 > **Mục tiêu tài liệu:** Một trang để team/AI biết **làm gì trước**, **thế nào là xong một mảnh**, tránh loay hoay nhiều hướng cùng lúc.  
-> **Chuẩn cao nhất:** [`AGENTS.md`](./AGENTS.md) — ưu tiên **luồng nghiệp vụ ổn định + dữ liệu khớp DB** trước polish / tối ưu rộng.
+> **Chuẩn cao nhất:** [`AGENTS.md`](./AGENTS.md) — ưu tiên **luồng nghiệp vụ ổn định + dữ liệu khớp DB** trước polish / tối ưu rộng.  
+> **Rà soát tổng thể (định kỳ):** [`docs/reviews/KSNK_BV103_RASOAT_TONG_THE_2026-05-18.md`](./docs/reviews/KSNK_BV103_RASOAT_TONG_THE_2026-05-18.md) · index [`docs/reviews/README.md`](./docs/reviews/README.md).  
+> **Giao cho nhóm dev bên ngoài:** [`docs/reviews/KSNK_BV103_EXTERNAL_TEAM_REVIEW_BRIEF.md`](./docs/reviews/KSNK_BV103_EXTERNAL_TEAM_REVIEW_BRIEF.md).
 
 ---
 

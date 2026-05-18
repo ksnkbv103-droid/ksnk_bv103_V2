@@ -62,7 +62,7 @@ export async function getToCongTacOptions(): Promise<QlcvSelectOption[]> {
 export async function getLoaiCongViecOptions(): Promise<QlcvSelectOption[]> {
   await verifyPermission("CONG_VIEC", "view");
   const supabase = createAdminSupabaseClient();
-  let query = supabase.from("dm_loai_cong_viec").select("id, ma, ten").order("ma").limit(MAX_DM_OPTIONS);
+  const query = supabase.from("dm_loai_cong_viec").select("id, ma, ten").order("ma").limit(MAX_DM_OPTIONS);
   const { data, error } = await query;
 
   if (error) throw error;

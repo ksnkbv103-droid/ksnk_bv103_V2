@@ -11,8 +11,15 @@ import {
 export { isPilotFourModulesScopeEnabled, isPathBlockedUnderPilotFourModules };
 
 /** RPC GSC multi: v2 = một lần quét sessions (mặc định). Set `BV103_COMPLIANCE_MULTI_V2=0` để v1. */
-export function useComplianceDashboardMultiV2(): boolean {
+export function isComplianceDashboardMultiV2Enabled(): boolean {
   return process.env.BV103_COMPLIANCE_MULTI_V2 !== "0";
+}
+
+/**
+ * @deprecated Tên cũ gây nhầm với React Hook rules — dùng `isComplianceDashboardMultiV2Enabled`.
+ */
+export function useComplianceDashboardMultiV2(): boolean {
+  return isComplianceDashboardMultiV2Enabled();
 }
 
 /** TanStack Query staleTime dashboard (ms). */

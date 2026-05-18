@@ -2,7 +2,7 @@
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import type { Station } from "../types/cssd.types";
-import { safeRevalidate } from "./cssd-action-common";
+import { revalidateCssdWorkflowSurfaces } from "./cssd-action-common";
 import { executeWorkflowStationScan } from "../workflow/application/cssd-workflow-application";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
 import { verifyCssdWorkflowEdit } from "./cssd-permissions";
@@ -48,7 +48,7 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
     extraPayload,
   });
 
-  safeRevalidate("/cssd-erp");
+  revalidateCssdWorkflowSurfaces();
 
   // 2. Lấy tên bộ từ View phẳng để hiển thị (Performance)
   const { data: viewRow } = await supabase

@@ -1,4 +1,4 @@
-# Gate: Vitest (domain + pilot) + engineering contract + production build.
+# Gate: ESLint (full + CSSD architecture) + Vitest + engineering contract + production build.
 # E2E Playwright: chạy khi có secrets E2E_USER_* (optional job).
 # MDM post-migration: `npm run verify:mdm:post-migration` (local/linked, không trên PR mặc định).
 name: CI
@@ -25,6 +25,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node scripts/guard-legacy-table-names.mjs
+      - run: npm run lint
+      - run: npm run lint:cssd-architecture
       - run: npm run test:cssd
       - run: npm run test:pilot
       - run: npm run verify:engineering

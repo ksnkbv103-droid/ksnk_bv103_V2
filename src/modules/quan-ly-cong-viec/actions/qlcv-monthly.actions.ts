@@ -100,7 +100,7 @@ export async function upsertQlcvMonthEvaluation(input: {
 
   const onTime = Number(row.on_time_pct ?? 0);
   const completion = Number(row.completion_pct ?? 0);
-  let q: number | null = input.quality_score;
+  const q: number | null = input.quality_score;
   if (q != null) {
     if (!Number.isInteger(q) || q < 1 || q > 5) throw new Error("Chất lượng phải từ 1 đến 5 hoặc để trống.");
   }

@@ -70,7 +70,7 @@ export function useMeTietKhuanWorkflow() {
     else toast.error(w.error || "Không tải danh sách chờ TK");
     if (m.success) setItems((m.data as any[]) || []);
     else toast.error(m.error || "Không tải thành phần mẻ");
-  }, [activeMe?.id]);
+  }, [activeMe]);
 
   useEffect(() => {
     void fetchData();

@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { Station, CSSDWaitingItem } from "../types/cssd.types";
 import { scanQR, getWaitingListByStation } from "../actions/cssd.actions";
 import { toast } from "sonner";
-import { SCAN_STATIONS, WORKFLOW_STEPS, nextStationLabel } from "../domain/cssd-stations";
+import { SCAN_STATIONS, WORKFLOW_STEPS, nextStationLabel } from "../workflow/domain/cssd-stations";
 
 /** Các ô chọn được trên trang 6 bước — không có «trạm quét TK» (TK chỉ qua phiếu /cssd-erp/batch). */
 export const CSSD_SCAN_STATIONS: Station[] = [...SCAN_STATIONS];

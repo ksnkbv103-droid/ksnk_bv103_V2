@@ -57,7 +57,8 @@ export const INCIDENT_TYPE_PRESETS: Record<IncidentGroup, IncidentPreset[]> = {
   PROCESS: [
     { code: "PROCESS_MISSTEP", label: "Sai thao tác quy trình tại khâu" },
     { code: "PROCESS_QC_FAIL", label: "Không đạt kiểm tra chất lượng tại khâu" },
-    { code: "PROCESS_STERILIZATION_FAIL", label: "Lỗi xử lý tiệt khuẩn tại khâu" },
+    { code: "PROCESS_STERILIZATION_FAIL", label: "Chất lượng tiệt khuẩn / mẻ không đạt" },
+    { code: "PROCESS_STERILE_QC_FAIL", label: "Nội kiểm mẻ TK hoặc Bowie-Dick không đạt" },
   ],
   INSTRUMENT: [
     { code: "INSTRUMENT_BROKEN", label: "Dụng cụ hỏng" },

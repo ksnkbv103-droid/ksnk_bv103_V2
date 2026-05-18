@@ -4,14 +4,25 @@ import { getDashboardGapBundle } from "../actions/gap-dashboard-bundle.actions";
 import type { DashboardSummaryRow, DashboardKhoaOverviewRow, DashboardKsnkStaffSupervisionRow } from "../compliance-dashboard.types";
 import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
 import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
-import { pickBangKiemOptionIdsWithSessionData, sortedJoinIds } from "./dashboard-hook-helpers";
+import {
+  effectiveFilterIds,
+  narrowBangKiemMasForRpcBySummary,
+  pickBangKiemMasWithDataForSupervision,
+  pickBangKiemOptionIdsWithSessionData,
+  sortedJoinIds,
+  tabToSummarySessionMetric,
+} from "./dashboard-hook-helpers";
 import type { DashboardTabType } from "../hooks/dashboard-types";
 import type { OverviewDashboardBundleInput } from "../actions/overview-dashboard-bundle.actions";
 
 type FetchFn = (
   sType: "ALL" | "KSNK" | "CHEO" | "TU_GIAM_SAT",
   bangKiemOverride?: string[],
-) => Promise<{ vst: VstDashboardPayload | null; gsc: Record<string, ComplianceDashboardPayload> }>;
+) => Promise<{
+  vst: VstDashboardPayload | null;
+  gsc: Record<string, ComplianceDashboardPayload>;
+  errors: string[];
+}>;
 
 export type DashboardLoadInput = {
   tuNgay: string;
@@ -49,21 +60,36 @@ export type DashboardLoadResult = {
   > | null;
   ksnkStaffSupervision: DashboardKsnkStaffSupervisionRow[];
   showKsnkStaffWorkload: boolean;
+  errors: string[];
 };
 
 export async function executeDashboardLoad(input: DashboardLoadInput): Promise<DashboardLoadResult> {
   const wa = input.widgetAccess ?? { overview: true, supervision: true, gap: true };
 
-  const summaryPromise = getDashboardSummaryTable({
-    tu_ngay: input.tuNgay,
-    den_ngay: input.denNgay,
-    khoi_ids: input.selectedKhoiIds.length ? input.selectedKhoiIds : undefined,
-    khoa_ids: input.selectedKhoaIds.length ? input.selectedKhoaIds : undefined,
-  });
+  const khoiOptionCount = input.filterOptions?.khoi?.length ?? 0;
+  const khoaOptionCount = input.filterOptions?.khoa?.length ?? 0;
+  const effKhoi = effectiveFilterIds(input.selectedKhoiIds, khoiOptionCount);
+  const effKhoa = effectiveFilterIds(input.selectedKhoaIds, khoaOptionCount);
 
-  /** Bảng theo khoa (Tự GS) cần dữ liệu ở tab Cơ cấu nguồn và tab Tự giám sát — không gắn chỉ `overview` (trước đây chuyển tab làm rỗng bảng). */
+  /** Bảng theo khoa (Tự GS) — chỉ tab cần hiển thị (tránh RPC thừa trên KSNK/chéo/gap). */
   const shouldLoadKhoaOverview =
     (input.activeTab === "overview" && wa.overview) || (input.activeTab === "tu_giam_sat" && wa.supervision);
+
+  const needsSummaryForBk =
+    input.activeTab === "overview" ||
+    input.activeTab === "ksnk" ||
+    input.activeTab === "cheo" ||
+    input.activeTab === "tu_giam_sat" ||
+    input.activeTab === "gap";
+
+  const summaryPromise = needsSummaryForBk
+    ? getDashboardSummaryTable({
+        tu_ngay: input.tuNgay,
+        den_ngay: input.denNgay,
+        khoi_ids: effKhoi ?? undefined,
+        khoa_ids: effKhoa ?? undefined,
+      })
+    : Promise.resolve({ success: true as const, data: [] as DashboardSummaryRow[] });
 
   const khoaOverviewPromise = shouldLoadKhoaOverview
     ? getDashboardKhoaOverviewRows({
@@ -82,6 +108,10 @@ export async function executeDashboardLoad(input: DashboardLoadInput): Promise<D
 
   const [summaryRes, khoaOverviewRes] = await Promise.all([summaryPromise, khoaOverviewPromise]);
 
+  const loadErrors: string[] = [];
+  if (!summaryRes.success) loadErrors.push(`Bảng tổng hợp: ${summaryRes.error}`);
+  if (!khoaOverviewRes.success) loadErrors.push(`Theo khoa: ${khoaOverviewRes.error}`);
+
   const summaryRows = summaryRes.success ? summaryRes.data : [];
   const khoaOverviewRows =
     khoaOverviewRes.success ? khoaOverviewRes.data : [];
@@ -95,11 +125,25 @@ export async function executeDashboardLoad(input: DashboardLoadInput): Promise<D
     input.filterOptions?.bang_kiem?.length &&
     summaryRows.length > 0
   ) {
-    const withData = pickBangKiemOptionIdsWithSessionData(input.filterOptions.bang_kiem, summaryRows);
+    const withData = pickBangKiemOptionIdsWithSessionData(
+      input.filterOptions.bang_kiem,
+      summaryRows,
+      tabToSummarySessionMetric(input.activeTab),
+    );
     if (withData.length > 0) {
       bangKiemForFetch = withData;
       nextBangKiemSelection = withData;
     }
+  }
+
+  const summaryHasCounts = summaryRows.some(
+    (r) => (r.tong ?? 0) > 0 || (r.ksnk ?? 0) > 0 || (r.cheo ?? 0) > 0 || (r.tu_gs ?? 0) > 0,
+  );
+
+  /** Chỉ thu hẹp BK khi summary đã có số — tránh chặn RPC khi summary trống/lệch khóa. */
+  if (summaryHasCounts && bangKiemForFetch.length > 1) {
+    const narrowed = narrowBangKiemMasForRpcBySummary(bangKiemForFetch, summaryRows);
+    if (narrowed.length > 0) bangKiemForFetch = narrowed;
   }
 
   let vst: VstDashboardPayload | null = null;
@@ -111,6 +155,11 @@ export async function executeDashboardLoad(input: DashboardLoadInput): Promise<D
 
   if (input.activeTab === "overview" || input.activeTab === "ksnk" || input.activeTab === "cheo" || input.activeTab === "tu_giam_sat") {
     const tabToType = { overview: "ALL", ksnk: "KSNK", cheo: "CHEO", tu_giam_sat: "TU_GIAM_SAT" } as const;
+    if (input.activeTab !== "overview" && summaryHasCounts) {
+      const sType = tabToType[input.activeTab];
+      const tabNarrowed = pickBangKiemMasWithDataForSupervision(bangKiemForFetch, summaryRows, sType);
+      if (tabNarrowed.length > 0) bangKiemForFetch = tabNarrowed;
+    }
     if (input.activeTab === "overview") {
       if (wa.overview) {
         const overviewInput: OverviewDashboardBundleInput =
@@ -137,9 +186,16 @@ export async function executeDashboardLoad(input: DashboardLoadInput): Promise<D
         showKsnkStaffWorkload = bundle.showKsnkStaffWorkload;
       }
     } else if (wa.supervision) {
-      const res = await input.fetchPayloadsForType(tabToType[input.activeTab], bangKiemForFetch);
+      const toFetch =
+        bangKiemForFetch.length > 0
+          ? bangKiemForFetch
+          : input.selectedBangKiemMas.length > 0
+            ? input.selectedBangKiemMas
+            : ["VST_WHO"];
+      const res = await input.fetchPayloadsForType(tabToType[input.activeTab], toFetch);
       vst = res.vst;
       gsc = res.gsc;
+      loadErrors.push(...res.errors);
     }
   } else if (input.activeTab === "gap") {
     if (wa.gap) {
@@ -176,6 +232,7 @@ export async function executeDashboardLoad(input: DashboardLoadInput): Promise<D
     complianceGap,
     ksnkStaffSupervision,
     showKsnkStaffWorkload,
+    errors: loadErrors,
   };
 }
 

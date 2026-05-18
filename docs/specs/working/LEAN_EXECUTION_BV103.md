@@ -45,5 +45,5 @@
 3. `fact_*` / bảng lớn: phân trang server ~20 dòng; có `npm run verify:engineering` khi đụng Server Action / `fact_*`.
 4. Input user: **Zod** ở server action (hoặc ghi rõ ngoại lệ trong PR).
 5. Quyền: `verifyPermission` / `verifyPermissions`; admin client → [`SUPABASE_ADMIN_CLIENT_AUDIT_BV103.md`](./SUPABASE_ADMIN_CLIENT_AUDIT_BV103.md).
-6. Trước push: `npm run verify:full` hoặc `npm run build` + `npm run verify:engineering`.
+6. Trước push: `npm run verify:full` hoặc `npm run build` + `npm run verify:engineering`. **CI GitHub** (job `verify`): `lint` + `lint:cssd-architecture` + `test:cssd` + `test:pilot` + `verify:engineering` + `build` — không thay `verify:mdm*` / `verify:admin` khi PR không đụng phạm vi đó.
 7. Luồng quản trị nặng: `npm run verify:admin` khi đụng admin đúng phạm vi.

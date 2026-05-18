@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { normalizeHanIso, normalizeMaLo } from "../helpers/kho-hoa-chat-lot";
-import { getErrorMessage, mapFkError, safeRevalidate } from "./cssd-action-common";
+import { getErrorMessage, mapFkError, revalidateCssdChemicalSurfaces } from "./cssd-action-common";
 
 function maPhieu(loai: "NHAP" | "XUAT" | "DIEU_CHINH"): string {
   const p = loai === "NHAP" ? "NK" : loai === "XUAT" ? "XK" : "DC";
@@ -62,7 +62,7 @@ export async function nhapKhoHoaChatAction(input: {
       updated_at: now,
     });
     if (error) return { success: false as const, error: mapFkError(error.message) };
-    safeRevalidate("/cssd-erp/kho-hoa-chat");
+    revalidateCssdChemicalSurfaces();
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
@@ -104,7 +104,7 @@ export async function xuatKhoHoaChatAction(input: {
       updated_at: now,
     });
     if (error) return { success: false as const, error: mapFkError(error.message) };
-    safeRevalidate("/cssd-erp/kho-hoa-chat");
+    revalidateCssdChemicalSurfaces();
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
@@ -146,7 +146,7 @@ export async function dieuChinhKhoHoaChatAction(input: {
       updated_at: now,
     });
     if (error) return { success: false as const, error: mapFkError(error.message) };
-    safeRevalidate("/cssd-erp/kho-hoa-chat");
+    revalidateCssdChemicalSurfaces();
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };

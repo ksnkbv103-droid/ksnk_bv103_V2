@@ -10,6 +10,7 @@ import type {
 import { type ComplianceDashboardPayload } from "../compliance-dashboard.types";
 import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
 import { resolveDashboardFilterUi } from "../lib/resolve-dashboard-filter-ui";
+import { pruneKhoaIdsForKhoiSelection, sortedJoinIds } from "../lib/dashboard-hook-helpers";
 import { useDashboardExportReport } from "./use-dashboard-export-report";
 import { useDashboardLoadCycle } from "./use-dashboard-load-cycle";
 import { useDashboardCommandCenterWidgets } from "./use-dashboard-cc-widgets";
@@ -27,6 +28,7 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
   const [tuNgay, setTuNgay] = useState(() => bv103DefaultTuNgayFromToday());
   const [denNgay, setDenNgay] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [vstPayload, setVstPayload] = useState<VstDashboardPayload | null>(null);
   const [compliancePayloads, setCompliancePayloads] = useState<Record<string, ComplianceDashboardPayload>>({});
   const [summaryTable, setSummaryTable] = useState<DashboardSummaryRow[]>([]);
@@ -83,6 +85,15 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
     header,
   );
 
+  /** Khi thu hẹp khối, bỏ khoa không thuộc khối — nếu không RPC nhận khoa “lạc” và trông như lọc hỏng. */
+  useEffect(() => {
+    if (!initDone || khoiOptions.length === 0) return;
+    setSelectedKhoaIds((prev) => {
+      const next = pruneKhoaIdsForKhoiSelection(prev, selectedKhoiIds, khoaOptions, khoiOptions.length);
+      return sortedJoinIds(prev) === sortedJoinIds(next) ? prev : next;
+    });
+  }, [initDone, selectedKhoiIds, khoiOptions, khoiOptions.length]);
+
   const exportCurrentReport = useDashboardExportReport({
     tuNgay,
     denNgay,
@@ -115,7 +126,9 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
     khoaOptionCount: khoaOptions.length,
     ngheOptionCount: ngheOptions.length,
     khuOptionCount: khuVucOptions.length,
+    khoaOptions,
     setLoading,
+    setLoadError,
     setSummaryTable,
     setSelectedBangKiemMas,
     setVstPayload,
@@ -196,6 +209,7 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
     denNgay,
     setDenNgay,
     loading,
+    loadError,
     vstPayload,
     compliancePayloads,
     vstGapPayloads,

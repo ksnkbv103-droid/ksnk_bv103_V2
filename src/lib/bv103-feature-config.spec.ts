@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import {
-  useComplianceDashboardMultiV2,
+  isComplianceDashboardMultiV2Enabled,
   dashboardQueryStaleTimeMs,
   isModuleEnabled,
 } from "./bv103-feature-config";
@@ -18,12 +18,12 @@ describe("bv103-feature-config", () => {
 
   it("defaults multi v2 on", () => {
     delete process.env.BV103_COMPLIANCE_MULTI_V2;
-    expect(useComplianceDashboardMultiV2()).toBe(true);
+    expect(isComplianceDashboardMultiV2Enabled()).toBe(true);
   });
 
   it("can disable multi v2", () => {
     process.env.BV103_COMPLIANCE_MULTI_V2 = "0";
-    expect(useComplianceDashboardMultiV2()).toBe(false);
+    expect(isComplianceDashboardMultiV2Enabled()).toBe(false);
   });
 
   it("dashboard stale time fallback", () => {

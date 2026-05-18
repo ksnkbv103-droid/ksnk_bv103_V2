@@ -1,10 +1,6 @@
-import { CSSDInstrumentCatalogPage } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
+import { redirect } from "next/navigation";
+import { CSSD_ROUTES } from "@/lib/cssd-routes";
 
-export const metadata = {
-  title: "Danh mục CSSD liên thông | KSNK 103",
-  description: "Bộ dụng cụ, dụng cụ chi tiết và loại dụng cụ liên thông trong một màn CSSD.",
-};
-
-export default function Page() {
-  return <CSSDInstrumentCatalogPage />;
+export default function LegacyCssdCatalogRedirect() {
+  redirect(CSSD_ROUTES.dungCu);
 }

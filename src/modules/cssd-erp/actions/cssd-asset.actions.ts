@@ -3,7 +3,7 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { insertCssdLifecycleEvent } from "../shared/application/cssd-lifecycle-events";
-import { mapFkError, safeRevalidate, tableHasColumn } from "./cssd-action-common";
+import { mapFkError, revalidateCssdInventorySurfaces, tableHasColumn } from "./cssd-action-common";
 
 /**
  * Điều chuyển cấu phần giữa hai QR đang hoạt động — ghi `fact_cssd_dieu_chuyen_thanh_phan` + lifecycle.
@@ -145,8 +145,7 @@ export async function dieuChuyenThanhPhanGiuaHaiQrAction(payload: {
       payload: lcPayload,
     });
 
-    safeRevalidate("/cssd-erp/inventory");
-    safeRevalidate("/cssd-erp");
+    revalidateCssdInventorySurfaces();
     return { success: true };
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e || "Loi khong ro");

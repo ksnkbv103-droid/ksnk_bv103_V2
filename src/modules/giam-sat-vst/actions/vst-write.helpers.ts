@@ -1,11 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   HINH_THUC_CHUYEN_TRACH,
+  HINH_THUC_GIAM_SAT_CHEO,
   HINH_THUC_TU_GIAM_SAT,
 } from "@/lib/supervision-policy";
 import { isKnownHinhThucLabel, resolveCanonicalHinhThucLabel } from "@/lib/supervision-hinh-thuc-legacy";
 
-export const HINH_THUC_GIAM_SAT_OPTIONS = [HINH_THUC_TU_GIAM_SAT, HINH_THUC_CHUYEN_TRACH] as const;
+export const HINH_THUC_GIAM_SAT_OPTIONS = [
+  HINH_THUC_TU_GIAM_SAT,
+  HINH_THUC_CHUYEN_TRACH,
+  HINH_THUC_GIAM_SAT_CHEO,
+] as const;
 export const CACH_THUC_GIAM_SAT_OPTIONS = [
   "Giám sát trực tiếp tại chỗ",
   "Giám sát trực tiếp qua camera",
@@ -54,8 +59,10 @@ export function normalizeVstModeFields(input: SessionInput) {
 }
 
 export function validateVstModeFields(hinh: string, cach: string) {
-  if (!isKnownHinhThucLabel(hinh) && !HINH_THUC_GIAM_SAT_OPTIONS.includes(hinh as ModeOption)) {
-    throw new Error(`Hình thức giám sát không hợp lệ. Chỉ chấp nhận: ${HINH_THUC_TU_GIAM_SAT} hoặc ${HINH_THUC_CHUYEN_TRACH}.`);
+  if (!isKnownHinhThucLabel(hinh)) {
+    throw new Error(
+      `Hình thức giám sát không hợp lệ. Chấp nhận: ${HINH_THUC_TU_GIAM_SAT}, ${HINH_THUC_CHUYEN_TRACH}, ${HINH_THUC_GIAM_SAT_CHEO}.`,
+    );
   }
   if (!CACH_THUC_GIAM_SAT_OPTIONS.includes(cach as CachOption)) {
     throw new Error(

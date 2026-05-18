@@ -5,7 +5,7 @@ import { fetchBatchesAndMachines } from "../helpers/me-tiet-khuan-list-data";
 import { assertThietBiSanSangChoMeTietKhuan } from "../helpers/assert-thiet-bi-cho-me-tiet-khuan";
 import { getBatchAddRejectionReason, logQuyTrinhVaoMeTietKhuan } from "../helpers/me-tiet-khuan-batch-trace";
 import { persistMeTietKhuanFinishWithClient, type PersistMeTietKhuanInput } from "../helpers/persist-me-tiet-khuan";
-import { getErrorMessage, mapFkError, safeRevalidate } from "./cssd-action-common";
+import { getErrorMessage, mapFkError, revalidateCssdBatchSurfaces } from "./cssd-action-common";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
 import { 
   createSterilizationBatchSchema, 
@@ -130,7 +130,7 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
       .update({ ...tkPatch, updated_at: now })
       .in("id", ids);
     if (upQt) return { success: false as const, error: mapFkError(upQt.message) };
-    safeRevalidate("/cssd-erp/batch");
+    revalidateCssdBatchSurfaces();
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
@@ -158,7 +158,7 @@ export async function confirmKetThucChuTrinhTietKhuan(batchId: string) {
     const now = new Date().toISOString();
     const { error: upLo } = await supabase.from("fact_lo_tiet_khuan").update({ tk_mo_form_qc_at: now, updated_at: now }).eq("id", id);
     if (upLo) return { success: false as const, error: mapFkError(upLo.message) };
-    safeRevalidate("/cssd-erp/batch");
+    revalidateCssdBatchSurfaces();
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
@@ -219,7 +219,7 @@ export async function createCssdSterilizationBatch(machineId: string, nguoiLoad:
       .select()
       .single();
     if (error) return { success: false as const, error: mapFkError(error.message) };
-    safeRevalidate("/cssd-erp/batch");
+    revalidateCssdBatchSurfaces();
     return { success: true as const, data: me };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
@@ -295,7 +295,7 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
             .maybeSingle()
         ).data?.ten_bo || ""
       : "";
-    safeRevalidate("/cssd-erp/batch");
+    revalidateCssdBatchSurfaces();
     return {
       success: true as const,
       tenBo: String(tenBo || "").trim() || qr,
@@ -313,8 +313,8 @@ export async function finishCssdSterilizationBatch(input: PersistMeTietKhuanInpu
     const validated = finishSterilizationBatchSchema.parse(input);
     const saved = await persistMeTietKhuanFinishWithClient(supabase, validated as PersistMeTietKhuanInput);
     if (!saved.ok) return { success: false as const, error: saved.message };
-    safeRevalidate("/cssd-erp/batch");
-    safeRevalidate("/cssd-erp");
+    revalidateCssdBatchSurfaces();
+    revalidateCssdBatchSurfaces();
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };

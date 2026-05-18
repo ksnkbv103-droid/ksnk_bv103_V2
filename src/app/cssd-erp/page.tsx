@@ -2,6 +2,6 @@
 import { redirect } from "next/navigation";
 
 export default function Page() {
-  redirect("/cssd-tiep-nhan");
+  redirect("/cssd-quy-trinh");
 }
 

@@ -7,7 +7,7 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { safeRevalidate, tableHasColumn } from "./cssd-action-common";
+import { revalidateCssdIncidentSurfaces, tableHasColumn } from "./cssd-action-common";
 import { verifyCssdInventoryEdit } from "./cssd-permissions";
 import { createIncidentReport as createIncidentReportImpl } from "@/modules/cssd-su-co/actions/su-co-report.actions";
 
@@ -44,6 +44,6 @@ export async function unlockDongBangQuyTrinhByMaQr(maQR: string) {
   const { error: nkErr } = await supabase.from("fact_nhat_ky_quet").insert(nk);
   if (nkErr) throw new Error(nkErr.message);
 
-  safeRevalidate("/cssd-erp");
+  revalidateCssdIncidentSurfaces();
   return { success: true as const };
 }

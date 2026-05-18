@@ -1,11 +1,6 @@
-// src/app/cssd-erp/inventory/page.tsx
-import { CSSDInstrumentInventoryPage } from "@/modules/cssd-erp/contexts/inventory-instrument/entrypoint";
+import { redirect } from "next/navigation";
+import { CSSD_ROUTES } from "@/lib/cssd-routes";
 
-export const metadata = {
-  title: "Quản lý Kho Dụng cụ | KSNK 103",
-  description: "Hệ thống giám sát tồn kho và tình trạng vật lý dụng cụ CSSD",
-};
-
-export default function Page() {
-  return <CSSDInstrumentInventoryPage />;
+export default function LegacyCssdInventoryRedirect() {
+  redirect(`${CSSD_ROUTES.quyTrinh}?tab=kho`);
 }

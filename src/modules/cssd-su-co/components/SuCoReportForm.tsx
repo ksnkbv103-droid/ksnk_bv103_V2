@@ -59,7 +59,7 @@ const GROUP_ICONS: Record<IncidentGroup, React.ComponentType<{ className?: strin
 };
 
 const GROUP_SUBTITLES: Record<IncidentGroup, string> = {
-  PROCESS: "Sai thao tác, lỗi khâu đóng gói, tiệt khuẩn...",
+  PROCESS: "Sai thao tác, QC khâu, chất lượng tiệt khuẩn / mẻ...",
   INSTRUMENT: "Dụng cụ hỏng, mất chi tiết, cần bổ sung...",
   CHEMICAL: "Sai nồng độ hóa chất, quá hạn dùng...",
   EQUIPMENT: "Máy hỏng, dừng hoạt động, lỗi thông số...",

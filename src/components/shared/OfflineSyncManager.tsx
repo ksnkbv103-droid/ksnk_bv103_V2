@@ -4,8 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { WifiOff, Wifi, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { getOfflineTasks, removeOfflineTask, type OfflineTask } from "@/lib/offline-sync";
-// Import Server Actions
-import { cssdCommandAdvanceStation } from "@/modules/cssd-erp/actions/cssd-workflow.commands.actions";
+import { cssdCommandAdvanceStation } from "@/modules/cssd-erp/contexts/processing-lifecycle/entrypoint";
 import { createIncidentReport } from "@/modules/cssd-su-co/actions/su-co-report.actions";
 
 export default function OfflineSyncManager() {
@@ -17,6 +16,54 @@ export default function OfflineSyncManager() {
     const tasks = await getOfflineTasks();
     setPendingTasks(tasks);
   }, []);
+
+  async function syncData() {
+    if (!navigator.onLine || isSyncing) return;
+    setIsSyncing(true);
+
+    try {
+      const tasks = await getOfflineTasks();
+      if (tasks.length === 0) {
+        setIsSyncing(false);
+        return;
+      }
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const task of tasks) {
+        try {
+          if (task.type === "SCAN_QR") {
+            const { maQR, station } = task.payload;
+            await cssdCommandAdvanceStation(maQR, station);
+          } else if (task.type === "REPORT_INCIDENT") {
+            await createIncidentReport(task.payload);
+          }
+
+          await removeOfflineTask(task.id);
+          successCount++;
+        } catch (err: unknown) {
+          console.error("Lỗi đồng bộ task", task, err);
+          errorCount++;
+          const msg = err instanceof Error ? err.message : String(err);
+          if (!msg.includes("fetch")) {
+            await removeOfflineTask(task.id);
+          }
+        }
+      }
+
+      await checkQueue();
+
+      if (successCount > 0) {
+        toast.success(`Đã đồng bộ ${successCount} thao tác ngoại tuyến thành công.`);
+      }
+      if (errorCount > 0) {
+        toast.error(`Có ${errorCount} thao tác ngoại tuyến bị lỗi nghiệp vụ (đã loại bỏ).`);
+      }
+    } finally {
+      setIsSyncing(false);
+    }
+  }
 
   useEffect(() => {
     // Initial check
@@ -50,56 +97,6 @@ export default function OfflineSyncManager() {
       clearInterval(interval);
     };
   }, [checkQueue]);
-
-  const syncData = async () => {
-    if (!navigator.onLine || isSyncing) return;
-    setIsSyncing(true);
-    
-    try {
-      const tasks = await getOfflineTasks();
-      if (tasks.length === 0) {
-        setIsSyncing(false);
-        return;
-      }
-
-      let successCount = 0;
-      let errorCount = 0;
-
-      for (const task of tasks) {
-        try {
-          if (task.type === "SCAN_QR") {
-            const { maQR, station } = task.payload;
-            await cssdCommandAdvanceStation(maQR, station);
-          } else if (task.type === "REPORT_INCIDENT") {
-            await createIncidentReport(task.payload);
-          }
-          
-          await removeOfflineTask(task.id);
-          successCount++;
-        } catch (err: any) {
-          console.error("Lỗi đồng bộ task", task, err);
-          errorCount++;
-          // Nếu lỗi nghiệp vụ (mã QR sai...), ta có nên xóa task không? 
-          // Nếu không xóa nó sẽ kẹt mãi. Tạm thời xóa nếu lỗi nghiệp vụ cứng, 
-          // nhưng không xóa nếu là lỗi mạng.
-          if (!err.message?.includes("fetch")) {
-             await removeOfflineTask(task.id);
-          }
-        }
-      }
-
-      await checkQueue();
-      
-      if (successCount > 0) {
-        toast.success(`Đã đồng bộ ${successCount} thao tác ngoại tuyến thành công.`);
-      }
-      if (errorCount > 0) {
-        toast.error(`Có ${errorCount} thao tác ngoại tuyến bị lỗi nghiệp vụ (đã loại bỏ).`);
-      }
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   if (isOnline && pendingTasks.length === 0) return null;
 

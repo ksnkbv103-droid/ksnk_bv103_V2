@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
+import { pathnameIsCssdModule } from "@/lib/cssd-routes";
 
 const STORAGE_KEY = "bv103_ux_hints_v1";
 
@@ -33,20 +34,13 @@ function hintForPath(pathname: string): HintDef | null {
       ],
     };
   }
-  if (
-    pathname.startsWith("/cssd-erp") ||
-    pathname.startsWith("/cssd-tiep-nhan") ||
-    pathname.startsWith("/cssd-dong-goi") ||
-    pathname.startsWith("/cssd-cap-phat") ||
-    pathname.startsWith("/cssd-tiet-khuan") ||
-    pathname.startsWith("/cssd-quan-tri")
-  ) {
+  if (pathnameIsCssdModule(pathname)) {
     return {
       key: "cssd",
       title: "Gợi ý nhanh — CSSD",
       bullets: [
-        "Menu trái tách theo vị trí làm việc: Tiếp nhận, Đóng gói, Mẻ tiệt khuẩn, Cấp phát — không cần chọn trạm thủ công.",
-        "Tiệt khuẩn chỉ qua phiếu mẻ; kho / danh mục / bảo trì / hóa chất nằm ở «Kho & Danh mục» và các mục tài sản.",
+        "Quy trình & Kho: quét trạm (không gồm mẻ hấp) và FEFO trên cùng màn /cssd-quy-trinh.",
+        "Mẻ tiệt khuẩn, dụng cụ, thiết bị, hóa chất, sự cố — mỗi mục một route riêng trên menu trái.",
       ],
     };
   }

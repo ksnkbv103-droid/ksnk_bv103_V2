@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, type Dispatch, type SetStateAction } from "react";
+import { useCallback, useEffect, useMemo, useRef, type Dispatch, type SetStateAction } from "react";
 import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
 import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
 import type {
@@ -8,15 +8,28 @@ import type {
 } from "../compliance-dashboard.types";
 import { fetchDashboardPayloadsForSupervisionType } from "../lib/fetch-dashboard-payloads-for-type";
 import { executeDashboardLoad, shouldUpdateBangKiemSelection } from "../lib/dashboard-load-execution";
+import { pruneKhoaIdsForKhoiSelection } from "../lib/dashboard-hook-helpers";
+import {
+  buildDashboardFilterCacheKey,
+  buildDashboardFilterKeyWithoutTab,
+} from "../lib/dashboard-filter-cache-key";
+import { applyDashboardLoadResult } from "../lib/dashboard-load-apply";
 import type { DashboardTabType } from "./dashboard-types";
-import type { DashboardLoadInput } from "../lib/dashboard-load-execution";
-import { sortedJoinIds } from "../lib/dashboard-hook-helpers";
-import { useDashboardBundleQuery } from "./use-dashboard-bundle-query";
+import type { DashboardLoadInput, DashboardLoadResult } from "../lib/dashboard-load-execution";
 
 type GapCompliance = Record<
   string,
   { kq: ComplianceDashboardPayload; cheo: ComplianceDashboardPayload; tgs: ComplianceDashboardPayload }
 >;
+
+const TAB_CACHE_TTL_MS = 120_000;
+const FILTER_DEBOUNCE_MS = 420;
+
+type TabCacheEntry = {
+  key: string;
+  at: number;
+  out: DashboardLoadResult;
+};
 
 export function useDashboardLoadCycle(args: {
   initDone: boolean;
@@ -33,7 +46,9 @@ export function useDashboardLoadCycle(args: {
   khoaOptionCount: number;
   ngheOptionCount: number;
   khuOptionCount: number;
+  khoaOptions: { id: string; khoi_id?: string }[];
   setLoading: (v: boolean) => void;
+  setLoadError: (v: string | null) => void;
   setSummaryTable: (v: DashboardSummaryRow[]) => void;
   setSelectedBangKiemMas: Dispatch<SetStateAction<string[]>>;
   setVstPayload: (v: VstDashboardPayload | null) => void;
@@ -62,7 +77,9 @@ export function useDashboardLoadCycle(args: {
     khoaOptionCount,
     ngheOptionCount,
     khuOptionCount,
+    khoaOptions,
     setLoading,
+    setLoadError,
     setSummaryTable,
     setSelectedBangKiemMas,
     setVstPayload,
@@ -75,6 +92,87 @@ export function useDashboardLoadCycle(args: {
     widgetAccess,
   } = args;
 
+  const reqIdRef = useRef(0);
+  const tabCacheRef = useRef<Partial<Record<DashboardTabType, TabCacheEntry>>>({});
+  const filterKeyRef = useRef("");
+
+  const prunedKhoaIds = useMemo(
+    () => pruneKhoaIdsForKhoiSelection(selectedKhoaIds, selectedKhoiIds, khoaOptions, khoiOptionCount),
+    [selectedKhoaIds, selectedKhoiIds, khoaOptions, khoiOptionCount],
+  );
+
+  const filterKeyWithoutTab = useMemo(
+    () =>
+      buildDashboardFilterKeyWithoutTab({
+        tuNgay,
+        denNgay,
+        selectedBangKiemMas,
+        selectedKhoiIds,
+        selectedKhoaIds: prunedKhoaIds,
+        selectedNgheIds,
+        selectedKhuVucIds,
+      }),
+    [
+      tuNgay,
+      denNgay,
+      selectedBangKiemMas,
+      selectedKhoiIds,
+      prunedKhoaIds,
+      selectedNgheIds,
+      selectedKhuVucIds,
+    ],
+  );
+
+  const cacheKey = useMemo(
+    () =>
+      buildDashboardFilterCacheKey({
+        tuNgay,
+        denNgay,
+        activeTab,
+        selectedBangKiemMas,
+        selectedKhoiIds,
+        selectedKhoaIds: prunedKhoaIds,
+        selectedNgheIds,
+        selectedKhuVucIds,
+      }),
+    [
+      tuNgay,
+      denNgay,
+      activeTab,
+      selectedBangKiemMas,
+      selectedKhoiIds,
+      prunedKhoaIds,
+      selectedNgheIds,
+      selectedKhuVucIds,
+    ],
+  );
+
+  const applySetters = useMemo(
+    () => ({
+      setSummaryTable,
+      setKhoaOverviewRows,
+      setVstPayload,
+      setCompliancePayloads,
+      setVstGapPayloads,
+      setComplianceGapPayloads,
+      setKsnkStaffSupervision,
+      setShowKsnkStaffWorkload,
+      setSelectedBangKiemMas,
+      shouldUpdateBangKiemSelection,
+    }),
+    [
+      setSummaryTable,
+      setKhoaOverviewRows,
+      setVstPayload,
+      setCompliancePayloads,
+      setVstGapPayloads,
+      setComplianceGapPayloads,
+      setKsnkStaffSupervision,
+      setShowKsnkStaffWorkload,
+      setSelectedBangKiemMas,
+    ],
+  );
+
   const fetchPayloadsForType = useCallback(
     async (sType: "ALL" | "KSNK" | "CHEO" | "TU_GIAM_SAT", bangKiemOverride?: string[]) =>
       fetchDashboardPayloadsForSupervisionType({
@@ -82,7 +180,7 @@ export function useDashboardLoadCycle(args: {
         bangKiemOverride,
         selectedBangKiemMas,
         selectedKhoiIds,
-        selectedKhoaIds,
+        selectedKhoaIds: prunedKhoaIds,
         selectedNgheIds,
         selectedKhuVucIds,
         tuNgay,
@@ -95,7 +193,7 @@ export function useDashboardLoadCycle(args: {
     [
       selectedBangKiemMas,
       selectedKhoiIds,
-      selectedKhoaIds,
+      prunedKhoaIds,
       selectedNgheIds,
       selectedKhuVucIds,
       tuNgay,
@@ -107,134 +205,108 @@ export function useDashboardLoadCycle(args: {
     ],
   );
 
-  const sharedBundleArgs = useMemo(
-    () => ({
-      selectedBangKiemMas,
-      selectedKhoiIds,
-      selectedKhoaIds,
-      selectedNgheIds,
-      selectedKhuVucIds,
-      tuNgay,
-      denNgay,
-      khoiOptionCount,
-      khoaOptionCount,
-      ngheOptionCount,
-      khuOptionCount,
-    }),
+  const loadDashboard = useCallback(
+    async (opts?: { force?: boolean; useCache?: boolean }) => {
+      if (!initDone) return;
+
+      const useCache = opts?.useCache !== false;
+      const cached = tabCacheRef.current[activeTab];
+      if (useCache && !opts?.force && cached && cached.key === cacheKey && Date.now() - cached.at < TAB_CACHE_TTL_MS) {
+        applyDashboardLoadResult(cached.out, applySetters);
+        setLoadError(cached.out.errors.length > 0 ? cached.out.errors.join(" · ") : null);
+        return;
+      }
+
+      const reqId = ++reqIdRef.current;
+      setLoading(true);
+      setLoadError(null);
+      try {
+        const sharedBundleArgs = {
+          selectedBangKiemMas,
+          selectedKhoiIds,
+          selectedKhoaIds: prunedKhoaIds,
+          selectedNgheIds,
+          selectedKhuVucIds,
+          tuNgay,
+          denNgay,
+          khoiOptionCount,
+          khoaOptionCount,
+          ngheOptionCount,
+          khuOptionCount,
+        };
+        const out = await executeDashboardLoad({
+          tuNgay,
+          denNgay,
+          selectedKhoiIds,
+          selectedKhoaIds: prunedKhoaIds,
+          selectedNgheIds,
+          selectedKhuVucIds,
+          selectedBangKiemMas,
+          filterOptions,
+          activeTab,
+          fetchPayloadsForType,
+          overviewBundleArgs: activeTab === "overview" && widgetAccess.overview ? sharedBundleArgs : null,
+          gapBundleArgs: activeTab === "gap" && widgetAccess.gap ? sharedBundleArgs : null,
+          widgetAccess,
+        });
+        if (reqId !== reqIdRef.current) return;
+
+        tabCacheRef.current[activeTab] = { key: cacheKey, at: Date.now(), out };
+        applyDashboardLoadResult(out, applySetters);
+        setLoadError(out.errors.length > 0 ? out.errors.join(" · ") : null);
+      } catch (err) {
+        if (reqId !== reqIdRef.current) return;
+        const msg = err instanceof Error ? err.message : "Không tải được dữ liệu dashboard.";
+        setLoadError(msg);
+        console.error("[Dashboard] loadDashboard error:", err);
+      } finally {
+        if (reqId === reqIdRef.current) setLoading(false);
+      }
+    },
     [
-      selectedBangKiemMas,
-      selectedKhoiIds,
-      selectedKhoaIds,
-      selectedNgheIds,
-      selectedKhuVucIds,
-      tuNgay,
-      denNgay,
-      khoiOptionCount,
-      khoaOptionCount,
-      ngheOptionCount,
-      khuOptionCount,
-    ],
-  );
-
-  const loadInput = useMemo((): DashboardLoadInput | null => {
-    if (!initDone) return null;
-    return {
-      tuNgay,
-      denNgay,
-      selectedKhoiIds,
-      selectedKhoaIds,
-      selectedNgheIds,
-      selectedKhuVucIds,
-      selectedBangKiemMas,
-      filterOptions,
+      initDone,
       activeTab,
+      cacheKey,
       fetchPayloadsForType,
-      overviewBundleArgs: activeTab === "overview" && widgetAccess.overview ? sharedBundleArgs : null,
-      gapBundleArgs: activeTab === "gap" && widgetAccess.gap ? sharedBundleArgs : null,
-      widgetAccess,
-    };
-  }, [
-    initDone,
-    tuNgay,
-    denNgay,
-    selectedKhoiIds,
-    selectedKhoaIds,
-    selectedNgheIds,
-    selectedKhuVucIds,
-    selectedBangKiemMas,
-    filterOptions,
-    activeTab,
-    fetchPayloadsForType,
-    sharedBundleArgs,
-    widgetAccess,
-  ]);
-
-  const queryKey = useMemo(
-    () => ({
-      activeTab,
       tuNgay,
       denNgay,
-      bangKiem: sortedJoinIds(selectedBangKiemMas),
-      khoi: sortedJoinIds(selectedKhoiIds),
-      khoa: sortedJoinIds(selectedKhoaIds),
-      nghe: sortedJoinIds(selectedNgheIds),
-      khu: sortedJoinIds(selectedKhuVucIds),
-    }),
-    [
-      activeTab,
-      tuNgay,
-      denNgay,
-      selectedBangKiemMas,
       selectedKhoiIds,
-      selectedKhoaIds,
+      prunedKhoaIds,
+      selectedBangKiemMas,
       selectedNgheIds,
       selectedKhuVucIds,
+      filterOptions,
+      khoiOptionCount,
+      khoaOptionCount,
+      ngheOptionCount,
+      khuOptionCount,
+      widgetAccess,
+      applySetters,
+      setLoading,
+      setLoadError,
     ],
   );
 
-  const bundleQuery = useDashboardBundleQuery(queryKey, loadInput, initDone);
+  useEffect(() => {
+    if (!initDone) return;
+    void loadDashboard({ useCache: true });
+  }, [initDone, activeTab, loadDashboard]);
 
   useEffect(() => {
-    setLoading(bundleQuery.isFetching);
-  }, [bundleQuery.isFetching, setLoading]);
-
-  useEffect(() => {
-    const out = bundleQuery.data;
-    if (!out) return;
-    setSummaryTable(out.summaryRows);
-    setKhoaOverviewRows(out.khoaOverviewRows);
-    if (out.nextBangKiemSelection) {
-      const next = out.nextBangKiemSelection;
-      setSelectedBangKiemMas((prev) => (shouldUpdateBangKiemSelection(prev, next) ? next : prev));
+    if (!initDone) return;
+    const prev = filterKeyRef.current;
+    if (prev === "") {
+      filterKeyRef.current = filterKeyWithoutTab;
+      return;
     }
-    setVstPayload(out.vst);
-    setCompliancePayloads(out.gsc);
-    setVstGapPayloads(out.vstGap);
-    setComplianceGapPayloads(out.complianceGap ?? {});
-    setKsnkStaffSupervision(out.ksnkStaffSupervision);
-    setShowKsnkStaffWorkload(out.showKsnkStaffWorkload);
-  }, [
-    bundleQuery.data,
-    setSummaryTable,
-    setKhoaOverviewRows,
-    setSelectedBangKiemMas,
-    setVstPayload,
-    setCompliancePayloads,
-    setVstGapPayloads,
-    setComplianceGapPayloads,
-    setKsnkStaffSupervision,
-    setShowKsnkStaffWorkload,
-  ]);
-
-  useEffect(() => {
-    if (bundleQuery.error) {
-      console.error("[Dashboard] loadDashboard error:", bundleQuery.error);
-    }
-  }, [bundleQuery.error]);
-
-  const loadDashboard = useCallback(async () => {
-    await bundleQuery.refetch();
-  }, [bundleQuery]);
+    if (prev === filterKeyWithoutTab) return;
+    filterKeyRef.current = filterKeyWithoutTab;
+    tabCacheRef.current = {};
+    const t = window.setTimeout(() => {
+      void loadDashboard({ force: true, useCache: false });
+    }, FILTER_DEBOUNCE_MS);
+    return () => window.clearTimeout(t);
+  }, [initDone, filterKeyWithoutTab, loadDashboard]);
 
   return { loadDashboard, fetchPayloadsForType };
 }

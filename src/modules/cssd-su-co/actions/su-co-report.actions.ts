@@ -2,7 +2,7 @@
 
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { safeRevalidateCssdPath } from "@/lib/cssd-server-common";
+import { revalidateCssdIncidentSurfaces } from "@/lib/cssd-server-common";
 import { verifyCssdIncidentCreate } from "@/lib/cssd-server-gates";
 import { resolveCssdCodeWithClient } from "@/modules/cssd-erp/shared/application/cssd-qr-hub";
 import { cssdIncidentReportInputSchema } from "../contracts/su-co-report-input.schema";
@@ -56,7 +56,6 @@ export async function createIncidentReport(data: {
     q as Record<string, unknown> & { id: string; ma_trang_thai_hien_tai?: string | null },
   );
 
-  safeRevalidateCssdPath("/cssd-erp");
-  safeRevalidateCssdPath("/cssd-erp/su-co");
+  revalidateCssdIncidentSurfaces();
   return { success: true as const, incident_id, isRedAlert };
 }

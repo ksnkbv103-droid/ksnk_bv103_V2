@@ -63,7 +63,22 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    files: ["src/app/cssd-erp/**/*.ts", "src/app/cssd-erp/**/*.tsx"],
+    files: [
+      "src/app/cssd-erp/**/*.ts",
+      "src/app/cssd-erp/**/*.tsx",
+      "src/app/cssd-quy-trinh/**/*.ts",
+      "src/app/cssd-quy-trinh/**/*.tsx",
+      "src/app/cssd-dung-cu/**/*.ts",
+      "src/app/cssd-dung-cu/**/*.tsx",
+      "src/app/cssd-su-co/**/*.ts",
+      "src/app/cssd-su-co/**/*.tsx",
+      "src/app/cssd-thiet-bi/**/*.ts",
+      "src/app/cssd-thiet-bi/**/*.tsx",
+      "src/app/cssd-hoa-chat/**/*.ts",
+      "src/app/cssd-hoa-chat/**/*.tsx",
+      "src/app/cssd-tiep-nhan/**/*.ts",
+      "src/app/cssd-tiep-nhan/**/*.tsx",
+    ],
     rules: {
       "no-restricted-imports": [
         "error",

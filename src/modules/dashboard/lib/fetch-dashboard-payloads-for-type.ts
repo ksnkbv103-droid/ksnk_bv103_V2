@@ -27,6 +27,7 @@ export type FetchDashboardPayloadsInput = {
 export type FetchDashboardPayloadsResult = {
   vst: VstDashboardPayload | null;
   gsc: Record<string, ComplianceDashboardPayload>;
+  errors: string[];
 };
 
 /**
@@ -73,6 +74,10 @@ export async function fetchDashboardPayloadsForSupervisionType(
       : Promise.resolve(null),
   ]);
 
+  const errors: string[] = [];
+  if (complianceRes && !complianceRes.success) errors.push(`Giám sát chung: ${complianceRes.error}`);
+  if (vstRes && !vstRes.success) errors.push(`Vệ sinh tay: ${vstRes.error}`);
+
   const nextMap = complianceRes && complianceRes.success ? complianceRes.data : {};
 
   type PartRow = { id: string; ten: string; so_phien: number };
@@ -97,5 +102,5 @@ export async function fetchDashboardPayloadsForSupervisionType(
       ? { ...vstRes.data, participation: Array.from(combinedPartMap.values()) }
       : null;
 
-  return { vst: finalVst, gsc: nextMap };
+  return { vst: finalVst, gsc: nextMap, errors };
 }

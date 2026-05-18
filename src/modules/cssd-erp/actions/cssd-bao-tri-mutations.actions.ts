@@ -2,7 +2,7 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { coMeTietKhuanChuaKetThucTheoThietBi } from "../helpers/assert-thiet-bi-cho-me-tiet-khuan";
-import { getErrorMessage, mapFkError, safeRevalidate } from "./cssd-action-common";
+import { getErrorMessage, mapFkError, revalidateCssdMaintenanceSurfaces } from "./cssd-action-common";
 import { normalizeCssdCode } from "../shared/domain/cssd-qr-core";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
 import { verifyCssdMaintenanceEdit } from "./cssd-permissions";
@@ -79,8 +79,7 @@ export async function batDauBaoTriThietBiAction(input: { thiet_bi_id?: string; m
       return { success: false as const, error: mapFkError(upErr.message) };
     }
 
-    safeRevalidate("/cssd-erp/equipment-maintenance");
-    safeRevalidate("/cssd-erp/batch");
+    revalidateCssdMaintenanceSurfaces();
     return { success: true as const, data: ins };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
@@ -145,8 +144,7 @@ export async function ketThucBaoTriThietBiAction(input: { id: string; ket_qua_gh
       .eq("id", thietBiId);
     if (uTb) return { success: false as const, error: mapFkError(uTb.message) };
 
-    safeRevalidate("/cssd-erp/equipment-maintenance");
-    safeRevalidate("/cssd-erp/batch");
+    revalidateCssdMaintenanceSurfaces();
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
@@ -189,8 +187,7 @@ export async function huyBaoTriThietBiAction(input: { id: string }) {
     const { error: uTb } = await supabase.from("dm_thiet_bi").update({ trang_thai: "READY", updated_at: now }).eq("id", thietBiId);
     if (uTb) return { success: false as const, error: mapFkError(uTb.message) };
 
-    safeRevalidate("/cssd-erp/equipment-maintenance");
-    safeRevalidate("/cssd-erp/batch");
+    revalidateCssdMaintenanceSurfaces();
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };

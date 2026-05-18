@@ -11,6 +11,7 @@ Thư mục này chỉ giữ tài liệu **cần cho phát triển và vận hàn
 5. [`GOVERNANCE_PIPELINE.md`](./GOVERNANCE_PIPELINE.md) (khi có migration)  
 6. [`SKILLS_CATALOG.md`](./SKILLS_CATALOG.md) · [`.cursor/rules/00-core-ksnk-rules.mdc`](../.cursor/rules/00-core-ksnk-rules.mdc)  
 7. Lộ trình theo mảnh: [`PROGRESS_REPORT.md`](../../PROGRESS_REPORT.md)  
+8. Rà soát tổng thể (định kỳ): [`docs/reviews/README.md`](../reviews/README.md)
 
 Các mục dưới chỉ mở **khi task đụng đúng chủ đề** — không đọc hết mỗi PR.
 
@@ -19,6 +20,8 @@ Các mục dưới chỉ mở **khi task đụng đúng chủ đề** — không
 | Nhu cầu | File |
 | ------- | ---- |
 | Ma trận UI → Action → DB | [`PREP0_UI_ACTION_DB_MATRIX.md`](./PREP0_UI_ACTION_DB_MATRIX.md) |
+| Rà soát tổng thể (kiến trúc / DB / UI / hiệu năng) | [`../reviews/KSNK_BV103_RASOAT_TONG_THE_2026-05-18.md`](../reviews/KSNK_BV103_RASOAT_TONG_THE_2026-05-18.md) · [`../reviews/README.md`](../reviews/README.md) |
+| **Giao nhóm dev ngoài (checklist + lint + CI)** | [`../reviews/KSNK_BV103_EXTERNAL_TEAM_REVIEW_BRIEF.md`](../reviews/KSNK_BV103_EXTERNAL_TEAM_REVIEW_BRIEF.md) |
 | Smart DB thực dụng | [`SMART_DB_PRAGMATIC_PLAYBOOK.md`](./SMART_DB_PRAGMATIC_PLAYBOOK.md) |
 | Catalog skill | [`SKILLS_CATALOG.md`](./SKILLS_CATALOG.md) |
 | Workflow agent đa bước | [`11-agent-workflow-delegation.md`](./11-agent-workflow-delegation.md) |

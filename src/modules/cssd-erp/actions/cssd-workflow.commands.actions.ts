@@ -3,10 +3,9 @@
 /**
  * Façade lệnh workflow (plan): startCycle, advanceStation, rejectToPrevious, freezeSet, releaseSet.
  */
-import { revalidatePath } from "next/cache";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import type { Station } from "../types/cssd.types";
-import { mapFkError, safeRevalidate, tableHasColumn } from "./cssd-action-common";
+import { mapFkError, revalidateCssdWorkflowSurfaces, tableHasColumn } from "./cssd-action-common";
 import { scanQR } from "./cssd-scan.actions";
 import {
   executeRejectToPreviousStation,
@@ -52,12 +51,7 @@ export async function cssdCommandRejectToPrevious(maQR: string, lyDo: string) {
     lyDo,
     operatorLabel: op,
   });
-  safeRevalidate("/cssd-erp");
-  try {
-    revalidatePath("/cssd-erp");
-  } catch {
-    /* empty */
-  }
+  revalidateCssdWorkflowSurfaces();
   return { success: true as const };
 }
 
@@ -89,7 +83,7 @@ export async function cssdCommandFreezeSet(maQR: string, lyDo?: string) {
   const { error: nkErr } = await supabase.from("fact_nhat_ky_quet").insert(nk);
   if (nkErr) throw new Error(mapFkError(nkErr.message));
 
-  safeRevalidate("/cssd-erp");
+  revalidateCssdWorkflowSurfaces();
   return { success: true as const };
 }
 
