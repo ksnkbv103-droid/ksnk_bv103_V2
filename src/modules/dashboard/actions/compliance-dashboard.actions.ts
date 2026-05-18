@@ -15,10 +15,9 @@ import {
   complianceDashboardFiltersSchema,
   type ParsedComplianceDashboardFilters,
 } from "@/lib/validations/dashboard-compliance.filters";
+import { createSupabaseComplianceDashboardRpcAdapter } from "../adapters/supabase-compliance-dashboard-rpc.adapter";
 import {
   type ComplianceDashboardPayload,
-  type ComplianceDashboardGroupRow as GroupRow,
-  type ComplianceDashboardViolationRow as ViolationRow,
   buildEmptyComplianceDashboardPayload,
 } from "../compliance-dashboard.types";
 import type {
@@ -278,52 +277,22 @@ export async function getComplianceDashboardPayloads(filters: ComplianceDashboar
 
   const gscBks = [...rpcKeys];
 
-  const { data: rpcData, error: rpcErr } = await supabase.rpc("rpc_get_compliance_dashboard_multi_v1", {
-    p_tu_ngay: tuStr,
-    p_den_ngay: denStr,
-    p_bang_kiem_mas: gscBks.length > 0 ? gscBks : null,
-    p_khoi_ids,
-    p_khoa_ids,
-    p_nghe_nghiep_ids,
-    p_khu_vuc_ids,
-    p_supervision_type: f.supervision_type || 'ALL'
-  });
-
-  if (rpcErr) return { success: false as const, error: rpcErr.message };
-
-  const result: Record<string, ComplianceDashboardPayload> = {};
-  Object.entries(rpcData as object).forEach(([bk, d]) => {
-    const row = d as {
-      summary?: ComplianceDashboardPayload["summary"];
-      by_khoa?: GroupRow[];
-      by_nghe_nghiep?: GroupRow[];
-      by_khu_vuc?: GroupRow[];
-      trend?: ComplianceDashboardPayload["trend"];
-      violations?: ViolationRow[];
-      supervision_sources?: ComplianceDashboardPayload["supervision_sources"];
-      participation?: ComplianceDashboardPayload["participation"];
-    };
-    result[bk] = {
-      tu_ngay: tuStr,
-      den_ngay: denStr,
-      options: { bang_kiem: [], khoi: [], khoa: [], nghe_nghiep: [], khu_vuc: [] },
-      summary: row.summary ?? { tong_phien: 0, tong_quan_sat: 0, tong_vi_pham: 0, ty_le_tuan_thu: 0 },
-      by_khoa: row.by_khoa || [],
-      by_nghe_nghiep: row.by_nghe_nghiep || [],
-      by_khu_vuc: row.by_khu_vuc || [],
-      trend: row.trend || [],
-      top5_khoa: (row.by_khoa || []).slice(0, 5),
-      bottom5_khoa: (row.by_khoa || []).slice(-5).reverse(),
-      rank_khoa: (row.by_khoa || []).map((x, i, arr) => ({
-        ...x,
-        stt: i + 1,
-        nhom_mau: i < 5 ? "GREEN" : i >= arr.length - 5 ? "RED" : "BLUE",
-      })),
-      violations: row.violations || [],
-      supervision_sources: row.supervision_sources || [],
-      participation: row.participation || [],
-    };
-  });
+  const complianceRpc = createSupabaseComplianceDashboardRpcAdapter(supabase);
+  let result: Record<string, ComplianceDashboardPayload>;
+  try {
+    result = await complianceRpc.fetchMultiPayload({
+      tuNgay: tuStr,
+      denNgay: denStr,
+      bangKiemMas: gscBks,
+      khoiIds: p_khoi_ids,
+      khoaIds: p_khoa_ids,
+      ngheNghiepIds: p_nghe_nghiep_ids,
+      khuVucIds: p_khu_vuc_ids,
+      supervisionType: f.supervision_type,
+    });
+  } catch (e) {
+    return { success: false as const, error: e instanceof Error ? e.message : String(e) };
+  }
 
   for (const [sel, rpc] of rpcKeyBySelection) {
     if (sel !== rpc && result[rpc]) result[sel] = result[rpc];

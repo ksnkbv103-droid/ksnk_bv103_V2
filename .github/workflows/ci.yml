@@ -1,7 +1,6 @@
-# Gate tối thiểu (Pha A): Vitest (CSSD/domain) + production build + typecheck.
-# ESLint đang có nợ trong repo — chạy `npm run lint` / `npm run verify:full` local khi dọn rule.
-# MDM: sau migration chạy `npm run verify:mdm:post-migration` (remote) hoặc `verify:mdm:post-migration:local`.
-# Cần Supabase linked / DB local + env; không chạy trên PR mặc định. Thêm job + secrets nếu muốn tự động hóa.
+# Gate: Vitest (domain + pilot) + engineering contract + production build.
+# E2E Playwright: chạy khi có secrets E2E_USER_* (optional job).
+# MDM post-migration: `npm run verify:mdm:post-migration` (local/linked, không trên PR mặc định).
 name: CI
 
 on:
@@ -17,6 +16,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
       SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-role
+      BV103_COMPLIANCE_MULTI_V2: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,5 +26,24 @@ jobs:
       - run: npm ci
       - run: node scripts/guard-legacy-table-names.mjs
       - run: npm run test:cssd
+      - run: npm run test:pilot
       - run: npm run verify:engineering
       - run: npm run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
+      E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
+      PLAYWRIGHT_SKIP_WEBSERVER: "1"
+      PLAYWRIGHT_BASE_URL: ${{ vars.PLAYWRIGHT_BASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium --with-deps
+      - run: npm run test:e2e

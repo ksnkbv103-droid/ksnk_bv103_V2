@@ -17,6 +17,8 @@ export default defineConfig({
       "src/modules/quan-tri-he-thong/**/*.spec.ts",
       "src/modules/giam-sat-vst/**/*.spec.ts",
       "src/modules/giam-sat-chung/**/*.spec.ts",
+      "src/modules/dashboard/**/*.spec.ts",
+      "src/lib/bv103-feature-config.spec.ts",
     ],
     environment: "node",
     passWithNoTests: true,

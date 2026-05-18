@@ -8,6 +8,7 @@ import {
   hydrateByKhoaRowIds,
 } from "@/modules/dashboard/lib/aggregate-rate-rows-by-khoi";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { createSupabaseVstDashboardRpcAdapter } from "../adapters/supabase-vst-dashboard-rpc.adapter";
 import { verifyPermission } from "@/lib/server-permission";
 import { verifyCommandCenterShell } from "@/modules/dashboard/lib/dashboard-command-center-access";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
@@ -140,23 +141,19 @@ export async function getVstDashboardPayload(filters: VstDashboardFilters = {}) 
       p_supervision_type: filters.supervision_type || "ALL",
     };
 
-    const [dashRes, momentRes] = await Promise.all([
-      supabase.rpc("rpc_get_vst_dashboard_v2", rpcArgs),
-      supabase.rpc("rpc_get_vst_moment_table_only", rpcArgs),
-    ]);
+    const vstRpc = createSupabaseVstDashboardRpcAdapter(supabase);
+    const { dashData, momentData, momentError } = await vstRpc.fetchRaw(filters, rpcArgs);
 
-    if (dashRes.error) throw dashRes.error;
+    const payload = (dashData ?? {}) as Partial<VstDashboardPayload>;
 
-    const payload = (dashRes.data ?? {}) as Partial<VstDashboardPayload>;
-
-    const fromMoment = parseMomentTableRpc(momentRes.data);
+    const fromMoment = parseMomentTableRpc(momentData);
     let byMomentTable: VstDashboardPayload["by_moment_table"] = coerceByMomentTableRows(
       (payload.by_moment_table ?? []) as VstDashboardPayload["by_moment_table"]
     );
-    if (!momentRes.error && fromMoment !== null) {
+    if (!momentError && fromMoment !== null) {
       byMomentTable = coerceByMomentTableRows(fromMoment);
-    } else if (process.env.NODE_ENV === "development" && momentRes.error) {
-      console.warn("[VST] rpc_get_vst_moment_table_only:", momentRes.error.message);
+    } else if (process.env.NODE_ENV === "development" && momentError) {
+      console.warn("[VST] rpc_get_vst_moment_table_only:", momentError.message);
     }
     const kpis = payload.kpis ?? { tong_phien: 0, tong_co_hoi: 0, da_tuan_thu: 0, bo_sot: 0, ty_le_tuan_thu: 0 };
     const rawErr =
