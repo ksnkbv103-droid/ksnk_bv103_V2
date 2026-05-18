@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Station } from "../../types/cssd.types";
+import { buildQuyTrinhTramPatch } from "../../lib/cssd-tram-persist";
 import { previousWorkflowStation } from "../domain/cssd-state-engine";
 import { insertCssdLifecycleEvent } from "../../shared/application/cssd-lifecycle-events";
 
@@ -18,7 +19,7 @@ export async function fetchLatestActiveWorkflowByQr(
   const qr = String(maQR || "").trim().toUpperCase();
   if (!qr) return null;
   const { data, error } = await supabase
-    .from("fact_quy_trinh")
+    .from("v_fact_quy_trinh_full")
     .select("*")
     .eq("ma_qr_quy_trinh", qr)
     .eq("is_active", true)
@@ -134,10 +135,11 @@ export async function executeRejectToPreviousStation(
   const lyDo = String(opts.lyDo || "").trim();
   if (!lyDo) throw new Error("Vui lòng nhập lý do trả lui.");
 
+  const tramPatch = await buildQuyTrinhTramPatch(supabase, prev);
   const { error: upErr } = await supabase
     .from("fact_quy_trinh")
     .update({
-      ma_trang_thai_hien_tai: prev,
+      ...tramPatch,
       updated_at: new Date().toISOString(),
     })
     .eq("id", q.id);

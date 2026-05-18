@@ -45,6 +45,8 @@ export default function GiamSatChungForm({
     nhanSus,
     historyLocations,
     historyLocationRows,
+    hinhThucGiamSats,
+    cachThucGiamSats,
     handleSave,
     score,
     sessionForPrint,
@@ -95,6 +97,9 @@ export default function GiamSatChungForm({
           lockedSupervisorHoSoId={currentHoSoId}
           deferLocationHistoryUntilTyped
           showBoSungNguoiBenhToggle
+          hinhThucGiamSats={hinhThucGiamSats}
+          cachThucGiamSats={cachThucGiamSats}
+          moduleContext="gsc"
         />
 
         <GiamSatChungFormActions
@@ -105,11 +110,12 @@ export default function GiamSatChungForm({
         />
 
         <div className="grid grid-cols-1 gap-4">
-          {template.criteria.map((c) => {
+          {template.criteria.map((c, idx) => {
             const result = resultByCriterionId.get(c.id) || { criterionId: c.id, value: "NA" as const, note: null };
             return (
               <ChecklistItem
                 key={c.id}
+                index={idx + 1}
                 criterion={c}
                 result={result}
                 onChange={(upd) => setResults((prev) => prev.map((r) => (r.criterionId === upd.criterionId ? upd : r)))}

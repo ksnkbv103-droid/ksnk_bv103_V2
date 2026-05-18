@@ -35,11 +35,14 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+import OfflineSyncManager from "@/components/shared/OfflineSyncManager";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi" className={inter.className}>
       <body className="bg-slate-50 text-slate-900 touch-manipulation pointer-events-auto">
         <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
+        <OfflineSyncManager />
         <Toaster position="top-right" richColors />
       </body>
     </html>

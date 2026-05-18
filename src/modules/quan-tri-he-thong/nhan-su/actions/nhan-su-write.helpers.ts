@@ -17,7 +17,7 @@ type CurrentFks = {
   vai_tro_he_thong_id?: string | null;
 } | null;
 
-/** Chuẩn hóa FK + snapshot tên hiển thị trước khi upsert hồ sơ nhân viên. */
+/** Chuẩn hóa FK trước khi upsert hồ sơ nhân viên (nhãn đọc qua v_mdm_nhan_su_full). */
 export async function buildSaveNhanSuMergedFields(
   supabase: SupabaseClient,
   updateData: Omit<Partial<NhanSu>, "id" | "khoa" | "to">,
@@ -79,27 +79,27 @@ export async function buildSaveNhanSuMergedFields(
   if (isChanged("chuc_danh_id", chucDanhNorm) && cdRes.data?.is_active === false) {
     throw new Error("Chức danh đã ngưng hoạt động.");
   }
-  const chucVuTen: string | null | undefined = chucVuNorm
-    ? (cvRes.data?.ten_chuc_vu ?? updateData.chuc_vu ?? null)
-    : null;
-  const chucDanhTen: string | null | undefined = chucDanhNorm
-    ? (cdRes.data?.ten_chuc_danh ?? updateData.chuc_danh ?? null)
-    : null;
-  const vaiTroTen: string | null | undefined = vaiTroNorm
-    ? (((vtRes.data as { name?: string } | null)?.name ?? updateData.vai_tro_he_thong_ksnk) || null)
-    : null;
+  if (chucVuNorm && isChanged("chuc_vu_id", chucVuNorm) && !cvRes.data?.ten_chuc_vu) {
+    throw new Error("Không tìm thấy tên chức vụ trong danh mục.");
+  }
+  if (chucDanhNorm && isChanged("chuc_danh_id", chucDanhNorm) && !cdRes.data?.ten_chuc_danh) {
+    throw new Error("Không tìm thấy tên chức danh trong danh mục.");
+  }
+  if (vaiTroNorm && isChanged("vai_tro_he_thong_id", vaiTroNorm) && !(vtRes.data as { name?: string } | null)?.name) {
+    throw new Error("Không tìm thấy vai trò hệ thống trong danh mục.");
+  }
 
   const merged = {
     ...updateData,
     khoa_id: khoaNorm,
     to_id: toNorm,
     chuc_vu_id: chucVuNorm,
-    chuc_vu: chucVuTen,
     chuc_danh_id: chucDanhNorm,
-    chuc_danh: chucDanhTen,
     vai_tro_he_thong_id: vaiTroNorm,
-    vai_tro_he_thong_ksnk: vaiTroTen,
   };
+  delete (merged as Record<string, unknown>).chuc_vu;
+  delete (merged as Record<string, unknown>).chuc_danh;
+  delete (merged as Record<string, unknown>).vai_tro_he_thong_ksnk;
   await validateDanhMucIdByType({
     supabase,
     id: merged.to_id || null,

@@ -40,10 +40,13 @@ export const NAV_GATE_VST: NavGate = { id: "vst", moduleKeys: ["GIAM_SAT_VST"] }
 export const NAV_GATE_GSC: NavGate = { id: "gsc", moduleKeys: ["GIAM_SAT_CHUNG"] };
 export const NAV_GATE_NKBV: NavGate = { id: "nkbv", moduleKeys: ["GIAM_SAT_NKBV"] };
 export const NAV_GATE_CONG_VIEC: NavGate = { id: "cv", moduleKeys: ["CONG_VIEC"] };
-export const NAV_GATE_CSSD: NavGate = {
-  id: "cssd",
-  moduleKeys: ["CSSD_WORKFLOW", "CSSD_KHO_DUNGCU", "CSSD_REPORT", "KSNK_KHO_HOACHAT"],
-};
+export const NAV_GATE_CSSD_QUY_TRINH: NavGate = { id: "cssd-qt", moduleKeys: ["CSSD_WORKFLOW", "CSSD_ME_TIET_KHUAN", "CSSD_REPORT"] };
+export const NAV_GATE_CSSD_SU_CO: NavGate = { id: "cssd-su-co", moduleKeys: ["BAO_SU_CO"] };
+export const NAV_GATE_CSSD_DUNG_CU: NavGate = { id: "cssd-dung-cu", moduleKeys: ["CSSD_KHO_DUNGCU", "DANH_MUC"] };
+export const NAV_GATE_CSSD_THIET_BI: NavGate = { id: "cssd-thiet-bi", moduleKeys: ["THIET_BI"] };
+export const NAV_GATE_CSSD_HOA_CHAT: NavGate = { id: "cssd-hoa-chat", moduleKeys: ["KSNK_KHO_HOACHAT"] };
+
+
 /** OR: giống `canSeeQuanTriSection` — user chỉ có NHAN_SU vẫn cần mục Quản trị (vào hub /nhan-su). */
 export const NAV_GATE_QUAN_TRI: NavGate = { id: "qt", moduleKeys: ["DANH_MUC", "PHAN_QUYEN", "NHAN_SU"] };
 export const NAV_GATE_DM_HUB: NavGate = { id: "dmhub", moduleKeys: ["DANH_MUC"] };

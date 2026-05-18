@@ -8,22 +8,25 @@ import { normalizeAndValidateDmKhoaPhong, validateDanhMucIdByType } from "@/lib/
 import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
 import { resolveSupervisorPolicy } from "@/lib/supervision-policy";
 import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
+import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { formatUnknownError } from "@/lib/supabase-error-message";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import {
   calculateScore,
   GscSessionInput,
   normalizeGscModeFields,
+  resolveGscModeIds,
   parseNgayGiamSatOrNull,
   validateGscModeFields,
 } from "./giam-sat-chung-write-helpers";
-import { resolveCanonicalLoaiBangKiemForPersist } from "../lib/resolve-loai-bang-kiem-persist";
+import { resolveBangKiemPersistFields } from "../lib/resolve-loai-bang-kiem-persist";
 
 import { gscSaveSessionSchema } from "@/lib/validations";
 import {
   isSupervisionSessionMutationExpired,
   SUPERVISION_SESSION_MUTATION_EXPIRED_VI,
 } from "@/lib/supervision-mutation-window";
+import { resolveGscScopedKhoaId } from "../lib/gsc-khoa-scope";
 
 type SaveGiamSatChungOpts = { existingSessionId?: string | null };
 
@@ -45,9 +48,17 @@ export async function saveGiamSatChung(
     if (!parsed.success) {
       return { success: false, error: "Dữ liệu không hợp lệ: " + parsed.error.issues.map((e) => e.message).join(", ") };
     }
+    const scope = await getActorKsnkScope();
+    const scopedKhoa = resolveGscScopedKhoaId(
+      { isMangLuoiKsnk: scope.isMangLuoiKsnk, actorKhoaId: scope.actorKhoaId ?? null },
+      String(sessionData.khoa_id || "").trim() || null,
+    );
+    if (!scopedKhoa.ok) {
+      return { success: false, error: scopedKhoa.error };
+    }
     const khoaNorm = await normalizeAndValidateDmKhoaPhong({
       supabase,
-      idRaw: sessionData.khoa_id,
+      idRaw: scopedKhoa.khoaId,
       fieldLabel: "Khoa phòng",
     });
     await validateDanhMucIdByType({
@@ -74,7 +85,7 @@ export async function saveGiamSatChung(
     if (!nguoiGsNorm) {
       throw new Error("Không xác định được người giám sát. Vui lòng chọn người giám sát hoặc kiểm tra hồ sơ nhân sự của bạn.");
     }
-    const { cach } = normalizeGscModeFields(sessionData);
+    const { cach, hinh_id, cach_id } = normalizeGscModeFields(sessionData);
     const policy = await resolveSupervisorPolicy({
       supabase,
       supervisorId: nguoiGsNorm,
@@ -83,6 +94,7 @@ export async function saveGiamSatChung(
     });
     const hinh = policy.derivedHinhThuc;
     validateGscModeFields(hinh, cach);
+    const modeIds = await resolveGscModeIds(supabase, { hinh, cach, hinh_id, cach_id });
     if (isReplayCameraSupervisionCachThuc(cach)) {
       const bd = String(sessionData.thoi_gian_bat_dau ?? "").trim();
       const kt = String(sessionData.thoi_gian_ket_thuc ?? "").trim();
@@ -105,7 +117,7 @@ export async function saveGiamSatChung(
           sessionData.nhan_vien_id,
           "Đối tượng (nhân viên)",
         );
-    const loaiBkCanonical = await resolveCanonicalLoaiBangKiemForPersist(supabase, sessionData.loai_bang_kiem);
+    const bangKiem = await resolveBangKiemPersistFields(supabase, sessionData.loai_bang_kiem);
     const thoiGianGhiNhan = isReplayCameraSupervisionCachThuc(cach)
       ? String(sessionData.thoi_gian_ket_thuc ?? "").trim() || new Date().toISOString()
       : new Date().toISOString();
@@ -117,12 +129,12 @@ export async function saveGiamSatChung(
     const boSungEffective = boSungRaw && Boolean(maNb || tenNb || giuongNb);
 
     const sessionPayload = {
-      loai_bang_kiem: loaiBkCanonical,
+      bang_kiem_id: bangKiem.bang_kiem_id,
       khoa_id: khoaNorm,
       khu_vuc_id: sessionData.khu_vuc_id || null,
       vi_tri: sessionData.vi_tri,
-      hinh_thuc_giam_sat: hinh,
-      cach_thuc_giam_sat: cach,
+      hinh_thuc_id: modeIds.hinh_thuc_id,
+      cach_thuc_id: modeIds.cach_thuc_id,
       nguoi_giam_sat_id: nguoiGsNorm,
       is_giam_sat_ca_nhan: sessionData.is_giam_sat_ca_nhan || false,
       nhan_vien_id: nhanVienNorm,

@@ -181,7 +181,7 @@ export default function GiamSatChungPage() {
               data={processedData}
               onSelect={handleSelectTemplate}
               onSearch={handleSearch}
-              onSort={handleSort}
+              onSort={(key) => handleSort(key as keyof BangKiemListRow)}
               searchTerm={searchTerm}
               loading={loadingTemplates}
             />

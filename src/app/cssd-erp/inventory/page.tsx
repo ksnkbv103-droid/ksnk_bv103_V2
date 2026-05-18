@@ -1,5 +1,5 @@
 // src/app/cssd-erp/inventory/page.tsx
-import KhoDungCuPage from "@/modules/cssd-erp/views/KhoDungCuPage";
+import { CSSDInstrumentInventoryPage } from "@/modules/cssd-erp/contexts/inventory-instrument/entrypoint";
 
 export const metadata = {
   title: "Quản lý Kho Dụng cụ | KSNK 103",
@@ -7,5 +7,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <KhoDungCuPage />;
+  return <CSSDInstrumentInventoryPage />;
 }

@@ -66,7 +66,7 @@ export async function saveVSTSession(
     if (!nguoiGsNorm) {
       throw new Error("Không xác định được người giám sát. Vui lòng chọn người giám sát hoặc kiểm tra hồ sơ nhân sự của bạn.");
     }
-    const { cach } = normalizeVstModeFields(sessionData);
+    const { cach, hinh_id, cach_id } = normalizeVstModeFields(sessionData);
     const policy = await resolveSupervisorPolicy({
       supabase,
       supervisorId: nguoiGsNorm,
@@ -74,6 +74,14 @@ export async function saveVSTSession(
       actorAuthUserId,
     });
     const hinh = policy.derivedHinhThuc;
+    
+    // Nếu front-end không gửi hinh_id (UUID), ta cố gắng lấy từ policy/danh mục
+    let effectiveHinhThucId = hinh_id;
+    if (!effectiveHinhThucId) {
+       const { data: ht } = await supabase.from("dm_hinh_thuc_giam_sat").select("id").eq("ten_hinh_thuc", hinh).maybeSingle();
+       if (ht) effectiveHinhThucId = ht.id;
+    }
+
     validateVstModeFields(hinh, cach);
     const ngayGiamSat = sessionData.ngay_giam_sat?.trim();
     if (!ngayGiamSat) throw new Error("Ngày giám sát là bắt buộc.");
@@ -90,8 +98,8 @@ export async function saveVSTSession(
       khoa_id: khoaSessionNorm,
       khu_vuc_id: sessionData.khu_vuc_id,
       vi_tri_cu_the: sessionData.vi_tri,
-      hinh_thuc_giam_sat: hinh,
-      cach_thuc_giam_sat: cach,
+      hinh_thuc_id: effectiveHinhThucId,
+      cach_thuc_id: cach_id,
       nguoi_giam_sat_id: nguoiGsNorm,
       ngay_giam_sat: ngayGiamSat,
       thoi_gian_bat_dau: sessionData.thoi_gian_bat_dau || null,
@@ -178,9 +186,9 @@ export async function saveVSTSession(
           nhan_vien_id: obs.nhan_vien_id || null,
           ten_nhan_vien_ngoai: obs.ten_nhan_vien_ngoai || null,
           khoa_id: khoaDetailId,
-          khu_vuc: obs.khu_vuc,
+          khu_vuc_id: obs.khu_vuc_id ?? null,
           vi_tri: obs.vi_tri,
-          nghe_nghiep: obs.nghe_nghiep,
+          nghe_nghiep_id: obs.nghe_nghiep_id ?? null,
           ngay_giam_sat: obs.ngay_giam_sat,
           thoi_diem: opp.thoi_diems.join(", "),
           hanh_dong: opp.hanh_dong,

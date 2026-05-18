@@ -25,6 +25,7 @@ export default function WaitingList({ items, onAction }: Props) {
               </div>
               <div>
                 <p className="text-sm font-black text-slate-700">{item.ma_vach_qr}</p>
+                {item.ten_bo ? <p className="text-[10px] font-semibold text-slate-600">{item.ten_bo}</p> : null}
                 <p className="text-[9px] font-bold text-slate-400 uppercase">Cập nhật: {new Date(item.updated_at).toLocaleTimeString()}</p>
               </div>
             </div>

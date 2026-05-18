@@ -4,9 +4,9 @@ import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 export async function getActorAuthUserId(): Promise<string | null> {
   const sb = await createServerSupabaseUserClient();
   const {
-    data: { user },
-  } = await sb.auth.getUser();
-  return user?.id ?? null;
+    data: { session },
+  } = await sb.auth.getSession();
+  return session?.user?.id ?? null;
 }
 
 /** `mdm_nhan_su.id` của người dùng hiện tại gắn qua `auth_user_id`. */

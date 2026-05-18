@@ -34,8 +34,10 @@ export interface VSTObservation {
   id?: string;
   nhan_vien_id: string | null;
   khoa_id: string;
+  khu_vuc_id?: string | null;
   khu_vuc: string;
   vi_tri: string;
+  nghe_nghiep_id?: string | null;
   nghe_nghiep: string;
   hinh_thuc_giam_sat?: string;
   ten_nhan_vien_ngoai?: string; 

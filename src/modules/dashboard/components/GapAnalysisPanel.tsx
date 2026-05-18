@@ -58,9 +58,9 @@ export function GapAnalysisPanel({ title, kq, cheo, tgs }: Props) {
             {rows.map((r) => (
               <tr key={r.ten} className="hover:bg-slate-50/50 transition-colors">
                 <td className="px-6 py-4 font-bold text-slate-700">{r.ten}</td>
-                <td className="px-6 py-4 font-black text-[#026f17]">{r.kq !== null ? `${r.kq}%` : <span className="text-slate-300 font-normal">N/A</span>}</td>
-                <td className="px-6 py-4 font-black text-[#0ea5e9]">{r.cheo !== null ? `${r.cheo}%` : <span className="text-slate-300 font-normal">N/A</span>}</td>
-                <td className="px-6 py-4 font-black text-[#f59e0b]">{r.tgs !== null ? `${r.tgs}%` : <span className="text-slate-300 font-normal">N/A</span>}</td>
+                <td className="px-6 py-4 font-black text-[#026f17]">{r.kq !== null ? `${r.kq}%` : <span className="text-slate-300 font-normal">Không áp dụng</span>}</td>
+                <td className="px-6 py-4 font-black text-[#0ea5e9]">{r.cheo !== null ? `${r.cheo}%` : <span className="text-slate-300 font-normal">Không áp dụng</span>}</td>
+                <td className="px-6 py-4 font-black text-[#f59e0b]">{r.tgs !== null ? `${r.tgs}%` : <span className="text-slate-300 font-normal">Không áp dụng</span>}</td>
                 <td className="px-6 py-4 text-right">
                   {r.gap !== null ? (
                     <span className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-[10px] font-black ${

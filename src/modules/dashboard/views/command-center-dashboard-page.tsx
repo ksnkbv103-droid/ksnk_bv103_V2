@@ -48,6 +48,7 @@ function GscComplianceDashboardBlocks(props: {
   khoiCatalog: KhoiOpt[];
   /** false = luôn render mọi bảng đã chọn (kể cả 0 phiên) */
   onlyWithSessions?: boolean;
+  onExport?: () => void;
 }) {
   const {
     selectedBangKiemMas,
@@ -59,6 +60,7 @@ function GscComplianceDashboardBlocks(props: {
     khoaCatalog,
     khoiCatalog,
     onlyWithSessions = true,
+    onExport,
   } = props;
   const gscKeys = selectedBangKiemMas.filter((bk) => bk !== "VST_WHO");
   if (gscKeys.length === 0) return null;
@@ -77,6 +79,7 @@ function GscComplianceDashboardBlocks(props: {
               loading={loading}
               khoaCatalog={khoaCatalog}
               khoiCatalog={khoiCatalog}
+              onExport={onExport}
             />
           </div>
         );
@@ -133,7 +136,18 @@ export function CommandCenterDashboardPage() {
 
   const summaryRowsWithData = useMemo(() => summaryTable.filter((row) => row.tong > 0), [summaryTable]);
 
-  if (loading && !initDone) return <div className="flex h-[45vh] items-center justify-center"><div className="h-9 w-9 animate-spin rounded-full border-4 border-[#026f17] border-t-transparent" /></div>;
+  if (loading && !initDone) {
+    return (
+      <div className="mx-auto max-w-[1600px] space-y-4 p-4 md:p-6">
+        <div className="h-28 animate-pulse rounded-xl border border-slate-200 bg-slate-100/80" />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="h-56 animate-pulse rounded-xl border border-slate-200 bg-slate-50 lg:col-span-2" />
+          <div className="h-56 animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
+        </div>
+        <div className="h-72 animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-6 p-4 pb-20 md:p-6 md:pb-24">
@@ -278,6 +292,7 @@ export function CommandCenterDashboardPage() {
               khoaCatalog={khoaOptions}
               khoiCatalog={khoiOptions}
               onlyWithSessions={false}
+              onExport={ccWidgets.exportPdf ? exportCurrentReport : undefined}
             />
           </div>
         )}

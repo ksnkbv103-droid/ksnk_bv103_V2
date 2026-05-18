@@ -36,13 +36,13 @@ export default function InventoryDashboard({ data }: Props) {
 
 function StatCard({ title, value, icon, color, isDark }: any) {
   return (
-    <div className={`${color} p-6 rounded-[32px] border border-white flex justify-between items-center shadow-sm active:scale-95 transition-all group`}>
+    <div className={`${color} p-5 rounded-2xl border border-slate-200/50 flex justify-between items-center shadow-sm active:scale-[0.98] transition-all group`}>
       <div className="space-y-1">
         <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${isDark ? 'text-white/40' : 'text-slate-400'}`}>{title}</p>
-        <p className={`text-3xl font-black tracking-tighter ${isDark ? 'text-[#FFD700]' : 'text-slate-900'}`}>{value}</p>
+        <p className={`text-2xl font-black tracking-tighter ${isDark ? 'text-[#FFD700]' : 'text-slate-900'}`}>{value}</p>
       </div>
-      <div className={`p-4 bg-white rounded-2xl shadow-xl shadow-slate-200/50 ${isDark ? '' : 'text-[#026f17]'}`}>
-        {React.cloneElement(icon, { size: 22, strokeWidth: 3 })}
+      <div className={`p-3 bg-white rounded-xl shadow-xl shadow-slate-200/50 ${isDark ? '' : 'text-[#026f17]'}`}>
+        {React.cloneElement(icon, { size: 20, strokeWidth: 3 })}
       </div>
     </div>
   );

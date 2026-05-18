@@ -4,9 +4,10 @@ import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { buildDisplayMaps, toDistinctIds } from "@/lib/master-data/gateway";
 import { vstReadErrorMessage } from "../lib/vst-read-utils";
-import { VST_OBSERVATION_ROW_SELECT, VST_SESSIONS_FULL_VIEW_SELECT } from "../lib/vst-read-view-select";
+import { VST_OBSERVATION_FULL_VIEW_SELECT, VST_SESSIONS_FULL_VIEW_SELECT } from "../lib/vst-read-view-select";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
+import { applyVstHistoryReadScope } from "../lib/vst-read-scope";
 
 /** @deprecated Ưu tiên `getVSTSessionsPaginated` — API này chỉ lấy tối đa 100 phiên gần nhất. */
 export async function getVSTSessions() {
@@ -19,10 +20,7 @@ export async function getVSTSessions() {
       .select(VST_SESSIONS_FULL_VIEW_SELECT)
       .order("created_at", { ascending: false })
       .limit(100);
-    if (scope.isMangLuoiKsnk) {
-      if (!scope.actorKhoaId) return { success: true, data: [] };
-      q = q.eq("khoa_id", scope.actorKhoaId);
-    }
+    q = applyVstHistoryReadScope(q, scope);
     const { data, error } = await q;
 
     if (error) throw error;
@@ -96,10 +94,7 @@ export async function getVSTSessionsPaginated(params: {
     let countQ = supabase
       .from("v_fact_giam_sat_vst_sessions_full")
       .select("id", { count: "exact", head: true });
-    if (scope.isMangLuoiKsnk) {
-      if (!scope.actorKhoaId) return { success: true, data: [], totalCount: 0, page, pageSize: size };
-      countQ = countQ.eq("khoa_id", scope.actorKhoaId);
-    }
+    countQ = applyVstHistoryReadScope(countQ, scope);
     if (searchFilter) countQ = countQ.or(searchFilter);
     const { count, error: cErr } = await countQ;
     if (cErr) throw cErr;
@@ -110,10 +105,7 @@ export async function getVSTSessionsPaginated(params: {
       .select(VST_SESSIONS_FULL_VIEW_SELECT)
       .order(sortCol, { ascending })
       .range(from, to);
-    if (scope.isMangLuoiKsnk) {
-      if (!scope.actorKhoaId) return { success: true, data: [], totalCount: 0, page, pageSize: size };
-      dataQ = dataQ.eq("khoa_id", scope.actorKhoaId);
-    }
+    dataQ = applyVstHistoryReadScope(dataQ, scope);
     if (searchFilter) dataQ = dataQ.or(searchFilter);
     const { data, error } = await dataQ;
     if (error) throw error;
@@ -150,10 +142,14 @@ export async function getVSTSessionDetail(sessionId: string) {
     if (sErr) throw sErr;
     if (!sessionView) throw new Error("Không tìm thấy phiên giám sát.");
 
-    if (scope.isMangLuoiKsnk) {
+    if (scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk) {
       const myKhoa = scope.actorKhoaId ? String(scope.actorKhoaId) : null;
+      const myNs = scope.actorNhanSuId ? String(scope.actorNhanSuId) : null;
       const sessionKhoa = sessionView.khoa_id ? String(sessionView.khoa_id) : null;
-      if (!myKhoa || !sessionKhoa || myKhoa !== sessionKhoa) {
+      const sessionGs = sessionView.nguoi_giam_sat_id ? String(sessionView.nguoi_giam_sat_id) : null;
+      const allowedByKhoa = Boolean(myKhoa && sessionKhoa && myKhoa === sessionKhoa);
+      const allowedByGs = Boolean(myNs && sessionGs && myNs === sessionGs);
+      if (!allowedByKhoa && !allowedByGs) {
         return { success: false as const, error: "Không tìm thấy phiên giám sát." };
       }
     }
@@ -168,8 +164,8 @@ export async function getVSTSessionDetail(sessionId: string) {
 
     // 2. Fetch Observations
     const { data: observations, error: oErr } = await supabase
-      .from("fact_giam_sat_vst")
-      .select(VST_OBSERVATION_ROW_SELECT)
+      .from("v_fact_giam_sat_vst_full")
+      .select(VST_OBSERVATION_FULL_VIEW_SELECT)
       .eq("session_id", sessionId);
     
     if (oErr) throw oErr;

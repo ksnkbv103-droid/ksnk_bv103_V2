@@ -44,6 +44,41 @@ const eslintConfig = defineConfig([
   {
     rules: phasedRelaxRules,
   },
+  {
+    files: ["src/**/*.ts", "src/**/*.tsx"],
+    ignores: ["src/modules/cssd-erp/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/modules/cssd-erp/views/*", "@/modules/cssd-erp/actions/*", "@/modules/cssd-erp/hooks/*"],
+              message:
+                "Không import trực tiếp views/actions/hooks CSSD ngoài module. Dùng contexts/*/entrypoint để giữ bounded-context.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/app/cssd-erp/**/*.ts", "src/app/cssd-erp/**/*.tsx"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/modules/cssd-erp/views/*", "@/modules/cssd-erp/actions/*", "@/modules/cssd-erp/hooks/*"],
+              message:
+                "Route CSSD chỉ import qua contexts/*/entrypoint. Không nối trực tiếp vào views/actions/hooks.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

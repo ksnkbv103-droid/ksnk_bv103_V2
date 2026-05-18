@@ -16,6 +16,8 @@ export function useGiamSatHeader(permissionContext: GiamSatHeaderPermissionConte
   const [khoas, setKhoas] = useState<MasterOption[]>([]);
   const [khuVucs, setKhuVucs] = useState<MasterOption[]>([]);
   const [ngheNghieps, setNgheNghieps] = useState<MasterOption[]>([]);
+  const [hinhThucGiamSats, setHinhThucGiamSats] = useState<MasterOption[]>([]);
+  const [cachThucGiamSats, setCachThucGiamSats] = useState<MasterOption[]>([]);
   const [nhanSus, setNhanSus] = useState<Record<string, unknown>[]>([]);
   const [historyLocations, setHistoryLocations] = useState<string[]>([]);
   const [historyLocationRows, setHistoryLocationRows] = useState<VstSessionLocationHistoryRow[]>([]);
@@ -37,6 +39,8 @@ export function useGiamSatHeader(permissionContext: GiamSatHeaderPermissionConte
           setKhoas(result.data.khoas || []);
           setKhuVucs(result.data.khuVucs || []);
           setNgheNghieps(result.data.ngheNghieps || []);
+          setHinhThucGiamSats((result.data as any).hinhThucGiamSats || []);
+          setCachThucGiamSats((result.data as any).cachThucGiamSats || []);
           setNhanSus(result.data.nhanSus || []);
           setHistoryLocations(result.data.historyLocations || []);
           setHistoryLocationRows((result.data as { historyLocationRows?: VstSessionLocationHistoryRow[] }).historyLocationRows || []);
@@ -62,6 +66,8 @@ export function useGiamSatHeader(permissionContext: GiamSatHeaderPermissionConte
     khoas,
     khuVucs,
     ngheNghieps,
+    hinhThucGiamSats,
+    cachThucGiamSats,
     nhanSus,
     historyLocations,
     historyLocationRows,

@@ -42,7 +42,8 @@ export async function verifyPermissions(required: readonly PermissionCheck[]) {
   if (!required.length) return;
 
   const userSb = await createServerSupabaseUserClient();
-  const { data: { user } } = await userSb.auth.getUser();
+  const { data: { session } } = await userSb.auth.getSession();
+  const user = session?.user;
   if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
 
   // Trusted Super Admin bypass
@@ -73,8 +74,9 @@ export async function verifyPermission(moduleKey: string, action: string) {
 export async function hasRBACAdminSupervisionBypass(): Promise<boolean> {
   const userSb = await createServerSupabaseUserClient();
   const {
-    data: { user },
-  } = await userSb.auth.getUser();
+    data: { session },
+  } = await userSb.auth.getSession();
+  const user = session?.user;
   if (!user?.id) return false;
   if (isTrustedAdminEmail(user.email)) return true;
   const { roles } = await getPermissionsRequestScope(user.id);
@@ -87,8 +89,9 @@ export async function verifyAnyPermission(alternatives: readonly PermissionCheck
 
   const userSb = await createServerSupabaseUserClient();
   const {
-    data: { user },
-  } = await userSb.auth.getUser();
+    data: { session },
+  } = await userSb.auth.getSession();
+  const user = session?.user;
   if (!user?.id) throw new Error("Bạn chưa đăng nhập.");
 
   if (isTrustedAdminEmail(user.email)) return;

@@ -79,10 +79,10 @@ export default function GiamSatChungSessionViewer({
           </button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-3">
-          {template.criteria.map((c) => {
+          {template.criteria.map((c, idx) => {
             const result = resultByCriterionId.get(c.id);
             if (!result) return null;
-            return <ChecklistItem key={c.id} criterion={c} result={result} readOnly />;
+            return <ChecklistItem key={c.id} index={idx + 1} criterion={c} result={result} readOnly />;
           })}
           {String(session.ghi_chu_chung || "").trim() ? (
             <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs">

@@ -1,9 +1,12 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
 import { coMeTietKhuanChuaKetThucTheoThietBi } from "../helpers/assert-thiet-bi-cho-me-tiet-khuan";
 import { getErrorMessage, mapFkError, safeRevalidate } from "./cssd-action-common";
+import { normalizeCssdCode } from "../shared/domain/cssd-qr-core";
+import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
+import { verifyCssdMaintenanceEdit } from "./cssd-permissions";
+import { cssdMaintenanceStartInputSchema } from "../shared/contracts/cssd-context.contracts";
 
 function nextMaPhieu(): string {
   return `BT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
@@ -16,14 +19,26 @@ function addDaysIso(dateYmd: string, days: number): string {
 }
 
 /** Bắt đầu bảo trì: phiếu DANG_THUC_HIEN + đặt dm_thiet_bi = REPAIRING. */
-export async function batDauBaoTriThietBiAction(input: { thiet_bi_id: string; ly_do: string }) {
+export async function batDauBaoTriThietBiAction(input: { thiet_bi_id?: string; ma_thiet_bi_hoac_qr?: string; ly_do: string }) {
   const supabase = createAdminSupabaseClient();
   try {
-    await verifyPermission("CSSD_ME_TIET_KHUAN", "edit");
-    const tid = String(input.thiet_bi_id || "").trim();
-    const lyDo = String(input.ly_do || "").trim();
-    if (!tid) return { success: false as const, error: "Chọn thiết bị." };
+    await verifyCssdMaintenanceEdit();
+    const parsed = cssdMaintenanceStartInputSchema.parse(input);
+    const tidRaw = String(parsed.thiet_bi_id || "").trim();
+    const deviceCode = normalizeCssdCode(parsed.ma_thiet_bi_hoac_qr);
+    const lyDo = String(parsed.ly_do || "").trim();
+    if (!tidRaw && !deviceCode) return { success: false as const, error: "Chọn thiết bị hoặc quét mã thiết bị." };
     if (!lyDo) return { success: false as const, error: "Nhập lý do / nội dung bảo trì." };
+
+    let tid = tidRaw;
+    if (!tid && deviceCode) {
+      const resolved = await resolveCssdCodeWithClient(supabase, deviceCode);
+      if (resolved.targetType === "INSTRUMENT_SET") {
+        return { success: false as const, error: "Mã vừa quét là mã bộ dụng cụ, không phải mã máy." };
+      }
+      tid = String(resolved.machineId || "").trim();
+      if (!tid) return { success: false as const, error: "Không tìm thấy thiết bị theo mã/QR đã quét." };
+    }
 
     const me = await coMeTietKhuanChuaKetThucTheoThietBi(supabase, tid);
     if (me.open) {
@@ -76,7 +91,7 @@ export async function batDauBaoTriThietBiAction(input: { thiet_bi_id: string; ly
 export async function ketThucBaoTriThietBiAction(input: { id: string; ket_qua_ghi_nhan: string }) {
   const supabase = createAdminSupabaseClient();
   try {
-    await verifyPermission("CSSD_ME_TIET_KHUAN", "edit");
+    await verifyCssdMaintenanceEdit();
     const id = String(input.id || "").trim();
     const ketQua = String(input.ket_qua_ghi_nhan || "").trim();
     if (!id) return { success: false as const, error: "Thiếu phiếu." };
@@ -142,7 +157,7 @@ export async function ketThucBaoTriThietBiAction(input: { id: string; ket_qua_gh
 export async function huyBaoTriThietBiAction(input: { id: string }) {
   const supabase = createAdminSupabaseClient();
   try {
-    await verifyPermission("CSSD_ME_TIET_KHUAN", "edit");
+    await verifyCssdMaintenanceEdit();
     const id = String(input.id || "").trim();
     if (!id) return { success: false as const, error: "Thiếu phiếu." };
 

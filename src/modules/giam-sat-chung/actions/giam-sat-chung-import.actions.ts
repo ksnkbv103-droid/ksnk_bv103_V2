@@ -7,15 +7,19 @@ import { normalizeAndValidateDmKhoaPhong, validateDanhMucIdByType } from "@/lib/
 import { getActorAuthUserId } from "@/lib/actor-auth-server";
 import { resolveSupervisorPolicy } from "@/lib/supervision-policy";
 import { verifyPermission } from "@/lib/server-permission";
+import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { formatUnknownError } from "@/lib/supabase-error-message";
 import {
   ExistingSessionRow,
+  type GscSessionInput,
   normalizeGscModeFields,
   optionalFkFromUnknown,
+  resolveGscModeIds,
   validateGscModeFields,
 } from "./giam-sat-chung-write-helpers";
 import { chunkIdsForSupabaseInFilter, collectImportSessionIdsFromRows } from "@/lib/supervision/import-session-ids";
-import { resolveCanonicalLoaiBangKiemForPersist } from "../lib/resolve-loai-bang-kiem-persist";
+import { resolveBangKiemPersistFields } from "../lib/resolve-loai-bang-kiem-persist";
+import { resolveGscScopedKhoaId } from "../lib/gsc-khoa-scope";
 
 /** Import / upsert phiên Giám sát chung (theo ma_phien hoặc id). */
 export async function importGiamSatChungData(rows: Record<string, unknown>[]) {
@@ -23,6 +27,7 @@ export async function importGiamSatChungData(rows: Record<string, unknown>[]) {
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "import");
     const actorAuthUserId = await getActorAuthUserId();
+    const scope = await getActorKsnkScope();
     const sessionIdsFromFile = collectImportSessionIdsFromRows(rows || []);
     const existingIds = new Set<string>();
     for (const chunk of chunkIdsForSupabaseInFilter(sessionIdsFromFile)) {
@@ -38,9 +43,16 @@ export async function importGiamSatChungData(rows: Record<string, unknown>[]) {
     }
     for (const row of rows || []) {
       const sessionId = String(row.ma_phien || row.id || "").trim();
+      const scopedKhoa = resolveGscScopedKhoaId(
+        { isMangLuoiKsnk: scope.isMangLuoiKsnk, actorKhoaId: scope.actorKhoaId ?? null },
+        String(row.khoa_id || "").trim() || null,
+      );
+      if (!scopedKhoa.ok) {
+        throw new Error(scopedKhoa.error);
+      }
       const khoaRowNorm = await normalizeAndValidateDmKhoaPhong({
         supabase,
-        idRaw: row.khoa_id,
+        idRaw: scopedKhoa.khoaId,
         fieldLabel: "Khoa phòng",
       });
       await validateDanhMucIdByType({
@@ -63,29 +75,30 @@ export async function importGiamSatChungData(rows: Record<string, unknown>[]) {
       if (!nguoiGsImport) {
         throw new Error("Import Giám sát chung: nguoi_giam_sat_id là bắt buộc và phải hợp lệ.");
       }
-      const { cach } = normalizeGscModeFields(row);
+      const { hinh: hinhFromRow, cach, hinh_id, cach_id } = normalizeGscModeFields(row as GscSessionInput);
       const policy = await resolveSupervisorPolicy({
         supabase,
         supervisorId: nguoiGsImport,
         selectedKhoaId: khoaRowNorm,
         actorAuthUserId,
       });
-      const hinh = policy.derivedHinhThuc;
+      const hinh = policy.derivedHinhThuc || hinhFromRow;
       validateGscModeFields(hinh, cach);
+      const modeIds = await resolveGscModeIds(supabase, { hinh, cach, hinh_id, cach_id });
       const nhanVienImport = await normalizeHoSoNhanVienOptionalOrThrow(
         supabase,
         row.nhan_vien_id,
         "Nhân viên (đối tượng)",
       );
       const loaiRaw = row.loai_bang_kiem != null ? String(row.loai_bang_kiem).trim() : "";
-      const loaiBkCanonical = loaiRaw ? await resolveCanonicalLoaiBangKiemForPersist(supabase, loaiRaw) : null;
+      const bangKiem = loaiRaw ? await resolveBangKiemPersistFields(supabase, loaiRaw) : null;
       const payload = {
-        loai_bang_kiem: loaiBkCanonical,
+        bang_kiem_id: bangKiem?.bang_kiem_id ?? null,
         khoa_id: khoaRowNorm,
         khu_vuc_id: optionalFkFromUnknown(row.khu_vuc_id),
         vi_tri: row.vi_tri || null,
-        hinh_thuc_giam_sat: hinh,
-        cach_thuc_giam_sat: cach,
+        hinh_thuc_id: modeIds.hinh_thuc_id,
+        cach_thuc_id: modeIds.cach_thuc_id,
         nguoi_giam_sat_id: nguoiGsImport,
         nhan_vien_id: nhanVienImport,
         nghe_nghiep_id: optionalFkFromUnknown(row.nghe_nghiep_id),

@@ -1,13 +1,15 @@
 /**
  * Phạm vi rollout shell / design system nội dung KSNK (bên trong `ClientLayoutWrapper` → `<main>`).
- * Bọc `KsnkPageShell`: giám sát, quản trị, CSSD ERP, quản lý công việc — cùng max-width và token giao diện.
+ * Bọc `KsnkPageShell`: giám sát, quản trị, CSSD (module thành phần), quản lý công việc — cùng max-width và token giao diện.
  */
+
+import { CSSD_APP_SHELL_PREFIXES } from "./cssd-routes";
 
 /** Prefix pathname — `startsWith` sau khi chuẩn hóa (luôn có leading `/`). */
 export const PHASE_1_KSNK_CONTENT_SHELL_PREFIXES: readonly string[] = [
   "/giam-sat",
   "/quan-tri-he-thong",
-  "/cssd-erp",
+  ...CSSD_APP_SHELL_PREFIXES,
   "/quan-ly-cong-viec",
   "/tai-khoan",
 ];
@@ -33,7 +35,9 @@ export function pathnameUsesPhase1KsnkUnifiedContentShell(pathname: string | nul
 export function getKsnkAppHeaderTitle(pathname: string | null): string {
   const p = normalizePath(pathname);
   if (p === "/" || p === "") return "Dashboard";
-  if (p.includes("/cssd-erp") || p.startsWith("/cssd-erp")) return "Quản lý CSSD";
+  if (CSSD_APP_SHELL_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`))) {
+    return "Quản lý CSSD";
+  }
   if (p.startsWith("/giam-sat-vst")) return "Giám sát vệ sinh tay";
   if (p.startsWith("/giam-sat-chung")) return "Giám sát chung";
   if (p.startsWith("/giam-sat")) return "Giám sát";

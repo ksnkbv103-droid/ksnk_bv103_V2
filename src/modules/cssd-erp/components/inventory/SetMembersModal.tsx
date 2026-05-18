@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { X, PackageOpen, Info } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
+import { fetchBoDungCuChiTietMembers } from "../../actions/cssd-bo-members.actions";
 
 interface Props { isOpen: boolean; onClose: () => void; set: any; }
 
@@ -19,15 +19,11 @@ export default function SetMembersModal({ isOpen, onClose, set }: Props) {
     if (isOpen && set?.bo_dung_cu_id) {
       (async () => {
         setLoading(true);
-        const { data, error } = await supabase
-          .from("dm_bo_dung_cu_chi_tiet")
-          .select("*")
-          .eq("bo_dung_cu_id", set.bo_dung_cu_id)
-          .eq("is_active", true);
-        if (error) {
-          toast.error("Không tải thành phần: " + error.message);
+        const res = await fetchBoDungCuChiTietMembers(String(set.bo_dung_cu_id));
+        if (!res.success) {
+          toast.error("Không tải thành phần: " + res.error);
           setItems([]);
-        } else setItems(data || []);
+        } else setItems(res.data);
         setLoading(false);
       })();
     }
@@ -70,7 +66,7 @@ export default function SetMembersModal({ isOpen, onClose, set }: Props) {
         </div>
 
         <div className="pt-4 border-t border-slate-50">
-          <p className="text-[9px] text-slate-400 font-medium italic">* Thành phần được trích xuất từ Danh mục Master. Thay đổi danh mục để cập nhật toàn hệ thống.</p>
+          <p className="text-[9px] text-slate-400 font-medium italic">* Thành phần được trích xuất từ Danh mục gốc. Thay đổi danh mục để cập nhật toàn hệ thống.</p>
         </div>
       </div>
     </div>

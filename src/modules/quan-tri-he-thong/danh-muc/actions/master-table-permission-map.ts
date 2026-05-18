@@ -21,7 +21,8 @@ const MASTER_TABLE_MODULE: Record<string, string> = {
   dm_to_cong_tac: "DANH_MUC",
   dm_chuc_vu: "DANH_MUC",
   dm_chuc_danh: "DANH_MUC",
-  dm_roles: "DANH_MUC",
+  // dm_roles là hạt nhân RBAC, chỉ cho phép thao tác khi có quyền PHAN_QUYEN.
+  dm_roles: "PHAN_QUYEN",
   dm_khu_vuc_giam_sat: "DANH_MUC",
   dm_nghe_nghiep: "DANH_MUC",
   dm_loai_su_co: "DANH_MUC",

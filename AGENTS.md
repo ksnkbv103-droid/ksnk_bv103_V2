@@ -1,7 +1,7 @@
 # KSNK 103 — AGENTS.md (V8 · tối giản)
 
 > BV103 — Khoa Kiểm soát nhiễm khuẩn · Quân y 103  
-> **Chuẩn cao nhất trong repo.** Cập nhật: 14/05/2026.
+> **Chuẩn cao nhất trong repo.** Cập nhật: 15/05/2026.
 
 ## Ưu tiên sản phẩm (1 câu)
 
@@ -54,6 +54,12 @@
 - **Lớp bảng:** `mdm_*` · `dm_*` · `fact_*`. Không thêm `dict_*` mới; không nhân đôi danh mục đồng nghĩa.  
 - **Đặt tên:** FK `*_id`, mã `ma_*`, tên `ten_*`, `is_active`, `created_at` / `updated_at`.  
 - **Luồng:** `UI → Action → DB → Báo cáo`. Không tính năng ngoài yêu cầu rõ ràng.
+
+### Đồng bộ App ↔ Database (khi điều chỉnh tính năng)
+
+- **Một thay đổi nghiệp vụ đụng schema / RPC / RLS** phải kèm **migration** trong [`supabase/migrations/`](supabase/migrations/) và cập nhật mapping trong [`docs/specs/10-bv103-implementation-mapping.md`](docs/specs/10-bv103-implementation-mapping.md) khi thêm cột, bảng `fact_*`, hoặc hàm DB mà app gọi.  
+- **Agent:** trong cùng task, sau khi thêm/sửa migration, **chạy apply lên DB** mà môi trường dev/pilot đã cấu hình — `npm run mdm:migrate` (Supabase **linked** remote) hoặc `npm run mdm:migrate:local` (stack local), theo [`GOVERNANCE_PIPELINE.md`](docs/specs/GOVERNANCE_PIPELINE.md). Mục tiêu: **không** để code đã dùng cột mới trong khi DB chưa migrate (tránh lỗi kiểu `column … does not exist`). Nếu CLI báo migration local “nằm trước” migration cuối trên remote: `npx supabase db push --include-all` (chỉ khi chấp nhận áp dụng file đó lên remote).  
+- **Nếu không push được** (chưa `supabase link`, thiếu quyền, CI không có DB): ghi rõ trong kết quả task **file migration cần apply** và lệnh chạy; không coi task “xong” nếu vẫn thiếu bước apply mà người vận hành chưa biết.
 
 ## Cấu trúc file trong module (bảo dưỡng, tránh manh mún)
 

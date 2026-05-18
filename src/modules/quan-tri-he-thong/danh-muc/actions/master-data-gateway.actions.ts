@@ -1,5 +1,6 @@
 "use server";
 
+import { mapNhanSuViewRow } from "@/lib/nhan-su-view-row";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 
@@ -45,7 +46,13 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
     const getCachedRegistries = unstable_cache(
       async () => {
         const { data, error } = await supabase.rpc("rpc_get_registry_options", {
-          p_categories: ["KHOA_PHONG", "KHU_VUC_GIAM_SAT", includeNgheNghiep ? "NGHE_NGHIEP" : null].filter(Boolean) as string[],
+          p_categories: [
+            "KHOA_PHONG",
+            "KHU_VUC_GIAM_SAT",
+            "HINH_THUC_GIAM_SAT",
+            "CACH_THUC_GIAM_SAT",
+            includeNgheNghiep ? "NGHE_NGHIEP" : null,
+          ].filter(Boolean) as string[],
         });
         if (error) throw error;
         return data as any;
@@ -98,13 +105,7 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
     const historyLocations = Array.from(new Set(historyLocationRows.map((r) => r.vi_tri_cu_the)));
 
     const rawNhanSuRows = ((nhanSuRes.data || []) as Record<string, unknown>[]) || [];
-    let nhanSusEnriched = rawNhanSuRows.map((x) => ({
-      ...x,
-      chuc_danh: x.ten_chuc_danh || x.chuc_danh,
-      chuc_vu: x.ten_chuc_vu || x.chuc_vu,
-      vai_tro_he_thong_ksnk: x.ten_vai_tro || x.vai_tro_he_thong_ksnk,
-      ten_nghe_nghiep_dm: x.ten_nghe_nghiep,
-    }));
+    let nhanSusEnriched = rawNhanSuRows.map((x) => mapNhanSuViewRow(x));
 
     let currentHoSoId: string | null = null;
     try {
@@ -141,16 +142,7 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
             .maybeSingle();
           if (!selfErr && selfRow) {
             const x = selfRow as Record<string, unknown>;
-            nhanSusEnriched = [
-              {
-                ...x,
-                chuc_danh: x.ten_chuc_danh || x.chuc_danh,
-                chuc_vu: x.ten_chuc_vu || x.chuc_vu,
-                vai_tro_he_thong_ksnk: x.ten_vai_tro || x.vai_tro_he_thong_ksnk,
-                ten_nghe_nghiep_dm: x.ten_nghe_nghiep,
-              },
-              ...nhanSusEnriched,
-            ];
+            nhanSusEnriched = [mapNhanSuViewRow(x), ...nhanSusEnriched];
           }
         } catch {
           /* ignore */
@@ -173,6 +165,8 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
         khoas: (registry.KHOA_PHONG || []).map((k: any) => ({ id: k.id, ma_danh_muc: k.ma, ten_danh_muc: k.ten })),
         khuVucs: effectiveKhuVucs.map((x: any) => ({ id: x.id, ma_danh_muc: x.ma, ten_danh_muc: x.ten })),
         ngheNghieps: (registry.NGHE_NGHIEP || []).map((x: any) => ({ id: x.id, ma_danh_muc: x.ma, ten_danh_muc: x.ten })),
+        hinhThucGiamSats: (registry.HINH_THUC_GIAM_SAT || []).map((x: any) => ({ id: x.id, ma_danh_muc: x.ma, ten_danh_muc: x.ten })),
+        cachThucGiamSats: (registry.CACH_THUC_GIAM_SAT || []).map((x: any) => ({ id: x.id, ma_danh_muc: x.ma, ten_danh_muc: x.ten })),
         nhanSus: nhanSusEnriched,
         historyLocations,
         historyLocationRows,

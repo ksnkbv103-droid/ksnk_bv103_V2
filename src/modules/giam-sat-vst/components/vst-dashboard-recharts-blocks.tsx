@@ -2,6 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
+import Bv103ChartEmptyState from "@/components/shared/Bv103ChartEmptyState";
 import type { KhoaBarRow } from "./vst-dashboard-panel-derive";
 
 type TyLePoint = { label: string; ty_le: number };
@@ -9,7 +10,7 @@ type TyLePoint = { label: string; ty_le: number };
 /** Cùng kiểu đồ thị đường + trục % với xu hướng thời gian (chỉ khác nhãn trục X). */
 export function VstTrendStyleLineChart({ data }: { data: TyLePoint[] }) {
   if (!data.length) {
-    return <div className="text-xs text-slate-400 py-4 text-center">Không có dữ liệu</div>;
+    return <Bv103ChartEmptyState className="min-h-[160px]" title="Chưa có xu hướng VST" />;
   }
   const tiltLabels = data.length > 6;
   return (
@@ -47,7 +48,7 @@ export function VstTrendStyleLineChart({ data }: { data: TyLePoint[] }) {
 /** Cột ngang: mọi khoa, % tuân thủ luôn trên nhãn đầu cột (bên phải). */
 export function KhoaComplianceBarChart({ rows }: { rows: KhoaBarRow[] }) {
   if (!rows.length) {
-    return <div className="text-xs text-slate-400 py-4 text-center">Không có dữ liệu so sánh theo khoa</div>;
+    return <Bv103ChartEmptyState className="min-h-[160px]" title="Chưa có so sánh theo khoa" />;
   }
   const h = Math.min(1200, Math.max(320, rows.length * 26 + 56));
 
@@ -100,7 +101,7 @@ export function RateBarChart({
   heightPx?: number;
 }) {
   if (!rows || rows.length === 0)
-    return <div className="text-xs text-slate-400 py-4 text-center">Không có dữ liệu so sánh</div>;
+    return <Bv103ChartEmptyState className="min-h-[140px]" title="Chưa có dữ liệu so sánh" />;
 
   return (
     <Bv103ResponsiveChart style={{ height: heightPx }} className="min-h-[200px] w-full min-w-0">

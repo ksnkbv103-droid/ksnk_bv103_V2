@@ -1,6 +1,8 @@
-import { HINH_THUC_KHACH_QUAN, HINH_THUC_TU_GIAM_SAT } from "@/lib/supervision-policy";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { HINH_THUC_CHUYEN_TRACH, HINH_THUC_TU_GIAM_SAT } from "@/lib/supervision-policy";
+import { isKnownHinhThucLabel, resolveCanonicalHinhThucLabel } from "@/lib/supervision-hinh-thuc-legacy";
 
-export const HINH_THUC_GIAM_SAT_OPTIONS = [HINH_THUC_TU_GIAM_SAT, HINH_THUC_KHACH_QUAN] as const;
+export const HINH_THUC_GIAM_SAT_OPTIONS = [HINH_THUC_TU_GIAM_SAT, HINH_THUC_CHUYEN_TRACH] as const;
 export const CACH_THUC_GIAM_SAT_OPTIONS = [
   "Giám sát trực tiếp tại chỗ",
   "Giám sát trực tiếp qua camera",
@@ -22,6 +24,8 @@ export type GscSessionInput = Record<string, unknown> & {
   ma_nguoi_benh?: string;
   ten_nguoi_benh?: string;
   so_giuong_nguoi_benh?: string;
+  hinh_thuc_id?: string | null;
+  cach_thuc_id?: string | null;
 };
 export type ExistingSessionRow = { id?: string };
 
@@ -40,22 +44,52 @@ export function optionalFkFromUnknown(raw: unknown): string | null {
   return String(raw).trim() || null;
 }
 
-export function normalizeGscModeFields(input: Record<string, unknown>) {
-  const hinh = String(input.hinh_thuc_giam_sat ?? "").trim();
+export function normalizeGscModeFields(input: GscSessionInput) {
+  const hinhRaw = String(input.hinh_thuc_giam_sat ?? "").trim();
+  const hinh = resolveCanonicalHinhThucLabel(hinhRaw) || hinhRaw;
   const cach = String(input.cach_thuc_giam_sat ?? "").trim();
-  if (!cach && LEGACY_CACH_THUC_VALUES.has(hinh as CachOption)) {
-    return { hinh: "Giám sát khách quan", cach: hinh };
+  const hinh_id = input.hinh_thuc_id || null;
+  const cach_id = input.cach_thuc_id || null;
+
+  if (!cach && !cach_id && LEGACY_CACH_THUC_VALUES.has(hinhRaw as CachOption)) {
+    return { hinh: HINH_THUC_CHUYEN_TRACH, cach: hinhRaw, hinh_id: null, cach_id: null };
   }
-  return { hinh, cach };
+  return { hinh, cach, hinh_id, cach_id };
 }
 
 export function validateGscModeFields(hinh: string, cach: string) {
-  if (!HINH_THUC_GIAM_SAT_OPTIONS.includes(hinh as ModeOption)) {
-    throw new Error("Hình thức giám sát không hợp lệ (Tự giám sát / Giám sát khách quan).");
+  if (!isKnownHinhThucLabel(hinh) && !HINH_THUC_GIAM_SAT_OPTIONS.includes(hinh as ModeOption)) {
+    throw new Error(`Hình thức giám sát không hợp lệ (${HINH_THUC_TU_GIAM_SAT} / ${HINH_THUC_CHUYEN_TRACH}).`);
   }
   if (!CACH_THUC_GIAM_SAT_OPTIONS.includes(cach as CachOption)) {
     throw new Error("Cách thức giám sát không hợp lệ (tại chỗ / trực tiếp qua camera / giám sát lại qua camera).");
   }
+}
+
+/** Resolve FK hình thức / cách thức khi chỉ có nhãn (sau DROP cột text trên phiên). */
+export async function resolveGscModeIds(
+  supabase: SupabaseClient,
+  params: { hinh: string; cach: string; hinh_id?: string | null; cach_id?: string | null },
+): Promise<{ hinh_thuc_id: string | null; cach_thuc_id: string | null }> {
+  let hinh_thuc_id = params.hinh_id ?? null;
+  let cach_thuc_id = params.cach_id ?? null;
+  if (!hinh_thuc_id && params.hinh) {
+    const { data } = await supabase
+      .from("dm_hinh_thuc_giam_sat")
+      .select("id")
+      .eq("ten_hinh_thuc", params.hinh)
+      .maybeSingle();
+    hinh_thuc_id = data?.id ? String(data.id) : null;
+  }
+  if (!cach_thuc_id && params.cach) {
+    const { data } = await supabase
+      .from("dm_cach_thuc_giam_sat")
+      .select("id")
+      .eq("ten_cach_thuc", params.cach)
+      .maybeSingle();
+    cach_thuc_id = data?.id ? String(data.id) : null;
+  }
+  return { hinh_thuc_id, cach_thuc_id };
 }
 
 import { calculateGscComplianceScore } from "@/lib/domain/giam-sat-chung.domain";

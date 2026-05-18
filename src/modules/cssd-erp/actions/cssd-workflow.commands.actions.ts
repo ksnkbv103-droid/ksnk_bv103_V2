@@ -5,7 +5,6 @@
  */
 import { revalidatePath } from "next/cache";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
 import type { Station } from "../types/cssd.types";
 import { mapFkError, safeRevalidate, tableHasColumn } from "./cssd-action-common";
 import { scanQR } from "./cssd-scan.actions";
@@ -15,6 +14,7 @@ import {
   type WorkflowQuyTrinhInput,
 } from "../workflow/application/cssd-workflow-application";
 import { unlockDongBangQuyTrinhByMaQr } from "./cssd-workflow-ops.actions";
+import { verifyCssdInventoryEdit, verifyCssdWorkflowEdit } from "./cssd-permissions";
 
 async function cssdOperatorLabel(): Promise<string> {
   try {
@@ -39,7 +39,7 @@ export async function cssdCommandAdvanceStation(maQR: string, station: Exclude<S
 /** Trả lui đúng 1 trạm (không dùng tại TK/CP). */
 export async function cssdCommandRejectToPrevious(maQR: string, lyDo: string) {
   const supabase = createAdminSupabaseClient();
-  await verifyPermission("CSSD_WORKFLOW", "edit");
+  await verifyCssdWorkflowEdit();
   const code = String(maQR || "").trim().toUpperCase();
   const row = await fetchLatestActiveWorkflowByQr(supabase, code);
   if (!row) throw new Error("Không tìm thấy QR quy trình.");
@@ -64,7 +64,7 @@ export async function cssdCommandRejectToPrevious(maQR: string, lyDo: string) {
 /** Đóng băng thủ công (thiết bị kẹt / chờ QA). */
 export async function cssdCommandFreezeSet(maQR: string, lyDo?: string) {
   const supabase = createAdminSupabaseClient();
-  await verifyPermission("CSSD_WORKFLOW", "edit");
+  await verifyCssdWorkflowEdit();
   const has = await tableHasColumn(supabase, "fact_quy_trinh", "is_dong_bang");
   if (!has) throw new Error("Phiên bản DB chưa có cột khóa an toàn.");
 
@@ -95,5 +95,6 @@ export async function cssdCommandFreezeSet(maQR: string, lyDo?: string) {
 
 /** Mở khóa đóng băng — ủy quyền kho/CSSD (thân `unlockDongBangQuyTrinhByMaQr`). */
 export async function cssdCommandReleaseSet(maQR: string) {
+  await verifyCssdInventoryEdit();
   return unlockDongBangQuyTrinhByMaQr(maQR);
 }

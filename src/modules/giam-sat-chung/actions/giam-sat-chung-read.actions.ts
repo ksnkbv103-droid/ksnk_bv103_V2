@@ -186,6 +186,14 @@ export async function getGscHeaderDmDropdowns() {
   const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
+    const scope = await getActorKsnkScope();
+    const actorKhoaId = scope.actorKhoaId ? String(scope.actorKhoaId) : null;
+    if (scope.isMangLuoiKsnk && !actorKhoaId) {
+      return {
+        success: true as const,
+        data: { khoas: [], khuVucs: [], ngheNghieps: [], nhanSus: [] },
+      };
+    }
 
     // Lấy danh mục qua RPC và Cache
     const [registriesRes, khoaData, nhanSuRes, khuVucFallbackRes] = await Promise.all([
@@ -193,7 +201,11 @@ export async function getGscHeaderDmDropdowns() {
         p_categories: ["KHU_VUC_GIAM_SAT", "NGHE_NGHIEP"]
       }),
       getCachedDmKhoaPhong(),
-      supabase.from("mdm_nhan_su").select("id, ho_ten").eq("is_active", true).order("ho_ten"),
+      (() => {
+        let q = supabase.from("mdm_nhan_su").select("id, ho_ten, khoa_id").eq("is_active", true);
+        if (scope.isMangLuoiKsnk && actorKhoaId) q = q.eq("khoa_id", actorKhoaId);
+        return q.order("ho_ten");
+      })(),
       supabase
         .from("dm_khu_vuc_giam_sat")
         .select("id, ma_khu_vuc, ten_khu_vuc")
@@ -205,14 +217,20 @@ export async function getGscHeaderDmDropdowns() {
     if (nhanSuRes.error) throw nhanSuRes.error;
     if (khuVucFallbackRes.error) throw khuVucFallbackRes.error;
 
-    const khoas = khoaData.map(x => ({
+    const khoaFiltered = scope.isMangLuoiKsnk
+      ? actorKhoaId
+        ? khoaData.filter((x) => String(x.id) === actorKhoaId)
+        : []
+      : khoaData;
+
+    const khoas = khoaFiltered.map(x => ({
       id: x.id,
       ma_danh_muc: x.ma_khoa,
       ten_danh_muc: x.ten_khoa,
       loai_danh_muc: "KHOA_PHONG"
     }));
 
-    const nhanSus = nhanSuRes.data || [];
+    const nhanSus = (nhanSuRes.data || []).map((x) => ({ id: x.id, ho_ten: x.ho_ten }));
 
     const registry = (registriesRes.data || {}) as Record<
       string,

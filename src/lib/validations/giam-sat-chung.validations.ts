@@ -26,12 +26,10 @@ export const gscSessionSchema = z.object({
   bang_kiem_id: optionalUuid("Bảng kiểm không hợp lệ"),
   loai_bang_kiem: z.string().optional(),
   ten_bang_kiem: z.string().min(1, "Tên bảng kiểm không được trống").optional(),
-  hinh_thuc_giam_sat: z.enum(["Tự giám sát", "Giám sát khách quan"]).optional(),
-  cach_thuc_giam_sat: z.enum([
-    "Giám sát trực tiếp tại chỗ",
-    "Giám sát trực tiếp qua camera",
-    "Giám sát lại qua camera",
-  ]).optional(),
+  hinh_thuc_id: optionalUuid("Hình thức giám sát không hợp lệ"),
+  cach_thuc_id: optionalUuid("Cách thức giám sát không hợp lệ"),
+  hinh_thuc_giam_sat: z.string().optional(), // Legacy support
+  cach_thuc_giam_sat: z.string().optional(), // Legacy support
   doi_tuong_giam_sat: z.string().optional(),
   vi_tri: z.string().optional(),
   ngay_giam_sat: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Định dạng ngày YYYY-MM-DD").nullable().optional(),

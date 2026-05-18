@@ -1,7 +1,7 @@
 // src/modules/giam-sat-vst/components/VSTPersonColumn.tsx
 "use client";
 
-import React from "react";
+import React, { useLayoutEffect, useMemo, useRef } from "react";
 import type { NhanSuOption } from "@/components/shared/giam-sat-header.types";
 import type { MasterOption } from "@/lib/master-data/gateway";
 import { formatNhanSuOptionLabel, matchesNhanSuProfessionFilter } from "@/lib/master-data/nhan-su-enrich";
@@ -48,6 +48,11 @@ export default function VSTPersonColumn({
   khoaId,
   cachThucGiamSat,
 }: VSTPersonColumnProps) {
+  const oppRowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  // Tránh auto-scroll ngay lần render đầu: làm người dùng không kịp nhập `khoa/khu vực` ở header.
+  const didInitScrollRef = useRef(false);
+
   const toText = (value: unknown): string => String(value ?? "").trim();
 
   const resolveNhanSuKhoaId = (ns: NhanSuOption): string => {
@@ -74,6 +79,41 @@ export default function VSTPersonColumn({
   const filteredNhanSus = getFilteredNhanSus(khoaId, person.nghe_nghiep_id);
   const requireKhoa = !khoaId;
 
+  const oppExpandLayoutKey = useMemo(
+    () => person.opportunities.map((o) => `${o.id}:${o.isCollapsed ? 1 : 0}`).join("|"),
+    [person.opportunities],
+  );
+
+  useLayoutEffect(() => {
+    // Chỉ scroll khi có một cơ hội được mở ra (không phải lúc vừa mount trang).
+    if (!didInitScrollRef.current) {
+      didInitScrollRef.current = true;
+      return;
+    }
+
+    const expanded = person.opportunities.find((o) => !o.isCollapsed);
+    if (!expanded) return;
+
+    // Nếu là cơ hội mới (không có hành động), cuộn xuống cuối cột để thấy phần Thời điểm của cơ hội tiếp theo.
+    if (!expanded.hanh_dong && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: scrollContainerRef.current.scrollHeight, behavior: "smooth" });
+      return;
+    }
+
+    const el = oppRowRefs.current.get(expanded.id);
+    if (!el) return;
+    
+    const prefersReduced =
+      typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+      
+    // Cuộn mượt tới cơ hội đang mở.
+    el.scrollIntoView({
+      block: "start",
+      inline: "nearest",
+      behavior: prefersReduced ? "auto" : "smooth",
+    });
+  }, [oppExpandLayoutKey]);
+
   const onSelectNhanSu = (nsId: string) => {
     updatePerson(pIdx, "nhan_vien_id", nsId);
     if (!nsId) return;
@@ -84,10 +124,25 @@ export default function VSTPersonColumn({
     }
   };
 
+  // Bước 2: Khi chọn xong Nghề nghiệp + Tên nhân viên -> Tự cuộn tới Bảng nhập cơ hội (Thời điểm).
+  useLayoutEffect(() => {
+    if (!person.nghe_nghiep_id || (!person.nhan_vien_id && !person.ten_manual)) return;
+    
+    // Chỉ cuộn nếu chưa có cơ hội nào được ghi nhận (đang ở giai đoạn bắt đầu định danh nhân viên).
+    const isBrandNew = person.opportunities.length === 1 && !person.opportunities[0].hanh_dong;
+    if (!isBrandNew) return;
+
+    const firstOppId = person.opportunities[0]?.id;
+    const el = oppRowRefs.current.get(firstOppId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [person.nghe_nghiep_id, person.nhan_vien_id, person.ten_manual]);
+
   return (
     <div className="flex min-h-0 max-h-[min(82dvh,calc(100dvh-13rem))] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm print:max-h-none print:overflow-visible">
       <div className="shrink-0 border-b border-slate-100 bg-slate-50/60 px-4 py-3 print:border-b-0">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[#026f17]">Người {pIdx + 1}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-[#026f17]">Nhân viên {pIdx + 1}</p>
 
         <div className="mt-3 space-y-3">
           <div className="space-y-1">
@@ -169,22 +224,31 @@ export default function VSTPersonColumn({
       </div>
 
       <div
+        ref={scrollContainerRef}
         className="custom-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden overscroll-contain p-3 sm:p-4 print:max-h-none print:overflow-visible"
-        aria-label={`Danh sách cơ hội — người ${pIdx + 1}`}
+        aria-label={`Danh sách cơ hội — nhân viên ${pIdx + 1}`}
       >
         {person.opportunities.map((opp: ExtendedOpportunity, oIdx: number) => (
-          <VSTOpportunityForm
+          <div
             key={opp.id}
-            opp={opp}
-            pIdx={pIdx}
-            oIdx={oIdx}
-            cachThucGiamSat={cachThucGiamSat}
-            toggleMoment={toggleMoment}
-            updateAction={updateAction}
-            updateAssessment={updateAssessment}
-            submitOpportunity={submitOpportunity}
-            openOpportunity={openOpportunity}
-          />
+            ref={(node) => {
+              if (node) oppRowRefs.current.set(opp.id, node);
+              else oppRowRefs.current.delete(opp.id);
+            }}
+            className="scroll-mt-2"
+          >
+            <VSTOpportunityForm
+              opp={opp}
+              pIdx={pIdx}
+              oIdx={oIdx}
+              cachThucGiamSat={cachThucGiamSat}
+              toggleMoment={toggleMoment}
+              updateAction={updateAction}
+              updateAssessment={updateAssessment}
+              submitOpportunity={submitOpportunity}
+              openOpportunity={openOpportunity}
+            />
+          </div>
         ))}
       </div>
     </div>

@@ -3,9 +3,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { createCongViec } from "../actions/cong-viec.actions";
-import { getNhanSuOptions, getToCongTacOptions } from "../actions/cong-viec-read.actions";
+import { getQlcvFormCatalog } from "../actions/cong-viec-read.actions";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { congViecSchema } from "@/lib/validations/quan-ly-cong-viec.validations";
+import type { QlcvSelectOption } from "../lib/qlcv-form-options";
 
 interface Props {
   parentTaskId: string;
@@ -18,8 +19,8 @@ interface Props {
 export function CreateSubTaskForm({ parentTaskId, parentHanHoanThanh, onSuccess, onCancel }: Props) {
   const [loading, setLoading] = useState(false);
   const [optionsLoading, setOptionsLoading] = useState(true);
-  const [nhanSuOptions, setNhanSuOptions] = useState<any[]>([]);
-  const [toCongTacOptions, setToCongTacOptions] = useState<any[]>([]);
+  const [nhanSuOptions, setNhanSuOptions] = useState<QlcvSelectOption[]>([]);
+  const [toCongTacOptions, setToCongTacOptions] = useState<QlcvSelectOption[]>([]);
   const [selectedNhanSu, setSelectedNhanSu] = useState("");
   const [selectedTo, setSelectedTo] = useState("");
 
@@ -27,9 +28,9 @@ export function CreateSubTaskForm({ parentTaskId, parentHanHoanThanh, onSuccess,
     const load = async () => {
       setOptionsLoading(true);
       try {
-        const [ns, tct] = await Promise.all([getNhanSuOptions(), getToCongTacOptions()]);
-        setNhanSuOptions(ns);
-        setToCongTacOptions(tct);
+        const catalog = await getQlcvFormCatalog();
+        setNhanSuOptions(catalog.nhanSu);
+        setToCongTacOptions(catalog.toCongTac);
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Không tải được danh mục tổ / nhân sự.");
       } finally {

@@ -13,27 +13,30 @@ export function CSSDCatalogLoaiTab(props: {
 
   return (
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-      <section className="rounded-2xl border border-slate-100 bg-white p-4">
+      <section className="rounded-2xl border border-slate-200 bg-white p-4">
         <h3 className="mb-3 text-xs font-black uppercase text-[#026f17]">Loại dụng cụ ({loaiRows.length})</h3>
-        <div className="max-h-[520px] overflow-auto space-y-2">
+        <div className="max-h-[520px] overflow-auto rounded-xl border border-slate-100 bg-white">
           {loaiRows.map((x) => (
             <button
               key={x.id}
               onClick={() => setSelectedLoaiId(x.id)}
-              className={`w-full rounded-xl border p-3 text-left ${selectedLoaiId === x.id ? "border-violet-300 bg-violet-50" : "border-slate-100"}`}
+              className={`w-full border-l-4 px-3 py-3 text-left transition-colors ${selectedLoaiId === x.id ? "border-l-violet-500 bg-violet-50/70" : "border-l-transparent border-b border-slate-100 hover:bg-slate-50"}`}
             >
               <p className="text-[10px] font-black text-violet-600">{x.ma_loai_dung_cu || "—"}</p>
               <p className="text-sm font-bold text-slate-800">{x.ten_loai_dung_cu || "—"}</p>
             </button>
           ))}
+          {loaiRows.length === 0 && <p className="p-4 text-sm text-slate-500">Không có dữ liệu loại dụng cụ.</p>}
         </div>
       </section>
-      <section className="rounded-2xl border border-slate-100 bg-white p-4">
+      <section className="rounded-2xl border border-slate-200 bg-white p-4">
         <h3 className="mb-3 text-xs font-black uppercase text-[#026f17]">
           Bộ chứa loại đã chọn {selectedLoai ? `(${selectedLoai.ma_loai_dung_cu})` : ""}
         </h3>
         {!selectedLoaiId ? (
-          <p className="text-sm text-slate-500">Chọn một loại dụng cụ để xem các bộ chứa loại đó.</p>
+          <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-500">
+            Chọn một loại dụng cụ ở cột trái để xem các bộ chứa loại đó.
+          </div>
         ) : boBySelectedLoai.length ? (
           <div className="flex flex-wrap gap-2">
             {boBySelectedLoai.map((b) => (

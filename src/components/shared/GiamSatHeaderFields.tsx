@@ -1,13 +1,17 @@
 // src/components/shared/GiamSatHeaderFields.tsx
 "use client";
 
-import React, { type Dispatch, type SetStateAction, useEffect, useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { usePermission } from "@/hooks/usePermission";
 import { AlertCircle, UserPlus, ShieldCheck } from "lucide-react";
 import type { MasterOption } from "@/lib/master-data/gateway";
 import type { VstSessionLocationHistoryRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/master-data-gateway.actions";
-import { getDanhMucAdminPath } from "@/lib/master-data/danh-muc-admin-routes";
-import { HINH_THUC_KHACH_QUAN, HINH_THUC_TU_GIAM_SAT } from "@/lib/supervision-policy";
+import {
+  HINH_THUC_CHUYEN_TRACH,
+  HINH_THUC_GIAM_SAT_CHEO,
+  HINH_THUC_TU_GIAM_SAT,
+} from "@/lib/supervision-policy";
 import {
   combineLocalNgayAndTime,
   isReplayCameraSupervisionCachThuc,
@@ -32,13 +36,11 @@ interface GiamSatHeaderFieldsProps {
   lockedSupervisorHoSoId?: string | null;
   /** Ẩn banner Quản trị viên / chưa liên kết (khi bundle MDM lỗi). */
   suppressStaffIdentityBanner?: boolean;
+  /** Context module để áp dụng giá trị mặc định (vst | gsc) */
+  moduleContext?: "vst" | "gsc";
+  hinhThucGiamSats?: MasterOption[];
+  cachThucGiamSats?: MasterOption[];
 }
-
-const CACH_THUC_GIAM_SAT_OPTIONS = [
-  "Giám sát trực tiếp tại chỗ",
-  "Giám sát trực tiếp qua camera",
-  "Giám sát lại qua camera",
-] as const;
 
 const normalize = (v: string | null | undefined) =>
   String(v || "")
@@ -46,19 +48,12 @@ const normalize = (v: string | null | undefined) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-const isNetworkRole = (roleName: string | null | undefined) => normalize(roleName).includes("mang luoi");
+const isKsnkDepartment = (khoaName: string | null | undefined) => {
+  const n = normalize(khoaName);
+  return n.includes("kiem soat nhiem khuan") || n.includes("ksnk");
+};
 
-function inferHinhThuc(
-  session: Pick<GiamSatSession, "khoa_id" | "nguoi_giam_sat_id">,
-  allNhanSus: NhanSuOption[],
-) {
-  const selected = allNhanSus.find(
-    (ns) => String(ns.id || "") === String(session.nguoi_giam_sat_id || ""),
-  );
-  if (!selected) return "";
-  const networkAtSelectedKhoa = isNetworkRole(selected.vai_tro_he_thong_ksnk) && String(selected.khoa_id || "") === String(session.khoa_id || "");
-  return networkAtSelectedKhoa ? HINH_THUC_TU_GIAM_SAT : HINH_THUC_KHACH_QUAN;
-}
+const isNetworkRoleLabel = (roleName: string | null | undefined) => normalize(roleName).includes("mang luoi");
 
 export default function GiamSatHeaderFields({
   session,
@@ -72,17 +67,33 @@ export default function GiamSatHeaderFields({
   loading,
   lockedSupervisorHoSoId,
   suppressStaffIdentityBanner = false,
+  moduleContext = "vst",
+  hinhThucGiamSats = [],
+  cachThucGiamSats = [],
 }: GiamSatHeaderFieldsProps) {
   const locked = String(lockedSupervisorHoSoId || "").trim();
   const { isAdmin, loading: permLoading } = usePermission();
 
+  const supervisorProfile = useMemo(() => {
+    return allNhanSus.find((ns: NhanSuOption) => String(ns.id || "") === String(session.nguoi_giam_sat_id || ""));
+  }, [allNhanSus, session.nguoi_giam_sat_id]);
+
+  const isKsnkStaff = useMemo(() => {
+    if (!supervisorProfile) return false;
+    const khoa = khoas.find((k: MasterOption) => k.id === supervisorProfile.khoa_id);
+    return isKsnkDepartment(khoa?.ten_danh_muc);
+  }, [supervisorProfile, khoas]);
+
+  const isNetworkStaff = useMemo(() => {
+    if (!supervisorProfile) return false;
+    return isNetworkRoleLabel(supervisorProfile.vai_tro_he_thong_ksnk as string);
+  }, [supervisorProfile]);
+
   const locationPoolByKhoa = useMemo(() => {
     const kid = String(session.khoa_id || "").trim();
     if (historyLocationRows && historyLocationRows.length > 0) {
-      const rows = kid
-        ? historyLocationRows.filter((r) => r.khoa_id && r.khoa_id === kid)
-        : historyLocationRows;
-      return Array.from(new Set(rows.map((r) => r.vi_tri_cu_the).filter(Boolean)));
+      const rows = kid ? historyLocationRows.filter((r: VstSessionLocationHistoryRow) => r.khoa_id && r.khoa_id === kid) : historyLocationRows;
+      return Array.from(new Set(rows.map((r: VstSessionLocationHistoryRow) => r.vi_tri_cu_the).filter(Boolean))) as string[];
     }
     return historyLocations;
   }, [historyLocationRows, historyLocations, session.khoa_id]);
@@ -92,32 +103,50 @@ export default function GiamSatHeaderFields({
     const q = String(session.vi_tri || "").trim();
     if (!q) return [];
     const nq = normalize(q);
-    return locationPoolByKhoa.filter((loc) => normalize(loc).includes(nq));
+    return locationPoolByKhoa.filter((loc: string) => normalize(loc).includes(nq));
   }, [deferLocationHistoryUntilTyped, locationPoolByKhoa, session.vi_tri]);
-  /** Tránh flash: khi bundle MDM chưa trả `currentHoSoId`, tạm coi là chưa biết — không hiện banner QT/chọn người. */
+
   const headerIdentityReady = !loading && !permLoading;
+
+  // Inference thông minh (Gợi ý ban đầu khi trường TRỐNG)
+  useEffect(() => {
+    if (loading || !supervisorProfile) return;
+
+    setSession((prev: GiamSatSession) => {
+      let nextHinhThucId = prev.hinh_thuc_id;
+      let nextCachThucId = prev.cach_thuc_id;
+
+      const chuyênTrách = hinhThucGiamSats.find(h => h.ten_danh_muc === HINH_THUC_CHUYEN_TRACH);
+      const tựGiámSát = hinhThucGiamSats.find(h => h.ten_danh_muc === HINH_THUC_TU_GIAM_SAT);
+      const cameraVst = cachThucGiamSats.find(c => c.ten_danh_muc === "Giám sát trực tiếp qua camera");
+      const tạiChỗ = cachThucGiamSats.find(c => c.ten_danh_muc === "Giám sát trực tiếp tại chỗ");
+
+      if (isKsnkStaff) {
+        if (!prev.hinh_thuc_id && chuyênTrách) nextHinhThucId = chuyênTrách.id;
+        if (!prev.cach_thuc_id) {
+          if (moduleContext === "vst" && cameraVst) nextCachThucId = cameraVst.id;
+          else if (tạiChỗ) nextCachThucId = tạiChỗ.id;
+        }
+      } else if (isNetworkStaff) {
+        if (!prev.hinh_thuc_id && tựGiámSát) nextHinhThucId = tựGiámSát.id;
+        if (!prev.cach_thuc_id && tạiChỗ) nextCachThucId = tạiChỗ.id;
+      }
+
+      if (nextHinhThucId === prev.hinh_thuc_id && nextCachThucId === prev.cach_thuc_id) return prev;
+      return { ...prev, hinh_thuc_id: nextHinhThucId, cach_thuc_id: nextCachThucId };
+    });
+  }, [loading, supervisorProfile, isKsnkStaff, isNetworkStaff, moduleContext, setSession]);
 
   useEffect(() => {
     if (!locked) return;
-    setSession((prev) => {
+    setSession((prev: GiamSatSession) => {
       if (prev.nguoi_giam_sat_id === locked) return prev;
-      const next = { ...prev, nguoi_giam_sat_id: locked };
-      return {
-        ...next,
-        hinh_thuc_giam_sat: inferHinhThuc(next, allNhanSus),
-        cach_thuc_giam_sat: prev.cach_thuc_giam_sat || "Giám sát trực tiếp tại chỗ",
-      };
+      return { ...prev, nguoi_giam_sat_id: locked };
     });
-  }, [locked, setSession, allNhanSus]);
+  }, [locked, setSession]);
 
   return (
     <div className="min-w-0 space-y-4">
-      {/* 
-        Người giám sát Flow:
-        1. Nếu đã liên kết: Ẩn (đã khóa theo hồ sơ).
-        2. Nếu chưa liên kết + Admin: Cho phép chọn người giám sát bất kỳ.
-        3. Nếu chưa liên kết + User: Hiện cảnh báo yêu cầu liên kết.
-      */}
       {!locked && headerIdentityReady && !suppressStaffIdentityBanner && (
         <div
           className={`rounded-lg border px-3 py-3 sm:px-4 ${
@@ -125,16 +154,20 @@ export default function GiamSatHeaderFields({
           }`}
         >
           <div className="flex items-start gap-3">
-            <div className={`shrink-0 rounded-md p-1.5 ${isAdmin ? "bg-indigo-100 text-indigo-600" : "bg-amber-100 text-amber-600"}`}>
+            <div
+              className={`shrink-0 rounded-md p-1.5 ${isAdmin ? "bg-indigo-100 text-indigo-600" : "bg-amber-100 text-amber-600"}`}
+            >
               {isAdmin ? <ShieldCheck className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
             </div>
             <div className="flex-1 space-y-2">
               <div>
-                <p className={`mb-0.5 text-[11px] font-semibold uppercase tracking-wide ${isAdmin ? "text-indigo-900" : "text-amber-900"}`}>
+                <p
+                  className={`mb-0.5 text-[11px] font-semibold uppercase tracking-wide ${isAdmin ? "text-indigo-900" : "text-amber-900"}`}
+                >
                   {isAdmin ? "Chế độ Quản trị viên (Hệ thống)" : "Tài khoản chưa liên kết hồ sơ"}
                 </p>
                 <p className={`text-[10px] font-medium leading-snug ${isAdmin ? "text-indigo-800" : "text-amber-800"}`}>
-                  {isAdmin 
+                  {isAdmin
                     ? "Bạn đang truy cập với quyền Quản trị. Để thực hiện các thao tác ghi nhận dữ liệu (Giám sát), vui lòng chọn một nhân sự đại diện dưới đây."
                     : "Tài khoản của bạn chưa được liên kết với hồ sơ nhân sự. Vui lòng liên kết để thực hiện các nghiệp vụ giám sát chuyên sâu."}
                 </p>
@@ -142,18 +175,16 @@ export default function GiamSatHeaderFields({
 
               {isAdmin ? (
                 <div className="space-y-1 pt-0.5">
-                  <label className="text-[9px] font-semibold uppercase tracking-wide text-indigo-600">Chọn người thực hiện giám sát</label>
+                  <label className="text-[9px] font-semibold uppercase tracking-wide text-indigo-600">
+                    Chọn người thực hiện giám sát
+                  </label>
                   <SearchableSelect
                     value={session.nguoi_giam_sat_id}
-                    onChange={(val) => setSession(prev => ({ 
-                      ...prev, 
-                      nguoi_giam_sat_id: val,
-                      hinh_thuc_giam_sat: inferHinhThuc({ ...prev, nguoi_giam_sat_id: val }, allNhanSus)
-                    }))}
-                    options={allNhanSus.map(ns => ({
+                    onChange={(val: string) => setSession((prev: GiamSatSession) => ({ ...prev, nguoi_giam_sat_id: val }))}
+                    options={allNhanSus.map((ns: NhanSuOption) => ({
                       id: String(ns.id),
                       label: String(ns.ho_ten || ""),
-                      keywords: [String(ns.ma_nv || "")]
+                      keywords: [String(ns.ma_nv || "")],
                     }))}
                     placeholder="Tìm nhân sự thực hiện..."
                     className="h-10 bg-white"
@@ -175,20 +206,19 @@ export default function GiamSatHeaderFields({
       )}
 
       <div className="min-w-0">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-x-5 lg:gap-y-4">
-          <div className="flex min-h-0 min-w-0 flex-col gap-1">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 xl:gap-x-4 xl:gap-y-4">
+          <div id="vst-khoa-select" className="flex min-h-0 min-w-0 flex-col gap-1">
             <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">1. Khoa</label>
             <SearchableSelect
               value={session.khoa_id}
-              onChange={(nextKhoaId) =>
-                setSession({
-                  ...session,
+              onChange={(nextKhoaId: string) =>
+                setSession((prev: GiamSatSession) => ({
+                  ...prev,
                   khoa_id: nextKhoaId,
                   nhan_vien_id: "",
-                  hinh_thuc_giam_sat: inferHinhThuc({ ...session, khoa_id: nextKhoaId }, allNhanSus),
-                })
+                }))
               }
-              options={khoas.map((k) => ({
+              options={khoas.map((k: MasterOption) => ({
                 id: String(k.id),
                 label: String(k.ten_danh_muc || ""),
                 keywords: [String(k.ma_danh_muc || ""), String(k.loai_danh_muc || "")],
@@ -203,8 +233,8 @@ export default function GiamSatHeaderFields({
             <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">2. Khu vực</label>
             <SearchableSelect
               value={session.khu_vuc_id}
-              onChange={(nextKhuVucId) => setSession({ ...session, khu_vuc_id: nextKhuVucId })}
-              options={khuVucs.map((kv) => ({
+              onChange={(nextKhuVucId: string) => setSession((prev: GiamSatSession) => ({ ...prev, khu_vuc_id: nextKhuVucId }))}
+              options={khuVucs.map((kv: MasterOption) => ({
                 id: String(kv.id),
                 label: String(kv.ten_danh_muc || ""),
                 keywords: [String(kv.ma_danh_muc || ""), String(kv.loai_danh_muc || "")],
@@ -213,97 +243,67 @@ export default function GiamSatHeaderFields({
               searchPlaceholder="Tìm khu vực..."
               disabled={loading}
             />
-            {!loading && khuVucs.length === 0 && (
-              <div className="mt-1 space-y-1.5 rounded-md border border-amber-200/80 bg-amber-50/50 p-2">
-                <p className="text-[9px] font-semibold leading-snug text-amber-700">
-                  Chưa có khu vực trong <code className="text-[8px]">dm_khu_vuc_giam_sat</code>.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    window.location.href = getDanhMucAdminPath("KHU_VUC_GIAM_SAT");
-                  }}
-                  className="inline-flex h-8 w-full items-center justify-center rounded-md bg-amber-600 px-2 text-[9px] font-semibold text-white transition-colors hover:bg-amber-700"
-                >
-                  Khai báo khu vực
-                </button>
+          </div>
+
+          <div className="flex min-h-0 min-w-0 flex-col gap-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">3. Vị trí</label>
+            <input
+              className="input h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 outline-none transition-colors focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]/20 lg:h-11"
+              placeholder={deferLocationHistoryUntilTyped ? "Gõ vị trí; gợi ý khi có chữ" : "Phòng, giường, khu…"}
+              autoComplete="off"
+              value={session.vi_tri}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const nextVal = e.target.value;
+                setSession((prev: GiamSatSession) => ({ ...prev, vi_tri: nextVal }));
+              }}
+            />
+            {locationChipsSource.length > 0 && (
+              <div className="mt-1 flex flex-wrap gap-1">
+                {locationChipsSource.slice(0, 5).map((loc: string, idx: number) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSession((prev: GiamSatSession) => ({ ...prev, vi_tri: loc }))}
+                    className="rounded bg-slate-100 px-2 py-0.5 text-[9px] font-medium text-slate-600 hover:bg-slate-200"
+                  >
+                    {loc}
+                  </button>
+                ))}
               </div>
             )}
           </div>
 
-          <div className="flex min-h-0 min-w-0 flex-col gap-1 sm:col-span-2 lg:col-span-1">
-            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">3. Vị trí</label>
-            <input
-              className="input h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 outline-none transition-colors focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]/20 lg:h-11"
-              placeholder={
-                deferLocationHistoryUntilTyped
-                  ? "Gõ vị trí; gợi ý khi có chữ"
-                  : "Phòng, giường, khu…"
-              }
-              autoComplete="off"
-              value={session.vi_tri}
-              onChange={(e) => {
-                const nextVal = e.target.value;
-                setSession((prev) => ({ ...prev, vi_tri: nextVal }));
-              }}
+          <div className="flex min-h-0 min-w-0 flex-col gap-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">4. Hình thức</label>
+            <SearchableSelect
+              value={session.hinh_thuc_id || ""}
+              onChange={(nextId: string) => setSession((prev: GiamSatSession) => ({ ...prev, hinh_thuc_id: nextId }))}
+              options={hinhThucGiamSats.map((h) => ({ id: h.id, label: h.ten_danh_muc }))}
+              placeholder="Chọn hình thức..."
+              disabled={loading}
             />
-            {String(session.khoa_id || "").trim() &&
-            historyLocationRows &&
-            historyLocationRows.length > 0 &&
-            locationPoolByKhoa.length === 0 ? (
-              <p className="text-[9px] leading-snug text-slate-500">
-                Chưa có vị trí đã lưu cho khoa này — gõ tay.
-              </p>
-            ) : null}
-            {deferLocationHistoryUntilTyped &&
-            String(session.vi_tri || "").trim() &&
-            locationPoolByKhoa.length > 0 &&
-            locationChipsSource.length === 0 ? (
-              <p className="text-[9px] leading-snug text-slate-500">Không trùng từ khóa — gõ tay nếu cần.</p>
-            ) : null}
-            {locationChipsSource.length > 0 ? (
-              <div className="min-w-0 space-y-1 rounded-md bg-slate-50/90 p-2">
-                <p className="px-0.5 text-[8px] font-semibold uppercase tracking-wide text-slate-500">Gợi ý</p>
-                <div className="flex max-h-[8.5rem] min-h-0 flex-wrap gap-1 overflow-y-auto overscroll-contain custom-scrollbar">
-                  {locationChipsSource.slice(0, 80).map((loc, idx) => (
-                    <button
-                      key={`${idx}-${loc.slice(0, 48)}`}
-                      type="button"
-                      className="max-w-full truncate rounded-md border border-slate-200/90 bg-white px-2 py-0.5 text-left text-[9px] font-medium text-slate-700 transition-colors hover:border-[#026f17]/35 hover:bg-[#026f17]/5"
-                      title={loc}
-                      onClick={() => setSession((prev) => ({ ...prev, vi_tri: loc }))}
-                    >
-                      {loc}
-                    </button>
-                  ))}
-                </div>
-                {locationChipsSource.length > 80 ? (
-                  <p className="px-0.5 text-[8px] text-slate-400">80 / {locationChipsSource.length}</p>
-                ) : null}
-              </div>
-            ) : null}
           </div>
 
-          <div className="flex min-h-0 min-w-0 flex-col gap-1 sm:col-span-2 lg:col-span-1">
-            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">4. Cách thức</label>
+          <div className="flex min-h-0 min-w-0 flex-col gap-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">5. Cách thức</label>
             <SearchableSelect
-              value={session.cach_thuc_giam_sat || ""}
-              onChange={(nextCachThuc) =>
-                setSession((prev) => ({
-                  ...prev,
-                  cach_thuc_giam_sat: nextCachThuc,
-                }))
-              }
-              options={CACH_THUC_GIAM_SAT_OPTIONS.map((ct) => ({ id: ct, label: ct, keywords: [ct.replaceAll("Giám sát", "").trim()] }))}
-              placeholder="-- Chọn --"
-              searchPlaceholder="Tìm…"
+              value={session.cach_thuc_id || ""}
+              onChange={(nextId: string) => setSession((prev: GiamSatSession) => ({ ...prev, cach_thuc_id: nextId }))}
+              options={cachThucGiamSats.map((ct) => ({
+                id: ct.id,
+                label: ct.ten_danh_muc,
+                keywords: [ct.ten_danh_muc.replaceAll("Giám sát", "").trim()],
+              }))}
+              placeholder="Chọn cách thức..."
               disabled={loading}
             />
           </div>
         </div>
       </div>
 
-      {isReplayCameraSupervisionCachThuc(session.cach_thuc_giam_sat) ? (
+      {isReplayCameraSupervisionCachThuc(
+        cachThucGiamSats.find(c => c.id === session.cach_thuc_id)?.ten_danh_muc
+      ) && (
         <div className="space-y-3 rounded-lg border border-amber-200/70 bg-amber-50/40 p-3 md:grid md:grid-cols-3 md:gap-4 md:space-y-0">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-900 md:col-span-3">
             Giám sát lại qua camera — nhập một lần cho cả phiên (không nhập lại từng cơ hội)
@@ -314,9 +314,9 @@ export default function GiamSatHeaderFields({
               type="date"
               className="input h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800"
               value={session.ngay_giam_sat || ""}
-              onChange={(e) => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 const v = e.target.value;
-                setSession((prev) => {
+                setSession((prev: GiamSatSession) => {
                   const tBat = timeLocalHmFromIso(prev.thoi_gian_bat_dau);
                   const tKt = timeLocalHmFromIso(prev.thoi_gian_ket_thuc);
                   const isoBat = tBat ? combineLocalNgayAndTime(v, tBat) : undefined;
@@ -338,8 +338,8 @@ export default function GiamSatHeaderFields({
               step={60}
               className="input h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800"
               value={timeLocalHmFromIso(session.thoi_gian_bat_dau)}
-              onChange={(e) => {
-                setSession((prev) => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setSession((prev: GiamSatSession) => {
                   const iso = combineLocalNgayAndTime(prev.ngay_giam_sat || "", e.target.value);
                   if (!iso) return prev;
                   return { ...prev, thoi_gian_bat_dau: iso };
@@ -354,8 +354,8 @@ export default function GiamSatHeaderFields({
               step={60}
               className="input h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800"
               value={timeLocalHmFromIso(session.thoi_gian_ket_thuc)}
-              onChange={(e) => {
-                setSession((prev) => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setSession((prev: GiamSatSession) => {
                   const iso = combineLocalNgayAndTime(prev.ngay_giam_sat || "", e.target.value);
                   if (!iso) return prev;
                   return { ...prev, thoi_gian_ket_thuc: iso };
@@ -364,7 +364,7 @@ export default function GiamSatHeaderFields({
             />
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

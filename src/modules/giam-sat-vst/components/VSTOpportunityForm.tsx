@@ -1,7 +1,7 @@
 // src/modules/giam-sat-vst/components/VSTOpportunityForm.tsx
 "use client";
 
-import React from "react";
+import React, { useLayoutEffect, useRef } from "react";
 import { MOMENTS, ACTIONS, ActionType, MomentType } from "../data";
 import VSTAssessmentSection from "./VSTAssessmentSection";
 import type { ExtendedOpportunity, VSTOppAssessmentField } from "../hooks/useVSTFormHandlers";
@@ -45,6 +45,30 @@ export default function VSTOpportunityForm({
   openOpportunity,
 }: VSTOpportunityFormProps) {
   const hideOppRecordTime = isReplayCameraSupervisionCachThuc(cachThucGiamSat);
+  /** Sau khi chọn hành động: cuộn tới khối đánh giá / ghi nhận trong vùng cuộn cột (không cần kéo tay). */
+  const postActionFieldsRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (opp.isCollapsed || !opp.hanh_dong) return;
+    const el = postActionFieldsRef.current;
+    if (!el) return;
+
+    // Chỉ scroll khi khối "Đánh giá" đang không nằm trong viewport.
+    const rect = el.getBoundingClientRect();
+    const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+    if (isVisible) return;
+
+    const prefersReduced =
+      typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
+    // Cuộn tới khối "Đánh giá", căn giữa để người dùng thấy rõ cả phần đánh giá và nút ghi nhận.
+    el.scrollIntoView({
+      block: "center",
+      inline: "nearest",
+      behavior: prefersReduced ? "auto" : "smooth",
+    });
+  }, [opp.hanh_dong, opp.isCollapsed]);
+
   if (opp.isCollapsed) {
     return (
       <button
@@ -82,63 +106,67 @@ export default function VSTOpportunityForm({
   }
 
   return (
-    <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-4">
-      <div className="space-y-2">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">1. Thời điểm</p>
-        <div className="flex flex-col gap-1">
-          {MOMENTS.map((m, i) => (
-            <button
-              key={m}
-              type="button"
-              title={MOMENT_TOOLTIPS[m]}
-              onClick={() => toggleMoment(pIdx, oIdx, m)}
-              className={`w-full rounded-lg border px-3 py-2 text-left text-[11px] font-medium leading-snug transition-colors ${
-                opp.thoi_diems.includes(m)
-                  ? "border-[#026f17] bg-[#026f17] text-white"
-                  : "border-slate-200 bg-slate-50/80 text-slate-700 hover:border-slate-300 hover:bg-white"
-              }`}
-            >
-              <span className="mr-2 font-semibold text-inherit opacity-70">{i + 1}.</span>
-              {m}
-            </button>
-          ))}
+    <div className="flex flex-col rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
+      <div className="min-h-0 space-y-2 sm:space-y-4">
+        <div className="space-y-1.5 sm:space-y-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">1. Thời điểm</p>
+          <div className="grid grid-cols-2 gap-1 sm:grid-cols-1 sm:gap-1">
+            {MOMENTS.map((m, i) => (
+              <button
+                key={m}
+                type="button"
+                title={MOMENT_TOOLTIPS[m]}
+                onClick={() => toggleMoment(pIdx, oIdx, m)}
+                className={`w-full rounded-lg border px-2 py-1.5 text-left text-[10px] font-medium leading-snug transition-colors sm:px-3 sm:py-2 sm:text-[11px] ${
+                  opp.thoi_diems.includes(m)
+                    ? "border-[#026f17] bg-[#026f17] text-white"
+                    : "border-slate-200 bg-slate-50/80 text-slate-700 hover:border-slate-300 hover:bg-white"
+                }`}
+              >
+                <span className="mr-1.5 font-semibold text-inherit opacity-70 sm:mr-2">{i + 1}.</span>
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-1.5 sm:space-y-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">2. Hành động</p>
+          <div className="grid grid-cols-3 gap-1 sm:gap-1.5">
+            {ACTIONS.map((a) => (
+              <button
+                key={a}
+                type="button"
+                onClick={() => updateAction(pIdx, oIdx, a)}
+                className={`min-h-9 rounded-lg border text-[8px] font-semibold uppercase tracking-wide transition-colors sm:h-10 sm:text-[9px] ${
+                  opp.hanh_dong === a
+                    ? a === "Bỏ sót"
+                      ? "border-red-500 bg-red-500 text-white"
+                      : "border-amber-500 bg-amber-500 text-white"
+                    : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white"
+                }`}
+              >
+                {a === "Rửa tay bằng nước" ? "Rửa nước" : a === "Chà tay bằng cồn" ? "Chà cồn" : "Bỏ sót"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div ref={postActionFieldsRef} className="scroll-mt-2 space-y-1.5 sm:space-y-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">3. Đánh giá</p>
+          <VSTAssessmentSection opp={opp} pIdx={pIdx} oIdx={oIdx} updateAssessment={updateAssessment} />
         </div>
       </div>
 
-      <div className="space-y-2">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">2. Hành động</p>
-        <div className="grid grid-cols-3 gap-1.5">
-          {ACTIONS.map((a) => (
-            <button
-              key={a}
-              type="button"
-              onClick={() => updateAction(pIdx, oIdx, a)}
-              className={`h-10 rounded-lg border text-[9px] font-semibold uppercase tracking-wide transition-colors ${
-                opp.hanh_dong === a
-                  ? a === "Bỏ sót"
-                    ? "border-red-500 bg-red-500 text-white"
-                    : "border-amber-500 bg-amber-500 text-white"
-                  : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white"
-              }`}
-            >
-              {a === "Rửa tay bằng nước" ? "Rửa nước" : a === "Chà tay bằng cồn" ? "Chà cồn" : "Bỏ sót"}
-            </button>
-          ))}
-        </div>
+      <div className="max-sm:sticky max-sm:bottom-0 max-sm:z-[1] max-sm:-mx-3 max-sm:mt-2 max-sm:border-t max-sm:border-slate-100 max-sm:bg-white max-sm:px-3 max-sm:pb-0.5 max-sm:pt-2 sm:mt-4">
+        <button
+          type="button"
+          onClick={() => submitOpportunity(pIdx, oIdx)}
+          className="bv103-control-h w-full rounded-lg bg-[#026f17] text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[#015a12]"
+        >
+          Ghi nhận cơ hội
+        </button>
       </div>
-
-      <div className="space-y-2">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">3. Đánh giá</p>
-        <VSTAssessmentSection opp={opp} pIdx={pIdx} oIdx={oIdx} updateAssessment={updateAssessment} />
-      </div>
-
-      <button
-        type="button"
-        onClick={() => submitOpportunity(pIdx, oIdx)}
-        className="bv103-control-h w-full rounded-lg bg-[#026f17] text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[#015a12]"
-      >
-        Ghi nhận cơ hội
-      </button>
     </div>
   );
 }

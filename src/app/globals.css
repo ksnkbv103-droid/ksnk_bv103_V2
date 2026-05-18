@@ -180,6 +180,49 @@
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
+
+  /** Nhịp nhẹ thẻ Kanban QLCV — quá hạn / ưu tiên cao */
+  .bv103-card-pulse-overdue {
+    animation: bv103-attention-pulse-overdue 2.4s ease-in-out infinite;
+  }
+
+  .bv103-card-pulse-urgent {
+    animation: bv103-attention-pulse-urgent 2.6s ease-in-out infinite;
+  }
+}
+
+@keyframes bv103-attention-pulse-overdue {
+  0%,
+  100% {
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 0 0 0 rgb(239 68 68 / 0);
+  }
+  50% {
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 0 0 3px rgb(239 68 68 / 0.22);
+  }
+}
+
+@keyframes bv103-attention-pulse-urgent {
+  0%,
+  100% {
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 0 0 0 rgb(245 158 11 / 0);
+  }
+  50% {
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 0 0 3px rgb(245 158 11 / 0.28);
+  }
+}
+
+/* Panel trượt QLCV — fade backdrop mượt hơn */
+@keyframes bv103-panel-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.bv103-panel-backdrop-in {
+  animation: bv103-panel-backdrop-in 0.28s ease-out forwards;
 }
 
 /* ============================================

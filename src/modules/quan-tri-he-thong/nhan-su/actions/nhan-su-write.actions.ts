@@ -24,8 +24,12 @@ export async function saveNhanSuAction(data: Partial<NhanSu>) {
     await verifyPermission("NHAN_SU", id ? "edit" : "create");
     const supabase = createAdminSupabaseClient();
 
-    // 2. Validate input schema with Zod
-    const parsed = nhanSuSchema.partial().safeParse(updateData);
+    // 2. Validate input schema with Zod.
+    // Create phải qua schema đầy đủ để tránh lọt bản ghi thiếu trường cốt lõi;
+    // Update cho phép partial để chỉ sửa một phần hồ sơ.
+    const parsed = id
+      ? nhanSuSchema.partial().safeParse(updateData)
+      : nhanSuSchema.safeParse(updateData);
     if (!parsed.success) {
       return {
         success: false,

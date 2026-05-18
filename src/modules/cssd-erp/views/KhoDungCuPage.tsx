@@ -4,66 +4,40 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Download, List, AlertTriangle, Printer, CalendarClock, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
 import { usePrint } from "@/hooks/usePrint";
+import { fetchCssdKhoDungCuList } from "../actions/cssd-kho-read.actions";
 import { useImportExport } from "@/hooks/useImportExport";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
 import InventoryDashboard from "../components/inventory/InventoryDashboard";
 import SetMembersModal from "../components/inventory/SetMembersModal";
 import InventoryIssueModal from "../components/inventory/InventoryIssueModal";
-import InventoryHistoryTable from "../components/inventory/InventoryHistoryTable";
 import { importCSSDData } from "../actions/cssd.actions";
 import CSSDPageShell from "../components/layout/cssd-page-shell";
 import RegisterBoLabelFromCatalogPanel from "../components/inventory/register-bo-label-from-catalog-panel";
-import { getKhoCatalogPayloadAction } from "../actions/cssd-catalog.actions";
+import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_DATA_SURFACE } from "../shared/ui/cssd-ui-chrome";
 
 /**
  * Trang Giám sát Kho Dụng cụ CSSD (~200 dòng: kho + đăng ký nhãn từ danh mục)
  * Đăng ký nhãn: chọn `dm_bo_dung_cu` → tạo `fact_quy_trinh` có `bo_dung_cu_id` và in QR.
  */
-export default function KhoDungCuPage() {
+export default function KhoDungCuPage({ suppressShell = false }: { suppressShell?: boolean } = {}) {
   const { printLabel } = usePrint();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [mainTab, setMainTab] = useState<"STOCK" | "HISTORY" | "CATALOG">("STOCK");
   const [filterStatus, setFilterStatus] = useState<"ALL" | "CLEAN" | "PROCESSING" | "BROKEN">("ALL");
   const [filterFEFO, setFilterFEFO] = useState<boolean>(false);
   const [selectedSet, setSelectedSet] = useState<any>(null);
   const [issueTool, setIssueTool] = useState<any>(null);
-  const [catalog, setCatalog] = useState<{ bo: any[]; chi_tiet: any[]; loai: any[] }>({ bo: [], chi_tiet: [], loai: [] });
-  const [catalogSearch, setCatalogSearch] = useState("");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const { data: res, error } = await supabase
-      .from("fact_quy_trinh")
-      .select("*")
-      .eq("is_active", true)
-      .order("updated_at", { ascending: false });
-    if (error) {
-      toast.error("Không tải được kho: " + error.message);
+    const res = await fetchCssdKhoDungCuList();
+    if (!res.success) {
+      toast.error("Không tải được kho: " + res.error);
       setData([]);
-      setLoading(false);
-      return;
+    } else {
+      setData(res.data);
     }
-    const rows = (res || []) as Array<Record<string, unknown>>;
-    const boIds = [...new Set(rows.map((x) => String(x.bo_dung_cu_id || "").trim()).filter(Boolean))];
-    let boMap = new Map<string, any>();
-    if (boIds.length) {
-      const { data: bos, error: boErr } = await supabase
-        .from("dm_bo_dung_cu")
-        .select("*, khoa:dm_khoa_phong!khoa_su_dung_id(ten_khoa)")
-        .in("id", boIds);
-      if (boErr) toast.error("Không tải được dữ liệu bộ: " + boErr.message);
-      boMap = new Map((bos || []).map((x: any) => [String(x.id), x]));
-    }
-    const mapped = rows.map((x) => ({
-      ...x,
-      ma_vach_qr: x.ma_qr_quy_trinh || "",
-      trang_thai_hien_tai: x.ma_trang_thai_hien_tai || "",
-      dm_bo_dung_cu: x.bo_dung_cu_id ? boMap.get(String(x.bo_dung_cu_id)) || null : null,
-    }));
-    setData(mapped);
     setLoading(false);
   }, []);
 
@@ -86,22 +60,6 @@ export default function KhoDungCuPage() {
   });
 
   useEffect(() => { void fetchData(); }, [fetchData]);
-
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      const res = await getKhoCatalogPayloadAction();
-      if (cancelled) return;
-      if (!res.success) {
-        toast.error(res.error || "Không tải được danh mục kho.");
-        return;
-      }
-      setCatalog(res.data);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     const onRefetch = () => void fetchData();
@@ -170,43 +128,37 @@ export default function KhoDungCuPage() {
     )}
   ];
 
-  const q = catalogSearch.trim().toLowerCase();
-  const boRows = useMemo(
-    () =>
-      !q
-        ? catalog.bo
-        : catalog.bo.filter((x) => `${x.ma_bo} ${x.ten_bo}`.toLowerCase().includes(q)),
-    [catalog.bo, q],
-  );
-  const chiTietRows = useMemo(
-    () =>
-      !q
-        ? catalog.chi_tiet
-        : catalog.chi_tiet.filter((x) => `${x.ma_chi_tiet} ${x.ten_chi_tiet} ${x.ten_bo || ""} ${x.ten_loai || ""}`.toLowerCase().includes(q)),
-    [catalog.chi_tiet, q],
-  );
-  const loaiRows = useMemo(
-    () =>
-      !q
-        ? catalog.loai
-        : catalog.loai.filter((x) => `${x.ma_loai_dung_cu} ${x.ten_loai_dung_cu}`.toLowerCase().includes(q)),
-    [catalog.loai, q],
+  const mainContent = (
+    <div className="space-y-6">
+      <RegisterBoLabelFromCatalogPanel />
+      
+      <div className="space-y-8 animate-in slide-in-from-left-4 duration-500">
+        <InventoryDashboard data={data} />
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
+            {(['ALL', 'CLEAN', 'PROCESSING', 'BROKEN'] as const).map(f => (
+              <button key={f} onClick={() => setFilterStatus(f)} className={`px-6 py-3 rounded-xl font-black text-[9px] uppercase transition-all ${filterStatus === f ? 'bg-white text-[#026f17] shadow-sm' : 'text-slate-400'}`}>
+                {f === 'ALL' ? 'Tất cả' : f === 'CLEAN' ? 'Sạch' : f === 'PROCESSING' ? 'Đang xử lý' : 'Sự cố/Hỏng'}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setFilterFEFO(!filterFEFO)} className={`px-6 py-3.5 rounded-2xl font-black text-[9px] uppercase transition-all flex items-center gap-2 border-2 ${filterFEFO ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-slate-100 bg-slate-50 text-slate-400'}`}>
+            <CalendarClock size={14} /> Sắp hết hạn
+          </button>
+        </div>
+
+        <div className={CSSD_UI_DATA_SURFACE}>
+          <AdvancedDataTable columns={columns} data={filteredData} loading={loading} enableMultiSelect={false} searchPlaceholder="Tìm kiếm bộ dụng cụ, mã QR..." />
+        </div>
+      </div>
+
+      <InventoryIssueModal isOpen={!!issueTool} onClose={() => setIssueTool(null)} tool={issueTool} onSuccess={fetchData} />
+      <SetMembersModal isOpen={!!selectedSet} onClose={() => setSelectedSet(null)} set={selectedSet} />
+    </div>
   );
 
-  function reportIssueFromCatalog(source: "BO" | "CHI_TIET" | "LOAI", row: any) {
-    let candidate: any | undefined;
-    if (source === "BO") {
-      candidate = data.find((x) => String(x.bo_dung_cu_id || "") === String(row.id));
-    } else if (source === "CHI_TIET") {
-      candidate = data.find((x) => String(x.bo_dung_cu_id || "") === String(row.bo_dung_cu_id || ""));
-    } else {
-      candidate = data.find((x) => String(x.dm_bo_dung_cu?.loai_dung_cu_id || "") === String(row.id));
-    }
-    if (!candidate) {
-      toast.error("Chưa có bộ tương ứng trong kho có QR. Vui lòng đăng ký nhãn QR cho bộ trước khi báo sự cố.");
-      return;
-    }
-    setIssueTool(candidate);
+  if (suppressShell) {
+    return mainContent;
   }
 
   return (
@@ -220,96 +172,16 @@ export default function KhoDungCuPage() {
       actions={
         <>
           <input type="file" ref={fileInputRef} accept=".xlsx,.xls" className="hidden" onChange={(e) => e.target.files?.[0] && void handleFileUpload(e.target.files[0])} />
-          <button type="button" onClick={triggerImport} disabled={isImporting} className="flex h-14 items-center gap-2 rounded-2xl border border-amber-100 bg-amber-50 px-6 text-[10px] font-black uppercase text-amber-800 shadow-sm transition-all hover:bg-amber-100 disabled:opacity-50">
+          <button type="button" onClick={triggerImport} disabled={isImporting} className="inline-flex h-10 items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-100 disabled:opacity-50">
             {isImporting ? <Loader2 size={20} className="animate-spin" /> : <Upload size={20} />} Import
           </button>
-          <button type="button" onClick={handleExport} className="flex h-14 items-center gap-3 rounded-2xl bg-[#026f17] px-8 text-[10px] font-black uppercase text-[#FFD700] shadow-xl transition-all hover:scale-[1.02] active:scale-95">
+          <button type="button" onClick={handleExport} className={CSSD_UI_ACTION_PRIMARY}>
             <Download size={20} /> Xuất
           </button>
         </>
       }
     >
-      <RegisterBoLabelFromCatalogPanel />
-      <div className="flex w-fit gap-2 rounded-2xl border border-slate-100/80 bg-slate-100 p-1">
-        <button onClick={() => setMainTab("STOCK")} className={`px-8 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${mainTab === 'STOCK' ? 'bg-[#026f17] text-[#FFD700] shadow-md' : 'text-slate-400'}`}>Tổng quan Tồn kho</button> 
-        <button onClick={() => setMainTab("HISTORY")} className={`px-8 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${mainTab === 'HISTORY' ? 'bg-[#026f17] text-[#FFD700] shadow-md' : 'text-slate-400'}`}>Lịch sử Luân chuyển</button>
-        <button onClick={() => setMainTab("CATALOG")} className={`px-8 py-3 rounded-xl font-black text-[10px] uppercase transition-all ${mainTab === 'CATALOG' ? 'bg-[#026f17] text-[#FFD700] shadow-md' : 'text-slate-400'}`}>Danh mục dụng cụ</button>
-      </div>
-
-      {mainTab === "STOCK" ? (
-        <div className="space-y-8 animate-in slide-in-from-left-4 duration-500">
-          <InventoryDashboard data={data} />
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
-              {(['ALL', 'CLEAN', 'PROCESSING', 'BROKEN'] as const).map(f => (
-                <button key={f} onClick={() => setFilterStatus(f)} className={`px-6 py-3 rounded-xl font-black text-[9px] uppercase transition-all ${filterStatus === f ? 'bg-white text-[#026f17] shadow-sm' : 'text-slate-400'}`}>
-                  {f === 'ALL' ? 'Tất cả' : f === 'CLEAN' ? 'Sạch' : f === 'PROCESSING' ? 'Đang xử lý' : 'Sự cố/Hỏng'}
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setFilterFEFO(!filterFEFO)} className={`px-6 py-3.5 rounded-2xl font-black text-[9px] uppercase transition-all flex items-center gap-2 border-2 ${filterFEFO ? 'border-orange-500 bg-orange-50 text-orange-600' : 'border-slate-100 bg-slate-50 text-slate-400'}`}>
-              <CalendarClock size={14} /> Sắp hết hạn
-            </button>
-          </div>
-
-          <div className="bg-white p-2 rounded-[48px] border border-slate-100 shadow-sm overflow-hidden min-h-[500px]">
-            <AdvancedDataTable columns={columns} data={filteredData} loading={loading} enableMultiSelect={false} searchPlaceholder="Tìm kiếm bộ dụng cụ, mã QR..." />
-          </div>
-        </div>
-      ) : mainTab === "HISTORY" ? <InventoryHistoryTable /> : (
-        <div className="space-y-6 animate-in slide-in-from-left-4 duration-500">
-          <div className="rounded-2xl border border-slate-100 bg-white p-4">
-            <input
-              value={catalogSearch}
-              onChange={(e) => setCatalogSearch(e.target.value)}
-              placeholder="Tìm nhanh mã/tên bộ, mã/tên chi tiết, mã/tên loại dụng cụ..."
-              className="h-12 w-full rounded-xl border border-slate-200 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-[#026f17]/20"
-            />
-          </div>
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-            <div className="rounded-2xl border border-slate-100 bg-white p-4">
-              <h3 className="mb-3 text-xs font-black uppercase text-[#026f17]">Danh mục Bộ dụng cụ ({boRows.length})</h3>
-              <div className="max-h-[420px] overflow-auto space-y-2">
-                {boRows.map((x) => (
-                  <div key={x.id} className="rounded-xl border border-slate-100 p-3">
-                    <p className="text-[10px] font-black text-slate-400">{x.ma_bo || "—"}</p>
-                    <p className="text-sm font-bold text-slate-800">{x.ten_bo || "—"}</p>
-                    <button onClick={() => reportIssueFromCatalog("BO", x)} className="mt-2 rounded-lg bg-red-50 px-3 py-1 text-[10px] font-black uppercase text-red-600">Báo sự cố</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-2xl border border-slate-100 bg-white p-4">
-              <h3 className="mb-3 text-xs font-black uppercase text-[#026f17]">Danh mục Dụng cụ chi tiết ({chiTietRows.length})</h3>
-              <div className="max-h-[420px] overflow-auto space-y-2">
-                {chiTietRows.map((x) => (
-                  <div key={x.id} className="rounded-xl border border-slate-100 p-3">
-                    <p className="text-[10px] font-black text-slate-400">{x.ma_chi_tiet || "—"}</p>
-                    <p className="text-sm font-bold text-slate-800">{x.ten_chi_tiet || "—"}</p>
-                    <p className="text-[10px] text-slate-500">{x.ten_bo || "Chưa gán bộ"} · {x.ten_loai || "Chưa gán loại"}</p>
-                    <button onClick={() => reportIssueFromCatalog("CHI_TIET", x)} className="mt-2 rounded-lg bg-red-50 px-3 py-1 text-[10px] font-black uppercase text-red-600">Báo sự cố</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-2xl border border-slate-100 bg-white p-4">
-              <h3 className="mb-3 text-xs font-black uppercase text-[#026f17]">Danh mục Loại dụng cụ ({loaiRows.length})</h3>
-              <div className="max-h-[420px] overflow-auto space-y-2">
-                {loaiRows.map((x) => (
-                  <div key={x.id} className="rounded-xl border border-slate-100 p-3">
-                    <p className="text-[10px] font-black text-slate-400">{x.ma_loai_dung_cu || "—"}</p>
-                    <p className="text-sm font-bold text-slate-800">{x.ten_loai_dung_cu || "—"}</p>
-                    <button onClick={() => reportIssueFromCatalog("LOAI", x)} className="mt-2 rounded-lg bg-red-50 px-3 py-1 text-[10px] font-black uppercase text-red-600">Báo sự cố</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      <InventoryIssueModal isOpen={!!issueTool} onClose={() => setIssueTool(null)} tool={issueTool} onSuccess={fetchData} />
-      <SetMembersModal isOpen={!!selectedSet} onClose={() => setSelectedSet(null)} set={selectedSet} />
+      {mainContent}
     </CSSDPageShell>
   );
 }

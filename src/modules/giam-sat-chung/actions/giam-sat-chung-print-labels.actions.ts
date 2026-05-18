@@ -3,6 +3,8 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import type { GscPrintLabelPack } from "../lib/gsc-session-labels";
+import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
+import { resolveGscScopedKhoaId } from "../lib/gsc-khoa-scope";
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Lỗi không xác định";
@@ -20,7 +22,14 @@ export async function getGscSessionPrintLabels(input: {
   const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
-    const khoaId = String(input.khoa_id ?? "").trim();
+    const scope = await getActorKsnkScope();
+    const requestedKhoaId = String(input.khoa_id ?? "").trim() || null;
+    const scopedKhoa = resolveGscScopedKhoaId(scope, requestedKhoaId);
+    if (!scopedKhoa.ok) {
+      return { success: false, error: scopedKhoa.error };
+    }
+    const khoaId = scopedKhoa.khoaId || "";
+    const actorKhoaId = scope.actorKhoaId ? String(scope.actorKhoaId) : null;
     const khuId = String(input.khu_vuc_id ?? "").trim();
     const nvId = String(input.nhan_vien_id ?? "").trim();
     const nnId = String(input.nghe_nghiep_id ?? "").trim();
@@ -33,14 +42,22 @@ export async function getGscSessionPrintLabels(input: {
       ? supabase.from("dm_khu_vuc_giam_sat").select("ten_khu_vuc").eq("id", khuId).maybeSingle()
       : Promise.resolve({ data: null as { ten_khu_vuc?: string } | null, error: null });
     const nvP = nvId
-      ? supabase.from("mdm_nhan_su").select("ho_ten").eq("id", nvId).maybeSingle()
-      : Promise.resolve({ data: null as { ho_ten?: string } | null, error: null });
+      ? (() => {
+          let q = supabase.from("mdm_nhan_su").select("ho_ten, khoa_id").eq("id", nvId);
+          if (scope.isMangLuoiKsnk && actorKhoaId) q = q.eq("khoa_id", actorKhoaId);
+          return q.maybeSingle();
+        })()
+      : Promise.resolve({ data: null as { ho_ten?: string; khoa_id?: string } | null, error: null });
     const nnP = nnId
       ? supabase.from("dm_nghe_nghiep").select("ten_nghe_nghiep").eq("id", nnId).maybeSingle()
       : Promise.resolve({ data: null as { ten_nghe_nghiep?: string } | null, error: null });
     const ngsP = ngsId
-      ? supabase.from("mdm_nhan_su").select("ho_ten").eq("id", ngsId).maybeSingle()
-      : Promise.resolve({ data: null as { ho_ten?: string } | null, error: null });
+      ? (() => {
+          let q = supabase.from("mdm_nhan_su").select("ho_ten, khoa_id").eq("id", ngsId);
+          if (scope.isMangLuoiKsnk && actorKhoaId) q = q.eq("khoa_id", actorKhoaId);
+          return q.maybeSingle();
+        })()
+      : Promise.resolve({ data: null as { ho_ten?: string; khoa_id?: string } | null, error: null });
 
     const [khoaR, khuR, nvR, nnR, ngsR] = await Promise.all([khoaP, khuP, nvP, nnP, ngsP]);
     if (khoaR.error) throw khoaR.error;

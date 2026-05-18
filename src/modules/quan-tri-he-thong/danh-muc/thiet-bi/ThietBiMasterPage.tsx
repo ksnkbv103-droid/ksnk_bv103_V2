@@ -21,7 +21,7 @@ import {
 } from "../actions/thiet-bi.actions";
 import { DmMasterPageGuard } from "../views/dm-master-page-guard";
 
-function ThietBiMasterPageContent() {
+function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?: boolean }) {
   const router = useRouter();
   const [data, setData] = useState<ThietBiRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,16 +96,53 @@ function ThietBiMasterPageContent() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-[#026f17] uppercase tracking-tighter flex items-center gap-3">
-            <Settings /> Thiết bị và Máy
-          </h1>
-          <p className="text-slate-400 font-bold text-[9px] uppercase tracking-widest mt-1 italic leading-none">
-            Master dm_thiet_bi
-          </p>
-        </div>
-        <div className="flex gap-3 w-full sm:w-auto">
+      {!suppressHeader && (
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm gap-4">
+          <div>
+            <h1 className="text-2xl font-black text-[#026f17] uppercase tracking-tighter flex items-center gap-3">
+              <Settings /> Thiết bị và Máy
+            </h1>
+            <p className="text-slate-400 font-bold text-[9px] uppercase tracking-widest mt-1 italic leading-none">
+              Master dm_thiet_bi
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3 w-full sm:w-auto">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
+              accept=".xlsx, .xls"
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={triggerImport}
+              disabled={isImporting}
+              className="h-12 px-5 bg-amber-50 text-amber-600 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 touch-manipulation"
+            >
+              {isImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />} Import dữ liệu
+            </button>
+            <button
+              type="button"
+              onClick={() => exportTemplate()}
+              className="h-12 px-5 bg-slate-50 text-slate-500 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 hover:bg-slate-100 touch-manipulation"
+            >
+              <Download size={16} /> Export dữ liệu mẫu
+            </button>
+            <button
+              type="button"
+              onClick={openCreate}
+              className="h-12 px-6 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase text-[10px] shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 hover:opacity-90 touch-manipulation"
+            >
+              <Plus size={18} /> Thêm mới
+            </button>
+          </div>
+        </header>
+      )}
+
+      {/* Nếu suppressHeader là true, ta cần render lại các nút hành động (Add, Import) để không bị mất chức năng */}
+      {suppressHeader && (
+        <div className="flex flex-wrap justify-end gap-3 mb-4">
           <input
             type="file"
             ref={fileInputRef}
@@ -117,26 +154,27 @@ function ThietBiMasterPageContent() {
             type="button"
             onClick={triggerImport}
             disabled={isImporting}
-            className="h-12 px-5 bg-amber-50 text-amber-600 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 touch-manipulation"
+            className="h-10 px-4 bg-amber-50 text-amber-600 rounded-lg font-black uppercase text-[10px] flex items-center gap-2 transition-all shadow-sm active:scale-95 touch-manipulation"
           >
-            {isImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />} Import dữ liệu
+            {isImporting ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Import
           </button>
           <button
             type="button"
             onClick={() => exportTemplate()}
-            className="h-12 px-5 bg-slate-50 text-slate-500 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 hover:bg-slate-100 touch-manipulation"
+            className="h-10 px-4 bg-slate-50 text-slate-500 rounded-lg font-black uppercase text-[10px] flex items-center gap-2 transition-all shadow-sm hover:bg-slate-100 active:scale-95 touch-manipulation"
           >
-            <Download size={16} /> Export dữ liệu mẫu
+            <Download size={14} /> Export mẫu
           </button>
           <button
             type="button"
             onClick={openCreate}
-            className="h-12 px-6 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase text-[10px] shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 hover:opacity-90 touch-manipulation"
+            className="h-10 px-5 bg-[#026f17] text-[#FFD700] rounded-lg font-black uppercase text-[10px] flex items-center gap-2 transition-all shadow-sm active:scale-95 touch-manipulation"
           >
-            <Plus size={18} /> Thêm mới
+            <Plus size={16} /> Thêm thiết bị mới
           </button>
         </div>
-      </header>
+      )}
+      
       <div className="bg-white p-2 rounded-[40px] border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
@@ -170,10 +208,10 @@ function ThietBiMasterPageContent() {
   );
 }
 
-export default function ThietBiMasterPage() {
+export default function ThietBiMasterPage({ suppressHeader = false }: { suppressHeader?: boolean } = {}) {
   return (
     <DmMasterPageGuard moduleKey="THIET_BI" label="Danh mục Thiết bị">
-      <ThietBiMasterPageContent />
+      <ThietBiMasterPageContent suppressHeader={suppressHeader} />
     </DmMasterPageGuard>
   );
 }

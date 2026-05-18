@@ -1,4 +1,4 @@
-# Triển khai pilot — 4 module (Quản trị, Giám sát chung, VST, Dashboard)
+sau đó# Triển khai pilot — 4 module (Quản trị, Giám sát chung, VST, Dashboard)
 
 Tài liệu từng bước: **làm xong một mục, kiểm tra dấu ✓ rồi sang bước sau**. Phạm vi: **Quản trị hệ thống** (MDM + nhân sự + bảng kiểm + phân quyền), **Giám sát KSNK chung (GSC)**, **Giám sát vệ sinh tay (VST)**, **Dashboard tuân thủ** (trang chủ app). Không bao gồm CSSD / NKBV / Công việc.
 

@@ -13,7 +13,9 @@ export type GiamSatSession = {
   khu_vuc_id: string;
   vi_tri: string;
   hinh_thuc_giam_sat?: string;
+  hinh_thuc_id?: string;
   cach_thuc_giam_sat?: string;
+  cach_thuc_id?: string;
   nguoi_giam_sat_id: string;
   ngay_giam_sat: string;
   thoi_gian_bat_dau?: string;
@@ -24,6 +26,7 @@ export type GiamSatSession = {
   nhan_vien_id?: string;
   is_manual_nhan_vien?: boolean;
   ten_manual_nhan_vien?: string;
+  ghi_chu_chung?: string;
   /** GSC: bổ sung người bệnh đang chăm sóc (gói phòng ngừa NKBV). */
   is_bo_sung_nguoi_benh?: boolean;
   ma_nguoi_benh?: string;

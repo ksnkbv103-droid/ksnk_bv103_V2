@@ -12,5 +12,5 @@ alwaysApply: true
 - **Phân cấp:** `AGENTS.md` → rule có **glob** trên file đang sửa (`12–16` theo module) → `docs/specs`.
 - **Một module / nhịp:** không audit cả repo khi sửa điểm nhỏ — xem `LEAN_EXECUTION`.
 - **Trước khi xong** task đụng Server Action / `fact_*`: `npm run verify:engineering` (hoặc `verify:full` trước push).
-- Self-check: đúng module; ranh giới CSSD vs MDM; mapping DB khớp [`10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md).
+- Self-check: đúng module; ranh giới CSSD vs MDM; mapping DB khớp [`10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md); đụng schema → migration + `npm run mdm:migrate` (xem **App ↔ Database** trong `AGENTS.md`).
 - UI layout: shell + primitive theo [`BV103_LAYOUT_PRIMITIVES.md`](../../docs/specs/working/BV103_LAYOUT_PRIMITIVES.md); tránh card lồng card / nhiều layer chỉ để polish.

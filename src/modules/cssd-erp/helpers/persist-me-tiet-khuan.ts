@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
+import { buildQuyTrinhTramPatch } from "../lib/cssd-tram-persist";
 import { insertCssdLifecycleEvent } from "../shared/application/cssd-lifecycle-events";
 import { tableHasColumn } from "../shared/cssd-db-utils";
 
@@ -13,20 +13,105 @@ export type PersistMeTietKhuanInput = {
   testBI: string;
   testCI: string;
   testBD: string;
+  /** Thông số máy (bắt buộc khi kết luận ĐẠT). */
+  thongSoMay?: string;
+  /** Chỉ thị tiếp xúc: DAT | KHONG_DAT */
+  chiThiTiepXuc?: string;
+  /** Chỉ thị đa thông số: DAT | KHONG_DAT */
+  chiThiDaThongSo?: string;
+  /** Test sinh học từng mẻ: NA | DAT | KHONG_DAT */
+  testSinhHoc?: string;
+  /** URL hoặc đường dẫn minh chứng (tùy tích hợp lưu trữ). */
+  anhMinhChungMay?: string;
+  anhMinhChungTiepXuc?: string;
+  anhMinhChungDaThongSo?: string;
+  anhMinhChungSinhHoc?: string;
+  anhMinhChungBowieDick?: string;
 };
+
+function normTri(v: string | undefined): string {
+  return String(v || "").trim().toUpperCase();
+}
+
+function validateMeTietKhuanPassPayload(p: PersistMeTietKhuanInput): string | null {
+  if (!p.isPass) return null;
+  if (!String(p.nguoiUnload || "").trim()) return "Thiếu người dỡ mẻ.";
+  if (!String(p.nhietDo || "").trim()) return "Thiếu ghi nhận nhiệt độ / áp suất.";
+  if (!String(p.thongSoMay || "").trim()) return "Thiếu thông số máy.";
+  const ctx = normTri(p.chiThiTiepXuc);
+  const cda = normTri(p.chiThiDaThongSo);
+  if (ctx !== "DAT") return "Chỉ thị tiếp xúc phải ĐẠT để kết luận mẻ đạt.";
+  if (cda !== "DAT") return "Chỉ thị đa thông số phải ĐẠT để kết luận mẻ đạt.";
+  const bio = normTri(p.testSinhHoc) || normTri(p.testBI) || "NA";
+  if (bio === "KHONG_DAT") return "Test sinh học không đạt — không thể kết luận mẻ đạt.";
+  const chem = normTri(p.testCI) || "NA";
+  if (chem === "KHONG_DAT") return "Chỉ thị hóa học (CI) không đạt — không thể kết luận mẻ đạt.";
+  const bd = normTri(p.testBD) || "NA";
+  if (bd === "KHONG_DAT") return "Bowie–Dick không đạt — không thể kết luận mẻ đạt.";
+  return null;
+}
 
 /** Ghi kết quả mẻ tiệt khuẩn + (nếu đạt) cập nhật quy_trình và nhật ký quét. */
 export async function persistMeTietKhuanFinishWithClient(
   client: SupabaseClient,
   p: PersistMeTietKhuanInput,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-  const ghiChu = `Nhiệt/Áp: ${p.nhietDo} | Người dỡ: ${p.nguoiUnload} | BI:${p.testBI} CI:${p.testCI} BD:${p.testBD}`;
+  const { data: gateRow, error: gateErr } = await client
+    .from("fact_lo_tiet_khuan")
+    .select("tk_mo_form_qc_at, ket_qua_test, tk_qc_json")
+    .eq("id", p.activeMeId)
+    .maybeSingle();
+  if (gateErr) return { ok: false, message: gateErr.message };
+  if (!gateRow) return { ok: false, message: "Không tìm thấy mẻ tiệt khuẩn." };
+  const g = gateRow as { tk_mo_form_qc_at?: string | null; ket_qua_test?: boolean | null; tk_qc_json?: unknown };
+  if (!g.tk_mo_form_qc_at) {
+    return { ok: false, message: "Chưa mở bước đánh giá QC — bấm «Kết thúc chu trình tiệt khuẩn» trước." };
+  }
+  if (g.ket_qua_test === true || g.ket_qua_test === false) {
+    return { ok: false, message: "Mẻ đã có kết quả QC — không ghi đè." };
+  }
+
+  if (p.isPass) {
+    const passErr = validateMeTietKhuanPassPayload(p);
+    if (passErr) return { ok: false, message: passErr };
+  } else if (!String(p.nguoiUnload || "").trim()) {
+    return { ok: false, message: "Thiếu người dỡ mẻ." };
+  }
+
+  const prevJson = (g.tk_qc_json && typeof g.tk_qc_json === "object" ? g.tk_qc_json : {}) as Record<string, unknown>;
+  const qcPayload = {
+    ...prevJson,
+    nguoiUnload: p.nguoiUnload,
+    nhietDoApSuat: p.nhietDo,
+    thongSoMay: p.thongSoMay ?? "",
+    chiThiTiepXuc: p.chiThiTiepXuc ?? "",
+    chiThiDaThongSo: p.chiThiDaThongSo ?? "",
+    testSinhHoc: p.testSinhHoc ?? p.testBI ?? "NA",
+    testCI: p.testCI,
+    testBowieDick: p.testBD,
+    anhMinhChung: {
+      may: p.anhMinhChungMay ?? "",
+      tiepXuc: p.anhMinhChungTiepXuc ?? "",
+      daThongSo: p.anhMinhChungDaThongSo ?? "",
+      sinhHoc: p.anhMinhChungSinhHoc ?? "",
+      bowieDick: p.anhMinhChungBowieDick ?? "",
+    },
+    submittedAt: new Date().toISOString(),
+  };
+
+  const ghiChu = `Nhiệt/Áp: ${p.nhietDo} | Người dỡ: ${p.nguoiUnload} | TX:${p.chiThiTiepXuc || "—"} ĐTS:${p.chiThiDaThongSo || "—"} | BI:${p.testBI} CI:${p.testCI} BD:${p.testBD} | SH:${p.testSinhHoc || "NA"}`;
+  const now = new Date().toISOString();
   const { error: loErr } = await client
     .from("fact_lo_tiet_khuan")
     .update({
       ket_qua_test: p.isPass,
       ghi_chu: ghiChu,
-      updated_at: new Date().toISOString(),
+      ghi_chu_qc: ghiChu,
+      tk_qc_json: qcPayload,
+      thoi_gian_ket_thuc: now,
+      ket_qua_bi: normTri(p.testSinhHoc) === "DAT" || normTri(p.testBI) === "DAT",
+      ket_qua_ci: normTri(p.testCI) === "DAT",
+      updated_at: now,
     })
     .eq("id", p.activeMeId);
   if (loErr) return { ok: false, message: loErr.message };
@@ -62,12 +147,14 @@ export async function persistMeTietKhuanFinishWithClient(
       const expiry = new Date();
       expiry.setDate(expiry.getDate() + Number(days));
 
+      const capPatch = await buildQuyTrinhTramPatch(client, "CAP_PHAT");
       await client
         .from("fact_quy_trinh")
-        .update({ 
-          ma_trang_thai_hien_tai: "CAP_PHAT", 
-          trang_thai: "DA_TIET_KHUAN",
-          ngay_het_han: expiry.toISOString()
+        .update({
+          ...capPatch,
+          ngay_het_han: expiry.toISOString(),
+          han_su_dung: expiry.toISOString(),
+          updated_at: new Date().toISOString(),
         })
         .eq("id", id);
     }
@@ -96,8 +183,9 @@ export async function persistMeTietKhuanFinishWithClient(
 
   /** Không đạt sinh học/hóa học — domino batch: đưa bộ về ĐÓNG GÓI, gỡ khỏi mẻ, cấm cấp phát. */
   if (!p.isPass && p.quyTrinhIds.length > 0) {
+    const dongGoiPatch = await buildQuyTrinhTramPatch(client, "DONG_GOI");
     const failUpdate: Record<string, unknown> = {
-      ma_trang_thai_hien_tai: "DONG_GOI",
+      ...dongGoiPatch,
       lo_tiet_khuan_id: null,
       updated_at: new Date().toISOString(),
     };
@@ -130,10 +218,4 @@ export async function persistMeTietKhuanFinishWithClient(
   }
 
   return { ok: true };
-}
-
-export async function persistMeTietKhuanFinish(
-  p: PersistMeTietKhuanInput,
-): Promise<{ ok: true } | { ok: false; message: string }> {
-  return persistMeTietKhuanFinishWithClient(supabase, p);
 }

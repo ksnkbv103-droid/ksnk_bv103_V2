@@ -14,7 +14,11 @@ export async function getDashboardData() {
   const supabase = createAdminSupabaseClient();
 
   const root = () =>
-    supabase.from("v_fact_cong_viec_full").select("id", { count: "exact", head: true }).is("cong_viec_cha_id", null);
+    supabase
+      .from("v_fact_cong_viec_full")
+      .select("id", { count: "exact", head: true })
+      .is("cong_viec_cha_id", null)
+      .eq("is_active", true);
 
   const [tongRes, dangRes, htRes, qhRes] = await Promise.all([
     root(),
@@ -22,16 +26,19 @@ export async function getDashboardData() {
       .from("v_fact_cong_viec_full")
       .select("id", { count: "exact", head: true })
       .is("cong_viec_cha_id", null)
-      .eq("trang_thai", "DANG_THUC_HIEN"),
+      .eq("is_active", true)
+      .eq("trang_thai", "DANG_LAM"),
     supabase
       .from("v_fact_cong_viec_full")
       .select("id", { count: "exact", head: true })
       .is("cong_viec_cha_id", null)
+      .eq("is_active", true)
       .eq("trang_thai", "HOAN_THANH"),
     supabase
       .from("v_fact_cong_viec_full")
       .select("id", { count: "exact", head: true })
       .is("cong_viec_cha_id", null)
+      .eq("is_active", true)
       .eq("is_qua_han", true),
   ]);
 
@@ -42,7 +49,8 @@ export async function getDashboardData() {
 
   return {
     tong_cong_viec: tongRes.count ?? 0,
-    dang_thuc_hien: dangRes.count ?? 0,
+    /** Phiếu gốc `trang_thai = DANG_LAM` (Track B). */
+    dang_lam: dangRes.count ?? 0,
     hoan_thanh: htRes.count ?? 0,
     qua_han: qhRes.count ?? 0,
   };
@@ -59,6 +67,8 @@ export async function getQuaHanTasks(limit = 5) {
     .from("v_fact_cong_viec_full")
     .select(QLCV_QUA_HAN_LIST_SELECT)
     .eq("is_qua_han", true)
+    .eq("is_active", true)
+    .is("cong_viec_cha_id", null)
     .order("han_hoan_thanh", { ascending: true })
     .limit(limit);
 

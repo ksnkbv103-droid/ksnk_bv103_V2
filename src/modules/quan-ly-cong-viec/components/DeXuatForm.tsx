@@ -31,8 +31,8 @@ export function DeXuatForm({ onSuccess, onCancel }: Props) {
       await createDeXuat(payload);
       toast.success("Đã gửi đề xuất thành công! Đang chờ lãnh đạo phê duyệt.");
       onSuccess?.();
-    } catch (error: any) {
-      toast.error(error.message || "Không thể gửi đề xuất");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Không thể gửi đề xuất");
     } finally {
       setLoading(false);
     }

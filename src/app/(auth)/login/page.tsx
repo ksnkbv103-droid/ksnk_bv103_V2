@@ -56,7 +56,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8fafc]">
-      <header className="sticky top-0 z-50 h-20 shrink-0 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-8">
+      <header className="sticky top-0 z-50 h-20 shrink-0 border-b border-gray-200 bg-white px-4 md:px-8 flex items-center">
         <div className="flex min-w-0 items-center gap-3">
           <Image
             src="/brand/logo-bv103.png"
@@ -66,16 +66,8 @@ export default function LoginPage() {
             className="h-11 w-11 shrink-0 bg-transparent object-contain drop-shadow-[0_6px_16px_rgba(15,23,42,0.12)]"
             aria-hidden
           />
-          <span className="truncate text-xl font-black text-[#026f17] uppercase tracking-tight">KSNK 103</span>
+          <span className="truncate text-xl font-black uppercase tracking-tight text-[#026f17]">KSNK 103</span>
         </div>
-        <button
-          type="submit"
-          form="ksnk-login-form"
-          disabled={loading}
-          className="min-h-11 px-5 rounded-xl bg-[#026f17] text-white text-sm font-bold uppercase tracking-wider hover:bg-[#015711] active:bg-[#015a12] disabled:opacity-50 touch-manipulation"
-        >
-          {loading ? "Đang xử lý..." : "Đăng nhập"}
-        </button>
       </header>
 
       <div className="flex-1 flex items-center justify-center px-4 py-8">

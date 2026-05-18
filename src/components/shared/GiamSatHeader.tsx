@@ -22,6 +22,8 @@ interface GiamSatHeaderProps {
   khuVucs?: MasterOption[];
   ngheNghieps?: MasterOption[];
   nhanSus?: NhanSuOption[];
+  hinhThucGiamSats?: MasterOption[];
+  cachThucGiamSats?: MasterOption[];
   /** Khi khoas/khuVucs do hook cha cung cấp: hiển thị trạng thái tải của cha */
   headerDataLoading?: boolean;
   showGiamSatCaNhan?: boolean;
@@ -33,6 +35,8 @@ interface GiamSatHeaderProps {
   deferLocationHistoryUntilTyped?: boolean;
   /** GSC: hiện tùy chọn bổ sung mã/tên/giường người bệnh. */
   showBoSungNguoiBenhToggle?: boolean;
+  /** Context module để áp dụng giá trị mặc định (vst | gsc) */
+  moduleContext?: "vst" | "gsc";
 }
 
 export default function GiamSatHeader({ 
@@ -41,6 +45,8 @@ export default function GiamSatHeader({
   historyLocationRows: externalHistoryRows,
   khoas: externalKhoas, khuVucs: externalKhuVucs,
   ngheNghieps: externalNgheNghieps,
+  hinhThucGiamSats: externalHinhThuc,
+  cachThucGiamSats: externalCachThuc,
   nhanSus: externalNhanSus,
   headerDataLoading = false,
   showGiamSatCaNhan = true,
@@ -48,6 +54,7 @@ export default function GiamSatHeader({
   suppressStaffIdentityBanner = false,
   deferLocationHistoryUntilTyped = false,
   showBoSungNguoiBenhToggle = false,
+  moduleContext = "vst",
 }: GiamSatHeaderProps) {
   const toText = (value: unknown): string => String(value ?? "").trim();
   const resolveNhanSuKhoaId = (ns: NhanSuOption): string => {
@@ -64,6 +71,8 @@ export default function GiamSatHeader({
   const [khoasLocal, setKhoasLocal] = useState<MasterOption[]>([]);
   const [khuVucsLocal, setKhuVucsLocal] = useState<MasterOption[]>([]);
   const [ngheNghiepsLocal, setNgheNghiepsLocal] = useState<MasterOption[]>([]);
+  const [hinhThucLocal, setHinhThucLocal] = useState<MasterOption[]>([]);
+  const [cachThucLocal, setCachThucLocal] = useState<MasterOption[]>([]);
   const [allNhanSusLocal, setAllNhanSusLocal] = useState<NhanSuOption[]>([]);
   const [historyLocationsLocal, setHistoryLocationsLocal] = useState<string[]>([]);
   const [historyLocationRowsLocal, setHistoryLocationRowsLocal] = useState<VstSessionLocationHistoryRow[]>([]);
@@ -73,6 +82,8 @@ export default function GiamSatHeader({
   const displayKhoas = parentFeedsKhoaKhu ? externalKhoas : khoasLocal;
   const displayKhuVucs = parentFeedsKhoaKhu ? externalKhuVucs : khuVucsLocal;
   const displayNgheNghieps = externalNgheNghieps !== undefined ? externalNgheNghieps : ngheNghiepsLocal;
+  const displayHinhThuc = externalHinhThuc !== undefined ? externalHinhThuc : hinhThucLocal;
+  const displayCachThuc = externalCachThuc !== undefined ? externalCachThuc : cachThucLocal;
   const displayNhanSus = externalNhanSus !== undefined ? externalNhanSus : allNhanSusLocal;
   const displayHistory = externalHistory !== undefined ? externalHistory : historyLocationsLocal;
   const displayHistoryRows = externalHistoryRows !== undefined ? externalHistoryRows : historyLocationRowsLocal;
@@ -93,6 +104,8 @@ export default function GiamSatHeader({
           setKhoasLocal(result.data.khoas || []);
           setKhuVucsLocal(result.data.khuVucs || []);
           setNgheNghiepsLocal(result.data.ngheNghieps || []);
+          setHinhThucLocal((result.data as any).hinhThucGiamSats || []);
+          setCachThucLocal((result.data as any).cachThucGiamSats || []);
           setAllNhanSusLocal((result.data.nhanSus || []) as NhanSuOption[]);
           setHistoryLocationsLocal(result.data.historyLocations || []);
           setHistoryLocationRowsLocal(result.data.historyLocationRows || []);
@@ -130,15 +143,13 @@ export default function GiamSatHeader({
 
   const showPersonalPanel = Boolean(showGiamSatCaNhan && session.is_giam_sat_ca_nhan);
   const showPatientPanel = Boolean(showBoSungNguoiBenhToggle && session.is_bo_sung_nguoi_benh);
-  const optionalPanelCount = (showPersonalPanel ? 1 : 0) + (showPatientPanel ? 1 : 0);
-  const headerGridCols =
-    optionalPanelCount === 0 ? "lg:grid-cols-1" : optionalPanelCount === 1 ? "lg:grid-cols-2" : "lg:grid-cols-3";
-  const patientLabelStart = showPersonalPanel ? 8 : 5;
+  
   const selectedKhoaName = displayKhoas.find(k => k.id === session.khoa_id)?.ten_danh_muc || "Chưa chọn khoa";
   const selectedKhuVucName = displayKhuVucs.find(k => k.id === session.khu_vuc_id)?.ten_danh_muc || "Chưa chọn khu vực";
 
   return (
     <div
+      id="vst-session-header"
       className={`overflow-visible rounded-2xl border border-slate-200/90 bg-white shadow-sm transition-[padding] duration-200 ${isCollapsed ? "p-3" : "space-y-4 p-4 sm:p-5"}`}
     >
       <div className={`flex items-center justify-between gap-3 ${!isCollapsed ? "border-b border-slate-100 pb-3" : ""}`}>
@@ -147,7 +158,7 @@ export default function GiamSatHeader({
             <div className={`shrink-0 rounded-full bg-[#026f17] transition-all ${isCollapsed ? "h-4 w-1" : "h-7 w-1.5"}`} />
             <div>
               <h2 className={`font-semibold text-[#026f17] uppercase tracking-wide transition-all ${isCollapsed ? "text-[10px]" : "text-xs sm:text-sm"}`}>
-                {isCollapsed ? `Phiên GS: ${selectedKhoaName} - ${selectedKhuVucName}` : 'Thông tin phiên giám sát'}
+                {isCollapsed ? `Phiên giám sát: ${selectedKhoaName} - ${selectedKhuVucName}` : 'Thông tin phiên giám sát'}
               </h2>
               {isCollapsed && <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Nhấn để mở rộng cấu hình</p>}
             </div>
@@ -222,9 +233,7 @@ export default function GiamSatHeader({
       </div>
 
       {!isCollapsed && (
-        <div
-          className={`grid grid-cols-1 items-start gap-4 overflow-visible md:grid-cols-2 md:gap-5 ${headerGridCols} lg:gap-5`}
-        >
+        <div className="space-y-6">
           <GiamSatHeaderFields
             session={session}
             setSession={setSession}
@@ -233,27 +242,34 @@ export default function GiamSatHeader({
             allNhanSus={displayNhanSus}
             historyLocations={displayHistory}
             historyLocationRows={displayHistoryRows}
+            hinhThucGiamSats={displayHinhThuc}
+            cachThucGiamSats={displayCachThuc}
             deferLocationHistoryUntilTyped={deferLocationHistoryUntilTyped}
             loading={loading}
             lockedSupervisorHoSoId={lockedSupervisorHoSoId ?? undefined}
             suppressStaffIdentityBanner={suppressStaffIdentityBanner}
+            moduleContext={moduleContext}
           />
 
-          {showPersonalPanel && (
-            <GiamSatHeaderPersonalFields
-              session={session}
-              setSession={setSession}
-              ngheNghieps={displayNgheNghieps}
-              filteredNhanSus={filteredNhanSus}
-            />
-          )}
+          {(showPersonalPanel || showPatientPanel) && (
+            <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-5`}>
+              {showPersonalPanel && (
+                <GiamSatHeaderPersonalFields
+                  session={session}
+                  setSession={setSession}
+                  ngheNghieps={displayNgheNghieps}
+                  filteredNhanSus={filteredNhanSus}
+                />
+              )}
 
-          {showPatientPanel && (
-            <GiamSatHeaderPatientFields
-              session={session}
-              setSession={setSession}
-              labelStartIndex={patientLabelStart}
-            />
+              {showPatientPanel && (
+                <GiamSatHeaderPatientFields
+                  session={session}
+                  setSession={setSession}
+                  labelStartIndex={showPersonalPanel ? 8 : 5}
+                />
+              )}
+            </div>
           )}
         </div>
       )}

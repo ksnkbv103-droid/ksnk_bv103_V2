@@ -8,7 +8,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export function getBatchAddRejectionReason(
   qt: { trang_thai_hien_tai?: string; lo_tiet_khuan_id?: string | null; is_dong_bang?: boolean | null },
   batchId: string,
+  opts?: { batchLocked?: boolean },
 ): string | null {
+  if (opts?.batchLocked === true) {
+    return "Đã xác nhận bắt đầu tiệt khuẩn — không thể nạp thêm bộ vào mẻ này.";
+  }
   if (qt.is_dong_bang === true) {
     return "Bộ đang bị khóa an toàn (đóng băng) — cần quản trị mở khóa trước khi đưa vào mẻ tiệt khuẩn.";
   }

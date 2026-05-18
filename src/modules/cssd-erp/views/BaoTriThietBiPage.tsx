@@ -10,13 +10,14 @@ import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-s
 import CSSDSubNav from "../components/navigation/CSSDSubNav";
 import BaoTriActivePanel from "../components/bao-tri/bao-tri-active-panel";
 import BaoTriStartModal from "../components/bao-tri/bao-tri-start-modal";
+import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_DATA_SURFACE } from "../shared/ui/cssd-ui-chrome";
 import {
   batDauBaoTriThietBiAction,
   huyBaoTriThietBiAction,
   ketThucBaoTriThietBiAction,
   listFactBaoTriThietBiAction,
   listThietBiCoTheBatDauBaoTriAction,
-} from "../actions/read.actions";
+} from "../actions/cssd-bao-tri.actions";
 import type { FactBaoTriRow } from "../actions/cssd-bao-tri.types";
 
 const MODULE_KEY = "CSSD_ME_TIET_KHUAN";
@@ -28,13 +29,14 @@ function trangThaiLabel(s: string) {
   return s;
 }
 
-export default function BaoTriThietBiPage() {
+export default function BaoTriThietBiPage({ suppressShell = false }: { suppressShell?: boolean } = {}) {
   const { loading: permLoading, allowed } = useModulePermission(MODULE_KEY);
   const [rows, setRows] = useState<FactBaoTriRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [machines, setMachines] = useState<{ id: string; ma_thiet_bi: string; ten_thiet_bi: string }[]>([]);
   const [openStart, setOpenStart] = useState(false);
   const [selTb, setSelTb] = useState("");
+  const [maMayHoacQr, setMaMayHoacQr] = useState("");
   const [lyDo, setLyDo] = useState("");
   const [ketQuaById, setKetQuaById] = useState<Record<string, string>>({});
 
@@ -55,11 +57,12 @@ export default function BaoTriThietBiPage() {
   const canEdit = allowed.edit;
 
   const onBatDau = async () => {
-    const r = await batDauBaoTriThietBiAction({ thiet_bi_id: selTb, ly_do: lyDo });
+    const r = await batDauBaoTriThietBiAction({ thiet_bi_id: selTb, ma_thiet_bi_hoac_qr: maMayHoacQr, ly_do: lyDo });
     if (!r.success) return toast.error(r.error);
     toast.success("Đã mở phiếu bảo trì — máy chuyển sang trạng thái bảo trì.");
     setOpenStart(false);
     setSelTb("");
+    setMaMayHoacQr("");
     setLyDo("");
     void reload();
   };
@@ -111,23 +114,24 @@ export default function BaoTriThietBiPage() {
     );
   }
 
-  return (
-    <CSSDPageShell
-      title={<span className="text-[#026f17]">Bảo trì thiết bị</span>}
-      subtitle="Khóa máy khi bảo trì — không mở mẻ tiệt khuẩn / không thêm bộ vào mẻ cho đến khi hoàn thành hoặc hủy phiếu."
-      actions={
-        canEdit ? (
-          <button
-            type="button"
-            onClick={() => setOpenStart(true)}
-            className="flex h-12 items-center gap-2 rounded-2xl bg-[#026f17] px-6 text-[10px] font-black uppercase tracking-widest text-[#FFD700]"
-          >
-            <Wrench size={16} /> Mở phiếu bảo trì
-          </button>
-        ) : null
-      }
+  const actionsNode = canEdit ? (
+    <button
+      type="button"
+      onClick={() => setOpenStart(true)}
+      className={`${CSSD_UI_ACTION_PRIMARY} h-10`}
     >
-      <div className="min-h-[420px] overflow-hidden rounded-3xl border border-slate-100 bg-white p-2 shadow-sm">
+      <Wrench size={16} /> Mở phiếu bảo trì
+    </button>
+  ) : null;
+
+  const contentNode = (
+    <div className="space-y-6">
+      {suppressShell && actionsNode && (
+        <div className="flex justify-end">
+          {actionsNode}
+        </div>
+      )}
+      <div className={CSSD_UI_DATA_SURFACE}>
         <AdvancedDataTable columns={columns} data={rows} loading={loading} searchPlaceholder="Tìm mã phiếu, thiết bị..." />
       </div>
 
@@ -139,12 +143,31 @@ export default function BaoTriThietBiPage() {
         open={openStart}
         machines={machines}
         selTb={selTb}
+        maMayHoacQr={maMayHoacQr}
         lyDo={lyDo}
         onSelTb={setSelTb}
+        onMaMayHoacQr={setMaMayHoacQr}
         onLyDo={setLyDo}
-        onClose={() => setOpenStart(false)}
+        onClose={() => {
+          setOpenStart(false);
+          setMaMayHoacQr("");
+        }}
         onSubmit={onBatDau}
       />
+    </div>
+  );
+
+  if (suppressShell) {
+    return contentNode;
+  }
+
+  return (
+    <CSSDPageShell
+      title={<span className="text-[#026f17]">Bảo trì thiết bị</span>}
+      subtitle="Khóa máy khi bảo trì — không mở mẻ tiệt khuẩn / không thêm bộ vào mẻ cho đến khi hoàn thành hoặc hủy phiếu."
+      actions={actionsNode}
+    >
+      {contentNode}
     </CSSDPageShell>
   );
 }

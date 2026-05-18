@@ -42,6 +42,8 @@ export const vstSessionSchema = z.object({
   nguoi_giam_sat_id: z.string().uuid("Người giám sát không hợp lệ").nullable().optional(),
   ngay_giam_sat: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Định dạng ngày YYYY-MM-DD"),
   vi_tri: z.string().optional(),
+  hinh_thuc_id: z.string().uuid("Hình thức giám sát không hợp lệ").nullable().optional(),
+  cach_thuc_id: z.string().uuid("Cách thức giám sát không hợp lệ").nullable().optional(),
   thoi_gian_bat_dau: z.string().nullable().optional(),
   thoi_gian_ket_thuc: z.string().nullable().optional(),
   ghi_chu: z.string().optional(),

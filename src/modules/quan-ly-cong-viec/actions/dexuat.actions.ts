@@ -4,6 +4,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { buildQlcvDmPersistFields, resolveQlcvTrangThaiId } from "../lib/qlcv-persist-dm-fields";
 import { congViecSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
 
 interface CreateDeXuatInput {
@@ -13,6 +14,13 @@ interface CreateDeXuatInput {
   loai_cong_viec?: "DINH_KY" | "DOT_XUAT" | "KHAN_CAP";
   muc_do_uu_tien?: "CAO" | "TRUNG_BINH" | "THAP";
 }
+
+type DeXuatRow = {
+  nguoi_tao?: { ho_ten?: string | null } | null;
+  nguoi_phu_trach?: { ho_ten?: string | null } | null;
+  to_cong_tac?: { ten_to?: string | null } | null;
+  [key: string]: unknown;
+};
 
 /**
  * Gửi đề xuất công việc mới (chỉ nội bộ Khoa)
@@ -32,15 +40,21 @@ export async function createDeXuat(input: CreateDeXuatInput) {
   const moTaRaw = input.mo_ta != null ? String(input.mo_ta).trim() : "";
   const hanRaw = input.han_hoan_thanh != null ? String(input.han_hoan_thanh).trim() : "";
 
+  const loai = input.loai_cong_viec || "DOT_XUAT";
+  const dmFk = await buildQlcvDmPersistFields(supabase, {
+    loai_cong_viec: loai,
+    trang_thai: "MOI",
+  });
+
   const { data, error } = await supabase
     .from("fact_cong_viec")
     .insert({
       tieu_de: tieuDe,
       mo_ta: moTaRaw === "" ? null : moTaRaw,
-      loai_cong_viec: input.loai_cong_viec || "DOT_XUAT",
+      loai_cong_viec_id: dmFk.loai_cong_viec_id,
       muc_do_uu_tien: input.muc_do_uu_tien || "TRUNG_BINH",
       han_hoan_thanh: hanRaw === "" ? null : hanRaw,
-      trang_thai: "DE_XUAT_CHO_DUYET",
+      trang_thai_id: dmFk.trang_thai_id,
       phan_tram_hoan_thanh: 0,
       is_active: false,
       nguoi_tao_id: actorNhanSuId,
@@ -83,10 +97,11 @@ export async function pheDuyetDeXuat(id: string, duyet: boolean, ly_do?: string)
     throw new Error("Không tìm thấy đề xuất.");
   }
 
-  const trang_thai_moi = duyet ? "CHUA_BAT_DAU" : "DA_HUY";
+  const trang_thai_moi = duyet ? "MOI" : "DA_HUY";
+  const trang_thai_id = await resolveQlcvTrangThaiId(supabase, trang_thai_moi);
 
   const patch: Record<string, unknown> = {
-    trang_thai: trang_thai_moi,
+    trang_thai_id,
     is_active: duyet,
     updated_at: new Date().toISOString(),
   };
@@ -126,21 +141,25 @@ export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput
   const actorNhanSuId = await getActorNhanSuId();
   const p = parsed.data;
 
-  const trangThai = "CHUA_BAT_DAU";
+  const trangThai = "MOI";
+  const dmFk = await buildQlcvDmPersistFields(supabase, {
+    loai_cong_viec: p.loai_cong_viec,
+    trang_thai: trangThai,
+  });
 
   const { error } = await supabase
     .from("fact_cong_viec")
     .update({
       tieu_de: p.tieu_de,
       mo_ta: p.mo_ta ?? null,
-      loai_cong_viec: p.loai_cong_viec,
+      loai_cong_viec_id: dmFk.loai_cong_viec_id,
       muc_do_uu_tien: p.muc_do_uu_tien ?? "TRUNG_BINH",
       han_hoan_thanh: p.han_hoan_thanh ?? null,
       nguoi_phu_trach_id: p.nguoi_phu_trach_id ?? null,
       khoa_thuc_hien_id: p.khoa_thuc_hien_id ?? null,
       to_cong_tac_id: p.to_cong_tac_id ?? null,
       is_active: true,
-      trang_thai: trangThai,
+      trang_thai_id: dmFk.trang_thai_id,
       nguoi_giao_viec_id: actorNhanSuId,
       updated_at: new Date().toISOString(),
     })
@@ -167,7 +186,7 @@ export async function getPendingDeXuat() {
   const supabase = createAdminSupabaseClient();
 
   const { data, error } = await supabase
-    .from("fact_cong_viec")
+    .from("v_fact_cong_viec_full")
     .select(
       `
       *,
@@ -185,7 +204,7 @@ export async function getPendingDeXuat() {
     throw new Error("Không thể tải danh sách đề xuất");
   }
 
-  return (data || []).map((item: any) => ({
+  return ((data || []) as DeXuatRow[]).map((item) => ({
     ...item,
     nguoi_tao_ten: item.nguoi_tao?.ho_ten || "Chưa xác định",
     nguoi_phu_trach_ten: item.nguoi_phu_trach?.ho_ten ?? undefined,

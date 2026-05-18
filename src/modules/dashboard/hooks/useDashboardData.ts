@@ -39,9 +39,6 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
   const [complianceGapPayloads, setComplianceGapPayloads] = useState<
     Record<string, { kq: ComplianceDashboardPayload; cheo: ComplianceDashboardPayload; tgs: ComplianceDashboardPayload }>
   >({});
-  const [tuGiamSatParticipationByKhoa, setTuGiamSatParticipationByKhoa] = useState<
-    { id: string; ten: string; so_phien: number }[]
-  >([]);
   const [ksnkStaffSupervision, setKsnkStaffSupervision] = useState<DashboardKsnkStaffSupervisionRow[]>([]);
   const [showKsnkStaffWorkload, setShowKsnkStaffWorkload] = useState(false);
   const [filterOptions, setFilterOptions] = useState<ComplianceDashboardPayload["options"] | null>(null);
@@ -125,7 +122,6 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
     setCompliancePayloads,
     setVstGapPayloads,
     setComplianceGapPayloads,
-    setTuGiamSatParticipationByKhoa,
     setKsnkStaffSupervision,
     setShowKsnkStaffWorkload,
     setKhoaOverviewRows,
@@ -206,7 +202,6 @@ export function useDashboardData(header?: DashboardHeaderFallback | null) {
     complianceGapPayloads,
     summaryTable,
     khoaOverviewRows,
-    tuGiamSatParticipationByKhoa,
     ksnkStaffSupervision,
     showKsnkStaffWorkload,
     bangKiemOptions,

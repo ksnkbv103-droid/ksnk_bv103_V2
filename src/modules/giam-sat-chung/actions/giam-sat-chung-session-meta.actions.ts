@@ -19,6 +19,7 @@ type GscSessionMutRow = {
   id: string;
   nguoi_giam_sat_id?: string | null;
   is_active?: boolean | null;
+  created_at?: string | null;
 };
 
 /** Xóa hẳn phiên + kết quả tiêu chí trong DB. Chỉ chủ phiên; phiên còn active. */
@@ -37,7 +38,7 @@ export async function deleteGiamSatChungSessions(sessionIds: string[]) {
 
     const { data: rows, error: qErr } = await supabase
       .from("fact_giam_sat_chung_sessions")
-      .select("id,nguoi_giam_sat_id,is_active")
+      .select("id,nguoi_giam_sat_id,is_active,created_at")
       .in("id", ids);
     if (qErr) throw qErr;
 
@@ -54,6 +55,13 @@ export async function deleteGiamSatChungSessions(sessionIds: string[]) {
       });
       if (notOwner.length) {
         return { success: false as const, error: GSC_OWNER_ONLY_VI };
+      }
+      const expired = ids.filter((id) => {
+        const r = rowById.get(String(id));
+        return isSupervisionSessionMutationExpired(r?.created_at ?? null);
+      });
+      if (expired.length) {
+        return { success: false as const, error: SUPERVISION_SESSION_MUTATION_EXPIRED_VI };
       }
     }
 

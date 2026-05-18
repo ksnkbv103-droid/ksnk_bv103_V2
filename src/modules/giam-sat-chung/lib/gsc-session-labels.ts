@@ -63,8 +63,7 @@ export function resolveGscNgheTen(session: Record<string, unknown>, ngheNghieps:
   const nid = String(session.nghe_nghiep_id || "").trim();
   if (!nid) return "—";
   const row = ngheNghieps.find((x) => sameId(x.id, nid));
-  // MasterOption maps ten_nghe_nghiep to ten_danh_muc, but we check both for safety
-  return String(row?.ten_danh_muc || (row as any)?.ten_nghe_nghiep || "").trim() || "—";
+  return String(row?.ten_danh_muc || "").trim() || "—";
 }
 
 /** Nhãn đọc thẳng từ bảng master theo FK (không phụ thuộc dropdown / quyền DANH_MUC). */

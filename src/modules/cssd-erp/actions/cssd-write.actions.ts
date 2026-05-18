@@ -4,6 +4,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { normalizeNullableFk } from "@/lib/master-data/fk-normalize";
 import type { Station } from "../types/cssd.types";
 import { verifyPermission } from "@/lib/server-permission";
+import { buildQuyTrinhTramPatch } from "../lib/cssd-tram-persist";
 import { getErrorMessage, mapFkError, safeRevalidate, STEPS, tableHasColumn } from "./cssd-action-common";
 import { cssdImportRowSchema } from "@/lib/validations/cssd-erp.validations";
 import { insertCssdLifecycleEvent } from "../shared/application/cssd-lifecycle-events";
@@ -110,9 +111,10 @@ export async function importCSSDData(rows: Record<string, unknown>[]) {
         rowErrors.push(`${code}: lo_tiet_khuan_id khong ton tai (${loIdRaw})`);
         continue;
       }
+      const tramPatch = await buildQuyTrinhTramPatch(supabase, station);
       const payload: Record<string, unknown> = {
         ma_qr_quy_trinh: code,
-        ma_trang_thai_hien_tai: station,
+        ...tramPatch,
         tinh_trang: row.tinh_trang || null,
         han_su_dung: row.han_su_dung || null,
         lo_tiet_khuan_id: loNorm,

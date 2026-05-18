@@ -4,9 +4,12 @@
 /** Cột Kanban chính — khớp dm_trang_thai_cong_viec (migration seed). */
 export const MAIN_KANBAN_COLUMN_IDS = [
   "DE_XUAT_CHO_DUYET",
+  "MOI",
   "DA_GIAO",
+  "DANG_LAM",
   "DANG_THUC_HIEN",
   "HOAN_THANH_CHO_PHE_DUYET",
+  "CHO_DUYET",
   "HOAN_THANH",
 ] as const;
 
@@ -41,7 +44,7 @@ const STATUS_MAP: Record<string, string> = {
   "Đề xuất chờ duyệt": "DE_XUAT_CHO_DUYET",
   /** Đối chiếu DM: `DA_GIAO` (tab UI vẫn là “Đã duyệt”; mã legacy `DA_DUYET` được chuẩn hóa ở normalize). */
   "Đã duyệt": "DA_GIAO",
-  "Đang thực hiện": "DANG_THUC_HIEN",
+  "Đang thực hiện": "DANG_LAM",
   "Hoàn thành chờ phê duyệt": "HOAN_THANH_CHO_PHE_DUYET",
   "Hoàn thành": "HOAN_THANH",
   "Tạm dừng": "TAM_DUNG",

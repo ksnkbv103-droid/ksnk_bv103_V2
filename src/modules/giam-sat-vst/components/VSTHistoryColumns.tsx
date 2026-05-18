@@ -2,8 +2,19 @@
 "use client";
 
 import React from "react";
+import { Column } from "@/components/shared/AdvancedDataTable";
 import { vstSessionDisplayRef } from "../lib/vst-display-ref";
 import { classifyVstAction } from "../lib/vst-action-classifier";
+import type { VstHistoryRow } from "../lib/vst-read-utils";
+
+function formatHHmm(value: unknown): string {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "--:--";
+  const d = new Date(raw);
+  return Number.isFinite(d.getTime())
+    ? d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
+    : "--:--";
+}
 
 function cellDateSession(s: Record<string, unknown>) {
   const raw = (s.ngay_giam_sat as string) || (s.created_at as string);
@@ -28,7 +39,7 @@ export function getVSTHistoryColumns(
   onPrint: (sessionId: string) => void,
   onEdit: ((sessionId: string) => void) | undefined,
   canEdit: boolean,
-) {
+): Column<VstHistoryRow>[] {
   return [
     {
       header: "Ngày phiên",
@@ -53,7 +64,7 @@ export function getVSTHistoryColumns(
       header: "Khoa / Khu vực",
       accessorKey: "khoa",
       sortable: true,
-      cell: (s: any) => (
+      cell: (s: VstHistoryRow) => (
         <div>
           <div className="font-black text-[#026f17] uppercase tracking-tighter">{s.danh_muc_khoa?.ten_danh_muc || "---"}</div>
           <div className="text-xs font-bold text-slate-500">
@@ -67,7 +78,7 @@ export function getVSTHistoryColumns(
       header: "Hình thức",
       accessorKey: "hinh_thuc_giam_sat",
       sortable: true,
-      cell: (s: any) => (
+      cell: (s: VstHistoryRow) => (
         <div className="space-y-1">
           <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px] font-black uppercase">
             {s.hinh_thuc_giam_sat || "---"}
@@ -82,18 +93,18 @@ export function getVSTHistoryColumns(
       header: "Thời gian phiên",
       accessorKey: "thoi_gian_bat_dau",
       sortable: true,
-      cell: (s: any) => (
+      cell: (s: VstHistoryRow) => (
         <span className="text-[10px] font-bold text-slate-500">
-          {s.thoi_gian_bat_dau ? new Date(s.thoi_gian_bat_dau).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '--:--'} 
+          {formatHHmm(s.thoi_gian_bat_dau)}
           {' - '}
-          {s.thoi_gian_ket_thuc ? new Date(s.thoi_gian_ket_thuc).toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'}) : '--:--'}
+          {formatHHmm(s.thoi_gian_ket_thuc)}
         </span>
       )
     },
     {
       header: "Cơ hội",
       accessorKey: "total_opps",
-      cell: (s: any) => {
+      cell: (s: VstHistoryRow) => {
         const total = Number(s.total_opps ?? s.tong_co_hoi ?? s.observations?.length ?? 0);
         return <span className="font-bold text-slate-600">{total}</span>;
       }
@@ -101,14 +112,14 @@ export function getVSTHistoryColumns(
     {
       header: "Tuân thủ",
       accessorKey: "compliance",
-      cell: (s: any) => {
+      cell: (s: VstHistoryRow) => {
         const total = Number(s.total_opps ?? s.tong_co_hoi ?? s.observations?.length ?? 0);
         const compliantFromView = Number(s.da_tuan_thu ?? -1);
         const compliant =
           compliantFromView >= 0
             ? compliantFromView
             : (s.observations || []).filter((o: { hanh_dong?: string }) => classifyVstAction(o.hanh_dong).isCompliant).length;
-        if (total <= 0) return <span className="text-slate-400">N/A</span>;
+        if (total <= 0) return <span className="text-slate-400">Không áp dụng</span>;
         const rate = Math.round((compliant / total) * 100);
         return (
           <div className="flex items-center gap-2">
@@ -127,14 +138,14 @@ export function getVSTHistoryColumns(
       header: "Người GS",
       accessorKey: "nguoi_giam_sat_id",
       sortable: true,
-      cell: (s: any) => (
+      cell: (s: VstHistoryRow) => (
         <span className="font-bold text-slate-600">{s.nguoi_giam_sat?.ho_ten || s.nguoi_giam_sat_id || "---"}</span>
       )
     },
     {
       header: "Thao tác",
       accessorKey: "id",
-      cell: (s: any) => (
+      cell: (s: VstHistoryRow) => (
         <div className="flex flex-row items-center justify-end gap-2">
           {onEdit && canEdit ? (
             <button
@@ -153,12 +164,12 @@ export function getVSTHistoryColumns(
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onPrint(s.id);
+              onPrint(String(s.id || ""));
             }}
-            disabled={printingSessionId === s.id}
+            disabled={printingSessionId === String(s.id || "")}
             className="h-10 px-6 rounded-full bg-slate-800 text-white font-black text-[10px] uppercase tracking-widest hover:bg-slate-900 transition-all disabled:opacity-50"
           >
-            {printingSessionId === s.id ? "⏳..." : "🖨️ In Phiếu"}
+            {printingSessionId === String(s.id || "") ? "⏳..." : "🖨️ In Phiếu"}
           </button>
         </div>
       )

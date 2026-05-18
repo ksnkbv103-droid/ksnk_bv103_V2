@@ -5,6 +5,7 @@ import React from "react";
 import { format } from "date-fns";
 import { Column } from "@/components/shared/AdvancedDataTable";
 import { gscSessionDisplayRef } from "../lib/gsc-display-ref";
+import type { GscHistoryRow } from "../lib/gsc-read-utils";
 
 function cellNgayGioRow(s: Record<string, unknown>) {
   const raw = s.ngay_giam_sat ? String(s.ngay_giam_sat) : "";
@@ -28,11 +29,11 @@ function cellNgayGioRow(s: Record<string, unknown>) {
  * Trả về mảng column config cho HistoryTable Giám sát chung
  */
 export function getGSCHistoryColumns(
-  onView: (session: any) => void,
-  onPrint: (session: any) => void,
-  onEdit: ((session: any) => void) | undefined,
+  onView: (session: GscHistoryRow) => void,
+  onPrint: (session: GscHistoryRow) => void,
+  onEdit: ((session: GscHistoryRow) => void) | undefined,
   canEdit: boolean,
-): Column<any>[] {
+): Column<GscHistoryRow>[] {
   return [
     {
       header: "Ngày / giờ",
@@ -91,10 +92,10 @@ export function getGSCHistoryColumns(
       cell: (s) => (
         <div className="min-w-0">
           <p className="font-black text-[#026f17] uppercase tracking-tighter text-[11px] leading-tight line-clamp-2 break-words">
-            {s.khoa_name || "N/A"}
+            {s.khoa_name || "Không áp dụng"}
           </p>
           <p className="text-[10px] font-bold text-slate-400 uppercase leading-tight mt-0.5 line-clamp-1 truncate">
-            {s.khu_name || "N/A"}
+            {s.khu_name || "Không áp dụng"}
           </p>
         </div>
       ),
@@ -105,16 +106,23 @@ export function getGSCHistoryColumns(
       sortable: false,
       headerClassName: "min-w-[9.5rem] max-w-[13rem] w-[11rem]",
       cellClassName: "min-w-[9.5rem] max-w-[13rem] w-[11rem]",
-      cell: (s: any) => (
+      cell: (s: GscHistoryRow) => {
+        const nameRaw = s.ten_nhan_vien_display;
+        const name =
+          typeof nameRaw === "string" && nameRaw.trim() ? nameRaw : "—";
+        const jobRaw = s.nghe_nghiep_name;
+        const job = typeof jobRaw === "string" && jobRaw.trim() ? jobRaw : "—";
+        return (
         <div className="min-w-0">
           <p className="font-bold text-slate-700 text-[12px] leading-tight line-clamp-2 break-words">
-            {s.ten_nhan_vien_display || "—"}
+            {name}
           </p>
           <p className="text-[10px] font-bold uppercase text-slate-400 leading-tight mt-0.5 line-clamp-1 truncate">
-            {s.nghe_nghiep_name || "—"}
+            {job}
           </p>
         </div>
-      ),
+        );
+      },
     },
     {
       header: "Người GS",
@@ -122,11 +130,16 @@ export function getGSCHistoryColumns(
       sortable: true,
       headerClassName: "min-w-[7rem] max-w-[9rem] w-[8rem]",
       cellClassName: "min-w-[7rem] max-w-[9rem] w-[8rem]",
-      cell: (s) => (
+      cell: (s) => {
+        const gs = s.gs_ho_ten;
+        const gsStr = typeof gs === "string" && gs.trim() ? gs : null;
+        const id = typeof s.nguoi_giam_sat_id === "string" && s.nguoi_giam_sat_id.trim() ? s.nguoi_giam_sat_id : null;
+        return (
         <span className="font-bold text-slate-600 text-[12px] line-clamp-2 break-words block min-w-0">
-          {s.gs_ho_ten || s.nguoi_giam_sat_id || "—"}
+          {gsStr || id || "—"}
         </span>
-      ),
+        );
+      },
     },
     {
       header: "Tuân thủ",
@@ -134,13 +147,17 @@ export function getGSCHistoryColumns(
       sortable: true,
       headerClassName: "w-[5.5rem] min-w-[5.5rem] text-center",
       cellClassName: "w-[5.5rem] min-w-[5.5rem] text-center",
-      cell: (s) => (
+      cell: (s: GscHistoryRow) => (
         <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
-          <div className={`h-2 w-2 shrink-0 rounded-full animate-pulse ${s.tong_diem >= 90 ? "bg-[#026f17]" : "bg-amber-500"}`} />
+          <div
+            className={`h-2 w-2 shrink-0 rounded-full animate-pulse ${
+              Number(s.tong_diem ?? 0) >= 90 ? "bg-[#026f17]" : "bg-amber-500"
+            }`}
+          />
           <div className={`inline-flex items-center px-2 py-0.5 rounded-full font-black text-[11px] shadow-sm ${
-            s.tong_diem >= 90 ? "bg-[#026f17] text-white" : "bg-amber-500 text-white"
+            Number(s.tong_diem ?? 0) >= 90 ? "bg-[#026f17] text-white" : "bg-amber-500 text-white"
           }`}>
-            {s.tong_diem}%
+            {Number(s.tong_diem ?? 0)}%
           </div>
         </div>
 
@@ -151,7 +168,7 @@ export function getGSCHistoryColumns(
       accessorKey: "actions",
       headerClassName: "w-[10.5rem] min-w-[10.5rem] text-right",
       cellClassName: "w-[10.5rem] min-w-[10.5rem] text-right",
-      cell: (s) => (
+      cell: (s: GscHistoryRow) => (
         <div className="flex flex-nowrap items-center justify-end gap-1">
           <button
             type="button"

@@ -39,8 +39,8 @@ export function HoatDongForm({ congViecId, initialPhanTram = 0, onSuccess, onCan
 
       toast.success("Gửi báo cáo tiến độ thành công!");
       onSuccess?.();
-    } catch (error: any) {
-      toast.error(error.message || "Không thể gửi báo cáo");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Không thể gửi báo cáo");
     } finally {
       setLoading(false);
     }

@@ -35,12 +35,27 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
       byMe.set(lid, (byMe.get(lid) || 0) + 1);
     }
   }
-  const batches = raw.map((b) => ({ ...b, so_bo_trong_me: byMe.get(b.id) || 0 }));
+  const batches = raw.map((b) => {
+    const row = b as Record<string, unknown>;
+    const ket = row.ket_qua_test as boolean | null | undefined;
+    const tkMo = row.tk_mo_form_qc_at as string | null | undefined;
+    const tkChot = row.tk_chot_nap_at as string | null | undefined;
+    let trang_thai = "DANG_CHUAN_NAP";
+    if (ket === true) trang_thai = "HOAN_THANH";
+    else if (ket === false) trang_thai = "QC_KHONG_DAT";
+    else if (tkMo) trang_thai = "CHO_DANH_GIA_QC";
+    else if (tkChot) trang_thai = "DANG_TIET_KHUAN";
+    return { ...b, so_bo_trong_me: byMe.get(b.id) || 0, trang_thai };
+  });
   const loaiMap = new Map(loaiPack.rows.map((r) => [r.ma, r.ten]));
   const machines = (mRes.data || []).map((m: Record<string, unknown>) => {
-    const ma = String(m.loai_thiet_bi || "").trim();
-    const loaiTen = ma ? loaiMap.get(ma) || ma : "";
-    return { ...m, loai_ten_hien_thi: loaiTen };
+    const tb = m.thiet_bi as Record<string, unknown> | Record<string, unknown>[] | null | undefined;
+    const tbRow = Array.isArray(tb) ? tb[0] : tb;
+    const lm = tbRow?.loai_may as { ma_loai_may?: string; ten_loai_may?: string } | { ma_loai_may?: string; ten_loai_may?: string }[] | null;
+    const lmRow = Array.isArray(lm) ? lm[0] : lm;
+    const ma = String(lmRow?.ma_loai_may || "").trim();
+    const loaiTen = String(lmRow?.ten_loai_may || "").trim() || (ma ? loaiMap.get(ma) || ma : "");
+    return { ...m, loai_ten_hien_thi: loaiTen, loai_thiet_bi: ma };
   });
   return {
     batches,

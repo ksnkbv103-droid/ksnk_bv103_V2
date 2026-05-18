@@ -4,6 +4,7 @@ type WriteActions = {
   createIncidentReport: (data: {
     maQR: string;
     station: any;
+    incidentGroup: "PROCESS" | "INSTRUMENT" | "CHEMICAL" | "EQUIPMENT" | "OTHER";
     typeId: string;
     typeTen: string;
     desc: string;
@@ -16,11 +17,13 @@ type WriteActions = {
 async function loadActions(): Promise<WriteActions & { scanQR: (maQR: string, station: any) => Promise<any> }> {
   const write: any = await import("../src/modules/cssd-erp/actions/cssd-write.actions");
   const scan: any = await import("../src/modules/cssd-erp/actions/cssd-scan.actions");
+  const ops: any = await import("../src/modules/cssd-erp/actions/cssd-workflow-ops.actions");
   const exW = write["module.exports"] || write?.default?.["module.exports"] || write?.default || write;
   const exS = scan["module.exports"] || scan?.default?.["module.exports"] || scan?.default || scan;
+  const exO = ops["module.exports"] || ops?.default?.["module.exports"] || ops?.default || ops;
   return {
     scanQR: exS.scanQR,
-    createIncidentReport: exW.createIncidentReport,
+    createIncidentReport: exO.createIncidentReport,
     importCSSDData: exW.importCSSDData,
   };
 }
@@ -43,6 +46,7 @@ async function run() {
   const incidentRes = await actions.createIncidentReport({
     maQR: testQr,
     station: "LAM_SACH",
+    incidentGroup: "INSTRUMENT",
     typeId: "P2_TEST",
     typeTen: "LOI_TEST_TU_DONG",
     desc: "Kiem tra nhanh luong incident sau hardening",

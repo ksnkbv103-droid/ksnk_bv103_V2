@@ -21,6 +21,14 @@ import {
   type KhoHoaChatTonLo,
   xuatKhoHoaChatAction,
 } from "../actions/cssd-kho-hoa-chat.actions";
+import {
+  CSSD_UI_ACTION_PRIMARY,
+  CSSD_UI_ACTION_SECONDARY,
+  CSSD_UI_TAB_ACTIVE,
+  CSSD_UI_TAB_GROUP,
+  CSSD_UI_TAB_IDLE,
+} from "../shared/ui/cssd-ui-chrome";
+import { CSSDCatalogHoaChatTab } from "./CSSDCatalogHoaChatTab";
 
 const MODULE_KEY = "KSNK_KHO_HOACHAT";
 
@@ -38,6 +46,7 @@ export default function KhoHoaChatKsnkPage() {
   const [movs, setMovs] = useState<KhoHoaChatGiaoDichRow[]>([]);
   const [dms, setDms] = useState<Array<{ id: string; ma_hoa_chat: string; ten_hoa_chat: string; don_vi_tinh: string | null; nguong_ton_toi_thieu: number | null }>>([]);
   const [busy, setBusy] = useState(true);
+  const [activeTab, setActiveTab] = useState<"STOCK" | "CATALOG">("STOCK");
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [moveMode, setMoveMode] = useState<MoveMode>("NHAP");
@@ -194,6 +203,15 @@ export default function KhoHoaChatKsnkPage() {
     );
   }
 
+  const mappedDms = dms.map((d) => ({
+    id: d.id,
+    ma_hoa_chat: d.ma_hoa_chat,
+    ten_hoa_chat: d.ten_hoa_chat,
+    don_vi_tinh: d.don_vi_tinh,
+    loai_hoa_chat: "Hóa chất vật tư",
+    is_active: true,
+  }));
+
   return (
     <CSSDPageShell
       title={<span className="text-[#026f17]">Kho hóa chất &amp; vật tư KSNK</span>}
@@ -201,32 +219,59 @@ export default function KhoHoaChatKsnkPage() {
       actions={
         canEdit ? (
           <div className="flex flex-wrap gap-2">
-            <button type="button" className="rounded-xl bg-emerald-800 px-4 py-2 text-[10px] font-black uppercase text-[#FFD700]" onClick={() => openSheet("NHAP")}>
+            <button type="button" className={CSSD_UI_ACTION_PRIMARY} onClick={() => openSheet("NHAP")}>
               + Nhập
             </button>
-            <button type="button" className="rounded-xl border border-slate-300 px-4 py-2 text-[10px] font-black uppercase text-slate-700" onClick={() => openSheet("XUAT")}>
+            <button type="button" className={CSSD_UI_ACTION_SECONDARY} onClick={() => openSheet("XUAT")}>
               Xuất
             </button>
-            <button type="button" className="rounded-xl border border-slate-300 px-4 py-2 text-[10px] font-black uppercase text-slate-700" onClick={() => openSheet("DIEU")}>
+            <button type="button" className={CSSD_UI_ACTION_SECONDARY} onClick={() => openSheet("DIEU")}>
               Điều chỉnh
             </button>
           </div>
         ) : null
       }
     >
-      <KhoHoaChatOverview
-        countSapHetHan={countSapHetHan}
-        countDuoiNguong={countDuoiNguong}
-        dms={dms}
-        canEdit={canEdit}
-        thrDm={thrDm}
-        thrVal={thrVal}
-        onThrDm={setThrDm}
-        onThrVal={setThrVal}
-        onSaveThr={saveThreshold}
-      />
+      <div className="space-y-6">
+        <div className={CSSD_UI_TAB_GROUP}>
+          <button
+            type="button"
+            onClick={() => setActiveTab("STOCK")}
+            className={`rounded-lg px-5 py-2 text-xs font-semibold ${activeTab === 'STOCK' ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE}`}
+          >
+            Giám sát tồn kho &amp; Giao dịch
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("CATALOG")}
+            className={`rounded-lg px-5 py-2 text-xs font-semibold ${activeTab === 'CATALOG' ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE}`}
+          >
+            Danh mục hóa chất &amp; vật tư ({dms.length})
+          </button>
+        </div>
 
-      <KhoHoaChatTables tons={tons} movs={movs} loading={busy} />
+        {activeTab === "STOCK" ? (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <KhoHoaChatOverview
+              countSapHetHan={countSapHetHan}
+              countDuoiNguong={countDuoiNguong}
+              dms={dms}
+              canEdit={canEdit}
+              thrDm={thrDm}
+              thrVal={thrVal}
+              onThrDm={setThrDm}
+              onThrVal={setThrVal}
+              onSaveThr={saveThreshold}
+            />
+
+            <KhoHoaChatTables tons={tons} movs={movs} loading={busy} />
+          </div>
+        ) : (
+          <div className="animate-in fade-in duration-300">
+            <CSSDCatalogHoaChatTab hoaChatRows={mappedDms} />
+          </div>
+        )}
+      </div>
 
       <KhoHoaChatMoveSheet
         open={sheetOpen}

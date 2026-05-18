@@ -1,24 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-async function dmTen(sb: SupabaseClient, dmId: string | null): Promise<string | null> {
-  if (!dmId) return null;
-  const [cv, cd, vt] = await Promise.all([
-    sb.from("dm_chuc_vu").select("ten_chuc_vu").eq("id", dmId).maybeSingle(),
-    sb.from("dm_chuc_danh").select("ten_chuc_danh").eq("id", dmId).maybeSingle(),
-    sb.from("dm_roles").select("name").eq("id", dmId).maybeSingle(),
-  ]);
-  const cvd = cv.data as { ten_chuc_vu?: string } | null;
-  const cdd = cd.data as { ten_chuc_danh?: string } | null;
-  const vtd = vt.data as { name?: string } | null;
-  if (cvd?.ten_chuc_vu) return String(cvd.ten_chuc_vu);
-  if (cdd?.ten_chuc_danh) return String(cdd.ten_chuc_danh);
-  if (vtd?.name) return String(vtd.name);
-  return null;
-}
-
-/** Gán UUID FK + tên hiển thị, xóa cột mã import tạm. */
+/** Gán UUID FK, xóa cột mã import tạm (nhãn đọc qua v_mdm_nhan_su_full). */
 export async function finalizeNhanSuImportRow(
-  sb: SupabaseClient,
+  _sb: SupabaseClient,
   out: Record<string, unknown>,
   ids: {
     khoaResolved: string | null;
@@ -31,16 +15,14 @@ export async function finalizeNhanSuImportRow(
   const cvId = ids.chucVuResolved;
   const cdId = ids.chucDanhResolved;
   const vtId = ids.vaiTroResolved;
-  const [chucVuTen, chucDanhTen, vaiTroTen] = await Promise.all([dmTen(sb, cvId), dmTen(sb, cdId), dmTen(sb, vtId)]);
-
   out.khoa_id = ids.khoaResolved;
   out.to_id = ids.toId;
   out.chuc_vu_id = cvId;
-  out.chuc_vu = chucVuTen;
   out.chuc_danh_id = cdId;
-  out.chuc_danh = chucDanhTen;
   out.vai_tro_he_thong_id = vtId;
-  out.vai_tro_he_thong_ksnk = vaiTroTen;
+  delete (out as Record<string, unknown>).chuc_vu;
+  delete (out as Record<string, unknown>).chuc_danh;
+  delete (out as Record<string, unknown>).vai_tro_he_thong_ksnk;
   delete (out as Record<string, unknown> & { ma_khoa?: string }).ma_khoa;
   delete (out as Record<string, unknown> & { ma_to?: string }).ma_to;
   delete (out as Record<string, unknown> & { ten_to_cong_tac?: string }).ten_to_cong_tac;

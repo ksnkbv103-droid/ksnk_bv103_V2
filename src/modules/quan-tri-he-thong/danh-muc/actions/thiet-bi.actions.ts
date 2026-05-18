@@ -14,9 +14,10 @@ import type { ThietBiRow } from "./thiet-bi.types";
 
 export async function getThietBiRowsAction() {
   await verifyPermission("THIET_BI", "view");
-  const result = await listMasterRows("dm_thiet_bi", "ma_thiet_bi");
-  if (!result.success) return result;
-  return { success: true as const, data: result.data as ThietBiRow[] };
+  const supabase = createAdminSupabaseClient();
+  const { data, error } = await supabase.from("v_dm_thiet_bi_full").select("*").order("ma_thiet_bi");
+  if (error) return { success: false as const, error: error.message };
+  return { success: true as const, data: (data || []) as ThietBiRow[] };
 }
 
 /** Danh sách loại máy tiệt khuẩn (khai báo) — dùng cho form thiết bị. */
@@ -57,10 +58,19 @@ export async function saveThietBiAction(input: Record<string, unknown>) {
     return { success: false as const, error: "Thiếu mã hoặc tên thiết bị." };
   }
 
+  const loaiMa = String(input.loai_thiet_bi || "").trim();
+  let loai_may_id: string | null = null;
+  if (loaiMa) {
+    const supabase = createAdminSupabaseClient();
+    const byMa = await supabase.from("dm_loai_may_tiet_khuan").select("id").eq("ma_loai_may", loaiMa).maybeSingle();
+    if (byMa.data?.id) loai_may_id = String(byMa.data.id);
+    else if (/^[0-9a-f-]{36}$/i.test(loaiMa)) loai_may_id = loaiMa;
+  }
+
   const payload = {
     ma_thiet_bi: ma,
     ten_thiet_bi: ten,
-    loai_thiet_bi: String(input.loai_thiet_bi || "").trim() || null,
+    loai_may_id,
     trang_thai: String(input.trang_thai || "").trim() || "READY",
     hang_san_xuat: String(input.hang_san_xuat || "").trim() || null,
     nam_san_xuat: nam,

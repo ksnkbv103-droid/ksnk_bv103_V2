@@ -28,7 +28,7 @@ export async function deleteVSTSessions(sessionIds: string[]) {
 
     const { data: rows, error: qErr } = await supabase
       .from("fact_giam_sat_vst_sessions")
-      .select("id,nguoi_giam_sat_id,is_active")
+      .select("id,nguoi_giam_sat_id,is_active,created_at")
       .in("id", ids);
     if (qErr) throw qErr;
 
@@ -40,11 +40,18 @@ export async function deleteVSTSessions(sessionIds: string[]) {
 
     if (!adminBypass) {
       const notOwner = ids.filter((id) => {
-        const r = rowById.get(String(id));
+        const r = rowById.get(String(id)) as { nguoi_giam_sat_id?: string } | undefined;
         return String(r?.nguoi_giam_sat_id || "") !== String(actorNhanSuId);
       });
       if (notOwner.length) {
         return { success: false, error: VST_OWNER_ONLY_VI };
+      }
+      const expired = ids.filter((id) => {
+        const r = rowById.get(String(id)) as { created_at?: string | null } | undefined;
+        return isSupervisionSessionMutationExpired(r?.created_at ?? null);
+      });
+      if (expired.length) {
+        return { success: false, error: SUPERVISION_SESSION_MUTATION_EXPIRED_VI };
       }
     }
 

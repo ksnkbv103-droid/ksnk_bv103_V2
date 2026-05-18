@@ -3,8 +3,9 @@
 
 import React, { useState, useEffect } from "react";
 import { History, ArrowUpRight, ArrowDownLeft, RefreshCw } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
+import { fetchCssdKhoGiaoDichHistory } from "../../actions/cssd-kho-history.actions";
 
 /**
  * Bảng lịch sử giao dịch kho dụng cụ (≤ 180 dòng)
@@ -16,12 +17,9 @@ export default function InventoryHistoryTable() {
 
   const fetchHistory = async () => {
     setLoading(true);
-    const { data: res } = await supabase
-      .from("fact_kho_giao_dich")
-      .select("*, dm_khoa_phong(ten_khoa), kho_chi_tiet(so_luong, ghi_chu)")
-      .order("created_at", { ascending: false })
-      .limit(50);
-    setData(res || []);
+    const res = await fetchCssdKhoGiaoDichHistory();
+    if (!res.success) toast.error("Không tải lịch sử kho: " + res.error);
+    setData(res.success ? res.data : []);
     setLoading(false);
   };
 
@@ -43,7 +41,7 @@ export default function InventoryHistoryTable() {
     )},
     { header: "GHI CHÚ", accessorKey: "ghi_chu", cell: (item: any) => (
       <span className="text-slate-400 font-medium text-[9px] truncate max-w-[150px] block italic">
-        {item.kho_chi_tiet?.[0]?.ghi_chu || "---"}
+        {item.fact_kho_chi_tiet?.[0]?.ghi_chu || "---"}
       </span>
     )},
     { header: "THỜI GIAN", accessorKey: "created_at", cell: (item: any) => (
@@ -54,8 +52,8 @@ export default function InventoryHistoryTable() {
   ];
 
   return (
-    <div className="bg-white p-2 rounded-[48px] border border-slate-100 shadow-sm overflow-hidden animate-in fade-in duration-500">
-      <div className="p-8 pb-4 flex justify-between items-center">
+    <div className="bg-white p-2 rounded-2xl border border-slate-200/90 shadow-[var(--shadow-app-soft)] overflow-hidden animate-in fade-in duration-500">
+      <div className="p-5 pb-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-slate-50 rounded-xl text-slate-400"><History size={20} /></div>
           <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Lịch sử giao dịch kho</h3>

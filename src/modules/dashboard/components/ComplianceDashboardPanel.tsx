@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
+import { Printer } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
+import Bv103ChartEmptyState from "@/components/shared/Bv103ChartEmptyState";
 import type { ComplianceDashboardGroupRow, ComplianceDashboardPayload } from "../compliance-dashboard.types";
 import { aggregateRateRowsByKhoi } from "../lib/aggregate-rate-rows-by-khoi";
 
@@ -12,6 +14,8 @@ type Props = {
   /** Danh mục từ bộ lọc — để gộp by_khoa → theo khối */
   khoaCatalog?: Array<{ id: string; label?: string; khoi_id?: string }>;
   khoiCatalog?: Array<{ id: string; label: string }>;
+  /** In / xuất báo cáo chuyên đề (RBAC từ Command Center). */
+  onExport?: () => void;
 };
 
 const COLOR = { GREEN: "#026f17", RED: "#dc2626", BLUE: "#2563eb" } as const;
@@ -28,15 +32,23 @@ function buildByKhoiRows(
   }));
 }
 
-export default function ComplianceDashboardPanel({ payload, loading, khoaCatalog, khoiCatalog }: Props) {
+export default function ComplianceDashboardPanel({ payload, loading, khoaCatalog, khoiCatalog, onExport }: Props) {
   const byKhoiRows = buildByKhoiRows(payload, khoaCatalog, khoiCatalog);
 
   if (!payload) {
-    return <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center text-sm text-slate-500">{loading ? "Đang tải..." : "Không có dữ liệu."}</div>;
+    return (
+      <Bv103ChartEmptyState
+        title={loading ? "Đang tải số liệu…" : "Chưa có dữ liệu tuân thủ"}
+        description={loading ? "Vui lòng chờ trong giây lát." : "Đổi khoảng ngày hoặc chuyên đề rồi bấm Cập nhật."}
+      />
+    );
   }
 
   const khoaChart = payload.rank_khoa.map((x) => ({ stt: x.stt, ty_le: x.ty_le, nhom_mau: x.nhom_mau }));
   const vioChart = payload.violations.slice(0, 10).map((x, i) => ({ stt: i + 1, ty_le_vi_pham: x.ty_le_vi_pham }));
+  const trendHasData = payload.trend.length > 0;
+  const khoaHasData = khoaChart.length > 0;
+  const vioHasData = vioChart.length > 0;
   const tongQs = payload.summary.tong_quan_sat ?? 0;
   const tongVp = payload.summary.tong_vi_pham ?? 0;
   const soTuanThu = Math.max(0, tongQs - tongVp);
@@ -61,35 +73,56 @@ export default function ComplianceDashboardPanel({ payload, loading, khoaCatalog
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div className="xl:col-span-3">
-          <Panel title="Biểu đồ xu hướng tuân thủ (tỉ lệ % theo thời gian)">
-            <ChartWrap>
-              <LineChart data={payload.trend}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="label" />
-                <YAxis domain={[0, 100]} />
-                <Tooltip />
-                <Line type="monotone" dataKey="ty_le" stroke="#026f17" strokeWidth={3} />
-              </LineChart>
-            </ChartWrap>
+          <Panel title="Biểu đồ xu hướng tuân thủ (tỉ lệ % theo thời gian)" onExport={onExport}>
+            {trendHasData ? (
+              <ChartWrap>
+                <LineChart data={payload.trend}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="label" />
+                  <YAxis domain={[0, 100]} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="ty_le" name="Tỉ lệ tuân thủ (%)" stroke="#026f17" strokeWidth={3} />
+                </LineChart>
+              </ChartWrap>
+            ) : (
+              <Bv103ChartEmptyState className="min-h-[180px]" title="Chưa có điểm xu hướng" />
+            )}
           </Panel>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        <Panel title="So sánh tỉ lệ tuân thủ giữa các khoa phòng được giám sát">
-          <ChartWrap>
-            <BarChart data={khoaChart}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="stt" />
-              <YAxis domain={[0, 100]} />
-              <Tooltip />
-              <Bar dataKey="ty_le" radius={[8, 8, 0, 0]}>
-                {khoaChart.map((x, i) => (
-                  <Cell key={i} fill={COLOR[x.nhom_mau]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ChartWrap>
+        <Panel title="So sánh tỉ lệ tuân thủ giữa các khoa phòng được giám sát" onExport={onExport}>
+          {khoaHasData ? (
+            <>
+              <ChartWrap>
+                <BarChart data={khoaChart}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="stt" />
+                  <YAxis domain={[0, 100]} />
+                  <Tooltip />
+                  <Bar dataKey="ty_le" name="Tuân thủ (%)" radius={[8, 8, 0, 0]}>
+                    {khoaChart.map((x, i) => (
+                      <Cell key={i} fill={COLOR[x.nhom_mau]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ChartWrap>
+              <div className="mt-2 flex flex-wrap gap-3 text-[10px] font-semibold text-slate-600">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-sm" style={{ background: COLOR.GREEN }} /> Tốt
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-sm" style={{ background: COLOR.BLUE }} /> Trung bình
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-sm" style={{ background: COLOR.RED }} /> Cần cải thiện
+                </span>
+              </div>
+            </>
+          ) : (
+            <Bv103ChartEmptyState className="min-h-[180px]" title="Chưa có so sánh theo khoa" />
+          )}
         </Panel>
       </div>
 
@@ -130,35 +163,46 @@ export default function ComplianceDashboardPanel({ payload, loading, khoaCatalog
           </div>
         </Panel>
 
-        <Panel title="10 tiêu chí vi phạm phổ biến nhất (tỉ lệ không đạt)">
-          <ChartWrap>
-            <BarChart data={vioChart}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="stt" />
-              <YAxis domain={[0, 100]} />
-              <Tooltip />
-              <Bar dataKey="ty_le_vi_pham" fill="#dc2626" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ChartWrap>
-          <div className="mt-3 overflow-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left text-[11px] uppercase text-slate-500">
-                  <th className="px-2 py-2">STT</th><th className="px-2 py-2">Tiêu chí</th><th className="px-2 py-2">Vi phạm</th><th className="px-2 py-2">Tỷ lệ (%)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payload.violations.slice(0, 10).map((x, idx) => (
-                  <tr key={x.criterion_id || x.ten_tieu_chi || idx} className="odd:bg-slate-50">
-                    <td className="px-2 py-2 font-bold">{idx + 1}</td>
-                    <td className="px-2 py-2">{x.ten_tieu_chi}</td>
-                    <td className="px-2 py-2">{x.so_vi_pham}/{x.tong_quan_sat}</td>
-                    <td className="px-2 py-2 font-black text-red-600">{x.ty_le_vi_pham}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <Panel title="10 tiêu chí vi phạm phổ biến nhất (tỉ lệ không đạt)" onExport={onExport}>
+          {vioHasData ? (
+            <>
+              <ChartWrap>
+                <BarChart data={vioChart}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="stt" />
+                  <YAxis domain={[0, 100]} />
+                  <Tooltip />
+                  <Bar dataKey="ty_le_vi_pham" fill="#dc2626" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ChartWrap>
+              <div className="mt-3 overflow-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-[11px] uppercase text-slate-500">
+                      <th className="px-2 py-2">STT</th>
+                      <th className="px-2 py-2">Tiêu chí</th>
+                      <th className="px-2 py-2">Vi phạm</th>
+                      <th className="px-2 py-2">Tỷ lệ (%)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {payload.violations.slice(0, 10).map((x, idx) => (
+                      <tr key={x.criterion_id || x.ten_tieu_chi || idx} className="odd:bg-slate-50">
+                        <td className="px-2 py-2 font-bold">{idx + 1}</td>
+                        <td className="px-2 py-2">{x.ten_tieu_chi}</td>
+                        <td className="px-2 py-2">
+                          {x.so_vi_pham}/{x.tong_quan_sat}
+                        </td>
+                        <td className="px-2 py-2 font-black text-red-600">{x.ty_le_vi_pham}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : (
+            <Bv103ChartEmptyState className="min-h-[180px]" title="Chưa có tiêu chí vi phạm trong khoảng lọc" />
+          )}
         </Panel>
       </div>
     </div>
@@ -168,8 +212,34 @@ export default function ComplianceDashboardPanel({ payload, loading, khoaCatalog
 function Card({ label, value }: { label: string; value: string }) {
   return <div className="rounded-2xl border border-slate-100 bg-white p-4"><p className="text-[10px] font-black uppercase text-slate-400">{label}</p><p className="mt-2 text-2xl font-black text-slate-800">{value}</p></div>;
 }
-function Panel({ title, children }: { title: string; children: React.ReactNode }) {
-  return <div className="rounded-2xl border border-slate-100 bg-white p-4"><h3 className="mb-3 text-[11px] font-black uppercase text-slate-700">{title}</h3>{children}</div>;
+function Panel({
+  title,
+  children,
+  onExport,
+}: {
+  title: string;
+  children: React.ReactNode;
+  onExport?: () => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-100 bg-white p-4">
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <h3 className="text-[11px] font-black uppercase text-slate-700">{title}</h3>
+        {onExport ? (
+          <button
+            type="button"
+            onClick={onExport}
+            className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#026f17] hover:bg-slate-50"
+            title="In / xuất báo cáo chuyên đề"
+          >
+            <Printer className="h-3 w-3" aria-hidden />
+            In
+          </button>
+        ) : null}
+      </div>
+      {children}
+    </div>
+  );
 }
 function ChartWrap({ children }: { children: React.ReactNode }) {
   return (
@@ -178,7 +248,14 @@ function ChartWrap({ children }: { children: React.ReactNode }) {
     </Bv103ResponsiveChart>
   );
 }
-function SimpleRateTable({ rows }: { rows: Array<{ id: string; ten: string; ty_le: number; tong: number; dat: number; so_phien: number }> }) {
+function SimpleRateTable({
+  rows,
+}: {
+  rows: Array<{ id: string; ten: string; ty_le: number; tong: number; dat: number; so_phien: number }>;
+}) {
+  if (!rows.length) {
+    return <Bv103ChartEmptyState className="min-h-[140px]" title="Chưa có nhóm so sánh" />;
+  }
   return (
     <div className="overflow-auto">
       <table className="min-w-full text-sm">

@@ -1,5 +1,7 @@
 // src/app/cssd-erp/batch/page.tsx
-import MeTietKhuanPage from "@/modules/cssd-erp/views/MeTietKhuanPage";
+// Refactored: Moved to top-level navigation, but keeping this route for backward compatibility.
+import { CSSDSterilizationBatchPage } from "@/modules/cssd-erp/contexts/sterilization-batch/entrypoint";
+
 
 export const metadata = {
   title: "Quản lý Mẻ tiệt khuẩn | KSNK 103",
@@ -7,5 +9,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <MeTietKhuanPage />;
+  return <CSSDSterilizationBatchPage />;
 }

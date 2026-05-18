@@ -6,7 +6,7 @@ import { format, parseISO, startOfMonth, subMonths } from "date-fns";
  * Pilot EXPLAIN (cùng cửa sổ 6 tháng): `scripts/sql/pilot-dashboard-rpc-explain-01-summary.sql`,
  * `scripts/sql/pilot-dashboard-rpc-explain-04-command-center-hotpath.sql`.
  */
-export const BV103_ANALYTICS_DEFAULT_MONTHS = 6;
+export const BV103_ANALYTICS_DEFAULT_MONTHS = 3;
 
 const monthSpanMinusOne = BV103_ANALYTICS_DEFAULT_MONTHS - 1;
 

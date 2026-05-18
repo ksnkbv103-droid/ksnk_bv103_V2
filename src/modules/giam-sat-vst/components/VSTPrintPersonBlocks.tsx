@@ -3,6 +3,7 @@
 import React from "react";
 import type { ExtendedOpportunity, VSTFormPerson } from "../hooks/useVSTFormHandlers";
 import { classifyVstAction } from "../lib/vst-action-classifier";
+import { getVstPrintGloveDisplay } from "../lib/vst-print-glove-display";
 import { tenNhanVien, tenNghe } from "./vst-print-helpers";
 
 type Nghe = { id?: string; ten_danh_muc?: string };
@@ -22,7 +23,15 @@ export function VSTPrintPersonBlocks({
       {persons.map((p, pIdx) => {
         const opps = p.opportunities;
         /** Có hành động là đủ (dữ liệu cũ/import có thể thiếu mốc WHO trên dòng). */
-        const validOpps = opps.filter((o: ExtendedOpportunity) => Boolean(o.hanh_dong));
+        const validOpps = opps
+          .filter((o: ExtendedOpportunity) => Boolean(o.hanh_dong))
+          .slice()
+          .sort((a, b) => {
+            const ta = a.thoi_gian_ghi_nhan ? new Date(a.thoi_gian_ghi_nhan).getTime() : 0;
+            const tb = b.thoi_gian_ghi_nhan ? new Date(b.thoi_gian_ghi_nhan).getTime() : 0;
+            if (ta !== tb) return ta - tb;
+            return String(a.id).localeCompare(String(b.id));
+          });
         if (validOpps.length === 0) return null;
 
         const tenNvRaw = tenNhanVien(
@@ -54,7 +63,7 @@ export function VSTPrintPersonBlocks({
                 color: "#000",
               }}
             >
-              Đối tượng {pIdx + 1}: {tenNv} — {nn}
+              Nhân viên {pIdx + 1}: {tenNv} — {nn}
             </p>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
               <thead>
@@ -97,7 +106,7 @@ export function VSTPrintPersonBlocks({
                         {isMiss ? "—" : opp.du_thoi_gian ? <span style={{ color: "#026f17" }}>✓</span> : <span style={{ color: "#e63939" }}>✕</span>}
                       </td>
                       <td style={{ textAlign: "center", border: "1px solid #e2e8f0", padding: "6px" }}>
-                        {isMiss ? "—" : opp.co_deo_gang ? "Có" : "Không"}
+                        {getVstPrintGloveDisplay(isMiss, opp.co_deo_gang)}
                       </td>
                     </tr>
                   );

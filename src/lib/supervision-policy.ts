@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export const HINH_THUC_TU_GIAM_SAT = "Tự giám sát";
-export const HINH_THUC_KHACH_QUAN = "Giám sát khách quan";
+export const HINH_THUC_CHUYEN_TRACH = "Giám sát chuyên trách";
+export const HINH_THUC_GIAM_SAT_CHEO = "Giám sát chéo";
 
 const normalize = (v: string | null | undefined) =>
   String(v || "")
@@ -113,7 +114,7 @@ export async function resolveSupervisorPolicy(params: ResolveSupervisorPolicyPar
   const isNetworkAtSelectedKhoa = Boolean(
     isNetworkRole && selectedKhoaId && String(profile.khoa_id || "") === String(selectedKhoaId),
   );
-  const derivedHinhThuc = isNetworkAtSelectedKhoa ? HINH_THUC_TU_GIAM_SAT : HINH_THUC_KHACH_QUAN;
+  const derivedHinhThuc = isNetworkAtSelectedKhoa ? HINH_THUC_TU_GIAM_SAT : HINH_THUC_CHUYEN_TRACH;
 
   return {
     profile,

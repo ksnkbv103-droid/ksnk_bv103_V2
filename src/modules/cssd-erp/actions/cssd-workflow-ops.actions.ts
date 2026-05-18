@@ -1,64 +1,23 @@
 /**
  * CSSD Workflow Operations - Action Layer
- * 
+ *
  * Chứa các hành động bổ trợ cho quy trình (Báo sự cố, Mở khóa an toàn).
  * Tách từ cssd-write.actions.ts để đảm bảo giới hạn 180 dòng.
  */
 "use server";
 
-import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
+import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { safeRevalidate, tableHasColumn } from "./cssd-action-common";
-import { executeIncidentReportAndRollback } from "../incident/application/cssd-incident-application";
-import type { Station } from "../types/cssd.types";
+import { verifyCssdInventoryEdit } from "./cssd-permissions";
+import { createIncidentReport as createIncidentReportImpl } from "@/modules/cssd-su-co/actions/su-co-report.actions";
 
-export async function createIncidentReport(data: {
-  maQR: string;
-  station: Station;
-  typeId: string;
-  typeTen: string;
-  desc: string;
-  errorQR?: string;
-  machineId?: string;
-}) {
-  const supabase = createAdminSupabaseClient();
-  await verifyPermission("BAO_SU_CO", "create");
-  const qr = String(data.maQR || "").trim().toUpperCase();
-  const { data: q, error: qReadErr } = await supabase
-    .from("fact_quy_trinh")
-    .select("*")
-    .eq("ma_qr_quy_trinh", qr)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (qReadErr) throw new Error("Lỗi đọc quy trình: " + qReadErr.message);
-  if (!q) throw new Error("Mã QR không tồn tại trong hệ thống!");
-
-  let reporterEmail: string | null = null;
-  let reporterAuthUserId: string | null = null;
-  try {
-    const uc = await createServerSupabaseUserClient();
-    const u = await uc.auth.getUser();
-    reporterEmail = u.data.user?.email?.trim() || null;
-    reporterAuthUserId = u.data.user?.id ?? null;
-  } catch {
-    /* ngoài phiên người dùng */
-  }
-
-  const { incident_id, isRedAlert } = await executeIncidentReportAndRollback(
-    supabase,
-    { ...data, maQR: qr, reporterEmail, reporterAuthUserId },
-    q as Record<string, unknown> & { id: string; ma_trang_thai_hien_tai?: string | null },
-  );
-
-  safeRevalidate("/cssd-erp");
-  return { success: true, incident_id, isRedAlert };
+export async function createIncidentReport(data: Parameters<typeof createIncidentReportImpl>[0]) {
+  return createIncidentReportImpl(data);
 }
 
 export async function unlockDongBangQuyTrinhByMaQr(maQR: string) {
   const supabase = createAdminSupabaseClient();
-  await verifyPermission("CSSD_KHO_DUNGCU", "edit");
+  await verifyCssdInventoryEdit();
   const code = String(maQR || "").trim().toUpperCase();
   const hasCol = await tableHasColumn(supabase, "fact_quy_trinh", "is_dong_bang");
   if (!hasCol) throw new Error("Phiên bản DB chưa hỗ trợ khóa an toàn.");

@@ -3,8 +3,8 @@
 
 import React, { useState } from "react";
 import { Search, History, CheckCircle2, AlertTriangle, Clock, User, QrCode } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { fetchCssdQrHistory } from "../../actions/cssd-qr-history.actions";
 
 interface HistoryLog {
   id: string;
@@ -29,38 +29,12 @@ export default function QRHistoryViewer() {
     if (!qr.trim()) return toast.error("Vui lòng nhập mã QR");
     setLoading(true);
     try {
-      const { data: q, error: qErr } = await supabase
-        .from("fact_quy_trinh")
-        .select("*")
-        .eq("ma_qr_quy_trinh", qr.trim())
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (qErr) throw qErr;
-      if (!q) throw new Error("Không tìm thấy thông tin cho mã QR này");
-
-      const processMapped = {
-        ...q,
-        ma_vach_qr: q.ma_qr_quy_trinh,
-        trang_thai_hien_tai: q.ma_trang_thai_hien_tai,
-      };
-      setProcess(processMapped);
-      const { data: logs } = await supabase
-        .from("fact_nhat_ky_quet")
-        .select("*")
-        .eq("quy_trinh_id", q.id)
-        .order("created_at", { ascending: false });
-
-      setHistory(
-        ((logs || []) as any[]).map((x) => ({
-          ...x,
-          tram: x.ma_tram,
-          hanh_dong: x.ma_hanh_dong,
-        })),
-      );
-    } catch (err: any) {
-      toast.error(err.message);
+      const res = await fetchCssdQrHistory(qr);
+      if (!res.success) throw new Error(res.error);
+      setProcess(res.process);
+      setHistory(res.history);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Lỗi truy vết");
       setHistory([]);
       setProcess(null);
     } finally {

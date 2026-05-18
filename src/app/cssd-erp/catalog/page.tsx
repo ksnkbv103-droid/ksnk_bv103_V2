@@ -1,4 +1,4 @@
-import CSSDCatalogPage from "@/modules/cssd-erp/views/CSSDCatalogPage";
+import { CSSDInstrumentCatalogPage } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
 
 export const metadata = {
   title: "Danh mục CSSD liên thông | KSNK 103",
@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <CSSDCatalogPage />;
+  return <CSSDInstrumentCatalogPage />;
 }

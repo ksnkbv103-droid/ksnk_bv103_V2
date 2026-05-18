@@ -15,6 +15,7 @@ export type MasterSource =
   | "dm_loai_dung_cu"
   | "dm_loai_su_co"
   | "dm_loai_may_tiet_khuan"
+  | "dm_tram_cssd"
   | "dm_hinh_thuc_giam_sat"
   | "dm_cach_thuc_giam_sat"
   | "dm_loai_cong_viec"
@@ -42,10 +43,11 @@ const ENTRIES: RegistryEntry[] = [
   { loaiDanhMuc: "LOAI_DUNG_CU", sourceTable: "dm_loai_dung_cu", idColumn: "id", maColumn: "ma_loai_dung_cu", tenColumn: "ten_loai_dung_cu" },
   { loaiDanhMuc: "LOAI_SU_CO", sourceTable: "dm_loai_su_co", idColumn: "id", maColumn: "ma_loai_su_co", tenColumn: "ten_loai_su_co" },
   { loaiDanhMuc: "LOAI_MAY_TIET_KHUAN", sourceTable: "dm_loai_may_tiet_khuan", idColumn: "id", maColumn: "ma_loai_may", tenColumn: "ten_loai_may" },
+  { loaiDanhMuc: "TRAM_CSSD", sourceTable: "dm_tram_cssd", idColumn: "id", maColumn: "ma_tram", tenColumn: "ten_tram" },
   { loaiDanhMuc: "HINH_THUC_GIAM_SAT", sourceTable: "dm_hinh_thuc_giam_sat", idColumn: "id", maColumn: "ma_hinh_thuc", tenColumn: "ten_hinh_thuc" },
   { loaiDanhMuc: "CACH_THUC_GIAM_SAT", sourceTable: "dm_cach_thuc_giam_sat", idColumn: "id", maColumn: "ma_cach_thuc", tenColumn: "ten_cach_thuc" },
-  { loaiDanhMuc: "LOAI_CONG_VIEC", sourceTable: "dm_loai_cong_viec", idColumn: "id", maColumn: "ma_loai", tenColumn: "ten_loai" },
-  { loaiDanhMuc: "TRANG_THAI_CONG_VIEC", sourceTable: "dm_trang_thai_cong_viec", idColumn: "id", maColumn: "ma_trang_thai", tenColumn: "ten_trang_thai" },
+  { loaiDanhMuc: "LOAI_CONG_VIEC", sourceTable: "dm_loai_cong_viec", idColumn: "id", maColumn: "ma", tenColumn: "ten" },
+  { loaiDanhMuc: "TRANG_THAI_CONG_VIEC", sourceTable: "dm_trang_thai_cong_viec", idColumn: "id", maColumn: "ma", tenColumn: "ten" },
   { loaiDanhMuc: "LOAI_NKBV", sourceTable: "dm_loai_nkbv", idColumn: "id", maColumn: "ma_loai", tenColumn: "ten_loai" },
   {
     loaiDanhMuc: "TRANG_THAI_NKBV_CA",
@@ -107,6 +109,7 @@ export const DM_HUB_LABELS: Record<string, string> = {
   LOAI_DUNG_CU: "Loại dụng cụ",
   LOAI_SU_CO: "Loại sự cố (CSSD)",
   LOAI_MAY_TIET_KHUAN: "Loại máy tiệt khuẩn",
+  TRAM_CSSD: "Trạm workflow CSSD",
   HINH_THUC_GIAM_SAT: "Hình thức giám sát",
   CACH_THUC_GIAM_SAT: "Cách thức giám sát",
   LOAI_CONG_VIEC: "Loại công việc",

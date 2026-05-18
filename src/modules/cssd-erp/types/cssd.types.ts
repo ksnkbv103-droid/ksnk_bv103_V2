@@ -13,6 +13,7 @@ export interface CSSDWaitingItem {
   id: string;
   ma_vach_qr: string;
   updated_at: string;
+  ten_bo?: string | null;
 }
 
 export interface IncidentReport {

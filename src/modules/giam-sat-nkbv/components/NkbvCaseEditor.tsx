@@ -236,7 +236,7 @@ export default function NkbvCaseEditor({
             />
           </div>
           <div>
-            <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Tác nhân / chủng vi khuẩn (biết)</label>
+            <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Tác nhân gây bệnh (nếu xác định)</label>
             <input
               value={form.tac_nhan_vi_khuan}
               onChange={(e) => setForm({ ...form, tac_nhan_vi_khuan: e.target.value })}

@@ -5,13 +5,22 @@ import { verifyPermission } from "@/lib/server-permission";
 import type { Catalog, CSSDBo, CSSDChiTiet, CSSDLoai, CSSDHoaChat } from "../types/catalog.types";
 
 async function verifyCanViewKhoCatalog(): Promise<void> {
-  try {
-    await verifyPermission("CSSD_KHO_DUNGCU", "view");
-    return;
-  } catch {
-    /* fall through */
+  const checks: Array<[string, string]> = [
+    ["CSSD_KHO_DUNGCU", "view"],
+    ["CSSD_KHO_DUNGCU", "edit"],
+    ["CSSD_KHO_DUNGCU", "create"],
+    ["CSSD_KHO_DUNGCU", "import"],
+    ["CSSD_WORKFLOW", "view"],
+  ];
+  for (const [moduleKey, action] of checks) {
+    try {
+      await verifyPermission(moduleKey, action);
+      return;
+    } catch {
+      /* try next permission candidate */
+    }
   }
-  await verifyPermission("CSSD_WORKFLOW", "view");
+  await verifyPermission("CSSD_KHO_DUNGCU", "view");
 }
 
 /** Danh mục nhanh ngay trong màn kho để tìm kiếm/đối chiếu/báo sự cố. */
@@ -22,38 +31,36 @@ export async function getKhoCatalogPayloadAction(): Promise<
   try {
     await verifyCanViewKhoCatalog();
 
-    // 1. Lấy dữ liệu tập trung qua RPC duy nhất
-    const { data, error } = await supabase.rpc("rpc_get_registry_options", {
-      p_categories: ["BO_DUNG_CU", "LOAI_DUNG_CU"],
-    });
-    if (error) throw error;
-    
-    interface RegistryEntry { id: string; ma?: string; ten?: string; category?: string };
-    const registry = data as Record<string, RegistryEntry[]>;
-
-    // 2. Fetch chi tiết và hóa chất vẫn tách bảng riêng (vì chi tiết có cấu phần link bộ)
-    const [chiTietRes, hoaChatRes] = await Promise.all([
-      supabase.from("dm_bo_dung_cu_chi_tiet").select("*").order("ma_chi_tiet"),
-      supabase.from("dm_hoa_chat").select("*").order("ma_hoa_chat"),
+    // Lấy trực tiếp từ bảng DM để không phụ thuộc category của RPC registry.
+    const [boRes, loaiRes, chiTietRes, hoaChatRes] = await Promise.all([
+      supabase.from("dm_bo_dung_cu").select("id, ma_bo, ten_bo, loai_dung_cu_id, is_active").eq("is_active", true).order("ma_bo"),
+      supabase
+        .from("dm_loai_dung_cu")
+        .select("id, ma_loai_dung_cu, ma_loai, ten_loai_dung_cu, ten_loai, is_active")
+        .eq("is_active", true)
+        .order("ma_loai_dung_cu"),
+      supabase.from("dm_bo_dung_cu_chi_tiet").select("*").eq("is_active", true).order("ma_chi_tiet"),
+      supabase.from("dm_hoa_chat").select("*").eq("is_active", true).order("ma_hoa_chat"),
     ]);
 
+    if (boRes.error) throw boRes.error;
+    if (loaiRes.error) throw loaiRes.error;
     if (chiTietRes.error) throw chiTietRes.error;
     if (hoaChatRes.error) throw hoaChatRes.error;
 
-    // 3. Mapping tối giản
-    const bo: CSSDBo[] = (registry.BO_DUNG_CU || []).map((x) => ({
-      id: String(x.id),
-      ma_bo: String(x.ma || ""),
-      ten_bo: String(x.ten || ""),
-      loai_dung_cu_id: null,
-      is_active: true,
+    const bo: CSSDBo[] = (boRes.data || []).map((x) => ({
+      id: String(x.id || ""),
+      ma_bo: String(x.ma_bo || ""),
+      ten_bo: String(x.ten_bo || ""),
+      loai_dung_cu_id: x.loai_dung_cu_id ? String(x.loai_dung_cu_id) : null,
+      is_active: x.is_active !== false,
     }));
 
-    const loai: CSSDLoai[] = (registry.LOAI_DUNG_CU || []).map((x) => ({
-      id: String(x.id),
-      ma_loai_dung_cu: String(x.ma || ""),
-      ten_loai_dung_cu: String(x.ten || ""),
-      is_active: true,
+    const loai: CSSDLoai[] = (loaiRes.data || []).map((x) => ({
+      id: String(x.id || ""),
+      ma_loai_dung_cu: String(x.ma_loai_dung_cu || x.ma_loai || ""),
+      ten_loai_dung_cu: String(x.ten_loai_dung_cu || x.ten_loai || ""),
+      is_active: x.is_active !== false,
     }));
 
     const boMap = new Map<string, string>(bo.map((x) => [x.id, x.ten_bo] as const));

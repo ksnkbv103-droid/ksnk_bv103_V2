@@ -1,51 +1,38 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Clock, ChevronRight, ListTree } from "lucide-react";
-import {
-  isChoNghiemThuHoanThanh,
-  isChoNhanViec,
-  isDeXuatChoDuyet,
-} from "../lib/qlcv-workflow-display";
+import { isChoNghiemThuHoanThanh, isChoNhanViec, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
+import { formatMucDoUuTienLabel, getCongViecTrangThaiLabel } from "../lib/qlcv-labels";
+import { getKanbanColumnIdForTask, type KanbanColumnId } from "../lib/qlcv-board-lanes";
+import { qlcvKanbanCardAttentionClass } from "../lib/qlcv-ux-chrome";
+import type { CongViecView } from "../types";
 
-interface Task {
-  id: string;
-  tieu_de: string;
-  trang_thai: string;
-  muc_do_uu_tien: string;
-  nguoi_phu_trach_ten?: string;
-  nguoi_phu_trach_id?: string | null;
-  is_active?: boolean | null;
-  to_cong_tac_ten?: string;
-  phan_tram_hoan_thanh: number;
-  cong_viec_con_count?: number;
-}
-
-type KanbanColId = "DE_XUAT" | "BACKLOG" | "DOING" | "CHO_NGHIEM_THU" | "CLOSED";
+type KanbanColId = KanbanColumnId;
 
 interface Props {
-  tasks: Task[];
-  onTaskClick?: (task: Task) => void;
+  tasks: CongViecView[];
+  onTaskClick?: (task: CongViecView) => void;
   actorStaffId?: string | null;
   onNhanNhiemVu?: (taskId: string) => void | Promise<void>;
   /** Hiện cột «Đề xuất chờ duyệt» (tách khỏi hàng đợi). */
   showProposalColumn?: boolean;
+  /** Cuộn tới cột tương ứng khi người dùng chọn thẻ thống kê (kèm `focusNonce` đổi mỗi lần bấm). */
+  focusColumnId?: KanbanColumnId | null;
+  focusNonce?: number;
 }
 
-function bucketFor(t: Task, showProposalColumn: boolean): KanbanColId {
-  if (t.trang_thai === "HOAN_THANH" || t.trang_thai === "DA_HUY") return "CLOSED";
-  if (isChoNghiemThuHoanThanh(t)) return "CHO_NGHIEM_THU";
-  if (t.trang_thai === "DANG_THUC_HIEN" || t.trang_thai === "QUA_HAN") return "DOING";
-  if (isDeXuatChoDuyet(t)) return showProposalColumn ? "DE_XUAT" : "BACKLOG";
-  if (isChoNhanViec(t) || t.trang_thai === "CHUA_BAT_DAU") return "BACKLOG";
-  return "BACKLOG";
-}
-
-function flowLine(t: Task) {
-  if (isDeXuatChoDuyet(t)) return "Đề xuất chờ duyệt";
-  if (isChoNhanViec(t)) return "Chờ nhận việc";
-  if (isChoNghiemThuHoanThanh(t)) return "Chờ nghiệm thu";
-  return t.trang_thai?.replace(/_/g, " ");
+/** Ẩn dòng trạng thái khi trùng ý nghĩa với tiêu đề cột Kanban. */
+function showKanbanCardSubtitle(colId: KanbanColId, t: CongViecView, showProposalColumn: boolean): boolean {
+  const logicalCol = getKanbanColumnIdForTask(t, showProposalColumn);
+  if (logicalCol !== colId) return true;
+  if (colId === "DE_XUAT" && isDeXuatChoDuyet(t)) return false;
+  if (colId === "CHO_NHAN" && isChoNhanViec(t)) return false;
+  if (colId === "CHO_DUYET" && isChoNghiemThuHoanThanh(t)) return false;
+  const st = String(t.trang_thai || "");
+  if (colId === "DANG_LAM" && (st === "DANG_LAM" || st === "TU_CHOI" || st === "DANG_THUC_HIEN")) return false;
+  if (colId === "HOAN_THANH" || colId === "DA_HUY" || colId === "QUA_HAN") return false;
+  return true;
 }
 
 export default function CongViecKanban({
@@ -54,15 +41,32 @@ export default function CongViecKanban({
   actorStaffId,
   onNhanNhiemVu,
   showProposalColumn = false,
+  focusColumnId = null,
+  focusNonce = 0,
 }: Props) {
+  const columnEls = useRef<Partial<Record<KanbanColId, HTMLDivElement | null>>>({});
+
+  useEffect(() => {
+    if (!focusNonce) return;
+    const id = focusColumnId;
+    if (!id) return;
+    const el = columnEls.current[id];
+    if (!el) return;
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+    });
+  }, [focusNonce, focusColumnId]);
+
   const columns: { id: KanbanColId; title: string; dot: string }[] = [
     ...(showProposalColumn
       ? [{ id: "DE_XUAT" as const, title: "Đề xuất chờ duyệt", dot: "bg-violet-500" }]
       : []),
-    { id: "BACKLOG", title: "Chờ nhận việc", dot: "bg-slate-400" },
-    { id: "DOING", title: "Đang thực hiện", dot: "bg-blue-500" },
-    { id: "CHO_NGHIEM_THU", title: "Chờ nghiệm thu", dot: "bg-amber-500" },
-    { id: "CLOSED", title: "Đã hoàn thành / Hủy", dot: "bg-emerald-500" },
+    { id: "CHO_NHAN", title: "Chờ nhận / mới", dot: "bg-slate-400" },
+    { id: "DANG_LAM", title: "Đang thực hiện", dot: "bg-blue-500" },
+    { id: "QUA_HAN", title: "Quá hạn", dot: "bg-red-500" },
+    { id: "CHO_DUYET", title: "Chờ nghiệm thu", dot: "bg-amber-500" },
+    { id: "HOAN_THANH", title: "Hoàn thành", dot: "bg-emerald-500" },
+    { id: "DA_HUY", title: "Đã hủy", dot: "bg-slate-500" },
   ];
 
   const getPriorityStyle = (p: string) => {
@@ -79,11 +83,15 @@ export default function CongViecKanban({
   return (
     <div className="flex min-w-0 gap-3 overflow-x-auto pb-4 min-h-[520px] snap-x snap-mandatory sm:gap-4">
       {columns.map((col) => {
-        const colTasks = tasks.filter((t) => bucketFor(t, showProposalColumn) === col.id);
+        const colTasks = tasks.filter((t) => getKanbanColumnIdForTask(t, showProposalColumn) === col.id);
 
         return (
           <div
             key={col.id}
+            ref={(node) => {
+              if (node) columnEls.current[col.id] = node;
+              else delete columnEls.current[col.id];
+            }}
             className="flex min-w-0 flex-col w-[min(92vw,300px)] shrink-0 rounded-2xl border border-slate-200/90 bg-slate-50/90 p-3 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] snap-center sm:w-[280px] md:p-4 lg:w-[300px]"
           >
             <div className="mb-3 flex items-center justify-between gap-2 px-1">
@@ -106,6 +114,8 @@ export default function CongViecKanban({
                   Boolean(actorStaffId) &&
                   String(task.nguoi_phu_trach_id || "") === String(actorStaffId);
 
+                const showSubtitle = showKanbanCardSubtitle(col.id, task, showProposalColumn);
+
                 return (
                   <div
                     key={task.id}
@@ -118,20 +128,24 @@ export default function CongViecKanban({
                         onTaskClick?.(task);
                       }
                     }}
-                    className="cursor-pointer rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm outline-none transition-all hover:border-[#026f17]/30 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 sm:p-4"
+                    className={`cursor-pointer rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm outline-none transition-all hover:border-[#026f17]/30 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 sm:p-4 ${qlcvKanbanCardAttentionClass(task)}`}
                   >
                     <div className="mb-2 flex items-start justify-between gap-2">
                       <span
-                        className={`rounded-md px-2 py-0.5 text-[9px] font-black uppercase tracking-tighter ${getPriorityStyle(task.muc_do_uu_tien)}`}
+                        className={`rounded-md px-2 py-0.5 text-[9px] font-semibold normal-case ${getPriorityStyle(task.muc_do_uu_tien)}`}
                       >
-                        {task.muc_do_uu_tien}
+                        {formatMucDoUuTienLabel(task.muc_do_uu_tien)}
                       </span>
                       <div className="shrink-0 rounded-full bg-slate-50 p-1 text-slate-300">
                         <ChevronRight size={14} aria-hidden />
                       </div>
                     </div>
 
-                    <p className="mb-1 text-[9px] font-bold uppercase tracking-widest text-slate-400">{flowLine(task)}</p>
+                    {showSubtitle ? (
+                      <p className="mb-1 text-[10px] font-medium normal-case leading-snug text-slate-500">
+                        {getCongViecTrangThaiLabel(task)}
+                      </p>
+                    ) : null}
 
                     <h4 className="mb-2 line-clamp-2 text-sm font-black leading-tight text-slate-800">{task.tieu_de}</h4>
 

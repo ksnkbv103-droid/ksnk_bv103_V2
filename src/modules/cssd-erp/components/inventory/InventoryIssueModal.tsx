@@ -4,7 +4,7 @@
 import React, { useState } from "react";
 import { X, Camera, AlertTriangle, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import { reportInventoryIssue } from "../../actions/write.actions";
+import { reportInventoryIssue } from "../../contexts/inventory-instrument/entrypoint";
 
 interface Props { isOpen: boolean; onClose: () => void; tool: any; onSuccess: () => void; }
 

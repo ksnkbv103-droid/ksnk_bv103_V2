@@ -51,6 +51,10 @@ export async function upsertDinhKyMau(input: {
   const actor = await getActorNhanSuId();
   const now = new Date().toISOString();
 
+  if (!input.id && !actor) {
+    throw new Error("Tài khoản cần gắn hồ sơ nhân sự (mdm_nhan_su) mới tạo được mẫu định kỳ.");
+  }
+
   const row = {
     tieu_de: input.tieu_de,
     mo_ta: input.mo_ta ?? null,

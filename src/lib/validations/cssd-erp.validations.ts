@@ -29,6 +29,15 @@ export const finishSterilizationBatchSchema = z.object({
   testBI: z.string().optional().default(""),
   testCI: z.string().optional().default(""),
   testBD: z.string().optional().default(""),
+  thongSoMay: z.string().optional().default(""),
+  chiThiTiepXuc: z.string().optional().default(""),
+  chiThiDaThongSo: z.string().optional().default(""),
+  testSinhHoc: z.string().optional().default(""),
+  anhMinhChungMay: z.string().optional().default(""),
+  anhMinhChungTiepXuc: z.string().optional().default(""),
+  anhMinhChungDaThongSo: z.string().optional().default(""),
+  anhMinhChungSinhHoc: z.string().optional().default(""),
+  anhMinhChungBowieDick: z.string().optional().default(""),
 });
 
 /**

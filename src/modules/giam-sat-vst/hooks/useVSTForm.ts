@@ -16,7 +16,7 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
     khoa_id: "",
     khu_vuc_id: "",
     vi_tri: "",
-    hinh_thuc_giam_sat: "Giám sát khách quan",
+    hinh_thuc_giam_sat: "Giám sát chuyên trách",
     cach_thuc_giam_sat: "Giám sát trực tiếp tại chỗ",
     nguoi_giam_sat_id: "",
     ngay_giam_sat: new Date().toISOString().split("T")[0],
@@ -31,6 +31,8 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
   const [khoas, setKhoas] = useState<MasterOption[]>([]);
   const [khuVucs, setKhuVucs] = useState<MasterOption[]>([]);
   const [ngheNghieps, setNgheNghieps] = useState<MasterOption[]>([]);
+  const [hinhThucGiamSats, setHinhThucGiamSats] = useState<MasterOption[]>([]);
+  const [cachThucGiamSats, setCachThucGiamSats] = useState<MasterOption[]>([]);
   const [historyLocations, setHistoryLocations] = useState<string[]>([]);
   const [historyLocationRows, setHistoryLocationRows] = useState<VstSessionLocationHistoryRow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -54,6 +56,8 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
           setKhuVucs(result.data.khuVucs || []);
           setNhanSus(result.data.nhanSus || []);
           setNgheNghieps(result.data.ngheNghieps || []);
+          setHinhThucGiamSats((result.data as any).hinhThucGiamSats || []);
+          setCachThucGiamSats((result.data as any).cachThucGiamSats || []);
           setHistoryLocations(result.data.historyLocations || []);
           setHistoryLocationRows(
             (result.data as { historyLocationRows?: VstSessionLocationHistoryRow[] }).historyLocationRows || [],
@@ -104,6 +108,7 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
     setSession,
     setTimeLeft,
     ngheNghieps,
+    khuVucs,
     setLoading,
     onSuccess,
     editingSessionId ?? null,
@@ -130,6 +135,7 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
     persons, setPersons,
     khoas, khuVucs,
     nhanSus, ngheNghieps, historyLocations, historyLocationRows,
+    hinhThucGiamSats, cachThucGiamSats,
     loading, initialLoading, timeLeft,
     currentHoSoId,
     masterDataFetchFailed,

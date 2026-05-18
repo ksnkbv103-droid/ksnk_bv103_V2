@@ -25,7 +25,7 @@ export function GiamSatChungPrintCriteriaSection({
             <th style={{ border: "1px solid #cbd5e1", padding: "4px 5px" }}>Nội dung tiêu chí</th>
             <th style={{ width: "52px", textAlign: "center", border: "1px solid #cbd5e1", padding: "4px 5px" }}>Đạt</th>
             <th style={{ width: "56px", textAlign: "center", border: "1px solid #cbd5e1", padding: "4px 5px" }}>K.Đạt</th>
-            <th style={{ width: "44px", textAlign: "center", border: "1px solid #cbd5e1", padding: "4px 5px" }}>N/A</th>
+            <th style={{ width: "80px", textAlign: "center", border: "1px solid #cbd5e1", padding: "4px 5px" }}>Không áp dụng</th>
             <th style={{ minWidth: "100px", border: "1px solid #cbd5e1", padding: "4px 5px" }}>Ghi chú</th>
           </tr>
         </thead>
@@ -56,7 +56,7 @@ export function GiamSatChungPrintCriteriaSection({
                   ) : null}
                 </td>
                 <td style={{ textAlign: "center", color: "#94a3b8", border: "1px solid #e2e8f0", padding: "4px 5px", verticalAlign: "middle" }}>
-                  {res?.value === "NA" ? "X" : ""}
+                  {res?.value === "NA" ? "✓" : ""}
                 </td>
                 <td style={{ fontSize: "11px", border: "1px solid #e2e8f0", padding: "4px 5px", verticalAlign: "top" }}>{note || "—"}</td>
               </tr>

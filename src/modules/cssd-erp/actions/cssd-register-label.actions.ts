@@ -3,6 +3,7 @@
 import { randomBytes } from "crypto";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { buildQuyTrinhTramPatch } from "../lib/cssd-tram-persist";
 import { getErrorMessage, mapFkError, safeRevalidate } from "./cssd-action-common";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 
@@ -17,13 +18,22 @@ async function verifyCanRegisterPhysicalLabel(): Promise<void> {
 }
 
 async function verifyCanReadBoListForCssd(): Promise<void> {
-  try {
-    await verifyPermission("CSSD_KHO_DUNGCU", "view");
-    return;
-  } catch {
-    /* fall through */
+  const checks: Array<[string, string]> = [
+    ["CSSD_KHO_DUNGCU", "view"],
+    ["CSSD_KHO_DUNGCU", "edit"],
+    ["CSSD_KHO_DUNGCU", "create"],
+    ["CSSD_KHO_DUNGCU", "import"],
+    ["CSSD_WORKFLOW", "view"],
+  ];
+  for (const [moduleKey, action] of checks) {
+    try {
+      await verifyPermission(moduleKey, action);
+      return;
+    } catch {
+      /* try next permission candidate */
+    }
   }
-  await verifyPermission("CSSD_WORKFLOW", "view");
+  await verifyPermission("CSSD_KHO_DUNGCU", "view");
 }
 
 /**
@@ -108,10 +118,11 @@ export async function registerPhysicalBoLabelFromDmAction(boDungCuId: string): P
       if (upErr) return { success: false, error: mapFkError(upErr.message) };
     } else {
       ma_vach_qr = generateMaVachQrBo();
+      const tiepNhanPatch = await buildQuyTrinhTramPatch(supabase, "TIEP_NHAN");
       const { error: insErr } = await supabase.from("fact_quy_trinh").insert({
         ma_qr_quy_trinh: ma_vach_qr,
         bo_dung_cu_id: boId,
-        ma_trang_thai_hien_tai: "TIEP_NHAN",
+        ...tiepNhanPatch,
         is_active: true,
         updated_at: new Date().toISOString(),
       });
@@ -145,7 +156,7 @@ export async function registerSplitSubQrFromMainMaAction(maQrMain: string): Prom
     if (!mainCode) return { success: false, error: "Thiếu mã QR bộ chính." };
 
     const { data: main, error: mainErr } = await supabase
-      .from("fact_quy_trinh")
+      .from("v_fact_quy_trinh_full")
       .select("*")
       .eq("ma_qr_quy_trinh", mainCode)
       .eq("is_active", true)
@@ -157,6 +168,7 @@ export async function registerSplitSubQrFromMainMaAction(maQrMain: string): Prom
 
     const subQr = `BV103-SUB-${randomBytes(4).toString("hex").toUpperCase()}`;
     const sta = String((main as { ma_trang_thai_hien_tai?: string }).ma_trang_thai_hien_tai || "DONG_GOI").trim();
+    const staPatch = await buildQuyTrinhTramPatch(supabase, sta);
     const boId = String((main as { bo_dung_cu_id?: string | null }).bo_dung_cu_id || "").trim();
     const mainId = String((main as { id?: string }).id || "").trim();
 
@@ -169,7 +181,7 @@ export async function registerSplitSubQrFromMainMaAction(maQrMain: string): Prom
     const { error: insSubErr } = await supabase.from("fact_quy_trinh").insert({
       ma_qr_quy_trinh: subQr,
       bo_dung_cu_id: boId || null,
-      ma_trang_thai_hien_tai: sta,
+      ...staPatch,
       quy_trinh_cha_id: mainId,
       ma_vai_tro_bo: "SUB",
       is_active: true,

@@ -30,6 +30,7 @@ export function useVSTFormHandlers(
   setSession: Dispatch<SetStateAction<GiamSatSession>>,
   setTimeLeft: Dispatch<SetStateAction<number | null>>,
   ngheNghieps: MasterOption[],
+  khuVucs: MasterOption[],
   setLoading: Dispatch<SetStateAction<boolean>>,
   onSuccess: () => void,
   editingSessionId: string | null,
@@ -116,14 +117,21 @@ export function useVSTFormHandlers(
       }
     }
 
-    const observations: VSTObservation[] = buildVstObservations({ persons, session, ngheNghieps });
+    const sessionTenKhuVuc =
+      khuVucs.find((kv) => kv.id === session.khu_vuc_id)?.ten_danh_muc?.trim() || undefined;
+    const observations: VSTObservation[] = buildVstObservations({
+      persons,
+      session,
+      ngheNghieps,
+      sessionTenKhuVuc,
+    });
 
     if (!observations.length) return toast.error("Vui lòng hoàn thành ít nhất 1 cơ hội thực tế");
 
     const ketThucIso = isReplayCamera ? String(session.thoi_gian_ket_thuc).trim() : new Date().toISOString();
     const sessionPayload = {
       ...(session as GiamSatSession),
-      hinh_thuc_giam_sat: session.hinh_thuc_giam_sat || "Giám sát khách quan",
+      hinh_thuc_giam_sat: session.hinh_thuc_giam_sat || "Giám sát chuyên trách",
       cach_thuc_giam_sat: session.cach_thuc_giam_sat || "Giám sát trực tiếp tại chỗ",
       thoi_gian_bat_dau: session.thoi_gian_bat_dau,
       thoi_gian_ket_thuc: ketThucIso,
@@ -196,6 +204,7 @@ export function useVSTFormHandlers(
     }
 
     opp.isCollapsed = true;
+    // Cơ hội mới ở cuối danh sách: các cơ hội đã ghi nhận nằm ở trên, cơ hội đang nhập nằm ở dưới.
     newPersons[pIdx].opportunities.push(createNewOpp());
     setPersons(newPersons);
     toast.success("Đã ghi nhận cơ hội");

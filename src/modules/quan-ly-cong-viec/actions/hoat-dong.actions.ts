@@ -4,6 +4,8 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
+import { buildQlcvDmPersistFields } from "../lib/qlcv-persist-dm-fields";
+import { qlcvWorkflowMaFromViewRow } from "../lib/qlcv-workflow-read";
 import { trangThaiCongViecSauBaoCaoTienDo } from "../lib/qlcv-trang-thai-after-bao-cao-tien-do";
 
 interface CreateHoatDongInput {
@@ -37,21 +39,27 @@ export async function createHoatDong(input: CreateHoatDongInput) {
     const adminBypass = await hasRBACAdminSupervisionBypass();
     if (!adminBypass) {
       const { data: task, error: te } = await supabase
-        .from("fact_cong_viec")
+        .from("v_fact_cong_viec_full")
         .select("id, nguoi_phu_trach_id, trang_thai")
         .eq("id", input.id_cong_viec)
         .maybeSingle();
       if (te || !task) throw new Error("Không tìm thấy công việc.");
-      taskTrangThaiForStatus = task.trang_thai != null ? String(task.trang_thai) : null;
+      taskTrangThaiForStatus = qlcvWorkflowMaFromViewRow(task).trang_thai;
 
-      const st = String(task.trang_thai || "");
+      const st = taskTrangThaiForStatus;
+      if (st === "CHO_DUYET" || st === "CHO_XAC_NHAN_HOAN_THANH") {
+        throw new Error("Việc đang chờ nghiệm thu — không ghi tiến độ tại đây.");
+      }
       const isAssignee =
         Boolean(actorNhanSuId && task.nguoi_phu_trach_id) &&
         String(actorNhanSuId) === String(task.nguoi_phu_trach_id);
       const assigneeMayUpdateProgress =
         isAssignee &&
-        (st === "DANG_THUC_HIEN" ||
+        (st === "DANG_LAM" ||
+          st === "TU_CHOI" ||
+          st === "DANG_THUC_HIEN" ||
           st === "CHO_NHAN_VIEC" ||
+          (st === "MOI" && Boolean(task.nguoi_phu_trach_id)) ||
           (st === "CHUA_BAT_DAU" && Boolean(task.nguoi_phu_trach_id)));
 
       if (!assigneeMayUpdateProgress) {
@@ -59,11 +67,46 @@ export async function createHoatDong(input: CreateHoatDongInput) {
       }
     } else {
       const { data: taskMeta } = await supabase
-        .from("fact_cong_viec")
+        .from("v_fact_cong_viec_full")
         .select("trang_thai")
         .eq("id", input.id_cong_viec)
         .maybeSingle();
-      taskTrangThaiForStatus = taskMeta?.trang_thai != null ? String(taskMeta.trang_thai) : null;
+      taskTrangThaiForStatus = taskMeta ? qlcvWorkflowMaFromViewRow(taskMeta).trang_thai : null;
+    }
+  }
+
+  if (input.phan_tram_hoan_thanh !== undefined) {
+    const pct = Number(input.phan_tram_hoan_thanh);
+    if (pct >= 100) {
+      const { data: children, error: cErr } = await supabase
+        .from("v_fact_cong_viec_full")
+        .select("id, trang_thai")
+        .eq("cong_viec_cha_id", input.id_cong_viec);
+      if (cErr) throw new Error("Không kiểm tra được việc con.");
+      const blocking = (children || []).filter((c) => c.trang_thai !== "HOAN_THANH" && c.trang_thai !== "DA_HUY");
+      if (blocking.length > 0) {
+        throw new Error("Còn việc con chưa hoàn thành — không thể báo 100% / chờ nghiệm thu cho công việc cha.");
+      }
+    }
+
+    const updateData: Record<string, unknown> = {
+      phan_tram_hoan_thanh: input.phan_tram_hoan_thanh,
+      updated_at: new Date().toISOString(),
+    };
+
+    const stMoi = trangThaiCongViecSauBaoCaoTienDo(input.phan_tram_hoan_thanh, taskTrangThaiForStatus);
+    if (stMoi) {
+      const tt = await buildQlcvDmPersistFields(supabase, { trang_thai: stMoi });
+      updateData.trang_thai_id = tt.trang_thai_id;
+    }
+
+    const { error: taskUpdateErr } = await supabase
+      .from("fact_cong_viec")
+      .update(updateData)
+      .eq("id", input.id_cong_viec);
+    if (taskUpdateErr) {
+      console.error("Lỗi cập nhật tiến độ công việc:", taskUpdateErr);
+      throw new Error("Không thể cập nhật tiến độ công việc: " + taskUpdateErr.message);
     }
   }
 
@@ -82,31 +125,6 @@ export async function createHoatDong(input: CreateHoatDongInput) {
   if (hdError) {
     console.error("Lỗi ghi nhận hoạt động:", hdError);
     throw new Error("Không thể ghi nhận hoạt động: " + hdError.message);
-  }
-
-  if (input.phan_tram_hoan_thanh !== undefined) {
-    const pct = Number(input.phan_tram_hoan_thanh);
-    if (pct >= 100) {
-      const { data: children, error: cErr } = await supabase
-        .from("fact_cong_viec")
-        .select("id, trang_thai")
-        .eq("cong_viec_cha_id", input.id_cong_viec);
-      if (cErr) throw new Error("Không kiểm tra được việc con.");
-      const blocking = (children || []).filter((c) => c.trang_thai !== "HOAN_THANH" && c.trang_thai !== "DA_HUY");
-      if (blocking.length > 0) {
-        throw new Error("Còn việc con chưa hoàn thành — không thể báo 100% / chờ nghiệm thu cho công việc cha.");
-      }
-    }
-
-    const updateData: Record<string, unknown> = {
-      phan_tram_hoan_thanh: input.phan_tram_hoan_thanh,
-      updated_at: new Date().toISOString(),
-    };
-
-    const stMoi = trangThaiCongViecSauBaoCaoTienDo(input.phan_tram_hoan_thanh, taskTrangThaiForStatus);
-    if (stMoi) updateData.trang_thai = stMoi;
-
-    await supabase.from("fact_cong_viec").update(updateData).eq("id", input.id_cong_viec);
   }
 
   revalidatePath("/quan-ly-cong-viec");

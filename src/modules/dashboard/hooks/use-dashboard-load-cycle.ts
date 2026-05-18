@@ -16,8 +16,6 @@ type GapCompliance = Record<
   { kq: ComplianceDashboardPayload; cheo: ComplianceDashboardPayload; tgs: ComplianceDashboardPayload }
 >;
 
-type ParticipationRow = { id: string; ten: string; so_phien: number };
-
 export function useDashboardLoadCycle(args: {
   initDone: boolean;
   activeTab: DashboardTabType;
@@ -42,7 +40,6 @@ export function useDashboardLoadCycle(args: {
     v: { kq: VstDashboardPayload | null; cheo: VstDashboardPayload | null; tgs: VstDashboardPayload | null } | null,
   ) => void;
   setComplianceGapPayloads: (v: GapCompliance) => void;
-  setTuGiamSatParticipationByKhoa: (v: ParticipationRow[]) => void;
   setKsnkStaffSupervision: (v: DashboardKsnkStaffSupervisionRow[]) => void;
   setShowKsnkStaffWorkload: (v: boolean) => void;
   setKhoaOverviewRows: (v: DashboardKhoaOverviewRow[]) => void;
@@ -70,7 +67,6 @@ export function useDashboardLoadCycle(args: {
     setCompliancePayloads,
     setVstGapPayloads,
     setComplianceGapPayloads,
-    setTuGiamSatParticipationByKhoa,
     setKsnkStaffSupervision,
     setShowKsnkStaffWorkload,
     setKhoaOverviewRows,
@@ -151,7 +147,6 @@ export function useDashboardLoadCycle(args: {
       setCompliancePayloads(out.gsc);
       setVstGapPayloads(out.vstGap);
       setComplianceGapPayloads(out.complianceGap ?? {});
-      setTuGiamSatParticipationByKhoa(out.tuGiamSatParticipation);
       setKsnkStaffSupervision(out.ksnkStaffSupervision);
       setShowKsnkStaffWorkload(out.showKsnkStaffWorkload);
     } catch (err) {
@@ -182,7 +177,6 @@ export function useDashboardLoadCycle(args: {
     setCompliancePayloads,
     setVstGapPayloads,
     setComplianceGapPayloads,
-    setTuGiamSatParticipationByKhoa,
     setKsnkStaffSupervision,
     setShowKsnkStaffWorkload,
     setKhoaOverviewRows,

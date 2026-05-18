@@ -4,11 +4,21 @@ import React from "react";
 import { ArrowRight, ClipboardList, Droplets, ShieldHalf } from "lucide-react";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 
+type ChecklistTemplateTableRow = {
+  id: string;
+  ma_bk?: string | null;
+  ten_bk?: string | null;
+  ten_bang_kiem?: string | null;
+  title?: string | null;
+  loai_bang_kiem?: string | null;
+  category?: string | null;
+};
+
 interface ChecklistTemplateTableProps {
-  data: any[];
-  onSelect: (template: any) => void;
+  data: ChecklistTemplateTableRow[];
+  onSelect: (template: ChecklistTemplateTableRow) => void;
   onSearch: (term: string) => void;
-  onSort: (key: any) => void;
+  onSort: (key: string) => void;
   searchTerm: string;
   loading?: boolean;
 }
@@ -45,12 +55,12 @@ export default function ChecklistTemplateTable({
             sortable: true,
             cell: (t) => (
               <div className="flex items-center gap-3 py-1.5">
-                <TemplateTypeIcon loai={t.loai_bang_kiem} />
+                <TemplateTypeIcon loai={t.loai_bang_kiem ?? undefined} />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold leading-snug text-slate-900 group-hover:text-[var(--primary)]">
                     {t.ten_bk || t.ten_bang_kiem || t.title}
                   </p>
-                  <p className="truncate font-mono text-[11px] font-medium text-slate-500">{t.ma_bk || t.ma_bang_kiem || t.id}</p>
+                  <p className="truncate font-mono text-[11px] font-medium text-slate-500">{t.ma_bk || t.id}</p>
                 </div>
               </div>
             ),

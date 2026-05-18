@@ -25,7 +25,7 @@ const segNo = "bg-rose-600 text-white border-rose-600";
 export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment }: VSTAssessmentSectionProps) {
   if (opp.hanh_dong && opp.hanh_dong !== "Bỏ sót") {
     return (
-      <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/40 p-3 animate-in fade-in duration-300">
+      <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/40 p-2 sm:p-3 animate-in fade-in duration-300">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="text-[10px] font-medium text-slate-600">Đúng kỹ thuật?</span>
           <div className="inline-flex overflow-hidden rounded-lg shadow-sm" role="group" aria-label="Đúng kỹ thuật">
@@ -70,7 +70,7 @@ export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment
 
   if (opp.hanh_dong === "Bỏ sót") {
     return (
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-rose-200 bg-rose-50/50 p-3 animate-in zoom-in-95">
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-rose-200 bg-rose-50/50 p-2 sm:p-3 animate-in zoom-in-95">
         <span className="text-[10px] font-semibold uppercase tracking-wide text-rose-800">Lạm dụng găng?</span>
         <div className="inline-flex overflow-hidden rounded-lg shadow-sm" role="group">
           <button
@@ -93,6 +93,6 @@ export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment
   }
 
   return (
-    <div className="h-16 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl italic text-[9px] text-slate-300">Hoàn thành bước 2</div>
+    <div className="h-14 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl italic text-[9px] text-slate-300 sm:h-16">Hoàn thành bước 2</div>
   );
 }

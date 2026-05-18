@@ -1,26 +1,4 @@
 import type { DashboardSummaryRow } from "../compliance-dashboard.types";
-import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
-import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
-
-export type ParticipationRow = { id: string; ten: string; so_phien: number };
-
-export function mergeParticipationRows(
-  vst: VstDashboardPayload | null,
-  gsc: Record<string, ComplianceDashboardPayload>,
-): ParticipationRow[] {
-  const vstPart = vst?.participation ?? [];
-  const gscPart: ParticipationRow[] = [];
-  Object.values(gsc).forEach((p) => {
-    if (p?.participation?.length) gscPart.push(...p.participation);
-  });
-  const m = new Map<string, ParticipationRow>();
-  for (const p of [...vstPart, ...gscPart]) {
-    const ex = m.get(p.id);
-    if (ex) ex.so_phien += p.so_phien;
-    else m.set(p.id, { ...p });
-  }
-  return Array.from(m.values());
-}
 
 /** Chỉ giữ option bảng kiểm khi bảng tổng hợp có ≥1 phiên (tong > 0) trong khoảng lọc. */
 export function pickBangKiemOptionIdsWithSessionData(

@@ -13,6 +13,7 @@ import {
   type ImportRow,
   normalizeVstModeFields,
   optionalFkFromUnknown,
+  resolveVstModeIds,
   validateVstModeFields,
   vstWriteErrorMessage,
 } from "./vst-write.helpers";
@@ -57,7 +58,7 @@ export async function importVSTData(rows: ImportRow[]) {
       if (!nguoiGsImport) {
         throw new Error("Import VST: nguoi_giam_sat_id là bắt buộc và phải hợp lệ.");
       }
-      const { cach } = normalizeVstModeFields(row);
+      const { cach, hinh_id, cach_id } = normalizeVstModeFields(row);
       const policy = await resolveSupervisorPolicy({
         supabase,
         supervisorId: nguoiGsImport,
@@ -66,12 +67,13 @@ export async function importVSTData(rows: ImportRow[]) {
       });
       const hinh = policy.derivedHinhThuc;
       validateVstModeFields(hinh, cach);
+      const modeIds = await resolveVstModeIds(supabase, { hinh, cach, hinh_id, cach_id });
       const payload = {
         khoa_id: khoaNorm,
         khu_vuc_id: optionalFkFromUnknown(row.khu_vuc_id),
         vi_tri_cu_the: row.vi_tri_cu_the || null,
-        hinh_thuc_giam_sat: hinh,
-        cach_thuc_giam_sat: cach,
+        hinh_thuc_id: modeIds.hinh_thuc_id,
+        cach_thuc_id: modeIds.cach_thuc_id,
         nguoi_giam_sat_id: nguoiGsImport,
         ngay_giam_sat: row.ngay_giam_sat || null,
         thoi_gian_bat_dau: row.thoi_gian_bat_dau || null,
@@ -79,9 +81,13 @@ export async function importVSTData(rows: ImportRow[]) {
         is_active: true,
         updated_at: new Date().toISOString(),
       };
-      if (sessionId && existingIds.has(sessionId))
-        await supabase.from("fact_giam_sat_vst_sessions").update(payload).eq("id", sessionId);
-      else {
+      if (sessionId && existingIds.has(sessionId)) {
+        const { error } = await supabase
+          .from("fact_giam_sat_vst_sessions")
+          .update(payload)
+          .eq("id", sessionId);
+        if (error) throw error;
+      } else {
         const { error } = await supabase.from("fact_giam_sat_vst_sessions").insert(payload);
         if (error) throw error;
       }

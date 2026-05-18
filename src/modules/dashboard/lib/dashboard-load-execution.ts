@@ -1,16 +1,10 @@
 import { getDashboardSummaryTable, getDashboardKhoaOverviewRows } from "../actions/compliance-dashboard.actions";
 import { getOverviewDashboardBundle } from "../actions/overview-dashboard-bundle.actions";
-import { fetchKsnkStaffSupervisionForOverview } from "../actions/dashboard-ksnk-staff-stats.actions";
 import { getDashboardGapBundle } from "../actions/gap-dashboard-bundle.actions";
 import type { DashboardSummaryRow, DashboardKhoaOverviewRow, DashboardKsnkStaffSupervisionRow } from "../compliance-dashboard.types";
 import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
 import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
-import {
-  mergeParticipationRows,
-  pickBangKiemOptionIdsWithSessionData,
-  sortedJoinIds,
-} from "./dashboard-hook-helpers";
-import { buildComplianceGapMap } from "./build-compliance-gap-map";
+import { pickBangKiemOptionIdsWithSessionData, sortedJoinIds } from "./dashboard-hook-helpers";
 import type { DashboardTabType } from "../hooks/dashboard-types";
 import type { OverviewDashboardBundleInput } from "../actions/overview-dashboard-bundle.actions";
 
@@ -53,7 +47,6 @@ export type DashboardLoadResult = {
     string,
     { kq: ComplianceDashboardPayload; cheo: ComplianceDashboardPayload; tgs: ComplianceDashboardPayload }
   > | null;
-  tuGiamSatParticipation: ReturnType<typeof mergeParticipationRows>;
   ksnkStaffSupervision: DashboardKsnkStaffSupervisionRow[];
   showKsnkStaffWorkload: boolean;
 };
@@ -113,7 +106,6 @@ export async function executeDashboardLoad(input: DashboardLoadInput): Promise<D
   let gsc: Record<string, ComplianceDashboardPayload> = {};
   let vstGap: DashboardLoadResult["vstGap"] = null;
   let complianceGap: DashboardLoadResult["complianceGap"] = null;
-  let tuGiamSatParticipation: DashboardLoadResult["tuGiamSatParticipation"] = [];
   let ksnkStaffSupervision: DashboardKsnkStaffSupervisionRow[] = [];
   let showKsnkStaffWorkload = false;
 
@@ -121,40 +113,28 @@ export async function executeDashboardLoad(input: DashboardLoadInput): Promise<D
     const tabToType = { overview: "ALL", ksnk: "KSNK", cheo: "CHEO", tu_giam_sat: "TU_GIAM_SAT" } as const;
     if (input.activeTab === "overview") {
       if (wa.overview) {
-        if (input.overviewBundleArgs) {
-          const bundle = await getOverviewDashboardBundle({
-            ...input.overviewBundleArgs,
-            bangKiemOverride: bangKiemForFetch,
-          });
-          vst = bundle.vst;
-          gsc = bundle.gsc;
-          tuGiamSatParticipation = bundle.tuGiamSatParticipation;
-          ksnkStaffSupervision = bundle.ksnkStaffSupervision;
-          showKsnkStaffWorkload = bundle.showKsnkStaffWorkload;
-        } else {
-          const [res, tgs, ksnkBundle] = await Promise.all([
-            input.fetchPayloadsForType("ALL", bangKiemForFetch),
-            input.fetchPayloadsForType("TU_GIAM_SAT", bangKiemForFetch),
-            fetchKsnkStaffSupervisionForOverview({
-              selectedBangKiemMas: input.selectedBangKiemMas,
-              selectedKhoiIds: input.selectedKhoiIds,
-              selectedKhoaIds: input.selectedKhoaIds,
-              selectedNgheIds: input.selectedNgheIds,
-              selectedKhuVucIds: input.selectedKhuVucIds,
-              tuNgay: input.tuNgay,
-              denNgay: input.denNgay,
-              khoiOptionCount: input.filterOptions?.khoi?.length ?? 0,
-              khoaOptionCount: input.filterOptions?.khoa?.length ?? 0,
-              ngheOptionCount: input.filterOptions?.nghe_nghiep?.length ?? 0,
-              khuOptionCount: input.filterOptions?.khu_vuc?.length ?? 0,
-            }),
-          ]);
-          vst = res.vst;
-          gsc = res.gsc;
-          tuGiamSatParticipation = mergeParticipationRows(tgs.vst, tgs.gsc);
-          ksnkStaffSupervision = ksnkBundle.rows;
-          showKsnkStaffWorkload = ksnkBundle.showKsnkStaffWorkload;
-        }
+        const overviewInput: OverviewDashboardBundleInput =
+          input.overviewBundleArgs ?? {
+            selectedBangKiemMas: input.selectedBangKiemMas,
+            selectedKhoiIds: input.selectedKhoiIds,
+            selectedKhoaIds: input.selectedKhoaIds,
+            selectedNgheIds: input.selectedNgheIds,
+            selectedKhuVucIds: input.selectedKhuVucIds,
+            tuNgay: input.tuNgay,
+            denNgay: input.denNgay,
+            khoiOptionCount: input.filterOptions?.khoi?.length ?? 0,
+            khoaOptionCount: input.filterOptions?.khoa?.length ?? 0,
+            ngheOptionCount: input.filterOptions?.nghe_nghiep?.length ?? 0,
+            khuOptionCount: input.filterOptions?.khu_vuc?.length ?? 0,
+          };
+        const bundle = await getOverviewDashboardBundle({
+          ...overviewInput,
+          bangKiemOverride: bangKiemForFetch,
+        });
+        vst = bundle.vst;
+        gsc = bundle.gsc;
+        ksnkStaffSupervision = bundle.ksnkStaffSupervision;
+        showKsnkStaffWorkload = bundle.showKsnkStaffWorkload;
       }
     } else if (wa.supervision) {
       const res = await input.fetchPayloadsForType(tabToType[input.activeTab], bangKiemForFetch);
@@ -163,22 +143,26 @@ export async function executeDashboardLoad(input: DashboardLoadInput): Promise<D
     }
   } else if (input.activeTab === "gap") {
     if (wa.gap) {
-      if (input.gapBundleArgs) {
-        const gap = await getDashboardGapBundle({
-          ...input.gapBundleArgs,
-          bangKiemOverride: bangKiemForFetch,
-        });
-        vstGap = gap.vstGap;
-        complianceGap = gap.complianceGap;
-      } else {
-        const [resKq, resCheo, resTgs] = await Promise.all([
-          input.fetchPayloadsForType("KSNK", bangKiemForFetch),
-          input.fetchPayloadsForType("CHEO", bangKiemForFetch),
-          input.fetchPayloadsForType("TU_GIAM_SAT", bangKiemForFetch),
-        ]);
-        vstGap = { kq: resKq.vst, cheo: resCheo.vst, tgs: resTgs.vst };
-        complianceGap = buildComplianceGapMap(resKq, resCheo, resTgs, input.tuNgay, input.denNgay);
-      }
+      const gapInput: OverviewDashboardBundleInput =
+        input.gapBundleArgs ?? {
+          selectedBangKiemMas: input.selectedBangKiemMas,
+          selectedKhoiIds: input.selectedKhoiIds,
+          selectedKhoaIds: input.selectedKhoaIds,
+          selectedNgheIds: input.selectedNgheIds,
+          selectedKhuVucIds: input.selectedKhuVucIds,
+          tuNgay: input.tuNgay,
+          denNgay: input.denNgay,
+          khoiOptionCount: input.filterOptions?.khoi?.length ?? 0,
+          khoaOptionCount: input.filterOptions?.khoa?.length ?? 0,
+          ngheOptionCount: input.filterOptions?.nghe_nghiep?.length ?? 0,
+          khuOptionCount: input.filterOptions?.khu_vuc?.length ?? 0,
+        };
+      const gap = await getDashboardGapBundle({
+        ...gapInput,
+        bangKiemOverride: bangKiemForFetch,
+      });
+      vstGap = gap.vstGap;
+      complianceGap = gap.complianceGap;
     }
   }
 
@@ -190,7 +174,6 @@ export async function executeDashboardLoad(input: DashboardLoadInput): Promise<D
     gsc,
     vstGap,
     complianceGap,
-    tuGiamSatParticipation,
     ksnkStaffSupervision,
     showKsnkStaffWorkload,
   };

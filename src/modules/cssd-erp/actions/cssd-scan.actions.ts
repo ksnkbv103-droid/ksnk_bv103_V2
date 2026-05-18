@@ -1,10 +1,11 @@
 "use server";
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
 import type { Station } from "../types/cssd.types";
 import { safeRevalidate } from "./cssd-action-common";
 import { executeWorkflowStationScan } from "../workflow/application/cssd-workflow-application";
+import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
+import { verifyCssdWorkflowEdit } from "./cssd-permissions";
 
 async function cssdScanOperatorLabel(): Promise<string> {
   try {
@@ -21,7 +22,7 @@ async function cssdScanOperatorLabel(): Promise<string> {
 
 export async function scanQR(maQR: string, station: Station, extraPayload?: Record<string, any>) {
   const supabase = createAdminSupabaseClient();
-  await verifyPermission("CSSD_WORKFLOW", "edit");
+  await verifyCssdWorkflowEdit();
 
   /** TK chỉ qua phiếu/mẻ (/cssd-erp/batch): không có quét «trạm tiệt khuẩn» trên luồng 6 trạm. */
   if (station === "TIET_KHUAN") {
@@ -30,7 +31,11 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
     );
   }
 
-  const code = String(maQR || "").trim().toUpperCase();
+  const resolved = await resolveCssdCodeWithClient(supabase, maQR);
+  if (resolved.targetType === "MACHINE") {
+    throw new Error("Mã vừa quét là mã máy. Vui lòng dùng màn Bảo trì thiết bị hoặc Mẻ tiệt khuẩn cho mã máy.");
+  }
+  const code = resolved.code;
   const operatorLabel = await cssdScanOperatorLabel();
 
   // 1. Thực hiện nghiệp vụ qua RPC tập trung (Atomicity & Speed)

@@ -18,14 +18,39 @@ interface SmartImportConfig {
   fixedValues?: Record<string, unknown>;
 }
 
+const SMART_IMPORT_TABLE_UNIQUE_KEY: Record<string, string> = {
+  dm_khoa_phong: "ma_khoa",
+  dm_bo_dung_cu_chi_tiet: "ma_chi_tiet",
+  dm_loai_dung_cu: "ma_loai_dung_cu",
+  dm_hoa_chat: "ma_hoa_chat",
+  dm_bo_dung_cu: "ma_bo",
+  dm_thiet_bi: "ma_thiet_bi",
+  mdm_nhan_su: "ma_nv",
+};
+
 function errSmartImport(e: unknown) {
   return e instanceof Error ? e.message : String(e);
+}
+
+function formatSmartImportDbError(tableName: string, message: string) {
+  if (tableName !== "mdm_nhan_su") return message;
+  return formatHoSoNhanSuWriteError(message) || formatHoSoKhoaFkViolation(message) || message;
 }
 
 export async function smartImportData(config: SmartImportConfig, data: Record<string, unknown>[]) {
   try {
     if (!Array.isArray(data) || data.length === 0) {
       return { success: false, error: "File import không có dữ liệu hợp lệ." };
+    }
+    const expectedUniqueKey = SMART_IMPORT_TABLE_UNIQUE_KEY[config.tableName];
+    if (!expectedUniqueKey) {
+      return { success: false, error: `Bảng không được phép Smart Import: ${config.tableName}` };
+    }
+    if (expectedUniqueKey !== config.uniqueKey) {
+      return {
+        success: false,
+        error: `Cấu hình import không hợp lệ cho bảng ${config.tableName} (expected uniqueKey: ${expectedUniqueKey}).`,
+      };
     }
     const importModule = getRegistryModuleForMasterTable(config.tableName);
     if (!importModule) {
@@ -54,6 +79,12 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
         .map((c) => String(c)),
     );
     const importedCodes = new Set<string>();
+    const preparedRows: Array<{
+      rowNumber: number;
+      code: string;
+      payload: Record<string, unknown>;
+    }> = [];
+    const preparedIndexByCode = new Map<string, number>();
 
     let counter = 1;
     if (config.codePrefix) {
@@ -110,44 +141,70 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
           continue;
         }
       }
-      if (codeStr && existingCodes.has(codeStr)) {
-        const { error } = await supabase
-          .from(config.tableName)
-          .update({ ...scopeSafeRest, is_active: normalizedIsActive, updated_at: new Date().toISOString() })
-          .eq(config.uniqueKey, codeStr);
-        if (error) {
-          const em =
-            config.tableName === "mdm_nhan_su"
-              ? formatHoSoNhanSuWriteError(error.message) || formatHoSoKhoaFkViolation(error.message) || error.message
-              : error.message;
-          dbErrors.push(`Dòng ${rowNumber || "?"} (${codeStr}): ${em}`);
-          continue;
-        }
-        importedCodes.add(codeStr);
-      } else {
-        if (!codeStr && !config.codePrefix) {
-          rowErrors.push(`Dòng ${rowNumber || "?"}: thiếu mã định danh và chưa cấu hình codePrefix để tự sinh mã.`);
-          continue;
-        }
-        const newCode =
-          codeStr ||
-          (config.codePrefix ? `${config.codePrefix}${(counter++).toString().padStart(3, "0")}` : undefined);
-        const insertData = newCode
-          ? { [config.uniqueKey]: newCode, ...scopeSafeRest, is_active: normalizedIsActive }
-          : { ...scopeSafeRest, is_active: normalizedIsActive };
-        const { error } = await supabase.from(config.tableName).insert([insertData]);
-        if (error) {
-          const em =
-            config.tableName === "mdm_nhan_su"
-              ? formatHoSoNhanSuWriteError(error.message) || formatHoSoKhoaFkViolation(error.message) || error.message
-              : error.message;
-          dbErrors.push(`Dòng ${rowNumber || "?"} (${String(newCode || "?")}): ${em}`);
-          continue;
-        }
-        if (newCode) importedCodes.add(newCode);
+      if (!codeStr && !config.codePrefix) {
+        rowErrors.push(`Dòng ${rowNumber || "?"}: thiếu mã định danh và chưa cấu hình codePrefix để tự sinh mã.`);
+        continue;
       }
+      const nextCode =
+        codeStr ||
+        (config.codePrefix ? `${config.codePrefix}${(counter++).toString().padStart(3, "0")}` : undefined);
+      const finalCode = String(nextCode || "").trim();
+      if (!finalCode) {
+        rowErrors.push(`Dòng ${rowNumber || "?"}: không thể tạo mã định danh.`);
+        continue;
+      }
+      const payload: Record<string, unknown> = {
+        [config.uniqueKey]: finalCode,
+        ...scopeSafeRest,
+        is_active: normalizedIsActive,
+        updated_at: new Date().toISOString(),
+      };
+      const existingIndex = preparedIndexByCode.get(finalCode);
+      if (existingIndex !== undefined) {
+        preparedRows[existingIndex] = { rowNumber, code: finalCode, payload };
+        rowWarnings.push(
+          `Dòng ${rowNumber || "?"}: mã ${finalCode} bị trùng trong file, hệ thống dùng dữ liệu dòng xuất hiện sau.`,
+        );
+        continue;
+      }
+      preparedIndexByCode.set(finalCode, preparedRows.length);
+      preparedRows.push({ rowNumber, code: finalCode, payload });
     }
     if (rowErrors.length > 0 || dbErrors.length > 0) {
+      return {
+        success: false,
+        error: buildImportErrorMessage(rowErrors, dbErrors),
+      };
+    }
+
+    const CHUNK_SIZE = 200;
+    for (let i = 0; i < preparedRows.length; i += CHUNK_SIZE) {
+      const chunk = preparedRows.slice(i, i + CHUNK_SIZE);
+      const chunkPayload = chunk.map((x) => x.payload);
+      const { error: chunkError } = await supabase
+        .from(config.tableName)
+        .upsert(chunkPayload, { onConflict: config.uniqueKey });
+      if (!chunkError) {
+        chunk.forEach((row) => importedCodes.add(row.code));
+        continue;
+      }
+
+      // Fallback từng dòng để giữ được thông báo lỗi rõ ràng.
+      for (const row of chunk) {
+        const { error } = await supabase
+          .from(config.tableName)
+          .upsert(row.payload, { onConflict: config.uniqueKey });
+        if (error) {
+          dbErrors.push(
+            `Dòng ${row.rowNumber || "?"} (${row.code}): ${formatSmartImportDbError(config.tableName, error.message)}`,
+          );
+          continue;
+        }
+        importedCodes.add(row.code);
+      }
+    }
+
+    if (dbErrors.length > 0) {
       return {
         success: false,
         error: buildImportErrorMessage(rowErrors, dbErrors),

@@ -4,13 +4,18 @@ import React, { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { createCongViec, updateCongViec } from "../actions/cong-viec.actions";
 import { pheDuyetVaCapNhatDeXuat } from "../actions/dexuat.actions";
-import { getNhanSuOptions, getToCongTacOptions } from "../actions/cong-viec-read.actions";
+import { getQlcvFormCatalog } from "../actions/cong-viec-read.actions";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { congViecSchema } from "@/lib/validations/quan-ly-cong-viec.validations";
+import type { QlcvSelectOption } from "../lib/qlcv-form-options";
+import type { CongViecView } from "../types";
+
+type QlcvLoaiCongViec = "DINH_KY" | "DOT_XUAT" | "KHAN_CAP";
+type QlcvMucDoUuTien = "THAP" | "TRUNG_BINH" | "CAO";
 
 interface Props {
-  initialData?: any;
+  initialData?: Partial<CongViecView> & { id?: string; is_active?: boolean };
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -18,8 +23,8 @@ interface Props {
 export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
   const [loading, setLoading] = useState(false);
   const [optionsLoading, setOptionsLoading] = useState(true);
-  const [nhanSuOptions, setNhanSuOptions] = useState<any[]>([]);
-  const [toCongTacOptions, setToCongTacOptions] = useState<any[]>([]);
+  const [nhanSuOptions, setNhanSuOptions] = useState<QlcvSelectOption[]>([]);
+  const [toCongTacOptions, setToCongTacOptions] = useState<QlcvSelectOption[]>([]);
 
   const [selectedNhanSu, setSelectedNhanSu] = useState(() => String(initialData?.nguoi_phu_trach_id || ""));
   const [selectedTo, setSelectedTo] = useState(() => String(initialData?.to_cong_tac_id || ""));
@@ -33,9 +38,9 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
     const loadOptions = async () => {
       setOptionsLoading(true);
       try {
-        const [ns, tct] = await Promise.all([getNhanSuOptions(), getToCongTacOptions()]);
-        setNhanSuOptions(ns);
-        setToCongTacOptions(tct);
+        const catalog = await getQlcvFormCatalog();
+        setNhanSuOptions(catalog.nhanSu);
+        setToCongTacOptions(catalog.toCongTac);
       } catch (error) {
         console.error("Lỗi tải danh mục:", error);
         toast.error(
@@ -82,8 +87,8 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
     const rawPayload = {
       tieu_de: formData.get("tieu_de") as string,
       mo_ta: (formData.get("mo_ta") as string) || null,
-      loai_cong_viec: (formData.get("loai_cong_viec") as any) || "DOT_XUAT",
-      muc_do_uu_tien: (formData.get("muc_do_uu_tien") as any) || "TRUNG_BINH",
+      loai_cong_viec: (formData.get("loai_cong_viec") as QlcvLoaiCongViec) || "DOT_XUAT",
+      muc_do_uu_tien: (formData.get("muc_do_uu_tien") as QlcvMucDoUuTien) || "TRUNG_BINH",
       han_hoan_thanh: (formData.get("han_hoan_thanh") as string) || null,
       nguoi_phu_trach_id: selectedNhanSu || null,
       khoa_thuc_hien_id: null,
@@ -125,8 +130,8 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
         toast.success("Đã tạo công việc thành công!");
       }
       onSuccess?.();
-    } catch (error: any) {
-      toast.error(error.message || "Lỗi hệ thống khi lưu công việc");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Lỗi hệ thống khi lưu công việc");
     } finally {
       setLoading(false);
     }
@@ -205,10 +210,11 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
             <label className={labelStyles}>Tổ công tác chuyên trách</label>
             <SearchableSelect
               options={toCongTacOptions}
-              placeholder={optionsLoading ? "Đang tải..." : "Chọn tổ (dm_to_cong_tac)..."}
+              placeholder={optionsLoading ? "Đang tải..." : "Chọn tổ công tác..."}
               value={selectedTo}
               onChange={setSelectedTo}
               disabled={optionsLoading}
+              searchPlaceholder="Tìm tổ theo tên hoặc mã..."
             />
             {!optionsLoading && toCongTacOptions.length === 0 ? (
               <p className={`mt-2 ${bv103LayoutChrome.noticeAmber}`}>

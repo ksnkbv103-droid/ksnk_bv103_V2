@@ -46,7 +46,18 @@ export function useCSSDWorkflow() {
     setLoading(true);
     setLastScan(null);
     try {
-      const scanRes = await scanQR(code, currentStation, extraPayload);
+      let scanRes: { tenBoDungCu?: string } = {};
+      
+      if (code.startsWith("CATALOG::")) {
+        const { registerPhysicalBoLabelFromDmAction } = await import("../actions/cssd-register-label.actions");
+        const boId = code.replace("CATALOG::", "");
+        const res = await registerPhysicalBoLabelFromDmAction(boId);
+        if (!res.success) throw new Error(res.error || "Không thể khởi tạo bộ dụng cụ.");
+        code = res.ma_vach_qr;
+        scanRes = { tenBoDungCu: res.ten_bo };
+      } else {
+        scanRes = await scanQR(code, currentStation, extraPayload);
+      }
 
       const buocTiepTheo = nextStationLabel(currentStation);
 
@@ -62,7 +73,29 @@ export function useCSSDWorkflow() {
       toast.success(`Đã xử lý: ${code}`);
       fetchWaitingList(currentStation);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Lỗi quét mã");
+      const { isNetworkError, pushOfflineTask } = await import("@/lib/offline-sync");
+      if (isNetworkError(error)) {
+        await pushOfflineTask("SCAN_QR", { maQR: code, station: currentStation, extraPayload });
+        toast.info("Đã lưu ngoại tuyến", {
+          description: `Mã ${code} sẽ tự động đồng bộ khi có mạng.`,
+        });
+        
+        // Mock success for UI flow continuity
+        setLastScan({
+          qrCode: code,
+          tenBoDungCu: "Đang chờ đồng bộ...",
+          nguoiThucHien: "Nhân viên KSNK",
+          thoiGianQuet: new Date().toLocaleTimeString("vi-VN"),
+          buocTiepTheo: nextStationLabel(currentStation),
+          maCaMoId: extraPayload?.ma_ca_mo_id,
+          isOffline: true
+        });
+        
+        // Remove from waiting list optimistically
+        setWaitingList(prev => prev.filter(item => item.ma_vach_qr !== code));
+      } else {
+        toast.error(error instanceof Error ? error.message : "Lỗi quét mã");
+      }
     } finally {
       setLoading(false);
     }

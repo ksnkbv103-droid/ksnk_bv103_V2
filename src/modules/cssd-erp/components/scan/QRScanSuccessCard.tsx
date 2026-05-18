@@ -4,6 +4,7 @@
 import React from "react";
 import { CheckCircle2, User, Clock, ArrowRight } from "lucide-react";
 import StationCompleteButton from "../station/StationCompleteButton";
+import SplitAndPrintSubQrButton from "../station/SplitAndPrintSubQrButton";
 
 interface Props {
   qrCode: string;
@@ -108,7 +109,7 @@ export default function QRScanSuccessCard({
             <div className="bg-[#026f17] p-2 rounded-full text-[#FFD700]"><ArrowRight size={20} strokeWidth={3} /></div>
           </div>
 
-          {/* Nút In Nhãn QR Nhiệt (Mới thêm) */}
+          {/* Nút In Nhãn QR Nhiệt (Mặc định) */}
           <div className="mt-4 w-full">
             <StationCompleteButton 
               data={{
@@ -119,6 +120,18 @@ export default function QRScanSuccessCard({
                 thoiGian: thoiGianQuet
               }} 
             />
+            {/* Nếu đang ở Đóng Gói (DONG GOI), hiển thị thêm chức năng tách dụng cụ */}
+            {tramDisplay === "DONG GOI" && (
+              <SplitAndPrintSubQrButton 
+                data={{
+                  qrCode,
+                  tenBoDungCu,
+                  tram: tramDisplay,
+                  nguoiThucHien,
+                  thoiGian: thoiGianQuet
+                }} 
+              />
+            )}
           </div>
         </div>
       </div>

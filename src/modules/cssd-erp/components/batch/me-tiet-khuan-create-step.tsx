@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { Play } from "lucide-react";
 import { getDanhMucAdminPath } from "@/lib/master-data/danh-muc-admin-routes";
+import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY, CSSD_UI_PANEL } from "../../shared/ui/cssd-ui-chrome";
 
 const DANH_MUC_THIET_BI_PATH = "/quan-tri-he-thong/danh-muc/thiet-bi";
 const DANH_MUC_LOAI_MAY_TK_PATH = getDanhMucAdminPath("LOAI_MAY_TIET_KHUAN");
@@ -36,7 +37,7 @@ export default function MeTietKhuanCreateStep({
         ← Danh sách mẻ
       </button>
       <div className="mx-auto max-w-xl space-y-6 pt-2">
-        <div className="space-y-8 rounded-[40px] border border-slate-100 bg-white p-8 shadow-xl">
+        <div className={`space-y-8 p-8 ${CSSD_UI_PANEL}`}>
           <div className="text-center">
             <h2 className="text-3xl font-black uppercase tracking-tighter text-[#026f17]">Tạo mẻ mới</h2>
             <p className="mt-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Bước 1: Chọn thiết bị và người vận hành</p>
@@ -86,10 +87,10 @@ export default function MeTietKhuanCreateStep({
             </div>
           </div>
           <div className="flex gap-4">
-            <button type="button" onClick={onCancel} className="h-14 flex-1 rounded-2xl bg-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500">
+            <button type="button" onClick={onCancel} className={`${CSSD_UI_ACTION_SECONDARY} h-12 flex-1`}>
               Hủy
             </button>
-            <button type="button" onClick={onStart} className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#026f17] text-[10px] font-black uppercase tracking-widest text-[#FFD700] shadow-xl">
+            <button type="button" onClick={onStart} className={`${CSSD_UI_ACTION_PRIMARY} h-12 flex-1`}>
               <Play size={16} /> Bắt đầu mẻ
             </button>
           </div>

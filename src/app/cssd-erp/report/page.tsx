@@ -1,5 +1,5 @@
 // src/app/cssd-erp/report/page.tsx
-import CSSDReportPage from "@/modules/cssd-erp/views/CSSDReportPage";
+import { CSSDReportingPage } from "@/modules/cssd-erp/contexts/reporting/entrypoint";
 
 export const metadata = {
   title: "Báo cáo Tổng hợp CSSD | KSNK 103",
@@ -7,5 +7,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <CSSDReportPage />;
+  return <CSSDReportingPage />;
 }

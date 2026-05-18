@@ -3,23 +3,35 @@ import type { MasterOption } from "@/lib/master-data/gateway";
 import type { VSTObservation } from "../data";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import { normalizeRecordTime, type ExtendedOpportunity, type VSTFormPerson } from "./vst-form-model";
+import { buildVstObservationPersistRow } from "./vst-observation-persist-fields";
 
 export function buildVstObservations(params: {
   persons: VSTFormPerson[];
   session: GiamSatSession;
   ngheNghieps: MasterOption[];
+  /** Tên khu vực từ danh mục (form) — bổ sung nhãn text khi legacy trống. */
+  sessionTenKhuVuc?: string;
 }): VSTObservation[] {
-  const { persons, session, ngheNghieps } = params;
+  const { persons, session, ngheNghieps, sessionTenKhuVuc } = params;
   const isReplayCamera = isReplayCameraSupervisionCachThuc(session.cach_thuc_giam_sat);
   return persons
     .filter((p) => p.nhan_vien_id || (p.is_manual && p.ten_manual))
-    .map((p) => ({
+    .map((p) => {
+      const tenNghe = ngheNghieps.find((nn) => nn.id === p.nghe_nghiep_id)?.ten_danh_muc || "";
+      const loc = buildVstObservationPersistRow({
+        sessionKhuVucId: session.khu_vuc_id,
+        sessionViTri: session.vi_tri,
+        ngheNghiepId: p.nghe_nghiep_id,
+      });
+      return {
       nhan_vien_id: p.nhan_vien_id || null,
       ten_nhan_vien_ngoai: p.is_manual ? p.ten_manual : undefined,
       khoa_id: session.khoa_id,
-      khu_vuc: "",
-      vi_tri: session.vi_tri,
-      nghe_nghiep: ngheNghieps.find((nn) => nn.id === p.nghe_nghiep_id)?.ten_danh_muc || "",
+      khu_vuc_id: loc.khu_vuc_id,
+      khu_vuc: sessionTenKhuVuc || "",
+      vi_tri: loc.vi_tri,
+      nghe_nghiep_id: loc.nghe_nghiep_id,
+      nghe_nghiep: tenNghe,
       hinh_thuc_giam_sat: session.hinh_thuc_giam_sat,
       ngay_giam_sat: session.ngay_giam_sat,
       nguoi_giam_sat_id: session.nguoi_giam_sat_id,
@@ -31,7 +43,8 @@ export function buildVstObservations(params: {
             ? undefined
             : normalizeRecordTime(o.thoi_gian_ghi_nhan, session.ngay_giam_sat),
         })) as ExtendedOpportunity[],
-    }));
+    };
+    });
 }
 
 export function validateOpportunityInput(opp: ExtendedOpportunity): string | null {

@@ -9,11 +9,11 @@ import KsnkPageShell from "./KsnkPageShell";
 import { pathnameUsesPhase1KsnkUnifiedContentShell } from "@/lib/app-shell-scope";
 import { supabase } from "@/lib/supabase";
 import StaffSessionGate from "@/components/auth/StaffSessionGate";
+import Bv103UxHintsBanner from "@/components/shared/Bv103UxHintsBanner";
 import SupervisionOfflineSyncListener from "@/components/shared/SupervisionOfflineSyncListener";
 
 export default function ClientLayoutWrapper({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
   const isLoginPage = pathname === "/login" || pathname.startsWith("/login/");
@@ -23,39 +23,19 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
 
   useEffect(() => {
     let mounted = true;
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      const hasSession = Boolean(data.session);
-      if (!mounted) return;
-      if (!hasSession && !isLoginPage) {
-        router.replace("/login");
-        return;
-      }
-      if (hasSession && isLoginPage) {
-        router.replace("/");
-        return;
-      }
-      setCheckingAuth(false);
-    };
-    checkAuth();
+    
+    // Đăng ký listener để redirect khi đăng xuất
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
       if (!session && !isLoginPage) router.replace("/login");
       if (session && isLoginPage) router.replace("/");
     });
+    
     return () => {
       mounted = false;
       listener.subscription.unsubscribe();
     };
   }, [isLoginPage, router]);
-
-  if (checkingAuth && !isLoginPage) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="w-10 h-10 border-4 border-[#026f17] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   if (isLoginPage) {
     return <>{children}</>;
@@ -70,6 +50,7 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
       
       <div className="flex flex-1 flex-col min-w-0 min-h-0">
         <Header onMenuClick={toggleSidebar} />
+        <Bv103UxHintsBanner />
         <main className="relative z-0 flex-1 touch-manipulation p-4 md:p-8 pointer-events-auto">
           {pathnameUsesPhase1KsnkUnifiedContentShell(pathname) ? (
             <KsnkPageShell rolloutPhase="phase-1">{children}</KsnkPageShell>

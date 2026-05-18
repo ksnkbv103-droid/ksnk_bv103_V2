@@ -1,10 +1,9 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
-import { coMeTietKhuanChuaKetThucTheoThietBi } from "../helpers/assert-thiet-bi-cho-me-tiet-khuan";
 import { getErrorMessage, mapFkError } from "./cssd-action-common";
 import type { FactBaoTriRow } from "./cssd-bao-tri.types";
+import { verifyCssdMaintenanceView } from "./cssd-permissions";
 
 /** Danh sách phiếu bảo trì (mới nhất trước). */
 export async function listFactBaoTriThietBiAction(): Promise<
@@ -12,7 +11,7 @@ export async function listFactBaoTriThietBiAction(): Promise<
 > {
   const supabase = createAdminSupabaseClient();
   try {
-    await verifyPermission("CSSD_ME_TIET_KHUAN", "view");
+    await verifyCssdMaintenanceView();
     const { data: rows, error } = await supabase
       .from("fact_bao_tri_thiet_bi")
       .select("id, ma_phieu, thiet_bi_id, trang_thai, ly_do, ket_qua_ghi_nhan, thoi_gian_bat_dau, thoi_gian_ket_thuc, thiet_bi:dm_thiet_bi(ten_thiet_bi)")
@@ -49,7 +48,7 @@ export async function listThietBiCoTheBatDauBaoTriAction(): Promise<
 > {
   const supabase = createAdminSupabaseClient();
   try {
-    await verifyPermission("CSSD_ME_TIET_KHUAN", "view");
+    await verifyCssdMaintenanceView();
     const { data: all, error } = await supabase
       .from("dm_thiet_bi")
       .select("id, ma_thiet_bi, ten_thiet_bi, trang_thai")
@@ -57,11 +56,24 @@ export async function listThietBiCoTheBatDauBaoTriAction(): Promise<
       .in("trang_thai", ["READY", "HOAT_DONG"])
       .order("ma_thiet_bi", { ascending: true });
     if (error) return { success: false, error: mapFkError(error.message) };
+
+    const machineIds = (all || []).map((r) => String((r as { id?: string }).id || "")).filter(Boolean);
+    let openBatchByMachine = new Set<string>();
+    if (machineIds.length) {
+      const { data: openRows, error: openErr } = await supabase
+        .from("fact_lo_tiet_khuan")
+        .select("thiet_bi_id")
+        .eq("is_active", true)
+        .is("ket_qua_test", null)
+        .in("thiet_bi_id", machineIds);
+      if (openErr) return { success: false, error: mapFkError(openErr.message) };
+      openBatchByMachine = new Set((openRows || []).map((r) => String((r as { thiet_bi_id?: string | null }).thiet_bi_id || "")).filter(Boolean));
+    }
+
     const out: { id: string; ma_thiet_bi: string; ten_thiet_bi: string; trang_thai: string | null }[] = [];
     for (const r of all || []) {
       const id = String((r as { id?: string }).id || "");
-      const me = await coMeTietKhuanChuaKetThucTheoThietBi(supabase, id);
-      if (me.open) continue;
+      if (openBatchByMachine.has(id)) continue;
       out.push({
         id,
         ma_thiet_bi: String((r as { ma_thiet_bi?: string }).ma_thiet_bi || ""),

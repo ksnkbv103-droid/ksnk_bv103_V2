@@ -64,7 +64,7 @@ Bám [`AGENTS.md`](./AGENTS.md) mục kỷ luật làm chắc + mapping:
 | Giám sát NKBV | `/giam-sat-nkbv` | Trang module (MVP / mở rộng theo spec) |
 | CSSD ERP | `/cssd-erp` + batch, catalog, inventory, report, kho-hoa-chat, equipment-maintenance | Nhiều trạm — nên ship **từng trạm hoặc từng luồng QR** |
 | Quản trị | `/quan-tri-he-thong/*` (danh mục, bảng kiểm, nhân sự, tài khoản) | Nền MDM/danh mục |
-| Quản lý công việc | `/quan-ly-cong-viec` | **Đợt gần đây đập/xây lại:** Kanban + bảng phân trang server, chi tiết + timeline, đề xuất & phê duyệt giao việc, thống kê/tab báo cáo, mẫu định kỳ + RPC spawn, `lib/qlcv-*`. **Gate & write:** `verifyPermission` trên action đọc/ghi; CRUD form + list/detail tập trung `cong-viec.actions`; luồng nhận việc/gia hạn trong `cong-viec-write.actions`; báo cáo 100% → `CHO_XAC_NHAN_HOAN_THANH`. **Còn pilot:** DoD 3 kịch bản + `verify:engineering` trên DB pilot; tính năng comment Pre-P0 nếu scope. |
+| Quản lý công việc | `/quan-ly-cong-viec` | **QLCV nội bộ KSNK:** Kanban + bảng phân trang, chi tiết + timeline, đề xuất (Kanban), thống kê (server + pie client có disclaimer), KPI tháng + CSV, mẫu định kỳ + RPC spawn + **preview lịch** (`qlcv-dinh-ky-schedule.ts`). **Trạng thái DB (Track B):** `MOI`, `DANG_LAM`, `CHO_DUYET`, `HOAN_THANH`, `TU_CHOI`, `QUA_HAN`, `DA_HUY` — báo cáo 100% → `CHO_DUYET`. **Gate:** `verifyPermission` trên action. |
 | Auth | `/login`, đổi mật khẩu | Chuẩn |
 
 **Điểm nghẽn đã gặp thực tế:** `supabase db push` / migration history lệch remote; RPC mới cần apply bằng SQL Editor hoặc `db query --linked` khi CLI auth ổn — nên trong pilot luôn có mục **“DB môi trường pilot đã apply chưa”**.
@@ -142,7 +142,7 @@ Lặp A→B→C. Không bắt buộc tuần 1–4 chỉ CSSD trừ khi `ACTIVE` 
 - **VST:** Session + quan sát + dashboard/RPC khớp dữ liệu pilot.  
 - **Giám sát chung:** 1 template + chấm + tổng hợp đúng `ma_bk`.  
 - **Dashboard:** Bộ lọc + hiển thị theo bảng kiểm; không phụ thuộc RPC chưa deploy mà không có fallback/empty state.  
-- **Công việc:** Luồng đề xuất → phê duyệt → Kanban/bảng → chi tiết (tiến độ, nhận việc, nghiệm thu) + định kỳ/RPC; CRUD & đọc danh sách/chi tiết qua `cong-viec.actions`, nhận việc/gia hạn qua `cong-viec-write.actions`; báo cáo 100% → `CHO_XAC_NHAN_HOAN_THANH`. **Chốt pilot:** DoD + DB; import lô nếu nằm trong phạm vi S8.
+- **Công việc:** Luồng đề xuất → phê duyệt → Kanban/bảng → chi tiết (tiến độ, nhận việc, nghiệm thu) + định kỳ/RPC + preview lịch; CRUD & đọc qua `cong-viec.actions`, nhận việc/gia hạn `cong-viec-write.actions`; báo cáo 100% → **`CHO_DUYET`** (Track B). **Chốt pilot:** DoD + DB.
 - **Quản trị:** CRUD + quyền + import tối thiểu theo pilot.
 
 Chi tiết mapping DB/UI: [`docs/specs/10-bv103-implementation-mapping.md`](./docs/specs/10-bv103-implementation-mapping.md).

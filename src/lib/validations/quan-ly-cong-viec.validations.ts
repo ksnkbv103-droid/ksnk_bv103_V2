@@ -15,17 +15,14 @@ const optionalUuid = (field: string) =>
   );
 
 /**
- * Zod Schema cho Quản lý công việc v2.2
- * Khớp 100% với DB: fact_cong_viec (migration 20260510002 + 003)
+ * Zod Schema cho Quản lý công việc v2.2 — CHECK `fact_cong_viec` (migration 20260716005 Track B).
  */
-/** Trạng thái công việc nội bộ KSNK (máy trạng thái + ba cổng) */
 export const CONG_VIEC_TRANG_THAI = [
-  "DE_XUAT_CHO_DUYET",
-  "CHO_NHAN_VIEC",
-  "CHUA_BAT_DAU",
-  "DANG_THUC_HIEN",
-  "CHO_XAC_NHAN_HOAN_THANH",
+  "MOI",
+  "DANG_LAM",
+  "CHO_DUYET",
   "HOAN_THANH",
+  "TU_CHOI",
   "QUA_HAN",
   "DA_HUY",
 ] as const;

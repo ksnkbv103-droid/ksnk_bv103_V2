@@ -11,8 +11,12 @@ export default defineConfig({
     include: [
       "src/modules/cssd-erp/domain/**/*.spec.ts",
       "src/modules/cssd-erp/workflow/domain/**/*.spec.ts",
-      "src/modules/cssd-erp/incident/domain/**/*.spec.ts",
+      "src/modules/cssd-su-co/domain/**/*.spec.ts",
       "src/modules/cssd-erp/helpers/**/*.spec.ts",
+      "src/modules/quan-ly-cong-viec/**/*.spec.ts",
+      "src/modules/quan-tri-he-thong/**/*.spec.ts",
+      "src/modules/giam-sat-vst/**/*.spec.ts",
+      "src/modules/giam-sat-chung/**/*.spec.ts",
     ],
     environment: "node",
     passWithNoTests: true,

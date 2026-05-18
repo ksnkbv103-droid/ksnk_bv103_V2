@@ -15,7 +15,7 @@ export async function assertMergeGateForCapPhat(
   if (!mainId) return { ok: false, message: "Thiếu định danh quy trình." };
 
   const { data: children, error } = await supabase
-    .from("fact_quy_trinh")
+    .from("v_fact_quy_trinh_full")
     .select("id, ma_qr_quy_trinh, ma_trang_thai_hien_tai, ma_vai_tro_bo")
     .eq("quy_trinh_cha_id", mainId)
     .eq("is_active", true);

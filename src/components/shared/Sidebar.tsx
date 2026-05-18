@@ -8,6 +8,11 @@ import { usePathname, useSearchParams } from "next/navigation";
 import {
   Activity,
   ClipboardList,
+  Clock,
+  Box,
+  Flame,
+  Truck,
+  ShieldCheck,
   LayoutDashboard,
   type LucideIcon,
   PanelsTopLeft,
@@ -16,13 +21,20 @@ import {
   Shield,
   SprayCan,
   Stethoscope,
+  AlertTriangle,
+  Wrench,
+  Droplets,
 } from "lucide-react";
 import { usePermission } from "@/hooks/usePermission";
 import {
   canSeeNavGate,
   canSeeQuanTriSection,
   NAV_GATE_CONG_VIEC,
-  NAV_GATE_CSSD,
+  NAV_GATE_CSSD_QUY_TRINH,
+  NAV_GATE_CSSD_SU_CO,
+  NAV_GATE_CSSD_DUNG_CU,
+  NAV_GATE_CSSD_THIET_BI,
+  NAV_GATE_CSSD_HOA_CHAT,
   NAV_GATE_DASHBOARD,
   NAV_GATE_DM_HUB,
   NAV_GATE_GSC,
@@ -43,14 +55,21 @@ const navMain: NavMainRow[] = [
   { name: "Giám sát chung", href: "/giam-sat-chung", icon: ClipboardList, gate: NAV_GATE_GSC },
   { name: "Giám sát NKBV", href: "/giam-sat-nkbv", icon: Activity, gate: NAV_GATE_NKBV },
   { name: "Công việc", href: "/quan-ly-cong-viec", icon: PanelsTopLeft, gate: NAV_GATE_CONG_VIEC },
-  { name: "CSSD ERP", href: "/cssd-erp", icon: SprayCan, gate: NAV_GATE_CSSD },
+  { name: "Quy trình xử lý dụng cụ", href: "/cssd-quy-trinh", icon: Clock, gate: NAV_GATE_CSSD_QUY_TRINH },
+  { name: "Báo cáo sự cố", href: "/cssd-su-co", icon: AlertTriangle, gate: NAV_GATE_CSSD_SU_CO },
+  { name: "Dụng cụ phẫu thuật", href: "/cssd-dung-cu", icon: Box, gate: NAV_GATE_CSSD_DUNG_CU },
+  { name: "Thiết bị KSNK", href: "/cssd-thiet-bi", icon: Wrench, gate: NAV_GATE_CSSD_THIET_BI },
+  { name: "Hóa chất & Vật tư", href: "/cssd-hoa-chat", icon: Droplets, gate: NAV_GATE_CSSD_HOA_CHAT },
 ];
+
+
+
 
 type NavAdminRow = NavItem & { gate: NavGate };
 
 const navAdmin: NavAdminRow[] = [
   { name: "Quản trị hệ thống", href: "/quan-tri-he-thong", icon: Settings, gate: NAV_GATE_QUAN_TRI },
-  { name: "Danh mục (hub)", href: "/quan-tri-he-thong?tab=dm_registry", icon: Shield, gate: NAV_GATE_DM_HUB },
+  { name: "Danh mục dùng chung", href: "/quan-tri-he-thong?tab=dm_registry", icon: Shield, gate: NAV_GATE_DM_HUB },
 ];
 
 function menuItemIsActive(pathname: string, href: string, urlTab: string | null) {

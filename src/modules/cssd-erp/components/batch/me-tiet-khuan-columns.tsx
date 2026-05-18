@@ -16,8 +16,12 @@ export const meTietKhuanBatchColumns: Column<any>[] = [
     header: "QC TEST",
     accessorKey: "ket_qua_test",
     cell: (i: any) => (
-      <span className={`rounded-md px-2 py-1 text-[9px] font-black uppercase ${i.ket_qua_test ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
-        {i.ket_qua_test ? "ĐẠT QC" : "LỖI"}
+      <span
+        className={`rounded-md px-2 py-1 text-[9px] font-black uppercase ${
+          i.ket_qua_test === true ? "bg-emerald-50 text-emerald-600" : i.ket_qua_test === false ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-500"
+        }`}
+      >
+        {i.ket_qua_test === true ? "ĐẠT QC" : i.ket_qua_test === false ? "LỖI" : "CHƯA QC"}
       </span>
     ),
   },
