@@ -1,6 +1,5 @@
 # Enhanced CI Pipeline - Security, Quality & Engineering Gates (2025-2026 standards)
-# Compliant with ADR-001: Security & CI Enhancement
-# Includes: Secret scanning, Dependency audit, stricter quality gates
+# Compliant with ADR-001: Security & CI Enhancement + Test Coverage Gate
 
 name: CI - Security + Quality + Build
 
@@ -53,8 +52,8 @@ jobs:
       - name: Lint (ESLint + CSSD Architecture)
         run: npm run lint && npm run lint:cssd-architecture
       
-      - name: Test (CSSD + Pilot)
-        run: npm run test:cssd && npm run test:pilot
+      - name: Test with Coverage (≥80%)
+        run: npm run test:coverage
       
       - name: Engineering Contract Verify
         run: npm run verify:engineering
