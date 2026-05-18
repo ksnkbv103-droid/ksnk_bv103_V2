@@ -84,7 +84,7 @@ DECLARE
 BEGIN
   v_id := coalesce(
     to_jsonb(NEW)->>'id',
-    to_jsonb(OLD)->>'id',
+    to_jsonb(OLD)->>'id'
   );
   IF TG_OP = 'DELETE' THEN
     v_old := to_jsonb(OLD);
