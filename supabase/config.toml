@@ -1,0 +1,27 @@
+# supabase/config.toml
+# Production-ready Supabase CLI configuration for KSNK BV103 (ksnk-bv103-prod)
+# Updated: Set major_version = 17 to match production PostgreSQL version
+
+[api]
+enabled = true
+
+[db]
+port = 54322
+major_version = 17
+
+[studio]
+enabled = false
+
+[auth]
+enabled = true
+# site_url and additional_redirect_urls should be set in Supabase Dashboard
+# or via environment for your production Vercel URL
+
+[storage]
+enabled = true
+
+# IMPORTANT:
+# 1. Run `supabase login` and `supabase link --project-ref <PROD_PROJECT_REF>` for prod.
+# 2. Use `SUPABASE_SERVICE_ROLE_KEY` from prod project in your .env.local.
+# 3. After linking, run `supabase migration repair` if needed, then `supabase db pull`.
+# 4. Use `npm run trial:db:precheck` to verify core objects exist.
