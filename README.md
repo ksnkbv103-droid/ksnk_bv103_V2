@@ -52,10 +52,18 @@ npm run dev
 ```
 
 ## Documentation
-- [Master Completion Plan](MASTER_COMPLETION_PLAN.md)
-- [Deployment Guide](docs/DEPLOYMENT.md)
-- [Supabase Production](docs/SUPABASE_PRODUCTION.md)
+
+> **Cập nhật 19/05/2026**: Tài liệu đã được chuẩn hóa cấu trúc. Xem chi tiết tại [docs/README.md](docs/README.md).
+
+### Tài liệu chính
+- [Documentation Index](docs/README.md) — Toàn bộ cấu trúc tài liệu
 - [CHANGELOG](CHANGELOG.md)
+- [AGENTS.md](AGENTS.md) — Quy tắc làm việc cho dev & AI
+- [Development Process](docs/guides/DEVELOPMENT_PROCESS.md)
+
+### Tham khảo nhanh
+- Master Completion Plan → [docs/handover/MASTER_COMPLETION_PLAN.md](docs/handover/MASTER_COMPLETION_PLAN.md)
+- Internal / AI rules → [docs/internal/](docs/internal/)
 
 ---
 **Production URL**: https://ksnk-bv103.vercel.app
