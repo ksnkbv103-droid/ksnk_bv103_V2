@@ -1,0 +1,33 @@
+# Git attributes for consistent cross-platform behavior (Windows/Mac/Linux)
+# text=auto: Git will normalize line endings automatically
+* text=auto
+
+# Source code - force LF line endings (Unix standard, better for CI & containers)
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.mdx text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.sql text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+
+# Binary files - do not touch
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.xlsx binary
+*.pdf binary
+*.zip binary
+
+# Lock files - keep as-is
+package-lock.json text eol=lf
