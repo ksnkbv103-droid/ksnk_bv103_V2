@@ -1,6 +1,16 @@
 # Changelog
 
 ## [Unreleased]
+
+### Changed
+- **Documentation Restructuring (2026-05-19)**: Major cleanup and standardization of documentation structure.
+  - Created `docs/README.md` as central documentation index.
+  - Introduced clear folders: `architecture/`, `guides/`, `operations/`, `internal/`, `handover/`.
+  - Moved and consolidated planning documents (`MASTER_COMPLETION_PLAN.md`, `PROGRESS_REPORT.md`).
+  - Deprecated redundant root-level Markdown files (`CLAUDE.md`, `MASTER_COMPLETION_PLAN.md`, `PROGRESS_REPORT.md`).
+  - Updated main `README.md` with new documentation navigation.
+  - Improved long-term maintainability and discoverability of docs.
+
 ### Added
 - Full Documentation & Architecture Diagram (Critical #4)
 - Observability & Structured Logging (Critical #3)
