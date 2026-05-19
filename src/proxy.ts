@@ -58,7 +58,7 @@ export async function proxy(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
-        cookiesToSet.forEach(({ name, value, options }) => {
+        cookiesToSet.forEach(({ name, value, options: _options }) => {
           request.cookies.set(name, value);
         });
         supabaseResponse = NextResponse.next({
@@ -77,10 +77,11 @@ export async function proxy(request: NextRequest) {
     },
   });
 
+  // IMPORTANT: getUser() xác minh JWT qua Supabase Auth API (server-side),
+  // không chỉ đọc cookie như getSession() — ngăn JWT spoofing.
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const user = session?.user;
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user && !isLoginRoutePath(pathname)) {
     const loginUrl = request.nextUrl.clone();

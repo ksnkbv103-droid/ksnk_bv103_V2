@@ -3,10 +3,11 @@ import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 /** `auth.users.id` của phiên hiện tại — chỉ import từ Server Actions / RSC. */
 export async function getActorAuthUserId(): Promise<string | null> {
   const sb = await createServerSupabaseUserClient();
+  // getUser() xác minh JWT server-side — không chỉ đọc cookie.
   const {
-    data: { session },
-  } = await sb.auth.getSession();
-  return session?.user?.id ?? null;
+    data: { user },
+  } = await sb.auth.getUser();
+  return user?.id ?? null;
 }
 
 /** `mdm_nhan_su.id` của người dùng hiện tại gắn qua `auth_user_id`. */
