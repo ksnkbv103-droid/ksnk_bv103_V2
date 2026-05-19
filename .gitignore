@@ -15,6 +15,9 @@
 
 # testing
 /coverage
+/test-results
+/playwright-report
+*.lcov
 
 # next.js
 /.next/
@@ -32,6 +35,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
 
 # env files (can opt-in for committing if needed)
 .env*
@@ -39,6 +43,7 @@ yarn-error.log*
 
 # Supabase CLI — thư mục trạng thái local (project ref, pooler URL; không commit)
 /supabase/.temp/
+/supabase/.branches/
 
 # vercel
 .vercel
