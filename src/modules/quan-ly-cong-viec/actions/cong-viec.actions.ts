@@ -20,6 +20,7 @@ import { QLCV_ROOT_TASK_LIST_MAX } from "../lib/qlcv-query-limits";
 import { QLCV_ROOT_TASK_VIEW_SELECT } from "../lib/qlcv-root-list-select";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getPendingDeXuat } from "./dexuat.actions";
+import { rollUpParentProgress } from "./hoat-dong.actions";
 
 // ==================== CREATE ====================
 export async function createCongViec(input: CongViecInput) {
@@ -299,20 +300,29 @@ type CongViecUpdateInput = Partial<CongViecInput> & {
 export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
   const supabase = createAdminSupabaseClient();
   const adminBypass = await hasRBACAdminSupervisionBypass();
+  const actor = await getActorNhanSuId();
+
+  const { data: cur, error: fetchErr } = await supabase
+    .from("v_fact_cong_viec_full")
+    .select("id, trang_thai, trang_thai_id, is_active, nguoi_phu_trach_id, han_hoan_thanh, phan_tram_hoan_thanh, nguoi_phu_trach_ten")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (fetchErr || !cur) throw new Error("Không tìm thấy công việc.");
+  const curMa = qlcvWorkflowMaFromViewRow(cur);
 
   if (!adminBypass) {
     await verifyPermission("CONG_VIEC", "edit");
-    const actor = await getActorNhanSuId();
-    const { data: cur, error: fetchErr } = await supabase
-      .from("v_fact_cong_viec_full")
-      .select("id, trang_thai, trang_thai_id, is_active, nguoi_phu_trach_id, cong_viec_cha_id, phan_tram_hoan_thanh")
-      .eq("id", id)
-      .maybeSingle();
-    if (fetchErr || !cur) throw new Error("Không tìm thấy công việc.");
-    const curMa = qlcvWorkflowMaFromViewRow(cur);
+
+    // Chặn thay đổi trạng thái trực tiếp qua updateCongViec
+    if (updates.trang_thai !== undefined) {
+      throw new Error("Không được phép cập nhật trực tiếp trạng thái công việc qua biểu mẫu sửa. Vui lòng sử dụng các nút thao tác chuyên biệt.");
+    }
+
     if (assigneeBlockedFromTaskCrud(actor, { ...cur, trang_thai: curMa.trang_thai })) {
       throw new Error("Người phụ trách không được sửa nội dung công việc đã giao.");
     }
+
     const curForGate = {
       trang_thai: curMa.trang_thai,
       is_active: cur.is_active,
@@ -342,6 +352,37 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
       const c = new Date(String(updates.han_hoan_thanh)).setHours(0, 0, 0, 0);
       if (c > p) throw new Error("Hạn việc con không được sau hạn việc cha.");
     }
+  }
+
+  // Thu thập thông tin đổi metadata nhạy cảm để ghi log kiểm toán
+  const auditLogs: { loai_hoat_dong: "PHAN_CONG" | "GIA_HAN" | "CAP_NHAT"; noi_dung: string }[] = [];
+
+  if (updates.han_hoan_thanh !== undefined) {
+    const oldHan = cur.han_hoan_thanh ? new Date(cur.han_hoan_thanh).toISOString().split("T")[0] : null;
+    const newHan = updates.han_hoan_thanh ? new Date(updates.han_hoan_thanh).toISOString().split("T")[0] : null;
+    if (oldHan !== newHan) {
+      auditLogs.push({
+        loai_hoat_dong: "GIA_HAN",
+        noi_dung: `Thay đổi hạn hoàn thành từ ${oldHan || "chưa thiết lập"} sang ${newHan || "vô thời hạn"}.`,
+      });
+    }
+  }
+
+  if (updates.nguoi_phu_trach_id !== undefined && updates.nguoi_phu_trach_id !== cur.nguoi_phu_trach_id) {
+    let tenNguoiMoi = "chưa gán";
+    if (updates.nguoi_phu_trach_id) {
+      const { data: staff } = await supabase
+        .from("mdm_nhan_su")
+        .select("ho_ten")
+        .eq("id", updates.nguoi_phu_trach_id)
+        .maybeSingle();
+      if (staff) tenNguoiMoi = staff.ho_ten;
+    }
+    const tenNguoiCu = cur.nguoi_phu_trach_ten || "chưa gán";
+    auditLogs.push({
+      loai_hoat_dong: "PHAN_CONG",
+      noi_dung: `Thay đổi người phụ trách từ ${tenNguoiCu} sang ${tenNguoiMoi}.`,
+    });
   }
 
   const dbUpdates: Record<string, unknown> = {
@@ -376,6 +417,22 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
   if (error) {
     console.error("Lỗi cập nhật DB:", error);
     throw new Error(`Cập nhật thất bại: ${error.message}`);
+  }
+
+  // Ghi các log kiểm toán đã thu thập
+  for (const log of auditLogs) {
+    await supabase.from("fact_cong_viec_hoat_dong").insert({
+      id_cong_viec: id,
+      loai_hoat_dong: log.loai_hoat_dong,
+      nguoi_thuc_hien_id: actor,
+      noi_dung: log.noi_dung,
+      phan_tram_hoan_thanh: updates.phan_tram_hoan_thanh !== undefined ? updates.phan_tram_hoan_thanh : (cur.phan_tram_hoan_thanh ?? 0),
+    });
+  }
+
+  // Nếu có cập nhật phần trăm hoàn thành, tiến hành roll-up cho cha nếu có
+  if (updates.phan_tram_hoan_thanh !== undefined && data.cong_viec_cha_id) {
+    await rollUpParentProgress(supabase, data.cong_viec_cha_id, actor);
   }
 
   revalidatePath("/quan-ly-cong-viec");

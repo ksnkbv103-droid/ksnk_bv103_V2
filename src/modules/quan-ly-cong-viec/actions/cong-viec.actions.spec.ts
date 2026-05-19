@@ -67,6 +67,50 @@ describe("updateCongViec", () => {
   });
 
   it("does not force is_active true on metadata update", async () => {
+    mocks.hasBypass.mockResolvedValue(true);
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "v_fact_cong_viec_full") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: {
+                  id: "cv-01",
+                  trang_thai: "MOI",
+                  trang_thai_id: "tt-moi",
+                  is_active: true,
+                  nguoi_phu_trach_id: null,
+                  han_hoan_thanh: null,
+                  phan_tram_hoan_thanh: 0,
+                },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === "fact_cong_viec") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({ data: { cong_viec_cha_id: null }, error: null }),
+            }),
+          }),
+          update: (payload: Record<string, unknown>) => {
+            mocks.setUpdatePayload(payload);
+            return {
+              eq: () => ({
+                select: () => ({
+                  single: mocks.updateSingle,
+                }),
+              }),
+            };
+          },
+        };
+      }
+      return {};
+    });
+
     const result = await updateCongViec("cv-01", {
       tieu_de: "Cập nhật tiêu đề",
     });
@@ -79,5 +123,173 @@ describe("updateCongViec", () => {
     });
     expect(Object.prototype.hasOwnProperty.call(payload, "is_active")).toBe(false);
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/quan-ly-cong-viec");
+  });
+
+  it("blocks normal user from updating status directly through updateCongViec", async () => {
+    mocks.hasBypass.mockResolvedValue(false); // Không phải Admin
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "v_fact_cong_viec_full") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: {
+                  id: "cv-01",
+                  trang_thai: "MOI",
+                  trang_thai_id: "tt-moi",
+                  is_active: true,
+                  nguoi_phu_trach_id: null,
+                },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      return {};
+    });
+
+    await expect(
+      updateCongViec("cv-01", {
+        trang_thai: "HOAN_THANH",
+      })
+    ).rejects.toThrow("Không được phép cập nhật trực tiếp trạng thái công việc qua biểu mẫu sửa.");
+  });
+
+  it("records gia_han activity when han_hoan_thanh changes", async () => {
+    mocks.hasBypass.mockResolvedValue(true); // Cho phép sửa thoải mái
+    const insertMock = vi.fn().mockResolvedValue({ error: null });
+
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "v_fact_cong_viec_full") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: {
+                  id: "cv-01",
+                  trang_thai: "MOI",
+                  trang_thai_id: "tt-moi",
+                  is_active: true,
+                  han_hoan_thanh: "2026-05-15",
+                  phan_tram_hoan_thanh: 20,
+                },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === "fact_cong_viec") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({ data: { cong_viec_cha_id: null }, error: null }),
+            }),
+          }),
+          update: (payload: Record<string, unknown>) => {
+            mocks.setUpdatePayload(payload);
+            return {
+              eq: () => ({
+                select: () => ({
+                  single: vi.fn().mockResolvedValue({ data: { id: "cv-01" }, error: null }),
+                }),
+              }),
+            };
+          },
+        };
+      }
+      if (table === "fact_cong_viec_hoat_dong") {
+        return {
+          insert: insertMock,
+        };
+      }
+      return {};
+    });
+
+    const result = await updateCongViec("cv-01", {
+      han_hoan_thanh: "2026-05-25",
+    });
+
+    expect(result.success).toBe(true);
+    expect(insertMock).toHaveBeenCalledWith(expect.objectContaining({
+      loai_hoat_dong: "GIA_HAN",
+      noi_dung: expect.stringContaining("Thay đổi hạn hoàn thành từ 2026-05-15 sang 2026-05-25"),
+    }));
+  });
+
+  it("records phan_cong activity when nguoi_phu_trach_id changes", async () => {
+    mocks.hasBypass.mockResolvedValue(true);
+    const insertMock = vi.fn().mockResolvedValue({ error: null });
+
+    mocks.from.mockImplementation((table: string) => {
+      if (table === "v_fact_cong_viec_full") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: {
+                  id: "cv-01",
+                  trang_thai: "MOI",
+                  trang_thai_id: "tt-moi",
+                  is_active: true,
+                  nguoi_phu_trach_id: "ns-old",
+                  nguoi_phu_trach_ten: "Nguyễn Văn Cũ",
+                  phan_tram_hoan_thanh: 0,
+                },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === "fact_cong_viec") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({ data: { cong_viec_cha_id: null }, error: null }),
+            }),
+          }),
+          update: (payload: Record<string, unknown>) => {
+            mocks.setUpdatePayload(payload);
+            return {
+              eq: () => ({
+                select: () => ({
+                  single: vi.fn().mockResolvedValue({ data: { id: "cv-01" }, error: null }),
+                }),
+              }),
+            };
+          },
+        };
+      }
+      if (table === "mdm_nhan_su") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({
+                data: { ho_ten: "Trần Thị Mới" },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === "fact_cong_viec_hoat_dong") {
+        return {
+          insert: insertMock,
+        };
+      }
+      return {};
+    });
+
+    const result = await updateCongViec("cv-01", {
+      nguoi_phu_trach_id: "ns-new",
+    });
+
+    expect(result.success).toBe(true);
+    expect(insertMock).toHaveBeenCalledWith(expect.objectContaining({
+      loai_hoat_dong: "PHAN_CONG",
+      noi_dung: expect.stringContaining("Thay đổi người phụ trách từ Nguyễn Văn Cũ sang Trần Thị Mới"),
+    }));
   });
 });

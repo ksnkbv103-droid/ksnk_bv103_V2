@@ -6,6 +6,7 @@ import { formatNhanSuOptionLabel } from "@/lib/master-data/nhan-su-enrich";
 import type { MasterOption } from "@/lib/master-data/gateway";
 import type { GiamSatSession, NhanSuOption } from "./giam-sat-header.types";
 import SearchableSelect from "./SearchableSelect";
+import RegistrySelect from "./RegistrySelect";
 
 interface GiamSatHeaderPersonalFieldsProps {
   session: GiamSatSession;
@@ -43,17 +44,20 @@ export default function GiamSatHeaderPersonalFields({
         <div className="space-y-4">
           <div className="min-w-0 space-y-1">
             <label className="block text-[10px] font-semibold uppercase tracking-wide text-slate-600">5. Nghề nghiệp nhân viên</label>
-            <SearchableSelect
+            <RegistrySelect
+              loaiDanhMuc="NGHE_NGHIEP"
               value={session.nghe_nghiep_id || ""}
               onChange={(nextNgheId) => setSession({ ...session, nghe_nghiep_id: nextNgheId, nhan_vien_id: "" })}
-              options={ngheNghieps.map((nn) => ({
+              staticOptions={ngheNghieps.map((nn) => ({
                 id: String(nn.id),
                 label: String(nn.ten_danh_muc || ""),
+                ma: String(nn.ma_danh_muc || ""),
                 keywords: [String(nn.ma_danh_muc || ""), String(nn.loai_danh_muc || "")],
               }))}
               placeholder="-- Chọn nghề nghiệp --"
               searchPlaceholder="Tìm nghề nghiệp..."
               className="border-slate-200 bg-white text-slate-800"
+              searchable={false}
             />
           </div>
 
@@ -70,12 +74,14 @@ export default function GiamSatHeaderPersonalFields({
                 disabled={requireKhoa}
               />
             ) : (
-              <SearchableSelect
+              <RegistrySelect
+                loaiDanhMuc="NHAN_SU"
                 value={session.nhan_vien_id || ""}
                 onChange={onSelectNhanVien}
-                options={filteredNhanSus.map((ns) => ({
+                staticOptions={filteredNhanSus.map((ns) => ({
                   id: String(ns.id),
                   label: formatNhanSuOptionLabel(ns as Record<string, unknown>),
+                  ma: String(ns.ma_nv || ""),
                   keywords: [
                     String(ns.ho_ten || ""),
                     String(ns.ma_nv || ""),
@@ -88,6 +94,7 @@ export default function GiamSatHeaderPersonalFields({
                 searchPlaceholder="Tìm nhân viên..."
                 className="border-slate-200 bg-white text-slate-800"
                 disabled={requireKhoa}
+                searchable={true}
               />
             )}
             {requireKhoa && (

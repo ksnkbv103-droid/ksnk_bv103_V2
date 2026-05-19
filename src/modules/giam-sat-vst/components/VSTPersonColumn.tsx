@@ -13,6 +13,7 @@ import type {
   VSTOppAssessmentField,
   VSTPersonUpdatableField,
 } from "../hooks/useVSTFormHandlers";
+import RegistrySelect from "@/components/shared/RegistrySelect";
 
 interface VSTPersonColumnProps {
   person: VSTFormPerson;
@@ -147,28 +148,23 @@ export default function VSTPersonColumn({
         <div className="mt-3 space-y-3">
           <div className="space-y-1">
             <label className="text-[10px] font-medium uppercase tracking-wide text-slate-500">Nghề nghiệp</label>
-            <select
-              className="select h-10 w-full rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800"
+            <RegistrySelect
+              loaiDanhMuc="NGHE_NGHIEP"
+              placeholder="Chọn nghề nghiệp…"
               value={person.nghe_nghiep_id}
-              onChange={(e) => {
-                updatePerson(pIdx, "nghe_nghiep_id", e.target.value);
+              onChange={(val) => {
+                updatePerson(pIdx, "nghe_nghiep_id", val);
                 if (!person.is_manual) {
                   updatePerson(pIdx, "nhan_vien_id", "");
                 }
               }}
-            >
-              <option value="">Chọn nghề nghiệp…</option>
-              {ngheNghieps.map((opt) => (
-                <option key={opt.id} value={opt.id}>
-                  {opt.ten_danh_muc}
-                </option>
-              ))}
-              {ngheNghieps.length === 0 && (
-                <option value="" disabled>
-                  Chưa có danh mục nghề nghiệp
-                </option>
-              )}
-            </select>
+              staticOptions={ngheNghieps.map((opt) => ({
+                id: opt.id,
+                label: opt.ten_danh_muc,
+                ma: opt.ma_danh_muc,
+              }))}
+              searchable={false}
+            />
           </div>
 
           <div className="space-y-1">
@@ -183,24 +179,21 @@ export default function VSTPersonColumn({
                   disabled={requireKhoa}
                 />
               ) : (
-                <select
-                  className="select min-h-10 w-full flex-1 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-800"
+                <RegistrySelect
+                  loaiDanhMuc="NHAN_SU"
+                  placeholder={requireKhoa ? "Chọn khoa trước…" : "Chọn nhân viên…"}
+                  searchPlaceholder="Gõ để tìm tên nhân viên..."
                   value={person.nhan_vien_id}
-                  onChange={(e) => onSelectNhanSu(e.target.value)}
+                  onChange={onSelectNhanSu}
                   disabled={requireKhoa}
-                >
-                  <option value="">{requireKhoa ? "Chọn khoa trước…" : "Chọn nhân viên…"}</option>
-                  {filteredNhanSus.map((ns) => (
-                    <option key={String(ns.id)} value={String(ns.id)}>
-                      {formatNhanSuOptionLabel(ns as Record<string, unknown>)}
-                    </option>
-                  ))}
-                  {!filteredNhanSus.length ? (
-                    <option value="" disabled>
-                      Không có nhân viên phù hợp trong khoa
-                    </option>
-                  ) : null}
-                </select>
+                  staticOptions={filteredNhanSus.map((ns) => ({
+                    id: String(ns.id),
+                    label: formatNhanSuOptionLabel(ns as Record<string, unknown>),
+                    keywords: [String(ns.ho_ten || ""), String(ns.ma_nhan_vien || "")],
+                  }))}
+                  searchable={true}
+                  className="flex-1 min-w-0"
+                />
               )}
 
               <label className="flex min-h-10 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-[10px] font-medium text-slate-600 transition-colors hover:border-slate-300 sm:min-w-[9.5rem]">

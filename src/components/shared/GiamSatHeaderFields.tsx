@@ -19,6 +19,7 @@ import {
 } from "@/lib/supervision-session-time";
 import type { GiamSatSession, NhanSuOption } from "./giam-sat-header.types";
 import SearchableSelect from "./SearchableSelect";
+import RegistrySelect from "./RegistrySelect";
 
 interface GiamSatHeaderFieldsProps {
   session: GiamSatSession;
@@ -178,16 +179,20 @@ export default function GiamSatHeaderFields({
                   <label className="text-[9px] font-semibold uppercase tracking-wide text-indigo-600">
                     Chọn người thực hiện giám sát
                   </label>
-                  <SearchableSelect
+                  <RegistrySelect
+                    loaiDanhMuc="NHAN_SU"
                     value={session.nguoi_giam_sat_id}
                     onChange={(val: string) => setSession((prev: GiamSatSession) => ({ ...prev, nguoi_giam_sat_id: val }))}
-                    options={allNhanSus.map((ns: NhanSuOption) => ({
+                    staticOptions={allNhanSus.map((ns: NhanSuOption) => ({
                       id: String(ns.id),
                       label: String(ns.ho_ten || ""),
+                      ma: String(ns.ma_nv || ""),
                       keywords: [String(ns.ma_nv || "")],
                     }))}
                     placeholder="Tìm nhân sự thực hiện..."
+                    searchPlaceholder="Tìm nhân sự..."
                     className="h-10 bg-white"
+                    searchable={true}
                   />
                 </div>
               ) : (
@@ -209,7 +214,8 @@ export default function GiamSatHeaderFields({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 xl:gap-x-4 xl:gap-y-4">
           <div id="vst-khoa-select" className="flex min-h-0 min-w-0 flex-col gap-1">
             <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">1. Khoa</label>
-            <SearchableSelect
+            <RegistrySelect
+              loaiDanhMuc="KHOA_PHONG"
               value={session.khoa_id}
               onChange={(nextKhoaId: string) =>
                 setSession((prev: GiamSatSession) => ({
@@ -218,30 +224,35 @@ export default function GiamSatHeaderFields({
                   nhan_vien_id: "",
                 }))
               }
-              options={khoas.map((k: MasterOption) => ({
+              staticOptions={khoas.map((k: MasterOption) => ({
                 id: String(k.id),
                 label: String(k.ten_danh_muc || ""),
+                ma: String(k.ma_danh_muc || ""),
                 keywords: [String(k.ma_danh_muc || ""), String(k.loai_danh_muc || "")],
               }))}
               placeholder={loading ? "Đang tải..." : "Chọn Khoa..."}
               searchPlaceholder="Tìm khoa..."
               disabled={loading}
+              searchable={true}
             />
           </div>
 
           <div className="flex min-h-0 min-w-0 flex-col gap-1">
             <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">2. Khu vực</label>
-            <SearchableSelect
+            <RegistrySelect
+              loaiDanhMuc="KHU_VUC_GIAM_SAT"
               value={session.khu_vuc_id}
               onChange={(nextKhuVucId: string) => setSession((prev: GiamSatSession) => ({ ...prev, khu_vuc_id: nextKhuVucId }))}
-              options={khuVucs.map((kv: MasterOption) => ({
+              staticOptions={khuVucs.map((kv: MasterOption) => ({
                 id: String(kv.id),
                 label: String(kv.ten_danh_muc || ""),
+                ma: String(kv.ma_danh_muc || ""),
                 keywords: [String(kv.ma_danh_muc || ""), String(kv.loai_danh_muc || "")],
               }))}
               placeholder={loading ? "Đang tải..." : "Chọn Khu vực..."}
               searchPlaceholder="Tìm khu vực..."
               disabled={loading}
+              searchable={true}
             />
           </div>
 
@@ -275,27 +286,36 @@ export default function GiamSatHeaderFields({
 
           <div className="flex min-h-0 min-w-0 flex-col gap-1">
             <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">4. Hình thức</label>
-            <SearchableSelect
+            <RegistrySelect
+              loaiDanhMuc="HINH_THUC_GIAM_SAT"
               value={session.hinh_thuc_id || ""}
               onChange={(nextId: string) => setSession((prev: GiamSatSession) => ({ ...prev, hinh_thuc_id: nextId }))}
-              options={hinhThucGiamSats.map((h) => ({ id: h.id, label: h.ten_danh_muc }))}
+              staticOptions={hinhThucGiamSats.map((h) => ({
+                id: h.id,
+                label: h.ten_danh_muc,
+                ma: h.ma_danh_muc,
+              }))}
               placeholder="Chọn hình thức..."
               disabled={loading}
+              searchable={false}
             />
           </div>
 
           <div className="flex min-h-0 min-w-0 flex-col gap-1">
             <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">5. Cách thức</label>
-            <SearchableSelect
+            <RegistrySelect
+              loaiDanhMuc="CACH_THUC_GIAM_SAT"
               value={session.cach_thuc_id || ""}
               onChange={(nextId: string) => setSession((prev: GiamSatSession) => ({ ...prev, cach_thuc_id: nextId }))}
-              options={cachThucGiamSats.map((ct) => ({
+              staticOptions={cachThucGiamSats.map((ct) => ({
                 id: ct.id,
                 label: ct.ten_danh_muc,
+                ma: ct.ma_danh_muc,
                 keywords: [ct.ten_danh_muc.replaceAll("Giám sát", "").trim()],
               }))}
               placeholder="Chọn cách thức..."
               disabled={loading}
+              searchable={false}
             />
           </div>
         </div>

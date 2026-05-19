@@ -378,6 +378,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
             <HoatDongForm
               congViecId={data.id}
               initialPhanTram={Number(data.phan_tram_hoan_thanh ?? 0)}
+              hasChildren={Boolean(data.cong_viec_con && data.cong_viec_con.length > 0)}
               onSuccess={() => {
                 fetchDetail();
                 onRefreshList?.();

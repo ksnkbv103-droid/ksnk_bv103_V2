@@ -143,3 +143,84 @@ export async function huyKhiChoNghiemThuKhongDat(id: string, lyDo: string) {
   revalidatePath("/quan-ly-cong-viec");
   return { success: true as const };
 }
+
+/**
+ * Quét định kỳ và đồng bộ hóa trạng thái quá hạn thực tế vào Database.
+ * Tránh trôi lệch trạng thái giữa DB tĩnh và view hiển thị.
+ */
+export async function syncOverdueTasks() {
+  await verifyPermission("CONG_VIEC", "edit");
+  const supabase = createAdminSupabaseClient();
+  const actor = await getActorNhanSuId();
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  // 1. Giải quyết các ID trạng thái
+  const { data: dmTrangThai, error: tErr } = await supabase
+    .from("dm_trang_thai_cong_viec")
+    .select("id, ma");
+  if (tErr || !dmTrangThai) throw new Error("Không thể truy vấn danh mục trạng thái.");
+
+  const ttMap = new Map(dmTrangThai.map((t) => [t.ma, t.id]));
+  const hoanThanhId = ttMap.get("HOAN_THANH");
+  const daHuyId = ttMap.get("DA_HUY");
+  const quaHanId = ttMap.get("QUA_HAN");
+
+  if (!quaHanId) throw new Error("Không tìm thấy trạng thái QUA_HAN trong danh mục.");
+
+  // Loại trừ các trạng thái đã kết thúc
+  const excludedIds = [hoanThanhId, daHuyId, quaHanId].filter(Boolean) as string[];
+
+  // 2. Tìm các công việc quá hạn thực tế nhưng chưa cập nhật sang QUA_HAN trong DB
+  let query = supabase
+    .from("fact_cong_viec")
+    .select("id, tieu_de, han_hoan_thanh, phan_tram_hoan_thanh, trang_thai_id")
+    .lt("han_hoan_thanh", todayStr)
+    .eq("is_active", true);
+
+  if (excludedIds.length > 0) {
+    query = query.not("trang_thai_id", "in", `(${excludedIds.join(",")})`);
+  }
+
+  const { data: overdueTasks, error: fetchErr } = await query;
+  if (fetchErr) {
+    console.error("Lỗi quét công việc quá hạn:", fetchErr);
+    throw new Error("Không thể quét công việc quá hạn: " + fetchErr.message);
+  }
+
+  if (!overdueTasks || overdueTasks.length === 0) {
+    return { success: true, count: 0 };
+  }
+
+  let updatedCount = 0;
+
+  // 3. Cập nhật từng công việc sang QUA_HAN và ghi log hoạt động
+  for (const task of overdueTasks) {
+    const { error: updateErr } = await supabase
+      .from("fact_cong_viec")
+      .update({
+        trang_thai_id: quaHanId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", task.id);
+
+    if (!updateErr) {
+      updatedCount++;
+      // Ghi log hoạt động tự động
+      await supabase.from("fact_cong_viec_hoat_dong").insert({
+        id_cong_viec: task.id,
+        loai_hoat_dong: "CAP_NHAT",
+        nguoi_thuc_hien_id: actor,
+        noi_dung: `Hệ thống tự động đồng bộ trạng thái sang Quá Hạn (Hạn chót: ${task.han_hoan_thanh}).`,
+        phan_tram_hoan_thanh: task.phan_tram_hoan_thanh ?? 0,
+      });
+    } else {
+      console.error(`Lỗi cập nhật quá hạn cho task ${task.id}:`, updateErr);
+    }
+  }
+
+  if (updatedCount > 0) {
+    revalidatePath("/quan-ly-cong-viec");
+  }
+
+  return { success: true, count: updatedCount };
+}

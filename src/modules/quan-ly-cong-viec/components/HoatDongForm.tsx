@@ -10,9 +10,10 @@ interface Props {
   initialPhanTram?: number;
   onSuccess?: () => void;
   onCancel?: () => void;
+  hasChildren?: boolean;
 }
 
-export function HoatDongForm({ congViecId, initialPhanTram = 0, onSuccess, onCancel }: Props) {
+export function HoatDongForm({ congViecId, initialPhanTram = 0, onSuccess, onCancel, hasChildren = false }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const [loading, setLoading] = useState(false);
   const clampPct = (n: number) => Math.min(100, Math.max(0, Math.round(n / 5) * 5));
@@ -34,7 +35,8 @@ export function HoatDongForm({ congViecId, initialPhanTram = 0, onSuccess, onCan
         id_cong_viec: congViecId,
         loai_hoat_dong: "BAO_CAO_TIEN_DO",
         noi_dung: noiDung,
-        phan_tram_hoan_thanh: phanTram,
+        // Nếu có việc con, không tự ý cập nhật tiến độ ở đây (để hệ thống tự động roll-up)
+        phan_tram_hoan_thanh: hasChildren ? undefined : phanTram,
       });
 
       toast.success("Gửi báo cáo tiến độ thành công!");
@@ -76,11 +78,18 @@ export function HoatDongForm({ congViecId, initialPhanTram = 0, onSuccess, onCan
             step="5"
             value={phanTram}
             onChange={(e) => setPhanTram(parseInt(e.target.value, 10))}
-            className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#026f17]"
+            disabled={hasChildren}
+            className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#026f17] disabled:opacity-50 disabled:cursor-not-allowed"
           />
-          <p className="mt-2 text-[10px] font-medium text-slate-400">
-            100%: chuyển sang trạng thái chờ cấp trên nghiệm thu (trên hệ thống là «Chờ nghiệm thu»).
-          </p>
+          {hasChildren ? (
+            <p className="mt-2 text-[10px] font-bold text-amber-600 bg-amber-50 p-2.5 rounded-lg border border-amber-100 leading-normal">
+              💡 Tiến độ tự động: Nhiệm vụ này có công việc con. Tiến độ sẽ được tự động đồng bộ (trung bình cộng) từ các công việc con của nó và không thể sửa thủ công.
+            </p>
+          ) : (
+            <p className="mt-2 text-[10px] font-medium text-slate-400">
+              100%: chuyển sang trạng thái chờ cấp trên nghiệm thu (trên hệ thống là «Chờ nghiệm thu»).
+            </p>
+          )}
         </div>
       </div>
 
