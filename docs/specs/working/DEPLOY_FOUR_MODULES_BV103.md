@@ -254,6 +254,20 @@ Mở `http://localhost:3000` → đăng nhập.
 
 ## Phần H — Deploy hosting (Vercel hoặc tương đương)
 
+### H0. Chính sách deploy — baseline ổn định, không Auto Deploy
+
+- **Git → Vercel:** Auto Deploy **tắt** (`vercel.json` → `git.deploymentEnabled: false` + Ignored Build Step trên project).
+- **Production đang chạy** = deployment production hiện tại trên Vercel (`ksnk-bv103.vercel.app`) — giữ nguyên cho đến khi chủ động deploy lại.
+- **Chỉ deploy khi đã chỉnh sửa trọn vẹn** (xong migration + `verify:engineering` + `build`):
+
+```bash
+npm run verify:engineering
+npm run build
+vercel --prod
+```
+
+- Push lên `main` **không** tự kích hoạt build; muốn lên production phải chạy `vercel --prod` (hoặc Deploy thủ công trên Vercel Dashboard).
+
 ### H1. Build production trên máy (bắt buộc trước khi tin tưởng deploy)
 
 ```bash
