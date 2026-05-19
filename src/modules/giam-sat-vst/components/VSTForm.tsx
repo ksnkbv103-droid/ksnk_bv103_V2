@@ -52,6 +52,8 @@ export default function VSTForm({
     updatePerson, toggleMoment, updateAction, updateAssessment, openOpportunity, submitOpportunity, handleFinalSave
   } = useVSTForm(onSuccess, editingSessionId ?? null);
 
+  const [activePersonTab, setActivePersonTab] = React.useState<number>(0);
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -265,24 +267,59 @@ export default function VSTForm({
           )}
         </div>
 
+        {/* Mobile Tab Switcher */}
+        <div className="md:hidden flex rounded-xl border border-slate-200 bg-slate-100/90 p-1 mb-4">
+          {[0, 1, 2].map((idx) => {
+            const isActive = activePersonTab === idx;
+            const p = persons[idx];
+            const rawName = p.is_manual
+              ? p.ten_manual
+              : (nhanSus.find((n) => String(n.id) === String(p.nhan_vien_id))?.ten_nhan_su as string | undefined);
+            const nameLabel = rawName || `Nhân viên ${idx + 1}`;
+            const shortName = nameLabel.length > 15 ? nameLabel.substring(0, 15) + "..." : nameLabel;
+
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setActivePersonTab(idx)}
+                className={`flex-1 text-center py-2.5 text-xs font-bold rounded-lg transition-colors ${
+                  isActive
+                    ? "bg-[#026f17] text-white shadow-sm"
+                    : "text-slate-600 hover:bg-white/50"
+                }`}
+              >
+                {shortName}
+              </button>
+            );
+          })}
+        </div>
+
         <div className="grid min-h-0 grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 xl:items-start [&>_*]:min-h-0">
-          {persons.map((p, idx) => (
-            <VSTPersonColumn 
-              key={p.id_col}
-              pIdx={idx}
-              person={p}
-              nhanSus={nhanSus}
-              ngheNghieps={ngheNghieps}
-              updatePerson={updatePerson}
-              toggleMoment={toggleMoment}
-              updateAction={updateAction}
-              updateAssessment={updateAssessment}
-              submitOpportunity={submitOpportunity}
-              openOpportunity={openOpportunity}
-              khoaId={session.khoa_id}
-              cachThucGiamSat={session.cach_thuc_giam_sat ?? ""}
-            />
-          ))}
+          {persons.map((p, idx) => {
+            const isTabActive = activePersonTab === idx;
+            return (
+              <div
+                key={p.id_col}
+                className={isTabActive ? "block" : "hidden md:block"}
+              >
+                <VSTPersonColumn 
+                  pIdx={idx}
+                  person={p}
+                  nhanSus={nhanSus}
+                  ngheNghieps={ngheNghieps}
+                  updatePerson={updatePerson}
+                  toggleMoment={toggleMoment}
+                  updateAction={updateAction}
+                  updateAssessment={updateAssessment}
+                  submitOpportunity={submitOpportunity}
+                  openOpportunity={openOpportunity}
+                  khoaId={session.khoa_id}
+                  cachThucGiamSat={session.cach_thuc_giam_sat ?? ""}
+                />
+              </div>
+            );
+          })}
         </div>
 
         <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">

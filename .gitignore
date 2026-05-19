@@ -44,6 +44,14 @@ yarn-error.log*
 # Supabase CLI — thư mục trạng thái local (project ref, pooler URL; không commit)
 /supabase/.temp/
 /supabase/.branches/
+# Dump DB (PII) — giữ local, không commit
+/supabase/data.sql
+/supabase/schema.sql
+/supabase/roles.sql
+/supabase/auth-data.sql
+/supabase/auth-users-identities.sql
+/supabase/roles.sql.bak
+*.bak
 
 # vercel
 .vercel

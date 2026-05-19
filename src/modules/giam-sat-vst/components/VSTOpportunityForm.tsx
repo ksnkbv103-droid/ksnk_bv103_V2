@@ -107,42 +107,42 @@ export default function VSTOpportunityForm({
 
   return (
     <div className="flex flex-col rounded-lg border border-slate-200 bg-white p-3 sm:p-4">
-      <div className="min-h-0 space-y-2 sm:space-y-4">
-        <div className="space-y-1.5 sm:space-y-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">1. Thời điểm</p>
-          <div className="grid grid-cols-2 gap-1 sm:grid-cols-1 sm:gap-1">
+      <div className="min-h-0 space-y-3 sm:space-y-4">
+        <div className="space-y-2 sm:space-y-2">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-700 sm:text-[10px] sm:font-semibold sm:text-slate-600">1. Thời điểm</p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-1 sm:gap-1">
             {MOMENTS.map((m, i) => (
               <button
                 key={m}
                 type="button"
                 title={MOMENT_TOOLTIPS[m]}
                 onClick={() => toggleMoment(pIdx, oIdx, m)}
-                className={`w-full rounded-lg border px-2 py-1.5 text-left text-[10px] font-medium leading-snug transition-colors sm:px-3 sm:py-2 sm:text-[11px] ${
+                className={`w-full rounded-xl border px-3 py-3 text-left text-xs font-semibold leading-snug transition-colors sm:rounded-lg sm:px-3 sm:py-2 sm:text-[11px] ${
                   opp.thoi_diems.includes(m)
-                    ? "border-[#026f17] bg-[#026f17] text-white"
+                    ? "border-[#026f17] bg-[#026f17] text-white shadow-sm"
                     : "border-slate-200 bg-slate-50/80 text-slate-700 hover:border-slate-300 hover:bg-white"
                 }`}
               >
-                <span className="mr-1.5 font-semibold text-inherit opacity-70 sm:mr-2">{i + 1}.</span>
+                <span className="mr-2 font-bold text-inherit opacity-75 sm:mr-1.5 sm:font-semibold">{i + 1}.</span>
                 {m}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="space-y-1.5 sm:space-y-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">2. Hành động</p>
-          <div className="grid grid-cols-3 gap-1 sm:gap-1.5">
+        <div className="space-y-2 sm:space-y-2">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-700 sm:text-[10px] sm:font-semibold sm:text-slate-600">2. Hành động</p>
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-1.5">
             {ACTIONS.map((a) => (
               <button
                 key={a}
                 type="button"
                 onClick={() => updateAction(pIdx, oIdx, a)}
-                className={`min-h-9 rounded-lg border text-[8px] font-semibold uppercase tracking-wide transition-colors sm:h-10 sm:text-[9px] ${
+                className={`min-h-12 rounded-xl border text-[10px] font-bold uppercase tracking-wide transition-colors sm:min-h-10 sm:rounded-lg sm:text-[9px] ${
                   opp.hanh_dong === a
                     ? a === "Bỏ sót"
-                      ? "border-red-500 bg-red-500 text-white"
-                      : "border-amber-500 bg-amber-500 text-white"
+                      ? "border-red-500 bg-red-500 text-white shadow-sm"
+                      : "border-amber-500 bg-amber-500 text-white shadow-sm"
                     : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white"
                 }`}
               >

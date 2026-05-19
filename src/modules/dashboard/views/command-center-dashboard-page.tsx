@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import dynamic from "next/dynamic";
-import { Users, Eye, ClipboardList, Filter, LayoutDashboard, FileBarChart } from "lucide-react";
+import { Users, Eye, ClipboardList, Filter, LayoutDashboard, FileBarChart, ShieldCheck } from "lucide-react";
 import { useDashboardData } from "@/modules/dashboard/hooks/useDashboardData";
 import { buildEmptyComplianceDashboardPayload } from "@/modules/dashboard/compliance-dashboard.types";
 import type { ComplianceDashboardPayload } from "@/modules/dashboard/compliance-dashboard.types";
@@ -20,17 +20,17 @@ const chartChunkFallback = (className: string) => (
 
 const ComplianceDashboardPanel = dynamic(
   () => import("@/modules/dashboard/components/ComplianceDashboardPanel"),
-  { ssr: false, loading: () => chartChunkFallback("min-h-[200px] w-full") },
+  { ssr: false, loading: () => chartChunkFallback("min-h-[500px] w-full") },
 );
 
 const SupervisionSourceStats = dynamic(
   () => import("@/modules/dashboard/components/SupervisionSourceStats").then((m) => ({ default: m.SupervisionSourceStats })),
-  { ssr: false, loading: () => chartChunkFallback("min-h-[240px] w-full") },
+  { ssr: false, loading: () => chartChunkFallback("min-h-[560px] w-full") },
 );
 
 const VstDashboardPanel = dynamic(() => import("@/modules/giam-sat-vst/components/VstDashboardPanel"), {
   ssr: false,
-  loading: () => chartChunkFallback("min-h-[200px] w-full"),
+  loading: () => chartChunkFallback("min-h-[700px] w-full"),
 });
 
 type KhoaOpt = { id: string; label?: string; khoi_id?: string };
@@ -114,6 +114,30 @@ export function CommandCenterDashboardPage() {
     loadDashboard, initDone,
     ccWidgets,
   } = useDashboardData();
+
+  const gscKpis = useMemo(() => {
+    let tongQuanSat = 0;
+    let tongViPham = 0;
+    let tongPhien = 0;
+
+    Object.entries(compliancePayloads).forEach(([bk, p]) => {
+      if (bk === "VST_WHO") return;
+      tongQuanSat += p.summary?.tong_quan_sat ?? 0;
+      tongViPham += p.summary?.tong_vi_pham ?? 0;
+      tongPhien += p.summary?.tong_phien ?? 0;
+    });
+
+    const tyLeTuanThu = tongQuanSat > 0
+      ? Math.round(((tongQuanSat - tongViPham) * 1000) / tongQuanSat) / 10
+      : 0;
+
+    return {
+      tongQuanSat,
+      tongViPham,
+      tongPhien,
+      tyLeTuanThu,
+    };
+  }, [compliancePayloads]);
 
   const allTabs = [
     { id: "overview" as const, label: "Cơ cấu nguồn", icon: LayoutDashboard },
@@ -238,6 +262,75 @@ export function CommandCenterDashboardPage() {
           </button>
         </div>
       ) : null}
+
+      {/* 2 KPI Lâm sàng Cốt lõi (Hero Section) */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {/* KPI Vệ sinh tay */}
+        <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50/50 p-6 shadow-sm transition-all hover:shadow-md">
+          <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-emerald-500/5 blur-2xl" />
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
+              Tuân thủ Vệ sinh tay (WHO VST)
+            </span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-baseline gap-2">
+            <span className="text-4xl font-extrabold tracking-tight text-emerald-950">
+              {loading ? "..." : `${vstPayload?.kpis?.ty_le_tuan_thu ?? 0}%`}
+            </span>
+            <span className="text-xs font-medium text-emerald-700">đạt chuẩn</span>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-4 border-t border-emerald-100/70 pt-4 text-xs">
+            <div>
+              <p className="text-emerald-600/80">Cơ hội quan sát</p>
+              <p className="mt-0.5 font-bold text-emerald-950">
+                {loading ? "..." : `${(vstPayload?.kpis?.da_tuan_thu ?? 0).toLocaleString()} / ${(vstPayload?.kpis?.tong_co_hoi ?? 0).toLocaleString()}`}
+              </p>
+            </div>
+            <div>
+              <p className="text-emerald-600/80">Số phiên giám sát</p>
+              <p className="mt-0.5 font-bold text-emerald-950">
+                {loading ? "..." : (vstPayload?.kpis?.tong_phien ?? 0).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* KPI Giám sát chung */}
+        <div className="relative overflow-hidden rounded-2xl border border-sky-100 bg-gradient-to-br from-sky-50 to-indigo-50/50 p-6 shadow-sm transition-all hover:shadow-md">
+          <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-sky-500/5 blur-2xl" />
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold uppercase tracking-wider text-sky-800">
+              Tuân thủ Giám sát chung (GSC)
+            </span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-500/10 text-sky-700">
+              <ClipboardList className="h-5 w-5" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-baseline gap-2">
+            <span className="text-4xl font-extrabold tracking-tight text-sky-950">
+              {loading ? "..." : `${gscKpis.tyLeTuanThu}%`}
+            </span>
+            <span className="text-xs font-medium text-sky-700">đạt chuẩn</span>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-4 border-t border-sky-100/70 pt-4 text-xs">
+            <div>
+              <p className="text-sky-600/80">Tiêu chí đạt chuẩn</p>
+              <p className="mt-0.5 font-bold text-sky-950">
+                {loading ? "..." : `${(gscKpis.tongQuanSat - gscKpis.tongViPham).toLocaleString()} / ${gscKpis.tongQuanSat.toLocaleString()}`}
+              </p>
+            </div>
+            <div>
+              <p className="text-sky-600/80">Số phiên giám sát</p>
+              <p className="mt-0.5 font-bold text-sky-950">
+                {loading ? "..." : gscKpis.tongPhien.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div
         className={`app-data-shell transition-opacity duration-200 ${loading && hasStaleContent ? "pointer-events-none opacity-60" : ""}`}

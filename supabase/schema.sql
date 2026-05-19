@@ -1,8 +1,11 @@
+-- Enable required extensions
+CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
 --
 -- PostgreSQL database dump
 --
 
-\restrict bVSTD4AHEZEBKyJQxMJDfXR7pVoIVHNVt5l81DBeOBZh7iyMMlofxOd9sVvT1sj
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 18.4
@@ -23,14 +26,12 @@ SET row_security = off;
 -- Name: public; Type: SCHEMA; Schema: -; Owner: -
 --
 
-CREATE SCHEMA public;
 
 
 --
 -- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
 --
 
-COMMENT ON SCHEMA public IS 'standard public schema';
 
 
 --
@@ -7808,5 +7809,4 @@ CREATE POLICY vst_sessions_select_authenticated ON public.fact_giam_sat_vst_sess
 -- PostgreSQL database dump complete
 --
 
-\unrestrict bVSTD4AHEZEBKyJQxMJDfXR7pVoIVHNVt5l81DBeOBZh7iyMMlofxOd9sVvT1sj
 

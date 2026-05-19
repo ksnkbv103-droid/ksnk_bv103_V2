@@ -68,19 +68,17 @@ npm install
 npm run dev
 ```
 
-## Documentation
+## Tài liệu Hướng dẫn (Documentation)
 
-> **Cập nhật 19/05/2026**: Tài liệu đã được chuẩn hóa cấu trúc. Xem chi tiết tại [docs/README.md](docs/README.md).
+Hệ thống tài liệu của dự án được quy hoạch tinh gọn thành **4 Cột trụ Thống nhất** chính:
 
-### Tài liệu chính
-- [Documentation Index](docs/README.md) — Toàn bộ cấu trúc tài liệu
-- [CHANGELOG](CHANGELOG.md)
-- [AGENTS.md](AGENTS.md) — Quy tắc làm việc cho dev & AI
-- [Development Process](docs/guides/DEVELOPMENT_PROCESS.md)
+* 📄 **[Documentation Index](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/README.md)** — Mục lục tài liệu dùng chung
+* 📖 **[AGENTS.md](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/AGENTS.md)** — Hiến pháp quy tắc làm việc cho Dev & AI (Bắt buộc đọc)
+* 📘 **[Quy chuẩn Kỹ thuật & UI/UX](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/guides/UNIFIED_ENGINEERING_GUIDELINES.md)** — Quy tắc code, RLS, Layout và cổng PR
+* 📙 **[Đặc tả Nghiệp vụ y tế](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/specs/UNIFIED_DOMAIN_SPECIFICATION.md)** — Từ điển thuật ngữ, hành trình VST, CSSD, QLCV, NKBV
+* 📗 **[Cẩm nang Vận hành, Bảo mật & DB](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/operations/UNIFIED_OPERATIONS_SOP.md)** — Auth, RBAC y tế, SOP đồng bộ DB và Smart DB
+* 📒 **[Bàn giao & Lộ trình](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/handover/UNIFIED_HANDOVER_AND_ROADMAP.md)** — Tổng quan bàn giao, DB tham chiếu và 8 mảnh lộ trình
 
-### Tham khảo nhanh
-- Master Completion Plan → [docs/handover/MASTER_COMPLETION_PLAN.md](docs/handover/MASTER_COMPLETION_PLAN.md)
-- Internal / AI rules → [docs/internal/](docs/internal/)
 
 ---
 **Production URL**: https://ksnk-bv103.vercel.app

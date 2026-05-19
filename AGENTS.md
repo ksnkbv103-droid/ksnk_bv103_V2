@@ -44,3 +44,10 @@ Chỉ làm một mảnh tại một thời điểm. Mỗi mảnh phải có Pilo
 - Dữ liệu đúng quan trọng hơn UI đẹp
 - Không thay đổi DB mà chưa có migration
 - Security và quyền phải rõ ràng
+
+## Tài liệu Tham chiếu Thống nhất
+
+- **Quy chuẩn Kỹ thuật & UI/UX:** [UNIFIED_ENGINEERING_GUIDELINES.md](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/guides/UNIFIED_ENGINEERING_GUIDELINES.md)
+- **Đặc tả Nghiệp vụ y tế:** [UNIFIED_DOMAIN_SPECIFICATION.md](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/specs/UNIFIED_DOMAIN_SPECIFICATION.md)
+- **Cẩm nang Vận hành, Bảo mật & DB:** [UNIFIED_OPERATIONS_SOP.md](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/operations/UNIFIED_OPERATIONS_SOP.md)
+- **Bàn giao & Lộ trình:** [UNIFIED_HANDOVER_AND_ROADMAP.md](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/handover/UNIFIED_HANDOVER_AND_ROADMAP.md)
