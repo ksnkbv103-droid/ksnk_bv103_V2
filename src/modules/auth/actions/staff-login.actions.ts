@@ -62,12 +62,20 @@ export async function loginWithStaffIdentifier(identifier: string, password: str
     });
 
     if (signErr) {
+      // Bổ sung thông tin chẩn đoán lỗi cực kỳ quan trọng cho quá trình chuyển đổi Supabase mới
+      if (signErr.message?.includes("Email not confirmed")) {
+        return {
+          ok: false as const,
+          error: "Tài khoản chưa được xác nhận email. Vui lòng liên hệ Quản trị viên để TẮT cài đặt 'Confirm email' trong tab Authentication -> Providers -> Email trên Supabase Dashboard.",
+        };
+      }
       return { ok: false as const, error: "Mã đăng nhập hoặc mật khẩu không đúng." };
     }
 
     /** Email đã dùng cho Auth — client gọi `signInWithPassword` lần nữa để ghi cookie cho Server Actions. */
     return { ok: true as const, authEmail: emailForAuth };
-  } catch {
-    return { ok: false as const, error: "Đăng nhập không thành công. Thử lại sau." };
+  } catch (err) {
+    console.error("[loginWithStaffIdentifier] Unexpected error:", err);
+    return { ok: false as const, error: "Đăng nhập không thành công. Thử lại sau hoặc liên hệ Admin." };
   }
 }
