@@ -6,12 +6,22 @@ import {
   verifyCommandCenterShell,
   verifyDashboardOverviewWidget,
 } from "../lib/dashboard-command-center-access";
-import { effectiveFilterIds } from "../lib/dashboard-hook-helpers";
+import { effectiveFilterIds } from "@/lib/analytics/filter-helpers";
 import type { DashboardKsnkStaffSupervisionRow } from "../compliance-dashboard.types";
-import type { FetchDashboardPayloadsInput } from "../lib/fetch-dashboard-payloads-for-type";
 import type { ActorKsnkScope } from "@/lib/actor-ksnk-scope.types";
 
-type OverviewBundleInput = Omit<FetchDashboardPayloadsInput, "sType">;
+export type KsnkStaffOverviewInput = {
+  tuNgay: string;
+  denNgay: string;
+  selectedKhoiIds: string[];
+  selectedKhoaIds: string[];
+  selectedNgheIds: string[];
+  selectedKhuVucIds: string[];
+  khoiOptionCount: number;
+  khoaOptionCount: number;
+  ngheOptionCount: number;
+  khuOptionCount: number;
+};
 
 export type KsnkStaffSupervisionBundle = {
   rows: DashboardKsnkStaffSupervisionRow[];
@@ -91,7 +101,7 @@ async function resolveViewerMaySeeKsnkStaffWorkloadWithScope(scope: ActorKsnkSco
 }
 
 /** Thống kê nhân viên KSNK — chỉ trả dữ liệu khi viewer thuộc KSNK / ADMIN; cùng ranh giới bộ lọc dashboard. */
-export async function fetchKsnkStaffSupervisionForOverview(p: OverviewBundleInput): Promise<KsnkStaffSupervisionBundle> {
+export async function fetchKsnkStaffSupervisionForOverview(p: KsnkStaffOverviewInput): Promise<KsnkStaffSupervisionBundle> {
   await verifyOverviewStaffWorkloadRpc();
   const scope = await getActorKsnkScope();
   const showKsnkStaffWorkload = await resolveViewerMaySeeKsnkStaffWorkloadWithScope(scope);

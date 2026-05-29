@@ -1,7 +1,6 @@
 import { useCallback } from "react";
-import type { ComplianceDashboardPayload } from "../compliance-dashboard.types";
+import type { VstStrategicPayload, GscStrategicPayload } from "../strategic-dashboard.types";
 import { getDashboardPrintHtml } from "../lib/dashboard-print-template";
-import type { VstDashboardPayload } from "@/modules/giam-sat-vst/actions/vst-dashboard.types";
 
 type OptionRow = { id: string; label: string };
 
@@ -15,9 +14,9 @@ export function useDashboardExportReport(args: {
   selectedKhuVucIds: string[];
   khuVucOptions: OptionRow[];
   selectedBangKiemMas: string[];
-  vstPayload: VstDashboardPayload | null;
-  compliancePayloads: Record<string, ComplianceDashboardPayload>;
-  bkLabelMap: Map<string, string>;
+  vstPayload: VstStrategicPayload | null;
+  gscPayload: GscStrategicPayload | null;
+  bkLabelMap?: Map<string, string>;
   nhanXetDanhGia: string;
   kienNghiDeXuat: string;
 }) {
@@ -32,7 +31,7 @@ export function useDashboardExportReport(args: {
     khuVucOptions,
     selectedBangKiemMas,
     vstPayload,
-    compliancePayloads,
+    gscPayload,
     bkLabelMap,
     nhanXetDanhGia,
     kienNghiDeXuat,
@@ -53,7 +52,7 @@ export function useDashboardExportReport(args: {
       khuVucOptions,
       selectedBangKiemMas,
       vstPayload,
-      compliancePayloads,
+      gscPayload,
       bkLabelMap,
       nhanXetDanhGia,
       kienNghiDeXuat,
@@ -76,7 +75,7 @@ export function useDashboardExportReport(args: {
     khuVucOptions,
     selectedBangKiemMas,
     vstPayload,
-    compliancePayloads,
+    gscPayload,
     bkLabelMap,
     nhanXetDanhGia,
     kienNghiDeXuat,

@@ -10,7 +10,7 @@ import {
 } from "../lib/dashboard-command-center-access";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { getCachedDmKhoaPhong, getCachedDmNgheNghiep, getCachedDmKhuVucGiamSat, getCachedDmKhoiKhoa } from "@/lib/cache/master-data-cache";
-import { effectiveFilterIds } from "../lib/dashboard-hook-helpers";
+import { effectiveFilterIds } from "@/lib/analytics/filter-helpers";
 import {
   complianceDashboardFiltersSchema,
   type ParsedComplianceDashboardFilters,
@@ -193,7 +193,15 @@ async function loadComplianceFilterOptionsData(supabase: SupabaseClient) {
         }),
       ],
       khoi: khoiData.map((x) => ({ id: String(x.id), label: String(x.ten_khoi || "—") })),
-      khoa: khoaData.map((x) => ({ id: String(x.id), label: String(x.ten_khoa || "—"), khoi_id: String(x.khoi_id || "") })),
+      khoa: khoaData.map((x) => {
+        const hasCode = x.ma_khoa && x.ma_khoa.trim();
+        const displayLabel = hasCode ? `[${x.ma_khoa}] ${x.ten_khoa}` : String(x.ten_khoa || "—");
+        return {
+          id: String(x.id),
+          label: displayLabel,
+          khoi_id: String(x.khoi_id || ""),
+        };
+      }),
       nghe_nghiep: ngheData.map((x) => ({ id: String(x.id), label: String(x.ten_nghe_nghiep || "—") })),
       khu_vuc: khuData.map((x) => ({ id: String(x.id), label: String(x.ten_khu_vuc || "—") })),
     },

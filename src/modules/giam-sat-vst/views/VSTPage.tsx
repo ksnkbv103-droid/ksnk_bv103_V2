@@ -2,9 +2,11 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { FileText, History } from "lucide-react";
+import dynamic from "next/dynamic";
+import { BarChart2, FileText, History } from "lucide-react";
 import VSTForm from "../components/VSTForm";
 import HistoryLoader from "../components/HistoryLoader";
+import { useVstAnalyticsData } from "../hooks/use-vst-analytics-data";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { toast } from "sonner";
 import { getVSTSessionDetail } from "../actions/vst-read.actions";
@@ -17,10 +19,49 @@ import {
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 import { assertCanEditVSTSession } from "../actions/vst-write-delete.actions";
 
+const VstStrategicAnalyticsPanel = dynamic(() => import("../components/VstStrategicAnalyticsPanel"), {
+  ssr: false,
+  loading: () => <div className="h-64 animate-pulse rounded-2xl bg-slate-50" />,
+});
+
 const MODULE_KEY = "GIAM_SAT_VST";
 
+function VstAnalyticsTab() {
+  const d = useVstAnalyticsData();
+  if (!d.initDone) return <SupervisionPageSkeleton />;
+  return (
+    <VstStrategicAnalyticsPanel
+      tuNgay={d.tuNgay}
+      setTuNgay={d.setTuNgay}
+      denNgay={d.denNgay}
+      setDenNgay={d.setDenNgay}
+      bangKiemOptions={d.bangKiemOptions}
+      selectedBangKiemMas={d.selectedBangKiemMas}
+      setSelectedBangKiemMas={d.setSelectedBangKiemMas}
+      khoiOptions={d.khoiOptions}
+      selectedKhoiIds={d.selectedKhoiIds}
+      setSelectedKhoiIds={d.setSelectedKhoiIds}
+      khoaOptions={d.khoaOptions}
+      selectedKhoaIds={d.selectedKhoaIds}
+      setSelectedKhoaIds={d.setSelectedKhoaIds}
+      ngheOptions={d.ngheOptions}
+      selectedNgheIds={d.selectedNgheIds}
+      setSelectedNgheIds={d.setSelectedNgheIds}
+      khuVucOptions={d.khuVucOptions}
+      selectedKhuVucIds={d.selectedKhuVucIds}
+      setSelectedKhuVucIds={d.setSelectedKhuVucIds}
+      selectedHinhThucIds={d.selectedHinhThucIds}
+      setSelectedHinhThucIds={d.setSelectedHinhThucIds}
+      payload={d.payload}
+      loading={d.loading}
+      loadError={d.loadError}
+      onRefresh={() => void d.loadAnalytics()}
+    />
+  );
+}
+
 export default function VSTPage() {
-  const [activeTab, setActiveTab] = useState<"form" | "history">("form");
+  const [activeTab, setActiveTab] = useState<"form" | "history" | "analytics">("form");
   const [editVstSourceSessionId, setEditVstSourceSessionId] = useState<string | null>(null);
   const [editVstDetail, setEditVstDetail] = useState<{
     session: Record<string, unknown>;
@@ -32,7 +73,11 @@ export default function VSTPage() {
   const supervisionTabs = useMemo((): SupervisionTabDef[] => {
     const core: SupervisionTabDef[] = [{ id: "form", label: "Form giám sát", icon: FileText }];
     if (!showTabs) return core;
-    return [...core, { id: "history", label: "Lịch sử phiên", icon: History }];
+    return [
+      ...core,
+      { id: "analytics", label: "Thống kê", icon: BarChart2 },
+      { id: "history", label: "Lịch sử phiên", icon: History },
+    ];
   }, [showTabs]);
 
   if (loading) {
@@ -107,6 +152,8 @@ export default function VSTPage() {
             <HistoryLoader onEditSessionId={handleEditSession} />
           </div>
         )}
+
+        {activeTab === "analytics" && showTabs && <VstAnalyticsTab />}
       </KsnkSupervisionPanel>
     </div>
   );

@@ -10,7 +10,13 @@ export function resolveDashboardFilterUi(
   const bangKiemOptions = filterOptions?.bang_kiem?.length ? filterOptions.bang_kiem : [...BANG_KIEM_FALLBACK];
   const khoiOptions = filterOptions?.khoi?.length ? filterOptions.khoi : [];
   const khoaOptions =
-    filterOptions?.khoa?.length ? filterOptions.khoa : header?.khoas?.map((k) => ({ id: k.id, label: String(k.ten_danh_muc || "—") })) || [];
+    filterOptions?.khoa?.length
+      ? filterOptions.khoa
+      : header?.khoas?.map((k) => {
+          const hasCode = k.ma_danh_muc && k.ma_danh_muc.trim();
+          const label = hasCode ? `[${k.ma_danh_muc}] ${k.ten_danh_muc}` : String(k.ten_danh_muc || "—");
+          return { id: k.id, label };
+        }) || [];
   const ngheOptions =
     filterOptions?.nghe_nghiep?.length
       ? filterOptions.nghe_nghiep

@@ -2,8 +2,9 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, FileText, History } from "lucide-react";
-import { getBangKiemsForGiamSat, getTieuChisForGiamSatChung } from "@/modules/quan-tri-he-thong/bang-kiem/actions/bang-kiem.actions";
+import dynamic from "next/dynamic";
+import { ArrowLeft, BarChart2, FileText, History } from "lucide-react";
+import { getBangKiemsForGiamSat, getTieuChisForGiamSatChung } from "@/lib/mdm-read-gateway";
 import GiamSatChungForm from "../components/GiamSatChungForm";
 import HistoryTable from "../components/HistoryTable";
 import { useModulePermission } from "@/hooks/useModulePermission";
@@ -11,6 +12,10 @@ import { useDataTable } from "@/hooks/useDataTable";
 import ChecklistTemplateTable from "../components/ChecklistTemplateTable";
 import { toast } from "sonner";
 import type { ChecklistResult, ChecklistTemplate } from "@/types/giam-sat-chung";
+import {
+  mapTieuChiJsonbToCriterion,
+  type TieuChiJsonbRaw,
+} from "../lib/gsc-form-template-sync";
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
 import {
   KsnkSupervisionHero,
@@ -19,13 +24,66 @@ import {
   type SupervisionTabDef,
 } from "@/components/shared/ksnk-supervision-chrome";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
+import { useGscAnalyticsData } from "../hooks/use-gsc-analytics-data";
+
+const GscStrategicAnalyticsPanel = dynamic(() => import("../components/GscStrategicAnalyticsPanel"), {
+  ssr: false,
+  loading: () => <div className="h-64 animate-pulse rounded-2xl bg-slate-50" />,
+});
 
 const MODULE_KEY = "GIAM_SAT_CHUNG";
 
-type BangKiemListRow = { id: string; ma_bk?: string | null; ten_bang_kiem?: string | null; ten_bk?: string | null };
+type BangKiemListRow = {
+  id: string;
+  ma_bk?: string | null;
+  ten_bang_kiem?: string | null;
+  ten_bk?: string | null;
+  loai_giam_sat?: string | null;
+  doi_tuong_giam_sat?: string | null;
+  cach_tinh_diem?: string | null;
+};
 
-export default function GiamSatChungPage() {
-  const [activeTab, setActiveTab] = useState<"form" | "history">("form");
+interface GiamSatChungPageProps {
+  /** Slice 5 (reform v4): pre-filter danh mục bảng kiểm theo `loai_giam_sat`. */
+  initialLoaiGiamSat?: "TUAN_THU" | "NHAT_KY_VAN_HANH" | "DANH_GIA_HE_THONG";
+}
+
+function GscAnalyticsTab({ initialLoaiGiamSat }: { initialLoaiGiamSat?: GiamSatChungPageProps["initialLoaiGiamSat"] }) {
+  const d = useGscAnalyticsData(initialLoaiGiamSat);
+  if (!d.initDone) return <SupervisionPageSkeleton />;
+  return (
+    <GscStrategicAnalyticsPanel
+      tuNgay={d.tuNgay}
+      setTuNgay={d.setTuNgay}
+      denNgay={d.denNgay}
+      setDenNgay={d.setDenNgay}
+      bangKiemOptions={d.bangKiemOptions}
+      selectedBangKiemMas={d.selectedBangKiemMas}
+      setSelectedBangKiemMas={d.setSelectedBangKiemMas}
+      khoiOptions={d.khoiOptions}
+      selectedKhoiIds={d.selectedKhoiIds}
+      setSelectedKhoiIds={d.setSelectedKhoiIds}
+      khoaOptions={d.khoaOptions}
+      selectedKhoaIds={d.selectedKhoaIds}
+      setSelectedKhoaIds={d.setSelectedKhoaIds}
+      ngheOptions={d.ngheOptions}
+      selectedNgheIds={d.selectedNgheIds}
+      setSelectedNgheIds={d.setSelectedNgheIds}
+      khuVucOptions={d.khuVucOptions}
+      selectedKhuVucIds={d.selectedKhuVucIds}
+      setSelectedKhuVucIds={d.setSelectedKhuVucIds}
+      selectedHinhThucIds={d.selectedHinhThucIds}
+      setSelectedHinhThucIds={d.setSelectedHinhThucIds}
+      payload={d.payload}
+      loading={d.loading}
+      loadError={d.loadError}
+      showComplianceV4={initialLoaiGiamSat === "TUAN_THU" || !initialLoaiGiamSat}
+    />
+  );
+}
+
+export default function GiamSatChungPage({ initialLoaiGiamSat }: GiamSatChungPageProps = {}) {
+  const [activeTab, setActiveTab] = useState<"form" | "history" | "analytics">("form");
   const [selectedTemplate, setSelectedTemplate] = useState<ChecklistTemplate | null>(null);
   const [editSourceSessionId, setEditSourceSessionId] = useState<string | null>(null);
   const [editPayload, setEditPayload] = useState<{
@@ -46,7 +104,8 @@ export default function GiamSatChungPage() {
 
   const handleSelectTemplate = async (bk: BangKiemListRow) => {
     setLoadingTemplateDetail(true);
-    const tcRes = await getTieuChisForGiamSatChung(String(bk.id || ""), true);
+    const bkId = String(bk.id || "");
+    const tcRes = await getTieuChisForGiamSatChung(bkId, true);
     setLoadingTemplateDetail(false);
 
     if (!tcRes.success) {
@@ -56,7 +115,7 @@ export default function GiamSatChungPage() {
 
     setEditSourceSessionId(null);
     setEditPayload(null);
-    const criteria = tcRes.data || [];
+    const criteria = (tcRes.data || []) as TieuChiJsonbRaw[];
     setFormProgress(null);
     const ma = String(bk.ma_bk ?? "").trim();
     setSelectedTemplate({
@@ -64,11 +123,7 @@ export default function GiamSatChungPage() {
       dbId: String(bk.id || ""),
       title: String(bk.ten_bang_kiem ?? bk.ten_bk ?? "").trim() || "Bảng kiểm",
       category: "Giám sát chung",
-      criteria: criteria.map((c: { id: string; noi_dung?: string | null; stt: number; diem_toi_da?: number }) => ({
-        id: c.id,
-        label: String(c.noi_dung ?? "").trim() || "Tiêu chí",
-        maxScore: c.diem_toi_da || 1,
-      })),
+      criteria: criteria.map(mapTieuChiJsonbToCriterion),
     });
   };
 
@@ -77,21 +132,37 @@ export default function GiamSatChungPage() {
       setLoadingTemplates(true);
       const res = await getBangKiemsForGiamSat();
       if (res.success) {
-        setDbTemplates((res.data || []) as BangKiemListRow[]);
+        const all = (res.data || []) as BangKiemListRow[];
+        // Slice 5 (reform v4): filter theo loai_giam_sat khi route /tuan-thu /nhat-ky /he-thong.
+        // Backward compat: bảng kiểm chưa set loai_giam_sat → mặc định coi là TUAN_THU.
+        const filtered = initialLoaiGiamSat
+          ? all.filter((bk) => {
+              const lg = String(bk.loai_giam_sat || "").trim().toUpperCase();
+              if (initialLoaiGiamSat === "TUAN_THU") {
+                return !lg || lg === "TUAN_THU";
+              }
+              return lg === initialLoaiGiamSat;
+            })
+          : all;
+        setDbTemplates(filtered);
       } else {
         toast.error(res.error || "Không tải được danh mục bảng kiểm");
       }
       setLoadingTemplates(false);
     }
     void loadTemplates();
-  }, []);
+  }, [initialLoaiGiamSat]);
 
   const showTabs = allowed.view;
 
   const supervisionTabs = useMemo((): SupervisionTabDef[] => {
     const core: SupervisionTabDef[] = [{ id: "form", label: "Form giám sát", icon: FileText }];
     if (!showTabs) return core;
-    return [...core, { id: "history", label: "Lịch sử phiên", icon: History }];
+    return [
+      ...core,
+      { id: "analytics", label: "Thống kê", icon: BarChart2 },
+      { id: "history", label: "Lịch sử phiên", icon: History },
+    ];
   }, [showTabs]);
 
   if (permLoading) {
@@ -202,6 +273,10 @@ export default function GiamSatChungPage() {
               }}
             />
           </div>
+        )}
+
+        {activeTab === "analytics" && showTabs && (
+          <GscAnalyticsTab initialLoaiGiamSat={initialLoaiGiamSat} />
         )}
       </KsnkSupervisionPanel>
     </div>

@@ -1,4 +1,4 @@
-import { sortedJoinIds } from "./dashboard-hook-helpers";
+import { sortedJoinIds } from "@/lib/analytics/filter-helpers";
 
 /** Khóa cache / dedupe — mọi tham số ảnh hưởng RPC dashboard. */
 export function buildDashboardFilterCacheKey(input: {
