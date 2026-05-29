@@ -12,7 +12,8 @@ Hệ thống KSNK BV103 được xây dựng dựa trên Next.js App Router (Nex
 
 ### 1.1 Nguyên tắc Thiết kế Module (DDD Boundaries)
 * Mỗi phân hệ nghiệp vụ lâm sàng nằm trọn vẹn trong một thư mục dưới `src/modules/<ten-module>/`.
-* **Cấm tuyệt đối** việc import chéo trực tiếp các hàm logic (`actions/*`, `hooks/*`) từ module này sang module khác. Mọi giao tiếp liên module bắt buộc phải đi qua các điểm vào (entrypoint) được định nghĩa tại `contexts/<context-name>/entrypoint.ts` để đảm bảo tính độc lập.
+* **Không** import trực tiếp `actions/*` / `hooks/*` giữa hai module nghiệp vụ. Giao tiếp qua `contexts/<context>/entrypoint.ts` (CSSD), [`@/lib/mdm-read-gateway`](../../src/lib/mdm-read-gateway.ts) (GSC → bảng kiểm), [`@/lib/analytics/filter-helpers`](../../src/lib/analytics/filter-helpers.ts) (filter payload dùng chung dashboard).
+* **SSOT dụng cụ:** định nghĩa master → `quan-tri-he-thong/danh-muc`; ledger vận hành → `fact_kho_dung_cu_giao_dich`.
 
 ### 1.2 Phân quyền Chặt chẽ tại Server Actions
 * **Không bao giờ tin tưởng Client**: Mọi logic ghi/sửa dữ liệu ở phía Server Actions bắt buộc phải được bọc qua lớp kiểm tra quyền hạn `verifyPermission` hoặc `verifyPermissions`.
@@ -65,21 +66,17 @@ graph TD
 ```
 
 ### 3.1 Bộ lệnh kiểm tra cục bộ (Local Command Pack)
-Trước khi tạo PR, lập trình viên bắt buộc phải chạy bộ lệnh kiểm tra dưới local và đảm bảo tất cả đều vượt qua:
+Trước khi tạo PR, chạy **một lệnh** (full gate — khớp CI):
+
 ```bash
-# 1. Kiểm tra cú pháp tĩnh (phải đạt 0 lỗi)
-npm run lint
-
-# 2. Kiểm tra kiến trúc module CSSD
-npm run lint:cssd-architecture
-
-# 3. Chạy toàn bộ các bài unit test
-npm run test:cssd
-npm run test:pilot
-
-# 4. Kiểm tra tính toàn vẹn của Schema Database cục bộ
-npm run trial:db:precheck:local
+npm run verify
 ```
+
+Tương đương: `lint` + `verify:cssd` (arch + import MDM + tests CSSD) + `verify:engineering` + `build`.
+
+Chỉ khi chắc không đụng Server Action / DB: `npm run verify:quick` (= build).
+
+Bổ sung khi đụng schema: `npm run verify:mdm:local`, `npm run trial:db:precheck:local`. Chi tiết: [`LEAN_EXECUTION_BV103.md`](../specs/working/LEAN_EXECUTION_BV103.md).
 
 ### 3.2 Quy trình Sử dụng PR Template
 Khi tạo Pull Request trên GitHub, lập trình viên bắt buộc phải sử dụng **[.github/pull_request_template.md](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/.github/pull_request_template.md)**, điền đầy đủ mô tả kịch bản kiểm thử lâm sàng bằng tay, và xác nhận hoàn thành phần **Alignment Check** (ánh xạ nghiệp vụ dữ liệu).

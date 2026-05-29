@@ -9,40 +9,6 @@ import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { applyVstHistoryReadScope } from "../lib/vst-read-scope";
 
-/** @deprecated Ưu tiên `getVSTSessionsPaginated` — API này chỉ lấy tối đa 100 phiên gần nhất. */
-export async function getVSTSessions() {
-  const supabase = await createServerSupabaseUserClient();
-  try {
-    await verifyPermission("GIAM_SAT_VST", "view");
-    const scope = await getActorKsnkScope();
-    let q = supabase
-      .from("v_fact_giam_sat_vst_sessions_full")
-      .select(VST_SESSIONS_FULL_VIEW_SELECT)
-      .order("created_at", { ascending: false })
-      .limit(100);
-    q = applyVstHistoryReadScope(q, scope);
-    const { data, error } = await q;
-
-    if (error) throw error;
-    
-    // Map về format cũ để không làm gãy UI
-    return {
-      success: true,
-      data: (data || []).map((x) => ({
-        ...x,
-        is_seen: Boolean(x.is_seen),
-        danh_muc_khu_vuc: { ten_danh_muc: x.ten_khu_vuc_giam_sat || "—" },
-        danh_muc_khoa: { ten_danh_muc: x.ten_khoa_phong || "—" },
-        nguoi_giam_sat: { ho_ten: x.ten_nguoi_giam_sat || "—" },
-        // observations sẽ được load lazy khi mở detail hoặc dùng cho list overview đơn giản
-        observations: [] 
-      })),
-    };
-  } catch (error: unknown) {
-    return { success: false, error: vstReadErrorMessage(error) };
-  }
-}
-
 /**
  * Phiên bản phân trang Server-side cho Lịch sử VST.
  * Client chỉ nhận đúng 1 trang (~20 bản ghi), DB thực hiện filter/sort/count.
@@ -86,6 +52,7 @@ export async function getVSTSessionsPaginated(params: {
 
     const searchFilter = buildSupabaseSearchFilter(params.search, [
       "ten_nguoi_giam_sat",
+      "ma_khoa_phong",
       "ten_khoa_phong",
       "ten_khu_vuc_giam_sat"
     ]);

@@ -4,7 +4,7 @@ import { bv103DefaultTuNgayFromToday } from "@/lib/bv103-analytics-default-range
 import { getComplianceFilterOptions } from "@/modules/dashboard/actions/compliance-dashboard.actions";
 import { resolveDashboardFilterUi } from "@/modules/dashboard/lib/resolve-dashboard-filter-ui";
 import { pruneKhoaIdsForKhoiSelection, sortedJoinIds } from "@/lib/analytics/filter-helpers";
-import type { ComplianceDashboardPayload } from "@/modules/dashboard/compliance-dashboard.types";
+import type { DashboardFilterOptions } from "@/modules/dashboard/compliance-dashboard.types";
 
 export function useAnalyticsFilters() {
   const [selectedBangKiemMas, setSelectedBangKiemMas] = useState<string[]>([]);
@@ -15,11 +15,11 @@ export function useAnalyticsFilters() {
   const [selectedHinhThucIds, setSelectedHinhThucIds] = useState<string[]>([]);
   const [tuNgay, setTuNgay] = useState(() => bv103DefaultTuNgayFromToday());
   const [denNgay, setDenNgay] = useState(() => format(new Date(), "yyyy-MM-dd"));
-  const [filterOptions, setFilterOptions] = useState<ComplianceDashboardPayload["options"] | null>(null);
+  const [filterOptions, setFilterOptions] = useState<DashboardFilterOptions | null>(null);
   const [initDone, setInitDone] = useState(false);
 
   const { bangKiemOptions, khoiOptions, khoaOptions, ngheOptions, khuVucOptions, bkLabelMap } =
-    resolveDashboardFilterUi(filterOptions, null);
+    resolveDashboardFilterUi(filterOptions);
 
   useEffect(() => {
     if (!initDone || khoiOptions.length === 0) return;

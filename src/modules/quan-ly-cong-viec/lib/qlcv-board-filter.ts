@@ -11,9 +11,6 @@ export type QlcvBoardFilter =
   | "GATE_NGHIEMTHU"
   | "NEAR_DEADLINE";
 
-/** @deprecated Dùng `KanbanColumnId` — giữ alias để diff nhỏ hơn. */
-export type KanbanColumnFocus = KanbanColumnId;
-
 export { type KanbanColumnId } from "./qlcv-board-lanes";
 
 export function getKanbanFocusColumnForFilter(

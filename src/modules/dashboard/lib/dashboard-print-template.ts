@@ -1,5 +1,6 @@
 import { MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
-import type { VstStrategicPayload, GscStrategicPayload } from "../strategic-dashboard.types";
+import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
+import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 
 type PrintParams = {
   reportNo: string;

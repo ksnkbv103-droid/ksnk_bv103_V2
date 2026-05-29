@@ -4,7 +4,7 @@
  */
 
 import type { SessionInput } from "@/modules/giam-sat-vst/actions/vst-write.helpers";
-import type { VSTObservation } from "@/modules/giam-sat-vst/data";
+import type { VSTObservation } from "@/modules/giam-sat-vst/lib/vst-constants";
 import type { GscSessionInput } from "@/modules/giam-sat-chung/actions/giam-sat-chung-write-helpers";
 import type { ChecklistResult } from "@/types/giam-sat-chung";
 
