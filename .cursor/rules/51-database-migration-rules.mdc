@@ -13,4 +13,6 @@ Trước khi ghi SQL: mở hoặc `@` [`docs/specs/10-bv103-implementation-mappi
 - Ưu tiên **additive**: `ADD COLUMN IF NOT EXISTS`, backfill, index trước khi drop/rename.
 - Mọi rename/drop cần **tương thích ngược** hoặc migration nhiều bước + rollback plan.
 - Sau đổi schema: cập nhật **cùng task** các action/types/form/bảng UI liên quan (đồng bộ code-app-database).
-- `dm_*` / registry / RLS: không tự ý thêm nguồn danh mục song song; khớp ADR [`02-adr-dm-dict-domain-registry.md`](../../docs/specs/working/02-adr-dm-dict-domain-registry.md).
+- `dm_*` / registry / RLS: không tự ý thêm nguồn danh mục song song; khớp `UNIFIED_DOMAIN_SPECIFICATION` + `20-master-data-placement.mdc`.
+- **Kiểm soát De-normalization / Pre-aggregation:** Không tự ý tạo thêm các bảng `fact_*_summary` hoặc cột lưu trữ trùng lặp nếu chưa trình bày phương án đồng bộ nhất quán dữ liệu (VD: Trigger đồng bộ an toàn) và chưa có sự đồng ý của người dùng dựa trên phân tích đánh đổi thực tế.
+

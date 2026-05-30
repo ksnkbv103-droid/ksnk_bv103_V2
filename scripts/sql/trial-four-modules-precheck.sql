@@ -20,33 +20,22 @@ SELECT
   to_regclass('public.v_auth_user_permissions') IS NOT NULL AS v_auth_user_permissions_ok,
 
   EXISTS (
-    SELECT 1
-    FROM pg_proc p
-    JOIN pg_namespace n ON n.oid = p.pronamespace
-    WHERE n.nspname = 'public' AND p.proname = 'rpc_get_dashboard_summary_table'
-  ) AS rpc_dashboard_summary_ok,
+    SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public' AND p.proname = 'rpc_dashboard_vst_strategic_analytics'
+  ) AS rpc_vst_strategic_ok,
   EXISTS (
-    SELECT 1 FROM pg_proc p
-    JOIN pg_namespace n ON n.oid = p.pronamespace
-    WHERE n.nspname = 'public' AND p.proname = 'rpc_get_compliance_dashboard_multi_v1'
-  ) AS rpc_compliance_multi_ok,
+    SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public' AND p.proname = 'rpc_dashboard_gsc_strategic_analytics'
+  ) AS rpc_gsc_strategic_ok,
   EXISTS (
-    SELECT 1 FROM pg_proc p
-    JOIN pg_namespace n ON n.oid = p.pronamespace
-    WHERE n.nspname = 'public' AND p.proname = 'rpc_get_vst_dashboard_v2'
-  ) AS rpc_vst_dashboard_v2_ok,
+    SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public' AND p.proname = 'rpc_get_compliance_dashboard_v4'
+  ) AS rpc_compliance_v4_ok,
   EXISTS (
-    SELECT 1 FROM pg_proc p
-    JOIN pg_namespace n ON n.oid = p.pronamespace
-    WHERE n.nspname = 'public' AND p.proname = 'rpc_get_vst_moment_table_only'
-  ) AS rpc_vst_moment_table_ok,
-  EXISTS (
-    SELECT 1 FROM pg_proc p
-    JOIN pg_namespace n ON n.oid = p.pronamespace
-    WHERE n.nspname = 'public' AND p.proname = 'rpc_get_registry_options'
-  ) AS rpc_registry_options_ok,
-  EXISTS (
-    SELECT 1 FROM pg_proc p
-    JOIN pg_namespace n ON n.oid = p.pronamespace
+    SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
     WHERE n.nspname = 'public' AND p.proname = 'rpc_get_dashboard_ksnk_staff_supervision_stats'
-  ) AS rpc_dashboard_ksnk_staff_stats_ok;
+  ) AS rpc_dashboard_ksnk_staff_stats_ok,
+  EXISTS (
+    SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public' AND p.proname = 'rpc_get_registry_options'
+  ) AS rpc_registry_options_ok;

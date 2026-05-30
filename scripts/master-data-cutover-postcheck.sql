@@ -138,38 +138,33 @@ BEGIN
     );
   END IF;
 
-  IF to_regclass('public.cong_viec') IS NULL THEN
+  IF to_regclass('public.fact_cong_viec') IS NULL THEN
     INSERT INTO _mdm_postcheck_orphans VALUES (
-      'cong_viec.to_id',
+      'fact_cong_viec.to_cong_tac_id',
       NULL,
-      'SKIP: chưa có bảng public.cong_viec (migration module công việc chưa áp).'
+      'SKIP: chưa có bảng public.fact_cong_viec.'
     );
   ELSIF NOT EXISTS (
     SELECT 1
     FROM information_schema.columns c
     WHERE c.table_schema = 'public'
-      AND c.table_name = 'cong_viec'
-      AND c.column_name = 'to_id'
+      AND c.table_name = 'fact_cong_viec'
+      AND c.column_name = 'to_cong_tac_id'
   ) THEN
     INSERT INTO _mdm_postcheck_orphans VALUES (
-      'cong_viec.to_id',
+      'fact_cong_viec.to_cong_tac_id',
       NULL,
-      'SKIP: cong_viec không có cột to_id — xem 20260506_cong_viec_to_id_fkey_dm.sql.'
-    );
-  ELSIF to_regclass('public.dm_to_cong_tac') IS NULL THEN
-    INSERT INTO _mdm_postcheck_orphans VALUES (
-      'cong_viec.to_id',
-      NULL,
-      'SKIP: chưa có dm_to_cong_tac.'
+      'SKIP: fact_cong_viec không có cột to_cong_tac_id.'
     );
   ELSE
     EXECUTE $q$
-      SELECT COUNT(*)::bigint FROM public.cong_viec x
-      LEFT JOIN public.dm_to_cong_tac dm ON dm.id = x.to_id
-      WHERE x.to_id IS NOT NULL AND dm.id IS NULL
+      SELECT COUNT(*)::bigint FROM public.fact_cong_viec x
+      LEFT JOIN public.dm_lookup_value dm ON dm.id = x.to_cong_tac_id AND dm.category_type = 'TO_CONG_TAC'
+      WHERE x.to_cong_tac_id IS NOT NULL AND dm.id IS NULL
     $q$ INTO n;
-    INSERT INTO _mdm_postcheck_orphans VALUES ('cong_viec.to_id', n, NULL);
+    INSERT INTO _mdm_postcheck_orphans VALUES ('fact_cong_viec.to_cong_tac_id', n, NULL);
   END IF;
+
 END
 $body$;
 

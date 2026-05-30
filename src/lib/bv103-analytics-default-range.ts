@@ -3,8 +3,7 @@ import { format, parseISO, startOfMonth, subMonths } from "date-fns";
 /**
  * Số **tháng lịch** (đầu tháng → đến ngày) mặc định cho dashboard / báo cáo tổng hợp.
  * Trước đây 12 tháng — rút xuống để giảm khối lượng RPC; người dùng vẫn mở rộng trong UI.
- * Pilot EXPLAIN (cùng cửa sổ 6 tháng): `scripts/sql/pilot-dashboard-rpc-explain-01-summary.sql`,
- * `scripts/sql/pilot-dashboard-rpc-explain-04-command-center-hotpath.sql`.
+ * Pilot EXPLAIN (cùng cửa sổ mặc định): `scripts/sql/pilot-dashboard-rpc-explain-hybrid.sql`.
  */
 export const BV103_ANALYTICS_DEFAULT_MONTHS = 3;
 
