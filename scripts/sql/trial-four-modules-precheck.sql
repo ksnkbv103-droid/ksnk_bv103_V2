@@ -13,7 +13,15 @@ SELECT
   to_regclass('public.dm_tieu_chi_bang_kiem') IS NOT NULL AS dm_tieu_chi_bang_kiem_ok,
 
   to_regclass('public.fact_giam_sat_chung_sessions') IS NOT NULL AS fact_gsc_sessions_ok,
-  to_regclass('public.fact_giam_sat_chung_results') IS NOT NULL AS fact_gsc_results_ok,
+  (
+    to_regclass('public.gstt_fact_chung_sessions') IS NOT NULL
+    AND EXISTS (
+      SELECT 1 FROM information_schema.columns c
+      WHERE c.table_schema = 'public'
+        AND c.table_name = 'gstt_fact_chung_sessions'
+        AND c.column_name = 'results_jsonb'
+    )
+  ) AS fact_gsc_results_ok,
   to_regclass('public.fact_giam_sat_vst_sessions') IS NOT NULL AS fact_vst_sessions_ok,
   to_regclass('public.fact_giam_sat_vst') IS NOT NULL AS fact_vst_rows_ok,
 

@@ -129,6 +129,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. Mọi tên `dm_*` /
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-05-30 | **Squash migration pilot:** 90 file `20260520*`–`20260529*` → archive `pilot_chain_20260520_20260529/`; SSOT apply: `20260530000000_init_pilot_baseline.sql` + `supabase/seed.sql`. Local: `supabase db reset --local`. |
 | 2026-05-30 | **Dashboard hybrid reform:** Command Center thin shell (2 RPC strategic + staff lazy); analytics sâu chuyển tab **Thống kê** tại `giam-sat-vst` / `giam-sat-chung`; xóa legacy orchestrator (`useDashboardData`, bundle overview/gap). Actions: `vst-strategic-analytics.actions.ts`, `gsc-strategic-analytics.actions.ts`, `gsc-compliance-v4.actions.ts`. |
 | 2026-05-29 | **DB DROP Phần 3–4:** migration `20260529160000` — DROP `nguyen_nhan_cho_phep_jsonb`, `hanh_dong_khac_phuc_jsonb`, `phieu_phan_tich_jsonb`, VST `nguyen_nhan_loi_id`/`da_can_thiep_ngay`/`url_anh_bang_chung`; view `v_fact_giam_sat_chung_sessions_full` bỏ cột phieu. |
 | 2026-05-29 | **App purge Phần 3–4:** xóa domain `giam-sat-phieu-phan-tich`, `giam-sat-rca-catalog`, `giam-sat-act-map`; allowlist actions; types/validation GSC+VST; không ghi `phieu_phan_tich_jsonb` / VST RCA fields từ app. |
