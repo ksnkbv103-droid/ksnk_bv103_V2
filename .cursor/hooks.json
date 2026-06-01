@@ -1,6 +1,10 @@
 {
   "version": 1,
   "hooks": {
-    "beforeSubmitPrompt": []
+    "beforeSubmitPrompt": [
+      {
+        "command": "node .cursor/hooks/read-minimum-reminder.mjs"
+      }
+    ]
   }
 }

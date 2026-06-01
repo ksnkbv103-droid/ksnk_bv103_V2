@@ -15,6 +15,8 @@ type FormData = {
   cong_dung: string;
   kha_nang_chiu_nhiet: string;
   phuong_phap_tiet_khuan: string;
+  phan_loai: string;
+  so_luong_kho_du_phong: number;
   is_active: boolean;
 };
 
@@ -28,6 +30,8 @@ function mapForm(input: Record<string, unknown> | null): FormData {
       cong_dung: "",
       kha_nang_chiu_nhiet: "Cao",
       phuong_phap_tiet_khuan: "Hơi nước",
+      phan_loai: "PHAU_THUAT",
+      so_luong_kho_du_phong: 0,
       is_active: true,
     };
   }
@@ -40,6 +44,8 @@ function mapForm(input: Record<string, unknown> | null): FormData {
     cong_dung: String(input.cong_dung || ""),
     kha_nang_chiu_nhiet: String(input.kha_nang_chiu_nhiet || "Cao"),
     phuong_phap_tiet_khuan: String(input.phuong_phap_tiet_khuan || "Hơi nước"),
+    phan_loai: String(input.phan_loai || "PHAU_THUAT"),
+    so_luong_kho_du_phong: Number(input.so_luong_kho_du_phong || 0),
     is_active: input.is_active !== false,
   };
 }
@@ -74,6 +80,8 @@ export default function LoaiDungCuFormModal({
       cong_dung: form.cong_dung,
       kha_nang_chiu_nhiet: form.kha_nang_chiu_nhiet,
       phuong_phap_tiet_khuan: form.phuong_phap_tiet_khuan,
+      phan_loai: form.phan_loai,
+      so_luong_kho_du_phong: form.so_luong_kho_du_phong,
       is_active: form.is_active,
     });
     setLoading(false);
@@ -106,6 +114,14 @@ export default function LoaiDungCuFormModal({
             options={[{ v: "Cao", l: "Chịu nhiệt cao" }, { v: "Thấp", l: "Chịu nhiệt thấp" }]} />
           <S l="Phương pháp tiệt khuẩn" v={form.phuong_phap_tiet_khuan} o={(v) => setForm({ ...form, phuong_phap_tiet_khuan: v })}
             options={[{ v: "Hơi nước", l: "Hơi nước" }, { v: "Plasma", l: "Plasma" }, { v: "EO", l: "Khí EO" }]} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <S l="Phân loại dụng cụ" v={form.phan_loai} o={(v) => setForm({ ...form, phan_loai: v })}
+            options={[{ v: "PHAU_THUAT", l: "Dụng cụ Phẫu thuật" }, { v: "THU_THUAT", l: "Dụng cụ Thủ thuật" }]} />
+          <div className="space-y-1">
+            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Số lượng dự phòng kho lẻ</label>
+            <input type="number" min="0" value={form.so_luong_kho_du_phong} onChange={(e) => setForm({ ...form, so_luong_kho_du_phong: parseInt(e.target.value) || 0 })} className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs" />
+          </div>
         </div>
         <MdmFormActiveToggleRow active={form.is_active} onChange={(next) => setForm({ ...form, is_active: next })} />
         <button type="submit" disabled={loading} className="w-full h-12 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 disabled:opacity-60">

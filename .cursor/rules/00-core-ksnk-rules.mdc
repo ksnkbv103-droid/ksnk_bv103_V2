@@ -5,12 +5,14 @@ alwaysApply: true
 
 # Core KSNK 103
 
-- Chuẩn cao nhất: [`AGENTS.md`](../../AGENTS.md).
-- **Một file thực thi + checklist PR:** [`docs/specs/working/LEAN_EXECUTION_BV103.md`](../../docs/specs/working/LEAN_EXECUTION_BV103.md).
-- **Skill allowlist:** [`docs/specs/SKILLS_CATALOG.md`](../../docs/specs/SKILLS_CATALOG.md).
-- **Đọc tối thiểu theo diff:** [`docs/specs/READ_MINIMUM_BY_CHANGE.md`](../../docs/specs/READ_MINIMUM_BY_CHANGE.md).
-- **Phân cấp:** `AGENTS.md` → rule có **glob** trên file đang sửa (`12–16` theo module) → `docs/specs`.
-- **Một module / nhịp:** không audit cả repo khi sửa điểm nhỏ — xem `LEAN_EXECUTION`.
+- Chuẩn cao nhất: [`AGENTS.md`](../../AGENTS.md); kỷ luật agent: [`01-agent-discipline.mdc`](01-agent-discipline.mdc).
+- **Một file thực thi + checklist PR:** [`docs/core/lean-execution.md`](../../docs/core/lean-execution.md).
+- **Skill allowlist:** [`docs/core/skills-catalog.md`](../../docs/core/skills-catalog.md).
+- **Đọc tối thiểu theo diff:** [`docs/core/read-minimum.md`](../../docs/core/read-minimum.md).
+- **Phân cấp:** `AGENTS.md` → rule glob module (`12–17`) → [`docs/README.md`](../../docs/README.md).
+- **Audit snapshot:** [`docs/reference/reports/comprehensive-review-20260530.md`](../../docs/reference/reports/comprehensive-review-20260530.md) — rà soát tổng thể (2026-05-30); không thay SSOT specs.
+- **Một module / nhịp:** không audit cả repo khi sửa điểm nhỏ — xem `lean-execution`.
 - **Trước khi xong** task đụng Server Action / `fact_*`: `npm run verify:engineering` (hoặc `verify:full` trước push).
-- Self-check: đúng module; ranh giới CSSD vs MDM; mapping DB khớp [`10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md); đụng schema → migration + `npm run mdm:migrate` (xem **App ↔ Database** trong `AGENTS.md`).
-- UI layout: shell + primitive theo [`BV103_LAYOUT_PRIMITIVES.md`](../../docs/specs/working/BV103_LAYOUT_PRIMITIVES.md); tránh card lồng card / nhiều layer chỉ để polish.
+- Self-check: đúng module; ranh giới CSSD vs MDM; mapping DB khớp [`implementation-mapping.md`](../../docs/core/implementation-mapping.md); đụng schema → `AGENTS.md` § App ↔ Database + `governance-pipeline.md`.
+- Doc links: `npm run docs:links:check` khi sửa `docs/` hoặc `.cursor/rules`.
+- UI layout: shell + primitive theo [`concepts.md`](../../docs/wiki/concepts.md#layout-primitives); tránh card lồng card / nhiều layer chỉ để polish.

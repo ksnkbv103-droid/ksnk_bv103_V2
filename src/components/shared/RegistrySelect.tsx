@@ -47,15 +47,21 @@ export default function RegistrySelect({
   // 1. Đồng bộ staticOptions nếu được truyền từ bên ngoài (Zero-Latency)
   useEffect(() => {
     if (staticOptions) {
-      const mapped = staticOptions.map((opt) => ({
-        id: opt.id,
-        label: opt.label,
-        keywords: opt.keywords || [opt.ma || "", opt.label],
-      }));
+      const mapped = staticOptions.map((opt) => {
+        const hasCode = opt.ma && opt.ma.trim();
+        const displayLabel = hasCode && loaiDanhMuc === "KHOA_PHONG"
+          ? `[${opt.ma}] ${opt.label}`
+          : opt.label;
+        return {
+          id: opt.id,
+          label: displayLabel,
+          keywords: opt.keywords || [opt.ma || "", opt.label],
+        };
+      });
       setOptions(mapped);
       setLoading(false);
     }
-  }, [staticOptions]);
+  }, [staticOptions, loaiDanhMuc]);
 
   // 2. Fetch động nếu không có staticOptions
   useEffect(() => {
@@ -69,11 +75,17 @@ export default function RegistrySelect({
         const rows = await getActiveMasterDataAction(loaiDanhMuc);
         if (!active) return;
 
-        const mappedOptions = rows.map((row) => ({
-          id: row.id,
-          label: row.ten,
-          keywords: [row.ma, row.ten],
-        }));
+        const mappedOptions = rows.map((row) => {
+          const hasCode = row.ma && row.ma.trim();
+          const displayLabel = hasCode && loaiDanhMuc === "KHOA_PHONG"
+            ? `[${row.ma}] ${row.ten}`
+            : row.ten;
+          return {
+            id: row.id,
+            label: displayLabel,
+            keywords: [row.ma, row.ten],
+          };
+        });
 
         setOptions(mappedOptions);
       } catch (err) {

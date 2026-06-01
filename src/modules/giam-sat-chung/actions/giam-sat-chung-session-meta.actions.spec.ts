@@ -9,7 +9,6 @@ const mocks = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
   from: vi.fn(),
   sessionsSelectIn: vi.fn(),
-  resultsDeleteIn: vi.fn(),
   sessionsDeleteIn: vi.fn(),
 }));
 
@@ -42,18 +41,12 @@ describe("deleteGiamSatChungSessions", () => {
       data: [{ id: "s1", nguoi_giam_sat_id: "ns-01", is_active: true, created_at: "2020-01-01T00:00:00.000Z" }],
       error: null,
     });
-    mocks.resultsDeleteIn.mockResolvedValue({ error: null });
     mocks.sessionsDeleteIn.mockResolvedValue({ error: null });
     mocks.from.mockImplementation((table: string) => {
       if (table === "fact_giam_sat_chung_sessions") {
         return {
           select: () => ({ in: mocks.sessionsSelectIn }),
           delete: () => ({ in: mocks.sessionsDeleteIn }),
-        };
-      }
-      if (table === "fact_giam_sat_chung_results") {
-        return {
-          delete: () => ({ in: mocks.resultsDeleteIn }),
         };
       }
       return {
@@ -67,7 +60,6 @@ describe("deleteGiamSatChungSessions", () => {
     const result = await deleteGiamSatChungSessions(["s1"]);
 
     expect(result).toEqual({ success: false, error: SUPERVISION_SESSION_MUTATION_EXPIRED_VI });
-    expect(mocks.resultsDeleteIn).not.toHaveBeenCalled();
     expect(mocks.sessionsDeleteIn).not.toHaveBeenCalled();
   });
 
@@ -77,7 +69,6 @@ describe("deleteGiamSatChungSessions", () => {
     const result = await deleteGiamSatChungSessions(["s1"]);
 
     expect(result).toEqual({ success: true });
-    expect(mocks.resultsDeleteIn).toHaveBeenCalledWith("session_id", ["s1"]);
     expect(mocks.sessionsDeleteIn).toHaveBeenCalledWith("id", ["s1"]);
     expect(mocks.revalidatePath).toHaveBeenCalledWith("/giam-sat-chung");
   });

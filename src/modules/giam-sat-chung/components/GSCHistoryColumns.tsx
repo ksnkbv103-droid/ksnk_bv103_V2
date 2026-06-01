@@ -4,29 +4,13 @@
 import React from "react";
 import { format } from "date-fns";
 import { Column } from "@/components/shared/AdvancedDataTable";
+import { gscComplianceDisplay } from "@/lib/domain/giam-sat-chung.domain";
 import { gscSessionDisplayRef } from "../lib/gsc-display-ref";
 import type { GscHistoryRow } from "../lib/gsc-read-utils";
 
-function cellNgayGioRow(s: Record<string, unknown>) {
-  const raw = s.ngay_giam_sat ? String(s.ngay_giam_sat) : "";
-  const norm = raw && !raw.includes("T") ? `${raw.slice(0, 10)}T12:00:00` : raw;
-  const d = norm ? new Date(norm) : null;
-  const dateLine = d && Number.isFinite(d.getTime()) ? format(d, "dd/MM/yyyy") : "—";
-  const tg = s.thoi_gian_ghi_nhan ? String(s.thoi_gian_ghi_nhan) : "";
-  const tObj = tg ? new Date(tg) : null;
-  const timeLine = tObj && Number.isFinite(tObj.getTime()) ? format(tObj, "HH:mm") : null;
-  return (
-    <div className="min-w-[5.5rem]">
-      <p className="font-black text-slate-700 whitespace-nowrap text-[13px] leading-tight">{dateLine}</p>
-      <p className="text-[10px] font-bold text-slate-400 uppercase whitespace-nowrap leading-tight mt-0.5">
-        {timeLine ?? "\u00a0"}
-      </p>
-    </div>
-  );
-}
-
 /**
  * Trả về mảng column config cho HistoryTable Giám sát chung
+ * Thiết kế: tối giản, nhất quán font 12px (text-xs), tông trung tính chuyên nghiệp, đồng bộ với VST.
  */
 export function getGSCHistoryColumns(
   onView: (session: GscHistoryRow) => void,
@@ -36,91 +20,81 @@ export function getGSCHistoryColumns(
 ): Column<GscHistoryRow>[] {
   return [
     {
-      header: "Ngày / giờ",
+      header: "Ngày giám sát",
       accessorKey: "ngay_giam_sat",
       sortable: true,
-      headerClassName: "w-[6.5rem] min-w-[6.5rem] max-w-[7rem]",
-      cellClassName: "w-[6.5rem] min-w-[6.5rem] max-w-[7rem]",
-      cell: (s: Record<string, unknown>) => cellNgayGioRow(s),
-    },
-    {
-      header: "Mã phiên",
-      accessorKey: "ma_hien_thi",
-      sortable: false,
-      headerClassName: "w-[7.5rem] min-w-[7.5rem] max-w-[8.5rem]",
-      cellClassName: "w-[7.5rem] min-w-[7.5rem] max-w-[8.5rem]",
-      cell: (s: { id?: string; ngay_giam_sat?: string; ma_hien_thi?: string }) => (
-        <span className="inline-block font-mono text-[10px] font-bold text-[#026f17] bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 shadow-sm whitespace-nowrap max-w-full truncate">
-          {s.ma_hien_thi || (s.id ? gscSessionDisplayRef(s.id, s.ngay_giam_sat) : "")}
-        </span>
-      ),
-    },
-
-    {
-      header: "Bảng kiểm",
-      accessorKey: "loai_bang_kiem",
-      sortable: true,
-      headerClassName: "min-w-[11rem] max-w-[16rem] w-[14rem]",
-      cellClassName: "min-w-[11rem] max-w-[16rem] w-[14rem]",
+      headerClassName: "w-[7rem] min-w-[7rem]",
+      cellClassName: "w-[7rem] min-w-[7rem]",
       cell: (s: Record<string, unknown>) => {
-        const ma = String(s.loai_bang_kiem ?? "").trim();
-        const ten = String(s.bang_kiem_label ?? s.ten_bang_kiem_hien_thi ?? "").trim() || ma || "—";
-        const showMa = ma && ma !== ten;
+        const raw = s.ngay_giam_sat ? String(s.ngay_giam_sat) : "";
+        const norm = raw && !raw.includes("T") ? `${raw.slice(0, 10)}T12:00:00` : raw;
+        const d = norm ? new Date(norm) : null;
+        const dateLine = d && Number.isFinite(d.getTime()) ? format(d, "dd/MM/yyyy") : "—";
+        const tg = s.thoi_gian_ghi_nhan ? String(s.thoi_gian_ghi_nhan) : "";
+        const tObj = tg ? new Date(tg) : null;
+        const timeLine = tObj && Number.isFinite(tObj.getTime()) ? format(tObj, "HH:mm") : null;
         return (
-          <div className="min-w-0 py-0.5">
-            <p
-              className="text-[12px] font-semibold text-slate-800 leading-snug line-clamp-2 break-words"
-              title={ten}
-            >
-              {ten}
-            </p>
-            {showMa ? (
-              <p className="text-[9px] font-mono text-slate-400 mt-1 truncate" title={`Mã: ${ma}`}>
-                {ma}
-              </p>
-            ) : null}
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-slate-700">{dateLine}</p>
+            {timeLine && <p className="text-[11px] text-slate-400 mt-0.5">{timeLine}</p>}
           </div>
         );
       },
     },
     {
-      header: "Khoa / Khu vực",
-      accessorKey: "khoa_id",
-      sortable: true,
-      headerClassName: "min-w-[10rem] max-w-[13rem] w-[11rem]",
-      cellClassName: "min-w-[10rem] max-w-[13rem] w-[11rem]",
-      cell: (s) => (
-        <div className="min-w-0">
-          <p className="font-black text-[#026f17] uppercase tracking-tighter text-[11px] leading-tight line-clamp-2 break-words">
-            {s.khoa_name || "Không áp dụng"}
-          </p>
-          <p className="text-[10px] font-bold text-slate-400 uppercase leading-tight mt-0.5 line-clamp-1 truncate">
-            {s.khu_name || "Không áp dụng"}
-          </p>
-        </div>
+      header: "Mã phiên",
+      accessorKey: "ma_hien_thi",
+      sortable: false,
+      headerClassName: "w-[9.5rem] min-w-[9.5rem]",
+      cellClassName: "w-[9.5rem] min-w-[9.5rem]",
+      cell: (s: { id?: string; ngay_giam_sat?: string; ma_hien_thi?: string }) => (
+        <span className="font-mono text-[11px] font-semibold text-slate-600 truncate block max-w-full">
+          {s.ma_hien_thi || (s.id ? gscSessionDisplayRef(s.id, s.ngay_giam_sat) : "—")}
+        </span>
       ),
     },
     {
-      header: "Đối tượng / Nghề",
+      header: "Bảng kiểm",
+      accessorKey: "loai_bang_kiem",
+      sortable: true,
+      headerClassName: "w-[15rem] min-w-[15rem]",
+      cellClassName: "w-[15rem] min-w-[15rem]",
+      cell: (s: Record<string, unknown>) => {
+        const ma = String(s.loai_bang_kiem ?? "").trim();
+        const ten = String(s.bang_kiem_label ?? s.ten_bang_kiem_hien_thi ?? "").trim() || ma || "—";
+        const showMa = ma && ma !== ten;
+        return (
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-slate-800 leading-snug line-clamp-2" title={ten}>{ten}</p>
+            {showMa && <p className="text-[11px] font-mono text-slate-400 mt-0.5 truncate" title={ma}>{ma}</p>}
+          </div>
+        );
+      },
+    },
+    {
+      header: "Khoa",
+      accessorKey: "khoa_id",
+      sortable: true,
+      headerClassName: "w-[4rem] min-w-[4rem]",
+      cellClassName: "w-[4rem] min-w-[4rem]",
+      cell: (s: GscHistoryRow) => (
+        <span className="text-xs font-semibold text-slate-800" title={s.khoa_name}>{s.ma_khoa || s.khoa_name || "—"}</span>
+      ),
+    },
+    {
+      header: "Đối tượng",
       accessorKey: "nhan_vien_id",
       sortable: false,
-      headerClassName: "min-w-[9.5rem] max-w-[13rem] w-[11rem]",
-      cellClassName: "min-w-[9.5rem] max-w-[13rem] w-[11rem]",
+      headerClassName: "w-[11rem] min-w-[11rem]",
+      cellClassName: "w-[11rem] min-w-[11rem]",
       cell: (s: GscHistoryRow) => {
-        const nameRaw = s.ten_nhan_vien_display;
-        const name =
-          typeof nameRaw === "string" && nameRaw.trim() ? nameRaw : "—";
-        const jobRaw = s.nghe_nghiep_name;
-        const job = typeof jobRaw === "string" && jobRaw.trim() ? jobRaw : "—";
+        const name = typeof s.ten_nhan_vien_display === "string" && s.ten_nhan_vien_display.trim() ? s.ten_nhan_vien_display : "—";
+        const job = typeof s.nghe_nghiep_name === "string" && s.nghe_nghiep_name.trim() ? s.nghe_nghiep_name : "—";
         return (
-        <div className="min-w-0">
-          <p className="font-bold text-slate-700 text-[12px] leading-tight line-clamp-2 break-words">
-            {name}
-          </p>
-          <p className="text-[10px] font-bold uppercase text-slate-400 leading-tight mt-0.5 line-clamp-1 truncate">
-            {job}
-          </p>
-        </div>
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-slate-700 leading-snug line-clamp-2">{name}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">{job}</p>
+          </div>
         );
       },
     },
@@ -128,77 +102,57 @@ export function getGSCHistoryColumns(
       header: "Người GS",
       accessorKey: "nguoi_giam_sat_id",
       sortable: true,
-      headerClassName: "min-w-[7rem] max-w-[9rem] w-[8rem]",
-      cellClassName: "min-w-[7rem] max-w-[9rem] w-[8rem]",
+      headerClassName: "w-[11rem] min-w-[11rem]",
+      cellClassName: "w-[11rem] min-w-[11rem]",
       cell: (s) => {
-        const gs = s.gs_ho_ten;
-        const gsStr = typeof gs === "string" && gs.trim() ? gs : null;
+        const gs = typeof s.gs_ho_ten === "string" && s.gs_ho_ten.trim() ? s.gs_ho_ten : null;
         const id = typeof s.nguoi_giam_sat_id === "string" && s.nguoi_giam_sat_id.trim() ? s.nguoi_giam_sat_id : null;
-        return (
-        <span className="font-bold text-slate-600 text-[12px] line-clamp-2 break-words block min-w-0">
-          {gsStr || id || "—"}
-        </span>
-        );
+        return <span className="text-xs font-medium text-slate-600 line-clamp-1">{gs || id || "—"}</span>;
       },
     },
     {
       header: "Tuân thủ",
       accessorKey: "tong_diem",
       sortable: true,
-      headerClassName: "w-[5.5rem] min-w-[5.5rem] text-center",
-      cellClassName: "w-[5.5rem] min-w-[5.5rem] text-center",
-      cell: (s: GscHistoryRow) => (
-        <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
-          <div
-            className={`h-2 w-2 shrink-0 rounded-full animate-pulse ${
-              Number(s.tong_diem ?? 0) >= 90 ? "bg-[#026f17]" : "bg-amber-500"
-            }`}
-          />
-          <div className={`inline-flex items-center px-2 py-0.5 rounded-full font-black text-[11px] shadow-sm ${
-            Number(s.tong_diem ?? 0) >= 90 ? "bg-[#026f17] text-white" : "bg-amber-500 text-white"
-          }`}>
-            {Number(s.tong_diem ?? 0)}%
-          </div>
-        </div>
-
-      ),
+      headerClassName: "w-[4.5rem] min-w-[4.5rem] text-center",
+      cellClassName: "w-[4.5rem] min-w-[4.5rem] text-center",
+      cell: (s: GscHistoryRow) => {
+        const val = Number(s.tong_diem ?? 0);
+        const { label, className } = gscComplianceDisplay(val);
+        return (
+          <span className={`text-xs font-bold ${className}`} title={`${val}%`}>
+            {label}
+          </span>
+        );
+      },
     },
     {
-      header: "Thao tác",
+      header: "",
       accessorKey: "actions",
-      headerClassName: "w-[10.5rem] min-w-[10.5rem] text-right",
-      cellClassName: "w-[10.5rem] min-w-[10.5rem] text-right",
+      headerClassName: "w-[9.5rem] min-w-[9.5rem]",
+      cellClassName: "w-[9.5rem] min-w-[9.5rem]",
       cell: (s: GscHistoryRow) => (
-        <div className="flex flex-nowrap items-center justify-end gap-1">
+        <div className="flex items-center justify-end gap-1.5">
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onView(s);
-            }}
-            className="h-9 shrink-0 px-2.5 rounded-lg border border-[#026f17]/30 bg-[#026f17]/5 text-[#026f17] font-black text-[9px] uppercase tracking-wide hover:bg-[#026f17]/10 whitespace-nowrap touch-manipulation"
+            onClick={(e) => { e.stopPropagation(); onView(s); }}
+            className="h-8 px-3 rounded-md border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:border-slate-400 transition-colors"
           >
             Xem
           </button>
           {onEdit && canEdit ? (
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(s);
-              }}
-              className="h-9 shrink-0 px-2.5 rounded-lg bg-white border border-[#026f17]/30 text-[#026f17] font-black text-[9px] uppercase tracking-wide hover:bg-[#026f17]/10 whitespace-nowrap touch-manipulation"
+              onClick={(e) => { e.stopPropagation(); onEdit(s); }}
+              className="h-8 px-3 rounded-md border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:border-slate-400 transition-colors"
             >
               Sửa
             </button>
           ) : null}
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onPrint(s);
-            }}
-            className="h-9 shrink-0 px-2.5 rounded-lg bg-white border border-slate-200 text-slate-600 font-black text-[9px] uppercase tracking-wide hover:border-[#026f17] hover:text-[#026f17] shadow-sm whitespace-nowrap touch-manipulation"
+            onClick={(e) => { e.stopPropagation(); onPrint(s); }}
+            className="h-8 px-3 rounded-md bg-slate-800 text-xs font-semibold text-white hover:bg-slate-700 transition-colors"
           >
             In
           </button>

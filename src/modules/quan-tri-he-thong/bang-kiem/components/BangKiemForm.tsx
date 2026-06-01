@@ -22,7 +22,7 @@ function mapInitial(initialData?: Record<string, unknown>): BangKiemFormState {
     ma_bk: String(d.ma_bk ?? ""),
     ten_bang_kiem: String(d.ten_bang_kiem ?? d.ten_bk ?? ""),
     mo_ta: String(d.mo_ta ?? ""),
-    nhom_chuyen_de: String(d.nhom_chuyen_de ?? ""),
+    phan_loai_chuyen_mon: String(d.phan_loai_chuyen_mon ?? d.nhom_chuyen_de ?? ""),
     loai_hinh_giam_sat: String(d.loai_hinh_giam_sat ?? "TRUC_TIEP"),
     is_active: (d.is_active as boolean) ?? true,
     is_system: Boolean(d.is_system),
@@ -65,7 +65,7 @@ export default function BangKiemForm({ initialData, onClose, onSave }: Props) {
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-xl rounded-[40px] shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
         <header className="px-10 py-8 bg-slate-50/50 flex items-center justify-between">
           <h2 className="text-xl font-black text-slate-800 uppercase tracking-tighter">
             {formData.id ? "Cập nhật mẫu bảng kiểm" : "Thêm mới mẫu bảng kiểm"}

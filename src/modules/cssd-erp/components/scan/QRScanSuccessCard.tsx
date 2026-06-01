@@ -1,20 +1,21 @@
-// src/modules/cssd-erp/components/scan/QRScanSuccessCard.tsx
-"use client";
-
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { CheckCircle2, User, Clock, ArrowRight } from "lucide-react";
 import StationCompleteButton from "../station/StationCompleteButton";
 import SplitAndPrintSubQrButton from "../station/SplitAndPrintSubQrButton";
+import { lookupBoDungCuIdByQrAction } from "../../actions/cssd-catalog.actions";
+import DigitalChecklistPanel from "../workflow/DigitalChecklistPanel";
 
 interface Props {
   qrCode: string;
   tenBoDungCu: string;
   nguoiThucHien: string;
   thoiGianQuet: string;
+  buocTierTheo?: string; // fallback typo
   buocTiepTheo: string;
   /** Trạm hiện tại (từ trang cha; tránh gọi hook trùng state). */
   tramDisplay?: string;
   maCaMoId?: string;
+  ledgerWarning?: string;
 }
 
 /**
@@ -29,10 +30,40 @@ export default function QRScanSuccessCard({
   buocTiepTheo,
   tramDisplay = "CSSD",
   maCaMoId,
+  ledgerWarning,
 }: Props) {
+  const [boDungCuId, setBoDungCuId] = useState<string | null>(null);
+  const [isChecklistOk, setIsChecklistOk] = useState(true);
+  const [missingSummary, setMissingSummary] = useState("");
+
+  const isQcOrDongGoi =
+    tramDisplay === "QC" ||
+    tramDisplay === "DONG GOI" ||
+    tramDisplay === "QC / Kiểm chuẩn" ||
+    tramDisplay === "Đóng gói";
+
+  useEffect(() => {
+    let active = true;
+    const resolveBoId = async () => {
+      if (!qrCode) return;
+      try {
+        const res = await lookupBoDungCuIdByQrAction(qrCode);
+        if (res.success && active) {
+          setBoDungCuId(res.boDungCuId);
+        }
+      } catch (e) {
+        console.error("Lỗi phân giải boDungCuId:", e);
+      }
+    };
+    void resolveBoId();
+    return () => {
+      active = false;
+    };
+  }, [qrCode]);
+
   return (
     <div className="w-full max-w-[360px] mx-auto animate-in zoom-in-95 duration-200 touch-manipulation pointer-events-auto -webkit-tap-highlight-color-transparent">
-      <div className="bg-[#026f17] rounded-[32px] overflow-hidden shadow-xl border-2 border-[#FFD700]/20 relative">
+      <div className="bg-[#026f17] rounded-2xl overflow-hidden shadow-xl border-2 border-[#FFD700]/20 relative">
         {/* Họa tiết nền chìm */}
         <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[radial-gradient(#FFD700_1px,transparent_1px)] [background-size:20px_20px]" />
 
@@ -50,7 +81,7 @@ export default function QRScanSuccessCard({
           </p>
 
           {/* Khối nội dung chính */}
-          <div className="w-full bg-white/5 backdrop-blur-md rounded-[24px] p-4 border border-white/10 space-y-5">
+          <div className="w-full bg-white/5 backdrop-blur-md rounded-xl p-4 border border-white/10 space-y-5">
             <div className="flex flex-col items-center gap-3">
               <div className="bg-white p-3 rounded-2xl shadow-lg border-2 border-white">
                 <img 
@@ -98,6 +129,27 @@ export default function QRScanSuccessCard({
                 <div className="text-white text-xs font-black uppercase">{maCaMoId}</div>
               </div>
             )}
+
+            {ledgerWarning && (
+              <div className="w-full bg-rose-500/20 border border-rose-500/40 rounded-xl p-3 text-left animate-in fade-in slide-in-from-bottom-1">
+                <label className="text-[8px] font-black text-rose-300 uppercase tracking-widest block mb-1">⚠️ CẢNH BÁO CẤU PHẦN (SỔ CÁI)</label>
+                <div className="text-rose-100 text-[10px] font-bold leading-relaxed">{ledgerWarning}</div>
+              </div>
+            )}
+
+            {/* Bảng kiểm kỹ thuật số tích hợp tại trạm QC / Đóng gói */}
+            {isQcOrDongGoi && boDungCuId && (
+              <div className="w-full pt-2 border-t border-white/10">
+                <DigitalChecklistPanel
+                  boDungCuId={boDungCuId}
+                  quyTrinhId={qrCode}
+                  onCheckFinished={(isOk, missingSum) => {
+                    setIsChecklistOk(isOk);
+                    setMissingSummary(missingSum || "");
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Banner chỉ dẫn bước tiếp theo */}
@@ -119,6 +171,8 @@ export default function QRScanSuccessCard({
                 nguoiThucHien,
                 thoiGian: thoiGianQuet
               }} 
+              isMissing={!isChecklistOk}
+              missingSummary={missingSummary}
             />
             {/* Nếu đang ở Đóng Gói (DONG GOI), hiển thị thêm chức năng tách dụng cụ */}
             {tramDisplay === "DONG GOI" && (
@@ -136,6 +190,7 @@ export default function QRScanSuccessCard({
         </div>
       </div>
     </div>
+
 
   );
 }

@@ -11,6 +11,7 @@ import {
   listStaffAuthOverview,
   provisionStaffAuthAccount,
   setStaffKsnkRbacRole,
+  adminResetStaffPasswordAction,
 } from "../actions/tai-khoan-nhan-su.actions";
 import type { StaffAuthRow } from "@/types/nhan-su";
 
@@ -71,6 +72,16 @@ export default function TaiKhoanNhanSuPage() {
       return;
     }
     toast.success("Đã cập nhật vai trò KSNK.");
+    void load();
+  };
+
+  const onResetPassword = async (r: StaffAuthRow, password: string) => {
+    const res = await adminResetStaffPasswordAction({ staffId: r.id, password });
+    if (!res.success) {
+      toast.error(res.error || "Không đặt lại được mật khẩu.");
+      return;
+    }
+    toast.success(`Đã đặt lại mật khẩu mới cho nhân viên ${r.ho_ten || ""}.`);
     void load();
   };
 
@@ -143,6 +154,7 @@ export default function TaiKhoanNhanSuPage() {
                   availableRoles={roles}
                   onProvision={onProvision} 
                   onSetRole={onSetRole} 
+                  onResetPassword={onResetPassword}
                 />
               ))
 

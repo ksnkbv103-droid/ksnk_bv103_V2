@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Plus, CheckCircle2, MessageSquare, ArrowRight, Ban } from "lucide-react";
+import { CheckCircle2, MessageSquare, Ban } from "lucide-react";
+import { QlcvConfirmDialog } from "./dialogs/QlcvConfirmDialog";
+import { QlcvReasonDialog } from "./dialogs/QlcvReasonDialog";
 import {
   Dialog,
   DialogContent,
@@ -12,22 +14,21 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ActivityTimeline, type Activity } from "./ActivityTimeline";
-import { CreateSubTaskForm } from "./CreateSubTaskForm";
 import { CongViecForm } from "./CongViecForm";
 import { HoatDongForm } from "./HoatDongForm";
+import { QlcvChecklistPanel } from "./QlcvChecklistPanel";
 import {
   getCongViecDetail,
   xacNhanHoanThanh,
   deleteCongViec,
   tuChoiHoanThanhCongViec,
 } from "../actions/cong-viec.actions";
-import { xacNhanDaNhanCongViec, huyKhiChoNghiemThuKhongDat } from "../actions/cong-viec-write.actions";
+import { huyKhiChoNghiemThuKhongDat } from "../actions/cong-viec-write.actions";
 import { isBoardLaneQuaHan } from "../lib/qlcv-board-lanes";
-import { isChoNghiemThuHoanThanh, isChoNhanViec, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
-import { canShowCreateSubTask, canShowDeleteTask, canShowEditTaskMetadata, canShowHoatDongProgressSection } from "../lib/qlcv-access";
+import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
+import { canShowDeleteTask, canShowEditTaskMetadata, canShowHoatDongProgressSection } from "../lib/qlcv-access";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { getCongViecTrangThaiLabel } from "../lib/qlcv-labels";
-import { qlcvSubTaskChrome } from "../lib/qlcv-ux-chrome";
 import type { CongViecView } from "../types";
 
 interface Props {
@@ -38,18 +39,11 @@ interface Props {
 
 type QlcvHoTenRef = { ho_ten?: string | null };
 type QlcvToRef = { ten_to?: string | null };
-type QlcvSubTask = {
-  id: string;
-  tieu_de?: string | null;
-  trang_thai?: string | null;
-  phan_tram_hoan_thanh?: number | null;
-};
 type CongViecDetailData = CongViecView & {
   nguoi_tao?: QlcvHoTenRef | null;
   nguoi_giao?: QlcvHoTenRef | null;
   nguoi_phu_trach?: QlcvHoTenRef | null;
   to_cong_tac?: QlcvToRef | null;
-  cong_viec_con?: QlcvSubTask[] | null;
   hoat_dong?: Activity[] | null;
 };
 
@@ -90,8 +84,13 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<CongViecDetailData | null>(null);
   const [activeId, setActiveId] = useState(id);
-  const [isCreateSubOpen, setIsCreateSubOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  // Dialog state — thay thế browser prompt()/confirm()
+  const [confirmNghiemThuOpen, setConfirmNghiemThuOpen] = useState(false);
+  const [confirmNghiemThuForce, setConfirmNghiemThuForce] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [reasonHuyOpen, setReasonHuyOpen] = useState(false);
+  const [reasonTuChoiOpen, setReasonTuChoiOpen] = useState(false);
 
   const fetchDetail = async () => {
     setLoading(true);
@@ -130,24 +129,28 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
 
   const showDelete = canShowDeleteTask(data, accessFlags);
   const showEditMetadata = canShowEditTaskMetadata(data, accessFlags);
-  const showCreateSub = canShowCreateSubTask(data, accessFlags);
-  const showHoatDong = canShowHoatDongProgressSection(data, accessFlags);
-  const showNghiemThuToolbar = isChoNghiemThuHoanThanh(data) && (accessFlags.hasEdit || accessFlags.isRBACAdmin);
   const st = String(data.trang_thai || "");
-  const showHuyKhongDatQuaHanSom =
+  const showHoatDong = canShowHoatDongProgressSection(data, accessFlags);
+  const checklistReadOnly =
+    isDeXuatChoDuyet(data) || st === "HOAN_THANH" || st === "DA_HUY" || isChoNghiemThuHoanThanh(data);
+  const showNghiemThuToolbar = isChoNghiemThuHoanThanh(data) && (accessFlags.hasEdit || accessFlags.isRBACAdmin);
+  const isCreatorOrAssigner =
+    (accessFlags.actorStaffId && data.nguoi_tao_id && String(accessFlags.actorStaffId) === String(data.nguoi_tao_id)) ||
+    (accessFlags.actorStaffId && data.nguoi_giao_viec_id && String(accessFlags.actorStaffId) === String(data.nguoi_giao_viec_id));
+  const showHuyButton =
+    accessFlags.isRBACAdmin &&
+    st !== "HOAN_THANH" &&
+    st !== "DA_HUY" &&
+    !isChoNghiemThuHoanThanh(data);
+  const showForceNghiemThu =
     (accessFlags.hasEdit || accessFlags.isRBACAdmin) &&
-    isBoardLaneQuaHan(data) &&
-    !isDeXuatChoDuyet(data) &&
     st !== "HOAN_THANH" &&
     st !== "DA_HUY" &&
     !isChoNghiemThuHoanThanh(data);
 
-  const runHuyKhongDat = async () => {
-    const lyDo = prompt("Lý do hủy do không đạt / chất lượng không đạt (ghi rõ):");
-    if (!lyDo?.trim()) return;
-    if (!confirm("Hủy phiếu (Đã hủy) — không xóa lịch sử. Tiếp tục?")) return;
+  const runHuyKhongDat = async (lyDo: string) => {
     try {
-      await huyKhiChoNghiemThuKhongDat(data.id, lyDo.trim());
+      await huyKhiChoNghiemThuKhongDat(data!.id, lyDo);
       toast.success("Đã đóng phiếu ở trạng thái Đã hủy.");
       fetchDetail();
       onRefreshList?.();
@@ -175,59 +178,23 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
         </div>
 
         <div className={`flex shrink-0 flex-wrap gap-2 ${qlcvDetailChrome.panelToolbar}`}>
-          {showCreateSub && (
-            <Dialog modal={false} open={isCreateSubOpen} onOpenChange={setIsCreateSubOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className={qlcvDetailChrome.btnOutline}>
-                  <Plus size={16} className="mr-1.5 shrink-0" aria-hidden />
-                  Tạo việc con
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-xl rounded-2xl border border-slate-200/90 bg-slate-50 p-6 shadow-xl sm:p-8">
-                <DialogHeader className="mb-6">
-                  <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">
-                    Tạo nhiệm vụ con
-                  </DialogTitle>
-                  <p className={`mt-1 ${qlcvDetailChrome.sectionLabel}`}>Phụ thuộc: {data.tieu_de}</p>
-                </DialogHeader>
-                <CreateSubTaskForm
-                  parentTaskId={data.id}
-                  parentHanHoanThanh={data.han_hoan_thanh ?? null}
-                  onSuccess={() => {
-                    setIsCreateSubOpen(false);
-                    fetchDetail();
-                    onRefreshList?.();
-                  }}
-                  onCancel={() => setIsCreateSubOpen(false)}
-                />
-              </DialogContent>
-            </Dialog>
-          )}
-
-          {isChoNhanViec(data) && (
-            <Button className={qlcvDetailChrome.btnBlue} onClick={async () => {
-                try {
-                  await xacNhanDaNhanCongViec(data.id);
-                  toast.success("Đã xác nhận nhận nhiệm vụ!");
-                  fetchDetail();
-                  onRefreshList?.();
-                } catch (e: unknown) {
-                  toast.error(getErrorMessage(e));
-                }
-              }}
-            >
-              Đã nhận nhiệm vụ
-            </Button>
-          )}
-
-          {showHuyKhongDatQuaHanSom && (
+          {showHuyButton && (
             <Button
               variant="outline"
               className={`${qlcvDetailChrome.btnOutline} inline-flex items-center border-red-200/90 text-red-800 hover:bg-red-50`}
-              onClick={runHuyKhongDat}
+              onClick={() => setReasonHuyOpen(true)}
             >
               <Ban size={16} className="mr-1.5 shrink-0" aria-hidden />
-              Hủy (không đạt)
+              Hủy công việc
+            </Button>
+          )}
+
+          {showForceNghiemThu && (
+            <Button
+              className={qlcvDetailChrome.btnPrimary}
+              onClick={() => setConfirmNghiemThuForce(true)}
+            >
+              Nghiệm thu & Đóng
             </Button>
           )}
 
@@ -236,18 +203,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
               <Button
                 variant="outline"
                 className={`${qlcvDetailChrome.btnOutline} border-amber-200/90 text-amber-800 hover:bg-amber-50`}
-                onClick={async () => {
-                  const lyDo = prompt("Nhập lý do chưa đạt (yêu cầu làm lại):");
-                  if (!lyDo) return;
-                  try {
-                    await tuChoiHoanThanhCongViec(data.id, lyDo);
-                    toast.success("Đã trả việc về thực hiện lại.");
-                    fetchDetail();
-                    onRefreshList?.();
-                  } catch (e: unknown) {
-                    toast.error(getErrorMessage(e));
-                  }
-                }}
+                onClick={() => setReasonTuChoiOpen(true)}
               >
                 Yêu cầu làm lại
               </Button>
@@ -255,24 +211,13 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
               <Button
                 variant="outline"
                 className={`${qlcvDetailChrome.btnOutline} inline-flex items-center border-red-200/90 text-red-800 hover:bg-red-50`}
-                onClick={runHuyKhongDat}
+                onClick={() => setReasonHuyOpen(true)}
               >
                 <Ban size={16} className="mr-1.5 shrink-0" aria-hidden />
                 Hủy (không đạt)
               </Button>
 
-              <Button className={qlcvDetailChrome.btnPrimary} onClick={async () => {
-                  if (!confirm("Xác nhận nghiệm thu và đóng công việc này?")) return;
-                  try {
-                    await xacNhanHoanThanh(data.id);
-                    toast.success("Đã nghiệm thu và hoàn thành công việc!");
-                    fetchDetail();
-                    onRefreshList?.();
-                  } catch (e: unknown) {
-                    toast.error(getErrorMessage(e));
-                  }
-                }}
-              >
+              <Button className={qlcvDetailChrome.btnPrimary} onClick={() => setConfirmNghiemThuOpen(true)}>
                 Nghiệm thu & Đóng
               </Button>
             </>
@@ -305,23 +250,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           )}
 
           {showDelete && (
-            <Button variant="ghost" className={qlcvDetailChrome.btnGhost} onClick={async () => {
-                const msg =
-                  data.trang_thai === "HOAN_THANH"
-                    ? "Xóa vĩnh viễn công việc đã hoàn thành? (chỉ quản trị / quyền xóa)"
-                    : "Xác nhận xóa công việc này?";
-                if (confirm(msg)) {
-                  try {
-                    await deleteCongViec(data.id);
-                    toast.success("Đã xóa công việc!");
-                    onClose();
-                    onRefreshList?.();
-                  } catch (err: unknown) {
-                    toast.error(getErrorMessage(err));
-                  }
-                }
-              }}
-            >
+            <Button variant="ghost" className={qlcvDetailChrome.btnGhost} onClick={() => setConfirmDeleteOpen(true)}>
               Xóa
             </Button>
           )}
@@ -369,69 +298,37 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           ))}
         </div>
 
-        {showHoatDong && (
-        <div className="space-y-4 p-4 sm:p-5">
+        <div className="p-4 sm:p-5">
+          <QlcvChecklistPanel
+            congViecId={data.id}
+            initialChecklist={data.checklist}
+            readOnly={checklistReadOnly}
+            onUpdated={() => {
+              fetchDetail();
+              onRefreshList?.();
+            }}
+          />
+        </div>
+
+        {showHoatDong ? (
+          <div className="space-y-4 border-t border-slate-100 p-4 sm:p-5">
             <div className="flex items-center gap-2">
               <CheckCircle2 size={18} className="shrink-0 text-[var(--primary)]" aria-hidden />
-              <h3 className={qlcvDetailChrome.sectionHeading}>Cập nhật tiến độ</h3>
+              <h3 className={qlcvDetailChrome.sectionHeading}>Ghi chú tiến độ (tùy chọn)</h3>
             </div>
+            <p className="text-xs text-slate-500">Ưu tiên tick checklist phía trên; form này chỉ khi cần ghi chú thêm.</p>
             <HoatDongForm
               congViecId={data.id}
               initialPhanTram={Number(data.phan_tram_hoan_thanh ?? 0)}
-              hasChildren={Boolean(data.cong_viec_con && data.cong_viec_con.length > 0)}
+              hasChildren={false}
               onSuccess={() => {
                 fetchDetail();
                 onRefreshList?.();
-                onClose();
               }}
               onCancel={() => onClose()}
             />
           </div>
-        )}
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className={qlcvDetailChrome.sectionHeading}>Danh sách việc con</h3>
-          <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
-            {data.cong_viec_con?.length || 0}
-          </span>
-        </div>
-
-        <div className={qlcvSubTaskChrome.list}>
-          {data.cong_viec_con?.map((sub) => (
-            <div key={sub.id} className={qlcvSubTaskChrome.row}>
-              <div className="flex min-w-0 items-center gap-3">
-                <div className={qlcvSubTaskChrome.iconWrap}>
-                  <ArrowRight size={16} aria-hidden />
-                </div>
-                <div className="min-w-0">
-                  <h4 className="truncate text-sm font-semibold text-slate-800">{sub.tieu_de}</h4>
-                  <p className={`mt-0.5 ${qlcvDetailChrome.sectionLabel}`}>{getCongViecTrangThaiLabel(sub)}</p>
-                </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-4">
-                <div className="hidden text-right sm:block">
-                  <div className="text-xs font-semibold text-[var(--primary)]">{sub.phan_tram_hoan_thanh || 0}%</div>
-                  <div className="mt-1 h-1 w-20 overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className="h-full rounded-full bg-[var(--primary)]"
-                      style={{ width: `${sub.phan_tram_hoan_thanh || 0}%` }}
-                    />
-                  </div>
-                </div>
-                <Button variant="outline" className={qlcvDetailChrome.btnOutline} onClick={() => setActiveId(sub.id)}>
-                  Xem
-                </Button>
-              </div>
-            </div>
-          ))}
-          {(!data.cong_viec_con || data.cong_viec_con.length === 0) && (
-            <div className={qlcvDetailChrome.dashedEmpty}>
-              <p className={qlcvDetailChrome.sectionLabel}>Chưa có công việc con</p>
-            </div>
-          )}
-        </div>
+        ) : null}
       </div>
 
       <div className={`p-5 sm:p-6 ${qlcvDetailChrome.panel}`}>
@@ -441,6 +338,102 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
         </div>
         <ActivityTimeline activities={data.hoat_dong || []} />
       </div>
+
+      {/* ===== Dialog thay thế prompt()/confirm() ===== */}
+      <QlcvReasonDialog
+        open={reasonHuyOpen}
+        onOpenChange={setReasonHuyOpen}
+        title="Hủy công việc"
+        description="Phiếu sẽ được đóng ở trạng thái Đã hủy — lịch sử hoạt động được giữ nguyên. Vui lòng ghi rõ lý do."
+        placeholder="Lý do hủy / không đạt chất lượng (ghi rõ)…"
+        confirmLabel="Xác nhận hủy"
+        variant="danger"
+        minLength={5}
+        onConfirm={async (lyDo) => {
+          await runHuyKhongDat(lyDo);
+          setReasonHuyOpen(false);
+        }}
+      />
+
+      <QlcvReasonDialog
+        open={reasonTuChoiOpen}
+        onOpenChange={setReasonTuChoiOpen}
+        title="Yêu cầu làm lại"
+        description="Nghiệm thu không đạt — công việc sẽ được trả về trạng thái Từ chối để thực hiện lại."
+        placeholder="Lý do chưa đạt yêu cầu nghiệm thu…"
+        confirmLabel="Trả về làm lại"
+        variant="danger"
+        minLength={5}
+        onConfirm={async (lyDo) => {
+          try {
+            await tuChoiHoanThanhCongViec(data.id, lyDo);
+            toast.success("Đã trả việc về thực hiện lại.");
+            fetchDetail();
+            onRefreshList?.();
+          } catch (e: unknown) {
+            toast.error(getErrorMessage(e));
+          }
+        }}
+      />
+
+      <QlcvConfirmDialog
+        open={confirmNghiemThuOpen}
+        onOpenChange={setConfirmNghiemThuOpen}
+        title="Xác nhận nghiệm thu & đóng"
+        description="Công việc sẽ được chuyển sang trạng thái Hoàn thành. Thao tác này không thể hoàn tác."
+        confirmLabel="Nghiệm thu & Đóng"
+        onConfirm={async () => {
+          try {
+            await xacNhanHoanThanh(data.id);
+            toast.success("Đã nghiệm thu và hoàn thành công việc!");
+            fetchDetail();
+            onRefreshList?.();
+          } catch (e: unknown) {
+            toast.error(getErrorMessage(e));
+          }
+        }}
+      />
+
+      <QlcvConfirmDialog
+        open={confirmNghiemThuForce}
+        onOpenChange={setConfirmNghiemThuForce}
+        title="Xác nhận nghiệm thu & đóng"
+        description="Công việc sẽ được chuyển sang trạng thái Hoàn thành. Thao tác này không thể hoàn tác."
+        confirmLabel="Nghiệm thu & Đóng"
+        onConfirm={async () => {
+          try {
+            await xacNhanHoanThanh(data.id);
+            toast.success("Đã nghiệm thu và hoàn thành công việc!");
+            fetchDetail();
+            onRefreshList?.();
+          } catch (e: unknown) {
+            toast.error(getErrorMessage(e));
+          }
+        }}
+      />
+
+      <QlcvConfirmDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title={data.trang_thai === "HOAN_THANH" ? "Xóa công việc đã hoàn thành" : "Xác nhận xóa công việc"}
+        description={
+          data.trang_thai === "HOAN_THANH"
+            ? "Xóa vĩnh viễn công việc đã hoàn thành. Chỉ quản trị viên hoặc người có quyền xóa mới thực hiện được."
+            : "Công việc sẽ bị xóa vĩnh viễn khỏi hệ thống."
+        }
+        confirmLabel="Xóa vĩnh viễn"
+        variant="danger"
+        onConfirm={async () => {
+          try {
+            await deleteCongViec(data.id);
+            toast.success("Đã xóa công việc!");
+            onClose();
+            onRefreshList?.();
+          } catch (err: unknown) {
+            toast.error(getErrorMessage(err));
+          }
+        }}
+      />
     </div>
   );
 }

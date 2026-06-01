@@ -172,7 +172,7 @@ export function DungCuChiTietPageContent() {
           </button>
         </div>
       </header>
-      <div className="bg-white p-2 rounded-[40px] border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
+      <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
           data={data}

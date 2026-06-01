@@ -29,13 +29,43 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       cell: (i) => <span className="text-[11px] font-black uppercase text-[#026f17]">{clip(i.ten_bo, 48)}</span>,
     },
     {
-      header: "PHÂN LOẠI (DC)",
-      accessorKey: "loai_dung_cu",
+      header: "PHÂN LOẠI",
+      accessorKey: "phan_loai_bo",
       sortable: true,
       cell: (i) => (
-        <span className="inline-flex max-w-[14rem] flex-col gap-0.5 text-[10px] font-bold text-slate-600">
-          <span className="font-mono text-indigo-700">{i.loai_dung_cu?.ma_danh_muc || "—"}</span>
-          <span>{clip(i.loai_dung_cu?.ten_danh_muc, 52)}</span>
+        i.phan_loai_bo === "THU_THUAT" ? (
+          <span className="bg-amber-50 text-amber-600 border border-amber-100 text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider">Thủ thuật</span>
+        ) : (
+          <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider">Phẫu thuật</span>
+        )
+      ),
+    },
+    {
+      header: "CƠ CHẾ THEO DÕI",
+      accessorKey: "co_ma_dinh_danh_rieng",
+      sortable: true,
+      cell: (i) => (
+        i.co_ma_dinh_danh_rieng ? (
+          <span className="bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider">Mã QR riêng</span>
+        ) : (
+          <span className="bg-slate-50 text-slate-500 border border-slate-100 text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider">Đồ dùng chung</span>
+        )
+      ),
+    },
+    {
+      header: "SL BỘ/KHOẢN/TỔNG",
+      accessorKey: "so_luong_bo",
+      sortable: true,
+      cell: (i) => (
+        <span className="text-[10px] font-bold text-slate-600">
+          {i.phan_loai_bo === "THU_THUAT" ? (
+            <>Tổng phân bổ: <span className="text-amber-600 font-black">{i.tong_phan_bo || 0}</span></>
+          ) : (
+            <>Số bộ QR: <span className="text-emerald-700 font-black">{i.so_luong_bo || 0}</span></>
+          )}
+          <div className="text-slate-400 text-[9px]">
+            Khoản: <span className="font-black text-slate-600">{i.so_khoan || 0}</span> / Dụng cụ: <span className="font-black text-slate-600">{i.tong_so_luong_dung_cu || 0}</span>
+          </div>
         </span>
       ),
     },

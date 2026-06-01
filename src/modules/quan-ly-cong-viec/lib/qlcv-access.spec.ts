@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  canShowCreateSubTask,
   canShowDeleteTask,
   canShowEditTaskMetadata,
   canShowHoatDongProgressSection,
@@ -18,19 +17,6 @@ const baseFlags = {
 describe("isQlcvTaskInQuaHanLane", () => {
   it("mã QUA_HAN → lane quá hạn", () => {
     expect(isQlcvTaskInQuaHanLane({ trang_thai: "QUA_HAN", phan_tram_hoan_thanh: 10 })).toBe(true);
-  });
-});
-
-describe("canShowCreateSubTask", () => {
-  it("ẩn khi chờ nghiệm thu", () => {
-    expect(
-      canShowCreateSubTask({ trang_thai: "CHO_DUYET", phan_tram_hoan_thanh: 100, is_active: true }, baseFlags),
-    ).toBe(false);
-  });
-  it("ẩn khi đề xuất chờ phê", () => {
-    expect(
-      canShowCreateSubTask({ trang_thai: "MOI", is_active: false, nguoi_phu_trach_id: null }, baseFlags),
-    ).toBe(false);
   });
 });
 
@@ -67,10 +53,25 @@ describe("canShowEditTaskMetadata", () => {
       ),
     ).toBe(true);
   });
+
+  it("người phụ trách tự giao: được phép sửa metadata công việc", () => {
+    expect(
+      canShowEditTaskMetadata(
+        {
+          trang_thai: "DANG_LAM",
+          phan_tram_hoan_thanh: 50,
+          is_active: true,
+          nguoi_phu_trach_id: "actor-1",
+          nguoi_tao_id: "actor-1",
+        },
+        baseFlags,
+      ),
+    ).toBe(true);
+  });
 });
 
 describe("canShowDeleteTask", () => {
-  it("quá hạn: người tạo không được xóa nháp nếu không có quyền delete", () => {
+  it("không phải quản trị viên → không được xóa", () => {
     expect(
       canShowDeleteTask(
         {
@@ -85,7 +86,7 @@ describe("canShowDeleteTask", () => {
       ),
     ).toBe(false);
   });
-  it("quá hạn: có quyền delete → được", () => {
+  it("là quản trị viên → được xóa", () => {
     expect(
       canShowDeleteTask(
         {
@@ -95,7 +96,7 @@ describe("canShowDeleteTask", () => {
           nguoi_phu_trach_id: "other",
           phan_tram_hoan_thanh: 50,
         },
-        { ...baseFlags, hasDelete: true },
+        { ...baseFlags, isRBACAdmin: true },
       ),
     ).toBe(true);
   });

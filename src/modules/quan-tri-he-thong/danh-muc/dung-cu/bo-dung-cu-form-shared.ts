@@ -10,6 +10,8 @@ export interface BoDungCuFormValues {
   ghi_chu: string;
   trang_thai: string;
   ngay_kiem_ke_gan_nhat: string;
+  phan_loai_bo: string;
+  co_ma_dinh_danh_rieng: boolean;
   is_active: boolean;
 }
 
@@ -26,6 +28,12 @@ export interface BoDungCuTableRow {
   ghi_chu?: string | null;
   trang_thai?: string | null;
   ngay_kiem_ke_gan_nhat?: string | null;
+  phan_loai_bo?: string;
+  co_ma_dinh_danh_rieng?: boolean;
+  so_luong_bo?: number;
+  so_khoan?: number;
+  tong_so_luong_dung_cu?: number;
+  tong_phan_bo?: number;
   is_active?: boolean;
 }
 
@@ -40,6 +48,8 @@ export function mapBoDungCuRowToForm(row: BoDungCuTableRow | null): BoDungCuForm
       ghi_chu: "",
       trang_thai: "ACTIVE",
       ngay_kiem_ke_gan_nhat: "",
+      phan_loai_bo: "PHAU_THUAT",
+      co_ma_dinh_danh_rieng: true,
       is_active: true,
     };
   }
@@ -58,6 +68,8 @@ export function mapBoDungCuRowToForm(row: BoDungCuTableRow | null): BoDungCuForm
     ghi_chu: row.ghi_chu || "",
     trang_thai: row.trang_thai || "ACTIVE",
     ngay_kiem_ke_gan_nhat: dateStr,
+    phan_loai_bo: row.phan_loai_bo || "PHAU_THUAT",
+    co_ma_dinh_danh_rieng: row.co_ma_dinh_danh_rieng !== false,
     is_active: row.is_active !== false,
   };
 }

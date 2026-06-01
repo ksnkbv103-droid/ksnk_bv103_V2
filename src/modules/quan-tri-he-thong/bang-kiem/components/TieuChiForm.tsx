@@ -38,7 +38,7 @@ export default function TieuChiForm({ initialData, bangKiemId, onClose, onSave }
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-xl rounded-[40px] shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
         <header className="px-10 py-8 bg-slate-50/50 flex items-center justify-between">
           <h2 className="text-xl font-black text-slate-800 uppercase tracking-tighter">{formData.id ? "Sửa Tiêu Chí" : "Thêm Tiêu Chí Mới"}</h2>
           <button onClick={onClose} className="p-3 hover:bg-white rounded-2xl text-slate-400 shadow-sm"><X className="w-5 h-5" /></button>

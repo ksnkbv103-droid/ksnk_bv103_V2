@@ -21,13 +21,13 @@ export async function ensureRbacAdmin() {
 
   const admin = createAdminSupabaseClient();
   const { data: roleRows, error } = await admin
-    .from("rel_user_roles")
-    .select("dm_roles(name)")
+    .from("sys_user_roles")
+    .select("sys_roles(name)")
     .eq("user_id", user.id);
   if (error) throw error;
 
-  const isAdminRole = (roleRows || []).some((r: { dm_roles?: unknown }) => {
-    const rel = r.dm_roles as { name?: string } | { name?: string }[] | null | undefined;
+  const isAdminRole = (roleRows || []).some((r: { sys_roles?: unknown }) => {
+    const rel = r.sys_roles as { name?: string } | { name?: string }[] | null | undefined;
     const name = Array.isArray(rel) ? rel[0]?.name : rel?.name;
     return String(name || "").trim().toUpperCase() === "ADMIN";
   });

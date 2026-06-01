@@ -12,7 +12,7 @@ import {
   addQuyTrinhToBatchSchema, 
   finishSterilizationBatchSchema 
 } from "@/lib/validations/cssd-erp.validations";
-import { verifyCssdBatchEdit, verifyCssdBatchView } from "./cssd-permissions";
+import { verifyCssdBatchEdit, verifyCssdBatchView } from "@/lib/cssd-server-gates";
 import { buildQuyTrinhTramPatch, resolveCssdTramId } from "../lib/cssd-tram-persist";
 
 export async function fetchCssdMeListData() {
@@ -40,7 +40,7 @@ export async function fetchCssdTietKhuanWaitingRows(limit = 120) {
     const dongGoiId = await resolveCssdTramId(supabase, "DONG_GOI");
     if (!dongGoiId) return { success: true as const, data: [] };
     const { data, error } = await supabase
-      .from("fact_quy_trinh")
+      .from("cssd_fact_quy_trinh")
       .select("id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id")
       .eq("tram_hien_tai_id", dongGoiId)
       .is("lo_tiet_khuan_id", null)
@@ -79,7 +79,7 @@ export async function fetchCssdBatchWorkflowState(batchId: string) {
     const id = String(batchId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã mẻ." };
     const { data, error } = await supabase
-      .from("fact_lo_tiet_khuan")
+      .from("cssd_fact_lo_tiet_khuan")
       .select(
         "id, ma_lo_tiet_khuan, thiet_bi_id, loai_may_id, tk_chot_nap_at, tk_mo_form_qc_at, tk_qc_json, ket_qua_test, thiet_bi:dm_thiet_bi(ten_thiet_bi, loai_may_id, loai_may:dm_loai_may_tiet_khuan(ma_loai_may, ten_loai_may))",
       )
@@ -101,7 +101,7 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
     const id = String(batchId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã mẻ." };
     const { data: me, error: meErr } = await supabase
-      .from("fact_lo_tiet_khuan")
+      .from("cssd_fact_lo_tiet_khuan")
       .select("id, tk_chot_nap_at, ket_qua_test")
       .eq("id", id)
       .maybeSingle();
@@ -114,7 +114,7 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
       return { success: false as const, error: "Mẻ đã kết thúc đánh giá — không thể bắt đầu lại." };
     }
     const { data: members, error: memErr } = await supabase
-      .from("fact_quy_trinh")
+      .from("cssd_fact_quy_trinh")
       .select("id")
       .eq("lo_tiet_khuan_id", id)
       .eq("is_active", true);
@@ -122,11 +122,11 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
     const ids = (members || []).map((m: { id: string }) => m.id).filter(Boolean);
     if (!ids.length) return { success: false as const, error: "Chưa có bộ nào trong mẻ — không thể bắt đầu tiệt khuẩn." };
     const now = new Date().toISOString();
-    const { error: upLo } = await supabase.from("fact_lo_tiet_khuan").update({ tk_chot_nap_at: now, thoi_gian_bat_dau: now, updated_at: now }).eq("id", id);
+    const { error: upLo } = await supabase.from("cssd_fact_lo_tiet_khuan").update({ tk_chot_nap_at: now, thoi_gian_bat_dau: now, updated_at: now }).eq("id", id);
     if (upLo) return { success: false as const, error: mapFkError(upLo.message) };
     const tkPatch = await buildQuyTrinhTramPatch(supabase, "TIET_KHUAN");
     const { error: upQt } = await supabase
-      .from("fact_quy_trinh")
+      .from("cssd_fact_quy_trinh")
       .update({ ...tkPatch, updated_at: now })
       .in("id", ids);
     if (upQt) return { success: false as const, error: mapFkError(upQt.message) };
@@ -145,7 +145,7 @@ export async function confirmKetThucChuTrinhTietKhuan(batchId: string) {
     const id = String(batchId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã mẻ." };
     const { data: me, error: meErr } = await supabase
-      .from("fact_lo_tiet_khuan")
+      .from("cssd_fact_lo_tiet_khuan")
       .select("id, tk_chot_nap_at, tk_mo_form_qc_at, ket_qua_test")
       .eq("id", id)
       .maybeSingle();
@@ -156,7 +156,7 @@ export async function confirmKetThucChuTrinhTietKhuan(batchId: string) {
     if (m.tk_mo_form_qc_at) return { success: false as const, error: "Đã mở form QC — không lặp bước này." };
     if (m.ket_qua_test != null) return { success: false as const, error: "Mẻ đã có kết quả QC." };
     const now = new Date().toISOString();
-    const { error: upLo } = await supabase.from("fact_lo_tiet_khuan").update({ tk_mo_form_qc_at: now, updated_at: now }).eq("id", id);
+    const { error: upLo } = await supabase.from("cssd_fact_lo_tiet_khuan").update({ tk_mo_form_qc_at: now, updated_at: now }).eq("id", id);
     if (upLo) return { success: false as const, error: mapFkError(upLo.message) };
     revalidateCssdBatchSurfaces();
     return { success: true as const };
@@ -172,7 +172,7 @@ export async function fetchCssdBatchMembers(batchId: string) {
     const id = String(batchId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã mẻ.", data: [] as unknown[] };
     const { data: rows, error } = await supabase
-      .from("v_fact_quy_trinh_full")
+      .from("v_cssd_quy_trinh_full")
       .select("*")
       .eq("lo_tiet_khuan_id", id)
       .eq("is_active", true)
@@ -208,7 +208,7 @@ export async function createCssdSterilizationBatch(machineId: string, nguoiLoad:
     if (!mayOk.ok) return { success: false as const, error: mayOk.message };
     const ma = `LOT-${Date.now().toString().slice(-6)}`;
     const { data: me, error } = await supabase
-      .from("fact_lo_tiet_khuan")
+      .from("cssd_fact_lo_tiet_khuan")
       .insert({
         ma_lo_tiet_khuan: ma,
         thiet_bi_id: mid,
@@ -239,7 +239,7 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
     const qr = resolved.code;
 
     const { data: me, error: meErr } = await supabase
-      .from("fact_lo_tiet_khuan")
+      .from("cssd_fact_lo_tiet_khuan")
       .select("id, ma_lo_tiet_khuan, thiet_bi_id, tk_chot_nap_at")
       .eq("id", meId)
       .maybeSingle();
@@ -253,7 +253,7 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
     }
 
     const { data: qt, error: qtErr } = await supabase
-      .from("v_fact_quy_trinh_full")
+      .from("v_cssd_quy_trinh_full")
       .select("*")
       .eq("ma_qr_quy_trinh", qr)
       .eq("is_active", true)
@@ -272,7 +272,7 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
     if (reject) return { success: false as const, error: reject };
 
     const { error: upErr } = await supabase
-      .from("fact_quy_trinh")
+      .from("cssd_fact_quy_trinh")
       .update({
         lo_tiet_khuan_id: meId,
         updated_at: new Date().toISOString(),

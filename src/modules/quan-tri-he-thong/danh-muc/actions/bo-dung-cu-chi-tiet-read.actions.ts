@@ -13,45 +13,40 @@ export async function getBoDungCuChiTietPreviewAction(boDungCuId: string) {
 
   const supabase = await createServerSupabaseUserClient();
   const { data, error } = await supabase
-    .from("dm_bo_dung_cu_chi_tiet")
+    .from("v_cssd_bo_dung_cu_chi_tiet_full")
     .select(
-      "id, ma_chi_tiet, ten_chi_tiet, ten_dung_cu_le, loai_dung_cu_id, so_luong, max_suds_count, trong_luong, ghi_chu, is_active",
+      "id, bo_dung_cu_id, ma_chi_tiet, ten_chi_tiet, ten_dung_cu_le, loai_dung_cu_id, so_luong, ghi_chu, is_active, co_ma_khac, ma_khac, specs, ma_loai_dung_cu, ten_loai_dung_cu",
     )
     .eq("bo_dung_cu_id", bid)
     .order("is_active", { ascending: false })
     .order("ma_chi_tiet", { ascending: true });
   if (error) return { success: false as const, error: error.message };
 
-  const rows = (data || []) as BoDungCuChiTietPreviewRow[];
-  const loaiIds = [...new Set(rows.map((r) => String(r.loai_dung_cu_id || "").trim()).filter(Boolean))];
-  if (!loaiIds.length) {
+  const rows = (data || []) as any[];
+  const enriched: BoDungCuChiTietPreviewRow[] = rows.map((r) => {
+    const specs = r.specs || {};
+    const max_suds_count = specs.max_suds_count !== undefined && specs.max_suds_count !== null ? Number(specs.max_suds_count) : null;
+    const trong_luong = specs.trong_luong !== undefined ? specs.trong_luong : null;
     return {
-      success: true as const,
-      data: rows.map((r) => ({ ...r, loai_dung_cu: null })),
+      id: r.id,
+      ma_chi_tiet: r.ma_chi_tiet,
+      ten_chi_tiet: r.ten_chi_tiet,
+      ten_dung_cu_le: r.ten_dung_cu_le,
+      bo_dung_cu_id: r.bo_dung_cu_id,
+      loai_dung_cu_id: r.loai_dung_cu_id,
+      so_luong: r.so_luong,
+      max_suds_count,
+      trong_luong,
+      ghi_chu: r.ghi_chu,
+      is_active: r.is_active,
+      loai_dung_cu: r.loai_dung_cu_id
+        ? {
+            ma_danh_muc: r.ma_loai_dung_cu || null,
+            ten_danh_muc: r.ten_loai_dung_cu || null,
+          }
+        : null,
     };
-  }
-
-  const { data: loais, error: le } = await supabase
-    .from("dm_loai_dung_cu")
-    .select("id, ma_loai, ma_loai_dung_cu, ten_loai, ten_loai_dung_cu")
-    .in("id", loaiIds);
-  if (le) return { success: false as const, error: le.message };
-
-  const loaiMap = new Map(
-    (loais || []).map((x) => {
-      const ma = x.ma_loai_dung_cu ?? x.ma_loai ?? null;
-      const ten = x.ten_loai_dung_cu ?? x.ten_loai ?? "";
-      return [
-        String(x.id),
-        { ma_danh_muc: ma != null ? String(ma) : null, ten_danh_muc: ten ? String(ten) : null },
-      ] as const;
-    }),
-  );
-
-  const enriched: BoDungCuChiTietPreviewRow[] = rows.map((r) => ({
-    ...r,
-    loai_dung_cu: r.loai_dung_cu_id ? loaiMap.get(String(r.loai_dung_cu_id)) ?? null : null,
-  }));
+  });
 
   return { success: true as const, data: enriched };
 }
@@ -86,43 +81,113 @@ export async function getBoRefsByLoaiAction(loaiDungCuId: string, excludeBoId?: 
   return { success: true as const, data: (bos || []) as BoRefByLoai[] };
 }
 
-/** Ghi nhận sự vụ hỏng/mất ở mức chi tiết bằng audit note, không phá dữ liệu gốc. */
+import { appendChiTietIssueNoteAction as appendChiTietIssueNoteActionImpl } from "@/lib/master-data/append-chi-tiet-issue-note.action";
+
 export async function appendChiTietIssueNoteAction(params: {
   chiTietId: string;
   issueType: "HONG" | "MAT";
   note?: string;
 }) {
+  return appendChiTietIssueNoteActionImpl(params);
+}
+
+export async function reportIndividualInstrumentIssueAction(params: {
+  loaiDungCuId: string;
+  boDungCuId?: string | null;
+  quyTrinhId?: string | null;
+  issueType: "HONG" | "MAT";
+  quantity: number;
+  note?: string;
+}) {
   await verifyPermission("DC_LE", "edit");
   const supabase = await createServerSupabaseUserClient();
-  const id = String(params.chiTietId || "").trim();
-  if (!id) return { success: false as const, error: "Thiếu id dụng cụ chi tiết." };
+  const loaiId = String(params.loaiDungCuId || "").trim();
+  if (!loaiId) return { success: false as const, error: "Thiếu id loại dụng cụ." };
+  const quantity = Number(params.quantity || 1);
+  if (quantity <= 0) return { success: false as const, error: "Số lượng sự cố phải lớn hơn 0." };
 
-  const { data: row, error } = await supabase
-    .from("dm_bo_dung_cu_chi_tiet")
-    .select("ghi_chu, bo_dung_cu_id")
-    .eq("id", id)
-    .maybeSingle();
+  const { error } = await supabase.from("fact_kho_dung_cu_giao_dich").insert({
+    loai_dung_cu_id: loaiId,
+    bo_dung_cu_id: params.boDungCuId || null,
+    quy_trinh_id: params.quyTrinhId || null,
+    loai_giao_dich: params.issueType === "HONG" ? "BAO_HONG" : "BAO_MAT",
+    so_luong_thay_doi: -quantity,
+    ghi_chu: String(params.note || "").trim() || null,
+    updated_at: new Date().toISOString(),
+  });
+
   if (error) return { success: false as const, error: error.message };
-  const oldNote = String((row as { ghi_chu?: string | null } | null)?.ghi_chu || "").trim();
-  const oldBoId = String((row as { bo_dung_cu_id?: string | null } | null)?.bo_dung_cu_id || "").trim();
-  const now = new Date().toISOString().slice(0, 19).replace("T", " ");
-  const line = `[${params.issueType}] ${now}${params.note ? ` - ${String(params.note).trim()}` : ""}`;
-  const detachLine = oldBoId ? `[AUTO] ${now} - Tách khỏi bộ hiện tại do báo ${params.issueType === "HONG" ? "hỏng" : "mất"}.` : "";
-  const nextNote = oldNote
-    ? `${oldNote}\n${line}${detachLine ? `\n${detachLine}` : ""}`
-    : `${line}${detachLine ? `\n${detachLine}` : ""}`;
 
-  const { error: ue } = await supabase
-    .from("dm_bo_dung_cu_chi_tiet")
-    .update({
-      ghi_chu: nextNote,
-      // Nghiệp vụ: khi báo hỏng/mất thì dụng cụ không còn là thành phần của bộ hiện hành.
-      bo_dung_cu_id: null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id);
-  if (ue) return { success: false as const, error: ue.message };
   revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu/bo");
   revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu/chi-tiet");
+  revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu");
+  return { success: true as const };
+}
+
+export async function replenishSetInstrumentCore(
+  supabase: Awaited<ReturnType<typeof createServerSupabaseUserClient>>,
+  params: {
+    loaiDungCuId: string;
+    boDungCuId: string;
+    quyTrinhId?: string | null;
+    quantity: number;
+    note?: string;
+  },
+) {
+  const loaiId = String(params.loaiDungCuId || "").trim();
+  const boId = String(params.boDungCuId || "").trim();
+  if (!loaiId || !boId) return { success: false as const, error: "Thiếu id loại dụng cụ hoặc bộ dụng cụ." };
+  const quantity = Number(params.quantity || 1);
+  if (quantity <= 0) return { success: false as const, error: "Số lượng bổ sung phải lớn hơn 0." };
+
+  const { data: loai, error: getErr } = await supabase
+    .from("dm_loai_dung_cu")
+    .select("so_luong_kho_du_phong")
+    .eq("id", loaiId)
+    .maybeSingle();
+  if (getErr) return { success: false as const, error: getErr.message };
+  const reserve = Number((loai as { so_luong_kho_du_phong?: number | null } | null)?.so_luong_kho_du_phong || 0);
+  if (reserve < quantity) {
+    return { success: false as const, error: `Số lượng dự phòng không đủ (hiện có ${reserve} dụng cụ).` };
+  }
+
+  const { error: decErr } = await supabase
+    .from("dm_loai_dung_cu")
+    .update({
+      so_luong_kho_du_phong: reserve - quantity,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", loaiId);
+  if (decErr) return { success: false as const, error: decErr.message };
+
+  const { error: insErr } = await supabase.from("fact_kho_dung_cu_giao_dich").insert({
+    loai_dung_cu_id: loaiId,
+    bo_dung_cu_id: boId,
+    quy_trinh_id: params.quyTrinhId || null,
+    loai_giao_dich: "BO_SUNG",
+    so_luong_thay_doi: quantity,
+    ghi_chu: String(params.note || "").trim() || "Bổ sung dụng cụ vào bộ từ kho dự phòng",
+    updated_at: new Date().toISOString(),
+  });
+  if (insErr) return { success: false as const, error: insErr.message };
+
+  return { success: true as const };
+}
+
+export async function replenishSetInstrumentAction(params: {
+  loaiDungCuId: string;
+  boDungCuId: string;
+  quyTrinhId?: string | null;
+  quantity: number;
+  note?: string;
+}) {
+  await verifyPermission("DC_LE", "edit");
+  const supabase = await createServerSupabaseUserClient();
+  const result = await replenishSetInstrumentCore(supabase, params);
+  if (!result.success) return result;
+
+  revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu/bo");
+  revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu/chi-tiet");
+  revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu");
   return { success: true as const };
 }

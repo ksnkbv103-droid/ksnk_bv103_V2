@@ -15,9 +15,33 @@ import type { ThietBiRow } from "./thiet-bi.types";
 export async function getThietBiRowsAction() {
   await verifyPermission("THIET_BI", "view");
   const supabase = createAdminSupabaseClient();
-  const { data, error } = await supabase.from("v_dm_thiet_bi_full").select("*").order("ma_thiet_bi");
-  if (error) return { success: false as const, error: error.message };
-  return { success: true as const, data: (data || []) as ThietBiRow[] };
+  
+  // Chạy song song tải thiết bị và mẻ tiệt khuẩn để đếm tần suất
+  const [tbRes, loRes] = await Promise.all([
+    supabase.from("v_cssd_thiet_bi_full").select("*").order("ma_thiet_bi"),
+    supabase.from("cssd_fact_lo_tiet_khuan").select("thiet_bi_id").eq("is_active", true),
+  ]);
+
+  if (tbRes.error) return { success: false as const, error: tbRes.error.message };
+  if (loRes.error) return { success: false as const, error: loRes.error.message };
+
+  const countsMap = new Map<string, number>();
+  if (loRes.data) {
+    for (const row of loRes.data) {
+      const tbId = row.thiet_bi_id;
+      if (tbId) {
+        countsMap.set(tbId, (countsMap.get(tbId) || 0) + 1);
+      }
+    }
+  }
+
+  const list = (tbRes.data || []) as ThietBiRow[];
+  const mapped = list.map((item) => ({
+    ...item,
+    so_lan_su_dung: countsMap.get(item.id) || 0,
+  }));
+
+  return { success: true as const, data: mapped };
 }
 
 /** Danh sách loại máy tiệt khuẩn (khai báo) — dùng cho form thiết bị. */
@@ -67,18 +91,22 @@ export async function saveThietBiAction(input: Record<string, unknown>) {
     else if (/^[0-9a-f-]{36}$/i.test(loaiMa)) loai_may_id = loaiMa;
   }
 
+  const specs = {
+    hang_san_xuat: String(input.hang_san_xuat || "").trim() || null,
+    nam_san_xuat: nam,
+    ghi_chu: String(input.ghi_chu || "").trim() || null,
+  };
+
   const payload = {
     ma_thiet_bi: ma,
     ten_thiet_bi: ten,
     loai_may_id,
     trang_thai: String(input.trang_thai || "").trim() || "READY",
-    hang_san_xuat: String(input.hang_san_xuat || "").trim() || null,
-    nam_san_xuat: nam,
     ngay_dua_vao_su_dung: parseDateOnly(input.ngay_dua_vao_su_dung),
     chu_ky_bao_tri_ngay: cycle,
     ngay_bao_tri_gan_nhat: parseDateOnly(input.ngay_bao_tri_gan_nhat),
     ngay_bao_tri_tiep_theo: parseDateOnly(input.ngay_bao_tri_tiep_theo),
-    ghi_chu: String(input.ghi_chu || "").trim() || null,
+    specs,
     is_active: input.is_active !== false,
     updated_at: new Date().toISOString(),
   };

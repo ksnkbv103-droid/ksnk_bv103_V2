@@ -25,7 +25,7 @@ export async function getActorKsnkScope(): Promise<ActorKsnkScope> {
   const supabase = createAdminSupabaseClient();
 
   const [{ data: permData }, { data: staffData }] = await Promise.all([
-    supabase.from("v_auth_user_permissions").select("roles").eq("auth_user_id", authUserId).maybeSingle(),
+    supabase.from("v_sys_user_permissions").select("roles").eq("auth_user_id", authUserId).maybeSingle(),
     supabase
       .from("mdm_nhan_su")
       .select("id,khoa_id")

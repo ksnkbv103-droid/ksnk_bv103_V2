@@ -2,7 +2,7 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
-import { VSTObservation } from "../data";
+import { VSTObservation } from "../lib/vst-constants";
 import { normalizeHoSoNhanVienOptionalOrThrow } from "@/lib/master-data/fk-normalize";
 import { normalizeAndValidateDmKhoaPhong, validateDanhMucIdByType } from "@/lib/master-data/validation";
 import { getActorAuthUserId, getActorNhanSuId } from "@/lib/actor-auth-server";
@@ -181,10 +181,11 @@ export async function saveVSTSession(
         const isMissed = opp.hanh_dong === "Bỏ sót";
         const khoaDetailId =
           (obs.khoa_id && String(obs.khoa_id).trim()) || khoaSessionNorm || null;
+        // Slice 8 (giam-sat-tuan-thu reform v4 / JCI 8.0): chỉ ghi nguyên nhân
+        // khi cơ hội không tuân thủ — bỏ qua mọi giá trị thừa do form sót lại.
         return {
           session_id: sessionId,
           nhan_vien_id: obs.nhan_vien_id || null,
-          ten_nhan_vien_ngoai: obs.ten_nhan_vien_ngoai || null,
           khoa_id: khoaDetailId,
           khu_vuc_id: obs.khu_vuc_id ?? null,
           vi_tri: obs.vi_tri,
@@ -196,6 +197,7 @@ export async function saveVSTSession(
           du_thoi_gian: isMissed ? null : opp.du_thoi_gian,
           co_deo_gang: isMissed ? (opp.co_deo_gang ?? null) : null,
           thoi_gian_ghi_nhan: opp.thoi_gian_ghi_nhan || null,
+          metadata: obs.ten_nhan_vien_ngoai ? { ten_nhan_vien_ngoai: obs.ten_nhan_vien_ngoai } : {},
         };
       }),
     );

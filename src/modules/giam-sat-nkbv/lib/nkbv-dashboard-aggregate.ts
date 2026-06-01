@@ -24,6 +24,7 @@ export type NkbvDashboardPayload = {
   by_loai: { ma: string; ten: string; so_phieu: number }[];
   by_trang_thai: { ma: string; ten: string; so_phieu: number }[];
   top_khoa: { ten_khoa: string; so_phieu: number }[];
+  epidemiologyRates?: any[];
 };
 
 const CHO_TAC = new Set(["DANG_GHI_NHAN", "CHO_XAC_NHAN"]);

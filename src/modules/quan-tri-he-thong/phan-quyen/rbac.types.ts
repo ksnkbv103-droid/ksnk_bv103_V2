@@ -36,15 +36,13 @@ export type RBACDataResult = RBACDataSuccess | { success: false; error: string }
  * Thứ tự cột ma trận phân quyền BV103 — chỉ các vai trò này.
  * Không hiển thị `MANG_LUOI_KSNK` (legacy) hay vai trò khác trong `dm_roles`.
  */
-export const RBAC_MATRIX_COLUMN_ROLE_ORDER = [
+const RBAC_MATRIX_COLUMN_ROLE_ORDER = [
   "ADMIN",
   "HOI_DONG_KSNK",
   "NHAN_VIEN_KSNK",
   "TO_TRUONG_MANG_LUOI_KSNK",
   "THANH_VIEN_MANG_LUOI_KSNK",
 ] as const;
-
-const RBAC_MATRIX_COLUMN_ROLE_SET = new Set<string>(RBAC_MATRIX_COLUMN_ROLE_ORDER.map((s) => s));
 
 /** Nhãn hiển thị trên cột ma trận (tiếng Việt ngắn). */
 export const RBAC_MATRIX_ROLE_HEADER_LABEL: Record<string, string> = {
@@ -54,10 +52,6 @@ export const RBAC_MATRIX_ROLE_HEADER_LABEL: Record<string, string> = {
   TO_TRUONG_MANG_LUOI_KSNK: "Tổ trưởng tổ KSNK khoa",
   THANH_VIEN_MANG_LUOI_KSNK: "Thành viên mạng lưới KSNK",
 };
-
-export function isRbacMatrixColumnRole(name: string | null | undefined): boolean {
-  return RBAC_MATRIX_COLUMN_ROLE_SET.has(String(name ?? "").trim().toUpperCase());
-}
 
 /** Lọc + sắp xếp vai trò theo thứ tự cột ma trận (chỉ các dòng có trong DB). */
 export function selectRolesForRbacMatrixColumns(allRoles: RBACRoleRow[]): RBACRoleRow[] {

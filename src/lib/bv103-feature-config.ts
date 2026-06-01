@@ -8,17 +8,11 @@ import {
 } from "@/lib/ksnk-pilot-four-modules-scope";
 
 /** Pilot 4 module — re-export để UI/docs dùng một import. */
-export { isPilotFourModulesScopeEnabled, isPathBlockedUnderPilotFourModules };
 
 /** TanStack Query staleTime dashboard (ms). */
 export function dashboardQueryStaleTimeMs(): number {
   const raw = Number(process.env.BV103_DASHBOARD_QUERY_STALE_MS ?? "90000");
   return Number.isFinite(raw) && raw >= 0 ? raw : 90_000;
-}
-
-/** Ghi audit trigger trên fact phiên GS (DB). App chỉ đọc khi cần. */
-export function isBv103AuditLogEnabled(): boolean {
-  return process.env.BV103_AUDIT_LOG !== "0";
 }
 
 /** Module flags bổ sung (ngoài pilot). */
@@ -37,3 +31,9 @@ export function isModuleEnabled(moduleKey: "CSSD" | "QLCV" | "NKBV" | "HIS"): bo
   }
   return true;
 }
+
+/** Bật/tắt Digital BOM Checklist tại trạm Đóng gói. */
+export function isBOMChecklistEnabled(): boolean {
+  return process.env.BV103_FEATURE_BOM_CHECKLIST !== "0";
+}
+

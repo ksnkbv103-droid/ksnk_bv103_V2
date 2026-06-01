@@ -11,7 +11,7 @@ export async function fetchCssdKhoDungCuList() {
   try {
     await verifyCssdKhoDungCuView();
     const { data: res, error } = await supabase
-      .from("v_fact_quy_trinh_full")
+      .from("v_cssd_quy_trinh_full")
       .select("*")
       .eq("is_active", true)
       .order("updated_at", { ascending: false })
@@ -24,7 +24,7 @@ export async function fetchCssdKhoDungCuList() {
     if (boIds.length) {
       const { data: bos, error: boErr } = await supabase
         .from("dm_bo_dung_cu")
-        .select("*, khoa:dm_khoa_phong!khoa_su_dung_id(ten_khoa)")
+        .select("*, khoa:dm_khoa_phong!khoa_su_dung_id(ten_khoa, ma_khoa)")
         .in("id", boIds);
       if (boErr) return { success: false as const, error: boErr.message, data: [] };
       boMap = new Map((bos || []).map((x: { id: string }) => [String(x.id), x as Record<string, unknown>]));

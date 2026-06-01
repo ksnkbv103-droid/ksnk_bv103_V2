@@ -5,6 +5,9 @@ import { revalidatePath } from "next/cache";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { buildQlcvDmPersistFields, resolveQlcvTrangThaiId } from "../lib/qlcv-persist-dm-fields";
+import { assertQlcvHanHoanThanhNotPast, insertQlcvTaskRow } from "../lib/qlcv-create-task";
+import { resolveQlcvTrangThaiMaForTask } from "../lib/qlcv-initial-trang-thai";
+import { isDeXuatChoDuyet, type CongViecLike } from "../lib/qlcv-workflow-display";
 import { congViecSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
 
 interface CreateDeXuatInput {
@@ -15,15 +18,14 @@ interface CreateDeXuatInput {
   muc_do_uu_tien?: "CAO" | "TRUNG_BINH" | "THAP";
 }
 
-type DeXuatRow = {
+type DeXuatRow = CongViecLike & {
   nguoi_tao?: { ho_ten?: string | null } | null;
   nguoi_phu_trach?: { ho_ten?: string | null } | null;
   to_cong_tac?: { ten_to?: string | null } | null;
-  [key: string]: unknown;
 };
 
 /**
- * Gửi đề xuất công việc mới (chỉ nội bộ Khoa)
+ * Gửi đề xuất — cùng SSOT insert với tạo việc (`insertQlcvTaskRow`), is_active=false.
  */
 export async function createDeXuat(input: CreateDeXuatInput) {
   await verifyPermission("CONG_VIEC", "create");
@@ -34,42 +36,22 @@ export async function createDeXuat(input: CreateDeXuatInput) {
   }
 
   const tieuDe = String(input.tieu_de ?? "").trim();
-  if (!tieuDe) {
-    throw new Error("Nhập tiêu đề đề xuất.");
-  }
-  const moTaRaw = input.mo_ta != null ? String(input.mo_ta).trim() : "";
-  const hanRaw = input.han_hoan_thanh != null ? String(input.han_hoan_thanh).trim() : "";
+  if (!tieuDe) throw new Error("Nhập tiêu đề đề xuất.");
 
-  const loai = input.loai_cong_viec || "DOT_XUAT";
-  const dmFk = await buildQlcvDmPersistFields(supabase, {
-    loai_cong_viec: loai,
-    trang_thai: "MOI",
+  assertQlcvHanHoanThanhNotPast(input.han_hoan_thanh);
+
+  const data = await insertQlcvTaskRow(supabase, {
+    tieu_de: tieuDe,
+    mo_ta: input.mo_ta != null ? String(input.mo_ta).trim() || null : null,
+    loai_cong_viec: input.loai_cong_viec || "DOT_XUAT",
+    muc_do_uu_tien: input.muc_do_uu_tien,
+    han_hoan_thanh: input.han_hoan_thanh || null,
+    is_active: false,
+    nguoi_tao_id: actorNhanSuId,
   });
 
-  const { data, error } = await supabase
-    .from("fact_cong_viec")
-    .insert({
-      tieu_de: tieuDe,
-      mo_ta: moTaRaw === "" ? null : moTaRaw,
-      loai_cong_viec_id: dmFk.loai_cong_viec_id,
-      muc_do_uu_tien: input.muc_do_uu_tien || "TRUNG_BINH",
-      han_hoan_thanh: hanRaw === "" ? null : hanRaw,
-      trang_thai_id: dmFk.trang_thai_id,
-      phan_tram_hoan_thanh: 0,
-      is_active: false,
-      nguoi_tao_id: actorNhanSuId,
-      updated_at: new Date().toISOString(),
-    })
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Lỗi gửi đề xuất:", error);
-    throw new Error("Không thể gửi đề xuất công việc: " + error.message);
-  }
-
   await supabase.from("fact_cong_viec_hoat_dong").insert({
-    id_cong_viec: data.id,
+    id_cong_viec: String(data.id),
     loai_hoat_dong: "DE_XUAT",
     nguoi_thuc_hien_id: actorNhanSuId,
     noi_dung: "Gửi đề xuất công việc mới",
@@ -79,9 +61,6 @@ export async function createDeXuat(input: CreateDeXuatInput) {
   return data;
 }
 
-/**
- * Phê duyệt / từ chối đề xuất (chỉ trạng thái — không cập nhật form).
- */
 export async function pheDuyetDeXuat(id: string, duyet: boolean, ly_do?: string) {
   await verifyPermission("CONG_VIEC", "edit");
   const supabase = createAdminSupabaseClient();
@@ -89,15 +68,19 @@ export async function pheDuyetDeXuat(id: string, duyet: boolean, ly_do?: string)
 
   const { data: row, error: fetchErr } = await supabase
     .from("fact_cong_viec")
-    .select("nguoi_phu_trach_id")
+    .select("nguoi_phu_trach_id, to_cong_tac_id")
     .eq("id", id)
     .maybeSingle();
 
-  if (fetchErr || !row) {
-    throw new Error("Không tìm thấy đề xuất.");
-  }
+  if (fetchErr || !row) throw new Error("Không tìm thấy đề xuất.");
 
-  const trang_thai_moi = duyet ? "MOI" : "DA_HUY";
+  const trang_thai_moi = duyet
+    ? resolveQlcvTrangThaiMaForTask({
+        isActive: true,
+        nguoi_phu_trach_id: row.nguoi_phu_trach_id,
+        to_cong_tac_id: row.to_cong_tac_id,
+      })
+    : "DA_HUY";
   const trang_thai_id = await resolveQlcvTrangThaiId(supabase, trang_thai_moi);
 
   const patch: Record<string, unknown> = {
@@ -105,16 +88,10 @@ export async function pheDuyetDeXuat(id: string, duyet: boolean, ly_do?: string)
     is_active: duyet,
     updated_at: new Date().toISOString(),
   };
-  if (duyet) {
-    patch.nguoi_giao_viec_id = actorNhanSuId;
-  }
+  if (duyet) patch.nguoi_giao_viec_id = actorNhanSuId;
 
   const { error } = await supabase.from("fact_cong_viec").update(patch).eq("id", id);
-
-  if (error) {
-    console.error("Lỗi phê duyệt:", error);
-    throw new Error("Không thể thực hiện thao tác phê duyệt.");
-  }
+  if (error) throw new Error("Không thể thực hiện thao tác phê duyệt.");
 
   await supabase.from("fact_cong_viec_hoat_dong").insert({
     id_cong_viec: id,
@@ -127,9 +104,6 @@ export async function pheDuyetDeXuat(id: string, duyet: boolean, ly_do?: string)
   revalidatePath("/quan-ly-cong-viec");
 }
 
-/**
- * Sau khi lãnh đạo chỉnh sửa form đề xuất: lưu nội dung + kích hoạt + giao (cổng phê duyệt + giao).
- */
 export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput) {
   await verifyPermission("CONG_VIEC", "edit");
   const parsed = congViecSchema.safeParse(payload);
@@ -140,8 +114,13 @@ export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput
   const supabase = createAdminSupabaseClient();
   const actorNhanSuId = await getActorNhanSuId();
   const p = parsed.data;
+  assertQlcvHanHoanThanhNotPast(p.han_hoan_thanh);
 
-  const trangThai = "MOI";
+  const trangThai = resolveQlcvTrangThaiMaForTask({
+    isActive: true,
+    nguoi_phu_trach_id: p.nguoi_phu_trach_id,
+    to_cong_tac_id: p.to_cong_tac_id,
+  });
   const dmFk = await buildQlcvDmPersistFields(supabase, {
     loai_cong_viec: p.loai_cong_viec,
     trang_thai: trangThai,
@@ -178,36 +157,42 @@ export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput
   revalidatePath("/quan-ly-cong-viec");
 }
 
-/**
- * Danh sách đề xuất chờ phê duyệt
- */
 export async function getPendingDeXuat() {
   await verifyPermission("CONG_VIEC", "edit");
   const supabase = createAdminSupabaseClient();
 
   const { data, error } = await supabase
-    .from("v_fact_cong_viec_full")
+    .from("v_qlcv_cong_viec_full")
     .select(
       `
       *,
       nguoi_tao:mdm_nhan_su!nguoi_tao_id(ho_ten),
       nguoi_phu_trach:mdm_nhan_su!nguoi_phu_trach_id(ho_ten),
       to_cong_tac:dm_to_cong_tac!to_cong_tac_id(ten_to)
-    `
+    `,
     )
     .eq("is_active", false)
-    .neq("trang_thai", "DA_HUY")
+    .is("cong_viec_cha_id", null)
     .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("Lỗi tải đề xuất:", error);
-    throw new Error("Không thể tải danh sách đề xuất");
-  }
+  if (error) throw new Error(error.message);
+  return ((data || []) as DeXuatRow[]).filter((r) => isDeXuatChoDuyet(r));
+}
 
-  return ((data || []) as DeXuatRow[]).map((item) => ({
-    ...item,
-    nguoi_tao_ten: item.nguoi_tao?.ho_ten || "Chưa xác định",
-    nguoi_phu_trach_ten: item.nguoi_phu_trach?.ho_ten ?? undefined,
-    to_cong_tac_ten: item.to_cong_tac?.ten_to ?? undefined,
-  }));
+export async function getMyPendingDeXuat() {
+  await verifyPermission("CONG_VIEC", "view");
+  const actorNhanSuId = await getActorNhanSuId();
+  if (!actorNhanSuId) return [];
+
+  const supabase = createAdminSupabaseClient();
+  const { data, error } = await supabase
+    .from("v_qlcv_cong_viec_full")
+    .select("*")
+    .eq("is_active", false)
+    .eq("nguoi_tao_id", actorNhanSuId)
+    .is("cong_viec_cha_id", null)
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return (data || []).filter((r) => isDeXuatChoDuyet(r));
 }

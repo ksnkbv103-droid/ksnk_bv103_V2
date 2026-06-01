@@ -9,30 +9,16 @@ import type { VstHistoryRow } from "../lib/vst-read-utils";
 
 function formatHHmm(value: unknown): string {
   const raw = String(value ?? "").trim();
-  if (!raw) return "--:--";
+  if (!raw) return "—";
   const d = new Date(raw);
   return Number.isFinite(d.getTime())
     ? d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
-    : "--:--";
-}
-
-function cellDateSession(s: Record<string, unknown>) {
-  const raw = (s.ngay_giam_sat as string) || (s.created_at as string);
-  const d = raw ? new Date(raw.includes("T") ? raw : `${raw}T12:00:00`) : null;
-  const dateLine = d ? d.toLocaleDateString("vi-VN") : "---";
-  const timeLine = (s.created_at as string) ? new Date(String(s.created_at)).toLocaleTimeString("vi-VN") : null;
-  return (
-    <div>
-      <div className="font-bold text-slate-700">{dateLine}</div>
-      <div className="text-[10px] text-slate-400 font-bold uppercase">
-        {timeLine ? `Tạo LS: ${timeLine}` : "\u00a0"}
-      </div>
-    </div>
-  );
+    : "—";
 }
 
 /**
  * Trả về mảng column config cho HistoryTable VST
+ * Thiết kế: tối giản, nhất quán font 12px, không dùng badge màu mè, tông trung tính chuyên nghiệp.
  */
 export function getVSTHistoryColumns(
   printingSessionId: string | null,
@@ -42,76 +28,80 @@ export function getVSTHistoryColumns(
 ): Column<VstHistoryRow>[] {
   return [
     {
-      header: "Ngày phiên",
+      header: "Ngày giám sát",
       accessorKey: "ngay_giam_sat",
       sortable: true,
-      cell: (s: Record<string, unknown>) => cellDateSession(s),
+      headerClassName: "w-[7rem] min-w-[7rem]",
+      cellClassName: "w-[7rem] min-w-[7rem]",
+      cell: (s: Record<string, unknown>) => {
+        const raw = (s.ngay_giam_sat as string) || (s.created_at as string);
+        const d = raw ? new Date(raw.includes("T") ? raw : `${raw}T12:00:00`) : null;
+        const dateLine = d ? d.toLocaleDateString("vi-VN") : "—";
+        return <span className="text-xs font-semibold text-slate-700">{dateLine}</span>;
+      },
     },
     {
-      header: "MÃ PHIÊN",
+      header: "Mã phiên",
       accessorKey: "ma_hien_thi",
       sortable: false,
+      headerClassName: "w-[9.5rem] min-w-[9.5rem]",
+      cellClassName: "w-[9.5rem] min-w-[9.5rem]",
       cell: (s: { id?: string; ngay_giam_sat?: string; ma_hien_thi?: string }) => (
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[11px] font-bold text-[#026f17] bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 shadow-sm">
-            {s.ma_hien_thi || (s.id ? vstSessionDisplayRef(s.id, s.ngay_giam_sat) : "")}
-          </span>
-        </div>
+        <span className="font-mono text-[11px] font-semibold text-slate-600">
+          {s.ma_hien_thi || (s.id ? vstSessionDisplayRef(s.id, s.ngay_giam_sat) : "—")}
+        </span>
       ),
     },
-
     {
-      header: "Khoa / Khu vực",
+      header: "Khoa",
       accessorKey: "khoa",
       sortable: true,
+      headerClassName: "w-[4rem] min-w-[4rem]",
+      cellClassName: "w-[4rem] min-w-[4rem]",
       cell: (s: VstHistoryRow) => (
-        <div>
-          <div className="font-black text-[#026f17] uppercase tracking-tighter">{s.danh_muc_khoa?.ten_danh_muc || "---"}</div>
-          <div className="text-xs font-bold text-slate-500">
-            {(s.danh_muc_khu_vuc?.ten_danh_muc || "").trim() || "—"}
-            {String(s.vi_tri_cu_the || "").trim() ? ` · ${String(s.vi_tri_cu_the).trim()}` : ""}
-          </div>
-        </div>
+        <span className="text-xs font-semibold text-slate-800" title={s.khoa_name}>{s.ma_khoa || s.khoa_name || "—"}</span>
       )
     },
     {
       header: "Hình thức",
       accessorKey: "hinh_thuc_giam_sat",
       sortable: true,
+      headerClassName: "w-[14rem] min-w-[14rem]",
+      cellClassName: "w-[14rem] min-w-[14rem]",
       cell: (s: VstHistoryRow) => (
-        <div className="space-y-1">
-          <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px] font-black uppercase">
-            {s.hinh_thuc_giam_sat || "---"}
-          </span>
-          <div className="text-[10px] font-bold text-slate-500">
-            {s.cach_thuc_giam_sat || "---"}
-          </div>
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-slate-700">{s.hinh_thuc_giam_sat || "—"}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">{s.cach_thuc_giam_sat || "—"}</p>
         </div>
       )
     },
     {
-      header: "Thời gian phiên",
+      header: "Thời gian",
       accessorKey: "thoi_gian_bat_dau",
       sortable: true,
+      headerClassName: "w-[6.5rem] min-w-[6.5rem]",
+      cellClassName: "w-[6.5rem] min-w-[6.5rem]",
       cell: (s: VstHistoryRow) => (
-        <span className="text-[10px] font-bold text-slate-500">
-          {formatHHmm(s.thoi_gian_bat_dau)}
-          {' - '}
-          {formatHHmm(s.thoi_gian_ket_thuc)}
+        <span className="text-xs text-slate-600">
+          {formatHHmm(s.thoi_gian_bat_dau)} – {formatHHmm(s.thoi_gian_ket_thuc)}
         </span>
       )
     },
     {
       header: "Cơ hội",
       accessorKey: "total_opps",
+      headerClassName: "w-[4rem] min-w-[4rem] text-center",
+      cellClassName: "w-[4rem] min-w-[4rem] text-center",
       cell: (s: VstHistoryRow) => {
         const total = Number(s.total_opps ?? s.tong_co_hoi ?? s.observations?.length ?? 0);
-        return <span className="font-bold text-slate-600">{total}</span>;
+        return <span className="text-xs font-semibold text-slate-700">{total}</span>;
       }
     },
     {
       header: "Tuân thủ",
       accessorKey: "compliance",
+      headerClassName: "w-[4.5rem] min-w-[4.5rem] text-center",
+      cellClassName: "w-[4.5rem] min-w-[4.5rem] text-center",
       cell: (s: VstHistoryRow) => {
         const total = Number(s.total_opps ?? s.tong_co_hoi ?? s.observations?.length ?? 0);
         const compliantFromView = Number(s.da_tuan_thu ?? -1);
@@ -119,42 +109,37 @@ export function getVSTHistoryColumns(
           compliantFromView >= 0
             ? compliantFromView
             : (s.observations || []).filter((o: { hanh_dong?: string }) => classifyVstAction(o.hanh_dong).isCompliant).length;
-        if (total <= 0) return <span className="text-slate-400">Không áp dụng</span>;
+        if (total <= 0) return <span className="text-xs text-slate-400">—</span>;
         const rate = Math.round((compliant / total) * 100);
         return (
-          <div className="flex items-center gap-2">
-            <div className={`h-2 w-2 rounded-full animate-pulse ${rate >= 90 ? "bg-[#026f17]" : "bg-amber-500"}`} />
-            <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full font-black text-[11px] shadow-sm ${
-              rate >= 90 ? "bg-[#026f17] text-white" : "bg-amber-500 text-white"
-            }`}>
-              {rate}%
-            </div>
-          </div>
+          <span className={`text-xs font-bold ${rate >= 80 ? "text-emerald-700" : rate >= 50 ? "text-amber-600" : "text-red-600"}`}>
+            {rate}%
+          </span>
         );
-
       }
     },
     {
       header: "Người GS",
       accessorKey: "nguoi_giam_sat_id",
       sortable: true,
+      headerClassName: "min-w-[10rem]",
+      cellClassName: "min-w-[10rem]",
       cell: (s: VstHistoryRow) => (
-        <span className="font-bold text-slate-600">{s.nguoi_giam_sat?.ho_ten || s.nguoi_giam_sat_id || "---"}</span>
+        <span className="text-xs font-medium text-slate-600 line-clamp-1">{s.nguoi_giam_sat?.ho_ten || s.nguoi_giam_sat_id || "—"}</span>
       )
     },
     {
-      header: "Thao tác",
+      header: "",
       accessorKey: "id",
+      headerClassName: "w-[7.5rem] min-w-[7.5rem]",
+      cellClassName: "w-[7.5rem] min-w-[7.5rem]",
       cell: (s: VstHistoryRow) => (
-        <div className="flex flex-row items-center justify-end gap-2">
+        <div className="flex items-center justify-end gap-1.5">
           {onEdit && canEdit ? (
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(String(s.id || ""));
-              }}
-              className="h-10 px-4 rounded-full bg-white border border-[#026f17]/30 text-[#026f17] font-black text-[10px] uppercase tracking-widest hover:bg-[#026f17]/10 transition-all"
+              onClick={(e) => { e.stopPropagation(); onEdit(String(s.id || "")); }}
+              className="h-8 px-3 rounded-md border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:border-slate-400 transition-colors"
               disabled={!s?.id}
             >
               Sửa
@@ -162,14 +147,11 @@ export function getVSTHistoryColumns(
           ) : null}
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onPrint(String(s.id || ""));
-            }}
+            onClick={(e) => { e.stopPropagation(); onPrint(String(s.id || "")); }}
             disabled={printingSessionId === String(s.id || "")}
-            className="h-10 px-6 rounded-full bg-slate-800 text-white font-black text-[10px] uppercase tracking-widest hover:bg-slate-900 transition-all disabled:opacity-50"
+            className="h-8 px-3 rounded-md bg-slate-800 text-xs font-semibold text-white hover:bg-slate-700 transition-colors disabled:opacity-50"
           >
-            {printingSessionId === String(s.id || "") ? "⏳..." : "🖨️ In Phiếu"}
+            {printingSessionId === String(s.id || "") ? "Đang in..." : "In phiếu"}
           </button>
         </div>
       )

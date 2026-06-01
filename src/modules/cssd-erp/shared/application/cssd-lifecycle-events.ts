@@ -10,7 +10,7 @@ export async function insertCssdLifecycleEvent(
     payload?: Record<string, unknown>;
   },
 ): Promise<{ ok: true } | { ok: false; message: string }> {
-  const { error } = await supabase.from("fact_cssd_lifecycle_event").insert({
+  const { error } = await supabase.from("cssd_fact_lifecycle_event").insert({
     quy_trinh_id: p.quy_trinh_id,
     ma_su_kien: p.ma_su_kien,
     ma_tram: p.ma_tram ?? null,

@@ -1,28 +1,6 @@
-import type { Catalog, CSSDChiTiet } from "../types/catalog.types";
-import type { DungCuChiTietTableRow } from "@/modules/quan-tri-he-thong/danh-muc/dung-cu/dung-cu-chi-tiet-form-shared";
+import type { Catalog } from "../types/catalog.types";
 
-export type CatalogTab = "BO" | "CHI_TIET" | "LOAI" | "HOA_CHAT";
-
-export function cssdChiTietToModalRow(x: CSSDChiTiet): DungCuChiTietTableRow {
-  return {
-    id: x.id,
-    ma_chi_tiet: x.ma_chi_tiet || null,
-    ten_chi_tiet: x.ten_chi_tiet || null,
-    ten_dung_cu_le: x.ten_chi_tiet || null,
-    bo_dung_cu_id: x.bo_dung_cu_id,
-    loai_dung_cu_id: x.loai_dung_cu_id,
-    so_luong: 1,
-    max_suds_count: 100,
-    trong_luong: null,
-    ghi_chu: null,
-    ma_qr_mau: null,
-    is_active: x.is_active !== false,
-    bo_dung_cu: x.bo_dung_cu_id ? { id: x.bo_dung_cu_id, ten_bo: x.ten_bo || null } : null,
-    loai_dung_cu: x.loai_dung_cu_id
-      ? { id: x.loai_dung_cu_id, ten_danh_muc: x.ten_loai || null, ma_danh_muc: null }
-      : null,
-  };
-}
+export type CatalogTab = "BO" | "CHI_TIET" | "LOAI" | "HOA_CHAT" | "HISTORY";
 
 export function filterCatalogRows(catalog: Catalog, q: string) {
   const lowerQ = q.trim().toLowerCase();

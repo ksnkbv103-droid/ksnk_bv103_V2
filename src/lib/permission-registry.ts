@@ -74,7 +74,10 @@ export function getFlatPermissions() {
                          action === "IMPORT" ? "Import" :
                          action === "QC" ? "Kiểm định chất lượng" :
                          action === "LOCK" ? "Khóa an toàn" :
-                         action === "EXPORT" ? "Xuất dữ liệu" : action;
+                         action === "EXPORT" ? "Xuất dữ liệu" :
+                         action === "ASSIGN" ? "Phân công xử lý" :
+                         action === "CLOSE" ? "Đóng / hoàn tất" :
+                         action === "SYSTEM_OVERRIDE" ? "Ghi đè bản ghi hệ thống" : action;
       
       perms.push({
         name: `${mod.code}_${action}`,

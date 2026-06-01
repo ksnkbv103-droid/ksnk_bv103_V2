@@ -7,6 +7,10 @@ import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { resolveGscScopedKhoaId } from "../lib/gsc-khoa-scope";
 
 function getErrorMessage(error: unknown): string {
+  if (error && typeof error === "object") {
+    const err = error as Record<string, unknown>;
+    if (typeof err.message === "string") return err.message;
+  }
   return error instanceof Error ? error.message : "Lỗi không xác định";
 }
 

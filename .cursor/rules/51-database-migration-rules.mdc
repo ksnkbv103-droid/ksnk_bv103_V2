@@ -6,9 +6,9 @@ alwaysApply: false
 
 # Database migration (Postgres / Supabase)
 
-Trước khi ghi SQL: mở hoặc `@` [`docs/specs/10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md) và [`docs/specs/GOVERNANCE_PIPELINE.md`](../../docs/specs/GOVERNANCE_PIPELINE.md).
+Trước khi ghi SQL: mở hoặc `@` [`docs/core/implementation-mapping.md`](../../docs/core/implementation-mapping.md) và [`docs/core/governance-pipeline.md`](../../docs/core/governance-pipeline.md).
 
-- **Tên file:** ưu tiên `YYYYMMDD_<mô_tả_ngắn>.sql` cho file **mới**; không rename migration đã apply — xem [`docs/specs/working/LEAN_EXECUTION_BV103.md`](../../docs/specs/working/LEAN_EXECUTION_BV103.md) §2 và [`GOVERNANCE_PIPELINE.md`](../../docs/specs/GOVERNANCE_PIPELINE.md).
+- **Tên file:** ưu tiên `YYYYMMDD_<mô_tả_ngắn>.sql` cho file **mới**; không rename migration đã apply — xem [`docs/core/lean-execution.md`](../../docs/core/lean-execution.md) §2 và [`governance-pipeline.md`](../../docs/core/governance-pipeline.md).
 
 - Ưu tiên **additive**: `ADD COLUMN IF NOT EXISTS`, backfill, index trước khi drop/rename.
 - Mọi rename/drop cần **tương thích ngược** hoặc migration nhiều bước + rollback plan.

@@ -74,10 +74,10 @@ Hệ thống tài liệu của dự án được quy hoạch tinh gọn thành *
 
 * 📄 **[Documentation Index](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/README.md)** — Mục lục tài liệu dùng chung
 * 📖 **[AGENTS.md](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/AGENTS.md)** — Hiến pháp quy tắc làm việc cho Dev & AI (Bắt buộc đọc)
-* 📘 **[Quy chuẩn Kỹ thuật & UI/UX](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/guides/UNIFIED_ENGINEERING_GUIDELINES.md)** — Quy tắc code, RLS, Layout và cổng PR
-* 📙 **[Đặc tả Nghiệp vụ y tế](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/specs/UNIFIED_DOMAIN_SPECIFICATION.md)** — Từ điển thuật ngữ, hành trình VST, CSSD, QLCV, NKBV
-* 📗 **[Cẩm nang Vận hành, Bảo mật & DB](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/operations/UNIFIED_OPERATIONS_SOP.md)** — Auth, RBAC y tế, SOP đồng bộ DB và Smart DB
-* 📒 **[Bàn giao & Lộ trình](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/handover/UNIFIED_HANDOVER_AND_ROADMAP.md)** — Tổng quan bàn giao, DB tham chiếu và 8 mảnh lộ trình
+* 📘 **[Quy chuẩn Kỹ thuật & UI/UX](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/core/engineering-guidelines.md)** — Quy tắc code, RLS, Layout và cổng PR
+* 📙 **[Đặc tả Nghiệp vụ y tế](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/core/domain-specification.md)** — Từ điển thuật ngữ, hành trình VST, CSSD, QLCV, NKBV
+* 📗 **[Cẩm nang Vận hành, Bảo mật & DB](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/core/operations-sop.md)** — Auth, RBAC y tế, SOP đồng bộ DB và Smart DB
+* 📒 **[Bàn giao & Lộ trình](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/core/handover-roadmap.md)** — Tổng quan bàn giao, DB tham chiếu và 8 mảnh lộ trình
 
 
 ---

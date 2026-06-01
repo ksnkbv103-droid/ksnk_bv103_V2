@@ -14,7 +14,7 @@ type LoaiDungCuPayload = Record<string, unknown>;
 export async function getLoaiDungCuRowsAction() {
   await verifyPermission("LOAI_DC", "view");
   const supabase = createAdminSupabaseClient();
-  const query = supabase.from("dm_loai_dung_cu").select("*");
+  const query = supabase.from("v_cssd_loai_dung_cu_summary").select("*");
   const { data, error } = await query
     .order("is_active", { ascending: false })
     .order("ma_loai_dung_cu", { ascending: true });
@@ -29,6 +29,10 @@ export async function getLoaiDungCuRowsAction() {
     cong_dung: strOrNull(r.cong_dung),
     kha_nang_chiu_nhiet: strOrNull(r.kha_nang_chiu_nhiet),
     phuong_phap_tiet_khuan: strOrNull(r.phuong_phap_tiet_khuan),
+    phan_loai: String(r.phan_loai || "PHAU_THUAT"),
+    so_luong_kho_du_phong: Number(r.so_luong_kho_du_phong || 0),
+    so_luong_tong: Number(r.so_luong_tong || 0),
+    bo_dung_cu_chua: (r.bo_dung_cu_chua as { id: string; ma_bo: string | null; ten_bo: string | null }[]) || [],
     is_active: r.is_active !== false,
   }));
   return { success: true, data: mapped };
@@ -45,6 +49,8 @@ export async function saveLoaiDungCuAction(input: LoaiDungCuPayload) {
     cong_dung: String(input.cong_dung || "").trim() || null,
     kha_nang_chiu_nhiet: String(input.kha_nang_chiu_nhiet || "").trim() || null,
     phuong_phap_tiet_khuan: String(input.phuong_phap_tiet_khuan || "").trim() || null,
+    phan_loai: String(input.phan_loai || "PHAU_THUAT"),
+    so_luong_kho_du_phong: Number(input.so_luong_kho_du_phong || 0),
     is_active: input.is_active !== false,
     updated_at: new Date().toISOString(),
   };

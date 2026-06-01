@@ -1,16 +1,14 @@
 // src/modules/quan-tri-he-thong/nhan-su/components/NhanSuTable.tsx
 "use client";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { getNhanSus, getNhanSuExportData, getNhanSuFormOptionsAction } from "../actions/nhan-su-read.actions";
+import { getNhanSus, getNhanSuFormOptionsAction } from "../actions/nhan-su-read.actions";
 import type { NhanSu } from "../types";
 import NhanSuForm from "./NhanSuForm";
-import { useImportExport } from "@/hooks/useImportExport";
 import { useMasterDataCrud } from "@/hooks/useMasterDataCrud";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
-import { smartImportData } from "../../danh-muc/actions/smart-import.actions";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
-import { Users, Download, Upload, Plus, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Users, Upload, Plus } from "lucide-react";
+import MasterDataImportExportModal from "../../components/MasterDataImportExportModal";
 
 const NHAN_SU_PAGE_SIZE = 20;
 
@@ -25,7 +23,6 @@ export type NhanSuTablePermission = Partial<{
 type NhanSuTableProps = { refreshKey?: number; permission?: NhanSuTablePermission };
 
 export default function NhanSuTable({ refreshKey: externalRefresh, permission }: NhanSuTableProps) {
-  const router = useRouter();
   const [data, setData] = useState<NhanSu[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, _setSearch] = useState("");
@@ -44,6 +41,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<NhanSu | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [importModalOpen, setImportModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
@@ -137,26 +135,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
     capabilities: { edit: allowEdit, delete: allowDelete, toggleActive: allowEdit },
   });
 
-  const { exportTemplate, handleFileUpload, isImporting, triggerImport, fileInputRef } = useImportExport({
-    moduleKey: "NHAN_SU", tableName: "mdm_nhan_su", displayName: "Nhân sự", uniqueKey: "ma_nv",
-    columnMapping: {
-      "Mã NV": "ma_nv",
-      "Tên Nhân viên": "ho_ten",
-      "Mã chức danh": "ma_chuc_danh",
-      "Mã chức vụ": "ma_chuc_vu",
-      "Mã vai trò KSNK": "ma_vai_tro_ksnk",
-      "Email": "email",
-      "SĐT": "so_dien_thoai",
-      "Mã khoa": "ma_khoa",
-      "Mã nghề nghiệp": "ma_nghe_nghiep",
-      "Mã tổ": "ma_to",
-      "Tên tổ (ghép import)": "ten_to_cong_tac",
-      "is_active": "is_active",
-    },
-    onGetData: getNhanSuExportData,
-    onImport: (d) => smartImportData({ tableName: "mdm_nhan_su", uniqueKey: "ma_nv", codePrefix: "NV" }, d),
-    onSuccess: () => { setRefreshKey(k => k + 1); router.refresh(); }
-  });
+  // Removed legacy useImportExport hook to improve bundle size and maintain cleanliness
 
   const columns: Column<NhanSu>[] = [
     { 
@@ -228,7 +207,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
 
   return (
     <div className="space-y-4 animate-in fade-in duration-700">
-      <header className="flex flex-col sm:flex-row justify-between items-center bg-white/50 p-4 rounded-[28px] border border-slate-100 backdrop-blur-md gap-4">
+      <header className="flex flex-col sm:flex-row justify-between items-center bg-white/50 p-4 rounded-2xl border border-slate-100 backdrop-blur-md gap-4">
         <div className="flex items-center gap-3 ml-2">
           <div className="p-2 bg-[#026f17] rounded-xl text-white shadow-lg shadow-[#026f17]/20">
             <Users size={20} />
@@ -241,16 +220,14 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
         
         <div className="flex flex-wrap gap-2">
           {allowImport && (
-            <>
-              <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} accept=".xlsx, .xls" className="hidden" />
-              <button type="button" onClick={() => triggerImport()} disabled={isImporting} className="h-10 px-4 bg-amber-50 text-amber-600 rounded-xl font-black uppercase text-[10px] flex items-center gap-2 transition-all hover:bg-amber-100 active:scale-95">
-                {isImporting ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Import
-              </button>
-            </>
+            <button 
+              type="button" 
+              onClick={() => setImportModalOpen(true)} 
+              className="h-10 px-4 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-xl font-black uppercase text-[10px] flex items-center gap-2 transition-all active:scale-95"
+            >
+              <Upload size={14} /> Nhập/Xuất Excel
+            </button>
           )}
-          <button type="button" onClick={() => exportTemplate()} className="h-10 px-4 bg-slate-50 text-slate-500 rounded-xl font-black uppercase text-[10px] flex items-center gap-2 transition-all hover:bg-slate-100 active:scale-95">
-            <Download size={14} /> Mẫu Excel
-          </button>
           {allowCreate && (
             <button type="button" onClick={() => { setEditingItem(null); setIsFormOpen(true); }} className="h-10 px-5 bg-[#026f17] text-white rounded-xl font-black uppercase text-[10px] shadow-lg shadow-[#026f17]/20 flex items-center gap-2 transition-all hover:translate-y-[-1px] active:scale-95">
               <Plus size={16} /> Thêm nhân sự
@@ -283,6 +260,14 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
           onCancel={() => setIsFormOpen(false)}
         />
       ) : null}
+      <MasterDataImportExportModal
+        isOpen={importModalOpen}
+        onClose={() => {
+          setImportModalOpen(false);
+          setRefreshKey((k) => k + 1);
+        }}
+        type="nhan-su"
+      />
     </div>
   );
 }

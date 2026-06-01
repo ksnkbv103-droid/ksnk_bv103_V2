@@ -1,36 +1,87 @@
-# Cổng Tài Liệu Dự Án - KSNK BV103
+# Cổng tài liệu — KSNK BV103
 
-> 📅 Phiên bản tinh gọn tối đa — 20/05/2026
+> **Một cổng duy nhất.** Bắt đầu tại đây; không duyệt ngẫu nhiên `docs/data/`.
 
-Chào mừng bạn đến với trung tâm tài liệu kỹ thuật và nghiệp vụ của **Hệ thống Kiểm soát Nhiễm khuẩn (KSNK) - Bệnh viện 103**. 
-Hệ thống tài liệu đã được quy hoạch, gộp hoàn toàn hơn 50+ tệp rời rạc cũ thành **4 Cột trụ Tài liệu Thống nhất (Unified)** để đảm bảo tính nhất quán (SSOT), tăng tốc độ tra cứu và mang lại trải nghiệm phát triển (DX) tốt nhất.
+## Tôi là…
 
----
+### Dev / AI agent (sửa code)
 
-## 🏛️ 4 Cột Trụ Tài Liệu Thống Nhất
+1. [`AGENTS.md`](../AGENTS.md)
+2. [`core/read-minimum.md`](core/read-minimum.md) — chọn dòng theo loại diff
+3. [`core/lean-execution.md`](core/lean-execution.md) — verify + checklist PR
 
-| Tài liệu | 🎯 Mục tiêu & Vai trò | 👥 Đối tượng |
-| :--- | :--- | :--- |
-| 📘 **[Đặc tả Nghiệp vụ Y tế](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/specs/UNIFIED_DOMAIN_SPECIFICATION.md)** | Định nghĩa ngôn ngữ chung (Ubiquitous Language), hành trình giám sát VST, CSSD, Quản lý công việc, và chuẩn FHIR/HIS. | Nghiệp vụ, Dev, AI |
-| 📗 **[Quy chuẩn Kỹ thuật & UI/UX](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/guides/UNIFIED_ENGINEERING_GUIDELINES.md)** | Hướng dẫn phát triển Vertical Slice (DDD), Server Actions, tối ưu giao diện di động (Mobile-First) và chất lượng PR. | Toàn bộ Dev & AI |
-| 📙 **[Cẩm nang Vận hành, Bảo mật & DB](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/operations/UNIFIED_OPERATIONS_SOP.md)** | Hướng dẫn thiết lập Auth, phân quyền vai trò y tế (RBAC), SOP đồng bộ database và triết lý tối ưu Smart DB thực dụng. | Dev, DevOps, DBA |
-| 📔 **[Tài liệu Bàn giao & Lộ trình](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/handover/UNIFIED_HANDOVER_AND_ROADMAP.md)** | Sơ đồ cấu trúc thư mục, kiến trúc dữ liệu tham chiếu tổng thể, và 8 phân mảnh lộ trình phát triển tiếp theo. | Toàn bộ Đội ngũ |
+### PM / KSNK (nghiệp vụ)
 
----
+1. [`core/domain-specification.md`](core/domain-specification.md)
+2. Module: [`modules/cssd/`](modules/cssd/) · [`modules/giam-sat/`](modules/giam-sat/) · [`modules/nkbv/`](modules/nkbv/)
 
-## 🗺️ Công Cụ Hỗ Trợ Đắc Lực
+### DBA / DevOps
 
-*   🧭 **[Bản đồ Ánh xạ Live (Implementation Mapping)](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/specs/10-bv103-implementation-mapping.md)**: Bản đồ liên kết trực tiếp giữa các thuật ngữ nghiệp vụ y tế chuyên môn và thực thể bảng biểu (tables/views/RPCs) tương ứng trong Database thực tế.
-*   📜 **[AGENTS.md (Hiến pháp Dự án)](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/AGENTS.md)**: Quy tắc phát triển tối cao, triết lý **Boy Scout Rule**, định nghĩa Hoàn thành (Pilot DoD) và quy định nghiêm ngặt về chất lượng code.
+1. [`core/operations-sop.md`](core/operations-sop.md)
+2. [`core/governance-pipeline.md`](core/governance-pipeline.md)
+3. [`reference/guides/migration-squash-runbook.md`](reference/guides/migration-squash-runbook.md)
 
 ---
 
-## 📦 Lưu Trữ Lịch Sử (Legacy Archive)
+## Lớp Wiki — Tổng hợp (ít file, LLM maintain)
 
-Để tối ưu hóa không gian làm việc của IDE và tăng tốc độ tìm kiếm mã nguồn, toàn bộ tài liệu lịch sử, các bản phác thảo nháp, quyết định kiến trúc cũ (hơn 50 tệp `.md` rời rạc) đã được đóng gói an toàn tại:
-*   📁 **`docs/archive_legacy.zip`**: File lưu trữ toàn bộ lịch sử tài liệu cũ. Bạn chỉ cần giải nén tệp tin này khi có nhu cầu tra cứu lại các tài liệu phát triển ban đầu của dự án.
-*   📁 **`awesome-cursorrules.zip`**: File lưu trữ bộ sưu tập rule mẫu Cursor để tham khảo khi cấu hình IDE rules (vốn nằm ngoài mã nguồn hoạt động của app).
+> Tri thức biên dịch một lần; module README chỉ còn **pointer**.
+
+| File | Vai trò |
+|------|---------|
+| [`wiki/entities.md`](wiki/entities.md) | Tất cả module (CSSD, GSC, NKBV, MDM, QLCV) |
+| [`wiki/concepts.md`](wiki/concepts.md) | Layout, scoring, CSSD↔MDM, prefix DB |
+| [`wiki/index.md`](wiki/index.md) | Catalog + `npm run wiki:index` |
+| [`wiki/WIKI_SCHEMA.md`](wiki/WIKI_SCHEMA.md) | Ingest / query / lint |
+| [`sources/README.md`](sources/README.md) | Raw `data/`, `archive/` — immutable |
+
+## Lớp 1 — Core SSOT (≤15 file, đọc thường xuyên)
+
+| File | Vai trò |
+|------|---------|
+| [`core/read-minimum.md`](core/read-minimum.md) | Đọc gì theo loại diff |
+| [`core/lean-execution.md`](core/lean-execution.md) | Vertical slice, verify, PR |
+| [`core/domain-specification.md`](core/domain-specification.md) | Nghiệp vụ, ubiquitous language |
+| [`core/implementation-mapping.md`](core/implementation-mapping.md) | Thuật ngữ ↔ bảng/RPC |
+| [`core/governance-pipeline.md`](core/governance-pipeline.md) | Migration + ship + CI |
+| [`core/skills-catalog.md`](core/skills-catalog.md) | Agent skills allowlist |
+| [`core/engineering-guidelines.md`](core/engineering-guidelines.md) | Code, UI, PR |
+| [`core/operations-sop.md`](core/operations-sop.md) | Auth, RLS, Smart DB |
+| [`core/handover-roadmap.md`](core/handover-roadmap.md) | Lộ trình, cấu trúc app |
+
+## Lớp 2 — Module docs
+
+| Module | README |
+|--------|--------|
+| CSSD | [`modules/cssd/README.md`](modules/cssd/README.md) |
+| Giám sát | [`modules/giam-sat/README.md`](modules/giam-sat/README.md) |
+| NKBV | [`modules/nkbv/README.md`](modules/nkbv/README.md) |
+| MDM | [`modules/mdm/README.md`](modules/mdm/README.md) |
+| QLCV | [`modules/qlcv/README.md`](modules/qlcv/README.md) |
+
+## Lớp 3 — Reference (audit / kiến trúc)
+
+- [`reference/architecture/`](reference/architecture/) — overview, debt, roadmap
+- [`reference/reports/`](reference/reports/) — audit snapshot, dashboard dict
+- [`reference/guides/`](reference/guides/) — import JSON, migration runbook
+
+## Lớp 4 — Data (⚠️ machine source)
+
+[`data/README.md`](data/README.md) — **không đọc tay**; script seed/generator parse từ đây.
+
+## Lớp 5 — Archive
+
+[`archive/`](archive/) — baseline, plan đã Done — không link từ read-minimum.
 
 ---
 
-> *"Hãy luôn để lại mã nguồn và cấu trúc thư mục sạch đẹp hơn lúc bạn tìm thấy nó."* — **Boy Scout Rule**
+## Công cụ
+
+- `npm run docs:links:check` — kiểm tra link nội bộ
+- `npm run repo:hygiene` — SQL active, view pilot, inventory docs
+- `npm run verify` — full gate trước push
+- Manifest: [`DOCS_MANIFEST.yaml`](DOCS_MANIFEST.yaml)
+
+## Legacy
+
+[`archive/pilot_chain_20260520_20260529.tar.gz`](archive/pilot_chain_20260520_20260529.tar.gz) — migration pre-pilot (không apply). SQL ad-hoc: [`../scripts/archive/sql-20260531/`](../scripts/archive/sql-20260531/).

@@ -3,9 +3,9 @@
 import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Settings2, Wrench, Flame } from "lucide-react";
+import { Wrench, Flame } from "lucide-react";
 import { CSSDMaintenancePage } from "@/modules/cssd-erp/contexts/maintenance/entrypoint";
-import ThietBiMasterPage from "@/modules/quan-tri-he-thong/danh-muc/thiet-bi/ThietBiMasterPage";
+import { CssdThietBiMdmBanner } from "@/modules/cssd-erp/components/catalog/CssdCatalogMdmBanner";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import CssdModuleChrome from "@/modules/cssd-erp/components/layout/CssdModuleChrome";
 import { CSSD_ROUTES } from "@/lib/cssd-routes";
@@ -32,11 +32,11 @@ function CssdThietBiPageInner() {
           Máy móc &amp; Thiết bị <span className="text-[#026f17]">KSNK</span>
         </>
       }
-      subtitle="Danh mục thiết bị tiệt khuẩn / rửa và lịch sử bảo dưỡng, sửa chữa (chặn mẻ khi máy đang bảo trì)."
+      subtitle="Bảo dưỡng vận hành tại CSSD; danh mục máy CRUD tại Quản trị."
     >
       <CssdModuleChrome>
         <Link
-          href={CSSD_ROUTES.erpBatch}
+          href={CSSD_ROUTES.batch}
           className="inline-flex items-center gap-2 rounded-xl border border-amber-200/90 bg-amber-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-amber-900 hover:bg-amber-100"
         >
           <Flame className="h-4 w-4 shrink-0" aria-hidden />
@@ -53,7 +53,7 @@ function CssdThietBiPageInner() {
               activeTab === "CATALOG" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
             }`}
           >
-            <Settings2 size={14} /> Danh mục thiết bị
+            Danh mục (Quản trị)
           </button>
           <button
             type="button"
@@ -67,11 +67,7 @@ function CssdThietBiPageInner() {
         </div>
 
         <div className="animate-in fade-in duration-300">
-          {activeTab === "CATALOG" ? (
-            <ThietBiMasterPage suppressHeader={true} />
-          ) : (
-            <CSSDMaintenancePage suppressShell={true} />
-          )}
+          {activeTab === "CATALOG" ? <CssdThietBiMdmBanner /> : <CSSDMaintenancePage suppressShell={true} />}
         </div>
       </div>
     </CSSDPageShell>

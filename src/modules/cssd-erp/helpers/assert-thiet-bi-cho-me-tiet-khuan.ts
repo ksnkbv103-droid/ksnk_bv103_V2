@@ -41,7 +41,7 @@ export async function coMeTietKhuanChuaKetThucTheoThietBi(
   if (!id) return { open: false };
 
   const { data: row } = await client
-    .from("fact_lo_tiet_khuan")
+    .from("cssd_fact_lo_tiet_khuan")
     .select("ma_lo_tiet_khuan")
     .eq("thiet_bi_id", id)
     .eq("is_active", true)

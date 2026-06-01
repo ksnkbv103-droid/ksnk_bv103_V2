@@ -1,5 +1,8 @@
 import path from "node:path";
+import { loadEnv } from "vite";
 import { defineConfig } from "vitest/config";
+
+Object.assign(process.env, loadEnv("", process.cwd(), ""));
 
 export default defineConfig({
   resolve: {
@@ -13,6 +16,8 @@ export default defineConfig({
       "src/modules/cssd-erp/workflow/domain/**/*.spec.ts",
       "src/modules/cssd-su-co/domain/**/*.spec.ts",
       "src/modules/cssd-erp/helpers/**/*.spec.ts",
+      "src/modules/cssd-erp/lib/**/*.spec.ts",
+      "src/lib/**/*.spec.ts",
       "src/modules/quan-ly-cong-viec/**/*.spec.ts",
       "src/modules/quan-tri-he-thong/**/*.spec.ts",
       "src/modules/giam-sat-vst/**/*.spec.ts",

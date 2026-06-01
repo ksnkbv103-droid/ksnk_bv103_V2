@@ -26,9 +26,17 @@ else
 fi
 
 echo "[2/3] postcheck — scripts/master-data-cutover-postcheck.sql"
-npx supabase db query "${QUERY_FLAGS[@]}" --agent=no -f scripts/master-data-cutover-postcheck.sql -o table
+if [[ "$TARGET" == "local" ]]; then
+  docker exec -i supabase_db_ksnk_bv103 psql -U postgres -d postgres < scripts/master-data-cutover-postcheck.sql
+else
+  npx supabase db query "${QUERY_FLAGS[@]}" --agent=no -f scripts/master-data-cutover-postcheck.sql
+fi
 
 echo "[3/3] FK còn trỏ danh_muc_tuy_bien — scripts/sql/fk-public-referencing-danh-muc-tuy-bien.sql"
-npx supabase db query "${QUERY_FLAGS[@]}" --agent=no -f scripts/sql/fk-public-referencing-danh-muc-tuy-bien.sql -o table
+if [[ "$TARGET" == "local" ]]; then
+  docker exec -i supabase_db_ksnk_bv103 psql -U postgres -d postgres < scripts/sql/fk-public-referencing-danh-muc-tuy-bien.sql
+else
+  npx supabase db query "${QUERY_FLAGS[@]}" --agent=no -f scripts/sql/fk-public-referencing-danh-muc-tuy-bien.sql
+fi
 
 echo "Tuỳ chọn kiểm tra Node (đếm legacy): npm run mdm:fallback:audit hoặc mdm:fallback:audit:strict"

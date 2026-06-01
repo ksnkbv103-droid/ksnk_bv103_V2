@@ -5,6 +5,7 @@
 import React, { useEffect, useMemo } from "react";
 import GiamSatHeader from "@/components/shared/GiamSatHeader";
 import ChecklistItem from "./ChecklistItem";
+
 import type { ChecklistTemplate } from "@/types/giam-sat-chung";
 import GiamSatChungPrintView from "./GiamSatChungPrintView";
 import GiamSatChungFormActions from "./GiamSatChungFormActions";
@@ -24,7 +25,10 @@ export default function GiamSatChungForm({
   onSuccess: () => void;
   onCancel: () => void;
   onProgressChange?: (progress: { evaluated: number; total: number; rate: number }) => void;
-  editPayload?: { session: Partial<GiamSatSession>; results: ChecklistResult[] };
+  editPayload?: {
+    session: Partial<GiamSatSession>;
+    results: ChecklistResult[];
+  };
   /** Khi sửa phiên có sẵn — lưu UPDATE cùng UUID, không tạo phiên mới. */
   editingSessionId?: string | null;
 }) {

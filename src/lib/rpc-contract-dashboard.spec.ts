@@ -22,6 +22,6 @@ describe("dashboard RPC contract (migrations)", () => {
   const sql = activeMigrationSql();
 
   it.each(APP_DASHBOARD_RPC)("defines %s in active migrations", (rpc) => {
-    expect(sql).toContain(`FUNCTION public.${rpc}`);
+    expect(sql).toMatch(new RegExp(`FUNCTION (public\\.${rpc}|"public"\\."${rpc}")`));
   });
 });

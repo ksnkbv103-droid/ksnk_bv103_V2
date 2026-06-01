@@ -4,7 +4,7 @@
  * Dùng UTC date-only để khớp `YYYY-MM-DD` không giờ.
  */
 
-export type QlcvMaChuKyDinhKy = "WEEKLY" | "MONTHLY";
+export type QlcvMaChuKyDinhKy = "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY";
 
 export function parseIsoDateOnlyUtc(iso: string): Date {
   const [y, m, d] = iso.split("-").map((x) => parseInt(x, 10));
@@ -12,20 +12,20 @@ export function parseIsoDateOnlyUtc(iso: string): Date {
   return new Date(Date.UTC(y, m - 1, d));
 }
 
-export function formatIsoDateOnlyUtc(d: Date): string {
+function formatIsoDateOnlyUtc(d: Date): string {
   const y = d.getUTCFullYear();
   const m = String(d.getUTCMonth() + 1).padStart(2, "0");
   const day = String(d.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
 }
 
-export function daysBetweenUtcInclusiveFloor(earlier: Date, later: Date): number {
+function daysBetweenUtcInclusiveFloor(earlier: Date, later: Date): number {
   const a = Date.UTC(earlier.getUTCFullYear(), earlier.getUTCMonth(), earlier.getUTCDate());
   const b = Date.UTC(later.getUTCFullYear(), later.getUTCMonth(), later.getUTCDate());
   return Math.round((b - a) / 86400000);
 }
 
-export function addDaysUtc(d: Date, n: number): Date {
+function addDaysUtc(d: Date, n: number): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + n));
 }
 
@@ -37,11 +37,25 @@ export function dinhKyMatchDueOnDate(maChuKy: QlcvMaChuKyDinhKy, ngayBatDauIso: 
   if (Number.isNaN(anchor.getTime())) return false;
   const d = new Date(Date.UTC(due.getUTCFullYear(), due.getUTCMonth(), due.getUTCDate()));
   if (anchor > d) return false;
+  if (maChuKy === "DAILY") {
+    // Mỗi ngày từ mốc trở đi
+    return true;
+  }
   if (maChuKy === "WEEKLY") {
     const diff = daysBetweenUtcInclusiveFloor(anchor, d);
     return diff % 7 === 0;
   }
-  return d.getUTCDate() === anchor.getUTCDate();
+  if (maChuKy === "MONTHLY") {
+    return d.getUTCDate() === anchor.getUTCDate();
+  }
+  if (maChuKy === "QUARTERLY") {
+    // Khớp nếu: cùng ngày trong tháng VÀ số tháng chênh lệch chia hết cho 3
+    if (d.getUTCDate() !== anchor.getUTCDate()) return false;
+    const anchorMonths = anchor.getUTCFullYear() * 12 + anchor.getUTCMonth();
+    const dueMonths = d.getUTCFullYear() * 12 + d.getUTCMonth();
+    return (dueMonths - anchorMonths) % 3 === 0;
+  }
+  return false;
 }
 
 export type NextDinhKySpawnDatesOptions = {

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  "entry": [
+    "next.config.{js,mjs,ts}",
+    "src/app/**/{page,layout,route,default}.{tsx,ts,jsx,js}",
+    "src/middleware.{ts,js}",
+    "src/instrumentation.{ts,js}",
+    "vitest.config.{ts,mjs}",
+    "playwright.config.{ts,mjs}"
+  ],
+  "ignorePatterns": [
+    "scripts/archive/**",
+    "supabase/**",
+    "docs/**"
+  ],
+  "rules": {
+    "unused-dependencies": "warn"
+  }
+}

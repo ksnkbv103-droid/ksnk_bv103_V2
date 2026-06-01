@@ -21,7 +21,7 @@
 ---
 
 ## 3. [P0] Bắt buộc: Alignment Check
-- [ ] **Data Mapping:** Đã cập nhật đầy đủ file ánh xạ nghiệp vụ [10-bv103-implementation-mapping.md](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/specs/10-bv103-implementation-mapping.md) (bao gồm cả Changelog ở cuối file) nếu PR này có thay đổi về Schema DB, Bảng, View hoặc RPC?
+- [ ] **Data Mapping:** Đã cập nhật đầy đủ file ánh xạ nghiệp vụ [implementation-mapping.md](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/core/implementation-mapping.md) (bao gồm cả Changelog ở cuối file) nếu PR này có thay đổi về Schema DB, Bảng, View hoặc RPC?
 - [ ] **Permission Gate:** Mọi Server Action ghi/xóa dữ liệu mới thêm đều đã được bọc qua cổng kiểm tra quyền `verifyPermission` hoặc `verifyPermissions` chưa?
 - [ ] **No Direct CSSD Imports:** Không import trực tiếp `@/modules/cssd-erp/actions/*` từ bên ngoài module CSSD (phải dùng qua `contexts/*/entrypoint` nếu có)?
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { ShieldCheck } from "lucide-react";
-import type { DashboardV4VungNguyCoRow } from "../../strategic-dashboard-v3.types";
+import type { DashboardV4VungNguyCoRow } from "../../strategic-dashboard-v4.types";
 
 function getVungColor(code: string) {
   switch (code) {

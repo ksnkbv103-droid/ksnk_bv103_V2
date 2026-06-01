@@ -81,6 +81,7 @@ export default function HistoryTable({
         <AdvancedDataTable 
           columns={columns}
           data={processedData}
+          tableClassName="w-full min-w-[1024px] table-fixed border-collapse text-left"
           enableMultiSelect={allowed.delete}
           onDeleteSelected={allowed.delete ? handleDelete : undefined}
           onRowClick={(s) => onPrint(s.id)}

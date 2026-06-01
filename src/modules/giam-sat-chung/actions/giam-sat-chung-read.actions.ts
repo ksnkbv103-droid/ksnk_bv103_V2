@@ -4,92 +4,20 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import { verifyPermission } from "@/lib/server-permission";
 import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import { mapDanhMucOptions } from "@/lib/master-data/gateway";
-import { GscSessionHistoryRow, ChecklistResultValue } from "../types";
+import { GscSessionHistoryRow } from "../types";
 import { enrichGscHistoryRows } from "../lib/gsc-read-utils";
 import {
-  GSC_RESULTS_ROW_SELECT,
   GSC_SESSIONS_FULL_LIST_SELECT,
 } from "../lib/gsc-read-view-select";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 
-type GscResultRow = { 
-  id: string;
-  session_id: string; 
-  criterion_id: string;
-  value: ChecklistResultValue;
-  note: string | null;
-  created_at: string;
-};
-
 function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Lỗi không xác định";
-}
-
-export async function getGiamSatChungSessions(loaiBangKiem?: string) {
-  return getGiamSatChungHistory(loaiBangKiem);
-}
-
-const GSC_FULL_HISTORY_ROW_CAP = 400;
-
-/**
- * Lấy lịch sử Giám sát chung (GSC)
- * Sử dụng View tổng hợp để tối ưu hóa hiệu năng
- *
- * @deprecated Ưu tiên `getGiamSatChungHistoryPaginated`. Hàm này giới hạn tối đa `GSC_FULL_HISTORY_ROW_CAP` phiên
- * và tải kèm toàn bộ `fact_giam_sat_chung_results` của các phiên đó — không dùng cho tập dữ liệu lớn.
- */
-export async function getGiamSatChungHistory(loaiBangKiem?: string) {
-  const supabase = await createServerSupabaseUserClient();
-  try {
-    await verifyPermission("GIAM_SAT_CHUNG", "view");
-    const scope = await getActorKsnkScope();
-    
-    let query = supabase
-      .from("v_fact_giam_sat_chung_sessions_full")
-      .select(GSC_SESSIONS_FULL_LIST_SELECT)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(GSC_FULL_HISTORY_ROW_CAP);
-
-    if (loaiBangKiem) query = query.eq("loai_bang_kiem", loaiBangKiem);
-    if (scope.isMangLuoiKsnk) {
-      if (!scope.actorKhoaId) return { success: true as const, data: [] as GscSessionHistoryRow[] };
-      query = query.eq("khoa_id", scope.actorKhoaId);
-    }
-
-    const { data: sessions, error } = await query;
-    if (error) throw error;
-
-    const sessionRows = (sessions ?? []) as Record<string, unknown>[];
-    const sessionIds = sessionRows.map((x) => String(x.id ?? ""));
-
-    // Lấy kết quả chi tiết cho các phiên
-    const resultMap = new Map<string, GscResultRow[]>();
-    if (sessionIds.length) {
-      const { data: resultsRows, error: rsErr } = await supabase
-        .from("fact_giam_sat_chung_results")
-        .select(GSC_RESULTS_ROW_SELECT)
-        .in("session_id", sessionIds);
-      if (rsErr) throw rsErr;
-      (resultsRows ?? []).forEach((r) => {
-        const row = r as GscResultRow;
-        const sid = String(row.session_id || "");
-        if (!resultMap.has(sid)) resultMap.set(sid, []);
-        resultMap.get(sid)!.push(row);
-      });
-    }
-
-    const enriched = enrichGscHistoryRows(sessionRows).map((x) => ({
-      ...x,
-      is_seen: Boolean(x.is_seen),
-      results: resultMap.get(String(x.id)) || [],
-    }));
-
-    return { success: true, data: enriched };
-  } catch (error: unknown) { 
-    return { success: false, error: getErrorMessage(error) }; 
+  if (error && typeof error === "object") {
+    const err = error as Record<string, unknown>;
+    if (typeof err.message === "string") return err.message;
   }
+  return error instanceof Error ? error.message : "Lỗi không xác định";
 }
 
 /**
@@ -130,6 +58,7 @@ export async function getGiamSatChungHistoryPaginated(params: {
     // --- Build search filter using centralized helper ---
     const searchFilter = buildSupabaseSearchFilter(params.search, [
       "ten_nguoi_giam_sat",
+      "ma_khoa_phong",
       "ten_khoa_phong",
       "ten_nhan_vien",
       "loai_bang_kiem",
@@ -138,7 +67,7 @@ export async function getGiamSatChungHistoryPaginated(params: {
 
     // 1. COUNT — chỉ đếm, không tải dữ liệu
     let countQ = supabase
-      .from("v_fact_giam_sat_chung_sessions_full")
+      .from("v_gstt_giam_sat_chung_sessions_full")
       .select("id", { count: "exact", head: true })
       .eq("is_active", true);
     if (scope.isMangLuoiKsnk) {
@@ -152,7 +81,7 @@ export async function getGiamSatChungHistoryPaginated(params: {
 
     // 2. DATA — đúng 1 trang
     let dataQ = supabase
-      .from("v_fact_giam_sat_chung_sessions_full")
+      .from("v_gstt_giam_sat_chung_sessions_full")
       .select(GSC_SESSIONS_FULL_LIST_SELECT)
       .eq("is_active", true)
       .order(sortCol, { ascending })

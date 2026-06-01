@@ -24,8 +24,7 @@ npm run trial:db:precheck:local
 
 | Thư mục | Nội dung |
 |---------|----------|
-| `archive_legacy/pilot_chain_20260520_20260529/` | 90 migration trước squash — **không apply** |
-| `archive_legacy/` (102 file cũ hơn) | Pre-squash 05/2026 — audit only |
+| [`archive_legacy/README.md`](archive_legacy/README.md) → `docs/archive/pilot_chain_20260520_20260529.tar.gz` | 90 migration trước squash — **không apply** |
 
 Migration **mới** sau pilot baseline: `npx supabase migration new <ten>` → file timestamp trong thư mục gốc này.
 
@@ -38,7 +37,7 @@ Nếu project linked đã có 90 migration trong `schema_migrations`, **không**
 | Vị trí | Vai trò |
 |--------|---------|
 | `scripts/sql/` | Precheck, EXPLAIN, smoke, audit — [`scripts/sql/README.md`](../../scripts/sql/README.md) |
-| `scripts/sql/reference/ssot-slice8/` | Template Slice 8 (resolved, không apply) |
+| `scripts/archive/sql-20260531/reference-ssot-slice8/` | Template Slice 8 (resolved, không apply) |
 
 ## Sau migrate
 
@@ -51,5 +50,5 @@ Dashboard hybrid EXPLAIN: `npm run pilot:dashboard:explain:local`
 
 ## Tài liệu
 
-- App ↔ DB: [`docs/specs/10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md)
-- Pipeline: [`docs/specs/GOVERNANCE_PIPELINE.md`](../../docs/specs/GOVERNANCE_PIPELINE.md)
+- App ↔ DB: [`docs/core/implementation-mapping.md`](../../docs/core/implementation-mapping.md)
+- Pipeline: [`docs/core/governance-pipeline.md`](../../docs/core/governance-pipeline.md)

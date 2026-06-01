@@ -19,7 +19,7 @@ async function loadTramMap(supabase: SupabaseClient): Promise<Map<string, string
   return map;
 }
 
-export function invalidateCssdTramCache() {
+function invalidateCssdTramCache() {
   tramIdByMaCache = null;
 }
 
@@ -33,7 +33,7 @@ export async function resolveCssdTramId(
   return map.get(ma) ?? null;
 }
 
-export async function resolveCssdTramMa(
+async function resolveCssdTramMa(
   supabase: SupabaseClient,
   tramId: string | null | undefined,
 ): Promise<Station | null> {

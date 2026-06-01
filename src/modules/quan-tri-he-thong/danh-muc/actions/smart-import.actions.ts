@@ -10,6 +10,7 @@ import { buildImportErrorMessage } from "../lib/smart-import/dm-row-normalizers"
 import { resolveSmartImportScopeForTable, withResolvedLoaiValues } from "./smart-import-per-table";
 import { normalizeImportedRowTypedValues, sanitizeSmartImportRowPayload } from "../lib/smart-import/row-typed-values";
 import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
+import { randomUUID } from "crypto";
 
 interface SmartImportConfig {
   tableName: string;
@@ -61,7 +62,14 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
     const nhanSuDmSessionCache =
       config.tableName === "mdm_nhan_su" ? createDmImportSessionCache(supabase) : undefined;
 
-    let query = supabase.from(config.tableName).select(config.uniqueKey);
+    // Mapped views to query existing data correctly and retrieve JSONB attributes as flat fields
+    const VIEW_MAP_FOR_READ: Record<string, string> = {
+      dm_bo_dung_cu_chi_tiet: "v_cssd_bo_dung_cu_chi_tiet_full",
+      dm_loai_dung_cu: "v_cssd_loai_dung_cu_summary",
+    };
+    const readTable = VIEW_MAP_FOR_READ[config.tableName] || config.tableName;
+
+    let query = supabase.from(readTable).select(`id, ${config.uniqueKey}`);
     if (config.fixedValues) {
       Object.entries(config.fixedValues).forEach(([k, v]) => {
         query = query.eq(k, v);
@@ -72,12 +80,20 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
       string,
       unknown
     >[];
-    const existingCodes = new Set(
-      existingRecords
-        .map((r) => r[config.uniqueKey])
-        .filter((c) => c != null && c !== "")
-        .map((c) => String(c)),
-    );
+
+    const existingCodeToId = new Map<string, string>();
+    const existingCodes = new Set<string>();
+    existingRecords.forEach((r) => {
+      const val = r[config.uniqueKey];
+      if (val != null && val !== "") {
+        const cStr = String(val);
+        existingCodes.add(cStr);
+        if (r.id) {
+          existingCodeToId.set(cStr, String(r.id));
+        }
+      }
+    });
+
     const importedCodes = new Set<string>();
     const preparedRows: Array<{
       rowNumber: number;
@@ -88,7 +104,11 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
 
     let counter = 1;
     if (config.codePrefix) {
-      const { data: lastItem } = await supabase.from(config.tableName).select(config.uniqueKey).order(config.uniqueKey, { ascending: false }).limit(1);
+      const { data: lastItem } = await supabase
+        .from(readTable)
+        .select(config.uniqueKey)
+        .order(config.uniqueKey, { ascending: false })
+        .limit(1);
       if (lastItem && lastItem[0]) {
         const val = (lastItem[0] as unknown as Record<string, unknown>)[config.uniqueKey];
         if (val) {
@@ -153,12 +173,28 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
         rowErrors.push(`Dòng ${rowNumber || "?"}: không thể tạo mã định danh.`);
         continue;
       }
+
+      // Resolve existing ID or assign a new random UUID so upserts match on conflict ID
+      const existingId = existingCodeToId.get(finalCode);
+      const payloadId = existingId || randomUUID();
+
       const payload: Record<string, unknown> = {
+        id: payloadId,
         [config.uniqueKey]: finalCode,
         ...scopeSafeRest,
         is_active: normalizedIsActive,
         updated_at: new Date().toISOString(),
       };
+
+      // If hybrid JSONB table, pack the unique key into specs and delete the flat key
+      const isHybrid = config.tableName in VIEW_MAP_FOR_READ;
+      if (isHybrid) {
+        const specs = (payload.specs as Record<string, unknown>) || {};
+        specs[config.uniqueKey] = finalCode;
+        payload.specs = specs;
+        delete payload[config.uniqueKey];
+      }
+
       const existingIndex = preparedIndexByCode.get(finalCode);
       if (existingIndex !== undefined) {
         preparedRows[existingIndex] = { rowNumber, code: finalCode, payload };
@@ -183,7 +219,7 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
       const chunkPayload = chunk.map((x) => x.payload);
       const { error: chunkError } = await supabase
         .from(config.tableName)
-        .upsert(chunkPayload, { onConflict: config.uniqueKey });
+        .upsert(chunkPayload, { onConflict: "id" });
       if (!chunkError) {
         chunk.forEach((row) => importedCodes.add(row.code));
         continue;
@@ -193,7 +229,7 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
       for (const row of chunk) {
         const { error } = await supabase
           .from(config.tableName)
-          .upsert(row.payload, { onConflict: config.uniqueKey });
+          .upsert(row.payload, { onConflict: "id" });
         if (error) {
           dbErrors.push(
             `Dòng ${row.rowNumber || "?"} (${row.code}): ${formatSmartImportDbError(config.tableName, error.message)}`,
@@ -213,12 +249,15 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
 
     const codesToDelete = Array.from(existingCodes).filter(c => !importedCodes.has(c));
     if (codesToDelete.length > 0) {
-      const { error } = await supabase
-        .from(config.tableName)
-        .update({ is_active: false })
-        .in(config.uniqueKey, codesToDelete);
-      if (error) {
-        return { success: false, error: `Không thể soft-delete dữ liệu thiếu trong file: ${error.message}` };
+      const idsToDelete = codesToDelete.map(c => existingCodeToId.get(c)).filter(Boolean) as string[];
+      if (idsToDelete.length > 0) {
+        const { error } = await supabase
+          .from(config.tableName)
+          .update({ is_active: false })
+          .in("id", idsToDelete);
+        if (error) {
+          return { success: false, error: `Không thể soft-delete dữ liệu thiếu trong file: ${error.message}` };
+        }
       }
     }
 

@@ -6,7 +6,7 @@ import GiamSatHeader from "@/components/shared/GiamSatHeader";
 import VSTPersonColumn from "./VSTPersonColumn";
 import VSTPrintView from "./VSTPrintView";
 import { useVSTForm } from "../hooks/useVSTForm";
-import { MOMENTS, ACTIONS, type MomentType, type ActionType } from "../data";
+import { MOMENTS, ACTIONS, type MomentType, type ActionType } from "../lib/vst-constants";
 import { createDefaultVSTFormPersons } from "../lib/vst-form-model";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import { resolveCanonicalHinhThucLabel } from "@/lib/supervision-hinh-thuc-legacy";

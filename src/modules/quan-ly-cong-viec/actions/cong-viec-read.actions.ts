@@ -7,7 +7,7 @@ import type { QlcvFormCatalog, QlcvSelectOption } from "../lib/qlcv-form-options
 const MAX_NHAN_SU_OPTIONS = 2000;
 const MAX_DM_OPTIONS = 500;
 
-export async function getNhanSuOptions(): Promise<QlcvSelectOption[]> {
+async function getNhanSuOptions(): Promise<QlcvSelectOption[]> {
   await verifyPermission("CONG_VIEC", "view");
   const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
@@ -25,7 +25,7 @@ export async function getNhanSuOptions(): Promise<QlcvSelectOption[]> {
   }));
 }
 
-export async function getKhoaPhongOptions(): Promise<QlcvSelectOption[]> {
+async function getKhoaPhongOptions(): Promise<QlcvSelectOption[]> {
   await verifyPermission("CONG_VIEC", "view");
   const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
@@ -42,7 +42,7 @@ export async function getKhoaPhongOptions(): Promise<QlcvSelectOption[]> {
   }));
 }
 
-export async function getToCongTacOptions(): Promise<QlcvSelectOption[]> {
+async function getToCongTacOptions(): Promise<QlcvSelectOption[]> {
   await verifyPermission("CONG_VIEC", "view");
   const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
@@ -59,7 +59,7 @@ export async function getToCongTacOptions(): Promise<QlcvSelectOption[]> {
   }));
 }
 
-export async function getLoaiCongViecOptions(): Promise<QlcvSelectOption[]> {
+async function getLoaiCongViecOptions(): Promise<QlcvSelectOption[]> {
   await verifyPermission("CONG_VIEC", "view");
   const supabase = createAdminSupabaseClient();
   const query = supabase.from("dm_loai_cong_viec").select("id, ma, ten").order("ma").limit(MAX_DM_OPTIONS);

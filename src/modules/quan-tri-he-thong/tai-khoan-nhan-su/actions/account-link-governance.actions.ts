@@ -42,7 +42,7 @@ export async function syncAccountLinkAction() {
         const adminClient = createAdminSupabaseClient();
 
         const { data: match, error: matchErr } = await adminClient
-          .from("mdm_nhan_su")
+          .from("v_mdm_nhan_su_full")
           .select("id, auth_user_id")
           .eq("email", emailNorm)
           .eq("is_active", true)
@@ -108,7 +108,7 @@ export async function manualLinkAccountAction(maNv: string) {
   const adminClient = createAdminSupabaseClient();
 
   const { data: target, error: tErr } = await adminClient
-    .from("mdm_nhan_su")
+    .from("v_mdm_nhan_su_full")
     .select("id, auth_user_id, email")
     .eq("ma_nv", maNv.trim().toUpperCase())
     .eq("is_active", true)

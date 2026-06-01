@@ -98,7 +98,7 @@ export async function registerPhysicalBoLabelFromDmAction(boDungCuId: string): P
     // Một bộ dụng cụ vật lý chỉ có 1 QR "định danh" xuyên suốt.
     // Nếu đã từng đăng ký QR trước đó thì tái sử dụng đúng mã cũ.
     const { data: existing, error: existingErr } = await supabase
-      .from("fact_quy_trinh")
+      .from("cssd_fact_quy_trinh")
       .select("id, ma_qr_quy_trinh, bo_dung_cu_id")
       .eq("bo_dung_cu_id", boId)
       .order("created_at", { ascending: false })
@@ -109,7 +109,7 @@ export async function registerPhysicalBoLabelFromDmAction(boDungCuId: string): P
     let ma_vach_qr = String((existing as { ma_qr_quy_trinh?: string } | null)?.ma_qr_quy_trinh || "").trim();
     if (ma_vach_qr) {
       const { error: upErr } = await supabase
-        .from("fact_quy_trinh")
+        .from("cssd_fact_quy_trinh")
         .update({
           is_active: true,
           updated_at: new Date().toISOString(),
@@ -119,7 +119,7 @@ export async function registerPhysicalBoLabelFromDmAction(boDungCuId: string): P
     } else {
       ma_vach_qr = generateMaVachQrBo();
       const tiepNhanPatch = await buildQuyTrinhTramPatch(supabase, "TIEP_NHAN");
-      const { error: insErr } = await supabase.from("fact_quy_trinh").insert({
+      const { error: insErr } = await supabase.from("cssd_fact_quy_trinh").insert({
         ma_qr_quy_trinh: ma_vach_qr,
         bo_dung_cu_id: boId,
         ...tiepNhanPatch,
@@ -155,7 +155,7 @@ export async function registerSplitSubQrFromMainMaAction(maQrMain: string): Prom
     if (!mainCode) return { success: false, error: "Thiếu mã QR bộ chính." };
 
     const { data: main, error: mainErr } = await supabase
-      .from("v_fact_quy_trinh_full")
+      .from("v_cssd_quy_trinh_full")
       .select("*")
       .eq("ma_qr_quy_trinh", mainCode)
       .eq("is_active", true)
@@ -172,12 +172,12 @@ export async function registerSplitSubQrFromMainMaAction(maQrMain: string): Prom
     const mainId = String((main as { id?: string }).id || "").trim();
 
     const { error: tagMainErr } = await supabase
-      .from("fact_quy_trinh")
+      .from("cssd_fact_quy_trinh")
       .update({ ma_vai_tro_bo: "MAIN", updated_at: new Date().toISOString() })
       .eq("id", mainId);
     if (tagMainErr) return { success: false, error: mapFkError(tagMainErr.message) };
 
-    const { error: insSubErr } = await supabase.from("fact_quy_trinh").insert({
+    const { error: insSubErr } = await supabase.from("cssd_fact_quy_trinh").insert({
       ma_qr_quy_trinh: subQr,
       bo_dung_cu_id: boId || null,
       ...staPatch,

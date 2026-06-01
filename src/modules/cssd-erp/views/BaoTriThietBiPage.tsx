@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { Loader2, Wrench } from "lucide-react";
+import { Loader2, Wrench, Activity, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import AdvancedDataTable, { type Column } from "@/components/shared/AdvancedDataTable";
 import { useModulePermission } from "@/hooks/useModulePermission";
@@ -19,6 +19,7 @@ import {
   listThietBiCoTheBatDauBaoTriAction,
 } from "../actions/cssd-bao-tri.actions";
 import type { FactBaoTriRow } from "../actions/cssd-bao-tri.types";
+import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 
 const MODULE_KEY = "CSSD_ME_TIET_KHUAN";
 
@@ -39,6 +40,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   const [maMayHoacQr, setMaMayHoacQr] = useState("");
   const [lyDo, setLyDo] = useState("");
   const [ketQuaById, setKetQuaById] = useState<Record<string, string>>({});
+  const [isIncidentOpen, setIsIncidentOpen] = useState(false);
 
   const reload = useCallback(async () => {
     setLoading(true);
@@ -90,7 +92,37 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
     {
       header: "TRẠNG THÁI",
       accessorKey: "trang_thai",
-      cell: (i) => <span className="text-[10px] font-black uppercase tracking-wide text-slate-600">{trangThaiLabel(i.trang_thai)}</span>,
+      cell: (i) => {
+        const val = i.trang_thai;
+        if (val === "DANG_THUC_HIEN") {
+          return (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-blue-700 shadow-sm animate-in fade-in duration-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+              Đang thực hiện
+            </span>
+          );
+        }
+        if (val === "HOAN_THANH") {
+          return (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-700 shadow-sm animate-in fade-in duration-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Hoàn thành
+            </span>
+          );
+        }
+        if (val === "HUY") {
+          return (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
+              Đã hủy
+            </span>
+          );
+        }
+        return (
+          <span className="inline-flex items-center rounded-full bg-slate-50 border border-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-600">
+            {trangThaiLabel(val)}
+          </span>
+        );
+      },
     },
     { header: "LÝ DO / KẾT QUẢ", accessorKey: "ly_do", cell: (i) => <span className="max-w-[200px] truncate text-[10px] text-slate-600">{i.ly_do || i.ket_qua_ghi_nhan || "—"}</span> },
   ];
@@ -108,21 +140,36 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   if (!allowed.view) {
     return (
       <div className={CSSD_PAGE_OUTER}>
-        <CSSDSubNav />
         <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-600">Bạn không có quyền xem mục này.</div>
       </div>
     );
   }
 
-  const actionsNode = canEdit ? (
-    <button
-      type="button"
-      onClick={() => setOpenStart(true)}
-      className={`${CSSD_UI_ACTION_PRIMARY} h-10`}
-    >
-      <Wrench size={16} /> Mở phiếu bảo trì
-    </button>
-  ) : null;
+  const actionsNode = (
+    <div className="flex gap-2">
+      {canEdit && (
+        <button
+          type="button"
+          onClick={() => setOpenStart(true)}
+          className={`${CSSD_UI_ACTION_PRIMARY} h-10`}
+        >
+          <Wrench size={16} /> Mở phiếu bảo trì
+        </button>
+      )}
+      <button
+        type="button"
+        className="flex h-10 items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 text-xs font-black uppercase tracking-wider text-red-600 shadow-sm hover:bg-red-100 active:scale-[0.98] transition-all cursor-pointer"
+        onClick={() => setIsIncidentOpen(true)}
+      >
+        ⚠️ Báo sự cố
+      </button>
+    </div>
+  );
+
+  const totalBaoTri = rows.length;
+  const activeBaoTri = rows.filter((r) => r.trang_thai === "DANG_THUC_HIEN").length;
+  const doneBaoTri = rows.filter((r) => r.trang_thai === "HOAN_THANH").length;
+  const canceledBaoTri = rows.filter((r) => r.trang_thai === "HUY").length;
 
   const contentNode = (
     <div className="space-y-6">
@@ -131,6 +178,50 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
           {actionsNode}
         </div>
       )}
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tổng phiếu bảo dưỡng</p>
+            <p className="text-2xl font-black text-slate-800 mt-1">{totalBaoTri}</p>
+          </div>
+          <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500">
+            <Wrench size={20} />
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Đang bảo dưỡng</p>
+            <p className="text-2xl font-black text-blue-600 mt-1">{activeBaoTri}</p>
+          </div>
+          <div className={`h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 ${activeBaoTri > 0 ? "animate-pulse" : ""}`}>
+            <Activity size={20} />
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Đã hoàn thành</p>
+            <p className="text-2xl font-black text-emerald-600 mt-1">{doneBaoTri}</p>
+          </div>
+          <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+            <CheckCircle2 size={20} />
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Phiếu đã hủy</p>
+            <p className="text-2xl font-black text-slate-500 mt-1">{canceledBaoTri}</p>
+          </div>
+          <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400">
+            <XCircle size={20} />
+          </div>
+        </div>
+      </div>
+
       <div className={CSSD_UI_DATA_SURFACE}>
         <AdvancedDataTable columns={columns} data={rows} loading={loading} searchPlaceholder="Tìm mã phiếu, thiết bị..." />
       </div>
@@ -153,6 +244,13 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
           setMaMayHoacQr("");
         }}
         onSubmit={onBatDau}
+      />
+
+      <IncidentReportModal
+        isOpen={isIncidentOpen}
+        onClose={() => setIsIncidentOpen(false)}
+        station="TIET_KHUAN"
+        defaultGroup="EQUIPMENT"
       />
     </div>
   );

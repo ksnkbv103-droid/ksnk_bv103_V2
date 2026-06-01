@@ -29,7 +29,7 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
   }
 
   let q = supabase
-    .from("v_fact_giam_sat_nkbv_ca_full")
+    .from("v_nkbv_su_kien_full")
     .select("ngay_phat_hien, loai_ma, loai_ten, trang_thai_ma, trang_thai_ten, khoa_ten")
     .eq("is_active", true)
     .gte("ngay_phat_hien", tuStr)
@@ -44,6 +44,17 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
   const { data, error } = await q;
   if (error) return { success: false as const, error: error.message };
 
+  // Call the dynamic JCI/CDC epidemiology RPC
+  const { data: rpcData, error: rpcError } = await supabase.rpc("fn_nkbv_dich_te_hoc_rates", {
+    p_tu_ngay: tuStr,
+    p_den_ngay: denStr,
+    p_khoa_id: filters.khoa_ghi_nhan_id?.trim() || null
+  });
+
+  if (rpcError) {
+    console.error("Error executing fn_nkbv_dich_te_hoc_rates RPC:", rpcError);
+  }
+
   const rows = ((data || []) as Array<Record<string, unknown>>).map((x) => ({
     ngay_phat_hien: x.ngay_phat_hien,
     loai_nkbv: { ma_loai: x.loai_ma, ten_loai: x.loai_ten },
@@ -51,5 +62,12 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
     khoa_ghi_nhan: { ten_khoa: x.khoa_ten },
   })) as NkbvCasRowMinimal[];
   const payload = aggregateNkbvDashboard(rows, tuStr, denStr);
-  return { success: true as const, data: payload };
+  
+  return { 
+    success: true as const, 
+    data: {
+      ...payload,
+      epidemiologyRates: rpcData || []
+    } 
+  };
 }

@@ -556,7 +556,7 @@ BEGIN
       COUNT(r.id) FILTER (WHERE r.value = 'DAT') as tong_dat,
       COUNT(r.id) FILTER (WHERE r.value = 'KHONG_DAT') as tong_vi_pham
     FROM filtered_sessions s
-    LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id
+    LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id
   )
   SELECT jsonb_build_object(
     'tong_phien', tong_phien,
@@ -584,17 +584,17 @@ BEGIN
   -- Các phần khác giữ nguyên (by_khoa, trend, vi phạm...)
   SELECT jsonb_agg(t) INTO v_by_khoa FROM (
     SELECT k.ten_khoa as ten, COUNT(r.id) FILTER (WHERE r.value = 'DAT') as dat, COUNT(r.id) as tong, CASE WHEN COUNT(r.id) > 0 THEN ROUND((COUNT(r.id) FILTER (WHERE r.value = 'DAT')::numeric * 100) / COUNT(r.id), 1) ELSE 0 END as ty_le
-    FROM filtered_sessions s JOIN public.dm_khoa_phong k ON s.khoa_id = k.id LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id GROUP BY 1 ORDER BY 4 DESC, 3 DESC
+    FROM filtered_sessions s JOIN public.dm_khoa_phong k ON s.khoa_id = k.id LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id GROUP BY 1 ORDER BY 4 DESC, 3 DESC
   ) t;
 
   SELECT jsonb_agg(t) INTO v_trend FROM (
     SELECT to_char(date_trunc('month', s.ngay_giam_sat), 'MM/YY') as label, COUNT(r.id) FILTER (WHERE r.value = 'DAT') as dat, COUNT(r.id) as tong, CASE WHEN COUNT(r.id) > 0 THEN ROUND((COUNT(r.id) FILTER (WHERE r.value = 'DAT')::numeric * 100) / COUNT(r.id), 1) ELSE 0 END as ty_le
-    FROM filtered_sessions s LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id GROUP BY date_trunc('month', s.ngay_giam_sat), 1 ORDER BY date_trunc('month', s.ngay_giam_sat) ASC
+    FROM filtered_sessions s LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id GROUP BY date_trunc('month', s.ngay_giam_sat), 1 ORDER BY date_trunc('month', s.ngay_giam_sat) ASC
   ) t;
 
   SELECT jsonb_agg(t) INTO v_violations FROM (
     SELECT tc.noi_dung as ten_tieu_chi, COUNT(r.id) FILTER (WHERE r.value = 'KHONG_DAT') as so_vi_pham
-    FROM public.fact_giam_sat_chung_results r JOIN public.dm_tieu_chi_bang_kiem tc ON r.criterion_id = tc.id JOIN filtered_sessions s ON r.session_id = s.id
+    FROM public.v_gsc_dashboard_rows r JOIN public.dm_tieu_chi_bang_kiem tc ON r.criterion_id = tc.id JOIN filtered_sessions s ON r.session_id = s.id
     GROUP BY 1 HAVING COUNT(r.id) FILTER (WHERE r.value = 'KHONG_DAT') > 0 ORDER BY 2 DESC LIMIT 20
   ) t;
 
@@ -742,7 +742,7 @@ BEGIN
     )
     INTO v_sum
     FROM _gsc_sessions_multi s
-    LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id
+    LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id
     WHERE s.loai_bang_kiem = v_ma_bk;
 
     SELECT coalesce(jsonb_agg(t), '[]'::jsonb)
@@ -752,7 +752,7 @@ BEGIN
              CASE WHEN count(r.id) > 0 THEN round((count(r.id) FILTER (WHERE r.value = 'DAT')::numeric * 100) / count(r.id), 1) ELSE 0 END AS ty_le
       FROM _gsc_sessions_multi s
       JOIN public.dm_khoa_phong k ON s.khoa_id = k.id
-      LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id
+      LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id
       WHERE s.loai_bang_kiem = v_ma_bk
       GROUP BY 1, 2
       ORDER BY 5 DESC
@@ -765,7 +765,7 @@ BEGIN
              CASE WHEN count(r.id) > 0 THEN round((count(r.id) FILTER (WHERE r.value = 'DAT')::numeric * 100) / count(r.id), 1) ELSE 0 END AS ty_le
       FROM _gsc_sessions_multi s
       LEFT JOIN public.dm_nghe_nghiep n ON s.nghe_nghiep_id = n.id
-      LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id
+      LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id
       WHERE s.loai_bang_kiem = v_ma_bk
       GROUP BY 1, 2 ORDER BY 3 DESC
     ) t;
@@ -776,7 +776,7 @@ BEGIN
              CASE WHEN count(r.id) > 0 THEN round((count(r.id) FILTER (WHERE r.value = 'DAT')::numeric * 100) / count(r.id), 1) ELSE 0 END AS ty_le
       FROM _gsc_sessions_multi s
       LEFT JOIN public.dm_khu_vuc_giam_sat kv ON s.khu_vuc_id = kv.id
-      LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id
+      LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id
       WHERE s.loai_bang_kiem = v_ma_bk
       GROUP BY 1, 2 ORDER BY 3 DESC
     ) t;
@@ -786,7 +786,7 @@ BEGIN
              count(r.id) FILTER (WHERE r.value = 'DAT') AS dat,
              CASE WHEN count(r.id) > 0 THEN round((count(r.id) FILTER (WHERE r.value = 'DAT')::numeric * 100) / count(r.id), 1) ELSE 0 END AS ty_le
       FROM _gsc_sessions_multi s
-      LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id
+      LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id
       WHERE s.loai_bang_kiem = v_ma_bk
       GROUP BY 1
     ) t;
@@ -794,7 +794,7 @@ BEGIN
     SELECT coalesce(jsonb_agg(t), '[]'::jsonb) INTO v_violation FROM (
       SELECT tc.id AS criterion_id, tc.noi_dung AS ten_tieu_chi, count(r.id) FILTER (WHERE r.value = 'KHONG_DAT') AS so_vi_pham, count(r.id) AS tong_quan_sat,
              CASE WHEN count(r.id) > 0 THEN round((count(r.id) FILTER (WHERE r.value = 'KHONG_DAT')::numeric * 100) / count(r.id), 1) ELSE 0 END AS ty_le_vi_pham
-      FROM public.fact_giam_sat_chung_results r
+      FROM public.v_gsc_dashboard_rows r
       JOIN public.dm_tieu_chi_bang_kiem tc ON r.criterion_id = tc.id
       JOIN _gsc_sessions_multi s ON r.session_id = s.id
       WHERE s.loai_bang_kiem = v_ma_bk
@@ -883,7 +883,7 @@ BEGIN
       COUNT(r.id) FILTER (WHERE r.value = 'DAT') as tong_dat,
       COUNT(r.id) FILTER (WHERE r.value = 'KHONG_DAT') as tong_vi_pham
     FROM filtered_sessions s
-    LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id
+    LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id
   )
   SELECT jsonb_build_object(
     'tong_phien', tong_phien,
@@ -926,17 +926,17 @@ BEGIN
   -- Các phần khác (by_khoa, trend, violations)
   SELECT jsonb_agg(t) INTO v_by_khoa FROM (
     SELECT k.ten_khoa as ten, COUNT(r.id) FILTER (WHERE r.value = 'DAT') as dat, COUNT(r.id) as tong, CASE WHEN COUNT(r.id) > 0 THEN ROUND((COUNT(r.id) FILTER (WHERE r.value = 'DAT')::numeric * 100) / COUNT(r.id), 1) ELSE 0 END as ty_le
-    FROM filtered_sessions s JOIN public.dm_khoa_phong k ON s.khoa_id = k.id LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id GROUP BY 1 ORDER BY 4 DESC, 3 DESC
+    FROM filtered_sessions s JOIN public.dm_khoa_phong k ON s.khoa_id = k.id LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id GROUP BY 1 ORDER BY 4 DESC, 3 DESC
   ) t;
 
   SELECT jsonb_agg(t) INTO v_trend FROM (
     SELECT to_char(date_trunc('month', s.ngay_giam_sat), 'MM/YY') as label, COUNT(r.id) FILTER (WHERE r.value = 'DAT') as dat, COUNT(r.id) as tong, CASE WHEN COUNT(r.id) > 0 THEN ROUND((COUNT(r.id) FILTER (WHERE r.value = 'DAT')::numeric * 100) / COUNT(r.id), 1) ELSE 0 END as ty_le
-    FROM filtered_sessions s LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id GROUP BY date_trunc('month', s.ngay_giam_sat), 1 ORDER BY date_trunc('month', s.ngay_giam_sat) ASC
+    FROM filtered_sessions s LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id GROUP BY date_trunc('month', s.ngay_giam_sat), 1 ORDER BY date_trunc('month', s.ngay_giam_sat) ASC
   ) t;
 
   SELECT jsonb_agg(t) INTO v_violations FROM (
     SELECT tc.noi_dung as ten_tieu_chi, COUNT(r.id) FILTER (WHERE r.value = 'KHONG_DAT') as so_vi_pham
-    FROM public.fact_giam_sat_chung_results r JOIN public.dm_tieu_chi_bang_kiem tc ON r.criterion_id = tc.id JOIN filtered_sessions s ON r.session_id = s.id
+    FROM public.v_gsc_dashboard_rows r JOIN public.dm_tieu_chi_bang_kiem tc ON r.criterion_id = tc.id JOIN filtered_sessions s ON r.session_id = s.id
     GROUP BY 1 HAVING COUNT(r.id) FILTER (WHERE r.value = 'KHONG_DAT') > 0 ORDER BY 2 DESC LIMIT 20
   ) t;
 
@@ -1032,14 +1032,14 @@ BEGIN
   )
   INTO v_sum
   FROM _gsc_sessions s
-  LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id;
+  LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id;
 
   SELECT jsonb_agg(t) INTO v_khoa FROM (
     SELECT k.id, k.ten_khoa AS ten, count(r.id) AS tong, count(r.id) FILTER (WHERE r.value = 'DAT') AS dat,
            CASE WHEN count(r.id) > 0 THEN round((count(r.id) FILTER (WHERE r.value = 'DAT')::numeric * 100) / count(r.id), 1) ELSE 0 END AS ty_le
     FROM _gsc_sessions s
     JOIN public.dm_khoa_phong k ON s.khoa_id = k.id
-    LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id
+    LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id
     GROUP BY 1, 2 ORDER BY 5 DESC LIMIT 50
   ) t;
 
@@ -1049,7 +1049,7 @@ BEGIN
            CASE WHEN count(r.id) > 0 THEN round((count(r.id) FILTER (WHERE r.value = 'DAT')::numeric * 100) / count(r.id), 1) ELSE 0 END AS ty_le
     FROM _gsc_sessions s
     LEFT JOIN public.dm_nghe_nghiep n ON s.nghe_nghiep_id = n.id
-    LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id
+    LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id
     GROUP BY 1, 2 ORDER BY 3 DESC
   ) t;
 
@@ -1059,7 +1059,7 @@ BEGIN
            CASE WHEN count(r.id) > 0 THEN round((count(r.id) FILTER (WHERE r.value = 'DAT')::numeric * 100) / count(r.id), 1) ELSE 0 END AS ty_le
     FROM _gsc_sessions s
     LEFT JOIN public.dm_khu_vuc_giam_sat kv ON s.khu_vuc_id = kv.id
-    LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id
+    LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id
     GROUP BY 1, 2 ORDER BY 3 DESC
   ) t;
 
@@ -1068,14 +1068,14 @@ BEGIN
            count(r.id) FILTER (WHERE r.value = 'DAT') AS dat,
            CASE WHEN count(r.id) > 0 THEN round((count(r.id) FILTER (WHERE r.value = 'DAT')::numeric * 100) / count(r.id), 1) ELSE 0 END AS ty_le
     FROM _gsc_sessions s
-    LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id
+    LEFT JOIN public.v_gsc_dashboard_rows r ON s.id = r.session_id
     GROUP BY 1
   ) t;
 
   SELECT jsonb_agg(t) INTO v_violation FROM (
     SELECT tc.id AS criterion_id, tc.noi_dung AS ten_tieu_chi, count(r.id) FILTER (WHERE r.value = 'KHONG_DAT') AS so_vi_pham, count(r.id) AS tong_quan_sat,
            CASE WHEN count(r.id) > 0 THEN round((count(r.id) FILTER (WHERE r.value = 'KHONG_DAT')::numeric * 100) / count(r.id), 1) ELSE 0 END AS ty_le_vi_pham
-    FROM public.fact_giam_sat_chung_results r
+    FROM public.v_gsc_dashboard_rows r
     JOIN public.dm_tieu_chi_bang_kiem tc ON r.criterion_id = tc.id
     JOIN _gsc_sessions s ON r.session_id = s.id
     GROUP BY 1, 2
@@ -2572,7 +2572,8 @@ CREATE TABLE public.dm_bang_kiem (
     is_system boolean DEFAULT false,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
-    loai_hinh_giam_sat text DEFAULT 'TRUC_TIEP'::text
+    loai_hinh_giam_sat text DEFAULT 'TRUC_TIEP'::text,
+    tieu_chi_jsonb jsonb DEFAULT '[]'::jsonb NOT NULL
 );
 
 
@@ -2608,72 +2609,27 @@ CREATE TABLE public.dm_bo_dung_cu_chi_tiet (
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
     is_active boolean DEFAULT true,
-    max_suds_count integer DEFAULT 100,
-    trong_luong numeric,
     ghi_chu text,
-    ma_qr_mau text,
-    ma_chi_tiet character varying(50),
     ten_chi_tiet text,
     loai_dung_cu_id uuid,
-    ma_loai text
+    ma_loai text,
+    specs jsonb DEFAULT '{}'::jsonb
 );
 
 
 --
--- Name: dm_cach_thuc_giam_sat; Type: TABLE; Schema: public; Owner: -
+-- Name: dm_bo_dung_cu_phan_bo; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.dm_cach_thuc_giam_sat (
+CREATE TABLE public.dm_bo_dung_cu_phan_bo (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
-    ma_cach_thuc text NOT NULL,
-    ten_cach_thuc text NOT NULL,
-    is_active boolean DEFAULT true NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
--- Name: dm_chuc_danh; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.dm_chuc_danh (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    ma_chuc_danh text NOT NULL,
-    ten_chuc_danh text NOT NULL,
-    is_active boolean DEFAULT true NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    legacy_danh_muc_id uuid
-);
-
-
---
--- Name: dm_chuc_vu; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.dm_chuc_vu (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    ma_chuc_vu text NOT NULL,
-    ten_chuc_vu text NOT NULL,
-    is_active boolean DEFAULT true NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    legacy_danh_muc_id uuid
-);
-
-
---
--- Name: dm_hinh_thuc_giam_sat; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.dm_hinh_thuc_giam_sat (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    ma_hinh_thuc text NOT NULL,
-    ten_hinh_thuc text NOT NULL,
-    is_active boolean DEFAULT true NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    bo_dung_cu_id uuid NOT NULL,
+    khoa_phong_id uuid NOT NULL,
+    so_luong_co_so integer DEFAULT 0,
+    so_luong_hien_tai integer DEFAULT 0,
+    is_active boolean DEFAULT true,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
 );
 
 
@@ -2687,14 +2643,12 @@ CREATE TABLE public.dm_hoa_chat (
     ten_hoa_chat text NOT NULL,
     loai_hoa_chat character varying(50) DEFAULT 'HOA_CHAT'::character varying,
     don_vi_tinh character varying(20),
-    quy_cach text,
-    ghi_chu text,
     created_at timestamp with time zone DEFAULT now(),
     is_active boolean DEFAULT true,
     updated_at timestamp with time zone DEFAULT now(),
-    nong_do text,
     han_su_dung date,
-    nguong_ton_toi_thieu numeric(18,4)
+    nguong_ton_toi_thieu numeric(18,4),
+    specs jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -2726,45 +2680,36 @@ CREATE TABLE public.dm_khoa_phong (
 
 
 --
--- Name: dm_khoi_khoa; Type: TABLE; Schema: public; Owner: -
+-- Name: dm_khoi_khoa; Type: VIEW; Schema: public; Owner: -
 --
 
-CREATE TABLE public.dm_khoi_khoa (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    ma_khoi text NOT NULL,
-    ten_khoi text NOT NULL,
-    is_active boolean DEFAULT true NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    legacy_danh_muc_id uuid
-);
+CREATE VIEW public.dm_khoi_khoa WITH (security_invoker='true') AS
+ SELECT id,
+    code AS ma_khoi,
+    name AS ten_khoi,
+    is_active,
+    created_at,
+    updated_at,
+    (NULL::uuid) AS legacy_danh_muc_id
+   FROM public.dm_lookup_value
+  WHERE (category_type = 'KHOI_KHOA'::text);
 
 
 --
 -- Name: dm_khu_vuc_giam_sat; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.dm_khu_vuc_giam_sat (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    ma_khu_vuc text NOT NULL,
-    ten_khu_vuc text NOT NULL,
-    is_active boolean DEFAULT true NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    legacy_danh_muc_id uuid
-);
-
-
---
--- Name: dm_loai_cong_viec; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.dm_loai_cong_viec (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    ma text NOT NULL,
-    ten text NOT NULL,
-    thu_tu integer DEFAULT 0
-);
+CREATE VIEW public.dm_khu_vuc_giam_sat WITH (security_invoker='true') AS
+SELECT 
+  id,
+  code AS ma_khu_vuc,
+  name AS ten_khu_vuc,
+  is_active,
+  created_at,
+  updated_at,
+  NULL::uuid AS legacy_danh_muc_id
+FROM public.dm_lookup_value
+WHERE category_type = 'KHU_VUC_GIAM_SAT';
 
 
 --
@@ -2781,13 +2726,9 @@ CREATE TABLE public.dm_loai_dung_cu (
     is_active boolean DEFAULT true,
     ma_loai_dung_cu text,
     ten_loai_dung_cu text,
-    hinh_dang text,
-    kich_thuoc text,
-    cong_dung text,
-    kha_nang_chiu_nhiet text,
-    phuong_phap_tiet_khuan text,
     legacy_danh_muc_id uuid,
-    so_ngay_han_dung integer DEFAULT 30
+    so_ngay_han_dung integer DEFAULT 30,
+    specs jsonb DEFAULT '{}'::jsonb
 );
 
 
@@ -2857,21 +2798,6 @@ CREATE TABLE public.dm_loai_su_co (
 
 
 --
--- Name: dm_nghe_nghiep; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.dm_nghe_nghiep (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    ma_nghe_nghiep text NOT NULL,
-    ten_nghe_nghiep text NOT NULL,
-    is_active boolean DEFAULT true NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    legacy_danh_muc_id uuid
-);
-
-
---
 -- Name: dm_permissions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2911,13 +2837,11 @@ CREATE TABLE public.dm_thiet_bi (
     updated_at timestamp with time zone DEFAULT now(),
     is_active boolean DEFAULT true,
     ngay_dua_vao_su_dung date DEFAULT CURRENT_DATE,
-    ghi_chu text,
     chu_ky_bao_tri_ngay integer DEFAULT 180,
     ngay_bao_tri_gan_nhat date,
     ngay_bao_tri_tiep_theo date,
-    hang_san_xuat text,
-    nam_san_xuat integer,
-    loai_may_id uuid
+    loai_may_id uuid,
+    specs jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -2925,18 +2849,20 @@ CREATE TABLE public.dm_thiet_bi (
 -- Name: dm_tieu_chi_bang_kiem; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.dm_tieu_chi_bang_kiem (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    ma_tc text,
-    bang_kiem_id uuid,
-    stt integer,
-    noi_dung text NOT NULL,
-    ghi_chu text,
-    is_active boolean DEFAULT true,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    diem_toi_da integer DEFAULT 1
-);
+CREATE VIEW public.dm_tieu_chi_bang_kiem WITH (security_invoker='true') AS
+ SELECT 
+    (r.elem->>'id')::uuid AS id,
+    r.elem->>'ma_tc' AS ma_tc,
+    s.id AS bang_kiem_id,
+    (r.elem->>'stt')::integer AS stt,
+    r.elem->>'noi_dung' AS noi_dung,
+    r.elem->>'ghi_chu' AS ghi_chu,
+    COALESCE((r.elem->>'is_active')::boolean, true) AS is_active,
+    COALESCE((r.elem->>'created_at')::timestamp with time zone, s.created_at) AS created_at,
+    COALESCE((r.elem->>'updated_at')::timestamp with time zone, s.updated_at) AS updated_at,
+    COALESCE((r.elem->>'diem_toi_da')::integer, 1) AS diem_toi_da
+   FROM public.dm_bang_kiem s,
+        LATERAL jsonb_array_elements(s.tieu_chi_jsonb) r(elem);
 
 
 --
@@ -2955,25 +2881,25 @@ CREATE TABLE public.dm_to_cong_tac (
 
 
 --
--- Name: dm_tram_cssd; Type: TABLE; Schema: public; Owner: -
+-- Name: dm_tram_cssd; Type: VIEW; Schema: public; Owner: -
 --
 
-CREATE TABLE public.dm_tram_cssd (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    ma_tram text NOT NULL,
-    ten_tram text NOT NULL,
-    thu_tu smallint DEFAULT 0 NOT NULL,
-    is_active boolean DEFAULT true NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
+CREATE VIEW public.dm_tram_cssd WITH (security_invoker='true') AS
+ SELECT id,
+    code AS ma_tram,
+    name AS ten_tram,
+    (coalesce((metadata ->> 'thu_tu'::text), '0'::text))::smallint AS thu_tu,
+    is_active,
+    created_at,
+    updated_at
+   FROM public.dm_lookup_value
+  WHERE (category_type = 'TRAM_CSSD'::text);
 
 --
--- Name: TABLE dm_tram_cssd; Type: COMMENT; Schema: public; Owner: -
+-- Name: VIEW dm_tram_cssd; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON TABLE public.dm_tram_cssd IS 'Danh mục trạm workflow CSSD (QR scan). SSOT mã trạm; fact_quy_trinh.tram_hien_tai_id.';
+COMMENT ON VIEW public.dm_tram_cssd IS 'Danh mục trạm workflow CSSD (QR scan). SSOT mã trạm; fact_quy_trinh.tram_hien_tai_id.';
 
 
 --
@@ -3012,25 +2938,25 @@ COMMENT ON TABLE public.dm_trang_thai_nkbv_ca IS 'Trạng thái phiếu ca NKBV 
 
 
 --
--- Name: dm_vi_tri_kho; Type: TABLE; Schema: public; Owner: -
+-- Name: dm_vi_tri_kho; Type: VIEW; Schema: public; Owner: -
 --
 
-CREATE TABLE public.dm_vi_tri_kho (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    ma_vi_tri text NOT NULL,
-    ten_vi_tri text NOT NULL,
-    ghi_chu text,
-    is_active boolean DEFAULT true,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
-);
-
+CREATE VIEW public.dm_vi_tri_kho WITH (security_invoker='true') AS
+ SELECT id,
+    code AS ma_vi_tri,
+    name AS ten_vi_tri,
+    description AS ghi_chu,
+    is_active,
+    created_at,
+    updated_at
+   FROM public.dm_lookup_value
+  WHERE (category_type = 'VI_TRI_KHO'::text);
 
 --
--- Name: TABLE dm_vi_tri_kho; Type: COMMENT; Schema: public; Owner: -
+-- Name: VIEW dm_vi_tri_kho; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON TABLE public.dm_vi_tri_kho IS 'Danh mục vị trí lưu kho dụng cụ vô khuẩn (Kệ, Tầng, Ô)';
+COMMENT ON VIEW public.dm_vi_tri_kho IS 'Danh mục vị trí lưu kho dụng cụ vô khuẩn (Kệ, Tầng, Ô)';
 
 
 --
@@ -3192,20 +3118,6 @@ COMMENT ON TABLE public.fact_cssd_lifecycle_event IS 'CSSD: nhật ký sự ki�
 
 
 --
--- Name: fact_giam_sat_chung_results; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.fact_giam_sat_chung_results (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    session_id uuid NOT NULL,
-    criterion_id uuid NOT NULL,
-    value text DEFAULT ''::text NOT NULL,
-    note text,
-    created_at timestamp with time zone DEFAULT now() NOT NULL
-);
-
-
---
 -- Name: fact_giam_sat_chung_sessions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3236,7 +3148,8 @@ CREATE TABLE public.fact_giam_sat_chung_sessions (
     so_giuong_nguoi_benh text,
     hinh_thuc_id uuid,
     cach_thuc_id uuid,
-    bang_kiem_id uuid
+    bang_kiem_id uuid,
+    results_jsonb jsonb DEFAULT '[]'::jsonb NOT NULL
 );
 
 
@@ -3764,7 +3677,7 @@ COMMENT ON TABLE public.fact_quy_trinh_thanh_phan IS 'CSSD: cấu phần theo t�
 CREATE TABLE public.fact_su_co (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     quy_trinh_id uuid,
-    ma_qr_quy_trinh text NOT NULL,
+    ma_qr_quy_trinh text,
     ma_tram_phat_hien text NOT NULL,
     ma_tram_gay_loi text,
     mo_ta text,
@@ -3776,7 +3689,8 @@ CREATE TABLE public.fact_su_co (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     loai_su_co_id uuid,
     incident_group text,
-    incident_type_label text
+    incident_type_label text,
+    attributes jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -3784,26 +3698,7 @@ CREATE TABLE public.fact_su_co (
 -- Name: TABLE fact_su_co; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON TABLE public.fact_su_co IS 'Bảng lưu tất cả sự cố CSSD - Configuration-Driven Hybrid EAV';
-
-
---
--- Name: fact_su_co_chi_tiet; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.fact_su_co_chi_tiet (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    su_co_id uuid,
-    ma_chi_tiet_su_co text NOT NULL,
-    gia_tri_chi_tiet text NOT NULL
-);
-
-
---
--- Name: TABLE fact_su_co_chi_tiet; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON TABLE public.fact_su_co_chi_tiet IS 'Bảng EAV lưu các thuộc tính động của sự cố';
+COMMENT ON TABLE public.fact_su_co IS 'Bảng lưu tất cả sự cố CSSD - Hybrid JSONB';
 
 
 --
@@ -3895,12 +3790,12 @@ CREATE MATERIALIZED VIEW public.mv_gsc_session_daily AS
     COALESCE(bk.ma_bk, ''::text) AS ma_bk,
     s.khoa_id,
     count(DISTINCT s.id) AS tong_phien,
-    count(r.id) AS tong_quan_sat,
-    count(r.id) FILTER (WHERE (r.value = 'DAT'::text)) AS tong_dat,
-    count(r.id) FILTER (WHERE (r.value = 'KHONG_DAT'::text)) AS tong_khong_dat
+    count(r.elem) AS tong_quan_sat,
+    count(r.elem) FILTER (WHERE ((r.elem->>'value') = 'DAT'::text)) AS tong_dat,
+    count(r.elem) FILTER (WHERE ((r.elem->>'value') = 'KHONG_DAT'::text)) AS tong_khong_dat
    FROM ((public.fact_giam_sat_chung_sessions s
      LEFT JOIN public.dm_bang_kiem bk ON ((bk.id = s.bang_kiem_id)))
-     LEFT JOIN public.fact_giam_sat_chung_results r ON ((r.session_id = s.id)))
+     LEFT JOIN LATERAL jsonb_array_elements(s.results_jsonb) r(elem) ON true)
   WHERE (COALESCE(s.is_active, true) = true)
   GROUP BY s.ngay_giam_sat, COALESCE(bk.ma_bk, ''::text), s.khoa_id
   WITH NO DATA;
@@ -4157,18 +4052,42 @@ CREATE VIEW public.v_dm_thiet_bi_full WITH (security_invoker='true') AS
     lm.ten_loai_may AS ten_loai_may_hien_thi,
     lm.ma_loai_may AS loai_thiet_bi,
     tb.trang_thai,
-    tb.hang_san_xuat,
-    tb.nam_san_xuat,
+    tb.specs->>'hang_san_xuat' AS hang_san_xuat,
+    (tb.specs->>'nam_san_xuat')::integer AS nam_san_xuat,
     tb.ngay_dua_vao_su_dung,
     tb.chu_ky_bao_tri_ngay,
     tb.ngay_bao_tri_gan_nhat,
     tb.ngay_bao_tri_tiep_theo,
-    tb.ghi_chu,
+    tb.specs->>'ghi_chu' AS ghi_chu,
+    tb.specs,
     tb.is_active,
     tb.created_at,
     tb.updated_at
    FROM (public.dm_thiet_bi tb
      LEFT JOIN public.dm_loai_may_tiet_khuan lm ON ((lm.id = tb.loai_may_id)));
+
+
+--
+-- Name: v_dm_hoa_chat_full; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.v_dm_hoa_chat_full WITH (security_invoker='true') AS
+ SELECT 
+    id,
+    ma_hoa_chat,
+    ten_hoa_chat,
+    loai_hoa_chat,
+    don_vi_tinh,
+    specs->>'quy_cach' AS quy_cach,
+    specs->>'nong_do' AS nong_do,
+    han_su_dung,
+    specs->>'ghi_chu' AS ghi_chu,
+    nguong_ton_toi_thieu,
+    is_active,
+    created_at,
+    updated_at,
+    specs
+   FROM public.dm_hoa_chat;
 
 
 --
@@ -4213,16 +4132,17 @@ CREATE VIEW public.v_fact_giam_sat_chung_sessions_full WITH (security_invoker='t
     s.thoi_gian_ket_thuc,
     s.tong_diem,
     s.ghi_chu_chung,
-    s.is_manual_nhan_vien,
-    s.ten_manual_nhan_vien,
-    s.is_bo_sung_nguoi_benh,
-    s.ma_nguoi_benh,
-    s.ten_nguoi_benh,
-    s.so_giuong_nguoi_benh,
+    COALESCE((s.metadata->>'is_manual_nhan_vien')::boolean, false) AS is_manual_nhan_vien,
+    s.metadata->>'ten_manual_nhan_vien' AS ten_manual_nhan_vien,
+    COALESCE((s.metadata->>'is_bo_sung_nguoi_benh')::boolean, false) AS is_bo_sung_nguoi_benh,
+    s.metadata->>'ma_nguoi_benh' AS ma_nguoi_benh,
+    s.metadata->>'ten_nguoi_benh' AS ten_nguoi_benh,
+    s.metadata->>'so_giuong_nguoi_benh' AS so_giuong_nguoi_benh,
     s.is_active,
     s.is_seen,
     s.created_at,
     s.updated_at,
+    s.results_jsonb,
     k.ma_khoa AS ma_khoa_phong,
     k.ten_khoa AS ten_khoa_phong,
     kv.ma_khu_vuc AS ma_khu_vuc_giam_sat,
@@ -4297,7 +4217,7 @@ CREATE VIEW public.v_fact_giam_sat_vst_full WITH (security_invoker='true') AS
  SELECT o.id,
     o.session_id,
     o.nhan_vien_id,
-    o.ten_nhan_vien_ngoai,
+    (o.metadata ->> 'ten_nhan_vien_ngoai'::text) AS ten_nhan_vien_ngoai,
     o.khoa_id,
     o.khu_vuc_id,
     o.nghe_nghiep_id,
@@ -4310,7 +4230,6 @@ CREATE VIEW public.v_fact_giam_sat_vst_full WITH (security_invoker='true') AS
     o.co_deo_gang,
     o.thoi_gian_ghi_nhan,
     o.ghi_chu,
-    o.legacy_csv_row_id,
     kv.ma_khu_vuc AS ma_khu_vuc_giam_sat,
     COALESCE(kv.ten_khu_vuc, ''::text) AS khu_vuc,
     COALESCE(kv.ten_khu_vuc, ''::text) AS ten_khu_vuc_hien_thi,
@@ -4503,7 +4422,8 @@ CREATE VIEW public.v_fact_su_co_full WITH (security_invoker='true') AS
     sc.mo_ta,
     sc.is_red_alert,
     sc.ma_tram_gay_loi,
-    sc.created_at
+    sc.created_at,
+    sc.attributes
    FROM (public.fact_su_co sc
      LEFT JOIN public.dm_loai_su_co ls ON ((ls.id = sc.loai_su_co_id)));
 
@@ -4520,12 +4440,16 @@ CREATE VIEW public.v_gsc_dashboard_rows WITH (security_invoker='true') AS
     s.tong_diem,
     s.khoa_id,
     kp.ten_khoa,
-    r.id AS result_id,
-    r.value AS result_value
+    (r.elem->>'criterion_id')::uuid AS id,
+    (r.elem->>'criterion_id')::uuid AS result_id,
+    (r.elem->>'criterion_id')::uuid AS criterion_id,
+    r.elem->>'value' AS value,
+    r.elem->>'value' AS result_value,
+    r.elem->>'note' AS note
    FROM (((public.fact_giam_sat_chung_sessions s
      LEFT JOIN public.dm_bang_kiem bk ON ((bk.id = s.bang_kiem_id)))
      LEFT JOIN public.dm_khoa_phong kp ON ((kp.id = s.khoa_id)))
-     LEFT JOIN public.fact_giam_sat_chung_results r ON ((r.session_id = s.id)))
+     LEFT JOIN LATERAL jsonb_array_elements(s.results_jsonb) r(elem) ON true)
   WHERE (s.is_active = true);
 
 
@@ -4760,28 +4684,7 @@ ALTER TABLE ONLY public.dm_khoa_phong
     ADD CONSTRAINT dm_khoa_phong_pkey PRIMARY KEY (id);
 
 
---
--- Name: dm_khoi_khoa dm_khoi_khoa_legacy_danh_muc_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
 
-ALTER TABLE ONLY public.dm_khoi_khoa
-    ADD CONSTRAINT dm_khoi_khoa_legacy_danh_muc_id_key UNIQUE (legacy_danh_muc_id);
-
-
---
--- Name: dm_khoi_khoa dm_khoi_khoa_ma_khoi_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.dm_khoi_khoa
-    ADD CONSTRAINT dm_khoi_khoa_ma_khoi_key UNIQUE (ma_khoi);
-
-
---
--- Name: dm_khoi_khoa dm_khoi_khoa_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.dm_khoi_khoa
-    ADD CONSTRAINT dm_khoi_khoa_pkey PRIMARY KEY (id);
 
 
 --
@@ -4968,20 +4871,7 @@ ALTER TABLE ONLY public.dm_to_cong_tac
     ADD CONSTRAINT dm_to_cong_tac_pkey PRIMARY KEY (id);
 
 
---
--- Name: dm_tram_cssd dm_tram_cssd_ma_tram_key; Type: CONSTRAINT; Schema: public; Owner: -
---
 
-ALTER TABLE ONLY public.dm_tram_cssd
-    ADD CONSTRAINT dm_tram_cssd_ma_tram_key UNIQUE (ma_tram);
-
-
---
--- Name: dm_tram_cssd dm_tram_cssd_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.dm_tram_cssd
-    ADD CONSTRAINT dm_tram_cssd_pkey PRIMARY KEY (id);
 
 
 --
@@ -5016,20 +4906,7 @@ ALTER TABLE ONLY public.dm_trang_thai_nkbv_ca
     ADD CONSTRAINT dm_trang_thai_nkbv_ca_pkey PRIMARY KEY (id);
 
 
---
--- Name: dm_vi_tri_kho dm_vi_tri_kho_ma_vi_tri_key; Type: CONSTRAINT; Schema: public; Owner: -
---
 
-ALTER TABLE ONLY public.dm_vi_tri_kho
-    ADD CONSTRAINT dm_vi_tri_kho_ma_vi_tri_key UNIQUE (ma_vi_tri);
-
-
---
--- Name: dm_vi_tri_kho dm_vi_tri_kho_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.dm_vi_tri_kho
-    ADD CONSTRAINT dm_vi_tri_kho_pkey PRIMARY KEY (id);
 
 
 --
@@ -5136,12 +5013,7 @@ ALTER TABLE ONLY public.fact_quy_trinh_thanh_phan
     ADD CONSTRAINT fact_quy_trinh_thanh_phan_pkey PRIMARY KEY (id);
 
 
---
--- Name: fact_giam_sat_chung_results giam_sat_chung_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
 
-ALTER TABLE ONLY public.fact_giam_sat_chung_results
-    ADD CONSTRAINT giam_sat_chung_results_pkey PRIMARY KEY (id);
 
 
 --
@@ -5312,12 +5184,6 @@ ALTER TABLE ONLY public.dm_roles
     ADD CONSTRAINT roles_pkey PRIMARY KEY (id);
 
 
---
--- Name: fact_su_co_chi_tiet su_co_chi_tiet_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fact_su_co_chi_tiet
-    ADD CONSTRAINT su_co_chi_tiet_pkey PRIMARY KEY (id);
 
 
 --
@@ -5328,20 +5194,7 @@ ALTER TABLE ONLY public.fact_su_co
     ADD CONSTRAINT su_co_pkey PRIMARY KEY (id);
 
 
---
--- Name: dm_tieu_chi_bang_kiem tieu_chi_bang_kiem_ma_tc_key; Type: CONSTRAINT; Schema: public; Owner: -
---
 
-ALTER TABLE ONLY public.dm_tieu_chi_bang_kiem
-    ADD CONSTRAINT tieu_chi_bang_kiem_ma_tc_key UNIQUE (ma_tc);
-
-
---
--- Name: dm_tieu_chi_bang_kiem tieu_chi_bang_kiem_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.dm_tieu_chi_bang_kiem
-    ADD CONSTRAINT tieu_chi_bang_kiem_pkey PRIMARY KEY (id);
 
 
 --
@@ -5489,11 +5342,7 @@ CREATE INDEX idx_dm_hinh_thuc_giam_sat_active ON public.dm_hinh_thuc_giam_sat US
 CREATE INDEX idx_dm_khoa_phong_khoi_id ON public.dm_khoa_phong USING btree (khoi_id);
 
 
---
--- Name: idx_dm_khoi_khoa_active; Type: INDEX; Schema: public; Owner: -
---
 
-CREATE INDEX idx_dm_khoi_khoa_active ON public.dm_khoi_khoa USING btree (is_active);
 
 
 --
@@ -5755,11 +5604,7 @@ CREATE INDEX idx_fact_vst_sessions_cach_thuc_id ON public.fact_giam_sat_vst_sess
 CREATE INDEX idx_fact_vst_sessions_hinh_thuc_id ON public.fact_giam_sat_vst_sessions USING btree (hinh_thuc_id) WHERE (hinh_thuc_id IS NOT NULL);
 
 
---
--- Name: idx_giam_sat_chung_results_session_id; Type: INDEX; Schema: public; Owner: -
---
 
-CREATE INDEX idx_giam_sat_chung_results_session_id ON public.fact_giam_sat_chung_results USING btree (session_id);
 
 
 --
@@ -5811,18 +5656,7 @@ CREATE INDEX idx_giam_sat_vst_session_id ON public.fact_giam_sat_vst USING btree
 CREATE INDEX idx_giam_sat_vst_supervisor ON public.fact_giam_sat_vst_sessions USING btree (nguoi_giam_sat_id);
 
 
---
--- Name: idx_gsc_results_criterion_id; Type: INDEX; Schema: public; Owner: -
---
 
-CREATE INDEX idx_gsc_results_criterion_id ON public.fact_giam_sat_chung_results USING btree (criterion_id);
-
-
---
--- Name: idx_gsc_results_session_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_gsc_results_session_id ON public.fact_giam_sat_chung_results USING btree (session_id);
 
 
 --
@@ -6043,17 +5877,24 @@ CREATE INDEX idx_role_permissions_role_id ON public.rel_role_permissions USING b
 
 
 --
--- Name: idx_su_co_chi_tiet_key; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_su_co_attributes; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_su_co_chi_tiet_key ON public.fact_su_co_chi_tiet USING btree (ma_chi_tiet_su_co);
+CREATE INDEX idx_su_co_attributes ON public.fact_su_co USING gin (attributes jsonb_path_ops);
 
 
 --
--- Name: idx_su_co_chi_tiet_su_co; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_su_co_attr_incident_group; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_su_co_chi_tiet_su_co ON public.fact_su_co_chi_tiet USING btree (su_co_id);
+CREATE INDEX idx_su_co_attr_incident_group ON public.fact_su_co USING btree ((attributes->>'INCIDENT_GROUP'));
+
+
+--
+-- Name: idx_su_co_attr_rollback_target; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_su_co_attr_rollback_target ON public.fact_su_co USING btree ((attributes->>'ROLLBACK_TARGET_STATION'));
 
 
 --
@@ -6091,18 +5932,7 @@ CREATE INDEX idx_su_co_red_alert ON public.fact_su_co USING btree (is_red_alert)
 CREATE INDEX idx_su_co_updated_at ON public.fact_su_co USING btree (updated_at DESC);
 
 
---
--- Name: idx_tieu_chi_bk_ma; Type: INDEX; Schema: public; Owner: -
---
 
-CREATE INDEX idx_tieu_chi_bk_ma ON public.dm_tieu_chi_bang_kiem USING btree (ma_tc);
-
-
---
--- Name: idx_tieu_chi_bk_parent; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_tieu_chi_bk_parent ON public.dm_tieu_chi_bang_kiem USING btree (bang_kiem_id);
 
 
 --
@@ -6252,11 +6082,7 @@ CREATE TRIGGER trg_touch_updated_at_mdm_governance_suggestion BEFORE UPDATE ON p
 CREATE TRIGGER trg_update_danh_muc_bk_updated_at BEFORE UPDATE ON public.dm_bang_kiem FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
---
--- Name: dm_tieu_chi_bang_kiem trg_update_tieu_chi_bk_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
 
-CREATE TRIGGER trg_update_tieu_chi_bk_updated_at BEFORE UPDATE ON public.dm_tieu_chi_bang_kiem FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
@@ -6296,7 +6122,7 @@ ALTER TABLE ONLY public.dm_bo_dung_cu
 --
 
 ALTER TABLE ONLY public.dm_khoa_phong
-    ADD CONSTRAINT dm_khoa_phong_khoi_id_fkey FOREIGN KEY (khoi_id) REFERENCES public.dm_khoi_khoa(id) ON UPDATE CASCADE ON DELETE SET NULL;
+    ADD CONSTRAINT dm_khoa_phong_khoi_id_fkey FOREIGN KEY (khoi_id) REFERENCES public.dm_lookup_value(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 --
@@ -6520,7 +6346,7 @@ ALTER TABLE ONLY public.fact_quy_trinh_thanh_phan
 --
 
 ALTER TABLE ONLY public.fact_quy_trinh
-    ADD CONSTRAINT fact_quy_trinh_vi_tri_kho_id_fkey FOREIGN KEY (vi_tri_kho_id) REFERENCES public.dm_vi_tri_kho(id);
+    ADD CONSTRAINT fact_quy_trinh_vi_tri_kho_id_fkey FOREIGN KEY (vi_tri_kho_id) REFERENCES public.dm_lookup_value(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 
 --
@@ -6547,12 +6373,7 @@ ALTER TABLE ONLY public.dm_thiet_bi
     ADD CONSTRAINT fk_dm_thiet_bi_loai_may FOREIGN KEY (loai_may_id) REFERENCES public.dm_loai_may_tiet_khuan(id) ON DELETE SET NULL;
 
 
---
--- Name: fact_giam_sat_chung_results fk_gsc_results_criterion; Type: FK CONSTRAINT; Schema: public; Owner: -
---
 
-ALTER TABLE ONLY public.fact_giam_sat_chung_results
-    ADD CONSTRAINT fk_gsc_results_criterion FOREIGN KEY (criterion_id) REFERENCES public.dm_tieu_chi_bang_kiem(id) ON DELETE RESTRICT;
 
 
 --
@@ -6664,15 +6485,9 @@ ALTER TABLE ONLY public.fact_quy_trinh
 --
 
 ALTER TABLE ONLY public.fact_quy_trinh
-    ADD CONSTRAINT fk_quy_trinh_tram_hien_tai FOREIGN KEY (tram_hien_tai_id) REFERENCES public.dm_tram_cssd(id) ON DELETE RESTRICT;
+    ADD CONSTRAINT fk_quy_trinh_tram_hien_tai FOREIGN KEY (tram_hien_tai_id) REFERENCES public.dm_lookup_value(id) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 
---
--- Name: fact_su_co_chi_tiet fk_su_co_chi_tiet_su_co; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fact_su_co_chi_tiet
-    ADD CONSTRAINT fk_su_co_chi_tiet_su_co FOREIGN KEY (su_co_id) REFERENCES public.fact_su_co(id) ON DELETE CASCADE;
 
 
 --
@@ -6699,12 +6514,7 @@ ALTER TABLE ONLY public.fact_giam_sat_vst
     ADD CONSTRAINT fk_vst_obs_nghe_nghiep FOREIGN KEY (nghe_nghiep_id) REFERENCES public.dm_nghe_nghiep(id) ON DELETE SET NULL;
 
 
---
--- Name: fact_giam_sat_chung_results giam_sat_chung_results_session_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
 
-ALTER TABLE ONLY public.fact_giam_sat_chung_results
-    ADD CONSTRAINT giam_sat_chung_results_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.fact_giam_sat_chung_sessions(id) ON DELETE CASCADE;
 
 
 --
@@ -6987,12 +6797,7 @@ ALTER TABLE ONLY public.fact_su_co
     ADD CONSTRAINT su_co_quy_trinh_id_fkey FOREIGN KEY (quy_trinh_id) REFERENCES public.fact_quy_trinh(id) ON DELETE CASCADE;
 
 
---
--- Name: dm_tieu_chi_bang_kiem tieu_chi_bang_kiem_bang_kiem_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
 
-ALTER TABLE ONLY public.dm_tieu_chi_bang_kiem
-    ADD CONSTRAINT tieu_chi_bang_kiem_bang_kiem_id_fkey FOREIGN KEY (bang_kiem_id) REFERENCES public.dm_bang_kiem(id) ON DELETE CASCADE;
 
 
 --
@@ -7018,21 +6823,10 @@ ALTER TABLE ONLY public.rel_user_roles
 CREATE POLICY "Admin full access" ON public.dm_bang_kiem TO authenticated USING (true) WITH CHECK (true);
 
 
---
--- Name: dm_tieu_chi_bang_kiem Admin full access; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admin full access" ON public.dm_tieu_chi_bang_kiem TO authenticated USING (true) WITH CHECK (true);
 
 
---
--- Name: fact_giam_sat_chung_results Admin full access; Type: POLICY; Schema: public; Owner: -
---
 
-CREATE POLICY "Admin full access" ON public.fact_giam_sat_chung_results TO authenticated USING ((EXISTS ( SELECT 1
-   FROM (public.rel_user_roles ur
-     JOIN public.dm_roles r ON ((ur.role_id = r.id)))
-  WHERE ((ur.user_id = auth.uid()) AND (r.name = 'ADMIN'::text)))));
+
 
 
 --
@@ -7079,18 +6873,10 @@ CREATE POLICY "Allow all for auth users" ON public.fact_cong_viec USING (true);
 CREATE POLICY "Authenticated read access" ON public.dm_bang_kiem FOR SELECT TO authenticated USING (true);
 
 
---
--- Name: dm_tieu_chi_bang_kiem Authenticated read access; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Authenticated read access" ON public.dm_tieu_chi_bang_kiem FOR SELECT TO authenticated USING (true);
 
 
---
--- Name: fact_giam_sat_chung_results Authenticated read access; Type: POLICY; Schema: public; Owner: -
---
 
-CREATE POLICY "Authenticated read access" ON public.fact_giam_sat_chung_results FOR SELECT TO authenticated USING (true);
+
 
 
 --
@@ -7260,16 +7046,7 @@ CREATE POLICY dm_khoa_phong_select_auth_v1 ON public.dm_khoa_phong FOR SELECT TO
 
 
 --
--- Name: dm_khoi_khoa; Type: ROW SECURITY; Schema: public; Owner: -
---
 
-ALTER TABLE public.dm_khoi_khoa ENABLE ROW LEVEL SECURITY;
-
---
--- Name: dm_khoi_khoa dm_khoi_khoa_select_auth_v1; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY dm_khoi_khoa_select_auth_v1 ON public.dm_khoi_khoa FOR SELECT TO authenticated USING (true);
 
 
 --
@@ -7398,8 +7175,7 @@ ALTER TABLE public.dm_thiet_bi ENABLE ROW LEVEL SECURITY;
 --
 -- Name: dm_tieu_chi_bang_kiem; Type: ROW SECURITY; Schema: public; Owner: -
 --
-
-ALTER TABLE public.dm_tieu_chi_bang_kiem ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE public.dm_tieu_chi_bang_kiem ENABLE ROW LEVEL SECURITY; -- Obsolete since it is now a view
 
 --
 -- Name: dm_to_cong_tac; Type: ROW SECURITY; Schema: public; Owner: -
@@ -7414,17 +7190,7 @@ ALTER TABLE public.dm_to_cong_tac ENABLE ROW LEVEL SECURITY;
 CREATE POLICY dm_to_cong_tac_select_auth_v1 ON public.dm_to_cong_tac FOR SELECT TO authenticated USING (true);
 
 
---
--- Name: dm_tram_cssd; Type: ROW SECURITY; Schema: public; Owner: -
---
 
-ALTER TABLE public.dm_tram_cssd ENABLE ROW LEVEL SECURITY;
-
---
--- Name: dm_tram_cssd dm_tram_cssd_select_authenticated; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY dm_tram_cssd_select_authenticated ON public.dm_tram_cssd FOR SELECT TO authenticated USING (true);
 
 
 --
@@ -7453,11 +7219,7 @@ ALTER TABLE public.dm_trang_thai_nkbv_ca ENABLE ROW LEVEL SECURITY;
 CREATE POLICY dm_trang_thai_nkbv_ca_select_auth ON public.dm_trang_thai_nkbv_ca FOR SELECT TO authenticated USING (true);
 
 
---
--- Name: dm_vi_tri_kho; Type: ROW SECURITY; Schema: public; Owner: -
---
 
-ALTER TABLE public.dm_vi_tri_kho ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: fact_bao_tri_thiet_bi; Type: ROW SECURITY; Schema: public; Owner: -
@@ -7522,11 +7284,7 @@ ALTER TABLE public.fact_cssd_dieu_chuyen_thanh_phan ENABLE ROW LEVEL SECURITY;
 
 ALTER TABLE public.fact_cssd_lifecycle_event ENABLE ROW LEVEL SECURITY;
 
---
--- Name: fact_giam_sat_chung_results; Type: ROW SECURITY; Schema: public; Owner: -
---
 
-ALTER TABLE public.fact_giam_sat_chung_results ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: fact_giam_sat_chung_sessions; Type: ROW SECURITY; Schema: public; Owner: -
@@ -7657,11 +7415,6 @@ CREATE POLICY fact_quy_trinh_thanh_phan_select_authenticated ON public.fact_quy_
 
 ALTER TABLE public.fact_su_co ENABLE ROW LEVEL SECURITY;
 
---
--- Name: fact_su_co_chi_tiet; Type: ROW SECURITY; Schema: public; Owner: -
---
-
-ALTER TABLE public.fact_su_co_chi_tiet ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: fact_su_co fact_su_co_select_authenticated; Type: POLICY; Schema: public; Owner: -

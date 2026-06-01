@@ -1,5 +1,5 @@
 /**
- * Chuẩn hóa trường lưu fact_giam_sat_vst — chỉ FK + vi_tri (nhãn đọc qua v_fact_giam_sat_vst_full).
+ * Chuẩn hóa trường lưu fact_giam_sat_vst — chỉ FK + vi_tri (nhãn đọc qua v_gstt_giam_sat_vst_full).
  */
 
 export type VstObservationPersistInput = {

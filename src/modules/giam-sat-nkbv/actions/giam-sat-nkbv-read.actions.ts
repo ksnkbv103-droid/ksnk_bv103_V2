@@ -26,7 +26,7 @@ function resolveSortColumn(key: string): NkbvListSortKey {
     : "ngay_phat_hien";
 }
 
-/** Danh sách NKBV có phân trang server (hook `useServerPaginatedTable`). */
+/** Danh sách Sự kiện NKBV có phân trang server (hook `useServerPaginatedTable`). */
 export async function listGiamSatNkbvCas(filters: ListGiamSatNkbvCasParams) {
   const supabase = await createServerSupabaseUserClient();
   await verifyPermission("GIAM_SAT_NKBV", "view");
@@ -54,23 +54,16 @@ export async function listGiamSatNkbvCas(filters: ListGiamSatNkbvCasParams) {
 
   const searchFilter = buildSupabaseSearchFilter(search, ["ma_ca", "ho_ten_benh_nhan", "ma_benh_nhan"]);
 
-  const sel = `
-      *,
-      khoa_ghi_nhan:dm_khoa_phong!khoa_ghi_nhan_id(ma_khoa, ten_khoa),
-      loai_nkbv:dm_loai_nkbv!loai_nkbv_id(ma_loai, ten_loai),
-      trang_thai_row:dm_trang_thai_nkbv_ca!trang_thai_id(ma_trang_thai, ten_trang_thai)
-    `;
-
   let countQ = supabase
-    .from("fact_giam_sat_nkbv_ca")
+    .from("v_nkbv_su_kien_full")
     .select("id", { count: "exact", head: true })
     .eq("is_active", true);
   if (searchFilter) countQ = countQ.or(searchFilter);
   if (filters.khoa_ghi_nhan_id) countQ = countQ.eq("khoa_ghi_nhan_id", filters.khoa_ghi_nhan_id);
 
   let dataQ = supabase
-    .from("fact_giam_sat_nkbv_ca")
-    .select(sel)
+    .from("v_nkbv_su_kien_full")
+    .select("*")
     .eq("is_active", true)
     .order(sortCol, { ascending })
     .range(from, to);
@@ -82,9 +75,16 @@ export async function listGiamSatNkbvCas(filters: ListGiamSatNkbvCasParams) {
   if (cErr) return { success: false as const, error: cErr.message, data: [], totalCount: 0 };
   if (dErr) return { success: false as const, error: dErr.message, data: [], totalCount: 0 };
 
+  const formatted = (data || []).map((r) => ({
+    ...r,
+    khoa_ghi_nhan: r.khoa_ma ? { ma_khoa: r.khoa_ma, ten_khoa: r.khoa_ten } : null,
+    loai_nkbv: r.loai_ma ? { ma_loai: r.loai_ma, ten_loai: r.loai_ten } : null,
+    trang_thai_row: r.trang_thai_ma ? { ma_trang_thai: r.trang_thai_ma, ten_trang_thai: r.trang_thai_ten } : null,
+  }));
+
   return {
     success: true as const,
-    data: data || [],
+    data: formatted,
     totalCount: count ?? 0,
   };
 }
@@ -115,13 +115,13 @@ export async function getNkbvFormDmBundle() {
   }
 }
 
-/** Gợi ý mã phiếu (NKddd) — đọc cùng module view. */
+/** Gợi ý mã phiếu (NKddd) — đọc cùng sự kiện view. */
 export async function listAllMaNkbvCas() {
   try {
     await verifyPermission("GIAM_SAT_NKBV", "view");
     const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase
-      .from("fact_giam_sat_nkbv_ca")
+      .from("fact_nkbv_su_kien")
       .select("ma_ca")
       .eq("is_active", true);
     if (error) throw error;
@@ -131,3 +131,100 @@ export async function listAllMaNkbvCas() {
     return { success: false as const, error: msg };
   }
 }
+
+/** Danh sách hồ sơ bệnh án (stay pool) truy vấn phân trang từ bảng vật lý fact_nkbv_benh_an. */
+export async function listNkbvMedicalRecords(params: {
+  page: number;
+  pageSize?: number;
+  search?: string;
+}) {
+  const supabase = await createServerSupabaseUserClient();
+  await verifyPermission("GIAM_SAT_NKBV", "view");
+
+  const page = params.page || 1;
+  const pageSize = params.pageSize || 15;
+  const search = (params.search || "").trim().toLowerCase();
+
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const searchFilter = buildSupabaseSearchFilter(search, ["ma_benh_an", "ma_benh_nhan", "ho_ten_benh_nhan"]);
+
+  let countQ = supabase
+    .from("fact_nkbv_benh_an")
+    .select("id", { count: "exact", head: true })
+    .eq("is_active", true);
+  if (searchFilter) countQ = countQ.or(searchFilter);
+
+  let dataQ = supabase
+    .from("fact_nkbv_benh_an")
+    .select("*")
+    .eq("is_active", true)
+    .order("ngay_vao_vien", { ascending: false })
+    .range(from, to);
+  if (searchFilter) dataQ = dataQ.or(searchFilter);
+
+  const [{ count, error: cErr }, { data: stays, error: dErr }] = await Promise.all([countQ, dataQ]);
+
+  if (cErr) return { success: false as const, error: cErr.message, data: [], totalCount: 0 };
+  if (dErr) return { success: false as const, error: dErr.message, data: [], totalCount: 0 };
+
+  if (!stays || stays.length === 0) {
+    return {
+      success: true as const,
+      data: [],
+      totalCount: 0,
+    };
+  }
+
+  const stayIds = stays.map((s) => s.ma_benh_an);
+
+  // Fetch related vi sinh thô
+  const { data: lisData, error: lErr } = await supabase
+    .from("fact_nkbv_vi_sinh")
+    .select("id, ma_benh_an, loai_benh_pham")
+    .in("ma_benh_an", stayIds)
+    .eq("is_active", true);
+
+  if (lErr) return { success: false as const, error: lErr.message, data: [], totalCount: 0 };
+
+  // Fetch related sự kiện nhiễm khuẩn
+  const { data: casesData, error: caErr } = await supabase
+    .from("v_nkbv_su_kien_full")
+    .select("id, ma_benh_an, loai_ma, loai_ten, trang_thai_ma, trang_thai_ten")
+    .in("ma_benh_an", stayIds)
+    .eq("is_active", true);
+
+  if (caErr) return { success: false as const, error: caErr.message, data: [], totalCount: 0 };
+
+  const formatted = stays.map((s) => {
+    const lis_records = (lisData || [])
+      .filter((l) => l.ma_benh_an === s.ma_benh_an)
+      .map((r) => ({
+        ...r,
+        is_blood_culture: String(r.loai_benh_pham || "").toLowerCase().includes("máu") ||
+                          String(r.loai_benh_pham || "").toLowerCase().includes("blood"),
+      }));
+
+    const nkbv_cases = (casesData || [])
+      .filter((c) => c.ma_benh_an === s.ma_benh_an)
+      .map((r) => ({
+        ...r,
+        loai_nkbv: r.loai_ma ? { ma_loai: r.loai_ma, ten_loai: r.loai_ten } : null,
+        trang_thai_row: r.trang_thai_ma ? { ma_trang_thai: r.trang_thai_ma, ten_trang_thai: r.trang_thai_ten } : null,
+      }));
+
+    return {
+      ...s,
+      lis_records,
+      nkbv_cases,
+    };
+  });
+
+  return {
+    success: true as const,
+    data: formatted,
+    totalCount: count ?? 0,
+  };
+}
+

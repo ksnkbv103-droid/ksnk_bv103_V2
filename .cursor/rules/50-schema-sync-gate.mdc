@@ -7,7 +7,7 @@ alwaysApply: false
 # Schema Sync Gate (application code)
 
 - Đồng bộ code–app–database là cổng ra release.
-- Trước khi đặt tên bảng/cột/FK hoặc type mapping mới: đọc [`docs/specs/10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md), [`AGENTS.md`](../../AGENTS.md) (lớp dữ liệu + đặt tên), và pipeline [`docs/specs/GOVERNANCE_PIPELINE.md`](../../docs/specs/GOVERNANCE_PIPELINE.md).
+- Trước khi đặt tên bảng/cột/FK hoặc type mapping mới: đọc [`docs/core/implementation-mapping.md`](../../docs/core/implementation-mapping.md), [`AGENTS.md`](../../AGENTS.md) (lớp dữ liệu + đặt tên), và pipeline [`docs/core/governance-pipeline.md`](../../docs/core/governance-pipeline.md).
 - **File SQL-only:** rule companion [`51-database-migration-rules.mdc`](./51-database-migration-rules.mdc) (`supabase/migrations/*.sql`).
 - Khi đổi field DB: cập nhật trong **cùng task** actions, types, form, bảng UI.
 - Ưu tiên migration additive (`ADD COLUMN IF NOT EXISTS`) trước destructive; rename có lộ trình rollback.

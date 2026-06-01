@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { createCongViec, updateCongViec } from "../actions/cong-viec.actions";
-import { pheDuyetVaCapNhatDeXuat } from "../actions/dexuat.actions";
+import { pheDuyetDeXuat, pheDuyetVaCapNhatDeXuat } from "../actions/dexuat.actions";
+import { QlcvReasonDialog } from "./dialogs/QlcvReasonDialog";
 import { getQlcvFormCatalog } from "../actions/cong-viec-read.actions";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
@@ -22,6 +23,7 @@ interface Props {
 
 export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
   const [loading, setLoading] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [nhanSuOptions, setNhanSuOptions] = useState<QlcvSelectOption[]>([]);
   const [toCongTacOptions, setToCongTacOptions] = useState<QlcvSelectOption[]>([]);
@@ -108,6 +110,12 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
       }
     }
 
+    if (!initialData?.id && !String(selectedNhanSu || "").trim()) {
+      setLoading(false);
+      toast.error("Chọn người phụ trách — việc được giao ngay khi tạo.");
+      return;
+    }
+
     const validation = congViecSchema.safeParse(rawPayload);
     if (!validation.success) {
       setLoading(false);
@@ -179,7 +187,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
                 defaultValue={initialData?.muc_do_uu_tien || "TRUNG_BINH"}
                 className={inputStyles}
               >
-                <option value="CAO">Khẩn cấp</option>
+                <option value="CAO">Cao</option>
                 <option value="TRUNG_BINH">Trung bình</option>
                 <option value="THAP">Thấp</option>
               </select>
@@ -225,7 +233,9 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
           </div>
 
           <div>
-            <label className={labelStyles}>Người phụ trách</label>
+            <label className={labelStyles}>
+              Người phụ trách{isPendingDeXuat || !initialData?.id ? " *" : ""}
+            </label>
             <SearchableSelect
               options={assigneeOptions}
               placeholder={
@@ -247,15 +257,17 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
             ) : null}
           </div>
 
-          {isPendingDeXuat && (
+          {isPendingDeXuat ? (
             <p className={bv103LayoutChrome.noticeViolet}>
-              Đây là đề xuất chờ phê duyệt. Lưu sẽ <strong>phê duyệt, kích hoạt và giao</strong> theo thông tin trên.
+              Đề xuất chờ chỉ huy xử lý: <strong>Phê duyệt & giao</strong> (cần tổ + phụ trách) hoặc{" "}
+              <strong>Từ chối</strong> nếu không phù hợp — phiếu đóng <code className="text-[11px]">Đã hủy</code>, có
+              lý do trong nhật ký.
             </p>
-          )}
+          ) : null}
         </div>
       </div>
 
-      <div className="flex flex-col-reverse items-stretch justify-end gap-3 border-t border-slate-200/80 pt-5 sm:flex-row sm:items-center">
+      <div className="flex flex-col-reverse items-stretch justify-end gap-3 border-t border-slate-200/80 pt-5 sm:flex-row sm:flex-wrap sm:items-center">
         <button
           type="button"
           onClick={(e) => {
@@ -265,8 +277,22 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
           }}
           className="bv103-control-h rounded-xl border border-slate-200/90 bg-white px-6 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700 shadow-sm hover:bg-slate-50 sm:min-w-[7rem]"
         >
-          Hủy bỏ
+          Đóng
         </button>
+        {isPendingDeXuat && initialData?.id ? (
+          <button
+            type="button"
+            disabled={loading}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setRejectOpen(true);
+            }}
+            className="bv103-control-h rounded-xl border border-red-200 bg-red-50 px-6 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-red-800 shadow-sm hover:bg-red-100 disabled:opacity-50 sm:min-w-[9rem]"
+          >
+            Từ chối đề xuất
+          </button>
+        ) : null}
         <button
           type="submit"
           disabled={loading}
@@ -281,6 +307,32 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
               : "Tạo nhiệm vụ"}
         </button>
       </div>
+
+      {isPendingDeXuat && initialData?.id ? (
+        <QlcvReasonDialog
+          open={rejectOpen}
+          onOpenChange={setRejectOpen}
+          title="Từ chối đề xuất"
+          description="Chỉ huy từ chối — đề xuất không thành phiếu điều hành. Lý do được ghi vào nhật ký."
+          placeholder="Lý do không phù hợp / không duyệt…"
+          confirmLabel="Từ chối"
+          variant="danger"
+          minLength={5}
+          onConfirm={async (lyDo) => {
+            setLoading(true);
+            try {
+              await pheDuyetDeXuat(initialData.id!, false, lyDo);
+              toast.success("Đã từ chối đề xuất.");
+              setRejectOpen(false);
+              onSuccess?.();
+            } catch (err: unknown) {
+              toast.error(err instanceof Error ? err.message : "Không từ chối được.");
+            } finally {
+              setLoading(false);
+            }
+          }}
+        />
+      ) : null}
     </form>
   );
 }

@@ -5,7 +5,7 @@ import { format, parseISO, startOfMonth, subMonths } from "date-fns";
  * Trước đây 12 tháng — rút xuống để giảm khối lượng RPC; người dùng vẫn mở rộng trong UI.
  * Pilot EXPLAIN (cùng cửa sổ mặc định): `scripts/sql/pilot-dashboard-rpc-explain-hybrid.sql`.
  */
-export const BV103_ANALYTICS_DEFAULT_MONTHS = 3;
+const BV103_ANALYTICS_DEFAULT_MONTHS = 3;
 
 const monthSpanMinusOne = BV103_ANALYTICS_DEFAULT_MONTHS - 1;
 

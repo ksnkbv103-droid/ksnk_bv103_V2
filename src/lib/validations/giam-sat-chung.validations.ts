@@ -17,7 +17,7 @@ const optionalUuid = (msg: string) =>
 // Phiên giám sát (Session)
 // ============================================================
 
-export const gscSessionSchema = z.object({
+const gscSessionSchema = z.object({
   khoa_id: z.string().uuid("Khoa không hợp lệ"),
   khu_vuc_id: optionalUuid("Khu vực không hợp lệ"),
   nguoi_giam_sat_id: optionalUuid("Người giám sát không hợp lệ"),
@@ -48,19 +48,23 @@ export const gscSessionSchema = z.object({
   so_giuong_nguoi_benh: z.string().max(120).optional(),
 });
 
-export type GscSessionInput = z.infer<typeof gscSessionSchema>;
-
 // ============================================================
 // Kết quả giám sát (Result)
 // ============================================================
 
-export const gscResultSchema = z.object({
+const gscResultSchema = z.object({
   criterionId: z.string().uuid("Tiêu chí ID không hợp lệ"),
   value: z.enum(["DAT", "KHONG_DAT", "NA"], "Giá trị kết quả không hợp lệ"),
   note: z.string().nullable().optional(),
+  weightType: z.enum(["CRITICAL", "MAJOR", "MINOR"]).nullable().optional(),
+  isRedFlag: z.boolean().nullable().optional(),
+  image_url: z.string().nullable().optional(),
+  thoi_diem_ghi: z.string().nullable().optional(),
+  /** Giá trị numeric cho kieu_du_lieu='SO_LIEU' (ví dụ nhiệt độ lò TK 134.2°C). */
+  gia_tri_so: z.number().nullable().optional(),
+  /** Giá trị enum cho kieu_du_lieu='LUA_CHON' (1 trong cac_lua_chon). */
+  gia_tri_lua_chon: z.string().nullable().optional(),
 });
-
-export type GscResultInput = z.infer<typeof gscResultSchema>;
 
 // ============================================================
 // Batch write: session + results
@@ -70,5 +74,3 @@ export const gscSaveSessionSchema = z.object({
   session: gscSessionSchema,
   results: z.array(gscResultSchema).min(1, "Phải có ít nhất 1 kết quả giám sát"),
 });
-
-export type GscSaveSessionInput = z.infer<typeof gscSaveSessionSchema>;

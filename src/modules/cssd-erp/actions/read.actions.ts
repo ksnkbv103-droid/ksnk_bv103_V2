@@ -6,5 +6,3 @@ export * from "./cssd-qr.actions";
 export * from "./cssd-bao-tri-list.actions";
 export * from "./cssd-bao-tri-mutations.actions";
 export * from "./cssd-kho-hoa-chat-list.actions";
-export type { FactBaoTriRow } from "./cssd-bao-tri.types";
-export type { KhoHoaChatTonLo, KhoHoaChatGiaoDichRow } from "./cssd-kho-hoa-chat.types";

@@ -48,6 +48,8 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
       ngay_kiem_ke_gan_nhat: form.ngay_kiem_ke_gan_nhat
         ? new Date(form.ngay_kiem_ke_gan_nhat).toISOString()
         : null,
+      phan_loai_bo: form.phan_loai_bo,
+      co_ma_dinh_danh_rieng: form.co_ma_dinh_danh_rieng,
       is_active: form.is_active,
     };
     const result = await saveBoDungCuAction(payload);
@@ -86,33 +88,60 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
             onChange={(v) => setForm({ ...form, ten_bo: v })} />
         </div>
 
-        <div className="space-y-1">
-          <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Loại dụng cụ</label>
-          <select
-            value={form.loai_dung_cu_id}
-            onChange={(e) => setForm({ ...form, loai_dung_cu_id: e.target.value })}
-            disabled={loadingLoai}
-            className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs"
-          >
-            <option value="">— Chọn loại và hình thức —</option>
-            {loaiOptions.map((o) => (
-              <option key={o.id} value={o.id}>{o.ten_danh_muc}</option>
-            ))}
-          </select>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Loại dụng cụ</label>
+            <select
+              value={form.loai_dung_cu_id}
+              onChange={(e) => setForm({ ...form, loai_dung_cu_id: e.target.value })}
+              disabled={loadingLoai}
+              className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs"
+            >
+              <option value="">— Chọn loại và hình thức —</option>
+              {loaiOptions.map((o) => (
+                <option key={o.id} value={o.id}>{o.ten_danh_muc}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Khoa sử dụng chính</label>
+            <select
+              value={form.khoa_su_dung_id}
+              onChange={(e) => setForm({ ...form, khoa_su_dung_id: e.target.value })}
+              disabled={loadingKhoa}
+              className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs"
+            >
+              <option value="">— Chọn khoa sử dụng —</option>
+              {khoaOptions.map((o) => (
+                <option key={o.id} value={o.id}>{o.ten_khoa}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div className="space-y-1">
-          <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Khoa sử dụng chính</label>
-          <select
-            value={form.khoa_su_dung_id}
-            onChange={(e) => setForm({ ...form, khoa_su_dung_id: e.target.value })}
-            disabled={loadingKhoa}
-            className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs"
-          >
-            <option value="">— Chọn khoa sử dụng —</option>
-            {khoaOptions.map((o) => (
-              <option key={o.id} value={o.id}>{o.ten_khoa}</option>
-            ))}
-          </select>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Phân loại bộ dụng cụ</label>
+            <select
+              value={form.phan_loai_bo}
+              onChange={(e) => setForm({ ...form, phan_loai_bo: e.target.value })}
+              className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs"
+            >
+              <option value="PHAU_THUAT">Bộ dụng cụ Phẫu thuật</option>
+              <option value="THU_THUAT">Bộ dụng cụ Thủ thuật</option>
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Cơ chế theo dõi</label>
+            <select
+              value={form.co_ma_dinh_danh_rieng ? "true" : "false"}
+              onChange={(e) => setForm({ ...form, co_ma_dinh_danh_rieng: e.target.value === "true" })}
+              className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs"
+            >
+              <option value="true">Theo mã QR/Vòng đời riêng</option>
+              <option value="false">Cơ số chung (không dán nhãn riêng)</option>
+            </select>
+          </div>
         </div>
 
         <BoDungCuTextField label="Quy cách" value={form.quy_cach} onChange={(v) => setForm({ ...form, quy_cach: v })} />

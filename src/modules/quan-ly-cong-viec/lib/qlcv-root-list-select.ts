@@ -1,5 +1,5 @@
 /**
- * Cột view `v_fact_cong_viec_full` cho danh sách gốc (không con, is_active).
+ * Cột view `v_qlcv_cong_viec_full` cho danh sách gốc (không con, is_active).
  * Chuỗi literal `as const` để Supabase suy luận Result (không dùng `.join()` → `string`).
  * Khớp view (`cv.*` + join) — chỉ liệt kê cột tồn tại trên view.
  */

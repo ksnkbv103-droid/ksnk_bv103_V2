@@ -6,6 +6,10 @@ export type VstSessionRow = { id?: string; khoa_id?: string; nguoi_giam_sat_id?:
 export type VstObservationLite = { session_id?: string; hanh_dong?: string; [key: string]: unknown };
 
 export function vstReadErrorMessage(error: unknown): string {
+  if (error && typeof error === "object") {
+    const err = error as Record<string, unknown>;
+    if (typeof err.message === "string") return err.message;
+  }
   return error instanceof Error ? error.message : "Lỗi không xác định";
 }
 
@@ -27,6 +31,7 @@ export type VstHistoryRow = Record<string, unknown> & {
   nguoi_giam_sat_id?: string;
   hinh_thuc_giam_sat?: string;
   cach_thuc_giam_sat?: string;
+  ma_khoa: string;
   khoa_name: string;
   khu_name: string;
   ng_gs_ten: string;
@@ -56,7 +61,8 @@ export function enrichVstSessionRows(rows: Record<string, unknown>[]): VstHistor
     return {
       ...s,
       id: String(s.id),
-      khoa_name: String((s.danh_muc_khoa as { ten_danh_muc?: string } | undefined)?.ten_danh_muc || "").trim() || "---",
+      ma_khoa: String((s.ma_khoa_phong as string) || "").trim(),
+      khoa_name: String((s.danh_muc_khoa as { ten_danh_muc?: string } | undefined)?.ten_danh_muc || (s.ten_khoa_phong as string) || "").trim() || "---",
       khu_name: String((s.danh_muc_khu_vuc as { ten_danh_muc?: string } | undefined)?.ten_danh_muc || "").trim(),
       ng_gs_ten: String((s.nguoi_giam_sat as { ho_ten?: string } | undefined)?.ho_ten || "").trim(),
       ma_hien_thi: vstSessionDisplayRef(String(s.id), ngayt || null),

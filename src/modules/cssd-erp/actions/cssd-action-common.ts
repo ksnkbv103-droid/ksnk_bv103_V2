@@ -10,7 +10,6 @@ import {
   revalidateCssdWorkflowSurfaces,
   safeRevalidateCssdPath,
 } from "@/lib/cssd-server-common";
-import { CSSD_ROUTES } from "@/lib/cssd-routes";
 
 /** SSOT: [`../workflow/domain/cssd-stations.ts`](../workflow/domain/cssd-stations.ts) */
 export const STEPS: Station[] = [...WORKFLOW_STEPS];
@@ -27,10 +26,4 @@ export {
   safeRevalidateCssdPath,
 };
 
-/** @deprecated Dùng `revalidateCssdWorkflowSurfaces` hoặc helper theo ngữ cảnh. */
-export function safeRevalidate(path: string) {
-  safeRevalidateCssdPath(path);
-  if (path === CSSD_ROUTES.erpRoot || path.startsWith("/cssd-erp")) {
-    revalidateCssdWorkflowSurfaces();
-  }
-}
+export { appendQuyTrinhException } from "../shared/application/cssd-quy-trinh-exceptions";

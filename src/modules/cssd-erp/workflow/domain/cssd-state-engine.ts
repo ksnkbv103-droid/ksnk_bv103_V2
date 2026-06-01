@@ -1,3 +1,8 @@
+/**
+ * Client/app mirror của luật chuyển trạm CSSD.
+ * SSOT runtime: RPC `rpc_scan_workflow_station` (DB). Hàm `validateStationAdvance` dùng
+ * pre-check app + contract test — giữ đồng bộ khi đổi luồng trạm.
+ */
 import type { Station } from "../../types/cssd.types";
 import { WORKFLOW_STEPS, previousWorkflowStation, stepIndex } from "./cssd-stations";
 

@@ -1,7 +1,7 @@
 /**
  * SSOT layout / form surface toàn BV103 (mức 0 — chỉ chuỗi class).
  * Module: compose thêm trong `lib/<module>-*-chrome.ts` hoặc import trực tiếp.
- * @see docs/specs/working/BV103_LAYOUT_PRIMITIVES.md
+ * @see docs/modules/giam-sat/layout-primitives.md
  */
 
 const panelSurface =

@@ -18,7 +18,7 @@ export async function checkStaffSessionAllowed() {
     const getCachedCheck = unstable_cache(
       async (userId: string) => {
         const { data: row, error } = await supabase
-          .from("v_auth_user_permissions")
+          .from("v_sys_user_permissions")
           .select("staff_id, is_active")
           .eq("auth_user_id", userId)
           .maybeSingle();

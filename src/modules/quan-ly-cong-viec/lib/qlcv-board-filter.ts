@@ -1,4 +1,4 @@
-import { isChoNghiemThuHoanThanh, isChoNhanViec, isDeXuatChoDuyet } from "./qlcv-workflow-display";
+import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "./qlcv-workflow-display";
 import { isBoardLaneDangLam, isBoardLaneQuaHan, type KanbanColumnId } from "./qlcv-board-lanes";
 
 export type QlcvBoardFilter =
@@ -7,7 +7,6 @@ export type QlcvBoardFilter =
   | "COMPLETED"
   | "OVERDUE"
   | "GATE_DEXUAT"
-  | "GATE_NHAN"
   | "GATE_NGHIEMTHU"
   | "NEAR_DEADLINE";
 
@@ -18,8 +17,7 @@ export function getKanbanFocusColumnForFilter(
   showProposalColumn: boolean,
 ): KanbanColumnId | null {
   if (filter == null || filter === "TOTAL") return null;
-  if (filter === "GATE_DEXUAT") return showProposalColumn ? "DE_XUAT" : "CHO_NHAN";
-  if (filter === "GATE_NHAN") return "CHO_NHAN";
+  if (filter === "GATE_DEXUAT") return showProposalColumn ? "DE_XUAT" : "DANG_LAM";
   if (filter === "GATE_NGHIEMTHU") return "CHO_DUYET";
   if (filter === "IN_PROGRESS") return "DANG_LAM";
   if (filter === "OVERDUE") return "QUA_HAN";
@@ -51,8 +49,6 @@ export function formatBoardFilterHint(f: QlcvBoardFilter): string {
       return "Cần xử lý gấp (quá hạn)";
     case "GATE_DEXUAT":
       return "Chờ phê đề xuất";
-    case "GATE_NHAN":
-      return "Chờ nhận việc";
     case "GATE_NGHIEMTHU":
       return "Chờ nghiệm thu";
     case "NEAR_DEADLINE":
@@ -66,7 +62,6 @@ export function formatBoardFilterHint(f: QlcvBoardFilter): string {
 export function matchesQlcvBoardFilter(t: Record<string, unknown>, filter: QlcvBoardFilter | null): boolean {
   if (!filter || filter === "TOTAL") return true;
   if (filter === "GATE_DEXUAT") return isDeXuatChoDuyet(t);
-  if (filter === "GATE_NHAN") return isChoNhanViec(t);
   if (filter === "GATE_NGHIEMTHU") return isChoNghiemThuHoanThanh(t);
   if (filter === "COMPLETED") return t.trang_thai === "HOAN_THANH";
   if (filter === "OVERDUE") return isBoardLaneQuaHan(t);

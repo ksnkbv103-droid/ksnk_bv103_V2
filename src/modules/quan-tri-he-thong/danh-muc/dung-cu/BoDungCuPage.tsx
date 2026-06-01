@@ -25,7 +25,7 @@ import {
 } from "../actions/bo-dung-cu.actions";
 import { DmMasterPageGuard } from "../views/dm-master-page-guard";
 
-function BoDungCuPageContent() {
+export function BoDungCuPageContent() {
   const router = useRouter();
   const [data, setData] = useState<BoDungCuTableRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -137,7 +137,7 @@ function BoDungCuPageContent() {
         onCreate={openCreate}
       />
 
-      <div className="bg-white p-2 rounded-[40px] border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
+      <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
           data={data}
@@ -168,6 +168,7 @@ function BoDungCuPageContent() {
         selectedBoId={selectedBoId}
         selectedMaBo={selectedRow?.ma_bo}
         selectedTenBo={selectedRow?.ten_bo}
+        phan_loai_bo={selectedRow?.phan_loai_bo}
         boOptions={data.map((x) => ({ id: x.id, ma_bo: x.ma_bo || null, ten_bo: x.ten_bo || null }))}
         loaiOptions={loaiOptions.map((x) => ({ id: x.id, ma_danh_muc: null, ten_danh_muc: x.ten_danh_muc || null }))}
         onChanged={() => setRefreshKey((k) => k + 1)}

@@ -8,9 +8,9 @@ alwaysApply: false
 
 Trước khi thêm/sửa CRUD, import, registry:
 
-1. [`docs/specs/working/02-adr-dm-dict-domain-registry.md`](../../docs/specs/working/02-adr-dm-dict-domain-registry.md)
-2. [`docs/specs/working/04-system-boundaries-and-master-data.md`](../../docs/specs/working/04-system-boundaries-and-master-data.md)
-3. [`docs/specs/10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md)
+1. [`domain-specification.md`](../../docs/core/domain-specification.md) — MDM
+2. [`implementation-mapping.md`](../../docs/core/implementation-mapping.md) § MDM
+3. [`guides/json-import-export.md`](../../docs/reference/guides/json-import-export.md) khi import JSON
 4. Cùng rule folder: `20-master-data-placement.mdc`
 
 **Không** thêm `dict_*` mới làm chuẩn; danh mục lõi qua **domain-registry** → `dm_*`.

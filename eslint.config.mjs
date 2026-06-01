@@ -63,6 +63,22 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    files: ["src/modules/cssd-erp/**/*.ts", "src/modules/cssd-erp/**/*.tsx"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/modules/quan-tri-he-thong/danh-muc/dung-cu/*-form*", "@/modules/quan-tri-he-thong/danh-muc/thiet-bi/ThietBiMasterPage*"],
+              message: "cssd-erp: không import form/CRUD MDM — dùng read-only catalog + link Quản trị.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: [
       "src/app/cssd-erp/**/*.ts",
       "src/app/cssd-erp/**/*.tsx",
@@ -76,8 +92,10 @@ const eslintConfig = defineConfig([
       "src/app/cssd-thiet-bi/**/*.tsx",
       "src/app/cssd-hoa-chat/**/*.ts",
       "src/app/cssd-hoa-chat/**/*.tsx",
-      "src/app/cssd-tiep-nhan/**/*.ts",
-      "src/app/cssd-tiep-nhan/**/*.tsx",
+      "src/app/cssd-erp/batch/**/*.ts",
+      "src/app/cssd-erp/batch/**/*.tsx",
+      "src/app/cssd-erp/report/**/*.ts",
+      "src/app/cssd-erp/report/**/*.tsx",
     ],
     rules: {
       "no-restricted-imports": [

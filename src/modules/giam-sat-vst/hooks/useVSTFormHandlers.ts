@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
 import type { MasterOption } from "@/lib/master-data/gateway";
 import type { SessionInput } from "../actions/vst-write.helpers";
-import { ActionType, MomentType, VSTObservation } from "../data";
+import { ActionType, MomentType, VSTObservation } from "../lib/vst-constants";
 import { saveVSTSession } from "../actions/vst-write-save-session.actions";
 import { toast } from "sonner";
 import {
@@ -21,7 +21,7 @@ import { buildVstObservations, validateOpportunityInput } from "../lib/vst-form-
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 
 export type { ExtendedOpportunity, VSTFormPerson, VSTOppAssessmentField, VSTPersonUpdatableField };
-export { createNewOpp, createDefaultVSTFormPersons };
+export { createDefaultVSTFormPersons };
 
 export function useVSTFormHandlers(
   persons: VSTFormPerson[],
@@ -184,6 +184,21 @@ export function useVSTFormHandlers(
     const validationMessage = validateOpportunityInput(opp);
     if (validationMessage) return toast.error(validationMessage);
     const isReplayCamera = isReplayCameraSupervisionCachThuc(session.cach_thuc_giam_sat);
+    
+    // Kiểm soát tính tuần tự thời gian cho cùng một nhân viên y tế (ở chế độ trực tiếp)
+    if (!isReplayCamera) {
+      const prevOpps = newPersons[pIdx].opportunities
+        .slice(0, oIdx)
+        .filter((o) => o.isCollapsed && o.thoi_gian_ghi_nhan);
+      if (prevOpps.length > 0) {
+        const lastPrevTime = new Date(prevOpps[prevOpps.length - 1].thoi_gian_ghi_nhan!).getTime();
+        const currTime = opp.thoi_gian_ghi_nhan ? new Date(opp.thoi_gian_ghi_nhan).getTime() : Date.now();
+        if (currTime < lastPrevTime - 1000) { // cho phép lệch 1 giây dung sai máy tính
+          return toast.error("Thời gian ghi nhận cơ hội này không được nhỏ hơn cơ hội trước đó của nhân viên!");
+        }
+      }
+    }
+
     const allOpps = newPersons.flatMap((p) => p.opportunities).filter((o) => o.isCollapsed && o.thoi_gian_ghi_nhan);
     if (allOpps.length === 0 && !isReplayCamera) {
       const firstTime = opp.thoi_gian_ghi_nhan || new Date().toISOString();

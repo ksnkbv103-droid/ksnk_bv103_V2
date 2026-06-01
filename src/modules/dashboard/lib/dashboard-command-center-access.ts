@@ -24,24 +24,3 @@ export async function verifyDashboardOverviewWidget() {
     { moduleKey: DASHBOARD_CC_WIDGET.OVERVIEW, action: "view" },
   ]);
 }
-
-export async function verifyDashboardSupervisionWidget() {
-  await verifyAnyPermission([
-    { moduleKey: "DASHBOARD", action: "view" },
-    { moduleKey: DASHBOARD_CC_WIDGET.SUPERVISION, action: "view" },
-  ]);
-}
-
-export async function verifyDashboardGapWidget() {
-  await verifyAnyPermission([
-    { moduleKey: "DASHBOARD", action: "view" },
-    { moduleKey: DASHBOARD_CC_WIDGET.GAP, action: "view" },
-  ]);
-}
-
-export async function verifyDashboardExportWidget() {
-  await verifyAnyPermission([
-    { moduleKey: "DASHBOARD", action: "view" },
-    { moduleKey: DASHBOARD_CC_WIDGET.EXPORT, action: "export" },
-  ]);
-}

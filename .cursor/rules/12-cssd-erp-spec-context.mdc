@@ -8,9 +8,9 @@ alwaysApply: false
 
 Trước khi chốt thiết kế / sửa lớn server action hoặc schema CSSD:
 
-1. [`docs/specs/working/03-journeys-and-flows-catalog.md`](../../docs/specs/working/03-journeys-and-flows-catalog.md) — luồng CSSD (làm sạch / HLD / tiệt khuẩn, mẻ, quét).
-2. [`docs/specs/working/07-physical-erd-specification.md`](../../docs/specs/working/07-physical-erd-specification.md) — khi đụng bảng/FK vật lý.
-3. [`docs/specs/10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md) — tên bảng/cột thật BV103.
-4. `AGENTS.md` — ranh giới: CSSD không ôm master data nền; master qua `quan-tri-he-thong/danh-muc`.
+1. [`domain-specification.md`](../../docs/core/domain-specification.md) — luồng CSSD.
+2. [`implementation-mapping.md`](../../docs/core/implementation-mapping.md) — bảng/cột thật.
+3. [`read-minimum.md`](../../docs/core/read-minimum.md).
+4. `AGENTS.md` — CSSD **read-only** catalog tại `/cssd-dung-cu`; CRUD DM tại `quan-tri-he-thong/danh-muc`. Gate: `npm run imports:cssd-mdm`.
 
 **Luật nghiệp vụ:** tiệt khuẩn theo nhiệt/phi nhiệt; bộ chỉ đạt vô khuẩn khi **mọi** thành phần/mẻ liên quan đạt — không shortcut trong action.

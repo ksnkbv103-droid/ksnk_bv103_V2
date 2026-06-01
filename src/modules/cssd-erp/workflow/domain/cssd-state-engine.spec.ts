@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { validateStationAdvance } from "./cssd-state-engine";
 import { previousWorkflowStation } from "./cssd-stations";
 
+/** Contract mirror — SSOT runtime: RPC `rpc_scan_workflow_station`. */
 describe("cssd-state-engine", () => {
   it("blocks TIET_KHUAN as scan target", () => {
     expect(

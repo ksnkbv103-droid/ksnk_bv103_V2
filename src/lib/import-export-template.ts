@@ -6,14 +6,7 @@ type TemplatePreset = {
 const TECHNICAL_FIELDS = new Set(["id", "created_at", "updated_at", "__excel_row__"]);
 const EXCLUDED_EXPORT_FIELDS_BY_TABLE: Record<string, Set<string>> = {
   dm_khoa_phong: new Set(["khoi_id"]),
-  dm_khoi_khoa: new Set(["legacy_danh_muc_id"]),
-  dm_to_cong_tac: new Set(["legacy_danh_muc_id"]),
-  dm_chuc_vu: new Set(["legacy_danh_muc_id"]),
-  dm_chuc_danh: new Set(["legacy_danh_muc_id"]),
   dm_roles: new Set<string>(),
-  dm_khu_vuc_giam_sat: new Set(["legacy_danh_muc_id"]),
-  dm_nghe_nghiep: new Set(["legacy_danh_muc_id"]),
-  dm_loai_dung_cu: new Set(["legacy_danh_muc_id"]),
   dm_bo_dung_cu: new Set(["loai_dung_cu_id", "khoa_su_dung_id"]),
   dm_bo_dung_cu_chi_tiet: new Set(["bo_dung_cu_id", "loai_dung_cu_id"]),
   mdm_nhan_su: new Set([

@@ -1,16 +1,13 @@
 // src/modules/quan-tri-he-thong/danh-muc/hoa-chat/HoaChatMasterPage.tsx
 "use client";
 import React, { useEffect, useState } from "react";
-import { Plus, Beaker, Download, Upload, Loader2 } from "lucide-react";
-import { useImportExport } from "@/hooks/useImportExport";
+import { Plus, Beaker, Upload, BarChart2, ChevronDown, ChevronUp } from "lucide-react";
+import HoaChatStatsPanel from "./HoaChatStatsPanel";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
-import { smartImportData } from "../actions/smart-import.actions";
-import { getMasterDataExport } from "../actions/export.actions";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import HoaChatFormModal from "./hoa-chat-form-modal";
-import { HOA_CHAT_COLUMN_MAP } from "./hoa-chat-import";
+import MasterDataImportExportModal from "../../components/MasterDataImportExportModal";
 import { getHoaChatColumns } from "./hoa-chat-columns";
 import type { HoaChatRow } from "../actions/hoa-chat.types";
 import {
@@ -22,12 +19,13 @@ import {
 import { DmMasterPageGuard } from "../views/dm-master-page-guard";
 
 function HoaChatMasterPageContent() {
-  const router = useRouter();
   const [data, setData] = useState<HoaChatRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
   const [editing, setEditing] = useState<HoaChatRow | null>(null);
+  const [showStats, setShowStats] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -70,34 +68,44 @@ function HoaChatMasterPageContent() {
     },
   });
 
-  const { exportTemplate, handleFileUpload, isImporting, triggerImport, fileInputRef } = useImportExport({
-    moduleKey: "HOA_CHAT",
-    tableName: "dm_hoa_chat",
-    displayName: "Hóa chất",
-    uniqueKey: "ma_hoa_chat",
-    columnMapping: HOA_CHAT_COLUMN_MAP,
-    onGetData: () => getMasterDataExport("dm_hoa_chat", "ma_hoa_chat"),
-    onImport: (d) => smartImportData({ tableName: "dm_hoa_chat", uniqueKey: "ma_hoa_chat", codePrefix: "HC" }, d),
-    onSuccess: () => {
-      setRefreshKey((k) => k + 1);
-      router.refresh();
-    },
-  });
+  // Removed legacy useImportExport hook to improve bundle size and maintain cleanliness
   const columns = getHoaChatColumns(actionUi);
   const modalKey = editing?.id ? `edit-${editing.id}` : "create";
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm gap-4">
-        <div><h1 className="text-2xl font-black text-[#026f17] uppercase tracking-tighter flex items-center gap-3"><Beaker /> Hóa chất & Vật tư</h1><p className="text-slate-400 font-bold text-[9px] uppercase tracking-widest mt-1 italic leading-none">V5.0 FINAL — Standardized Sync</p></div>
-        <div className="flex gap-3 w-full sm:w-auto">
-          <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} accept=".xlsx, .xls" className="hidden" />
-          <button onClick={triggerImport} disabled={isImporting} className="h-12 px-5 bg-amber-50 text-amber-600 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 touch-manipulation">{isImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />} Import dữ liệu</button>
-          <button onClick={() => exportTemplate()} className="h-12 px-5 bg-slate-50 text-slate-500 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 hover:bg-slate-100 touch-manipulation"><Download size={16} /> Export dữ liệu mẫu</button>
-          <button onClick={() => { setEditing(null); setFormOpen(true); }} className="h-12 px-6 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase text-[10px] shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 hover:opacity-90 touch-manipulation"><Plus size={18} /> Thêm mới</button>
+        <div>
+          <h1 className="text-2xl font-black text-[#026f17] uppercase tracking-tighter flex items-center gap-3">
+            <Beaker /> Hóa chất &amp; Vật tư
+          </h1>
+          <p className="text-slate-400 font-bold text-[9px] uppercase tracking-widest mt-1 leading-none">
+            Danh mục hóa chất, vật tư, test kit sử dụng trong khoa KSNK
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <button
+            onClick={() => setShowStats(v => !v)}
+            className="h-10 px-4 rounded-xl border border-slate-200 bg-white text-slate-600 font-black uppercase text-[10px] flex items-center gap-2 hover:bg-slate-50 transition-all"
+          >
+            <BarChart2 size={15} />
+            Thống kê
+            {showStats ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+          </button>
+          <button
+            onClick={() => setImportModalOpen(true)}
+            className="h-10 px-4 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 touch-manipulation"
+          >
+            <Upload size={15} /> Nhập/Xuất Excel
+          </button>
+          <button onClick={() => { setEditing(null); setFormOpen(true); }} className="h-10 px-5 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase text-[10px] shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 hover:opacity-90 touch-manipulation"><Plus size={16} /> Thêm mới</button>
         </div>
       </header>
-      <div className="bg-white p-2 rounded-[40px] border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
+
+      {/* Thống kê tóm tắt */}
+      {showStats && !loading && <HoaChatStatsPanel data={data} />}
+
+      <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
           data={data}
@@ -125,6 +133,14 @@ function HoaChatMasterPageContent() {
           setEditing(null);
         }}
         onSaved={() => setRefreshKey((k) => k + 1)}
+      />
+      <MasterDataImportExportModal
+        isOpen={importModalOpen}
+        onClose={() => {
+          setImportModalOpen(false);
+          setRefreshKey((k) => k + 1);
+        }}
+        type="hoa-chat"
       />
     </div>
   );

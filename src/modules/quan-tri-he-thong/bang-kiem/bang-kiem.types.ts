@@ -19,7 +19,7 @@ export type DanhMucBangKiem = {
   ten_bk?: string;
   ten_bang_kiem?: string;
   mo_ta?: string | null;
-  nhom_chuyen_de?: string | null;
+  phan_loai_chuyen_mon?: string | null;
   loai_hinh_giam_sat?: string | null;
   is_active?: boolean;
   tieu_chi_bang_kiem?: TieuChiBangKiem[];

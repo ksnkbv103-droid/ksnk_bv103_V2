@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-export const cssdQrHubCodeSchema = z
+const cssdQrHubCodeSchema = z
   .string()
   .trim()
   .min(1, "Thiếu mã quét.")
   .transform((v) => v.toUpperCase());
 
-export const cssdQrHubTargetTypeSchema = z.enum(["INSTRUMENT_SET", "MACHINE", "UNKNOWN"]);
+const cssdQrHubTargetTypeSchema = z.enum(["INSTRUMENT_SET", "MACHINE", "UNKNOWN"]);
 
 export const cssdQrHubResolvedSchema = z.object({
   targetType: cssdQrHubTargetTypeSchema,

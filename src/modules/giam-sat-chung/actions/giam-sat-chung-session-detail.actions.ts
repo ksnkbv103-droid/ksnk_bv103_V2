@@ -7,6 +7,10 @@ import { GSC_RESULTS_ROW_SELECT, GSC_SESSIONS_FULL_DETAIL_SELECT } from "../lib/
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 
 function getErrorMessage(error: unknown): string {
+  if (error && typeof error === "object") {
+    const err = error as Record<string, unknown>;
+    if (typeof err.message === "string") return err.message;
+  }
   return error instanceof Error ? error.message : "Lỗi không xác định";
 }
 
@@ -24,7 +28,7 @@ export async function getGiamSatChungSessionForViewBundle(sessionId: string) {
 
     // 1. Fetch Session Metadata from View (Smart DB pattern)
     const { data: ses, error: sErr } = await supabase
-      .from("v_fact_giam_sat_chung_sessions_full")
+      .from("v_gstt_giam_sat_chung_sessions_full")
       .select(GSC_SESSIONS_FULL_DETAIL_SELECT)
       .eq("id", id)
       .single();
@@ -41,17 +45,20 @@ export async function getGiamSatChungSessionForViewBundle(sessionId: string) {
       }
     }
 
-    // 2. Fetch Results
-    const { data: rs, error: rErr } = await supabase
-      .from("fact_giam_sat_chung_results")
-      .select(GSC_RESULTS_ROW_SELECT)
-      .eq("session_id", id);
-    
-    if (rErr) throw rErr;
+    // 2. Map Results from JSONB column
+    const rawResults = (ses.results_jsonb as any[]) || [];
+    const rs = rawResults.map((r: any) => ({
+      criterion_id: r.criterion_id,
+      value: r.value,
+      note: r.note,
+      weight_type: r.weight_type,
+      is_red_flag: r.is_red_flag,
+      image_url: r.image_url,
+    }));
 
     // 3. Enrich and Map back to expected format
     const enriched = enrichGscHistoryRows([ses as Record<string, unknown>])[0];
-    const row = { ...enriched, results: rs || [] };
+    const row = { ...enriched, results: rs };
     
     return { success: true as const, data: row };
   } catch (error: unknown) {

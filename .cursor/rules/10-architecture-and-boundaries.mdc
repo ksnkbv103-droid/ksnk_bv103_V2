@@ -18,7 +18,7 @@ alwaysApply: false
 
 ## Domain spec alignment (BV103)
 
-- Canonical engineering rules remain `AGENTS.md`; narrative BRD/DDD/NFR/UI lâm sàng live under `docs/specs/` (see `docs/specs/README.md`, split files `01–09`, `docs/specs/10-bv103-implementation-mapping.md`, and **đọc tối thiểu:** `docs/specs/READ_MINIMUM_BY_CHANGE.md`).
+- Canonical: `AGENTS.md` + [`docs/README.md`](../../docs/README.md) + [`domain-specification.md`](../../docs/core/domain-specification.md) + [`implementation-mapping.md`](../../docs/core/implementation-mapping.md). **Đọc tối thiểu:** [`read-minimum.md`](../../docs/core/read-minimum.md).
 - **CSSD sterilization split:** business rules for heat vs non-heat paths and batch completeness belong in server actions / DB constraints—no bypassing validated transitions.
 - **Hand hygiene / multi-subject audits:** when the product requires it, cap concurrent observed subjects per session at **three** unless an explicit new requirement changes it.
 - **Sensitive facts:** prefer amendment flows and soft-delete patterns over hard deletes for traceability (no project-wide Postgres change-log table; `fact_activity_log` removed).

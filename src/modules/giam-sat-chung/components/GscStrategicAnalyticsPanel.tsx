@@ -25,7 +25,7 @@ import {
 import { AnalyticsFilterBar } from "@/components/shared/AnalyticsFilterBar";
 import { GscComplianceDashboardLayout } from "@/modules/dashboard/components/gsc-compliance/GscComplianceDashboardLayout";
 import { getGscComplianceV4Action } from "../actions/gsc-compliance-v4.actions";
-import type { DashboardV4Payload } from "@/modules/dashboard/strategic-dashboard-v3.types";
+import type { DashboardV4Payload } from "@/modules/dashboard/strategic-dashboard-v4.types";
 import type { GscStrategicPayload } from "../types/gsc-strategic.types";
 
 type FilterProps = {

@@ -8,6 +8,10 @@ export const KSNK_RBAC_ROLE_NAMES = [
   "MANG_LUOI_KSNK",
   "TO_TRUONG_MANG_LUOI_KSNK",
   "THANH_VIEN_MANG_LUOI_KSNK",
+  // Reform v4 (Slice 9): hai vai trò tiếp nhận ticket RCA. Khớp tên thực tế trong
+  // `dm_khoa_phong`: `QLCL` = Ban Quản lý Chất lượng Bệnh viện, `C15` = Khoa Trang bị.
+  "BAN_QLCL",
+  "KHOA_TRANG_BI",
 ] as const;
 
 
@@ -72,6 +76,8 @@ function isKsnkStaffPerm(p: PermRow): boolean {
     return ["view", "create", "edit", "delete", "import"].includes(a);
   }
 
+
+
   if (m === "BAO_SU_CO") return ["view", "create"].includes(a);
 
   if (["GIAM_SAT_VST", "GIAM_SAT_CHUNG", "GIAM_SAT_NKBV"].includes(m)) {
@@ -113,31 +119,59 @@ function isKsnkStaffPerm(p: PermRow): boolean {
   return false;
 }
 
+/**
+ * Vai trò tiếp nhận ticket RCA (reform v4, Slice 9).
+ *
+ * Quyền chung cho cả `BAN_QLCL` và `KHOA_TRANG_BI`:
+ *  - Dashboard family view + export → đọc báo cáo compliance.
+ *  - GIAM_SAT_CHUNG / GIAM_SAT_VST `view` → mở session/observation gốc của ticket.
+ *  - MDM_FAILURE_REASON `view` → tra danh mục căn nguyên lỗi.
+ *  - RCA_TICKET `view, assign, close` → chủ trì xử lý ticket.
+ *  - DANH_MUC `view` → tra mã khoa/phòng cần tham chiếu.
+ *
+ * Lọc theo `phong_ban_xu_ly` đúng phòng được thực thi ở tầng app (queue UI).
+ * RLS hiện tại cho phép bất cứ ai có RCA_TICKET.assign/close cập nhật ticket;
+ * khi cần siết, bổ sung policy lọc theo `phong_ban_xu_ly` trong migration sau.
+ */
+function isRcaHandlerPerm(p: PermRow): boolean {
+  const m = mod(p);
+  const a = act(p);
+  if (isDashboardFamilyView(p)) return true;
+  if (isDashboardCcExport(p)) return true;
+  if (m === "DANH_MUC" && a === "view") return true;
+  if (m === "GIAM_SAT_CHUNG" && a === "view") return true;
+  if (m === "GIAM_SAT_VST" && a === "view") return true;
+  return false;
+}
+
 const matchers: Record<string, (p: PermRow) => boolean> = {
   NHAN_VIEN_KSNK: isKsnkStaffPerm,
   HOI_DONG_KSNK: isCouncilPerm,
   MANG_LUOI_KSNK: isNetworkOperatorPerm,
   TO_TRUONG_MANG_LUOI_KSNK: isNetworkOperatorPerm,
   THANH_VIEN_MANG_LUOI_KSNK: isNetworkOperatorPerm,
+  BAN_QLCL: isRcaHandlerPerm,
+  KHOA_TRANG_BI: isRcaHandlerPerm,
 };
 
 /** Đồng bộ vai trò KSNK + ma trận quyền mặc định (idempotent). */
 export async function syncKsnkRolePermissionMappings(supabase: SupabaseClient) {
   const now = new Date().toISOString();
-  const roleRows = KSNK_RBAC_ROLE_NAMES.map((name) => {
-    const description =
-      name === "NHAN_VIEN_KSNK"
-        ? "Nhân viên khoa Kiểm soát nhiễm khuẩn"
-        : name === "HOI_DONG_KSNK"
-          ? "Hội đồng KSNK — chủ yếu xem báo cáo"
-          : name === "MANG_LUOI_KSNK"
-            ? "Mạng lưới KSNK (vai trò hệ thống)"
-            : name === "TO_TRUONG_MANG_LUOI_KSNK"
-              ? "Tổ trưởng tổ mạng lưới KSNK theo khoa"
-              : "Thành viên mạng lưới KSNK theo khoa";
+  const ROLE_DESCRIPTIONS: Record<(typeof KSNK_RBAC_ROLE_NAMES)[number], string> = {
+    NHAN_VIEN_KSNK: "Nhân viên khoa Kiểm soát nhiễm khuẩn",
+    HOI_DONG_KSNK: "Hội đồng KSNK — chủ yếu xem báo cáo",
+    MANG_LUOI_KSNK: "Mạng lưới KSNK (vai trò hệ thống)",
+    TO_TRUONG_MANG_LUOI_KSNK: "Tổ trưởng tổ mạng lưới KSNK theo khoa",
+    THANH_VIEN_MANG_LUOI_KSNK: "Thành viên mạng lưới KSNK theo khoa",
+    BAN_QLCL: "Ban Quản lý Chất lượng Bệnh viện — tiếp nhận ticket RCA hệ thống",
+    KHOA_TRANG_BI: "Khoa Trang bị — tiếp nhận ticket RCA về thiết bị/nguồn lực",
+  };
 
-    return { name, description, updated_at: now };
-  });
+  const roleRows = KSNK_RBAC_ROLE_NAMES.map((name) => ({
+    name,
+    description: ROLE_DESCRIPTIONS[name],
+    updated_at: now,
+  }));
 
   const { error: roleUpsertErr } = await supabase.from("dm_roles").upsert(roleRows, {
     onConflict: "name",

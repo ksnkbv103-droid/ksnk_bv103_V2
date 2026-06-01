@@ -10,6 +10,7 @@ export type GscHistoryRow = Record<string, unknown> & {
   bang_kiem_label?: string;
   ngay_giam_sat?: string;
   thoi_gian_ghi_nhan?: string;
+  ma_khoa: string;
   khoa_name: string;
   khu_name: string;
   gs_ho_ten: string;
@@ -28,6 +29,7 @@ export function enrichGscHistoryRows(rows: Record<string, unknown>[]): GscHistor
       dateLabel = Number.isFinite(parsed.getTime()) ? format(parsed, "dd/MM/yyyy") : "—";
     }
 
+    const maKhoaFlat = String(row.ma_khoa_phong || "").trim();
     const khoaNameFlat = String(row.ten_khoa_phong || "").trim();
     const khuNameFlat = String(row.ten_khu_vuc_giam_sat || "").trim();
     const nguoiGsFlat = String(row.ten_nguoi_giam_sat || "").trim();
@@ -40,6 +42,7 @@ export function enrichGscHistoryRows(rows: Record<string, unknown>[]): GscHistor
       ...row,
       id,
       bang_kiem_label: bangKiemLabel,
+      ma_khoa: maKhoaFlat,
       khoa_name:
         khoaNameFlat ||
         String((row.danh_muc_khoa as { ten_danh_muc?: string } | undefined)?.ten_danh_muc || "").trim() ||

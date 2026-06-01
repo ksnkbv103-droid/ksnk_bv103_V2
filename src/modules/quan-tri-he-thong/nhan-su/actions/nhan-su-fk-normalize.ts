@@ -1,4 +1,3 @@
-export { normalizeNullableFk } from "@/lib/master-data/fk-normalize";
 
 /** Gợi ý hành động khi Postgres báo FK khoa sai (thường do DB chưa chạy migration P1). */
 export function formatHoSoKhoaFkViolation(message: string | undefined): string {

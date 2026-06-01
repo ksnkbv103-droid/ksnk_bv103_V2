@@ -11,4 +11,5 @@ export type HoaChatRow = {
   han_su_dung: string | null;
   ghi_chu: string | null;
   is_active: boolean;
+  specs?: Record<string, any> | null;
 };

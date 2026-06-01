@@ -17,7 +17,7 @@ async function aggregateTonTheoLo(
   supabase: ReturnType<typeof createAdminSupabaseClient>,
 ): Promise<{ success: true; data: TonAggregateRow[] } | { success: false; error: string }> {
   const { data: rawRows, error } = await supabase
-    .from("v_fact_kho_hoa_chat_ton_lo")
+    .from("v_cssd_kho_hoa_chat_ton_lo")
     .select("dm_hoa_chat_id, ma_lo, han_su_dung, ton_so_luong");
   if (error) return { success: false, error: mapFkError(error.message) };
   const data = (rawRows || []).map((row: Record<string, unknown>) => ({
@@ -88,7 +88,7 @@ export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number }):
     await verifyPermission("KSNK_KHO_HOACHAT", "view");
     const lim = Math.min(500, Math.max(10, Number(params?.limit) || 150));
     const { data: rows, error } = await supabase
-      .from("fact_kho_hoa_chat_giao_dich")
+      .from("cssd_fact_kho_hoa_chat_giao_dich")
       .select("id, ma_phieu, dm_hoa_chat_id, loai_giao_dich, so_luong_co_dau, ma_lo, han_su_dung, ghi_chu, created_at")
       .eq("is_active", true)
       .order("created_at", { ascending: false })

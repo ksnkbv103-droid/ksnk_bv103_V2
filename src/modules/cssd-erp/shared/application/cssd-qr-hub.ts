@@ -15,7 +15,7 @@ export async function resolveCssdCodeWithClient(
   const preClassified = classifyCssdCode(code);
 
   const workflowResult = await supabase
-    .from("fact_quy_trinh")
+    .from("cssd_fact_quy_trinh")
     .select("id")
     .eq("ma_qr_quy_trinh", code)
     .eq("is_active", true)

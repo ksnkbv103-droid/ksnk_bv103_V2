@@ -1,8 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Station } from "../../types/cssd.types";
 import { buildQuyTrinhTramPatch } from "../../lib/cssd-tram-persist";
-import { previousWorkflowStation } from "../domain/cssd-state-engine";
+import { previousWorkflowStation, validateStationAdvance } from "../domain/cssd-state-engine";
 import { insertCssdLifecycleEvent } from "../../shared/application/cssd-lifecycle-events";
+import { assertLedgerDuChoCapPhat, syncThanhPhanTuTemplate } from "./cssd-asset-ledger";
+import { assertMergeGateForCapPhat } from "./cssd-merge-gate";
 
 export type WorkflowQuyTrinhInput = {
   id: string;
@@ -19,7 +21,7 @@ export async function fetchLatestActiveWorkflowByQr(
   const qr = String(maQR || "").trim().toUpperCase();
   if (!qr) return null;
   const { data, error } = await supabase
-    .from("v_fact_quy_trinh_full")
+    .from("v_cssd_quy_trinh_full")
     .select("*")
     .eq("ma_qr_quy_trinh", qr)
     .eq("is_active", true)
@@ -42,15 +44,44 @@ export async function executeWorkflowStationScan(
     operatorLabel?: string;
     extraPayload?: Record<string, any>;
   },
-): Promise<{ tenBoDungCu: string }> {
+): Promise<{ tenBoDungCu: string; ledgerWarning?: string }> {
   const qr = String(opts.maQR || "").trim().toUpperCase();
   const operator = String(opts.operatorLabel || "").trim() || "CSSD";
   const targetStation = opts.station;
+  let ledgerWarning: string | undefined;
+
+  const quyTrinh =
+    opts.quyTrinh?.id
+      ? opts.quyTrinh
+      : (await fetchLatestActiveWorkflowByQr(supabase, qr)) ?? opts.quyTrinh;
+
+  const currentStatus = String(quyTrinh.ma_trang_thai_hien_tai || "").trim();
+  if (currentStatus) {
+    const advance = validateStationAdvance({
+      currentStatus: currentStatus as Station,
+      targetStation,
+    });
+    if (!advance.ok) throw new Error(advance.message);
+  }
+
+  // BOM runtime sync tại trạm Đóng gói (P0 QLDCPT)
+  if (targetStation === "DONG_GOI" && quyTrinh.id) {
+    const boId = String(quyTrinh.bo_dung_cu_id || "").trim();
+    if (boId) {
+      const sync = await syncThanhPhanTuTemplate(supabase, quyTrinh.id, boId);
+      if (!sync.ok) throw new Error(sync.message);
+    }
+  }
 
   // 1. Kiểm tra an toàn trước khi quét (Safety Lock cho Cấp phát)
+  if (targetStation === "CAP_PHAT" && quyTrinh.id) {
+    const mergeGate = await assertMergeGateForCapPhat(supabase, quyTrinh);
+    if (!mergeGate.ok) throw new Error(mergeGate.message);
+  }
+
   if (targetStation === "CAP_PHAT") {
     const { data: qt } = await supabase
-      .from("fact_quy_trinh")
+      .from("cssd_fact_quy_trinh")
       .select("id, lo_tiet_khuan_id, is_dong_bang")
       .eq("ma_qr_quy_trinh", qr)
       .eq("is_active", true)
@@ -65,7 +96,7 @@ export async function executeWorkflowStationScan(
       }
       
       const { data: me } = await supabase
-        .from("fact_lo_tiet_khuan")
+        .from("cssd_fact_lo_tiet_khuan")
         .select("ma_lo_tiet_khuan, ket_qua_test")
         .eq("id", qt.lo_tiet_khuan_id)
         .maybeSingle();
@@ -75,6 +106,22 @@ export async function executeWorkflowStationScan(
       }
       if (me.ket_qua_test === false) {
         throw new Error(`Mẻ tiệt khuẩn ${me.ma_lo_tiet_khuan} KHÔNG ĐẠT chuẩn. Bộ dụng cụ này phải được tái xử lý.`);
+      }
+
+      const ledger = await assertLedgerDuChoCapPhat(supabase, qt.id);
+      if (!ledger.ok) throw new Error(ledger.message);
+      if ("warning" in ledger && ledger.warning) {
+        ledgerWarning = ledger.warning;
+        const lc = await insertCssdLifecycleEvent(supabase, {
+          quy_trinh_id: qt.id,
+          ma_su_kien: "CAP_PHAT_BO_THIEU_CAU_PHAN",
+          ma_tram: "CAP_PHAT",
+          ghi_chu: ledger.warning,
+          payload: { ma_qr_quy_trinh: qr, warning: ledger.warning },
+        });
+        if (!lc.ok && !/cssd_fact_lifecycle_event|does not exist/i.test(lc.message)) {
+          throw new Error(lc.message);
+        }
       }
     }
   }
@@ -96,13 +143,17 @@ export async function executeWorkflowStationScan(
   // 3. Xử lý extraPayload (Ví dụ: Truy vết ca mổ tại trạm Cấp phát)
   if (targetStation === "CAP_PHAT" && opts.extraPayload?.ma_ca_mo_id) {
     await supabase
-      .from("fact_quy_trinh")
-      .update({ ma_ca_mo_id: String(opts.extraPayload.ma_ca_mo_id) })
+      .from("cssd_fact_quy_trinh")
+      .update({
+        metadata: {
+          ma_ca_mo_id: String(opts.extraPayload.ma_ca_mo_id),
+        },
+      })
       .eq("ma_qr_quy_trinh", qr)
       .eq("is_active", true);
   }
 
-  return { tenBoDungCu: qr };
+  return { tenBoDungCu: qr, ledgerWarning };
 }
 
 /** Trả bộ lui đúng 1 trạm (ngoại lệ vận hành có kiểm soát — không áp TK/CP). */
@@ -137,7 +188,7 @@ export async function executeRejectToPreviousStation(
 
   const tramPatch = await buildQuyTrinhTramPatch(supabase, prev);
   const { error: upErr } = await supabase
-    .from("fact_quy_trinh")
+    .from("cssd_fact_quy_trinh")
     .update({
       ...tramPatch,
       updated_at: new Date().toISOString(),

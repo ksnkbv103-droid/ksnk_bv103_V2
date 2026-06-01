@@ -6,30 +6,47 @@ const UUID_RE =
 export type BangKiemPersistFields = {
   /** FK chuẩn → dm_bang_kiem.id */
   bang_kiem_id: string;
+  loai_giam_sat: string;
 };
 
 async function lookupBangKiem(
   supabase: SupabaseClient,
   raw: unknown,
-): Promise<{ id: string; ma_bk: string | null }> {
+): Promise<{ id: string; ma_bk: string | null; loai_giam_sat: string | null }> {
   const t = String(raw ?? "").trim();
   if (!t) {
     throw new Error("Thiếu loại bảng kiểm (mã hoặc UUID danh mục).");
   }
   if (UUID_RE.test(t)) {
-    const { data, error } = await supabase.from("dm_bang_kiem").select("id, ma_bk").eq("id", t).maybeSingle();
+    const { data, error } = await supabase
+      .from("dm_bang_kiem")
+      .select("id, ma_bk, loai_giam_sat")
+      .eq("id", t)
+      .maybeSingle();
     if (error) throw error;
     if (!data?.id) {
       throw new Error("UUID bảng kiểm không tồn tại trong danh mục (dm_bang_kiem).");
     }
-    return { id: String(data.id), ma_bk: data.ma_bk ?? null };
+    return {
+      id: String(data.id),
+      ma_bk: data.ma_bk ?? null,
+      loai_giam_sat: data.loai_giam_sat ?? null,
+    };
   }
-  const { data, error } = await supabase.from("dm_bang_kiem").select("id, ma_bk").eq("ma_bk", t).maybeSingle();
+  const { data, error } = await supabase
+    .from("dm_bang_kiem")
+    .select("id, ma_bk, loai_giam_sat")
+    .eq("ma_bk", t)
+    .maybeSingle();
   if (error) throw error;
   if (!data?.id) {
     throw new Error(`Mã bảng kiểm "${t}" không khớp danh mục (dm_bang_kiem).`);
   }
-  return { id: String(data.id), ma_bk: data.ma_bk ?? null };
+  return {
+    id: String(data.id),
+    ma_bk: data.ma_bk ?? null,
+    loai_giam_sat: data.loai_giam_sat ?? null,
+  };
 }
 
 /** Mã bảng kiểm (đọc từ view / dm) — không còn cột text trên phiên GSC. */
@@ -48,5 +65,8 @@ export async function resolveBangKiemPersistFields(
   raw: unknown,
 ): Promise<BangKiemPersistFields> {
   const row = await lookupBangKiem(supabase, raw);
-  return { bang_kiem_id: row.id };
+  return {
+    bang_kiem_id: row.id,
+    loai_giam_sat: String(row.loai_giam_sat ?? "TUAN_THU").trim() || "TUAN_THU",
+  };
 }

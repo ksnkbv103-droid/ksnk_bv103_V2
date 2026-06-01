@@ -33,7 +33,7 @@ export default function SuCoBaoCaoPage() {
     );
   }
 
-  const reportHref = `${CSSD_ROUTES.erpReport}?tab=incident`;
+  const reportHref = `${CSSD_ROUTES.report}?tab=incident`;
 
   return (
     <CSSDPageShell

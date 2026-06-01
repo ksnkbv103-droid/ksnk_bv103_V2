@@ -7,6 +7,20 @@ const ROOT = process.cwd();
 const SRC_DIR = path.join(ROOT, "src");
 const TARGET_EXT = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
 
+// Bảng/view rename pilot — không dùng tên cũ khi SSOT là cssd_, gstt_, qlcv_ prefix.
+const PHYSICAL_RENAME_BLOCKLIST = [
+  "fact_quy_trinh",
+  "fact_quy_trinh_thanh_phan",
+  "fact_lo_tiet_khuan",
+  "fact_kho_giao_dich",
+  "fact_kho_chi_tiet",
+  "fact_su_co",
+  "fact_bao_tri_thiet_bi",
+  "fact_cssd_lifecycle_event",
+  "fact_cssd_dieu_chuyen_thanh_phan",
+  "fact_kho_hoa_chat_giao_dich",
+];
+
 const LEGACY_TABLES = [
   "ho_so_nhan_vien",
   "roles",
@@ -22,6 +36,7 @@ const LEGACY_TABLES = [
   "kho_chi_tiet",
   "danh_muc_bang_kiem",
   "tieu_chi_bang_kiem",
+  ...PHYSICAL_RENAME_BLOCKLIST,
 ];
 
 function walk(dir, out = []) {

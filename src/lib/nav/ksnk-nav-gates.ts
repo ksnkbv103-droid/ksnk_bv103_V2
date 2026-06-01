@@ -24,18 +24,6 @@ export const NAV_GATE_DASHBOARD: NavGate = {
     "DASHBOARD_CC_GAP",
   ],
 };
-/** Trùng quyền với action dashboard Giám sát tuân thủ (DASHBOARD + GIAM_SAT_CHUNG). */
-export const NAV_GATE_DASHBOARD_COMPLIANCE: NavGate = {
-  id: "dash-compliance",
-  moduleKeys: ["DASHBOARD", "GIAM_SAT_CHUNG"],
-  requireEveryView: true,
-};
-/** Tab NKBV trên Dashboard: cần cả quyền dashboard và module NKBV. */
-export const NAV_GATE_DASHBOARD_NKBV: NavGate = {
-  id: "dash-nkbv",
-  moduleKeys: ["DASHBOARD", "GIAM_SAT_NKBV"],
-  requireEveryView: true,
-};
 export const NAV_GATE_VST: NavGate = { id: "vst", moduleKeys: ["GIAM_SAT_VST"] };
 export const NAV_GATE_GSC: NavGate = { id: "gsc", moduleKeys: ["GIAM_SAT_CHUNG"] };
 export const NAV_GATE_NKBV: NavGate = { id: "nkbv", moduleKeys: ["GIAM_SAT_NKBV"] };

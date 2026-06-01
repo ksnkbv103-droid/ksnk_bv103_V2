@@ -1,28 +1,8 @@
-/** Xem lại băng hình — nhập ngày + Từ/Đến giờ một lần cho cả phiên (GSC + VST). */
-export const REPLAY_CAMERA_CACH_THUC_GIAM_SAT = "Giám sát lại qua camera";
+/** Chỉ “giám sát lại qua camera” — mới cần block Ngày + Từ giờ + Đến giờ ở đầu phiên (GSC + VST). */
+const REPLAY_CAMERA_CACH_THUC_GIAM_SAT = "Giám sát lại qua camera";
 
-/** Trực tiếp qua camera thời thực — không bắt buộc khung giờ đầu phiên; ghi nhận thời điểm theo từng cơ hội như tại chỗ. */
-export const LIVE_CAMERA_CACH_THUC_GIAM_SAT = "Giám sát trực tiếp qua camera";
-
-export const CAMERA_CACH_THUC_GIAM_SAT = new Set([
-  LIVE_CAMERA_CACH_THUC_GIAM_SAT,
-  REPLAY_CAMERA_CACH_THUC_GIAM_SAT,
-]);
-
-/** Trực tiếp hoặc xem lại qua camera (cả hai đều là “camera”). */
-export function isCameraSupervisionCachThuc(cachThuc: string | null | undefined): boolean {
-  const c = String(cachThuc ?? "").trim();
-  return CAMERA_CACH_THUC_GIAM_SAT.has(c);
-}
-
-/** Chỉ “giám sát lại” — mới cần block Ngày + Từ giờ + Đến giờ ở đầu phiên. */
 export function isReplayCameraSupervisionCachThuc(cachThuc: string | null | undefined): boolean {
   return String(cachThuc ?? "").trim() === REPLAY_CAMERA_CACH_THUC_GIAM_SAT;
-}
-
-/** Trực tiếp qua camera (không phải xem lại băng). */
-export function isLiveCameraSupervisionCachThuc(cachThuc: string | null | undefined): boolean {
-  return String(cachThuc ?? "").trim() === LIVE_CAMERA_CACH_THUC_GIAM_SAT;
 }
 
 function pad2(n: number): string {

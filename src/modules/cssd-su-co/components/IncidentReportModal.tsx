@@ -12,9 +12,10 @@ interface Props {
   onClose: () => void;
   station?: string;
   onSuccess?: () => void;
+  defaultGroup?: "PROCESS" | "INSTRUMENT" | "CHEMICAL" | "EQUIPMENT" | "OTHER";
 }
 
-export default function IncidentReportModal({ isOpen, onClose, station, onSuccess }: Props) {
+export default function IncidentReportModal({ isOpen, onClose, station, onSuccess, defaultGroup }: Props) {
   const { allowed } = useModulePermission("BAO_SU_CO");
   if (!isOpen || !allowed.create) return null;
 
@@ -40,6 +41,7 @@ export default function IncidentReportModal({ isOpen, onClose, station, onSucces
         <div className="overflow-y-auto p-6 pb-10">
           <SuCoReportForm
             initialStation={st}
+            initialGroup={defaultGroup}
             enabled={isOpen}
             onSubmitted={() => {
               onSuccess?.();

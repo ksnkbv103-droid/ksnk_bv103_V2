@@ -11,7 +11,7 @@ export interface BangKiemFormState {
   ma_bk: string;
   ten_bang_kiem: string;
   mo_ta: string;
-  nhom_chuyen_de: string;
+  phan_loai_chuyen_mon: string;
   loai_hinh_giam_sat: string;
   is_active: boolean;
   is_system: boolean;
@@ -79,20 +79,20 @@ export default function BangKiemFormFields({
       </div>
 
       <div className="space-y-2">
-        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nhóm chuyên đề</label>
-        <input
-          list="nhom-bk-goi-y"
-          value={formData.nhom_chuyen_de}
-          onChange={(e) => setFormData((p) => ({ ...p, nhom_chuyen_de: e.target.value }))}
+        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Phân loại chuyên môn KSNK</label>
+        <select
+          value={formData.phan_loai_chuyen_mon || "PHONG_NGUA_CHUAN"}
+          onChange={(e) => setFormData((p) => ({ ...p, phan_loai_chuyen_mon: e.target.value }))}
           disabled={formData.is_system}
           className="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-[#026f17]/20 outline-none disabled:opacity-60"
-          placeholder="VD: VST, CAN_THIEP..."
-        />
-        <datalist id="nhom-bk-goi-y">
-          {NHOM_GOI_Y.map((x) => (
-            <option key={x} value={x} />
-          ))}
-        </datalist>
+        >
+          <option value="PHONG_NGUA_CHUAN">Phòng ngừa chuẩn</option>
+          <option value="GOI_CAN_THIEP">Gói can thiệp</option>
+          <option value="XU_LY_DUNG_CU">Xử lý dụng cụ</option>
+          <option value="MOI_TRUONG_CHAT_THAI">Môi trường & Chất thải</option>
+          <option value="CHUYEN_KHOA">Chuyên khoa</option>
+          <option value="QUAN_TRI_HE_THONG">Quản trị hệ thống</option>
+        </select>
       </div>
 
       <div className="space-y-2">

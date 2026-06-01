@@ -8,6 +8,6 @@ alwaysApply: false
 
 Trước khi sửa task, minh chứng, import, notification:
 
-1. [`docs/specs/working/03-journeys-and-flows-catalog.md`](../../docs/specs/working/03-journeys-and-flows-catalog.md) — luồng công việc / mạng lưới (nếu có mục tương ứng)
-2. [`docs/specs/10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md)
-3. [`docs/specs/PREP0_UI_ACTION_DB_MATRIX.md`](../../docs/specs/PREP0_UI_ACTION_DB_MATRIX.md) khi đổi UI/action/DB
+1. [`domain-specification.md`](../../docs/core/domain-specification.md) — QLCV Track B
+2. [`implementation-mapping.md`](../../docs/core/implementation-mapping.md) § Công việc
+3. [`read-minimum.md`](../../docs/core/read-minimum.md) — đối chiếu `UI → Action → DB` trong mapping khi đổi action

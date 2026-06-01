@@ -3,9 +3,11 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LayoutGrid, List, Settings, Beaker, Building2, Users, ClipboardList, Database, Layers, IdCard, MapPin } from "lucide-react";
+import { LayoutGrid, Settings, Beaker, Building2, Users, ClipboardList, Layers, IdCard, MapPin } from "lucide-react";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import RBACMatrixView from "@/modules/quan-tri-he-thong/phan-quyen/views/RBACMatrixView";
+import AuditTrailView from "../../views/AuditTrailView";
+import MdmGovernanceView from "../../views/MdmGovernanceView";
 import { usePermission } from "@/hooks/usePermission";
 import { mdmGetTrungTamDanhMucStats } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
 import type { TrungTamDanhMucStatsPayload } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.types";
@@ -40,7 +42,7 @@ function filterRegistryHub(rows: HubRegistryRow[], q: string) {
 export default function QuanTriDanhMucPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<"DANH_MUC" | "DM_REGISTRY" | "PHAN_QUYEN">("DANH_MUC");
+  const [activeTab, setActiveTab] = useState<"DANH_MUC" | "DM_REGISTRY" | "PHAN_QUYEN" | "NHAT_KY" | "MDM_GOVERNANCE">("DANH_MUC");
   const [stats, setStats] = useState<Partial<TrungTamDanhMucStatsPayload>>({});
   const [loading, setLoading] = useState(true);
   const [registryLoaded, setRegistryLoaded] = useState(false);
@@ -53,6 +55,8 @@ export default function QuanTriDanhMucPage() {
   const phanQuyenAllowed = { view: canView("PHAN_QUYEN"), edit: canEdit("PHAN_QUYEN") };
   /** Đồng bộ với `ensureRbacAdmin`: mở/sửa ma trận cần ADMIN hoặc `PHAN_QUYEN.edit`. */
   const canConfigureRbac = isAdmin || phanQuyenAllowed.edit;
+  /** Quyền xem nhật ký audit hệ thống: ADMIN hoặc PHAN_QUYEN.view */
+  const canViewAudit = isAdmin || phanQuyenAllowed.view;
 
   useEffect(() => {
     if (!canViewDanhMuc && canConfigureRbac && activeTab !== "PHAN_QUYEN") setActiveTab("PHAN_QUYEN");
@@ -98,9 +102,13 @@ export default function QuanTriDanhMucPage() {
   }, [activeTab, registryLoaded, loading]);
 
   const masterList: MasterCardRow[] = [
-    { id: "loai", name: "Loại dụng cụ", path: "/quan-tri-he-thong/danh-muc/dung-cu/loai", stats: stats.loai, icon: <LayoutGrid className="h-5 w-5 text-emerald-600" /> },
-    { id: "bo", name: "Bộ dụng cụ", path: "/quan-tri-he-thong/danh-muc/dung-cu/bo", stats: stats.bo, icon: <Database className="h-5 w-5 text-blue-600" /> },
-    { id: "le", name: "Dụng cụ lẻ", path: "/quan-tri-he-thong/danh-muc/dung-cu/chi-tiet", stats: stats.le, icon: <List className="h-5 w-5 text-indigo-600" /> },
+    {
+      id: "dung-cu",
+      name: "Quản lý dụng cụ",
+      path: "/quan-tri-he-thong/danh-muc/dung-cu",
+      stats: { count: (stats.loai?.count || 0) + (stats.bo?.count || 0) + (stats.le?.count || 0) },
+      icon: <LayoutGrid className="h-5 w-5 text-emerald-600" />,
+    },
     { id: "tb", name: "Thiết bị và máy", path: "/quan-tri-he-thong/danh-muc/thiet-bi", stats: stats.tb, icon: <Settings className="h-5 w-5 text-slate-600" /> },
     { id: "hc", name: "Hóa chất và vật tư", path: "/quan-tri-he-thong/danh-muc/hoa-chat", stats: stats.hc, icon: <Beaker className="h-5 w-5 text-amber-600" /> },
     { id: "khoa", name: "Khoa phòng", path: "/quan-tri-he-thong/danh-muc/khoa-phong", stats: stats.khoa, icon: <Building2 className="h-5 w-5 text-rose-600" /> },
@@ -171,7 +179,7 @@ export default function QuanTriDanhMucPage() {
     );
   }
 
-  if (!canViewDanhMuc && !canConfigureRbac && (phanQuyenAllowed.view || isAdmin)) {
+  if (!canViewDanhMuc && !canConfigureRbac && !canViewAudit && (phanQuyenAllowed.view || isAdmin)) {
     return (
       <div className="app-empty-state rounded-2xl border border-amber-200 bg-amber-50/40 px-8 py-12 text-center shadow-sm">
         <p className="text-sm font-medium text-slate-800">
@@ -191,6 +199,7 @@ export default function QuanTriDanhMucPage() {
         onChange={setActiveTab}
         canAccessDmTabs={canViewDanhMuc}
         canConfigureRbac={canConfigureRbac}
+        canViewAudit={canViewAudit}
       />
 
       {activeTab === "DANH_MUC" && canViewDanhMuc ? (
@@ -228,6 +237,14 @@ export default function QuanTriDanhMucPage() {
       ) : activeTab === "PHAN_QUYEN" && canConfigureRbac ? (
         <section aria-labelledby="tab-phan-quyen">
           <RBACMatrixView />
+        </section>
+      ) : activeTab === "NHAT_KY" && canViewAudit ? (
+        <section aria-labelledby="tab-nhat-ky">
+          <AuditTrailView />
+        </section>
+      ) : activeTab === "MDM_GOVERNANCE" && canViewDanhMuc ? (
+        <section aria-labelledby="tab-mdm-governance">
+          <MdmGovernanceView />
         </section>
       ) : null}
     </div>

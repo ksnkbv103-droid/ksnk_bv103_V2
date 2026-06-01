@@ -12,26 +12,33 @@ import MeTietKhuanProcessStep from "../components/batch/me-tiet-khuan-process-st
 import { meTietKhuanBatchColumns } from "../components/batch/me-tiet-khuan-columns";
 import { useMeTietKhuanWorkflow } from "../hooks/use-me-tiet-khuan-workflow";
 import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_DATA_SURFACE } from "../shared/ui/cssd-ui-chrome";
+import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 
-export default function MeTietKhuanPage() {
+export default function MeTietKhuanPage({ suppressShell = false }: { suppressShell?: boolean } = {}) {
   const w = useMeTietKhuanWorkflow();
+  const [isIncidentOpen, setIsIncidentOpen] = React.useState(false);
 
-  if (w.step === "CREATE")
+  if (w.step === "CREATE") {
+    const createContent = (
+      <div className={`${CSSD_PAGE_OUTER} animate-in slide-in-from-bottom-6 duration-300`}>
+        <MeTietKhuanCreateStep
+          machines={w.machines}
+          machineId={w.machineId}
+          nguoiLoad={w.nguoiLoad}
+          onMachineChange={w.setMachineId}
+          onNguoiLoadChange={w.setNguoiLoad}
+          onCancel={() => w.setStep("LIST")}
+          onStart={() => void w.createMe()}
+        />
+      </div>
+    );
+    if (suppressShell) return createContent;
     return (
       <CSSDPageShell title={<span className="text-[#026f17]">Mẻ tiệt khuẩn</span>} subtitle="Thiết lập mẻ mới theo quy trình chuẩn CSSD">
-        <div className={`${CSSD_PAGE_OUTER} animate-in slide-in-from-bottom-6 duration-300`}>
-          <MeTietKhuanCreateStep
-            machines={w.machines}
-            machineId={w.machineId}
-            nguoiLoad={w.nguoiLoad}
-            onMachineChange={w.setMachineId}
-            onNguoiLoadChange={w.setNguoiLoad}
-            onCancel={() => w.setStep("LIST")}
-            onStart={() => void w.createMe()}
-          />
-        </div>
+        {createContent}
       </CSSDPageShell>
     );
+  }
 
   if (w.step === "PROCESS")
     return (
@@ -70,24 +77,24 @@ export default function MeTietKhuanPage() {
         onAddItemByCode={(code) => void w.addItem(code)}
         onConfirmBatDau={() => void w.confirmBatDau()}
         onConfirmKetThucChuTrinh={() => void w.confirmKetThucChuTrinh()}
-        onFinishQc={(isPass) => void w.finishQc(isPass)}
+        onFinishQc={(isPass, overrideThongSoMay) => void w.finishQc(isPass, overrideThongSoMay)}
       />
     );
 
-  return (
-    <CSSDPageShell
-      title={<span className="text-[#026f17]">Mẻ tiệt khuẩn</span>}
-      subtitle="Giám sát 6 chốt chặn vô khuẩn — BV103"
-      actions={
-        <button
-          type="button"
-          onClick={() => w.setStep("CREATE")}
-          className={CSSD_UI_ACTION_PRIMARY}
-        >
-          <Plus size={18} /> Mở mẻ mới
-        </button>
-      }
-    >
+  const listContent = (
+    <div className="space-y-4">
+      {suppressShell && (
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-black text-slate-700 uppercase tracking-wide">Danh sách mẻ tiệt khuẩn</h3>
+          <button
+            type="button"
+            onClick={() => w.setStep("CREATE")}
+            className={CSSD_UI_ACTION_PRIMARY}
+          >
+            <Plus size={18} /> Mở mẻ mới
+          </button>
+        </div>
+      )}
       <div className={CSSD_UI_DATA_SURFACE}>
         <AdvancedDataTable
           columns={meTietKhuanBatchColumns}
@@ -97,6 +104,41 @@ export default function MeTietKhuanPage() {
           onRowClick={w.openRowForProcess}
         />
       </div>
+    </div>
+  );
+
+  if (suppressShell) return listContent;
+
+  return (
+    <CSSDPageShell
+      title={<span className="text-[#026f17]">Mẻ tiệt khuẩn</span>}
+      subtitle="Giám sát 6 chốt chặn vô khuẩn — BV103"
+      actions={
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => w.setStep("CREATE")}
+            className={CSSD_UI_ACTION_PRIMARY}
+          >
+            <Plus size={18} /> Mở mẻ mới
+          </button>
+          <button
+            type="button"
+            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 text-xs font-black uppercase tracking-wider text-red-600 shadow-sm hover:bg-red-100 active:scale-[0.98] transition-all cursor-pointer"
+            onClick={() => setIsIncidentOpen(true)}
+          >
+            ⚠️ Báo sự cố
+          </button>
+        </div>
+      }
+    >
+      {listContent}
+      <IncidentReportModal
+        isOpen={isIncidentOpen}
+        onClose={() => setIsIncidentOpen(false)}
+        station="TIET_KHUAN"
+        defaultGroup="EQUIPMENT"
+      />
     </CSSDPageShell>
   );
 }

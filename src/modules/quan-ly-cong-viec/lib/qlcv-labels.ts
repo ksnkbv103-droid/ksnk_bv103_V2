@@ -1,6 +1,5 @@
-import { isChoNghiemThuHoanThanh, isChoNhanViec, isDeXuatChoDuyet, type CongViecLike } from "./qlcv-workflow-display";
+import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet, type CongViecLike } from "./qlcv-workflow-display";
 
-/** Nhãn ưu tiên hiển thị (không dùng mã DB thô). */
 export function formatMucDoUuTienLabel(code: string | null | undefined): string {
   const c = String(code || "TRUNG_BINH").trim().toUpperCase();
   if (c === "CAO") return "Ưu tiên cao";
@@ -8,10 +7,8 @@ export function formatMucDoUuTienLabel(code: string | null | undefined): string 
   return "Ưu tiên trung bình";
 }
 
-/** Trạng thái một dòng công việc — luôn có dấu, không ASCII hóa. */
 export function getCongViecTrangThaiLabel(t: CongViecLike & { trang_thai?: string | null }): string {
   if (isDeXuatChoDuyet(t)) return "Đề xuất chờ duyệt";
-  if (isChoNhanViec(t)) return "Chờ nhận việc";
   if (isChoNghiemThuHoanThanh(t)) return "Chờ nghiệm thu";
   const raw = String(t.trang_thai || "").trim().toUpperCase();
   const map: Record<string, string> = {
@@ -24,8 +21,7 @@ export function getCongViecTrangThaiLabel(t: CongViecLike & { trang_thai?: strin
     HOAN_THANH: "Hoàn thành",
     QUA_HAN: "Quá hạn",
     DA_HUY: "Đã hủy",
-    DE_XUAT_CHO_DUYET: "Đề xuất chờ duyệt",
-    CHO_NHAN_VIEC: "Chờ nhận việc",
+    CHO_NHAN_VIEC: "Đang thực hiện",
     CHO_XAC_NHAN_HOAN_THANH: "Chờ nghiệm thu",
   };
   return map[raw] || (raw ? raw.replace(/_/g, " ").toLowerCase() : "—");

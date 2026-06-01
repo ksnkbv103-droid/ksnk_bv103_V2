@@ -31,7 +31,7 @@ export async function listStaffAuthOverview(params: {
     const start = (page - 1) * pageSize;
     const end = start + pageSize - 1;
 
-    let q = supabase.from("v_staff_auth_overview").select("*", { count: "exact" });
+    let q = supabase.from("v_sys_staff_auth_overview").select("*", { count: "exact" });
     
     const searchFilter = buildSupabaseSearchFilter(search, ["ho_ten", "ma_nv", "email"]);
     if (searchFilter) {
@@ -140,8 +140,8 @@ export async function provisionStaffAuthAccount(params: {
     }
 
     const { data: staff, error: sErr } = await supabase
-      .from("mdm_nhan_su")
-      .select("id, email, ma_nv, auth_user_id, is_active")
+      .from("v_mdm_nhan_su_full")
+      .select("id, email, ma_nv, auth_user_id, is_active, extra_data")
       .eq("id", params.staffId)
       .maybeSingle();
 
@@ -167,9 +167,12 @@ export async function provisionStaffAuthAccount(params: {
       return { success: false as const, error: createErr?.message || "Không tạo được tài khoản." };
     }
 
+    const existingExtraData = (staff as any).extra_data || {};
+    const updatedExtraData = { ...existingExtraData, email };
+
     const { error: upErr } = await supabase
       .from("mdm_nhan_su")
-      .update({ auth_user_id: created.user.id, email })
+      .update({ auth_user_id: created.user.id, extra_data: updatedExtraData })
       .eq("id", staff.id);
     if (upErr) {
       // Rollback best-effort để tránh orphan auth user khi link staff thất bại.
@@ -183,3 +186,45 @@ export async function provisionStaffAuthAccount(params: {
     return { success: false as const, error: err(e) };
   }
 }
+
+/**
+ * Admin thay đổi/đặt lại mật khẩu đăng nhập cho nhân viên.
+ * Không cần xác nhận qua email, cập nhật trực tiếp qua Auth Admin API.
+ */
+export async function adminResetStaffPasswordAction(params: {
+  staffId: string;
+  password: string;
+}) {
+  try {
+    await ensureRbacAdmin();
+    const supabase = createAdminSupabaseClient();
+
+    const pw = params.password;
+    if (!pw || pw.length < 8) {
+      return { success: false as const, error: "Mật khẩu tối thiểu 8 ký tự." };
+    }
+
+    const { data: staff, error: sErr } = await supabase
+      .from("mdm_nhan_su")
+      .select("id, auth_user_id")
+      .eq("id", params.staffId)
+      .maybeSingle();
+
+    if (sErr || !staff) return { success: false as const, error: "Không tìm thấy nhân viên." };
+    if (!staff.auth_user_id) {
+      return { success: false as const, error: "Nhân viên chưa có tài khoản hệ thống." };
+    }
+
+    const { error: updateErr } = await supabase.auth.admin.updateUserById(
+      staff.auth_user_id,
+      { password: pw }
+    );
+
+    if (updateErr) throw updateErr;
+
+    return { success: true as const };
+  } catch (e: unknown) {
+    return { success: false as const, error: err(e) };
+  }
+}
+

@@ -37,14 +37,14 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
 
     const [resQ, resS] = await Promise.all([
       supabase
-        .from("v_fact_quy_trinh_full")
+        .from("v_cssd_quy_trinh_full")
         .select("*")
         .eq("is_active", true)
         .gte("created_at", from)
         .lte("created_at", `${to}T23:59:59`)
         .limit(MAX_REPORT_ROWS),
       supabase
-        .from("v_fact_su_co_full")
+        .from("v_cssd_su_co_full")
         .select("*")
         .gte("created_at", from)
         .lte("created_at", `${to}T23:59:59`)
@@ -60,29 +60,11 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
       trang_thai_hien_tai: x.ma_trang_thai_hien_tai,
     }));
 
-    const suCoIds = (resS.data || []).map((x) => String((x as { id?: string }).id || "")).filter(Boolean);
-    const detailMap = new Map<string, Record<string, string>>();
-    if (suCoIds.length) {
-      const { data: detailRows, error: detailErr } = await supabase
-        .from("fact_su_co_chi_tiet")
-        .select("su_co_id, ma_chi_tiet_su_co, gia_tri_chi_tiet")
-        .in("su_co_id", suCoIds)
-        .in("ma_chi_tiet_su_co", ["FAULT_OPERATOR", "REPORTER_EMAIL", "INCIDENT_GROUP"]);
-      if (detailErr) return { success: false as const, error: detailErr.message, quyTrinh: [], suCo: [] };
-      for (const row of detailRows || []) {
-        const sid = String((row as { su_co_id?: string }).su_co_id || "");
-        const key = String((row as { ma_chi_tiet_su_co?: string }).ma_chi_tiet_su_co || "");
-        const value = String((row as { gia_tri_chi_tiet?: string }).gia_tri_chi_tiet || "");
-        if (!detailMap.has(sid)) detailMap.set(sid, {});
-        detailMap.get(sid)![key] = value;
-      }
-    }
-
     const suCoRows = (resS.data || []).map((x: Record<string, unknown>) => {
-      const detail = detailMap.get(String(x.id || "")) || {};
+      const attrs = (x.attributes as Record<string, unknown>) || {};
       const parsed = parseIncidentType(String(x.ma_loai_su_co || ""));
-      const group = INCIDENT_GROUPS.includes(String(detail.INCIDENT_GROUP) as IncidentGroup)
-        ? (detail.INCIDENT_GROUP as IncidentGroup)
+      const group = INCIDENT_GROUPS.includes(String(attrs.INCIDENT_GROUP) as IncidentGroup)
+        ? (attrs.INCIDENT_GROUP as IncidentGroup)
         : parsed.group;
       return {
         ...x,
@@ -92,8 +74,8 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
         loai_su_co: parsed.typeName,
         incident_group: group,
         incident_group_label: INCIDENT_GROUP_LABEL[group],
-        fault_operator: detail.FAULT_OPERATOR || "",
-        reporter_email: detail.REPORTER_EMAIL || "",
+        fault_operator: String(attrs.FAULT_OPERATOR || ""),
+        reporter_email: String(attrs.REPORTER_EMAIL || ""),
       };
     });
 

@@ -23,8 +23,14 @@ export function useCSSDWorkflow() {
       setWaitingList(data);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Lỗi lấy danh sách chờ";
-      console.error("Lỗi lấy danh sách chờ:", error);
-      toast.error(msg);
+      // Nếu là lỗi phiên đăng nhập (session chưa restore), không crash UI — chỉ log nhẹ
+      if (msg.includes("chưa đăng nhập") || msg.includes("not authenticated")) {
+        console.warn("[CSSD] Phiên đăng nhập chưa sẵn sàng, thử lại sau.");
+        setWaitingList([]);
+      } else {
+        console.error("Lỗi lấy danh sách chờ:", error);
+        toast.error(msg);
+      }
     }
   }, []);
 
@@ -68,6 +74,7 @@ export function useCSSDWorkflow() {
         thoiGianQuet: new Date().toLocaleTimeString("vi-VN"),
         buocTiepTheo,
         maCaMoId: extraPayload?.ma_ca_mo_id,
+        ledgerWarning: (scanRes as any).ledgerWarning,
       });
 
       toast.success(`Đã xử lý: ${code}`);

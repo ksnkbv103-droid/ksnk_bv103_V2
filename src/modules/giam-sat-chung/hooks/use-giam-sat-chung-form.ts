@@ -6,6 +6,7 @@ import type { ChecklistResult, ChecklistTemplate } from "@/types/giam-sat-chung"
 import { saveGiamSatChung } from "../actions/giam-sat-chung.actions";
 import type { GscSessionInput } from "../actions/giam-sat-chung-write-helpers";
 import { loadGscTemplateOptions, switchGscTemplateByBangKiemId, type GscTemplateOption } from "../lib/gsc-form-template-sync";
+
 import { toast } from "sonner";
 import { useGiamSatHeader } from "@/hooks/useGiamSatHeader";
 import { mergeGscSessionWithDbPrintLabels, snapshotGscSessionForPrint } from "../lib/gsc-session-labels";
@@ -84,7 +85,6 @@ export function useGiamSatChungForm(
   const [results, setResults] = useState<ChecklistResult[]>(
     initialTemplate.criteria.map((c) => ({ criterionId: c.id, value: "NA" })),
   );
-
   // Prefill khi ở chế độ sửa.
   useEffect(() => {
     if (!editSession) return;
@@ -131,6 +131,7 @@ export function useGiamSatChungForm(
       }),
     );
   }, [editResults, template.criteria, template]);
+
   const [loading, setLoading] = useState(false);
   const dbPrintLabels = useGscDbPrintLabels({
     khoa_id: selectedKhoa,
@@ -151,6 +152,8 @@ export function useGiamSatChungForm(
   useEffect(() => {
     void loadGscTemplateOptions().then(setDbTemplates);
   }, []);
+
+
 
   const handleSwitchTemplate = async (bkId: string) => {
     setLoading(true);
@@ -183,7 +186,6 @@ export function useGiamSatChungForm(
         return;
       }
     }
-
     setLoading(true);
     try {
       const payload = {
@@ -303,5 +305,6 @@ export function useGiamSatChungForm(
     score,
     sessionForPrint,
     setSessionFromHeader,
+
   };
 }

@@ -1,0 +1,16 @@
+---
+description: NKBV (HAI surveillance) — neo spec lâm sàng CDC/NHSN & rules engine
+globs: src/modules/giam-sat-nkbv/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# NKBV — ngữ cảnh spec
+
+Trước khi sửa rules engine, form lâm sàng, timeline, dashboard NKBV:
+
+1. [`README.md`](../../docs/modules/nkbv/README.md) — cổng module NKBV.
+2. [`domain-specification.md`](../../docs/modules/nkbv/domain-specification.md) — CDC/NHSN, luồng xác minh.
+3. [`implementation-mapping.md`](../../docs/core/implementation-mapping.md) — bảng/RPC NKBV.
+4. [`read-minimum.md`](../../docs/core/read-minimum.md). logic phân loại ca bệnh → `src/modules/giam-sat-nkbv/lib/` (pure, có test). Zod shape → `src/lib/validations/giam-sat-nkbv.validations.ts` — không nhét thuật toán vào validation file.
+
+**Phân biệt GSC:** Giám sát tuân thủ (`giam-sat-chung`) ≠ NKBV lâm sàng — không dùng chung scoring engine.

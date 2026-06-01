@@ -3,7 +3,7 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { type CssdQrTargetType } from "../shared/domain/cssd-qr-core";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
-import { verifyCssdQrHubView } from "./cssd-permissions";
+import { verifyCssdQrHubView } from "@/lib/cssd-server-gates";
 import { getErrorMessage, mapFkError } from "./cssd-action-common";
 
 type ResolveCssdCodeResult =

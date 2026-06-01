@@ -3,7 +3,7 @@ import { REGISTRY_LOAI_TRUNG_TAM_ONLY } from "./domain-registry";
 /** Route chuyên dụng (form đầy đủ) — khớp tab Trung tâm Danh mục. */
 const DEDICATED_LOAI_TO_PATH: Record<string, string> = {
   KHOA_PHONG: "/quan-tri-he-thong/danh-muc/khoa-phong",
-  LOAI_DUNG_CU: "/quan-tri-he-thong/danh-muc/dung-cu/loai",
+  LOAI_DUNG_CU: "/quan-tri-he-thong/danh-muc/dung-cu",
 };
 
 /** `loaiDanhMuc` có trang quản trị riêng (không dùng generic chuyen-biet làm nguồn chính). */

@@ -1,57 +1,43 @@
 # SQL vận hành BV103 (`scripts/sql/`)
 
-Script **không** thuộc chuỗi migration Supabase. Dùng để precheck, audit, EXPLAIN hiệu năng, smoke test.
+Script **không** thuộc chuỗi migration Supabase. Chỉ file trong thư mục này (+ `scripts/master-data-cutover-postcheck.sql`) là **active**; phần còn lại → [`../archive/sql-20260531/`](../archive/sql-20260531/).
 
 ## Precheck pilot / migrate
 
 | File | Lệnh npm | Mục đích |
 |------|----------|----------|
-| `trial-four-modules-precheck.sql` | `trial:db:precheck` | Bảng/RPC tối thiểu pilot 4 module |
-| `auth-pilot-precheck.sql` | `trial:auth:precheck` | Auth + RBAC view |
+| `trial-four-modules-precheck.sql` | `trial:db:precheck` / `:local` | Bảng/RPC tối thiểu pilot 4 module |
+| `auth-pilot-precheck.sql` | `trial:auth:precheck` / `:local` | Auth + RBAC view |
+| `pilot-app-views-precheck.sql` | `repo:hygiene` (kiểm tra view) | View đọc app (`v_qlcv_*`, `v_gstt_*`, `v_cssd_*`, …) |
 | `master-data-cutover-postcheck.sql` | `mdm:postcheck:sql` | (ở `scripts/`) Post-cutover MDM |
 
-## Dashboard / analytics (hybrid)
+## Dashboard / analytics
 
 | File | Lệnh npm | Mục đích |
 |------|----------|----------|
-| `pilot-dashboard-rpc-explain-hybrid.sql` | `pilot:dashboard:explain:linked` / `:local` | EXPLAIN 4 RPC app đang gọi sau reform |
+| `pilot-dashboard-rpc-explain-hybrid.sql` | `pilot:dashboard:explain:linked` / `:local` | EXPLAIN RPC dashboard |
 
-## Admin / RBAC / perf baseline
+## Admin probe (chạy tay / slice admin)
 
 | File | Ghi chú |
 |------|---------|
-| `admin-perf-baseline.sql` | Baseline slice admin (20260526) |
-| `admin-rbac-probe.sql` | Probe quyền admin |
-| `admin-slice-pre-apply-probe.sql` | Probe trước slice admin |
+| `admin-perf-baseline.sql` | Baseline perf admin |
+| `admin-rbac-probe.sql` | Probe RBAC |
+| `admin-slice-pre-apply-probe.sql` | Probe trước slice |
 
-## CSSD / FK / integrity
+## CSSD / FK gate
 
 | File | Lệnh npm |
 |------|----------|
-| `cssd-tram-fk-health-audit.sql` | `cssd:db:audit` |
-| `fk-public-referencing-danh-muc-tuy-bien.sql` | `mdm:postcheck:fk` |
-| `fk-integrity-report.sql` | Chạy tay |
-| `fk-audit-denorm-and-gaps.sql` | Chạy tay |
-| `audit-text-vs-fk-columns.sql` | Chạy tay |
+| `cssd-tram-fk-health-audit.sql` | `cssd:db:audit` / `:local` |
+| `fk-public-referencing-danh-muc-tuy-bien.sql` | `mdm:postcheck:fk` / `:local` |
 
-## Giám sát / GSC seed QA
+## Archive (không active)
 
-| File | Ghi chú |
-|------|---------|
-| `gsc-part34-count-contextual.sql` | Đếm Part 3–4 theo ngữ cảnh |
-| `gsc-part34-post-migrate-check.sql` | Post-migrate Part 3–4 |
-| `smoke_test_session_level_rca.sql` | Smoke RCA session-level (rollback) |
-| `vst-data-integrity-report.sql` | Báo cáo VST |
-| `refresh-gsc-dashboard-mv.sql` | Refresh MV daily (legacy; xem comment trong file) |
-
-## Tham khảo (không apply)
-
-| Thư mục | Nội dung |
-|---------|----------|
-| `reference/ssot-slice8/` | Template Slice 8 Double SSOT — **đã resolved**, không đưa vào `supabase/migrations/` |
+[`../archive/sql-20260531/`](../archive/sql-20260531/) — GSC QA, smoke RCA, slice8 template, FK reports cũ.
 
 ## Migration SSOT
 
-Chuỗi apply: `supabase/migrations/*.sql` (thư mục gốc only). Lịch sử: `supabase/migrations/archive_legacy/`.
+Chuỗi apply: `supabase/migrations/*.sql` (18 file pilot). Lịch sử pre-pilot: `docs/archive/pilot_chain_20260520_20260529.tar.gz`.
 
-Xem [`supabase/migrations/README.md`](../../supabase/migrations/README.md) và [`docs/specs/GOVERNANCE_PIPELINE.md`](../../docs/specs/GOVERNANCE_PIPELINE.md).
+Xem [`../../supabase/migrations/README.md`](../../supabase/migrations/README.md) và [`../../docs/core/governance-pipeline.md`](../../docs/core/governance-pipeline.md).

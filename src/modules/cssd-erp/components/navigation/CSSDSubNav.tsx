@@ -19,12 +19,12 @@ type NavEntry = { name: string; href: string; icon: LucideIcon; group: "OPERATIO
 
 const navItems: NavEntry[] = [
   { name: "Quy trình & Kho", href: CSSD_ROUTES.quyTrinh, icon: Clock, group: "OPERATIONS" },
-  { name: "Mẻ tiệt khuẩn", href: CSSD_ROUTES.erpBatch, icon: Flame, group: "OPERATIONS" },
+  { name: "Mẻ tiệt khuẩn", href: CSSD_ROUTES.batch, icon: Flame, group: "OPERATIONS" },
   { name: "Báo cáo sự cố", href: CSSD_ROUTES.suCo, icon: AlertTriangle, group: "OPERATIONS" },
   { name: "Dụng cụ phẫu thuật", href: CSSD_ROUTES.dungCu, icon: Box, group: "ASSETS" },
   { name: "Thiết bị KSNK", href: CSSD_ROUTES.thietBi, icon: Wrench, group: "ASSETS" },
   { name: "Hóa chất & Vật tư", href: CSSD_ROUTES.hoaChat, icon: Droplets, group: "ASSETS" },
-  { name: "Báo cáo CSSD", href: CSSD_ROUTES.erpReport, icon: FileText, group: "ANALYTICS" },
+  { name: "Báo cáo CSSD", href: CSSD_ROUTES.report, icon: FileText, group: "ANALYTICS" },
 ];
 
 const linkBase =

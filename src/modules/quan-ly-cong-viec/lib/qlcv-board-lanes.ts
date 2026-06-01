@@ -1,20 +1,16 @@
 /**
- * Track A — một hàm map phiếu → lane Kanban (thứ tự ưu tiên §4.3 QUAN_LY_CONG_VIEC_PLAN.md).
- * Kanban chỉ nhóm theo `boardLaneToKanbanColumn`, không rải if trong component.
+ * Map phiếu → lane Kanban (một hàm, thứ tự ưu tiên).
  */
 
-import { isChoNghiemThuHoanThanh, isChoNhanViec, isDeXuatChoDuyet, type CongViecLike } from "./qlcv-workflow-display";
+import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet, type CongViecLike } from "./qlcv-workflow-display";
 
-/** Lane nội bộ (khớp bảng ưu tiên trong spec). */
 export type QlcvBoardLaneId =
   | "lane_da_huy"
   | "lane_hoan_thanh"
   | "lane_qua_han"
   | "lane_cho_duyet"
   | "lane_dang_lam"
-  | "lane_de_xuat"
-  | "lane_cho_nhan"
-  | "lane_khac";
+  | "lane_de_xuat";
 
 export type CongViecBoardInput = CongViecLike & {
   trang_thai?: string | null;
@@ -22,10 +18,8 @@ export type CongViecBoardInput = CongViecLike & {
   is_qua_han?: boolean | null;
 };
 
-/** Cột Kanban hiển thị (gộp lane_khác → chờ nhận; đề xuất ẩn khi không có cột riêng). */
 export type KanbanColumnId =
   | "DE_XUAT"
-  | "CHO_NHAN"
   | "DANG_LAM"
   | "QUA_HAN"
   | "CHO_DUYET"
@@ -41,10 +35,6 @@ function isDeadlinePastOpen(t: CongViecBoardInput): boolean {
   return d.getTime() < today.getTime();
 }
 
-/**
- * Map một dòng công việc → lane — dừng ở điều kiện khớp đầu tiên (§4.3).
- * Quá hạn: `QUA_HAN` | `is_qua_han` | hạn chót đã qua (mở phiếu).
- */
 export function getBoardLaneId(t: CongViecBoardInput): QlcvBoardLaneId {
   const st = String(t.trang_thai || "");
   if (st === "DA_HUY") return "lane_da_huy";
@@ -54,20 +44,14 @@ export function getBoardLaneId(t: CongViecBoardInput): QlcvBoardLaneId {
   if (quaHan) return "lane_qua_han";
 
   if (isChoNghiemThuHoanThanh(t)) return "lane_cho_duyet";
-  if (st === "DANG_LAM" || st === "TU_CHOI" || st === "DANG_THUC_HIEN") return "lane_dang_lam";
   if (isDeXuatChoDuyet(t)) return "lane_de_xuat";
-  if (isChoNhanViec(t)) return "lane_cho_nhan";
-  return "lane_khac";
+
+  return "lane_dang_lam";
 }
 
 export function boardLaneToKanbanColumn(lane: QlcvBoardLaneId, showProposalColumn: boolean): KanbanColumnId {
-  if (lane === "lane_de_xuat" && !showProposalColumn) return "CHO_NHAN";
+  if (lane === "lane_de_xuat") return showProposalColumn ? "DE_XUAT" : "DANG_LAM";
   switch (lane) {
-    case "lane_de_xuat":
-      return "DE_XUAT";
-    case "lane_cho_nhan":
-    case "lane_khac":
-      return "CHO_NHAN";
     case "lane_dang_lam":
       return "DANG_LAM";
     case "lane_qua_han":

@@ -3,7 +3,9 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import type { NhanSu } from "../types";
-import { softDeleteManySafeRows, softDeleteSafeRow, upsertSafeRow } from "../../actions/master-crud-safe-core";
+import {
+  upsertMasterRow,
+} from "../../danh-muc/actions/master-crud-core";
 import { formatHoSoNhanSuWriteError } from "./nhan-su-fk-normalize";
 import { buildSaveNhanSuMergedFields } from "./nhan-su-write.helpers";
 import { verifyPermission } from "../../actions/verify-permission";
@@ -24,9 +26,6 @@ export async function saveNhanSuAction(data: Partial<NhanSu>) {
     await verifyPermission("NHAN_SU", id ? "edit" : "create");
     const supabase = createAdminSupabaseClient();
 
-    // 2. Validate input schema with Zod.
-    // Create phải qua schema đầy đủ để tránh lọt bản ghi thiếu trường cốt lõi;
-    // Update cho phép partial để chỉ sửa một phần hồ sơ.
     const parsed = id
       ? nhanSuSchema.partial().safeParse(updateData)
       : nhanSuSchema.safeParse(updateData);
@@ -36,32 +35,54 @@ export async function saveNhanSuAction(data: Partial<NhanSu>) {
         error: "Dữ liệu không hợp lệ: " + parsed.error.issues.map((e) => e.message).join(", "),
       };
     }
+    const validatedData = parsed.data;
+    
+    // Tách các trường động thuộc extra_data ra khỏi payload vật lý
+    const {
+      email,
+      so_dien_thoai,
+      ngay_sinh,
+      gioi_tinh,
+      ...physicalFields
+    } = validatedData as any;
+
+    let existingExtraData = {};
     let current: {
       to_id?: string | null;
       chuc_vu_id?: string | null;
       chuc_danh_id?: string | null;
       vai_tro_he_thong_id?: string | null;
     } | null = null;
+
     if (id) {
       const { data: existing, error: exErr } = await supabase
         .from("mdm_nhan_su")
-        .select("khoa_id, to_id, chuc_vu_id, chuc_danh_id, vai_tro_he_thong_id")
+        .select("khoa_id, to_id, chuc_vu_id, chuc_danh_id, vai_tro_he_thong_id, extra_data")
         .eq("id", id)
         .maybeSingle();
       if (exErr) throw new Error(exErr.message);
-      current =
-        (existing as {
-          khoa_id?: string | null;
-          to_id?: string | null;
-          chuc_vu_id?: string | null;
-          chuc_danh_id?: string | null;
-          vai_tro_he_thong_id?: string | null;
-        } | null) || null;
+      if (existing) {
+        current = existing as any;
+        existingExtraData = existing.extra_data || {};
+      }
     }
 
-    const merged = await buildSaveNhanSuMergedFields(supabase, updateData, current);
-    const payload = id ? { ...merged, updated_at: new Date().toISOString() } : merged;
-    const result = await upsertSafeRow("mdm_nhan_su", id || "", payload as Record<string, unknown>);
+    const mergedExtraData = {
+      ...existingExtraData,
+      ...(email !== undefined ? { email } : {}),
+      ...(so_dien_thoai !== undefined ? { so_dien_thoai } : {}),
+      ...(ngay_sinh !== undefined ? { ngay_sinh } : {}),
+      ...(gioi_tinh !== undefined ? { gioi_tinh } : {}),
+    };
+
+    const merged = await buildSaveNhanSuMergedFields(supabase, physicalFields, current);
+    const payload = {
+      ...merged,
+      extra_data: mergedExtraData,
+      ...(id ? { updated_at: new Date().toISOString() } : {}),
+    };
+
+    const result = await upsertMasterRow("mdm_nhan_su", id || "", payload as Record<string, unknown>);
     if (!result.success) throw new Error(formatHoSoNhanSuWriteError(result.error) || result.error);
 
     revalidatePath("/quan-tri-he-thong");
@@ -79,44 +100,3 @@ export async function saveNhanSuAction(data: Partial<NhanSu>) {
   }
 }
 
-/**
- * Xóa hồ sơ nhân sự
- */
-export async function deleteNhanSuAction(id: string) {
-  try {
-    await verifyPermission("NHAN_SU", "delete");
-    // Chuẩn V5.0: chỉ vô hiệu hóa hồ sơ, không xóa cứng.
-    const result = await softDeleteSafeRow("mdm_nhan_su", id);
-    if (!result.success) throw new Error(result.error);
-
-    revalidatePath("/quan-tri-he-thong");
-    return { success: true, message: "Đã xóa hồ sơ nhân sự thành công" };
-  } catch (error: unknown) {
-    console.error("LỖI deleteNhanSuAction:", error);
-    return {
-      success: false,
-      error: `Không thể xóa nhân sự: ${errNhanSuWrite(error) || "Lỗi kết nối"}`,
-    };
-  }
-}
-
-/**
- * Xóa hàng loạt nhân sự
- */
-export async function deleteBulkNhanSuAction(ids: string[]) {
-  try {
-    await verifyPermission("NHAN_SU", "delete");
-    // Chuẩn V5.0: soft delete hàng loạt.
-    const result = await softDeleteManySafeRows("mdm_nhan_su", ids);
-    if (!result.success) throw new Error(result.error);
-
-    revalidatePath("/quan-tri-he-thong");
-    return { success: true, message: `Đã xóa ${ids.length} hồ sơ nhân sự thành công` };
-  } catch (error: unknown) {
-    console.error("LỖI deleteBulkNhanSuAction:", error);
-    return {
-      success: false,
-      error: `Không thể xóa hàng loạt: ${errNhanSuWrite(error) || "Lỗi kết nối"}`,
-    };
-  }
-}

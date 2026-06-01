@@ -15,8 +15,12 @@ import {
   finishCssdSterilizationBatch,
 } from "../actions/cssd.actions";
 
+import { usePermission } from "@/hooks/usePermission";
+import { isSteamSterilizerProfile } from "../helpers/me-tiet-khuan-machine-kind";
+
 export function useMeTietKhuanWorkflow() {
   const { printLabel } = usePrint();
+  const { userData } = usePermission();
   const [batches, setBatches] = useState<any[]>([]);
   const [machines, setMachines] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +32,14 @@ export function useMeTietKhuanWorkflow() {
   const [waitingRows, setWaitingRows] = useState<any[]>([]);
   const [items, setItems] = useState<any[]>([]);
   const [nguoiUnload, setNguoiUnload] = useState("");
+
+  // Tự động điền người thực hiện từ thông tin đăng nhập
+  useEffect(() => {
+    if (userData?.ho_ten) {
+      if (!nguoiLoad) setNguoiLoad(userData.ho_ten);
+      if (!nguoiUnload) setNguoiUnload(userData.ho_ten);
+    }
+  }, [userData, nguoiLoad, nguoiUnload]);
   const [nhietDo, setNhietDo] = useState("");
   const [thongSoMay, setThongSoMay] = useState("");
   const [chiThiTiepXuc, setChiThiTiepXuc] = useState<"DAT" | "KHONG_DAT" | "">("");
@@ -140,14 +152,19 @@ export function useMeTietKhuanWorkflow() {
     await reloadProcessContext();
   };
 
-  const finishQc = async (isPass: boolean) => {
+  const finishQc = async (isPass: boolean, overrideThongSoMay?: string) => {
+    const finalThongSoMay = overrideThongSoMay ?? thongSoMay;
     if (!nguoiUnload || !nhietDo) return toast.error("Vui lòng nhập người dỡ và nhiệt độ/áp suất");
-    if (isPass) {
-      if (!thongSoMay.trim()) return toast.error("Thiếu thông số máy.");
-      if (!chiThiTiepXuc || !chiThiDaThongSo) return toast.error("Chọn kết quả chỉ thị tiếp xúc và đa thông số.");
+    if (isPass && !overrideThongSoMay && !finalThongSoMay.trim()) {
+      return toast.error("Thiếu thông số máy.");
     }
     const msg = isPass ? "Xác nhận mẻ ĐẠT và chuyển các bộ sang Cấp phát?" : "CẢNH BÁO: Kết luận KHÔNG ĐẠT — xác nhận?";
     if (!confirm(msg)) return;
+
+    // Phân loại máy để tự động xử lý chỉ thị đa thông số cho máy EO/Plasma
+    const isSteam = isSteamSterilizerProfile(activeMe?.thiet_bi || batchGate?.thiet_bi || null);
+    const finalChiThiDaThongSo = isSteam ? chiThiDaThongSo : "DAT";
+
     const testBIMapped =
       testSinhHoc === "DAT" ? "DAT" : testSinhHoc === "KHONG_DAT" ? "KHONG_DAT" : "";
     const saved = await finishCssdSterilizationBatch({
@@ -160,9 +177,9 @@ export function useMeTietKhuanWorkflow() {
       testBI: testBIMapped,
       testCI,
       testBD,
-      thongSoMay,
+      thongSoMay: finalThongSoMay,
       chiThiTiepXuc,
-      chiThiDaThongSo,
+      chiThiDaThongSo: finalChiThiDaThongSo,
       testSinhHoc: testSinhHoc || "NA",
       anhMinhChungMay: anhMay,
       anhMinhChungTiepXuc: anhTiepXuc,

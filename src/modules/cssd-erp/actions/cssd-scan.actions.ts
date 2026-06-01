@@ -5,7 +5,7 @@ import type { Station } from "../types/cssd.types";
 import { revalidateCssdWorkflowSurfaces } from "./cssd-action-common";
 import { executeWorkflowStationScan } from "../workflow/application/cssd-workflow-application";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
-import { verifyCssdWorkflowEdit } from "./cssd-permissions";
+import { verifyCssdWorkflowEdit } from "@/lib/cssd-server-gates";
 
 async function cssdScanOperatorLabel(): Promise<string> {
   try {
@@ -39,7 +39,7 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
   const operatorLabel = await cssdScanOperatorLabel();
 
   // 1. Thực hiện nghiệp vụ qua RPC tập trung (Atomicity & Speed)
-  await executeWorkflowStationScan(supabase, {
+  const execResult = await executeWorkflowStationScan(supabase, {
     maQR: code,
     station,
     quyTrinh: {} as any, // quyTrinh no longer needed for primary logic
@@ -52,10 +52,14 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
 
   // 2. Lấy tên bộ từ View phẳng để hiển thị (Performance)
   const { data: viewRow } = await supabase
-    .from("v_fact_quy_trinh_full")
+    .from("v_cssd_quy_trinh_full")
     .select("ten_bo")
     .eq("ma_qr_quy_trinh", code)
     .maybeSingle();
 
-  return { success: true as const, tenBoDungCu: (viewRow as any)?.ten_bo || code };
+  return { 
+    success: true as const, 
+    tenBoDungCu: (viewRow as any)?.ten_bo || code,
+    ledgerWarning: execResult.ledgerWarning
+  };
 }

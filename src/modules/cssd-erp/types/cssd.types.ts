@@ -14,6 +14,14 @@ export interface CSSDWaitingItem {
   ma_vach_qr: string;
   updated_at: string;
   ten_bo?: string | null;
+  /** Tên người xử lý ở trạm trước */
+  nguoi_tram_truoc?: string | null;
+  /** SĐT người trạm trước (click-to-call) */
+  sdt_tram_truoc?: string | null;
+  /** Thời điểm qua trạm trước */
+  thoi_gian_tram_truoc?: string | null;
+  /** Mã trạm trước (LAM_SACH, QC, ...) */
+  tram_truoc?: string | null;
 }
 
 export interface IncidentReport {

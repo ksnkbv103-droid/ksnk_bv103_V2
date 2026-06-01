@@ -26,10 +26,10 @@ export async function dieuChuyenThanhPhanGiuaHaiQrAction(payload: {
     const maDen = String(payload.maQrDen || "").trim().toUpperCase();
     if (!maTu || !maDen || maTu === maDen) return { success: false, error: "Hai mã QR nguồn/đích phải khác nhau." };
 
-    const hasAudit = await tableHasColumn(supabase, "fact_cssd_dieu_chuyen_thanh_phan", "tu_quy_trinh_id");
+    const hasAudit = await tableHasColumn(supabase, "cssd_fact_dieu_chuyen_thanh_phan", "tu_quy_trinh_id");
 
     const { data: tu, error: eTu } = await supabase
-      .from("fact_quy_trinh")
+      .from("cssd_fact_quy_trinh")
       .select("*")
       .eq("ma_qr_quy_trinh", maTu)
       .eq("is_active", true)
@@ -37,7 +37,7 @@ export async function dieuChuyenThanhPhanGiuaHaiQrAction(payload: {
       .limit(1)
       .maybeSingle();
     const { data: den, error: eDen } = await supabase
-      .from("fact_quy_trinh")
+      .from("cssd_fact_quy_trinh")
       .select("*")
       .eq("ma_qr_quy_trinh", maDen)
       .eq("is_active", true)
@@ -51,7 +51,7 @@ export async function dieuChuyenThanhPhanGiuaHaiQrAction(payload: {
     const denId = String((den as { id?: string }).id || "");
 
     const { data: lineTuRaw, error: lErr } = await supabase
-      .from("fact_quy_trinh_thanh_phan")
+      .from("cssd_fact_quy_trinh_thanh_phan")
       .select("*")
       .eq("quy_trinh_id", tuId)
       .eq("ten_dung_cu_le", ten)
@@ -70,13 +70,13 @@ export async function dieuChuyenThanhPhanGiuaHaiQrAction(payload: {
     if (thuc < n) return { success: false, error: `Không đủ số lượng thực tế trên nguồn (còn ${thuc}).` };
 
     const { error: uTuErr } = await supabase
-      .from("fact_quy_trinh_thanh_phan")
+      .from("cssd_fact_quy_trinh_thanh_phan")
       .update({ so_luong_thuc_te: thuc - n, updated_at: new Date().toISOString() })
       .eq("id", lineTu.id);
     if (uTuErr) return { success: false, error: uTuErr.message };
 
     const { data: lineDenRaw } = await supabase
-      .from("fact_quy_trinh_thanh_phan")
+      .from("cssd_fact_quy_trinh_thanh_phan")
       .select("*")
       .eq("quy_trinh_id", denId)
       .eq("ten_dung_cu_le", ten)
@@ -93,7 +93,7 @@ export async function dieuChuyenThanhPhanGiuaHaiQrAction(payload: {
     if (lineDen?.id) {
       const denThuc = Number(lineDen.so_luong_thuc_te ?? 0);
       const { error: uDe } = await supabase
-        .from("fact_quy_trinh_thanh_phan")
+        .from("cssd_fact_quy_trinh_thanh_phan")
         .update({ so_luong_thuc_te: denThuc + n, updated_at: new Date().toISOString() })
         .eq("id", lineDen.id);
       if (uDe) return { success: false, error: uDe.message };
@@ -107,12 +107,12 @@ export async function dieuChuyenThanhPhanGiuaHaiQrAction(payload: {
         is_active: true,
         updated_at: new Date().toISOString(),
       };
-      const { error: insErr } = await supabase.from("fact_quy_trinh_thanh_phan").insert(ins);
+      const { error: insErr } = await supabase.from("cssd_fact_quy_trinh_thanh_phan").insert(ins);
       if (insErr) return { success: false, error: insErr.message };
     }
 
     if (hasAudit) {
-      await supabase.from("fact_cssd_dieu_chuyen_thanh_phan").insert({
+      await supabase.from("cssd_fact_dieu_chuyen_thanh_phan").insert({
         tu_quy_trinh_id: tuId,
         den_quy_trinh_id: denId,
         ten_dung_cu_le: ten,

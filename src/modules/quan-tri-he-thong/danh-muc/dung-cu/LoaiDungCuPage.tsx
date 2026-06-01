@@ -9,6 +9,7 @@ import { getMasterDataExport } from "../actions/export.actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import LoaiDungCuFormModal from "./loai-dung-cu-form-modal";
+import { LoaiDungCuChiTietPanel } from "./loai-dung-cu-chi-tiet-panel";
 import {
   getLoaiDungCuRowsAction,
   softDeleteLoaiDungCuAction,
@@ -16,6 +17,12 @@ import {
   toggleLoaiDungCuStatusAction,
 } from "../actions/loai-dung-cu.actions";
 import { DmMasterPageGuard } from "../views/dm-master-page-guard";
+
+function clip(s: string | null | undefined, n: number) {
+  const t = String(s ?? "").trim();
+  if (!t) return "—";
+  return t.length > n ? `${t.slice(0, n)}…` : t;
+}
 
 type LoaiDungCuRow = {
   id: string;
@@ -26,16 +33,21 @@ type LoaiDungCuRow = {
   cong_dung?: string | null;
   kha_nang_chiu_nhiet?: string | null;
   phuong_phap_tiet_khuan?: string | null;
+  phan_loai?: string;
+  so_luong_kho_du_phong?: number;
+  so_luong_tong?: number;
+  bo_dung_cu_chua?: { id: string; ma_bo: string | null; ten_bo: string | null }[];
   is_active?: boolean;
 };
 
-function LoaiDungCuPageContent() {
+export function LoaiDungCuPageContent() {
   const router = useRouter();
   const [data, setData] = useState<LoaiDungCuRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedLoaiId, setSelectedLoaiId] = useState<string | null>(null);
   const modalKey = editing?.id ? `edit-${String(editing.id)}` : "create";
 
   useEffect(() => {
@@ -52,6 +64,10 @@ function LoaiDungCuPageContent() {
       active = false;
     };
   }, [refreshKey]);
+
+  useEffect(() => {
+    if (selectedLoaiId && !data.some((r) => r.id === selectedLoaiId)) setSelectedLoaiId(null);
+  }, [data, selectedLoaiId]);
 
   const actionUi = useTableActionUi<LoaiDungCuRow>({
     onToggleStatus: async (item) => {
@@ -95,13 +111,35 @@ function LoaiDungCuPageContent() {
         {i.ten_danh_muc}
       </div>
     )},
-
+    { header: "PHÂN LOẠI", accessorKey: "phan_loai", sortable: true, cell: (i) => (
+      i.phan_loai === "THU_THUAT" ? (
+        <span className="bg-amber-50 text-amber-600 border border-amber-100 text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">Thủ thuật</span>
+      ) : (
+        <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">Phẫu thuật</span>
+      )
+    )},
+    { header: "HÌNH DÁNG", accessorKey: "hinh_dang", sortable: true, cell: (i) => (
+      <span className="text-[10px] text-slate-600 font-semibold">{clip(i.hinh_dang, 28)}</span>
+    )},
+    { header: "KÍCH THƯỚC", accessorKey: "kich_thuoc", sortable: true, cell: (i) => (
+      <span className="text-[10px] text-slate-600 font-semibold">{clip(i.kich_thuoc, 20)}</span>
+    )},
+    { header: "TÍNH NĂNG/CÔNG DỤNG", accessorKey: "cong_dung", sortable: true, cell: (i) => (
+      <span className="text-[10px] text-slate-500 font-medium">{clip(i.cong_dung, 40)}</span>
+    )},
+    { header: "SỐ LƯỢNG KHO LẺ/TỔNG", accessorKey: "so_luong_tong", sortable: true, cell: (i) => (
+      <div className="text-[10px] font-bold text-slate-600">
+        Dự phòng: <span className="text-amber-600 font-black">{i.so_luong_kho_du_phong || 0}</span> / Tổng: <span className="text-emerald-700 font-black">{i.so_luong_tong || 0}</span>
+      </div>
+    )},
     { header: "LOGIC TIỆT KHUẨN", accessorKey: "phuong_phap_tiet_khuan", sortable: true, cell: (i) => (
       <div className="text-[9px] font-bold uppercase space-y-0.5"><div className={i.kha_nang_chiu_nhiet==='Cao'?'text-emerald-600':'text-amber-600'}>Nhiệt: {i.kha_nang_chiu_nhiet}</div><div className="text-blue-600 font-black">{i.phuong_phap_tiet_khuan}</div></div>
     )},
     { header: "TRẠNG THÁI", accessorKey: "is_active", sortable: true, cell: (i) => actionUi.renderStatusCell(i) },
     { header: "QUẢN LÝ", accessorKey: "id", cell: (i) => actionUi.renderManagementCell(i) }
   ];
+
+  const selectedRow = selectedLoaiId ? data.find((r) => r.id === selectedLoaiId) : undefined;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
@@ -114,12 +152,18 @@ function LoaiDungCuPageContent() {
           <button onClick={() => { setEditing(null); setIsFormOpen(true); }} className="h-12 px-6 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase text-[10px] shadow-lg flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-95"><Plus size={18} /> Thêm mới</button>
         </div>
       </header>
-      <div className="bg-white p-2 rounded-[40px] border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
+      <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
           data={data}
           loading={loading}
           enableMultiSelect={true}
+          rowClassName={(r) =>
+            r.id === selectedLoaiId ? "bg-emerald-50/90 ring-1 ring-inset ring-[#026f17]/20" : ""
+          }
+          onRowClick={(r) =>
+            setSelectedLoaiId((cur) => (cur === r.id ? null : r.id))
+          }
           onDeleteSelected={async (items) => {
             if (!items.length) return;
             if (!window.confirm(`Xóa mềm ${items.length} loại dụng cụ?`)) return;
@@ -133,6 +177,13 @@ function LoaiDungCuPageContent() {
           }}
         />
       </div>
+
+      <LoaiDungCuChiTietPanel
+        selectedLoaiId={selectedLoaiId}
+        selectedTenLoai={selectedRow?.ten_danh_muc}
+        selectedMaLoai={selectedRow?.ma_danh_muc}
+        boDungCuChua={selectedRow?.bo_dung_cu_chua || []}
+      />
       <LoaiDungCuFormModal
         key={modalKey}
         open={isFormOpen}

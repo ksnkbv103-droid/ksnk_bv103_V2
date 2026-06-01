@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { updateCongViec } from "./cong-viec.actions";
+import { clearQlcvLookupIdCacheForTests } from "../lib/qlcv-persist-dm-fields";
 
 const mocks = vi.hoisted(() => {
   let updatePayload: Record<string, unknown> | null = null;
@@ -40,6 +41,7 @@ vi.mock("@/lib/supabase-server", () => ({
 describe("updateCongViec", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearQlcvLookupIdCacheForTests();
     mocks.setUpdatePayload(null);
     mocks.hasBypass.mockResolvedValue(true);
     mocks.metaMaybeSingle.mockResolvedValue({ data: { cong_viec_cha_id: null }, error: null });
@@ -69,7 +71,7 @@ describe("updateCongViec", () => {
   it("does not force is_active true on metadata update", async () => {
     mocks.hasBypass.mockResolvedValue(true);
     mocks.from.mockImplementation((table: string) => {
-      if (table === "v_fact_cong_viec_full") {
+      if (table === "v_qlcv_cong_viec_full") {
         return {
           select: () => ({
             eq: () => ({
@@ -128,7 +130,7 @@ describe("updateCongViec", () => {
   it("blocks normal user from updating status directly through updateCongViec", async () => {
     mocks.hasBypass.mockResolvedValue(false); // Không phải Admin
     mocks.from.mockImplementation((table: string) => {
-      if (table === "v_fact_cong_viec_full") {
+      if (table === "v_qlcv_cong_viec_full") {
         return {
           select: () => ({
             eq: () => ({
@@ -160,8 +162,11 @@ describe("updateCongViec", () => {
     mocks.hasBypass.mockResolvedValue(true); // Cho phép sửa thoải mái
     const insertMock = vi.fn().mockResolvedValue({ error: null });
 
+    const pastDate = new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString().split('T')[0];
+    const futureDate = new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString().split('T')[0];
+
     mocks.from.mockImplementation((table: string) => {
-      if (table === "v_fact_cong_viec_full") {
+      if (table === "v_qlcv_cong_viec_full") {
         return {
           select: () => ({
             eq: () => ({
@@ -171,7 +176,7 @@ describe("updateCongViec", () => {
                   trang_thai: "MOI",
                   trang_thai_id: "tt-moi",
                   is_active: true,
-                  han_hoan_thanh: "2026-05-15",
+                  han_hoan_thanh: pastDate,
                   phan_tram_hoan_thanh: 20,
                 },
                 error: null,
@@ -208,13 +213,13 @@ describe("updateCongViec", () => {
     });
 
     const result = await updateCongViec("cv-01", {
-      han_hoan_thanh: "2026-05-25",
+      han_hoan_thanh: futureDate,
     });
 
     expect(result.success).toBe(true);
     expect(insertMock).toHaveBeenCalledWith(expect.objectContaining({
       loai_hoat_dong: "GIA_HAN",
-      noi_dung: expect.stringContaining("Thay đổi hạn hoàn thành từ 2026-05-15 sang 2026-05-25"),
+      noi_dung: expect.stringContaining(`Thay đổi hạn hoàn thành từ ${pastDate} sang ${futureDate}`),
     }));
   });
 
@@ -223,7 +228,7 @@ describe("updateCongViec", () => {
     const insertMock = vi.fn().mockResolvedValue({ error: null });
 
     mocks.from.mockImplementation((table: string) => {
-      if (table === "v_fact_cong_viec_full") {
+      if (table === "v_qlcv_cong_viec_full") {
         return {
           select: () => ({
             eq: () => ({
@@ -270,6 +275,15 @@ describe("updateCongViec", () => {
                 data: { ho_ten: "Trần Thị Mới" },
                 error: null,
               }),
+            }),
+          }),
+        };
+      }
+      if (table === "dm_trang_thai_cong_viec" || table === "dm_loai_cong_viec") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({ data: { id: "tt-dang-lam" }, error: null }),
             }),
           }),
         };

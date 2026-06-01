@@ -16,7 +16,7 @@ export async function resolveLoaiDungCuForBoImport(
   const maLookup = raw && !UUID_RE.test(raw) ? raw.toUpperCase() : maLoai;
   if (maLookup) {
     const { data, error } = await sb
-      .from("dm_loai_dung_cu")
+      .from("v_cssd_loai_dung_cu_summary")
       .select("id")
       .eq("ma_loai_dung_cu", maLookup)
       .limit(1)
@@ -26,7 +26,7 @@ export async function resolveLoaiDungCuForBoImport(
   }
   if (!ref && tenLoai) {
     const { data, error } = await sb
-      .from("dm_loai_dung_cu")
+      .from("v_cssd_loai_dung_cu_summary")
       .select("id")
       .eq("ten_loai_dung_cu", tenLoai)
       .limit(1)
@@ -147,7 +147,7 @@ export async function resolveLoaiDungCuForChiTietImport(
   const maLookup = raw && !UUID_RE.test(raw) ? raw.toUpperCase() : maLoai;
   if (maLookup) {
     const { data, error } = await sb
-      .from("dm_loai_dung_cu")
+      .from("v_cssd_loai_dung_cu_summary")
       .select("id, ten_loai_dung_cu")
       .eq("ma_loai_dung_cu", maLookup)
       .limit(1)
@@ -157,7 +157,7 @@ export async function resolveLoaiDungCuForChiTietImport(
   }
   if (!ref && tenLoai) {
     const { data, error } = await sb
-      .from("dm_loai_dung_cu")
+      .from("v_cssd_loai_dung_cu_summary")
       .select("id, ten_loai_dung_cu")
       .eq("ten_loai_dung_cu", tenLoai)
       .limit(1)

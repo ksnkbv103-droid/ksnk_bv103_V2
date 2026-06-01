@@ -9,7 +9,7 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
   machineError?: string;
 }> {
   const [bRes, mRes, loaiPack] = await Promise.all([
-    supabase.from("fact_lo_tiet_khuan").select("*, thiet_bi:dm_thiet_bi(ten_thiet_bi)").eq("is_active", true).order("created_at", { ascending: false }),
+    supabase.from("cssd_fact_lo_tiet_khuan").select("*, thiet_bi:dm_thiet_bi(ten_thiet_bi)").eq("is_active", true).order("created_at", { ascending: false }),
     // Form MDM dùng READY/REPAIRING/…; chỉ READY (và mã cũ HOAT_DONG nếu có) được chọn làm máy mẻ TK.
     supabase.from("dm_thiet_bi").select("*").eq("is_active", true).in("trang_thai", ["READY", "HOAT_DONG"]),
     (async () => {
@@ -25,7 +25,7 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
   const byMe = new Map<string, number>();
   if (ids.length > 0) {
     const { data: qrows } = await supabase
-      .from("fact_quy_trinh")
+      .from("cssd_fact_quy_trinh")
       .select("lo_tiet_khuan_id")
       .in("lo_tiet_khuan_id", ids)
       .eq("is_active", true);

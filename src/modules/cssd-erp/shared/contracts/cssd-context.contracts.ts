@@ -4,7 +4,7 @@ import {
   type CssdIncidentReportInput,
 } from "@/modules/cssd-su-co/contracts/su-co-report-input.schema";
 
-export { cssdIncidentReportInputSchema, type CssdIncidentReportInput };
+export { type CssdIncidentReportInput };
 
 export const cssdMaintenanceStartInputSchema = z.object({
   thiet_bi_id: z.string().trim().optional(),

@@ -59,7 +59,7 @@ export async function getVSTSessionsPaginated(params: {
 
     // 1. COUNT
     let countQ = supabase
-      .from("v_fact_giam_sat_vst_sessions_full")
+      .from("v_gstt_giam_sat_vst_sessions_full")
       .select("id", { count: "exact", head: true });
     countQ = applyVstHistoryReadScope(countQ, scope);
     if (searchFilter) countQ = countQ.or(searchFilter);
@@ -68,7 +68,7 @@ export async function getVSTSessionsPaginated(params: {
 
     // 2. DATA — 1 trang
     let dataQ = supabase
-      .from("v_fact_giam_sat_vst_sessions_full")
+      .from("v_gstt_giam_sat_vst_sessions_full")
       .select(VST_SESSIONS_FULL_VIEW_SELECT)
       .order(sortCol, { ascending })
       .range(from, to);
@@ -101,7 +101,7 @@ export async function getVSTSessionDetail(sessionId: string) {
 
     // 1. Fetch Session Metadata from View (Smart DB pattern)
     const { data: sessionView, error: sErr } = await supabase
-      .from("v_fact_giam_sat_vst_sessions_full")
+      .from("v_gstt_giam_sat_vst_sessions_full")
       .select(VST_SESSIONS_FULL_VIEW_SELECT)
       .eq("id", sessionId)
       .single();
@@ -131,7 +131,7 @@ export async function getVSTSessionDetail(sessionId: string) {
 
     // 2. Fetch Observations
     const { data: observations, error: oErr } = await supabase
-      .from("v_fact_giam_sat_vst_full")
+      .from("v_gstt_giam_sat_vst_full")
       .select(VST_OBSERVATION_FULL_VIEW_SELECT)
       .eq("session_id", sessionId);
     

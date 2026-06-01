@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { deleteGiamSatChungSessions } from "../actions/giam-sat-chung.actions";
 import { getGiamSatChungHistoryPaginated } from "../actions/giam-sat-chung-read.actions";
-import { getBangKiemsForGiamSat } from "@/modules/quan-tri-he-thong/bang-kiem/actions/bang-kiem.actions";
+import { getBangKiemsForGiamSat } from "@/lib/mdm-read-gateway";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { useServerPaginatedTable, type ServerPaginationParams } from "@/hooks/use-server-paginated-table";
 import { getGSCHistoryColumns } from "../components/GSCHistoryColumns";

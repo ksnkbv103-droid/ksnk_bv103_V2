@@ -1,0 +1,62 @@
+version: 1
+
+tiers:
+  wiki:
+    description: LLM-maintained synthesis — entity, concepts, index
+    glob: "docs/wiki/**"
+    human_readable: true
+    agent_maintained: true
+  sources:
+    description: Raw immutable layer pointer
+    glob: "docs/sources/**"
+  core:
+    description: SSOT vận hành — dev/agent đọc thường xuyên
+    glob: "docs/core/*.md"
+    max_files: 15
+  modules:
+    description: Tài liệu theo module
+    glob: "docs/modules/**"
+  reference:
+    description: Kiến trúc, audit, runbook
+    glob: "docs/reference/**"
+  data:
+    description: Machine source — script parse, không đọc tay
+    glob: "docs/data/**"
+    human_readable: false
+  archive:
+    description: Baseline/plan đã Done
+    glob: "docs/archive/**"
+    index: false
+
+entrypoints:
+  human: docs/README.md
+  agent: AGENTS.md
+  read_minimum: docs/core/read-minimum.md
+  wiki_schema: docs/wiki/WIKI_SCHEMA.md
+  wiki_index: docs/wiki/index.md
+
+routes:
+  cssd-workflow:
+    read:
+      - docs/core/read-minimum.md
+      - docs/modules/cssd/README.md
+      - docs/core/implementation-mapping.md
+  giam-sat-scoring:
+    read:
+      - docs/modules/giam-sat/bang-kiem-overview.md
+      - docs/wiki/concepts.md
+  nkbv-clinical:
+    read:
+      - docs/modules/nkbv/README.md
+      - docs/modules/nkbv/clinical-forms.md
+    data:
+      - docs/data/nkbv/algorithms/
+  bang-kiem-seed:
+    data:
+      - docs/data/bang-kiem/canonical-36.md
+      - docs/data/bang-kiem/raw-forms-full.md
+
+scan_roots:
+  - docs
+  - AGENTS.md
+  - .cursor/rules

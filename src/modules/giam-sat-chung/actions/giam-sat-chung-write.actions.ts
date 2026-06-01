@@ -17,11 +17,12 @@ import {
   normalizeGscModeFields,
   resolveGscModeIds,
   parseNgayGiamSatOrNull,
+  resolveScoringSummary,
   validateGscModeFields,
 } from "./giam-sat-chung-write-helpers";
 import { resolveBangKiemPersistFields } from "../lib/resolve-loai-bang-kiem-persist";
-
 import { gscSaveSessionSchema } from "@/lib/validations";
+
 import {
   isSupervisionSessionMutationExpired,
   SUPERVISION_SESSION_MUTATION_EXPIRED_VI,
@@ -128,6 +129,18 @@ export async function saveGiamSatChung(
     const giuongNb = String(sessionData.so_giuong_nguoi_benh ?? "").trim() || null;
     const boSungEffective = boSungRaw && Boolean(maNb || tenNb || giuongNb);
 
+    const thoiGianBatDauNorm = String(sessionData.thoi_gian_bat_dau ?? "").trim() || null;
+    const thoiGianKetThucNorm = String(sessionData.thoi_gian_ket_thuc ?? "").trim() || null;
+
+    // Slice 4 hook (reform v4): scoring engine theo cach_tinh_diem nếu bảng kiểm
+    // đã được seed metadata ở Slice 1; fallback engine cũ cho bảng kiểm legacy.
+    const scoring = await resolveScoringSummary(
+      supabase,
+      bangKiem.bang_kiem_id,
+      results,
+      { thoi_gian_bat_dau: thoiGianBatDauNorm, thoi_gian_ket_thuc: thoiGianKetThucNorm },
+    );
+
     const sessionPayload = {
       bang_kiem_id: bangKiem.bang_kiem_id,
       khoa_id: khoaNorm,
@@ -138,19 +151,37 @@ export async function saveGiamSatChung(
       nguoi_giam_sat_id: nguoiGsNorm,
       is_giam_sat_ca_nhan: sessionData.is_giam_sat_ca_nhan || false,
       nhan_vien_id: nhanVienNorm,
-      is_manual_nhan_vien: isManualNv,
-      ten_manual_nhan_vien: tenManualNv,
       nghe_nghiep_id: sessionData.nghe_nghiep_id || null,
       ngay_giam_sat: parseNgayGiamSatOrNull(sessionData.ngay_giam_sat),
-      thoi_gian_bat_dau: String(sessionData.thoi_gian_bat_dau ?? "").trim() || null,
-      thoi_gian_ket_thuc: String(sessionData.thoi_gian_ket_thuc ?? "").trim() || null,
+      thoi_gian_bat_dau: thoiGianBatDauNorm,
+      thoi_gian_ket_thuc: thoiGianKetThucNorm,
       thoi_gian_ghi_nhan: thoiGianGhiNhan,
-      tong_diem: calculateScore(results),
+      tong_diem: scoring.tong_diem ?? calculateScore(results),
+      dat_tron_goi: scoring.dat_tron_goi,
+      du_lieu_nghi_van: scoring.du_lieu_nghi_van,
       ghi_chu_chung: sessionData.ghi_chu_chung,
-      is_bo_sung_nguoi_benh: boSungEffective,
-      ma_nguoi_benh: boSungEffective ? maNb : null,
-      ten_nguoi_benh: boSungEffective ? tenNb : null,
-      so_giuong_nguoi_benh: boSungEffective ? giuongNb : null,
+      results_jsonb: (results || []).map((r) => ({
+        criterion_id: r.criterionId,
+        value: r.value,
+        note: r.note ?? null,
+        weight_type: r.weightType ?? null,
+        is_red_flag: r.isRedFlag ?? false,
+        image_url: r.image_url ?? null,
+        thoi_diem_ghi: (r as ChecklistResult & { thoi_diem_ghi?: string | null })
+          .thoi_diem_ghi ?? null,
+        gia_tri_so: (r as ChecklistResult & { gia_tri_so?: number | null })
+          .gia_tri_so ?? null,
+        gia_tri_lua_chon: (r as ChecklistResult & { gia_tri_lua_chon?: string | null })
+          .gia_tri_lua_chon ?? null,
+      })),
+      metadata: {
+        is_manual_nhan_vien: isManualNv,
+        ten_manual_nhan_vien: tenManualNv,
+        is_bo_sung_nguoi_benh: boSungEffective,
+        ma_nguoi_benh: boSungEffective ? maNb : null,
+        ten_nguoi_benh: boSungEffective ? tenNb : null,
+        so_giuong_nguoi_benh: boSungEffective ? giuongNb : null,
+      },
     };
 
     let sessionId: string;
@@ -160,7 +191,7 @@ export async function saveGiamSatChung(
       if (!adminBypass && !actorNhanSuId) throw new Error("Không xác định được người giám sát của bạn.");
 
       const { data: existing, error: exErr } = await supabase
-        .from("fact_giam_sat_chung_sessions")
+        .from("gstt_fact_chung_sessions")
         .select("id,nguoi_giam_sat_id,is_active,created_at")
         .eq("id", existingSessionId)
         .maybeSingle();
@@ -177,7 +208,7 @@ export async function saveGiamSatChung(
       }
 
       const { error: upErr } = await supabase
-        .from("fact_giam_sat_chung_sessions")
+        .from("gstt_fact_chung_sessions")
         .update({
           ...sessionPayload,
           is_active: true,
@@ -186,13 +217,10 @@ export async function saveGiamSatChung(
         .eq("id", existingSessionId);
       if (upErr) throw upErr;
 
-      const { error: delResErr } = await supabase.from("fact_giam_sat_chung_results").delete().eq("session_id", existingSessionId);
-      if (delResErr) throw delResErr;
-
       sessionId = existingSessionId;
     } else {
       const { data: session, error: sError } = await supabase
-        .from("fact_giam_sat_chung_sessions")
+        .from("gstt_fact_chung_sessions")
         .insert({
           ...sessionPayload,
           is_active: true,
@@ -203,14 +231,6 @@ export async function saveGiamSatChung(
       sessionId = session.id;
     }
 
-    const detailRecords = (results || []).map((r) => ({
-      session_id: sessionId,
-      criterion_id: r.criterionId,
-      value: r.value,
-      note: r.note ?? null,
-    }));
-    const { error: dError } = await supabase.from("fact_giam_sat_chung_results").insert(detailRecords);
-    if (dError) throw dError;
     revalidatePath("/giam-sat-chung");
     return { success: true, sessionId };
   } catch (error: unknown) {

@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import { AlertTriangle, CheckCircle2, Clock, ListTodo } from "lucide-react";
-import { isChoNghiemThuHoanThanh, isChoNhanViec, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
+import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import { isBoardLaneDangLam, isBoardLaneQuaHan } from "../lib/qlcv-board-lanes";
 import type { QlcvBoardFilter } from "../lib/qlcv-board-filter";
 import type { CongViecView } from "../types";
@@ -11,12 +11,14 @@ interface Props {
   tasks: CongViecView[];
   activeFilter?: QlcvBoardFilter | null;
   onFilterChange?: (filter: QlcvBoardFilter) => void;
+  /** Luôn hiện 3 cổng (kể cả 0) — cho người phê duyệt / điều hành. */
+  showAllGatePills?: boolean;
 }
 
 const cardInteractive =
   "cursor-pointer select-none transition-[box-shadow,transform,border-color] hover:border-[#026f17]/35 hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2";
 
-export function DashboardStats({ tasks, activeFilter, onFilterChange }: Props) {
+export function DashboardStats({ tasks, activeFilter, onFilterChange, showAllGatePills }: Props) {
   const list = tasks ?? [];
 
   const stats = useMemo(() => {
@@ -29,7 +31,6 @@ export function DashboardStats({ tasks, activeFilter, onFilterChange }: Props) {
     const overdueCount = list.filter((t) => isBoardLaneQuaHan(t)).length;
 
     const gateDeXuat = list.filter((t) => isDeXuatChoDuyet(t)).length;
-    const gateNhan = list.filter((t) => isChoNhanViec(t)).length;
     const gateNghiemThu = list.filter((t) => isChoNghiemThuHoanThanh(t)).length;
 
     const nearDeadline = list.filter((t) => {
@@ -47,7 +48,6 @@ export function DashboardStats({ tasks, activeFilter, onFilterChange }: Props) {
       inProgress,
       overdueCount,
       gateDeXuat,
-      gateNhan,
       gateNghiemThu,
       nearDeadline,
     };
@@ -71,32 +71,26 @@ export function DashboardStats({ tasks, activeFilter, onFilterChange }: Props) {
     </button>
   );
 
-  const gatePills: { key: QlcvBoardFilter; label: string; value: number; className: string }[] = [];
-  if (stats.gateDeXuat > 0) {
-    gatePills.push({
+  const gateDefs: { key: QlcvBoardFilter; label: string; value: number; className: string }[] = [
+    {
       key: "GATE_DEXUAT",
       label: "Chờ phê đề xuất",
       value: stats.gateDeXuat,
       className: "border-violet-100 bg-violet-50/80 text-violet-900",
-    });
-  }
-  if (stats.gateNhan > 0) {
-    gatePills.push({
-      key: "GATE_NHAN",
-      label: "Chờ nhận việc",
-      value: stats.gateNhan,
-      className: "border-sky-100 bg-sky-50/80 text-sky-900",
-    });
-  }
-  if (stats.gateNghiemThu > 0) {
-    gatePills.push({
+    },
+    {
       key: "GATE_NGHIEMTHU",
       label: "Chờ nghiệm thu",
       value: stats.gateNghiemThu,
       className: "border-orange-100 bg-orange-50/80 text-orange-900",
-    });
-  }
-  if (stats.nearDeadline > 0) {
+    },
+  ];
+
+  const gatePills = showAllGatePills
+    ? gateDefs
+    : gateDefs.filter((p) => p.value > 0);
+
+  if (stats.nearDeadline > 0 || showAllGatePills) {
     gatePills.push({
       key: "NEAR_DEADLINE",
       label: "Sắp đến hạn (≤2 ngày)",

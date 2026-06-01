@@ -67,7 +67,7 @@ export default function TieuChiTable({
   };
 
   const handleToggle = async (id: string, currentStatus: boolean) => {
-    const res = await toggleIsActive("dm_tieu_chi_bang_kiem", id, currentStatus);
+    const res = await toggleIsActive("tieu_chi_bang_kiem_json", id, currentStatus);
     if (res.success) setRefreshKey((prev) => prev + 1);
     else toast.error(res.error);
   };

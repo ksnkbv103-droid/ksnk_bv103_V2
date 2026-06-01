@@ -14,7 +14,7 @@ export default function MeTietKhuanWaitingPanel({
   onPickCode: (code: string) => void;
 }) {
   return (
-    <div className="flex h-full min-h-[320px] flex-col rounded-[32px] border border-slate-100 bg-white p-6 shadow-sm">
+    <div className="flex h-full min-h-[320px] flex-col rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
       <div className="mb-3 flex items-center gap-2">
         <List className="h-5 w-5 text-[#026f17]" aria-hidden />
         <h3 className="text-xs font-black uppercase tracking-widest text-slate-800">Chờ tiệt khuẩn (Đóng gói)</h3>

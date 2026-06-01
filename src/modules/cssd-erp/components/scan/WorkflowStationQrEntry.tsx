@@ -82,12 +82,18 @@ export default function WorkflowStationQrEntry({ waitingItems, disabled, onConfi
             <option value="">
               {waitingItems.length === 0 ? "— Không có bộ chờ tại trạm —" : "— Chọn mã QR trong danh sách chờ —"}
             </option>
-            {waitingItems.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.ma_vach_qr}
-                {item.ten_bo ? ` · ${item.ten_bo}` : ""}
-              </option>
-            ))}
+            {waitingItems.map((item) => {
+              const shortLabel = item.ma_vach_qr.startsWith("CATALOG::")
+                ? `CAT:${item.ma_vach_qr.replace("CATALOG::", "").slice(0, 6)}…`
+                : item.ma_vach_qr.length > 16
+                  ? `${item.ma_vach_qr.slice(0, 8)}…${item.ma_vach_qr.slice(-4)}`
+                  : item.ma_vach_qr;
+              return (
+                <option key={item.id} value={item.id}>
+                  {item.ten_bo ? `${item.ten_bo} · ${shortLabel}` : shortLabel}
+                </option>
+              );
+            })}
           </select>
           <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
         </div>

@@ -3,7 +3,7 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { getErrorMessage, mapFkError } from "./cssd-action-common";
 import type { FactBaoTriRow } from "./cssd-bao-tri.types";
-import { verifyCssdMaintenanceView } from "./cssd-permissions";
+import { verifyCssdMaintenanceView } from "@/lib/cssd-server-gates";
 
 /** Danh sách phiếu bảo trì (mới nhất trước). */
 export async function listFactBaoTriThietBiAction(): Promise<
@@ -13,7 +13,7 @@ export async function listFactBaoTriThietBiAction(): Promise<
   try {
     await verifyCssdMaintenanceView();
     const { data: rows, error } = await supabase
-      .from("fact_bao_tri_thiet_bi")
+      .from("cssd_fact_bao_tri")
       .select("id, ma_phieu, thiet_bi_id, trang_thai, ly_do, ket_qua_ghi_nhan, thoi_gian_bat_dau, thoi_gian_ket_thuc, thiet_bi:dm_thiet_bi(ten_thiet_bi)")
       .eq("is_active", true)
       .order("created_at", { ascending: false })
@@ -61,7 +61,7 @@ export async function listThietBiCoTheBatDauBaoTriAction(): Promise<
     let openBatchByMachine = new Set<string>();
     if (machineIds.length) {
       const { data: openRows, error: openErr } = await supabase
-        .from("fact_lo_tiet_khuan")
+        .from("cssd_fact_lo_tiet_khuan")
         .select("thiet_bi_id")
         .eq("is_active", true)
         .is("ket_qua_test", null)

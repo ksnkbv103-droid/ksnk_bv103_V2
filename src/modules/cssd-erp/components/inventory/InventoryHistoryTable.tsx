@@ -28,20 +28,20 @@ export default function InventoryHistoryTable() {
   const columns: Column<any>[] = [
     { header: "LOẠI GIAO DỊCH", accessorKey: "loai_giao_dich", cell: (item: any) => (
       <div className="flex items-center gap-2">
-        <div className={`p-2 rounded-lg ${item.loai_giao_dich === 'XUAT_KHO' ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>
-          {item.loai_giao_dich === 'XUAT_KHO' ? <ArrowUpRight size={14} /> : <ArrowDownLeft size={14} />}
+        <div className={`p-2 rounded-lg ${item.loai_giao_dich === 'NHAP_KHO' ? 'bg-emerald-50 text-emerald-500' : 'bg-amber-50 text-amber-600'}`}>
+          {item.loai_giao_dich === 'NHAP_KHO' ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
         </div>
         <span className="font-black text-[9px] uppercase tracking-tighter">{item.loai_giao_dich.replace('_', ' ')}</span>
       </div>
     )},
-    { header: "KHOA NHẬN / NGUỒN", accessorKey: "dm_khoa_phong.ten_khoa", cell: (item: any) => (
+    { header: "BỘ / LOẠI", accessorKey: "dm_bo_dung_cu.ma_bo", cell: (item: any) => (
       <span className="font-bold text-slate-700 text-[10px] uppercase truncate max-w-[120px] block">
-        {item.dm_khoa_phong?.ten_khoa || "KHO CSSD"}
+        {item.dm_bo_dung_cu?.ma_bo || item.dm_loai_dung_cu?.ma_loai_dung_cu || "---"}
       </span>
     )},
     { header: "GHI CHÚ", accessorKey: "ghi_chu", cell: (item: any) => (
       <span className="text-slate-400 font-medium text-[9px] truncate max-w-[150px] block italic">
-        {item.fact_kho_chi_tiet?.[0]?.ghi_chu || "---"}
+        {item.ghi_chu || "---"}
       </span>
     )},
     { header: "THỜI GIAN", accessorKey: "created_at", cell: (item: any) => (

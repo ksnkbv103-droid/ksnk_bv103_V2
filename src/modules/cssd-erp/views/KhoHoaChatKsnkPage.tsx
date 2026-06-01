@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
@@ -21,14 +21,9 @@ import {
   type KhoHoaChatTonLo,
   xuatKhoHoaChatAction,
 } from "../actions/cssd-kho-hoa-chat.actions";
-import {
-  CSSD_UI_ACTION_PRIMARY,
-  CSSD_UI_ACTION_SECONDARY,
-  CSSD_UI_TAB_ACTIVE,
-  CSSD_UI_TAB_GROUP,
-  CSSD_UI_TAB_IDLE,
-} from "../shared/ui/cssd-ui-chrome";
+import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY, CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_GROUP, CSSD_UI_TAB_IDLE } from "../shared/ui/cssd-ui-chrome";
 import { CSSDCatalogHoaChatTab } from "./CSSDCatalogHoaChatTab";
+import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 
 const MODULE_KEY = "KSNK_KHO_HOACHAT";
 
@@ -61,6 +56,7 @@ export default function KhoHoaChatKsnkPage() {
   const [thrVal, setThrVal] = useState("");
   /** Một lần khi mount — ngưỡng “sắp hết hạn” 30 ngày; tránh Date.now trong thân render (react-hooks/purity). */
   const [expiryHorizonMs] = useState(() => Date.now() + 30 * 864e5);
+  const [isIncidentOpen, setIsIncidentOpen] = useState(false);
 
   const reload = useCallback(async () => {
     setBusy(true);
@@ -117,6 +113,22 @@ export default function KhoHoaChatKsnkPage() {
       if (tot <= dm.nguong_ton_toi_thieu) n++;
     }
     return n;
+  }, [dms, totalByDm]);
+
+  const sapHetHanItems = useMemo(() => {
+    return tons.filter((t) => {
+      if (!t.han_su_dung || t.ton_so_luong <= 0) return false;
+      const h = new Date(`${t.han_su_dung}T12:00:00`).getTime();
+      return !Number.isNaN(h) && h <= expiryHorizonMs;
+    });
+  }, [tons, expiryHorizonMs]);
+
+  const duoiNguongItems = useMemo(() => {
+    return dms.filter((dm) => {
+      if (dm.nguong_ton_toi_thieu == null) return false;
+      const tot = totalByDm.get(dm.id) || 0;
+      return tot <= dm.nguong_ton_toi_thieu;
+    });
   }, [dms, totalByDm]);
 
   const openSheet = (m: MoveMode) => {
@@ -217,23 +229,83 @@ export default function KhoHoaChatKsnkPage() {
       title={<span className="text-[#026f17]">Kho hóa chất &amp; vật tư KSNK</span>}
       subtitle="Tồn theo lô và hạn SD; nhập / xuất / điều chỉnh có mã phiếu; ngưỡng cảnh báo theo danh mục."
       actions={
-        canEdit ? (
-          <div className="flex flex-wrap gap-2">
-            <button type="button" className={CSSD_UI_ACTION_PRIMARY} onClick={() => openSheet("NHAP")}>
-              + Nhập
-            </button>
-            <button type="button" className={CSSD_UI_ACTION_SECONDARY} onClick={() => openSheet("XUAT")}>
-              Xuất
-            </button>
-            <button type="button" className={CSSD_UI_ACTION_SECONDARY} onClick={() => openSheet("DIEU")}>
-              Điều chỉnh
-            </button>
-          </div>
-        ) : null
+        <div className="flex flex-wrap gap-2">
+          {canEdit && (
+            <>
+              <button type="button" className={CSSD_UI_ACTION_PRIMARY} onClick={() => openSheet("NHAP")}>
+                + Nhập
+              </button>
+              <button type="button" className={CSSD_UI_ACTION_SECONDARY} onClick={() => openSheet("XUAT")}>
+                Xuất
+              </button>
+              <button type="button" className={CSSD_UI_ACTION_SECONDARY} onClick={() => openSheet("DIEU")}>
+                Điều chỉnh
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 py-2 text-xs font-black uppercase tracking-wider text-red-600 shadow-sm hover:bg-red-100 active:scale-[0.98] transition-all cursor-pointer"
+            onClick={() => setIsIncidentOpen(true)}
+          >
+            ⚠️ Báo sự cố
+          </button>
+        </div>
       }
     >
       <CssdModuleChrome />
       <div className="space-y-6">
+        {/* Banner cảnh báo tồn kho hóa chất dưới ngưỡng an toàn */}
+        {duoiNguongItems.length > 0 && (
+          <div className="rounded-2xl border border-red-200 bg-red-50/70 p-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="flex items-start gap-3">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-sm font-bold">
+                <AlertTriangle className="h-4 w-4" />
+              </span>
+              <div className="flex-1 space-y-1">
+                <h4 className="text-xs font-bold text-red-900 uppercase tracking-wide">Cảnh báo: Hóa chất / Vật tư dưới ngưỡng tồn tối thiểu!</h4>
+                <p className="text-[11px] text-red-700 font-medium leading-relaxed">
+                  Có <span className="font-extrabold">{duoiNguongItems.length}</span> mặt hàng đang ở mức báo động đỏ. Vui lòng lập kế hoạch bổ sung vật tư ngay lập tức để tránh làm gián đoạn quy trình tiệt khuẩn CSSD.
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {duoiNguongItems.map((item) => {
+                    const currentStock = totalByDm.get(item.id) || 0;
+                    return (
+                      <span key={item.id} className="inline-flex items-center rounded-lg bg-red-100/80 px-2 py-0.5 text-[9px] font-bold text-red-800 border border-red-200/50">
+                        {item.ma_hoa_chat}: {currentStock} / {item.nguong_ton_toi_thieu} (ngưỡng)
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Banner cảnh báo lô sắp hết hạn sử dụng */}
+        {sapHetHanItems.length > 0 && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="flex items-start gap-3">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-sm font-bold">
+                <CalendarClock className="h-4 w-4" />
+              </span>
+              <div className="flex-1 space-y-1">
+                <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wide">Cảnh báo: Lô hóa chất / Vật tư sắp hết hạn sử dụng!</h4>
+                <p className="text-[11px] text-amber-700 font-medium leading-relaxed">
+                  Có <span className="font-extrabold">{sapHetHanItems.length}</span> lô hàng đang có hạn sử dụng dưới 30 ngày. Vui lòng ưu tiên xuất dùng trước hoặc liên hệ nhà cung cấp nếu cần đổi lô mới.
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {sapHetHanItems.map((item) => (
+                    <span key={item.id} className="inline-flex items-center rounded-lg bg-amber-100/80 px-2 py-0.5 text-[9px] font-bold text-amber-800 border border-amber-200/50">
+                      Lô {item.ma_lo || "Không mã"}: {item.ton_so_luong} ({item.han_su_dung})
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className={CSSD_UI_TAB_GROUP}>
           <button
             type="button"
@@ -294,6 +366,13 @@ export default function KhoHoaChatKsnkPage() {
         onMaLoNhap={setMaLoNhap}
         hanNhap={hanNhap}
         onHanNhap={setHanNhap}
+      />
+
+      <IncidentReportModal
+        isOpen={isIncidentOpen}
+        onClose={() => setIsIncidentOpen(false)}
+        station="TIEP_NHAN"
+        defaultGroup="CHEMICAL"
       />
     </CSSDPageShell>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
-import type { DashboardV4TopViPhamRow } from "../../strategic-dashboard-v3.types";
+import type { DashboardV4TopViPhamRow } from "../../strategic-dashboard-v4.types";
 
 type Props = {
   rows: DashboardV4TopViPhamRow[];

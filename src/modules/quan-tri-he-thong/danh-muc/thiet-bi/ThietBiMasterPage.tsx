@@ -1,16 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Plus, Settings, Download, Upload, Loader2 } from "lucide-react";
-import { useImportExport } from "@/hooks/useImportExport";
+import { Plus, Settings, Wrench, CheckCircle2, Zap, Upload } from "lucide-react";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
-import { smartImportData } from "../actions/smart-import.actions";
-import { getMasterDataExport } from "../actions/export.actions";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import ThietBiFormModal from "./thiet-bi-form-modal";
-import { THIET_BI_COLUMN_MAP } from "./thiet-bi-import";
+import MasterDataImportExportModal from "../../components/MasterDataImportExportModal";
 import { getThietBiColumns } from "./thiet-bi-columns";
 import type { ThietBiRow } from "../actions/thiet-bi.types";
 import {
@@ -22,11 +18,11 @@ import {
 import { DmMasterPageGuard } from "../views/dm-master-page-guard";
 
 function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?: boolean }) {
-  const router = useRouter();
   const [data, setData] = useState<ThietBiRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
+  const [importModalOpen, setImportModalOpen] = useState(false);
   const [editing, setEditing] = useState<ThietBiRow | null>(null);
 
   useEffect(() => {
@@ -77,22 +73,21 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
     },
   });
 
-  const { exportTemplate, handleFileUpload, isImporting, triggerImport, fileInputRef } = useImportExport({
-    moduleKey: "THIET_BI",
-    tableName: "dm_thiet_bi",
-    displayName: "Thiết bị",
-    uniqueKey: "ma_thiet_bi",
-    columnMapping: THIET_BI_COLUMN_MAP,
-    onGetData: () => getMasterDataExport("dm_thiet_bi", "ma_thiet_bi"),
-    onImport: (d) => smartImportData({ tableName: "dm_thiet_bi", uniqueKey: "ma_thiet_bi", codePrefix: "TB" }, d),
-    onSuccess: () => {
-      setRefreshKey((k) => k + 1);
-      router.refresh();
-    },
-  });
+  // Removed legacy useImportExport hook to improve bundle size and maintain cleanliness
 
   const columns = getThietBiColumns(actionUi);
   const modalKey = editing?.id ? `edit-${editing.id}` : "create";
+
+  const totalThietBi = data.length;
+  const readyCount = data.filter((x) => {
+    const s = (x.trang_thai || "READY").toUpperCase();
+    return s === "READY" || s === "SAN_SANG";
+  }).length;
+  const repairingCount = data.filter((x) => {
+    const s = (x.trang_thai || "").toUpperCase();
+    return s === "REPAIRING" || s === "BAO_TRI";
+  }).length;
+  const totalMeTietKhuan = data.reduce((acc, x) => acc + (x.so_lan_su_dung || 0), 0);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
@@ -107,27 +102,12 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
             </p>
           </div>
           <div className="flex flex-wrap gap-3 w-full sm:w-auto">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
-              accept=".xlsx, .xls"
-              className="hidden"
-            />
             <button
               type="button"
-              onClick={triggerImport}
-              disabled={isImporting}
-              className="h-12 px-5 bg-amber-50 text-amber-600 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 touch-manipulation"
+              onClick={() => setImportModalOpen(true)}
+              className="h-12 px-5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 touch-manipulation"
             >
-              {isImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />} Import dữ liệu
-            </button>
-            <button
-              type="button"
-              onClick={() => exportTemplate()}
-              className="h-12 px-5 bg-slate-50 text-slate-500 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 hover:bg-slate-100 touch-manipulation"
-            >
-              <Download size={16} /> Export dữ liệu mẫu
+              <Upload size={16} /> Nhập/Xuất Excel
             </button>
             <button
               type="button"
@@ -143,27 +123,12 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
       {/* Nếu suppressHeader là true, ta cần render lại các nút hành động (Add, Import) để không bị mất chức năng */}
       {suppressHeader && (
         <div className="flex flex-wrap justify-end gap-3 mb-4">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
-            accept=".xlsx, .xls"
-            className="hidden"
-          />
           <button
             type="button"
-            onClick={triggerImport}
-            disabled={isImporting}
-            className="h-10 px-4 bg-amber-50 text-amber-600 rounded-lg font-black uppercase text-[10px] flex items-center gap-2 transition-all shadow-sm active:scale-95 touch-manipulation"
+            onClick={() => setImportModalOpen(true)}
+            className="h-10 px-4 bg-emerald-50 text-emerald-600 rounded-lg font-black uppercase text-[10px] flex items-center gap-2 transition-all shadow-sm active:scale-95 touch-manipulation"
           >
-            {isImporting ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Import
-          </button>
-          <button
-            type="button"
-            onClick={() => exportTemplate()}
-            className="h-10 px-4 bg-slate-50 text-slate-500 rounded-lg font-black uppercase text-[10px] flex items-center gap-2 transition-all shadow-sm hover:bg-slate-100 active:scale-95 touch-manipulation"
-          >
-            <Download size={14} /> Export mẫu
+            <Upload size={14} /> Nhập/Xuất Excel
           </button>
           <button
             type="button"
@@ -174,8 +139,51 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
           </button>
         </div>
       )}
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tổng số máy móc</p>
+            <p className="text-2xl font-black text-slate-800 mt-1">{totalThietBi}</p>
+          </div>
+          <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500">
+            <Settings size={20} />
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sẵn sàng vận hành</p>
+            <p className="text-2xl font-black text-emerald-600 mt-1">{readyCount}</p>
+          </div>
+          <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+            <CheckCircle2 size={20} />
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Đang bảo trì / sửa chữa</p>
+            <p className="text-2xl font-black text-rose-600 mt-1">{repairingCount}</p>
+          </div>
+          <div className={`h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 ${repairingCount > 0 ? "animate-pulse" : ""}`}>
+            <Wrench size={20} />
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tổng mẻ tiệt khuẩn</p>
+            <p className="text-2xl font-black text-amber-600 mt-1">🔥 {totalMeTietKhuan}</p>
+          </div>
+          <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
+            <Zap size={20} />
+          </div>
+        </div>
+      </div>
       
-      <div className="bg-white p-2 rounded-[40px] border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
+      <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
           data={data}
@@ -203,6 +211,14 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
           setEditing(null);
         }}
         onSaved={() => setRefreshKey((k) => k + 1)}
+      />
+      <MasterDataImportExportModal
+        isOpen={importModalOpen}
+        onClose={() => {
+          setImportModalOpen(false);
+          setRefreshKey((k) => k + 1);
+        }}
+        type="thiet-bi"
       />
     </div>
   );

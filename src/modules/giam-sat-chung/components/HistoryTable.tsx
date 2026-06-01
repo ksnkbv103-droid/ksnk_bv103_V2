@@ -71,7 +71,7 @@ export default function HistoryTable({
           columns={columns}
           data={processedData}
           loading={loading}
-          tableClassName="w-full min-w-[960px] table-fixed border-collapse text-left"
+          tableClassName="w-full min-w-[1200px] table-fixed border-collapse text-left"
           enableMultiSelect={allowed.delete}
           onDeleteSelected={allowed.delete ? handleDelete : undefined}
           onSearch={handleSearch}

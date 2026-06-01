@@ -64,7 +64,7 @@ export default function BangKiemTable({
       "ma_bk": "ma_bk",
       "ten_bang_kiem": "ten_bang_kiem",
       "mo_ta_bang_kiem": "mo_ta",
-      "nhom_chuyen_de": "nhom_chuyen_de",
+      "nhom_chuyen_de": "phan_loai_chuyen_mon",
       "ma_tc": "ma_tc",
       "noi_dung_tieu_chi": "noi_dung",
       "stt": "stt",

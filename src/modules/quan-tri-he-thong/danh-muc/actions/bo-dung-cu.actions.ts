@@ -40,7 +40,7 @@ export async function getBoDungCuRowsAction() {
   await verifyPermission("BO_DC", "view");
   const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
-    .from("dm_bo_dung_cu")
+    .from("v_cssd_bo_dung_cu_summary")
     .select("*")
     .order("is_active", { ascending: false })
     .order("ma_bo", { ascending: true });
@@ -139,6 +139,8 @@ export async function saveBoDungCuAction(input: Record<string, unknown>) {
     ghi_chu: String(input.ghi_chu || "").trim() || null,
     trang_thai: String(input.trang_thai || "ACTIVE").trim(),
     ngay_kiem_ke_gan_nhat: input.ngay_kiem_ke_gan_nhat || null,
+    phan_loai_bo: String(input.phan_loai_bo || "PHAU_THUAT"),
+    co_ma_dinh_danh_rieng: input.co_ma_dinh_danh_rieng !== false,
     is_active: input.is_active !== false,
     updated_at: new Date().toISOString(),
   };
@@ -170,4 +172,105 @@ export async function softDeleteBoDungCuAction(id: string) {
 export async function softDeleteManyBoDungCuAction(ids: string[]) {
   await verifyPermission("BO_DC", "delete");
   return softDeleteManyMasterRows("dm_bo_dung_cu", ids);
+}
+
+async function getBoAllocationListAction(boDungCuId: string) {
+  await verifyPermission("BO_DC", "view");
+  const bid = String(boDungCuId || "").trim();
+  if (!bid) return { success: false as const, error: "Thiếu id bộ dụng cụ." };
+  
+  const supabase = createAdminSupabaseClient();
+  const { data, error } = await supabase
+    .from("dm_bo_dung_cu_phan_bo")
+    .select("*, khoa:dm_khoa_phong!khoa_phong_id(id, ten_khoa, ma_khoa)")
+    .eq("bo_dung_cu_id", bid)
+    .eq("is_active", true)
+    .order("created_at", { ascending: true });
+  if (error) return { success: false as const, error: error.message };
+  return { success: true as const, data: data || [] };
+}
+
+async function saveBoAllocationAction(input: Record<string, unknown>) {
+  await verifyPermission("BO_DC", "edit");
+  const supabase = createAdminSupabaseClient();
+  const id = String(input.id || "").trim();
+  const payload = {
+    bo_dung_cu_id: String(input.bo_dung_cu_id || "").trim(),
+    khoa_phong_id: String(input.khoa_phong_id || "").trim(),
+    so_luong_co_so: Number(input.so_luong_co_so || 0),
+    so_luong_hien_tai: Number(input.so_luong_hien_tai || 0),
+    is_active: input.is_active !== false,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (!payload.bo_dung_cu_id || !payload.khoa_phong_id) {
+    return { success: false as const, error: "Thiếu thông tin bộ dụng cụ hoặc khoa phòng." };
+  }
+
+  if (id) {
+    const { error } = await supabase
+      .from("dm_bo_dung_cu_phan_bo")
+      .update(payload)
+      .eq("id", id);
+    if (error) return { success: false as const, error: error.message };
+  } else {
+    const { error } = await supabase
+      .from("dm_bo_dung_cu_phan_bo")
+      .insert(payload);
+    if (error) return { success: false as const, error: error.message };
+  }
+  return { success: true as const };
+}
+
+export async function getBoDungCuAllocationsAction(boDungCuId: string) {
+  return getBoAllocationListAction(boDungCuId);
+}
+
+export async function allocateProceduralSetAction(params: {
+  boDungCuId: string;
+  khoaPhongId: string;
+  quantity: number;
+}) {
+  await verifyPermission("BO_DC", "edit");
+  const supabase = createAdminSupabaseClient();
+  const bid = String(params.boDungCuId || "").trim();
+  const kid = String(params.khoaPhongId || "").trim();
+  const qty = Number(params.quantity || 0);
+
+  // Check if allocation already exists
+  const { data: existing, error: fetchErr } = await supabase
+    .from("dm_bo_dung_cu_phan_bo")
+    .select("id, so_luong_co_so, so_luong_hien_tai")
+    .eq("bo_dung_cu_id", bid)
+    .eq("khoa_phong_id", kid)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (fetchErr) return { success: false as const, error: fetchErr.message };
+
+  if (existing) {
+    const diff = qty - Number(existing.so_luong_co_so || 0);
+    const { error: updErr } = await supabase
+      .from("dm_bo_dung_cu_phan_bo")
+      .update({
+        so_luong_co_so: qty,
+        so_luong_hien_tai: Number(existing.so_luong_hien_tai || 0) + diff,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", existing.id);
+    if (updErr) return { success: false as const, error: updErr.message };
+  } else {
+    const { error: insErr } = await supabase
+      .from("dm_bo_dung_cu_phan_bo")
+      .insert({
+        bo_dung_cu_id: bid,
+        khoa_phong_id: kid,
+        so_luong_co_so: qty,
+        so_luong_hien_tai: qty,
+        updated_at: new Date().toISOString(),
+      });
+    if (insErr) return { success: false as const, error: insErr.message };
+  }
+
+  return { success: true as const };
 }

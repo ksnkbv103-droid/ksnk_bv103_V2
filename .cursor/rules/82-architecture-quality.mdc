@@ -6,27 +6,16 @@ alwaysApply: false
 
 # Architecture & Quality Standards (BV103)
 
-## Cache danh mục tĩnh
-
-1. Danh mục ít thay đổi (`dm_khoa_phong`, `dm_nghe_nghiep`, `dm_khu_vuc_giam_sat`) → dùng `unstable_cache` hoặc in-memory Map, TTL 5-15 phút.
-2. Đặt cache functions tại `src/lib/cache/`. Pattern: `getCached<TenDanhMuc>()`.
-3. Sau mỗi mutation (thêm/sửa/xóa) → gọi `revalidateTag("<tag>")` ngay trong Server Action.
-4. **KHÔNG cache** dữ liệu lâm sàng đang active (phiên giám sát, kết quả xét nghiệm).
-
-## INDEX Audit (khi viết migration)
-
-5. Tạo bảng mới → luôn kèm `CREATE INDEX IF NOT EXISTS` cho mọi cột FK (`*_id`).
-6. Composite index cho pattern lặp: `(khoa_id, created_at)`, `(nhan_vien_id, ngay_giam_sat)`.
-7. Trước release → chạy `EXPLAIN ANALYZE` cho top query chậm. Seq Scan trên bảng > 1.000 rows → phải sửa.
+> Chi tiết DB perf, pagination, cache, domain convention, observability: skill **`smart-db-bv103`** (`.agents/skills/smart-db-bv103/SKILL.md`).
 
 ## Domain Layer (`src/lib/domain/`)
 
-8. Logic nghiệp vụ thuần (tính tỷ lệ nhiễm khuẩn, phân loại MDRO, WHO 5 moments, Antibiogram) → pure functions tại `src/lib/domain/`.
-9. File trong `src/lib/domain/` **KHÔNG được import** từ `@/lib/supabase*`, `next/*`, hoặc `react`.
-10. Chỉ nhận input thuần (primitives, plain objects) và trả output thuần. Dễ unit test.
+1. Logic nghiệp vụ **thuần** → `src/lib/domain/` (pure functions).
+2. **KHÔNG import** `@/lib/supabase*`, `next/*`, `react` trong `src/lib/domain/`.
+3. Module I/O (Supabase) → `actions/` hoặc `workflow/application/` — không đặt tên folder `domain/` cho file có I/O.
+4. `src/lib/master-data/domain-registry.ts` là **registry pattern** (map `dm_*`), khác `src/lib/domain/`.
 
-## Observability
+## Observability (tóm tắt)
 
-11. Server Actions lỗi → `console.error` kèm context: `{ module, action, userId, error }`.
-12. **KHÔNG log PII** (tên bệnh nhân, số BHYT, email cá nhân). Chỉ log ID.
-13. Khi thấy query chậm → kiểm tra `pg_stat_statements` trên Supabase Dashboard trước khi sửa code.
+5. Server Actions lỗi → `console.error` kèm `{ module, action, userId, error }` — **không log PII**.
+6. Query chậm → `pg_stat_statements` trước khi sửa code app.

@@ -2,7 +2,7 @@
 
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
-import type { DashboardV4Payload } from "@/modules/dashboard/strategic-dashboard-v3.types";
+import type { DashboardV4Payload } from "@/modules/dashboard/strategic-dashboard-v4.types";
 
 export type GetGscComplianceV4Input = {
   tu_ngay: string;

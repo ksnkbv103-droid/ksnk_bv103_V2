@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { Clock, ChevronRight, ListTree } from "lucide-react";
-import { isChoNghiemThuHoanThanh, isChoNhanViec, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
+import { Clock, ChevronRight } from "lucide-react";
+import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import { formatMucDoUuTienLabel, getCongViecTrangThaiLabel } from "../lib/qlcv-labels";
 import { getKanbanColumnIdForTask, type KanbanColumnId } from "../lib/qlcv-board-lanes";
 import { qlcvKanbanCardAttentionClass } from "../lib/qlcv-ux-chrome";
@@ -13,8 +13,6 @@ type KanbanColId = KanbanColumnId;
 interface Props {
   tasks: CongViecView[];
   onTaskClick?: (task: CongViecView) => void;
-  actorStaffId?: string | null;
-  onNhanNhiemVu?: (taskId: string) => void | Promise<void>;
   /** Hiện cột «Đề xuất chờ duyệt» (tách khỏi hàng đợi). */
   showProposalColumn?: boolean;
   /** Cuộn tới cột tương ứng khi người dùng chọn thẻ thống kê (kèm `focusNonce` đổi mỗi lần bấm). */
@@ -27,7 +25,6 @@ function showKanbanCardSubtitle(colId: KanbanColId, t: CongViecView, showProposa
   const logicalCol = getKanbanColumnIdForTask(t, showProposalColumn);
   if (logicalCol !== colId) return true;
   if (colId === "DE_XUAT" && isDeXuatChoDuyet(t)) return false;
-  if (colId === "CHO_NHAN" && isChoNhanViec(t)) return false;
   if (colId === "CHO_DUYET" && isChoNghiemThuHoanThanh(t)) return false;
   const st = String(t.trang_thai || "");
   if (colId === "DANG_LAM" && (st === "DANG_LAM" || st === "TU_CHOI" || st === "DANG_THUC_HIEN")) return false;
@@ -38,8 +35,6 @@ function showKanbanCardSubtitle(colId: KanbanColId, t: CongViecView, showProposa
 export default function CongViecKanban({
   tasks,
   onTaskClick,
-  actorStaffId,
-  onNhanNhiemVu,
   showProposalColumn = false,
   focusColumnId = null,
   focusNonce = 0,
@@ -61,7 +56,6 @@ export default function CongViecKanban({
     ...(showProposalColumn
       ? [{ id: "DE_XUAT" as const, title: "Đề xuất chờ duyệt", dot: "bg-violet-500" }]
       : []),
-    { id: "CHO_NHAN", title: "Chờ nhận / mới", dot: "bg-slate-400" },
     { id: "DANG_LAM", title: "Đang thực hiện", dot: "bg-blue-500" },
     { id: "QUA_HAN", title: "Quá hạn", dot: "bg-red-500" },
     { id: "CHO_DUYET", title: "Chờ nghiệm thu", dot: "bg-amber-500" },
@@ -108,12 +102,6 @@ export default function CongViecKanban({
 
             <div className="scrollbar-hide flex max-h-[min(68vh,640px)] flex-1 flex-col gap-2.5 overflow-y-auto pr-0.5">
               {colTasks.map((task) => {
-                const showNhan =
-                  Boolean(onNhanNhiemVu) &&
-                  isChoNhanViec(task) &&
-                  Boolean(actorStaffId) &&
-                  String(task.nguoi_phu_trach_id || "") === String(actorStaffId);
-
                 const showSubtitle = showKanbanCardSubtitle(col.id, task, showProposalColumn);
 
                 return (
@@ -158,31 +146,12 @@ export default function CongViecKanban({
                         </p>
                       </div>
 
-                      <div className="flex shrink-0 items-center gap-2 sm:flex-col sm:items-end sm:gap-1">
-                        <div className="flex items-center gap-1 text-slate-400" title="Công việc con">
-                          <ListTree size={12} aria-hidden />
-                          <span className="text-[10px] font-black">{task.cong_viec_con_count || 0}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock size={12} className="text-[#026f17]" aria-hidden />
-                          <span className="text-[10px] font-black text-[#026f17]">{task.phan_tram_hoan_thanh || 0}%</span>
-                        </div>
+                      <div className="flex shrink-0 items-center gap-1">
+                        <Clock size={12} className="text-[#026f17]" aria-hidden />
+                        <span className="text-[10px] font-black text-[#026f17]">{task.phan_tram_hoan_thanh || 0}%</span>
                       </div>
                     </div>
 
-                    {showNhan ? (
-                      <button
-                        type="button"
-                        className="bv103-control-h mt-2.5 w-full rounded-xl border border-blue-200 bg-blue-50 py-2 text-[10px] font-black uppercase tracking-widest text-blue-800 hover:bg-blue-100"
-                        onClick={async (e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          await onNhanNhiemVu?.(task.id);
-                        }}
-                      >
-                        Nhận nhiệm vụ
-                      </button>
-                    ) : null}
                   </div>
                 );
               })}

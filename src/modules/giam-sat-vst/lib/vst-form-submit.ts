@@ -1,6 +1,6 @@
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
 import type { MasterOption } from "@/lib/master-data/gateway";
-import type { VSTObservation } from "../data";
+import type { VSTObservation } from "./vst-constants";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import { normalizeRecordTime, type ExtendedOpportunity, type VSTFormPerson } from "./vst-form-model";
 import { buildVstObservationPersistRow } from "./vst-observation-persist-fields";

@@ -1,6 +1,7 @@
 "use server";
 
 import { verifyPermission } from "@/lib/server-permission";
+import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import {
   listMasterRows,
   softDeleteManyMasterRows,
@@ -12,9 +13,15 @@ import type { HoaChatRow } from "./hoa-chat.types";
 
 export async function getHoaChatRowsAction() {
   await verifyPermission("HOA_CHAT", "view");
-  const result = await listMasterRows("dm_hoa_chat", "ma_hoa_chat");
-  if (!result.success) return result;
-  return { success: true as const, data: result.data as HoaChatRow[] };
+  const supabase = createAdminSupabaseClient();
+  const { data, error } = await supabase
+    .from("v_cssd_hoa_chat_full")
+    .select("*")
+    .order("is_active", { ascending: false })
+    .order("ma_hoa_chat", { ascending: true });
+
+  if (error) return { success: false as const, error: error.message };
+  return { success: true as const, data: data as HoaChatRow[] };
 }
 
 function parseDateOnly(value: unknown): string | null {
@@ -28,21 +35,30 @@ function parseDateOnly(value: unknown): string | null {
 export async function saveHoaChatAction(input: Record<string, unknown>) {
   const id = String(input.id || "").trim();
   await verifyPermission("HOA_CHAT", id ? "edit" : "create");
-  const payload = {
-    ma_hoa_chat: String(input.ma_hoa_chat || "").trim().toUpperCase(),
-    ten_hoa_chat: String(input.ten_hoa_chat || "").trim(),
-    loai_hoa_chat: String(input.loai_hoa_chat || "HOA_CHAT").trim() || "HOA_CHAT",
-    don_vi_tinh: String(input.don_vi_tinh || "").trim() || null,
+  const ma = String(input.ma_hoa_chat || "").trim().toUpperCase();
+  const ten = String(input.ten_hoa_chat || "").trim();
+
+  if (!ma || !ten) {
+    return { success: false as const, error: "Thiếu mã hoặc tên hóa chất." };
+  }
+
+  const specs = {
     quy_cach: String(input.quy_cach || "").trim() || null,
     nong_do: String(input.nong_do || "").trim() || null,
-    han_su_dung: parseDateOnly(input.han_su_dung),
     ghi_chu: String(input.ghi_chu || "").trim() || null,
+  };
+
+  const payload = {
+    ma_hoa_chat: ma,
+    ten_hoa_chat: ten,
+    loai_hoa_chat: String(input.loai_hoa_chat || "HOA_CHAT").trim() || "HOA_CHAT",
+    don_vi_tinh: String(input.don_vi_tinh || "").trim() || null,
+    han_su_dung: parseDateOnly(input.han_su_dung),
+    specs,
     is_active: input.is_active !== false,
     updated_at: new Date().toISOString(),
   };
-  if (!payload.ma_hoa_chat || !payload.ten_hoa_chat) {
-    return { success: false as const, error: "Thiếu mã hoặc tên hóa chất." };
-  }
+
   return upsertMasterRow("dm_hoa_chat", id, payload);
 }
 

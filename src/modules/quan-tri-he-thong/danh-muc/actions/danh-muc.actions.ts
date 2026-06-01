@@ -2,75 +2,12 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath, unstable_cache, revalidateTag } from "next/cache";
-import type { DanhMuc } from "../lib/danh-muc-flat-record";
-import { addResolvedLoaiValues, getDanhMucItemById } from "@/lib/master-data/repository";
-import { verifyPermission } from "../../actions/verify-permission";
 import { getRegistryEntry } from "@/lib/master-data/domain-registry";
-import { buildNextDmBusinessCode, buildMigratedUpsertPayload, setDanhMucActiveFlag } from "@/lib/master-data/danh-muc-routing";
+import { verifyPermission } from "../../actions/verify-permission";
 import { resolveDanhMucViewModuleByType } from "./danh-muc-permission-map";
 
 function errDanhMuc(e: unknown) {
   return e instanceof Error ? e.message : String(e);
-}
-
-export async function saveDanhMuc(data: Partial<DanhMuc>) {
-  try {
-    await verifyPermission("DANH_MUC", "edit");
-    const supabase = createAdminSupabaseClient();
-    const { id, ...updateData } = data;
-    const resolvedData = await addResolvedLoaiValues(supabase, updateData as Record<string, unknown>);
-    const loai = String((resolvedData as { loai_danh_muc?: string }).loai_danh_muc || "").trim();
-    if (!loai) throw new Error("Thiếu loai_danh_muc.");
-    const reg = getRegistryEntry(loai);
-
-    let ten = String((resolvedData as { ten_danh_muc?: string }).ten_danh_muc || "").trim();
-    let ma = String((resolvedData as { ma_danh_muc?: string }).ma_danh_muc || "").trim();
-    if (id) {
-      const cur = await getDanhMucItemById(supabase, id);
-      if (!cur) throw new Error("Không tìm thấy bản ghi.");
-      if (!ma) ma = cur.ma_danh_muc || "";
-      if (!ten) ten = cur.ten_danh_muc || "";
-    }
-    if (!ten) throw new Error("Vui lòng nhập tên danh mục.");
-    if (!ma) ma = await buildNextDmBusinessCode(supabase, reg);
-    const isActive =
-      (resolvedData as { is_active?: boolean }).is_active !== undefined
-        ? Boolean((resolvedData as { is_active?: boolean }).is_active)
-        : data.is_active !== false;
-    const patch = buildMigratedUpsertPayload(reg, { ma, ten, isActive });
-    if (id) {
-      const { error } = await supabase.from(reg.sourceTable).update(patch).eq("id", id);
-      if (error) throw error;
-    } else {
-      const { error } = await supabase.from(reg.sourceTable).insert([patch]);
-      if (error) throw error;
-    }
-
-    revalidatePath("/quan-tri-he-thong");
-    revalidateTag("danh-muc-static", "default");
-    return { success: true, message: id ? "Cập nhật thành công" : "Thêm mới thành công" };
-  } catch (error: unknown) {
-    const msg = errDanhMuc(error);
-    console.error("LỖI saveDanhMuc:", msg);
-    let userMessage = "Lỗi kết nối cơ sở dữ liệu";
-    if (msg.includes("fetch failed"))
-      userMessage = "Không thể kết nối đến máy chủ Supabase (Kiểm tra internet hoặc DNS)";
-    return { success: false, error: `${userMessage}: ${msg || "Unknown error"}` };
-  }
-}
-
-export async function deleteDanhMuc(id: string) {
-  try {
-    await verifyPermission("DANH_MUC", "delete");
-    const supabase = createAdminSupabaseClient();
-    await setDanhMucActiveFlag(supabase, id, false);
-    revalidatePath("/quan-tri-he-thong");
-    revalidateTag("danh-muc-static", "default");
-    return { success: true, message: "Đã xóa danh mục thành công" };
-  } catch (error: unknown) {
-    console.error("LỖI deleteDanhMuc:", error);
-    return { success: false, error: `Không thể xóa danh mục: ${errDanhMuc(error) || "Lỗi kết nối"}` };
-  }
 }
 
 export async function getCategoriesByType(type: string) {

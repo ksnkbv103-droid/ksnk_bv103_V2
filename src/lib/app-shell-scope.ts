@@ -5,17 +5,13 @@
 
 import { CSSD_APP_SHELL_PREFIXES } from "./cssd-routes";
 
-/** Prefix pathname — `startsWith` sau khi chuẩn hóa (luôn có leading `/`). */
-export const PHASE_1_KSNK_CONTENT_SHELL_PREFIXES: readonly string[] = [
+const KSNK_CONTENT_SHELL_PREFIXES: readonly string[] = [
   "/giam-sat",
   "/quan-tri-he-thong",
   ...CSSD_APP_SHELL_PREFIXES,
   "/quan-ly-cong-viec",
   "/tai-khoan",
 ];
-
-/** ĐÃ gộp vào pha 1; giữ hằng để không gãy tham chiếu tài liệu/script cũ. */
-export const PHASE_2_KSNK_CONTENT_SHELL_CANDIDATES: readonly string[] = ["/quan-ly-cong-viec"];
 
 function normalizePath(pathname: string | null): string {
   if (!pathname) return "";
@@ -28,7 +24,7 @@ function normalizePath(pathname: string | null): string {
 export function pathnameUsesPhase1KsnkUnifiedContentShell(pathname: string | null): boolean {
   const p = normalizePath(pathname);
   if (!p || p === "/login" || p.startsWith("/login/")) return false;
-  return PHASE_1_KSNK_CONTENT_SHELL_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`));
+  return KSNK_CONTENT_SHELL_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`));
 }
 
 /** Tiêu đề zone trên `Header` (top bar) — khớp pha 1 + các module khác tối thiểu. */

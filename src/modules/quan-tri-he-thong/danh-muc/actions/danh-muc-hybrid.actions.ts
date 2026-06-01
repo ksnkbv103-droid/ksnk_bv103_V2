@@ -1,110 +1,91 @@
 "use server";
 
+import { unstable_cache } from "next/cache";
+
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "../../actions/verify-permission";
-import { getAllRegistryEntries } from "@/lib/master-data/domain-registry";
-import type { DanhMucStat } from "./danh-muc-hybrid.types";
+import { ADMIN_MODULE_STATS_TAG } from "@/lib/cache/revalidate-master-data-tags";
+import type { DanhMucStat, TrungTamDanhMucStatsPayload } from "./danh-muc-hybrid.types";
 
-/** Thống kê nhanh cho Trung tâm Danh mục (chỉ đếm bảng dm_* / master — không còn hub). */
+/**
+ * Slice 9 (26/05/2026):
+ * - 1 round-trip RPC `fn_admin_module_stats` thay cho ~50 query Promise.all cũ.
+ * - Wrap bằng `unstable_cache` (TTL 60s) + tag `admin-module-stats`.
+ *   Mọi mutation `master-crud-core` đều `revalidateTag(ADMIN_MODULE_STATS_TAG)`.
+ */
+
+type AdminStatsPayload = {
+  core: Record<string, DanhMucStat>;
+  registry: Record<string, DanhMucStat>;
+};
+
+const STATS_CORE_KEYS = ["loai", "bo", "le", "tb", "hc", "khoa", "ns", "bk", "tk"] as const;
+
+function normalizeStat(input: unknown): DanhMucStat {
+  if (!input || typeof input !== "object") return { count: 0 };
+  const row = input as { count?: unknown; last?: unknown };
+  const count = typeof row.count === "number" ? row.count : Number(row.count ?? 0);
+  const last = typeof row.last === "string" && row.last.trim() ? row.last : undefined;
+  return { count: Number.isFinite(count) ? count : 0, last };
+}
+
+const loadAdminStatsRaw = unstable_cache(
+  async (): Promise<AdminStatsPayload> => {
+    const supabase = createAdminSupabaseClient();
+    const { data, error } = await supabase.rpc("fn_admin_module_stats");
+    if (error) {
+      console.error("[admin-module-stats] RPC error:", error.message);
+      return { core: {}, registry: {} };
+    }
+    const payload = (data ?? {}) as Partial<AdminStatsPayload>;
+    return {
+      core: (payload.core ?? {}) as Record<string, DanhMucStat>,
+      registry: (payload.registry ?? {}) as Record<string, DanhMucStat>,
+    };
+  },
+  ["admin-module-stats"],
+  { revalidate: 60, tags: [ADMIN_MODULE_STATS_TAG] },
+);
+
+/** Thống kê nhanh cho Trung tâm Danh mục — 1 round-trip + cache 60s. */
 export async function getTrungTamDanhMucStatsAction(options?: { includeRegistry?: boolean }) {
   try {
     await verifyPermission("DANH_MUC", "view");
-    const supabase = createAdminSupabaseClient();
-    const getS = async (
-      table: string,
-      options?: {
-        filter?: { k: string; v: string };
-        activeOnly?: boolean;
-      }
-    ): Promise<DanhMucStat> => {
-      // Đổi mặc định sang false để đếm TỔNG số lượng (đúng thực tế quản trị hơn)
-      const activeOnly = options?.activeOnly === true;
-      const idColumn = table === "v_auth_user_permissions" ? "auth_user_id" : "id";
-      const hasTimestamps = table !== "v_auth_user_permissions";
-      let countQuery = supabase.from(table).select(idColumn, { count: "exact", head: true });
-      let lastQuery = hasTimestamps
-        ? supabase
-            .from(table)
-            .select("updated_at, created_at")
-            .order("updated_at", { ascending: false })
-            .limit(1)
-        : null;
+    const raw = await loadAdminStatsRaw();
 
-      if (options?.filter) {
-        countQuery = countQuery.eq(options.filter.k, options.filter.v);
-        if (lastQuery) lastQuery = lastQuery.eq(options.filter.k, options.filter.v);
-      }
-      if (activeOnly) {
-        countQuery = countQuery.eq("is_active", true);
-        if (lastQuery) lastQuery = lastQuery.eq("is_active", true);
-      }
-      const [{ count, error: cErr }, lastRes] = await Promise.all([
-        countQuery,
-        lastQuery ? lastQuery : Promise.resolve({ data: null, error: null }),
-      ]);
-      const data = (lastRes as { data?: unknown }).data;
-      const lErr = (lastRes as { error?: unknown }).error;
-      if (cErr || lErr) {
-        console.error(`Stats error for ${table}:`, cErr || lErr);
-        return { count: 0 };
-      }
-      type TimeRow = { updated_at?: string | null; created_at?: string | null };
-      const rows = Array.isArray(data) ? (data as TimeRow[]) : [];
-      const row = rows[0] || null;
-      const last = row?.updated_at || row?.created_at || undefined;
-      return { count: count || 0, last };
-    };
+    const core = STATS_CORE_KEYS.reduce<Record<string, DanhMucStat>>((acc, key) => {
+      acc[key] = normalizeStat(raw.core?.[key]);
+      return acc;
+    }, {});
 
-    const includeRegistry = options?.includeRegistry === true;
-    const registryEntries = includeRegistry ? getAllRegistryEntries() : [];
-    const registryPairsPromises = includeRegistry
-      ? registryEntries.map(async (e) => {
-          try {
-            const s = await getS(e.sourceTable, { activeOnly: false });
-            return [e.loaiDanhMuc, s] as const;
-          } catch {
-            return [e.loaiDanhMuc, { count: 0, last: undefined } satisfies DanhMucStat] as const;
-          }
-        })
-      : [];
-    const khuVucStatPromise = includeRegistry ? null : getS("dm_khu_vuc_giam_sat", { activeOnly: false });
-
-    const flat = await Promise.all([
-      getS("dm_loai_dung_cu", { activeOnly: false }),
-      getS("dm_bo_dung_cu", { activeOnly: false }),
-      getS("dm_bo_dung_cu_chi_tiet", { activeOnly: false }),
-      getS("dm_thiet_bi", { activeOnly: false }),
-      getS("dm_hoa_chat", { activeOnly: false }),
-      getS("dm_khoa_phong", { activeOnly: false }),
-      getS("mdm_nhan_su", { activeOnly: false }),
-      getS("dm_bang_kiem", { activeOnly: false }),
-      getS("v_auth_user_permissions"), // Đếm số tài khoản thực tế
-      ...(khuVucStatPromise ? [khuVucStatPromise] : []),
-      ...registryPairsPromises,
-    ]);
-
-    const [loai, bo, le, tb, hc, khoa, ns, bk, tk] = flat.slice(0, 9) as [
-      DanhMucStat,
-      DanhMucStat,
-      DanhMucStat,
-      DanhMucStat,
-      DanhMucStat,
-      DanhMucStat,
-      DanhMucStat,
-      DanhMucStat,
-      DanhMucStat,
-    ];
     const registryByLoai: Record<string, DanhMucStat> = {};
-    if (includeRegistry) {
-      const registryPairs = flat.slice(9) as readonly (readonly [string, DanhMucStat])[];
-      Object.assign(registryByLoai, Object.fromEntries(registryPairs) as Record<string, DanhMucStat>);
+    if (options?.includeRegistry) {
+      for (const [k, v] of Object.entries(raw.registry ?? {})) {
+        registryByLoai[k] = normalizeStat(v);
+      }
     } else {
-      const khuVucStat = flat[9] as DanhMucStat | undefined;
-      if (khuVucStat) registryByLoai.KHU_VUC_GIAM_SAT = khuVucStat;
+      const khuVuc = raw.registry?.KHU_VUC_GIAM_SAT;
+      if (khuVuc) registryByLoai.KHU_VUC_GIAM_SAT = normalizeStat(khuVuc);
     }
 
-    return { success: true, data: { loai, bo, le, tb, hc, khoa, ns, bk, tk, registryByLoai } };
+    const payload: TrungTamDanhMucStatsPayload = {
+      loai: core.loai,
+      bo: core.bo,
+      le: core.le,
+      tb: core.tb,
+      hc: core.hc,
+      khoa: core.khoa,
+      ns: core.ns,
+      bk: core.bk,
+      tk: core.tk,
+      registryByLoai,
+    };
+
+    return { success: true as const, data: payload };
   } catch (error: unknown) {
-    return { success: false, error: error instanceof Error ? error.message : String(error) };
+    return {
+      success: false as const,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
 }

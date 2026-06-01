@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, FileText } from "lucide-react";
-import type { DashboardV4Payload } from "../../strategic-dashboard-v3.types";
+import type { DashboardV4Payload } from "../../strategic-dashboard-v4.types";
 
 type Props = {
   summary: DashboardV4Payload["summary"];

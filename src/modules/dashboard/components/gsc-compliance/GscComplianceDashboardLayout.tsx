@@ -1,6 +1,6 @@
 "use client";
 
-import type { DashboardV4Payload } from "../../strategic-dashboard-v3.types";
+import type { DashboardV4Payload } from "../../strategic-dashboard-v4.types";
 import { GscDashboardSummaryCards } from "./GscDashboardSummaryCards";
 import { GscDashboardTopViPhamPanel } from "./GscDashboardTopViPhamPanel";
 import { GscDashboardVungNguyCoPanel } from "./GscDashboardVungNguyCoPanel";

@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildQuyTrinhTramPatch } from "../lib/cssd-tram-persist";
 import { insertCssdLifecycleEvent } from "../shared/application/cssd-lifecycle-events";
 import { tableHasColumn } from "../shared/cssd-db-utils";
+import { appendQuyTrinhException } from "../actions/cssd-action-common";
 
 export type PersistMeTietKhuanInput = {
   activeMeId: string;
@@ -57,7 +58,7 @@ export async function persistMeTietKhuanFinishWithClient(
   p: PersistMeTietKhuanInput,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   const { data: gateRow, error: gateErr } = await client
-    .from("fact_lo_tiet_khuan")
+    .from("cssd_fact_lo_tiet_khuan")
     .select("tk_mo_form_qc_at, ket_qua_test, tk_qc_json")
     .eq("id", p.activeMeId)
     .maybeSingle();
@@ -102,7 +103,7 @@ export async function persistMeTietKhuanFinishWithClient(
   const ghiChu = `Nhiệt/Áp: ${p.nhietDo} | Người dỡ: ${p.nguoiUnload} | TX:${p.chiThiTiepXuc || "—"} ĐTS:${p.chiThiDaThongSo || "—"} | BI:${p.testBI} CI:${p.testCI} BD:${p.testBD} | SH:${p.testSinhHoc || "NA"}`;
   const now = new Date().toISOString();
   const { error: loErr } = await client
-    .from("fact_lo_tiet_khuan")
+    .from("cssd_fact_lo_tiet_khuan")
     .update({
       ket_qua_test: p.isPass,
       ghi_chu: ghiChu,
@@ -119,7 +120,7 @@ export async function persistMeTietKhuanFinishWithClient(
   if (p.isPass && p.quyTrinhIds.length > 0) {
     // 1. Lấy thông tin hạn dùng từ loại dụng cụ của từng bộ
     const { data: qtData } = await client
-      .from("fact_quy_trinh")
+      .from("cssd_fact_quy_trinh")
       .select("id, bo_dung_cu_id")
       .in("id", p.quyTrinhIds);
     
@@ -149,7 +150,7 @@ export async function persistMeTietKhuanFinishWithClient(
 
       const capPatch = await buildQuyTrinhTramPatch(client, "CAP_PHAT");
       await client
-        .from("fact_quy_trinh")
+        .from("cssd_fact_quy_trinh")
         .update({
           ...capPatch,
           ngay_het_han: expiry.toISOString(),
@@ -159,15 +160,15 @@ export async function persistMeTietKhuanFinishWithClient(
         .eq("id", id);
     }
 
-    const rows = p.quyTrinhIds.map((id) => ({
-      quy_trinh_id: id,
-      ma_hanh_dong: "HOAN_ME_TIET_KHUAN_DAT",
-      ma_tram: "TIET_KHUAN",
-      ghi_chu: `Lô: ${p.maLo} - ĐẠT QC (Hạn dùng: +${30} ngày)`, // Ghi chú sơ bộ, thực tế tính theo từng bộ
-      nguoi_thuc_hien: p.nguoiUnload,
-    }));
-    const { error: nkErr } = await client.from("fact_nhat_ky_quet").insert(rows);
-    if (nkErr) return { ok: false, message: nkErr.message };
+    for (const id of p.quyTrinhIds) {
+      await appendQuyTrinhException(client, id, {
+        su_kien: "HOAN_ME_TIET_KHUAN_DAT",
+        tu_tram: "TIET_KHUAN",
+        den_tram: "CAP_PHAT",
+        ly_do: `Lô: ${p.maLo} - ĐẠT QC`,
+        nguoi_thao_tac: p.nguoiUnload,
+      });
+    }
 
     for (const id of p.quyTrinhIds) {
       const lc = await insertCssdLifecycleEvent(client, {
@@ -189,21 +190,51 @@ export async function persistMeTietKhuanFinishWithClient(
       lo_tiet_khuan_id: null,
       updated_at: new Date().toISOString(),
     };
-    if (await tableHasColumn(client, "fact_quy_trinh", "is_dong_bang")) {
+    if (await tableHasColumn(client, "cssd_fact_quy_trinh", "is_dong_bang")) {
       failUpdate.is_dong_bang = true;
     }
-    const { error: qtRoll } = await client.from("fact_quy_trinh").update(failUpdate).in("id", p.quyTrinhIds);
+    const { error: qtRoll } = await client.from("cssd_fact_quy_trinh").update(failUpdate).in("id", p.quyTrinhIds);
     if (qtRoll) return { ok: false, message: qtRoll.message };
 
-    const failRows = p.quyTrinhIds.map((id) => ({
-      quy_trinh_id: id,
-      ma_hanh_dong: "ME_TIET_KHUAN_KHONG_DAT",
-      ma_tram: "TIET_KHUAN",
-      ghi_chu: `Lô: ${p.maLo} — KHÔNG ĐẠT QC. ${ghiChu}`,
-      nguoi_thuc_hien: p.nguoiUnload,
-    }));
-    const { error: nkFail } = await client.from("fact_nhat_ky_quet").insert(failRows);
-    if (nkFail) return { ok: false, message: nkFail.message };
+    // Tự động tạo sự cố cho từng bộ dụng cụ khi mẻ không đạt
+    const { data: qrsData } = await client
+      .from("cssd_fact_quy_trinh")
+      .select("id, ma_qr_quy_trinh")
+      .in("id", p.quyTrinhIds);
+
+    if (qrsData && qrsData.length > 0) {
+      for (const qrRow of qrsData) {
+        const attributes: Record<string, string> = {
+          INCIDENT_GROUP: "PROCESS",
+          INCIDENT_KIND: "PROCESS_STERILIZATION_FAIL",
+          ROLLBACK_TARGET_STATION: "DONG_GOI",
+          FAULT_OPERATOR: p.nguoiUnload || "Hệ thống tự động",
+        };
+
+        const suCoPayload: Record<string, unknown> = {
+          ma_qr_quy_trinh: qrRow.ma_qr_quy_trinh,
+          quy_trinh_id: qrRow.id,
+          ma_tram_phat_hien: "TIET_KHUAN",
+          incident_group: "PROCESS",
+          incident_type_label: "Chất lượng tiệt khuẩn / mẻ không đạt",
+          mo_ta: `Mẻ tiệt khuẩn ${p.maLo} không đạt QC. Chi tiết: ${ghiChu}. Người dỡ mẻ: ${p.nguoiUnload}`,
+          is_red_alert: false,
+          ma_tram_gay_loi: "TIET_KHUAN",
+          attributes,
+        };
+        await client.from("cssd_fact_su_co").insert(suCoPayload);
+      }
+    }
+
+    for (const id of p.quyTrinhIds) {
+      await appendQuyTrinhException(client, id, {
+        su_kien: "ME_TIET_KHUAN_KHONG_DAT",
+        tu_tram: "TIET_KHUAN",
+        den_tram: "DONG_GOI",
+        ly_do: `Lô: ${p.maLo} — KHÔNG ĐẠT QC`,
+        nguoi_thao_tac: p.nguoiUnload,
+      });
+    }
 
     for (const id of p.quyTrinhIds) {
       const lc = await insertCssdLifecycleEvent(client, {

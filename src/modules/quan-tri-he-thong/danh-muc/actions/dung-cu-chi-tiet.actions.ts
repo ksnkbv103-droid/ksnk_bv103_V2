@@ -17,53 +17,11 @@ type ChiTietRaw = Record<string, unknown> & {
   ma_loai?: string | null;
 };
 
-type SbAdmin = ReturnType<typeof createAdminSupabaseClient>;
 
-type BoDmRow = { id: string; ma_bo: string | null; ten_bo: string | null };
-type LoaiDmMapped = { id: string; ma_danh_muc: string | null; ten_danh_muc: string | null };
-
-const IN_CHUNK = 120;
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
 
-/** Tránh URL PostgREST quá dài khi `.in("id", …)` nhiều UUID. */
-async function fetchDmBoByIdsChunked(supabase: SbAdmin, ids: string[]) {
-  const map = new Map<string, BoDmRow>();
-  const uniq = [...new Set(ids.filter(Boolean))];
-  for (let i = 0; i < uniq.length; i += IN_CHUNK) {
-    const part = uniq.slice(i, i + IN_CHUNK);
-    const { data: bos, error: boErr } = await supabase
-      .from("dm_bo_dung_cu")
-      .select("id, ma_bo, ten_bo")
-      .in("id", part);
-    if (boErr) throw new Error(boErr.message);
-    for (const x of bos || []) map.set(String(x.id), x as BoDmRow);
-  }
-  return map;
-}
 
-async function fetchDmLoaiByIdsChunked(supabase: SbAdmin, ids: string[]) {
-  const map = new Map<string, LoaiDmMapped>();
-  const uniq = [...new Set(ids.filter(Boolean))];
-  for (let i = 0; i < uniq.length; i += IN_CHUNK) {
-    const part = uniq.slice(i, i + IN_CHUNK);
-    const { data: loais, error: loaiErr } = await supabase
-      .from("dm_loai_dung_cu")
-      .select("id, ma_loai, ma_loai_dung_cu, ten_loai, ten_loai_dung_cu")
-      .in("id", part);
-    if (loaiErr) throw new Error(loaiErr.message);
-    for (const x of loais || []) {
-      const ma = x.ma_loai_dung_cu ?? x.ma_loai ?? null;
-      const ten = x.ten_loai_dung_cu ?? x.ten_loai ?? null;
-      map.set(String(x.id), {
-        id: String(x.id),
-        ma_danh_muc: ma != null ? String(ma) : null,
-        ten_danh_muc: ten != null ? String(ten) : null,
-      });
-    }
-  }
-  return map;
-}
 
 function normalizePageSize(raw: number | undefined) {
   if (!Number.isFinite(raw)) return DEFAULT_PAGE_SIZE;
@@ -99,7 +57,7 @@ export async function getDungCuChiTietRowsAction(params?: {
   let rows: ChiTietRaw[] = [];
   let totalCount = 0;
   try {
-    let query = supabase.from("dm_bo_dung_cu_chi_tiet").select("*", { count: "exact" });
+    let query = supabase.from("v_cssd_bo_dung_cu_chi_tiet_full").select("*", { count: "exact" });
     if (search) {
       const esc = search.replace(/%/g, "\\%").replace(/_/g, "\\_");
       query = query.or(
@@ -117,22 +75,26 @@ export async function getDungCuChiTietRowsAction(params?: {
     const msg = e instanceof Error ? e.message : String(e);
     return { success: false as const, error: msg };
   }
-  const boIds = [...new Set(rows.map((r) => String(r.bo_dung_cu_id || "").trim()).filter(Boolean))];
-  const loaiIds = [...new Set(rows.map((r) => String(r.loai_dung_cu_id || "").trim()).filter(Boolean))];
-  let boMap = new Map<string, BoDmRow>();
-  let loaiMap = new Map<string, LoaiDmMapped>();
-  try {
-    if (boIds.length) boMap = await fetchDmBoByIdsChunked(supabase, boIds);
-    if (loaiIds.length) loaiMap = await fetchDmLoaiByIdsChunked(supabase, loaiIds);
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return { success: false as const, error: msg };
-  }
-  const enriched = rows.map((r) => ({
-    ...r,
-    bo_dung_cu: r.bo_dung_cu_id ? boMap.get(String(r.bo_dung_cu_id)) ?? null : null,
-    loai_dung_cu: r.loai_dung_cu_id ? loaiMap.get(String(r.loai_dung_cu_id)) ?? null : null,
-  }));
+
+  const enriched = rows.map((r) => {
+    const specsObj = r.specs && typeof r.specs === "object" ? r.specs : {};
+    const max_suds_count = (specsObj as any).max_suds_count != null ? Number((specsObj as any).max_suds_count) : 100;
+    const trong_luong = (specsObj as any).trong_luong != null ? String((specsObj as any).trong_luong) : null;
+    const ma_qr_mau = (specsObj as any).ma_qr_mau != null ? String((specsObj as any).ma_qr_mau) : null;
+
+    return {
+      ...r,
+      max_suds_count,
+      trong_luong,
+      ma_qr_mau,
+      bo_dung_cu: r.bo_dung_cu_id
+        ? { id: r.bo_dung_cu_id, ma_bo: (r as any).ma_bo, ten_bo: (r as any).ten_bo }
+        : null,
+      loai_dung_cu: r.loai_dung_cu_id
+        ? { id: r.loai_dung_cu_id, ma_danh_muc: (r as any).ma_loai_dung_cu, ten_danh_muc: (r as any).ten_loai_dung_cu }
+        : null,
+    };
+  });
   return { success: true as const, data: enriched, totalCount, page, pageSize };
 }
 
@@ -192,43 +154,34 @@ export async function saveDungCuChiTietAction(input: Record<string, unknown>) {
   if (!ten && !loaiRaw) return { success: false as const, error: "Thiếu tên hoặc liên kết loại dụng cụ." };
 
   let finalTen = ten;
-  let finalMaLoai: string | null = null;
   if (!finalTen && loaiRaw) {
     const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase
       .from("dm_loai_dung_cu")
-      .select("ten_loai_dung_cu, ten_loai, ma_loai_dung_cu, ma_loai")
+      .select("ten_loai, ma_loai, specs")
       .eq("id", loaiRaw)
       .maybeSingle();
     if (error) return { success: false as const, error: error.message };
-    finalTen = String(data?.ten_loai_dung_cu || data?.ten_loai || "").trim();
-    finalMaLoai = String(data?.ma_loai_dung_cu || data?.ma_loai || "").trim() || null;
-  } else if (loaiRaw) {
-    const supabase = createAdminSupabaseClient();
-    const { data, error } = await supabase
-      .from("dm_loai_dung_cu")
-      .select("ma_loai_dung_cu, ma_loai")
-      .eq("id", loaiRaw)
-      .maybeSingle();
-    if (error) return { success: false as const, error: error.message };
-    finalMaLoai = String(data?.ma_loai_dung_cu || data?.ma_loai || "").trim() || null;
+    const specsObj = data?.specs && typeof data.specs === "object" ? data.specs : {};
+    finalTen = String((specsObj as any).ten_loai_dung_cu || data?.ten_loai || "").trim();
   }
   if (!finalTen) return { success: false as const, error: "Không xác định được tên chi tiết." };
 
   const payload: Record<string, unknown> = {
-    ma_chi_tiet: ma,
     ten_chi_tiet: finalTen,
     ten_dung_cu_le: finalTen,
     bo_dung_cu_id: boRaw ? boRaw : null,
     loai_dung_cu_id: loaiRaw || null,
-    ma_loai: finalMaLoai,
     so_luong: soLuong,
-    max_suds_count: suds === null ? 100 : suds,
-    trong_luong: finalTrong,
     ghi_chu: String(input.ghi_chu || "").trim() || null,
-    ma_qr_mau: String(input.ma_qr_mau || "").trim() || null,
     is_active: input.is_active !== false,
     updated_at: new Date().toISOString(),
+    specs: {
+      ma_chi_tiet: ma,
+      max_suds_count: suds === null ? 100 : suds,
+      trong_luong: finalTrong,
+      ma_qr_mau: String(input.ma_qr_mau || "").trim() || null,
+    }
   };
 
   return upsertMasterRow("dm_bo_dung_cu_chi_tiet", id, payload);

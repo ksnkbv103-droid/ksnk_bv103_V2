@@ -31,12 +31,3 @@ export const nhanSuSchema = z.object({
   is_active: z.boolean().default(true),
 });
 
-export type NhanSuInput = z.infer<typeof nhanSuSchema>;
-
-// ============================================================
-// Helper: validate an toàn, trả { success, data, error }
-// ============================================================
-
-export function validateNhanSu(raw: unknown) {
-  return nhanSuSchema.safeParse(raw);
-}

@@ -26,14 +26,14 @@ type RBACSnapshot = {
   userData: UserDataProfile | null;
 };
 
-/** Cột view `v_auth_user_permissions` — khớp `20260707004_fix_auth_performance_index.sql`. */
+/** Cột view `v_sys_user_permissions` — khớp `20260707004_fix_auth_performance_index.sql`. */
 const V_AUTH_USER_PERMISSIONS_SELECT =
   "staff_id,auth_user_id,ho_ten,ma_nv,email,khoa_id,is_active,ten_khoa_phong,ma_khoa_phong,roles,permissions" as const;
 
 /**
  * 5 phút — đủ ngắn để admin đổi quyền không phải đăng xuất quá lâu;
  * vẫn tự refresh ngay khi `onAuthStateChange` (đăng xuất / refresh token).
- * Trước đây 15 s gây bão query `v_auth_user_permissions` mỗi lần điều hướng.
+ * Trước đây 15 s gây bão query `v_sys_user_permissions` mỗi lần điều hướng.
  */
 const RBAC_CACHE_TTL_MS = 5 * 60_000;
 let rbacCache: { userId: string; snapshot: RBACSnapshot; cachedAt: number } | null = null;
@@ -63,7 +63,7 @@ export function usePermission(moduleKey?: string, action: string = "view") {
 
     async function fetchRBAC(user: User): Promise<RBACSnapshot> {
       const { data: authData, error: authErr } = await supabase
-        .from("v_auth_user_permissions")
+        .from("v_sys_user_permissions")
         .select(V_AUTH_USER_PERMISSIONS_SELECT)
         .eq("auth_user_id", user.id)
         .maybeSingle();

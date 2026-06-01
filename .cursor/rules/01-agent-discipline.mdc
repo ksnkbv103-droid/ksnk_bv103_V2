@@ -1,0 +1,36 @@
+---
+description: BV103 — kỷ luật agent (Karpathy-aligned, một slice, verify rõ)
+alwaysApply: true
+---
+
+# Kỷ luật agent (BV103)
+
+Tinh gọn từ [Karpathy-style guidelines](https://github.com/multica-ai/andrej-karpathy-skills); ghép Pilot DoD và `00-core-ksnk-rules`. Task trivial (typo, one-liner) — dùng judgment, không over-process.
+
+## 1. Think before coding
+
+- Nghiệp vụ y tế hoặc ranh giới **CSSD vs MDM** mơ hồ → hỏi trước, không đoán rồi sửa.
+- Nêu giả định ngắn; ≥2 cách hiểu yêu cầu → trình bày, không chọn ngầm.
+- Có tradeoff (migration vs patch app, RPC vs query trực tiếp) → nói trước khi implement.
+- **Cấm tự ý phán đoán dữ liệu**: Luôn đối chiếu trực tiếp file migration hoặc chạy lệnh CLI kiểm tra DB thực tế để xác nhận sự tồn tại của bảng, cột, kiểu dữ liệu và dung lượng (table size). Cấm đoán mò schema dựa trên ký ức.
+- **Cấm âm thầm tạo bảng Summary/Pre-aggregation**: Chỉ đẻ thêm bảng tổng hợp khi chứng minh được sự cần thiết vật lý bằng số liệu đo lường cụ thể (size bảng gốc, CPU cycle lãng phí khi regexp split, latency) và được sự đồng ý của người dùng sau khi thảo luận rõ ràng về tradeoff.
+
+
+## 2. Simplicity first
+
+- Chỉ code đủ **một vertical slice** đang làm; không feature/abstraction/config “phòng hờ”.
+- Không xử lý edge case không thực tế; file lớn → tách theo `30-code-style-and-size`, không bọc thêm layer chỉ để polish.
+
+## 3. Surgical changes (và Boy Scout)
+
+- Mỗi dòng diff phải **truy vết** được tới yêu cầu hiện tại.
+- Không refactor/format/đổi comment file lân cận ngoài scope; không audit cả repo cho sửa điểm nhỏ.
+- **Boy Scout** (AGENTS.md): chỉ trong file/logic vừa chạm — đặt tên rõ hơn, xóa import/orphan do **chính** diff của bạn; không “dọn” dead code có sẵn trừ khi user yêu cầu (có thể ghi nhận).
+
+## 4. Goal-driven execution
+
+- Trước khi code nhiều bước: kế hoạch ngắn `bước → verify: …` (test thuần, tay trên UI, hoặc lệnh).
+- **Xong task** khi đạt Pilot DoD (AGENTS.md) hoặc tiêu chí user nêu rõ.
+- Đụng Server Action / `fact_*` / migration: verify theo `00-core-ksnk-rules` (`verify:engineering`, `mdm:migrate` nếu schema đổi).
+
+**Dấu hiệu đang hiệu quả:** diff nhỏ, ít rewrite, câu hỏi làm rõ trước implement, PR không kéo refactor ngoài slice.

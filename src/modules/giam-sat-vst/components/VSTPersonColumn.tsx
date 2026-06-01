@@ -6,7 +6,7 @@ import type { NhanSuOption } from "@/components/shared/giam-sat-header.types";
 import type { MasterOption } from "@/lib/master-data/gateway";
 import { formatNhanSuOptionLabel, matchesNhanSuProfessionFilter } from "@/lib/master-data/nhan-su-enrich";
 import VSTOpportunityForm from "./VSTOpportunityForm";
-import { ActionType, MomentType } from "../data";
+import { ActionType, MomentType } from "../lib/vst-constants";
 import type {
   ExtendedOpportunity,
   VSTFormPerson,

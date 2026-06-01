@@ -18,7 +18,7 @@ const fetchUserPermissions = unstable_cache(
   async (userId: string) => {
     const admin = createAdminSupabaseClient();
     const { data, error } = await admin
-      .from("v_auth_user_permissions")
+      .from("v_sys_user_permissions")
       .select("roles, permissions")
       .eq("auth_user_id", userId)
       .maybeSingle();

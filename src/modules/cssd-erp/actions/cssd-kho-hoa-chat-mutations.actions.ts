@@ -13,7 +13,7 @@ function maPhieu(loai: "NHAP" | "XUAT" | "DIEU_CHINH"): string {
 
 async function tonTaiLo(client: SupabaseClient, dmId: string, maLo: string | null, han: string | null): Promise<number> {
   const { data } = await client
-    .from("fact_kho_hoa_chat_giao_dich")
+    .from("cssd_fact_kho_hoa_chat_giao_dich")
     .select("ma_lo, han_su_dung, so_luong_co_dau, is_active")
     .eq("dm_hoa_chat_id", dmId);
   const rows = (data || []) as Array<{
@@ -51,7 +51,7 @@ export async function nhapKhoHoaChatAction(input: {
     const maLo = normalizeMaLo(input.ma_lo);
     const han = normalizeHanIso(input.han_su_dung);
     const now = new Date().toISOString();
-    const { error } = await supabase.from("fact_kho_hoa_chat_giao_dich").insert({
+    const { error } = await supabase.from("cssd_fact_kho_hoa_chat_giao_dich").insert({
       ma_phieu: maPhieu("NHAP"),
       dm_hoa_chat_id: dmId,
       loai_giao_dich: "NHAP",
@@ -93,7 +93,7 @@ export async function xuatKhoHoaChatAction(input: {
       };
     }
     const now = new Date().toISOString();
-    const { error } = await supabase.from("fact_kho_hoa_chat_giao_dich").insert({
+    const { error } = await supabase.from("cssd_fact_kho_hoa_chat_giao_dich").insert({
       ma_phieu: maPhieu("XUAT"),
       dm_hoa_chat_id: dmId,
       loai_giao_dich: "XUAT",
@@ -135,7 +135,7 @@ export async function dieuChinhKhoHoaChatAction(input: {
       }
     }
     const now = new Date().toISOString();
-    const { error } = await supabase.from("fact_kho_hoa_chat_giao_dich").insert({
+    const { error } = await supabase.from("cssd_fact_kho_hoa_chat_giao_dich").insert({
       ma_phieu: maPhieu("DIEU_CHINH"),
       dm_hoa_chat_id: dmId,
       loai_giao_dich: "DIEU_CHINH",

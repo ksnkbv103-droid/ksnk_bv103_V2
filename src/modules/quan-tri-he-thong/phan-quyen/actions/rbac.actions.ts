@@ -1,6 +1,17 @@
 "use server";
 
-import { createAdminSupabaseClient } from "@/lib/supabase-server";
+/**
+ * RBAC server actions.
+ *
+ * Slice 4 mở rộng (26/05/2026 Phase A):
+ * - `getRBACData` (read-only): user client → RLS PHAN_QUYEN.view kick in
+ *   (policy "<table>_select" và "*_select_all_authenticated_v2" cho phép).
+ * - `syncPermissionRegistry`/`saveFullRBACMatrix`: **giữ admin client**
+ *   vì bootstrap/seed logic cần bypass RLS (gán 100 perm cho ADMIN, fix-up matrix).
+ *   `ensureRbacAdmin()` đã chặt từ tầng app (ADMIN_EMAILS hoặc ADMIN role hoặc PHAN_QUYEN.edit).
+ */
+
+import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { ensureRbacAdmin } from "./rbac-auth.helpers";
 import { upsertRegistryPermissionsAndAdminMappings } from "./rbac-registry-sync";
@@ -31,32 +42,16 @@ export async function syncPermissionRegistry() {
   }
 }
 
-/**
- * Các hàm cũ được map về syncPermissionRegistry để tương thích ngược
- */
-export async function seedDefaultRBAC() {
-  return await syncPermissionRegistry();
-}
-
-export async function reseedFullRBAC() {
-  return await syncPermissionRegistry();
-}
-
-export async function seedFullRBAC() {
-  return await syncPermissionRegistry();
-}
-
-
 export async function getRBACData(): Promise<RBACDataResult> {
   try {
     await ensureRbacAdmin();
-    const supabase = createAdminSupabaseClient();
+    const supabase = await createServerSupabaseUserClient();
 
     // Fetch roles and permissions in parallel
     const [rolesRes, permsRes, matrixRes] = await Promise.all([
-      supabase.from("dm_roles").select("*").order("name"),
-      supabase.from("dm_permissions").select("*").order("module_name").order("action"),
-      supabase.from("v_role_permissions_matrix").select("*")
+      supabase.from("sys_roles").select("*").order("name"),
+      supabase.from("sys_permissions").select("*").order("module_name").order("action"),
+      supabase.from("v_sys_role_permissions_matrix").select("*")
     ]);
     
     if (rolesRes.error) throw new Error(`Lỗi tải Roles: ${rolesRes.error.message}`);
@@ -98,15 +93,15 @@ export async function saveFullRBACMatrix(matrix: Record<string, string[]>) {
         });
       });
     });
-    const { data: adminRole } = await supabase.from("dm_roles").select("id").eq("name", "ADMIN").maybeSingle();
-    const { data: allPerms } = await supabase.from("dm_permissions").select("id");
+    const { data: adminRole } = await supabase.from("sys_roles").select("id").eq("name", "ADMIN").maybeSingle();
+    const { data: allPerms } = await supabase.from("sys_permissions").select("id");
     if (adminRole?.id && allPerms?.length) {
       allPerms.forEach((p: { id: string }) => records.push({ role_id: adminRole.id, permission_id: p.id }));
     }
 
     // 2) Delta update để tránh trạng thái mất quyền toàn cục nếu lỗi giữa chừng.
     const { data: existingRows, error: existingErr } = await supabase
-      .from("rel_role_permissions")
+      .from("sys_role_permissions")
       .select("role_id, permission_id");
     if (existingErr) throw existingErr;
 
@@ -121,41 +116,20 @@ export async function saveFullRBACMatrix(matrix: Record<string, string[]>) {
 
     if (inserts.length > 0) {
       const { error: insertError } = await supabase
-        .from("rel_role_permissions")
+        .from("sys_role_permissions")
         .upsert(inserts, { onConflict: "role_id,permission_id" });
       if (insertError) throw insertError;
     }
 
     for (const row of removals) {
       const { error: delErr } = await supabase
-        .from("rel_role_permissions")
+        .from("sys_role_permissions")
         .delete()
         .eq("role_id", row.role_id)
         .eq("permission_id", row.permission_id);
       if (delErr) throw delErr;
     }
 
-    revalidatePath("/quan-tri-he-thong");
-    return { success: true };
-  } catch (error: unknown) {
-    return { success: false, error: errRbac(error) };
-  }
-}
-
-export async function updateRolePermission(roleId: string, permissionId: string, granted: boolean) {
-  try {
-    await ensureRbacAdmin();
-    const supabase = createAdminSupabaseClient();
-    if (granted) {
-      const { error } = await supabase.from("rel_role_permissions").insert({
-        role_id: roleId,
-        permission_id: permissionId
-      });
-      if (error) throw error;
-    } else {
-      const { error } = await supabase.from("rel_role_permissions").delete().eq("role_id", roleId).eq("permission_id", permissionId);
-      if (error) throw error;
-    }
     revalidatePath("/quan-tri-he-thong");
     return { success: true };
   } catch (error: unknown) {

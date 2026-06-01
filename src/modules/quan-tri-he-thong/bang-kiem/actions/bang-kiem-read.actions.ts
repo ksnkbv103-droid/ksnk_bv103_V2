@@ -26,7 +26,7 @@ function errMsg(e: unknown) {
 
 function normalizeBangKiemRows(rows: unknown[]): DanhMucBangKiem[] {
   return ((rows || []) as Array<Record<string, unknown>>).map((bk) => {
-    const dmChildren = Array.isArray(bk.dm_tieu_chi_bang_kiem) ? bk.dm_tieu_chi_bang_kiem : [];
+    const dmChildren = Array.isArray(bk.tieu_chi_jsonb) ? bk.tieu_chi_jsonb : [];
     return {
       ...(bk as DanhMucBangKiem),
       tieu_chi_bang_kiem: dmChildren as TieuChiBangKiem[],
@@ -40,7 +40,7 @@ export async function getBangKiems() {
     const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase
       .from("dm_bang_kiem")
-      .select("*, dm_tieu_chi_bang_kiem(*)")
+      .select("*")
       .order("is_active", { ascending: false })
       .order("ma_bk", { ascending: true });
     if (error) throw error;
@@ -56,7 +56,7 @@ export async function getExportData() {
     const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase
       .from("dm_bang_kiem")
-      .select("*, dm_tieu_chi_bang_kiem(*)")
+      .select("*")
       .order("is_active", { ascending: false })
       .order("ma_bk", { ascending: true });
     if (error) throw error;
@@ -95,11 +95,12 @@ export async function getTieuChis(bangKiemId: string, activeOnly = false) {
   try {
     await verifyPermission("BANG_KIEM_DETAIL", "view");
     const supabase = createAdminSupabaseClient();
-    let query = supabase.from("dm_tieu_chi_bang_kiem").select(DM_TIEU_CHI_BANG_KIEM_ROW_SELECT).eq("bang_kiem_id", bangKiemId);
-    if (activeOnly) query = query.eq("is_active", true);
-    const { data, error } = await query.order("stt", { ascending: true });
+    const { data, error } = await supabase.from("dm_bang_kiem").select("tieu_chi_jsonb").eq("id", bangKiemId).single();
     if (error) throw error;
-    return { success: true, data };
+    let tieuChis = Array.isArray(data?.tieu_chi_jsonb) ? data.tieu_chi_jsonb : [];
+    if (activeOnly) tieuChis = tieuChis.filter((t: any) => t.is_active !== false);
+    tieuChis.sort((a: any, b: any) => (a.stt || 0) - (b.stt || 0));
+    return { success: true, data: tieuChis };
   } catch (error: unknown) {
     return { success: false, error: errMsg(error) };
   }
@@ -110,11 +111,12 @@ export async function getTieuChisForGiamSatChung(bangKiemId: string, activeOnly 
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
     const supabase = createAdminSupabaseClient();
-    let query = supabase.from("dm_tieu_chi_bang_kiem").select(DM_TIEU_CHI_BANG_KIEM_ROW_SELECT).eq("bang_kiem_id", bangKiemId);
-    if (activeOnly) query = query.eq("is_active", true);
-    const { data, error } = await query.order("stt", { ascending: true });
+    const { data, error } = await supabase.from("dm_bang_kiem").select("tieu_chi_jsonb").eq("id", bangKiemId).single();
     if (error) throw error;
-    return { success: true, data };
+    let tieuChis = Array.isArray(data?.tieu_chi_jsonb) ? data.tieu_chi_jsonb : [];
+    if (activeOnly) tieuChis = tieuChis.filter((t: any) => t.is_active !== false);
+    tieuChis.sort((a: any, b: any) => (a.stt || 0) - (b.stt || 0));
+    return { success: true, data: tieuChis };
   } catch (error: unknown) {
     return { success: false, error: errMsg(error) };
   }
@@ -126,7 +128,7 @@ export async function getBangKiemsForGiamSat() {
     const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase
       .from("dm_bang_kiem")
-      .select("*, dm_tieu_chi_bang_kiem(*)")
+      .select("*")
       .eq("is_active", true)
       .order("ma_bk", { ascending: true });
     if (error) throw error;

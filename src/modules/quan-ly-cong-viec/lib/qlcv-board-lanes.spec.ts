@@ -109,16 +109,19 @@ describe("getBoardLaneId (§4.3 QLCV)", () => {
     ).toBe("lane_de_xuat");
   });
 
-  it("MOI + active + phụ trách → chờ nhận", () => {
+  it("MOI + active → đang làm (kể cả chưa có phụ trách — dữ liệu cũ)", () => {
+    expect(
+      getBoardLaneId({ trang_thai: "MOI", is_active: true, nguoi_phu_trach_id: null }),
+    ).toBe("lane_dang_lam");
     expect(
       getBoardLaneId({ trang_thai: "MOI", is_active: true, nguoi_phu_trach_id: "00000000-0000-4000-8000-000000000001" }),
-    ).toBe("lane_cho_nhan");
+    ).toBe("lane_dang_lam");
   });
 });
 
 describe("boardLaneToKanbanColumn", () => {
-  it("ẩn cột đề xuất gom lane_de_xuat vào CHO_NHAN", () => {
-    expect(boardLaneToKanbanColumn("lane_de_xuat", false)).toBe("CHO_NHAN");
+  it("đề xuất → DE_XUAT hoặc DANG_LAM khi không có cột đề xuất", () => {
+    expect(boardLaneToKanbanColumn("lane_de_xuat", false)).toBe("DANG_LAM");
     expect(boardLaneToKanbanColumn("lane_de_xuat", true)).toBe("DE_XUAT");
   });
 });

@@ -1,4 +1,4 @@
-import type { VSTOpportunity } from "../data";
+import type { VSTOpportunity } from "./vst-constants";
 
 export interface ExtendedOpportunity extends VSTOpportunity {
   id: string;

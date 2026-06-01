@@ -6,6 +6,6 @@ alwaysApply: false
 
 # Bảng kiểm — ngữ cảnh spec
 
-- [`docs/specs/10-bv103-implementation-mapping.md`](../../docs/specs/10-bv103-implementation-mapping.md)
-- [`docs/specs/PREP0_UI_ACTION_DB_MATRIX.md`](../../docs/specs/PREP0_UI_ACTION_DB_MATRIX.md) khi đổi import/export hoặc action lưu
+- [`docs/core/implementation-mapping.md`](../../docs/core/implementation-mapping.md)
+- [`read-minimum.md`](../../docs/core/read-minimum.md) khi đổi import/export hoặc action lưu
 - `src/lib/permission-registry.ts` — quyền module `BANG_KIEM` (ví dụ `import`)

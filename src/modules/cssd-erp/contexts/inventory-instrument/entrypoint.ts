@@ -1,6 +1,4 @@
 /**
- * Bounded context entrypoint: Instrument inventory / physical warehouse.
+ * Bounded context entrypoint: Instrument inventory (issue reporting from kho UI).
  */
-export { default as CSSDInstrumentInventoryPage } from "../../views/KhoDungCuPage";
-export { importCSSDData, reportInventoryIssue } from "../../actions/cssd-write.actions";
-export { getWaitingListByStation, getCSSDImportExportData } from "../../actions/cssd-read.actions";
+export { reportInventoryIssue } from "../../actions/cssd-write.actions";

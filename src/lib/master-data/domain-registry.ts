@@ -1,4 +1,5 @@
 // src/lib/master-data/domain-registry.ts
+// **Registry pattern** (map loaiDanhMuc → bảng dm_*) — KHÔNG phải `src/lib/domain/` (pure business logic).
 // Source-of-Truth duy nhất: mọi loại danh mục đều có bảng dm_* chuyên biệt.
 // Không còn fallback về danh_muc_tuy_bien.
 // Đọc dropdown đồng bộ: `fetchActiveRegistryDmRows` trong `registry-select-fetch.ts`.

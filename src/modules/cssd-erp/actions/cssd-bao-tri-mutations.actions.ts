@@ -5,7 +5,7 @@ import { coMeTietKhuanChuaKetThucTheoThietBi } from "../helpers/assert-thiet-bi-
 import { getErrorMessage, mapFkError, revalidateCssdMaintenanceSurfaces } from "./cssd-action-common";
 import { normalizeCssdCode } from "../shared/domain/cssd-qr-core";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
-import { verifyCssdMaintenanceEdit } from "./cssd-permissions";
+import { verifyCssdMaintenanceEdit } from "@/lib/cssd-server-gates";
 import { cssdMaintenanceStartInputSchema } from "../shared/contracts/cssd-context.contracts";
 
 function nextMaPhieu(): string {
@@ -59,7 +59,7 @@ export async function batDauBaoTriThietBiAction(input: { thiet_bi_id?: string; m
     const now = new Date().toISOString();
 
     const { data: ins, error: insErr } = await supabase
-      .from("fact_bao_tri_thiet_bi")
+      .from("cssd_fact_bao_tri")
       .insert({
         ma_phieu,
         thiet_bi_id: tid,
@@ -75,7 +75,7 @@ export async function batDauBaoTriThietBiAction(input: { thiet_bi_id?: string; m
     const { error: upErr } = await supabase.from("dm_thiet_bi").update({ trang_thai: "REPAIRING", updated_at: now }).eq("id", tid);
     if (upErr) {
       const insId = String((ins as { id?: string })?.id || "");
-      if (insId) await supabase.from("fact_bao_tri_thiet_bi").delete().eq("id", insId);
+      if (insId) await supabase.from("cssd_fact_bao_tri").delete().eq("id", insId);
       return { success: false as const, error: mapFkError(upErr.message) };
     }
 
@@ -97,7 +97,7 @@ export async function ketThucBaoTriThietBiAction(input: { id: string; ket_qua_gh
     if (!ketQua) return { success: false as const, error: "Nhập kết quả / biên bản bàn giao." };
 
     const { data: ph, error: pErr } = await supabase
-      .from("fact_bao_tri_thiet_bi")
+      .from("cssd_fact_bao_tri")
       .select("id, trang_thai, thiet_bi_id")
       .eq("id", id)
       .eq("is_active", true)
@@ -123,7 +123,7 @@ export async function ketThucBaoTriThietBiAction(input: { id: string; ket_qua_gh
     const ngayTiepTheo = addDaysIso(today, cycle);
 
     const { error: uPhieu } = await supabase
-      .from("fact_bao_tri_thiet_bi")
+      .from("cssd_fact_bao_tri")
       .update({
         trang_thai: "HOAN_THANH",
         ket_qua_ghi_nhan: ketQua,
@@ -160,7 +160,7 @@ export async function huyBaoTriThietBiAction(input: { id: string }) {
     if (!id) return { success: false as const, error: "Thiếu phiếu." };
 
     const { data: ph, error: pErr } = await supabase
-      .from("fact_bao_tri_thiet_bi")
+      .from("cssd_fact_bao_tri")
       .select("id, trang_thai, thiet_bi_id")
       .eq("id", id)
       .eq("is_active", true)
@@ -175,7 +175,7 @@ export async function huyBaoTriThietBiAction(input: { id: string }) {
     const now = new Date().toISOString();
 
     const { error: uPhieu } = await supabase
-      .from("fact_bao_tri_thiet_bi")
+      .from("cssd_fact_bao_tri")
       .update({
         trang_thai: "HUY",
         thoi_gian_ket_thuc: now,

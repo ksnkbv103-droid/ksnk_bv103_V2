@@ -17,7 +17,7 @@ interface VSTAssessmentSectionProps {
 }
 
 const segBase =
-  "min-w-[4rem] px-4 py-2.5 text-xs sm:min-w-[3.25rem] sm:px-3 sm:py-2 sm:text-[10px] font-bold sm:font-semibold uppercase tracking-wide transition-colors first:rounded-l-lg last:rounded-r-lg border-y border-r last:border-r-0 border-slate-200 first:border-l";
+  "min-w-[4.5rem] min-h-[44px] flex items-center justify-center px-4 py-2.5 text-xs sm:min-w-[3.25rem] sm:min-h-0 sm:px-3 sm:py-2 sm:text-[10px] font-bold sm:font-semibold uppercase tracking-wide transition-colors first:rounded-l-lg last:rounded-r-lg border-y border-r last:border-r-0 border-slate-200 first:border-l";
 const segInactive = "bg-white text-slate-500 hover:bg-slate-50";
 const segYes = "bg-[var(--primary)] text-white border-[var(--primary)]";
 const segNo = "bg-rose-600 text-white border-rose-600";

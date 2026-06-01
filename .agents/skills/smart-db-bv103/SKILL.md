@@ -18,10 +18,10 @@ description: Tối ưu Postgres và app BV103 theo hướng Smart DB thực dụ
 
 ## Bắt buộc đọc trước khi sửa
 
-1. [`docs/specs/working/LEAN_EXECUTION_BV103.md`](../../../docs/specs/working/LEAN_EXECUTION_BV103.md) — checklist + verify.
-2. [`docs/specs/SMART_DB_PRAGMATIC_PLAYBOOK.md`](../../../docs/specs/SMART_DB_PRAGMATIC_PLAYBOOK.md) — đặc biệt **mục 3 (Chiến lược hiệu năng y tế)**.
+1. [`docs/core/lean-execution.md`](../../../docs/core/lean-execution.md) — checklist + verify.
+2. [`docs/core/operations-sop.md`](../../../docs/core/operations-sop.md) — Smart DB / hiệu năng / RLS.
 3. [`AGENTS.md`](../../../AGENTS.md).
-4. Khi đụng DB: [`docs/specs/GOVERNANCE_PIPELINE.md`](../../../docs/specs/GOVERNANCE_PIPELINE.md) và [`docs/specs/10-bv103-implementation-mapping.md`](../../../docs/specs/10-bv103-implementation-mapping.md).
+4. Khi đụng DB: [`docs/core/governance-pipeline.md`](../../../docs/core/governance-pipeline.md) và [`docs/core/implementation-mapping.md`](../../../docs/core/implementation-mapping.md).
 
 ## Quy tắc vàng (ROI-first)
 
@@ -92,4 +92,9 @@ description: Tối ưu Postgres và app BV103 theo hướng Smart DB thực dụ
 - **Migration-Then-Code:** KHÔNG viết Server Action cho bảng chưa có migration.
 - **Zod Validation:** User input → `z.object({...}).safeParse()` trong Server Action. Schema tại `src/lib/validations/`.
 - **Decision Log:** Quyết định thiết kế lớn → `docs/decisions/YYYY-MM-DD-<tên>.md`.
-- Chi tiết: [`LEAN_EXECUTION_BV103.md`](../../../docs/specs/working/LEAN_EXECUTION_BV103.md) §2 và §6.
+- **Pre-aggregation Governance**: Chỉ de-normalize hoặc tạo bảng tổng hợp/summary khi:
+  1. Chứng minh được performance bottleneck bằng dữ liệu đo lường thực tế (query time > 2s hoặc Seq Scan nặng).
+  2. Đã viết phân tích đánh đổi (tradeoffs) và được phê duyệt thông qua `implementation_plan.md` hoặc `decision log`.
+  3. Đảm bảo tính nhất quán dữ liệu tuyệt đối bằng cơ chế đồng bộ an toàn (như Trigger hoặc Transaction).
+- Chi tiết: [`lean-execution.md`](../../../docs/core/lean-execution.md) §2 và §6.
+

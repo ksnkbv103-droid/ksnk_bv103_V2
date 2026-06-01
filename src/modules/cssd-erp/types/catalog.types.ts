@@ -6,6 +6,13 @@ export interface CSSDBo {
   ten_bo: string;
   loai_dung_cu_id: string | null;
   is_active: boolean;
+  phan_loai_bo?: string | null;
+  co_ma_dinh_danh_rieng?: boolean | null;
+  so_luong_bo?: number | null;
+  so_khoan?: number | null;
+  tong_so_luong_dung_cu?: number | null;
+  khoa_su_dung_id?: string | null;
+  ten_khoa?: string | null;
 }
 
 export interface CSSDChiTiet {
@@ -18,6 +25,10 @@ export interface CSSDChiTiet {
   loai_dung_cu_id: string | null;
   ten_loai: string | null;
   is_active: boolean;
+  max_suds_count?: number | null;
+  trong_luong?: number | null;
+  ghi_chu?: string | null;
+  ma_qr_mau?: string | null;
 }
 
 export interface CSSDLoai {
@@ -25,6 +36,14 @@ export interface CSSDLoai {
   ma_loai_dung_cu: string;
   ten_loai_dung_cu: string;
   is_active: boolean;
+  phan_loai?: string | null;
+  so_luong_kho_du_phong?: number | null;
+  so_luong_tong?: number | null;
+  hinh_dang?: string | null;
+  kich_thuoc?: string | null;
+  cong_dung?: string | null;
+  kha_nang_chiu_nhiet?: string | null;
+  phuong_phap_tiet_khuan?: string | null;
 }
 
 export interface CSSDHoaChat {
@@ -42,3 +61,4 @@ export interface Catalog {
   loai: CSSDLoai[];
   hoa_chat: CSSDHoaChat[];
 }
+

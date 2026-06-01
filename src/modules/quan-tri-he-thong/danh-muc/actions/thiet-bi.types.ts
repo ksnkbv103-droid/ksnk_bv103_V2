@@ -14,6 +14,8 @@ export type ThietBiRow = {
   ngay_bao_tri_tiep_theo: string | null;
   ghi_chu: string | null;
   is_active: boolean;
+  so_lan_su_dung?: number;
+  specs?: Record<string, any> | null;
 };
 
 export type LoaiMayTietKhuanOption = {

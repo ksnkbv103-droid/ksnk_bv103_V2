@@ -2,7 +2,7 @@
 /**
  * Gợi ý kiểm tra drift layout (BV103 phase D — không chặn CI mặc định).
  * Chạy: npm run layout:drift-check
- * @see docs/specs/working/BV103_LAYOUT_PRIMITIVES.md
+ * @see docs/modules/giam-sat/layout-primitives.md
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, extname, join } from "node:path";

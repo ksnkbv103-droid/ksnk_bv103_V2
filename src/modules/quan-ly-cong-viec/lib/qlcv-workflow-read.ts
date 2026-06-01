@@ -19,7 +19,7 @@ export async function resolveQlcvWorkflowMaFromIds(
   };
 }
 
-/** Hàng từ view v_fact_cong_viec_full đã có alias trang_thai / loai_cong_viec. */
+/** Hàng từ view v_qlcv_cong_viec_full đã có alias trang_thai / loai_cong_viec. */
 export function qlcvWorkflowMaFromViewRow(row: {
   trang_thai?: string | null;
   loai_cong_viec?: string | null;

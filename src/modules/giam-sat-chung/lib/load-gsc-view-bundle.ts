@@ -1,6 +1,6 @@
 import type { MasterOption } from "@/lib/master-data/gateway";
 import type { ChecklistResult, ChecklistTemplate } from "@/types/giam-sat-chung";
-import { getTieuChisForGiamSatChung } from "@/modules/quan-tri-he-thong/bang-kiem/actions/bang-kiem.actions";
+import { getTieuChisForGiamSatChung } from "@/lib/mdm-read-gateway";
 import {
   getGiamSatChungSessionForViewBundle,
   getGscHeaderDmDropdowns,
@@ -81,18 +81,41 @@ export async function loadGscViewBundle(
     dbId: bkId,
     title: tenBk,
     category: "Giám sát chung",
-    criteria: criteria.map((c: { id: string; noi_dung?: string | null; stt: number; diem_toi_da?: number }) => ({
+    criteria: criteria.map((c: {
+      id: string;
+      noi_dung?: string | null;
+      stt: number;
+      diem_toi_da?: number;
+      weight_type?: 'CRITICAL' | 'MAJOR' | 'MINOR';
+      weightType?: 'CRITICAL' | 'MAJOR' | 'MINOR';
+      is_red_flag?: boolean;
+      isRedFlag?: boolean;
+    }) => ({
       id: c.id,
       label: String(c.noi_dung ?? "").trim() || "Tiêu chí",
       maxScore: c.diem_toi_da || 1,
+      weightType: c.weightType || c.weight_type || 'MAJOR',
+      isRedFlag: c.isRedFlag !== undefined ? c.isRedFlag : (c.is_red_flag || false),
     })),
   };
 
-  const rawResults = (sessionRow.results as { criterion_id?: string; value?: string; note?: string | null }[]) || [];
+  const rawResults = (sessionRow.results as {
+    criterion_id?: string;
+    value?: string;
+    note?: string | null;
+    weight_type?: 'CRITICAL' | 'MAJOR' | 'MINOR';
+    weightType?: 'CRITICAL' | 'MAJOR' | 'MINOR';
+    is_red_flag?: boolean;
+    isRedFlag?: boolean;
+    image_url?: string | null;
+  }[]) || [];
   const results: ChecklistResult[] = rawResults.map((r) => ({
     criterionId: String(r.criterion_id),
     value: normVal(r.value),
     note: r.note,
+    weightType: r.weightType || r.weight_type || 'MAJOR',
+    isRedFlag: r.isRedFlag !== undefined ? r.isRedFlag : (r.is_red_flag || false),
+    image_url: r.image_url ?? null,
   }));
 
   let sessionObj = sessionRow;
@@ -100,7 +123,6 @@ export async function loadGscViewBundle(
     sessionObj = mergeGscSessionWithDbPrintLabels(sessionObj, labelsRes.data);
   }
   const printSession = snapshotGscSessionForPrint(sessionObj, kRows, kvRows, nnRows, nsRows);
-
   return {
     ok: true,
     bundle: {

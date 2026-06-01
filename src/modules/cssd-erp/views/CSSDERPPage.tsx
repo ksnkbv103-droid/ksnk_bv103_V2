@@ -21,8 +21,20 @@ import WorkflowManualOpsPanel from "../components/workflow/WorkflowManualOpsPane
 import { SCAN_STATIONS } from "../workflow/domain/cssd-stations";
 import { isValidStation } from "../workflow/domain/cssd-state-engine";
 import { CSSD_ROUTES } from "@/lib/cssd-routes";
+import { isBOMChecklistEnabled } from "@/lib/bv103-feature-config";
+import { resolveQuyTrinhForCheckpoint } from "../actions/cssd-bom-checkpoint.actions";
+import BomChecklistModal from "../components/packaging/BomChecklistModal";
 
 const MODULE_KEY = "CSSD_WORKFLOW";
+
+const stationVnNames: Record<Station, string> = {
+  TIEP_NHAN: "Tiếp nhận",
+  LAM_SACH: "Làm sạch",
+  QC: "QC / Kiểm chuẩn",
+  DONG_GOI: "Đóng gói",
+  TIET_KHUAN: "Tiệt khuẩn",
+  CAP_PHAT: "Cấp phát",
+};
 
 /**
  * Trang quản lý quy trình CSSD ERP - Layout 2 cột tối ưu Workflow
@@ -33,6 +45,10 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
   const { currentStation, scanStations, waitingList, loading: _workflowLoading, lastScan, scanSuccess, selectStation, handleQRScan, refresh } = useCSSDWorkflow();
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
   const [maCaMoId, setMaCaMoId] = useState("");
+  const [bomModalOpen, setBomModalOpen] = useState(false);
+  const [bomQuyTrinhId, setBomQuyTrinhId] = useState("");
+  const [bomBoDungCuId, setBomBoDungCuId] = useState("");
+  const [pendingQrCode, setPendingQrCode] = useState("");
 
   const stationParam = searchParams.get("station");
   useEffect(() => {
@@ -72,7 +88,6 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
   if (!canViewWorkflow) {
     return (
       <div className={CSSD_PAGE_OUTER}>
-        <CSSDSubNav />
         <div className="rounded-2xl border border-slate-200 bg-[var(--bg-panel)] px-8 py-12 text-center shadow-[var(--shadow-app-soft)]">
           <p className="text-sm font-medium text-slate-600">Bạn không có quyền truy cập luồng quy trình CSSD.</p>
           <p className="mt-2 text-xs text-slate-500">Liên hệ quản trị nếu cần cấp quyền module workflow.</p>
@@ -81,13 +96,40 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     );
   }
 
-  const submitWorkflowQr = (raw: string) => {
+  const handleBomCheckFinished = (isOk: boolean, warningSummary?: string) => {
+    const extra = warningSummary ? { warning: warningSummary } : undefined;
+    void handleQRScan(pendingQrCode, extra);
+    setBomModalOpen(false);
+  };
+
+  const submitWorkflowQr = async (raw: string) => {
     const code = raw.trim().toUpperCase();
     if (!code) return;
     if (currentStation === "TIET_KHUAN") {
       toast.error("Không quét trạm Tiệt khuẩn tại đây. Dùng trang Mẻ tiệt khuẩn (/cssd-erp/batch).", { duration: 9000 });
       return;
     }
+
+    const isBomEnabled = typeof window !== "undefined" && isBOMChecklistEnabled();
+
+    if (currentStation === "DONG_GOI" && isBomEnabled) {
+      toast.loading("Đang đối chiếu dữ liệu thiết kế...", { id: "bom-resolve" });
+      try {
+        const res = await resolveQuyTrinhForCheckpoint(code);
+        toast.dismiss("bom-resolve");
+        if (res.success) {
+          setBomQuyTrinhId(res.quyTrinhId);
+          setBomBoDungCuId(res.boDungCuId);
+          setPendingQrCode(code);
+          setBomModalOpen(true);
+        }
+      } catch (e: any) {
+        toast.dismiss("bom-resolve");
+        toast.error(e.message || "Lỗi truy vấn quy trình.");
+      }
+      return;
+    }
+
     const extra = currentStation === "CAP_PHAT" && maCaMoId ? { ma_ca_mo_id: maCaMoId } : undefined;
     void handleQRScan(code, extra);
   };
@@ -98,7 +140,9 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
       <section className={`space-y-4 p-4 ${CSSD_UI_PANEL}`}>
         <div className="flex flex-wrap items-end justify-between gap-2 px-1">
           <h2 className={CSSD_UI_SECTION_TITLE}>Quy trình quét trạm (không gồm mẻ hấp)</h2>
-          <span className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">{currentStation || "Chưa chọn trạm"}</span>
+          <span className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
+            {currentStation ? stationVnNames[currentStation] : "Chưa chọn trạm"}
+          </span>
         </div>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
           {stationsBeforeCap.map((s) => (
@@ -106,7 +150,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
               key={s}
               type="button"
               onClick={() => selectStation(s)}
-              className={`group flex min-h-[112px] flex-col items-center justify-center gap-3 rounded-2xl border p-4 transition-all ${
+              className={`group flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-2xl border p-3 transition-all ${
                 currentStation === s
                    ? "border-emerald-600 bg-emerald-600 text-white shadow-lg"
                    : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
@@ -118,9 +162,9 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
                 {stationIcons[s]}
               </div>
               <span
-                className={`text-center text-[10px] font-semibold uppercase leading-tight tracking-wide ${currentStation === s ? "text-white" : "text-slate-600"}`}
+                className={`text-center text-[11px] font-bold leading-tight tracking-wide ${currentStation === s ? "text-white" : "text-slate-700"}`}
               >
-                {s.replace(/_/g, " ")}
+                {stationVnNames[s]}
               </span>
             </button>
           ))}
@@ -128,7 +172,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
           <button
             type="button"
             onClick={() => selectStation(capStation)}
-            className={`group flex min-h-[112px] flex-col items-center justify-center gap-3 rounded-2xl border p-4 transition-all ${
+            className={`group flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-2xl border p-3 transition-all ${
               currentStation === capStation
                 ? "border-emerald-600 bg-emerald-600 text-white shadow-lg"
                 : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
@@ -140,9 +184,9 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
               {stationIcons[capStation]}
             </div>
             <span
-              className={`text-center text-[10px] font-semibold uppercase leading-tight tracking-wide ${currentStation === capStation ? "text-white" : "text-slate-600"}`}
+              className={`text-center text-[11px] font-bold leading-tight tracking-wide ${currentStation === capStation ? "text-white" : "text-slate-700"}`}
             >
-              {capStation.replace(/_/g, " ")}
+              {stationVnNames[capStation]}
             </span>
           </button>
         </div>
@@ -150,14 +194,13 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
 
       {/* 4. Workflow Area */}
       <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-        <div className="space-y-4 lg:col-span-7">
-          <h3 className={`px-1 ${CSSD_UI_SECTION_TITLE}`}>Danh sách chờ tại trạm</h3>
+        <div className="space-y-4 lg:col-span-6">
           {currentStation ? <WaitingList items={waitingList} onAction={submitWorkflowQr} /> : (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-20 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">Vui lòng chọn trạm làm việc để bắt đầu</div>
           )}
         </div>
 
-        <div className="space-y-4 lg:col-span-5 lg:sticky lg:top-8">
+        <div className="space-y-4 lg:col-span-6 lg:sticky lg:top-8">
           <h3 className={`px-1 ${CSSD_UI_SECTION_TITLE}`}>Quét & kết quả</h3>
           <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             
@@ -201,6 +244,13 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
         </div>
       </main>
       <IncidentReportModal isOpen={isIncidentOpen && canCreateIncident} onClose={() => setIsIncidentOpen(false)} station={currentStation || 'TIEP_NHAN'} onSuccess={refresh} />
+      <BomChecklistModal
+        isOpen={bomModalOpen}
+        onClose={() => setBomModalOpen(false)}
+        quyTrinhId={bomQuyTrinhId}
+        boDungCuId={bomBoDungCuId}
+        onCheckFinished={handleBomCheckFinished}
+      />
     </div>
   );
 

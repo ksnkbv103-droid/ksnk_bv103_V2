@@ -1,52 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, ArrowRightLeft, PackagePlus, QrCode } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, ExternalLink, QrCode } from "lucide-react";
 import { toast } from "sonner";
-import { appendChiTietIssueNoteAction } from "@/modules/quan-tri-he-thong/danh-muc/actions/bo-dung-cu-chi-tiet-read.actions";
+import { appendChiTietIssueNoteAction } from "@/lib/master-data/append-chi-tiet-issue-note.action";
 import type { CSSDChiTiet } from "../types/catalog.types";
-import type { DungCuChiTietTableRow } from "@/modules/quan-tri-he-thong/danh-muc/dung-cu/dung-cu-chi-tiet-form-shared";
-import { cssdChiTietToModalRow } from "./cssd-catalog-page-helpers";
 import CssdDieuChuyenQrModal from "../components/catalog/CssdDieuChuyenQrModal";
+
+const MDM_DUNG_CU_HREF = "/quan-tri-he-thong/danh-muc/dung-cu";
 
 export function CSSDCatalogQuickActions(props: {
   selectedBoId: string | null;
   selectedChiTiet: CSSDChiTiet | null;
-  setEditing: (row: DungCuChiTietTableRow | null) => void;
-  setModalOpen: (open: boolean) => void;
   reload: () => Promise<void>;
 }) {
-  const { selectedBoId, selectedChiTiet, setEditing, setModalOpen, reload } = props;
+  const { selectedBoId, selectedChiTiet, reload } = props;
   const [dieuChuyenOpen, setDieuChuyenOpen] = useState(false);
 
   return (
     <>
       <section className="rounded-2xl border border-slate-200 bg-white p-4">
-        <h4 className="text-[11px] font-black uppercase tracking-wide text-slate-600">Tác vụ nhanh</h4>
+        <h4 className="text-[11px] font-black uppercase tracking-wide text-slate-600">Tác vụ vận hành</h4>
         <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            disabled={!selectedBoId}
-            onClick={() => {
-              setEditing(null);
-              setModalOpen(true);
-            }}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] font-semibold uppercase text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          <Link
+            href={MDM_DUNG_CU_HREF}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] font-semibold uppercase text-slate-700 hover:bg-slate-50"
           >
-            <PackagePlus className="h-3.5 w-3.5" /> Bổ sung dụng cụ vào bộ đang chọn
-          </button>
-          <button
-            type="button"
-            disabled={!selectedChiTiet}
-            onClick={() => {
-              if (!selectedChiTiet) return;
-              setEditing(cssdChiTietToModalRow(selectedChiTiet));
-              setModalOpen(true);
-            }}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] font-semibold uppercase text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-          >
-            <ArrowRightLeft className="h-3.5 w-3.5" /> Chỉnh / đổi bộ trong danh mục
-          </button>
+            <ExternalLink className="h-3.5 w-3.5" /> Sửa danh mục (Quản trị)
+          </Link>
           <button
             type="button"
             onClick={() => setDieuChuyenOpen(true)}
@@ -85,6 +67,9 @@ export function CSSDCatalogQuickActions(props: {
             <AlertTriangle className="h-3.5 w-3.5" /> Báo mất
           </button>
         </div>
+        {!selectedBoId && !selectedChiTiet ? (
+          <p className="mt-2 text-[10px] text-slate-500">Chọn bộ hoặc chi tiết để báo hỏng/mất.</p>
+        ) : null}
       </section>
 
       <CssdDieuChuyenQrModal

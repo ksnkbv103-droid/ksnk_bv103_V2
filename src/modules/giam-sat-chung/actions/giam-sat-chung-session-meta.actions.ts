@@ -10,6 +10,10 @@ import {
 } from "@/lib/supervision-mutation-window";
 
 function getErrorMessage(error: unknown): string {
+  if (error && typeof error === "object") {
+    const err = error as Record<string, unknown>;
+    if (typeof err.message === "string") return err.message;
+  }
   return error instanceof Error ? error.message : "Lỗi không xác định";
 }
 
@@ -70,9 +74,6 @@ export async function deleteGiamSatChungSessions(sessionIds: string[]) {
       return { success: false as const, error: "Phiên đã bị vô hiệu, không xóa được theo luồng hiện tại." };
     }
 
-    const { error: resErr } = await supabase.from("fact_giam_sat_chung_results").delete().in("session_id", ids);
-    if (resErr) throw resErr;
-
     const { error: sessionErr } = await supabase.from("fact_giam_sat_chung_sessions").delete().in("id", ids);
     if (sessionErr) throw sessionErr;
 
@@ -124,6 +125,6 @@ export async function assertCanEditGiamSatChungSession(sessionId: string) {
 
     return { success: true as const };
   } catch (error: unknown) {
-    return { success: false as const, error: error instanceof Error ? error.message : "Lỗi không xác định" };
+    return { success: false as const, error: getErrorMessage(error) };
   }
 }

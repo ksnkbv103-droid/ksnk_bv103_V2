@@ -28,7 +28,7 @@ export async function loginWithStaffIdentifier(identifier: string, password: str
     if (identifierLooksLikeEmail(id)) {
       emailForAuth = normalizeEmail(id);
       const { data: staffByEmail } = await admin
-        .from("mdm_nhan_su")
+        .from("v_mdm_nhan_su_full")
         .select("email, is_active")
         .eq("email", emailForAuth)
         .maybeSingle();
@@ -38,7 +38,7 @@ export async function loginWithStaffIdentifier(identifier: string, password: str
       }
     } else {
       const { data: row, error: lookupErr } = await admin
-        .from("mdm_nhan_su")
+        .from("v_mdm_nhan_su_full")
         .select("email, is_active")
         .eq("ma_nv", id)
         .maybeSingle();

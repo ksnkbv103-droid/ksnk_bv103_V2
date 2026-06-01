@@ -6,19 +6,19 @@ import {
 } from "@/lib/supervision-policy";
 import { isKnownHinhThucLabel, resolveCanonicalHinhThucLabel } from "@/lib/supervision-hinh-thuc-legacy";
 
-export const HINH_THUC_GIAM_SAT_OPTIONS = [
+const HINH_THUC_GIAM_SAT_OPTIONS = [
   HINH_THUC_TU_GIAM_SAT,
   HINH_THUC_CHUYEN_TRACH,
   HINH_THUC_GIAM_SAT_CHEO,
 ] as const;
-export const CACH_THUC_GIAM_SAT_OPTIONS = [
+const CACH_THUC_GIAM_SAT_OPTIONS = [
   "Giám sát trực tiếp tại chỗ",
   "Giám sát trực tiếp qua camera",
   "Giám sát lại qua camera",
 ] as const;
-export const LEGACY_CACH_THUC_VALUES = new Set(CACH_THUC_GIAM_SAT_OPTIONS);
-export type ModeOption = (typeof HINH_THUC_GIAM_SAT_OPTIONS)[number];
-export type CachOption = (typeof CACH_THUC_GIAM_SAT_OPTIONS)[number];
+const LEGACY_CACH_THUC_VALUES = new Set(CACH_THUC_GIAM_SAT_OPTIONS);
+type ModeOption = (typeof HINH_THUC_GIAM_SAT_OPTIONS)[number];
+type CachOption = (typeof CACH_THUC_GIAM_SAT_OPTIONS)[number];
 export type GscSessionInput = Record<string, unknown> & {
   khoa_id?: string;
   khu_vuc_id?: string;
@@ -103,5 +103,87 @@ export async function resolveGscModeIds(
 }
 
 import { calculateGscComplianceScore } from "@/lib/domain/giam-sat-chung.domain";
+import {
+  computeScore,
+  type GsttCachTinhDiem,
+  type GsttScoringInputItem,
+} from "@/lib/domain/giam-sat-scoring";
+import type { ChecklistResult } from "@/modules/giam-sat-chung/types";
 
 export const calculateScore = calculateGscComplianceScore;
+
+const VALID_CACH_TINH_DIEM = new Set<GsttCachTinhDiem>([
+  "TY_LE",
+  "TRON_GOI",
+  "DAT_KHONG_DAT",
+  "NHAT_KY",
+]);
+
+/**
+ * Slice 4 hook (reform v4): tra `cach_tinh_diem` của bảng kiểm; nếu chưa set
+ * (Slice 1 cột NULL-able) → fallback engine cũ `calculateGscComplianceScore`.
+ * Lộ trình gỡ legacy: `src/lib/domain/giam-sat-scoring.ts` + `docs/wiki/concepts.md`.
+ * Trả `dat_tron_goi`, `du_lieu_nghi_van`, `tong_diem` để spread vào sessionPayload.
+ */
+export async function resolveScoringSummary(
+  supabase: SupabaseClient,
+  bangKiemId: string,
+  results: readonly ChecklistResult[],
+  meta?: { thoi_gian_bat_dau?: string | null; thoi_gian_ket_thuc?: string | null },
+): Promise<{ tong_diem: number | null; dat_tron_goi: boolean | null; du_lieu_nghi_van: boolean }> {
+  let cachTinhDiem: GsttCachTinhDiem | null = null;
+  if (bangKiemId) {
+    try {
+      const { data } = await supabase
+        .from("gstt_dm_bang_kiem")
+        .select("cach_tinh_diem,tieu_chi_jsonb")
+        .eq("id", bangKiemId)
+        .maybeSingle();
+      const raw = String(data?.cach_tinh_diem ?? "").trim().toUpperCase();
+      if (VALID_CACH_TINH_DIEM.has(raw as GsttCachTinhDiem)) {
+        cachTinhDiem = raw as GsttCachTinhDiem;
+      }
+      // Map criterionId → la_then_chot từ tieu_chi_jsonb.
+      if (cachTinhDiem === "TRON_GOI" && Array.isArray(data?.tieu_chi_jsonb)) {
+        const map = new Map<string, boolean>();
+        for (const tc of data!.tieu_chi_jsonb as Array<Record<string, unknown>>) {
+          const id = String(tc?.id ?? "");
+          if (id) map.set(id, Boolean(tc?.la_then_chot));
+        }
+        const items: GsttScoringInputItem[] = (results || []).map((r) => ({
+          criterionId: r.criterionId,
+          value: r.value,
+          la_then_chot: map.get(r.criterionId) ?? false,
+        }));
+        const out = computeScore(cachTinhDiem, items, meta);
+        return {
+          tong_diem: out.tong_diem,
+          dat_tron_goi: out.dat_tron_goi,
+          du_lieu_nghi_van: out.du_lieu_nghi_van,
+        };
+      }
+    } catch {
+      // Non-fatal: fallback engine cũ ở dưới.
+    }
+  }
+
+  if (cachTinhDiem) {
+    const items: GsttScoringInputItem[] = (results || []).map((r) => ({
+      criterionId: r.criterionId,
+      value: r.value,
+    }));
+    const out = computeScore(cachTinhDiem, items, meta);
+    return {
+      tong_diem: out.tong_diem,
+      dat_tron_goi: out.dat_tron_goi,
+      du_lieu_nghi_van: out.du_lieu_nghi_van,
+    };
+  }
+
+  // Backward compat: bảng kiểm cũ chưa set cach_tinh_diem → engine cũ (weight tier).
+  return {
+    tong_diem: calculateGscComplianceScore(results as ChecklistResult[]),
+    dat_tron_goi: null,
+    du_lieu_nghi_van: false,
+  };
+}

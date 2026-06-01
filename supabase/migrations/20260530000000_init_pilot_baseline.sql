@@ -119,7 +119,7 @@ CREATE OR REPLACE FUNCTION "public"."fn_admin_module_stats"() RETURNS "jsonb"
     UNION ALL
     SELECT 'tk',
            jsonb_build_object('count', count(*), 'last', NULL)
-      FROM public.v_auth_user_permissions
+      FROM public.v_sys_user_permissions
   ),
   lookup_by_cat AS (
     SELECT category_type::text AS k,
@@ -205,41 +205,7 @@ $$;
 ALTER FUNCTION "public"."fn_assert_vst_gsc_not_locked"() OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."fn_bv103_audit_row"() RETURNS "trigger"
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    SET "search_path" TO 'public'
-    AS $$
-DECLARE
-  v_id text;
-  v_old jsonb;
-  v_new jsonb;
-BEGIN
-  v_id := coalesce(
-    to_jsonb(NEW)->>'id',
-    to_jsonb(OLD)->>'id'
-  );
-  IF TG_OP = 'DELETE' THEN
-    v_old := to_jsonb(OLD);
-    INSERT INTO public.sys_audit_log (table_name, record_id, action, old_data)
-    VALUES (TG_TABLE_NAME, v_id, TG_OP, v_old);
-    RETURN OLD;
-  ELSIF TG_OP = 'UPDATE' THEN
-    v_old := to_jsonb(OLD);
-    v_new := to_jsonb(NEW);
-    INSERT INTO public.sys_audit_log (table_name, record_id, action, old_data, new_data)
-    VALUES (TG_TABLE_NAME, v_id, TG_OP, v_old, v_new);
-    RETURN NEW;
-  ELSE
-    v_new := to_jsonb(NEW);
-    INSERT INTO public.sys_audit_log (table_name, record_id, action, new_data)
-    VALUES (TG_TABLE_NAME, v_id, TG_OP, v_new);
-    RETURN NEW;
-  END IF;
-END;
-$$;
-
-
-ALTER FUNCTION "public"."fn_bv103_audit_row"() OWNER TO "postgres";
+-- fn_bv103_audit_row deprecated and unified to fn_sys_audit_row
 
 
 CREATE OR REPLACE FUNCTION "public"."fn_cssd_check_set_heat_resistance"("p_bo_dung_cu_id" "uuid") RETURNS "jsonb"
@@ -351,6 +317,8 @@ DECLARE
   v_t_ma_khoa text;
   v_t_ten_khoa text;
   v_stype text;
+  v_is_ns_ksnk boolean := false;
+  v_is_t_ksnk boolean := false;
 BEGIN
   IF p_nguoi_giam_sat_id IS NOT NULL THEN
     SELECT ns.khoa_id, k.ma_khoa, k.ten_khoa
@@ -367,17 +335,35 @@ BEGIN
     WHERE k.id = p_target_khoa_id;
   END IF;
 
-  IF (v_ns_ma_khoa IN ('KSNK', 'C18') OR v_ns_ten_khoa ILIKE '%Kiểm soát nhiễm khuẩn%')
-     AND (v_t_ma_khoa IS NULL OR (v_t_ma_khoa NOT IN ('KSNK', 'C18') AND v_t_ten_khoa NOT ILIKE '%Kiểm soát nhiễm khuẩn%')) THEN
+  -- Xác định xem khoa có phải khoa KSNK không (dựa trên config trong lookup hoặc fallback cứng nếu lookup trống)
+  v_is_ns_ksnk := (
+    v_ns_ma_khoa IN ('KSNK', 'C18') 
+    OR v_ns_ten_khoa ILIKE '%Kiểm soát nhiễm khuẩn%'
+    OR EXISTS (
+      SELECT 1 FROM public.sys_lookup_value 
+      WHERE category_type = 'KHOA_KSNK_CONFIG' 
+        AND is_active = true 
+        AND (code = v_ns_ma_khoa OR name = v_ns_ten_khoa)
+    )
+  );
+
+  v_is_t_ksnk := (
+    v_t_ma_khoa IN ('KSNK', 'C18')
+    OR v_t_ten_khoa ILIKE '%Kiểm soát nhiễm khuẩn%'
+    OR EXISTS (
+      SELECT 1 FROM public.sys_lookup_value 
+      WHERE category_type = 'KHOA_KSNK_CONFIG' 
+        AND is_active = true 
+        AND (code = v_t_ma_khoa OR name = v_t_ten_khoa)
+    )
+  );
+
+  IF v_is_ns_ksnk AND (v_t_ma_khoa IS NULL OR NOT v_is_t_ksnk) THEN
     v_stype := 'KSNK';
-  ELSIF (
-    (v_ns_ma_khoa IN ('KSNK', 'C18') OR v_ns_ten_khoa ILIKE '%Kiểm soát nhiễm khuẩn%')
-    AND (v_t_ma_khoa IN ('KSNK', 'C18') OR v_t_ten_khoa ILIKE '%Kiểm soát nhiễm khuẩn%')
-  )
-  OR (v_ns_khoa_id IS NOT NULL AND p_target_khoa_id = v_ns_khoa_id) THEN
+  ELSIF (v_is_ns_ksnk AND v_is_t_ksnk) OR (v_ns_khoa_id IS NOT NULL AND p_target_khoa_id = v_ns_khoa_id) THEN
     v_stype := 'TU_GIAM_SAT';
   ELSIF v_ns_khoa_id IS NULL AND p_nguoi_giam_sat_id IS NULL THEN
-    IF p_target_khoa_id IS NULL OR (v_t_ma_khoa NOT IN ('KSNK', 'C18') AND v_t_ten_khoa NOT ILIKE '%Kiểm soát nhiễm khuẩn%') THEN
+    IF p_target_khoa_id IS NULL OR NOT v_is_t_ksnk THEN
       v_stype := 'KSNK';
     ELSE
       v_stype := 'TU_GIAM_SAT';
@@ -1057,6 +1043,8 @@ COMMENT ON FUNCTION "public"."fn_set_hoan_thanh_luc"() IS 'Tự động set/rese
 CREATE OR REPLACE FUNCTION "public"."fn_sync_dashboard_pre_aggregates"() RETURNS "void"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
+DECLARE
+  v_session record;
 BEGIN
   TRUNCATE TABLE public.fact_gsc_dashboard_summary;
   TRUNCATE TABLE public.fact_gsc_violations_summary;
@@ -1064,116 +1052,19 @@ BEGIN
   TRUNCATE TABLE public.fact_vst_opportunities_summary;
   TRUNCATE TABLE public.fact_vst_moments_summary;
 
-  -- 1. GSC Sessions Summary
-  INSERT INTO public.fact_gsc_dashboard_summary (
-    session_id, ngay_giam_sat, bang_kiem_id, khoa_id, khu_vuc_id, nghe_nghiep_id, stype, nguoi_giam_sat_id,
-    tong_phien, tong_quan_sat, tong_dat, tong_vi_pham
-  )
-  SELECT
-    s.id, s.ngay_giam_sat, s.bang_kiem_id, s.khoa_id, s.khu_vuc_id, s.nghe_nghiep_id,
-    public.fn_get_session_stype(s.nguoi_giam_sat_id, s.khoa_id) AS stype,
-    s.nguoi_giam_sat_id,
-    1, COUNT(r.id), COUNT(r.id) FILTER (WHERE r.value = 'DAT'), COUNT(r.id) FILTER (WHERE r.value = 'KHONG_DAT')
-  FROM public.fact_giam_sat_chung_sessions s
-  LEFT JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id
-  WHERE s.is_active = true
-  GROUP BY s.id;
+  -- Re-use fn_sync_single_gsc_session to populate GSC summary tables
+  FOR v_session IN 
+    SELECT id FROM public.fact_giam_sat_chung_sessions WHERE is_active = true
+  LOOP
+    PERFORM public.fn_sync_single_gsc_session(v_session.id);
+  END LOOP;
 
-  -- 2. GSC Violations Summary
-  INSERT INTO public.fact_gsc_violations_summary (
-    session_id, criterion_id, ngay_giam_sat, bang_kiem_id, khoa_id, khu_vuc_id, nghe_nghiep_id, stype, nguoi_giam_sat_id,
-    tong_quan_sat, tong_vi_pham
-  )
-  SELECT
-    s.id, r.criterion_id, s.ngay_giam_sat, s.bang_kiem_id, s.khoa_id, s.khu_vuc_id, s.nghe_nghiep_id,
-    public.fn_get_session_stype(s.nguoi_giam_sat_id, s.khoa_id) AS stype, s.nguoi_giam_sat_id,
-    COUNT(r.id), COUNT(r.id) FILTER (WHERE r.value = 'KHONG_DAT')
-  FROM public.fact_giam_sat_chung_sessions s
-  INNER JOIN public.fact_giam_sat_chung_results r ON s.id = r.session_id
-  WHERE s.is_active = true
-  GROUP BY s.id, r.criterion_id;
-
-  -- 3. VST Sessions Summary
-  INSERT INTO public.fact_vst_sessions_summary (
-    session_id, ngay_giam_sat, khoa_id, khu_vuc_id, stype, nguoi_giam_sat_id, tong_phien
-  )
-  SELECT
-    s.id, s.ngay_giam_sat, s.khoa_id, s.khu_vuc_id,
-    public.fn_get_session_stype(s.nguoi_giam_sat_id, s.khoa_id) AS stype,
-    s.nguoi_giam_sat_id, 1
-  FROM public.fact_giam_sat_vst_sessions s
-  WHERE s.is_active = true;
-
-  -- 4. VST Opportunities Summary
-  INSERT INTO public.fact_vst_opportunities_summary (
-    opportunity_id, session_id, ngay_giam_sat, khoa_id, khu_vuc_id, nghe_nghiep_id, stype, nguoi_giam_sat_id,
-    is_tuan_thu, dung_ky_thuat, du_thoi_gian, co_deo_gang,
-    so_co_hoi, da_tuan_thu, bo_sot, loi_ky_thuat, loi_thoi_gian, lam_dung_gang
-  )
-  SELECT
-    d.id, d.session_id, s.ngay_giam_sat,
-    COALESCE(d.khoa_id, s.khoa_id) AS eff_khoa,
-    COALESCE(d.khu_vuc_id, s.khu_vuc_id) AS eff_khu_vuc,
-    d.nghe_nghiep_id,
-    public.fn_get_session_stype(s.nguoi_giam_sat_id, s.khoa_id) AS stype,
-    s.nguoi_giam_sat_id,
-    CASE WHEN COALESCE(btrim(d.hanh_dong), '') IN ('Rửa tay bằng nước', 'Chà tay bằng cồn') THEN true ELSE false END AS is_tuan_thu,
-    d.dung_ky_thuat, d.du_thoi_gian, d.co_deo_gang,
-    1,
-    CASE WHEN COALESCE(btrim(d.hanh_dong), '') IN ('Rửa tay bằng nước', 'Chà tay bằng cồn') THEN 1 ELSE 0 END,
-    CASE WHEN COALESCE(btrim(d.hanh_dong), '') IN ('Rửa tay bằng nước', 'Chà tay bằng cồn') THEN 0 ELSE 1 END,
-    CASE WHEN COALESCE(btrim(d.hanh_dong), '') IN ('Rửa tay bằng nước', 'Chà tay bằng cồn') AND d.dung_ky_thuat = false THEN 1 ELSE 0 END,
-    CASE WHEN COALESCE(btrim(d.hanh_dong), '') IN ('Rửa tay bằng nước', 'Chà tay bằng cồn') AND d.du_thoi_gian = false THEN 1 ELSE 0 END,
-    CASE WHEN COALESCE(btrim(d.hanh_dong), '') NOT IN ('Rửa tay bằng nước', 'Chà tay bằng cồn') AND d.co_deo_gang = true THEN 1 ELSE 0 END
-  FROM public.fact_giam_sat_vst d
-  JOIN public.fact_giam_sat_vst_sessions s ON d.session_id = s.id
-  WHERE s.is_active = true;
-
-  -- 5. VST Moments Summary
-  INSERT INTO public.fact_vst_moments_summary (
-    opportunity_id, moment_label, session_id, ngay_giam_sat, khoa_id, khu_vuc_id, nghe_nghiep_id, stype, nguoi_giam_sat_id,
-    is_tuan_thu, co_deo_gang, so_quan_sat
-  )
-  SELECT
-    d.id,
-    btrim(m.moment_part, E' \t\n\r') AS moment_label,
-    d.session_id, s.ngay_giam_sat,
-    COALESCE(d.khoa_id, s.khoa_id) AS eff_khoa,
-    COALESCE(d.khu_vuc_id, s.khu_vuc_id) AS eff_khu_vuc,
-    d.nghe_nghiep_id,
-    public.fn_get_session_stype(s.nguoi_giam_sat_id, s.khoa_id) AS stype,
-    s.nguoi_giam_sat_id,
-    CASE WHEN COALESCE(btrim(d.hanh_dong), '') IN ('Rửa tay bằng nước', 'Chà tay bằng cồn') THEN true ELSE false END AS is_tuan_thu,
-    d.co_deo_gang, 1
-  FROM public.fact_giam_sat_vst d
-  JOIN public.fact_giam_sat_vst_sessions s ON d.session_id = s.id
-  CROSS JOIN LATERAL regexp_split_to_table(regexp_replace(COALESCE(d.thoi_diem, ''), '，', ',', 'g'), E'\\s*,\\s*') AS m(moment_part)
-  WHERE s.is_active = true AND btrim(m.moment_part, E' \t\n\r') <> ''
-  
-  UNION ALL
-  
-  SELECT
-    d.id,
-    '— Chưa ghi thời điểm trong phiếu'::text AS moment_label,
-    d.session_id, s.ngay_giam_sat,
-    COALESCE(d.khoa_id, s.khoa_id) AS eff_khoa,
-    COALESCE(d.khu_vuc_id, s.khu_vuc_id) AS eff_khu_vuc,
-    d.nghe_nghiep_id,
-    public.fn_get_session_stype(s.nguoi_giam_sat_id, s.khoa_id) AS stype,
-    s.nguoi_giam_sat_id,
-    CASE WHEN COALESCE(btrim(d.hanh_dong), '') IN ('Rửa tay bằng nước', 'Chà tay bằng cồn') THEN true ELSE false END AS is_tuan_thu,
-    d.co_deo_gang, 1
-  FROM public.fact_giam_sat_vst d
-  JOIN public.fact_giam_sat_vst_sessions s ON d.session_id = s.id
-  WHERE s.is_active = true
-    AND NOT EXISTS (
-      SELECT 1
-      FROM regexp_split_to_table(
-        regexp_replace(COALESCE(d.thoi_diem, ''), '，', ',', 'g'),
-        E'\\s*,\\s*'
-      ) AS mp(part)
-      WHERE btrim(mp.part, E' \t\n\r') <> ''
-    );
+  -- Re-use fn_sync_single_vst_session to populate VST summary tables
+  FOR v_session IN 
+    SELECT id FROM public.fact_giam_sat_vst_sessions WHERE is_active = true
+  LOOP
+    PERFORM public.fn_sync_single_vst_session(v_session.id);
+  END LOOP;
 END;
 $$;
 
@@ -1570,7 +1461,7 @@ CREATE OR REPLACE FUNCTION "public"."fn_sys_has_permission"("p_module" "text", "
     AS $$
   SELECT EXISTS (
     SELECT 1
-      FROM public.v_auth_user_permissions
+      FROM public.v_sys_user_permissions
      WHERE auth_user_id = auth.uid()
        AND permissions @> jsonb_build_array(
              jsonb_build_object('module', p_module, 'action', p_action)
@@ -1583,7 +1474,7 @@ $$;
 ALTER FUNCTION "public"."fn_sys_has_permission"("p_module" "text", "p_action" "text") OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."fn_sys_has_permission"("p_module" "text", "p_action" "text") IS 'true nếu user có quyền module/action (qua v_auth_user_permissions) hoặc là Admin.';
+COMMENT ON FUNCTION "public"."fn_sys_has_permission"("p_module" "text", "p_action" "text") IS 'true nếu user có quyền module/action (qua v_sys_user_permissions) hoặc là Admin.';
 
 
 
@@ -1593,7 +1484,7 @@ CREATE OR REPLACE FUNCTION "public"."fn_sys_is_admin"() RETURNS boolean
     AS $$
   SELECT EXISTS (
     SELECT 1
-      FROM public.v_auth_user_permissions
+      FROM public.v_sys_user_permissions
      WHERE auth_user_id = auth.uid()
        AND roles ? 'ADMIN'
   );
@@ -1607,39 +1498,7 @@ COMMENT ON FUNCTION "public"."fn_sys_is_admin"() IS 'true nếu auth.uid() có r
 
 
 
-CREATE OR REPLACE FUNCTION "public"."fn_trigger_audit_vst_gsc"() RETURNS "trigger"
-    LANGUAGE "plpgsql" SECURITY DEFINER
-    AS $$
-DECLARE
-    v_actor_id text;
-BEGIN
-    -- Lấy ID người dùng thực hiện thao tác từ session Supabase context
-    BEGIN
-        v_actor_id := auth.uid();
-    EXCEPTION WHEN OTHERS THEN
-        v_actor_id := NULL;
-    END;
-    
-    INSERT INTO public.fact_bv103_audit_log(table_name, record_id, action, old_data, new_data, changed_by)
-    VALUES (
-        TG_TABLE_NAME,
-        COALESCE(NEW.id, OLD.id)::text,
-        TG_OP,
-        CASE WHEN TG_OP IN ('UPDATE', 'DELETE') THEN to_jsonb(OLD) ELSE NULL END,
-        CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN to_jsonb(NEW) ELSE NULL END,
-        CASE WHEN v_actor_id IS NOT NULL THEN v_actor_id::uuid ELSE NULL END
-    );
-    
-    IF TG_OP = 'DELETE' THEN
-        RETURN OLD;
-    ELSE
-        RETURN NEW;
-    END IF;
-END;
-$$;
-
-
-ALTER FUNCTION "public"."fn_trigger_audit_vst_gsc"() OWNER TO "postgres";
+-- fn_trigger_audit_vst_gsc deprecated and unified to fn_sys_audit_row
 
 
 CREATE OR REPLACE FUNCTION "public"."fn_trigger_sync_gsc_result_row"() RETURNS "trigger"
@@ -8965,19 +8824,11 @@ CREATE OR REPLACE TRIGGER "trg_assert_vst_sessions_not_locked" BEFORE DELETE OR 
 
 
 
-CREATE OR REPLACE TRIGGER "trg_audit_gsc_sessions" AFTER INSERT OR DELETE OR UPDATE ON "public"."gstt_fact_chung_sessions" FOR EACH ROW EXECUTE FUNCTION "public"."fn_bv103_audit_row"();
+CREATE OR REPLACE TRIGGER "trg_audit_gsc_sessions" AFTER INSERT OR DELETE OR UPDATE ON "public"."gstt_fact_chung_sessions" FOR EACH ROW EXECUTE FUNCTION "public"."fn_sys_audit_row"();
 
 
 
-CREATE OR REPLACE TRIGGER "trg_audit_gsc_sessions_vst_gsc" AFTER INSERT OR DELETE OR UPDATE ON "public"."gstt_fact_chung_sessions" FOR EACH ROW EXECUTE FUNCTION "public"."fn_trigger_audit_vst_gsc"();
-
-
-
-CREATE OR REPLACE TRIGGER "trg_audit_vst_sessions" AFTER INSERT OR DELETE OR UPDATE ON "public"."gstt_fact_vst_sessions" FOR EACH ROW EXECUTE FUNCTION "public"."fn_bv103_audit_row"();
-
-
-
-CREATE OR REPLACE TRIGGER "trg_audit_vst_sessions_vst_gsc" AFTER INSERT OR DELETE OR UPDATE ON "public"."gstt_fact_vst_sessions" FOR EACH ROW EXECUTE FUNCTION "public"."fn_trigger_audit_vst_gsc"();
+CREATE OR REPLACE TRIGGER "trg_audit_vst_sessions" AFTER INSERT OR DELETE OR UPDATE ON "public"."gstt_fact_vst_sessions" FOR EACH ROW EXECUTE FUNCTION "public"."fn_sys_audit_row"();
 
 
 
@@ -10346,9 +10197,7 @@ GRANT ALL ON FUNCTION "public"."fn_assert_vst_gsc_not_locked"() TO "service_role
 
 
 
-GRANT ALL ON FUNCTION "public"."fn_bv103_audit_row"() TO "anon";
-GRANT ALL ON FUNCTION "public"."fn_bv103_audit_row"() TO "authenticated";
-GRANT ALL ON FUNCTION "public"."fn_bv103_audit_row"() TO "service_role";
+-- fn_bv103_audit_row grants removed
 
 
 
@@ -10502,9 +10351,7 @@ GRANT ALL ON FUNCTION "public"."fn_sys_is_admin"() TO "service_role";
 
 
 
-GRANT ALL ON FUNCTION "public"."fn_trigger_audit_vst_gsc"() TO "anon";
-GRANT ALL ON FUNCTION "public"."fn_trigger_audit_vst_gsc"() TO "authenticated";
-GRANT ALL ON FUNCTION "public"."fn_trigger_audit_vst_gsc"() TO "service_role";
+-- fn_trigger_audit_vst_gsc grants removed
 
 
 

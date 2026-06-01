@@ -2,10 +2,11 @@
 "use client";
 
 import React, { useLayoutEffect, useRef } from "react";
-import { MOMENTS, ACTIONS, ActionType, MomentType } from "../data";
+import { MOMENTS, ACTIONS, ActionType, MomentType } from "../lib/vst-constants";
 import VSTAssessmentSection from "./VSTAssessmentSection";
 import type { ExtendedOpportunity, VSTOppAssessmentField } from "../hooks/useVSTFormHandlers";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
+
 
 interface VSTOpportunityFormProps {
   opp: ExtendedOpportunity;
@@ -13,6 +14,7 @@ interface VSTOpportunityFormProps {
   oIdx: number;
   /** `cach_thuc_giam_sat` — ẩn nhập giờ từng cơ hội chỉ khi giám sát lại qua camera (một khung giờ đầu phiên). */
   cachThucGiamSat: string;
+
   toggleMoment: (pIdx: number, oIdx: number, moment: MomentType) => void;
   updateAction: (pIdx: number, oIdx: number, action: ActionType) => void;
   updateAssessment: (
@@ -33,11 +35,20 @@ const MOMENT_TOOLTIPS: Record<string, string> = {
   "Sau khi tiếp xúc xung quanh người bệnh": "Rửa tay sau khi chạm vào bất kỳ vật dụng nào xung quanh bệnh nhân.",
 };
 
+const MOMENT_ABBREVIATIONS: Record<string, string> = {
+  "Trước khi tiếp xúc người bệnh": "T-TXNB",
+  "Trước khi làm thủ thuật vô khuẩn": "T-TTVK",
+  "Sau khi có nguy cơ tiếp xúc với dịch": "S-TXDCT",
+  "Sau khi tiếp xúc người bệnh": "S-TXNB",
+  "Sau khi tiếp xúc xung quanh người bệnh": "S-TXXQNB",
+};
+
 export default function VSTOpportunityForm({
   opp,
   pIdx,
   oIdx,
   cachThucGiamSat,
+
   toggleMoment,
   updateAction,
   updateAssessment,
@@ -77,13 +88,13 @@ export default function VSTOpportunityForm({
         onClick={() => openOpportunity(pIdx, oIdx)}
       >
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1.5">
             {opp.thoi_diems.map((m: MomentType, i: number) => (
               <span
                 key={`${m}-${i}`}
-                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#026f17] text-[7px] font-bold text-white"
+                className="flex h-5 w-auto shrink-0 items-center justify-center rounded-full bg-[#026f17] px-1.5 text-[8px] font-bold text-white"
               >
-                {MOMENTS.indexOf(m) + 1}
+                {MOMENT_ABBREVIATIONS[m] || (MOMENTS.indexOf(m) + 1)}
               </span>
             ))}
           </div>
@@ -110,21 +121,20 @@ export default function VSTOpportunityForm({
       <div className="min-h-0 space-y-3 sm:space-y-4">
         <div className="space-y-2 sm:space-y-2">
           <p className="text-xs font-bold uppercase tracking-wider text-slate-700 sm:text-[10px] sm:font-semibold sm:text-slate-600">1. Thời điểm</p>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-1 sm:gap-1">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-5 sm:gap-1.5">
             {MOMENTS.map((m, i) => (
               <button
                 key={m}
                 type="button"
                 title={MOMENT_TOOLTIPS[m]}
                 onClick={() => toggleMoment(pIdx, oIdx, m)}
-                className={`w-full rounded-xl border px-3 py-3 text-left text-xs font-semibold leading-snug transition-colors sm:rounded-lg sm:px-3 sm:py-2 sm:text-[11px] ${
+                className={`w-full rounded-xl border px-2 py-3.5 text-center text-xs font-bold uppercase tracking-wider transition-colors sm:rounded-lg sm:px-2 sm:py-2.5 sm:text-[10px] ${
                   opp.thoi_diems.includes(m)
                     ? "border-[#026f17] bg-[#026f17] text-white shadow-sm"
                     : "border-slate-200 bg-slate-50/80 text-slate-700 hover:border-slate-300 hover:bg-white"
                 }`}
               >
-                <span className="mr-2 font-bold text-inherit opacity-75 sm:mr-1.5 sm:font-semibold">{i + 1}.</span>
-                {m}
+                {MOMENT_ABBREVIATIONS[m] || m}
               </button>
             ))}
           </div>
@@ -156,6 +166,7 @@ export default function VSTOpportunityForm({
           <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">3. Đánh giá</p>
           <VSTAssessmentSection opp={opp} pIdx={pIdx} oIdx={oIdx} updateAssessment={updateAssessment} />
         </div>
+
       </div>
 
       <div className="max-sm:sticky max-sm:bottom-0 max-sm:z-[1] max-sm:-mx-3 max-sm:mt-2 max-sm:border-t max-sm:border-slate-100 max-sm:bg-white max-sm:px-3 max-sm:pb-0.5 max-sm:pt-2 sm:mt-4">
