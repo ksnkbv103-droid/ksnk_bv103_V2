@@ -3,7 +3,7 @@
 import { verifyPermission } from "@/lib/server-permission";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
-import { replenishSetInstrumentCore } from "@/modules/quan-tri-he-thong/danh-muc/actions/bo-dung-cu-chi-tiet-read.actions";
+import { replenishSetInstrumentCore } from "@/lib/master-data/cssd-set-replenish-core";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
 import {
   evaluateHeatCompatibility,

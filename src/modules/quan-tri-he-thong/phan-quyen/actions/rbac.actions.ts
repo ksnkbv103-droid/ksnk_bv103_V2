@@ -13,6 +13,7 @@
 
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
+import { quanTriHubHref } from "@/lib/master-data/quan-tri-paths";
 import { ensureRbacAdmin } from "./rbac-auth.helpers";
 import { upsertRegistryPermissionsAndAdminMappings } from "./rbac-registry-sync";
 import type { RBACDataResult } from "../rbac.types";
@@ -34,7 +35,8 @@ export async function syncPermissionRegistry() {
     await upsertRegistryPermissionsAndAdminMappings(supabase);
 
     console.log("[RBAC] Sync completed successfully!");
-    revalidatePath("/quan-tri-he-thong/phan-quyen");
+    revalidatePath(quanTriHubHref("PHAN_QUYEN"));
+    revalidatePath(quanTriHubHref());
     return { success: true };
   } catch (error: unknown) {
     console.error("[SYNC ERROR]", error);
@@ -130,7 +132,8 @@ export async function saveFullRBACMatrix(matrix: Record<string, string[]>) {
       if (delErr) throw delErr;
     }
 
-    revalidatePath("/quan-tri-he-thong");
+    revalidatePath(quanTriHubHref("PHAN_QUYEN"));
+    revalidatePath(quanTriHubHref());
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: errRbac(error) };

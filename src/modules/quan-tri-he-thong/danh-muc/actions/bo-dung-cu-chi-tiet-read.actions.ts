@@ -3,6 +3,8 @@
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { revalidatePath } from "next/cache";
+import { replenishSetInstrumentCore } from "@/lib/master-data/cssd-set-replenish-core";
+import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
 import type { BoDungCuChiTietPreviewRow, BoRefByLoai } from "./bo-dung-cu-chi-tiet.types";
 
 /** Danh sách dụng cụ chi tiết thuộc một bộ (`dm_bo_dung_cu_chi_tiet`). Quyền `BO_DC.view`. */
@@ -118,59 +120,9 @@ export async function reportIndividualInstrumentIssueAction(params: {
 
   if (error) return { success: false as const, error: error.message };
 
-  revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu/bo");
-  revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu/chi-tiet");
-  revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu");
-  return { success: true as const };
-}
-
-export async function replenishSetInstrumentCore(
-  supabase: Awaited<ReturnType<typeof createServerSupabaseUserClient>>,
-  params: {
-    loaiDungCuId: string;
-    boDungCuId: string;
-    quyTrinhId?: string | null;
-    quantity: number;
-    note?: string;
-  },
-) {
-  const loaiId = String(params.loaiDungCuId || "").trim();
-  const boId = String(params.boDungCuId || "").trim();
-  if (!loaiId || !boId) return { success: false as const, error: "Thiếu id loại dụng cụ hoặc bộ dụng cụ." };
-  const quantity = Number(params.quantity || 1);
-  if (quantity <= 0) return { success: false as const, error: "Số lượng bổ sung phải lớn hơn 0." };
-
-  const { data: loai, error: getErr } = await supabase
-    .from("dm_loai_dung_cu")
-    .select("so_luong_kho_du_phong")
-    .eq("id", loaiId)
-    .maybeSingle();
-  if (getErr) return { success: false as const, error: getErr.message };
-  const reserve = Number((loai as { so_luong_kho_du_phong?: number | null } | null)?.so_luong_kho_du_phong || 0);
-  if (reserve < quantity) {
-    return { success: false as const, error: `Số lượng dự phòng không đủ (hiện có ${reserve} dụng cụ).` };
-  }
-
-  const { error: decErr } = await supabase
-    .from("dm_loai_dung_cu")
-    .update({
-      so_luong_kho_du_phong: reserve - quantity,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", loaiId);
-  if (decErr) return { success: false as const, error: decErr.message };
-
-  const { error: insErr } = await supabase.from("fact_kho_dung_cu_giao_dich").insert({
-    loai_dung_cu_id: loaiId,
-    bo_dung_cu_id: boId,
-    quy_trinh_id: params.quyTrinhId || null,
-    loai_giao_dich: "BO_SUNG",
-    so_luong_thay_doi: quantity,
-    ghi_chu: String(params.note || "").trim() || "Bổ sung dụng cụ vào bộ từ kho dự phòng",
-    updated_at: new Date().toISOString(),
-  });
-  if (insErr) return { success: false as const, error: insErr.message };
-
+  revalidatePath(quanTriDungCuHref("bo"));
+  revalidatePath(quanTriDungCuHref("chi-tiet"));
+  revalidatePath(quanTriDungCuHref());
   return { success: true as const };
 }
 
@@ -186,8 +138,8 @@ export async function replenishSetInstrumentAction(params: {
   const result = await replenishSetInstrumentCore(supabase, params);
   if (!result.success) return result;
 
-  revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu/bo");
-  revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu/chi-tiet");
-  revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu");
+  revalidatePath(quanTriDungCuHref("bo"));
+  revalidatePath(quanTriDungCuHref("chi-tiet"));
+  revalidatePath(quanTriDungCuHref());
   return { success: true as const };
 }

@@ -63,7 +63,11 @@ export default function QuanTriDanhMucPage() {
   }, [canViewDanhMuc, canConfigureRbac, activeTab]);
 
   useEffect(() => {
-    if (searchParams.get("tab") === "dm_registry") setActiveTab("DM_REGISTRY");
+    const tab = searchParams.get("tab");
+    if (tab === "dm_registry") setActiveTab("DM_REGISTRY");
+    else if (tab === "phan_quyen") setActiveTab("PHAN_QUYEN");
+    else if (tab === "nhat_ky") setActiveTab("NHAT_KY");
+    else if (tab === "mdm_governance") setActiveTab("MDM_GOVERNANCE");
   }, [searchParams]);
 
   useEffect(() => {

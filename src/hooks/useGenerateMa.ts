@@ -2,7 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { getCategoriesByType } from "@/modules/quan-tri-he-thong/danh-muc/actions/danh-muc.actions";
+import { getCategoriesByType } from "@/lib/master-data/categories-by-type";
 
 type MaRow = Record<string, unknown>;
 

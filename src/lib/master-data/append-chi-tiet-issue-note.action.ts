@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
 
 /** Ghi nhận sự vụ hỏng/mất ở mức chi tiết bằng audit note — dùng chung MDM + CSSD vận hành. */
 export async function appendChiTietIssueNoteAction(params: {
@@ -42,9 +43,9 @@ export async function appendChiTietIssueNoteAction(params: {
     .eq("id", id);
   if (ue) return { success: false as const, error: ue.message };
 
-  revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu/bo");
-  revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu/chi-tiet");
-  revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu");
+  revalidatePath(quanTriDungCuHref("bo"));
+  revalidatePath(quanTriDungCuHref("chi-tiet"));
+  revalidatePath(quanTriDungCuHref());
   revalidatePath("/cssd-dung-cu");
   return { success: true as const };
 }

@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { getVSTSessionDetail } from "../actions/vst.actions";
-import { getCategoriesByType } from "../../quan-tri-he-thong/danh-muc/actions/danh-muc.actions";
+import { getCategoriesByType } from "@/lib/master-data/categories-by-type";
 import { getCategoriesByTypeCached } from "@/lib/client-cache/danh-muc-cache";
 import type { VSTFormPerson } from "../lib/vst-form-model";
 

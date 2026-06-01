@@ -2,7 +2,7 @@
  * Client-side cache cho danh mục tĩnh (KHOA_PHONG / NGHE_NGHIEP / KHU_VUC_GIAM_SAT / LOAI_NKBV / CHUC_VU / CHUC_DANH).
  *
  * Mục tiêu: cùng 1 tab, mở nhiều form khác nhau không phải gọi lại server action
- * `getCategoriesByType` (mỗi lần ~300–600 ms RSC round-trip), giảm trầm trọng số
+ * `@/lib/master-data/categories-by-type` (mỗi lần ~300–600 ms RSC round-trip), giảm trầm trọng số
  * request `?_rsc=` thấy trong Network tab khi điều hướng giữa GSC / VST / dashboard.
  *
  * Đặc tính an toàn:

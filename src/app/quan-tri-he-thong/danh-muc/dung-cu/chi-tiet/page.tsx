@@ -1,4 +1,8 @@
-// src/app/quan-tri-he-thong/danh-muc/dung-cu/chi-tiet/page.tsx
-import DungCuChiTietPage from "@/modules/quan-tri-he-thong/danh-muc/dung-cu/DungCuChiTietPage";
-export const metadata = { title: "Danh mục Món lẻ chi tiết | BV103" };
-export default function Page() { return <DungCuChiTietPage />; }
+import { redirect } from "next/navigation";
+import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
+
+export const metadata = { title: "Dụng cụ thành phần | BV103" };
+
+export default function DungCuChiTietRedirectPage() {
+  redirect(quanTriDungCuHref("chi-tiet"));
+}

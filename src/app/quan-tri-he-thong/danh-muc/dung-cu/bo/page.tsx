@@ -1,4 +1,8 @@
-// src/app/quan-tri-he-thong/danh-muc/dung-cu/bo/page.tsx
-import BoDungCuPage from "@/modules/quan-tri-he-thong/danh-muc/dung-cu/BoDungCuPage";
+import { redirect } from "next/navigation";
+import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
+
 export const metadata = { title: "Danh mục Bộ dụng cụ | BV103" };
-export default function Page() { return <BoDungCuPage />; }
+
+export default function BoDungCuRedirectPage() {
+  redirect(quanTriDungCuHref("bo"));
+}

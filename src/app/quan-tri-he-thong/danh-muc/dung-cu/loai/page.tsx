@@ -1,4 +1,9 @@
-// src/app/quan-tri-he-thong/danh-muc/dung-cu/loai/page.tsx
-import LoaiDungCuPage from "@/modules/quan-tri-he-thong/danh-muc/dung-cu/LoaiDungCuPage";
+import { redirect } from "next/navigation";
+import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
+
 export const metadata = { title: "Danh mục Loại dụng cụ | BV103" };
-export default function Page() { return <LoaiDungCuPage />; }
+
+/** Deep link cũ → tab Loại trên trang dụng cụ thống nhất. */
+export default function LoaiDungCuRedirectPage() {
+  redirect(quanTriDungCuHref("loai"));
+}

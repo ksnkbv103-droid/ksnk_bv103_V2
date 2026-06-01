@@ -1,5 +1,9 @@
 "use server";
 
+/**
+ * @deprecated Bulk Excel (modal MasterDataImportExportModal). Luồng mới: `smart-import.actions.ts` trên từng trang DM.
+ * Giữ cho pilot khoa / HC / TB / nhân sự đến khi gộp UI import.
+ */
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "./verify-permission";
 import { revalidateMasterDataRowCacheTag } from "@/lib/cache/revalidate-master-data-tags";

@@ -24,7 +24,20 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidateMasterDataRowCacheTag } from "@/lib/cache/revalidate-master-data-tags";
 
+/** Tên bảng vật lý (pilot) — ghi/đọc trực tiếp khi caller dùng prefix module. */
+const PHYSICAL_TABLE_NAMES = [
+  "mdm_dm_khoa_phong",
+  "mdm_nhan_su",
+  "cssd_dm_thiet_bi",
+  "cssd_dm_hoa_chat",
+  "cssd_dm_loai_dung_cu",
+  "cssd_dm_bo_dung_cu",
+  "cssd_dm_bo_dung_cu_chi_tiet",
+  "gstt_dm_bang_kiem",
+] as const;
+
 const MASTER_TABLE_ALLOWLIST = new Set([
+  ...PHYSICAL_TABLE_NAMES,
   "dm_bo_dung_cu",
   "dm_bo_dung_cu_chi_tiet",
   "dm_thiet_bi",
@@ -77,6 +90,7 @@ const CONSOLIDATED_MAPS: Record<
   dm_trang_thai_nkbv_ca: { categoryType: "TRANG_THAI_NKBV_CA", maColumn: "ma_trang_thai", tenColumn: "ten_trang_thai", metadataColumns: ["thu_tu"] },
 };
 
+// @internal — chỉ import từ quan-tri-he-thong/.../actions (gate: npm run imports:master-crud). Caller phải verifyPermission.
 function assertAllowedTable(tableName: string) {
   if (!MASTER_TABLE_ALLOWLIST.has(tableName)) {
     throw new Error(`Bảng không nằm trong allowlist: ${tableName}`);
