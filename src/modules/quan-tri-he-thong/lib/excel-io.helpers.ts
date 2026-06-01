@@ -1,7 +1,6 @@
 "use client";
 
 import ExcelJS from "exceljs";
-// @ts-expect-error — xlsx không khai báo types đầy đủ trong dự án
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
