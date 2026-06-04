@@ -45,7 +45,7 @@ export async function getGscStrategicAnalytics(filters: GscStrategicFilters) {
   const p_hinh_thuc_ids = isNetwork ? null : f.hinh_thuc_ids && f.hinh_thuc_ids.length > 0 ? f.hinh_thuc_ids : null;
   const p_bang_kiem_mas = f.bang_kiem_mas && f.bang_kiem_mas.length > 0 ? f.bang_kiem_mas : null;
 
-  const { data, error } = await supabase.rpc("rpc_dashboard_gsc_strategic_analytics", {
+  const rpcArgs = {
     p_tu_ngay: f.tu_ngay,
     p_den_ngay: f.den_ngay,
     p_khoi_ids,
@@ -54,8 +54,20 @@ export async function getGscStrategicAnalytics(filters: GscStrategicFilters) {
     p_khu_vuc_ids,
     p_hinh_thuc_ids,
     p_bang_kiem_mas,
-  });
+  };
+
+  const [{ data, error }, { data: matrices, error: matrixErr }] = await Promise.all([
+    supabase.rpc("rpc_dashboard_gsc_strategic_analytics", rpcArgs),
+    supabase.rpc("rpc_gsc_compare_matrices", rpcArgs),
+  ]);
 
   if (error) return { success: false as const, error: error.message };
-  return { success: true as const, data: data as GscStrategicPayload };
+  if (matrixErr) return { success: false as const, error: matrixErr.message };
+
+  const merged = {
+    ...(data as GscStrategicPayload),
+    ...(matrices as Record<string, unknown>),
+  } as GscStrategicPayload;
+
+  return { success: true as const, data: merged };
 }

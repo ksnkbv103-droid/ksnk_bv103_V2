@@ -57,20 +57,20 @@ export async function saveLoaiDungCuAction(input: LoaiDungCuPayload) {
   if (!payload.ma_loai_dung_cu || !payload.ten_loai_dung_cu) {
     return { success: false, error: "Thiếu mã hoặc tên loại dụng cụ." };
   }
-  return upsertMasterRow("dm_loai_dung_cu", id, payload);
+  return upsertMasterRow("cssd_dm_loai_dung_cu", id, payload);
 }
 
 export async function toggleLoaiDungCuStatusAction(id: string, currentStatus: boolean) {
   await verifyPermission("LOAI_DC", "edit");
-  return toggleMasterStatus("dm_loai_dung_cu", id, currentStatus);
+  return toggleMasterStatus("cssd_dm_loai_dung_cu", id, currentStatus);
 }
 
 export async function softDeleteLoaiDungCuAction(id: string) {
   await verifyPermission("LOAI_DC", "delete");
-  return softDeleteMasterRow("dm_loai_dung_cu", id);
+  return softDeleteMasterRow("cssd_dm_loai_dung_cu", id);
 }
 
 export async function softDeleteManyLoaiDungCuAction(ids: string[]) {
   await verifyPermission("LOAI_DC", "delete");
-  return softDeleteManyMasterRows("dm_loai_dung_cu", ids);
+  return softDeleteManyMasterRows("cssd_dm_loai_dung_cu", ids);
 }

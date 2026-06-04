@@ -39,10 +39,10 @@ async function userHasSupervisionEligibleRole(
 ): Promise<boolean> {
   const uid = String(authUserId || "").trim();
   if (!uid) return false;
-  const { data, error } = await supabase.from("rel_user_roles").select("dm_roles(name)").eq("user_id", uid);
+  const { data, error } = await supabase.from("sys_user_roles").select("sys_roles(name)").eq("user_id", uid);
   if (error || !data?.length) return false;
-  return data.some((row: { dm_roles?: { name?: string } | { name?: string }[] | null }) => {
-    const rel = row.dm_roles;
+  return data.some((row: { sys_roles?: { name?: string } | { name?: string }[] | null }) => {
+    const rel = row.sys_roles;
     const name = Array.isArray(rel) ? rel[0]?.name : rel?.name;
     return Boolean(name && SUPERVISION_ELIGIBLE_ROLE_NAMES.has(String(name).trim().toUpperCase()));
   });
@@ -68,10 +68,10 @@ export async function resolveSupervisorPolicy(params: ResolveSupervisorPolicyPar
 
   const [khoaRes, roleRes] = await Promise.all([
     profile.khoa_id
-      ? supabase.from("dm_khoa_phong").select("ten_khoa").eq("id", profile.khoa_id).maybeSingle()
+      ? supabase.from("mdm_dm_khoa_phong").select("ten_khoa").eq("id", profile.khoa_id).maybeSingle()
       : Promise.resolve({ data: null, error: null } as { data: null; error: null }),
     profile.vai_tro_he_thong_id
-      ? supabase.from("dm_roles").select("name").eq("id", profile.vai_tro_he_thong_id).maybeSingle()
+      ? supabase.from("sys_roles").select("name").eq("id", profile.vai_tro_he_thong_id).maybeSingle()
       : Promise.resolve({ data: null, error: null } as { data: null; error: null }),
   ]);
   if (khoaRes.error) throw new Error(`Khoa của người giám sát: ${khoaRes.error.message}`);

@@ -70,7 +70,7 @@ export default function KhoaPhongFormModal({
           <BoDungCuTextField label="Tên khoa phòng" required value={form.ten_danh_muc} onChange={(v) => setForm({ ...form, ten_danh_muc: v })} />
         </div>
         <div className="space-y-1">
-          <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Khối khoa</label>
+          <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Khối khoa</label>
           <select
             value={form.khoi_id}
             onChange={(e) => setForm({ ...form, khoi_id: e.target.value })}
@@ -89,7 +89,7 @@ export default function KhoaPhongFormModal({
           <BoDungCuTextField label="Số giường cấp cứu" type="number" value={String(form.so_giuong_cap_cuu)} onChange={(v) => setForm({ ...form, so_giuong_cap_cuu: Number(v || 0) })} />
         </div>
         <div className="space-y-1">
-          <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Mô tả chức năng khoa</label>
+          <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Mô tả chức năng khoa</label>
           <textarea
             value={form.mo_ta_chuc_nang}
             onChange={(e) => setForm({ ...form, mo_ta_chuc_nang: e.target.value })}

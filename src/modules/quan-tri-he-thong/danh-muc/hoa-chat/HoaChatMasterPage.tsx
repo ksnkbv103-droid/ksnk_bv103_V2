@@ -79,7 +79,7 @@ function HoaChatMasterPageContent() {
           <h1 className="text-2xl font-black text-[#026f17] uppercase tracking-tighter flex items-center gap-3">
             <Beaker /> Hóa chất &amp; Vật tư
           </h1>
-          <p className="text-slate-400 font-bold text-[9px] uppercase tracking-widest mt-1 leading-none">
+          <p className="text-slate-400 font-bold text-[11px] uppercase tracking-widest mt-1 leading-none">
             Danh mục hóa chất, vật tư, test kit sử dụng trong khoa KSNK
           </p>
         </div>

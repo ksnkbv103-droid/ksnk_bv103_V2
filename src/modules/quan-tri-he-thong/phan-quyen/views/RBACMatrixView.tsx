@@ -1,4 +1,3 @@
-// src/modules/quan-tri-he-thong/phan-quyen/views/RBACMatrixView.tsx
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
@@ -6,11 +5,13 @@ import { getRBACData, saveFullRBACMatrix, syncPermissionRegistry } from "../acti
 import { toast } from "sonner";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { Shield, Lock, RefreshCw } from "lucide-react";
+import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
+import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import type { RBACDataSuccess, RBACPermissionRow, RBACRoleRow } from "../rbac.types";
 import { selectRolesForRbacMatrixColumns } from "../rbac.types";
 import { RBAC_ACTION_FALLBACK_META, RBAC_ACTION_META } from "./rbac-matrix-action-meta";
 import { RBACMatrixDataGrid } from "./rbac-matrix-data-grid";
-
 
 export default function RBACMatrixView() {
   const { isAdmin, loading: permLoading, allowed } = useModulePermission("PHAN_QUYEN");
@@ -24,7 +25,6 @@ export default function RBACMatrixView() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      // Chỉ đọc dữ liệu — KHÔNG sync registry tự động
       const res = await getRBACData();
       if (res.success) {
         setData(res);
@@ -35,7 +35,6 @@ export default function RBACMatrixView() {
             .map((m) => m.permission_id);
           newMatrix[r.id] = new Set(pIds);
         });
-        /** ADMIN bypass RBAC ở runtime (usePermission) nhưng DB có thể chưa có mapping → ma trận trông trống. Luôn hiển thị full để đồng bộ khi Lưu. */
         const allPermIds = (res.permissions || []).map((p: RBACPermissionRow) => p.id);
         res.roles?.forEach((r: RBACRoleRow) => {
           if (String(r.name || "").trim().toUpperCase() === "ADMIN") {
@@ -54,7 +53,6 @@ export default function RBACMatrixView() {
     }
   }, []);
 
-  /** Đồng bộ Registry thủ công — chỉ Admin bấm nút mới chạy. */
   const handleSync = useCallback(async () => {
     setIsSyncing(true);
     try {
@@ -86,34 +84,40 @@ export default function RBACMatrixView() {
     });
   };
 
-  const bulkSetActionForRole = useCallback((roleId: string, actionKey: string, enable: boolean) => {
-    const perms = data?.permissions || [];
-    const ids = perms.filter((p) => p.action === actionKey).map((p) => p.id);
-    setMatrix((prev) => {
-      const next = { ...prev };
-      const s = new Set(next[roleId] || []);
-      ids.forEach((id) => {
-        if (enable) s.add(id);
-        else s.delete(id);
+  const bulkSetActionForRole = useCallback(
+    (roleId: string, actionKey: string, enable: boolean) => {
+      const perms = data?.permissions || [];
+      const ids = perms.filter((p) => p.action === actionKey).map((p) => p.id);
+      setMatrix((prev) => {
+        const next = { ...prev };
+        const s = new Set(next[roleId] || []);
+        ids.forEach((id) => {
+          if (enable) s.add(id);
+          else s.delete(id);
+        });
+        next[roleId] = s;
+        return next;
       });
-      next[roleId] = s;
-      return next;
-    });
-  }, [data?.permissions]);
+    },
+    [data?.permissions],
+  );
 
-  const bulkSetAllForRole = useCallback((roleId: string, enable: boolean) => {
-    const ids = (data?.permissions || []).map((p) => p.id);
-    setMatrix((prev) => {
-      const next = { ...prev };
-      const s = new Set(next[roleId] || []);
-      ids.forEach((id) => {
-        if (enable) s.add(id);
-        else s.delete(id);
+  const bulkSetAllForRole = useCallback(
+    (roleId: string, enable: boolean) => {
+      const ids = (data?.permissions || []).map((p) => p.id);
+      setMatrix((prev) => {
+        const next = { ...prev };
+        const s = new Set(next[roleId] || []);
+        ids.forEach((id) => {
+          if (enable) s.add(id);
+          else s.delete(id);
+        });
+        next[roleId] = s;
+        return next;
       });
-      next[roleId] = s;
-      return next;
-    });
-  }, [data?.permissions]);
+    },
+    [data?.permissions],
+  );
 
   const handleSaveAll = async () => {
     setIsSaving(true);
@@ -129,19 +133,19 @@ export default function RBACMatrixView() {
 
   if (permLoading || loading)
     return (
-      <div className="flex flex-col items-center justify-center min-h-[500px] space-y-4">
-        <div className="w-12 h-12 border-4 border-[#026f17] border-t-transparent rounded-full animate-spin" />
-        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Đang tải ma trận bảo mật...</p>
+      <div className="flex min-h-[400px] flex-col items-center justify-center space-y-4">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent" />
+        <p className={bv103DesignTokens.labelBlockMuted}>Đang tải ma trận bảo mật…</p>
       </div>
     );
 
   if (!canConfigureRbac)
     return (
-      <div className="max-w-xl mx-auto mt-20 premium-card glass-panel p-12 text-center space-y-6">
-        <Lock className="w-16 h-16 text-red-500 mx-auto opacity-50" />
-        <h2 className="text-2xl font-black text-slate-800 uppercase">Truy cập bị hạn chế</h2>
-        <p className="text-slate-500 font-medium">
-          Ma trận phân quyền chỉ dành cho vai trò quản trị (ADMIN / email tin cậy) hoặc người được gán quyền <strong className="font-semibold text-slate-700">PHAN_QUYEN — Sửa</strong> trong RBAC.
+      <div className={`mx-auto mt-16 max-w-xl p-10 text-center ${bv103LayoutChrome.panelShellPadded}`}>
+        <Lock className="mx-auto mb-4 h-14 w-14 text-red-500 opacity-50" />
+        <h2 className={bv103DesignTokens.pageTitle}>Truy cập bị hạn chế</h2>
+        <p className="mt-3 text-sm leading-relaxed text-slate-600">
+          Ma trận phân quyền chỉ dành cho quản trị hoặc người có quyền <strong>PHAN_QUYEN — Sửa</strong>.
         </p>
       </div>
     );
@@ -166,58 +170,39 @@ export default function RBACMatrixView() {
 
   if (roles.length === 0 || moduleNames.length === 0)
     return (
-      <div className="max-w-xl mx-auto mt-20 premium-card glass-panel p-12 text-center space-y-6">
-        <Shield className="w-16 h-16 text-[#026f17] mx-auto opacity-20" />
-        <h2 className="text-2xl font-black text-slate-800 uppercase">Dữ liệu trống</h2>
-        <p className="text-slate-500 font-medium leading-relaxed">
-          Không tìm thấy danh sách Vai trò hoặc Quyền trong hệ thống. Vui lòng kiểm tra lại Database hoặc khởi tạo dữ liệu mẫu.
-        </p>
-        <button
-          type="button"
-          onClick={() => void loadData()}
-          className="px-8 py-3 bg-[#026f17] text-white rounded-full font-black text-xs uppercase tracking-widest hover:scale-105 transition-all"
-        >
-          Thử tải lại dữ liệu
+      <div className={`mx-auto mt-16 max-w-xl p-10 text-center ${bv103LayoutChrome.panelShellPadded}`}>
+        <Shield className="mx-auto mb-4 h-14 w-14 text-[var(--primary)] opacity-30" />
+        <h2 className={bv103DesignTokens.pageTitle}>Dữ liệu trống</h2>
+        <p className="mt-3 text-sm text-slate-600">Không tìm thấy vai trò hoặc quyền. Kiểm tra seed RBAC.</p>
+        <button type="button" onClick={() => void loadData()} className={`mt-6 ${bv103DesignTokens.btnPrimary}`}>
+          Thử tải lại
         </button>
       </div>
     );
 
   return (
-
-    <div className="space-y-8 pb-32 animate-in fade-in duration-500">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-100 pb-8">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 mb-2">
-            <Shield className="w-4 h-4 text-[#026f17]" />
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cấu hình Hệ thống</span>
-          </div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight uppercase">
-            Ma trận <span className="text-[#026f17]">Phân quyền</span>
-          </h1>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => void handleSync()}
-            disabled={isSyncing}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 bg-white text-[10px] font-bold text-slate-600 uppercase tracking-wider transition-all hover:bg-slate-50 disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3 h-3 ${isSyncing ? "animate-spin" : ""}`} />
-            {isSyncing ? "Đang đồng bộ..." : "Đồng bộ Registry"}
-          </button>
-          <button
-            type="button"
-            onClick={() => void handleSaveAll()}
-            disabled={isSaving}
-            className="flex items-center gap-2 px-5 py-2 rounded-lg bg-[#026f17] text-white text-[10px] font-bold uppercase tracking-wider transition-all hover:bg-[#015a12] shadow-sm disabled:opacity-50"
-          >
-            <Shield className="w-3 h-3" />
-            {isSaving ? "Đang lưu..." : "Lưu ma trận"}
-          </button>
-        </div>
-      </header>
-
-
+    <div className={`${bv103DesignTokens.pageOuter} pb-24`}>
+      <KsnkPageHeader
+        title="Ma trận phân quyền"
+        subtitle="Cấu hình quyền theo module × hành động — đồng bộ Registry trước khi chỉnh."
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() => void handleSync()}
+              disabled={isSyncing}
+              className={bv103DesignTokens.btnSecondary}
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+              {isSyncing ? "Đang đồng bộ…" : "Đồng bộ Registry"}
+            </button>
+            <button type="button" onClick={() => void handleSaveAll()} disabled={isSaving} className={bv103DesignTokens.btnPrimary}>
+              <Shield className="h-3.5 w-3.5" />
+              {isSaving ? "Đang lưu…" : "Lưu ma trận"}
+            </button>
+          </>
+        }
+      />
 
       <RBACMatrixDataGrid
         roles={roles}

@@ -16,12 +16,12 @@ interface Props {
  */
 export default function ReportFilters({ filters, setFilters, stations }: Props) {
   return (
-    <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm space-y-5 animate-in slide-in-from-top-4 duration-500">
+    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-5 animate-in slide-in-from-top-4 duration-500">
       <div className="flex items-center gap-3 px-1">
         <div className="bg-[#026f17]/10 p-2 rounded-xl text-[#026f17]"><Filter size={18} /></div>
         <div className="flex flex-col">
           <span className="text-[10px] font-black uppercase text-[#026f17] tracking-widest leading-none">Bộ lọc dữ liệu</span>
-          <span className="text-[8px] font-bold text-slate-300 uppercase tracking-tighter">Tối ưu hóa báo cáo chi tiết</span>
+          <span className="text-[11px] font-bold text-slate-300 uppercase tracking-tighter">Tối ưu hóa báo cáo chi tiết</span>
         </div>
       </div>
       

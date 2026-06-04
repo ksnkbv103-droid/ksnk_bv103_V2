@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo, type SetStateAction } from "react";
+import { previewGscFormProgress, type GscFormProgress } from "../lib/gsc-score-display";
+import { useGscModuleLock } from "./use-gsc-module-lock";
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
 import type { ChecklistResult, ChecklistTemplate } from "@/types/giam-sat-chung";
 import { saveGiamSatChung } from "../actions/giam-sat-chung.actions";
@@ -133,6 +135,7 @@ export function useGiamSatChungForm(
   }, [editResults, template.criteria, template]);
 
   const [loading, setLoading] = useState(false);
+  const { isLockedForSelectedDate, lockMessage, lockedUntilDate } = useGscModuleLock(ngayGiamSat);
   const dbPrintLabels = useGscDbPrintLabels({
     khoa_id: selectedKhoa,
     khu_vuc_id: selectedKhuVuc,
@@ -169,6 +172,10 @@ export function useGiamSatChungForm(
   };
 
   const handleSave = async () => {
+    if (isLockedForSelectedDate) {
+      toast.error(lockMessage ?? "Phiên thuộc ngày đã bị khóa báo cáo GSC.");
+      return;
+    }
     if (!selectedKhoa || !selectedKhuVuc) {
       toast.error("Vui lòng chọn Khoa và Khu vực");
       return;
@@ -238,9 +245,26 @@ export function useGiamSatChungForm(
     }
   };
 
-  const score = Math.round(
-    (results.filter((r) => r.value === "DAT").length / Math.max(1, results.filter((r) => r.value !== "NA").length)) *
-      100,
+  const formProgress: GscFormProgress = useMemo(
+    () =>
+      previewGscFormProgress(
+        results,
+        template.criteria,
+        template.cach_tinh_diem,
+        {
+          thoi_gian_bat_dau: session.thoi_gian_bat_dau || null,
+          thoi_gian_ket_thuc: session.thoi_gian_ket_thuc || null,
+        },
+        template.loai_giam_sat,
+      ),
+    [
+      results,
+      template.criteria,
+      template.cach_tinh_diem,
+      template.loai_giam_sat,
+      session.thoi_gian_bat_dau,
+      session.thoi_gian_ket_thuc,
+    ],
   );
 
   const sessionForPrint = useMemo(() => {
@@ -302,7 +326,10 @@ export function useGiamSatChungForm(
     historyLocationRows,
     handleSwitchTemplate,
     handleSave,
-    score,
+    formProgress,
+    isLockedForSelectedDate,
+    lockMessage,
+    lockedUntilDate,
     sessionForPrint,
     setSessionFromHeader,
 

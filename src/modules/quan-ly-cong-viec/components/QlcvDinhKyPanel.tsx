@@ -40,7 +40,7 @@ export function QlcvDinhKyPanel() {
                 key={s.step}
                 className="rounded-xl border border-emerald-100/80 bg-white/80 p-3 text-xs leading-relaxed"
               >
-                <span className="mb-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#026f17] text-[10px] font-bold text-white">
+                <span className="mb-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-[11px] font-bold text-white">
                   {s.step}
                 </span>
                 <p className="mt-1 font-semibold text-slate-800">{s.title}</p>

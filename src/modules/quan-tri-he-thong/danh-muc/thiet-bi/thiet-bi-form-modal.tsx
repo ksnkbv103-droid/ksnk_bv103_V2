@@ -85,7 +85,7 @@ export default function ThietBiFormModal({
             onChange={(v) => setForm({ ...form, ten_thiet_bi: v })} />
           <ThietBiLoaiMayField value={form.loai_thiet_bi} onChange={(v) => setForm({ ...form, loai_thiet_bi: v })} />
           <div className="space-y-1">
-            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Trạng thái</label>
+            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Trạng thái</label>
             <select value={form.trang_thai} onChange={(e) => setForm({ ...form, trang_thai: e.target.value })} className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs">
               <option value="READY">Sẵn sàng</option>
               <option value="REPAIRING">Đang sửa chữa</option>
@@ -108,7 +108,7 @@ export default function ThietBiFormModal({
         </div>
 
         <div className="space-y-1">
-          <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Ghi chú</label>
+          <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Ghi chú</label>
           <textarea
             value={form.ghi_chu}
             rows={3}
@@ -134,7 +134,7 @@ export default function ThietBiFormModal({
 function DateField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <div className="space-y-1">
-      <label className="text-[9px] font-black text-slate-400 uppercase ml-1">{label}</label>
+      <label className="text-[11px] font-black text-slate-400 uppercase ml-1">{label}</label>
       <input
         type="date"
         value={value}

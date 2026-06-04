@@ -1,4 +1,4 @@
-/** Option dropdown QLCV — dùng chung form / định kỳ / việc con. */
+/** Option dropdown QLCV — form + định kỳ. */
 
 export type QlcvSelectOption = {
   id: string;
@@ -11,4 +11,5 @@ export type QlcvFormCatalog = {
   toCongTac: QlcvSelectOption[];
   loaiCongViec: QlcvSelectOption[];
   khoaPhong: QlcvSelectOption[];
+  trangThaiMauSac: Record<string, string>;
 };

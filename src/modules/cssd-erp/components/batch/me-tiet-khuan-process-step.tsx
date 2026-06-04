@@ -19,6 +19,7 @@ import CSSDPageShell, { CSSD_PAGE_OUTER } from "../layout/cssd-page-shell";
 import MeTietKhuanProcessScanPanel, { type MeTkItemRow } from "./me-tiet-khuan-process-scan-panel";
 import MeTietKhuanProcessQcPanel from "./me-tiet-khuan-process-qc-panel";
 import MeTietKhuanWaitingPanel, { type MeTkWaitingRow } from "./me-tiet-khuan-waiting-panel";
+import MeTietKhuanHeatBanner from "./me-tiet-khuan-heat-banner";
 import { CSSD_UI_ACTION_SECONDARY } from "../../shared/ui/cssd-ui-chrome";
 import { isSteamSterilizerProfile } from "../../helpers/me-tiet-khuan-machine-kind";
 
@@ -194,6 +195,8 @@ export default function MeTietKhuanProcessStep({
           </div>
         </header>
 
+        {activeMe?.id ? <MeTietKhuanHeatBanner batchId={activeMe.id} /> : null}
+
         {/* Process Stepper 4 bước */}
         <div className="my-4 bg-slate-50 border border-slate-200/50 p-5 rounded-2xl shadow-inner">
           <div className="grid grid-cols-1 md:grid-cols-7 items-center gap-2">
@@ -207,7 +210,7 @@ export default function MeTietKhuanProcessStep({
                 <Inbox size={18} strokeWidth={2.5} />
               </div>
               <div className="space-y-0.5">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Bước 1</p>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Bước 1</p>
                 <p className="text-xs font-bold text-slate-700">Chuẩn bị nạp mẻ</p>
               </div>
             </div>
@@ -226,7 +229,7 @@ export default function MeTietKhuanProcessStep({
                 <Flame size={18} strokeWidth={2.5} />
               </div>
               <div className="space-y-0.5">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Bước 2</p>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Bước 2</p>
                 <p className={`text-xs font-bold ${step2State === "PENDING" ? "text-slate-400" : "text-slate-700"}`}>Đang tiệt khuẩn</p>
               </div>
             </div>
@@ -245,7 +248,7 @@ export default function MeTietKhuanProcessStep({
                 <ClipboardCheck size={18} strokeWidth={2.5} />
               </div>
               <div className="space-y-0.5">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Bước 3</p>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Bước 3</p>
                 <p className={`text-xs font-bold ${step3State === "PENDING" ? "text-slate-400" : "text-slate-700"}`}>Đánh giá QC</p>
               </div>
             </div>
@@ -264,7 +267,7 @@ export default function MeTietKhuanProcessStep({
                 {step4State === "FAILED" ? <AlertCircle size={18} strokeWidth={2.5} /> : <CheckCircle size={18} strokeWidth={2.5} />}
               </div>
               <div className="space-y-0.5">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Bước 4</p>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Bước 4</p>
                 <p className={`text-xs font-bold ${step4State === "PENDING" ? "text-slate-400" : "text-slate-700"}`}>
                   {step4State === "FAILED" ? "Lỗi tiệt khuẩn" : "Chờ cấp phát"}
                 </p>

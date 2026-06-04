@@ -160,7 +160,7 @@ export default function InventoryDashboard({ data, activeStatus, onSelectStatus 
 
             <div className="mt-4 space-y-0.5">
               <p
-                className={`text-[9px] font-black uppercase tracking-wider truncate block ${
+                className={`text-[11px] font-black uppercase tracking-wider truncate block ${
                   isActive ? "text-white/80" : "text-slate-500"
                 }`}
               >

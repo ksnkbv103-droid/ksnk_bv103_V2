@@ -17,7 +17,7 @@ export default function ReportCharts({ pieData, barData }: Props) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* 1. Biểu đồ tròn: Tỷ lệ sự cố theo loại */}
-      <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm space-y-8 flex flex-col">
+      <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm space-y-8 flex flex-col">
         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Tỷ lệ sự cố theo danh mục</h3>
         <div className="h-[320px] w-full min-w-0 relative">
           <Bv103ResponsiveChart className="absolute inset-0 min-h-[320px]">
@@ -32,13 +32,13 @@ export default function ReportCharts({ pieData, barData }: Props) {
             <span className="text-2xl font-black text-[#026f17]">
               {pieData.reduce((acc, curr) => acc + curr.value, 0)}
             </span>
-            <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Sự cố</span>
+            <span className="text-[11px] font-black text-slate-300 uppercase tracking-widest">Sự cố</span>
           </div>
         </div>
       </div>
 
       {/* 2. Biểu đồ cột chồng: So sánh mẻ tiệt khuẩn và sự cố */}
-      <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm space-y-8">
+      <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm space-y-8">
         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Hiệu suất mẻ tiệt khuẩn vs Sự cố</h3>
         <div className="h-[320px] w-full min-w-0">
           <Bv103ResponsiveChart className="h-full w-full">

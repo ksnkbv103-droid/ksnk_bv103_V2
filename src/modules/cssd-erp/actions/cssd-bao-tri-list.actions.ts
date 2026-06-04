@@ -14,7 +14,7 @@ export async function listFactBaoTriThietBiAction(): Promise<
     await verifyCssdMaintenanceView();
     const { data: rows, error } = await supabase
       .from("cssd_fact_bao_tri")
-      .select("id, ma_phieu, thiet_bi_id, trang_thai, ly_do, ket_qua_ghi_nhan, thoi_gian_bat_dau, thoi_gian_ket_thuc, thiet_bi:dm_thiet_bi(ten_thiet_bi)")
+      .select("id, ma_phieu, thiet_bi_id, trang_thai, ly_do, ket_qua_ghi_nhan, thoi_gian_bat_dau, thoi_gian_ket_thuc, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)")
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .limit(200);
@@ -50,7 +50,7 @@ export async function listThietBiCoTheBatDauBaoTriAction(): Promise<
   try {
     await verifyCssdMaintenanceView();
     const { data: all, error } = await supabase
-      .from("dm_thiet_bi")
+      .from("cssd_dm_thiet_bi")
       .select("id, ma_thiet_bi, ten_thiet_bi, trang_thai")
       .eq("is_active", true)
       .in("trang_thai", ["READY", "HOAT_DONG"])

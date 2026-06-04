@@ -59,13 +59,13 @@ export async function buildSaveNhanSuMergedFields(
   // Chỉ đọc lại tên khi FK thay đổi để giảm query ghi.
   const [cvRes, cdRes, vtRes] = await Promise.all([
     chucVuNorm && isChanged("chuc_vu_id", chucVuNorm)
-      ? supabase.from("dm_chuc_vu").select("ten_chuc_vu, is_active").eq("id", chucVuNorm).maybeSingle()
+      ? supabase.from("mdm_dm_chuc_vu").select("ten_chuc_vu, is_active").eq("id", chucVuNorm).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
     chucDanhNorm && isChanged("chuc_danh_id", chucDanhNorm)
-      ? supabase.from("dm_chuc_danh").select("ten_chuc_danh, is_active").eq("id", chucDanhNorm).maybeSingle()
+      ? supabase.from("mdm_dm_chuc_danh").select("ten_chuc_danh, is_active").eq("id", chucDanhNorm).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
     vaiTroNorm && isChanged("vai_tro_he_thong_id", vaiTroNorm)
-      ? supabase.from("dm_roles").select("name").eq("id", vaiTroNorm).maybeSingle()
+      ? supabase.from("sys_roles").select("name").eq("id", vaiTroNorm).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
   ]);
 

@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Station, CSSDWaitingItem } from "../types/cssd.types";
 import { scanQR, getWaitingListByStation } from "../actions/cssd.actions";
+import { usePermission } from "@/hooks/usePermission";
 import { toast } from "sonner";
 import { SCAN_STATIONS, WORKFLOW_STEPS, nextStationLabel } from "../workflow/domain/cssd-stations";
 
@@ -11,6 +12,10 @@ import { SCAN_STATIONS, WORKFLOW_STEPS, nextStationLabel } from "../workflow/dom
 export const CSSD_SCAN_STATIONS: Station[] = [...SCAN_STATIONS];
 
 export function useCSSDWorkflow() {
+  const { userData } = usePermission();
+  const operatorLabel =
+    String(userData?.ho_ten || "").trim() || String(userData?.email || "").trim() || "CSSD";
+
   const [currentStation, setCurrentStation] = useState<Station | null>(null);
   const [waitingList, setWaitingList] = useState<CSSDWaitingItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -70,11 +75,10 @@ export function useCSSDWorkflow() {
       setLastScan({
         qrCode: code,
         tenBoDungCu: scanRes.tenBoDungCu || "Chưa gán bộ",
-        nguoiThucHien: "Nhân viên KSNK",
+        nguoiThucHien: operatorLabel,
         thoiGianQuet: new Date().toLocaleTimeString("vi-VN"),
         buocTiepTheo,
         maCaMoId: extraPayload?.ma_ca_mo_id,
-        ledgerWarning: (scanRes as any).ledgerWarning,
       });
 
       toast.success(`Đã xử lý: ${code}`);
@@ -91,7 +95,7 @@ export function useCSSDWorkflow() {
         setLastScan({
           qrCode: code,
           tenBoDungCu: "Đang chờ đồng bộ...",
-          nguoiThucHien: "Nhân viên KSNK",
+          nguoiThucHien: operatorLabel,
           thoiGianQuet: new Date().toLocaleTimeString("vi-VN"),
           buocTiepTheo: nextStationLabel(currentStation),
           maCaMoId: extraPayload?.ma_ca_mo_id,

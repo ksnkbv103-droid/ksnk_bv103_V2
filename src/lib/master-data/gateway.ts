@@ -3,8 +3,10 @@ export type MasterOption = {
   ma_danh_muc: string;
   ten_danh_muc: string;
   loai_danh_muc: string;
-  source: "dm_registry" | "dm_khoa_phong" | "dm_nghe_nghiep";
+  source: "registry_lookup" | "mdm_dm_khoa_phong" | "mdm_dm_nghe_nghiep";
   is_active?: boolean;
+  nhom_mau?: string | null;
+  thu_tu?: number | null;
 };
 
 type KhoaRow = { id?: string; ma_khoa?: string; ten_khoa?: string; is_active?: boolean };
@@ -39,7 +41,7 @@ export function mapKhoaOptions(rows: KhoaRow[]): MasterOption[] {
     ma_danh_muc: String(x.ma_khoa || ""),
     ten_danh_muc: String(x.ten_khoa || ""),
     loai_danh_muc: "KHOA_PHONG",
-    source: "dm_khoa_phong",
+    source: "mdm_dm_khoa_phong",
     is_active: x.is_active,
   }));
 }
@@ -50,7 +52,7 @@ export function mapDanhMucOptions(rows: DanhMucRow[], loai: string): MasterOptio
     ma_danh_muc: String(x.ma_danh_muc || ""),
     ten_danh_muc: String(x.ten_danh_muc || ""),
     loai_danh_muc: loai,
-    source: "dm_registry",
+    source: "registry_lookup",
     is_active: x.is_active,
   }));
 }
@@ -69,13 +71,13 @@ export async function buildDisplayMaps(
 
   const [khoaRes, nhanSuRes, ngheRes] = (await Promise.all([
     khoaIds.length
-      ? supabase.from("dm_khoa_phong").select("id, ten_khoa").in("id", khoaIds)
+      ? supabase.from("mdm_dm_khoa_phong").select("id, ten_khoa").in("id", khoaIds)
       : Promise.resolve({ data: [], error: null }),
     nhanSuIds.length
       ? supabase.from("mdm_nhan_su").select("id, ho_ten").in("id", nhanSuIds)
       : Promise.resolve({ data: [], error: null }),
     ngheIds.length
-      ? supabase.from("dm_nghe_nghiep").select("id, ten_nghe_nghiep").in("id", ngheIds)
+      ? supabase.from("mdm_dm_nghe_nghiep").select("id, ten_nghe_nghiep").in("id", ngheIds)
       : Promise.resolve({ data: [], error: null }),
   ])) as [QueryPayload, QueryPayload, QueryPayload];
 

@@ -90,7 +90,7 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Loại dụng cụ</label>
+            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Loại dụng cụ</label>
             <select
               value={form.loai_dung_cu_id}
               onChange={(e) => setForm({ ...form, loai_dung_cu_id: e.target.value })}
@@ -104,7 +104,7 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
             </select>
           </div>
           <div className="space-y-1">
-            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Khoa sử dụng chính</label>
+            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Khoa sử dụng chính</label>
             <select
               value={form.khoa_su_dung_id}
               onChange={(e) => setForm({ ...form, khoa_su_dung_id: e.target.value })}
@@ -121,7 +121,7 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Phân loại bộ dụng cụ</label>
+            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Phân loại bộ dụng cụ</label>
             <select
               value={form.phan_loai_bo}
               onChange={(e) => setForm({ ...form, phan_loai_bo: e.target.value })}
@@ -132,7 +132,7 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
             </select>
           </div>
           <div className="space-y-1">
-            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Cơ chế theo dõi</label>
+            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Cơ chế theo dõi</label>
             <select
               value={form.co_ma_dinh_danh_rieng ? "true" : "false"}
               onChange={(e) => setForm({ ...form, co_ma_dinh_danh_rieng: e.target.value === "true" })}
@@ -146,7 +146,7 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
 
         <BoDungCuTextField label="Quy cách" value={form.quy_cach} onChange={(v) => setForm({ ...form, quy_cach: v })} />
         <div className="space-y-1">
-          <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Ghi chú</label>
+          <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Ghi chú</label>
           <textarea
             value={form.ghi_chu}
             onChange={(e) => setForm({ ...form, ghi_chu: e.target.value })}
@@ -157,7 +157,7 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Trạng thái kiểm kê</label>
+            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Trạng thái kiểm kê</label>
             <select
               value={form.trang_thai}
               onChange={(e) => setForm({ ...form, trang_thai: e.target.value })}
@@ -169,7 +169,7 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
             </select>
           </div>
           <div className="space-y-1">
-            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Ngày kiểm kê gần nhất</label>
+            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Ngày kiểm kê gần nhất</label>
             <input
               type="datetime-local"
               value={form.ngay_kiem_ke_gan_nhat}

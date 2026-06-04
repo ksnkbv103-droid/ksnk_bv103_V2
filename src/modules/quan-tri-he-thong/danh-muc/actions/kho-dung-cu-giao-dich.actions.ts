@@ -26,11 +26,11 @@ export async function getDungCuGiaoDichLogsAction(params?: {
   await verifyPermission("LOAI_DC", "view");
   const supabase = await createServerSupabaseUserClient();
   let query = supabase
-    .from("fact_kho_dung_cu_giao_dich")
+    .from("cssd_fact_kho_giao_dich")
     .select(`
       *,
-      loai_dung_cu:dm_loai_dung_cu(id, ten_loai_dung_cu, ma_loai_dung_cu),
-      bo_dung_cu:dm_bo_dung_cu(id, ten_bo, ma_bo),
+      loai_dung_cu:cssd_dm_loai_dung_cu(id, ten_loai_dung_cu, ma_loai_dung_cu),
+      bo_dung_cu:cssd_dm_bo_dung_cu(id, ten_bo, ma_bo),
       quy_trinh:fact_quy_trinh(id, ma_vach_set)
     `)
     .eq("is_active", true);

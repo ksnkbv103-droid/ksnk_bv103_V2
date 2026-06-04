@@ -93,10 +93,10 @@ export function LoaiDungCuPageContent() {
   });
 
   const { exportTemplate, handleFileUpload, isImporting, triggerImport, fileInputRef } = useImportExport({
-    moduleKey: "LOAI_DC", tableName: "dm_loai_dung_cu", displayName: "Loại dụng cụ", uniqueKey: "ma_loai_dung_cu",
+    moduleKey: "LOAI_DC", tableName: "cssd_dm_loai_dung_cu", displayName: "Loại dụng cụ", uniqueKey: "ma_loai_dung_cu",
     columnMapping: { "Mã Loại": "ma_loai_dung_cu", "Tên Loại": "ten_loai_dung_cu", "Hình dáng": "hinh_dang", "Kích thước": "kich_thuoc", "Công dụng": "cong_dung", "Chịu nhiệt": "kha_nang_chiu_nhiet", "Tiệt khuẩn": "phuong_phap_tiet_khuan", "is_active": "is_active" },
-    onGetData: () => getMasterDataExport("dm_loai_dung_cu", "ma_loai_dung_cu"),
-    onImport: (d) => smartImportData({ tableName: "dm_loai_dung_cu", uniqueKey: "ma_loai_dung_cu", codePrefix: "LDC" }, d),
+    onGetData: () => getMasterDataExport("cssd_dm_loai_dung_cu", "ma_loai_dung_cu"),
+    onImport: (d) => smartImportData({ tableName: "cssd_dm_loai_dung_cu", uniqueKey: "ma_loai_dung_cu", codePrefix: "LDC" }, d),
     onSuccess: () => { setRefreshKey(k => k + 1); router.refresh(); }
   });
 
@@ -113,9 +113,9 @@ export function LoaiDungCuPageContent() {
     )},
     { header: "PHÂN LOẠI", accessorKey: "phan_loai", sortable: true, cell: (i) => (
       i.phan_loai === "THU_THUAT" ? (
-        <span className="bg-amber-50 text-amber-600 border border-amber-100 text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">Thủ thuật</span>
+        <span className="bg-amber-50 text-amber-600 border border-amber-100 text-[11px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">Thủ thuật</span>
       ) : (
-        <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">Phẫu thuật</span>
+        <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[11px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">Phẫu thuật</span>
       )
     )},
     { header: "HÌNH DÁNG", accessorKey: "hinh_dang", sortable: true, cell: (i) => (
@@ -133,7 +133,7 @@ export function LoaiDungCuPageContent() {
       </div>
     )},
     { header: "LOGIC TIỆT KHUẨN", accessorKey: "phuong_phap_tiet_khuan", sortable: true, cell: (i) => (
-      <div className="text-[9px] font-bold uppercase space-y-0.5"><div className={i.kha_nang_chiu_nhiet==='Cao'?'text-emerald-600':'text-amber-600'}>Nhiệt: {i.kha_nang_chiu_nhiet}</div><div className="text-blue-600 font-black">{i.phuong_phap_tiet_khuan}</div></div>
+      <div className="text-[11px] font-bold uppercase space-y-0.5"><div className={i.kha_nang_chiu_nhiet==='Cao'?'text-emerald-600':'text-amber-600'}>Nhiệt: {i.kha_nang_chiu_nhiet}</div><div className="text-blue-600 font-black">{i.phuong_phap_tiet_khuan}</div></div>
     )},
     { header: "TRẠNG THÁI", accessorKey: "is_active", sortable: true, cell: (i) => actionUi.renderStatusCell(i) },
     { header: "QUẢN LÝ", accessorKey: "id", cell: (i) => actionUi.renderManagementCell(i) }
@@ -144,7 +144,7 @@ export function LoaiDungCuPageContent() {
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm gap-4">
-        <div><h1 className="text-2xl font-black text-[#026f17] uppercase tracking-tighter flex items-center gap-3"><LayoutGrid /> Loại dụng cụ</h1><p className="text-slate-400 font-bold text-[9px] uppercase tracking-widest mt-1 italic leading-none">V5.0 FINAL — Standardized Sync</p></div>
+        <div><h1 className="text-2xl font-black text-[#026f17] uppercase tracking-tighter flex items-center gap-3"><LayoutGrid /> Loại dụng cụ</h1><p className="text-slate-400 font-bold text-[11px] uppercase tracking-widest mt-1 italic leading-none">V5.0 FINAL — Standardized Sync</p></div>
         <div className="flex gap-3 w-full sm:w-auto">
           <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} accept=".xlsx, .xls" className="hidden" />
           <button onClick={triggerImport} disabled={isImporting} className="h-12 px-5 bg-amber-50 text-amber-600 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95">{isImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />} Import dữ liệu</button>

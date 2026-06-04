@@ -66,13 +66,13 @@ export async function getBoDungCuRowsAction() {
   const [loaiResult, khoaResult] = await Promise.all([
     loaiIds.length
       ? supabase
-          .from("dm_loai_dung_cu")
+          .from("cssd_dm_loai_dung_cu")
           .select("id, ten_loai_dung_cu, ten_loai, ma_loai, ma_loai_dung_cu")
           .in("id", loaiIds)
       : Promise.resolve({ data: [], error: null }),
     khoaIds.length
       ? supabase
-          .from("dm_khoa_phong")
+          .from("mdm_dm_khoa_phong")
           .select("id, ten_khoa, ma_khoa")
           .in("id", khoaIds)
       : Promise.resolve({ data: [], error: null }),
@@ -118,7 +118,7 @@ export async function saveBoDungCuAction(input: Record<string, unknown>) {
   const supabase = createAdminSupabaseClient();
   let khoaSuDungNorm: string | null = null;
   try {
-    khoaSuDungNorm = await normalizeNullableFk(supabase, "dm_khoa_phong", input.khoa_su_dung_id);
+    khoaSuDungNorm = await normalizeNullableFk(supabase, "mdm_dm_khoa_phong", input.khoa_su_dung_id);
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     return { success: false, error: msg };
@@ -127,7 +127,7 @@ export async function saveBoDungCuAction(input: Record<string, unknown>) {
     return {
       success: false,
       error:
-        "Khoa sử dụng không hợp lệ: id không tồn tại trong dm_khoa_phong (chạy migration M3 nếu chưa có cột khoa_su_dung_id).",
+        "Khoa sử dụng không hợp lệ: id không tồn tại trong mdm_dm_khoa_phong (chạy migration M3 nếu chưa có cột khoa_su_dung_id).",
     };
   }
   const payload = {
@@ -148,12 +148,12 @@ export async function saveBoDungCuAction(input: Record<string, unknown>) {
     return { success: false, error: "Thiếu mã bộ hoặc tên bộ." };
   }
 
-  const res = await upsertMasterRow("dm_bo_dung_cu", id, payload);
-  if (!res.success && String(res.error || "").includes("dm_bo_dung_cu_khoa_su_dung_id_fkey")) {
+  const res = await upsertMasterRow("cssd_dm_bo_dung_cu", id, payload);
+  if (!res.success && String(res.error || "").includes("cssd_dm_bo_dung_cu_khoa_su_dung_id_fkey")) {
     return {
       success: false,
       error:
-        `${res.error} — FK khoa_su_dung_id cần trỏ dm_khoa_phong; chạy migration 20260430007_dm_khoa_phong_profile_and_bo_dung_cu_usage.sql trên Supabase.`,
+        `${res.error} — FK khoa_su_dung_id cần trỏ mdm_dm_khoa_phong; chạy migration 20260430007_mdm_dm_khoa_phong_profile_and_bo_dung_cu_usage.sql trên Supabase.`,
     };
   }
   return res;
@@ -161,17 +161,17 @@ export async function saveBoDungCuAction(input: Record<string, unknown>) {
 
 export async function toggleBoDungCuStatusAction(id: string, currentStatus: boolean) {
   await verifyPermission("BO_DC", "edit");
-  return toggleMasterStatus("dm_bo_dung_cu", id, currentStatus);
+  return toggleMasterStatus("cssd_dm_bo_dung_cu", id, currentStatus);
 }
 
 export async function softDeleteBoDungCuAction(id: string) {
   await verifyPermission("BO_DC", "delete");
-  return softDeleteMasterRow("dm_bo_dung_cu", id);
+  return softDeleteMasterRow("cssd_dm_bo_dung_cu", id);
 }
 
 export async function softDeleteManyBoDungCuAction(ids: string[]) {
   await verifyPermission("BO_DC", "delete");
-  return softDeleteManyMasterRows("dm_bo_dung_cu", ids);
+  return softDeleteManyMasterRows("cssd_dm_bo_dung_cu", ids);
 }
 
 async function getBoAllocationListAction(boDungCuId: string) {
@@ -181,8 +181,8 @@ async function getBoAllocationListAction(boDungCuId: string) {
   
   const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
-    .from("dm_bo_dung_cu_phan_bo")
-    .select("*, khoa:dm_khoa_phong!khoa_phong_id(id, ten_khoa, ma_khoa)")
+    .from("cssd_dm_bo_phan_bo")
+    .select("*, khoa:mdm_dm_khoa_phong!khoa_phong_id(id, ten_khoa, ma_khoa)")
     .eq("bo_dung_cu_id", bid)
     .eq("is_active", true)
     .order("created_at", { ascending: true });
@@ -209,13 +209,13 @@ async function saveBoAllocationAction(input: Record<string, unknown>) {
 
   if (id) {
     const { error } = await supabase
-      .from("dm_bo_dung_cu_phan_bo")
+      .from("cssd_dm_bo_phan_bo")
       .update(payload)
       .eq("id", id);
     if (error) return { success: false as const, error: error.message };
   } else {
     const { error } = await supabase
-      .from("dm_bo_dung_cu_phan_bo")
+      .from("cssd_dm_bo_phan_bo")
       .insert(payload);
     if (error) return { success: false as const, error: error.message };
   }
@@ -239,7 +239,7 @@ export async function allocateProceduralSetAction(params: {
 
   // Check if allocation already exists
   const { data: existing, error: fetchErr } = await supabase
-    .from("dm_bo_dung_cu_phan_bo")
+    .from("cssd_dm_bo_phan_bo")
     .select("id, so_luong_co_so, so_luong_hien_tai")
     .eq("bo_dung_cu_id", bid)
     .eq("khoa_phong_id", kid)
@@ -251,7 +251,7 @@ export async function allocateProceduralSetAction(params: {
   if (existing) {
     const diff = qty - Number(existing.so_luong_co_so || 0);
     const { error: updErr } = await supabase
-      .from("dm_bo_dung_cu_phan_bo")
+      .from("cssd_dm_bo_phan_bo")
       .update({
         so_luong_co_so: qty,
         so_luong_hien_tai: Number(existing.so_luong_hien_tai || 0) + diff,
@@ -261,7 +261,7 @@ export async function allocateProceduralSetAction(params: {
     if (updErr) return { success: false as const, error: updErr.message };
   } else {
     const { error: insErr } = await supabase
-      .from("dm_bo_dung_cu_phan_bo")
+      .from("cssd_dm_bo_phan_bo")
       .insert({
         bo_dung_cu_id: bid,
         khoa_phong_id: kid,

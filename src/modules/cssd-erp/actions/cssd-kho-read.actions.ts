@@ -23,8 +23,8 @@ export async function fetchCssdKhoDungCuList() {
     let boMap = new Map<string, Record<string, unknown>>();
     if (boIds.length) {
       const { data: bos, error: boErr } = await supabase
-        .from("dm_bo_dung_cu")
-        .select("*, khoa:dm_khoa_phong!khoa_su_dung_id(ten_khoa, ma_khoa)")
+        .from("cssd_dm_bo_dung_cu")
+        .select("*, khoa:mdm_dm_khoa_phong!khoa_su_dung_id(ten_khoa, ma_khoa)")
         .in("id", boIds);
       if (boErr) return { success: false as const, error: boErr.message, data: [] };
       boMap = new Map((bos || []).map((x: { id: string }) => [String(x.id), x as Record<string, unknown>]));
@@ -34,7 +34,7 @@ export async function fetchCssdKhoDungCuList() {
       ...x,
       ma_vach_qr: x.ma_qr_quy_trinh || "",
       trang_thai_hien_tai: x.ma_trang_thai_hien_tai || "",
-      dm_bo_dung_cu: x.bo_dung_cu_id ? boMap.get(String(x.bo_dung_cu_id)) || null : null,
+      cssd_dm_bo_dung_cu: x.bo_dung_cu_id ? boMap.get(String(x.bo_dung_cu_id)) || null : null,
     }));
 
     return { success: true as const, data };

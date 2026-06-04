@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import dynamic from "next/dynamic";
 
 function DashboardRouteSkeleton() {
@@ -21,5 +22,9 @@ const CommandCenterDashboardPage = dynamic(
 );
 
 export default function HomePage() {
-  return <CommandCenterDashboardPage />;
+  return (
+    <Suspense fallback={<DashboardRouteSkeleton />}>
+      <CommandCenterDashboardPage />
+    </Suspense>
+  );
 }

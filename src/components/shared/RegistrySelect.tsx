@@ -9,6 +9,7 @@ export type RegistrySelectOption = {
   label: string;
   ma?: string;
   keywords?: string[];
+  groupLabel?: string;
 };
 
 type Props = {
@@ -56,6 +57,7 @@ export default function RegistrySelect({
           id: opt.id,
           label: displayLabel,
           keywords: opt.keywords || [opt.ma || "", opt.label],
+          groupLabel: opt.groupLabel,
         };
       });
       setOptions(mapped);

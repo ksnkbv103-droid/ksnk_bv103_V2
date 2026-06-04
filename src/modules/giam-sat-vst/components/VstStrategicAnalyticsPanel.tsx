@@ -2,44 +2,39 @@
 
 import React, { useMemo } from "react";
 import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 import {
-  TrendingUp,
-  BarChart2,
-  ExternalLink,
-} from "lucide-react";
-import {
-  LineChart,
-  Line,
-  BarChart,
   Bar,
-  XAxis,
-  YAxis,
+  BarChart,
   CartesianGrid,
-  Tooltip as RechartsTooltip,
   Legend,
-  ResponsiveContainer,
-  RadarChart,
-  PolarGrid,
   PolarAngleAxis,
+  PolarGrid,
   PolarRadiusAxis,
   Radar,
-  PieChart,
-  Pie,
-  Cell,
+  RadarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 import { AnalyticsFilterBar } from "@/components/shared/AnalyticsFilterBar";
+import {
+  SupervisionCompareGrid,
+  SupervisionGapChart,
+  SupervisionKpiRow,
+  SupervisionTrendChart,
+  percentTooltipFormatter,
+} from "@/lib/analytics/supervision-analytics-charts";
+import { toCompareRows, mapGapRowsForKhoaMa } from "@/lib/analytics/supervision-matrix-mappers";
+import { formatPercent2, roundPercent2 } from "@/lib/analytics/supervision-percent";
 import type { VstStrategicPayload } from "../types/vst-strategic.types";
-
-const COLORS = ["#10b981", "#f59e0b", "#3b82f6", "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899", "#f97316"];
 
 type FilterProps = {
   tuNgay: string;
   setTuNgay: (v: string) => void;
   denNgay: string;
   setDenNgay: (v: string) => void;
-  bangKiemOptions: { id: string; label: string }[];
-  selectedBangKiemMas: string[];
-  setSelectedBangKiemMas: (v: string[]) => void;
   khoiOptions: { id: string; label: string }[];
   selectedKhoiIds: string[];
   setSelectedKhoiIds: (v: string[]) => void;
@@ -64,26 +59,28 @@ type Props = FilterProps & {
 };
 
 export default function VstStrategicAnalyticsPanel(p: Props) {
-  const sortedGap = useMemo(
-    () => [...(p.payload?.gap_analysis || [])].sort((a, b) => (b.ty_le_tgs ?? b.ty_le_ksnk ?? 0) - (a.ty_le_tgs ?? a.ty_le_ksnk ?? 0)),
-    [p.payload?.gap_analysis],
-  );
-  const pieNgheData = useMemo(
-    () => (p.payload?.matrix_nghe || []).map((n) => ({ name: n.ten, value: n.tong_co_hoi, ty_le: n.ty_le_tuan_thu })),
-    [p.payload?.matrix_nghe],
+  const compareSections = useMemo(
+    () => [
+      { title: "Theo khoa", rows: toCompareRows(p.payload?.matrix_khoa, { khoaMa: true }) },
+      { title: "Theo vùng IPAC (4 màu)", rows: toCompareRows(p.payload?.matrix_khu_vuc_nhom) },
+      { title: "Theo khu vực (chi tiết)", rows: toCompareRows(p.payload?.matrix_khu_vuc) },
+      { title: "Theo đối tượng (nghề)", rows: toCompareRows(p.payload?.matrix_nghe) },
+      { title: "Theo hình thức giám sát", rows: toCompareRows(p.payload?.matrix_hinh_thuc) },
+    ],
+    [p.payload],
   );
 
   return (
     <div className="space-y-6 px-2 pb-8">
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-4">
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
         <AnalyticsFilterBar
+          hideBangKiem
+          onRefresh={p.onRefresh}
+          refreshLoading={p.loading}
           tuNgay={p.tuNgay}
           setTuNgay={p.setTuNgay}
           denNgay={p.denNgay}
           setDenNgay={p.setDenNgay}
-          bangKiemOptions={p.bangKiemOptions}
-          selectedBangKiemMas={p.selectedBangKiemMas}
-          setSelectedBangKiemMas={p.setSelectedBangKiemMas}
           khoiOptions={p.khoiOptions}
           selectedKhoiIds={p.selectedKhoiIds}
           setSelectedKhoiIds={p.setSelectedKhoiIds}
@@ -105,94 +102,81 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{p.loadError}</div>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-5 text-white shadow-lg">
-          <p className="text-xs font-bold uppercase tracking-widest text-emerald-100">Tỷ lệ tuân thủ</p>
-          <p className="mt-2 text-4xl font-black">{p.payload?.kpis?.ty_le_tuan_thu ?? 0}%</p>
-        </div>
-        {[
-          { label: "Đúng kỹ thuật", value: p.payload?.kpis?.ty_le_dung_ky_thuat ?? 0 },
-          { label: "Đủ thời gian", value: p.payload?.kpis?.ty_le_du_thoi_gian ?? 0 },
-          { label: "Lạm dụng găng", value: p.payload?.kpis?.ty_le_lam_dung_gang ?? 0, warn: true },
-        ].map((k) => (
-          <div key={k.label} className="rounded-2xl border border-slate-200 bg-white p-5">
-            <p className="text-xs font-bold uppercase text-slate-400">{k.label}</p>
-            <p className={`mt-2 text-3xl font-black ${k.warn ? "text-red-600" : "text-slate-800"}`}>
-              {p.loading ? "…" : `${k.value}%`}
-            </p>
-          </div>
-        ))}
-      </div>
+      <SupervisionKpiRow
+        loading={p.loading}
+        items={[
+          { label: "Tỷ lệ tuân thủ", value: formatPercent2(p.payload?.kpis?.ty_le_tuan_thu ?? 0) },
+          { label: "Cơ hội quan sát", value: p.payload?.kpis?.tong_co_hoi ?? 0 },
+          { label: "Đã tuân thủ", value: p.payload?.kpis?.da_tuan_thu ?? 0 },
+          { label: "Đúng kỹ thuật", value: formatPercent2(p.payload?.kpis?.ty_le_dung_ky_thuat ?? 0) },
+        ]}
+      />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-6">
-          <h3 className="mb-4 flex items-center gap-2 font-bold text-slate-800">
-            <TrendingUp size={18} className="text-emerald-600" /> Xu hướng tuân thủ
-          </h3>
-          <div className="h-[280px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={p.payload?.trendline || []}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
-                <RechartsTooltip />
-                <Line type="monotone" dataKey="ty_le_tuan_thu" stroke="#10b981" strokeWidth={3} name="Tuân thủ (%)" />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <h3 className="mb-4 font-bold text-slate-800">5 Thời điểm WHO</h3>
-          <div className="h-[280px]">
-            {(p.payload?.moments || []).length > 0 ? (
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <SupervisionTrendChart
+          title="Xu hướng tuân thủ"
+          data={p.payload?.trendline ?? []}
+          loading={p.loading}
+          stroke="#10b981"
+        />
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <h3 className="mb-3 text-sm font-bold text-slate-800">5 thời điểm WHO</h3>
+          <div className="h-[240px]">
+            {(p.payload?.moments?.length ?? 0) > 0 && !p.loading ? (
               <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={p.payload?.moments.map((m) => ({ ...m, ty_le_khong: 100 - m.ty_le_tuan_thu })) || []}>
+                <RadarChart
+                  data={(p.payload?.moments ?? []).map((m) => ({
+                    ...m,
+                    ty_le_tuan_thu: roundPercent2(m.ty_le_tuan_thu),
+                  }))}
+                >
                   <PolarGrid />
                   <PolarAngleAxis dataKey="ten" tick={{ fontSize: 9 }} />
                   <PolarRadiusAxis domain={[0, 100]} tick={false} />
-                  <Radar name="Tuân thủ" dataKey="ty_le_tuan_thu" stroke="#10b981" fill="#10b981" fillOpacity={0.35} />
+                  <Tooltip formatter={percentTooltipFormatter} />
+                  <Radar
+                    name="Tuân thủ %"
+                    dataKey="ty_le_tuan_thu"
+                    stroke="#10b981"
+                    fill="#10b981"
+                    fillOpacity={0.35}
+                  />
                 </RadarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex h-full items-center justify-center text-sm text-slate-400">Chưa có dữ liệu</div>
+              <p className="flex h-full items-center justify-center text-sm text-slate-400">
+                {p.loading ? "Đang tải…" : "Chưa có dữ liệu"}
+              </p>
             )}
           </div>
         </div>
       </div>
 
-      {pieNgheData.length > 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <h3 className="mb-4 font-bold text-slate-800">Tuân thủ theo đối tượng</h3>
-          <div className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={pieNgheData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={90}>
-                  {pieNgheData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Pie>
-                <RechartsTooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      ) : null}
+      <SupervisionCompareGrid sections={compareSections} loading={p.loading} />
 
-      {sortedGap.length > 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <h3 className="mb-4 flex items-center gap-2 font-bold text-slate-800">
-            <BarChart2 size={18} className="text-indigo-500" /> Đối soát TGS vs KSNK
-          </h3>
-          <div className="h-[320px]">
+      <SupervisionGapChart
+        title="Đối soát Tự giám sát vs KSNK (theo khoa)"
+        rows={mapGapRowsForKhoaMa(p.payload?.gap_analysis)}
+        loading={p.loading}
+      />
+
+      {(p.payload?.moments?.length ?? 0) > 0 ? (
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <h3 className="mb-3 text-sm font-bold text-slate-800">Tuân thủ theo thời điểm (cột)</h3>
+          <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={sortedGap}>
+              <BarChart
+                data={(p.payload?.moments ?? []).map((m) => ({
+                  ...m,
+                  ty_le_tuan_thu: roundPercent2(m.ty_le_tuan_thu),
+                }))}
+              >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="ten" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" height={70} />
+                <XAxis dataKey="ten" tick={{ fontSize: 9 }} />
                 <YAxis domain={[0, 100]} />
-                <RechartsTooltip />
+                <Tooltip formatter={percentTooltipFormatter} />
                 <Legend />
-                <Bar dataKey="ty_le_tgs" name="Tự GS (%)" fill="#fbbf24" />
-                <Bar dataKey="ty_le_ksnk" name="KSNK (%)" fill="#10b981" />
+                <Bar dataKey="ty_le_tuan_thu" name="Tuân thủ %" fill="#10b981" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -205,7 +189,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
 export function VstAnalyticsDeepLinkHint() {
   return (
     <Link
-      href="/giam-sat-vst"
+      href="/giam-sat-vst?tab=analytics"
       className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:underline"
     >
       Xem chi tiết tại module VST <ExternalLink size={12} />

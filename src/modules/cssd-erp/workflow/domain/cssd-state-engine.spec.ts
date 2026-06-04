@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { validateStationAdvance } from "./cssd-state-engine";
 import { previousWorkflowStation } from "./cssd-stations";
 
-/** Contract mirror — SSOT runtime: RPC `rpc_scan_workflow_station`. */
+/** Contract mirror — SSOT runtime: RPC `rpc_scan_workflow_station` (gates CAP_PHAT tại DB từ 20260602140000). */
 describe("cssd-state-engine", () => {
   it("blocks TIET_KHUAN as scan target", () => {
     expect(

@@ -384,7 +384,7 @@ export default function GiamSatNkbvPage() {
         header: "Trạng thái",
         accessorKey: "tt",
         cell: (item: NkbvCaseLike) => (
-          <span className="rounded-full bg-slate-100 px-2 py-1 text-[9px] font-black uppercase text-slate-600">
+          <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-black uppercase text-slate-600">
             {(item as { trang_thai_row?: { ten_trang_thai?: string } }).trang_thai_row?.ten_trang_thai || "—"}
           </span>
         ),

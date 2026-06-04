@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   Wrench,
   Droplets,
+  FileBarChart,
 } from "lucide-react";
 import { usePermission } from "@/hooks/usePermission";
 import {
@@ -39,6 +40,10 @@ import {
   NAV_GATE_VST,
   type NavGate,
 } from "@/lib/nav/ksnk-nav-gates";
+import {
+  isNavHiddenUnderPilotCoreModules,
+  isPilotCoreModulesScopeEnabled,
+} from "@/lib/ksnk-pilot-core-modules-scope";
 
 type NavItem = { name: string; href: string; icon: LucideIcon };
 
@@ -46,7 +51,8 @@ type NavMainRow = NavItem & { gate: NavGate };
 
 /** Nhóm điều hướng: lọc theo RBAC (module VIEW), admin xem hết. */
 const navMain: NavMainRow[] = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard, gate: NAV_GATE_DASHBOARD },
+  { name: "Trung tâm điều hành", href: "/", icon: LayoutDashboard, gate: NAV_GATE_DASHBOARD },
+  { name: "Báo cáo tổng hợp KSNK", href: "/bao-cao-tong-hop", icon: FileBarChart, gate: NAV_GATE_DASHBOARD },
   { name: "Vệ sinh tay (WHO)", href: "/giam-sat-vst", icon: Stethoscope, gate: NAV_GATE_VST },
   { name: "Giám sát tuân thủ thực hành KSNK", href: "/giam-sat-chung", icon: ClipboardList, gate: NAV_GATE_GSC },
 
@@ -66,11 +72,14 @@ type NavAdminRow = NavItem & { gate: NavGate };
 
 const navAdmin: NavAdminRow[] = [
   { name: "Quản trị hệ thống", href: "/quan-tri-he-thong", icon: Settings, gate: NAV_GATE_QUAN_TRI },
-  { name: "Danh mục dùng chung", href: "/quan-tri-he-thong?tab=dm_registry", icon: Shield, gate: NAV_GATE_DM_HUB },
+  { name: "Lookup danh mục", href: "/quan-tri-he-thong?tab=dm_registry", icon: Shield, gate: NAV_GATE_DM_HUB },
 ];
 
 function menuItemIsActive(pathname: string, href: string, urlTab: string | null) {
   const [path, query] = href.split("?");
+  if (path === "/giam-sat-chung" && pathname.startsWith("/giam-sat-chung")) {
+    return !query;
+  }
   if (pathname !== path) return false;
   if (!query) return urlTab !== "dm_registry";
   const want = new URLSearchParams(query).get("tab");
@@ -112,8 +121,12 @@ function SidebarNavLinks({ onClose }: { onClose: () => void }) {
   const { loading, isAdmin, canView, can } = usePermission(undefined, "view");
   const showQt = !loading && canSeeQuanTriSection(isAdmin, canView);
   const showTaiKhoanKsnk = !loading && (isAdmin || can("PHAN_QUYEN", "edit"));
+  const pilotCore = isPilotCoreModulesScopeEnabled();
   const mainVisible = !loading
-    ? navMain.filter((row) => canSeeNavGate(isAdmin, canView, row.gate))
+    ? navMain.filter((row) => {
+        if (pilotCore && isNavHiddenUnderPilotCoreModules(row.gate.id)) return false;
+        return canSeeNavGate(isAdmin, canView, row.gate);
+      })
     : [];
 
   return (
@@ -130,8 +143,7 @@ function SidebarNavLinks({ onClose }: { onClose: () => void }) {
             <span className="font-semibold">Phân quyền</span>.
           </p>
         ) : (
-          navMain.map((row) => {
-            if (!canSeeNavGate(isAdmin, canView, row.gate)) return null;
+          mainVisible.map((row) => {
             const { gate: _g, ...item } = row;
             return (
               <NavLinkRow

@@ -3,9 +3,14 @@
  */
 
 import {
+  isPilotCoreModulesScopeEnabled,
+} from "@/lib/ksnk-pilot-core-modules-scope";
+import {
   isPilotFourModulesScopeEnabled,
   isPathBlockedUnderPilotFourModules,
 } from "@/lib/ksnk-pilot-four-modules-scope";
+
+export { isPathBlockedUnderPilotFourModules };
 
 /** Pilot 4 module — re-export để UI/docs dùng một import. */
 
@@ -26,10 +31,18 @@ export function isModuleEnabled(moduleKey: "CSSD" | "QLCV" | "NKBV" | "HIS"): bo
   const v = envMap[moduleKey];
   if (v === "0") return false;
   if (v === "1") return true;
+  if (isPilotCoreModulesScopeEnabled()) {
+    if (moduleKey === "QLCV") return true;
+    return false;
+  }
   if (isPilotFourModulesScopeEnabled()) {
     return false;
   }
   return true;
+}
+
+export function isPilotScopeActive(): boolean {
+  return isPilotCoreModulesScopeEnabled() || isPilotFourModulesScopeEnabled();
 }
 
 /** Bật/tắt Digital BOM Checklist tại trạm Đóng gói. */

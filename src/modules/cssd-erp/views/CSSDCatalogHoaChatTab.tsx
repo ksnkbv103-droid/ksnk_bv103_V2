@@ -20,7 +20,7 @@ export function CSSDCatalogHoaChatTab({ hoaChatRows }: { hoaChatRows: CSSDHoaCha
             className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 hover:bg-white hover:shadow-md hover:border-emerald-100 transition-all flex flex-col justify-between"
           >
             <div>
-              <span className="font-mono text-[9px] font-black uppercase tracking-wider text-slate-400 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
+              <span className="font-mono text-[11px] font-black uppercase tracking-wider text-slate-400 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
                 {x.ma_hoa_chat || "UNNAMED"}
               </span>
               <h4 className="mt-2 text-xs font-bold text-slate-800 uppercase tracking-wide leading-tight line-clamp-2">

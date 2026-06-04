@@ -5,10 +5,10 @@ type TemplatePreset = {
 
 const TECHNICAL_FIELDS = new Set(["id", "created_at", "updated_at", "__excel_row__"]);
 const EXCLUDED_EXPORT_FIELDS_BY_TABLE: Record<string, Set<string>> = {
-  dm_khoa_phong: new Set(["khoi_id"]),
-  dm_roles: new Set<string>(),
-  dm_bo_dung_cu: new Set(["loai_dung_cu_id", "khoa_su_dung_id"]),
-  dm_bo_dung_cu_chi_tiet: new Set(["bo_dung_cu_id", "loai_dung_cu_id"]),
+  mdm_dm_khoa_phong: new Set(["khoi_id"]),
+  sys_roles: new Set<string>(),
+  cssd_dm_bo_dung_cu: new Set(["loai_dung_cu_id", "khoa_su_dung_id"]),
+  cssd_dm_bo_dung_cu_chi_tiet: new Set(["bo_dung_cu_id", "loai_dung_cu_id"]),
   mdm_nhan_su: new Set([
     "khoa_id",
     "to_id",
@@ -41,7 +41,7 @@ const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       "is_active",
     ],
   },
-  dm_bo_dung_cu: {
+  cssd_dm_bo_dung_cu: {
     orderedFields: [
       "ma_bo",
       "ten_bo",
@@ -56,7 +56,7 @@ const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       "is_active",
     ],
   },
-  dm_bo_dung_cu_chi_tiet: {
+  cssd_dm_bo_dung_cu_chi_tiet: {
     orderedFields: [
       "ma_chi_tiet",
       "ten_chi_tiet",
@@ -72,7 +72,7 @@ const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       "is_active",
     ],
   },
-  dm_khoa_phong: {
+  mdm_dm_khoa_phong: {
     orderedFields: [
       "ma_khoa",
       "ten_khoa",
@@ -86,31 +86,31 @@ const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       "is_active",
     ],
   },
-  dm_khoi_khoa: {
+  mdm_dm_khoi_khoa: {
     orderedFields: ["ma_khoi", "ten_khoi", "is_active"],
   },
-  dm_to_cong_tac: {
+  mdm_dm_to_cong_tac: {
     orderedFields: ["ma_to", "ten_to", "is_active"],
   },
-  dm_chuc_vu: {
+  mdm_dm_chuc_vu: {
     orderedFields: ["ma_chuc_vu", "ten_chuc_vu", "is_active"],
   },
-  dm_chuc_danh: {
+  mdm_dm_chuc_danh: {
     orderedFields: ["ma_chuc_danh", "ten_chuc_danh", "is_active"],
   },
-  dm_roles: {
+  sys_roles: {
     orderedFields: ["name", "description"],
   },
-  dm_khu_vuc_giam_sat: {
+  gstt_dm_khu_vuc_giam_sat: {
     orderedFields: ["ma_khu_vuc", "ten_khu_vuc", "is_active"],
   },
-  dm_nghe_nghiep: {
+  mdm_dm_nghe_nghiep: {
     orderedFields: ["ma_nghe_nghiep", "ten_nghe_nghiep", "is_active"],
   },
-  dm_loai_dung_cu: {
+  cssd_dm_loai_dung_cu: {
     orderedFields: ["ma_loai_dung_cu", "ten_loai_dung_cu", "is_active"],
   },
-  dm_hoa_chat: {
+  cssd_dm_hoa_chat: {
     orderedFields: [
       "ma_hoa_chat",
       "ten_hoa_chat",
@@ -123,7 +123,7 @@ const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       "is_active",
     ],
   },
-  dm_thiet_bi: {
+  cssd_dm_thiet_bi: {
     orderedFields: [
       "ma_thiet_bi",
       "ten_thiet_bi",
@@ -139,33 +139,33 @@ const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
       "is_active",
     ],
   },
-  dm_hinh_thuc_giam_sat: {
+  gstt_dm_hinh_thuc_giam_sat: {
     orderedFields: ["ma_hinh_thuc", "ten_hinh_thuc", "is_active"],
   },
-  dm_cach_thuc_giam_sat: {
+  gstt_dm_cach_thuc_giam_sat: {
     orderedFields: ["ma_cach_thuc", "ten_cach_thuc", "is_active"],
   },
-  dm_loai_cong_viec: {
+  qlcv_dm_loai_cong_viec: {
     orderedFields: ["ma_loai", "ten_loai", "is_active"],
   },
-  dm_trang_thai_cong_viec: {
+  qlcv_dm_trang_thai_cong_viec: {
     orderedFields: ["ma_trang_thai", "ten_trang_thai", "is_active"],
   },
-  dm_loai_su_co: {
+  cssd_dm_loai_su_co: {
     orderedFields: ["ma_loai_su_co", "ten_loai_su_co", "is_active"],
   },
-  dm_loai_may_tiet_khuan: {
+  cssd_dm_loai_may: {
     orderedFields: ["ma_loai_may", "ten_loai_may", "is_active"],
   },
-  dm_loai_nkbv: {
+  nkbv_dm_loai: {
     orderedFields: ["ma_loai", "ten_loai", "is_active"],
   },
-  dm_trang_thai_nkbv_ca: {
+  nkbv_dm_trang_thai_ca: {
     orderedFields: ["ma_trang_thai", "ten_trang_thai", "thu_tu", "is_active"],
   },
 };
 
-const TABLES_WITHOUT_IS_ACTIVE = new Set(["dm_roles"]);
+const TABLES_WITHOUT_IS_ACTIVE = new Set(["sys_roles"]);
 
 export function buildLockedTemplateMapping(params: {
   tableName: string;

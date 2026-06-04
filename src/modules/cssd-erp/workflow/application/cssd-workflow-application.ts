@@ -44,11 +44,10 @@ export async function executeWorkflowStationScan(
     operatorLabel?: string;
     extraPayload?: Record<string, any>;
   },
-): Promise<{ tenBoDungCu: string; ledgerWarning?: string }> {
+): Promise<{ tenBoDungCu: string }> {
   const qr = String(opts.maQR || "").trim().toUpperCase();
   const operator = String(opts.operatorLabel || "").trim() || "CSSD";
   const targetStation = opts.station;
-  let ledgerWarning: string | undefined;
 
   const quyTrinh =
     opts.quyTrinh?.id
@@ -110,19 +109,6 @@ export async function executeWorkflowStationScan(
 
       const ledger = await assertLedgerDuChoCapPhat(supabase, qt.id);
       if (!ledger.ok) throw new Error(ledger.message);
-      if ("warning" in ledger && ledger.warning) {
-        ledgerWarning = ledger.warning;
-        const lc = await insertCssdLifecycleEvent(supabase, {
-          quy_trinh_id: qt.id,
-          ma_su_kien: "CAP_PHAT_BO_THIEU_CAU_PHAN",
-          ma_tram: "CAP_PHAT",
-          ghi_chu: ledger.warning,
-          payload: { ma_qr_quy_trinh: qr, warning: ledger.warning },
-        });
-        if (!lc.ok && !/cssd_fact_lifecycle_event|does not exist/i.test(lc.message)) {
-          throw new Error(lc.message);
-        }
-      }
     }
   }
 
@@ -153,7 +139,7 @@ export async function executeWorkflowStationScan(
       .eq("is_active", true);
   }
 
-  return { tenBoDungCu: qr, ledgerWarning };
+  return { tenBoDungCu: qr };
 }
 
 /** Trả bộ lui đúng 1 trạm (ngoại lệ vận hành có kiểm soát — không áp TK/CP). */

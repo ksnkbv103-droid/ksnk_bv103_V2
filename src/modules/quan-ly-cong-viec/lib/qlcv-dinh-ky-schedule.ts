@@ -1,6 +1,6 @@
 /**
  * Lịch sinh phiếu định kỳ — **mirror** điều kiện `match_due` trong
- * `public.fn_fact_cong_viec_spawn_dinh_ky_hom_nay()` (Postgres `date` + `mod` tuần / `extract(day)` tháng).
+ * `public.fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay()` (Postgres `date` + `mod` tuần / `extract(day)` tháng).
  * Dùng UTC date-only để khớp `YYYY-MM-DD` không giờ.
  */
 

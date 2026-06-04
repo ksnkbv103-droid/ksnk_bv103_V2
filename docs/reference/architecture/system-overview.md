@@ -65,7 +65,7 @@ Hệ thống phân rã thành 8 miền nghiệp vụ (Domain) tách biệt, đư
 *   **RBAC (Role-Based Access Control):** Phân quyền chi tiết dạng ma trận Module × Action (VIEW, CREATE, EDIT, DELETE, IMPORT, EXPORT, APPROVE, QC, LOCK).
 *   **MDM Hub (Master Data Management):** Nguồn chân lý duy nhất (SSOT) đồng bộ danh mục nhân sự, khoa phòng, thiết bị, hóa chất và dụng cụ toàn viện.
 *   **Bảng kiểm MDM:** Quản lý và khai báo 36 mẫu bảng kiểm (checklist) canonical theo tiêu chuẩn kiểm soát nhiễm khuẩn quốc gia.
-*   **Audit Trail:** Ghi nhận và lưu vết 100% các hoạt động thay đổi dữ liệu vào tệp nhật ký `sys_audit_log` (Được truy vấn qua view an toàn `v_sys_audit_log_full`, hỗ trợ phân trang và index tối ưu).
+*   **Audit hệ thống:** Đã gỡ (2026-06-02) — không còn tab/UI `sys_audit_log`; trace nghiệp vụ dựa trên dữ liệu fact + khóa module (`sys_module_locks`) và quyền RBAC.
 
 ### 2.2 Giám sát Vệ sinh tay (VST - WHO 5 Moments)
 *   **Khái niệm:** Giám sát tỷ lệ tuân thủ 5 thời điểm rửa tay của WHO.
@@ -157,8 +157,7 @@ Dữ liệu được tổ chức thống nhất theo 4 nhóm tiền tố chính:
 4.  **Data Processing:** Người dùng thực hiện thao tác (Ví dụ: Báo cáo mẻ hấp QC Pass). Một Server Action tương ứng được gọi dưới module.
 5.  **RBAC Gate:** Server Action gọi hàm `verifyPermission` kiểm tra quyền của tài khoản người dùng thực tế từ JWT token trên server. Nếu không có quyền, chặn đứng yêu cầu ngay lập tức để bảo vệ DB.
 6.  **Database Commit:** Server Action ghi dữ liệu vào các bảng giao dịch `fact_` của Supabase Postgres.
-7.  **Audit Trigger:** Trigger `fn_sys_audit_row` tự động bắt sự thay đổi dữ liệu trên Postgres, ghi một bản ghi lịch sử dạng JSONB vào bảng `sys_audit_log` để làm chứng cứ pháp lý.
-8.  **Revalidation:** Server Action phát tín hiệu revalidate cache để cập nhật giao diện Dashboard lập tức.
+7.  **Revalidation:** Server Action phát tín hiệu revalidate cache để cập nhật giao diện Dashboard lập tức.
 
 ---
 
@@ -172,6 +171,7 @@ Dữ liệu được tổ chức thống nhất theo 4 nhóm tiền tố chính:
 | Remote linked | **Không** `db push` mù — xem [migration-squash-runbook.md](../guides/migration-squash-runbook.md) |
 
 **Entities đã DROP khỏi schema (app không còn workflow):**
+- `sys_audit_log`, `v_sys_audit_log_full`, `fn_sys_audit_row` (+ trigger audit) — migration `20260602193500`
 - `gstt_fact_rca_ticket`, `gstt_dm_failure_reason`
 - Cột Phần 3–4 trên GSC/VST fact (`phieu_phan_tich_jsonb`, VST RCA fields) — migration `20260529160000`
 
@@ -189,8 +189,7 @@ Chi tiết: [interaction-matrix.md](./interaction-matrix.md).
 | GSC | MDM | `gstt_dm_bang_kiem` template (36 mẫu seed) |
 | CSSD workflow | MDM | Facade `requestReplenishFromReserveAction` (CSSD_WORKFLOW → kho lẻ) |
 | NKBV | LIS (future) | Rules engine Day 3; chưa FHIR |
-| QLCV | pg_cron | `fn_fact_cong_viec_spawn_dinh_ky_hom_nay` |
-| Mọi mutation | Audit | Trigger `fn_sys_audit_row` → `sys_audit_log` |
+| QLCV | pg_cron | `fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay`, `fn_sync_overdue_tasks` |
 
 ---
 

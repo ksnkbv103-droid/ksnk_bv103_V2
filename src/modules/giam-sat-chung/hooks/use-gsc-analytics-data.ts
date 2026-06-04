@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getGscStrategicAnalytics } from "../actions/gsc-strategic-analytics.actions";
 import type { GscStrategicPayload } from "../types/gsc-strategic.types";
 import { buildAnalyticsFilterPayload } from "@/lib/analytics/filter-helpers";
+import { gscAnalyticsPayloadHasData } from "@/lib/analytics/gsc-analytics-data";
 import { useAnalyticsFilters } from "@/lib/analytics/use-analytics-filters";
 
 type LoaiGiamSat = "TUAN_THU" | "NHAT_KY_VAN_HANH" | "DANH_GIA_HE_THONG" | undefined;
@@ -20,6 +21,9 @@ export function useGscAnalyticsData(initialLoaiGiamSat?: LoaiGiamSat) {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [payload, setPayload] = useState<GscStrategicPayload | null>(null);
+  const [checklistClusters, setChecklistClusters] = useState<Record<string, GscStrategicPayload>>({});
+  const [clustersLoading, setClustersLoading] = useState(false);
+  const [truncatedChecklistCount, setTruncatedChecklistCount] = useState(0);
 
   const bangKiemMasForRpc = useMemo(
     () =>
@@ -81,5 +85,93 @@ export function useGscAnalyticsData(initialLoaiGiamSat?: LoaiGiamSat) {
     if (filters.initDone) void loadRef.current();
   }, [filters.initDone, loadAnalytics]);
 
-  return { ...filters, loading, loadError, payload, loadAnalytics, initialLoaiGiamSat };
+  useEffect(() => {
+    if (!filters.initDone || !payload) {
+      setChecklistClusters({});
+      setTruncatedChecklistCount(0);
+      return;
+    }
+    const fromFilter =
+      filters.selectedBangKiemMas.length > 0
+        ? filters.selectedBangKiemMas.filter((id) => id !== "VST_WHO")
+        : [];
+    const fromData = (payload.dynamic_checklists ?? []).map((c) => c.ma_bk);
+    const allMas = fromFilter.length > 0 ? fromFilter : fromData;
+    const mas = allMas.slice(0, 12);
+    setTruncatedChecklistCount(Math.max(0, allMas.length - mas.length));
+    if (mas.length === 0) {
+      setChecklistClusters({});
+      return;
+    }
+
+    let cancelled = false;
+    setClustersLoading(true);
+    void (async () => {
+      const base = buildAnalyticsFilterPayload({
+        tuNgay: filters.tuNgay,
+        denNgay: filters.denNgay,
+        selectedKhoiIds: filters.selectedKhoiIds,
+        selectedKhoaIds: filters.selectedKhoaIds,
+        selectedNgheIds: filters.selectedNgheIds,
+        selectedKhuVucIds: filters.selectedKhuVucIds,
+        selectedHinhThucIds: filters.selectedHinhThucIds,
+        selectedBangKiemMas: mas,
+        khoiOptionCount: filters.khoiOptions.length,
+        khoaOptionCount: filters.khoaOptions.length,
+        ngheOptionCount: filters.ngheOptions.length,
+        khuOptionCount: filters.khuVucOptions.length,
+      });
+      const entries = await Promise.all(
+        mas.map(async (ma) => {
+          const res = await getGscStrategicAnalytics({
+            ...base,
+            bang_kiem_mas: [ma],
+          });
+          return [ma, res.success ? res.data : null] as const;
+        }),
+      );
+      if (cancelled) return;
+      const map: Record<string, GscStrategicPayload> = {};
+      for (const [ma, data] of entries) {
+        if (data && gscAnalyticsPayloadHasData(data)) map[ma] = data;
+      }
+      setChecklistClusters(map);
+      setClustersLoading(false);
+    })().catch(() => {
+      if (!cancelled) setClustersLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    filters.initDone,
+    filters.tuNgay,
+    filters.denNgay,
+    filters.selectedKhoiIds,
+    filters.selectedKhoaIds,
+    filters.selectedNgheIds,
+    filters.selectedKhuVucIds,
+    filters.selectedHinhThucIds,
+    filters.selectedBangKiemMas,
+    filters.khoiOptions.length,
+    filters.khoaOptions.length,
+    filters.ngheOptions.length,
+    filters.khuVucOptions.length,
+    payload,
+  ]);
+
+  return {
+    ...filters,
+    loading,
+    loadError,
+    payload,
+    checklistClusters,
+    clustersLoading,
+    truncatedChecklistCount,
+    loadAnalytics,
+    initialLoaiGiamSat,
+    bkLabelMap: filters.bkLabelMap,
+    bkLabelRecord: filters.bkLabelRecord,
+  };
 }

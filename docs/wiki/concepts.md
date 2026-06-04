@@ -39,14 +39,20 @@ Rules: `20-master-data-placement.mdc`, `12-cssd-erp-spec-context.mdc`. Reform: [
 
 | Primitive | File |
 |-----------|------|
+| Design tokens | `src/lib/bv103-design-tokens.ts` |
 | Panel / form | `src/lib/bv103-layout-chrome.ts` |
 | Page shell | `KsnkPageShell.tsx` — **chỉ** trong `ClientLayoutWrapper` |
+| Analytics frame | `Bv103AnalyticsPageFrame.tsx` — Command Center, Báo cáo tổng hợp |
 | Supervision | `ksnk-supervision-chrome.tsx` |
-| CSSD chrome | `cssd-ui-chrome.ts` |
+| Admin title | `KsnkPageHeader` — RBAC, MDM, danh mục |
+| CSSD chrome | `cssd-ui-chrome.ts` (extends layout chrome) |
+
+Doc chi tiết: [`modules/giam-sat/layout-primitives.md`](../modules/giam-sat/layout-primitives.md).
 
 1. `rounded-2xl` / `xl` — `npm run layout:drift-check`
-2. Tối đa: hero → một panel → bảng (không card lồng card)
-3. Dashboard `/`: `max-w-[1600px]` — ngoại lệ
+2. Label tối thiểu `text-[11px]` — `npm run layout:typography-check`
+3. Tối đa: hero → một panel → bảng (không card lồng card)
+4. Dashboard `/`: dùng `Bv103AnalyticsPageFrame` — **không** `max-w-[1400px]` lồng shell
 
 ---
 

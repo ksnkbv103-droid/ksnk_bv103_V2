@@ -31,9 +31,9 @@ export async function resolveCssdCodeWithClient(
     });
   }
 
-  const hasMachineQrColumn = await tableHasColumn(supabase, "dm_thiet_bi", "ma_qr_thiet_bi");
+  const hasMachineQrColumn = await tableHasColumn(supabase, "cssd_dm_thiet_bi", "ma_qr_thiet_bi");
   let machineQuery = supabase
-    .from("dm_thiet_bi")
+    .from("cssd_dm_thiet_bi")
     .select("id, ma_thiet_bi")
     .eq("is_active", true)
     .eq("ma_thiet_bi", code)
@@ -41,7 +41,7 @@ export async function resolveCssdCodeWithClient(
     .maybeSingle();
   if (hasMachineQrColumn) {
     machineQuery = supabase
-      .from("dm_thiet_bi")
+      .from("cssd_dm_thiet_bi")
       .select("id, ma_thiet_bi")
       .eq("is_active", true)
       .or(`ma_thiet_bi.eq.${code},ma_qr_thiet_bi.eq.${code}`)

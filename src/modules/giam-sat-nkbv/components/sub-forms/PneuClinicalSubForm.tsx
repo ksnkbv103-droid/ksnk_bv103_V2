@@ -157,7 +157,7 @@ export default function PneuClinicalSubForm({
                   className="w-full rounded-xl border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
                   placeholder="Ho mới, khó thở, rale phổi..."
                 />
-                <span className="text-[9px] text-slate-400 block mt-1 italic">Triệu chứng: đờm mủ mới/tăng đờm, ho, khó thở, rale phổi, khí máu giảm.</span>
+                <span className="text-[11px] text-slate-400 block mt-1 italic">Triệu chứng: đờm mủ mới/tăng đờm, ho, khó thở, rale phổi, khí máu giảm.</span>
               </div>
             </div>
           </div>

@@ -21,7 +21,7 @@ export async function getKhoaPhongRowsAction() {
   await verifyPermission("KHOA_PHONG", "view");
   const supabase = createAdminSupabaseClient();
   const { data: dmData, error: dmErr } = await supabase
-    .from("dm_khoa_phong")
+    .from("mdm_dm_khoa_phong")
     .select(
       "id, ma_khoa, ten_khoa, khoi_id, mo_ta_chuc_nang, so_bac_si, so_dieu_duong, so_giuong_benh_thuong, so_giuong_cap_cuu, is_active, khoi:khoi_id(ten_khoi, ma_khoi)",
     )
@@ -115,20 +115,20 @@ export async function saveKhoaPhongAction(input: Record<string, unknown>) {
   if (!payload.ma_khoa || !payload.ten_khoa) {
     return { success: false as const, error: "Thiếu mã hoặc tên khoa phòng." };
   }
-  return upsertMasterRow("dm_khoa_phong", id, payload);
+  return upsertMasterRow("mdm_dm_khoa_phong", id, payload);
 }
 
 export async function toggleKhoaPhongStatusAction(id: string, currentStatus: boolean) {
   await verifyPermission("KHOA_PHONG", "edit");
-  return toggleMasterStatus("dm_khoa_phong", id, currentStatus);
+  return toggleMasterStatus("mdm_dm_khoa_phong", id, currentStatus);
 }
 
 export async function softDeleteKhoaPhongAction(id: string) {
   await verifyPermission("KHOA_PHONG", "delete");
   const supabase = createAdminSupabaseClient();
-  const { error } = await supabase.from("dm_khoa_phong").delete().eq("id", id);
+  const { error } = await supabase.from("mdm_dm_khoa_phong").delete().eq("id", id);
   if (!error) {
-    revalidateMasterDataRowCacheTag("dm_khoa_phong");
+    revalidateMasterDataRowCacheTag("mdm_dm_khoa_phong");
     return { success: true as const };
   }
   if (typeof error === "object" && error && "code" in error && (error as { code?: string }).code === "23503") {

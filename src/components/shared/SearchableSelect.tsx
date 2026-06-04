@@ -8,6 +8,8 @@ export type SearchableSelectOption = {
   id: string;
   label: string;
   keywords?: string[];
+  /** Nhóm hiển thị (vd. 4 vùng IPAC) — render header khi đổi nhóm. */
+  groupLabel?: string;
 };
 
 type Props = {
@@ -80,6 +82,42 @@ export default function SearchableSelect({
     onChange?.(next);
     setOpen(false);
     setQuery("");
+  };
+
+  const renderOptionButtons = (list: SearchableSelectOption[], itemClassName: string) => {
+    let lastGroup = "";
+    return list.flatMap((opt, idx) => {
+      const nodes: React.ReactNode[] = [];
+      const group = opt.groupLabel?.trim() || "";
+      if (group && group !== lastGroup) {
+        lastGroup = group;
+        nodes.push(
+          <div
+            key={`group-${group}-${idx}`}
+            className="sticky top-0 z-[1] px-2 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-white/95 backdrop-blur-sm border-b border-slate-100 mb-1"
+          >
+            {group}
+          </div>,
+        );
+      }
+      nodes.push(
+        <button
+          key={opt.id || idx}
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleSelect(opt.id);
+          }}
+          className={`${itemClassName} ${
+            value === opt.id ? "bg-[#026f17]/10 font-semibold text-[#026f17]" : "text-slate-700"
+          }`}
+        >
+          {opt.label}
+        </button>,
+      );
+      return nodes;
+    });
   };
 
   useEffect(() => {
@@ -245,22 +283,10 @@ export default function SearchableSelect({
                     >
                       {placeholder}
                     </button>
-                    {filtered.map((opt, idx) => (
-                      <button
-                        key={opt.id || idx}
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleSelect(opt.id);
-                        }}
-                        className={`mb-2 w-full rounded-xl px-3 py-3.5 text-left text-base leading-snug hover:bg-slate-50 active:bg-slate-100 ${
-                          value === opt.id ? "bg-[#026f17]/12 font-semibold text-[#026f17]" : "text-slate-800"
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
+                    {renderOptionButtons(
+                      filtered,
+                      "mb-2 w-full rounded-xl px-3 py-3.5 text-left text-base leading-snug hover:bg-slate-50 active:bg-slate-100",
+                    )}
                     {filtered.length === 0 ? (
                       <p className="px-2 py-8 text-center text-base text-slate-400">Không có kết quả phù hợp</p>
                     ) : null}
@@ -298,22 +324,10 @@ export default function SearchableSelect({
                   >
                     {placeholder}
                   </button>
-                  {filtered.map((opt, idx) => (
-                    <button
-                      key={opt.id || idx}
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleSelect(opt.id);
-                      }}
-                      className={`mb-1 w-full rounded-lg px-2 py-1.5 text-left text-sm hover:bg-slate-50 ${
-                        value === opt.id ? "bg-[#026f17]/10 font-semibold text-[#026f17]" : "text-slate-700"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
+                  {renderOptionButtons(
+                    filtered,
+                    "mb-1 w-full rounded-lg px-2 py-1.5 text-left text-sm hover:bg-slate-50",
+                  )}
                   {filtered.length === 0 ? (
                     <p className="px-2 py-2 text-sm text-slate-400">Không có kết quả phù hợp</p>
                   ) : null}

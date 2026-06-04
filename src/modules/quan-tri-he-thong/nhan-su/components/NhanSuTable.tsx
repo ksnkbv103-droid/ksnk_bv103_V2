@@ -7,7 +7,8 @@ import NhanSuForm from "./NhanSuForm";
 import { useMasterDataCrud } from "@/hooks/useMasterDataCrud";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
-import { Users, Upload, Plus } from "lucide-react";
+import { Upload, Plus } from "lucide-react";
+import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import MasterDataImportExportModal from "../../components/MasterDataImportExportModal";
 
 const NHAN_SU_PAGE_SIZE = 20;
@@ -149,7 +150,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
           </div>
           <div>
             <div className="font-black text-slate-700 uppercase text-[11px] tracking-tight">{i.ho_ten}</div>
-            <div className="text-[9px] font-bold text-[#026f17] uppercase tracking-widest bg-[#026f17]/5 px-1.5 rounded-sm w-fit mt-0.5">{i.ma_nv}</div>
+            <div className="text-[11px] font-bold text-[#026f17] uppercase tracking-widest bg-[#026f17]/5 px-1.5 rounded-sm w-fit mt-0.5">{i.ma_nv}</div>
           </div>
         </div>
       )
@@ -164,7 +165,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
             {i.khoa?.ten_khoa || "---"}
           </span>
           {i.to?.ten_danh_muc && (
-            <span className="text-[9px] font-bold text-amber-500 uppercase italic">
+            <span className="text-[11px] font-bold text-amber-500 uppercase italic">
               ↳ {i.to.ten_danh_muc}
             </span>
           )}
@@ -177,11 +178,11 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       sortable: true, 
       cell: (i) => (
         <div className="flex flex-col gap-0.5">
-          <span className="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[9px] font-black uppercase w-fit">
+          <span className="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[11px] font-black uppercase w-fit">
             {i.chuc_danh || "Chưa gán"}
           </span>
           {i.chuc_vu && (
-            <span className="text-[9px] font-bold text-slate-400 italic ml-0.5">
+            <span className="text-[11px] font-bold text-slate-400 italic ml-0.5">
               {i.chuc_vu}
             </span>
           )}
@@ -207,34 +208,27 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
 
   return (
     <div className="space-y-4 animate-in fade-in duration-700">
-      <header className="flex flex-col sm:flex-row justify-between items-center bg-white/50 p-4 rounded-2xl border border-slate-100 backdrop-blur-md gap-4">
-        <div className="flex items-center gap-3 ml-2">
-          <div className="p-2 bg-[#026f17] rounded-xl text-white shadow-lg shadow-[#026f17]/20">
-            <Users size={20} />
-          </div>
-          <div>
-            <h2 className="text-sm font-black text-slate-700 uppercase tracking-tight">Danh sách nhân sự</h2>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5">Hệ thống KSNK 103</p>
-          </div>
-        </div>
-        
-        <div className="flex flex-wrap gap-2">
+      {(allowImport || allowCreate) && (
+        <div className="flex flex-wrap items-center justify-end gap-2">
           {allowImport && (
-            <button 
-              type="button" 
-              onClick={() => setImportModalOpen(true)} 
-              className="h-10 px-4 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-xl font-black uppercase text-[10px] flex items-center gap-2 transition-all active:scale-95"
-            >
-              <Upload size={14} /> Nhập/Xuất Excel
+            <button type="button" onClick={() => setImportModalOpen(true)} className={bv103DesignTokens.btnSecondary}>
+              <Upload size={14} aria-hidden /> Nhập/Xuất Excel
             </button>
           )}
           {allowCreate && (
-            <button type="button" onClick={() => { setEditingItem(null); setIsFormOpen(true); }} className="h-10 px-5 bg-[#026f17] text-white rounded-xl font-black uppercase text-[10px] shadow-lg shadow-[#026f17]/20 flex items-center gap-2 transition-all hover:translate-y-[-1px] active:scale-95">
-              <Plus size={16} /> Thêm nhân sự
+            <button
+              type="button"
+              onClick={() => {
+                setEditingItem(null);
+                setIsFormOpen(true);
+              }}
+              className={bv103DesignTokens.btnPrimary}
+            >
+              <Plus size={16} aria-hidden /> Thêm nhân sự
             </button>
           )}
         </div>
-      </header>
+      )}
 
       <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[500px]">
         <AdvancedDataTable

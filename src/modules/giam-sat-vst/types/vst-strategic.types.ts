@@ -17,11 +17,15 @@ export type VstStrategicKpis = {
 export type VstStrategicPayload = {
   kpis: VstStrategicKpis;
   trendline: { label: string; min_date: string; tong_co_hoi: number; da_tuan_thu: number; ty_le_tuan_thu: number }[];
-  matrix_khoa: { id: string; ten: string; tong_co_hoi: number; da_tuan_thu: number; ty_le_tuan_thu: number }[];
+  matrix_khoa: { id: string; ma_khoa?: string; ten: string; tong_co_hoi: number; da_tuan_thu: number; ty_le_tuan_thu: number }[];
   matrix_nghe: { id: string; ten: string; tong_co_hoi: number; da_tuan_thu: number; ty_le_tuan_thu: number }[];
+  matrix_khu_vuc?: { ten: string; ma_nhom?: string; tong_co_hoi: number; da_tuan_thu: number; ty_le_tuan_thu: number }[];
+  matrix_khu_vuc_nhom?: { ma_nhom: string; ten: string; tong_co_hoi: number; da_tuan_thu: number; ty_le_tuan_thu: number }[];
+  matrix_hinh_thuc?: { ten: string; tong_co_hoi: number; da_tuan_thu: number; ty_le_tuan_thu: number }[];
   moments: { ten: string; tong_co_hoi: number; da_tuan_thu: number; ty_le_tuan_thu: number }[];
   gap_analysis: {
     id: string;
+    ma_khoa?: string;
     ten: string;
     tgs_co_hoi: number;
     tgs_dat: number;

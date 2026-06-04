@@ -95,7 +95,7 @@ async function resolveViewerMaySeeKsnkStaffWorkloadWithScope(scope: ActorKsnkSco
   if (matchesKsnkVaiTroText(ns.vai_tro_he_thong_ksnk)) return true;
   const kid = ns.khoa_id ? String(ns.khoa_id) : "";
   if (!kid) return false;
-  const { data: k, error: kErr } = await supabase.from("dm_khoa_phong").select("ma_khoa, ten_khoa").eq("id", kid).maybeSingle();
+  const { data: k, error: kErr } = await supabase.from("mdm_dm_khoa_phong").select("ma_khoa, ten_khoa").eq("id", kid).maybeSingle();
   if (kErr || !k) return false;
   return matchesKhoaKsnk(k.ma_khoa, k.ten_khoa);
 }

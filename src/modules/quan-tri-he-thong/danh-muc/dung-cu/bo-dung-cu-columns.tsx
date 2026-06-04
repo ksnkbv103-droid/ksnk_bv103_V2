@@ -34,9 +34,9 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       sortable: true,
       cell: (i) => (
         i.phan_loai_bo === "THU_THUAT" ? (
-          <span className="bg-amber-50 text-amber-600 border border-amber-100 text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider">Thủ thuật</span>
+          <span className="bg-amber-50 text-amber-600 border border-amber-100 text-[11px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider">Thủ thuật</span>
         ) : (
-          <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider">Phẫu thuật</span>
+          <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[11px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider">Phẫu thuật</span>
         )
       ),
     },
@@ -46,9 +46,9 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       sortable: true,
       cell: (i) => (
         i.co_ma_dinh_danh_rieng ? (
-          <span className="bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider">Mã QR riêng</span>
+          <span className="bg-blue-50 text-blue-600 border border-blue-100 text-[11px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider">Mã QR riêng</span>
         ) : (
-          <span className="bg-slate-50 text-slate-500 border border-slate-100 text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider">Đồ dùng chung</span>
+          <span className="bg-slate-50 text-slate-500 border border-slate-100 text-[11px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wider">Đồ dùng chung</span>
         )
       ),
     },
@@ -63,7 +63,7 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
           ) : (
             <>Số bộ QR: <span className="text-emerald-700 font-black">{i.so_luong_bo || 0}</span></>
           )}
-          <div className="text-slate-400 text-[9px]">
+          <div className="text-slate-400 text-[11px]">
             Khoản: <span className="font-black text-slate-600">{i.so_khoan || 0}</span> / Dụng cụ: <span className="font-black text-slate-600">{i.tong_so_luong_dung_cu || 0}</span>
           </div>
         </span>
@@ -90,7 +90,7 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       accessorKey: "trang_thai",
       sortable: true,
       cell: (i) => (
-        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-slate-600">
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-black uppercase tracking-wide text-slate-600">
           {i.trang_thai || "—"}
         </span>
       ),

@@ -39,7 +39,7 @@ export async function saveBangKiem(data: Record<string, unknown>) {
       updated_at: new Date().toISOString(),
     };
     const id = typeof idRaw === "string" ? idRaw : "";
-    const result = await upsertMasterRow("dm_bang_kiem", id, payload);
+    const result = await upsertMasterRow("gstt_dm_bang_kiem", id, payload);
     if (!result.success) throw new Error(result.error);
     revalidatePath("/quan-tri-he-thong");
     return { success: true };
@@ -51,7 +51,7 @@ export async function saveBangKiem(data: Record<string, unknown>) {
 export async function deleteBangKiem(id: string) {
   try {
     await verifyPermission("BANG_KIEM", "delete");
-    const result = await softDeleteMasterRow("dm_bang_kiem", id);
+    const result = await softDeleteMasterRow("gstt_dm_bang_kiem", id);
     if (!result.success) throw new Error(result.error);
     revalidatePath("/quan-tri-he-thong");
     return { success: true };
@@ -87,7 +87,7 @@ export async function saveTieuChi(data: Record<string, unknown>) {
     
     const supabase = createAdminSupabaseClient();
     const { data: bk, error: fetchErr } = await supabase
-      .from("dm_bang_kiem")
+      .from("gstt_dm_bang_kiem")
       .select("tieu_chi_jsonb")
       .eq("id", bangKiemId)
       .single();
@@ -144,7 +144,7 @@ export async function saveTieuChi(data: Record<string, unknown>) {
     currentArray.sort((a, b) => (a.stt || 0) - (b.stt || 0));
     
     const { error: updateErr } = await supabase
-      .from("dm_bang_kiem")
+      .from("gstt_dm_bang_kiem")
       .update({
         tieu_chi_jsonb: currentArray,
         updated_at: new Date().toISOString(),
@@ -169,7 +169,7 @@ export async function deleteTieuChi(bangKiemId: string | undefined, tcId: string
     
     if (!targetBangKiemId) {
       const { data: bks, error: findErr } = await supabase
-        .from("dm_bang_kiem")
+        .from("gstt_dm_bang_kiem")
         .select("id, tieu_chi_jsonb")
         .contains("tieu_chi_jsonb", [{ id: tcId }]);
       if (findErr) throw findErr;
@@ -182,7 +182,7 @@ export async function deleteTieuChi(bangKiemId: string | undefined, tcId: string
         : [];
     } else {
       const { data: bk, error: fetchErr } = await supabase
-        .from("dm_bang_kiem")
+        .from("gstt_dm_bang_kiem")
         .select("tieu_chi_jsonb")
         .eq("id", targetBangKiemId)
         .single();
@@ -204,7 +204,7 @@ export async function deleteTieuChi(bangKiemId: string | undefined, tcId: string
     });
     
     const { error: updateErr } = await supabase
-      .from("dm_bang_kiem")
+      .from("gstt_dm_bang_kiem")
       .update({
         tieu_chi_jsonb: updatedArray,
         updated_at: new Date().toISOString(),
@@ -225,7 +225,7 @@ export async function importTieuChis(bangKiemId: string, newCriteria: Record<str
     const supabase = createAdminSupabaseClient();
     
     const { data: bk, error: fetchErr } = await supabase
-      .from("dm_bang_kiem")
+      .from("gstt_dm_bang_kiem")
       .select("tieu_chi_jsonb")
       .eq("id", bangKiemId)
       .single();
@@ -254,7 +254,7 @@ export async function importTieuChis(bangKiemId: string, newCriteria: Record<str
     updatedArray.sort((a, b) => (a.stt || 0) - (b.stt || 0));
     
     const { error: updateErr } = await supabase
-      .from("dm_bang_kiem")
+      .from("gstt_dm_bang_kiem")
       .update({
         tieu_chi_jsonb: updatedArray,
         updated_at: new Date().toISOString(),
@@ -276,7 +276,7 @@ export async function deleteMultipleTieuChis(ids: string[]) {
     
     const supabase = createAdminSupabaseClient();
     const { data: bks, error: fetchErr } = await supabase
-      .from("dm_bang_kiem")
+      .from("gstt_dm_bang_kiem")
       .select("id, tieu_chi_jsonb");
     if (fetchErr) throw fetchErr;
     if (!bks) return { success: true };
@@ -303,7 +303,7 @@ export async function deleteMultipleTieuChis(ids: string[]) {
       
       if (hasChanged) {
         const { error: updateErr } = await supabase
-          .from("dm_bang_kiem")
+          .from("gstt_dm_bang_kiem")
           .update({
             tieu_chi_jsonb: updatedArray,
             updated_at: new Date().toISOString(),
@@ -321,21 +321,21 @@ export async function deleteMultipleTieuChis(ids: string[]) {
 }
 
 export async function toggleIsActive(
-  table: "dm_bang_kiem" | "tieu_chi_bang_kiem_json",
+  table: "gstt_dm_bang_kiem" | "tieu_chi_bang_kiem_json",
   id: string,
   currentStatus: boolean,
 ) {
   try {
-    await verifyPermission(table === "dm_bang_kiem" ? "BANG_KIEM" : "BANG_KIEM_DETAIL", "edit");
+    await verifyPermission(table === "gstt_dm_bang_kiem" ? "BANG_KIEM" : "BANG_KIEM_DETAIL", "edit");
     const supabase = createAdminSupabaseClient();
     
-    if (table === "dm_bang_kiem") {
+    if (table === "gstt_dm_bang_kiem") {
       const result = await toggleMasterStatus(table, id, currentStatus);
       if (!result.success) throw new Error(result.error);
     } else {
       // Find parent checklist containing this criterion
       const { data: bks, error: findErr } = await supabase
-        .from("dm_bang_kiem")
+        .from("gstt_dm_bang_kiem")
         .select("id, tieu_chi_jsonb")
         .contains("tieu_chi_jsonb", [{ id }]);
       if (findErr) throw findErr;
@@ -357,7 +357,7 @@ export async function toggleIsActive(
         };
         
         const { error: updateErr } = await supabase
-          .from("dm_bang_kiem")
+          .from("gstt_dm_bang_kiem")
           .update({
             tieu_chi_jsonb: currentArray,
             updated_at: new Date().toISOString(),
@@ -380,7 +380,7 @@ export async function reorderTieuChis(bangKiemId: string) {
     const supabase = createAdminSupabaseClient();
     
     const { data: bk, error: fetchErr } = await supabase
-      .from("dm_bang_kiem")
+      .from("gstt_dm_bang_kiem")
       .select("tieu_chi_jsonb")
       .eq("id", bangKiemId)
       .single();
@@ -409,7 +409,7 @@ export async function reorderTieuChis(bangKiemId: string) {
     }));
     
     const { error: updateErr } = await supabase
-      .from("dm_bang_kiem")
+      .from("gstt_dm_bang_kiem")
       .update({
         tieu_chi_jsonb: updatedArray,
         updated_at: new Date().toISOString(),

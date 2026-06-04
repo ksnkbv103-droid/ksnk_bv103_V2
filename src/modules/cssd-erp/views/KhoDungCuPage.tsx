@@ -101,9 +101,9 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
   const handleExport = () => {
     const exportData = filteredData.map((d: any) => ({
       "MÃ QR": d.ma_vach_qr,
-      "TÊN BỘ": d.dm_bo_dung_cu?.ten_bo,
-      "KHOA": d.dm_bo_dung_cu?.khoa?.ma_khoa || "DÙNG CHUNG",
-      "SỐ MÓN": d.dm_bo_dung_cu?.so_luong_mon || 1,
+      "TÊN BỘ": d.cssd_dm_bo_dung_cu?.ten_bo,
+      "KHOA": d.cssd_dm_bo_dung_cu?.khoa?.ma_khoa || "DÙNG CHUNG",
+      "SỐ MÓN": d.cssd_dm_bo_dung_cu?.so_luong_mon || 1,
       "FEFO": d.han_su_dung ? new Date(d.han_su_dung).toLocaleDateString("vi-VN") : "---",
       "TRẠNG THÁI": d.trang_thai_hien_tai,
     }));
@@ -121,13 +121,13 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
   const columns: Column<any>[] = [
     {
       header: "BỘ DỤNG CỤ",
-      accessorKey: "dm_bo_dung_cu.ten_bo",
+      accessorKey: "cssd_dm_bo_dung_cu.ten_bo",
       cell: (i: any) => (
         <div className="space-y-1">
           <span className="font-bold text-slate-800 text-xs truncate max-w-[220px] block">
-            {i.dm_bo_dung_cu?.ten_bo || "CHƯA ĐẶT TÊN"}
+            {i.cssd_dm_bo_dung_cu?.ten_bo || "CHƯA ĐẶT TÊN"}
           </span>
-          <span className="font-mono text-[9px] text-slate-400 block">
+          <span className="font-mono text-[11px] text-slate-400 block">
             {i.ma_vach_qr?.length > 16
               ? `${i.ma_vach_qr.slice(0, 8)}…${i.ma_vach_qr.slice(-4)}`
               : i.ma_vach_qr}
@@ -137,18 +137,18 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
     },
     {
       header: "MÃ KHOA",
-      accessorKey: "dm_bo_dung_cu.khoa.ma_khoa",
+      accessorKey: "cssd_dm_bo_dung_cu.khoa.ma_khoa",
       cell: (i: any) => (
         <span className="text-[10px] font-bold text-slate-500 uppercase">
-          {i.dm_bo_dung_cu?.khoa?.ma_khoa || "DÙNG CHUNG"}
+          {i.cssd_dm_bo_dung_cu?.khoa?.ma_khoa || "DÙNG CHUNG"}
         </span>
       ),
     },
     {
       header: "SỐ MÓN",
-      accessorKey: "dm_bo_dung_cu.so_luong_mon",
+      accessorKey: "cssd_dm_bo_dung_cu.so_luong_mon",
       cell: (i: any) => (
-        <span className="font-black text-slate-600 text-[11px]">{i.dm_bo_dung_cu?.so_luong_mon || 1}</span>
+        <span className="font-black text-slate-600 text-[11px]">{i.cssd_dm_bo_dung_cu?.so_luong_mon || 1}</span>
       ),
     },
     {
@@ -185,7 +185,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       cell: (i: any) => {
         if (i.is_red_alert)
           return (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-red-50 text-red-600 border border-red-100">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-red-50 text-red-600 border border-red-100">
               ⚠️ Sự cố
             </span>
           );
@@ -209,7 +209,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
         };
         return (
           <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${badge.cls}`}
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border ${badge.cls}`}
           >
             {badge.icon} {badge.label}
           </span>
@@ -232,7 +232,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
             onClick={() =>
               printLabel({
                 qrCode: i.ma_vach_qr,
-                tenBoDungCu: i.dm_bo_dung_cu?.ten_bo || "NA",
+                tenBoDungCu: i.cssd_dm_bo_dung_cu?.ten_bo || "NA",
                 tram: i.trang_thai_hien_tai,
                 nguoiThucHien: "CSSD",
                 thoiGian: new Date().toLocaleString("vi-VN"),
@@ -266,7 +266,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
           </p>
           <button
             onClick={() => setFilterFEFO(!filterFEFO)}
-            className={`px-6 py-3 rounded-2xl font-black text-[9px] uppercase transition-all flex items-center gap-2 border-2 ${
+            className={`px-6 py-3 rounded-2xl font-black text-[11px] uppercase transition-all flex items-center gap-2 border-2 ${
               filterFEFO
                 ? "border-orange-500 bg-orange-50 text-orange-600"
                 : "border-slate-100 bg-slate-50 text-slate-400 hover:bg-slate-100/50"

@@ -1,4 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   HINH_THUC_CHUYEN_TRACH,
   HINH_THUC_GIAM_SAT_CHEO,
@@ -32,9 +31,6 @@ export type SessionInput = {
   cach_thuc_giam_sat?: string | null;
   cach_thuc_id?: string | null;
 };
-export type ImportRow = Record<string, unknown>;
-export type ExistingSessionRow = { id?: string };
-
 export function vstWriteErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Lỗi không xác định";
 }
@@ -71,32 +67,6 @@ export function validateVstModeFields(hinh: string, cach: string) {
   }
 }
 
-/** Resolve FK hình thức / cách thức khi chỉ có nhãn (sau DROP cột text trên phiên). */
-export async function resolveVstModeIds(
-  supabase: SupabaseClient,
-  params: { hinh: string; cach: string; hinh_id?: string | null; cach_id?: string | null },
-): Promise<{ hinh_thuc_id: string | null; cach_thuc_id: string | null }> {
-  let hinh_thuc_id = params.hinh_id ?? null;
-  let cach_thuc_id = params.cach_id ?? null;
-  if (!hinh_thuc_id && params.hinh) {
-    const { data } = await supabase
-      .from("dm_hinh_thuc_giam_sat")
-      .select("id")
-      .eq("ten_hinh_thuc", params.hinh)
-      .maybeSingle();
-    hinh_thuc_id = data?.id ? String(data.id) : null;
-  }
-  if (!cach_thuc_id && params.cach) {
-    const { data } = await supabase
-      .from("dm_cach_thuc_giam_sat")
-      .select("id")
-      .eq("ten_cach_thuc", params.cach)
-      .maybeSingle();
-    cach_thuc_id = data?.id ? String(data.id) : null;
-  }
-  return { hinh_thuc_id, cach_thuc_id };
-}
-
 export function logVstSaveDebug(message: string, detail?: Record<string, unknown>) {
   if (process.env.NODE_ENV === "production") return;
   if (detail) console.log(`[VST save] ${message}`, detail);
@@ -108,7 +78,7 @@ export function formatVstKhoaFkViolation(message: string | undefined): string {
   if (m.includes("giam_sat_vst_khoa_id_fkey")) {
     return (
       `${m} — Bảng chi tiết cơ hội VST (giam_sat_vst) đang dùng FK khoa_id lệch source-of-truth. ` +
-      "Liên hệ đội vận hành DB để chạy migration/fix script chuẩn hiện hành cho FK khoa_id theo dm_khoa_phong."
+      "Liên hệ đội vận hành DB để chạy migration/fix script chuẩn hiện hành cho FK khoa_id theo mdm_dm_khoa_phong."
     );
   }
   if (!m.includes("giam_sat_vst_sessions_khoa_id_fkey")) return m;

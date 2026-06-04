@@ -25,7 +25,7 @@ export async function fetchCssdKhoGiaoDichHistory() {
     ];
     let boMap = new Map<string, { ma_bo: string; ten_bo: string }>();
     if (boIds.length) {
-      const { data: bos } = await supabase.from("dm_bo_dung_cu").select("id, ma_bo, ten_bo").in("id", boIds);
+      const { data: bos } = await supabase.from("cssd_dm_bo_dung_cu").select("id, ma_bo, ten_bo").in("id", boIds);
       boMap = new Map(
         (bos || []).map((b: { id: string; ma_bo?: string | null; ten_bo?: string | null }) => [
           String(b.id),
@@ -40,7 +40,7 @@ export async function fetchCssdKhoGiaoDichHistory() {
     let loaiMap = new Map<string, { ma_loai_dung_cu: string; ten_loai_dung_cu: string }>();
     if (loaiIds.length) {
       const { data: loais } = await supabase
-        .from("dm_loai_dung_cu")
+        .from("cssd_dm_loai_dung_cu")
         .select("id, ma_loai_dung_cu, ten_loai_dung_cu")
         .in("id", loaiIds);
       loaiMap = new Map(
@@ -61,8 +61,8 @@ export async function fetchCssdKhoGiaoDichHistory() {
       const loaiId = String(r.loai_dung_cu_id || "").trim();
       return {
         ...r,
-        dm_bo_dung_cu: boId ? boMap.get(boId) ?? null : null,
-        dm_loai_dung_cu: loaiId ? loaiMap.get(loaiId) ?? null : null,
+        cssd_dm_bo_dung_cu: boId ? boMap.get(boId) ?? null : null,
+        cssd_dm_loai_dung_cu: loaiId ? loaiMap.get(loaiId) ?? null : null,
       };
     });
 

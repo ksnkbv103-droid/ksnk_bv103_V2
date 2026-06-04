@@ -19,16 +19,16 @@ export function isImportMaEmpty(ma: string): boolean {
 }
 
 export const DM_TABLE_BY_LOAI: Record<string, { table: string; ma: string; ten: string }> = {
-  KHOI_KHOA: { table: "dm_khoi_khoa", ma: "ma_khoi", ten: "ten_khoi" },
-  TO_CONG_TAC: { table: "dm_to_cong_tac", ma: "ma_to", ten: "ten_to" },
-  CHUC_VU: { table: "dm_chuc_vu", ma: "ma_chuc_vu", ten: "ten_chuc_vu" },
-  CHUC_DANH: { table: "dm_chuc_danh", ma: "ma_chuc_danh", ten: "ten_chuc_danh" },
-  VAI_TRO_HE_THONG_KSNK: { table: "dm_roles", ma: "name", ten: "name" },
-  KHU_VUC_GIAM_SAT: { table: "dm_khu_vuc_giam_sat", ma: "ma_khu_vuc", ten: "ten_khu_vuc" },
-  NGHE_NGHIEP: { table: "dm_nghe_nghiep", ma: "ma_nghe_nghiep", ten: "ten_nghe_nghiep" },
-  LOAI_DUNG_CU: { table: "dm_loai_dung_cu", ma: "ma_loai_dung_cu", ten: "ten_loai_dung_cu" },
-  LOAI_SU_CO: { table: "dm_loai_su_co", ma: "ma_loai_su_co", ten: "ten_loai_su_co" },
-  LOAI_MAY_TIET_KHUAN: { table: "dm_loai_may_tiet_khuan", ma: "ma_loai_may", ten: "ten_loai_may" },
+  KHOI_KHOA: { table: "mdm_dm_khoi_khoa", ma: "ma_khoi", ten: "ten_khoi" },
+  TO_CONG_TAC: { table: "mdm_dm_to_cong_tac", ma: "ma_to", ten: "ten_to" },
+  CHUC_VU: { table: "mdm_dm_chuc_vu", ma: "ma_chuc_vu", ten: "ten_chuc_vu" },
+  CHUC_DANH: { table: "mdm_dm_chuc_danh", ma: "ma_chuc_danh", ten: "ten_chuc_danh" },
+  VAI_TRO_HE_THONG_KSNK: { table: "sys_roles", ma: "name", ten: "name" },
+  KHU_VUC_GIAM_SAT: { table: "gstt_dm_khu_vuc_giam_sat", ma: "ma_khu_vuc", ten: "ten_khu_vuc" },
+  NGHE_NGHIEP: { table: "mdm_dm_nghe_nghiep", ma: "ma_nghe_nghiep", ten: "ten_nghe_nghiep" },
+  LOAI_DUNG_CU: { table: "cssd_dm_loai_dung_cu", ma: "ma_loai_dung_cu", ten: "ten_loai_dung_cu" },
+  LOAI_SU_CO: { table: "cssd_dm_loai_su_co", ma: "ma_loai_su_co", ten: "ten_loai_su_co" },
+  LOAI_MAY_TIET_KHUAN: { table: "cssd_dm_loai_may", ma: "ma_loai_may", ten: "ten_loai_may" },
 };
 
 /** Chuỗi có vẻ là mã ngắn (ma_khoa, ma_bo…), không phải nguyên cụm tên tiếng Việt trong một ô. */

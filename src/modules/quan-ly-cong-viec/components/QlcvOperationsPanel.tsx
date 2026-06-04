@@ -8,7 +8,7 @@ import { KsnkSupervisionPanel, KsnkSupervisionTabList, type SupervisionTabDef } 
 import SearchBar from "@/components/shared/SearchBar";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
-import { DashboardStats } from "./DashboardStats";
+import { QlcvGateStats } from "./QlcvGateStats";
 import { buildQlcvCommandTableColumns } from "./qlcv-table-columns";
 import { deleteCongViec } from "../actions/cong-viec.actions";
 import { isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
@@ -33,6 +33,7 @@ type ViewMode = "BANG" | "KANBAN";
 export type QlcvOperationsPanelProps = {
   kanban: UseQlcvKanbanReturn;
   table: UseQlcvTableReturn;
+  mergedTasks: CongViecView[];
   viewMode: ViewMode;
   onViewModeChange: (m: ViewMode) => void;
   qlcvUi: QlcvUiAccessFlags;
@@ -40,6 +41,7 @@ export type QlcvOperationsPanelProps = {
   actorStaffId: string | null;
   onSelectTask: (id: string) => void;
   onApproveFromKanban: (row: CongViecView) => void;
+  mauSacByMa?: Record<string, string | null | undefined>;
   onEditTask: (row: CongViecView) => void;
   onRefreshAll: () => Promise<void>;
   onBoardFilter: (f: QlcvBoardFilter) => void;
@@ -49,6 +51,7 @@ export type QlcvOperationsPanelProps = {
 export function QlcvOperationsPanel({
   kanban,
   table,
+  mergedTasks,
   viewMode,
   onViewModeChange,
   qlcvUi,
@@ -60,13 +63,8 @@ export function QlcvOperationsPanel({
   onRefreshAll,
   onBoardFilter,
   routerRefresh,
+  mauSacByMa,
 }: QlcvOperationsPanelProps) {
-  const mergedTasks = useMemo(() => {
-    const activeIds = new Set(kanban.tasks.map((t) => t.id));
-    const extras = kanban.pendingKanbanExtras.filter((p) => !activeIds.has(p.id));
-    return [...extras, ...kanban.tasks];
-  }, [kanban.tasks, kanban.pendingKanbanExtras]);
-
   const kanbanTasks = useMemo(() => {
     const term = kanban.kanbanSearchDebounced;
     return mergedTasks.filter((t) => {
@@ -127,8 +125,8 @@ export function QlcvOperationsPanel({
   );
 
   const columns = useMemo(
-    () => buildQlcvCommandTableColumns({ qlcvUi, onEdit: onEditTask, onDelete: handleDelete }),
-    [qlcvUi, onEditTask, handleDelete],
+    () => buildQlcvCommandTableColumns({ qlcvUi, mauSacByMa, onEdit: onEditTask, onDelete: handleDelete }),
+    [qlcvUi, mauSacByMa, onEditTask, handleDelete],
   );
 
   return (
@@ -149,7 +147,7 @@ export function QlcvOperationsPanel({
           </span>
           <button
             type="button"
-            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600 hover:bg-slate-100"
+            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600 hover:bg-slate-100"
             onClick={() => onBoardFilter("TOTAL")}
           >
             Bỏ lọc
@@ -157,7 +155,7 @@ export function QlcvOperationsPanel({
         </div>
       ) : null}
 
-      <DashboardStats
+      <QlcvGateStats
         tasks={mergedTasks}
         activeFilter={kanban.boardFilter}
         onFilterChange={onBoardFilter}

@@ -54,17 +54,17 @@ export function LoaiDungCuChiTietPanel({
   const renderBadge = (type: string) => {
     switch (type) {
       case "NHAP_KHO":
-        return <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Nhập kho</span>;
+        return <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[11px] font-black px-2 py-0.5 rounded-full uppercase">Nhập kho</span>;
       case "BAO_HONG":
-        return <span className="bg-rose-50 text-rose-600 border border-rose-100 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Báo hỏng</span>;
+        return <span className="bg-rose-50 text-rose-600 border border-rose-100 text-[11px] font-black px-2 py-0.5 rounded-full uppercase">Báo hỏng</span>;
       case "BAO_MAT":
-        return <span className="bg-amber-50 text-amber-600 border border-amber-100 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Báo mất</span>;
+        return <span className="bg-amber-50 text-amber-600 border border-amber-100 text-[11px] font-black px-2 py-0.5 rounded-full uppercase">Báo mất</span>;
       case "BO_SUNG":
-        return <span className="bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Bổ sung</span>;
+        return <span className="bg-blue-50 text-blue-600 border border-blue-100 text-[11px] font-black px-2 py-0.5 rounded-full uppercase">Bổ sung</span>;
       case "DIEU_CHUYEN":
-        return <span className="bg-purple-50 text-purple-600 border border-purple-100 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Điều chuyển</span>;
+        return <span className="bg-purple-50 text-purple-600 border border-purple-100 text-[11px] font-black px-2 py-0.5 rounded-full uppercase">Điều chuyển</span>;
       default:
-        return <span className="bg-slate-50 text-slate-600 border border-slate-100 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">{type}</span>;
+        return <span className="bg-slate-50 text-slate-600 border border-slate-100 text-[11px] font-black px-2 py-0.5 rounded-full uppercase">{type}</span>;
     }
   };
 
@@ -80,7 +80,7 @@ export function LoaiDungCuChiTietPanel({
               {selectedTenLoai || "Chi tiết loại dụng cụ"}
             </h3>
           </div>
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-1">
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-1">
             Tra cứu ngược cấu trúc phân bổ & lịch sử biến động y tế
           </p>
         </div>
@@ -88,7 +88,7 @@ export function LoaiDungCuChiTietPanel({
         <div className="flex gap-1.5 bg-slate-100 p-1 rounded-xl">
           <button
             onClick={() => setActiveTab("sets")}
-            className={`px-4 py-2 text-[9px] font-black uppercase rounded-lg transition-all flex items-center gap-1.5 ${
+            className={`px-4 py-2 text-[11px] font-black uppercase rounded-lg transition-all flex items-center gap-1.5 ${
               activeTab === "sets"
                 ? "bg-white text-[#026f17] shadow-sm"
                 : "text-slate-500 hover:text-slate-800"
@@ -98,7 +98,7 @@ export function LoaiDungCuChiTietPanel({
           </button>
           <button
             onClick={() => setActiveTab("logs")}
-            className={`px-4 py-2 text-[9px] font-black uppercase rounded-lg transition-all flex items-center gap-1.5 ${
+            className={`px-4 py-2 text-[11px] font-black uppercase rounded-lg transition-all flex items-center gap-1.5 ${
               activeTab === "logs"
                 ? "bg-white text-[#026f17] shadow-sm"
                 : "text-slate-500 hover:text-slate-800"
@@ -121,9 +121,9 @@ export function LoaiDungCuChiTietPanel({
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-slate-100">
-                      <th className="pb-3 text-[9px] font-black uppercase text-slate-400 tracking-wider">Mã bộ</th>
-                      <th className="pb-3 text-[9px] font-black uppercase text-slate-400 tracking-wider">Tên bộ dụng cụ</th>
-                      <th className="pb-3 text-[9px] font-black uppercase text-slate-400 tracking-wider text-right">Thao tác</th>
+                      <th className="pb-3 text-[11px] font-black uppercase text-slate-400 tracking-wider">Mã bộ</th>
+                      <th className="pb-3 text-[11px] font-black uppercase text-slate-400 tracking-wider">Tên bộ dụng cụ</th>
+                      <th className="pb-3 text-[11px] font-black uppercase text-slate-400 tracking-wider text-right">Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -136,7 +136,7 @@ export function LoaiDungCuChiTietPanel({
                             onClick={() => {
                               toast.info(`Bộ ${b.ten_bo} đang ở trong trang Danh mục Bộ`);
                             }}
-                            className="text-[9px] font-black uppercase text-[#026f17] bg-[#026f17]/5 hover:bg-[#026f17]/10 px-2.5 py-1 rounded-lg transition-colors"
+                            className="text-[11px] font-black uppercase text-[#026f17] bg-[#026f17]/5 hover:bg-[#026f17]/10 px-2.5 py-1 rounded-lg transition-colors"
                           >
                             Xem chi tiết bộ
                           </button>
@@ -169,12 +169,12 @@ export function LoaiDungCuChiTietPanel({
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-slate-100">
-                      <th className="pb-3 text-[9px] font-black uppercase text-slate-400 tracking-wider">Thời gian</th>
-                      <th className="pb-3 text-[9px] font-black uppercase text-slate-400 tracking-wider">Loại giao dịch</th>
-                      <th className="pb-3 text-[9px] font-black uppercase text-slate-400 tracking-wider">Biến động</th>
-                      <th className="pb-3 text-[9px] font-black uppercase text-slate-400 tracking-wider">Bộ liên đới</th>
-                      <th className="pb-3 text-[9px] font-black uppercase text-slate-400 tracking-wider">Mã vạch bộ QR</th>
-                      <th className="pb-3 text-[9px] font-black uppercase text-slate-400 tracking-wider">Ghi chú</th>
+                      <th className="pb-3 text-[11px] font-black uppercase text-slate-400 tracking-wider">Thời gian</th>
+                      <th className="pb-3 text-[11px] font-black uppercase text-slate-400 tracking-wider">Loại giao dịch</th>
+                      <th className="pb-3 text-[11px] font-black uppercase text-slate-400 tracking-wider">Biến động</th>
+                      <th className="pb-3 text-[11px] font-black uppercase text-slate-400 tracking-wider">Bộ liên đới</th>
+                      <th className="pb-3 text-[11px] font-black uppercase text-slate-400 tracking-wider">Mã vạch bộ QR</th>
+                      <th className="pb-3 text-[11px] font-black uppercase text-slate-400 tracking-wider">Ghi chú</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -192,7 +192,7 @@ export function LoaiDungCuChiTietPanel({
                         <td className="py-3 text-[10px] font-bold text-slate-600 uppercase">
                           {log.bo_dung_cu ? log.bo_dung_cu.ten_bo : "—"}
                         </td>
-                        <td className="py-3 font-mono text-[9px] text-slate-400">
+                        <td className="py-3 font-mono text-[11px] text-slate-400">
                           {log.quy_trinh ? log.quy_trinh.ma_vach_set : "—"}
                         </td>
                         <td className="py-3 text-[10px] text-slate-500 italic">

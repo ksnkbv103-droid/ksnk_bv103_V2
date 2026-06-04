@@ -118,7 +118,7 @@ export function CSSDCatalogBoTab(props: {
                     </td>
                     <td className="px-4 py-3.5 text-center">
                       <span
-                        className={`inline-flex rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
+                        className={`inline-flex rounded-full px-1.5 py-0.5 text-[11px] font-bold ${
                           x.is_active
                             ? "bg-emerald-50 text-emerald-700"
                             : "bg-slate-100 text-slate-500"

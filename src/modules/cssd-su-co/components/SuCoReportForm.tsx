@@ -415,7 +415,7 @@ export default function SuCoReportForm({
                     <span className={`text-[11px] font-black uppercase tracking-wide leading-tight ${isSelected ? "text-[#026f17]" : "text-slate-700"}`}>
                       {INCIDENT_GROUP_LABEL[g].split(" (")[0]}
                     </span>
-                    <span className="mt-1 text-[9px] font-medium leading-relaxed text-slate-400">
+                    <span className="mt-1 text-[11px] font-medium leading-relaxed text-slate-400">
                       {GROUP_SUBTITLES[g]}
                     </span>
                   </button>
@@ -452,7 +452,7 @@ export default function SuCoReportForm({
                         <QrCode size={20} className={form.maQR ? "text-[#026f17]" : ""} />
                       </div>
                     </div>
-                    <p className="text-[9px] font-medium text-slate-400 italic">
+                    <p className="text-[11px] font-medium text-slate-400 italic">
                       * Nhấn Enter sau khi quét để hệ thống truy vết khâu làm việc trước.
                     </p>
                   </div>
@@ -873,7 +873,7 @@ export default function SuCoReportForm({
                         <Camera size={16} />
                       </div>
                     </div>
-                    <p className="text-[9px] font-medium text-slate-400 leading-relaxed">
+                    <p className="text-[11px] font-medium text-slate-400 leading-relaxed">
                       * Bản in chuẩn y tế tự động bóc tách ID Google Drive và hiển thị ảnh thô sắc nét.
                     </p>
 
@@ -888,7 +888,7 @@ export default function SuCoReportForm({
                             (e.target as HTMLElement).style.display = "none";
                           }}
                         />
-                        <span className="mt-1.5 text-[8px] font-bold uppercase tracking-wider text-slate-400">Xem trước ảnh minh chứng</span>
+                        <span className="mt-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Xem trước ảnh minh chứng</span>
                       </div>
                     )}
                   </div>

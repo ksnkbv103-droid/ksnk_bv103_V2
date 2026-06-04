@@ -7,8 +7,9 @@
  * tính rate, chỉ ghi & cảnh báo OOR.
  */
 
-import React from "react";
+import React, { Suspense } from "react";
 import GiamSatChungPage from "@/modules/giam-sat-chung/views/GiamSatChungPage";
+import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 
 export const metadata = {
   title: "Nhật ký vận hành KSNK | KSNK 103",
@@ -17,5 +18,9 @@ export const metadata = {
 };
 
 export default function NhatKyVanHanhPage() {
-  return <GiamSatChungPage initialLoaiGiamSat="NHAT_KY_VAN_HANH" />;
+  return (
+    <Suspense fallback={<SupervisionPageSkeleton />}>
+      <GiamSatChungPage initialLoaiGiamSat="NHAT_KY_VAN_HANH" />
+    </Suspense>
+  );
 }

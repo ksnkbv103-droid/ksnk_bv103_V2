@@ -22,7 +22,7 @@ describe("scoreTyLe (PERCENTAGE)", () => {
 
   it("trả % chính xác (làm tròn) loại NA", () => {
     const items = [r("1", "DAT"), r("2", "KHONG_DAT"), r("3", "DAT"), r("4", "NA")];
-    expect(scoreTyLe(items)).toBe(67);
+    expect(scoreTyLe(items)).toBe(66.67);
   });
 });
 
@@ -89,8 +89,8 @@ describe("computeScore — engine dispatch", () => {
     const items = [r("1", "DAT"), r("2", "DAT"), r("3", "KHONG_DAT")];
     const out = computeScore("TY_LE", items);
     expect(out.cach_tinh_diem).toBe("TY_LE");
-    expect(out.ty_le_percent).toBe(67);
-    expect(out.tong_diem).toBe(67);
+    expect(out.ty_le_percent).toBe(66.67);
+    expect(out.tong_diem).toBe(66.67);
     expect(out.dat_tron_goi).toBeNull();
     expect(out.ket_qua_pass_fail).toBeNull();
   });

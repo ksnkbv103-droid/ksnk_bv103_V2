@@ -154,7 +154,7 @@ export function DinhKyRulesPanel() {
             <strong className="font-semibold text-slate-800">Hàng quý (QUARTERLY):</strong> Sinh cùng ngày trong tháng, cách mốc bội số 3 tháng.
           </p>
           <p className="text-[11px] leading-relaxed text-slate-500">
-            RPC <code className="rounded bg-slate-100 px-1">fn_fact_cong_viec_spawn_dinh_ky_hom_nay</code> — idempotent
+            RPC <code className="rounded bg-slate-100 px-1">fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay</code> — idempotent
             theo cặp <em>(mẫu, hạn)</em>. Đã giao phụ trách → <code className="rounded bg-slate-100 px-1">DANG_LAM</code>;
             mỗi dòng trong <strong>mô tả</strong> thành một mục checklist trên phiếu sinh ra.
           </p>
@@ -163,7 +163,7 @@ export function DinhKyRulesPanel() {
           type="button"
           onClick={() => void runSpawn()}
           disabled={spawning}
-          className="bv103-control-h inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#026f17] px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#025a12] disabled:opacity-50"
+          className="bv103-control-h inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:opacity-90 disabled:opacity-50"
         >
           {spawning ? <RefreshCw className="h-4 w-4 animate-spin" aria-hidden /> : <PlayCircle className="h-4 w-4" aria-hidden />}
           {spawning ? "Đang chạy…" : "Sinh phiếu hôm nay"}
@@ -267,14 +267,14 @@ export function DinhKyRulesPanel() {
         <p className={`${bv103LayoutChrome.labelBlock}`}>Mẫu đã lưu ({loading ? "…" : rows.length})</p>
         <div className="mt-2 max-h-[min(22rem,50vh)] overflow-auto rounded-xl border border-slate-100">
           <table className="w-full min-w-[20rem] text-left text-sm">
-            <thead className="sticky top-0 z-[1] bg-slate-50 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+            <thead className="sticky top-0 z-[1] bg-slate-50 text-[11px] font-bold uppercase tracking-wide text-slate-500">
               <tr>
                 <th className="p-3">Tiêu đề</th>
                 <th className="p-3">Chu kỳ</th>
                 <th className="p-3 whitespace-nowrap">Mốc</th>
                 <th className="p-3">Ưu tiên</th>
                 <th className="p-3">Hoạt động</th>
-                <th className="min-w-[12rem] p-3 text-[9px] font-bold normal-case text-slate-500">
+                <th className="min-w-[12rem] p-3 text-[11px] font-bold normal-case text-slate-500">
                   8 kỳ tới (ước lượng, khớp RPC)
                 </th>
               </tr>
@@ -298,14 +298,14 @@ export function DinhKyRulesPanel() {
                     {(() => {
                       const { label, cls } = labelMucDoUuTien(r.muc_do_uu_tien);
                       return (
-                        <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${cls}`}>{label}</span>
+                        <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${cls}`}>{label}</span>
                       );
                     })()}
                   </td>
                   <td className="p-3">
                     <button
                       type="button"
-                      className="text-xs font-semibold text-[#026f17] hover:underline"
+                      className="text-xs font-semibold text-[var(--primary)] hover:underline"
                       onClick={async () => {
                         try {
                           await setDinhKyMauActive(r.id, !r.is_active);

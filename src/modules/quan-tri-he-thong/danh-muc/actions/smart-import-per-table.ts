@@ -34,7 +34,7 @@ export async function resolveSmartImportScopeForTable(
   nhanSuDmSessionCache?: SmartImportDmSessionCache,
 ): Promise<ScopeResolveResult> {
   let row = scopeSafeRest;
-  if (tableName === "dm_bo_dung_cu_chi_tiet") {
+  if (tableName === "cssd_dm_bo_dung_cu_chi_tiet") {
     row = normalizeDmBoDungCuChiTiet(row);
     const resolved = await resolveBoDungCuIdForImport(supabase, row);
     if (!resolved.ok) return { ok: false, error: `Dòng ${rowNumber || "?"}: ${resolved.error}` };
@@ -43,7 +43,7 @@ export async function resolveSmartImportScopeForTable(
     if (!resolvedLoai.ok) return { ok: false, error: `Dòng ${rowNumber || "?"}: ${resolvedLoai.error}` };
     row = resolvedLoai.row;
   }
-  if (tableName === "dm_bo_dung_cu") {
+  if (tableName === "cssd_dm_bo_dung_cu") {
     const resolvedLoai = await resolveLoaiDungCuForBoImport(supabase, row);
     if (!resolvedLoai.ok) return { ok: false, error: `Dòng ${rowNumber || "?"}: ${resolvedLoai.error}` };
     row = resolvedLoai.row;
@@ -51,15 +51,15 @@ export async function resolveSmartImportScopeForTable(
     if (!resolvedKhoa.ok) return { ok: false, error: `Dòng ${rowNumber || "?"}: ${resolvedKhoa.error}` };
     row = resolvedKhoa.row;
   }
-  if (tableName === "dm_khoa_phong") {
+  if (tableName === "mdm_dm_khoa_phong") {
     const resolvedKhoi = await resolveKhoiForKhoaPhongImport(supabase, row);
     if (!resolvedKhoi.ok) return { ok: false, error: `Dòng ${rowNumber || "?"}: ${resolvedKhoi.error}` };
     row = resolvedKhoi.row;
   }
-  if (tableName === "dm_thiet_bi") {
+  if (tableName === "cssd_dm_thiet_bi") {
     row = normalizeDmThietBi(row);
   }
-  if (tableName === "dm_hoa_chat") {
+  if (tableName === "cssd_dm_hoa_chat") {
     row = normalizeDmHoaChat(row);
   }
   if (tableName === "mdm_nhan_su") {

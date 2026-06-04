@@ -24,7 +24,7 @@ export async function updateQlcvChecklist(id: string, items: QlcvChecklistItem[]
 
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
-    .select("id, trang_thai, trang_thai_id, is_active, nguoi_phu_trach_id, phan_tram_hoan_thanh")
+    .select("id, trang_thai, is_active, nguoi_phu_trach_id, phan_tram_hoan_thanh")
     .eq("id", id)
     .maybeSingle();
 
@@ -65,7 +65,7 @@ export async function updateQlcvChecklist(id: string, items: QlcvChecklistItem[]
   const oldPct = Number(cur.phan_tram_hoan_thanh ?? 0);
   if (pct !== oldPct || normalized.length > 0) {
     const done = normalized.filter((i) => i.done).length;
-    await supabase.from("fact_cong_viec_hoat_dong").insert({
+    await supabase.from("qlcv_fact_cong_viec_hoat_dong").insert({
       id_cong_viec: id,
       loai_hoat_dong: "BAO_CAO_TIEN_DO",
       nguoi_thuc_hien_id: actorNhanSuId,

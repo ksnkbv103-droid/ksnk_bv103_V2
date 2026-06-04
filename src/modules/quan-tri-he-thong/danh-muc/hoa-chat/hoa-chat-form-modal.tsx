@@ -67,7 +67,7 @@ export default function HoaChatFormModal({
           <BoDungCuTextField label="Mã HC" required disabled={isEdit} value={form.ma_hoa_chat} onChange={(v) => setForm({ ...form, ma_hoa_chat: v.toUpperCase() })} />
           <BoDungCuTextField label="Tên hóa chất" required value={form.ten_hoa_chat} onChange={(v) => setForm({ ...form, ten_hoa_chat: v })} />
           <div className="space-y-1">
-            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Loại hóa chất</label>
+            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Loại hóa chất</label>
             <select value={form.loai_hoa_chat} onChange={(e) => setForm({ ...form, loai_hoa_chat: e.target.value })} className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs">
               <option value="HOA_CHAT">Hóa chất</option>
               <option value="VAT_TU">Vật tư</option>
@@ -79,11 +79,11 @@ export default function HoaChatFormModal({
           <BoDungCuTextField label="Nồng độ" value={form.nong_do} onChange={(v) => setForm({ ...form, nong_do: v })} />
         </div>
         <div className="space-y-1">
-          <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Hạn sử dụng</label>
+          <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Hạn sử dụng</label>
           <input type="date" value={form.han_su_dung} onChange={(e) => setForm({ ...form, han_su_dung: e.target.value })} className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs" />
         </div>
         <div className="space-y-1">
-          <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Ghi chú</label>
+          <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Ghi chú</label>
           <textarea value={form.ghi_chu} rows={3} onChange={(e) => setForm({ ...form, ghi_chu: e.target.value })} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold text-xs min-h-[80px]" />
         </div>
         <MdmFormActiveToggleRow active={form.is_active} onChange={(next) => setForm({ ...form, is_active: next })} />

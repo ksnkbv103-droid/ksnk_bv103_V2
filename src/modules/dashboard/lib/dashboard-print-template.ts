@@ -239,10 +239,10 @@ export function getDashboardPrintHtml(p: PrintParams) {
   <h2>III. ĐÁNH GIÁ VÀ KIẾN NGHỊ CỦA KHOA KIỂM SOÁT NHIỄM KHUẨN</h2>
   
   <div style="font-weight: bold; margin-top: 15px; font-size: 13px;">1. Nhận xét, đánh giá chung:</div>
-  <div class="section-box">${p.nhanXetDanhGia ? p.nhanXetDanhGia.replace(/\\n/g, "<br/>") : "Chưa có nội dung"}</div>
+  <div class="section-box">${p.nhanXetDanhGia ? p.nhanXetDanhGia.replace(/\n/g, "<br/>") : "Chưa có nội dung"}</div>
 
   <div style="font-weight: bold; margin-top: 15px; font-size: 13px;">2. Kiến nghị, đề xuất giải pháp đối với Ban Giám đốc:</div>
-  <div class="section-box">${p.kienNghiDeXuat ? p.kienNghiDeXuat.replace(/\\n/g, "<br/>") : "Chưa có nội dung"}</div>
+  <div class="section-box">${p.kienNghiDeXuat ? p.kienNghiDeXuat.replace(/\n/g, "<br/>") : "Chưa có nội dung"}</div>
 
   <div style="margin-top: 25px; font-style: italic; text-align: right; padding-right: 5%;">Hà Nội, ngày ${new Date().getDate()} tháng ${new Date().getMonth() + 1} năm ${new Date().getFullYear()}</div>
 

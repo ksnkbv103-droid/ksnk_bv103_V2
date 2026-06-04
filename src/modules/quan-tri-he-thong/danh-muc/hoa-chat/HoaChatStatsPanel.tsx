@@ -68,7 +68,7 @@ export default function HoaChatStatsPanel({ data }: Props) {
             <span className="text-[10px] font-black uppercase tracking-widest text-[#026f17]/70">Tổng danh mục</span>
           </div>
           <span className="text-3xl font-black text-[#026f17]">{stats.total}</span>
-          <span className="text-[9px] font-semibold uppercase text-[#026f17]/60">đang lưu hành</span>
+          <span className="text-[11px] font-semibold uppercase text-[#026f17]/60">đang lưu hành</span>
         </div>
 
         <div className="flex flex-col gap-1 rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
@@ -77,7 +77,7 @@ export default function HoaChatStatsPanel({ data }: Props) {
             <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">Hóa chất</span>
           </div>
           <span className="text-3xl font-black text-blue-700">{stats.hoaChatCount}</span>
-          <span className="text-[9px] font-semibold uppercase text-blue-400">loại</span>
+          <span className="text-[11px] font-semibold uppercase text-blue-400">loại</span>
         </div>
 
         <div className="flex flex-col gap-1 rounded-2xl border border-purple-100 bg-purple-50/50 p-4">
@@ -86,7 +86,7 @@ export default function HoaChatStatsPanel({ data }: Props) {
             <span className="text-[10px] font-black uppercase tracking-widest text-purple-500">Vật tư</span>
           </div>
           <span className="text-3xl font-black text-purple-700">{stats.vatTuCount}</span>
-          <span className="text-[9px] font-semibold uppercase text-purple-400">loại</span>
+          <span className="text-[11px] font-semibold uppercase text-purple-400">loại</span>
         </div>
 
         <div className="flex flex-col gap-1 rounded-2xl border border-teal-100 bg-teal-50/50 p-4">
@@ -95,7 +95,7 @@ export default function HoaChatStatsPanel({ data }: Props) {
             <span className="text-[10px] font-black uppercase tracking-widest text-teal-500">Test / Kit</span>
           </div>
           <span className="text-3xl font-black text-teal-700">{stats.testCount}</span>
-          <span className="text-[9px] font-semibold uppercase text-teal-400">loại</span>
+          <span className="text-[11px] font-semibold uppercase text-teal-400">loại</span>
         </div>
       </div>
 

@@ -11,6 +11,7 @@ import {
 } from "../lib/gsc-read-view-select";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
+import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
 
 function getErrorMessage(error: unknown): string {
   if (error && typeof error === "object") {
@@ -31,6 +32,8 @@ export async function getGiamSatChungHistoryPaginated(params: {
   sortKey?: string;
   sortDir?: "asc" | "desc";
   loaiBangKiem?: string;
+  /** Slice 5: lọc theo `gstt_dm_bang_kiem.loai_giam_sat`. */
+  loaiGiamSat?: GscLoaiGiamSatRoute;
 }) {
   const supabase = await createServerSupabaseUserClient();
   try {
@@ -75,6 +78,13 @@ export async function getGiamSatChungHistoryPaginated(params: {
       countQ = countQ.eq("khoa_id", scope.actorKhoaId);
     }
     if (params.loaiBangKiem) countQ = countQ.eq("loai_bang_kiem", params.loaiBangKiem);
+    if (params.loaiGiamSat) {
+      if (params.loaiGiamSat === "TUAN_THU") {
+        countQ = countQ.or("loai_giam_sat.is.null,loai_giam_sat.eq.TUAN_THU");
+      } else {
+        countQ = countQ.eq("loai_giam_sat", params.loaiGiamSat);
+      }
+    }
     if (searchFilter) countQ = countQ.or(searchFilter);
     const { count, error: cErr } = await countQ;
     if (cErr) throw cErr;
@@ -91,6 +101,13 @@ export async function getGiamSatChungHistoryPaginated(params: {
       dataQ = dataQ.eq("khoa_id", scope.actorKhoaId);
     }
     if (params.loaiBangKiem) dataQ = dataQ.eq("loai_bang_kiem", params.loaiBangKiem);
+    if (params.loaiGiamSat) {
+      if (params.loaiGiamSat === "TUAN_THU") {
+        dataQ = dataQ.or("loai_giam_sat.is.null,loai_giam_sat.eq.TUAN_THU");
+      } else {
+        dataQ = dataQ.eq("loai_giam_sat", params.loaiGiamSat);
+      }
+    }
     if (searchFilter) dataQ = dataQ.or(searchFilter);
     const { data: sessions, error } = await dataQ;
     if (error) throw error;
@@ -136,10 +153,10 @@ export async function getGscHeaderDmDropdowns() {
         return q.order("ho_ten");
       })(),
       supabase
-        .from("dm_khu_vuc_giam_sat")
-        .select("id, ma_khu_vuc, ten_khu_vuc")
+        .from("gstt_dm_khu_vuc_giam_sat")
+        .select("id, ma_khu_vuc, ten_khu_vuc, nhom_mau, thu_tu")
         .eq("is_active", true)
-        .order("ten_khu_vuc"),
+        .order("thu_tu"),
     ]);
 
     if (registriesRes.error) throw registriesRes.error;
@@ -170,11 +187,18 @@ export async function getGscHeaderDmDropdowns() {
       id: String(x.id || ""),
       ten: String(x.ten_khu_vuc || ""),
       ma: String(x.ma_khu_vuc || ""),
+      nhom_mau: String(x.nhom_mau || ""),
+      thu_tu: typeof x.thu_tu === "number" ? x.thu_tu : null,
     }));
     const effectiveKhuVucs = rpcKhuVucs.length > 0 ? rpcKhuVucs : fallbackKhuVucs;
     const khuVucs = effectiveKhuVucs.map((r) => ({
       id: r.id,
+      ma_danh_muc: r.ma || "",
       ten_danh_muc: r.ten,
+      loai_danh_muc: "KHU_VUC_GIAM_SAT",
+      source: "registry_lookup" as const,
+      nhom_mau: (r as { nhom_mau?: string }).nhom_mau ?? null,
+      thu_tu: typeof (r as { thu_tu?: number }).thu_tu === "number" ? (r as { thu_tu?: number }).thu_tu : null,
     }));
     const ngheNghieps = mapDanhMucOptions(
       (registry.NGHE_NGHIEP || []).map((r) => ({

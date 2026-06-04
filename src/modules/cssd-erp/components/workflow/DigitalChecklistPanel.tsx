@@ -5,7 +5,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import { CheckCircle2, AlertTriangle, ShieldAlert, AlertCircle, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
 import { checkSetCompositionAndIssues, recordInstrumentTransaction } from "../../actions/cssd-write.actions";
-import { requestReplenishFromReserveAction } from "../../actions/cssd-bom-checkpoint.actions";
+import {
+  loadBomCheckpoint,
+  persistBomCheckpoint,
+  requestReplenishFromReserveAction,
+} from "../../actions/cssd-bom-checkpoint.actions";
 
 interface Props {
   boDungCuId: string;
@@ -17,6 +21,7 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   const loadChecklist = useCallback(async () => {
     setLoading(true);
@@ -80,6 +85,36 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
     }
   };
 
+  const handleConfirmCheckpoint = async () => {
+    if (!quyTrinhId || !data) return;
+    setConfirming(true);
+    try {
+      const cp = await loadBomCheckpoint(quyTrinhId);
+      if (!cp.success || !cp.data?.length) {
+        toast.error("Chưa có sổ cấu phần — quét trạm Đóng gói trước.");
+        return;
+      }
+      const lines = cp.data.map((row: { id: string; so_luong_thuc_te: number }) => ({
+        thanh_phan_id: row.id,
+        so_luong_thuc_te: row.so_luong_thuc_te,
+      }));
+      const res = await persistBomCheckpoint({
+        quy_trinh_id: quyTrinhId,
+        lines,
+        do_split: cp.heat?.requireSplit ? "REQUESTED" : "NONE",
+        ghi_chu: "Digital BOM panel",
+      });
+      if (res.success) {
+        toast.success("Đã ghi nhận KIEM_DEM_BOM — có thể tiếp tục quy trình.");
+        onCheckFinished(!data.is_missing, undefined);
+      }
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Lưu checkpoint thất bại.");
+    } finally {
+      setConfirming(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6 bg-slate-50/50 border border-slate-100 rounded-2xl text-center space-y-3 animate-pulse">
@@ -105,10 +140,10 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
               {data.heatCheck.message}
             </p>
             <div className="pt-1.5 flex items-center gap-2">
-              <span className="inline-flex rounded-full bg-red-600 px-2 py-0.5 text-[8px] font-bold text-white uppercase shadow-sm">
+              <span className="inline-flex rounded-full bg-red-600 px-2 py-0.5 text-[11px] font-bold text-white uppercase shadow-sm">
                 Khóa Steam 134°C
               </span>
-              <span className="text-[9px] font-black text-red-600 underline hover:text-red-800 transition-colors cursor-pointer">
+              <span className="text-[11px] font-black text-red-600 underline hover:text-red-800 transition-colors cursor-pointer">
                 Đọc quy trình tách gói hấp Plasma & STEAM
               </span>
             </div>
@@ -144,7 +179,7 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
           <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             Thành phần mâm/hộp tiêu chuẩn
           </h4>
-          <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${data.is_missing ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-800"}`}>
+          <span className={`text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${data.is_missing ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-800"}`}>
             {data.is_missing ? "⚠️ Thiếu" : "Đầy đủ"}
           </span>
         </div>
@@ -160,9 +195,9 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
                   {item.ten_dung_cu}
                 </p>
                 <div className="flex items-center gap-2">
-                  <span className="text-[9px] font-bold text-slate-400">Tiêu chuẩn: x{item.so_luong_tieu_chuan}</span>
+                  <span className="text-[11px] font-bold text-slate-400">Tiêu chuẩn: x{item.so_luong_tieu_chuan}</span>
                   <span 
-                    className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full ${
+                    className={`text-[11px] font-bold px-1.5 py-0.2 rounded-full ${
                       item.is_missing 
                         ? "bg-red-50 text-red-600 font-extrabold" 
                         : "bg-emerald-50 text-emerald-700"
@@ -188,7 +223,7 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
                   type="button"
                   disabled={updatingId !== null || item.so_luong_thuc_te <= 0}
                   onClick={() => void handleAction(item.loai_dung_cu_id, "BAO_MAT")}
-                  className="p-1.5 bg-white border border-slate-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600 text-slate-400 rounded-lg transition-all text-[9px] font-bold leading-none px-2"
+                  className="p-1.5 bg-white border border-slate-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600 text-slate-400 rounded-lg transition-all text-[11px] font-bold leading-none px-2"
                   title="Báo mất 1 chiếc (-1)"
                 >
                   Mất
@@ -207,6 +242,17 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
           ))}
         </div>
       </div>
+
+      {quyTrinhId ? (
+        <button
+          type="button"
+          disabled={confirming || loading || data.is_missing || data.heatCheck?.is_hybrid}
+          onClick={() => void handleConfirmCheckpoint()}
+          className="w-full rounded-xl bg-[#026f17] px-4 py-3 text-[11px] font-black uppercase tracking-wider text-white shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {confirming ? "Đang lưu kiểm đếm…" : "Xác nhận kiểm đếm (Digital BOM)"}
+        </button>
+      ) : null}
     </div>
   );
 }

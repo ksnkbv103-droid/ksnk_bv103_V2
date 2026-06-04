@@ -7,3 +7,7 @@
 | Layout / scoring | [`../../wiki/concepts.md`](../../wiki/concepts.md) |
 
 Rule: `13-giam-sat-spec-context.mdc`, `16-bang-kiem-spec-context.mdc`
+
+## Pilot gấp (VST + GSC)
+
+Checklist tay: [`pilot-checklist-202606.md`](pilot-checklist-202606.md) · Go-live: [`../../core/pilot-core-modules-go-live.md`](../../core/pilot-core-modules-go-live.md)

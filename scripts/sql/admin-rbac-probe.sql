@@ -7,10 +7,8 @@ SELECT jsonb_build_object(
     SELECT jsonb_object_agg(viewname, substring(definition, 1, 200))
       FROM pg_views
      WHERE schemaname='public'
-       AND viewname IN ('dm_roles','auth_dm_roles','dm_permissions','auth_dm_permissions',
-                        'rel_role_permissions','auth_rel_role_permissions',
-                        'rel_user_roles','auth_rel_user_roles',
-                        'v_auth_user_permissions')
+      AND viewname IN ('sys_roles','sys_permissions','sys_user_roles','sys_role_permissions',
+                       'v_sys_user_permissions')
   ),
   'fn_is_admin_def', (
     SELECT pg_get_functiondef(oid) FROM pg_proc

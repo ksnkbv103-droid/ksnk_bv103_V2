@@ -5,51 +5,76 @@ import Link from "next/link";
 import {
   Activity,
   AlertTriangle,
-  BarChart2,
   ClipboardList,
-  Eye,
   ExternalLink,
+  Eye,
+  FileBarChart,
   ShieldCheck,
   Users,
 } from "lucide-react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-  Tooltip as RechartsTooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
-import { GscAnalyticsDeepLinkHint } from "@/modules/giam-sat-chung/components/GscStrategicAnalyticsPanel";
-import { VstAnalyticsDeepLinkHint } from "@/modules/giam-sat-vst/components/VstStrategicAnalyticsPanel";
+import { buildAnalyticsDeepLink } from "@/modules/dashboard/lib/bao-cao-tong-hop-core";
+import {
+  BAO_CAO_TONG_HOP_THRESHOLDS,
+  complianceToneFromPercent,
+} from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
 
 type Props = {
   vstPayload: VstStrategicPayload | null;
   gscPayload: GscStrategicPayload | null;
+  tuNgay: string;
+  denNgay: string;
+  selectedKhoaIds: string[];
 };
 
-export function CommandCenterBriefSections({ vstPayload, gscPayload }: Props) {
-  const sortedGapVst = useMemo(
-    () =>
-      [...(vstPayload?.gap_analysis || [])]
-        .sort((a, b) => (b.ty_le_tgs ?? b.ty_le_ksnk ?? 0) - (a.ty_le_tgs ?? a.ty_le_ksnk ?? 0))
-        .slice(0, 12),
-    [vstPayload?.gap_analysis],
-  );
-  const sortedGapGsc = useMemo(
-    () =>
-      [...(gscPayload?.gap_analysis || [])]
-        .sort((a, b) => (b.ty_le_tgs ?? b.ty_le_ksnk ?? 0) - (a.ty_le_tgs ?? a.ty_le_ksnk ?? 0))
-        .slice(0, 12),
-    [gscPayload?.gap_analysis],
-  );
+export function CommandCenterBriefSections({ vstPayload, gscPayload, tuNgay, denNgay, selectedKhoaIds }: Props) {
+  const baoCaoHref = buildAnalyticsDeepLink("/bao-cao-tong-hop", {
+    tu_ngay: tuNgay,
+    den_ngay: denNgay,
+    khoa_ids: selectedKhoaIds.length > 0 ? selectedKhoaIds : undefined,
+  });
+
+  const tyLeVst = vstPayload?.kpis?.ty_le_tuan_thu ?? null;
+  const tyLeGsc = gscPayload?.kpis?.ty_le_tuan_thu ?? null;
+
+  const topGapAlerts = useMemo(() => {
+    const rows = [
+      ...(vstPayload?.gap_analysis ?? []).map((r) => ({
+        domain: "VST" as const,
+        ten: r.ten,
+        doLech: Math.abs((r.ty_le_tgs ?? 0) - (r.ty_le_ksnk ?? 0)),
+      })),
+      ...(gscPayload?.gap_analysis ?? []).map((r) => ({
+        domain: "GSC" as const,
+        ten: r.ten,
+        doLech: Math.abs((r.ty_le_tgs ?? 0) - (r.ty_le_ksnk ?? 0)),
+      })),
+    ];
+    return rows.sort((a, b) => b.doLech - a.doLech).slice(0, 3);
+  }, [vstPayload?.gap_analysis, gscPayload?.gap_analysis]);
 
   return (
     <>
+      <section className="rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/90 to-white p-5 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-emerald-800">Báo cáo kỳ</p>
+            <p className="mt-1 text-sm text-slate-600">
+              Xu hướng, so sánh khoa và in báo cáo gửi BGĐ/HĐ KSNK — dùng trang báo cáo tổng hợp (không in từ đây).
+            </p>
+          </div>
+          <Link
+            href={baoCaoHref}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#026f17] px-4 py-2.5 text-xs font-black uppercase tracking-wide text-white shadow-md hover:bg-emerald-800"
+          >
+            <FileBarChart size={16} aria-hidden />
+            Mở báo cáo tổng hợp
+            <ExternalLink size={12} aria-hidden />
+          </Link>
+        </div>
+      </section>
+
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
         <BriefCard icon={Activity} label="Khoa Tự giám sát" value={Math.max(vstPayload?.workload?.khoa_tu_giam_sat ?? 0, gscPayload?.workload?.khoa_tu_giam_sat ?? 0)} suffix="khoa" tone="blue" />
         <BriefCard icon={Eye} label="Được KSNK bao phủ" value={Math.max(vstPayload?.workload?.khoa_duoc_ksnk_giam_sat ?? 0, gscPayload?.workload?.khoa_duoc_ksnk_giam_sat ?? 0)} suffix="khoa" tone="emerald" />
@@ -57,73 +82,95 @@ export function CommandCenterBriefSections({ vstPayload, gscPayload }: Props) {
         <BriefCard icon={Users} label="Phiên KSNK (GSC)" value={gscPayload?.workload?.ksnk_so_phien ?? 0} suffix="phiên" tone="orange" />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-start justify-between gap-3">
-            <div>
-              <h2 className="flex items-center gap-2 text-lg font-black text-slate-800">
-                <ShieldCheck className="text-emerald-600" size={20} /> Vệ sinh tay (WHO)
-              </h2>
-              <p className="mt-1 text-xs text-slate-500">Tóm tắt — chi tiết tại module VST</p>
-            </div>
-            <VstAnalyticsDeepLinkHint />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <KpiTile label="Tuân thủ" value={`${vstPayload?.kpis?.ty_le_tuan_thu ?? 0}%`} accent="emerald" />
-            <KpiTile label="Cơ hội" value={String(vstPayload?.kpis?.tong_co_hoi ?? 0)} />
-            <KpiTile label="Đúng KT" value={`${vstPayload?.kpis?.ty_le_dung_ky_thuat ?? 0}%`} />
-            <KpiTile label="Lạm dụng găng" value={`${vstPayload?.kpis?.ty_le_lam_dung_gang ?? 0}%`} accent="red" />
-          </div>
-          <Link
-            href="/giam-sat-vst"
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100"
-          >
-            Mở thống kê VST <ExternalLink size={12} />
-          </Link>
-        </section>
-
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="mb-4 flex items-start justify-between gap-3">
-            <div>
-              <h2 className="flex items-center gap-2 text-lg font-black text-slate-800">
-                <ClipboardList className="text-sky-600" size={20} /> Giám sát chung
-              </h2>
-              <p className="mt-1 text-xs text-slate-500">Tóm tắt — chi tiết tại module GSC</p>
-            </div>
-            <GscAnalyticsDeepLinkHint />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <KpiTile label="Tuân thủ" value={`${gscPayload?.kpis?.ty_le_tuan_thu ?? 0}%`} accent="sky" />
-            <KpiTile label="Phiên" value={String(gscPayload?.kpis?.tong_phien ?? 0)} />
-            <KpiTile label="Quan sát" value={String(gscPayload?.kpis?.tong_quan_sat ?? 0)} />
-            <KpiTile label="Vi phạm" value={String(gscPayload?.kpis?.tong_vi_pham ?? 0)} accent="red" />
-          </div>
-          <Link
-            href="/giam-sat-chung/tuan-thu"
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-sky-50 px-3 py-2 text-xs font-bold text-sky-800 hover:bg-sky-100"
-          >
-            Mở thống kê GSC <ExternalLink size={12} />
-          </Link>
-        </section>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <TrafficLightCard
+          title="Vệ sinh tay"
+          icon={ShieldCheck}
+          percent={tyLeVst}
+          detailHref={buildAnalyticsDeepLink("/giam-sat-vst", { tu_ngay: tuNgay, den_ngay: denNgay, khoa_ids: selectedKhoaIds.length ? selectedKhoaIds : undefined }, "analytics")}
+        />
+        <TrafficLightCard
+          title="Giám sát chung"
+          icon={ClipboardList}
+          percent={tyLeGsc}
+          detailHref={buildAnalyticsDeepLink("/giam-sat-chung", {
+            tu_ngay: tuNgay,
+            den_ngay: denNgay,
+            khoa_ids: selectedKhoaIds.length ? selectedKhoaIds : undefined,
+          }, "analytics")}
+        />
       </div>
 
-      {(sortedGapVst.length > 0 || sortedGapGsc.length > 0) && (
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-2 flex items-center gap-2 text-lg font-black text-slate-800">
-            <BarChart2 className="text-indigo-500" size={20} /> Đối soát TGS vs KSNK (Gap)
+      {topGapAlerts.length > 0 ? (
+        <section className="rounded-2xl border border-amber-200/70 bg-amber-50/40 p-5">
+          <h2 className="mb-2 flex items-center gap-2 text-sm font-black text-slate-800">
+            <AlertTriangle size={16} className="text-amber-600" aria-hidden />
+            Cảnh báo chênh lệch TGS vs KSNK (top 3)
           </h2>
-          <p className="mb-6 text-xs text-slate-500">Insight cross-domain — top 12 khoa chênh lệch lớn nhất</p>
-          <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
-            {sortedGapVst.length > 0 ? (
-              <GapMiniChart title="Vệ sinh tay" data={sortedGapVst} ksnkColor="#10b981" />
-            ) : null}
-            {sortedGapGsc.length > 0 ? (
-              <GapMiniChart title="Giám sát chung" data={sortedGapGsc} ksnkColor="#38bdf8" />
-            ) : null}
-          </div>
+          <p className="mb-3 text-xs text-slate-500">
+            Chỉ tóm tắt — biểu đồ gap đầy đủ tại module Thống kê hoặc báo cáo tổng hợp.
+          </p>
+          <ul className="space-y-2">
+            {topGapAlerts.map((row) => (
+              <li key={`${row.domain}-${row.ten}`} className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm">
+                <span>
+                  <span className="mr-2 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">{row.domain}</span>
+                  {row.ten}
+                </span>
+                <span className="font-bold text-amber-800">Δ {Math.round(row.doLech)}%</span>
+              </li>
+            ))}
+          </ul>
         </section>
-      )}
+      ) : null}
     </>
+  );
+}
+
+function TrafficLightCard({
+  title,
+  icon: Icon,
+  percent,
+  detailHref,
+}: {
+  title: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  percent: number | null;
+  detailHref: string;
+}) {
+  const tone = complianceToneFromPercent(percent);
+  const toneRing = {
+    green: "ring-emerald-200 bg-emerald-50",
+    yellow: "ring-amber-200 bg-amber-50",
+    red: "ring-red-200 bg-red-50",
+    neutral: "ring-slate-200 bg-slate-50",
+  }[tone];
+  const toneText = {
+    green: "text-emerald-700",
+    yellow: "text-amber-700",
+    red: "text-red-700",
+    neutral: "text-slate-500",
+  }[tone];
+
+  return (
+    <div className={`rounded-2xl border border-slate-200 p-5 shadow-sm ring-2 ${toneRing}`}>
+      <div className="flex items-start justify-between gap-2">
+        <h2 className="flex items-center gap-2 text-sm font-black text-slate-800">
+          <Icon size={18} className={toneText} aria-hidden />
+          {title}
+        </h2>
+        <span className={`text-[10px] font-bold uppercase ${toneText}`}>
+          {tone === "green" ? "Đạt" : tone === "yellow" ? "Cận ngưỡng" : tone === "red" ? "Nguy cơ" : "—"}
+        </span>
+      </div>
+      <p className={`mt-3 text-4xl font-black ${toneText}`}>{percent != null ? `${percent}%` : "N/A"}</p>
+      <p className="mt-1 text-[10px] text-slate-400">
+        Ngưỡng xanh ≥{BAO_CAO_TONG_HOP_THRESHOLDS.GREEN_MIN}% · vàng ≥{BAO_CAO_TONG_HOP_THRESHOLDS.YELLOW_MIN}%
+      </p>
+      <Link href={detailHref} className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:underline">
+        Thống kê chuyên sâu <ExternalLink size={12} aria-hidden />
+      </Link>
+    </div>
   );
 }
 
@@ -153,45 +200,6 @@ function BriefCard({
             {value} <span className="text-xs font-semibold text-slate-400">{suffix}</span>
           </p>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function KpiTile({ label, value, accent }: { label: string; value: string; accent?: "emerald" | "sky" | "red" }) {
-  const color = accent === "emerald" ? "text-emerald-600" : accent === "sky" ? "text-sky-600" : accent === "red" ? "text-red-600" : "text-slate-800";
-  return (
-    <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-4">
-      <p className="text-[10px] font-bold uppercase text-slate-400">{label}</p>
-      <p className={`mt-1 text-2xl font-black ${color}`}>{value}</p>
-    </div>
-  );
-}
-
-function GapMiniChart({
-  title,
-  data,
-  ksnkColor,
-}: {
-  title: string;
-  data: { ten: string; ty_le_tgs: number | null; ty_le_ksnk: number | null }[];
-  ksnkColor: string;
-}) {
-  return (
-    <div>
-      <h3 className="mb-3 text-sm font-bold text-slate-700">{title}</h3>
-      <div className="h-[280px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="ten" tick={{ fontSize: 9 }} angle={-25} textAnchor="end" height={60} />
-            <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
-            <RechartsTooltip />
-            <Legend wrapperStyle={{ fontSize: 11 }} />
-            <Bar dataKey="ty_le_tgs" name="Tự GS (%)" fill="#fbbf24" maxBarSize={28} />
-            <Bar dataKey="ty_le_ksnk" name="KSNK (%)" fill={ksnkColor} maxBarSize={28} />
-          </BarChart>
-        </ResponsiveContainer>
       </div>
     </div>
   );

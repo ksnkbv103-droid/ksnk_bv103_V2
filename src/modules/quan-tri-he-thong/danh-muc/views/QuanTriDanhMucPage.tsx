@@ -3,10 +3,9 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LayoutGrid, Settings, Beaker, Building2, Users, ClipboardList, Layers, IdCard, MapPin } from "lucide-react";
+import { LayoutGrid, Settings, Beaker, Building2, Users, ClipboardList, Layers, IdCard } from "lucide-react";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import RBACMatrixView from "@/modules/quan-tri-he-thong/phan-quyen/views/RBACMatrixView";
-import AuditTrailView from "../../views/AuditTrailView";
 import MdmGovernanceView from "../../views/MdmGovernanceView";
 import { usePermission } from "@/hooks/usePermission";
 import { mdmGetTrungTamDanhMucStats } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
@@ -42,7 +41,7 @@ function filterRegistryHub(rows: HubRegistryRow[], q: string) {
 export default function QuanTriDanhMucPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<"DANH_MUC" | "DM_REGISTRY" | "PHAN_QUYEN" | "NHAT_KY" | "MDM_GOVERNANCE">("DANH_MUC");
+  const [activeTab, setActiveTab] = useState<"DANH_MUC" | "PHAN_QUYEN" | "MDM_GOVERNANCE">("DANH_MUC");
   const [stats, setStats] = useState<Partial<TrungTamDanhMucStatsPayload>>({});
   const [loading, setLoading] = useState(true);
   const [registryLoaded, setRegistryLoaded] = useState(false);
@@ -55,8 +54,6 @@ export default function QuanTriDanhMucPage() {
   const phanQuyenAllowed = { view: canView("PHAN_QUYEN"), edit: canEdit("PHAN_QUYEN") };
   /** Đồng bộ với `ensureRbacAdmin`: mở/sửa ma trận cần ADMIN hoặc `PHAN_QUYEN.edit`. */
   const canConfigureRbac = isAdmin || phanQuyenAllowed.edit;
-  /** Quyền xem nhật ký audit hệ thống: ADMIN hoặc PHAN_QUYEN.view */
-  const canViewAudit = isAdmin || phanQuyenAllowed.view;
 
   useEffect(() => {
     if (!canViewDanhMuc && canConfigureRbac && activeTab !== "PHAN_QUYEN") setActiveTab("PHAN_QUYEN");
@@ -64,9 +61,12 @@ export default function QuanTriDanhMucPage() {
 
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (tab === "dm_registry") setActiveTab("DM_REGISTRY");
-    else if (tab === "phan_quyen") setActiveTab("PHAN_QUYEN");
-    else if (tab === "nhat_ky") setActiveTab("NHAT_KY");
+    if (tab === "dm_registry") {
+      setActiveTab("DANH_MUC");
+      requestAnimationFrame(() => {
+        document.getElementById("dm-lookup-registry")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    } else if (tab === "phan_quyen") setActiveTab("PHAN_QUYEN");
     else if (tab === "mdm_governance") setActiveTab("MDM_GOVERNANCE");
   }, [searchParams]);
 
@@ -85,7 +85,7 @@ export default function QuanTriDanhMucPage() {
   }, []);
 
   useEffect(() => {
-    if (activeTab !== "DM_REGISTRY" || registryLoaded || loading) return;
+    if (activeTab !== "DANH_MUC" || registryLoaded || loading) return;
     let cancelled = false;
     setRegistryLoading(true);
     void mdmGetTrungTamDanhMucStats({ includeRegistry: true }).then((result) => {
@@ -116,13 +116,6 @@ export default function QuanTriDanhMucPage() {
     { id: "tb", name: "Thiết bị và máy", path: "/quan-tri-he-thong/danh-muc/thiet-bi", stats: stats.tb, icon: <Settings className="h-5 w-5 text-slate-600" /> },
     { id: "hc", name: "Hóa chất và vật tư", path: "/quan-tri-he-thong/danh-muc/hoa-chat", stats: stats.hc, icon: <Beaker className="h-5 w-5 text-amber-600" /> },
     { id: "khoa", name: "Khoa phòng", path: "/quan-tri-he-thong/danh-muc/khoa-phong", stats: stats.khoa, icon: <Building2 className="h-5 w-5 text-rose-600" /> },
-    {
-      id: "khu-vuc-giam-sat",
-      name: "Khu vực giám sát",
-      path: getDanhMucAdminPath("KHU_VUC_GIAM_SAT"),
-      stats: (stats.registryByLoai || {}).KHU_VUC_GIAM_SAT || { count: 0 },
-      icon: <MapPin className="h-5 w-5 text-cyan-600" />,
-    },
     { id: "ns", name: "Hồ sơ nhân sự", path: "/quan-tri-he-thong/nhan-su", stats: stats.ns, icon: <Users className="h-5 w-5 text-green-600" /> },
     { id: "bk", name: "Mẫu bảng kiểm", path: "/quan-tri-he-thong/bang-kiem", stats: stats.bk, icon: <ClipboardList className="h-5 w-5 text-orange-600" /> },
   ];
@@ -183,7 +176,7 @@ export default function QuanTriDanhMucPage() {
     );
   }
 
-  if (!canViewDanhMuc && !canConfigureRbac && !canViewAudit && (phanQuyenAllowed.view || isAdmin)) {
+  if (!canViewDanhMuc && !canConfigureRbac && (phanQuyenAllowed.view || isAdmin)) {
     return (
       <div className="app-empty-state rounded-2xl border border-amber-200 bg-amber-50/40 px-8 py-12 text-center shadow-sm">
         <p className="text-sm font-medium text-slate-800">
@@ -203,48 +196,54 @@ export default function QuanTriDanhMucPage() {
         onChange={setActiveTab}
         canAccessDmTabs={canViewDanhMuc}
         canConfigureRbac={canConfigureRbac}
-        canViewAudit={canViewAudit}
       />
 
       {activeTab === "DANH_MUC" && canViewDanhMuc ? (
-        <section className="space-y-4" aria-labelledby="tab-danhmuc-hub">
-          <div className="app-data-shell overflow-hidden p-2">
-            <div className="mb-2 min-w-0 px-1">
-              <SearchBar value={hubSearch} onChange={setHubSearch} placeholder="Tìm danh mục…" />
+        <div className="space-y-10">
+          <section className="space-y-4" aria-labelledby="tab-danhmuc-hub">
+            <h2 id="tab-danhmuc-hub" className="text-sm font-semibold text-slate-800">
+              Trang quản lý riêng
+            </h2>
+            <p className="text-xs text-slate-500">Khoa, dụng cụ, nhân sự, bảng kiểm — mỗi mục một màn hình đầy đủ.</p>
+            <div className="app-data-shell overflow-hidden p-2">
+              <div className="mb-2 min-w-0 px-1">
+                <SearchBar value={hubSearch} onChange={setHubSearch} placeholder="Tìm trang danh mục…" />
+              </div>
+              <AdvancedDataTable
+                columns={columnsHub}
+                data={filteredHub}
+                loading={loading}
+                onRowClick={(r) => go(r.path)}
+                hideSearch
+                tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
+              />
             </div>
-            <AdvancedDataTable
-              columns={columnsHub}
-              data={filteredHub}
-              loading={loading}
-              onRowClick={(r) => go(r.path)}
-              hideSearch
-              tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
-            />
-          </div>
-        </section>
-      ) : activeTab === "DM_REGISTRY" && canViewDanhMuc ? (
-        <section className="space-y-4" aria-labelledby="tab-dm-registry">
-          <div className="app-data-shell overflow-hidden p-2">
-            <div className="mb-2 min-w-0 px-1">
-              <SearchBar value={registrySearch} onChange={setRegistrySearch} placeholder="Tìm theo tên hoặc bảng…" />
+          </section>
+          <section className="space-y-4 scroll-mt-24" id="dm-lookup-registry" aria-labelledby="dm-lookup-registry-heading">
+            <h2 id="dm-lookup-registry-heading" className="text-sm font-semibold text-slate-800">
+              Danh mục lookup (sys_lookup_value)
+            </h2>
+            <p className="text-xs text-slate-500">
+              Tổ công tác, chức danh, loại công việc, khu vực giám sát… — bảng module (mdm_dm_*, gstt_dm_*, qlcv_dm_*, …).
+            </p>
+            <div className="app-data-shell overflow-hidden p-2">
+              <div className="mb-2 min-w-0 px-1">
+                <SearchBar value={registrySearch} onChange={setRegistrySearch} placeholder="Tìm theo tên hoặc bảng…" />
+              </div>
+              <AdvancedDataTable
+                columns={columnsRegistry}
+                data={filteredRegistry}
+                loading={loading || registryLoading}
+                onRowClick={(r) => go(r.path)}
+                hideSearch
+                tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
+              />
             </div>
-            <AdvancedDataTable
-              columns={columnsRegistry}
-              data={filteredRegistry}
-              loading={loading || registryLoading}
-              onRowClick={(r) => go(r.path)}
-              hideSearch
-              tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
-            />
-          </div>
-        </section>
+          </section>
+        </div>
       ) : activeTab === "PHAN_QUYEN" && canConfigureRbac ? (
         <section aria-labelledby="tab-phan-quyen">
           <RBACMatrixView />
-        </section>
-      ) : activeTab === "NHAT_KY" && canViewAudit ? (
-        <section aria-labelledby="tab-nhat-ky">
-          <AuditTrailView />
         </section>
       ) : activeTab === "MDM_GOVERNANCE" && canViewDanhMuc ? (
         <section aria-labelledby="tab-mdm-governance">

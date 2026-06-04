@@ -6,8 +6,9 @@
  * không xuất kết quả công khai.
  */
 
-import React from "react";
+import React, { Suspense } from "react";
 import GiamSatChungPage from "@/modules/giam-sat-chung/views/GiamSatChungPage";
+import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 
 export const metadata = {
   title: "Đánh giá Hệ thống KSNK | KSNK 103",
@@ -16,5 +17,9 @@ export const metadata = {
 };
 
 export default function DanhGiaHeThongPage() {
-  return <GiamSatChungPage initialLoaiGiamSat="DANH_GIA_HE_THONG" />;
+  return (
+    <Suspense fallback={<SupervisionPageSkeleton />}>
+      <GiamSatChungPage initialLoaiGiamSat="DANH_GIA_HE_THONG" />
+    </Suspense>
+  );
 }

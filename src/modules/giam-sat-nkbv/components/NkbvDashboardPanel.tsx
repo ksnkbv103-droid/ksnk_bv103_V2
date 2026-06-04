@@ -129,7 +129,7 @@ export default function NkbvDashboardPanel({
       </div>
 
       {!payload && loading ? (
-        <div className="flex h-56 items-center justify-center rounded-[32px] border border-dashed border-slate-200 bg-slate-50">
+        <div className="flex h-56 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50">
           <p className="text-sm font-medium text-slate-400">Đang tổng hợp…</p>
         </div>
       ) : payload ? (
@@ -259,11 +259,11 @@ export default function NkbvDashboardPanel({
                     <div className="premium-card bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-3xl p-4 space-y-2 transition-all">
                       <div className="flex justify-between items-center">
                         <span className="text-[10px] font-black uppercase text-red-500 tracking-wider">Nhiễm khuẩn huyết (CLABSI)</span>
-                        <span className="rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-[9px] font-bold">JCI Site</span>
+                        <span className="rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
                         <span className="text-2xl font-black text-slate-800">{totClabsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
-                        <span className="text-xs font-bold text-red-600">{clabsiRate} <span className="text-[9px] font-normal text-slate-400">/1000 CVC-days</span></span>
+                        <span className="text-xs font-bold text-red-600">{clabsiRate} <span className="text-[11px] font-normal text-slate-400">/1000 CVC-days</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[10px] text-slate-500 font-semibold">
                         <div>CVC Days: <strong className="text-slate-700">{totCvcDays}</strong></div>
@@ -275,11 +275,11 @@ export default function NkbvDashboardPanel({
                     <div className="premium-card bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-3xl p-4 space-y-2 transition-all">
                       <div className="flex justify-between items-center">
                         <span className="text-[10px] font-black uppercase text-amber-500 tracking-wider">Tiết niệu (CAUTI)</span>
-                        <span className="rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-[9px] font-bold">JCI Site</span>
+                        <span className="rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
                         <span className="text-2xl font-black text-slate-800">{totCauti} <span className="text-xs font-normal text-slate-400">ca</span></span>
-                        <span className="text-xs font-bold text-amber-600">{cautiRate} <span className="text-[9px] font-normal text-slate-400">/1000 F-days</span></span>
+                        <span className="text-xs font-bold text-amber-600">{cautiRate} <span className="text-[11px] font-normal text-slate-400">/1000 F-days</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[10px] text-slate-500 font-semibold">
                         <div>Foley Days: <strong className="text-slate-700">{totFoleyDays}</strong></div>
@@ -291,11 +291,11 @@ export default function NkbvDashboardPanel({
                     <div className="premium-card bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-3xl p-4 space-y-2 transition-all">
                       <div className="flex justify-between items-center">
                         <span className="text-[10px] font-black uppercase text-teal-500 tracking-wider">Viêm phổi máy (VAP)</span>
-                        <span className="rounded-full bg-teal-100 text-teal-700 px-2 py-0.5 text-[9px] font-bold">JCI Site</span>
+                        <span className="rounded-full bg-teal-100 text-teal-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
                         <span className="text-2xl font-black text-slate-800">{totVap} <span className="text-xs font-normal text-slate-400">ca</span></span>
-                        <span className="text-xs font-bold text-teal-600">{vapRate} <span className="text-[9px] font-normal text-slate-400">/1000 V-days</span></span>
+                        <span className="text-xs font-bold text-teal-600">{vapRate} <span className="text-[11px] font-normal text-slate-400">/1000 V-days</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[10px] text-slate-500 font-semibold">
                         <div>Vent Days: <strong className="text-slate-700">{totVentDays}</strong></div>
@@ -307,11 +307,11 @@ export default function NkbvDashboardPanel({
                     <div className="premium-card bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-3xl p-4 space-y-2 transition-all">
                       <div className="flex justify-between items-center">
                         <span className="text-[10px] font-black uppercase text-blue-500 tracking-wider">Vết mổ (SSI)</span>
-                        <span className="rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-[9px] font-bold">JCI Site</span>
+                        <span className="rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
                         <span className="text-2xl font-black text-slate-800">{totSsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
-                        <span className="text-xs font-bold text-blue-600">{ssiRate}% <span className="text-[9px] font-normal text-slate-400">tỷ lệ mổ</span></span>
+                        <span className="text-xs font-bold text-blue-600">{ssiRate}% <span className="text-[11px] font-normal text-slate-400">tỷ lệ mổ</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[10px] text-slate-500 font-semibold">
                         <div>Số ca mổ: <strong className="text-slate-700">{totSurgeries}</strong></div>

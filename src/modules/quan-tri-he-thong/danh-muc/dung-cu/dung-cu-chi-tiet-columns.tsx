@@ -84,7 +84,7 @@ export function getDungCuChiTietColumns(actionUi: ActionCells): Column<DungCuChi
     {
       header: "QR MẪU",
       accessorKey: "ma_qr_mau",
-      cell: (i) => <span className="text-[9px] text-slate-500">{clip(i.ma_qr_mau, 28)}</span>,
+      cell: (i) => <span className="text-[11px] text-slate-500">{clip(i.ma_qr_mau, 28)}</span>,
     },
     {
       header: "GHI CHÚ",

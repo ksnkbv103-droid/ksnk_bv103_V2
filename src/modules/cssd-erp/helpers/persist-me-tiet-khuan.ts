@@ -126,13 +126,13 @@ export async function persistMeTietKhuanFinishWithClient(
     
     const boIds = (qtData || []).map(q => q.bo_dung_cu_id).filter(Boolean);
     const { data: boData } = await client
-      .from("dm_bo_dung_cu")
+      .from("cssd_dm_bo_dung_cu")
       .select("id, loai_dung_cu_id")
       .in("id", boIds);
     
     const loaiIds = (boData || []).map(b => b.loai_dung_cu_id).filter(Boolean);
     const { data: loaiData } = await client
-      .from("dm_loai_dung_cu")
+      .from("cssd_dm_loai_dung_cu")
       .select("id, so_ngay_han_dung")
       .in("id", loaiIds);
 

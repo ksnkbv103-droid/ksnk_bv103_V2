@@ -8,7 +8,7 @@ type LoadOptions = {
   includeNhanSu?: boolean;
   includeNgheNghiep?: boolean;
   /**
-   * Gợi ý vị trí từ `fact_giam_sat_vst_sessions` — mặc định **tắt** (dữ liệu import cũ hay sai);
+   * Gợi ý vị trí từ `gstt_fact_vst_sessions` — mặc định **tắt** (dữ liệu import cũ hay sai);
    * chỉ bật khi truyền `true` (tính năng có thể bật lại sau khi có nguồn sạch).
    */
   includeHistoryLocations?: boolean;
@@ -73,7 +73,7 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
         : Promise.resolve({ data: [], error: null }),
       includeHistory
         ? supabase
-            .from("fact_giam_sat_vst_sessions")
+            .from("gstt_fact_vst_sessions")
             .select("vi_tri_cu_the, khoa_id")
             .eq("is_active", true)
             .not("vi_tri_cu_the", "is", null)
@@ -81,10 +81,10 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
             .limit(5000)
         : Promise.resolve({ data: [], error: null }),
       supabase
-        .from("dm_khu_vuc_giam_sat")
-        .select("id, ma_khu_vuc, ten_khu_vuc")
+        .from("gstt_dm_khu_vuc_giam_sat")
+        .select("id, ma_khu_vuc, ten_khu_vuc, nhom_mau, thu_tu")
         .eq("is_active", true)
-        .order("ten_khu_vuc"),
+        .order("thu_tu"),
     ]);
 
     if (nhanSuRes.error) throw nhanSuRes.error;
@@ -155,6 +155,8 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
       id: String(x.id || ""),
       ma: String(x.ma_khu_vuc || ""),
       ten: String(x.ten_khu_vuc || ""),
+      nhom_mau: String(x.nhom_mau || ""),
+      thu_tu: typeof x.thu_tu === "number" ? x.thu_tu : null,
     }));
     const effectiveKhuVucs = rpcKhuVucs.length > 0 ? rpcKhuVucs : fallbackKhuVucs;
 
@@ -163,7 +165,15 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
       data: {
         currentHoSoId,
         khoas: (registry.KHOA_PHONG || []).map((k: any) => ({ id: k.id, ma_danh_muc: k.ma, ten_danh_muc: k.ten })),
-        khuVucs: effectiveKhuVucs.map((x: any) => ({ id: x.id, ma_danh_muc: x.ma, ten_danh_muc: x.ten })),
+        khuVucs: effectiveKhuVucs.map((x: any) => ({
+          id: x.id,
+          ma_danh_muc: x.ma || "",
+          ten_danh_muc: x.ten,
+          loai_danh_muc: "KHU_VUC_GIAM_SAT",
+          source: "registry_lookup" as const,
+          nhom_mau: x.nhom_mau ?? null,
+          thu_tu: typeof x.thu_tu === "number" ? x.thu_tu : null,
+        })),
         ngheNghieps: (registry.NGHE_NGHIEP || []).map((x: any) => ({ id: x.id, ma_danh_muc: x.ma, ten_danh_muc: x.ten })),
         hinhThucGiamSats: (registry.HINH_THUC_GIAM_SAT || []).map((x: any) => ({ id: x.id, ma_danh_muc: x.ma, ten_danh_muc: x.ten })),
         cachThucGiamSats: (registry.CACH_THUC_GIAM_SAT || []).map((x: any) => ({ id: x.id, ma_danh_muc: x.ma, ten_danh_muc: x.ten })),

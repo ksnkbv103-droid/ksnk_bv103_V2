@@ -22,19 +22,19 @@ export async function buildNhanSuExportRows(
   const dmExportIds = Array.from(new Set([...chucVuIds, ...chucDanhIds, ...vaiTroIds]));
   const [khoaRes, toRes, chucVuRes, chucDanhRes, vaiTroRes] = await Promise.all([
     khoaIds.length
-      ? supabase.from("dm_khoa_phong").select("id, ma_khoa").in("id", khoaIds)
+      ? supabase.from("mdm_dm_khoa_phong").select("id, ma_khoa").in("id", khoaIds)
       : Promise.resolve({ data: [], error: null }),
     toIds.length
-      ? supabase.from("dm_to_cong_tac").select("id, ma_to, ten_to").in("id", toIds)
+      ? supabase.from("mdm_dm_to_cong_tac").select("id, ma_to, ten_to").in("id", toIds)
       : Promise.resolve({ data: [], error: null }),
     dmExportIds.length
-      ? supabase.from("dm_chuc_vu").select("id, ma_chuc_vu").in("id", dmExportIds)
+      ? supabase.from("mdm_dm_chuc_vu").select("id, ma_chuc_vu").in("id", dmExportIds)
       : Promise.resolve({ data: [], error: null }),
     dmExportIds.length
-      ? supabase.from("dm_chuc_danh").select("id, ma_chuc_danh").in("id", dmExportIds)
+      ? supabase.from("mdm_dm_chuc_danh").select("id, ma_chuc_danh").in("id", dmExportIds)
       : Promise.resolve({ data: [], error: null }),
     dmExportIds.length
-      ? supabase.from("dm_roles").select("id, name").in("id", dmExportIds)
+      ? supabase.from("sys_roles").select("id, name").in("id", dmExportIds)
       : Promise.resolve({ data: [], error: null }),
   ]);
   if (khoaRes.error) throw khoaRes.error;

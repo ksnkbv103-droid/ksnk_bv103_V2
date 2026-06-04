@@ -75,11 +75,11 @@ function ChiThiBlock({
       <div className="flex items-center justify-between">
         <span className="text-xs font-black uppercase tracking-wide text-slate-700">{label}</span>
         {required ? (
-          <span className="rounded-full bg-red-50 border border-red-200 px-2 py-0.5 text-[9px] font-black uppercase text-red-600">
+          <span className="rounded-full bg-red-50 border border-red-200 px-2 py-0.5 text-[11px] font-black uppercase text-red-600">
             Bắt buộc
           </span>
         ) : (
-          <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[9px] font-semibold uppercase text-slate-400">
+          <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[11px] font-semibold uppercase text-slate-400">
             Tuỳ chọn
           </span>
         )}
@@ -359,10 +359,10 @@ export default function MeTietKhuanProcessQcPanel({
         <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-5 space-y-3">
           <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
             <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-700">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#026f17] text-[9px] font-black text-white">1</span>
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#026f17] text-[11px] font-black text-white">1</span>
               Thông số máy chu trình
             </h4>
-            <span className="text-[9px] font-bold text-red-500 uppercase">Bắt buộc</span>
+            <span className="text-[11px] font-bold text-red-500 uppercase">Bắt buộc</span>
           </div>
           <PassFailToggle value={thongSoMayResult} onChange={setThongSoMayResult} />
           {thongSoMayResult === "DAT" && (
@@ -378,7 +378,7 @@ export default function MeTietKhuanProcessQcPanel({
         {/* === 2. CHỈ THỊ & TEST CHẤT LƯỢNG theo loại máy === */}
         <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-5 space-y-4">
           <h4 className="flex items-center gap-2 border-b border-slate-200/60 pb-2 text-xs font-black uppercase tracking-widest text-slate-700">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#026f17] text-[9px] font-black text-white">2</span>
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#026f17] text-[11px] font-black text-white">2</span>
             Chỉ thị & Test chất lượng
           </h4>
 
@@ -427,7 +427,7 @@ export default function MeTietKhuanProcessQcPanel({
             <div className="rounded-2xl border border-slate-100 bg-white p-4 space-y-3 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase tracking-wide text-slate-700">Test sinh học (BIM)</span>
-                <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[9px] font-semibold uppercase text-slate-400">
+                <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[11px] font-semibold uppercase text-slate-400">
                   Tuỳ chọn
                 </span>
               </div>
@@ -476,7 +476,7 @@ export default function MeTietKhuanProcessQcPanel({
               <div className="rounded-2xl border border-slate-100 bg-white p-4 space-y-3 shadow-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-black uppercase tracking-wide text-slate-700">Bowie–Dick (Steam)</span>
-                  <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[9px] font-semibold uppercase text-slate-400">
+                  <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[11px] font-semibold uppercase text-slate-400">
                     Tuỳ chọn
                   </span>
                 </div>

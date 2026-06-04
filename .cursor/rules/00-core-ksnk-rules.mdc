@@ -10,7 +10,7 @@ alwaysApply: true
 - **Skill allowlist:** [`docs/core/skills-catalog.md`](../../docs/core/skills-catalog.md).
 - **Đọc tối thiểu theo diff:** [`docs/core/read-minimum.md`](../../docs/core/read-minimum.md).
 - **Phân cấp:** `AGENTS.md` → rule glob module (`12–17`) → [`docs/README.md`](../../docs/README.md).
-- **Audit snapshot:** [`docs/reference/reports/comprehensive-review-20260530.md`](../../docs/reference/reports/comprehensive-review-20260530.md) — rà soát tổng thể (2026-05-30); không thay SSOT specs.
+- **Audit snapshot:** [`docs/reference/reports/comprehensive-review-20260603.md`](../../docs/reference/reports/comprehensive-review-20260603.md) — rà soát ground-truth (2026-06-03); không thay SSOT specs. Báo cáo 20260530 = lịch sử only.
 - **Một module / nhịp:** không audit cả repo khi sửa điểm nhỏ — xem `lean-execution`.
 - **Trước khi xong** task đụng Server Action / `fact_*`: `npm run verify:engineering` (hoặc `verify:full` trước push).
 - Self-check: đúng module; ranh giới CSSD vs MDM; mapping DB khớp [`implementation-mapping.md`](../../docs/core/implementation-mapping.md); đụng schema → `AGENTS.md` § App ↔ Database + `governance-pipeline.md`.

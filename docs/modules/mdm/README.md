@@ -2,13 +2,15 @@
 
 | Đọc khi | File |
 |---------|------|
-| Entrypoints code | [`../../src/modules/quan-tri-he-thong/ENTRYPOINTS.md`](../../src/modules/quan-tri-he-thong/ENTRYPOINTS.md) |
+| Entrypoints code | [`../../../src/modules/quan-tri-he-thong/ENTRYPOINTS.md`](../../../src/modules/quan-tri-he-thong/ENTRYPOINTS.md) |
 | Tổng hợp entity | [`../../wiki/entities.md`](../../wiki/entities.md#mdm--rbac--audit) |
 | Nghiệp vụ | [`../../core/domain-specification.md`](../../core/domain-specification.md) § MDM |
 | Ánh xạ DB | [`../../core/implementation-mapping.md`](../../core/implementation-mapping.md) § MDM |
 | Import JSON | [`../../reference/guides/json-import-export.md`](../../reference/guides/json-import-export.md) |
 
 Rule: `15-danh-muc-mdm-spec-context.mdc`, `20-master-data-placement.mdc`
+
+Go-live 3 module: [`../../core/pilot-core-modules-go-live.md`](../../core/pilot-core-modules-go-live.md)
 
 ## Pilot checklist (tay — 5 kịch bản)
 

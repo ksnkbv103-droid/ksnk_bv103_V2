@@ -62,7 +62,7 @@ export async function getAvailableRolesAction() {
   try {
     await ensureRbacAdmin();
     const supabase = createAdminSupabaseClient();
-    const { data, error } = await supabase.from("dm_roles").select("id, name").order("name");
+    const { data, error } = await supabase.from("sys_roles").select("id, name").order("name");
     if (error) throw error;
     const rows = selectRolesForStaffKsnkAssignment(data || []);
     return { success: true as const, data: rows };
@@ -96,7 +96,7 @@ export async function setStaffKsnkRbacRole(params: {
 
     // Kiểm tra role tồn tại trong DB
     const { data: roleExists } = await supabase
-      .from("dm_roles")
+      .from("sys_roles")
       .select("id")
       .eq("name", canonicalName)
       .maybeSingle();

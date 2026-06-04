@@ -137,6 +137,9 @@ export interface SsiVerificationData {
   // Surgical details
   loai_phau_thuat_nhsn: string; // Loại phẫu thuật theo NHSN (VD: COLO, KPRO, HPRO, CARD)
 
+  /** Mã QR bộ dụng cụ CSSD (chu trình) — liên kết truy vết SSI ↔ quy trình. */
+  ma_qr_cssd_lien_quan?: string;
+
   // Dynamic fields for CDC timeline and location attribution
   treatment_history?: DepartmentStay[];
   symptom_dates?: Record<string, string>;

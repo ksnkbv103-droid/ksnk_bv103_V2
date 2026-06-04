@@ -33,6 +33,7 @@ import SsiClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/Ssi
 import NkbvStayHistoryTable from "@/modules/giam-sat-nkbv/components/NkbvStayHistoryTable";
 import NkbvCdcMetricsPanel from "@/modules/giam-sat-nkbv/components/NkbvCdcMetricsPanel";
 import NkbvAdjudicationPanel from "@/modules/giam-sat-nkbv/components/NkbvAdjudicationPanel";
+import CssdTraceLink from "@/modules/giam-sat-nkbv/components/CssdTraceLink";
 
 export type NkbvClinicalChecklistModalProps = {
   row: Record<string, any>;
@@ -400,7 +401,7 @@ export default function NkbvClinicalChecklistModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-900/45 p-4 backdrop-blur-sm">
-      <div className="relative my-8 w-full max-w-5xl rounded-[32px] border border-slate-100 bg-white p-6 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+      <div className="relative my-8 w-full max-w-5xl rounded-2xl border border-slate-100 bg-white p-6 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
         
         {/* Close Button */}
         <button
@@ -427,25 +428,31 @@ export default function NkbvClinicalChecklistModal({
           {/* Quick patient data banner */}
           <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1.5 text-xs bg-slate-50 rounded-2xl p-3 border border-slate-100">
             <div>
-              <span className="text-slate-400 font-bold block uppercase text-[9px]">Mã ca / Mã BN</span>
+              <span className="text-slate-400 font-bold block uppercase text-[11px]">Mã ca / Mã BN</span>
               <strong className="text-slate-800">{String(row.ma_ca || "")}</strong> / <strong className="text-slate-600">{String(row.ma_benh_nhan || "—")}</strong>
             </div>
             <div>
-              <span className="text-slate-400 font-bold block uppercase text-[9px]">Họ tên bệnh nhân</span>
+              <span className="text-slate-400 font-bold block uppercase text-[11px]">Họ tên bệnh nhân</span>
               <strong className="text-slate-800">{String(row.ho_ten_benh_nhan || "—")}</strong>
               <span className="text-[10px] text-slate-400"> {row.gioi_tinh ? `(${row.gioi_tinh})` : ""}</span>
             </div>
             <div>
-              <span className="text-slate-400 font-bold block uppercase text-[9px]">Ngày phát hiện (LIS Culture)</span>
+              <span className="text-slate-400 font-bold block uppercase text-[11px]">Ngày phát hiện (LIS Culture)</span>
               <strong className="text-slate-800">{row.ngay_phat_hien ? new Date(row.ngay_phat_hien).toLocaleDateString("vi-VN") : "—"}</strong>
             </div>
             <div>
-              <span className="text-slate-400 font-bold block uppercase text-[9px]">Cấy vi sinh dương tính</span>
+              <span className="text-slate-400 font-bold block uppercase text-[11px]">Cấy vi sinh dương tính</span>
               <span className="inline-flex items-center gap-1 font-semibold text-amber-700 font-mono italic">
                 {String(row.tac_nhan_vi_khuan || "Chưa xác định")}
               </span>
             </div>
           </div>
+
+          {(row as { ma_cycle_qr_lien_quan?: string }).ma_cycle_qr_lien_quan ? (
+            <div className="mt-3">
+              <CssdTraceLink maQr={(row as { ma_cycle_qr_lien_quan?: string }).ma_cycle_qr_lien_quan} />
+            </div>
+          ) : null}
 
           {/* Role-based Workflow Tabs Header */}
           <div className="mt-4 border-b border-slate-100 flex gap-1 bg-slate-50 rounded-2xl p-1 border border-slate-200">
@@ -465,7 +472,7 @@ export default function NkbvClinicalChecklistModal({
                 }`}
               >
                 <div className="text-[11px] font-black uppercase tracking-wider">{tab.label}</div>
-                <div className={`text-[9px] font-bold mt-0.5 ${activeTab === tab.id ? 'text-emerald-100' : 'text-slate-400'}`}>
+                <div className={`text-[11px] font-bold mt-0.5 ${activeTab === tab.id ? 'text-emerald-100' : 'text-slate-400'}`}>
                   {tab.desc}
                 </div>
               </button>
@@ -479,7 +486,7 @@ export default function NkbvClinicalChecklistModal({
                 <HelpCircle className="h-4 w-4 text-[#026f17]" />
                 Phán quyết Dịch tễ: Xác định loại nhiễm khuẩn nghi ngờ
               </span>
-              <span className="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold px-2.5 py-0.5 rounded-full">
+              <span className="text-[11px] bg-emerald-100 text-emerald-800 font-extrabold px-2.5 py-0.5 rounded-full">
                 💡 Gợi ý hệ thống: {suggestedType}
               </span>
             </div>
@@ -775,7 +782,7 @@ export default function NkbvClinicalChecklistModal({
                       </div>
 
                       <div className="mt-3 border-t border-slate-200/40 pt-3">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Mã phân loại</span>
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Mã phân loại</span>
                         <span className={`inline-block mt-1 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${
                           liveEvaluation.is_positive 
                             ? "bg-emerald-100 text-emerald-800"
@@ -791,7 +798,7 @@ export default function NkbvClinicalChecklistModal({
                       </div>
 
                       <div className="mt-3 text-xs font-semibold leading-relaxed">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Căn cứ y tế</span>
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Căn cứ y tế</span>
                         {liveEvaluation.reason}
                       </div>
                     </div>

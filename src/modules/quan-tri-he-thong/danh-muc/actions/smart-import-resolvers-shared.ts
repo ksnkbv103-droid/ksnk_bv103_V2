@@ -15,11 +15,11 @@ export async function lookupKhoaByTenFlexible(supabase: SupabaseClient, name: st
   const sb = supabase;
   const t = name.trim();
   if (!t) return null as { id: string } | null;
-  const exact = await sb.from("dm_khoa_phong").select("id").eq("ten_khoa", t).maybeSingle();
+  const exact = await sb.from("mdm_dm_khoa_phong").select("id").eq("ten_khoa", t).maybeSingle();
   if (exact.error) return null;
   if (exact.data) return exact.data as { id: string };
   const esc = `%${t.replace(/%/g, "\\%")}%`;
-  const like = await sb.from("dm_khoa_phong").select("id").ilike("ten_khoa", esc).limit(1).maybeSingle();
+  const like = await sb.from("mdm_dm_khoa_phong").select("id").ilike("ten_khoa", esc).limit(1).maybeSingle();
   if (!like.error && like.data) return like.data as { id: string };
   return null;
 }

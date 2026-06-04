@@ -7,7 +7,7 @@ let tramIdByMaCache: Map<string, string> | null = null;
 
 async function loadTramMap(supabase: SupabaseClient): Promise<Map<string, string>> {
   if (tramIdByMaCache) return tramIdByMaCache;
-  const { data, error } = await supabase.from("dm_tram_cssd").select("id, ma_tram").eq("is_active", true);
+  const { data, error } = await supabase.from("cssd_dm_tram").select("id, ma_tram").eq("is_active", true);
   if (error) throw new Error(error.message);
   const map = new Map<string, string>();
   for (const row of data || []) {
@@ -39,7 +39,7 @@ async function resolveCssdTramMa(
 ): Promise<Station | null> {
   const id = String(tramId || "").trim();
   if (!id) return null;
-  const { data, error } = await supabase.from("dm_tram_cssd").select("ma_tram").eq("id", id).maybeSingle();
+  const { data, error } = await supabase.from("cssd_dm_tram").select("ma_tram").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
   const ma = String((data as { ma_tram?: string } | null)?.ma_tram || "").trim().toUpperCase();
   return TRAM_MA_ORDER.includes(ma as Station) ? (ma as Station) : null;

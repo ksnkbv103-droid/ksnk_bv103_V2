@@ -88,7 +88,7 @@ export function scoreTyLe(results: readonly GsttScoringInputItem[]): number {
   const evaluable = (results || []).filter(isEvaluable);
   if (evaluable.length === 0) return 0;
   const dat = evaluable.filter((r) => r.value === "DAT").length;
-  return Math.round((dat / evaluable.length) * 100);
+  return Math.round((dat / evaluable.length) * 10000) / 100;
 }
 
 /**

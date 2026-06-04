@@ -1,4 +1,4 @@
-/** Giá trị form khớp cột có thể sửa trên dm_bo_dung_cu. */
+/** Giá trị form khớp cột có thể sửa trên cssd_dm_bo_dung_cu. */
 
 export interface BoDungCuFormValues {
   id?: string;

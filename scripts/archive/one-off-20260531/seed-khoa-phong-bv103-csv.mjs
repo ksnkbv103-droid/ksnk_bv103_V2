@@ -1,5 +1,5 @@
 /**
- * Một lần: nạp danh bảng khoa phòng (theo CSSD_Management - DM_KhoaPhong.csv) vào public.dm_khoa_phong.
+ * Một lần: nạp danh bảng khoa phòng (theo CSSD_Management - DM_KhoaPhong.csv) vào public.mdm_dm_khoa_phong.
  * Yêu cầu: .env.local có NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
  * Chạy: node --env-file=.env.local scripts/seed-khoa-phong-bv103-csv.mjs
  */
@@ -91,11 +91,11 @@ if (!url || !key) {
 const supabase = createClient(url, key, { auth: { persistSession: false } });
 
 const { data: khoiRows, error: khoiErr } = await supabase
-  .from("dm_khoi_khoa")
+  .from("mdm_dm_khoi_khoa")
   .select("id, ma_khoi")
   .eq("is_active", true);
 if (khoiErr) {
-  console.error("Không đọc dm_khoi_khoa:", khoiErr.message);
+  console.error("Không đọc mdm_dm_khoi_khoa:", khoiErr.message);
   process.exit(1);
 }
 
@@ -110,7 +110,7 @@ for (const [ma, ten, label] of ROWS) {
   }
   const kid = khoiByMa.get(mk.toUpperCase());
   if (!kid) {
-    console.error("Không tìm thấy dm_khoi_khoa.ma_khoi =", mk);
+    console.error("Không tìm thấy mdm_dm_khoi_khoa.ma_khoi =", mk);
     process.exit(1);
   }
   payloads.push({
@@ -122,7 +122,7 @@ for (const [ma, ten, label] of ROWS) {
   });
 }
 
-const { error: upErr } = await supabase.from("dm_khoa_phong").upsert(payloads, {
+const { error: upErr } = await supabase.from("mdm_dm_khoa_phong").upsert(payloads, {
   onConflict: "ma_khoa",
 });
 if (upErr) {
@@ -130,4 +130,4 @@ if (upErr) {
   process.exit(1);
 }
 
-console.log("OK: đã upsert", payloads.length, "dòng vào dm_khoa_phong.");
+console.log("OK: đã upsert", payloads.length, "dòng vào mdm_dm_khoa_phong.");

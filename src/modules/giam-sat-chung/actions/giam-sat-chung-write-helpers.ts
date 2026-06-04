@@ -85,7 +85,7 @@ export async function resolveGscModeIds(
   let cach_thuc_id = params.cach_id ?? null;
   if (!hinh_thuc_id && params.hinh) {
     const { data } = await supabase
-      .from("dm_hinh_thuc_giam_sat")
+      .from("gstt_dm_hinh_thuc_giam_sat")
       .select("id")
       .eq("ten_hinh_thuc", params.hinh)
       .maybeSingle();
@@ -93,7 +93,7 @@ export async function resolveGscModeIds(
   }
   if (!cach_thuc_id && params.cach) {
     const { data } = await supabase
-      .from("dm_cach_thuc_giam_sat")
+      .from("gstt_dm_cach_thuc_giam_sat")
       .select("id")
       .eq("ten_cach_thuc", params.cach)
       .maybeSingle();

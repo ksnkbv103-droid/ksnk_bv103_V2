@@ -1,4 +1,4 @@
-/** Ánh xạ header Excel ↔ cột bả dm_bo_dung_cu_chi_tiet (import/export). */
+/** Ánh xạ header Excel ↔ cột bả cssd_dm_bo_dung_cu_chi_tiet (import/export). */
 export const DC_CHI_TIET_COLUMN_MAP: Record<string, string> = {
   "Mã chi tiết": "ma_chi_tiet",
   "Tên chi tiết": "ten_chi_tiet",

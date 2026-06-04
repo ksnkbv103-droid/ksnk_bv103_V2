@@ -102,7 +102,7 @@ export async function getBoDungCuOptionsForChiTietAction() {
   await verifyPermission("DC_LE", "view");
   const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
-    .from("dm_bo_dung_cu")
+    .from("cssd_dm_bo_dung_cu")
     .select("id, ma_bo, ten_bo")
     .eq("is_active", true)
     .order("ma_bo", { ascending: true });
@@ -157,7 +157,7 @@ export async function saveDungCuChiTietAction(input: Record<string, unknown>) {
   if (!finalTen && loaiRaw) {
     const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase
-      .from("dm_loai_dung_cu")
+      .from("cssd_dm_loai_dung_cu")
       .select("ten_loai, ma_loai, specs")
       .eq("id", loaiRaw)
       .maybeSingle();
@@ -184,20 +184,20 @@ export async function saveDungCuChiTietAction(input: Record<string, unknown>) {
     }
   };
 
-  return upsertMasterRow("dm_bo_dung_cu_chi_tiet", id, payload);
+  return upsertMasterRow("cssd_dm_bo_dung_cu_chi_tiet", id, payload);
 }
 
 export async function toggleDungCuChiTietStatusAction(id: string, currentStatus: boolean) {
   await verifyPermission("DC_LE", "edit");
-  return toggleMasterStatus("dm_bo_dung_cu_chi_tiet", id, currentStatus);
+  return toggleMasterStatus("cssd_dm_bo_dung_cu_chi_tiet", id, currentStatus);
 }
 
 export async function softDeleteDungCuChiTietAction(id: string) {
   await verifyPermission("DC_LE", "delete");
-  return softDeleteMasterRow("dm_bo_dung_cu_chi_tiet", id);
+  return softDeleteMasterRow("cssd_dm_bo_dung_cu_chi_tiet", id);
 }
 
 export async function softDeleteManyDungCuChiTietAction(ids: string[]) {
   await verifyPermission("DC_LE", "delete");
-  return softDeleteManyMasterRows("dm_bo_dung_cu_chi_tiet", ids);
+  return softDeleteManyMasterRows("cssd_dm_bo_dung_cu_chi_tiet", ids);
 }

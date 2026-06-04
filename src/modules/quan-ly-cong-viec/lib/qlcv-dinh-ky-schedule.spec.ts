@@ -6,7 +6,7 @@ import {
 } from "./qlcv-dinh-ky-schedule";
 
 // =============================================================================
-// SUITE 1: dinhKyMatchDueOnDate — mirror logic RPC fn_fact_cong_viec_spawn_dinh_ky_hom_nay
+// SUITE 1: dinhKyMatchDueOnDate — mirror logic RPC fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay
 // =============================================================================
 describe("dinhKyMatchDueOnDate (mirror RPC)", () => {
   // ---------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 import { emptyFkToNull, normalizeNullableFk } from "./fk-normalize";
 import { getDanhMucItemById } from "./repository";
 
-/** Chuẩn P1: mọi khoa/phòng FK lưu vào fact → chỉ nhận id tồn tại, đang hoạt động trong dm_khoa_phong. */
+/** Chuẩn P1: mọi khoa/phòng FK lưu vào fact → chỉ nhận id tồn tại, đang hoạt động trong mdm_dm_khoa_phong. */
 export async function normalizeAndValidateDmKhoaPhong(params: {
   supabase: any;
   idRaw: unknown;
@@ -10,10 +10,10 @@ export async function normalizeAndValidateDmKhoaPhong(params: {
 }): Promise<string | null> {
   const { supabase, idRaw, fieldLabel, activeOnly } = params;
   const raw = emptyFkToNull(idRaw);
-  const id = await normalizeNullableFk(supabase, "dm_khoa_phong", idRaw);
+  const id = await normalizeNullableFk(supabase, "mdm_dm_khoa_phong", idRaw);
   if (raw && !id) {
     throw new Error(
-      `${fieldLabel}: id không thuộc Danh mục Khoa phòng (dm_khoa_phong). Vui lòng chọn từ màn Khoa phòng hoặc xuất Excel.`,
+      `${fieldLabel}: id không thuộc Danh mục Khoa phòng (mdm_dm_khoa_phong). Vui lòng chọn từ màn Khoa phòng hoặc xuất Excel.`,
     );
   }
   await validateDanhMucIdByType({
@@ -35,17 +35,17 @@ export async function validateDanhMucIdByType(params: {
 }) {
   const { supabase, id, maLoai, fieldLabel, activeOnly = true } = params;
   if (!id) return;
-  /** Chỉ FK tới dm_khoa_phong (Postgres). */
+  /** Chỉ FK tới mdm_dm_khoa_phong (Postgres). */
   if (maLoai === "KHOA_PHONG") {
     const { data: khoa, error } = await supabase
-      .from("dm_khoa_phong")
+      .from("mdm_dm_khoa_phong")
       .select("id, is_active")
       .eq("id", id)
       .maybeSingle();
     if (error) throw new Error(`${fieldLabel}: ${error.message}`);
     if (!khoa?.id)
       throw new Error(
-        `${fieldLabel}: id không tồn tại trong Danh mục Khoa phòng (dm_khoa_phong). Vui lòng chọn đúng id từ Danh mục Khoa phòng.`,
+        `${fieldLabel}: id không tồn tại trong Danh mục Khoa phòng (mdm_dm_khoa_phong). Vui lòng chọn đúng id từ Danh mục Khoa phòng.`,
       );
     if (activeOnly && khoa.is_active === false) throw new Error(`${fieldLabel} đã ngưng hoạt động.`);
     return;

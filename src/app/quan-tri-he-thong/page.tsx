@@ -4,6 +4,7 @@
 import React, { Suspense } from "react";
 import { Settings } from "lucide-react";
 import QuanTriDanhMucPage from "@/modules/quan-tri-he-thong/danh-muc/views/QuanTriDanhMucPage";
+import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import { usePermission } from "@/hooks/usePermission";
 import { canSeeQuanTriSection } from "@/lib/nav/ksnk-nav-gates";
 
@@ -32,24 +33,22 @@ export default function QuanTriHeThongPage() {
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tài khoản hiện tại:</p>
           <p className="text-sm font-bold text-slate-800">{userEmail || "Chưa đăng nhập"}</p>
         </div>
-        <p className="text-[9px] text-slate-400 italic">Đồng bộ với menu cạnh: khoá điều hướng Quản trị khi không đủ quyền Xem các module trên.</p>
+        <p className="text-[11px] text-slate-400 italic">Đồng bộ với menu cạnh: khoá điều hướng Quản trị khi không đủ quyền Xem các module trên.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-8 pb-20 animate-in fade-in duration-500">
-      <header className="flex flex-col gap-4 rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white via-white to-slate-50/90 p-6 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.04] md:flex-row md:items-center md:justify-between md:p-8">
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--primary-light)] ring-1 ring-[var(--primary)]/15">
+      <KsnkPageHeader
+        title={
+          <span className="inline-flex items-center gap-2">
             <Settings className="h-6 w-6 text-[var(--primary)]" aria-hidden />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Quản trị</p>
-            <h1 className="mt-0.5 text-xl font-semibold tracking-tight text-slate-900 md:text-2xl">Hệ thống</h1>
-          </div>
-        </div>
-      </header>
+            Hệ thống
+          </span>
+        }
+        subtitle="Trung tâm danh mục, phân quyền và giám trị dữ liệu master (MDM)."
+      />
 
       <div className="animate-in slide-in-from-bottom-4 duration-500">
         <Suspense

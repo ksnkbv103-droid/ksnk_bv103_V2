@@ -8,10 +8,14 @@ import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { useGscHistoryTable, type GscHistoryRow } from "../hooks/use-gsc-history-table";
 import type { GscViewBundle } from "../lib/load-gsc-view-bundle";
 
+import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
+
 export default function HistoryTable({
   onEditBundle,
+  loaiGiamSat,
 }: {
   onEditBundle?: (bundle: GscViewBundle, row: GscHistoryRow) => void;
+  loaiGiamSat?: GscLoaiGiamSatRoute;
 }) {
   const {
     allowed,
@@ -32,7 +36,7 @@ export default function HistoryTable({
     pageSize,
     totalCount,
     totalPages,
-  } = useGscHistoryTable(onEditBundle);
+  } = useGscHistoryTable(onEditBundle, loaiGiamSat);
 
   return (
     <div className="space-y-6">

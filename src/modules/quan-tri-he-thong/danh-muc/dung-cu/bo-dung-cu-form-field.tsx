@@ -13,7 +13,7 @@ interface Props {
 export default function BoDungCuTextField({ label, value, onChange, type = "text", required, disabled }: Props) {
   return (
     <div className="space-y-1">
-      <label className="text-[9px] font-black text-slate-400 uppercase ml-1">
+      <label className="text-[11px] font-black text-slate-400 uppercase ml-1">
         {label}
         {required ? " *" : ""}
       </label>

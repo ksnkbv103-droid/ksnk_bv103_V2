@@ -32,7 +32,7 @@ const CATEGORY_TYPES = [
 export default function MdmSuggestionApproveModal({ isOpen, onClose, suggestion, onApproved }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [fieldRole, setFieldRole] = useState<"FK_TO_DM" | "FK_TO_SPECIALIZED" | "TEXT_ENUM" | "DOMAIN_ATTRIBUTE" | "FACT_REFERENCE">("FK_TO_DM");
-  const [sourceTable, setSourceTable] = useState("dm_lookup_value");
+  const [sourceTable, setSourceTable] = useState("sys_lookup_value");
   const [sourceColumn, setSourceColumn] = useState("id");
   const [sourceLoaiDanhMuc, setSourceLoaiDanhMuc] = useState("");
   const [isRequired, setIsRequired] = useState(false);

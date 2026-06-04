@@ -90,7 +90,7 @@ export function QlcvReasonDialog({
             id="qlcv-reason-dialog-input"
             className={[
               "w-full resize-none rounded-xl border px-3 py-2.5 text-sm leading-relaxed text-slate-800 outline-none transition-colors",
-              "placeholder:text-slate-400 focus:ring-2 focus:ring-[#026f17]/20",
+              "placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--primary)]/20",
               showError
                 ? "border-red-300 bg-red-50/40 focus:border-red-400"
                 : "border-slate-200 bg-slate-50/60 focus:border-slate-300",
@@ -130,7 +130,7 @@ export function QlcvReasonDialog({
             className={
               variant === "danger"
                 ? "h-10 rounded-xl bg-red-600 px-4 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
-                : "h-10 rounded-xl bg-[#026f17] px-4 text-sm font-medium text-white hover:bg-[#025a12] disabled:opacity-50"
+                : "h-10 rounded-xl bg-[var(--primary)] px-4 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
             }
             onClick={handleConfirm}
             disabled={busy || !isValid}

@@ -32,7 +32,7 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       accessorKey: "loai_thiet_bi",
       sortable: true,
       cell: (i) => (
-        <span className="rounded-full bg-slate-50 px-2 py-0.5 text-[9px] font-black uppercase text-slate-600">
+        <span className="rounded-full bg-slate-50 px-2 py-0.5 text-[11px] font-black uppercase text-slate-600">
           {i.loai_thiet_bi || "—"}
         </span>
       ),
@@ -116,7 +116,7 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       header: "BK GẦN / TIẾP",
       accessorKey: "ngay_bao_tri_gan_nhat",
       cell: (i) => (
-        <span className="text-[9px] font-semibold text-slate-600">
+        <span className="text-[11px] font-semibold text-slate-600">
           {i.ngay_bao_tri_gan_nhat ? String(i.ngay_bao_tri_gan_nhat).slice(0, 10) : "—"} →{" "}
           {i.ngay_bao_tri_tiep_theo ? String(i.ngay_bao_tri_tiep_theo).slice(0, 10) : "—"}
         </span>

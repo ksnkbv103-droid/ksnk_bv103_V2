@@ -59,7 +59,7 @@ export default function VSTPersonColumn({
   const resolveNhanSuKhoaId = (ns: NhanSuOption): string => {
     const direct = toText(ns.khoa_id);
     if (direct) return direct;
-    const fallbackKeys = ["khoa_phong_id", "dm_khoa_phong_id", "khoaId"] as const;
+    const fallbackKeys = ["khoa_phong_id", "mdm_dm_khoa_phong_id", "khoaId"] as const;
     for (const key of fallbackKeys) {
       const value = toText((ns as Record<string, unknown>)[key]);
       if (value) return value;

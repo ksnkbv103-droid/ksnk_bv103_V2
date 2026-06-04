@@ -44,10 +44,10 @@ describe("updateCongViec", () => {
     clearQlcvLookupIdCacheForTests();
     mocks.setUpdatePayload(null);
     mocks.hasBypass.mockResolvedValue(true);
-    mocks.metaMaybeSingle.mockResolvedValue({ data: { cong_viec_cha_id: null }, error: null });
+    mocks.metaMaybeSingle.mockResolvedValue({ data: { id: "cv-01" }, error: null });
     mocks.updateSingle.mockResolvedValue({ data: { id: "cv-01" }, error: null });
     mocks.from.mockImplementation((table: string) => {
-      if (table !== "fact_cong_viec") return {};
+      if (table !== "qlcv_fact_cong_viec") return {};
       return {
         select: () => ({
           eq: () => ({
@@ -79,7 +79,6 @@ describe("updateCongViec", () => {
                 data: {
                   id: "cv-01",
                   trang_thai: "MOI",
-                  trang_thai_id: "tt-moi",
                   is_active: true,
                   nguoi_phu_trach_id: null,
                   han_hoan_thanh: null,
@@ -91,11 +90,11 @@ describe("updateCongViec", () => {
           }),
         };
       }
-      if (table === "fact_cong_viec") {
+      if (table === "qlcv_fact_cong_viec") {
         return {
           select: () => ({
             eq: () => ({
-              maybeSingle: vi.fn().mockResolvedValue({ data: { cong_viec_cha_id: null }, error: null }),
+              maybeSingle: vi.fn().mockResolvedValue({ data: { id: "cv-01" }, error: null }),
             }),
           }),
           update: (payload: Record<string, unknown>) => {
@@ -129,6 +128,7 @@ describe("updateCongViec", () => {
 
   it("blocks normal user from updating status directly through updateCongViec", async () => {
     mocks.hasBypass.mockResolvedValue(false); // Không phải Admin
+    mocks.getActorNhanSuId.mockResolvedValue("actor-1");
     mocks.from.mockImplementation((table: string) => {
       if (table === "v_qlcv_cong_viec_full") {
         return {
@@ -138,12 +138,22 @@ describe("updateCongViec", () => {
                 data: {
                   id: "cv-01",
                   trang_thai: "MOI",
-                  trang_thai_id: "tt-moi",
                   is_active: true,
                   nguoi_phu_trach_id: null,
+                  nguoi_tao_id: "actor-1",
+                  khoa_thuc_hien_id: null,
                 },
                 error: null,
               }),
+            }),
+          }),
+        };
+      }
+      if (table === "mdm_nhan_su") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: vi.fn().mockResolvedValue({ data: { khoa_id: null }, error: null }),
             }),
           }),
         };
@@ -174,7 +184,6 @@ describe("updateCongViec", () => {
                 data: {
                   id: "cv-01",
                   trang_thai: "MOI",
-                  trang_thai_id: "tt-moi",
                   is_active: true,
                   han_hoan_thanh: pastDate,
                   phan_tram_hoan_thanh: 20,
@@ -185,11 +194,11 @@ describe("updateCongViec", () => {
           }),
         };
       }
-      if (table === "fact_cong_viec") {
+      if (table === "qlcv_fact_cong_viec") {
         return {
           select: () => ({
             eq: () => ({
-              maybeSingle: vi.fn().mockResolvedValue({ data: { cong_viec_cha_id: null }, error: null }),
+              maybeSingle: vi.fn().mockResolvedValue({ data: { id: "cv-01" }, error: null }),
             }),
           }),
           update: (payload: Record<string, unknown>) => {
@@ -204,7 +213,7 @@ describe("updateCongViec", () => {
           },
         };
       }
-      if (table === "fact_cong_viec_hoat_dong") {
+      if (table === "qlcv_fact_cong_viec_hoat_dong") {
         return {
           insert: insertMock,
         };
@@ -236,7 +245,6 @@ describe("updateCongViec", () => {
                 data: {
                   id: "cv-01",
                   trang_thai: "MOI",
-                  trang_thai_id: "tt-moi",
                   is_active: true,
                   nguoi_phu_trach_id: "ns-old",
                   nguoi_phu_trach_ten: "Nguyễn Văn Cũ",
@@ -248,11 +256,11 @@ describe("updateCongViec", () => {
           }),
         };
       }
-      if (table === "fact_cong_viec") {
+      if (table === "qlcv_fact_cong_viec") {
         return {
           select: () => ({
             eq: () => ({
-              maybeSingle: vi.fn().mockResolvedValue({ data: { cong_viec_cha_id: null }, error: null }),
+              maybeSingle: vi.fn().mockResolvedValue({ data: { id: "cv-01" }, error: null }),
             }),
           }),
           update: (payload: Record<string, unknown>) => {
@@ -279,7 +287,7 @@ describe("updateCongViec", () => {
           }),
         };
       }
-      if (table === "dm_trang_thai_cong_viec" || table === "dm_loai_cong_viec") {
+      if (table === "qlcv_dm_trang_thai_cong_viec" || table === "qlcv_dm_loai_cong_viec") {
         return {
           select: () => ({
             eq: () => ({
@@ -288,7 +296,7 @@ describe("updateCongViec", () => {
           }),
         };
       }
-      if (table === "fact_cong_viec_hoat_dong") {
+      if (table === "qlcv_fact_cong_viec_hoat_dong") {
         return {
           insert: insertMock,
         };

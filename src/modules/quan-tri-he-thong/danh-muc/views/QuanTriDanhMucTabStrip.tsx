@@ -1,17 +1,13 @@
 import React from "react";
-import { Database, Layers, ShieldCheck, History, ShieldAlert } from "lucide-react";
+import { Database, ShieldCheck, ShieldAlert } from "lucide-react";
 
-type TabId = "DANH_MUC" | "DM_REGISTRY" | "PHAN_QUYEN" | "NHAT_KY" | "MDM_GOVERNANCE";
+type TabId = "DANH_MUC" | "PHAN_QUYEN" | "MDM_GOVERNANCE";
 
 type Props = {
   active: TabId;
   onChange: (t: TabId) => void;
-  /** Hai tab danh mục cần `DANH_MUC.view`. */
   canAccessDmTabs: boolean;
-  /** Tab ma trận: cần admin / email tin cậy hoặc `PHAN_QUYEN` + edit — khớp `ensureRbacAdmin`. */
   canConfigureRbac: boolean;
-  /** Tab nhật ký: cần admin / email tin cậy hoặc `PHAN_QUYEN` + view. */
-  canViewAudit: boolean;
 };
 
 const tabBase =
@@ -22,7 +18,6 @@ export default function QuanTriDanhMucTabStrip({
   onChange,
   canAccessDmTabs,
   canConfigureRbac,
-  canViewAudit,
 }: Props) {
   return (
     <div
@@ -46,19 +41,6 @@ export default function QuanTriDanhMucTabStrip({
       <button
         type="button"
         role="tab"
-        aria-selected={active === "DM_REGISTRY"}
-        id="tab-dm-registry"
-        disabled={!canAccessDmTabs}
-        title={canAccessDmTabs ? undefined : "Cần quyền Xem module Danh mục"}
-        className={`${tabBase} ${active === "DM_REGISTRY" ? "bg-white text-[var(--primary)] shadow-sm ring-1 ring-slate-200/80" : "text-slate-500 hover:bg-white/60 hover:text-slate-800"} disabled:cursor-not-allowed disabled:opacity-45`}
-        onClick={() => onChange("DM_REGISTRY")}
-      >
-        <Layers className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
-        <span className="truncate">Danh mục chuyên biệt</span>
-      </button>
-      <button
-        type="button"
-        role="tab"
         aria-selected={active === "PHAN_QUYEN"}
         id="tab-phan-quyen"
         disabled={!canConfigureRbac}
@@ -68,19 +50,6 @@ export default function QuanTriDanhMucTabStrip({
       >
         <ShieldCheck className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
         <span className="truncate">Phân quyền</span>
-      </button>
-      <button
-        type="button"
-        role="tab"
-        aria-selected={active === "NHAT_KY"}
-        id="tab-nhat-ky"
-        disabled={!canViewAudit}
-        title={canViewAudit ? undefined : "Cần quyền Xem module Phân quyền hoặc vai trò quản trị"}
-        className={`${tabBase} ${active === "NHAT_KY" ? "bg-white text-[var(--primary)] shadow-sm ring-1 ring-slate-200/80" : "text-slate-500 hover:bg-white/60 hover:text-slate-800"} disabled:cursor-not-allowed disabled:opacity-45`}
-        onClick={() => onChange("NHAT_KY")}
-      >
-        <History className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
-        <span className="truncate">Nhật ký hệ thống</span>
       </button>
       <button
         type="button"

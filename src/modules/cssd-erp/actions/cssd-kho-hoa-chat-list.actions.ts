@@ -43,7 +43,7 @@ export async function listTonTheoLoKhoHoaChatAction(): Promise<
     let dmMap = new Map<string, { ma_hoa_chat?: string; ten_hoa_chat?: string; don_vi_tinh?: string | null; nguong_ton_toi_thieu?: number | null }>();
     if (dmIds.length) {
       const { data: dms, error: dErr } = await supabase
-        .from("dm_hoa_chat")
+        .from("cssd_dm_hoa_chat")
         .select("id, ma_hoa_chat, ten_hoa_chat, don_vi_tinh, nguong_ton_toi_thieu")
         .in("id", dmIds);
       if (dErr) return { success: false, error: mapFkError(dErr.message) };
@@ -98,7 +98,7 @@ export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number }):
     const dmIds = [...new Set(rawRows.map((r: { dm_hoa_chat_id?: string }) => String(r.dm_hoa_chat_id || "")).filter(Boolean))];
     const tenMap = new Map<string, string>();
     if (dmIds.length) {
-      const { data: dms } = await supabase.from("dm_hoa_chat").select("id, ten_hoa_chat").in("id", dmIds);
+      const { data: dms } = await supabase.from("cssd_dm_hoa_chat").select("id, ten_hoa_chat").in("id", dmIds);
       for (const d of dms || []) {
         tenMap.set(String((d as { id?: string }).id), String((d as { ten_hoa_chat?: string }).ten_hoa_chat || ""));
       }
@@ -135,7 +135,7 @@ export async function listDmHoaChatChoKhoAction(search?: string): Promise<
   try {
     await verifyPermission("KSNK_KHO_HOACHAT", "view");
     let q = supabase
-      .from("dm_hoa_chat")
+      .from("cssd_dm_hoa_chat")
       .select("id, ma_hoa_chat, ten_hoa_chat, don_vi_tinh, nguong_ton_toi_thieu")
       .eq("is_active", true)
       .order("ma_hoa_chat", { ascending: true });
@@ -174,7 +174,7 @@ export async function capNhatNguongTonKhoAction(input: { dm_hoa_chat_id: string;
       nguong = n;
     }
     const { error } = await supabase
-      .from("dm_hoa_chat")
+      .from("cssd_dm_hoa_chat")
       .update({ nguong_ton_toi_thieu: nguong, updated_at: new Date().toISOString() })
       .eq("id", id);
     if (error) return { success: false as const, error: mapFkError(error.message) };

@@ -3,6 +3,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { ArrowLeft, BarChart2, FileText, History } from "lucide-react";
 import { getBangKiemsForGiamSat, getTieuChisForGiamSatChung } from "@/lib/mdm-read-gateway";
 import GiamSatChungForm from "../components/GiamSatChungForm";
@@ -11,7 +12,7 @@ import { useModulePermission } from "@/hooks/useModulePermission";
 import { useDataTable } from "@/hooks/useDataTable";
 import ChecklistTemplateTable from "../components/ChecklistTemplateTable";
 import { toast } from "sonner";
-import type { ChecklistResult, ChecklistTemplate } from "@/types/giam-sat-chung";
+import type { BangKiemCachTinhDiem, ChecklistResult, ChecklistTemplate } from "@/types/giam-sat-chung";
 import {
   mapTieuChiJsonbToCriterion,
   type TieuChiJsonbRaw,
@@ -25,6 +26,9 @@ import {
 } from "@/components/shared/ksnk-supervision-chrome";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 import { useGscAnalyticsData } from "../hooks/use-gsc-analytics-data";
+import { resolveGscRouteChrome, type GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
+import type { GscFormProgress } from "../lib/gsc-score-display";
+import { parseSupervisionTab, type SupervisionTabId } from "@/lib/analytics/supervision-deep-link";
 
 const GscStrategicAnalyticsPanel = dynamic(() => import("../components/GscStrategicAnalyticsPanel"), {
   ssr: false,
@@ -43,9 +47,21 @@ type BangKiemListRow = {
   cach_tinh_diem?: string | null;
 };
 
+function filterBangKiemByLoai(
+  all: BangKiemListRow[],
+  initialLoaiGiamSat?: GiamSatChungPageProps["initialLoaiGiamSat"],
+): BangKiemListRow[] {
+  if (!initialLoaiGiamSat) return all;
+  return all.filter((bk) => {
+    const lg = String(bk.loai_giam_sat || "").trim().toUpperCase();
+    if (initialLoaiGiamSat === "TUAN_THU") return !lg || lg === "TUAN_THU";
+    return lg === initialLoaiGiamSat;
+  });
+}
+
 interface GiamSatChungPageProps {
   /** Slice 5 (reform v4): pre-filter danh mục bảng kiểm theo `loai_giam_sat`. */
-  initialLoaiGiamSat?: "TUAN_THU" | "NHAT_KY_VAN_HANH" | "DANH_GIA_HE_THONG";
+  initialLoaiGiamSat?: GscLoaiGiamSatRoute;
 }
 
 function GscAnalyticsTab({ initialLoaiGiamSat }: { initialLoaiGiamSat?: GiamSatChungPageProps["initialLoaiGiamSat"] }) {
@@ -77,24 +93,35 @@ function GscAnalyticsTab({ initialLoaiGiamSat }: { initialLoaiGiamSat?: GiamSatC
       payload={d.payload}
       loading={d.loading}
       loadError={d.loadError}
-      showComplianceV4={initialLoaiGiamSat === "TUAN_THU" || !initialLoaiGiamSat}
+      checklistClusters={d.checklistClusters}
+      clustersLoading={d.clustersLoading}
+      truncatedChecklistCount={d.truncatedChecklistCount}
+      bkLabelRecord={d.bkLabelRecord}
+      onRefresh={() => void d.loadAnalytics()}
     />
   );
 }
 
 export default function GiamSatChungPage({ initialLoaiGiamSat }: GiamSatChungPageProps = {}) {
-  const [activeTab, setActiveTab] = useState<"form" | "history" | "analytics">("form");
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<SupervisionTabId>(() => parseSupervisionTab(searchParams.get("tab")));
   const [selectedTemplate, setSelectedTemplate] = useState<ChecklistTemplate | null>(null);
   const [editSourceSessionId, setEditSourceSessionId] = useState<string | null>(null);
   const [editPayload, setEditPayload] = useState<{
     session: Partial<GiamSatSession>;
     results: ChecklistResult[];
   } | null>(null);
-  const [formProgress, setFormProgress] = useState<{ evaluated: number; total: number; rate: number } | null>(null);
+  const [formProgress, setFormProgress] = useState<GscFormProgress | null>(null);
+  const routeChrome = resolveGscRouteChrome(initialLoaiGiamSat);
   const [dbTemplates, setDbTemplates] = useState<BangKiemListRow[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [loadingTemplateDetail, setLoadingTemplateDetail] = useState(false);
   const { loading: permLoading, allowed } = useModulePermission(MODULE_KEY);
+
+  useEffect(() => {
+    const fromUrl = parseSupervisionTab(searchParams.get("tab"));
+    setActiveTab((prev) => (prev === fromUrl ? prev : fromUrl));
+  }, [searchParams]);
 
   const { processedData, handleSort, handleSearch, searchTerm } = useDataTable<BangKiemListRow>(dbTemplates, [
     "ten_bk",
@@ -118,12 +145,16 @@ export default function GiamSatChungPage({ initialLoaiGiamSat }: GiamSatChungPag
     const criteria = (tcRes.data || []) as TieuChiJsonbRaw[];
     setFormProgress(null);
     const ma = String(bk.ma_bk ?? "").trim();
+    const lg = String(bk.loai_giam_sat ?? "").trim().toUpperCase() || null;
+    const cach = String(bk.cach_tinh_diem ?? "").trim().toUpperCase() || null;
     setSelectedTemplate({
       id: ma || String(bk.id || ""),
       dbId: String(bk.id || ""),
       title: String(bk.ten_bang_kiem ?? bk.ten_bk ?? "").trim() || "Bảng kiểm",
       category: "Giám sát chung",
       criteria: criteria.map(mapTieuChiJsonbToCriterion),
+      loai_giam_sat: lg as GscLoaiGiamSatRoute | null,
+      cach_tinh_diem: cach as BangKiemCachTinhDiem | null,
     });
   };
 
@@ -135,16 +166,7 @@ export default function GiamSatChungPage({ initialLoaiGiamSat }: GiamSatChungPag
         const all = (res.data || []) as BangKiemListRow[];
         // Slice 5 (reform v4): filter theo loai_giam_sat khi route /tuan-thu /nhat-ky /he-thong.
         // Backward compat: bảng kiểm chưa set loai_giam_sat → mặc định coi là TUAN_THU.
-        const filtered = initialLoaiGiamSat
-          ? all.filter((bk) => {
-              const lg = String(bk.loai_giam_sat || "").trim().toUpperCase();
-              if (initialLoaiGiamSat === "TUAN_THU") {
-                return !lg || lg === "TUAN_THU";
-              }
-              return lg === initialLoaiGiamSat;
-            })
-          : all;
-        setDbTemplates(filtered);
+        setDbTemplates(filterBangKiemByLoai(all, initialLoaiGiamSat));
       } else {
         toast.error(res.error || "Không tải được danh mục bảng kiểm");
       }
@@ -172,10 +194,12 @@ export default function GiamSatChungPage({ initialLoaiGiamSat }: GiamSatChungPag
   return (
     <div className="space-y-6 pb-12">
       <KsnkSupervisionHero
-        eyebrow="Bảng kiểm theo bộ quy chuẩn thực hành kiểm soát nhiễm khuẩn"
+        eyebrow={routeChrome.eyebrow}
+        description={routeChrome.description}
         title={
           <>
-            Giám sát <span className="text-[var(--primary)]">tổng hợp</span>
+            {routeChrome.titlePlain}
+            <span className="text-[var(--primary)]">{routeChrome.titleAccent}</span>
           </>
         }
         trailing={
@@ -220,8 +244,8 @@ export default function GiamSatChungPage({ initialLoaiGiamSat }: GiamSatChungPag
                       <span className="rounded-md bg-slate-100 px-2.5 py-1">
                         Đã đánh giá: {formProgress.evaluated}/{formProgress.total} tiêu chí
                       </span>
-                      <span className="rounded-md bg-emerald-50 px-2.5 py-1 text-emerald-700">
-                        Tỉ lệ tuân thủ: {formProgress.rate}%
+                      <span className={`rounded-md bg-slate-50 px-2.5 py-1 ${formProgress.scoreClassName}`}>
+                        {formProgress.scoreLabel}
                       </span>
                     </div>
                   ) : null}
@@ -261,6 +285,7 @@ export default function GiamSatChungPage({ initialLoaiGiamSat }: GiamSatChungPag
         {activeTab === "history" && showTabs && (
           <div className="app-data-shell overflow-hidden p-2">
             <HistoryTable
+              loaiGiamSat={initialLoaiGiamSat}
               onEditBundle={(bundle, row) => {
                 setEditSourceSessionId(String(row.id || "").trim() || null);
                 setEditPayload({

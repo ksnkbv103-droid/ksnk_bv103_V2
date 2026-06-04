@@ -29,8 +29,8 @@ function hintForPath(pathname: string): HintDef | null {
       key: "qlcv",
       title: "Gợi ý nhanh — Công việc",
       bullets: [
-        "Ưu tiên tab «Danh sách công việc»: Kanban/Bảng + ô tìm kiếm để xử lý việc hằng ngày.",
-        "«Thống kê & báo cáo» dùng khi cần số liệu tổng hợp, KPI tháng hoặc cài đặt định kỳ tự tạo việc.",
+        "Tab «Điều hành»: Kanban hoặc Bảng — tick checklist trên chi tiết phiếu để cập nhật tiến độ.",
+        "Tab «Việc định kỳ» (quyền sửa): mẫu + cron sinh phiếu; Command Center liệt kê việc quá hạn.",
       ],
     };
   }

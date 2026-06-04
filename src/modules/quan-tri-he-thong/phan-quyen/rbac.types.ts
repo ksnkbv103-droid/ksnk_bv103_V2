@@ -34,7 +34,7 @@ export type RBACDataResult = RBACDataSuccess | { success: false; error: string }
 
 /**
  * Thứ tự cột ma trận phân quyền BV103 — chỉ các vai trò này.
- * Không hiển thị `MANG_LUOI_KSNK` (legacy) hay vai trò khác trong `dm_roles`.
+ * Không hiển thị `MANG_LUOI_KSNK` (legacy) hay vai trò khác trong `sys_roles`.
  */
 const RBAC_MATRIX_COLUMN_ROLE_ORDER = [
   "ADMIN",

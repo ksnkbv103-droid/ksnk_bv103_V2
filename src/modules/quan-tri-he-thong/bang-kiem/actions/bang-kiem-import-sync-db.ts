@@ -9,7 +9,7 @@ export async function syncBangKiemImportToDatabase(
   supabase: SupabaseClient,
   normalizedGroups: NormalizedBangKiemGroup[],
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { data: allBKs } = await supabase.from("dm_bang_kiem").select("ma_bk, ten_bang_kiem, id, tieu_chi_jsonb");
+  const { data: allBKs } = await supabase.from("gstt_dm_bang_kiem").select("ma_bk, ten_bang_kiem, id, tieu_chi_jsonb");
   const bkRows = (allBKs || []) as DbBkRow[];
   const existingBKs = new Map(bkRows.filter((b) => b.ma_bk).map((b) => [String(b.ma_bk), b]));
   const existingBKsByName = new Map(
@@ -20,7 +20,7 @@ export async function syncBangKiemImportToDatabase(
   const importedBKCodes = new Set<string>();
 
   const { data: lastBKs } = await supabase
-    .from("dm_bang_kiem")
+    .from("gstt_dm_bang_kiem")
     .select("ma_bk")
     .order("ma_bk", { ascending: false })
     .limit(1);
@@ -40,7 +40,7 @@ export async function syncBangKiemImportToDatabase(
       parentId = parentRow.id;
       resolvedMaBK = String(parentRow?.ma_bk || "").trim();
       const { error } = await supabase
-        .from("dm_bang_kiem")
+        .from("gstt_dm_bang_kiem")
         .update({
           ten_bang_kiem,
           phan_loai_chuyen_mon,
@@ -54,7 +54,7 @@ export async function syncBangKiemImportToDatabase(
       parentRow = existingBKs.get(resolvedMaBK)!;
       parentId = parentRow.id;
       const { error } = await supabase
-        .from("dm_bang_kiem")
+        .from("gstt_dm_bang_kiem")
         .update({
           ten_bang_kiem,
           phan_loai_chuyen_mon,
@@ -67,7 +67,7 @@ export async function syncBangKiemImportToDatabase(
     } else {
       const newMaBK = resolvedMaBK || `BK${(bkCounter++).toString().padStart(3, "0")}`;
       const { data, error } = await supabase
-        .from("dm_bang_kiem")
+        .from("gstt_dm_bang_kiem")
         .insert([{ ma_bk: newMaBK, ten_bang_kiem, phan_loai_chuyen_mon, mo_ta, is_active: parentIsActive }])
         .select("id")
         .single();
@@ -156,7 +156,7 @@ export async function syncBangKiemImportToDatabase(
       
       // Save new TC array back to DB
       const { error } = await supabase
-        .from("dm_bang_kiem")
+        .from("gstt_dm_bang_kiem")
         .update({ tieu_chi_jsonb: newTcArray })
         .eq("id", parentId);
         
@@ -169,7 +169,7 @@ export async function syncBangKiemImportToDatabase(
   const bksToDelete = Array.from(existingBKs.keys()).filter((c) => !importedBKCodes.has(c));
   if (bksToDelete.length > 0) {
     const { error } = await supabase
-      .from("dm_bang_kiem")
+      .from("gstt_dm_bang_kiem")
       .update({ is_active: false })
       .in("ma_bk", bksToDelete);
     if (error) dbErrors.push(`BK delete missing: ${error.message}`);

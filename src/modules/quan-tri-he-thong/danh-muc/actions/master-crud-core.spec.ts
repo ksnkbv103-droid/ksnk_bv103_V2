@@ -22,9 +22,9 @@ describe("master-crud-core allowlist", () => {
     await expect(listMasterRows("dict_legacy", "id")).rejects.toThrow(/allowlist/);
   });
 
-  it("accepts contract view dm_khoa_phong", async () => {
+  it("accepts contract view mdm_dm_khoa_phong", async () => {
     const { listMasterRows } = await import("./master-crud-core");
-    const res = await listMasterRows("dm_khoa_phong", "ma_khoa");
+    const res = await listMasterRows("mdm_dm_khoa_phong", "ma_khoa");
     expect(res.success).toBe(true);
   });
 

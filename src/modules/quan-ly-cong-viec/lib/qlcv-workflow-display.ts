@@ -31,7 +31,7 @@ export type QlcvWorkflowGate =
   | "DA_HUY"
   | "TU_CHOI";
 
-function getQlcvWorkflowGate(t: CongViecLike): QlcvWorkflowGate {
+export function getQlcvWorkflowGate(t: CongViecLike): QlcvWorkflowGate {
   if (isDeXuatChoDuyet(t)) return "DE_XUAT";
   if (isChoNghiemThuHoanThanh(t)) return "NGHIEM_THU";
   const st = String(t.trang_thai || "").trim().toUpperCase();

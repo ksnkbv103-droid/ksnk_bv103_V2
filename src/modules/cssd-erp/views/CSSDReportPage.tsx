@@ -122,7 +122,7 @@ function CSSDReportPageInner() {
   if (!allowed.view) {
     return (
       <CSSDPageShell title="Báo cáo CSSD" subtitle="Khoa KSNK — BV103">
-        <div className="rounded-[40px] border border-slate-200 bg-white p-12 text-center text-sm font-black uppercase tracking-widest text-slate-400 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-sm font-black uppercase tracking-widest text-slate-400 shadow-sm">
           Bạn không có quyền xem báo cáo tổng hợp
         </div>
       </CSSDPageShell>
@@ -183,12 +183,12 @@ function CSSDReportPageInner() {
                 {
                   header: "TRẠM CUỐI",
                   accessorKey: "trang_thai_hien_tai",
-                  cell: (v: any) => <span className="rounded-full bg-slate-100 px-3 py-1 text-[9px] font-bold uppercase text-slate-600">{v.trang_thai_hien_tai?.replace(/_/g, " ")}</span>,
+                  cell: (v: any) => <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold uppercase text-slate-600">{v.trang_thai_hien_tai?.replace(/_/g, " ")}</span>,
                 },
                 {
                   header: "CẢNH BÁO",
                   accessorKey: "is_red_alert",
-                  cell: (v: any) => (v.is_red_alert ? <span className="font-black text-red-600">Cảnh báo đỏ</span> : <span className="text-[9px] font-bold uppercase text-emerald-600">Bình thường</span>),
+                  cell: (v: any) => (v.is_red_alert ? <span className="font-black text-red-600">Cảnh báo đỏ</span> : <span className="text-[11px] font-bold uppercase text-emerald-600">Bình thường</span>),
                 },
                 {
                   header: "NGÀY TẠO",

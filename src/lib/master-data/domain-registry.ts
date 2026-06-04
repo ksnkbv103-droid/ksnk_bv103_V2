@@ -1,28 +1,28 @@
 // src/lib/master-data/domain-registry.ts
-// **Registry pattern** (map loaiDanhMuc → bảng dm_*) — KHÔNG phải `src/lib/domain/` (pure business logic).
-// Source-of-Truth duy nhất: mọi loại danh mục đều có bảng dm_* chuyên biệt.
+// **Registry pattern** (map loaiDanhMuc → `{module}_dm_*`) — KHÔNG phải `src/lib/domain/` (pure business logic).
+// Source-of-Truth: bảng/view prefix module (`mdm_dm_*`, `cssd_dm_*`, `gstt_dm_*`, …).
 // Không còn fallback về danh_muc_tuy_bien.
 // Đọc dropdown đồng bộ: `fetchActiveRegistryDmRows` trong `registry-select-fetch.ts`.
 
 export type MasterSource =
-  | "dm_khoi_khoa"
-  | "dm_khoa_phong"
-  | "dm_to_cong_tac"
-  | "dm_chuc_vu"
-  | "dm_chuc_danh"
-  | "dm_roles"
-  | "dm_khu_vuc_giam_sat"
-  | "dm_nghe_nghiep"
-  | "dm_loai_dung_cu"
-  | "dm_loai_su_co"
-  | "dm_loai_may_tiet_khuan"
-  | "dm_tram_cssd"
-  | "dm_hinh_thuc_giam_sat"
-  | "dm_cach_thuc_giam_sat"
-  | "dm_loai_cong_viec"
-  | "dm_trang_thai_cong_viec"
-  | "dm_loai_nkbv"
-  | "dm_trang_thai_nkbv_ca";
+  | "mdm_dm_khoi_khoa"
+  | "mdm_dm_khoa_phong"
+  | "mdm_dm_to_cong_tac"
+  | "mdm_dm_chuc_vu"
+  | "mdm_dm_chuc_danh"
+  | "sys_roles"
+  | "gstt_dm_khu_vuc_giam_sat"
+  | "mdm_dm_nghe_nghiep"
+  | "cssd_dm_loai_dung_cu"
+  | "cssd_dm_loai_su_co"
+  | "cssd_dm_loai_may"
+  | "cssd_dm_tram"
+  | "gstt_dm_hinh_thuc_giam_sat"
+  | "gstt_dm_cach_thuc_giam_sat"
+  | "qlcv_dm_loai_cong_viec"
+  | "qlcv_dm_trang_thai_cong_viec"
+  | "nkbv_dm_loai"
+  | "nkbv_dm_trang_thai_ca";
 
 export type RegistryEntry = {
   loaiDanhMuc: string;
@@ -33,26 +33,26 @@ export type RegistryEntry = {
 };
 
 const ENTRIES: RegistryEntry[] = [
-  { loaiDanhMuc: "KHOI_KHOA", sourceTable: "dm_khoi_khoa", idColumn: "id", maColumn: "ma_khoi", tenColumn: "ten_khoi" },
-  { loaiDanhMuc: "KHOA_PHONG", sourceTable: "dm_khoa_phong", idColumn: "id", maColumn: "ma_khoa", tenColumn: "ten_khoa" },
-  { loaiDanhMuc: "TO_CONG_TAC", sourceTable: "dm_to_cong_tac", idColumn: "id", maColumn: "ma_to", tenColumn: "ten_to" },
-  { loaiDanhMuc: "CHUC_VU", sourceTable: "dm_chuc_vu", idColumn: "id", maColumn: "ma_chuc_vu", tenColumn: "ten_chuc_vu" },
-  { loaiDanhMuc: "CHUC_DANH", sourceTable: "dm_chuc_danh", idColumn: "id", maColumn: "ma_chuc_danh", tenColumn: "ten_chuc_danh" },
-  { loaiDanhMuc: "VAI_TRO_HE_THONG_KSNK", sourceTable: "dm_roles", idColumn: "id", maColumn: "name", tenColumn: "name" },
-  { loaiDanhMuc: "KHU_VUC_GIAM_SAT", sourceTable: "dm_khu_vuc_giam_sat", idColumn: "id", maColumn: "ma_khu_vuc", tenColumn: "ten_khu_vuc" },
-  { loaiDanhMuc: "NGHE_NGHIEP", sourceTable: "dm_nghe_nghiep", idColumn: "id", maColumn: "ma_nghe_nghiep", tenColumn: "ten_nghe_nghiep" },
-  { loaiDanhMuc: "LOAI_DUNG_CU", sourceTable: "dm_loai_dung_cu", idColumn: "id", maColumn: "ma_loai_dung_cu", tenColumn: "ten_loai_dung_cu" },
-  { loaiDanhMuc: "LOAI_SU_CO", sourceTable: "dm_loai_su_co", idColumn: "id", maColumn: "ma_loai_su_co", tenColumn: "ten_loai_su_co" },
-  { loaiDanhMuc: "LOAI_MAY_TIET_KHUAN", sourceTable: "dm_loai_may_tiet_khuan", idColumn: "id", maColumn: "ma_loai_may", tenColumn: "ten_loai_may" },
-  { loaiDanhMuc: "TRAM_CSSD", sourceTable: "dm_tram_cssd", idColumn: "id", maColumn: "ma_tram", tenColumn: "ten_tram" },
-  { loaiDanhMuc: "HINH_THUC_GIAM_SAT", sourceTable: "dm_hinh_thuc_giam_sat", idColumn: "id", maColumn: "ma_hinh_thuc", tenColumn: "ten_hinh_thuc" },
-  { loaiDanhMuc: "CACH_THUC_GIAM_SAT", sourceTable: "dm_cach_thuc_giam_sat", idColumn: "id", maColumn: "ma_cach_thuc", tenColumn: "ten_cach_thuc" },
-  { loaiDanhMuc: "LOAI_CONG_VIEC", sourceTable: "dm_loai_cong_viec", idColumn: "id", maColumn: "ma", tenColumn: "ten" },
-  { loaiDanhMuc: "TRANG_THAI_CONG_VIEC", sourceTable: "dm_trang_thai_cong_viec", idColumn: "id", maColumn: "ma", tenColumn: "ten" },
-  { loaiDanhMuc: "LOAI_NKBV", sourceTable: "dm_loai_nkbv", idColumn: "id", maColumn: "ma_loai", tenColumn: "ten_loai" },
+  { loaiDanhMuc: "KHOI_KHOA", sourceTable: "mdm_dm_khoi_khoa", idColumn: "id", maColumn: "ma_khoi", tenColumn: "ten_khoi" },
+  { loaiDanhMuc: "KHOA_PHONG", sourceTable: "mdm_dm_khoa_phong", idColumn: "id", maColumn: "ma_khoa", tenColumn: "ten_khoa" },
+  { loaiDanhMuc: "TO_CONG_TAC", sourceTable: "mdm_dm_to_cong_tac", idColumn: "id", maColumn: "ma_to", tenColumn: "ten_to" },
+  { loaiDanhMuc: "CHUC_VU", sourceTable: "mdm_dm_chuc_vu", idColumn: "id", maColumn: "ma_chuc_vu", tenColumn: "ten_chuc_vu" },
+  { loaiDanhMuc: "CHUC_DANH", sourceTable: "mdm_dm_chuc_danh", idColumn: "id", maColumn: "ma_chuc_danh", tenColumn: "ten_chuc_danh" },
+  { loaiDanhMuc: "VAI_TRO_HE_THONG_KSNK", sourceTable: "sys_roles", idColumn: "id", maColumn: "name", tenColumn: "name" },
+  { loaiDanhMuc: "KHU_VUC_GIAM_SAT", sourceTable: "gstt_dm_khu_vuc_giam_sat", idColumn: "id", maColumn: "ma_khu_vuc", tenColumn: "ten_khu_vuc" },
+  { loaiDanhMuc: "NGHE_NGHIEP", sourceTable: "mdm_dm_nghe_nghiep", idColumn: "id", maColumn: "ma_nghe_nghiep", tenColumn: "ten_nghe_nghiep" },
+  { loaiDanhMuc: "LOAI_DUNG_CU", sourceTable: "cssd_dm_loai_dung_cu", idColumn: "id", maColumn: "ma_loai_dung_cu", tenColumn: "ten_loai_dung_cu" },
+  { loaiDanhMuc: "LOAI_SU_CO", sourceTable: "cssd_dm_loai_su_co", idColumn: "id", maColumn: "ma_loai_su_co", tenColumn: "ten_loai_su_co" },
+  { loaiDanhMuc: "LOAI_MAY_TIET_KHUAN", sourceTable: "cssd_dm_loai_may", idColumn: "id", maColumn: "ma_loai_may", tenColumn: "ten_loai_may" },
+  { loaiDanhMuc: "TRAM_CSSD", sourceTable: "cssd_dm_tram", idColumn: "id", maColumn: "ma_tram", tenColumn: "ten_tram" },
+  { loaiDanhMuc: "HINH_THUC_GIAM_SAT", sourceTable: "gstt_dm_hinh_thuc_giam_sat", idColumn: "id", maColumn: "ma_hinh_thuc", tenColumn: "ten_hinh_thuc" },
+  { loaiDanhMuc: "CACH_THUC_GIAM_SAT", sourceTable: "gstt_dm_cach_thuc_giam_sat", idColumn: "id", maColumn: "ma_cach_thuc", tenColumn: "ten_cach_thuc" },
+  { loaiDanhMuc: "LOAI_CONG_VIEC", sourceTable: "qlcv_dm_loai_cong_viec", idColumn: "id", maColumn: "ma", tenColumn: "ten" },
+  { loaiDanhMuc: "TRANG_THAI_CONG_VIEC", sourceTable: "qlcv_dm_trang_thai_cong_viec", idColumn: "id", maColumn: "ma", tenColumn: "ten" },
+  { loaiDanhMuc: "LOAI_NKBV", sourceTable: "nkbv_dm_loai", idColumn: "id", maColumn: "ma_loai", tenColumn: "ten_loai" },
   {
     loaiDanhMuc: "TRANG_THAI_NKBV_CA",
-    sourceTable: "dm_trang_thai_nkbv_ca",
+    sourceTable: "nkbv_dm_trang_thai_ca",
     idColumn: "id",
     maColumn: "ma_trang_thai",
     tenColumn: "ten_trang_thai",
@@ -88,7 +88,7 @@ export function getAllRegistryEntries(): RegistryEntry[] {
 
 /**
  * Các `loaiDanhMuc` đã có trang riêng ở tab Trung tâm Danh mục — không hiển thị lặp trong tab
- * "Danh mục chuyên biệt" (cùng một SSOT `dm_*`, tránh hai đường vào một bảng).
+ * "Danh mục chuyên biệt" (cùng một SSOT `{module}_dm_*`, tránh hai đường vào một bảng).
  */
 export const REGISTRY_LOAI_TRUNG_TAM_ONLY: ReadonlySet<string> = new Set(["KHOA_PHONG", "LOAI_DUNG_CU"]);
 
@@ -97,7 +97,7 @@ export function getRegistryEntriesForChuyenBietHub(): RegistryEntry[] {
   return ENTRIES.filter((e) => !REGISTRY_LOAI_TRUNG_TAM_ONLY.has(e.loaiDanhMuc));
 }
 
-/** Nhãn hiển thị Trung tâm danh mục (hub các bảng dm_*). */
+/** Nhãn hiển thị Trung tâm danh mục (hub các bảng danh mục module). */
 export const DM_HUB_LABELS: Record<string, string> = {
   KHOI_KHOA: "Khối khoa",
   KHOA_PHONG: "Khoa phòng",

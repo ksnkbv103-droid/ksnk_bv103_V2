@@ -40,10 +40,10 @@ export async function getGscSessionPrintLabels(input: {
     const ngsId = String(input.nguoi_giam_sat_id ?? "").trim();
 
     const khoaP = khoaId
-      ? supabase.from("dm_khoa_phong").select("ten_khoa").eq("id", khoaId).maybeSingle()
+      ? supabase.from("mdm_dm_khoa_phong").select("ten_khoa").eq("id", khoaId).maybeSingle()
       : Promise.resolve({ data: null as { ten_khoa?: string } | null, error: null });
     const khuP = khuId
-      ? supabase.from("dm_khu_vuc_giam_sat").select("ten_khu_vuc").eq("id", khuId).maybeSingle()
+      ? supabase.from("gstt_dm_khu_vuc_giam_sat").select("ten_khu_vuc").eq("id", khuId).maybeSingle()
       : Promise.resolve({ data: null as { ten_khu_vuc?: string } | null, error: null });
     const nvP = nvId
       ? (() => {
@@ -53,7 +53,7 @@ export async function getGscSessionPrintLabels(input: {
         })()
       : Promise.resolve({ data: null as { ho_ten?: string; khoa_id?: string } | null, error: null });
     const nnP = nnId
-      ? supabase.from("dm_nghe_nghiep").select("ten_nghe_nghiep").eq("id", nnId).maybeSingle()
+      ? supabase.from("mdm_dm_nghe_nghiep").select("ten_nghe_nghiep").eq("id", nnId).maybeSingle()
       : Promise.resolve({ data: null as { ten_nghe_nghiep?: string } | null, error: null });
     const ngsP = ngsId
       ? (() => {

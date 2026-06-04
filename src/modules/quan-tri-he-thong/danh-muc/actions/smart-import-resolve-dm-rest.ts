@@ -61,12 +61,12 @@ export async function resolveKhoaUsageForBoImport(
   const maLookupCandidate = raw && !UUID_RE.test(raw) ? raw : maKhoaCol;
   if (maLookupCandidate && looksLikeShortBusinessCode(maLookupCandidate)) {
     const m = maLookupCandidate.toUpperCase();
-    const { data, error } = await sb.from("dm_khoa_phong").select("id").eq("ma_khoa", m).maybeSingle();
+    const { data, error } = await sb.from("mdm_dm_khoa_phong").select("id").eq("ma_khoa", m).maybeSingle();
     if (error) return { ok: false, error: error.message };
     ref = data as { id: string } | null;
   }
   if (!ref && tenKhoa) {
-    const { data, error } = await sb.from("dm_khoa_phong").select("id").eq("ten_khoa", tenKhoa).maybeSingle();
+    const { data, error } = await sb.from("mdm_dm_khoa_phong").select("id").eq("ten_khoa", tenKhoa).maybeSingle();
     if (error) return { ok: false, error: error.message };
     ref = data as { id: string } | null;
   }
@@ -94,11 +94,11 @@ export async function resolveKhoiForKhoaPhongImport(
   async function lookupByTen(name: string) {
     const t = name.trim();
     if (!t) return null as { id: string } | null;
-    const ex = await sb.from("dm_khoi_khoa").select("id").eq("ten_khoi", t).maybeSingle();
+    const ex = await sb.from("mdm_dm_khoi_khoa").select("id").eq("ten_khoi", t).maybeSingle();
     if (ex.error) return null;
     if (ex.data?.id) return ex.data as { id: string };
     const like = await sb
-      .from("dm_khoi_khoa")
+      .from("mdm_dm_khoi_khoa")
       .select("id")
       .ilike("ten_khoi", `%${t.replace(/%/g, "\\%")}%`)
       .limit(1)
@@ -111,7 +111,7 @@ export async function resolveKhoiForKhoaPhongImport(
   const maProbe = maKhoiRaw.toUpperCase();
 
   if (maKhoiRaw && looksLikeShortBusinessCode(maKhoiRaw)) {
-    const r = await sb.from("dm_khoi_khoa").select("id").eq("ma_khoi", maProbe).maybeSingle();
+    const r = await sb.from("mdm_dm_khoi_khoa").select("id").eq("ma_khoi", maProbe).maybeSingle();
     if (r.error) return { ok: false, error: r.error.message };
     data = (r.data as { id: string }) || null;
   }

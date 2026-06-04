@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
+import { Users } from "lucide-react";
 import NhanSuTable from "../components/NhanSuTable";
+import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import { useModulePermission } from "@/hooks/useModulePermission";
 
 const MODULE_KEY = "NHAN_SU";
@@ -28,32 +30,23 @@ export default function QuanLyNhanSuPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Module Title */}
-      <div className="flex justify-between items-center bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
-        <div className="space-y-1">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">👥</span>
-            <h1 className="text-3xl font-black text-[#026f17] uppercase tracking-tighter">
-              Hồ sơ Nhân sự
-            </h1>
-          </div>
-          <p className="text-slate-400 font-bold text-xs uppercase tracking-widest ml-11">
-            Quản lý danh sách và phân bổ nhân lực toàn viện
-          </p>
-        </div>
-      </div>
+      <KsnkPageHeader
+        title={
+          <span className="inline-flex items-center gap-2 text-[var(--primary)]">
+            <Users size={22} aria-hidden /> Hồ sơ Nhân sự
+          </span>
+        }
+        subtitle="Quản lý danh sách và phân bổ nhân lực toàn viện — liên kết khoa phòng cho giám sát và tài khoản đăng nhập."
+      />
 
-      {/* Main Content Area */}
-      <div className="w-full">
-        <NhanSuTable
-          permission={{
-            import: allowed.import,
-            create: allowed.create,
-            edit: allowed.edit,
-            delete: allowed.delete,
-          }}
-        />
-      </div>
+      <NhanSuTable
+        permission={{
+          import: allowed.import,
+          create: allowed.create,
+          edit: allowed.edit,
+          delete: allowed.delete,
+        }}
+      />
     </div>
   );
 }

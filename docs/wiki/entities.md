@@ -49,14 +49,15 @@ Logic phân loại **không** đặt trong Zod — chỉ `giam-sat-nkbv.validati
 
 ---
 
-## MDM + RBAC + Audit
+## MDM + RBAC
 
 | Khái niệm | TABLE |
 |-----------|-------|
 | Khoa / nhân sự | `mdm_dm_khoa_phong`, `mdm_nhan_su` |
 | Lookup 14+ loại | `sys_lookup_value` (WRITE duy nhất) |
 | RBAC | `sys_roles`, `sys_permissions`, `sys_role_permissions`, `sys_user_roles` |
-| Audit | `sys_audit_log` |
+
+> **Audit hệ thống (`sys_audit_log`):** đã gỡ khỏi app + DB (2026-06-02). Xem changelog `implementation-mapping.md`.
 
 Import JSON: [`../reference/guides/json-import-export.md`](../reference/guides/json-import-export.md).
 

@@ -33,6 +33,23 @@ export default function SsiClinicalSubForm({
 
   return (
     <div className="space-y-4">
+      <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 space-y-2">
+        <label className="text-[10px] font-black uppercase tracking-wider text-emerald-800 block">
+          Mã QR bộ dụng cụ CSSD (truy vết SSI)
+        </label>
+        <input
+          type="text"
+          value={form.ma_qr_cssd_lien_quan || ""}
+          disabled={!allowedEdit}
+          onChange={(e) => onChange({ ...form, ma_qr_cssd_lien_quan: e.target.value.toUpperCase() })}
+          placeholder="Quét hoặc nhập mã QR chu trình..."
+          className="w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wide focus:border-[#026f17] focus:ring-1 focus:ring-emerald-200"
+        />
+        <p className="text-[10px] text-emerald-900/80 font-medium">
+          Sau khi lưu checklist, hệ thống liên kết ca với timeline CSSD (tab Truy vết).
+        </p>
+      </div>
+
       {/* Microbiology Tab */}
       {activeTab === 'VI_SINH' && (
         <div className="bg-slate-50/75 rounded-2xl p-4 border border-slate-100 space-y-3 animate-in fade-in">

@@ -28,13 +28,13 @@ export async function getMasterDataExport(
     const { data, error } = await query.order(orderBy);
     if (error) throw error;
     const rows = (data || []) as Record<string, unknown>[];
-    if (tableName === "dm_khoa_phong") {
+    if (tableName === "mdm_dm_khoa_phong") {
       const khoiIds = Array.from(
         new Set(rows.map((x) => String(x.khoi_id || "").trim()).filter(Boolean))
       );
       if (khoiIds.length === 0) return { success: true, data: rows };
       const { data: khoiData, error: khoiErr } = await supabase
-        .from("dm_khoi_khoa")
+        .from("mdm_dm_khoi_khoa")
         .select("id, ma_khoi, ten_khoi")
         .in("id", khoiIds);
       if (khoiErr) throw khoiErr;
@@ -50,7 +50,7 @@ export async function getMasterDataExport(
         })),
       };
     }
-    if (tableName === "dm_bo_dung_cu") {
+    if (tableName === "cssd_dm_bo_dung_cu") {
       const loaiIds = Array.from(
         new Set(rows.map((x) => String(x.loai_dung_cu_id || "").trim()).filter(Boolean))
       );
@@ -59,11 +59,11 @@ export async function getMasterDataExport(
       );
       const [loaiRes, khoaRes] = await Promise.all([
         loaiIds.length
-          ? supabase.from("dm_loai_dung_cu").select("id, ma_loai_dung_cu, ten_loai_dung_cu").in("id", loaiIds)
+          ? supabase.from("cssd_dm_loai_dung_cu").select("id, ma_loai_dung_cu, ten_loai_dung_cu").in("id", loaiIds)
           : Promise.resolve({ data: [], error: null }),
         khoaIds.length
           ? supabase
-              .from("dm_khoa_phong")
+              .from("mdm_dm_khoa_phong")
               .select("id, ma_khoa, ten_khoa")
               .in("id", khoaIds)
           : Promise.resolve({ data: [], error: null }),

@@ -57,13 +57,13 @@ export default function AccountPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header Section */}
-      <div className="relative overflow-hidden rounded-[40px] bg-white border border-slate-100 shadow-xl p-8 md:p-12">
+      <div className="relative overflow-hidden rounded-2xl bg-white border border-slate-100 shadow-xl p-8 md:p-12">
         <div className="absolute top-0 right-0 p-8 opacity-5">
           <User size={200} />
         </div>
         
         <div className="relative flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
-          <div className="w-24 h-24 rounded-[32px] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
             <User size={48} />
           </div>
           
@@ -96,7 +96,7 @@ export default function AccountPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Connection Status Card */}
-        <div className="rounded-[40px] bg-white border border-slate-100 shadow-lg p-8 space-y-6">
+        <div className="rounded-2xl bg-white border border-slate-100 shadow-lg p-8 space-y-6">
           <div className="flex items-center gap-4">
             <div className={`p-3 rounded-2xl ${isLinked ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
               {isLinked ? <CheckCircle size={24} /> : <AlertTriangle size={24} />}
@@ -167,7 +167,7 @@ export default function AccountPage() {
         </div>
 
         {/* Security Info Card */}
-        <div className="rounded-[40px] bg-slate-900 text-white shadow-xl p-8 space-y-6">
+        <div className="rounded-2xl bg-slate-900 text-white shadow-xl p-8 space-y-6">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-2xl bg-white/10 text-indigo-400">
               <Shield size={24} />

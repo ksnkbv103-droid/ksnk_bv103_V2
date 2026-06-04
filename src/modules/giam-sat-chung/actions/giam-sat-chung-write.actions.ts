@@ -1,7 +1,8 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { revalidatePath } from "next/cache";
+import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock";
+import { revalidateGscPaths } from "../lib/revalidate-gsc-paths";
 import { ChecklistResult } from "@/types/giam-sat-chung";
 import { normalizeHoSoNhanVienOptionalOrThrow } from "@/lib/master-data/fk-normalize";
 import { normalizeAndValidateDmKhoaPhong, validateDanhMucIdByType } from "@/lib/master-data/validation";
@@ -119,6 +120,8 @@ export async function saveGiamSatChung(
           "Đối tượng (nhân viên)",
         );
     const bangKiem = await resolveBangKiemPersistFields(supabase, sessionData.loai_bang_kiem);
+    const ngayGs = parseNgayGiamSatOrNull(sessionData.ngay_giam_sat);
+    await assertSupervisionNotLockedForDate(supabase, "GSC", ngayGs);
     const thoiGianGhiNhan = isReplayCameraSupervisionCachThuc(cach)
       ? String(sessionData.thoi_gian_ket_thuc ?? "").trim() || new Date().toISOString()
       : new Date().toISOString();
@@ -152,7 +155,7 @@ export async function saveGiamSatChung(
       is_giam_sat_ca_nhan: sessionData.is_giam_sat_ca_nhan || false,
       nhan_vien_id: nhanVienNorm,
       nghe_nghiep_id: sessionData.nghe_nghiep_id || null,
-      ngay_giam_sat: parseNgayGiamSatOrNull(sessionData.ngay_giam_sat),
+      ngay_giam_sat: ngayGs,
       thoi_gian_bat_dau: thoiGianBatDauNorm,
       thoi_gian_ket_thuc: thoiGianKetThucNorm,
       thoi_gian_ghi_nhan: thoiGianGhiNhan,
@@ -231,7 +234,7 @@ export async function saveGiamSatChung(
       sessionId = session.id;
     }
 
-    revalidatePath("/giam-sat-chung");
+    revalidateGscPaths();
     return { success: true, sessionId };
   } catch (error: unknown) {
     return { success: false, error: formatUnknownError(error) };

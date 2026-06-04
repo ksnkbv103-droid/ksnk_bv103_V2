@@ -83,7 +83,7 @@ export function QlcvChecklistPanel({ congViecId, initialChecklist, readOnly, onU
               checked={item.done}
               disabled={readOnly || saving}
               onChange={() => toggle(item.id)}
-              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#026f17] focus:ring-[#026f17]/30"
+              className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]/30"
               aria-label={item.label}
             />
             <span

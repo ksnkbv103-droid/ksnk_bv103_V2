@@ -57,9 +57,8 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
     .eq("ma_qr_quy_trinh", code)
     .maybeSingle();
 
-  return { 
-    success: true as const, 
+  return {
+    success: true as const,
     tenBoDungCu: (viewRow as any)?.ten_bo || code,
-    ledgerWarning: execResult.ledgerWarning
   };
 }

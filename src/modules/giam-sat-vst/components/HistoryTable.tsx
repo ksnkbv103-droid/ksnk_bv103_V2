@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useCallback, useMemo } from "react";
-import { deleteVSTSessions } from "../actions/vst.actions";
+import { deleteVSTSessions } from "../actions/vst-write-delete.actions";
 import { getVSTSessionsPaginated } from "../actions/vst-read.actions";
 import VSTPrintView from "./VSTPrintView";
 import { toast } from "sonner";

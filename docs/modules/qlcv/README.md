@@ -7,6 +7,10 @@
 
 Rule: `14-cong-viec-spec-context.mdc`
 
+## Pilot gấp
+
+Checklist tay: [`pilot-checklist-202606.md`](pilot-checklist-202606.md) · Go-live: [`../../core/pilot-core-modules-go-live.md`](../../core/pilot-core-modules-go-live.md)
+
 ## Migration (pilot)
 
 ```bash
@@ -22,6 +26,9 @@ npm run verify:engineering
 | `20260531120000_qlcv_checklist_rpc_reload.sql` | RPC checklist |
 | `20260531130000_qlcv_dinh_ky_view_sync.sql` | View mẫu định kỳ |
 | `20260531200000_qlcv_drop_monthly_kpi_pilot.sql` | Gỡ KPI tháng (UI lean) |
+| `20260604120000_qlcv_text_check_codes.sql` | TEXT+CHECK trang_thai/loai |
+| `20260606160000_qlcv_sync_overdue_modernize.sql` | Cron quá hạn → `qlcv_fact_*`; DROP analytics orphan |
+| `20260607100000_qlcv_text_only_schema_cleanup.sql` | DROP FK cols + việc con; badge `mau_sac` trên view; IMPORT lô |
 
 ## Lỗi thường gặp
 

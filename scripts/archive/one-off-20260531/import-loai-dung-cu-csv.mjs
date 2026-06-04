@@ -1,9 +1,9 @@
 /**
- * Import CSSD_Management - DM_LoaiDungCu.csv → public.dm_loai_dung_cu (upsert ma_loai).
+ * Import CSSD_Management - DM_LoaiDungCu.csv → public.cssd_dm_loai_dung_cu (upsert ma_loai).
  * Khớp cấu trúc app: ma_loai/ten_loai + ma_loai_dung_cu/ten_loai_dung_cu + thuộc tính kỹ thuật.
  * TongSoLuong / TongSoLuongHT → mo_ta (không có cột riêng trong schema).
  * MaLoai trống nhưng có TenLoai → mã tạm IMPORT_LD_00001 (theo số dòng, log cảnh báo).
- * Không wipe bảng — tránh gãy FK dm_bo_dung_cu / dm_bo_dung_cu_chi_tiet.
+ * Không wipe bảng — tránh gãy FK cssd_dm_bo_dung_cu / cssd_dm_bo_dung_cu_chi_tiet.
  * Chạy: node --env-file=.env.local scripts/import-loai-dung-cu-csv.mjs [/path/DM_LoaiDungCu.csv]
  */
 import { createClient } from "@supabase/supabase-js";
@@ -159,7 +159,7 @@ for (let r = 1; r < grid.length; r++) {
 const BATCH = 80;
 for (let i = 0; i < rows.length; i += BATCH) {
   const chunk = rows.slice(i, i + BATCH);
-  const { error } = await supabase.from("dm_loai_dung_cu").upsert(chunk, { onConflict: "ma_loai" });
+  const { error } = await supabase.from("cssd_dm_loai_dung_cu").upsert(chunk, { onConflict: "ma_loai" });
   if (error) {
     console.error(`Upsert batch ${Math.floor(i / BATCH) + 1}:`, error.message);
     process.exit(1);

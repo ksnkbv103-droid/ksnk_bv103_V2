@@ -27,7 +27,7 @@ export async function deleteVSTSessions(sessionIds: string[]) {
     }
 
     const { data: rows, error: qErr } = await supabase
-      .from("fact_giam_sat_vst_sessions")
+      .from("gstt_fact_vst_sessions")
       .select("id,nguoi_giam_sat_id,is_active,created_at")
       .in("id", ids);
     if (qErr) throw qErr;
@@ -64,11 +64,11 @@ export async function deleteVSTSessions(sessionIds: string[]) {
       return { success: false, error: "Phiên đã bị vô hiệu, không xóa được theo luồng hiện tại." };
     }
 
-    const { error: detailErr } = await supabase.from("fact_giam_sat_vst").delete().in("session_id", ids);
+    const { error: detailErr } = await supabase.from("gstt_fact_vst").delete().in("session_id", ids);
     if (detailErr) throw detailErr;
-    const { error: sessionErr } = await supabase.from("fact_giam_sat_vst_sessions").delete().in("id", ids);
+    const { error: sessionErr } = await supabase.from("gstt_fact_vst_sessions").delete().in("id", ids);
     if (sessionErr) throw sessionErr;
-    revalidatePath("/giam-sat-vst/lich-su");
+    revalidatePath("/giam-sat-vst");
     return { success: true };
   } catch (error: unknown) {
     return { success: false, error: formatVstKhoaFkViolation(vstWriteErrorMessage(error)) };
@@ -92,7 +92,7 @@ export async function assertCanEditVSTSession(sessionId: string) {
     if (!adminBypass && !actorNhanSuId) return { success: false as const, error: "Không xác định được người giám sát của bạn." };
 
     const { data: row, error: qErr } = await supabase
-      .from("fact_giam_sat_vst_sessions")
+      .from("gstt_fact_vst_sessions")
       .select("id,nguoi_giam_sat_id,is_active,created_at")
       .eq("id", id)
       .maybeSingle();

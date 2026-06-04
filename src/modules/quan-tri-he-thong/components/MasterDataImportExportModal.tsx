@@ -351,7 +351,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
                     <div className="overflow-x-auto">
                       <table className="w-full border-collapse text-left text-xs table-fixed">
                         <thead>
-                          <tr className="bg-slate-50 border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                          <tr className="bg-slate-50 border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[11px]">
                             <th className="p-3 w-[80px] text-center">Dòng Excel</th>
                             <th className="p-3 w-[150px]">Trạng thái / Lỗi phát hiện</th>
                             {previewHeaders?.map((h) => (

@@ -78,7 +78,7 @@ export async function saveVSTSession(
     // Nếu front-end không gửi hinh_id (UUID), ta cố gắng lấy từ policy/danh mục
     let effectiveHinhThucId = hinh_id;
     if (!effectiveHinhThucId) {
-       const { data: ht } = await supabase.from("dm_hinh_thuc_giam_sat").select("id").eq("ten_hinh_thuc", hinh).maybeSingle();
+       const { data: ht } = await supabase.from("gstt_dm_hinh_thuc_giam_sat").select("id").eq("ten_hinh_thuc", hinh).maybeSingle();
        if (ht) effectiveHinhThucId = ht.id;
     }
 
@@ -113,7 +113,7 @@ export async function saveVSTSession(
       if (!adminBypass && !actorNhanSuId) throw new Error("Không xác định được người giám sát của bạn.");
 
       const { data: existing, error: exErr } = await supabase
-        .from("fact_giam_sat_vst_sessions")
+        .from("gstt_fact_vst_sessions")
         .select("id,nguoi_giam_sat_id,is_active,created_at")
         .eq("id", existingSessionId)
         .maybeSingle();
@@ -131,11 +131,11 @@ export async function saveVSTSession(
         }
       }
 
-      const { error: delObsErr } = await supabase.from("fact_giam_sat_vst").delete().eq("session_id", existingSessionId);
+      const { error: delObsErr } = await supabase.from("gstt_fact_vst").delete().eq("session_id", existingSessionId);
       if (delObsErr) throw delObsErr;
 
       const { error: upErr } = await supabase
-        .from("fact_giam_sat_vst_sessions")
+        .from("gstt_fact_vst_sessions")
         .update({
           ...sessionRowPayload,
           updated_at: new Date().toISOString(),
@@ -146,7 +146,7 @@ export async function saveVSTSession(
       sessionId = existingSessionId;
     } else {
       const { data: session, error: sessionError } = await supabase
-        .from("fact_giam_sat_vst_sessions")
+        .from("gstt_fact_vst_sessions")
         .insert(sessionRowPayload)
         .select()
         .single();
@@ -164,7 +164,7 @@ export async function saveVSTSession(
     const allKhoaIds = Array.from(new Set(observations.map(o => o.khoa_id).filter(Boolean)));
     const khoaMap = new Map<string, string>();
     if (allKhoaIds.length > 0) {
-      const { data: khoas } = await supabase.from("dm_khoa_phong").select("id").in("id", allKhoaIds);
+      const { data: khoas } = await supabase.from("mdm_dm_khoa_phong").select("id").in("id", allKhoaIds);
       (khoas || []).forEach(k => khoaMap.set(k.id, k.id));
     }
 
@@ -204,7 +204,7 @@ export async function saveVSTSession(
 
     logVstSaveDebug(`Chuẩn bị insert ${recordsToInsert.length} cơ hội`);
 
-    const { error: obsError } = await supabase.from("fact_giam_sat_vst").insert(recordsToInsert);
+    const { error: obsError } = await supabase.from("gstt_fact_vst").insert(recordsToInsert);
 
     if (obsError) {
       if (process.env.NODE_ENV !== "production") console.error("[VST save] Lỗi insert observations:", obsError.message);
@@ -213,14 +213,14 @@ export async function saveVSTSession(
 
     logVstSaveDebug("Insert observations xong");
 
-    revalidatePath("/giam-sat-vst/lich-su");
+    revalidatePath("/giam-sat-vst");
     return { success: true, sessionId, message: "Lưu phiên giám sát thành công" };
   } catch (error: unknown) {
     if (process.env.NODE_ENV !== "production") {
       console.error("[VST save] Lỗi:", error instanceof Error ? error.message : error);
     }
     if (createdSessionId && !existingSessionId) {
-      await supabase.from("fact_giam_sat_vst_sessions").delete().eq("id", createdSessionId);
+      await supabase.from("gstt_fact_vst_sessions").delete().eq("id", createdSessionId);
     }
     return { success: false, error: formatVstKhoaFkViolation(vstWriteErrorMessage(error)) };
   }

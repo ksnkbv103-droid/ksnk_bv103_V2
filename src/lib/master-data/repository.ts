@@ -21,10 +21,10 @@ export async function getDanhMucItemById(
 ): Promise<DanhMucItem | null> {
   if (!id) return null;
 
-  // 1. Quét nhanh trong bảng gộp dm_lookup_value nếu id là UUID hợp lệ
+  // 1. Quét nhanh trong bảng gộp sys_lookup_value nếu id là UUID hợp lệ
   if (UUID_REGEX.test(id)) {
     const { data: lookupData, error: lookupErr } = await supabase
-      .from("dm_lookup_value")
+      .from("sys_lookup_value")
       .select("id, category_type, code, name, is_active")
       .eq("id", id)
       .maybeSingle();
@@ -65,7 +65,7 @@ export async function getDanhMucItemById(
   const queries = physicalLoais.map(async (loai) => {
     const registry = getRegistryEntry(loai);
     const selectColumns =
-      registry.sourceTable === "dm_roles"
+      registry.sourceTable === "sys_roles"
         ? `id, ${registry.maColumn}, ${registry.tenColumn}`
         : `id, ${registry.maColumn}, ${registry.tenColumn}, is_active`;
 
@@ -83,7 +83,7 @@ export async function getDanhMucItemById(
       ten_danh_muc: String(dmData[registry.tenColumn] || ""),
       loai_danh_muc: loai,
       is_active:
-        registry.sourceTable === "dm_roles"
+        registry.sourceTable === "sys_roles"
           ? true
           : Boolean(dmData.is_active),
       extra_data: null,

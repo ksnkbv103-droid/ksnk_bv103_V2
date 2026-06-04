@@ -21,6 +21,7 @@ export function useModulePermission(moduleKey: string) {
     canCreate,
     canEdit,
     canDelete,
+    canApprove,
     canImport,
   } = usePermission(moduleKey, "view");
 
@@ -40,6 +41,7 @@ export function useModulePermission(moduleKey: string) {
       create: canCreate(moduleKey),
       edit: canEdit(moduleKey),
       delete: canDelete(moduleKey),
+      approve: canApprove(moduleKey),
       import: canImport(moduleKey),
       manage: canEdit(moduleKey) || canDelete(moduleKey),
     },

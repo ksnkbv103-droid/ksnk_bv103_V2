@@ -39,7 +39,7 @@ export function GscDashboardTopViPhamPanel({ rows }: Props) {
                 <tr key={t.criterion_id} className="hover:bg-slate-50">
                   <td className="py-2.5">
                     <span
-                      className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold ${
+                      className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold ${
                         idx === 0
                           ? "bg-rose-500 text-white"
                           : idx === 1

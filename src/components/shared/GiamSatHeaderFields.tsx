@@ -20,6 +20,13 @@ import {
 import type { GiamSatSession, NhanSuOption } from "./giam-sat-header.types";
 import SearchableSelect from "./SearchableSelect";
 import RegistrySelect from "./RegistrySelect";
+import {
+  buildKhuVucGroupedSelectOptions,
+  khuVucZoneBadgeClass,
+  KHU_VUC_ZONE_LABELS,
+  zoneFromKhuVucMa,
+  type KhuVucZoneCode,
+} from "@/lib/khu-vuc-giam-sat-ui";
 
 interface GiamSatHeaderFieldsProps {
   session: GiamSatSession;
@@ -107,6 +114,16 @@ export default function GiamSatHeaderFields({
     return locationPoolByKhoa.filter((loc: string) => normalize(loc).includes(nq));
   }, [deferLocationHistoryUntilTyped, locationPoolByKhoa, session.vi_tri]);
 
+  const khuVucSelectOptions = useMemo(() => buildKhuVucGroupedSelectOptions(khuVucs), [khuVucs]);
+
+  const selectedKhuVucZone = useMemo(() => {
+    const row = khuVucs.find((kv) => String(kv.id) === String(session.khu_vuc_id || ""));
+    if (!row) return null;
+    const zone = zoneFromKhuVucMa(row.ma_danh_muc, row.nhom_mau);
+    if (!(zone in KHU_VUC_ZONE_LABELS)) return null;
+    return zone as KhuVucZoneCode;
+  }, [khuVucs, session.khu_vuc_id]);
+
   const headerIdentityReady = !loading && !permLoading;
 
   // Inference thông minh (Gợi ý ban đầu khi trường TRỐNG)
@@ -176,7 +193,7 @@ export default function GiamSatHeaderFields({
 
               {isAdmin ? (
                 <div className="space-y-1 pt-0.5">
-                  <label className="text-[9px] font-semibold uppercase tracking-wide text-indigo-600">
+                  <label className="text-[11px] font-semibold uppercase tracking-wide text-indigo-600">
                     Chọn người thực hiện giám sát
                   </label>
                   <RegistrySelect
@@ -238,29 +255,34 @@ export default function GiamSatHeaderFields({
           </div>
 
           <div className="flex min-h-0 min-w-0 flex-col gap-1">
-            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">2. Khu vực</label>
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">2. Chức năng phòng</label>
+              {selectedKhuVucZone ? (
+                <span
+                  className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${khuVucZoneBadgeClass(selectedKhuVucZone)}`}
+                  title={KHU_VUC_ZONE_LABELS[selectedKhuVucZone]}
+                >
+                  {selectedKhuVucZone}
+                </span>
+              ) : null}
+            </div>
             <RegistrySelect
               loaiDanhMuc="KHU_VUC_GIAM_SAT"
               value={session.khu_vuc_id}
               onChange={(nextKhuVucId: string) => setSession((prev: GiamSatSession) => ({ ...prev, khu_vuc_id: nextKhuVucId }))}
-              staticOptions={khuVucs.map((kv: MasterOption) => ({
-                id: String(kv.id),
-                label: String(kv.ten_danh_muc || ""),
-                ma: String(kv.ma_danh_muc || ""),
-                keywords: [String(kv.ma_danh_muc || ""), String(kv.loai_danh_muc || "")],
-              }))}
-              placeholder={loading ? "Đang tải..." : "Chọn Khu vực..."}
-              searchPlaceholder="Tìm khu vực..."
+              staticOptions={khuVucSelectOptions}
+              placeholder={loading ? "Đang tải..." : "Chọn chức năng phòng..."}
+              searchPlaceholder="Tìm chức năng phòng..."
               disabled={loading}
               searchable={true}
             />
           </div>
 
           <div className="flex min-h-0 min-w-0 flex-col gap-1">
-            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">3. Vị trí</label>
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">3. Số phòng / vị trí</label>
             <input
               className="input h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 outline-none transition-colors focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]/20 lg:h-11"
-              placeholder={deferLocationHistoryUntilTyped ? "Gõ vị trí; gợi ý khi có chữ" : "Phòng, giường, khu…"}
+              placeholder={deferLocationHistoryUntilTyped ? "Gõ số phòng; gợi ý khi có chữ" : "Số phòng, giường, khu…"}
               autoComplete="off"
               value={session.vi_tri}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -275,7 +297,7 @@ export default function GiamSatHeaderFields({
                     key={idx}
                     type="button"
                     onClick={() => setSession((prev: GiamSatSession) => ({ ...prev, vi_tri: loc }))}
-                    className="rounded bg-slate-100 px-2 py-0.5 text-[9px] font-medium text-slate-600 hover:bg-slate-200"
+                    className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 hover:bg-slate-200"
                   >
                     {loc}
                   </button>

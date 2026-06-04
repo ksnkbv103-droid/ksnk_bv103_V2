@@ -1,12 +1,23 @@
-import { useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { bv103DefaultTuNgayFromToday } from "@/lib/bv103-analytics-default-range";
 import { getComplianceFilterOptions } from "@/modules/dashboard/actions/compliance-dashboard.actions";
 import { resolveDashboardFilterUi } from "@/modules/dashboard/lib/resolve-dashboard-filter-ui";
 import { pruneKhoaIdsForKhoiSelection, sortedJoinIds } from "@/lib/analytics/filter-helpers";
+import { hasAnalyticsUrlSeed, parseAnalyticsUrlSeed } from "@/lib/analytics/supervision-deep-link";
 import type { DashboardFilterOptions } from "@/modules/dashboard/compliance-dashboard.types";
 
+function toBkLabelRecord(options: { id: string; label: string }[]): Record<string, string> {
+  return Object.fromEntries(options.map((x) => [x.id, x.label] as const));
+}
+
 export function useAnalyticsFilters() {
+  const searchParams = useSearchParams();
+  const urlSeed = useMemo(() => parseAnalyticsUrlSeed(searchParams), [searchParams]);
+  const urlSeedAppliedRef = useRef(false);
   const [selectedBangKiemMas, setSelectedBangKiemMas] = useState<string[]>([]);
   const [selectedKhoiIds, setSelectedKhoiIds] = useState<string[]>([]);
   const [selectedKhoaIds, setSelectedKhoaIds] = useState<string[]>([]);
@@ -20,6 +31,7 @@ export function useAnalyticsFilters() {
 
   const { bangKiemOptions, khoiOptions, khoaOptions, ngheOptions, khuVucOptions, bkLabelMap } =
     resolveDashboardFilterUi(filterOptions);
+  const bkLabelRecord = useMemo(() => toBkLabelRecord(bangKiemOptions), [bangKiemOptions]);
 
   useEffect(() => {
     if (!initDone || khoiOptions.length === 0) return;
@@ -28,6 +40,14 @@ export function useAnalyticsFilters() {
       return sortedJoinIds(prev) === sortedJoinIds(next) ? prev : next;
     });
   }, [initDone, selectedKhoiIds, khoaOptions, khoiOptions.length]);
+
+  useEffect(() => {
+    if (!initDone || urlSeedAppliedRef.current || !hasAnalyticsUrlSeed(urlSeed)) return;
+    urlSeedAppliedRef.current = true;
+    if (urlSeed.tu_ngay) setTuNgay(urlSeed.tu_ngay);
+    if (urlSeed.den_ngay) setDenNgay(urlSeed.den_ngay);
+    if (urlSeed.khoa_ids?.length) setSelectedKhoaIds(urlSeed.khoa_ids);
+  }, [initDone, urlSeed]);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,5 +99,6 @@ export function useAnalyticsFilters() {
     ngheOptions,
     khuVucOptions,
     bkLabelMap,
+    bkLabelRecord,
   };
 }

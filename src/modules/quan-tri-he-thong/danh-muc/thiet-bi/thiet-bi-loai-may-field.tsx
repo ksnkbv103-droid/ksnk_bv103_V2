@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { getLoaiMayTietKhuanOptionsAction } from "../actions/thiet-bi.actions";
 import type { LoaiMayTietKhuanOption } from "../actions/thiet-bi.types";
 
-/** Chọn loại máy từ `dm_loai_may_tiet_khuan` (đồng bộ với khai báo danh mục). */
+/** Chọn loại máy từ `cssd_dm_loai_may` (đồng bộ với khai báo danh mục). */
 export function ThietBiLoaiMayField({
   value,
   onChange,
@@ -25,7 +25,7 @@ export function ThietBiLoaiMayField({
 
   return (
     <div className="space-y-1">
-      <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Loại máy (danh mục khai báo)</label>
+      <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Loại máy (danh mục khai báo)</label>
       <select
         value={v}
         onChange={(e) => onChange(e.target.value)}

@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Plus, LayoutGrid, CalendarClock, ArrowLeft, Send } from "lucide-react";
+import { Plus, LayoutGrid, CalendarClock, ArrowLeft, Send, Upload } from "lucide-react";
 import {
   KsnkSupervisionHero,
   KsnkSupervisionTabList,
@@ -20,9 +20,13 @@ import { useQlcvTable } from "@/modules/quan-ly-cong-viec/hooks/useQlcvTable";
 import {
   canShowDeXuatButton,
   canShowDirectCreateTask,
+  canShowQlcvApproveActions,
   type QlcvUiAccessFlags,
 } from "@/modules/quan-ly-cong-viec/lib/qlcv-access";
-import type { QlcvBoardFilter } from "@/modules/quan-ly-cong-viec/lib/qlcv-board-filter";
+import { mergeQlcvKanbanTasks } from "@/modules/quan-ly-cong-viec/lib/qlcv-list-merge";
+import { QlcvDmAdminLinks } from "@/modules/quan-ly-cong-viec/components/QlcvDmAdminLinks";
+import { QlcvImportDialog } from "@/modules/quan-ly-cong-viec/components/QlcvImportDialog";
+import { getTrangThaiMauSacMap } from "@/modules/quan-ly-cong-viec/actions/cong-viec-read.actions";
 import type { CongViecView } from "@/modules/quan-ly-cong-viec/types";
 
 const CongViecDetail = dynamic(
@@ -42,35 +46,46 @@ const DeXuatForm = dynamic(
 
 export default function QuanLyCongViecPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("DIEN_HANH");
   const [viewMode, setViewMode] = useState<"BANG" | "KANBAN">("BANG");
   const [isAdding, setIsAdding] = useState(false);
   const [editingTask, setEditingTask] = useState<CongViecView | null>(null);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [mauSacByMa, setMauSacByMa] = useState<Record<string, string>>({});
 
   const { isAdmin, allowed, userData } = useModulePermission("CONG_VIEC");
-  const canApprove = isAdmin || allowed.edit;
-  const canManageDinhKy = isAdmin || allowed.edit;
-
   const qlcvUi: QlcvUiAccessFlags = useMemo(
     () => ({
       isRBACAdmin: isAdmin,
       hasDelete: allowed.delete,
       hasEdit: allowed.edit,
       hasCreate: allowed.create,
+      hasApprove: allowed.approve,
       actorStaffId: userData?.id ?? null,
     }),
-    [isAdmin, allowed.delete, allowed.edit, allowed.create, userData?.id],
+    [isAdmin, allowed.delete, allowed.edit, allowed.create, allowed.approve, userData?.id],
   );
+
+  const canApprove = canShowQlcvApproveActions(qlcvUi);
+  const canManageDinhKy = isAdmin || allowed.edit;
 
   const kanban = useQlcvKanban({ canApprove });
 
-  const mergedTasks = useMemo(() => {
-    const activeIds = new Set(kanban.tasks.map((t) => t.id));
-    const extras = kanban.pendingKanbanExtras.filter((p) => !activeIds.has(p.id));
-    return [...extras, ...kanban.tasks];
-  }, [kanban.tasks, kanban.pendingKanbanExtras]);
+  const mergedTasks = useMemo(
+    () => mergeQlcvKanbanTasks(kanban.tasks, kanban.pendingKanbanExtras),
+    [kanban.tasks, kanban.pendingKanbanExtras],
+  );
+
+  const closeTaskDetail = useCallback(() => {
+    setSelectedTaskId(null);
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("id");
+    const qs = next.toString();
+    router.replace(qs ? `/quan-ly-cong-viec?${qs}` : "/quan-ly-cong-viec", { scroll: false });
+  }, [router, searchParams]);
 
   const table = useQlcvTable({
     canApprove,
@@ -82,13 +97,24 @@ export default function QuanLyCongViecPage() {
     void kanban.fetchTasksInitial();
   }, [kanban.fetchTasksInitial]);
 
+  useEffect(() => {
+    void getTrangThaiMauSacMap()
+      .then(setMauSacByMa)
+      .catch(() => setMauSacByMa({}));
+  }, []);
+
+  useEffect(() => {
+    const openId = searchParams.get("id")?.trim();
+    if (openId) setSelectedTaskId(openId);
+  }, [searchParams]);
+
   const refreshAll = useCallback(async () => {
     await kanban.refreshTasks();
     if (viewMode === "BANG") await table.loadTablePage();
   }, [kanban, table, viewMode]);
 
   const navigateQlcvMain = useCallback(() => {
-    setSelectedTaskId(null);
+    closeTaskDetail();
     setIsAdding(false);
     setEditingTask(null);
     kanban.setBoardFilter(null);
@@ -96,19 +122,19 @@ export default function QuanLyCongViecPage() {
     setViewMode("BANG");
     void refreshAll();
     router.refresh();
-  }, [kanban, refreshAll, router]);
+  }, [kanban, refreshAll, router, closeTaskDetail]);
 
   const handleBoardFilter = useCallback(
     (f: QlcvBoardFilter) => {
       setActiveTab("DIEN_HANH");
       setViewMode("BANG");
-      setSelectedTaskId(null);
+      closeTaskDetail();
       const next = f === "TOTAL" ? null : f;
       kanban.setBoardFilter(next);
       table.setTablePage(1);
       kanban.setKanbanFocusNonce((n) => n + 1);
     },
-    [kanban, table],
+    [kanban, table, closeTaskDetail],
   );
 
   const mainTabs = useMemo((): SupervisionTabDef[] => {
@@ -125,12 +151,12 @@ export default function QuanLyCongViecPage() {
         <div className="fixed inset-0 z-[300] flex justify-end animate-in fade-in duration-300">
           <div
             className="absolute inset-0 bg-slate-900/50 bv103-panel-backdrop-in"
-            onClick={() => setSelectedTaskId(null)}
+            onClick={closeTaskDetail}
           />
           <div className="relative h-full w-full max-w-7xl overflow-y-auto border-l border-slate-200/90 bg-slate-50 p-6 shadow-2xl animate-in slide-in-from-right duration-500 sm:rounded-l-2xl sm:p-8">
             <button
               type="button"
-              onClick={() => setSelectedTaskId(null)}
+              onClick={closeTaskDetail}
               className="app-shell-focus mb-6 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-slate-500 hover:text-slate-800"
             >
               <ArrowLeft size={16} aria-hidden /> Quay lại danh sách
@@ -138,7 +164,7 @@ export default function QuanLyCongViecPage() {
             <CongViecDetail
               key={selectedTaskId}
               id={selectedTaskId}
-              onClose={() => setSelectedTaskId(null)}
+              onClose={closeTaskDetail}
               onRefreshList={() => {
                 void refreshAll();
                 router.refresh();
@@ -198,6 +224,16 @@ export default function QuanLyCongViecPage() {
             </Dialog>
           ) : null}
 
+          {allowed.import ? (
+            <button
+              type="button"
+              onClick={() => setImportOpen(true)}
+              className="bv103-control-h inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200/90 bg-white px-4 py-2.5 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50 sm:w-auto"
+            >
+              <Upload size={15} aria-hidden /> Import Excel
+            </button>
+          ) : null}
+
           {canShowDirectCreateTask(qlcvUi) ? (
             <button
               type="button"
@@ -252,10 +288,12 @@ export default function QuanLyCongViecPage() {
           </DialogContent>
         </Dialog>
 
-        <Tabs.Content value="DIEN_HANH" className="outline-none">
+        <Tabs.Content value="DIEN_HANH" className="outline-none space-y-4">
+          {isAdmin || allowed.edit ? <QlcvDmAdminLinks className="no-print" /> : null}
           <QlcvOperationsPanel
             kanban={kanban}
             table={table}
+            mergedTasks={mergedTasks}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             qlcvUi={qlcvUi}
@@ -267,6 +305,15 @@ export default function QuanLyCongViecPage() {
             onRefreshAll={refreshAll}
             onBoardFilter={handleBoardFilter}
             routerRefresh={() => router.refresh()}
+            mauSacByMa={mauSacByMa}
+          />
+          <QlcvImportDialog
+            isOpen={importOpen}
+            onClose={() => setImportOpen(false)}
+            onImported={() => {
+              void refreshAll();
+              router.refresh();
+            }}
           />
         </Tabs.Content>
 

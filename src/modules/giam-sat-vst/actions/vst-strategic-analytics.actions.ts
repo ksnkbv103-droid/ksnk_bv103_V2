@@ -43,7 +43,7 @@ export async function getVstStrategicAnalytics(filters: VstStrategicFilters) {
   const p_khu_vuc_ids = isNetwork ? null : f.khu_vuc_ids && f.khu_vuc_ids.length > 0 ? f.khu_vuc_ids : null;
   const p_hinh_thuc_ids = isNetwork ? null : f.hinh_thuc_ids && f.hinh_thuc_ids.length > 0 ? f.hinh_thuc_ids : null;
 
-  const { data, error } = await supabase.rpc("rpc_dashboard_vst_strategic_analytics", {
+  const rpcArgs = {
     p_tu_ngay: f.tu_ngay,
     p_den_ngay: f.den_ngay,
     p_khoi_ids,
@@ -51,8 +51,20 @@ export async function getVstStrategicAnalytics(filters: VstStrategicFilters) {
     p_nghe_nghiep_ids,
     p_khu_vuc_ids,
     p_hinh_thuc_ids,
-  });
+  };
+
+  const [{ data, error }, { data: matrices, error: matrixErr }] = await Promise.all([
+    supabase.rpc("rpc_dashboard_vst_strategic_analytics", rpcArgs),
+    supabase.rpc("rpc_vst_compare_matrices", rpcArgs),
+  ]);
 
   if (error) return { success: false as const, error: error.message };
-  return { success: true as const, data: data as VstStrategicPayload };
+  if (matrixErr) return { success: false as const, error: matrixErr.message };
+
+  const merged = {
+    ...(data as VstStrategicPayload),
+    ...(matrices as Record<string, unknown>),
+  } as VstStrategicPayload;
+
+  return { success: true as const, data: merged };
 }

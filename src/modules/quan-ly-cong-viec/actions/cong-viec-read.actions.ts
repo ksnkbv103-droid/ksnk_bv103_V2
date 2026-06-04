@@ -29,7 +29,7 @@ async function getKhoaPhongOptions(): Promise<QlcvSelectOption[]> {
   await verifyPermission("CONG_VIEC", "view");
   const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
-    .from("dm_khoa_phong")
+    .from("mdm_dm_khoa_phong")
     .select("id, ten_khoa")
     .eq("is_active", true)
     .order("ten_khoa")
@@ -46,7 +46,7 @@ async function getToCongTacOptions(): Promise<QlcvSelectOption[]> {
   await verifyPermission("CONG_VIEC", "view");
   const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
-    .from("dm_to_cong_tac")
+    .from("mdm_dm_to_cong_tac")
     .select("id, ten_to, ma_to")
     .eq("is_active", true)
     .order("ten_to")
@@ -62,7 +62,7 @@ async function getToCongTacOptions(): Promise<QlcvSelectOption[]> {
 async function getLoaiCongViecOptions(): Promise<QlcvSelectOption[]> {
   await verifyPermission("CONG_VIEC", "view");
   const supabase = createAdminSupabaseClient();
-  const query = supabase.from("dm_loai_cong_viec").select("id, ma, ten").order("ma").limit(MAX_DM_OPTIONS);
+  const query = supabase.from("qlcv_dm_loai_cong_viec").select("id, ma, ten").order("ma").limit(MAX_DM_OPTIONS);
   const { data, error } = await query;
 
   if (error) throw error;
@@ -72,13 +72,34 @@ async function getLoaiCongViecOptions(): Promise<QlcvSelectOption[]> {
   }));
 }
 
-/** Một round-trip: tổ + nhân sự + loại + khoa (form QLCV). */
+/** Một round-trip: tổ + nhân sự + loại + khoa + màu trạng thái (form QLCV). */
 export async function getQlcvFormCatalog(): Promise<QlcvFormCatalog> {
-  const [nhanSu, toCongTac, loaiCongViec, khoaPhong] = await Promise.all([
+  const [nhanSu, toCongTac, loaiCongViec, khoaPhong, trangThaiMauSac] = await Promise.all([
     getNhanSuOptions(),
     getToCongTacOptions(),
     getLoaiCongViecOptions(),
     getKhoaPhongOptions(),
+    getTrangThaiMauSacMap(),
   ]);
-  return { nhanSu, toCongTac, loaiCongViec, khoaPhong };
+  return { nhanSu, toCongTac, loaiCongViec, khoaPhong, trangThaiMauSac };
+}
+
+/** Map mã trạng thái → mau_sac từ MDM (qlcv_dm_trang_thai_cong_viec). */
+export async function getTrangThaiMauSacMap(): Promise<Record<string, string>> {
+  await verifyPermission("CONG_VIEC", "view");
+  const supabase = createAdminSupabaseClient();
+  const { data, error } = await supabase
+    .from("qlcv_dm_trang_thai_cong_viec")
+    .select("ma, mau_sac")
+    .eq("is_active", true)
+    .limit(MAX_DM_OPTIONS);
+
+  if (error) throw error;
+  const map: Record<string, string> = {};
+  for (const row of data || []) {
+    const ma = String(row.ma ?? "").trim();
+    const color = String(row.mau_sac ?? "").trim();
+    if (ma && color) map[ma] = color;
+  }
+  return map;
 }

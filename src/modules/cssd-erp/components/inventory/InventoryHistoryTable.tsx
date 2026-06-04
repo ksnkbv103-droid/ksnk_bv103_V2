@@ -31,21 +31,21 @@ export default function InventoryHistoryTable() {
         <div className={`p-2 rounded-lg ${item.loai_giao_dich === 'NHAP_KHO' ? 'bg-emerald-50 text-emerald-500' : 'bg-amber-50 text-amber-600'}`}>
           {item.loai_giao_dich === 'NHAP_KHO' ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
         </div>
-        <span className="font-black text-[9px] uppercase tracking-tighter">{item.loai_giao_dich.replace('_', ' ')}</span>
+        <span className="font-black text-[11px] uppercase tracking-tighter">{item.loai_giao_dich.replace('_', ' ')}</span>
       </div>
     )},
-    { header: "BỘ / LOẠI", accessorKey: "dm_bo_dung_cu.ma_bo", cell: (item: any) => (
+    { header: "BỘ / LOẠI", accessorKey: "cssd_dm_bo_dung_cu.ma_bo", cell: (item: any) => (
       <span className="font-bold text-slate-700 text-[10px] uppercase truncate max-w-[120px] block">
-        {item.dm_bo_dung_cu?.ma_bo || item.dm_loai_dung_cu?.ma_loai_dung_cu || "---"}
+        {item.cssd_dm_bo_dung_cu?.ma_bo || item.cssd_dm_loai_dung_cu?.ma_loai_dung_cu || "---"}
       </span>
     )},
     { header: "GHI CHÚ", accessorKey: "ghi_chu", cell: (item: any) => (
-      <span className="text-slate-400 font-medium text-[9px] truncate max-w-[150px] block italic">
+      <span className="text-slate-400 font-medium text-[11px] truncate max-w-[150px] block italic">
         {item.ghi_chu || "---"}
       </span>
     )},
     { header: "THỜI GIAN", accessorKey: "created_at", cell: (item: any) => (
-      <span className="text-slate-400 font-bold text-[9px] whitespace-nowrap">
+      <span className="text-slate-400 font-bold text-[11px] whitespace-nowrap">
         {new Date(item.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
       </span>
     )}

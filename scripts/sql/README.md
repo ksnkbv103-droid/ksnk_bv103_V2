@@ -15,7 +15,8 @@ Script **không** thuộc chuỗi migration Supabase. Chỉ file trong thư mụ
 
 | File | Lệnh npm | Mục đích |
 |------|----------|----------|
-| `pilot-dashboard-rpc-explain-hybrid.sql` | `pilot:dashboard:explain:linked` / `:local` | EXPLAIN RPC dashboard |
+| `gsc-vst-rpc-smoke.sql` | `smoke:gsc-vst` / `:local` | Smoke JSON contract GSC/VST strategic + compare matrices RPC |
+| `pilot-dashboard-explain/*.sql` | `pilot:dashboard:explain:linked` / `:local` | EXPLAIN từng RPC dashboard (runner: `run-pilot-dashboard-explain.mjs`) |
 
 ## Admin probe (chạy tay / slice admin)
 
@@ -24,6 +25,7 @@ Script **không** thuộc chuỗi migration Supabase. Chỉ file trong thư mụ
 | `admin-perf-baseline.sql` | Baseline perf admin |
 | `admin-rbac-probe.sql` | Probe RBAC |
 | `admin-slice-pre-apply-probe.sql` | Probe trước slice |
+| `rbac-v-auth-compat-probe.sql` | Sau migration RBAC 03/06 — `v_auth_permissions` / orphan views |
 
 ## CSSD / FK gate
 

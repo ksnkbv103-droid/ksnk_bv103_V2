@@ -76,7 +76,7 @@ export default function QRScanSuccessCard({
           <h2 className="text-[#FFD700] text-lg font-black uppercase tracking-tight mb-1">
             QUÉT THÀNH CÔNG
           </h2>
-          <p className="text-white/50 text-[9px] font-bold uppercase tracking-[0.2em] mb-6">
+          <p className="text-white/50 text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
             Hệ thống đã ghi nhận bản ghi
           </p>
 
@@ -99,7 +99,7 @@ export default function QRScanSuccessCard({
 
             <div className="space-y-4 text-left px-1">
               <div className="space-y-0.5">
-                <label className="text-[9px] font-black text-[#FFD700]/40 uppercase tracking-widest">
+                <label className="text-[11px] font-black text-[#FFD700]/40 uppercase tracking-widest">
                   Bộ dụng cụ
                 </label>
                 <div className="text-white text-base font-black uppercase leading-tight">
@@ -109,13 +109,13 @@ export default function QRScanSuccessCard({
 
               <div className="grid grid-cols-2 gap-4 bg-black/20 p-3 rounded-xl border border-white/5">
                 <div className="space-y-0.5">
-                  <div className="flex items-center gap-1.5 text-[8px] font-bold text-[#FFD700]/40 uppercase">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#FFD700]/40 uppercase">
                     <User size={10} /> Người thực hiện
                   </div>
                   <div className="text-white text-[11px] font-black truncate">{nguoiThucHien}</div>
                 </div>
                 <div className="space-y-0.5 border-l border-white/10 pl-3">
-                  <div className="flex items-center gap-1.5 text-[8px] font-bold text-[#FFD700]/40 uppercase">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#FFD700]/40 uppercase">
                     <Clock size={10} /> Thời gian
                   </div>
                   <div className="text-white text-[11px] font-black">{thoiGianQuet}</div>
@@ -125,14 +125,14 @@ export default function QRScanSuccessCard({
 
             {maCaMoId && (
               <div className="w-full bg-[#FFD700]/10 border border-[#FFD700]/30 rounded-xl p-3 animate-in fade-in slide-in-from-bottom-1">
-                <label className="text-[8px] font-black text-[#FFD700] uppercase tracking-widest block mb-1">Truy vết Ca mổ / Bệnh nhân</label>
+                <label className="text-[11px] font-black text-[#FFD700] uppercase tracking-widest block mb-1">Truy vết Ca mổ / Bệnh nhân</label>
                 <div className="text-white text-xs font-black uppercase">{maCaMoId}</div>
               </div>
             )}
 
             {ledgerWarning && (
               <div className="w-full bg-rose-500/20 border border-rose-500/40 rounded-xl p-3 text-left animate-in fade-in slide-in-from-bottom-1">
-                <label className="text-[8px] font-black text-rose-300 uppercase tracking-widest block mb-1">⚠️ CẢNH BÁO CẤU PHẦN (SỔ CÁI)</label>
+                <label className="text-[11px] font-black text-rose-300 uppercase tracking-widest block mb-1">⚠️ CẢNH BÁO CẤU PHẦN (SỔ CÁI)</label>
                 <div className="text-rose-100 text-[10px] font-bold leading-relaxed">{ledgerWarning}</div>
               </div>
             )}
@@ -155,7 +155,7 @@ export default function QRScanSuccessCard({
           {/* Banner chỉ dẫn bước tiếp theo */}
           <div className="mt-6 w-full bg-[#FFD700] text-[#026f17] p-4 rounded-2xl flex items-center justify-between shadow-lg">
             <div className="text-left">
-              <div className="text-[8px] font-black uppercase opacity-60 mb-0.5">Bước tiếp theo</div>
+              <div className="text-[11px] font-black uppercase opacity-60 mb-0.5">Bước tiếp theo</div>
               <div className="text-sm font-black uppercase tracking-tight">{buocTiepTheo}</div>
             </div>
             <div className="bg-[#026f17] p-2 rounded-full text-[#FFD700]"><ArrowRight size={20} strokeWidth={3} /></div>

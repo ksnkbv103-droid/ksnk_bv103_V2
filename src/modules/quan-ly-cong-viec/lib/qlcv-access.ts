@@ -41,6 +41,7 @@ export type QlcvUiAccessFlags = {
   hasDelete: boolean;
   hasEdit: boolean;
   hasCreate: boolean;
+  hasApprove: boolean;
   actorStaffId: string | null;
 };
 
@@ -49,7 +50,8 @@ export type QlcvUiAccessFlags = {
  * Việc **quá hạn** (lane đỏ): không cho xóa “nháp” theo người tạo — cần quyền xóa hoặc quản trị (chỉ huy vận hành qua RBAC).
  */
 export function canShowDeleteTask(row: QlcvTaskAccessRow, f: QlcvUiAccessFlags): boolean {
-  return f.isRBACAdmin;
+  if (isQlcvTaskInQuaHanLane(row) && !f.isRBACAdmin && !f.hasDelete) return false;
+  return f.isRBACAdmin || f.hasDelete;
 }
 
 /** Sửa metadata form: người phụ trách đã nhận việc không được sửa nội dung gốc; chờ nghiệm thu vẫn sửa được (hạn/mô tả) nếu có quyền edit và không bị chặn phụ trách. */
@@ -79,4 +81,9 @@ export function canShowDeXuatButton(f: QlcvUiAccessFlags): boolean {
 /** Tạo việc gốc trực tiếp (giao tổ / người phụ trách) — cấp trên / quyền sửa; khác với chỉ gửi đề xuất. */
 export function canShowDirectCreateTask(f: QlcvUiAccessFlags): boolean {
   return f.isRBACAdmin || f.hasEdit;
+}
+
+/** Phê duyệt đề xuất / Kanban duyệt — `approve` hoặc `edit` (tương thích role cũ). */
+export function canShowQlcvApproveActions(f: QlcvUiAccessFlags): boolean {
+  return f.isRBACAdmin || f.hasApprove || f.hasEdit;
 }

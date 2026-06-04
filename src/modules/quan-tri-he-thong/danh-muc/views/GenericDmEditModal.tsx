@@ -50,7 +50,7 @@ export default function GenericDmEditModal({
                 type="button"
                 disabled={suggestLoading}
                 onClick={() => void onSuggestMa()}
-                className="inline-flex items-center gap-1 rounded-lg border border-[#026f17]/20 bg-[#026f17]/5 px-2 py-1 text-[9px] font-black uppercase text-[#026f17] touch-manipulation disabled:opacity-50"
+                className="inline-flex items-center gap-1 rounded-lg border border-[#026f17]/20 bg-[#026f17]/5 px-2 py-1 text-[11px] font-black uppercase text-[#026f17] touch-manipulation disabled:opacity-50"
               >
                 <Sparkles className="h-3 w-3" />
                 {suggestLoading ? "…" : "Gợi ý mã"}
@@ -65,7 +65,7 @@ export default function GenericDmEditModal({
             className="w-full rounded-xl border-2 border-slate-100 px-3 py-2.5 text-sm font-semibold outline-none focus:border-[#026f17]"
           />
           {!editMode ? (
-            <p className="mt-1 text-[9px] font-bold uppercase leading-relaxed text-slate-400">
+            <p className="mt-1 text-[11px] font-bold uppercase leading-relaxed text-slate-400">
               Mặc định gợi ý DM-xxxx theo mã đang có; có thể sửa tay (ví dụ mã trạng thái workflow).
             </p>
           ) : null}

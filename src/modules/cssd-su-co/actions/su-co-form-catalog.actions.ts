@@ -9,9 +9,9 @@ export async function fetchSuCoFormCatalog() {
   try {
     await verifyCssdIncidentCreate();
     const [cRes, mRes, hRes] = await Promise.all([
-      supabase.from("dm_loai_su_co").select("id, ten_loai_su_co").eq("is_active", true).order("ten_loai_su_co"),
-      supabase.from("dm_loai_may_tiet_khuan").select("id, ten_loai_may").eq("is_active", true).order("ten_loai_may"),
-      supabase.from("dm_hoa_chat").select("id, ten_hoa_chat, ma_hoa_chat").eq("is_active", true).order("ten_hoa_chat"),
+      supabase.from("cssd_dm_loai_su_co").select("id, ten_loai_su_co").eq("is_active", true).order("ten_loai_su_co"),
+      supabase.from("cssd_dm_loai_may").select("id, ten_loai_may").eq("is_active", true).order("ten_loai_may"),
+      supabase.from("cssd_dm_hoa_chat").select("id, ten_hoa_chat, ma_hoa_chat").eq("is_active", true).order("ten_hoa_chat"),
     ]);
     if (cRes.error) return { success: false as const, error: cRes.error.message, categories: [], machines: [], chemicals: [] };
     const categories = (cRes.data || []).map((c: { id: string; ten_loai_su_co?: string }) => ({

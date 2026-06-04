@@ -4,7 +4,7 @@ export function formatHoSoKhoaFkViolation(message: string | undefined): string {
   const m = message || "";
   if (!m.includes("ho_so_nhan_vien_khoa_id_fkey") && !m.includes("mdm_nhan_su_khoa_id_fkey")) return m || "";
   return (
-    `${m.trim()} — Sau chuẩn hoá, khoa_id phải tham chiếu dm_khoa_phong. Vui lòng kiểm tra lại cấu trúc Database trong file Baseline.`
+    `${m.trim()} — Sau chuẩn hoá, khoa_id phải tham chiếu mdm_dm_khoa_phong. Vui lòng kiểm tra lại cấu trúc Database trong file Baseline.`
   );
 }
 

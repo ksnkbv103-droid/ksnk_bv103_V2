@@ -30,7 +30,7 @@ export async function importBulkKhoaPhong(rows: any[]): Promise<ActionResponse> 
 
     // 1. Fetch block categories to map text name -> UUID
     const { data: blocks } = await admin
-      .from("dm_lookup_value")
+      .from("sys_lookup_value")
       .select("id, name")
       .eq("category_type", "KHOI_KHOA");
 
@@ -69,12 +69,12 @@ export async function importBulkKhoaPhong(rows: any[]): Promise<ActionResponse> 
 
     // 3. Perform Batch Upsert
     const { error } = await admin
-      .from("dm_khoa_phong")
+      .from("mdm_dm_khoa_phong")
       .upsert(records, { onConflict: "ma_khoa" });
 
     if (error) throw error;
 
-    revalidateMasterDataRowCacheTag("dm_khoa_phong");
+    revalidateMasterDataRowCacheTag("mdm_dm_khoa_phong");
     return { success: true, inserted: records.length };
   } catch (err: any) {
     console.error("[Import Bulk KhoaPhong] Error:", err.message);
@@ -115,12 +115,12 @@ export async function importBulkHoaChat(rows: any[]): Promise<ActionResponse> {
     });
 
     const { error } = await admin
-      .from("dm_hoa_chat")
+      .from("cssd_dm_hoa_chat")
       .upsert(records, { onConflict: "ma_hoa_chat" });
 
     if (error) throw error;
 
-    revalidateMasterDataRowCacheTag("dm_hoa_chat");
+    revalidateMasterDataRowCacheTag("cssd_dm_hoa_chat");
     return { success: true, inserted: records.length };
   } catch (err: any) {
     return { success: false, error: err.message };
@@ -142,7 +142,7 @@ export async function importBulkThietBi(rows: any[]): Promise<ActionResponse> {
 
     // 1. Fetch sterilizer types to map text name -> UUID
     const { data: types } = await admin
-      .from("dm_lookup_value")
+      .from("sys_lookup_value")
       .select("id, name")
       .eq("category_type", "LOAI_MAY_TIET_KHUAN");
 
@@ -178,12 +178,12 @@ export async function importBulkThietBi(rows: any[]): Promise<ActionResponse> {
     });
 
     const { error } = await admin
-      .from("dm_thiet_bi")
+      .from("cssd_dm_thiet_bi")
       .upsert(records, { onConflict: "ma_thiet_bi" });
 
     if (error) throw error;
 
-    revalidateMasterDataRowCacheTag("dm_thiet_bi");
+    revalidateMasterDataRowCacheTag("cssd_dm_thiet_bi");
     return { success: true, inserted: records.length };
   } catch (err: any) {
     return { success: false, error: err.message };
@@ -203,9 +203,9 @@ export async function importBulkNhanSu(rows: any[]): Promise<ActionResponse> {
       throw new Error("Mảng dữ liệu nhân sự trống.");
     }
 
-    // 1. Fetch departments (dm_khoa_phong) to map ma_khoa -> UUID
+    // 1. Fetch departments (mdm_dm_khoa_phong) to map ma_khoa -> UUID
     const { data: depts } = await admin
-      .from("dm_khoa_phong")
+      .from("mdm_dm_khoa_phong")
       .select("id, ma_khoa");
 
     const deptMap: Record<string, string> = {};
@@ -217,7 +217,7 @@ export async function importBulkNhanSu(rows: any[]): Promise<ActionResponse> {
 
     // 2. Fetch lookup values for groups, positions, and titles
     const { data: lookups } = await admin
-      .from("dm_lookup_value")
+      .from("sys_lookup_value")
       .select("id, category_type, name");
 
     const groupMap: Record<string, string> = {};

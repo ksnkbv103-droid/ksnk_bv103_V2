@@ -97,8 +97,8 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
             <h1 className="text-2xl font-black text-[#026f17] uppercase tracking-tighter flex items-center gap-3">
               <Settings /> Thiết bị và Máy
             </h1>
-            <p className="text-slate-400 font-bold text-[9px] uppercase tracking-widest mt-1 italic leading-none">
-              Master dm_thiet_bi
+            <p className="text-slate-400 font-bold text-[11px] uppercase tracking-widest mt-1 italic leading-none">
+              Master cssd_dm_thiet_bi
             </p>
           </div>
           <div className="flex flex-wrap gap-3 w-full sm:w-auto">

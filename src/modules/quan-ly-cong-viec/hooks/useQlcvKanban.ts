@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getCongViecList } from "../actions/cong-viec.actions";
+import { getCongViecListForBoard } from "../actions/cong-viec.actions";
 import { getPendingDeXuat, getMyPendingDeXuat } from "../actions/dexuat.actions";
 import type { CongViecView } from "../types";
 import type { QlcvBoardFilter } from "../lib/qlcv-board-filter";
@@ -29,7 +29,7 @@ export interface UseQlcvKanbanReturn {
 
 /**
  * Hook quản lý state Kanban QLCV:
- * - Task list (getCongViecList)
+ * - Task list (getCongViecListForBoard)
  * - Đề xuất chờ duyệt (pendingKanbanExtras)
  * - Board filter, search debounce, focus nonce
  */
@@ -50,7 +50,7 @@ export function useQlcvKanban({ canApprove }: UseQlcvKanbanOptions): UseQlcvKanb
   }, [searchTerm]);
 
   const pullTasks = useCallback(async () => {
-    const data = await getCongViecList();
+    const data = await getCongViecListForBoard();
     setTasks((data || []) as CongViecView[]);
 
     if (canApprove) {

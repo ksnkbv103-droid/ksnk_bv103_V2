@@ -1,0 +1,47 @@
+---
+description: Follow these rules when starting implementation for a new task, bug fix, or feature request.
+globs: src/**/*.{ts,tsx,js,jsx,sql}
+alwaysApply: false
+---
+
+# Task Intake And Spec Freeze
+
+## Objective
+
+Prevent scope drift, token waste, and rework by forcing a short intake before coding.
+
+## Required intake before code edits
+
+Before implementing, produce a compact intake with exactly these fields:
+
+1. `Goal` - one sentence outcome.
+2. `In scope` - file paths or module boundaries.
+3. `Out of scope` - what must not be changed.
+4. `Acceptance criteria` - checkable behavior.
+5. `Verify plan` - commands and manual checks.
+6. `Risk` - one to three likely regressions.
+
+If any field is unclear, ask a focused clarification question before coding.
+
+## Spec freeze policy
+
+- After user approval, treat formulas, definitions, and acceptance criteria as frozen.
+- If user changes any frozen item, explicitly mark it as `Spec change`.
+- For spec changes, re-issue a revised intake before further edits.
+
+## Token and quota efficiency rules
+
+- Prefer narrow context over broad scans.
+- Edit only files in scope unless user approves expansion.
+- Keep diffs surgical; avoid unrelated refactors.
+- Summarize only deltas between iterations, not full restatements.
+
+## Output format for implementation turns
+
+When implementing, respond with:
+
+1. `Plan` (3-5 steps max)
+2. `Changes made` (files and purpose)
+3. `Verification` (what ran and status)
+4. `Residual risk` (if any)
+

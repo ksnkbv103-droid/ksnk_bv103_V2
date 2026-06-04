@@ -62,7 +62,7 @@ async function backfill() {
       continue;
     }
 
-    // Nếu chưa có, tiến hành nạp từ template (dm_bo_dung_cu_chi_tiet)
+    // Nếu chưa có, tiến hành nạp từ template (cssd_dm_bo_dung_cu_chi_tiet)
     console.log(`-> Đang đồng bộ cấu phần cho quy trình ${qt.id} (Bộ: ${boId})...`);
 
     const { data: lines, error: lErr } = await supabase
@@ -87,7 +87,7 @@ async function backfill() {
       const qty = Number(ln.so_luong ?? 1) || 1;
       return {
         quy_trinh_id: qt.id,
-        dm_bo_dung_cu_chi_tiet_id: ln.id,
+        cssd_dm_bo_dung_cu_chi_tiet_id: ln.id,
         ten_dung_cu_le: String(ln.ten_dung_cu_le || "").trim() || "—",
         so_luong_ke_hoach: qty,
         so_luong_thuc_te: qty, // mặc định ban đầu đủ

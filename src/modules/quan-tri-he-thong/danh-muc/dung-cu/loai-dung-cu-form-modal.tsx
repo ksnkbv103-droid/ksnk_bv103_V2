@@ -119,7 +119,7 @@ export default function LoaiDungCuFormModal({
           <S l="Phân loại dụng cụ" v={form.phan_loai} o={(v) => setForm({ ...form, phan_loai: v })}
             options={[{ v: "PHAU_THUAT", l: "Dụng cụ Phẫu thuật" }, { v: "THU_THUAT", l: "Dụng cụ Thủ thuật" }]} />
           <div className="space-y-1">
-            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Số lượng dự phòng kho lẻ</label>
+            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Số lượng dự phòng kho lẻ</label>
             <input type="number" min="0" value={form.so_luong_kho_du_phong} onChange={(e) => setForm({ ...form, so_luong_kho_du_phong: parseInt(e.target.value) || 0 })} className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs" />
           </div>
         </div>
@@ -135,7 +135,7 @@ export default function LoaiDungCuFormModal({
 function F({ l, v, o, required }: { l: string; v: string; o: (v: string) => void; required?: boolean }) {
   return (
     <div className="space-y-1">
-      <label className="text-[9px] font-black text-slate-400 uppercase ml-1">{l}{required ? " *" : ""}</label>
+      <label className="text-[11px] font-black text-slate-400 uppercase ml-1">{l}{required ? " *" : ""}</label>
       <input value={v} required={required} onChange={(e) => o(e.target.value)} className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs" />
     </div>
   );
@@ -144,7 +144,7 @@ function F({ l, v, o, required }: { l: string; v: string; o: (v: string) => void
 function S({ l, v, o, options }: { l: string; v: string; o: (v: string) => void; options: { v: string; l: string }[] }) {
   return (
     <div className="space-y-1">
-      <label className="text-[9px] font-black text-slate-400 uppercase ml-1">{l}</label>
+      <label className="text-[11px] font-black text-slate-400 uppercase ml-1">{l}</label>
       <select value={v} onChange={(e) => o(e.target.value)} className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs">
         {options.map((x) => <option key={x.v} value={x.v}>{x.l}</option>)}
       </select>

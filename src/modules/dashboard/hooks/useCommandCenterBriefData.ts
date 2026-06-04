@@ -7,6 +7,7 @@ import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-str
 import type { DashboardKsnkStaffSupervisionRow } from "../compliance-dashboard.types";
 import { buildAnalyticsFilterPayload } from "@/lib/analytics/filter-helpers";
 import { useAnalyticsFilters } from "@/lib/analytics/use-analytics-filters";
+import { getQlcvQuaHanBrief, type QlcvQuaHanBrief } from "@/modules/quan-ly-cong-viec/actions/qlcv-brief.actions";
 
 /** Command Center — chỉ 2 RPC strategic; staff stats lazy khi gọi `loadKsnkStaff`. */
 export function useCommandCenterBriefData() {
@@ -19,6 +20,8 @@ export function useCommandCenterBriefData() {
   const [showKsnkStaff, setShowKsnkStaff] = useState(false);
   const [staffLoading, setStaffLoading] = useState(false);
   const [staffLoaded, setStaffLoaded] = useState(false);
+  const [qlcvBrief, setQlcvBrief] = useState<QlcvQuaHanBrief | null>(null);
+  const [qlcvBriefAvailable, setQlcvBriefAvailable] = useState(false);
 
   const filterPayload = useCallback(
     () =>
@@ -58,9 +61,22 @@ export function useCommandCenterBriefData() {
     setLoadError(null);
     setStaffLoaded(false);
     setKsnkStaffStats([]);
+    setQlcvBrief(null);
+    setQlcvBriefAvailable(false);
     try {
       const fp = filterPayload();
-      const [vstRes, gscRes] = await Promise.all([getVstStrategicAnalytics(fp), getGscStrategicAnalytics(fp)]);
+      const [vstRes, gscRes, qlcvRes] = await Promise.all([
+        getVstStrategicAnalytics(fp),
+        getGscStrategicAnalytics(fp),
+        getQlcvQuaHanBrief(8).then(
+          (data) => ({ ok: true as const, data }),
+          () => ({ ok: false as const, data: null }),
+        ),
+      ]);
+      if (qlcvRes.ok) {
+        setQlcvBrief(qlcvRes.data);
+        setQlcvBriefAvailable(true);
+      }
       if (vstRes.success) setVstPayload(vstRes.data);
       else console.error("[CommandCenter] VST:", vstRes.error);
       if (gscRes.success) setGscPayload(gscRes.data);
@@ -146,5 +162,7 @@ export function useCommandCenterBriefData() {
     staffLoaded,
     loadDashboard,
     loadKsnkStaff,
+    qlcvBrief,
+    qlcvBriefAvailable,
   };
 }

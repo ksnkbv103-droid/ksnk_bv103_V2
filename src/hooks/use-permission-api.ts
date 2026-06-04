@@ -24,6 +24,7 @@ export function createPermissionApi(permissions: PermissionRow[], userRoles: str
     canCreate: (module: string) => checkPermission(module, "create"),
     canEdit: (module: string) => checkPermission(module, "edit"),
     canDelete: (module: string) => checkPermission(module, "delete"),
+    canApprove: (module: string) => checkPermission(module, "approve"),
     canImport: (module: string) => checkPermission(module, "import"),
     canExport: (module: string) => checkPermission(module, "export"),
     canManageNS: () => checkPermission("NHAN_SU", "view"),

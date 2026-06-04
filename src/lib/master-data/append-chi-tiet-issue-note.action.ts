@@ -4,48 +4,65 @@ import { revalidatePath } from "next/cache";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
+import { CSSD_ROUTES } from "@/lib/cssd-routes";
+import {
+  appendChiTietIssueNoteCore,
+  insertInstrumentIssueLedgerCore,
+  type InstrumentIssueType,
+} from "@/lib/master-data/instrument-issue-core";
 
-/** Ghi nhận sự vụ hỏng/mất ở mức chi tiết bằng audit note — dùng chung MDM + CSSD vận hành. */
-export async function appendChiTietIssueNoteAction(params: {
-  chiTietId: string;
-  issueType: "HONG" | "MAT";
-  note?: string;
-}) {
-  await verifyPermission("DC_LE", "edit");
-  const supabase = await createServerSupabaseUserClient();
-  const id = String(params.chiTietId || "").trim();
-  if (!id) return { success: false as const, error: "Thiếu id dụng cụ chi tiết." };
-
-  const { data: row, error } = await supabase
-    .from("dm_bo_dung_cu_chi_tiet")
-    .select("ghi_chu, bo_dung_cu_id")
-    .eq("id", id)
-    .maybeSingle();
-  if (error) return { success: false as const, error: error.message };
-  const oldNote = String((row as { ghi_chu?: string | null } | null)?.ghi_chu || "").trim();
-  const oldBoId = String((row as { bo_dung_cu_id?: string | null } | null)?.bo_dung_cu_id || "").trim();
-  const now = new Date().toISOString().slice(0, 19).replace("T", " ");
-  const line = `[${params.issueType}] ${now}${params.note ? ` - ${String(params.note).trim()}` : ""}`;
-  const detachLine = oldBoId
-    ? `[AUTO] ${now} - Tách khỏi bộ hiện tại do báo ${params.issueType === "HONG" ? "hỏng" : "mất"}.`
-    : "";
-  const nextNote = oldNote
-    ? `${oldNote}\n${line}${detachLine ? `\n${detachLine}` : ""}`
-    : `${line}${detachLine ? `\n${detachLine}` : ""}`;
-
-  const { error: ue } = await supabase
-    .from("dm_bo_dung_cu_chi_tiet")
-    .update({
-      ghi_chu: nextNote,
-      bo_dung_cu_id: null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id);
-  if (ue) return { success: false as const, error: ue.message };
-
+function revalidateInstrumentIssuePaths() {
   revalidatePath(quanTriDungCuHref("bo"));
   revalidatePath(quanTriDungCuHref("chi-tiet"));
   revalidatePath(quanTriDungCuHref());
-  revalidatePath("/cssd-dung-cu");
+  revalidatePath(CSSD_ROUTES.dungCu);
+  revalidatePath(CSSD_ROUTES.quyTrinh);
+}
+
+/**
+ * Báo hỏng/mất theo dòng chi tiết BOM: ghi chú audit + tách khỏi bộ + sổ giao dịch kho.
+ * SSOT orchestrator — dùng chung MDM + CSSD catalog.
+ */
+export async function reportChiTietInstrumentIssueAction(params: {
+  chiTietId: string;
+  issueType: InstrumentIssueType;
+  note?: string;
+  quantity?: number;
+  quyTrinhId?: string | null;
+}) {
+  await verifyPermission("DC_LE", "edit");
+  const supabase = await createServerSupabaseUserClient();
+
+  const noteResult = await appendChiTietIssueNoteCore(supabase, {
+    chiTietId: params.chiTietId,
+    issueType: params.issueType,
+    note: params.note,
+  });
+  if (!noteResult.success) return noteResult;
+
+  const { snapshot } = noteResult;
+  if (snapshot.loai_dung_cu_id) {
+    const quantity = Math.max(1, Number(params.quantity ?? snapshot.so_luong) || 1);
+    const ledgerResult = await insertInstrumentIssueLedgerCore(supabase, {
+      loaiDungCuId: snapshot.loai_dung_cu_id,
+      issueType: params.issueType,
+      quantity,
+      boDungCuId: snapshot.bo_dung_cu_id || null,
+      quyTrinhId: params.quyTrinhId ?? null,
+      note: params.note,
+    });
+    if (!ledgerResult.success) return ledgerResult;
+  }
+
+  revalidateInstrumentIssuePaths();
   return { success: true as const };
+}
+
+/** @deprecated Prefer `reportChiTietInstrumentIssueAction` — alias giữ import cũ, cùng orchestrator. */
+export async function appendChiTietIssueNoteAction(params: {
+  chiTietId: string;
+  issueType: InstrumentIssueType;
+  note?: string;
+}) {
+  return reportChiTietInstrumentIssueAction(params);
 }

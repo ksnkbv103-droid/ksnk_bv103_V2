@@ -32,26 +32,27 @@
 ### 2.1 Giám sát Vệ sinh tay (VST - WHO 5 Moments)
 * **Đối tượng giám sát:** Nhân viên y tế tại các khoa lâm sàng.
 * **Thời điểm giám sát (WHO 5 Moments):** T1–T5 theo chuẩn WHO.
-* **Luồng dữ liệu:** Phiên → `gstt_fact_vst_sessions` + quan sát `gstt_fact_vst` → Dashboard Command Center / tab Thống kê module.
+* **Luồng dữ liệu:** Phiên → `gstt_fact_vst_sessions` + quan sát `gstt_fact_vst` → trigger sync `gstt_fact_vst_*_summary` → RPC **`rpc_dashboard_vst_strategic_analytics`** (Command Center + tab Thống kê `/giam-sat-vst?tab=analytics`). Đọc lịch sử/chi tiết: **`v_gstt_giam_sat_vst_*_full`**.
 
 ### 2.2 Quy trình Tái xử lý Dụng cụ y tế (CSSD Workflow)
 
 ```mermaid
 flowchart LR
-    A[Trạm 1: Tiếp nhận] --> B[Trạm 2: Làm sạch/Khử khuẩn]
-    B --> C[Trạm 3: Đóng gói/Dán nhãn QR]
-    C --> D[Trạm 4: Tiệt khuẩn/Hấp sấy]
-    D --> E[Trạm 5: Lưu trữ/Kho]
-    E --> F[Trạm 6: Phát trả khoa]
+    A[Trạm 1: Tiếp nhận] --> B[Trạm 2: Làm sạch]
+    B --> C[Trạm 3: QC]
+    C --> D[Trạm 4: Đóng gói]
+    D --> E[Trạm 5: Mẻ tiệt khuẩn]
+    E --> F[Trạm 6: Cấp phát]
 ```
 
-* **Trạm 3:** Digital BOM checklist (`DigitalChecklistPanel`) + sync `cssd_fact_quy_trinh_thanh_phan`.
-* **Trạm 4:** `cssd_fact_lo_tiet_khuan`; QC Fail → incident rollback.
-* **Trạm 6:** Ledger gate soft-warning nếu thiếu cấu phần (QLDCPT Q2).
+* **Tab Kho** (`/cssd-quy-trinh?tab=kho`): giám sát FEFO/tồn — không phải trạm quét workflow.
+* **Trạm 4:** Digital BOM (`BomChecklistModal`) + sync `cssd_fact_quy_trinh_thanh_phan`.
+* **Trạm 5:** `cssd_fact_lo_tiet_khuan`; QC mẻ không đạt → rollback + sự cố.
+* **Trạm 6:** Ledger soft-warning nếu thiếu cấu phần (QLDCPT Q2).
 
 ### 2.3 Quản lý Công việc Nội bộ KSNK (Track B Workflow)
 * **Trạng thái:** `MOI` → `DANG_LAM` → `CHO_DUYET` → `HOAN_THANH` / `TU_CHOI` / `QUA_HAN` / `DA_HUY`.
-* **Spawn định kỳ:** `qlcv_fact_cong_viec_dinh_ky` + `fn_fact_cong_viec_spawn_dinh_ky_hom_nay()`.
+* **Spawn định kỳ:** `qlcv_fact_cong_viec_dinh_ky` + `fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay()`.
 
 ---
 
@@ -64,4 +65,4 @@ MVP NKBV nhập liệu lâm sàng; kiến trúc hướng FHIR (`Patient`, `Encou
 * Khoa phòng: **`mdm_dm_khoa_phong`**
 * Nhân sự: **`mdm_nhan_su`** + `auth_user_id` → `auth.users`
 * Lookup phẳng: **`sys_lookup_value`** (14+ category_type)
-* Audit: **`sys_audit_log`**
+* Audit hệ thống: **không còn** (DROP 2026-06-02; xem `implementation-mapping.md` changelog)

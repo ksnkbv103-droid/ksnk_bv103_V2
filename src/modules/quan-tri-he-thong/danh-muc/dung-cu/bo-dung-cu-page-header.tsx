@@ -26,8 +26,8 @@ export function BoDungCuPageHeader({
         <h1 className="text-2xl font-black text-[#026f17] uppercase tracking-tighter flex items-center gap-3">
           <Database /> Bộ dụng cụ
         </h1>
-        <p className="text-slate-400 font-bold text-[9px] uppercase tracking-widest mt-1 italic leading-none">
-          Master dm_bo_dung_cu
+        <p className="text-slate-400 font-bold text-[11px] uppercase tracking-widest mt-1 italic leading-none">
+          Master cssd_dm_bo_dung_cu
         </p>
       </div>
       <div className="flex gap-3 w-full sm:w-auto">

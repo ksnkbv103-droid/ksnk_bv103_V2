@@ -4,7 +4,7 @@
 import React from "react";
 import { format } from "date-fns";
 import { Column } from "@/components/shared/AdvancedDataTable";
-import { gscComplianceDisplay } from "@/lib/domain/giam-sat-chung.domain";
+import { formatGscHistoryScore } from "../lib/gsc-score-display";
 import { gscSessionDisplayRef } from "../lib/gsc-display-ref";
 import type { GscHistoryRow } from "../lib/gsc-read-utils";
 
@@ -117,10 +117,9 @@ export function getGSCHistoryColumns(
       headerClassName: "w-[4.5rem] min-w-[4.5rem] text-center",
       cellClassName: "w-[4.5rem] min-w-[4.5rem] text-center",
       cell: (s: GscHistoryRow) => {
-        const val = Number(s.tong_diem ?? 0);
-        const { label, className } = gscComplianceDisplay(val);
+        const { label, className, title } = formatGscHistoryScore(s as Record<string, unknown>);
         return (
-          <span className={`text-xs font-bold ${className}`} title={`${val}%`}>
+          <span className={`text-xs font-bold ${className}`} title={title}>
             {label}
           </span>
         );

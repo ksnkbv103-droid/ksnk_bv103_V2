@@ -25,7 +25,6 @@ export interface Activity {
   nguoi: {
     ho_ten: string;
   } | null;
-  files?: Array<{ id: string; file_url: string; ten_file: string | null }>;
 }
 
 interface ActivityTimelineProps {
@@ -172,12 +171,12 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
                       {activity.nguoi?.ho_ten || "Hệ thống"}
                     </span>
                     <span
-                      className={`rounded-lg border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${config.color}`}
+                      className={`rounded-lg border px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider ${config.color}`}
                     >
                       {config.label}
                     </span>
                   </div>
-                  <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-slate-400 tabular-nums">
+                  <span className="shrink-0 text-[11px] font-medium uppercase tracking-wide text-slate-400 tabular-nums">
                     {format(new Date(activity.created_at), "HH:mm • dd/MM/yyyy", { locale: vi })}
                   </span>
                 </div>
@@ -194,34 +193,14 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
 
                 {activity.phan_tram_hoan_thanh !== null && activity.phan_tram_hoan_thanh > 0 ? (
                   <div className="mt-3 flex items-center gap-3 rounded-xl bg-white/70 p-2.5 ring-1 ring-slate-100">
-                    <span className="w-10 text-[11px] font-bold tabular-nums text-[#026f17]">
+                    <span className="w-10 text-[11px] font-bold tabular-nums text-[var(--primary)]">
                       {activity.phan_tram_hoan_thanh}%
                     </span>
                     <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200">
                       <div
-                        className="h-full bg-[#026f17] transition-all duration-700"
+                        className="h-full bg-[var(--primary)] transition-all duration-700"
                         style={{ width: `${activity.phan_tram_hoan_thanh}%` }}
                       />
-                    </div>
-                  </div>
-                ) : null}
-
-                {activity.files && activity.files.length > 0 ? (
-                  <div className="mt-3 flex flex-col gap-2">
-                    <h5 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tệp đính kèm</h5>
-                    <div className="flex flex-wrap gap-2">
-                      {activity.files.map((f) => (
-                        <a
-                          key={f.id}
-                          href={f.file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex w-fit items-center gap-2 rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 transition-colors hover:border-[#026f17] hover:bg-emerald-50 hover:text-[#026f17]"
-                        >
-                          <FileText size={16} aria-hidden />
-                          <span className="text-xs font-semibold">{f.ten_file || "Tệp đính kèm"}</span>
-                        </a>
-                      ))}
                     </div>
                   </div>
                 ) : null}

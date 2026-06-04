@@ -168,6 +168,7 @@ export function usePermission(moduleKey?: string, action: string = "view") {
     canCreate: api.canCreate,
     canEdit: api.canEdit,
     canDelete: api.canDelete,
+    canApprove: api.canApprove,
     canImport: api.canImport,
     canExport: api.canExport,
     allowed,

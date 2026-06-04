@@ -1,27 +1,19 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 import { createHoatDong } from "../actions/hoat-dong.actions";
+import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 
 interface Props {
   congViecId: string;
-  /** Bắt đầu thanh trượt theo % hiện tại trên DB */
-  initialPhanTram?: number;
   onSuccess?: () => void;
   onCancel?: () => void;
-  hasChildren?: boolean;
 }
 
-export function HoatDongForm({ congViecId, initialPhanTram = 0, onSuccess, onCancel, hasChildren = false }: Props) {
+export function HoatDongForm({ congViecId, onSuccess, onCancel }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const [loading, setLoading] = useState(false);
-  const clampPct = (n: number) => Math.min(100, Math.max(0, Math.round(n / 5) * 5));
-  const [phanTram, setPhanTram] = useState(() => clampPct(initialPhanTram));
-
-  useEffect(() => {
-    setPhanTram(clampPct(initialPhanTram));
-  }, [congViecId, initialPhanTram]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -35,14 +27,12 @@ export function HoatDongForm({ congViecId, initialPhanTram = 0, onSuccess, onCan
         id_cong_viec: congViecId,
         loai_hoat_dong: "BAO_CAO_TIEN_DO",
         noi_dung: noiDung,
-        // Nếu có việc con, không tự ý cập nhật tiến độ ở đây (để hệ thống tự động roll-up)
-        phan_tram_hoan_thanh: hasChildren ? undefined : phanTram,
       });
 
-      toast.success("Gửi báo cáo tiến độ thành công!");
+      toast.success("Đã ghi chú tiến độ.");
       onSuccess?.();
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Không thể gửi báo cáo");
+      toast.error(error instanceof Error ? error.message : "Không thể gửi ghi chú");
     } finally {
       setLoading(false);
     }
@@ -50,46 +40,16 @@ export function HoatDongForm({ congViecId, initialPhanTram = 0, onSuccess, onCan
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-500">
-      <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm space-y-6">
+      <div className="space-y-4 rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
         <div>
-          <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 ml-1">
-            Nội dung báo cáo *
-          </label>
+          <label className={`mb-1.5 ml-1 block ${bv103DesignTokens.labelBlockMuted}`}>Nội dung ghi chú *</label>
           <textarea
             name="noi_dung"
             required
             rows={4}
-            className="w-full rounded-lg border border-slate-200 bg-slate-50/80 p-3 text-sm font-medium outline-none focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]/20 transition-all resize-none min-h-[100px]"
-            placeholder="Mô tả những gì bạn đã hoàn thành..."
+            className="min-h-[100px] w-full resize-none rounded-lg border border-slate-200 bg-slate-50/80 p-3 text-sm font-medium outline-none transition-all focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/20"
+            placeholder="Ghi chú bổ sung (tiến độ % cập nhật qua checklist phía trên)…"
           />
-        </div>
-
-        <div>
-          <div className="flex justify-between items-center mb-2 px-1">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400">
-              Tiến độ công việc
-            </label>
-            <span className="text-xs font-black text-[#026f17]">{phanTram}%</span>
-          </div>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            step="5"
-            value={phanTram}
-            onChange={(e) => setPhanTram(parseInt(e.target.value, 10))}
-            disabled={hasChildren}
-            className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#026f17] disabled:opacity-50 disabled:cursor-not-allowed"
-          />
-          {hasChildren ? (
-            <p className="mt-2 text-[10px] font-bold text-amber-600 bg-amber-50 p-2.5 rounded-lg border border-amber-100 leading-normal">
-              💡 Tiến độ tự động: Nhiệm vụ này có công việc con. Tiến độ sẽ được tự động đồng bộ (trung bình cộng) từ các công việc con của nó và không thể sửa thủ công.
-            </p>
-          ) : (
-            <p className="mt-2 text-[10px] font-medium text-slate-400">
-              100%: chuyển sang trạng thái chờ cấp trên nghiệm thu (trên hệ thống là «Chờ nghiệm thu»).
-            </p>
-          )}
         </div>
       </div>
 
@@ -104,18 +64,17 @@ export function HoatDongForm({ congViecId, initialPhanTram = 0, onSuccess, onCan
               return;
             }
             formRef.current?.reset();
-            setPhanTram(clampPct(initialPhanTram));
           }}
-          className="bv103-control-h rounded-lg border border-slate-200 bg-white px-6 py-2.5 text-[10px] font-black uppercase tracking-widest text-slate-600 shadow-sm hover:bg-slate-50"
+          className={`bv103-control-h rounded-lg border border-slate-200 bg-white px-6 py-2.5 ${bv103DesignTokens.labelBlock} font-semibold uppercase tracking-widest text-slate-600 shadow-sm hover:bg-slate-50`}
         >
           Hủy
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="bv103-control-h inline-flex items-center rounded-lg bg-[#026f17] px-8 text-[10px] font-black uppercase tracking-widest text-white shadow-sm transition-colors hover:bg-[#015a12] disabled:opacity-50"
+          className={`bv103-control-h inline-flex items-center rounded-lg bg-[var(--primary)] px-8 ${bv103DesignTokens.labelBlock} font-semibold uppercase tracking-widest text-white shadow-sm transition-colors hover:opacity-90 disabled:opacity-50`}
         >
-          {loading ? "Đang gửi báo cáo..." : "Gửi báo cáo tiến độ"}
+          {loading ? "Đang gửi…" : "Gửi ghi chú"}
         </button>
       </div>
     </form>

@@ -58,7 +58,7 @@ export default function BangKiemTable({
   }, [data, selectedBKId, onSelectBK]);
 
   const { exportTemplate, handleFileUpload, isImporting, triggerImport, fileInputRef } = useImportExport({
-    moduleKey: "BANG_KIEM", tableName: "dm_bang_kiem", displayName: "Danh mục Bảng kiểm", uniqueKey: "ma_bk",
+    moduleKey: "BANG_KIEM", tableName: "gstt_dm_bang_kiem", displayName: "Danh mục Bảng kiểm", uniqueKey: "ma_bk",
     isHierarchical: true, childUniqueKey: "ma_tc", childArrayKey: "tieu_chi_bang_kiem",
     columnMapping: {
       "ma_bk": "ma_bk",
@@ -77,7 +77,7 @@ export default function BangKiemTable({
   });
   const actionUi = useTableActionUi<DanhMucBangKiem>({
     onToggleStatus: async (bk) => {
-      const res = await toggleIsActive("dm_bang_kiem", bk.id, bk.is_active ?? true);
+      const res = await toggleIsActive("gstt_dm_bang_kiem", bk.id, bk.is_active ?? true);
       if (res.success) setRefreshKey((k) => k + 1);
       else toast.error(res.error || "Không thể cập nhật trạng thái");
     },

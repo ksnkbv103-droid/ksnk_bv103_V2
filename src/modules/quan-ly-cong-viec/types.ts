@@ -1,16 +1,16 @@
 /**
- * Hợp đồng module Quản lý công việc (Contract-first) - V2.3
- * Nguồn chân lý: CHECK `fact_cong_viec` + dm_lookup_value (category_type=TRANG_THAI_CONG_VIEC).
- * Sprint 1: Bổ sung đầy đủ trạng thái runtime, thêm hoan_thanh_luc + gia_han_so_lan.
+ * Hợp đồng module Quản lý công việc (Contract-first).
+ * SSOT: `qlcv_fact_cong_viec` (ghi/đọc); list UI: `v_qlcv_cong_viec_full`.
+ * Trạng thái runtime: cột `trang_thai` text + CHECK.
  *
  * Quy tắc: Tên trường = tên cột DB, KHÔNG có tiền tố ma_/ten_/ngay_.
  */
 
 /**
- * Tất cả mã trạng thái hợp lệ của fact_cong_viec (dm_lookup_value.code).
- * - MOI / CHUA_BAT_DAU: mới tạo hoặc chờ nhận việc (alias cũ)
- * - CHO_NHAN_VIEC: đã giao, chờ người phụ trách xác nhận nhận
- * - DANG_LAM / DANG_THUC_HIEN: đang thực hiện (alias cũ)
+ * Mã trạng thái trên view (sys_lookup_value.code).
+ * - MOI / CHUA_BAT_DAU: mới / chưa bắt đầu (alias)
+ * - CHO_NHAN_VIEC: alias legacy — UI lean gộp vào DANG_LAM khi đã giao phụ trách
+ * - DANG_LAM / DANG_THUC_HIEN: đang thực hiện (alias)
  * - CHO_DUYET / CHO_XAC_NHAN_HOAN_THANH: đã báo 100%, chờ nghiệm thu
  * - TU_CHOI: bị từ chối nghiệm thu, cần làm lại
  * - HOAN_THANH: đã nghiệm thu và đóng
@@ -32,7 +32,7 @@ export type CongViecTrangThai =
   | "DA_HUY"
   | "DE_XUAT_CHO_DUYET"; // virtual — chỉ dùng cho UI/display logic
 
-// ---------- Bảng fact_cong_viec ----------
+// ---------- Bảng qlcv_fact_cong_viec ----------
 export interface CongViec {
   id: string;
   tieu_de: string;
@@ -42,9 +42,9 @@ export interface CongViec {
   trang_thai: CongViecTrangThai;
   han_hoan_thanh?: string | null;
   phan_tram_hoan_thanh: number;
-  /** Timestamp khi nghiệm thu thực tế (trang_thai → HOAN_THANH). Dùng cho KPI đúng hạn. */
+  /** Set bởi trigger DB khi nghiệm thu (HOAN_THANH). */
   hoan_thanh_luc?: string | null;
-  /** Số lần đã gia hạn (han_hoan_thanh bị dời sang ngày xa hơn). */
+  /** Tăng bởi trigger DB khi gia hạn hạn hoàn thành. */
   gia_han_so_lan?: number;
 
   nguoi_tao_id?: string | null;
@@ -52,7 +52,6 @@ export interface CongViec {
   nguoi_phu_trach_id?: string | null;
   khoa_thuc_hien_id?: string | null;
   to_cong_tac_id?: string | null;
-  cong_viec_cha_id?: string | null;
   /** Mục tick 1 chạm — [{ id, label, done }] */
   checklist?: unknown;
 
@@ -67,8 +66,8 @@ export interface CongViecView extends CongViec {
   nguoi_phu_trach_ten?: string | null;
   khoa_thuc_hien_ten?: string | null;
   to_cong_tac_ten?: string | null;
+  trang_thai_mau_sac?: string | null;
   is_qua_han?: boolean;
-  cong_viec_con_count?: number;
 }
 
 // ---------- Input tạo/sửa (từ Form → Action) ----------
@@ -81,10 +80,9 @@ export interface CongViecInput {
   nguoi_phu_trach_id?: string | null;
   khoa_thuc_hien_id?: string | null;
   to_cong_tac_id?: string | null;
-  cong_viec_cha_id?: string | null;
 }
 
-// ---------- Bảng fact_cong_viec_hoat_dong ----------
+// ---------- Bảng qlcv_fact_cong_viec_hoat_dong ----------
 export interface HoatDong {
   id: string;
   id_cong_viec: string;
@@ -95,7 +93,7 @@ export interface HoatDong {
     | "PHE_DUYET"
     | "CAP_NHAT"
     | "HOAN_THANH"
-    | "XAC_NHAN_NHAN"
+    | "XAC_NHAN_NHAN" // legacy timeline — lean pilot không tạo mới
     | "DUYET_HOAN_THANH"
     | "TU_CHOI_HOAN_THANH"
     | "GIA_HAN";

@@ -1,4 +1,4 @@
-// Danh mục Bộ dụng cụ (dm_bo_dung_cu) — form đầy đủ và import/export.
+// Danh mục Bộ dụng cụ (cssd_dm_bo_dung_cu) — form đầy đủ và import/export.
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -110,12 +110,12 @@ export function BoDungCuPageContent() {
 
   const { exportTemplate, handleFileUpload, isImporting, triggerImport, fileInputRef } = useImportExport({
     moduleKey: "BO_DC",
-    tableName: "dm_bo_dung_cu",
+    tableName: "cssd_dm_bo_dung_cu",
     displayName: "Bộ dụng cụ",
     uniqueKey: "ma_bo",
     columnMapping: BO_DUNG_CU_COLUMN_MAP,
-    onGetData: () => getMasterDataExport("dm_bo_dung_cu", "ma_bo"),
-    onImport: (d) => smartImportData({ tableName: "dm_bo_dung_cu", uniqueKey: "ma_bo", codePrefix: "BDC" }, d),
+    onGetData: () => getMasterDataExport("cssd_dm_bo_dung_cu", "ma_bo"),
+    onImport: (d) => smartImportData({ tableName: "cssd_dm_bo_dung_cu", uniqueKey: "ma_bo", codePrefix: "BDC" }, d),
     onSuccess: () => {
       setRefreshKey((k) => k + 1);
       router.refresh();

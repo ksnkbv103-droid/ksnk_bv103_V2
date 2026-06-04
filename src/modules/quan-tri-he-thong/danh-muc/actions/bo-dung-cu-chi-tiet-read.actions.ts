@@ -5,9 +5,15 @@ import { verifyPermission } from "@/lib/server-permission";
 import { revalidatePath } from "next/cache";
 import { replenishSetInstrumentCore } from "@/lib/master-data/cssd-set-replenish-core";
 import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
+import {
+  appendChiTietIssueNoteAction as appendChiTietIssueNoteActionImpl,
+  reportChiTietInstrumentIssueAction as reportChiTietInstrumentIssueActionImpl,
+} from "@/lib/master-data/append-chi-tiet-issue-note.action";
+import { insertInstrumentIssueLedgerCore } from "@/lib/master-data/instrument-issue-core";
+import { CSSD_ROUTES } from "@/lib/cssd-routes";
 import type { BoDungCuChiTietPreviewRow, BoRefByLoai } from "./bo-dung-cu-chi-tiet.types";
 
-/** Danh sách dụng cụ chi tiết thuộc một bộ (`dm_bo_dung_cu_chi_tiet`). Quyền `BO_DC.view`. */
+/** Danh sách dụng cụ chi tiết thuộc một bộ (`cssd_dm_bo_dung_cu_chi_tiet`). Quyền `BO_DC.view`. */
 export async function getBoDungCuChiTietPreviewAction(boDungCuId: string) {
   await verifyPermission("BO_DC", "view");
   const bid = String(boDungCuId || "").trim();
@@ -60,7 +66,7 @@ export async function getBoRefsByLoaiAction(loaiDungCuId: string, excludeBoId?: 
   if (!loaiId) return { success: true as const, data: [] as BoRefByLoai[] };
   const supabase = await createServerSupabaseUserClient();
   const { data, error } = await supabase
-    .from("dm_bo_dung_cu_chi_tiet")
+    .from("cssd_dm_bo_dung_cu_chi_tiet")
     .select("bo_dung_cu_id")
     .eq("loai_dung_cu_id", loaiId)
     .eq("is_active", true);
@@ -75,7 +81,7 @@ export async function getBoRefsByLoaiAction(loaiDungCuId: string, excludeBoId?: 
   ];
   if (!boIds.length) return { success: true as const, data: [] as BoRefByLoai[] };
   const { data: bos, error: be } = await supabase
-    .from("dm_bo_dung_cu")
+    .from("cssd_dm_bo_dung_cu")
     .select("id, ma_bo, ten_bo")
     .in("id", boIds)
     .order("ma_bo", { ascending: true });
@@ -83,14 +89,22 @@ export async function getBoRefsByLoaiAction(loaiDungCuId: string, excludeBoId?: 
   return { success: true as const, data: (bos || []) as BoRefByLoai[] };
 }
 
-import { appendChiTietIssueNoteAction as appendChiTietIssueNoteActionImpl } from "@/lib/master-data/append-chi-tiet-issue-note.action";
-
 export async function appendChiTietIssueNoteAction(params: {
   chiTietId: string;
   issueType: "HONG" | "MAT";
   note?: string;
 }) {
   return appendChiTietIssueNoteActionImpl(params);
+}
+
+export async function reportChiTietInstrumentIssueAction(params: {
+  chiTietId: string;
+  issueType: "HONG" | "MAT";
+  note?: string;
+  quantity?: number;
+  quyTrinhId?: string | null;
+}) {
+  return reportChiTietInstrumentIssueActionImpl(params);
 }
 
 export async function reportIndividualInstrumentIssueAction(params: {
@@ -103,26 +117,21 @@ export async function reportIndividualInstrumentIssueAction(params: {
 }) {
   await verifyPermission("DC_LE", "edit");
   const supabase = await createServerSupabaseUserClient();
-  const loaiId = String(params.loaiDungCuId || "").trim();
-  if (!loaiId) return { success: false as const, error: "Thiếu id loại dụng cụ." };
-  const quantity = Number(params.quantity || 1);
-  if (quantity <= 0) return { success: false as const, error: "Số lượng sự cố phải lớn hơn 0." };
-
-  const { error } = await supabase.from("fact_kho_dung_cu_giao_dich").insert({
-    loai_dung_cu_id: loaiId,
-    bo_dung_cu_id: params.boDungCuId || null,
-    quy_trinh_id: params.quyTrinhId || null,
-    loai_giao_dich: params.issueType === "HONG" ? "BAO_HONG" : "BAO_MAT",
-    so_luong_thay_doi: -quantity,
-    ghi_chu: String(params.note || "").trim() || null,
-    updated_at: new Date().toISOString(),
+  const result = await insertInstrumentIssueLedgerCore(supabase, {
+    loaiDungCuId: params.loaiDungCuId,
+    issueType: params.issueType,
+    quantity: params.quantity,
+    boDungCuId: params.boDungCuId,
+    quyTrinhId: params.quyTrinhId,
+    note: params.note,
   });
-
-  if (error) return { success: false as const, error: error.message };
+  if (!result.success) return result;
 
   revalidatePath(quanTriDungCuHref("bo"));
   revalidatePath(quanTriDungCuHref("chi-tiet"));
   revalidatePath(quanTriDungCuHref());
+  revalidatePath(CSSD_ROUTES.dungCu);
+  revalidatePath(CSSD_ROUTES.quyTrinh);
   return { success: true as const };
 }
 

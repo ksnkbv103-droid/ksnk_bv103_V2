@@ -95,7 +95,7 @@ export default function CongViecKanban({
                   {col.title}
                 </h3>
               </div>
-              <span className="shrink-0 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-black text-slate-500">
+              <span className="shrink-0 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-black text-slate-500">
                 {colTasks.length}
               </span>
             </div>
@@ -116,11 +116,11 @@ export default function CongViecKanban({
                         onTaskClick?.(task);
                       }
                     }}
-                    className={`cursor-pointer rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm outline-none transition-all hover:border-[#026f17]/30 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 sm:p-4 ${qlcvKanbanCardAttentionClass(task)}`}
+                    className={`cursor-pointer rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm outline-none transition-all hover:border-[var(--primary)]/30 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 sm:p-4 ${qlcvKanbanCardAttentionClass(task)}`}
                   >
                     <div className="mb-2 flex items-start justify-between gap-2">
                       <span
-                        className={`rounded-md px-2 py-0.5 text-[9px] font-semibold normal-case ${getPriorityStyle(task.muc_do_uu_tien)}`}
+                        className={`rounded-md px-2 py-0.5 text-[11px] font-semibold normal-case ${getPriorityStyle(task.muc_do_uu_tien)}`}
                       >
                         {formatMucDoUuTienLabel(task.muc_do_uu_tien)}
                       </span>
@@ -130,7 +130,7 @@ export default function CongViecKanban({
                     </div>
 
                     {showSubtitle ? (
-                      <p className="mb-1 text-[10px] font-medium normal-case leading-snug text-slate-500">
+                      <p className="mb-1 text-[11px] font-medium normal-case leading-snug text-slate-500">
                         {getCongViecTrangThaiLabel(task)}
                       </p>
                     ) : null}
@@ -139,16 +139,16 @@ export default function CongViecKanban({
 
                     <div className="flex flex-col gap-2 border-t border-slate-100 pt-2.5 sm:flex-row sm:items-center sm:justify-between">
                       <div className="min-w-0 flex-1">
-                        <span className="text-[9px] font-bold uppercase text-slate-300">Phụ trách / Tổ</span>
-                        <p className="truncate text-[10px] font-black text-slate-600">
+                        <span className="text-[11px] font-bold uppercase text-slate-300">Phụ trách / Tổ</span>
+                        <p className="truncate text-[11px] font-black text-slate-600">
                           {task.nguoi_phu_trach_ten || "Chưa phân công"}
                           {task.to_cong_tac_ten ? ` · ${task.to_cong_tac_ten}` : ""}
                         </p>
                       </div>
 
                       <div className="flex shrink-0 items-center gap-1">
-                        <Clock size={12} className="text-[#026f17]" aria-hidden />
-                        <span className="text-[10px] font-black text-[#026f17]">{task.phan_tram_hoan_thanh || 0}%</span>
+                        <Clock size={12} className="text-[var(--primary)]" aria-hidden />
+                        <span className="text-[11px] font-black text-[var(--primary)]">{task.phan_tram_hoan_thanh || 0}%</span>
                       </div>
                     </div>
 
@@ -156,7 +156,7 @@ export default function CongViecKanban({
                 );
               })}
               {colTasks.length === 0 && (
-                <div className="rounded-2xl border-2 border-dashed border-slate-200 py-8 text-center text-[10px] font-bold uppercase tracking-widest text-slate-300">
+                <div className="rounded-2xl border-2 border-dashed border-slate-200 py-8 text-center text-[11px] font-bold uppercase tracking-widest text-slate-300">
                   Trống
                 </div>
               )}

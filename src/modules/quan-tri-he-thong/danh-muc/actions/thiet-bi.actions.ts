@@ -86,7 +86,7 @@ export async function saveThietBiAction(input: Record<string, unknown>) {
   let loai_may_id: string | null = null;
   if (loaiMa) {
     const supabase = createAdminSupabaseClient();
-    const byMa = await supabase.from("dm_loai_may_tiet_khuan").select("id").eq("ma_loai_may", loaiMa).maybeSingle();
+    const byMa = await supabase.from("cssd_dm_loai_may").select("id").eq("ma_loai_may", loaiMa).maybeSingle();
     if (byMa.data?.id) loai_may_id = String(byMa.data.id);
     else if (/^[0-9a-f-]{36}$/i.test(loaiMa)) loai_may_id = loaiMa;
   }
@@ -111,20 +111,20 @@ export async function saveThietBiAction(input: Record<string, unknown>) {
     updated_at: new Date().toISOString(),
   };
 
-  return upsertMasterRow("dm_thiet_bi", id, payload);
+  return upsertMasterRow("cssd_dm_thiet_bi", id, payload);
 }
 
 export async function toggleThietBiStatusAction(id: string, currentStatus: boolean) {
   await verifyPermission("THIET_BI", "edit");
-  return toggleMasterStatus("dm_thiet_bi", id, currentStatus);
+  return toggleMasterStatus("cssd_dm_thiet_bi", id, currentStatus);
 }
 
 export async function softDeleteThietBiAction(id: string) {
   await verifyPermission("THIET_BI", "delete");
-  return softDeleteMasterRow("dm_thiet_bi", id);
+  return softDeleteMasterRow("cssd_dm_thiet_bi", id);
 }
 
 export async function softDeleteManyThietBiAction(ids: string[]) {
   await verifyPermission("THIET_BI", "delete");
-  return softDeleteManyMasterRows("dm_thiet_bi", ids);
+  return softDeleteManyMasterRows("cssd_dm_thiet_bi", ids);
 }

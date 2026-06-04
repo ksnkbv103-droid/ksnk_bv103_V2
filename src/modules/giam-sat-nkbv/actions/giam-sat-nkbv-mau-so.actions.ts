@@ -59,7 +59,7 @@ export async function saveNkbvMauSoDaily(payload: DailyPayload) {
     if (payload.id) {
       // Cập nhật theo ID
       const { data, error } = await supabase
-        .from("fact_nkbv_mau_so_daily")
+        .from("nkbv_fact_mau_so_daily")
         .update(row)
         .eq("id", payload.id)
         .select()
@@ -69,7 +69,7 @@ export async function saveNkbvMauSoDaily(payload: DailyPayload) {
     } else {
       // Upsert theo (khoa_id, ngay_ghi_nhan)
       const { data, error } = await supabase
-        .from("fact_nkbv_mau_so_daily")
+        .from("nkbv_fact_mau_so_daily")
         .upsert(
           { ...row, created_at: new Date().toISOString() },
           { onConflict: "khoa_id, ngay_ghi_nhan" }
@@ -141,7 +141,7 @@ export async function saveNkbvMauSoPhauThuat(payload: SurgeryPayload) {
     let result;
     if (payload.id) {
       const { data, error } = await supabase
-        .from("fact_nkbv_mau_so_phau_thuat")
+        .from("nkbv_fact_mau_so_phau_thuat")
         .update(row)
         .eq("id", payload.id)
         .select()
@@ -150,7 +150,7 @@ export async function saveNkbvMauSoPhauThuat(payload: SurgeryPayload) {
       result = data;
     } else {
       const { data, error } = await supabase
-        .from("fact_nkbv_mau_so_phau_thuat")
+        .from("nkbv_fact_mau_so_phau_thuat")
         .insert({ ...row, created_at: new Date().toISOString() })
         .select()
         .single();

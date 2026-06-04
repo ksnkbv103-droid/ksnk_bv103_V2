@@ -13,7 +13,7 @@ import {
 } from "./master-crud-core";
 
 function getPermissionModuleForLoai(loaiDanhMuc: string): "DANH_MUC" | "PHAN_QUYEN" {
-  // dm_roles là nền RBAC, mọi thao tác phải đi qua quyền PHAN_QUYEN.
+  // sys_roles là nền RBAC, mọi thao tác phải đi qua quyền PHAN_QUYEN.
   return loaiDanhMuc.trim() === "VAI_TRO_HE_THONG_KSNK" ? "PHAN_QUYEN" : "DANH_MUC";
 }
 
@@ -25,13 +25,13 @@ export async function listGenericDmAction(loaiDanhMuc: string) {
 }
 
 /** Gợi ý mã dòng mới (DM-xxxx) dựa trên mã đang có trong bảng dm_* — dùng khi thêm danh mục chuyên biệt. */
-export async function suggestNextGenericDmMaAction(loaiDanhMuc: string) {
+export async function suggestNextGenericDmMaAction(loaiDanhMuc: string, ten?: string) {
   await verifyPermission(getPermissionModuleForLoai(loaiDanhMuc), "view");
   const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
   if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
   try {
     const supabase = createAdminSupabaseClient();
-    const data = await buildNextDmBusinessCode(supabase, reg);
+    const data = await buildNextDmBusinessCode(supabase, reg, { ten: ten?.trim() || undefined });
     return { success: true as const, data };
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);

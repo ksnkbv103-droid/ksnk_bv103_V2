@@ -35,4 +35,6 @@ Cập nhật `scripts/skills-lock.mjs` nếu thư mục skill mới chưa map ng
 ## Cursor rules
 
 - Lõi: `.cursor/rules/00-core-ksnk-rules.mdc`, `01-agent-discipline.mdc`
+- Vận hành: `02-task-intake-freeze.mdc`, `62-destructive-change-gate.mdc`
 - Module: `12–17` theo glob file đang sửa (`17` = NKBV)
+- Playbook: [`cursor-operating-playbook.md`](cursor-operating-playbook.md)

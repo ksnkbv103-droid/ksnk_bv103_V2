@@ -50,7 +50,7 @@ export async function resolveNhanSuParentIdsForImport(
   const khoaResolved = await dm.resolveDanhMucId(maKhoa, "KHOA_PHONG");
   if (khoaResolved && typeof khoaResolved === "object" && "error" in khoaResolved)
     return { ok: false, error: khoaResolved.error };
-  if (maKhoa && !khoaResolved) addNote(`ma_khoa (${maKhoa}) không tồn tại trong dm_khoa_phong -> để trống khoa_id.`);
+  if (maKhoa && !khoaResolved) addNote(`ma_khoa (${maKhoa}) không tồn tại trong mdm_dm_khoa_phong -> để trống khoa_id.`);
   const toResolved = await dm.resolveDanhMucId(maTo, "TO_CONG_TAC");
   if (toResolved && typeof toResolved === "object" && "error" in toResolved)
     return { ok: false, error: toResolved.error };
@@ -68,7 +68,7 @@ export async function resolveNhanSuParentIdsForImport(
     }
   }
   if (maTo && !toId) {
-    addNote(`ma_to (${maTo}) không tồn tại trong dm_to_cong_tac -> để trống to_id.`);
+    addNote(`ma_to (${maTo}) không tồn tại trong mdm_dm_to_cong_tac -> để trống to_id.`);
   }
   if (!maTo && tenToCongTac && !toId) {
     const pack = await dm.getToCongTacRowsByTen(tenToCongTac);
@@ -82,7 +82,7 @@ export async function resolveNhanSuParentIdsForImport(
       };
     }
     if (!toId) {
-      addNote(`ten_to_cong_tac (${tenToCongTac}) không tồn tại trong dm_to_cong_tac -> để trống to_id.`);
+      addNote(`ten_to_cong_tac (${tenToCongTac}) không tồn tại trong mdm_dm_to_cong_tac -> để trống to_id.`);
     }
   }
   const chucVuResolved = await dm.resolveDanhMucId(maChucVu, "CHUC_VU");

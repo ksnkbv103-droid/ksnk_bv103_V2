@@ -18,7 +18,7 @@ const optionalUuid = (field: string) =>
   );
 
 /**
- * Zod Schema cho Quản lý công việc v2.2 — CHECK `fact_cong_viec` (migration 20260716005 Track B).
+ * Zod Schema cho Quản lý công việc v2.2 — CHECK `qlcv_fact_cong_viec` (migration 20260716005 Track B).
  */
 const CONG_VIEC_TRANG_THAI = [
   "MOI",
@@ -44,7 +44,6 @@ export const congViecSchema = z.object({
   to_cong_tac_id: optionalUuid("Tổ công tác"),
 
   han_hoan_thanh: z.preprocess(qlcvEmptyToNull, z.union([z.string().min(1), z.null()]).optional()),
-  cong_viec_cha_id: optionalUuid("Công việc cha"),
 });
 
 export type CongViecInput = z.infer<typeof congViecSchema>;

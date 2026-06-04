@@ -92,14 +92,14 @@ export default function VSTOpportunityForm({
             {opp.thoi_diems.map((m: MomentType, i: number) => (
               <span
                 key={`${m}-${i}`}
-                className="flex h-5 w-auto shrink-0 items-center justify-center rounded-full bg-[#026f17] px-1.5 text-[8px] font-bold text-white"
+                className="flex h-5 w-auto shrink-0 items-center justify-center rounded-full bg-[#026f17] px-1.5 text-[11px] font-bold text-white"
               >
                 {MOMENT_ABBREVIATIONS[m] || (MOMENTS.indexOf(m) + 1)}
               </span>
             ))}
           </div>
           {!hideOppRecordTime ? (
-            <span className="text-[9px] font-medium text-slate-500">
+            <span className="text-[11px] font-medium text-slate-500">
               {opp.thoi_gian_ghi_nhan
                 ? new Date(opp.thoi_gian_ghi_nhan).toLocaleTimeString("vi-VN", {
                     hour: "2-digit",
@@ -111,7 +111,7 @@ export default function VSTOpportunityForm({
           ) : null}
         </div>
         <span className="shrink-0 text-[10px] font-semibold uppercase text-[#026f17]">{opp.hanh_dong}</span>
-        <span className="shrink-0 text-[9px] font-medium uppercase tracking-wide text-slate-400">Sửa</span>
+        <span className="shrink-0 text-[11px] font-medium uppercase tracking-wide text-slate-400">Sửa</span>
       </button>
     );
   }
@@ -148,7 +148,7 @@ export default function VSTOpportunityForm({
                 key={a}
                 type="button"
                 onClick={() => updateAction(pIdx, oIdx, a)}
-                className={`min-h-12 rounded-xl border text-[10px] font-bold uppercase tracking-wide transition-colors sm:min-h-10 sm:rounded-lg sm:text-[9px] ${
+                className={`min-h-12 rounded-xl border text-[10px] font-bold uppercase tracking-wide transition-colors sm:min-h-10 sm:rounded-lg sm:text-[11px] ${
                   opp.hanh_dong === a
                     ? a === "Bỏ sót"
                       ? "border-red-500 bg-red-500 text-white shadow-sm"

@@ -10,7 +10,7 @@ export async function assertThietBiSanSangChoMeTietKhuan(
   const id = String(thietBiId || "").trim();
   if (!id) return { ok: false, message: "Thiếu thiết bị." };
 
-  const { data: tb, error } = await client.from("dm_thiet_bi").select("id, ten_thiet_bi, trang_thai").eq("id", id).maybeSingle();
+  const { data: tb, error } = await client.from("cssd_dm_thiet_bi").select("id, ten_thiet_bi, trang_thai").eq("id", id).maybeSingle();
   if (error) return { ok: false, message: error.message };
   if (!tb) return { ok: false, message: "Không tìm thấy thiết bị." };
 

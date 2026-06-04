@@ -1,6 +1,6 @@
 # MA TRẬN TƯƠNG TÁC MODULE — BV103
 
-> **Phiên bản:** 1.0 (30/05/2026)  
+> **Phiên bản:** 1.1 (03/06/2026 — remediation audit)  
 > **Trạng thái:** SSOT phụ thuộc giữa bounded contexts  
 > **Đồng bộ với:** [system-overview.md](./system-overview.md)
 
@@ -16,10 +16,13 @@
 | `giam-sat-nkbv` | `mdm` | FK read | `mdm_dm_khoa_phong`, lookup NKBV |
 | `cssd-erp` | `mdm` (facade) | Server Action | `requestReplenishFromReserveAction` — CSSD_WORKFLOW.edit |
 | `cssd-erp` | `cssd-su-co` | Domain event | Sự cố → rollback domino |
-| `quan-ly-cong-viec` | `sys` (cron) | DB function | Spawn định kỳ 00:01 VNT |
+| `quan-ly-cong-viec` | `sys` (cron) | DB function | Spawn 00:01 + sync quá hạn 00:05 VNT |
+| `quan-ly-cong-viec` | `quan-tri-he-thong` | MDM link | `LOAI_CONG_VIEC`, `TRANG_THAI_CONG_VIEC` |
 | `auth` | `sys` RBAC | View read | `v_sys_user_permissions` |
 | `quan-tri-he-thong` | `sys` | CRUD | `sys_roles`, `sys_lookup_value`, `mdm_nhan_su` |
-| Mọi module | `sys_audit_log` | Trigger | `fn_sys_audit_row` |
+| `giam-sat-chung` | `sys` | Read/write | `sys_module_locks` — khóa ngày giám sát |
+| `giam-sat-nkbv` | `cssd-erp` | UI trace | `CssdTraceLink` → `cssd_fact_lo_tiet_khuan` |
+| `dashboard` | `vst`, `gsc`, `nkbv`, `qlcv` | Compose | `/bao-cao-tong-hop`, Command Center brief |
 
 ---
 
@@ -57,9 +60,8 @@ sequenceDiagram
     UI->>UI: DigitalChecklistPanel
   end
   W->>R: advance station
-  alt CAP_PHAT + BOM gap
-    W->>W: assertLedgerDuChoCapPhat (warning only)
-    W->>W: lifecycle CAP_PHAT_BO_THIEU_CAU_PHAN
+  alt CAP_PHAT chưa KIEM_DEM_BOM
+    W-->>UI: Error — chặn cấp phát
   end
 ```
 

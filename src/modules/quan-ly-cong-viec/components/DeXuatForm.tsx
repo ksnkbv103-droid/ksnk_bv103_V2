@@ -111,14 +111,14 @@ export function DeXuatForm({ onSuccess, onCancel }: Props) {
             e.stopPropagation();
             onCancel?.();
           }}
-          className="bv103-control-h rounded-xl border border-slate-200/90 bg-white px-6 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700 shadow-sm hover:bg-slate-50"
+          className="bv103-control-h rounded-xl border border-slate-200/90 bg-white px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-slate-700 shadow-sm hover:bg-slate-50"
         >
           Bỏ qua
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="bv103-control-h inline-flex items-center justify-center gap-2 rounded-xl bg-[#026f17] px-8 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-[#025a12] disabled:opacity-50"
+          className="bv103-control-h inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-8 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:opacity-90 disabled:opacity-50"
         >
           {loading ? (
             "Đang gửi…"

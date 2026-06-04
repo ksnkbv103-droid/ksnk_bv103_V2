@@ -2,10 +2,12 @@
 "use client";
 
 import React, { useState } from "react";
+import { ClipboardList } from "lucide-react";
 import BangKiemTable from "../components/BangKiemTable";
 import TieuChiTable from "../components/TieuChiTable";
 import type { DanhMucBangKiem } from "../bang-kiem.types";
 import { usePermission } from "@/hooks/usePermission";
+import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 export default function BangKiemView() {
@@ -44,15 +46,20 @@ export default function BangKiemView() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 items-start relative max-w-[1800px] mx-auto px-4">
+    <div className="space-y-6 pb-10 animate-in fade-in duration-500">
+      <KsnkPageHeader
+        title={
+          <span className="inline-flex items-center gap-2 text-[var(--primary)]">
+            <ClipboardList size={22} aria-hidden /> Danh mục Bảng kiểm
+          </span>
+        }
+        subtitle="Quản lý mẫu bảng kiểm và tiêu chí — phiên Giám sát chung mới nạp tiêu chí qua mdm-read-gateway."
+      />
+
+      <div className="flex flex-col md:flex-row gap-8 items-start relative max-w-[1800px] mx-auto">
       {/* Cột trái: Danh mục Bảng kiểm (55%) - Cuộn nội bộ */}
       <div className="w-full md:w-[55%] md:sticky md:top-24 space-y-6 max-h-[calc(100vh-140px)] flex flex-col">
-        <div className="flex items-center justify-between px-2 mb-2 shrink-0">
-          <h2 className="text-xl font-black text-slate-800 uppercase tracking-tighter flex items-center gap-3">
-            <span className="w-2 h-8 bg-[#026f17] rounded-full"></span>
-            Danh mục Bảng Kiểm
-          </h2>
-        </div>
+        <h2 className="px-2 text-sm font-semibold text-slate-800 shrink-0">Mẫu bảng kiểm</h2>
         <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar animate-in fade-in duration-500 pb-10">
           <BangKiemTable
             onSelectBK={setSelectedBK}
@@ -69,11 +76,9 @@ export default function BangKiemView() {
 
       {/* Cột phải: Chi tiết Tiêu chí (45%) - Cuộn nội bộ độc lập */}
       <div className="w-full md:w-[45%] md:sticky md:top-24 space-y-6 max-h-[calc(100vh-140px)] flex flex-col">
-        <div className="flex items-center justify-between px-2 mb-2 shrink-0">
-          <h2 className="text-xl font-black text-[#026f17] uppercase tracking-tighter truncate">
-            {selectedBK ? `Tiêu chí: ${selectedBK.ten_bang_kiem || selectedBK.ten_bk}` : "Chi tiết Tiêu chí"}
-          </h2>
-        </div>
+        <h2 className="px-2 text-sm font-semibold text-[var(--primary)] truncate shrink-0">
+          {selectedBK ? `Tiêu chí: ${selectedBK.ten_bang_kiem || selectedBK.ten_bk}` : "Chi tiết tiêu chí"}
+        </h2>
         
         <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar animate-in fade-in slide-in-from-right-6 duration-500 pb-10">
           {selectedBK ? (
@@ -109,6 +114,7 @@ export default function BangKiemView() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

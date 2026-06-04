@@ -8,6 +8,9 @@ const SRC_DIR = path.join(ROOT, "src");
 const TARGET_EXT = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
 
 // Bảng/view rename pilot — không dùng tên cũ khi SSOT là cssd_, gstt_, qlcv_ prefix.
+/** Legacy compat views đã DROP (20260602180000) — cấm .from() trong src. */
+const LEGACY_COMPAT_PREFIX = /^(dm_[a-z0-9_]+|fact_[a-z0-9_]+)$/;
+
 const PHYSICAL_RENAME_BLOCKLIST = [
   "fact_quy_trinh",
   "fact_quy_trinh_thanh_phan",
@@ -62,6 +65,15 @@ function checkFile(filePath) {
       const before = text.slice(0, m.index);
       const line = before.split("\n").length;
       hits.push({ table: t, line, rel });
+    }
+  }
+  const compatRe = /\.from\((['"])([^'"]+)\1\)/g;
+  let cm;
+  while ((cm = compatRe.exec(text)) !== null) {
+    const name = cm[2];
+    if (LEGACY_COMPAT_PREFIX.test(name)) {
+      const line = text.slice(0, cm.index).split("\n").length;
+      hits.push({ table: name, line, rel });
     }
   }
   return hits;

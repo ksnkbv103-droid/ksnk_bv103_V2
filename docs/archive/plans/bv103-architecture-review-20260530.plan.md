@@ -118,7 +118,7 @@ flowchart TB
 
 **Luồng:** Form multi-person → `vst-write-save-session` → `gstt_fact_vst_sessions` + `gstt_fact_vst` (compat `fact_giam_sat_vst_*`).  
 **Analytics:** Tab Thống kê module → `rpc_dashboard_vst_strategic_analytics`.  
-**Route:** `/giam-sat-vst`, `/giam-sat-vst/lich-su`.  
+**Route:** `/giam-sat-vst` (tab `?tab=history|analytics|form`); `/giam-sat-vst/lich-su` redirect → `?tab=history`.  
 **Quyền:** `GIAM_SAT_VST` (VIEW/CREATE/EDIT/DELETE/IMPORT).  
 **Constants SSOT:** [src/modules/giam-sat-vst/lib/vst-constants.ts](src/modules/giam-sat-vst/lib/vst-constants.ts).
 

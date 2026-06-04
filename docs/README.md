@@ -9,6 +9,7 @@
 1. [`AGENTS.md`](../AGENTS.md)
 2. [`core/read-minimum.md`](core/read-minimum.md) — chọn dòng theo loại diff
 3. [`core/lean-execution.md`](core/lean-execution.md) — verify + checklist PR
+4. [`core/cursor-operating-playbook.md`](core/cursor-operating-playbook.md) — vận hành Cursor (ít token, scope rõ)
 
 ### PM / KSNK (nghiệp vụ)
 
@@ -41,6 +42,7 @@
 |------|---------|
 | [`core/read-minimum.md`](core/read-minimum.md) | Đọc gì theo loại diff |
 | [`core/lean-execution.md`](core/lean-execution.md) | Vertical slice, verify, PR |
+| [`core/pilot-core-modules-go-live.md`](core/pilot-core-modules-go-live.md) | Pilot gấp: Quản trị + Giám sát + QLCV |
 | [`core/domain-specification.md`](core/domain-specification.md) | Nghiệp vụ, ubiquitous language |
 | [`core/implementation-mapping.md`](core/implementation-mapping.md) | Thuật ngữ ↔ bảng/RPC |
 | [`core/governance-pipeline.md`](core/governance-pipeline.md) | Migration + ship + CI |
@@ -48,6 +50,7 @@
 | [`core/engineering-guidelines.md`](core/engineering-guidelines.md) | Code, UI, PR |
 | [`core/operations-sop.md`](core/operations-sop.md) | Auth, RLS, Smart DB |
 | [`core/handover-roadmap.md`](core/handover-roadmap.md) | Lộ trình, cấu trúc app |
+| [`core/cursor-operating-playbook.md`](core/cursor-operating-playbook.md) | Cursor: intake, verify, tiết kiệm quota |
 
 ## Lớp 2 — Module docs
 
@@ -62,8 +65,9 @@
 ## Lớp 3 — Reference (audit / kiến trúc)
 
 - [`reference/architecture/`](reference/architecture/) — overview, debt, roadmap
-- [`reference/reports/`](reference/reports/) — audit snapshot, dashboard dict
-- [`reference/guides/`](reference/guides/) — import JSON, migration runbook
+- [`reference/reports/`](reference/reports/) — **audit 2026-06-03:** [comprehensive-review-20260603.md](reference/reports/comprehensive-review-20260603.md) · [evidence pack](reference/reports/audit-evidence-pack-20260603.md) · [traceability](reference/reports/traceability-matrix-20260603.md) · [remediation sync](reference/architecture/remediation-plan-2026h2-sync.md)
+- Báo cáo 2026-05-30: archive only — superseded by 20260603
+- [`reference/guides/`](reference/guides/) — import JSON, migration runbook, [Cursor prompt templates](reference/guides/cursor-command-intake-template.md)
 
 ## Lớp 4 — Data (⚠️ machine source)
 

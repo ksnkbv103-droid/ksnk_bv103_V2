@@ -20,10 +20,11 @@ const SQL_ACTIVE = new Set([
   "admin-perf-baseline.sql",
   "admin-rbac-probe.sql",
   "admin-slice-pre-apply-probe.sql",
+  "rbac-v-auth-compat-probe.sql",
 ]);
 
 const LEGACY_TABLE_RE =
-  /\.from\((['"])(fact_[a-z0-9_]+|v_fact_[a-z0-9_]+|v_dm_bo_dung_cu_summary)\1\)/gi;
+  /\.from\((['"])(fact_[a-z0-9_]+|v_fact_[a-z0-9_]+|v_cssd_dm_bo_dung_cu_summary)\1\)/gi;
 
 function walk(dir, out = []) {
   if (!fs.existsSync(dir)) return out;

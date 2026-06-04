@@ -114,7 +114,7 @@ export default function DungCuChiTietFormModal({
             onChange={(v) => setForm({ ...form, ten_chi_tiet: v })}
           />
           <div className="space-y-1">
-            <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Loại dụng cụ liên kết</label>
+            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Loại dụng cụ liên kết</label>
             <select
               value={form.loai_dung_cu_id}
               onChange={(e) => {
@@ -134,7 +134,7 @@ export default function DungCuChiTietFormModal({
           </div>
         </div>
         <div className="space-y-1">
-          <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Bộ chủ quản</label>
+          <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Bộ chủ quản</label>
           <select
             value={form.bo_dung_cu_id}
             onChange={(e) => setForm({ ...form, bo_dung_cu_id: e.target.value })}
@@ -164,7 +164,7 @@ export default function DungCuChiTietFormModal({
         </div>
         <BoDungCuTextField label="Mã QR mẫu (tùy chọn)" value={form.ma_qr_mau} onChange={(v) => setForm({ ...form, ma_qr_mau: v })} />
         <div className="space-y-1">
-          <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Ghi chú</label>
+          <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Ghi chú</label>
           <textarea
             value={form.ghi_chu}
             rows={3}

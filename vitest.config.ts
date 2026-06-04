@@ -14,6 +14,7 @@ export default defineConfig({
     include: [
       "src/modules/cssd-erp/domain/**/*.spec.ts",
       "src/modules/cssd-erp/workflow/domain/**/*.spec.ts",
+      "src/modules/cssd-erp/workflow/application/**/*.spec.ts",
       "src/modules/cssd-su-co/domain/**/*.spec.ts",
       "src/modules/cssd-erp/helpers/**/*.spec.ts",
       "src/modules/cssd-erp/lib/**/*.spec.ts",

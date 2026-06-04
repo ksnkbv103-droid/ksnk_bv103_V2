@@ -104,7 +104,7 @@ export async function setDinhKyMauActive(id: string, is_active: boolean) {
 export async function spawnCongViecDinhKyHomNay(): Promise<{ inserted: number }> {
   await verifyPermission("CONG_VIEC", "edit");
   const supabase = createAdminSupabaseClient();
-  const { data, error } = await supabase.rpc("fn_fact_cong_viec_spawn_dinh_ky_hom_nay");
+  const { data, error } = await supabase.rpc("fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay");
   if (error) throw new Error(error.message);
   revalidatePath("/quan-ly-cong-viec");
   return { inserted: typeof data === "number" ? data : Number(data) || 0 };

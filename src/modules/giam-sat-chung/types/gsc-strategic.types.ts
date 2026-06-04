@@ -9,7 +9,12 @@ export type GscStrategicKpis = {
 export type GscStrategicPayload = {
   kpis: GscStrategicKpis;
   trendline: { label: string; min_date: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
-  matrix_khoa: { id: string; ten: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
+  matrix_khoa: { id: string; ma_khoa?: string; ten: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
+  matrix_khu_vuc?: { ten: string; ma_nhom?: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
+  matrix_khu_vuc_nhom?: { ma_nhom: string; ten: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
+  matrix_nghe?: { ten: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
+  matrix_hinh_thuc?: { ten: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
+  matrix_cach_thuc?: { ten: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
   top_violations: {
     criterion_id: string;
     ten_tieu_chi: string;
@@ -20,6 +25,7 @@ export type GscStrategicPayload = {
   }[];
   gap_analysis: {
     id: string;
+    ma_khoa?: string;
     ten: string;
     tgs_quan_sat: number;
     tgs_dat: number;

@@ -39,7 +39,7 @@ export async function getBangKiems() {
     await verifyPermission("BANG_KIEM", "view");
     const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase
-      .from("dm_bang_kiem")
+      .from("gstt_dm_bang_kiem")
       .select("*")
       .order("is_active", { ascending: false })
       .order("ma_bk", { ascending: true });
@@ -55,7 +55,7 @@ export async function getExportData() {
     await verifyPermission("BANG_KIEM", "view");
     const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase
-      .from("dm_bang_kiem")
+      .from("gstt_dm_bang_kiem")
       .select("*")
       .order("is_active", { ascending: false })
       .order("ma_bk", { ascending: true });
@@ -77,7 +77,7 @@ export async function suggestNextBangKiemMaAction(prefixRaw: string) {
     if (!prefix) {
       return { success: false as const, error: "Tiền tố mã không hợp lệ." };
     }
-    const { data, error } = await supabase.rpc("rpc_dm_bang_kiem_max_numeric_suffix", {
+    const { data, error } = await supabase.rpc("rpc_gstt_dm_bang_kiem_max_numeric_suffix", {
       p_prefix: prefix,
     });
     if (error) throw error;
@@ -95,7 +95,7 @@ export async function getTieuChis(bangKiemId: string, activeOnly = false) {
   try {
     await verifyPermission("BANG_KIEM_DETAIL", "view");
     const supabase = createAdminSupabaseClient();
-    const { data, error } = await supabase.from("dm_bang_kiem").select("tieu_chi_jsonb").eq("id", bangKiemId).single();
+    const { data, error } = await supabase.from("gstt_dm_bang_kiem").select("tieu_chi_jsonb").eq("id", bangKiemId).single();
     if (error) throw error;
     let tieuChis = Array.isArray(data?.tieu_chi_jsonb) ? data.tieu_chi_jsonb : [];
     if (activeOnly) tieuChis = tieuChis.filter((t: any) => t.is_active !== false);
@@ -111,7 +111,7 @@ export async function getTieuChisForGiamSatChung(bangKiemId: string, activeOnly 
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
     const supabase = createAdminSupabaseClient();
-    const { data, error } = await supabase.from("dm_bang_kiem").select("tieu_chi_jsonb").eq("id", bangKiemId).single();
+    const { data, error } = await supabase.from("gstt_dm_bang_kiem").select("tieu_chi_jsonb").eq("id", bangKiemId).single();
     if (error) throw error;
     let tieuChis = Array.isArray(data?.tieu_chi_jsonb) ? data.tieu_chi_jsonb : [];
     if (activeOnly) tieuChis = tieuChis.filter((t: any) => t.is_active !== false);
@@ -127,7 +127,7 @@ export async function getBangKiemsForGiamSat() {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
     const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase
-      .from("dm_bang_kiem")
+      .from("gstt_dm_bang_kiem")
       .select("*")
       .eq("is_active", true)
       .order("ma_bk", { ascending: true });
@@ -144,7 +144,7 @@ export async function getBangKiemsForGiamSat() {
   }
 }
 
-/** Dropdown “Loại hình giám sát” — đồng bộ với hub `HINH_THUC_GIAM_SAT` / `dm_hinh_thuc_giam_sat`. */
+/** Dropdown “Loại hình giám sát” — đồng bộ với hub `HINH_THUC_GIAM_SAT` / `gstt_dm_hinh_thuc_giam_sat`. */
 export async function getHinhThucGiamSatOptionsForBangKiemAction() {
   const supabase = await createServerSupabaseUserClient();
   try {

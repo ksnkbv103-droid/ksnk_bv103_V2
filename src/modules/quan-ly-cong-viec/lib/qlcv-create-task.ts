@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { buildQlcvDmPersistFields } from "./qlcv-persist-dm-fields";
+import { normalizeQlcvDmFields } from "./qlcv-persist-dm-fields";
 import { QLCV_FACT_WRITE_TABLE } from "./qlcv-fact-write";
 import { throwQlcvDbError } from "./qlcv-supabase-error";
 import { resolveQlcvTrangThaiMaForTask } from "./qlcv-initial-trang-thai";
@@ -26,7 +26,7 @@ export function assertQlcvHanHoanThanhNotPast(han: string | null | undefined): v
   }
 }
 
-/** Insert một dòng fact_cong_viec — SSOT tạo việc / đề xuất. */
+/** Insert một dòng qlcv_fact_cong_viec — SSOT tạo việc / đề xuất. */
 export async function insertQlcvTaskRow(
   supabase: SupabaseClient,
   payload: QlcvInsertTaskPayload,
@@ -37,7 +37,7 @@ export async function insertQlcvTaskRow(
     to_cong_tac_id: payload.to_cong_tac_id,
   });
 
-  const dmFk = await buildQlcvDmPersistFields(supabase, {
+  const dm = normalizeQlcvDmFields({
     loai_cong_viec: payload.loai_cong_viec,
     trang_thai: trangThaiMa,
   });
@@ -47,16 +47,15 @@ export async function insertQlcvTaskRow(
     .insert({
       tieu_de: payload.tieu_de,
       mo_ta: payload.mo_ta ?? null,
-      loai_cong_viec_id: dmFk.loai_cong_viec_id,
+      loai_cong_viec: dm.loai_cong_viec,
       muc_do_uu_tien: payload.muc_do_uu_tien || "TRUNG_BINH",
       han_hoan_thanh: payload.han_hoan_thanh || null,
       nguoi_phu_trach_id: payload.nguoi_phu_trach_id || null,
       khoa_thuc_hien_id: payload.khoa_thuc_hien_id || null,
       to_cong_tac_id: payload.to_cong_tac_id || null,
-      cong_viec_cha_id: null,
       nguoi_tao_id: payload.nguoi_tao_id,
       nguoi_giao_viec_id: payload.nguoi_giao_viec_id ?? payload.nguoi_tao_id,
-      trang_thai_id: dmFk.trang_thai_id,
+      trang_thai: dm.trang_thai,
       phan_tram_hoan_thanh: 0,
       is_active: payload.is_active,
     })

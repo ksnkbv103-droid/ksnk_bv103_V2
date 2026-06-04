@@ -44,7 +44,7 @@ function generateMaVachQrBo(): string {
   return `BV103-DC-${rnd}`;
 }
 
-/** Danh sách bộ đang hoạt động để đăng ký nhãn QR (đọc từ `dm_bo_dung_cu`). */
+/** Danh sách bộ đang hoạt động để đăng ký nhãn QR (đọc từ `cssd_dm_bo_dung_cu`). */
 export async function listActiveBoDungCuForCssdLabel(search?: string): Promise<
   { success: true; data: { id: string; ten_bo: string; ma_bo: string | null }[] } | { success: false; error: string }
 > {
@@ -52,7 +52,7 @@ export async function listActiveBoDungCuForCssdLabel(search?: string): Promise<
   try {
     await verifyCanReadBoListForCssd();
     let q = supabase
-      .from("dm_bo_dung_cu")
+      .from("cssd_dm_bo_dung_cu")
       .select("id, ten_bo, ma_bo")
       .eq("is_active", true)
       .order("ma_bo", { ascending: true });
@@ -87,7 +87,7 @@ export async function registerPhysicalBoLabelFromDmAction(boDungCuId: string): P
     if (!boId) return { success: false, error: "Thiếu bộ dụng cụ (danh mục)." };
 
     const { data: bo, error: boErr } = await supabase
-      .from("dm_bo_dung_cu")
+      .from("cssd_dm_bo_dung_cu")
       .select("id, ten_bo")
       .eq("id", boId)
       .eq("is_active", true)

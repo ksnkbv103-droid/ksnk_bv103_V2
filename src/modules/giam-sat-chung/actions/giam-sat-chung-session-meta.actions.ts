@@ -1,7 +1,8 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { revalidatePath } from "next/cache";
+import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock";
+import { revalidateGscPaths } from "../lib/revalidate-gsc-paths";
 import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import {
@@ -24,6 +25,7 @@ type GscSessionMutRow = {
   nguoi_giam_sat_id?: string | null;
   is_active?: boolean | null;
   created_at?: string | null;
+  ngay_giam_sat?: string | null;
 };
 
 /** Xóa hẳn phiên + kết quả tiêu chí trong DB. Chỉ chủ phiên; phiên còn active. */
@@ -41,8 +43,8 @@ export async function deleteGiamSatChungSessions(sessionIds: string[]) {
     }
 
     const { data: rows, error: qErr } = await supabase
-      .from("fact_giam_sat_chung_sessions")
-      .select("id,nguoi_giam_sat_id,is_active,created_at")
+      .from("gstt_fact_chung_sessions")
+      .select("id,nguoi_giam_sat_id,is_active,created_at,ngay_giam_sat")
       .in("id", ids);
     if (qErr) throw qErr;
 
@@ -74,10 +76,19 @@ export async function deleteGiamSatChungSessions(sessionIds: string[]) {
       return { success: false as const, error: "Phiên đã bị vô hiệu, không xóa được theo luồng hiện tại." };
     }
 
-    const { error: sessionErr } = await supabase.from("fact_giam_sat_chung_sessions").delete().in("id", ids);
+    for (const id of ids) {
+      const r = rowById.get(String(id));
+      await assertSupervisionNotLockedForDate(
+        supabase,
+        "GSC",
+        r?.ngay_giam_sat ? String(r.ngay_giam_sat).slice(0, 10) : null,
+      );
+    }
+
+    const { error: sessionErr } = await supabase.from("gstt_fact_chung_sessions").delete().in("id", ids);
     if (sessionErr) throw sessionErr;
 
-    revalidatePath("/giam-sat-chung");
+    revalidateGscPaths();
     return { success: true as const };
   } catch (error: unknown) {
     return { success: false as const, error: getErrorMessage(error) };
@@ -101,7 +112,7 @@ export async function assertCanEditGiamSatChungSession(sessionId: string) {
     if (!adminBypass && !actorNhanSuId) return { success: false as const, error: "Không xác định được người giám sát của bạn." };
 
     const { data: row, error: qErr } = await supabase
-      .from("fact_giam_sat_chung_sessions")
+      .from("gstt_fact_chung_sessions")
       .select("id,nguoi_giam_sat_id,is_active,created_at")
       .eq("id", id)
       .maybeSingle();

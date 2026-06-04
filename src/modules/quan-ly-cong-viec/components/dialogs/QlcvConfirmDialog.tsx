@@ -79,7 +79,7 @@ export function QlcvConfirmDialog({
             className={
               variant === "danger"
                 ? "h-10 rounded-xl bg-red-600 px-4 text-sm font-medium text-white hover:bg-red-700"
-                : "h-10 rounded-xl bg-[#026f17] px-4 text-sm font-medium text-white hover:bg-[#025a12]"
+                : "h-10 rounded-xl bg-[var(--primary)] px-4 text-sm font-medium text-white hover:opacity-90"
             }
             onClick={handleConfirm}
             disabled={isLoading}

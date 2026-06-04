@@ -1,7 +1,7 @@
 /**
- * Import CSSD_Management — DM_ThietBi.csv → public.dm_thiet_bi (upsert ma_thiet_bi).
+ * Import CSSD_Management — DM_ThietBi.csv → public.cssd_dm_thiet_bi (upsert ma_thiet_bi).
  * Cột CSV: MaThietBi, TenThietBi, LoaiThietBi, Serial, MoTa, NgayLapDat, MaQR, LichBaoDuong
- * loai_thiet_bi: mã dm_loai_may_tiet_khuan (map theo tên loại trong CSV).
+ * loai_thiet_bi: mã cssd_dm_loai_may (map theo tên loại trong CSV).
  *
  * Chạy: node --env-file=.env.local scripts/import-dm-thiet-bi-csv.mjs [đường-dẫn.csv]
  * --strict: thoát mã 1 nếu có dòng không resolve được loại máy.
@@ -153,11 +153,11 @@ if (missing.length) {
 const ix = Object.fromEntries(expect.map((n, j) => [n, j]));
 
 const { data: loaiPack, error: el } = await supabase
-  .from("dm_loai_may_tiet_khuan")
+  .from("cssd_dm_loai_may")
   .select("ma_loai_may, ten_loai_may")
   .eq("is_active", true);
 if (el) {
-  console.error("Không đọc dm_loai_may_tiet_khuan:", el.message);
+  console.error("Không đọc cssd_dm_loai_may:", el.message);
   process.exit(1);
 }
 const loaiRows = loaiPack || [];
@@ -189,7 +189,7 @@ for (let i = 1; i < grid.length; i++) {
 
   const { ma: loaiMa, how } = resolveLoaiMa(loaiTen, loaiRows);
   if (!loaiMa) {
-    const msg = `Dòng ${i + 1} (${ma}): không map được LoaiThietBi="${loaiTen}" → cần bản ghi trong dm_loai_may_tiet_khuan.`;
+    const msg = `Dòng ${i + 1} (${ma}): không map được LoaiThietBi="${loaiTen}" → cần bản ghi trong cssd_dm_loai_may.`;
     if (strict) {
       console.error(msg);
       process.exit(1);
@@ -221,14 +221,14 @@ for (let i = 1; i < grid.length; i++) {
 const BATCH = 20;
 for (let i = 0; i < rows.length; i += BATCH) {
   const chunk = rows.slice(i, i + BATCH);
-  const { error } = await supabase.from("dm_thiet_bi").upsert(chunk, { onConflict: "ma_thiet_bi" });
+  const { error } = await supabase.from("cssd_dm_thiet_bi").upsert(chunk, { onConflict: "ma_thiet_bi" });
   if (error) {
-    console.error("Upsert dm_thiet_bi:", error.message);
+    console.error("Upsert cssd_dm_thiet_bi:", error.message);
     process.exit(1);
   }
 }
 
-console.log(`OK: đã upsert ${rows.length} thiết bị vào dm_thiet_bi (ma_thiet_bi).`);
+console.log(`OK: đã upsert ${rows.length} thiết bị vào cssd_dm_thiet_bi (ma_thiet_bi).`);
 
 if (warns.length) {
   console.warn("--- Cảnh báo ---");

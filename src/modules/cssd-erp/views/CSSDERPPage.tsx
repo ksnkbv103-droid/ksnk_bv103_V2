@@ -11,7 +11,6 @@ import WaitingList from "../components/waiting-list/WaitingList";
 import QRScanSuccessCard from "../components/scan/QRScanSuccessCard";
 import WorkflowStationQrEntry from "../components/scan/WorkflowStationQrEntry";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
-import CSSDSubNav from "../components/navigation/CSSDSubNav";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
 import CssdBatchMeLinkChip from "../components/workflow/cssd-batch-me-link-chip";
 import { useModulePermission } from "@/hooks/useModulePermission";

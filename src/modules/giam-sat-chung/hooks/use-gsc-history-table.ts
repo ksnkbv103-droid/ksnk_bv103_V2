@@ -13,12 +13,16 @@ import { useGscPrint } from "./use-gsc-print";
 import { enrichGscHistoryRows, type GscHistoryRow } from "../lib/gsc-read-utils";
 import type { GscViewBundle } from "../lib/load-gsc-view-bundle";
 import { assertCanEditGiamSatChungSession } from "../actions/giam-sat-chung-session-meta.actions";
+import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
 
 const MODULE_KEY = "GIAM_SAT_CHUNG";
 
 export type { GscHistoryRow } from "../lib/gsc-read-utils";
 
-export function useGscHistoryTable(onEditBundle?: (bundle: GscViewBundle, row: GscHistoryRow) => void) {
+export function useGscHistoryTable(
+  onEditBundle?: (bundle: GscViewBundle, row: GscHistoryRow) => void,
+  loaiGiamSat?: GscLoaiGiamSatRoute,
+) {
   const { allowed } = useModulePermission(MODULE_KEY);
   const [dbTemplates, setDbTemplates] = useState<Record<string, unknown>[]>([]);
   const { printingBundle, onPrint, buildBundle } = useGscPrint(dbTemplates);
@@ -31,13 +35,14 @@ export function useGscHistoryTable(onEditBundle?: (bundle: GscViewBundle, row: G
       search: params.search,
       sortKey: params.sortKey,
       sortDir: params.sortDir,
+      loaiGiamSat,
     });
     if (!res.success) {
       toast.error("Lỗi tải lịch sử: " + res.error);
       return { success: false, data: [], totalCount: 0, error: res.error };
     }
     return { success: true, data: enrichGscHistoryRows(res.data || []), totalCount: res.totalCount };
-  }, []);
+  }, [loaiGiamSat]);
 
   const {
     data: processedData,

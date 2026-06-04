@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { getVSTSessionDetail } from "../actions/vst.actions";
+import { getVSTSessionDetail } from "../actions/vst-read.actions";
+import { markVSTSessionsSeen } from "../actions/vst-write-seen.actions";
 import { getCategoriesByType } from "@/lib/master-data/categories-by-type";
 import { getCategoriesByTypeCached } from "@/lib/client-cache/danh-muc-cache";
 import type { VSTFormPerson } from "../lib/vst-form-model";
@@ -98,6 +99,8 @@ export function useVstPrint() {
         setPrintingSessionId(null);
         return;
       }
+
+      void markVSTSessionsSeen([sessionId]);
 
       const obs = detailRes.observations || [];
       const personsMap: Record<string, Record<string, unknown>> = {};

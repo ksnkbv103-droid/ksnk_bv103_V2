@@ -1,4 +1,4 @@
-// Form thêm và sửa dm_bang_kiem — khớp tên trường với DB và payload saveBangKiem.
+// Form thêm và sửa gstt_dm_bang_kiem — khớp tên trường với DB và payload saveBangKiem.
 "use client";
 
 import React, { useState, useEffect } from "react";

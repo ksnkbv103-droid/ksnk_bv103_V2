@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import DungCuChiTietFormModal from "./dung-cu-chi-tiet-form-modal";
 import type { DungCuChiTietTableRow } from "./dung-cu-chi-tiet-form-shared";
 import {
-  appendChiTietIssueNoteAction,
+  reportChiTietInstrumentIssueAction,
   getBoRefsByLoaiAction,
   getBoDungCuChiTietPreviewAction,
   reportIndividualInstrumentIssueAction,
@@ -192,7 +192,7 @@ export function BoDungCuChiTietPanel({
               <button
                 type="button"
                 onClick={() => setActiveTab("components")}
-                className={`px-4 py-2 text-[9px] font-black uppercase rounded-lg transition-all ${
+                className={`px-4 py-2 text-[11px] font-black uppercase rounded-lg transition-all ${
                   activeTab === "components"
                     ? "bg-white text-[#026f17] shadow-sm"
                     : "text-slate-500 hover:text-slate-800"
@@ -206,7 +206,7 @@ export function BoDungCuChiTietPanel({
                   setActiveTab("allocations");
                   fetchAllocations();
                 }}
-                className={`px-4 py-2 text-[9px] font-black uppercase rounded-lg transition-all ${
+                className={`px-4 py-2 text-[11px] font-black uppercase rounded-lg transition-all ${
                   activeTab === "allocations"
                     ? "bg-white text-[#026f17] shadow-sm"
                     : "text-slate-500 hover:text-slate-800"
@@ -224,7 +224,7 @@ export function BoDungCuChiTietPanel({
               </div>
             ) : rows.length === 0 ? (
               <p className="text-center text-sm text-slate-500">
-                Bộ này chưa có dòng chi tiết trong <code className="rounded bg-slate-100 px-1 text-xs">dm_bo_dung_cu_chi_tiet</code>.
+                Bộ này chưa có dòng chi tiết trong <code className="rounded bg-slate-100 px-1 text-xs">cssd_dm_bo_dung_cu_chi_tiet</code>.
               </p>
             ) : (
               <div className="space-y-4">
@@ -257,13 +257,13 @@ export function BoDungCuChiTietPanel({
                     onClick={async () => {
                       if (!selectedChiTiet) return;
                       const note = window.prompt("Mô tả tình trạng hỏng (tùy chọn):", "") || "";
-                      const r = await appendChiTietIssueNoteAction({
+                      const r = await reportChiTietInstrumentIssueAction({
                         chiTietId: selectedChiTiet.id,
                         issueType: "HONG",
                         note,
                       });
                       if (!r.success) return toast.error(r.error || "Không ghi nhận được báo hỏng.");
-                      toast.success("Đã ghi nhận báo hỏng vào ghi chú dụng cụ.");
+                      toast.success("Đã ghi nhận báo hỏng (ghi chú + sổ giao dịch).");
                       onChanged?.();
                     }}
                     className="inline-flex items-center gap-1.5 rounded-xl bg-rose-100 px-3.5 py-2 text-[10px] font-black uppercase tracking-wide text-rose-800 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95"
@@ -276,13 +276,13 @@ export function BoDungCuChiTietPanel({
                     onClick={async () => {
                       if (!selectedChiTiet) return;
                       const note = window.prompt("Mô tả mất / thất lạc (tùy chọn):", "") || "";
-                      const r = await appendChiTietIssueNoteAction({
+                      const r = await reportChiTietInstrumentIssueAction({
                         chiTietId: selectedChiTiet.id,
                         issueType: "MAT",
                         note,
                       });
                       if (!r.success) return toast.error(r.error || "Không ghi nhận được báo mất.");
-                      toast.success("Đã ghi nhận báo mất vào ghi chú dụng cụ.");
+                      toast.success("Đã ghi nhận báo mất (ghi chú + sổ giao dịch).");
                       onChanged?.();
                     }}
                     className="inline-flex items-center gap-1.5 rounded-xl bg-amber-100 px-3.5 py-2 text-[10px] font-black uppercase tracking-wide text-amber-800 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95"
@@ -372,7 +372,7 @@ export function BoDungCuChiTietPanel({
                           const preview = await getBoDungCuChiTietPreviewAction(selectedBoId!);
                           if (preview.success) setRows(preview.data);
                         }}
-                        className="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[9px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors"
+                        className="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors"
                       >
                         Báo hỏng lẻ
                       </button>
@@ -398,7 +398,7 @@ export function BoDungCuChiTietPanel({
                           const preview = await getBoDungCuChiTietPreviewAction(selectedBoId!);
                           if (preview.success) setRows(preview.data);
                         }}
-                        className="bg-amber-50 hover:bg-amber-100 text-amber-700 text-[9px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors"
+                        className="bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors"
                       >
                         Báo mất lẻ
                       </button>
@@ -423,7 +423,7 @@ export function BoDungCuChiTietPanel({
                           const preview = await getBoDungCuChiTietPreviewAction(selectedBoId!);
                           if (preview.success) setRows(preview.data);
                         }}
-                        className="bg-emerald-50 hover:bg-emerald-100 text-[#026f17] text-[9px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors"
+                        className="bg-emerald-50 hover:bg-emerald-100 text-[#026f17] text-[11px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors"
                       >
                         Bổ sung lẻ từ dự phòng
                       </button>
@@ -462,7 +462,7 @@ export function BoDungCuChiTietPanel({
             <div className="space-y-4">
               <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 flex flex-wrap items-end gap-4">
                 <div className="space-y-1">
-                  <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Chọn khoa phân bổ</label>
+                  <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Chọn khoa phân bổ</label>
                   <select
                     value={selectedDeptId}
                     onChange={(e) => setSelectedDeptId(e.target.value)}
@@ -477,7 +477,7 @@ export function BoDungCuChiTietPanel({
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-black text-slate-400 uppercase ml-1">Cơ số phân bổ</label>
+                  <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Cơ số phân bổ</label>
                   <input
                     type="number"
                     min="1"
@@ -579,7 +579,7 @@ export function BoDungCuChiTietPanel({
                                 });
                                 if (r.success) { fetchAllocations(); onChanged?.(); }
                               }}
-                              className="bg-rose-50 hover:bg-rose-100 text-rose-700 font-black text-[9px] uppercase px-2.5 py-1 rounded-lg"
+                              className="bg-rose-50 hover:bg-rose-100 text-rose-700 font-black text-[11px] uppercase px-2.5 py-1 rounded-lg"
                             >
                               Thu hồi
                             </button>

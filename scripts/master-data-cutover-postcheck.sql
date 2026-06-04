@@ -1,5 +1,5 @@
 -- Postcheck sau cutover master data — chạy qua `npm run mdm:postcheck:sql` hoặc SQL Editor.
--- Greenfield: bảng `danh_muc_tuy_bien` có thể đã drop; script không được fail vì thế.
+-- SSOT module prefix (2026-06-02): không còn compat view dm_* / fact_*.
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- 1) Legacy trong danh_muc_tuy_bien (chỉ khi bảng còn tồn tại)
@@ -15,29 +15,15 @@ DO $sec1$
 BEGIN
   IF to_regclass('public.danh_muc_tuy_bien') IS NULL THEN
     INSERT INTO _mdm_postcheck_legacy_dmb (loai_danh_muc, legacy_rows, note)
-    VALUES (
-      NULL,
-      NULL,
-      'OK: không còn bảng public.danh_muc_tuy_bien (đã sunset / greenfield).'
-    );
+    VALUES (NULL, NULL, 'OK: không còn bảng public.danh_muc_tuy_bien (đã sunset / greenfield).');
   ELSE
     INSERT INTO _mdm_postcheck_legacy_dmb (loai_danh_muc, legacy_rows)
-    SELECT
-      loai_danh_muc,
-      COUNT(*)::bigint
+    SELECT loai_danh_muc, COUNT(*)::bigint
     FROM public.danh_muc_tuy_bien
     WHERE loai_danh_muc IN (
-      'KHOA_PHONG',
-      'KHOI_KHOA',
-      'TO_CONG_TAC',
-      'CHUC_VU',
-      'CHUC_DANH',
-      'VAI_TRO_HE_THONG_KSNK',
-      'KHU_VUC_GIAM_SAT',
-      'NGHE_NGHIEP',
-      'LOAI_DUNG_CU',
-      'LOAI_SU_CO',
-      'LOAI_MAY_TIET_KHUAN'
+      'KHOA_PHONG', 'KHOI_KHOA', 'TO_CONG_TAC', 'CHUC_VU', 'CHUC_DANH',
+      'VAI_TRO_HE_THONG_KSNK', 'KHU_VUC_GIAM_SAT', 'NGHE_NGHIEP',
+      'LOAI_DUNG_CU', 'LOAI_SU_CO', 'LOAI_MAY_TIET_KHUAN'
     )
     GROUP BY loai_danh_muc
     ORDER BY loai_danh_muc;
@@ -48,7 +34,7 @@ $sec1$;
 SELECT * FROM _mdm_postcheck_legacy_dmb ORDER BY loai_danh_muc NULLS LAST;
 
 -- ═══════════════════════════════════════════════════════════════════════════
--- 2) Coverage registry (dựa trên mdm_field_registry)
+-- 2) Coverage registry (sys_mdm_registry)
 -- ═══════════════════════════════════════════════════════════════════════════
 SELECT
   table_name,
@@ -61,7 +47,7 @@ GROUP BY table_name
 ORDER BY registered_fields DESC, table_name;
 
 -- ═══════════════════════════════════════════════════════════════════════════
--- 3) Orphan FK (dynamic): chỉ COUNT khi bảng fact + dm đích đều tồn tại
+-- 3) Orphan FK — module lookup views + fact tables
 -- ═══════════════════════════════════════════════════════════════════════════
 DROP TABLE IF EXISTS _mdm_postcheck_orphans;
 CREATE TEMP TABLE _mdm_postcheck_orphans (
@@ -75,96 +61,79 @@ DECLARE
   n bigint;
 BEGIN
   IF to_regclass('public.mdm_nhan_su') IS NOT NULL
-     AND to_regclass('public.dm_to_cong_tac') IS NOT NULL THEN
+     AND to_regclass('public.mdm_dm_to_cong_tac') IS NOT NULL THEN
     EXECUTE $q$
       SELECT COUNT(*)::bigint FROM public.mdm_nhan_su x
-      LEFT JOIN public.dm_to_cong_tac dm ON dm.id = x.to_id
+      LEFT JOIN public.mdm_dm_to_cong_tac dm ON dm.id = x.to_id
       WHERE x.to_id IS NOT NULL AND dm.id IS NULL
     $q$ INTO n;
     INSERT INTO _mdm_postcheck_orphans VALUES ('mdm_nhan_su.to_id', n, NULL);
   ELSE
     INSERT INTO _mdm_postcheck_orphans VALUES (
-      'mdm_nhan_su.to_id',
-      NULL,
-      'SKIP: chưa có mdm_nhan_su hoặc dm_to_cong_tac'
-    );
+      'mdm_nhan_su.to_id', NULL, 'SKIP: thiếu mdm_nhan_su hoặc mdm_dm_to_cong_tac');
   END IF;
 
   IF to_regclass('public.mdm_nhan_su') IS NOT NULL
-     AND to_regclass('public.dm_chuc_vu') IS NOT NULL THEN
+     AND to_regclass('public.mdm_dm_chuc_vu') IS NOT NULL THEN
     EXECUTE $q$
       SELECT COUNT(*)::bigint FROM public.mdm_nhan_su x
-      LEFT JOIN public.dm_chuc_vu dm ON dm.id = x.chuc_vu_id
+      LEFT JOIN public.mdm_dm_chuc_vu dm ON dm.id = x.chuc_vu_id
       WHERE x.chuc_vu_id IS NOT NULL AND dm.id IS NULL
     $q$ INTO n;
     INSERT INTO _mdm_postcheck_orphans VALUES ('mdm_nhan_su.chuc_vu_id', n, NULL);
   ELSE
     INSERT INTO _mdm_postcheck_orphans VALUES (
-      'mdm_nhan_su.chuc_vu_id',
-      NULL,
-      'SKIP: chưa có dm_chuc_vu'
-    );
+      'mdm_nhan_su.chuc_vu_id', NULL, 'SKIP: thiếu mdm_dm_chuc_vu');
   END IF;
 
   IF to_regclass('public.mdm_nhan_su') IS NOT NULL
-     AND to_regclass('public.dm_chuc_danh') IS NOT NULL THEN
+     AND to_regclass('public.mdm_dm_chuc_danh') IS NOT NULL THEN
     EXECUTE $q$
       SELECT COUNT(*)::bigint FROM public.mdm_nhan_su x
-      LEFT JOIN public.dm_chuc_danh dm ON dm.id = x.chuc_danh_id
+      LEFT JOIN public.mdm_dm_chuc_danh dm ON dm.id = x.chuc_danh_id
       WHERE x.chuc_danh_id IS NOT NULL AND dm.id IS NULL
     $q$ INTO n;
     INSERT INTO _mdm_postcheck_orphans VALUES ('mdm_nhan_su.chuc_danh_id', n, NULL);
   ELSE
     INSERT INTO _mdm_postcheck_orphans VALUES (
-      'mdm_nhan_su.chuc_danh_id',
-      NULL,
-      'SKIP: chưa có dm_chuc_danh'
-    );
+      'mdm_nhan_su.chuc_danh_id', NULL, 'SKIP: thiếu mdm_dm_chuc_danh');
   END IF;
 
-  IF to_regclass('public.giam_sat_chung_sessions') IS NOT NULL
-     AND to_regclass('public.dm_nghe_nghiep') IS NOT NULL THEN
+  IF to_regclass('public.gstt_fact_chung_sessions') IS NOT NULL
+     AND to_regclass('public.mdm_dm_nghe_nghiep') IS NOT NULL THEN
     EXECUTE $q$
-      SELECT COUNT(*)::bigint FROM public.giam_sat_chung_sessions x
-      LEFT JOIN public.dm_nghe_nghiep dm ON dm.id = x.nghe_nghiep_id
+      SELECT COUNT(*)::bigint FROM public.gstt_fact_chung_sessions x
+      LEFT JOIN public.mdm_dm_nghe_nghiep dm ON dm.id = x.nghe_nghiep_id
       WHERE x.nghe_nghiep_id IS NOT NULL AND dm.id IS NULL
     $q$ INTO n;
-    INSERT INTO _mdm_postcheck_orphans VALUES ('giam_sat_chung_sessions.nghe_nghiep_id', n, NULL);
+    INSERT INTO _mdm_postcheck_orphans VALUES ('gstt_fact_chung_sessions.nghe_nghiep_id', n, NULL);
   ELSE
     INSERT INTO _mdm_postcheck_orphans VALUES (
-      'giam_sat_chung_sessions.nghe_nghiep_id',
-      NULL,
-      'SKIP: chưa có bảng hoặc dm_nghe_nghiep'
-    );
+      'gstt_fact_chung_sessions.nghe_nghiep_id', NULL,
+      'SKIP: thiếu gstt_fact_chung_sessions hoặc mdm_dm_nghe_nghiep');
   END IF;
 
-  IF to_regclass('public.fact_cong_viec') IS NULL THEN
+  IF to_regclass('public.qlcv_fact_cong_viec') IS NULL THEN
     INSERT INTO _mdm_postcheck_orphans VALUES (
-      'fact_cong_viec.to_cong_tac_id',
-      NULL,
-      'SKIP: chưa có bảng public.fact_cong_viec.'
-    );
+      'qlcv_fact_cong_viec.to_cong_tac_id', NULL, 'SKIP: chưa có qlcv_fact_cong_viec');
   ELSIF NOT EXISTS (
-    SELECT 1
-    FROM information_schema.columns c
-    WHERE c.table_schema = 'public'
-      AND c.table_name = 'fact_cong_viec'
+    SELECT 1 FROM information_schema.columns c
+    WHERE c.table_schema = 'public' AND c.table_name = 'qlcv_fact_cong_viec'
       AND c.column_name = 'to_cong_tac_id'
   ) THEN
     INSERT INTO _mdm_postcheck_orphans VALUES (
-      'fact_cong_viec.to_cong_tac_id',
-      NULL,
-      'SKIP: fact_cong_viec không có cột to_cong_tac_id.'
-    );
-  ELSE
+      'qlcv_fact_cong_viec.to_cong_tac_id', NULL, 'SKIP: không có cột to_cong_tac_id');
+  ELSIF to_regclass('public.mdm_dm_to_cong_tac') IS NOT NULL THEN
     EXECUTE $q$
-      SELECT COUNT(*)::bigint FROM public.fact_cong_viec x
-      LEFT JOIN public.dm_lookup_value dm ON dm.id = x.to_cong_tac_id AND dm.category_type = 'TO_CONG_TAC'
+      SELECT COUNT(*)::bigint FROM public.qlcv_fact_cong_viec x
+      LEFT JOIN public.mdm_dm_to_cong_tac dm ON dm.id = x.to_cong_tac_id
       WHERE x.to_cong_tac_id IS NOT NULL AND dm.id IS NULL
     $q$ INTO n;
-    INSERT INTO _mdm_postcheck_orphans VALUES ('fact_cong_viec.to_cong_tac_id', n, NULL);
+    INSERT INTO _mdm_postcheck_orphans VALUES ('qlcv_fact_cong_viec.to_cong_tac_id', n, NULL);
+  ELSE
+    INSERT INTO _mdm_postcheck_orphans VALUES (
+      'qlcv_fact_cong_viec.to_cong_tac_id', NULL, 'SKIP: thiếu mdm_dm_to_cong_tac');
   END IF;
-
 END
 $body$;
 

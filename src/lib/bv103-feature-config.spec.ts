@@ -22,7 +22,15 @@ describe("bv103-feature-config", () => {
 
   it("module disabled under pilot four", () => {
     process.env.KSNK_PILOT_FOUR_MODULES = "1";
+    delete process.env.KSNK_MODULE_QLCV;
     delete process.env.KSNK_MODULE_CSSD;
+    expect(isModuleEnabled("CSSD")).toBe(false);
+  });
+
+  it("QLCV enabled under pilot core", () => {
+    process.env.KSNK_PILOT_CORE_MODULES = "1";
+    delete process.env.KSNK_MODULE_QLCV;
+    expect(isModuleEnabled("QLCV")).toBe(true);
     expect(isModuleEnabled("CSSD")).toBe(false);
   });
 });

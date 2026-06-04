@@ -33,8 +33,8 @@ export async function mdmListGenericDm(loaiDanhMuc: string) {
   return listGenericDmAction(loaiDanhMuc);
 }
 
-export async function mdmSuggestNextGenericDmMa(loaiDanhMuc: string) {
-  return suggestNextGenericDmMaAction(loaiDanhMuc) as Promise<MdmGatewayResult<string>>;
+export async function mdmSuggestNextGenericDmMa(loaiDanhMuc: string, ten?: string) {
+  return suggestNextGenericDmMaAction(loaiDanhMuc, ten) as Promise<MdmGatewayResult<string>>;
 }
 
 export async function mdmUpsertGenericDm(

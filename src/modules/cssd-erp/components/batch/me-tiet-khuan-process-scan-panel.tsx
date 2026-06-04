@@ -37,12 +37,12 @@ export default function MeTietKhuanProcessScanPanel({
   }, [prefillToken, onPrefillConsumed]);
 
   return (
-    <div className="flex h-full min-h-[320px] flex-col rounded-[40px] border border-slate-100 bg-white p-8 shadow-sm">
+    <div className="flex h-full min-h-[320px] flex-col rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
       <div className="mb-4 flex items-center gap-3">
         <Scan className="text-[#026f17]" />
         <h3 className="text-sm font-black uppercase tracking-widest text-slate-800">Đưa bộ vào phiếu TK</h3>
       </div>
-      <p className="mb-3 text-[9px] font-bold uppercase leading-relaxed text-slate-500">
+      <p className="mb-3 text-[11px] font-bold uppercase leading-relaxed text-slate-500">
         Chỉ quét bộ đang ở <span className="text-[#026f17]">ĐÓNG GÓI</span> và chưa gán mẻ khác. Sau khi{" "}
         <span className="text-red-600">xác nhận bắt đầu tiệt khuẩn</span> hệ thống khóa, không nạp thêm được.
       </p>
@@ -73,7 +73,7 @@ export default function MeTietKhuanProcessScanPanel({
                 <span className="block truncate text-[10px] font-black uppercase text-[#026f17]">{it.ma_vach_qr}</span>
                 <span className="text-xs font-bold uppercase text-slate-700">{it.bo?.ten_bo || "Bộ dụng cụ"}</span>
               </div>
-              <span className={`shrink-0 rounded-md px-2 py-1 text-[9px] font-black uppercase ${tone}`}>{label}</span>
+              <span className={`shrink-0 rounded-md px-2 py-1 text-[11px] font-black uppercase ${tone}`}>{label}</span>
             </div>
           );
         })}

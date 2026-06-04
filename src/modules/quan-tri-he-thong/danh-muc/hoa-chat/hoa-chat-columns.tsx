@@ -31,7 +31,7 @@ export function getHoaChatColumns(actionUi: ActionCells): Column<HoaChatRow>[] {
       header: "ĐƠN VỊ",
       accessorKey: "don_vi_tinh",
       sortable: true,
-      cell: (i) => <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[9px] font-black uppercase">{i.don_vi_tinh || "—"}</span>,
+      cell: (i) => <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[11px] font-black uppercase">{i.don_vi_tinh || "—"}</span>,
     },
     {
       header: "LOẠI",

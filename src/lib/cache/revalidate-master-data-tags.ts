@@ -2,9 +2,9 @@ import { revalidateTag } from "next/cache";
 
 /** Khớp `tags` trong `master-data-cache.ts` (unstable_cache). */
 const TABLES_WITH_ROW_CACHE_TAG = new Set([
-  "dm_khoa_phong",
-  "dm_nghe_nghiep",
-  "dm_khu_vuc_giam_sat",
+  "mdm_dm_khoa_phong",
+  "mdm_dm_nghe_nghiep",
+  "gstt_dm_khu_vuc_giam_sat",
 ]);
 
 /** Tag dùng cho stats Trung tâm Danh mục (RPC `fn_admin_module_stats`). */

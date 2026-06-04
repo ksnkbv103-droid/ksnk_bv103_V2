@@ -49,11 +49,20 @@
 *   **Ưu tiên:** P1.
 *   **Exit Criteria:** Refactor đổi tên tệp kiểu dữ liệu khớp chính xác với phiên bản Dashboard V4.
 
-### [D-07] Dual Dashboard Data Path
-*   **Mô tả:** Dashboard đang sử dụng song song hai luồng dữ liệu: Đọc từ bảng tổng hợp (`gstt_fact_*_summary` qua trigger) và đọc trực tiếp từ JSONB qua RPC v4. Điều này gây dư thừa tài nguyên DB.
-*   **Vị trí:** Database layer / Dashboard analytics.
-*   **Ưu tiên:** P1.
-*   **Exit Criteria:** Thực hiện đánh giá hiệu năng (Benchmark), nếu RPC v4 unnest đủ nhanh, tiến hành dẹp bỏ hoàn toàn các bảng summary vật lý và trigger tương ứng để giữ DB tinh gọn.
+### [D-07] Dual Dashboard Data Path — **Done (2026-06-04)**
+*   **Đã làm:** Migration `20260604100000` — DROP `gstt_fact_*_summary` + trigger sync; `v_gstt_giam_sat_vst_sessions_full` aggregate live từ `gstt_fact_vst`. Benchmark: [dashboard-rpc-benchmark-20260603.md](../reports/dashboard-rpc-benchmark-20260603.md).
+*   **Exit Criteria:** ~~Benchmark~~ **Đạt** — RPC-only read path (ADR accepted).
+
+### [D-QLCV-01] QLCV — chuyển `trang_thai`/`loai` sang TEXT+CHECK — **Done (2026-06-04)**
+*   **Đã làm:** Migration `20260604120000` — cột `trang_thai`/`loai_cong_viec` text + CHECK; trigger sync FK; app dual-write.
+*   **Exit Criteria:** **Đạt** — view `v_qlcv_*` đọc mã trực tiếp; spawn RPC cập nhật.
+
+### [D-QLCV-02] QLCV — DROP cột FK `trang_thai_id` / `loai_cong_viec_id` — **Done (2026-06-07)**
+*   **Đã làm:** Migration `20260607100000` — DROP FK cols + `cong_viec_cha_id`, trigger `fn_qlcv_sync_code_from_fk`; app ghi TEXT-only; view `trang_thai_mau_sac`.
+*   **Exit Criteria:** **Đạt** — grep app/DB sạch FK path; RPC checklist cập nhật `trang_thai` text.
+
+### [D-QLCV-03] QLCV cron quá hạn stale — **Done (2026-06-06)**
+*   **Đã làm:** `20260606160000` rewrite `fn_sync_overdue_tasks` → `qlcv_fact_cong_viec.trang_thai`; DROP orphan `fn_qlcv_analytics_summary`.
 
 ### [D-08] Legacy CSSD Redirect Routes — **Done (2026-05-31)**
 *   **Đã làm:** Redirect 9 URL cũ trong `next.config.ts`; xóa 10 `page.tsx` redirect; `CSSD_ROUTES` 7 path canonical ([`cssd-routes.ts`](../../../src/lib/cssd-routes.ts), [`modules/cssd/README.md`](../../modules/cssd/README.md)).
@@ -63,11 +72,6 @@
 *   **Vị trí:** Security / [layout.tsx](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/src/app/layout.tsx).
 *   **Ưu tiên:** P1.
 *   **Exit Criteria:** Triển khai Next.js `middleware.ts` ở thư mục gốc để chặn truy cập trái phép ngay từ tầng server.
-
-### [D-QLCV-01] QLCV — chuyển `trang_thai`/`loai` sang TEXT+CHECK (bỏ FK lookup)
-*   **Mô tả:** Lean workflow 2026-05-31 đã cache lookup FK; vẫn JOIN `qlcv_dm_*` trên view. Phase sau: cột `text` + CHECK trên `qlcv_fact_cong_viec`, cập nhật RPC/trigger.
-*   **Ưu tiên:** P2 (sau pilot checklist).
-*   **Exit Criteria:** Migration additive + app đọc mã trực tiếp; drop phụ thuộc resolve 2 SELECT mỗi write.
 
 ### [D-10] UNIFIED_DOMAIN_SPEC chưa đồng bộ tên bảng mới
 *   **Mô tả:** Tài liệu đặc tả y tế chung vẫn đang mô tả cấu trúc theo tên các bảng lâm sàng cũ (không có prefix phân vùng).
@@ -91,17 +95,13 @@
 *   **Ưu tiên:** P2.
 *   **Exit Criteria:** GitHub Actions CI chạy `verify:cssd`, `layout:drift-check`, và `docs:links:check` (đã align 30/05/2026).
 
-### [D-13] Dư thừa RPC cũ trong Baseline SQL
-*   **Mô tả:** Baseline pg_dump chứa một số hàm SQL/RPC cũ của Dashboard V1, V2 không còn được ứng dụng khách gọi.
-*   **Vị trí:** Supabase baseline.
-*   **Ưu tiên:** P2.
-*   **Exit Criteria:** Dọn dẹp, thực hiện DROP các RPC thừa ra khỏi migration baseline.
+### [D-13] Dư thừa RPC cũ trong Baseline SQL — **Done (2026-06-04)**
+*   **Đã làm:** `npm run audit:legacy-rpc` + migration `20260604110000_drop_legacy_dashboard_rpcs.sql`.
+*   **Exit Criteria:** **Đạt** — app chỉ gọi 4 RPC dashboard (contract spec).
 
-### [D-14] Giao diện Xác minh ca NKBV chưa hoàn chỉnh
-*   **Mô tả:** Mã nguồn của phân hệ nghi ngờ ca bệnh nhiễm khuẩn mới dừng lại ở mức Spec và logic Rules Engine kiểm tra Day 3, các form lâm sàng động (VAP, BSI, UTI, SSI) ở frontend chưa được phủ hết.
-*   **Vị trí:** Giam-sat-nkbv / [clinical-forms.md](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/modules/nkbv/clinical-forms.md).
-*   **Ưu tiên:** P2.
-*   **Exit Criteria:** Hoàn thành 4 biểu mẫu lâm sàng động nhập liệu VAP, BSI, UTI, SSI kết nối trực tiếp với backend.
+### [D-14] Giao diện Xác minh ca NKBV — **Engineering done; UAT pending**
+*   **Đã làm:** Sub-forms BSI/UTI/VAP/SSI + `nkbv-rules-engine.spec.ts`; checklist [pilot-clinical-checklist-20260603.md](../../modules/nkbv/pilot-clinical-checklist-20260603.md).
+*   **Exit Criteria:** KSNK pilot sign-off 5 kịch bản tay (cột UAT trong checklist).
 
 ---
 
@@ -113,3 +113,36 @@
 *   **[D-18] Trace NKBV↔CSSD:** Liên kết ca nhiễm khuẩn vết mổ (SSI) ngược lại mã vạch mẻ hấp dụng cụ mổ tương ứng để tìm nguyên nhân gốc rễ.
 *   **[D-19] Cycle QR vs Permanent set QR:** Phân biệt vòng đời của nhãn dán tạm thời của túi hấp và nhãn khắc kim loại vĩnh viễn của khay dụng cụ phòng mổ.
 *   **[D-20] HIS/LIS FHIR Integration:** API đồng bộ tự động ca cấy vi sinh từ máy xét nghiệm theo chuẩn HL7/FHIR thay thế cho import file Excel vi sinh.
+
+---
+
+## Audit 2026-06-03 re-verification
+
+> Nguồn: [comprehensive-review-20260603.md](../reports/comprehensive-review-20260603.md) — chỉ trạng thái sau grep/code + CLI trên HEAD; **không** copy báo cáo 30/05.
+
+| ID | Trạng thái mới | Bằng chứng ngắn |
+|----|----------------|-----------------|
+| D-01 | **Done (2026-06-03)** | `DigitalChecklistPanel` + `persistBomCheckpoint` / `KIEM_DEM_BOM` |
+| D-02 | **Done (2026-06-03)** | CAP_PHAT `assertLedgerDuChoCapPhat` → `ok: false` nếu chưa BOM / thiếu cấu phần |
+| D-03 | **Done (2026-06-03)** | Local + staging head **30** migrations (`20260603160000`) |
+| D-04 | Verify per env | Seed paths trong `supabase/seeds/` — chưa re-test `db reset` timing |
+| D-05 | **Obsolete** | `npm run legacy:guard` PASS |
+| D-06 | **Done (2026-06-03)** | Chỉ `strategic-dashboard-v4.types.ts` — không còn v3 |
+| D-07 | **Done (2026-06-04)** | Migration `20260604100000` DROP summary + triggers |
+| D-08 | **Done** | (giữ nguyên 2026-05-31) |
+| D-09 | **Done (2026-06-03)** | `src/proxy.ts` — `getUser()` server-side (Next.js 16 proxy, không `middleware.ts`) |
+| D-10 | **Partial** | `domain-specification.md` có prefix; mapping vẫn nhắc compat |
+| D-11 | **Done (2026-06-03)** | Migration `20260603160000` applied local + linked |
+| D-12 | **Done** | CI align (theo ghi chú 30/05) — chưa re-verify workflow file |
+| D-13 | **Done (2026-06-04)** | `audit:legacy-rpc` + `20260604110000` |
+| D-14 | **Eng done / UAT pending** | Checklist + spec pass; sign-off khoa KSNK |
+| D-18 | **Partial done** | Migration `20260602150000` + `CssdTraceLink` — chưa đủ RCA SSI end-to-end |
+| D-QLCV-01 | **Done (2026-06-04)** | `20260604120000` + app dual-write |
+
+### D-UX-01 — UI shell fragmentation (2026-06-04)
+
+*   **Mô tả:** Nhiều hệ header/layout song song; typography micro `8px`/`9px`.
+*   **Trạng thái:** **Done** — codemod 70 file → `text-[11px]`; `layout:typography-check` exit 1 on drift.
+*   **Exit:** **Đạt** — 0 hits `text-[8px]`/`text-[9px]`.
+
+Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2026h2-sync.md)

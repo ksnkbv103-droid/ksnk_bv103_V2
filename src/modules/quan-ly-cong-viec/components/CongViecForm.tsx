@@ -226,7 +226,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
             />
             {!optionsLoading && toCongTacOptions.length === 0 ? (
               <p className={`mt-2 ${bv103LayoutChrome.noticeAmber}`}>
-                Chưa có dòng nào trong <code className="text-[11px]">dm_to_cong_tac</code> (is_active). Thêm tổ ở Quản
+                Chưa có dòng nào trong <code className="text-[11px]">mdm_dm_to_cong_tac</code> (is_active). Thêm tổ ở Quản
                 trị → Danh mục tổ công tác.
               </p>
             ) : null}
@@ -275,7 +275,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
             e.stopPropagation();
             onCancel?.();
           }}
-          className="bv103-control-h rounded-xl border border-slate-200/90 bg-white px-6 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700 shadow-sm hover:bg-slate-50 sm:min-w-[7rem]"
+          className="bv103-control-h rounded-xl border border-slate-200/90 bg-white px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-slate-700 shadow-sm hover:bg-slate-50 sm:min-w-[7rem]"
         >
           Đóng
         </button>
@@ -288,7 +288,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
               e.stopPropagation();
               setRejectOpen(true);
             }}
-            className="bv103-control-h rounded-xl border border-red-200 bg-red-50 px-6 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-red-800 shadow-sm hover:bg-red-100 disabled:opacity-50 sm:min-w-[9rem]"
+            className="bv103-control-h rounded-xl border border-red-200 bg-red-50 px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-red-800 shadow-sm hover:bg-red-100 disabled:opacity-50 sm:min-w-[9rem]"
           >
             Từ chối đề xuất
           </button>
@@ -296,7 +296,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
         <button
           type="submit"
           disabled={loading}
-          className="bv103-control-h rounded-xl bg-[#026f17] px-8 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-[#025a12] disabled:opacity-50 sm:min-w-[10rem]"
+          className="bv103-control-h rounded-xl bg-[var(--primary)] px-8 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:opacity-90 disabled:opacity-50 sm:min-w-[10rem]"
         >
           {loading
             ? "Đang xử lý..."

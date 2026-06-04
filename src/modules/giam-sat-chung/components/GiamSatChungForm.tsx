@@ -1,5 +1,5 @@
 // src/modules/giam-sat-chung/components/GiamSatChungForm.tsx
-// Khoa: dm_khoa_phong; khu vực / nghề: dm_* bundle; nhân sự: ho_so_nhan_vien.
+// Khoa: mdm_dm_khoa_phong; khu vực / nghề: gstt_dm_* / mdm_dm_*; nhân sự: mdm_nhan_su.
 "use client";
 
 import React, { useEffect, useMemo } from "react";
@@ -9,8 +9,10 @@ import ChecklistItem from "./ChecklistItem";
 import type { ChecklistTemplate } from "@/types/giam-sat-chung";
 import GiamSatChungPrintView from "./GiamSatChungPrintView";
 import GiamSatChungFormActions from "./GiamSatChungFormActions";
+import GscModuleLockBanner from "./GscModuleLockBanner";
 import { gscFormChrome } from "../lib/gsc-form-chrome";
 import { useGiamSatChungForm } from "../hooks/use-giam-sat-chung-form";
+import type { GscFormProgress } from "../lib/gsc-score-display";
 import type { ChecklistResult } from "@/types/giam-sat-chung";
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
 
@@ -24,7 +26,7 @@ export default function GiamSatChungForm({
   template: ChecklistTemplate;
   onSuccess: () => void;
   onCancel: () => void;
-  onProgressChange?: (progress: { evaluated: number; total: number; rate: number }) => void;
+  onProgressChange?: (progress: GscFormProgress) => void;
   editPayload?: {
     session: Partial<GiamSatSession>;
     results: ChecklistResult[];
@@ -52,7 +54,10 @@ export default function GiamSatChungForm({
     hinhThucGiamSats,
     cachThucGiamSats,
     handleSave,
-    score,
+    formProgress,
+    isLockedForSelectedDate,
+    lockMessage,
+    lockedUntilDate,
     sessionForPrint,
     setSessionFromHeader,
     currentHoSoId,
@@ -69,13 +74,14 @@ export default function GiamSatChungForm({
   );
 
   useEffect(() => {
-    onProgressChange?.({ evaluated: evaluatedCount, total: totalCount, rate: score });
-  }, [evaluatedCount, totalCount, score, onProgressChange]);
+    onProgressChange?.(formProgress);
+  }, [formProgress, onProgressChange]);
 
   const headerSession = { ...session, khoa_id: selectedKhoa, khu_vuc_id: selectedKhuVuc, ngay_giam_sat: ngayGiamSat };
 
   return (
     <div className="space-y-7 pb-28">
+      <GscModuleLockBanner lockedUntilDate={lockedUntilDate} lockMessage={isLockedForSelectedDate ? lockMessage : null} />
       <GiamSatChungPrintView
         session={sessionForPrint}
         results={results}
@@ -106,12 +112,12 @@ export default function GiamSatChungForm({
           moduleContext="gsc"
         />
 
-        <GiamSatChungFormActions
-          loading={loading}
-          headerLoading={headerLoading}
-          onPrint={() => window.print()}
-          onSave={handleSave}
-        />
+      <GiamSatChungFormActions
+        loading={loading || isLockedForSelectedDate}
+        headerLoading={headerLoading}
+        onPrint={() => window.print()}
+        onSave={handleSave}
+      />
 
         <div className="grid grid-cols-1 gap-4">
           {template.criteria.map((c, idx) => {

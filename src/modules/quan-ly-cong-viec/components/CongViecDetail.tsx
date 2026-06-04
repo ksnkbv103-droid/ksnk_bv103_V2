@@ -26,9 +26,16 @@ import {
 import { huyKhiChoNghiemThuKhongDat } from "../actions/cong-viec-write.actions";
 import { isBoardLaneQuaHan } from "../lib/qlcv-board-lanes";
 import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
-import { canShowDeleteTask, canShowEditTaskMetadata, canShowHoatDongProgressSection } from "../lib/qlcv-access";
+import {
+  canShowDeleteTask,
+  canShowEditTaskMetadata,
+  canShowHoatDongProgressSection,
+  canShowQlcvApproveActions,
+} from "../lib/qlcv-access";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { getCongViecTrangThaiLabel } from "../lib/qlcv-labels";
+import { resolveQlcvWorkflowBadgeAppearance } from "../lib/qlcv-workflow-badge";
+import { getTrangThaiMauSacMap } from "../actions/cong-viec-read.actions";
 import type { CongViecView } from "../types";
 
 interface Props {
@@ -63,12 +70,12 @@ const qlcvDetailChrome = {
   sectionLabel: "text-[11px] font-semibold uppercase tracking-wider text-slate-500",
   sectionHeading: "text-sm font-semibold uppercase tracking-wider text-slate-800",
   btnOutline:
-    "bv103-control-h h-11 shrink-0 rounded-xl border border-slate-200/90 bg-white px-4 text-[10px] font-semibold uppercase tracking-wide text-slate-800 shadow-sm hover:bg-slate-50",
+    "bv103-control-h h-11 shrink-0 rounded-xl border border-slate-200/90 bg-white px-4 text-[11px] font-semibold uppercase tracking-wide text-slate-800 shadow-sm hover:bg-slate-50",
   btnPrimary:
-    "bv103-control-h h-11 shrink-0 rounded-xl bg-[#026f17] px-4 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-[#025a12]",
-  btnBlue: "bv103-control-h h-11 shrink-0 rounded-xl bg-blue-600 px-4 text-[10px] font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-blue-700",
+    "bv103-control-h h-11 shrink-0 rounded-xl bg-[var(--primary)] px-4 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm hover:opacity-90",
+  btnBlue: "bv103-control-h h-11 shrink-0 rounded-xl bg-blue-600 px-4 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-blue-700",
   btnGhost:
-    "bv103-control-h h-11 shrink-0 rounded-xl border border-transparent px-3 text-[10px] font-semibold uppercase tracking-wide text-red-600 hover:border-red-100 hover:bg-red-50",
+    "bv103-control-h h-11 shrink-0 rounded-xl border border-transparent px-3 text-[11px] font-semibold uppercase tracking-wide text-red-600 hover:border-red-100 hover:bg-red-50",
   dialogContent: "max-w-4xl rounded-2xl border border-slate-200/90 bg-slate-50 p-6 shadow-xl sm:p-8",
 } as const;
 
@@ -79,10 +86,13 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
     hasDelete: allowed.delete,
     hasEdit: allowed.edit,
     hasCreate: allowed.create,
+    hasApprove: allowed.approve,
     actorStaffId: userData?.id ?? null,
   };
+  const canNghiemThu = canShowQlcvApproveActions(accessFlags);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<CongViecDetailData | null>(null);
+  const [mauSacByMa, setMauSacByMa] = useState<Record<string, string>>({});
   const [activeId, setActiveId] = useState(id);
   const [isEditOpen, setIsEditOpen] = useState(false);
   // Dialog state — thay thế browser prompt()/confirm()
@@ -108,11 +118,17 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
     fetchDetail();
   }, [activeId]);
 
+  useEffect(() => {
+    void getTrangThaiMauSacMap()
+      .then(setMauSacByMa)
+      .catch(() => setMauSacByMa({}));
+  }, []);
+
   if (loading)
     return (
       <div className={`flex min-h-[14rem] items-center justify-center p-8 ${qlcvDetailChrome.panel}`}>
         <div
-          className="h-9 w-9 animate-spin rounded-full border-2 border-[#026f17] border-t-transparent"
+          className="h-9 w-9 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent"
           aria-hidden
         />
       </div>
@@ -126,6 +142,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
     );
 
   const statusDisplay = getCongViecTrangThaiLabel(data);
+  const statusBadge = resolveQlcvWorkflowBadgeAppearance(data, mauSacByMa);
 
   const showDelete = canShowDeleteTask(data, accessFlags);
   const showEditMetadata = canShowEditTaskMetadata(data, accessFlags);
@@ -133,17 +150,17 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const showHoatDong = canShowHoatDongProgressSection(data, accessFlags);
   const checklistReadOnly =
     isDeXuatChoDuyet(data) || st === "HOAN_THANH" || st === "DA_HUY" || isChoNghiemThuHoanThanh(data);
-  const showNghiemThuToolbar = isChoNghiemThuHoanThanh(data) && (accessFlags.hasEdit || accessFlags.isRBACAdmin);
+  const showNghiemThuToolbar = isChoNghiemThuHoanThanh(data) && canNghiemThu;
   const isCreatorOrAssigner =
     (accessFlags.actorStaffId && data.nguoi_tao_id && String(accessFlags.actorStaffId) === String(data.nguoi_tao_id)) ||
     (accessFlags.actorStaffId && data.nguoi_giao_viec_id && String(accessFlags.actorStaffId) === String(data.nguoi_giao_viec_id));
   const showHuyButton =
-    accessFlags.isRBACAdmin &&
+    (accessFlags.isRBACAdmin || accessFlags.hasDelete) &&
     st !== "HOAN_THANH" &&
     st !== "DA_HUY" &&
     !isChoNghiemThuHoanThanh(data);
   const showForceNghiemThu =
-    (accessFlags.hasEdit || accessFlags.isRBACAdmin) &&
+    canNghiemThu &&
     st !== "HOAN_THANH" &&
     st !== "DA_HUY" &&
     !isChoNghiemThuHoanThanh(data);
@@ -164,10 +181,10 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-emerald-200/80 bg-emerald-50 px-2.5 py-1 text-xs font-medium normal-case tracking-normal text-emerald-900">
+            <span className={statusBadge.className} style={statusBadge.style}>
               {statusDisplay}
             </span>
-            <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
               #{data.id?.slice(0, 8)}
             </span>
           </div>
@@ -316,11 +333,9 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
               <CheckCircle2 size={18} className="shrink-0 text-[var(--primary)]" aria-hidden />
               <h3 className={qlcvDetailChrome.sectionHeading}>Ghi chú tiến độ (tùy chọn)</h3>
             </div>
-            <p className="text-xs text-slate-500">Ưu tiên tick checklist phía trên; form này chỉ khi cần ghi chú thêm.</p>
+            <p className="text-xs text-slate-500">Ghi chú bổ sung — % tiến độ chỉ cập nhật qua checklist.</p>
             <HoatDongForm
               congViecId={data.id}
-              initialPhanTram={Number(data.phan_tram_hoan_thanh ?? 0)}
-              hasChildren={false}
               onSuccess={() => {
                 fetchDetail();
                 onRefreshList?.();

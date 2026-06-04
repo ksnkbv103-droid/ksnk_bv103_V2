@@ -1,11 +1,12 @@
 // src/modules/giam-sat-vst/views/VSTPage.tsx
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BarChart2, FileText, History } from "lucide-react";
 import VSTForm from "../components/VSTForm";
-import HistoryLoader from "../components/HistoryLoader";
+import HistoryTable from "../components/HistoryTable";
 import { useVstAnalyticsData } from "../hooks/use-vst-analytics-data";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ import {
 } from "@/components/shared/ksnk-supervision-chrome";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 import { assertCanEditVSTSession } from "../actions/vst-write-delete.actions";
+import { parseSupervisionTab, type SupervisionTabId } from "@/lib/analytics/supervision-deep-link";
 
 const VstStrategicAnalyticsPanel = dynamic(() => import("../components/VstStrategicAnalyticsPanel"), {
   ssr: false,
@@ -35,9 +37,6 @@ function VstAnalyticsTab() {
       setTuNgay={d.setTuNgay}
       denNgay={d.denNgay}
       setDenNgay={d.setDenNgay}
-      bangKiemOptions={d.bangKiemOptions}
-      selectedBangKiemMas={d.selectedBangKiemMas}
-      setSelectedBangKiemMas={d.setSelectedBangKiemMas}
       khoiOptions={d.khoiOptions}
       selectedKhoiIds={d.selectedKhoiIds}
       setSelectedKhoiIds={d.setSelectedKhoiIds}
@@ -61,7 +60,9 @@ function VstAnalyticsTab() {
 }
 
 export default function VSTPage() {
-  const [activeTab, setActiveTab] = useState<"form" | "history" | "analytics">("form");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<SupervisionTabId>(() => parseSupervisionTab(searchParams.get("tab")));
   const [editVstSourceSessionId, setEditVstSourceSessionId] = useState<string | null>(null);
   const [editVstDetail, setEditVstDetail] = useState<{
     session: Record<string, unknown>;
@@ -69,6 +70,11 @@ export default function VSTPage() {
   } | null>(null);
   const { loading, allowed } = useModulePermission(MODULE_KEY);
   const showTabs = allowed.view;
+
+  useEffect(() => {
+    const fromUrl = parseSupervisionTab(searchParams.get("tab"));
+    setActiveTab((prev) => (prev === fromUrl ? prev : fromUrl));
+  }, [searchParams]);
 
   const supervisionTabs = useMemo((): SupervisionTabDef[] => {
     const core: SupervisionTabDef[] = [{ id: "form", label: "Form giám sát", icon: FileText }];
@@ -122,8 +128,9 @@ export default function VSTPage() {
             tabs={supervisionTabs}
             activeId={activeTab}
             onChange={(id) => {
-              const next = id as typeof activeTab;
+              const next = id as SupervisionTabId;
               setActiveTab(next);
+              router.replace(`/giam-sat-vst?tab=${next}`, { scroll: false });
               if (next === "history") {
                 setEditVstSourceSessionId(null);
                 setEditVstDetail(null);
@@ -149,7 +156,7 @@ export default function VSTPage() {
 
         {activeTab === "history" && showTabs && (
           <div className="app-data-shell overflow-hidden p-2">
-            <HistoryLoader onEditSessionId={handleEditSession} />
+            <HistoryTable onEditSessionId={handleEditSession} />
           </div>
         )}
 

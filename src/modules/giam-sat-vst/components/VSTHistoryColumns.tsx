@@ -4,6 +4,7 @@
 import React from "react";
 import { Column } from "@/components/shared/AdvancedDataTable";
 import { vstSessionDisplayRef } from "../lib/vst-display-ref";
+import { formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
 import { classifyVstAction } from "../lib/vst-action-classifier";
 import type { VstHistoryRow } from "../lib/vst-read-utils";
 
@@ -110,10 +111,11 @@ export function getVSTHistoryColumns(
             ? compliantFromView
             : (s.observations || []).filter((o: { hanh_dong?: string }) => classifyVstAction(o.hanh_dong).isCompliant).length;
         if (total <= 0) return <span className="text-xs text-slate-400">—</span>;
-        const rate = Math.round((compliant / total) * 100);
+        const rateLabel = formatPercent2FromRatio(compliant, total);
+        const rateNum = total > 0 ? (compliant / total) * 100 : 0;
         return (
-          <span className={`text-xs font-bold ${rate >= 80 ? "text-emerald-700" : rate >= 50 ? "text-amber-600" : "text-red-600"}`}>
-            {rate}%
+          <span className={`text-xs font-bold ${rateNum >= 80 ? "text-emerald-700" : rateNum >= 50 ? "text-amber-600" : "text-red-600"}`}>
+            {rateLabel}
           </span>
         );
       }

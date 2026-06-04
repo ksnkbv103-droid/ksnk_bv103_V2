@@ -14,6 +14,7 @@ import {
   evaluateUtiCauti,
   evaluateSsi
 } from "../lib/nkbv-rules-engine";
+import { resolveCssdQuyTrinhLinkFromMaQr } from "@/lib/cssd-nkbv-trace";
 
 type Payload = Record<string, unknown>;
 
@@ -32,7 +33,7 @@ async function validateLoaiTrangAndLyDo(
   ly_do_loai_tru: unknown,
 ) {
   const { data: tt, error: et } = await supabase
-    .from("dm_trang_thai_nkbv_ca")
+    .from("nkbv_dm_trang_thai_ca")
     .select("id, ma_trang_thai")
     .eq("id", trang_thai_id)
     .eq("is_active", true)
@@ -41,7 +42,7 @@ async function validateLoaiTrangAndLyDo(
   if (!tt?.id) throw new Error("Trạng thái phiếu không hợp lệ.");
 
   const { data: lo, error: el } = await supabase
-    .from("dm_loai_nkbv")
+    .from("nkbv_dm_loai")
     .select("id")
     .eq("id", loai_nkbv_id)
     .eq("is_active", true)
@@ -87,10 +88,10 @@ export async function createGiamSatNkbvCa(payload: Payload) {
       raw.nguoi_ghi_id = await normalizeHoSoNhanVienOptionalOrThrow(supabase, finalNguoiGhiId, "Người ghi");
     } else raw.nguoi_ghi_id = null;
 
-    // 1. Ensure stay exists in fact_nkbv_benh_an first
+    // 1. Ensure stay exists in nkbv_fact_benh_an first
     const cleanMaBenhAn = String(raw.ma_benh_an || `BA-TEMP-${raw.ma_benh_nhan || 'UNKNOWN'}`).trim();
     const { data: existingStay } = await supabase
-      .from("fact_nkbv_benh_an")
+      .from("nkbv_fact_benh_an")
       .select("id")
       .eq("ma_benh_an", cleanMaBenhAn)
       .eq("is_active", true)
@@ -108,7 +109,7 @@ export async function createGiamSatNkbvCa(payload: Payload) {
         is_active: true,
       };
       const { error: stayErr } = await supabase
-        .from("fact_nkbv_benh_an")
+        .from("nkbv_fact_benh_an")
         .insert(stayRow);
       if (stayErr) throw stayErr;
     }
@@ -141,7 +142,7 @@ export async function createGiamSatNkbvCa(payload: Payload) {
       is_active: true,
     };
 
-    const { data, error } = await supabase.from("fact_nkbv_su_kien").insert(insertRow).select().single();
+    const { data, error } = await supabase.from("nkbv_fact_su_kien").insert(insertRow).select().single();
     if (error) return { success: false as const, error: error.message };
     revalidatePath("/giam-sat-nkbv");
     return { success: true as const, data };
@@ -210,7 +211,7 @@ export async function updateGiamSatNkbvCa(id: string, payload: Payload) {
     if (raw.vi_sinh_record_id !== undefined) patch.vi_sinh_record_id = raw.vi_sinh_record_id;
     if (raw.verification_data !== undefined) patch.verification_data = raw.verification_data;
 
-    const { data, error } = await supabase.from("fact_nkbv_su_kien").update(patch).eq("id", id).select().single();
+    const { data, error } = await supabase.from("nkbv_fact_su_kien").update(patch).eq("id", id).select().single();
     if (error) return { success: false as const, error: error.message };
     revalidatePath("/giam-sat-nkbv");
     return { success: true as const, data };
@@ -224,7 +225,7 @@ export async function softDeleteGiamSatNkbvCa(id: string) {
   await verifyPermission("GIAM_SAT_NKBV", "delete");
   const supabase = createAdminSupabaseClient();
   const { error } = await supabase
-    .from("fact_nkbv_su_kien")
+    .from("nkbv_fact_su_kien")
     .update({ is_active: false, updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) return { success: false as const, error: error.message };
@@ -253,7 +254,7 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
   const supabase = createAdminSupabaseClient();
   
   try {
-    // 1. Ensure unique stayed medical records exist in fact_nkbv_benh_an
+    // 1. Ensure unique stayed medical records exist in nkbv_fact_benh_an
     const uniqueStays = Array.from(
       new Map(
         records.map((r) => [
@@ -274,7 +275,7 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
 
     for (const stay of uniqueStays) {
       const { data: existingStay } = await supabase
-        .from("fact_nkbv_benh_an")
+        .from("nkbv_fact_benh_an")
         .select("id")
         .eq("ma_benh_an", stay.ma_benh_an)
         .eq("is_active", true)
@@ -282,7 +283,7 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
 
       if (!existingStay) {
         const { error: stayErr } = await supabase
-          .from("fact_nkbv_benh_an")
+          .from("nkbv_fact_benh_an")
           .insert(stay);
         if (stayErr) throw stayErr;
       }
@@ -319,7 +320,7 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
     }
 
     const { data: existingRecords, error: fetchErr } = await supabase
-      .from("fact_nkbv_vi_sinh")
+      .from("nkbv_fact_vi_sinh")
       .select("metadata")
       .eq("is_active", true);
     
@@ -338,7 +339,7 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
     }
 
     const { data: insertedRecords, error: insertErr } = await supabase
-      .from("fact_nkbv_vi_sinh")
+      .from("nkbv_fact_vi_sinh")
       .insert(filteredRecords)
       .select();
 
@@ -346,12 +347,12 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
 
     // Fetch active NKBV categories and statuses
     const { data: categories } = await supabase
-      .from("dm_loai_nkbv")
+      .from("nkbv_dm_loai")
       .select("id, ma_loai, ten_loai")
       .eq("is_active", true);
 
     const { data: statusRow } = await supabase
-      .from("dm_trang_thai_nkbv_ca")
+      .from("nkbv_dm_trang_thai_ca")
       .select("id")
       .eq("ma_trang_thai", "DANG_GHI_NHAN")
       .eq("is_active", true)
@@ -360,7 +361,7 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
     let defaultStatusId = statusRow?.id;
     if (!defaultStatusId) {
       const { data: altStatus } = await supabase
-        .from("dm_trang_thai_nkbv_ca")
+        .from("nkbv_dm_trang_thai_ca")
         .select("id")
         .eq("ma_trang_thai", "CHO_XAC_NHAN")
         .eq("is_active", true)
@@ -369,7 +370,7 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
     }
     if (!defaultStatusId) {
       const { data: firstStatus } = await supabase
-        .from("dm_trang_thai_nkbv_ca")
+        .from("nkbv_dm_trang_thai_ca")
         .select("id")
         .eq("is_active", true)
         .limit(1)
@@ -413,7 +414,7 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
     // Query active events for the stayed records in these imports for RIT 14-day check
     const importedStayIds = Array.from(new Set(insertedRecords.map((r) => r.ma_benh_an).filter(Boolean)));
     const { data: existingEvents } = await supabase
-      .from("fact_nkbv_su_kien")
+      .from("nkbv_fact_su_kien")
       .select("id, ma_benh_an, ngay_phat_hien, tac_nhan_vi_khuan, clinical_notes")
       .in("ma_benh_an", importedStayIds)
       .eq("is_active", true);
@@ -529,7 +530,7 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
     // Execute updates
     for (const update of eventsToUpdate) {
       const { error: updErr } = await supabase
-        .from("fact_nkbv_su_kien")
+        .from("nkbv_fact_su_kien")
         .update(update.patch)
         .eq("id", update.id);
       if (updErr) throw updErr;
@@ -538,7 +539,7 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
     // Execute inserts
     if (casesToInsert.length > 0) {
       const { error: casesErr } = await supabase
-        .from("fact_nkbv_su_kien")
+        .from("nkbv_fact_su_kien")
         .insert(casesToInsert);
       if (casesErr) {
         throw new Error("Lỗi tự động tạo sự kiện giám sát từ vi sinh LIS: " + casesErr.message);
@@ -564,7 +565,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
   try {
     if (viTriNhiemKhuan === "LOAI_TRU") {
       const excludeStatus = await supabase
-        .from("dm_trang_thai_nkbv_ca")
+        .from("nkbv_dm_trang_thai_ca")
         .select("id")
         .eq("ma_trang_thai", "LOAI_TRU")
         .eq("is_active", true)
@@ -578,7 +579,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       };
 
       const { data, error: updateErr } = await supabase
-        .from("fact_nkbv_su_kien")
+        .from("nkbv_fact_su_kien")
         .update({
           trang_thai_id: excludeStatus!.id,
           clinical_notes: updatedNotes,
@@ -627,7 +628,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
     let loaiNkbvId = undefined;
     if (loaiCode) {
       const { data: matchedLoai } = await supabase
-        .from("dm_loai_nkbv")
+        .from("nkbv_dm_loai")
         .select("id")
         .or(`ma_loai.ilike.%${loaiCode}%,ma_loai.ilike.%${viTriNhiemKhuan}%`)
         .eq("is_active", true)
@@ -640,7 +641,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
     }
 
     let lookupStatus = await supabase
-      .from("dm_trang_thai_nkbv_ca")
+      .from("nkbv_dm_trang_thai_ca")
       .select("id")
       .eq("ma_trang_thai", "CHO_DUYET")
       .eq("is_active", true)
@@ -649,7 +650,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
 
     if (!lookupStatus) {
       lookupStatus = await supabase
-        .from("dm_trang_thai_nkbv_ca")
+        .from("nkbv_dm_trang_thai_ca")
         .select("id")
         .eq("ma_trang_thai", "CHO_XAC_NHAN")
         .eq("is_active", true)
@@ -666,15 +667,31 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       reason: result.reason,
     };
 
+    const patch: Record<string, unknown> = {
+      verification_data,
+      trang_thai_id: lookupStatus!.id,
+      vi_tri_nhiem_khuan: mappedViTri || undefined,
+      ...(loaiNkbvId && { loai_nkbv_id: loaiNkbvId }),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (viTriNhiemKhuan === "SSI") {
+      const maQr = String(verificationInput?.ma_qr_cssd_lien_quan || "").trim();
+      if (maQr) {
+        const link = await resolveCssdQuyTrinhLinkFromMaQr(supabase, maQr);
+        if (link) {
+          patch.quy_trinh_id = link.quy_trinh_id;
+          patch.lo_tiet_khuan_id = link.lo_tiet_khuan_id;
+          patch.ma_cycle_qr_lien_quan = link.ma_qr;
+        } else {
+          patch.ma_cycle_qr_lien_quan = maQr.toUpperCase();
+        }
+      }
+    }
+
     const { data, error: updateErr } = await supabase
-      .from("fact_nkbv_su_kien")
-      .update({
-        verification_data,
-        trang_thai_id: lookupStatus!.id,
-        vi_tri_nhiem_khuan: mappedViTri || undefined,
-        ...(loaiNkbvId && { loai_nkbv_id: loaiNkbvId }),
-        updated_at: new Date().toISOString(),
-      })
+      .from("nkbv_fact_su_kien")
+      .update(patch)
       .eq("id", id)
       .select()
       .single();
@@ -682,6 +699,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
     if (updateErr) throw updateErr;
 
     revalidatePath("/giam-sat-nkbv");
+    revalidatePath("/cssd-quy-trinh");
     return { success: true as const, data, evaluation: result };
   } catch (e: any) {
     return { success: false as const, error: e.message || "Lỗi lưu xác minh triệu chứng" };
@@ -697,7 +715,7 @@ export async function approveOrExcludeNkbvCase(id: string, decision: "APPROVE" |
     const statusCode = decision === "APPROVE" ? "XAC_NHAN" : "LOAI_TRU";
     
     const { data: lookupStatus, error: lErr } = await supabase
-      .from("dm_trang_thai_nkbv_ca")
+      .from("nkbv_dm_trang_thai_ca")
       .select("id")
       .eq("ma_trang_thai", statusCode)
       .eq("is_active", true)
@@ -706,7 +724,7 @@ export async function approveOrExcludeNkbvCase(id: string, decision: "APPROVE" |
     if (!lookupStatus) throw new Error(`Không tìm thấy trạng thái ${statusCode}.`);
 
     const { data: ca, error: fetchErr } = await supabase
-      .from("fact_nkbv_su_kien")
+      .from("nkbv_fact_su_kien")
       .select("clinical_notes")
       .eq("id", id)
       .single();
@@ -719,7 +737,7 @@ export async function approveOrExcludeNkbvCase(id: string, decision: "APPROVE" |
     };
 
     const { data, error: updateErr } = await supabase
-      .from("fact_nkbv_su_kien")
+      .from("nkbv_fact_su_kien")
       .update({
         trang_thai_id: lookupStatus.id,
         clinical_notes: updatedNotes,

@@ -1,4 +1,4 @@
-// Các trường nhập khớp cột dm_bang_kiem trong database.
+// Các trường nhập khớp cột gstt_dm_bang_kiem trong database.
 "use client";
 
 import React from "react";

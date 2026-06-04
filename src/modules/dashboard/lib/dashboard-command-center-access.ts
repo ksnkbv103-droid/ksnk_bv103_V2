@@ -9,12 +9,13 @@ const CC_OR_LEGACY_VIEW = [
   { moduleKey: DASHBOARD_CC_WIDGET.GAP, action: "view" },
 ] as const;
 
-/** Vào Command Center: ít nhất một widget (hoặc DASHBOARD cũ) + ít nhất một nguồn giám sát để dữ liệu có nghĩa. */
+/** Vào Command Center / báo cáo tổng hợp: widget CC (hoặc DASHBOARD cũ) + ít nhất một nguồn giám sát. */
 export async function verifyCommandCenterShell() {
   await verifyAnyPermission([...CC_OR_LEGACY_VIEW]);
   await verifyAnyPermission([
     { moduleKey: "GIAM_SAT_CHUNG", action: "view" },
     { moduleKey: "GIAM_SAT_VST", action: "view" },
+    { moduleKey: "GIAM_SAT_NKBV", action: "view" },
   ]);
 }
 
@@ -23,4 +24,9 @@ export async function verifyDashboardOverviewWidget() {
     { moduleKey: "DASHBOARD", action: "view" },
     { moduleKey: DASHBOARD_CC_WIDGET.OVERVIEW, action: "view" },
   ]);
+}
+
+/** Báo cáo tổng hợp — cùng policy shell với Command Center. */
+export async function verifyBaoCaoTongHopShell() {
+  await verifyCommandCenterShell();
 }

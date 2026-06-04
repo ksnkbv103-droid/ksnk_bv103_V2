@@ -63,7 +63,7 @@ export function buildGenericDmColumns(
       headerClassName: "w-[14%] whitespace-nowrap",
       cellClassName: "whitespace-nowrap align-middle",
       cell: (row) => (
-        <span className="text-[9px] font-bold text-slate-400 uppercase italic">
+        <span className="text-[11px] font-bold text-slate-400 uppercase italic">
           {row.updated_at ? new Date(String(row.updated_at)).toLocaleDateString("vi-VN") : "---"}
         </span>
       )
@@ -98,7 +98,7 @@ export function buildGenericDmColumns(
             )}
           </div>
         ) : (
-          <span className="text-[9px] font-bold uppercase text-slate-300">—</span>
+          <span className="text-[11px] font-bold uppercase text-slate-300">—</span>
         ),
     },
   ];

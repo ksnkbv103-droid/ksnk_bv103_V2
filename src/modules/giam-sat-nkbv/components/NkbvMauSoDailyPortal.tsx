@@ -168,7 +168,7 @@ export default function NkbvMauSoDailyPortal({
       </div>
 
       {subTab === "daily" ? (
-        <form onSubmit={handleDailySubmit} className="premium-card rounded-[32px] border border-slate-100 bg-white p-6 shadow-xl space-y-6">
+        <form onSubmit={handleDailySubmit} className="premium-card rounded-2xl border border-slate-100 bg-white p-6 shadow-xl space-y-6">
           <div className="border-b border-slate-100 pb-4">
             <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
               <Activity className="h-5 w-5 text-[#026f17]" /> 
@@ -311,7 +311,7 @@ export default function NkbvMauSoDailyPortal({
           </div>
         </form>
       ) : (
-        <form onSubmit={handleSurgerySubmit} className="premium-card rounded-[32px] border border-slate-100 bg-white p-6 shadow-xl space-y-6">
+        <form onSubmit={handleSurgerySubmit} className="premium-card rounded-2xl border border-slate-100 bg-white p-6 shadow-xl space-y-6">
           <div className="border-b border-slate-100 pb-4">
             <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
               <Plus className="h-5 w-5 text-[#026f17]" /> 

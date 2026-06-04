@@ -26,6 +26,9 @@ import {
 import type { MdmFieldRegistryRow, MdmSuggestionRow, MdmCoverageRow } from "@/lib/master-data/governance";
 import MdmSuggestionApproveModal from "../components/MdmSuggestionApproveModal";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
+import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
+import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 export default function MdmGovernanceView() {
   const [loading, setLoading] = useState(true);
@@ -167,7 +170,7 @@ export default function MdmGovernanceView() {
       header: "VAI TRÒ TRƯỜNG",
       accessorKey: "field_role",
       cell: (r) => (
-        <span className="inline-flex px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-slate-100 text-slate-600">
+        <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-black uppercase bg-slate-100 text-slate-600">
           {r.field_role}
         </span>
       )
@@ -185,7 +188,7 @@ export default function MdmGovernanceView() {
       header: "BẮT BUỘC?",
       accessorKey: "is_required",
       cell: (r) => (
-        <span className={`inline-flex px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${r.is_required ? "bg-amber-50 text-amber-600 border border-amber-200" : "bg-slate-50 text-slate-400"}`}>
+        <span className={`inline-flex px-1.5 py-0.5 rounded text-[11px] font-bold uppercase ${r.is_required ? "bg-amber-50 text-amber-600 border border-amber-200" : "bg-slate-50 text-slate-400"}`}>
           {r.is_required ? "Required" : "Optional"}
         </span>
       )
@@ -201,11 +204,11 @@ export default function MdmGovernanceView() {
           title={r.is_active ? "Trigger đang BẬT. Click để TẮT" : "Trigger đang TẮT. Click để BẬT"}
         >
           {r.is_active ? (
-            <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase text-emerald-600">
+            <span className="inline-flex items-center gap-1 text-[11px] font-black uppercase text-emerald-600">
               <ToggleRight className="w-6 h-6" /> ACTIVE
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase text-slate-400">
+            <span className="inline-flex items-center gap-1 text-[11px] font-black uppercase text-slate-400">
               <ToggleLeft className="w-6 h-6" /> INACTIVE
             </span>
           )}
@@ -233,22 +236,25 @@ export default function MdmGovernanceView() {
       <div className="flex h-[40vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-10 h-10 text-emerald-600 animate-spin" />
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Đang tải Snapshot Giám trị...</span>
+          <span className={bv103DesignTokens.labelBlockMuted}>Đang tải Snapshot Giám trị…</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 text-xs">
-      
+    <div className={`${bv103DesignTokens.pageOuter} text-sm`}>
+      <KsnkPageHeader
+        title="Giám trị MDM"
+        subtitle="Registry bảo vệ cột, gợi ý phê duyệt và tỷ lệ phủ master data."
+      />
+
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Coverage Score */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
-          <div className="space-y-1.5 flex-1 pr-4">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tỷ lệ Phủ MDM (Coverage)</p>
-            <p className="text-3xl font-black text-slate-800">{stats.coverageScore}%</p>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className={`${bv103LayoutChrome.panelShellPadded} flex items-center justify-between`}>
+          <div className="flex-1 space-y-1.5 pr-4">
+            <p className={bv103DesignTokens.labelBlockMuted}>Tỷ lệ phủ MDM</p>
+            <p className="text-3xl font-semibold text-slate-800">{stats.coverageScore}%</p>
             <div className="w-full bg-slate-100 rounded-full h-1.5">
               <div 
                 className="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" 
@@ -261,28 +267,28 @@ export default function MdmGovernanceView() {
           </div>
         </div>
 
-        {/* Active trigger check constraints */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
+        <div className={`${bv103LayoutChrome.panelShellPadded} flex items-center justify-between`}>
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Trigger Bảo vệ Hoạt động</p>
-            <p className="text-3xl font-black text-teal-600 mt-1">{stats.activeTriggers} / {stats.totalReg}</p>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Đảm bảo an toàn dữ liệu động</p>
+            <p className={bv103DesignTokens.labelBlockMuted}>Trigger bảo vệ hoạt động</p>
+            <p className="mt-1 text-3xl font-semibold text-teal-600">
+              {stats.activeTriggers} / {stats.totalReg}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">An toàn dữ liệu động</p>
           </div>
           <div className="h-12 w-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 shrink-0">
             <Zap className="w-6 h-6" />
           </div>
         </div>
 
-        {/* Scan & suggestions */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
+        <div className={`${bv103LayoutChrome.panelShellPadded} flex items-center justify-between`}>
           <div className="space-y-1.5">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gợi ý cần Phê duyệt</p>
-            <p className="text-3xl font-black text-amber-500">{stats.pendingSug}</p>
+            <p className={bv103DesignTokens.labelBlockMuted}>Gợi ý cần phê duyệt</p>
+            <p className="text-3xl font-semibold text-amber-500">{stats.pendingSug}</p>
             <button
               type="button"
               onClick={handleRefreshSuggestions}
               disabled={refreshing}
-              className="inline-flex items-center gap-1 text-[9px] font-black uppercase text-emerald-600 hover:text-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {refreshing ? (
                 <Loader2 className="w-3 h-3 animate-spin shrink-0" />
@@ -298,15 +304,13 @@ export default function MdmGovernanceView() {
         </div>
       </div>
 
-      {/* Navigation Subtabs & Main Panel */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col min-h-[500px]">
-        {/* Subtabs header */}
-        <div className="flex border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-4 py-2 justify-between items-center">
+      <div className={`overflow-hidden ${bv103LayoutChrome.panelSurface} flex min-h-[500px] flex-col`}>
+        <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-4 py-2">
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => setSubTab("REGISTRY")}
-              className={`px-4 py-2 rounded-lg text-[10px] font-extrabold uppercase tracking-wider transition-all flex items-center gap-2 ${subTab === "REGISTRY" ? "bg-[#026f17] text-white" : "text-slate-500 hover:bg-slate-100"}`}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${subTab === "REGISTRY" ? "bg-[var(--primary)] text-white" : "text-slate-500 hover:bg-slate-100"}`}
             >
               <Layers className="w-3.5 h-3.5" />
               Registry bảo vệ ({registry.length})
@@ -314,7 +318,7 @@ export default function MdmGovernanceView() {
             <button
               type="button"
               onClick={() => setSubTab("SUGGESTIONS")}
-              className={`px-4 py-2 rounded-lg text-[10px] font-extrabold uppercase tracking-wider transition-all flex items-center gap-2 ${subTab === "SUGGESTIONS" ? "bg-amber-500 text-white" : "text-slate-500 hover:bg-slate-100"}`}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${subTab === "SUGGESTIONS" ? "bg-amber-500 text-white" : "text-slate-500 hover:bg-slate-100"}`}
             >
               <AlertTriangle className="w-3.5 h-3.5" />
               Gợi ý chuẩn hóa ({suggestions.length})
@@ -332,7 +336,7 @@ export default function MdmGovernanceView() {
               <div className="p-3.5 bg-emerald-50/20 border border-emerald-100 rounded-xl flex items-start gap-2.5">
                 <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <p className="text-slate-600 leading-relaxed text-[11px]">
-                  Danh sách dưới đây liệt kê các trường khóa ngoại trỏ tới <strong>dm_lookup_value</strong> được giám sát toàn vẹn. Mỗi khi bạn bật kích hoạt (ACTIVE), trigger <code>fn_mdm_validate_lookup_integrity</code> ở Postgres sẽ tự động kiểm soát khớp loại danh mục bắt buộc và chặn đứng ghi đè dữ liệu rác.
+                  Danh sách dưới đây liệt kê các trường khóa ngoại trỏ tới <strong>sys_lookup_value</strong> được giám sát toàn vẹn. Mỗi khi bạn bật kích hoạt (ACTIVE), trigger <code>fn_mdm_validate_lookup_integrity</code> ở Postgres sẽ tự động kiểm soát khớp loại danh mục bắt buộc và chặn đứng ghi đè dữ liệu rác.
                 </p>
               </div>
               <AdvancedDataTable
@@ -372,7 +376,7 @@ export default function MdmGovernanceView() {
                             <span className="font-mono font-black text-slate-700 text-xs truncate max-w-[200px] block">{s.table_name}</span>
                             <span className="font-mono font-bold text-amber-600 text-[11px] block mt-0.5">↳ {s.column_name}</span>
                           </div>
-                          <span className={`inline-flex px-2 py-0.5 rounded text-[8px] font-extrabold uppercase ${s.suggestion_type === "REGISTER_FK" ? "bg-amber-100 text-amber-700 border border-amber-200" : "bg-cyan-50 text-cyan-600 border border-cyan-200"}`}>
+                          <span className={`inline-flex px-2 py-0.5 rounded text-[11px] font-extrabold uppercase ${s.suggestion_type === "REGISTER_FK" ? "bg-amber-100 text-amber-700 border border-amber-200" : "bg-cyan-50 text-cyan-600 border border-cyan-200"}`}>
                             {s.suggestion_type}
                           </span>
                         </div>
@@ -396,14 +400,14 @@ export default function MdmGovernanceView() {
                         <button
                           type="button"
                           onClick={() => handleRejectSuggestion(s)}
-                          className="px-3 py-1.5 border border-slate-200 hover:bg-slate-50 hover:text-slate-600 rounded-lg font-extrabold text-[9px] uppercase tracking-wider transition-colors text-slate-400"
+                          className="px-3 py-1.5 border border-slate-200 hover:bg-slate-50 hover:text-slate-600 rounded-lg font-extrabold text-[11px] uppercase tracking-wider transition-colors text-slate-400"
                         >
                           Bỏ qua
                         </button>
                         <button
                           type="button"
                           onClick={() => handleOpenApprove(s)}
-                          className="flex items-center gap-1 px-4 py-1.5 bg-[#026f17] hover:bg-[#015a12] text-white rounded-lg font-extrabold text-[9px] uppercase tracking-wider transition-all shadow-sm active:translate-y-[1px]"
+                          className="flex items-center gap-1 px-4 py-1.5 bg-[#026f17] hover:bg-[#015a12] text-white rounded-lg font-extrabold text-[11px] uppercase tracking-wider transition-all shadow-sm active:translate-y-[1px]"
                         >
                           <Plus className="w-3 h-3 shrink-0" />
                           Thiết lập Bảo vệ

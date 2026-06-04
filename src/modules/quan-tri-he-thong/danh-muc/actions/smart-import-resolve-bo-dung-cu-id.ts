@@ -17,7 +17,7 @@ export async function resolveBoDungCuIdForImport(
   const maLookup = boRaw && !UUID_RE.test(boRaw) ? boRaw.toUpperCase() : maBo;
   if (maLookup) {
     const { data, error } = await sb
-      .from("dm_bo_dung_cu")
+      .from("cssd_dm_bo_dung_cu")
       .select("id, ma_bo, ten_bo")
       .eq("ma_bo", maLookup)
       .limit(1)
@@ -27,7 +27,7 @@ export async function resolveBoDungCuIdForImport(
   }
   if (!ref && tenBo) {
     const { data, error } = await sb
-      .from("dm_bo_dung_cu")
+      .from("cssd_dm_bo_dung_cu")
       .select("id, ma_bo, ten_bo")
       .eq("ten_bo", tenBo)
       .limit(1)
@@ -40,7 +40,7 @@ export async function resolveBoDungCuIdForImport(
     if (!autoMa)
       return { ok: false, error: `Không tìm thấy bộ cha từ bo_dung_cu_id/ma_bo_cha/ten_bo_cha (${boRaw || maBo || tenBo}).` };
     const { data: created, error } = await sb
-      .from("dm_bo_dung_cu")
+      .from("cssd_dm_bo_dung_cu")
       .insert([{ ma_bo: autoMa, ten_bo: `Bộ ${autoMa}`, trang_thai: "ACTIVE", is_active: true }])
       .select("id, ma_bo, ten_bo")
       .single();

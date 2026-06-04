@@ -84,7 +84,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
       ) : process ? (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Card thông tin tóm tắt */}
-          <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 flex items-center justify-between overflow-hidden relative">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between overflow-hidden relative">
             <div className="relative z-10">
               <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-1">{process.ma_vach_qr}</h3>
               <p className="text-[10px] font-black text-[#026f17] uppercase tracking-widest flex items-center gap-2">
@@ -115,7 +115,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
                     <span className={`text-[10px] font-black uppercase tracking-widest ${log.hanh_dong === 'REPORT_INCIDENT' ? 'text-red-600' : 'text-[#026f17]'}`}>
                       TRẠM {String(log.tram || "").replace(/_/g, " ")}
                     </span>
-                    <span className="text-[9px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-full">
+                    <span className="text-[11px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-full">
                       {new Date(log.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
                     </span>
                   </div>
@@ -125,7 +125,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
                   </p>
                   <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-50">
                     <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-slate-400"><User size={12} /></div>
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Nhân viên khoa KSNK</span>
+                    <span className="text-[11px] font-black text-slate-400 uppercase tracking-tighter">Nhân viên khoa KSNK</span>
                   </div>
                 </div>
               </div>
@@ -139,7 +139,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
           </div>
           <div className="space-y-1">
             <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em]">Chưa có dữ liệu</p>
-            <p className="text-[9px] font-bold text-slate-300 uppercase">Vui lòng nhập hoặc quét mã để truy vết</p>
+            <p className="text-[11px] font-bold text-slate-300 uppercase">Vui lòng nhập hoặc quét mã để truy vết</p>
           </div>
         </div>
       )}

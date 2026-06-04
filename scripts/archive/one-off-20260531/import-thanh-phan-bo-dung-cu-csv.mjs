@@ -1,11 +1,11 @@
 /**
- * Import CSSD_Management - DM_ThanhPhanBoDungCu.csv → dm_bo_dung_cu_chi_tiet.
- * - Link: MaBo → bo_dung_cu_id, MaLoai → dm_loai_dung_cu.ma_loai.
+ * Import CSSD_Management - DM_ThanhPhanBoDungCu.csv → cssd_dm_bo_dung_cu_chi_tiet.
+ * - Link: MaBo → bo_dung_cu_id, MaLoai → cssd_dm_loai_dung_cu.ma_loai.
  * - Xóa toàn bộ chi tiết của các ma_bo có trong CSV, rồi insert lại (đồng bộ đúng bộ — CSV là nguồn đúng).
- * - MaLoai trống: tự tạo dm_loai_dung_cu mã IMPORT_TP_{số_dòng}.
+ * - MaLoai trống: tự tạo cssd_dm_loai_dung_cu mã IMPORT_TP_{số_dòng}.
  * - Trùng (MaBo+MaThanhPhan): hậu tố _n trong ma_chi_tiet (≤50 ký tự).
  *
- * Mặc định bỏ qua dòng thiếu ma_bo trong dm_bo_dung_cu (cảnh báo).
+ * Mặc định bỏ qua dòng thiếu ma_bo trong cssd_dm_bo_dung_cu (cảnh báo).
  * `--strict`: dừng nếu thiếu bất kỳ MaBo / MaLoai nào trong DB (chưa gồm IMPORT_TP_* sẽ tạo).
  *
  * node --env-file=.env.local scripts/import-thanh-phan-bo-dung-cu-csv.mjs [/path/file.csv] [--strict]
@@ -161,7 +161,7 @@ for (let r = 1; r < grid.length; r++) {
 }
 
 const distinctMasAll = [...new Set(parsed.map((p) => p.ma_bo))];
-const { data: bos, error: eb } = await supabase.from("dm_bo_dung_cu").select("id,ma_bo").in("ma_bo", distinctMasAll);
+const { data: bos, error: eb } = await supabase.from("cssd_dm_bo_dung_cu").select("id,ma_bo").in("ma_bo", distinctMasAll);
 if (eb) throw eb;
 const boIdByMa = new Map((bos || []).map((b) => [String(b.ma_bo).trim(), b.id]));
 
@@ -174,7 +174,7 @@ const distinctMas = [...new Set(parsedOkBo.map((p) => p.ma_bo))];
 
 if (missingBo.length && strictBo) {
   console.error(
-    "Thiếu dm_bo_dung_cu.ma_bo (--strict):",
+    "Thiếu cssd_dm_bo_dung_cu.ma_bo (--strict):",
     missingBo.slice(0, 40).join(", "),
     missingBo.length > 40 ? `… (${missingBo.length})` : "",
   );
@@ -182,7 +182,7 @@ if (missingBo.length && strictBo) {
 }
 if (missingBo.length && !strictBo) {
   console.warn(
-    `Bỏ qua ${skippedLinesOnBo} dòng vì không có dm_bo_dung_cu: ${missingBo.slice(0, 30).join(", ")}${missingBo.length > 30 ? ` … (+${missingBo.length - 30} mã bộ)` : ""}`,
+    `Bỏ qua ${skippedLinesOnBo} dòng vì không có cssd_dm_bo_dung_cu: ${missingBo.slice(0, 30).join(", ")}${missingBo.length > 30 ? ` … (+${missingBo.length - 30} mã bộ)` : ""}`,
   );
 }
 
@@ -216,7 +216,7 @@ const synthRows = [...synthByLine.entries()].map(([line, ma]) => {
   };
 });
 if (synthRows.length) {
-  const { error: eu } = await supabase.from("dm_loai_dung_cu").upsert(synthRows, { onConflict: "ma_loai" });
+  const { error: eu } = await supabase.from("cssd_dm_loai_dung_cu").upsert(synthRows, { onConflict: "ma_loai" });
   if (eu) {
     console.error("Upsert loại synth:", eu.message);
     process.exit(1);
@@ -228,7 +228,7 @@ const uniqLoai = [...new Set(loaiMas.filter(Boolean))];
 const loaiIdByMa = new Map();
 for (let j = 0; j < uniqLoai.length; j += 200) {
   const part = uniqLoai.slice(j, j + 200);
-  const { data: loais, error: el } = await supabase.from("dm_loai_dung_cu").select("id,ma_loai").in("ma_loai", part);
+  const { data: loais, error: el } = await supabase.from("cssd_dm_loai_dung_cu").select("id,ma_loai").in("ma_loai", part);
   if (el) throw el;
   for (const row of loais || []) loaiIdByMa.set(String(row.ma_loai).trim(), row.id);
 }
@@ -240,7 +240,7 @@ for (const ml of loaiMas) {
   if (!loaiIdByMa.has(ml)) missingLo.push(ml);
 }
 if (missingLo.length) {
-  console.error("Thiếu dm_loai_dung_cu.ma_loai (đã import DM_LoaiDungCu trước?):", [...new Set(missingLo)].slice(0, 25).join(", "));
+  console.error("Thiếu cssd_dm_loai_dung_cu.ma_loai (đã import DM_LoaiDungCu trước?):", [...new Set(missingLo)].slice(0, 25).join(", "));
   process.exit(1);
 }
 
@@ -292,7 +292,7 @@ const boIds = [...new Set([...distinctMas.map((m) => boIdByMa.get(m))])].filter(
 const CHUNK = 50;
 for (let i = 0; i < boIds.length; i += CHUNK) {
   const part = boIds.slice(i, i + CHUNK);
-  const { error: ed } = await supabase.from("dm_bo_dung_cu_chi_tiet").delete().in("bo_dung_cu_id", part);
+  const { error: ed } = await supabase.from("cssd_dm_bo_dung_cu_chi_tiet").delete().in("bo_dung_cu_id", part);
   if (ed) {
     console.error("Xóa chi tiết cũ:", ed.message);
     process.exit(1);
@@ -303,7 +303,7 @@ console.warn(`Đã xóa chi tiết của ${distinctMas.length} bộ (${boIds.len
 const BATCH = 200;
 for (let i = 0; i < inserts.length; i += BATCH) {
   const chunk = inserts.slice(i, i + BATCH);
-  const { error: ei } = await supabase.from("dm_bo_dung_cu_chi_tiet").insert(chunk);
+  const { error: ei } = await supabase.from("cssd_dm_bo_dung_cu_chi_tiet").insert(chunk);
   if (ei) {
     console.error(`Insert batch ${i / BATCH + 1}:`, ei.message);
     process.exit(1);

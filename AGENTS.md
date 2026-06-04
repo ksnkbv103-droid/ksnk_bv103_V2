@@ -22,6 +22,18 @@ Khi chạm vào code, hãy để lại nó sạch đẹp hơn — **trong phạm
 3. Security, Test Coverage, Observability
 4. Không tạo technical debt mới
 
+## Vận hành Cursor (agent)
+
+| Việc | Tài liệu / lệnh |
+|------|------------------|
+| Playbook đầy đủ | [`docs/core/cursor-operating-playbook.md`](docs/core/cursor-operating-playbook.md) |
+| Bắt đầu task | Slash command **`/intake`** (`.cursor/commands/intake.md`) — chưa code |
+| Sau khi duyệt plan | **`/implement`** |
+| Trước commit/PR | **`/review`** |
+| Intake + destructive gate | Rules `02-task-intake-freeze.mdc`, `62-destructive-change-gate.mdc` |
+
+Task trivial (typo, một dòng) — không bắt buộc `/intake`.
+
 ## Quy trình phát triển
 
 ### Làm theo mảnh (Vertical Slice)
@@ -74,6 +86,7 @@ Chi tiết: [`governance-pipeline.md`](docs/core/governance-pipeline.md), [`lean
 | Việc | Đọc |
 |------|------|
 | **Sửa code / migration / PR** | [`docs/README.md`](docs/README.md) → [`docs/core/read-minimum.md`](docs/core/read-minimum.md) → SSOT `core/*` |
+| **Cách dùng Cursor hiệu quả** | [`docs/core/cursor-operating-playbook.md`](docs/core/cursor-operating-playbook.md) + `/intake` → `/implement` → `/review` |
 | **Khám phá nghiệp vụ / câu hỏi tổng hợp** | [`docs/wiki/entities.md`](docs/wiki/entities.md) + [`docs/wiki/concepts.md`](docs/wiki/concepts.md) |
 | **Ingest / cập nhật / lint tài liệu wiki** | [`docs/wiki/WIKI_SCHEMA.md`](docs/wiki/WIKI_SCHEMA.md) (ingest · query · lint) + `log.md` |
 

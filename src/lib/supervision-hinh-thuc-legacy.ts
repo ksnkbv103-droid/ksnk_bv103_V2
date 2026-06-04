@@ -14,7 +14,7 @@ const norm = (v: string | null | undefined) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-/** Các biến thể legacy → nhãn chuẩn `dm_hinh_thuc_giam_sat`. */
+/** Các biến thể legacy → nhãn chuẩn `gstt_dm_hinh_thuc_giam_sat`. */
 export function resolveCanonicalHinhThucLabel(raw: string | null | undefined): string {
   const t = String(raw || "").trim();
   if (!t) return "";

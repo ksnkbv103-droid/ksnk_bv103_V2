@@ -2,6 +2,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Plus, Building2, FileSpreadsheet } from "lucide-react";
+import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
+import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { toast } from "sonner";
@@ -84,18 +86,31 @@ function KhoaPhongMasterPageContent() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm gap-4">
-        <div><h1 className="text-2xl font-black text-[#026f17] uppercase tracking-tighter flex items-center gap-3"><Building2 /> Khoa phòng & Đơn vị</h1><p className="text-slate-400 font-bold text-[9px] uppercase tracking-widest mt-1 italic leading-none">V5.0 FINAL — Standardized Sync</p></div>
-        <div className="flex gap-3 w-full sm:w-auto">
-          <button 
-            onClick={() => setImportModalOpen(true)} 
-            className="h-12 px-5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 touch-manipulation"
-          >
-            <FileSpreadsheet size={16} /> Nhập/Xuất Excel
-          </button>
-          <button onClick={() => { setEditing(null); setFormOpen(true); }} className="h-12 px-6 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase text-[10px] shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 hover:opacity-90 touch-manipulation"><Plus size={18} /> Thêm mới</button>
-        </div>
-      </header>
+      <KsnkPageHeader
+        title={
+          <span className="inline-flex items-center gap-2 text-[var(--primary)]">
+            <Building2 size={22} aria-hidden /> Khoa phòng &amp; Đơn vị
+          </span>
+        }
+        subtitle="Quản lý khoa, phòng và liên kết khối tổ chức — dữ liệu dùng chung cho giám sát và nhân sự."
+        actions={
+          <>
+            <button type="button" onClick={() => setImportModalOpen(true)} className={bv103DesignTokens.btnSecondary}>
+              <FileSpreadsheet size={16} aria-hidden /> Nhập/Xuất Excel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setEditing(null);
+                setFormOpen(true);
+              }}
+              className={bv103DesignTokens.btnPrimary}
+            >
+              <Plus size={16} aria-hidden /> Thêm mới
+            </button>
+          </>
+        }
+      />
       <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
         <AdvancedDataTable
           columns={columns}

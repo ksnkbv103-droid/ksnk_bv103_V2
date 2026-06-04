@@ -6,7 +6,8 @@ const mocks = vi.hoisted(() => ({
   verifyPermission: vi.fn(),
   hasBypass: vi.fn(),
   getActorNhanSuId: vi.fn(),
-  revalidatePath: vi.fn(),
+  revalidateGscPaths: vi.fn(),
+  assertLock: vi.fn(),
   from: vi.fn(),
   sessionsSelectIn: vi.fn(),
   sessionsDeleteIn: vi.fn(),
@@ -21,8 +22,12 @@ vi.mock("@/lib/actor-auth-server", () => ({
   getActorNhanSuId: mocks.getActorNhanSuId,
 }));
 
-vi.mock("next/cache", () => ({
-  revalidatePath: mocks.revalidatePath,
+vi.mock("../lib/revalidate-gsc-paths", () => ({
+  revalidateGscPaths: mocks.revalidateGscPaths,
+}));
+
+vi.mock("@/lib/supervision-module-lock", () => ({
+  assertSupervisionNotLockedForDate: mocks.assertLock,
 }));
 
 vi.mock("@/lib/supabase-server", () => ({
@@ -38,12 +43,20 @@ describe("deleteGiamSatChungSessions", () => {
     mocks.hasBypass.mockResolvedValue(false);
     mocks.getActorNhanSuId.mockResolvedValue("ns-01");
     mocks.sessionsSelectIn.mockResolvedValue({
-      data: [{ id: "s1", nguoi_giam_sat_id: "ns-01", is_active: true, created_at: "2020-01-01T00:00:00.000Z" }],
+      data: [
+        {
+          id: "s1",
+          nguoi_giam_sat_id: "ns-01",
+          is_active: true,
+          created_at: "2020-01-01T00:00:00.000Z",
+          ngay_giam_sat: "2020-01-01",
+        },
+      ],
       error: null,
     });
     mocks.sessionsDeleteIn.mockResolvedValue({ error: null });
     mocks.from.mockImplementation((table: string) => {
-      if (table === "fact_giam_sat_chung_sessions") {
+      if (table === "gstt_fact_chung_sessions" || table === "gstt_fact_chung_sessions") {
         return {
           select: () => ({ in: mocks.sessionsSelectIn }),
           delete: () => ({ in: mocks.sessionsDeleteIn }),
@@ -70,6 +83,6 @@ describe("deleteGiamSatChungSessions", () => {
 
     expect(result).toEqual({ success: true });
     expect(mocks.sessionsDeleteIn).toHaveBeenCalledWith("id", ["s1"]);
-    expect(mocks.revalidatePath).toHaveBeenCalledWith("/giam-sat-chung");
+    expect(mocks.revalidateGscPaths).toHaveBeenCalled();
   });
 });

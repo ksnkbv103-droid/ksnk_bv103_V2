@@ -125,13 +125,13 @@ export function DungCuChiTietPageContent() {
 
   const { exportTemplate, handleFileUpload, isImporting, triggerImport, fileInputRef } = useImportExport({
     moduleKey: "DC_LE",
-    tableName: "dm_bo_dung_cu_chi_tiet",
+    tableName: "cssd_dm_bo_dung_cu_chi_tiet",
     displayName: "Dụng cụ chi tiết",
     uniqueKey: "ma_chi_tiet",
     columnMapping: DC_CHI_TIET_COLUMN_MAP,
-    onGetData: () => getMasterDataExport("dm_bo_dung_cu_chi_tiet", "ma_chi_tiet"),
+    onGetData: () => getMasterDataExport("cssd_dm_bo_dung_cu_chi_tiet", "ma_chi_tiet"),
     onImport: (d) =>
-      smartImportData({ tableName: "dm_bo_dung_cu_chi_tiet", uniqueKey: "ma_chi_tiet", codePrefix: "DC" }, d),
+      smartImportData({ tableName: "cssd_dm_bo_dung_cu_chi_tiet", uniqueKey: "ma_chi_tiet", codePrefix: "DC" }, d),
     onSuccess: () => {
       setRefreshKey((k) => k + 1);
       router.refresh();
@@ -149,8 +149,8 @@ export function DungCuChiTietPageContent() {
           <h1 className="text-2xl font-black text-[#026f17] uppercase tracking-tighter flex items-center gap-3">
             <List /> Dụng cụ chi tiết
           </h1>
-          <p className="text-slate-400 font-bold text-[9px] uppercase tracking-widest mt-1 italic leading-none">
-            dm_bo_dung_cu_chi_tiet — V5 master
+          <p className="text-slate-400 font-bold text-[11px] uppercase tracking-widest mt-1 italic leading-none">
+            cssd_dm_bo_dung_cu_chi_tiet — V5 master
           </p>
         </div>
         <div className="flex gap-3 w-full sm:w-auto">

@@ -1,13 +1,15 @@
 "use client";
 
 import { Pencil, Trash2 } from "lucide-react";
-import { getQlcvWorkflowGateBadgeClass, getQlcvWorkflowGateLabel } from "../lib/qlcv-workflow-display";
+import { getQlcvWorkflowGateLabel } from "../lib/qlcv-workflow-display";
+import { resolveQlcvWorkflowBadgeAppearance } from "../lib/qlcv-workflow-badge";
 import { formatMucDoUuTienLabel } from "../lib/qlcv-labels";
 import { canShowDeleteTask, canShowEditTaskMetadata, type QlcvUiAccessFlags } from "../lib/qlcv-access";
 import type { CongViecView } from "../types";
 
 export type QlcvTableColumnHandlers = {
   qlcvUi: QlcvUiAccessFlags;
+  mauSacByMa?: Record<string, string | null | undefined>;
   onEdit: (row: CongViecView) => void;
   onDelete: (row: CongViecView) => Promise<void>;
 };
@@ -22,7 +24,7 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
       cell: (row: CongViecView) => (
         <div className="flex flex-col gap-0.5 py-1 text-left">
           <span className="font-semibold text-slate-800">{row.tieu_de}</span>
-          <span className="text-[10px] font-medium uppercase tracking-wide text-slate-400">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
             {row.loai_cong_viec || "—"}
           </span>
         </div>
@@ -54,13 +56,14 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
       accessorKey: "trang_thai",
       headerClassName: "min-w-[9rem] w-[14%]",
       cellClassName: "align-middle",
-      cell: (row: CongViecView) => (
-        <span
-          className={`inline-block rounded-full border px-2.5 py-1 text-[11px] font-medium normal-case ${getQlcvWorkflowGateBadgeClass(row)}`}
-        >
-          {getQlcvWorkflowGateLabel(row)}
-        </span>
-      ),
+      cell: (row: CongViecView) => {
+        const badge = resolveQlcvWorkflowBadgeAppearance(row, h.mauSacByMa);
+        return (
+          <span className={badge.className} style={badge.style}>
+            {getQlcvWorkflowGateLabel(row)}
+          </span>
+        );
+      },
       sortable: true,
     },
     {
@@ -111,7 +114,7 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
         const code = String(row.muc_do_uu_tien || "TRUNG_BINH").trim().toUpperCase();
         const color = priorityColors[code] || priorityColors.TRUNG_BINH;
         return (
-          <span className={`rounded-lg border px-2 py-0.5 text-[10px] font-medium normal-case ${color}`}>
+          <span className={`rounded-lg border px-2 py-0.5 text-[11px] font-medium normal-case ${color}`}>
             {formatMucDoUuTienLabel(row.muc_do_uu_tien)}
           </span>
         );
@@ -129,7 +132,7 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
             <button
               type="button"
               title="Sửa"
-              className="bv103-control-h inline-flex items-center gap-1 rounded-lg border border-slate-200/90 bg-white px-2 text-[10px] font-semibold uppercase tracking-wide text-slate-700 hover:bg-slate-50"
+              className="bv103-control-h inline-flex items-center gap-1 rounded-lg border border-slate-200/90 bg-white px-2 text-[11px] font-semibold uppercase tracking-wide text-slate-700 hover:bg-slate-50"
               onClick={() => h.onEdit(row)}
             >
               <Pencil size={12} aria-hidden /> Sửa
@@ -139,7 +142,7 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
             <button
               type="button"
               title="Xóa"
-              className="bv103-control-h inline-flex items-center gap-1 rounded-lg border border-red-100 bg-red-50/90 px-2 text-[10px] font-semibold uppercase tracking-wide text-red-700 hover:bg-red-100"
+              className="bv103-control-h inline-flex items-center gap-1 rounded-lg border border-red-100 bg-red-50/90 px-2 text-[11px] font-semibold uppercase tracking-wide text-red-700 hover:bg-red-100"
               onClick={() => void h.onDelete(row)}
             >
               <Trash2 size={12} aria-hidden />

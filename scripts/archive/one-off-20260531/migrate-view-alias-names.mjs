@@ -11,7 +11,7 @@ const REPLACEMENTS = [
   ["v_sys_role_permissions_matrix", "v_sys_role_permissions_matrix"],
   ["v_sys_staff_auth_overview", "v_sys_staff_auth_overview"],
   ["v_qlcv_cong_viec_full", "v_qlcv_cong_viec_full"],
-  ["v_qlcv_cong_viec_qua_han", "v_qlcv_qlcv_cong_viec_qua_han"],
+  ["v_qlcv_cong_viec_qua_han", "v_qlcv_cong_viec_qua_han"],
   ["v_cssd_quy_trinh_full", "v_cssd_quy_trinh_full"],
   ["v_cssd_su_co_full", "v_cssd_su_co_full"],
   ["v_cssd_lo_tiet_khuan_full", "v_cssd_lo_tiet_khuan_full"],
@@ -28,7 +28,7 @@ const REPLACEMENTS = [
   ["v_nkbv_su_kien_full", "v_nkbv_su_kien_full"],
   ["v_gstt_bang_kiem_full", "v_gstt_bang_kiem_full"],
   ["v_gstt_tieu_chi_bang_kiem_full", "v_gstt_tieu_chi_bang_kiem_full"],
-  ["v_mdm_khoa_phong_full", "v_mdm_khoa_phong_full"],
+  ["v_mmdm_dm_khoa_phong_full", "v_mmdm_dm_khoa_phong_full"],
   ["v_gstt_gsc_dashboard_rows", "v_gstt_gsc_dashboard_rows"],
   ["v_gstt_vst_hotpath", "v_gstt_vst_hotpath"],
 ];

@@ -23,19 +23,19 @@ export async function enrichHoSoForSupervisionUi(supabase: any, rows: HoSoRow[])
 
   const [toRows, chucVuRows, chucDanhRows, vaiTroRows, ngheRows] = await Promise.all([
     uniq.length
-      ? supabase.from("dm_to_cong_tac").select("id, ten_to").in("id", uniq)
+      ? supabase.from("mdm_dm_to_cong_tac").select("id, ten_to").in("id", uniq)
       : Promise.resolve({ data: [], error: null }),
     uniq.length
-      ? supabase.from("dm_chuc_vu").select("id, ten_chuc_vu").in("id", uniq)
+      ? supabase.from("mdm_dm_chuc_vu").select("id, ten_chuc_vu").in("id", uniq)
       : Promise.resolve({ data: [], error: null }),
     uniq.length
-      ? supabase.from("dm_chuc_danh").select("id, ten_chuc_danh").in("id", uniq)
+      ? supabase.from("mdm_dm_chuc_danh").select("id, ten_chuc_danh").in("id", uniq)
       : Promise.resolve({ data: [], error: null }),
     uniq.length
-      ? supabase.from("dm_roles").select("id, name").in("id", uniq)
+      ? supabase.from("sys_roles").select("id, name").in("id", uniq)
       : Promise.resolve({ data: [], error: null }),
     uniq.length
-      ? supabase.from("dm_nghe_nghiep").select("id, ten_nghe_nghiep").in("id", uniq)
+      ? supabase.from("mdm_dm_nghe_nghiep").select("id, ten_nghe_nghiep").in("id", uniq)
       : Promise.resolve({ data: [], error: null }),
   ]);
   if (toRows.error) throw toRows.error;

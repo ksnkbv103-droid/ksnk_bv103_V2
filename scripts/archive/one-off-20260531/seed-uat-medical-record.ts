@@ -18,7 +18,7 @@ async function main() {
 
   // 1. Find first active department
   const { data: khoaData, error: khoaErr } = await sb
-    .from("dm_khoa_phong")
+    .from("mdm_dm_khoa_phong")
     .select("id, ten_khoa")
     .eq("is_active", true)
     .limit(1);
@@ -34,7 +34,7 @@ async function main() {
 
   // 2. Fetch lookup categories & status IDs
   const { data: categories } = await sb
-    .from("dm_loai_nkbv")
+    .from("nkbv_dm_loai")
     .select("id, ma_loai")
     .eq("is_active", true);
 
@@ -44,7 +44,7 @@ async function main() {
   };
 
   const { data: statusRow } = await sb
-    .from("dm_trang_thai_nkbv_ca")
+    .from("nkbv_dm_trang_thai_ca")
     .select("id")
     .eq("ma_trang_thai", "DANG_GHI_NHAN")
     .eq("is_active", true)
@@ -53,7 +53,7 @@ async function main() {
   let defaultStatusId = statusRow?.id;
   if (!defaultStatusId) {
     const { data: altStatus } = await sb
-      .from("dm_trang_thai_nkbv_ca")
+      .from("nkbv_dm_trang_thai_ca")
       .select("id")
       .eq("ma_trang_thai", "CHO_XAC_NHAN")
       .eq("is_active", true)
@@ -70,9 +70,9 @@ async function main() {
     "BA-UAT-BSI",
     "BA-UAT-SECONDARY-BSI"
   ];
-  await sb.from("fact_nkbv_su_kien").delete().in("ma_benh_an", uatStayIds);
-  await sb.from("fact_nkbv_vi_sinh").delete().in("ma_benh_an", uatStayIds);
-  await sb.from("fact_nkbv_benh_an").delete().in("ma_benh_an", uatStayIds);
+  await sb.from("nkbv_fact_su_kien").delete().in("ma_benh_an", uatStayIds);
+  await sb.from("nkbv_fact_vi_sinh").delete().in("ma_benh_an", uatStayIds);
+  await sb.from("nkbv_fact_benh_an").delete().in("ma_benh_an", uatStayIds);
 
   // 4. Define 5 stays
   const uatStays = [
@@ -129,7 +129,7 @@ async function main() {
   ];
 
   console.log("[Seed UAT] Đang chèn hồ sơ bệnh án vật lý...");
-  const { error: staysErr } = await sb.from("fact_nkbv_benh_an").insert(uatStays);
+  const { error: staysErr } = await sb.from("nkbv_fact_benh_an").insert(uatStays);
   if (staysErr) throw staysErr;
 
   // 5. Define cấy LIS positive vi sinh records
@@ -253,7 +253,7 @@ async function main() {
 
   console.log("[Seed UAT] Đang chèn kết quả cấy dương tính LIS...");
   const { data: insertedLis, error: lisErr } = await sb
-    .from("fact_nkbv_vi_sinh")
+    .from("nkbv_fact_vi_sinh")
     .insert(uatViSinh)
     .select();
   if (lisErr) throw lisErr;
@@ -325,7 +325,7 @@ async function main() {
   });
 
   console.log("[Seed UAT] Đang chèn các sự kiện nhiễm khuẩn...");
-  const { error: eventErr } = await sb.from("fact_nkbv_su_kien").insert(uatEvents);
+  const { error: eventErr } = await sb.from("nkbv_fact_su_kien").insert(uatEvents);
   if (eventErr) throw eventErr;
 
   console.log("\n--- KẾT QUẢ SEED UAT ĐỒNG BỘ NKBV THÀNH CÔNG ---");

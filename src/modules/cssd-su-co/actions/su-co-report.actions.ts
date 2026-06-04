@@ -88,7 +88,7 @@ export async function getIncidentForPrint(id: string) {
   const qt = incident.cssd_fact_quy_trinh as { bo_dung_cu_id?: string } | null;
   if (qt?.bo_dung_cu_id) {
     const { data: bo } = await supabase
-      .from("dm_bo_dung_cu")
+      .from("cssd_dm_bo_dung_cu")
       .select("ten_bo, ma_bo")
       .eq("id", qt.bo_dung_cu_id)
       .maybeSingle();

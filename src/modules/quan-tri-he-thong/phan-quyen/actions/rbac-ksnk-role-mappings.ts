@@ -9,7 +9,7 @@ export const KSNK_RBAC_ROLE_NAMES = [
   "TO_TRUONG_MANG_LUOI_KSNK",
   "THANH_VIEN_MANG_LUOI_KSNK",
   // Reform v4 (Slice 9): hai vai trò tiếp nhận ticket RCA. Khớp tên thực tế trong
-  // `dm_khoa_phong`: `QLCL` = Ban Quản lý Chất lượng Bệnh viện, `C15` = Khoa Trang bị.
+  // `mdm_dm_khoa_phong`: `QLCL` = Ban Quản lý Chất lượng Bệnh viện, `C15` = Khoa Trang bị.
   "BAN_QLCL",
   "KHOA_TRANG_BI",
 ] as const;
@@ -173,20 +173,20 @@ export async function syncKsnkRolePermissionMappings(supabase: SupabaseClient) {
     updated_at: now,
   }));
 
-  const { error: roleUpsertErr } = await supabase.from("dm_roles").upsert(roleRows, {
+  const { error: roleUpsertErr } = await supabase.from("sys_roles").upsert(roleRows, {
     onConflict: "name",
   });
   if (roleUpsertErr) throw roleUpsertErr;
 
   const { data: allPerms, error: pErr } = await supabase
-    .from("dm_permissions")
+    .from("sys_permissions")
     .select("id, module_name, action");
   if (pErr) throw pErr;
   const perms = (allPerms || []) as PermRow[];
   if (!perms.length) return;
 
   const { data: ksnkRoles, error: rErr } = await supabase
-    .from("dm_roles")
+    .from("sys_roles")
     .select("id, name")
     .in("name", [...KSNK_RBAC_ROLE_NAMES]);
   if (rErr) throw rErr;
@@ -196,7 +196,7 @@ export async function syncKsnkRolePermissionMappings(supabase: SupabaseClient) {
     const matcher = matchers[name];
     if (!matcher) continue;
 
-    const { error: delErr } = await supabase.from("rel_role_permissions").delete().eq("role_id", role.id);
+    const { error: delErr } = await supabase.from("sys_role_permissions").delete().eq("role_id", role.id);
     if (delErr) throw delErr;
 
     const seenPid = new Set<string>();
@@ -208,7 +208,7 @@ export async function syncKsnkRolePermissionMappings(supabase: SupabaseClient) {
     }
     if (!picks.length) continue;
 
-    const { error: insErr } = await supabase.from("rel_role_permissions").insert(picks);
+    const { error: insErr } = await supabase.from("sys_role_permissions").insert(picks);
     if (insErr) throw insErr;
   }
 }

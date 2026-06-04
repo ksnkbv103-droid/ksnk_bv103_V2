@@ -8,6 +8,7 @@ import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-tim
 import { formatDateVi, formatDtVi } from "./vst-print-helpers";
 import { VSTPrintPersonBlocks } from "./VSTPrintPersonBlocks";
 import { classifyVstAction } from "../lib/vst-action-classifier";
+import { formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
 
 const sameId = (a: unknown, b: unknown) => String(a ?? "").trim() === String(b ?? "").trim();
 
@@ -52,7 +53,7 @@ export default function VSTPrintView({ session, persons, ngheNghieps, khoas, khu
       if (classifyVstAction(o.hanh_dong).isCompliant) compliant += 1;
     }
   }
-  const pct = totalOpp > 0 ? Math.round((compliant / totalOpp) * 100) : null;
+  const pctLabel = totalOpp > 0 ? formatPercent2FromRatio(compliant, totalOpp) : null;
   const cachThuc = String(session.cach_thuc_giam_sat || "");
   const isReplayCamera = isReplayCameraSupervisionCachThuc(cachThuc);
   const tBat = session.thoi_gian_bat_dau as string | undefined;
@@ -124,7 +125,7 @@ export default function VSTPrintView({ session, persons, ngheNghieps, khoas, khu
 
         <VSTPrintPersonBlocks persons={persons} ngheNghieps={ngheNghieps} nhanSus={nhanSus} />
 
-        {pct !== null ? (
+        {pctLabel !== null ? (
           <div
             style={{
               marginTop: "20px",
@@ -136,7 +137,7 @@ export default function VSTPrintView({ session, persons, ngheNghieps, khoas, khu
           >
             <p style={{ margin: 0, fontSize: "13px", color: "#000" }}>
               <strong>Tổng hợp phiên:</strong> {compliant}/{totalOpp} lượt ghi nhận có hành động —{" "}
-              <strong>tỷ lệ không &quot;Bỏ sót&quot;: {pct}%</strong>
+              <strong>tỷ lệ không &quot;Bỏ sót&quot;: {pctLabel}</strong>
             </p>
           </div>
         ) : null}

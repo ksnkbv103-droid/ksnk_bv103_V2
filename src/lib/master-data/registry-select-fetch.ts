@@ -18,7 +18,7 @@ export async function fetchActiveRegistryDmRows(
   }
   const { sourceTable, maColumn, tenColumn } = reg;
   let query = supabase.from(sourceTable).select(`id, ${maColumn}, ${tenColumn}`) as any;
-  if (sourceTable !== "dm_roles") {
+  if (sourceTable !== "sys_roles") {
     query = query.eq("is_active", true);
   }
   const { data, error } = await query.order(tenColumn, { ascending: true });

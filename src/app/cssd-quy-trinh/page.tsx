@@ -1,7 +1,7 @@
 "use client";
 
-import React, { Suspense, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import React, { Suspense, useCallback, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { WashingMachine, Flame, Package, History } from "lucide-react";
 import {
   CSSDInstrumentInventoryEmbeddedPage,
@@ -29,14 +29,24 @@ function resolveTab(param: string | null): QuyTrinhTab {
 }
 
 function CssdQuyTrinhPageInner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const qrParam = searchParams.get("qr");
-  const [activeTab, setActiveTab] = useState<QuyTrinhTab>(() => resolveTab(tabParam));
+  const activeTab = useMemo(() => resolveTab(tabParam), [tabParam]);
 
-  React.useEffect(() => {
-    setActiveTab(resolveTab(tabParam));
-  }, [tabParam]);
+  const setTab = useCallback(
+    (key: QuyTrinhTab) => {
+      const cfg = TAB_CONFIG.find((t) => t.key === key);
+      const param = cfg?.param ?? "";
+      const qs = new URLSearchParams();
+      if (param) qs.set("tab", param);
+      if (key === "TRACE" && qrParam) qs.set("qr", qrParam);
+      const suffix = qs.toString() ? `?${qs.toString()}` : "";
+      router.replace(`/cssd-quy-trinh${suffix}`, { scroll: false });
+    },
+    [router, qrParam],
+  );
 
   const traceQr = useMemo(
     () => (tabParam === "trace" ? String(qrParam || "").trim().toUpperCase() : ""),
@@ -58,7 +68,7 @@ function CssdQuyTrinhPageInner() {
             <button
               key={key}
               type="button"
-              onClick={() => setActiveTab(key)}
+              onClick={() => setTab(key)}
               className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${
                 activeTab === key ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
               }`}

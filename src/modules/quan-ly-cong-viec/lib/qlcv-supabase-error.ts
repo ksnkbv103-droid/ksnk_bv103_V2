@@ -1,7 +1,7 @@
 /** Thông báo lỗi Supabase/PostgREST dễ hành động (QLCV). */
 
 const SCHEMA_CACHE_RE =
-  /schema cache|could not find the 'checklist' column|fn_qlcv_update_checklist|muc_do_uu_tien|khoa_thuc_hien_id|fact_cong_viec_dinh_ky|qlcv_fact_cong_viec_dinh_ky|PGRST202|PGRST204|PGRST200|42703/i;
+  /schema cache|could not find the 'checklist' column|fn_qlcv_update_checklist|muc_do_uu_tien|khoa_thuc_hien_id|qlcv_fact_cong_viec_dinh_ky|qlcv_fact_cong_viec_dinh_ky|PGRST202|PGRST204|PGRST200|42703/i;
 
 export function formatQlcvDbError(message: string): string {
   if (SCHEMA_CACHE_RE.test(message)) {

@@ -41,6 +41,8 @@ describe("createHoatDong", () => {
         id: "cv-01",
         nguoi_phu_trach_id: "ns-01",
         trang_thai: "CHO_DUYET",
+        is_active: true,
+        phan_tram_hoan_thanh: 100,
       },
       error: null,
     });
@@ -62,7 +64,7 @@ describe("createHoatDong", () => {
           }),
         };
       }
-      if (table === "fact_cong_viec_hoat_dong") {
+      if (table === "qlcv_fact_cong_viec_hoat_dong") {
         return {
           insert: mocks.insertHoatDong,
         };
@@ -71,66 +73,42 @@ describe("createHoatDong", () => {
     });
   });
 
-  it("blocks progress update while task is waiting for acceptance", async () => {
+  it("blocks note while task is waiting for acceptance", async () => {
     await expect(
       createHoatDong({
         id_cong_viec: "cv-01",
         loai_hoat_dong: "BAO_CAO_TIEN_DO",
-        noi_dung: "Báo cáo nhanh",
-        phan_tram_hoan_thanh: 45,
+        noi_dung: "Ghi chú nhanh",
       }),
-    ).rejects.toThrow("Việc đang chờ nghiệm thu — không ghi tiến độ tại đây.");
+    ).rejects.toThrow("Việc đang chờ nghiệm thu — không ghi chú tiến độ tại đây.");
 
     expect(mocks.insertHoatDong).not.toHaveBeenCalled();
   });
 
-  it("allows assignee to report progress in DANG_LAM", async () => {
+  it("allows assignee to add note in DANG_LAM without updating fact row", async () => {
     mocks.taskMaybeSingle.mockResolvedValue({
       data: {
         id: "cv-01",
         nguoi_phu_trach_id: "ns-01",
         trang_thai: "DANG_LAM",
+        is_active: true,
+        phan_tram_hoan_thanh: 50,
       },
       error: null,
-    });
-    const updateMock = vi.fn().mockReturnValue({
-      eq: vi.fn().mockResolvedValue({ error: null }),
-    });
-    mocks.from.mockImplementation((table: string) => {
-      if (table === "v_qlcv_cong_viec_full") {
-        return {
-          select: () => ({
-            eq: () => ({
-              maybeSingle: mocks.taskMaybeSingle,
-            }),
-          }),
-        };
-      }
-      if (table === "fact_cong_viec") {
-        return { update: updateMock };
-      }
-      if (table === "dm_trang_thai_cong_viec") {
-        return {
-          select: () => ({
-            eq: () => ({
-              maybeSingle: vi.fn().mockResolvedValue({ data: { id: "tt-dang-lam" } }),
-            }),
-          }),
-        };
-      }
-      if (table === "fact_cong_viec_hoat_dong") {
-        return { insert: mocks.insertHoatDong };
-      }
-      return {};
     });
 
     const result = await createHoatDong({
       id_cong_viec: "cv-01",
       loai_hoat_dong: "BAO_CAO_TIEN_DO",
       noi_dung: "Đã xong bước 1",
-      phan_tram_hoan_thanh: 50,
     });
+
     expect(result).toBeTruthy();
-    expect(updateMock).toHaveBeenCalledTimes(1);
+    expect(mocks.insertHoatDong).toHaveBeenCalledWith(
+      expect.objectContaining({
+        phan_tram_hoan_thanh: 50,
+        noi_dung: "Đã xong bước 1",
+      }),
+    );
   });
 });

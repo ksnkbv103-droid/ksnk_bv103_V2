@@ -36,7 +36,7 @@ describe.skipIf(!hasIntegrationDb)("importViSinhExcel and automatic case creatio
 
     // Query active department
     const { data: khoaData } = await sb
-      .from("dm_khoa_phong")
+      .from("mdm_dm_khoa_phong")
       .select("id")
       .eq("is_active", true)
       .limit(1);
@@ -44,16 +44,16 @@ describe.skipIf(!hasIntegrationDb)("importViSinhExcel and automatic case creatio
     khoaId = (khoaData as any)?.[0]?.id || "";
 
     // Clean old test records
-    await sb.from("fact_nkbv_su_kien").delete().in("ma_benh_an", ["BA-TEST-SPEC-777", "BA-TEST-RIT-888"]);
-    await sb.from("fact_nkbv_vi_sinh").delete().in("ma_benh_an", ["BA-TEST-SPEC-777", "BA-TEST-RIT-888"]);
-    await sb.from("fact_nkbv_benh_an").delete().in("ma_benh_an", ["BA-TEST-SPEC-777", "BA-TEST-RIT-888"]);
+    await sb.from("nkbv_fact_su_kien").delete().in("ma_benh_an", ["BA-TEST-SPEC-777", "BA-TEST-RIT-888"]);
+    await sb.from("nkbv_fact_vi_sinh").delete().in("ma_benh_an", ["BA-TEST-SPEC-777", "BA-TEST-RIT-888"]);
+    await sb.from("nkbv_fact_benh_an").delete().in("ma_benh_an", ["BA-TEST-SPEC-777", "BA-TEST-RIT-888"]);
   });
 
   afterAll(async () => {
     if (!sb) return;
-    await sb.from("fact_nkbv_su_kien").delete().in("ma_benh_an", ["BA-TEST-SPEC-777", "BA-TEST-RIT-888"]);
-    await sb.from("fact_nkbv_vi_sinh").delete().in("ma_benh_an", ["BA-TEST-SPEC-777", "BA-TEST-RIT-888"]);
-    await sb.from("fact_nkbv_benh_an").delete().in("ma_benh_an", ["BA-TEST-SPEC-777", "BA-TEST-RIT-888"]);
+    await sb.from("nkbv_fact_su_kien").delete().in("ma_benh_an", ["BA-TEST-SPEC-777", "BA-TEST-RIT-888"]);
+    await sb.from("nkbv_fact_vi_sinh").delete().in("ma_benh_an", ["BA-TEST-SPEC-777", "BA-TEST-RIT-888"]);
+    await sb.from("nkbv_fact_benh_an").delete().in("ma_benh_an", ["BA-TEST-SPEC-777", "BA-TEST-RIT-888"]);
   });
 
   it("successfully imports cấy positive LIS records, auto-creates stays and infection event records", async () => {
@@ -93,7 +93,7 @@ describe.skipIf(!hasIntegrationDb)("importViSinhExcel and automatic case creatio
 
     // Verify stays created
     const { data: stayData } = await sb
-      .from("fact_nkbv_benh_an")
+      .from("nkbv_fact_benh_an")
       .select("*")
       .eq("ma_benh_an", "BA-TEST-SPEC-777")
       .single();
@@ -105,7 +105,7 @@ describe.skipIf(!hasIntegrationDb)("importViSinhExcel and automatic case creatio
 
     // Verify database inserts
     const { data: casesData } = await sb
-      .from("fact_nkbv_su_kien")
+      .from("nkbv_fact_su_kien")
       .select("ma_ca, vi_tri_nhiem_khuan, tac_nhan_vi_khuan, loai_nkbv_id")
       .eq("ma_benh_an", "BA-TEST-SPEC-777");
 
@@ -173,7 +173,7 @@ describe.skipIf(!hasIntegrationDb)("importViSinhExcel and automatic case creatio
 
     // 3. Verify the existing event is updated and contains both pathogens
     const { data: casesData } = await sb
-      .from("fact_nkbv_su_kien")
+      .from("nkbv_fact_su_kien")
       .select("ma_ca, tac_nhan_vi_khuan, clinical_notes")
       .eq("ma_benh_an", "BA-TEST-RIT-888");
 

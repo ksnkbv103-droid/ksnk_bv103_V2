@@ -8,7 +8,7 @@ import type { DashboardFilterOptions } from "../compliance-dashboard.types";
 
 async function loadComplianceFilterOptionsData(supabase: SupabaseClient) {
   const [bkRes, khoiData, khoaData, ngheData, khuData] = await Promise.all([
-    supabase.from("dm_bang_kiem").select("id, ma_bk, ten_bang_kiem, is_active").order("ma_bk", { ascending: true }),
+    supabase.from("gstt_dm_bang_kiem").select("id, ma_bk, ten_bang_kiem, is_active").order("ma_bk", { ascending: true }),
     getCachedDmKhoiKhoa(),
     getCachedDmKhoaPhong(),
     getCachedDmNgheNghiep(),

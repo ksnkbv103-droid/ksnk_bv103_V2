@@ -1,11 +1,13 @@
 import React from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import SearchableMultiSelect, { type MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
 
 type DashboardFilterPanelProps = {
-  bangKiemOptions: MultiSelectOption[];
-  selectedBangKiemMas: string[];
-  setSelectedBangKiemMas: (v: string[]) => void;
+  /** VST analytics: không lọc theo bảng kiểm (GSC-only). */
+  hideBangKiem?: boolean;
+  bangKiemOptions?: MultiSelectOption[];
+  selectedBangKiemMas?: string[];
+  setSelectedBangKiemMas?: (v: string[]) => void;
   khoiOptions: MultiSelectOption[];
   selectedKhoiIds: string[];
   setSelectedKhoiIds: (v: string[]) => void;
@@ -24,6 +26,8 @@ type DashboardFilterPanelProps = {
   setTuNgay: (v: string) => void;
   denNgay: string;
   setDenNgay: (v: string) => void;
+  onRefresh?: () => void;
+  refreshLoading?: boolean;
 };
 
 function isPartialSelection(selected: string[], options: MultiSelectOption[]) {
@@ -56,8 +60,10 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4 items-end">
-        <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
+      <div
+        className={`grid grid-cols-1 gap-2 items-end sm:grid-cols-2 ${p.hideBangKiem ? "lg:grid-cols-2" : "lg:grid-cols-4"}`}
+      >
+        <div className={`flex flex-wrap items-center gap-2 ${p.hideBangKiem ? "sm:col-span-2" : "sm:col-span-2"}`}>
           <input
             type="date"
             value={p.tuNgay}
@@ -79,13 +85,15 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
           />
         </div>
 
-        <SearchableMultiSelect
-          label="Chuyên đề"
-          options={p.bangKiemOptions}
-          selected={p.selectedBangKiemMas}
-          onChange={p.setSelectedBangKiemMas}
-          minWidthClassName="min-w-0 w-full"
-        />
+        {!p.hideBangKiem && p.bangKiemOptions && p.setSelectedBangKiemMas ? (
+          <SearchableMultiSelect
+            label="Chuyên đề"
+            options={p.bangKiemOptions}
+            selected={p.selectedBangKiemMas ?? []}
+            onChange={p.setSelectedBangKiemMas}
+            minWidthClassName="min-w-0 w-full"
+          />
+        ) : null}
 
         {p.setSelectedHinhThucIds && (
           <SearchableMultiSelect
@@ -111,8 +119,20 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
             <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-emerald-800">Đang lọc</span>
           ) : null}
         </button>
+        {p.onRefresh ? (
+          <button
+            type="button"
+            onClick={() => p.onRefresh?.()}
+            disabled={p.refreshLoading}
+            aria-label="Tải lại thống kê"
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${p.refreshLoading ? "animate-spin" : ""}`} aria-hidden />
+            Tải lại
+          </button>
+        ) : null}
         <p className="text-[11px] text-slate-500">
-          Khối, khoa, đối tượng, khu vực — áp dụng sau khi bấm Cập nhật hoặc ~0,4s khi đổi lọc.
+          Khối, khoa, đối tượng, khu vực — tự cập nhật khi đổi lọc hoặc bấm Tải lại.
         </p>
       </div>
 

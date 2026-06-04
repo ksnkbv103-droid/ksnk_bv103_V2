@@ -59,20 +59,20 @@ export async function saveHoaChatAction(input: Record<string, unknown>) {
     updated_at: new Date().toISOString(),
   };
 
-  return upsertMasterRow("dm_hoa_chat", id, payload);
+  return upsertMasterRow("cssd_dm_hoa_chat", id, payload);
 }
 
 export async function toggleHoaChatStatusAction(id: string, currentStatus: boolean) {
   await verifyPermission("HOA_CHAT", "edit");
-  return toggleMasterStatus("dm_hoa_chat", id, currentStatus);
+  return toggleMasterStatus("cssd_dm_hoa_chat", id, currentStatus);
 }
 
 export async function softDeleteHoaChatAction(id: string) {
   await verifyPermission("HOA_CHAT", "delete");
-  return softDeleteMasterRow("dm_hoa_chat", id);
+  return softDeleteMasterRow("cssd_dm_hoa_chat", id);
 }
 
 export async function softDeleteManyHoaChatAction(ids: string[]) {
   await verifyPermission("HOA_CHAT", "delete");
-  return softDeleteManyMasterRows("dm_hoa_chat", ids);
+  return softDeleteManyMasterRows("cssd_dm_hoa_chat", ids);
 }

@@ -95,7 +95,7 @@ export async function getNkbvFormDmBundle() {
     await verifyPermission("GIAM_SAT_NKBV", "view");
     const loaiRows = await fetchActiveRegistryDmRows(supabase, "LOAI_NKBV");
     const { data: ttData, error: ttErr } = await supabase
-      .from("dm_trang_thai_nkbv_ca")
+      .from("nkbv_dm_trang_thai_ca")
       .select("id, ma_trang_thai, ten_trang_thai, thu_tu")
       .eq("is_active", true)
       .order("thu_tu", { ascending: true });
@@ -121,7 +121,7 @@ export async function listAllMaNkbvCas() {
     await verifyPermission("GIAM_SAT_NKBV", "view");
     const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase
-      .from("fact_nkbv_su_kien")
+      .from("nkbv_fact_su_kien")
       .select("ma_ca")
       .eq("is_active", true);
     if (error) throw error;
@@ -132,7 +132,7 @@ export async function listAllMaNkbvCas() {
   }
 }
 
-/** Danh sách hồ sơ bệnh án (stay pool) truy vấn phân trang từ bảng vật lý fact_nkbv_benh_an. */
+/** Danh sách hồ sơ bệnh án (stay pool) truy vấn phân trang từ bảng vật lý nkbv_fact_benh_an. */
 export async function listNkbvMedicalRecords(params: {
   page: number;
   pageSize?: number;
@@ -151,13 +151,13 @@ export async function listNkbvMedicalRecords(params: {
   const searchFilter = buildSupabaseSearchFilter(search, ["ma_benh_an", "ma_benh_nhan", "ho_ten_benh_nhan"]);
 
   let countQ = supabase
-    .from("fact_nkbv_benh_an")
+    .from("nkbv_fact_benh_an")
     .select("id", { count: "exact", head: true })
     .eq("is_active", true);
   if (searchFilter) countQ = countQ.or(searchFilter);
 
   let dataQ = supabase
-    .from("fact_nkbv_benh_an")
+    .from("nkbv_fact_benh_an")
     .select("*")
     .eq("is_active", true)
     .order("ngay_vao_vien", { ascending: false })
@@ -181,7 +181,7 @@ export async function listNkbvMedicalRecords(params: {
 
   // Fetch related vi sinh thô
   const { data: lisData, error: lErr } = await supabase
-    .from("fact_nkbv_vi_sinh")
+    .from("nkbv_fact_vi_sinh")
     .select("id, ma_benh_an, loai_benh_pham")
     .in("ma_benh_an", stayIds)
     .eq("is_active", true);

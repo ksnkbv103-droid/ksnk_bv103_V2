@@ -229,7 +229,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
       {/* Intro Header */}
-      <div className="premium-card rounded-[32px] border border-slate-100 bg-white p-6 shadow-xl space-y-4">
+      <div className="premium-card rounded-2xl border border-slate-100 bg-white p-6 shadow-xl space-y-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
           <div>
             <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
@@ -287,7 +287,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
 
       {records.length === 0 ? (
         /* Textarea Paste Area */
-        <div className="premium-card rounded-[32px] border border-slate-100 bg-white p-6 shadow-xl space-y-4">
+        <div className="premium-card rounded-2xl border border-slate-100 bg-white p-6 shadow-xl space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Khung dán dữ liệu Excel</span>
             <UploadCloud className="h-5 w-5 text-slate-300" />
@@ -312,7 +312,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
         </div>
       ) : (
         /* Preview Table & Mapping */
-        <div className="premium-card rounded-[32px] border border-slate-100 bg-white p-6 shadow-xl space-y-6">
+        <div className="premium-card rounded-2xl border border-slate-100 bg-white p-6 shadow-xl space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
             <div>
               <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">

@@ -1,6 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import {
+  isPathBlockedUnderPilotCoreModules,
+  isPilotCoreModulesScopeEnabled,
+} from "@/lib/ksnk-pilot-core-modules-scope";
+import {
   isPathBlockedUnderPilotFourModules,
   isPilotFourModulesScopeEnabled,
 } from "@/lib/ksnk-pilot-four-modules-scope";
@@ -32,7 +36,13 @@ function copyResponseCookies(from: NextResponse, to: NextResponse) {
  */
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  if (isPilotFourModulesScopeEnabled() && isPathBlockedUnderPilotFourModules(pathname)) {
+  if (isPilotCoreModulesScopeEnabled() && isPathBlockedUnderPilotCoreModules(pathname)) {
+    return new NextResponse(null, { status: 404 });
+  } else if (
+    isPilotFourModulesScopeEnabled() &&
+    !isPilotCoreModulesScopeEnabled() &&
+    isPathBlockedUnderPilotFourModules(pathname)
+  ) {
     return new NextResponse(null, { status: 404 });
   }
 

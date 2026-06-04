@@ -271,7 +271,7 @@ export default function KhoHoaChatKsnkPage() {
                   {duoiNguongItems.map((item) => {
                     const currentStock = totalByDm.get(item.id) || 0;
                     return (
-                      <span key={item.id} className="inline-flex items-center rounded-lg bg-red-100/80 px-2 py-0.5 text-[9px] font-bold text-red-800 border border-red-200/50">
+                      <span key={item.id} className="inline-flex items-center rounded-lg bg-red-100/80 px-2 py-0.5 text-[11px] font-bold text-red-800 border border-red-200/50">
                         {item.ma_hoa_chat}: {currentStock} / {item.nguong_ton_toi_thieu} (ngưỡng)
                       </span>
                     );
@@ -296,7 +296,7 @@ export default function KhoHoaChatKsnkPage() {
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {sapHetHanItems.map((item) => (
-                    <span key={item.id} className="inline-flex items-center rounded-lg bg-amber-100/80 px-2 py-0.5 text-[9px] font-bold text-amber-800 border border-amber-200/50">
+                    <span key={item.id} className="inline-flex items-center rounded-lg bg-amber-100/80 px-2 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200/50">
                       Lô {item.ma_lo || "Không mã"}: {item.ton_so_luong} ({item.han_su_dung})
                     </span>
                   ))}

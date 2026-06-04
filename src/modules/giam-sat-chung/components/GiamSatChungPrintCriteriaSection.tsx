@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { ChecklistResult, ChecklistTemplate } from "@/types/giam-sat-chung";
+import { formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
 
 export function GiamSatChungPrintCriteriaSection({
   template,
@@ -14,7 +15,10 @@ export function GiamSatChungPrintCriteriaSection({
 }) {
   const validResults = results.filter((r) => r.value !== "NA");
   const resultByCriterionId = new Map(results.map((r) => [r.criterionId, r] as const));
-  const score = validResults.length === 0 ? 0 : Math.round((validResults.filter((r) => r.value === "DAT").length / validResults.length) * 100);
+  const score = formatPercent2FromRatio(
+    validResults.filter((r) => r.value === "DAT").length,
+    validResults.length,
+  );
 
   return (
     <>
@@ -67,7 +71,7 @@ export function GiamSatChungPrintCriteriaSection({
 
       <div style={{ marginTop: "12px", lineHeight: 1.35 }}>
         <p style={{ fontSize: "13px", fontWeight: 700, margin: "0 0 6px 0" }}>
-          TỈ LỆ TUÂN THỦ (trên tiêu chí có áp dụng): {score}%
+          TỈ LỆ TUÂN THỦ (trên tiêu chí có áp dụng): {score}
         </p>
         <p style={{ fontSize: "13px", margin: 0, paddingTop: "6px", borderTop: "1px solid #e2e8f0" }}>
           <strong>Ghi chú / Kiến nghị chung:</strong> {String(session.ghi_chu_chung || "—")}

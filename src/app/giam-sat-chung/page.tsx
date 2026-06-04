@@ -1,6 +1,7 @@
 // src/app/giam-sat-chung/page.tsx
-import React from "react";
+import React, { Suspense } from "react";
 import GiamSatChungPage from "@/modules/giam-sat-chung/views/GiamSatChungPage";
+import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 
 export const metadata = {
   title: "Giám sát Tổng hợp | KSNK 103",
@@ -8,5 +9,9 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <GiamSatChungPage />;
+  return (
+    <Suspense fallback={<SupervisionPageSkeleton />}>
+      <GiamSatChungPage />
+    </Suspense>
+  );
 }

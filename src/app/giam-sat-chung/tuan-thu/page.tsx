@@ -7,8 +7,9 @@
  * với tab pre-selected; logic filter sẽ làm sau ở GiamSatChungPage.
  */
 
-import React from "react";
+import React, { Suspense } from "react";
 import GiamSatChungPage from "@/modules/giam-sat-chung/views/GiamSatChungPage";
+import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 
 export const metadata = {
   title: "Giám sát Tuân thủ Thực hành KSNK | KSNK 103",
@@ -17,5 +18,9 @@ export const metadata = {
 };
 
 export default function GiamSatTuanThuPage() {
-  return <GiamSatChungPage initialLoaiGiamSat="TUAN_THU" />;
+  return (
+    <Suspense fallback={<SupervisionPageSkeleton />}>
+      <GiamSatChungPage initialLoaiGiamSat="TUAN_THU" />
+    </Suspense>
+  );
 }

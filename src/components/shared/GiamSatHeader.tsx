@@ -60,7 +60,7 @@ export default function GiamSatHeader({
   const resolveNhanSuKhoaId = (ns: NhanSuOption): string => {
     const direct = toText(ns.khoa_id);
     if (direct) return direct;
-    const fallbackKeys = ["khoa_phong_id", "dm_khoa_phong_id", "khoaId"] as const;
+    const fallbackKeys = ["khoa_phong_id", "mdm_dm_khoa_phong_id", "khoaId"] as const;
     for (const key of fallbackKeys) {
       const value = toText((ns as Record<string, unknown>)[key]);
       if (value) return value;
@@ -160,7 +160,7 @@ export default function GiamSatHeader({
               <h2 className={`font-semibold text-[#026f17] uppercase tracking-wide transition-all ${isCollapsed ? "text-[10px]" : "text-xs sm:text-sm"}`}>
                 {isCollapsed ? `Phiên giám sát: ${selectedKhoaName} - ${selectedKhuVucName}` : 'Thông tin phiên giám sát'}
               </h2>
-              {isCollapsed && <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Nhấn để mở rộng cấu hình</p>}
+              {isCollapsed && <p className="text-[11px] text-slate-400 font-bold uppercase tracking-tighter">Nhấn để mở rộng cấu hình</p>}
             </div>
           </div>
         </div>

@@ -19,7 +19,7 @@ export async function markVSTSessionsSeen(sessionIds: string[]) {
     const ids = (sessionIds || []).map(String).filter(Boolean);
     if (!ids.length) return { success: true as const };
     const { data: rows, error: rowsErr } = await supabase
-      .from("fact_giam_sat_vst_sessions")
+      .from("gstt_fact_vst_sessions")
       .select("id,khoa_id")
       .in("id", ids);
     if (rowsErr) throw rowsErr;
@@ -35,11 +35,11 @@ export async function markVSTSessionsSeen(sessionIds: string[]) {
       return { success: false as const, error: resolved.error };
     }
     const { error } = await supabase
-      .from("fact_giam_sat_vst_sessions")
+      .from("gstt_fact_vst_sessions")
       .update({ is_seen: true, updated_at: new Date().toISOString() })
       .in("id", resolved.targetIds);
     if (error) throw error;
-    revalidatePath("/giam-sat-vst/lich-su");
+    revalidatePath("/giam-sat-vst");
     return { success: true as const };
   } catch (error: unknown) {
     return { success: false as const, error: getErrorMessage(error) };

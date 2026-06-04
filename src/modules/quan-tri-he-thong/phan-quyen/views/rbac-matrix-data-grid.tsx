@@ -4,6 +4,8 @@ import React, { useMemo } from "react";
 import type { LucideIcon } from "lucide-react";
 import RBACPermissionCell from "../components/RBACPermissionCell";
 import { getModuleDisplayName, MODULE_GROUPS, MODULE_TO_GROUP } from "@/lib/permission-registry";
+import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import {
   RBAC_MATRIX_ROLE_HEADER_LABEL,
   type RBACPermissionRow,
@@ -66,18 +68,18 @@ export function RBACMatrixDataGrid({
           <thead className="sticky top-0 z-30 bg-slate-50 shadow-[0_1px_0_rgb(226_232_240)]">
             <tr className="border-b border-slate-200">
               <th className="p-4 text-left min-w-[240px] sticky left-0 bg-slate-50 z-40 border-r border-slate-200">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cấu trúc Module</span>
+                <span className={bv103DesignTokens.tableHeader}>Cấu trúc Module</span>
               </th>
               {roles.map((role: RBACRoleRow) => {
                 const key = String(role.name ?? "").trim().toUpperCase();
                 const headerLabel = RBAC_MATRIX_ROLE_HEADER_LABEL[key] ?? role.name;
                 return (
                 <th key={role.id} className="p-3 text-center min-w-[200px] border-r border-slate-200 last:border-r-0 align-top">
-                  <p className="text-[11px] font-black text-slate-700 uppercase tracking-wider leading-snug">{headerLabel}</p>
-                  <p className="mt-0.5 text-[8px] font-mono font-bold text-slate-400 tracking-tight">{role.name}</p>
-                  <div className="flex justify-center gap-2.5 mt-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider leading-snug text-slate-700">{headerLabel}</p>
+                  <p className={`mt-0.5 ${bv103DesignTokens.metaMono}`}>{role.name}</p>
+                  <div className="mt-2 flex justify-center gap-2.5">
                     {actions.map((a) => (
-                      <span key={a.key} className="text-[9px] font-bold text-slate-300" title={a.full}>
+                      <span key={a.key} className="text-[11px] font-medium text-slate-400" title={a.full}>
                         {a.label}
                       </span>
                     ))}
@@ -90,7 +92,7 @@ export function RBACMatrixDataGrid({
                           type="button"
                           title={`Bật hết quyền “${a.full}” trên mọi module cho ${role.name}`}
                           onClick={() => onBulkSetActionForRole(role.id, a.key, true)}
-                          className="min-w-[1.75rem] rounded border border-emerald-200 bg-emerald-50/80 px-1 py-0.5 text-[8px] font-black text-emerald-800 hover:bg-emerald-100"
+                          className="min-w-[1.75rem] rounded border border-emerald-200 bg-emerald-50/80 px-1.5 py-0.5 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100"
                         >
                           +{a.label}
                         </button>
@@ -99,7 +101,7 @@ export function RBACMatrixDataGrid({
                         type="button"
                         title={`Bật tất cả quyền trên mọi module cho ${role.name}`}
                         onClick={() => onBulkSetAllForRole(role.id, true)}
-                        className="rounded border border-[#026f17]/40 bg-[#026f17]/10 px-1.5 py-0.5 text-[8px] font-black text-[#026f17] hover:bg-[#026f17]/20"
+                        className="rounded border border-[var(--primary)]/40 bg-[var(--primary)]/10 px-2 py-0.5 text-[11px] font-semibold text-[var(--primary)] hover:bg-[var(--primary)]/20"
                       >
                         Tất cả
                       </button>
@@ -111,7 +113,7 @@ export function RBACMatrixDataGrid({
                           type="button"
                           title={`Tắt hết quyền “${a.full}” trên mọi module cho ${role.name}`}
                           onClick={() => onBulkSetActionForRole(role.id, a.key, false)}
-                          className="min-w-[1.75rem] rounded border border-slate-200 bg-slate-50 px-1 py-0.5 text-[8px] font-bold text-slate-500 hover:bg-slate-100"
+                          className="min-w-[1.75rem] rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[11px] font-medium text-slate-500 hover:bg-slate-100"
                         >
                           −{a.label}
                         </button>
@@ -120,7 +122,7 @@ export function RBACMatrixDataGrid({
                         type="button"
                         title={`Tắt toàn bộ quyền của ${role.name}`}
                         onClick={() => onBulkSetAllForRole(role.id, false)}
-                        className="rounded border border-red-100 bg-red-50/80 px-1.5 py-0.5 text-[8px] font-black text-red-700 hover:bg-red-100"
+                        className="rounded border border-red-100 bg-red-50/80 px-2 py-0.5 text-[11px] font-semibold text-red-700 hover:bg-red-100"
                       >
                         Xóa hết
                       </button>
@@ -144,7 +146,7 @@ export function RBACMatrixDataGrid({
                       colSpan={roles.length + 1} 
                       className="px-6 py-2 sticky left-0 z-20 border-r border-slate-100 bg-slate-50/50"
                     >
-                      <span className="text-[9px] font-black text-[#026f17] uppercase tracking-[0.2em] opacity-70">
+                      <span className={`${bv103LayoutChrome.labelBlockAccent} opacity-80`}>
                         {MODULE_GROUPS[groupKey]}
                       </span>
                     </td>
@@ -155,10 +157,10 @@ export function RBACMatrixDataGrid({
                     <tr key={moduleName} className="hover:bg-slate-50/80 transition-colors group">
                       <td className="px-6 py-4 sticky left-0 bg-white z-10 border-r border-slate-200 shadow-[2px_0_5px_rgba(0,0,0,0.02)]">
                         <div className="flex flex-col">
-                          <span className="font-bold text-[13px] text-slate-700 leading-tight">
+                          <span className="text-sm font-semibold leading-tight text-slate-700">
                             {getModuleDisplayName(moduleName)}
                           </span>
-                          <span className="text-[9px] font-mono text-slate-400 uppercase tracking-tighter mt-0.5 opacity-60">
+                          <span className={`mt-0.5 ${bv103DesignTokens.metaMono} uppercase opacity-70`}>
                             {moduleName}
                           </span>
                         </div>

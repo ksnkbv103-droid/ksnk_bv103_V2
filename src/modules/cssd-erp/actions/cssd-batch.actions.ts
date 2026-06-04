@@ -14,6 +14,8 @@ import {
 } from "@/lib/validations/cssd-erp.validations";
 import { verifyCssdBatchEdit, verifyCssdBatchView } from "@/lib/cssd-server-gates";
 import { buildQuyTrinhTramPatch, resolveCssdTramId } from "../lib/cssd-tram-persist";
+import type { BomItem } from "@/lib/domain/cssd-packaging-rules";
+import { evaluateBatchSterilizationHeatRisk } from "../lib/me-tiet-khuan-batch-heat";
 
 export async function fetchCssdMeListData() {
   const supabase = createAdminSupabaseClient();
@@ -57,7 +59,7 @@ export async function fetchCssdTietKhuanWaitingRows(limit = 120) {
     const boIds = [...new Set(raw.map((x) => String(x.bo_dung_cu_id || "").trim()).filter(Boolean))];
     let boMap = new Map<string, { ten_bo?: string | null }>();
     if (boIds.length) {
-      const { data: bos } = await supabase.from("dm_bo_dung_cu").select("id, ten_bo").in("id", boIds);
+      const { data: bos } = await supabase.from("cssd_dm_bo_dung_cu").select("id, ten_bo").in("id", boIds);
       boMap = new Map((bos || []).map((x: { id: string; ten_bo?: string | null }) => [String(x.id), x]));
     }
     const mapped = raw.map((x) => ({
@@ -81,7 +83,7 @@ export async function fetchCssdBatchWorkflowState(batchId: string) {
     const { data, error } = await supabase
       .from("cssd_fact_lo_tiet_khuan")
       .select(
-        "id, ma_lo_tiet_khuan, thiet_bi_id, loai_may_id, tk_chot_nap_at, tk_mo_form_qc_at, tk_qc_json, ket_qua_test, thiet_bi:dm_thiet_bi(ten_thiet_bi, loai_may_id, loai_may:dm_loai_may_tiet_khuan(ma_loai_may, ten_loai_may))",
+        "id, ma_lo_tiet_khuan, thiet_bi_id, loai_may_id, tk_chot_nap_at, tk_mo_form_qc_at, tk_qc_json, ket_qua_test, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi, loai_may_id, loai_may:cssd_dm_loai_may(ma_loai_may, ten_loai_may))",
       )
       .eq("id", id)
       .maybeSingle();
@@ -182,7 +184,7 @@ export async function fetchCssdBatchMembers(batchId: string) {
     const boIds = [...new Set(raw.map((x) => String(x.bo_dung_cu_id || "").trim()).filter(Boolean))];
     let boMap = new Map<string, { ten_bo?: string | null }>();
     if (boIds.length) {
-      const { data: bos } = await supabase.from("dm_bo_dung_cu").select("id, ten_bo").in("id", boIds);
+      const { data: bos } = await supabase.from("cssd_dm_bo_dung_cu").select("id, ten_bo").in("id", boIds);
       boMap = new Map((bos || []).map((x: { id: string; ten_bo?: string | null }) => [String(x.id), x]));
     }
     const data = raw.map((x) => ({
@@ -194,6 +196,83 @@ export async function fetchCssdBatchMembers(batchId: string) {
     return { success: true as const, data };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e), data: [] as unknown[] };
+  }
+}
+
+/** P2: Đánh giá Spaulding/nhiệt gộp cho các bộ trong mẻ + profile máy. */
+export async function fetchCssdBatchHeatRisk(batchId: string) {
+  const supabase = createAdminSupabaseClient();
+  try {
+    await verifyCssdBatchView();
+    const id = String(batchId || "").trim();
+    if (!id) return { success: false as const, error: "Thiếu mã mẻ." };
+
+    const { data: me, error: meErr } = await supabase
+      .from("cssd_fact_lo_tiet_khuan")
+      .select(
+        "id, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi, loai_may_id, loai_may:cssd_dm_loai_may(ma_loai_may, ten_loai_may))",
+      )
+      .eq("id", id)
+      .maybeSingle();
+    if (meErr) return { success: false as const, error: meErr.message };
+
+    const { data: rows, error: qErr } = await supabase
+      .from("cssd_fact_quy_trinh")
+      .select("id")
+      .eq("lo_tiet_khuan_id", id)
+      .eq("is_active", true);
+    if (qErr) return { success: false as const, error: qErr.message };
+
+    const qtIds = (rows || []).map((r: { id: string }) => String(r.id));
+    const bomItems: BomItem[] = [];
+
+    for (const qtId of qtIds) {
+      const { data: tpRows, error: tpErr } = await supabase
+        .from("cssd_fact_quy_trinh_thanh_phan")
+        .select(`
+          ten_dung_cu_le,
+          so_luong_ke_hoach,
+          so_luong_thuc_te,
+          cssd_dm_bo_dung_cu_chi_tiet (
+            cssd_dm_loai_dung_cu (
+              id,
+              is_chiu_nhiet,
+              phan_loai_spaulding,
+              phuong_phap_tiet_khuan_chi_dinh
+            )
+          )
+        `)
+        .eq("quy_trinh_id", qtId)
+        .eq("is_active", true);
+      if (tpErr) return { success: false as const, error: tpErr.message };
+
+      for (const row of tpRows || []) {
+        const spec = (row as { cssd_dm_bo_dung_cu_chi_tiet?: { cssd_dm_loai_dung_cu?: Record<string, unknown> } })
+          .cssd_dm_bo_dung_cu_chi_tiet?.cssd_dm_loai_dung_cu;
+        bomItems.push({
+          loai_id: String(spec?.id || row.ten_dung_cu_le || qtId),
+          ten: String((row as { ten_dung_cu_le?: string }).ten_dung_cu_le || "—"),
+          so_luong_ke_hoach: Number((row as { so_luong_ke_hoach?: number }).so_luong_ke_hoach ?? 1),
+          so_luong_thuc_te: Number((row as { so_luong_thuc_te?: number }).so_luong_thuc_te ?? 1),
+          is_chiu_nhiet: spec?.is_chiu_nhiet !== false,
+          phan_loai_spaulding: (spec?.phan_loai_spaulding as BomItem["phan_loai_spaulding"]) || "CRITICAL",
+          phuong_phap_tiet_khuan_chi_dinh:
+            (spec?.phuong_phap_tiet_khuan_chi_dinh as BomItem["phuong_phap_tiet_khuan_chi_dinh"]) || "STEAM_134",
+        });
+      }
+    }
+
+    const tb = (me as { thiet_bi?: { ten_thiet_bi?: string; loai_may?: { ten_loai_may?: string; ma_loai_may?: string } } } | null)
+      ?.thiet_bi;
+    const machine = {
+      loai_thiet_bi: tb?.ten_thiet_bi || tb?.loai_may?.ma_loai_may || null,
+      loai_ten_hien_thi: tb?.loai_may?.ten_loai_may || null,
+    };
+
+    const risk = evaluateBatchSterilizationHeatRisk(bomItems, machine);
+    return { success: true as const, risk, setCount: qtIds.length, lineCount: bomItems.length };
+  } catch (e: unknown) {
+    return { success: false as const, error: getErrorMessage(e) };
   }
 }
 
@@ -289,7 +368,7 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
     const tenBo = String((qt as { bo_dung_cu_id?: string | null }).bo_dung_cu_id || "").trim()
       ? (
           await supabase
-            .from("dm_bo_dung_cu")
+            .from("cssd_dm_bo_dung_cu")
             .select("ten_bo")
             .eq("id", String((qt as { bo_dung_cu_id?: string | null }).bo_dung_cu_id))
             .maybeSingle()

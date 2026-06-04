@@ -18,7 +18,7 @@ function addDaysIso(dateYmd: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** Bắt đầu bảo trì: phiếu DANG_THUC_HIEN + đặt dm_thiet_bi = REPAIRING. */
+/** Bắt đầu bảo trì: phiếu DANG_THUC_HIEN + đặt cssd_dm_thiet_bi = REPAIRING. */
 export async function batDauBaoTriThietBiAction(input: { thiet_bi_id?: string; ma_thiet_bi_hoac_qr?: string; ly_do: string }) {
   const supabase = createAdminSupabaseClient();
   try {
@@ -48,7 +48,7 @@ export async function batDauBaoTriThietBiAction(input: { thiet_bi_id?: string; m
       };
     }
 
-    const { data: tb, error: tbErr } = await supabase.from("dm_thiet_bi").select("trang_thai").eq("id", tid).maybeSingle();
+    const { data: tb, error: tbErr } = await supabase.from("cssd_dm_thiet_bi").select("trang_thai").eq("id", tid).maybeSingle();
     if (tbErr) return { success: false as const, error: mapFkError(tbErr.message) };
     const st = String((tb as { trang_thai?: string })?.trang_thai || "").trim();
     if (!["READY", "HOAT_DONG"].includes(st)) {
@@ -72,7 +72,7 @@ export async function batDauBaoTriThietBiAction(input: { thiet_bi_id?: string; m
       .single();
     if (insErr) return { success: false as const, error: mapFkError(insErr.message) };
 
-    const { error: upErr } = await supabase.from("dm_thiet_bi").update({ trang_thai: "REPAIRING", updated_at: now }).eq("id", tid);
+    const { error: upErr } = await supabase.from("cssd_dm_thiet_bi").update({ trang_thai: "REPAIRING", updated_at: now }).eq("id", tid);
     if (upErr) {
       const insId = String((ins as { id?: string })?.id || "");
       if (insId) await supabase.from("cssd_fact_bao_tri").delete().eq("id", insId);
@@ -86,7 +86,7 @@ export async function batDauBaoTriThietBiAction(input: { thiet_bi_id?: string; m
   }
 }
 
-/** Hoàn thành bảo trì: phiếu HOAN_THANH + dm_thiet_bi READY + cập nhật ngày bảo trì kế. */
+/** Hoàn thành bảo trì: phiếu HOAN_THANH + cssd_dm_thiet_bi READY + cập nhật ngày bảo trì kế. */
 export async function ketThucBaoTriThietBiAction(input: { id: string; ket_qua_ghi_nhan: string }) {
   const supabase = createAdminSupabaseClient();
   try {
@@ -113,7 +113,7 @@ export async function ketThucBaoTriThietBiAction(input: { id: string; ket_qua_gh
     const today = now.slice(0, 10);
 
     const { data: tb, error: tbErr } = await supabase
-      .from("dm_thiet_bi")
+      .from("cssd_dm_thiet_bi")
       .select("chu_ky_bao_tri_ngay")
       .eq("id", thietBiId)
       .maybeSingle();
@@ -134,7 +134,7 @@ export async function ketThucBaoTriThietBiAction(input: { id: string; ket_qua_gh
     if (uPhieu) return { success: false as const, error: mapFkError(uPhieu.message) };
 
     const { error: uTb } = await supabase
-      .from("dm_thiet_bi")
+      .from("cssd_dm_thiet_bi")
       .update({
         trang_thai: "READY",
         ngay_bao_tri_gan_nhat: today,
@@ -184,7 +184,7 @@ export async function huyBaoTriThietBiAction(input: { id: string }) {
       .eq("id", id);
     if (uPhieu) return { success: false as const, error: mapFkError(uPhieu.message) };
 
-    const { error: uTb } = await supabase.from("dm_thiet_bi").update({ trang_thai: "READY", updated_at: now }).eq("id", thietBiId);
+    const { error: uTb } = await supabase.from("cssd_dm_thiet_bi").update({ trang_thai: "READY", updated_at: now }).eq("id", thietBiId);
     if (uTb) return { success: false as const, error: mapFkError(uTb.message) };
 
     revalidateCssdMaintenanceSurfaces();

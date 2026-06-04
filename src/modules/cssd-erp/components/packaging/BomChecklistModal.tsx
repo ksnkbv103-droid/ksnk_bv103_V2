@@ -201,7 +201,7 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
                     {heatEval.reason}
                   </p>
                   <div className="pt-2 flex items-center justify-between gap-4">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-rose-600 px-2.5 py-0.5 text-[8px] font-bold text-white uppercase shadow-sm">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-rose-600 px-2.5 py-0.5 text-[11px] font-bold text-white uppercase shadow-sm">
                       Khóa hấp Steam 134°C
                     </span>
                     
@@ -212,12 +212,12 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
                           setSplit("DONE");
                           toast.success("Đã xác nhận tách các dụng cụ nhạy cảm nhiệt.");
                         }}
-                        className="bg-rose-600 hover:bg-rose-700 active:scale-95 transition-all text-white text-[9px] font-black uppercase tracking-wider px-3 py-1 rounded-lg shadow-md"
+                        className="bg-rose-600 hover:bg-rose-700 active:scale-95 transition-all text-white text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-lg shadow-md"
                       >
                         [ Xác nhận tách Sub-set ]
                       </button>
                     ) : (
-                      <div className="flex items-center gap-1 bg-rose-100 border border-rose-200 text-rose-800 rounded-lg px-2.5 py-1 text-[9px] font-black uppercase tracking-wider">
+                      <div className="flex items-center gap-1 bg-rose-100 border border-rose-200 text-rose-800 rounded-lg px-2.5 py-1 text-[11px] font-black uppercase tracking-wider">
                         ✓ ĐÃ TÁCH SUB-SET (Hấp Plasma)
                       </div>
                     )}
@@ -245,12 +245,12 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-100/70 border-b border-slate-200">
-                    <th className="py-2.5 px-3 text-[9px] font-black text-slate-400 uppercase tracking-wider w-12 text-center">STT</th>
-                    <th className="py-2.5 px-3 text-[9px] font-black text-slate-400 uppercase tracking-wider">Cấu phần chuẩn</th>
-                    <th className="py-2.5 px-3 text-[9px] font-black text-slate-400 uppercase tracking-wider w-16 text-center">KH</th>
-                    <th className="py-2.5 px-3 text-[9px] font-black text-slate-400 uppercase tracking-wider w-16 text-center">TT</th>
-                    <th className="py-2.5 px-3 text-[9px] font-black text-slate-400 uppercase tracking-wider w-36 text-center">Tương tác QC</th>
-                    <th className="py-2.5 px-3 text-[9px] font-black text-slate-400 uppercase tracking-wider w-24 text-center">Nhiệt / Spaulding</th>
+                    <th className="py-2.5 px-3 text-[11px] font-black text-slate-400 uppercase tracking-wider w-12 text-center">STT</th>
+                    <th className="py-2.5 px-3 text-[11px] font-black text-slate-400 uppercase tracking-wider">Cấu phần chuẩn</th>
+                    <th className="py-2.5 px-3 text-[11px] font-black text-slate-400 uppercase tracking-wider w-16 text-center">KH</th>
+                    <th className="py-2.5 px-3 text-[11px] font-black text-slate-400 uppercase tracking-wider w-16 text-center">TT</th>
+                    <th className="py-2.5 px-3 text-[11px] font-black text-slate-400 uppercase tracking-wider w-36 text-center">Tương tác QC</th>
+                    <th className="py-2.5 px-3 text-[11px] font-black text-slate-400 uppercase tracking-wider w-24 text-center">Nhiệt / Spaulding</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 text-xs">
@@ -270,7 +270,7 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
                           <div className="space-y-0.5">
                             <span className="uppercase text-xs font-black">{item.ten}</span>
                             {!item.is_chiu_nhiet && (
-                              <div className="flex items-center gap-1 text-[9px] font-bold text-rose-600">
+                              <div className="flex items-center gap-1 text-[11px] font-bold text-rose-600">
                                 <CornerDownRight size={10} />
                                 Nhạy nhiệt (Cần tách hấp PLASMA)
                               </div>
@@ -304,7 +304,7 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
                               type="button"
                               disabled={isUpdating || item.so_luong_thuc_te <= 0}
                               onClick={() => void handleAction(item.id, "BAO_MAT")}
-                              className="p-1 bg-white border border-slate-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600 disabled:opacity-50 text-slate-400 rounded-lg transition-all text-[9px] font-black px-1.5 py-0.5 leading-none"
+                              className="p-1 bg-white border border-slate-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600 disabled:opacity-50 text-slate-400 rounded-lg transition-all text-[11px] font-black px-1.5 py-0.5 leading-none"
                               title="Báo mất 1 chiếc (-1)"
                             >
                               Mất
@@ -323,14 +323,14 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
 
                         <td className="py-3 px-3 text-center">
                           <div className="flex flex-col items-center gap-0.5">
-                            <span className={`text-[8px] font-black uppercase px-1.5 py-0.2 rounded-md ${
+                            <span className={`text-[11px] font-black uppercase px-1.5 py-0.2 rounded-md ${
                               item.is_chiu_nhiet 
                                 ? "bg-slate-100 text-slate-600" 
                                 : "bg-rose-100 text-rose-700 animate-pulse"
                             }`}>
                               {item.is_chiu_nhiet ? "Chịu nhiệt" : "⚡ Nhạy nhiệt"}
                             </span>
-                            <span className="text-[8px] font-bold text-slate-400 uppercase">
+                            <span className="text-[11px] font-bold text-slate-400 uppercase">
                               {item.phan_loai_spaulding}
                             </span>
                           </div>

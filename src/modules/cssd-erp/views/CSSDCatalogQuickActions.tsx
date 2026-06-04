@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, ExternalLink, QrCode } from "lucide-react";
 import { toast } from "sonner";
-import { appendChiTietIssueNoteAction } from "@/lib/master-data/append-chi-tiet-issue-note.action";
+import { reportChiTietInstrumentIssueAction } from "@/lib/master-data/append-chi-tiet-issue-note.action";
 import type { CSSDChiTiet } from "../types/catalog.types";
 import CssdDieuChuyenQrModal from "../components/catalog/CssdDieuChuyenQrModal";
 
@@ -42,9 +42,9 @@ export function CSSDCatalogQuickActions(props: {
             onClick={async () => {
               if (!selectedChiTiet) return;
               const note = window.prompt("Mô tả hỏng (tùy chọn):", "") || "";
-              const r = await appendChiTietIssueNoteAction({ chiTietId: selectedChiTiet.id, issueType: "HONG", note });
+              const r = await reportChiTietInstrumentIssueAction({ chiTietId: selectedChiTiet.id, issueType: "HONG", note });
               if (!r.success) return toast.error(r.error || "Không ghi nhận được báo hỏng.");
-              toast.success("Đã ghi nhận báo hỏng.");
+              toast.success("Đã ghi nhận báo hỏng (ghi chú + sổ giao dịch).");
               void reload();
             }}
             className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] font-semibold uppercase text-amber-800 hover:bg-amber-100 disabled:opacity-50"
@@ -57,9 +57,9 @@ export function CSSDCatalogQuickActions(props: {
             onClick={async () => {
               if (!selectedChiTiet) return;
               const note = window.prompt("Mô tả mất / thất lạc (tùy chọn):", "") || "";
-              const r = await appendChiTietIssueNoteAction({ chiTietId: selectedChiTiet.id, issueType: "MAT", note });
+              const r = await reportChiTietInstrumentIssueAction({ chiTietId: selectedChiTiet.id, issueType: "MAT", note });
               if (!r.success) return toast.error(r.error || "Không ghi nhận được báo mất.");
-              toast.success("Đã ghi nhận báo mất.");
+              toast.success("Đã ghi nhận báo mất (ghi chú + sổ giao dịch).");
               void reload();
             }}
             className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[10px] font-semibold uppercase text-rose-800 hover:bg-rose-100 disabled:opacity-50"

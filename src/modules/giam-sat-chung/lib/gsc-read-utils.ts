@@ -5,7 +5,7 @@ import { format } from "date-fns";
 export type GscHistoryRow = Record<string, unknown> & {
   id: string;
   loai_bang_kiem?: string;
-  /** Từ view JOIN dm_bang_kiem — tên hiển thị lịch sử */
+  /** Từ view JOIN gstt_dm_bang_kiem — tên hiển thị lịch sử */
   ten_bang_kiem_hien_thi?: string;
   bang_kiem_label?: string;
   ngay_giam_sat?: string;

@@ -13,7 +13,8 @@ Rule: `12-cssd-erp-spec-context.mdc`
 
 | Route | Mục đích |
 |-------|----------|
-| `/cssd-quy-trinh` | Workflow 6 trạm + tab mẻ/kho/truy vết |
+| `/cssd-quy-trinh` | Workflow 6 trạm + tab mẻ/kho/truy vết (`?tab=batch\|kho\|trace`) |
+| Pilot QA | [`pilot-test-checklist.md`](pilot-test-checklist.md) |
 | `/cssd-dung-cu` | Catalog dụng cụ (read-only) |
 | `/cssd-su-co` | Báo cáo sự cố |
 | `/cssd-thiet-bi` | Bảo trì thiết bị |

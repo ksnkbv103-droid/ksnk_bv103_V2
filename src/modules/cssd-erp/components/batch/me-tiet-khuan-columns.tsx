@@ -28,7 +28,7 @@ export const meTietKhuanBatchColumns: Column<any>[] = [
     accessorKey: "ket_qua_test",
     cell: (i: any) => (
       <span
-        className={`rounded-md px-2 py-1 text-[9px] font-black uppercase ${
+        className={`rounded-md px-2 py-1 text-[11px] font-black uppercase ${
           i.ket_qua_test === true ? "bg-emerald-50 text-emerald-600" : i.ket_qua_test === false ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-500"
         }`}
       >
@@ -50,7 +50,7 @@ export const meTietKhuanBatchColumns: Column<any>[] = [
       };
       const badge = STATE_BADGES[state] || { label: state, cls: "bg-slate-50 text-slate-600 border-slate-100" };
       return (
-        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${badge.cls}`}>
+        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border ${badge.cls}`}>
           {badge.label}
         </span>
       );

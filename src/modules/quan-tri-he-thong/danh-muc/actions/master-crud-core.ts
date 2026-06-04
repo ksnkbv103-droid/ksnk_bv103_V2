@@ -4,21 +4,19 @@
  * Master CRUD core - server actions thao tác bảng MDM/DM.
  *
  * SSOT bảng vật lý sau đợt rename 25/05/2026 (xem `docs/core/implementation-mapping.md`):
- * - `dm_thiet_bi`         → SSOT `cssd_dm_thiet_bi`
- * - `dm_hoa_chat`         → SSOT `cssd_dm_hoa_chat`
- * - `dm_khoa_phong`       → SSOT `mdm_dm_khoa_phong`
- * - `dm_loai_dung_cu`     → SSOT `cssd_dm_loai_dung_cu`
- * - `dm_bo_dung_cu*`      → SSOT `cssd_dm_bo_dung_cu*`
- * - `dm_tram_cssd`        → SSOT `cssd_dm_tram`
- * - `dm_loai_may_tiet_khuan` → SSOT `cssd_dm_loai_may`
- * - `dm_roles`            → SSOT TABLE `sys_roles` (`auth_dm_roles` đã được DROP — 26/05/2026)
+ * - `cssd_dm_thiet_bi`         → SSOT `cssd_dm_thiet_bi`
+ * - `cssd_dm_hoa_chat`         → SSOT `cssd_dm_hoa_chat`
+ * - `mdm_dm_khoa_phong`       → SSOT `mdm_dm_khoa_phong`
+ * - `cssd_dm_loai_dung_cu`     → SSOT `cssd_dm_loai_dung_cu`
+ * - `cssd_dm_bo_dung_cu*`      → SSOT `cssd_dm_bo_dung_cu*`
+ * - `cssd_dm_tram`        → SSOT `cssd_dm_tram`
+ * - `cssd_dm_loai_may` → SSOT `cssd_dm_loai_may`
+ * - `sys_roles`            → SSOT TABLE `sys_roles` (`auth_sys_roles` đã được DROP — 26/05/2026)
  * - Các loại lookup phẳng (TO_CONG_TAC, CHUC_DANH, CHUC_VU, NGHE_NGHIEP, …)
  *   → CONSOLIDATED_MAPS dưới đây ghi vào `sys_lookup_value` (SSOT đã chọn theo Slice 8 plan).
- * - `dm_bang_kiem`        → SSOT `gstt_dm_bang_kiem`
+ * - `gstt_dm_bang_kiem`        → SSOT `gstt_dm_bang_kiem`
  *
- * Allowlist GIỮ TÊN VIEW (`dm_*`) vì đầu vào API đến từ `domain-registry.sourceTable`,
- * và `domain-registry` là contract API hợp đồng giữa app ↔ admin form.
- * Postgres tự inline view → không chi phí runtime.
+ * Allowlist dùng tên module (`mdm_dm_*`, `cssd_dm_*`, `gstt_dm_*`, …) khớp `domain-registry.sourceTable`.
  */
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
@@ -38,33 +36,33 @@ const PHYSICAL_TABLE_NAMES = [
 
 const MASTER_TABLE_ALLOWLIST = new Set([
   ...PHYSICAL_TABLE_NAMES,
-  "dm_bo_dung_cu",
-  "dm_bo_dung_cu_chi_tiet",
-  "dm_thiet_bi",
-  "dm_hoa_chat",
-  "dm_khoa_phong",
-  "dm_khoi_khoa",
-  "dm_tram_cssd",
-  "dm_to_cong_tac",
-  "dm_chuc_vu",
-  "dm_chuc_danh",
-  "dm_roles",
-  "dm_khu_vuc_giam_sat",
-  "dm_nghe_nghiep",
-  "dm_loai_dung_cu",
-  "dm_loai_su_co",
-  "dm_loai_may_tiet_khuan",
-  "dm_hinh_thuc_giam_sat",
-  "dm_cach_thuc_giam_sat",
-  "dm_loai_cong_viec",
-  "dm_trang_thai_cong_viec",
-  "dm_loai_nkbv",
-  "dm_trang_thai_nkbv_ca",
+  "cssd_dm_bo_dung_cu",
+  "cssd_dm_bo_dung_cu_chi_tiet",
+  "cssd_dm_thiet_bi",
+  "cssd_dm_hoa_chat",
+  "mdm_dm_khoa_phong",
+  "mdm_dm_khoi_khoa",
+  "cssd_dm_tram",
+  "mdm_dm_to_cong_tac",
+  "mdm_dm_chuc_vu",
+  "mdm_dm_chuc_danh",
+  "sys_roles",
+  "gstt_dm_khu_vuc_giam_sat",
+  "mdm_dm_nghe_nghiep",
+  "cssd_dm_loai_dung_cu",
+  "cssd_dm_loai_su_co",
+  "cssd_dm_loai_may",
+  "gstt_dm_hinh_thuc_giam_sat",
+  "gstt_dm_cach_thuc_giam_sat",
+  "qlcv_dm_loai_cong_viec",
+  "qlcv_dm_trang_thai_cong_viec",
+  "nkbv_dm_loai",
+  "nkbv_dm_trang_thai_ca",
   "mdm_nhan_su",
-  "dm_bang_kiem",
+  "gstt_dm_bang_kiem",
 ]);
 
-// Cấu trúc ánh xạ 13 bảng danh mục & trạng thái cũ sang dm_lookup_value
+// Cấu trúc ánh xạ 13 bảng danh mục & trạng thái cũ sang sys_lookup_value
 const CONSOLIDATED_MAPS: Record<
   string,
   {
@@ -74,20 +72,20 @@ const CONSOLIDATED_MAPS: Record<
     metadataColumns?: string[];
   }
 > = {
-  dm_cach_thuc_giam_sat: { categoryType: "CACH_THUC_GIAM_SAT", maColumn: "ma_cach_thuc", tenColumn: "ten_cach_thuc" },
-  dm_chuc_danh: { categoryType: "CHUC_DANH", maColumn: "ma_chuc_danh", tenColumn: "ten_chuc_danh" },
-  dm_chuc_vu: { categoryType: "CHUC_VU", maColumn: "ma_chuc_vu", tenColumn: "ten_chuc_vu" },
-  dm_hinh_thuc_giam_sat: { categoryType: "HINH_THUC_GIAM_SAT", maColumn: "ma_hinh_thuc", tenColumn: "ten_hinh_thuc" },
-  dm_khoi_khoa: { categoryType: "KHOI_KHOA", maColumn: "ma_khoi", tenColumn: "ten_khoi" },
-  dm_tram_cssd: { categoryType: "TRAM_CSSD", maColumn: "ma_tram", tenColumn: "ten_tram", metadataColumns: ["thu_tu"] },
-  dm_loai_cong_viec: { categoryType: "LOAI_CONG_VIEC", maColumn: "ma", tenColumn: "ten", metadataColumns: ["thu_tu"] },
-  dm_loai_may_tiet_khuan: { categoryType: "LOAI_MAY_TIET_KHUAN", maColumn: "ma_loai_may", tenColumn: "ten_loai_may" },
-  dm_loai_nkbv: { categoryType: "LOAI_NKBV", maColumn: "ma_loai", tenColumn: "ten_loai" },
-  dm_loai_su_co: { categoryType: "LOAI_SU_CO", maColumn: "ma_loai_su_co", tenColumn: "ten_loai_su_co" },
-  dm_nghe_nghiep: { categoryType: "NGHE_NGHIEP", maColumn: "ma_nghe_nghiep", tenColumn: "ten_nghe_nghiep" },
-  dm_to_cong_tac: { categoryType: "TO_CONG_TAC", maColumn: "ma_to", tenColumn: "ten_to" },
-  dm_trang_thai_cong_viec: { categoryType: "TRANG_THAI_CONG_VIEC", maColumn: "ma", tenColumn: "ten", metadataColumns: ["mau_sac", "thu_tu"] },
-  dm_trang_thai_nkbv_ca: { categoryType: "TRANG_THAI_NKBV_CA", maColumn: "ma_trang_thai", tenColumn: "ten_trang_thai", metadataColumns: ["thu_tu"] },
+  gstt_dm_cach_thuc_giam_sat: { categoryType: "CACH_THUC_GIAM_SAT", maColumn: "ma_cach_thuc", tenColumn: "ten_cach_thuc" },
+  mdm_dm_chuc_danh: { categoryType: "CHUC_DANH", maColumn: "ma_chuc_danh", tenColumn: "ten_chuc_danh" },
+  mdm_dm_chuc_vu: { categoryType: "CHUC_VU", maColumn: "ma_chuc_vu", tenColumn: "ten_chuc_vu" },
+  gstt_dm_hinh_thuc_giam_sat: { categoryType: "HINH_THUC_GIAM_SAT", maColumn: "ma_hinh_thuc", tenColumn: "ten_hinh_thuc" },
+  mdm_dm_khoi_khoa: { categoryType: "KHOI_KHOA", maColumn: "ma_khoi", tenColumn: "ten_khoi" },
+  cssd_dm_tram: { categoryType: "TRAM_CSSD", maColumn: "ma_tram", tenColumn: "ten_tram", metadataColumns: ["thu_tu"] },
+  qlcv_dm_loai_cong_viec: { categoryType: "LOAI_CONG_VIEC", maColumn: "ma", tenColumn: "ten", metadataColumns: ["thu_tu"] },
+  cssd_dm_loai_may: { categoryType: "LOAI_MAY_TIET_KHUAN", maColumn: "ma_loai_may", tenColumn: "ten_loai_may" },
+  nkbv_dm_loai: { categoryType: "LOAI_NKBV", maColumn: "ma_loai", tenColumn: "ten_loai" },
+  cssd_dm_loai_su_co: { categoryType: "LOAI_SU_CO", maColumn: "ma_loai_su_co", tenColumn: "ten_loai_su_co" },
+  mdm_dm_nghe_nghiep: { categoryType: "NGHE_NGHIEP", maColumn: "ma_nghe_nghiep", tenColumn: "ten_nghe_nghiep" },
+  mdm_dm_to_cong_tac: { categoryType: "TO_CONG_TAC", maColumn: "ma_to", tenColumn: "ten_to" },
+  qlcv_dm_trang_thai_cong_viec: { categoryType: "TRANG_THAI_CONG_VIEC", maColumn: "ma", tenColumn: "ten", metadataColumns: ["mau_sac", "thu_tu"] },
+  nkbv_dm_trang_thai_ca: { categoryType: "TRANG_THAI_NKBV_CA", maColumn: "ma_trang_thai", tenColumn: "ten_trang_thai", metadataColumns: ["thu_tu"] },
 };
 
 // @internal — chỉ import từ quan-tri-he-thong/.../actions (gate: npm run imports:master-crud). Caller phải verifyPermission.
@@ -171,7 +169,7 @@ export async function upsertMasterRow(tableName: string, id: string, payload: Re
   const config = CONSOLIDATED_MAPS[tableName];
 
   if (config) {
-    // Intercept tác vụ ghi và điều hướng sang sys_lookup_value (SSOT post 25/05; `dm_lookup_value` là view).
+    // Intercept tác vụ ghi và điều hướng sang sys_lookup_value (SSOT post 25/05; `sys_lookup_value` là view).
     const lookupPayload = convertToLookupPayload(tableName, payload, config.categoryType);
     const { error } = id
       ? await supabase.from("sys_lookup_value").update(lookupPayload).eq("id", id)
@@ -179,7 +177,7 @@ export async function upsertMasterRow(tableName: string, id: string, payload: Re
 
     if (error) return { success: false as const, error: error.message };
   } else {
-    // Luồng CRUD vật lý thông thường cho các bảng cốt lõi (dm_thiet_bi, dm_hoa_chat, v.v.)
+    // Luồng CRUD vật lý thông thường cho các bảng cốt lõi (cssd_dm_thiet_bi, cssd_dm_hoa_chat, v.v.)
     const { error } = id
       ? await supabase.from(tableName).update(payload).eq("id", id)
       : await supabase.from(tableName).insert([payload]);

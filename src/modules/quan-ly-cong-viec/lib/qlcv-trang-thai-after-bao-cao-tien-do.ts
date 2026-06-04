@@ -1,5 +1,5 @@
 /**
- * Trạng thái `fact_cong_viec.trang_thai` sau khi ghi nhận % tiến độ (báo cáo tiến độ).
+ * Trạng thái `qlcv_fact_cong_viec.trang_thai` sau khi ghi nhận % tiến độ (báo cáo tiến độ).
  * 100% → chờ nghiệm thu (không tự HOAN_THANH).
  * Có báo cáo (kể cả 0%) → coi là đang làm nếu đang ở cổng chờ nhận / mới / từ chối nghiệm thu.
  */

@@ -1,6 +1,6 @@
 /**
- * Import CSSD_Management - DM_BoDungCu.csv → public.dm_bo_dung_cu (upsert ma_bo).
- * Map: PhanLoai → dm_loai_dung_cu(ma_loai), KhoaPhongSuDung → dm_khoa_phong(ma_khoa).
+ * Import CSSD_Management - DM_BoDungCu.csv → public.cssd_dm_bo_dung_cu (upsert ma_bo).
+ * Map: PhanLoai → cssd_dm_loai_dung_cu(ma_loai), KhoaPhongSuDung → mdm_dm_khoa_phong(ma_khoa).
  * CSV thừa → ghi_chu; không wipe toàn bảng (tránh vỡ FK quy_trinh).
  * Chạy: node --env-file=.env.local scripts/import-bo-dung-cu-csv.mjs [/path/file.csv]
  */
@@ -108,11 +108,11 @@ async function ensureLoaiDungCu(supabase, existingLoaiMaToId, mais) {
     created_at: iso(),
     updated_at: iso(),
   }));
-  const { error } = await supabase.from("dm_loai_dung_cu").upsert(rows, { onConflict: "ma_loai" });
+  const { error } = await supabase.from("cssd_dm_loai_dung_cu").upsert(rows, { onConflict: "ma_loai" });
   if (error) throw error;
-  const { data } = await supabase.from("dm_loai_dung_cu").select("id,ma_loai").in("ma_loai", missing);
+  const { data } = await supabase.from("cssd_dm_loai_dung_cu").select("id,ma_loai").in("ma_loai", missing);
   for (const r of data || []) existingLoaiMaToId.set(String(r.ma_loai).toUpperCase(), r.id);
-  console.warn("Đã upsert dm_loai_dung_cu:", missing.join(", "));
+  console.warn("Đã upsert cssd_dm_loai_dung_cu:", missing.join(", "));
 }
 
 const csvPath = process.argv[2] || CSV_DEFAULT;
@@ -145,7 +145,7 @@ expect.forEach((name, j) => {
 
 async function ensureKhoaChung(supabase, khoaByMa) {
   if (khoaByMa.has("CHUNG")) return;
-  const { data: anyK } = await supabase.from("dm_khoa_phong").select("khoi_id").limit(1).maybeSingle();
+  const { data: anyK } = await supabase.from("mdm_dm_khoa_phong").select("khoi_id").limit(1).maybeSingle();
   const khoi_id = anyK?.khoi_id ?? null;
   const patch = {
     ma_khoa: "CHUNG",
@@ -154,23 +154,23 @@ async function ensureKhoaChung(supabase, khoaByMa) {
     is_active: true,
     updated_at: new Date().toISOString(),
   };
-  const { data: ins, error } = await supabase.from("dm_khoa_phong").insert([patch]).select("id").maybeSingle();
+  const { data: ins, error } = await supabase.from("mdm_dm_khoa_phong").insert([patch]).select("id").maybeSingle();
   if (error && !String(error.message || "").toLowerCase().includes("duplicate")) throw error;
   if (ins?.id) {
     khoaByMa.set("CHUNG", ins.id);
-    console.warn("Đã thêm dm_khoa_phong.ma_khoa=CHUNG — kiểm tra tên khoa trong Quản trị.");
+    console.warn("Đã thêm mdm_dm_khoa_phong.ma_khoa=CHUNG — kiểm tra tên khoa trong Quản trị.");
     return;
   }
-  const { data: again } = await supabase.from("dm_khoa_phong").select("id").eq("ma_khoa", "CHUNG").maybeSingle();
+  const { data: again } = await supabase.from("mdm_dm_khoa_phong").select("id").eq("ma_khoa", "CHUNG").maybeSingle();
   if (again?.id) khoaByMa.set("CHUNG", again.id);
 }
 
-const { data: khoas, error: ek } = await supabase.from("dm_khoa_phong").select("id,ma_khoa").eq("is_active", true);
+const { data: khoas, error: ek } = await supabase.from("mdm_dm_khoa_phong").select("id,ma_khoa").eq("is_active", true);
 if (ek) throw ek;
 const khoaByMa = new Map((khoas || []).map((k) => [String(k.ma_khoa).trim().toUpperCase(), k.id]));
 await ensureKhoaChung(supabase, khoaByMa);
 
-let { data: loaiRows, error: el } = await supabase.from("dm_loai_dung_cu").select("id,ma_loai").eq("is_active", true);
+let { data: loaiRows, error: el } = await supabase.from("cssd_dm_loai_dung_cu").select("id,ma_loai").eq("is_active", true);
 if (el) throw el;
 const loaiMaToId = new Map((loaiRows || []).map((x) => [String(x.ma_loai).trim().toUpperCase(), x.id]));
 
@@ -264,9 +264,9 @@ for (const p of payloads) {
 const BATCH = 25;
 for (let i = 0; i < rows.length; i += BATCH) {
   const chunk = rows.slice(i, i + BATCH);
-  const { error } = await supabase.from("dm_bo_dung_cu").upsert(chunk, { onConflict: "ma_bo" });
+  const { error } = await supabase.from("cssd_dm_bo_dung_cu").upsert(chunk, { onConflict: "ma_bo" });
   if (error) {
-    console.error("Upsert dm_bo_dung_cu:", error.message);
+    console.error("Upsert cssd_dm_bo_dung_cu:", error.message);
     process.exit(1);
   }
 }
@@ -275,6 +275,6 @@ console.log(`OK: đã upsert ${rows.length} bộ dụng cụ (ma_bo).`);
 
 if (warnKhoa.length)
   console.warn(
-    `${warnKhoa.length} dòng không tìm thấy dm_khoa_phong.ma_khoa khớp (khoa_su_dung_id = NULL):`,
+    `${warnKhoa.length} dòng không tìm thấy mdm_dm_khoa_phong.ma_khoa khớp (khoa_su_dung_id = NULL):`,
     warnKhoa.slice(0, 12).join("; ") + (warnKhoa.length > 12 ? "; …" : ""),
   );

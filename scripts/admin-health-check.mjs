@@ -27,25 +27,25 @@ function addCheck(ok, name) {
   checks.push({ ok, name });
 }
 
-const migrationRoles = "supabase/migrations/20260508_add_is_active_to_dm_roles.sql";
-const migrationRpc = "supabase/migrations/202605081001_fix_registry_rpc_khu_vuc_giam_sat.sql";
+const migrationBaseline = "supabase/migrations/20260530000000_init_pilot_baseline.sql";
+const migrationRbacRepair = "supabase/migrations/20260603120000_v_auth_permissions_compat_repair.sql";
 
-addCheck(existsSync(join(root, migrationRoles)), `has migration ${migrationRoles}`);
-addCheck(existsSync(join(root, migrationRpc)), `has migration ${migrationRpc}`);
+addCheck(existsSync(join(root, migrationBaseline)), `has migration ${migrationBaseline}`);
+addCheck(existsSync(join(root, migrationRbacRepair)), `has migration ${migrationRbacRepair}`);
 
 const masterCrud = read("src/modules/quan-tri-he-thong/danh-muc/actions/master-crud-core.ts");
 if (!masterCrud.ok) failures.push(masterCrud.error);
 else {
   mustNotInclude(
     masterCrud.value,
-    "dm_roles không hỗ trợ bật/tắt is_active",
-    "master-crud-core still blocks dm_roles toggle",
+    "sys_roles không hỗ trợ bật/tắt is_active",
+    "master-crud-core still blocks sys_roles toggle",
     failures,
   );
   mustNotInclude(
     masterCrud.value,
-    "dm_roles không hỗ trợ soft delete theo is_active",
-    "master-crud-core still blocks dm_roles soft delete",
+    "sys_roles không hỗ trợ soft delete theo is_active",
+    "master-crud-core still blocks sys_roles soft delete",
     failures,
   );
   mustInclude(
@@ -67,8 +67,8 @@ else {
   );
   mustInclude(
     gscRead.value,
-    '.from("dm_khu_vuc_giam_sat")',
-    "gsc-read missing fallback dm_khu_vuc_giam_sat query",
+    '.from("gstt_dm_khu_vuc_giam_sat")',
+    "gsc-read missing fallback gstt_dm_khu_vuc_giam_sat query",
     failures,
   );
 }
@@ -78,8 +78,8 @@ if (!mdmGateway.ok) failures.push(mdmGateway.error);
 else {
   mustInclude(
     mdmGateway.value,
-    '.from("dm_khu_vuc_giam_sat")',
-    "master-data-gateway missing fallback dm_khu_vuc_giam_sat query",
+    '.from("gstt_dm_khu_vuc_giam_sat")',
+    "master-data-gateway missing fallback gstt_dm_khu_vuc_giam_sat query",
     failures,
   );
 }

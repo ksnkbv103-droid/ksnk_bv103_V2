@@ -53,7 +53,7 @@ export default function BsiClinicalSubForm({
                 className="w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
                 placeholder="VD: Staphylococcus aureus"
               />
-              <span className="absolute right-3 top-2.5 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+              <span className="absolute right-3 top-2.5 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
                 Tự động điền LIS
               </span>
             </div>

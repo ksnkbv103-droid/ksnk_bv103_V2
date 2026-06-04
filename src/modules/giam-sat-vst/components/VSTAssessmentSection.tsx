@@ -93,6 +93,6 @@ export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment
   }
 
   return (
-    <div className="h-14 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl italic text-xs font-semibold text-slate-400 sm:text-[9px] sm:font-normal sm:text-slate-300 sm:h-16">Hoàn thành bước 2</div>
+    <div className="h-14 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl italic text-xs font-semibold text-slate-400 sm:text-[11px] sm:font-normal sm:text-slate-300 sm:h-16">Hoàn thành bước 2</div>
   );
 }

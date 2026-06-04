@@ -82,7 +82,7 @@ export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: stri
         onSuggestMa={
           !m.editRow && canMutate
             ? async () => {
-                const x = await m.fillSuggestedMa();
+                const x = await m.fillSuggestedMa(m.ten);
                 if (x) m.setMa(x);
               }
             : undefined

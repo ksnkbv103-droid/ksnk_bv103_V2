@@ -83,7 +83,6 @@ _Generated 2026-05-31 — `npm run wiki:index`_
 - [`docs/data/bang-kiem/giamsattuanthu.md`](../data/bang-kiem/giamsattuanthu.md) — —
 - [`docs/data/bang-kiem/master-bangkiem.md`](../data/bang-kiem/master-bangkiem.md) — —
 - [`docs/data/bang-kiem/master-tieuchi.md`](../data/bang-kiem/master-tieuchi.md) — —
-- [`docs/data/bang-kiem/nguyennhanloi.md`](../data/bang-kiem/nguyennhanloi.md) — —
 - [`docs/data/bang-kiem/raw-forms-full.md`](../data/bang-kiem/raw-forms-full.md) — —
 - [`docs/data/nkbv/algorithms/data-fields.md`](../data/nkbv/algorithms/data-fields.md) — —
 - [`docs/data/nkbv/algorithms/exclusion-rules.md`](../data/nkbv/algorithms/exclusion-rules.md) — —

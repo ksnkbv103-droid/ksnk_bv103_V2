@@ -96,7 +96,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         const val = i.trang_thai;
         if (val === "DANG_THUC_HIEN") {
           return (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-blue-700 shadow-sm animate-in fade-in duration-300">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-100 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-blue-700 shadow-sm animate-in fade-in duration-300">
               <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
               Đang thực hiện
             </span>
@@ -104,7 +104,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         }
         if (val === "HOAN_THANH") {
           return (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-700 shadow-sm animate-in fade-in duration-300">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-emerald-700 shadow-sm animate-in fade-in duration-300">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               Hoàn thành
             </span>
@@ -112,13 +112,13 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         }
         if (val === "HUY") {
           return (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Đã hủy
             </span>
           );
         }
         return (
-          <span className="inline-flex items-center rounded-full bg-slate-50 border border-slate-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-600">
+          <span className="inline-flex items-center rounded-full bg-slate-50 border border-slate-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-600">
             {trangThaiLabel(val)}
           </span>
         );

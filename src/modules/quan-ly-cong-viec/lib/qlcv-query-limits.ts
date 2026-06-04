@@ -1,5 +1,5 @@
-/**
- * Giới hạn truy vấn danh sách — tránh tải không giới hạn view công việc trên UI Kanban/bảng.
- * (Nếu vượt ngưỡng, cần phân trang / tìm kiếm server-side.)
- */
-export const QLCV_ROOT_TASK_LIST_MAX = 1500;
+/** Giới hạn truy vấn danh sách QLCV. */
+
+/** Kanban/stats: fetch phân trang server (tối đa 500 × 20 = 10_000 phiếu). */
+export const QLCV_BOARD_FETCH_PAGE_SIZE = 500;
+export const QLCV_BOARD_FETCH_MAX_PAGES = 20;

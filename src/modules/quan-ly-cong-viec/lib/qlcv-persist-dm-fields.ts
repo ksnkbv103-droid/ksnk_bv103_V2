@@ -1,58 +1,31 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-
-/** Gán FK danh mục QLCV khi insert/update — cache theo process giảm SELECT lặp. */
+/** Chuẩn hóa mã danh mục QLCV khi ghi fact — chỉ TEXT (SSOT sau migration 20260607100000). */
 
 export type QlcvDmPersistFields = {
-  loai_cong_viec_id: string | null;
-  trang_thai_id: string | null;
+  loai_cong_viec: string;
+  trang_thai: string;
 };
 
-const lookupIdCache = new Map<string, string | null>();
-
-function cacheKey(table: string, ma: string): string {
-  return `${table}:${ma}`;
+export function normalizeQlcvDmFields(params: {
+  loai_cong_viec?: string | null;
+  trang_thai?: string | null;
+}): QlcvDmPersistFields {
+  const loai = String(params.loai_cong_viec ?? "").trim();
+  const tt = String(params.trang_thai ?? "").trim();
+  return {
+    loai_cong_viec: loai || "DOT_XUAT",
+    trang_thai: tt || "MOI",
+  };
 }
 
-export async function resolveQlcvLoaiCongViecId(
-  supabase: SupabaseClient,
-  maLoai: string,
-): Promise<string | null> {
-  const ma = String(maLoai || "").trim();
-  if (!ma) return null;
-  const key = cacheKey("loai", ma);
-  if (lookupIdCache.has(key)) return lookupIdCache.get(key) ?? null;
-  const { data } = await supabase.from("dm_loai_cong_viec").select("id").eq("ma", ma).maybeSingle();
-  const id = data?.id ? String(data.id) : null;
-  lookupIdCache.set(key, id);
-  return id;
-}
-
-export async function resolveQlcvTrangThaiId(
-  supabase: SupabaseClient,
-  maTrangThai: string,
-): Promise<string | null> {
-  const ma = String(maTrangThai || "").trim();
-  if (!ma) return null;
-  const key = cacheKey("tt", ma);
-  if (lookupIdCache.has(key)) return lookupIdCache.get(key) ?? null;
-  const { data } = await supabase.from("dm_trang_thai_cong_viec").select("id").eq("ma", ma).maybeSingle();
-  const id = data?.id ? String(data.id) : null;
-  lookupIdCache.set(key, id);
-  return id;
-}
-
+/** @deprecated Alias — dùng normalizeQlcvDmFields (sync, không SELECT FK). */
 export async function buildQlcvDmPersistFields(
-  supabase: SupabaseClient,
+  _supabase: unknown,
   params: { loai_cong_viec?: string | null; trang_thai?: string | null },
 ): Promise<QlcvDmPersistFields> {
-  const [loai_cong_viec_id, trang_thai_id] = await Promise.all([
-    resolveQlcvLoaiCongViecId(supabase, params.loai_cong_viec ?? ""),
-    resolveQlcvTrangThaiId(supabase, params.trang_thai ?? ""),
-  ]);
-  return { loai_cong_viec_id, trang_thai_id };
+  return normalizeQlcvDmFields(params);
 }
 
-/** Chỉ dùng trong test — xóa cache giữa case. */
+/** Chỉ dùng trong test — giữ API ổn định sau khi bỏ cache lookup. */
 export function clearQlcvLookupIdCacheForTests(): void {
-  lookupIdCache.clear();
+  /* no-op */
 }

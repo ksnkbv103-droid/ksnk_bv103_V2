@@ -13,6 +13,7 @@ import {
   fetchCssdMeListData,
   fetchCssdTietKhuanWaitingRows,
   finishCssdSterilizationBatch,
+  fetchCssdBatchHeatRisk,
 } from "../actions/cssd.actions";
 
 import { usePermission } from "@/hooks/usePermission";
@@ -133,9 +134,23 @@ export function useMeTietKhuanWorkflow() {
     toast.success(`Đã thêm vào phiếu TK: ${"tenBo" in r ? r.tenBo : code}`);
   };
 
+  const assertBatchHeatAllows = async (batchId: string) => {
+    const h = await fetchCssdBatchHeatRisk(batchId);
+    if (!h.success) return true;
+    if (h.risk.level === "BLOCK") {
+      h.risk.messages.forEach((m) => toast.error(m, { duration: 10000 }));
+      return false;
+    }
+    if (h.risk.level === "WARN") {
+      toast.warning(h.risk.messages[0] || "Cảnh báo nhiệt/Spaulding", { duration: 8000 });
+    }
+    return true;
+  };
+
   const confirmBatDau = async () => {
     if (!activeMe?.id) return;
     if (!items.length) return toast.error("Chưa có bộ trong mẻ.");
+    if (!(await assertBatchHeatAllows(activeMe.id))) return;
     if (!confirm("Xác nhận bắt đầu tiệt khuẩn? Sau bước này không thể nạp thêm bộ vào mẻ.")) return;
     const r = await confirmBatDauTietKhuanBatch(activeMe.id);
     if (!r.success) return toast.error(r.error);
@@ -158,6 +173,8 @@ export function useMeTietKhuanWorkflow() {
     if (isPass && !overrideThongSoMay && !finalThongSoMay.trim()) {
       return toast.error("Thiếu thông số máy.");
     }
+    if (isPass && activeMe?.id && !(await assertBatchHeatAllows(activeMe.id))) return;
+
     const msg = isPass ? "Xác nhận mẻ ĐẠT và chuyển các bộ sang Cấp phát?" : "CẢNH BÁO: Kết luận KHÔNG ĐẠT — xác nhận?";
     if (!confirm(msg)) return;
 

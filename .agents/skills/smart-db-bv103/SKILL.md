@@ -38,7 +38,7 @@ description: Tối ưu Postgres và app BV103 theo hướng Smart DB thực dụ
 - **INDEX Audit:** Trước release lớn → `pg_stat_statements` → top 10 slow query → `EXPLAIN ANALYZE` → migration bổ sung INDEX nếu thấy Seq Scan trên bảng > 1.000 rows.
 - **Server Pagination:** `.range(from, to)` + `.ilike()` search trên DB. Mặc định 20 rows/trang. **KHÔNG select * toàn bộ bảng fact_*.**
 - **Count:** `.select("id", { count: "exact", head: true })` — nhẹ, không tải payload.
-- **verifyPermission:** 1 query duy nhất qua `v_auth_user_permissions`. Cấm 3 query tuần tự.
+- **verifyPermission:** 1 query duy nhất qua `v_sys_user_permissions`. Cấm 3 query tuần tự.
 
 ### App Layer
 - **Hook chuẩn:** `useServerPaginatedTable` cho bảng lớn. `useDataTable` chỉ cho bảng danh mục nhỏ (< 200 rows).

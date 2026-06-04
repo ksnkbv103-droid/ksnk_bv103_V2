@@ -4,11 +4,14 @@ import {
 } from "@/lib/mdm-read-gateway";
 import type { ChecklistCriterion, ChecklistResult, ChecklistTemplate } from "@/types/giam-sat-chung";
 
+import type { BangKiemCachTinhDiem, BangKiemLoaiGiamSat } from "../types";
+
 export type GscTemplateOption = {
   id: string;
   ma_bk: string;
   ten_bang_kiem: string;
-  loai_giam_sat?: string | null;
+  loai_giam_sat?: BangKiemLoaiGiamSat | string | null;
+  cach_tinh_diem?: BangKiemCachTinhDiem | string | null;
 };
 
 /**
@@ -80,7 +83,17 @@ export async function loadGscTemplateOptions(): Promise<GscTemplateOption[]> {
     ma_bk: b.ma_bk || "",
     ten_bang_kiem: b.ten_bang_kiem || "",
     loai_giam_sat: (b as { loai_giam_sat?: string }).loai_giam_sat ?? null,
+    cach_tinh_diem: (b as { cach_tinh_diem?: string }).cach_tinh_diem ?? null,
   }));
+}
+
+function templateMetaFromBk(bk: GscTemplateOption) {
+  const lg = String(bk.loai_giam_sat ?? "").trim().toUpperCase() || null;
+  const cach = String(bk.cach_tinh_diem ?? "").trim().toUpperCase() || null;
+  return {
+    loai_giam_sat: lg as BangKiemLoaiGiamSat | null,
+    cach_tinh_diem: cach as BangKiemCachTinhDiem | null,
+  };
 }
 
 type SwitchOk = { ok: true; template: ChecklistTemplate; results: ChecklistResult[] };
@@ -104,6 +117,7 @@ export async function switchGscTemplateByBangKiemId(
     dbId: bk.id,
     title: bk.ten_bang_kiem,
     criteria: criteria.map(mapTieuChiJsonbToCriterion),
+    ...templateMetaFromBk(bk),
   };
   const results = template.criteria.map((c) => ({
     criterionId: c.id,

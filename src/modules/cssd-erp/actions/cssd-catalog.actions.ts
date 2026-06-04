@@ -44,8 +44,8 @@ export async function getKhoCatalogPayloadAction(): Promise<
         .select("*")
         .eq("is_active", true)
         .order("ma_chi_tiet"),
-      supabase.from("dm_hoa_chat").select("*").eq("is_active", true).order("ma_hoa_chat"),
-      supabase.from("dm_khoa_phong").select("id, ten_khoa, ma_khoa"),
+      supabase.from("cssd_dm_hoa_chat").select("*").eq("is_active", true).order("ma_hoa_chat"),
+      supabase.from("mdm_dm_khoa_phong").select("id, ten_khoa, ma_khoa"),
     ]);
 
     if (boRes.error) throw boRes.error;

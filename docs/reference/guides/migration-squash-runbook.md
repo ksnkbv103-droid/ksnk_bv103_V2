@@ -1,7 +1,9 @@
 # Migration Squash Runbook — BV103 Pilot Baseline
 
-> **Phiên bản:** 1.0 (30/05/2026)  
-> **Áp dụng khi:** Local đã squash 90 migration → `20260530000000_init_pilot_baseline.sql`, nhưng **linked/staging/prod** vẫn còn 90 dòng trong `supabase_migrations.schema_migrations`.
+> **Phiên bản:** 1.1 (02/06/2026)  
+> **SSOT apply (local mới):** một file `20260602100000_init_pilot_baseline.sql` (squash v2 — gộp baseline v1 + 25 incremental).  
+> **Squash v1 (30/05/2026):** 90 migration → `20260530000000` (đã archive `pilot_chain_*.tar.gz`).  
+> **Áp dụng repair khi:** linked/staging/prod còn dòng cũ trong `supabase_migrations.schema_migrations` mà repo chỉ còn baseline mới.
 
 ---
 
@@ -54,14 +56,15 @@ npx supabase link --project-ref <PROJECT_REF>
 npx supabase migration repair --status reverted 20260520000000
 # ... lặp cho từng version cũ HOẶC script batch (xem §5)
 
-# Đánh dấu baseline mới là applied
-npx supabase migration repair --status applied 20260530000000
+# Đánh dấu baseline mới là applied (v2 — 2026-06-02)
+npx supabase migration repair --status applied 20260602100000
+# (v1 cũ: 20260530000000 — chỉ dùng nếu remote chưa lên incremental/post-squash v2)
 ```
 
 ### Bước 3: Verify
 
 ```bash
-npx supabase migration list --linked   # chỉ còn 20260530000000 applied
+npx supabase migration list --linked   # chỉ còn 20260602100000 applied (v2)
 npm run verify:mdm                     # hoặc verify:mdm:local
 npm run verify:engineering
 ```
@@ -98,8 +101,10 @@ while read ver; do
   npx supabase migration repair --status reverted "$ver"
 done < /tmp/old_versions.txt
 
-npx supabase migration repair --status applied 20260530000000
+npx supabase migration repair --status applied 20260602100000
 ```
+
+**Remote đã apply đủ 25 file `20260530*`–`20260602*`:** repair reverted từng version trong [`archive_legacy/post_baseline_20260530_20260602/`](../../../supabase/migrations/archive_legacy/post_baseline_20260530_20260602/), rồi `applied 20260602100000`.
 
 ---
 
@@ -127,6 +132,7 @@ npm run verify:engineering
 ## 8. Liên quan
 
 - Archive chain: `docs/archive/pilot_chain_20260520_20260529.tar.gz`
-- Baseline SSOT: `supabase/migrations/20260530000000_init_pilot_baseline.sql`
+- Baseline SSOT v2: `supabase/migrations/20260602100000_init_pilot_baseline.sql`
+- Archive v1 + incremental: `supabase/migrations/archive_legacy/post_baseline_20260530_20260602/`
 - View alias Step 2: `docs/archive/baselines/view-rename-mapping-20260526.md`
 - Mapping changelog: `docs/core/implementation-mapping.md`

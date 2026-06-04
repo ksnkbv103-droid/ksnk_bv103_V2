@@ -1,4 +1,4 @@
-/** Kiểu dữ liệu dùng cho bảng và form Dụng cụ chi tiết (dm_bo_dung_cu_chi_tiet). */
+/** Kiểu dữ liệu dùng cho bảng và form Dụng cụ chi tiết (cssd_dm_bo_dung_cu_chi_tiet). */
 export type DungCuChiTietBoRef = {
   id: string;
   ma_bo?: string | null;

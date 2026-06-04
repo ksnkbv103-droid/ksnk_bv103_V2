@@ -80,20 +80,20 @@ const movCols: Column<KhoHoaChatGiaoDichRow>[] = [
       const type = i.loai_giao_dich;
       if (type === "NHAP" || type === "NHAP_KHO") {
         return (
-          <span className="inline-flex items-center gap-1 rounded bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-700 shadow-sm">
+          <span className="inline-flex items-center gap-1 rounded bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-emerald-700 shadow-sm">
             + Nhập kho
           </span>
         );
       }
       if (type === "XUAT" || type === "XUAT_KHO") {
         return (
-          <span className="inline-flex items-center gap-1 rounded bg-rose-50 border border-rose-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-rose-700 shadow-sm">
+          <span className="inline-flex items-center gap-1 rounded bg-rose-50 border border-rose-100 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-rose-700 shadow-sm">
             - Xuất kho
           </span>
         );
       }
       return (
-        <span className="inline-flex items-center gap-1 rounded bg-blue-50 border border-blue-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-blue-700 shadow-sm">
+        <span className="inline-flex items-center gap-1 rounded bg-blue-50 border border-blue-100 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-blue-700 shadow-sm">
           ⚙ Điều chỉnh
         </span>
       );

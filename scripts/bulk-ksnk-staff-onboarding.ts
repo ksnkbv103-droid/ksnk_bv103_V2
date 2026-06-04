@@ -51,7 +51,7 @@ type KhoaRow = { id?: string; ma_khoa?: string; ten_khoa?: string };
 
 async function resolveKsnkKhoaId(sb: SupabaseClient): Promise<string | null> {
   const { data: rows, error } = await sb
-    .from("dm_khoa_phong")
+    .from("mdm_dm_khoa_phong")
     .select("id, ma_khoa, ten_khoa")
     .eq("is_active", true);
   if (error) throw error;
@@ -82,7 +82,7 @@ async function main() {
 
   const khoaId = await resolveKsnkKhoaId(sb);
   if (!khoaId) {
-    console.error("Không tìm được dm_khoa_phong KSNK (ma_khoa KSNK/C18 hoặc tên chứa Kiểm soát nhiễm khuẩn).");
+    console.error("Không tìm được mdm_dm_khoa_phong KSNK (ma_khoa KSNK/C18 hoặc tên chứa Kiểm soát nhiễm khuẩn).");
     process.exit(1);
   }
   console.log(`[info] khoa KSNK id: ${khoaId}  dryRun=${dryRun}  mode=${mode}  role=${roleName}`);

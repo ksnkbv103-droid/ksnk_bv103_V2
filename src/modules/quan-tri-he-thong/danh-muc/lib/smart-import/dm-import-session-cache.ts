@@ -7,7 +7,7 @@ import { DM_TABLE_BY_LOAI, normalizeImportMa } from "./import-ma-utils";
 
 export type DmImportIdResolve = string | null | { error: string };
 
-/** Kết quả tra `dm_to_cong_tac` theo `ten_to` (tối đa 5 dòng — giữ ngữ nghĩa cũ). */
+/** Kết quả tra `mdm_dm_to_cong_tac` theo `ten_to` (tối đa 5 dòng — giữ ngữ nghĩa cũ). */
 export type ToCongTacTenLookupResult =
   | { ok: true; rows: { id: string; ma_to?: string; ten_to?: string }[] }
   | { ok: false; error: string };
@@ -27,7 +27,7 @@ export function createDmImportSessionCache(sb: SupabaseClient): SmartImportDmSes
 
   async function ensureRoles(): Promise<{ error?: string }> {
     if (roleRows !== null) return {};
-    const { data, error } = await sb.from("dm_roles").select("id, name");
+    const { data, error } = await sb.from("sys_roles").select("id, name");
     if (error) return { error: error.message };
     roleRows = (data || []) as { id: string; name?: string }[];
     return {};
@@ -35,7 +35,7 @@ export function createDmImportSessionCache(sb: SupabaseClient): SmartImportDmSes
 
   async function ensureNgheNghiep(): Promise<{ error?: string }> {
     if (nnRows !== null) return {};
-    const { data, error } = await sb.from("dm_nghe_nghiep").select("id, ma_nghe_nghiep, ten_nghe_nghiep");
+    const { data, error } = await sb.from("mdm_dm_nghe_nghiep").select("id, ma_nghe_nghiep, ten_nghe_nghiep");
     if (error) return { error: error.message };
     nnRows = (data || []) as { id: string; ma_nghe_nghiep?: string; ten_nghe_nghiep?: string }[];
     return {};
@@ -62,7 +62,7 @@ export function createDmImportSessionCache(sb: SupabaseClient): SmartImportDmSes
 
       if (loai === "KHOA_PHONG") {
         const { data: khoa, error: khoaErr } = await sb
-          .from("dm_khoa_phong")
+          .from("mdm_dm_khoa_phong")
           .select("id")
           .eq("ma_khoa", maLookup)
           .limit(1)
@@ -134,7 +134,7 @@ export function createDmImportSessionCache(sb: SupabaseClient): SmartImportDmSes
         return empty;
       }
       const { data: toRows, error: toTenErr } = await sb
-        .from("dm_to_cong_tac")
+        .from("mdm_dm_to_cong_tac")
         .select("id, ma_to, ten_to")
         .eq("ten_to", t)
         .limit(5);

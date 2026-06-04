@@ -11,6 +11,7 @@ const baseFlags = {
   hasDelete: false,
   hasEdit: true,
   hasCreate: true,
+  hasApprove: false,
   actorStaffId: "actor-1",
 };
 
@@ -97,6 +98,19 @@ describe("canShowDeleteTask", () => {
           phan_tram_hoan_thanh: 50,
         },
         { ...baseFlags, isRBACAdmin: true },
+      ),
+    ).toBe(true);
+  });
+  it("quyền DELETE (không admin) → được xóa", () => {
+    expect(
+      canShowDeleteTask(
+        {
+          trang_thai: "DANG_LAM",
+          is_active: true,
+          nguoi_phu_trach_id: "other",
+          phan_tram_hoan_thanh: 50,
+        },
+        { ...baseFlags, hasDelete: true },
       ),
     ).toBe(true);
   });

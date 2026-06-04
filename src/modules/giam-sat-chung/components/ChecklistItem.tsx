@@ -35,27 +35,27 @@ function isTypingTarget(el: EventTarget | null) {
 const renderWeightBadge = (weightType?: string, isRedFlag?: boolean) => {
   if (isRedFlag) {
     return (
-      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-red-700 animate-pulse border border-red-200 shadow-sm">
+      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider text-red-700 animate-pulse border border-red-200 shadow-sm">
         🚨 Chí mạng (Red Flag)
       </span>
     );
   }
   if (weightType === "CRITICAL") {
     return (
-      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-red-600 border border-red-100">
+      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-red-600 border border-red-100">
         Chí mạng
       </span>
     );
   }
   if (weightType === "MINOR") {
     return (
-      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-blue-600 border border-blue-100">
+      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-blue-600 border border-blue-100">
         Hành chính
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-600 border border-amber-100">
+    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-amber-600 border border-amber-100">
       Nghiêm trọng
     </span>
   );

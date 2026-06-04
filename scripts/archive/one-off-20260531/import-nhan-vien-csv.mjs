@@ -1,9 +1,9 @@
 /**
  * Import DM_NhanVien.csv vào mdm_nhan_su — chuẩn KSNK BV103:
- * - Khoa = ma_khoa trong dm_khoa_phong; nếu thiếu C19 thì tạo khối theo C18 + bản ghi cảnh báo tên gốc CSV.
- * - BoPhan -> dm_to_cong_tac (GS-CSSD/CSSD -> Tổ CSSD KSNK_Gr_1; thiếu mã -> upsert IMPORT_TO_*).
- * - NgheNghiep -> dm_nghe_nghiep (khớp lỏng; thiếu -> upsert IMPORT_NN_*).
- * - ChucVu -> dm_chuc_vu (chỉ khớp catalog hiện có; không tự tạo chức vụ lạ).
+ * - Khoa = ma_khoa trong mdm_dm_khoa_phong; nếu thiếu C19 thì tạo khối theo C18 + bản ghi cảnh báo tên gốc CSV.
+ * - BoPhan -> mdm_dm_to_cong_tac (GS-CSSD/CSSD -> Tổ CSSD KSNK_Gr_1; thiếu mã -> upsert IMPORT_TO_*).
+ * - NgheNghiep -> mdm_dm_nghe_nghiep (khớp lỏng; thiếu -> upsert IMPORT_NN_*).
+ * - ChucVu -> mdm_dm_chuc_vu (chỉ khớp catalog hiện có; không tự tạo chức vụ lạ).
  * - Trình độ / Phân quyền CSV -> extra_data (không map RBAC Postgres).
  * - Password cột trong CSV bị bỏ qua — không đổi auth.
  *
@@ -121,12 +121,12 @@ function findDmIdByName(rows, csvVal, getNames) {
 async function ensureKhoaC19(supabase, khoaByMa) {
   if (khoaByMa.has("C19")) return khoaByMa.get("C19");
 
-  const { data: base, error: e1 } = await supabase.from("dm_khoa_phong").select("khoi_id").eq("ma_khoa", "C18").maybeSingle();
+  const { data: base, error: e1 } = await supabase.from("mdm_dm_khoa_phong").select("khoi_id").eq("ma_khoa", "C18").maybeSingle();
   if (e1) throw e1;
   const khoiId = base?.khoi_id ?? null;
 
   const { data: inserted, error: e2 } = await supabase
-    .from("dm_khoa_phong")
+    .from("mdm_dm_khoa_phong")
     .insert([
       {
         ma_khoa: "C19",
@@ -141,10 +141,10 @@ async function ensureKhoaC19(supabase, khoaByMa) {
   if (e2 && !String(e2.message || "").includes("duplicate")) throw e2;
   if (inserted?.id) {
     khoaByMa.set("C19", inserted.id);
-    console.warn("Đã auto-thêm dm_khoa_phong.ma_khoa=C19 — vui lòng đổi tên trong Quản trị nếu cần.");
+    console.warn("Đã auto-thêm mdm_dm_khoa_phong.ma_khoa=C19 — vui lòng đổi tên trong Quản trị nếu cần.");
     return inserted.id;
   }
-  const again = await supabase.from("dm_khoa_phong").select("id").eq("ma_khoa", "C19").maybeSingle();
+  const again = await supabase.from("mdm_dm_khoa_phong").select("id").eq("ma_khoa", "C19").maybeSingle();
   if (again.data?.id) {
     khoaByMa.set("C19", again.data.id);
     return again.data.id;
@@ -177,7 +177,7 @@ function findToMatch(csvBoPhan, rows, cssdGroupId) {
 }
 
 /**
- * Bổ sung dm_to_cong_tac cho nhãn CSV chưa có (GS-CSSD/CSSD đã map sang Tổ CSSD).
+ * Bổ sung mdm_dm_to_cong_tac cho nhãn CSV chưa có (GS-CSSD/CSSD đã map sang Tổ CSSD).
  */
 async function ensureToCongTacFromCsv(supabase, boPhanVals, toRows) {
   const rows = toRows || [];
@@ -201,13 +201,13 @@ async function ensureToCongTacFromCsv(supabase, boPhanVals, toRows) {
     });
   }
   if (!toUpsert.length) return;
-  const { error } = await supabase.from("dm_to_cong_tac").upsert(toUpsert, { onConflict: "ma_to" });
+  const { error } = await supabase.from("mdm_dm_to_cong_tac").upsert(toUpsert, { onConflict: "ma_to" });
   if (error) throw error;
-  console.warn("Đã bổ sung dm_to_cong_tac:", toUpsert.map((x) => x.ma_to).join(", "));
+  console.warn("Đã bổ sung mdm_dm_to_cong_tac:", toUpsert.map((x) => x.ma_to).join(", "));
 }
 
 /**
- * Bổ sung dm_nghe_nghiep cho nhãn CSV chưa khớp (giữ đúng chữ CSV làm ten_nghe_nghiep).
+ * Bổ sung mdm_dm_nghe_nghiep cho nhãn CSV chưa khớp (giữ đúng chữ CSV làm ten_nghe_nghiep).
  */
 async function ensureNgheNghiepFromCsv(supabase, ngheVals, nnRows) {
   const rows = nnRows || [];
@@ -230,9 +230,9 @@ async function ensureNgheNghiepFromCsv(supabase, ngheVals, nnRows) {
     });
   }
   if (!toUpsert.length) return;
-  const { error } = await supabase.from("dm_nghe_nghiep").upsert(toUpsert, { onConflict: "ma_nghe_nghiep" });
+  const { error } = await supabase.from("mdm_dm_nghe_nghiep").upsert(toUpsert, { onConflict: "ma_nghe_nghiep" });
   if (error) throw error;
-  console.warn("Đã bổ sung dm_nghe_nghiep:", toUpsert.map((x) => x.ma_nghe_nghiep).join(", "));
+  console.warn("Đã bổ sung mdm_dm_nghe_nghiep:", toUpsert.map((x) => x.ma_nghe_nghiep).join(", "));
 }
 
 const csvPath = process.argv[2] || CSV_DEFAULT;
@@ -261,16 +261,16 @@ const header = grid[0].map((h) => h.trim());
 const ix = Object.fromEntries(header.map((h, i) => [h, i]));
 
 const [{ data: khoas, error: eK }] = await Promise.all([
-  supabase.from("dm_khoa_phong").select("id,ma_khoa"),
+  supabase.from("mdm_dm_khoa_phong").select("id,ma_khoa"),
 ]);
 if (eK) throw eK;
 const khoaByMa = new Map((khoas || []).map((k) => [String(k.ma_khoa).trim().toUpperCase(), k.id]));
 
 await ensureKhoaC19(supabase, khoaByMa);
 
-let { data: toRows } = await supabase.from("dm_to_cong_tac").select("id,ma_to,ten_to").eq("is_active", true);
-const { data: cvRows } = await supabase.from("dm_chuc_vu").select("id,ma_chuc_vu,ten_chuc_vu").eq("is_active", true);
-let { data: nnRows } = await supabase.from("dm_nghe_nghiep").select("id,ma_nghe_nghiep,ten_nghe_nghiep").eq("is_active", true);
+let { data: toRows } = await supabase.from("mdm_dm_to_cong_tac").select("id,ma_to,ten_to").eq("is_active", true);
+const { data: cvRows } = await supabase.from("mdm_dm_chuc_vu").select("id,ma_chuc_vu,ten_chuc_vu").eq("is_active", true);
+let { data: nnRows } = await supabase.from("mdm_dm_nghe_nghiep").select("id,ma_nghe_nghiep,ten_nghe_nghiep").eq("is_active", true);
 
 /** @type {string[]} */
 const uniqueBoPhan = [];
@@ -302,7 +302,7 @@ for (let r = 1; r < grid.length; r++) {
 
   const khoa_id = findKhoaId(khoaByMa, khoa_ma);
   if (!khoa_id) {
-    console.error(`Dòng ${r + 1}: không tìm thấy dm_khoa_phong.ma_khoa="${khoa_ma}" (${ma_nv})`);
+    console.error(`Dòng ${r + 1}: không tìm thấy mdm_dm_khoa_phong.ma_khoa="${khoa_ma}" (${ma_nv})`);
     process.exit(1);
   }
 
@@ -337,8 +337,8 @@ for (let r = 1; r < grid.length; r++) {
 await ensureToCongTacFromCsv(supabase, uniqueBoPhan, toRows);
 await ensureNgheNghiepFromCsv(supabase, uniqueNghe, nnRows);
 
-({ data: toRows } = await supabase.from("dm_to_cong_tac").select("id,ma_to,ten_to").eq("is_active", true));
-({ data: nnRows } = await supabase.from("dm_nghe_nghiep").select("id,ma_nghe_nghiep,ten_nghe_nghiep").eq("is_active", true));
+({ data: toRows } = await supabase.from("mdm_dm_to_cong_tac").select("id,ma_to,ten_to").eq("is_active", true));
+({ data: nnRows } = await supabase.from("mdm_dm_nghe_nghiep").select("id,ma_nghe_nghiep,ten_nghe_nghiep").eq("is_active", true));
 
 const cssdGroupId = (toRows || []).find((x) => x.ma_to === "KSNK_Gr_1")?.id ?? null;
 
@@ -427,8 +427,8 @@ const warnNn = toInsert.filter(
 );
 if (warnTo.length)
   console.warn(
-    `"Tổ" chưa match dm_to_cong_tac (${warnTo.length} dòng — xem csv_bo_phan trong extra_data):`,
+    `"Tổ" chưa match mdm_dm_to_cong_tac (${warnTo.length} dòng — xem csv_bo_phan trong extra_data):`,
     [...new Set(warnTo.slice(0, 8).map((w) => w.payload.extra_data.csv_bo_phan))].join("; "),
   );
 if (warnNn.length)
-  console.warn(`Nghề chưa match dm_nghe_nghiep: ${warnNn.length} dòng.`);
+  console.warn(`Nghề chưa match mdm_dm_nghe_nghiep: ${warnNn.length} dòng.`);

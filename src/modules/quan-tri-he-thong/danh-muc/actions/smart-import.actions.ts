@@ -20,12 +20,12 @@ interface SmartImportConfig {
 }
 
 const SMART_IMPORT_TABLE_UNIQUE_KEY: Record<string, string> = {
-  dm_khoa_phong: "ma_khoa",
-  dm_bo_dung_cu_chi_tiet: "ma_chi_tiet",
-  dm_loai_dung_cu: "ma_loai_dung_cu",
-  dm_hoa_chat: "ma_hoa_chat",
-  dm_bo_dung_cu: "ma_bo",
-  dm_thiet_bi: "ma_thiet_bi",
+  mdm_dm_khoa_phong: "ma_khoa",
+  cssd_dm_bo_dung_cu_chi_tiet: "ma_chi_tiet",
+  cssd_dm_loai_dung_cu: "ma_loai_dung_cu",
+  cssd_dm_hoa_chat: "ma_hoa_chat",
+  cssd_dm_bo_dung_cu: "ma_bo",
+  cssd_dm_thiet_bi: "ma_thiet_bi",
   mdm_nhan_su: "ma_nv",
 };
 
@@ -64,8 +64,8 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
 
     // Mapped views to query existing data correctly and retrieve JSONB attributes as flat fields
     const VIEW_MAP_FOR_READ: Record<string, string> = {
-      dm_bo_dung_cu_chi_tiet: "v_cssd_bo_dung_cu_chi_tiet_full",
-      dm_loai_dung_cu: "v_cssd_loai_dung_cu_summary",
+      cssd_dm_bo_dung_cu_chi_tiet: "v_cssd_bo_dung_cu_chi_tiet_full",
+      cssd_dm_loai_dung_cu: "v_cssd_loai_dung_cu_summary",
     };
     const readTable = VIEW_MAP_FOR_READ[config.tableName] || config.tableName;
 
@@ -147,14 +147,14 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
       scopeSafeRest = sanitizeSmartImportRowPayload(
         normalizeImportedRowTypedValues(config.tableName, scopeSafeRest as Record<string, unknown>),
       ) as Record<string, unknown>;
-      if (config.tableName === "dm_hoa_chat") {
+      if (config.tableName === "cssd_dm_hoa_chat") {
         const ten = String((scopeSafeRest as Record<string, unknown>)["ten_hoa_chat"] ?? "").trim();
         if (!ten) {
           rowErrors.push(`Dòng ${rowNumber || "?"}: thiếu ten_hoa_chat.`);
           continue;
         }
       }
-      if (config.tableName === "dm_bo_dung_cu_chi_tiet") {
+      if (config.tableName === "cssd_dm_bo_dung_cu_chi_tiet") {
         const ten = String((scopeSafeRest as Record<string, unknown>)["ten_chi_tiet"] ?? "").trim();
         if (!ten) {
           rowErrors.push(`Dòng ${rowNumber || "?"}: thiếu ten_chi_tiet.`);

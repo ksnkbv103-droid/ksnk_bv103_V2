@@ -17,7 +17,7 @@ export async function getWaitingListByStation(station: Station) {
     const { data: activeFacts } = await supabase.from("cssd_fact_quy_trinh").select("bo_dung_cu_id").eq("is_active", true);
     const activeBoIds = new Set((activeFacts || []).map(f => String(f.bo_dung_cu_id)));
     
-    const { data: dmBos } = await supabase.from("dm_bo_dung_cu").select("id, ma_bo, ten_bo, updated_at").eq("is_active", true);
+    const { data: dmBos } = await supabase.from("cssd_dm_bo_dung_cu").select("id, ma_bo, ten_bo, updated_at").eq("is_active", true);
     const availableBos = (dmBos || []).filter(b => !activeBoIds.has(String(b.id)));
     
     return availableBos.map(b => ({
@@ -37,7 +37,7 @@ export async function getWaitingListByStation(station: Station) {
     LAM_SACH:  { nguoiCol: "nguoi_tiep_nhan_id",  thoiGianCol: "thoi_gian_tiep_nhan",  tramLabel: "TIEP_NHAN" },
     QC:        { nguoiCol: "nguoi_lam_sach_id",    thoiGianCol: "thoi_gian_lam_sach",    tramLabel: "LAM_SACH" },
     DONG_GOI:  { nguoiCol: "nguoi_kiem_tra_id",    thoiGianCol: "thoi_gian_qc",          tramLabel: "QC" },
-    CAP_PHAT:  { nguoiCol: "nguoi_dong_goi_id",    thoiGianCol: "thoi_gian_dong_goi",    tramLabel: "DONG_GOI" },
+    CAP_PHAT:  { nguoiCol: "nguoi_tiet_khuan_id", thoiGianCol: "thoi_gian_tiet_khuan", tramLabel: "TIET_KHUAN" },
   };
 
   const idx = STEPS.indexOf(station);
@@ -65,7 +65,7 @@ export async function getWaitingListByStation(station: Station) {
   const boIds = [...new Set(raw.map((x) => String(x.bo_dung_cu_id || "").trim()).filter(Boolean))];
   let boMap = new Map<string, string>();
   if (boIds.length) {
-    const { data: bos } = await supabase.from("dm_bo_dung_cu").select("id, ten_bo").in("id", boIds);
+    const { data: bos } = await supabase.from("cssd_dm_bo_dung_cu").select("id, ten_bo").in("id", boIds);
     boMap = new Map((bos || []).map((b: { id: string; ten_bo?: string | null }) => [String(b.id), String(b.ten_bo || "")]));
   }
 

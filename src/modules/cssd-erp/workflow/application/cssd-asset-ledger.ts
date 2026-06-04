@@ -106,8 +106,9 @@ export async function assertLedgerDuChoCapPhat(
   const hasChecklist = (events || []).length > 0;
   if (!hasChecklist) {
     return {
-      ok: true,
-      warning: "Bộ dụng cụ CHƯA QUA KIỂM ĐẾM số hóa tại trạm Đóng gói.",
+      ok: false,
+      message:
+        "Bộ dụng cụ CHƯA QUA KIỂM ĐẾM số hóa tại trạm Đóng gói. Vui lòng xác nhận Digital BOM trước khi cấp phát.",
     };
   }
 
@@ -125,7 +126,7 @@ export async function assertLedgerDuChoCapPhat(
 
   const duSo = assertDuSoThanhPhan(rows);
   if (!duSo.ok) {
-    return { ok: true, warning: duSo.message };
+    return { ok: false, message: duSo.message };
   }
   return { ok: true };
 }
