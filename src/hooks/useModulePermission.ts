@@ -23,7 +23,14 @@ export function useModulePermission(moduleKey: string) {
     canDelete,
     canApprove,
     canImport,
+    hasPermission,
   } = usePermission(moduleKey, "view");
+
+  const canApproveModule = (module: string) =>
+    isAdmin ||
+    canEdit(module) ||
+    hasPermission(`${module}_APPROVE`) ||
+    hasPermission(`${module}_approve`);
 
   return {
     loading,
@@ -41,8 +48,8 @@ export function useModulePermission(moduleKey: string) {
       create: canCreate(moduleKey),
       edit: canEdit(moduleKey),
       delete: canDelete(moduleKey),
-      approve: canApprove(moduleKey),
       import: canImport(moduleKey),
+      approve: canApproveModule(moduleKey),
       manage: canEdit(moduleKey) || canDelete(moduleKey),
     },
   };

@@ -79,7 +79,9 @@
     "test:admin": "vitest run src/modules/quan-tri-he-thong src/lib/master-data/categories-by-type.ts src/lib/master-data/master-table-permission-map.ts src/lib/master-data/danh-muc-permission-map.ts src/lib/master-data/cssd-set-replenish-core.ts src/lib/mdm-read-gateway.spec.ts",
     "test:pilot": "vitest run src/lib/bv103-feature-config.spec.ts src/lib/analytics/filter-helpers.spec.ts src/lib/analytics/gsc-analytics-data.spec.ts src/lib/rpc-contract-dashboard.spec.ts",
     "test:e2e": "playwright test",
-    "test:e2e:install": "playwright install chromium"
+    "test:e2e:install": "playwright install chromium",
+    "trial:qlcv:precheck": "npx supabase db query --linked --agent=no -f scripts/sql/qlcv-pilot-precheck.sql -o table",
+    "trial:qlcv:precheck:local": "npx supabase db query --local --agent=no -f scripts/sql/qlcv-pilot-precheck.sql -o table"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
