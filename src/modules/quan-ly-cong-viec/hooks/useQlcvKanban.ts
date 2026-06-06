@@ -51,7 +51,7 @@ export function useQlcvKanban({ canApprove }: UseQlcvKanbanOptions): UseQlcvKanb
 
   const pullTasks = useCallback(async () => {
     const data = await getCongViecListForBoard();
-    setTasks((data || []) as CongViecView[]);
+    setTasks((data || []) as unknown as CongViecView[]);
 
     if (canApprove) {
       // Người có quyền duyệt → thấy tất cả đề xuất chờ

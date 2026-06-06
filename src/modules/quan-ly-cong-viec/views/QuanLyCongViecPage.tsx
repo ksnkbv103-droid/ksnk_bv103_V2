@@ -28,6 +28,7 @@ import { QlcvDmAdminLinks } from "@/modules/quan-ly-cong-viec/components/QlcvDmA
 import { QlcvImportDialog } from "@/modules/quan-ly-cong-viec/components/QlcvImportDialog";
 import { getTrangThaiMauSacMap } from "@/modules/quan-ly-cong-viec/actions/cong-viec-read.actions";
 import type { CongViecView } from "@/modules/quan-ly-cong-viec/types";
+import type { QlcvBoardFilter } from "@/modules/quan-ly-cong-viec/lib/qlcv-board-filter";
 
 const CongViecDetail = dynamic(
   () => import("@/modules/quan-ly-cong-viec/components/CongViecDetail").then((m) => ({ default: m.CongViecDetail })),
