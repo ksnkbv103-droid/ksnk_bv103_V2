@@ -17,8 +17,8 @@ export default function GenericDmMasterHeader({ title, onBack, onCreate, canCrea
     <div className="space-y-4">
       <KsnkPageHeader
         title={
-          <span className="inline-flex items-center gap-2 text-[var(--primary)]">
-            <Layers size={22} aria-hidden /> {title}
+          <span className="inline-flex items-center gap-2.5">
+            <Layers className="h-6 w-6 shrink-0 text-[var(--primary)]" aria-hidden /> {title}
           </span>
         }
         actions={

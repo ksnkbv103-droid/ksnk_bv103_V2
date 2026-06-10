@@ -57,7 +57,7 @@ function CssdQuyTrinhPageInner() {
     <CSSDPageShell
       title={
         <>
-          Chu trình xử lý <span className="text-[#026f17]">dụng cụ</span>
+          Chu trình xử lý <span className="text-[var(--primary)]">dụng cụ</span>
         </>
       }
       subtitle="Quét xác nhận tại trạm, tiệt khuẩn, giám sát kho và hạn sử dụng dụng cụ."
@@ -69,7 +69,7 @@ function CssdQuyTrinhPageInner() {
               key={key}
               type="button"
               onClick={() => setTab(key)}
-              className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${
+              className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
                 activeTab === key ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
               }`}
             >

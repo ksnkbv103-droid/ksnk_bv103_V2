@@ -16,7 +16,7 @@ export function getKhoaPhongColumns(actionUi: ActionCells): Column<KhoaPhongRow>
       headerClassName: "w-[8rem] min-w-[8rem]",
       cellClassName: "w-[8rem] min-w-[8rem]",
       cell: (i) => (
-        <span className="font-mono text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+        <span className="font-mono text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
           {i.ma_danh_muc}
         </span>
       ),
@@ -28,7 +28,7 @@ export function getKhoaPhongColumns(actionUi: ActionCells): Column<KhoaPhongRow>
       headerClassName: "min-w-[12rem]",
       cellClassName: "min-w-[12rem]",
       cell: (i) => (
-        <div className="font-black text-[#026f17] uppercase text-[11px] leading-tight">
+        <div className="text-[11px] font-medium text-[var(--primary)] leading-tight">
           {i.ten_danh_muc}
         </div>
       ),
@@ -39,7 +39,7 @@ export function getKhoaPhongColumns(actionUi: ActionCells): Column<KhoaPhongRow>
       headerClassName: "w-[18rem] min-w-[18rem]",
       cellClassName: "w-[18rem] min-w-[18rem]",
       cell: (i) => (
-        <div className="py-1 text-[10px]">
+        <div className="py-1 text-[11px]">
           <div className="font-bold text-slate-700">{i.ten_khoi || "Chưa gán khối"}</div>
           <div className="text-slate-500">
             BS {i.so_bac_si || 0} và ĐD {i.so_dieu_duong || 0} - Giường {i.so_giuong_benh_thuong || 0}/{i.so_giuong_cap_cuu || 0}

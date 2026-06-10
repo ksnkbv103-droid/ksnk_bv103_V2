@@ -33,7 +33,7 @@ export default function WaitingList({ items, onAction }: Props) {
   return (
     <div className="space-y-4">
       <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 flex items-center gap-2 px-1">
-        <Clock size={14} className="text-[#026f17]" /> Đang chờ xử lý ({items.length})
+        <Clock size={14} className="text-[var(--primary)]" /> Đang chờ xử lý ({items.length})
       </h2>
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm divide-y divide-slate-100 max-h-[440px] overflow-y-auto custom-scrollbar">
         {items.length > 0 ? items.map((item) => (
@@ -98,7 +98,7 @@ export default function WaitingList({ items, onAction }: Props) {
               {/* Nút xử lý */}
               <button
                 onClick={() => onAction(item.ma_vach_qr)}
-                className="shrink-0 self-center px-4 py-2.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-md shadow-blue-100 hover:bg-blue-700"
+                className="shrink-0 self-center px-4 py-2.5 bg-blue-600 text-white rounded-xl text-[11px] font-semibold uppercase tracking-wide active:scale-95 transition-all shadow-md shadow-blue-100 hover:bg-blue-700"
               >
                 Xử lý
               </button>
@@ -107,7 +107,7 @@ export default function WaitingList({ items, onAction }: Props) {
         )) : (
           <div className="py-16 text-center text-slate-400">
             <Clock size={36} className="mx-auto mb-2 opacity-20" />
-            <p className="text-[10px] font-black uppercase tracking-widest italic">Không có bộ chờ xử lý</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide italic">Không có bộ chờ xử lý</p>
           </div>
         )}
       </div>

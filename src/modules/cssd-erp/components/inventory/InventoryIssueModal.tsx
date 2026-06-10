@@ -58,16 +58,16 @@ export default function InventoryIssueModal({ isOpen, onClose, tool, onSuccess }
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex gap-3">
-            <button type="button" onClick={() => setReason("HONG")} className={`flex-1 h-16 rounded-2xl border-2 font-black text-[10px] uppercase transition-all ${reason === 'HONG' ? 'bg-red-50 border-red-500 text-red-600' : 'bg-slate-50 border-slate-50 text-slate-400'}`}>Dụng cụ Hỏng</button>
-            <button type="button" onClick={() => setReason("MAT")} className={`flex-1 h-16 rounded-2xl border-2 font-black text-[10px] uppercase transition-all ${reason === 'MAT' ? 'bg-slate-800 border-slate-800 text-white' : 'bg-slate-50 border-slate-50 text-slate-400'}`}>Dụng cụ Mất</button>
+            <button type="button" onClick={() => setReason("HONG")} className={`flex-1 h-16 rounded-2xl border-2 font-black text-[11px] uppercase transition-all ${reason === 'HONG' ? 'bg-red-50 border-red-500 text-red-600' : 'bg-slate-50 border-slate-50 text-slate-400'}`}>Dụng cụ Hỏng</button>
+            <button type="button" onClick={() => setReason("MAT")} className={`flex-1 h-16 rounded-2xl border-2 font-black text-[11px] uppercase transition-all ${reason === 'MAT' ? 'bg-slate-800 border-slate-800 text-white' : 'bg-slate-50 border-slate-50 text-slate-400'}`}>Dụng cụ Mất</button>
           </div>
 
           <div className="space-y-4">
-            <button type="button" className="w-full h-24 bg-slate-50 border-4 border-dashed border-slate-100 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-300 hover:text-[#026f17] hover:border-[#026f17]/20 transition-all active:scale-[0.98]">
+            <button type="button" className="w-full h-24 bg-slate-50 border-4 border-dashed border-slate-100 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-300 hover:text-[var(--primary)] hover:border-[var(--primary)]/20 transition-all active:scale-[0.98]">
               <Camera size={32} />
-              <span className="text-[11px] font-black uppercase tracking-widest">Chụp ảnh minh chứng</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wide">Chụp ảnh minh chứng</span>
             </button>
-            <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Nhập lý do hỏng/mất hoặc ghi chú chi tiết..." className="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-medium outline-none focus:border-[#026f17] resize-none h-32 transition-all" />
+            <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Nhập lý do hỏng/mất hoặc ghi chú chi tiết..." className="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-medium outline-none focus:border-[var(--primary)] resize-none h-32 transition-all" />
           </div>
 
           <button type="submit" disabled={loading} className="w-full h-20 bg-red-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-red-100 active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-4">

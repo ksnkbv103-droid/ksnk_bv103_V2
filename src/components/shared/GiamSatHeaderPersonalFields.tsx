@@ -7,6 +7,7 @@ import type { MasterOption } from "@/lib/master-data/gateway";
 import type { GiamSatSession, NhanSuOption } from "./giam-sat-header.types";
 import SearchableSelect from "./SearchableSelect";
 import RegistrySelect from "./RegistrySelect";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 interface GiamSatHeaderPersonalFieldsProps {
   session: GiamSatSession;
@@ -39,11 +40,11 @@ export default function GiamSatHeaderPersonalFields({
 
   return (
     <div className="min-w-0">
-      <div className="rounded-lg border border-slate-200/90 bg-slate-50/35 p-4 sm:p-4">
-        <p className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-slate-700">Đối tượng được giám sát (nhân viên)</p>
+      <div className={`${C.panelInset} p-4`}>
+        <p className={`mb-3 ${C.sectionTitle}`}>Đối tượng được giám sát (nhân viên)</p>
         <div className="space-y-4">
           <div className="min-w-0 space-y-1">
-            <label className="block text-[10px] font-semibold uppercase tracking-wide text-slate-600">5. Nghề nghiệp nhân viên</label>
+            <label className={`block ${C.labelField}`}>5. Nghề nghiệp nhân viên</label>
             <RegistrySelect
               loaiDanhMuc="NGHE_NGHIEP"
               value={session.nghe_nghiep_id || ""}
@@ -62,12 +63,12 @@ export default function GiamSatHeaderPersonalFields({
           </div>
 
           <div className="min-w-0 space-y-1">
-            <label className="block text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+            <label className={`block ${C.labelField}`}>
               {session.is_manual_nhan_vien ? "6. Nhập tên nhân viên" : "6. Tên nhân viên"}
             </label>
             {session.is_manual_nhan_vien ? (
               <input
-                className="input h-10 w-full rounded-lg border border-slate-200 bg-white px-3 font-medium text-slate-900 outline-none transition-colors focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]/20"
+                className={C.controlInput}
                 placeholder="Nhập họ tên nhân viên..."
                 value={session.ten_manual_nhan_vien || ""}
                 onChange={(e) => setSession({ ...session, ten_manual_nhan_vien: e.target.value })}
@@ -98,16 +99,16 @@ export default function GiamSatHeaderPersonalFields({
               />
             )}
             {requireKhoa && (
-              <p className="text-[10px] font-medium text-amber-700">Chọn Khoa trước để lọc danh sách nhân viên.</p>
+              <p className="text-[11px] font-medium text-amber-700">Chọn Khoa trước để lọc danh sách nhân viên.</p>
             )}
           </div>
 
           <div className="min-w-0 space-y-1">
-            <label className="block text-[10px] font-semibold uppercase tracking-wide text-slate-600">7. Ngoài danh mục</label>
-            <label className="flex min-h-[2.75rem] w-full cursor-pointer items-center gap-3 rounded-lg border border-emerald-200/80 bg-emerald-50/50 px-3 py-2 transition-colors hover:bg-emerald-50/90">
+            <label className={`block ${C.labelField}`}>7. Ngoài danh mục</label>
+            <label className="flex min-h-[var(--bv103-control-h)] w-full cursor-pointer items-center gap-3 rounded-[var(--radius-control)] border border-emerald-200/80 bg-emerald-50/50 px-3 py-2 transition-colors hover:bg-emerald-50/90">
               <input
                 type="checkbox"
-                className="h-5 w-5 shrink-0 accent-[#026f17]"
+                className="h-5 w-5 shrink-0 accent-[var(--primary)]"
                 checked={session.is_manual_nhan_vien || false}
                 onChange={(e) =>
                   setSession({

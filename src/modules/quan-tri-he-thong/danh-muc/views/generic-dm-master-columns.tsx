@@ -24,7 +24,7 @@ export function buildGenericDmColumns(
       headerClassName: "w-[18%] min-w-[5.5rem]",
       cellClassName: "align-middle",
       cell: (row) => (
-        <span className="font-mono text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded-lg border border-slate-200/50">
+        <span className="font-mono text-[11px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded-lg border border-slate-200/50">
           {String(row[maCol] || "---")}
         </span>
       )
@@ -36,7 +36,7 @@ export function buildGenericDmColumns(
       headerClassName: "min-w-0 w-[38%]",
       cellClassName: "min-w-0 align-middle",
       cell: (row) => (
-        <span className="block truncate text-[11px] font-black uppercase tracking-tight text-[#026f17]">
+        <span className="block truncate text-[11px] font-semibold uppercase tracking-wide tracking-tight text-[var(--primary)]">
           {String(row[tenCol] || "---")}
         </span>
       )
@@ -50,7 +50,7 @@ export function buildGenericDmColumns(
       cell: (row) => (
         <div className="flex items-center gap-1.5">
           <div className={`w-1.5 h-1.5 rounded-full ${row.is_active ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" : "bg-slate-300"}`} />
-          <span className={`text-[10px] font-black uppercase tracking-widest ${row.is_active ? "text-emerald-600" : "text-slate-400"}`}>
+          <span className={`text-[11px] font-semibold uppercase tracking-wide ${row.is_active ? "text-emerald-600" : "text-slate-400"}`}>
             {row.is_active ? "Đang dùng" : "Tạm ngưng"}
           </span>
         </div>
@@ -79,7 +79,7 @@ export function buildGenericDmColumns(
             {canMutate && (
               <button
                 type="button"
-                className="h-8 w-8 flex items-center justify-center rounded-lg bg-[#026f17]/5 text-[#026f17] transition-all hover:bg-[#026f17] hover:text-white"
+                className="h-8 w-8 flex items-center justify-center rounded-lg bg-[var(--primary)]/5 text-[var(--primary)] transition-all hover:bg-[var(--primary)] hover:text-white"
                 onClick={() => openEdit(row)}
                 title="Sửa thông tin"
               >

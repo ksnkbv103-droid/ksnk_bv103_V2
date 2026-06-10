@@ -342,14 +342,14 @@ export default function SuCoReportForm({
           <button
             type="button"
             onClick={() => window.print()}
-            className="flex h-12 w-full sm:w-auto px-6 items-center justify-center gap-2 rounded-xl bg-blue-600 text-xs font-black uppercase tracking-widest text-white hover:bg-blue-700 active:scale-[0.98] transition-all cursor-pointer shadow-md"
+            className="flex h-12 w-full sm:w-auto px-6 items-center justify-center gap-2 rounded-xl bg-blue-600 text-xs font-semibold uppercase tracking-wide text-white hover:bg-blue-700 active:scale-[0.98] transition-all cursor-pointer shadow-md"
           >
             <Printer size={16} /> 🖨️ In biên bản sự cố
           </button>
           <button
             type="button"
             onClick={resetAfterSubmit}
-            className="flex h-12 w-full sm:w-auto px-6 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-black uppercase tracking-widest text-slate-700 active:scale-[0.98] transition-all cursor-pointer"
+            className="flex h-12 w-full sm:w-auto px-6 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-700 active:scale-[0.98] transition-all cursor-pointer"
           >
             <PlusCircle size={16} /> Báo cáo sự cố mới
           </button>
@@ -374,9 +374,9 @@ export default function SuCoReportForm({
       )}
 
       {fLoading ? (
-        <div className="flex flex-col items-center justify-center gap-4 py-16 text-[#026f17]">
+        <div className="flex flex-col items-center justify-center gap-4 py-16 text-[var(--primary)]">
           <Loader2 className="animate-spin" size={32} />
-          <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Đang tải danh mục…</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wide opacity-40">Đang tải danh mục…</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -396,23 +396,23 @@ export default function SuCoReportForm({
                     onClick={() => setIncidentGroup(g)}
                     className={`group relative flex flex-col items-start rounded-xl border p-4 text-left transition-all ${
                       isSelected
-                        ? "border-[#026f17] bg-emerald-50/50 ring-2 ring-emerald-500/10 shadow-sm"
+                        ? "border-[var(--primary)] bg-emerald-50/50 ring-2 ring-emerald-500/10 shadow-sm"
                         : "border-slate-200 bg-slate-50 hover:bg-slate-100/70"
                     }`}
                   >
                     {isSelected && (
-                      <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#026f17] text-white">
+                      <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-white">
                         <CheckCircle2 size={12} />
                       </div>
                     )}
                     <div
                       className={`flex h-9 w-9 items-center justify-center rounded-lg mb-3 transition-all ${
-                        isSelected ? "bg-[#026f17]/10 text-[#026f17]" : "bg-white text-slate-400 group-hover:text-slate-600"
+                        isSelected ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-white text-slate-400 group-hover:text-slate-600"
                       }`}
                     >
                       <IconComp size={18} />
                     </div>
-                    <span className={`text-[11px] font-black uppercase tracking-wide leading-tight ${isSelected ? "text-[#026f17]" : "text-slate-700"}`}>
+                    <span className={`text-[11px] font-semibold uppercase tracking-wide leading-tight ${isSelected ? "text-[var(--primary)]" : "text-slate-700"}`}>
                       {INCIDENT_GROUP_LABEL[g].split(" (")[0]}
                     </span>
                     <span className="mt-1 text-[11px] font-medium leading-relaxed text-slate-400">
@@ -430,7 +430,7 @@ export default function SuCoReportForm({
             {incidentGroup === "PROCESS" && (
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
                 <h4 className="flex items-center gap-2 border-b border-slate-100 pb-3 text-xs font-black uppercase tracking-wide text-slate-800">
-                  <Layers size={16} className="text-[#026f17]" />
+                  <Layers size={16} className="text-[var(--primary)]" />
                   Thông tin truy vết Quy trình
                 </h4>
                 <div className="space-y-4">
@@ -444,12 +444,12 @@ export default function SuCoReportForm({
                         value={form.maQR}
                         onChange={(e) => handleFieldChange("maQR", e.target.value.toUpperCase())}
                         onKeyDown={handleQrKeyDown}
-                        className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pl-4 pr-12 text-lg font-black tracking-widest text-red-600 outline-none transition-all focus:border-[#026f17] focus:bg-white focus:ring-2 focus:ring-[#026f17]/10"
+                        className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pl-4 pr-12 text-lg font-black tracking-widest text-red-600 outline-none transition-all focus:border-[var(--primary)] focus:bg-white focus:ring-2 focus:ring-[var(--primary)]/10"
                         placeholder="QUÉT QR BỘ DỤNG CỤ..."
                         autoFocus={allowStationOverride}
                       />
                       <div className="absolute right-4 top-4 text-slate-300">
-                        <QrCode size={20} className={form.maQR ? "text-[#026f17]" : ""} />
+                        <QrCode size={20} className={form.maQR ? "text-[var(--primary)]" : ""} />
                       </div>
                     </div>
                     <p className="text-[11px] font-medium text-slate-400 italic">
@@ -464,7 +464,7 @@ export default function SuCoReportForm({
                       <select
                         value={form.faultStation || detectionStation}
                         onChange={(e) => handleFieldChange("faultStation", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 font-semibold text-slate-700 outline-none transition-all focus:border-[#026f17]"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
                       >
                         {INCIDENT_STATION_OPTIONS.map((s) => (
                           <option key={s.value} value={s.value}>
@@ -478,7 +478,7 @@ export default function SuCoReportForm({
                       <input
                         value={form.faultOperator}
                         onChange={(e) => handleFieldChange("faultOperator", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[#026f17]"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
                         placeholder="Mã hoặc tên nhân viên..."
                       />
                     </div>
@@ -490,7 +490,7 @@ export default function SuCoReportForm({
                       <select
                         value={detectionStation}
                         onChange={(e) => setDetectionStation(e.target.value as Station)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[#026f17]"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[var(--primary)]"
                       >
                         {INCIDENT_STATION_OPTIONS.map((s) => (
                           <option key={s.value} value={s.value}>
@@ -507,7 +507,7 @@ export default function SuCoReportForm({
             {incidentGroup === "INSTRUMENT" && (
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
                 <h4 className="flex items-center gap-2 border-b border-slate-100 pb-3 text-xs font-black uppercase tracking-wide text-slate-800">
-                  <Wrench size={16} className="text-[#026f17]" />
+                  <Wrench size={16} className="text-[var(--primary)]" />
                   Thông tin truy vết Dụng cụ
                 </h4>
                 <div className="space-y-4">
@@ -521,12 +521,12 @@ export default function SuCoReportForm({
                         value={form.maQR}
                         onChange={(e) => handleFieldChange("maQR", e.target.value.toUpperCase())}
                         onKeyDown={handleQrKeyDown}
-                        className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pl-4 pr-12 text-lg font-black tracking-widest text-red-600 outline-none transition-all focus:border-[#026f17] focus:bg-white focus:ring-2 focus:ring-[#026f17]/10"
+                        className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pl-4 pr-12 text-lg font-black tracking-widest text-red-600 outline-none transition-all focus:border-[var(--primary)] focus:bg-white focus:ring-2 focus:ring-[var(--primary)]/10"
                         placeholder="QUÉT QR BỘ DỤNG CỤ..."
                         autoFocus={allowStationOverride}
                       />
                       <div className="absolute right-4 top-4 text-slate-300">
-                        <QrCode size={20} className={form.maQR ? "text-[#026f17]" : ""} />
+                        <QrCode size={20} className={form.maQR ? "text-[var(--primary)]" : ""} />
                       </div>
                     </div>
                   </div>
@@ -538,7 +538,7 @@ export default function SuCoReportForm({
                       <input
                         value={form.errorQR}
                         onChange={(e) => handleFieldChange("errorQR", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[#026f17] focus:bg-white"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
                         placeholder="Quét QR dụng cụ lẻ hoặc nhập tên..."
                       />
                     </div>
@@ -547,7 +547,7 @@ export default function SuCoReportForm({
                       <input
                         value={form.faultOperator}
                         onChange={(e) => handleFieldChange("faultOperator", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[#026f17]"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
                         placeholder="Mã hoặc tên nhân viên..."
                       />
                     </div>
@@ -559,7 +559,7 @@ export default function SuCoReportForm({
                       <select
                         value={detectionStation}
                         onChange={(e) => setDetectionStation(e.target.value as Station)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[#026f17]"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[var(--primary)]"
                       >
                         {INCIDENT_STATION_OPTIONS.map((s) => (
                           <option key={s.value} value={s.value}>
@@ -576,19 +576,19 @@ export default function SuCoReportForm({
             {incidentGroup === "EQUIPMENT" && (
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
                 <h4 className="flex items-center gap-2 border-b border-slate-100 pb-3 text-xs font-black uppercase tracking-wide text-slate-800">
-                  <Cpu size={16} className="text-[#026f17]" />
+                  <Cpu size={16} className="text-[var(--primary)]" />
                   Thông tin truy vết Thiết bị / Máy móc
                 </h4>
                 <div className="space-y-4">
                   {/* Chọn máy gặp sự cố (Bắt buộc) */}
                   <div className="space-y-1.5">
-                    <label className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wide text-slate-700">
+                    <label className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
                       Thiết bị gặp sự cố <span className="text-red-500 font-bold">*</span>
                     </label>
                     <select
                       value={form.machineId}
                       onChange={(e) => handleFieldChange("machineId", e.target.value)}
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none transition-all focus:border-[#026f17] focus:bg-white"
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
                       required={incidentGroup === "EQUIPMENT"}
                     >
                       <option value="">-- Chọn máy gặp sự cố --</option>
@@ -607,7 +607,7 @@ export default function SuCoReportForm({
                       <input
                         value={form.faultOperator}
                         onChange={(e) => handleFieldChange("faultOperator", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[#026f17]"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
                         placeholder="Người vận hành, giám sát..."
                       />
                     </div>
@@ -617,7 +617,7 @@ export default function SuCoReportForm({
                         value={form.maQR}
                         onChange={(e) => handleFieldChange("maQR", e.target.value.toUpperCase())}
                         onKeyDown={handleQrKeyDown}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-red-600 tracking-wider outline-none transition-all focus:border-[#026f17] focus:bg-white"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-red-600 tracking-wider outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
                         placeholder="Quét/nhập mã QR bộ..."
                       />
                     </div>
@@ -629,7 +629,7 @@ export default function SuCoReportForm({
                       <select
                         value={detectionStation}
                         onChange={(e) => setDetectionStation(e.target.value as Station)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[#026f17]"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[var(--primary)]"
                       >
                         {INCIDENT_STATION_OPTIONS.map((s) => (
                           <option key={s.value} value={s.value}>
@@ -646,19 +646,19 @@ export default function SuCoReportForm({
             {incidentGroup === "CHEMICAL" && (
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
                 <h4 className="flex items-center gap-2 border-b border-slate-100 pb-3 text-xs font-black uppercase tracking-wide text-slate-800">
-                  <FlaskConical size={16} className="text-[#026f17]" />
+                  <FlaskConical size={16} className="text-[var(--primary)]" />
                   Thông tin truy vết Hóa chất / Vật tư
                 </h4>
                 <div className="space-y-4">
                   {/* Chọn hóa chất / vật tư */}
                   <div className="space-y-1.5">
-                    <label className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wide text-slate-700">
+                    <label className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
                       Hóa chất / Vật tư gặp sự cố <span className="text-red-500 font-bold">*</span>
                     </label>
                     <select
                       value={form.machineId}
                       onChange={(e) => handleFieldChange("machineId", e.target.value)}
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none transition-all focus:border-[#026f17] focus:bg-white"
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
                       required={incidentGroup === "CHEMICAL"}
                     >
                       <option value="">-- Chọn hóa chất từ danh mục --</option>
@@ -673,13 +673,13 @@ export default function SuCoReportForm({
                   {/* Mã lô & Nhân sự liên quan */}
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="space-y-1.5">
-                      <label className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wide text-slate-700">
+                      <label className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
                         Mã lô hóa chất / vật tư <span className="text-red-500 font-bold">*</span>
                       </label>
                       <input
                         value={form.errorQR}
                         onChange={(e) => handleFieldChange("errorQR", e.target.value.toUpperCase())}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[#026f17] focus:bg-white"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
                         placeholder="Nhập mã lô hàng..."
                         required={incidentGroup === "CHEMICAL"}
                       />
@@ -689,7 +689,7 @@ export default function SuCoReportForm({
                       <input
                         value={form.faultOperator}
                         onChange={(e) => handleFieldChange("faultOperator", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[#026f17]"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
                         placeholder="Người pha chế, giám sát..."
                       />
                     </div>
@@ -702,7 +702,7 @@ export default function SuCoReportForm({
                       value={form.maQR}
                       onChange={(e) => handleFieldChange("maQR", e.target.value.toUpperCase())}
                       onKeyDown={handleQrKeyDown}
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-red-600 tracking-wider outline-none transition-all focus:border-[#026f17] focus:bg-white"
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-red-600 tracking-wider outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
                       placeholder="Quét hoặc nhập QR bộ..."
                     />
                   </div>
@@ -713,7 +713,7 @@ export default function SuCoReportForm({
                       <select
                         value={detectionStation}
                         onChange={(e) => setDetectionStation(e.target.value as Station)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[#026f17]"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[var(--primary)]"
                       >
                         {INCIDENT_STATION_OPTIONS.map((s) => (
                           <option key={s.value} value={s.value}>
@@ -730,7 +730,7 @@ export default function SuCoReportForm({
             {incidentGroup === "OTHER" && (
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
                 <h4 className="flex items-center gap-2 border-b border-slate-100 pb-3 text-xs font-black uppercase tracking-wide text-slate-800">
-                  <AlertTriangle size={16} className="text-[#026f17]" />
+                  <AlertTriangle size={16} className="text-[var(--primary)]" />
                   Thông tin truy vết Sự cố khác
                 </h4>
                 <div className="space-y-4">
@@ -741,7 +741,7 @@ export default function SuCoReportForm({
                       <select
                         value={form.faultStation}
                         onChange={(e) => handleFieldChange("faultStation", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 font-semibold text-slate-700 outline-none transition-all focus:border-[#026f17]"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
                       >
                         <option value="">— Tự động Rollback —</option>
                         {INCIDENT_STATION_OPTIONS.map((s) => (
@@ -756,7 +756,7 @@ export default function SuCoReportForm({
                       <input
                         value={form.errorQR}
                         onChange={(e) => handleFieldChange("errorQR", e.target.value.toUpperCase())}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[#026f17]"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
                         placeholder="Số phiếu, mã đặc thù..."
                       />
                     </div>
@@ -769,7 +769,7 @@ export default function SuCoReportForm({
                       <input
                         value={form.faultOperator}
                         onChange={(e) => handleFieldChange("faultOperator", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[#026f17]"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
                         placeholder="Mã hoặc tên nhân viên..."
                       />
                     </div>
@@ -779,7 +779,7 @@ export default function SuCoReportForm({
                         value={form.maQR}
                         onChange={(e) => handleFieldChange("maQR", e.target.value.toUpperCase())}
                         onKeyDown={handleQrKeyDown}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-red-600 tracking-wider outline-none transition-all focus:border-[#026f17] focus:bg-white"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-red-600 tracking-wider outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
                         placeholder="Quét hoặc nhập QR bộ..."
                       />
                     </div>
@@ -791,7 +791,7 @@ export default function SuCoReportForm({
                       <select
                         value={detectionStation}
                         onChange={(e) => setDetectionStation(e.target.value as Station)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[#026f17]"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[var(--primary)]"
                       >
                         {INCIDENT_STATION_OPTIONS.map((s) => (
                           <option key={s.value} value={s.value}>
@@ -809,7 +809,7 @@ export default function SuCoReportForm({
             <div className="space-y-4">
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
                 <h4 className="flex items-center gap-2 border-b border-slate-100 pb-3 text-xs font-black uppercase tracking-wide text-slate-800">
-                  <FileText size={16} className="text-[#026f17]" />
+                  <FileText size={16} className="text-[var(--primary)]" />
                   Chi tiết sự cố &amp; Minh chứng
                 </h4>
 
@@ -821,7 +821,7 @@ export default function SuCoReportForm({
                       <input
                         value={form.typeTen}
                         onChange={(e) => handleFieldChange("typeTen", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none transition-all focus:border-[#026f17] focus:bg-white"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
                         placeholder="Gõ tóm tắt loại sự cố phát sinh..."
                       />
                     ) : (
@@ -832,7 +832,7 @@ export default function SuCoReportForm({
                             const sel = activeGroupOptions.find((c) => c.id === e.target.value);
                             setForm((f) => ({ ...f, typeId: e.target.value, typeTen: sel?.ten || "" }));
                           }}
-                          className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none transition-all focus:border-[#026f17] focus:bg-white"
+                          className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
                         >
                           {activeGroupOptions.map((c) => (
                             <option key={c.id} value={c.id}>
@@ -847,14 +847,14 @@ export default function SuCoReportForm({
 
                   {/* DIỄN GIẢI CHI TIẾT TÌNH HUỐNG */}
                   <div className="space-y-1.5">
-                    <label className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wide text-slate-700">
+                    <label className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
                       Diễn giải chi tiết tình huống <span className="text-red-500 font-bold">*</span>
                     </label>
                     <textarea
                       value={form.desc}
                       onChange={(e) => handleFieldChange("desc", e.target.value)}
                       rows={4}
-                      className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-800 outline-none transition-all focus:border-[#026f17] focus:bg-white"
+                      className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-800 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
                       placeholder="Mô tả cụ thể sự việc để phục vụ hậu kiểm..."
                     />
                   </div>
@@ -866,7 +866,7 @@ export default function SuCoReportForm({
                       <input
                         value={form.anhMinhChung}
                         onChange={(e) => handleFieldChange("anhMinhChung", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-10 text-xs font-semibold text-slate-700 outline-none transition-all focus:border-[#026f17] focus:bg-white"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-10 text-xs font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
                         placeholder="Dán link ảnh hoặc link chia sẻ từ Google Drive..."
                       />
                       <div className="absolute right-3.5 top-3.5 text-slate-400">

@@ -58,7 +58,7 @@ function PhotoProof({
 }) {
   return (
     <div className="mt-2 space-y-1.5">
-      <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500">
+      <label className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
         <Camera size={12} className={required ? "text-amber-500" : "text-slate-400"} />
         Ảnh minh chứng — {label}
         {required && <span className="text-red-500">*</span>}

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { loginWithStaffIdentifier } from "@/modules/auth/actions/staff-login.actions";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
 export default function LoginPage() {
   const [identifier, setIdentifier] = useState("");
@@ -66,7 +67,7 @@ export default function LoginPage() {
             className="h-11 w-11 shrink-0 bg-transparent object-contain drop-shadow-[0_6px_16px_rgba(15,23,42,0.12)]"
             aria-hidden
           />
-          <span className="truncate text-xl font-black uppercase tracking-tight text-[#026f17]">KSNK 103</span>
+          <span className={`truncate ${T.authBrand}`}>KSNK 103</span>
         </div>
       </header>
 
@@ -81,24 +82,24 @@ export default function LoginPage() {
               className="mx-auto mb-4 block h-28 w-28 bg-transparent object-contain drop-shadow-[0_6px_18px_rgba(15,23,42,0.12)]"
               priority
             />
-            <p className="text-[11px] font-bold leading-tight tracking-wide text-slate-700 md:text-xs">
-              BỆNH VIỆN QUÂN Y 103
+            <p className="text-[11px] font-medium leading-tight tracking-wide text-slate-700 md:text-xs">
+              Bệnh viện Quân y 103
             </p>
-            <p className="mt-1 text-[11px] font-semibold leading-tight text-[#026f17] md:text-xs">
+            <p className="mt-1 text-[11px] font-medium leading-tight text-[var(--primary)] md:text-xs">
               Khoa Kiểm soát nhiễm khuẩn
             </p>
-            <h1 className="mt-4 text-3xl font-black text-[#026f17] uppercase tracking-tighter">KSNK 103</h1>
-            <p className="text-slate-500 font-medium mt-2">Đăng nhập hệ thống</p>
+            <h1 className={`mt-4 ${T.authTitle}`}>KSNK 103</h1>
+            <p className={T.authSubtitle}>Đăng nhập hệ thống</p>
           </div>
 
           <form id="ksnk-login-form" onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Mã nhân viên hoặc email</label>
+              <label className={T.authLabel}>Mã nhân viên hoặc email</label>
               <input
                 type="text"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#026f17]/50 focus:border-[#026f17]"
+                className={T.authInput}
                 placeholder="Ví dụ: NV001 hoặc email@bv.vn"
                 required
                 autoComplete="username"
@@ -106,12 +107,12 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Mật khẩu</label>
+              <label className={T.authLabel}>Mật khẩu</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#026f17]/50 focus:border-[#026f17]"
+                className={T.authInput}
                 placeholder="••••••••"
                 required
                 autoComplete="current-password"
@@ -119,17 +120,13 @@ export default function LoginPage() {
             </div>
 
             <div className="text-right">
-              <Link href="/login/forgot-password" className="text-sm font-bold text-[#026f17] hover:underline">
+              <Link href="/login/forgot-password" className="text-sm font-medium text-[var(--primary)] hover:underline">
                 Quên mật khẩu?
               </Link>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full h-12 bg-[#026f17] text-white rounded-xl font-bold uppercase tracking-wider hover:bg-[#015711] transition-colors disabled:opacity-50"
-            >
-              {loading ? "Đang xử lý..." : "Đăng nhập"}
+            <button type="submit" disabled={loading} className={`w-full ${T.btnPrimary}`}>
+              {loading ? "Đang xử lý…" : "Đăng nhập"}
             </button>
           </form>
         </div>

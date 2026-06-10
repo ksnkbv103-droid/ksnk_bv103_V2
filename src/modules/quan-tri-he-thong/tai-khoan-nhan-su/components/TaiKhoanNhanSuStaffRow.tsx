@@ -33,7 +33,7 @@ export default function TaiKhoanNhanSuStaffRow({
       <td className="p-3 text-xs">{r.auth_user_id ? "Đã liên kết" : "Chưa"}</td>
       <td className="p-3 text-xs">
         {ksnkRole ? (
-          <span className="bg-emerald-50 text-[#026f17] px-2 py-0.5 rounded font-bold border border-emerald-100">
+          <span className="bg-emerald-50 text-[var(--primary)] px-2 py-0.5 rounded font-bold border border-emerald-100">
             {ksnkRole}
           </span>
         ) : "—"}

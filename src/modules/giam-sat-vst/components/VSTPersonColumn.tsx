@@ -14,6 +14,7 @@ import type {
   VSTPersonUpdatableField,
 } from "../hooks/useVSTFormHandlers";
 import RegistrySelect from "@/components/shared/RegistrySelect";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 interface VSTPersonColumnProps {
   person: VSTFormPerson;
@@ -141,13 +142,13 @@ export default function VSTPersonColumn({
   }, [person.nghe_nghiep_id, person.nhan_vien_id, person.ten_manual]);
 
   return (
-    <div className="flex min-h-0 max-h-[min(82dvh,calc(100dvh-13rem))] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm print:max-h-none print:overflow-visible">
+    <div className="flex min-h-0 max-h-[min(82dvh,calc(100dvh-13rem))] flex-col overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-sm print:max-h-none print:overflow-visible">
       <div className="shrink-0 border-b border-slate-100 bg-slate-50/60 px-4 py-3 print:border-b-0">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[#026f17]">Nhân viên {pIdx + 1}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)]">Nhân viên {pIdx + 1}</p>
 
         <div className="mt-3 space-y-3">
           <div className="space-y-1">
-            <label className="text-[10px] font-medium uppercase tracking-wide text-slate-500">Nghề nghiệp</label>
+            <label className={C.labelField}>Nghề nghiệp</label>
             <RegistrySelect
               loaiDanhMuc="NGHE_NGHIEP"
               placeholder="Chọn nghề nghiệp…"
@@ -168,11 +169,11 @@ export default function VSTPersonColumn({
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] font-medium uppercase tracking-wide text-slate-500">Tên nhân viên</label>
+            <label className={C.labelField}>Tên nhân viên</label>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
               {person.is_manual ? (
                 <input
-                  className="input min-h-10 w-full flex-1 rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 outline-none transition-colors focus:border-[#026f17]/50 focus:ring-1 focus:ring-[#026f17]/15"
+                  className={`${C.controlInput} flex-1 text-xs`}
                   placeholder={requireKhoa ? "Chọn khoa trước…" : "Nhập họ tên…"}
                   value={person.ten_manual}
                   onChange={(e) => updatePerson(pIdx, "ten_manual", e.target.value)}
@@ -196,7 +197,7 @@ export default function VSTPersonColumn({
                 />
               )}
 
-              <label className="flex min-h-10 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-[10px] font-medium text-slate-600 transition-colors hover:border-slate-300 sm:min-w-[9.5rem]">
+              <label className={`flex min-h-[var(--bv103-control-h)] shrink-0 cursor-pointer items-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-[11px] font-medium text-slate-600 transition-colors hover:border-slate-300 sm:min-w-[9.5rem]`}>
                 <input
                   type="checkbox"
                   className="checkbox checkbox-xs checkbox-primary rounded border-slate-300"
@@ -211,7 +212,7 @@ export default function VSTPersonColumn({
                 <span className="uppercase tracking-wide">Ngoài danh sách</span>
               </label>
             </div>
-            {requireKhoa && <p className="text-[10px] font-medium text-amber-700">Chọn khoa trước để lọc danh sách nhân viên.</p>}
+            {requireKhoa && <p className="text-[11px] font-medium text-amber-700">Chọn khoa trước để lọc danh sách nhân viên.</p>}
           </div>
         </div>
       </div>

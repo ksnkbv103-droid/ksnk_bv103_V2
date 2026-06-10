@@ -21,6 +21,18 @@ const SQL_ACTIVE = new Set([
   "admin-rbac-probe.sql",
   "admin-slice-pre-apply-probe.sql",
   "rbac-v-auth-compat-probe.sql",
+  "audit-orphan-trigger-probe.sql",
+  "gsc-vst-rpc-smoke.sql",
+  "khu-vuc-verify.sql",
+  "qlcv-pilot-precheck.sql",
+  "health-check-gstt-introspect.sql",
+  "health-check-gstt-summary-kinds.sql",
+  "health-check-gstt-triggers.sql",
+  "lookup-catalog-audit.sql",
+  "lookup-full-audit.sql",
+  "lookup-wave2-ids.sql",
+  "mdm-governance-audit-probe.sql",
+  "mdm-governance-fk-export.sql",
 ]);
 
 const LEGACY_TABLE_RE =

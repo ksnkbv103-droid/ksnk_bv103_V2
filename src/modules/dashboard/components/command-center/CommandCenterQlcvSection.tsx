@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { AlertTriangle, CalendarClock, ExternalLink } from "lucide-react";
 import type { QlcvQuaHanBrief } from "@/modules/quan-ly-cong-viec/actions/qlcv-brief.actions";
+import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 
 type Props = {
   brief: QlcvQuaHanBrief | null;
@@ -27,15 +28,15 @@ export function CommandCenterQlcvSection({ brief, loading }: Props) {
     <section className="rounded-2xl border border-amber-200/80 bg-white p-6 shadow-sm ring-1 ring-amber-900/[0.04]">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h2 className="flex items-center gap-2 text-lg font-black text-slate-800">
-            <CalendarClock className="text-amber-600" size={20} aria-hidden />
+          <h2 className={`flex items-center gap-2 ${D.sectionHeading}`}>
+            <CalendarClock className="text-[var(--surface-warning-text)]" size={20} aria-hidden />
             Công việc quá hạn
           </h2>
           <p className="mt-1 text-xs text-slate-500">
             Tóm tắt từ module QLCV — {totalCount} phiếu đang quá hạn trong phạm vi bạn được xem
           </p>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">
+        <span className="inline-flex items-center gap-1 rounded-full border border-[var(--surface-warning-border)] bg-[var(--surface-warning-bg)] px-3 py-1 text-xs font-medium text-[var(--surface-warning-text)]">
           <AlertTriangle size={14} aria-hidden />
           {totalCount}
         </span>
@@ -62,7 +63,7 @@ export function CommandCenterQlcvSection({ brief, loading }: Props) {
               </div>
               <Link
                 href={`/quan-ly-cong-viec?id=${row.id}`}
-                className="shrink-0 text-[10px] font-bold uppercase tracking-wide text-[#026f17] hover:underline"
+                className="shrink-0 text-[11px] font-medium text-[var(--primary)] hover:underline"
               >
                 Mở
               </Link>

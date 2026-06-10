@@ -9,6 +9,7 @@ import { ThietBiLoaiMayField } from "./thiet-bi-loai-may-field";
 import type { ThietBiRow } from "../actions/thiet-bi.types";
 import { saveThietBiAction } from "../actions/thiet-bi.actions";
 import { mapThietBiToForm, type ThietBiFormValues } from "./thiet-bi-form-shared";
+import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 
 export default function ThietBiFormModal({
   open,
@@ -67,10 +68,10 @@ export default function ThietBiFormModal({
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md touch-manipulation pointer-events-auto">
       <form
         onSubmit={submit}
-        className="bg-white w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-2xl p-8 space-y-4 shadow-2xl border-t-[6px] border-[#026f17]"
+        className="bg-white w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-[var(--radius-shell)] p-8 space-y-4 shadow-2xl border-t-[6px] border-[var(--primary)]"
       >
         <div className="flex justify-between items-start gap-4">
-          <h3 className="text-sm font-black text-[#026f17] uppercase tracking-widest">
+          <h3 className="text-sm font-black text-[var(--primary)] uppercase tracking-widest">
             {isEdit ? "Cập nhật thiết bị và máy" : "Thêm thiết bị và máy"}
           </h3>
           <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-red-600 rounded-xl -mr-2">
@@ -85,8 +86,8 @@ export default function ThietBiFormModal({
             onChange={(v) => setForm({ ...form, ten_thiet_bi: v })} />
           <ThietBiLoaiMayField value={form.loai_thiet_bi} onChange={(v) => setForm({ ...form, loai_thiet_bi: v })} />
           <div className="space-y-1">
-            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Trạng thái</label>
-            <select value={form.trang_thai} onChange={(e) => setForm({ ...form, trang_thai: e.target.value })} className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs">
+            <label className="text-[11px] font-medium text-slate-400 ml-1">Trạng thái</label>
+            <select value={form.trang_thai} onChange={(e) => setForm({ ...form, trang_thai: e.target.value })} className={C.controlInput}>
               <option value="READY">Sẵn sàng</option>
               <option value="REPAIRING">Đang sửa chữa</option>
               <option value="BROKEN">Hỏng</option>
@@ -108,12 +109,12 @@ export default function ThietBiFormModal({
         </div>
 
         <div className="space-y-1">
-          <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Ghi chú</label>
+          <label className="text-[11px] font-medium text-slate-400 ml-1">Ghi chú</label>
           <textarea
             value={form.ghi_chu}
             rows={3}
             onChange={(e) => setForm({ ...form, ghi_chu: e.target.value })}
-            className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold text-xs min-h-[80px]"
+            className={C.textareaCompact}
           />
         </div>
 
@@ -122,7 +123,7 @@ export default function ThietBiFormModal({
         <button
           type="submit"
           disabled={loading}
-          className="w-full h-12 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 disabled:opacity-60"
+          className={`w-full ${C.btnPrimaryBlock} disabled:opacity-60`}
         >
           {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Lưu
         </button>
@@ -134,12 +135,12 @@ export default function ThietBiFormModal({
 function DateField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <div className="space-y-1">
-      <label className="text-[11px] font-black text-slate-400 uppercase ml-1">{label}</label>
+      <label className="text-[11px] font-medium text-slate-400 ml-1">{label}</label>
       <input
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs"
+        className={C.controlInput}
       />
     </div>
   );

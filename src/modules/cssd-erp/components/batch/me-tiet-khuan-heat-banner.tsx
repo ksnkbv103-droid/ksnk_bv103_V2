@@ -42,7 +42,7 @@ export default function MeTietKhuanHeatBanner({ batchId }: { batchId: string }) 
       <div className="flex items-start gap-3">
         <Icon className="mt-0.5 shrink-0" size={20} aria-hidden />
         <div className="space-y-1">
-          <p className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+          <p className="text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1.5">
             <Thermometer size={12} aria-hidden />
             {isBlock ? "Chặn an toàn Spaulding / nhiệt" : "Cảnh báo Spaulding / nhiệt"}
           </p>

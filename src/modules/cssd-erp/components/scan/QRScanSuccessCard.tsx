@@ -20,7 +20,7 @@ interface Props {
 
 /**
  * Thẻ thông báo quét thành công (Phiên bản Gọn & Cân đối)
- * Tông màu Quân y (#026f17 + #FFD700), tối ưu không gian hiển thị.
+ * Tông màu Quân y (var(--primary) + #FFD700), tối ưu không gian hiển thị.
  */
 export default function QRScanSuccessCard({
   qrCode,
@@ -63,14 +63,14 @@ export default function QRScanSuccessCard({
 
   return (
     <div className="w-full max-w-[360px] mx-auto animate-in zoom-in-95 duration-200 touch-manipulation pointer-events-auto -webkit-tap-highlight-color-transparent">
-      <div className="bg-[#026f17] rounded-2xl overflow-hidden shadow-xl border-2 border-[#FFD700]/20 relative">
+      <div className="bg-[var(--primary)] rounded-2xl overflow-hidden shadow-xl border-2 border-[#FFD700]/20 relative">
         {/* Họa tiết nền chìm */}
         <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[radial-gradient(#FFD700_1px,transparent_1px)] [background-size:20px_20px]" />
 
         <div className="p-5 flex flex-col items-center text-center relative z-10">
           {/* Biểu tượng trạng thái nhỏ gọn */}
           <div className="mb-4 bg-[#FFD700] p-3 rounded-full shadow-lg">
-            <CheckCircle2 className="text-[#026f17]" size={32} strokeWidth={3} />
+            <CheckCircle2 className="text-[var(--primary)]" size={32} strokeWidth={3} />
           </div>
 
           <h2 className="text-[#FFD700] text-lg font-black uppercase tracking-tight mb-1">
@@ -133,7 +133,7 @@ export default function QRScanSuccessCard({
             {ledgerWarning && (
               <div className="w-full bg-rose-500/20 border border-rose-500/40 rounded-xl p-3 text-left animate-in fade-in slide-in-from-bottom-1">
                 <label className="text-[11px] font-black text-rose-300 uppercase tracking-widest block mb-1">⚠️ CẢNH BÁO CẤU PHẦN (SỔ CÁI)</label>
-                <div className="text-rose-100 text-[10px] font-bold leading-relaxed">{ledgerWarning}</div>
+                <div className="text-rose-100 text-[11px] font-bold leading-relaxed">{ledgerWarning}</div>
               </div>
             )}
 
@@ -153,12 +153,12 @@ export default function QRScanSuccessCard({
           </div>
 
           {/* Banner chỉ dẫn bước tiếp theo */}
-          <div className="mt-6 w-full bg-[#FFD700] text-[#026f17] p-4 rounded-2xl flex items-center justify-between shadow-lg">
+          <div className="mt-6 w-full bg-[#FFD700] text-[var(--primary)] p-4 rounded-2xl flex items-center justify-between shadow-lg">
             <div className="text-left">
               <div className="text-[11px] font-black uppercase opacity-60 mb-0.5">Bước tiếp theo</div>
               <div className="text-sm font-black uppercase tracking-tight">{buocTiepTheo}</div>
             </div>
-            <div className="bg-[#026f17] p-2 rounded-full text-[#FFD700]"><ArrowRight size={20} strokeWidth={3} /></div>
+            <div className="bg-[var(--primary)] p-2 rounded-full text-[#FFD700]"><ArrowRight size={20} strokeWidth={3} /></div>
           </div>
 
           {/* Nút In Nhãn QR Nhiệt (Mặc định) */}

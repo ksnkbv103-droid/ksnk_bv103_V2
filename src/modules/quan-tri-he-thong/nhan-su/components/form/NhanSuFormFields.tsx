@@ -6,6 +6,7 @@ import { Sparkles } from "lucide-react";
 import type { NhanSu } from "@/modules/quan-tri-he-thong/nhan-su/types";
 import NhanSuFormFieldsOrg from "./NhanSuFormFieldsOrg";
 import SearchableSelect from "@/components/shared/SearchableSelect";
+import { quanTriFormChrome as F } from "../../../lib/quan-tri-form-chrome";
 
 interface NhanSuFormFieldsProps {
   formData: Partial<NhanSu> & Record<string, unknown>;
@@ -37,7 +38,7 @@ export default function NhanSuFormFields({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-2">
-        <label className="text-[10px] font-black text-[#026f17] uppercase tracking-[0.2em] ml-4">Mã Nhân viên (Tự động gợi ý)</label>
+        <label className={F.formLabelInset}>Mã Nhân viên (Tự động gợi ý)</label>
         <div className="relative">
           <input className="input w-full bg-slate-50 border-slate-100 focus:bg-white font-bold pr-12" placeholder="VD: NV001"
             value={formData.ma_nv ?? ""} onChange={(e) => setFormData({ ...formData, ma_nv: e.target.value })} disabled={loading} required />
@@ -45,7 +46,7 @@ export default function NhanSuFormFields({
             <button 
               type="button"
               onClick={() => setFormData({ ...formData, ma_nv: maTuDong })}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-[#026f17] hover:scale-110 transition-transform"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--primary)] hover:scale-110 transition-transform"
               title="Sử dụng mã gợi ý"
             >
               <Sparkles className="w-5 h-5" />
@@ -54,13 +55,13 @@ export default function NhanSuFormFields({
         </div>
       </div>
       <div className="space-y-2">
-        <label className="text-[10px] font-black text-[#026f17] uppercase tracking-[0.2em] ml-4">Họ và tên</label>
+        <label className={F.formLabelInset}>Họ và tên</label>
         <input className="input w-full bg-slate-50 border-slate-100 focus:bg-white font-bold" placeholder="VD: Nguyễn Văn A"
           value={formData.ho_ten ?? ""} onChange={(e) => setFormData({ ...formData, ho_ten: e.target.value })} disabled={loading} required />
       </div>
 
       <div className="space-y-2">
-        <label className="text-[10px] font-black text-[#026f17] uppercase tracking-[0.2em] ml-4">Khoa / Phòng</label>
+        <label className={F.formLabelInset}>Khoa / Phòng</label>
         <SearchableSelect
           value={formData.khoa_id ?? ""}
           onChange={(val) => setFormData({ ...formData, khoa_id: val })}
@@ -71,7 +72,7 @@ export default function NhanSuFormFields({
       </div>
 
       <div className="space-y-2">
-        <label className="text-[10px] font-black text-[#026f17] uppercase tracking-[0.2em] ml-4">Chức danh</label>
+        <label className={F.formLabelInset}>Chức danh</label>
         <SearchableSelect
           value={formData.chuc_danh_id ?? ""}
           onChange={(id) => {
@@ -89,7 +90,7 @@ export default function NhanSuFormFields({
       </div>
 
       <div className="space-y-2">
-        <label className="text-[10px] font-black text-[#026f17] uppercase tracking-[0.2em] ml-4">Nghề nghiệp</label>
+        <label className={F.formLabelInset}>Nghề nghiệp</label>
         <SearchableSelect
           value={formData.nghe_nghiep_id ?? ""}
           onChange={(val) => setFormData({ ...formData, nghe_nghiep_id: val })}
@@ -100,19 +101,19 @@ export default function NhanSuFormFields({
       </div>
 
       <div className="space-y-2">
-        <label className="text-[10px] font-black text-[#026f17] uppercase tracking-[0.2em] ml-4">Số điện thoại</label>
+        <label className={F.formLabelInset}>Số điện thoại</label>
         <input className="input w-full bg-slate-50 border-slate-100 focus:bg-white" placeholder="09xx..."
           value={formData.so_dien_thoai ?? ""} onChange={(e) => setFormData({ ...formData, so_dien_thoai: e.target.value })} disabled={loading} />
       </div>
 
       <div className="space-y-2">
-        <label className="text-[10px] font-black text-[#026f17] uppercase tracking-[0.2em] ml-4">Email</label>
+        <label className={F.formLabelInset}>Email</label>
         <input className="input w-full bg-slate-50 border-slate-100 focus:bg-white" placeholder="email@hospital.com"
           value={formData.email ?? ""} onChange={(e) => setFormData({ ...formData, email: e.target.value })} disabled={loading} />
       </div>
 
       <div className="space-y-2">
-        <label className="text-[10px] font-black text-[#026f17] uppercase tracking-[0.2em] ml-4">Ngày sinh</label>
+        <label className={F.formLabelInset}>Ngày sinh</label>
         <input
           type="date"
           className="input w-full bg-slate-50 border-slate-100 focus:bg-white font-bold"
@@ -123,7 +124,7 @@ export default function NhanSuFormFields({
       </div>
 
       <div className="space-y-2">
-        <label className="text-[10px] font-black text-[#026f17] uppercase tracking-[0.2em] ml-4">Giới tính</label>
+        <label className={F.formLabelInset}>Giới tính</label>
         <select
           className="select w-full bg-slate-50 border-slate-100 font-bold"
           value={typeof formData.gioi_tinh === "string" ? formData.gioi_tinh : ""}

@@ -2,6 +2,12 @@
 
 import React from "react";
 import { Beaker, CalendarClock, AlertTriangle, Settings2 } from "lucide-react";
+import {
+  CSSD_UI_ACTION_PRIMARY,
+  CSSD_UI_STAT_LABEL,
+  CSSD_UI_STAT_VALUE,
+  CSSD_UI_SECTION_TITLE,
+} from "../../shared/ui/cssd-ui-chrome";
 
 type Dm = {
   id: string;
@@ -36,8 +42,8 @@ export default function KhoHoaChatOverview({
       {/* Card 1: Hạn sử dụng */}
       <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
         <div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hạn dùng ≤ 30 ngày</p>
-          <p className="text-2xl font-black text-amber-600 mt-1">{countSapHetHan} lô</p>
+          <p className={CSSD_UI_STAT_LABEL}>Hạn dùng ≤ 30 ngày</p>
+          <p className={`${CSSD_UI_STAT_VALUE} text-amber-600 mt-1`}>{countSapHetHan} lô</p>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-amber-50/50 flex items-center justify-center text-amber-500 ${countSapHetHan > 0 ? "animate-pulse" : ""}`}>
           <CalendarClock size={20} />
@@ -47,8 +53,8 @@ export default function KhoHoaChatOverview({
       {/* Card 2: Dưới ngưỡng tồn */}
       <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
         <div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dưới ngưỡng an toàn</p>
-          <p className="text-2xl font-black text-rose-600 mt-1">{countDuoiNguong} mục</p>
+          <p className={CSSD_UI_STAT_LABEL}>Dưới ngưỡng an toàn</p>
+          <p className={`${CSSD_UI_STAT_VALUE} text-rose-600 mt-1`}>{countDuoiNguong} mục</p>
         </div>
         <div className={`h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-500 ${countDuoiNguong > 0 ? "animate-pulse" : ""}`}>
           <AlertTriangle size={20} />
@@ -58,8 +64,8 @@ export default function KhoHoaChatOverview({
       {/* Card 3: Tổng số mặt hàng */}
       <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
         <div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mặt hàng trong kho</p>
-          <p className="text-2xl font-black text-[#026f17] mt-1">{dms.length} loại</p>
+          <p className={CSSD_UI_STAT_LABEL}>Mặt hàng trong kho</p>
+          <p className={`${CSSD_UI_STAT_VALUE} text-[var(--primary)] mt-1`}>{dms.length} loại</p>
         </div>
         <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
           <Beaker size={20} />
@@ -70,7 +76,7 @@ export default function KhoHoaChatOverview({
       <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
         <div className="flex items-center gap-1.5 mb-1.5">
           <Settings2 size={13} className="text-slate-500" />
-          <span className="text-[10px] font-black uppercase text-slate-600 tracking-wider">Thiết lập ngưỡng an toàn</span>
+          <span className={CSSD_UI_SECTION_TITLE}>Thiết lập ngưỡng an toàn</span>
         </div>
         <div className="grid grid-cols-2 gap-1.5">
           <select 
@@ -96,7 +102,7 @@ export default function KhoHoaChatOverview({
         </div>
         <button
           type="button"
-          className="mt-2 w-full rounded-lg bg-[#026f17] text-[#FFD700] hover:opacity-90 py-1.5 text-[10px] font-black uppercase shadow-sm transition-all active:scale-98 disabled:opacity-40"
+          className={`${CSSD_UI_ACTION_PRIMARY} mt-2 w-full text-[#FFD700] disabled:opacity-40`}
           disabled={!canEdit || !thrDm}
           onClick={() => void onSaveThr()}
         >

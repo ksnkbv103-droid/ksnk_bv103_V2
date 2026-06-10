@@ -2,6 +2,7 @@
 
 import { AlertTriangle } from "lucide-react";
 import type { DashboardV4TopViPhamRow } from "../../strategic-dashboard-v4.types";
+import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 
 type Props = {
   rows: DashboardV4TopViPhamRow[];
@@ -12,16 +13,16 @@ export function GscDashboardTopViPhamPanel({ rows }: Props) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
       <div className="border-b border-slate-100 pb-3">
-        <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
+        <h3 className={`${D.sectionHeadingSm} flex items-center gap-2`}>
           <AlertTriangle className="text-rose-500" size={18} />
           Top 10 tiêu chí vi phạm
         </h3>
-        <p className="text-[10px] text-slate-400 font-medium">Tần suất Không đạt trên Phần 2</p>
+        <p className="text-[11px] text-slate-400 font-medium">Tần suất Không đạt trên Phần 2</p>
       </div>
       <div className="overflow-x-auto min-h-[250px]">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-400">
+            <tr className={`border-b border-slate-100 ${D.tableHeader}`}>
               <th className="pb-2">Hạng</th>
               <th className="pb-2">Tiêu chí</th>
               <th className="pb-2 text-right">Lần</th>

@@ -35,27 +35,27 @@ function isTypingTarget(el: EventTarget | null) {
 const renderWeightBadge = (weightType?: string, isRedFlag?: boolean) => {
   if (isRedFlag) {
     return (
-      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider text-red-700 animate-pulse border border-red-200 shadow-sm">
+      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-red-700 animate-pulse border border-red-200 shadow-sm">
         🚨 Chí mạng (Red Flag)
       </span>
     );
   }
   if (weightType === "CRITICAL") {
     return (
-      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-red-600 border border-red-100">
+      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-red-600 border border-red-100">
         Chí mạng
       </span>
     );
   }
   if (weightType === "MINOR") {
     return (
-      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-blue-600 border border-blue-100">
+      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-blue-600 border border-blue-100">
         Hành chính
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-amber-600 border border-amber-100">
+    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-600 border border-amber-100">
       Nghiêm trọng
     </span>
   );
@@ -163,7 +163,7 @@ export default function ChecklistItem({
             </span>
             <div className="min-w-0 space-y-1">
               <div className="flex flex-wrap items-center gap-1.5">
-                <h4 className="text-sm font-black leading-tight text-slate-800">{criterion.label}</h4>
+                <h4 className="text-sm font-semibold leading-tight text-slate-800">{criterion.label}</h4>
                 {renderWeightBadge(criterion.weightType, criterion.isRedFlag)}
               </div>
             </div>
@@ -182,7 +182,7 @@ export default function ChecklistItem({
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="text-[10px] font-bold text-blue-600 hover:underline uppercase"
+                className="text-[11px] font-bold text-blue-600 hover:underline uppercase"
               >
                 Xem bằng chứng ảnh
               </button>
@@ -192,9 +192,9 @@ export default function ChecklistItem({
         <div className="flex flex-col items-end gap-1 shrink-0">
           <div className="flex items-center gap-1.5">
             <span
-              className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${
+              className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
                 result.value === "DAT"
-                  ? "bg-[#026f17]/15 text-[#026f17]"
+                  ? "bg-[var(--primary)]/15 text-[var(--primary)]"
                   : result.value === "KHONG_DAT"
                     ? "bg-red-500/15 text-red-700"
                     : "bg-slate-200 text-slate-600"
@@ -239,7 +239,7 @@ export default function ChecklistItem({
     <div
       tabIndex={0}
       onKeyDown={handleRowKeyDown}
-      className={`${gscFormChrome.panelShell} border-l-4 border-transparent transition-all hover:border-[#026f17] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20`}
+      className={`${gscFormChrome.panelShell} border-l-4 border-transparent transition-all hover:border-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20`}
     >
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div className="flex-1 space-y-1.5">
@@ -249,10 +249,10 @@ export default function ChecklistItem({
             </span>
             <div className="min-w-0 space-y-1">
               <div className="flex flex-wrap items-center gap-1.5">
-                <h4 className="text-sm font-black leading-tight text-slate-800 sm:text-base">{criterion.label}</h4>
+                <h4 className="text-sm font-semibold leading-tight text-slate-800 sm:text-base">{criterion.label}</h4>
                 {renderWeightBadge(criterion.weightType, criterion.isRedFlag)}
               </div>
-              <p className="hidden text-[10px] font-medium text-slate-400 sm:block sm:text-[11px]">
+              <p className="hidden text-[11px] font-medium text-slate-400 sm:block sm:text-[11px]">
                 Phím <kbd className="rounded border border-slate-200 bg-slate-50 px-1">1</kbd> Đạt ·{" "}
                 <kbd className="rounded border border-slate-200 bg-slate-50 px-1">2</kbd> Không đạt ·{" "}
                 <kbd className="rounded border border-slate-200 bg-slate-50 px-1">3</kbd> Không áp dụng
@@ -261,14 +261,12 @@ export default function ChecklistItem({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 md:flex-nowrap shrink-0">
+        <div className="flex shrink-0 flex-wrap items-center gap-2 md:flex-nowrap">
           <button
             type="button"
             onClick={() => pickValue("DAT")}
-            className={`bv103-control-h min-w-[5.5rem] flex-1 rounded-xl border px-3 text-[11px] font-black uppercase tracking-wide transition-all md:flex-none ${
-              result.value === "DAT"
-                ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-md scale-[1.02]"
-                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+            className={`${gscFormChrome.choiceBtnRow} min-w-[5.5rem] flex-1 md:flex-none ${
+              result.value === "DAT" ? gscFormChrome.choiceBtnActive : gscFormChrome.choiceBtnIdle
             }`}
           >
             Đạt
@@ -277,10 +275,8 @@ export default function ChecklistItem({
           <button
             type="button"
             onClick={() => pickValue("KHONG_DAT")}
-            className={`bv103-control-h min-w-[6.5rem] flex-1 rounded-xl border px-3 text-[11px] font-black uppercase tracking-wide transition-all md:flex-none ${
-              result.value === "KHONG_DAT"
-                ? "border-rose-600 bg-rose-600 text-white shadow-md scale-[1.02]"
-                : "border-slate-200 bg-white text-slate-600 hover:border-rose-200 hover:bg-rose-50/60"
+            className={`${gscFormChrome.choiceBtnRow} min-w-[6.5rem] flex-1 md:flex-none ${
+              result.value === "KHONG_DAT" ? gscFormChrome.choiceBtnActiveDanger : gscFormChrome.choiceBtnIdle
             }`}
           >
             Không đạt
@@ -289,10 +285,8 @@ export default function ChecklistItem({
           <button
             type="button"
             onClick={() => pickValue("NA")}
-            className={`bv103-control-h min-w-[8.5rem] flex-1 rounded-xl border px-3 text-[11px] font-black uppercase tracking-wide transition-all md:flex-none ${
-              result.value === "NA"
-                ? "border-slate-500 bg-slate-600 text-white shadow-md scale-[1.02]"
-                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+            className={`${gscFormChrome.choiceBtnRow} min-w-[8.5rem] flex-1 md:flex-none ${
+              result.value === "NA" ? "border-slate-500 bg-slate-600 text-white shadow-sm" : gscFormChrome.choiceBtnIdle
             }`}
           >
             Không áp dụng
@@ -301,10 +295,10 @@ export default function ChecklistItem({
           <button
             type="button"
             onClick={() => setNoteOpen((v) => !v)}
-            className={`bv103-control-h min-w-[8.5rem] flex-1 rounded-xl border px-3 text-[11px] font-black uppercase tracking-wide transition-all shadow-sm md:flex-none ${
+            className={`${gscFormChrome.choiceBtnRow} min-w-[8.5rem] flex-1 md:flex-none ${
               noteOpen || String(result.note || "").trim()
-                ? "border-amber-200/90 bg-amber-50/90 text-amber-900 hover:bg-amber-50"
-                : "border-slate-200/90 bg-white text-slate-700 hover:bg-slate-50"
+                ? gscFormChrome.choiceBtnNote
+                : gscFormChrome.choiceBtnIdle
             }`}
           >
             {noteOpen ? "Ẩn ghi chú" : "Bổ sung ghi chú"}
@@ -316,10 +310,8 @@ export default function ChecklistItem({
                 type="button"
                 onClick={handleCameraClick}
                 disabled={uploading}
-                className={`bv103-control-h min-w-[8.5rem] flex-1 rounded-xl border px-3 text-[11px] font-black uppercase tracking-wide transition-all shadow-sm md:flex-none ${
-                  result.image_url
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-950 hover:bg-emerald-100"
-                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                className={`${gscFormChrome.choiceBtnRow} min-w-[8.5rem] flex-1 md:flex-none ${
+                  result.image_url ? gscFormChrome.choiceBtnEvidence : gscFormChrome.choiceBtnIdle
                 }`}
               >
                 {uploading ? "Đang tải..." : result.image_url ? "📸 Có bằng chứng" : "📸 Chụp bằng chứng"}
@@ -348,19 +340,19 @@ export default function ChecklistItem({
             />
           </div>
           <div className="flex flex-col gap-0.5">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ảnh bằng chứng</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ảnh bằng chứng</span>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="text-[10px] font-black text-blue-600 hover:underline uppercase tracking-wide"
+                className="text-[11px] font-semibold text-blue-600 hover:underline uppercase tracking-wide"
               >
                 Xem to
               </button>
               <button
                 type="button"
                 onClick={handleRemoveImage}
-                className="text-[10px] font-black text-rose-600 hover:underline uppercase tracking-wide"
+                className="text-[11px] font-semibold text-rose-600 hover:underline uppercase tracking-wide"
               >
                 Xóa bỏ
               </button>

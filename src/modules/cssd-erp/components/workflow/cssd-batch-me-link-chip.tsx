@@ -17,7 +17,7 @@ export default function CssdBatchMeLinkChip() {
         <FlameKindling size={20} aria-hidden />
       </div>
       <div className="space-y-0.5">
-        <span className="block text-[10px] font-black uppercase leading-tight tracking-tight text-amber-900">
+        <span className="block text-[11px] font-semibold uppercase tracking-wide leading-tight tracking-tight text-amber-900">
           Phiếu mẻ
         </span>
         <span className="block text-[11px] font-bold uppercase tracking-wider text-amber-800/80">Tạo phiếu & quét tại đây</span>

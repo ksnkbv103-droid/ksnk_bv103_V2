@@ -26,7 +26,7 @@ function CssdThietBiPageInner() {
     <CSSDPageShell
       title={
         <>
-          Máy móc &amp; Thiết bị <span className="text-[#026f17]">KSNK</span>
+          Máy móc &amp; Thiết bị <span className="text-[var(--primary)]">KSNK</span>
         </>
       }
       subtitle="Bảo dưỡng vận hành tại CSSD; danh mục máy CRUD tại Quản trị."
@@ -36,7 +36,7 @@ function CssdThietBiPageInner() {
           <button
             type="button"
             onClick={() => setActiveTab("CATALOG")}
-            className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${
+            className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
               activeTab === "CATALOG" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
             }`}
           >
@@ -45,7 +45,7 @@ function CssdThietBiPageInner() {
           <button
             type="button"
             onClick={() => setActiveTab("MAINTENANCE")}
-            className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${
+            className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
               activeTab === "MAINTENANCE" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
             }`}
           >

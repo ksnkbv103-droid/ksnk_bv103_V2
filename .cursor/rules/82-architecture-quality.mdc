@@ -1,6 +1,6 @@
 ---
 description: Architecture quality standards — caching, indexing, domain layer, observability
-globs: src/**/*.{ts,tsx}, supabase/migrations/*.sql
+globs: supabase/migrations/*.sql
 alwaysApply: false
 ---
 

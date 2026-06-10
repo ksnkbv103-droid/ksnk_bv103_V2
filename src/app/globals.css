@@ -18,24 +18,40 @@
   --success: #026f17;
   --warning: #f59e0b;
 
+  /* Semantic surfaces — notice / KPI tone (Phase 5) */
+  --surface-success-bg: #ecfdf5;
+  --surface-success-border: #a7f3d0;
+  --surface-success-text: #065f46;
+  --surface-warning-bg: #fffbeb;
+  --surface-warning-border: #fde68a;
+  --surface-warning-text: #92400e;
+  --surface-danger-bg: #fef2f2;
+  --surface-danger-border: #fecaca;
+  --surface-danger-text: #991b1b;
+  --surface-info-bg: #ffffff;
+  --surface-info-border: #e2e8f0;
+  --surface-info-text: #334155;
+
   /* Nền */
   --bg-body: #f8fafc;
   --bg-panel: #ffffff;
   --bg-glass: rgba(255, 255, 255, 0.85);
 
-  /* Text */
+  /* Text (semantic — ưu tiên token này trong code mới) */
+  --text-title: #0f172a;
+  --text-body: #334155;
+  --text-muted: #64748b;
   --text-primary: #1e293b;
   --text-secondary: #64748b;
-  --text-muted: #94a3b8;
 
   /* Elevated surfaces (chuẩn ứng dụng MIS chuyên nghiệp) */
   --shadow-app-soft: 0 1px 2px rgb(15 23 42 / 0.05), 0 10px 24px rgb(15 23 42 / 0.04);
   --shadow-app-header: 0 1px 0 rgb(15 23 42 / 0.06);
 
-  --radius-shell: 1rem;
-  --radius-table: 0.875rem;
-  /** Bo điều khiển form (≈ Tailwind rounded-xl); class TS: `bv103LayoutChrome` @see BV103_LAYOUT_PRIMITIVES */
-  --radius-control: 0.75rem;
+  --radius-shell: 0.75rem;
+  --radius-table: 0.75rem;
+  /** Bo control: input / select / nút thường (≈ rounded-lg) — `bv103LayoutChrome` */
+  --radius-control: 0.5rem;
 
   /* Chuẩn touch / MIS: nút, ô nhập, thanh tìm (đồng bộ chiều cao) */
   --bv103-control-h: 2.5rem;
@@ -90,7 +106,8 @@
 
   /* Premium Card */
   .premium-card {
-    @apply rounded-3xl border border-gray-200 bg-white shadow-sm transition-all duration-300;
+    border-radius: var(--radius-shell);
+    @apply border border-gray-200 bg-white shadow-sm transition-all duration-300;
   }
 
   .premium-card:hover {
@@ -104,27 +121,55 @@
     border: 1px solid rgba(226, 232, 240, 0.6);
   }
 
-  /* Button styles */
+  /* Button styles — bo control, không pill */
   .btn-primary {
-    @apply px-6 py-3 rounded-full bg-[var(--primary)] text-white font-semibold hover:bg-[var(--primary-hover)] transition-all duration-200 flex items-center justify-center gap-2 shadow-sm;
+    border-radius: var(--radius-control);
+    @apply px-6 py-3 bg-[var(--primary)] text-white font-semibold hover:bg-[var(--primary-hover)] transition-all duration-200 flex items-center justify-center gap-2 shadow-sm;
   }
 
   .btn-accent {
-    @apply px-6 py-3 rounded-full bg-[var(--accent)] text-white font-semibold hover:bg-[var(--accent-hover)] transition-all duration-200 flex items-center justify-center gap-2 shadow-sm;
+    border-radius: var(--radius-control);
+    @apply px-6 py-3 bg-[var(--accent)] text-white font-semibold hover:bg-[var(--accent-hover)] transition-all duration-200 flex items-center justify-center gap-2 shadow-sm;
   }
 
-  /* Input & Select */
-  .input {
-    @apply w-full px-4 py-3 rounded-full border border-gray-300 focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none transition-all duration-200;
-  }
-
+  /* Input & Select — bo góc thống nhất (--radius-control); không @apply class component khác (Tailwind v4). */
+  .input,
   .select {
-    @apply w-full px-4 py-3 rounded-full border border-gray-300 focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] outline-none bg-white transition-all duration-200;
+    min-height: var(--bv103-control-h);
+    height: var(--bv103-control-h);
+    width: 100%;
+    border-radius: var(--radius-control);
+    border: 1px solid rgb(226 232 240);
+    background-color: #fff;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    color: rgb(30 41 59);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.05);
+    outline: none;
+    transition-property: color, background-color, border-color, box-shadow;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
   }
 
-  /* Label */
+  .input:focus,
+  .select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 15%, transparent);
+  }
+
+  /** @deprecated — dùng `bv103DesignTokens.labelBlock` / `bv103LayoutChrome.labelField` */
   .form-label {
-    @apply block text-xs font-black text-[var(--primary)]/70 uppercase tracking-[0.15em] mb-1.5;
+    @apply mb-1.5 block text-[11px] font-medium text-slate-500;
+  }
+
+  /** Label field — đồng bộ `bv103LayoutChrome.labelField` */
+  .bv103-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
   }
 }
 
@@ -132,16 +177,18 @@
    TYPOGRAPHY
    ============================================ */
 @layer utilities {
+  /** @deprecated — dùng `bv103DesignTokens.pageTitle` */
   .heading-module {
-    @apply text-3xl font-black text-[var(--primary)] uppercase tracking-tighter;
+    @apply text-xl font-semibold tracking-tight text-slate-900 md:text-2xl;
   }
 
   .stat-value {
-    @apply text-4xl font-black text-[var(--primary)] tabular-nums;
+    @apply text-2xl font-semibold tabular-nums text-slate-900;
   }
 
+  /** Nhóm sidebar / zone app — IN HOA chỉ ở lớp điều hướng */
   .section-label {
-    @apply text-[10px] font-black text-[var(--primary)]/30 uppercase tracking-[0.15em];
+    @apply text-[11px] font-semibold uppercase tracking-wider text-slate-400;
   }
 
   /* Vùng bảng / nội dung trong shell ứng dụng — phân lớp nền rõ nhưng không lòe */

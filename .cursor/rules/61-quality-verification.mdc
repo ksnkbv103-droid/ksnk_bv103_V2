@@ -1,25 +1,13 @@
 ---
-description: Kiểm thử tối thiểu và checklist bàn giao (AGENTS tinh gọn)
-globs: src/**/*.{ts,tsx}
+description: "[Superseded] Verify checklist — dùng 03-src-editing-compact; @mention trước merge lớn"
 alwaysApply: false
 ---
 
 # Chất lượng & bàn giao
 
-## Sau thay đổi quan trọng — kiểm tối thiểu
+> **Superseded** cho slice thường: [`03-src-editing-compact.mdc`](./03-src-editing-compact.mdc).  
+> Invoke `@61-quality-verification` trước merge PR lớn.
 
-- CRUD / lọc / tìm / list
-- Import/export nếu module có
-- Dashboard hoặc tổng hợp nếu đụng
-- Mapping hiển thị từ FK
-- Dữ liệu DB có mà UI không hiện: client đọc, quyền, **RLS** (Supabase)
-
-## Checklist bàn giao task
-
-- Đúng source-of-truth (`permission-registry`, mapping **10**)
-- Không vi phạm boundary (CSSD vs danh mục)
-- `UI -> Action -> DB` khớp
-- Migration (nếu có) an toàn, lặp lại được
-- Không tạo lỗi lint/TypeScript mới
-- Không còn lỗi contract DB (cột/bảng/RPC param sai tên)
-- Đã test thao tác thật ở UI cho luồng vừa sửa (không chỉ chạy build)
+- CRUD / lọc / import-export / dashboard nếu đụng.
+- Mapping FK hiển thị; RLS khi dữ liệu có mà UI trống.
+- `permission-registry` + mapping; migration an toàn; test tay UI luồng vừa sửa.

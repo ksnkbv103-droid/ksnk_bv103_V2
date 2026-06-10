@@ -91,7 +91,7 @@ export default function CongViecKanban({
             <div className="mb-3 flex items-center justify-between gap-2 px-1">
               <div className="flex min-w-0 items-center gap-2">
                 <span className={`h-2 w-2 shrink-0 rounded-full ${col.dot}`} />
-                <h3 className="truncate text-[11px] font-black uppercase tracking-widest text-slate-600">
+                <h3 className="truncate text-[11px] font-semibold uppercase tracking-wide text-slate-600">
                   {col.title}
                 </h3>
               </div>

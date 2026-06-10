@@ -7,13 +7,13 @@ export const meTietKhuanBatchColumns: Column<any>[] = [
   {
     header: "MÃ LÔ",
     accessorKey: "ma_lo_tiet_khuan",
-    cell: (i: any) => <span className="text-[11px] font-black uppercase text-[#026f17]">{i.ma_lo_tiet_khuan}</span>,
+    cell: (i: any) => <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)]">{i.ma_lo_tiet_khuan}</span>,
   },
   {
     header: "SỐ BỘ TRONG MẺ",
     accessorKey: "so_bo_trong_me",
     cell: (i: any) => (
-      <span className="text-[10px] font-black tabular-nums text-slate-700">
+      <span className="text-[11px] font-black tabular-nums text-slate-700">
         {typeof i.so_bo_trong_me === "number" ? i.so_bo_trong_me : 0}
       </span>
     ),
@@ -21,14 +21,14 @@ export const meTietKhuanBatchColumns: Column<any>[] = [
   {
     header: "THIẾT BỊ",
     accessorKey: "thiet_bi.ten_thiet_bi",
-    cell: (i: any) => <span className="text-[10px] font-bold uppercase text-slate-600">{i.thiet_bi?.ten_thiet_bi || "N/A"}</span>,
+    cell: (i: any) => <span className="text-[11px] font-bold uppercase text-slate-600">{i.thiet_bi?.ten_thiet_bi || "N/A"}</span>,
   },
   {
     header: "QC TEST",
     accessorKey: "ket_qua_test",
     cell: (i: any) => (
       <span
-        className={`rounded-md px-2 py-1 text-[11px] font-black uppercase ${
+        className={`rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide ${
           i.ket_qua_test === true ? "bg-emerald-50 text-emerald-600" : i.ket_qua_test === false ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-500"
         }`}
       >
@@ -50,7 +50,7 @@ export const meTietKhuanBatchColumns: Column<any>[] = [
       };
       const badge = STATE_BADGES[state] || { label: state, cls: "bg-slate-50 text-slate-600 border-slate-100" };
       return (
-        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border ${badge.cls}`}>
+        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide border ${badge.cls}`}>
           {badge.label}
         </span>
       );
@@ -59,6 +59,6 @@ export const meTietKhuanBatchColumns: Column<any>[] = [
   {
     header: "GHI CHÚ",
     accessorKey: "ghi_chu",
-    cell: (i: any) => <span className="block max-w-[150px] truncate text-[10px] text-slate-500">{i.ghi_chu || "---"}</span>,
+    cell: (i: any) => <span className="block max-w-[150px] truncate text-[11px] text-slate-500">{i.ghi_chu || "---"}</span>,
   },
 ];

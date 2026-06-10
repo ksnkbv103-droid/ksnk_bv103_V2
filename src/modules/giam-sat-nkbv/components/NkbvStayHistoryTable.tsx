@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { X, Plus } from "lucide-react";
 import { toast } from "sonner";
 import type { DepartmentStay } from "../types/nkbv-verification";
+import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 
 interface NkbvStayHistoryTableProps {
   treatmentHistory: DepartmentStay[];
@@ -65,12 +66,10 @@ export default function NkbvStayHistoryTable({
   const todayStr = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="bg-slate-50/75 rounded-2xl p-4 border border-slate-100 space-y-4">
+    <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-4">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1">
-          🏢 Lịch sử điều trị khoa phòng
-        </span>
-        <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">
+        <span className={`${C.blockSection} flex items-center gap-1`}>🏢 Lịch sử điều trị khoa phòng</span>
+        <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-[11px] font-bold text-slate-600">
           {treatmentHistory.length} khoa
         </span>
       </div>
@@ -80,13 +79,13 @@ export default function NkbvStayHistoryTable({
           <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-3 py-2 font-black text-slate-500 uppercase text-[10px]">
+                <th className={`px-3 py-2 ${C.tableHeader}`}>
                   Khoa điều trị
                 </th>
-                <th className="px-3 py-2 font-black text-slate-500 uppercase text-[10px]">
+                <th className={`px-3 py-2 ${C.tableHeader}`}>
                   Từ ngày
                 </th>
-                <th className="px-3 py-2 font-black text-slate-500 uppercase text-[10px]">
+                <th className={`px-3 py-2 ${C.tableHeader}`}>
                   Đến ngày
                 </th>
                 <th className="px-3 py-2 text-right"></th>
@@ -107,7 +106,7 @@ export default function NkbvStayHistoryTable({
                     {stay.ngay_ra ? (
                       new Date(stay.ngay_ra).toLocaleDateString("vi-VN")
                     ) : (
-                      <span className="text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded text-[10px]">
+                      <span className="text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded text-[11px]">
                         Hiện tại
                       </span>
                     )}
@@ -138,18 +137,18 @@ export default function NkbvStayHistoryTable({
       {/* Add Stay Inputs */}
       {allowedEdit && (
         <div className="bg-white rounded-xl p-3 border border-slate-100 space-y-3 shadow-sm">
-          <span className="text-[10px] font-black text-slate-400 uppercase block">
+          <span className="text-[11px] font-medium text-slate-400 block">
             ➕ Khai báo Chuyển khoa / Nhập khoa mới
           </span>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="text-[10px] font-bold text-slate-500 block mb-1">
+              <label className="text-[11px] font-bold text-slate-500 block mb-1">
                 Chọn khoa phòng
               </label>
               <select
                 value={newStayKhoaId}
                 onChange={(e) => setNewStayKhoaId(e.target.value)}
-                className="w-full rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                className="w-full rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
               >
                 <option value="">-- Chọn khoa --</option>
                 {khoas.map((k) => (
@@ -160,7 +159,7 @@ export default function NkbvStayHistoryTable({
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-500 block mb-1">
+              <label className="text-[11px] font-bold text-slate-500 block mb-1">
                 Từ ngày (Nhập khoa)
               </label>
               <input
@@ -169,11 +168,11 @@ export default function NkbvStayHistoryTable({
                 min={cleanNgayVaoVien || undefined}
                 max={todayStr}
                 onChange={(e) => setNewStayNgayVao(e.target.value)}
-                className="w-full rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                className="w-full rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
               />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-500 block mb-1">
+              <label className="text-[11px] font-bold text-slate-500 block mb-1">
                 Đến ngày (Để trống nếu là khoa hiện tại)
               </label>
               <input
@@ -182,7 +181,7 @@ export default function NkbvStayHistoryTable({
                 min={newStayNgayVao || cleanNgayVaoVien || undefined}
                 max={todayStr}
                 onChange={(e) => setNewStayNgayRa(e.target.value)}
-                className="w-full rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                className="w-full rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
               />
             </div>
           </div>
@@ -190,7 +189,7 @@ export default function NkbvStayHistoryTable({
             <button
               type="button"
               onClick={handleAdd}
-              className="rounded-lg bg-[#026f17] hover:bg-[#026615] px-4 py-1.5 text-xs font-black uppercase text-white shadow transition flex items-center gap-1"
+              className="rounded-lg bg-[var(--primary)] hover:bg-[#026615] px-4 py-1.5 text-xs font-black uppercase text-white shadow transition flex items-center gap-1"
             >
               <Plus className="h-3 w-3" /> Thêm khoa điều trị
             </button>

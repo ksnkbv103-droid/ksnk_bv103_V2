@@ -137,7 +137,7 @@ export default function MeTietKhuanProcessStep({
 
   return (
     <CSSDPageShell
-      title={<span className="text-[#026f17]">Mẻ tiệt khuẩn: đang xử lý</span>}
+      title={<span className="text-[var(--primary)]">Mẻ tiệt khuẩn: đang xử lý</span>}
       subtitle="Nạp bộ → bắt đầu TK → kết thúc chu trình → đánh giá QC → kết luận."
       actions={
         <button type="button" onClick={onBackToList} className={`${CSSD_UI_ACTION_SECONDARY} h-10`}>
@@ -210,7 +210,7 @@ export default function MeTietKhuanProcessStep({
                 <Inbox size={18} strokeWidth={2.5} />
               </div>
               <div className="space-y-0.5">
-                <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Bước 1</p>
+                <p className="text-[11px] font-medium text-slate-400 tracking-wider">Bước 1</p>
                 <p className="text-xs font-bold text-slate-700">Chuẩn bị nạp mẻ</p>
               </div>
             </div>
@@ -229,7 +229,7 @@ export default function MeTietKhuanProcessStep({
                 <Flame size={18} strokeWidth={2.5} />
               </div>
               <div className="space-y-0.5">
-                <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Bước 2</p>
+                <p className="text-[11px] font-medium text-slate-400 tracking-wider">Bước 2</p>
                 <p className={`text-xs font-bold ${step2State === "PENDING" ? "text-slate-400" : "text-slate-700"}`}>Đang tiệt khuẩn</p>
               </div>
             </div>
@@ -248,7 +248,7 @@ export default function MeTietKhuanProcessStep({
                 <ClipboardCheck size={18} strokeWidth={2.5} />
               </div>
               <div className="space-y-0.5">
-                <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Bước 3</p>
+                <p className="text-[11px] font-medium text-slate-400 tracking-wider">Bước 3</p>
                 <p className={`text-xs font-bold ${step3State === "PENDING" ? "text-slate-400" : "text-slate-700"}`}>Đánh giá QC</p>
               </div>
             </div>
@@ -267,7 +267,7 @@ export default function MeTietKhuanProcessStep({
                 {step4State === "FAILED" ? <AlertCircle size={18} strokeWidth={2.5} /> : <CheckCircle size={18} strokeWidth={2.5} />}
               </div>
               <div className="space-y-0.5">
-                <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider">Bước 4</p>
+                <p className="text-[11px] font-medium text-slate-400 tracking-wider">Bước 4</p>
                 <p className={`text-xs font-bold ${step4State === "PENDING" ? "text-slate-400" : "text-slate-700"}`}>
                   {step4State === "FAILED" ? "Lỗi tiệt khuẩn" : "Chờ cấp phát"}
                 </p>
@@ -364,8 +364,8 @@ export default function MeTietKhuanProcessStep({
           </div>
         )}
 
-        <p className="mt-4 flex items-start gap-2 text-[10px] font-medium text-slate-500">
-          <PlayCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#026f17]" aria-hidden="true" />
+        <p className="mt-4 flex items-start gap-2 text-[11px] font-medium text-slate-500">
+          <PlayCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" aria-hidden="true" />
           <span>
             Chỉ khi <strong className="text-slate-700">kết luận ĐẠT</strong> hệ thống mới chuyển các bộ trong mẻ sang{" "}
             <strong className="text-slate-700">Cấp phát</strong>. Nếu không đạt, bộ được đưa về Đóng gói theo chính sách hiện hành.

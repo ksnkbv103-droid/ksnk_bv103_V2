@@ -1,5 +1,7 @@
 "use client";
 
+
+import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
 import React from "react";
 import type { UtiVerificationData } from "../../types/nkbv-verification";
 
@@ -43,8 +45,8 @@ export default function UtiClinicalSubForm({
     <div className="space-y-4">
       {/* Urine Culture Group */}
       {activeTab === 'VI_SINH' && (
-        <div className="bg-slate-50/75 rounded-2xl p-4 border border-slate-100 space-y-3 animate-in fade-in">
-          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">✨ Kết quả cấy nước tiểu (Mã: BM.VS.UTI.01)</span>
+        <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3 animate-in fade-in">
+          <span className={` text-slate-500`}>✨ Kết quả cấy nước tiểu (Mã: BM.VS.UTI.01)</span>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -55,7 +57,7 @@ export default function UtiClinicalSubForm({
                   value={form.urine_cfu_count}
                   disabled={!allowedEdit}
                   onChange={(e) => onChange({ ...form, urine_cfu_count: parseInt(e.target.value) || 0 })}
-                  className="w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                  className={C.controlInput}
                 />
                 <span className="absolute right-3 top-2.5 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
                   LIS
@@ -69,8 +71,8 @@ export default function UtiClinicalSubForm({
                 value={form.pathogen_count}
                 disabled={!allowedEdit}
                 onChange={(e) => onChange({ ...form, pathogen_count: parseInt(e.target.value) || 1 })}
-                className={`w-full rounded-xl bg-white px-3 py-2 text-xs font-semibold focus:ring-1 focus:ring-[#026f17] ${
-                  form.pathogen_count > 2 ? "border-red-300 focus:border-red-500" : "border-slate-200 focus:border-[#026f17]"
+                className={`w-full rounded-xl bg-white px-3 py-2 text-xs font-semibold focus:ring-1 focus:ring-[var(--primary)] ${
+                  form.pathogen_count > 2 ? "border-red-300 focus:border-red-500" : "border-slate-200 focus:border-[var(--primary)]"
                 }`}
               />
             </div>
@@ -105,8 +107,8 @@ export default function UtiClinicalSubForm({
       {activeTab === 'LAM_SANG' && (
         <div className="space-y-4 animate-in fade-in">
           {/* Foley Device Group */}
-          <div className="bg-slate-50/75 rounded-2xl p-4 border border-slate-100 space-y-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">🔌 Thiết bị xâm lấn (Sonde Foley - Mã: BM.LS.UTI.01)</span>
+          <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3">
+            <span className={` text-slate-500`}>🔌 Thiết bị xâm lấn (Sonde Foley - Mã: BM.LS.UTI.01)</span>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -118,7 +120,7 @@ export default function UtiClinicalSubForm({
                   min={cleanNgayVaoVien || undefined}
                   max={cleanNgayPhatHien || todayStr}
                   onChange={(e) => onChange({ ...form, device_placed_date: e.target.value || undefined })}
-                  className="w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                  className={C.controlInput}
                 />
               </div>
               <div>
@@ -130,7 +132,7 @@ export default function UtiClinicalSubForm({
                   min={form.device_placed_date || cleanNgayVaoVien || undefined}
                   max={todayStr}
                   onChange={(e) => onChange({ ...form, device_removed_date: e.target.value || undefined })}
-                  className="w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                  className={C.controlInput}
                 />
               </div>
             </div>
@@ -147,8 +149,8 @@ export default function UtiClinicalSubForm({
           </div>
 
           {/* UTI symptoms */}
-          <div className="bg-slate-50/75 rounded-2xl p-4 border border-slate-100 space-y-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+          <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3">
+            <span className={` text-slate-500`}>
               🏥 Các triệu chứng xuất hiện trong giai đoạn từ ngày {iwpStart ? new Date(iwpStart).toLocaleDateString("vi-VN") : "X-3"} đến ngày {iwpEnd ? new Date(iwpEnd).toLocaleDateString("vi-VN") : "X+3"} (Cửa sổ lây nhiễm IWP)
             </span>
 
@@ -173,13 +175,13 @@ export default function UtiClinicalSubForm({
                         checked={isChecked}
                         disabled={!allowedEdit || isMicrobiologyBlocked}
                         onChange={(e) => onChange({ ...form, [key]: e.target.checked })}
-                        className="rounded border-slate-300 text-[#026f17] focus:ring-[#026f17]"
+                        className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
                       />
                       {label}
                     </label>
                     {isChecked && (
                       <div className="pl-6 flex items-center gap-2 animate-in slide-in-from-top-1">
-                        <span className="text-[10px] text-slate-400 font-bold">Ngày:</span>
+                        <span className="text-[11px] text-slate-400 font-bold">Ngày:</span>
                         <input
                           type="date"
                           value={symptomDates[key] || ""}
@@ -187,7 +189,7 @@ export default function UtiClinicalSubForm({
                           min={iwpStart || undefined}
                           max={iwpEnd || undefined}
                           onChange={(e) => onSymptomDateChange(key, e.target.value)}
-                          className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                          className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
                           required
                         />
                       </div>
@@ -199,8 +201,8 @@ export default function UtiClinicalSubForm({
           </div>
 
           {/* Asymptomatic Bacteriuria (ABUTI) */}
-          <div className="bg-slate-50/75 rounded-2xl p-4 border border-slate-100 space-y-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">🔄 Ngoại lệ Cấy máu trùng khớp (ABUTI)</span>
+          <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3">
+            <span className={` text-slate-500`}>🔄 Ngoại lệ Cấy máu trùng khớp (ABUTI)</span>
 
             <label className="flex items-center gap-2.5 text-xs text-slate-700 cursor-pointer font-semibold py-1">
               <input
@@ -208,7 +210,7 @@ export default function UtiClinicalSubForm({
                 checked={form.has_blood_culture_positive_in_window}
                 disabled={!allowedEdit || isMicrobiologyBlocked}
                 onChange={(e) => onChange({ ...form, has_blood_culture_positive_in_window: e.target.checked })}
-                className="rounded border-slate-300 text-[#026f17] focus:ring-[#026f17]"
+                className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
               />
               Có cấy máu dương tính trong khung 7 ngày?
             </label>
@@ -216,7 +218,7 @@ export default function UtiClinicalSubForm({
             {form.has_blood_culture_positive_in_window && (
               <div className="flex flex-col gap-2.5 pl-6 animate-in slide-in-from-top-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-slate-400 font-bold">Ngày cấy máu:</span>
+                  <span className="text-[11px] text-slate-400 font-bold">Ngày cấy máu:</span>
                   <input
                     type="date"
                     value={symptomDates.has_blood_culture_positive_in_window || ""}
@@ -224,7 +226,7 @@ export default function UtiClinicalSubForm({
                     min={iwpStart || undefined}
                     max={iwpEnd || undefined}
                     onChange={(e) => onSymptomDateChange("has_blood_culture_positive_in_window", e.target.value)}
-                    className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                    className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
                     required
                   />
                 </div>
@@ -234,7 +236,7 @@ export default function UtiClinicalSubForm({
                     checked={form.blood_urine_pathogen_matches}
                     disabled={!allowedEdit || isMicrobiologyBlocked}
                     onChange={(e) => onChange({ ...form, blood_urine_pathogen_matches: e.target.checked })}
-                    className="rounded border-slate-300 text-[#026f17] focus:ring-[#026f17]"
+                    className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
                   />
                   Tác nhân cấy máu trùng tác nhân cấy nước tiểu &ge; 10⁵ CFU/ml?
                 </label>

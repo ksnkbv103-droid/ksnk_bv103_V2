@@ -11,7 +11,7 @@ import GscAnalyticsScopeBanner from "../components/GscAnalyticsScopeBanner";
 
 const GscStrategicAnalyticsPanel = dynamic(() => import("../components/GscStrategicAnalyticsPanel"), {
   ssr: false,
-  loading: () => <div className="h-64 animate-pulse rounded-2xl bg-slate-50" />,
+  loading: () => <div className="h-64 animate-pulse rounded-[var(--radius-shell)] bg-slate-50" />,
 });
 
 interface GscAnalyticsViewProps {

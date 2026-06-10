@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import type { LucideIcon } from "lucide-react";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
 type KsnkPageShellProps = {
   children: React.ReactNode;
@@ -29,17 +31,38 @@ type KsnkPageHeaderProps = {
   actions?: React.ReactNode;
 };
 
-/** Khối tiêu đề trang dùng chung — cỡ chữ khớp `--bv103-page-title*` trong globals.css */
+/** Khối tiêu đề trang dùng chung — `bv103DesignTokens.pageTitle` */
 export function KsnkPageHeader({ title, subtitle, actions }: KsnkPageHeaderProps) {
   return (
     <header className="mb-6 flex flex-col gap-3 border-b border-slate-200/90 pb-5 sm:mb-8 sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:pb-6">
       <div className="min-w-0">
-        <h1 className="text-[length:var(--bv103-page-title)] font-semibold leading-tight tracking-tight text-slate-900 md:text-[length:var(--bv103-page-title-md)]">
-          {title}
-        </h1>
-        {subtitle ? <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-600 sm:mt-2">{subtitle}</p> : null}
+        <h1 className={T.pageTitle}>{title}</h1>
+        {subtitle ? <p className={T.pageSubtitle}>{subtitle}</p> : null}
       </div>
       {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
+    </header>
+  );
+}
+
+type KsnkListPageHeaderProps = {
+  title: string;
+  eyebrow?: string;
+  icon?: LucideIcon;
+  actions?: React.ReactNode;
+};
+
+/** Toolbar danh sách MDM / master — card header + CTA (Phase 1 Quản trị). */
+export function KsnkListPageHeader({ title, eyebrow, icon: Icon, actions }: KsnkListPageHeaderProps) {
+  return (
+    <header className={T.pageToolbar}>
+      <div className="min-w-0">
+        <h1 className={`inline-flex items-center gap-2.5 ${T.pageTitle}`}>
+          {Icon ? <Icon className="h-6 w-6 shrink-0 text-[var(--primary)]" aria-hidden /> : null}
+          {title}
+        </h1>
+        {eyebrow ? <p className={T.pageEyebrow}>{eyebrow}</p> : null}
+      </div>
+      {actions ? <div className="flex w-full flex-wrap gap-3 sm:w-auto sm:justify-end">{actions}</div> : null}
     </header>
   );
 }

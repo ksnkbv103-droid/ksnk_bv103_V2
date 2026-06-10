@@ -25,7 +25,7 @@ export function CSSDCatalogChiTietTab(props: {
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ListFilter className="h-5 w-5 text-[#026f17]" />
+            <ListFilter className="h-5 w-5 text-[var(--primary)]" />
             <h3 className="text-sm font-bold text-slate-800">
               Chi tiết Bộ dụng cụ / Dụng cụ thành phần ({chiTietRows.length})
             </h3>
@@ -36,7 +36,7 @@ export function CSSDCatalogChiTietTab(props: {
         <div className="max-h-[500px] overflow-auto rounded-xl border border-slate-100 relative">
           <table className="w-full border-collapse text-left text-sm text-slate-700">
             <thead>
-              <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-black uppercase tracking-wider text-slate-400 shadow-sm">
+              <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">
                 <th className="px-4 py-3">Mã dụng cụ</th>
                 <th className="px-4 py-3">Tên dụng cụ thành phần</th>
                 <th className="px-4 py-3">Thuộc bộ dụng cụ</th>
@@ -64,7 +64,7 @@ export function CSSDCatalogChiTietTab(props: {
                   >
                     <td className="px-4 py-3.5 font-bold text-indigo-600">{x.ma_chi_tiet || "—"}</td>
                     <td className="px-4 py-3.5 font-semibold">{x.ten_chi_tiet || "—"}</td>
-                    <td className="px-4 py-3.5 text-xs font-bold text-[#026f17]">
+                    <td className="px-4 py-3.5 text-xs font-bold text-[var(--primary)]">
                       {x.ten_bo || "Dụng cụ lẻ (Chưa gán bộ)"}
                     </td>
                     <td className="px-4 py-3.5 text-slate-600">{x.ten_loai || "Chưa gán loại"}</td>

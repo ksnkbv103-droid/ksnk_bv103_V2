@@ -1,9 +1,8 @@
 // src/app/giam-sat-vst/layout.tsx
 "use client";
 
-import React, { Suspense } from "react";
+import React from "react";
 import { useModulePermission } from "@/hooks/useModulePermission";
-import { KsnkSupervisionHero } from "@/components/shared/ksnk-supervision-chrome";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 
 const MODULE_KEY = "GIAM_SAT_VST";
@@ -15,20 +14,5 @@ export default function GiamSatVstLayout({ children }: { children: React.ReactNo
     return <SupervisionPageSkeleton />;
   }
 
-  return (
-    <div className="space-y-6 pb-12">
-      <Suspense fallback={null}>
-        <KsnkSupervisionHero
-          eyebrow="Giám sát thực hành"
-          title={
-            <>
-              Vệ sinh tay <span className="text-[var(--primary)]">(WHO)</span>
-            </>
-          }
-        />
-      </Suspense>
-
-      {children}
-    </div>
-  );
+  return <div className="space-y-6 pb-12">{children}</div>;
 }

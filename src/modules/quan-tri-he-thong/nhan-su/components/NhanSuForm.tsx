@@ -8,6 +8,7 @@ import type { NhanSu } from "../types";
 import { toast } from "sonner";
 import NhanSuFormFields from "./form/NhanSuFormFields";
 import { useGenerateMa } from "@/hooks/useGenerateMa";
+import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
 
 interface Props {
   initialData?: Partial<NhanSu> | null;
@@ -128,12 +129,12 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl premium-card animate-in zoom-in-95 duration-300">
-        <div className="bg-[#026f17] p-8 text-white">
-          <h3 className="text-2xl font-black uppercase tracking-tight">
-            {initialData?.id ? "Cập nhật Hồ sơ Nhân sự" : "Thêm Nhân sự mới"}
+      <div className="bg-white rounded-[var(--radius-shell)] w-full max-w-2xl overflow-hidden shadow-2xl premium-card animate-in zoom-in-95 duration-300">
+        <div className="bg-[var(--primary)] p-8 text-white">
+          <h3 className={F.modalTitle}>
+            {initialData?.id ? "Cập nhật hồ sơ nhân sự" : "Thêm nhân sự mới"}
           </h3>
-          <p className="text-white/70 text-sm mt-1 font-medium italic">GHI CHÚ: Mã nhân viên là định danh duy nhất của từng cá nhân</p>
+          <p className={F.modalSubtitle}>Mã nhân viên là định danh duy nhất của từng cá nhân.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
@@ -152,12 +153,12 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
           />
 
           <div className="flex gap-4 pt-4">
-            <button type="button" onClick={onCancel}
-              className="flex-1 h-12 rounded-full border-2 border-slate-100 text-slate-500 font-bold hover:bg-slate-50 transition-all"
-              disabled={loading}>Hủy bỏ</button>
-            <button type="submit"
-              className="flex-[2] h-12 rounded-full bg-[#026f17] text-white font-black uppercase tracking-widest shadow-lg hover:shadow-[#026f17]/20 hover:translate-y-[-2px] transition-all disabled:opacity-50"
-              disabled={loading}>{loading ? "Đang xử lý..." : "Lưu hồ sơ"}</button>
+            <button type="button" onClick={onCancel} className={`${F.ctaSecondary} flex-1 ${F.modalFooterBtn}`} disabled={loading}>
+              Hủy bỏ
+            </button>
+            <button type="submit" className={`${F.ctaPrimary} flex-[2] ${F.modalFooterBtn}`} disabled={loading}>
+              {loading ? "Đang xử lý…" : "Lưu hồ sơ"}
+            </button>
           </div>
         </form>
       </div>

@@ -105,6 +105,8 @@ In Cursor chat, type:
 - `/intake` — lock scope before coding
 - `/implement` — after approved intake
 - `/review` — before commit/merge
+- `/explain` — read-only Q&A, no code changes
+- `/commit`, `/pr-create` — git/PR only when user asks
 
 Source: `.cursor/commands/*.md`. Copy-paste templates (if needed): `docs/reference/guides/cursor-command-*.md`.
 

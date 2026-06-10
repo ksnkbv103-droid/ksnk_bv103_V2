@@ -137,7 +137,7 @@ export function BoDungCuPageContent() {
         onCreate={openCreate}
       />
 
-      <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
+      <div className="bg-white p-2 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
           data={data}
@@ -145,7 +145,7 @@ export function BoDungCuPageContent() {
           enableMultiSelect={true}
           searchPlaceholder="Tìm theo mã, tên bộ, loại, khoa, ghi chú…"
           rowClassName={(r) =>
-            r.id === selectedBoId ? "bg-emerald-50/90 ring-1 ring-inset ring-[#026f17]/20" : ""
+            r.id === selectedBoId ? "bg-emerald-50/90 ring-1 ring-inset ring-[var(--primary)]/20" : ""
           }
           onRowClick={(r) =>
             setSelectedBoId((cur) => (cur === r.id ? null : r.id))

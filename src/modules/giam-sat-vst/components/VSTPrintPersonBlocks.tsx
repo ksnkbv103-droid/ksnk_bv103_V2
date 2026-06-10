@@ -93,17 +93,17 @@ export function VSTPrintPersonBlocks({
                           fontWeight: "bold",
                           border: "1px solid #e2e8f0",
                           padding: "6px",
-                          color: isMiss ? "#e63939" : "#026f17",
+                          color: isMiss ? "#e63939" : "var(--primary)",
                         }}
                       >
                         {isMiss ? "✕ " : "✓ "}
                         {hd}
                       </td>
                       <td style={{ textAlign: "center", border: "1px solid #e2e8f0", padding: "6px", fontSize: "16px" }}>
-                        {isMiss ? "—" : opp.dung_ky_thuat ? <span style={{ color: "#026f17" }}>✓</span> : <span style={{ color: "#e63939" }}>✕</span>}
+                        {isMiss ? "—" : opp.dung_ky_thuat ? <span style={{ color: "var(--primary)" }}>✓</span> : <span style={{ color: "#e63939" }}>✕</span>}
                       </td>
                       <td style={{ textAlign: "center", border: "1px solid #e2e8f0", padding: "6px", fontSize: "16px" }}>
-                        {isMiss ? "—" : opp.du_thoi_gian ? <span style={{ color: "#026f17" }}>✓</span> : <span style={{ color: "#e63939" }}>✕</span>}
+                        {isMiss ? "—" : opp.du_thoi_gian ? <span style={{ color: "var(--primary)" }}>✓</span> : <span style={{ color: "#e63939" }}>✕</span>}
                       </td>
                       <td style={{ textAlign: "center", border: "1px solid #e2e8f0", padding: "6px" }}>
                         {getVstPrintGloveDisplay(isMiss, opp.co_deo_gang)}

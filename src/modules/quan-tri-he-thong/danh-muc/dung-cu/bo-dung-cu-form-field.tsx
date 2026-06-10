@@ -1,4 +1,5 @@
 import React from "react";
+import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 
 interface Props {
   label: string;
@@ -13,7 +14,7 @@ interface Props {
 export default function BoDungCuTextField({ label, value, onChange, type = "text", required, disabled }: Props) {
   return (
     <div className="space-y-1">
-      <label className="text-[11px] font-black text-slate-400 uppercase ml-1">
+      <label className={`${C.labelField} ml-1`}>
         {label}
         {required ? " *" : ""}
       </label>
@@ -23,7 +24,7 @@ export default function BoDungCuTextField({ label, value, onChange, type = "text
         disabled={disabled}
         required={required}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs disabled:opacity-60"
+        className={C.controlInput}
       />
     </div>
   );

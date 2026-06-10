@@ -9,6 +9,8 @@ import { getMasterDataExport } from "../actions/export.actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import LoaiDungCuFormModal from "./loai-dung-cu-form-modal";
+import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
 import { LoaiDungCuChiTietPanel } from "./loai-dung-cu-chi-tiet-panel";
 import {
   getLoaiDungCuRowsAction,
@@ -102,33 +104,33 @@ export function LoaiDungCuPageContent() {
 
   const columns: Column<LoaiDungCuRow>[] = [
     { header: "MÃ LOẠI", accessorKey: "ma_danh_muc", sortable: true, cell: (i) => (
-      <span className="font-mono text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+      <span className="font-mono text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
         {i.ma_danh_muc}
       </span>
     )},
     { header: "TÊN LOẠI DỤNG CỤ", accessorKey: "ten_danh_muc", sortable: true, cell: (i) => (
-      <div className="font-black text-[#026f17] uppercase text-[11px] leading-tight">
+      <div className="text-[11px] font-medium text-[var(--primary)] leading-tight">
         {i.ten_danh_muc}
       </div>
     )},
     { header: "PHÂN LOẠI", accessorKey: "phan_loai", sortable: true, cell: (i) => (
       i.phan_loai === "THU_THUAT" ? (
-        <span className="bg-amber-50 text-amber-600 border border-amber-100 text-[11px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">Thủ thuật</span>
+        <span className="bg-[var(--surface-warning-bg)] text-[var(--surface-warning-text)] border border-[var(--surface-warning-border)] text-[11px] font-semibold px-2 py-1 rounded-lg uppercase tracking-wide">Thủ thuật</span>
       ) : (
-        <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[11px] font-black px-2 py-1 rounded-lg uppercase tracking-wider">Phẫu thuật</span>
+        <span className="bg-[var(--surface-success-bg)] text-[var(--surface-success-text)] border border-[var(--surface-success-border)] text-[11px] font-semibold px-2 py-1 rounded-lg uppercase tracking-wide">Phẫu thuật</span>
       )
     )},
     { header: "HÌNH DÁNG", accessorKey: "hinh_dang", sortable: true, cell: (i) => (
-      <span className="text-[10px] text-slate-600 font-semibold">{clip(i.hinh_dang, 28)}</span>
+      <span className="text-[11px] text-slate-600 font-semibold">{clip(i.hinh_dang, 28)}</span>
     )},
     { header: "KÍCH THƯỚC", accessorKey: "kich_thuoc", sortable: true, cell: (i) => (
-      <span className="text-[10px] text-slate-600 font-semibold">{clip(i.kich_thuoc, 20)}</span>
+      <span className="text-[11px] text-slate-600 font-semibold">{clip(i.kich_thuoc, 20)}</span>
     )},
     { header: "TÍNH NĂNG/CÔNG DỤNG", accessorKey: "cong_dung", sortable: true, cell: (i) => (
-      <span className="text-[10px] text-slate-500 font-medium">{clip(i.cong_dung, 40)}</span>
+      <span className="text-[11px] text-slate-500 font-medium">{clip(i.cong_dung, 40)}</span>
     )},
     { header: "SỐ LƯỢNG KHO LẺ/TỔNG", accessorKey: "so_luong_tong", sortable: true, cell: (i) => (
-      <div className="text-[10px] font-bold text-slate-600">
+      <div className="text-[11px] font-bold text-slate-600">
         Dự phòng: <span className="text-amber-600 font-black">{i.so_luong_kho_du_phong || 0}</span> / Tổng: <span className="text-emerald-700 font-black">{i.so_luong_tong || 0}</span>
       </div>
     )},
@@ -143,23 +145,27 @@ export function LoaiDungCuPageContent() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm gap-4">
-        <div><h1 className="text-2xl font-black text-[#026f17] uppercase tracking-tighter flex items-center gap-3"><LayoutGrid /> Loại dụng cụ</h1><p className="text-slate-400 font-bold text-[11px] uppercase tracking-widest mt-1 italic leading-none">V5.0 FINAL — Standardized Sync</p></div>
-        <div className="flex gap-3 w-full sm:w-auto">
-          <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} accept=".xlsx, .xls" className="hidden" />
-          <button onClick={triggerImport} disabled={isImporting} className="h-12 px-5 bg-amber-50 text-amber-600 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95">{isImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />} Import dữ liệu</button>
-          <button onClick={() => exportTemplate()} className="h-12 px-5 bg-slate-50 text-slate-500 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all hover:bg-slate-100 active:scale-95"><Download size={16} /> Export dữ liệu mẫu</button>
-          <button onClick={() => { setEditing(null); setIsFormOpen(true); }} className="h-12 px-6 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase text-[10px] shadow-lg flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-95"><Plus size={18} /> Thêm mới</button>
-        </div>
-      </header>
-      <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
+      <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} accept=".xlsx, .xls" className="hidden" />
+      <KsnkListPageHeader
+        icon={LayoutGrid}
+        title="Loại dụng cụ"
+        eyebrow="Danh mục master · Phân loại dụng cụ"
+        actions={
+          <>
+            <button onClick={triggerImport} disabled={isImporting} className={C.ctaAmber}>{isImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />} Import dữ liệu</button>
+            <button onClick={() => exportTemplate()} className={C.ctaMuted}><Download size={16} /> Export dữ liệu mẫu</button>
+            <button onClick={() => { setEditing(null); setIsFormOpen(true); }} className={C.ctaPrimary}><Plus size={18} /> Thêm mới</button>
+          </>
+        }
+      />
+      <div className="bg-white p-2 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
           data={data}
           loading={loading}
           enableMultiSelect={true}
           rowClassName={(r) =>
-            r.id === selectedLoaiId ? "bg-emerald-50/90 ring-1 ring-inset ring-[#026f17]/20" : ""
+            r.id === selectedLoaiId ? "bg-emerald-50/90 ring-1 ring-inset ring-[var(--primary)]/20" : ""
           }
           onRowClick={(r) =>
             setSelectedLoaiId((cur) => (cur === r.id ? null : r.id))

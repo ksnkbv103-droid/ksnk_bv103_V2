@@ -158,19 +158,19 @@ export default function MdmGovernanceView() {
       header: "BẢNG NGIỆP VỤ",
       accessorKey: "table_name",
       sortable: true,
-      cell: (r) => <span className="font-mono font-bold text-slate-700 text-[10px]">{r.table_name}</span>
+      cell: (r) => <span className="font-mono font-bold text-slate-700 text-[11px]">{r.table_name}</span>
     },
     {
       header: "CỘT KHÓA NGOẠI",
       accessorKey: "column_name",
       sortable: true,
-      cell: (r) => <span className="font-mono font-bold text-emerald-600 text-[10px]">{r.column_name}</span>
+      cell: (r) => <span className="font-mono font-bold text-emerald-600 text-[11px]">{r.column_name}</span>
     },
     {
       header: "VAI TRÒ TRƯỜNG",
       accessorKey: "field_role",
       cell: (r) => (
-        <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-black uppercase bg-slate-100 text-slate-600">
+        <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide bg-slate-100 text-slate-600">
           {r.field_role}
         </span>
       )
@@ -179,7 +179,7 @@ export default function MdmGovernanceView() {
       header: "LOẠI DANH MỤC LIÊN KẾT",
       accessorKey: "source_loai_danh_muc",
       cell: (r) => (
-        <span className="font-mono font-bold text-teal-600 text-[10px]">
+        <span className="font-mono font-bold text-teal-600 text-[11px]">
           {r.source_loai_danh_muc || <span className="text-slate-300 italic">N/A</span>}
         </span>
       )
@@ -204,11 +204,11 @@ export default function MdmGovernanceView() {
           title={r.is_active ? "Trigger đang BẬT. Click để TẮT" : "Trigger đang TẮT. Click để BẬT"}
         >
           {r.is_active ? (
-            <span className="inline-flex items-center gap-1 text-[11px] font-black uppercase text-emerald-600">
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-600">
               <ToggleRight className="w-6 h-6" /> ACTIVE
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 text-[11px] font-black uppercase text-slate-400">
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400">
               <ToggleLeft className="w-6 h-6" /> INACTIVE
             </span>
           )}
@@ -324,7 +324,7 @@ export default function MdmGovernanceView() {
               Gợi ý chuẩn hóa ({suggestions.length})
             </button>
           </div>
-          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic pr-2">
+          <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest italic pr-2">
             BV103 Metadata Control Center
           </div>
         </div>
@@ -367,7 +367,7 @@ export default function MdmGovernanceView() {
                   {suggestions.map((s) => (
                     <div 
                       key={s.id} 
-                      className="p-5 border border-slate-200 hover:border-amber-400 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4"
+                      className="p-5 border border-slate-200 hover:border-amber-400 bg-white rounded-[var(--radius-shell)] shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4"
                     >
                       <div className="space-y-2">
                         {/* Title Table & Column */}
@@ -387,7 +387,7 @@ export default function MdmGovernanceView() {
                         </p>
 
                         {/* Confidence score */}
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
                           Độ tin cậy gợi ý: 
                           <span className="text-emerald-600 font-extrabold bg-emerald-50 px-1.5 py-0.5 rounded">
                             {s.confidence}%
@@ -407,7 +407,7 @@ export default function MdmGovernanceView() {
                         <button
                           type="button"
                           onClick={() => handleOpenApprove(s)}
-                          className="flex items-center gap-1 px-4 py-1.5 bg-[#026f17] hover:bg-[#015a12] text-white rounded-lg font-extrabold text-[11px] uppercase tracking-wider transition-all shadow-sm active:translate-y-[1px]"
+                          className="flex items-center gap-1 px-4 py-1.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg font-extrabold text-[11px] uppercase tracking-wider transition-all shadow-sm active:translate-y-[1px]"
                         >
                           <Plus className="w-3 h-3 shrink-0" />
                           Thiết lập Bảo vệ

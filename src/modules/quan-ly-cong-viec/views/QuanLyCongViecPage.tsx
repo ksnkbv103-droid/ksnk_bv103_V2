@@ -239,7 +239,7 @@ export default function QuanLyCongViecPage() {
             <button
               type="button"
               onClick={() => setIsAdding(true)}
-              className="bv103-control-h inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#026f17] px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#025a12] sm:w-auto"
+              className="bv103-control-h inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[var(--primary-hover)] sm:w-auto"
             >
               <Plus size={15} aria-hidden /> Tạo công việc
             </button>

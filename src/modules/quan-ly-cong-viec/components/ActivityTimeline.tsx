@@ -131,7 +131,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm">
           <Clock className="h-8 w-8 text-slate-300" />
         </div>
-        <p className="text-xs font-black uppercase tracking-widest text-slate-400">Chưa có hoạt động nào được ghi nhận</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Chưa có hoạt động nào được ghi nhận</p>
       </div>
     );
   }

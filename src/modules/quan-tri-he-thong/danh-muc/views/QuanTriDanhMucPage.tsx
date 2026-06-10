@@ -169,7 +169,7 @@ export default function QuanTriDanhMucPage() {
 
   if (!(canViewDanhMuc || phanQuyenAllowed.view || isAdmin)) {
     return (
-      <div className="app-empty-state rounded-2xl border border-slate-200 bg-[var(--bg-panel)] px-8 py-12 text-center shadow-sm">
+      <div className="app-empty-state rounded-[var(--radius-shell)] border border-slate-200 bg-[var(--bg-panel)] px-8 py-12 text-center shadow-sm">
         <p className="text-sm font-medium text-slate-600">Không đủ quyền truy cập khu danh mục hoặc phân quyền.</p>
         <p className="mt-2 text-xs text-slate-500">Liên hệ quản trị nếu cần được cấp quyền.</p>
       </div>
@@ -178,7 +178,7 @@ export default function QuanTriDanhMucPage() {
 
   if (!canViewDanhMuc && !canConfigureRbac && (phanQuyenAllowed.view || isAdmin)) {
     return (
-      <div className="app-empty-state rounded-2xl border border-amber-200 bg-amber-50/40 px-8 py-12 text-center shadow-sm">
+      <div className="app-empty-state rounded-[var(--radius-shell)] border border-amber-200 bg-amber-50/40 px-8 py-12 text-center shadow-sm">
         <p className="text-sm font-medium text-slate-800">
           Tài khoản có nhắc tới quyền Phân quyền nhưng chưa đủ quyền <strong>Sửa</strong> ma trận và không có quyền Danh mục.
         </p>

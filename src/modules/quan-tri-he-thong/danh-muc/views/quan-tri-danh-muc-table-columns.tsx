@@ -24,7 +24,7 @@ export type HubRegistryRow = {
 
 function StatusPill() {
   return (
-    <span className="inline-flex items-center rounded-lg bg-emerald-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-800 ring-1 ring-inset ring-emerald-600/15">
+    <span className="inline-flex items-center rounded-lg bg-emerald-50 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-emerald-800 ring-1 ring-inset ring-emerald-600/15">
       Hoạt động
     </span>
   );

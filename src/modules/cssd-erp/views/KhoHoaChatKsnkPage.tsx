@@ -198,7 +198,7 @@ export default function KhoHoaChatKsnkPage() {
     return (
       <div className={CSSD_PAGE_OUTER}>
         <div className="flex h-[40vh] items-center justify-center" aria-busy="true">
-          <Loader2 className="h-8 w-8 animate-spin text-[#026f17]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
         </div>
       </div>
     );
@@ -206,7 +206,7 @@ export default function KhoHoaChatKsnkPage() {
 
   if (!allowed.view) {
     return (
-      <CSSDPageShell title={<span className="text-[#026f17]">Kho hóa chất &amp; vật tư</span>} subtitle="Không có quyền truy cập.">
+      <CSSDPageShell title={<span className="text-[var(--primary)]">Kho hóa chất &amp; vật tư</span>} subtitle="Không có quyền truy cập.">
         <CssdModuleChrome />
         <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-600">
           Bạn không có quyền module Kho hóa chất — liên hệ quản trị (KSNK_KHO_HOACHAT).
@@ -226,7 +226,7 @@ export default function KhoHoaChatKsnkPage() {
 
   return (
     <CSSDPageShell
-      title={<span className="text-[#026f17]">Kho hóa chất &amp; vật tư KSNK</span>}
+      title={<span className="text-[var(--primary)]">Kho hóa chất &amp; vật tư KSNK</span>}
       subtitle="Tồn theo lô và hạn SD; nhập / xuất / điều chỉnh có mã phiếu; ngưỡng cảnh báo theo danh mục."
       actions={
         <div className="flex flex-wrap gap-2">
@@ -245,7 +245,7 @@ export default function KhoHoaChatKsnkPage() {
           )}
           <button
             type="button"
-            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 py-2 text-xs font-black uppercase tracking-wider text-red-600 shadow-sm hover:bg-red-100 active:scale-[0.98] transition-all cursor-pointer"
+            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-red-600 shadow-sm hover:bg-red-100 active:scale-[0.98] transition-all cursor-pointer"
             onClick={() => setIsIncidentOpen(true)}
           >
             ⚠️ Báo sự cố

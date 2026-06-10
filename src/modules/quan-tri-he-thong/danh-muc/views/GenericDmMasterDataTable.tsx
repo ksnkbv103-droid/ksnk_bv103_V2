@@ -31,7 +31,7 @@ export default function GenericDmMasterDataTable({
   onListSearchChange,
 }: Props) {
   return (
-    <div className="min-h-[400px] overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
+    <div className="min-h-[400px] overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white p-2 shadow-sm">
       <div className="mb-2 min-w-0 px-1">
         <SearchBar
           value={listSearch}

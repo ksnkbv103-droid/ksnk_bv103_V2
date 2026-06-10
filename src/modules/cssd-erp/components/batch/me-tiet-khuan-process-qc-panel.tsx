@@ -32,7 +32,7 @@ function PhotoProof({
 }) {
   return (
     <div className="mt-2 space-y-1.5">
-      <label className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500">
+      <label className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
         <Camera size={12} className={required ? "text-amber-500" : "text-slate-400"} />
         Ảnh minh chứng — {label}
         {required && <span className="text-red-500">*</span>}
@@ -40,7 +40,7 @@ function PhotoProof({
       <div className="relative">
         <ImageIcon size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
-          className="h-10 w-full rounded-xl border-2 border-slate-100 bg-slate-50 pl-8 pr-3 text-xs font-medium outline-none transition-all focus:border-[#026f17] focus:ring-2 focus:ring-emerald-50"
+          className="h-10 w-full rounded-xl border-2 border-slate-100 bg-slate-50 pl-8 pr-3 text-xs font-medium outline-none transition-all focus:border-[var(--primary)] focus:ring-2 focus:ring-emerald-50"
           placeholder="URL ảnh hoặc mã tham chiếu file..."
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -75,7 +75,7 @@ function ChiThiBlock({
       <div className="flex items-center justify-between">
         <span className="text-xs font-black uppercase tracking-wide text-slate-700">{label}</span>
         {required ? (
-          <span className="rounded-full bg-red-50 border border-red-200 px-2 py-0.5 text-[11px] font-black uppercase text-red-600">
+          <span className="rounded-full bg-red-50 border border-red-200 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-red-600">
             Bắt buộc
           </span>
         ) : (
@@ -310,10 +310,10 @@ export default function MeTietKhuanProcessQcPanel({
       {/* QC Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
         <div className="flex items-center gap-3">
-          <Settings2 className="text-[#026f17] h-5 w-5" />
+          <Settings2 className="text-[var(--primary)] h-5 w-5" />
           <div>
             <h3 className="text-sm font-black uppercase tracking-widest text-slate-800">Đánh giá chất lượng QC</h3>
-            <span className={`mt-1 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${machineBadge}`}>
+            <span className={`mt-1 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${machineBadge}`}>
               {machineLabel}
             </span>
           </div>
@@ -321,7 +321,7 @@ export default function MeTietKhuanProcessQcPanel({
         {hasAnyFailure && (
           <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 px-3 py-2">
             <ShieldAlert size={16} className="text-red-600 animate-bounce" />
-            <span className="text-[11px] font-black uppercase text-red-700">Tự động kết luận KHÔNG ĐẠT</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-red-700">Tự động kết luận KHÔNG ĐẠT</span>
           </div>
         )}
       </div>
@@ -330,24 +330,24 @@ export default function MeTietKhuanProcessQcPanel({
         {/* === NHÂN SỰ & ĐIỀU KIỆN CƠ BẢN === */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <label className="ml-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500">
-              <User size={12} className="text-[#026f17]" />
+            <label className="ml-1 flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+              <User size={12} className="text-[var(--primary)]" />
               Người dỡ mẻ <span className="text-red-500">*</span>
             </label>
             <input
-              className="h-11 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 text-sm font-bold outline-none focus:border-[#026f17] focus:ring-2 focus:ring-emerald-50 transition-all"
+              className="h-11 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 text-sm font-bold outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-emerald-50 transition-all"
               placeholder="Nhập tên người dỡ..."
               value={nguoiUnload}
               onChange={(e) => setNguoiUnload(e.target.value)}
             />
           </div>
           <div className="space-y-1.5">
-            <label className="ml-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500">
-              <Thermometer size={12} className="text-[#026f17]" />
+            <label className="ml-1 flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+              <Thermometer size={12} className="text-[var(--primary)]" />
               Nhiệt độ & Áp suất <span className="text-red-500">*</span>
             </label>
             <input
-              className="h-11 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 text-sm font-bold outline-none focus:border-[#026f17] focus:ring-2 focus:ring-emerald-50 transition-all"
+              className="h-11 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 text-sm font-bold outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-emerald-50 transition-all"
               placeholder="Ví dụ: 134°C — 2,1 bar"
               value={nhietDo}
               onChange={(e) => setNhietDo(e.target.value)}
@@ -358,8 +358,8 @@ export default function MeTietKhuanProcessQcPanel({
         {/* === 1. THÔNG SỐ MÁY: chỉ Đạt/Không đạt + ảnh === */}
         <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-5 space-y-3">
           <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-            <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-700">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#026f17] text-[11px] font-black text-white">1</span>
+            <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-700">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-[11px] font-black text-white">1</span>
               Thông số máy chu trình
             </h4>
             <span className="text-[11px] font-bold text-red-500 uppercase">Bắt buộc</span>
@@ -377,8 +377,8 @@ export default function MeTietKhuanProcessQcPanel({
 
         {/* === 2. CHỈ THỊ & TEST CHẤT LƯỢNG theo loại máy === */}
         <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-5 space-y-4">
-          <h4 className="flex items-center gap-2 border-b border-slate-200/60 pb-2 text-xs font-black uppercase tracking-widest text-slate-700">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#026f17] text-[11px] font-black text-white">2</span>
+          <h4 className="flex items-center gap-2 border-b border-slate-200/60 pb-2 text-xs font-semibold uppercase tracking-wide text-slate-700">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-[11px] font-black text-white">2</span>
             Chỉ thị & Test chất lượng
           </h4>
 
@@ -457,7 +457,7 @@ export default function MeTietKhuanProcessQcPanel({
                 <button
                   type="button"
                   onClick={() => setTestSinhHoc("NA")}
-                  className={`px-3 flex items-center justify-center h-11 rounded-xl border-2 font-black text-[10px] uppercase tracking-wide transition-all ${
+                  className={`px-3 flex items-center justify-center h-11 rounded-xl border-2 font-black text-[11px] uppercase tracking-wide transition-all ${
                     testSinhHoc === "NA" || testSinhHoc === ""
                       ? "border-slate-300 bg-slate-100 text-slate-500"
                       : "border-slate-200 bg-white text-slate-400 hover:bg-slate-50"
@@ -506,7 +506,7 @@ export default function MeTietKhuanProcessQcPanel({
                   <button
                     type="button"
                     onClick={() => setTestBD("NA")}
-                    className={`px-3 flex items-center justify-center h-11 rounded-xl border-2 font-black text-[10px] uppercase tracking-wide transition-all ${
+                    className={`px-3 flex items-center justify-center h-11 rounded-xl border-2 font-black text-[11px] uppercase tracking-wide transition-all ${
                       testBD === "NA"
                         ? "border-slate-300 bg-slate-100 text-slate-500"
                         : "border-slate-200 bg-white text-slate-400 hover:bg-slate-50"
@@ -546,7 +546,7 @@ export default function MeTietKhuanProcessQcPanel({
             className={`flex h-14 items-center justify-center gap-2 rounded-2xl text-sm font-black uppercase tracking-widest transition-all active:scale-[0.99] ${
               hasAnyFailure
                 ? "bg-slate-100 text-slate-400 cursor-not-allowed border-2 border-slate-200"
-                : "bg-[#026f17] text-[#FFD700] shadow-lg shadow-emerald-200 hover:bg-[#025a12] hover:shadow-xl"
+                : "bg-[var(--primary)] text-[#FFD700] shadow-lg shadow-emerald-200 hover:bg-[var(--primary-hover)] hover:shadow-xl"
             }`}
           >
             <CheckCircle size={20} /> Kết luận ĐẠT → Cấp phát

@@ -126,7 +126,7 @@ export default function GscFormView({ initialLoaiGiamSat }: GscFormViewProps) {
       {selectedTemplate ? (
         <div className="space-y-6">
           {loadingTemplateDetail ? (
-            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs font-semibold text-slate-500">
+            <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-white px-4 py-3 text-xs font-semibold text-slate-500">
               Đang tải chi tiết bảng kiểm...
             </div>
           ) : null}

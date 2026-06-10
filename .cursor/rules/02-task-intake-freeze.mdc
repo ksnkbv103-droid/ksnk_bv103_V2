@@ -1,6 +1,5 @@
 ---
-description: Follow these rules when starting implementation for a new task, bug fix, or feature request.
-globs: src/**/*.{ts,tsx,js,jsx,sql}
+description: Intake + spec freeze — invoke qua /intake hoặc @02-task-intake-freeze (không auto-glob)
 alwaysApply: false
 ---
 
@@ -44,4 +43,3 @@ When implementing, respond with:
 2. `Changes made` (files and purpose)
 3. `Verification` (what ran and status)
 4. `Residual risk` (if any)
-

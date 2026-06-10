@@ -220,7 +220,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-5xl bg-white rounded-[var(--radius-shell)] shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
         
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
@@ -229,8 +229,8 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Tải dữ liệu hàng loạt: {catalogLabel}</h3>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
+              <h3 className="text-sm font-semibold text-slate-800">Tải dữ liệu hàng loạt: {catalogLabel}</h3>
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
                 Nhập danh mục từ tệp mẫu chuẩn Excel
               </p>
             </div>
@@ -258,7 +258,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
             <button
               type="button"
               onClick={handleDownloadTemplate}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-[10px] font-extrabold uppercase tracking-wider hover:bg-emerald-700 shadow-sm transition-all whitespace-nowrap"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-[11px] font-extrabold uppercase tracking-wider hover:bg-emerald-700 shadow-sm transition-all whitespace-nowrap"
             >
               <Download className="w-3.5 h-3.5" />
               Tải tệp Excel Mẫu
@@ -271,7 +271,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
               onDragOver={handleDragOver}
               onDrop={handleDrop}
               onClick={handleTriggerUpload}
-              className="border-2 border-dashed border-slate-200 hover:border-emerald-500 rounded-2xl p-10 text-center flex flex-col items-center justify-center gap-3 bg-slate-50 hover:bg-emerald-50/10 cursor-pointer transition-all duration-200 group"
+              className="border-2 border-dashed border-slate-200 hover:border-emerald-500 rounded-[var(--radius-shell)] p-10 text-center flex flex-col items-center justify-center gap-3 bg-slate-50 hover:bg-emerald-50/10 cursor-pointer transition-all duration-200 group"
             >
               <input 
                 type="file" 
@@ -306,7 +306,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
                   </div>
                   <div className="min-w-0">
                     <span className="text-xs font-bold text-slate-700 block truncate">{file.name}</span>
-                    <span className="text-[10px] text-slate-400 block mt-0.5">
+                    <span className="text-[11px] text-slate-400 block mt-0.5">
                       Kích thước: {(file.size / 1024).toFixed(1)} KB • Phát hiện {parsedRows.length} dòng
                     </span>
                   </div>
@@ -314,7 +314,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="px-3 py-1.5 border border-slate-200 hover:bg-slate-100 rounded-lg text-[10px] font-bold text-slate-600 uppercase tracking-wider transition-colors"
+                  className="px-3 py-1.5 border border-slate-200 hover:bg-slate-100 rounded-lg text-[11px] font-bold text-slate-600 uppercase tracking-wider transition-colors"
                 >
                   Chọn tệp khác
                 </button>
@@ -370,12 +370,12 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
                                 {/* Validation Cell */}
                                 <td className="p-3 align-middle">
                                   {isValid ? (
-                                    <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-emerald-600 uppercase">
+                                    <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-600 uppercase">
                                       <CheckCircle className="w-3 h-3 shrink-0" />
                                       Hợp lệ
                                     </span>
                                   ) : (
-                                    <div className="flex flex-col gap-0.5 text-[10px] text-rose-600 font-medium">
+                                    <div className="flex flex-col gap-0.5 text-[11px] text-rose-600 font-medium">
                                       {errors.map((err, eIdx) => (
                                         <span key={eIdx} className="flex items-center gap-1">
                                           <AlertTriangle className="w-2.5 h-2.5 shrink-0" />
@@ -403,7 +403,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
                     </div>
                   </div>
                   {parsedRows.length > 10 && (
-                    <p className="text-[10px] font-bold text-slate-400 italic text-center">
+                    <p className="text-[11px] font-bold text-slate-400 italic text-center">
                       ...và {parsedRows.length - 10} dòng dữ liệu khác nằm ở bên dưới...
                     </p>
                   )}
@@ -420,7 +420,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 border border-slate-200 hover:bg-slate-100 text-slate-600 rounded-lg text-[10px] font-extrabold uppercase tracking-wider transition-colors"
+            className="px-5 py-2.5 border border-slate-200 hover:bg-slate-100 text-slate-600 rounded-lg text-[11px] font-extrabold uppercase tracking-wider transition-colors"
           >
             Đóng cửa sổ
           </button>
@@ -429,7 +429,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
               type="button"
               onClick={handleConfirmImport}
               disabled={importing || errorCount > 0 || parsedRows.length === 0}
-              className="flex items-center gap-2 px-6 py-2.5 bg-[#026f17] hover:bg-[#015a12] text-white rounded-lg text-[10px] font-extrabold uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm focus:outline-none"
+              className="flex items-center gap-2 px-6 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg text-[11px] font-extrabold uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm focus:outline-none"
             >
               {importing ? (
                 <>

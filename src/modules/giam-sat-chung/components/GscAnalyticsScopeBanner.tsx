@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { BarChart2, ChevronLeft } from "lucide-react";
 import { GSC_ROUTE_CHROME, type GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 /** Clarifies dual analytics entry: per-loai route vs canonical `/thong-ke/gsc`. */
 export default function GscAnalyticsScopeBanner({ loai }: { loai: GscLoaiGiamSatRoute }) {
@@ -12,7 +13,7 @@ export default function GscAnalyticsScopeBanner({ loai }: { loai: GscLoaiGiamSat
   return (
     <nav
       aria-label="Phạm vi thống kê GSC"
-      className="no-print flex flex-col gap-3 rounded-xl border border-sky-100 bg-sky-50/80 px-4 py-3 text-sm text-sky-950 sm:flex-row sm:items-center sm:justify-between"
+      className={`no-print ${C.panelInset} flex flex-col gap-3 border-sky-100 bg-sky-50/80 px-4 py-3 text-sm text-sky-950 sm:flex-row sm:items-center sm:justify-between`}
     >
       <p>
         <span className="text-sky-700">Đang lọc theo chuyên đề:</span>{" "}
@@ -24,7 +25,7 @@ export default function GscAnalyticsScopeBanner({ loai }: { loai: GscLoaiGiamSat
       <div className="flex flex-wrap items-center gap-2">
         <Link
           href="/thong-ke/gsc"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-sky-200 bg-white px-3 py-1.5 text-xs font-semibold text-sky-800 shadow-sm hover:bg-sky-50"
+          className={`inline-flex items-center gap-1.5 ${C.btnSecondary} h-auto min-h-0 border-sky-200 px-3 py-1.5 text-sky-800 hover:bg-sky-50`}
         >
           <BarChart2 className="h-3.5 w-3.5" aria-hidden />
           Tổng hợp mọi chuyên đề

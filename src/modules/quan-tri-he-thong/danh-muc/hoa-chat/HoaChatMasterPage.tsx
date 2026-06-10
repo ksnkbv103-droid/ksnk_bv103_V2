@@ -8,6 +8,9 @@ import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { toast } from "sonner";
 import HoaChatFormModal from "./hoa-chat-form-modal";
 import MasterDataImportExportModal from "../../components/MasterDataImportExportModal";
+import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { getHoaChatColumns } from "./hoa-chat-columns";
 import type { HoaChatRow } from "../actions/hoa-chat.types";
 import {
@@ -74,38 +77,31 @@ function HoaChatMasterPageContent() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-[#026f17] uppercase tracking-tighter flex items-center gap-3">
-            <Beaker /> Hóa chất &amp; Vật tư
-          </h1>
-          <p className="text-slate-400 font-bold text-[11px] uppercase tracking-widest mt-1 leading-none">
-            Danh mục hóa chất, vật tư, test kit sử dụng trong khoa KSNK
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-          <button
-            onClick={() => setShowStats(v => !v)}
-            className="h-10 px-4 rounded-xl border border-slate-200 bg-white text-slate-600 font-black uppercase text-[10px] flex items-center gap-2 hover:bg-slate-50 transition-all"
-          >
-            <BarChart2 size={15} />
-            Thống kê
-            {showStats ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-          </button>
-          <button
-            onClick={() => setImportModalOpen(true)}
-            className="h-10 px-4 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-xl font-black uppercase text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 touch-manipulation"
-          >
-            <Upload size={15} /> Nhập/Xuất Excel
-          </button>
-          <button onClick={() => { setEditing(null); setFormOpen(true); }} className="h-10 px-5 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase text-[10px] shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95 hover:opacity-90 touch-manipulation"><Plus size={16} /> Thêm mới</button>
-        </div>
-      </header>
+      <KsnkListPageHeader
+        icon={Beaker}
+        title="Hóa chất & Vật tư"
+        eyebrow="Danh mục hóa chất, vật tư và test kit khoa KSNK"
+        actions={
+          <>
+            <button type="button" onClick={() => setShowStats((v) => !v)} className={T.btnSecondary}>
+              <BarChart2 size={15} />
+              Thống kê
+              {showStats ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+            </button>
+            <button type="button" onClick={() => setImportModalOpen(true)} className={C.ctaEmerald}>
+              <Upload size={15} /> Nhập/Xuất Excel
+            </button>
+            <button type="button" onClick={() => { setEditing(null); setFormOpen(true); }} className={C.ctaPrimary}>
+              <Plus size={16} /> Thêm mới
+            </button>
+          </>
+        }
+      />
 
       {/* Thống kê tóm tắt */}
       {showStats && !loading && <HoaChatStatsPanel data={data} />}
 
-      <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
+      <div className="bg-white p-2 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
           data={data}

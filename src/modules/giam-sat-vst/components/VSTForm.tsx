@@ -229,7 +229,7 @@ export default function VSTForm({
   if (initialLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#026f17] border-t-transparent" />
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent" />
         <p className="animate-pulse text-sm font-bold text-slate-500">Đang tải dữ liệu danh mục & nhân sự...</p>
       </div>
     );
@@ -268,7 +268,7 @@ export default function VSTForm({
         </div>
 
         {/* Mobile Tab Switcher */}
-        <div className="md:hidden flex rounded-xl border border-slate-200 bg-slate-100/90 p-1 mb-4">
+        <div className="mb-4 flex rounded-[var(--radius-control)] border border-slate-200 bg-slate-100/90 p-1 md:hidden">
           {[0, 1, 2].map((idx) => {
             const isActive = activePersonTab === idx;
             const p = persons[idx];
@@ -283,9 +283,9 @@ export default function VSTForm({
                 key={idx}
                 type="button"
                 onClick={() => setActivePersonTab(idx)}
-                className={`flex-1 text-center py-2.5 text-xs font-bold rounded-lg transition-colors ${
+                className={`flex-1 rounded-[var(--radius-control)] py-2.5 text-center text-xs font-semibold transition-colors ${
                   isActive
-                    ? "bg-[#026f17] text-white shadow-sm"
+                    ? "bg-[var(--primary)] text-white shadow-sm"
                     : "text-slate-600 hover:bg-white/50"
                 }`}
               >
@@ -295,7 +295,7 @@ export default function VSTForm({
           })}
         </div>
 
-        <div className="grid min-h-0 grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 xl:items-start [&>_*]:min-h-0">
+        <div className="grid min-h-0 grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3 xl:items-stretch [&>_*]:min-w-0">
           {persons.map((p, idx) => {
             const isTabActive = activePersonTab === idx;
             return (

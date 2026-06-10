@@ -34,7 +34,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
     );
     if (suppressShell) return createContent;
     return (
-      <CSSDPageShell title={<span className="text-[#026f17]">Mẻ tiệt khuẩn</span>} subtitle="Thiết lập mẻ mới theo quy trình chuẩn CSSD">
+      <CSSDPageShell title={<span className="text-[var(--primary)]">Mẻ tiệt khuẩn</span>} subtitle="Thiết lập mẻ mới theo quy trình chuẩn CSSD">
         {createContent}
       </CSSDPageShell>
     );
@@ -111,7 +111,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
 
   return (
     <CSSDPageShell
-      title={<span className="text-[#026f17]">Mẻ tiệt khuẩn</span>}
+      title={<span className="text-[var(--primary)]">Mẻ tiệt khuẩn</span>}
       subtitle="Giám sát 6 chốt chặn vô khuẩn — BV103"
       actions={
         <div className="flex gap-2">
@@ -124,7 +124,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
           </button>
           <button
             type="button"
-            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 text-xs font-black uppercase tracking-wider text-red-600 shadow-sm hover:bg-red-100 active:scale-[0.98] transition-all cursor-pointer"
+            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 text-[11px] font-semibold uppercase tracking-wide text-red-600 shadow-sm hover:bg-red-100 active:scale-[0.98] transition-all cursor-pointer"
             onClick={() => setIsIncidentOpen(true)}
           >
             ⚠️ Báo sự cố

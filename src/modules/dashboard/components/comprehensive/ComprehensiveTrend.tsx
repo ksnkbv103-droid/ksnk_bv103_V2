@@ -14,6 +14,7 @@ import {
 import { TrendingUp } from "lucide-react";
 import type { BaoCaoTongHopPayload, BaoCaoTrendGranularity } from "../../types/bao-cao-tong-hop.types";
 import { pickTrend } from "../../lib/bao-cao-tong-hop-core";
+import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 
 const GRANULARITY_OPTIONS: { id: BaoCaoTrendGranularity; label: string }[] = [
   { id: "week", label: "Theo tuần" },
@@ -35,8 +36,8 @@ export function ComprehensiveTrend({ payload }: { payload: BaoCaoTongHopPayload 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="flex items-center gap-2 text-lg font-black text-slate-800">
-          <TrendingUp size={18} className="text-emerald-600" aria-hidden />
+        <h2 className={`flex items-center gap-2 ${D.sectionHeading}`}>
+          <TrendingUp size={18} className="text-[var(--primary)]" aria-hidden />
           Xu hướng tuân thủ (process)
         </h2>
         <div className="flex flex-wrap rounded-lg border border-slate-200 p-0.5 text-xs font-bold">

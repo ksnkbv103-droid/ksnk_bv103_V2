@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { toast } from "sonner";
 import type { MasterOption } from "@/lib/master-data/gateway";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
+import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 
 export type NkbvCaseLike = Record<string, unknown> & {
   id?: string;
@@ -179,26 +180,26 @@ export default function NkbvCaseEditor({
         >
           <X className="h-5 w-5" />
         </button>
-        <h2 className="mb-6 text-lg font-black uppercase tracking-tight text-[#026f17]">
-          {row?.id ? "Sửa phiếu NKBV" : (row?.ma_benh_an !== undefined ? "Đăng ký Đợt Bệnh án / Hồ sơ dịch tễ" : "Ghi nhận ca NKBV / HAI")}
+        <h2 className={`mb-6 ${C.modalTitle}`}>
+          {row?.id ? "Sửa phiếu NKBV" : row?.ma_benh_an !== undefined ? "Đăng ký đợt bệnh án / Hồ sơ dịch tễ" : "Ghi nhận ca NKBV / HAI"}
         </h2>
         <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Mã phiếu</label>
+              <label className={C.formLabel}>Mã phiếu</label>
               <input
                 value={form.ma_ca}
                 disabled={Boolean(row?.id)}
                 onChange={(e) => setForm({ ...form, ma_ca: e.target.value })}
-                className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 disabled:opacity-60"
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 disabled:opacity-60"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Khoa ghi nhận</label>
+              <label className={C.formLabel}>Khoa ghi nhận</label>
               <select
                 value={form.khoa_ghi_nhan_id}
                 onChange={(e) => setForm({ ...form, khoa_ghi_nhan_id: e.target.value })}
-                className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800"
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800"
               >
                 <option value="">— Chọn —</option>
                 {khoas.map((k) => (
@@ -211,58 +212,58 @@ export default function NkbvCaseEditor({
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Mã Bệnh nhân (PID)</label>
+              <label className={C.formLabel}>Mã Bệnh nhân (PID)</label>
               <input
                 value={form.ma_benh_nhan}
                 onChange={(e) => setForm({ ...form, ma_benh_nhan: e.target.value })}
-                className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm font-semibold"
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm font-semibold"
                 placeholder="VD: PID-1038888"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-red-700">Mã Bệnh án (Số HS) *</label>
+              <label className={` text-red-700`}>Mã Bệnh án (Số HS) *</label>
               <input
                 value={form.ma_benh_an}
                 onChange={(e) => setForm({ ...form, ma_benh_an: e.target.value })}
-                className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm font-semibold"
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm font-semibold"
                 placeholder="VD: BA-2026-99"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Mã Bệnh phẩm (Barcode LIS)</label>
+              <label className={C.formLabel}>Mã Bệnh phẩm (Barcode LIS)</label>
               <input
                 value={form.ma_benh_pham}
                 onChange={(e) => setForm({ ...form, ma_benh_pham: e.target.value })}
-                className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm font-mono font-bold"
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm font-mono font-bold"
                 placeholder="VD: NT-01"
               />
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-[10px] font-bold uppercase text-red-700">Họ tên BN *</label>
+            <label className={` text-red-700`}>Họ tên BN *</label>
             <input
               value={form.ho_ten_benh_nhan}
               onChange={(e) => setForm({ ...form, ho_ten_benh_nhan: e.target.value })}
-              className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm font-semibold"
+              className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm font-semibold"
             />
           </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Ngày sinh</label>
+              <label className={C.formLabel}>Ngày sinh</label>
               <input
                 type="date"
                 value={form.ngay_sinh}
                 max={todayStr}
                 onChange={(e) => setForm({ ...form, ngay_sinh: e.target.value })}
-                className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm"
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Giới tính</label>
+              <label className={C.formLabel}>Giới tính</label>
               <select
                 value={form.gioi_tinh}
                 onChange={(e) => setForm({ ...form, gioi_tinh: e.target.value })}
-                className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm"
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm"
               >
                 <option value="">—</option>
                 <option value="Nam">Nam</option>
@@ -271,35 +272,35 @@ export default function NkbvCaseEditor({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Ngày vào viện</label>
+              <label className={C.formLabel}>Ngày vào viện</label>
               <input
                 type="date"
                 value={form.ngay_vao_vien}
                 min={form.ngay_sinh || undefined}
                 max={todayStr}
                 onChange={(e) => setForm({ ...form, ngay_vao_vien: e.target.value })}
-                className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm"
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Ngày phát hiện *</label>
+              <label className={C.formLabel}>Ngày phát hiện *</label>
               <input
                 type="date"
                 value={form.ngay_phat_hien}
                 min={form.ngay_vao_vien || form.ngay_sinh || undefined}
                 max={todayStr}
                 onChange={(e) => setForm({ ...form, ngay_phat_hien: e.target.value })}
-                className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm"
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm"
               />
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Loại NKBV *</label>
+              <label className={C.formLabel}>Loại NKBV *</label>
               <select
                 value={form.loai_nkbv_id}
                 onChange={(e) => setForm({ ...form, loai_nkbv_id: e.target.value })}
-                className="w-full rounded-2xl border-0 bg-[#026f17]/5 px-4 py-3 text-sm font-semibold text-[#026f17]"
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-[var(--primary)]/5 px-4 py-3 text-sm font-semibold text-[var(--primary)]"
               >
                 {loaiRows.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -309,11 +310,11 @@ export default function NkbvCaseEditor({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Trạng thái phiếu *</label>
+              <label className={C.formLabel}>Trạng thái phiếu *</label>
               <select
                 value={form.trang_thai_id}
                 onChange={(e) => setForm({ ...form, trang_thai_id: e.target.value })}
-                className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm font-semibold"
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm font-semibold"
               >
                 {trangThaiRows.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -325,55 +326,55 @@ export default function NkbvCaseEditor({
           </div>
           {ttMa === "LOAI_TRU" && (
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-red-600">Lý do loại trừ *</label>
+              <label className={` text-red-600`}>Lý do loại trừ *</label>
               <textarea
                 value={form.ly_do_loai_tru}
                 onChange={(e) => setForm({ ...form, ly_do_loai_tru: e.target.value })}
                 rows={2}
-                className="w-full rounded-2xl border-0 bg-red-50/40 px-4 py-3 text-sm"
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-red-50/40 px-4 py-3 text-sm"
               />
             </div>
           )}
           <div>
-            <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Vị trí / thiết bị liên quan</label>
+            <label className={C.formLabel}>Vị trí / thiết bị liên quan</label>
             <input
               value={form.vi_tri_nhiem_khuan}
               onChange={(e) => setForm({ ...form, vi_tri_nhiem_khuan: e.target.value })}
-              className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm"
+              className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm"
               placeholder="VD: ICU giường 12, catheter trung tâm…"
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Loại bệnh phẩm</label>
+              <label className={C.formLabel}>Loại bệnh phẩm</label>
               <input
                 value={form.loai_benh_pham}
                 onChange={(e) => setForm({ ...form, loai_benh_pham: e.target.value })}
-                className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm font-semibold"
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm font-semibold"
                 placeholder="VD: Urine (Nước tiểu)"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Tác nhân gây bệnh</label>
+              <label className={C.formLabel}>Tác nhân gây bệnh</label>
               <input
                 value={form.tac_nhan_vi_khuan}
                 onChange={(e) => setForm({ ...form, tac_nhan_vi_khuan: e.target.value })}
-                className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm font-semibold"
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm font-semibold"
                 placeholder="VD: Pseudomonas aeruginosa"
               />
             </div>
             <div>
-              <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Số lượng (CFU/ml)</label>
+              <label className={C.formLabel}>Số lượng (CFU/ml)</label>
               <input
                 value={form.so_luong}
                 onChange={(e) => setForm({ ...form, so_luong: e.target.value })}
-                className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm font-semibold"
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 text-sm font-semibold"
                 placeholder="VD: 10^5 CFU/ml"
               />
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Diễn biến / tóm tắt</label>
+            <label className={C.formLabel}>Diễn biến / tóm tắt</label>
             <textarea
               value={form.tom_tat_dien_bien}
               onChange={(e) => setForm({ ...form, tom_tat_dien_bien: e.target.value })}
@@ -382,7 +383,7 @@ export default function NkbvCaseEditor({
             />
           </div>
           <div>
-            <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Biện pháp phòng ngừa</label>
+            <label className={C.formLabel}>Biện pháp phòng ngừa</label>
             <textarea
               value={form.bien_phap_phong_ngua}
               onChange={(e) => setForm({ ...form, bien_phap_phong_ngua: e.target.value })}
@@ -397,22 +398,22 @@ export default function NkbvCaseEditor({
             </h4>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Ngày ra viện (nếu có)</label>
+                <label className={C.formLabel}>Ngày ra viện (nếu có)</label>
                 <input
                   type="date"
                   value={form.ngay_ra_vien}
                   min={form.ngay_vao_vien || undefined}
                   max={todayStr}
                   onChange={(e) => setForm({ ...form, ngay_ra_vien: e.target.value })}
-                  className="w-full rounded-2xl border-0 bg-white px-4 py-3 text-sm"
+                  className="w-full rounded-[var(--radius-shell)] border-0 bg-white px-4 py-3 text-sm"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[10px] font-bold uppercase text-slate-400">Kết cục điều trị</label>
+                <label className={C.formLabel}>Kết cục điều trị</label>
                 <select
                   value={form.ket_cuc_dieu_tri}
                   onChange={(e) => setForm({ ...form, ket_cuc_dieu_tri: e.target.value })}
-                  className="w-full rounded-2xl border-0 bg-white px-4 py-3 text-sm font-semibold"
+                  className="w-full rounded-[var(--radius-shell)] border-0 bg-white px-4 py-3 text-sm font-semibold"
                 >
                   <option value="">— Chưa xác định —</option>
                   <option value="KHOI_DO">Khỏi / Đỡ</option>
@@ -423,13 +424,13 @@ export default function NkbvCaseEditor({
               </div>
             </div>
             {form.ket_cuc_dieu_tri === "TU_VONG" && (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 p-3 bg-red-50/30 rounded-2xl border border-red-100 animate-in fade-in duration-300">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 p-3 bg-red-50/30 rounded-[var(--radius-shell)] border border-red-100 animate-in fade-in duration-300">
                 <div>
-                  <label className="mb-1 block text-[10px] font-bold uppercase text-red-700">Nguyên nhân tử vong</label>
+                  <label className={` text-red-700`}>Nguyên nhân tử vong</label>
                   <input
                     value={form.ly_do_tu_vong}
                     onChange={(e) => setForm({ ...form, ly_do_tu_vong: e.target.value })}
-                    className="w-full rounded-2xl border-0 bg-white px-4 py-3 text-sm"
+                    className="w-full rounded-[var(--radius-shell)] border-0 bg-white px-4 py-3 text-sm"
                     placeholder="Nhập nguyên nhân tử vong..."
                   />
                 </div>
@@ -449,18 +450,10 @@ export default function NkbvCaseEditor({
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-3 border-t border-slate-100 pt-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full px-6 py-2.5 text-xs font-black uppercase tracking-widest text-slate-550 hover:bg-slate-50"
-          >
+          <button type="button" onClick={onClose} className={C.ctaSecondary}>
             Huỷ
           </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            className="rounded-full bg-[#026f17] px-8 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-[#026f17]/25"
-          >
+          <button type="button" onClick={handleSave} className={C.ctaPrimary}>
             Lưu phiếu
           </button>
         </div>

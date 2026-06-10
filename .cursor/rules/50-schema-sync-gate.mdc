@@ -1,6 +1,6 @@
 ---
 description: Enforce code-app-database schema synchronization (TypeScript / app layer)
-globs: src/**/*.{ts,tsx}
+globs: src/**/actions/**/*.{ts,tsx}, src/**/types/**/*.{ts,tsx}
 alwaysApply: false
 ---
 

@@ -22,6 +22,8 @@ import {
   softDeleteManyDungCuChiTietAction,
   toggleDungCuChiTietStatusAction,
 } from "../actions/dung-cu-chi-tiet.actions";
+import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
 
 export function DungCuChiTietPageContent() {
   const router = useRouter();
@@ -140,39 +142,35 @@ export function DungCuChiTietPageContent() {
 
   const columns = getDungCuChiTietColumns(actionUi);
   const modalKey = editing?.id ? `edit-${editing.id}` : "create";
-  const btnCls = "h-12 px-5 rounded-xl font-black uppercase text-[10px] flex items-center gap-2 touch-manipulation";
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl border border-slate-100 shadow-sm gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-[#026f17] uppercase tracking-tighter flex items-center gap-3">
-            <List /> Dụng cụ chi tiết
-          </h1>
-          <p className="text-slate-400 font-bold text-[11px] uppercase tracking-widest mt-1 italic leading-none">
-            cssd_dm_bo_dung_cu_chi_tiet — V5 master
-          </p>
-        </div>
-        <div className="flex gap-3 w-full sm:w-auto">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
-            accept=".xlsx, .xls"
-            className="hidden"
-          />
-          <button type="button" onClick={triggerImport} disabled={isImporting} className={`${btnCls} bg-amber-50 text-amber-600 shadow-lg active:scale-95 justify-center`}>
-            {isImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />} Import dữ liệu
-          </button>
-          <button type="button" onClick={() => exportTemplate()} className={`${btnCls} bg-slate-50 text-slate-500 active:scale-95 justify-center`}>
-            <Download size={16} /> Export dữ liệu mẫu
-          </button>
-          <button type="button" onClick={openCreate} className={`${btnCls} px-6 bg-[#026f17] text-[#FFD700] shadow-lg hover:opacity-90`}>
-            <Plus size={18} /> Thêm mới
-          </button>
-        </div>
-      </header>
-      <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
+        accept=".xlsx, .xls"
+        className="hidden"
+      />
+      <KsnkListPageHeader
+        icon={List}
+        title="Dụng cụ chi tiết"
+        eyebrow="Danh mục master · Chi tiết trong bộ dụng cụ"
+        actions={
+          <>
+            <button type="button" onClick={triggerImport} disabled={isImporting} className={C.ctaAmber}>
+              {isImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />} Import dữ liệu
+            </button>
+            <button type="button" onClick={() => exportTemplate()} className={C.ctaMuted}>
+              <Download size={16} /> Export dữ liệu mẫu
+            </button>
+            <button type="button" onClick={openCreate} className={C.ctaPrimary}>
+              <Plus size={18} /> Thêm mới
+            </button>
+          </>
+        }
+      />
+      <div className="bg-white p-2 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm overflow-hidden min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
           data={data}

@@ -2,6 +2,7 @@
 
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
+import { quanTriFormChrome as F } from "../../../lib/quan-tri-form-chrome";
 
 type Opt = { id: string; ten_danh_muc: string };
 
@@ -26,7 +27,7 @@ export default function NhanSuFormFieldsOrg({
   return (
     <>
       <div className="space-y-2">
-        <label className="text-[10px] font-black text-[#026f17] uppercase tracking-[0.2em] ml-4">Tổ công tác</label>
+        <label className={F.formLabelInset}>Tổ công tác</label>
         <SearchableSelect
           value={String(formData.to_id ?? "")}
           onChange={(val) => setFormData({ ...formData, to_id: val })}
@@ -37,7 +38,7 @@ export default function NhanSuFormFieldsOrg({
       </div>
 
       <div className="space-y-2">
-        <label className="text-[10px] font-black text-[#026f17] uppercase tracking-[0.2em] ml-4">Vai trò trong hệ thống KSNK</label>
+        <label className={F.formLabelInset}>Vai trò trong hệ thống KSNK</label>
         <SearchableSelect
           value={String(formData.vai_tro_he_thong_id ?? "")}
           onChange={(id) => {
@@ -55,7 +56,7 @@ export default function NhanSuFormFieldsOrg({
       </div>
 
       <div className="space-y-2 md:col-span-2">
-        <label className="text-[10px] font-black text-[#026f17] uppercase tracking-[0.2em] ml-4">Chức vụ (danh mục tùy biến)</label>
+        <label className={F.formLabelInset}>Chức vụ (danh mục tùy biến)</label>
         <SearchableSelect
           value={String(formData.chuc_vu_id ?? "")}
           onChange={(id) => {

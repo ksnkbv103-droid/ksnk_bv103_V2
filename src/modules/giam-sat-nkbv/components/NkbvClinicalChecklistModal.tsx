@@ -34,6 +34,7 @@ import NkbvStayHistoryTable from "@/modules/giam-sat-nkbv/components/NkbvStayHis
 import NkbvCdcMetricsPanel from "@/modules/giam-sat-nkbv/components/NkbvCdcMetricsPanel";
 import NkbvAdjudicationPanel from "@/modules/giam-sat-nkbv/components/NkbvAdjudicationPanel";
 import CssdTraceLink from "@/modules/giam-sat-nkbv/components/CssdTraceLink";
+import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 
 export type NkbvClinicalChecklistModalProps = {
   row: Record<string, any>;
@@ -401,7 +402,7 @@ export default function NkbvClinicalChecklistModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-900/45 p-4 backdrop-blur-sm">
-      <div className="relative my-8 w-full max-w-5xl rounded-2xl border border-slate-100 bg-white p-6 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+      <div className="relative my-8 w-full max-w-5xl rounded-[var(--radius-shell)] border border-slate-100 bg-white p-6 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
         
         {/* Close Button */}
         <button
@@ -416,32 +417,32 @@ export default function NkbvClinicalChecklistModal({
         {/* Modal Title & Case Header Summary */}
         <div className="border-b border-slate-100 pb-4 pr-10">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-black uppercase tracking-tight text-[#026f17] flex items-center gap-1.5">
-              <FileText className="h-6 w-6" />
+            <h2 className={`${C.modalTitle} flex items-center gap-1.5`}>
+              <FileText className="h-6 w-6 text-[var(--primary)]" />
               Thẩm định triệu chứng lâm sàng (CDC/NHSN 2023)
             </h2>
-            <span className="rounded-full bg-[#026f17]/10 px-3 py-1 text-[10px] font-black uppercase text-[#026f17]">
+            <span className="rounded-full bg-[var(--primary)]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)]">
               Mẫu {checklistType}
             </span>
           </div>
 
           {/* Quick patient data banner */}
-          <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1.5 text-xs bg-slate-50 rounded-2xl p-3 border border-slate-100">
+          <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1.5 text-xs bg-slate-50 rounded-[var(--radius-shell)] p-3 border border-slate-100">
             <div>
-              <span className="text-slate-400 font-bold block uppercase text-[11px]">Mã ca / Mã BN</span>
+              <span className={`block `}>Mã ca / Mã BN</span>
               <strong className="text-slate-800">{String(row.ma_ca || "")}</strong> / <strong className="text-slate-600">{String(row.ma_benh_nhan || "—")}</strong>
             </div>
             <div>
-              <span className="text-slate-400 font-bold block uppercase text-[11px]">Họ tên bệnh nhân</span>
+              <span className={`block `}>Họ tên bệnh nhân</span>
               <strong className="text-slate-800">{String(row.ho_ten_benh_nhan || "—")}</strong>
-              <span className="text-[10px] text-slate-400"> {row.gioi_tinh ? `(${row.gioi_tinh})` : ""}</span>
+              <span className="text-[11px] text-slate-400"> {row.gioi_tinh ? `(${row.gioi_tinh})` : ""}</span>
             </div>
             <div>
-              <span className="text-slate-400 font-bold block uppercase text-[11px]">Ngày phát hiện (LIS Culture)</span>
+              <span className={`block `}>Ngày phát hiện (LIS Culture)</span>
               <strong className="text-slate-800">{row.ngay_phat_hien ? new Date(row.ngay_phat_hien).toLocaleDateString("vi-VN") : "—"}</strong>
             </div>
             <div>
-              <span className="text-slate-400 font-bold block uppercase text-[11px]">Cấy vi sinh dương tính</span>
+              <span className={`block `}>Cấy vi sinh dương tính</span>
               <span className="inline-flex items-center gap-1 font-semibold text-amber-700 font-mono italic">
                 {String(row.tac_nhan_vi_khuan || "Chưa xác định")}
               </span>
@@ -455,7 +456,7 @@ export default function NkbvClinicalChecklistModal({
           ) : null}
 
           {/* Role-based Workflow Tabs Header */}
-          <div className="mt-4 border-b border-slate-100 flex gap-1 bg-slate-50 rounded-2xl p-1 border border-slate-200">
+          <div className="mt-4 border-b border-slate-100 flex gap-1 bg-slate-50 rounded-[var(--radius-shell)] p-1 border border-slate-200">
             {[
               { id: 'VI_SINH', label: '🔬 1. KHOA VI SINH', desc: 'Copy LIS, cấy nấm, CFU...' },
               { id: 'LAM_SANG', label: '🥼 2. KHOA LÂM SÀNG', desc: 'Đặt sonde, history, triệu chứng...' },
@@ -467,11 +468,11 @@ export default function NkbvClinicalChecklistModal({
                 onClick={() => handleTabChange(tab.id as any)}
                 className={`flex-1 text-left pb-2 pt-1.5 px-4 rounded-xl transition-all duration-200 ${
                   activeTab === tab.id
-                    ? 'bg-[#026f17] text-white font-black shadow-md shadow-[#026f17]/25'
+                    ? 'bg-[var(--primary)] text-white font-black shadow-md shadow-[var(--primary)]/25'
                     : 'text-slate-655 hover:text-slate-800 hover:bg-white'
                 }`}
               >
-                <div className="text-[11px] font-black uppercase tracking-wider">{tab.label}</div>
+                <div className="text-[11px] font-semibold uppercase tracking-wide">{tab.label}</div>
                 <div className={`text-[11px] font-bold mt-0.5 ${activeTab === tab.id ? 'text-emerald-100' : 'text-slate-400'}`}>
                   {tab.desc}
                 </div>
@@ -480,11 +481,11 @@ export default function NkbvClinicalChecklistModal({
           </div>
 
           {/* Clinical Suspected Infection Selector (Phán quyết mẫu cấy) */}
-          <div className="mt-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-3.5 space-y-2.5 shadow-sm shadow-emerald-500/5">
+          <div className="mt-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-[var(--radius-shell)] p-3.5 space-y-2.5 shadow-sm shadow-emerald-500/5">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase text-[#026f17] flex items-center gap-1.5">
-                <HelpCircle className="h-4 w-4 text-[#026f17]" />
-                Phán quyết Dịch tễ: Xác định loại nhiễm khuẩn nghi ngờ
+              <span className={`${C.blockSection} flex items-center gap-1.5 text-[var(--primary)]`}>
+                <HelpCircle className="h-4 w-4 text-[var(--primary)]" />
+                Phán quyết dịch tễ: Xác định loại nhiễm khuẩn nghi ngờ
               </span>
               <span className="text-[11px] bg-emerald-100 text-emerald-800 font-extrabold px-2.5 py-0.5 rounded-full">
                 💡 Gợi ý hệ thống: {suggestedType}
@@ -506,7 +507,7 @@ export default function NkbvClinicalChecklistModal({
                   onClick={() => setSuspectedType(item.id as any)}
                   className={`border rounded-xl py-2 px-1 text-[11px] font-bold tracking-tight text-center transition-all duration-200 ${
                     suspectedType === item.id 
-                      ? 'border-[#026f17] bg-white text-[#026f17] font-black shadow-sm ring-2 ring-emerald-500/10 scale-[1.02]'
+                      ? 'border-[var(--primary)] bg-white text-[var(--primary)] font-black shadow-sm ring-2 ring-emerald-500/10 scale-[1.02]'
                       : `${item.color} opacity-80 hover:opacity-100`
                   }`}
                 >
@@ -524,7 +525,7 @@ export default function NkbvClinicalChecklistModal({
           {activeTab === 'VI_SINH' && (
             <div className="space-y-4 animate-in fade-in duration-200">
               <div className="bg-emerald-50/50 border border-emerald-100 p-4 rounded-3xl flex items-start gap-3">
-                <HelpCircle className="h-5 w-5 text-[#026f17] mt-0.5 flex-shrink-0" />
+                <HelpCircle className="h-5 w-5 text-[var(--primary)] mt-0.5 flex-shrink-0" />
                 <div>
                   <h4 className="text-xs font-black text-slate-800 uppercase">Yêu cầu đối với Khoa Vi Sinh</h4>
                   <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed font-semibold">
@@ -631,7 +632,7 @@ export default function NkbvClinicalChecklistModal({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in duration-200">
               {/* Left Part: Stay history (6 cols) */}
               <div className="lg:col-span-6 space-y-4">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">🏥 Lịch sử chuyển khoa điều trị (LOA/POA)</span>
+                <span className={` text-slate-500`}>🏥 Lịch sử chuyển khoa điều trị (LOA/POA)</span>
                 <NkbvStayHistoryTable
                   treatmentHistory={treatmentHistory}
                   onAddStay={handleAddStay}
@@ -645,7 +646,7 @@ export default function NkbvClinicalChecklistModal({
 
               {/* Right Part: Device & Symptoms Checklist (6 cols) */}
               <div className="lg:col-span-6 space-y-4">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">🥼 Khai báo triệu chứng & Thiết bị</span>
+                <span className={` text-slate-500`}>🥼 Khai báo triệu chứng & Thiết bị</span>
                 
                 {suspectedType === "LOAI_TRU" && (
                   <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 text-center space-y-2">
@@ -747,14 +748,14 @@ export default function NkbvClinicalChecklistModal({
                 
                 {/* Proposed CDC Diagnosis Card */}
                 <div className="space-y-3">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">🚨 ĐỀ XUẤT CHẨN ĐOÁN TỰ ĐỘNG (CDC / NHSN)</span>
+                  <span className={` text-slate-500`}>🚨 ĐỀ XUẤT CHẨN ĐOÁN TỰ ĐỘNG (CDC / NHSN)</span>
                   
                   {suspectedType === "LOAI_TRU" ? (
-                    <div className="p-4 rounded-2xl border border-red-200 bg-red-50/20 text-red-950">
+                    <div className="p-4 rounded-[var(--radius-shell)] border border-red-200 bg-red-50/20 text-red-950">
                       <div className="flex items-center gap-2">
                         <Ban className="h-6 w-6 text-red-700 flex-shrink-0 animate-pulse" />
                         <div>
-                          <span className="text-[10px] font-black text-slate-400 block uppercase">Kết quả đề xuất</span>
+                          <span className="block text-[11px] font-medium text-slate-400">Kết quả đề xuất</span>
                           <h4 className="text-base font-black tracking-tight text-red-800">
                             ĐÃ PHÁN QUYẾT LOẠI TRỪ
                           </h4>
@@ -762,7 +763,7 @@ export default function NkbvClinicalChecklistModal({
                       </div>
                     </div>
                   ) : (
-                    <div className={`p-4 rounded-2xl border transition-all duration-300 ${
+                    <div className={`p-4 rounded-[var(--radius-shell)] border transition-all duration-300 ${
                       liveEvaluation.is_positive 
                         ? "bg-emerald-50 border-emerald-200/60 text-emerald-900 shadow-md shadow-emerald-500/5"
                         : "bg-slate-100 border-slate-200 text-slate-700"
@@ -774,7 +775,7 @@ export default function NkbvClinicalChecklistModal({
                           <Ban className="h-6 w-6 text-slate-500 flex-shrink-0" />
                         )}
                         <div>
-                          <span className="text-[10px] font-black text-slate-400 block uppercase">Kết quả đề xuất</span>
+                          <span className="block text-[11px] font-medium text-slate-400">Kết quả đề xuất</span>
                           <h4 className="text-base font-black tracking-tight">
                             {liveEvaluation.is_positive ? "DƯƠNG TÍNH" : "ÂM TÍNH / LOẠI TRỪ"}
                           </h4>
@@ -783,7 +784,7 @@ export default function NkbvClinicalChecklistModal({
 
                       <div className="mt-3 border-t border-slate-200/40 pt-3">
                         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Mã phân loại</span>
-                        <span className={`inline-block mt-1 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${
+                        <span className={`inline-block mt-1 px-2.5 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wide ${
                           liveEvaluation.is_positive 
                             ? "bg-emerald-100 text-emerald-800"
                             : "bg-slate-200 text-slate-700"
@@ -791,7 +792,7 @@ export default function NkbvClinicalChecklistModal({
                           {liveEvaluation.classification}
                         </span>
                         {liveEvaluation.is_secondary_bsi && (
-                          <span className="ml-1.5 inline-block mt-1 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-800">
+                          <span className="ml-1.5 inline-block mt-1 px-2.5 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wide bg-blue-100 text-blue-800">
                             SECONDARY BSI
                           </span>
                         )}
@@ -807,22 +808,22 @@ export default function NkbvClinicalChecklistModal({
 
                 {/* Validation Checks Checklist Questions */}
                 <div className="bg-slate-50 border border-slate-200 rounded-3xl p-4 space-y-3">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">📊 ĐIỀU TRA VÀ THẨM ĐỊNH LÂM SÀNG (DATA VALIDATION)</span>
+                  <span className={` text-slate-500`}>📊 ĐIỀU TRA VÀ THẨM ĐỊNH LÂM SÀNG (DATA VALIDATION)</span>
                   <div className="space-y-2.5">
                     <label className="flex items-start gap-2.5 text-xs font-semibold text-slate-700 cursor-pointer">
-                      <input type="checkbox" defaultChecked className="mt-0.5 rounded border-slate-350 text-[#026f17]" />
+                      <input type="checkbox" defaultChecked className="mt-0.5 rounded border-slate-350 text-[var(--primary)]" />
                       <span>
                         <strong>1. Xác minh kết quả Vi sinh:</strong> Tác nhân cấy dương tính ({String(row.tac_nhan_vi_khuan || "Chưa rõ")}) là vi sinh vật đạt chuẩn, không phải nấm hay tạp nhiễm phòng Lab.
                       </span>
                     </label>
                     <label className="flex items-start gap-2.5 text-xs font-semibold text-slate-700 cursor-pointer">
-                      <input type="checkbox" defaultChecked className="mt-0.5 rounded border-slate-350 text-[#026f17]" />
+                      <input type="checkbox" defaultChecked className="mt-0.5 rounded border-slate-350 text-[var(--primary)]" />
                       <span>
                         <strong>2. Xác minh Triệu chứng Lâm sàng:</strong> Các triệu chứng sốt/triệu chứng tại chỗ được ghi chép trung thực trong hồ sơ bệnh án khoa trong vòng IWP.
                       </span>
                     </label>
-                    <label className="flex items-start gap-2.5 text-xs font-semibold text-[#026f17] cursor-pointer">
-                      <input type="checkbox" defaultChecked className="mt-0.5 rounded border-slate-350 text-[#026f17]" />
+                    <label className="flex items-start gap-2.5 text-xs font-semibold text-[var(--primary)] cursor-pointer">
+                      <input type="checkbox" defaultChecked className="mt-0.5 rounded border-slate-350 text-[var(--primary)]" />
                       <span>
                         <strong>3. Xác minh Lịch sử Thiết bị:</strong> Ngày đặt/rút Foley, CVC, thở máy khớp hoàn toàn với tờ theo dõi chăm sóc bệnh án.
                       </span>
@@ -841,7 +842,7 @@ export default function NkbvClinicalChecklistModal({
 
               {/* Right Column: CDC Live Timeline (5 cols) */}
               <div className="lg:col-span-5 flex flex-col h-full space-y-4 bg-slate-50/80 rounded-3xl p-4 border border-slate-100 overflow-y-auto">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block border-b border-slate-200 pb-2">
+                <span className={`${C.blockSection} block border-b border-slate-200 pb-2 text-slate-500`}>
                   🗓️ CDC LIVE TIMELINE & ATTRIBUTION
                 </span>
                 
@@ -860,27 +861,23 @@ export default function NkbvClinicalChecklistModal({
 
         {/* Modal Footer Controls */}
         <div className="mt-4 flex justify-between items-center border-t border-slate-100 pt-4">
-          <span className="text-[10px] text-slate-400 italic">
+          <span className="text-[11px] text-slate-400 italic">
             💡 KTV Vi sinh nhập LIS ở Tab 1, Bác sĩ LS nhập ở Tab 2, KSNK duyệt phán quyết ở Tab 3.
           </span>
           <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-full px-6 py-2.5 text-xs font-black uppercase tracking-widest text-slate-550 hover:bg-slate-50 transition"
-            >
+            <button type="button" onClick={onClose} className={C.ctaSecondary}>
               Đóng
             </button>
-            {activeTab !== 'KSNK' && (
+            {activeTab !== "KSNK" ? (
               <button
                 type="button"
                 disabled={submitting}
                 onClick={handleSaveChecklist}
-                className="rounded-full bg-[#026f17] disabled:opacity-50 px-8 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-[#026f17]/25 hover:bg-[#026615] transition animate-in fade-in"
+                className={`${C.ctaPrimary} disabled:opacity-50 animate-in fade-in`}
               >
-                {submitting ? "Đang lưu..." : `LƯU DỮ LIỆU KHOA ${activeTab === 'VI_SINH' ? 'VI SINH' : 'LÂM SÀNG'}`}
+                {submitting ? "Đang lưu…" : `Lưu dữ liệu khoa ${activeTab === "VI_SINH" ? "vi sinh" : "lâm sàng"}`}
               </button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

@@ -1,32 +1,41 @@
 # Skills catalog — BV103
 
-> Allowlist cho agent. **Không** cài full marketplace — thêm từng skill rồi `npm run skills:lock`.
+> Allowlist cho agent. **Không** cài full marketplace — thêm từng skill rồi `npm run skills:lock`.  
+> Mặc định **manual @mention** — tránh load descriptor mỗi turn.
 
 ## Local (`.agents/skills/`)
 
-| Skill | Khi dùng |
-|-------|----------|
-| `smart-db-bv103` | Migration, RPC, index, RLS, import lô, refactor data layer |
-| `react-dev` | Component React 19, hooks, typing UI |
-| `reviewing-code` | Review PR / diff trước merge |
-| `supabase` | Auth, RLS, Supabase client, CLI |
+| Skill | Khi dùng | Invoke |
+|-------|----------|--------|
+| `smart-db-bv103` | Migration, RPC, index, RLS, import lô, refactor data layer | `@smart-db-bv103` |
+| `react-dev` | Component React 19, hooks, typing UI mới | `@react-dev` |
+| `reviewing-code` | Review PR / diff trước merge | `/review` hoặc `@reviewing-code` |
+| `supabase` | Auth, RLS, Supabase client, CLI | `@supabase` |
+| `giam-sat-pilot` | VST/GSC form, scoring, phiên, import | `@giam-sat-pilot` |
+| `qlcv-pilot` | Kanban, checklist RPC, spawn định kỳ | `@qlcv-pilot` |
 
 Khóa phiên bản: `npm run skills:lock` → `skills-lock.json`.
 
-## User-level (Cursor global — optional, không lock)
+## Agents (`.cursor/agents/`)
 
-Có thể bật thêm từ `~/.cursor/skills-cursor/` hoặc `~/.agents/skills/` khi cần, **không** thay allowlist dự án:
+| Agent | Khi dùng | Mode |
+|-------|----------|------|
+| `explore-module` | Khám phá 1 module, map route/action/RPC | readonly |
+| `review-bv103` | Review diff trước merge | readonly |
+| `db-verify` | Đối chiếu migration ↔ mapping | readonly |
 
-| Skill | Khi dùng |
-|-------|----------|
-| `next-best-practices` | App Router, RSC, routing conventions |
-| `code-review-nextjs` / `parallel-code-review` | PR lớn, review đa góc nhìn |
-| `webapp-testing` / `agent-browser` | QA tay tự động, Playwright |
+## User-level (optional, không lock)
 
-## Thêm skill mới vào dự án
+| Skill | Khi dùng | Invoke |
+|-------|----------|--------|
+| `next-best-practices` | App Router, RSC conventions | manual @ |
+| `code-review-nextjs` / `parallel-code-review` | PR lớn | manual @ |
+| `webapp-testing` / `agent-browser` | QA UI tự động | manual @ |
+
+## Thêm skill mới
 
 ```bash
-npm run skills:sync:reviewing-code   # ví dụ có sẵn trong package.json
+npm run skills:sync:reviewing-code   # ví dụ có sẵn
 npm run skills:lock
 ```
 
@@ -34,7 +43,7 @@ Cập nhật `scripts/skills-lock.mjs` nếu thư mục skill mới chưa map ng
 
 ## Cursor rules
 
-- Lõi: `.cursor/rules/00-core-ksnk-rules.mdc`, `01-agent-discipline.mdc`
-- Vận hành: `02-task-intake-freeze.mdc`, `62-destructive-change-gate.mdc`
-- Module: `12–17` theo glob file đang sửa (`17` = NKBV)
+- Lõi: `00-core`, `01-agent-discipline`
+- Edit `src/`: `03-src-editing-compact` (+ module `12–17`)
+- Workflow: `/intake` → `02-task-intake-freeze` (manual)
 - Playbook: [`cursor-operating-playbook.md`](cursor-operating-playbook.md)

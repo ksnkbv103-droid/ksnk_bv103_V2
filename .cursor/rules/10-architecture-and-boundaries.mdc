@@ -1,25 +1,16 @@
 ---
-description: Architecture boundaries and source of truth
-globs: src/**/*.{ts,tsx}
+description: "[Superseded] Architecture boundaries — dùng 03-src-editing-compact; @mention khi review sâu"
 alwaysApply: false
 ---
 
 # Architecture and Boundaries
 
-- `src/lib/permission-registry.ts` is the single source of truth for modules and permissions.
-- Any new module must be registered in permission registry.
-- Master nền: mọi loại đã khai trong `domain-registry` → bảng `dm_*` tương ứng; hub `danh_muc_tuy_bien` đã sunset (migration drop bảng).
-- Incident reporting must follow Configuration-Driven Hybrid EAV (`su_co` + `su_co_chi_tiet`).
-- CSSD ERP must stay in business workflow scope only (view/status operations).
-- Before creating new folders/files, verify they respect the existing module boundaries.
-- If a change spans multiple modules, keep business logic reusable and avoid cross-module coupling.
-- Keep schema and application in sync: when DB fields change, update actions/types/forms/tables in the same change set.
-- Avoid ad-hoc column renames; use clear migrations and rollback-safe steps.
+> **Superseded** cho edit `src/` hàng ngày: [`03-src-editing-compact.mdc`](./03-src-editing-compact.mdc).  
+> Invoke `@10-architecture-and-boundaries` khi review ranh giới đa module hoặc HIS/FHIR roadmap.
 
-## Domain spec alignment (BV103)
-
-- Canonical: `AGENTS.md` + [`docs/README.md`](../../docs/README.md) + [`domain-specification.md`](../../docs/core/domain-specification.md) + [`implementation-mapping.md`](../../docs/core/implementation-mapping.md). **Đọc tối thiểu:** [`read-minimum.md`](../../docs/core/read-minimum.md).
-- **CSSD sterilization split:** business rules for heat vs non-heat paths and batch completeness belong in server actions / DB constraints—no bypassing validated transitions.
-- **Hand hygiene / multi-subject audits:** when the product requires it, cap concurrent observed subjects per session at **three** unless an explicit new requirement changes it.
-- **Sensitive facts:** prefer amendment flows and soft-delete patterns over hard deletes for traceability (no project-wide Postgres change-log table; `fact_activity_log` removed).
-- **Future HIS/LIS:** design inputs/validation so payloads can later map to interoperability standards (e.g. FHIR-shaped JSON); the app stack stays Next.js Server Actions + Supabase unless the project explicitly adds a REST BFF.
+- `permission-registry.ts` là SSOT module/quyền.
+- Master data: `mdm_dm_*`, `sys_lookup_value` — không `dm_*` compat.
+- CSSD ERP: workflow scope only; incident = Configuration-Driven Hybrid EAV.
+- VST/GSC: tối đa **3 đối tượng** một phiên trừ spec mới.
+- Sensitive facts: amendment + soft-delete; không hard-delete traceability.
+- HIS/LIS: thiết kế input map FHIR sau; stack giữ Server Actions + Supabase.

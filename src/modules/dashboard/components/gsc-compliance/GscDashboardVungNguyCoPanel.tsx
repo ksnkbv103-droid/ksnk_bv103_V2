@@ -6,6 +6,7 @@ import {
   zoneFromKhuVucMa,
 } from "@/lib/khu-vuc-giam-sat-ui";
 import type { DashboardV4VungNguyCoRow } from "../../strategic-dashboard-v4.types";
+import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 
 type VungPalette = {
   bg: string;
@@ -42,11 +43,11 @@ export function GscDashboardVungNguyCoPanel({ rows }: Props) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
       <div className="border-b border-slate-100 pb-3">
-        <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
-          <ShieldCheck className="text-[#026f17]" size={18} />
+        <h3 className={`${D.sectionHeadingSm} flex items-center gap-2`}>
+          <ShieldCheck className="text-[var(--primary)]" size={18} />
           Theo 4 vùng nguy cơ lây nhiễm IPAC
         </h3>
-        <p className="text-[10px] text-slate-400 font-medium">Tỷ lệ đạt trung bình theo phân vùng khu vực</p>
+        <p className="text-[11px] text-slate-400 font-medium">Tỷ lệ đạt trung bình theo phân vùng khu vực</p>
       </div>
       <div className="space-y-3">
         {rows.length === 0 ? (
@@ -67,10 +68,10 @@ export function GscDashboardVungNguyCoPanel({ rows }: Props) {
                     </span>
                     <h4 className={`text-xs font-bold truncate ${colors.text}`}>{v.ten_khu_vuc}</h4>
                   </div>
-                  <p className="text-[10px] text-slate-400">Số phiên: {v.tong_so_phien}</p>
+                  <p className="text-[11px] text-slate-400">Số phiên: {v.tong_so_phien}</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className={`text-lg font-black ${colors.text}`}>{v.ty_le_trung_binh}%</span>
+                  <span className={`text-lg font-semibold tabular-nums ${colors.text}`}>{v.ty_le_trung_binh}%</span>
                   <div className="w-20 bg-slate-200 rounded-full h-1.5 mt-1 overflow-hidden">
                     <div className={`h-full rounded-full ${colors.bar}`} style={{ width: `${v.ty_le_trung_binh}%` }} />
                   </div>

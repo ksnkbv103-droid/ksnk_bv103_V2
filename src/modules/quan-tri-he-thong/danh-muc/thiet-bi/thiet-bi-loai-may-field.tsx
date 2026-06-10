@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { getLoaiMayTietKhuanOptionsAction } from "../actions/thiet-bi.actions";
 import type { LoaiMayTietKhuanOption } from "../actions/thiet-bi.types";
+import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 
 /** Chọn loại máy từ `cssd_dm_loai_may` (đồng bộ với khai báo danh mục). */
 export function ThietBiLoaiMayField({
@@ -25,11 +26,11 @@ export function ThietBiLoaiMayField({
 
   return (
     <div className="space-y-1">
-      <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Loại máy (danh mục khai báo)</label>
+      <label className="text-[11px] font-medium text-slate-400 ml-1">Loại máy (danh mục khai báo)</label>
       <select
         value={v}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs"
+        className={C.controlInput}
       >
         <option value="">— Chọn loại —</option>
         {orphan ? (

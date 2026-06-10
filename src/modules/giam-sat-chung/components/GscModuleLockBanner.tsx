@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 export default function GscModuleLockBanner({
   lockedUntilDate,
@@ -13,7 +14,7 @@ export default function GscModuleLockBanner({
   return (
     <div
       role="status"
-      className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+      className={`${C.noticeAmber} flex items-start gap-3 px-4 py-3 text-sm`}
     >
       <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden />
       <div>

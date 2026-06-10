@@ -34,7 +34,7 @@ export default function BaoTriStartModal({
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
         <h2 className="text-lg font-semibold text-slate-900">Mở phiếu bảo trì</h2>
         <p className="mt-1 text-xs text-slate-500">Quét mã máy (nếu có) hoặc chọn tay. Chỉ máy sẵn sàng và không có mẻ TK mở.</p>
-        <label className="mt-4 block text-[10px] font-black uppercase text-slate-500">Mã máy / QR máy</label>
+        <label className="mt-4 block text-[11px] font-medium text-slate-500">Mã máy / QR máy</label>
         <input
           className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm uppercase"
           value={maMayHoacQr}
@@ -48,7 +48,7 @@ export default function BaoTriStartModal({
           }}
           placeholder="Ví dụ: MAY-01 hoặc mã QR tương đương"
         />
-        <label className="mt-4 block text-[10px] font-black uppercase text-slate-500">Thiết bị</label>
+        <label className="mt-4 block text-[11px] font-medium text-slate-500">Thiết bị</label>
         <select className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={selTb} onChange={(e) => onSelTb(e.target.value)}>
           <option value="">— Chọn —</option>
           {machines.map((m) => (
@@ -57,7 +57,7 @@ export default function BaoTriStartModal({
             </option>
           ))}
         </select>
-        <label className="mt-3 block text-[10px] font-black uppercase text-slate-500">Lý do / nội dung</label>
+        <label className="mt-3 block text-[11px] font-medium text-slate-500">Lý do / nội dung</label>
         <textarea className="mt-1 min-h-[88px] w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={lyDo} onChange={(e) => onLyDo(e.target.value)} />
         <div className="mt-4 flex justify-end gap-2">
           <button type="button" className="rounded-lg px-4 py-2 text-sm text-slate-600" onClick={onClose}>
@@ -65,7 +65,7 @@ export default function BaoTriStartModal({
           </button>
           <button
             type="button"
-            className="rounded-lg bg-[#026f17] px-4 py-2 text-sm font-semibold text-[#FFD700]"
+            className="rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[#FFD700]"
             onClick={() => void onSubmit()}
             disabled={!selTb.trim() || !lyDo.trim()}
           >

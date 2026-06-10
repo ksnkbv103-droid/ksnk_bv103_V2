@@ -145,12 +145,12 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       sortable: true, 
       cell: (i) => (
         <div className="flex items-center gap-3 py-1">
-          <div className="w-9 h-9 rounded-full bg-[#026f17]/10 flex items-center justify-center text-[#026f17] font-black text-xs border border-[#026f17]/5">
+          <div className="w-9 h-9 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-black text-xs border border-[var(--primary)]/5">
             {i.ho_ten?.charAt(0).toUpperCase()}
           </div>
           <div>
-            <div className="font-black text-slate-700 uppercase text-[11px] tracking-tight">{i.ho_ten}</div>
-            <div className="text-[11px] font-bold text-[#026f17] uppercase tracking-widest bg-[#026f17]/5 px-1.5 rounded-sm w-fit mt-0.5">{i.ma_nv}</div>
+            <div className="text-[11px] font-semibold text-slate-800">{i.ho_ten}</div>
+            <div className="text-[11px] font-bold text-[var(--primary)] uppercase tracking-widest bg-[var(--primary)]/5 px-1.5 rounded-sm w-fit mt-0.5">{i.ma_nv}</div>
           </div>
         </div>
       )
@@ -161,7 +161,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       sortable: true, 
       cell: (i) => (
         <div className="flex flex-col gap-1">
-          <span className="text-[10px] font-black text-slate-600 uppercase tracking-tighter">
+          <span className="text-[11px] font-medium text-slate-600">
             {i.khoa?.ten_khoa || "---"}
           </span>
           {i.to?.ten_danh_muc && (
@@ -178,7 +178,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       sortable: true, 
       cell: (i) => (
         <div className="flex flex-col gap-0.5">
-          <span className="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[11px] font-black uppercase w-fit">
+          <span className="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[11px] font-semibold uppercase tracking-wide w-fit">
             {i.chuc_danh || "Chưa gán"}
           </span>
           {i.chuc_vu && (
@@ -194,7 +194,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       accessorKey: "nghe_nghiep_id", 
       sortable: true, 
       cell: (i) => (
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">
+        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">
           {i.nghe_nghiep?.ten_nghe_nghiep || "---"}
         </span>
       )
@@ -230,7 +230,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
         </div>
       )}
 
-      <div className="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[500px]">
+      <div className="bg-white p-2 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm overflow-hidden min-h-[500px]">
         <AdvancedDataTable
           columns={columns}
           data={data}

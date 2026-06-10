@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useTransition } from "react";
 import SearchableSelect, { SearchableSelectOption } from "./SearchableSelect";
 import { getActiveMasterDataAction } from "@/lib/master-data/master-data.actions";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 export type RegistrySelectOption = {
   id: string;
@@ -130,7 +131,7 @@ export default function RegistrySelect({
         disabled={disabled || loading || isPending}
         required={required}
         name={name}
-        className="select h-11 min-h-[2.75rem] w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 outline-none shadow-sm transition-colors hover:bg-slate-50/50 focus:border-[#026f17]/50 focus:ring-1 focus:ring-[#026f17]/15 disabled:cursor-not-allowed disabled:opacity-60 md:h-12 md:rounded-2xl md:px-4"
+        className={bv103LayoutChrome.controlSelectNative}
       >
         <option value="">{selectPlaceholder}</option>
         {options.map((opt) => (

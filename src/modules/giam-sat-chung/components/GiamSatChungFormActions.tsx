@@ -2,6 +2,7 @@
 "use client";
 
 import React from "react";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 interface GiamSatChungFormActionsProps {
   loading: boolean;
@@ -17,7 +18,7 @@ export default function GiamSatChungFormActions({ loading, headerLoading, onPrin
         type="button"
         onClick={onPrint}
         title="In phiếu A4"
-        className="app-shell-focus flex h-12 w-12 shrink-0 items-center justify-center self-end rounded-xl border border-slate-200/90 bg-slate-800 text-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/10 transition-colors hover:bg-slate-900"
+        className="app-shell-focus flex h-12 w-12 shrink-0 items-center justify-center self-end rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-800 text-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/10 transition-colors hover:bg-slate-900"
       >
         <span className="text-lg" aria-hidden>
           🖨️
@@ -28,14 +29,14 @@ export default function GiamSatChungFormActions({ loading, headerLoading, onPrin
         type="button"
         disabled={loading || headerLoading}
         onClick={onSave}
-        className="app-shell-focus flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#026f17]/20 bg-[#026f17] px-6 py-3 text-[10px] font-semibold uppercase tracking-wide text-white shadow-[var(--shadow-app-soft)] ring-1 ring-[#026f17]/20 transition-colors hover:bg-[#025a12] disabled:opacity-50"
+        className={`app-shell-focus ${C.btnPrimary} min-h-12 px-6 py-3 uppercase tracking-wide ring-1 ring-[var(--primary)]/20`}
       >
         {loading ? (
-          <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
         ) : (
           <>
-            <span className="text-2xl">💾</span> 
-            <span>LƯU KẾT QUẢ</span>
+            <span className="text-2xl">💾</span>
+            <span>Lưu kết quả</span>
           </>
         )}
       </button>
