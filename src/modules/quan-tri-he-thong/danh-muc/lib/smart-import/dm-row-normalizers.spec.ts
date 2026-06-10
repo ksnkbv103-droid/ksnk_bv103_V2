@@ -1,5 +1,31 @@
 import { describe, it, expect } from "vitest";
-import { normalizeDmThietBi, normalizeDmHoaChat } from "./dm-row-normalizers";
+import { normalizeDmKhoaPhong, normalizeDmThietBi, normalizeDmHoaChat } from "./dm-row-normalizers";
+
+describe("normalizeDmKhoaPhong", () => {
+  it("packs flat Excel columns into specs JSONB", () => {
+    const result = normalizeDmKhoaPhong({
+      ma_khoa: "a01",
+      ten_khoa: "Khoa A",
+      mo_ta_chuc_nang: "Lâm sàng",
+      so_bac_si: "5",
+      so_dieu_duong: 10,
+      so_giuong_benh_thuong: "20",
+      so_giuong_cap_cuu: 2,
+    });
+
+    expect(result.ma_khoa).toBe("A01");
+    expect(result.ten_khoa).toBe("Khoa A");
+    expect(result.specs).toEqual({
+      mo_ta_chuc_nang: "Lâm sàng",
+      so_bac_si: 5,
+      so_dieu_duong: 10,
+      so_giuong_benh_thuong: 20,
+      so_giuong_cap_cuu: 2,
+    });
+    expect(result.mo_ta_chuc_nang).toBeUndefined();
+    expect(result.so_bac_si).toBeUndefined();
+  });
+});
 
 describe("normalizeDmThietBi", () => {
   it("should pack flat specification columns into specs JSONB object and delete flat keys", () => {

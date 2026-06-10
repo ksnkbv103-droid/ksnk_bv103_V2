@@ -1,5 +1,7 @@
 "use client";
 
+
+import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
 import React from "react";
 import type { BsiVerificationData } from "../../types/nkbv-verification";
 
@@ -40,8 +42,8 @@ export default function BsiClinicalSubForm({
     <div className="space-y-4">
       {/* Pathogen Detail Group */}
       {activeTab === 'VI_SINH' && (
-        <div className="bg-slate-50/75 rounded-2xl p-4 border border-slate-100 space-y-3 animate-in fade-in">
-          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">✨ Thông tin vi sinh LIS (Mã: BM.VS.BSI.01)</span>
+        <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3 animate-in fade-in">
+          <span className={` text-slate-500`}>✨ Thông tin vi sinh LIS (Mã: BM.VS.BSI.01)</span>
           
           <div>
             <label className="text-xs font-bold text-slate-700 block mb-1">Tên tác nhân</label>
@@ -50,7 +52,7 @@ export default function BsiClinicalSubForm({
                 value={form.pathogen_name}
                 disabled={!allowedEdit}
                 onChange={(e) => onChange({ ...form, pathogen_name: e.target.value })}
-                className="w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                className={C.controlInput}
                 placeholder="VD: Staphylococcus aureus"
               />
               <span className="absolute right-3 top-2.5 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
@@ -66,7 +68,7 @@ export default function BsiClinicalSubForm({
                 value={form.pathogen_type}
                 disabled={!allowedEdit}
                 onChange={(e) => onChange({ ...form, pathogen_type: e.target.value as any })}
-                className="w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                className={C.controlInput}
               >
                 <option value="RECOGNIZED">Mầm bệnh đã được công nhận</option>
                 <option value="COMMON_COMMENSAL">Vi khuẩn cộng sinh thông thường (da)</option>
@@ -78,7 +80,7 @@ export default function BsiClinicalSubForm({
                 value={form.is_intestinal_pathogen ? "true" : "false"}
                 disabled={!allowedEdit}
                 onChange={(e) => onChange({ ...form, is_intestinal_pathogen: e.target.value === "true" })}
-                className="w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                className={C.controlInput}
               >
                 <option value="false">Không</option>
                 <option value="true">Có (Enterococcus, Candida, E.coli...)</option>
@@ -93,7 +95,7 @@ export default function BsiClinicalSubForm({
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-amber-700 block mb-1">Số lần cấy riêng biệt (+)</label>
+                  <label className="text-[11px] font-bold text-amber-700 block mb-1">Số lần cấy riêng biệt (+)</label>
                   <input
                     type="number"
                     value={form.commensal_culture_count}
@@ -102,7 +104,7 @@ export default function BsiClinicalSubForm({
                     className="w-full rounded-lg border-amber-200 bg-white px-2 py-1 text-xs focus:ring-amber-500 focus:border-amber-300"
                   />
                 </div>
-                <label className="flex items-center gap-2 text-[10px] text-amber-800 cursor-pointer pt-4 font-bold">
+                <label className="flex items-center gap-2 text-[11px] text-amber-800 cursor-pointer pt-4 font-bold">
                   <input
                     type="checkbox"
                     checked={form.commensal_drawn_separate}
@@ -122,7 +124,7 @@ export default function BsiClinicalSubForm({
               checked={form.is_fungi_respiratory}
               disabled={!allowedEdit}
               onChange={(e) => onChange({ ...form, is_fungi_respiratory: e.target.checked })}
-              className="rounded border-slate-300 text-[#026f17] focus:ring-[#026f17]"
+              className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
             />
             Nấm hô hấp cộng đồng (Blastomyces, Histoplasma...)?
           </label>
@@ -133,8 +135,8 @@ export default function BsiClinicalSubForm({
       {activeTab === 'LAM_SANG' && (
         <div className="space-y-4 animate-in fade-in">
           {/* Catheter Device Group */}
-          <div className="bg-slate-50/75 rounded-2xl p-4 border border-slate-100 space-y-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">🔌 Thiết bị xâm lấn (CVC - Mã: BM.LS.BSI.01)</span>
+          <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3">
+            <span className={` text-slate-500`}>🔌 Thiết bị xâm lấn (CVC - Mã: BM.LS.BSI.01)</span>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -146,7 +148,7 @@ export default function BsiClinicalSubForm({
                   min={cleanNgayVaoVien || undefined}
                   max={cleanNgayPhatHien || todayStr}
                   onChange={(e) => onChange({ ...form, device_placed_date: e.target.value || undefined })}
-                  className="w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                  className={C.controlInput}
                 />
               </div>
               <div>
@@ -158,7 +160,7 @@ export default function BsiClinicalSubForm({
                   min={form.device_placed_date || cleanNgayVaoVien || undefined}
                   max={todayStr}
                   onChange={(e) => onChange({ ...form, device_removed_date: e.target.value || undefined })}
-                  className="w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                  className={C.controlInput}
                 />
               </div>
             </div>
@@ -175,8 +177,8 @@ export default function BsiClinicalSubForm({
           </div>
 
           {/* Clinical Symptoms */}
-          <div className="bg-slate-50/75 rounded-2xl p-4 border border-slate-100 space-y-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+          <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3">
+            <span className={` text-slate-500`}>
               🏥 Các triệu chứng xuất hiện trong giai đoạn từ ngày {iwpStart ? new Date(iwpStart).toLocaleDateString("vi-VN") : "X-3"} đến ngày {iwpEnd ? new Date(iwpEnd).toLocaleDateString("vi-VN") : "X+3"} (Cửa sổ lây nhiễm IWP)
             </span>
 
@@ -187,13 +189,13 @@ export default function BsiClinicalSubForm({
                   checked={form.symptoms_window_7days}
                   disabled={!allowedEdit}
                   onChange={(e) => onChange({ ...form, symptoms_window_7days: e.target.checked })}
-                  className="rounded border-slate-300 text-[#026f17] focus:ring-[#026f17]"
+                  className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
                 />
                 Sốt &gt; 38°C, rét run, hoặc hạ huyết áp trong vòng 7 ngày?
               </label>
               {form.symptoms_window_7days && (
                 <div className="pl-6 flex items-center gap-2 animate-in slide-in-from-top-1">
-                  <span className="text-[10px] text-slate-400 font-bold">Ngày khởi phát:</span>
+                  <span className="text-[11px] text-slate-400 font-bold">Ngày khởi phát:</span>
                   <input
                     type="date"
                     value={symptomDates.symptoms_window_7days || ""}
@@ -201,7 +203,7 @@ export default function BsiClinicalSubForm({
                     min={iwpStart || undefined}
                     max={iwpEnd || undefined}
                     onChange={(e) => onSymptomDateChange("symptoms_window_7days", e.target.value)}
-                    className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                    className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
                     required
                   />
                 </div>
@@ -214,15 +216,15 @@ export default function BsiClinicalSubForm({
                 checked={form.is_neutropenia}
                 disabled={!allowedEdit}
                 onChange={(e) => onChange({ ...form, is_neutropenia: e.target.checked })}
-                className="rounded border-slate-300 text-[#026f17] focus:ring-[#026f17]"
+                className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
               />
               Ghép tế bào gốc hoặc bạch cầu hạt nặng (ANC &lt; 500)?
             </label>
           </div>
 
           {/* Localized Exclusions */}
-          <div className="bg-slate-50/75 rounded-2xl p-4 border border-slate-100 space-y-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">🔄 Lọc nhiễm trùng thứ phát (Secondary BSI)</span>
+          <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3">
+            <span className={` text-slate-500`}>🔄 Lọc nhiễm trùng thứ phát (Secondary BSI)</span>
 
             <label className="flex items-center gap-2.5 text-xs text-slate-700 cursor-pointer font-semibold py-1">
               <input
@@ -230,20 +232,20 @@ export default function BsiClinicalSubForm({
                 checked={form.has_localized_infection}
                 disabled={!allowedEdit}
                 onChange={(e) => onChange({ ...form, has_localized_infection: e.target.checked })}
-                className="rounded border-slate-300 text-[#026f17] focus:ring-[#026f17]"
+                className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
               />
               Có ổ nhiễm trùng tại chỗ khác đạt chuẩn CDC (VAP, UTI, SSI...)?
             </label>
 
             {form.has_localized_infection && (
-              <div className="bg-[#026f17]/5 rounded-xl p-3 border border-[#026f17]/10 space-y-2.5 animate-in slide-in-from-top-2">
+              <div className="bg-[var(--primary)]/5 rounded-xl p-3 border border-[var(--primary)]/10 space-y-2.5 animate-in slide-in-from-top-2">
                 <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer font-medium">
                   <input
                     type="checkbox"
                     checked={form.localized_pathogen_matches}
                     disabled={!allowedEdit}
                     onChange={(e) => onChange({ ...form, localized_pathogen_matches: e.target.checked })}
-                    className="rounded border-slate-300 text-[#026f17] focus:ring-[#026f17]"
+                    className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
                   />
                   Vi khuẩn trong máu trùng với vi khuẩn tại ổ nhiễm trùng chỗ kia?
                 </label>
@@ -253,7 +255,7 @@ export default function BsiClinicalSubForm({
                     checked={form.is_in_sbap_window}
                     disabled={!allowedEdit}
                     onChange={(e) => onChange({ ...form, is_in_sbap_window: e.target.checked })}
-                    className="rounded border-slate-300 text-[#026f17] focus:ring-[#026f17]"
+                    className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
                   />
                   Mẫu cấy máu lấy trong khung SBAP 14 ngày của ca bệnh tại chỗ?
                 </label>
@@ -263,7 +265,7 @@ export default function BsiClinicalSubForm({
                     checked={form.blood_mandatory_for_localized}
                     disabled={!allowedEdit}
                     onChange={(e) => onChange({ ...form, blood_mandatory_for_localized: e.target.checked })}
-                    className="rounded border-slate-300 text-[#026f17] focus:ring-[#026f17]"
+                    className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
                   />
                   Cấy máu dương tính là tiêu chuẩn bắt buộc cho ổ nhiễm trùng kia?
                 </label>

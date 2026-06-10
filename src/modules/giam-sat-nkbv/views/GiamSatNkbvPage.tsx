@@ -13,6 +13,7 @@ import {
   KsnkSupervisionPanel,
 } from "@/components/shared/ksnk-supervision-chrome";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
+import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import { useGiamSatHeader } from "@/hooks/useGiamSatHeader";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { useGenerateMa } from "@/hooks/useGenerateMa";
@@ -37,7 +38,7 @@ import NkbvClinicalChecklistModal from "../components/NkbvClinicalChecklistModal
 
 const NkbvDashboardPanel = dynamic(() => import("../components/NkbvDashboardPanel"), {
   ssr: false,
-  loading: () => <div className="h-56 animate-pulse rounded-2xl border border-slate-200 bg-slate-50/90" />,
+  loading: () => <div className="h-56 animate-pulse rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/90" />,
 });
 
 const MODULE_KEY = "GIAM_SAT_NKBV";
@@ -186,7 +187,7 @@ export default function GiamSatNkbvPage() {
           <div className="flex flex-col">
             <span className="font-bold text-slate-900">{item.ho_ten_benh_nhan}</span>
             {item.ngay_sinh && (
-              <span className="text-[10px] text-slate-400">
+              <span className="text-[11px] text-slate-400">
                 Sinh: {item.ngay_sinh} {item.gioi_tinh ? `(${item.gioi_tinh})` : ""}
               </span>
             )}
@@ -218,7 +219,7 @@ export default function GiamSatNkbvPage() {
           const text = labelMap[item.ket_cuc_dieu_tri] || item.ket_cuc_dieu_tri;
           const isDeath = item.ket_cuc_dieu_tri === "TU_VONG";
           return (
-            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
               isDeath ? "bg-red-50 text-red-700 border border-red-100 animate-pulse" : "bg-slate-100 text-slate-700"
             }`}>
               {text}
@@ -231,10 +232,10 @@ export default function GiamSatNkbvPage() {
         accessorKey: "lis_records",
         cell: (item: any) => (
           <div className="flex gap-2">
-            <span className="rounded-full bg-blue-50 text-blue-700 px-2.5 py-0.5 text-[10px] font-bold">
+            <span className="rounded-full bg-blue-50 text-blue-700 px-2.5 py-0.5 text-[11px] font-bold">
               LIS: {item.lis_records?.length || 0}
             </span>
-            <span className="rounded-full bg-[#026f17]/10 text-[#026f17] px-2.5 py-0.5 text-[10px] font-bold">
+            <span className="rounded-full bg-[var(--primary)]/10 text-[var(--primary)] px-2.5 py-0.5 text-[11px] font-bold">
               Ca NKBV: {item.nkbv_cases?.length || 0}
             </span>
           </div>
@@ -250,7 +251,7 @@ export default function GiamSatNkbvPage() {
               setMainTab("cases");
               handleSearch(item.ma_benh_an);
             }}
-            className="rounded-full bg-[#026f17] hover:bg-[#026615] px-4 py-1.5 text-[11px] font-black uppercase text-white shadow-sm transition"
+            className="rounded-full bg-[var(--primary)] hover:bg-[#026615] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm transition"
           >
             Hồ sơ dịch tễ
           </button>
@@ -315,7 +316,7 @@ export default function GiamSatNkbvPage() {
             <span className="text-xs font-black text-slate-800 font-mono">
               {String((item as any).ma_benh_an || "—")}
             </span>
-            <span className="text-[10px] font-bold text-slate-500">
+            <span className="text-[11px] font-bold text-slate-500">
               {String((item as any).ma_benh_nhan || "")} - {String((item as any).ho_ten_benh_nhan || "—")}
             </span>
           </div>
@@ -375,7 +376,7 @@ export default function GiamSatNkbvPage() {
         header: "Nghi ngờ NKBV",
         accessorKey: "loai",
         cell: (item: NkbvCaseLike) => (
-          <span className="text-[10px] font-black uppercase text-[#026f17] bg-[#026f17]/10 px-2.5 py-0.5 rounded-full">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)] bg-[var(--primary)]/10 px-2.5 py-0.5 rounded-full">
             {(item as { loai_nkbv?: { ten_loai?: string } }).loai_nkbv?.ten_loai || "—"}
           </span>
         ),
@@ -384,7 +385,7 @@ export default function GiamSatNkbvPage() {
         header: "Trạng thái",
         accessorKey: "tt",
         cell: (item: NkbvCaseLike) => (
-          <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-black uppercase text-slate-600">
+          <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500">
             {(item as { trang_thai_row?: { ten_trang_thai?: string } }).trang_thai_row?.ten_trang_thai || "—"}
           </span>
         ),
@@ -406,7 +407,7 @@ export default function GiamSatNkbvPage() {
                     setChecklistCase(item as NkbvTableRow);
                     setChecklistOpen(true);
                   }}
-                  className={`rounded-full px-3 py-1.5 text-[10px] font-black uppercase transition-colors ${
+                  className={`rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide transition-colors ${
                     isPendingVerification
                       ? "text-amber-600 hover:bg-amber-600/10"
                       : "text-blue-600 hover:bg-blue-600/10"
@@ -422,7 +423,7 @@ export default function GiamSatNkbvPage() {
                     setDraft(item);
                     setEditorOpen(true);
                   }}
-                  className="rounded-full px-3 py-1.5 text-[10px] font-black uppercase text-[#026f17] hover:bg-[#026f17]/10"
+                  className="rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)] hover:bg-[var(--primary)]/10"
                 >
                   Sửa
                 </button>
@@ -459,7 +460,7 @@ export default function GiamSatNkbvPage() {
 
   if (!allowed.view) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-[var(--bg-panel)] px-8 py-12 text-center shadow-[var(--shadow-app-soft)]">
+      <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-[var(--bg-panel)] px-8 py-12 text-center shadow-[var(--shadow-app-soft)]">
         <p className="text-sm font-medium text-slate-600">Bạn không có quyền truy cập Giám sát NKBV.</p>
       </div>
     );
@@ -484,13 +485,13 @@ export default function GiamSatNkbvPage() {
 
       <div className="flex flex-col gap-3 px-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-3">
-          <label className="flex flex-col gap-1 text-[10px] font-bold uppercase text-slate-400">
+          <label className={C.formLabelFlex}>
             Lọc khoa
             <select
               value={header.selectedKhoa}
               disabled={header.loading}
               onChange={(e) => header.setSelectedKhoa(e.target.value)}
-              className="min-w-[200px] rounded-2xl border-0 bg-white px-4 py-2.5 text-sm font-semibold shadow-sm"
+              className="min-w-[200px] rounded-[var(--radius-shell)] border-0 bg-white px-4 py-2.5 text-sm font-semibold shadow-sm"
             >
               <option value="">Tất cả khoa</option>
               {header.khoas.map((k) => (
@@ -510,7 +511,7 @@ export default function GiamSatNkbvPage() {
               setDraft(null);
               setEditorOpen(true);
             }}
-            className="flex items-center justify-center gap-2 rounded-full bg-[#026f17] px-6 py-3 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-[#026f17]/20 disabled:opacity-50"
+            className={`${C.ctaPrimary} disabled:opacity-50`}
           >
             <Plus className="h-4 w-4" /> Phiếu mới
           </button>
@@ -531,7 +532,7 @@ export default function GiamSatNkbvPage() {
               });
               setEditorOpen(true);
             }}
-            className="flex items-center justify-center gap-2 rounded-full bg-[#026f17] px-6 py-3 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-[#026f17]/20"
+            className={C.ctaPrimary}
           >
             <Plus className="h-4 w-4" /> Tạo đợt bệnh án mới
           </button>

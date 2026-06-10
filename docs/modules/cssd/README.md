@@ -22,4 +22,14 @@ Rule: `12-cssd-erp-spec-context.mdc`
 | `/cssd-erp/batch` | Mẻ tiệt khuẩn (deep link) |
 | `/cssd-erp/report` | Báo cáo tổng hợp |
 
+## Pilot checklist
+
+| Slice | File |
+|-------|------|
+| Quy trình 6 trạm (P3) | [`pilot-test-checklist.md`](pilot-test-checklist.md) |
+| Hóa chất & vật tư (P4) | [`pilot-checklist-hoa-chat-202606.md`](pilot-checklist-hoa-chat-202606.md) |
+| Thiết bị & bảo trì (P4) | [`pilot-checklist-thiet-bi-202606.md`](pilot-checklist-thiet-bi-202606.md) |
+| Cycle QR (P5) | [`pilot-checklist-cycle-qr-202606.md`](pilot-checklist-cycle-qr-202606.md) |
+| BRD vật tư phi-hóa-chất | [`brd-vat-tu-intake-202606.md`](brd-vat-tu-intake-202606.md) |
+
 Bookmark cũ (`/cssd-tiep-nhan`, `/cssd-erp/catalog`, …) → redirect trong `next.config.ts`.

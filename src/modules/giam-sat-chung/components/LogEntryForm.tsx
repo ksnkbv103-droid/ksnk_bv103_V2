@@ -13,6 +13,7 @@
  */
 
 import React from "react";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 interface LogEntryFormProps {
   kieuDuLieu: "LUA_CHON" | "SO_LIEU";
@@ -44,7 +45,7 @@ export default function LogEntryForm({
         value={giaTriLuaChon ?? ""}
         disabled={disabled}
         onChange={(e) => onChange({ gia_tri_lua_chon: e.target.value || null })}
-        className="bv103-control-h w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 disabled:opacity-60"
+        className={`${C.controlSelectNative} text-sm disabled:opacity-60`}
       >
         <option value="">— Chọn giá trị —</option>
         {opts.map((opt) => (
@@ -76,7 +77,7 @@ export default function LogEntryForm({
             const n = e.target.value === "" ? null : Number(e.target.value);
             onChange({ gia_tri_so: Number.isFinite(n as number) ? (n as number) : null });
           }}
-          className={`bv103-control-h w-full rounded-xl border px-3 text-sm font-semibold transition-colors disabled:opacity-60 ${
+          className={`${C.controlInput} text-sm transition-colors disabled:opacity-60 ${
             isOOR
               ? "border-rose-400 bg-rose-50 text-rose-900"
               : "border-slate-200 bg-white text-slate-700"
@@ -89,7 +90,7 @@ export default function LogEntryForm({
           </span>
         ) : null}
       </div>
-      <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
         {typeof ngay_min === "number" && typeof ngay_max === "number"
           ? `Ngưỡng: ${ngay_min} – ${ngay_max}${donVi ? ` ${donVi}` : ""}`
           : typeof ngay_min === "number"
@@ -99,7 +100,7 @@ export default function LogEntryForm({
               : "Không có ngưỡng quy định"}
       </p>
       {isOOR ? (
-        <p className="text-[10px] font-bold uppercase tracking-wider text-rose-600">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-rose-600">
           ⚠ Giá trị ngoài ngưỡng — sẽ được đánh dấu nghi vấn ở dashboard.
         </p>
       ) : null}

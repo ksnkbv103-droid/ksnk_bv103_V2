@@ -24,8 +24,8 @@ export default function IncidentReportModal({ isOpen, onClose, station, onSucces
   return (
     <div className="pointer-events-auto fixed inset-0 z-[100] flex animate-in justify-center bg-slate-900/60 p-0 backdrop-blur-sm fade-in duration-200 sm:items-center sm:p-4">
       <div className="flex max-h-[95vh] w-full max-w-lg touch-manipulation flex-col overflow-hidden rounded-t-2xl border-t-4 border-red-500/10 bg-white shadow-2xl sm:rounded-2xl sm:border-4">
-        <div className="flex shrink-0 items-center justify-between bg-[#026f17] p-5 text-[#FFD700] shadow-md">
-          <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em]">
+        <div className="flex shrink-0 items-center justify-between bg-[var(--primary)] p-5 text-[#FFD700] shadow-md">
+          <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wide tracking-[0.2em]">
             <AlertTriangle className="animate-pulse" size={20} /> Báo cáo sự cố
           </div>
           <button

@@ -5,13 +5,16 @@ import Link from "next/link";
 import { AlertTriangle, ExternalLink, Layers, Loader2, PackagePlus, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
 import DungCuChiTietFormModal from "./dung-cu-chi-tiet-form-modal";
+import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import type { DungCuChiTietTableRow } from "./dung-cu-chi-tiet-form-shared";
+import { reportChiTietInstrumentIssueAction } from "@/lib/master-data/append-chi-tiet-issue-note.action";
 import {
-  reportChiTietInstrumentIssueAction,
+  replenishSetInstrumentAction,
+  reportIndividualInstrumentIssueAction,
+} from "@/lib/master-data/cssd-instrument-ops.actions";
+import {
   getBoRefsByLoaiAction,
   getBoDungCuChiTietPreviewAction,
-  reportIndividualInstrumentIssueAction,
-  replenishSetInstrumentAction,
 } from "../actions/bo-dung-cu-chi-tiet-read.actions";
 import {
   getBoDungCuAllocationsAction,
@@ -159,19 +162,19 @@ export function BoDungCuChiTietPanel({
 
   return (
     <section
-      className="rounded-2xl border border-emerald-100/85 bg-gradient-to-br from-white to-emerald-50/10 p-8 shadow-xl"
+      className="rounded-[var(--radius-shell)] border border-emerald-100/85 bg-gradient-to-br from-white to-emerald-50/10 p-8 shadow-xl"
       aria-label="Dụng cụ chi tiết trong bộ đã chọn"
     >
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4">
-        <div className="flex items-center gap-2 text-[#026f17]">
+        <div className="flex items-center gap-2 text-[var(--primary)]">
           <Layers className="h-5 w-5 shrink-0" aria-hidden />
-          <h3 className="text-sm font-black uppercase tracking-tight">
+          <h3 className="text-sm font-semibold text-slate-800">
             Quản lý thành phần bộ{titleBit}
           </h3>
         </div>
         <Link
           href="/quan-tri-he-thong/danh-muc/dung-cu"
-          className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide text-emerald-700 underline-offset-2 hover:underline"
+          className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 underline-offset-2 hover:underline"
         >
           Mở trang quản trị chi tiết lẻ <ExternalLink className="h-3.5 w-3.5" aria-hidden />
         </Link>
@@ -180,7 +183,7 @@ export function BoDungCuChiTietPanel({
       {!selectedBoId ? (
         <div className="text-center py-12">
           <Layers className="mx-auto text-slate-300 mb-3 animate-pulse" size={32} />
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+          <p className="text-[11px] font-medium text-slate-500">
             Chọn một bộ dụng cụ trong bảng phía trên để quản lý chi tiết
           </p>
         </div>
@@ -192,9 +195,9 @@ export function BoDungCuChiTietPanel({
               <button
                 type="button"
                 onClick={() => setActiveTab("components")}
-                className={`px-4 py-2 text-[11px] font-black uppercase rounded-lg transition-all ${
+                className={`px-4 py-2 text-[11px] font-semibold uppercase tracking-wide rounded-lg transition-all ${
                   activeTab === "components"
-                    ? "bg-white text-[#026f17] shadow-sm"
+                    ? "bg-white text-[var(--primary)] shadow-sm"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
@@ -206,9 +209,9 @@ export function BoDungCuChiTietPanel({
                   setActiveTab("allocations");
                   fetchAllocations();
                 }}
-                className={`px-4 py-2 text-[11px] font-black uppercase rounded-lg transition-all ${
+                className={`px-4 py-2 text-[11px] font-semibold uppercase tracking-wide rounded-lg transition-all ${
                   activeTab === "allocations"
-                    ? "bg-white text-[#026f17] shadow-sm"
+                    ? "bg-white text-[var(--primary)] shadow-sm"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
@@ -235,7 +238,7 @@ export function BoDungCuChiTietPanel({
                       setEditing(null);
                       setModalOpen(true);
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-100 px-3.5 py-2 text-[10px] font-black uppercase tracking-wide text-emerald-800 hover:opacity-90 transition-all active:scale-95"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-100 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-emerald-800 hover:opacity-90 transition-all active:scale-95"
                   >
                     <PackagePlus className="h-3.5 w-3.5" /> Bổ sung dụng cụ vào bộ này
                   </button>
@@ -247,7 +250,7 @@ export function BoDungCuChiTietPanel({
                       setEditing(toFormRow(selectedChiTiet));
                       setModalOpen(true);
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-sky-100 px-3.5 py-2 text-[10px] font-black uppercase tracking-wide text-sky-800 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-sky-100 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-sky-800 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95"
                   >
                     <RefreshCcw className="h-3.5 w-3.5" /> Điều chuyển / chỉnh thông tin dụng cụ đã chọn
                   </button>
@@ -266,7 +269,7 @@ export function BoDungCuChiTietPanel({
                       toast.success("Đã ghi nhận báo hỏng (ghi chú + sổ giao dịch).");
                       onChanged?.();
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-rose-100 px-3.5 py-2 text-[10px] font-black uppercase tracking-wide text-rose-800 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-rose-100 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-rose-800 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95"
                   >
                     <AlertTriangle className="h-3.5 w-3.5" /> Báo hỏng bộ
                   </button>
@@ -285,16 +288,16 @@ export function BoDungCuChiTietPanel({
                       toast.success("Đã ghi nhận báo mất (ghi chú + sổ giao dịch).");
                       onChanged?.();
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-amber-100 px-3.5 py-2 text-[10px] font-black uppercase tracking-wide text-amber-800 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-amber-100 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-amber-800 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95"
                   >
                     <AlertTriangle className="h-3.5 w-3.5" /> Báo mất bộ
                   </button>
                 </div>
 
-                <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white">
+                <div className="overflow-x-auto rounded-[var(--radius-shell)] border border-slate-100 bg-white">
                   <table className="w-full min-w-[640px] border-collapse text-left text-sm">
                     <thead>
-                      <tr className="border-b border-slate-200 bg-slate-50/90 text-[10px] font-black uppercase tracking-wide text-slate-500">
+                      <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                         <th className="p-3">Mã chi tiết</th>
                         <th className="p-3">Tên</th>
                         <th className="p-3">Loại DC</th>
@@ -328,7 +331,7 @@ export function BoDungCuChiTietPanel({
                           <td className="p-3 text-center text-xs">{r.max_suds_count ?? "—"}</td>
                           <td className="p-3 text-center text-xs">{r.trong_luong != null && r.trong_luong !== "" ? String(r.trong_luong) : "—"}</td>
                           <td className="p-3 text-xs text-slate-500">{clip(r.ghi_chu, 64)}</td>
-                          <td className="p-3 text-[10px] font-bold uppercase text-slate-600">
+                          <td className="p-3 text-[11px] font-bold uppercase text-slate-600">
                             {r.is_active === false ? "Ngưng" : "Có"}
                           </td>
                         </tr>
@@ -338,10 +341,10 @@ export function BoDungCuChiTietPanel({
                 </div>
 
                 {selectedChiTiet ? (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-6 space-y-4">
-                    <p className="text-[10px] font-black uppercase tracking-wide text-slate-600">
+                  <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/80 p-6 space-y-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">
                       Loại dụng cụ đang chọn:{" "}
-                      <span className="text-[#026f17]">
+                      <span className="text-[var(--primary)]">
                         {selectedChiTiet.loai_dung_cu?.ma_danh_muc || "—"}
                         {selectedChiTiet.loai_dung_cu?.ten_danh_muc
                           ? ` — ${selectedChiTiet.loai_dung_cu.ten_danh_muc}`
@@ -372,7 +375,7 @@ export function BoDungCuChiTietPanel({
                           const preview = await getBoDungCuChiTietPreviewAction(selectedBoId!);
                           if (preview.success) setRows(preview.data);
                         }}
-                        className="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors"
+                        className="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-semibold px-3 py-1.5 rounded-lg uppercase tracking-wide transition-colors"
                       >
                         Báo hỏng lẻ
                       </button>
@@ -398,7 +401,7 @@ export function BoDungCuChiTietPanel({
                           const preview = await getBoDungCuChiTietPreviewAction(selectedBoId!);
                           if (preview.success) setRows(preview.data);
                         }}
-                        className="bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors"
+                        className="bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-semibold px-3 py-1.5 rounded-lg uppercase tracking-wide transition-colors"
                       >
                         Báo mất lẻ
                       </button>
@@ -423,36 +426,36 @@ export function BoDungCuChiTietPanel({
                           const preview = await getBoDungCuChiTietPreviewAction(selectedBoId!);
                           if (preview.success) setRows(preview.data);
                         }}
-                        className="bg-emerald-50 hover:bg-emerald-100 text-[#026f17] text-[11px] font-black px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors"
+                        className="bg-emerald-50 hover:bg-emerald-100 text-[var(--primary)] text-[11px] font-semibold px-3 py-1.5 rounded-lg uppercase tracking-wide transition-colors"
                       >
                         Bổ sung lẻ từ dự phòng
                       </button>
                     </div>
 
-                    <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider mt-2">
+                    <p className="text-[11px] text-slate-600 font-bold uppercase tracking-wider mt-2">
                       Các bộ khác đang chứa loại này:
                     </p>
                     {relLoading ? (
-                      <p className="text-[10px] text-slate-500">Đang tải liên kết bộ...</p>
+                      <p className="text-[11px] text-slate-500">Đang tải liên kết bộ...</p>
                     ) : relatedBos.length ? (
                       <div className="flex flex-wrap gap-2">
                         {relatedBos.map((b) => (
                           <span
                             key={b.id}
-                            className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-slate-700"
+                            className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700"
                           >
                             {b.ma_bo || "—"} {b.ten_bo ? `· ${clip(b.ten_bo, 32)}` : ""}
                           </span>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-[10px] text-slate-500">
+                      <p className="text-[11px] text-slate-500">
                         Chưa thấy bộ khác chứa loại này.
                       </p>
                     )}
                   </div>
                 ) : (
-                  <p className="text-[10px] text-slate-500">
+                  <p className="text-[11px] text-slate-500">
                     Chọn một dòng dụng cụ để xem liên kết loại và các bộ liên quan.
                   </p>
                 )}
@@ -460,9 +463,9 @@ export function BoDungCuChiTietPanel({
             )
           ) : (
             <div className="space-y-4">
-              <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 flex flex-wrap items-end gap-4">
+              <div className="bg-slate-50 border border-slate-100 rounded-[var(--radius-shell)] p-6 flex flex-wrap items-end gap-4">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Chọn khoa phân bổ</label>
+                  <label className="text-[11px] font-medium text-slate-400 ml-1">Chọn khoa phân bổ</label>
                   <select
                     value={selectedDeptId}
                     onChange={(e) => setSelectedDeptId(e.target.value)}
@@ -477,7 +480,7 @@ export function BoDungCuChiTietPanel({
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Cơ số phân bổ</label>
+                  <label className="text-[11px] font-medium text-slate-400 ml-1">Cơ số phân bổ</label>
                   <input
                     type="number"
                     min="1"
@@ -505,7 +508,7 @@ export function BoDungCuChiTietPanel({
                     }
                     setLoadingAllocations(false);
                   }}
-                  className="h-10 px-5 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase text-[10px] shadow-sm flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                  className={C.ctaPrimary}
                 >
                   Cập nhật phân bổ
                 </button>
@@ -520,10 +523,10 @@ export function BoDungCuChiTietPanel({
                   Chưa có phân bổ cơ số khoa phòng nào cho bộ này.
                 </p>
               ) : (
-                <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white">
+                <div className="overflow-x-auto rounded-[var(--radius-shell)] border border-slate-100 bg-white">
                   <table className="w-full min-w-[500px] border-collapse text-left text-sm">
                     <thead>
-                      <tr className="border-b border-slate-200 bg-slate-50/90 text-[10px] font-black uppercase tracking-wide text-slate-500">
+                      <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                         <th className="p-3">Mã khoa</th>
                         <th className="p-3">Tên khoa</th>
                         <th className="p-3 text-center w-32">Cơ số phân bổ</th>
@@ -547,7 +550,7 @@ export function BoDungCuChiTietPanel({
                                 });
                                 if (r.success) { fetchAllocations(); onChanged?.(); }
                               }}
-                              className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] px-2.5 py-1 rounded-lg"
+                              className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] px-2.5 py-1 rounded-lg"
                             >
                               +1
                             </button>
@@ -564,7 +567,7 @@ export function BoDungCuChiTietPanel({
                                 });
                                 if (r.success) { fetchAllocations(); onChanged?.(); }
                               }}
-                              className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] px-2.5 py-1 rounded-lg"
+                              className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] px-2.5 py-1 rounded-lg"
                             >
                               -1
                             </button>
@@ -579,7 +582,7 @@ export function BoDungCuChiTietPanel({
                                 });
                                 if (r.success) { fetchAllocations(); onChanged?.(); }
                               }}
-                              className="bg-rose-50 hover:bg-rose-100 text-rose-700 font-black text-[11px] uppercase px-2.5 py-1 rounded-lg"
+                              className="bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-[11px] uppercase px-2.5 py-1 rounded-lg"
                             >
                               Thu hồi
                             </button>

@@ -1,13 +1,5 @@
-/**
- * /giam-sat-chung/he-thong — Slice 5 (giam-sat-tuan-thu reform v4).
- *
- * Tab "Đánh giá hệ thống": thanh tra JCI/APSIC dùng nội bộ. Bảng kiểm có
- * `loai_giam_sat='DANH_GIA_HE_THONG'` — thường gắn với SOP/policy review,
- * không xuất kết quả công khai.
- */
-
 import React, { Suspense } from "react";
-import GiamSatChungPage from "@/modules/giam-sat-chung/views/GiamSatChungPage";
+import GscFormView from "@/modules/giam-sat-chung/views/GscFormView";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 
 export const metadata = {
@@ -19,7 +11,7 @@ export const metadata = {
 export default function DanhGiaHeThongPage() {
   return (
     <Suspense fallback={<SupervisionPageSkeleton />}>
-      <GiamSatChungPage initialLoaiGiamSat="DANH_GIA_HE_THONG" />
+      <GscFormView initialLoaiGiamSat="DANH_GIA_HE_THONG" />
     </Suspense>
   );
 }

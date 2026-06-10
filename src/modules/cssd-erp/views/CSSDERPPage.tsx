@@ -15,7 +15,7 @@ import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-s
 import CssdBatchMeLinkChip from "../components/workflow/cssd-batch-me-link-chip";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import type { Station } from "../types/cssd.types";
-import { CSSD_UI_PANEL, CSSD_UI_SECTION_TITLE } from "../shared/ui/cssd-ui-chrome";
+import { CSSD_UI_CONTROL, CSSD_UI_FORM_LABEL, CSSD_UI_PANEL, CSSD_UI_SECTION_TITLE, CSSD_UI_STEP_HINT } from "../shared/ui/cssd-ui-chrome";
 import WorkflowManualOpsPanel from "../components/workflow/WorkflowManualOpsPanel";
 import { SCAN_STATIONS } from "../workflow/domain/cssd-stations";
 import { isValidStation } from "../workflow/domain/cssd-state-engine";
@@ -139,7 +139,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
       <section className={`space-y-4 p-4 ${CSSD_UI_PANEL}`}>
         <div className="flex flex-wrap items-end justify-between gap-2 px-1">
           <h2 className={CSSD_UI_SECTION_TITLE}>Quy trình quét trạm (không gồm mẻ hấp)</h2>
-          <span className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">
+          <span className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
             {currentStation ? stationVnNames[currentStation] : "Chưa chọn trạm"}
           </span>
         </div>
@@ -195,7 +195,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
       <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-6">
           {currentStation ? <WaitingList items={waitingList} onAction={submitWorkflowQr} /> : (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-20 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">Vui lòng chọn trạm làm việc để bắt đầu</div>
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-20 text-center text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">Vui lòng chọn trạm làm việc để bắt đầu</div>
           )}
         </div>
 
@@ -205,12 +205,12 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
             
             {currentStation === "CAP_PHAT" && (
               <div className="animate-in slide-in-from-top-2">
-                <label className="mb-2 block text-[10px] font-semibold uppercase tracking-widest text-emerald-700">Truy vết ca mổ / bệnh nhân (tùy chọn)</label>
-                <input 
+                <label className={`mb-2 ${CSSD_UI_FORM_LABEL} text-emerald-800`}>Truy vết ca mổ / bệnh nhân (tùy chọn)</label>
+                <input
                   value={maCaMoId}
                   onChange={e => setMaCaMoId(e.target.value)}
-                  placeholder="Nhập mã số ca mổ hoặc tên bệnh nhân..."
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-200"
+                  placeholder="Nhập mã số ca mổ hoặc tên bệnh nhân…"
+                  className={CSSD_UI_CONTROL}
                 />
               </div>
             )}
@@ -236,7 +236,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
             ) : (
               <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 py-16 text-slate-400">
                 <QrCode size={36} className="opacity-40" />
-                <p className="text-[10px] font-medium uppercase tracking-[0.2em]">Chờ lệnh quét QR mới</p>
+                <p className={CSSD_UI_STEP_HINT}>Chờ lệnh quét QR mới</p>
               </div>
             )}
           </div>
@@ -261,7 +261,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     <CSSDPageShell
       title={
         <>
-          Quản lý <span className="text-[#026f17]">CSSD</span>
+          Quản lý <span className="text-[var(--primary)]">CSSD</span>
         </>
       }
       subtitle="Chọn trạm làm việc và quét mã QR đã in từ danh mục."

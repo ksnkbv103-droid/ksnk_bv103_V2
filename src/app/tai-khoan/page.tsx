@@ -7,6 +7,8 @@ import { usePermission, type UserDataProfile } from "@/hooks/usePermission";
 import { manualLinkAccountAction } from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/account-link-governance.actions";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 export default function AccountPage() {
   const { userData, loading: rbacLoading, isAdmin } = usePermission();
@@ -68,15 +70,15 @@ export default function AccountPage() {
           </div>
           
           <div className="flex-1 space-y-2">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+            <h1 className={T.authTitle}>
               {isLinked ? String(profile?.ho_ten || "") : "Người dùng hệ thống"}
             </h1>
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
-              <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider">
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-medium text-slate-600">
                 {String(profile?.email || "Chưa cập nhật email")}
               </span>
               {isAdmin && (
-                <span className="px-3 py-1 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <span className="flex items-center gap-1.5 rounded-full bg-indigo-100 px-3 py-1 text-[11px] font-medium text-indigo-600">
                   <Shield size={12} />
                   Quản trị viên
                 </span>
@@ -86,7 +88,7 @@ export default function AccountPage() {
 
           <button 
             onClick={handleLogout}
-            className="px-6 py-3 rounded-2xl bg-rose-50 text-rose-600 text-sm font-black flex items-center gap-2 hover:bg-rose-100 transition-all active:scale-95"
+            className={`${C.btnSecondary} gap-2 text-[var(--surface-danger-text)] hover:bg-[var(--surface-danger-bg)]`}
           >
             <LogOut size={18} />
             Đăng xuất
@@ -101,16 +103,16 @@ export default function AccountPage() {
             <div className={`p-3 rounded-2xl ${isLinked ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
               {isLinked ? <CheckCircle size={24} /> : <AlertTriangle size={24} />}
             </div>
-            <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">Trạng thái liên kết</h3>
+            <h3 className={T.sectionTitle}>Trạng thái liên kết</h3>
           </div>
 
           {isLinked ? (
             <div className="space-y-4">
-              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 space-y-2">
-                <p className="text-[10px] font-black text-emerald-800 uppercase">Hồ sơ đã kết nối</p>
+              <div className={`space-y-2 rounded-2xl p-4 ${C.noticeSuccess}`}>
+                <p className="text-[11px] font-medium">Hồ sơ đã kết nối</p>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-bold text-slate-700">{String(profile?.ho_ten || "")}</span>
-                  <span className="text-xs font-black text-slate-400">#{String(profile?.ma_nv || "")}</span>
+                  <span className="text-sm font-medium text-slate-700">{String(profile?.ho_ten || "")}</span>
+                  <span className={`text-xs ${T.metaMono}`}>#{String(profile?.ma_nv || "")}</span>
                 </div>
               </div>
               <p className="text-xs text-slate-500 leading-relaxed font-medium">
@@ -172,7 +174,7 @@ export default function AccountPage() {
             <div className="p-3 rounded-2xl bg-white/10 text-indigo-400">
               <Shield size={24} />
             </div>
-            <h3 className="text-lg font-black uppercase tracking-tight">An toàn & Bảo mật</h3>
+            <h3 className={T.sectionTitle}>An toàn & Bảo mật</h3>
           </div>
 
           <div className="space-y-4 pt-4">

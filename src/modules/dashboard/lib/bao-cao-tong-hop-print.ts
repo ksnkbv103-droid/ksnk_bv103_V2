@@ -282,13 +282,13 @@ const PRINT_STYLES = `
     @page { size: A4; margin: 15mm 15mm 20mm 20mm; }
     body { font-family: "Times New Roman", Times, serif; color: #1e293b; font-size: 13px; line-height: 1.5; margin: 0; padding: 0; }
     .page-break { page-break-before: always; }
-    .header { display: flex; justify-content: space-between; border-bottom: 1.5pt solid #026f17; padding-bottom: 10px; margin-bottom: 20px; }
+    .header { display: flex; justify-content: space-between; border-bottom: 1.5pt solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; }
     .header-left { text-align: center; width: 45%; }
     .header-right { text-align: center; width: 45%; }
     .report-title { text-align: center; margin: 30px 0; }
-    .report-title h1 { font-size: 18px; margin: 0; color: #026f17; text-transform: uppercase; font-weight: bold; }
+    .report-title h1 { font-size: 18px; margin: 0; color: var(--primary); text-transform: uppercase; font-weight: bold; }
     .report-title p { margin: 5px 0; font-style: italic; font-size: 13px; }
-    h2 { font-size: 14px; color: #026f17; border-left: 4pt solid #026f17; padding-left: 10px; margin: 25px 0 15px; text-transform: uppercase; font-weight: bold; }
+    h2 { font-size: 14px; color: var(--primary); border-left: 4pt solid var(--primary); padding-left: 10px; margin: 25px 0 15px; text-transform: uppercase; font-weight: bold; }
     h3 { font-size: 13px; color: #334155; margin: 15px 0 10px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 5px; font-weight: bold; }
     h4.bk-title { font-size: 12px; color: #0f172a; margin: 12px 0 6px; font-weight: bold; }
     .summary-box { background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px; border-radius: 4px; margin-bottom: 20px; }

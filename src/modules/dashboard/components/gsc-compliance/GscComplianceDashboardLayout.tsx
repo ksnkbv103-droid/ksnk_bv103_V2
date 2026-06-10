@@ -3,6 +3,7 @@
 import type { DashboardV4Payload } from "../../strategic-dashboard-v4.types";
 import { GscDashboardSummaryCards } from "./GscDashboardSummaryCards";
 import { GscDashboardTopViPhamPanel } from "./GscDashboardTopViPhamPanel";
+import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import { GscDashboardVungNguyCoPanel } from "./GscDashboardVungNguyCoPanel";
 
 type Props = {
@@ -18,11 +19,11 @@ export function GscComplianceDashboardLayout({ payload, loading }: Props) {
 
       <div className={`grid grid-cols-1 gap-6 xl:grid-cols-2 ${loading ? "opacity-60" : ""}`}>
         <div className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Vùng nguy cơ (IPAC)</p>
+          <p className={D.kpiLabel}>Vùng nguy cơ (IPAC)</p>
           <GscDashboardVungNguyCoPanel rows={payload.vung_nguy_co} />
         </div>
         <div className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Top tiêu chí vi phạm</p>
+          <p className={D.kpiLabel}>Top tiêu chí vi phạm</p>
           <GscDashboardTopViPhamPanel rows={payload.top_vi_pham} />
         </div>
       </div>

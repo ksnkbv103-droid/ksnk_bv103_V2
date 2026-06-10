@@ -35,7 +35,7 @@ export default function InventoryHistoryTable() {
       </div>
     )},
     { header: "BỘ / LOẠI", accessorKey: "cssd_dm_bo_dung_cu.ma_bo", cell: (item: any) => (
-      <span className="font-bold text-slate-700 text-[10px] uppercase truncate max-w-[120px] block">
+      <span className="font-bold text-slate-700 text-[11px] uppercase truncate max-w-[120px] block">
         {item.cssd_dm_bo_dung_cu?.ma_bo || item.cssd_dm_loai_dung_cu?.ma_loai_dung_cu || "---"}
       </span>
     )},
@@ -56,9 +56,9 @@ export default function InventoryHistoryTable() {
       <div className="p-5 pb-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-slate-50 rounded-xl text-slate-400"><History size={20} /></div>
-          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Lịch sử giao dịch kho</h3>
+          <h3 className="text-[11px] font-medium text-slate-400 tracking-[0.3em]">Lịch sử giao dịch kho</h3>
         </div>
-        <button onClick={fetchHistory} className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-[#026f17] active:rotate-180 transition-all duration-500">
+        <button onClick={fetchHistory} className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-[var(--primary)] active:rotate-180 transition-all duration-500">
           <RefreshCw size={18} />
         </button>
       </div>

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { dashboardChrome as D } from "../lib/dashboard-chrome";
 import { ClipboardList, Loader2 } from "lucide-react";
 import { getQlcvCommandCenterSnapshot } from "@/modules/quan-ly-cong-viec/actions/dashboard.actions";
 
@@ -45,12 +46,12 @@ export function QlcvCommandCenterCard() {
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-          <ClipboardList size={16} className="text-[#026f17]" aria-hidden />
+          <ClipboardList size={16} className="text-[var(--primary)]" aria-hidden />
           Công việc KSNK
         </h3>
         <Link
           href="/quan-ly-cong-viec"
-          className="text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)] hover:underline"
+          className="text-[11px] font-medium text-[var(--primary)] hover:underline"
         >
           Mở module
         </Link>
@@ -63,8 +64,8 @@ export function QlcvCommandCenterCard() {
           { label: "Quá hạn", v: stats.qua_han, warn: true },
         ].map((x) => (
           <div key={x.label} className="rounded-lg border border-slate-100 bg-slate-50/80 px-2.5 py-2">
-            <p className="text-[10px] font-semibold uppercase text-slate-500">{x.label}</p>
-            <p className={`text-lg font-black tabular-nums ${x.warn ? "text-red-700" : "text-slate-800"}`}>{x.v}</p>
+            <p className={D.kpiLabel}>{x.label}</p>
+            <p className={`text-lg font-semibold tabular-nums ${x.warn ? "text-[var(--surface-danger-text)]" : "text-slate-800"}`}>{x.v}</p>
           </div>
         ))}
       </div>

@@ -19,14 +19,14 @@ export function getDungCuChiTietColumns(actionUi: ActionCells): Column<DungCuChi
       header: "MÃ CHI TIẾT",
       accessorKey: "ma_chi_tiet",
       sortable: true,
-      cell: (i) => <span className="font-mono text-[10px] font-bold text-indigo-700">{i.ma_chi_tiet || "—"}</span>,
+      cell: (i) => <span className="font-mono text-[11px] font-bold text-indigo-700">{i.ma_chi_tiet || "—"}</span>,
     },
     {
       header: "TÊN",
       accessorKey: "ten_chi_tiet",
       sortable: true,
       cell: (i) => (
-        <span className="text-[11px] font-black uppercase text-[#026f17]">{clip(i.ten_chi_tiet || i.ten_dung_cu_le, 42)}</span>
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)]">{clip(i.ten_chi_tiet || i.ten_dung_cu_le, 42)}</span>
       ),
     },
     {
@@ -34,7 +34,7 @@ export function getDungCuChiTietColumns(actionUi: ActionCells): Column<DungCuChi
       accessorKey: "ma_loai",
       sortable: true,
       cell: (i) => (
-        <span className="text-[10px] font-mono font-bold text-violet-700">
+        <span className="text-[11px] font-mono font-bold text-violet-700">
           {String((i as Record<string, unknown>).ma_loai || i.loai_dung_cu?.ma_danh_muc || "—")}
         </span>
       ),
@@ -44,7 +44,7 @@ export function getDungCuChiTietColumns(actionUi: ActionCells): Column<DungCuChi
       accessorKey: "loai_dung_cu",
       sortable: true,
       cell: (i) => (
-        <span className="text-[10px] font-bold text-slate-600">
+        <span className="text-[11px] font-bold text-slate-600">
           {i.loai_dung_cu?.ma_danh_muc || "—"}
           {i.loai_dung_cu?.ten_danh_muc ? ` — ${clip(i.loai_dung_cu.ten_danh_muc, 36)}` : ""}
         </span>
@@ -55,7 +55,7 @@ export function getDungCuChiTietColumns(actionUi: ActionCells): Column<DungCuChi
       accessorKey: "bo_dung_cu_id",
       sortable: true,
       cell: (i) => (
-        <span className="text-[10px] font-bold text-blue-700">
+        <span className="text-[11px] font-bold text-blue-700">
           {i.bo_dung_cu?.ma_bo ? `${i.bo_dung_cu.ma_bo} · ` : ""}
           {clip(i.bo_dung_cu?.ten_bo, 32) || "Dụng cụ lẻ"}
         </span>
@@ -65,20 +65,20 @@ export function getDungCuChiTietColumns(actionUi: ActionCells): Column<DungCuChi
       header: "SL",
       accessorKey: "so_luong",
       sortable: true,
-      cell: (i) => <span className="text-[10px] font-bold">{i.so_luong ?? "—"}</span>,
+      cell: (i) => <span className="text-[11px] font-bold">{i.so_luong ?? "—"}</span>,
     },
     {
       header: "CK TỐI ĐA",
       accessorKey: "max_suds_count",
       sortable: true,
-      cell: (i) => <span className="text-[10px]">{i.max_suds_count ?? "—"}</span>,
+      cell: (i) => <span className="text-[11px]">{i.max_suds_count ?? "—"}</span>,
     },
     {
       header: "TRỌNG LƯỢNG",
       accessorKey: "trong_luong",
       sortable: true,
       cell: (i) => (
-        <span className="text-[10px]">{i.trong_luong != null && i.trong_luong !== "" ? String(i.trong_luong) : "—"}</span>
+        <span className="text-[11px]">{i.trong_luong != null && i.trong_luong !== "" ? String(i.trong_luong) : "—"}</span>
       ),
     },
     {
@@ -89,7 +89,7 @@ export function getDungCuChiTietColumns(actionUi: ActionCells): Column<DungCuChi
     {
       header: "GHI CHÚ",
       accessorKey: "ghi_chu",
-      cell: (i) => <span className="text-[10px] text-slate-500">{clip(i.ghi_chu, 40)}</span>,
+      cell: (i) => <span className="text-[11px] text-slate-500">{clip(i.ghi_chu, 40)}</span>,
     },
     {
       header: "HOẠT ĐỘNG",

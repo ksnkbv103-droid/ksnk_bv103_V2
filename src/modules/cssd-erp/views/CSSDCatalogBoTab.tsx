@@ -63,7 +63,7 @@ export function CSSDCatalogBoTab(props: {
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Layers className="h-5 w-5 text-[#026f17]" />
+            <Layers className="h-5 w-5 text-[var(--primary)]" />
             <h3 className="text-sm font-bold text-slate-800">
               Danh mục Bộ dụng cụ ({boRows.length})
             </h3>
@@ -74,7 +74,7 @@ export function CSSDCatalogBoTab(props: {
         <div className="max-h-[350px] overflow-auto rounded-xl border border-slate-100 relative">
           <table className="w-full border-collapse text-left text-sm text-slate-700">
             <thead>
-              <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-black uppercase tracking-wider text-slate-400 shadow-sm">
+              <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">
                 <th className="px-4 py-3">Mã bộ</th>
                 <th className="px-4 py-3">Tên bộ</th>
                 <th className="px-4 py-3 text-center">Phân loại bộ</th>
@@ -96,11 +96,11 @@ export function CSSDCatalogBoTab(props: {
                       isSelected ? "bg-emerald-50/70 font-medium text-slate-900" : ""
                     }`}
                   >
-                    <td className="px-4 py-3.5 font-bold text-[#026f17]">{x.ma_bo || "—"}</td>
+                    <td className="px-4 py-3.5 font-bold text-[var(--primary)]">{x.ma_bo || "—"}</td>
                     <td className="px-4 py-3.5 font-semibold">{x.ten_bo || "—"}</td>
                     <td className="px-4 py-3.5 text-center">
                       <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold ${
                           x.phan_loai_bo === "THU_THUAT"
                             ? "bg-amber-50 text-amber-700 border border-amber-200"
                             : "bg-blue-50 text-blue-700 border border-blue-200"
@@ -132,7 +132,7 @@ export function CSSDCatalogBoTab(props: {
                         type="button"
                         disabled={printingId === x.id}
                         onClick={(e) => void handlePrintQr(e, x.id)}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-[11px] font-black uppercase text-[#026f17] border border-emerald-200/50 hover:bg-[#026f17] hover:text-white transition-all disabled:opacity-50 touch-manipulation"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)] border border-emerald-200/50 hover:bg-[var(--primary)] hover:text-white transition-all disabled:opacity-50 touch-manipulation"
                         title="Tạo mã QR và in nhãn dán"
                       >
                         {printingId === x.id ? (
@@ -166,7 +166,7 @@ export function CSSDCatalogBoTab(props: {
             <h3 className="text-sm font-bold text-slate-800">
               Thành phần dụng cụ trong bộ{" "}
               {selectedBo ? (
-                <span className="text-[#026f17] font-black">
+                <span className="text-[var(--primary)] font-black">
                   — {selectedBo.ten_bo} ({selectedBo.ma_bo})
                 </span>
               ) : (
@@ -192,7 +192,7 @@ export function CSSDCatalogBoTab(props: {
           <div className="max-h-[350px] overflow-auto rounded-xl border border-slate-100 relative">
             <table className="w-full border-collapse text-left text-sm text-slate-700">
               <thead>
-                <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-black uppercase tracking-wider text-slate-400 shadow-sm">
+                <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">
                   <th className="px-4 py-3">Mã dụng cụ</th>
                   <th className="px-4 py-3">Tên dụng cụ thành phần</th>
                   <th className="px-4 py-3">Loại dụng cụ</th>

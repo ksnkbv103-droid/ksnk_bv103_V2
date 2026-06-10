@@ -20,7 +20,7 @@ export function MdmActiveToggle({
 }: MdmActiveToggleProps) {
   const interactive = Boolean(onToggle) && !disabled;
   const sizing = size === "sm" ? "h-[28px] min-w-[148px]" : "h-[34px] min-w-[168px]";
-  const textSize = size === "sm" ? "text-[11px]" : "text-[10px]";
+  const textSize = size === "sm" ? "text-[11px]" : "text-[11px]";
 
   const track = cn(
     "inline-flex shrink-0 select-none items-center gap-0.5 rounded-lg bg-slate-100/95 p-[3px] ring-1 ring-slate-200/90 [-webkit-tap-highlight-color:transparent]",
@@ -91,7 +91,7 @@ export function MdmFormActiveToggleRow({
 }) {
   return (
     <div className="space-y-1">
-      <div className="text-[10px] font-black uppercase tracking-wide text-slate-500">Trạng thái hoạt động</div>
+      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Trạng thái hoạt động</div>
       <MdmActiveToggle
         active={active}
         onToggle={disabled ? undefined : () => onChange(!active)}

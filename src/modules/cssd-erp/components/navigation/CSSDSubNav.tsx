@@ -27,6 +27,8 @@ const navItems: NavEntry[] = [
   { name: "Báo cáo CSSD", href: CSSD_ROUTES.report, icon: FileText, group: "ANALYTICS" },
 ];
 
+/** SubNav dự phòng — SSOT điều hướng CSSD là Sidebar. Không mount trên CSSDPageShell. */
+
 const linkBase =
   "flex min-w-0 items-center justify-start gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2";
 

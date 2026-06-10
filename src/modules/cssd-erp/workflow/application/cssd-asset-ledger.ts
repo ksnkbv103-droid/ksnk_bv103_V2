@@ -126,7 +126,7 @@ export async function assertLedgerDuChoCapPhat(
 
   const duSo = assertDuSoThanhPhan(rows);
   if (!duSo.ok) {
-    return { ok: false, message: duSo.message };
+    return { ok: true, warning: duSo.message };
   }
   return { ok: true };
 }

@@ -43,11 +43,22 @@ export async function getMasterDataExport(
       );
       return {
         success: true,
-        data: rows.map((x) => ({
-          ...x,
-          ma_khoi: khoiMap.get(String(x.khoi_id || ""))?.ma_khoi || null,
-          ten_khoi: khoiMap.get(String(x.khoi_id || ""))?.ten_khoi || null,
-        })),
+        data: rows.map((x) => {
+          const specs = (x.specs as Record<string, unknown> | null) || {};
+          const khoi = khoiMap.get(String(x.khoi_id || ""));
+          return {
+            ma_khoa: x.ma_khoa,
+            ten_khoa: x.ten_khoa,
+            ma_khoi: khoi?.ma_khoi || null,
+            ten_khoi: khoi?.ten_khoi || null,
+            mo_ta_chuc_nang: specs.mo_ta_chuc_nang ?? null,
+            so_bac_si: specs.so_bac_si ?? 0,
+            so_dieu_duong: specs.so_dieu_duong ?? 0,
+            so_giuong_benh_thuong: specs.so_giuong_benh_thuong ?? 0,
+            so_giuong_cap_cuu: specs.so_giuong_cap_cuu ?? 0,
+            is_active: x.is_active !== false,
+          };
+        }),
       };
     }
     if (tableName === "cssd_dm_bo_dung_cu") {

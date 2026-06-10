@@ -3,7 +3,6 @@
 import React from "react";
 import { KsnkSupervisionHero } from "@/components/shared/ksnk-supervision-chrome";
 
-
 /** Vỏ trang CSSD trong `KsnkPageShell` — không nhân đôi max-width/padding của `<main>`. */
 export const CSSD_PAGE_OUTER =
   "w-full min-h-[40vh] space-y-6 pb-12 animate-in fade-in duration-500 touch-manipulation [-webkit-tap-highlight-color:transparent]";
@@ -15,7 +14,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-/** Khung trang CSSD ERP: hero + SubNav + nội dung — đồng bộ với giám sát / Quản trị. */
+/** Khung trang CSSD: hero + nội dung. Điều hướng module → Sidebar (không nhân SubNav). */
 export default function CSSDPageShell({ title, subtitle, actions, children }: Props) {
   return (
     <div className={CSSD_PAGE_OUTER}>

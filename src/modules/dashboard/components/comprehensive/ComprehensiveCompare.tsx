@@ -5,6 +5,7 @@ import { BarChart2, MapPin } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 import { topBottomKhoa } from "../../lib/bao-cao-tong-hop-core";
+import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 
 function CompareBarChart({
   data,
@@ -57,8 +58,8 @@ export function ComprehensiveCompare({ payload }: { payload: BaoCaoTongHopPayloa
     <div className="space-y-6">
       {hasZone ? (
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
-            <MapPin size={18} className="text-amber-500" aria-hidden />
+          <h2 className={`mb-4 flex items-center gap-2 ${D.sectionHeading}`}>
+            <MapPin size={18} className="text-[var(--surface-warning-text)]" aria-hidden />
             So sánh theo vùng IPAC (4 màu)
           </h2>
           <div className="h-[240px]">
@@ -69,7 +70,7 @@ export function ComprehensiveCompare({ payload }: { payload: BaoCaoTongHopPayloa
               gscKey="ty_le_gsc"
             />
           </div>
-          <p className="mt-2 text-[10px] text-slate-400">
+          <p className="mt-2 text-[11px] text-slate-400">
             Gộp theo nhóm màu khu vực (Trắng / Đỏ / Vàng / Xanh) — chi tiết từng chức năng phòng ở bảng in.
           </p>
         </section>
@@ -77,7 +78,7 @@ export function ComprehensiveCompare({ payload }: { payload: BaoCaoTongHopPayloa
 
       {hasKhoa ? (
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 flex items-center gap-2 text-lg font-black text-slate-800">
+          <h2 className={`mb-4 flex items-center gap-2 ${D.sectionHeading}`}>
             <BarChart2 size={18} className="text-indigo-500" aria-hidden />
             So sánh theo khoa (Top 5)
           </h2>
@@ -91,7 +92,7 @@ export function ComprehensiveCompare({ payload }: { payload: BaoCaoTongHopPayloa
               />
             </div>
             <div>
-              <h3 className="mb-2 text-xs font-bold uppercase text-slate-500">Cần ưu tiên giám sát (Bottom 5)</h3>
+              <h3 className={`mb-2 ${D.kpiLabel}`}>Cần ưu tiên giám sát (Bottom 5)</h3>
               <ul className="space-y-2">
                 {bottom.map((row) => (
                   <li
@@ -99,7 +100,7 @@ export function ComprehensiveCompare({ payload }: { payload: BaoCaoTongHopPayloa
                     className="flex items-center justify-between rounded-lg border border-red-100 bg-red-50/50 px-3 py-2 text-sm"
                   >
                     <span className="font-semibold text-slate-800">{row.ten}</span>
-                    <span className="font-black text-red-700">{row.ty_le_avg ?? "—"}%</span>
+                    <span className="font-semibold tabular-nums text-[var(--surface-danger-text)]">{row.ty_le_avg ?? "—"}%</span>
                   </li>
                 ))}
               </ul>

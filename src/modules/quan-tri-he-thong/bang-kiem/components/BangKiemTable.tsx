@@ -11,7 +11,7 @@ import BangKiemForm from "./BangKiemForm";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import type { DanhMucBangKiem } from "../bang-kiem.types";
-import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 
 export type BangKiemTablePermission = Partial<{
   import: boolean;
@@ -95,7 +95,7 @@ export default function BangKiemTable({
 
   const columns: Column<DanhMucBangKiem>[] = [
     { header: "MÃ / TÊN BẢNG KIỂM", accessorKey: "ten_bang_kiem", sortable: true, cell: (bk) => (
-      <div className="py-1"><div className="text-[10px] font-black text-[#026f17] uppercase tracking-widest">{bk.ma_bk}</div><div className="text-sm font-black text-slate-800 uppercase tracking-tight mt-1">{bk.ten_bang_kiem}</div></div>
+      <div className="py-1"><div className="text-[11px] font-medium text-[var(--primary)]">{bk.ma_bk}</div><div className="text-sm font-semibold text-slate-800 mt-1">{bk.ten_bang_kiem}</div></div>
     )},
     { header: "TRẠNG THÁI", accessorKey: "is_active", sortable: true, cell: (bk) => actionUi.renderStatusCell(bk) },
     { header: "QUẢN LÝ", accessorKey: "id", cell: (bk) => actionUi.renderManagementCell(bk) }
@@ -105,19 +105,19 @@ export default function BangKiemTable({
     isFormOpen && ((editingBK != null && allowEdit) || (editingBK == null && allowCreate));
 
   return (
-    <div className={`min-h-[400px] overflow-hidden p-0 animate-in fade-in ${bv103LayoutChrome.panelSurface}`}>
+    <div className={`min-h-[400px] overflow-hidden p-0 animate-in fade-in ${C.panelSurface}`}>
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 bg-white p-6">
         <div className="flex gap-3 flex-wrap">
-          <button type="button" onClick={() => exportTemplate()} className="h-10 px-5 bg-slate-50 text-slate-500 rounded-xl font-black uppercase text-[10px] flex items-center gap-2 hover:bg-slate-100 transition-all shadow-sm"><Download size={14} /> Export dữ liệu mẫu</button>
+          <button type="button" onClick={() => exportTemplate()} className={C.ctaMuted}><Download size={14} /> Export dữ liệu mẫu</button>
           {allowImport ? (
             <>
-              <button type="button" onClick={() => triggerImport()} disabled={isImporting} className="h-10 px-5 bg-amber-50 text-amber-600 rounded-xl font-black uppercase text-[10px] flex items-center gap-2 hover:bg-amber-100 transition-all shadow-lg">{isImporting ? <Loader2 size={14} className="animate-spin" /> : <><Upload size={14} /> Import dữ liệu</>}</button>
+              <button type="button" onClick={() => triggerImport()} disabled={isImporting} className={C.ctaAmber}>{isImporting ? <Loader2 size={14} className="animate-spin" /> : <><Upload size={14} /> Import dữ liệu</>}</button>
               <input ref={fileInputRef} type="file" className="hidden" accept=".xlsx,.xls" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} />
             </>
           ) : null}
         </div>
         {allowCreate ? (
-          <button type="button" onClick={() => { setEditingBK(null); setIsFormOpen(true); }} className="h-10 px-6 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase text-[10px] shadow-lg flex items-center gap-2 active:scale-95 transition-all"><Plus size={16} /> Thêm Bảng kiểm</button>
+          <button type="button" onClick={() => { setEditingBK(null); setIsFormOpen(true); }} className={C.ctaPrimary}><Plus size={16} /> Thêm Bảng kiểm</button>
         ) : null}
       </div>
       <div className="px-4 pb-2 sm:px-6">
@@ -128,7 +128,7 @@ export default function BangKiemTable({
           enableMultiSelect={allowDelete}
           onRowClick={(row) => onSelectBK(row)}
           rowClassName={(row) =>
-            row.id === selectedBKId ? "bg-[#026f17]/5 border-l-4 border-l-[#026f17]" : ""
+            row.id === selectedBKId ? "bg-[var(--primary)]/5 border-l-4 border-l-[var(--primary)]" : ""
           }
           onDeleteSelected={
             allowDelete

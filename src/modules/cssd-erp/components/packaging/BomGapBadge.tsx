@@ -16,7 +16,7 @@ export default function BomGapBadge({ heat, gap }: Props) {
 
   if (lowTemp) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-50 text-red-700 border border-red-200 shadow-sm animate-pulse">
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide bg-red-50 text-red-700 border border-red-200 shadow-sm animate-pulse">
         <ShieldAlert size={12} className="text-red-500 shrink-0" strokeWidth={2.5} />
         Lẫn nhiệt ⚡ ({heat?.recommendedMethod})
       </span>
@@ -28,7 +28,7 @@ export default function BomGapBadge({ heat, gap }: Props) {
     const totalDamaged = gap.reduce((acc, curr) => acc + curr.hong, 0);
     
     return (
-      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 shadow-sm">
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide bg-amber-50 text-amber-700 border border-amber-200 shadow-sm">
         <AlertTriangle size={12} className="text-amber-500 shrink-0" strokeWidth={2.5} />
         Thiếu {totalMissing > 0 ? `${totalMissing} món` : ""}{totalDamaged > 0 ? ` (Hỏng ${totalDamaged})` : ""} ⚠
       </span>
@@ -36,7 +36,7 @@ export default function BomGapBadge({ heat, gap }: Props) {
   }
 
   return (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
       <CheckCircle size={12} className="text-emerald-500 shrink-0" strokeWidth={2.5} />
       Đầy đủ ✓
     </span>

@@ -9,6 +9,7 @@ import ServerPaginationBar from "./ServerPaginationBar";
 import DataTableBody from "./DataTableBody";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useMinWidth } from "@/hooks/use-min-width";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
 /**
  * Định nghĩa cột cho bảng
@@ -145,11 +146,11 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
 
           {selectedIds.size > 0 && (enableMultiSelect || bulkActions) && (
             <div
-              className={`flex flex-wrap items-center gap-2 rounded-lg border border-[#026f17]/15 bg-[#026f17]/5 p-1 animate-in slide-in-from-top-2 ${
+              className={`flex flex-wrap items-center gap-2 rounded-lg border border-[var(--primary)]/15 bg-[var(--primary)]/5 p-1 animate-in slide-in-from-top-2 ${
                 showInlineSearch ? "ml-auto" : ""
               }`}
             >
-              <span className="whitespace-nowrap px-3 text-[10px] font-semibold uppercase tracking-wide text-[#026f17]">
+              <span className={`whitespace-nowrap px-3 ${T.labelBlock} text-[var(--primary)]`}>
                 Đã chọn {selectedIds.size} mục
               </span>
               {enableMultiSelect && onDeleteSelected && (
@@ -175,20 +176,20 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
               <tr className="border-b border-slate-200/90">
                 {enableMultiSelect && (
                   <th className="p-4 w-12 text-center no-print">
-                    <input type="checkbox" className="w-5 h-5 rounded-lg border-2 border-slate-200 text-[#026f17] focus:ring-[#026f17] transition-all cursor-pointer"
+                    <input type="checkbox" className="w-5 h-5 rounded-lg border-2 border-slate-200 text-[var(--primary)] focus:ring-[var(--primary)] transition-all cursor-pointer"
                       checked={data.length > 0 && selectedIds.size === data.length} onChange={toggleSelectAll} />
                   </th>
                 )}
                 {columns.map((col, idx) => (
                   <th key={`head-${idx}-${String(col.accessorKey)}`}
-                    className={`p-3.5 md:p-4 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500 transition-colors ${col.sortable ? "cursor-pointer select-none hover:bg-slate-100/70 hover:text-[var(--primary)]" : ""} ${col.headerClassName ?? ""}`}
+                    className={`min-w-0 p-3 text-left ${T.tableHeader} transition-colors ${col.sortable ? "cursor-pointer select-none hover:bg-slate-100/70 hover:text-slate-700" : ""} ${col.headerClassName ?? ""}`}
                     onClick={() => col.sortable && onSortAction(col.accessorKey as keyof T)}>
                     <div className="flex items-center gap-2">
                       {col.header}
                       {col.sortable && (
                         <div className="flex flex-col opacity-30">
-                          <ChevronUp size={10} className={sortConfig?.key === col.accessorKey && sortConfig.direction === 'asc' ? 'text-[#026f17] opacity-100' : ''} />
-                          <ChevronDown size={10} className={sortConfig?.key === col.accessorKey && sortConfig.direction === 'desc' ? 'text-[#026f17] opacity-100' : ''} />
+                          <ChevronUp size={10} className={sortConfig?.key === col.accessorKey && sortConfig.direction === 'asc' ? 'text-[var(--primary)] opacity-100' : ''} />
+                          <ChevronDown size={10} className={sortConfig?.key === col.accessorKey && sortConfig.direction === 'desc' ? 'text-[var(--primary)] opacity-100' : ''} />
                         </div>
                       )}
                     </div>
@@ -227,7 +228,7 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
             />
           </div>
         ) : (
-          <div className="px-6 flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest no-print">
+          <div className={`flex items-center justify-between px-6 no-print ${T.metaMono}`}>
             <p>Hiển thị {displayData.length} / {data.length} dòng dữ liệu</p>
             <p>Bệnh viện Quân y 103 • {new Date().getFullYear()}</p>
           </div>

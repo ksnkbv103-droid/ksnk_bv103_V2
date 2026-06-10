@@ -153,14 +153,14 @@ export default function InventoryDashboard({ data, activeStatus, onSelectStatus 
               >
                 <Icon size={16} strokeWidth={2.5} />
               </div>
-              <span className={`text-[10px] font-black uppercase tracking-tighter ${isActive ? "text-white/60" : "text-slate-400"}`}>
+              <span className={`text-[11px] font-semibold uppercase tracking-wide tracking-tighter ${isActive ? "text-white/60" : "text-slate-400"}`}>
                 {isActive ? "Đang chọn" : ""}
               </span>
             </div>
 
             <div className="mt-4 space-y-0.5">
               <p
-                className={`text-[11px] font-black uppercase tracking-wider truncate block ${
+                className={`text-[11px] font-semibold uppercase tracking-wide truncate block ${
                   isActive ? "text-white/80" : "text-slate-500"
                 }`}
               >

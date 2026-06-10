@@ -88,14 +88,14 @@ export default function TaiKhoanNhanSuPage() {
   if (permLoading) {
     return (
       <div className="flex h-[40vh] items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#026f17] border-t-transparent" />
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
       </div>
     );
   }
 
   if (!canUse) {
     return (
-      <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-8 text-center text-sm text-slate-700">
+      <div className="rounded-[var(--radius-shell)] border border-amber-200 bg-amber-50/50 p-8 text-center text-sm text-slate-700">
         Cần quyền <strong>Quản trị phân quyền (sửa ma trận)</strong> hoặc vai trò quản trị để mở trang này.
       </div>
     );
@@ -109,7 +109,7 @@ export default function TaiKhoanNhanSuPage() {
           <button
             type="button"
             onClick={() => void load()}
-            className="bv103-control-h shrink-0 rounded-lg bg-[#026f17] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#015a12]"
+            className="bv103-control-h shrink-0 rounded-lg bg-[var(--primary)] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)]"
           >
             Tải lại
           </button>

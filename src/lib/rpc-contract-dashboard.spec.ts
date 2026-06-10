@@ -6,6 +6,8 @@ import { join } from "node:path";
 const APP_DASHBOARD_RPC = [
   "rpc_dashboard_vst_strategic_analytics",
   "rpc_dashboard_gsc_strategic_analytics",
+  "rpc_gsc_compare_matrices",
+  "rpc_vst_compare_matrices",
   "rpc_get_compliance_dashboard_v4",
   "rpc_get_dashboard_ksnk_staff_supervision_stats",
 ] as const;

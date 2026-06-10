@@ -280,14 +280,15 @@ describe("bao-cao-tong-hop-core", () => {
     expect(shouldFetchSource("NKBV", "NKBV")).toBe(true);
   });
 
-  it("buildAnalyticsDeepLink includes tab and filters", () => {
+  it("buildAnalyticsDeepLink maps supervision modules to /thong-ke canonical routes", () => {
     const href = buildAnalyticsDeepLink(
       "/giam-sat-chung",
       { tu_ngay: "2026-01-01", den_ngay: "2026-01-31", khoa_ids: ["k1"] },
       "analytics",
     );
-    expect(href).toContain("tab=analytics");
+    expect(href).toMatch(/^\/thong-ke\/gsc\?/);
     expect(href).toContain("tu_ngay=2026-01-01");
     expect(href).toContain("khoa_ids=k1");
+    expect(href).not.toContain("tab=analytics");
   });
 });

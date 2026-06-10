@@ -12,4 +12,6 @@ export type KhoaPhongRow = {
   so_giuong_benh_thuong?: number;
   so_giuong_cap_cuu?: number;
   is_active: boolean;
+  specs?: { allowed_khu_vucs?: string[] } | null;
 };
+

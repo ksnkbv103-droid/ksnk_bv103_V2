@@ -5,6 +5,7 @@ import { previousWorkflowStation, validateStationAdvance } from "../domain/cssd-
 import { insertCssdLifecycleEvent } from "../../shared/application/cssd-lifecycle-events";
 import { assertLedgerDuChoCapPhat, syncThanhPhanTuTemplate } from "./cssd-asset-ledger";
 import { assertMergeGateForCapPhat } from "./cssd-merge-gate";
+import { fetchActiveQuyTrinhByScanCode } from "../../shared/application/cssd-workflow-resolve";
 
 export type WorkflowQuyTrinhInput = {
   id: string;
@@ -18,17 +19,7 @@ export async function fetchLatestActiveWorkflowByQr(
   supabase: SupabaseClient,
   maQR: string,
 ): Promise<WorkflowQuyTrinhInput | null> {
-  const qr = String(maQR || "").trim().toUpperCase();
-  if (!qr) return null;
-  const { data, error } = await supabase
-    .from("v_cssd_quy_trinh_full")
-    .select("*")
-    .eq("ma_qr_quy_trinh", qr)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
+  const data = await fetchActiveQuyTrinhByScanCode(supabase, maQR);
   return (data as WorkflowQuyTrinhInput | null) ?? null;
 }
 
@@ -79,14 +70,10 @@ export async function executeWorkflowStationScan(
   }
 
   if (targetStation === "CAP_PHAT") {
-    const { data: qt } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("id, lo_tiet_khuan_id, is_dong_bang")
-      .eq("ma_qr_quy_trinh", qr)
-      .eq("is_active", true)
-      .maybeSingle();
+    const qtRow = await fetchActiveQuyTrinhByScanCode(supabase, qr);
+    const qt = qtRow as { id?: string; lo_tiet_khuan_id?: string | null; is_dong_bang?: boolean | null } | null;
 
-    if (qt) {
+    if (qt?.id) {
       if (qt.is_dong_bang) {
         throw new Error("Bộ dụng cụ này đang bị KHÓA AN TOÀN do sự cố cấu phần hoặc quy trình.");
       }
@@ -109,6 +96,15 @@ export async function executeWorkflowStationScan(
 
       const ledger = await assertLedgerDuChoCapPhat(supabase, qt.id);
       if (!ledger.ok) throw new Error(ledger.message);
+      if ("warning" in ledger && ledger.warning) {
+        await insertCssdLifecycleEvent(supabase, {
+          quy_trinh_id: qt.id,
+          ma_su_kien: "CAP_PHAT_BOM_GAP_WARNING",
+          ma_tram: "CAP_PHAT",
+          ghi_chu: ledger.warning,
+          payload: { soft_gate: true },
+        });
+      }
     }
   }
 
@@ -127,7 +123,7 @@ export async function executeWorkflowStationScan(
   }
 
   // 3. Xử lý extraPayload (Ví dụ: Truy vết ca mổ tại trạm Cấp phát)
-  if (targetStation === "CAP_PHAT" && opts.extraPayload?.ma_ca_mo_id) {
+  if (targetStation === "CAP_PHAT" && opts.extraPayload?.ma_ca_mo_id && quyTrinh.id) {
     await supabase
       .from("cssd_fact_quy_trinh")
       .update({
@@ -135,8 +131,7 @@ export async function executeWorkflowStationScan(
           ma_ca_mo_id: String(opts.extraPayload.ma_ca_mo_id),
         },
       })
-      .eq("ma_qr_quy_trinh", qr)
-      .eq("is_active", true);
+      .eq("id", quyTrinh.id);
   }
 
   return { tenBoDungCu: qr };

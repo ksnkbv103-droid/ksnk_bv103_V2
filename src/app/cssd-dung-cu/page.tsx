@@ -24,7 +24,7 @@ export default function Page() {
     <CSSDPageShell
       title={
         <>
-          Dụng cụ phẫn thuật &amp; thủ thuật <span className="text-[#026f17]">CSSD</span>
+          Dụng cụ phẫn thuật &amp; thủ thuật <span className="text-[var(--primary)]">CSSD</span>
         </>
       }
       subtitle="Xem danh mục bộ, loại, chi tiết; quét QR; lịch sử luân chuyển. Chỉnh master data tại Quản trị."
@@ -37,7 +37,7 @@ export default function Page() {
             <button
               type="button"
               onClick={() => s.setTab("BO")}
-              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${
+              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
                 s.tab === "BO" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
               }`}
             >
@@ -46,7 +46,7 @@ export default function Page() {
             <button
               type="button"
               onClick={() => s.setTab("CHI_TIET")}
-              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${
+              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
                 s.tab === "CHI_TIET" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
               }`}
             >
@@ -55,7 +55,7 @@ export default function Page() {
             <button
               type="button"
               onClick={() => s.setTab("LOAI")}
-              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${
+              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
                 s.tab === "LOAI" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
               }`}
             >
@@ -64,7 +64,7 @@ export default function Page() {
             <button
               type="button"
               onClick={() => s.setTab("HISTORY")}
-              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${
+              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
                 s.tab === "HISTORY" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
               }`}
             >
@@ -87,10 +87,10 @@ export default function Page() {
                     }
                   }}
                   placeholder="Tìm kiếm danh mục hoặc quét mã QR bộ/quy trình (nhấn Enter)..."
-                  className="h-12 w-full rounded-xl border border-slate-200 pl-11 pr-4 text-sm font-medium outline-none transition-all placeholder:text-slate-400 focus:ring-2 focus:ring-[#026f17]/20"
+                  className="h-12 w-full rounded-xl border border-slate-200 pl-11 pr-4 text-sm font-medium outline-none transition-all placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--primary)]/20"
                 />
                 <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                  <QrCode size={18} className="text-[#026f17]" />
+                  <QrCode size={18} className="text-[var(--primary)]" />
                 </div>
               </div>
             </div>

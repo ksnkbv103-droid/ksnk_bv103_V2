@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 
 function DashboardRouteSkeleton() {
   return (
-    <div className="mx-auto max-w-[1600px] space-y-4 p-4 md:p-6">
+    <div className="w-full space-y-4">
       <div className="h-24 animate-pulse rounded-xl border border-slate-200 bg-slate-100/80" />
       <div className="h-64 animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
     </div>

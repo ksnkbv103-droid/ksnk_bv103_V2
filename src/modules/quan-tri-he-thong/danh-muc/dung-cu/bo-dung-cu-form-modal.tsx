@@ -5,6 +5,7 @@ import { X, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import BoDungCuTextField from "./bo-dung-cu-form-field";
+import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { BoDungCuFormValues, BoDungCuTableRow, mapBoDungCuRowToForm } from "./bo-dung-cu-form-shared";
 import { saveBoDungCuAction } from "../actions/bo-dung-cu.actions";
 
@@ -67,14 +68,14 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md touch-manipulation pointer-events-auto">
       <form
         onSubmit={handleSubmit}
-        className="bg-white w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl p-8 space-y-4 shadow-2xl border-t-[6px] border-[#026f17]"
+        className="bg-white w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-[var(--radius-shell)] p-8 space-y-4 shadow-2xl border-t-[6px] border-[var(--primary)]"
       >
         <div className="flex justify-between items-start gap-4">
           <div>
-            <h3 className="text-sm font-black text-[#026f17] uppercase tracking-widest">
+            <h3 className="text-sm font-black text-[var(--primary)] uppercase tracking-widest">
               {isEdit ? "Cập nhật bộ dụng cụ" : "Thêm bộ dụng cụ"}
             </h3>
-            <p className="text-[10px] text-slate-400 font-semibold mt-1">Điền thông tin theo dữ liệu master kho và phân loại.</p>
+            <p className="text-[11px] text-slate-400 font-semibold mt-1">Điền thông tin theo dữ liệu master kho và phân loại.</p>
           </div>
           <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-red-600 rounded-xl -mr-2">
             <X size={22} />
@@ -90,12 +91,12 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Loại dụng cụ</label>
+            <label className="text-[11px] font-medium text-slate-400 ml-1">Loại dụng cụ</label>
             <select
               value={form.loai_dung_cu_id}
               onChange={(e) => setForm({ ...form, loai_dung_cu_id: e.target.value })}
               disabled={loadingLoai}
-              className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs"
+              className={C.controlInput}
             >
               <option value="">— Chọn loại và hình thức —</option>
               {loaiOptions.map((o) => (
@@ -104,12 +105,12 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
             </select>
           </div>
           <div className="space-y-1">
-            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Khoa sử dụng chính</label>
+            <label className="text-[11px] font-medium text-slate-400 ml-1">Khoa sử dụng chính</label>
             <select
               value={form.khoa_su_dung_id}
               onChange={(e) => setForm({ ...form, khoa_su_dung_id: e.target.value })}
               disabled={loadingKhoa}
-              className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs"
+              className={C.controlInput}
             >
               <option value="">— Chọn khoa sử dụng —</option>
               {khoaOptions.map((o) => (
@@ -121,22 +122,22 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Phân loại bộ dụng cụ</label>
+            <label className="text-[11px] font-medium text-slate-400 ml-1">Phân loại bộ dụng cụ</label>
             <select
               value={form.phan_loai_bo}
               onChange={(e) => setForm({ ...form, phan_loai_bo: e.target.value })}
-              className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs"
+              className={C.controlInput}
             >
               <option value="PHAU_THUAT">Bộ dụng cụ Phẫu thuật</option>
               <option value="THU_THUAT">Bộ dụng cụ Thủ thuật</option>
             </select>
           </div>
           <div className="space-y-1">
-            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Cơ chế theo dõi</label>
+            <label className="text-[11px] font-medium text-slate-400 ml-1">Cơ chế theo dõi</label>
             <select
               value={form.co_ma_dinh_danh_rieng ? "true" : "false"}
               onChange={(e) => setForm({ ...form, co_ma_dinh_danh_rieng: e.target.value === "true" })}
-              className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs"
+              className={C.controlInput}
             >
               <option value="true">Theo mã QR/Vòng đời riêng</option>
               <option value="false">Cơ số chung (không dán nhãn riêng)</option>
@@ -146,22 +147,22 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
 
         <BoDungCuTextField label="Quy cách" value={form.quy_cach} onChange={(v) => setForm({ ...form, quy_cach: v })} />
         <div className="space-y-1">
-          <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Ghi chú</label>
+          <label className="text-[11px] font-medium text-slate-400 ml-1">Ghi chú</label>
           <textarea
             value={form.ghi_chu}
             onChange={(e) => setForm({ ...form, ghi_chu: e.target.value })}
             rows={2}
-            className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-semibold text-xs resize-none"
+            className={C.textareaCompact}
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Trạng thái kiểm kê</label>
+            <label className="text-[11px] font-medium text-slate-400 ml-1">Trạng thái kiểm kê</label>
             <select
               value={form.trang_thai}
               onChange={(e) => setForm({ ...form, trang_thai: e.target.value })}
-              className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs"
+              className={C.controlInput}
             >
               <option value="ACTIVE">Hoạt động trong kho</option>
               <option value="INVENTORY">Đang kiểm kê</option>
@@ -169,12 +170,12 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
             </select>
           </div>
           <div className="space-y-1">
-            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Ngày kiểm kê gần nhất</label>
+            <label className="text-[11px] font-medium text-slate-400 ml-1">Ngày kiểm kê gần nhất</label>
             <input
               type="datetime-local"
               value={form.ngay_kiem_ke_gan_nhat}
               onChange={(e) => setForm({ ...form, ngay_kiem_ke_gan_nhat: e.target.value })}
-              className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs"
+              className={C.controlInput}
             />
           </div>
         </div>
@@ -184,7 +185,7 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
         <button
           type="submit"
           disabled={loading}
-          className="w-full h-12 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 disabled:opacity-60 touch-manipulation"
+          className={`w-full ${C.btnPrimaryBlock} disabled:opacity-60 touch-manipulation`}
         >
           {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={18} />} Lưu
         </button>

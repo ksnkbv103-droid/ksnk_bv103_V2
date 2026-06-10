@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { Activity, Calendar, ShieldCheck, Heart, Users, Clock, Plus, Zap } from "lucide-react";
 import { saveNkbvMauSoDaily, saveNkbvMauSoPhauThuat } from "../actions/giam-sat-nkbv-mau-so.actions";
+import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 
 type NkbvMauSoDailyPortalProps = {
   khoas: Array<{ id: string; ten_danh_muc: string }>;
@@ -145,9 +146,9 @@ export default function NkbvMauSoDailyPortal({
           <button
             type="button"
             onClick={() => setSubTab("daily")}
-            className={`flex items-center gap-2 rounded-full px-5 py-2 text-xs font-black uppercase tracking-wider transition-all duration-300 ${
+            className={`${C.segmentTab} ${
               subTab === "daily"
-                ? "bg-white text-[#026f17] shadow-sm"
+                ? "bg-white text-[var(--primary)] shadow-sm"
                 : "text-slate-500 hover:text-slate-700"
             }`}
           >
@@ -156,9 +157,9 @@ export default function NkbvMauSoDailyPortal({
           <button
             type="button"
             onClick={() => setSubTab("surgery")}
-            className={`flex items-center gap-2 rounded-full px-5 py-2 text-xs font-black uppercase tracking-wider transition-all duration-300 ${
+            className={`${C.segmentTab} ${
               subTab === "surgery"
-                ? "bg-white text-[#026f17] shadow-sm"
+                ? "bg-white text-[var(--primary)] shadow-sm"
                 : "text-slate-500 hover:text-slate-700"
             }`}
           >
@@ -168,10 +169,10 @@ export default function NkbvMauSoDailyPortal({
       </div>
 
       {subTab === "daily" ? (
-        <form onSubmit={handleDailySubmit} className="premium-card rounded-2xl border border-slate-100 bg-white p-6 shadow-xl space-y-6">
+        <form onSubmit={handleDailySubmit} className="premium-card rounded-[var(--radius-shell)] border border-slate-100 bg-white p-6 shadow-xl space-y-6">
           <div className="border-b border-slate-100 pb-4">
             <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-              <Activity className="h-5 w-5 text-[#026f17]" /> 
+              <Activity className="h-5 w-5 text-[var(--primary)]" /> 
               Báo cáo Mẫu số Ngày - Thiết bị Hàng ngày
             </h3>
             <p className="text-xs text-slate-400 mt-1">
@@ -181,11 +182,11 @@ export default function NkbvMauSoDailyPortal({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400 uppercase">Khoa ghi nhận</label>
+              <label className={C.labelField}>Khoa ghi nhận</label>
               <select
                 value={selectedKhoaId}
                 onChange={(e) => onKhoaChange(e.target.value)}
-                className="w-full rounded-2xl border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                className="w-full rounded-[var(--radius-shell)] border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
                 required
               >
                 <option value="">Chọn khoa phòng...</option>
@@ -198,13 +199,13 @@ export default function NkbvMauSoDailyPortal({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400 uppercase">Ngày báo cáo</label>
+              <label className={C.labelField}>Ngày báo cáo</label>
               <div className="relative">
                 <input
                   type="date"
                   value={ngayGhiNhan}
                   onChange={(e) => setNgayGhiNhan(e.target.value)}
-                  className="w-full rounded-2xl border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                  className="w-full rounded-[var(--radius-shell)] border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
                   required
                 />
                 <Calendar className="absolute right-4 top-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
@@ -214,9 +215,9 @@ export default function NkbvMauSoDailyPortal({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-2">
             {/* Patient Days */}
-            <div className="premium-card border border-slate-100 bg-slate-50/40 rounded-2xl p-4 space-y-2">
+            <div className="premium-card border border-slate-100 bg-slate-50/40 rounded-[var(--radius-shell)] p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase">Ngày điều trị</span>
+                <span className={C.labelField}>Ngày điều trị</span>
                 <Users className="h-4 w-4 text-blue-500" />
               </div>
               <input
@@ -228,13 +229,13 @@ export default function NkbvMauSoDailyPortal({
                 className="w-full border-0 bg-transparent text-xl font-extrabold focus:ring-0 p-0 text-slate-800"
                 required
               />
-              <p className="text-[10px] text-slate-400">Tổng ngày nằm viện tích lũy của toàn khoa trong ngày.</p>
+              <p className="text-[11px] text-slate-400">Tổng ngày nằm viện tích lũy của toàn khoa trong ngày.</p>
             </div>
 
             {/* CVC Days */}
-            <div className="premium-card border border-slate-100 bg-slate-50/40 rounded-2xl p-4 space-y-2">
+            <div className="premium-card border border-slate-100 bg-slate-50/40 rounded-[var(--radius-shell)] p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase">Ngày Catheter CVC</span>
+                <span className={C.labelField}>Ngày catheter CVC</span>
                 <Heart className="h-4 w-4 text-red-500" />
               </div>
               <input
@@ -245,13 +246,13 @@ export default function NkbvMauSoDailyPortal({
                 placeholder="Nhập CVC-Days"
                 className="w-full border-0 bg-transparent text-xl font-extrabold focus:ring-0 p-0 text-slate-800"
               />
-              <p className="text-[10px] text-slate-400">Số bệnh nhân đặt catheter TMTT trong ngày.</p>
+              <p className="text-[11px] text-slate-400">Số bệnh nhân đặt catheter TMTT trong ngày.</p>
             </div>
 
             {/* Foley Days */}
-            <div className="premium-card border border-slate-100 bg-slate-50/40 rounded-2xl p-4 space-y-2">
+            <div className="premium-card border border-slate-100 bg-slate-50/40 rounded-[var(--radius-shell)] p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase">Ngày Sonde tiểu</span>
+                <span className={C.labelField}>Ngày sonde tiểu</span>
                 <Activity className="h-4 w-4 text-amber-500" />
               </div>
               <input
@@ -262,13 +263,13 @@ export default function NkbvMauSoDailyPortal({
                 placeholder="Nhập Foley-Days"
                 className="w-full border-0 bg-transparent text-xl font-extrabold focus:ring-0 p-0 text-slate-800"
               />
-              <p className="text-[10px] text-slate-400">Số bệnh nhân đặt ống thông tiểu Foley trong ngày.</p>
+              <p className="text-[11px] text-slate-400">Số bệnh nhân đặt ống thông tiểu Foley trong ngày.</p>
             </div>
 
             {/* Vent Days */}
-            <div className="premium-card border border-slate-100 bg-slate-50/40 rounded-2xl p-4 space-y-2">
+            <div className="premium-card border border-slate-100 bg-slate-50/40 rounded-[var(--radius-shell)] p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase">Ngày Thở máy</span>
+                <span className={C.labelField}>Ngày thở máy</span>
                 <ShieldCheck className="h-4 w-4 text-emerald-500" />
               </div>
               <input
@@ -279,13 +280,13 @@ export default function NkbvMauSoDailyPortal({
                 placeholder="Nhập Vent-Days"
                 className="w-full border-0 bg-transparent text-xl font-extrabold focus:ring-0 p-0 text-slate-800"
               />
-              <p className="text-[10px] text-slate-400">Số bệnh nhân thở máy xâm lấn trong ngày.</p>
+              <p className="text-[11px] text-slate-400">Số bệnh nhân thở máy xâm lấn trong ngày.</p>
             </div>
 
             {/* EMV Episodes */}
-            <div className="premium-card border border-slate-100 bg-slate-50/40 rounded-2xl p-4 space-y-2">
+            <div className="premium-card border border-slate-100 bg-slate-50/40 rounded-[var(--radius-shell)] p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-500 uppercase">Số đợt thở máy (EMV)</span>
+                <span className={C.labelField}>Số đợt thở máy (EMV)</span>
                 <Zap className="h-4 w-4 text-purple-500" />
               </div>
               <input
@@ -296,7 +297,7 @@ export default function NkbvMauSoDailyPortal({
                 placeholder="Nhập EMV Episodes"
                 className="w-full border-0 bg-transparent text-xl font-extrabold focus:ring-0 p-0 text-slate-800"
               />
-              <p className="text-[10px] text-slate-400">Số đợt bắt đầu thở máy mới trong ngày.</p>
+              <p className="text-[11px] text-slate-400">Số đợt bắt đầu thở máy mới trong ngày.</p>
             </div>
           </div>
 
@@ -304,17 +305,17 @@ export default function NkbvMauSoDailyPortal({
             <button
               type="submit"
               disabled={dailyLoading}
-              className="rounded-full bg-[#026f17] px-8 py-3 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-[#026f17]/20 hover:bg-[#026615] transition-all disabled:opacity-50"
+              className={`${C.ctaPrimary} disabled:opacity-50`}
             >
               {dailyLoading ? "Đang lưu..." : "Ghi nhận Mẫu số"}
             </button>
           </div>
         </form>
       ) : (
-        <form onSubmit={handleSurgerySubmit} className="premium-card rounded-2xl border border-slate-100 bg-white p-6 shadow-xl space-y-6">
+        <form onSubmit={handleSurgerySubmit} className="premium-card rounded-[var(--radius-shell)] border border-slate-100 bg-white p-6 shadow-xl space-y-6">
           <div className="border-b border-slate-100 pb-4">
             <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-              <Plus className="h-5 w-5 text-[#026f17]" /> 
+              <Plus className="h-5 w-5 text-[var(--primary)]" /> 
               Khai báo ca Phẫu thuật (Mẫu số cho Nhiễm khuẩn vết mổ SSI)
             </h3>
             <p className="text-xs text-slate-400 mt-1">
@@ -324,11 +325,11 @@ export default function NkbvMauSoDailyPortal({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400 uppercase">Khoa thực hiện mổ</label>
+              <label className={C.labelField}>Khoa thực hiện mổ</label>
               <select
                 value={selectedKhoaId}
                 onChange={(e) => onKhoaChange(e.target.value)}
-                className="w-full rounded-2xl border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                className="w-full rounded-[var(--radius-shell)] border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
                 required
               >
                 <option value="">Chọn khoa phòng...</option>
@@ -341,22 +342,22 @@ export default function NkbvMauSoDailyPortal({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400 uppercase">Ngày phẫu thuật</label>
+              <label className={C.labelField}>Ngày phẫu thuật</label>
               <input
                 type="date"
                 value={ngayPhauThuat}
                 onChange={(e) => setNgayPhauThuat(e.target.value)}
-                className="w-full rounded-2xl border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                className="w-full rounded-[var(--radius-shell)] border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
                 required
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400 uppercase">Loại phẫu thuật NHSN</label>
+              <label className={C.labelField}>Loại phẫu thuật NHSN</label>
               <select
                 value={loaiPhauThuatNhsn}
                 onChange={(e) => setLoaiPhauThuatNhsn(e.target.value)}
-                className="w-full rounded-2xl border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                className="w-full rounded-[var(--radius-shell)] border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
                 required
               >
                 {NHSN_SURGERIES.map((opt) => (
@@ -370,37 +371,37 @@ export default function NkbvMauSoDailyPortal({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400 uppercase">Mã bệnh nhân (PID)</label>
+              <label className={C.labelField}>Mã bệnh nhân (PID)</label>
               <input
                 type="text"
                 placeholder="Nhập mã bệnh nhân..."
                 value={maBenhNhan}
                 onChange={(e) => setMaBenhNhan(e.target.value)}
-                className="w-full rounded-2xl border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[#026f17]"
+                className="w-full rounded-[var(--radius-shell)] border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[var(--primary)]"
                 required
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400 uppercase">Họ và tên bệnh nhân</label>
+              <label className={C.labelField}>Họ và tên bệnh nhân</label>
               <input
                 type="text"
                 placeholder="Nhập tên bệnh nhân..."
                 value={hoTenBenhNhan}
                 onChange={(e) => setHoTenBenhNhan(e.target.value)}
-                className="w-full rounded-2xl border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[#026f17]"
+                className="w-full rounded-[var(--radius-shell)] border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[var(--primary)]"
                 required
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400 uppercase">Tên cuộc mổ cụ thể</label>
+              <label className={C.labelField}>Tên cuộc mổ cụ thể</label>
               <input
                 type="text"
                 placeholder="Ví dụ: Cắt đại tràng Sigma nội soi..."
                 value={tenPhauThuat}
                 onChange={(e) => setTenPhauThuat(e.target.value)}
-                className="w-full rounded-2xl border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[#026f17]"
+                className="w-full rounded-[var(--radius-shell)] border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[var(--primary)]"
                 required
               />
             </div>
@@ -408,11 +409,11 @@ export default function NkbvMauSoDailyPortal({
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400 uppercase">Phân loại vết mổ</label>
+              <label className={C.labelField}>Phân loại vết mổ</label>
               <select
                 value={phanLoaiVetMo}
                 onChange={(e) => setPhanLoaiVetMo(e.target.value as any)}
-                className="w-full rounded-2xl border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[#026f17]"
+                className="w-full rounded-[var(--radius-shell)] border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[var(--primary)]"
               >
                 <option value="SACH">Sạch (Class I)</option>
                 <option value="SACH_NHIEM">Sạch - Nhiễm (Class II)</option>
@@ -422,11 +423,11 @@ export default function NkbvMauSoDailyPortal({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400 uppercase">Chỉ số thể trạng ASA</label>
+              <label className={C.labelField}>Chỉ số thể trạng ASA</label>
               <select
                 value={asaScore}
                 onChange={(e) => setAsaScore(parseInt(e.target.value))}
-                className="w-full rounded-2xl border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[#026f17]"
+                className="w-full rounded-[var(--radius-shell)] border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[var(--primary)]"
               >
                 <option value={1}>ASA 1 - Khỏe mạnh</option>
                 <option value={2}>ASA 2 - Bệnh nhẹ</option>
@@ -437,25 +438,25 @@ export default function NkbvMauSoDailyPortal({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400 uppercase">Thời gian mổ (phút)</label>
+              <label className={C.labelField}>Thời gian mổ (phút)</label>
               <input
                 type="number"
                 min="1"
                 value={thoiGianMoPhut}
                 onChange={(e) => setThoiGianMoPhut(parseInt(e.target.value) || 0)}
-                className="w-full rounded-2xl border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[#026f17]"
+                className="w-full rounded-[var(--radius-shell)] border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[var(--primary)]"
                 required
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400 uppercase">Ngưỡng mổ NHSN (phút)</label>
+              <label className={C.labelField}>Ngưỡng mổ NHSN (phút)</label>
               <input
                 type="number"
                 min="1"
                 value={thoiGianNguongNhsn}
                 onChange={(e) => setThoiGianNguongNhsn(parseInt(e.target.value) || 120)}
-                className="w-full rounded-2xl border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[#026f17]"
+                className="w-full rounded-[var(--radius-shell)] border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold focus:border-[var(--primary)]"
                 required
               />
             </div>
@@ -467,11 +468,11 @@ export default function NkbvMauSoDailyPortal({
                 type="checkbox"
                 checked={coDatImplant}
                 onChange={(e) => setCoDatImplant(e.target.checked)}
-                className="rounded text-[#026f17] focus:ring-[#026f17] h-4 w-4"
+                className="rounded text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
               />
-              <span className="text-xs font-bold text-slate-600 uppercase flex items-center gap-1">
+              <span className={` flex items-center gap-1`}>
                 Có đặt Thiết bị nhân tạo (Implant)
-                <span className="text-[10px] text-slate-400 lowercase">(nâng thời gian theo dõi lên 90 ngày)</span>
+                <span className="text-[11px] text-slate-400 lowercase">(nâng thời gian theo dõi lên 90 ngày)</span>
               </span>
             </label>
 
@@ -480,11 +481,11 @@ export default function NkbvMauSoDailyPortal({
                 type="checkbox"
                 checked={isLaparoscopic}
                 onChange={(e) => setIsLaparoscopic(e.target.checked)}
-                className="rounded text-[#026f17] focus:ring-[#026f17] h-4 w-4"
+                className="rounded text-[var(--primary)] focus:ring-[var(--primary)] h-4 w-4"
               />
-              <span className="text-xs font-bold text-slate-600 uppercase flex items-center gap-1">
+              <span className={` flex items-center gap-1`}>
                 Phẫu thuật nội soi (Laparoscopic)
-                <span className="text-[10px] text-[#026f17] lowercase">(giảm nhẹ hệ số rủi ro SSI)</span>
+                <span className="text-[11px] text-[var(--primary)] lowercase">(giảm nhẹ hệ số rủi ro SSI)</span>
               </span>
             </label>
           </div>
@@ -493,7 +494,7 @@ export default function NkbvMauSoDailyPortal({
             <button
               type="submit"
               disabled={surgeryLoading}
-              className="rounded-full bg-[#026f17] px-8 py-3 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-[#026f17]/20 hover:bg-[#026615] transition-all disabled:opacity-50"
+              className={`${C.ctaPrimary} disabled:opacity-50`}
             >
               {surgeryLoading ? "Đang lưu..." : "Ghi nhận ca phẫu thuật"}
             </button>

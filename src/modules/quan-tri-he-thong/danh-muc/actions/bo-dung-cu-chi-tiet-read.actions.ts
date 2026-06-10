@@ -2,15 +2,6 @@
 
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
-import { revalidatePath } from "next/cache";
-import { replenishSetInstrumentCore } from "@/lib/master-data/cssd-set-replenish-core";
-import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
-import {
-  appendChiTietIssueNoteAction as appendChiTietIssueNoteActionImpl,
-  reportChiTietInstrumentIssueAction as reportChiTietInstrumentIssueActionImpl,
-} from "@/lib/master-data/append-chi-tiet-issue-note.action";
-import { insertInstrumentIssueLedgerCore } from "@/lib/master-data/instrument-issue-core";
-import { CSSD_ROUTES } from "@/lib/cssd-routes";
 import type { BoDungCuChiTietPreviewRow, BoRefByLoai } from "./bo-dung-cu-chi-tiet.types";
 
 /** Danh sách dụng cụ chi tiết thuộc một bộ (`cssd_dm_bo_dung_cu_chi_tiet`). Quyền `BO_DC.view`. */
@@ -87,68 +78,4 @@ export async function getBoRefsByLoaiAction(loaiDungCuId: string, excludeBoId?: 
     .order("ma_bo", { ascending: true });
   if (be) return { success: false as const, error: be.message };
   return { success: true as const, data: (bos || []) as BoRefByLoai[] };
-}
-
-export async function appendChiTietIssueNoteAction(params: {
-  chiTietId: string;
-  issueType: "HONG" | "MAT";
-  note?: string;
-}) {
-  return appendChiTietIssueNoteActionImpl(params);
-}
-
-export async function reportChiTietInstrumentIssueAction(params: {
-  chiTietId: string;
-  issueType: "HONG" | "MAT";
-  note?: string;
-  quantity?: number;
-  quyTrinhId?: string | null;
-}) {
-  return reportChiTietInstrumentIssueActionImpl(params);
-}
-
-export async function reportIndividualInstrumentIssueAction(params: {
-  loaiDungCuId: string;
-  boDungCuId?: string | null;
-  quyTrinhId?: string | null;
-  issueType: "HONG" | "MAT";
-  quantity: number;
-  note?: string;
-}) {
-  await verifyPermission("DC_LE", "edit");
-  const supabase = await createServerSupabaseUserClient();
-  const result = await insertInstrumentIssueLedgerCore(supabase, {
-    loaiDungCuId: params.loaiDungCuId,
-    issueType: params.issueType,
-    quantity: params.quantity,
-    boDungCuId: params.boDungCuId,
-    quyTrinhId: params.quyTrinhId,
-    note: params.note,
-  });
-  if (!result.success) return result;
-
-  revalidatePath(quanTriDungCuHref("bo"));
-  revalidatePath(quanTriDungCuHref("chi-tiet"));
-  revalidatePath(quanTriDungCuHref());
-  revalidatePath(CSSD_ROUTES.dungCu);
-  revalidatePath(CSSD_ROUTES.quyTrinh);
-  return { success: true as const };
-}
-
-export async function replenishSetInstrumentAction(params: {
-  loaiDungCuId: string;
-  boDungCuId: string;
-  quyTrinhId?: string | null;
-  quantity: number;
-  note?: string;
-}) {
-  await verifyPermission("DC_LE", "edit");
-  const supabase = await createServerSupabaseUserClient();
-  const result = await replenishSetInstrumentCore(supabase, params);
-  if (!result.success) return result;
-
-  revalidatePath(quanTriDungCuHref("bo"));
-  revalidatePath(quanTriDungCuHref("chi-tiet"));
-  revalidatePath(quanTriDungCuHref());
-  return { success: true as const };
 }

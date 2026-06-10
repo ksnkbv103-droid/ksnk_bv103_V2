@@ -1,10 +1,11 @@
 ---
 description: Mobile-first and touch optimization requirements
-globs: src/**/*.{tsx,css}
 alwaysApply: false
 ---
 
 # Mobile and Touch Requirements
+
+> **Superseded** tóm tắt: [`03-src-editing-compact.mdc`](./03-src-editing-compact.mdc). Invoke `@40-mobile-touch-requirements` khi hardening form hiện trường.
 
 - During feature delivery, keep mobile/tablet layouts usable without visual breakage.
 - Apply full mobile-first/touch hardening after core logic and data flow are stable.

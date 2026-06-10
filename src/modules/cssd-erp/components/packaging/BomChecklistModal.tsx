@@ -15,6 +15,8 @@ import {
   CornerDownRight 
 } from "lucide-react";
 import { toast } from "sonner";
+import { usePrint } from "@/hooks/usePrint";
+import { CSSD_UI_SECTION_TITLE, CSSD_UI_TABLE_HEADER, CSSD_UI_STEP_HINT } from "../../shared/ui/cssd-ui-chrome";
 import { loadBomCheckpoint, persistBomCheckpoint, requestReplenishFromReserveAction } from "../../actions/cssd-bom-checkpoint.actions";
 import { recordInstrumentTransaction } from "../../actions/cssd-write.actions";
 import { evaluateHeatCompatibility, summarizeBomGap, isReadyForPackaging } from "@/lib/domain/cssd-packaging-rules";
@@ -34,6 +36,7 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
   const [items, setItems] = useState<any[]>([]);
   const [split, setSplit] = useState<"NONE" | "DONE">("NONE");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const { printLabel } = usePrint();
 
   const fetchChecklist = useCallback(async () => {
     setLoading(true);
@@ -133,6 +136,20 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
 
       if (res.success) {
         toast.success("Lưu checkpoint và đóng gói thành công.");
+
+        if (res.ma_cycle_qr) {
+          try {
+            await printLabel({
+              qrCode: res.ma_cycle_qr,
+              tenBoDungCu: res.ten_bo || "Bộ dụng cụ CSSD",
+              tram: "ĐÓNG GÓI · Cycle QR",
+              nguoiThucHien: "CSSD",
+              thoiGian: new Date().toLocaleString("vi-VN"),
+            });
+          } catch {
+            toast.message("Đã lưu BOM — in nhãn cycle QR thất bại (popup bị chặn?). Mã: " + res.ma_cycle_qr);
+          }
+        }
         
         // Tạo tóm tắt gap để gửi cảnh báo ở Cấp phát
         const missingSummary = gap
@@ -160,12 +177,10 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
         <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
-              <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">
-                Digital BOM Checklist & QC
-              </h3>
+              <h3 className={CSSD_UI_SECTION_TITLE}>Digital BOM Checklist & QC</h3>
               {!loading && <BomGapBadge heat={heatEval} gap={gap} />}
             </div>
-            <p className="text-[10px] font-semibold text-slate-400">
+            <p className="text-[11px] font-semibold text-slate-400">
               Mã quy trình: {quyTrinhId.slice(0, 8)}... | Mã bộ: {boDungCuId.slice(0, 8)}...
             </p>
           </div>
@@ -181,10 +196,8 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
         {/* Loading state */}
         {loading ? (
           <div className="flex-1 p-20 flex flex-col items-center justify-center space-y-4">
-            <Loader2 className="animate-spin text-[#026f17]" size={36} strokeWidth={2.5} />
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
-              Đang đối chiếu dữ liệu danh mục...
-            </p>
+            <Loader2 className="animate-spin text-[var(--primary)]" size={36} strokeWidth={2.5} />
+            <p className={CSSD_UI_STEP_HINT}>Đang đối chiếu dữ liệu danh mục…</p>
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto p-6 space-y-5 text-slate-700">
@@ -194,10 +207,10 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
               <div className="p-4.5 bg-rose-50 border-2 border-rose-200 rounded-2xl flex items-start gap-3.5 text-rose-950 shadow-sm animate-in zoom-in-98 duration-300">
                 <ShieldAlert className="shrink-0 text-rose-600 mt-0.5" size={22} strokeWidth={2.5} />
                 <div className="space-y-1.5 flex-1">
-                  <h5 className="text-[11px] font-black uppercase tracking-wider text-rose-800 flex items-center gap-1.5">
+                  <h5 className="text-[11px] font-semibold uppercase tracking-wide text-rose-800 flex items-center gap-1.5">
                     ⚠️ KHÓA AN TOÀN CHỊU NHIỆT (POKA-YOKE)
                   </h5>
-                  <p className="text-[10px] leading-relaxed text-rose-700 font-medium">
+                  <p className="text-[11px] leading-relaxed text-rose-700 font-medium">
                     {heatEval.reason}
                   </p>
                   <div className="pt-2 flex items-center justify-between gap-4">
@@ -212,12 +225,12 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
                           setSplit("DONE");
                           toast.success("Đã xác nhận tách các dụng cụ nhạy cảm nhiệt.");
                         }}
-                        className="bg-rose-600 hover:bg-rose-700 active:scale-95 transition-all text-white text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-lg shadow-md"
+                        className="bg-rose-600 hover:bg-rose-700 active:scale-95 transition-all text-white text-[11px] font-semibold uppercase tracking-wide px-3 py-1 rounded-lg shadow-md"
                       >
                         [ Xác nhận tách Sub-set ]
                       </button>
                     ) : (
-                      <div className="flex items-center gap-1 bg-rose-100 border border-rose-200 text-rose-800 rounded-lg px-2.5 py-1 text-[11px] font-black uppercase tracking-wider">
+                      <div className="flex items-center gap-1 bg-rose-100 border border-rose-200 text-rose-800 rounded-lg px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide">
                         ✓ ĐÃ TÁCH SUB-SET (Hấp Plasma)
                       </div>
                     )}
@@ -230,10 +243,10 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
               <div className="p-4 bg-amber-50 border-2 border-amber-200 rounded-2xl flex items-start gap-3 text-amber-950 shadow-sm animate-in zoom-in-98 duration-300">
                 <AlertCircle className="shrink-0 text-amber-600 mt-0.5" size={20} strokeWidth={2.5} />
                 <div className="space-y-1">
-                  <h5 className="text-[11px] font-black uppercase tracking-wider text-amber-800">
+                  <h5 className="text-[11px] font-semibold uppercase tracking-wide text-amber-800">
                     CẢNH BÁO: BỘ DỤNG CỤ THIẾU CẤU PHẦN
                   </h5>
-                  <p className="text-[10px] leading-relaxed text-amber-700 font-medium">
+                  <p className="text-[11px] leading-relaxed text-amber-700 font-medium">
                     Số lượng thực tế đang nhỏ hơn tiêu chuẩn thiết kế. Bạn có thể sử dụng các nút tương tác bên dưới để báo hỏng, báo mất hoặc bù dụng cụ lẻ từ kho dự phòng.
                   </p>
                 </div>
@@ -245,12 +258,12 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-100/70 border-b border-slate-200">
-                    <th className="py-2.5 px-3 text-[11px] font-black text-slate-400 uppercase tracking-wider w-12 text-center">STT</th>
-                    <th className="py-2.5 px-3 text-[11px] font-black text-slate-400 uppercase tracking-wider">Cấu phần chuẩn</th>
-                    <th className="py-2.5 px-3 text-[11px] font-black text-slate-400 uppercase tracking-wider w-16 text-center">KH</th>
-                    <th className="py-2.5 px-3 text-[11px] font-black text-slate-400 uppercase tracking-wider w-16 text-center">TT</th>
-                    <th className="py-2.5 px-3 text-[11px] font-black text-slate-400 uppercase tracking-wider w-36 text-center">Tương tác QC</th>
-                    <th className="py-2.5 px-3 text-[11px] font-black text-slate-400 uppercase tracking-wider w-24 text-center">Nhiệt / Spaulding</th>
+                    <th className={`py-2.5 px-3 ${CSSD_UI_TABLE_HEADER} w-12 text-center`}>STT</th>
+                    <th className={`py-2.5 px-3 ${CSSD_UI_TABLE_HEADER}`}>Cấu phần chuẩn</th>
+                    <th className={`py-2.5 px-3 ${CSSD_UI_TABLE_HEADER} w-16 text-center`}>KH</th>
+                    <th className={`py-2.5 px-3 ${CSSD_UI_TABLE_HEADER} w-16 text-center`}>TT</th>
+                    <th className={`py-2.5 px-3 ${CSSD_UI_TABLE_HEADER} w-36 text-center`}>Tương tác QC</th>
+                    <th className={`py-2.5 px-3 ${CSSD_UI_TABLE_HEADER} w-24 text-center`}>Nhiệt / Spaulding</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 text-xs">
@@ -323,7 +336,7 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
 
                         <td className="py-3 px-3 text-center">
                           <div className="flex flex-col items-center gap-0.5">
-                            <span className={`text-[11px] font-black uppercase px-1.5 py-0.2 rounded-md ${
+                            <span className={`text-[11px] font-semibold uppercase tracking-wide px-1.5 py-0.2 rounded-md ${
                               item.is_chiu_nhiet 
                                 ? "bg-slate-100 text-slate-600" 
                                 : "bg-rose-100 text-rose-700 animate-pulse"
@@ -346,7 +359,7 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
 
         {/* Footer */}
         <div className="p-5 border-t border-slate-100 flex justify-between items-center bg-slate-50/50">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
             {!loading && readyCheck.ready ? (
               <span className="text-emerald-700">✓ Bộ dụng cụ đủ điều kiện đóng gói</span>
             ) : (
@@ -366,7 +379,7 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
               type="button"
               disabled={loading || saving || !readyCheck.ready}
               onClick={() => void handleSave()}
-              className="min-w-[120px] flex items-center justify-center gap-1.5 bg-[#026f17] hover:bg-[#015210] active:scale-95 transition-all text-white text-xs font-black uppercase tracking-wider px-5 py-2 rounded-xl shadow-md disabled:opacity-50 disabled:scale-100"
+              className="min-w-[120px] flex items-center justify-center gap-1.5 bg-[var(--primary)] hover:bg-[#015210] active:scale-95 transition-all text-white text-[11px] font-semibold uppercase tracking-wide px-5 py-2 rounded-xl shadow-md disabled:opacity-50 disabled:scale-100"
             >
               {saving ? (
                 <>

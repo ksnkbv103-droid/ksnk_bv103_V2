@@ -24,6 +24,16 @@ function hintForPath(pathname: string): HintDef | null {
       ],
     };
   }
+  if (pathname === "/giam-sat") {
+    return {
+      key: "giam-sat-hub",
+      title: "Gợi ý nhanh — Trung tâm giám sát",
+      bullets: [
+        "Nhập liệu: chọn VST, GSC hoặc NKBV — mỗi loại một phiên giám sát.",
+        "Tra cứu: Lịch sử và Thống kê tách theo VST/GSC; menu trái vẫn giữ shortcut trực tiếp.",
+      ],
+    };
+  }
   if (pathname === "/quan-ly-cong-viec") {
     return {
       key: "qlcv",

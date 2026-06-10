@@ -1,5 +1,6 @@
 "use client";
 
+import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { format, parseISO, differenceInCalendarDays } from "date-fns";
@@ -229,11 +230,11 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
       {/* Intro Header */}
-      <div className="premium-card rounded-2xl border border-slate-100 bg-white p-6 shadow-xl space-y-4">
+      <div className="premium-card rounded-[var(--radius-shell)] border border-slate-100 bg-white p-6 shadow-xl space-y-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
           <div>
-            <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-              <FileSpreadsheet className="h-6 w-6 text-[#026f17]" />
+            <h3 className={`${C.panelTitle} flex items-center gap-2`}>
+              <FileSpreadsheet className="h-6 w-6 text-[var(--primary)]" />
               Cổng tiếp nhận kết quả Vi sinh LIS (Excel Integration)
             </h3>
             <p className="text-xs text-slate-400 mt-1">
@@ -251,9 +252,9 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
         </div>
 
         {showGuide && (
-          <div className="rounded-2xl bg-slate-50 p-4 border border-slate-200/60 text-xs text-slate-600 space-y-3 animate-in fade-in duration-300">
+          <div className="rounded-[var(--radius-shell)] bg-slate-50 p-4 border border-slate-200/60 text-xs text-slate-600 space-y-3 animate-in fade-in duration-300">
             <h4 className="font-bold text-slate-700 flex items-center gap-1.5">
-              <Sparkles className="h-4 w-4 text-[#026f17]" />
+              <Sparkles className="h-4 w-4 text-[var(--primary)]" />
               Cách thức hoạt động & định dạng Excel:
             </h4>
             <ul className="list-disc pl-5 space-y-1.5">
@@ -263,7 +264,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
               </li>
               <li>Dán trực tiếp vào ô văn bản phía dưới và ấn <strong>"Phân tích dữ liệu"</strong>.</li>
               <li>
-                <span className="font-bold text-slate-800">Quy tắc LIS Day 3:</span> Các kết quả cấy có ngày lấy mẫu sau ngày nhập viện <span className="font-bold text-[#026f17]">&ge; 2 ngày</span> (tức là ngày nằm viện thứ 3 trở lên, tính ngày nhập viện là ngày 1) sẽ được hệ thống đánh dấu là <span className="font-bold text-emerald-600">Nghi ngờ NKBV</span> và tự động tạo ca giám sát chờ bác sĩ xác minh lâm sàng. Các ca cấy sớm hơn sẽ được ghi nhận vào nhật ký nhưng không tạo ca lâm sàng.
+                <span className="font-bold text-slate-800">Quy tắc LIS Day 3:</span> Các kết quả cấy có ngày lấy mẫu sau ngày nhập viện <span className="font-bold text-[var(--primary)]">&ge; 2 ngày</span> (tức là ngày nằm viện thứ 3 trở lên, tính ngày nhập viện là ngày 1) sẽ được hệ thống đánh dấu là <span className="font-bold text-emerald-600">Nghi ngờ NKBV</span> và tự động tạo ca giám sát chờ bác sĩ xác minh lâm sàng. Các ca cấy sớm hơn sẽ được ghi nhận vào nhật ký nhưng không tạo ca lâm sàng.
               </li>
             </ul>
             <div className="pt-2">
@@ -276,10 +277,10 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                   navigator.clipboard.writeText(samplePasteData);
                   toast.success("Đã copy dữ liệu mẫu vào Clipboard!");
                 }}
-                className="w-full h-24 font-mono text-[10px] bg-white border border-slate-200 rounded-xl p-2 cursor-pointer focus:outline-none"
+                className="w-full h-24 font-mono text-[11px] bg-white border border-slate-200 rounded-xl p-2 cursor-pointer focus:outline-none"
                 title="Click để copy mẫu thử"
               />
-              <span className="text-[10px] text-slate-400 italic block mt-1">💡 Click vào khung xám trên để copy nhanh mẫu thử và dán vào ô bên dưới!</span>
+              <span className="text-[11px] text-slate-400 italic block mt-1">💡 Click vào khung xám trên để copy nhanh mẫu thử và dán vào ô bên dưới!</span>
             </div>
           </div>
         )}
@@ -287,9 +288,9 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
 
       {records.length === 0 ? (
         /* Textarea Paste Area */
-        <div className="premium-card rounded-2xl border border-slate-100 bg-white p-6 shadow-xl space-y-4">
+        <div className="premium-card rounded-[var(--radius-shell)] border border-slate-100 bg-white p-6 shadow-xl space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Khung dán dữ liệu Excel</span>
+            <span className={C.statLabel}>Khung dán dữ liệu Excel</span>
             <UploadCloud className="h-5 w-5 text-slate-300" />
           </div>
 
@@ -297,14 +298,14 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
             value={pasteData}
             onChange={(e) => setPasteData(e.target.value)}
             placeholder="Dán (Ctrl+V / Cmd+V) các hàng sao chép từ Excel kết quả vi sinh dương tính tại đây..."
-            className="w-full min-h-[220px] rounded-2xl border-slate-200 bg-slate-50/50 p-4 font-mono text-xs focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17] transition-all"
+            className="w-full min-h-[220px] rounded-[var(--radius-shell)] border-slate-200 bg-slate-50/50 p-4 font-mono text-xs focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-all"
           />
 
           <div className="flex justify-end">
             <button
               type="button"
               onClick={handleParse}
-              className="rounded-full bg-[#026f17] px-8 py-3 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-[#026f17]/20 hover:bg-[#026615] transition-all flex items-center gap-2"
+              className={`${C.ctaPrimary} hover:bg-[var(--primary-hover)]`}
             >
               Phân tích dữ liệu <ArrowRight className="h-4 w-4" />
             </button>
@@ -312,11 +313,11 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
         </div>
       ) : (
         /* Preview Table & Mapping */
-        <div className="premium-card rounded-2xl border border-slate-100 bg-white p-6 shadow-xl space-y-6">
+        <div className="premium-card rounded-[var(--radius-shell)] border border-slate-100 bg-white p-6 shadow-xl space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
             <div>
               <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-                <Database className="h-5 w-5 text-[#026f17]" />
+                <Database className="h-5 w-5 text-[var(--primary)]" />
                 Xem trước kết quả phân tích ({records.length} hàng)
               </h3>
               <p className="text-xs text-slate-400">
@@ -335,14 +336,14 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                 type="button"
                 onClick={handleImportSubmit}
                 disabled={isLoading}
-                className="rounded-full bg-[#026f17] px-6 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-[#026f17]/20 hover:bg-[#026615] transition disabled:opacity-50 flex items-center gap-1.5"
+                className="rounded-full bg-[var(--primary)] px-6 py-2.5 text-xs font-semibold uppercase tracking-wide text-white shadow-lg shadow-[var(--primary)]/20 hover:bg-[#026615] transition disabled:opacity-50 flex items-center gap-1.5"
               >
                 {isLoading ? "Đang đẩy LIS..." : "Đẩy kết quả LIS vào DB"}
               </button>
             </div>
           </div>
 
-          <div className="overflow-x-auto border border-slate-100 rounded-2xl">
+          <div className="overflow-x-auto border border-slate-100 rounded-[var(--radius-shell)]">
             <table className="w-full min-w-[1000px] border-collapse text-left text-xs">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
@@ -375,7 +376,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                       <div className="flex flex-col">
                         <span className="font-bold text-slate-900">{r.ho_ten_benh_nhan}</span>
                         {r.ngay_sinh && (
-                          <span className="text-[10px] text-slate-400">
+                          <span className="text-[11px] text-slate-400">
                             Sinh: {r.ngay_sinh} {r.gioi_tinh ? `(${r.gioi_tinh})` : ""}
                           </span>
                         )}
@@ -394,7 +395,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                       <select
                         value={r.khoa_yeu_cau_id}
                         onChange={(e) => handleUpdateRowKhoa(idx, e.target.value)}
-                        className="w-full rounded-xl border-slate-200 bg-white px-2 py-1.5 text-xs font-semibold focus:border-[#026f17]"
+                        className={C.controlInput}
                       >
                         <option value="">Chọn khoa chỉ định...</option>
                         {khoas.map(k => (
@@ -404,10 +405,10 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-col gap-1">
-                        <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-blue-700 w-fit">
+                        <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-700 w-fit">
                           {r.loai_benh_pham}
                         </span>
-                        <span className="font-mono text-[10px] text-slate-400">
+                        <span className="font-mono text-[11px] text-slate-400">
                           Mẫu: {r.ma_benh_pham}
                         </span>
                       </div>
@@ -417,11 +418,11 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                     </td>
                     <td className="px-4 py-3 text-center">
                       {r.isHaiSuspect ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-black text-emerald-800">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-black text-emerald-800">
                           <CheckCircle className="h-3 w-3" /> Nghi ngờ NKBV (Day {r.diffDays + 1})
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-black text-slate-500">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black text-slate-500">
                           <AlertTriangle className="h-3 w-3" /> Nhiễm cộng đồng
                         </span>
                       )}
@@ -442,7 +443,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
             </table>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-slate-400 bg-slate-50 rounded-2xl p-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-slate-400 bg-slate-50 rounded-[var(--radius-shell)] p-4">
             <div className="flex gap-4">
               <span className="flex items-center gap-1.5">
                 <span className="h-3 w-3 rounded-full bg-emerald-500 block"></span>

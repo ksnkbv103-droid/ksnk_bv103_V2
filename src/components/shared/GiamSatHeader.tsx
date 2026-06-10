@@ -9,6 +9,8 @@ import GiamSatHeaderPersonalFields from "./GiamSatHeaderPersonalFields";
 import GiamSatHeaderPatientFields from "./GiamSatHeaderPatientFields";
 import GiamSatHeaderFields from "./GiamSatHeaderFields";
 import type { GiamSatSession, NhanSuOption } from "./giam-sat-header.types";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import type { VstSessionLocationHistoryRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/master-data-gateway.actions";
 
 export type { GiamSatSession, NhanSuOption };
@@ -123,7 +125,7 @@ export default function GiamSatHeader({
     };
   }, [parentFeedsKhoaKhu]);
 
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   const filteredNhanSus = useMemo(
     () =>
@@ -150,26 +152,26 @@ export default function GiamSatHeader({
   return (
     <div
       id="vst-session-header"
-      className={`overflow-visible rounded-2xl border border-slate-200/90 bg-white shadow-sm transition-[padding] duration-200 ${isCollapsed ? "p-3" : "space-y-4 p-4 sm:p-5"}`}
+      className={`overflow-visible rounded-[var(--radius-shell)] border border-slate-200/90 bg-white shadow-sm transition-[padding] duration-200 ${isCollapsed ? "sticky top-4 z-30 p-3 max-md:static max-md:z-auto" : "space-y-4 p-4 sm:p-5"}`}
     >
       <div className={`flex items-center justify-between gap-3 ${!isCollapsed ? "border-b border-slate-100 pb-3" : ""}`}>
         <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-3" onClick={() => setIsCollapsed(!isCollapsed)}>
           <div className="flex items-center gap-3">
-            <div className={`shrink-0 rounded-full bg-[#026f17] transition-all ${isCollapsed ? "h-4 w-1" : "h-7 w-1.5"}`} />
+            <div className={`shrink-0 rounded-full bg-[var(--primary)] transition-all ${isCollapsed ? "h-4 w-1" : "h-7 w-1.5"}`} />
             <div>
-              <h2 className={`font-semibold text-[#026f17] uppercase tracking-wide transition-all ${isCollapsed ? "text-[10px]" : "text-xs sm:text-sm"}`}>
-                {isCollapsed ? `Phiên giám sát: ${selectedKhoaName} - ${selectedKhuVucName}` : 'Thông tin phiên giám sát'}
+              <h2 className={`${T.sectionTitle} transition-all ${isCollapsed ? "text-sm" : ""}`}>
+                {isCollapsed ? `Phiên giám sát: ${selectedKhoaName} — ${selectedKhuVucName}` : "Thông tin phiên giám sát"}
               </h2>
-              {isCollapsed && <p className="text-[11px] text-slate-400 font-bold uppercase tracking-tighter">Nhấn để mở rộng cấu hình</p>}
+              {isCollapsed ? <p className={T.pageEyebrow}>Nhấn để mở rộng cấu hình</p> : null}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-4">
-          {loading && <div className="text-[10px] font-bold text-[#026f17] animate-pulse">Đang đồng bộ...</div>}
+          {loading ? <div className={`${T.pageEyebrow} animate-pulse text-[var(--primary)]`}>Đang đồng bộ…</div> : null}
           
           <button 
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600 transition-colors hover:bg-slate-50"
+            className={`${C.btnSecondary} h-auto min-h-0 gap-2 px-3 py-1.5 text-[11px]`}
           >
             {isCollapsed ? 'Mở rộng' : 'Thu gọn'}
           </button>
@@ -178,12 +180,12 @@ export default function GiamSatHeader({
             <div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-2">
               {showGiamSatCaNhan && (
                 <label className="flex cursor-pointer items-center gap-2 group">
-                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide group-hover:text-[#026f17] transition-colors">
-                    Giám sát nhân viên?
+                  <span className={`${T.labelBlock} group-hover:text-slate-700 transition-colors`}>
+                    Giám sát nhân viên
                   </span>
                   <input
                     type="checkbox"
-                    className="h-5 w-5 accent-[#026f17]"
+                    className="h-5 w-5 accent-[var(--primary)]"
                     checked={Boolean(session.is_giam_sat_ca_nhan)}
                     onChange={(e) =>
                       setSession((prev) => ({
@@ -204,12 +206,12 @@ export default function GiamSatHeader({
               )}
               {showBoSungNguoiBenhToggle && (
                 <label className="flex cursor-pointer items-center gap-2 group">
-                  <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide group-hover:text-[#026f17] transition-colors">
-                    Bổ sung người bệnh?
+                  <span className={`${T.labelBlock} group-hover:text-slate-700 transition-colors`}>
+                    Bổ sung người bệnh
                   </span>
                   <input
                     type="checkbox"
-                    className="h-5 w-5 accent-[#026f17]"
+                    className="h-5 w-5 accent-[var(--primary)]"
                     checked={Boolean(session.is_bo_sung_nguoi_benh)}
                     onChange={(e) =>
                       setSession((prev) => ({

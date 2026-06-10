@@ -23,7 +23,7 @@ export async function getKhoaPhongRowsAction() {
   const { data: dmData, error: dmErr } = await supabase
     .from("mdm_dm_khoa_phong")
     .select(
-      "id, ma_khoa, ten_khoa, khoi_id, mo_ta_chuc_nang, so_bac_si, so_dieu_duong, so_giuong_benh_thuong, so_giuong_cap_cuu, is_active, khoi:khoi_id(ten_khoi, ma_khoi)",
+      "id, ma_khoa, ten_khoa, khoi_id, is_active, specs, khoi:mdm_dm_khoi_khoa!khoi_id(ten_khoi, ma_khoi)",
     )
     .order("is_active", { ascending: false })
     .order("ma_khoa", { ascending: true });
@@ -35,12 +35,8 @@ export async function getKhoaPhongRowsAction() {
     ten_khoa?: string | null;
     khoi_id?: string | null;
     khoi?: { ten_khoi?: string | null; ma_khoi?: string | null } | { ten_khoi?: string | null; ma_khoi?: string | null }[] | null;
-    mo_ta_chuc_nang?: string | null;
-    so_bac_si?: number | null;
-    so_dieu_duong?: number | null;
-    so_giuong_benh_thuong?: number | null;
-    so_giuong_cap_cuu?: number | null;
     is_active?: boolean | null;
+    specs?: any;
   };
   return {
     success: true as const,
@@ -54,12 +50,13 @@ export async function getKhoaPhongRowsAction() {
       ten_danh_muc: x.ten_khoa,
       khoi_id: x.khoi_id || null,
       ten_khoi: kObj?.ten_khoi || null,
-      mo_ta_chuc_nang: x.mo_ta_chuc_nang || null,
-      so_bac_si: normalizeNonNegativeNumber(x.so_bac_si),
-      so_dieu_duong: normalizeNonNegativeNumber(x.so_dieu_duong),
-      so_giuong_benh_thuong: normalizeNonNegativeNumber(x.so_giuong_benh_thuong),
-      so_giuong_cap_cuu: normalizeNonNegativeNumber(x.so_giuong_cap_cuu),
+      mo_ta_chuc_nang: x.specs?.mo_ta_chuc_nang || null,
+      so_bac_si: normalizeNonNegativeNumber(x.specs?.so_bac_si),
+      so_dieu_duong: normalizeNonNegativeNumber(x.specs?.so_dieu_duong),
+      so_giuong_benh_thuong: normalizeNonNegativeNumber(x.specs?.so_giuong_benh_thuong),
+      so_giuong_cap_cuu: normalizeNonNegativeNumber(x.specs?.so_giuong_cap_cuu),
       is_active: x.is_active !== false,
+      specs: x.specs || null,
     };
     }) as KhoaPhongRow[],
   };
@@ -76,6 +73,21 @@ export async function getKhoiKhoaOptionsAction() {
         id: r.id,
         ten_danh_muc: r.ma ? `${r.ten} (${r.ma})` : r.ten,
       })),
+    };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { success: false as const, error: msg };
+  }
+}
+
+export async function getKhuVucGiamSatOptionsAction() {
+  await verifyPermission("KHOA_PHONG", "view");
+  const supabase = createAdminSupabaseClient();
+  try {
+    const rows = await fetchActiveRegistryDmRows(supabase, "KHU_VUC_GIAM_SAT");
+    return {
+      success: true as const,
+      data: rows,
     };
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -100,16 +112,20 @@ export async function saveKhoaPhongAction(input: Record<string, unknown>) {
       error: "Khối khoa không hợp lệ: chọn trong danh mục KHOI_KHOA hoặc để trống.",
     };
   }
+  const existingSpecs = (input.specs as Record<string, any>) || {};
   const payload = {
     ma_khoa: String(input.ma_danh_muc || "").trim().toUpperCase(),
     ten_khoa: String(input.ten_danh_muc || "").trim(),
     khoi_id: khoiNorm,
-    mo_ta_chuc_nang: String(input.mo_ta_chuc_nang || "").trim() || null,
-    so_bac_si: normalizeNonNegativeNumber(input.so_bac_si),
-    so_dieu_duong: normalizeNonNegativeNumber(input.so_dieu_duong),
-    so_giuong_benh_thuong: normalizeNonNegativeNumber(input.so_giuong_benh_thuong),
-    so_giuong_cap_cuu: normalizeNonNegativeNumber(input.so_giuong_cap_cuu),
     is_active: input.is_active !== false,
+    specs: {
+      ...existingSpecs,
+      mo_ta_chuc_nang: String(input.mo_ta_chuc_nang || "").trim() || null,
+      so_bac_si: normalizeNonNegativeNumber(input.so_bac_si),
+      so_dieu_duong: normalizeNonNegativeNumber(input.so_dieu_duong),
+      so_giuong_benh_thuong: normalizeNonNegativeNumber(input.so_giuong_benh_thuong),
+      so_giuong_cap_cuu: normalizeNonNegativeNumber(input.so_giuong_cap_cuu),
+    },
     updated_at: new Date().toISOString(),
   };
   if (!payload.ma_khoa || !payload.ten_khoa) {

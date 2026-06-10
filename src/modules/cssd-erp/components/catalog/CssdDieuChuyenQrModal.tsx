@@ -74,7 +74,7 @@ export default function CssdDieuChuyenQrModal({ open, onClose, suggestedTenDungC
         </div>
 
         <div className="space-y-3">
-          <label className="block text-[10px] font-semibold uppercase text-slate-500">
+          <label className="block text-[11px] font-semibold uppercase text-slate-500">
             QR bộ nguồn
             <input
               value={maQrTu}
@@ -83,7 +83,7 @@ export default function CssdDieuChuyenQrModal({ open, onClose, suggestedTenDungC
               placeholder="BV103-DC-…"
             />
           </label>
-          <label className="block text-[10px] font-semibold uppercase text-slate-500">
+          <label className="block text-[11px] font-semibold uppercase text-slate-500">
             QR bộ đích
             <input
               value={maQrDen}
@@ -92,7 +92,7 @@ export default function CssdDieuChuyenQrModal({ open, onClose, suggestedTenDungC
               placeholder="BV103-DC-…"
             />
           </label>
-          <label className="block text-[10px] font-semibold uppercase text-slate-500">
+          <label className="block text-[11px] font-semibold uppercase text-slate-500">
             Tên dụng cụ lẻ
             <input
               value={tenDungCu}
@@ -100,7 +100,7 @@ export default function CssdDieuChuyenQrModal({ open, onClose, suggestedTenDungC
               className="mt-1 h-10 w-full rounded-lg border border-slate-200 px-3 text-sm"
             />
           </label>
-          <label className="block text-[10px] font-semibold uppercase text-slate-500">
+          <label className="block text-[11px] font-semibold uppercase text-slate-500">
             Số lượng
             <input
               type="number"
@@ -110,7 +110,7 @@ export default function CssdDieuChuyenQrModal({ open, onClose, suggestedTenDungC
               className="mt-1 h-10 w-full rounded-lg border border-slate-200 px-3 text-sm"
             />
           </label>
-          <label className="block text-[10px] font-semibold uppercase text-slate-500">
+          <label className="block text-[11px] font-semibold uppercase text-slate-500">
             Ghi chú (tùy chọn)
             <textarea
               value={ghiChu}

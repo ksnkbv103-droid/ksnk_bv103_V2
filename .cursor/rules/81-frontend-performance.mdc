@@ -1,6 +1,6 @@
 ---
 description: Frontend performance rules for KSNK data tables and components
-globs: src/**/*.{ts,tsx}
+globs: src/**/*table*.{ts,tsx}, src/**/actions/*-read*.{ts,tsx}, src/**/hooks/use*Paginated*.{ts,tsx}
 alwaysApply: false
 ---
 

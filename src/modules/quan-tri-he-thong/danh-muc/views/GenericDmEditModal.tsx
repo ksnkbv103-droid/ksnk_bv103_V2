@@ -3,6 +3,7 @@
 import React from "react";
 import { Sparkles } from "lucide-react";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 type Props = {
   open: boolean;
@@ -38,19 +39,19 @@ export default function GenericDmEditModal({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex touch-manipulation items-center justify-center bg-black/45 p-4">
-      <div className="w-full max-w-md space-y-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-2xl">
-        <h2 className="text-sm font-black uppercase tracking-tight text-slate-800">
+      <div className="w-full max-w-md space-y-4 rounded-[var(--radius-shell)] border border-slate-100 bg-white p-6 shadow-2xl">
+        <h2 className="text-sm font-semibold text-slate-800">
           {editMode ? "Sửa" : "Thêm"} danh mục
         </h2>
         <div>
           <div className="mb-1 flex items-center justify-between gap-2">
-            <label className="block text-[10px] font-black uppercase text-slate-500">Mã</label>
+            <label className="block text-[11px] font-medium text-slate-500">Mã</label>
             {!editMode && onSuggestMa ? (
               <button
                 type="button"
                 disabled={suggestLoading}
                 onClick={() => void onSuggestMa()}
-                className="inline-flex items-center gap-1 rounded-lg border border-[#026f17]/20 bg-[#026f17]/5 px-2 py-1 text-[11px] font-black uppercase text-[#026f17] touch-manipulation disabled:opacity-50"
+                className={`${C.btnSecondary} h-auto min-h-0 px-2 py-1 text-[11px] uppercase text-[var(--primary)]`}
               >
                 <Sparkles className="h-3 w-3" />
                 {suggestLoading ? "…" : "Gợi ý mã"}
@@ -62,7 +63,7 @@ export default function GenericDmEditModal({
             onChange={(e) => onMa(e.target.value)}
             readOnly={false}
             placeholder="VD: DM-0006 hoặc mã nghiệp vụ"
-            className="w-full rounded-xl border-2 border-slate-100 px-3 py-2.5 text-sm font-semibold outline-none focus:border-[#026f17]"
+            className={C.controlInput}
           />
           {!editMode ? (
             <p className="mt-1 text-[11px] font-bold uppercase leading-relaxed text-slate-400">
@@ -71,27 +72,19 @@ export default function GenericDmEditModal({
           ) : null}
         </div>
         <div>
-          <label className="mb-1 block text-[10px] font-black uppercase text-slate-500">Tên hiển thị</label>
+          <label className="mb-1 block text-[11px] font-medium text-slate-500">Tên hiển thị</label>
           <input
             value={ten}
             onChange={(e) => onTen(e.target.value)}
-            className="w-full rounded-xl border-2 border-slate-100 px-3 py-2.5 text-sm outline-none focus:border-[#026f17]"
+            className={C.controlInput}
           />
         </div>
         <MdmFormActiveToggleRow active={active} onChange={onActive} />
         <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            className="touch-manipulation rounded-xl bg-slate-100 px-4 py-2 text-xs font-black uppercase text-slate-700"
-            onClick={onClose}
-          >
+          <button type="button" className={`touch-manipulation ${C.btnSecondary}`} onClick={onClose}>
             Hủy
           </button>
-          <button
-            type="button"
-            className="touch-manipulation rounded-xl bg-[#026f17] px-4 py-2 text-xs font-black uppercase text-[#FFD700]"
-            onClick={() => void onSave()}
-          >
+          <button type="button" className={`touch-manipulation ${C.btnPrimary}`} onClick={() => void onSave()}>
             Lưu
           </button>
         </div>

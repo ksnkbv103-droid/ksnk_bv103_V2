@@ -51,7 +51,7 @@ export function GiamSatChungPrintCriteriaSection({
                 </td>
                 <td style={{ textAlign: "center", fontSize: "16px", border: "1px solid #e2e8f0", padding: "4px 5px", verticalAlign: "middle" }}>
                   {res?.value === "DAT" ? (
-                    <span style={{ color: "#026f17", fontWeight: "bold" }}>✓</span>
+                    <span style={{ color: "var(--primary)", fontWeight: "bold" }}>✓</span>
                   ) : null}
                 </td>
                 <td style={{ textAlign: "center", fontSize: "16px", border: "1px solid #e2e8f0", padding: "4px 5px", verticalAlign: "middle" }}>

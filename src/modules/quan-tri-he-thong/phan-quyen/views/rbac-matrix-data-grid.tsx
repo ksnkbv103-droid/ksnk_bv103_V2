@@ -62,7 +62,7 @@ export function RBACMatrixDataGrid({
   const groupKeys = Object.keys(MODULE_GROUPS) as (keyof typeof MODULE_GROUPS)[];
 
   return (
-    <div className="overflow-hidden border border-slate-200 rounded-2xl bg-white shadow-sm">
+    <div className="overflow-hidden border border-slate-200 rounded-[var(--radius-shell)] bg-white shadow-sm">
       <div className="custom-scrollbar max-h-[min(calc(100dvh-13rem),720px)] overflow-auto overscroll-contain">
         <table className="w-full min-w-[720px] border-collapse">
           <thead className="sticky top-0 z-30 bg-slate-50 shadow-[0_1px_0_rgb(226_232_240)]">

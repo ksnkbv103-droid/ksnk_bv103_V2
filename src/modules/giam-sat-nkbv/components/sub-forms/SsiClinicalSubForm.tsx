@@ -1,5 +1,6 @@
 "use client";
 
+import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
 import React from "react";
 import type { SsiVerificationData } from "../../types/nkbv-verification";
 
@@ -33,27 +34,25 @@ export default function SsiClinicalSubForm({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 space-y-2">
-        <label className="text-[10px] font-black uppercase tracking-wider text-emerald-800 block">
-          Mã QR bộ dụng cụ CSSD (truy vết SSI)
-        </label>
+      <div className="rounded-[var(--radius-shell)] border border-emerald-100 bg-emerald-50/60 p-4 space-y-2">
+        <label className={`${C.formLabel} text-emerald-800`}>Mã QR bộ dụng cụ CSSD (truy vết SSI)</label>
         <input
           type="text"
           value={form.ma_qr_cssd_lien_quan || ""}
           disabled={!allowedEdit}
           onChange={(e) => onChange({ ...form, ma_qr_cssd_lien_quan: e.target.value.toUpperCase() })}
           placeholder="Quét hoặc nhập mã QR chu trình..."
-          className="w-full rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wide focus:border-[#026f17] focus:ring-1 focus:ring-emerald-200"
+          className={C.controlInput}
         />
-        <p className="text-[10px] text-emerald-900/80 font-medium">
+        <p className="text-[11px] text-emerald-900/80 font-medium">
           Sau khi lưu checklist, hệ thống liên kết ca với timeline CSSD (tab Truy vết).
         </p>
       </div>
 
       {/* Microbiology Tab */}
       {activeTab === 'VI_SINH' && (
-        <div className="bg-slate-50/75 rounded-2xl p-4 border border-slate-100 space-y-3 animate-in fade-in">
-          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">🧫 Kết quả vi sinh vết mổ</span>
+        <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3 animate-in fade-in">
+          <span className={` text-slate-500`}>🧫 Kết quả vi sinh vết mổ</span>
           
           <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer font-semibold py-1">
             <input
@@ -61,7 +60,7 @@ export default function SsiClinicalSubForm({
               checked={form.superficial_culture_positive}
               disabled={!allowedEdit}
               onChange={(e) => onChange({ ...form, superficial_culture_positive: e.target.checked })}
-              className="rounded border-slate-300 text-[#026f17]"
+              className="rounded border-slate-300 text-[var(--primary)]"
             />
             Cấy dịch/mô lấy vô khuẩn từ vết mổ nông dương tính
           </label>
@@ -71,27 +70,27 @@ export default function SsiClinicalSubForm({
               checked={form.organ_space_culture_positive}
               disabled={!allowedEdit}
               onChange={(e) => onChange({ ...form, organ_space_culture_positive: e.target.checked })}
-              className="rounded border-slate-300 text-[#026f17]"
+              className="rounded border-slate-300 text-[var(--primary)]"
             />
             Cấy dịch/mô lấy vô khuẩn từ organ/space dương tính
           </label>
           
           <div className="border-t border-slate-100 pt-3 space-y-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">🔄 Biến chứng cấy máu kèm theo (Secondary BSI)</span>
+            <span className={` text-slate-500`}>🔄 Biến chứng cấy máu kèm theo (Secondary BSI)</span>
             <label className="flex items-center gap-2.5 text-xs text-slate-700 cursor-pointer font-bold py-1">
               <input
                 type="checkbox"
                 checked={form.has_blood_culture_positive}
                 disabled={!allowedEdit || isTimeframeExpired}
                 onChange={(e) => onChange({ ...form, has_blood_culture_positive: e.target.checked })}
-                className="rounded border-slate-300 text-[#026f17]"
+                className="rounded border-slate-300 text-[var(--primary)]"
               />
               Có cấy máu dương tính
             </label>
             {form.has_blood_culture_positive && (
               <div className="flex flex-col gap-2 pl-6 animate-in slide-in-from-top-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-slate-400 font-bold">Ngày cấy máu:</span>
+                  <span className="text-[11px] text-slate-400 font-bold">Ngày cấy máu:</span>
                   <input
                     type="date"
                     value={symptomDates.has_blood_culture_positive || ""}
@@ -99,7 +98,7 @@ export default function SsiClinicalSubForm({
                     min={iwpStart}
                     max={iwpEnd}
                     onChange={(e) => onSymptomDateChange("has_blood_culture_positive", e.target.value)}
-                    className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                    className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
                     required
                   />
                 </div>
@@ -109,7 +108,7 @@ export default function SsiClinicalSubForm({
                     checked={form.blood_ssi_pathogen_matches}
                     disabled={!allowedEdit}
                     onChange={(e) => onChange({ ...form, blood_ssi_pathogen_matches: e.target.checked })}
-                    className="rounded border-slate-300 text-[#026f17]"
+                    className="rounded border-slate-300 text-[var(--primary)]"
                   />
                   Trùng tác nhân cấy vết mổ
                 </label>
@@ -123,8 +122,8 @@ export default function SsiClinicalSubForm({
       {activeTab === 'LAM_SANG' && (
         <div className="space-y-4 animate-in fade-in">
           {/* Surgical Details Group */}
-          <div className="bg-slate-50/75 rounded-2xl p-4 border border-slate-100 space-y-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">✂️ Thông tin phẫu thuật (Mã: BM.LS.SSI.01)</span>
+          <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3">
+            <span className={` text-slate-500`}>✂️ Thông tin phẫu thuật (Mã: BM.LS.SSI.01)</span>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -133,7 +132,7 @@ export default function SsiClinicalSubForm({
                   value={form.loai_phau_thuat_nhsn}
                   disabled={!allowedEdit}
                   onChange={(e) => onChange({ ...form, loai_phau_thuat_nhsn: e.target.value })}
-                  className="w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                  className={C.controlInput}
                   placeholder="VD: COLO, HPRO..."
                 />
               </div>
@@ -144,8 +143,8 @@ export default function SsiClinicalSubForm({
                   value={form.days_since_surgery}
                   disabled={!allowedEdit}
                   onChange={(e) => onChange({ ...form, days_since_surgery: parseInt(e.target.value) || 0 })}
-                  className={`w-full rounded-xl bg-white px-3 py-2 text-xs font-semibold focus:ring-1 focus:ring-[#026f17] ${
-                    isTimeframeExpired ? "border-red-300 focus:border-red-500" : "border-slate-200 focus:border-[#026f17]"
+                  className={`w-full rounded-xl bg-white px-3 py-2 text-xs font-semibold focus:ring-1 focus:ring-[var(--primary)] ${
+                    isTimeframeExpired ? "border-red-300 focus:border-red-500" : "border-slate-200 focus:border-[var(--primary)]"
                   }`}
                 />
               </div>
@@ -157,7 +156,7 @@ export default function SsiClinicalSubForm({
                 checked={form.has_implant}
                 disabled={!allowedEdit}
                 onChange={(e) => onChange({ ...form, has_implant: e.target.checked })}
-                className="rounded border-slate-300 text-[#026f17] focus:ring-[#026f17]"
+                className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
               />
               Phẫu thuật có đặt vật liệu nhân tạo (Implant) cấy ghép?
             </label>
@@ -170,8 +169,8 @@ export default function SsiClinicalSubForm({
           </div>
 
           {/* Depth selection & symptoms checklist */}
-          <div className="bg-slate-50/75 rounded-2xl p-4 border border-slate-100 space-y-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+          <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3">
+            <span className={` text-slate-500`}>
               🏥 Đánh giá triệu chứng lâm sàng vết mổ
             </span>
             
@@ -179,7 +178,7 @@ export default function SsiClinicalSubForm({
               value={form.ssi_depth}
               disabled={!allowedEdit || isTimeframeExpired}
               onChange={(e) => onChange({ ...form, ssi_depth: e.target.value as any })}
-              className="w-full rounded-xl border-slate-200 bg-white px-3 py-2 text-xs font-semibold mb-2 focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+              className={`${C.controlInput} mb-2`}
             >
               <option value="NONE">Chưa xác định độ sâu</option>
               <option value="SUPERFICIAL">Nông (Vết rạch nông - da/dưới da)</option>
@@ -190,7 +189,7 @@ export default function SsiClinicalSubForm({
             {/* Dynamic checklist elements based on depth */}
             {form.ssi_depth === "SUPERFICIAL" && (
               <div className="bg-white rounded-xl p-3 border border-slate-100 space-y-2.5 animate-in fade-in duration-200">
-                <span className="text-[10px] font-black text-slate-400 uppercase block border-b border-slate-100 pb-1">Tiêu chí vết mổ Nông</span>
+                <span className="text-[11px] font-medium text-slate-400 block border-b border-slate-100 pb-1">Tiêu chí vết mổ Nông</span>
                 {[
                   { key: "superficial_purulent_drainage", label: "Có chảy mủ từ vết rạch nông" },
                   { key: "superficial_culture_positive", label: "Cấy dịch/mô lấy vô khuẩn từ vết mổ nông dương tính" },
@@ -204,13 +203,13 @@ export default function SsiClinicalSubForm({
                         checked={(form as any)[key] || false}
                         disabled={!allowedEdit}
                         onChange={(e) => onChange({ ...form, [key]: e.target.checked })}
-                        className="rounded border-slate-300 text-[#026f17]"
+                        className="rounded border-slate-300 text-[var(--primary)]"
                       />
                       {label}
                     </label>
                     {(form as any)[key] && (
                       <div className="pl-6 flex items-center gap-2 animate-in slide-in-from-top-1">
-                        <span className="text-[10px] text-slate-400 font-bold">Ngày:</span>
+                        <span className="text-[11px] text-slate-400 font-bold">Ngày:</span>
                         <input
                           type="date"
                           value={symptomDates[key] || ""}
@@ -218,7 +217,7 @@ export default function SsiClinicalSubForm({
                           min={iwpStart}
                           max={iwpEnd}
                           onChange={(e) => onSymptomDateChange(key, e.target.value)}
-                          className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                          className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
                           required
                         />
                       </div>
@@ -230,7 +229,7 @@ export default function SsiClinicalSubForm({
 
             {form.ssi_depth === "DEEP" && (
               <div className="bg-white rounded-xl p-3 border border-slate-100 space-y-2.5 animate-in fade-in duration-200">
-                <span className="text-[10px] font-black text-slate-400 uppercase block border-b border-slate-100 pb-1">Tiêu chí vết mổ Sâu</span>
+                <span className="text-[11px] font-medium text-slate-400 block border-b border-slate-100 pb-1">Tiêu chí vết mổ Sâu</span>
                 {[
                   { key: "deep_purulent_drainage", label: "Chảy mủ từ vết rạch sâu" },
                   { key: "deep_dehisced_or_opened_with_symptoms", label: "Vết mổ tự toác/mở sâu + bệnh nhân sốt > 38°C hoặc đau tại chỗ" },
@@ -243,13 +242,13 @@ export default function SsiClinicalSubForm({
                         checked={(form as any)[key] || false}
                         disabled={!allowedEdit}
                         onChange={(e) => onChange({ ...form, [key]: e.target.checked })}
-                        className="rounded border-slate-300 text-[#026f17]"
+                        className="rounded border-slate-300 text-[var(--primary)]"
                       />
                       {label}
                     </label>
                     {(form as any)[key] && (
                       <div className="pl-6 flex items-center gap-2 animate-in slide-in-from-top-1">
-                        <span className="text-[10px] text-slate-400 font-bold">Ngày:</span>
+                        <span className="text-[11px] text-slate-400 font-bold">Ngày:</span>
                         <input
                           type="date"
                           value={symptomDates[key] || ""}
@@ -257,7 +256,7 @@ export default function SsiClinicalSubForm({
                           min={iwpStart}
                           max={iwpEnd}
                           onChange={(e) => onSymptomDateChange(key, e.target.value)}
-                          className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                          className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
                           required
                         />
                       </div>
@@ -269,7 +268,7 @@ export default function SsiClinicalSubForm({
 
             {form.ssi_depth === "ORGAN_SPACE" && (
               <div className="bg-white rounded-xl p-3 border border-slate-100 space-y-2.5 animate-in fade-in duration-200">
-                <span className="text-[10px] font-black text-slate-400 uppercase block border-b border-slate-100 pb-1">Tiêu chí vết mổ Cơ quan/Khoang</span>
+                <span className="text-[11px] font-medium text-slate-400 block border-b border-slate-100 pb-1">Tiêu chí vết mổ Cơ quan/Khoang</span>
                 {[
                   { key: "organ_space_purulent_drainage", label: "Có chảy mủ từ dẫn lưu organ/space" },
                   { key: "organ_space_culture_positive", label: "Cấy dịch/mô lấy vô khuẩn từ organ/space dương tính" },
@@ -282,13 +281,13 @@ export default function SsiClinicalSubForm({
                         checked={(form as any)[key] || false}
                         disabled={!allowedEdit}
                         onChange={(e) => onChange({ ...form, [key]: e.target.checked })}
-                        className="rounded border-slate-300 text-[#026f17]"
+                        className="rounded border-slate-300 text-[var(--primary)]"
                       />
                       {label}
                     </label>
                     {(form as any)[key] && (
                       <div className="pl-6 flex items-center gap-2 animate-in slide-in-from-top-1">
-                        <span className="text-[10px] text-slate-400 font-bold">Ngày:</span>
+                        <span className="text-[11px] text-slate-400 font-bold">Ngày:</span>
                         <input
                           type="date"
                           value={symptomDates[key] || ""}
@@ -296,7 +295,7 @@ export default function SsiClinicalSubForm({
                           min={iwpStart}
                           max={iwpEnd}
                           onChange={(e) => onSymptomDateChange(key, e.target.value)}
-                          className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[#026f17] focus:ring-1 focus:ring-[#026f17]"
+                          className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
                           required
                         />
                       </div>

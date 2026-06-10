@@ -5,12 +5,14 @@ import { X, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import BoDungCuTextField from "./bo-dung-cu-form-field";
+import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import {
   DungCuChiTietFormValues,
   DungCuChiTietTableRow,
   mapChiTietRowToForm,
 } from "./dung-cu-chi-tiet-form-shared";
 import { saveDungCuChiTietAction } from "../actions/dung-cu-chi-tiet.actions";
+import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 
 type BoOpt = { id: string; ma_bo: string | null; ten_bo: string | null };
 type LoaiOpt = { id: string; ma_danh_muc: string | null; ten_danh_muc: string | null };
@@ -85,14 +87,14 @@ export default function DungCuChiTietFormModal({
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md touch-manipulation pointer-events-auto">
       <form
         onSubmit={submit}
-        className="bg-white w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-2xl p-8 space-y-4 shadow-2xl border-t-[6px] border-[#026f17]"
+        className="bg-white w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-[var(--radius-shell)] p-8 space-y-4 shadow-2xl border-t-[6px] border-[var(--primary)]"
       >
         <div className="flex justify-between items-start gap-4">
           <div>
-            <h3 className="text-sm font-black text-[#026f17] uppercase tracking-widest">
+            <h3 className="text-sm font-black text-[var(--primary)] uppercase tracking-widest">
               {isEdit ? "Cập nhật dụng cụ chi tiết" : "Thêm dụng cụ chi tiết"}
             </h3>
-            <p className="text-[10px] text-slate-400 font-semibold mt-1">
+            <p className="text-[11px] text-slate-400 font-semibold mt-1">
               Gán vào bộ hoặc để trống bộ nếu là dụng cụ lẻ.
             </p>
           </div>
@@ -114,7 +116,7 @@ export default function DungCuChiTietFormModal({
             onChange={(v) => setForm({ ...form, ten_chi_tiet: v })}
           />
           <div className="space-y-1">
-            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Loại dụng cụ liên kết</label>
+            <label className="text-[11px] font-medium text-slate-400 ml-1">Loại dụng cụ liên kết</label>
             <select
               value={form.loai_dung_cu_id}
               onChange={(e) => {
@@ -122,7 +124,7 @@ export default function DungCuChiTietFormModal({
                 setForm({ ...form, loai_dung_cu_id: loaiId, ten_chi_tiet: form.ten_chi_tiet.trim() || String(found?.ten_danh_muc || "") });
               }}
               disabled={loadingLoai}
-              className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs disabled:opacity-60"
+              className={C.controlInput}
             >
               <option value="">— Chọn loại (khuyến nghị) —</option>
               {loaiOptions.map((o) => (
@@ -134,12 +136,12 @@ export default function DungCuChiTietFormModal({
           </div>
         </div>
         <div className="space-y-1">
-          <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Bộ chủ quản</label>
+          <label className="text-[11px] font-medium text-slate-400 ml-1">Bộ chủ quản</label>
           <select
             value={form.bo_dung_cu_id}
             onChange={(e) => setForm({ ...form, bo_dung_cu_id: e.target.value })}
             disabled={loadingBo}
-            className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs disabled:opacity-60"
+            className={C.controlInput}
           >
             <option value="">— Dụng cụ lẻ (không thuộc bộ) —</option>
             {boOptions.map((o) => (
@@ -164,16 +166,16 @@ export default function DungCuChiTietFormModal({
         </div>
         <BoDungCuTextField label="Mã QR mẫu (tùy chọn)" value={form.ma_qr_mau} onChange={(v) => setForm({ ...form, ma_qr_mau: v })} />
         <div className="space-y-1">
-          <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Ghi chú</label>
+          <label className="text-[11px] font-medium text-slate-400 ml-1">Ghi chú</label>
           <textarea
             value={form.ghi_chu}
             rows={3}
             onChange={(e) => setForm({ ...form, ghi_chu: e.target.value })}
-            className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold text-xs min-h-[80px]"
+            className={C.textareaCompact}
           />
         </div>
         <MdmFormActiveToggleRow active={form.is_active} onChange={(next) => setForm({ ...form, is_active: next })} />
-        <button type="submit" disabled={loading} className="w-full h-12 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 disabled:opacity-60 touch-manipulation">
+        <button type="submit" disabled={loading} className={`w-full ${C.btnPrimaryBlock} disabled:opacity-60 touch-manipulation`}>
           {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Lưu
         </button>
       </form>

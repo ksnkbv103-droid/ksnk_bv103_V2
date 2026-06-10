@@ -122,15 +122,18 @@ export async function resolveSupervisorPolicy(params: ResolveSupervisorPolicyPar
 
   let derivedHinhThuc: string;
   if (isNetworkAtSelectedKhoa) {
+    // Mạng lưới giám sát tại khoa mình = tự giám sát.
     derivedHinhThuc = HINH_THUC_TU_GIAM_SAT;
   } else if (isKsnkDept) {
-    // Nhân sự KSNK giám sát (kể cả tại khoa khác) = chuyên trách.
-    derivedHinhThuc = HINH_THUC_CHUYEN_TRACH;
+    // KSNK tại khoa KSNK = tự giám sát (nhất quán: cùng khoa = tự GS).
+    // KSNK tại khoa khác = chuyên trách.
+    derivedHinhThuc = crossKhoa ? HINH_THUC_CHUYEN_TRACH : HINH_THUC_TU_GIAM_SAT;
   } else if (crossKhoa) {
-    // Giám sát viên thuộc khoa khác khoa được giám sát = chéo.
+    // Nhân viên khoa khác giám sát = giám sát chéo.
     derivedHinhThuc = HINH_THUC_GIAM_SAT_CHEO;
   } else {
-    derivedHinhThuc = HINH_THUC_CHUYEN_TRACH;
+    // Cùng khoa, không phải KSNK = tự giám sát.
+    derivedHinhThuc = HINH_THUC_TU_GIAM_SAT;
   }
 
   return {

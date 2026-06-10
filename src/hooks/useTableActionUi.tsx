@@ -27,7 +27,7 @@ export function useTableActionUi<T>(config: ActionUiConfig<T>) {
     const isActive = getActive(item);
     if (!ct) {
       return (
-        <span className="text-[10px] font-bold uppercase text-slate-500">
+        <span className="text-[11px] font-bold uppercase text-slate-500">
           {isActive ? "Hoạt động" : "Ngưng"}
         </span>
       );
@@ -45,7 +45,7 @@ export function useTableActionUi<T>(config: ActionUiConfig<T>) {
 
   const renderManagementCell = (item: T) => {
     if (!ce && !cd) {
-      return <span className="text-[10px] text-slate-400 font-bold uppercase">—</span>;
+      return <span className="text-[11px] text-slate-400 font-bold uppercase">—</span>;
     }
     return (
       <div className="flex gap-2" onClick={(e) => e.stopPropagation()} role="presentation">

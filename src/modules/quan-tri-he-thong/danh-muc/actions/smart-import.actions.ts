@@ -147,6 +147,13 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
       scopeSafeRest = sanitizeSmartImportRowPayload(
         normalizeImportedRowTypedValues(config.tableName, scopeSafeRest as Record<string, unknown>),
       ) as Record<string, unknown>;
+      if (config.tableName === "mdm_dm_khoa_phong") {
+        const ten = String((scopeSafeRest as Record<string, unknown>)["ten_khoa"] ?? "").trim();
+        if (!ten) {
+          rowErrors.push(`Dòng ${rowNumber || "?"}: thiếu ten_khoa.`);
+          continue;
+        }
+      }
       if (config.tableName === "cssd_dm_hoa_chat") {
         const ten = String((scopeSafeRest as Record<string, unknown>)["ten_hoa_chat"] ?? "").trim();
         if (!ten) {

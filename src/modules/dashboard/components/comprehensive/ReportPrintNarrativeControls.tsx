@@ -56,7 +56,7 @@ function NarrativeDialog({ open, onOpenChange, title, saved, onSave }: Narrative
           <button
             type="button"
             onClick={handleSave}
-            className="rounded-lg bg-[#026f17] px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800"
+            className="rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800"
           >
             Lưu nội dung
           </button>
@@ -103,7 +103,7 @@ export function ReportPrintNarrativeControls({
         <MessageSquare size={14} aria-hidden />
         Nhận xét đánh giá
         {hasNhanXet ? (
-          <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[11px] font-black uppercase text-white">
+          <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
             Đã nhập
           </span>
         ) : null}
@@ -117,7 +117,7 @@ export function ReportPrintNarrativeControls({
         <Lightbulb size={14} aria-hidden />
         Kiến nghị đề xuất
         {hasKienNghi ? (
-          <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[11px] font-black uppercase text-white">
+          <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white">
             Đã nhập
           </span>
         ) : null}

@@ -31,7 +31,7 @@ export default function BangKiemView() {
   if (loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#026f17] border-t-transparent" />
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent" />
       </div>
     );
   }
@@ -96,8 +96,8 @@ export default function BangKiemView() {
               <div
                 className={`flex h-full min-h-[400px] flex-col items-center justify-center gap-4 border border-amber-100/90 px-8 text-center text-slate-500 ${bv103LayoutChrome.panelSurface}`}
               >
-                <p className="text-[11px] font-black uppercase tracking-widest text-amber-700">Không có quyền xem Tiêu chí</p>
-                <p className="text-[10px] font-bold text-slate-400 max-w-sm leading-relaxed">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Không có quyền xem Tiêu chí</p>
+                <p className="text-[11px] font-bold text-slate-400 max-w-sm leading-relaxed">
                   Bạn được xem danh mục bảng kiểm nhưng chưa được cấp quyền module Tiêu chí bảng kiểm (BANG_KIEM_DETAIL). Liên hệ quản trị để được cấp quyền VIEW.
                 </p>
               </div>
@@ -109,7 +109,7 @@ export default function BangKiemView() {
               <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center text-5xl">📋</div>
               <div className="text-center space-y-2 px-10">
                 <p className="text-[12px] font-black uppercase tracking-[0.2em] text-slate-400">Layer Tiêu Chí</p>
-                <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest leading-relaxed">Chọn bảng kiểm bên trái để nạp danh sách tiêu chí vào đây</p>
+                <p className="text-[11px] font-bold text-slate-300 uppercase tracking-widest leading-relaxed">Chọn bảng kiểm bên trái để nạp danh sách tiêu chí vào đây</p>
               </div>
             </div>
           )}

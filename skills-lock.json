@@ -1,11 +1,23 @@
 {
   "version": 1,
   "skills": {
+    "giam-sat-pilot": {
+      "source": "local/bv103",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/giam-sat-pilot/SKILL.md",
+      "computedHash": "108d852db3ba5cf475e34da981a2fa39c8153ac1fbb5d86c79000c2ec59ebda6"
+    },
+    "qlcv-pilot": {
+      "source": "local/bv103",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/qlcv-pilot/SKILL.md",
+      "computedHash": "d8c5f0e7e10e21771b6e60573fc96dbd58ff5c286651066bfafd9738fa9ea56d"
+    },
     "react-dev": {
       "source": "softaworks/agent-toolkit",
       "sourceType": "github",
       "skillPath": ".agents/skills/react-dev/SKILL.md",
-      "computedHash": "ce738985cbff5079c560709e534b5c93bbdff9bbb638e7569654521de39db0e5"
+      "computedHash": "184730d5eea38ae62c648c2f232f3da333bbe976c10d9b2a8f268ab06d7ad420"
     },
     "reviewing-code": {
       "source": "spencerpauly/awesome-cursor-skills",
@@ -17,7 +29,7 @@
       "source": "local/bv103",
       "sourceType": "github",
       "skillPath": ".agents/skills/smart-db-bv103/SKILL.md",
-      "computedHash": "90f63573c8f5c88e36e48d15db99f4872284cbf41e810d890e18de2a6cbdd09b"
+      "computedHash": "c0f7aaefca76bb2607873dced6549fe260236a8e3d9c9a5632324e54db0d7597"
     },
     "supabase": {
       "source": "supabase/agent-skills",

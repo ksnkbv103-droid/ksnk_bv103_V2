@@ -39,7 +39,7 @@ export default function SuCoBaoCaoPage() {
     <CSSDPageShell
       title={
         <>
-          Ghi nhận <span className="text-[#026f17]">sự cố CSSD</span>
+          Ghi nhận <span className="text-[var(--primary)]">sự cố CSSD</span>
         </>
       }
       subtitle="Nhóm: quy trình · dụng cụ · máy móc · hóa chất · tiệt khuẩn · khác — rollback theo chính sách an toàn BV103."
@@ -60,14 +60,14 @@ export default function SuCoBaoCaoPage() {
         <div className="flex flex-col gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs leading-relaxed text-slate-600">
             Có thể báo nhanh tại{" "}
-            <Link className="font-semibold text-[#026f17] underline" href={CSSD_ROUTES.quyTrinh}>
+            <Link className="font-semibold text-[var(--primary)] underline" href={CSSD_ROUTES.quyTrinh}>
               Quy trình CSSD
             </Link>
             . Trang này dùng khi cần chọn <strong>trạm phát hiện</strong> và nhóm sự cố đầy đủ.
           </p>
           <Link
             href={reportHref}
-            className="inline-flex h-9 items-center gap-2 rounded-xl bg-white px-4 text-[10px] font-bold uppercase tracking-wider text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50"
+            className="inline-flex h-9 items-center gap-2 rounded-xl bg-white px-4 text-[11px] font-bold uppercase tracking-wider text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50"
           >
             <FileBarChart size={14} /> Xem nhật ký
           </Link>

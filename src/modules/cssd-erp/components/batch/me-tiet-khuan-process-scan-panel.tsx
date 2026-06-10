@@ -39,11 +39,11 @@ export default function MeTietKhuanProcessScanPanel({
   return (
     <div className="flex h-full min-h-[320px] flex-col rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
       <div className="mb-4 flex items-center gap-3">
-        <Scan className="text-[#026f17]" />
+        <Scan className="text-[var(--primary)]" />
         <h3 className="text-sm font-black uppercase tracking-widest text-slate-800">Đưa bộ vào phiếu TK</h3>
       </div>
       <p className="mb-3 text-[11px] font-bold uppercase leading-relaxed text-slate-500">
-        Chỉ quét bộ đang ở <span className="text-[#026f17]">ĐÓNG GÓI</span> và chưa gán mẻ khác. Sau khi{" "}
+        Chỉ quét bộ đang ở <span className="text-[var(--primary)]">ĐÓNG GÓI</span> và chưa gán mẻ khác. Sau khi{" "}
         <span className="text-red-600">xác nhận bắt đầu tiệt khuẩn</span> hệ thống khóa, không nạp thêm được.
       </p>
       <input
@@ -51,7 +51,7 @@ export default function MeTietKhuanProcessScanPanel({
         disabled={napLocked}
         autoFocus={!napLocked}
         placeholder={napLocked ? "Đã chốt nạp — không quét thêm" : "Quét mã QR bộ dụng cụ..."}
-        className="mb-4 h-16 w-full rounded-2xl border-2 border-emerald-100 bg-emerald-50/50 px-6 text-lg font-black outline-none focus:border-[#026f17] disabled:cursor-not-allowed disabled:opacity-60"
+        className="mb-4 h-16 w-full rounded-2xl border-2 border-emerald-100 bg-emerald-50/50 px-6 text-lg font-black outline-none focus:border-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-60"
         onKeyDown={(e) => {
           if (napLocked) return;
           if (e.key === "Enter") {
@@ -70,16 +70,16 @@ export default function MeTietKhuanProcessScanPanel({
           return (
             <div key={it.id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 p-4">
               <div className="min-w-0">
-                <span className="block truncate text-[10px] font-black uppercase text-[#026f17]">{it.ma_vach_qr}</span>
+                <span className="block truncate text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)]">{it.ma_vach_qr}</span>
                 <span className="text-xs font-bold uppercase text-slate-700">{it.bo?.ten_bo || "Bộ dụng cụ"}</span>
               </div>
-              <span className={`shrink-0 rounded-md px-2 py-1 text-[11px] font-black uppercase ${tone}`}>{label}</span>
+              <span className={`shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide ${tone}`}>{label}</span>
             </div>
           );
         })}
         {items.length === 0 && (
           <div className="flex h-full items-center justify-center opacity-50">
-            <p className="text-xs font-black uppercase tracking-widest">Chưa có dụng cụ trong phiếu</p>
+            <p className="text-xs font-semibold uppercase tracking-wide">Chưa có dụng cụ trong phiếu</p>
           </div>
         )}
       </div>

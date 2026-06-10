@@ -19,7 +19,7 @@ export function CSSDCatalogLoaiTab(props: {
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <AppWindow className="h-5 w-5 text-[#026f17]" />
+            <AppWindow className="h-5 w-5 text-[var(--primary)]" />
             <h3 className="text-sm font-bold text-slate-800">
               Danh mục Loại dụng cụ ({loaiRows.length})
             </h3>
@@ -30,7 +30,7 @@ export function CSSDCatalogLoaiTab(props: {
         <div className="max-h-[350px] overflow-auto rounded-xl border border-slate-100 relative">
           <table className="w-full border-collapse text-left text-sm text-slate-700">
             <thead>
-              <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-black uppercase tracking-wider text-slate-400 shadow-sm">
+              <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">
                 <th className="px-4 py-3">Mã loại</th>
                 <th className="px-4 py-3">Tên loại dụng cụ</th>
                 <th className="px-4 py-3 text-center">Phân loại</th>
@@ -58,7 +58,7 @@ export function CSSDCatalogLoaiTab(props: {
                     <td className="px-4 py-3.5 font-semibold">{x.ten_loai_dung_cu || "—"}</td>
                     <td className="px-4 py-3.5 text-center">
                       <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold ${
                           x.phan_loai === "THU_THUAT"
                             ? "bg-amber-50 text-amber-700 border border-amber-200"
                             : "bg-blue-50 text-blue-700 border border-blue-200"
@@ -133,7 +133,7 @@ export function CSSDCatalogLoaiTab(props: {
           <div className="max-h-[350px] overflow-auto rounded-xl border border-slate-100 relative">
             <table className="w-full border-collapse text-left text-sm text-slate-700">
               <thead>
-                <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-black uppercase tracking-wider text-slate-400 shadow-sm">
+                <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">
                   <th className="px-4 py-3">Mã bộ</th>
                   <th className="px-4 py-3">Tên bộ dụng cụ</th>
                   <th className="px-4 py-3 text-center">Phân loại bộ</th>
@@ -150,11 +150,11 @@ export function CSSDCatalogLoaiTab(props: {
 
                   return (
                     <tr key={b.id} className="transition-colors hover:bg-slate-50/50">
-                      <td className="px-4 py-3 font-bold text-[#026f17]">{b.ma_bo || "—"}</td>
+                      <td className="px-4 py-3 font-bold text-[var(--primary)]">{b.ma_bo || "—"}</td>
                       <td className="px-4 py-3 font-semibold text-slate-800">{b.ten_bo || "—"}</td>
                       <td className="px-4 py-3 text-center">
                         <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold ${
                             b.phan_loai_bo === "THU_THUAT"
                               ? "bg-amber-50 text-amber-700 border border-amber-200"
                               : "bg-blue-50 text-blue-700 border border-blue-200"

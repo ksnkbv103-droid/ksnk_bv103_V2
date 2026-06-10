@@ -3,6 +3,7 @@
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { enrichGscHistoryRows } from "../lib/gsc-read-utils";
+import { parseGscResultsJsonb } from "../lib/gsc-results-jsonb";
 import { GSC_RESULTS_ROW_SELECT, GSC_SESSIONS_FULL_DETAIL_SELECT } from "../lib/gsc-read-view-select";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 
@@ -46,15 +47,7 @@ export async function getGiamSatChungSessionForViewBundle(sessionId: string) {
     }
 
     // 2. Map Results from JSONB column
-    const rawResults = (ses.results_jsonb as any[]) || [];
-    const rs = rawResults.map((r: any) => ({
-      criterion_id: r.criterion_id,
-      value: r.value,
-      note: r.note,
-      weight_type: r.weight_type,
-      is_red_flag: r.is_red_flag,
-      image_url: r.image_url,
-    }));
+    const rs = parseGscResultsJsonb(ses.results_jsonb);
 
     // 3. Enrich and Map back to expected format
     const enriched = enrichGscHistoryRows([ses as Record<string, unknown>])[0];

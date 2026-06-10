@@ -139,7 +139,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       header: "MÃ KHOA",
       accessorKey: "cssd_dm_bo_dung_cu.khoa.ma_khoa",
       cell: (i: any) => (
-        <span className="text-[10px] font-bold text-slate-500 uppercase">
+        <span className="text-[11px] font-bold text-slate-500 uppercase">
           {i.cssd_dm_bo_dung_cu?.khoa?.ma_khoa || "DÙNG CHUNG"}
         </span>
       ),
@@ -155,28 +155,28 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       header: "HẠN SỬ DỤNG",
       accessorKey: "han_su_dung",
       cell: (i: any) => {
-        if (!i.han_su_dung) return <span className="text-[10px] text-slate-300 italic">Chưa TK</span>;
+        if (!i.han_su_dung) return <span className="text-[11px] text-slate-300 italic">Chưa TK</span>;
         const daysLeft = (new Date(i.han_su_dung).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
         const dateStr = new Date(i.han_su_dung).toLocaleDateString("vi-VN");
         if (daysLeft <= 0)
           return (
-            <span className="text-[10px] font-black text-red-600 flex items-center gap-1 bg-red-50 px-2 py-1 rounded-lg">
+            <span className="text-[11px] font-black text-red-600 flex items-center gap-1 bg-red-50 px-2 py-1 rounded-lg">
               <CalendarClock size={12} /> HẾT HẠN
             </span>
           );
         if (daysLeft <= 3)
           return (
-            <span className="text-[10px] font-black text-red-600 flex items-center gap-1 bg-red-50 px-2 py-1 rounded-lg">
+            <span className="text-[11px] font-black text-red-600 flex items-center gap-1 bg-red-50 px-2 py-1 rounded-lg">
               <CalendarClock size={12} /> {dateStr} ({Math.ceil(daysLeft)}d)
             </span>
           );
         if (daysLeft <= 7)
           return (
-            <span className="text-[10px] font-black text-orange-600 flex items-center gap-1 bg-orange-50 px-2 py-1 rounded-lg">
+            <span className="text-[11px] font-black text-orange-600 flex items-center gap-1 bg-orange-50 px-2 py-1 rounded-lg">
               <CalendarClock size={12} /> {dateStr} ({Math.ceil(daysLeft)}d)
             </span>
           );
-        return <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">{dateStr}</span>;
+        return <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">{dateStr}</span>;
       },
     },
     {
@@ -185,7 +185,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       cell: (i: any) => {
         if (i.is_red_alert)
           return (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-red-50 text-red-600 border border-red-100">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide bg-red-50 text-red-600 border border-red-100">
               ⚠️ Sự cố
             </span>
           );
@@ -209,7 +209,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
         };
         return (
           <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border ${badge.cls}`}
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide border ${badge.cls}`}
           >
             {badge.icon} {badge.label}
           </span>
@@ -223,7 +223,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
         <div className="flex gap-2">
           <button
             onClick={() => setSelectedSet(i)}
-            className="p-2 bg-slate-50 text-slate-400 hover:text-[#026f17] hover:bg-emerald-50 rounded-lg transition-all"
+            className="p-2 bg-slate-50 text-slate-400 hover:text-[var(--primary)] hover:bg-emerald-50 rounded-lg transition-all"
             title="Xem chi tiết"
           >
             <List size={16} />
@@ -261,8 +261,8 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
         <InventoryDashboard data={data} activeStatus={filterStatus} onSelectStatus={setFilterStatus} />
         
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-            Danh sách lọc: <span className="text-[#026f17] font-black">{filteredData.length}</span> bộ dụng cụ
+          <p className="text-[11px] font-medium text-slate-500">
+            Danh sách lọc: <span className="text-[var(--primary)] font-black">{filteredData.length}</span> bộ dụng cụ
           </p>
           <button
             onClick={() => setFilterFEFO(!filterFEFO)}
@@ -300,7 +300,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
     <CSSDPageShell
       title={
         <>
-          Giám sát kho <span className="text-[#026f17]">FEFO</span>
+          Giám sát kho <span className="text-[var(--primary)]">FEFO</span>
         </>
       }
       subtitle="Dữ liệu đồng bộ từ mẻ tiệt khuẩn & cấp phát"

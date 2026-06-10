@@ -7,6 +7,7 @@ import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import BoDungCuTextField from "../dung-cu/bo-dung-cu-form-field";
 import type { HoaChatRow } from "../actions/hoa-chat.types";
 import { saveHoaChatAction } from "../actions/hoa-chat.actions";
+import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 
 function mapForm(row: HoaChatRow | null) {
   return {
@@ -54,9 +55,9 @@ export default function HoaChatFormModal({
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md touch-manipulation pointer-events-auto">
-      <form onSubmit={submit} className="bg-white w-full max-w-xl rounded-2xl p-8 space-y-4 shadow-2xl border-t-[6px] border-[#026f17] max-h-[90vh] overflow-y-auto">
+      <form onSubmit={submit} className="bg-white w-full max-w-xl rounded-[var(--radius-shell)] p-8 space-y-4 shadow-2xl border-t-[6px] border-[var(--primary)] max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-start gap-4">
-          <h3 className="text-sm font-black text-[#026f17] uppercase tracking-widest">
+          <h3 className="text-sm font-black text-[var(--primary)] uppercase tracking-widest">
             {isEdit ? "Cập nhật hóa chất" : "Thêm hóa chất"}
           </h3>
           <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-red-600 rounded-xl -mr-2">
@@ -67,8 +68,8 @@ export default function HoaChatFormModal({
           <BoDungCuTextField label="Mã HC" required disabled={isEdit} value={form.ma_hoa_chat} onChange={(v) => setForm({ ...form, ma_hoa_chat: v.toUpperCase() })} />
           <BoDungCuTextField label="Tên hóa chất" required value={form.ten_hoa_chat} onChange={(v) => setForm({ ...form, ten_hoa_chat: v })} />
           <div className="space-y-1">
-            <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Loại hóa chất</label>
-            <select value={form.loai_hoa_chat} onChange={(e) => setForm({ ...form, loai_hoa_chat: e.target.value })} className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs">
+            <label className="text-[11px] font-medium text-slate-400 ml-1">Loại hóa chất</label>
+            <select value={form.loai_hoa_chat} onChange={(e) => setForm({ ...form, loai_hoa_chat: e.target.value })} className={C.controlInput}>
               <option value="HOA_CHAT">Hóa chất</option>
               <option value="VAT_TU">Vật tư</option>
               <option value="TEST">Test</option>
@@ -79,15 +80,15 @@ export default function HoaChatFormModal({
           <BoDungCuTextField label="Nồng độ" value={form.nong_do} onChange={(v) => setForm({ ...form, nong_do: v })} />
         </div>
         <div className="space-y-1">
-          <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Hạn sử dụng</label>
-          <input type="date" value={form.han_su_dung} onChange={(e) => setForm({ ...form, han_su_dung: e.target.value })} className="w-full h-11 bg-slate-50 border-2 border-slate-100 rounded-xl px-4 font-bold text-xs" />
+          <label className="text-[11px] font-medium text-slate-400 ml-1">Hạn sử dụng</label>
+          <input type="date" value={form.han_su_dung} onChange={(e) => setForm({ ...form, han_su_dung: e.target.value })} className={C.controlInput} />
         </div>
         <div className="space-y-1">
-          <label className="text-[11px] font-black text-slate-400 uppercase ml-1">Ghi chú</label>
-          <textarea value={form.ghi_chu} rows={3} onChange={(e) => setForm({ ...form, ghi_chu: e.target.value })} className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 font-bold text-xs min-h-[80px]" />
+          <label className="text-[11px] font-medium text-slate-400 ml-1">Ghi chú</label>
+          <textarea value={form.ghi_chu} rows={3} onChange={(e) => setForm({ ...form, ghi_chu: e.target.value })} className={C.textareaCompact} />
         </div>
         <MdmFormActiveToggleRow active={form.is_active} onChange={(next) => setForm({ ...form, is_active: next })} />
-        <button type="submit" disabled={loading} className="w-full h-12 bg-[#026f17] text-[#FFD700] rounded-xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-2 disabled:opacity-60">
+        <button type="submit" disabled={loading} className={`w-full ${C.btnPrimaryBlock} disabled:opacity-60`}>
           {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Lưu
         </button>
       </form>

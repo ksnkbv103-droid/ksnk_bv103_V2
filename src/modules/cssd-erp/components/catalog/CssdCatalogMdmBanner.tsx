@@ -16,7 +16,7 @@ export default function CssdCatalogMdmBanner(props: { className?: string }) {
       </p>
       <Link
         href={MDM_DUNG_CU_HREF}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-[#026f17]/30 bg-white px-3 py-2 text-[10px] font-black uppercase tracking-wide text-[#026f17] hover:bg-emerald-50"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--primary)]/30 bg-white px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)] hover:bg-emerald-50"
       >
         Mở quản trị dụng cụ
         <ExternalLink className="h-3.5 w-3.5" aria-hidden />
@@ -33,7 +33,7 @@ export function CssdThietBiMdmBanner() {
       </p>
       <Link
         href="/quan-tri-he-thong/danh-muc/thiet-bi"
-        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#026f17] px-5 py-3 text-[10px] font-black uppercase tracking-wide text-white hover:bg-[#025214]"
+        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-5 py-3 text-[11px] font-semibold uppercase tracking-wide text-white hover:bg-[#025214]"
       >
         Quản trị thiết bị
         <ExternalLink className="h-3.5 w-3.5" aria-hidden />

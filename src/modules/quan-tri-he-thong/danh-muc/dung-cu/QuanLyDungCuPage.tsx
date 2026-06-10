@@ -31,7 +31,7 @@ export default function QuanLyDungCuPage() {
   return (
     <DmMasterPageGuard moduleKey="LOAI_DC" label="Quản lý dụng cụ">
       <div className="space-y-6">
-        <div className="flex flex-col gap-4 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-4 rounded-[var(--radius-shell)] border border-slate-200/90 bg-white p-6 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-[var(--primary)] flex items-center gap-3">
               <LayoutGrid size={24} aria-hidden /> Quản lý dụng cụ
@@ -47,7 +47,7 @@ export default function QuanLyDungCuPage() {
               role="tab"
               aria-selected={activeTab === "loai"}
               onClick={() => selectTab("loai")}
-              className={`px-5 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
+              className={`px-5 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
                 activeTab === "loai"
                   ? "bg-white text-[var(--primary)] shadow-sm"
                   : "text-slate-500 hover:text-slate-800"
@@ -60,7 +60,7 @@ export default function QuanLyDungCuPage() {
               role="tab"
               aria-selected={activeTab === "bo"}
               onClick={() => selectTab("bo")}
-              className={`px-5 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
+              className={`px-5 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
                 activeTab === "bo"
                   ? "bg-white text-[var(--primary)] shadow-sm"
                   : "text-slate-500 hover:text-slate-800"
@@ -73,7 +73,7 @@ export default function QuanLyDungCuPage() {
               role="tab"
               aria-selected={activeTab === "chi-tiet"}
               onClick={() => selectTab("chi-tiet")}
-              className={`px-5 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
+              className={`px-5 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
                 activeTab === "chi-tiet"
                   ? "bg-white text-[var(--primary)] shadow-sm"
                   : "text-slate-500 hover:text-slate-800"

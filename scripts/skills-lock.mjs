@@ -11,7 +11,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..", ".agents", "skills");
 const outPath = path.join(__dirname, "..", "skills-lock.json");
 
-const bv103Local = new Set(["smart-db-bv103"]);
+const bv103Local = new Set([
+  "smart-db-bv103",
+  "giam-sat-pilot",
+  "qlcv-pilot",
+]);
 const supabaseAgent = new Set(["supabase"]);
 const softaworksAgentToolkit = new Set(["react-dev"]);
 const awesomeCursorSkills = new Set(["reviewing-code"]);

@@ -4,20 +4,15 @@ import React from "react";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import type { BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 import { complianceToneFromPercent } from "../../lib/bao-cao-tong-hop-thresholds";
-
-const TONE_CLASS = {
-  green: "border-emerald-200 bg-emerald-50 text-emerald-900",
-  yellow: "border-amber-200 bg-amber-50 text-amber-900",
-  red: "border-red-200 bg-red-50 text-red-900",
-  neutral: "border-slate-200 bg-white text-slate-900",
-} as const;
+import { dashboardChrome as D } from "../../lib/dashboard-chrome";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 function DeltaBadge({ delta }: { delta: number | null }) {
-  if (delta == null) return <span className="text-[10px] text-slate-400">— so với tuần trước</span>;
+  if (delta == null) return <span className="text-[11px] text-slate-400">— so với tuần trước</span>;
   const up = delta >= 0;
   const Icon = up ? TrendingUp : TrendingDown;
   return (
-    <span className={`inline-flex items-center gap-0.5 text-[10px] font-bold ${up ? "text-emerald-700" : "text-red-600"}`}>
+    <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${up ? "text-[var(--surface-success-text)]" : "text-[var(--surface-danger-text)]"}`}>
       <Icon size={12} aria-hidden />
       {up ? "+" : ""}
       {delta}% so với tuần trước
@@ -41,16 +36,16 @@ function KpiCard({
   const pct = value.endsWith("%") ? Number.parseFloat(value) : null;
   const tone = complianceToneFromPercent(pct);
   return (
-    <div className={`rounded-2xl border p-5 shadow-sm ${TONE_CLASS[tone]}`}>
-      <p className="text-[10px] font-bold uppercase tracking-wider opacity-70">{label}</p>
-      <p className="mt-2 text-3xl font-black">
+    <div className={`rounded-2xl border p-5 shadow-sm ${D.kpiCardTone[tone]}`}>
+      <p className={D.kpiLabel}>{label}</p>
+      <p className={`mt-2 ${D.kpiValue}`}>
         {value}
-        {suffix ? <span className="ml-1 text-sm font-semibold opacity-60">{suffix}</span> : null}
+        {suffix ? <span className="ml-1 text-sm font-medium opacity-70">{suffix}</span> : null}
       </p>
       <div className="mt-2">
         <DeltaBadge delta={delta ?? null} />
       </div>
-      {note ? <p className="mt-2 text-[10px] leading-snug opacity-70">{note}</p> : null}
+      {note ? <p className="mt-2 text-[11px] leading-snug opacity-80">{note}</p> : null}
     </div>
   );
 }
@@ -78,9 +73,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
         />
       </div>
       {(payload.sources.vst === "denied" || payload.sources.gsc === "denied" || payload.sources.nkbv === "denied") && (
-        <p className="text-xs text-amber-800">
-          Một số nguồn bị ẩn do quyền truy cập. Số liệu hiển thị chỉ phản ánh module bạn được xem.
-        </p>
+        <p className={C.noticeWarning}>Một số nguồn bị ẩn do quyền truy cập. Số liệu hiển thị chỉ phản ánh module bạn được xem.</p>
       )}
     </div>
   );

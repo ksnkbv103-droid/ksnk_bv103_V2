@@ -1,0 +1,45 @@
+---
+description: BV103 — rule gộp khi sửa src/ (boundary, style, schema, verify, domain layer)
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Src editing — compact (BV103)
+
+> Pagination/DB chi tiết: `@81-frontend-performance`, `@50-schema-sync-gate`, skill `@smart-db-bv103`.
+
+## Boundary & SSOT
+
+- `permission-registry.ts` = SSOT module/quyền; module mới phải đăng ký.
+- Ranh giới CSSD workflow vs MDM danh mục — không coupling chéo module.
+- SSOT: `AGENTS.md` → `read-minimum.md` → `domain-specification.md` → `implementation-mapping.md`.
+- Prefix DB: `mdm_*`, `gstt_*`, `cssd_*`, `nkbv_*`, `qlcv_*`, `sys_*` — không `fact_*`/`dm_*` compat.
+- Đổi field DB: cập nhật action + types + form + UI **cùng task**; đọc migration trước khi kết luận cột.
+
+## Code style
+
+- File component/action/hook ≤ 180 dòng khi có thể; tách theo single responsibility.
+- `kebab-case` file/folder; `camelCase` biến/hàm; comment tiếng Việt có dấu khi cần.
+- UI label dùng "và" thay "&"; tránh `any`.
+
+## Domain layer
+
+- Logic thuần → `src/lib/domain/` — **không** import supabase/next/react.
+- I/O Supabase → `actions/` hoặc `workflow/application/`.
+- `domain-registry.ts` = registry MDM, khác `src/lib/domain/`.
+
+## Server actions & data
+
+- `verifyPermission` bắt buộc; danh sách lớn: server pagination (20/trang, max 50).
+- `fact_*` history tables: `useServerPaginatedTable` + `AdvancedDataTable` — không `useDataTable`.
+- Action lỗi: `console.error` `{ module, action, userId, error }` — không log PII.
+
+## Bàn giao slice
+
+- `UI → Action → DB` khớp mapping; không vi phạm CSSD↔MDM.
+- Sau thay đổi quan trọng: CRUD, import/export (nếu có), RLS, test tay luồng vừa sửa.
+- Verify: `verify:engineering` khi đụng action/`fact_*`; `verify:quick` chỉ UI thuần.
+
+## Mobile (tóm tắt)
+
+- Control tương tác: `touch-manipulation`, target đủ lớn; form hiện trường xem `engineering-guidelines` § mobile.

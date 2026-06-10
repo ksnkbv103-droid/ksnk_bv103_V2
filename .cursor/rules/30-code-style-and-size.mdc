@@ -1,16 +1,11 @@
 ---
-description: KSNK code style and file size constraints
-globs: src/**/*.{ts,tsx}
+description: "[Superseded] Code style — dùng 03-src-editing-compact; @mention khi review style"
 alwaysApply: false
 ---
 
 # Code Style and Size
 
-- Keep each component/action/hook file at or below 180 lines when possible.
-- Split large files by single responsibility immediately.
-- Use `kebab-case` for file and folder names.
-- Use `camelCase` for variables and function names.
-- Write code comments in Vietnamese with diacritics when comments are needed.
-- In UI labels, prefer "và" instead of "&".
-- Avoid `any`; prefer explicit types or narrow unknown values.
-- Keep functions focused: one function should handle one clear responsibility.
+> **Superseded** cho edit thường: [`03-src-editing-compact.mdc`](./03-src-editing-compact.mdc).
+
+- Component/action/hook ≤ 180 dòng; `kebab-case` files; `camelCase` symbols.
+- Comment tiếng Việt có dấu; UI "và" thay "&"; tránh `any`.

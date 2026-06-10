@@ -178,14 +178,14 @@ export default function SearchableMultiSelect({
                   <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-4 py-3.5">
                     <span
                       id="searchable-multi-sheet-title"
-                      className="min-w-0 truncate text-sm font-black uppercase tracking-tight text-slate-800"
+                      className="min-w-0 truncate text-sm font-semibold text-slate-800"
                     >
                       {label}
                     </span>
                     <button
                       type="button"
                       onClick={() => setOpen(false)}
-                      className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-[11px] font-black uppercase tracking-widest text-slate-700 active:bg-slate-100"
+                      className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-[11px] font-semibold text-slate-800 active:bg-slate-100"
                     >
                       Đóng
                     </button>
@@ -196,7 +196,7 @@ export default function SearchableMultiSelect({
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       placeholder={`Tìm ${label.toLowerCase()}...`}
-                      className="h-12 w-full rounded-xl border-2 border-slate-200 px-3 text-base outline-none focus:border-[#026f17]"
+                      className="h-12 w-full rounded-xl border-2 border-slate-200 px-3 text-base outline-none focus:border-[var(--primary)]"
                       autoComplete="off"
                       enterKeyHint="search"
                     />
@@ -220,7 +220,7 @@ export default function SearchableMultiSelect({
                         >
                           <input
                             type="checkbox"
-                            className="h-5 w-5 shrink-0 accent-[#026f17]"
+                            className="h-5 w-5 shrink-0 accent-[var(--primary)]"
                             checked={checked}
                             onChange={(e) =>
                               onChange(e.target.checked ? [...selected, opt.id] : selected.filter((x) => x !== opt.id))

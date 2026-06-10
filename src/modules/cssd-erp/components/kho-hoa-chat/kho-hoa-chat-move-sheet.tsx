@@ -82,7 +82,7 @@ export default function KhoHoaChatMoveSheet({
         </div>
         <div className="space-y-3 overflow-y-auto px-5 py-4">
           <div>
-            <label className="text-[10px] font-black uppercase text-slate-500">Mặt hàng</label>
+            <label className="text-[11px] font-medium text-slate-500">Mặt hàng</label>
             <select className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={dmId} onChange={(e) => onDmId(e.target.value)}>
               <option value="">— Chọn —</option>
               {dmList.map((d) => (
@@ -95,7 +95,7 @@ export default function KhoHoaChatMoveSheet({
 
           {(mode === "XUAT" || mode === "DIEU") && dmId ? (
             <div>
-              <label className="text-[10px] font-black uppercase text-slate-500">{mode === "XUAT" ? "Lô xuất" : "Lô điều chỉnh"}</label>
+              <label className="text-[11px] font-medium text-slate-500">{mode === "XUAT" ? "Lô xuất" : "Lô điều chỉnh"}</label>
               <select className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={lotKey} onChange={(e) => onLotKey(e.target.value)}>
                 <option value="">— Không lô / không HSD —</option>
                 {lots.map((l) => (
@@ -110,18 +110,18 @@ export default function KhoHoaChatMoveSheet({
           {mode === "NHAP" ? (
             <>
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-500">Mã lô (tuỳ chọn)</label>
+                <label className="text-[11px] font-medium text-slate-500">Mã lô (tuỳ chọn)</label>
                 <input className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={maLoNhap} onChange={(e) => onMaLoNhap(e.target.value)} />
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-500">Hạn SD (tuỳ chọn)</label>
+                <label className="text-[11px] font-medium text-slate-500">Hạn SD (tuỳ chọn)</label>
                 <input type="date" className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={hanNhap} onChange={(e) => onHanNhap(e.target.value)} />
               </div>
             </>
           ) : null}
 
           <div>
-            <label className="text-[10px] font-black uppercase text-slate-500">
+            <label className="text-[11px] font-medium text-slate-500">
               {mode === "NHAP" ? "Số lượng nhập" : mode === "XUAT" ? "Số lượng xuất" : "Điều chỉnh (+ hoặc -)"}
             </label>
             <input
@@ -134,7 +134,7 @@ export default function KhoHoaChatMoveSheet({
           </div>
 
           <div>
-            <label className="text-[10px] font-black uppercase text-slate-500">Ghi chú</label>
+            <label className="text-[11px] font-medium text-slate-500">Ghi chú</label>
             <textarea className="mt-1 min-h-[64px] w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={note} onChange={(e) => onNote(e.target.value)} />
           </div>
         </div>
@@ -144,7 +144,7 @@ export default function KhoHoaChatMoveSheet({
           </button>
           <button
             type="button"
-            className={`rounded-lg px-5 py-2 text-sm font-semibold ${canSubmit ? "bg-[#026f17] text-[#FFD700]" : "bg-slate-200 text-slate-500"}`}
+            className={`rounded-lg px-5 py-2 text-sm font-semibold ${canSubmit ? "bg-[var(--primary)] text-[#FFD700]" : "bg-slate-200 text-slate-500"}`}
             disabled={!canSubmit}
             onClick={() => void onSubmit()}
           >

@@ -105,7 +105,7 @@ export default function DataTableBody<T extends { id?: string | number }>({
 
             {/* Các cột dữ liệu */}
             {columns.map((col, colIdx) => (
-              <td key={`cell-${rowKey}-${colIdx}-${String(col.accessorKey)}`} className={`border-b border-slate-50 p-3.5 md:p-4 text-sm text-slate-800 align-top ${col.cellClassName ?? ""}`}>
+              <td key={`cell-${rowKey}-${colIdx}-${String(col.accessorKey)}`} className={`min-w-0 border-b border-slate-50 p-3 text-sm text-slate-800 align-top ${col.cellClassName ?? ""}`}>
                 {col.cell ? col.cell(item) : String(
                   (item as Record<string, unknown>)[String(col.accessorKey)] ?? "",
                 )}

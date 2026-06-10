@@ -13,6 +13,7 @@ import {
 import { toCompareRows, mapGapRowsForKhoaMa } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatPercent2 } from "@/lib/analytics/supervision-percent";
 import type { GscStrategicPayload } from "../types/gsc-strategic.types";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 type FilterProps = {
   tuNgay: string;
@@ -45,6 +46,9 @@ type Props = FilterProps & {
   checklistClusters?: Record<string, GscStrategicPayload>;
   clustersLoading?: boolean;
   truncatedChecklistCount?: number;
+  pendingClusterCount?: number;
+  clustersRequested?: boolean;
+  onRequestChecklistClusters?: () => void;
   bkLabelRecord?: Record<string, string>;
   onRefresh?: () => void;
 };
@@ -92,7 +96,7 @@ function GscAnalyticsBody({
         loading={loading}
       />
       {(payload?.top_violations?.length ?? 0) > 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className={`${C.panelSurface} p-4`}>
           <h4 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
             <AlertTriangle size={16} className="text-red-500" /> Top tiêu chí vi phạm
           </h4>
@@ -117,7 +121,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
 
   return (
     <div className="space-y-6 px-2 pb-8">
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className={`${C.panelSurface} p-4`}>
         <AnalyticsFilterBar
           onRefresh={p.onRefresh}
           refreshLoading={p.loading || p.clustersLoading}
@@ -146,7 +150,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       </div>
 
       {p.loadError ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{p.loadError}</div>
+        <div className={`${C.panelInset} border-red-200 bg-red-50 p-4 text-sm text-red-800`}>{p.loadError}</div>
       ) : null}
 
       <GscAnalyticsBody
@@ -156,10 +160,29 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       />
 
       {(p.truncatedChecklistCount ?? 0) > 0 ? (
-        <p className="text-xs text-amber-700">
-          Chỉ hiển thị 12 biểu mẫu đầu tiên; còn {p.truncatedChecklistCount} biểu mẫu có dữ liệu chưa hiển thị — hãy thu hẹp
-          bộ lọc Chuyên đề.
-        </p>
+        <div className={`${C.noticeAmber} flex items-center gap-2 p-4`}>
+          <AlertTriangle size={16} className="shrink-0 text-amber-600" />
+          <p>
+            Còn <strong>{p.truncatedChecklistCount} biểu mẫu</strong> ngoài giới hạn 12 — thu hẹp bộ lọc{" "}
+            <em>Chuyên đề</em> để xem thêm.
+          </p>
+        </div>
+      ) : null}
+
+      {!p.clustersRequested && (p.pendingClusterCount ?? 0) > 0 ? (
+        <div className={`${C.panelInset} flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm`}>
+          <p className="text-slate-600">
+            Thống kê tổng hợp đã tải. Chi tiết theo <strong>{p.pendingClusterCount}</strong> biểu mẫu chưa tự
+            động tải (tránh chậm).
+          </p>
+          <button
+            type="button"
+            className={C.btnPrimary}
+            onClick={p.onRequestChecklistClusters}
+          >
+            Tải theo biểu mẫu
+          </button>
+        </div>
       ) : null}
 
       {clusterEntries.length > 0 ? (
@@ -188,7 +211,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
   );
 }
 
-export function GscAnalyticsDeepLinkHint({ href = "/giam-sat-chung?tab=analytics" }: { href?: string }) {
+export function GscAnalyticsDeepLinkHint({ href = "/thong-ke/gsc" }: { href?: string }) {
   return (
     <Link href={href} className="inline-flex items-center gap-1 text-xs font-bold text-sky-700 hover:underline">
       Xem chi tiết tại module GSC <ExternalLink size={12} />

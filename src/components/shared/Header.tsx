@@ -3,12 +3,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { getKsnkAppHeaderBreadcrumb } from "@/lib/app-shell-scope";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
 export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const breadcrumb = getKsnkAppHeaderBreadcrumb(pathname);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [sessionResolved, setSessionResolved] = useState(false);
 
@@ -65,9 +69,10 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <p className="min-w-0 flex-1 text-xs font-medium leading-snug text-slate-600 sm:text-sm">
-            Chuyên nghiệp · An toàn · Hiệu quả · Hợp tác
-          </p>
+          <nav aria-label="Ngữ cảnh trang" className="min-w-0 flex-1">
+            <p className={T.shellZone}>{breadcrumb.zone}</p>
+            {breadcrumb.page ? <p className={T.shellPage}>{breadcrumb.page}</p> : null}
+          </nav>
         </div>
         {/*
           Slot tìm kiếm theo trang: AdvancedDataTable (searchPlacement="header") portal vào đây từ lg trở lên.

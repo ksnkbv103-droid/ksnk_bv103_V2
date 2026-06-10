@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import type { BaoCaoChuyenDe, BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 import { buildAnalyticsDeepLink } from "../../lib/bao-cao-tong-hop-core";
+import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 
 type Props = {
   payload: BaoCaoTongHopPayload | null;
@@ -33,7 +34,7 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
     <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-black text-slate-800">Chuyên đề — tóm tắt điều hành</h2>
+          <h2 className={D.sectionHeading}>Chuyên đề — tóm tắt điều hành</h2>
           <p className="mt-1 text-xs text-slate-500">
             Không nhân bản biểu đồ module. Phân tích đầy đủ tại tab Thống kê từng mảng.
           </p>
@@ -45,7 +46,7 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
               type="button"
               onClick={() => onChuyenDeChange(t.id)}
               className={`rounded-md px-3 py-1.5 text-xs font-bold ${
-                chuyenDe === t.id ? "bg-[#026f17] text-white" : "text-slate-600 hover:bg-slate-50"
+                chuyenDe === t.id ? "bg-[var(--primary)] text-white" : "text-slate-600 hover:bg-slate-50"
               }`}
             >
               {t.label}
@@ -70,7 +71,7 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
           deepHref={
             deep
               ? buildAnalyticsDeepLink("/giam-sat-chung", deep, "analytics")
-              : "/giam-sat-chung?tab=analytics"
+              : "/thong-ke/gsc"
           }
           lines={buildGscLines(payload)}
         />
@@ -103,7 +104,7 @@ function TopicSummary({
     <div className="mb-5 border-b border-slate-100 pb-5 last:mb-0 last:border-0 last:pb-0">
       <div className="mb-2 flex items-center justify-between gap-2">
         <h3 className="text-sm font-bold text-slate-700">{title}</h3>
-        <Link href={deepHref} className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 hover:underline">
+        <Link href={deepHref} className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:underline">
           Phân tích đầy đủ <ExternalLink size={10} aria-hidden />
         </Link>
       </div>

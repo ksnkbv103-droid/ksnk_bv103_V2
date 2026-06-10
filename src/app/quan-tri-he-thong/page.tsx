@@ -7,6 +7,7 @@ import QuanTriDanhMucPage from "@/modules/quan-tri-he-thong/danh-muc/views/QuanT
 import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import { usePermission } from "@/hooks/usePermission";
 import { canSeeQuanTriSection } from "@/lib/nav/ksnk-nav-gates";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
 export default function QuanTriHeThongPage() {
   const { loading, userEmail, isAdmin, canView } = usePermission(undefined, "view");
@@ -14,8 +15,8 @@ export default function QuanTriHeThongPage() {
 
   if (loading) return (
     <div className="p-20 text-center flex flex-col items-center gap-4">
-      <div className="w-12 h-12 border-4 border-[#026f17] border-t-transparent rounded-full animate-spin"></div>
-      <p className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Đang xác thực quyền khu Quản trị...</p>
+      <div className="h-12 w-12 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent" />
+      <p className={T.pageEyebrow}>Đang xác thực quyền khu Quản trị…</p>
     </div>
   );
   
@@ -23,15 +24,15 @@ export default function QuanTriHeThongPage() {
     return (
       <div className="p-20 text-center premium-card glass-panel max-w-2xl mx-auto mt-20 space-y-4">
         <div className="text-5xl">🔒</div>
-        <h2 className="text-2xl font-black text-red-600 uppercase tracking-tighter">Truy cập bị từ chối</h2>
-        <p className="text-slate-500 font-bold text-sm leading-relaxed">
+        <h2 className={`${T.pageTitle} text-red-700`}>Truy cập bị từ chối</h2>
+        <p className="text-sm font-normal leading-relaxed text-slate-600">
           Cần quyền xem ít nhất một trong: Danh mục (<strong className="font-semibold text-slate-700">DANH_MUC</strong>), Phân quyền (
           <strong className="font-semibold text-slate-700">PHAN_QUYEN</strong>
           ), Nhân sự (<strong className="font-semibold text-slate-700">NHAN_SU</strong>), hoặc vai trò quản trị.
         </p>
-        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tài khoản hiện tại:</p>
-          <p className="text-sm font-bold text-slate-800">{userEmail || "Chưa đăng nhập"}</p>
+        <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50 p-4">
+          <p className={T.labelBlock}>Tài khoản hiện tại</p>
+          <p className="text-sm font-medium text-slate-800">{userEmail || "Chưa đăng nhập"}</p>
         </div>
         <p className="text-[11px] text-slate-400 italic">Đồng bộ với menu cạnh: khoá điều hướng Quản trị khi không đủ quyền Xem các module trên.</p>
       </div>
@@ -54,7 +55,7 @@ export default function QuanTriHeThongPage() {
         <Suspense
           fallback={
             <div className="flex min-h-[200px] items-center justify-center">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#026f17] border-t-transparent" />
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent" />
             </div>
           }
         >

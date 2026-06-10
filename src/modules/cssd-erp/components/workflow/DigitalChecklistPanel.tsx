@@ -118,8 +118,8 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
   if (loading) {
     return (
       <div className="p-6 bg-slate-50/50 border border-slate-100 rounded-2xl text-center space-y-3 animate-pulse">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-[#026f17] mx-auto" />
-        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Đang khởi tạo Bảng kiểm kỹ thuật số...</p>
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-[var(--primary)] mx-auto" />
+        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Đang khởi tạo Bảng kiểm kỹ thuật số...</p>
       </div>
     );
   }
@@ -133,10 +133,10 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
         <div className="p-4 bg-red-50 border-2 border-red-200 rounded-2xl flex items-start gap-3 text-red-900 shadow-sm animate-in zoom-in-95">
           <ShieldAlert className="shrink-0 text-red-600 mt-0.5" size={20} strokeWidth={2.5} />
           <div className="space-y-1">
-            <h5 className="text-[11px] font-black uppercase tracking-wider text-red-800">
+            <h5 className="text-[11px] font-semibold uppercase tracking-wide text-red-800">
               ⚠️ KHÓA AN TOÀN: BỘ DỤNG CỤ HỖN HỢP
             </h5>
-            <p className="text-[10px] leading-relaxed text-red-700 font-medium">
+            <p className="text-[11px] leading-relaxed text-red-700 font-medium">
               {data.heatCheck.message}
             </p>
             <div className="pt-1.5 flex items-center gap-2">
@@ -152,7 +152,7 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
       ) : (
         <div className="p-3.5 bg-emerald-50/80 border border-emerald-200 rounded-xl flex items-center gap-2.5 text-emerald-800">
           <CheckCircle2 className="shrink-0 text-emerald-600" size={16} strokeWidth={2.5} />
-          <span className="text-[10px] font-black uppercase tracking-wider">
+          <span className="text-[11px] font-semibold uppercase tracking-wide">
             ✓ ĐỒNG NHẤT NHIỆT LÝ TÍNH (AN TOÀN HẤP 134°C)
           </span>
         </div>
@@ -163,10 +163,10 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
         <div className="p-4 bg-amber-50 border-2 border-amber-200 rounded-2xl flex items-start gap-3 text-amber-900 shadow-sm animate-in zoom-in-95">
           <AlertCircle className="shrink-0 text-amber-600 mt-0.5" size={20} strokeWidth={2.5} />
           <div className="space-y-1">
-            <h5 className="text-[11px] font-black uppercase tracking-wider text-amber-800">
+            <h5 className="text-[11px] font-semibold uppercase tracking-wide text-amber-800">
               CẢNH BÁO: BỘ DỤNG CỤ THIẾU THÀNH PHẦN
             </h5>
-            <p className="text-[10px] leading-relaxed text-amber-700 font-semibold">
+            <p className="text-[11px] leading-relaxed text-amber-700 font-semibold">
               Số lượng thực tế của một số dụng cụ đang nhỏ hơn tiêu chuẩn thiết kế. Bạn có thể sử dụng các nút tương tác bên dưới để bổ sung từ kho dự phòng lẻ.
             </p>
           </div>
@@ -176,10 +176,10 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
       {/* 3. Danh sách Checklist BOM */}
       <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-inner space-y-3">
         <div className="flex justify-between items-center px-1">
-          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+          <h4 className="text-[11px] font-medium text-slate-400 tracking-widest">
             Thành phần mâm/hộp tiêu chuẩn
           </h4>
-          <span className={`text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${data.is_missing ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-800"}`}>
+          <span className={`text-[11px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${data.is_missing ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-800"}`}>
             {data.is_missing ? "⚠️ Thiếu" : "Đầy đủ"}
           </span>
         </div>
@@ -232,7 +232,7 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
                   type="button"
                   disabled={updatingId !== null}
                   onClick={() => void handleAction(item.loai_dung_cu_id, "BO_SUNG")}
-                  className="p-1.5 bg-white border border-slate-200 hover:border-emerald-200 hover:bg-emerald-50 hover:text-[#026f17] text-slate-400 rounded-lg transition-all"
+                  className="p-1.5 bg-white border border-slate-200 hover:border-emerald-200 hover:bg-emerald-50 hover:text-[var(--primary)] text-slate-400 rounded-lg transition-all"
                   title="Bổ sung từ kho lẻ (+1)"
                 >
                   <Plus size={11} strokeWidth={2.5} />
@@ -248,7 +248,7 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
           type="button"
           disabled={confirming || loading || data.is_missing || data.heatCheck?.is_hybrid}
           onClick={() => void handleConfirmCheckpoint()}
-          className="w-full rounded-xl bg-[#026f17] px-4 py-3 text-[11px] font-black uppercase tracking-wider text-white shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-xl bg-[var(--primary)] px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {confirming ? "Đang lưu kiểm đếm…" : "Xác nhận kiểm đếm (Digital BOM)"}
         </button>

@@ -13,6 +13,7 @@ import {
 } from "../lib/gsc-session-labels";
 import ChecklistItem from "./ChecklistItem";
 import { format } from "date-fns";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 export default function GiamSatChungSessionViewer({
   open,
@@ -56,10 +57,10 @@ export default function GiamSatChungSessionViewer({
       aria-modal="true"
       aria-labelledby="gsc-viewer-title"
     >
-      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-xl">
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
           <div className="min-w-0">
-            <h2 id="gsc-viewer-title" className="text-sm font-black uppercase tracking-tight text-[#026f17]">
+            <h2 id="gsc-viewer-title" className="text-sm font-semibold text-[var(--primary)]">
               {template.title}
             </h2>
             <p className="mt-1 text-[11px] font-semibold text-slate-600">
@@ -73,7 +74,7 @@ export default function GiamSatChungSessionViewer({
           <button
             type="button"
             onClick={onClose}
-            className="app-shell-focus shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
+            className={`app-shell-focus shrink-0 ${C.btnSecondary} h-auto min-h-0 px-3 py-1.5`}
           >
             Đóng
           </button>
@@ -85,8 +86,8 @@ export default function GiamSatChungSessionViewer({
             return <ChecklistItem key={c.id} index={idx + 1} criterion={c} result={result} readOnly />;
           })}
           {String(session.ghi_chu_chung || "").trim() ? (
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs">
-              <span className="font-black uppercase text-slate-500">Ghi chú chung: </span>
+            <div className={`${C.panelInset} p-3 text-xs`}>
+              <span className="font-medium text-slate-500">Ghi chú chung: </span>
               <span className="font-semibold text-slate-800">{String(session.ghi_chu_chung)}</span>
             </div>
           ) : null}
@@ -95,14 +96,14 @@ export default function GiamSatChungSessionViewer({
           <button
             type="button"
             onClick={onClose}
-            className="app-shell-focus rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700"
+            className={`app-shell-focus ${C.btnSecondary}`}
           >
             Đóng
           </button>
           <button
             type="button"
             onClick={onPrint}
-            className="app-shell-focus rounded-xl bg-slate-800 px-4 py-2 text-xs font-black uppercase tracking-widest text-white hover:bg-slate-900"
+            className="app-shell-focus bv103-control-h inline-flex items-center justify-center rounded-[var(--radius-control)] bg-slate-800 px-4 text-xs font-semibold uppercase tracking-wide text-white hover:bg-slate-900"
           >
             In A4
           </button>

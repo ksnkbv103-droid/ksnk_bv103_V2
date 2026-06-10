@@ -66,9 +66,9 @@ export default function WorkflowStationQrEntry({ waitingItems, disabled, onConfi
       <div className="space-y-1.5">
         <label
           htmlFor="cssd-waiting-qr-pick"
-          className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-500"
+          className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-slate-500"
         >
-          <QrCode size={12} className="text-[#026f17]" aria-hidden />
+          <QrCode size={12} className="text-[var(--primary)]" aria-hidden />
           Hoặc chọn bộ đang chờ ({waitingItems.length})
         </label>
         <div className="relative">
@@ -97,7 +97,7 @@ export default function WorkflowStationQrEntry({ waitingItems, disabled, onConfi
           </select>
           <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
         </div>
-        <p className="text-[10px] leading-snug text-slate-500">
+        <p className="text-[11px] leading-snug text-slate-500">
           Dùng khi máy quét QR hỏng: chọn một dòng sẽ xác nhận xử lý ngay (cùng danh sách bên trái).
         </p>
       </div>

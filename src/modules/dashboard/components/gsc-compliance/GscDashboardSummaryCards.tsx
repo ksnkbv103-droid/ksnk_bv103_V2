@@ -2,6 +2,7 @@
 
 import { CheckCircle2, FileText } from "lucide-react";
 import type { DashboardV4Payload } from "../../strategic-dashboard-v4.types";
+import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 
 type Props = {
   summary: DashboardV4Payload["summary"];
@@ -16,17 +17,17 @@ export function GscDashboardSummaryCards({ summary, loading }: Props) {
           <FileText size={24} />
         </div>
         <div>
-          <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Tổng phiên giám sát</p>
-          <p className="text-3xl font-black text-slate-800">{summary.tong_so_phien}</p>
+          <p className={D.kpiLabel}>Tổng phiên giám sát</p>
+          <p className={D.kpiValue}>{summary.tong_so_phien}</p>
         </div>
       </div>
       <div className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="rounded-xl bg-emerald-50 p-3 text-[#026f17]">
+        <div className="rounded-xl bg-[var(--surface-success-bg)] p-3 text-[var(--primary)]">
           <CheckCircle2 size={24} />
         </div>
         <div>
-          <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Tỷ lệ tuân thủ chung</p>
-          <p className="text-3xl font-black text-[#026f17]">{summary.ty_le_tuan_thu_chung}%</p>
+          <p className={D.kpiLabel}>Tỷ lệ tuân thủ chung</p>
+          <p className={D.kpiValuePrimary}>{summary.ty_le_tuan_thu_chung}%</p>
         </div>
       </div>
     </div>

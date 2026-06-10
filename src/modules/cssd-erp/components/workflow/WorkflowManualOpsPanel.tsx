@@ -59,12 +59,12 @@ export default function WorkflowManualOpsPanel({ qrCode, onSuccess, disabled }: 
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
           Thao tác ngoại lệ (QR vừa quét)
         </p>
         <Link
           href={`${CSSD_ROUTES.quyTrinh}?tab=trace&qr=${encodeURIComponent(code)}`}
-          className={`${CSSD_UI_ACTION_SECONDARY} !py-1.5 !px-3 text-[10px]`}
+          className={`${CSSD_UI_ACTION_SECONDARY} !py-1.5 !px-3 text-[11px]`}
         >
           <History size={14} aria-hidden /> Lịch sử QR
         </Link>
@@ -72,7 +72,7 @@ export default function WorkflowManualOpsPanel({ qrCode, onSuccess, disabled }: 
 
       {canEditWorkflow ? (
         <div className="space-y-2">
-          <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+          <label className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">
             Trả lui 1 trạm
           </label>
           <textarea
@@ -96,7 +96,7 @@ export default function WorkflowManualOpsPanel({ qrCode, onSuccess, disabled }: 
 
       {canEditWorkflow ? (
         <div className="space-y-2 border-t border-slate-200 pt-3">
-          <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+          <label className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">
             Khóa an toàn (đóng băng)
           </label>
           <input

@@ -1,6 +1,7 @@
 import React from "react";
 import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import SearchableMultiSelect, { type MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
+import { dashboardChrome as D } from "../lib/dashboard-chrome";
 
 type DashboardFilterPanelProps = {
   /** VST analytics: không lọc theo bảng kiểm (GSC-only). */
@@ -73,7 +74,7 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
             aria-label="Từ ngày"
             className="h-9 min-w-[9.5rem] flex-1 rounded-lg border border-slate-200 bg-white px-2 text-xs font-semibold sm:h-10 sm:flex-none sm:min-w-[10.5rem]"
           />
-          <span className="shrink-0 text-[10px] font-bold uppercase text-slate-400">đến</span>
+          <span className={`shrink-0 ${D.filterLabel}`}>đến</span>
           <input
             type="date"
             value={p.denNgay}
@@ -116,7 +117,9 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
           {showAdvanced ? <ChevronUp className="h-3.5 w-3.5" aria-hidden /> : <ChevronDown className="h-3.5 w-3.5" aria-hidden />}
           Lọc nâng cao
           {advancedActive ? (
-            <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-emerald-800">Đang lọc</span>
+            <span className="rounded-full border border-[var(--surface-success-border)] bg-[var(--surface-success-bg)] px-1.5 py-0.5 text-[11px] font-medium text-[var(--surface-success-text)]">
+              Đang lọc
+            </span>
           ) : null}
         </button>
         {p.onRefresh ? (

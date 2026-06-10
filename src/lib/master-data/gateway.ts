@@ -7,6 +7,8 @@ export type MasterOption = {
   is_active?: boolean;
   nhom_mau?: string | null;
   thu_tu?: number | null;
+  metadata?: any;
+  specs?: any;
 };
 
 type KhoaRow = { id?: string; ma_khoa?: string; ten_khoa?: string; is_active?: boolean };

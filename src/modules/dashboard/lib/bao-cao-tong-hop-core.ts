@@ -343,18 +343,33 @@ export function buildIpacZoneCompare(vst: VstStrategicPayload | null, gsc: GscSt
   return KHU_VUC_ZONE_ORDER.map((z) => byZone.get(z)!);
 }
 
+const SUPERVISION_ANALYTICS_CANONICAL: Record<string, { analytics: string; history: string }> = {
+  "/giam-sat-vst": { analytics: "/thong-ke/vst", history: "/lich-su/vst" },
+  "/giam-sat-chung": { analytics: "/thong-ke/gsc", history: "/lich-su/gsc" },
+};
+
 export function buildAnalyticsDeepLink(
   basePath: string,
   filters: Pick<BaoCaoTongHopFilters, "tu_ngay" | "den_ngay" | "khoa_ids">,
   tab?: string,
 ): string {
   const q = new URLSearchParams();
-  if (tab) q.set("tab", tab);
   q.set("tu_ngay", filters.tu_ngay);
   q.set("den_ngay", filters.den_ngay);
   if (filters.khoa_ids?.length) q.set("khoa_ids", filters.khoa_ids.join(","));
   const qs = q.toString();
-  return qs ? `${basePath}?${qs}` : basePath;
+
+  const canonical = SUPERVISION_ANALYTICS_CANONICAL[basePath];
+  if (canonical && tab === "analytics") {
+    return qs ? `${canonical.analytics}?${qs}` : canonical.analytics;
+  }
+  if (canonical && tab === "history") {
+    return qs ? `${canonical.history}?${qs}` : canonical.history;
+  }
+
+  if (tab) q.set("tab", tab);
+  const legacyQs = q.toString();
+  return legacyQs ? `${basePath}?${legacyQs}` : basePath;
 }
 
 export function shouldFetchSource(chuyenDe: BaoCaoChuyenDe, source: "VST" | "GSC" | "NKBV"): boolean {

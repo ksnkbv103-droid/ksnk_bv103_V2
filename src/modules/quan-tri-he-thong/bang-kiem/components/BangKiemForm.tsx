@@ -8,6 +8,7 @@ import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch"
 import { getHinhThucGiamSatOptionsForBangKiemAction, suggestNextBangKiemMaAction } from "../actions/bang-kiem.actions";
 import { BANG_KIEM_DEFAULT_MA_BK_PREFIX } from "../lib/bang-kiem-ma-prefix";
 import BangKiemFormFields, { BangKiemFormState } from "./bang-kiem-form-fields";
+import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
 
 interface Props {
   initialData?: Record<string, unknown>;
@@ -65,12 +66,12 @@ export default function BangKiemForm({ initialData, onClose, onSave }: Props) {
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="bg-white w-full max-w-xl rounded-[var(--radius-shell)] shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
         <header className="px-10 py-8 bg-slate-50/50 flex items-center justify-between">
-          <h2 className="text-xl font-black text-slate-800 uppercase tracking-tighter">
+          <h2 className={F.modalTitleLight}>
             {formData.id ? "Cập nhật mẫu bảng kiểm" : "Thêm mới mẫu bảng kiểm"}
           </h2>
-          <button type="button" onClick={onClose} className="p-3 hover:bg-white rounded-2xl text-slate-400 transition-all shadow-sm">
+          <button type="button" onClick={onClose} className="p-3 hover:bg-white rounded-[var(--radius-shell)] text-slate-400 transition-all shadow-sm">
             <X className="w-5 h-5" />
           </button>
         </header>
@@ -87,14 +88,10 @@ export default function BangKiemForm({ initialData, onClose, onSave }: Props) {
         </div>
 
         <footer className="px-10 py-8 bg-slate-50/50 flex items-center justify-end gap-4">
-          <button type="button" onClick={onClose} className="px-8 py-3 bg-white text-slate-400 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 transition-all">
+          <button type="button" onClick={onClose} className={`${F.ctaSecondary} ${F.modalFooterBtn}`}>
             Hủy bỏ
           </button>
-          <button
-            type="button"
-            onClick={() => onSave(formData)}
-            className="flex items-center gap-3 px-10 py-3 bg-[#026f17] text-white rounded-full font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-[#026f17]/20 hover:scale-105 transition-all"
-          >
+          <button type="button" onClick={() => onSave(formData)} className={`${F.ctaPrimary} gap-2 ${F.modalFooterBtn}`}>
             <Save className="w-4 h-4" /> Lưu lại
           </button>
         </footer>

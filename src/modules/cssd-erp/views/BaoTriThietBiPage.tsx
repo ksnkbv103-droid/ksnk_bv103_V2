@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import AdvancedDataTable, { type Column } from "@/components/shared/AdvancedDataTable";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
-import CSSDSubNav from "../components/navigation/CSSDSubNav";
 import BaoTriActivePanel from "../components/bao-tri/bao-tri-active-panel";
 import BaoTriStartModal from "../components/bao-tri/bao-tri-start-modal";
 import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_DATA_SURFACE } from "../shared/ui/cssd-ui-chrome";
@@ -87,7 +86,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   };
 
   const columns: Column<FactBaoTriRow>[] = [
-    { header: "MÃ PHIẾU", accessorKey: "ma_phieu", cell: (i) => <span className="font-mono text-[11px] font-bold text-[#026f17]">{i.ma_phieu}</span> },
+    { header: "MÃ PHIẾU", accessorKey: "ma_phieu", cell: (i) => <span className="font-mono text-[11px] font-bold text-[var(--primary)]">{i.ma_phieu}</span> },
     { header: "THIẾT BỊ", accessorKey: "ten_thiet_bi", cell: (i) => <span className="text-[11px] font-semibold">{i.ten_thiet_bi || "—"}</span> },
     {
       header: "TRẠNG THÁI",
@@ -96,7 +95,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         const val = i.trang_thai;
         if (val === "DANG_THUC_HIEN") {
           return (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-100 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-blue-700 shadow-sm animate-in fade-in duration-300">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-blue-700 shadow-sm animate-in fade-in duration-300">
               <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
               Đang thực hiện
             </span>
@@ -104,7 +103,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         }
         if (val === "HOAN_THANH") {
           return (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-emerald-700 shadow-sm animate-in fade-in duration-300">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 shadow-sm animate-in fade-in duration-300">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               Hoàn thành
             </span>
@@ -124,14 +123,14 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         );
       },
     },
-    { header: "LÝ DO / KẾT QUẢ", accessorKey: "ly_do", cell: (i) => <span className="max-w-[200px] truncate text-[10px] text-slate-600">{i.ly_do || i.ket_qua_ghi_nhan || "—"}</span> },
+    { header: "LÝ DO / KẾT QUẢ", accessorKey: "ly_do", cell: (i) => <span className="max-w-[200px] truncate text-[11px] text-slate-600">{i.ly_do || i.ket_qua_ghi_nhan || "—"}</span> },
   ];
 
   if (permLoading) {
     return (
       <div className={CSSD_PAGE_OUTER}>
         <div className="flex h-[40vh] items-center justify-center" aria-busy="true">
-          <Loader2 className="h-8 w-8 animate-spin text-[#026f17]" />
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
         </div>
       </div>
     );
@@ -158,7 +157,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
       )}
       <button
         type="button"
-        className="flex h-10 items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 text-xs font-black uppercase tracking-wider text-red-600 shadow-sm hover:bg-red-100 active:scale-[0.98] transition-all cursor-pointer"
+        className="flex h-10 items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 text-[11px] font-semibold uppercase tracking-wide text-red-600 shadow-sm hover:bg-red-100 active:scale-[0.98] transition-all cursor-pointer"
         onClick={() => setIsIncidentOpen(true)}
       >
         ⚠️ Báo sự cố
@@ -183,7 +182,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tổng phiếu bảo dưỡng</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tổng phiếu bảo dưỡng</p>
             <p className="text-2xl font-black text-slate-800 mt-1">{totalBaoTri}</p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500">
@@ -193,7 +192,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
 
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Đang bảo dưỡng</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Đang bảo dưỡng</p>
             <p className="text-2xl font-black text-blue-600 mt-1">{activeBaoTri}</p>
           </div>
           <div className={`h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 ${activeBaoTri > 0 ? "animate-pulse" : ""}`}>
@@ -203,7 +202,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
 
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Đã hoàn thành</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Đã hoàn thành</p>
             <p className="text-2xl font-black text-emerald-600 mt-1">{doneBaoTri}</p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
@@ -213,7 +212,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
 
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Phiếu đã hủy</p>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Phiếu đã hủy</p>
             <p className="text-2xl font-black text-slate-500 mt-1">{canceledBaoTri}</p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400">
@@ -261,7 +260,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
 
   return (
     <CSSDPageShell
-      title={<span className="text-[#026f17]">Bảo trì thiết bị</span>}
+      title={<span className="text-[var(--primary)]">Bảo trì thiết bị</span>}
       subtitle="Khóa máy khi bảo trì — không mở mẻ tiệt khuẩn / không thêm bộ vào mẻ cho đến khi hoàn thành hoặc hủy phiếu."
       actions={actionsNode}
     >

@@ -16,20 +16,30 @@ export type KhuVucSelectRow = {
   ma_danh_muc?: string;
   nhom_mau?: string | null;
   thu_tu?: number | null;
+  metadata?: { is_common?: boolean } | null;
 };
 
-export function zoneFromKhuVucMa(ma: string, nhomMau?: string | null): string {
+/** Lọc khu vực theo `specs.allowed_khu_vucs` của khoa (+ luôn giữ `is_common`). */
+export function filterKhuVucsForKhoa(
+  khuVucs: KhuVucSelectRow[],
+  allowedKhuVucCodes: string[] | null | undefined,
+): KhuVucSelectRow[] {
+  if (allowedKhuVucCodes == null) return khuVucs;
+  if (allowedKhuVucCodes.length === 0) {
+    return khuVucs.filter((kv) => kv.metadata?.is_common === true);
+  }
+  const allowed = new Set(allowedKhuVucCodes.map((x) => String(x || "").trim().toUpperCase()).filter(Boolean));
+  return khuVucs.filter((kv) => {
+    if (kv.metadata?.is_common === true) return true;
+    const code = String(kv.ma_danh_muc || "").trim().toUpperCase();
+    return allowed.has(code);
+  });
+}
+
+export function zoneFromKhuVucMa(_ma: string, nhomMau?: string | null): string {
   const zone = String(nhomMau || "").trim().toUpperCase();
   if (zone && KHU_VUC_ZONE_ORDER.includes(zone as KhuVucZoneCode)) return zone;
-  const code = String(ma || "").trim().toUpperCase();
-  if (code.startsWith("KV_TR_")) return "TR";
-  if (code.startsWith("KV_DO_")) return "DO";
-  if (code.startsWith("KV_VA_")) return "VA";
-  if (code.startsWith("KV_XA_")) return "XA";
-  if (code === "TRANG") return "TR";
-  if (code === "VANG") return "VA";
-  if (code === "XANH") return "XA";
-  return code;
+  return "";
 }
 
 export function khuVucZoneBadgeClass(zone: string): string {

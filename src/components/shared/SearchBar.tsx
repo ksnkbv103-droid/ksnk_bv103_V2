@@ -3,6 +3,7 @@
 
 import React from "react";
 import { Search, X } from "lucide-react";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 /**
  * Component Tìm kiếm chung (SearchBar)
@@ -25,7 +26,7 @@ export default function SearchBar({
 }: SearchBarProps) {
   return (
     <div className={`relative group w-full min-w-0 ${className}`}>
-      <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#026f17]">
+      <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[var(--primary)]">
         <Search size={16} strokeWidth={2.25} aria-hidden />
       </div>
 
@@ -35,7 +36,7 @@ export default function SearchBar({
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="bv103-control-h w-full rounded-lg border border-slate-200 bg-white pl-9 pr-9 text-sm font-medium text-slate-800 shadow-sm outline-none transition-[box-shadow,border-color] placeholder:text-slate-400 focus:border-[#026f17]/40 focus:ring-2 focus:ring-[#026f17]/15"
+        className={`${bv103LayoutChrome.controlInput} pl-9 pr-9 placeholder:text-slate-400`}
       />
 
       {value ? (

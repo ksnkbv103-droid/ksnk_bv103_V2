@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useMobilePickerSheet } from "@/hooks/use-mobile-picker-sheet";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 export type SearchableSelectOption = {
   id: string;
@@ -94,7 +95,7 @@ export default function SearchableSelect({
         nodes.push(
           <div
             key={`group-${group}-${idx}`}
-            className="sticky top-0 z-[1] px-2 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 bg-white/95 backdrop-blur-sm border-b border-slate-100 mb-1"
+            className="sticky top-0 z-[1] px-2 py-1.5 text-[11px] font-medium text-slate-500 bg-white/95 backdrop-blur-sm border-b border-slate-100 mb-1"
           >
             {group}
           </div>,
@@ -110,7 +111,7 @@ export default function SearchableSelect({
             handleSelect(opt.id);
           }}
           className={`${itemClassName} ${
-            value === opt.id ? "bg-[#026f17]/10 font-semibold text-[#026f17]" : "text-slate-700"
+            value === opt.id ? "bg-[var(--primary)]/10 font-semibold text-[var(--primary)]" : "text-slate-700"
           }`}
         >
           {opt.label}
@@ -215,7 +216,7 @@ export default function SearchableSelect({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
-        className={`flex h-11 min-h-[2.75rem] w-full items-center rounded-xl border border-slate-200 bg-white px-3.5 text-left text-sm font-medium text-slate-800 shadow-sm transition-colors outline-none hover:border-slate-300 hover:bg-slate-50/90 focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20 disabled:cursor-not-allowed disabled:opacity-60 md:h-12 md:rounded-2xl md:px-4 ${className}`}
+        className={`${bv103LayoutChrome.controlSelectTrigger} ${className}`}
       >
         <span className={selectedOption ? "text-slate-900" : "text-slate-500"}>
           {selectedOption ? selectedOption.label : placeholder}
@@ -246,14 +247,14 @@ export default function SearchableSelect({
                   <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-4 py-3.5">
                     <span
                       id="searchable-select-sheet-title"
-                      className="min-w-0 truncate text-sm font-black uppercase tracking-tight text-slate-800"
+                      className="min-w-0 truncate text-sm font-semibold text-slate-800"
                     >
                       {placeholder}
                     </span>
                     <button
                       type="button"
                       onClick={() => setOpen(false)}
-                      className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-[11px] font-black uppercase tracking-widest text-slate-700 active:bg-slate-100"
+                      className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-[11px] font-semibold text-slate-800 active:bg-slate-100"
                     >
                       Đóng
                     </button>
@@ -270,7 +271,7 @@ export default function SearchableSelect({
                         }
                       }}
                       placeholder={searchPlaceholder}
-                      className="h-12 w-full rounded-xl border-2 border-slate-200 px-3 text-base outline-none focus:border-[#026f17]"
+                      className="h-12 w-full rounded-xl border-2 border-slate-200 px-3 text-base outline-none focus:border-[var(--primary)]"
                       autoComplete="off"
                       enterKeyHint="search"
                     />
@@ -310,7 +311,7 @@ export default function SearchableSelect({
                     }
                   }}
                   placeholder={searchPlaceholder}
-                  className="mb-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-[#026f17]"
+                  className="mb-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-[var(--primary)]"
                 />
 
                 <div

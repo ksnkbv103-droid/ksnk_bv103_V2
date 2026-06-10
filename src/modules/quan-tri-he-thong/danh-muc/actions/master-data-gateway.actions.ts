@@ -164,7 +164,12 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
       success: true as const,
       data: {
         currentHoSoId,
-        khoas: (registry.KHOA_PHONG || []).map((k: any) => ({ id: k.id, ma_danh_muc: k.ma, ten_danh_muc: k.ten })),
+        khoas: (registry.KHOA_PHONG || []).map((k: any) => ({
+          id: k.id,
+          ma_danh_muc: k.ma,
+          ten_danh_muc: k.ten,
+          specs: k.specs ?? null,
+        })),
         khuVucs: effectiveKhuVucs.map((x: any) => ({
           id: x.id,
           ma_danh_muc: x.ma || "",
