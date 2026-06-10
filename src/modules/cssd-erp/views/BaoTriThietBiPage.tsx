@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import AdvancedDataTable, { type Column } from "@/components/shared/AdvancedDataTable";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
-import CSSDSubNav from "../components/navigation/CSSDSubNav";
 import BaoTriActivePanel from "../components/bao-tri/bao-tri-active-panel";
 import BaoTriStartModal from "../components/bao-tri/bao-tri-start-modal";
 import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_DATA_SURFACE } from "../shared/ui/cssd-ui-chrome";

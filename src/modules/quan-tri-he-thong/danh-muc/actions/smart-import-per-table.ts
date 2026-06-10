@@ -6,10 +6,11 @@ import {
   LOAI_CHUC_DANH,
   LOAI_CHUC_VU,
   LOAI_VAI_TRO_HE_THONG_KSNK,
-} from "@/modules/quan-tri-he-thong/nhan-su/lib/nhan-su-dm-ma-loai";
+} from "@/lib/master-data/nhan-su-dm-ma-loai";
 import {
   normalizeDmBoDungCuChiTiet,
   normalizeDmHoaChat,
+  normalizeDmKhoaPhong,
   normalizeDmThietBi,
 } from "../lib/smart-import/dm-row-normalizers";
 import {
@@ -52,6 +53,7 @@ export async function resolveSmartImportScopeForTable(
     row = resolvedKhoa.row;
   }
   if (tableName === "mdm_dm_khoa_phong") {
+    row = normalizeDmKhoaPhong(row);
     const resolvedKhoi = await resolveKhoiForKhoaPhongImport(supabase, row);
     if (!resolvedKhoi.ok) return { ok: false, error: `Dòng ${rowNumber || "?"}: ${resolvedKhoi.error}` };
     row = resolvedKhoi.row;

@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { tableHasColumn } from "../cssd-db-utils";
 import { classifyCssdCode, normalizeCssdCode } from "../domain/cssd-qr-core";
 import { cssdQrHubResolvedSchema, type CssdQrHubResolved } from "../contracts/cssd-qr-hub.contracts";
+import { buildCssdQuyTrinhQrOrFilter } from "./cssd-workflow-resolve";
 
 export async function resolveCssdCodeWithClient(
   supabase: SupabaseClient,
@@ -17,8 +18,8 @@ export async function resolveCssdCodeWithClient(
   const workflowResult = await supabase
     .from("cssd_fact_quy_trinh")
     .select("id")
-    .eq("ma_qr_quy_trinh", code)
     .eq("is_active", true)
+    .or(buildCssdQuyTrinhQrOrFilter(code))
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();

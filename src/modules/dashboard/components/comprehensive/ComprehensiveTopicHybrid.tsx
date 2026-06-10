@@ -70,7 +70,7 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
           deepHref={
             deep
               ? buildAnalyticsDeepLink("/giam-sat-chung", deep, "analytics")
-              : "/giam-sat-chung?tab=analytics"
+              : "/thong-ke/gsc"
           }
           lines={buildGscLines(payload)}
         />

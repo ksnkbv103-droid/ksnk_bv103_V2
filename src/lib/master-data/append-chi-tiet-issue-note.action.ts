@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
+import { verifyAnyPermission } from "@/lib/server-permission";
 import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
 import { CSSD_ROUTES } from "@/lib/cssd-routes";
 import {
@@ -30,7 +30,10 @@ export async function reportChiTietInstrumentIssueAction(params: {
   quantity?: number;
   quyTrinhId?: string | null;
 }) {
-  await verifyPermission("DC_LE", "edit");
+  await verifyAnyPermission([
+    { moduleKey: "DC_LE", action: "edit" },
+    { moduleKey: "CSSD_WORKFLOW", action: "edit" },
+  ]);
   const supabase = await createServerSupabaseUserClient();
 
   const noteResult = await appendChiTietIssueNoteCore(supabase, {

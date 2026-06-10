@@ -18,6 +18,15 @@ const nextConfig: NextConfig = {
       { source: "/cssd-erp/kho-hoa-chat", destination: "/cssd-hoa-chat", permanent: true },
       { source: "/cssd-erp/equipment-maintenance", destination: "/cssd-thiet-bi", permanent: true },
       { source: "/cssd-erp/su-co", destination: "/cssd-su-co", permanent: true },
+
+      // Giám sát KSNK - Redirect function-based
+      { source: "/giam-sat-vst/lich-su", destination: "/lich-su/vst", permanent: true },
+      { source: "/giam-sat-vst/thong-ke", destination: "/thong-ke/vst", permanent: true },
+      { source: "/giam-sat-chung/lich-su", destination: "/lich-su/gsc", permanent: true },
+      { source: "/giam-sat-chung/thong-ke", destination: "/thong-ke/gsc", permanent: true },
+      { source: "/giam-sat-chung/tuan-thu/lich-su", destination: "/lich-su/gsc", permanent: true },
+      { source: "/giam-sat-chung/nhat-ky/lich-su", destination: "/lich-su/gsc", permanent: true },
+      { source: "/giam-sat-chung/he-thong/lich-su", destination: "/lich-su/gsc", permanent: true },
     ];
   },
 };

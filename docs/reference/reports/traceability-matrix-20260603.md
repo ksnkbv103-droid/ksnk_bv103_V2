@@ -7,7 +7,7 @@
 | 1 | Đăng nhập nhân sự | `/login` | `staff-login.actions` | `v_mdm_nhan_su_full`, Supabase Auth | — | OK |
 | 2 | RBAC menu | Shell | `usePermission` → `v_sys_user_permissions` | `v_sys_user_permissions` / `v_auth_permissions` | — | Partial (RBAC migrations 03/06) |
 | 3 | VST lưu phiên | `/giam-sat-vst` | `vst-write-save-session.actions` | `gstt_fact_vst_sessions`, `gstt_fact_vst` | `vst-form-submit`, read scope specs | OK prefix |
-| 4 | VST analytics | `/giam-sat-vst?tab=analytics` | `vst-strategic-analytics.actions` | `rpc_dashboard_vst_strategic_analytics` | `rpc-contract-dashboard.spec` | OK |
+| 4 | VST analytics | `/thong-ke/vst` | `vst-strategic-analytics.actions` | `rpc_dashboard_vst_strategic_analytics`, `rpc_vst_compare_matrices` | `rpc-contract-dashboard.spec` | OK (2026-06-09 route restructure) |
 | 5 | GSC lưu phiên | `/giam-sat-chung` | `giam-sat-chung-write.actions` | `gstt_fact_chung_sessions` | `gsc-score-display.spec` | OK |
 | 6 | GSC module lock | `/giam-sat-chung` | `gsc-module-lock.actions` | `sys_module_locks` | — | **New** — sparse doc |
 | 7 | GSC import | `/giam-sat-chung` | `giam-sat-chung-import.actions` | `gstt_fact_chung_sessions` | — | OK |
@@ -27,5 +27,5 @@
 | 21 | RBAC assign | `/quan-tri-he-thong/phan-quyen` | `rbac.actions` | `sys_user_roles` | — | Post `drop_rbac_rel_compat` |
 | 22 | DM import JSON | Quản trị DM | `smart-import.actions` | `v_cssd_*_summary` views | — | OK |
 | 23 | CSSD sự cố | `/cssd-su-co` | `su-co-report.actions` | `cssd_fact_su_co` | — | OK |
-| 24 | Supervision deep link | Dashboard → module | `buildAnalyticsDeepLink` | URL params only | `supervision-deep-link.spec` | **New** |
+| 24 | Supervision deep link | Dashboard → module | `buildAnalyticsDeepLink` → `/thong-ke/{vst,gsc}` | URL params `tu_ngay`, `den_ngay`, `khoa_ids` | `bao-cao-tong-hop-core.spec` | OK (2026-06-09) |
 | 25 | Offline sync GSC/VST | Shell listener | `SupervisionOfflineSyncListener` | IndexedDB + actions | — | concepts.md |

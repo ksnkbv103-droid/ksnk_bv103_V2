@@ -28,6 +28,7 @@
 | CSSD module | + `npm run verify:cssd` | lint cssd-arch + tests |
 | MDM / migration | + `npm run verify:mdm` sau migrate | (manual / pipeline) |
 | Ship pilot DB | `npm run pilot:ship` | — |
+| Go-live gate | `npm run pilot:go-live:gate` | DB + auth + verify + smoke |
 
 **Lưu ý:** `verify:quick` chỉ `build` — không thay PR checklist.
 

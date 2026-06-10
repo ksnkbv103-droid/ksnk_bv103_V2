@@ -7,6 +7,7 @@ import { getBatchAddRejectionReason, logQuyTrinhVaoMeTietKhuan } from "../helper
 import { persistMeTietKhuanFinishWithClient, type PersistMeTietKhuanInput } from "../helpers/persist-me-tiet-khuan";
 import { getErrorMessage, mapFkError, revalidateCssdBatchSurfaces } from "./cssd-action-common";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
+import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 import { 
   createSterilizationBatchSchema, 
   addQuyTrinhToBatchSchema, 
@@ -331,20 +332,12 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
       if (!mayOk.ok) return { success: false as const, error: mayOk.message };
     }
 
-    const { data: qt, error: qtErr } = await supabase
-      .from("v_cssd_quy_trinh_full")
-      .select("*")
-      .eq("ma_qr_quy_trinh", qr)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (qtErr) return { success: false as const, error: mapFkError(qtErr.message) };
+    const qt = await fetchActiveQuyTrinhByScanCode(supabase, qr);
     if (!qt) return { success: false as const, error: "Mã QR không hợp lệ hoặc không tồn tại." };
 
     const qtNormalized = {
       ...qt,
-      ma_vach_qr: (qt as { ma_qr_quy_trinh?: string }).ma_qr_quy_trinh,
+      ma_vach_qr: String((qt as { ma_qr_quy_trinh?: string }).ma_qr_quy_trinh || qr),
       trang_thai_hien_tai: (qt as { ma_trang_thai_hien_tai?: string }).ma_trang_thai_hien_tai,
     };
     const reject = getBatchAddRejectionReason(qtNormalized, meId, { batchLocked });

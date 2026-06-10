@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DM_HUB_LABELS } from "@/lib/master-data/domain-registry";
+import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
 import GenericDmEditModal from "./GenericDmEditModal";
 import GenericDmHubRedirectBanner from "./GenericDmHubRedirectBanner";
 import GenericDmMasterDataTable from "./GenericDmMasterDataTable";
@@ -12,7 +13,8 @@ import { useModulePermission } from "@/hooks/useModulePermission";
 
 export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: string }) {
   const router = useRouter();
-  const { loading: permLoading, allowed } = useModulePermission("DANH_MUC");
+  const permissionModule = resolveDanhMucViewModuleByType(loaiDanhMuc);
+  const { loading: permLoading, allowed } = useModulePermission(permissionModule);
   const canMutate = allowed.create || allowed.edit;
   const canDelete = allowed.delete;
   const m = useGenericDmMasterPageModel(loaiDanhMuc, canMutate, canDelete);

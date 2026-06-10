@@ -49,7 +49,7 @@ function normalizeKieuDuLieu(raw?: string | null): ChecklistCriterion["kieu_du_l
 
 /**
  * Map 1 element từ `tieu_chi_jsonb` → `ChecklistCriterion` đầy đủ metadata.
- * Dùng chung cho `GiamSatChungPage` (lần đầu chọn bảng kiểm) và
+ * Dùng chung cho `GscFormView` (lần đầu chọn bảng kiểm) và
  * `switchGscTemplateByBangKiemId` (đổi bảng kiểm trong form).
  *
  * Trước fix v4: 2 loader chỉ giữ id/label/weight → mất `kieu_du_lieu`,

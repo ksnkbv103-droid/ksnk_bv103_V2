@@ -14,18 +14,18 @@ Go-live 3 module: [`../../core/pilot-core-modules-go-live.md`](../../core/pilot-
 
 ## Pilot checklist (tay — 5 kịch bản)
 
-1. **Khoa → nhân sự → GSC:** Tạo/sửa khoa tại `/quan-tri-he-thong/danh-muc/khoa-phong` → gán nhân sự `/nhan-su` → mở GSC, header có đúng khoa/khu vực.
-2. **Bảng kiểm:** Sửa mẫu tại `/bang-kiem` → phiên GSC mới load đủ tiêu chí (qua `mdm-read-gateway`).
-3. **RBAC:** User không `DANH_MUC.edit` không sửa được generic DM; tab Phân quyền chỉ mở khi `PHAN_QUYEN.edit` hoặc admin (`?tab=phan_quyen`).
-4. **Tài khoản:** `/tai-khoan-nhan-su` link Auth ↔ `mdm_nhan_su` → đăng nhập staff thành công.
-5. **Dụng cụ ↔ CSSD:** Tab `/danh-muc/dung-cu?tab=chi-tiet` → BOM checkpoint CSSD replenish (kho dự phòng).
+1. **Khoa → nhân sự → GSC:** Tạo/sửa khoa tại `/quan-tri-he-thong/danh-muc/khoa-phong` → gán nhân sự `/quan-tri-he-thong/nhan-su` → mở `/giam-sat-chung`, header có đúng khoa/khu vực.
+2. **Bảng kiểm:** Sửa mẫu tại `/quan-tri-he-thong/bang-kiem` → phiên GSC mới load đủ tiêu chí (qua `mdm-read-gateway`).
+3. **RBAC:** User không quyền module tương ứng (vd. `CONG_VIEC.edit` cho lookup QLCV) không sửa được generic DM; tab Phân quyền chỉ mở khi `PHAN_QUYEN.edit` hoặc admin (`/quan-tri-he-thong?tab=phan_quyen`).
+4. **Tài khoản:** `/quan-tri-he-thong/tai-khoan-nhan-su` link Auth ↔ `mdm_nhan_su` → đăng nhập staff thành công.
+5. **Dụng cụ ↔ CSSD:** Tab `/quan-tri-he-thong/danh-muc/dung-cu?tab=chi-tiet` → BOM checkpoint CSSD replenish (kho dự phòng).
 
 ## Import dữ liệu
 
 | Luồng | Trạng thái |
 |-------|------------|
 | **Smart import** | SSOT mới — từng trang DM (`smart-import.actions.ts`) |
-| **Master Excel modal** | Legacy (`master-import.actions.ts`) — khoa, HC, TB, nhân sự; gộp vào smart import sau pilot |
+| **Master Excel modal** | Legacy (`master-import.actions.ts`) — HC, TB, nhân sự; **khoa phòng** đã chuyển smart import (`mdm_dm_khoa_phong` + `specs` JSONB) |
 
 ## MDM Governance & trigger DB
 

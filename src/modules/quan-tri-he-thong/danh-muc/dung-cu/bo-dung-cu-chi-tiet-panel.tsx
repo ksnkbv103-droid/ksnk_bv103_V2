@@ -6,12 +6,14 @@ import { AlertTriangle, ExternalLink, Layers, Loader2, PackagePlus, RefreshCcw }
 import { toast } from "sonner";
 import DungCuChiTietFormModal from "./dung-cu-chi-tiet-form-modal";
 import type { DungCuChiTietTableRow } from "./dung-cu-chi-tiet-form-shared";
+import { reportChiTietInstrumentIssueAction } from "@/lib/master-data/append-chi-tiet-issue-note.action";
 import {
-  reportChiTietInstrumentIssueAction,
+  replenishSetInstrumentAction,
+  reportIndividualInstrumentIssueAction,
+} from "@/lib/master-data/cssd-instrument-ops.actions";
+import {
   getBoRefsByLoaiAction,
   getBoDungCuChiTietPreviewAction,
-  reportIndividualInstrumentIssueAction,
-  replenishSetInstrumentAction,
 } from "../actions/bo-dung-cu-chi-tiet-read.actions";
 import {
   getBoDungCuAllocationsAction,

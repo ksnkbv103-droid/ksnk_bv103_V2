@@ -11,6 +11,10 @@ describe("cssd-qr-core", () => {
     expect(classifyCssdCode("bv103-sub-1234")).toBe("INSTRUMENT_SET");
   });
 
+  it("classifies cycle QR prefix as instrument set", () => {
+    expect(classifyCssdCode("BV103-CYC-250610-AB12CD34")).toBe("INSTRUMENT_SET");
+  });
+
   it("classifies machine-like codes by conventional prefix", () => {
     expect(classifyCssdCode("MAY-01")).toBe("MACHINE");
     expect(classifyCssdCode("tb-ht-02")).toBe("MACHINE");

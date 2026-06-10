@@ -1,14 +1,5 @@
-/**
- * /giam-sat-chung/tuan-thu — Slice 5 (giam-sat-tuan-thu reform v4).
- *
- * Tab "Giám sát tuân thủ": chỉ list bảng kiểm có `loai_giam_sat='TUAN_THU'`.
- * Reuse view chính `GiamSatChungPage` + filter param `tab=tuan-thu` để giữ
- * 1 codebase form. Slice 5 v1: route alias chuyển hướng → /giam-sat-chung
- * với tab pre-selected; logic filter sẽ làm sau ở GiamSatChungPage.
- */
-
 import React, { Suspense } from "react";
-import GiamSatChungPage from "@/modules/giam-sat-chung/views/GiamSatChungPage";
+import GscFormView from "@/modules/giam-sat-chung/views/GscFormView";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 
 export const metadata = {
@@ -20,7 +11,7 @@ export const metadata = {
 export default function GiamSatTuanThuPage() {
   return (
     <Suspense fallback={<SupervisionPageSkeleton />}>
-      <GiamSatChungPage initialLoaiGiamSat="TUAN_THU" />
+      <GscFormView initialLoaiGiamSat="TUAN_THU" />
     </Suspense>
   );
 }

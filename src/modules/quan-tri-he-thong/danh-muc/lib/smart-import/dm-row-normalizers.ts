@@ -1,5 +1,56 @@
 /** Chuẩn hóa field theo từng bảng DM trước khi upsert (logic thuần). */
 
+function normalizeNonNegativeInt(value: unknown): number {
+  const n = Math.floor(Number(value));
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
+/** Gói cột phẳng Excel → `specs` JSONB (schema `mdm_dm_khoa_phong` trên Supabase). */
+export function normalizeDmKhoaPhong(rest: Record<string, unknown>): Record<string, unknown> {
+  const out = { ...rest };
+  const existingSpecs =
+    typeof out.specs === "object" && out.specs !== null ? (out.specs as Record<string, unknown>) : {};
+
+  const mo_ta =
+    out.mo_ta_chuc_nang !== undefined
+      ? String(out.mo_ta_chuc_nang || "").trim() || null
+      : (existingSpecs.mo_ta_chuc_nang as string | null) ?? null;
+
+  out.specs = {
+    ...existingSpecs,
+    mo_ta_chuc_nang: mo_ta,
+    so_bac_si:
+      out.so_bac_si !== undefined ? normalizeNonNegativeInt(out.so_bac_si) : normalizeNonNegativeInt(existingSpecs.so_bac_si),
+    so_dieu_duong:
+      out.so_dieu_duong !== undefined
+        ? normalizeNonNegativeInt(out.so_dieu_duong)
+        : normalizeNonNegativeInt(existingSpecs.so_dieu_duong),
+    so_giuong_benh_thuong:
+      out.so_giuong_benh_thuong !== undefined
+        ? normalizeNonNegativeInt(out.so_giuong_benh_thuong)
+        : normalizeNonNegativeInt(existingSpecs.so_giuong_benh_thuong),
+    so_giuong_cap_cuu:
+      out.so_giuong_cap_cuu !== undefined
+        ? normalizeNonNegativeInt(out.so_giuong_cap_cuu)
+        : normalizeNonNegativeInt(existingSpecs.so_giuong_cap_cuu),
+  };
+
+  delete out.mo_ta_chuc_nang;
+  delete out.so_bac_si;
+  delete out.so_dieu_duong;
+  delete out.so_giuong_benh_thuong;
+  delete out.so_giuong_cap_cuu;
+
+  if (out.ma_khoa !== undefined && out.ma_khoa !== null && String(out.ma_khoa).trim() !== "") {
+    out.ma_khoa = String(out.ma_khoa).trim().toUpperCase();
+  }
+  if (out.ten_khoa !== undefined && out.ten_khoa !== null) {
+    out.ten_khoa = String(out.ten_khoa).trim();
+  }
+
+  return out;
+}
+
 export function normalizeDmBoDungCuChiTiet(rest: Record<string, unknown>): Record<string, unknown> {
   const out = { ...rest };
   const ten = String(out.ten_chi_tiet ?? out.ten_dung_cu_le ?? "").trim();

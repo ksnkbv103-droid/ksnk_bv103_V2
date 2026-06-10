@@ -22,6 +22,7 @@ import SearchableSelect from "./SearchableSelect";
 import RegistrySelect from "./RegistrySelect";
 import {
   buildKhuVucGroupedSelectOptions,
+  filterKhuVucsForKhoa,
   khuVucZoneBadgeClass,
   KHU_VUC_ZONE_LABELS,
   zoneFromKhuVucMa,
@@ -97,6 +98,29 @@ export default function GiamSatHeaderFields({
     return isNetworkRoleLabel(supervisorProfile.vai_tro_he_thong_ksnk as string);
   }, [supervisorProfile]);
 
+  // === Tự động derive hình thức giám sát ===
+  const derivedHinhThuc = useMemo((): { label: string; dmRow: (typeof hinhThucGiamSats)[number] | undefined } => {
+    const supervisorKhoaId = String(supervisorProfile?.khoa_id || "").trim();
+    const selectedKhoaId = String(session.khoa_id || "").trim();
+    const isCrossKhoa = Boolean(
+      selectedKhoaId && supervisorKhoaId && supervisorKhoaId !== selectedKhoaId,
+    );
+    const isNetworkAtKhoa = Boolean(isNetworkStaff && selectedKhoaId && supervisorKhoaId === selectedKhoaId);
+
+    let label: string;
+    if (isNetworkAtKhoa) {
+      label = HINH_THUC_TU_GIAM_SAT;
+    } else if (isKsnkStaff) {
+      label = isCrossKhoa ? HINH_THUC_CHUYEN_TRACH : HINH_THUC_TU_GIAM_SAT;
+    } else if (isCrossKhoa) {
+      label = HINH_THUC_GIAM_SAT_CHEO;
+    } else {
+      label = HINH_THUC_TU_GIAM_SAT;
+    }
+    const dmRow = hinhThucGiamSats.find((h) => h.ten_danh_muc === label);
+    return { label, dmRow };
+  }, [supervisorProfile, session.khoa_id, isKsnkStaff, isNetworkStaff, hinhThucGiamSats]);
+
   const locationPoolByKhoa = useMemo(() => {
     const kid = String(session.khoa_id || "").trim();
     if (historyLocationRows && historyLocationRows.length > 0) {
@@ -114,46 +138,55 @@ export default function GiamSatHeaderFields({
     return locationPoolByKhoa.filter((loc: string) => normalize(loc).includes(nq));
   }, [deferLocationHistoryUntilTyped, locationPoolByKhoa, session.vi_tri]);
 
-  const khuVucSelectOptions = useMemo(() => buildKhuVucGroupedSelectOptions(khuVucs), [khuVucs]);
+  const selectedKhoa = useMemo(() => {
+    if (!session.khoa_id) return null;
+    return khoas.find((k) => k.id === session.khoa_id);
+  }, [khoas, session.khoa_id]);
+
+  const filteredKhuVucs = useMemo(() => {
+    if (!session.khoa_id || khuVucs.length === 0) return khuVucs;
+
+    const allowedRaw = selectedKhoa?.specs?.allowed_khu_vucs;
+    const allowedKhuVucs = Array.isArray(allowedRaw)
+      ? allowedRaw.map((x: string) => String(x || "").toUpperCase())
+      : null;
+
+    return filterKhuVucsForKhoa(khuVucs, allowedKhuVucs);
+  }, [khuVucs, session.khoa_id, selectedKhoa]);
+
+  const khuVucSelectOptions = useMemo(() => buildKhuVucGroupedSelectOptions(filteredKhuVucs), [filteredKhuVucs]);
 
   const selectedKhuVucZone = useMemo(() => {
-    const row = khuVucs.find((kv) => String(kv.id) === String(session.khu_vuc_id || ""));
+    const row = filteredKhuVucs.find((kv) => String(kv.id) === String(session.khu_vuc_id || ""));
     if (!row) return null;
-    const zone = zoneFromKhuVucMa(row.ma_danh_muc, row.nhom_mau);
+    const zone = zoneFromKhuVucMa(row.ma_danh_muc || "", row.nhom_mau);
     if (!(zone in KHU_VUC_ZONE_LABELS)) return null;
     return zone as KhuVucZoneCode;
-  }, [khuVucs, session.khu_vuc_id]);
+  }, [filteredKhuVucs, session.khu_vuc_id]);
 
   const headerIdentityReady = !loading && !permLoading;
 
-  // Inference thông minh (Gợi ý ban đầu khi trường TRỐNG)
+  // Tự động sync hình thức giám sát + gợi ý cách thức ban đầu
   useEffect(() => {
     if (loading || !supervisorProfile) return;
 
     setSession((prev: GiamSatSession) => {
-      let nextHinhThucId = prev.hinh_thuc_id;
-      let nextCachThucId = prev.cach_thuc_id;
+      // Hình thức: luôn sync theo derive (không cho chọn tay)
+      const nextHinhThucId = derivedHinhThuc.dmRow?.id || prev.hinh_thuc_id;
 
-      const chuyênTrách = hinhThucGiamSats.find(h => h.ten_danh_muc === HINH_THUC_CHUYEN_TRACH);
-      const tựGiámSát = hinhThucGiamSats.find(h => h.ten_danh_muc === HINH_THUC_TU_GIAM_SAT);
+      // Cách thức: chỉ gợi ý ban đầu khi trường trống
+      let nextCachThucId = prev.cach_thuc_id;
       const cameraVst = cachThucGiamSats.find(c => c.ten_danh_muc === "Giám sát trực tiếp qua camera");
       const tạiChỗ = cachThucGiamSats.find(c => c.ten_danh_muc === "Giám sát trực tiếp tại chỗ");
-
-      if (isKsnkStaff) {
-        if (!prev.hinh_thuc_id && chuyênTrách) nextHinhThucId = chuyênTrách.id;
-        if (!prev.cach_thuc_id) {
-          if (moduleContext === "vst" && cameraVst) nextCachThucId = cameraVst.id;
-          else if (tạiChỗ) nextCachThucId = tạiChỗ.id;
-        }
-      } else if (isNetworkStaff) {
-        if (!prev.hinh_thuc_id && tựGiámSát) nextHinhThucId = tựGiámSát.id;
-        if (!prev.cach_thuc_id && tạiChỗ) nextCachThucId = tạiChỗ.id;
+      if (!prev.cach_thuc_id) {
+        if (isKsnkStaff && moduleContext === "vst" && cameraVst) nextCachThucId = cameraVst.id;
+        else if (tạiChỗ) nextCachThucId = tạiChỗ.id;
       }
 
       if (nextHinhThucId === prev.hinh_thuc_id && nextCachThucId === prev.cach_thuc_id) return prev;
       return { ...prev, hinh_thuc_id: nextHinhThucId, cach_thuc_id: nextCachThucId };
     });
-  }, [loading, supervisorProfile, isKsnkStaff, isNetworkStaff, moduleContext, setSession]);
+  }, [loading, supervisorProfile, isKsnkStaff, derivedHinhThuc, moduleContext, cachThucGiamSats, setSession]);
 
   useEffect(() => {
     if (!locked) return;
@@ -162,6 +195,16 @@ export default function GiamSatHeaderFields({
       return { ...prev, nguoi_giam_sat_id: locked };
     });
   }, [locked, setSession]);
+
+  // Tự động reset khu_vuc_id nếu khu vực đang chọn không còn hợp lệ ở khoa mới
+  useEffect(() => {
+    if (loading || khuVucs.length === 0 || !session.khoa_id || !session.khu_vuc_id) return;
+
+    const isValid = filteredKhuVucs.some((kv) => String(kv.id) === String(session.khu_vuc_id));
+    if (!isValid) {
+      setSession((prev: GiamSatSession) => ({ ...prev, khu_vuc_id: "" }));
+    }
+  }, [session.khoa_id, session.khu_vuc_id, filteredKhuVucs, khuVucs.length, loading, setSession]);
 
   return (
     <div className="min-w-0 space-y-4">
@@ -228,7 +271,7 @@ export default function GiamSatHeaderFields({
       )}
 
       <div className="min-w-0">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5 xl:gap-x-4 xl:gap-y-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-x-4 xl:gap-y-4">
           <div id="vst-khoa-select" className="flex min-h-0 min-w-0 flex-col gap-1">
             <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">1. Khoa</label>
             <RegistrySelect
@@ -307,24 +350,7 @@ export default function GiamSatHeaderFields({
           </div>
 
           <div className="flex min-h-0 min-w-0 flex-col gap-1">
-            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">4. Hình thức</label>
-            <RegistrySelect
-              loaiDanhMuc="HINH_THUC_GIAM_SAT"
-              value={session.hinh_thuc_id || ""}
-              onChange={(nextId: string) => setSession((prev: GiamSatSession) => ({ ...prev, hinh_thuc_id: nextId }))}
-              staticOptions={hinhThucGiamSats.map((h) => ({
-                id: h.id,
-                label: h.ten_danh_muc,
-                ma: h.ma_danh_muc,
-              }))}
-              placeholder="Chọn hình thức..."
-              disabled={loading}
-              searchable={false}
-            />
-          </div>
-
-          <div className="flex min-h-0 min-w-0 flex-col gap-1">
-            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">5. Cách thức</label>
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">4. Cách thức</label>
             <RegistrySelect
               loaiDanhMuc="CACH_THUC_GIAM_SAT"
               value={session.cach_thuc_id || ""}

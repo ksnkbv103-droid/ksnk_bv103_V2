@@ -130,6 +130,11 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-06-10 | **Go-live Phase 6:** `pilot-go-live-signoff-202606.md`, `auth-pilot-link-sop.md`, `pilot:go-live:gate`; BOM → in cycle QR (`usePrint`). |
+| 2026-06-10 | **Cycle QR Phase 5:** `20260610100000` — `ma_cycle_qr` / `ma_qr_bo_vinh_vien`; resolve 3 cột; sinh cycle sau BOM; NKBV trace cycle QR. |
+| 2026-06-10 | **CSSD Phase 4 (domain audit):** pilot checklist hóa chất/thiết bị; BRD vật tư intake; `CSSDSubNav` wired vào `CSSDPageShell`; E2E `/cssd-hoa-chat`, `/cssd-thiet-bi`. Ledger Q2 warning (Phase 3). |
+| 2026-06-10 | **VST RPC fact-inline (Phase 2):** `20260610060000` — scan `gstt_fact_vst_sessions`/`gstt_fact_vst` trực tiếp; stype 1×/phiên; linked EXPLAIN 327ms→91ms. GSC fan-out probe `05-gsc-fanout-sim.sql`. |
+| 2026-06-09 | **VST strategic RPC perf:** `20260609060000` + `20260609061000` — CTE `MATERIALIZED` filter; SSOT joins `mdm_dm_khoa_phong` / `sys_lookup_value`; linked EXPLAIN 418ms → 306ms. |
 | 2026-06-07 | **QLCV schema text-only (`20260607100000`):** DROP `trang_thai_id`/`loai_cong_viec_id`/`cong_viec_cha_id`, trigger sync FK; view `trang_thai_mau_sac`; app optimistic lock `trang_thai`; IMPORT Excel (`qlcv-import.actions`); badge MDM `mau_sac`. |
 | 2026-06-06 | **QLCV hardening (`20260606160000` + app):** modernize `fn_sync_overdue_tasks`; DROP orphan analytics RPC; ghi chú tiến độ tách checklist; badge/deep-link CC. **Tiếp:** board fetch phân trang, `QlcvGateStats`, MDM links, URL `?id=` cleanup, `mergeQlcvKanbanTasks`. |
 | 2026-06-05 | **QLCV vertical slice:** `checklist` JSONB + `fn_qlcv_update_checklist` (`20260605140000`); scope list server (`qlcv-list-scope`); UI checklist; `getMyPendingDeXuat`; quyền `APPROVE`; precheck `trial:qlcv:precheck`; Command Center card. |

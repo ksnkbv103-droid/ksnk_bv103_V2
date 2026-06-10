@@ -6,7 +6,7 @@ import {
   LOAI_CHUC_VU,
   LOAI_TO_CONG_TAC,
   LOAI_VAI_TRO_HE_THONG_KSNK,
-} from "@/modules/quan-tri-he-thong/nhan-su/lib/nhan-su-dm-ma-loai";
+} from "@/lib/master-data/nhan-su-dm-ma-loai";
 
 export type HoSoRow = Record<string, unknown>;
 

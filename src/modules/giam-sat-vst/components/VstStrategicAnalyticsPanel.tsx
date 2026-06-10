@@ -189,7 +189,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
 export function VstAnalyticsDeepLinkHint() {
   return (
     <Link
-      href="/giam-sat-vst?tab=analytics"
+      href="/thong-ke/vst"
       className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:underline"
     >
       Xem chi tiết tại module VST <ExternalLink size={12} />

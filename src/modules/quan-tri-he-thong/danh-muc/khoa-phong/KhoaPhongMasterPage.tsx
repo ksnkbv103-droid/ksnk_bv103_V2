@@ -1,7 +1,9 @@
 // src/modules/quan-tri-he-thong/danh-muc/khoa-phong/KhoaPhongMasterPage.tsx
 "use client";
 import React, { useEffect, useState } from "react";
-import { Plus, Building2, FileSpreadsheet } from "lucide-react";
+import { Plus, Building2, Download, Upload, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useImportExport } from "@/hooks/useImportExport";
 import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
@@ -13,21 +15,24 @@ import type { KhoaPhongRow } from "../actions/khoa-phong.types";
 import {
   getKhoiKhoaOptionsAction,
   getKhoaPhongRowsAction,
+  getKhuVucGiamSatOptionsAction,
   softDeleteKhoaPhongAction,
   softDeleteManyKhoaPhongAction,
   toggleKhoaPhongStatusAction,
 } from "../actions/khoa-phong.actions";
 import { DmMasterPageGuard } from "../views/dm-master-page-guard";
-import MasterDataImportExportModal from "../../components/MasterDataImportExportModal";
+import { smartImportData } from "../actions/smart-import.actions";
+import { getMasterDataExport } from "../actions/export.actions";
 
 function KhoaPhongMasterPageContent() {
+  const router = useRouter();
   const [data, setData] = useState<KhoaPhongRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
-  const [importModalOpen, setImportModalOpen] = useState(false);
   const [editing, setEditing] = useState<KhoaPhongRow | null>(null);
   const [khoiOptions, setKhoiOptions] = useState<{ id: string; ten_danh_muc: string }[]>([]);
+  const [khuVucOptions, setKhuVucOptions] = useState<{ id: string; ma: string; ten: string }[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -52,6 +57,17 @@ function KhoaPhongMasterPageContent() {
         return;
       }
       setKhoiOptions(result.data);
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const result = await getKhuVucGiamSatOptionsAction();
+      if (!result.success) {
+        toast.error(result.error || "Không tải được danh mục khu vực giám sát.");
+        return;
+      }
+      setKhuVucOptions(result.data);
     })();
   }, []);
 
@@ -81,6 +97,31 @@ function KhoaPhongMasterPageContent() {
     },
   });
 
+  const { exportTemplate, handleFileUpload, isImporting, triggerImport, fileInputRef } = useImportExport({
+    moduleKey: "KHOA_PHONG",
+    tableName: "mdm_dm_khoa_phong",
+    displayName: "Khoa phòng",
+    uniqueKey: "ma_khoa",
+    columnMapping: {
+      "Mã khoa": "ma_khoa",
+      "Tên khoa": "ten_khoa",
+      "Mã khối": "ma_khoi",
+      "Tên khối": "ten_khoi",
+      "Mô tả chức năng": "mo_ta_chuc_nang",
+      "Số bác sĩ": "so_bac_si",
+      "Số điều dưỡng": "so_dieu_duong",
+      "Giường thường": "so_giuong_benh_thuong",
+      "Giường cấp cứu": "so_giuong_cap_cuu",
+      is_active: "is_active",
+    },
+    onGetData: () => getMasterDataExport("mdm_dm_khoa_phong", "ma_khoa"),
+    onImport: (d) => smartImportData({ tableName: "mdm_dm_khoa_phong", uniqueKey: "ma_khoa" }, d),
+    onSuccess: () => {
+      setRefreshKey((k) => k + 1);
+      router.refresh();
+    },
+  });
+
   const columns = getKhoaPhongColumns(actionUi);
   const modalKey = editing?.id ? `edit-${editing.id}` : "create";
 
@@ -95,8 +136,24 @@ function KhoaPhongMasterPageContent() {
         subtitle="Quản lý khoa, phòng và liên kết khối tổ chức — dữ liệu dùng chung cho giám sát và nhân sự."
         actions={
           <>
-            <button type="button" onClick={() => setImportModalOpen(true)} className={bv103DesignTokens.btnSecondary}>
-              <FileSpreadsheet size={16} aria-hidden /> Nhập/Xuất Excel
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
+              accept=".xlsx,.xls"
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={triggerImport}
+              disabled={isImporting}
+              className={bv103DesignTokens.btnSecondary}
+            >
+              {isImporting ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <Upload size={16} aria-hidden />}
+              Import Excel
+            </button>
+            <button type="button" onClick={() => exportTemplate()} className={bv103DesignTokens.btnSecondary}>
+              <Download size={16} aria-hidden /> Export mẫu
             </button>
             <button
               type="button"
@@ -136,19 +193,12 @@ function KhoaPhongMasterPageContent() {
         open={formOpen}
         initialRow={editing}
         khoiOptions={khoiOptions}
+        khuVucOptions={khuVucOptions}
         onClose={() => {
           setFormOpen(false);
           setEditing(null);
         }}
         onSaved={() => setRefreshKey((k) => k + 1)}
-      />
-      <MasterDataImportExportModal
-        isOpen={importModalOpen}
-        onClose={() => {
-          setImportModalOpen(false);
-          setRefreshKey((k) => k + 1);
-        }}
-        type="khoa-phong"
       />
     </div>
   );

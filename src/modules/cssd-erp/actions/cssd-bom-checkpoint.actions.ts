@@ -3,8 +3,9 @@
 import { verifyPermission } from "@/lib/server-permission";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
-import { replenishSetInstrumentCore } from "@/lib/master-data/cssd-set-replenish-core";
+import { requestReplenishFromReserveAction as requestReplenishFromReserveFacade } from "@/lib/master-data/cssd-instrument-ops.actions";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
+import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 import {
   evaluateHeatCompatibility,
   summarizeBomGap,
@@ -114,6 +115,18 @@ export async function persistBomCheckpoint(input: {
     throw new Error(rpcErr?.message || rpcRes?.message || "Lỗi lưu checkpoint Đóng gói.");
   }
 
+  const { data: qtRow } = await supabase
+    .from("v_cssd_quy_trinh_full")
+    .select("ma_cycle_qr, ten_bo")
+    .eq("id", input.quy_trinh_id)
+    .maybeSingle();
+
+  const maCycleQr = String(
+    (rpcRes as { ma_cycle_qr?: string | null })?.ma_cycle_qr ||
+      (qtRow as { ma_cycle_qr?: string | null } | null)?.ma_cycle_qr ||
+      "",
+  ).trim();
+
   // Revalidate các view
   revalidatePath("/cssd-quy-trinh");
 
@@ -147,14 +160,15 @@ export async function persistBomCheckpoint(input: {
 
   return {
     success: true as const,
+    ma_cycle_qr: maCycleQr || null,
+    ten_bo: (qtRow as { ten_bo?: string | null } | null)?.ten_bo ?? null,
     heat,
     gap,
   };
 }
 
 /**
- * Facade CSSD → MDM: điều dưỡng CSSD bù dụng cụ lẻ từ kho dự phòng
- * với quyền CSSD_WORKFLOW.edit (không cần DC_LE.edit).
+ * CSSD BOM checkpoint: gọi facade `@/lib/master-data/cssd-instrument-ops` rồi ghi lifecycle audit.
  */
 export async function requestReplenishFromReserveAction(params: {
   loaiDungCuId: string;
@@ -163,30 +177,20 @@ export async function requestReplenishFromReserveAction(params: {
   quantity?: number;
   note?: string;
 }) {
-  await verifyPermission("CSSD_WORKFLOW", "edit");
-  const supabase = createAdminSupabaseClient();
-  const result = await replenishSetInstrumentCore(supabase, {
-    loaiDungCuId: params.loaiDungCuId,
-    boDungCuId: params.boDungCuId,
-    quyTrinhId: params.quyTrinhId,
-    quantity: params.quantity ?? 1,
-    note: params.note ?? "Bổ sung từ kho lẻ (facade CSSD workflow)",
-  });
+  const result = await requestReplenishFromReserveFacade(params);
   if (!result.success) return result;
 
-  // Log lifecycle event for replenishment audit
   if (params.quyTrinhId) {
+    const supabase = createAdminSupabaseClient();
     await insertCssdLifecycleEvent(supabase, {
       quy_trinh_id: params.quyTrinhId,
       ma_su_kien: "BO_SUNG_KHO_LE",
       ma_tram: "DONG_GOI",
       ghi_chu: `Bù dụng cụ lẻ từ kho dự phòng: ${params.note || ""}`.trim(),
-      payload: { loai_dung_cu_id: params.loaiDungCuId, quantity: params.quantity ?? 1 }
+      payload: { loai_dung_cu_id: params.loaiDungCuId, quantity: params.quantity ?? 1 },
     });
   }
 
-  revalidatePath("/cssd-quy-trinh");
-  revalidatePath("/quan-tri-he-thong/danh-muc/dung-cu");
   return { success: true as const };
 }
 
@@ -199,23 +203,14 @@ export async function resolveQuyTrinhForCheckpoint(maQR: string) {
   const code = String(maQR || "").trim().toUpperCase();
 
   const resolved = await resolveCssdCodeWithClient(supabase, code);
-  const resolvedCode = resolved.code;
-
-  const { data: qt, error } = await supabase
-    .from("cssd_fact_quy_trinh")
-    .select("id, bo_dung_cu_id, ma_trang_thai_hien_tai, is_active")
-    .eq("ma_qr_quy_trinh", resolvedCode)
-    .eq("is_active", true)
-    .maybeSingle();
-
-  if (error) throw new Error("Lỗi truy vấn quy trình: " + error.message);
-  if (!qt) throw new Error(`Không tìm thấy quy trình đang hoạt động cho mã ${resolvedCode}.`);
+  const qt = await fetchActiveQuyTrinhByScanCode(supabase, resolved.code);
+  if (!qt?.id) throw new Error(`Không tìm thấy quy trình đang hoạt động cho mã ${resolved.code}.`);
 
   return {
     success: true as const,
-    quyTrinhId: qt.id,
-    boDungCuId: qt.bo_dung_cu_id,
-    maTrangThaiHien_tai: qt.ma_trang_thai_hien_tai,
+    quyTrinhId: String(qt.id),
+    boDungCuId: (qt as { bo_dung_cu_id?: string | null }).bo_dung_cu_id,
+    maTrangThaiHien_tai: (qt as { ma_trang_thai_hien_tai?: string | null }).ma_trang_thai_hien_tai,
   };
 }
 

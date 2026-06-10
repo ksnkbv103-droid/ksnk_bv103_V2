@@ -45,6 +45,9 @@ type Props = FilterProps & {
   checklistClusters?: Record<string, GscStrategicPayload>;
   clustersLoading?: boolean;
   truncatedChecklistCount?: number;
+  pendingClusterCount?: number;
+  clustersRequested?: boolean;
+  onRequestChecklistClusters?: () => void;
   bkLabelRecord?: Record<string, string>;
   onRefresh?: () => void;
 };
@@ -156,10 +159,29 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       />
 
       {(p.truncatedChecklistCount ?? 0) > 0 ? (
-        <p className="text-xs text-amber-700">
-          Chỉ hiển thị 12 biểu mẫu đầu tiên; còn {p.truncatedChecklistCount} biểu mẫu có dữ liệu chưa hiển thị — hãy thu hẹp
-          bộ lọc Chuyên đề.
-        </p>
+        <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          <AlertTriangle size={16} className="shrink-0 text-amber-600" />
+          <p>
+            Còn <strong>{p.truncatedChecklistCount} biểu mẫu</strong> ngoài giới hạn 12 — thu hẹp bộ lọc{" "}
+            <em>Chuyên đề</em> để xem thêm.
+          </p>
+        </div>
+      ) : null}
+
+      {!p.clustersRequested && (p.pendingClusterCount ?? 0) > 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+          <p className="text-slate-600">
+            Thống kê tổng hợp đã tải. Chi tiết theo <strong>{p.pendingClusterCount}</strong> biểu mẫu chưa tự
+            động tải (tránh chậm).
+          </p>
+          <button
+            type="button"
+            className="rounded-lg bg-[var(--primary)] px-3 py-2 text-xs font-bold text-white hover:opacity-90"
+            onClick={p.onRequestChecklistClusters}
+          >
+            Tải theo biểu mẫu
+          </button>
+        </div>
       ) : null}
 
       {clusterEntries.length > 0 ? (
@@ -188,7 +210,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
   );
 }
 
-export function GscAnalyticsDeepLinkHint({ href = "/giam-sat-chung?tab=analytics" }: { href?: string }) {
+export function GscAnalyticsDeepLinkHint({ href = "/thong-ke/gsc" }: { href?: string }) {
   return (
     <Link href={href} className="inline-flex items-center gap-1 text-xs font-bold text-sky-700 hover:underline">
       Xem chi tiết tại module GSC <ExternalLink size={12} />

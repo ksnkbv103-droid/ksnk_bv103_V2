@@ -24,6 +24,8 @@ export function useGscAnalyticsData(initialLoaiGiamSat?: LoaiGiamSat) {
   const [checklistClusters, setChecklistClusters] = useState<Record<string, GscStrategicPayload>>({});
   const [clustersLoading, setClustersLoading] = useState(false);
   const [truncatedChecklistCount, setTruncatedChecklistCount] = useState(0);
+  const [pendingClusterCount, setPendingClusterCount] = useState(0);
+  const [clustersRequested, setClustersRequested] = useState(false);
 
   const bangKiemMasForRpc = useMemo(
     () =>
@@ -86,9 +88,14 @@ export function useGscAnalyticsData(initialLoaiGiamSat?: LoaiGiamSat) {
   }, [filters.initDone, loadAnalytics]);
 
   useEffect(() => {
+    setClustersRequested(false);
+  }, [filters.tuNgay, filters.denNgay, filters.selectedBangKiemMas.join("|")]);
+
+  useEffect(() => {
     if (!filters.initDone || !payload) {
       setChecklistClusters({});
       setTruncatedChecklistCount(0);
+      setPendingClusterCount(0);
       return;
     }
     const fromFilter =
@@ -99,6 +106,14 @@ export function useGscAnalyticsData(initialLoaiGiamSat?: LoaiGiamSat) {
     const allMas = fromFilter.length > 0 ? fromFilter : fromData;
     const mas = allMas.slice(0, 12);
     setTruncatedChecklistCount(Math.max(0, allMas.length - mas.length));
+    setPendingClusterCount(mas.length);
+
+    const explicitFilter = filters.selectedBangKiemMas.length > 0;
+    if (!explicitFilter && !clustersRequested) {
+      setChecklistClusters({});
+      return;
+    }
+
     if (mas.length === 0) {
       setChecklistClusters({});
       return;
@@ -159,7 +174,12 @@ export function useGscAnalyticsData(initialLoaiGiamSat?: LoaiGiamSat) {
     filters.ngheOptions.length,
     filters.khuVucOptions.length,
     payload,
+    clustersRequested,
   ]);
+
+  const requestChecklistClusters = useCallback(() => {
+    setClustersRequested(true);
+  }, []);
 
   return {
     ...filters,
@@ -169,6 +189,9 @@ export function useGscAnalyticsData(initialLoaiGiamSat?: LoaiGiamSat) {
     checklistClusters,
     clustersLoading,
     truncatedChecklistCount,
+    pendingClusterCount,
+    clustersRequested,
+    requestChecklistClusters,
     loadAnalytics,
     initialLoaiGiamSat,
     bkLabelMap: filters.bkLabelMap,

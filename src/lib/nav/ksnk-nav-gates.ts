@@ -39,6 +39,9 @@ export const NAV_GATE_CSSD_HOA_CHAT: NavGate = { id: "cssd-hoa-chat", moduleKeys
 export const NAV_GATE_QUAN_TRI: NavGate = { id: "qt", moduleKeys: ["DANH_MUC", "PHAN_QUYEN", "NHAN_SU"] };
 export const NAV_GATE_DM_HUB: NavGate = { id: "dmhub", moduleKeys: ["DANH_MUC"] };
 
+export const NAV_GATE_LICH_SU: NavGate = { id: "lich-su", moduleKeys: ["GIAM_SAT_VST", "GIAM_SAT_CHUNG", "GIAM_SAT_NKBV"] };
+export const NAV_GATE_THONG_KE: NavGate = { id: "thong-ke", moduleKeys: ["GIAM_SAT_VST", "GIAM_SAT_CHUNG", "GIAM_SAT_NKBV"] };
+
 export function canSeeNavGate(
   isAdmin: boolean,
   canView: (module: string) => boolean,

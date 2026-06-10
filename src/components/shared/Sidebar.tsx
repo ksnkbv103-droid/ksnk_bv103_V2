@@ -11,7 +11,6 @@ import {
   Clock,
   Box,
   LayoutDashboard,
-  type LucideIcon,
   PanelsTopLeft,
   IdCard,
   Settings,
@@ -21,7 +20,10 @@ import {
   Wrench,
   Droplets,
   FileBarChart,
+  BarChart2,
+  History,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { usePermission } from "@/hooks/usePermission";
 import {
   canSeeNavGate,
@@ -38,6 +40,8 @@ import {
   NAV_GATE_NKBV,
   NAV_GATE_QUAN_TRI,
   NAV_GATE_VST,
+  NAV_GATE_THONG_KE,
+  NAV_GATE_LICH_SU,
   type NavGate,
 } from "@/lib/nav/ksnk-nav-gates";
 import {
@@ -54,9 +58,10 @@ const navMain: NavMainRow[] = [
   { name: "Trung tâm điều hành", href: "/", icon: LayoutDashboard, gate: NAV_GATE_DASHBOARD },
   { name: "Báo cáo tổng hợp KSNK", href: "/bao-cao-tong-hop", icon: FileBarChart, gate: NAV_GATE_DASHBOARD },
   { name: "Vệ sinh tay (WHO)", href: "/giam-sat-vst", icon: Stethoscope, gate: NAV_GATE_VST },
-  { name: "Giám sát tuân thủ thực hành KSNK", href: "/giam-sat-chung", icon: ClipboardList, gate: NAV_GATE_GSC },
-
+  { name: "Giám sát tuân thủ KSNK", href: "/giam-sat-chung", icon: ClipboardList, gate: NAV_GATE_GSC },
   { name: "Giám sát NKBV", href: "/giam-sat-nkbv", icon: Activity, gate: NAV_GATE_NKBV },
+  { name: "Lịch sử giám sát", href: "/lich-su", icon: History, gate: NAV_GATE_LICH_SU },
+  { name: "Thống kê giám sát", href: "/thong-ke", icon: BarChart2, gate: NAV_GATE_THONG_KE },
   { name: "Công việc", href: "/quan-ly-cong-viec", icon: PanelsTopLeft, gate: NAV_GATE_CONG_VIEC },
   { name: "Quy trình xử lý dụng cụ", href: "/cssd-quy-trinh", icon: Clock, gate: NAV_GATE_CSSD_QUY_TRINH },
   { name: "Báo cáo sự cố", href: "/cssd-su-co", icon: AlertTriangle, gate: NAV_GATE_CSSD_SU_CO },

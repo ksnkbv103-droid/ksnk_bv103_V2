@@ -15,6 +15,7 @@ import {
   CornerDownRight 
 } from "lucide-react";
 import { toast } from "sonner";
+import { usePrint } from "@/hooks/usePrint";
 import { loadBomCheckpoint, persistBomCheckpoint, requestReplenishFromReserveAction } from "../../actions/cssd-bom-checkpoint.actions";
 import { recordInstrumentTransaction } from "../../actions/cssd-write.actions";
 import { evaluateHeatCompatibility, summarizeBomGap, isReadyForPackaging } from "@/lib/domain/cssd-packaging-rules";
@@ -34,6 +35,7 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
   const [items, setItems] = useState<any[]>([]);
   const [split, setSplit] = useState<"NONE" | "DONE">("NONE");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const { printLabel } = usePrint();
 
   const fetchChecklist = useCallback(async () => {
     setLoading(true);
@@ -133,6 +135,20 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
 
       if (res.success) {
         toast.success("Lưu checkpoint và đóng gói thành công.");
+
+        if (res.ma_cycle_qr) {
+          try {
+            await printLabel({
+              qrCode: res.ma_cycle_qr,
+              tenBoDungCu: res.ten_bo || "Bộ dụng cụ CSSD",
+              tram: "ĐÓNG GÓI · Cycle QR",
+              nguoiThucHien: "CSSD",
+              thoiGian: new Date().toLocaleString("vi-VN"),
+            });
+          } catch {
+            toast.message("Đã lưu BOM — in nhãn cycle QR thất bại (popup bị chặn?). Mã: " + res.ma_cycle_qr);
+          }
+        }
         
         // Tạo tóm tắt gap để gửi cảnh báo ở Cấp phát
         const missingSummary = gap

@@ -2,6 +2,7 @@
 
 import { verifyPermission } from "@/lib/server-permission";
 import { getRegistryEntryOrNull } from "@/lib/master-data/domain-registry";
+import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
 import { buildMigratedUpsertPayload, buildNextDmBusinessCode } from "@/lib/master-data/danh-muc-routing";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import {
@@ -12,9 +13,10 @@ import {
   upsertMasterRow,
 } from "./master-crud-core";
 
-function getPermissionModuleForLoai(loaiDanhMuc: string): "DANH_MUC" | "PHAN_QUYEN" {
-  // sys_roles là nền RBAC, mọi thao tác phải đi qua quyền PHAN_QUYEN.
-  return loaiDanhMuc.trim() === "VAI_TRO_HE_THONG_KSNK" ? "PHAN_QUYEN" : "DANH_MUC";
+function getPermissionModuleForLoai(loaiDanhMuc: string): string {
+  const key = loaiDanhMuc.trim();
+  if (key === "VAI_TRO_HE_THONG_KSNK") return "PHAN_QUYEN";
+  return resolveDanhMucViewModuleByType(key);
 }
 
 export async function listGenericDmAction(loaiDanhMuc: string) {

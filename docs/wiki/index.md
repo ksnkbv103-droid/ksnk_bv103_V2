@@ -74,7 +74,7 @@ _Generated 2026-05-31 — `npm run wiki:index`_
 - [`docs/reference/guides/json-import-export.md`](../reference/guides/json-import-export.md) — Cẩm nang Kiến trúc Hybrid JSONB: Import / Export & Mở rộng Danh mục
 - [`docs/reference/guides/migration-squash-runbook.md`](../reference/guides/migration-squash-runbook.md) — Migration Squash Runbook — BV103 Pilot Baseline
 - [`docs/reference/reports/comprehensive-review-20260530.md`](../reference/reports/comprehensive-review-20260530.md) — Ngày rà soát:
-- [`docs/reference/reports/dashboard-pre-aggregation-dictionary.md`](../reference/reports/dashboard-pre-aggregation-dictionary.md) — DASHBOARD PRE-AGGREGATION DATA DICTIONARY
+- [`docs/reference/reports/dashboard-pre-aggregation-dictionary.md`](../reference/reports/dashboard-pre-aggregation-dictionary.md) — archived stub → ADR dashboard KPI path
 
 ### Data (machine)
 

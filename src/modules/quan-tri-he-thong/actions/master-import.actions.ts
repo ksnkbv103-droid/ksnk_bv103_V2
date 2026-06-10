@@ -16,8 +16,8 @@ interface ActionResponse {
 }
 
 /**
- * Bulk Import Khoa Phong (Upsert based on ma_khoa).
- * Resolves Block ("Khối khoa") name into block UUID.
+ * @deprecated Dùng `smartImportData` trên `/quan-tri-he-thong/danh-muc/khoa-phong`.
+ * Schema hiện tại: cột nghiệp vụ trong `specs` JSONB — hàm này ghi cột phẳng (lỗi trên Supabase).
  */
 export async function importBulkKhoaPhong(rows: any[]): Promise<ActionResponse> {
   try {
