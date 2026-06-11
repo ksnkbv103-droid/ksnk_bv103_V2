@@ -9,7 +9,6 @@ import KsnkPageShell from "./KsnkPageShell";
 import { pathnameUsesPhase1KsnkUnifiedContentShell } from "@/lib/app-shell-scope";
 import { supabase } from "@/lib/supabase";
 import StaffSessionGate from "@/components/auth/StaffSessionGate";
-import Bv103UxHintsBanner from "@/components/shared/Bv103UxHintsBanner";
 import SupervisionOfflineSyncListener from "@/components/shared/SupervisionOfflineSyncListener";
 import QueryProvider from "@/components/providers/QueryProvider";
 
@@ -50,7 +49,6 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
 
         <div className="flex flex-1 flex-col min-w-0 min-h-0">
           <Header onMenuClick={toggleSidebar} />
-          <Bv103UxHintsBanner />
           <main className="relative z-0 flex-1 touch-manipulation p-4 md:p-8 pointer-events-auto">
             {pathnameUsesPhase1KsnkUnifiedContentShell(pathname) ? (
               <KsnkPageShell rolloutPhase="phase-1">{children}</KsnkPageShell>

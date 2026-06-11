@@ -1,6 +1,6 @@
 # SOP — Link Auth ↔ `mdm_nhan_su` (Phase 6.2)
 
-> Metric: `mdm_email_no_auth` từ [`scripts/sql/auth-pilot-precheck.sql`](../scripts/sql/auth-pilot-precheck.sql). **Go-live yêu cầu = 0** cho nhân sự pilot active.
+> Metric: `mdm_email_no_auth` từ [`scripts/sql/auth-pilot-precheck.sql`](../../scripts/sql/auth-pilot-precheck.sql). **Go-live yêu cầu = 0** cho nhân sự pilot active.
 
 ## Precheck
 
