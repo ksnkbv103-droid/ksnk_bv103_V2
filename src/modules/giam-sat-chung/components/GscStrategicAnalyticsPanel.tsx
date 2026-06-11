@@ -13,7 +13,7 @@ import {
 import { toCompareRows, mapGapRowsForKhoaMa } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatPercent2 } from "@/lib/analytics/supervision-percent";
 import type { GscStrategicPayload } from "../types/gsc-strategic.types";
-import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
 
 type FilterProps = {
   tuNgay: string;
@@ -75,7 +75,7 @@ function GscAnalyticsBody({
   );
 
   return (
-    <div className={C.sectionGap}>
+    <div className={UI.sectionGap}>
       {title ? (
         <h3 className="border-b border-slate-200 pb-2 text-base font-bold text-slate-800">{title}</h3>
       ) : null}
@@ -96,7 +96,7 @@ function GscAnalyticsBody({
         loading={loading}
       />
       {(payload?.top_violations?.length ?? 0) > 0 ? (
-        <div className={`${C.panelSurface} p-4`}>
+        <div className={`${UI.shell} p-4`}>
           <h4 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
             <AlertTriangle size={16} className="text-red-500" /> Top tiêu chí vi phạm
           </h4>
@@ -121,7 +121,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
 
   return (
     <div className="space-y-6 px-2 pb-8">
-      <div className={`${C.panelSurface} p-4`}>
+      <div className={`${UI.shell} p-4`}>
         <AnalyticsFilterBar
           onRefresh={p.onRefresh}
           refreshLoading={p.loading || p.clustersLoading}
@@ -150,7 +150,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       </div>
 
       {p.loadError ? (
-        <div className={`${C.panelInset} border-red-200 bg-red-50 p-4 text-sm text-red-800`}>{p.loadError}</div>
+        <div className={`${UI.inset} border-red-200 bg-red-50 p-4 text-sm text-red-800`}>{p.loadError}</div>
       ) : null}
 
       <GscAnalyticsBody
@@ -160,7 +160,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       />
 
       {(p.truncatedChecklistCount ?? 0) > 0 ? (
-        <div className={`${C.noticeAmber} flex items-center gap-2 p-4`}>
+        <div className={`${UI.noticeWarning} flex items-center gap-2 p-4`}>
           <AlertTriangle size={16} className="shrink-0 text-amber-600" />
           <p>
             Còn <strong>{p.truncatedChecklistCount} biểu mẫu</strong> ngoài giới hạn 12 — thu hẹp bộ lọc{" "}
@@ -170,14 +170,14 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       ) : null}
 
       {!p.clustersRequested && (p.pendingClusterCount ?? 0) > 0 ? (
-        <div className={`${C.panelInset} flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm`}>
+        <div className={`${UI.inset} flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm`}>
           <p className="text-slate-600">
             Thống kê tổng hợp đã tải. Chi tiết theo <strong>{p.pendingClusterCount}</strong> biểu mẫu chưa tự
             động tải (tránh chậm).
           </p>
           <button
             type="button"
-            className={C.btnPrimary}
+            className={UI.btnPrimary}
             onClick={p.onRequestChecklistClusters}
           >
             Tải theo biểu mẫu
@@ -186,7 +186,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       ) : null}
 
       {clusterEntries.length > 0 ? (
-        <div className={C.sectionGapLg ?? C.sectionGap}>
+        <div className={UI.sectionGapLg ?? UI.sectionGap}>
           {clusterEntries.map(([ma, clusterPayload]) => (
             <GscAnalyticsBody
               key={ma}

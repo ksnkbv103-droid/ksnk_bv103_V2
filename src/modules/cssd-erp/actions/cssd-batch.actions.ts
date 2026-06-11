@@ -353,7 +353,7 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
     if (upErr) return { success: false as const, error: mapFkError(upErr.message) };
 
     const logMsg = await logQuyTrinhVaoMeTietKhuan(supabase, {
-      quyTrinhId: qt.id,
+      quyTrinhId: String(qt.id),
       maVachQr: String(qtNormalized.ma_vach_qr || qr),
       maLo: String(me.ma_lo_tiet_khuan || ""),
       nguoiThucHien: "CSSD",

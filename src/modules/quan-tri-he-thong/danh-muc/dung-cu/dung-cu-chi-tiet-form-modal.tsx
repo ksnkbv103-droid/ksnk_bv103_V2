@@ -12,7 +12,6 @@ import {
   mapChiTietRowToForm,
 } from "./dung-cu-chi-tiet-form-shared";
 import { saveDungCuChiTietAction } from "../actions/dung-cu-chi-tiet.actions";
-import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 
 type BoOpt = { id: string; ma_bo: string | null; ten_bo: string | null };
 type LoaiOpt = { id: string; ma_danh_muc: string | null; ten_danh_muc: string | null };

@@ -118,7 +118,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
         toast.dismiss("bom-resolve");
         if (res.success) {
           setBomQuyTrinhId(res.quyTrinhId);
-          setBomBoDungCuId(res.boDungCuId);
+          setBomBoDungCuId(res.boDungCuId ?? "");
           setPendingQrCode(code);
           setBomModalOpen(true);
         }
