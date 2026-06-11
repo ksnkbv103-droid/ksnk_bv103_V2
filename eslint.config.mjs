@@ -123,6 +123,8 @@ const eslintConfig = defineConfig([
     "scratch/**",
     // Agent Skills (bên thứ ba) — không phải mã ứng dụng.
     ".agents/**",
+    // Cursor hooks/settings — không lint với eslint-config-next (ESLint 10 flat).
+    ".cursor/**",
   ]),
 ]);
 
