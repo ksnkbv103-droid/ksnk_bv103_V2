@@ -3,7 +3,7 @@
 import React from "react";
 import { Sparkles } from "lucide-react";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
-import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 
 type Props = {
   open: boolean;
