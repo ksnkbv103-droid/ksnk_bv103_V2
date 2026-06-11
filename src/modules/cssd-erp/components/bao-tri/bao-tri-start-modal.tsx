@@ -1,5 +1,7 @@
 "use client";
 
+import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+
 import React from "react";
 import { matchesDeviceCode, normalizeCssdCode } from "../../shared/domain/cssd-qr-core";
 
@@ -30,7 +32,7 @@ export default function BaoTriStartModal({
 }: Props) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
+    <div className={`${UI.sectionGap} fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4`} role="dialog" aria-modal="true">
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
         <h2 className="text-lg font-semibold text-slate-900">Mở phiếu bảo trì</h2>
         <p className="mt-1 text-xs text-slate-500">Quét mã máy (nếu có) hoặc chọn tay. Chỉ máy sẵn sàng và không có mẻ TK mở.</p>

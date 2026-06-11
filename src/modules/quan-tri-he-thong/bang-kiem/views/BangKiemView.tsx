@@ -38,7 +38,7 @@ export default function BangKiemView() {
   if (!bk.view) {
     return (
       <div
-        className={`mx-auto max-w-xl p-10 text-center font-black uppercase tracking-widest text-slate-400 ${bv103LayoutChrome.panelSurface}`}
+        className={`mx-auto max-w-xl p-10 text-center text-sm font-medium text-slate-500 ${bv103LayoutChrome.panelSurface}`}
       >
         Bạn không có quyền truy cập Danh mục Bảng kiểm
       </div>
@@ -96,8 +96,8 @@ export default function BangKiemView() {
               <div
                 className={`flex h-full min-h-[400px] flex-col items-center justify-center gap-4 border border-amber-100/90 px-8 text-center text-slate-500 ${bv103LayoutChrome.panelSurface}`}
               >
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">Không có quyền xem Tiêu chí</p>
-                <p className="text-[11px] font-bold text-slate-400 max-w-sm leading-relaxed">
+                <p className="text-sm font-semibold text-amber-700">Không có quyền xem tiêu chí</p>
+                <p className="text-sm font-normal text-slate-500 max-w-sm leading-relaxed">
                   Bạn được xem danh mục bảng kiểm nhưng chưa được cấp quyền module Tiêu chí bảng kiểm (BANG_KIEM_DETAIL). Liên hệ quản trị để được cấp quyền VIEW.
                 </p>
               </div>
@@ -108,8 +108,8 @@ export default function BangKiemView() {
             >
               <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center text-5xl">📋</div>
               <div className="text-center space-y-2 px-10">
-                <p className="text-[12px] font-black uppercase tracking-[0.2em] text-slate-400">Layer Tiêu Chí</p>
-                <p className="text-[11px] font-bold text-slate-300 uppercase tracking-widest leading-relaxed">Chọn bảng kiểm bên trái để nạp danh sách tiêu chí vào đây</p>
+                <p className="text-sm font-semibold text-slate-500">Tiêu chí bảng kiểm</p>
+                <p className="text-sm font-normal text-slate-400 leading-relaxed">Chọn bảng kiểm bên trái để nạp danh sách tiêu chí vào đây</p>
               </div>
             </div>
           )}

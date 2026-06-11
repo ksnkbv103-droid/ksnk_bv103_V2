@@ -22,7 +22,7 @@ export default function QuanLyNhanSuPage() {
 
   if (!canViewNhanSu) {
     return (
-      <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-slate-400 font-black uppercase tracking-widest text-sm">
+      <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-10 text-center text-sm font-medium text-slate-500">
         Bạn không có quyền truy cập module Nhân sự
       </div>
     );

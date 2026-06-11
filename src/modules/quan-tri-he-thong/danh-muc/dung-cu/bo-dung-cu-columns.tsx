@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
 import type { BoDungCuTableRow } from "./bo-dung-cu-form-shared";
+import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
 
 interface ActionCells {
   renderStatusCell: (item: BoDungCuTableRow) => ReactNode;
@@ -17,19 +18,19 @@ function clip(s: string | null | undefined, n: number) {
 export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableRow>[] {
   return [
     {
-      header: "MÃ BỘ",
+      header: "Mã bộ",
       accessorKey: "ma_bo",
       sortable: true,
-      cell: (i) => <span className="font-mono text-[11px] font-bold uppercase text-slate-700">{i.ma_bo || "—"}</span>,
+      cell: (i) => <span className={`${TC.cellCode} text-slate-700`}>{i.ma_bo || "—"}</span>,
     },
     {
-      header: "TÊN BỘ",
+      header: "Tên bộ",
       accessorKey: "ten_bo",
       sortable: true,
-      cell: (i) => <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)]">{clip(i.ten_bo, 48)}</span>,
+      cell: (i) => <span className={TC.cellTitle}>{clip(i.ten_bo, 48)}</span>,
     },
     {
-      header: "PHÂN LOẠI",
+      header: "Phân loại",
       accessorKey: "phan_loai_bo",
       sortable: true,
       cell: (i) => (
@@ -41,7 +42,7 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       ),
     },
     {
-      header: "CƠ CHẾ THEO DÕI",
+      header: "Cơ chế theo dõi",
       accessorKey: "co_ma_dinh_danh_rieng",
       sortable: true,
       cell: (i) => (
@@ -53,50 +54,51 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       ),
     },
     {
-      header: "SL BỘ/KHOẢN/TỔNG",
+      header: "Sl bộ / Khoản / Tổng",
       accessorKey: "so_luong_bo",
       sortable: true,
       cell: (i) => (
-        <span className="text-[11px] font-bold text-slate-600">
+        <span className={TC.cellMeta}>
           {i.phan_loai_bo === "THU_THUAT" ? (
-            <>Tổng phân bổ: <span className="text-amber-600 font-black">{i.tong_phan_bo || 0}</span></>
+            <>Tổng phân bổ: <span className="font-semibold tabular-nums text-amber-600">{i.tong_phan_bo || 0}</span></>
           ) : (
-            <>Số bộ QR: <span className="text-emerald-700 font-black">{i.so_luong_bo || 0}</span></>
+            <>Số bộ QR: <span className="font-semibold tabular-nums text-emerald-700">{i.so_luong_bo || 0}</span></>
           )}
-          <div className="text-slate-400 text-[11px]">
-            Khoản: <span className="font-black text-slate-600">{i.so_khoan || 0}</span> / Dụng cụ: <span className="font-black text-slate-600">{i.tong_so_luong_dung_cu || 0}</span>
+          <div className="text-[11px] text-slate-400">
+            Khoản: <span className="font-semibold tabular-nums text-slate-600">{i.so_khoan || 0}</span> / Dụng cụ:{" "}
+            <span className="font-semibold tabular-nums text-slate-600">{i.tong_so_luong_dung_cu || 0}</span>
           </div>
         </span>
       ),
     },
     {
-      header: "QUY CÁCH",
+      header: "Quy cách",
       accessorKey: "quy_cach",
       sortable: true,
-      cell: (i) => <span className="text-[11px] font-bold text-slate-600">{clip(i.quy_cach, 40)}</span>,
+      cell: (i) => <span className={TC.cellBody}>{clip(i.quy_cach, 40)}</span>,
     },
     {
-      header: "KHOA SỬ DỤNG",
+      header: "Khoa sử dụng",
       accessorKey: "khoa_su_dung",
       cell: (i) => (
-        <span className="inline-flex max-w-[13rem] flex-col gap-0.5 text-[11px] font-bold text-slate-600">
+        <span className={`inline-flex max-w-[13rem] flex-col gap-0.5 ${TC.cellMeta}`}>
           <span className="font-mono text-rose-700">{i.khoa_su_dung?.ma_khoa || "—"}</span>
           <span>{clip(i.khoa_su_dung?.ten_khoa, 44)}</span>
         </span>
       ),
     },
     {
-      header: "TT NGHIỆP VỤ",
+      header: "Tt nghiệp vụ",
       accessorKey: "trang_thai",
       sortable: true,
       cell: (i) => (
-        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-500">
           {i.trang_thai || "—"}
         </span>
       ),
     },
     {
-      header: "KIỂM KÊ GẦN NHẤT",
+      header: "Kiểm kê gần nhất",
       accessorKey: "ngay_kiem_ke_gan_nhat",
       sortable: true,
       cell: (i) => {
@@ -107,18 +109,18 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       },
     },
     {
-      header: "GHI CHÚ",
+      header: "Ghi chú",
       accessorKey: "ghi_chu",
       cell: (i) => <span className="text-[11px] text-slate-500">{clip(i.ghi_chu, 56)}</span>,
     },
     {
-      header: "HOẠT ĐỘNG",
+      header: TH.status,
       accessorKey: "is_active",
       sortable: true,
       cell: (i) => actionUi.renderStatusCell(i),
     },
     {
-      header: "QUẢN LÝ",
+      header: TH.manage,
       accessorKey: "id",
       cell: (i) => actionUi.renderManagementCell(i),
     },

@@ -1,18 +1,15 @@
 #!/bin/bash
+# DEPRECATED — dùng Supabase CLI thay cho pg_dump restore.
 set -e
-
-DB_URL="$1"
-
-echo "=== 1. Restore roles ==="
-psql "$DB_URL" -f roles.sql
-
-echo "=== 2. Restore schema ==="
-psql "$DB_URL" -f schema.sql
-
-echo "=== 3. Restore data (tắt RLS tạm thời) ==="
-psql "$DB_URL" -c "SET session_replication_role = replica;"
-psql "$DB_URL" -f data.sql
-psql "$DB_URL" -c "SET session_replication_role = DEFAULT;"
-
-echo "=== RESTORE HOÀN TẤT 100% ==="
-echo "New DB sẵn sàng. Update env vars trong app ngay."
+echo "ERROR: restore.sh đã ngừng dùng (schema pg_dump lạc hậu compat dm_*/fact_*)."
+echo ""
+echo "Local fresh DB:"
+echo "  npx supabase db reset --local"
+echo "  npm run trial:db:precheck:local"
+echo ""
+echo "Linked/staging/prod:"
+echo "  npm run mdm:migrate"
+echo "  npm run trial:db:precheck"
+echo ""
+echo "Archive pg_dump cũ: supabase/archive/schema-pgdump-deprecated-202606.sql"
+exit 1

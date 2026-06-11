@@ -1,6 +1,8 @@
 // src/modules/giam-sat-vst/views/VSTFormView.tsx
 "use client";
 
+import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";
+
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -51,7 +53,7 @@ export default function VSTFormView({ editSessionId }: { editSessionId?: string 
   }, [editSessionId]);
 
   return (
-    <KsnkSupervisionPanel className="min-h-[50vh]">
+    <KsnkSupervisionPanel className={`min-h-[50vh] ${UI.sectionGap}`}>
       <VSTForm
         editDetail={editVstDetail}
         editingSessionId={editVstSourceSessionId}

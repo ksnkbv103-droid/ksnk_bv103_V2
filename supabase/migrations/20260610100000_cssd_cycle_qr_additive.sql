@@ -262,13 +262,6 @@ BEGIN
   LIMIT 1;
 
   IF v_target_id IS NULL THEN
-    SELECT id INTO v_target_id
-    FROM public.dm_tram_cssd
-    WHERE upper(trim(ma_tram)) = upper(trim(p_target_station)) AND is_active = true
-    LIMIT 1;
-  END IF;
-
-  IF v_target_id IS NULL THEN
     RETURN json_build_object('success', false, 'message', 'Trạm không hợp lệ: ' || coalesce(p_target_station, ''));
   END IF;
 
@@ -402,7 +395,9 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE VIEW public.v_cssd_quy_trinh_full WITH (security_invoker = true) AS
+DROP VIEW IF EXISTS public.v_cssd_quy_trinh_full;
+
+CREATE VIEW public.v_cssd_quy_trinh_full WITH (security_invoker = true) AS
 SELECT
   q.id,
   q.ma_qr_quy_trinh,

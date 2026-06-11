@@ -32,6 +32,7 @@ import {
   type IncidentGroup,
 } from "../domain/cssd-incident-taxonomy";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
 import IncidentPrintView, { getGoogleDriveDirectLink } from "./IncidentPrintView";
 
 export type SuCoReportFormProps = {
@@ -331,7 +332,7 @@ export default function SuCoReportForm({
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-4 ring-8 ring-emerald-500/10">
           <CheckCircle2 size={36} />
         </div>
-        <h3 className="text-lg font-black uppercase tracking-wide text-slate-800">
+        <h3 className={UI.modalTitle}>
           Ghi nhận sự cố thành công!
         </h3>
         <p className="mt-2 text-xs text-slate-500 leading-relaxed max-w-md mx-auto">
@@ -429,7 +430,7 @@ export default function SuCoReportForm({
             {/* CỘT TRÁI: DYNAMIC THEO NHÓM SỰ CỐ */}
             {incidentGroup === "PROCESS" && (
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
-                <h4 className="flex items-center gap-2 border-b border-slate-100 pb-3 text-xs font-black uppercase tracking-wide text-slate-800">
+                <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
                   <Layers size={16} className="text-[var(--primary)]" />
                   Thông tin truy vết Quy trình
                 </h4>
@@ -506,7 +507,7 @@ export default function SuCoReportForm({
 
             {incidentGroup === "INSTRUMENT" && (
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
-                <h4 className="flex items-center gap-2 border-b border-slate-100 pb-3 text-xs font-black uppercase tracking-wide text-slate-800">
+                <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
                   <Wrench size={16} className="text-[var(--primary)]" />
                   Thông tin truy vết Dụng cụ
                 </h4>
@@ -575,7 +576,7 @@ export default function SuCoReportForm({
 
             {incidentGroup === "EQUIPMENT" && (
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
-                <h4 className="flex items-center gap-2 border-b border-slate-100 pb-3 text-xs font-black uppercase tracking-wide text-slate-800">
+                <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
                   <Cpu size={16} className="text-[var(--primary)]" />
                   Thông tin truy vết Thiết bị / Máy móc
                 </h4>
@@ -645,7 +646,7 @@ export default function SuCoReportForm({
 
             {incidentGroup === "CHEMICAL" && (
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
-                <h4 className="flex items-center gap-2 border-b border-slate-100 pb-3 text-xs font-black uppercase tracking-wide text-slate-800">
+                <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
                   <FlaskConical size={16} className="text-[var(--primary)]" />
                   Thông tin truy vết Hóa chất / Vật tư
                 </h4>
@@ -729,7 +730,7 @@ export default function SuCoReportForm({
 
             {incidentGroup === "OTHER" && (
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
-                <h4 className="flex items-center gap-2 border-b border-slate-100 pb-3 text-xs font-black uppercase tracking-wide text-slate-800">
+                <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
                   <AlertTriangle size={16} className="text-[var(--primary)]" />
                   Thông tin truy vết Sự cố khác
                 </h4>
@@ -808,7 +809,7 @@ export default function SuCoReportForm({
             {/* CỘT PHẢI: CHI TIẾT SỰ CỐ & PHẢN HỒI GỬI BÁO CÁO (DÙNG CHUNG CỰC KỲ CÂN ĐỐI) */}
             <div className="space-y-4">
               <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
-                <h4 className="flex items-center gap-2 border-b border-slate-100 pb-3 text-xs font-black uppercase tracking-wide text-slate-800">
+                <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
                   <FileText size={16} className="text-[var(--primary)]" />
                   Chi tiết sự cố &amp; Minh chứng
                 </h4>
@@ -888,7 +889,7 @@ export default function SuCoReportForm({
                             (e.target as HTMLElement).style.display = "none";
                           }}
                         />
-                        <span className="mt-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">Xem trước ảnh minh chứng</span>
+                        <span className="mt-1.5 text-[11px] font-medium text-slate-400">Xem trước ảnh minh chứng</span>
                       </div>
                     )}
                   </div>
@@ -899,7 +900,7 @@ export default function SuCoReportForm({
               <button
                 type="submit"
                 disabled={loading || !!fError || fLoading}
-                className="flex h-16 w-full items-center justify-center gap-3 rounded-xl bg-red-600 text-xs font-black uppercase tracking-[0.2em] text-white shadow-lg shadow-red-100 hover:bg-red-700 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
+                className="flex h-16 w-full items-center justify-center gap-3 rounded-xl bg-red-600 text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-lg shadow-red-100 hover:bg-red-700 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
               >
                 {loading ? <Loader2 className="animate-spin" /> : (
                   <>

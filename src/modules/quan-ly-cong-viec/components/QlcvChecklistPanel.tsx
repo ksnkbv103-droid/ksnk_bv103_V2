@@ -1,5 +1,7 @@
 "use client";
 
+import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
+
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
@@ -65,7 +67,7 @@ export function QlcvChecklistPanel({ congViecId, initialChecklist, readOnly, onU
   return (
     <div className="space-y-4 rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm ring-1 ring-slate-900/[0.02] sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-800">Checklist thực hiện</h3>
+        <h3 className={UI.panelTitle}>Checklist thực hiện</h3>
         <span className="text-sm font-semibold tabular-nums text-[var(--primary)]">{pct}%</span>
       </div>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">

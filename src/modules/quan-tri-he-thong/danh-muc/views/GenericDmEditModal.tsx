@@ -40,7 +40,7 @@ export default function GenericDmEditModal({
   return (
     <div className="fixed inset-0 z-50 flex touch-manipulation items-center justify-center bg-black/45 p-4">
       <div className="w-full max-w-md space-y-4 rounded-[var(--radius-shell)] border border-slate-100 bg-white p-6 shadow-2xl">
-        <h2 className="text-sm font-semibold text-slate-800">
+        <h2 className={C.panelTitle}>
           {editMode ? "Sửa" : "Thêm"} danh mục
         </h2>
         <div>
@@ -66,7 +66,7 @@ export default function GenericDmEditModal({
             className={C.controlInput}
           />
           {!editMode ? (
-            <p className="mt-1 text-[11px] font-bold uppercase leading-relaxed text-slate-400">
+            <p className="mt-1 text-[11px] font-medium leading-relaxed text-slate-400">
               Mặc định gợi ý DM-xxxx theo mã đang có; có thể sửa tay (ví dụ mã trạng thái workflow).
             </p>
           ) : null}

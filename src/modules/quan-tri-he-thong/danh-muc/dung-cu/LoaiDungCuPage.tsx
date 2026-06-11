@@ -103,42 +103,42 @@ export function LoaiDungCuPageContent() {
   });
 
   const columns: Column<LoaiDungCuRow>[] = [
-    { header: "MÃ LOẠI", accessorKey: "ma_danh_muc", sortable: true, cell: (i) => (
-      <span className="font-mono text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+    { header: "Mã loại", accessorKey: "ma_danh_muc", sortable: true, cell: (i) => (
+      <span className="font-mono text-[11px] text-[11px] font-medium text-slate-500 uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
         {i.ma_danh_muc}
       </span>
     )},
-    { header: "TÊN LOẠI DỤNG CỤ", accessorKey: "ten_danh_muc", sortable: true, cell: (i) => (
+    { header: "Tên loại dụng cụ", accessorKey: "ten_danh_muc", sortable: true, cell: (i) => (
       <div className="text-[11px] font-medium text-[var(--primary)] leading-tight">
         {i.ten_danh_muc}
       </div>
     )},
-    { header: "PHÂN LOẠI", accessorKey: "phan_loai", sortable: true, cell: (i) => (
+    { header: "Phân loại", accessorKey: "phan_loai", sortable: true, cell: (i) => (
       i.phan_loai === "THU_THUAT" ? (
         <span className="bg-[var(--surface-warning-bg)] text-[var(--surface-warning-text)] border border-[var(--surface-warning-border)] text-[11px] font-semibold px-2 py-1 rounded-lg uppercase tracking-wide">Thủ thuật</span>
       ) : (
         <span className="bg-[var(--surface-success-bg)] text-[var(--surface-success-text)] border border-[var(--surface-success-border)] text-[11px] font-semibold px-2 py-1 rounded-lg uppercase tracking-wide">Phẫu thuật</span>
       )
     )},
-    { header: "HÌNH DÁNG", accessorKey: "hinh_dang", sortable: true, cell: (i) => (
+    { header: "Hình dáng", accessorKey: "hinh_dang", sortable: true, cell: (i) => (
       <span className="text-[11px] text-slate-600 font-semibold">{clip(i.hinh_dang, 28)}</span>
     )},
-    { header: "KÍCH THƯỚC", accessorKey: "kich_thuoc", sortable: true, cell: (i) => (
+    { header: "Kích thước", accessorKey: "kich_thuoc", sortable: true, cell: (i) => (
       <span className="text-[11px] text-slate-600 font-semibold">{clip(i.kich_thuoc, 20)}</span>
     )},
-    { header: "TÍNH NĂNG/CÔNG DỤNG", accessorKey: "cong_dung", sortable: true, cell: (i) => (
+    { header: "Tính năng / Công dụng", accessorKey: "cong_dung", sortable: true, cell: (i) => (
       <span className="text-[11px] text-slate-500 font-medium">{clip(i.cong_dung, 40)}</span>
     )},
-    { header: "SỐ LƯỢNG KHO LẺ/TỔNG", accessorKey: "so_luong_tong", sortable: true, cell: (i) => (
+    { header: "Số lượng kho lẻ / Tổng", accessorKey: "so_luong_tong", sortable: true, cell: (i) => (
       <div className="text-[11px] font-bold text-slate-600">
         Dự phòng: <span className="text-amber-600 font-black">{i.so_luong_kho_du_phong || 0}</span> / Tổng: <span className="text-emerald-700 font-black">{i.so_luong_tong || 0}</span>
       </div>
     )},
-    { header: "LOGIC TIỆT KHUẨN", accessorKey: "phuong_phap_tiet_khuan", sortable: true, cell: (i) => (
+    { header: "Logic tiệt khuẩn", accessorKey: "phuong_phap_tiet_khuan", sortable: true, cell: (i) => (
       <div className="text-[11px] font-bold uppercase space-y-0.5"><div className={i.kha_nang_chiu_nhiet==='Cao'?'text-emerald-600':'text-amber-600'}>Nhiệt: {i.kha_nang_chiu_nhiet}</div><div className="text-blue-600 font-black">{i.phuong_phap_tiet_khuan}</div></div>
     )},
-    { header: "TRẠNG THÁI", accessorKey: "is_active", sortable: true, cell: (i) => actionUi.renderStatusCell(i) },
-    { header: "QUẢN LÝ", accessorKey: "id", cell: (i) => actionUi.renderManagementCell(i) }
+    { header: "Trạng thái", accessorKey: "is_active", sortable: true, cell: (i) => actionUi.renderStatusCell(i) },
+    { header: "Quản lý", accessorKey: "id", cell: (i) => actionUi.renderManagementCell(i) }
   ];
 
   const selectedRow = selectedLoaiId ? data.find((r) => r.id === selectedLoaiId) : undefined;

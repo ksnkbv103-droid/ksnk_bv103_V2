@@ -1,5 +1,7 @@
 "use client";
 
+import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+
 import React, { useState, useRef, useMemo } from "react";
 import { X, Download, Upload, AlertTriangle, CheckCircle, FileSpreadsheet, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -229,8 +231,8 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Tải dữ liệu hàng loạt: {catalogLabel}</h3>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
+              <h3 className={UI.panelTitle}>Tải dữ liệu hàng loạt: {catalogLabel}</h3>
+              <p className={`${UI.panelSubtitle} mt-0.5`}>
                 Nhập danh mục từ tệp mẫu chuẩn Excel
               </p>
             </div>
@@ -258,7 +260,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
             <button
               type="button"
               onClick={handleDownloadTemplate}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-[11px] font-extrabold uppercase tracking-wider hover:bg-emerald-700 shadow-sm transition-all whitespace-nowrap"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-[11px] font-semibold tracking-wider hover:bg-emerald-700 shadow-sm transition-all whitespace-nowrap"
             >
               <Download className="w-3.5 h-3.5" />
               Tải tệp Excel Mẫu
@@ -296,7 +298,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
 
           {/* Step 3: Parse results and Preview */}
           {file && (
-            <div className="space-y-4">
+            <div className={UI.sectionGap}>
               
               {/* File details banner */}
               <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
@@ -314,7 +316,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="px-3 py-1.5 border border-slate-200 hover:bg-slate-100 rounded-lg text-[11px] font-bold text-slate-600 uppercase tracking-wider transition-colors"
+                  className={`${UI.btnSecondary} px-3 py-1.5`}
                 >
                   Chọn tệp khác
                 </button>
@@ -325,7 +327,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
                 <div className="p-4 bg-rose-50 rounded-xl border border-rose-100 flex items-start gap-3">
                   <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
                   <div className="space-y-1">
-                    <h4 className="text-xs font-black text-rose-800 uppercase tracking-wider">Phát hiện lỗi dữ liệu ({errorCount} dòng lỗi)</h4>
+                    <h4 className={`${UI.sectionTitle} text-rose-800`}>Phát hiện lỗi dữ liệu ({errorCount} dòng lỗi)</h4>
                     <p className="text-xs text-rose-700 leading-relaxed">
                       Có <strong>{errorCount} dòng dữ liệu bị lỗi nghiêm trọng</strong>. Vui lòng mở lại tệp Excel, sửa các trường bị thiếu hoặc sai định dạng theo gợi ý bôi đỏ bên dưới, sau đó tải lại tệp. Nút xác nhận bị khóa cho đến khi tệp không còn lỗi.
                     </p>
@@ -335,7 +337,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
                 <div className="p-4 bg-green-50/50 rounded-xl border border-green-100 flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
                   <div className="space-y-1">
-                    <h4 className="text-xs font-black text-green-800 uppercase tracking-wider">Tệp tin hoàn hảo (Hợp lệ 100%)</h4>
+                    <h4 className={`${UI.sectionTitle} text-green-800`}>Tệp tin hoàn hảo (Hợp lệ 100%)</h4>
                     <p className="text-xs text-green-700 leading-relaxed">
                       Tất cả <strong>{parsedRows.length} dòng dữ liệu đều hợp lệ</strong> và đã sẵn sàng được đẩy lên cơ sở dữ liệu. Bấm nút "Bắt đầu tải lên" để lưu.
                     </p>
@@ -346,12 +348,12 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
               {/* Data Preview Table */}
               {parsedRows.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider">Bảng xem trước dữ liệu (Xem trước tối đa 10 dòng đầu)</h4>
+                  <h4 className="text-xs text-[11px] font-medium text-slate-400">Bảng xem trước dữ liệu (Xem trước tối đa 10 dòng đầu)</h4>
                   <div className="overflow-hidden border border-slate-200 rounded-xl shadow-sm">
                     <div className="overflow-x-auto">
                       <table className="w-full border-collapse text-left text-xs table-fixed">
                         <thead>
-                          <tr className="bg-slate-50 border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[11px]">
+                          <tr className="bg-slate-50 border-b border-slate-200 text-slate-400 font-medium text-[11px]">
                             <th className="p-3 w-[80px] text-center">Dòng Excel</th>
                             <th className="p-3 w-[150px]">Trạng thái / Lỗi phát hiện</th>
                             {previewHeaders?.map((h) => (
@@ -420,7 +422,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 border border-slate-200 hover:bg-slate-100 text-slate-600 rounded-lg text-[11px] font-extrabold uppercase tracking-wider transition-colors"
+            className="px-5 py-2.5 border border-slate-200 hover:bg-slate-100 text-slate-600 rounded-lg text-[11px] font-semibold tracking-wider transition-colors"
           >
             Đóng cửa sổ
           </button>
@@ -429,7 +431,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
               type="button"
               onClick={handleConfirmImport}
               disabled={importing || errorCount > 0 || parsedRows.length === 0}
-              className="flex items-center gap-2 px-6 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg text-[11px] font-extrabold uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm focus:outline-none"
+              className="flex items-center gap-2 px-6 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg text-[11px] font-semibold tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm focus:outline-none"
             >
               {importing ? (
                 <>

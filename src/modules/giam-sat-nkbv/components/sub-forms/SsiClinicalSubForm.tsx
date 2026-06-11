@@ -33,7 +33,7 @@ export default function SsiClinicalSubForm({
   const isTimeframeExpired = form.days_since_surgery > limitDays;
 
   return (
-    <div className="space-y-4">
+    <div className={C.sectionGap}>
       <div className="rounded-[var(--radius-shell)] border border-emerald-100 bg-emerald-50/60 p-4 space-y-2">
         <label className={`${C.formLabel} text-emerald-800`}>Mã QR bộ dụng cụ CSSD (truy vết SSI)</label>
         <input

@@ -421,7 +421,7 @@ export default function NkbvClinicalChecklistModal({
               <FileText className="h-6 w-6 text-[var(--primary)]" />
               Thẩm định triệu chứng lâm sàng (CDC/NHSN 2023)
             </h2>
-            <span className="rounded-full bg-[var(--primary)]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)]">
+            <span className="rounded-full bg-[var(--primary)]/10 px-3 py-1 font-mono text-[11px] font-medium text-[var(--primary)]">
               Mẫu {checklistType}
             </span>
           </div>
@@ -527,7 +527,7 @@ export default function NkbvClinicalChecklistModal({
               <div className="bg-emerald-50/50 border border-emerald-100 p-4 rounded-3xl flex items-start gap-3">
                 <HelpCircle className="h-5 w-5 text-[var(--primary)] mt-0.5 flex-shrink-0" />
                 <div>
-                  <h4 className="text-xs font-black text-slate-800 uppercase">Yêu cầu đối với Khoa Vi Sinh</h4>
+                  <h4 className={C.sectionTitle}>Yêu cầu đối với Khoa Vi Sinh</h4>
                   <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed font-semibold">
                     Nhập kết quả cấy vi sinh từ LIS hoặc Dropdown. Hệ thống sẽ tự động lọc bỏ nấm Candida (đối với UTI) và mẫu cấy bị tạp nhiễm &gt; 2 chủng trước khi cho phép lâm sàng nhập liệu.
                   </p>
@@ -538,7 +538,7 @@ export default function NkbvClinicalChecklistModal({
                 {suspectedType === "LOAI_TRU" && (
                   <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 text-center space-y-2">
                     <Ban className="h-10 w-10 text-slate-400 mx-auto" />
-                    <h4 className="text-xs font-black text-slate-700">CA BỆNH ĐÃ ĐƯỢC CHỌN LOẠI TRỪ VÌ KHÔNG ĐẠT TIÊU CHUẨN NKBV</h4>
+                    <h4 className="text-xs font-semibold text-slate-700">CA BỆNH ĐÃ ĐƯỢC CHỌN LOẠI TRỪ VÌ KHÔNG ĐẠT TIÊU CHUẨN NKBV</h4>
                   </div>
                 )}
 
@@ -651,7 +651,7 @@ export default function NkbvClinicalChecklistModal({
                 {suspectedType === "LOAI_TRU" && (
                   <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 text-center space-y-2">
                     <Ban className="h-10 w-10 text-slate-400 mx-auto animate-pulse" />
-                    <h4 className="text-xs font-black text-slate-700">ĐÃ CHỌN PHÁN QUYẾT LOẠI TRỪ</h4>
+                    <h4 className="text-xs font-semibold text-slate-700">ĐÃ CHỌN PHÁN QUYẾT LOẠI TRỪ</h4>
                   </div>
                 )}
 
@@ -756,8 +756,8 @@ export default function NkbvClinicalChecklistModal({
                         <Ban className="h-6 w-6 text-red-700 flex-shrink-0 animate-pulse" />
                         <div>
                           <span className="block text-[11px] font-medium text-slate-400">Kết quả đề xuất</span>
-                          <h4 className="text-base font-black tracking-tight text-red-800">
-                            ĐÃ PHÁN QUYẾT LOẠI TRỪ
+                          <h4 className={`${C.sectionTitle} text-base text-red-800`}>
+                            Đã phán quyết loại trừ
                           </h4>
                         </div>
                       </div>
@@ -776,8 +776,8 @@ export default function NkbvClinicalChecklistModal({
                         )}
                         <div>
                           <span className="block text-[11px] font-medium text-slate-400">Kết quả đề xuất</span>
-                          <h4 className="text-base font-black tracking-tight">
-                            {liveEvaluation.is_positive ? "DƯƠNG TÍNH" : "ÂM TÍNH / LOẠI TRỪ"}
+                          <h4 className={`${C.sectionTitle} text-base`}>
+                            {liveEvaluation.is_positive ? "Dương tính" : "Âm tính / loại trừ"}
                           </h4>
                         </div>
                       </div>

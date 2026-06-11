@@ -12,6 +12,7 @@ import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import type { DanhMucBangKiem } from "../bang-kiem.types";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
 
 export type BangKiemTablePermission = Partial<{
   import: boolean;
@@ -94,11 +95,19 @@ export default function BangKiemTable({
   });
 
   const columns: Column<DanhMucBangKiem>[] = [
-    { header: "MÃ / TÊN BẢNG KIỂM", accessorKey: "ten_bang_kiem", sortable: true, cell: (bk) => (
-      <div className="py-1"><div className="text-[11px] font-medium text-[var(--primary)]">{bk.ma_bk}</div><div className="text-sm font-semibold text-slate-800 mt-1">{bk.ten_bang_kiem}</div></div>
-    )},
-    { header: "TRẠNG THÁI", accessorKey: "is_active", sortable: true, cell: (bk) => actionUi.renderStatusCell(bk) },
-    { header: "QUẢN LÝ", accessorKey: "id", cell: (bk) => actionUi.renderManagementCell(bk) }
+    {
+      header: TH.codeAndName,
+      accessorKey: "ten_bang_kiem",
+      sortable: true,
+      cell: (bk) => (
+        <div className="py-1">
+          <div className={TC.cellCode}>{bk.ma_bk}</div>
+          <div className={`${TC.cellTitle} mt-1`}>{bk.ten_bang_kiem}</div>
+        </div>
+      ),
+    },
+    { header: TH.status, accessorKey: "is_active", sortable: true, cell: (bk) => actionUi.renderStatusCell(bk) },
+    { header: TH.manage, accessorKey: "id", cell: (bk) => actionUi.renderManagementCell(bk) },
   ];
 
   const showForm =
@@ -106,18 +115,24 @@ export default function BangKiemTable({
 
   return (
     <div className={`min-h-[400px] overflow-hidden p-0 animate-in fade-in ${C.panelSurface}`}>
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 bg-white p-6">
-        <div className="flex gap-3 flex-wrap">
-          <button type="button" onClick={() => exportTemplate()} className={C.ctaMuted}><Download size={14} /> Export dữ liệu mẫu</button>
+      <div className={C.pageToolbar}>
+        <div className={TC.toolbarActions}>
+          <button type="button" onClick={() => exportTemplate()} className={TC.ctaExport}>
+            <Download size={14} /> Export dữ liệu mẫu
+          </button>
           {allowImport ? (
             <>
-              <button type="button" onClick={() => triggerImport()} disabled={isImporting} className={C.ctaAmber}>{isImporting ? <Loader2 size={14} className="animate-spin" /> : <><Upload size={14} /> Import dữ liệu</>}</button>
+              <button type="button" onClick={() => triggerImport()} disabled={isImporting} className={TC.ctaImport}>
+                {isImporting ? <Loader2 size={14} className="animate-spin" /> : <><Upload size={14} /> Import dữ liệu</>}
+              </button>
               <input ref={fileInputRef} type="file" className="hidden" accept=".xlsx,.xls" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} />
             </>
           ) : null}
         </div>
         {allowCreate ? (
-          <button type="button" onClick={() => { setEditingBK(null); setIsFormOpen(true); }} className={C.ctaPrimary}><Plus size={16} /> Thêm Bảng kiểm</button>
+          <button type="button" onClick={() => { setEditingBK(null); setIsFormOpen(true); }} className={TC.ctaPrimary}>
+            <Plus size={16} /> Thêm bảng kiểm
+          </button>
         ) : null}
       </div>
       <div className="px-4 pb-2 sm:px-6">

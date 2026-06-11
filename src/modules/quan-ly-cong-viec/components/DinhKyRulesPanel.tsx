@@ -145,7 +145,7 @@ export function DinhKyRulesPanel() {
         <div className="min-w-0 space-y-2">
           <div className="flex items-center gap-2 text-slate-800">
             <CalendarClock className="h-4 w-4 shrink-0 text-[var(--primary)]" aria-hidden />
-            <h3 className="text-sm font-bold uppercase tracking-wider">Việc định kỳ (mẫu → phiếu)</h3>
+            <h3 className="text-sm font-medium">Việc định kỳ (mẫu → phiếu)</h3>
           </div>
           <p className={`${bv103LayoutChrome.noticeSlateRelaxed}`}>
             <strong className="font-semibold text-slate-800">Hàng ngày (DAILY):</strong> Sinh phiếu mỗi ngày từ ngày mốc trở đi.{" "}
@@ -267,7 +267,7 @@ export function DinhKyRulesPanel() {
         <p className={`${bv103LayoutChrome.labelBlock}`}>Mẫu đã lưu ({loading ? "…" : rows.length})</p>
         <div className="mt-2 max-h-[min(22rem,50vh)] overflow-auto rounded-xl border border-slate-100">
           <table className="w-full min-w-[20rem] text-left text-sm">
-            <thead className="sticky top-0 z-[1] bg-slate-50 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+            <thead className="sticky top-0 z-[1] bg-slate-50 text-[11px] font-medium text-slate-500">
               <tr>
                 <th className="p-3">Tiêu đề</th>
                 <th className="p-3">Chu kỳ</th>

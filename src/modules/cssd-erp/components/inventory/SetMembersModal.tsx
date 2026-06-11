@@ -1,6 +1,8 @@
 // src/modules/cssd-erp/components/inventory/SetMembersModal.tsx
 "use client";
 
+import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+
 import React, { useState, useEffect } from "react";
 import { X, PackageOpen, Info } from "lucide-react";
 import { toast } from "sonner";
@@ -32,14 +34,14 @@ export default function SetMembersModal({ isOpen, onClose, set }: Props) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in">
+    <div className={`${UI.sectionGap} fixed inset-0 z-[150] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in`}>
       <div className="bg-white w-full max-w-xl rounded-t-[48px] sm:rounded-[48px] p-8 space-y-6 shadow-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-emerald-50 text-[var(--primary)] rounded-2xl"><PackageOpen size={24} /></div>
             <div>
               <h4 className="text-[11px] font-medium text-slate-400 tracking-widest">Thành phần bộ dụng cụ</h4>
-              <p className="text-sm font-black text-slate-700 uppercase">{set?.cssd_dm_bo_dung_cu?.ten_bo || 'BỘ CHƯA ĐỊNH DANH'}</p>
+              <p className="text-sm font-semibold text-slate-700 uppercase">{set?.cssd_dm_bo_dung_cu?.ten_bo || 'BỘ CHƯA ĐỊNH DANH'}</p>
             </div>
           </div>
           <button onClick={onClose} className="w-12 h-12 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center border border-slate-100"><X size={24} /></button>
@@ -54,12 +56,12 @@ export default function SetMembersModal({ isOpen, onClose, set }: Props) {
             items.map((item) => (
               <div key={item.id} className="p-5 bg-slate-50 rounded-3xl border border-slate-100 flex justify-between items-center group hover:border-[var(--primary)]/20 transition-all">
                 <div className="space-y-1">
-                  <p className="text-xs font-black text-slate-700 uppercase">{item.ten_dung_cu_le || item.ten_chi_tiet}</p>
+                  <p className="text-xs font-semibold text-slate-700 uppercase">{item.ten_dung_cu_le || item.ten_chi_tiet}</p>
                   <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                     <Info size={10} /> Max SUDs: {item.max_suds_count} lần • Trọng lượng: {item.trong_luong || 0}g
                   </p>
                 </div>
-                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm text-[var(--primary)] font-black text-xs border border-slate-100">x{item.so_luong ?? 1}</div>
+                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm text-[var(--primary)] font-semibold tabular-nums text-xs border border-slate-100">x{item.so_luong ?? 1}</div>
               </div>
             ))
           )}

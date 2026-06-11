@@ -72,7 +72,7 @@ export default function WorkflowManualOpsPanel({ qrCode, onSuccess, disabled }: 
 
       {canEditWorkflow ? (
         <div className="space-y-2">
-          <label className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+          <label className="text-[11px] font-medium text-slate-500">
             Trả lui 1 trạm
           </label>
           <textarea
@@ -96,7 +96,7 @@ export default function WorkflowManualOpsPanel({ qrCode, onSuccess, disabled }: 
 
       {canEditWorkflow ? (
         <div className="space-y-2 border-t border-slate-200 pt-3">
-          <label className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+          <label className="text-[11px] font-medium text-slate-500">
             Khóa an toàn (đóng băng)
           </label>
           <input

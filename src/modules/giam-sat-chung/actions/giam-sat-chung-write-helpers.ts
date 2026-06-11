@@ -105,8 +105,10 @@ export async function resolveGscModeIds(
 import { calculateGscComplianceScore } from "@/lib/domain/giam-sat-chung.domain";
 import {
   computeScore,
+  scoreTyLe,
   type GsttCachTinhDiem,
   type GsttScoringInputItem,
+  type GsttScoringSessionMeta,
 } from "@/lib/domain/giam-sat-scoring";
 import type { ChecklistResult } from "@/modules/giam-sat-chung/types";
 
@@ -119,19 +121,61 @@ const VALID_CACH_TINH_DIEM = new Set<GsttCachTinhDiem>([
   "NHAT_KY",
 ]);
 
+function buildThenChotMap(tieuChiJsonb: unknown): Map<string, boolean> | null {
+  if (!Array.isArray(tieuChiJsonb)) return null;
+  const map = new Map<string, boolean>();
+  for (const tc of tieuChiJsonb as Array<Record<string, unknown>>) {
+    const id = String(tc?.id ?? "");
+    if (id) map.set(id, Boolean(tc?.la_then_chot));
+  }
+  return map;
+}
+
+function mapResultsToScoringItems(
+  results: readonly ChecklistResult[],
+  thenChotMap?: Map<string, boolean> | null,
+): GsttScoringInputItem[] {
+  return (results || []).map((r) => ({
+    criterionId: r.criterionId,
+    value: r.value,
+    la_then_chot: thenChotMap?.get(r.criterionId) ?? false,
+    gia_tri_so: r.gia_tri_so ?? null,
+  }));
+}
+
+/** Persist session: mọi form tuân thủ lưu % đạt/tiêu chí áp dụng; không dùng cờ trọn gói. */
+function mapScoringToSessionFields(
+  cachTinhDiem: GsttCachTinhDiem,
+  items: readonly GsttScoringInputItem[],
+  meta?: GsttScoringSessionMeta,
+): { tong_diem: number | null; dat_tron_goi: boolean | null; du_lieu_nghi_van: boolean } {
+  const out = computeScore(cachTinhDiem, items, meta);
+  if (cachTinhDiem === "NHAT_KY") {
+    return { tong_diem: null, dat_tron_goi: null, du_lieu_nghi_van: out.du_lieu_nghi_van };
+  }
+  const hasEvaluable = items.some((r) => r.value !== "NA");
+  return {
+    tong_diem: hasEvaluable ? scoreTyLe(items) : null,
+    dat_tron_goi: null,
+    du_lieu_nghi_van: out.du_lieu_nghi_van,
+  };
+}
+
 /**
  * Slice 4 hook (reform v4): tra `cach_tinh_diem` của bảng kiểm; nếu chưa set
  * (Slice 1 cột NULL-able) → fallback engine cũ `calculateGscComplianceScore`.
  * Lộ trình gỡ legacy: `src/lib/domain/giam-sat-scoring.ts` + `docs/wiki/concepts.md`.
- * Trả `dat_tron_goi`, `du_lieu_nghi_van`, `tong_diem` để spread vào sessionPayload.
+ * Trả `du_lieu_nghi_van`, `tong_diem` (% tuân thủ) để spread vào sessionPayload.
  */
 export async function resolveScoringSummary(
   supabase: SupabaseClient,
   bangKiemId: string,
   results: readonly ChecklistResult[],
-  meta?: { thoi_gian_bat_dau?: string | null; thoi_gian_ket_thuc?: string | null },
+  meta?: GsttScoringSessionMeta,
 ): Promise<{ tong_diem: number | null; dat_tron_goi: boolean | null; du_lieu_nghi_van: boolean }> {
   let cachTinhDiem: GsttCachTinhDiem | null = null;
+  let thenChotMap: Map<string, boolean> | null = null;
+
   if (bangKiemId) {
     try {
       const { data } = await supabase
@@ -143,41 +187,15 @@ export async function resolveScoringSummary(
       if (VALID_CACH_TINH_DIEM.has(raw as GsttCachTinhDiem)) {
         cachTinhDiem = raw as GsttCachTinhDiem;
       }
-      // Map criterionId → la_then_chot từ tieu_chi_jsonb.
-      if (cachTinhDiem === "TRON_GOI" && Array.isArray(data?.tieu_chi_jsonb)) {
-        const map = new Map<string, boolean>();
-        for (const tc of data!.tieu_chi_jsonb as Array<Record<string, unknown>>) {
-          const id = String(tc?.id ?? "");
-          if (id) map.set(id, Boolean(tc?.la_then_chot));
-        }
-        const items: GsttScoringInputItem[] = (results || []).map((r) => ({
-          criterionId: r.criterionId,
-          value: r.value,
-          la_then_chot: map.get(r.criterionId) ?? false,
-        }));
-        const out = computeScore(cachTinhDiem, items, meta);
-        return {
-          tong_diem: out.tong_diem,
-          dat_tron_goi: out.dat_tron_goi,
-          du_lieu_nghi_van: out.du_lieu_nghi_van,
-        };
-      }
+      thenChotMap = buildThenChotMap(data?.tieu_chi_jsonb);
     } catch {
       // Non-fatal: fallback engine cũ ở dưới.
     }
   }
 
   if (cachTinhDiem) {
-    const items: GsttScoringInputItem[] = (results || []).map((r) => ({
-      criterionId: r.criterionId,
-      value: r.value,
-    }));
-    const out = computeScore(cachTinhDiem, items, meta);
-    return {
-      tong_diem: out.tong_diem,
-      dat_tron_goi: out.dat_tron_goi,
-      du_lieu_nghi_van: out.du_lieu_nghi_van,
-    };
+    const items = mapResultsToScoringItems(results, thenChotMap);
+    return mapScoringToSessionFields(cachTinhDiem, items, meta);
   }
 
   // Backward compat: bảng kiểm cũ chưa set cach_tinh_diem → engine cũ (weight tier).

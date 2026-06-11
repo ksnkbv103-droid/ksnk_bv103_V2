@@ -1,33 +1,47 @@
--- Probe trước khi apply 20260526000001-000005.
--- Trả về kết quả gộp dạng JSON 1 dòng để pipeline đọc dễ.
+-- Probe admin / RBAC / MDM SSOT (thay probe Slice 7 cũ — 2026-06-11).
+-- Chạy tay sau migrate hoặc trước slice quản trị.
 SELECT jsonb_build_object(
   'audit_log_removed', NOT EXISTS (
-    SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-    WHERE n.nspname='public' AND c.relname='sys_audit_log'
+    SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public' AND c.relname = 'sys_audit_log'
   ),
-  'rbac_objects', (
-    SELECT jsonb_agg(jsonb_build_object('name', relname, 'kind', relkind) ORDER BY relname)
-    FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-    WHERE n.nspname='public'
+  'legacy_compat_views_dropped', NOT EXISTS (
+    SELECT 1 FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
+      AND c.relkind = 'v'
+      AND c.relname IN (
+        'dm_khoa_phong', 'dm_bang_kiem', 'fact_cong_viec',
+        'fact_giam_sat_vst_sessions', 'dm_tram_cssd'
+      )
+  ),
+  'rbac_tables', (
+    SELECT coalesce(jsonb_agg(jsonb_build_object('name', relname, 'kind', relkind) ORDER BY relname), '[]'::jsonb)
+    FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
       AND relname IN (
-        'sys_roles','sys_permissions','sys_role_permissions','sys_user_roles',
-        'auth_dm_roles','auth_dm_permissions','auth_rel_role_permissions','auth_rel_user_roles'
+        'sys_roles', 'sys_permissions', 'sys_role_permissions', 'sys_user_roles',
+        'v_sys_user_permissions', 'v_auth_user_permissions'
       )
   ),
   'admin_core', (
-    SELECT jsonb_agg(jsonb_build_object('name', relname, 'kind', relkind) ORDER BY relname)
-    FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-    WHERE n.nspname='public'
+    SELECT coalesce(jsonb_agg(jsonb_build_object('name', relname, 'kind', relkind) ORDER BY relname), '[]'::jsonb)
+    FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
       AND relname IN (
-        'sys_lookup_value','sys_mdm_registry','sys_mdm_suggestion',
-        'mdm_nhan_su','mdm_dm_khoa_phong','mdm_dm_khoi_khoa',
-        'gstt_dm_bang_kiem','gstt_dm_tieu_chi_bang_kiem','dm_bang_kiem','dm_tieu_chi_bang_kiem'
+        'sys_lookup_value', 'sys_mdm_registry', 'sys_mdm_suggestion',
+        'mdm_field_registry', 'mdm_nhan_su', 'mdm_dm_khoa_phong',
+        'gstt_dm_bang_kiem', 'gstt_dm_tieu_chi_bang_kiem'
       )
   ),
-  'v_sys_user_permissions', (
-    SELECT jsonb_agg(jsonb_build_object('name', relname, 'kind', relkind))
-    FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-    WHERE n.nspname='public' AND relname='v_sys_user_permissions'
+  'functions_still_using_v_auth', (
+    SELECT coalesce(jsonb_agg(p.proname ORDER BY p.proname), '[]'::jsonb)
+    FROM pg_proc p
+    JOIN pg_namespace n ON p.pronamespace = n.oid
+    WHERE n.nspname = 'public'
+      AND p.prokind = 'f'
+      AND pg_get_functiondef(p.oid) ~ 'v_auth_user_permissions'
+      AND p.proname <> 'fn_sys_has_permission'
   ),
-  'has_pg_cron', EXISTS(SELECT 1 FROM pg_extension WHERE extname='pg_cron')
+  'has_pg_cron', EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron')
 ) AS probe;

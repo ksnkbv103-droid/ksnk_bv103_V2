@@ -78,7 +78,7 @@ export default function KhoaPhongFormModal({
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md touch-manipulation pointer-events-auto">
       <form onSubmit={submit} className="bg-white w-full max-w-xl rounded-[var(--radius-shell)] p-8 space-y-4 shadow-2xl border-t-[6px] border-[var(--primary)] max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-start gap-4">
-          <h3 className="text-sm font-black text-[var(--primary)] uppercase tracking-widest">
+          <h3 className={C.modalTitleLight}>
             {isEdit ? "Cập nhật khoa phòng" : "Thêm khoa phòng"}
           </h3>
           <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-red-600 rounded-xl -mr-2">

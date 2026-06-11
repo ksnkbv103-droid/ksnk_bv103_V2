@@ -155,19 +155,19 @@ export default function MdmGovernanceView() {
   // Registry columns
   const registryColumns: Column<MdmFieldRegistryRow>[] = [
     {
-      header: "BẢNG NGIỆP VỤ",
+      header: "Bảng ngiệp vụ",
       accessorKey: "table_name",
       sortable: true,
       cell: (r) => <span className="font-mono font-bold text-slate-700 text-[11px]">{r.table_name}</span>
     },
     {
-      header: "CỘT KHÓA NGOẠI",
+      header: "Cột khóa ngoại",
       accessorKey: "column_name",
       sortable: true,
       cell: (r) => <span className="font-mono font-bold text-emerald-600 text-[11px]">{r.column_name}</span>
     },
     {
-      header: "VAI TRÒ TRƯỜNG",
+      header: "Vai trò trường",
       accessorKey: "field_role",
       cell: (r) => (
         <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide bg-slate-100 text-slate-600">
@@ -176,7 +176,7 @@ export default function MdmGovernanceView() {
       )
     },
     {
-      header: "LOẠI DANH MỤC LIÊN KẾT",
+      header: "Loại danh mục liên kết",
       accessorKey: "source_loai_danh_muc",
       cell: (r) => (
         <span className="font-mono font-bold text-teal-600 text-[11px]">
@@ -185,7 +185,7 @@ export default function MdmGovernanceView() {
       )
     },
     {
-      header: "BẮT BUỘC?",
+      header: "Bắt buộc?",
       accessorKey: "is_required",
       cell: (r) => (
         <span className={`inline-flex px-1.5 py-0.5 rounded text-[11px] font-bold uppercase ${r.is_required ? "bg-amber-50 text-amber-600 border border-amber-200" : "bg-slate-50 text-slate-400"}`}>
@@ -194,7 +194,7 @@ export default function MdmGovernanceView() {
       )
     },
     {
-      header: "TRIGGER BẢO VỆ",
+      header: "Trigger bảo vệ",
       accessorKey: "is_active",
       cell: (r) => (
         <button
@@ -216,7 +216,7 @@ export default function MdmGovernanceView() {
       )
     },
     {
-      header: "THAO TÁC",
+      header: "Thao tác",
       accessorKey: "id",
       cell: (r) => (
         <button

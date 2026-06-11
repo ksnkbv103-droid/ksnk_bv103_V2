@@ -70,7 +70,7 @@ export default function ChecklistTemplateTable({
             accessorKey: "loai_bang_kiem",
             sortable: true,
             cell: (t) => (
-              <span className="inline-flex rounded-md bg-slate-100 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600 ring-1 ring-inset ring-slate-900/5">
+              <span className="inline-flex rounded-md bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500 ring-1 ring-inset ring-slate-900/5">
                 {t.loai_bang_kiem || t.category || "—"}
               </span>
             ),

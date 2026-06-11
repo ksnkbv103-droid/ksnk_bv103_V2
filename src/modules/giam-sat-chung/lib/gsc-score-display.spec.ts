@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { formatGscHistoryScore, previewGscFormProgress } from "./gsc-score-display";
+import {
+  formatGscHistoryScore,
+  gscCompliancePercentFromCounts,
+  previewGscFormProgress,
+  resolveGscHistoryCompliancePercent,
+} from "./gsc-score-display";
 import type { ChecklistCriterion, ChecklistResult } from "@/types/giam-sat-chung";
 
 const criteria: ChecklistCriterion[] = [
@@ -29,6 +34,37 @@ describe("previewGscFormProgress", () => {
     expect(p.rate).toBeNull();
     expect(p.scoreLabel).toContain("ngoài ngưỡng");
   });
+
+  it("TRON_GOI shows ratio like TY_LE (not bundle pass/fail)", () => {
+    const results: ChecklistResult[] = [
+      { criterionId: "a", value: "DAT" },
+      { criterionId: "b", value: "DAT" },
+      { criterionId: "c", value: "KHONG_DAT" },
+    ];
+    const p = previewGscFormProgress(results, criteria, "TRON_GOI");
+    expect(p.rate).toBeCloseTo(66.67, 1);
+    expect(p.scoreLabel).toContain("66.67%");
+    expect(p.scoreLabel).not.toContain("Care bundle");
+  });
+
+  it("DAT_KHONG_DAT shows ratio (BM.07.03 style)", () => {
+    const results: ChecklistResult[] = [
+      { criterionId: "a", value: "DAT" },
+      { criterionId: "b", value: "DAT" },
+      { criterionId: "c", value: "KHONG_DAT" },
+      { criterionId: "d", value: "NA" },
+    ];
+    const c: ChecklistCriterion[] = [
+      { id: "a", label: "A" },
+      { id: "b", label: "B" },
+      { id: "c", label: "C" },
+      { id: "d", label: "D" },
+    ];
+    const p = previewGscFormProgress(results, c, "DAT_KHONG_DAT");
+    expect(p.rate).toBeCloseTo(66.67, 1);
+    expect(p.scoreLabel).toContain("66.67%");
+    expect(p.scoreLabel).not.toMatch(/^Đạt$|^Không đạt$/);
+  });
 });
 
 describe("formatGscHistoryScore", () => {
@@ -42,13 +78,34 @@ describe("formatGscHistoryScore", () => {
     expect(d.label).toContain("66.67%");
   });
 
-  it("formats TRON_GOI as percent", () => {
+  it("formats DAT_KHONG_DAT (BM.07.03) from counts when tong_diem null", () => {
+    const d = formatGscHistoryScore({
+      cach_tinh_diem: "DAT_KHONG_DAT",
+      loai_bang_kiem: "BM.07.03",
+      tong_quan_sat: 8,
+      tong_dat: 7,
+      tong_diem: null,
+    });
+    expect(d.label).toContain("87.50%");
+  });
+
+  it("formats TRON_GOI as percent from counts when dat_tron_goi null", () => {
     const d = formatGscHistoryScore({
       cach_tinh_diem: "TRON_GOI",
-      dat_tron_goi: true,
-      tong_diem: 100,
+      tong_quan_sat: 4,
+      tong_dat: 3,
+      dat_tron_goi: null,
+      tong_diem: null,
     });
-    expect(d.label).toContain("100.00%");
+    expect(d.label).toContain("75.00%");
+  });
+
+  it("formats TRON_GOI from tong_diem percent when counts missing", () => {
+    const d = formatGscHistoryScore({
+      cach_tinh_diem: "TRON_GOI",
+      tong_diem: 75,
+    });
+    expect(d.label).toContain("75.00%");
   });
 
   it("formats NHAT_KY without percent", () => {
@@ -57,5 +114,35 @@ describe("formatGscHistoryScore", () => {
       tong_diem: null,
     });
     expect(d.label).toContain("Nhật ký");
+  });
+});
+
+describe("gscCompliancePercentFromCounts", () => {
+  it("returns null when denominator is zero", () => {
+    expect(gscCompliancePercentFromCounts(0, 0)).toBeNull();
+  });
+
+  it("matches dashboard ratio", () => {
+    expect(gscCompliancePercentFromCounts(8, 7)).toBe(87.5);
+  });
+});
+
+describe("resolveGscHistoryCompliancePercent", () => {
+  it("falls back to tong_diem percent without counts", () => {
+    expect(
+      resolveGscHistoryCompliancePercent(
+        { cach_tinh_diem: "DAT_KHONG_DAT", tong_diem: 87.5 },
+        "DAT_KHONG_DAT",
+      ),
+    ).toBe(87.5);
+  });
+
+  it("ignores legacy dat_tron_goi binary when counts missing", () => {
+    expect(
+      resolveGscHistoryCompliancePercent(
+        { cach_tinh_diem: "TRON_GOI", dat_tron_goi: false, tong_diem: null },
+        "TRON_GOI",
+      ),
+    ).toBeNull();
   });
 });

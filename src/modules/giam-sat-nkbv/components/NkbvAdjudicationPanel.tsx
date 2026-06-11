@@ -1,5 +1,7 @@
 "use client";
 
+import { nkbvFormChrome as UI } from "@/modules/giam-sat-nkbv/lib/nkbv-form-chrome";
+
 import React, { useState } from "react";
 import { Award, Check, Ban } from "lucide-react";
 import { toast } from "sonner";
@@ -44,7 +46,7 @@ export default function NkbvAdjudicationPanel({
   };
 
   return (
-    <div className={`relative border border-slate-200 mt-2 bg-slate-50/50 rounded-[var(--radius-shell)] p-4 flex flex-col gap-3 transition ${
+    <div className={`relative ${UI.inset} mt-2 flex flex-col gap-3 transition ${
       isRoleLocked ? "opacity-75 bg-slate-100/80" : ""
     }`}>
       {isRoleLocked && (
@@ -57,7 +59,7 @@ export default function NkbvAdjudicationPanel({
       <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${isRoleLocked ? "pointer-events-none select-none" : ""}`}>
         <div className="flex items-center gap-1.5">
           <Award className="h-5 w-5 text-[var(--primary)]" />
-          <span className="text-xs font-black uppercase text-slate-800 tracking-wide">
+          <span className={UI.panelTitle}>
             Hội đồng kiểm soát nhiễm khuẩn (KSNK) phán quyết
           </span>
         </div>
@@ -83,7 +85,7 @@ export default function NkbvAdjudicationPanel({
 
       {showRejectForm && !isRoleLocked && (
         <div className="space-y-2 border-t border-slate-200/60 pt-3 animate-in slide-in-from-top-2">
-          <label className="text-xs font-bold text-red-700 block">
+          <label className={`${UI.formLabel} text-red-700`}>
             Lý do loại trừ ca bệnh này khỏi thống kê dịch tễ *
           </label>
           <div className="flex gap-2">
@@ -97,7 +99,7 @@ export default function NkbvAdjudicationPanel({
               type="button"
               onClick={() => handleAction("EXCLUDE")}
               disabled={adjudicating}
-              className="rounded-xl bg-red-600 hover:bg-red-700 px-6 py-2 text-xs font-black uppercase text-white transition"
+              className="rounded-xl bg-red-600 hover:bg-red-700 px-6 py-2 text-xs font-semibold uppercase text-white transition"
             >
               Xác nhận loại trừ
             </button>

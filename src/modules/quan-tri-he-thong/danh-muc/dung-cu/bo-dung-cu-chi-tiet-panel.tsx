@@ -168,7 +168,7 @@ export function BoDungCuChiTietPanel({
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4">
         <div className="flex items-center gap-2 text-[var(--primary)]">
           <Layers className="h-5 w-5 shrink-0" aria-hidden />
-          <h3 className="text-sm font-semibold text-slate-800">
+          <h3 className={C.panelTitle}>
             Quản lý thành phần bộ{titleBit}
           </h3>
         </div>
@@ -183,7 +183,7 @@ export function BoDungCuChiTietPanel({
       {!selectedBoId ? (
         <div className="text-center py-12">
           <Layers className="mx-auto text-slate-300 mb-3 animate-pulse" size={32} />
-          <p className="text-[11px] font-medium text-slate-500">
+          <p className={C.innerTableHead}>
             Chọn một bộ dụng cụ trong bảng phía trên để quản lý chi tiết
           </p>
         </div>
@@ -230,7 +230,7 @@ export function BoDungCuChiTietPanel({
                 Bộ này chưa có dòng chi tiết trong <code className="rounded bg-slate-100 px-1 text-xs">cssd_dm_bo_dung_cu_chi_tiet</code>.
               </p>
             ) : (
-              <div className="space-y-4">
+              <div className={C.sectionGap}>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
@@ -297,7 +297,7 @@ export function BoDungCuChiTietPanel({
                 <div className="overflow-x-auto rounded-[var(--radius-shell)] border border-slate-100 bg-white">
                   <table className="w-full min-w-[640px] border-collapse text-left text-sm">
                     <thead>
-                      <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                      <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-medium text-slate-500">
                         <th className="p-3">Mã chi tiết</th>
                         <th className="p-3">Tên</th>
                         <th className="p-3">Loại DC</th>
@@ -331,7 +331,7 @@ export function BoDungCuChiTietPanel({
                           <td className="p-3 text-center text-xs">{r.max_suds_count ?? "—"}</td>
                           <td className="p-3 text-center text-xs">{r.trong_luong != null && r.trong_luong !== "" ? String(r.trong_luong) : "—"}</td>
                           <td className="p-3 text-xs text-slate-500">{clip(r.ghi_chu, 64)}</td>
-                          <td className="p-3 text-[11px] font-bold uppercase text-slate-600">
+                          <td className="p-3 text-[11px] font-medium text-slate-500">
                             {r.is_active === false ? "Ngưng" : "Có"}
                           </td>
                         </tr>
@@ -342,7 +342,7 @@ export function BoDungCuChiTietPanel({
 
                 {selectedChiTiet ? (
                   <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/80 p-6 space-y-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+                    <p className={C.innerTableHead}>
                       Loại dụng cụ đang chọn:{" "}
                       <span className="text-[var(--primary)]">
                         {selectedChiTiet.loai_dung_cu?.ma_danh_muc || "—"}
@@ -432,7 +432,7 @@ export function BoDungCuChiTietPanel({
                       </button>
                     </div>
 
-                    <p className="text-[11px] text-slate-600 font-bold uppercase tracking-wider mt-2">
+                    <p className="text-[11px] text-slate-600 font-medium mt-2">
                       Các bộ khác đang chứa loại này:
                     </p>
                     {relLoading ? (
@@ -462,7 +462,7 @@ export function BoDungCuChiTietPanel({
               </div>
             )
           ) : (
-            <div className="space-y-4">
+            <div className={C.sectionGap}>
               <div className="bg-slate-50 border border-slate-100 rounded-[var(--radius-shell)] p-6 flex flex-wrap items-end gap-4">
                 <div className="space-y-1">
                   <label className="text-[11px] font-medium text-slate-400 ml-1">Chọn khoa phân bổ</label>
@@ -526,7 +526,7 @@ export function BoDungCuChiTietPanel({
                 <div className="overflow-x-auto rounded-[var(--radius-shell)] border border-slate-100 bg-white">
                   <table className="w-full min-w-[500px] border-collapse text-left text-sm">
                     <thead>
-                      <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                      <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-medium text-slate-500">
                         <th className="p-3">Mã khoa</th>
                         <th className="p-3">Tên khoa</th>
                         <th className="p-3 text-center w-32">Cơ số phân bổ</th>
@@ -538,7 +538,7 @@ export function BoDungCuChiTietPanel({
                         <tr key={a.id} className="hover:bg-slate-50/50">
                           <td className="p-3 font-mono text-xs font-bold text-rose-700">{a.khoa_phong?.ma_khoa || "—"}</td>
                           <td className="p-3 text-xs font-semibold text-slate-800">{a.khoa_phong?.ten_khoa || "—"}</td>
-                          <td className="p-3 text-center text-xs font-black text-slate-700">{a.so_luong}</td>
+                          <td className="p-3 text-center text-xs font-semibold text-slate-700">{a.so_luong}</td>
                           <td className="p-3 text-right flex justify-end gap-1.5">
                             <button
                               type="button"

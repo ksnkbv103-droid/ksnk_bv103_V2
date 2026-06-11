@@ -16,7 +16,7 @@ export default function CssdCatalogMdmBanner(props: { className?: string }) {
       </p>
       <Link
         href={MDM_DUNG_CU_HREF}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--primary)]/30 bg-white px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)] hover:bg-emerald-50"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--primary)]/30 bg-white px-3 py-2 font-mono text-[11px] font-medium text-[var(--primary)] hover:bg-emerald-50"
       >
         Mở quản trị dụng cụ
         <ExternalLink className="h-3.5 w-3.5" aria-hidden />

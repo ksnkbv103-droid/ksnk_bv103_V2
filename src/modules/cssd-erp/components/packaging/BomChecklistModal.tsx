@@ -207,7 +207,7 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
               <div className="p-4.5 bg-rose-50 border-2 border-rose-200 rounded-2xl flex items-start gap-3.5 text-rose-950 shadow-sm animate-in zoom-in-98 duration-300">
                 <ShieldAlert className="shrink-0 text-rose-600 mt-0.5" size={22} strokeWidth={2.5} />
                 <div className="space-y-1.5 flex-1">
-                  <h5 className="text-[11px] font-semibold uppercase tracking-wide text-rose-800 flex items-center gap-1.5">
+                  <h5 className={`${CSSD_UI_SECTION_TITLE} text-rose-800 flex items-center gap-1.5`}>
                     ⚠️ KHÓA AN TOÀN CHỊU NHIỆT (POKA-YOKE)
                   </h5>
                   <p className="text-[11px] leading-relaxed text-rose-700 font-medium">
@@ -243,7 +243,7 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
               <div className="p-4 bg-amber-50 border-2 border-amber-200 rounded-2xl flex items-start gap-3 text-amber-950 shadow-sm animate-in zoom-in-98 duration-300">
                 <AlertCircle className="shrink-0 text-amber-600 mt-0.5" size={20} strokeWidth={2.5} />
                 <div className="space-y-1">
-                  <h5 className="text-[11px] font-semibold uppercase tracking-wide text-amber-800">
+                  <h5 className={`${CSSD_UI_SECTION_TITLE} text-amber-800`}>
                     CẢNH BÁO: BỘ DỤNG CỤ THIẾU CẤU PHẦN
                   </h5>
                   <p className="text-[11px] leading-relaxed text-amber-700 font-medium">
@@ -281,7 +281,7 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
                         <td className="py-3 px-3 text-center text-slate-400 font-bold">{idx + 1}</td>
                         <td className="py-3 px-3 font-semibold text-slate-800">
                           <div className="space-y-0.5">
-                            <span className="uppercase text-xs font-black">{item.ten}</span>
+                            <span className="uppercase text-xs font-semibold">{item.ten}</span>
                             {!item.is_chiu_nhiet && (
                               <div className="flex items-center gap-1 text-[11px] font-bold text-rose-600">
                                 <CornerDownRight size={10} />
@@ -292,7 +292,7 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
                         </td>
                         <td className="py-3 px-3 text-center text-slate-500 font-extrabold">{item.so_luong_ke_hoach}</td>
                         <td className="py-3 px-3 text-center">
-                          <span className={`px-2 py-0.5 rounded-full font-black text-xs ${
+                          <span className={`px-2 py-0.5 rounded-full font-semibold tabular-nums text-xs ${
                             isMissing 
                               ? "bg-red-100 text-red-700" 
                               : "bg-emerald-100 text-emerald-800"
@@ -317,7 +317,7 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
                               type="button"
                               disabled={isUpdating || item.so_luong_thuc_te <= 0}
                               onClick={() => void handleAction(item.id, "BAO_MAT")}
-                              className="p-1 bg-white border border-slate-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600 disabled:opacity-50 text-slate-400 rounded-lg transition-all text-[11px] font-black px-1.5 py-0.5 leading-none"
+                              className="p-1 bg-white border border-slate-200 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600 disabled:opacity-50 text-slate-400 rounded-lg transition-all text-[11px] font-semibold px-1.5 py-0.5 leading-none"
                               title="Báo mất 1 chiếc (-1)"
                             >
                               Mất
@@ -359,7 +359,7 @@ export default function BomChecklistModal({ isOpen, onClose, quyTrinhId, boDungC
 
         {/* Footer */}
         <div className="p-5 border-t border-slate-100 flex justify-between items-center bg-slate-50/50">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="text-[11px] font-medium text-slate-400">
             {!loading && readyCheck.ready ? (
               <span className="text-emerald-700">✓ Bộ dụng cụ đủ điều kiện đóng gói</span>
             ) : (

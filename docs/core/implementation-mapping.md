@@ -130,6 +130,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-06-11 | **GSC canonical-36 scoring audit:** SSOT `gsc-canonical-36-scoring.ts`; sửa `cach_tinh_diem` BM.10.01 + BM.QĐ.19.03 → `TY_LE` (`20260611100000`); lịch sử GSC ưu tiên `tong_dat/tong_quan_sat` (`gsc-score-display`). |
 | 2026-06-10 | **Go-live Phase 6:** `pilot-go-live-signoff-202606.md`, `auth-pilot-link-sop.md`, `pilot:go-live:gate`; BOM → in cycle QR (`usePrint`). |
 | 2026-06-10 | **Cycle QR Phase 5:** `20260610100000` — `ma_cycle_qr` / `ma_qr_bo_vinh_vien`; resolve 3 cột; sinh cycle sau BOM; NKBV trace cycle QR. |
 | 2026-06-10 | **CSSD Phase 4 (domain audit):** pilot checklist hóa chất/thiết bị; BRD vật tư intake; `CSSDSubNav` wired vào `CSSDPageShell`; E2E `/cssd-hoa-chat`, `/cssd-thiet-bi`. Ledger Q2 warning (Phase 3). |

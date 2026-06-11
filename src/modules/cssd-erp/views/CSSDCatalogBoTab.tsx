@@ -132,7 +132,7 @@ export function CSSDCatalogBoTab(props: {
                         type="button"
                         disabled={printingId === x.id}
                         onClick={(e) => void handlePrintQr(e, x.id)}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)] border border-emerald-200/50 hover:bg-[var(--primary)] hover:text-white transition-all disabled:opacity-50 touch-manipulation"
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 font-mono text-[11px] font-medium text-[var(--primary)] border border-emerald-200/50 hover:bg-[var(--primary)] hover:text-white transition-all disabled:opacity-50 touch-manipulation"
                         title="Tạo mã QR và in nhãn dán"
                       >
                         {printingId === x.id ? (

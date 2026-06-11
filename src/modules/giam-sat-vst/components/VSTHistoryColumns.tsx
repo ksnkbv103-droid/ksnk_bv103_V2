@@ -7,6 +7,7 @@ import { vstSessionDisplayRef } from "../lib/vst-display-ref";
 import { formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
 import { classifyVstAction } from "../lib/vst-action-classifier";
 import type { VstHistoryRow } from "../lib/vst-read-utils";
+import { gscTableChrome as G } from "@/modules/giam-sat-chung/lib/gsc-table-chrome";
 
 function formatHHmm(value: unknown): string {
   const raw = String(value ?? "").trim();
@@ -38,7 +39,7 @@ export function getVSTHistoryColumns(
         const raw = (s.ngay_giam_sat as string) || (s.created_at as string);
         const d = raw ? new Date(raw.includes("T") ? raw : `${raw}T12:00:00`) : null;
         const dateLine = d ? d.toLocaleDateString("vi-VN") : "—";
-        return <span className="text-xs font-semibold text-slate-700">{dateLine}</span>;
+        return <span className={`text-xs ${G.cellBody}`}>{dateLine}</span>;
       },
     },
     {
@@ -121,7 +122,7 @@ export function getVSTHistoryColumns(
       }
     },
     {
-      header: "Người GS",
+      header: "Người gs",
       accessorKey: "nguoi_giam_sat_id",
       sortable: true,
       headerClassName: "min-w-[10rem]",

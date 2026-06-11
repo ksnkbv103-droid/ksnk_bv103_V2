@@ -3,7 +3,7 @@
 import React from "react";
 import { ArrowLeft, Layers, Plus } from "lucide-react";
 import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
-import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
+import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 
 type Props = {
   title: string;
@@ -32,7 +32,7 @@ export default function GenericDmMasterHeader({ title, onBack, onCreate, canCrea
               <ArrowLeft size={16} /> Quay lại
             </button>
             {canCreate ? (
-              <button type="button" onClick={onCreate} className={bv103DesignTokens.btnPrimary}>
+              <button type="button" onClick={onCreate} className={C.ctaPrimary}>
                 <Plus size={16} /> Thêm mới
               </button>
             ) : (

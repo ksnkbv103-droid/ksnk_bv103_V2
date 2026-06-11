@@ -2,6 +2,9 @@
 
 import React from "react";
 import { Plus, Download, Upload } from "lucide-react";
+import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import { quanTriTableChrome as TC } from "../../lib/quan-tri-table-chrome";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 type TieuChiTableToolbarProps = {
   fileInputRef: React.RefObject<HTMLInputElement | null>;
@@ -23,9 +26,9 @@ export default function TieuChiTableToolbar({
   onFileChange,
 }: TieuChiTableToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 bg-white p-6">
+    <div className={C.pageToolbar}>
       <div className="flex items-center gap-3">
-        <span className="text-[11px] font-medium text-[var(--primary)]">Tiêu chí chi tiết</span>
+        <span className={bv103LayoutChrome.labelBlockAccent}>Tiêu chí chi tiết</span>
         <div className="flex gap-2">
           <button
             type="button"
@@ -52,12 +55,8 @@ export default function TieuChiTableToolbar({
         </div>
       </div>
       {allowCreate ? (
-        <button
-          type="button"
-          onClick={onAdd}
-          className="flex items-center gap-2 rounded-xl bg-[var(--primary)] px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)]"
-        >
-          <Plus className="w-3 h-3" /> Thêm
+        <button type="button" onClick={onAdd} className={TC.ctaPrimary}>
+          <Plus className="w-3 h-3" /> Thêm tiêu chí
         </button>
       ) : null}
     </div>

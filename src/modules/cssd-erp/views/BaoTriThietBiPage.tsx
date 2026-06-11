@@ -86,10 +86,10 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   };
 
   const columns: Column<FactBaoTriRow>[] = [
-    { header: "MÃ PHIẾU", accessorKey: "ma_phieu", cell: (i) => <span className="font-mono text-[11px] font-bold text-[var(--primary)]">{i.ma_phieu}</span> },
-    { header: "THIẾT BỊ", accessorKey: "ten_thiet_bi", cell: (i) => <span className="text-[11px] font-semibold">{i.ten_thiet_bi || "—"}</span> },
+    { header: "Mã phiếu", accessorKey: "ma_phieu", cell: (i) => <span className="font-mono text-[11px] font-bold text-[var(--primary)]">{i.ma_phieu}</span> },
+    { header: "Thiết bị", accessorKey: "ten_thiet_bi", cell: (i) => <span className="text-[11px] font-semibold">{i.ten_thiet_bi || "—"}</span> },
     {
-      header: "TRẠNG THÁI",
+      header: "Trạng thái",
       accessorKey: "trang_thai",
       cell: (i) => {
         const val = i.trang_thai;
@@ -123,7 +123,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         );
       },
     },
-    { header: "LÝ DO / KẾT QUẢ", accessorKey: "ly_do", cell: (i) => <span className="max-w-[200px] truncate text-[11px] text-slate-600">{i.ly_do || i.ket_qua_ghi_nhan || "—"}</span> },
+    { header: "Lý do / Kết quả", accessorKey: "ly_do", cell: (i) => <span className="max-w-[200px] truncate text-[11px] text-slate-600">{i.ly_do || i.ket_qua_ghi_nhan || "—"}</span> },
   ];
 
   if (permLoading) {

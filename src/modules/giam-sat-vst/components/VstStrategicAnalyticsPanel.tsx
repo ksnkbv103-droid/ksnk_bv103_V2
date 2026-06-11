@@ -1,5 +1,7 @@
 "use client";
 
+import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";
+
 import React, { useMemo } from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
@@ -71,7 +73,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
   );
 
   return (
-    <div className="space-y-6 px-2 pb-8">
+    <div className={`${UI.sectionGap} space-y-6 px-2 pb-8`}>
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <AnalyticsFilterBar
           hideBangKiem

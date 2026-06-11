@@ -1,8 +1,10 @@
 /** Typography + KPI tone dashboard / báo cáo BV103. */
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import { bv103PanelChrome as P } from "@/lib/bv103-panel-chrome";
 
 export const dashboardChrome = {
+  ...P,
   kpiLabel: T.labelBlock,
   kpiValue: "text-3xl font-semibold tabular-nums text-slate-900",
   kpiValuePrimary: "text-3xl font-semibold tabular-nums text-[var(--primary)]",
@@ -10,6 +12,12 @@ export const dashboardChrome = {
   sectionHeading: "text-lg font-semibold text-slate-800",
   sectionHeadingSm: T.sectionTitle,
   tableHeader: T.tableHeader,
+  cellCode: T.tableCellCode,
+  cellTitle: T.tableCellTitle,
+  cellBody: T.tableCellBody,
+  cellNote: T.tableCellNote,
+  cellIndex: T.tableCellIndex,
+  cellMeta: T.tableCellMeta,
   filterLabel: T.labelBlock,
   ctaPrimary: T.btnPrimary,
   noticePeriod: C.noticeSuccess,

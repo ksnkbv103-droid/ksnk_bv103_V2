@@ -1,6 +1,8 @@
 // src/modules/cssd-erp/components/workflow/DigitalChecklistPanel.tsx
 "use client";
 
+import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+
 import React, { useState, useEffect, useCallback } from "react";
 import { CheckCircle2, AlertTriangle, ShieldAlert, AlertCircle, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
@@ -119,7 +121,7 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
     return (
       <div className="p-6 bg-slate-50/50 border border-slate-100 rounded-2xl text-center space-y-3 animate-pulse">
         <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-[var(--primary)] mx-auto" />
-        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Đang khởi tạo Bảng kiểm kỹ thuật số...</p>
+        <p className="text-[11px] font-medium text-slate-400">Đang khởi tạo Bảng kiểm kỹ thuật số...</p>
       </div>
     );
   }
@@ -133,7 +135,7 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
         <div className="p-4 bg-red-50 border-2 border-red-200 rounded-2xl flex items-start gap-3 text-red-900 shadow-sm animate-in zoom-in-95">
           <ShieldAlert className="shrink-0 text-red-600 mt-0.5" size={20} strokeWidth={2.5} />
           <div className="space-y-1">
-            <h5 className="text-[11px] font-semibold uppercase tracking-wide text-red-800">
+            <h5 className={`${UI.panelTitle} text-red-800`}>
               ⚠️ KHÓA AN TOÀN: BỘ DỤNG CỤ HỖN HỢP
             </h5>
             <p className="text-[11px] leading-relaxed text-red-700 font-medium">
@@ -143,7 +145,7 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
               <span className="inline-flex rounded-full bg-red-600 px-2 py-0.5 text-[11px] font-bold text-white uppercase shadow-sm">
                 Khóa Steam 134°C
               </span>
-              <span className="text-[11px] font-black text-red-600 underline hover:text-red-800 transition-colors cursor-pointer">
+              <span className="text-[11px] font-mono text-[11px] font-medium text-red-600 underline hover:text-red-800 transition-colors cursor-pointer">
                 Đọc quy trình tách gói hấp Plasma & STEAM
               </span>
             </div>
@@ -163,7 +165,7 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
         <div className="p-4 bg-amber-50 border-2 border-amber-200 rounded-2xl flex items-start gap-3 text-amber-900 shadow-sm animate-in zoom-in-95">
           <AlertCircle className="shrink-0 text-amber-600 mt-0.5" size={20} strokeWidth={2.5} />
           <div className="space-y-1">
-            <h5 className="text-[11px] font-semibold uppercase tracking-wide text-amber-800">
+            <h5 className={`${UI.panelTitle} text-amber-800`}>
               CẢNH BÁO: BỘ DỤNG CỤ THIẾU THÀNH PHẦN
             </h5>
             <p className="text-[11px] leading-relaxed text-amber-700 font-semibold">
@@ -191,7 +193,7 @@ export default function DigitalChecklistPanel({ boDungCuId, quyTrinhId, onCheckF
               className={`pt-2 flex items-center justify-between gap-4 ${index === 0 ? "pt-0 border-t-0" : "border-t border-slate-100"}`}
             >
               <div className="space-y-0.5 min-w-0">
-                <p className={`text-xs font-black truncate uppercase ${item.is_missing ? "text-red-600" : "text-slate-700"}`}>
+                <p className={`text-xs font-semibold truncate uppercase ${item.is_missing ? "text-red-600" : "text-slate-700"}`}>
                   {item.ten_dung_cu}
                 </p>
                 <div className="flex items-center gap-2">

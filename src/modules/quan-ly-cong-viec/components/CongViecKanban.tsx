@@ -91,7 +91,7 @@ export default function CongViecKanban({
             <div className="mb-3 flex items-center justify-between gap-2 px-1">
               <div className="flex min-w-0 items-center gap-2">
                 <span className={`h-2 w-2 shrink-0 rounded-full ${col.dot}`} />
-                <h3 className="truncate text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+                <h3 className="truncate text-[11px] font-medium text-slate-500">
                   {col.title}
                 </h3>
               </div>
@@ -139,7 +139,7 @@ export default function CongViecKanban({
 
                     <div className="flex flex-col gap-2 border-t border-slate-100 pt-2.5 sm:flex-row sm:items-center sm:justify-between">
                       <div className="min-w-0 flex-1">
-                        <span className="text-[11px] font-bold uppercase text-slate-300">Phụ trách / Tổ</span>
+                        <span className="text-[11px] font-medium text-slate-400">Phụ trách / Tổ</span>
                         <p className="truncate text-[11px] font-black text-slate-600">
                           {task.nguoi_phu_trach_ten || "Chưa phân công"}
                           {task.to_cong_tac_ten ? ` · ${task.to_cong_tac_ten}` : ""}
@@ -148,7 +148,7 @@ export default function CongViecKanban({
 
                       <div className="flex shrink-0 items-center gap-1">
                         <Clock size={12} className="text-[var(--primary)]" aria-hidden />
-                        <span className="text-[11px] font-black text-[var(--primary)]">{task.phan_tram_hoan_thanh || 0}%</span>
+                        <span className="text-[11px] font-mono text-[11px] font-medium text-[var(--primary)]">{task.phan_tram_hoan_thanh || 0}%</span>
                       </div>
                     </div>
 

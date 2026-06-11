@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
 import type { HoaChatRow } from "../actions/hoa-chat.types";
+import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
 
 interface ActionCells {
   renderStatusCell: (item: HoaChatRow) => ReactNode;
@@ -16,43 +17,43 @@ function clip(s: string | null | undefined, n: number) {
 export function getHoaChatColumns(actionUi: ActionCells): Column<HoaChatRow>[] {
   return [
     {
-      header: "MÃ",
+      header: "Mã",
       accessorKey: "ma_hoa_chat",
       sortable: true,
-      cell: (i) => <span className="font-mono text-[11px] font-bold text-slate-700">{i.ma_hoa_chat || "—"}</span>,
+      cell: (i) => <span className={`${TC.cellCode} text-slate-700`}>{i.ma_hoa_chat || "—"}</span>,
     },
     {
-      header: "TÊN",
+      header: "Tên",
       accessorKey: "ten_hoa_chat",
       sortable: true,
-      cell: (i) => <span className="font-black uppercase text-[11px] text-[var(--primary)]">{clip(i.ten_hoa_chat, 40)}</span>,
+      cell: (i) => <span className={TC.cellTitle}>{clip(i.ten_hoa_chat, 40)}</span>,
     },
     {
-      header: "ĐƠN VỊ",
+      header: "Đơn vị",
       accessorKey: "don_vi_tinh",
       sortable: true,
-      cell: (i) => <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[11px] font-semibold uppercase tracking-wide">{i.don_vi_tinh || "—"}</span>,
+      cell: (i) => <span className="rounded-full bg-[var(--surface-warning-bg)] px-3 py-1 text-[11px] font-medium text-[var(--surface-warning-text)]">{i.don_vi_tinh || "—"}</span>,
     },
     {
-      header: "LOẠI",
+      header: "Loại",
       accessorKey: "loai_hoa_chat",
       sortable: true,
-      cell: (i) => <span className="text-[11px] font-bold text-slate-600">{i.loai_hoa_chat || "HOA_CHAT"}</span>,
+      cell: (i) => <span className={TC.cellMeta}>{i.loai_hoa_chat || "HOA_CHAT"}</span>,
     },
     {
-      header: "NỒNG ĐỘ",
+      header: "Nồng độ",
       accessorKey: "nong_do",
       sortable: true,
-      cell: (i) => <span className="text-[11px] font-bold text-slate-500">{i.nong_do || "—"}</span>,
+      cell: (i) => <span className="text-[11px] text-[11px] font-medium text-slate-500">{i.nong_do || "—"}</span>,
     },
     {
-      header: "QUY CÁCH",
+      header: "Quy cách",
       accessorKey: "quy_cach",
       sortable: true,
       cell: (i) => <span className="text-[11px] text-slate-600">{clip(i.quy_cach, 36)}</span>,
     },
     {
-      header: "HẠN SD",
+      header: "Hạn sd",
       accessorKey: "han_su_dung",
       sortable: true,
       cell: (i) => (
@@ -62,18 +63,18 @@ export function getHoaChatColumns(actionUi: ActionCells): Column<HoaChatRow>[] {
       ),
     },
     {
-      header: "GHI CHÚ",
+      header: "Ghi chú",
       accessorKey: "ghi_chu",
       cell: (i) => <span className="text-[11px] text-slate-500">{clip(i.ghi_chu, 40)}</span>,
     },
     {
-      header: "HOẠT ĐỘNG",
+      header: TH.status,
       accessorKey: "is_active",
       sortable: true,
       cell: (i) => actionUi.renderStatusCell(i),
     },
     {
-      header: "QUẢN LÝ",
+      header: TH.manage,
       accessorKey: "id",
       cell: (i) => actionUi.renderManagementCell(i),
     },

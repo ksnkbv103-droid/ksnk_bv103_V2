@@ -91,7 +91,7 @@ export default function DungCuChiTietFormModal({
       >
         <div className="flex justify-between items-start gap-4">
           <div>
-            <h3 className="text-sm font-black text-[var(--primary)] uppercase tracking-widest">
+            <h3 className={C.modalTitleLight}>
               {isEdit ? "Cập nhật dụng cụ chi tiết" : "Thêm dụng cụ chi tiết"}
             </h3>
             <p className="text-[11px] text-slate-400 font-semibold mt-1">

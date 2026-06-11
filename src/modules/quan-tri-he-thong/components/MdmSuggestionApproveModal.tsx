@@ -1,5 +1,7 @@
 "use client";
 
+import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+
 import React, { useState } from "react";
 import { X, ShieldAlert, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
@@ -85,7 +87,7 @@ export default function MdmSuggestionApproveModal({ isOpen, onClose, suggestion,
               <ShieldAlert className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-slate-800">Phê duyệt &amp; Thiết lập Bảo vệ</h3>
+              <h3 className={UI.panelTitle}>Phê duyệt &amp; Thiết lập Bảo vệ</h3>
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
                 Kích hoạt trigger kiểm soát toàn vẹn dữ liệu cứng
               </p>
@@ -204,14 +206,14 @@ export default function MdmSuggestionApproveModal({ isOpen, onClose, suggestion,
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 rounded-lg font-bold uppercase tracking-wider transition-colors"
+              className="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 rounded-lg font-medium transition-colors"
             >
               Hủy bỏ
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold uppercase tracking-wider shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <>
