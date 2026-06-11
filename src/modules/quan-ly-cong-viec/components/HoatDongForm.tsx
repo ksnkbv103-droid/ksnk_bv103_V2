@@ -1,9 +1,9 @@
 "use client";
 
+import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
 import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 import { createHoatDong } from "../actions/hoat-dong.actions";
-import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 
 interface Props {
   congViecId: string;
@@ -39,10 +39,10 @@ export function HoatDongForm({ congViecId, onSuccess, onCancel }: Props) {
   };
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-500">
-      <div className="space-y-4 rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
+    <form ref={formRef} onSubmit={handleSubmit} className={`${UI.sectionGapLg} animate-in fade-in duration-500`}>
+      <div className={`${UI.shellPadded} space-y-4 shadow-sm`}>
         <div>
-          <label className={`mb-1.5 ml-1 block ${bv103DesignTokens.labelBlockMuted}`}>Nội dung ghi chú *</label>
+          <label className={`mb-1.5 block ${UI.formLabel}`}>Nội dung ghi chú *</label>
           <textarea
             name="noi_dung"
             required
@@ -54,9 +54,7 @@ export function HoatDongForm({ congViecId, onSuccess, onCancel }: Props) {
       </div>
 
       <div className="flex justify-end gap-3">
-        <button
-          type="button"
-          onClick={(e) => {
+        <button type="button" onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
             if (onCancel) {
@@ -64,16 +62,10 @@ export function HoatDongForm({ congViecId, onSuccess, onCancel }: Props) {
               return;
             }
             formRef.current?.reset();
-          }}
-          className={`bv103-control-h rounded-lg border border-slate-200 bg-white px-6 py-2.5 ${bv103DesignTokens.labelBlock} font-semibold uppercase tracking-widest text-slate-600 shadow-sm hover:bg-slate-50`}
-        >
+          }} className={UI.btnSecondary}>
           Hủy
         </button>
-        <button
-          type="submit"
-          disabled={loading}
-          className={`bv103-control-h inline-flex items-center rounded-lg bg-[var(--primary)] px-8 ${bv103DesignTokens.labelBlock} font-semibold uppercase tracking-widest text-white shadow-sm transition-colors hover:opacity-90 disabled:opacity-50`}
-        >
+        <button type="submit" disabled={loading} className={UI.btnPrimary}>
           {loading ? "Đang gửi…" : "Gửi ghi chú"}
         </button>
       </div>

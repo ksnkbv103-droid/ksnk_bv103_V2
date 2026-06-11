@@ -26,7 +26,7 @@ export default function InventoryHistoryTable() {
   useEffect(() => { fetchHistory(); }, []);
 
   const columns: Column<any>[] = [
-    { header: "LOẠI GIAO DỊCH", accessorKey: "loai_giao_dich", cell: (item: any) => (
+    { header: "Loại giao dịch", accessorKey: "loai_giao_dich", cell: (item: any) => (
       <div className="flex items-center gap-2">
         <div className={`p-2 rounded-lg ${item.loai_giao_dich === 'NHAP_KHO' ? 'bg-emerald-50 text-emerald-500' : 'bg-amber-50 text-amber-600'}`}>
           {item.loai_giao_dich === 'NHAP_KHO' ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
@@ -34,17 +34,17 @@ export default function InventoryHistoryTable() {
         <span className="font-black text-[11px] uppercase tracking-tighter">{item.loai_giao_dich.replace('_', ' ')}</span>
       </div>
     )},
-    { header: "BỘ / LOẠI", accessorKey: "cssd_dm_bo_dung_cu.ma_bo", cell: (item: any) => (
+    { header: "Bộ / Loại", accessorKey: "cssd_dm_bo_dung_cu.ma_bo", cell: (item: any) => (
       <span className="font-bold text-slate-700 text-[11px] uppercase truncate max-w-[120px] block">
         {item.cssd_dm_bo_dung_cu?.ma_bo || item.cssd_dm_loai_dung_cu?.ma_loai_dung_cu || "---"}
       </span>
     )},
-    { header: "GHI CHÚ", accessorKey: "ghi_chu", cell: (item: any) => (
+    { header: "Ghi chú", accessorKey: "ghi_chu", cell: (item: any) => (
       <span className="text-slate-400 font-medium text-[11px] truncate max-w-[150px] block italic">
         {item.ghi_chu || "---"}
       </span>
     )},
-    { header: "THỜI GIAN", accessorKey: "created_at", cell: (item: any) => (
+    { header: "Thời gian", accessorKey: "created_at", cell: (item: any) => (
       <span className="text-slate-400 font-bold text-[11px] whitespace-nowrap">
         {new Date(item.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
       </span>

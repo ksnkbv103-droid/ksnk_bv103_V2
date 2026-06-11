@@ -1,5 +1,7 @@
 "use client";
 
+import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+
 import React from "react";
 import type { FactBaoTriRow } from "../../actions/cssd-bao-tri.types";
 
@@ -14,7 +16,7 @@ type Props = {
 export default function BaoTriActivePanel({ rows, ketQuaById, onKetQuaChange, onKetThuc, onHuy }: Props) {
   const active = rows.filter((x) => x.trang_thai === "DANG_THUC_HIEN");
   return (
-    <div className="space-y-4 rounded-2xl border border-amber-100 bg-amber-50/40 p-4 text-sm text-slate-700">
+    <div className={`${UI.sectionGap} space-y-4 rounded-2xl border border-amber-100 bg-amber-50/40 p-4 text-sm text-slate-700`}>
       <p className="font-semibold text-slate-800">Phiếu đang thực hiện — nhập kết quả và hoàn thành</p>
       <div className="grid gap-3 md:grid-cols-1">
         {active.map((x) => (
@@ -33,7 +35,7 @@ export default function BaoTriActivePanel({ rows, ketQuaById, onKetQuaChange, on
               <button type="button" className="rounded-lg bg-[var(--primary)] px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-[#FFD700]" onClick={() => void onKetThuc(x.id)}>
                 Hoàn thành
               </button>
-              <button type="button" className="rounded-lg border border-slate-200 px-4 py-2 text-[11px] font-bold uppercase text-slate-600" onClick={() => void onHuy(x.id)}>
+              <button type="button" className="rounded-lg border border-slate-200 px-4 py-2 text-[11px] font-medium text-slate-500" onClick={() => void onHuy(x.id)}>
                 Hủy
               </button>
             </div>

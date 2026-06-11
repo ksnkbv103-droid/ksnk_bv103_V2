@@ -33,7 +33,7 @@ export default function NkbvCdcMetricsPanel({
 }: NkbvCdcMetricsPanelProps) {
   if (!metrics) {
     return (
-      <div className="bg-slate-50/75 border border-slate-100 rounded-3xl p-6 text-center text-xs text-slate-400 font-medium italic animate-in fade-in duration-200">
+      <div className={`${C.sectionGap} bg-slate-50/75 border border-slate-100 rounded-3xl p-6 text-center text-xs text-slate-400 font-medium italic animate-in fade-in duration-200`}>
         💡 Vui lòng điền Ngày phát hiện và chọn Triệu chứng để kích hoạt Bản đồ Thuật toán CDC 7 Bước động.
       </div>
     );
@@ -82,7 +82,7 @@ export default function NkbvCdcMetricsPanel({
             <h4 className="text-sm font-semibold text-slate-800 tracking-tight">Bản đồ thuật toán CDC 7 bước</h4>
           </div>
         </div>
-        <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[11px] font-bold text-slate-500">
+        <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[11px] text-[11px] font-medium text-slate-500">
           NHSN 2023
         </span>
       </div>
@@ -92,19 +92,19 @@ export default function NkbvCdcMetricsPanel({
         
         {/* STEP 1: IWP */}
         <div className="relative group">
-          <div className="absolute -left-[33px] top-0.5 bg-emerald-500 text-white rounded-full h-5.5 w-5.5 flex items-center justify-center text-[11px] font-black shadow-md shadow-emerald-500/20 group-hover:scale-110 transition duration-200">
+          <div className="absolute -left-[33px] top-0.5 bg-emerald-500 text-white rounded-full h-5.5 w-5.5 flex items-center justify-center text-[11px] font-semibold shadow-md shadow-emerald-500/20 group-hover:scale-110 transition duration-200">
             1
           </div>
           <div className="space-y-1">
             <span className={` text-slate-500`}>Bước 1: Cửa sổ Nhiễm trùng (IWP)</span>
             <div className="flex items-center justify-between bg-slate-50 border border-slate-100/70 p-2.5 rounded-[var(--radius-shell)]">
               <div>
-                <span className="text-[11px] font-bold text-slate-500 block">Khung Cửa sổ (Ngày X ± 3):</span>
-                <strong className="text-xs font-black font-mono text-slate-800">
+                <span className="text-[11px] text-[11px] font-medium text-slate-500 block">Khung Cửa sổ (Ngày X ± 3):</span>
+                <strong className="text-xs font-semibold font-mono text-slate-800">
                   {formatDate(metrics.iwp_start)} — {formatDate(metrics.iwp_end)}
                 </strong>
               </div>
-              <div className="bg-emerald-50 border border-emerald-100 text-emerald-800 px-2 py-1 rounded-xl text-[11px] font-black font-mono">
+              <div className="bg-emerald-50 border border-emerald-100 text-emerald-800 px-2 py-1 rounded-xl text-[11px] font-semibold font-mono">
                 7 Ngày Lịch
               </div>
             </div>
@@ -116,7 +116,7 @@ export default function NkbvCdcMetricsPanel({
 
         {/* STEP 2: DOE */}
         <div className="relative group">
-          <div className="absolute -left-[33px] top-0.5 bg-indigo-500 text-white rounded-full h-5.5 w-5.5 flex items-center justify-center text-[11px] font-black shadow-md shadow-indigo-500/20 group-hover:scale-110 transition duration-200">
+          <div className="absolute -left-[33px] top-0.5 bg-indigo-500 text-white rounded-full h-5.5 w-5.5 flex items-center justify-center text-[11px] font-semibold shadow-md shadow-indigo-500/20 group-hover:scale-110 transition duration-200">
             2
           </div>
           <div className="space-y-1">
@@ -124,12 +124,12 @@ export default function NkbvCdcMetricsPanel({
             <div className="flex items-center justify-between bg-indigo-50/50 border border-indigo-100/60 p-2.5 rounded-[var(--radius-shell)]">
               <div>
                 <span className="text-[11px] font-bold text-indigo-700 block">Ngày Sự kiện quyết định:</span>
-                <strong className="text-xs font-black font-mono text-indigo-900 flex items-center gap-1">
+                <strong className="text-xs font-semibold font-mono text-indigo-900 flex items-center gap-1">
                   <Calendar className="h-3.5 w-3.5" />
                   {formatDate(metrics.doe)}
                 </strong>
               </div>
-              <div className="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-lg text-[11px] font-black">
+              <div className="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-lg text-[11px] font-semibold">
                 MIN(Symptom, Test)
               </div>
             </div>
@@ -141,7 +141,7 @@ export default function NkbvCdcMetricsPanel({
 
         {/* STEP 3: RIT */}
         <div className="relative group">
-          <div className="absolute -left-[33px] top-0.5 bg-amber-500 text-white rounded-full h-5.5 w-5.5 flex items-center justify-center text-[11px] font-black shadow-md shadow-amber-500/20 group-hover:scale-110 transition duration-200">
+          <div className="absolute -left-[33px] top-0.5 bg-amber-500 text-white rounded-full h-5.5 w-5.5 flex items-center justify-center text-[11px] font-semibold shadow-md shadow-amber-500/20 group-hover:scale-110 transition duration-200">
             3
           </div>
           <div className="space-y-1">
@@ -149,7 +149,7 @@ export default function NkbvCdcMetricsPanel({
             <div className="bg-amber-50/40 border border-amber-100/60 p-2.5 rounded-[var(--radius-shell)] flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-bold text-amber-800 block">Khung lặp lại dự kiến (DOE + 13):</span>
-                <strong className="text-xs font-black font-mono text-amber-900">
+                <strong className="text-xs font-semibold font-mono text-amber-900">
                   {formatDate(metrics.doe)} — {formatDate(metrics.sbap_end)}
                 </strong>
               </div>
@@ -165,7 +165,7 @@ export default function NkbvCdcMetricsPanel({
 
         {/* STEP 4: POA vs HAI */}
         <div className="relative group">
-          <div className="absolute -left-[33px] top-0.5 bg-blue-500 text-white rounded-full h-5.5 w-5.5 flex items-center justify-center text-[11px] font-black shadow-md shadow-blue-500/20 group-hover:scale-110 transition duration-200">
+          <div className="absolute -left-[33px] top-0.5 bg-blue-500 text-white rounded-full h-5.5 w-5.5 flex items-center justify-center text-[11px] font-semibold shadow-md shadow-blue-500/20 group-hover:scale-110 transition duration-200">
             4
           </div>
           <div className="space-y-1">
@@ -176,8 +176,8 @@ export default function NkbvCdcMetricsPanel({
                 : "bg-emerald-50 border-emerald-100/60 text-emerald-900"
             }`}>
               <div>
-                <span className="text-[11px] font-bold text-slate-500 block uppercase">Thời điểm xuất hiện:</span>
-                <strong className="text-xs font-black font-mono">
+                <span className="text-[11px] font-medium text-slate-500 block">Thời điểm xuất hiện:</span>
+                <strong className="text-xs font-semibold font-mono">
                   {metrics.haiStatus === "HAI" ? "🏥 HAI (Bệnh viện)" : "🏡 POA (Cộng đồng)"}
                 </strong>
               </div>
@@ -194,15 +194,15 @@ export default function NkbvCdcMetricsPanel({
 
         {/* STEP 5: LOA Attribution */}
         <div className="relative group">
-          <div className="absolute -left-[33px] top-0.5 bg-violet-500 text-white rounded-full h-5.5 w-5.5 flex items-center justify-center text-[11px] font-black shadow-md shadow-violet-500/20 group-hover:scale-110 transition duration-200">
+          <div className="absolute -left-[33px] top-0.5 bg-violet-500 text-white rounded-full h-5.5 w-5.5 flex items-center justify-center text-[11px] font-semibold shadow-md shadow-violet-500/20 group-hover:scale-110 transition duration-200">
             5
           </div>
           <div className="space-y-1">
             <span className={` text-slate-500`}>Bước 5: Định vị Khoa chịu lỗi (LOA) & Lịch sử nằm khoa</span>
             <div className="bg-indigo-50 border border-indigo-100/70 p-2.5 rounded-[var(--radius-shell)] space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-slate-500 block">Khoa chịu trách nhiệm KPI:</span>
-                <span className="bg-indigo-100 text-indigo-850 px-2 py-0.5 rounded-lg text-[11px] font-black font-sans shadow-sm">
+                <span className="text-[11px] text-[11px] font-medium text-slate-500 block">Khoa chịu trách nhiệm KPI:</span>
+                <span className="bg-indigo-100 text-indigo-850 px-2 py-0.5 rounded-lg text-[11px] font-semibold font-sans shadow-sm">
                   {metrics.attributedStay?.ten_khoa || "Chưa xác định"}
                 </span>
               </div>
@@ -243,7 +243,7 @@ export default function NkbvCdcMetricsPanel({
         {/* STEP 6: Device Days */}
         {checklistType !== "SSI" && (
           <div className="relative group">
-            <div className="absolute -left-[33px] top-0.5 bg-pink-500 text-white rounded-full h-5.5 w-5.5 flex items-center justify-center text-[11px] font-black shadow-md shadow-pink-500/20 group-hover:scale-110 transition duration-200">
+            <div className="absolute -left-[33px] top-0.5 bg-pink-500 text-white rounded-full h-5.5 w-5.5 flex items-center justify-center text-[11px] font-semibold shadow-md shadow-pink-500/20 group-hover:scale-110 transition duration-200">
               6
             </div>
             <div className="space-y-1">
@@ -261,7 +261,7 @@ export default function NkbvCdcMetricsPanel({
                 </div>
                 <div className="flex justify-between items-center border-t border-slate-200/50 pt-2">
                   <span className="text-[11px] font-bold block">Sự hiện diện tại thời điểm sự kiện:</span>
-                  <strong className={`text-[11px] font-black px-1.5 py-0.5 rounded ${
+                  <strong className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${
                     metrics.device_active_on_event 
                       ? "bg-emerald-100 text-emerald-800" 
                       : "bg-slate-200 text-slate-800"
@@ -288,7 +288,7 @@ export default function NkbvCdcMetricsPanel({
 
         {/* STEP 7: Secondary BSI Check */}
         <div className="relative group">
-          <div className="absolute -left-[33px] top-0.5 bg-teal-500 text-white rounded-full h-5.5 w-5.5 flex items-center justify-center text-[11px] font-black shadow-md shadow-teal-500/20 group-hover:scale-110 transition duration-200">
+          <div className="absolute -left-[33px] top-0.5 bg-teal-500 text-white rounded-full h-5.5 w-5.5 flex items-center justify-center text-[11px] font-semibold shadow-md shadow-teal-500/20 group-hover:scale-110 transition duration-200">
             7
           </div>
           <div className="space-y-1">
@@ -296,7 +296,7 @@ export default function NkbvCdcMetricsPanel({
             
             {isSecondaryBsi ? (
               <div className="bg-blue-50 border border-blue-200 text-blue-900 rounded-[var(--radius-shell)] p-3 space-y-1 shadow-sm animate-in slide-in-from-bottom-2">
-                <strong className="text-xs font-black text-blue-800 flex items-center gap-1">
+                <strong className="text-xs font-semibold text-blue-800 flex items-center gap-1">
                   🎉 SECONDARY BSI MATCHED
                 </strong>
                 <p className="text-[11px] leading-relaxed text-blue-700 font-semibold">

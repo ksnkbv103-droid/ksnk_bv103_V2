@@ -20,7 +20,7 @@ export default function ReportFilters({ filters, setFilters, stations }: Props) 
       <div className="flex items-center gap-3 px-1">
         <div className="bg-[var(--primary)]/10 p-2 rounded-xl text-[var(--primary)]"><Filter size={18} /></div>
         <div className="flex flex-col">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)] tracking-widest leading-none">Bộ lọc dữ liệu</span>
+          <span className="font-mono text-[11px] font-medium text-[var(--primary)] tracking-widest leading-none">Bộ lọc dữ liệu</span>
           <span className="text-[11px] font-bold text-slate-300 uppercase tracking-tighter">Tối ưu hóa báo cáo chi tiết</span>
         </div>
       </div>

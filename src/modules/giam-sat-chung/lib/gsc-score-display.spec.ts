@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { formatGscHistoryScore, previewGscFormProgress } from "./gsc-score-display";
+import {
+  formatGscHistoryScore,
+  gscCompliancePercentFromCounts,
+  previewGscFormProgress,
+  resolveGscHistoryCompliancePercent,
+} from "./gsc-score-display";
 import type { ChecklistCriterion, ChecklistResult } from "@/types/giam-sat-chung";
 
 const criteria: ChecklistCriterion[] = [
@@ -42,6 +47,28 @@ describe("formatGscHistoryScore", () => {
     expect(d.label).toContain("66.67%");
   });
 
+  it("formats DAT_KHONG_DAT (BM.07.03) from counts when tong_diem null", () => {
+    const d = formatGscHistoryScore({
+      cach_tinh_diem: "DAT_KHONG_DAT",
+      loai_bang_kiem: "BM.07.03",
+      tong_quan_sat: 8,
+      tong_dat: 7,
+      tong_diem: null,
+    });
+    expect(d.label).toContain("87.50%");
+  });
+
+  it("formats TRON_GOI as percent from counts when dat_tron_goi null", () => {
+    const d = formatGscHistoryScore({
+      cach_tinh_diem: "TRON_GOI",
+      tong_quan_sat: 4,
+      tong_dat: 3,
+      dat_tron_goi: null,
+      tong_diem: null,
+    });
+    expect(d.label).toContain("75.00%");
+  });
+
   it("formats TRON_GOI as percent", () => {
     const d = formatGscHistoryScore({
       cach_tinh_diem: "TRON_GOI",
@@ -57,5 +84,26 @@ describe("formatGscHistoryScore", () => {
       tong_diem: null,
     });
     expect(d.label).toContain("Nhật ký");
+  });
+});
+
+describe("gscCompliancePercentFromCounts", () => {
+  it("returns null when denominator is zero", () => {
+    expect(gscCompliancePercentFromCounts(0, 0)).toBeNull();
+  });
+
+  it("matches dashboard ratio", () => {
+    expect(gscCompliancePercentFromCounts(8, 7)).toBe(87.5);
+  });
+});
+
+describe("resolveGscHistoryCompliancePercent", () => {
+  it("falls back to tong_diem for DAT_KHONG_DAT without counts", () => {
+    expect(
+      resolveGscHistoryCompliancePercent(
+        { cach_tinh_diem: "DAT_KHONG_DAT", tong_diem: 0 },
+        "DAT_KHONG_DAT",
+      ),
+    ).toBe(0);
   });
 });

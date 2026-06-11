@@ -6,6 +6,7 @@
 import { calculateGscComplianceScore } from "@/lib/domain/giam-sat-chung.domain";
 import {
   computeScore,
+  scoreTyLe,
   type GsttCachTinhDiem,
   type GsttScoringInputItem,
   type GsttScoringSessionMeta,
@@ -52,12 +53,46 @@ export function mapChecklistToScoringInput(
 export type GscFormProgress = {
   evaluated: number;
   total: number;
-  /** % tuân thủ khi TY_LE / legacy; null khi không áp dụng */
+  /** % tuân thủ (đạt / tiêu chí áp dụng); null khi NHAT_KY hoặc chưa đánh giá */
   rate: number | null;
   scoreLabel: string;
   scoreClassName: string;
   duLieuNghiVan?: boolean;
 };
+
+function gscRatioTier(pct: number): { label: string; className: string } {
+  if (pct >= 90) return { label: "Tốt", className: "text-emerald-700" };
+  if (pct >= 80) return { label: "Đạt", className: "text-amber-600" };
+  return { label: "Không đạt", className: "text-red-600" };
+}
+
+function buildGscRatioFormProgress(
+  evaluated: number,
+  total: number,
+  items: readonly GsttScoringInputItem[],
+  duLieuNghiVan: boolean,
+): GscFormProgress {
+  if (evaluated === 0) {
+    return {
+      evaluated,
+      total,
+      rate: null,
+      scoreLabel: "Chưa đánh giá",
+      scoreClassName: "text-slate-500",
+      duLieuNghiVan,
+    };
+  }
+  const pct = scoreTyLe(items);
+  const tier = gscRatioTier(pct);
+  return {
+    evaluated,
+    total,
+    rate: pct,
+    scoreLabel: `${formatPercent2(pct)} · ${tier.label}`,
+    scoreClassName: tier.className,
+    duLieuNghiVan,
+  };
+}
 
 export function previewGscFormProgress(
   results: readonly ChecklistResult[],
@@ -163,6 +198,43 @@ export type GscHistoryScoreDisplay = {
   title?: string;
 };
 
+/** % tuân thủ từ counts view — khớp RPC dashboard (`tong_dat / tong_quan_sat`). */
+export function gscCompliancePercentFromCounts(
+  tongQuanSat: unknown,
+  tongDat: unknown,
+): number | null {
+  const total = Number(tongQuanSat ?? NaN);
+  const dat = Number(tongDat ?? NaN);
+  if (!Number.isFinite(total) || total <= 0 || !Number.isFinite(dat)) return null;
+  return roundPercent2((dat / total) * 100);
+}
+
+/**
+ * % hiển thị cột lịch sử — ưu tiên counts live từ `results_jsonb` (view),
+ * fallback cờ/tong_diem khi thiếu counts (phiên cũ).
+ */
+export function resolveGscHistoryCompliancePercent(
+  row: Record<string, unknown>,
+  cach: GsttCachTinhDiem | null,
+): number | null {
+  const fromCounts = gscCompliancePercentFromCounts(row.tong_quan_sat, row.tong_dat);
+  if (fromCounts != null) return fromCounts;
+
+  const tong = row.tong_diem;
+  const tongNum = tong == null || tong === "" ? null : Number(tong);
+
+  if (cach === "TRON_GOI") {
+    if (row.dat_tron_goi === true) return 100;
+    if (row.dat_tron_goi === false) return 0;
+  }
+  if (cach === "DAT_KHONG_DAT") {
+    if (tongNum === 100) return 100;
+    if (tongNum === 0) return 0;
+  }
+  if (Number.isFinite(tongNum)) return tongNum!;
+  return null;
+}
+
 /** Cột lịch sử — hiển thị % tuân thủ (2 chữ số thập phân). */
 export function formatGscHistoryScore(row: Record<string, unknown>): GscHistoryScoreDisplay {
   const cach =
@@ -179,24 +251,7 @@ export function formatGscHistoryScore(row: Record<string, unknown>): GscHistoryS
     };
   }
 
-  const tongQuanSat = Number(row.tong_quan_sat ?? NaN);
-  const tongDat = Number(row.tong_dat ?? NaN);
-  const tong = row.tong_diem;
-  const tongNum = tong == null || tong === "" ? null : Number(tong);
-  const datTronGoi = row.dat_tron_goi;
-
-  let pct: number | null = null;
-  if (cach === "TRON_GOI") {
-    if (datTronGoi === true) pct = 100;
-    else if (datTronGoi === false) pct = 0;
-  } else if (cach === "DAT_KHONG_DAT") {
-    if (tongNum === 100) pct = 100;
-    else if (tongNum === 0) pct = 0;
-  } else if (Number.isFinite(tongQuanSat) && tongQuanSat > 0 && Number.isFinite(tongDat)) {
-    pct = roundPercent2((tongDat / tongQuanSat) * 100);
-  } else if (Number.isFinite(tongNum)) {
-    pct = tongNum!;
-  }
+  const pct = resolveGscHistoryCompliancePercent(row, cach);
 
   if (pct == null) {
     return { label: "—", className: "text-slate-400" };

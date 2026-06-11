@@ -39,7 +39,7 @@ export default function BsiClinicalSubForm({
   const todayStr = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="space-y-4">
+    <div className={C.sectionGap}>
       {/* Pathogen Detail Group */}
       {activeTab === 'VI_SINH' && (
         <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3 animate-in fade-in">

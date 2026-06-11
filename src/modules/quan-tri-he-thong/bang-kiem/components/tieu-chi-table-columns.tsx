@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
 import type { TieuChiBangKiem } from "../bang-kiem.types";
+import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
 
 type ActionUi = {
   renderStatusCell: (tc: TieuChiBangKiem) => ReactNode;
@@ -12,32 +13,30 @@ type ActionUi = {
 export function getTieuChiTableColumns(actionUi: ActionUi): Column<TieuChiBangKiem>[] {
   return [
     {
-      header: "STT",
+      header: TH.stt,
       accessorKey: "stt",
       sortable: true,
-      cell: (tc) => <span className="font-black text-slate-400">{tc.stt}</span>,
+      cell: (tc) => <span className={TC.cellIndex}>{tc.stt}</span>,
     },
     {
-      header: "Nội dung tiêu chí",
+      header: TH.criteriaContent,
       accessorKey: "noi_dung",
       sortable: true,
       cell: (tc) => (
-        <div className="w-full py-2 min-w-[200px]">
-          <div className="text-xs font-black text-slate-700 leading-relaxed uppercase tracking-tight whitespace-normal">
-            {String(tc.noi_dung ?? "")}
-          </div>
-          {tc.ghi_chu && (
-            <div className="text-[11px] text-slate-400 mt-1 italic">Lưu ý: {String(tc.ghi_chu)}</div>
-          )}
+        <div className="w-full min-w-[200px] py-2">
+          <div className={`${TC.cellBody} whitespace-normal`}>{String(tc.noi_dung ?? "")}</div>
+          {tc.ghi_chu ? (
+            <div className={`${TC.cellNote} mt-1`}>Lưu ý: {String(tc.ghi_chu)}</div>
+          ) : null}
         </div>
       ),
     },
     {
-      header: "Trạng thái",
+      header: TH.status,
       accessorKey: "is_active",
       sortable: true,
       cell: (tc) => actionUi.renderStatusCell(tc),
     },
-    { header: "Quản lý", accessorKey: "id", cell: (tc) => actionUi.renderManagementCell(tc) },
+    { header: TH.manage, accessorKey: "id", cell: (tc) => actionUi.renderManagementCell(tc) },
   ];
 }

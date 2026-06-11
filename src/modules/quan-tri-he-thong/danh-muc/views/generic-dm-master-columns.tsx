@@ -3,6 +3,7 @@
 import React from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
+import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
 
 export type GenericDmRow = { id: string } & Record<string, unknown>;
 
@@ -17,32 +18,30 @@ export function buildGenericDmColumns(
 ): Column<GenericDmRow>[] {
   const showActions = canMutate || (canDelete && onSoftDelete);
   return [
-    { 
-      header: "Mã", 
+    {
+      header: "Mã",
       accessorKey: maCol, 
       sortable: true,
       headerClassName: "w-[18%] min-w-[5.5rem]",
       cellClassName: "align-middle",
       cell: (row) => (
-        <span className="font-mono text-[11px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded-lg border border-slate-200/50">
+        <span className={`${TC.cellCode} rounded-lg border border-slate-200/50 bg-slate-50 px-2 py-1`}>
           {String(row[maCol] || "---")}
         </span>
       )
     },
     { 
-      header: "Tên danh mục", 
+      header: "Tên danh mục",
       accessorKey: tenCol, 
       sortable: true,
       headerClassName: "min-w-0 w-[38%]",
       cellClassName: "min-w-0 align-middle",
       cell: (row) => (
-        <span className="block truncate text-[11px] font-semibold uppercase tracking-wide tracking-tight text-[var(--primary)]">
-          {String(row[tenCol] || "---")}
-        </span>
+        <span className={`block truncate ${TC.cellTitle}`}>{String(row[tenCol] || "---")}</span>
       )
     },
     {
-      header: "Trạng thái",
+      header: TH.status,
       accessorKey: "is_active",
       sortable: true,
       headerClassName: "w-[15%] min-w-[7rem]",
@@ -50,7 +49,7 @@ export function buildGenericDmColumns(
       cell: (row) => (
         <div className="flex items-center gap-1.5">
           <div className={`w-1.5 h-1.5 rounded-full ${row.is_active ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" : "bg-slate-300"}`} />
-          <span className={`text-[11px] font-semibold uppercase tracking-wide ${row.is_active ? "text-emerald-600" : "text-slate-400"}`}>
+          <span className={`text-[11px] font-medium ${row.is_active ? "text-emerald-600" : "text-slate-400"}`}>
             {row.is_active ? "Đang dùng" : "Tạm ngưng"}
           </span>
         </div>
@@ -63,13 +62,13 @@ export function buildGenericDmColumns(
       headerClassName: "w-[14%] whitespace-nowrap",
       cellClassName: "whitespace-nowrap align-middle",
       cell: (row) => (
-        <span className="text-[11px] font-bold text-slate-400 uppercase italic">
+        <span className="text-[11px] font-normal text-slate-400 italic">
           {row.updated_at ? new Date(String(row.updated_at)).toLocaleDateString("vi-VN") : "---"}
         </span>
       )
     },
     {
-      header: "Thao tác",
+      header: TH.manage,
       accessorKey: "id",
       headerClassName: "w-[15%] min-w-[5.5rem] text-right",
       cellClassName: "text-right align-middle",
@@ -98,7 +97,7 @@ export function buildGenericDmColumns(
             )}
           </div>
         ) : (
-          <span className="text-[11px] font-bold uppercase text-slate-300">—</span>
+          <span className="text-[11px] font-medium text-slate-400">—</span>
         ),
     },
   ];

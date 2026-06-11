@@ -144,7 +144,7 @@ export default function VSTPersonColumn({
   return (
     <div className="flex min-h-0 max-h-[min(82dvh,calc(100dvh-13rem))] flex-col overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-sm print:max-h-none print:overflow-visible">
       <div className="shrink-0 border-b border-slate-100 bg-slate-50/60 px-4 py-3 print:border-b-0">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)]">Nhân viên {pIdx + 1}</p>
+        <p className="font-mono text-[11px] font-medium text-[var(--primary)]">Nhân viên {pIdx + 1}</p>
 
         <div className="mt-3 space-y-3">
           <div className="space-y-1">

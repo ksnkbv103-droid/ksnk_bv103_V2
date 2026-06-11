@@ -1,6 +1,8 @@
 // src/modules/cssd-erp/components/inventory/InventoryIssueModal.tsx
 "use client";
 
+import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+
 import React, { useState } from "react";
 import { X, Camera, AlertTriangle, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
@@ -49,8 +51,8 @@ export default function InventoryIssueModal({ isOpen, onClose, tool, onSuccess }
           <div className="flex items-center gap-4">
             <div className="bg-red-500 p-3 rounded-2xl text-white shadow-lg"><AlertTriangle size={24} /></div>
             <div>
-              <h4 className="font-black uppercase tracking-[0.2em] text-xs text-red-600">Báo cáo Sự cố Kho</h4>
-              <p className="text-[11px] font-bold text-slate-300 uppercase tracking-widest mt-1">{tool.ma_vach_qr}</p>
+              <h4 className={`${UI.modalTitle} text-red-600`}>Báo cáo sự cố kho</h4>
+              <p className={`${UI.innerTableCode} mt-1 text-slate-400`}>{tool.ma_vach_qr}</p>
             </div>
           </div>
           <button onClick={onClose} className="w-12 h-12 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center border border-slate-100 active:scale-90 transition-all"><X size={24} /></button>
@@ -62,7 +64,7 @@ export default function InventoryIssueModal({ isOpen, onClose, tool, onSuccess }
             <button type="button" onClick={() => setReason("MAT")} className={`flex-1 h-16 rounded-2xl border-2 font-black text-[11px] uppercase transition-all ${reason === 'MAT' ? 'bg-slate-800 border-slate-800 text-white' : 'bg-slate-50 border-slate-50 text-slate-400'}`}>Dụng cụ Mất</button>
           </div>
 
-          <div className="space-y-4">
+          <div className={UI.sectionGap}>
             <button type="button" className="w-full h-24 bg-slate-50 border-4 border-dashed border-slate-100 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-300 hover:text-[var(--primary)] hover:border-[var(--primary)]/20 transition-all active:scale-[0.98]">
               <Camera size={32} />
               <span className="text-[11px] font-semibold uppercase tracking-wide">Chụp ảnh minh chứng</span>
@@ -70,7 +72,7 @@ export default function InventoryIssueModal({ isOpen, onClose, tool, onSuccess }
             <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Nhập lý do hỏng/mất hoặc ghi chú chi tiết..." className="w-full p-6 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-medium outline-none focus:border-[var(--primary)] resize-none h-32 transition-all" />
           </div>
 
-          <button type="submit" disabled={loading} className="w-full h-20 bg-red-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-red-100 active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-4">
+          <button type="submit" disabled={loading} className={`w-full h-20 bg-red-600 text-white rounded-2xl ${UI.btnTouch} shadow-xl shadow-red-100 active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center gap-4`}>
             {loading ? <Loader2 className="animate-spin" size={28} /> : <><CheckCircle2 size={24} /> GỬI BÁO CÁO</>}
           </button>
         </form>

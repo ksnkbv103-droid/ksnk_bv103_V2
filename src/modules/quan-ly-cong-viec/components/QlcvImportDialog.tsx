@@ -18,10 +18,10 @@ type Props = {
 const TEMPLATE_HEADERS = [
   { header: "Tiêu đề*", key: "tieu_de" },
   { header: "Mô tả", key: "mo_ta" },
-  { header: "Loại (DINH_KY|DOT_XUAT|KHAN_CAP)", key: "loai_cong_viec" },
-  { header: "Ưu tiên (THAP|TRUNG_BINH|CAO)", key: "muc_do_uu_tien" },
-  { header: "Hạn (YYYY-MM-DD)", key: "han_hoan_thanh" },
-  { header: "Mã NV phụ trách*", key: "ma_nv" },
+  { header: "Loại (dinh_ky|dot_xuat|khan_cap)", key: "loai_cong_viec" },
+  { header: "Ưu tiên (thap|trung_binh|cao)", key: "muc_do_uu_tien" },
+  { header: "Hạn (yyyy-mm-dd)", key: "han_hoan_thanh" },
+  { header: "Mã nv phụ trách*", key: "ma_nv" },
   { header: "Mã khoa", key: "ma_khoa" },
   { header: "Mã tổ", key: "ma_to" },
 ];

@@ -75,7 +75,7 @@ function GscAnalyticsBody({
   );
 
   return (
-    <div className="space-y-4">
+    <div className={C.sectionGap}>
       {title ? (
         <h3 className="border-b border-slate-200 pb-2 text-base font-bold text-slate-800">{title}</h3>
       ) : null}
@@ -186,7 +186,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       ) : null}
 
       {clusterEntries.length > 0 ? (
-        <div className="space-y-8">
+        <div className={C.sectionGapLg ?? C.sectionGap}>
           {clusterEntries.map(([ma, clusterPayload]) => (
             <GscAnalyticsBody
               key={ma}

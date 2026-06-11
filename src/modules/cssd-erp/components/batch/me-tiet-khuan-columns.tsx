@@ -2,29 +2,35 @@
 "use client";
 
 import type { Column } from "@/components/shared/AdvancedDataTable";
+import {
+  CSSD_UI_CELL_CODE,
+  CSSD_UI_CELL_BODY,
+  CSSD_UI_CELL_INDEX,
+  CSSD_UI_CELL_META,
+} from "../../shared/ui/cssd-ui-chrome";
 
 export const meTietKhuanBatchColumns: Column<any>[] = [
   {
-    header: "MÃ LÔ",
+    header: "Mã lô",
     accessorKey: "ma_lo_tiet_khuan",
-    cell: (i: any) => <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)]">{i.ma_lo_tiet_khuan}</span>,
+    cell: (i: any) => <span className={CSSD_UI_CELL_CODE}>{i.ma_lo_tiet_khuan}</span>,
   },
   {
-    header: "SỐ BỘ TRONG MẺ",
+    header: "Số bộ trong mẻ",
     accessorKey: "so_bo_trong_me",
     cell: (i: any) => (
-      <span className="text-[11px] font-black tabular-nums text-slate-700">
+      <span className={`${CSSD_UI_CELL_INDEX} tabular-nums text-slate-700`}>
         {typeof i.so_bo_trong_me === "number" ? i.so_bo_trong_me : 0}
       </span>
     ),
   },
   {
-    header: "THIẾT BỊ",
+    header: "Thiết bị",
     accessorKey: "thiet_bi.ten_thiet_bi",
-    cell: (i: any) => <span className="text-[11px] font-bold uppercase text-slate-600">{i.thiet_bi?.ten_thiet_bi || "N/A"}</span>,
+    cell: (i: any) => <span className={CSSD_UI_CELL_META}>{i.thiet_bi?.ten_thiet_bi || "N/A"}</span>,
   },
   {
-    header: "QC TEST",
+    header: "Qc test",
     accessorKey: "ket_qua_test",
     cell: (i: any) => (
       <span
@@ -37,7 +43,7 @@ export const meTietKhuanBatchColumns: Column<any>[] = [
     ),
   },
   {
-    header: "TRẠNG THÁI",
+    header: "Trạng thái",
     accessorKey: "trang_thai",
     cell: (i: any) => {
       const state = String(i.trang_thai || "");
@@ -57,8 +63,8 @@ export const meTietKhuanBatchColumns: Column<any>[] = [
     },
   },
   {
-    header: "GHI CHÚ",
+    header: "Ghi chú",
     accessorKey: "ghi_chu",
-    cell: (i: any) => <span className="block max-w-[150px] truncate text-[11px] text-slate-500">{i.ghi_chu || "---"}</span>,
+    cell: (i: any) => <span className={`block max-w-[150px] truncate ${CSSD_UI_CELL_META}`}>{i.ghi_chu || "---"}</span>,
   },
 ];

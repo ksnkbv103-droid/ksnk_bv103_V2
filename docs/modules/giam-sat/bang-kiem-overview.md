@@ -18,6 +18,8 @@
 | `NHAT_KY` | Nhật ký / Hawthorne — không % tuân thủ | `giam-sat-scoring.ts` |
 | *(NULL)* | Bảng cũ chưa backfill | `calculateGscComplianceScore` (legacy) |
 
+SSOT audit 36 mẫu (code): `src/lib/domain/gsc-canonical-36-scoring.ts` · CLI: `node scripts/audit-gsc-canonical-36-scoring.mjs`
+
 Lộ trình gỡ legacy: [`../../wiki/concepts.md`](../../wiki/concepts.md#gsc-scoring).
 
 ## Data files (không mở tay)

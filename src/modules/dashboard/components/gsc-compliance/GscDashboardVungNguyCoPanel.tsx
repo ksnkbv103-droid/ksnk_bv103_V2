@@ -63,7 +63,7 @@ export function GscDashboardVungNguyCoPanel({ rows }: Props) {
               >
                 <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className={`rounded px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${khuVucZoneBadgeClass(zone)}`}>
+                    <span className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${khuVucZoneBadgeClass(zone)}`}>
                       {zone}
                     </span>
                     <h4 className={`text-xs font-bold truncate ${colors.text}`}>{v.ten_khu_vuc}</h4>

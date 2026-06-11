@@ -26,7 +26,7 @@ export function DmMasterPageGuard({
     return (
       <div className="mx-auto max-w-xl rounded-3xl border border-slate-200 bg-white p-10 text-center">
         <p className="font-black uppercase tracking-widest text-slate-400 text-sm">Không có quyền truy cập</p>
-        <p className="mt-2 text-xs font-bold text-slate-500">{label}</p>
+        <p className="mt-2 text-xs text-[11px] font-medium text-slate-500">{label}</p>
       </div>
     );
   }

@@ -32,14 +32,14 @@ export function MdmActiveToggle({
   );
 
   const left = cn(
-    "flex min-w-0 flex-1 items-center justify-center rounded-md px-1 py-1 font-semibold uppercase tracking-wide transition-colors duration-150",
+    "flex min-w-0 flex-1 items-center justify-center rounded-md px-1 py-1 text-[11px] font-medium transition-colors duration-150",
     textSize,
     !active
       ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/75"
       : "text-slate-500",
   );
   const right = cn(
-    "flex min-w-0 flex-1 items-center justify-center rounded-md px-1 py-1 font-semibold uppercase tracking-wide transition-colors duration-150",
+    "flex min-w-0 flex-1 items-center justify-center rounded-md px-1 py-1 text-[11px] font-medium transition-colors duration-150",
     textSize,
     active
       ? "bg-[var(--primary)] text-white shadow-sm ring-1 ring-black/10"
@@ -91,7 +91,7 @@ export function MdmFormActiveToggleRow({
 }) {
   return (
     <div className="space-y-1">
-      <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Trạng thái hoạt động</div>
+      <div className="text-[11px] font-medium text-slate-500">Trạng thái hoạt động</div>
       <MdmActiveToggle
         active={active}
         onToggle={disabled ? undefined : () => onChange(!active)}

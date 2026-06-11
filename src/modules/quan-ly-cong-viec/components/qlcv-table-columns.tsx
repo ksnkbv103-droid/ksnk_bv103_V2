@@ -6,6 +6,7 @@ import { resolveQlcvWorkflowBadgeAppearance } from "../lib/qlcv-workflow-badge";
 import { formatMucDoUuTienLabel } from "../lib/qlcv-labels";
 import { canShowDeleteTask, canShowEditTaskMetadata, type QlcvUiAccessFlags } from "../lib/qlcv-access";
 import type { CongViecView } from "../types";
+import { qlcvTableChrome as Q } from "../lib/qlcv-table-chrome";
 
 export type QlcvTableColumnHandlers = {
   qlcvUi: QlcvUiAccessFlags;
@@ -23,8 +24,8 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
       cellClassName: "min-w-0 align-top",
       cell: (row: CongViecView) => (
         <div className="flex flex-col gap-0.5 py-1 text-left">
-          <span className="font-semibold text-slate-800">{row.tieu_de}</span>
-          <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
+          <span className={Q.cellTitle}>{row.tieu_de}</span>
+          <span className={Q.cellMeta}>
             {row.loai_cong_viec || "—"}
           </span>
         </div>
@@ -37,7 +38,7 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
       headerClassName: "w-[12%] min-w-[6.5rem]",
       cellClassName: "align-middle",
       cell: (row: CongViecView) => (
-        <span className="text-sm text-slate-700">{row.nguoi_giao_ten || row.nguoi_tao_ten || "—"}</span>
+        <span className={Q.cellBody}>{row.nguoi_giao_ten || row.nguoi_tao_ten || "—"}</span>
       ),
       sortable: true,
     },
@@ -47,12 +48,12 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
       headerClassName: "w-[12%] min-w-[6.5rem]",
       cellClassName: "align-middle",
       cell: (row: CongViecView) => (
-        <span className="text-sm font-medium text-slate-800">{row.nguoi_phu_trach_ten || "—"}</span>
+        <span className={Q.cellTitle}>{row.nguoi_phu_trach_ten || "—"}</span>
       ),
       sortable: true,
     },
     {
-      header: "Cổng / trách nhiệm",
+      header: "Cổng / Trách nhiệm",
       accessorKey: "trang_thai",
       headerClassName: "min-w-[9rem] w-[14%]",
       cellClassName: "align-middle",

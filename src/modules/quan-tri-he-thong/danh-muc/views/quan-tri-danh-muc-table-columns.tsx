@@ -4,6 +4,8 @@ import React from "react";
 import { ArrowRight, Clock } from "lucide-react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
 import type { DanhMucStat } from "../actions/danh-muc-hybrid.types";
+import { quanTriTableChrome as TC } from "../../lib/quan-tri-table-chrome";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
 export type MasterCardRow = {
   id: string;
@@ -24,14 +26,13 @@ export type HubRegistryRow = {
 
 function StatusPill() {
   return (
-    <span className="inline-flex items-center rounded-lg bg-emerald-50 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-emerald-800 ring-1 ring-inset ring-emerald-600/15">
+    <span className="inline-flex items-center rounded-lg bg-[var(--surface-success-bg)] px-2 py-0.5 text-[11px] font-medium text-[var(--surface-success-text)] ring-1 ring-inset ring-emerald-600/15">
       Hoạt động
     </span>
   );
 }
 
-const openBtnClass =
-  "bv103-control-h inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--primary)] px-3 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2";
+const openBtnClass = T.btnPrimary;
 
 export function buildMasterHubColumns(onOpen: (path: string) => void): Column<MasterCardRow>[] {
   return [
@@ -46,7 +47,7 @@ export function buildMasterHubColumns(onOpen: (path: string) => void): Column<Ma
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-50 ring-1 ring-slate-200/80">
             {r.icon}
           </div>
-          <span className="text-sm font-semibold leading-snug text-slate-900">{r.name}</span>
+          <span className={TC.cellTitle}>{r.name}</span>
         </div>
       ),
     },
@@ -116,7 +117,7 @@ export function buildRegistryColumns(onOpen: (path: string) => void): Column<Hub
             {r.icon}
           </div>
           <div className="min-w-0">
-            <div className="truncate text-sm font-semibold text-slate-900">{r.name}</div>
+            <div className={`truncate ${TC.cellTitle}`}>{r.name}</div>
             {r.subtitle ? (
               <div className="truncate font-mono text-[11px] font-medium text-slate-500">{r.subtitle}</div>
             ) : null}

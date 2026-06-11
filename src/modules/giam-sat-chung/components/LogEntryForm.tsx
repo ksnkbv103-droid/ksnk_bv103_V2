@@ -100,7 +100,7 @@ export default function LogEntryForm({
               : "Không có ngưỡng quy định"}
       </p>
       {isOOR ? (
-        <p className="text-[11px] font-bold uppercase tracking-wider text-rose-600">
+        <p className="text-[11px] font-medium text-rose-600">
           ⚠ Giá trị ngoài ngưỡng — sẽ được đánh dấu nghi vấn ở dashboard.
         </p>
       ) : null}

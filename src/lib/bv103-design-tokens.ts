@@ -27,6 +27,13 @@ export const bv103DesignTokens = {
   labelBlock: "text-[11px] font-medium text-slate-500",
   labelBlockMuted: "text-[11px] font-medium text-slate-400",
   tableHeader: "text-[11px] font-medium text-slate-500",
+  /** Ô bảng — dùng qua *-table-chrome / *-ui-chrome, không inline */
+  tableCellCode: "font-mono text-[11px] font-medium text-[var(--primary)]",
+  tableCellTitle: "text-sm font-semibold leading-snug text-slate-800",
+  tableCellBody: "text-sm font-medium leading-relaxed text-slate-700",
+  tableCellNote: "text-[11px] font-normal italic leading-relaxed text-slate-400",
+  tableCellIndex: "text-[11px] font-medium text-slate-400",
+  tableCellMeta: "text-[11px] font-medium text-slate-500",
   metaMono: "text-[11px] font-mono font-medium text-slate-400",
   statValue: "text-2xl font-semibold tabular-nums text-slate-900",
   statValueLg: "text-3xl font-semibold tabular-nums text-slate-900",

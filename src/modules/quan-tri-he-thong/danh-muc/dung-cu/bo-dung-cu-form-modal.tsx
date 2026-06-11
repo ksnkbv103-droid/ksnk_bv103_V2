@@ -72,7 +72,7 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
       >
         <div className="flex justify-between items-start gap-4">
           <div>
-            <h3 className="text-sm font-black text-[var(--primary)] uppercase tracking-widest">
+            <h3 className={C.modalTitleLight}>
               {isEdit ? "Cập nhật bộ dụng cụ" : "Thêm bộ dụng cụ"}
             </h3>
             <p className="text-[11px] text-slate-400 font-semibold mt-1">Điền thông tin theo dữ liệu master kho và phân loại.</p>

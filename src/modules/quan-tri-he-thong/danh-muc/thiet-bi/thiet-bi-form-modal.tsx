@@ -71,7 +71,7 @@ export default function ThietBiFormModal({
         className="bg-white w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-[var(--radius-shell)] p-8 space-y-4 shadow-2xl border-t-[6px] border-[var(--primary)]"
       >
         <div className="flex justify-between items-start gap-4">
-          <h3 className="text-sm font-black text-[var(--primary)] uppercase tracking-widest">
+          <h3 className={C.modalTitleLight}>
             {isEdit ? "Cập nhật thiết bị và máy" : "Thêm thiết bị và máy"}
           </h3>
           <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-red-600 rounded-xl -mr-2">

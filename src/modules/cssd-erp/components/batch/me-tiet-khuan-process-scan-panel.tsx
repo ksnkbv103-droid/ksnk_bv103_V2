@@ -1,5 +1,7 @@
 "use client";
 
+import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+
 import React, { useEffect, useRef } from "react";
 import { Scan } from "lucide-react";
 
@@ -40,9 +42,9 @@ export default function MeTietKhuanProcessScanPanel({
     <div className="flex h-full min-h-[320px] flex-col rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
       <div className="mb-4 flex items-center gap-3">
         <Scan className="text-[var(--primary)]" />
-        <h3 className="text-sm font-black uppercase tracking-widest text-slate-800">Đưa bộ vào phiếu TK</h3>
+        <h3 className={UI.panelTitle}>Đưa bộ vào phiếu TK</h3>
       </div>
-      <p className="mb-3 text-[11px] font-bold uppercase leading-relaxed text-slate-500">
+      <p className="mb-3 text-[11px] font-medium leading-relaxed text-slate-500">
         Chỉ quét bộ đang ở <span className="text-[var(--primary)]">ĐÓNG GÓI</span> và chưa gán mẻ khác. Sau khi{" "}
         <span className="text-red-600">xác nhận bắt đầu tiệt khuẩn</span> hệ thống khóa, không nạp thêm được.
       </p>
@@ -70,7 +72,7 @@ export default function MeTietKhuanProcessScanPanel({
           return (
             <div key={it.id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 p-4">
               <div className="min-w-0">
-                <span className="block truncate text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)]">{it.ma_vach_qr}</span>
+                <span className="block truncate font-mono text-[11px] font-medium text-[var(--primary)]">{it.ma_vach_qr}</span>
                 <span className="text-xs font-bold uppercase text-slate-700">{it.bo?.ten_bo || "Bộ dụng cụ"}</span>
               </div>
               <span className={`shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide ${tone}`}>{label}</span>

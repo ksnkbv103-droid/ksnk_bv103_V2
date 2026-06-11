@@ -7,6 +7,7 @@ import { Column } from "@/components/shared/AdvancedDataTable";
 import { formatGscHistoryScore } from "../lib/gsc-score-display";
 import { gscSessionDisplayRef } from "../lib/gsc-display-ref";
 import type { GscHistoryRow } from "../lib/gsc-read-utils";
+import { gscTableChrome as G } from "../lib/gsc-table-chrome";
 
 /**
  * Trả về mảng column config cho HistoryTable Giám sát chung
@@ -35,7 +36,7 @@ export function getGSCHistoryColumns(
         const timeLine = tObj && Number.isFinite(tObj.getTime()) ? format(tObj, "HH:mm") : null;
         return (
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-slate-700">{dateLine}</p>
+            <p className={`text-xs ${G.cellBody}`}>{dateLine}</p>
             {timeLine && <p className="text-[11px] text-slate-400 mt-0.5">{timeLine}</p>}
           </div>
         );
@@ -48,7 +49,7 @@ export function getGSCHistoryColumns(
       headerClassName: "w-[9.5rem] min-w-[9.5rem]",
       cellClassName: "w-[9.5rem] min-w-[9.5rem]",
       cell: (s: { id?: string; ngay_giam_sat?: string; ma_hien_thi?: string }) => (
-        <span className="font-mono text-[11px] font-semibold text-slate-600 truncate block max-w-full">
+        <span className={`${G.cellCode} truncate block max-w-full text-slate-600`}>
           {s.ma_hien_thi || (s.id ? gscSessionDisplayRef(s.id, s.ngay_giam_sat) : "—")}
         </span>
       ),
@@ -65,7 +66,7 @@ export function getGSCHistoryColumns(
         const showMa = ma && ma !== ten;
         return (
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-slate-800 leading-snug line-clamp-2" title={ten}>{ten}</p>
+            <p className={`text-xs ${G.cellTitle} line-clamp-2`} title={ten}>{ten}</p>
             {showMa && <p className="text-[11px] font-mono text-slate-400 mt-0.5 truncate" title={ma}>{ma}</p>}
           </div>
         );
@@ -99,7 +100,7 @@ export function getGSCHistoryColumns(
       },
     },
     {
-      header: "Người GS",
+      header: "Người gs",
       accessorKey: "nguoi_giam_sat_id",
       sortable: true,
       headerClassName: "w-[11rem] min-w-[11rem]",

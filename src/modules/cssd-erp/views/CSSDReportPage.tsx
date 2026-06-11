@@ -179,21 +179,21 @@ function CSSDReportPageInner() {
             </div>
             <AdvancedDataTable
               columns={[
-                { header: "MÃ QR", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-black text-[var(--primary)]">{v.ma_vach_qr}</span> },
+                { header: "Mã qr", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-mono text-[11px] font-medium text-[var(--primary)]">{v.ma_vach_qr}</span> },
                 {
-                  header: "TRẠM CUỐI",
+                  header: "Trạm cuối",
                   accessorKey: "trang_thai_hien_tai",
-                  cell: (v: any) => <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold uppercase text-slate-600">{v.trang_thai_hien_tai?.replace(/_/g, " ")}</span>,
+                  cell: (v: any) => <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-medium text-slate-500">{v.trang_thai_hien_tai?.replace(/_/g, " ")}</span>,
                 },
                 {
-                  header: "CẢNH BÁO",
+                  header: "Cảnh báo",
                   accessorKey: "is_red_alert",
-                  cell: (v: any) => (v.is_red_alert ? <span className="font-black text-red-600">Cảnh báo đỏ</span> : <span className="text-[11px] font-bold uppercase text-emerald-600">Bình thường</span>),
+                  cell: (v: any) => (v.is_red_alert ? <span className="font-mono text-[11px] font-medium text-red-600">Cảnh báo đỏ</span> : <span className="text-[11px] font-bold uppercase text-emerald-600">Bình thường</span>),
                 },
                 {
-                  header: "NGÀY TẠO",
+                  header: "Ngày tạo",
                   accessorKey: "created_at",
-                  cell: (v: any) => <span className="font-bold text-slate-500">{new Date(v.created_at).toLocaleDateString("vi-VN")}</span>,
+                  cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{new Date(v.created_at).toLocaleDateString("vi-VN")}</span>,
                 },
               ]}
               data={raw.quyTrinh}
@@ -220,11 +220,11 @@ function CSSDReportPageInner() {
             </div>
             <AdvancedDataTable
               columns={[
-                { header: "MÃ QR", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-black text-red-600">{v.ma_vach_qr || "—"}</span> },
-                { header: "NHÓM", accessorKey: "incident_group_label", cell: (v: any) => <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-bold">{v.incident_group_label}</span> },
-                { header: "LOẠI CHI TIẾT", accessorKey: "loai_su_co", cell: (v: any) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
-                { header: "KHÂU PHÁT HIỆN", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-bold uppercase text-slate-600">{String(v.tram_phat_hien || "Không áp dụng").replace(/_/g, " ")}</span> },
-                { header: "KHÂU GÂY LỖI", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-bold uppercase text-amber-700">{String(v.tram_gay_loi || "Không áp dụng").replace(/_/g, " ")}</span> },
+                { header: "Mã qr", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-mono text-[11px] font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
+                { header: "Nhóm", accessorKey: "incident_group_label", cell: (v: any) => <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium">{v.incident_group_label}</span> },
+                { header: "Loại chi tiết", accessorKey: "loai_su_co", cell: (v: any) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
+                { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{String(v.tram_phat_hien || "Không áp dụng").replace(/_/g, " ")}</span> },
+                { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{String(v.tram_gay_loi || "Không áp dụng").replace(/_/g, " ")}</span> },
               ]}
               data={raw.suCo}
               loading={loading}
@@ -241,12 +241,12 @@ function CSSDReportPageInner() {
           </div>
           <AdvancedDataTable
             columns={[
-              { header: "MÃ QR", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-black text-red-600">{v.ma_vach_qr || "—"}</span> },
-              { header: "LOẠI LỖI", accessorKey: "loai_su_co", cell: (v: any) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
-              { header: "KHÂU PHÁT HIỆN", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-bold uppercase text-slate-600">{String(v.tram_phat_hien || "Không áp dụng").replace(/_/g, " ")}</span> },
-              { header: "KHÂU GÂY LỖI", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-bold uppercase text-amber-700">{String(v.tram_gay_loi || "Không áp dụng").replace(/_/g, " ")}</span> },
-              { header: "NGƯỜI THAO TÁC", accessorKey: "fault_operator", cell: (v: any) => <span className="font-medium text-slate-700">{v.fault_operator || "Chưa ghi nhận"}</span> },
-              { header: "THỜI GIAN", accessorKey: "created_at", cell: (v: any) => <span className="font-bold text-slate-500">{new Date(v.created_at).toLocaleString("vi-VN")}</span> },
+              { header: "Mã qr", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-mono text-[11px] font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
+              { header: "Loại lỗi", accessorKey: "loai_su_co", cell: (v: any) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
+              { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{String(v.tram_phat_hien || "Không áp dụng").replace(/_/g, " ")}</span> },
+              { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{String(v.tram_gay_loi || "Không áp dụng").replace(/_/g, " ")}</span> },
+              { header: "Người thao tác", accessorKey: "fault_operator", cell: (v: any) => <span className="font-medium text-slate-700">{v.fault_operator || "Chưa ghi nhận"}</span> },
+              { header: "Thời gian", accessorKey: "created_at", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{new Date(v.created_at).toLocaleString("vi-VN")}</span> },
             ]}
             data={processAccountabilityRows}
             loading={loading}

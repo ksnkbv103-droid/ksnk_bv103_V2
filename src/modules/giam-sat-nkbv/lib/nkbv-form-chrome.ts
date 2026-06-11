@@ -1,11 +1,13 @@
 /** Layout + typography chrome form/panel NKBV. */
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import { bv103PanelChrome as P } from "@/lib/bv103-panel-chrome";
 
 const touch = "touch-manipulation active:scale-[0.98]";
 
 export const nkbvFormChrome = {
   ...bv103LayoutChrome,
+  ...P,
   formLabel: `mb-1 block ${bv103LayoutChrome.labelField}`,
   formLabelFlex: `flex flex-col gap-1 ${bv103LayoutChrome.labelField}`,
   blockSection: `block ${bv103LayoutChrome.sectionTitle}`,

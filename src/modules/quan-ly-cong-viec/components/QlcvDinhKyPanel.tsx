@@ -1,5 +1,7 @@
 "use client";
 
+import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
+
 import React from "react";
 import { CalendarClock } from "lucide-react";
 import { KsnkSupervisionPanel } from "@/components/shared/ksnk-supervision-chrome";
@@ -25,11 +27,11 @@ const DINH_KY_STEPS = [
 
 export function QlcvDinhKyPanel() {
   return (
-    <KsnkSupervisionPanel className="space-y-5">
+    <KsnkSupervisionPanel className={UI.sectionGap}>
       <div className="flex items-start gap-3 rounded-2xl border border-emerald-100/90 bg-emerald-50/50 p-4">
         <CalendarClock className="mt-0.5 h-5 w-5 shrink-0 text-[var(--primary)]" aria-hidden />
-        <div className="min-w-0 space-y-3 text-sm text-slate-700">
-          <p className="font-semibold text-slate-900">Việc định kỳ — tách khỏi đề xuất / việc đột xuất</p>
+        <div className={`min-w-0 ${UI.sectionGap} text-sm text-slate-700`}>
+          <p className={UI.panelTitle}>Việc định kỳ — tách khỏi đề xuất / việc đột xuất</p>
           <p className="text-xs leading-relaxed">
             Mẫu không qua cổng phê duyệt đề xuất. Chỉ huy quản lý mẫu tại đây; nhân viên chỉ tick checklist trên phiếu
             đã sinh (tab Điều hành).

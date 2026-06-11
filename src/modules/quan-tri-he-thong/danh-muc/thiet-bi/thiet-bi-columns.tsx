@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
 import type { ThietBiRow } from "../actions/thiet-bi.types";
+import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
 
 interface ActionCells {
   renderStatusCell: (item: ThietBiRow) => ReactNode;
@@ -16,19 +17,19 @@ function clip(s: string | null | undefined, n: number) {
 export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
   return [
     {
-      header: "MÃ",
+      header: "Mã",
       accessorKey: "ma_thiet_bi",
       sortable: true,
-      cell: (i) => <span className="font-mono text-[11px] font-bold text-slate-700">{i.ma_thiet_bi || "—"}</span>,
+      cell: (i) => <span className={`${TC.cellCode} text-slate-700`}>{i.ma_thiet_bi || "—"}</span>,
     },
     {
-      header: "TÊN THIẾT BỊ",
+      header: "Tên thiết bị",
       accessorKey: "ten_thiet_bi",
       sortable: true,
-      cell: (i) => <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)]">{clip(i.ten_thiet_bi, 44)}</span>,
+      cell: (i) => <span className={TC.cellTitle}>{clip(i.ten_thiet_bi, 44)}</span>,
     },
     {
-      header: "LOẠI (MÃ)",
+      header: "Loại (mã)",
       accessorKey: "loai_thiet_bi",
       sortable: true,
       cell: (i) => (
@@ -38,7 +39,7 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       ),
     },
     {
-      header: "TRẠNG THÁI VẬN HÀNH",
+      header: "Trạng thái vận hành",
       accessorKey: "trang_thai",
       sortable: true,
       cell: (i) => {
@@ -68,14 +69,14 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       },
     },
     {
-      header: "TẦN SUẤT SỬ DỤNG",
+      header: "Tần suất sử dụng",
       accessorKey: "so_lan_su_dung",
       sortable: true,
       cell: (i) => {
         const count = i.so_lan_su_dung || 0;
         if (count > 0) {
           return (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-100 px-2 py-0.5 text-[11px] font-black text-amber-700 shadow-sm">
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-100 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-amber-700 shadow-sm">
               🔥 {count} mẻ
             </span>
           );
@@ -88,7 +89,7 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       },
     },
     {
-      header: "HÃNG / NĂM SX",
+      header: "Hãng / Năm sx",
       accessorKey: "hang_san_xuat",
       cell: (i) => (
         <span className="text-[11px] text-slate-600">
@@ -97,7 +98,7 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       ),
     },
     {
-      header: "ĐƯA VÀO SD",
+      header: "Đưa vào sd",
       accessorKey: "ngay_dua_vao_su_dung",
       sortable: true,
       cell: (i) => {
@@ -107,13 +108,13 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       },
     },
     {
-      header: "BK (NGÀY)",
+      header: "Bk (ngày)",
       accessorKey: "chu_ky_bao_tri_ngay",
       sortable: true,
       cell: (i) => <span className="text-[11px] font-bold">{i.chu_ky_bao_tri_ngay ?? "—"}</span>,
     },
     {
-      header: "BK GẦN / TIẾP",
+      header: "Bk gần / Tiếp",
       accessorKey: "ngay_bao_tri_gan_nhat",
       cell: (i) => (
         <span className="text-[11px] font-semibold text-slate-600">
@@ -123,18 +124,18 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       ),
     },
     {
-      header: "GHI CHÚ",
+      header: "Ghi chú",
       accessorKey: "ghi_chu",
       cell: (i) => <span className="text-[11px] text-slate-500">{clip(i.ghi_chu, 40)}</span>,
     },
     {
-      header: "HOẠT ĐỘNG",
+      header: TH.status,
       accessorKey: "is_active",
       sortable: true,
       cell: (i) => actionUi.renderStatusCell(i),
     },
     {
-      header: "QUẢN LÝ",
+      header: TH.manage,
       accessorKey: "id",
       cell: (i) => actionUi.renderManagementCell(i),
     },

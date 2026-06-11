@@ -142,7 +142,7 @@ export default function NkbvStayHistoryTable({
           </span>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="text-[11px] font-bold text-slate-500 block mb-1">
+              <label className="text-[11px] text-[11px] font-medium text-slate-500 block mb-1">
                 Chọn khoa phòng
               </label>
               <select
@@ -159,7 +159,7 @@ export default function NkbvStayHistoryTable({
               </select>
             </div>
             <div>
-              <label className="text-[11px] font-bold text-slate-500 block mb-1">
+              <label className="text-[11px] text-[11px] font-medium text-slate-500 block mb-1">
                 Từ ngày (Nhập khoa)
               </label>
               <input
@@ -172,7 +172,7 @@ export default function NkbvStayHistoryTable({
               />
             </div>
             <div>
-              <label className="text-[11px] font-bold text-slate-500 block mb-1">
+              <label className="text-[11px] text-[11px] font-medium text-slate-500 block mb-1">
                 Đến ngày (Để trống nếu là khoa hiện tại)
               </label>
               <input

@@ -214,7 +214,7 @@ export default function NkbvDashboardPanel({
             <div className="premium-card rounded-[36px] border border-slate-100 bg-white p-6 shadow-xl shadow-slate-200/40 space-y-6">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
                 <div>
-                  <h3 className="text-base font-black text-slate-800 flex items-center gap-2">
+                  <h3 className={`${C.sectionTitle} flex items-center gap-2`}>
                     <Activity className="h-5 w-5 text-[var(--primary)]" />
                     Chỉ số Dịch tễ học Lâm sàng & Kiểm soát rủi ro JCI (NHSN/CDC 2023)
                   </h3>
@@ -222,7 +222,7 @@ export default function NkbvDashboardPanel({
                     Phân tích tỷ suất nhiễm khuẩn và sử dụng thiết bị xâm lấn chuẩn hóa theo thời gian thực (DUR, SIR, SUR) không qua tổng hợp tĩnh.
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-2 text-[11px] font-bold uppercase text-slate-400 bg-slate-50 p-1.5 rounded-full border border-slate-100">
+                <div className="flex flex-wrap gap-2 text-[11px] font-medium text-slate-400 bg-slate-50 p-1.5 rounded-full border border-slate-100">
                   <span className="bg-white text-slate-700 px-3 py-1 rounded-full shadow-sm">DUR: Tỷ lệ sử dụng thiết bị</span>
                   <span className="bg-white text-slate-700 px-3 py-1 rounded-full shadow-sm">SIR: Tỷ số nhiễm khuẩn chuẩn hóa</span>
                   <span className="bg-white text-slate-700 px-3 py-1 rounded-full shadow-sm">SUR: Tỷ số sử dụng thiết bị chuẩn hóa</span>
@@ -261,7 +261,7 @@ export default function NkbvDashboardPanel({
                         <span className="rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
-                        <span className="text-2xl font-black text-slate-800">{totClabsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
+                        <span className="text-2xl font-semibold tabular-nums text-slate-800">{totClabsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
                         <span className="text-xs font-bold text-red-600">{clabsiRate} <span className="text-[11px] font-normal text-slate-400">/1000 CVC-days</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-semibold">
@@ -277,7 +277,7 @@ export default function NkbvDashboardPanel({
                         <span className="rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
-                        <span className="text-2xl font-black text-slate-800">{totCauti} <span className="text-xs font-normal text-slate-400">ca</span></span>
+                        <span className="text-2xl font-semibold tabular-nums text-slate-800">{totCauti} <span className="text-xs font-normal text-slate-400">ca</span></span>
                         <span className="text-xs font-bold text-amber-600">{cautiRate} <span className="text-[11px] font-normal text-slate-400">/1000 F-days</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-semibold">
@@ -289,11 +289,11 @@ export default function NkbvDashboardPanel({
                     {/* VAP Card */}
                     <div className="premium-card bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-3xl p-4 space-y-2 transition-all">
                       <div className="flex justify-between items-center">
-                        <span className="text-[11px] font-semibold uppercase tracking-wide text-teal-500 tracking-wider">Viêm phổi máy (VAP)</span>
+                        <span className="text-[11px] font-medium text-teal-600 tracking-wider">Viêm phổi máy (VAP)</span>
                         <span className="rounded-full bg-teal-100 text-teal-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
-                        <span className="text-2xl font-black text-slate-800">{totVap} <span className="text-xs font-normal text-slate-400">ca</span></span>
+                        <span className="text-2xl font-semibold tabular-nums text-slate-800">{totVap} <span className="text-xs font-normal text-slate-400">ca</span></span>
                         <span className="text-xs font-bold text-teal-600">{vapRate} <span className="text-[11px] font-normal text-slate-400">/1000 V-days</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-semibold">
@@ -305,11 +305,11 @@ export default function NkbvDashboardPanel({
                     {/* SSI Card */}
                     <div className="premium-card bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-3xl p-4 space-y-2 transition-all">
                       <div className="flex justify-between items-center">
-                        <span className="text-[11px] font-semibold uppercase tracking-wide text-blue-500 tracking-wider">Vết mổ (SSI)</span>
+                        <span className="text-[11px] font-medium text-blue-600 tracking-wider">Vết mổ (SSI)</span>
                         <span className="rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
-                        <span className="text-2xl font-black text-slate-800">{totSsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
+                        <span className="text-2xl font-semibold tabular-nums text-slate-800">{totSsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
                         <span className="text-xs font-bold text-blue-600">{ssiRate}% <span className="text-[11px] font-normal text-slate-400">tỷ lệ mổ</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-semibold">
@@ -325,7 +325,7 @@ export default function NkbvDashboardPanel({
               <div className="overflow-x-auto border border-slate-100 rounded-[var(--radius-shell)]">
                 <table className="w-full min-w-[900px] border-collapse text-left text-xs font-medium text-slate-600">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
+                    <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-medium">
                       <th className="px-4 py-3 w-44">Khoa lâm sàng</th>
                       <th className="px-4 py-3 text-center bg-red-50/30 text-red-700">CLABSI / CVC Days</th>
                       <th className="px-4 py-3 text-center bg-red-50/30 text-red-700">CVC DUR</th>
@@ -361,7 +361,7 @@ export default function NkbvDashboardPanel({
                           </td>
                           <td className="px-4 py-3 text-center bg-red-50/10">
                             {hasClabsiSir ? (
-                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-black ${
+                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
                                 Number(r.clabsi_sir) > 1.0 
                                   ? "bg-red-100 text-red-800" 
                                   : "bg-emerald-100 text-emerald-800"
@@ -381,7 +381,7 @@ export default function NkbvDashboardPanel({
                           </td>
                           <td className="px-4 py-3 text-center bg-amber-50/10">
                             {hasCautiSir ? (
-                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-black ${
+                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
                                 Number(r.cauti_sir) > 1.0 
                                   ? "bg-red-100 text-red-800" 
                                   : "bg-emerald-100 text-emerald-800"
@@ -401,7 +401,7 @@ export default function NkbvDashboardPanel({
                           </td>
                           <td className="px-4 py-3 text-center bg-teal-50/10">
                             {hasVaeSir ? (
-                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-black ${
+                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
                                 Number(r.vae_sir) > 1.0 
                                   ? "bg-red-100 text-red-800" 
                                   : "bg-emerald-100 text-emerald-800"
@@ -418,7 +418,7 @@ export default function NkbvDashboardPanel({
                           </td>
                           <td className="px-4 py-3 text-center bg-blue-50/10">
                             {hasSsiSir ? (
-                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-black ${
+                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
                                 Number(r.ssi_sir) > 1.0 
                                   ? "bg-red-100 text-red-800" 
                                   : "bg-emerald-100 text-emerald-800"

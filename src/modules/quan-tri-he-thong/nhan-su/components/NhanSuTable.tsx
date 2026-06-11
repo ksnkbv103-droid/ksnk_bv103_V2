@@ -9,6 +9,7 @@ import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
 import { Upload, Plus } from "lucide-react";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
+import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
 import MasterDataImportExportModal from "../../components/MasterDataImportExportModal";
 
 const NHAN_SU_PAGE_SIZE = 20;
@@ -140,23 +141,23 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
 
   const columns: Column<NhanSu>[] = [
     { 
-      header: "NHÂN VIÊN", 
+      header: "Nhân viên",
       accessorKey: "ho_ten", 
       sortable: true, 
       cell: (i) => (
         <div className="flex items-center gap-3 py-1">
-          <div className="w-9 h-9 rounded-full bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] font-black text-xs border border-[var(--primary)]/5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--primary)]/5 bg-[var(--primary)]/10 text-xs font-semibold text-[var(--primary)]">
             {i.ho_ten?.charAt(0).toUpperCase()}
           </div>
           <div>
-            <div className="text-[11px] font-semibold text-slate-800">{i.ho_ten}</div>
-            <div className="text-[11px] font-bold text-[var(--primary)] uppercase tracking-widest bg-[var(--primary)]/5 px-1.5 rounded-sm w-fit mt-0.5">{i.ma_nv}</div>
+            <div className={TC.cellTitle}>{i.ho_ten}</div>
+            <div className={`${TC.cellCode} mt-0.5 w-fit rounded-sm bg-[var(--primary)]/5 px-1.5`}>{i.ma_nv}</div>
           </div>
         </div>
       )
     },
     { 
-      header: "PHÂN BỔ", 
+      header: "Phân bổ",
       accessorKey: "khoa", 
       sortable: true, 
       cell: (i) => (
@@ -165,7 +166,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
             {i.khoa?.ten_khoa || "---"}
           </span>
           {i.to?.ten_danh_muc && (
-            <span className="text-[11px] font-bold text-amber-500 uppercase italic">
+            <span className="text-[11px] font-normal italic text-amber-600">
               ↳ {i.to.ten_danh_muc}
             </span>
           )}
@@ -173,16 +174,16 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       ) 
     },
     { 
-      header: "CHỨC VỤ & DANH", 
+      header: "Chức vụ & danh",
       accessorKey: "chuc_danh", 
       sortable: true, 
       cell: (i) => (
         <div className="flex flex-col gap-0.5">
-          <span className="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[11px] font-semibold uppercase tracking-wide w-fit">
+          <span className="w-fit rounded-md bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-600">
             {i.chuc_danh || "Chưa gán"}
           </span>
           {i.chuc_vu && (
-            <span className="text-[11px] font-bold text-slate-400 italic ml-0.5">
+            <span className="ml-0.5 text-[11px] font-normal italic text-slate-400">
               {i.chuc_vu}
             </span>
           )}
@@ -190,17 +191,17 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       ) 
     },
     { 
-      header: "NGHỀ NGHIỆP", 
+      header: "Nghề nghiệp",
       accessorKey: "nghe_nghiep_id", 
       sortable: true, 
       cell: (i) => (
-        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">
+        <span className={TC.cellMeta}>
           {i.nghe_nghiep?.ten_nghe_nghiep || "---"}
         </span>
       )
     },
-    { header: "TRẠNG THÁI", accessorKey: "is_active", sortable: true, cell: (i) => actionUi.renderStatusCell(i) },
-    { header: "QUẢN LÝ", accessorKey: "id", cell: (i) => actionUi.renderManagementCell(i) }
+    { header: TH.status, accessorKey: "is_active", sortable: true, cell: (i) => actionUi.renderStatusCell(i) },
+    { header: TH.manage, accessorKey: "id", cell: (i) => actionUi.renderManagementCell(i) },
   ];
 
   const showForm =

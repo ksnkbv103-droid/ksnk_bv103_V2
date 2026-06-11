@@ -120,7 +120,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
 
   const columns: Column<any>[] = [
     {
-      header: "BỘ DỤNG CỤ",
+      header: "Bộ dụng cụ",
       accessorKey: "cssd_dm_bo_dung_cu.ten_bo",
       cell: (i: any) => (
         <div className="space-y-1">
@@ -136,23 +136,23 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       ),
     },
     {
-      header: "MÃ KHOA",
+      header: "Mã khoa",
       accessorKey: "cssd_dm_bo_dung_cu.khoa.ma_khoa",
       cell: (i: any) => (
-        <span className="text-[11px] font-bold text-slate-500 uppercase">
+        <span className="text-[11px] text-[11px] font-medium text-slate-500 uppercase">
           {i.cssd_dm_bo_dung_cu?.khoa?.ma_khoa || "DÙNG CHUNG"}
         </span>
       ),
     },
     {
-      header: "SỐ MÓN",
+      header: "Số món",
       accessorKey: "cssd_dm_bo_dung_cu.so_luong_mon",
       cell: (i: any) => (
         <span className="font-black text-slate-600 text-[11px]">{i.cssd_dm_bo_dung_cu?.so_luong_mon || 1}</span>
       ),
     },
     {
-      header: "HẠN SỬ DỤNG",
+      header: "Hạn sử dụng",
       accessorKey: "han_su_dung",
       cell: (i: any) => {
         if (!i.han_su_dung) return <span className="text-[11px] text-slate-300 italic">Chưa TK</span>;
@@ -160,13 +160,13 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
         const dateStr = new Date(i.han_su_dung).toLocaleDateString("vi-VN");
         if (daysLeft <= 0)
           return (
-            <span className="text-[11px] font-black text-red-600 flex items-center gap-1 bg-red-50 px-2 py-1 rounded-lg">
+            <span className="text-[11px] font-mono text-[11px] font-medium text-red-600 flex items-center gap-1 bg-red-50 px-2 py-1 rounded-lg">
               <CalendarClock size={12} /> HẾT HẠN
             </span>
           );
         if (daysLeft <= 3)
           return (
-            <span className="text-[11px] font-black text-red-600 flex items-center gap-1 bg-red-50 px-2 py-1 rounded-lg">
+            <span className="text-[11px] font-mono text-[11px] font-medium text-red-600 flex items-center gap-1 bg-red-50 px-2 py-1 rounded-lg">
               <CalendarClock size={12} /> {dateStr} ({Math.ceil(daysLeft)}d)
             </span>
           );
@@ -180,7 +180,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       },
     },
     {
-      header: "ĐANG Ở TRẠM",
+      header: "Đang ở trạm",
       accessorKey: "trang_thai_hien_tai",
       cell: (i: any) => {
         if (i.is_red_alert)
@@ -217,7 +217,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       },
     },
     {
-      header: "THAO TÁC",
+      header: "Thao tác",
       accessorKey: "id",
       cell: (i: any) => (
         <div className="flex gap-2">

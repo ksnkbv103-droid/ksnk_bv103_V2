@@ -6,17 +6,17 @@ import type { KhoHoaChatGiaoDichRow, KhoHoaChatTonLo } from "../../actions/cssd-
 
 const tonCols: Column<KhoHoaChatTonLo>[] = [
   { 
-    header: "MÃ", 
+    header: "Mã", 
     accessorKey: "ma_hoa_chat", 
     cell: (i) => <span className="font-mono text-[11px] font-bold text-[var(--primary)]">{i.ma_hoa_chat}</span> 
   },
   { 
-    header: "TÊN MẶT HÀNG", 
+    header: "Tên mặt hàng", 
     accessorKey: "ten_hoa_chat", 
     cell: (i) => <span className="text-[11px] font-bold uppercase text-slate-700">{i.ten_hoa_chat}</span> 
   },
   { 
-    header: "MÃ LÔ", 
+    header: "Mã lô", 
     accessorKey: "ma_lo", 
     cell: (i) => (
       <span className="font-mono text-[11px] rounded bg-slate-50 border border-slate-100 px-1.5 py-0.5 text-slate-600 font-bold">
@@ -25,7 +25,7 @@ const tonCols: Column<KhoHoaChatTonLo>[] = [
     ) 
   },
   { 
-    header: "HẠN SỬ DỤNG", 
+    header: "Hạn sử dụng", 
     accessorKey: "han_su_dung", 
     cell: (i) => {
       if (!i.han_su_dung) return <span className="text-[11px] text-slate-400">—</span>;
@@ -39,7 +39,7 @@ const tonCols: Column<KhoHoaChatTonLo>[] = [
     } 
   },
   { 
-    header: "SỐ LƯỢNG TỒN", 
+    header: "Số lượng tồn", 
     accessorKey: "ton_so_luong", 
     cell: (i) => {
       const q = i.ton_so_luong;
@@ -61,20 +61,20 @@ const tonCols: Column<KhoHoaChatTonLo>[] = [
     } 
   },
   { 
-    header: "ĐƠN VỊ TÍNH", 
+    header: "Đơn vị tính", 
     accessorKey: "don_vi_tinh", 
-    cell: (i) => <span className="text-[11px] font-bold text-slate-500">{i.don_vi_tinh || "—"}</span> 
+    cell: (i) => <span className="text-[11px] text-[11px] font-medium text-slate-500">{i.don_vi_tinh || "—"}</span> 
   },
 ];
 
 const movCols: Column<KhoHoaChatGiaoDichRow>[] = [
   { 
-    header: "MÃ PHIẾU", 
+    header: "Mã phiếu", 
     accessorKey: "ma_phieu", 
-    cell: (i) => <span className="font-mono text-[11px] font-black text-[var(--primary)]">{i.ma_phieu}</span> 
+    cell: (i) => <span className="font-mono text-[11px] font-mono text-[11px] font-medium text-[var(--primary)]">{i.ma_phieu}</span> 
   },
   { 
-    header: "LOẠI GIAO DỊCH", 
+    header: "Loại giao dịch", 
     accessorKey: "loai_giao_dich", 
     cell: (i) => {
       const type = i.loai_giao_dich;
@@ -100,12 +100,12 @@ const movCols: Column<KhoHoaChatGiaoDichRow>[] = [
     } 
   },
   { 
-    header: "MẶT HÀNG / VẬT TƯ", 
+    header: "Mặt hàng / Vật tư", 
     accessorKey: "ten_hoa_chat", 
     cell: (i) => <span className="text-[11px] font-bold text-slate-700 uppercase">{i.ten_hoa_chat || "—"}</span> 
   },
   { 
-    header: "SỐ LƯỢNG", 
+    header: "Số lượng", 
     accessorKey: "so_luong_co_dau", 
     cell: (i) => {
       const q = i.so_luong_co_dau;
@@ -118,7 +118,7 @@ const movCols: Column<KhoHoaChatGiaoDichRow>[] = [
     } 
   },
   { 
-    header: "MÃ LÔ / HẠN DÙNG", 
+    header: "Mã lô / Hạn dùng", 
     accessorKey: "ma_lo", 
     cell: (i) => (
       <span className="text-[11px] text-slate-600">
@@ -128,7 +128,7 @@ const movCols: Column<KhoHoaChatGiaoDichRow>[] = [
     ) 
   },
   { 
-    header: "THỜI ĐIỂM", 
+    header: "Thời điểm", 
     accessorKey: "created_at", 
     cell: (i) => <span className="text-[11px] text-slate-500">{i.created_at ? new Date(i.created_at).toLocaleString("vi-VN") : "—"}</span> 
   },

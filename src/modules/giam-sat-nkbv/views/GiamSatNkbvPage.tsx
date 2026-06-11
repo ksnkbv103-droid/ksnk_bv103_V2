@@ -167,7 +167,7 @@ export default function GiamSatNkbvPage() {
   const recordColumns = useMemo(
     () => [
       {
-        header: "Mã bệnh án (Số HS)",
+        header: "Mã bệnh án (số hs)",
         accessorKey: "ma_benh_an",
         cell: (item: any) => (
           <span className="font-bold text-slate-800 font-mono">{item.ma_benh_an}</span>
@@ -228,7 +228,7 @@ export default function GiamSatNkbvPage() {
         },
       },
       {
-        header: "Thống kê LIS & Ca bệnh",
+        header: "Thống kê lis & ca bệnh",
         accessorKey: "lis_records",
         cell: (item: any) => (
           <div className="flex gap-2">
@@ -316,7 +316,7 @@ export default function GiamSatNkbvPage() {
             <span className="text-xs font-black text-slate-800 font-mono">
               {String((item as any).ma_benh_an || "—")}
             </span>
-            <span className="text-[11px] font-bold text-slate-500">
+            <span className="text-[11px] text-[11px] font-medium text-slate-500">
               {String((item as any).ma_benh_nhan || "")} - {String((item as any).ho_ten_benh_nhan || "—")}
             </span>
           </div>
@@ -350,7 +350,7 @@ export default function GiamSatNkbvPage() {
         ),
       },
       {
-        header: "Số lượng (CFU)",
+        header: "Số lượng (cfu)",
         accessorKey: "so_luong",
         cell: (item: NkbvCaseLike) => (
           <span className="text-xs font-medium text-slate-600 font-mono">
@@ -373,10 +373,10 @@ export default function GiamSatNkbvPage() {
         },
       },
       {
-        header: "Nghi ngờ NKBV",
+        header: "Nghi ngờ nkbv",
         accessorKey: "loai",
         cell: (item: NkbvCaseLike) => (
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)] bg-[var(--primary)]/10 px-2.5 py-0.5 rounded-full">
+          <span className="font-mono text-[11px] font-medium text-[var(--primary)] bg-[var(--primary)]/10 px-2.5 py-0.5 rounded-full">
             {(item as { loai_nkbv?: { ten_loai?: string } }).loai_nkbv?.ten_loai || "—"}
           </span>
         ),
@@ -423,7 +423,7 @@ export default function GiamSatNkbvPage() {
                     setDraft(item);
                     setEditorOpen(true);
                   }}
-                  className="rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                  className="rounded-full px-3 py-1.5 font-mono text-[11px] font-medium text-[var(--primary)] hover:bg-[var(--primary)]/10"
                 >
                   Sửa
                 </button>

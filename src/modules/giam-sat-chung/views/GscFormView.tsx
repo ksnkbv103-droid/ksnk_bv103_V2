@@ -1,6 +1,8 @@
 // src/modules/giam-sat-chung/views/GscFormView.tsx
 "use client";
 
+import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";
+
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -122,11 +124,11 @@ export default function GscFormView({ initialLoaiGiamSat }: GscFormViewProps) {
   const basePath = resolveBasePath(initialLoaiGiamSat);
 
   return (
-    <KsnkSupervisionPanel className="min-h-[50vh]">
+    <KsnkSupervisionPanel className={`min-h-[50vh] ${UI.sectionGapLg}`}>
       {selectedTemplate ? (
-        <div className="space-y-6">
+        <div className={UI.sectionGapLg}>
           {loadingTemplateDetail ? (
-            <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-white px-4 py-3 text-xs font-semibold text-slate-500">
+            <div className={`${UI.shell} px-4 py-3 text-xs font-semibold text-slate-500`}>
               Đang tải chi tiết bảng kiểm...
             </div>
           ) : null}
@@ -145,7 +147,7 @@ export default function GscFormView({ initialLoaiGiamSat }: GscFormViewProps) {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div className="min-w-0 flex-1 space-y-2">
-              <h2 className="truncate text-lg font-semibold tracking-tight text-slate-900 md:text-xl">
+              <h2 className={`truncate ${UI.modalTitle}`}>
                 {selectedTemplate.title}
               </h2>
               {formProgress ? (

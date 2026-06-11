@@ -147,7 +147,7 @@ export function QlcvOperationsPanel({
           </span>
           <button
             type="button"
-            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600 hover:bg-slate-100"
+            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-500 hover:bg-slate-100"
             onClick={() => onBoardFilter("TOTAL")}
           >
             Bỏ lọc

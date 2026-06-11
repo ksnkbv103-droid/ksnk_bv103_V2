@@ -1,6 +1,7 @@
 // src/modules/giam-sat-vst/components/VSTForm.tsx
 "use client";
 
+import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";
 import React, { useEffect, useRef } from "react";
 import GiamSatHeader from "@/components/shared/GiamSatHeader";
 import VSTPersonColumn from "./VSTPersonColumn";
@@ -230,13 +231,13 @@ export default function VSTForm({
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent" />
-        <p className="animate-pulse text-sm font-bold text-slate-500">Đang tải dữ liệu danh mục & nhân sự...</p>
+        <p className={`animate-pulse ${UI.emptyBody}`}>Đang tải dữ liệu danh mục & nhân sự...</p>
       </div>
     );
   }
 
   return (
-    <div className="relative space-y-6 pb-32">
+    <div className={`relative ${UI.sectionGapLg} pb-32`}>
       <div className="print:hidden space-y-6">
         <div className="relative">
           <GiamSatHeader
