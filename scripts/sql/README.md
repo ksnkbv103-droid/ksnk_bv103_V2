@@ -33,14 +33,20 @@ Script **không** thuộc chuỗi migration Supabase. Chỉ file trong thư mụ
 |------|----------|
 | `cssd-tram-fk-health-audit.sql` | `cssd:db:audit` / `:local` |
 | `fk-public-referencing-danh-muc-tuy-bien.sql` | `mdm:postcheck:fk` / `:local` |
+| `ssot-legacy-guard.sql` | `ssot:db:guard` / `:local` |
+| `khu-vuc-verify.sql` | Chạy tay — khu vực SSOT JSON |
+
+## CI guard SQL active
+
+`npm run legacy:sql:guard` — quét `scripts/sql/`, `seed.sql` (bỏ qua `scripts/archive/`).
 
 ## Archive (không active)
 
-[`../archive/sql-20260531/`](../archive/sql-20260531/) — GSC QA, smoke RCA, slice8 template, FK reports cũ.
+[`../archive/sql-20260531/`](../archive/sql-20260531/) — GSC QA, smoke RCA, slice8 template, FK reports cũ. **Cấm** import vào pipeline; chỉ tham khảo lịch sử.
 
 ## Migration SSOT
 
-Chuỗi apply: `supabase/migrations/*.sql` (~62 file pilot, `20260530000000` … `20260611100000`). Lịch sử pre-pilot: `docs/archive/pilot_chain_20260520_20260529.tar.gz`.
+Chuỗi apply: `supabase/migrations/*.sql` (~63 file, `20260530000000` … `20260612100000`).
 
 **Lưu ý khu vực giám sát:** chuỗi `20260608030000` → `20260608032500` (revert) → `20260608050000` (mã code cuối) — trạng thái cuối SSOT là sau `20260608050000`; không tái dùng mã `KV_TR_*`/`KV_DO_*` trong app/script mới.
 

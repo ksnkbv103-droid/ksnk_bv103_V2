@@ -8,7 +8,12 @@ CLI chỉ apply file `*.sql` **trực tiếp trong thư mục này** (không qu�
 
 ### Linked / staging / prod (chuỗi incremental)
 
-Thư mục groot giữ chuỗi incremental **`20260530000000` … `20260611100000`** (~62 migration).
+Thư mục gốc giữ chuỗi incremental **`20260530000000` … `20260612100000`** (~63 migration).
+
+| Ghi chú | |
+|---------|--|
+| [`archive_legacy/khu_vuc_reverted_pair/README.md`](archive_legacy/khu_vuc_reverted_pair/README.md) | Cặp apply+revert khu vực — giữ trên chain remote |
+| [`../archive/`](../archive/) | pg_dump schema/data deprecated |
 
 Nếu CLI báo `Remote migration versions not found in local`:
 

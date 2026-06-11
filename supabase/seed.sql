@@ -1,6 +1,7 @@
 -- BV103 pilot master seed — lookup + 36 bảng kiểm canonical
 -- Loaded after migrations on db reset (see supabase/config.toml [db.seed])
--- Regenerate: apply old chain, then supabase db dump --local --data-only -s public --exclude public.sys_audit_log
+-- KHU_VUC_GIAM_SAT: mã SSOT dạng KV_PHONG_MO (không tiền tố nhóm màu) — khớp 20260608050000 + 20260612100000
+-- Regenerate: npx supabase db reset --local && node scripts/run-supabase-sql.mjs --local --file scripts/sql/khu-vuc-verify.sql
 
 SET session_replication_role = replica;
 
@@ -36,33 +37,40 @@ SET row_security = off;
 --
 
 INSERT INTO "public"."sys_lookup_value" ("id", "category_type", "code", "name", "description", "is_active", "metadata", "created_at", "updated_at") VALUES
-	('c1010001-0000-4000-8000-000000000001', 'KHU_VUC_GIAM_SAT', 'KV_TR_ICU_SACH', 'ICU sạch / ICU chuyên sâu', 'ICU có yêu cầu vô khuẩn cao; không dùng cho ICU hồi sức thông thường.', true, '{"nhom_mau":"TR","thu_tu":101}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1010002-0000-4000-8000-000000000002', 'KHU_VUC_GIAM_SAT', 'KV_TR_NB_MIEN_DICH', 'Khu NB suy giảm miễn dịch', 'Ung thư, ghép tủy, bỏng, sơ sinh non tháng và NB suy giảm miễn dịch.', true, '{"nhom_mau":"TR","thu_tu":102}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1010003-0000-4000-8000-000000000003', 'KHU_VUC_GIAM_SAT', 'KV_TR_PHONG_MO', 'Phòng mổ', 'Phòng phẫu thuật có yêu cầu vô khuẩn/aseptic.', true, '{"nhom_mau":"TR","thu_tu":103}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1010004-0000-4000-8000-000000000004', 'KHU_VUC_GIAM_SAT', 'KV_TR_PHONG_SINH', 'Phòng sinh', 'Phòng đỡ đẻ, sinh mổ có yêu cầu vô khuẩn.', true, '{"nhom_mau":"TR","thu_tu":104}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1010005-0000-4000-8000-000000000005', 'KHU_VUC_GIAM_SAT', 'KV_TR_CAN_THIEP', 'Phòng can thiệp mạch', 'Buồng can thiệp nội mạch, thủ thuật mạch máu có yêu cầu vô khuẩn.', true, '{"nhom_mau":"TR","thu_tu":105}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1010006-0000-4000-8000-000000000006', 'KHU_VUC_GIAM_SAT', 'KV_TR_THU_THUAT_SACH', 'Phòng thay băng sạch / thủ thuật vô khuẩn', 'Thay băng vết mổ sạch, thủ thuật có yêu cầu vô khuẩn.', true, '{"nhom_mau":"TR","thu_tu":106}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1010007-0000-4000-8000-000000000007', 'KHU_VUC_GIAM_SAT', 'KV_TR_CSSD_SACH', 'Trung tâm tiệt khuẩn — khu sạch', 'Khu đóng gói, khu sạch sau tiệt khuẩn; không phải khu tiếp nhận/rửa bẩn.', true, '{"nhom_mau":"TR","thu_tu":107}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1010008-0000-4000-8000-000000000008', 'KHU_VUC_GIAM_SAT', 'KV_TR_PHA_CHE', 'Pha chế dịch / thuốc vô khuẩn', 'Đơn vị pha chế thuốc tập trung, pha chế dịch vô khuẩn.', true, '{"nhom_mau":"TR","thu_tu":108}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1020001-0000-4000-8000-000000000001', 'KHU_VUC_GIAM_SAT', 'KV_DO_ICU_CHUNG', 'ICU chung (hồi sức thường)', 'ICU hồi sức tích cực không thuộc nhóm vô khuẩn cao (Trắng).', true, '{"nhom_mau":"DO","thu_tu":201}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1020002-0000-4000-8000-000000000002', 'KHU_VUC_GIAM_SAT', 'KV_DO_LOC_MAU', 'Khu lọc máu', 'Đơn vị/chức năng lọc máu, chạy thận nhân tạo.', true, '{"nhom_mau":"DO","thu_tu":202}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1020003-0000-4000-8000-000000000003', 'KHU_VUC_GIAM_SAT', 'KV_DO_CAP_CUU', 'Khu cấp cứu', 'Khu cấp cứu, hồi sức cấp cứu có tiếp xúc máu/dịch cơ thể.', true, '{"nhom_mau":"DO","thu_tu":203}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1020004-0000-4000-8000-000000000004', 'KHU_VUC_GIAM_SAT', 'KV_DO_CACH_LY', 'Tiếp nhận / cách ly truyền nhiễm', 'NB truyền nhiễm theo quy định (cúm, SARS-CoV-2, sởi…).', true, '{"nhom_mau":"DO","thu_tu":204}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1020005-0000-4000-8000-000000000005', 'KHU_VUC_GIAM_SAT', 'KV_DO_DA_KHANG', 'Khu điều trị NB đa kháng kháng sinh', 'NB mang hoặc nghi ngờ vi sinh vật đa kháng kháng sinh.', true, '{"nhom_mau":"DO","thu_tu":205}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1020006-0000-4000-8000-000000000006', 'KHU_VUC_GIAM_SAT', 'KV_DO_CSSD_BAN', 'Trung tâm tiệt khuẩn — khu bẩn', 'Khu tiếp nhận, rửa sơ bộ, xử lý ban đầu dụng cụ bẩn trước tiệt khuẩn.', true, '{"nhom_mau":"DO","thu_tu":206}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1020007-0000-4000-8000-000000000007', 'KHU_VUC_GIAM_SAT', 'KV_DO_CHAT_THAI', 'Khu lưu chất thải y tế tạm', 'Khu tạm giữ rác y tế, chất thải lây nhiễm.', true, '{"nhom_mau":"DO","thu_tu":207}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1020008-0000-4000-8000-000000000008', 'KHU_VUC_GIAM_SAT', 'KV_DO_VE_SINH', 'Nhà vệ sinh thuộc khu nguy cơ cao', 'WC thuộc khu lây nhiễm cao (bồn cầu, bồn tiểu, sàn nhà vệ sinh).', true, '{"nhom_mau":"DO","thu_tu":208}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1030001-0000-4000-8000-000000000001', 'KHU_VUC_GIAM_SAT', 'KV_VA_NOI_TRU', 'Buồng bệnh nội trú thông thường', 'Nội, ngoại, sản, nhi và phòng lâm sàng thông thường.', true, '{"nhom_mau":"VA","thu_tu":301}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1030002-0000-4000-8000-000000000002', 'KHU_VUC_GIAM_SAT', 'KV_VA_KHAM_TT', 'Phòng khám / buồng thủ thuật', 'Khám bệnh, thủ thuật lâm sàng không thuộc vô khuẩn cao.', true, '{"nhom_mau":"VA","thu_tu":302}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1030003-0000-4000-8000-000000000003', 'KHU_VUC_GIAM_SAT', 'KV_VA_CDHA', 'Chẩn đoán hình ảnh', 'X-quang, siêu âm, CT/MRI tại khu tiếp xúc NB.', true, '{"nhom_mau":"VA","thu_tu":303}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1030004-0000-4000-8000-000000000004', 'KHU_VUC_GIAM_SAT', 'KV_VA_XET_NGHIEM', 'Khu xét nghiệm lâm sàng', 'Phòng lấy mẫu và xét nghiệm tiếp xúc NB.', true, '{"nhom_mau":"VA","thu_tu":304}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1030005-0000-4000-8000-000000000005', 'KHU_VUC_GIAM_SAT', 'KV_VA_VE_SINH', 'WC & khu giữ đồ bẩn khoa lâm sàng', 'Nhà vệ sinh buồng bệnh, khu giữ đồ bẩn.', true, '{"nhom_mau":"VA","thu_tu":305}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1030006-0000-4000-8000-000000000006', 'KHU_VUC_GIAM_SAT', 'KV_VA_BE_MAT_TBYT', 'Bề mặt TBYT tiếp xúc gần NB', 'Giường, monitor, tay vịn và thiết bị tiếp xúc gần NB.', true, '{"nhom_mau":"VA","thu_tu":306}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1040001-0000-4000-8000-000000000001', 'KHU_VUC_GIAM_SAT', 'KV_XA_HANH_CHINH', 'Khu hành chính / văn phòng', 'Văn phòng, giao ban, phòng họp, buồng hành chính.', true, '{"nhom_mau":"XA","thu_tu":401}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1040002-0000-4000-8000-000000000002', 'KHU_VUC_GIAM_SAT', 'KV_XA_SANH_CHO', 'Sảnh, hành lang, buồng chờ', 'Quầy tiếp đón, sảnh, hành lang, khu chờ người nhà.', true, '{"nhom_mau":"XA","thu_tu":402}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1040003-0000-4000-8000-000000000003', 'KHU_VUC_GIAM_SAT', 'KV_XA_NHAN_VIEN', 'Buồng nhân viên nội bộ', 'Phòng nghỉ ca, buồng nhân viên.', true, '{"nhom_mau":"XA","thu_tu":403}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1040004-0000-4000-8000-000000000004', 'KHU_VUC_GIAM_SAT', 'KV_XA_NHA_AN', 'Nhà ăn / khu ăn uống', 'Khu ăn nhân viên hoặc công cộng (không khu NB).', true, '{"nhom_mau":"XA","thu_tu":404}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
-	('c1040005-0000-4000-8000-000000000005', 'KHU_VUC_GIAM_SAT', 'KV_XA_BE_MAT', 'Bề mặt công cộng không tiếp xúc NB', 'Tay vịn hành lang, cửa… không phơi nhiễm máu/dịch, không tiếp xúc NB trực tiếp.', true, '{"nhom_mau":"XA","thu_tu":405}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00');
+	('c1010003-0000-4000-8000-000000000003', 'KHU_VUC_GIAM_SAT', 'KV_PHONG_MO', 'Phòng mổ', 'Phòng phẫu thuật có yêu cầu vô khuẩn/aseptic.', true, '{"thu_tu": 101, "nhom_mau": "TR"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1010005-0000-4000-8000-000000000005', 'KHU_VUC_GIAM_SAT', 'KV_CAN_THIEP', 'Phòng can thiệp mạch', 'Buồng can thiệp nội mạch, thủ thuật mạch máu có yêu cầu vô khuẩn.', true, '{"thu_tu": 102, "nhom_mau": "TR"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1010004-0000-4000-8000-000000000004', 'KHU_VUC_GIAM_SAT', 'KV_PHONG_SINH', 'Phòng sinh', 'Phòng đỡ đẻ, sinh mổ có yêu cầu vô khuẩn.', true, '{"thu_tu": 103, "nhom_mau": "TR"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1010001-0000-4000-8000-000000000001', 'KHU_VUC_GIAM_SAT', 'KV_ICU_SACH', 'Phòng ICU ghép tạng', 'ICU có yêu cầu vô khuẩn cao; không dùng cho ICU hồi sức thông thường.', true, '{"thu_tu": 104, "nhom_mau": "TR"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1010007-0000-4000-8000-000000000007', 'KHU_VUC_GIAM_SAT', 'KV_CSSD_SACH', 'Trung tâm tiệt khuẩn — khu sạch', 'Khu đóng gói, khu sạch sau tiệt khuẩn; không phải khu tiếp nhận/rửa bẩn.', true, '{"thu_tu": 105, "nhom_mau": "TR"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1010008-0000-4000-8000-000000000008', 'KHU_VUC_GIAM_SAT', 'KV_PHA_CHE', 'Pha chế dịch / thuốc vô khuẩn', 'Đơn vị pha chế thuốc tập trung, pha chế dịch vô khuẩn.', true, '{"thu_tu": 106, "nhom_mau": "TR"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1010002-0000-4000-8000-000000000002', 'KHU_VUC_GIAM_SAT', 'KV_NB_MIEN_DICH', 'Khu NB suy giảm miễn dịch', 'Ung thư, ghép tủy, bỏng, sơ sinh non tháng và NB suy giảm miễn dịch.', true, '{"thu_tu": 107, "nhom_mau": "TR"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1020003-0000-4000-8000-000000000003', 'KHU_VUC_GIAM_SAT', 'KV_CAP_CUU', 'Khu cấp cứu', 'Khu cấp cứu, hồi sức cấp cứu có tiếp xúc máu/dịch cơ thể.', true, '{"thu_tu": 201, "nhom_mau": "DO"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1020002-0000-4000-8000-000000000002', 'KHU_VUC_GIAM_SAT', 'KV_LOC_MAU', 'Khu lọc máu', 'Đơn vị/chức năng lọc máu, chạy thận nhân tạo.', true, '{"thu_tu": 202, "nhom_mau": "DO"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1020001-0000-4000-8000-000000000001', 'KHU_VUC_GIAM_SAT', 'KV_ICU_CHUNG', 'ICU chung (hồi sức thường)', 'ICU hồi sức tích cực không thuộc nhóm vô khuẩn cao (Trắng).', true, '{"thu_tu": 203, "nhom_mau": "DO"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1020004-0000-4000-8000-000000000004', 'KHU_VUC_GIAM_SAT', 'KV_CACH_LY', 'Tiếp nhận / cách ly truyền nhiễm', 'NB truyền nhiễm theo quy định (cúm, SARS-CoV-2, sởi…).', true, '{"thu_tu": 204, "nhom_mau": "DO"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1020005-0000-4000-8000-000000000005', 'KHU_VUC_GIAM_SAT', 'KV_DA_KHANG', 'Khu điều trị NB đa kháng kháng sinh', 'NB mang hoặc nghi ngờ vi sinh vật đa kháng kháng sinh.', true, '{"thu_tu": 205, "nhom_mau": "DO"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1020006-0000-4000-8000-000000000006', 'KHU_VUC_GIAM_SAT', 'KV_CSSD_BAN', 'Trung tâm tiệt khuẩn — khu bẩn', 'Khu tiếp nhận, rửa sơ bộ, xử lý ban đầu dụng cụ bẩn trước tiệt khuẩn.', true, '{"thu_tu": 206, "nhom_mau": "DO"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1020007-0000-4000-8000-000000000007', 'KHU_VUC_GIAM_SAT', 'KV_CHAT_THAI', 'Khu lưu chất thải y tế tạm', 'Khu tạm giữ rác y tế, chất thải lây nhiễm.', true, '{"thu_tu": 207, "nhom_mau": "DO", "is_common": true}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1010006-0000-4000-8000-000000000006', 'KHU_VUC_GIAM_SAT', 'KV_THU_THUAT_SACH', 'Phòng thủ thuật vô khuẩn', 'Thay băng vết mổ sạch, thủ thuật có yêu cầu vô khuẩn.', true, '{"thu_tu": 208, "nhom_mau": "DO"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1020008-0000-4000-8000-000000000008', 'KHU_VUC_GIAM_SAT', 'KV_VS_NGUY_CO_CAO', 'Nhà vệ sinh thuộc khu nguy cơ cao', 'WC thuộc khu lây nhiễm cao (bồn cầu, bồn tiểu, sàn nhà vệ sinh).', true, '{"thu_tu": 209, "nhom_mau": "DO"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1030001-0000-4000-8000-000000000001', 'KHU_VUC_GIAM_SAT', 'KV_NOI_TRU', 'Buồng bệnh nội trú thông thường', 'Nội, ngoại, sản, nhi và phòng lâm sàng thông thường.', true, '{"thu_tu": 301, "nhom_mau": "VA"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1030003-0000-4000-8000-000000000003', 'KHU_VUC_GIAM_SAT', 'KV_CDHA', 'Chẩn đoán hình ảnh', 'X-quang, siêu âm, CT/MRI tại khu tiếp xúc NB.', true, '{"thu_tu": 302, "nhom_mau": "VA"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1030002-0000-4000-8000-000000000002', 'KHU_VUC_GIAM_SAT', 'KV_KHAM_TT', 'Phòng khám / buồng thủ thuật', 'Khám bệnh, thủ thuật lâm sàng không thuộc vô khuẩn cao.', false, '{"thu_tu": 302, "nhom_mau": "VA"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1030004-0000-4000-8000-000000000004', 'KHU_VUC_GIAM_SAT', 'KV_XET_NGHIEM', 'Khu xét nghiệm lâm sàng', 'Phòng lấy mẫu và xét nghiệm tiếp xúc NB.', true, '{"thu_tu": 303, "nhom_mau": "VA"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1030005-0000-4000-8000-000000000005', 'KHU_VUC_GIAM_SAT', 'KV_VS_KHOA', 'WC & khu giữ đồ bẩn khoa lâm sàng', 'Nhà vệ sinh buồng bệnh, khu giữ đồ bẩn.', true, '{"thu_tu": 304, "nhom_mau": "VA", "is_common": true}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1030006-0000-4000-8000-000000000006', 'KHU_VUC_GIAM_SAT', 'KV_BE_MAT_TBYT', 'Bề mặt TBYT tiếp xúc gần NB', 'Giường, monitor, tay vịn và thiết bị tiếp xúc gần NB.', false, '{"thu_tu": 306, "nhom_mau": "VA"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1040001-0000-4000-8000-000000000001', 'KHU_VUC_GIAM_SAT', 'KV_HANH_CHINH', 'Khu hành chính / văn phòng', 'Văn phòng, giao ban, phòng họp, buồng hành chính.', true, '{"thu_tu": 401, "nhom_mau": "XA", "is_common": true}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1040002-0000-4000-8000-000000000002', 'KHU_VUC_GIAM_SAT', 'KV_SANH_CHO', 'Sảnh, hành lang, buồng chờ', 'Quầy tiếp đón, sảnh, hành lang, khu chờ người nhà.', true, '{"thu_tu": 402, "nhom_mau": "XA", "is_common": true}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1040003-0000-4000-8000-000000000003', 'KHU_VUC_GIAM_SAT', 'KV_NHAN_VIEN', 'Buồng nhân viên nội bộ', 'Phòng nghỉ ca, buồng nhân viên.', false, '{"thu_tu": 403, "nhom_mau": "XA"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1040004-0000-4000-8000-000000000004', 'KHU_VUC_GIAM_SAT', 'KV_NHA_AN', 'Nhà ăn / khu ăn uống', 'Khu ăn nhân viên hoặc công cộng (không khu NB).', false, '{"thu_tu": 404, "nhom_mau": "XA"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00'),
+	('c1040005-0000-4000-8000-000000000005', 'KHU_VUC_GIAM_SAT', 'KV_BE_MAT_CC', 'Bề mặt công cộng không tiếp xúc NB', 'Tay vịn hành lang, cửa… không phơi nhiễm máu/dịch, không tiếp xúc NB trực tiếp.', false, '{"thu_tu": 405, "nhom_mau": "XA"}', '2026-06-06 00:00:00+00', '2026-06-06 00:00:00+00')
+ON CONFLICT (id) DO UPDATE SET
+  code = EXCLUDED.code,
+  name = EXCLUDED.name,
+  description = EXCLUDED.description,
+  is_active = EXCLUDED.is_active,
+  metadata = EXCLUDED.metadata,
+  updated_at = EXCLUDED.updated_at;
 
 
 --

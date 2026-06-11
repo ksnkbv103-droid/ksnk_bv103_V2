@@ -110,15 +110,12 @@ export function previewGscFormProgress(
 
   if (!cach && evaluated > 0) {
     const legacy = calculateGscComplianceScore([...results]);
-    const tier =
-      legacy >= 90 ? { label: "Tốt", className: "text-emerald-700" } : legacy >= 80
-        ? { label: "Đạt", className: "text-amber-600" }
-        : { label: "Không đạt", className: "text-red-600" };
+    const tier = gscRatioTier(legacy);
     return {
       evaluated,
       total,
       rate: legacy,
-      scoreLabel: `${legacy}% · ${tier.label}`,
+      scoreLabel: `${formatPercent2(legacy)} · ${tier.label}`,
       scoreClassName: tier.className,
     };
   }
@@ -135,61 +132,18 @@ export function previewGscFormProgress(
 
   const out = computeScore(cach, items, meta);
 
-  switch (cach) {
-    case "NHAT_KY":
-      return {
-        evaluated,
-        total,
-        rate: null,
-        scoreLabel: out.so_oor > 0 ? `Nhật ký · ${out.so_oor} ngoài ngưỡng` : "Nhật ký · trong ngưỡng",
-        scoreClassName: out.so_oor > 0 ? "text-red-600" : "text-emerald-700",
-        duLieuNghiVan: out.du_lieu_nghi_van,
-      };
-    case "TRON_GOI": {
-      const pass = out.dat_tron_goi;
-      if (pass === null) {
-        return { evaluated, total, rate: null, scoreLabel: "Chưa đủ tiêu chí", scoreClassName: "text-slate-500" };
-      }
-      return {
-        evaluated,
-        total,
-        rate: pass ? 100 : 0,
-        scoreLabel: pass ? "Care bundle · Đạt" : "Care bundle · Không đạt",
-        scoreClassName: pass ? "text-emerald-700" : "text-red-600",
-        duLieuNghiVan: out.du_lieu_nghi_van,
-      };
-    }
-    case "DAT_KHONG_DAT": {
-      const pass = out.ket_qua_pass_fail;
-      if (pass === null) {
-        return { evaluated, total, rate: null, scoreLabel: "Chưa đủ tiêu chí", scoreClassName: "text-slate-500" };
-      }
-      return {
-        evaluated,
-        total,
-        rate: pass ? 100 : 0,
-        scoreLabel: pass ? "Đạt" : "Không đạt",
-        scoreClassName: pass ? "text-emerald-700" : "text-red-600",
-        duLieuNghiVan: out.du_lieu_nghi_van,
-      };
-    }
-    case "TY_LE":
-    default: {
-      const pct = out.ty_le_percent ?? 0;
-      const tier =
-        pct >= 90 ? { label: "Tốt", className: "text-emerald-700" } : pct >= 80
-          ? { label: "Đạt", className: "text-amber-600" }
-          : { label: "Không đạt", className: "text-red-600" };
-      return {
-        evaluated,
-        total,
-        rate: pct,
-        scoreLabel: `${formatPercent2(pct)} · ${tier.label}`,
-        scoreClassName: tier.className,
-        duLieuNghiVan: out.du_lieu_nghi_van,
-      };
-    }
+  if (cach === "NHAT_KY") {
+    return {
+      evaluated,
+      total,
+      rate: null,
+      scoreLabel: out.so_oor > 0 ? `Nhật ký · ${out.so_oor} ngoài ngưỡng` : "Nhật ký · trong ngưỡng",
+      scoreClassName: out.so_oor > 0 ? "text-red-600" : "text-emerald-700",
+      duLieuNghiVan: out.du_lieu_nghi_van,
+    };
   }
+
+  return buildGscRatioFormProgress(evaluated, total, items, out.du_lieu_nghi_van);
 }
 
 export type GscHistoryScoreDisplay = {
@@ -220,17 +174,10 @@ export function resolveGscHistoryCompliancePercent(
   const fromCounts = gscCompliancePercentFromCounts(row.tong_quan_sat, row.tong_dat);
   if (fromCounts != null) return fromCounts;
 
+  if (cach === "NHAT_KY") return null;
+
   const tong = row.tong_diem;
   const tongNum = tong == null || tong === "" ? null : Number(tong);
-
-  if (cach === "TRON_GOI") {
-    if (row.dat_tron_goi === true) return 100;
-    if (row.dat_tron_goi === false) return 0;
-  }
-  if (cach === "DAT_KHONG_DAT") {
-    if (tongNum === 100) return 100;
-    if (tongNum === 0) return 0;
-  }
   if (Number.isFinite(tongNum)) return tongNum!;
   return null;
 }

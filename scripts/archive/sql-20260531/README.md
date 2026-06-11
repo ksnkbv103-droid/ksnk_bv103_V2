@@ -1,6 +1,8 @@
 # SQL ad-hoc đã archive (2026-05-31)
 
-Không gọi từ `package.json`. Giữ để tham khảo / tái chạy tay khi cần audit.
+**Cấm** gọi từ `package.json` hoặc pipeline CI. Tham khảo lịch sử / audit tay only.
+
+Guard active SQL: `npm run legacy:sql:guard`
 
 | Mục | Ghi chú |
 |-----|---------|
