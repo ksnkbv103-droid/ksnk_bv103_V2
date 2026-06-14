@@ -14,6 +14,7 @@ import { ComprehensiveCompare } from "../components/comprehensive/ComprehensiveC
 import { ComprehensiveTopicHybrid } from "../components/comprehensive/ComprehensiveTopicHybrid";
 import { ComprehensiveNkbvOutcome } from "../components/comprehensive/ComprehensiveNkbvOutcome";
 import { ReportPrintNarrativeControls } from "../components/comprehensive/ReportPrintNarrativeControls";
+import { AnalyticsKhoaScopeBanner } from "../components/AnalyticsKhoaScopeBanner";
 
 export function BaoCaoTongHopPage() {
   const d = useBaoCaoTongHopData();
@@ -71,15 +72,17 @@ export function BaoCaoTongHopPage() {
         type="button"
         onClick={onPrintClick}
         disabled={printing || d.loading}
+        title="Mở bản in A4 chính thức (gồm Phần III nhận xét/kiến nghị)"
         className="inline-flex h-9 items-center gap-2 rounded-lg bg-emerald-100 px-3 text-xs font-semibold text-emerald-800 hover:bg-emerald-200 disabled:opacity-50"
       >
-        <Printer size={14} aria-hidden /> {printing ? "Đang chuẩn bị in…" : "In báo cáo"}
+        <Printer size={14} aria-hidden /> {printing ? "Đang chuẩn bị in…" : "In báo cáo A4"}
       </button>
     </>
   );
 
   const filterBar = (
     <AnalyticsFilterBar
+      khoaFilterLocked={d.khoaFilterLocked}
       tuNgay={d.tuNgay}
       setTuNgay={d.setTuNgay}
       denNgay={d.denNgay}
@@ -124,10 +127,15 @@ export function BaoCaoTongHopPage() {
       ) : null}
 
       <div className={`space-y-8 transition-opacity ${d.loading ? "pointer-events-none opacity-50" : ""}`}>
+        {d.khoaFilterLocked && d.lockedKhoaLabel ? <AnalyticsKhoaScopeBanner khoaLabel={d.lockedKhoaLabel} /> : null}
         <ComprehensiveKpiCards payload={d.payload} />
         <ComprehensiveTrend payload={d.payload} />
+        <ComprehensiveCompare
+          payload={d.payload}
+          selectedKhoaIds={d.selectedKhoaIds}
+          khoaOptions={d.khoaOptions}
+        />
         <ComprehensiveNkbvOutcome payload={d.payload} />
-        <ComprehensiveCompare payload={d.payload} />
         <ComprehensiveTopicHybrid payload={d.payload} chuyenDe={d.chuyenDe} onChuyenDeChange={d.setChuyenDe} />
       </div>
     </Bv103AnalyticsPageFrame>

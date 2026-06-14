@@ -19,9 +19,15 @@ Badge **“vs kỳ trước”** trên KPI: chênh lệch % giữa **hai tuần 
 
 Biểu đồ xu hướng: lọc **Tuần / Tháng / Quý / Năm** (gộp trung bình đơn giản các điểm tuần trong bucket).
 
-## In báo cáo (giai đoạn 1)
+## Thứ tự màn hình (Wave 1–2)
 
-Template `bao-cao-tong-hop-print.ts`: Điều hành (CCS/KPI, xu hướng tuần, top/bottom khoa), phân tích khu vực & đối tượng (VST+GSC), ma trận khoa GSC, VST/GSC chi tiết, xu hướng từng bảng kiểm (tối đa 12 RPC khi bấm In), Phần III nhận xét/kiến nghị.
+KPI → Xu hướng → So sánh khoa (triptych TGS/KSNK/đối soát chỉ khi đủ hai nguồn · triển khai TGS/KSNK · bảng loại trừ · ma trận bao phủ) → NKBV (outcome, sau process) → Chuyên đề.
+
+**Comparable** đối soát: `vol_tgs > 0` và `vol_ksnk > 0`. Khoa thiếu một nguồn nằm bảng «Chưa đủ điều kiện» («Chưa TGS» / «Chưa KSNK» / «Chưa triển khai»).
+
+## In báo cáo
+
+Template `bao-cao-tong-hop-print.ts`: bìa (kỳ, mã BC-TH, phạm vi, ngày in), chân trang lặp mỗi trang A4, Điều hành (CCS/KPI, xu hướng tuần, xếp hạng khoa đầy đủ, bảng loại trừ đối soát, ma trận bao phủ rút gọn top 8 BK), NKBV sau block process, phân tích IPAC/đối tượng, VST/GSC chi tiết, xu hướng từng bảng kiểm (tối đa 12 RPC khi bấm In). **Phần III** tách trang riêng: nhận xét/kiến nghị + ngày ban hành + khối ký (Người tổng hợp / Chủ nhiệm khoa KSNK).
 
 ## Pilot DoD
 

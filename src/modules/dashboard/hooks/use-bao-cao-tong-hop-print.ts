@@ -2,9 +2,13 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { buildAnalyticsFilterPayload } from "@/lib/analytics/filter-helpers";
 import { gscAnalyticsPayloadHasData } from "@/lib/analytics/gsc-analytics-data";
+import { buildTgsCoverageRanking, buildTgsHitSet } from "@/lib/analytics/tgs-coverage-mappers";
+import { getGscTgsObligationContext } from "@/lib/analytics/gsc-tgs-obligation.actions";
 import { getGscStrategicAnalytics } from "@/modules/giam-sat-chung/actions/gsc-strategic-analytics.actions";
+import { buildGapKhoaRows } from "@/lib/analytics/supervision-matrix-mappers";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
+import { buildBaoCaoReportNo } from "../lib/bao-cao-tong-hop-core";
 import { getBaoCaoTongHopPrintHtml } from "../lib/bao-cao-tong-hop-print";
 import type { BaoCaoTongHopPayload } from "../types/bao-cao-tong-hop.types";
 
@@ -74,7 +78,44 @@ export function useBaoCaoTongHopPrint(args: {
         }
       }
 
-      const reportNo = `BC-TH-${args.tuNgay.replaceAll("-", "")}-${args.denNgay.replaceAll("-", "")}`;
+      let tgsCoverageRanking: ReturnType<typeof buildTgsCoverageRanking> = [];
+      if (args.payload?.sources.gsc === "ok") {
+        const obl = await getGscTgsObligationContext({
+          tu_ngay: args.tuNgay,
+          den_ngay: args.denNgay,
+          khoi_ids: args.selectedKhoiIds.length > 0 ? args.selectedKhoiIds : undefined,
+          khoa_ids: args.selectedKhoaIds.length > 0 ? args.selectedKhoaIds : undefined,
+        });
+        if (obl.success) {
+          const gapRows = buildGapKhoaRows(
+            args.gscPayload?.gap_analysis,
+            args.selectedKhoaIds,
+            args.khoaOptions,
+            args.khoaOptions.length,
+          );
+          const gapByKhoa = new Map(
+            gapRows.map((r) => [r.id, { vol_tgs: r.vol_tgs, ty_le_tgs: r.ty_le_tgs }]),
+          );
+          const khoaList = args.khoaOptions.map((o) => {
+            const maMatch = o.label.match(/^\[([^\]]+)\]/);
+            return {
+              id: o.id,
+              khoi_id: o.khoi_id ?? null,
+              ma_khoa: maMatch?.[1] ?? null,
+              ten_khoa: o.label.replace(/^\[[^\]]+\]\s*/, ""),
+              is_active: true as const,
+            };
+          });
+          tgsCoverageRanking = buildTgsCoverageRanking(
+            khoaList,
+            obl.data.catalog,
+            buildTgsHitSet(obl.data.hits),
+            gapByKhoa,
+          );
+        }
+      }
+
+      const reportNo = buildBaoCaoReportNo(args.tuNgay, args.denNgay);
       const html = getBaoCaoTongHopPrintHtml({
         reportNo,
         tuNgay: args.tuNgay,
@@ -92,6 +133,7 @@ export function useBaoCaoTongHopPrint(args: {
         gscChecklistTruncated: truncated,
         nhanXetDanhGia: args.nhanXetDanhGia,
         kienNghiDeXuat: args.kienNghiDeXuat,
+        tgsCoverageRanking,
       });
 
       const w = window.open("", "_blank");
@@ -103,8 +145,7 @@ export function useBaoCaoTongHopPrint(args: {
       w.document.write(html);
       w.document.close();
       w.focus();
-      w.print();
-      toast.success("Đã mở bản in", { id: toastId });
+      toast.success("Đã mở bản in — hộp thoại in sẽ hiện sau khi tải xong", { id: toastId });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Không tạo được bản in", { id: toastId });
     } finally {

@@ -10,7 +10,9 @@ import {
   CommandCenterBriefSections,
   CommandCenterKsnkStaffSection,
 } from "@/modules/dashboard/components/command-center/CommandCenterBriefSections";
+import { CommandCenterQuickActions } from "@/modules/dashboard/components/command-center/CommandCenterQuickActions";
 import { CommandCenterQlcvSection } from "@/modules/dashboard/components/command-center/CommandCenterQlcvSection";
+import { AnalyticsKhoaScopeBanner } from "@/modules/dashboard/components/AnalyticsKhoaScopeBanner";
 
 export function CommandCenterDashboardPage() {
   const d = useCommandCenterBriefData();
@@ -21,6 +23,7 @@ export function CommandCenterDashboardPage() {
 
   const filterBar = (
     <AnalyticsFilterBar
+      khoaFilterLocked={d.khoaFilterLocked}
       tuNgay={d.tuNgay}
       setTuNgay={d.setTuNgay}
       denNgay={d.denNgay}
@@ -69,12 +72,19 @@ export function CommandCenterDashboardPage() {
       ) : null}
 
       <div className={`space-y-8 transition-opacity ${d.loading ? "pointer-events-none opacity-50" : ""}`}>
+        {d.khoaFilterLocked && d.lockedKhoaLabel ? <AnalyticsKhoaScopeBanner khoaLabel={d.lockedKhoaLabel} /> : null}
+        <CommandCenterQuickActions
+          tuNgay={d.tuNgay}
+          denNgay={d.denNgay}
+          selectedKhoaIds={d.selectedKhoaIds}
+        />
         <CommandCenterBriefSections
           vstPayload={d.vstPayload}
           gscPayload={d.gscPayload}
           tuNgay={d.tuNgay}
           denNgay={d.denNgay}
           selectedKhoaIds={d.selectedKhoaIds}
+          loading={d.loading}
         />
 
         {d.qlcvBriefAvailable && d.qlcvBrief ? (

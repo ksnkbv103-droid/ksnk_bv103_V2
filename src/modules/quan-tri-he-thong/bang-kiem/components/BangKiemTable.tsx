@@ -11,6 +11,7 @@ import BangKiemForm from "./BangKiemForm";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import type { DanhMucBangKiem } from "../bang-kiem.types";
+import { summarizeApDungForTable } from "@/lib/domain/bang-kiem-ap-dung";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
 
@@ -24,10 +25,14 @@ export type BangKiemTablePermission = Partial<{
 /** Import phân cấp có tiêu chí: máy chủ yêu cầu thêm import `BANG_KIEM_DETAIL` khi có dòng con trong file. */
 export default function BangKiemTable({
   onSelectBK,
+  onDataLoaded,
+  refreshToken = 0,
   selectedBKId,
   permission,
 }: {
   onSelectBK: (bk: DanhMucBangKiem) => void;
+  onDataLoaded?: (rows: DanhMucBangKiem[]) => void;
+  refreshToken?: number;
   selectedBKId?: string;
   permission?: BangKiemTablePermission;
 }) {
@@ -46,11 +51,14 @@ export default function BangKiemTable({
   const loadData = async () => {
     setLoading(true);
     const res = await getBangKiems();
-    if (res.success) setData((res.data || []) as DanhMucBangKiem[]);
-    else toast.error(res.error || "Không tải được danh mục bảng kiểm");
+    if (res.success) {
+      const rows = (res.data || []) as DanhMucBangKiem[];
+      setData(rows);
+      onDataLoaded?.(rows);
+    } else toast.error(res.error || "Không tải được danh mục bảng kiểm");
     setLoading(false);
   };
-  useEffect(() => { loadData(); }, [refreshKey]);
+  useEffect(() => { loadData(); }, [refreshKey, refreshToken]);
 
   useEffect(() => {
     if (!selectedBKId && data.length > 0) {
@@ -105,6 +113,30 @@ export default function BangKiemTable({
           <div className={`${TC.cellTitle} mt-1`}>{bk.ten_bang_kiem}</div>
         </div>
       ),
+    },
+    {
+      header: "Phạm vi",
+      accessorKey: "ap_dung_jsonb",
+      sortable: false,
+      cell: (bk) => {
+        const s = summarizeApDungForTable(bk);
+        return (
+          <div className="py-1 space-y-1">
+            <span className={`${C.statusBadge} border-slate-100 bg-slate-100 text-slate-700`}>
+              {s.mucDoLabel}
+            </span>
+            <span className={`block ${TC.cellMeta}`}>{s.phamViLabel}</span>
+            <div className={`flex flex-wrap gap-1 ${TC.cellMeta}`}>
+              {s.batBuocTgs ? <span className="text-emerald-700">TGS khoa</span> : null}
+              {s.batBuocKsnk ? <span className="text-sky-700">KSNK</span> : null}
+              {s.tanSuatLabel ? <span className="text-violet-700">{s.tanSuatLabel}</span> : null}
+              {s.needsKhoaConfig ? (
+                <span className="text-amber-700">Chưa chọn khoa/khối</span>
+              ) : null}
+            </div>
+          </div>
+        );
+      },
     },
     { header: TH.status, accessorKey: "is_active", sortable: true, cell: (bk) => actionUi.renderStatusCell(bk) },
     { header: TH.manage, accessorKey: "id", cell: (bk) => actionUi.renderManagementCell(bk) },

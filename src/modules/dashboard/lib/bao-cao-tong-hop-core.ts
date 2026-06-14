@@ -272,39 +272,107 @@ export function pickTrend(points: BaoCaoTrendPoint[], granularity: BaoCaoTrendGr
   }
 }
 
+function finalizeKhoaRankRow(row: Omit<BaoCaoKhoaRankRow, "ty_le_ccs" | "has_data">): BaoCaoKhoaRankRow {
+  const parts = [row.ty_le_vst, row.ty_le_gsc].filter((x): x is number => x != null);
+  const ty_le_avg = parts.length ? Math.round((parts.reduce((a, b) => a + b, 0) / parts.length) * 10) / 10 : null;
+  const { value: ty_le_ccs } = computeCcs(row.ty_le_vst, row.ty_le_gsc);
+  return { ...row, ty_le_avg, ty_le_ccs, has_data: true };
+}
+
 export function buildKhoaRank(vst: VstStrategicPayload | null, gsc: GscStrategicPayload | null): BaoCaoKhoaRankRow[] {
   const byId = new Map<string, BaoCaoKhoaRankRow>();
   for (const row of vst?.matrix_khoa ?? []) {
-    byId.set(row.id, {
-      id: row.id,
-      ten: row.ten,
-      ty_le_vst: row.ty_le_tuan_thu,
-      ty_le_gsc: null,
-      ty_le_avg: row.ty_le_tuan_thu,
-      tong_co_hoi_vst: row.tong_co_hoi,
-      tong_quan_sat_gsc: 0,
-    });
+    byId.set(
+      row.id,
+      finalizeKhoaRankRow({
+        id: row.id,
+        ten: row.ten,
+        ty_le_vst: row.ty_le_tuan_thu,
+        ty_le_gsc: null,
+        ty_le_avg: row.ty_le_tuan_thu,
+        tong_co_hoi_vst: row.tong_co_hoi,
+        tong_quan_sat_gsc: 0,
+      }),
+    );
   }
   for (const row of gsc?.matrix_khoa ?? []) {
     const cur = byId.get(row.id);
     if (cur) {
       cur.ty_le_gsc = row.ty_le_tuan_thu;
       cur.tong_quan_sat_gsc = row.tong_quan_sat;
-      const parts = [cur.ty_le_vst, cur.ty_le_gsc].filter((x): x is number => x != null);
-      cur.ty_le_avg = parts.length ? Math.round((parts.reduce((a, b) => a + b, 0) / parts.length) * 10) / 10 : null;
+      const finalized = finalizeKhoaRankRow(cur);
+      cur.ty_le_avg = finalized.ty_le_avg;
+      cur.ty_le_ccs = finalized.ty_le_ccs;
     } else {
-      byId.set(row.id, {
-        id: row.id,
-        ten: row.ten,
-        ty_le_vst: null,
-        ty_le_gsc: row.ty_le_tuan_thu,
-        ty_le_avg: row.ty_le_tuan_thu,
-        tong_co_hoi_vst: 0,
-        tong_quan_sat_gsc: row.tong_quan_sat,
-      });
+      byId.set(
+        row.id,
+        finalizeKhoaRankRow({
+          id: row.id,
+          ten: row.ten,
+          ty_le_vst: null,
+          ty_le_gsc: row.ty_le_tuan_thu,
+          ty_le_avg: row.ty_le_tuan_thu,
+          tong_co_hoi_vst: 0,
+          tong_quan_sat_gsc: row.tong_quan_sat,
+        }),
+      );
     }
   }
   return [...byId.values()].filter((r) => (r.tong_co_hoi_vst + r.tong_quan_sat_gsc) > 0);
+}
+
+export type KhoaOptionLike = { id: string; label: string };
+
+function khoaRankHasVolume(row: BaoCaoKhoaRankRow): boolean {
+  return row.has_data !== false && row.tong_co_hoi_vst + row.tong_quan_sat_gsc > 0;
+}
+
+/** Xếp hạng theo CCS giảm dần; khoa chưa có dữ liệu xuống cuối. */
+export function sortKhoaRankByCcs(rows: BaoCaoKhoaRankRow[]): BaoCaoKhoaRankRow[] {
+  return [...rows].sort((a, b) => {
+    const aVol = khoaRankHasVolume(a);
+    const bVol = khoaRankHasVolume(b);
+    if (aVol && !bVol) return -1;
+    if (!aVol && bVol) return 1;
+    return (b.ty_le_ccs ?? -1) - (a.ty_le_ccs ?? -1);
+  });
+}
+
+/** Gộp khoa đã chọn (lọc) với dữ liệu RPC — khoa 0 phiên vẫn hiện «Chưa GS». */
+export function mergeKhoaRankWithSelected(
+  rows: BaoCaoKhoaRankRow[],
+  selectedKhoaIds: string[] | undefined,
+  khoaOptions: KhoaOptionLike[],
+  khoaOptionCount: number,
+): BaoCaoKhoaRankRow[] {
+  const byId = new Map(rows.map((r) => [r.id, { ...r, has_data: r.has_data ?? true }]));
+  const isFiltered = Boolean(selectedKhoaIds?.length && selectedKhoaIds.length < khoaOptionCount);
+
+  if (!isFiltered) {
+    return sortKhoaRankByCcs([...byId.values()]);
+  }
+
+  const merged: BaoCaoKhoaRankRow[] = [];
+  for (const id of selectedKhoaIds ?? []) {
+    const existing = byId.get(id);
+    if (existing) {
+      merged.push(existing);
+      continue;
+    }
+    const opt = khoaOptions.find((o) => o.id === id);
+    merged.push({
+      id,
+      ten: opt?.label ?? id,
+      ty_le_vst: null,
+      ty_le_gsc: null,
+      ty_le_avg: null,
+      ty_le_ccs: null,
+      tong_co_hoi_vst: 0,
+      tong_quan_sat_gsc: 0,
+      has_data: false,
+    });
+  }
+  return sortKhoaRankByCcs(merged);
 }
 
 export function topBottomKhoa(rows: BaoCaoKhoaRankRow[], n = 5): { top: BaoCaoKhoaRankRow[]; bottom: BaoCaoKhoaRankRow[] } {
@@ -348,15 +416,21 @@ const SUPERVISION_ANALYTICS_CANONICAL: Record<string, { analytics: string; histo
   "/giam-sat-chung": { analytics: "/thong-ke/gsc", history: "/lich-su/gsc" },
 };
 
+export type AnalyticsDeepLinkFilters = Pick<BaoCaoTongHopFilters, "tu_ngay" | "den_ngay" | "khoa_ids"> & {
+  /** Tab view trên `/thong-ke/gsc` — ví dụ `bk-toi`. */
+  view?: string;
+};
+
 export function buildAnalyticsDeepLink(
   basePath: string,
-  filters: Pick<BaoCaoTongHopFilters, "tu_ngay" | "den_ngay" | "khoa_ids">,
+  filters: AnalyticsDeepLinkFilters,
   tab?: string,
 ): string {
   const q = new URLSearchParams();
   q.set("tu_ngay", filters.tu_ngay);
   q.set("den_ngay", filters.den_ngay);
   if (filters.khoa_ids?.length) q.set("khoa_ids", filters.khoa_ids.join(","));
+  if (filters.view) q.set("view", filters.view);
   const qs = q.toString();
 
   const canonical = SUPERVISION_ANALYTICS_CANONICAL[basePath];
@@ -370,6 +444,23 @@ export function buildAnalyticsDeepLink(
   if (tab) q.set("tab", tab);
   const legacyQs = q.toString();
   return legacyQs ? `${basePath}?${legacyQs}` : basePath;
+}
+
+/** `2026-06-01` → `01/06/2026` — dùng trên bìa báo cáo in. */
+export function formatBaoCaoIsoDateVi(iso: string): string {
+  const [y, m, d] = iso.split("-");
+  if (!y || !m || !d) return iso;
+  return `${d}/${m}/${y}`;
+}
+
+/** Dòng ngày ban hành chuẩn văn bản (Hà Nội, ngày …). */
+export function formatBaoCaoIssueDateVi(date: Date): string {
+  return `Hà Nội, ngày ${date.getDate()} tháng ${date.getMonth() + 1} năm ${date.getFullYear()}`;
+}
+
+/** Mã số báo cáo tổng hợp theo kỳ lọc. */
+export function buildBaoCaoReportNo(tuNgay: string, denNgay: string): string {
+  return `BC-TH-${tuNgay.replaceAll("-", "")}-${denNgay.replaceAll("-", "")}`;
 }
 
 export function shouldFetchSource(chuyenDe: BaoCaoChuyenDe, source: "VST" | "GSC" | "NKBV"): boolean {
@@ -419,7 +510,7 @@ export function composeBaoCaoTongHopPayload(args: {
       topic_vst: args.sources.vst === "ok",
       topic_gsc: args.sources.gsc === "ok",
       topic_nkbv: args.sources.nkbv === "ok",
-      compare_khoa: khoaRank.length > 0,
+      compare_khoa: khoaRank.length > 0 || (args.filters.khoa_ids?.length ?? 0) > 0,
       compare_khoi: false,
       compare_khu_vuc:
         (args.vst?.matrix_khu_vuc_nhom?.length ?? 0) > 0 ||

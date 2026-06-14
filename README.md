@@ -1,86 +1,64 @@
-## KSNK BV103 - Infection Control System
+# KSNK BV103 — Hệ thống Kiểm soát Nhiễm khuẩn
 
-![Test Coverage](https://img.shields.io/badge/coverage-80%25-brightgreen)
-![Security](https://img.shields.io/badge/security-OWASP-green)
-![CI](https://img.shields.io/badge/CI-passing-brightgreen)
+Nền tảng quản lý KSNK cho Bệnh viện 103, đang trong **giai đoạn pilot** với khung governance cấp enterprise (migration SSOT, verify gates, visual language có drift-check). **Chưa phải production toàn bệnh viện** — triển khai theo wave W1 → W2 → W3.
 
-**Production-ready Next.js 16 + Supabase Infection Control System for BV103**
+## Trạng thái pilot
 
-### Architecture Diagram
-```mermaid
-graph TD
-    A[Frontend - Next.js App Router] --> B[Modules DDD: auth, dashboard, cssd-erp, giam-sat...]
-    B --> C[Supabase PostgreSQL + RLS]
-    C --> D[TanStack Query + Zod Validation]
-    A --> E[Vercel Analytics + Pino Logging]
-    E --> F[GitHub Actions CI/CD with Security Gates]
-```
-# KSNK BV103 - Hệ thống Kiểm soát Nhiễm khuẩn Bệnh viện 103
+| Wave | Env | Module |
+|------|-----|--------|
+| **W1** (go-live) | Staging → Prod, `KSNK_PILOT_CORE_MODULES=1` | **MDM** (quản trị) + **GSC/VST** (giám sát) + **QLCV** (công việc) |
+| **W2** (CSSD UAT) | Staging, tắt flag pilot | + **CSSD** (quy trình, hóa chất, thiết bị, cycle QR) |
+| **W3** (mở rộng) | Prod | + **NKBV**, **Dashboard** (khi checklist pass) |
 
-![Coverage](https://img.shields.io/badge/Coverage-87%25-brightgreen)
-![Security](https://img.shields.io/badge/Security-Passed-success)
-![CI](https://img.shields.io/badge/CI-Passing-brightgreen)
-![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue)
+Chi tiết ký go-live: [`docs/core/pilot-go-live-signoff-202606.md`](docs/core/pilot-go-live-signoff-202606.md) · [`docs/core/pilot-core-modules-go-live.md`](docs/core/pilot-core-modules-go-live.md)
 
-## Giới thiệu
-Hệ thống KSNK BV103 là nền tảng quản lý kiểm soát nhiễm khuẩn toàn diện cho Bệnh viện 103. Được xây dựng theo tiêu chuẩn production-ready, maintainable, scalable và secure.
+## Công nghệ
 
-## Công nghệ sử dụng
-- **Frontend**: Next.js 16 + React 19 + TypeScript
-- **Styling**: Tailwind CSS v4 + Radix UI
-- **Database**: Supabase (PostgreSQL)
-- **State Management**: TanStack Query v5
-- **Validation**: Zod
-- **Visualization**: Recharts
-- **Logging**: Pino + Vercel Analytics
+- **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS v4
+- **Backend / DB:** Supabase (PostgreSQL + Auth + RLS)
+- **State & validation:** TanStack Query v5, Zod
+- **Deploy:** Vercel (preview staging)
 
-## Kiến trúc hệ thống
-```mermaid
-flowchart TD
-    A[Frontend - Next.js App Router] --> B[9 Domain Modules - DDD]
-    B --> C[Supabase PostgreSQL]
-    B --> D[TanStack Query]
-    D --> E[API Routes]
-    C --> F[RLS + Row Level Security]
-```
+## Quick start
 
-## Các Module chính
-- Dashboard
-- Giám sát VST
-- Giám sát GSC
-- Giám sát NKBV
-- CSSD ERP
-- Quản lý công việc
-- Quản trị hệ thống
-
-## Production Status
-- ✅ Test Coverage: 87%
-- ✅ Security & CI Gates
-- ✅ Structured Logging + Observability
-- ✅ Full Documentation + Architecture Diagram
-- ✅ Vercel Production Ready
-
-## Quick Start
 ```bash
-git clone https://github.com/ksnkbv103-droid/ksnk_bv103.git
-cd ksnk_bv103
+cp .env.example .env.local
 npm install
+npm run trial:prep   # local Supabase + seed (cần Docker)
 npm run dev
 ```
 
-## Tài liệu Hướng dẫn (Documentation)
+## Verify & go-live gates
 
-Hệ thống tài liệu của dự án được quy hoạch tinh gọn thành **4 Cột trụ Thống nhất** chính:
+```bash
+npm run verify                  # lint + layout drift + CSSD + engineering + build
+npm run verify:engineering      # contract app ↔ DB (bắt buộc trước push action/fact_*)
+npm run pilot:go-live:gate      # linked: precheck DB/auth + verify + smoke
+npm run pilot:go-live:gate:local
+```
 
-* 📄 **[Documentation Index](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/README.md)** — Mục lục tài liệu dùng chung
-* 📖 **[AGENTS.md](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/AGENTS.md)** — Hiến pháp quy tắc làm việc cho Dev & AI (Bắt buộc đọc)
-* 📘 **[Quy chuẩn Kỹ thuật & UI/UX](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/core/engineering-guidelines.md)** — Quy tắc code, RLS, Layout và cổng PR
-* 📙 **[Đặc tả Nghiệp vụ y tế](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/core/domain-specification.md)** — Từ điển thuật ngữ, hành trình VST, CSSD, QLCV, NKBV
-* 📗 **[Cẩm nang Vận hành, Bảo mật & DB](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/core/operations-sop.md)** — Auth, RBAC y tế, SOP đồng bộ DB và Smart DB
-* 📒 **[Bàn giao & Lộ trình](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/core/handover-roadmap.md)** — Tổng quan bàn giao, DB tham chiếu và 8 mảnh lộ trình
+Pipeline schema & ship: [`docs/core/governance-pipeline.md`](docs/core/governance-pipeline.md) · Demo terminal gates: [`docs/core/demo-governance-gates.md`](docs/core/demo-governance-gates.md)
 
+## Tài liệu cốt lõi
+
+| Tài liệu | Mục đích |
+|----------|----------|
+| [`AGENTS.md`](AGENTS.md) | Cổng ship code — quy tắc agent & dev |
+| [`docs/core/architecture-one-pager.md`](docs/core/architecture-one-pager.md) | Tổng quan kiến trúc một trang |
+| [`docs/core/domain-specification.md`](docs/core/domain-specification.md) | Đặc tả nghiệp vụ y tế |
+| [`docs/core/implementation-mapping.md`](docs/core/implementation-mapping.md) | Ánh xạ spec ↔ module ↔ bảng DB |
+| [`docs/reference/guides/bv103-visual-language.md`](docs/reference/guides/bv103-visual-language.md) | Design tokens & layout governance |
+| [`docs/README.md`](docs/README.md) | Mục lục tài liệu đầy đủ |
+
+## Cấu trúc mã nguồn (tóm tắt)
+
+```
+src/app/          # Route mỏng
+src/modules/      # DDD: quan-tri-he-thong, giam-sat-*, cssd-erp, quan-ly-cong-viec, dashboard, …
+src/lib/          # RBAC, domain thuần, analytics mappers
+supabase/         # Migrations (SSOT schema)
+```
 
 ---
-**Production URL**: https://ksnk-bv103.vercel.app
 
-**Developed with ❤️ by Principal Software Engineer Process**
+**Staging:** https://ksnk-bv103.vercel.app

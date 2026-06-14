@@ -14,11 +14,23 @@ import {
 } from "lucide-react";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
+import {
+  buildGapKhoaRows,
+  gapExclusionReason,
+  isGapComparable,
+  normalizeGapKhoaRow,
+  partitionGapKhoaRows,
+  type GapKhoaSourceRow,
+} from "@/lib/analytics/supervision-matrix-mappers";
 import { buildAnalyticsDeepLink } from "@/modules/dashboard/lib/bao-cao-tong-hop-core";
 import {
   BAO_CAO_TONG_HOP_THRESHOLDS,
   complianceToneFromPercent,
 } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
+import {
+  isPathBlockedUnderPilotCoreModules,
+  isPilotCoreModulesScopeEnabled,
+} from "@/lib/ksnk-pilot-core-modules-scope";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
@@ -28,33 +40,141 @@ type Props = {
   tuNgay: string;
   denNgay: string;
   selectedKhoaIds: string[];
+  loading?: boolean;
 };
 
-export function CommandCenterBriefSections({ vstPayload, gscPayload, tuNgay, denNgay, selectedKhoaIds }: Props) {
-  const baoCaoHref = buildAnalyticsDeepLink("/bao-cao-tong-hop", {
-    tu_ngay: tuNgay,
-    den_ngay: denNgay,
-    khoa_ids: selectedKhoaIds.length > 0 ? selectedKhoaIds : undefined,
-  });
+type GapAlertRow = {
+  domain: "VST" | "GSC";
+  ten: string;
+  tyLeTgs: number | null;
+  tyLeKsnk: number | null;
+  doLech: number;
+  summary: string;
+};
+
+function formatGapSummary(tyLeTgs: number | null, tyLeKsnk: number | null, doLech: number): string {
+  if (tyLeTgs != null && tyLeKsnk != null) {
+    if (doLech <= 5) {
+      return `TGS ${Math.round(tyLeTgs)}% · KSNK ${Math.round(tyLeKsnk)}% — trong ngưỡng (Δ ${Math.round(doLech)}%)`;
+    }
+    const higher = tyLeKsnk > tyLeTgs ? "KSNK cao hơn TGS" : "TGS cao hơn KSNK";
+    return `TGS ${Math.round(tyLeTgs)}% · KSNK ${Math.round(tyLeKsnk)}% — ${higher} ${Math.round(doLech)} điểm`;
+  }
+  return `Chênh lệch ${Math.round(doLech)}%`;
+}
+
+function collectGapAlerts(
+  vstPayload: VstStrategicPayload | null,
+  gscPayload: GscStrategicPayload | null,
+): GapAlertRow[] {
+  const rows = [
+    ...(vstPayload?.gap_analysis ?? []).map((r) => ({ domain: "VST" as const, raw: r as GapKhoaSourceRow })),
+    ...(gscPayload?.gap_analysis ?? []).map((r) => ({ domain: "GSC" as const, raw: r as GapKhoaSourceRow })),
+  ]
+    .map(({ domain, raw }) => {
+      const norm = normalizeGapKhoaRow(raw);
+      if (!isGapComparable(norm)) return null;
+      const doLech =
+        raw.do_lech != null
+          ? Math.abs(raw.do_lech)
+          : Math.abs((raw.ty_le_tgs ?? 0) - (raw.ty_le_ksnk ?? 0));
+      return {
+        domain,
+        ten: raw.ten ?? norm.ten,
+        tyLeTgs: norm.ty_le_tgs,
+        tyLeKsnk: norm.ty_le_ksnk,
+        doLech,
+        summary: formatGapSummary(norm.ty_le_tgs, norm.ty_le_ksnk, doLech),
+      };
+    })
+    .filter((r): r is GapAlertRow => r != null);
+
+  return rows.sort((a, b) => b.doLech - a.doLech).slice(0, 3);
+}
+
+function countExcludedKhoa(vstPayload: VstStrategicPayload | null, gscPayload: GscStrategicPayload | null): number {
+  const seen = new Set<string>();
+  let count = 0;
+  for (const raw of [...(vstPayload?.gap_analysis ?? []), ...(gscPayload?.gap_analysis ?? [])]) {
+    const norm = normalizeGapKhoaRow(raw as GapKhoaSourceRow);
+    const id = norm.id;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    if (gapExclusionReason(norm)) count += 1;
+  }
+  return count;
+}
+
+export function CommandCenterBriefSections({
+  vstPayload,
+  gscPayload,
+  tuNgay,
+  denNgay,
+  selectedKhoaIds,
+  loading = false,
+}: Props) {
+  const filterSeed = useMemo(
+    () => ({
+      tu_ngay: tuNgay,
+      den_ngay: denNgay,
+      khoa_ids: selectedKhoaIds.length > 0 ? selectedKhoaIds : undefined,
+    }),
+    [tuNgay, denNgay, selectedKhoaIds],
+  );
+
+  const baoCaoHref = buildAnalyticsDeepLink("/bao-cao-tong-hop", filterSeed);
+  const thongKeGscHref = buildAnalyticsDeepLink("/giam-sat-chung", filterSeed, "analytics");
+  const thongKeGscBkToiHref = buildAnalyticsDeepLink(
+    "/giam-sat-chung",
+    { ...filterSeed, view: "bk-toi" },
+    "analytics",
+  );
+  const showBaoCao = !(isPilotCoreModulesScopeEnabled() && isPathBlockedUnderPilotCoreModules("/bao-cao-tong-hop"));
 
   const tyLeVst = vstPayload?.kpis?.ty_le_tuan_thu ?? null;
   const tyLeGsc = gscPayload?.kpis?.ty_le_tuan_thu ?? null;
 
-  const topGapAlerts = useMemo(() => {
-    const rows = [
-      ...(vstPayload?.gap_analysis ?? []).map((r) => ({
-        domain: "VST" as const,
-        ten: r.ten,
-        doLech: Math.abs((r.ty_le_tgs ?? 0) - (r.ty_le_ksnk ?? 0)),
-      })),
-      ...(gscPayload?.gap_analysis ?? []).map((r) => ({
-        domain: "GSC" as const,
-        ten: r.ten,
-        doLech: Math.abs((r.ty_le_tgs ?? 0) - (r.ty_le_ksnk ?? 0)),
-      })),
-    ];
-    return rows.sort((a, b) => b.doLech - a.doLech).slice(0, 3);
-  }, [vstPayload?.gap_analysis, gscPayload?.gap_analysis]);
+  const topGapAlerts = useMemo(
+    () => collectGapAlerts(vstPayload, gscPayload),
+    [vstPayload, gscPayload],
+  );
+
+  const excludedKhoaCount = useMemo(
+    () => countExcludedKhoa(vstPayload, gscPayload),
+    [vstPayload, gscPayload],
+  );
+
+  const hasSessionInPeriod = useMemo(() => {
+    const vstVol = vstPayload?.kpis?.tong_co_hoi ?? 0;
+    const gscVol = gscPayload?.kpis?.tong_phien ?? 0;
+    return vstVol + gscVol > 0;
+  }, [vstPayload, gscPayload]);
+
+  const gapStatusMessage = useMemo(() => {
+    if (loading) return null;
+    if (topGapAlerts.length > 0) return null;
+    if (!hasSessionInPeriod) {
+      return "Chưa có phiên giám sát trong kỳ lọc. Gap chỉ hiển thị khi khoa có đủ dữ liệu TGS và KSNK — cấu hình áp dụng tại Quản trị bảng kiểm.";
+    }
+    if (excludedKhoaCount > 0) {
+      return `${excludedKhoaCount} khoa chưa đủ hai nguồn (TGS và KSNK) để đối soát trong kỳ — xem chi tiết tại Thống kê GSC.`;
+    }
+    const gscRows = buildGapKhoaRows(gscPayload?.gap_analysis, selectedKhoaIds, [], 0);
+    const vstRows = buildGapKhoaRows(vstPayload?.gap_analysis, selectedKhoaIds, [], 0);
+    const { comparable } = partitionGapKhoaRows([...gscRows, ...vstRows]);
+    if (comparable.length > 0) {
+      return "Không phát hiện chênh lệch đáng kể — các khoa đối soát được đang trong ngưỡng.";
+    }
+    return "Chưa đủ điều kiện tính gap — kiểm tra cấu hình áp dụng bảng kiểm và phiên trong kỳ.";
+  }, [
+    loading,
+    topGapAlerts.length,
+    hasSessionInPeriod,
+    excludedKhoaCount,
+    gscPayload?.gap_analysis,
+    vstPayload?.gap_analysis,
+    selectedKhoaIds,
+  ]);
 
   return (
     <>
@@ -103,26 +223,78 @@ export function CommandCenterBriefSections({ vstPayload, gscPayload, tuNgay, den
         />
       </div>
 
-      {topGapAlerts.length > 0 ? (
+      {loading || topGapAlerts.length > 0 || gapStatusMessage ? (
         <section className={`rounded-2xl p-5 ${D.noticeGap}`}>
-          <h2 className={`mb-2 flex items-center gap-2 ${D.sectionHeadingSm}`}>
-            <AlertTriangle size={16} className="text-[var(--surface-warning-text)]" aria-hidden />
-            Cảnh báo chênh lệch TGS vs KSNK (top 3)
-          </h2>
-          <p className="mb-3 text-xs text-slate-500">
-            Chỉ tóm tắt — biểu đồ gap đầy đủ tại module Thống kê hoặc báo cáo tổng hợp.
-          </p>
-          <ul className="space-y-2">
-            {topGapAlerts.map((row) => (
-              <li key={`${row.domain}-${row.ten}`} className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm">
-                <span>
-                  <span className="mr-2 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-600">{row.domain}</span>
-                  {row.ten}
-                </span>
-                <span className="font-bold text-amber-800">Δ {Math.round(row.doLech)}%</span>
-              </li>
-            ))}
-          </ul>
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className={`flex items-center gap-2 ${D.sectionHeadingSm}`}>
+                <AlertTriangle size={16} className="text-[var(--surface-warning-text)]" aria-hidden />
+                Cảnh báo chênh lệch TGS vs KSNK
+              </h2>
+              <p className="mt-1 text-xs text-slate-500">
+                Chỉ tóm tắt khoa đủ hai nguồn trong kỳ — hệ thống không bịa Δ%.
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <Link
+                href={thongKeGscBkToiHref}
+                className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-50"
+              >
+                BK phải TGS
+                <ExternalLink size={12} aria-hidden />
+              </Link>
+              <Link
+                href={thongKeGscHref}
+                className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-50"
+              >
+                Thống kê GSC
+                <ExternalLink size={12} aria-hidden />
+              </Link>
+              {showBaoCao ? (
+                <Link
+                  href={baoCaoHref}
+                  className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-50"
+                >
+                  Báo cáo tổng hợp
+                  <ExternalLink size={12} aria-hidden />
+                </Link>
+              ) : null}
+            </div>
+          </div>
+
+          {loading ? (
+            <p className="text-sm text-slate-500">Đang đối soát dữ liệu TGS và KSNK trong kỳ…</p>
+          ) : topGapAlerts.length > 0 ? (
+            <ul className="space-y-2">
+              {topGapAlerts.map((row) => (
+                <li
+                  key={`${row.domain}-${row.ten}`}
+                  className="flex flex-col gap-1 rounded-lg bg-white px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0">
+                    <span className="mr-2 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-600">
+                      {row.domain}
+                    </span>
+                    <span className="text-sm font-semibold text-slate-800">{row.ten}</span>
+                    <p className="mt-0.5 text-xs text-slate-600">{row.summary}</p>
+                  </div>
+                  <span className="shrink-0 font-bold text-amber-800">Δ {Math.round(row.doLech)}%</span>
+                </li>
+              ))}
+            </ul>
+          ) : gapStatusMessage ? (
+            <p className="rounded-lg bg-white px-3 py-2.5 text-sm text-slate-600">{gapStatusMessage}</p>
+          ) : null}
+
+          {!loading && !hasSessionInPeriod ? (
+            <p className="mt-3 text-[11px] text-slate-500">
+              Gợi ý: cấu hình{" "}
+              <Link href="/quan-tri-he-thong/bang-kiem" className="font-bold text-[var(--primary)] hover:underline">
+                áp dụng bảng kiểm
+              </Link>{" "}
+              trước khi chạy phiên GSC TGS.
+            </p>
+          ) : null}
         </section>
       ) : null}
     </>
