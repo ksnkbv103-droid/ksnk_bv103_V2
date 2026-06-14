@@ -16,6 +16,7 @@ type Props = {
   selected: string[];
   onChange: (next: string[]) => void;
   minWidthClassName?: string;
+  disabled?: boolean;
 };
 
 export default function SearchableMultiSelect({
@@ -24,6 +25,7 @@ export default function SearchableMultiSelect({
   selected,
   onChange,
   minWidthClassName = "min-w-[220px]",
+  disabled = false,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -148,8 +150,12 @@ export default function SearchableMultiSelect({
     <div ref={rootRef} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
-        className={`h-11 ${minWidthClassName} rounded-xl border border-slate-200 bg-white px-3 text-left text-sm font-semibold`}
+        disabled={disabled}
+        onClick={() => {
+          if (disabled) return;
+          setOpen((v) => !v);
+        }}
+        className={`h-11 ${minWidthClassName} rounded-xl border border-slate-200 bg-white px-3 text-left text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60`}
       >
         {label}: {selected.length === 0 ? "0" : selected.length}/{options.length}
       </button>

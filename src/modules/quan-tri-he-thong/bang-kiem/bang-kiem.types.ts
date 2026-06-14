@@ -1,5 +1,7 @@
 /** Kiểu dùng chung module Bảng kiểm (tránh any tại form/table). */
 
+import type { BangKiemApDungJsonb } from "@/lib/domain/bang-kiem-ap-dung";
+
 export type TieuChiBangKiem = {
   id: string;
   stt?: number;
@@ -22,6 +24,8 @@ export type DanhMucBangKiem = {
   phan_loai_chuyen_mon?: string | null;
   loai_hinh_giam_sat?: string | null;
   is_active?: boolean;
+  ap_dung_jsonb?: BangKiemApDungJsonb | Record<string, unknown> | null;
+  loai_giam_sat?: string | null;
   tieu_chi_bang_kiem?: TieuChiBangKiem[];
   [key: string]: unknown;
 };

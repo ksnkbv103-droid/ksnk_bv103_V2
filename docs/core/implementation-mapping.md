@@ -130,6 +130,10 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-06-11 | **BK áp dụng + TGS:** `gstt_dm_bang_kiem.ap_dung_jsonb` (`20260612120000`), form MDM, `resolveBkApDungChoKhoa`, KPI bao phủ/xếp hạng/ma trận nghĩa vụ GSC + in BC — [`bang-kiem-ap-dung-tgs-intake-202606.md`](../modules/dashboard/bang-kiem-ap-dung-tgs-intake-202606.md). |
+| 2026-06-11 | **Giám sát:** gỡ link QLCV khỏi ma trận/bảng loại trừ analytics (không đụng module QLCV). |
+| 2026-06-11 | **Analytics Wave 3:** khóa lọc khoa UI (`getAnalyticsViewerScope`), banner «khoa của tôi»; fix layout chunk + mount guards. |
+| 2026-06-11 | **Analytics Wave 1–2:** comparable gap (`vol_tgs∧vol_ksnk`), bảng loại trừ, TGS deployment, ma trận bao phủ BK, reorder báo cáo tổng hợp (NKBV sau process), print sync — [`analytics-wave12-intake-202606.md`](../modules/dashboard/analytics-wave12-intake-202606.md). |
 | 2026-06-11 | **GSC canonical-36 scoring audit:** SSOT `gsc-canonical-36-scoring.ts`; sửa `cach_tinh_diem` BM.10.01 + BM.QĐ.19.03 → `TY_LE` (`20260611100000`); lịch sử GSC ưu tiên `tong_dat/tong_quan_sat` (`gsc-score-display`). |
 | 2026-06-10 | **Go-live Phase 6:** `pilot-go-live-signoff-202606.md`, `auth-pilot-link-sop.md`, `pilot:go-live:gate`; BOM → in cycle QR (`usePrint`). |
 | 2026-06-10 | **Cycle QR Phase 5:** `20260610100000` — `ma_cycle_qr` / `ma_qr_bo_vinh_vien`; resolve 3 cột; sinh cycle sau BOM; NKBV trace cycle QR. |

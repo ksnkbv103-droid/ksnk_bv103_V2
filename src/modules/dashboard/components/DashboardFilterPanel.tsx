@@ -29,6 +29,8 @@ type DashboardFilterPanelProps = {
   setDenNgay: (v: string) => void;
   onRefresh?: () => void;
   refreshLoading?: boolean;
+  /** Wave 3 — khoa lâm sàng / mạng lưới: khóa lọc khoa (và khối liên quan). */
+  khoaFilterLocked?: boolean;
 };
 
 function isPartialSelection(selected: string[], options: MultiSelectOption[]) {
@@ -147,13 +149,15 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
             selected={p.selectedKhoiIds}
             onChange={p.setSelectedKhoiIds}
             minWidthClassName="min-w-0 w-full"
+            disabled={p.khoaFilterLocked}
           />
           <SearchableMultiSelect
-            label="Khoa"
+            label={p.khoaFilterLocked ? "Khoa (đã khóa)" : "Khoa"}
             options={filteredKhoaOptions}
             selected={p.selectedKhoaIds}
             onChange={p.setSelectedKhoaIds}
             minWidthClassName="min-w-0 w-full"
+            disabled={p.khoaFilterLocked}
           />
           <SearchableMultiSelect
             label="Đối tượng"

@@ -5,31 +5,16 @@ import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrom
 import React, { useMemo } from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  PolarAngleAxis,
-  PolarGrid,
-  PolarRadiusAxis,
-  Radar,
-  RadarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { AnalyticsFilterBar } from "@/components/shared/AnalyticsFilterBar";
 import {
-  SupervisionCompareGrid,
-  SupervisionGapChart,
+  SupervisionCompareAccordion,
+  SupervisionKhoaAnalyticsBlock,
   SupervisionKpiRow,
+  SupervisionMomentsPanel,
   SupervisionTrendChart,
-  percentTooltipFormatter,
 } from "@/lib/analytics/supervision-analytics-charts";
-import { toCompareRows, mapGapRowsForKhoaMa } from "@/lib/analytics/supervision-matrix-mappers";
-import { formatPercent2, roundPercent2 } from "@/lib/analytics/supervision-percent";
+import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
+import { formatPercent2 } from "@/lib/analytics/supervision-percent";
 import type { VstStrategicPayload } from "../types/vst-strategic.types";
 
 type FilterProps = {
@@ -58,12 +43,18 @@ type Props = FilterProps & {
   loading?: boolean;
   loadError?: string | null;
   onRefresh?: () => void;
+  khoaFilterLocked?: boolean;
 };
 
 export default function VstStrategicAnalyticsPanel(p: Props) {
+  const gapKhoaRows = useMemo(
+    () =>
+      buildGapKhoaRows(p.payload?.gap_analysis, p.selectedKhoaIds, p.khoaOptions, p.khoaOptions.length),
+    [p.payload?.gap_analysis, p.selectedKhoaIds, p.khoaOptions],
+  );
+
   const compareSections = useMemo(
     () => [
-      { title: "Theo khoa", rows: toCompareRows(p.payload?.matrix_khoa, { khoaMa: true }) },
       { title: "Theo vùng IPAC (4 màu)", rows: toCompareRows(p.payload?.matrix_khu_vuc_nhom) },
       { title: "Theo khu vực (chi tiết)", rows: toCompareRows(p.payload?.matrix_khu_vuc) },
       { title: "Theo đối tượng (nghề)", rows: toCompareRows(p.payload?.matrix_nghe) },
@@ -77,6 +68,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <AnalyticsFilterBar
           hideBangKiem
+          khoaFilterLocked={p.khoaFilterLocked}
           onRefresh={p.onRefresh}
           refreshLoading={p.loading}
           tuNgay={p.tuNgay}
@@ -114,76 +106,25 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         ]}
       />
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <SupervisionTrendChart
-          title="Xu hướng tuân thủ"
-          data={p.payload?.trendline ?? []}
-          loading={p.loading}
-          stroke="#10b981"
-        />
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <h3 className="mb-3 text-sm font-bold text-slate-800">5 thời điểm WHO</h3>
-          <div className="h-[240px]">
-            {(p.payload?.moments?.length ?? 0) > 0 && !p.loading ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart
-                  data={(p.payload?.moments ?? []).map((m) => ({
-                    ...m,
-                    ty_le_tuan_thu: roundPercent2(m.ty_le_tuan_thu),
-                  }))}
-                >
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="ten" tick={{ fontSize: 9 }} />
-                  <PolarRadiusAxis domain={[0, 100]} tick={false} />
-                  <Tooltip formatter={percentTooltipFormatter} />
-                  <Radar
-                    name="Tuân thủ %"
-                    dataKey="ty_le_tuan_thu"
-                    stroke="#10b981"
-                    fill="#10b981"
-                    fillOpacity={0.35}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            ) : (
-              <p className="flex h-full items-center justify-center text-sm text-slate-400">
-                {p.loading ? "Đang tải…" : "Chưa có dữ liệu"}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <SupervisionCompareGrid sections={compareSections} loading={p.loading} />
-
-      <SupervisionGapChart
-        title="Đối soát Tự giám sát vs KSNK (theo khoa)"
-        rows={mapGapRowsForKhoaMa(p.payload?.gap_analysis)}
+      <SupervisionTrendChart
+        title="Xu hướng tuân thủ"
+        data={p.payload?.trendline ?? []}
         loading={p.loading}
+        stroke="#10b981"
       />
 
-      {(p.payload?.moments?.length ?? 0) > 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <h3 className="mb-3 text-sm font-bold text-slate-800">Tuân thủ theo thời điểm (cột)</h3>
-          <div className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={(p.payload?.moments ?? []).map((m) => ({
-                  ...m,
-                  ty_le_tuan_thu: roundPercent2(m.ty_le_tuan_thu),
-                }))}
-              >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="ten" tick={{ fontSize: 9 }} />
-                <YAxis domain={[0, 100]} />
-                <Tooltip formatter={percentTooltipFormatter} />
-                <Legend />
-                <Bar dataKey="ty_le_tuan_thu" name="Tuân thủ %" fill="#10b981" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      ) : null}
+      <SupervisionKhoaAnalyticsBlock
+        rows={gapKhoaRows}
+        loading={p.loading}
+        moduleLabel="VST"
+        tgsVolumeLabel="Cơ hội TGS"
+        ksnkVolumeLabel="Cơ hội KSNK"
+        coverageTopics={[{ id: "vst", label: "VST", rows: gapKhoaRows }]}
+      />
+
+      <SupervisionMomentsPanel moments={p.payload?.moments ?? []} loading={p.loading} stroke="#10b981" />
+
+      <SupervisionCompareAccordion sections={compareSections} loading={p.loading} />
     </div>
   );
 }

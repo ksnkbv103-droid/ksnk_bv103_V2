@@ -12,9 +12,9 @@ export default function OfflineSyncManager() {
   const [pendingTasks, setPendingTasks] = useState<OfflineTask[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const checkQueue = useCallback(async () => {
+  const checkQueue = useCallback(async (mountedRef: { current: boolean }) => {
     const tasks = await getOfflineTasks();
-    setPendingTasks(tasks);
+    if (mountedRef.current) setPendingTasks(tasks);
   }, []);
 
   async function syncData() {
@@ -52,7 +52,7 @@ export default function OfflineSyncManager() {
         }
       }
 
-      await checkQueue();
+      await checkQueue({ current: true });
 
       if (successCount > 0) {
         toast.success(`Đã đồng bộ ${successCount} thao tác ngoại tuyến thành công.`);
@@ -66,19 +66,21 @@ export default function OfflineSyncManager() {
   }
 
   useEffect(() => {
-    // Initial check
+    const mountedRef = { current: true };
     setIsOnline(navigator.onLine);
-    checkQueue();
+    void checkQueue(mountedRef);
 
     const handleOnline = () => {
+      if (!mountedRef.current) return;
       setIsOnline(true);
       toast.success("Đã có kết nối mạng", {
         description: "Hệ thống sẽ tự động đồng bộ dữ liệu ngoại tuyến.",
       });
-      syncData();
+      void syncData();
     };
 
     const handleOffline = () => {
+      if (!mountedRef.current) return;
       setIsOnline(false);
       toast.error("Mất kết nối mạng!", {
         description: "Phần mềm đang chạy ở chế độ Offline. Các thao tác quét sẽ được lưu tạm.",
@@ -88,10 +90,12 @@ export default function OfflineSyncManager() {
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    // Poll queue periodically just in case
-    const interval = setInterval(checkQueue, 5000);
+    const interval = setInterval(() => {
+      void checkQueue(mountedRef);
+    }, 5000);
 
     return () => {
+      mountedRef.current = false;
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
       clearInterval(interval);

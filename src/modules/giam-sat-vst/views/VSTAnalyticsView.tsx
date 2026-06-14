@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { useVstAnalyticsData } from "../hooks/use-vst-analytics-data";
 import { KsnkSupervisionPanel } from "@/components/shared/ksnk-supervision-chrome";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
+import { AnalyticsKhoaScopeBanner } from "@/modules/dashboard/components/AnalyticsKhoaScopeBanner";
 
 const VstStrategicAnalyticsPanel = dynamic(() => import("../components/VstStrategicAnalyticsPanel"), {
   ssr: false,
@@ -22,7 +23,9 @@ export default function VSTAnalyticsView() {
 
   return (
     <KsnkSupervisionPanel className="min-h-[50vh]">
+      {d.khoaFilterLocked && d.lockedKhoaLabel ? <AnalyticsKhoaScopeBanner khoaLabel={d.lockedKhoaLabel} /> : null}
       <VstStrategicAnalyticsPanel
+        khoaFilterLocked={d.khoaFilterLocked}
         tuNgay={d.tuNgay}
         setTuNgay={d.setTuNgay}
         denNgay={d.denNgay}

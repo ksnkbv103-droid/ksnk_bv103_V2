@@ -109,6 +109,16 @@ export default function QuanLyCongViecPage() {
     if (openId) setSelectedTaskId(openId);
   }, [searchParams]);
 
+  const analyticsGapHint = useMemo(() => {
+    if (searchParams.get("from") !== "analytics") return null;
+    const topic = searchParams.get("topic")?.trim();
+    const gap = searchParams.get("gap")?.trim();
+    const parts = ["Mở từ thống kê / báo cáo — khoa thiếu bao phủ giám sát."];
+    if (topic) parts.push(`Chuyên đề: ${topic}.`);
+    if (gap) parts.push(`Trạng thái: ${gap}.`);
+    return parts.join(" ");
+  }, [searchParams]);
+
   const refreshAll = useCallback(async () => {
     await kanban.refreshTasks();
     if (viewMode === "BANG") await table.loadTablePage();
@@ -148,6 +158,11 @@ export default function QuanLyCongViecPage() {
 
   return (
     <div className="relative space-y-6 px-3 pb-12 pt-1 sm:px-0">
+      {analyticsGapHint ? (
+        <div className="rounded-xl border border-indigo-200 bg-indigo-50/80 px-4 py-3 text-sm text-indigo-900">
+          {analyticsGapHint}
+        </div>
+      ) : null}
       {selectedTaskId ? (
         <div className="fixed inset-0 z-[300] flex justify-end animate-in fade-in duration-300">
           <div

@@ -38,9 +38,14 @@ export type BaoCaoKhoaRankRow = {
   ten: string;
   ty_le_vst: number | null;
   ty_le_gsc: number | null;
+  /** Trung bình đơn giản VST% và GSC% — khác CCS khi chỉ có một nguồn. */
   ty_le_avg: number | null;
+  /** CCS = 50% VST + 50% GSC — dùng để xếp hạng. */
+  ty_le_ccs: number | null;
   tong_co_hoi_vst: number;
   tong_quan_sat_gsc: number;
+  /** false khi khoa được lọc nhưng không có phiên trong kỳ. */
+  has_data?: boolean;
 };
 
 /** So sánh 4 vùng IPAC (TR/DO/VA/XA) từ matrix_khu_vuc_nhom RPC. */

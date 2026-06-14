@@ -14,7 +14,7 @@ import type { BaoCaoTongHopPayload } from "../types/bao-cao-tong-hop.types";
 
 const MAX_CHECKLIST_TRENDS = 12;
 
-type OptionRow = { id: string; label: string };
+type OptionRow = { id: string; label: string; khoi_id?: string };
 
 export function useBaoCaoTongHopPrint(args: {
   tuNgay: string;

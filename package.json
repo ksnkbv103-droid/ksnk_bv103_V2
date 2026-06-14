@@ -53,6 +53,8 @@
     "mdm:fallback:audit:strict": "MDM_LEGACY_FAIL_ON_ROWS=1 node scripts/mdm-fallback-audit.mjs",
     "mdm:migrate": "export SUPABASE_ACCESS_TOKEN=$(grep ^SUPABASE_ACCESS_TOKEN .env.local | cut -d= -f2-) && npx supabase db push",
     "mdm:migrate:local": "npx supabase db push --local",
+    "mdm:import:bk-ap-dung": "node --env-file=.env.local scripts/import-bang-kiem-ap-dung-csv.mjs",
+    "mdm:import:bk-ap-dung:dry": "DRY_RUN=1 node --env-file=.env.local scripts/import-bang-kiem-ap-dung-csv.mjs",
     "mdm:migration:list:linked": "export SUPABASE_ACCESS_TOKEN=$(grep ^SUPABASE_ACCESS_TOKEN .env.local | cut -d= -f2-) && npx supabase migration list --linked",
     "mdm:postcheck:sql": "SUPABASE_ACCESS_TOKEN=$(grep SUPABASE_ACCESS_TOKEN .env.local | cut -d= -f2) npx supabase db query --linked --agent=no -f scripts/master-data-cutover-postcheck.sql",
     "mdm:postcheck:sql:local": "docker exec -i supabase_db_ksnk_bv103 psql -U postgres -d postgres -v ON_ERROR_STOP=1 < scripts/master-data-cutover-postcheck.sql",

@@ -5,12 +5,15 @@ import Link from "next/link";
 import { AlertTriangle, ExternalLink } from "lucide-react";
 import { AnalyticsFilterBar } from "@/components/shared/AnalyticsFilterBar";
 import {
-  SupervisionCompareGrid,
-  SupervisionGapChart,
+  SupervisionCompareAccordion,
+  SupervisionCoverageMatrix,
+  SupervisionKhoaAnalyticsBlock,
   SupervisionKpiRow,
   SupervisionTrendChart,
+  SupervisionTgsObligationBlock,
 } from "@/lib/analytics/supervision-analytics-charts";
-import { toCompareRows, mapGapRowsForKhoaMa } from "@/lib/analytics/supervision-matrix-mappers";
+import { useGscTgsObligation } from "@/lib/analytics/use-gsc-tgs-obligation";
+import { buildGapKhoaRows, type CoverageTopicInput, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatPercent2 } from "@/lib/analytics/supervision-percent";
 import type { GscStrategicPayload } from "../types/gsc-strategic.types";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
@@ -51,20 +54,29 @@ type Props = FilterProps & {
   onRequestChecklistClusters?: () => void;
   bkLabelRecord?: Record<string, string>;
   onRefresh?: () => void;
+  khoaFilterLocked?: boolean;
 };
 
 function GscAnalyticsBody({
   payload,
   loading,
   title,
+  selectedKhoaIds,
+  khoaOptions,
 }: {
   payload: GscStrategicPayload | null;
   loading?: boolean;
   title?: string;
+  selectedKhoaIds: string[];
+  khoaOptions: { id: string; label: string }[];
 }) {
+  const gapKhoaRows = useMemo(
+    () => buildGapKhoaRows(payload?.gap_analysis, selectedKhoaIds, khoaOptions, khoaOptions.length),
+    [payload?.gap_analysis, selectedKhoaIds, khoaOptions],
+  );
+
   const compareSections = useMemo(
     () => [
-      { title: "Theo khoa", rows: toCompareRows(payload?.matrix_khoa, { khoaMa: true }) },
       { title: "Theo vùng IPAC (4 màu)", rows: toCompareRows(payload?.matrix_khu_vuc_nhom) },
       { title: "Theo khu vực (chi tiết)", rows: toCompareRows(payload?.matrix_khu_vuc) },
       { title: "Theo đối tượng", rows: toCompareRows(payload?.matrix_nghe) },
@@ -73,6 +85,8 @@ function GscAnalyticsBody({
     ],
     [payload],
   );
+
+  const moduleLabel = title ? undefined : "GSC";
 
   return (
     <div className={UI.sectionGap}>
@@ -89,12 +103,14 @@ function GscAnalyticsBody({
         ]}
       />
       <SupervisionTrendChart title="Xu hướng tuân thủ" data={payload?.trendline ?? []} loading={loading} />
-      <SupervisionCompareGrid sections={compareSections} loading={loading} />
-      <SupervisionGapChart
-        title="Đối soát Tự giám sát vs KSNK (theo khoa)"
-        rows={mapGapRowsForKhoaMa(payload?.gap_analysis)}
+      <SupervisionKhoaAnalyticsBlock
+        rows={gapKhoaRows}
         loading={loading}
+        moduleLabel={moduleLabel}
+        tgsVolumeLabel="Khảo sát TGS"
+        ksnkVolumeLabel="Khảo sát KSNK"
       />
+      <SupervisionCompareAccordion sections={compareSections} loading={loading} />
       {(payload?.top_violations?.length ?? 0) > 0 ? (
         <div className={`${UI.shell} p-4`}>
           <h4 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
@@ -117,12 +133,63 @@ function GscAnalyticsBody({
 }
 
 export default function GscStrategicAnalyticsPanel(p: Props) {
+  const tgsObligation = useGscTgsObligation({
+    enabled: Boolean(p.payload),
+    tuNgay: p.tuNgay,
+    denNgay: p.denNgay,
+    selectedKhoiIds: p.selectedKhoiIds,
+    selectedKhoaIds: p.selectedKhoaIds,
+  });
+
   const clusterEntries = Object.entries(p.checklistClusters ?? {});
+
+  const gscGapForObligation = useMemo(
+    () =>
+      buildGapKhoaRows(
+        p.payload?.gap_analysis,
+        p.selectedKhoaIds,
+        p.khoaOptions,
+        p.khoaOptions.length,
+      ),
+    [p.payload?.gap_analysis, p.selectedKhoaIds, p.khoaOptions],
+  );
+
+  const gscCoverageTopics = useMemo((): CoverageTopicInput[] => {
+    if (clusterEntries.length >= 2) {
+      return clusterEntries.map(([ma, clusterPayload]) => ({
+        id: ma,
+        label:
+          p.bkLabelRecord?.[ma] ??
+          clusterPayload.dynamic_checklists?.[0]?.ten_bang_kiem ??
+          ma,
+        rows: buildGapKhoaRows(
+          clusterPayload.gap_analysis,
+          p.selectedKhoaIds,
+          p.khoaOptions,
+          p.khoaOptions.length,
+        ),
+      }));
+    }
+    const rows = buildGapKhoaRows(
+      p.payload?.gap_analysis,
+      p.selectedKhoaIds,
+      p.khoaOptions,
+      p.khoaOptions.length,
+    );
+    return [{ id: "gsc-all", label: "GSC (tổng kỳ)", rows }];
+  }, [
+    clusterEntries,
+    p.bkLabelRecord,
+    p.khoaOptions,
+    p.payload?.gap_analysis,
+    p.selectedKhoaIds,
+  ]);
 
   return (
     <div className="space-y-6 px-2 pb-8">
       <div className={`${UI.shell} p-4`}>
         <AnalyticsFilterBar
+          khoaFilterLocked={p.khoaFilterLocked}
           onRefresh={p.onRefresh}
           refreshLoading={p.loading || p.clustersLoading}
           tuNgay={p.tuNgay}
@@ -157,6 +224,27 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         payload={p.payload}
         loading={p.loading}
         title="Tổng hợp (mọi chuyên đề trong kỳ)"
+        selectedKhoaIds={p.selectedKhoaIds}
+        khoaOptions={p.khoaOptions}
+      />
+
+      {tgsObligation.error ? (
+        <div className={`${UI.inset} border-amber-200 bg-amber-50 p-3 text-xs text-amber-900`}>
+          Không tải bao phủ TGS theo nghĩa vụ: {tgsObligation.error}
+        </div>
+      ) : null}
+
+      <SupervisionTgsObligationBlock
+        catalog={tgsObligation.data?.catalog ?? []}
+        hits={tgsObligation.data?.hits ?? []}
+        khoaOptions={p.khoaOptions}
+        gapRows={gscGapForObligation}
+        loading={p.loading || tgsObligation.loading}
+      />
+
+      <SupervisionCoverageMatrix
+        topics={gscCoverageTopics}
+        loading={p.loading || p.clustersLoading}
       />
 
       {(p.truncatedChecklistCount ?? 0) > 0 ? (
@@ -197,6 +285,8 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
                 clusterPayload.dynamic_checklists?.[0]?.ten_bang_kiem ??
                 ma
               }
+              selectedKhoaIds={p.selectedKhoaIds}
+              khoaOptions={p.khoaOptions}
             />
           ))}
         </div>

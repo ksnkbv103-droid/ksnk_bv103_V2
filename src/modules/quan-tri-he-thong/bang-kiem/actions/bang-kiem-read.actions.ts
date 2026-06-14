@@ -145,6 +145,37 @@ export async function getBangKiemsForGiamSat() {
 }
 
 /** Dropdown “Loại hình giám sát” — đồng bộ với hub `HINH_THUC_GIAM_SAT` / `gstt_dm_hinh_thuc_giam_sat`. */
+/** Khoa/khối cho form «Áp dụng & bắt buộc» — quyền BANG_KIEM. */
+export async function getBangKiemApDungFormOptionsAction() {
+  try {
+    await verifyPermission("BANG_KIEM", "view");
+    const supabase = createAdminSupabaseClient();
+    const [khoiRes, khoaRes] = await Promise.all([
+      fetchActiveRegistryDmRows(supabase, "KHOI_KHOA"),
+      supabase
+        .from("mdm_dm_khoa_phong")
+        .select("id, ma_khoa, ten_khoa, khoi_id, is_active")
+        .eq("is_active", true)
+        .order("ma_khoa"),
+    ]);
+    if (khoaRes.error) throw khoaRes.error;
+    return {
+      success: true as const,
+      khoiOptions: khoiRes.map((r) => ({
+        id: r.id,
+        label: r.ma ? `[${r.ma}] ${r.ten}` : r.ten,
+      })),
+      khoaOptions: (khoaRes.data ?? []).map((k) => ({
+        id: String(k.id),
+        label: k.ma_khoa ? `[${k.ma_khoa}] ${k.ten_khoa}` : String(k.ten_khoa),
+        khoi_id: k.khoi_id ? String(k.khoi_id) : undefined,
+      })),
+    };
+  } catch (error: unknown) {
+    return { success: false as const, error: errMsg(error) };
+  }
+}
+
 export async function getHinhThucGiamSatOptionsForBangKiemAction() {
   const supabase = await createServerSupabaseUserClient();
   try {

@@ -1,9 +1,15 @@
 // src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
+import dynamic from "next/dynamic";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import ClientLayoutWrapper from "../components/shared/ClientLayoutWrapper";
 import { Toaster } from "sonner";
+
+const ClientLayoutWrapper = dynamic(() => import("../components/shared/ClientLayoutWrapper"), {
+  ssr: true,
+});
+
+import OfflineSyncManager from "@/components/shared/OfflineSyncManager";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,8 +40,6 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
 };
-
-import OfflineSyncManager from "@/components/shared/OfflineSyncManager";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

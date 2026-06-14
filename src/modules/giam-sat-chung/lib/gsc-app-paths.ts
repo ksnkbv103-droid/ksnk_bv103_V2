@@ -51,3 +51,12 @@ export function resolveGscRouteChrome(initialLoaiGiamSat?: GscLoaiGiamSatRoute):
   if (!initialLoaiGiamSat) return GSC_ROUTE_CHROME.ALL;
   return GSC_ROUTE_CHROME[initialLoaiGiamSat];
 }
+
+/** Đường dẫn form GSC theo loại giám sát của bảng kiểm. */
+export function gscFormHrefForLoaiGiamSat(loai: string | null | undefined): string {
+  const key = String(loai ?? "").trim() as GscLoaiGiamSatRoute;
+  if (key === "TUAN_THU" || key === "NHAT_KY_VAN_HANH" || key === "DANH_GIA_HE_THONG") {
+    return GSC_ROUTE_CHROME[key].href;
+  }
+  return GSC_ROUTE_CHROME.TUAN_THU.href;
+}

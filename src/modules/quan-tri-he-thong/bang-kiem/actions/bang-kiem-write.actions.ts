@@ -8,6 +8,11 @@ import {
   upsertMasterRow,
 } from "../../danh-muc/actions/master-crud-core";
 import { verifyPermission } from "../../actions/verify-permission";
+import {
+  normalizeApDungForSave,
+  parseApDungJsonb,
+  validateApDungForSave,
+} from "@/lib/domain/bang-kiem-ap-dung";
 import type { TieuChiBangKiem } from "../bang-kiem.types";
 
 function errBk(e: unknown) {
@@ -23,17 +28,69 @@ function str(r: Record<string, unknown>, ...keys: string[]): string | undefined 
   return undefined;
 }
 
+/** Cập nhật chỉ `ap_dung_jsonb` — dùng panel «Áp dụng & bắt buộc» trên danh mục. */
+export async function saveBangKiemApDungAction(bangKiemId: string, apRaw: unknown) {
+  try {
+    await verifyPermission("BANG_KIEM", "edit");
+    if (!bangKiemId) throw new Error("Thiếu mã bảng kiểm.");
+
+    const supabase = createAdminSupabaseClient();
+    const { data: bk, error: fetchErr } = await supabase
+      .from("gstt_dm_bang_kiem")
+      .select("phan_loai_chuyen_mon, loai_giam_sat")
+      .eq("id", bangKiemId)
+      .single();
+    if (fetchErr || !bk) throw new Error(fetchErr?.message ?? "Không tìm thấy bảng kiểm.");
+
+    const apDung = normalizeApDungForSave(
+      parseApDungJsonb(apRaw, {
+        phan_loai_chuyen_mon: bk.phan_loai_chuyen_mon,
+        loai_giam_sat: bk.loai_giam_sat,
+      }),
+    );
+    const apErr = validateApDungForSave(apDung);
+    if (apErr) throw new Error(apErr);
+
+    const { error: updateErr } = await supabase
+      .from("gstt_dm_bang_kiem")
+      .update({
+        ap_dung_jsonb: apDung,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", bangKiemId);
+    if (updateErr) throw updateErr;
+
+    revalidatePath("/quan-tri-he-thong");
+    return { success: true as const, data: apDung };
+  } catch (error: unknown) {
+    return { success: false as const, error: errBk(error) };
+  }
+}
+
 export async function saveBangKiem(data: Record<string, unknown>) {
   try {
     const idRaw = data.id;
     const idEarly = typeof idRaw === "string" ? idRaw : "";
     await verifyPermission("BANG_KIEM", idEarly ? "edit" : "create");
+    const phanLoai = (data.phan_loai_chuyen_mon as string | null | undefined) ?? null;
+    const loaiGs = (data.loai_giam_sat as string | null | undefined) ?? null;
+    const apRaw = data.ap_dung_jsonb;
+    const apDung = normalizeApDungForSave(
+      parseApDungJsonb(apRaw, {
+        phan_loai_chuyen_mon: phanLoai,
+        loai_giam_sat: loaiGs,
+      }),
+    );
+    const apErr = validateApDungForSave(apDung);
+    if (apErr) throw new Error(apErr);
+
     const payload = {
       ma_bk: str(data, "ma_bk", "ma_bang_kiem"),
       ten_bang_kiem: str(data, "ten_bang_kiem", "ten_bk"),
       mo_ta: (data.mo_ta as string | null | undefined) ?? null,
-      phan_loai_chuyen_mon: (data.phan_loai_chuyen_mon as string | null | undefined) ?? null,
+      phan_loai_chuyen_mon: phanLoai,
       loai_hinh_giam_sat: str(data, "loai_hinh_giam_sat") || "TRUC_TIEP",
+      ap_dung_jsonb: apDung,
       is_active: typeof data.is_active === "boolean" ? data.is_active : true,
       is_system: typeof data.is_system === "boolean" ? data.is_system : false,
       updated_at: new Date().toISOString(),

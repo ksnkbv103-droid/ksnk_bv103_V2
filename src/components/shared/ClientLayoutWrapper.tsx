@@ -1,7 +1,7 @@
 // src/components/shared/ClientLayoutWrapper.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, startTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -26,8 +26,11 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
-      if (!session && !isLoginPage) router.replace("/login");
-      if (session && isLoginPage) router.replace("/");
+      startTransition(() => {
+        if (!mounted) return;
+        if (!session && !isLoginPage) router.replace("/login");
+        if (session && isLoginPage) router.replace("/");
+      });
     });
 
     return () => {
