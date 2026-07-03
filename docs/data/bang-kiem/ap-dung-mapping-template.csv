@@ -1,0 +1,4 @@
+ma_bk,pham_vi,khoi_ma,khoa_ma,bat_buoc_tgs,bat_buoc_ksnk,muc_do,tan_suat_don_vi,tan_suat_so_lan,ghi_chu
+BM.07.02,CA_VIEN,,,true,true,BAT_BUOC,,,Ví dụ: cả viện — KSNK điền tan_suat sau
+BM.QĐ.03.01,THEO_KHOA,,CATHLAB,true,true,BAT_BUOC,,,Ví dụ: theo khoa — điền mã khoa thực tế
+BM.QĐ.08.01,THEO_KHOI,NGOAI,,true,false,BAT_BUOC,,,Ví dụ: theo khối — điền mã khối thực tế

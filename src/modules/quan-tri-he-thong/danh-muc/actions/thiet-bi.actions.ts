@@ -4,7 +4,6 @@ import { verifyPermission } from "@/lib/server-permission";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import {
-  listMasterRows,
   softDeleteManyMasterRows,
   softDeleteMasterRow,
   toggleMasterStatus,
@@ -94,6 +93,9 @@ export async function saveThietBiAction(input: Record<string, unknown>) {
   const specs = {
     hang_san_xuat: String(input.hang_san_xuat || "").trim() || null,
     nam_san_xuat: nam,
+    serial_number: String(input.serial_number || "").trim() || null,
+    model: String(input.model || "").trim() || null,
+    vi_tri: String(input.vi_tri || "").trim() || null,
     ghi_chu: String(input.ghi_chu || "").trim() || null,
   };
 

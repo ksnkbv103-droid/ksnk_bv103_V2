@@ -39,6 +39,12 @@ const RBAC_CACHE_TTL_MS = 5 * 60_000;
 let rbacCache: { userId: string; snapshot: RBACSnapshot; cachedAt: number } | null = null;
 let rbacInFlight: Promise<RBACSnapshot> | null = null;
 
+/** Xóa cache client — gọi sau đổi ma trận hoặc khi refetch (RbacRefreshListener). */
+export function invalidateClientRbacCache() {
+  rbacCache = null;
+  rbacInFlight = null;
+}
+
 /**
  * Hook kiểm tra quyền hạn của người dùng (RBAC Linh hoạt)
  */
@@ -145,11 +151,19 @@ export function usePermission(moduleKey?: string, action: string = "view") {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       void loadRBAC(session?.user ?? null);
     });
-    const unsub = () => subscription.unsubscribe();
+
+    const onRbacInvalidate = () => {
+      invalidateClientRbacCache();
+      void supabase.auth.getSession().then(({ data: { session } }) => {
+        void loadRBAC(session?.user ?? null);
+      });
+    };
+    window.addEventListener("rbac:invalidate", onRbacInvalidate);
 
     return () => {
       mounted = false;
-      unsub();
+      subscription.unsubscribe();
+      window.removeEventListener("rbac:invalidate", onRbacInvalidate);
     };
   }, []);
 

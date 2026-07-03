@@ -23,6 +23,7 @@ export function CommandCenterDashboardPage() {
 
   const filterBar = (
     <AnalyticsFilterBar
+      variant="brief"
       khoaFilterLocked={d.khoaFilterLocked}
       tuNgay={d.tuNgay}
       setTuNgay={d.setTuNgay}
@@ -50,11 +51,13 @@ export function CommandCenterDashboardPage() {
 
   return (
     <Bv103AnalyticsPageFrame
-      eyebrow="Dashboard · KSNK BV103"
       title="Trung tâm điều hành"
-      description="Vận hành hằng ngày — không thay báo cáo kỳ chính thức."
       actions={
-        <button type="button" onClick={() => void d.loadDashboard()} className={bv103DesignTokens.btnGhostDark}>
+        <button
+          type="button"
+          onClick={() => void d.loadDashboard()}
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+        >
           <RefreshCw size={14} aria-hidden /> Cập nhật
         </button>
       }

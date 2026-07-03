@@ -6,12 +6,12 @@ import {
   Legend,
   Line,
   LineChart,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { TrendingUp } from "lucide-react";
+import { SupervisionResponsiveChart } from "@/lib/analytics/supervision-charts-shared";
 import type { BaoCaoTongHopPayload, BaoCaoTrendGranularity } from "../../types/bao-cao-tong-hop.types";
 import { pickTrend } from "../../lib/bao-cao-tong-hop-core";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
@@ -54,8 +54,8 @@ export function ComprehensiveTrend({ payload }: { payload: BaoCaoTongHopPayload 
         </div>
       </div>
       <p className="mb-4 text-xs text-slate-500">VST, GSC và CCS — NKBV xem biểu đồ riêng bên dưới.</p>
-      <div className="h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="h-[300px] min-w-0">
+        <SupervisionResponsiveChart className="h-full w-full min-w-0">
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
             <XAxis dataKey="label" tick={{ fontSize: 10 }} />
@@ -66,7 +66,7 @@ export function ComprehensiveTrend({ payload }: { payload: BaoCaoTongHopPayload 
             <Line type="monotone" dataKey="ty_le_gsc" name="GSC (%)" stroke="#38bdf8" strokeWidth={2} dot={false} connectNulls />
             <Line type="monotone" dataKey="ty_le_ccs" name="CCS (%)" stroke="#6366f1" strokeWidth={2} strokeDasharray="4 4" dot={false} connectNulls />
           </LineChart>
-        </ResponsiveContainer>
+        </SupervisionResponsiveChart>
       </div>
     </section>
   );

@@ -3,8 +3,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { createCongViec, updateCongViec } from "../actions/cong-viec.actions";
-import { pheDuyetDeXuat, pheDuyetVaCapNhatDeXuat } from "../actions/dexuat.actions";
-import { QlcvReasonDialog } from "./dialogs/QlcvReasonDialog";
 import { getQlcvFormCatalog } from "../actions/cong-viec-read.actions";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
@@ -21,9 +19,9 @@ interface Props {
   onCancel?: () => void;
 }
 
+/** Tạo / sửa phiếu active — phê duyệt đề xuất dùng `DeXuatApproveForm`. */
 export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
   const [loading, setLoading] = useState(false);
-  const [rejectOpen, setRejectOpen] = useState(false);
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [nhanSuOptions, setNhanSuOptions] = useState<QlcvSelectOption[]>([]);
   const [toCongTacOptions, setToCongTacOptions] = useState<QlcvSelectOption[]>([]);
@@ -46,7 +44,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
       } catch (error) {
         console.error("Lỗi tải danh mục:", error);
         toast.error(
-          error instanceof Error ? error.message : "Không tải được danh mục tổ / nhân sự (kiểm tra kết nối và service role)."
+          error instanceof Error ? error.message : "Không tải được danh mục tổ / nhân sự (kiểm tra kết nối và service role).",
         );
       } finally {
         setOptionsLoading(false);
@@ -60,7 +58,6 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
       return { assigneeOptions: nhanSuOptions, assigneeListUsesFullRoster: false };
     }
     const inTeam = nhanSuOptions.filter((opt) => String(opt.to_id || "") === String(selectedTo));
-    // Nhiều triển khai chưa backfill mdm_nhan_su.to_id → lọc theo tổ trả về 0 dòng; fallback để vẫn giao được việc.
     if (inTeam.length === 0) {
       return {
         assigneeOptions: nhanSuOptions,
@@ -77,38 +74,21 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
     }
   }, [selectedTo, assigneeOptions, selectedNhanSu]);
 
-  const isPendingDeXuat =
-    Boolean(initialData?.id) && initialData?.is_active === false && initialData?.trang_thai !== "DA_HUY";
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-
+    const hanRaw = formData.get("han_hoan_thanh");
     const rawPayload = {
       tieu_de: formData.get("tieu_de") as string,
       mo_ta: (formData.get("mo_ta") as string) || null,
       loai_cong_viec: (formData.get("loai_cong_viec") as QlcvLoaiCongViec) || "DOT_XUAT",
       muc_do_uu_tien: (formData.get("muc_do_uu_tien") as QlcvMucDoUuTien) || "TRUNG_BINH",
-      han_hoan_thanh: (formData.get("han_hoan_thanh") as string) || null,
+      han_hoan_thanh: hanRaw ? String(hanRaw) : null,
       nguoi_phu_trach_id: selectedNhanSu || null,
-      khoa_thuc_hien_id: null,
       to_cong_tac_id: selectedTo || null,
     };
-
-    if (isPendingDeXuat) {
-      if (!String(selectedTo || "").trim()) {
-        setLoading(false);
-        toast.error("Chọn tổ công tác chuyên trách trước khi phê duyệt.");
-        return;
-      }
-      if (!String(selectedNhanSu || "").trim()) {
-        setLoading(false);
-        toast.error("Chọn người phụ trách trước khi phê duyệt.");
-        return;
-      }
-    }
 
     if (!initialData?.id && !String(selectedNhanSu || "").trim()) {
       setLoading(false);
@@ -119,20 +99,14 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
     const validation = congViecSchema.safeParse(rawPayload);
     if (!validation.success) {
       setLoading(false);
-      const firstError = validation.error.issues[0]?.message || "Dữ liệu không hợp lệ";
-      toast.error(firstError);
+      toast.error(validation.error.issues[0]?.message || "Dữ liệu không hợp lệ");
       return;
     }
 
     try {
       if (initialData?.id) {
-        if (isPendingDeXuat) {
-          await pheDuyetVaCapNhatDeXuat(initialData.id, validation.data);
-          toast.success("Đã phê duyệt đề xuất và giao nhiệm vụ!");
-        } else {
-          await updateCongViec(initialData.id, validation.data);
-          toast.success("Đã cập nhật và kích hoạt công việc!");
-        }
+        await updateCongViec(initialData.id, validation.data);
+        toast.success("Đã cập nhật công việc!");
       } else {
         await createCongViec(validation.data);
         toast.success("Đã tạo công việc thành công!");
@@ -224,115 +198,42 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
               disabled={optionsLoading}
               searchPlaceholder="Tìm tổ theo tên hoặc mã..."
             />
-            {!optionsLoading && toCongTacOptions.length === 0 ? (
-              <p className={`mt-2 ${bv103LayoutChrome.noticeAmber}`}>
-                Chưa có dòng nào trong <code className="text-[11px]">mdm_dm_to_cong_tac</code> (is_active). Thêm tổ ở Quản
-                trị → Danh mục tổ công tác.
-              </p>
-            ) : null}
           </div>
 
           <div>
-            <label className={labelStyles}>
-              Người phụ trách{isPendingDeXuat || !initialData?.id ? " *" : ""}
-            </label>
+            <label className={labelStyles}>Người phụ trách{!initialData?.id ? " *" : ""}</label>
             <SearchableSelect
               options={assigneeOptions}
-              placeholder={
-                optionsLoading
-                  ? "Đang tải..."
-                  : selectedTo
-                    ? "Tìm nhân sự (mdm_nhan_su)..."
-                    : "Tìm nhân sự — chọn tổ để lọc (tuỳ chọn)..."
-              }
+              placeholder={optionsLoading ? "Đang tải..." : "Chọn nhân viên KSNK..."}
               value={selectedNhanSu}
               onChange={setSelectedNhanSu}
               disabled={optionsLoading}
             />
             {assigneeListUsesFullRoster ? (
               <p className={`mt-2 ${bv103LayoutChrome.noticeSlate}`}>
-                Không có nhân sự nào gắn <code className="text-[11px]">to_id</code> trùng tổ đã chọn; đang hiển thị toàn
-                danh sách. Cập nhật cột tổ trên hồ sơ nhân sự để lọc đúng theo tổ.
+                Không có nhân sự gắn tổ đã chọn; đang hiển thị toàn roster KSNK.
               </p>
             ) : null}
           </div>
-
-          {isPendingDeXuat ? (
-            <p className={bv103LayoutChrome.noticeViolet}>
-              Đề xuất chờ chỉ huy xử lý: <strong>Phê duyệt & giao</strong> (cần tổ + phụ trách) hoặc{" "}
-              <strong>Từ chối</strong> nếu không phù hợp — phiếu đóng <code className="text-[11px]">Đã hủy</code>, có
-              lý do trong nhật ký.
-            </p>
-          ) : null}
         </div>
       </div>
 
       <div className="flex flex-col-reverse items-stretch justify-end gap-3 border-t border-slate-200/80 pt-5 sm:flex-row sm:flex-wrap sm:items-center">
         <button
           type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onCancel?.();
-          }}
+          onClick={() => onCancel?.()}
           className="bv103-control-h rounded-xl border border-slate-200/90 bg-white px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-slate-700 shadow-sm hover:bg-slate-50 sm:min-w-[7rem]"
         >
           Đóng
         </button>
-        {isPendingDeXuat && initialData?.id ? (
-          <button
-            type="button"
-            disabled={loading}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setRejectOpen(true);
-            }}
-            className="bv103-control-h rounded-xl border border-red-200 bg-red-50 px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-red-800 shadow-sm hover:bg-red-100 disabled:opacity-50 sm:min-w-[9rem]"
-          >
-            Từ chối đề xuất
-          </button>
-        ) : null}
         <button
           type="submit"
           disabled={loading}
           className="bv103-control-h rounded-xl bg-[var(--primary)] px-8 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:opacity-90 disabled:opacity-50 sm:min-w-[10rem]"
         >
-          {loading
-            ? "Đang xử lý..."
-            : initialData?.id
-              ? isPendingDeXuat
-                ? "Phê duyệt & giao"
-                : "Lưu & kích hoạt"
-              : "Tạo nhiệm vụ"}
+          {loading ? "Đang xử lý..." : initialData?.id ? "Lưu thay đổi" : "Tạo nhiệm vụ"}
         </button>
       </div>
-
-      {isPendingDeXuat && initialData?.id ? (
-        <QlcvReasonDialog
-          open={rejectOpen}
-          onOpenChange={setRejectOpen}
-          title="Từ chối đề xuất"
-          description="Chỉ huy từ chối — đề xuất không thành phiếu điều hành. Lý do được ghi vào nhật ký."
-          placeholder="Lý do không phù hợp / không duyệt…"
-          confirmLabel="Từ chối"
-          variant="danger"
-          minLength={5}
-          onConfirm={async (lyDo) => {
-            setLoading(true);
-            try {
-              await pheDuyetDeXuat(initialData.id!, false, lyDo);
-              toast.success("Đã từ chối đề xuất.");
-              setRejectOpen(false);
-              onSuccess?.();
-            } catch (err: unknown) {
-              toast.error(err instanceof Error ? err.message : "Không từ chối được.");
-            } finally {
-              setLoading(false);
-            }
-          }}
-        />
-      ) : null}
     </form>
   );
 }

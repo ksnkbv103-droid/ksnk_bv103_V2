@@ -1,27 +1,36 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { invokeQlcvTransition, isQlcvTransitionStaleError } from "./qlcv-transition-rpc";
 
-/** Cập nhật trạng thái workflow qua mã TEXT + optimistic lock theo trang_thai hiện tại. */
+/** Cập nhật trạng thái workflow qua RPC `fn_qlcv_transition` + optimistic lock. */
 export async function updateCongViecTrangThaiByMa(
   supabase: SupabaseClient,
   params: {
     id: string;
     currentTrangThaiMa: string | null;
     nextMa: string;
+    actorNhanSuId: string | null;
     extra?: Record<string, unknown>;
+    activityLyDo?: string;
   },
 ): Promise<{ updated: boolean }> {
-  let q = supabase
-    .from("qlcv_fact_cong_viec")
-    .update({
-      trang_thai: params.nextMa,
-      updated_at: new Date().toISOString(),
-      ...params.extra,
-    })
-    .eq("id", params.id);
-  if (params.currentTrangThaiMa) {
-    q = q.eq("trang_thai", params.currentTrangThaiMa);
+  const patch: Record<string, unknown> = {
+    next_trang_thai: params.nextMa,
+    ...(params.currentTrangThaiMa ? { current_trang_thai: params.currentTrangThaiMa } : {}),
+    ...(params.extra ?? {}),
+  };
+
+  try {
+    await invokeQlcvTransition(supabase, {
+      congViecId: params.id,
+      action: "SET_TRANG_THAI",
+      actorNhanSuId: params.actorNhanSuId,
+      lyDo: params.activityLyDo ?? null,
+      patch,
+    });
+    return { updated: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (isQlcvTransitionStaleError(msg)) return { updated: false };
+    throw err;
   }
-  const { data, error } = await q.select("id").maybeSingle();
-  if (error) throw error;
-  return { updated: Boolean(data?.id) };
 }

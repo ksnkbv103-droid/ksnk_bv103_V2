@@ -10,6 +10,7 @@ import CssdModuleChrome from "../components/layout/CssdModuleChrome";
 import KhoHoaChatMoveSheet, { type MoveMode } from "../components/kho-hoa-chat/kho-hoa-chat-move-sheet";
 import KhoHoaChatOverview from "../components/kho-hoa-chat/kho-hoa-chat-overview";
 import KhoHoaChatTables from "../components/kho-hoa-chat/kho-hoa-chat-tables";
+import KhoHoaChatSuCoPanel from "../components/kho-hoa-chat/kho-hoa-chat-su-co-panel";
 import {
   capNhatNguongTonKhoAction,
   dieuChinhKhoHoaChatAction,
@@ -20,9 +21,13 @@ import {
   type KhoHoaChatGiaoDichRow,
   type KhoHoaChatTonLo,
   xuatKhoHoaChatAction,
+  listSuCoChemicalChuaGhiKhoAction,
+  type SuCoChemicalRow,
 } from "../actions/cssd-kho-hoa-chat.actions";
 import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY, CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_GROUP, CSSD_UI_TAB_IDLE } from "../shared/ui/cssd-ui-chrome";
 import { CSSDCatalogHoaChatTab } from "./CSSDCatalogHoaChatTab";
+import { lotRowToKey, pickFefoLotKey } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
+import { matchesLoaiFilter, type HoaChatLoaiFilter } from "@/lib/domain/cssd-hoa-chat-loai";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 
 const MODULE_KEY = "KSNK_KHO_HOACHAT";
@@ -39,9 +44,19 @@ export default function KhoHoaChatKsnkPage() {
   const { loading: permLoading, allowed } = useModulePermission(MODULE_KEY);
   const [tons, setTons] = useState<KhoHoaChatTonLo[]>([]);
   const [movs, setMovs] = useState<KhoHoaChatGiaoDichRow[]>([]);
-  const [dms, setDms] = useState<Array<{ id: string; ma_hoa_chat: string; ten_hoa_chat: string; don_vi_tinh: string | null; nguong_ton_toi_thieu: number | null }>>([]);
+  const [dms, setDms] = useState<
+    Array<{
+      id: string;
+      ma_hoa_chat: string;
+      ten_hoa_chat: string;
+      don_vi_tinh: string | null;
+      nguong_ton_toi_thieu: number | null;
+      loai_hoa_chat: string | null;
+    }>
+  >([]);
   const [busy, setBusy] = useState(true);
   const [activeTab, setActiveTab] = useState<"STOCK" | "CATALOG">("STOCK");
+  const [loaiFilter, setLoaiFilter] = useState<HoaChatLoaiFilter>("ALL");
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [moveMode, setMoveMode] = useState<MoveMode>("NHAP");
@@ -57,13 +72,17 @@ export default function KhoHoaChatKsnkPage() {
   /** Một lần khi mount — ngưỡng “sắp hết hạn” 30 ngày; tránh Date.now trong thân render (react-hooks/purity). */
   const [expiryHorizonMs] = useState(() => Date.now() + 30 * 864e5);
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
+  const [suCoRows, setSuCoRows] = useState<SuCoChemicalRow[]>([]);
+  const [linkedSuCoId, setLinkedSuCoId] = useState<string | null>(null);
+  const [prefMaLo, setPrefMaLo] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     setBusy(true);
-    const [t1, t2, t3] = await Promise.all([
+    const [t1, t2, t3, t4] = await Promise.all([
       listTonTheoLoKhoHoaChatAction(),
       listGiaoDichKhoHoaChatAction({ limit: 120 }),
       listDmHoaChatChoKhoAction(),
+      listSuCoChemicalChuaGhiKhoAction(),
     ]);
     if (!t1.success) toast.error(t1.error);
     else setTons(t1.data);
@@ -71,6 +90,8 @@ export default function KhoHoaChatKsnkPage() {
     else setMovs(t2.data);
     if (!t3.success) toast.error(t3.error);
     else setDms(t3.data);
+    if (!t4.success) toast.error(t4.error);
+    else setSuCoRows(t4.data);
     setBusy(false);
   }, []);
 
@@ -79,62 +100,121 @@ export default function KhoHoaChatKsnkPage() {
   }, [reload]);
 
   useEffect(() => {
-    setLotKey("");
     setQty("");
     setNote("");
     setMaLoNhap("");
     setHanNhap("");
-  }, [sheetOpen, moveMode, dmId]);
+    if (!sheetOpen) {
+      setLotKey("");
+      return;
+    }
+    if (moveMode === "NHAP" || !dmId) {
+      setLotKey("");
+      return;
+    }
+    if (prefMaLo) {
+      const match = tons.find(
+        (t) =>
+          t.dm_hoa_chat_id === dmId &&
+          t.ton_so_luong > 0 &&
+          String(t.ma_lo || "").toLowerCase() === prefMaLo.toLowerCase(),
+      );
+      if (match) {
+        setLotKey(lotRowToKey(match));
+        return;
+      }
+    }
+    const key = pickFefoLotKey(tons.filter((t) => t.dm_hoa_chat_id === dmId));
+    setLotKey(key);
+  }, [sheetOpen, moveMode, dmId, tons, prefMaLo]);
 
   const canEdit = allowed.edit;
 
+  const dmLoaiMap = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const d of dms) m.set(d.id, d.loai_hoa_chat ?? "HOA_CHAT");
+    return m;
+  }, [dms]);
+
+  const filteredDms = useMemo(
+    () => dms.filter((d) => matchesLoaiFilter(d.loai_hoa_chat, loaiFilter)),
+    [dms, loaiFilter],
+  );
+
+  const filteredTons = useMemo(
+    () => tons.filter((t) => matchesLoaiFilter(dmLoaiMap.get(t.dm_hoa_chat_id), loaiFilter)),
+    [tons, dmLoaiMap, loaiFilter],
+  );
+
+  const filteredMovs = useMemo(
+    () => movs.filter((m) => matchesLoaiFilter(dmLoaiMap.get(m.dm_hoa_chat_id), loaiFilter)),
+    [movs, dmLoaiMap, loaiFilter],
+  );
+
   const totalByDm = useMemo(() => {
     const m = new Map<string, number>();
-    for (const t of tons) m.set(t.dm_hoa_chat_id, (m.get(t.dm_hoa_chat_id) || 0) + t.ton_so_luong);
+    for (const t of filteredTons) m.set(t.dm_hoa_chat_id, (m.get(t.dm_hoa_chat_id) || 0) + t.ton_so_luong);
     return m;
-  }, [tons]);
+  }, [filteredTons]);
 
   const countSapHetHan = useMemo(() => {
     let n = 0;
-    for (const t of tons) {
+    for (const t of filteredTons) {
       if (!t.han_su_dung || t.ton_so_luong <= 0) continue;
       const h = new Date(`${t.han_su_dung}T12:00:00`).getTime();
       if (Number.isNaN(h) || h > expiryHorizonMs) continue;
       n++;
     }
     return n;
-  }, [tons, expiryHorizonMs]);
+  }, [filteredTons, expiryHorizonMs]);
 
   const countDuoiNguong = useMemo(() => {
     let n = 0;
-    for (const dm of dms) {
+    for (const dm of filteredDms) {
       if (dm.nguong_ton_toi_thieu == null) continue;
       const tot = totalByDm.get(dm.id) || 0;
       if (tot <= dm.nguong_ton_toi_thieu) n++;
     }
     return n;
-  }, [dms, totalByDm]);
+  }, [filteredDms, totalByDm]);
 
   const sapHetHanItems = useMemo(() => {
-    return tons.filter((t) => {
+    return filteredTons.filter((t) => {
       if (!t.han_su_dung || t.ton_so_luong <= 0) return false;
       const h = new Date(`${t.han_su_dung}T12:00:00`).getTime();
       return !Number.isNaN(h) && h <= expiryHorizonMs;
     });
-  }, [tons, expiryHorizonMs]);
+  }, [filteredTons, expiryHorizonMs]);
 
   const duoiNguongItems = useMemo(() => {
-    return dms.filter((dm) => {
+    return filteredDms.filter((dm) => {
       if (dm.nguong_ton_toi_thieu == null) return false;
       const tot = totalByDm.get(dm.id) || 0;
       return tot <= dm.nguong_ton_toi_thieu;
     });
-  }, [dms, totalByDm]);
+  }, [filteredDms, totalByDm]);
 
   const openSheet = (m: MoveMode) => {
     setMoveMode(m);
+    setLinkedSuCoId(null);
+    setPrefMaLo(null);
     setSheetOpen(true);
     setDmId("");
+  };
+
+  const openXuatTuSuCo = (row: SuCoChemicalRow) => {
+    if (!row.dm_hoa_chat_id) return toast.error("Sự cố chưa gắn hóa chất trong danh mục.");
+    setLinkedSuCoId(row.id);
+    setPrefMaLo(row.ma_lo);
+    setMoveMode("XUAT");
+    setDmId(row.dm_hoa_chat_id);
+    setQty("");
+    setNote(
+      row.mo_ta
+        ? `Xuất theo sự cố — ${row.incident_type_label || "CHEMICAL"}: ${row.mo_ta}`
+        : `Xuất theo sự cố — ${row.incident_type_label || "CHEMICAL"}`,
+    );
+    setSheetOpen(true);
   };
 
   const submitMove = async () => {
@@ -159,9 +239,16 @@ export default function KhoHoaChatKsnkPage() {
       if (!r.success) return toast.error(r.error);
       toast.success("Đã ghi nhận nhập.");
     } else if (moveMode === "XUAT") {
-      const r = await xuatKhoHoaChatAction({ dm_hoa_chat_id: dmId, so_luong: q, ma_lo: loXp, han_su_dung: hxp, ghi_chu: note || null });
+      const r = await xuatKhoHoaChatAction({
+        dm_hoa_chat_id: dmId,
+        so_luong: q,
+        ma_lo: loXp,
+        han_su_dung: hxp,
+        ghi_chu: note || null,
+        su_co_id: linkedSuCoId,
+      });
       if (!r.success) return toast.error(r.error);
-      toast.success("Đã ghi nhận xuất.");
+      toast.success(linkedSuCoId ? "Đã ghi xuất và liên kết sự cố." : "Đã ghi nhận xuất.");
     } else {
       const r = await dieuChinhKhoHoaChatAction({
         dm_hoa_chat_id: dmId,
@@ -169,11 +256,14 @@ export default function KhoHoaChatKsnkPage() {
         ma_lo: loXp,
         han_su_dung: hxp,
         ghi_chu: note || null,
+        su_co_id: linkedSuCoId,
       });
       if (!r.success) return toast.error(r.error);
       toast.success("Đã điều chỉnh tồn.");
     }
     setSheetOpen(false);
+    setLinkedSuCoId(null);
+    setPrefMaLo(null);
     void reload();
   };
 
@@ -220,7 +310,7 @@ export default function KhoHoaChatKsnkPage() {
     ma_hoa_chat: d.ma_hoa_chat,
     ten_hoa_chat: d.ten_hoa_chat,
     don_vi_tinh: d.don_vi_tinh,
-    loai_hoa_chat: "Hóa chất vật tư",
+    loai_hoa_chat: d.loai_hoa_chat ?? "HOA_CHAT",
     is_active: true,
   }));
 
@@ -325,10 +415,33 @@ export default function KhoHoaChatKsnkPage() {
 
         {activeTab === "STOCK" ? (
           <div className="space-y-6 animate-in fade-in duration-300">
+            <div className="flex flex-wrap gap-2">
+              {(
+                [
+                  ["ALL", "Tất cả"],
+                  ["HOA_CHAT", "Hóa chất tiệt trùng"],
+                  ["VAT_TU", "Vật tư tiêu hao"],
+                ] as const
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setLoaiFilter(key)}
+                  className={`rounded-lg px-4 py-1.5 text-[11px] font-semibold ${
+                    loaiFilter === key ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <KhoHoaChatSuCoPanel rows={suCoRows} canEdit={canEdit} onXuatTuSuCo={openXuatTuSuCo} />
+
             <KhoHoaChatOverview
               countSapHetHan={countSapHetHan}
               countDuoiNguong={countDuoiNguong}
-              dms={dms}
+              dms={filteredDms}
               canEdit={canEdit}
               thrDm={thrDm}
               thrVal={thrVal}
@@ -337,7 +450,7 @@ export default function KhoHoaChatKsnkPage() {
               onSaveThr={saveThreshold}
             />
 
-            <KhoHoaChatTables tons={tons} movs={movs} loading={busy} />
+            <KhoHoaChatTables tons={filteredTons} movs={filteredMovs} loading={busy} />
           </div>
         ) : (
           <div className="animate-in fade-in duration-300">
@@ -349,10 +462,14 @@ export default function KhoHoaChatKsnkPage() {
       <KhoHoaChatMoveSheet
         open={sheetOpen}
         mode={moveMode}
-        dmList={dms}
+        dmList={filteredDms}
         tonLots={tons}
         canSubmit={Boolean(canSubmitSheet)}
-        onClose={() => setSheetOpen(false)}
+        onClose={() => {
+          setSheetOpen(false);
+          setLinkedSuCoId(null);
+          setPrefMaLo(null);
+        }}
         onSubmit={submitMove}
         dmId={dmId}
         onDmId={setDmId}
@@ -366,6 +483,7 @@ export default function KhoHoaChatKsnkPage() {
         onMaLoNhap={setMaLoNhap}
         hanNhap={hanNhap}
         onHanNhap={setHanNhap}
+        linkedSuCoId={linkedSuCoId}
       />
 
       <IncidentReportModal
@@ -373,6 +491,12 @@ export default function KhoHoaChatKsnkPage() {
         onClose={() => setIsIncidentOpen(false)}
         station="TIEP_NHAN"
         defaultGroup="CHEMICAL"
+        onSuccess={() => {
+          toast.message("Đã ghi sự cố", {
+            description: "Nếu cần trừ tồn, dùng «Ghi xuất» ở khối sự cố hóa chất phía trên.",
+          });
+          void reload();
+        }}
       />
     </CSSDPageShell>
   );

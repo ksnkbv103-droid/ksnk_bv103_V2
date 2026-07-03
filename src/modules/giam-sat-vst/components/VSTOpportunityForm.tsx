@@ -7,6 +7,7 @@ import VSTAssessmentSection from "./VSTAssessmentSection";
 import type { ExtendedOpportunity, VSTOppAssessmentField } from "../hooks/useVSTFormHandlers";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { bv103PanelChrome } from "@/lib/bv103-panel-chrome";
 
 interface VSTOpportunityFormProps {
   opp: ExtendedOpportunity;
@@ -33,13 +34,32 @@ const MOMENT_TOOLTIPS: Record<string, string> = {
   "Sau khi tiếp xúc xung quanh người bệnh": "Rửa tay sau khi chạm vào bất kỳ vật dụng nào xung quanh bệnh nhân.",
 };
 
-const MOMENT_ABBREVIATIONS: Record<string, string> = {
-  "Trước khi tiếp xúc người bệnh": "T-TXNB",
-  "Trước khi làm thủ thuật vô khuẩn": "T-TTVK",
-  "Sau khi có nguy cơ tiếp xúc với dịch": "S-TXDCT",
-  "Sau khi tiếp xúc người bệnh": "S-TXNB",
-  "Sau khi tiếp xúc xung quanh người bệnh": "S-TXXQNB",
+const MOMENT_DISPLAY: Record<string, { timing: "TRƯỚC" | "SAU"; code: string }> = {
+  "Trước khi tiếp xúc người bệnh": { timing: "TRƯỚC", code: "TXNB" },
+  "Trước khi làm thủ thuật vô khuẩn": { timing: "TRƯỚC", code: "TTVK" },
+  "Sau khi có nguy cơ tiếp xúc với dịch": { timing: "SAU", code: "TXDCT" },
+  "Sau khi tiếp xúc người bệnh": { timing: "SAU", code: "TXNB" },
+  "Sau khi tiếp xúc xung quanh người bệnh": { timing: "SAU", code: "TXXQNB" },
 };
+
+function MomentChoiceLabel({ moment }: { moment: MomentType }) {
+  const display = MOMENT_DISPLAY[moment];
+  if (!display) {
+    return <span className="text-[11px] font-semibold leading-tight">{moment}</span>;
+  }
+  return (
+    <span className="flex flex-col items-center justify-center gap-0.5 leading-none">
+      <span className="text-[11px] font-medium uppercase tracking-normal">{display.timing}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wide">{display.code}</span>
+    </span>
+  );
+}
+
+function momentChipLabel(moment: MomentType): string {
+  const display = MOMENT_DISPLAY[moment];
+  if (!display) return String(MOMENTS.indexOf(moment) + 1);
+  return `${display.timing} ${display.code}`;
+}
 
 const C = bv103LayoutChrome;
 
@@ -79,13 +99,13 @@ export default function VSTOpportunityForm({
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex flex-wrap gap-1.5">
             {opp.thoi_diems.map((m: MomentType, i: number) => (
-              <span key={`${m}-${i}`} className={C.chipBadge}>
-                {MOMENT_ABBREVIATIONS[m] || MOMENTS.indexOf(m) + 1}
+              <span key={`${m}-${i}`} className={C.chipBadge} title={m}>
+                {momentChipLabel(m)}
               </span>
             ))}
           </div>
           {!hideOppRecordTime ? (
-            <span className="text-[11px] font-medium text-slate-500">
+            <span className={bv103PanelChrome.innerTableHead}>
               {opp.thoi_gian_ghi_nhan
                 ? new Date(opp.thoi_gian_ghi_nhan).toLocaleTimeString("vi-VN", {
                     hour: "2-digit",
@@ -114,11 +134,11 @@ export default function VSTOpportunityForm({
                 type="button"
                 title={MOMENT_TOOLTIPS[m]}
                 onClick={() => toggleMoment(pIdx, oIdx, m)}
-                className={`${C.choiceBtn} ${
+                className={`${C.choiceBtn} flex flex-col items-center justify-center normal-case ${
                   opp.thoi_diems.includes(m) ? C.choiceBtnActive : C.choiceBtnIdle
                 }`}
               >
-                {MOMENT_ABBREVIATIONS[m] || m}
+                <MomentChoiceLabel moment={m} />
               </button>
             ))}
           </div>

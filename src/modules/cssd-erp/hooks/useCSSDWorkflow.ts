@@ -7,9 +7,20 @@ import { scanQR, getWaitingListByStation } from "../actions/cssd.actions";
 import { usePermission } from "@/hooks/usePermission";
 import { toast } from "sonner";
 import { SCAN_STATIONS, WORKFLOW_STEPS, nextStationLabel } from "../workflow/domain/cssd-stations";
+import { cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
 
-/** Các ô chọn được trên trang 6 bước — không có «trạm quét TK» (TK chỉ qua phiếu /cssd-erp/batch). */
+/** Các ô chọn được trên trang 6 bước — không có «trạm quét TK» (TK chỉ qua phiếu mẻ). */
 export const CSSD_SCAN_STATIONS: Station[] = [...SCAN_STATIONS];
+
+type ScanResultPayload = {
+  maQr?: string;
+  tenBoDungCu?: string;
+  quyTrinhId?: string;
+  boDungCuId?: string;
+  maCycleQr?: string | null;
+  maLoTietKhuan?: string;
+  issuanceOnly?: boolean;
+};
 
 export function useCSSDWorkflow() {
   const { userData } = usePermission();
@@ -28,7 +39,6 @@ export function useCSSDWorkflow() {
       setWaitingList(data);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Lỗi lấy danh sách chờ";
-      // Nếu là lỗi phiên đăng nhập (session chưa restore), không crash UI — chỉ log nhẹ
       if (msg.includes("chưa đăng nhập") || msg.includes("not authenticated")) {
         console.warn("[CSSD] Phiên đăng nhập chưa sẵn sàng, thử lại sau.");
         setWaitingList([]);
@@ -41,75 +51,88 @@ export function useCSSDWorkflow() {
 
   const selectStation = (station: Station) => {
     setCurrentStation(station);
-    setLastScan(null); // Reset scan result khi đổi trạm
+    setLastScan(null);
     fetchWaitingList(station);
   };
 
-  const handleQRScan = async (code: string, extraPayload?: Record<string, any>) => {
+  const applyScanSuccess = useCallback(
+    (
+      station: Station,
+      code: string,
+      scanRes: ScanResultPayload,
+      opts?: { ledgerWarning?: string },
+    ) => {
+      const displayQr = String(scanRes.maQr || code).trim().toUpperCase();
+      setLastScan({
+        qrCode: displayQr,
+        tenBoDungCu: scanRes.tenBoDungCu || "Chưa gán bộ",
+        nguoiThucHien: operatorLabel,
+        thoiGianQuet: new Date().toLocaleTimeString("vi-VN"),
+        buocTiepTheo: nextStationLabel(station),
+        quyTrinhId: scanRes.quyTrinhId,
+        boDungCuId: scanRes.boDungCuId,
+        maCycleQr: scanRes.maCycleQr,
+        maLoTietKhuan: scanRes.maLoTietKhuan,
+        issuanceOnly: scanRes.issuanceOnly,
+        ledgerWarning: opts?.ledgerWarning,
+      });
+      toast.success(`Đã xử lý: ${displayQr}`);
+      void fetchWaitingList(station);
+    },
+    [operatorLabel, fetchWaitingList],
+  );
+
+  const runStationScan = useCallback(
+    async (
+      station: Station,
+      code: string,
+      extraPayload?: Record<string, unknown>,
+      opts?: { ledgerWarning?: string },
+    ) => {
+      setLoading(true);
+      setLastScan(null);
+      try {
+        const scanRes = await scanQR(code, station, extraPayload);
+        applyScanSuccess(station, code, scanRes, opts);
+        return scanRes;
+      } catch (error: unknown) {
+        const { isNetworkError, pushOfflineTask } = await import("@/lib/offline-sync");
+        if (isNetworkError(error)) {
+          await pushOfflineTask("SCAN_QR", { maQR: code, station, extraPayload });
+          toast.info("Đã lưu ngoại tuyến", {
+            description: `Mã ${code} sẽ tự động đồng bộ khi có mạng.`,
+          });
+          setLastScan({
+            qrCode: code,
+            tenBoDungCu: "Đang chờ đồng bộ...",
+            nguoiThucHien: operatorLabel,
+            thoiGianQuet: new Date().toLocaleTimeString("vi-VN"),
+            buocTiepTheo: nextStationLabel(station),
+            isOffline: true,
+          });
+          setWaitingList((prev) => prev.filter((item) => item.ma_vach_qr !== code));
+        } else {
+          toast.error(error instanceof Error ? error.message : "Lỗi quét mã");
+        }
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [applyScanSuccess, operatorLabel],
+  );
+
+  const handleQRScan = async (code: string, extraPayload?: Record<string, unknown>) => {
     if (!currentStation) return toast.error("Vui lòng chọn trạm trước");
     if (currentStation === "TIET_KHUAN") {
       toast.error(
-        "Không quét tiệt khuẩn tại đây khi chưa quét trong phiếu mẻ. Mở Mẻ tiệt khuẩn (/cssd-erp/batch): tạo phiếu, rồi quét QR bộ trong ô quét của phiếu.",
+        `Không quét tiệt khuẩn tại đây. Mở tab Mẻ tiệt khuẩn (${cssdQuyTrinhBatchTabHref()}): tạo phiếu, rồi quét QR bộ trong màn hình mẻ.`,
         { duration: 9000 },
       );
       return;
     }
-    setLoading(true);
-    setLastScan(null);
-    try {
-      let scanRes: { tenBoDungCu?: string } = {};
-      
-      if (code.startsWith("CATALOG::")) {
-        const { registerPhysicalBoLabelFromDmAction } = await import("../actions/cssd-register-label.actions");
-        const boId = code.replace("CATALOG::", "");
-        const res = await registerPhysicalBoLabelFromDmAction(boId);
-        if (!res.success) throw new Error(res.error || "Không thể khởi tạo bộ dụng cụ.");
-        code = res.ma_vach_qr;
-        scanRes = { tenBoDungCu: res.ten_bo };
-      } else {
-        scanRes = await scanQR(code, currentStation, extraPayload);
-      }
 
-      const buocTiepTheo = nextStationLabel(currentStation);
-
-      setLastScan({
-        qrCode: code,
-        tenBoDungCu: scanRes.tenBoDungCu || "Chưa gán bộ",
-        nguoiThucHien: operatorLabel,
-        thoiGianQuet: new Date().toLocaleTimeString("vi-VN"),
-        buocTiepTheo,
-        maCaMoId: extraPayload?.ma_ca_mo_id,
-      });
-
-      toast.success(`Đã xử lý: ${code}`);
-      fetchWaitingList(currentStation);
-    } catch (error: unknown) {
-      const { isNetworkError, pushOfflineTask } = await import("@/lib/offline-sync");
-      if (isNetworkError(error)) {
-        await pushOfflineTask("SCAN_QR", { maQR: code, station: currentStation, extraPayload });
-        toast.info("Đã lưu ngoại tuyến", {
-          description: `Mã ${code} sẽ tự động đồng bộ khi có mạng.`,
-        });
-        
-        // Mock success for UI flow continuity
-        setLastScan({
-          qrCode: code,
-          tenBoDungCu: "Đang chờ đồng bộ...",
-          nguoiThucHien: operatorLabel,
-          thoiGianQuet: new Date().toLocaleTimeString("vi-VN"),
-          buocTiepTheo: nextStationLabel(currentStation),
-          maCaMoId: extraPayload?.ma_ca_mo_id,
-          isOffline: true
-        });
-        
-        // Remove from waiting list optimistically
-        setWaitingList(prev => prev.filter(item => item.ma_vach_qr !== code));
-      } else {
-        toast.error(error instanceof Error ? error.message : "Lỗi quét mã");
-      }
-    } finally {
-      setLoading(false);
-    }
+    await runStationScan(currentStation, code, extraPayload);
   };
 
   useEffect(() => {
@@ -121,9 +144,7 @@ export function useCSSDWorkflow() {
 
   return {
     currentStation,
-    /** Chỉ 5 ô trạm quét tay (ông TK là link phiếu, không có tiêu đề TIET_KHUAN). */
     scanStations: CSSD_SCAN_STATIONS,
-    /** Thứ tự đầy đủ (chứng minh chỗ TK nằm giữ DG và CAP khi đọc workflow). */
     stepOrderFull: [...WORKFLOW_STEPS],
     waitingList,
     loading,

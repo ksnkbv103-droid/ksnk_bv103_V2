@@ -3,7 +3,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 const columnExistCache = new Map<string, boolean>();
 
 export function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Lỗi không xác định";
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object" && "message" in error) {
+    const msg = String((error as { message?: unknown }).message || "").trim();
+    if (msg) return msg;
+  }
+  if (typeof error === "string" && error.trim()) return error.trim();
+  return "Lỗi không xác định";
 }
 
 export function mapFkError(message: string | undefined): string {

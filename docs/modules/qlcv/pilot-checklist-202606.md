@@ -1,24 +1,20 @@
-# Pilot QLCV — checklist tay
+# Pilot QLCV — checklist tay (KSNK-only)
 
-> **Tiền đề:** Nhân sự + RBAC Phase 1; `qlcv_*` migration đã apply.  
-> **Verify DB:** `npm run trial:db:precheck` — `qlcv_fact_*`, `qlcv_spawn_rpc_ok`, `qlcv_checklist_rpc_ok` = true.
+> **Tiền đề:** Nhân sự KSNK + RBAC; migration `20260617120000_qlcv_ksnk_only_scope.sql` apply.
 
 | # | Kịch bản | Các bước | Pass khi |
 |---|----------|----------|----------|
-| Q1 | Tạo việc trực tiếp | `/quan-ly-cong-viec` → tạo việc → giao người phụ trách | `trang_thai` = `DANG_LAM`; timeline có dòng PHAN_CONG |
-| Q2 | Đề xuất → duyệt | Đề xuất → user có `approve` duyệt | Chuyển `DANG_LAM`; `nguoi_giao_viec_id` đúng |
-| Q3 | Nghiệm thu | Hoàn thành công việc → duyệt hoàn thành / từ chối | `HOAN_THANH` hoặc `TU_CHOI` đúng cổng |
-| Q4 | Spawn định kỳ | Chạy spawn hôm nay (UI hoặc RPC) **2 lần** | Không trùng instance cùng mẫu/ngày |
-| Q5 | Checklist | Tick checklist → Lưu → reload | JSONB giữ trạng thái |
-| Q6 | Scope list | User khoa A chỉ thấy việc được phép | Không lộ việc khoa B |
-
-**Ghi nhận pilot:** ngày ___ | tester ___ | Q1–Q6 ___
-
-**Lỗi thường gặp:** xem [`README.md`](README.md).
+| Q1 | Tạo việc trực tiếp | Tạo việc → giao NV **KSNK** | `trang_thai` = `DANG_LAM`; `khoa_thuc_hien_id` = KSNK |
+| Q2 | Đề xuất → duyệt | Đề xuất → duyệt + giao NV KSNK | `DANG_LAM`; `nguoi_giao_viec_id` đúng |
+| Q3 | Nghiệm thu | Checklist 100% → nghiệm thu / từ chối | `HOAN_THANH` hoặc `TU_CHOI`; không force từ &lt;100% |
+| Q4 | Spawn định kỳ | Spawn 2 lần cùng ngày | Không trùng instance |
+| Q5 | Checklist | Tick → Lưu → reload | JSONB giữ trạng thái |
+| Q6 | Chặn ngoài KSNK | User khoa lâm sàng mở `/quan-ly-cong-viec` | 403 hoặc thông báo chỉ KSNK |
 
 ```bash
-npm run mdm:migrate:local      # local
-npx supabase stop && npx supabase start
+npm run mdm:migrate:local
 npm run trial:qlcv:precheck:local
 npm run verify:engineering
 ```
+
+Chi tiết: [`intake-ksnk-only-202606.md`](intake-ksnk-only-202606.md)

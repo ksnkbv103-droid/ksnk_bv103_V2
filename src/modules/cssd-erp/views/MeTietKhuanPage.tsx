@@ -9,7 +9,8 @@ import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
 import MeTietKhuanCreateStep from "../components/batch/me-tiet-khuan-create-step";
 import MeTietKhuanProcessStep from "../components/batch/me-tiet-khuan-process-step";
-import { meTietKhuanBatchColumns } from "../components/batch/me-tiet-khuan-columns";
+import { buildMeTietKhuanBatchColumns } from "../components/batch/me-tiet-khuan-columns";
+import CssdPrintPortal from "../components/print/CssdPrintPortal";
 import { useMeTietKhuanWorkflow } from "../hooks/use-me-tiet-khuan-workflow";
 import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_DATA_SURFACE } from "../shared/ui/cssd-ui-chrome";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
@@ -17,6 +18,17 @@ import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportM
 export default function MeTietKhuanPage({ suppressShell = false }: { suppressShell?: boolean } = {}) {
   const w = useMeTietKhuanWorkflow();
   const [isIncidentOpen, setIsIncidentOpen] = React.useState(false);
+
+  const batchColumns = React.useMemo(
+    () =>
+      buildMeTietKhuanBatchColumns({
+        onPrintBatch: (batchId) => void w.onPrintBatch({ batchId }),
+        isPrinting: w.isCssdPrinting,
+      }),
+    [w.onPrintBatch, w.isCssdPrinting],
+  );
+
+  const printPortal = <CssdPrintPortal printState={w.printState} />;
 
   if (w.step === "CREATE") {
     const createContent = (
@@ -32,16 +44,18 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         />
       </div>
     );
-    if (suppressShell) return createContent;
+    if (suppressShell) return (<>{createContent}{printPortal}</>);
     return (
       <CSSDPageShell title={<span className="text-[var(--primary)]">Mẻ tiệt khuẩn</span>} subtitle="Thiết lập mẻ mới theo quy trình chuẩn CSSD">
         {createContent}
+        {printPortal}
       </CSSDPageShell>
     );
   }
 
   if (w.step === "PROCESS")
     return (
+      <>
       <MeTietKhuanProcessStep
         activeMe={w.activeMe}
         batchGate={w.batchGate}
@@ -78,7 +92,11 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         onConfirmBatDau={() => void w.confirmBatDau()}
         onConfirmKetThucChuTrinh={() => void w.confirmKetThucChuTrinh()}
         onFinishQc={(isPass, overrideThongSoMay) => void w.finishQc(isPass, overrideThongSoMay)}
+        onPrintBatch={() => w.activeMe?.id && void w.onPrintBatch({ batchId: w.activeMe.id })}
+        isPrintBusy={w.isCssdPrinting}
       />
+      {printPortal}
+      </>
     );
 
   const listContent = (
@@ -97,7 +115,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
       )}
       <div className={CSSD_UI_DATA_SURFACE}>
         <AdvancedDataTable
-          columns={meTietKhuanBatchColumns}
+          columns={batchColumns}
           data={w.batches}
           loading={w.loading}
           searchPlaceholder="Tìm theo mã lô..."
@@ -107,7 +125,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
     </div>
   );
 
-  if (suppressShell) return listContent;
+  if (suppressShell) return (<>{listContent}{printPortal}</>);
 
   return (
     <CSSDPageShell
@@ -133,6 +151,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
       }
     >
       {listContent}
+      {printPortal}
       <IncidentReportModal
         isOpen={isIncidentOpen}
         onClose={() => setIsIncidentOpen(false)}

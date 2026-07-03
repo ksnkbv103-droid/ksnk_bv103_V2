@@ -10,6 +10,5 @@ export type QlcvFormCatalog = {
   nhanSu: QlcvSelectOption[];
   toCongTac: QlcvSelectOption[];
   loaiCongViec: QlcvSelectOption[];
-  khoaPhong: QlcvSelectOption[];
   trangThaiMauSac: Record<string, string>;
 };

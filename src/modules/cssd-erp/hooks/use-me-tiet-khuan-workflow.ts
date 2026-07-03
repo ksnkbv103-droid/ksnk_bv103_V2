@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { usePrint } from "@/hooks/usePrint";
+import { useCssdPrint } from "./use-cssd-print";
 import {
   addQuyTrinhToSterilizationBatch,
   confirmBatDauTietKhuanBatch,
@@ -20,7 +20,7 @@ import { usePermission } from "@/hooks/usePermission";
 import { isSteamSterilizerProfile } from "../helpers/me-tiet-khuan-machine-kind";
 
 export function useMeTietKhuanWorkflow() {
-  const { printLabel } = usePrint();
+  const { isPrinting: isCssdPrinting, printState, onPrintBatch } = useCssdPrint();
   const { userData } = usePermission();
   const [batches, setBatches] = useState<any[]>([]);
   const [machines, setMachines] = useState<any[]>([]);
@@ -206,14 +206,8 @@ export function useMeTietKhuanWorkflow() {
     });
     if (!saved.success) return toast.error("Không lưu được mẻ: " + saved.error);
     if (isPass) {
-      printLabel({
-        qrCode: activeMe.ma_lo_tiet_khuan,
-        tenBoDungCu: "NHÃN LÔ TIỆT KHUẨN",
-        tram: "TIỆT KHUẨN",
-        nguoiThucHien: nguoiUnload,
-        thoiGian: new Date().toLocaleString("vi-VN"),
-      });
-      toast.success("Mẻ ĐẠT! Đã chuyển dụng cụ sang Cấp phát và in nhãn lô.");
+      void onPrintBatch({ batchId: activeMe.id });
+      toast.success("Mẻ ĐẠT! Đã chuyển dụng cụ sang Cấp phát — mở in phiếu mẻ A4.");
     } else toast.error("Mẻ KHÔNG ĐẠT — đã ghi nhận theo chính sách.");
     setStep("LIST");
     void fetchData();
@@ -295,5 +289,8 @@ export function useMeTietKhuanWorkflow() {
     finishQc,
     backToList,
     openRowForProcess,
+    printState,
+    onPrintBatch,
+    isCssdPrinting,
   };
 }

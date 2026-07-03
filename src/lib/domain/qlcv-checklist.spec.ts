@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { parseMoTaToQlcvChecklist, percentFromQlcvChecklist } from "./qlcv-checklist";
+import {
+  parseMoTaToQlcvChecklist,
+  percentFromQlcvChecklist,
+  taskUsesQlcvChecklistForProgress,
+} from "./qlcv-checklist";
 
 describe("parseMoTaToQlcvChecklist", () => {
   it("returns empty for blank mo_ta", () => {
@@ -20,5 +24,16 @@ describe("parseMoTaToQlcvChecklist", () => {
     const items = parseMoTaToQlcvChecklist("A\nB");
     items[0].done = true;
     expect(percentFromQlcvChecklist(items)).toBe(50);
+  });
+});
+
+describe("taskUsesQlcvChecklistForProgress", () => {
+  it("empty checklist → manual progress", () => {
+    expect(taskUsesQlcvChecklistForProgress([])).toBe(false);
+    expect(taskUsesQlcvChecklistForProgress(null)).toBe(false);
+  });
+
+  it("has items → checklist drives %", () => {
+    expect(taskUsesQlcvChecklistForProgress([{ id: "1", label: "A", done: false }])).toBe(true);
   });
 });

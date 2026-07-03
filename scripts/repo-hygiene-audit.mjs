@@ -25,6 +25,10 @@ const SQL_ACTIVE = new Set([
   "gsc-vst-rpc-smoke.sql",
   "khu-vuc-verify.sql",
   "qlcv-pilot-precheck.sql",
+  "gstt-archive-parity-check.sql",
+  "gstt-gap-id-parity-check.sql",
+  "gstt-migration-audit-counts.sql",
+  "ssot-legacy-guard.sql",
   "health-check-gstt-introspect.sql",
   "health-check-gstt-summary-kinds.sql",
   "health-check-gstt-triggers.sql",
@@ -33,6 +37,7 @@ const SQL_ACTIVE = new Set([
   "lookup-wave2-ids.sql",
   "mdm-governance-audit-probe.sql",
   "mdm-governance-fk-export.sql",
+  "rbac-registry-parity-probe.sql",
 ]);
 
 const LEGACY_TABLE_RE =

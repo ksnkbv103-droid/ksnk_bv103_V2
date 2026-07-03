@@ -1,0 +1,51 @@
+import type { IncidentGroup } from "./cssd-incident-taxonomy";
+
+export type IncidentAttributeInput = {
+  incidentGroup: IncidentGroup;
+  typeTen: string;
+  incidentKind: string;
+  rollbackTargetStation: string;
+  errorQR?: string;
+  machineId?: string;
+  faultOperator?: string;
+  nguoiPhatHien?: string;
+  thoiGianPhatHien?: string;
+  anhMinhChung?: string;
+  reporterEmail?: string | null;
+  reporterAuthUserId?: string | null;
+};
+
+/** SSOT thuộc tính sự cố — app chỉ ghi JSONB; cột generated đọc từ đây. */
+export function buildIncidentAttributes(data: IncidentAttributeInput): Record<string, string> {
+  const attributes: Record<string, string> = {
+    INCIDENT_GROUP: data.incidentGroup,
+    INCIDENT_TYPE_LABEL: data.typeTen,
+    INCIDENT_KIND: data.incidentKind,
+    ROLLBACK_TARGET_STATION: data.rollbackTargetStation,
+  };
+  if (data.errorQR) attributes.ERROR_QR = data.errorQR;
+  if (data.machineId) attributes.MACHINE_ID = data.machineId;
+  if (data.faultOperator) attributes.FAULT_OPERATOR = data.faultOperator;
+  if (data.nguoiPhatHien) attributes.NGUOI_PHAT_HIEN = data.nguoiPhatHien;
+  if (data.thoiGianPhatHien) attributes.THOI_GIAN_PHAT_HIEN = data.thoiGianPhatHien;
+  if (data.anhMinhChung) attributes.ANH_MINH_CHUNG = data.anhMinhChung;
+  if (data.reporterEmail) attributes.REPORTER_EMAIL = String(data.reporterEmail);
+  if (data.reporterAuthUserId) attributes.REPORTER_AUTH_USER_ID = String(data.reporterAuthUserId);
+  return attributes;
+}
+
+export function readIncidentTypeLabel(attrs: Record<string, unknown>): string | null {
+  const raw =
+    attrs.INCIDENT_TYPE_LABEL ??
+    attrs.incident_type_label ??
+    attrs.INCIDENT_TYPE ??
+    null;
+  const text = raw != null ? String(raw).trim() : "";
+  return text || null;
+}
+
+export function readIncidentGroup(attrs: Record<string, unknown>): string | null {
+  const raw = attrs.INCIDENT_GROUP ?? attrs.incident_group ?? null;
+  const text = raw != null ? String(raw).trim() : "";
+  return text || null;
+}

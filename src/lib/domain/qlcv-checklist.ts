@@ -26,6 +26,11 @@ export function percentFromQlcvChecklist(items: QlcvChecklistItem[]): number {
   return Math.round((done / items.length) * 100);
 }
 
+/** Việc có mục checklist → % chỉ tính từ checklist; không có → báo cáo thủ công. */
+export function taskUsesQlcvChecklistForProgress(raw: unknown): boolean {
+  return normalizeQlcvChecklist(raw).length > 0;
+}
+
 export function newChecklistItem(label: string): QlcvChecklistItem {
   return { id: crypto.randomUUID(), label: label.trim(), done: false };
 }

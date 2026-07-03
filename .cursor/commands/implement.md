@@ -10,6 +10,14 @@ Chỉ dùng sau khi intake đã được user **duyệt** (hoặc user nói rõ 
 - **Không đoán schema** — đọc migration hoặc CLI DB trước khi kết luận bảng/cột
 - Nghiệp vụ CSSD vs MDM mơ hồ → dừng và hỏi
 
+## Hiệu quả (từ agent-efficiency — luôn áp dụng khi implement)
+
+- `grep` / semantic search **trước** `read` file > 500 dòng; mục tiêu ≤ **8 file** đọc/task
+- Không `glob`/`list` toàn repo — chỉ path trong intake
+- > 3 file ngoài in-scope → dừng, hỏi user
+- Output **delta-only** — không restate toàn bộ intake/plan
+- Verify đúng mức intake — không full `verify` sau mỗi chỉnh nhỏ
+
 ## Spec freeze
 
 Nếu user đổi KPI/công thức/acceptance giữa chừng: ghi `Spec change`, cập nhật intake ngắn, rồi mới sửa tiếp.

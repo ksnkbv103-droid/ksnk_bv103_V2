@@ -2,7 +2,10 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { verifyCommandCenterShell } from "../lib/dashboard-command-center-access";
+import {
+  verifyAnalyticsShell,
+  type AnalyticsShellContext,
+} from "../lib/dashboard-command-center-access";
 import { getCachedDmKhoaPhong, getCachedDmNgheNghiep, getCachedDmKhuVucGiamSat, getCachedDmKhoiKhoa } from "@/lib/cache/master-data-cache";
 import type { DashboardFilterOptions } from "../compliance-dashboard.types";
 
@@ -45,8 +48,17 @@ async function loadComplianceFilterOptionsData(supabase: SupabaseClient) {
 }
 
 /** MDM filter options dùng chung Command Center + tab Thống kê VST/GSC. */
-export async function getComplianceFilterOptions() {
-  const supabase = await createServerSupabaseUserClient();
-  await verifyCommandCenterShell();
-  return loadComplianceFilterOptionsData(supabase);
+export async function getComplianceFilterOptions(
+  shell: AnalyticsShellContext = "command-center",
+): Promise<{ success: true; data: DashboardFilterOptions } | { success: false; error: string }> {
+  try {
+    const supabase = await createServerSupabaseUserClient();
+    await verifyAnalyticsShell(shell);
+    return loadComplianceFilterOptionsData(supabase);
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Không đọc được tùy chọn lọc",
+    };
+  }
 }

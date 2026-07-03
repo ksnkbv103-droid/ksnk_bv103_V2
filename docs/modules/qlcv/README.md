@@ -29,6 +29,8 @@ npm run verify:engineering
 | `20260604120000_qlcv_text_check_codes.sql` | TEXT+CHECK trang_thai/loai |
 | `20260606160000_qlcv_sync_overdue_modernize.sql` | Cron quá hạn → `qlcv_fact_*`; DROP analytics orphan |
 | `20260607100000_qlcv_text_only_schema_cleanup.sql` | DROP FK cols + việc con; badge `mau_sac` trên view; IMPORT lô |
+| `20260617120000_qlcv_ksnk_only_scope.sql` | KSNK-only: purge giao ngoài KSNK, backfill `khoa_thuc_hien_id`, NOT NULL |
+| `20260617140000_qlcv_phase2_transition_rls.sql` | `fn_qlcv_transition` + RLS SELECT strict KSNK |
 
 ## Lỗi thường gặp
 

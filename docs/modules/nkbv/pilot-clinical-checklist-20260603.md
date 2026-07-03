@@ -15,7 +15,7 @@
 
 | # | Kịch bản | Kỹ thuật verify | UAT khoa KSNK |
 |---|----------|-----------------|---------------|
-| 1 | Day-3 rule → phiếu `CHO_XAC_MINH` từ cấy dương tính | `npm run test -- src/modules/giam-sat-nkbv/lib/nkbv-rules-engine.spec.ts` | [ ] |
+| 1 | Day-3 rule → phiếu `CHO_XAC_MINH` từ cấy dương tính | `npm run test -- src/modules/giam-sat-nkbv/lib/nkbv-rules-engine.spec.ts` | [x] auto 2026-06-30 |
 | 2 | Khoa lâm sàng điền form → `CHO_DUYET` | Manual `/giam-sat-nkbv` | [ ] |
 | 3 | KSNK `XAC_NHAN` / `LOAI_TRU` | Manual adjudication panel | [ ] |
 | 4 | Import vi sinh trùng MD5 bỏ qua dòng trùng | Manual `NkbvViSinhImportPortal` | [ ] |
@@ -32,7 +32,7 @@
 
 Form đủ cho pilot BV103; trường NHSN bổ sung theo yêu cầu BV — backlog riêng.
 
-**Engineering gate (trước UAT):**
+**Engineering gate Wave 2 (2026-07-01):** spec rules engine PASS — chờ ký 5 kịch bản tay khoa KSNK.
 
 ```bash
 npm run verify:engineering

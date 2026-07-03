@@ -100,6 +100,15 @@ export function resolveIncidentPolicy(args: {
         kind,
       };
     case "missing_component":
+      if (args.incidentGroup === "INSTRUMENT") {
+        return {
+          targetStation: det,
+          faultStation: det,
+          clearSterilizationBatchLink: false,
+          freezeSafetyLock: false,
+          kind,
+        };
+      }
       return {
         targetStation: det,
         faultStation: det,

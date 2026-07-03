@@ -17,12 +17,16 @@
 
 | Bước | Lệnh |
 |------|------|
-| Khóa scope | `/intake` |
+| Khóa scope (PO / không rành code) | `/intake-nv` |
+| Khóa scope (kỹ thuật) | `/intake` |
 | Code | `/implement` (sau duyệt intake) |
+| Checklist test tay | agent `acceptance-ui` |
+| Nghiệm thu slice | `/ship-slice` |
 | Review | `/review` |
 | Giải thích | `/explain` |
 | Commit / PR | `/commit`, `/pr-create` (chỉ khi user yêu cầu) |
 
+PO cheat sheet: [`po-cursor-guide.md`](docs/core/po-cursor-guide.md).  
 Playbook: [`docs/core/cursor-operating-playbook.md`](docs/core/cursor-operating-playbook.md).
 
 ## App ↔ Database

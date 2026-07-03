@@ -1,13 +1,10 @@
 ---
-description: "[Superseded] Verify checklist — dùng 03-src-editing-compact; @mention trước merge lớn"
+description: "[Redirect] Verify — dùng lean-execution + 03-src-editing-compact"
 alwaysApply: false
 ---
 
-# Chất lượng & bàn giao
+# Redirect
 
-> **Superseded** cho slice thường: [`03-src-editing-compact.mdc`](./03-src-editing-compact.mdc).  
-> Invoke `@61-quality-verification` trước merge PR lớn.
+Checklist verify đã gộp vào [`lean-execution.md`](../../docs/core/lean-execution.md) và [`03-src-editing-compact.mdc`](./03-src-editing-compact.mdc).
 
-- CRUD / lọc / import-export / dashboard nếu đụng.
-- Mapping FK hiển thị; RLS khi dữ liệu có mà UI trống.
-- `permission-registry` + mapping; migration an toàn; test tay UI luồng vừa sửa.
+PR lớn: `/review` hoặc `@reviewing-code`.

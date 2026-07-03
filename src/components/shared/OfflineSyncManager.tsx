@@ -13,8 +13,12 @@ export default function OfflineSyncManager() {
   const [isSyncing, setIsSyncing] = useState(false);
 
   const checkQueue = useCallback(async (mountedRef: { current: boolean }) => {
-    const tasks = await getOfflineTasks();
-    if (mountedRef.current) setPendingTasks(tasks);
+    try {
+      const tasks = await getOfflineTasks();
+      if (mountedRef.current) setPendingTasks(tasks);
+    } catch {
+      if (mountedRef.current) setPendingTasks([]);
+    }
   }, []);
 
   async function syncData() {
@@ -60,6 +64,8 @@ export default function OfflineSyncManager() {
       if (errorCount > 0) {
         toast.error(`Có ${errorCount} thao tác ngoại tuyến bị lỗi nghiệp vụ (đã loại bỏ).`);
       }
+    } catch (err: unknown) {
+      console.warn("Offline sync skipped:", err);
     } finally {
       setIsSyncing(false);
     }

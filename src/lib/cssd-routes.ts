@@ -12,6 +12,11 @@ export const CSSD_ROUTES = {
   report: "/cssd-erp/report",
 } as const;
 
+/** URL canonical tab Mẻ TK trên shell quy trình. */
+export function cssdQuyTrinhBatchTabHref(): string {
+  return `${CSSD_ROUTES.quyTrinh}?tab=batch`;
+}
+
 /** Prefix cho shell CSSD (canonical + batch/report). */
 export const CSSD_APP_SHELL_PREFIXES: readonly string[] = [
   CSSD_ROUTES.quyTrinh,

@@ -16,6 +16,8 @@ const mocks = vi.hoisted(() => {
       updatePayload = value;
     },
     getUpdatePayload: () => updatePayload,
+    ensureQlcvKsnkAccess: vi.fn(),
+    appendNhatKy: vi.fn(),
   };
 });
 
@@ -38,14 +40,27 @@ vi.mock("@/lib/supabase-server", () => ({
   }),
 }));
 
+vi.mock("../lib/qlcv-action-guard", () => ({
+  ensureQlcvKsnkAccess: mocks.ensureQlcvKsnkAccess,
+}));
+
+vi.mock("../lib/qlcv-nhat-ky", () => ({
+  appendQlcvNhatKy: mocks.appendNhatKy,
+}));
+
 describe("updateCongViec", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     clearQlcvLookupIdCacheForTests();
     mocks.setUpdatePayload(null);
     mocks.hasBypass.mockResolvedValue(true);
+    mocks.ensureQlcvKsnkAccess.mockImplementation(async () => ({
+      supabase: { from: mocks.from },
+      ksnkKhoaId: "ksnk-khoa-id",
+    }));
     mocks.metaMaybeSingle.mockResolvedValue({ data: { id: "cv-01" }, error: null });
     mocks.updateSingle.mockResolvedValue({ data: { id: "cv-01" }, error: null });
+    mocks.appendNhatKy.mockResolvedValue({ id: "nk-01" });
     mocks.from.mockImplementation((table: string) => {
       if (table !== "qlcv_fact_cong_viec") return {};
       return {
@@ -141,7 +156,6 @@ describe("updateCongViec", () => {
                   is_active: true,
                   nguoi_phu_trach_id: null,
                   nguoi_tao_id: "actor-1",
-                  khoa_thuc_hien_id: null,
                 },
                 error: null,
               }),
@@ -169,8 +183,7 @@ describe("updateCongViec", () => {
   });
 
   it("records gia_han activity when han_hoan_thanh changes", async () => {
-    mocks.hasBypass.mockResolvedValue(true); // Cho phép sửa thoải mái
-    const insertMock = vi.fn().mockResolvedValue({ error: null });
+    mocks.hasBypass.mockResolvedValue(true);
 
     const pastDate = new Date(Date.now() - 5 * 24 * 3600 * 1000).toISOString().split('T')[0];
     const futureDate = new Date(Date.now() + 5 * 24 * 3600 * 1000).toISOString().split('T')[0];
@@ -213,11 +226,6 @@ describe("updateCongViec", () => {
           },
         };
       }
-      if (table === "qlcv_fact_cong_viec_hoat_dong") {
-        return {
-          insert: insertMock,
-        };
-      }
       return {};
     });
 
@@ -226,15 +234,17 @@ describe("updateCongViec", () => {
     });
 
     expect(result.success).toBe(true);
-    expect(insertMock).toHaveBeenCalledWith(expect.objectContaining({
-      loai_hoat_dong: "GIA_HAN",
-      noi_dung: expect.stringContaining(`Thay đổi hạn hoàn thành từ ${pastDate} sang ${futureDate}`),
-    }));
+    expect(mocks.appendNhatKy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        loaiHoatDong: "GIA_HAN",
+        noiDung: expect.stringContaining(`Thay đổi hạn hoàn thành từ ${pastDate} sang ${futureDate}`),
+      }),
+    );
   });
 
   it("records phan_cong activity when nguoi_phu_trach_id changes", async () => {
     mocks.hasBypass.mockResolvedValue(true);
-    const insertMock = vi.fn().mockResolvedValue({ error: null });
 
     mocks.from.mockImplementation((table: string) => {
       if (table === "v_qlcv_cong_viec_full") {
@@ -279,6 +289,12 @@ describe("updateCongViec", () => {
         return {
           select: () => ({
             eq: () => ({
+              eq: () => ({
+                maybeSingle: vi.fn().mockResolvedValue({
+                  data: { id: "ns-new", khoa_id: "ksnk-khoa-id", ho_ten: "Trần Thị Mới" },
+                  error: null,
+                }),
+              }),
               maybeSingle: vi.fn().mockResolvedValue({
                 data: { ho_ten: "Trần Thị Mới" },
                 error: null,
@@ -296,11 +312,6 @@ describe("updateCongViec", () => {
           }),
         };
       }
-      if (table === "qlcv_fact_cong_viec_hoat_dong") {
-        return {
-          insert: insertMock,
-        };
-      }
       return {};
     });
 
@@ -309,9 +320,12 @@ describe("updateCongViec", () => {
     });
 
     expect(result.success).toBe(true);
-    expect(insertMock).toHaveBeenCalledWith(expect.objectContaining({
-      loai_hoat_dong: "PHAN_CONG",
-      noi_dung: expect.stringContaining("Thay đổi người phụ trách từ Nguyễn Văn Cũ sang Trần Thị Mới"),
-    }));
+    expect(mocks.appendNhatKy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        loaiHoatDong: "PHAN_CONG",
+        noiDung: expect.stringContaining("Thay đổi người phụ trách từ Nguyễn Văn Cũ sang Trần Thị Mới"),
+      }),
+    );
   });
 });

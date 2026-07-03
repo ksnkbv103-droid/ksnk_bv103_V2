@@ -10,6 +10,7 @@ export type KhoHoaChatTonLo = {
   ten_hoa_chat?: string;
   don_vi_tinh?: string | null;
   nguong_ton_toi_thieu?: number | null;
+  loai_hoa_chat?: string | null;
 };
 
 export type KhoHoaChatGiaoDichRow = {
@@ -23,4 +24,5 @@ export type KhoHoaChatGiaoDichRow = {
   ghi_chu: string | null;
   created_at: string | null;
   ten_hoa_chat?: string | null;
+  su_co_id?: string | null;
 };

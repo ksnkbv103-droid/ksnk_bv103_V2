@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
 import type { HoaChatRow } from "../actions/hoa-chat.types";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
+import { loaiHoaChatLabel } from "@/lib/domain/cssd-hoa-chat-loai";
 
 interface ActionCells {
   renderStatusCell: (item: HoaChatRow) => ReactNode;
@@ -38,7 +39,7 @@ export function getHoaChatColumns(actionUi: ActionCells): Column<HoaChatRow>[] {
       header: "Loại",
       accessorKey: "loai_hoa_chat",
       sortable: true,
-      cell: (i) => <span className={TC.cellMeta}>{i.loai_hoa_chat || "HOA_CHAT"}</span>,
+      cell: (i) => <span className={TC.cellMeta}>{loaiHoaChatLabel(i.loai_hoa_chat)}</span>,
     },
     {
       header: "Nồng độ",

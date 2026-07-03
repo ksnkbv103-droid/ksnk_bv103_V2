@@ -1,8 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildQuyTrinhTramPatch } from "../lib/cssd-tram-persist";
-import { insertCssdLifecycleEvent } from "../shared/application/cssd-lifecycle-events";
 import { tableHasColumn } from "../shared/cssd-db-utils";
 import { appendQuyTrinhException } from "../actions/cssd-action-common";
+import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
+import { buildIncidentAttributes } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
 
 export type PersistMeTietKhuanInput = {
   activeMeId: string;
@@ -10,6 +11,9 @@ export type PersistMeTietKhuanInput = {
   quyTrinhIds: string[];
   isPass: boolean;
   nguoiUnload: string;
+  /** Phiên đăng nhập — ghi nguoi_tiet_khuan_id / nguoi_cap_phat_id chuẩn fact. */
+  operatorAuthUserId?: string | null;
+  operatorEmail?: string | null;
   nhietDo: string;
   testBI: string;
   testCI: string;
@@ -139,6 +143,12 @@ export async function persistMeTietKhuanFinishWithClient(
     const loaiMap = new Map((loaiData || []).map(l => [l.id, l.so_ngay_han_dung]));
     const boToLoaiMap = new Map((boData || []).map(b => [b.id, b.loai_dung_cu_id]));
 
+    const operatorId = await resolveCssdOperatorNhanSuId(client, {
+      authUserId: p.operatorAuthUserId,
+      email: p.operatorEmail,
+      hoTen: p.nguoiUnload,
+    });
+
     // 2. Cập nhật từng quy trình với hạn dùng riêng biệt
     for (const id of p.quyTrinhIds) {
       const boId = qtData?.find(q => q.id === id)?.bo_dung_cu_id;
@@ -149,15 +159,20 @@ export async function persistMeTietKhuanFinishWithClient(
       expiry.setDate(expiry.getDate() + Number(days));
 
       const capPatch = await buildQuyTrinhTramPatch(client, "CAP_PHAT");
-      await client
-        .from("cssd_fact_quy_trinh")
-        .update({
-          ...capPatch,
-          ngay_het_han: expiry.toISOString(),
-          han_su_dung: expiry.toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id);
+      const nowPass = new Date().toISOString();
+      const qtPatch: Record<string, unknown> = {
+        ...capPatch,
+        thoi_gian_tiet_khuan: nowPass,
+        thoi_gian_cap_phat: nowPass,
+        ngay_het_han: expiry.toISOString(),
+        han_su_dung: expiry.toISOString(),
+        updated_at: nowPass,
+      };
+      if (operatorId) {
+        qtPatch.nguoi_tiet_khuan_id = operatorId;
+        qtPatch.nguoi_cap_phat_id = operatorId;
+      }
+      await client.from("cssd_fact_quy_trinh").update(qtPatch).eq("id", id);
     }
 
     for (const id of p.quyTrinhIds) {
@@ -170,16 +185,6 @@ export async function persistMeTietKhuanFinishWithClient(
       });
     }
 
-    for (const id of p.quyTrinhIds) {
-      const lc = await insertCssdLifecycleEvent(client, {
-        quy_trinh_id: id,
-        ma_su_kien: "ME_TIET_KHUAN_DAT",
-        ma_tram: "TIET_KHUAN",
-        ghi_chu: `Lô ${p.maLo} đạt QC`,
-        payload: { ma_lo: p.maLo, nguoi_unload: p.nguoiUnload },
-      });
-      if (!lc.ok && !/fact_cssd_lifecycle_event|does not exist/i.test(lc.message)) return { ok: false, message: lc.message };
-    }
   }
 
   /** Không đạt sinh học/hóa học — domino batch: đưa bộ về ĐÓNG GÓI, gỡ khỏi mẻ, cấm cấp phát. */
@@ -204,19 +209,19 @@ export async function persistMeTietKhuanFinishWithClient(
 
     if (qrsData && qrsData.length > 0) {
       for (const qrRow of qrsData) {
-        const attributes: Record<string, string> = {
-          INCIDENT_GROUP: "PROCESS",
-          INCIDENT_KIND: "PROCESS_STERILIZATION_FAIL",
-          ROLLBACK_TARGET_STATION: "DONG_GOI",
-          FAULT_OPERATOR: p.nguoiUnload || "Hệ thống tự động",
-        };
+        const typeTen = "Chất lượng tiệt khuẩn / mẻ không đạt";
+        const attributes = buildIncidentAttributes({
+          incidentGroup: "PROCESS",
+          typeTen,
+          incidentKind: "PROCESS_STERILIZATION_FAIL",
+          rollbackTargetStation: "DONG_GOI",
+          faultOperator: p.nguoiUnload || "Hệ thống tự động",
+        });
 
         const suCoPayload: Record<string, unknown> = {
           ma_qr_quy_trinh: qrRow.ma_qr_quy_trinh,
           quy_trinh_id: qrRow.id,
           ma_tram_phat_hien: "TIET_KHUAN",
-          incident_group: "PROCESS",
-          incident_type_label: "Chất lượng tiệt khuẩn / mẻ không đạt",
           mo_ta: `Mẻ tiệt khuẩn ${p.maLo} không đạt QC. Chi tiết: ${ghiChu}. Người dỡ mẻ: ${p.nguoiUnload}`,
           is_red_alert: false,
           ma_tram_gay_loi: "TIET_KHUAN",
@@ -236,16 +241,6 @@ export async function persistMeTietKhuanFinishWithClient(
       });
     }
 
-    for (const id of p.quyTrinhIds) {
-      const lc = await insertCssdLifecycleEvent(client, {
-        quy_trinh_id: id,
-        ma_su_kien: "ME_TIET_KHUAN_KHONG_DAT_DOMINO",
-        ma_tram: "TIET_KHUAN",
-        ghi_chu: `Lô ${p.maLo}: không đạt — rollback về DONG_GOI`,
-        payload: { ma_lo: p.maLo },
-      });
-      if (!lc.ok && !/fact_cssd_lifecycle_event|does not exist/i.test(lc.message)) return { ok: false, message: lc.message };
-    }
   }
 
   return { ok: true };

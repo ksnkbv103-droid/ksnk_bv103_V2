@@ -257,7 +257,7 @@ describe("bao-cao-tong-hop-core", () => {
   it("buildKhoaRank merges vst and gsc", () => {
     const rows = buildKhoaRank(
       {
-        matrix_khoa: [{ id: "k1", ten: "Khoa A", tong_co_hoi: 10, da_tuan_thu: 8, ty_le_tuan_thu: 80 }],
+        matrix_khoa: [{ id: "k1", ten: "Khoa A", ma_khoa: "B01", tong_co_hoi: 10, da_tuan_thu: 8, ty_le_tuan_thu: 80 }],
       } as never,
       {
         matrix_khoa: [{ id: "k1", ten: "Khoa A", tong_quan_sat: 20, tong_dat: 18, ty_le_tuan_thu: 90 }],
@@ -266,6 +266,7 @@ describe("bao-cao-tong-hop-core", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].ty_le_avg).toBe(85);
     expect(rows[0].ty_le_ccs).toBe(85);
+    expect(rows[0].label).toBe("B01");
   });
 
   it("sortKhoaRankByCcs ranks by CCS and puts no-data last", () => {
@@ -273,6 +274,7 @@ describe("bao-cao-tong-hop-core", () => {
       {
         id: "1",
         ten: "A",
+        label: "A",
         ty_le_avg: 50,
         ty_le_ccs: 50,
         ty_le_vst: 50,
@@ -284,6 +286,7 @@ describe("bao-cao-tong-hop-core", () => {
       {
         id: "2",
         ten: "B",
+        label: "B",
         ty_le_avg: 90,
         ty_le_ccs: 90,
         ty_le_vst: 90,
@@ -295,6 +298,7 @@ describe("bao-cao-tong-hop-core", () => {
       {
         id: "3",
         ten: "C",
+        label: "C",
         ty_le_avg: null,
         ty_le_ccs: null,
         ty_le_vst: null,
@@ -313,6 +317,7 @@ describe("bao-cao-tong-hop-core", () => {
         {
           id: "k1",
           ten: "Khoa A",
+          label: "Khoa A",
           ty_le_avg: 80,
           ty_le_ccs: 80,
           ty_le_vst: 80,

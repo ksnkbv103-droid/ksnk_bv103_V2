@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { resolveLoaiAlias, CSSD_LOAI_PHYSICAL_SELECT } from "@/lib/master-data/cssd-loai-dung-cu-map";
 import { verifyPermission } from "@/lib/server-permission";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import { normalizeNullableFk } from "@/lib/master-data/fk-normalize";
@@ -10,6 +11,13 @@ import {
   toggleMasterStatus,
   upsertMasterRow,
 } from "./master-crud-core";
+import {
+  buildCssdBoMa,
+  cssdBoMaPrefixForKhoa,
+  isCssdUnifiedBoMa,
+  maxBoMaSequence,
+  normalizeBoMa,
+} from "@/lib/domain/cssd-bo-ma";
 
 type BoDungCuRow = {
   id: string;
@@ -67,7 +75,7 @@ export async function getBoDungCuRowsAction() {
     loaiIds.length
       ? supabase
           .from("cssd_dm_loai_dung_cu")
-          .select("id, ten_loai_dung_cu, ten_loai, ma_loai, ma_loai_dung_cu")
+          .select(`${CSSD_LOAI_PHYSICAL_SELECT}, specs`)
           .in("id", loaiIds)
       : Promise.resolve({ data: [], error: null }),
     khoaIds.length
@@ -82,10 +90,16 @@ export async function getBoDungCuRowsAction() {
 
   const loaiMap = new Map(
     (loaiResult.data || []).map((x) => {
-      const ma = x.ma_loai_dung_cu ?? x.ma_loai ?? null;
-      const ten = x.ten_loai_dung_cu ?? x.ten_loai ?? "";
-      return [x.id, { id: x.id, ten_danh_muc: ten, ma_danh_muc: ma != null ? String(ma) : null }] as const;
-    })
+      const alias = resolveLoaiAlias(x as Parameters<typeof resolveLoaiAlias>[0]);
+      return [
+        (x as { id: string }).id,
+        {
+          id: (x as { id: string }).id,
+          ten_danh_muc: alias.ten_loai_dung_cu,
+          ma_danh_muc: alias.ma_loai_dung_cu || null,
+        },
+      ] as const;
+    }),
   );
   const khoaMap = new Map((khoaResult.data || []).map((x) => [x.id, x] as const));
   const enriched = rows.map((r) => ({
@@ -112,6 +126,41 @@ export async function getKhoaPhongOptionsForBoAction() {
   }
 }
 
+async function suggestNextBoMaForKhoa(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  khoaId: string,
+): Promise<{ ok: true; ma_bo: string } | { ok: false; error: string }> {
+  const { data: khoa, error: khoaErr } = await supabase
+    .from("mdm_dm_khoa_phong")
+    .select("ma_khoa")
+    .eq("id", khoaId)
+    .maybeSingle();
+  if (khoaErr) return { ok: false, error: khoaErr.message };
+  const khoaMa = normalizeBoMa(String((khoa as { ma_khoa?: string } | null)?.ma_khoa || ""));
+  if (!khoaMa) return { ok: false, error: "Khoa chưa có mã (ma_khoa) — cập nhật danh mục khoa trước." };
+
+  const prefix = cssdBoMaPrefixForKhoa(khoaMa);
+  const { data: rows, error: listErr } = await supabase
+    .from("cssd_dm_bo_dung_cu")
+    .select("ma_bo")
+    .ilike("ma_bo", `${prefix}%`);
+  if (listErr) return { ok: false, error: listErr.message };
+
+  const nextSeq = maxBoMaSequence((rows || []).map((r) => String(r.ma_bo || "")), khoaMa) + 1;
+  return { ok: true, ma_bo: buildCssdBoMa(khoaMa, nextSeq) };
+}
+
+/** Gợi ý mã bộ tiếp theo theo khoa (form thêm bộ). */
+export async function suggestNextBoMaAction(khoaSuDungId: string) {
+  await verifyPermission("BO_DC", "create");
+  const supabase = createAdminSupabaseClient();
+  const khoaId = String(khoaSuDungId || "").trim();
+  if (!khoaId) return { success: false as const, error: "Chọn khoa sử dụng trước." };
+  const next = await suggestNextBoMaForKhoa(supabase, khoaId);
+  if (!next.ok) return { success: false as const, error: next.error };
+  return { success: true as const, ma_bo: next.ma_bo };
+}
+
 export async function saveBoDungCuAction(input: Record<string, unknown>) {
   const id = String(input.id || "").trim();
   await verifyPermission("BO_DC", id ? "edit" : "create");
@@ -130,8 +179,36 @@ export async function saveBoDungCuAction(input: Record<string, unknown>) {
         "Khoa sử dụng không hợp lệ: id không tồn tại trong mdm_dm_khoa_phong (chạy migration M3 nếu chưa có cột khoa_su_dung_id).",
     };
   }
+
+  let maBo = normalizeBoMa(String(input.ma_bo || ""));
+  if (!id) {
+    if (!maBo) {
+      if (!khoaSuDungNorm) {
+        return {
+          success: false,
+          error: "Thêm bộ mới: chọn khoa sử dụng (tự sinh mã) hoặc nhập mã bộ dạng B01.SET.01.",
+        };
+      }
+      const next = await suggestNextBoMaForKhoa(supabase, khoaSuDungNorm);
+      if (!next.ok) return { success: false, error: next.error };
+      maBo = next.ma_bo;
+    } else if (!isCssdUnifiedBoMa(maBo)) {
+      return {
+        success: false,
+        error: `Mã bộ "${maBo}" chưa đúng chuẩn. Dùng dạng KHOA.SET.NN (vd. B01.SET.01) hoặc để trống để tự sinh.`,
+      };
+    }
+  } else if (!maBo) {
+    return { success: false, error: "Thiếu mã bộ." };
+  } else if (!isCssdUnifiedBoMa(maBo)) {
+    return {
+      success: false,
+      error: `Mã bộ "${maBo}" chưa đúng chuẩn. Dùng dạng KHOA.SET.NN (vd. B01.SET.01) hoặc để trống để tự sinh.`,
+    };
+  }
+
   const payload = {
-    ma_bo: String(input.ma_bo || "").trim().toUpperCase(),
+    ma_bo: maBo,
     ten_bo: String(input.ten_bo || "").trim(),
     loai_dung_cu_id: String(input.loai_dung_cu_id || "").trim() || null,
     khoa_su_dung_id: khoaSuDungNorm,
@@ -156,7 +233,30 @@ export async function saveBoDungCuAction(input: Record<string, unknown>) {
         `${res.error} — FK khoa_su_dung_id cần trỏ mdm_dm_khoa_phong; chạy migration 20260430007_mdm_dm_khoa_phong_profile_and_bo_dung_cu_usage.sql trên Supabase.`,
     };
   }
-  return res;
+  if (!res.success) return res;
+  return { success: true as const, ma_bo: maBo };
+}
+
+export async function getBoDungCuMaBoHealthAction() {
+  await verifyPermission("BO_DC", "view");
+  const supabase = createAdminSupabaseClient();
+  const { data, error } = await supabase
+    .from("cssd_dm_bo_dung_cu")
+    .select("id, ma_bo, ten_bo")
+    .eq("is_active", true);
+  if (error) return { success: false as const, error: error.message };
+
+  const invalid = (data || []).filter((r) => !isCssdUnifiedBoMa(String(r.ma_bo || "")));
+  return {
+    success: true as const,
+    totalActive: (data || []).length,
+    invalidCount: invalid.length,
+    samples: invalid.slice(0, 8).map((r) => ({
+      id: String(r.id),
+      ma_bo: String(r.ma_bo || ""),
+      ten_bo: String(r.ten_bo || ""),
+    })),
+  };
 }
 
 export async function toggleBoDungCuStatusAction(id: string, currentStatus: boolean) {
@@ -188,38 +288,6 @@ async function getBoAllocationListAction(boDungCuId: string) {
     .order("created_at", { ascending: true });
   if (error) return { success: false as const, error: error.message };
   return { success: true as const, data: data || [] };
-}
-
-async function saveBoAllocationAction(input: Record<string, unknown>) {
-  await verifyPermission("BO_DC", "edit");
-  const supabase = createAdminSupabaseClient();
-  const id = String(input.id || "").trim();
-  const payload = {
-    bo_dung_cu_id: String(input.bo_dung_cu_id || "").trim(),
-    khoa_phong_id: String(input.khoa_phong_id || "").trim(),
-    so_luong_co_so: Number(input.so_luong_co_so || 0),
-    so_luong_hien_tai: Number(input.so_luong_hien_tai || 0),
-    is_active: input.is_active !== false,
-    updated_at: new Date().toISOString(),
-  };
-
-  if (!payload.bo_dung_cu_id || !payload.khoa_phong_id) {
-    return { success: false as const, error: "Thiếu thông tin bộ dụng cụ hoặc khoa phòng." };
-  }
-
-  if (id) {
-    const { error } = await supabase
-      .from("cssd_dm_bo_phan_bo")
-      .update(payload)
-      .eq("id", id);
-    if (error) return { success: false as const, error: error.message };
-  } else {
-    const { error } = await supabase
-      .from("cssd_dm_bo_phan_bo")
-      .insert(payload);
-    if (error) return { success: false as const, error: error.message };
-  }
-  return { success: true as const };
 }
 
 export async function getBoDungCuAllocationsAction(boDungCuId: string) {

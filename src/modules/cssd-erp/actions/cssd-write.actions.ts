@@ -15,7 +15,7 @@ import {
   appendQuyTrinhException,
 } from "./cssd-action-common";
 import { cssdImportRowSchema } from "@/lib/validations/cssd-erp.validations";
-import { insertCssdLifecycleEvent } from "../shared/application/cssd-lifecycle-events";
+import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
 
 type ExistingQrRow = { id?: string; ma_qr_quy_trinh?: string };
 
@@ -34,24 +34,6 @@ export async function reportInventoryIssue(input: {
   const note = String(input.note || "").trim();
   const maVach = String(input.ma_vach_qr || "").trim().toUpperCase();
 
-  const { data: tx, error: txErr } = await supabase
-    .from("cssd_fact_kho_giao_dich")
-    .insert({
-      ma_giao_dich: `ISS-${Date.now().toString().slice(-6)}`,
-      loai_giao_dich: reason === "HONG" ? "BAO_HONG" : "BAO_MAT",
-    })
-    .select("id")
-    .single();
-  if (txErr || !tx?.id) throw new Error(mapFkError(txErr?.message || "Không tạo được giao dịch."));
-
-  const { error: detailErr } = await supabase.from("cssd_fact_kho_chi_tiet").insert({
-    giao_dich_id: tx.id,
-    quy_trinh_id: quyTrinhId,
-    so_luong: 1,
-    ghi_chu: note || null,
-  });
-  if (detailErr) throw new Error(mapFkError(detailErr.message));
-
   const { error: updateErr } = await supabase
     .from("cssd_fact_quy_trinh")
     .update({
@@ -61,17 +43,6 @@ export async function reportInventoryIssue(input: {
     })
     .eq("id", quyTrinhId);
   if (updateErr) throw new Error(mapFkError(updateErr.message));
-
-  const lifecycle = await insertCssdLifecycleEvent(supabase, {
-    quy_trinh_id: quyTrinhId,
-    ma_su_kien: reason === "MAT" ? "BAO_MAT_BO_DUNG_CU" : "BAO_HONG_BO_DUNG_CU",
-    ma_tram: "QC",
-    ghi_chu: `${reason === "MAT" ? "Báo mất" : "Báo hỏng"} bộ dụng cụ ${maVach || ""}`.trim(),
-    payload: { ma_qr_quy_trinh: maVach || null, ly_do: note || null },
-  });
-  if (!lifecycle.ok && !/fact_cssd_lifecycle_event|does not exist/i.test(lifecycle.message)) {
-    throw new Error(lifecycle.message);
-  }
 
   let operator = "CSSD";
   try {
@@ -183,12 +154,15 @@ export async function recordInstrumentTransaction(input: {
   try {
     const uc = await createServerSupabaseUserClient();
     const { data: userData } = await uc.auth.getUser();
-    if (userData.user?.id) {
-      operatorId = userData.user.id;
+    if (userData.user) {
       operatorEmail = userData.user.email || "CSSD";
+      operatorId = await resolveCssdOperatorNhanSuId(supabase, {
+        authUserId: userData.user.id,
+        email: userData.user.email,
+      });
     }
   } catch {
-    // Fail-soft
+    // Fail-soft — ghi ledger với nguoi_thuc_hien_id null nếu chưa map MDM
   }
 
   // Phân giải quy_trinh_id sang UUID thực tế nếu truyền mã QR

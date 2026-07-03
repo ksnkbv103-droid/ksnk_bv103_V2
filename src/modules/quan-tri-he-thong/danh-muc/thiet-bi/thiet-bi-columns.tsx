@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
 import type { ThietBiRow } from "../actions/thiet-bi.types";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
+import ThietBiPrintQrButton from "@/modules/cssd-erp/components/equipment/thiet-bi-print-qr-button";
 
 interface ActionCells {
   renderStatusCell: (item: ThietBiRow) => ReactNode;
@@ -127,6 +128,21 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       header: "Ghi chú",
       accessorKey: "ghi_chu",
       cell: (i) => <span className="text-[11px] text-slate-500">{clip(i.ghi_chu, 40)}</span>,
+    },
+    {
+      header: "Tem QR",
+      accessorKey: "id",
+      cell: (i) =>
+        i.ma_thiet_bi ? (
+          <ThietBiPrintQrButton
+            thietBiId={i.id}
+            maThietBi={i.ma_thiet_bi || ""}
+            tenThietBi={i.ten_thiet_bi || ""}
+            variant="compact"
+          />
+        ) : (
+          <span className="text-[11px] text-slate-400">Chưa có mã</span>
+        ),
     },
     {
       header: TH.status,

@@ -1,17 +1,19 @@
 "use client";
 
-import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
-
 import React from "react";
+import type { LoaiPhieuBaoTri } from "../../actions/cssd-bao-tri.types";
+import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import { matchesDeviceCode, normalizeCssdCode } from "../../shared/domain/cssd-qr-core";
 
 type Props = {
   open: boolean;
   machines: { id: string; ma_thiet_bi: string; ten_thiet_bi: string }[];
   selTb: string;
+  loaiPhieu: LoaiPhieuBaoTri;
   maMayHoacQr: string;
   lyDo: string;
   onSelTb: (v: string) => void;
+  onLoaiPhieu: (v: LoaiPhieuBaoTri) => void;
   onMaMayHoacQr: (v: string) => void;
   onLyDo: (v: string) => void;
   onClose: () => void;
@@ -22,9 +24,11 @@ export default function BaoTriStartModal({
   open,
   machines,
   selTb,
+  loaiPhieu,
   maMayHoacQr,
   lyDo,
   onSelTb,
+  onLoaiPhieu,
   onMaMayHoacQr,
   onLyDo,
   onClose,
@@ -34,8 +38,27 @@ export default function BaoTriStartModal({
   return (
     <div className={`${UI.sectionGap} fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4`} role="dialog" aria-modal="true">
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-        <h2 className="text-lg font-semibold text-slate-900">Mở phiếu bảo trì</h2>
+        <h2 className="text-lg font-semibold text-slate-900">Mở phiếu bảo dưỡng / sửa chữa</h2>
         <p className="mt-1 text-xs text-slate-500">Quét mã máy (nếu có) hoặc chọn tay. Chỉ máy sẵn sàng và không có mẻ TK mở.</p>
+
+        <label className="mt-4 block text-[11px] font-medium text-slate-500">Loại phiếu</label>
+        <div className="mt-1 flex gap-2">
+          <button
+            type="button"
+            onClick={() => onLoaiPhieu("DINH_KY")}
+            className={`flex-1 rounded-lg border px-3 py-2 text-[11px] font-semibold uppercase ${loaiPhieu === "DINH_KY" ? "border-[var(--primary)] bg-emerald-50 text-[var(--primary)]" : "border-slate-200 text-slate-600"}`}
+          >
+            Bảo dưỡng định kỳ
+          </button>
+          <button
+            type="button"
+            onClick={() => onLoaiPhieu("SUA_CHUA")}
+            className={`flex-1 rounded-lg border px-3 py-2 text-[11px] font-semibold uppercase ${loaiPhieu === "SUA_CHUA" ? "border-red-300 bg-red-50 text-red-700" : "border-slate-200 text-slate-600"}`}
+          >
+            Sửa chữa
+          </button>
+        </div>
+
         <label className="mt-4 block text-[11px] font-medium text-slate-500">Mã máy / QR máy</label>
         <input
           className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm uppercase"
@@ -71,7 +94,7 @@ export default function BaoTriStartModal({
             onClick={() => void onSubmit()}
             disabled={!selTb.trim() || !lyDo.trim()}
           >
-            Bắt đầu bảo trì
+            Bắt đầu
           </button>
         </div>
       </div>

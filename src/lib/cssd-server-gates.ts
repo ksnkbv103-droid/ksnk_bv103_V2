@@ -14,6 +14,16 @@ export async function verifyCssdIncidentCreate(): Promise<void> {
   await verifyPermission("BAO_SU_CO", "create");
 }
 
+/** In / đọc biên bản — create hoặc view BAO_SU_CO. */
+export async function verifyCssdIncidentPrint(): Promise<void> {
+  try {
+    await verifyPermission("BAO_SU_CO", "create");
+    return;
+  } catch {
+    await verifyPermission("BAO_SU_CO", "view");
+  }
+}
+
 export async function verifyCssdMaintenanceView(): Promise<void> {
   await verifyPermission("CSSD_ME_TIET_KHUAN", "view");
 }

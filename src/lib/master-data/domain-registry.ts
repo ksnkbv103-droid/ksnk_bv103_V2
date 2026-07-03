@@ -1,5 +1,6 @@
 // src/lib/master-data/domain-registry.ts
 // **Registry pattern** (map loaiDanhMuc → `{module}_dm_*`) — KHÔNG phải `src/lib/domain/` (pure business logic).
+// Hub UI mở rộng (trang dedicated + lookup): SSOT `danh-muc-hub-catalog.ts`.
 // Source-of-Truth: bảng/view prefix module (`mdm_dm_*`, `cssd_dm_*`, `gstt_dm_*`, …).
 // Không còn fallback về danh_muc_tuy_bien.
 // Đọc dropdown đồng bộ: `fetchActiveRegistryDmRows` trong `registry-select-fetch.ts`.
@@ -41,7 +42,7 @@ const ENTRIES: RegistryEntry[] = [
   { loaiDanhMuc: "VAI_TRO_HE_THONG_KSNK", sourceTable: "sys_roles", idColumn: "id", maColumn: "name", tenColumn: "name" },
   { loaiDanhMuc: "KHU_VUC_GIAM_SAT", sourceTable: "gstt_dm_khu_vuc_giam_sat", idColumn: "id", maColumn: "ma_khu_vuc", tenColumn: "ten_khu_vuc" },
   { loaiDanhMuc: "NGHE_NGHIEP", sourceTable: "mdm_dm_nghe_nghiep", idColumn: "id", maColumn: "ma_nghe_nghiep", tenColumn: "ten_nghe_nghiep" },
-  { loaiDanhMuc: "LOAI_DUNG_CU", sourceTable: "cssd_dm_loai_dung_cu", idColumn: "id", maColumn: "ma_loai_dung_cu", tenColumn: "ten_loai_dung_cu" },
+  { loaiDanhMuc: "LOAI_DUNG_CU", sourceTable: "cssd_dm_loai_dung_cu", idColumn: "id", maColumn: "ma_loai", tenColumn: "ten_loai" },
   { loaiDanhMuc: "LOAI_SU_CO", sourceTable: "cssd_dm_loai_su_co", idColumn: "id", maColumn: "ma_loai_su_co", tenColumn: "ten_loai_su_co" },
   { loaiDanhMuc: "LOAI_MAY_TIET_KHUAN", sourceTable: "cssd_dm_loai_may", idColumn: "id", maColumn: "ma_loai_may", tenColumn: "ten_loai_may" },
   { loaiDanhMuc: "TRAM_CSSD", sourceTable: "cssd_dm_tram", idColumn: "id", maColumn: "ma_tram", tenColumn: "ten_tram" },
@@ -108,6 +109,8 @@ export const DM_HUB_LABELS: Record<string, string> = {
   KHU_VUC_GIAM_SAT: "Khu vực giám sát",
   NGHE_NGHIEP: "Nghề nghiệp",
   LOAI_DUNG_CU: "Loại dụng cụ",
+  BO_DUNG_CU: "Bộ dụng cụ (CSSD)",
+  DC_LE_CHI_TIET: "Thành phần bộ (CSSD)",
   LOAI_SU_CO: "Loại sự cố (CSSD)",
   LOAI_MAY_TIET_KHUAN: "Loại máy tiệt khuẩn",
   TRAM_CSSD: "Trạm workflow CSSD",

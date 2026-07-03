@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { clearStaleSupabaseAuthCookies } from "@/lib/auth/clear-stale-supabase-cookies";
 import { loginWithStaffIdentifier } from "@/modules/auth/actions/staff-login.actions";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
@@ -17,6 +18,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     const ensureGuest = async () => {
+      clearStaleSupabaseAuthCookies(process.env.NEXT_PUBLIC_SUPABASE_URL);
       const { data } = await supabase.auth.getSession();
       if (data.session) {
         router.replace("/");

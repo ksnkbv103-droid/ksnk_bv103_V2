@@ -2,24 +2,28 @@
 
 import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Wrench } from "lucide-react";
+import { Activity, List, Wrench } from "lucide-react";
 import { CSSDMaintenancePage } from "@/modules/cssd-erp/contexts/maintenance/entrypoint";
-import { CssdThietBiMdmBanner } from "@/modules/cssd-erp/components/catalog/CssdCatalogMdmBanner";
+import ThietBiFleetPanel from "@/modules/cssd-erp/components/equipment/thiet-bi-fleet-panel";
+import ThietBiVanHanhPanel from "@/modules/cssd-erp/components/equipment/thiet-bi-van-hanh-panel";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import { CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_GROUP, CSSD_UI_TAB_IDLE } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 
-type ThietBiTab = "CATALOG" | "MAINTENANCE";
+type ThietBiTab = "FLEET" | "MAINTENANCE" | "VAN_HANH";
+
+function resolveTab(tabParam: string | null): ThietBiTab {
+  if (tabParam === "maintenance" || tabParam === "bao-tri") return "MAINTENANCE";
+  if (tabParam === "van-hanh" || tabParam === "history") return "VAN_HANH";
+  return "FLEET";
+}
 
 function CssdThietBiPageInner() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState<ThietBiTab>(
-    tabParam === "maintenance" || tabParam === "bao-tri" ? "MAINTENANCE" : "CATALOG",
-  );
+  const [activeTab, setActiveTab] = useState<ThietBiTab>(resolveTab(tabParam));
 
   useEffect(() => {
-    if (tabParam === "maintenance" || tabParam === "bao-tri") setActiveTab("MAINTENANCE");
-    else if (tabParam === "catalog" || !tabParam) setActiveTab("CATALOG");
+    setActiveTab(resolveTab(tabParam));
   }, [tabParam]);
 
   return (
@@ -35,12 +39,12 @@ function CssdThietBiPageInner() {
         <div className={CSSD_UI_TAB_GROUP}>
           <button
             type="button"
-            onClick={() => setActiveTab("CATALOG")}
+            onClick={() => setActiveTab("FLEET")}
             className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
-              activeTab === "CATALOG" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
+              activeTab === "FLEET" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
             }`}
           >
-            Danh mục (Quản trị)
+            <List size={14} /> Danh sách máy
           </button>
           <button
             type="button"
@@ -51,10 +55,25 @@ function CssdThietBiPageInner() {
           >
             <Wrench size={14} /> Bảo dưỡng &amp; sửa chữa
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("VAN_HANH")}
+            className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
+              activeTab === "VAN_HANH" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
+            }`}
+          >
+            <Activity size={14} /> Lịch sử vận hành
+          </button>
         </div>
 
         <div className="animate-in fade-in duration-300">
-          {activeTab === "CATALOG" ? <CssdThietBiMdmBanner /> : <CSSDMaintenancePage suppressShell={true} />}
+          {activeTab === "FLEET" ? (
+            <ThietBiFleetPanel />
+          ) : activeTab === "MAINTENANCE" ? (
+            <CSSDMaintenancePage suppressShell={true} />
+          ) : (
+            <ThietBiVanHanhPanel />
+          )}
         </div>
       </div>
     </CSSDPageShell>

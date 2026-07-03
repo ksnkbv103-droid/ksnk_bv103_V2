@@ -8,7 +8,11 @@ export const bv103DesignTokens = {
   pageSectionGap: "space-y-8",
 
   stickyAnalyticsShell:
-    "no-print sticky top-4 z-40 rounded-[var(--radius-shell)] border border-slate-200/90 bg-white/95 p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] backdrop-blur-md md:p-6",
+    "no-print sticky top-4 z-40 rounded-xl border border-slate-200/90 bg-white/95 p-3 shadow-sm ring-1 ring-slate-900/[0.03] backdrop-blur-md md:p-4",
+  /** Thanh tiêu đề + lọc analytics (một khối, không lồng hero). */
+  analyticsToolbarShell:
+    "no-print sticky top-4 z-40 rounded-xl border border-slate-200 bg-white p-4 shadow-sm backdrop-blur-md",
+  analyticsToolbarShellStatic: "no-print rounded-xl border border-slate-200 bg-white p-4 shadow-sm",
 
   /** H1 trang — title case, không primary, không IN HOA */
   pageTitle: "text-xl font-semibold tracking-tight text-slate-900 md:text-2xl",

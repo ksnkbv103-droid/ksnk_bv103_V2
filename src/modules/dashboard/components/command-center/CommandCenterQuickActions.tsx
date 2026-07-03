@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import Link from "next/link";
-import { ClipboardList, FileBarChart, PanelsTopLeft, Stethoscope } from "lucide-react";
+import { ClipboardList, FileBarChart, BarChart2, PanelsTopLeft, Stethoscope } from "lucide-react";
 import { usePermission } from "@/hooks/usePermission";
 import {
   canSeeNavGate,
@@ -61,6 +61,14 @@ export function CommandCenterQuickActions({ tuNgay, denNgay, selectedKhoaIds }: 
         icon: Stethoscope,
         tone: "emerald",
       });
+      list.push({
+        id: "thong-ke-vst",
+        label: "Thống kê VST",
+        hint: "Xu hướng và so sánh khoa",
+        href: buildAnalyticsDeepLink("/thong-ke/vst", filterSeed),
+        icon: BarChart2,
+        tone: "emerald",
+      });
     }
 
     if (canSeeNavGate(isAdmin, canView, NAV_GATE_GSC)) {
@@ -70,6 +78,14 @@ export function CommandCenterQuickActions({ tuNgay, denNgay, selectedKhoaIds }: 
         hint: "Mở phiên tuân thủ KSNK",
         href: buildAnalyticsDeepLink("/giam-sat-chung", filterSeed),
         icon: ClipboardList,
+        tone: "blue",
+      });
+      list.push({
+        id: "thong-ke-gsc",
+        label: "Thống kê GSC",
+        hint: "Ma trận tuân thủ theo chuyên đề",
+        href: buildAnalyticsDeepLink("/thong-ke/gsc", filterSeed),
+        icon: BarChart2,
         tone: "blue",
       });
     }

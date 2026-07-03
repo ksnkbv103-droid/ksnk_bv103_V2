@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import React from "react";
 import Link from "next/link";
-import { AlertTriangle, ExternalLink, QrCode } from "lucide-react";
-import { toast } from "sonner";
-import { reportChiTietInstrumentIssueAction } from "@/lib/master-data/append-chi-tiet-issue-note.action";
+import { AlertTriangle, ExternalLink } from "lucide-react";
+import { CSSD_ROUTES } from "@/lib/cssd-routes";
 import type { CSSDChiTiet } from "../types/catalog.types";
-import CssdDieuChuyenQrModal from "../components/catalog/CssdDieuChuyenQrModal";
 import { CSSD_UI_ACTION_SECONDARY, CSSD_UI_SECTION_TITLE } from "../shared/ui/cssd-ui-chrome";
 
 const MDM_DUNG_CU_HREF = "/quan-tri-he-thong/danh-muc/dung-cu";
@@ -16,69 +14,30 @@ export function CSSDCatalogQuickActions(props: {
   selectedChiTiet: CSSDChiTiet | null;
   reload: () => Promise<void>;
 }) {
-  const { selectedBoId, selectedChiTiet, reload } = props;
-  const [dieuChuyenOpen, setDieuChuyenOpen] = useState(false);
+  const { selectedBoId, selectedChiTiet } = props;
+  const suCoHref = `${CSSD_ROUTES.suCo}${selectedChiTiet ? `?prefill=1` : ""}`;
+  void selectedBoId;
 
   return (
-    <>
-      <section className="rounded-2xl border border-slate-200 bg-white p-4">
-        <h4 className={CSSD_UI_SECTION_TITLE}>Tác vụ vận hành</h4>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Link
-            href={MDM_DUNG_CU_HREF}
-            className={`${CSSD_UI_ACTION_SECONDARY} gap-1.5 px-3`}
-          >
-            <ExternalLink className="h-3.5 w-3.5" /> Sửa danh mục (Quản trị)
-          </Link>
-          <button
-            type="button"
-            onClick={() => setDieuChuyenOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-semibold uppercase text-emerald-900 hover:bg-emerald-100"
-          >
-            <QrCode className="h-3.5 w-3.5" /> Điều chuyển cấu phần (2 QR)
-          </button>
-          <button
-            type="button"
-            disabled={!selectedChiTiet}
-            onClick={async () => {
-              if (!selectedChiTiet) return;
-              const note = window.prompt("Mô tả hỏng (tùy chọn):", "") || "";
-              const r = await reportChiTietInstrumentIssueAction({ chiTietId: selectedChiTiet.id, issueType: "HONG", note });
-              if (!r.success) return toast.error(r.error || "Không ghi nhận được báo hỏng.");
-              toast.success("Đã ghi nhận báo hỏng (ghi chú + sổ giao dịch).");
-              void reload();
-            }}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold uppercase text-amber-800 hover:bg-amber-100 disabled:opacity-50"
-          >
-            <AlertTriangle className="h-3.5 w-3.5" /> Báo hỏng
-          </button>
-          <button
-            type="button"
-            disabled={!selectedChiTiet}
-            onClick={async () => {
-              if (!selectedChiTiet) return;
-              const note = window.prompt("Mô tả mất / thất lạc (tùy chọn):", "") || "";
-              const r = await reportChiTietInstrumentIssueAction({ chiTietId: selectedChiTiet.id, issueType: "MAT", note });
-              if (!r.success) return toast.error(r.error || "Không ghi nhận được báo mất.");
-              toast.success("Đã ghi nhận báo mất (ghi chú + sổ giao dịch).");
-              void reload();
-            }}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] font-semibold uppercase text-rose-800 hover:bg-rose-100 disabled:opacity-50"
-          >
-            <AlertTriangle className="h-3.5 w-3.5" /> Báo mất
-          </button>
-        </div>
-        {!selectedBoId && !selectedChiTiet ? (
-          <p className="mt-2 text-[11px] text-slate-500">Chọn bộ hoặc chi tiết để báo hỏng/mất.</p>
-        ) : null}
-      </section>
-
-      <CssdDieuChuyenQrModal
-        open={dieuChuyenOpen}
-        onClose={() => setDieuChuyenOpen(false)}
-        suggestedTenDungCu={selectedChiTiet?.ten_chi_tiet}
-        onSuccess={() => void reload()}
-      />
-    </>
+    <section className="rounded-2xl border border-slate-200 bg-white p-4">
+      <h4 className={CSSD_UI_SECTION_TITLE}>Tác vụ vận hành</h4>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Link
+          href={MDM_DUNG_CU_HREF}
+          className={`${CSSD_UI_ACTION_SECONDARY} gap-1.5 px-3`}
+        >
+          <ExternalLink className="h-3.5 w-3.5" /> Sửa danh mục (Quản trị)
+        </Link>
+        <Link
+          href={suCoHref}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold uppercase text-amber-900 hover:bg-amber-100"
+        >
+          <AlertTriangle className="h-3.5 w-3.5" /> Báo cáo sự cố dụng cụ
+        </Link>
+      </div>
+      <p className="mt-2 text-[11px] text-slate-500">
+        Báo Hỏng / Mất / Bổ sung / Điều chuyển thực hiện tại trang Báo cáo sự cố hoặc lối tắt tại trạm Đóng gói.
+      </p>
+    </section>
   );
 }

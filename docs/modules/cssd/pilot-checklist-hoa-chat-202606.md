@@ -14,7 +14,9 @@ E2E_USER_EMAIL=... E2E_USER_PASSWORD=... npm run test:e2e -- e2e/cssd-workflow.s
 |---|----------|----------|----------|
 | H1 | Xem tồn theo lô | `/cssd-hoa-chat` → tab **Tồn kho** | Bảng tồn hiển thị; tổng khớp view `v_cssd_kho_hoa_chat_ton_lo` |
 | H2 | Nhập kho | Chọn hóa chất → **Nhập** → số lượng + lô + HSD → Lưu | Giao dịch `NHAP` trong lịch sử; tồn lô tăng |
-| H3 | Xuất kho (FEFO) | **Xuất** từ lô có HSD gần nhất | Giao dịch `XUAT`; không xuất âm tồn |
+| H3 | Xuất kho (FEFO) | **Xuất** → lô FEFO (★) được chọn sẵn; thử chọn lô quá HSD | Giao dịch `XUAT`; không xuất lô hết hạn; không xuất âm tồn |
+| H3b | Lọc loại | Tab **Hóa chất tiệt trùng** / **Vật tư tiêu hao** | Bảng tồn + phiếu lọc đúng nhóm |
+| H7 | Sự cố → xuất kho | Báo sự cố CHEMICAL → khối «chưa ghi xuất» → **Ghi xuất** | Phiếu `XUAT` có cột «Sự cố»; sự cố biến mất khỏi khối chờ |
 | H4 | Ngưỡng cảnh báo | Quản trị hoặc sheet → đặt `nguong_ton_toi_thieu` → tồn ≤ ngưỡng | Banner đỏ + stat card «dưới ngưỡng» |
 | H5 | HSD sắp hết | Lô HSD trong 30 ngày | Banner amber «sắp hết hạn» |
 | H6 | Phân quyền | User không có `KSNK_KHO_HOACHAT` | Trang «Không có quyền»; không gọi được action ghi |

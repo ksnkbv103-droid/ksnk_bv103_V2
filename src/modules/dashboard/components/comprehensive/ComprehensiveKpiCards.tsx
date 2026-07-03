@@ -2,20 +2,52 @@
 
 import React from "react";
 import { TrendingDown, TrendingUp } from "lucide-react";
-import type { BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
+import type { BaoCaoTrendPoint, BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 import { complianceToneFromPercent } from "../../lib/bao-cao-tong-hop-thresholds";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
-function DeltaBadge({ delta }: { delta: number | null }) {
-  if (delta == null) return <span className="text-[11px] text-slate-400">— so với tuần trước</span>;
-  const up = delta >= 0;
+function prevPeriodRate(
+  points: BaoCaoTrendPoint[] | undefined,
+  metric: "ty_le_vst" | "ty_le_gsc" | "ty_le_ccs",
+): number | null {
+  const eligible = (points ?? [])
+    .filter((p) => {
+      if (metric === "ty_le_vst") return (p.vst_tong ?? 0) > 0 && p.ty_le_vst != null;
+      if (metric === "ty_le_gsc") return (p.gsc_tong ?? 0) > 0 && p.ty_le_gsc != null;
+      return ((p.vst_tong ?? 0) > 0 || (p.gsc_tong ?? 0) > 0) && p.ty_le_ccs != null;
+    })
+    .sort((a, b) => a.min_date.localeCompare(b.min_date));
+  if (eligible.length < 2) return null;
+  return eligible[eligible.length - 2]![metric] as number;
+}
+
+function DeltaBadge({
+  delta,
+  prevRate,
+}: {
+  delta: number | null;
+  prevRate?: number | null;
+}) {
+  if (delta == null && prevRate == null) {
+    return <span className="text-[11px] text-slate-400">— so với tuần trước</span>;
+  }
+  const up = (delta ?? 0) >= 0;
   const Icon = up ? TrendingUp : TrendingDown;
   return (
-    <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${up ? "text-[var(--surface-success-text)]" : "text-[var(--surface-danger-text)]"}`}>
-      <Icon size={12} aria-hidden />
-      {up ? "+" : ""}
-      {delta}% so với tuần trước
+    <span className="text-[11px] text-slate-500">
+      {prevRate != null ? (
+        <span className="mr-1 tabular-nums">Tuần trước: {prevRate}% · </span>
+      ) : null}
+      {delta != null ? (
+        <span className={`inline-flex items-center gap-0.5 font-medium ${up ? "text-[var(--surface-success-text)]" : "text-[var(--surface-danger-text)]"}`}>
+          <Icon size={12} aria-hidden />
+          {up ? "+" : ""}
+          {delta}% Δ
+        </span>
+      ) : (
+        <span>— so với tuần trước</span>
+      )}
     </span>
   );
 }
@@ -25,13 +57,17 @@ function KpiCard({
   value,
   suffix,
   delta,
+  prevRate,
   note,
+  volumeNote,
 }: {
   label: string;
   value: string;
   suffix?: string;
   delta?: number | null;
+  prevRate?: number | null;
   note?: string | null;
+  volumeNote?: string | null;
 }) {
   const pct = value.endsWith("%") ? Number.parseFloat(value) : null;
   const tone = complianceToneFromPercent(pct);
@@ -42,8 +78,9 @@ function KpiCard({
         {value}
         {suffix ? <span className="ml-1 text-sm font-medium opacity-70">{suffix}</span> : null}
       </p>
+      {volumeNote ? <p className="mt-1 text-xs font-medium tabular-nums opacity-80">{volumeNote}</p> : null}
       <div className="mt-2">
-        <DeltaBadge delta={delta ?? null} />
+        <DeltaBadge delta={delta ?? null} prevRate={prevRate} />
       </div>
       {note ? <p className="mt-2 text-[11px] leading-snug opacity-80">{note}</p> : null}
     </div>
@@ -52,7 +89,17 @@ function KpiCard({
 
 export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPayload | null }) {
   const k = payload?.kpis;
+  const trend = payload?.trend_week;
   if (!payload) return null;
+
+  const vstVol =
+    payload.vst?.kpis != null
+      ? `${payload.vst.kpis.da_tuan_thu.toLocaleString()}/${payload.vst.kpis.tong_co_hoi.toLocaleString()} tuân thủ`
+      : null;
+  const gscVol =
+    payload.gsc?.kpis != null
+      ? `${payload.gsc.kpis.tong_dat.toLocaleString()}/${payload.gsc.kpis.tong_quan_sat.toLocaleString()} đạt`
+      : null;
 
   return (
     <div className="space-y-2">
@@ -61,10 +108,23 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
           label="Tuân thủ tổng hợp (CCS)"
           value={k?.ty_le_ccs != null ? `${k.ty_le_ccs}%` : "N/A"}
           delta={k?.delta_ccs}
+          prevRate={prevPeriodRate(trend, "ty_le_ccs")}
           note={k?.ccs_formula_note}
         />
-        <KpiCard label="Vệ sinh tay (VST)" value={k?.ty_le_vst != null ? `${k.ty_le_vst}%` : "N/A"} delta={k?.delta_vst} />
-        <KpiCard label="Giám sát chung (GSC)" value={k?.ty_le_gsc != null ? `${k.ty_le_gsc}%` : "N/A"} delta={k?.delta_gsc} />
+        <KpiCard
+          label="Vệ sinh tay (VST)"
+          value={k?.ty_le_vst != null ? `${k.ty_le_vst}%` : "N/A"}
+          delta={k?.delta_vst}
+          prevRate={prevPeriodRate(trend, "ty_le_vst")}
+          volumeNote={vstVol ? `Cơ hội: ${vstVol}` : null}
+        />
+        <KpiCard
+          label="Giám sát chung (GSC)"
+          value={k?.ty_le_gsc != null ? `${k.ty_le_gsc}%` : "N/A"}
+          delta={k?.delta_gsc}
+          prevRate={prevPeriodRate(trend, "ty_le_gsc")}
+          volumeNote={gscVol ? `Khảo sát: ${gscVol}` : null}
+        />
         <KpiCard
           label="NKBV — tỷ lệ xác nhận/PA"
           value={k?.ti_le_xac_nhan_nkbv != null ? `${k.ti_le_xac_nhan_nkbv}%` : "N/A"}

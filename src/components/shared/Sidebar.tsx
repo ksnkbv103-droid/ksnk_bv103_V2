@@ -5,30 +5,18 @@ import React, { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { IdCard, Settings, Shield } from "lucide-react";
+import { IdCard } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { usePermission } from "@/hooks/usePermission";
-import {
-  canSeeNavGate,
-  canSeeQuanTriSection,
-  NAV_GATE_DM_HUB,
-  NAV_GATE_QUAN_TRI,
-  type NavGate,
-} from "@/lib/nav/ksnk-nav-gates";
+import { SIDEBAR_ADMIN_GROUPS } from "@/lib/nav/sidebar-admin-nav-groups";
 import { SIDEBAR_NAV_GROUPS, type SidebarNavItem } from "@/lib/nav/sidebar-nav-groups";
+import { canSeeCommandCenterNav, canSeeNavGate, canSeeQuanTriSection } from "@/lib/nav/ksnk-nav-gates";
 import {
   isNavHiddenUnderPilotCoreModules,
   isPilotCoreModulesScopeEnabled,
 } from "@/lib/ksnk-pilot-core-modules-scope";
 
 type NavItem = { name: string; href: string; icon: LucideIcon };
-
-type NavAdminRow = NavItem & { gate: NavGate };
-
-const navAdmin: NavAdminRow[] = [
-  { name: "Quản trị hệ thống", href: "/quan-tri-he-thong", icon: Settings, gate: NAV_GATE_QUAN_TRI },
-  { name: "Lookup danh mục", href: "/quan-tri-he-thong?tab=dm_registry", icon: Shield, gate: NAV_GATE_DM_HUB },
-];
 
 function menuItemIsActive(pathname: string, href: string, urlTab: string | null) {
   const [path, query] = href.split("?");
@@ -52,6 +40,9 @@ function filterVisibleItems(
 ): SidebarNavItem[] {
   return items.filter((row) => {
     if (pilotCore && isNavHiddenUnderPilotCoreModules(row.gate.id)) return false;
+    if (row.requireCommandCenterShell) {
+      return canSeeCommandCenterNav(isAdmin, canView);
+    }
     return canSeeNavGate(isAdmin, canView, row.gate);
   });
 }
@@ -130,18 +121,26 @@ function SidebarNavLinks({ onClose }: { onClose: () => void }) {
         ))
       )}
       {showQt ? (
-        <div className="space-y-1 border-t border-slate-200/90 pt-4">
+        <div className="space-y-4 border-t border-slate-200/90 pt-4">
           <p className="section-label mb-2 px-4">Quản trị</p>
-          {navAdmin.map((row) => {
-            if (!canSeeNavGate(isAdmin, canView, row.gate)) return null;
-            const { gate: _g, ...item } = row;
+          {SIDEBAR_ADMIN_GROUPS.map((group) => {
+            const visible = group.items.filter((row) => canSeeNavGate(isAdmin, canView, row.gate));
+            if (!visible.length) return null;
             return (
-              <NavLinkRow
-                key={row.href}
-                item={item}
-                isActive={menuItemIsActive(pathname, row.href, urlTab)}
-                onClose={onClose}
-              />
+              <div key={group.id} className="space-y-0.5">
+                <p className="px-4 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{group.label}</p>
+                {visible.map((row) => {
+                  const { gate: _g, ...item } = row;
+                  return (
+                    <NavLinkRow
+                      key={row.href}
+                      item={item}
+                      isActive={menuItemIsActive(pathname, row.href, urlTab)}
+                      onClose={onClose}
+                    />
+                  );
+                })}
+              </div>
             );
           })}
           {showTaiKhoanKsnk ?

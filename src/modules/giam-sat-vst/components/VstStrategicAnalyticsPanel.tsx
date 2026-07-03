@@ -55,6 +55,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
 
   const compareSections = useMemo(
     () => [
+      { title: "Theo khối", rows: toCompareRows(p.payload?.matrix_khoi) },
       { title: "Theo vùng IPAC (4 màu)", rows: toCompareRows(p.payload?.matrix_khu_vuc_nhom) },
       { title: "Theo khu vực (chi tiết)", rows: toCompareRows(p.payload?.matrix_khu_vuc) },
       { title: "Theo đối tượng (nghề)", rows: toCompareRows(p.payload?.matrix_nghe) },
@@ -64,13 +65,13 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
   );
 
   return (
-    <div className={`${UI.sectionGap} space-y-6 px-2 pb-8`}>
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <AnalyticsFilterBar
-          hideBangKiem
-          khoaFilterLocked={p.khoaFilterLocked}
-          onRefresh={p.onRefresh}
-          refreshLoading={p.loading}
+    <div className={`${UI.sectionGap} space-y-6 pb-8`}>
+      <AnalyticsFilterBar
+        variant="compact"
+        hideBangKiem
+        khoaFilterLocked={p.khoaFilterLocked}
+        onRefresh={p.onRefresh}
+        refreshLoading={p.loading}
           tuNgay={p.tuNgay}
           setTuNgay={p.setTuNgay}
           denNgay={p.denNgay}
@@ -89,8 +90,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
           setSelectedKhuVucIds={p.setSelectedKhuVucIds}
           selectedHinhThucIds={p.selectedHinhThucIds}
           setSelectedHinhThucIds={p.setSelectedHinhThucIds}
-        />
-      </div>
+      />
 
       {p.loadError ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{p.loadError}</div>
@@ -110,6 +110,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         title="Xu hướng tuân thủ"
         data={p.payload?.trendline ?? []}
         loading={p.loading}
+        source="vst"
         stroke="#10b981"
       />
 
@@ -119,12 +120,19 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         moduleLabel="VST"
         tgsVolumeLabel="Cơ hội TGS"
         ksnkVolumeLabel="Cơ hội KSNK"
-        coverageTopics={[{ id: "vst", label: "VST", rows: gapKhoaRows }]}
       />
 
       <SupervisionMomentsPanel moments={p.payload?.moments ?? []} loading={p.loading} stroke="#10b981" />
 
-      <SupervisionCompareAccordion sections={compareSections} loading={p.loading} />
+      <details className="rounded-xl border border-slate-200 bg-white">
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+          Ma trận phân tích (vùng IPAC, đối tượng, hình thức…)
+          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">Mở để xem chi tiết</span>
+        </summary>
+        <div className="border-t border-slate-100 px-4 pb-4 pt-2">
+          <SupervisionCompareAccordion sections={compareSections} loading={p.loading} />
+        </div>
+      </details>
     </div>
   );
 }

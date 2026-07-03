@@ -69,6 +69,19 @@ describe("canShowEditTaskMetadata", () => {
       ),
     ).toBe(true);
   });
+
+  it("đề xuất chờ duyệt — dùng form phê duyệt, không sửa qua CongViecForm", () => {
+    expect(
+      canShowEditTaskMetadata(
+        {
+          trang_thai: "MOI",
+          is_active: false,
+          nguoi_phu_trach_id: null,
+        },
+        baseFlags,
+      ),
+    ).toBe(false);
+  });
 });
 
 describe("canShowDeleteTask", () => {

@@ -19,7 +19,9 @@ export type GapKhoaSourceRow = {
   ty_le_ksnk?: number | null;
   do_lech?: number | null;
   tgs_co_hoi?: number;
+  tgs_dat?: number;
   ksnk_co_hoi?: number;
+  ksnk_dat?: number;
   tgs_quan_sat?: number;
   ksnk_quan_sat?: number;
 };
@@ -32,7 +34,12 @@ export type GapKhoaRow = {
   ty_le_ksnk: number | null;
   vol_tgs: number;
   vol_ksnk: number;
+  dat_tgs: number;
+  dat_ksnk: number;
 };
+
+export type GapKhoaSortMetric = "ty_le_ksnk" | "ty_le_tgs" | "vol_ksnk" | "vol_tgs" | "label";
+export type GapKhoaSortOrder = "asc" | "desc";
 
 export function khoaChartLabel(row: {
   ten?: string | null;
@@ -44,10 +51,29 @@ export function khoaChartLabel(row: {
   return String(row.ten ?? row.ten_khoa ?? "").trim() || "—";
 }
 
-function placeholderKhoaLabel(ten: string): string {
-  const paren = ten.match(/\(([A-Z0-9][A-Z0-9-]*)\)\s*$/i);
+function parseMaFromKhoaOptionLabel(label: string): string | null {
+  const bracket = label.match(/^\[([^\]]+)\]/);
+  if (bracket) return bracket[1].trim();
+  const paren = label.match(/\(([A-Z0-9][A-Z0-9-]*)\)\s*$/i);
   if (paren) return paren[1].toUpperCase();
-  return ten.length > 12 ? `${ten.slice(0, 10)}…` : ten;
+  return null;
+}
+
+function placeholderGapKhoaRow(id: string, khoaOptions: { id: string; label: string }[]): GapKhoaRow {
+  const opt = khoaOptions.find((o) => o.id === id);
+  const ten = opt?.label ?? id;
+  const ma = parseMaFromKhoaOptionLabel(ten);
+  return {
+    id,
+    ten,
+    label: khoaChartLabel({ ten_khoa: ten.replace(/^\[[^\]]+\]\s*/, ""), ma_khoa: ma }),
+    ty_le_tgs: null,
+    ty_le_ksnk: null,
+    vol_tgs: 0,
+    vol_ksnk: 0,
+    dat_tgs: 0,
+    dat_ksnk: 0,
+  };
 }
 
 export function normalizeGapKhoaRow(r: GapKhoaSourceRow): GapKhoaRow {
@@ -60,7 +86,58 @@ export function normalizeGapKhoaRow(r: GapKhoaSourceRow): GapKhoaRow {
     ty_le_ksnk: r.ty_le_ksnk == null ? null : roundPercent2(r.ty_le_ksnk),
     vol_tgs: Number(r.tgs_co_hoi ?? r.tgs_quan_sat ?? 0),
     vol_ksnk: Number(r.ksnk_co_hoi ?? r.ksnk_quan_sat ?? 0),
+    dat_tgs: Number(r.tgs_dat ?? 0),
+    dat_ksnk: Number(r.ksnk_dat ?? 0),
   };
+}
+
+import { SUPERVISION_COMPLIANCE_THRESHOLDS } from "@/lib/analytics/supervision-thresholds";
+
+/** Ngưỡng tô cảnh báo % khoa — alias SSOT `KHOA_WARN_PCT`. */
+export const KHOA_COMPLIANCE_WARN_PCT = SUPERVISION_COMPLIANCE_THRESHOLDS.KHOA_WARN_PCT;
+
+/** Sắp xếp hàng khoa — mặc định bảng: % cao→thấp trên cột chính (KSNK). */
+export function sortGapRowsByMetric(
+  rows: GapKhoaRow[],
+  key: GapKhoaSortMetric,
+  order: GapKhoaSortOrder = "asc",
+): GapKhoaRow[] {
+  const dir = order === "asc" ? 1 : -1;
+  return [...rows].sort((a, b) => {
+    if (key === "label") return dir * a.label.localeCompare(b.label, "vi");
+    const av = a[key];
+    const bv = b[key];
+    const aNull = av == null;
+    const bNull = bv == null;
+    if (aNull && bNull) return a.label.localeCompare(b.label, "vi");
+    if (aNull) return 1;
+    if (bNull) return -1;
+    if (av !== bv) return dir * ((av as number) - (bv as number));
+    return a.label.localeCompare(b.label, "vi");
+  });
+}
+
+/** Gộp gap VST + GSC theo khoa — dùng báo cáo tổng hợp (master table). */
+export function mergeMasterGapRows(vstRows: GapKhoaRow[], gscRows: GapKhoaRow[]): GapKhoaRow[] {
+  const byId = new Map<string, GapKhoaRow>();
+  for (const r of vstRows) byId.set(r.id, { ...r });
+  for (const r of gscRows) {
+    const cur = byId.get(r.id);
+    if (!cur) {
+      byId.set(r.id, { ...r });
+      continue;
+    }
+    byId.set(r.id, {
+      ...cur,
+      ty_le_tgs: cur.ty_le_tgs ?? r.ty_le_tgs,
+      ty_le_ksnk: cur.ty_le_ksnk ?? r.ty_le_ksnk,
+      vol_tgs: Math.max(cur.vol_tgs, r.vol_tgs),
+      vol_ksnk: Math.max(cur.vol_ksnk, r.vol_ksnk),
+      dat_tgs: Math.max(cur.dat_tgs, r.dat_tgs),
+      dat_ksnk: Math.max(cur.dat_ksnk, r.dat_ksnk),
+    });
+  }
+  return [...byId.values()];
 }
 
 /** Gộp gap_analysis với khoa đã lọc — khoa chưa có phiên vẫn xuất hiện. */
@@ -77,25 +154,15 @@ export function buildGapKhoaRows(
   }
 
   const isFiltered = Boolean(selectedKhoaIds?.length && selectedKhoaIds.length < khoaOptionCount);
-  const rows = isFiltered
-    ? (selectedKhoaIds ?? []).map((id) => {
-        const existing = byId.get(id);
-        if (existing) return existing;
-        const opt = khoaOptions.find((o) => o.id === id);
-        const ten = opt?.label ?? id;
-        return {
-          id,
-          ten,
-          label: placeholderKhoaLabel(ten),
-          ty_le_tgs: null,
-          ty_le_ksnk: null,
-          vol_tgs: 0,
-          vol_ksnk: 0,
-        };
-      })
-    : [...byId.values()];
+  const targetIds = new Set<string>();
+  if (isFiltered) {
+    for (const id of selectedKhoaIds ?? []) targetIds.add(id);
+  } else {
+    for (const o of khoaOptions) targetIds.add(o.id);
+  }
+  for (const row of byId.values()) targetIds.add(row.id);
 
-  return rows.sort((a, b) => a.label.localeCompare(b.label, "vi"));
+  return [...targetIds].map((id) => byId.get(id) ?? placeholderGapKhoaRow(id, khoaOptions));
 }
 
 export function countKsnkCoveredKhoa(rows: GapKhoaRow[]): { covered: number; total: number } {
@@ -206,6 +273,7 @@ export function mapGapRowsForKhoaMa(
 }
 
 export type GscCompareMatrices = {
+  matrix_khoi?: MatrixRow[];
   matrix_khu_vuc?: MatrixRow[];
   matrix_khu_vuc_nhom?: MatrixRow[];
   matrix_nghe?: MatrixRow[];
@@ -214,6 +282,7 @@ export type GscCompareMatrices = {
 };
 
 export type VstCompareMatrices = {
+  matrix_khoi?: MatrixRow[];
   matrix_khu_vuc?: MatrixRow[];
   matrix_khu_vuc_nhom?: MatrixRow[];
   matrix_hinh_thuc?: MatrixRow[];

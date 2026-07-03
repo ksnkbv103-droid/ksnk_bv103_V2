@@ -11,11 +11,14 @@ type Props = {
   actions?: React.ReactNode;
   filterBar?: React.ReactNode;
   children: React.ReactNode;
-  /** Bọc sticky shell (dashboard có filter). */
   sticky?: boolean;
+  /** @deprecated Dùng layout toolbar mặc định khi có filterBar. */
+  compact?: boolean;
 };
 
-/** Khung trang analytics / báo cáo — đồng bộ Command Center & Báo cáo tổng hợp. */
+/**
+ * Khung analytics — một thanh sticky: tiêu đề | thao tác, rồi bộ lọc (không lồng card).
+ */
 export function Bv103AnalyticsPageFrame({
   eyebrow,
   title,
@@ -25,19 +28,20 @@ export function Bv103AnalyticsPageFrame({
   children,
   sticky = true,
 }: Props) {
-  const hero = (
-    <KsnkSupervisionHero eyebrow={eyebrow} title={title} description={description} actions={actions} />
-  );
+  const shell = sticky ? bv103DesignTokens.analyticsToolbarShell : bv103DesignTokens.analyticsToolbarShellStatic;
 
   return (
     <div className={bv103DesignTokens.pageOuterAnalytics}>
       {filterBar ? (
-        <div className={sticky ? bv103DesignTokens.stickyAnalyticsShell : "space-y-5"}>
-          {hero}
-          <div className="mt-5 border-t border-slate-100 pt-5">{filterBar}</div>
+        <div className={shell}>
+          <div className="flex min-h-9 items-center justify-between gap-3">
+            <h1 className="min-w-0 truncate text-base font-semibold tracking-tight text-slate-900">{title}</h1>
+            {actions ? <div className="flex shrink-0 items-center gap-1.5">{actions}</div> : null}
+          </div>
+          <div className="mt-3 border-t border-slate-100 pt-3">{filterBar}</div>
         </div>
       ) : (
-        hero
+        <KsnkSupervisionHero eyebrow={eyebrow} title={title} description={description} actions={actions} />
       )}
       <div className={bv103DesignTokens.pageSectionGap}>{children}</div>
     </div>
@@ -47,7 +51,7 @@ export function Bv103AnalyticsPageFrame({
 export function Bv103AnalyticsPageSkeleton({ kpiCount = 4 }: { kpiCount?: number }) {
   return (
     <div className={`${bv103DesignTokens.pageOuterAnalytics} animate-pulse`}>
-      <div className={`h-28 ${bv103DesignTokens.skeletonBlock}`} />
+      <div className="h-20 rounded-xl border border-slate-100 bg-slate-50" />
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {Array.from({ length: kpiCount }, (_, i) => (
           <div key={i} className="h-24 rounded-2xl bg-slate-50" />

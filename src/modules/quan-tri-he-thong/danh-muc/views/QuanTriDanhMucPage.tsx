@@ -3,39 +3,54 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LayoutGrid, Settings, Beaker, Building2, Users, ClipboardList, Layers, IdCard } from "lucide-react";
+import { Beaker, Building2, ClipboardList, Database, Layers, List, Settings, Users } from "lucide-react";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import RBACMatrixView from "@/modules/quan-tri-he-thong/phan-quyen/views/RBACMatrixView";
 import MdmGovernanceView from "../../views/MdmGovernanceView";
 import { usePermission } from "@/hooks/usePermission";
 import { mdmGetTrungTamDanhMucStats } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
 import type { TrungTamDanhMucStatsPayload } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.types";
-import { DM_HUB_LABELS, getRegistryEntriesForChuyenBietHub } from "@/lib/master-data/domain-registry";
-import { getDanhMucAdminPath } from "@/lib/master-data/danh-muc-admin-routes";
+import {
+  DANH_MUC_DOMAIN_BADGE,
+  DANH_MUC_HUB_GROUP_LABELS,
+  filterDanhMucHubRows,
+  getAllDanhMucHubRows,
+  getRecentDanhMucHubChanges,
+  groupDanhMucHubRows,
+  type DanhMucHubRow,
+} from "@/lib/master-data/danh-muc-hub-catalog";
 import QuanTriDanhMucTabStrip from "./QuanTriDanhMucTabStrip";
 import SearchBar from "@/components/shared/SearchBar";
-import {
-  buildMasterHubColumns,
-  buildRegistryColumns,
-  type HubRegistryRow,
-  type MasterCardRow,
-} from "./quan-tri-danh-muc-table-columns";
+import { buildUnifiedHubColumns, type UnifiedHubRow } from "./quan-tri-danh-muc-table-columns";
+import OrgStructurePanel, { DanhMucRecentChangesPanel } from "./QuanTriDanhMucHubPanels";
 
-function filterMasterHub(rows: MasterCardRow[], q: string) {
-  const t = q.trim().toLowerCase();
-  if (!t) return rows;
-  return rows.filter((r) => r.name.toLowerCase().includes(t) || r.path.toLowerCase().includes(t));
-}
+const HUB_ICONS: Record<string, React.ReactNode> = {
+  "dung-cu-loai": <Layers className="h-5 w-5 text-emerald-600" />,
+  "dung-cu-bo": <Database className="h-5 w-5 text-teal-700" />,
+  "dung-cu-le": <List className="h-5 w-5 text-indigo-600" />,
+  tb: <Settings className="h-5 w-5 text-slate-600" />,
+  hc: <Beaker className="h-5 w-5 text-amber-600" />,
+  khoa: <Building2 className="h-5 w-5 text-rose-600" />,
+  ns: <Users className="h-5 w-5 text-green-600" />,
+  bk: <ClipboardList className="h-5 w-5 text-orange-600" />,
+  tk: <Users className="h-5 w-5 text-teal-700" />,
+  "phan-quyen": <Settings className="h-5 w-5 text-slate-600" />,
+};
 
-function filterRegistryHub(rows: HubRegistryRow[], q: string) {
-  const t = q.trim().toLowerCase();
-  if (!t) return rows;
-  return rows.filter(
-    (r) =>
-      r.name.toLowerCase().includes(t) ||
-      r.path.toLowerCase().includes(t) ||
-      (r.subtitle != null && String(r.subtitle).toLowerCase().includes(t)),
-  );
+function toUnifiedRow(row: DanhMucHubRow): UnifiedHubRow {
+  const badge = DANH_MUC_DOMAIN_BADGE[row.domain];
+  return {
+    id: row.id,
+    name: row.name,
+    path: row.path,
+    stats: row.stats || { count: 0 },
+    icon: HUB_ICONS[row.id] ?? <Layers className="h-5 w-5 text-teal-600" />,
+    subtitle: row.sourceTable,
+    domainLabel: badge.label,
+    domainClassName: badge.className,
+    groupLabel: DANH_MUC_HUB_GROUP_LABELS[row.group],
+    tierLabel: row.tier === "dedicated" ? "Trang riêng" : "Lookup",
+  };
 }
 
 export default function QuanTriDanhMucPage() {
@@ -47,12 +62,9 @@ export default function QuanTriDanhMucPage() {
   const [registryLoaded, setRegistryLoaded] = useState(false);
   const [registryLoading, setRegistryLoading] = useState(false);
   const [hubSearch, setHubSearch] = useState("");
-  const [registrySearch, setRegistrySearch] = useState("");
-  /** Một hook — tránh gọi RBAC/client Supabase hai lần (hai `useModulePermission` cũ). */
   const { loading: permLoading, isAdmin, canView, canEdit } = usePermission();
   const canViewDanhMuc = canView("DANH_MUC");
   const phanQuyenAllowed = { view: canView("PHAN_QUYEN"), edit: canEdit("PHAN_QUYEN") };
-  /** Đồng bộ với `ensureRbacAdmin`: mở/sửa ma trận cần ADMIN hoặc `PHAN_QUYEN.edit`. */
   const canConfigureRbac = isAdmin || phanQuyenAllowed.edit;
 
   useEffect(() => {
@@ -64,7 +76,7 @@ export default function QuanTriDanhMucPage() {
     if (tab === "dm_registry") {
       setActiveTab("DANH_MUC");
       requestAnimationFrame(() => {
-        document.getElementById("dm-lookup-registry")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        document.getElementById("dm-unified-catalog")?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     } else if (tab === "phan_quyen") setActiveTab("PHAN_QUYEN");
     else if (tab === "mdm_governance") setActiveTab("MDM_GOVERNANCE");
@@ -72,13 +84,11 @@ export default function QuanTriDanhMucPage() {
 
   useEffect(() => {
     let cancelled = false;
-    async function fetchStats() {
-      const result = await mdmGetTrungTamDanhMucStats({ includeRegistry: false });
+    void mdmGetTrungTamDanhMucStats({ includeRegistry: false }).then((result) => {
       if (cancelled) return;
       if (result.success) setStats((result.data || {}) as Partial<TrungTamDanhMucStatsPayload>);
       setLoading(false);
-    }
-    void fetchStats();
+    });
     return () => {
       cancelled = true;
     };
@@ -105,59 +115,19 @@ export default function QuanTriDanhMucPage() {
     };
   }, [activeTab, registryLoaded, loading]);
 
-  const masterList: MasterCardRow[] = [
-    {
-      id: "dung-cu",
-      name: "Quản lý dụng cụ",
-      path: "/quan-tri-he-thong/danh-muc/dung-cu",
-      stats: { count: (stats.loai?.count || 0) + (stats.bo?.count || 0) + (stats.le?.count || 0) },
-      icon: <LayoutGrid className="h-5 w-5 text-emerald-600" />,
-    },
-    { id: "tb", name: "Thiết bị và máy", path: "/quan-tri-he-thong/danh-muc/thiet-bi", stats: stats.tb, icon: <Settings className="h-5 w-5 text-slate-600" /> },
-    { id: "hc", name: "Hóa chất và vật tư", path: "/quan-tri-he-thong/danh-muc/hoa-chat", stats: stats.hc, icon: <Beaker className="h-5 w-5 text-amber-600" /> },
-    { id: "khoa", name: "Khoa phòng", path: "/quan-tri-he-thong/danh-muc/khoa-phong", stats: stats.khoa, icon: <Building2 className="h-5 w-5 text-rose-600" /> },
-    { id: "ns", name: "Hồ sơ nhân sự", path: "/quan-tri-he-thong/nhan-su", stats: stats.ns, icon: <Users className="h-5 w-5 text-green-600" /> },
-    { id: "bk", name: "Mẫu bảng kiểm", path: "/quan-tri-he-thong/bang-kiem", stats: stats.bk, icon: <ClipboardList className="h-5 w-5 text-orange-600" /> },
-  ];
-
-  const taiKhoanCard =
-    canConfigureRbac ?
-      ({
-        id: "tk",
-        name: "Tài khoản và vai trò KSNK",
-        path: "/quan-tri-he-thong/tai-khoan-nhan-su",
-        stats: stats.tk,
-        icon: <IdCard className="h-5 w-5 text-teal-700" />,
-      } satisfies MasterCardRow)
-    : null;
-
-  const masterListWithTaiKhoan: MasterCardRow[] = taiKhoanCard ? [...masterList, taiKhoanCard] : masterList;
-
-  const hubDmList = useMemo((): HubRegistryRow[] => {
-    const byLoai = stats.registryByLoai || {};
-    return getRegistryEntriesForChuyenBietHub().map((e) => ({
-      id: e.loaiDanhMuc,
-      name: DM_HUB_LABELS[e.loaiDanhMuc] || e.loaiDanhMuc,
-      path: getDanhMucAdminPath(e.loaiDanhMuc),
-      stats: byLoai[e.loaiDanhMuc] || { count: 0 },
-      icon: <Layers className="h-5 w-5 text-teal-600" />,
-      subtitle: e.sourceTable,
-    }));
-  }, [stats.registryByLoai]);
+  const catalogRows = useMemo(
+    () => getAllDanhMucHubRows({ stats, includeTaiKhoan: canConfigureRbac }),
+    [stats, canConfigureRbac],
+  );
+  const filteredCatalog = useMemo(() => filterDanhMucHubRows(catalogRows, hubSearch), [catalogRows, hubSearch]);
+  const grouped = useMemo(() => groupDanhMucHubRows(filteredCatalog), [filteredCatalog]);
+  const recentChanges = useMemo(() => getRecentDanhMucHubChanges(catalogRows), [catalogRows]);
+  const unifiedFlat = useMemo(() => filteredCatalog.map(toUnifiedRow), [filteredCatalog]);
 
   const go = useCallback((path: string) => router.push(path), [router]);
+  const columns = useMemo(() => buildUnifiedHubColumns(go), [go]);
 
-  const filteredHub = useMemo(
-    () => filterMasterHub(masterListWithTaiKhoan, hubSearch),
-    [masterListWithTaiKhoan, hubSearch],
-  );
-  const filteredRegistry = useMemo(
-    () => filterRegistryHub(hubDmList, registrySearch),
-    [hubDmList, registrySearch],
-  );
-
-  const columnsHub = useMemo(() => buildMasterHubColumns(go), [go]);
-  const columnsRegistry = useMemo(() => buildRegistryColumns(go), [go]);
+  const khoiCount = stats.registryByLoai?.KHOI_KHOA?.count;
 
   if (permLoading) {
     return (
@@ -199,45 +169,51 @@ export default function QuanTriDanhMucPage() {
       />
 
       {activeTab === "DANH_MUC" && canViewDanhMuc ? (
-        <div className="space-y-10">
-          <section className="space-y-4" aria-labelledby="tab-danhmuc-hub">
-            <h2 id="tab-danhmuc-hub" className="text-sm font-semibold text-slate-800">
-              Trang quản lý riêng
-            </h2>
-            <p className="text-xs text-slate-500">Khoa, dụng cụ, nhân sự, bảng kiểm — mỗi mục một màn hình đầy đủ.</p>
-            <div className="app-data-shell overflow-hidden p-2">
-              <div className="mb-2 min-w-0 px-1">
-                <SearchBar value={hubSearch} onChange={setHubSearch} placeholder="Tìm trang danh mục…" />
-              </div>
-              <AdvancedDataTable
-                columns={columnsHub}
-                data={filteredHub}
-                loading={loading}
-                onRowClick={(r) => go(r.path)}
-                hideSearch
-                tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
-              />
+        <div className="space-y-6" id="dm-unified-catalog">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <OrgStructurePanel khoiCount={khoiCount} khoaCount={stats.khoa?.count} />
+            <DanhMucRecentChangesPanel rows={recentChanges} onOpen={go} />
+          </div>
+
+          <section className="space-y-4" aria-labelledby="tab-danhmuc-unified">
+            <div>
+              <h2 id="tab-danhmuc-unified" className="text-sm font-semibold text-slate-800">
+                Trung tâm danh mục
+              </h2>
+              <p className="text-xs text-slate-500">
+                Một danh sách thống nhất — trang riêng và lookup — tìm kiếm xuyên catalog.
+              </p>
             </div>
-          </section>
-          <section className="space-y-4 scroll-mt-24" id="dm-lookup-registry" aria-labelledby="dm-lookup-registry-heading">
-            <h2 id="dm-lookup-registry-heading" className="text-sm font-semibold text-slate-800">
-              Danh mục lookup (sys_lookup_value)
-            </h2>
-            <p className="text-xs text-slate-500">
-              Tổ công tác, chức danh, loại công việc, khu vực giám sát… — bảng module (mdm_dm_*, gstt_dm_*, qlcv_dm_*, …).
-            </p>
             <div className="app-data-shell overflow-hidden p-2">
               <div className="mb-2 min-w-0 px-1">
-                <SearchBar value={registrySearch} onChange={setRegistrySearch} placeholder="Tìm theo tên hoặc bảng…" />
+                <SearchBar value={hubSearch} onChange={setHubSearch} placeholder="Tìm danh mục, domain, bảng…" />
               </div>
-              <AdvancedDataTable
-                columns={columnsRegistry}
-                data={filteredRegistry}
-                loading={loading || registryLoading}
-                onRowClick={(r) => go(r.path)}
-                hideSearch
-                tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
-              />
+              {hubSearch.trim() ? (
+                <AdvancedDataTable
+                  columns={columns}
+                  data={unifiedFlat}
+                  loading={loading || registryLoading}
+                  onRowClick={(r) => go(r.path)}
+                  hideSearch
+                  tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
+                />
+              ) : (
+                <div className="space-y-8 px-1 pb-2">
+                  {grouped.map((section) => (
+                    <div key={section.group} className="space-y-2">
+                      <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{section.label}</h3>
+                      <AdvancedDataTable
+                        columns={columns}
+                        data={section.rows.map(toUnifiedRow)}
+                        loading={loading || registryLoading}
+                        onRowClick={(r) => go(r.path)}
+                        hideSearch
+                        tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         </div>

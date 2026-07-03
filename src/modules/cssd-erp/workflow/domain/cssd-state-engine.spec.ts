@@ -1,8 +1,8 @@
+/** Contract mirror — SSOT runtime: RPC `rpc_scan_workflow_station`. */
 import { describe, expect, it } from "vitest";
 import { validateStationAdvance } from "./cssd-state-engine";
 import { previousWorkflowStation } from "./cssd-stations";
 
-/** Contract mirror — SSOT runtime: RPC `rpc_scan_workflow_station` (gates CAP_PHAT tại DB từ 20260602140000). */
 describe("cssd-state-engine", () => {
   it("blocks TIET_KHUAN as scan target", () => {
     expect(
@@ -10,8 +10,28 @@ describe("cssd-state-engine", () => {
     ).toBe(false);
   });
 
+  it("allows shell (no station) to TIEP_NHAN", () => {
+    expect(validateStationAdvance({ currentStatus: "", targetStation: "TIEP_NHAN" }).ok).toBe(true);
+  });
+
+  it("blocks advance from shell to LAM_SACH without TIEP_NHAN", () => {
+    expect(validateStationAdvance({ currentStatus: "", targetStation: "LAM_SACH" }).ok).toBe(false);
+  });
+
   it("allows sequential advance", () => {
     expect(validateStationAdvance({ currentStatus: "TIEP_NHAN", targetStation: "LAM_SACH" }).ok).toBe(true);
+  });
+
+  it("blocks duplicate TIEP_NHAN when already received", () => {
+    expect(
+      validateStationAdvance({ currentStatus: "TIEP_NHAN", targetStation: "TIEP_NHAN", tiepNhanPending: false }).ok,
+    ).toBe(false);
+  });
+
+  it("allows idempotent TIEP_NHAN when reception pending", () => {
+    expect(
+      validateStationAdvance({ currentStatus: "TIEP_NHAN", targetStation: "TIEP_NHAN", tiepNhanPending: true }).ok,
+    ).toBe(true);
   });
 
   it("blocks TIET_KHUAN to CAP_PHAT jump", () => {

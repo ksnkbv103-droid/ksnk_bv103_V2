@@ -3,7 +3,11 @@
 
 SELECT
   to_regclass('public.qlcv_fact_cong_viec') IS NOT NULL AS qlcv_fact_ok,
-  to_regclass('public.qlcv_fact_cong_viec_hoat_dong') IS NOT NULL AS qlcv_timeline_ok,
+  EXISTS (
+    SELECT 1 FROM information_schema.columns c
+    WHERE c.table_schema = 'public' AND c.table_name = 'qlcv_fact_cong_viec'
+      AND c.column_name = 'nhat_ky'
+  ) AS qlcv_nhat_ky_col_ok,
   to_regclass('public.qlcv_fact_cong_viec_dinh_ky') IS NOT NULL AS qlcv_dinh_ky_ok,
   EXISTS (
     SELECT 1 FROM information_schema.columns c
@@ -23,11 +27,11 @@ SELECT
     WHERE n.nspname = 'public' AND p.proname = 'fn_sync_overdue_tasks'
       AND pg_get_functiondef(p.oid) ILIKE '%qlcv_fact_cong_viec%'
   ) AS qlcv_sync_overdue_fn_ok,
-  NOT EXISTS (
+  EXISTS (
     SELECT 1 FROM pg_proc p
     JOIN pg_namespace n ON n.oid = p.pronamespace
-    WHERE n.nspname = 'public' AND p.proname = 'fn_qlcv_analytics_summary'
-  ) AS qlcv_analytics_orphan_dropped_ok,
+    WHERE n.nspname = 'public' AND p.proname = 'fn_qlcv_append_nhat_ky'
+  ) AS qlcv_append_nhat_ky_fn_ok,
   NOT EXISTS (
     SELECT 1 FROM information_schema.columns c
     WHERE c.table_schema = 'public' AND c.table_name = 'qlcv_fact_cong_viec'

@@ -1,16 +1,17 @@
 "use server";
 
-import { ADMIN_EMAILS } from "@/lib/constants";
+import { isTrustedAdminEmail } from "@/lib/auth/trusted-admin-email";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { unstable_cache } from "next/cache";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { cache } from "react";
 
 type PermissionCheck = { moduleKey: string; action: string };
 
-function isTrustedAdminEmail(email: string | undefined): boolean {
-  const e = String(email || "").toLowerCase().trim();
-  if (!e) return false;
-  return ADMIN_EMAILS.some((a) => a.toLowerCase() === e);
+/** Tag bust khi lưu ma trận / gán vai trò — tránh user giữ quyền cũ tối đa 5 phút. */
+const USER_PERMISSIONS_CACHE_TAG = "user-permissions-store";
+
+export async function invalidateUserPermissionsCache() {
+  revalidateTag(USER_PERMISSIONS_CACHE_TAG, "default");
 }
 
 /** Fetch and cache permissions for 5 minutes per user. */
@@ -28,8 +29,8 @@ const fetchUserPermissions = unstable_cache(
       permissions: (data?.permissions as { module: string; action: string }[]) || []
     };
   },
-  ["user-permissions-store"],
-  { revalidate: 300 }
+  [USER_PERMISSIONS_CACHE_TAG],
+  { revalidate: 300, tags: [USER_PERMISSIONS_CACHE_TAG] },
 );
 
 /** Request-scope deduplication for permissions. */

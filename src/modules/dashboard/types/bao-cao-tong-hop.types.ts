@@ -36,6 +36,8 @@ export type BaoCaoTrendPoint = {
 export type BaoCaoKhoaRankRow = {
   id: string;
   ten: string;
+  /** Mã khoa ngắn — SSOT hiển thị bảng/chart (`khoaChartLabel`). */
+  label: string;
   ty_le_vst: number | null;
   ty_le_gsc: number | null;
   /** Trung bình đơn giản VST% và GSC% — khác CCS khi chỉ có một nguồn. */

@@ -9,6 +9,7 @@ import {
   normalizeEmail,
   normalizeLoginIdentifier,
 } from "@/lib/auth/normalize-login-identifier";
+import { resolveStaffLoginEmail } from "@/lib/auth/staff-auth-email";
 
 /**
  * Đăng nhập: nhập được mã nhân viên (ma_nv) hoặc email.
@@ -29,17 +30,22 @@ export async function loginWithStaffIdentifier(identifier: string, password: str
       emailForAuth = normalizeEmail(id);
       const { data: staffByEmail } = await admin
         .from("v_mdm_nhan_su_full")
-        .select("email, is_active")
+        .select("email, is_active, auth_user_id")
         .eq("email", emailForAuth)
         .maybeSingle();
 
       if (staffByEmail && staffByEmail.is_active === false) {
         return { ok: false as const, error: "Hồ sơ nhân sự không còn hoạt động. Liên hệ quản trị." };
       }
+      emailForAuth = await resolveStaffLoginEmail(
+        admin,
+        staffByEmail?.email || emailForAuth,
+        staffByEmail?.auth_user_id,
+      );
     } else {
       const { data: row, error: lookupErr } = await admin
         .from("v_mdm_nhan_su_full")
-        .select("email, is_active")
+        .select("email, is_active, auth_user_id")
         .eq("ma_nv", id)
         .maybeSingle();
 
@@ -52,7 +58,7 @@ export async function loginWithStaffIdentifier(identifier: string, password: str
       if (row.is_active === false) {
         return { ok: false as const, error: "Hồ sơ nhân sự không còn hoạt động. Liên hệ quản trị." };
       }
-      emailForAuth = normalizeEmail(String(row.email));
+      emailForAuth = await resolveStaffLoginEmail(admin, row.email, row.auth_user_id);
     }
 
     const supabase = await createServerSupabaseUserClient();
@@ -62,6 +68,9 @@ export async function loginWithStaffIdentifier(identifier: string, password: str
     });
 
     if (signErr) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("[loginWithStaffIdentifier] signIn failed:", signErr.message);
+      }
       // Bổ sung thông tin chẩn đoán lỗi cực kỳ quan trọng cho quá trình chuyển đổi Supabase mới
       if (signErr.message?.includes("Email not confirmed")) {
         return {

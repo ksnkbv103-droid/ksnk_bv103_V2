@@ -14,7 +14,6 @@ const FIXES = [
   ["src/modules/cssd-erp/components/batch/me-tiet-khuan-waiting-panel.tsx", 'import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";'],
   ["src/modules/cssd-erp/components/inventory/InventoryIssueModal.tsx", 'import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";'],
   ["src/modules/cssd-erp/components/inventory/SetMembersModal.tsx", 'import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";'],
-  ["src/modules/cssd-erp/components/workflow/DigitalChecklistPanel.tsx", 'import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";'],
   ["src/modules/cssd-su-co/components/IncidentReportModal.tsx", 'import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";'],
   ["src/modules/giam-sat-chung/views/GscFormView.tsx", 'import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";'],
   ["src/modules/giam-sat-nkbv/components/NkbvAdjudicationPanel.tsx", 'import { nkbvFormChrome as UI } from "@/modules/giam-sat-nkbv/lib/nkbv-form-chrome";'],

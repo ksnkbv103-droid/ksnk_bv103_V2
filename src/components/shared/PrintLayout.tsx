@@ -13,6 +13,8 @@ interface PrintLayoutProps {
   showFooter?: boolean;
   leftSignatureTitle?: string;
   rightSignatureTitle?: string;
+  /** compact — giảm khoảng trống header/footer cho phiếu dày nội dung (CSSD…) */
+  density?: "default" | "compact";
 }
 
 /**
@@ -26,8 +28,14 @@ const PrintLayout: React.FC<PrintLayoutProps> = ({
   departmentTitle = "KHOA KIỂM SOÁT NHIỄM KHUẨN",
   showFooter = true,
   leftSignatureTitle = "NGƯỜI GIÁM SÁT",
-  rightSignatureTitle = "ĐẠI DIỆN ĐƠN VỊ ĐƯỢC GIÁM SÁT"
+  rightSignatureTitle = "ĐẠI DIỆN ĐƠN VỊ ĐƯỢC GIÁM SÁT",
+  density = "default",
 }) => {
+  const compact = density === "compact";
+  const headerMb = compact ? 10 : 32;
+  const titleMb = compact ? 8 : 20;
+  const footerMt = compact ? 14 : 32;
+  const signBoxH = compact ? 56 : 80;
   /** Giảm chữ trong header/footer mặc định của trình duyệt khi in (tiêu đề tab). URL/ngày giờ vẫn do tùy chọn in của Chrome. */
   useEffect(() => {
     const saved = document.title;
@@ -51,7 +59,7 @@ const PrintLayout: React.FC<PrintLayoutProps> = ({
         {/* === HEADER: ĐƠN VỊ & TIÊU NGỮ === */}
         <div className="print-header" style={{ 
           display: "flex", justifyContent: "space-between", alignItems: "flex-start",
-          marginBottom: "32px", color: "#000"
+          marginBottom: headerMb, color: "#000"
         }}>
           <div style={{ textAlign: "center", width: "45%" }}>
             <p style={{ fontSize: "13px", fontWeight: 600, textTransform: "uppercase", margin: "0 0 2px 0" }}>
@@ -78,7 +86,7 @@ const PrintLayout: React.FC<PrintLayoutProps> = ({
         </div>
 
         {/* === TIÊU ĐỀ BẢN IN: phẳng, cân chữ === */}
-        <div style={{ textAlign: "center", marginBottom: "20px", paddingBottom: "8px" }}>
+        <div style={{ textAlign: "center", marginBottom: titleMb, paddingBottom: compact ? 4 : 8 }}>
           <h1
             style={{
               fontSize: "19px",
@@ -100,14 +108,14 @@ const PrintLayout: React.FC<PrintLayoutProps> = ({
         </div>
 
         {/* === NỘI DUNG CHÍNH === */}
-        <div className="print-content" style={{ fontSize: "14px", lineHeight: "1.5", color: "#111" }}>
+        <div className="print-content" style={{ fontSize: compact ? 13 : 14, lineHeight: 1.4, color: "#111" }}>
           {children}
         </div>
 
         {/* === FOOTER KÝ TÊN === */}
         {showFooter && (
           <div className="print-footer" style={{ 
-            marginTop: "32px", 
+            marginTop: footerMt, 
             display: "grid", 
             gridTemplateColumns: "1fr 1fr",
             textAlign: "center", 
@@ -121,7 +129,7 @@ const PrintLayout: React.FC<PrintLayoutProps> = ({
               <p style={{ fontStyle: "italic", fontSize: "12px", margin: 0 }}>
                 (Ký, ghi rõ họ tên)
               </p>
-              <div style={{ height: "80px" }}></div>
+              <div style={{ height: signBoxH }}></div>
             </div>
             <div style={{ padding: "0 20px" }}>
               <p style={{ fontWeight: 900, textTransform: "uppercase", margin: "0 0 4px 0", fontSize: "13px" }}>
@@ -130,7 +138,7 @@ const PrintLayout: React.FC<PrintLayoutProps> = ({
               <p style={{ fontStyle: "italic", fontSize: "12px", margin: 0 }}>
                 (Ký, ghi rõ họ tên và đóng dấu)
               </p>
-              <div style={{ height: "80px" }}></div>
+              <div style={{ height: signBoxH }}></div>
             </div>
           </div>
         )}

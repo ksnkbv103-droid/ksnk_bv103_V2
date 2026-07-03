@@ -1,20 +1,23 @@
 import { MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
 import {
-  buildCoverageMatrix,
+  resolveChecklistOverview,
+  resolveSortedChecklistOverview,
+  resolveTopInterventionChecklists,
+} from "@/lib/analytics/gsc-checklist-intervention";
+import {
   buildGapKhoaRows,
-  COVERAGE_STATUS_LABELS,
-  coverageCellStatus,
-  findGapRowByKhoaId,
   gapExclusionReason,
   isGapComparable,
+  khoaChartLabel,
+  KHOA_COMPLIANCE_WARN_PCT,
+  mergeMasterGapRows,
   normalizeGapKhoaRow,
-  type CoverageTopicInput,
+  sortGapRowsByMetric,
 } from "@/lib/analytics/supervision-matrix-mappers";
 import { mergeKhoaRankWithSelected, formatBaoCaoIsoDateVi, formatBaoCaoIssueDateVi } from "./bao-cao-tong-hop-core";
 import { BAO_CAO_TONG_HOP_THRESHOLDS } from "./bao-cao-tong-hop-thresholds";
 import type { BaoCaoKhoaRankRow, BaoCaoTrendPoint, BaoCaoTongHopPayload } from "../types/bao-cao-tong-hop.types";
-import type { TgsCoverageKhoaRow } from "@/lib/analytics/tgs-coverage-mappers";
-import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
+import type { GscChecklistDetailPayload, GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 
 export type BaoCaoTongHopPrintParams = {
@@ -30,11 +33,10 @@ export type BaoCaoTongHopPrintParams = {
   payload: BaoCaoTongHopPayload | null;
   vstPayload: VstStrategicPayload | null;
   gscPayload: GscStrategicPayload | null;
-  gscChecklistClusters: Record<string, GscStrategicPayload>;
+  gscChecklistDetails: Record<string, GscChecklistDetailPayload>;
   gscChecklistTruncated: number;
   nhanXetDanhGia: string;
   kienNghiDeXuat: string;
-  tgsCoverageRanking?: TgsCoverageKhoaRow[];
 };
 
 type MatrixRow = {
@@ -271,7 +273,7 @@ function renderFullKhoaRankSection(rows: BaoCaoKhoaRankRow[]): string {
             return `
           <tr>
             <td>${i + 1}</td>
-            <td class="text-left">${escHtml(r.ten)}</td>
+            <td class="text-left">${escHtml(r.label)}</td>
             <td>${fmtPct(r.ty_le_vst)}</td>
             <td>${fmtPct(r.ty_le_gsc)}</td>
             <td class="${khoaRankPrintClass(r)}">${ccsCell}</td>
@@ -325,36 +327,65 @@ function renderTrendWeekTable(points: BaoCaoTrendPoint[]): string {
     </table>`;
 }
 
-function renderGapExclusionTable(
+function gapPrintCompareLabel(row: ReturnType<typeof normalizeGapKhoaRow>): string {
+  if (isGapComparable(row)) {
+    if (row.ty_le_ksnk != null && row.ty_le_tgs != null) {
+      const delta = Math.abs(Math.round((row.ty_le_ksnk - row.ty_le_tgs) * 100) / 100);
+      return `Δ ${delta}%`;
+    }
+    return "Đủ đối soát";
+  }
+  return gapExclusionReason(row) ?? "—";
+}
+
+function gapPrintPctClass(pct: number | null | undefined): string {
+  if (pct == null || !Number.isFinite(pct)) return "";
+  if (pct >= KHOA_COMPLIANCE_WARN_PCT) return "text-success";
+  if (pct >= BAO_CAO_TONG_HOP_THRESHOLDS.YELLOW_MIN) return "text-warning";
+  return "text-danger";
+}
+
+function gapPrintPctCell(pct: number | null, dat: number, tong: number): string {
+  if (pct == null || tong === 0) return "—";
+  return `${pct}% (${dat.toLocaleString()}/${tong.toLocaleString()})`;
+}
+
+function renderKhoaGapModulePrint(
   title: string,
   rows: ReturnType<typeof buildGapKhoaRows>,
+  limit = 30,
 ): string {
-  const excluded = rows.filter((r) => gapExclusionReason(r) != null);
-  if (excluded.length === 0) {
-    return `<h4>${escHtml(title)}</h4><p class="muted">Tất cả khoa trong phạm vi đều đủ điều kiện đối soát hoặc chưa có dữ liệu.</p>`;
+  const sorted = sortGapRowsByMetric(rows, "ty_le_ksnk", "desc").slice(0, limit);
+  if (sorted.length === 0) {
+    return `<h4>${escHtml(title)}</h4><p class="muted">Chưa có dữ liệu khoa trong phạm vi lọc.</p>`;
   }
   return `
     <h4>${escHtml(title)}</h4>
+    <p class="muted">Sắp xếp KSNK % cao → thấp · cảnh báo &lt;${KHOA_COMPLIANCE_WARN_PCT}% · đối soát gộp trạng thái loại trừ.</p>
     <table>
       <thead>
         <tr>
           <th>STT</th>
           <th class="text-left">Khoa</th>
-          <th>TGS</th>
-          <th>KSNK</th>
-          <th class="text-left">Lý do</th>
+          <th>KSNK %</th>
+          <th>TGS %</th>
+          <th>KSNK vol</th>
+          <th>TGS vol</th>
+          <th class="text-left">Đối soát</th>
         </tr>
       </thead>
       <tbody>
-        ${excluded
+        ${sorted
           .map(
             (r, i) => `
           <tr>
             <td>${i + 1}</td>
-            <td class="text-left">${escHtml(r.ten)}</td>
-            <td>${r.vol_tgs.toLocaleString()}</td>
-            <td>${r.vol_ksnk.toLocaleString()}</td>
-            <td class="text-left">${escHtml(gapExclusionReason(r) ?? "—")}</td>
+            <td class="text-left">${escHtml(r.label)}</td>
+            <td class="${gapPrintPctClass(r.ty_le_ksnk)}"><strong>${gapPrintPctCell(r.ty_le_ksnk, r.dat_ksnk, r.vol_ksnk)}</strong></td>
+            <td class="${gapPrintPctClass(r.ty_le_tgs)}">${gapPrintPctCell(r.ty_le_tgs, r.dat_tgs, r.vol_tgs)}</td>
+            <td>${r.vol_ksnk > 0 ? `${r.dat_ksnk.toLocaleString()}/${r.vol_ksnk.toLocaleString()}` : "0"}</td>
+            <td>${r.vol_tgs > 0 ? `${r.dat_tgs.toLocaleString()}/${r.vol_tgs.toLocaleString()}` : "0"}</td>
+            <td class="text-left" style="font-size:11px;">${escHtml(gapPrintCompareLabel(r))}</td>
           </tr>`,
           )
           .join("")}
@@ -393,116 +424,21 @@ function renderComparableGapTable(
       <tbody>
         ${comparable
           .map(
-            (g, i) => `
+            (g, i) => {
+              const label = normalizeGapKhoaRow(g).label;
+              return `
           <tr>
             <td>${i + 1}</td>
-            <td class="text-left">${escHtml(g.ten)}</td>
+            <td class="text-left">${escHtml(label)}</td>
             <td>${g.ty_le_tgs != null ? `${g.ty_le_tgs}%` : "—"}</td>
             <td>${g.ty_le_ksnk != null ? `${g.ty_le_ksnk}%` : "—"}</td>
             <td>${g.do_lech != null ? `${Math.abs(g.do_lech)}%` : "—"}</td>
-          </tr>`,
+          </tr>`;
+            },
           )
           .join("")}
       </tbody>
     </table>`;
-}
-
-function buildPrintCoverageTopics(
-  p: BaoCaoTongHopPrintParams,
-  vstGapRows: ReturnType<typeof buildGapKhoaRows>,
-  gscGapRows: ReturnType<typeof buildGapKhoaRows>,
-): CoverageTopicInput[] {
-  const topics: CoverageTopicInput[] = [{ id: "vst", label: "VST", rows: vstGapRows }];
-  const bks = [...(p.gscPayload?.dynamic_checklists ?? [])].sort(
-    (a, b) => b.tong_phien - a.tong_phien,
-  );
-  const topBk = bks.slice(0, 8);
-  if (topBk.length >= 2) {
-    for (const bk of topBk) {
-      const cluster = p.gscChecklistClusters[bk.ma_bk];
-      topics.push({
-        id: bk.ma_bk,
-        label: bk.ten_bang_kiem,
-        rows: buildGapKhoaRows(
-          cluster?.gap_analysis ?? p.gscPayload?.gap_analysis,
-          p.selectedKhoaIds,
-          p.khoaOptions,
-          p.khoaOptions.length,
-        ),
-      });
-    }
-  } else if (gscGapRows.length > 0) {
-    topics.push({ id: "gsc-all", label: "GSC", rows: gscGapRows });
-  }
-  return topics;
-}
-
-function renderTgsCoverageRankingPrint(rows: TgsCoverageKhoaRow[], maxRows = 10): string {
-  const slice = rows.slice(0, maxRows);
-  if (slice.length === 0) {
-    return `<p class="muted">Chưa có xếp hạng bao phủ TGS theo nghĩa vụ BK.</p>`;
-  }
-  return `
-    <h3>3c. Triển khai TGS theo nghĩa vụ bảng kiểm (rút gọn)</h3>
-    <table>
-      <thead>
-        <tr>
-          <th class="text-left">Khoa</th>
-          <th>Bao phủ %</th>
-          <th>Thiếu BK</th>
-          <th class="text-left">Mã BK thiếu</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${slice
-          .map(
-            (r) => `
-          <tr>
-            <td class="text-left">${escHtml(r.ten)}</td>
-            <td>${r.ty_le_bao_phu_tgs}% (${r.so_bk_da_tgs}/${r.so_bk_bat_buoc})</td>
-            <td>${r.so_bk_thieu}</td>
-            <td class="text-left" style="font-size:11px;">${escHtml(r.bk_thieu_labels.slice(0, 5).join(", "))}</td>
-          </tr>`,
-          )
-          .join("")}
-      </tbody>
-    </table>`;
-}
-
-function renderCoverageMatrixPrint(topics: CoverageTopicInput[], maxColumns = 8): string {
-  const limited = topics.slice(0, maxColumns + 1);
-  const { khoaRows, topicLabels } = buildCoverageMatrix(limited);
-  if (khoaRows.length === 0 || topicLabels.length === 0) {
-    return `<p class="muted">Chưa có ma trận bao phủ trong phạm vi lọc.</p>`;
-  }
-  return `
-    <h3>4. Ma trận bao phủ TGS / KSNK (rút gọn in — tối đa ${maxColumns} BK GSC)</h3>
-    <div class="table-wrap">
-    <table class="wide-table">
-      <thead>
-        <tr>
-          <th class="text-left">Khoa</th>
-          ${topicLabels.map((t) => `<th>${escHtml(t.label)}</th>`).join("")}
-        </tr>
-      </thead>
-      <tbody>
-        ${khoaRows
-          .map(
-            (khoa) => `
-          <tr>
-            <td class="text-left">${escHtml(khoa.label)}</td>
-            ${limited
-              .map((topic) => {
-                const cell = coverageCellStatus(findGapRowByKhoaId(topic.rows, khoa.id));
-                return `<td class="matrix-cell">${escHtml(COVERAGE_STATUS_LABELS[cell])}</td>`;
-              })
-              .join("")}
-          </tr>`,
-          )
-          .join("")}
-      </tbody>
-    </table>
-    </div>`;
 }
 
 function renderGscKhoaMatrix(gsc: GscStrategicPayload | null): string {
@@ -528,7 +464,7 @@ function renderGscKhoaMatrix(gsc: GscStrategicPayload | null): string {
             (r, i) => `
           <tr>
             <td>${i + 1}</td>
-            <td class="text-left">${escHtml(r.ten)}</td>
+            <td class="text-left">${escHtml(khoaChartLabel(r))}</td>
             <td>${escHtml(r.ma_khoa ?? "—")}</td>
             <td>${r.tong_quan_sat.toLocaleString()}</td>
             <td>${r.tong_dat.toLocaleString()}</td>
@@ -542,21 +478,30 @@ function renderGscKhoaMatrix(gsc: GscStrategicPayload | null): string {
 
 function renderChecklistTrends(
   gsc: GscStrategicPayload | null,
-  clusters: Record<string, GscStrategicPayload>,
+  details: Record<string, GscChecklistDetailPayload>,
   truncated: number,
 ): string {
-  const list = gsc?.dynamic_checklists ?? [];
+  const list = resolveChecklistOverview(gsc);
   if (list.length === 0) return `<p class="muted">Không có chuyên đề GSC trong kỳ.</p>`;
 
-  const blocks = list.map((bk) => {
-    const cluster = clusters[bk.ma_bk];
-    const trend = cluster?.trendline ?? [];
-    const title = bk.ten_bang_kiem;
+  const printList = resolveTopInterventionChecklists(
+    gsc,
+    Object.keys(details).length || list.length,
+  );
+
+  const blocks = printList.map((bk) => {
+    const detail = details[bk.ma_bk];
+    const trend = detail?.trendline ?? [];
+    const title = `${bk.ma_bk} — ${bk.ten_bang_kiem}`;
+    const violNote = bk.top_violation_ten
+      ? `<p class="muted">Lỗi chính: ${escHtml(bk.top_violation_ten)}${bk.top_violation_so != null ? ` (${bk.top_violation_so}×)` : ""}</p>`
+      : "";
     if (trend.length === 0) {
-      return `<h4 class="bk-title">${escHtml(title)}</h4><p class="muted">Kỳ: ${bk.ty_le_tuan_thu}% (${bk.tong_phien} phiên) — chưa đủ tuần để xu hướng.</p>`;
+      return `<h4 class="bk-title">${escHtml(title)}</h4><p class="muted">Kỳ: ${bk.ty_le_tuan_thu}% · ${bk.tong_vi_pham} vi phạm — chưa đủ tuần để xu hướng.</p>${violNote}`;
     }
     return `
-      <h4 class="bk-title">${escHtml(title)} <span style="font-weight:normal;">(kỳ: ${bk.ty_le_tuan_thu}%)</span></h4>
+      <h4 class="bk-title">${escHtml(title)} <span style="font-weight:normal;">(kỳ: ${bk.ty_le_tuan_thu}% · ${bk.tong_vi_pham} VP)</span></h4>
+      ${violNote}
       <table>
         <thead>
           <tr><th>Tuần</th><th>Khảo sát</th><th>Đạt</th><th>Tỷ lệ %</th></tr>
@@ -579,7 +524,7 @@ function renderChecklistTrends(
 
   const truncNote =
     truncated > 0
-      ? `<p class="muted">(Chỉ in xu hướng chi tiết cho tối đa 12 chuyên đề; ${truncated} chuyên đề còn lại xem trên hệ thống.)</p>`
+      ? `<p class="muted">(In chi tiết xu hướng top ${Object.keys(details).length || printList.length} BK rủi ro; ${truncated} BK còn lại xem trên hệ thống.)</p>`
       : "";
 
   return blocks.join("") + truncNote;
@@ -755,7 +700,7 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     p.khoaOptions,
     p.khoaOptions.length,
   );
-  const coverageTopics = buildPrintCoverageTopics(p, vstGapRows, gscGapRows);
+  const masterGapRows = mergeMasterGapRows(vstGapRows, gscGapRows);
 
   const dieuHanhSection = `
     <h2>ĐIỀU HÀNH TỔNG HỢP (PROCESS)</h2>
@@ -791,11 +736,8 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     ${renderTrendWeekTable(p.payload?.trend_week ?? [])}
     <h3>3. So sánh theo khoa (CCS)</h3>
     ${renderFullKhoaRankSection(fullKhoaRank)}
-    <h3>3b. Chưa đủ điều kiện đối soát TGS vs KSNK</h3>
-    ${renderGapExclusionTable("VST", vstGapRows)}
-    ${renderGapExclusionTable("GSC", gscGapRows)}
-    ${renderTgsCoverageRankingPrint(p.tgsCoverageRanking ?? [])}
-    ${renderCoverageMatrixPrint(coverageTopics, 8)}
+    <h3>3b. Tuân thủ & khối lượng theo khoa (gộp VST · GSC)</h3>
+    ${renderKhoaGapModulePrint("Gộp VST + GSC", masterGapRows)}
     <h3>4. Kết quả NKBV (lâm sàng — tách khỏi CCS)</h3>
     <table>
       <thead>
@@ -897,26 +839,28 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
           <th>Khảo sát</th>
           <th>Đạt</th>
           <th>Tỷ lệ %</th>
+          <th>Vi phạm</th>
         </tr>
       </thead>
       <tbody>
-        ${(p.gscPayload.dynamic_checklists || [])
+        ${resolveChecklistOverview(p.gscPayload)
           .map(
             (bk, i) => `
           <tr>
             <td>${i + 1}</td>
-            <td class="text-left">${escHtml(bk.ten_bang_kiem)}</td>
+            <td class="text-left">${escHtml(bk.ma_bk)} — ${escHtml(bk.ten_bang_kiem)}</td>
             <td>${bk.tong_phien.toLocaleString()}</td>
             <td>${bk.tong_quan_sat.toLocaleString()}</td>
             <td>${bk.tong_dat.toLocaleString()}</td>
             <td><strong>${bk.ty_le_tuan_thu}%</strong></td>
+            <td>${bk.tong_vi_pham.toLocaleString()}</td>
           </tr>`,
           )
           .join("")}
       </tbody>
     </table>
     <h3>2. Xu hướng tuân thủ theo từng bảng kiểm</h3>
-    ${renderChecklistTrends(p.gscPayload, p.gscChecklistClusters, p.gscChecklistTruncated)}
+    ${renderChecklistTrends(p.gscPayload, p.gscChecklistDetails, p.gscChecklistTruncated)}
     <h3>3. Top 10 tiêu chí vi phạm</h3>
     <table>
       <thead>

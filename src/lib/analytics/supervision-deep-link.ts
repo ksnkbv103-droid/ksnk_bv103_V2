@@ -43,3 +43,37 @@ export function parseAnalyticsUrlSeed(
 export function hasAnalyticsUrlSeed(seed: AnalyticsUrlSeed | null): seed is AnalyticsUrlSeed {
   return seed != null && Boolean(seed.tu_ngay || seed.den_ngay || seed.khoa_ids?.length);
 }
+
+export function buildAnalyticsUrlQuery(seed: AnalyticsUrlSeed): string {
+  const q = new URLSearchParams();
+  if (seed.tu_ngay) q.set("tu_ngay", seed.tu_ngay);
+  if (seed.den_ngay) q.set("den_ngay", seed.den_ngay);
+  if (seed.khoa_ids?.length) q.set("khoa_ids", seed.khoa_ids.join(","));
+  return q.toString();
+}
+
+/** Query do filter bar không quản — giữ khi sync URL (vd. `bk` drill-down GSC). */
+export const ANALYTICS_PRESERVED_QUERY_KEYS = ["bk", "view", "loai"] as const;
+
+export function appendPreservedAnalyticsQueryKeys(
+  target: URLSearchParams,
+  source: Pick<URLSearchParams, "get">,
+): void {
+  for (const key of ANALYTICS_PRESERVED_QUERY_KEYS) {
+    const v = source.get(key);
+    if (v) target.set(key, v);
+    else target.delete(key);
+  }
+}
+
+/** Stable dep cho useEffect — tránh object `searchParams` trong mảng deps. */
+export function preservedAnalyticsQuerySnapshot(source: Pick<URLSearchParams, "get">): string {
+  return ANALYTICS_PRESERVED_QUERY_KEYS.map((k) => `${k}=${source.get(k) ?? ""}`).join("\u0001");
+}
+
+/** Các route analytics đồng bộ filter qua URL. */
+export const ANALYTICS_FILTER_PATHS = ["/", "/bao-cao-tong-hop", "/thong-ke/vst", "/thong-ke/gsc"] as const;
+
+export function isAnalyticsFilterPath(pathname: string): boolean {
+  return ANALYTICS_FILTER_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}

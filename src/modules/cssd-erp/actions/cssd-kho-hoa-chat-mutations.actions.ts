@@ -3,6 +3,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { assertLotExportable } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
 import { normalizeHanIso, normalizeMaLo } from "../helpers/kho-hoa-chat-lot";
 import { getErrorMessage, mapFkError, revalidateCssdChemicalSurfaces } from "./cssd-action-common";
 
@@ -75,6 +76,7 @@ export async function xuatKhoHoaChatAction(input: {
   ma_lo?: string | null;
   han_su_dung?: string | null;
   ghi_chu?: string | null;
+  su_co_id?: string | null;
 }) {
   const supabase = createAdminSupabaseClient();
   try {
@@ -85,6 +87,9 @@ export async function xuatKhoHoaChatAction(input: {
     if (!Number.isFinite(qtyUi) || qtyUi <= 0) return { success: false as const, error: "Số lượng xuất phải > 0." };
     const maLo = normalizeMaLo(input.ma_lo);
     const han = normalizeHanIso(input.han_su_dung);
+    const suCoId = String(input.su_co_id || "").trim() || null;
+    const expiryErr = assertLotExportable(han);
+    if (expiryErr) return { success: false as const, error: expiryErr };
     const ton = await tonTaiLo(supabase, dmId, maLo, han);
     if (ton < qtyUi) {
       return {
@@ -101,6 +106,7 @@ export async function xuatKhoHoaChatAction(input: {
       ma_lo: maLo,
       han_su_dung: han,
       ghi_chu: input.ghi_chu != null ? String(input.ghi_chu).trim() || null : null,
+      su_co_id: suCoId,
       updated_at: now,
     });
     if (error) return { success: false as const, error: mapFkError(error.message) };
@@ -118,6 +124,7 @@ export async function dieuChinhKhoHoaChatAction(input: {
   ma_lo?: string | null;
   han_su_dung?: string | null;
   ghi_chu?: string | null;
+  su_co_id?: string | null;
 }) {
   const supabase = createAdminSupabaseClient();
   try {
@@ -128,7 +135,10 @@ export async function dieuChinhKhoHoaChatAction(input: {
     if (!Number.isFinite(delta) || delta === 0) return { success: false as const, error: "Số điều chỉnh phải khác 0." };
     const maLo = normalizeMaLo(input.ma_lo);
     const han = normalizeHanIso(input.han_su_dung);
+    const suCoId = String(input.su_co_id || "").trim() || null;
     if (delta < 0) {
+      const expiryErr = assertLotExportable(han);
+      if (expiryErr) return { success: false as const, error: expiryErr };
       const ton = await tonTaiLo(supabase, dmId, maLo, han);
       if (ton + delta < 0) {
         return { success: false as const, error: `Điều chỉnh âm vượt tồn hiện có (${ton}).` };
@@ -143,6 +153,7 @@ export async function dieuChinhKhoHoaChatAction(input: {
       ma_lo: maLo,
       han_su_dung: han,
       ghi_chu: input.ghi_chu != null ? String(input.ghi_chu).trim() || null : null,
+      su_co_id: suCoId,
       updated_at: now,
     });
     if (error) return { success: false as const, error: mapFkError(error.message) };

@@ -1,26 +1,23 @@
-import React, { useState, useEffect } from "react";
-import { CheckCircle2, User, Clock, ArrowRight } from "lucide-react";
-import StationCompleteButton from "../station/StationCompleteButton";
-import SplitAndPrintSubQrButton from "../station/SplitAndPrintSubQrButton";
-import { lookupBoDungCuIdByQrAction } from "../../actions/cssd-catalog.actions";
-import DigitalChecklistPanel from "../workflow/DigitalChecklistPanel";
+import React from "react";
+import { CheckCircle2, User, Clock, ArrowRight, Printer } from "lucide-react";
 
 interface Props {
   qrCode: string;
   tenBoDungCu: string;
   nguoiThucHien: string;
   thoiGianQuet: string;
-  buocTierTheo?: string; // fallback typo
   buocTiepTheo: string;
   /** Trạm hiện tại (từ trang cha; tránh gọi hook trùng state). */
   tramDisplay?: string;
-  maCaMoId?: string;
+  maLoTietKhuan?: string;
   ledgerWarning?: string;
+  /** Trạm cấp phát: in phiếu A4 (QR mã mẻ). */
+  onPrintCapPhat?: () => void;
+  isPrintBusy?: boolean;
 }
 
 /**
- * Thẻ thông báo quét thành công (Phiên bản Gọn & Cân đối)
- * Tông màu Quân y (var(--primary) + #FFD700), tối ưu không gian hiển thị.
+ * Thẻ thông báo quét thành công — thống nhất mọi trạm workflow.
  */
 export default function QRScanSuccessCard({
   qrCode,
@@ -29,46 +26,20 @@ export default function QRScanSuccessCard({
   thoiGianQuet,
   buocTiepTheo,
   tramDisplay = "CSSD",
-  maCaMoId,
+  maLoTietKhuan,
   ledgerWarning,
+  onPrintCapPhat,
+  isPrintBusy,
 }: Props) {
-  const [boDungCuId, setBoDungCuId] = useState<string | null>(null);
-  const [isChecklistOk, setIsChecklistOk] = useState(true);
-  const [missingSummary, setMissingSummary] = useState("");
-
-  const isQcOrDongGoi =
-    tramDisplay === "QC" ||
-    tramDisplay === "DONG GOI" ||
-    tramDisplay === "QC / Kiểm chuẩn" ||
-    tramDisplay === "Đóng gói";
-
-  useEffect(() => {
-    let active = true;
-    const resolveBoId = async () => {
-      if (!qrCode) return;
-      try {
-        const res = await lookupBoDungCuIdByQrAction(qrCode);
-        if (res.success && active) {
-          setBoDungCuId(res.boDungCuId);
-        }
-      } catch (e) {
-        console.error("Lỗi phân giải boDungCuId:", e);
-      }
-    };
-    void resolveBoId();
-    return () => {
-      active = false;
-    };
-  }, [qrCode]);
+  const tramKey = tramDisplay.replace(/\s+/g, "_").toUpperCase();
+  const isCapPhat = tramKey === "CAP_PHAT" || tramDisplay === "Cấp phát";
 
   return (
     <div className="w-full max-w-[360px] mx-auto animate-in zoom-in-95 duration-200 touch-manipulation pointer-events-auto -webkit-tap-highlight-color-transparent">
       <div className="bg-[var(--primary)] rounded-2xl overflow-hidden shadow-xl border-2 border-[#FFD700]/20 relative">
-        {/* Họa tiết nền chìm */}
         <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[radial-gradient(#FFD700_1px,transparent_1px)] [background-size:20px_20px]" />
 
         <div className="p-5 flex flex-col items-center text-center relative z-10">
-          {/* Biểu tượng trạng thái nhỏ gọn */}
           <div className="mb-4 bg-[#FFD700] p-3 rounded-full shadow-lg">
             <CheckCircle2 className="text-[var(--primary)]" size={32} strokeWidth={3} />
           </div>
@@ -80,13 +51,12 @@ export default function QRScanSuccessCard({
             Hệ thống đã ghi nhận bản ghi
           </p>
 
-          {/* Khối nội dung chính */}
           <div className="w-full bg-white/5 backdrop-blur-md rounded-xl p-4 border border-white/10 space-y-5">
             <div className="flex flex-col items-center gap-3">
               <div className="bg-white p-3 rounded-2xl shadow-lg border-2 border-white">
-                <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrCode}`} 
-                  alt="QR" 
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrCode}`}
+                  alt="QR"
                   className="w-28 h-28 object-contain"
                 />
               </div>
@@ -123,10 +93,12 @@ export default function QRScanSuccessCard({
               </div>
             </div>
 
-            {maCaMoId && (
-              <div className="w-full bg-[#FFD700]/10 border border-[#FFD700]/30 rounded-xl p-3 animate-in fade-in slide-in-from-bottom-1">
-                <label className="text-[11px] font-black text-[#FFD700] uppercase tracking-widest block mb-1">Truy vết Ca mổ / Bệnh nhân</label>
-                <div className="text-white text-xs font-black uppercase">{maCaMoId}</div>
+            {maLoTietKhuan && (
+              <div className="w-full bg-emerald-500/15 border border-emerald-400/30 rounded-xl p-3 text-left">
+                <label className="text-[11px] font-black text-emerald-200 uppercase tracking-widest block mb-1">
+                  Mã mẻ tiệt khuẩn (QR trên phiếu)
+                </label>
+                <div className="text-white text-sm font-black font-mono tracking-wider">{maLoTietKhuan}</div>
               </div>
             )}
 
@@ -136,23 +108,8 @@ export default function QRScanSuccessCard({
                 <div className="text-rose-100 text-[11px] font-bold leading-relaxed">{ledgerWarning}</div>
               </div>
             )}
-
-            {/* Bảng kiểm kỹ thuật số tích hợp tại trạm QC / Đóng gói */}
-            {isQcOrDongGoi && boDungCuId && (
-              <div className="w-full pt-2 border-t border-white/10">
-                <DigitalChecklistPanel
-                  boDungCuId={boDungCuId}
-                  quyTrinhId={qrCode}
-                  onCheckFinished={(isOk, missingSum) => {
-                    setIsChecklistOk(isOk);
-                    setMissingSummary(missingSum || "");
-                  }}
-                />
-              </div>
-            )}
           </div>
 
-          {/* Banner chỉ dẫn bước tiếp theo */}
           <div className="mt-6 w-full bg-[#FFD700] text-[var(--primary)] p-4 rounded-2xl flex items-center justify-between shadow-lg">
             <div className="text-left">
               <div className="text-[11px] font-black uppercase opacity-60 mb-0.5">Bước tiếp theo</div>
@@ -161,36 +118,21 @@ export default function QRScanSuccessCard({
             <div className="bg-[var(--primary)] p-2 rounded-full text-[#FFD700]"><ArrowRight size={20} strokeWidth={3} /></div>
           </div>
 
-          {/* Nút In Nhãn QR Nhiệt (Mặc định) */}
-          <div className="mt-4 w-full">
-            <StationCompleteButton 
-              data={{
-                qrCode,
-                tenBoDungCu,
-                tram: tramDisplay,
-                nguoiThucHien,
-                thoiGian: thoiGianQuet
-              }} 
-              isMissing={!isChecklistOk}
-              missingSummary={missingSummary}
-            />
-            {/* Nếu đang ở Đóng Gói (DONG GOI), hiển thị thêm chức năng tách dụng cụ */}
-            {tramDisplay === "DONG GOI" && (
-              <SplitAndPrintSubQrButton 
-                data={{
-                  qrCode,
-                  tenBoDungCu,
-                  tram: tramDisplay,
-                  nguoiThucHien,
-                  thoiGian: thoiGianQuet
-                }} 
-              />
-            )}
-          </div>
+          {isCapPhat && onPrintCapPhat ? (
+            <div className="mt-4 w-full">
+              <button
+                type="button"
+                disabled={isPrintBusy}
+                onClick={onPrintCapPhat}
+                className="w-full h-14 rounded-[20px] flex items-center justify-center gap-3 font-black uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-all disabled:opacity-50 touch-manipulation bg-[#FFD700] text-[var(--primary)] border-2 border-[var(--primary)]/10"
+              >
+                <Printer size={20} strokeWidth={2.5} />
+                {isPrintBusy ? "ĐANG CHUẨN BỊ IN..." : "IN PHIẾU CẤP PHÁT A4"}
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
-
-
   );
 }

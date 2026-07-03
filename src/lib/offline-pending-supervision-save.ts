@@ -101,7 +101,11 @@ export function isLikelyOfflineOrNetworkFailure(err: unknown): boolean {
 }
 
 /** Gửi lại toàn bộ hàng đợi; mục lỗi được giữ lại. */
-export async function flushPendingSupervisionSaves(): Promise<{ synced: number; failed: number }> {
+export async function flushPendingSupervisionSaves(): Promise<{
+  synced: number;
+  failed: number;
+  lastError?: string;
+}> {
   if (typeof window === "undefined" || !navigator.onLine) return { synced: 0, failed: 0 };
 
   const [{ saveVSTSession }, { saveGiamSatChung }] = await Promise.all([
@@ -114,6 +118,7 @@ export async function flushPendingSupervisionSaves(): Promise<{ synced: number; 
 
   let synced = 0;
   let failed = 0;
+  let lastError: string | undefined;
   const remaining: PendingSupervisionItem[] = [];
 
   for (const item of q) {
@@ -128,6 +133,7 @@ export async function flushPendingSupervisionSaves(): Promise<{ synced: number; 
         if (res.success) synced++;
         else {
           failed++;
+          lastError = res.error || lastError;
           remaining.push(item);
         }
       } else {
@@ -140,15 +146,17 @@ export async function flushPendingSupervisionSaves(): Promise<{ synced: number; 
         if (res.success) synced++;
         else {
           failed++;
+          lastError = res.error || lastError;
           remaining.push(item);
         }
       }
-    } catch {
+    } catch (err) {
       failed++;
+      lastError = err instanceof Error ? err.message : String(err);
       remaining.push(item);
     }
   }
 
   writeQueue(remaining);
-  return { synced, failed };
+  return { synced, failed, lastError };
 }

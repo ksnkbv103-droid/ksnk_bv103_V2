@@ -1,22 +1,28 @@
 # Pilot BV103 — Go-live sign-off (Phase 6)
 
-> **Mục tiêu:** Một bảng duy nhất ký trước production. Automated gate: `npm run pilot:go-live:gate`.
+> **Mục tiêu:** Một bảng duy nhất ký trước production. Automated gate: `npm run pilot:go-live:gate`.  
+> **Cải tổ local 2026-07-03:** [`pilot-module-automated-gates-20260703.md`](../reference/reports/pilot-module-automated-gates-20260703.md)
 
 ## A. Automated gates (IT)
 
 | Gate | Lệnh | Pass khi | Ngày / người |
 |------|------|----------|--------------|
-| Engineering | `npm run verify:engineering` | Exit 0 | ☐ |
-| CSSD | `npm run verify:cssd` | Exit 0 | ☐ |
-| Pilot unit | `npm run test:pilot` | Exit 0 | ☐ |
-| Smoke GSC/VST | `npm run smoke:gsc-vst` | Exit 0 | ☐ |
-| DB precheck | `npm run trial:db:precheck` | Không blocker | ☐ |
-| Auth precheck | `npm run trial:auth:precheck` | `mdm_email_no_auth` = **0** | ☐ |
-| Migrate | `npm run mdm:migrate` | Apply đủ migration (gồm cycle QR) | ☐ |
+| Engineering | `npm run verify:engineering` | Exit 0 | ☑ 2026-07-03 local |
+| CSSD | `npm run verify:cssd` | Exit 0 | ☑ 2026-07-03 local |
+| Pilot unit | `npm run test:pilot` | Exit 0 | ☑ 2026-07-03 local |
+| Smoke GSC/VST | `npm run smoke:gsc-vst:local` | Exit 0 | ☑ 2026-07-03 local |
+| DB precheck | `npm run trial:db:precheck:local` | Không blocker | ☑ 2026-07-03 local |
+| Auth precheck | `npm run trial:auth:precheck:local` | `mdm_email_no_auth` = **0** | ☑ 2026-07-03 local |
+| Local golden | `npm run local:golden:verify` | 9/9 probe OK | ☑ 2026-07-03 local |
+| Repo hygiene | `npm run repo:hygiene` | No blocking | ☑ 2026-07-03 |
+| Migrate | `npm run mdm:migrate:local` | Head `20260702100000` | ☑ 2026-07-03 local |
+| Full gate | `npm run pilot:go-live:gate:local` | Exit 0 | ☑ 2026-07-03 local |
+| Full verify | `npm run verify` | lint + layout + build | ☑ 2026-06-30 local |
 
 ```bash
-npm run pilot:go-live:gate          # linked staging/prod
-npm run pilot:go-live:gate:local    # docker local
+npm run local:golden:reset      # db reset + migrate + rbac sync (local)
+npm run local:golden:verify     # 9 probe sau reset
+npm run pilot:go-live:gate:local
 ```
 
 ## B. Checklist tay (NV KSNK) — ≥5/6 mỗi khối
@@ -30,6 +36,7 @@ npm run pilot:go-live:gate:local    # docker local
 | CSSD hóa chất P4 | [`../modules/cssd/pilot-checklist-hoa-chat-202606.md`](../modules/cssd/pilot-checklist-hoa-chat-202606.md) | ☐ /6 | | |
 | CSSD thiết bị P4 | [`../modules/cssd/pilot-checklist-thiet-bi-202606.md`](../modules/cssd/pilot-checklist-thiet-bi-202606.md) | ☐ /6 | | |
 | CSSD cycle QR P5 | [`../modules/cssd/pilot-checklist-cycle-qr-202606.md`](../modules/cssd/pilot-checklist-cycle-qr-202606.md) | ☐ /6 | | |
+| Dashboard / Báo cáo | [`../modules/dashboard/README.md`](../modules/dashboard/README.md) | ☐ /5 | | |
 | NKBV clinical | [`../modules/nkbv/pilot-clinical-checklist-20260603.md`](../modules/nkbv/pilot-clinical-checklist-20260603.md) | ☐ /5 | | |
 
 **NKBV / Dashboard / CSSD** có thể pilot theo **wave** — xem §C.

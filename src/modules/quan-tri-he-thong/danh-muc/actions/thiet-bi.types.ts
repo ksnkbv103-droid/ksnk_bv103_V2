@@ -13,9 +13,13 @@ export type ThietBiRow = {
   ngay_bao_tri_gan_nhat: string | null;
   ngay_bao_tri_tiep_theo: string | null;
   ghi_chu: string | null;
+  serial_number?: string | null;
+  model?: string | null;
+  vi_tri?: string | null;
+  ten_loai_may_hien_thi?: string | null;
   is_active: boolean;
   so_lan_su_dung?: number;
-  specs?: Record<string, any> | null;
+  specs?: Record<string, unknown> | null;
 };
 
 export type LoaiMayTietKhuanOption = {

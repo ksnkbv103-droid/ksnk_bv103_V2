@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import dynamic from "next/dynamic";
 import { AlertTriangle, Printer, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useBaoCaoTongHopPrint } from "../hooks/use-bao-cao-tong-hop-print";
@@ -9,12 +10,43 @@ import { Bv103AnalyticsPageFrame, Bv103AnalyticsPageSkeleton } from "@/component
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { useBaoCaoTongHopData } from "../hooks/useBaoCaoTongHopData";
 import { ComprehensiveKpiCards } from "../components/comprehensive/ComprehensiveKpiCards";
-import { ComprehensiveTrend } from "../components/comprehensive/ComprehensiveTrend";
-import { ComprehensiveCompare } from "../components/comprehensive/ComprehensiveCompare";
-import { ComprehensiveTopicHybrid } from "../components/comprehensive/ComprehensiveTopicHybrid";
-import { ComprehensiveNkbvOutcome } from "../components/comprehensive/ComprehensiveNkbvOutcome";
 import { ReportPrintNarrativeControls } from "../components/comprehensive/ReportPrintNarrativeControls";
+import { ReportSection, ReportSectionNav } from "../components/comprehensive/ReportSectionNav";
 import { AnalyticsKhoaScopeBanner } from "../components/AnalyticsKhoaScopeBanner";
+
+function ChartSectionSkeleton() {
+  return <div className="h-56 animate-pulse rounded-xl border border-slate-200 bg-slate-50" />;
+}
+
+const ComprehensiveTrend = dynamic(
+  () => import("../components/comprehensive/ComprehensiveTrend").then((m) => ({ default: m.ComprehensiveTrend })),
+  { loading: () => <ChartSectionSkeleton /> },
+);
+const ComprehensiveCompare = dynamic(
+  () => import("../components/comprehensive/ComprehensiveCompare").then((m) => ({ default: m.ComprehensiveCompare })),
+  { loading: () => <ChartSectionSkeleton /> },
+);
+const ComprehensiveNkbvOutcome = dynamic(
+  () =>
+    import("../components/comprehensive/ComprehensiveNkbvOutcome").then((m) => ({
+      default: m.ComprehensiveNkbvOutcome,
+    })),
+  { loading: () => <ChartSectionSkeleton /> },
+);
+const ComprehensiveGscBkIntervention = dynamic(
+  () =>
+    import("../components/comprehensive/ComprehensiveGscBkIntervention").then((m) => ({
+      default: m.ComprehensiveGscBkIntervention,
+    })),
+  { loading: () => <ChartSectionSkeleton /> },
+);
+const ComprehensiveTopicHybrid = dynamic(
+  () =>
+    import("../components/comprehensive/ComprehensiveTopicHybrid").then((m) => ({
+      default: m.ComprehensiveTopicHybrid,
+    })),
+  { loading: () => <ChartSectionSkeleton /> },
+);
 
 export function BaoCaoTongHopPage() {
   const d = useBaoCaoTongHopData();
@@ -59,29 +91,28 @@ export function BaoCaoTongHopPage() {
 
   const headerActions = (
     <>
-      <ReportPrintNarrativeControls
-        nhanXetDanhGia={nhanXetDanhGia}
-        onNhanXetChange={setNhanXetDanhGia}
-        kienNghiDeXuat={kienNghiDeXuat}
-        onKienNghiChange={setKienNghiDeXuat}
-      />
-      <button type="button" onClick={() => void d.loadReport()} className={bv103DesignTokens.btnGhostDark}>
+      <button
+        type="button"
+        onClick={() => void d.loadReport()}
+        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+      >
         <RefreshCw size={14} aria-hidden /> Cập nhật
       </button>
       <button
         type="button"
         onClick={onPrintClick}
         disabled={printing || d.loading}
-        title="Mở bản in A4 chính thức (gồm Phần III nhận xét/kiến nghị)"
-        className="inline-flex h-9 items-center gap-2 rounded-lg bg-emerald-100 px-3 text-xs font-semibold text-emerald-800 hover:bg-emerald-200 disabled:opacity-50"
+        title="In báo cáo A4"
+        className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
       >
-        <Printer size={14} aria-hidden /> {printing ? "Đang chuẩn bị in…" : "In báo cáo A4"}
+        <Printer size={14} aria-hidden /> {printing ? "Đang in…" : "In A4"}
       </button>
     </>
   );
 
   const filterBar = (
     <AnalyticsFilterBar
+      variant="compact"
       khoaFilterLocked={d.khoaFilterLocked}
       tuNgay={d.tuNgay}
       setTuNgay={d.setTuNgay}
@@ -109,9 +140,7 @@ export function BaoCaoTongHopPage() {
 
   return (
     <Bv103AnalyticsPageFrame
-      eyebrow="Báo cáo · KSNK BV103"
       title="Báo cáo tổng hợp KSNK"
-      description="Bản chính thức gửi BGĐ/HĐ KSNK — số VST/GSC từ RPC strategic (khớp tab Chuẩn GSC)."
       actions={headerActions}
       filterBar={filterBar}
     >
@@ -128,15 +157,51 @@ export function BaoCaoTongHopPage() {
 
       <div className={`space-y-8 transition-opacity ${d.loading ? "pointer-events-none opacity-50" : ""}`}>
         {d.khoaFilterLocked && d.lockedKhoaLabel ? <AnalyticsKhoaScopeBanner khoaLabel={d.lockedKhoaLabel} /> : null}
-        <ComprehensiveKpiCards payload={d.payload} />
-        <ComprehensiveTrend payload={d.payload} />
-        <ComprehensiveCompare
-          payload={d.payload}
-          selectedKhoaIds={d.selectedKhoaIds}
-          khoaOptions={d.khoaOptions}
-        />
-        <ComprehensiveNkbvOutcome payload={d.payload} />
-        <ComprehensiveTopicHybrid payload={d.payload} chuyenDe={d.chuyenDe} onChuyenDeChange={d.setChuyenDe} />
+        <ReportSectionNav />
+        <ReportSection id="bc-kpi" title="Chỉ số tổng hợp">
+          <ComprehensiveKpiCards payload={d.payload} />
+        </ReportSection>
+        <ReportSection id="bc-trend" title="Xu hướng tuân thủ">
+          <ComprehensiveTrend payload={d.payload} />
+        </ReportSection>
+        <ReportSection id="bc-vst" title="Giám sát vệ sinh tay">
+          <ComprehensiveCompare
+            payload={d.payload}
+            selectedKhoaIds={d.selectedKhoaIds}
+            khoaOptions={d.khoaOptions}
+            module="vst"
+          />
+        </ReportSection>
+        <ReportSection id="bc-gsc" title="Giám sát chung">
+          <ComprehensiveCompare
+            payload={d.payload}
+            selectedKhoaIds={d.selectedKhoaIds}
+            khoaOptions={d.khoaOptions}
+            module="gsc"
+          />
+        </ReportSection>
+        <ReportSection id="bc-gsc-bk" title="Bảng kiểm cần can thiệp">
+          <ComprehensiveGscBkIntervention payload={d.payload} />
+        </ReportSection>
+        <ReportSection id="bc-nkbv" title="Kết quả NKBV">
+          <ComprehensiveNkbvOutcome payload={d.payload} />
+        </ReportSection>
+        <ReportSection id="bc-chuyen-de" title="Chuyên đề GSC">
+          <ComprehensiveTopicHybrid payload={d.payload} chuyenDe={d.chuyenDe} onChuyenDeChange={d.setChuyenDe} />
+        </ReportSection>
+        <ReportSection id="bc-phan-iii" title="Phần III — Đánh giá và kiến nghị">
+          <p className="mb-3 text-xs text-slate-500">
+            Nội dung in vào mục III bản báo cáo gửi Ban Giám đốc / Hội đồng KSNK.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <ReportPrintNarrativeControls
+              nhanXetDanhGia={nhanXetDanhGia}
+              onNhanXetChange={setNhanXetDanhGia}
+              kienNghiDeXuat={kienNghiDeXuat}
+              onKienNghiChange={setKienNghiDeXuat}
+            />
+          </div>
+        </ReportSection>
       </div>
     </Bv103AnalyticsPageFrame>
   );

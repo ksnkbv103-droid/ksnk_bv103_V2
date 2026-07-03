@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { invalidateUserPermissionsCache } from "@/lib/server-permission";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { ensureRbacAdmin } from "@/modules/quan-tri-he-thong/phan-quyen/actions/rbac-auth.helpers";
 
 import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
+import { ensureStaffAuthEmailMatchesProfile } from "@/lib/auth/staff-auth-email";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 
 function err(e: unknown) {
@@ -114,6 +116,7 @@ export async function setStaffKsnkRbacRole(params: {
     if (error) throw error;
     if (!data?.success) return { success: false as const, error: data?.error || "Lỗi khi gán quyền." };
 
+    await invalidateUserPermissionsCache();
     revalidatePath("/quan-tri-he-thong/tai-khoan-nhan-su");
     return { success: true as const };
   } catch (e: unknown) {
@@ -205,8 +208,8 @@ export async function adminResetStaffPasswordAction(params: {
     }
 
     const { data: staff, error: sErr } = await supabase
-      .from("mdm_nhan_su")
-      .select("id, auth_user_id")
+      .from("v_mdm_nhan_su_full")
+      .select("id, auth_user_id, email")
       .eq("id", params.staffId)
       .maybeSingle();
 
@@ -215,9 +218,18 @@ export async function adminResetStaffPasswordAction(params: {
       return { success: false as const, error: "Nhân viên chưa có tài khoản hệ thống." };
     }
 
+    const emailSync = await ensureStaffAuthEmailMatchesProfile(
+      supabase,
+      staff.auth_user_id,
+      staff.email,
+    );
+    if (!emailSync.ok) {
+      return { success: false as const, error: emailSync.error };
+    }
+
     const { error: updateErr } = await supabase.auth.admin.updateUserById(
       staff.auth_user_id,
-      { password: pw }
+      { password: pw, email_confirm: true },
     );
 
     if (updateErr) throw updateErr;

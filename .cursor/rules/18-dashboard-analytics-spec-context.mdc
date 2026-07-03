@@ -1,0 +1,25 @@
+---
+description: Dashboard / báo cáo / analytics — KPI, CCS, RPC strategic
+globs: src/modules/dashboard/**/*.{ts,tsx},src/lib/analytics/**/*.{ts,tsx},src/app/thong-ke/**/*.{ts,tsx},src/app/bao-cao-tong-hop/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Dashboard & Analytics — ngữ cảnh spec
+
+Trước khi sửa KPI, biểu đồ, báo cáo tổng hợp, deep link, in ấn:
+
+1. [`metric-dictionary.md`](../../docs/modules/dashboard/metric-dictionary.md) — SSOT công thức; đổi công thức → `Spec change`
+2. [`bao-cao-tong-hop.md`](../../docs/modules/dashboard/bao-cao-tong-hop.md) — thứ tự màn hình, in, comparable TGS/KSNK
+3. [`implementation-mapping.md`](../../docs/core/implementation-mapping.md) — RPC/bảng liên quan
+4. Skill `@dashboard-pilot` khi pilot hoặc công thức phức tạp
+
+## Ranh giới
+
+- Process (VST/GSC/CCS) ≠ outcome (NKBV) — không gộp NKBV vào CCS.
+- Không đọc `gstt_fact_*_summary` / `*_summary` trực tiếp — dùng RPC strategic.
+- Logic thuần → `supervision-metrics/`, `bao-cao-tong-hop-core.ts`; I/O → actions.
+
+## Verify
+
+- `npm run verify:engineering` sau Server Action / RPC contract
+- Chạy spec liên quan khi đổi công thức: `bao-cao-tong-hop-core.spec.ts`, `supervision-matrix-mappers.spec.ts`

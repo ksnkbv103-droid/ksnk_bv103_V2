@@ -8,7 +8,9 @@ const mocks = vi.hoisted(() => ({
   revalidatePath: vi.fn(),
   from: vi.fn(),
   taskMaybeSingle: vi.fn(),
-  insertHoatDong: vi.fn(),
+  appendNhatKy: vi.fn(),
+  ensureQlcvKsnkAccess: vi.fn(),
+  resolveQlcvListScope: vi.fn(),
 }));
 
 vi.mock("@/lib/server-permission", () => ({
@@ -30,12 +32,37 @@ vi.mock("@/lib/supabase-server", () => ({
   }),
 }));
 
+vi.mock("../lib/qlcv-action-guard", () => ({
+  ensureQlcvKsnkAccess: mocks.ensureQlcvKsnkAccess,
+}));
+
+vi.mock("../lib/qlcv-list-scope", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../lib/qlcv-list-scope")>();
+  return {
+    ...actual,
+    resolveQlcvListScope: mocks.resolveQlcvListScope,
+  };
+});
+
+vi.mock("../lib/qlcv-nhat-ky", () => ({
+  appendQlcvNhatKy: mocks.appendNhatKy,
+}));
+
 describe("createHoatDong", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.verifyPermission.mockResolvedValue(undefined);
     mocks.hasBypass.mockResolvedValue(false);
     mocks.getActorNhanSuId.mockResolvedValue("ns-01");
+    mocks.ensureQlcvKsnkAccess.mockImplementation(async () => ({
+      supabase: { from: mocks.from },
+      ksnkKhoaId: "ksnk-khoa-id",
+    }));
+    mocks.resolveQlcvListScope.mockResolvedValue({
+      bypassAll: false,
+      ksnkKhoaId: "ksnk-khoa-id",
+      actorStaffId: "ns-01",
+    });
     mocks.taskMaybeSingle.mockResolvedValue({
       data: {
         id: "cv-01",
@@ -43,17 +70,11 @@ describe("createHoatDong", () => {
         trang_thai: "CHO_DUYET",
         is_active: true,
         phan_tram_hoan_thanh: 100,
+        nguoi_tao_id: "ns-01",
       },
       error: null,
     });
-    mocks.insertHoatDong.mockReturnValue({
-      select: () => ({
-        single: vi.fn().mockResolvedValue({
-          data: { id: "hd-01" },
-          error: null,
-        }),
-      }),
-    });
+    mocks.appendNhatKy.mockResolvedValue({ id: "nk-01" });
     mocks.from.mockImplementation((table: string) => {
       if (table === "v_qlcv_cong_viec_full") {
         return {
@@ -62,11 +83,6 @@ describe("createHoatDong", () => {
               maybeSingle: mocks.taskMaybeSingle,
             }),
           }),
-        };
-      }
-      if (table === "qlcv_fact_cong_viec_hoat_dong") {
-        return {
-          insert: mocks.insertHoatDong,
         };
       }
       return {};
@@ -82,7 +98,7 @@ describe("createHoatDong", () => {
       }),
     ).rejects.toThrow("Việc đang chờ nghiệm thu — không ghi chú tiến độ tại đây.");
 
-    expect(mocks.insertHoatDong).not.toHaveBeenCalled();
+    expect(mocks.appendNhatKy).not.toHaveBeenCalled();
   });
 
   it("allows assignee to add note in DANG_LAM without updating fact row", async () => {
@@ -93,6 +109,7 @@ describe("createHoatDong", () => {
         trang_thai: "DANG_LAM",
         is_active: true,
         phan_tram_hoan_thanh: 50,
+        nguoi_tao_id: "ns-01",
       },
       error: null,
     });
@@ -104,10 +121,11 @@ describe("createHoatDong", () => {
     });
 
     expect(result).toBeTruthy();
-    expect(mocks.insertHoatDong).toHaveBeenCalledWith(
+    expect(mocks.appendNhatKy).toHaveBeenCalledWith(
+      expect.anything(),
       expect.objectContaining({
-        phan_tram_hoan_thanh: 50,
-        noi_dung: "Đã xong bước 1",
+        phanTramHoanThanh: 50,
+        noiDung: "Đã xong bước 1",
       }),
     );
   });

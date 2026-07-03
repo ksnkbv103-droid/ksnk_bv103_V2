@@ -46,7 +46,7 @@ flowchart LR
 ```
 
 * **Tab Kho** (`/cssd-quy-trinh?tab=kho`): giám sát FEFO/tồn — không phải trạm quét workflow.
-* **Trạm 4:** Digital BOM (`BomChecklistModal`) + sync `cssd_fact_quy_trinh_thanh_phan`.
+* **Trạm 4 (Đóng gói):** Quét QR chuyển trạm + panel **đối chiếu cấu phần** (read-only, view realtime) + báo sự cố dụng cụ (Hỏng/Mất/Bổ sung). Digital BOM modal deprecated (`BV103_FEATURE_BOM_CHECKLIST=1` để bật lại).
 * **Trạm 5:** `cssd_fact_lo_tiet_khuan`; QC mẻ không đạt → rollback + sự cố.
 * **Trạm 6:** Ledger soft-warning nếu thiếu cấu phần (QLDCPT Q2).
 

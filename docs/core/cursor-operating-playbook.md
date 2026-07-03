@@ -102,11 +102,14 @@ If KPI worsens for two weeks, simplify rules and tighten intake.
 
 In Cursor chat, type:
 
-- `/intake` — lock scope before coding
+- `/intake-nv` — **PO / không rành code**: khóa scope bằng ngôn ngữ nghiệp vụ
+- `/intake` — khóa scope kỹ thuật trước khi code
 - `/implement` — after approved intake
+- `/ship-slice` — verify + review sau test tay
 - `/review` — before commit/merge
 - `/explain` — read-only Q&A, no code changes
 - `/commit`, `/pr-create` — git/PR only when user asks
 
+PO cheat sheet: `docs/core/po-cursor-guide.md`.  
 Source: `.cursor/commands/*.md`. Copy-paste templates (if needed): `docs/reference/guides/cursor-command-*.md`.
 

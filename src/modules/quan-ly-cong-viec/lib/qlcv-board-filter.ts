@@ -3,6 +3,7 @@ import { isBoardLaneDangLam, isBoardLaneQuaHan, type KanbanColumnId } from "./ql
 
 export type QlcvBoardFilter =
   | "TOTAL"
+  | "MY_TASKS"
   | "IN_PROGRESS"
   | "COMPLETED"
   | "OVERDUE"
@@ -10,13 +11,17 @@ export type QlcvBoardFilter =
   | "GATE_NGHIEMTHU"
   | "NEAR_DEADLINE";
 
+export type QlcvBoardFilterContext = {
+  actorStaffId?: string | null;
+};
+
 export { type KanbanColumnId } from "./qlcv-board-lanes";
 
 export function getKanbanFocusColumnForFilter(
   filter: QlcvBoardFilter | null,
   showProposalColumn: boolean,
 ): KanbanColumnId | null {
-  if (filter == null || filter === "TOTAL") return null;
+  if (filter == null || filter === "TOTAL" || filter === "MY_TASKS") return null;
   if (filter === "GATE_DEXUAT") return showProposalColumn ? "DE_XUAT" : "DANG_LAM";
   if (filter === "GATE_NGHIEMTHU") return "CHO_DUYET";
   if (filter === "IN_PROGRESS") return "DANG_LAM";
@@ -37,10 +42,24 @@ function isNearDeadlineTask(t: { han_hoan_thanh?: string | null; trang_thai?: st
   return diff >= 0 && diff <= 2;
 }
 
+/** Việc giao cho tôi hoặc đề xuất do tôi gửi (chờ duyệt). */
+export function isMyQlcvTask(
+  t: Record<string, unknown>,
+  actorStaffId: string | null | undefined,
+): boolean {
+  if (!actorStaffId) return false;
+  const assignee = String(t.nguoi_phu_trach_id ?? "");
+  if (assignee && assignee === actorStaffId) return true;
+  if (isDeXuatChoDuyet(t) && String(t.nguoi_tao_id ?? "") === actorStaffId) return true;
+  return false;
+}
+
 export function formatBoardFilterHint(f: QlcvBoardFilter): string {
   switch (f) {
     case "TOTAL":
       return "Tất cả";
+    case "MY_TASKS":
+      return "Việc của tôi";
     case "IN_PROGRESS":
       return "Đang làm";
     case "COMPLETED":
@@ -59,8 +78,13 @@ export function formatBoardFilterHint(f: QlcvBoardFilter): string {
 }
 
 /** Lọc danh sách theo thẻ thống kê đã chọn. */
-export function matchesQlcvBoardFilter(t: Record<string, unknown>, filter: QlcvBoardFilter | null): boolean {
+export function matchesQlcvBoardFilter(
+  t: Record<string, unknown>,
+  filter: QlcvBoardFilter | null,
+  ctx?: QlcvBoardFilterContext,
+): boolean {
   if (!filter || filter === "TOTAL") return true;
+  if (filter === "MY_TASKS") return isMyQlcvTask(t, ctx?.actorStaffId);
   if (filter === "GATE_DEXUAT") return isDeXuatChoDuyet(t);
   if (filter === "GATE_NGHIEMTHU") return isChoNghiemThuHoanThanh(t);
   if (filter === "COMPLETED") return t.trang_thai === "HOAN_THANH";

@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { AlertTriangle, CheckCircle2, Clock, ListTodo } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, ListTodo, UserRound } from "lucide-react";
 import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import { isBoardLaneDangLam, isBoardLaneQuaHan } from "../lib/qlcv-board-lanes";
-import type { QlcvBoardFilter } from "../lib/qlcv-board-filter";
+import { isMyQlcvTask, type QlcvBoardFilter } from "../lib/qlcv-board-filter";
 import type { CongViecView } from "../types";
 
 interface Props {
@@ -13,12 +13,13 @@ interface Props {
   onFilterChange?: (filter: QlcvBoardFilter) => void;
   /** Luôn hiện 3 cổng (kể cả 0) — cho người phê duyệt / điều hành. */
   showAllGatePills?: boolean;
+  actorStaffId?: string | null;
 }
 
 const cardInteractive =
   "cursor-pointer select-none transition-[box-shadow,transform,border-color] hover:border-[var(--primary)]/35 hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2";
 
-export function QlcvGateStats({ tasks, activeFilter, onFilterChange, showAllGatePills }: Props) {
+export function QlcvGateStats({ tasks, activeFilter, onFilterChange, showAllGatePills, actorStaffId }: Props) {
   const list = tasks ?? [];
 
   const stats = useMemo(() => {
@@ -42,6 +43,10 @@ export function QlcvGateStats({ tasks, activeFilter, onFilterChange, showAllGate
       return diff >= 0 && diff <= 2;
     }).length;
 
+    const myTasks = actorStaffId
+      ? list.filter((t) => isMyQlcvTask(t as unknown as Record<string, unknown>, actorStaffId)).length
+      : 0;
+
     return {
       total,
       completed,
@@ -50,8 +55,9 @@ export function QlcvGateStats({ tasks, activeFilter, onFilterChange, showAllGate
       gateDeXuat,
       gateNghiemThu,
       nearDeadline,
+      myTasks,
     };
-  }, [list]);
+  }, [list, actorStaffId]);
 
   const pick = onFilterChange;
 
@@ -115,6 +121,23 @@ export function QlcvGateStats({ tasks, activeFilter, onFilterChange, showAllGate
           </div>
         </>,
       )}
+
+      {actorStaffId
+        ? baseCard(
+            "MY_TASKS",
+            isSel("MY_TASKS"),
+            "border-sky-100 bg-sky-50/80",
+            <>
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-sky-700">
+                <UserRound size={18} strokeWidth={2.5} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-800/80">Việc của tôi</p>
+                <p className="text-xl font-bold leading-tight text-sky-800">{stats.myTasks}</p>
+              </div>
+            </>,
+          )
+        : null}
 
       {baseCard(
         "IN_PROGRESS",

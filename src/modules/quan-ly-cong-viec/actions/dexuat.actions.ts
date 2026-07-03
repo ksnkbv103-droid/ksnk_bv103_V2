@@ -1,16 +1,18 @@
 "use server";
 
-import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
-import { verifyPermission } from "@/lib/server-permission";
+import { congViecSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
 import { applyQlcvListScopeToQuery, resolveQlcvListScope } from "../lib/qlcv-list-scope";
 import { verifyQlcvApproveCapability } from "../lib/qlcv-rbac";
 import { normalizeQlcvDmFields } from "../lib/qlcv-persist-dm-fields";
-import { assertQlcvHanHoanThanhNotPast, insertQlcvTaskRow } from "../lib/qlcv-create-task";
+import { assertQlcvHanHoanThanhNotPast, assertQlcvHanHoanThanhChangeAllowed, insertQlcvTaskRow, normalizeQlcvHanDate } from "../lib/qlcv-create-task";
 import { resolveQlcvTrangThaiMaForTask } from "../lib/qlcv-initial-trang-thai";
 import { isDeXuatChoDuyet, type CongViecLike } from "../lib/qlcv-workflow-display";
-import { congViecSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
+import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
+import { validateAssigneeForQlcv } from "../lib/qlcv-ksnk-server";
+import { invokeQlcvTransition } from "../lib/qlcv-transition-rpc";
+import { appendQlcvNhatKy } from "../lib/qlcv-nhat-ky";
 
 interface CreateDeXuatInput {
   tieu_de: string;
@@ -30,8 +32,7 @@ type DeXuatRow = CongViecLike & {
  * Gửi đề xuất — cùng SSOT insert với tạo việc (`insertQlcvTaskRow`), is_active=false.
  */
 export async function createDeXuat(input: CreateDeXuatInput) {
-  await verifyPermission("CONG_VIEC", "create");
-  const supabase = createAdminSupabaseClient();
+  const { supabase, ksnkKhoaId } = await ensureQlcvKsnkAccess("create");
   const actorNhanSuId = await getActorNhanSuId();
   if (!actorNhanSuId) {
     throw new Error("Tài khoản cần gắn hồ sơ nhân sự (mdm_nhan_su) mới gửi được đề xuất.");
@@ -48,24 +49,25 @@ export async function createDeXuat(input: CreateDeXuatInput) {
     loai_cong_viec: input.loai_cong_viec || "DOT_XUAT",
     muc_do_uu_tien: input.muc_do_uu_tien,
     han_hoan_thanh: input.han_hoan_thanh || null,
+    ksnkKhoaId: ksnkKhoaId,
     is_active: false,
     nguoi_tao_id: actorNhanSuId,
   });
 
-  await supabase.from("qlcv_fact_cong_viec_hoat_dong").insert({
-    id_cong_viec: String(data.id),
-    loai_hoat_dong: "DE_XUAT",
-    nguoi_thuc_hien_id: actorNhanSuId,
-    noi_dung: "Gửi đề xuất công việc mới",
+  await appendQlcvNhatKy(supabase, {
+    congViecId: String(data.id),
+    loaiHoatDong: "DE_XUAT",
+    nguoiThucHienId: actorNhanSuId,
+    noiDung: "Gửi đề xuất công việc nội bộ KSNK",
   });
 
   revalidatePath("/quan-ly-cong-viec");
   return data;
 }
 
-export async function pheDuyetDeXuat(id: string, duyet: boolean, ly_do?: string) {
+export async function pheDuyetDeXuat(id: string, duyet: boolean, lyDo?: string) {
   await verifyQlcvApproveCapability();
-  const supabase = createAdminSupabaseClient();
+  const { supabase } = await ensureQlcvKsnkAccess("approve");
   const actorNhanSuId = await getActorNhanSuId();
 
   const { data: row, error: fetchErr } = await supabase
@@ -76,30 +78,30 @@ export async function pheDuyetDeXuat(id: string, duyet: boolean, ly_do?: string)
 
   if (fetchErr || !row) throw new Error("Không tìm thấy đề xuất.");
 
-  const trang_thai_moi = duyet
-    ? resolveQlcvTrangThaiMaForTask({
-        isActive: true,
-        nguoi_phu_trach_id: row.nguoi_phu_trach_id,
-        to_cong_tac_id: row.to_cong_tac_id,
-      })
-    : "DA_HUY";
-  const patch: Record<string, unknown> = {
-    trang_thai: trang_thai_moi,
-    is_active: duyet,
-    updated_at: new Date().toISOString(),
-  };
-  if (duyet) patch.nguoi_giao_viec_id = actorNhanSuId;
-
-  const { error } = await supabase.from("qlcv_fact_cong_viec").update(patch).eq("id", id);
-  if (error) throw new Error("Không thể thực hiện thao tác phê duyệt.");
-
-  await supabase.from("qlcv_fact_cong_viec_hoat_dong").insert({
-    id_cong_viec: id,
-    loai_hoat_dong: "PHE_DUYET",
-    nguoi_thuc_hien_id: actorNhanSuId,
-    noi_dung: duyet ? "Đã phê duyệt đề xuất" : `Đã từ chối đề xuất. Lý do: ${ly_do || "Không có"}`,
-    trang_thai: trang_thai_moi,
-  });
+  if (duyet) {
+    const trangThai = resolveQlcvTrangThaiMaForTask({
+      isActive: true,
+      nguoi_phu_trach_id: row.nguoi_phu_trach_id,
+      to_cong_tac_id: row.to_cong_tac_id,
+    });
+    await invokeQlcvTransition(supabase, {
+      congViecId: id,
+      action: "PHE_DUYET_DEXUAT",
+      actorNhanSuId: actorNhanSuId,
+      patch: {
+        trang_thai: trangThai,
+        nguoi_giao_viec_id: actorNhanSuId,
+        noi_dung_hoat_dong: "Đã phê duyệt đề xuất",
+      },
+    });
+  } else {
+    await invokeQlcvTransition(supabase, {
+      congViecId: id,
+      action: "TU_CHOI_DEXUAT",
+      actorNhanSuId: actorNhanSuId,
+      lyDo: lyDo,
+    });
+  }
 
   revalidatePath("/quan-ly-cong-viec");
 }
@@ -111,10 +113,19 @@ export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput
     throw new Error("Dữ liệu không hợp lệ: " + parsed.error.issues.map((i) => i.message).join(", "));
   }
 
-  const supabase = createAdminSupabaseClient();
+  const { supabase, ksnkKhoaId } = await ensureQlcvKsnkAccess("approve");
   const actorNhanSuId = await getActorNhanSuId();
   const p = parsed.data;
-  assertQlcvHanHoanThanhNotPast(p.han_hoan_thanh);
+
+  const { data: cur, error: fetchErr } = await supabase
+    .from("qlcv_fact_cong_viec")
+    .select("han_hoan_thanh")
+    .eq("id", id)
+    .maybeSingle();
+  if (fetchErr || !cur) throw new Error("Không tìm thấy đề xuất.");
+
+  assertQlcvHanHoanThanhChangeAllowed(p.han_hoan_thanh, cur.han_hoan_thanh);
+  await validateAssigneeForQlcv(supabase, p.nguoi_phu_trach_id, ksnkKhoaId);
 
   const trangThai = resolveQlcvTrangThaiMaForTask({
     isActive: true,
@@ -126,32 +137,22 @@ export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput
     trang_thai: trangThai,
   });
 
-  const { error } = await supabase
-    .from("qlcv_fact_cong_viec")
-    .update({
+  await invokeQlcvTransition(supabase, {
+    congViecId: id,
+    action: "PHE_DUYET_DEXUAT",
+    actorNhanSuId: actorNhanSuId,
+    patch: {
+      trang_thai: dmFk.trang_thai,
       tieu_de: p.tieu_de,
       mo_ta: p.mo_ta ?? null,
       loai_cong_viec: dmFk.loai_cong_viec,
       muc_do_uu_tien: p.muc_do_uu_tien ?? "TRUNG_BINH",
       han_hoan_thanh: p.han_hoan_thanh ?? null,
       nguoi_phu_trach_id: p.nguoi_phu_trach_id ?? null,
-      khoa_thuc_hien_id: p.khoa_thuc_hien_id ?? null,
       to_cong_tac_id: p.to_cong_tac_id ?? null,
-      is_active: true,
-      trang_thai: dmFk.trang_thai,
       nguoi_giao_viec_id: actorNhanSuId,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id);
-
-  if (error) throw new Error(error.message);
-
-  await supabase.from("qlcv_fact_cong_viec_hoat_dong").insert({
-    id_cong_viec: id,
-    loai_hoat_dong: "PHE_DUYET",
-    nguoi_thuc_hien_id: actorNhanSuId,
-    noi_dung: "Phê duyệt đề xuất và giao nhiệm vụ",
-    trang_thai: trangThai,
+      noi_dung_hoat_dong: "Phê duyệt đề xuất và giao nhiệm vụ KSNK",
+    },
   });
 
   revalidatePath("/quan-ly-cong-viec");
@@ -159,7 +160,7 @@ export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput
 
 export async function getPendingDeXuat() {
   await verifyQlcvApproveCapability();
-  const supabase = createAdminSupabaseClient();
+  const { supabase } = await ensureQlcvKsnkAccess("approve");
   const scope = await resolveQlcvListScope(supabase);
 
   let query = supabase
@@ -184,19 +185,23 @@ export async function getPendingDeXuat() {
 }
 
 export async function getMyPendingDeXuat() {
-  await verifyPermission("CONG_VIEC", "view");
+  const { supabase } = await ensureQlcvKsnkAccess("view");
   const actorNhanSuId = await getActorNhanSuId();
   if (!actorNhanSuId) return [];
 
-  const supabase = createAdminSupabaseClient();
-  const { data, error } = await supabase
+  const scope = await resolveQlcvListScope(supabase);
+
+  let query = supabase
     .from("v_qlcv_cong_viec_full")
     .select("*")
     .eq("is_active", false)
     .eq("nguoi_tao_id", actorNhanSuId)
     .order("created_at", { ascending: false });
 
+  query = applyQlcvListScopeToQuery(query, scope);
+
+  const { data, error } = await query;
+
   if (error) throw new Error(error.message);
   return (data || []).filter((r) => isDeXuatChoDuyet(r));
 }
-

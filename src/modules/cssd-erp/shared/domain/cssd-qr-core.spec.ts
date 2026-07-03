@@ -3,12 +3,17 @@ import { classifyCssdCode, matchesDeviceCode, normalizeCssdCode } from "./cssd-q
 
 describe("cssd-qr-core", () => {
   it("normalizes scan input to uppercase trimmed string", () => {
-    expect(normalizeCssdCode("  bv103-dc-ab12  ")).toBe("BV103-DC-AB12");
+    expect(normalizeCssdCode("  b01.set.01  ")).toBe("B01.SET.01");
   });
 
-  it("classifies known instrument prefixes", () => {
-    expect(classifyCssdCode("BV103-DC-AAAA")).toBe("INSTRUMENT_SET");
-    expect(classifyCssdCode("bv103-sub-1234")).toBe("INSTRUMENT_SET");
+  it("classifies unified ma_bo as instrument set", () => {
+    expect(classifyCssdCode("B01.SET.01")).toBe("INSTRUMENT_SET");
+    expect(classifyCssdCode("B01.SET.01-SUB")).toBe("INSTRUMENT_SET");
+  });
+
+  it("rejects legacy hex codes", () => {
+    expect(classifyCssdCode("BV103-DC-3E118D5052")).toBe("UNKNOWN");
+    expect(classifyCssdCode("BV103-SUB-1234ABCD")).toBe("UNKNOWN");
   });
 
   it("classifies cycle QR prefix as instrument set", () => {

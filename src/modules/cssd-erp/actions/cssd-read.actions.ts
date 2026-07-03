@@ -4,27 +4,34 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { Station } from "../types/cssd.types";
 import { verifyPermission } from "@/lib/server-permission";
 import { resolveCssdTramId } from "../lib/cssd-tram-persist";
+import { parseBatchQcJson } from "../lib/cssd-print-format";
 import { getErrorMessage, STEPS } from "./cssd-action-common";
+import { isCssdUnifiedBoMa, normalizeBoMa } from "@/lib/domain/cssd-bo-ma";
 
 export async function getWaitingListByStation(station: Station) {
   const supabase = createAdminSupabaseClient();
   await verifyPermission("CSSD_WORKFLOW", "view");
   /** Trạm TK không có «chờ quét» tại trang 6 bước — vào mẻ chỉ trên /cssd-erp/batch. */
-  if (station === "TIET_KHUAN") return [];
-
   if (station === "TIEP_NHAN") {
-    // TIEP_NHAN waiting list: toàn bộ danh sách bộ dụng cụ trừ đi những bộ đang hoạt động trong fact_quy_trinh
-    const { data: activeFacts } = await supabase.from("cssd_fact_quy_trinh").select("bo_dung_cu_id").eq("is_active", true);
-    const activeBoIds = new Set((activeFacts || []).map(f => String(f.bo_dung_cu_id)));
+    // Chờ tiếp nhận: bộ danh mục chưa có quy trình active CÓ trạm (shell tram=null vẫn chờ quét).
+    const { data: activeFacts } = await supabase
+      .from("cssd_fact_quy_trinh")
+      .select("bo_dung_cu_id")
+      .eq("is_active", true)
+      .not("tram_hien_tai_id", "is", null);
+    const activeBoIds = new Set((activeFacts || []).map((f) => String(f.bo_dung_cu_id)));
     
     const { data: dmBos } = await supabase.from("cssd_dm_bo_dung_cu").select("id, ma_bo, ten_bo, updated_at").eq("is_active", true);
-    const availableBos = (dmBos || []).filter(b => !activeBoIds.has(String(b.id)));
-    
-    return availableBos.map(b => ({
+    const availableBos = (dmBos || [])
+      .filter((b) => !activeBoIds.has(String(b.id)))
+      .filter((b) => isCssdUnifiedBoMa(b.ma_bo));
+
+    return availableBos.map((b) => ({
       id: String(b.id),
-      ma_vach_qr: `CATALOG::${b.id}`, // Prefix để client biết đây là catalog chưa được khởi tạo
+      ma_vach_qr: normalizeBoMa(b.ma_bo),
       updated_at: b.updated_at || new Date().toISOString(),
       ten_bo: String(b.ten_bo || b.ma_bo || "Bộ dụng cụ"),
+      bo_dung_cu_id: String(b.id),
       nguoi_tram_truoc: null,
       sdt_tram_truoc: null,
       thoi_gian_tram_truoc: null,
@@ -39,6 +46,81 @@ export async function getWaitingListByStation(station: Station) {
     DONG_GOI:  { nguoiCol: "nguoi_kiem_tra_id",    thoiGianCol: "thoi_gian_qc",          tramLabel: "QC" },
     CAP_PHAT:  { nguoiCol: "nguoi_tiet_khuan_id", thoiGianCol: "thoi_gian_tiet_khuan", tramLabel: "TIET_KHUAN" },
   };
+
+  /** Sau mẻ TK đạt QC, bộ đã ở trạm Cấp phát — chờ quét cấp phát (chưa gán ca mổ). */
+  if (station === "CAP_PHAT") {
+    const capTramId = await resolveCssdTramId(supabase, "CAP_PHAT");
+    if (!capTramId) return [];
+
+    const prevCols = PREV_STATION_COLS.CAP_PHAT;
+    const { data, error } = await supabase
+      .from("v_cssd_quy_trinh_full")
+      .select(
+        "id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, ten_bo, nguoi_tiet_khuan_id, thoi_gian_tiet_khuan, ma_ca_mo_id, lo_tiet_khuan_id",
+      )
+      .eq("tram_hien_tai_id", capTramId)
+      .eq("is_active", true)
+      .is("ma_ca_mo_id", null)
+      .not("lo_tiet_khuan_id", "is", null)
+      .order("updated_at", { ascending: true });
+    if (error) throw new Error(error.message);
+
+    const raw = (data || []) as Array<Record<string, unknown>>;
+    const loIds = [...new Set(raw.map((x) => String(x.lo_tiet_khuan_id || "").trim()).filter(Boolean))];
+    const passedLoIds = new Set<string>();
+    const batchUnloadMap = new Map<string, string>();
+    if (loIds.length) {
+      const { data: los } = await supabase
+        .from("cssd_fact_lo_tiet_khuan")
+        .select("id, ket_qua_test, tk_qc_json")
+        .in("id", loIds);
+      for (const lo of los || []) {
+        const lid = String((lo as { id: string }).id);
+        if ((lo as { ket_qua_test?: boolean | null }).ket_qua_test === true) passedLoIds.add(lid);
+        const unload = parseBatchQcJson((lo as { tk_qc_json?: unknown }).tk_qc_json).nguoiUnload;
+        if (unload) batchUnloadMap.set(lid, unload);
+      }
+    }
+
+    const filtered = raw.filter((x) => passedLoIds.has(String(x.lo_tiet_khuan_id || "").trim()));
+    const nguoiIds = [
+      ...new Set(filtered.map((x) => String(x[prevCols.nguoiCol] || "").trim()).filter(Boolean)),
+    ];
+    let nguoiMap = new Map<string, { ho_ten: string; sdt: string | null }>();
+    if (nguoiIds.length) {
+      const { data: nhanSus } = await supabase
+        .from("mdm_nhan_su")
+        .select("id, ho_ten, so_dien_thoai")
+        .in("id", nguoiIds);
+      nguoiMap = new Map(
+        (nhanSus || []).map((ns: { id: string; ho_ten?: string | null; so_dien_thoai?: string | null }) => [
+          String(ns.id),
+          { ho_ten: String(ns.ho_ten || "Nhân viên KSNK"), sdt: ns.so_dien_thoai || null },
+        ]),
+      );
+    }
+
+    return filtered.map((x) => {
+      const nguoiId = String(x[prevCols.nguoiCol] || "").trim();
+      const nguoiInfo = nguoiId ? nguoiMap.get(nguoiId) : undefined;
+      return {
+        id: String(x.id),
+        ma_vach_qr: String(x.ma_qr_quy_trinh || ""),
+        updated_at: String(x.updated_at || ""),
+        ten_bo: x.ten_bo ? String(x.ten_bo) : null,
+        bo_dung_cu_id: x.bo_dung_cu_id ? String(x.bo_dung_cu_id) : null,
+        nguoi_tram_truoc:
+          nguoiInfo?.ho_ten ||
+          batchUnloadMap.get(String(x.lo_tiet_khuan_id || "").trim()) ||
+          null,
+        sdt_tram_truoc: nguoiInfo?.sdt || null,
+        thoi_gian_tram_truoc: (x[prevCols.thoiGianCol] as string | null) || null,
+        tram_truoc: prevCols.tramLabel,
+      };
+    });
+  }
+
+  if (station === "TIET_KHUAN") return [];
 
   const idx = STEPS.indexOf(station);
   const prevStation = idx === 0 ? "CAP_PHAT" : STEPS[idx - 1];
@@ -97,6 +179,7 @@ export async function getWaitingListByStation(station: Station) {
       ma_vach_qr: x.ma_qr_quy_trinh || "",
       updated_at: x.updated_at || "",
       ten_bo: x.bo_dung_cu_id ? boMap.get(String(x.bo_dung_cu_id)) || null : null,
+      bo_dung_cu_id: x.bo_dung_cu_id ? String(x.bo_dung_cu_id) : null,
       nguoi_tram_truoc: nguoiInfo?.ho_ten || null,
       sdt_tram_truoc: nguoiInfo?.sdt || null,
       thoi_gian_tram_truoc: thoiGianTramTruoc || null,

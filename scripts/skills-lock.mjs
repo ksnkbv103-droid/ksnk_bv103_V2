@@ -15,6 +15,8 @@ const bv103Local = new Set([
   "smart-db-bv103",
   "giam-sat-pilot",
   "qlcv-pilot",
+  "po-intake",
+  "dashboard-pilot",
 ]);
 const supabaseAgent = new Set(["supabase"]);
 const softaworksAgentToolkit = new Set(["react-dev"]);

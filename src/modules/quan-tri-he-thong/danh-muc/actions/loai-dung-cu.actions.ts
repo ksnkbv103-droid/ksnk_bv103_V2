@@ -2,6 +2,7 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { buildLoaiPhysicalUpsertPayload } from "@/lib/master-data/cssd-loai-dung-cu-map";
 import {
   softDeleteManyMasterRows,
   softDeleteMasterRow,
@@ -22,8 +23,8 @@ export async function getLoaiDungCuRowsAction() {
   const strOrNull = (v: unknown) => (v == null || v === "" ? null : String(v));
   const mapped = (data || []).map((r: Record<string, unknown>) => ({
     id: String(r.id || ""),
-    ma_danh_muc: String(r.ma_loai_dung_cu || ""),
-    ten_danh_muc: String(r.ten_loai_dung_cu || ""),
+    ma_danh_muc: String(r.ma_loai_dung_cu || r.ma_loai || ""),
+    ten_danh_muc: String(r.ten_loai_dung_cu || r.ten_loai || ""),
     hinh_dang: strOrNull(r.hinh_dang),
     kich_thuoc: strOrNull(r.kich_thuoc),
     cong_dung: strOrNull(r.cong_dung),
@@ -41,20 +42,10 @@ export async function getLoaiDungCuRowsAction() {
 export async function saveLoaiDungCuAction(input: LoaiDungCuPayload) {
   const id = String(input.id || "").trim();
   await verifyPermission("LOAI_DC", id ? "edit" : "create");
-  const payload = {
-    ma_loai_dung_cu: String(input.ma_danh_muc || input.ma_loai_dung_cu || "").trim().toUpperCase(),
-    ten_loai_dung_cu: String(input.ten_danh_muc || input.ten_loai_dung_cu || "").trim(),
-    hinh_dang: String(input.hinh_dang || "").trim() || null,
-    kich_thuoc: String(input.kich_thuoc || "").trim() || null,
-    cong_dung: String(input.cong_dung || "").trim() || null,
-    kha_nang_chiu_nhiet: String(input.kha_nang_chiu_nhiet || "").trim() || null,
-    phuong_phap_tiet_khuan: String(input.phuong_phap_tiet_khuan || "").trim() || null,
-    phan_loai: String(input.phan_loai || "PHAU_THUAT"),
-    so_luong_kho_du_phong: Number(input.so_luong_kho_du_phong || 0),
-    is_active: input.is_active !== false,
-    updated_at: new Date().toISOString(),
-  };
-  if (!payload.ma_loai_dung_cu || !payload.ten_loai_dung_cu) {
+  const payload = buildLoaiPhysicalUpsertPayload(input);
+  const ma = String(payload.ma_loai || "");
+  const ten = String(payload.ten_loai || "");
+  if (!ma || !ten) {
     return { success: false, error: "Thiếu mã hoặc tên loại dụng cụ." };
   }
   return upsertMasterRow("cssd_dm_loai_dung_cu", id, payload);

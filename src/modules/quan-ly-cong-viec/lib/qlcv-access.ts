@@ -57,6 +57,7 @@ export function canShowDeleteTask(row: QlcvTaskAccessRow, f: QlcvUiAccessFlags):
 /** Sửa metadata form: người phụ trách đã nhận việc không được sửa nội dung gốc; chờ nghiệm thu vẫn sửa được (hạn/mô tả) nếu có quyền edit và không bị chặn phụ trách. */
 export function canShowEditTaskMetadata(row: QlcvTaskAccessRow, f: QlcvUiAccessFlags): boolean {
   if (String(row.trang_thai || "") === "HOAN_THANH" || String(row.trang_thai || "") === "DA_HUY") return false;
+  if (isDeXuatChoDuyet(row)) return false;
   if (!(f.isRBACAdmin || f.hasEdit)) return false;
   if (!f.actorStaffId) return false;
   if (assigneeBlockedFromTaskCrud(f.actorStaffId, row)) return false;

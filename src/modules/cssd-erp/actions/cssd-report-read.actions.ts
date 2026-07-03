@@ -8,6 +8,7 @@ import {
   INCIDENT_GROUPS,
   type IncidentGroup,
 } from "@/modules/cssd-su-co/domain/cssd-incident-taxonomy";
+import { readIncidentGroup } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
 import { getErrorMessage } from "../shared/cssd-db-utils";
 
 const MAX_REPORT_ROWS = 8000;
@@ -63,15 +64,20 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
     const suCoRows = (resS.data || []).map((x: Record<string, unknown>) => {
       const attrs = (x.attributes as Record<string, unknown>) || {};
       const parsed = parseIncidentType(String(x.ma_loai_su_co || ""));
-      const group = INCIDENT_GROUPS.includes(String(attrs.INCIDENT_GROUP) as IncidentGroup)
-        ? (attrs.INCIDENT_GROUP as IncidentGroup)
-        : parsed.group;
+      const viewGroup = String(x.incident_group || "").trim();
+      const attrGroup = readIncidentGroup(attrs);
+      const group = INCIDENT_GROUPS.includes(viewGroup as IncidentGroup)
+        ? (viewGroup as IncidentGroup)
+        : INCIDENT_GROUPS.includes(attrGroup as IncidentGroup)
+          ? (attrGroup as IncidentGroup)
+          : parsed.group;
+      const typeLabel = String(x.incident_type_label || parsed.typeName || "").trim();
       return {
         ...x,
         ma_vach_qr: x.ma_qr_quy_trinh,
         tram_phat_hien: x.ma_tram_phat_hien,
         tram_gay_loi: x.ma_tram_gay_loi,
-        loai_su_co: parsed.typeName,
+        loai_su_co: typeLabel || parsed.typeName,
         incident_group: group,
         incident_group_label: INCIDENT_GROUP_LABEL[group],
         fault_operator: String(attrs.FAULT_OPERATOR || ""),

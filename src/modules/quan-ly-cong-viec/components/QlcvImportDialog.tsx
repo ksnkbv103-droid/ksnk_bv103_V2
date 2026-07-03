@@ -21,8 +21,7 @@ const TEMPLATE_HEADERS = [
   { header: "Loại (dinh_ky|dot_xuat|khan_cap)", key: "loai_cong_viec" },
   { header: "Ưu tiên (thap|trung_binh|cao)", key: "muc_do_uu_tien" },
   { header: "Hạn (yyyy-mm-dd)", key: "han_hoan_thanh" },
-  { header: "Mã nv phụ trách*", key: "ma_nv" },
-  { header: "Mã khoa", key: "ma_khoa" },
+  { header: "Mã NV KSNK phụ trách*", key: "ma_nv" },
   { header: "Mã tổ", key: "ma_to" },
 ];
 
@@ -42,13 +41,12 @@ export function QlcvImportDialog({ isOpen, onClose, onImported }: Props) {
     const ws = wb.addWorksheet("QLCV");
     ws.columns = TEMPLATE_HEADERS.map((c) => ({ header: c.header, key: c.key, width: 22 }));
     ws.addRow({
-      tieu_de: "Kiểm tra vô khuẩn khoa Ngoại",
-      mo_ta: "Theo checklist BV103",
+      tieu_de: "Rà soát checklist IPC nội bộ KSNK",
+      mo_ta: "Theo quy trình KSNK BV103",
       loai_cong_viec: "DOT_XUAT",
       muc_do_uu_tien: "TRUNG_BINH",
       han_hoan_thanh: "2026-12-31",
-      ma_nv: "NV001",
-      ma_khoa: "KHOA_NGOAI",
+      ma_nv: "ADMIN01",
       ma_to: "",
     });
     const buf = await wb.xlsx.writeBuffer();
@@ -96,9 +94,9 @@ export function QlcvImportDialog({ isOpen, onClose, onImported }: Props) {
       <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Import công việc</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Import công việc KSNK</h2>
             <p className="mt-1 text-sm text-slate-600">
-              Một dòng = một phiếu. Bắt buộc tiêu đề và mã NV phụ trách.
+              Một dòng = một phiếu nội bộ KSNK. Bắt buộc tiêu đề và mã NV thuộc Khoa KSNK.
             </p>
           </div>
           <button type="button" onClick={onClose} className="rounded-lg p-1 text-slate-500 hover:bg-slate-100">

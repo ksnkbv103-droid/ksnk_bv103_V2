@@ -1,6 +1,8 @@
-# /intake — Khóa phạm vi trước khi code
+# /intake — Khóa phạm vi trước khi code (kỹ thuật)
 
 Chạy lệnh này **đầu tiên** cho task không trivial. **Không sửa code.**
+
+> **PO / không rành code:** dùng [`/intake-nv`](intake-nv.md) — mô tả bằng ngôn ngữ nghiệp vụ.
 
 ## Yêu cầu
 

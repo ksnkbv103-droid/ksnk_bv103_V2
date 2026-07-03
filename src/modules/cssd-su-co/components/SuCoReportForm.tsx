@@ -1,7 +1,7 @@
 // src/modules/cssd-su-co/components/SuCoReportForm.tsx
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   CheckCircle2,
   ChevronDown,
@@ -13,49 +13,48 @@ import {
   Layers,
   AlertTriangle,
   QrCode,
-  Camera,
   FileText,
   Printer,
   PlusCircle,
-  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
-import { fetchSuCoFormCatalog } from "../actions/su-co-form-catalog.actions";
+import { usePermission } from "@/hooks/usePermission";
+import { fetchSuCoFormCatalog, resolveSuCoFaultTrace } from "../actions/su-co-form-catalog.actions";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { createIncidentReport, getIncidentForPrint } from "../actions/su-co-report.actions";
 import {
-  classifyIncidentGroupByTypeName,
   INCIDENT_GROUP_LABEL,
   INCIDENT_GROUPS,
   INCIDENT_TYPE_PRESETS,
   INCIDENT_STATION_OPTIONS,
   type IncidentGroup,
 } from "../domain/cssd-incident-taxonomy";
+import {
+  CHEMICAL_QUALITY_INCIDENT,
+  isInstrumentIncidentImageRequired,
+  OTHER_GENERIC_INCIDENT,
+} from "../domain/cssd-incident-trace";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
-import IncidentPrintView, { getGoogleDriveDirectLink } from "./IncidentPrintView";
+import IncidentPrintView from "./IncidentPrintView";
+import InstrumentIncidentFields, { type InstrumentIncidentFormState } from "./InstrumentIncidentFields";
+import SuCoIncidentMetaFields, {
+  defaultDetectionDateTimeLocal,
+  type SuCoIncidentMetaState,
+} from "./SuCoIncidentMetaFields";
 
 export type SuCoReportFormProps = {
-  /** Trạm phát hiện ban đầu (từ ERP) hoặc mặc định trên trang riêng */
   initialStation: Station;
-  /** Nhóm sự cố ban đầu */
   initialGroup?: IncidentGroup;
-  /** Trang riêng: cho chọn trạm phát hiện */
+  initialMaQR?: string;
+  initialChiTietId?: string;
+  initialLoaiDungCuId?: string;
+  initialTypeId?: string;
+  quyTrinhId?: string | null;
   allowStationOverride?: boolean;
-  /** Chỉ tải danh mục khi bật (modal khi mở) */
   enabled: boolean;
   onSubmitted?: () => void;
 };
-
-function emptyCategoryBuckets(): Record<IncidentGroup, { id: string; ten: string }[]> {
-  return INCIDENT_GROUPS.reduce(
-    (acc, g) => {
-      acc[g] = [];
-      return acc;
-    },
-    {} as Record<IncidentGroup, { id: string; ten: string }[]>,
-  );
-}
 
 const GROUP_ICONS: Record<IncidentGroup, React.ComponentType<{ className?: string; size?: number }>> = {
   PROCESS: Layers,
@@ -66,68 +65,74 @@ const GROUP_ICONS: Record<IncidentGroup, React.ComponentType<{ className?: strin
 };
 
 const GROUP_SUBTITLES: Record<IncidentGroup, string> = {
-  PROCESS: "Sai thao tác, QC khâu, chất lượng tiệt khuẩn / mẻ...",
-  INSTRUMENT: "Dụng cụ hỏng, mất chi tiết, cần bổ sung...",
-  CHEMICAL: "Sai nồng độ hóa chất, quá hạn dùng...",
-  EQUIPMENT: "Máy hỏng, dừng hoạt động, lỗi thông số...",
-  OTHER: "Các tình huống phát sinh đặc thù khác...",
+  PROCESS: "Sai thao tác, QC khâu, chất lượng tiệt khuẩn…",
+  INSTRUMENT: "Hỏng, mất, bổ sung, điều chuyển dụng cụ",
+  CHEMICAL: "Sự cố chất lượng hóa chất / vật tư",
+  EQUIPMENT: "Máy hỏng, thông số bất thường…",
+  OTHER: "Tình huống đặc thù — form tối giản",
 };
+
+function groupTypeDefaults(group: IncidentGroup) {
+  if (group === "CHEMICAL") return CHEMICAL_QUALITY_INCIDENT;
+  if (group === "OTHER") return OTHER_GENERIC_INCIDENT;
+  const options = INCIDENT_TYPE_PRESETS[group];
+  const first = options[0];
+  return { typeId: first?.id || "", typeTen: first?.ten || "" };
+}
 
 export default function SuCoReportForm({
   initialStation,
   initialGroup,
+  initialMaQR,
+  initialChiTietId,
+  initialLoaiDungCuId,
+  initialTypeId,
+  quyTrinhId,
   allowStationOverride = false,
   enabled,
   onSubmitted,
 }: SuCoReportFormProps) {
+  const { userData } = usePermission();
+  const nguoiLapLabel =
+    String(userData?.ho_ten || "").trim() || String(userData?.email || "").trim() || "Nhân viên CSSD";
+
   const [loading, setLoading] = useState(false);
+  const [tracing, setTracing] = useState(false);
   const [fLoading, setFLoading] = useState(false);
   const [fError, setFError] = useState<string | null>(null);
   const [detectionStation, setDetectionStation] = useState<Station>(initialStation);
   const [incidentGroup, setIncidentGroup] = useState<IncidentGroup>(initialGroup || "PROCESS");
-  const [form, setForm] = useState({
-    maQR: "",
-    typeId: "",
-    typeTen: "",
-    desc: "",
-    errorQR: "",
-    machineId: "",
-    faultStation: initialStation as string,
-    faultOperator: "",
+  const [instrumentState, setInstrumentState] = useState<InstrumentIncidentFormState | null>(null);
+  const [typeId, setTypeId] = useState(initialTypeId || INCIDENT_TYPE_PRESETS.PROCESS[0]?.id || "");
+  const [typeTen, setTypeTen] = useState(
+    INCIDENT_TYPE_PRESETS.PROCESS.find((x) => x.id === initialTypeId)?.ten ||
+      INCIDENT_TYPE_PRESETS.PROCESS[0]?.ten ||
+      "",
+  );
+  const [maQR, setMaQR] = useState(initialMaQR || "");
+  const [faultStation, setFaultStation] = useState<Station>(initialStation);
+  const [machineId, setMachineId] = useState("");
+  const [maLo, setMaLo] = useState("");
+  const [viTriPhatHien, setViTriPhatHien] = useState("");
+  const [meta, setMeta] = useState<SuCoIncidentMetaState>(() => ({
+    thoiGianPhatHien: defaultDetectionDateTimeLocal(),
+    nguoiPhatHien: "",
+    nguoiLienQuan: "",
+    moTa: "",
     anhMinhChung: "",
-  });
-  const [categories, setCategories] = useState<{ id: string; ten: string }[]>([]);
+  }));
   const [machines, setMachines] = useState<{ id: string; ten: string }[]>([]);
   const [chemicals, setChemicals] = useState<{ id: string; ten: string; ma: string }[]>([]);
-
-  // State lưu trữ sự cố vừa gửi thành công để phục vụ in ấn
-  const [submittedIncident, setSubmittedIncident] = useState<{
-    incident: any;
-    details: any[];
-  } | null>(null);
+  const [submittedIncident, setSubmittedIncident] = useState<{ incident: any; details: any[] } | null>(null);
 
   useEffect(() => {
     if (!allowStationOverride) setDetectionStation(initialStation);
   }, [initialStation, allowStationOverride]);
 
-  const categoryGroups = useMemo(
-    () =>
-      categories.reduce<Record<IncidentGroup, { id: string; ten: string }[]>>((acc, c) => {
-        const g = classifyIncidentGroupByTypeName(c.ten);
-        acc[g].push(c);
-        return acc;
-      }, emptyCategoryBuckets()),
-    [categories],
-  );
-
-  const activeGroupOptions = useMemo(() => {
-    if (incidentGroup === "OTHER") {
-      return INCIDENT_TYPE_PRESETS.OTHER.map((x) => ({ id: x.code, ten: x.label }));
-    }
-    return categoryGroups[incidentGroup].length
-      ? categoryGroups[incidentGroup]
-      : INCIDENT_TYPE_PRESETS[incidentGroup].map((x) => ({ id: x.code, ten: x.label }));
-  }, [categoryGroups, incidentGroup]);
+  const activeGroupOptions = useMemo(() => INCIDENT_TYPE_PRESETS[incidentGroup], [incidentGroup]);
+  const showTypePicker = incidentGroup === "PROCESS" || incidentGroup === "INSTRUMENT" || incidentGroup === "EQUIPMENT";
+  const imageRequired = incidentGroup === "INSTRUMENT" && isInstrumentIncidentImageRequired(typeId);
+  const imageHidden = incidentGroup === "INSTRUMENT" && typeId === "INSTRUMENT_MISSING";
 
   useEffect(() => {
     if (!enabled) return;
@@ -137,11 +142,8 @@ export default function SuCoReportForm({
       try {
         const res = await fetchSuCoFormCatalog();
         if (!res.success) throw new Error(res.error);
-        setCategories(res.categories);
         setMachines(res.machines);
-        if ("chemicals" in res) {
-          setChemicals((res as any).chemicals || []);
-        }
+        setChemicals(res.chemicals || []);
       } catch (err: unknown) {
         setFError(err instanceof Error ? err.message : "Lỗi tải danh mục");
       } finally {
@@ -151,156 +153,178 @@ export default function SuCoReportForm({
   }, [enabled]);
 
   useEffect(() => {
-    const first = activeGroupOptions[0];
-    const st = detectionStation;
-    setForm((f) => {
-      if (incidentGroup === "OTHER") {
-        return {
-          ...f,
-          maQR: "",
-          errorQR: "",
-          machineId: "",
-          typeId: "OTHER_CUSTOM",
-          typeTen: "",
-          faultStation: "",
-          faultOperator: "",
-        };
-      }
-      return {
-        ...f,
-        maQR: "",
-        errorQR: "",
-        machineId: "",
-        typeId: activeGroupOptions.some((x) => x.id === f.typeId) ? f.typeId : first?.id || "",
-        typeTen: activeGroupOptions.some((x) => x.id === f.typeId)
-          ? activeGroupOptions.find((x) => x.id === f.typeId)?.ten || f.typeTen
-          : first?.ten || "",
-        faultStation: f.faultStation || st,
-        faultOperator: "",
-      };
-    });
-  }, [incidentGroup, detectionStation, activeGroupOptions]);
-
-  // Xử lý quét QR nhận diện nhanh thực thể
-  const handleQrKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const raw = form.maQR.trim();
-      if (!raw) return;
-
-      setLoading(true);
-      try {
-        const { resolveCssdCodeAction } = await import("@/modules/cssd-erp/actions/cssd-qr.actions");
-        const res = await resolveCssdCodeAction(raw);
-        if (res.success) {
-          if (res.targetType === "MACHINE") {
-            setIncidentGroup("EQUIPMENT");
-            setForm((f) => ({
-              ...f,
-              maQR: "", // Nhóm máy móc không bắt buộc maQR bộ dụng cụ, ta xóa để tránh gây hiểu nhầm
-              machineId: res.machineId || "",
-            }));
-            toast.success(`Nhận diện mã máy: ${res.machineCode || res.machineId}. Đã tự động chuyển sang tab "Thiết bị / Máy móc".`, {
-              duration: 4000,
-            });
-          } else if (res.targetType === "INSTRUMENT_SET") {
-            setForm((f) => ({
-              ...f,
-              maQR: res.code,
-            }));
-            toast.success(`Nhận diện mã bộ dụng cụ: ${res.code}`);
-          } else {
-            setForm((f) => ({ ...f, maQR: res.code }));
-            toast.success(`Đã quét mã QR: ${res.code}`);
-          }
-        } else {
-          toast.error(res.error || "Không nhận diện được mã QR này. Vui lòng thử lại.");
-        }
-      } catch (err: any) {
-        toast.error("Lỗi quét QR: " + err.message);
-      } finally {
-        setLoading(false);
-      }
+    const defaults = groupTypeDefaults(incidentGroup);
+    setTypeId(defaults.typeId);
+    setTypeTen(defaults.typeTen);
+    setFaultStation(detectionStation);
+    if (incidentGroup === "OTHER" || incidentGroup === "CHEMICAL") {
+      setMaQR("");
+      setMachineId("");
+      setMaLo("");
     }
+    if (incidentGroup !== "PROCESS" && incidentGroup !== "INSTRUMENT" && incidentGroup !== "EQUIPMENT") {
+      setMaQR("");
+    }
+  }, [incidentGroup, detectionStation]);
+
+  const runFaultTrace = useCallback(
+    async (qr: string, station: Station, silent = false) => {
+      const code = qr.trim().toUpperCase();
+      if (!code || incidentGroup !== "PROCESS") return;
+      setTracing(true);
+      try {
+        const res = await resolveSuCoFaultTrace(code, station);
+        if (!res.success) {
+          if (!silent) toast.error(res.error || "Không truy vết được người liên quan.");
+          return;
+        }
+        if (res.operatorName) {
+          setMeta((m) => ({ ...m, nguoiLienQuan: res.operatorName! }));
+          if (!silent) toast.success(`Truy vết: ${res.operatorName} (${INCIDENT_STATION_OPTIONS.find((s) => s.value === station)?.label})`);
+        } else if (!silent) {
+          toast.info("Khâu này chưa ghi nhận người thực hiện — bạn có thể nhập tay.");
+        }
+      } finally {
+        setTracing(false);
+      }
+    },
+    [incidentGroup],
+  );
+
+  useEffect(() => {
+    if (incidentGroup !== "PROCESS" || !maQR.trim()) return;
+    void runFaultTrace(maQR, faultStation, true);
+  }, [incidentGroup, maQR, faultStation, runFaultTrace]);
+
+  const handleQrKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>, mode: "SET" | "MACHINE" = "SET") => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const raw = maQR.trim();
+    if (!raw) return;
+
+    setLoading(true);
+    try {
+      const { resolveCssdCodeAction } = await import("@/modules/cssd-erp/actions/cssd-qr.actions");
+      const res = await resolveCssdCodeAction(raw);
+      if (!res.success) {
+        toast.error(res.error || "Không nhận diện được mã QR.");
+        return;
+      }
+      if (mode === "MACHINE" || res.targetType === "MACHINE") {
+        setIncidentGroup("EQUIPMENT");
+        setMachineId(res.machineId || "");
+        setMaQR("");
+        toast.success(`Đã nhận diện máy: ${res.machineCode || res.machineId}`);
+        return;
+      }
+      setMaQR(res.code);
+      toast.success(`Đã quét bộ: ${res.code}`);
+      if (incidentGroup === "PROCESS") await runFaultTrace(res.code, faultStation);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Lỗi quét QR");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMetaChange = (key: keyof SuCoIncidentMetaState, val: string) => {
+    setMeta((m) => ({ ...m, [key]: val }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isQrRequired = incidentGroup === "PROCESS" || incidentGroup === "INSTRUMENT";
-    
-    if (isQrRequired && !form.maQR) {
-      return toast.error(`Nhóm "${INCIDENT_GROUP_LABEL[incidentGroup]}" bắt buộc phải quét mã QR bộ dụng cụ.`);
+
+    if ((incidentGroup === "PROCESS" || incidentGroup === "INSTRUMENT") && !maQR.trim()) {
+      return toast.error(`Nhóm "${INCIDENT_GROUP_LABEL[incidentGroup]}" cần quét mã QR bộ dụng cụ.`);
     }
-    
-    if (!form.desc.trim()) {
-      return toast.error("Vui lòng điền mô tả chi tiết tình huống.");
+    if (!meta.moTa.trim()) return toast.error("Vui lòng điền mô tả chi tiết sự cố.");
+    if (incidentGroup === "EQUIPMENT" && !machineId.trim()) {
+      return toast.error("Vui lòng chọn hoặc quét máy gặp sự cố.");
     }
-    
-    if (incidentGroup === "OTHER" && !form.typeTen.trim()) {
-      return toast.error("Nhóm Khác: vui lòng ghi tóm tắt loại sự cố (ô loại chi tiết).");
+    if (incidentGroup === "CHEMICAL" && !machineId.trim()) {
+      return toast.error("Vui lòng chọn hóa chất / vật tư liên quan.");
     }
-    
+    if (imageRequired && !meta.anhMinhChung.trim()) {
+      return toast.error("Loại sự cố này bắt buộc có ảnh minh chứng.");
+    }
+
+    if (incidentGroup === "INSTRUMENT") {
+      if (!instrumentState) return toast.error("Vui lòng chọn dụng cụ trong bộ.");
+      if (typeId === "INSTRUMENT_TRANSFER" && !instrumentState.maQrDen) {
+        return toast.error("Điều chuyển cần quét QR bộ đích.");
+      }
+      if (
+        typeId !== "INSTRUMENT_REPLENISH" &&
+        typeId !== "INSTRUMENT_TRANSFER" &&
+        instrumentState.quantity > instrumentState.soLuongThucTe
+      ) {
+        return toast.error(`Số lượng không được vượt quá số thực tế (${instrumentState.soLuongThucTe}).`);
+      }
+    }
+
     setLoading(true);
     try {
-      const st = detectionStation;
       const faultStationPayload =
-        incidentGroup === "OTHER"
-          ? form.faultStation && form.faultStation.length > 0
-            ? (form.faultStation as Station)
-            : undefined
-          : incidentGroup === "PROCESS"
-            ? (form.faultStation as Station) || st
+        incidentGroup === "PROCESS"
+          ? faultStation
+          : incidentGroup === "OTHER" && viTriPhatHien
+            ? (viTriPhatHien as Station)
             : undefined;
 
       const payload = {
-        maQR: form.maQR || undefined,
-        typeId: form.typeId,
-        typeTen: form.typeTen,
-        desc: form.desc,
-        errorQR: form.errorQR?.trim() || undefined,
-        machineId: form.machineId?.trim() || undefined,
-        faultOperator: form.faultOperator?.trim() || undefined,
-        anhMinhChung: form.anhMinhChung?.trim() || undefined,
-        station: st,
+        maQR: maQR.trim() || undefined,
+        typeId,
+        typeTen,
+        desc: meta.moTa,
+        errorQR: maLo.trim() || undefined,
+        machineId: machineId.trim() || undefined,
+        faultOperator: meta.nguoiLienQuan.trim() || undefined,
+        nguoiPhatHien: meta.nguoiPhatHien.trim() || undefined,
+        thoiGianPhatHien: meta.thoiGianPhatHien || undefined,
+        anhMinhChung: meta.anhMinhChung.trim() || undefined,
+        station: detectionStation,
         incidentGroup,
         faultStation: faultStationPayload,
+        instrumentPayload:
+          incidentGroup === "INSTRUMENT" && instrumentState
+            ? {
+                chiTietId: instrumentState.chiTietId,
+                loaiDungCuId: instrumentState.loaiDungCuId,
+                boDungCuId: instrumentState.boDungCuId,
+                quyTrinhId: quyTrinhId || undefined,
+                maQrNguon: maQR.trim() || undefined,
+                maQrDen: instrumentState.maQrDen || undefined,
+                tenDungCuLe: instrumentState.tenDungCuLe,
+                quantity: instrumentState.quantity,
+              }
+            : undefined,
       };
 
-      let res;
       try {
-        res = await createIncidentReport(payload);
+        const res = await createIncidentReport(payload);
         if (res.isRedAlert) {
-          toast.error("⚠️ CẢNH BÁO ĐỎ: Bộ dụng cụ này đã xảy ra sự cố từ 2 lần trở lên. Hệ thống đã đánh dấu đỏ báo cáo này.", {
-            duration: 8000,
-          });
+          toast.error("⚠️ CẢNH BÁO ĐỎ: Bộ dụng cụ đã sự cố từ 2 lần trở lên.", { duration: 8000 });
         } else {
-          toast.success("Đã ghi nhận báo cáo sự cố thành công!");
+          toast.success("Đã ghi nhận báo cáo sự cố!");
         }
-
-        // Tải thông tin in ấn tức thì từ server
         if (res.incident_id) {
           const printData = await getIncidentForPrint(res.incident_id);
           if (printData.success) {
-            setSubmittedIncident({
-              incident: printData.incident,
-              details: printData.details,
-            });
+            setSubmittedIncident({ incident: printData.incident, details: printData.details });
+            setTimeout(() => window.print(), 300);
           }
         }
+        onSubmitted?.();
       } catch (err: unknown) {
         const { isNetworkError, pushOfflineTask } = await import("@/lib/offline-sync");
         if (isNetworkError(err)) {
           await pushOfflineTask("REPORT_INCIDENT", payload);
-          toast.info("Đã lưu ngoại tuyến", {
-            description: "Báo cáo sự cố sẽ được tự động đồng bộ khi kết nối mạng được khôi phục."
-          });
+          toast.info("Đã lưu ngoại tuyến — sẽ đồng bộ khi có mạng.");
           onSubmitted?.();
         } else {
           throw err;
         }
       }
-
-      onSubmitted?.();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Không gửi được báo cáo");
     } finally {
@@ -308,71 +332,80 @@ export default function SuCoReportForm({
     }
   };
 
-  const handleFieldChange = (key: string, val: string) => setForm((f) => ({ ...f, [key]: val }));
-
   const resetAfterSubmit = () => {
-    setForm({
-      maQR: "",
-      typeId: "",
-      typeTen: "",
-      desc: "",
-      errorQR: "",
-      machineId: "",
-      faultStation: initialStation as string,
-      faultOperator: "",
+    setMaQR("");
+    setMachineId("");
+    setMaLo("");
+    setViTriPhatHien("");
+    setTypeId(INCIDENT_TYPE_PRESETS.PROCESS[0]?.id || "");
+    setTypeTen(INCIDENT_TYPE_PRESETS.PROCESS[0]?.ten || "");
+    setFaultStation(initialStation);
+    setMeta({
+      thoiGianPhatHien: defaultDetectionDateTimeLocal(),
+      nguoiPhatHien: "",
+      nguoiLienQuan: "",
+      moTa: "",
       anhMinhChung: "",
     });
     setSubmittedIncident(null);
   };
 
-  // NẾU ĐÃ GỬI BÁO CÁO THÀNH CÔNG -> HIỂN THỊ MÀN HÌNH BÁO THÀNH CÔNG VÀ IN
   if (submittedIncident) {
     return (
-      <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] text-center max-w-2xl mx-auto my-6 animate-in fade-in duration-300">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-4 ring-8 ring-emerald-500/10">
+      <div className="mx-auto my-6 max-w-2xl animate-in space-y-6 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] fade-in duration-300">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-8 ring-emerald-500/10">
           <CheckCircle2 size={36} />
         </div>
-        <h3 className={UI.modalTitle}>
-          Ghi nhận sự cố thành công!
-        </h3>
-        <p className="mt-2 text-xs text-slate-500 leading-relaxed max-w-md mx-auto">
-          Biên bản sự cố đã được lưu trữ an toàn trong hệ thống và các liên kết domino tự động đã được kích hoạt. Hãy in phiếu biên bản sự cố để lưu trữ hồ sơ giấy/phòng ban nếu cần thiết.
+        <h3 className={UI.modalTitle}>Ghi nhận sự cố thành công!</h3>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-slate-500">
+          Biên bản đã lưu. Hộp thoại in sẽ mở tự động.
         </p>
-
-        <div className="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
+        <div className="mt-6 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <button
             type="button"
             onClick={() => window.print()}
-            className="flex h-12 w-full sm:w-auto px-6 items-center justify-center gap-2 rounded-xl bg-blue-600 text-xs font-semibold uppercase tracking-wide text-white hover:bg-blue-700 active:scale-[0.98] transition-all cursor-pointer shadow-md"
+            className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-xs font-semibold uppercase tracking-wide text-white shadow-md transition-all hover:bg-blue-700 active:scale-[0.98] sm:w-auto"
           >
-            <Printer size={16} /> 🖨️ In biên bản sự cố
+            <Printer size={16} /> In biên bản
           </button>
           <button
             type="button"
             onClick={resetAfterSubmit}
-            className="flex h-12 w-full sm:w-auto px-6 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-700 active:scale-[0.98] transition-all cursor-pointer"
+            className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-6 text-xs font-semibold uppercase tracking-wide text-slate-700 transition-all hover:bg-slate-100 active:scale-[0.98] sm:w-auto"
           >
-            <PlusCircle size={16} /> Báo cáo sự cố mới
+            <PlusCircle size={16} /> Báo cáo mới
           </button>
         </div>
-
-        {/* COMPONENT IN ẨN TRỰC TIẾP (Sẽ chỉ xuất hiện khi gọi window.print()) */}
-        <IncidentPrintView
-          incident={submittedIncident.incident}
-          details={submittedIncident.details}
-        />
+        <IncidentPrintView incident={submittedIncident.incident} details={submittedIncident.details} />
       </div>
     );
   }
 
+  const renderStationOverride = allowStationOverride ? (
+    <div className="space-y-1.5 border-t border-slate-100 pt-3">
+      <label className={bv103LayoutChrome.labelBlock}>Trạm phát hiện</label>
+      <select
+        value={detectionStation}
+        onChange={(e) => setDetectionStation(e.target.value as Station)}
+        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none focus:border-[var(--primary)]"
+      >
+        {INCIDENT_STATION_OPTIONS.map((s) => (
+          <option key={s.value} value={s.value}>
+            {s.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  ) : null;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {fError && (
+      {fError ? (
         <div className="flex gap-3 rounded-xl border border-red-100 bg-red-50 p-4 text-red-600">
           <AlertCircle className="shrink-0" size={20} />
           <div className="text-xs font-bold leading-tight">Không tải được danh mục: {fError}</div>
         </div>
-      )}
+      ) : null}
 
       {fLoading ? (
         <div className="flex flex-col items-center justify-center gap-4 py-16 text-[var(--primary)]">
@@ -381,11 +414,8 @@ export default function SuCoReportForm({
         </div>
       ) : (
         <div className="space-y-6">
-          {/* BƯỚC 1: PHÂN LOẠI NHÓM SỰ CỐ */}
           <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
-            <h4 className={bv103LayoutChrome.labelBlockAccent}>
-              Bước 1: Chọn Phân loại Nhóm Sự Cố
-            </h4>
+            <h4 className={bv103LayoutChrome.labelBlockAccent}>Bước 1: Chọn nhóm sự cố</h4>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
               {INCIDENT_GROUPS.map((g) => {
                 const IconComp = GROUP_ICONS[g];
@@ -397,521 +427,268 @@ export default function SuCoReportForm({
                     onClick={() => setIncidentGroup(g)}
                     className={`group relative flex flex-col items-start rounded-xl border p-4 text-left transition-all ${
                       isSelected
-                        ? "border-[var(--primary)] bg-emerald-50/50 ring-2 ring-emerald-500/10 shadow-sm"
+                        ? "border-[var(--primary)] bg-emerald-50/50 shadow-sm ring-2 ring-emerald-500/10"
                         : "border-slate-200 bg-slate-50 hover:bg-slate-100/70"
                     }`}
                   >
-                    {isSelected && (
-                      <div className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-white">
-                        <CheckCircle2 size={12} />
-                      </div>
-                    )}
-                    <div
-                      className={`flex h-9 w-9 items-center justify-center rounded-lg mb-3 transition-all ${
-                        isSelected ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-white text-slate-400 group-hover:text-slate-600"
-                      }`}
-                    >
+                    <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${isSelected ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-white text-slate-400"}`}>
                       <IconComp size={18} />
                     </div>
-                    <span className={`text-[11px] font-semibold uppercase tracking-wide leading-tight ${isSelected ? "text-[var(--primary)]" : "text-slate-700"}`}>
+                    <span className={`text-[11px] font-semibold uppercase leading-tight tracking-wide ${isSelected ? "text-[var(--primary)]" : "text-slate-700"}`}>
                       {INCIDENT_GROUP_LABEL[g].split(" (")[0]}
                     </span>
-                    <span className="mt-1 text-[11px] font-medium leading-relaxed text-slate-400">
-                      {GROUP_SUBTITLES[g]}
-                    </span>
+                    <span className="mt-1 text-[11px] font-medium leading-relaxed text-slate-400">{GROUP_SUBTITLES[g]}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* BƯỚC 2: ĐIỀN THÔNG TIN BẢN GHI THEO NGỮ CẢNH THEO TỪNG TAB DÂN DỤNG */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in duration-300">
-            {/* CỘT TRÁI: DYNAMIC THEO NHÓM SỰ CỐ */}
-            {incidentGroup === "PROCESS" && (
-              <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
-                <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
-                  <Layers size={16} className="text-[var(--primary)]" />
-                  Thông tin truy vết Quy trình
-                </h4>
-                <div className="space-y-4">
-                  {/* Quét mã QR bộ dụng cụ (Bắt buộc) */}
-                  <div className="space-y-1.5">
-                    <label className={bv103LayoutChrome.labelBlock}>
-                      Quét mã QR Bộ dụng cụ <span className="text-red-500 font-bold">*</span>
-                    </label>
-                    <div className="group relative">
-                      <input
-                        value={form.maQR}
-                        onChange={(e) => handleFieldChange("maQR", e.target.value.toUpperCase())}
-                        onKeyDown={handleQrKeyDown}
-                        className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pl-4 pr-12 text-lg font-black tracking-widest text-red-600 outline-none transition-all focus:border-[var(--primary)] focus:bg-white focus:ring-2 focus:ring-[var(--primary)]/10"
-                        placeholder="QUÉT QR BỘ DỤNG CỤ..."
-                        autoFocus={allowStationOverride}
-                      />
-                      <div className="absolute right-4 top-4 text-slate-300">
-                        <QrCode size={20} className={form.maQR ? "text-[var(--primary)]" : ""} />
-                      </div>
-                    </div>
-                    <p className="text-[11px] font-medium text-slate-400 italic">
-                      * Nhấn Enter sau khi quét để hệ thống truy vết khâu làm việc trước.
-                    </p>
-                  </div>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
+              <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
+                <FileText size={16} className="text-[var(--primary)]" />
+                Ngữ cảnh sự cố
+              </h4>
 
-                  {/* Khâu phát sinh lỗi & Nhân sự liên quan */}
+              {incidentGroup === "PROCESS" ? (
+                <div className={UI.sectionGap}>
+                  <QrField
+                    label="Quét mã QR bộ dụng cụ *"
+                    value={maQR}
+                    onChange={setMaQR}
+                    onKeyDown={(e) => void handleQrKeyDown(e)}
+                    loading={loading || tracing}
+                  />
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="space-y-1.5">
                       <label className={bv103LayoutChrome.labelBlock}>Khâu phát sinh lỗi</label>
                       <select
-                        value={form.faultStation || detectionStation}
-                        onChange={(e) => handleFieldChange("faultStation", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
+                        value={faultStation}
+                        onChange={(e) => setFaultStation(e.target.value as Station)}
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 font-semibold text-slate-700 outline-none focus:border-[var(--primary)]"
                       >
                         {INCIDENT_STATION_OPTIONS.map((s) => (
-                          <option key={s.value} value={s.value}>
-                            {s.label}
-                          </option>
+                          <option key={s.value} value={s.value}>{s.label}</option>
                         ))}
                       </select>
                     </div>
-                    <div className="space-y-1.5">
-                      <label className={bv103LayoutChrome.labelBlock}>Nhân sự liên quan / Người liên quan</label>
-                      <input
-                        value={form.faultOperator}
-                        onChange={(e) => handleFieldChange("faultOperator", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
-                        placeholder="Mã hoặc tên nhân viên..."
+                    {showTypePicker ? (
+                      <TypePicker
+                        options={activeGroupOptions}
+                        typeId={typeId}
+                        onChange={(id, ten) => {
+                          setTypeId(id);
+                          setTypeTen(ten);
+                        }}
                       />
-                    </div>
+                    ) : null}
                   </div>
-
-                  {allowStationOverride && (
-                    <div className="space-y-1.5 pt-3 border-t border-slate-100">
-                      <label className={bv103LayoutChrome.labelBlock}>Trạm phát hiện</label>
-                      <select
-                        value={detectionStation}
-                        onChange={(e) => setDetectionStation(e.target.value as Station)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[var(--primary)]"
-                      >
-                        {INCIDENT_STATION_OPTIONS.map((s) => (
-                          <option key={s.value} value={s.value}>
-                            {s.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
+                  {renderStationOverride}
                 </div>
-              </div>
-            )}
+              ) : null}
 
-            {incidentGroup === "INSTRUMENT" && (
-              <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
-                <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
-                  <Wrench size={16} className="text-[var(--primary)]" />
-                  Thông tin truy vết Dụng cụ
-                </h4>
-                <div className="space-y-4">
-                  {/* Quét mã QR bộ dụng cụ (Bắt buộc) */}
-                  <div className="space-y-1.5">
-                    <label className={bv103LayoutChrome.labelBlock}>
-                      Quét mã QR Bộ dụng cụ lỗi <span className="text-red-500 font-bold">*</span>
-                    </label>
-                    <div className="group relative">
-                      <input
-                        value={form.maQR}
-                        onChange={(e) => handleFieldChange("maQR", e.target.value.toUpperCase())}
-                        onKeyDown={handleQrKeyDown}
-                        className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pl-4 pr-12 text-lg font-black tracking-widest text-red-600 outline-none transition-all focus:border-[var(--primary)] focus:bg-white focus:ring-2 focus:ring-[var(--primary)]/10"
-                        placeholder="QUÉT QR BỘ DỤNG CỤ..."
-                        autoFocus={allowStationOverride}
-                      />
-                      <div className="absolute right-4 top-4 text-slate-300">
-                        <QrCode size={20} className={form.maQR ? "text-[var(--primary)]" : ""} />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* QR Dụng cụ lẻ & Nhân sự liên quan */}
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <label className={bv103LayoutChrome.labelBlock}>Dụng cụ lẻ lỗi / thiếu / mất (nếu có)</label>
-                      <input
-                        value={form.errorQR}
-                        onChange={(e) => handleFieldChange("errorQR", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
-                        placeholder="Quét QR dụng cụ lẻ hoặc nhập tên..."
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className={bv103LayoutChrome.labelBlock}>Nhân sự liên quan / Người liên quan</label>
-                      <input
-                        value={form.faultOperator}
-                        onChange={(e) => handleFieldChange("faultOperator", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
-                        placeholder="Mã hoặc tên nhân viên..."
-                      />
-                    </div>
-                  </div>
-
-                  {allowStationOverride && (
-                    <div className="space-y-1.5 pt-3 border-t border-slate-100">
-                      <label className={bv103LayoutChrome.labelBlock}>Trạm phát hiện</label>
-                      <select
-                        value={detectionStation}
-                        onChange={(e) => setDetectionStation(e.target.value as Station)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[var(--primary)]"
-                      >
-                        {INCIDENT_STATION_OPTIONS.map((s) => (
-                          <option key={s.value} value={s.value}>
-                            {s.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
+              {incidentGroup === "INSTRUMENT" ? (
+                <div className={UI.sectionGap}>
+                  <QrField
+                    label="Quét mã QR bộ dụng cụ *"
+                    value={maQR}
+                    onChange={setMaQR}
+                    onKeyDown={(e) => void handleQrKeyDown(e)}
+                    loading={loading}
+                  />
+                  <TypePicker
+                    options={activeGroupOptions}
+                    typeId={typeId}
+                    onChange={(id, ten) => {
+                      setTypeId(id);
+                      setTypeTen(ten);
+                    }}
+                  />
+                  <InstrumentIncidentFields
+                    maQR={maQR}
+                    typeId={typeId}
+                    enabled={enabled}
+                    quyTrinhId={quyTrinhId}
+                    initialChiTietId={initialChiTietId}
+                    initialLoaiDungCuId={initialLoaiDungCuId}
+                    onChange={setInstrumentState}
+                  />
+                  {renderStationOverride}
                 </div>
-              </div>
-            )}
+              ) : null}
 
-            {incidentGroup === "EQUIPMENT" && (
-              <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
-                <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
-                  <Cpu size={16} className="text-[var(--primary)]" />
-                  Thông tin truy vết Thiết bị / Máy móc
-                </h4>
-                <div className="space-y-4">
-                  {/* Chọn máy gặp sự cố (Bắt buộc) */}
+              {incidentGroup === "CHEMICAL" ? (
+                <div className={UI.sectionGap}>
                   <div className="space-y-1.5">
-                    <label className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
-                      Thiết bị gặp sự cố <span className="text-red-500 font-bold">*</span>
-                    </label>
+                    <label className={bv103LayoutChrome.labelBlock}>Hóa chất / vật tư *</label>
                     <select
-                      value={form.machineId}
-                      onChange={(e) => handleFieldChange("machineId", e.target.value)}
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
-                      required={incidentGroup === "EQUIPMENT"}
+                      value={machineId}
+                      onChange={(e) => setMachineId(e.target.value)}
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none focus:border-[var(--primary)]"
+                      required
                     >
-                      <option value="">-- Chọn máy gặp sự cố --</option>
-                      {machines.map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {m.ten}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Nhân sự liên quan & QR Bộ dụng cụ bị ảnh hưởng (Tùy chọn) */}
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <label className={bv103LayoutChrome.labelBlock}>Nhân sự liên quan / Người liên quan</label>
-                      <input
-                        value={form.faultOperator}
-                        onChange={(e) => handleFieldChange("faultOperator", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
-                        placeholder="Người vận hành, giám sát..."
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className={bv103LayoutChrome.labelBlock}>Mã QR Bộ dụng cụ bị ảnh hưởng (nếu có)</label>
-                      <input
-                        value={form.maQR}
-                        onChange={(e) => handleFieldChange("maQR", e.target.value.toUpperCase())}
-                        onKeyDown={handleQrKeyDown}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-red-600 tracking-wider outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
-                        placeholder="Quét/nhập mã QR bộ..."
-                      />
-                    </div>
-                  </div>
-
-                  {allowStationOverride && (
-                    <div className="space-y-1.5 pt-3 border-t border-slate-100">
-                      <label className={bv103LayoutChrome.labelBlock}>Trạm phát hiện</label>
-                      <select
-                        value={detectionStation}
-                        onChange={(e) => setDetectionStation(e.target.value as Station)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[var(--primary)]"
-                      >
-                        {INCIDENT_STATION_OPTIONS.map((s) => (
-                          <option key={s.value} value={s.value}>
-                            {s.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {incidentGroup === "CHEMICAL" && (
-              <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
-                <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
-                  <FlaskConical size={16} className="text-[var(--primary)]" />
-                  Thông tin truy vết Hóa chất / Vật tư
-                </h4>
-                <div className="space-y-4">
-                  {/* Chọn hóa chất / vật tư */}
-                  <div className="space-y-1.5">
-                    <label className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
-                      Hóa chất / Vật tư gặp sự cố <span className="text-red-500 font-bold">*</span>
-                    </label>
-                    <select
-                      value={form.machineId}
-                      onChange={(e) => handleFieldChange("machineId", e.target.value)}
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
-                      required={incidentGroup === "CHEMICAL"}
-                    >
-                      <option value="">-- Chọn hóa chất từ danh mục --</option>
+                      <option value="">— Chọn từ danh mục —</option>
                       {chemicals.map((c) => (
-                        <option key={c.id} value={`${c.ma} - ${c.ten}`}>
-                          {c.ma} - {c.ten}
-                        </option>
+                        <option key={c.id} value={c.id}>{c.ma} — {c.ten}</option>
                       ))}
                     </select>
                   </div>
-
-                  {/* Mã lô & Nhân sự liên quan */}
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <label className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
-                        Mã lô hóa chất / vật tư <span className="text-red-500 font-bold">*</span>
-                      </label>
-                      <input
-                        value={form.errorQR}
-                        onChange={(e) => handleFieldChange("errorQR", e.target.value.toUpperCase())}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
-                        placeholder="Nhập mã lô hàng..."
-                        required={incidentGroup === "CHEMICAL"}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className={bv103LayoutChrome.labelBlock}>Nhân sự liên quan / Người liên quan</label>
-                      <input
-                        value={form.faultOperator}
-                        onChange={(e) => handleFieldChange("faultOperator", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
-                        placeholder="Người pha chế, giám sát..."
-                      />
-                    </div>
-                  </div>
-
-                  {/* Mã QR bộ dụng cụ bị ảnh hưởng (Tùy chọn) */}
                   <div className="space-y-1.5">
-                    <label className={bv103LayoutChrome.labelBlock}>Mã QR Bộ dụng cụ bị ảnh hưởng (Tùy chọn)</label>
+                    <label className={bv103LayoutChrome.labelBlock}>Mã lô (tùy chọn)</label>
                     <input
-                      value={form.maQR}
-                      onChange={(e) => handleFieldChange("maQR", e.target.value.toUpperCase())}
-                      onKeyDown={handleQrKeyDown}
-                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-red-600 tracking-wider outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
-                      placeholder="Quét hoặc nhập QR bộ..."
+                      value={maLo}
+                      onChange={(e) => setMaLo(e.target.value.toUpperCase())}
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none focus:border-[var(--primary)]"
+                      placeholder="Nhập mã lô nếu có..."
                     />
                   </div>
-
-                  {allowStationOverride && (
-                    <div className="space-y-1.5 pt-3 border-t border-slate-100">
-                      <label className={bv103LayoutChrome.labelBlock}>Trạm phát hiện</label>
-                      <select
-                        value={detectionStation}
-                        onChange={(e) => setDetectionStation(e.target.value as Station)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[var(--primary)]"
-                      >
-                        {INCIDENT_STATION_OPTIONS.map((s) => (
-                          <option key={s.value} value={s.value}>
-                            {s.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
+                  {renderStationOverride}
                 </div>
-              </div>
-            )}
+              ) : null}
 
-            {incidentGroup === "OTHER" && (
-              <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
-                <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
-                  <AlertTriangle size={16} className="text-[var(--primary)]" />
-                  Thông tin truy vết Sự cố khác
-                </h4>
-                <div className="space-y-4">
-                  {/* Khâu rollback & Mã tham chiếu khác */}
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <label className={bv103LayoutChrome.labelBlock}>Giai đoạn xử lý lại</label>
-                      <select
-                        value={form.faultStation}
-                        onChange={(e) => handleFieldChange("faultStation", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
-                      >
-                        <option value="">— Tự động Rollback —</option>
-                        {INCIDENT_STATION_OPTIONS.map((s) => (
-                          <option key={s.value} value={s.value}>
-                            {s.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className={bv103LayoutChrome.labelBlock}>Mã tham chiếu phụ (nếu có)</label>
-                      <input
-                        value={form.errorQR}
-                        onChange={(e) => handleFieldChange("errorQR", e.target.value.toUpperCase())}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
-                        placeholder="Số phiếu, mã đặc thù..."
-                      />
-                    </div>
-                  </div>
-
-                  {/* Nhân sự liên quan & Bộ dụng cụ liên quan */}
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <label className={bv103LayoutChrome.labelBlock}>Nhân sự liên quan / Người liên quan</label>
-                      <input
-                        value={form.faultOperator}
-                        onChange={(e) => handleFieldChange("faultOperator", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)]"
-                        placeholder="Mã hoặc tên nhân viên..."
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className={bv103LayoutChrome.labelBlock}>Mã QR bộ dụng cụ liên quan (nếu có)</label>
-                      <input
-                        value={form.maQR}
-                        onChange={(e) => handleFieldChange("maQR", e.target.value.toUpperCase())}
-                        onKeyDown={handleQrKeyDown}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-red-600 tracking-wider outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
-                        placeholder="Quét hoặc nhập QR bộ..."
-                      />
-                    </div>
-                  </div>
-
-                  {allowStationOverride && (
-                    <div className="space-y-1.5 pt-3 border-t border-slate-100">
-                      <label className={bv103LayoutChrome.labelBlock}>Trạm phát hiện</label>
-                      <select
-                        value={detectionStation}
-                        onChange={(e) => setDetectionStation(e.target.value as Station)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none transition-all focus:border-[var(--primary)]"
-                      >
-                        {INCIDENT_STATION_OPTIONS.map((s) => (
-                          <option key={s.value} value={s.value}>
-                            {s.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* CỘT PHẢI: CHI TIẾT SỰ CỐ & PHẢN HỒI GỬI BÁO CÁO (DÙNG CHUNG CỰC KỲ CÂN ĐỐI) */}
-            <div className="space-y-4">
-              <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
-                <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
-                  <FileText size={16} className="text-[var(--primary)]" />
-                  Chi tiết sự cố &amp; Minh chứng
-                </h4>
-
-                <div className="space-y-4">
-                  {/* TIÊU ĐỀ HẠNG MỤC SỰ CỐ CHỌN NHANH */}
+              {incidentGroup === "EQUIPMENT" ? (
+                <div className={UI.sectionGap}>
+                  <QrField
+                    label="Quét mã QR máy (hoặc chọn bên dưới)"
+                    value={maQR}
+                    onChange={setMaQR}
+                    onKeyDown={(e) => void handleQrKeyDown(e, "MACHINE")}
+                    loading={loading}
+                  />
                   <div className="space-y-1.5">
-                    <label className={bv103LayoutChrome.labelBlock}>Loại sự cố chi tiết</label>
-                    {incidentGroup === "OTHER" ? (
-                      <input
-                        value={form.typeTen}
-                        onChange={(e) => handleFieldChange("typeTen", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
-                        placeholder="Gõ tóm tắt loại sự cố phát sinh..."
-                      />
-                    ) : (
-                      <div className="relative">
-                        <select
-                          value={form.typeId}
-                          onChange={(e) => {
-                            const sel = activeGroupOptions.find((c) => c.id === e.target.value);
-                            setForm((f) => ({ ...f, typeId: e.target.value, typeTen: sel?.ten || "" }));
-                          }}
-                          className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
-                        >
-                          {activeGroupOptions.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.ten}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="pointer-events-none absolute right-4 top-3.5 text-slate-400" size={16} />
-                      </div>
-                    )}
+                    <label className={bv103LayoutChrome.labelBlock}>Thiết bị gặp sự cố *</label>
+                    <select
+                      value={machineId}
+                      onChange={(e) => setMachineId(e.target.value)}
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none focus:border-[var(--primary)]"
+                    >
+                      <option value="">— Chọn máy —</option>
+                      {machines.map((m) => (
+                        <option key={m.id} value={m.id}>{m.ten}</option>
+                      ))}
+                    </select>
                   </div>
-
-                  {/* DIỄN GIẢI CHI TIẾT TÌNH HUỐNG */}
-                  <div className="space-y-1.5">
-                    <label className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
-                      Diễn giải chi tiết tình huống <span className="text-red-500 font-bold">*</span>
-                    </label>
-                    <textarea
-                      value={form.desc}
-                      onChange={(e) => handleFieldChange("desc", e.target.value)}
-                      rows={4}
-                      className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-800 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
-                      placeholder="Mô tả cụ thể sự việc để phục vụ hậu kiểm..."
-                    />
-                  </div>
-
-                  {/* ẢNH MINH CHỨNG (TÙY CHỌN - ĐƯỜNG DẪN HOẶC GOOGLE DRIVE LINK) */}
-                  <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                    <label className={bv103LayoutChrome.labelBlock}>Ảnh minh chứng (Tùy chọn)</label>
-                    <div className="relative">
-                      <input
-                        value={form.anhMinhChung}
-                        onChange={(e) => handleFieldChange("anhMinhChung", e.target.value)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-10 text-xs font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
-                        placeholder="Dán link ảnh hoặc link chia sẻ từ Google Drive..."
-                      />
-                      <div className="absolute right-3.5 top-3.5 text-slate-400">
-                        <Camera size={16} />
-                      </div>
-                    </div>
-                    <p className="text-[11px] font-medium text-slate-400 leading-relaxed">
-                      * Bản in chuẩn y tế tự động bóc tách ID Google Drive và hiển thị ảnh thô sắc nét.
-                    </p>
-
-                    {form.anhMinhChung && (
-                      <div className="mt-3 flex flex-col items-center justify-center border border-slate-200 bg-slate-50 rounded-xl p-3 max-h-48 overflow-hidden animate-in fade-in duration-300">
-                        <img
-                          src={getGoogleDriveDirectLink(form.anhMinhChung)}
-                          alt="Preview ảnh minh chứng"
-                          className="max-h-40 object-contain rounded-lg shadow-sm border border-slate-100 bg-white"
-                          onError={(e) => {
-                            // Ẩn thumbnail nếu link không tải được
-                            (e.target as HTMLElement).style.display = "none";
-                          }}
-                        />
-                        <span className="mt-1.5 text-[11px] font-medium text-slate-400">Xem trước ảnh minh chứng</span>
-                      </div>
-                    )}
-                  </div>
+                  <TypePicker
+                    options={activeGroupOptions}
+                    typeId={typeId}
+                    onChange={(id, ten) => {
+                      setTypeId(id);
+                      setTypeTen(ten);
+                    }}
+                  />
+                  {renderStationOverride}
                 </div>
-              </div>
+              ) : null}
 
-              {/* NÚT GỬI BÁO CÁO */}
-              <button
-                type="submit"
-                disabled={loading || !!fError || fLoading}
-                className="flex h-16 w-full items-center justify-center gap-3 rounded-xl bg-red-600 text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-lg shadow-red-100 hover:bg-red-700 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"
-              >
-                {loading ? <Loader2 className="animate-spin" /> : (
-                  <>
-                    <CheckCircle2 size={18} /> Gửi báo cáo &amp; Xử lý Rollback
-                  </>
-                )}
-              </button>
+              {incidentGroup === "OTHER" ? (
+                <div className={UI.sectionGap}>
+                  <div className="space-y-1.5">
+                    <label className={bv103LayoutChrome.labelBlock}>Vị trí phát hiện</label>
+                    <select
+                      value={viTriPhatHien}
+                      onChange={(e) => setViTriPhatHien(e.target.value)}
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 font-semibold text-slate-700 outline-none focus:border-[var(--primary)]"
+                    >
+                      <option value="">— Chọn vị trí —</option>
+                      {INCIDENT_STATION_OPTIONS.map((s) => (
+                        <option key={s.value} value={s.value}>{s.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {renderStationOverride}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
+              <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
+                <FileText size={16} className="text-[var(--primary)]" />
+                Thông tin sự cố
+              </h4>
+              <SuCoIncidentMetaFields
+                values={meta}
+                nguoiLapLabel={nguoiLapLabel}
+                imageRequired={imageRequired}
+                imageHidden={imageHidden}
+                onChange={handleMetaChange}
+              />
             </div>
           </div>
+
+          <button
+            type="submit"
+            disabled={loading || tracing || !!fError || fLoading}
+            className="flex h-16 w-full cursor-pointer items-center justify-center gap-3 rounded-xl bg-red-600 text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-lg shadow-red-100 transition-all hover:bg-red-700 active:scale-[0.98] disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="animate-spin" /> : <><CheckCircle2 size={18} /> Gửi báo cáo</>}
+          </button>
         </div>
       )}
     </form>
+  );
+}
+
+function QrField({
+  label,
+  value,
+  onChange,
+  onKeyDown,
+  loading,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  loading?: boolean;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className={bv103LayoutChrome.labelBlock}>{label}</label>
+      <div className="relative">
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value.toUpperCase())}
+          onKeyDown={onKeyDown}
+          disabled={loading}
+          className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pl-4 pr-12 text-lg font-black uppercase tracking-widest text-red-600 outline-none transition-all focus:border-[var(--primary)] focus:bg-white focus:ring-2 focus:ring-[var(--primary)]/10 disabled:opacity-60"
+          placeholder="QUÉT QR..."
+        />
+        <div className="absolute right-4 top-4 text-slate-300">
+          {loading ? <Loader2 className="animate-spin" size={20} /> : <QrCode size={20} className={value ? "text-[var(--primary)]" : ""} />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TypePicker({
+  options,
+  typeId,
+  onChange,
+}: {
+  options: Array<{ id: string; ten: string }>;
+  typeId: string;
+  onChange: (id: string, ten: string) => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className={bv103LayoutChrome.labelBlock}>Loại sự cố</label>
+      <div className="relative">
+        <select
+          value={typeId}
+          onChange={(e) => {
+            const sel = options.find((c) => c.id === e.target.value);
+            onChange(e.target.value, sel?.ten || "");
+          }}
+          className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none focus:border-[var(--primary)] focus:bg-white"
+        >
+          {options.map((c) => (
+            <option key={c.id} value={c.id}>{c.ten}</option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-4 top-3.5 text-slate-400" size={16} />
+      </div>
+    </div>
   );
 }

@@ -44,6 +44,16 @@ describe("cssd-incident-policy", () => {
     expect(p.targetStation).toBe("QC");
   });
 
+  it("INSTRUMENT group does not freeze workflow", () => {
+    const p = resolveIncidentPolicy({
+      detectionStation: "DONG_GOI",
+      incidentTypeTen: "Dụng cụ hỏng",
+      incidentGroup: "INSTRUMENT",
+    });
+    expect(p.freezeSafetyLock).toBe(false);
+    expect(p.clearSterilizationBatchLink).toBe(false);
+  });
+
   it("OTHER without fault rolls back to previous workflow step", () => {
     const p = resolveIncidentPolicy({
       detectionStation: "QC",

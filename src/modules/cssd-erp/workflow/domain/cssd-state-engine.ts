@@ -7,9 +7,12 @@ import type { Station } from "../../types/cssd.types";
 import { WORKFLOW_STEPS, previousWorkflowStation, stepIndex } from "./cssd-stations";
 
 export type AdvanceContext = {
-  currentStatus: Station;
+  /** Rỗng = shell chưa vào trạm (bootstrap catalog). */
+  currentStatus: Station | "";
   targetStation: Station;
   allowNewCycleFromCapPhat?: boolean;
+  /** TIEP_NHAN chưa có thoi_gian_tiep_nhan — cho phép xác nhận idempotent (legacy bootstrap). */
+  tiepNhanPending?: boolean;
 };
 
 export function isValidStation(value: string): value is Station {
@@ -17,33 +20,50 @@ export function isValidStation(value: string): value is Station {
 }
 
 export function validateStationAdvance(ctx: AdvanceContext): { ok: true } | { ok: false; message: string } {
-  const { currentStatus, targetStation, allowNewCycleFromCapPhat = true } = ctx;
+  const { currentStatus, targetStation, allowNewCycleFromCapPhat = true, tiepNhanPending = false } = ctx;
+  const current = String(currentStatus || "").trim() as Station | "";
 
   if (targetStation === "TIET_KHUAN") {
     return {
       ok: false,
       message:
-        "Không xử lý tiệt khuẩn bằng quét tại trang này khi chưa có phiếu mẻ. Vào CSSD → Mẻ tiệt khuẩn (/cssd-erp/batch): tạo phiếu, rồi quét QR bộ trong màn hình mẻ.",
+        "Không xử lý tiệt khuẩn bằng quét tại trang này khi chưa có phiếu mẻ. Vào CSSD → tab Mẻ tiệt khuẩn (/cssd-quy-trinh?tab=batch): tạo phiếu, rồi quét QR bộ trong màn hình mẻ.",
     };
   }
 
-  const curIdx = stepIndex(currentStatus);
-  const tgtIdx = stepIndex(targetStation);
-  if (curIdx < 0 || tgtIdx < 0) {
-    return { ok: false, message: `Trạng thái không hợp lệ: ${currentStatus} → ${targetStation}` };
+  if (!current) {
+    if (targetStation === "TIEP_NHAN") return { ok: true };
+    return {
+      ok: false,
+      message: "Bộ chưa tiếp nhận — quét tại trạm Tiếp nhận trước.",
+    };
   }
 
-  const loopBack = allowNewCycleFromCapPhat && targetStation === "TIEP_NHAN" && currentStatus === "CAP_PHAT";
+  if (current === "TIEP_NHAN" && targetStation === "TIEP_NHAN") {
+    if (tiepNhanPending) return { ok: true };
+    return {
+      ok: false,
+      message: "Bộ đã tiếp nhận — chuyển sang Làm sạch.",
+    };
+  }
+
+  const curIdx = stepIndex(current);
+  const tgtIdx = stepIndex(targetStation);
+  if (curIdx < 0 || tgtIdx < 0) {
+    return { ok: false, message: `Trạng thái không hợp lệ: ${current} → ${targetStation}` };
+  }
+
+  const loopBack = allowNewCycleFromCapPhat && targetStation === "TIEP_NHAN" && current === "CAP_PHAT";
   if (loopBack) return { ok: true };
 
   if (tgtIdx !== curIdx + 1) {
     return {
       ok: false,
-      message: `Sai trạm! Quy trình đang ở bước ${currentStatus}`,
+      message: `Sai trạm! Quy trình đang ở bước ${current}`,
     };
   }
 
-  if (targetStation === "CAP_PHAT" && currentStatus === "TIET_KHUAN") {
+  if (targetStation === "CAP_PHAT" && current === "TIET_KHUAN") {
     return {
       ok: false,
       message:

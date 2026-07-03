@@ -46,6 +46,7 @@ type Props = {
 type GapAlertRow = {
   domain: "VST" | "GSC";
   ten: string;
+  label: string;
   tyLeTgs: number | null;
   tyLeKsnk: number | null;
   doLech: number;
@@ -81,6 +82,7 @@ function collectGapAlerts(
       return {
         domain,
         ten: raw.ten ?? norm.ten,
+        label: norm.label,
         tyLeTgs: norm.ty_le_tgs,
         tyLeKsnk: norm.ty_le_ksnk,
         doLech,
@@ -123,12 +125,9 @@ export function CommandCenterBriefSections({
   );
 
   const baoCaoHref = buildAnalyticsDeepLink("/bao-cao-tong-hop", filterSeed);
-  const thongKeGscHref = buildAnalyticsDeepLink("/giam-sat-chung", filterSeed, "analytics");
-  const thongKeGscBkToiHref = buildAnalyticsDeepLink(
-    "/giam-sat-chung",
-    { ...filterSeed, view: "bk-toi" },
-    "analytics",
-  );
+  const thongKeGscHref = buildAnalyticsDeepLink("/thong-ke/gsc", filterSeed);
+  const thongKeGscBkToiHref = buildAnalyticsDeepLink("/thong-ke/gsc", { ...filterSeed, view: "bk-toi" });
+  const thongKeVstHref = buildAnalyticsDeepLink("/thong-ke/vst", filterSeed);
   const showBaoCao = !(isPilotCoreModulesScopeEnabled() && isPathBlockedUnderPilotCoreModules("/bao-cao-tong-hop"));
 
   const tyLeVst = vstPayload?.kpis?.ty_le_tuan_thu ?? null;
@@ -197,31 +196,35 @@ export function CommandCenterBriefSections({
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
-        <BriefCard icon={Activity} label="Khoa Tự giám sát" value={Math.max(vstPayload?.workload?.khoa_tu_giam_sat ?? 0, gscPayload?.workload?.khoa_tu_giam_sat ?? 0)} suffix="khoa" tone="blue" />
-        <BriefCard icon={Eye} label="Được KSNK bao phủ" value={Math.max(vstPayload?.workload?.khoa_duoc_ksnk_giam_sat ?? 0, gscPayload?.workload?.khoa_duoc_ksnk_giam_sat ?? 0)} suffix="khoa" tone="emerald" />
-        <BriefCard icon={ClipboardList} label="Chuyên đề bao phủ" value={gscPayload?.workload?.chuyen_de_duoc_ksnk_phu ?? 0} suffix="BK" tone="purple" />
-        <BriefCard icon={Users} label="Phiên KSNK (GSC)" value={gscPayload?.workload?.ksnk_so_phien ?? 0} suffix="phiên" tone="orange" />
-      </div>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <TrafficLightCard
           title="Vệ sinh tay"
           icon={ShieldCheck}
           percent={tyLeVst}
-          detailHref={buildAnalyticsDeepLink("/giam-sat-vst", { tu_ngay: tuNgay, den_ngay: denNgay, khoa_ids: selectedKhoaIds.length ? selectedKhoaIds : undefined }, "analytics")}
+          detailHref={thongKeVstHref}
         />
         <TrafficLightCard
           title="Giám sát chung"
           icon={ClipboardList}
           percent={tyLeGsc}
-          detailHref={buildAnalyticsDeepLink("/giam-sat-chung", {
-            tu_ngay: tuNgay,
-            den_ngay: denNgay,
-            khoa_ids: selectedKhoaIds.length ? selectedKhoaIds : undefined,
-          }, "analytics")}
+          detailHref={thongKeGscHref}
         />
       </div>
+
+      <details className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <summary className="cursor-pointer list-none px-5 py-4 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+          Cường độ giám sát trong kỳ
+          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
+            Khoa tự GS · bao phủ KSNK · chuyên đề · phiên GSC
+          </span>
+        </summary>
+        <div className="grid grid-cols-1 gap-5 border-t border-slate-100 p-5 md:grid-cols-2 lg:grid-cols-4">
+          <BriefCard icon={Activity} label="Khoa Tự giám sát" value={Math.max(vstPayload?.workload?.khoa_tu_giam_sat ?? 0, gscPayload?.workload?.khoa_tu_giam_sat ?? 0)} suffix="khoa" tone="blue" />
+          <BriefCard icon={Eye} label="Được KSNK bao phủ" value={Math.max(vstPayload?.workload?.khoa_duoc_ksnk_giam_sat ?? 0, gscPayload?.workload?.khoa_duoc_ksnk_giam_sat ?? 0)} suffix="khoa" tone="emerald" />
+          <BriefCard icon={ClipboardList} label="Chuyên đề bao phủ" value={gscPayload?.workload?.chuyen_de_duoc_ksnk_phu ?? 0} suffix="BK" tone="purple" />
+          <BriefCard icon={Users} label="Phiên KSNK (GSC)" value={gscPayload?.workload?.ksnk_so_phien ?? 0} suffix="phiên" tone="orange" />
+        </div>
+      </details>
 
       {loading || topGapAlerts.length > 0 || gapStatusMessage ? (
         <section className={`rounded-2xl p-5 ${D.noticeGap}`}>
@@ -275,7 +278,9 @@ export function CommandCenterBriefSections({
                     <span className="mr-2 rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-600">
                       {row.domain}
                     </span>
-                    <span className="text-sm font-semibold text-slate-800">{row.ten}</span>
+                    <span className="text-sm font-semibold text-slate-800" title={row.ten}>
+                      {row.label}
+                    </span>
                     <p className="mt-0.5 text-xs text-slate-600">{row.summary}</p>
                   </div>
                   <span className="shrink-0 font-bold text-amber-800">Δ {Math.round(row.doLech)}%</span>

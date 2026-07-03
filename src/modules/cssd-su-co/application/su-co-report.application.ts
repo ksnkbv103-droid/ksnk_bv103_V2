@@ -3,9 +3,12 @@ import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { buildQuyTrinhTramPatch } from "@/modules/cssd-erp/lib/cssd-tram-persist";
 import { insertCssdLifecycleEvent } from "@/modules/cssd-erp/shared/application/cssd-lifecycle-events";
 import { mapFkError, tableHasColumn, getErrorMessage } from "@/modules/cssd-erp/shared/cssd-db-utils";
+import { buildIncidentAttributes } from "../domain/cssd-incident-attributes";
 import { resolveIncidentPolicy } from "../domain/cssd-incident-policy";
 import type { IncidentGroup } from "../domain/cssd-incident-taxonomy";
 import { appendQuyTrinhException } from "@/modules/cssd-erp/shared/application/cssd-quy-trinh-exceptions";
+import { applyInstrumentIncidentLedger } from "./instrument-incident.application";
+import type { InstrumentIncidentPayload } from "./instrument-incident.application";
 
 type QuyRow = Record<string, unknown> & {
   id: string;
@@ -22,22 +25,29 @@ export async function executeIncidentReportAndRollback(
     typeTen: string;
     faultStation?: Station;
     faultOperator?: string;
+    nguoiPhatHien?: string;
+    thoiGianPhatHien?: string;
     desc: string;
     errorQR?: string;
     machineId?: string;
     anhMinhChung?: string;
     reporterEmail?: string | null;
     reporterAuthUserId?: string | null;
+    instrumentPayload?: InstrumentIncidentPayload;
   },
   quyTrinhRow: QuyRow | null,
 ): Promise<{ incident_id: string; isRedAlert: boolean }> {
   const q = quyTrinhRow;
-  const rollbackStation = q ? resolveIncidentPolicy({
-    detectionStation: data.station,
-    incidentTypeTen: data.typeTen,
-    incidentGroup: data.incidentGroup,
-    faultStation: data.faultStation,
-  }) : null;
+  const skipWorkflowRollback = data.incidentGroup === "INSTRUMENT";
+  const rollbackStation =
+    q && !skipWorkflowRollback
+      ? resolveIncidentPolicy({
+          detectionStation: data.station,
+          incidentTypeTen: data.typeTen,
+          incidentGroup: data.incidentGroup,
+          faultStation: data.faultStation,
+        })
+      : null;
 
   let isRedAlert = false;
   if (data.maQR) {
@@ -59,24 +69,24 @@ export async function executeIncidentReportAndRollback(
     lo_tiet_khuan_id: (q as { lo_tiet_khuan_id?: string | null }).lo_tiet_khuan_id,
   } : null;
 
-  const attributes: Record<string, string> = {};
-  if (data.errorQR) attributes.ERROR_QR = data.errorQR;
-  if (data.machineId) attributes.MACHINE_ID = data.machineId;
-  if (data.faultOperator) attributes.FAULT_OPERATOR = data.faultOperator;
-  if (data.anhMinhChung) attributes.ANH_MINH_CHUNG = data.anhMinhChung;
-
-  attributes.INCIDENT_GROUP = data.incidentGroup;
-  attributes.INCIDENT_KIND = rollbackStation ? rollbackStation.kind : "GENERAL_INCIDENT";
-  attributes.ROLLBACK_TARGET_STATION = rollbackStation ? rollbackStation.targetStation : "NONE";
-
-  if (data.reporterEmail) attributes.REPORTER_EMAIL = String(data.reporterEmail);
-  if (data.reporterAuthUserId) attributes.REPORTER_AUTH_USER_ID = String(data.reporterAuthUserId);
+  const attributes = buildIncidentAttributes({
+    incidentGroup: data.incidentGroup,
+    typeTen: data.typeTen,
+    incidentKind: rollbackStation ? rollbackStation.kind : "GENERAL_INCIDENT",
+    rollbackTargetStation: rollbackStation ? rollbackStation.targetStation : "NONE",
+    errorQR: data.errorQR,
+    machineId: data.machineId,
+    faultOperator: data.faultOperator,
+    nguoiPhatHien: data.nguoiPhatHien,
+    thoiGianPhatHien: data.thoiGianPhatHien,
+    anhMinhChung: data.anhMinhChung,
+    reporterEmail: data.reporterEmail,
+    reporterAuthUserId: data.reporterAuthUserId,
+  });
 
   const suCoPayload: Record<string, unknown> = {
     ma_qr_quy_trinh: data.maQR || null,
     ma_tram_phat_hien: data.station,
-    incident_group: data.incidentGroup,
-    incident_type_label: data.typeTen,
     mo_ta: data.desc,
     is_red_alert: isRedAlert,
     ma_tram_gay_loi: rollbackStation ? rollbackStation.faultStation : null,
@@ -88,6 +98,15 @@ export async function executeIncidentReportAndRollback(
   if (error || !incident) throw new Error("Lỗi lưu báo cáo: " + error?.message);
 
   try {
+    if (data.incidentGroup === "INSTRUMENT" && data.instrumentPayload) {
+      await applyInstrumentIncidentLedger(supabase, incident.id as string, {
+        ...data.instrumentPayload,
+        typeId: data.instrumentPayload.typeId,
+        note: data.instrumentPayload.note || data.desc,
+        maQrNguon: data.instrumentPayload.maQrNguon || data.maQR,
+      });
+    }
+
     if (q && rollbackStation) {
       const rollbackPatch = await buildQuyTrinhTramPatch(supabase, rollbackStation.targetStation);
       const quyTrinhUpdate: Record<string, unknown> = {

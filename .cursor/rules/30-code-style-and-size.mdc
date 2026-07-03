@@ -1,11 +1,8 @@
 ---
-description: "[Superseded] Code style — dùng 03-src-editing-compact; @mention khi review style"
+description: "[Redirect] Code style — dùng 03-src-editing-compact"
 alwaysApply: false
 ---
 
-# Code Style and Size
+# Redirect
 
-> **Superseded** cho edit thường: [`03-src-editing-compact.mdc`](./03-src-editing-compact.mdc).
-
-- Component/action/hook ≤ 180 dòng; `kebab-case` files; `camelCase` symbols.
-- Comment tiếng Việt có dấu; UI "và" thay "&"; tránh `any`.
+Rule này đã gộp vào [`03-src-editing-compact.mdc`](./03-src-editing-compact.mdc).

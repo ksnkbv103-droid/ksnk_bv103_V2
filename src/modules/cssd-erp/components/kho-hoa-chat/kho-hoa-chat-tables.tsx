@@ -2,9 +2,26 @@
 
 import React from "react";
 import AdvancedDataTable, { type Column } from "@/components/shared/AdvancedDataTable";
+import { isHoaChatLoai, loaiHoaChatLabel } from "@/lib/domain/cssd-hoa-chat-loai";
 import type { KhoHoaChatGiaoDichRow, KhoHoaChatTonLo } from "../../actions/cssd-kho-hoa-chat.actions";
 
 const tonCols: Column<KhoHoaChatTonLo>[] = [
+  {
+    header: "Loại",
+    accessorKey: "loai_hoa_chat",
+    cell: (i) => {
+      const isChem = isHoaChatLoai(i.loai_hoa_chat);
+      return (
+        <span
+          className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${
+            isChem ? "bg-sky-50 text-sky-700 border border-sky-100" : "bg-violet-50 text-violet-700 border border-violet-100"
+          }`}
+        >
+          {loaiHoaChatLabel(i.loai_hoa_chat)}
+        </span>
+      );
+    },
+  },
   { 
     header: "Mã", 
     accessorKey: "ma_hoa_chat", 
@@ -126,6 +143,18 @@ const movCols: Column<KhoHoaChatGiaoDichRow>[] = [
         {i.han_su_dung ? ` · HSD: ${i.han_su_dung}` : ""}
       </span>
     ) 
+  },
+  { 
+    header: "Liên kết", 
+    accessorKey: "su_co_id", 
+    cell: (i) =>
+      i.su_co_id ? (
+        <span className="inline-flex rounded-full bg-violet-50 border border-violet-200 px-2 py-0.5 text-[11px] font-bold text-violet-700">
+          Sự cố
+        </span>
+      ) : (
+        <span className="text-[11px] text-slate-400">—</span>
+      ),
   },
   { 
     header: "Thời điểm", 

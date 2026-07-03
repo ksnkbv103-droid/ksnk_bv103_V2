@@ -2,7 +2,7 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
+import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
 import { revalidatePath } from "next/cache";
 import { formatHoSoKhoaFkViolation, formatHoSoNhanSuWriteError } from "@/modules/quan-tri-he-thong/nhan-su/actions/nhan-su-fk-normalize";
 import { createDmImportSessionCache } from "../lib/smart-import/dm-import-session-cache";
@@ -11,6 +11,7 @@ import { resolveSmartImportScopeForTable, withResolvedLoaiValues } from "./smart
 import { normalizeImportedRowTypedValues, sanitizeSmartImportRowPayload } from "../lib/smart-import/row-typed-values";
 import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
 import { randomUUID } from "crypto";
+import { syncLoaiPhysicalColumnsOnImportPayload } from "@/lib/master-data/cssd-loai-dung-cu-map";
 
 interface SmartImportConfig {
   tableName: string;
@@ -57,7 +58,7 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
     if (!importModule) {
       return { success: false, error: `Chưa map quyền import cho bảng: ${config.tableName}` };
     }
-    await verifyPermission(importModule, "import");
+    await verifyDanhMucLookupPermission(importModule, "import");
     const supabase = createAdminSupabaseClient();
     const nhanSuDmSessionCache =
       config.tableName === "mdm_nhan_su" ? createDmImportSessionCache(supabase) : undefined;
@@ -200,6 +201,9 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
         specs[config.uniqueKey] = finalCode;
         payload.specs = specs;
         delete payload[config.uniqueKey];
+        if (config.tableName === "cssd_dm_loai_dung_cu") {
+          syncLoaiPhysicalColumnsOnImportPayload(payload, finalCode);
+        }
       }
 
       const existingIndex = preparedIndexByCode.get(finalCode);

@@ -1,11 +1,13 @@
 "use server";
 
-import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
 import { qlcvWorkflowMaFromViewRow } from "../lib/qlcv-workflow-read";
 import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
+import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
+import { assertQlcvRowInListScope, resolveQlcvListScope } from "../lib/qlcv-list-scope";
+import { appendQlcvNhatKy } from "../lib/qlcv-nhat-ky";
 
 interface CreateHoatDongInput {
   id_cong_viec: string;
@@ -27,17 +29,25 @@ interface CreateHoatDongInput {
  * Ghi nhận hoạt động / ghi chú tiến độ (không đổi % — checklist là SSOT tiến độ).
  */
 export async function createHoatDong(input: CreateHoatDongInput) {
-  await verifyPermission("CONG_VIEC", "view");
-  const supabase = createAdminSupabaseClient();
+  const { supabase } = await ensureQlcvKsnkAccess("view");
+  const scope = await resolveQlcvListScope(supabase);
   const actorNhanSuId = await getActorNhanSuId();
 
   const { data: task, error: te } = await supabase
     .from("v_qlcv_cong_viec_full")
-    .select("id, nguoi_phu_trach_id, trang_thai, is_active, phan_tram_hoan_thanh")
+    .select("id, nguoi_phu_trach_id, trang_thai, is_active, phan_tram_hoan_thanh, nguoi_tao_id")
     .eq("id", input.id_cong_viec)
     .maybeSingle();
 
   if (te || !task) throw new Error("Không tìm thấy công việc.");
+
+  assertQlcvRowInListScope(
+    {
+      nguoi_phu_trach_id: task.nguoi_phu_trach_id,
+      nguoi_tao_id: task.nguoi_tao_id,
+    },
+    scope,
+  );
 
   const wf = qlcvWorkflowMaFromViewRow(task);
 
@@ -73,22 +83,13 @@ export async function createHoatDong(input: CreateHoatDongInput) {
 
   const snapshotPct = Number(task.phan_tram_hoan_thanh ?? 0);
 
-  const { data: hoatDong, error: hdError } = await supabase
-    .from("qlcv_fact_cong_viec_hoat_dong")
-    .insert({
-      id_cong_viec: input.id_cong_viec,
-      loai_hoat_dong: input.loai_hoat_dong,
-      noi_dung: input.noi_dung,
-      phan_tram_hoan_thanh: snapshotPct,
-      nguoi_thuc_hien_id: actorNhanSuId,
-    })
-    .select()
-    .single();
-
-  if (hdError) {
-    console.error("Lỗi ghi nhận hoạt động:", hdError);
-    throw new Error("Không thể ghi nhận hoạt động: " + hdError.message);
-  }
+  const hoatDong = await appendQlcvNhatKy(supabase, {
+    congViecId: input.id_cong_viec,
+    loaiHoatDong: input.loai_hoat_dong,
+    nguoiThucHienId: actorNhanSuId,
+    noiDung: input.noi_dung,
+    phanTramHoanThanh: snapshotPct,
+  });
 
   revalidatePath("/quan-ly-cong-viec");
   return hoatDong;

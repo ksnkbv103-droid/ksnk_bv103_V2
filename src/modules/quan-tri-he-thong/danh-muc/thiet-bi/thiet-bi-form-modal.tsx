@@ -5,6 +5,7 @@ import { X, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import BoDungCuTextField from "../dung-cu/bo-dung-cu-form-field";
+import ThietBiPrintQrButton from "@/modules/cssd-erp/components/equipment/thiet-bi-print-qr-button";
 import { ThietBiLoaiMayField } from "./thiet-bi-loai-may-field";
 import type { ThietBiRow } from "../actions/thiet-bi.types";
 import { saveThietBiAction } from "../actions/thiet-bi.actions";
@@ -51,6 +52,9 @@ export default function ThietBiFormModal({
       chu_ky_bao_tri_ngay: form.chu_ky_bao_tri_ngay.trim(),
       ngay_bao_tri_gan_nhat: form.ngay_bao_tri_gan_nhat,
       ngay_bao_tri_tiep_theo: form.ngay_bao_tri_tiep_theo,
+      serial_number: form.serial_number.trim(),
+      model: form.model.trim(),
+      vi_tri: form.vi_tri.trim(),
       ghi_chu: form.ghi_chu,
       is_active: form.is_active,
     });
@@ -80,8 +84,15 @@ export default function ThietBiFormModal({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <BoDungCuTextField label="Mã thiết bị" required disabled={isEdit} value={form.ma_thiet_bi}
-            onChange={(v) => setForm({ ...form, ma_thiet_bi: v.toUpperCase() })} />
+          <div className="space-y-1">
+            <BoDungCuTextField label="Mã thiết bị" required disabled={isEdit} value={form.ma_thiet_bi}
+              onChange={(v) => setForm({ ...form, ma_thiet_bi: v.toUpperCase() })} />
+            <p className="text-[11px] leading-snug text-slate-500 ml-1">
+              {isEdit
+                ? "Mã này là mã QR in trên tem — gắn suốt vòng đời máy, không đổi sau khi tạo."
+                : "Mã này sẽ trở thành mã QR trên tem dán máy. Chọn cẩn thận — không sửa được sau khi lưu."}
+            </p>
+          </div>
           <BoDungCuTextField label="Tên thiết bị" required value={form.ten_thiet_bi}
             onChange={(v) => setForm({ ...form, ten_thiet_bi: v })} />
           <ThietBiLoaiMayField value={form.loai_thiet_bi} onChange={(v) => setForm({ ...form, loai_thiet_bi: v })} />
@@ -100,6 +111,12 @@ export default function ThietBiFormModal({
             onChange={(v) => setForm({ ...form, nam_san_xuat: v })} />
           <BoDungCuTextField label="Chu kỳ bảo trì (ngày)" value={form.chu_ky_bao_tri_ngay}
             onChange={(v) => setForm({ ...form, chu_ky_bao_tri_ngay: v })} />
+          <BoDungCuTextField label="Số serial" value={form.serial_number}
+            onChange={(v) => setForm({ ...form, serial_number: v })} />
+          <BoDungCuTextField label="Model" value={form.model}
+            onChange={(v) => setForm({ ...form, model: v })} />
+          <BoDungCuTextField label="Vị trí / trạm" value={form.vi_tri}
+            onChange={(v) => setForm({ ...form, vi_tri: v })} />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -119,6 +136,22 @@ export default function ThietBiFormModal({
         </div>
 
         <MdmFormActiveToggleRow active={form.is_active} onChange={(next) => setForm({ ...form, is_active: next })} />
+
+        {isEdit && form.ma_thiet_bi.trim() && initialRow?.id ? (
+          <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-4 space-y-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-800">
+              Tem QR vật lý
+            </p>
+            <p className="text-[11px] text-slate-600">
+              In tem dán lên máy để quét nhanh khi bảo trì, vận hành hoặc báo sự cố.
+            </p>
+            <ThietBiPrintQrButton
+              thietBiId={initialRow.id}
+              maThietBi={form.ma_thiet_bi}
+              tenThietBi={form.ten_thiet_bi}
+            />
+          </div>
+        ) : null}
 
         <button
           type="submit"

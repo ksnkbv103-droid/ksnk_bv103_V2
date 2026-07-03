@@ -15,6 +15,7 @@ const emptyPayload = (): GscStrategicPayload => ({
   top_violations: [],
   gap_analysis: [],
   dynamic_checklists: [],
+  checklist_overview: [],
   workload: {
     khoa_tu_giam_sat: 0,
     khoa_duoc_ksnk_giam_sat: 0,

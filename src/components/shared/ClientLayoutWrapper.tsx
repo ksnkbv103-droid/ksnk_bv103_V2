@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 import StaffSessionGate from "@/components/auth/StaffSessionGate";
 import SupervisionOfflineSyncListener from "@/components/shared/SupervisionOfflineSyncListener";
 import QueryProvider from "@/components/providers/QueryProvider";
+import RbacRefreshListener from "@/components/shared/RbacRefreshListener";
 
 export default function ClientLayoutWrapper({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -47,6 +48,7 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
     <QueryProvider>
       <div className="flex min-h-screen bg-slate-50 touch-manipulation pointer-events-auto">
         <StaffSessionGate />
+        <RbacRefreshListener />
         <SupervisionOfflineSyncListener />
         <Sidebar isOpen={isOpen} onClose={closeSidebar} />
 

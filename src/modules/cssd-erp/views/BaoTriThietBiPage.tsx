@@ -17,7 +17,9 @@ import {
   listFactBaoTriThietBiAction,
   listThietBiCoTheBatDauBaoTriAction,
 } from "../actions/cssd-bao-tri.actions";
-import type { FactBaoTriRow } from "../actions/cssd-bao-tri.types";
+import { listSuCoEquipmentGanDayAction } from "../actions/cssd-bao-tri-su-co.actions";
+import type { FactBaoTriRow, LoaiPhieuBaoTri, SuCoEquipmentRow } from "../actions/cssd-bao-tri.types";
+import type { CssdPmChecklistItem } from "@/lib/domain/cssd-equipment-pm-checklist";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 
 const MODULE_KEY = "CSSD_ME_TIET_KHUAN";
@@ -36,18 +38,36 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   const [machines, setMachines] = useState<{ id: string; ma_thiet_bi: string; ten_thiet_bi: string }[]>([]);
   const [openStart, setOpenStart] = useState(false);
   const [selTb, setSelTb] = useState("");
+  const [loaiPhieu, setLoaiPhieu] = useState<LoaiPhieuBaoTri>("DINH_KY");
   const [maMayHoacQr, setMaMayHoacQr] = useState("");
   const [lyDo, setLyDo] = useState("");
   const [ketQuaById, setKetQuaById] = useState<Record<string, string>>({});
+  const [checklistById, setChecklistById] = useState<Record<string, CssdPmChecklistItem[]>>({});
+  const [suCoRows, setSuCoRows] = useState<SuCoEquipmentRow[]>([]);
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
 
   const reload = useCallback(async () => {
     setLoading(true);
-    const [r1, r2] = await Promise.all([listFactBaoTriThietBiAction(), listThietBiCoTheBatDauBaoTriAction()]);
+    const [r1, r2, r3] = await Promise.all([
+      listFactBaoTriThietBiAction(),
+      listThietBiCoTheBatDauBaoTriAction(),
+      listSuCoEquipmentGanDayAction(),
+    ]);
     if (!r1.success) toast.error(r1.error);
-    else setRows(r1.data);
+    else {
+      setRows(r1.data);
+      const ck: Record<string, CssdPmChecklistItem[]> = {};
+      for (const row of r1.data) {
+        if (row.trang_thai === "DANG_THUC_HIEN" && row.checklist_jsonb?.length) {
+          ck[row.id] = row.checklist_jsonb;
+        }
+      }
+      setChecklistById((prev) => ({ ...ck, ...prev }));
+    }
     if (!r2.success) toast.error(r2.error);
     else setMachines(r2.data);
+    if (!r3.success) toast.error(r3.error);
+    else setSuCoRows(r3.data.filter((x) => x.thiet_bi_id));
     setLoading(false);
   }, []);
 
@@ -57,21 +77,38 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
 
   const canEdit = allowed.edit;
 
-  const onBatDau = async () => {
-    const r = await batDauBaoTriThietBiAction({ thiet_bi_id: selTb, ma_thiet_bi_hoac_qr: maMayHoacQr, ly_do: lyDo });
+  const onBatDau = async (opts?: { su_co_id?: string; thiet_bi_id?: string; loai?: LoaiPhieuBaoTri; ly_do?: string }) => {
+    const r = await batDauBaoTriThietBiAction({
+      thiet_bi_id: opts?.thiet_bi_id ?? selTb,
+      ma_thiet_bi_hoac_qr: maMayHoacQr,
+      ly_do: opts?.ly_do ?? lyDo,
+      loai_phieu: opts?.loai ?? loaiPhieu,
+      su_co_id: opts?.su_co_id,
+    });
     if (!r.success) return toast.error(r.error);
-    toast.success("Đã mở phiếu bảo trì — máy chuyển sang trạng thái bảo trì.");
+    toast.success("Đã mở phiếu — máy chuyển sang trạng thái bảo trì.");
     setOpenStart(false);
     setSelTb("");
+    setLoaiPhieu("DINH_KY");
     setMaMayHoacQr("");
     setLyDo("");
     void reload();
   };
 
+  const onMoPhieuTuSuCo = async (sc: SuCoEquipmentRow) => {
+    if (!sc.thiet_bi_id) return toast.error("Sự cố chưa gắn máy.");
+    const ly = sc.mo_ta || sc.incident_type_label || "Sửa chữa từ sự cố EQUIPMENT";
+    await onBatDau({ thiet_bi_id: sc.thiet_bi_id, loai: "SUA_CHUA", ly_do: ly, su_co_id: sc.id });
+  };
+
   const onKetThuc = async (id: string) => {
     const ketQua = String(ketQuaById[id] || "").trim();
     if (!ketQua) return toast.error("Nhập kết quả cho phiếu.");
-    const r = await ketThucBaoTriThietBiAction({ id, ket_qua_ghi_nhan: ketQua });
+    const r = await ketThucBaoTriThietBiAction({
+      id,
+      ket_qua_ghi_nhan: ketQua,
+      checklist_jsonb: checklistById[id],
+    });
     if (!r.success) return toast.error(r.error);
     toast.success("Đã hoàn thành bảo trì — máy sẵn sàng cho mẻ tiệt khuẩn.");
     void reload();
@@ -88,6 +125,15 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   const columns: Column<FactBaoTriRow>[] = [
     { header: "Mã phiếu", accessorKey: "ma_phieu", cell: (i) => <span className="font-mono text-[11px] font-bold text-[var(--primary)]">{i.ma_phieu}</span> },
     { header: "Thiết bị", accessorKey: "ten_thiet_bi", cell: (i) => <span className="text-[11px] font-semibold">{i.ten_thiet_bi || "—"}</span> },
+    {
+      header: "Loại",
+      accessorKey: "loai_phieu",
+      cell: (i) => (
+        <span className={`text-[11px] font-semibold uppercase ${i.loai_phieu === "SUA_CHUA" ? "text-red-600" : "text-[var(--primary)]"}`}>
+          {i.loai_phieu === "SUA_CHUA" ? "Sửa chữa" : "Định kỳ"}
+        </span>
+      ),
+    },
     {
       header: "Trạng thái",
       accessorKey: "trang_thai",
@@ -225,24 +271,58 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         <AdvancedDataTable columns={columns} data={rows} loading={loading} searchPlaceholder="Tìm mã phiếu, thiết bị..." />
       </div>
 
+      {canEdit && suCoRows.length > 0 ? (
+        <div className="rounded-2xl border border-red-100 bg-red-50/30 p-4 space-y-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-red-700">Sự cố máy gần đây — mở phiếu sửa chữa</p>
+          <div className="space-y-2">
+            {suCoRows.slice(0, 5).map((sc) => (
+              <div key={sc.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white bg-white px-3 py-2 text-xs">
+                <div className="min-w-0">
+                  <span className="font-semibold text-slate-800">{sc.ma_thiet_bi || "—"}</span>
+                  <span className="text-slate-500"> · {sc.ten_thiet_bi || ""}</span>
+                  <p className="truncate text-slate-600">{sc.mo_ta || sc.incident_type_label}</p>
+                </div>
+                <button
+                  type="button"
+                  className="shrink-0 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-[11px] font-semibold uppercase text-red-700"
+                  onClick={() => void onMoPhieuTuSuCo(sc)}
+                >
+                  Mở phiếu sửa
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {canEdit ? (
-        <BaoTriActivePanel rows={rows} ketQuaById={ketQuaById} onKetQuaChange={(id, v) => setKetQuaById((m) => ({ ...m, [id]: v }))} onKetThuc={onKetThuc} onHuy={onHuy} />
+        <BaoTriActivePanel
+          rows={rows}
+          ketQuaById={ketQuaById}
+          checklistById={checklistById}
+          onKetQuaChange={(id, v) => setKetQuaById((m) => ({ ...m, [id]: v }))}
+          onChecklistChange={(id, items) => setChecklistById((m) => ({ ...m, [id]: items }))}
+          onKetThuc={onKetThuc}
+          onHuy={onHuy}
+        />
       ) : null}
 
       <BaoTriStartModal
         open={openStart}
         machines={machines}
         selTb={selTb}
+        loaiPhieu={loaiPhieu}
         maMayHoacQr={maMayHoacQr}
         lyDo={lyDo}
         onSelTb={setSelTb}
+        onLoaiPhieu={setLoaiPhieu}
         onMaMayHoacQr={setMaMayHoacQr}
         onLyDo={setLyDo}
         onClose={() => {
           setOpenStart(false);
           setMaMayHoacQr("");
         }}
-        onSubmit={onBatDau}
+        onSubmit={() => void onBatDau()}
       />
 
       <IncidentReportModal
@@ -250,6 +330,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         onClose={() => setIsIncidentOpen(false)}
         station="TIET_KHUAN"
         defaultGroup="EQUIPMENT"
+        onSuccess={() => void reload()}
       />
     </div>
   );

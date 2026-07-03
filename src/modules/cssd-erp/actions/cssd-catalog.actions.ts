@@ -5,6 +5,7 @@ import { verifyPermission } from "@/lib/server-permission";
 import type { Catalog, CSSDBo, CSSDChiTiet, CSSDLoai, CSSDHoaChat } from "../types/catalog.types";
 
 import { CSSD_KHO_CATALOG_PERMISSION_CANDIDATES } from "../lib/cssd-catalog-permission-candidates";
+import { getErrorMessage } from "../shared/cssd-db-utils";
 
 async function verifyCanViewKhoCatalog(): Promise<void> {
   const checks = CSSD_KHO_CATALOG_PERMISSION_CANDIDATES;
@@ -28,27 +29,40 @@ export async function getKhoCatalogPayloadAction(): Promise<
     await verifyCanViewKhoCatalog();
 
     // Lấy trực tiếp từ bảng DM để không phụ thuộc category của RPC registry.
-    const [boRes, loaiRes, chiTietRes, hoaChatRes, khoaRes] = await Promise.all([
+    const [boRes, boMetaRes, loaiRes, chiTietRes, hoaChatRes, khoaRes] = await Promise.all([
       supabase
         .from("v_cssd_bo_dung_cu_summary")
-        .select("*")
+        .select(
+          "id, ma_bo, ten_bo, loai_dung_cu_id, is_active, so_luong_bo, so_khoan, tong_so_luong_dung_cu, khoa_su_dung_id",
+        )
         .eq("is_active", true)
         .order("ma_bo"),
       supabase
+        .from("cssd_dm_bo_dung_cu")
+        .select("id, phan_loai_bo, co_ma_dinh_danh_rieng")
+        .eq("is_active", true),
+      supabase
         .from("v_cssd_loai_dung_cu_summary")
-        .select("*")
+        .select(
+          "id, ma_loai_dung_cu, ma_loai, ten_loai_dung_cu, ten_loai, is_active, phan_loai, so_luong_kho_du_phong, so_luong_tong, hinh_dang, kich_thuoc, cong_dung, is_chiu_nhiet, phuong_phap_tiet_khuan",
+        )
         .eq("is_active", true)
         .order("ma_loai_dung_cu"),
       supabase
         .from("v_cssd_bo_dung_cu_chi_tiet_full")
-        .select("*")
+        .select("id, ma_chi_tiet, ten_chi_tiet, so_luong, bo_dung_cu_id, loai_dung_cu_id, is_active, specs, ghi_chu")
         .eq("is_active", true)
         .order("ma_chi_tiet"),
-      supabase.from("cssd_dm_hoa_chat").select("*").eq("is_active", true).order("ma_hoa_chat"),
+      supabase
+        .from("cssd_dm_hoa_chat")
+        .select("id, ma_hoa_chat, ten_hoa_chat, loai_hoa_chat, don_vi_tinh, is_active")
+        .eq("is_active", true)
+        .order("ma_hoa_chat"),
       supabase.from("mdm_dm_khoa_phong").select("id, ten_khoa, ma_khoa"),
     ]);
 
     if (boRes.error) throw boRes.error;
+    if (boMetaRes.error) throw boMetaRes.error;
     if (loaiRes.error) throw loaiRes.error;
     if (chiTietRes.error) throw chiTietRes.error;
     if (hoaChatRes.error) throw hoaChatRes.error;
@@ -58,20 +72,36 @@ export async function getKhoCatalogPayloadAction(): Promise<
       (khoaRes.data || []).map((x) => [String(x.id), String(x.ma_khoa || x.ten_khoa)] as const)
     );
 
-    const bo: CSSDBo[] = (boRes.data || []).map((x) => ({
+    const boMetaMap = new Map<
+      string,
+      { phan_loai_bo: string | null; co_ma_dinh_danh_rieng: boolean }
+    >(
+      (boMetaRes.data || []).map((x) => [
+        String(x.id),
+        {
+          phan_loai_bo: x.phan_loai_bo ? String(x.phan_loai_bo) : null,
+          co_ma_dinh_danh_rieng: x.co_ma_dinh_danh_rieng !== false,
+        },
+      ] as const),
+    );
+
+    const bo: CSSDBo[] = (boRes.data || []).map((x) => {
+      const meta = boMetaMap.get(String(x.id || ""));
+      return {
       id: String(x.id || ""),
       ma_bo: String(x.ma_bo || ""),
       ten_bo: String(x.ten_bo || ""),
       loai_dung_cu_id: x.loai_dung_cu_id ? String(x.loai_dung_cu_id) : null,
       is_active: x.is_active !== false,
-      phan_loai_bo: x.phan_loai_bo ? String(x.phan_loai_bo) : null,
-      co_ma_dinh_danh_rieng: x.co_ma_dinh_danh_rieng !== false,
+      phan_loai_bo: meta?.phan_loai_bo ?? null,
+      co_ma_dinh_danh_rieng: meta?.co_ma_dinh_danh_rieng ?? true,
       so_luong_bo: x.so_luong_bo != null ? Number(x.so_luong_bo) : null,
       so_khoan: x.so_khoan != null ? Number(x.so_khoan) : null,
       tong_so_luong_dung_cu: x.tong_so_luong_dung_cu != null ? Number(x.tong_so_luong_dung_cu) : null,
       khoa_su_dung_id: x.khoa_su_dung_id ? String(x.khoa_su_dung_id) : null,
       ten_khoa: x.khoa_su_dung_id ? khoaMap.get(String(x.khoa_su_dung_id)) || null : null,
-    }));
+    };
+    });
 
     const loai: CSSDLoai[] = (loaiRes.data || []).map((x) => ({
       id: String(x.id || ""),
@@ -84,7 +114,8 @@ export async function getKhoCatalogPayloadAction(): Promise<
       hinh_dang: x.hinh_dang ? String(x.hinh_dang) : null,
       kich_thuoc: x.kich_thuoc ? String(x.kich_thuoc) : null,
       cong_dung: x.cong_dung ? String(x.cong_dung) : null,
-      kha_nang_chiu_nhiet: x.kha_nang_chiu_nhiet ? String(x.kha_nang_chiu_nhiet) : null,
+      kha_nang_chiu_nhiet:
+        x.is_chiu_nhiet === true ? "Có" : x.is_chiu_nhiet === false ? "Không" : null,
       phuong_phap_tiet_khuan: x.phuong_phap_tiet_khuan ? String(x.phuong_phap_tiet_khuan) : null,
     }));
 
@@ -124,7 +155,7 @@ export async function getKhoCatalogPayloadAction(): Promise<
 
     return { success: true, data: { bo, chi_tiet, loai, hoa_chat } };
   } catch (e: unknown) {
-    return { success: false, error: e instanceof Error ? e.message : String(e) };
+    return { success: false, error: getErrorMessage(e) };
   }
 }
 
@@ -150,7 +181,7 @@ export async function lookupBoDungCuIdByQrAction(qrCode: string): Promise<
 
     return { success: true, boDungCuId: null };
   } catch (e: unknown) {
-    return { success: false, error: e instanceof Error ? e.message : String(e) };
+    return { success: false, error: getErrorMessage(e) };
   }
 }
 

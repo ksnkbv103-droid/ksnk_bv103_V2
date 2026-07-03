@@ -14,6 +14,8 @@ export interface CSSDWaitingItem {
   ma_vach_qr: string;
   updated_at: string;
   ten_bo?: string | null;
+  /** Mã bộ danh mục — dùng cho «Xem chi tiết» thành phần */
+  bo_dung_cu_id?: string | null;
   /** Tên người xử lý ở trạm trước */
   nguoi_tram_truoc?: string | null;
   /** SĐT người trạm trước (click-to-call) */

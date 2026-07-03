@@ -17,6 +17,8 @@ type Props = {
   onChange: (next: string[]) => void;
   minWidthClassName?: string;
   disabled?: boolean;
+  /** Toolbar analytics: cùng chiều cao với input ngày (h-9). */
+  size?: "default" | "compact";
 };
 
 export default function SearchableMultiSelect({
@@ -26,6 +28,7 @@ export default function SearchableMultiSelect({
   onChange,
   minWidthClassName = "min-w-[220px]",
   disabled = false,
+  size = "default",
 }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -146,6 +149,11 @@ export default function SearchableMultiSelect({
     };
   }, [open, isMobileSheet]);
 
+  const compact = size === "compact";
+  const triggerClass = compact
+    ? `h-9 ${minWidthClassName} rounded-lg border border-slate-200 bg-white px-2.5 text-left text-xs font-medium`
+    : `h-11 ${minWidthClassName} rounded-xl border border-slate-200 bg-white px-3 text-left text-sm font-semibold`;
+
   return (
     <div ref={rootRef} className="relative">
       <button
@@ -155,7 +163,7 @@ export default function SearchableMultiSelect({
           if (disabled) return;
           setOpen((v) => !v);
         }}
-        className={`h-11 ${minWidthClassName} rounded-xl border border-slate-200 bg-white px-3 text-left text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60`}
+        className={`${triggerClass} disabled:cursor-not-allowed disabled:opacity-60`}
       >
         {label}: {selected.length === 0 ? "0" : selected.length}/{options.length}
       </button>

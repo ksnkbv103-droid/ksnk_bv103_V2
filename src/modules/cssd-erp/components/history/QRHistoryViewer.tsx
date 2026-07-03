@@ -4,7 +4,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Search, History, CheckCircle2, AlertTriangle, Clock, User, QrCode } from "lucide-react";
 import { toast } from "sonner";
-import { fetchCssdQrHistory } from "../../actions/cssd-qr-history.actions";
+import { fetchCssdQrHistory, assignCssdCaMoTrace } from "../../actions/cssd-qr-history.actions";
+import { useCssdPrint } from "../../hooks/use-cssd-print";
+import CssdPrintPortal from "../print/CssdPrintPortal";
+import type { CssdBatchPrintData } from "../../types/cssd-print.types";
+import { formatCssdPrintDateTime, formatCssdTriLabel } from "../../lib/cssd-print-format";
 
 interface HistoryLog {
   id: string;
@@ -28,7 +32,11 @@ export default function QRHistoryViewer({ initialQr }: Props) {
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<HistoryLog[]>([]);
   const [process, setProcess] = useState<any>(null);
+  const [batchTrace, setBatchTrace] = useState<CssdBatchPrintData | null>(null);
+  const [assigningCaMo, setAssigningCaMo] = useState(false);
+  const [caMoInput, setCaMoInput] = useState("");
   const autoFetched = useRef<string | null>(null);
+  const { printState, onPrintBatch, isPrinting } = useCssdPrint();
 
   const fetchHistory = async (qr: string) => {
     if (!qr.trim()) return toast.error("Vui lòng nhập mã QR");
@@ -36,12 +44,21 @@ export default function QRHistoryViewer({ initialQr }: Props) {
     try {
       const res = await fetchCssdQrHistory(qr);
       if (!res.success) throw new Error(res.error);
+      if ("kind" in res && res.kind === "BATCH" && "batch" in res) {
+        setBatchTrace(res.batch as CssdBatchPrintData);
+        setProcess(null);
+        setHistory([]);
+        return;
+      }
+      setBatchTrace(null);
       setProcess(res.process);
       setHistory(res.history);
+      setCaMoInput(String(res.process?.ma_ca_mo_id || "").trim());
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Lỗi truy vết");
       setHistory([]);
       setProcess(null);
+      setBatchTrace(null);
     } finally {
       setLoading(false);
     }
@@ -54,6 +71,23 @@ export default function QRHistoryViewer({ initialQr }: Props) {
     setCode(seed);
     void fetchHistory(seed);
   }, [initialQr]);
+
+  const saveCaMoTrace = async () => {
+    if (!process?.id) return;
+    const val = caMoInput.trim();
+    if (!val) return toast.error("Nhập mã ca mổ hoặc tên bệnh nhân");
+    setAssigningCaMo(true);
+    try {
+      const res = await assignCssdCaMoTrace(String(process.id), val);
+      if (!res.success) throw new Error(res.error);
+      toast.success("Đã gán truy vết ca mổ / bệnh nhân");
+      await fetchHistory(code);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Không gán được ca mổ");
+    } finally {
+      setAssigningCaMo(false);
+    }
+  };
 
   return (
     <div className="w-full max-w-xl mx-auto space-y-6 touch-manipulation pointer-events-auto">
@@ -81,6 +115,40 @@ export default function QRHistoryViewer({ initialQr }: Props) {
           <Clock className="mx-auto text-slate-200" size={48} />
           <p className="text-[11px] font-medium text-slate-400 tracking-[0.3em]">Đang truy xuất dữ liệu...</p>
         </div>
+      ) : batchTrace ? (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-emerald-100">
+            <h3 className="text-xl font-semibold text-slate-900 mb-1">Mẻ tiệt khuẩn: {batchTrace.maLo}</h3>
+            <p className="text-sm text-emerald-700 font-medium">
+              {batchTrace.ketQuaDat ? "Đạt QC — sẵn sàng cấp phát" : "Không đạt QC"}
+            </p>
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600">
+              <span><strong>Thiết bị:</strong> {batchTrace.thietBi}</span>
+              <span><strong>Người load:</strong> {batchTrace.nguoiLoad}</span>
+              <span><strong>Người dỡ:</strong> {batchTrace.nguoiUnload}</span>
+              <span><strong>Kết thúc:</strong> {formatCssdPrintDateTime(batchTrace.thoiGianKetThuc)}</span>
+              <span><strong>CI:</strong> {formatCssdTriLabel(batchTrace.testCI)}</span>
+              <span><strong>BI:</strong> {formatCssdTriLabel(batchTrace.testSinhHoc)}</span>
+            </div>
+            <button
+              type="button"
+              disabled={isPrinting || !batchTrace.ketQuaDat}
+              onClick={() => void onPrintBatch({ batchId: batchTrace.batchId })}
+              className="mt-4 w-full rounded-xl bg-[var(--primary)] py-3 text-xs font-black uppercase tracking-wide text-white disabled:opacity-50"
+            >
+              In phiếu mẻ A4
+            </button>
+          </div>
+          <div className="bg-white p-5 rounded-2xl border border-slate-100 space-y-3">
+            <h4 className="text-sm font-black uppercase text-slate-700">Bộ trong mẻ ({batchTrace.members.length})</h4>
+            {batchTrace.members.map((m) => (
+              <div key={m.maQrBo} className="rounded-xl border border-slate-100 p-3 text-sm">
+                <p className="font-bold text-slate-800">{m.tenBo}</p>
+                <p className="font-mono text-[11px] text-slate-500">{m.maQrBo}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       ) : process ? (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Card thông tin tóm tắt */}
@@ -98,6 +166,29 @@ export default function QRHistoryViewer({ initialQr }: Props) {
               </div>
             )}
             <div className="absolute -right-4 -bottom-4 opacity-[0.03] text-slate-900"><History size={120} /></div>
+          </div>
+
+          <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 space-y-3">
+            <h4 className="text-xs font-black uppercase tracking-wide text-emerald-800">
+              Truy vết ca mổ / bệnh nhân
+            </h4>
+            <p className="text-[11px] text-emerald-700">
+              Gán sau khi cấp phát — không nhập tại trạm quét workflow.
+            </p>
+            <input
+              value={caMoInput}
+              onChange={(e) => setCaMoInput(e.target.value)}
+              placeholder="Mã ca mổ hoặc tên bệnh nhân…"
+              className="w-full rounded-xl border border-emerald-200 bg-white px-4 py-3 text-sm font-semibold text-slate-800 outline-none focus:border-emerald-400"
+            />
+            <button
+              type="button"
+              disabled={assigningCaMo || !caMoInput.trim()}
+              onClick={() => void saveCaMoTrace()}
+              className="w-full rounded-xl bg-[var(--primary)] py-3 text-xs font-black uppercase tracking-wide text-white disabled:opacity-50"
+            >
+              {assigningCaMo ? "Đang lưu…" : "Lưu truy vết ca mổ"}
+            </button>
           </div>
 
           {/* Timeline truy vết dọc */}
@@ -143,6 +234,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
           </div>
         </div>
       )}
+      <CssdPrintPortal printState={printState} />
     </div>
   );
 }

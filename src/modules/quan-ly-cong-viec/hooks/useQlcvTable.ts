@@ -9,6 +9,7 @@ import type { CongViecView } from "../types";
 interface UseQlcvTableOptions {
   canApprove: boolean;
   boardFilter: QlcvBoardFilter | null;
+  actorStaffId: string | null;
   /** Danh sách gộp (việc active + đề xuất) — dùng khi lọc cổng / thẻ. */
   mergedTasks: CongViecView[];
 }
@@ -55,6 +56,7 @@ export interface UseQlcvTableReturn {
 export function useQlcvTable({
   canApprove,
   boardFilter,
+  actorStaffId,
   mergedTasks,
 }: UseQlcvTableOptions): UseQlcvTableReturn {
   const [tableRows, setTableRows] = useState<CongViecView[]>([]);
@@ -78,7 +80,9 @@ export function useQlcvTable({
     if (!usingClientSlice) return [];
     const term = tableSearchDebounced;
     return mergedTasks.filter((t) => {
-      if (!matchesQlcvBoardFilter(t as unknown as Record<string, unknown>, boardFilter)) return false;
+      if (!matchesQlcvBoardFilter(t as unknown as Record<string, unknown>, boardFilter, { actorStaffId })) {
+        return false;
+      }
       if (!term) return true;
       return (
         t.tieu_de?.toLowerCase().includes(term) ||
@@ -90,7 +94,7 @@ export function useQlcvTable({
           .includes(term)
       );
     });
-  }, [usingClientSlice, mergedTasks, boardFilter, tableSearchDebounced]);
+  }, [usingClientSlice, mergedTasks, boardFilter, tableSearchDebounced, actorStaffId]);
 
   const applyClientPage = useCallback(() => {
     const sorted = sortRows(clientFiltered, tableSortKey, tableSortDir);

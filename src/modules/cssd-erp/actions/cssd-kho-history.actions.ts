@@ -3,6 +3,7 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyCssdKhoDungCuView } from "@/lib/cssd-server-gates";
 import { getErrorMessage } from "../shared/cssd-db-utils";
+import { CSSD_LOAI_PHYSICAL_SELECT, resolveLoaiAlias } from "@/lib/master-data/cssd-loai-dung-cu-map";
 
 const MAX_HISTORY_ROWS = 50;
 
@@ -41,18 +42,13 @@ export async function fetchCssdKhoGiaoDichHistory() {
     if (loaiIds.length) {
       const { data: loais } = await supabase
         .from("cssd_dm_loai_dung_cu")
-        .select("id, ma_loai_dung_cu, ten_loai_dung_cu")
+        .select(`${CSSD_LOAI_PHYSICAL_SELECT}, specs`)
         .in("id", loaiIds);
       loaiMap = new Map(
-        (loais || []).map(
-          (l: { id: string; ma_loai_dung_cu?: string | null; ten_loai_dung_cu?: string | null }) => [
-            String(l.id),
-            {
-              ma_loai_dung_cu: String(l.ma_loai_dung_cu || ""),
-              ten_loai_dung_cu: String(l.ten_loai_dung_cu || ""),
-            },
-          ],
-        ),
+        (loais || []).map((l) => {
+          const alias = resolveLoaiAlias(l as Parameters<typeof resolveLoaiAlias>[0]);
+          return [String((l as { id: string }).id), alias] as const;
+        }),
       );
     }
 

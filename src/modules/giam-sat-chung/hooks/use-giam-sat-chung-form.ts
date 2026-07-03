@@ -180,6 +180,11 @@ export function useGiamSatChungForm(
       toast.error("Vui lòng chọn Khoa và Khu vực");
       return;
     }
+    const supervisorId = String(session.nguoi_giam_sat_id || currentHoSoId || "").trim();
+    if (!supervisorId) {
+      toast.error("Không xác định được người giám sát. Liên kết tài khoản với hồ sơ nhân sự tại Tài khoản của tôi.");
+      return;
+    }
     const evaluatedCount = results.filter((r) => r.value !== "NA").length;
     if (evaluatedCount === 0) {
       toast.error("Vui lòng đánh giá ít nhất 1 tiêu chí");
@@ -210,8 +215,9 @@ export function useGiamSatChungForm(
           results,
           existingSessionId: sid || null,
         });
-        toast.message(
-          "Đã lưu vào hàng đợi ngoại tuyến. Hệ thống sẽ gửi phiên khi có mạng trở lại (tự động hoặc khi bạn mở lại ứng dụng).",
+        toast.warning(
+          "Chưa lên máy chủ — phiên đang chờ mạng. Khi có internet, bấm «Đồng bộ» ở góc màn hình hoặc mở lại trang.",
+          { duration: 8000 },
         );
         return;
       }
@@ -236,7 +242,10 @@ export function useGiamSatChungForm(
           results,
           existingSessionId: sid || null,
         });
-        toast.message("Mạng không ổn định — đã giữ phiên trong hàng đợi ngoại tuyến để gửi sau.");
+        toast.warning(
+          "Chưa lên máy chủ — mạng lỗi, phiên đang chờ. Khi có internet, bấm «Đồng bộ» ở góc màn hình.",
+          { duration: 8000 },
+        );
       } else {
         toast.error("Lỗi: " + formatUnknownError(error));
       }

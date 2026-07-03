@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    optimizePackageImports: ["lucide-react", "recharts", "date-fns"],
+  },
   async redirects() {
     return [
       { source: "/quan-tri-danh-muc", destination: "/quan-tri-he-thong", permanent: true },
@@ -27,6 +30,9 @@ const nextConfig: NextConfig = {
       { source: "/giam-sat-chung/tuan-thu/lich-su", destination: "/lich-su/gsc", permanent: true },
       { source: "/giam-sat-chung/nhat-ky/lich-su", destination: "/lich-su/gsc", permanent: true },
       { source: "/giam-sat-chung/he-thong/lich-su", destination: "/lich-su/gsc", permanent: true },
+      { source: "/giam-sat-chung/tuan-thu/thong-ke", destination: "/thong-ke/gsc?loai=TUAN_THU", permanent: true },
+      { source: "/giam-sat-chung/nhat-ky/thong-ke", destination: "/thong-ke/gsc?loai=NHAT_KY_VAN_HANH", permanent: true },
+      { source: "/giam-sat-chung/he-thong/thong-ke", destination: "/thong-ke/gsc?loai=DANH_GIA_HE_THONG", permanent: true },
     ];
   },
 };

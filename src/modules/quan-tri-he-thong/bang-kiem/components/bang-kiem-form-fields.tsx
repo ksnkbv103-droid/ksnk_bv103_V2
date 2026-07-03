@@ -28,9 +28,6 @@ interface Props {
   hinhThucLoading?: boolean;
 }
 
-/** Nhóm chuyên đề seed mẫu (có thể nhập tay khác). */
-const NHOM_GOI_Y = ["VST", "PHONG_NGUA_CHUAN", "CAN_THIEP", "MOI_TRUONG"];
-
 export default function BangKiemFormFields({
   formData,
   setFormData,

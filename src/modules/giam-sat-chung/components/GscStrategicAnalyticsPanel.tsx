@@ -1,22 +1,23 @@
 "use client";
 
-import React, { useMemo } from "react";
-import Link from "next/link";
-import { AlertTriangle, ExternalLink } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnalyticsFilterBar } from "@/components/shared/AnalyticsFilterBar";
 import {
   SupervisionCompareAccordion,
-  SupervisionCoverageMatrix,
   SupervisionKhoaAnalyticsBlock,
   SupervisionKpiRow,
   SupervisionTrendChart,
-  SupervisionTgsObligationBlock,
 } from "@/lib/analytics/supervision-analytics-charts";
-import { useGscTgsObligation } from "@/lib/analytics/use-gsc-tgs-obligation";
-import { buildGapKhoaRows, type CoverageTopicInput, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
+import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { buildAnalyticsUrlQuery } from "@/lib/analytics/supervision-deep-link";
 import type { GscStrategicPayload } from "../types/gsc-strategic.types";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
+import { GscChecklistNavigator } from "./GscChecklistNavigator";
+import { GscBkAnalyticsDashboard } from "./GscBkAnalyticsDashboard";
+import { useGscChecklistDetail } from "../hooks/use-gsc-checklist-detail";
+import { AlertTriangle } from "lucide-react";
 
 type FilterProps = {
   tuNgay: string;
@@ -46,265 +47,193 @@ type Props = FilterProps & {
   payload: GscStrategicPayload | null;
   loading?: boolean;
   loadError?: string | null;
-  checklistClusters?: Record<string, GscStrategicPayload>;
-  clustersLoading?: boolean;
-  truncatedChecklistCount?: number;
-  pendingClusterCount?: number;
-  clustersRequested?: boolean;
-  onRequestChecklistClusters?: () => void;
   bkLabelRecord?: Record<string, string>;
   onRefresh?: () => void;
   khoaFilterLocked?: boolean;
 };
 
-function GscAnalyticsBody({
-  payload,
-  loading,
-  title,
-  selectedKhoaIds,
-  khoaOptions,
-}: {
-  payload: GscStrategicPayload | null;
-  loading?: boolean;
-  title?: string;
-  selectedKhoaIds: string[];
-  khoaOptions: { id: string; label: string }[];
-}) {
-  const gapKhoaRows = useMemo(
-    () => buildGapKhoaRows(payload?.gap_analysis, selectedKhoaIds, khoaOptions, khoaOptions.length),
-    [payload?.gap_analysis, selectedKhoaIds, khoaOptions],
-  );
-
-  const compareSections = useMemo(
-    () => [
-      { title: "Theo vùng IPAC (4 màu)", rows: toCompareRows(payload?.matrix_khu_vuc_nhom) },
-      { title: "Theo khu vực (chi tiết)", rows: toCompareRows(payload?.matrix_khu_vuc) },
-      { title: "Theo đối tượng", rows: toCompareRows(payload?.matrix_nghe) },
-      { title: "Theo hình thức giám sát", rows: toCompareRows(payload?.matrix_hinh_thuc) },
-      { title: "Theo cách thức giám sát", rows: toCompareRows(payload?.matrix_cach_thuc) },
-    ],
-    [payload],
-  );
-
-  const moduleLabel = title ? undefined : "GSC";
-
-  return (
-    <div className={UI.sectionGap}>
-      {title ? (
-        <h3 className="border-b border-slate-200 pb-2 text-base font-bold text-slate-800">{title}</h3>
-      ) : null}
-      <SupervisionKpiRow
-        loading={loading}
-        items={[
-          { label: "Phiên giám sát", value: payload?.kpis?.tong_phien ?? 0 },
-          { label: "Tiêu chí áp dụng", value: payload?.kpis?.tong_quan_sat ?? 0 },
-          { label: "Tiêu chí đạt", value: payload?.kpis?.tong_dat ?? 0 },
-          { label: "Tỷ lệ tuân thủ", value: formatPercent2(payload?.kpis?.ty_le_tuan_thu ?? 0) },
-        ]}
-      />
-      <SupervisionTrendChart title="Xu hướng tuân thủ" data={payload?.trendline ?? []} loading={loading} />
-      <SupervisionKhoaAnalyticsBlock
-        rows={gapKhoaRows}
-        loading={loading}
-        moduleLabel={moduleLabel}
-        tgsVolumeLabel="Khảo sát TGS"
-        ksnkVolumeLabel="Khảo sát KSNK"
-      />
-      <SupervisionCompareAccordion sections={compareSections} loading={loading} />
-      {(payload?.top_violations?.length ?? 0) > 0 ? (
-        <div className={`${UI.shell} p-4`}>
-          <h4 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
-            <AlertTriangle size={16} className="text-red-500" /> Top tiêu chí vi phạm
-          </h4>
-          <div className="max-h-[220px] space-y-2 overflow-y-auto">
-            {payload?.top_violations?.map((v, i) => (
-              <div key={v.criterion_id || i} className="rounded-lg border border-slate-100 p-2 text-sm">
-                <p className="font-semibold text-slate-800">{v.ten_tieu_chi}</p>
-                <p className="text-xs text-slate-500">
-                  {v.ten_bang_kiem} · {formatPercent2(v.ty_le_vi_pham)} không đạt
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 export default function GscStrategicAnalyticsPanel(p: Props) {
-  const tgsObligation = useGscTgsObligation({
-    enabled: Boolean(p.payload),
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const [selectedMaBk, setSelectedMaBk] = useState<string | null>(() => searchParams.get("bk"));
+
+  useEffect(() => {
+    const fromUrl = searchParams.get("bk");
+    if (fromUrl) setSelectedMaBk(fromUrl);
+  }, [searchParams]);
+
+  const syncBkToUrl = useCallback(
+    (ma: string | null) => {
+      const next = new URLSearchParams(searchParams.toString());
+      if (ma) next.set("bk", ma);
+      else next.delete("bk");
+      const q = next.toString();
+      router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const onSelectMaBk = useCallback(
+    (ma: string | null) => {
+      setSelectedMaBk(ma);
+      syncBkToUrl(ma);
+    },
+    [syncBkToUrl],
+  );
+
+  const selectedLabel = useMemo(() => {
+    if (!selectedMaBk) return "";
+    return p.bkLabelRecord?.[selectedMaBk] ?? selectedMaBk;
+  }, [selectedMaBk, p.bkLabelRecord]);
+
+  const { detail, loading: detailLoading, error: detailError } = useGscChecklistDetail({
+    maBk: selectedMaBk,
     tuNgay: p.tuNgay,
     denNgay: p.denNgay,
     selectedKhoiIds: p.selectedKhoiIds,
     selectedKhoaIds: p.selectedKhoaIds,
+    selectedNgheIds: p.selectedNgheIds,
+    selectedKhuVucIds: p.selectedKhuVucIds,
+    selectedHinhThucIds: p.selectedHinhThucIds,
+    khoiOptionCount: p.khoiOptions.length,
+    khoaOptionCount: p.khoaOptions.length,
+    ngheOptionCount: p.ngheOptions.length,
+    khuOptionCount: p.khuVucOptions.length,
   });
 
-  const clusterEntries = Object.entries(p.checklistClusters ?? {});
-
-  const gscGapForObligation = useMemo(
-    () =>
-      buildGapKhoaRows(
-        p.payload?.gap_analysis,
-        p.selectedKhoaIds,
-        p.khoaOptions,
-        p.khoaOptions.length,
-      ),
+  const gapKhoaRows = useMemo(
+    () => buildGapKhoaRows(p.payload?.gap_analysis, p.selectedKhoaIds, p.khoaOptions, p.khoaOptions.length),
     [p.payload?.gap_analysis, p.selectedKhoaIds, p.khoaOptions],
   );
 
-  const gscCoverageTopics = useMemo((): CoverageTopicInput[] => {
-    if (clusterEntries.length >= 2) {
-      return clusterEntries.map(([ma, clusterPayload]) => ({
-        id: ma,
-        label:
-          p.bkLabelRecord?.[ma] ??
-          clusterPayload.dynamic_checklists?.[0]?.ten_bang_kiem ??
-          ma,
-        rows: buildGapKhoaRows(
-          clusterPayload.gap_analysis,
-          p.selectedKhoaIds,
-          p.khoaOptions,
-          p.khoaOptions.length,
-        ),
-      }));
-    }
-    const rows = buildGapKhoaRows(
-      p.payload?.gap_analysis,
-      p.selectedKhoaIds,
-      p.khoaOptions,
-      p.khoaOptions.length,
-    );
-    return [{ id: "gsc-all", label: "GSC (tổng kỳ)", rows }];
-  }, [
-    clusterEntries,
-    p.bkLabelRecord,
-    p.khoaOptions,
-    p.payload?.gap_analysis,
-    p.selectedKhoaIds,
-  ]);
+  const compareSections = useMemo(
+    () => [
+      { title: "Theo khối", rows: toCompareRows(p.payload?.matrix_khoi) },
+      { title: "Theo vùng IPAC (4 màu)", rows: toCompareRows(p.payload?.matrix_khu_vuc_nhom) },
+      { title: "Theo khu vực (chi tiết)", rows: toCompareRows(p.payload?.matrix_khu_vuc) },
+      { title: "Theo đối tượng", rows: toCompareRows(p.payload?.matrix_nghe) },
+      { title: "Theo hình thức giám sát", rows: toCompareRows(p.payload?.matrix_hinh_thuc) },
+      { title: "Theo cách thức giám sát", rows: toCompareRows(p.payload?.matrix_cach_thuc) },
+    ],
+    [p.payload],
+  );
 
   return (
-    <div className="space-y-6 px-2 pb-8">
-      <div className={`${UI.shell} p-4`}>
-        <AnalyticsFilterBar
-          khoaFilterLocked={p.khoaFilterLocked}
-          onRefresh={p.onRefresh}
-          refreshLoading={p.loading || p.clustersLoading}
-          tuNgay={p.tuNgay}
-          setTuNgay={p.setTuNgay}
-          denNgay={p.denNgay}
-          setDenNgay={p.setDenNgay}
-          bangKiemOptions={p.bangKiemOptions}
-          selectedBangKiemMas={p.selectedBangKiemMas}
-          setSelectedBangKiemMas={p.setSelectedBangKiemMas}
-          khoiOptions={p.khoiOptions}
-          selectedKhoiIds={p.selectedKhoiIds}
-          setSelectedKhoiIds={p.setSelectedKhoiIds}
-          khoaOptions={p.khoaOptions}
-          selectedKhoaIds={p.selectedKhoaIds}
-          setSelectedKhoaIds={p.setSelectedKhoaIds}
-          ngheOptions={p.ngheOptions}
-          selectedNgheIds={p.selectedNgheIds}
-          setSelectedNgheIds={p.setSelectedNgheIds}
-          khuVucOptions={p.khuVucOptions}
-          selectedKhuVucIds={p.selectedKhuVucIds}
-          setSelectedKhuVucIds={p.setSelectedKhuVucIds}
-          selectedHinhThucIds={p.selectedHinhThucIds}
-          setSelectedHinhThucIds={p.setSelectedHinhThucIds}
-        />
-      </div>
+    <div className="space-y-6 pb-8">
+      <AnalyticsFilterBar
+        variant="compact"
+        khoaFilterLocked={p.khoaFilterLocked}
+        onRefresh={p.onRefresh}
+        refreshLoading={p.loading || detailLoading}
+        tuNgay={p.tuNgay}
+        setTuNgay={p.setTuNgay}
+        denNgay={p.denNgay}
+        setDenNgay={p.setDenNgay}
+        bangKiemOptions={p.bangKiemOptions}
+        selectedBangKiemMas={p.selectedBangKiemMas}
+        setSelectedBangKiemMas={p.setSelectedBangKiemMas}
+        khoiOptions={p.khoiOptions}
+        selectedKhoiIds={p.selectedKhoiIds}
+        setSelectedKhoiIds={p.setSelectedKhoiIds}
+        khoaOptions={p.khoaOptions}
+        selectedKhoaIds={p.selectedKhoaIds}
+        setSelectedKhoaIds={p.setSelectedKhoaIds}
+        ngheOptions={p.ngheOptions}
+        selectedNgheIds={p.selectedNgheIds}
+        setSelectedNgheIds={p.setSelectedNgheIds}
+        khuVucOptions={p.khuVucOptions}
+        selectedKhuVucIds={p.selectedKhuVucIds}
+        setSelectedKhuVucIds={p.setSelectedKhuVucIds}
+        selectedHinhThucIds={p.selectedHinhThucIds}
+        setSelectedHinhThucIds={p.setSelectedHinhThucIds}
+      />
 
       {p.loadError ? (
         <div className={`${UI.inset} border-red-200 bg-red-50 p-4 text-sm text-red-800`}>{p.loadError}</div>
       ) : null}
 
-      <GscAnalyticsBody
+      <GscChecklistNavigator
         payload={p.payload}
         loading={p.loading}
-        title="Tổng hợp (mọi chuyên đề trong kỳ)"
-        selectedKhoaIds={p.selectedKhoaIds}
-        khoaOptions={p.khoaOptions}
+        selectedMaBk={selectedMaBk}
+        onSelectMaBk={onSelectMaBk}
+        bkLabelRecord={p.bkLabelRecord}
       />
 
-      {tgsObligation.error ? (
-        <div className={`${UI.inset} border-amber-200 bg-amber-50 p-3 text-xs text-amber-900`}>
-          Không tải bao phủ TGS theo nghĩa vụ: {tgsObligation.error}
+      {selectedMaBk ? (
+        <GscBkAnalyticsDashboard
+          key={selectedMaBk}
+          maBk={selectedMaBk}
+          label={selectedLabel}
+          detail={detail}
+          loading={detailLoading}
+          error={detailError}
+          khoaOptions={p.khoaOptions}
+          selectedKhoaIds={p.selectedKhoaIds}
+          onClose={() => onSelectMaBk(null)}
+        />
+      ) : null}
+
+      <details className={`${UI.shell} group`}>
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+          Tổng hợp chung (mọi BK trong kỳ)
+          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">KPI · xu hướng · so sánh khoa gộp</span>
+        </summary>
+        <div className="space-y-4 border-t border-slate-100 px-4 pb-4 pt-3">
+          <SupervisionKpiRow
+            loading={p.loading}
+            items={[
+              { label: "Phiên giám sát", value: p.payload?.kpis?.tong_phien ?? 0 },
+              { label: "Tiêu chí áp dụng", value: p.payload?.kpis?.tong_quan_sat ?? 0 },
+              { label: "Vi phạm", value: p.payload?.kpis?.tong_vi_pham ?? 0 },
+              { label: "Tỷ lệ tuân thủ", value: formatPercent2(p.payload?.kpis?.ty_le_tuan_thu ?? 0) },
+            ]}
+          />
+          <SupervisionTrendChart
+            title="Xu hướng tuân thủ (gộp)"
+            data={p.payload?.trendline ?? []}
+            loading={p.loading}
+            source="gsc"
+          />
+          <SupervisionKhoaAnalyticsBlock
+            rows={gapKhoaRows}
+            loading={p.loading}
+            moduleLabel="GSC"
+            tgsVolumeLabel="Khảo sát TGS"
+            ksnkVolumeLabel="Khảo sát KSNK"
+          />
+          {(p.payload?.top_violations?.length ?? 0) > 0 ? (
+            <div className={`${UI.inset} p-3`}>
+              <h4 className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
+                <AlertTriangle size={16} className="text-red-500" /> Top vi phạm (mọi BK)
+              </h4>
+              <div className="max-h-[200px] space-y-2 overflow-y-auto">
+                {p.payload?.top_violations?.map((v, i) => (
+                  <div key={v.criterion_id || i} className="rounded-lg border border-slate-100 p-2 text-sm">
+                    <p className="font-semibold text-slate-800">{v.ten_tieu_chi}</p>
+                    <p className="text-xs text-slate-500">
+                      {v.ma_bk ?? v.ten_bang_kiem} · {formatPercent2(v.ty_le_vi_pham)} không đạt
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          <SupervisionCompareAccordion sections={compareSections} loading={p.loading} />
         </div>
-      ) : null}
-
-      <SupervisionTgsObligationBlock
-        catalog={tgsObligation.data?.catalog ?? []}
-        hits={tgsObligation.data?.hits ?? []}
-        khoaOptions={p.khoaOptions}
-        gapRows={gscGapForObligation}
-        loading={p.loading || tgsObligation.loading}
-      />
-
-      <SupervisionCoverageMatrix
-        topics={gscCoverageTopics}
-        loading={p.loading || p.clustersLoading}
-      />
-
-      {(p.truncatedChecklistCount ?? 0) > 0 ? (
-        <div className={`${UI.noticeWarning} flex items-center gap-2 p-4`}>
-          <AlertTriangle size={16} className="shrink-0 text-amber-600" />
-          <p>
-            Còn <strong>{p.truncatedChecklistCount} biểu mẫu</strong> ngoài giới hạn 12 — thu hẹp bộ lọc{" "}
-            <em>Chuyên đề</em> để xem thêm.
-          </p>
-        </div>
-      ) : null}
-
-      {!p.clustersRequested && (p.pendingClusterCount ?? 0) > 0 ? (
-        <div className={`${UI.inset} flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm`}>
-          <p className="text-slate-600">
-            Thống kê tổng hợp đã tải. Chi tiết theo <strong>{p.pendingClusterCount}</strong> biểu mẫu chưa tự
-            động tải (tránh chậm).
-          </p>
-          <button
-            type="button"
-            className={UI.btnPrimary}
-            onClick={p.onRequestChecklistClusters}
-          >
-            Tải theo biểu mẫu
-          </button>
-        </div>
-      ) : null}
-
-      {clusterEntries.length > 0 ? (
-        <div className={UI.sectionGapLg ?? UI.sectionGap}>
-          {clusterEntries.map(([ma, clusterPayload]) => (
-            <GscAnalyticsBody
-              key={ma}
-              payload={clusterPayload}
-              loading={p.clustersLoading}
-              title={
-                p.bkLabelRecord?.[ma] ??
-                clusterPayload.dynamic_checklists?.[0]?.ten_bang_kiem ??
-                ma
-              }
-              selectedKhoaIds={p.selectedKhoaIds}
-              khoaOptions={p.khoaOptions}
-            />
-          ))}
-        </div>
-      ) : p.selectedBangKiemMas.length > 0 && !p.clustersLoading ? (
-        <p className="text-sm text-slate-500">Chưa có dữ liệu cho chuyên đề đã chọn trong kỳ lọc.</p>
-      ) : null}
-
-      {p.clustersLoading && clusterEntries.length === 0 ? (
-        <p className="text-sm text-slate-500">Đang tải thống kê theo từng biểu mẫu…</p>
-      ) : null}
+      </details>
     </div>
   );
 }
 
-export function GscAnalyticsDeepLinkHint({ href = "/thong-ke/gsc" }: { href?: string }) {
-  return (
-    <Link href={href} className="inline-flex items-center gap-1 text-xs font-bold text-sky-700 hover:underline">
-      Xem chi tiết tại module GSC <ExternalLink size={12} />
-    </Link>
-  );
+export function buildGscAnalyticsDeepLink(
+  seed: { tu_ngay?: string; den_ngay?: string; khoa_ids?: string[] },
+  maBk?: string,
+): string {
+  const q = buildAnalyticsUrlQuery(seed);
+  const params = new URLSearchParams(q);
+  if (maBk) params.set("bk", maBk);
+  const s = params.toString();
+  return s ? `/thong-ke/gsc?${s}` : "/thong-ke/gsc";
 }

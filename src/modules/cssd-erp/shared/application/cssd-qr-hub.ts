@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isRejectedLegacyHexBoQr } from "@/lib/domain/cssd-bo-ma";
 import { tableHasColumn } from "../cssd-db-utils";
 import { classifyCssdCode, normalizeCssdCode } from "../domain/cssd-qr-core";
 import { cssdQrHubResolvedSchema, type CssdQrHubResolved } from "../contracts/cssd-qr-hub.contracts";
@@ -12,8 +13,31 @@ export async function resolveCssdCodeWithClient(
   if (!code) {
     throw new Error("Thiếu mã quét.");
   }
+  if (isRejectedLegacyHexBoQr(code)) {
+    throw new Error(
+      `Mã ${code} là tem hex cũ — không còn hỗ trợ. In lại tem mã bộ (vd. B01.SET.01) từ danh mục CSSD.`,
+    );
+  }
 
   const preClassified = classifyCssdCode(code);
+
+  if (preClassified === "STERILIZATION_BATCH") {
+    const batchResult = await supabase
+      .from("cssd_fact_lo_tiet_khuan")
+      .select("id")
+      .eq("ma_lo_tiet_khuan", code)
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle();
+    if (batchResult.error) throw new Error(batchResult.error.message);
+    if (batchResult.data?.id) {
+      return cssdQrHubResolvedSchema.parse({
+        targetType: "STERILIZATION_BATCH",
+        code,
+        batchId: String(batchResult.data.id),
+      });
+    }
+  }
 
   const workflowResult = await supabase
     .from("cssd_fact_quy_trinh")

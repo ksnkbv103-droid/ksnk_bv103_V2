@@ -197,7 +197,7 @@ export function LoaiDungCuChiTietPanel({
                           {log.bo_dung_cu ? log.bo_dung_cu.ten_bo : "—"}
                         </td>
                         <td className="py-3 font-mono text-[11px] text-slate-400">
-                          {log.quy_trinh ? log.quy_trinh.ma_vach_set : "—"}
+                          {log.quy_trinh ? log.quy_trinh.ma_qr_quy_trinh : "—"}
                         </td>
                         <td className="py-3 text-[11px] text-slate-500 italic">
                           {log.ghi_chu || "—"}

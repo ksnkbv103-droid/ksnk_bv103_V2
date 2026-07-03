@@ -1,4 +1,4 @@
-/** Parse & validate dòng import công việc — thuần, không I/O. */
+/** Parse & validate dòng import công việc nội bộ KSNK — thuần, không I/O. */
 
 const LOAI = new Set(["DINH_KY", "DOT_XUAT", "KHAN_CAP"]);
 const UU_TIEN = new Set(["THAP", "TRUNG_BINH", "CAO"]);
@@ -10,7 +10,6 @@ export type QlcvImportRow = {
   muc_do_uu_tien: "THAP" | "TRUNG_BINH" | "CAO";
   han_hoan_thanh: string | null;
   ma_nv: string;
-  ma_khoa: string | null;
   ma_to: string | null;
 };
 
@@ -45,7 +44,7 @@ export function parseQlcvImportRow(row: Record<string, unknown>, rowIdx: number)
   if (!tieu_de) errors.push("Thiếu tiêu đề");
 
   const ma_nv = cell(row, "ma_nv", "Ma NV", "Mã NV", "MA_NV");
-  if (!ma_nv) errors.push("Thiếu mã nhân viên phụ trách (ma_nv)");
+  if (!ma_nv) errors.push("Thiếu mã nhân viên phụ trách KSNK (ma_nv)");
 
   const loaiRaw = cell(row, "loai_cong_viec", "Loai", "LOAI_CONG_VIEC").toUpperCase() || "DOT_XUAT";
   if (!LOAI.has(loaiRaw)) errors.push(`Loại công việc không hợp lệ: ${loaiRaw}`);
@@ -69,7 +68,6 @@ export function parseQlcvImportRow(row: Record<string, unknown>, rowIdx: number)
       muc_do_uu_tien: uuRaw as QlcvImportRow["muc_do_uu_tien"],
       han_hoan_thanh,
       ma_nv,
-      ma_khoa: cell(row, "ma_khoa", "Ma khoa", "MA_KHOA") || null,
       ma_to: cell(row, "ma_to", "Ma to", "MA_TO") || null,
     },
   };

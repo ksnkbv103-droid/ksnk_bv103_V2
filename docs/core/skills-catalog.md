@@ -7,7 +7,9 @@
 
 | Skill | Khi dùng | Invoke |
 |-------|----------|--------|
+| `po-intake` | PO không rành code — dịch nghiệp vụ → intake | `/intake-nv` hoặc `@po-intake` |
 | `smart-db-bv103` | Migration, RPC, index, RLS, import lô, refactor data layer | `@smart-db-bv103` |
+| `dashboard-pilot` | KPI, CCS, báo cáo tổng hợp, analytics | `@dashboard-pilot` |
 | `react-dev` | Component React 19, hooks, typing UI mới | `@react-dev` |
 | `reviewing-code` | Review PR / diff trước merge | `/review` hoặc `@reviewing-code` |
 | `supabase` | Auth, RLS, Supabase client, CLI | `@supabase` |
@@ -20,6 +22,8 @@ Khóa phiên bản: `npm run skills:lock` → `skills-lock.json`.
 
 | Agent | Khi dùng | Mode |
 |-------|----------|------|
+| `intake-coach` | Mô tả nghiệp vụ thô → intake duyệt | readonly |
+| `acceptance-ui` | Intake → checklist test tay cho PO | readonly |
 | `explore-module` | Khám phá 1 module, map route/action/RPC | readonly |
 | `review-bv103` | Review diff trước merge | readonly |
 | `db-verify` | Đối chiếu migration ↔ mapping | readonly |
@@ -39,11 +43,21 @@ npm run skills:sync:reviewing-code   # ví dụ có sẵn
 npm run skills:lock
 ```
 
-Cập nhật `scripts/skills-lock.mjs` nếu thư mục skill mới chưa map nguồn.
+Cập nhật `scripts/skills-lock.mjs` nếu thư mục skill mới chưa map nguồn (`bv103Local`).
 
 ## Cursor rules
 
-- Lõi: `00-core`, `01-agent-discipline`
-- Edit `src/`: `03-src-editing-compact` (+ module `12–17`)
-- Workflow: `/intake` → `02-task-intake-freeze` (manual)
-- Playbook: [`cursor-operating-playbook.md`](cursor-operating-playbook.md)
+- Lõi: `00-core`, `01-agent-discipline`, **`04-po-workflow`** (PO — always on)
+- Edit `src/`: `03-src-editing-compact` (+ module `12–18`)
+- Workflow PO: `/intake-nv` → `02-task-intake-freeze` (manual)
+- Playbook: [`cursor-operating-playbook.md`](cursor-operating-playbook.md) · PO: [`po-cursor-guide.md`](po-cursor-guide.md)
+
+## Slash commands
+
+| Lệnh | Ai dùng |
+|------|---------|
+| `/intake-nv` | PO — ngôn ngữ nghiệp vụ |
+| `/intake` | Dev — scope kỹ thuật |
+| `/implement` | Sau duyệt intake |
+| `/ship-slice` | Verify + review sau test tay |
+| `/review`, `/explain`, `/commit`, `/pr-create` | Theo tên |

@@ -2,8 +2,8 @@
 
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
-import { revalidateCssdIncidentSurfaces } from "@/lib/cssd-server-common";
-import { verifyCssdIncidentCreate } from "@/lib/cssd-server-gates";
+import { revalidateCssdIncidentSurfaces, revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
+import { verifyCssdIncidentCreate, verifyCssdIncidentPrint } from "@/lib/cssd-server-gates";
 import { resolveCssdCodeWithClient } from "@/modules/cssd-erp/shared/application/cssd-qr-hub";
 import { cssdIncidentReportInputSchema } from "../contracts/su-co-report-input.schema";
 import { executeIncidentReportAndRollback } from "../application/su-co-report.application";
@@ -16,10 +16,23 @@ export async function createIncidentReport(data: {
   typeTen: string;
   faultStation?: Station;
   faultOperator?: string;
+  nguoiPhatHien?: string;
+  thoiGianPhatHien?: string;
   desc: string;
   errorQR?: string;
   machineId?: string;
   anhMinhChung?: string;
+  instrumentPayload?: {
+    chiTietId?: string;
+    loaiDungCuId?: string;
+    boDungCuId?: string;
+    quyTrinhId?: string | null;
+    maQrNguon?: string;
+    maQrDen?: string;
+    tenDungCuLe?: string;
+    quantity?: number;
+    note?: string;
+  };
 }) {
   const supabase = createAdminSupabaseClient();
   await verifyCssdIncidentCreate();
@@ -60,17 +73,26 @@ export async function createIncidentReport(data: {
 
   const { incident_id, isRedAlert } = await executeIncidentReportAndRollback(
     supabase,
-    { ...parsed, maQR: qr, reporterEmail, reporterAuthUserId },
+    {
+      ...parsed,
+      maQR: qr,
+      reporterEmail,
+      reporterAuthUserId,
+      instrumentPayload: parsed.instrumentPayload
+        ? { ...parsed.instrumentPayload, typeId: parsed.typeId }
+        : undefined,
+    },
     q ? (q as any) : null,
   );
 
   revalidateCssdIncidentSurfaces();
+  if (parsed.incidentGroup === "INSTRUMENT") revalidateCssdInventorySurfaces();
   return { success: true as const, incident_id, isRedAlert };
 }
 
 export async function getIncidentForPrint(id: string) {
   const supabase = createAdminSupabaseClient();
-  await verifyCssdIncidentCreate(); // check permission
+  await verifyCssdIncidentPrint();
 
   // 1. Lấy thông tin sự cố cơ bản
   const { data: incident, error: incErr } = await supabase

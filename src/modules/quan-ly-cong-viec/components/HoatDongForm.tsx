@@ -7,11 +7,12 @@ import { createHoatDong } from "../actions/hoat-dong.actions";
 
 interface Props {
   congViecId: string;
+  usesChecklist?: boolean;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export function HoatDongForm({ congViecId, onSuccess, onCancel }: Props) {
+export function HoatDongForm({ congViecId, usesChecklist, onSuccess, onCancel }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const [loading, setLoading] = useState(false);
 
@@ -48,7 +49,11 @@ export function HoatDongForm({ congViecId, onSuccess, onCancel }: Props) {
             required
             rows={4}
             className="min-h-[100px] w-full resize-none rounded-lg border border-slate-200 bg-slate-50/80 p-3 text-sm font-medium outline-none transition-all focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/20"
-            placeholder="Ghi chú bổ sung (tiến độ % cập nhật qua checklist phía trên)…"
+            placeholder={
+              usesChecklist
+                ? "Ghi chú bổ sung (tiến độ % cập nhật qua checklist phía trên)…"
+                : "Ghi chú bổ sung (tiến độ % cập nhật qua thanh tiến độ phía trên)…"
+            }
           />
         </div>
       </div>

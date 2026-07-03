@@ -1,11 +1,23 @@
 {
   "version": 1,
   "skills": {
+    "dashboard-pilot": {
+      "source": "local/bv103",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/dashboard-pilot/SKILL.md",
+      "computedHash": "4e9d3591881aa8f6846b92a22127aa78208b800fa3a9edc537dc81431b22d1a0"
+    },
     "giam-sat-pilot": {
       "source": "local/bv103",
       "sourceType": "github",
       "skillPath": ".agents/skills/giam-sat-pilot/SKILL.md",
       "computedHash": "108d852db3ba5cf475e34da981a2fa39c8153ac1fbb5d86c79000c2ec59ebda6"
+    },
+    "po-intake": {
+      "source": "local/bv103",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/po-intake/SKILL.md",
+      "computedHash": "e96246396781fb3b29dafb09072d43284f477103fa3d5efdabc6f7bf225977e1"
     },
     "qlcv-pilot": {
       "source": "local/bv103",

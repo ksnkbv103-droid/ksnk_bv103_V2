@@ -30,7 +30,7 @@ export const NAV_GATE_NKBV: NavGate = { id: "nkbv", moduleKeys: ["GIAM_SAT_NKBV"
 export const NAV_GATE_CONG_VIEC: NavGate = { id: "cv", moduleKeys: ["CONG_VIEC"] };
 export const NAV_GATE_CSSD_QUY_TRINH: NavGate = { id: "cssd-qt", moduleKeys: ["CSSD_WORKFLOW", "CSSD_ME_TIET_KHUAN", "CSSD_REPORT"] };
 export const NAV_GATE_CSSD_SU_CO: NavGate = { id: "cssd-su-co", moduleKeys: ["BAO_SU_CO"] };
-export const NAV_GATE_CSSD_DUNG_CU: NavGate = { id: "cssd-dung-cu", moduleKeys: ["CSSD_KHO_DUNGCU", "DANH_MUC"] };
+export const NAV_GATE_CSSD_DUNG_CU: NavGate = { id: "cssd-dung-cu", moduleKeys: ["CSSD_KHO_DUNGCU"] };
 export const NAV_GATE_CSSD_THIET_BI: NavGate = { id: "cssd-thiet-bi", moduleKeys: ["THIET_BI"] };
 export const NAV_GATE_CSSD_HOA_CHAT: NavGate = { id: "cssd-hoa-chat", moduleKeys: ["KSNK_KHO_HOACHAT"] };
 
@@ -52,6 +52,17 @@ export function canSeeNavGate(
     return gate.moduleKeys.length > 0 && gate.moduleKeys.every((k) => canView(k));
   }
   return gate.moduleKeys.some((k) => canView(k));
+}
+
+/** Command Center / Báo cáo tổng hợp — khớp `verifyCommandCenterShell`. */
+export function canSeeCommandCenterNav(
+  isAdmin: boolean,
+  canView: (module: string) => boolean,
+): boolean {
+  if (isAdmin) return true;
+  const hasCc = NAV_GATE_DASHBOARD.moduleKeys.some((k) => canView(k));
+  const hasSupervision = NAV_GATE_THONG_KE.moduleKeys.some((k) => canView(k));
+  return hasCc && hasSupervision;
 }
 
 export function canSeeQuanTriSection(isAdmin: boolean, canView: (module: string) => boolean): boolean {

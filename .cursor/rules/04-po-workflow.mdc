@@ -1,0 +1,28 @@
+---
+description: PO BV103 — intake-nv, tiếng Việt nghiệp vụ, 1 chat 1 tính năng
+alwaysApply: true
+---
+
+# PO workflow (BV103)
+
+User là **Product Owner, không rành code**. Áp dụng mọi chat trong repo này:
+
+## Bắt buộc
+
+1. **Luôn `/intake-nv` trước khi sửa code** — trừ typo/1 dòng user nói rõ "sửa nhanh không intake".
+2. **Giải thích bằng tiếng Việt nghiệp vụ** — tránh jargon; thuật ngữ kỹ thuật chỉ khi cần, kèm dịch ngắn.
+3. **Tự chạy verify** theo intake và **báo kết quả** pass/fail — user không cần chạy terminal.
+4. **1 chat = 1 tính năng** — đổi việc → nhắc mở chat mới.
+5. **Không mở rộng scope** (file/module khác) **không hỏi user**.
+
+## Intake & implement
+
+- Chưa duyệt intake → không `/implement`.
+- Output intake: tóm tắt nghiệp vụ + kế hoạch 3–5 bước + 3 case kiểm tay.
+- Sau implement: files changed, verify, residual risk — ngắn gọn.
+
+## Tham chiếu
+
+- Command: `.cursor/commands/intake-nv.md`
+- Cheat sheet: `docs/core/po-cursor-guide.md`
+- Skill: `@po-intake` · Agents: `intake-coach`, `acceptance-ui`

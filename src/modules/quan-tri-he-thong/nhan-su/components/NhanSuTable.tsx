@@ -7,10 +7,12 @@ import NhanSuForm from "./NhanSuForm";
 import { useMasterDataCrud } from "@/hooks/useMasterDataCrud";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
-import { Upload, Plus } from "lucide-react";
+import { Upload, Plus, Download, Loader2 } from "lucide-react";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
-import MasterDataImportExportModal from "../../components/MasterDataImportExportModal";
+import { useImportExport } from "@/hooks/useImportExport";
+import { smartImportData } from "../../danh-muc/actions/smart-import.actions";
+import { getMasterDataExport } from "../../danh-muc/actions/export.actions";
 
 const NHAN_SU_PAGE_SIZE = 20;
 
@@ -43,7 +45,6 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<NhanSu | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [importModalOpen, setImportModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
@@ -137,7 +138,28 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
     capabilities: { edit: allowEdit, delete: allowDelete, toggleActive: allowEdit },
   });
 
-  // Removed legacy useImportExport hook to improve bundle size and maintain cleanliness
+  const { exportTemplate, handleFileUpload, isImporting, triggerImport, fileInputRef } = useImportExport({
+    moduleKey: "NHAN_SU",
+    tableName: "mdm_nhan_su",
+    displayName: "Nhân sự",
+    uniqueKey: "ma_nv",
+    columnMapping: {
+      "Mã nhân viên": "ma_nv",
+      "Họ tên nhân sự": "ho_ten",
+      "Email đăng nhập": "email",
+      "Số điện thoại": "so_dien_thoai",
+      "Giới tính": "gioi_tinh",
+      "Ngày sinh": "ngay_sinh",
+      "Mã khoa phòng": "ma_khoa",
+      "Mã tổ công tác": "ma_to",
+      "Tên chức vụ": "ten_chuc_vu",
+      "Tên chức danh": "ten_chuc_danh",
+      is_active: "is_active",
+    },
+    onGetData: () => getMasterDataExport("mdm_nhan_su", "ma_nv"),
+    onImport: (d) => smartImportData({ tableName: "mdm_nhan_su", uniqueKey: "ma_nv" }, d),
+    onSuccess: () => setRefreshKey((k) => k + 1),
+  });
 
   const columns: Column<NhanSu>[] = [
     { 
@@ -212,9 +234,16 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       {(allowImport || allowCreate) && (
         <div className="flex flex-wrap items-center justify-end gap-2">
           {allowImport && (
-            <button type="button" onClick={() => setImportModalOpen(true)} className={bv103DesignTokens.btnSecondary}>
-              <Upload size={14} aria-hidden /> Nhập/Xuất Excel
-            </button>
+            <>
+              <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} accept=".xlsx,.xls" className="hidden" />
+              <button type="button" onClick={triggerImport} disabled={isImporting} className={bv103DesignTokens.btnSecondary}>
+                {isImporting ? <Loader2 size={14} className="animate-spin" aria-hidden /> : <Upload size={14} aria-hidden />}
+                Import Excel
+              </button>
+              <button type="button" onClick={() => exportTemplate()} className={bv103DesignTokens.btnSecondary}>
+                <Download size={14} aria-hidden /> Export mẫu
+              </button>
+            </>
           )}
           {allowCreate && (
             <button
@@ -255,14 +284,6 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
           onCancel={() => setIsFormOpen(false)}
         />
       ) : null}
-      <MasterDataImportExportModal
-        isOpen={importModalOpen}
-        onClose={() => {
-          setImportModalOpen(false);
-          setRefreshKey((k) => k + 1);
-        }}
-        type="nhan-su"
-      />
     </div>
   );
 }

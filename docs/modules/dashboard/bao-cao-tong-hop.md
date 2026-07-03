@@ -1,6 +1,7 @@
 # Báo cáo tổng hợp KSNK (`/bao-cao-tong-hop`)
 
-> Pilot 2026-06 — compose VST + GSC + NKBV từ RPC strategic (không đọc `*_summary`).
+> Pilot 2026-06 — compose VST + GSC + NKBV từ RPC strategic (không đọc `*_summary`).  
+> **Reform kiến trúc:** [`analytics-reform-202606.md`](./analytics-reform-202606.md) · [`metric-dictionary.md`](./metric-dictionary.md)
 
 ## Route & code
 

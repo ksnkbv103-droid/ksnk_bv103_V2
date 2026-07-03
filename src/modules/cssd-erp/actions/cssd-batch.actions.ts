@@ -1,17 +1,19 @@
 "use server";
 
-import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { fetchBatchesAndMachines } from "../helpers/me-tiet-khuan-list-data";
 import { assertThietBiSanSangChoMeTietKhuan } from "../helpers/assert-thiet-bi-cho-me-tiet-khuan";
 import { getBatchAddRejectionReason, logQuyTrinhVaoMeTietKhuan } from "../helpers/me-tiet-khuan-batch-trace";
 import { persistMeTietKhuanFinishWithClient, type PersistMeTietKhuanInput } from "../helpers/persist-me-tiet-khuan";
-import { getErrorMessage, mapFkError, revalidateCssdBatchSurfaces } from "./cssd-action-common";
+import { getErrorMessage, mapFkError, revalidateCssdBatchSurfaces, revalidateCssdWorkflowSurfaces } from "./cssd-action-common";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
-import { 
-  createSterilizationBatchSchema, 
-  addQuyTrinhToBatchSchema, 
-  finishSterilizationBatchSchema 
+import { loadBomLinesWithLoaiSpec } from "../shared/application/cssd-quy-trinh-bom";
+import { normalizeSpaulding, normalizeSteamMethod } from "../shared/domain/cssd-quy-trinh-bom";
+import {
+  createSterilizationBatchSchema,
+  addQuyTrinhToBatchSchema,
+  finishSterilizationBatchSchema,
 } from "@/lib/validations/cssd-erp.validations";
 import { verifyCssdBatchEdit, verifyCssdBatchView } from "@/lib/cssd-server-gates";
 import { buildQuyTrinhTramPatch, resolveCssdTramId } from "../lib/cssd-tram-persist";
@@ -228,37 +230,18 @@ export async function fetchCssdBatchHeatRisk(batchId: string) {
     const bomItems: BomItem[] = [];
 
     for (const qtId of qtIds) {
-      const { data: tpRows, error: tpErr } = await supabase
-        .from("cssd_fact_quy_trinh_thanh_phan")
-        .select(`
-          ten_dung_cu_le,
-          so_luong_ke_hoach,
-          so_luong_thuc_te,
-          cssd_dm_bo_dung_cu_chi_tiet (
-            cssd_dm_loai_dung_cu (
-              id,
-              is_chiu_nhiet,
-              phan_loai_spaulding,
-              phuong_phap_tiet_khuan_chi_dinh
-            )
-          )
-        `)
-        .eq("quy_trinh_id", qtId)
-        .eq("is_active", true);
-      if (tpErr) return { success: false as const, error: tpErr.message };
+      const loaded = await loadBomLinesWithLoaiSpec(supabase, qtId);
+      if (!loaded.ok) return { success: false as const, error: loaded.message };
 
-      for (const row of tpRows || []) {
-        const spec = (row as { cssd_dm_bo_dung_cu_chi_tiet?: { cssd_dm_loai_dung_cu?: Record<string, unknown> } })
-          .cssd_dm_bo_dung_cu_chi_tiet?.cssd_dm_loai_dung_cu;
+      for (const row of loaded.bomLines) {
         bomItems.push({
-          loai_id: String(spec?.id || row.ten_dung_cu_le || qtId),
-          ten: String((row as { ten_dung_cu_le?: string }).ten_dung_cu_le || "—"),
-          so_luong_ke_hoach: Number((row as { so_luong_ke_hoach?: number }).so_luong_ke_hoach ?? 1),
-          so_luong_thuc_te: Number((row as { so_luong_thuc_te?: number }).so_luong_thuc_te ?? 1),
-          is_chiu_nhiet: spec?.is_chiu_nhiet !== false,
-          phan_loai_spaulding: (spec?.phan_loai_spaulding as BomItem["phan_loai_spaulding"]) || "CRITICAL",
-          phuong_phap_tiet_khuan_chi_dinh:
-            (spec?.phuong_phap_tiet_khuan_chi_dinh as BomItem["phuong_phap_tiet_khuan_chi_dinh"]) || "STEAM_134",
+          loai_id: row.loai_id,
+          ten: row.ten_dung_cu_le,
+          so_luong_ke_hoach: row.so_luong_ke_hoach,
+          so_luong_thuc_te: row.so_luong_thuc_te,
+          is_chiu_nhiet: row.is_chiu_nhiet,
+          phan_loai_spaulding: normalizeSpaulding(row.phan_loai_spaulding),
+          phuong_phap_tiet_khuan_chi_dinh: normalizeSteamMethod(row.phuong_phap_tiet_khuan_chi_dinh),
         });
       }
     }
@@ -383,10 +366,24 @@ export async function finishCssdSterilizationBatch(input: PersistMeTietKhuanInpu
   try {
     await verifyCssdBatchEdit();
     const validated = finishSterilizationBatchSchema.parse(input);
-    const saved = await persistMeTietKhuanFinishWithClient(supabase, validated as PersistMeTietKhuanInput);
+    let operatorAuthUserId: string | null = null;
+    let operatorEmail: string | null = null;
+    try {
+      const uc = await createServerSupabaseUserClient();
+      const { data } = await uc.auth.getUser();
+      operatorAuthUserId = data.user?.id ?? null;
+      operatorEmail = data.user?.email?.trim() || null;
+    } catch {
+      /* demo: vẫn ghi thời gian nếu không có phiên */
+    }
+    const saved = await persistMeTietKhuanFinishWithClient(supabase, {
+      ...(validated as PersistMeTietKhuanInput),
+      operatorAuthUserId,
+      operatorEmail,
+    });
     if (!saved.ok) return { success: false as const, error: saved.message };
     revalidateCssdBatchSurfaces();
-    revalidateCssdBatchSurfaces();
+    revalidateCssdWorkflowSurfaces();
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };

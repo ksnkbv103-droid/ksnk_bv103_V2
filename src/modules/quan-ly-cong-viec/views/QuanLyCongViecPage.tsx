@@ -24,6 +24,7 @@ import {
   type QlcvUiAccessFlags,
 } from "@/modules/quan-ly-cong-viec/lib/qlcv-access";
 import { mergeQlcvKanbanTasks } from "@/modules/quan-ly-cong-viec/lib/qlcv-list-merge";
+import { isDeXuatChoDuyet } from "@/modules/quan-ly-cong-viec/lib/qlcv-workflow-display";
 import { QlcvDmAdminLinks } from "@/modules/quan-ly-cong-viec/components/QlcvDmAdminLinks";
 import { QlcvImportDialog } from "@/modules/quan-ly-cong-viec/components/QlcvImportDialog";
 import { getTrangThaiMauSacMap } from "@/modules/quan-ly-cong-viec/actions/cong-viec-read.actions";
@@ -42,6 +43,11 @@ const CongViecForm = dynamic(
 
 const DeXuatForm = dynamic(
   () => import("@/modules/quan-ly-cong-viec/components/DeXuatForm").then((m) => ({ default: m.DeXuatForm })),
+  { ssr: false, loading: () => <p className="text-sm text-slate-500">Đang tải…</p> },
+);
+
+const DeXuatApproveForm = dynamic(
+  () => import("@/modules/quan-ly-cong-viec/components/DeXuatApproveForm").then((m) => ({ default: m.DeXuatApproveForm })),
   { ssr: false, loading: () => <p className="text-sm text-slate-500">Đang tải…</p> },
 );
 
@@ -91,6 +97,7 @@ export default function QuanLyCongViecPage() {
   const table = useQlcvTable({
     canApprove,
     boardFilter: kanban.boardFilter,
+    actorStaffId: userData?.id ?? null,
     mergedTasks,
   });
 
@@ -198,7 +205,7 @@ export default function QuanLyCongViecPage() {
               Quản lý <span className="text-[var(--primary)]">công việc</span>
             </>
           }
-          description="Một phiếu — một trách nhiệm: giao việc, tick checklist báo tiến độ, nghiệm thu. Việc định kỳ sinh tự động từ mẫu (chu kỳ + checklist từng dòng mô tả)."
+          description="Công việc nội bộ Khoa KSNK — giao việc cho nhân viên KSNK, tick checklist, nghiệm thu. Việc định kỳ sinh tự động từ mẫu."
           trailing={
             <KsnkSupervisionTabList
               tabs={mainTabs}
@@ -291,8 +298,8 @@ export default function QuanLyCongViecPage() {
               <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">Phê duyệt đề xuất</DialogTitle>
             </DialogHeader>
             {kanban.kanbanApproveRow ? (
-              <CongViecForm
-                initialData={kanban.kanbanApproveRow}
+              <DeXuatApproveForm
+                proposal={kanban.kanbanApproveRow}
                 onSuccess={() => {
                   kanban.setKanbanApproveRow(null);
                   void refreshAll();
@@ -317,7 +324,13 @@ export default function QuanLyCongViecPage() {
             actorStaffId={userData?.id ?? null}
             onSelectTask={setSelectedTaskId}
             onApproveFromKanban={kanban.setKanbanApproveRow}
-            onEditTask={setEditingTask}
+            onEditTask={(row) => {
+              if (canApprove && isDeXuatChoDuyet(row)) {
+                kanban.setKanbanApproveRow(row);
+                return;
+              }
+              setEditingTask(row);
+            }}
             onRefreshAll={refreshAll}
             onBoardFilter={handleBoardFilter}
             routerRefresh={() => router.refresh()}

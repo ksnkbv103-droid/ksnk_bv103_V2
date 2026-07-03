@@ -55,6 +55,12 @@ export default function VSTForm({
 
   const [activePersonTab, setActivePersonTab] = React.useState<number>(0);
 
+  const recordedOpportunityCount = persons.reduce(
+    (sum, p) => sum + p.opportunities.filter((o) => o.isCollapsed).length,
+    0,
+  );
+  const hasUnsavedSession = recordedOpportunityCount > 0 && !editingSessionId;
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -267,6 +273,17 @@ export default function VSTForm({
             </div>
           )}
         </div>
+
+        {hasUnsavedSession && (
+          <div className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950">
+            <p className="font-semibold">
+              Đã ghi {recordedOpportunityCount} cơ hội trên màn hình — chưa lưu vào hệ thống.
+            </p>
+            <p className="mt-1 text-xs text-sky-800">
+              Bấm nút <strong>Lưu phiên giám sát</strong> (góc dưới phải) sau khi hoàn tất phiên; nếu không, dữ liệu sẽ mất khi thoát trang.
+            </p>
+          </div>
+        )}
 
         {/* Mobile Tab Switcher */}
         <div className="mb-4 flex rounded-[var(--radius-control)] border border-slate-200 bg-slate-100/90 p-1 md:hidden">

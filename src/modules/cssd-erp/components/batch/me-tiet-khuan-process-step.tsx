@@ -14,6 +14,7 @@ import {
   ChevronRight,
   PlayCircle,
   Timer,
+  Printer,
 } from "lucide-react";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../layout/cssd-page-shell";
 import MeTietKhuanProcessScanPanel, { type MeTkItemRow } from "./me-tiet-khuan-process-scan-panel";
@@ -69,6 +70,8 @@ export default function MeTietKhuanProcessStep({
   onConfirmBatDau,
   onConfirmKetThucChuTrinh,
   onFinishQc,
+  onPrintBatch,
+  isPrintBusy,
 }: {
   activeMe: MeRow | null;
   batchGate: MeRow | null;
@@ -105,6 +108,8 @@ export default function MeTietKhuanProcessStep({
   onConfirmBatDau: () => void | Promise<void>;
   onConfirmKetThucChuTrinh: () => void | Promise<void>;
   onFinishQc: (isPass: boolean, overrideThongSoMay?: string) => void | Promise<void>;
+  onPrintBatch?: () => void;
+  isPrintBusy?: boolean;
 }) {
   const [scanPrefillToken, setScanPrefillToken] = useState<string | undefined>(undefined);
   const napLocked = Boolean(batchGate?.tk_chot_nap_at);
@@ -190,6 +195,18 @@ export default function MeTietKhuanProcessStep({
                 Kết thúc chu trình tiệt khuẩn
               </button>
             )}
+
+            {phase === "HOAN_THANH" && activeMe?.ket_qua_test === true && onPrintBatch ? (
+              <button
+                type="button"
+                disabled={isPrintBusy}
+                onClick={onPrintBatch}
+                className="inline-flex h-10 items-center gap-2 rounded-xl border-2 border-amber-300 bg-amber-400 px-5 text-xs font-black uppercase tracking-wide text-slate-900 shadow-lg transition-all hover:bg-amber-300 active:scale-95 disabled:opacity-50"
+              >
+                <Printer size={16} aria-hidden="true" />
+                In phiếu mẻ A4
+              </button>
+            ) : null}
 
             {/* Giai đoạn DANH_GIA và HOAN_THANH: không hiện nút chuyển giai đoạn */}
           </div>

@@ -8,6 +8,21 @@ import { useGscAnalyticsData } from "../hooks/use-gsc-analytics-data";
 import { KsnkSupervisionPanel } from "@/components/shared/ksnk-supervision-chrome";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
+
+const LOAI_FROM_SEARCH: Record<string, GscLoaiGiamSatRoute> = {
+  TUAN_THU: "TUAN_THU",
+  NHAT_KY_VAN_HANH: "NHAT_KY_VAN_HANH",
+  DANH_GIA_HE_THONG: "DANH_GIA_HE_THONG",
+};
+
+function resolveLoaiFromSearchParams(
+  initialLoaiGiamSat: GscLoaiGiamSatRoute | undefined,
+  loaiParam: string | null,
+): GscLoaiGiamSatRoute | undefined {
+  if (initialLoaiGiamSat) return initialLoaiGiamSat;
+  if (!loaiParam) return undefined;
+  return LOAI_FROM_SEARCH[loaiParam.trim().toUpperCase()];
+}
 import { AnalyticsKhoaScopeBanner } from "@/modules/dashboard/components/AnalyticsKhoaScopeBanner";
 import GscAnalyticsScopeBanner from "../components/GscAnalyticsScopeBanner";
 
@@ -36,11 +51,15 @@ function buildTabHref(tab: AnalyticsTab, current: URLSearchParams): string {
 }
 
 /**
- * View chỉ chứa dashboard thống kê GSC + tab «BK tôi phải TGS» (Wave C).
+ * View dashboard thống kê GSC + tab «BK tôi phải TGS» (nghĩa vụ khoa).
  */
 export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsViewProps) {
-  const d = useGscAnalyticsData(initialLoaiGiamSat);
   const searchParams = useSearchParams();
+  const resolvedLoai = resolveLoaiFromSearchParams(
+    initialLoaiGiamSat,
+    searchParams.get("loai"),
+  );
+  const d = useGscAnalyticsData(resolvedLoai);
   const pathname = usePathname();
   const router = useRouter();
   const activeTab: AnalyticsTab = searchParams.get("view") === "bk-toi" ? "bk-toi" : "thong-ke";
@@ -56,7 +75,9 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
 
   return (
     <KsnkSupervisionPanel className="min-h-[50vh]">
-      {initialLoaiGiamSat ? <GscAnalyticsScopeBanner loai={initialLoaiGiamSat} /> : null}
+      {resolvedLoai && !pathname.startsWith("/thong-ke/gsc") ? (
+        <GscAnalyticsScopeBanner loai={resolvedLoai} />
+      ) : null}
       {d.khoaFilterLocked && d.lockedKhoaLabel ? <AnalyticsKhoaScopeBanner khoaLabel={d.lockedKhoaLabel} /> : null}
 
       <div className="px-2 pb-2">
@@ -70,7 +91,7 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
                 : "text-slate-500 hover:text-slate-700"
             }`}
           >
-            Thống kê & ma trận
+            Thống kê theo bảng kiểm
           </button>
           <button
             type="button"
@@ -124,12 +145,6 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
           payload={d.payload}
           loading={d.loading}
           loadError={d.loadError}
-          checklistClusters={d.checklistClusters}
-          clustersLoading={d.clustersLoading}
-          truncatedChecklistCount={d.truncatedChecklistCount}
-          pendingClusterCount={d.pendingClusterCount}
-          clustersRequested={d.clustersRequested}
-          onRequestChecklistClusters={d.requestChecklistClusters}
           bkLabelRecord={d.bkLabelRecord}
           onRefresh={() => void d.loadAnalytics()}
         />

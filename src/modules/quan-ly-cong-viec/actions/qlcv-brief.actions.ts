@@ -1,9 +1,9 @@
 "use server";
 
-import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyAnyPermission } from "@/lib/server-permission";
 import { DASHBOARD_CC_WIDGET } from "@/lib/dashboard-command-center-widget-keys";
-import { mergeQlcvScopeWithSearchOr, resolveQlcvListScope } from "../lib/qlcv-list-scope";
+import { applyQlcvListScopeToQuery, resolveQlcvListScope } from "../lib/qlcv-list-scope";
+import { ensureQlcvKsnkKhoaId } from "../lib/qlcv-action-guard";
 
 export type QlcvQuaHanBriefRow = {
   id: string;
@@ -18,7 +18,7 @@ export type QlcvQuaHanBrief = {
   items: QlcvQuaHanBriefRow[];
 };
 
-/** Tóm tắt việc quá hạn — Command Center hoặc người có quyền QLCV/Dashboard. */
+/** Tóm tắt việc quá hạn nội bộ KSNK — Command Center. */
 export async function getQlcvQuaHanBrief(limit = 8): Promise<QlcvQuaHanBrief> {
   await verifyAnyPermission([
     { moduleKey: "CONG_VIEC", action: "view" },
@@ -26,17 +26,15 @@ export async function getQlcvQuaHanBrief(limit = 8): Promise<QlcvQuaHanBrief> {
     { moduleKey: DASHBOARD_CC_WIDGET.OVERVIEW, action: "view" },
   ]);
 
-  const supabase = createAdminSupabaseClient();
+  const { supabase } = await ensureQlcvKsnkKhoaId();
   const scope = await resolveQlcvListScope(supabase);
   const cap = Math.min(20, Math.max(1, limit));
-
-  const scopeFilter = mergeQlcvScopeWithSearchOr(scope, null);
 
   let countQ = supabase
     .from("v_qlcv_cong_viec_qua_han")
     .select("id", { count: "exact", head: true })
     .eq("is_active", true);
-  if (scopeFilter) countQ = countQ.or(scopeFilter);
+  countQ = applyQlcvListScopeToQuery(countQ, scope);
 
   let listQ = supabase
     .from("v_qlcv_cong_viec_qua_han")
@@ -44,7 +42,7 @@ export async function getQlcvQuaHanBrief(limit = 8): Promise<QlcvQuaHanBrief> {
     .eq("is_active", true)
     .order("han_hoan_thanh", { ascending: true })
     .limit(cap);
-  if (scopeFilter) listQ = listQ.or(scopeFilter);
+  listQ = applyQlcvListScopeToQuery(listQ, scope);
 
   const [{ count, error: countErr }, { data, error: listErr }] = await Promise.all([countQ, listQ]);
   if (countErr) throw new Error(countErr.message);

@@ -12,6 +12,9 @@ export type ThietBiFormValues = {
   chu_ky_bao_tri_ngay: string;
   ngay_bao_tri_gan_nhat: string;
   ngay_bao_tri_tiep_theo: string;
+  serial_number: string;
+  model: string;
+  vi_tri: string;
   ghi_chu: string;
   is_active: boolean;
 };
@@ -33,11 +36,15 @@ export function mapThietBiToForm(row: ThietBiRow | null): ThietBiFormValues {
       chu_ky_bao_tri_ngay: "180",
       ngay_bao_tri_gan_nhat: "",
       ngay_bao_tri_tiep_theo: "",
+      serial_number: "",
+      model: "",
+      vi_tri: "",
       ghi_chu: "",
       is_active: true,
     };
   }
 
+  const specs = (row.specs || {}) as Record<string, unknown>;
   return {
     id: row.id,
     ma_thiet_bi: String(row.ma_thiet_bi || ""),
@@ -50,6 +57,9 @@ export function mapThietBiToForm(row: ThietBiRow | null): ThietBiFormValues {
     chu_ky_bao_tri_ngay: row.chu_ky_bao_tri_ngay == null ? "180" : String(row.chu_ky_bao_tri_ngay),
     ngay_bao_tri_gan_nhat: dateOnly(row.ngay_bao_tri_gan_nhat),
     ngay_bao_tri_tiep_theo: dateOnly(row.ngay_bao_tri_tiep_theo),
+    serial_number: String(row.serial_number || specs.serial_number || ""),
+    model: String(row.model || specs.model || ""),
+    vi_tri: String(row.vi_tri || specs.vi_tri || ""),
     ghi_chu: String(row.ghi_chu || ""),
     is_active: row.is_active !== false,
   };

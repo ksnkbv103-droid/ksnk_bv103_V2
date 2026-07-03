@@ -8,6 +8,7 @@ import BoDungCuTextField from "../dung-cu/bo-dung-cu-form-field";
 import type { HoaChatRow } from "../actions/hoa-chat.types";
 import { saveHoaChatAction } from "../actions/hoa-chat.actions";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import { loaiHoaChatLabel } from "@/lib/domain/cssd-hoa-chat-loai";
 
 function mapForm(row: HoaChatRow | null) {
   return {
@@ -68,11 +69,11 @@ export default function HoaChatFormModal({
           <BoDungCuTextField label="Mã HC" required disabled={isEdit} value={form.ma_hoa_chat} onChange={(v) => setForm({ ...form, ma_hoa_chat: v.toUpperCase() })} />
           <BoDungCuTextField label="Tên hóa chất" required value={form.ten_hoa_chat} onChange={(v) => setForm({ ...form, ten_hoa_chat: v })} />
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-400 ml-1">Loại hóa chất</label>
+            <label className="text-[11px] font-medium text-slate-400 ml-1">Phân loại kho</label>
             <select value={form.loai_hoa_chat} onChange={(e) => setForm({ ...form, loai_hoa_chat: e.target.value })} className={C.controlInput}>
-              <option value="HOA_CHAT">Hóa chất</option>
-              <option value="VAT_TU">Vật tư</option>
-              <option value="TEST">Test</option>
+              <option value="HOA_CHAT">{loaiHoaChatLabel("HOA_CHAT")}</option>
+              <option value="VAT_TU">{loaiHoaChatLabel("VAT_TU")}</option>
+              <option value="TEST">{loaiHoaChatLabel("TEST")}</option>
             </select>
           </div>
           <BoDungCuTextField label="Đơn vị tính" value={form.don_vi_tinh} onChange={(v) => setForm({ ...form, don_vi_tinh: v })} />

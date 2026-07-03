@@ -25,6 +25,7 @@ Script **không** thuộc chuỗi migration Supabase. Chỉ file trong thư mụ
 | `admin-perf-baseline.sql` | Baseline perf admin |
 | `admin-rbac-probe.sql` | Probe RBAC |
 | `admin-slice-pre-apply-probe.sql` | Probe SSOT admin/RBAC sau migrate (thay Slice 7 cũ) |
+| `rbac-registry-parity-probe.sql` | So sánh count permission registry vs DB (manual / hygiene) |
 | `rbac-v-auth-compat-probe.sql` | Sau migration RBAC 03/06 — `v_auth_permissions` / orphan views |
 
 ## CSSD / FK gate

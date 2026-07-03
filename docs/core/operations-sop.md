@@ -15,16 +15,37 @@ Hệ thống y tế KSNK BV103 quản lý tài khoản người dùng tích hợ
 * Địa chỉ email y tế (`email`) được chuẩn hóa định dạng chữ thường, tự động kiểm tra tính duy nhất trên môi trường hoạt động thông qua ràng buộc cơ sở dữ liệu.
 
 ### 1.2 Ma trận phân vai trò y tế (Role-Based Access Control - RBAC)
-Hệ thống định nghĩa các vai trò y tế cụ thể với các quyền hạn nghiêm ngặt tương ứng:
 
-| Vai trò y tế | Mã phân quyền | Mô tả Quyền hạn Nghiệp vụ |
+SSOT tên vai trò: bảng **`sys_roles.name`**. Cấu hình ma trận: `/quan-tri-he-thong?tab=phan_quyen`. Đồng bộ preset KSNK: action **Đồng bộ vai trò KSNK** (`rbac-ksnk-role-mappings.ts`).
+
+| Vai trò (`sys_roles.name`) | Mô tả nghiệp vụ | Module quyền tiêu biểu |
 | :--- | :--- | :--- |
-| **Lãnh đạo khoa KSNK** | `KSNK_ADMIN` | Toàn quyền cấu hình danh mục y tế, phê duyệt đề xuất công việc, xem dashboard chỉ huy cấp cao. |
-| **Giám sát viên KSNK** | `GIAM_SAT_VST`, `GIAM_SAT_NKBV` | Thực hiện các phiên chấm điểm tuân thủ VST y tế, ghi nhận ca bệnh lâm sàng, xem báo cáo tuân thủ. |
-| **Nhân viên trạm CSSD** | `BAO_SU_CO`, `KSNK_KHO_HOACHAT` | Đóng gói dụng cụ y tế, quét mã vạch QR quy trình hấp sấy, báo cáo sự cố tiệt khuẩn, xuất nhập hóa chất. |
-| **Nhân viên khoa Lâm sàng** | `XEM_LICH_SU` | Xem lịch sử tiệt khuẩn của dụng cụ thuộc khoa phòng mình quản lý, không có quyền chỉnh sửa. |
+| **`ADMIN`** | Quản trị hệ thống — toàn quyền cấu hình | Mọi module trong `permission-registry-data.ts` |
+| **`NHAN_VIEN_KSNK`** | Nhân viên khoa Kiểm soát nhiễm khuẩn — vận hành lõi | Giám sát (VST/GSC/NKBV), CSSD, danh mục (xem/sửa theo module), QLCV, nhân sự, bảng kiểm |
+| **`HOI_DONG_KSNK`** | Hội đồng KSNK — chủ yếu xem báo cáo | Chỉ action `view` trên mọi module |
+| **`TO_TRUONG_MANG_LUOI_KSNK`** / **`THANH_VIEN_MANG_LUOI_KSNK`** | Mạng lưới KSNK theo khoa — nhập liệu giám sát | Giám sát VST/GSC, QLCV, báo cáo sự cố, dashboard |
+| **`BAN_QLCL`** / **`KHOA_TRANG_BI`** | Tiếp nhận sự cố liên phòng ban | Dashboard, giám sát (view), danh mục (view) |
 
-Mọi phân vai trò này được đồng bộ tự động thông qua hàm đăng ký vai trò hệ thống tại `rbac-registry-sync` và được bảo vệ nghiêm ngặt ở lớp Database bằng RLS (Row Level Security).
+**Module quyền** (không phải vai trò): `GIAM_SAT_VST`, `GIAM_SAT_CHUNG`, `CSSD_WORKFLOW`, `DANH_MUC`, `PHAN_QUYEN`, … — xem [`permission-registry-data.ts`](../../src/lib/permission-registry-data.ts).
+
+Mọi phân vai trò được bảo vệ ở app (`verifyPermission`) và DB (RLS qua `fn_sys_has_permission`).
+
+### 1.3 Đồng bộ Permission Registry ↔ DB (Phase 2b)
+
+SSOT mã quyền: [`permission-registry-data.ts`](../../src/lib/permission-registry-data.ts). Bảng vật lý: `sys_permissions`, `sys_role_permissions`.
+
+| Bước | Local | Staging / linked |
+|------|-------|------------------|
+| Kiểm tra parity | `npm run admin:rbac:parity:local` | `npm run admin:rbac:parity` (cần `.env.local` + Supabase linked) |
+| Đồng bộ | `npm run admin:rbac:sync:local` **hoặc** UI `/quan-tri-he-thong?tab=phan_quyen` → **Đồng bộ Registry** | Đăng nhập admin → UI **Đồng bộ Registry** hoặc `npm run admin:rbac:sync` trên máy có service role |
+| Xác nhận ADMIN | `admin_granted` = `db_permission_count` = số quyền registry | Cùng metric trong output parity |
+| Auth pilot | `npm run trial:auth:precheck:local` | `npm run trial:auth:precheck` |
+
+**Khi nào chạy:** Sau deploy có thêm module/action mới trong registry; khi `parity_ok: false`. Nút **Đồng bộ Registry** cũng chạy preset vai trò KSNK (`syncKsnkRolePermissionMappings`) — ma trận tay trên vai trò không thuộc preset vẫn giữ nguyên.
+
+**Staging 401 linked:** Kiểm tra `SUPABASE_ACCESS_TOKEN` / `supabase link` trước khi chạy parity linked; local vẫn dùng Docker (`npx supabase start`).
+
+**Cache quyền:** Server 5 phút + `invalidateUserPermissionsCache` khi lưu ma trận/gán vai trò; client refetch khi điều hướng / focus tab / poll 30s (`RbacRefreshListener`).
 
 ---
 
@@ -41,13 +62,38 @@ Mọi phân vai trò này được đồng bộ tự động thông qua hàm đ�
 
 | Môi trường | Lệnh kiểm tra head | Ghi chú |
 |------------|-------------------|---------|
-| **Local** | `npx supabase migration list --local` | **Yêu cầu Docker Desktop đang chạy.** Bootstrap: `npx supabase start` → `npm run mdm:migrate:local` → `npm run verify:mdm:local` → `npm run smoke:gsc-vst:local`. Head repo = **57** file (`20260608050000`). |
-| **Linked staging** | `npm run mdm:migrate` (remote up to date) | `npm run trial:db:precheck`, `npm run smoke:gsc-vst`, `npm run gstt:db:audit`. |
+| **Local** | `npx supabase migration list --local` | Docker + `npm run mdm:migrate:local`. Head repo = **87** file (`20260702100000`). Golden verify: `npm run local:golden:verify` (SOP §2.1.2). |
+| **Linked staging** | `npm run mdm:migrate` | `npm run trial:db:precheck`, `npm run smoke:gsc-vst`, `npm run gstt:db:audit`, `npm run ssot:db:guard`. |
 | **Repo SSOT** | `ls supabase/migrations/*.sql` | Tên file = nguồn sự thật; không apply SQL tay trên remote. |
 
 **Local không chạy được:** Nếu `connection refused` port 54322 → bật Docker Desktop, chạy `npx supabase start`. Không audit EXPLAIN/size trên local khi DB down — dùng linked staging tạm thời.
 
 **Auth server-side:** Next.js 16+ dùng [`src/proxy.ts`](../../src/proxy.ts) (không `middleware.ts` — xem [middleware-to-proxy](https://nextjs.org/docs/messages/middleware-to-proxy)) — `getUser()` trước RSC; không chỉ `ClientLayoutWrapper`.
+
+### 2.1.2 Môi trường local “vàng” (pilot / demo) — cập nhật 2026-07-03
+
+Sau mỗi lần reset DB local, chạy đủ chuỗi sau để RBAC, nhân sự và probe orphan = 0:
+
+```bash
+# Một lệnh (reset + migrate + đồng bộ quyền)
+npm run local:golden:reset
+
+# Tuỳ chọn — dữ liệu demo CSSD (pilot P3–P5)
+npm run cssd:demo:reset:local
+
+# Xác nhận 9 probe DB/auth/RBAC
+npm run local:golden:verify
+```
+
+| Bước | Lệnh | Mục đích |
+|------|------|----------|
+| 1 | `npx supabase db reset --local` | Migration + seeds (`00-rbac.sql`, `01-pilot-nhan-su.sql`) |
+| 2 | `npm run mdm:migrate:local` | Head repo = DB local |
+| 3 | `npm run admin:rbac:sync:local` | Registry quyền → `sys_permissions` |
+| 4 | `npm run cssd:demo:reset:local` | (Tuỳ chọn) Demo quy trình CSSD |
+| 5 | `npm run local:golden:verify` | 9 probe: SSOT, audit trigger, auth, GSTT, CSSD, RBAC, QLCV |
+
+**Đăng nhập pilot:** tài khoản trong `supabase/seeds/01-pilot-nhan-su.sql` (sau reset). `trial:auth:precheck:local` phải báo `mdm_email_no_auth` = **0**.
 
 ### 2.2 Quy trình 4 bước Đồng bộ Database
 1. **Tạo Migration local:** Sử dụng lệnh `npx supabase migration new <ten_nghiep_vu>` để khởi tạo file SQL mới.

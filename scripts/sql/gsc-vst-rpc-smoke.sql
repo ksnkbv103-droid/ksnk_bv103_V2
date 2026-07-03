@@ -19,7 +19,7 @@ BEGIN
   END IF;
 
   j := public.rpc_vst_compare_matrices(v_tu, v_den, NULL, NULL, NULL, NULL, NULL);
-  IF NOT (j ? 'matrix_khu_vuc' AND j ? 'matrix_hinh_thuc') THEN
+  IF NOT (j ? 'matrix_khoi' AND j ? 'matrix_khu_vuc' AND j ? 'matrix_hinh_thuc') THEN
     RAISE EXCEPTION 'rpc_vst_compare_matrices: thiếu matrix — %', j;
   END IF;
 
@@ -31,13 +31,25 @@ BEGIN
     AND j ? 'gap_analysis'
     AND j ? 'trendline'
     AND j ? 'dynamic_checklists'
+    AND j ? 'checklist_overview'
   ) THEN
     RAISE EXCEPTION 'rpc_dashboard_gsc_strategic_analytics: thiếu key bắt buộc — %', j;
   END IF;
 
+  j := public.rpc_gsc_checklist_detail(v_tu, v_den, 'BM.01.01', NULL, NULL, NULL, NULL, NULL);
+  IF NOT (
+    j ? 'ma_bk'
+    AND j ? 'kpis'
+    AND j ? 'matrix_criterion'
+    AND j ? 'criterion_khoa'
+  ) THEN
+    RAISE EXCEPTION 'rpc_gsc_checklist_detail: thiếu key bắt buộc — %', j;
+  END IF;
+
   j := public.rpc_gsc_compare_matrices(v_tu, v_den, NULL, NULL, NULL, NULL, NULL, NULL);
   IF NOT (
-    j ? 'matrix_khu_vuc'
+    j ? 'matrix_khoi'
+    AND j ? 'matrix_khu_vuc'
     AND j ? 'matrix_nghe'
     AND j ? 'matrix_hinh_thuc'
     AND j ? 'matrix_cach_thuc'

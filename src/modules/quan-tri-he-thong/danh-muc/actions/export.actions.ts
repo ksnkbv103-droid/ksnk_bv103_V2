@@ -1,7 +1,8 @@
 // src/modules/quan-tri-he-thong/danh-muc/actions/export.actions.ts
 "use server";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
+import { CSSD_LOAI_DM_VIEW, resolveLoaiAlias } from "@/lib/master-data/cssd-loai-dung-cu-map";
+import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
 import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
 /** Xuất đầy đủ để có ma_khoi/ma_* — anon client có thể bị RLS chặn, dùng service (cùng cơ chế action master khác). */
 
@@ -16,7 +17,7 @@ export async function getMasterDataExport(
   if (!exportModule) {
     return { success: false, error: `Chưa map quyền xuất dữ liệu cho bảng: ${tableName}` };
   }
-  await verifyPermission(exportModule, "view");
+  await verifyDanhMucLookupPermission(exportModule, "view");
   const supabase = createAdminSupabaseClient();
   try {
     let query = supabase.from(tableName).select("*");
@@ -70,7 +71,10 @@ export async function getMasterDataExport(
       );
       const [loaiRes, khoaRes] = await Promise.all([
         loaiIds.length
-          ? supabase.from("cssd_dm_loai_dung_cu").select("id, ma_loai_dung_cu, ten_loai_dung_cu").in("id", loaiIds)
+          ? supabase
+              .from("cssd_dm_loai_dung_cu")
+              .select("id, ma_loai, ten_loai, specs")
+              .in("id", loaiIds)
           : Promise.resolve({ data: [], error: null }),
         khoaIds.length
           ? supabase
@@ -82,10 +86,13 @@ export async function getMasterDataExport(
       if (loaiRes.error) throw loaiRes.error;
       if (khoaRes.error) throw khoaRes.error;
       const loaiMap = new Map(
-        (loaiRes.data || []).map(
-          (x: { id?: string; ma_loai_dung_cu?: string; ten_loai_dung_cu?: string }) =>
-            [String(x.id), { id: x.id, ma_danh_muc: x.ma_loai_dung_cu, ten_danh_muc: x.ten_loai_dung_cu }] as const,
-        )
+        (loaiRes.data || []).map((x) => {
+          const alias = resolveLoaiAlias(x as Parameters<typeof resolveLoaiAlias>[0]);
+          return [
+            String((x as { id?: string }).id),
+            { id: (x as { id?: string }).id, ma_danh_muc: alias.ma_loai_dung_cu, ten_danh_muc: alias.ten_loai_dung_cu },
+          ] as const;
+        }),
       );
       const khoaMap = new Map(
         (khoaRes.data || []).map((x: { id?: string; ma_khoa?: string; ten_khoa?: string }) =>
@@ -100,6 +107,28 @@ export async function getMasterDataExport(
           ten_loai_dung_cu: loaiMap.get(String(x.loai_dung_cu_id || ""))?.ten_danh_muc || null,
           ma_khoa_su_dung: khoaMap.get(String(x.khoa_su_dung_id || ""))?.ma_khoa || null,
           ten_khoa_su_dung: khoaMap.get(String(x.khoa_su_dung_id || ""))?.ten_khoa || null,
+        })),
+      };
+    }
+    if (tableName === "cssd_dm_loai_dung_cu") {
+      const { data: viewRows, error: viewErr } = await supabase
+        .from(CSSD_LOAI_DM_VIEW)
+        .select("*")
+        .order("ma_loai_dung_cu", { ascending: true });
+      if (viewErr) throw viewErr;
+      return {
+        success: true,
+        data: (viewRows || []).map((r: Record<string, unknown>) => ({
+          ma_loai_dung_cu: r.ma_loai_dung_cu || r.ma_loai || null,
+          ten_loai_dung_cu: r.ten_loai_dung_cu || r.ten_loai || null,
+          hinh_dang: r.hinh_dang ?? null,
+          kich_thuoc: r.kich_thuoc ?? null,
+          cong_dung: r.cong_dung ?? null,
+          kha_nang_chiu_nhiet: r.kha_nang_chiu_nhiet ?? null,
+          phuong_phap_tiet_khuan: r.phuong_phap_tiet_khuan ?? null,
+          phan_loai: r.phan_loai ?? "PHAU_THUAT",
+          so_luong_kho_du_phong: r.so_luong_kho_du_phong ?? 0,
+          is_active: r.is_active !== false,
         })),
       };
     }

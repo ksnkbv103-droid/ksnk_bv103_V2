@@ -12,6 +12,16 @@ function read(relPath) {
   return { ok: true, value: readFileSync(abs, "utf8"), error: "" };
 }
 
+function countRegistryPermissions(registrySource) {
+  const actionBlocks = registrySource.match(/actions:\s*\[[^\]]+\]/g) || [];
+  let total = 0;
+  for (const block of actionBlocks) {
+    total += (block.match(/"[A-Z_]+"/g) || []).length;
+  }
+  const modules = (registrySource.match(/code:\s*"/g) || []).length;
+  return { permissions: total, modules };
+}
+
 function mustInclude(content, needle, label, failures) {
   if (!content.includes(needle)) failures.push(label);
 }
@@ -107,6 +117,33 @@ else {
     failures,
   );
 }
+
+const registryData = read("src/lib/permission-registry-data.ts");
+if (!registryData.ok) failures.push(registryData.error);
+else {
+  const { permissions, modules } = countRegistryPermissions(registryData.value);
+  addCheck(permissions >= 100, `permission registry declares ${permissions} permissions (${modules} modules)`);
+}
+
+const serverPermission = read("src/lib/server-permission.ts");
+if (!serverPermission.ok) failures.push(serverPermission.error);
+else {
+  mustInclude(
+    serverPermission.value,
+    "USER_PERMISSIONS_CACHE_TAG",
+    "server-permission missing cache tag invalidation",
+    failures,
+  );
+  mustInclude(
+    serverPermission.value,
+    "invalidateUserPermissionsCache",
+    "server-permission missing invalidateUserPermissionsCache export",
+    failures,
+  );
+}
+
+const trustedAdmin = read("src/lib/auth/trusted-admin-email.ts");
+addCheck(trustedAdmin.ok, "has trusted-admin-email SSOT helper");
 
 console.log("=== Admin Health Check ===");
 for (const c of checks) {

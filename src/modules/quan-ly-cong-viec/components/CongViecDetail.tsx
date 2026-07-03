@@ -17,6 +17,9 @@ import { ActivityTimeline, type Activity } from "./ActivityTimeline";
 import { CongViecForm } from "./CongViecForm";
 import { HoatDongForm } from "./HoatDongForm";
 import { QlcvChecklistPanel } from "./QlcvChecklistPanel";
+import { QlcvManualProgressPanel } from "./QlcvManualProgressPanel";
+import { DeXuatApproveForm } from "./DeXuatApproveForm";
+import { taskUsesQlcvChecklistForProgress } from "@/lib/domain/qlcv-checklist";
 import {
   getCongViecDetail,
   xacNhanHoanThanh,
@@ -95,9 +98,9 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const [mauSacByMa, setMauSacByMa] = useState<Record<string, string>>({});
   const [activeId, setActiveId] = useState(id);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isApproveOpen, setIsApproveOpen] = useState(false);
   // Dialog state — thay thế browser prompt()/confirm()
   const [confirmNghiemThuOpen, setConfirmNghiemThuOpen] = useState(false);
-  const [confirmNghiemThuForce, setConfirmNghiemThuForce] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [reasonHuyOpen, setReasonHuyOpen] = useState(false);
   const [reasonTuChoiOpen, setReasonTuChoiOpen] = useState(false);
@@ -146,6 +149,8 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
 
   const showDelete = canShowDeleteTask(data, accessFlags);
   const showEditMetadata = canShowEditTaskMetadata(data, accessFlags);
+  const showApproveDeXuat = isDeXuatChoDuyet(data) && canShowQlcvApproveActions(accessFlags);
+  const usesChecklist = taskUsesQlcvChecklistForProgress(data.checklist);
   const st = String(data.trang_thai || "");
   const showHoatDong = canShowHoatDongProgressSection(data, accessFlags);
   const checklistReadOnly =
@@ -156,11 +161,6 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
     (accessFlags.actorStaffId && data.nguoi_giao_viec_id && String(accessFlags.actorStaffId) === String(data.nguoi_giao_viec_id));
   const showHuyButton =
     (accessFlags.isRBACAdmin || accessFlags.hasDelete) &&
-    st !== "HOAN_THANH" &&
-    st !== "DA_HUY" &&
-    !isChoNghiemThuHoanThanh(data);
-  const showForceNghiemThu =
-    canNghiemThu &&
     st !== "HOAN_THANH" &&
     st !== "DA_HUY" &&
     !isChoNghiemThuHoanThanh(data);
@@ -206,15 +206,6 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
             </Button>
           )}
 
-          {showForceNghiemThu && (
-            <Button
-              className={qlcvDetailChrome.btnPrimary}
-              onClick={() => setConfirmNghiemThuForce(true)}
-            >
-              Nghiệm thu & Đóng
-            </Button>
-          )}
-
           {showNghiemThuToolbar && (
             <>
               <Button
@@ -238,6 +229,30 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
                 Nghiệm thu & Đóng
               </Button>
             </>
+          )}
+
+          {showApproveDeXuat && (
+            <Dialog modal={false} open={isApproveOpen} onOpenChange={setIsApproveOpen}>
+              <DialogTrigger asChild>
+                <Button className={qlcvDetailChrome.btnPrimary}>Phê duyệt & giao</Button>
+              </DialogTrigger>
+              <DialogContent className={qlcvDetailChrome.dialogContent}>
+                <DialogHeader className="mb-6">
+                  <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">
+                    Phê duyệt đề xuất
+                  </DialogTitle>
+                </DialogHeader>
+                <DeXuatApproveForm
+                  proposal={data}
+                  onSuccess={() => {
+                    setIsApproveOpen(false);
+                    fetchDetail();
+                    onRefreshList?.();
+                  }}
+                  onCancel={() => setIsApproveOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
           )}
 
           {showEditMetadata && (
@@ -276,16 +291,33 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
 
       <div className={`divide-y divide-slate-100 overflow-hidden ${qlcvDetailChrome.panel}`}>
         <div className="p-4 sm:p-5">
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <span className={qlcvDetailChrome.sectionLabel}>Tiến độ thực hiện</span>
-            <span className="text-sm font-semibold text-[var(--primary)]">{Number(data.phan_tram_hoan_thanh ?? 0)}%</span>
-          </div>
-          <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-            <div
-              className="h-full rounded-full bg-[var(--primary)] transition-all"
-              style={{ width: `${Math.min(100, Math.max(0, Number(data.phan_tram_hoan_thanh ?? 0)))}%` }}
+          {usesChecklist ? (
+            <div className="space-y-3">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <span className={qlcvDetailChrome.sectionLabel}>Tiến độ thực hiện</span>
+                <span className="text-sm font-semibold text-[var(--primary)]">
+                  {Number(data.phan_tram_hoan_thanh ?? 0)}%
+                </span>
+              </div>
+              <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full bg-[var(--primary)] transition-all"
+                  style={{ width: `${Math.min(100, Math.max(0, Number(data.phan_tram_hoan_thanh ?? 0)))}%` }}
+                />
+              </div>
+              <p className="text-xs text-slate-500">Tiến độ tính từ checklist bên dưới.</p>
+            </div>
+          ) : (
+            <QlcvManualProgressPanel
+              congViecId={data.id}
+              initialPercent={Number(data.phan_tram_hoan_thanh ?? 0)}
+              readOnly={checklistReadOnly}
+              onUpdated={() => {
+                fetchDetail();
+                onRefreshList?.();
+              }}
             />
-          </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 p-4 sm:grid-cols-3 sm:p-5 lg:grid-cols-4">
@@ -333,9 +365,14 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
               <CheckCircle2 size={18} className="shrink-0 text-[var(--primary)]" aria-hidden />
               <h3 className={qlcvDetailChrome.sectionHeading}>Ghi chú tiến độ (tùy chọn)</h3>
             </div>
-            <p className="text-xs text-slate-500">Ghi chú bổ sung — % tiến độ chỉ cập nhật qua checklist.</p>
+            <p className="text-xs text-slate-500">
+              {usesChecklist
+                ? "Ghi chú bổ sung — % tiến độ cập nhật qua checklist."
+                : "Ghi chú bổ sung — % tiến độ cập nhật qua thanh tiến độ phía trên."}
+            </p>
             <HoatDongForm
               congViecId={data.id}
+              usesChecklist={usesChecklist}
               onSuccess={() => {
                 fetchDetail();
                 onRefreshList?.();
@@ -394,24 +431,6 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
       <QlcvConfirmDialog
         open={confirmNghiemThuOpen}
         onOpenChange={setConfirmNghiemThuOpen}
-        title="Xác nhận nghiệm thu & đóng"
-        description="Công việc sẽ được chuyển sang trạng thái Hoàn thành. Thao tác này không thể hoàn tác."
-        confirmLabel="Nghiệm thu & Đóng"
-        onConfirm={async () => {
-          try {
-            await xacNhanHoanThanh(data.id);
-            toast.success("Đã nghiệm thu và hoàn thành công việc!");
-            fetchDetail();
-            onRefreshList?.();
-          } catch (e: unknown) {
-            toast.error(getErrorMessage(e));
-          }
-        }}
-      />
-
-      <QlcvConfirmDialog
-        open={confirmNghiemThuForce}
-        onOpenChange={setConfirmNghiemThuForce}
         title="Xác nhận nghiệm thu & đóng"
         description="Công việc sẽ được chuyển sang trạng thái Hoàn thành. Thao tác này không thể hoàn tác."
         confirmLabel="Nghiệm thu & Đóng"

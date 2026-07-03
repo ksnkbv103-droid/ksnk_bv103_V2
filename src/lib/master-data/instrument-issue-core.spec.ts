@@ -4,6 +4,20 @@ import { buildChiTietIssueNoteText } from "./instrument-issue-core";
 describe("buildChiTietIssueNoteText", () => {
   const now = "2026-06-02 10:00:00";
 
+  it("omits detach line when partial quantity", () => {
+    const text = buildChiTietIssueNoteText({
+      issueType: "HONG",
+      note: "gãy đầu",
+      oldNote: "Ghi cũ",
+      oldBoId: "bo-1",
+      quantity: 1,
+      soLuongChiTiet: 3,
+      now,
+    });
+    expect(text).toContain("(SL 1/3)");
+    expect(text).not.toContain("Tách khỏi bộ");
+  });
+
   it("appends issue line and detach when chi tiết thuộc bộ", () => {
     const text = buildChiTietIssueNoteText({
       issueType: "HONG",

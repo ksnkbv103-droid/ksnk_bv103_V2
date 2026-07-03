@@ -11,6 +11,7 @@
  *   `ensureRbacAdmin()` đã chặt từ tầng app (ADMIN_EMAILS hoặc ADMIN role hoặc PHAN_QUYEN.edit).
  */
 
+import { invalidateUserPermissionsCache } from "@/lib/server-permission";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { quanTriHubHref } from "@/lib/master-data/quan-tri-paths";
@@ -35,6 +36,7 @@ export async function syncPermissionRegistry() {
     await upsertRegistryPermissionsAndAdminMappings(supabase);
 
     console.log("[RBAC] Sync completed successfully!");
+    await invalidateUserPermissionsCache();
     revalidatePath(quanTriHubHref("PHAN_QUYEN"));
     revalidatePath(quanTriHubHref());
     return { success: true };
@@ -132,6 +134,7 @@ export async function saveFullRBACMatrix(matrix: Record<string, string[]>) {
       if (delErr) throw delErr;
     }
 
+    await invalidateUserPermissionsCache();
     revalidatePath(quanTriHubHref("PHAN_QUYEN"));
     revalidatePath(quanTriHubHref());
     return { success: true };

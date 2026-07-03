@@ -1,6 +1,6 @@
 "use server";
 
-import { ADMIN_EMAILS } from "@/lib/constants";
+import { isTrustedAdminEmail } from "@/lib/auth/trusted-admin-email";
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "../../actions/verify-permission";
 
@@ -14,10 +14,7 @@ export async function ensureRbacAdmin() {
   const user = auth?.user;
   if (!user?.id) throw new Error("Bạn chưa đăng nhập");
 
-  const isAdminEmail = ADMIN_EMAILS.some(
-    (email) => String(user.email || "").toLowerCase().trim() === email.toLowerCase().trim(),
-  );
-  if (isAdminEmail) return user;
+  if (isTrustedAdminEmail(user.email)) return user;
 
   const admin = createAdminSupabaseClient();
   const { data: roleRows, error } = await admin

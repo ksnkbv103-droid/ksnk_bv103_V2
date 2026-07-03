@@ -3,7 +3,7 @@ import type { Station } from "../../types/cssd.types";
 import { buildQuyTrinhTramPatch } from "../../lib/cssd-tram-persist";
 import { previousWorkflowStation, validateStationAdvance } from "../domain/cssd-state-engine";
 import { insertCssdLifecycleEvent } from "../../shared/application/cssd-lifecycle-events";
-import { assertLedgerDuChoCapPhat, syncThanhPhanTuTemplate } from "./cssd-asset-ledger";
+import { assertLedgerDuChoCapPhat } from "./cssd-asset-ledger";
 import { assertMergeGateForCapPhat } from "./cssd-merge-gate";
 import { fetchActiveQuyTrinhByScanCode } from "../../shared/application/cssd-workflow-resolve";
 
@@ -11,6 +11,7 @@ export type WorkflowQuyTrinhInput = {
   id: string;
   ma_qr_quy_trinh?: string | null;
   ma_trang_thai_hien_tai?: string | null;
+  thoi_gian_tiep_nhan?: string | null;
   bo_dung_cu_id?: string | null;
   is_dong_bang?: boolean | null;
 };
@@ -45,23 +46,17 @@ export async function executeWorkflowStationScan(
       ? opts.quyTrinh
       : (await fetchLatestActiveWorkflowByQr(supabase, qr)) ?? opts.quyTrinh;
 
-  const currentStatus = String(quyTrinh.ma_trang_thai_hien_tai || "").trim();
-  if (currentStatus) {
-    const advance = validateStationAdvance({
-      currentStatus: currentStatus as Station,
-      targetStation,
-    });
-    if (!advance.ok) throw new Error(advance.message);
-  }
-
-  // BOM runtime sync tại trạm Đóng gói (P0 QLDCPT)
-  if (targetStation === "DONG_GOI" && quyTrinh.id) {
-    const boId = String(quyTrinh.bo_dung_cu_id || "").trim();
-    if (boId) {
-      const sync = await syncThanhPhanTuTemplate(supabase, quyTrinh.id, boId);
-      if (!sync.ok) throw new Error(sync.message);
-    }
-  }
+  const currentStatus = String(quyTrinh.ma_trang_thai_hien_tai || "").trim() as Station | "";
+  const tiepNhanPending =
+    currentStatus === "TIEP_NHAN" &&
+    targetStation === "TIEP_NHAN" &&
+    !String(quyTrinh.thoi_gian_tiep_nhan || "").trim();
+  const advance = validateStationAdvance({
+    currentStatus,
+    targetStation,
+    tiepNhanPending,
+  });
+  if (!advance.ok) throw new Error(advance.message);
 
   // 1. Kiểm tra an toàn trước khi quét (Safety Lock cho Cấp phát)
   if (targetStation === "CAP_PHAT" && quyTrinh.id) {

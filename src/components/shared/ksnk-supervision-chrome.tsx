@@ -27,6 +27,7 @@ export function KsnkSupervisionHero({
   description,
   actions,
   trailing,
+  density = "default",
 }: {
   eyebrow?: string | null;
   title: React.ReactNode;
@@ -35,18 +36,24 @@ export function KsnkSupervisionHero({
   actions?: React.ReactNode;
   /** Ví dụ: `KsnkSupervisionTabList` — đặt cùng hàng tiêu đề (desktop). */
   trailing?: React.ReactNode;
+  density?: "default" | "compact";
 }) {
   const desc = description?.trim();
   const eye = (eyebrow ?? "").trim();
+  const compact = density === "compact";
   return (
-    <header className="no-print rounded-[var(--radius-shell)] border border-slate-200/90 bg-gradient-to-br from-white via-white to-slate-50/90 p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.04] md:p-6">
-      <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+    <header
+      className={`no-print rounded-xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/[0.04] ${
+        compact ? "p-3 md:p-4" : "rounded-[var(--radius-shell)] bg-gradient-to-br from-white via-white to-slate-50/90 p-5 shadow-[var(--shadow-app-soft)] md:p-6"
+      }`}
+    >
+      <div className={`flex w-full flex-col gap-3 ${compact ? "sm:flex-row sm:items-center sm:justify-between" : "gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6"}`}>
         <div className="min-w-0 flex-1">
           {eye ? <p className={T.pageEyebrow}>{eye}</p> : null}
-          <div className={`${T.pageTitle} ${eye ? "mt-1" : ""}`}>{title}</div>
+          <div className={`${compact ? "text-lg font-semibold tracking-tight text-slate-900 md:text-xl" : T.pageTitle} ${eye ? "mt-0.5" : ""}`}>{title}</div>
           {desc ? <p className={T.pageSubtitle}>{desc}</p> : null}
         </div>
-        <div className="flex w-full min-w-0 shrink-0 flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end lg:w-auto lg:max-w-[55%] xl:max-w-[50%]">
+        <div className={`flex w-full min-w-0 shrink-0 flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end ${compact ? "" : "lg:w-auto lg:max-w-[55%] xl:max-w-[50%]"}`}>
           {trailing}
           {actions ? <div className="flex flex-wrap items-center justify-end gap-2">{actions}</div> : null}
         </div>

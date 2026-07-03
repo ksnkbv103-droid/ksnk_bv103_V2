@@ -2,7 +2,8 @@
 
 import React from "react";
 import { Activity } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
+import { SupervisionResponsiveChart } from "@/lib/analytics/supervision-charts-shared";
 import type { BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 
@@ -17,8 +18,8 @@ export function ComprehensiveNkbvOutcome({ payload }: { payload: BaoCaoTongHopPa
         Xu hướng NKBV (outcome)
       </h2>
       <p className="mb-4 text-xs text-slate-500">Số phiếu theo tháng — tách khỏi biểu đồ tuân thủ VST/GSC.</p>
-      <div className="h-[240px]">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="h-[240px] min-w-0">
+        <SupervisionResponsiveChart className="h-full w-full min-w-0">
           <BarChart data={monthly}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="label" tick={{ fontSize: 10 }} />
@@ -26,7 +27,7 @@ export function ComprehensiveNkbvOutcome({ payload }: { payload: BaoCaoTongHopPa
             <Tooltip />
             <Bar dataKey="so_phieu" name="Số phiếu" fill="var(--primary)" radius={[4, 4, 0, 0]} />
           </BarChart>
-        </ResponsiveContainer>
+        </SupervisionResponsiveChart>
       </div>
     </section>
   );

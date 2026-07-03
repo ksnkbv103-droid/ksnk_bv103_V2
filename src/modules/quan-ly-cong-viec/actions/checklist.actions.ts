@@ -1,17 +1,14 @@
 "use server";
 
-import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
-import { verifyPermission } from "@/lib/server-permission";
 import { normalizeQlcvChecklist, qlcvChecklistSchema, type QlcvChecklistItem } from "../lib/qlcv-checklist";
 import { assertQlcvTaskVisible, getQlcvListScope } from "../lib/qlcv-list-scope-server";
+import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 
 export async function getQlcvChecklist(congViecId: string): Promise<QlcvChecklistItem[]> {
-  await verifyPermission("CONG_VIEC", "view");
+  const { supabase } = await ensureQlcvKsnkAccess("view");
   const scope = await getQlcvListScope();
   await assertQlcvTaskVisible(congViecId, scope);
-
-  const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
     .from("qlcv_fact_cong_viec")
     .select("checklist")
@@ -23,7 +20,7 @@ export async function getQlcvChecklist(congViecId: string): Promise<QlcvChecklis
 }
 
 export async function updateQlcvChecklist(congViecId: string, items: QlcvChecklistItem[]) {
-  await verifyPermission("CONG_VIEC", "view");
+  const { supabase } = await ensureQlcvKsnkAccess("view");
   const parsed = qlcvChecklistSchema.safeParse(items);
   if (!parsed.success) {
     throw new Error("Checklist không hợp lệ.");
@@ -31,8 +28,6 @@ export async function updateQlcvChecklist(congViecId: string, items: QlcvCheckli
 
   const scope = await getQlcvListScope();
   await assertQlcvTaskVisible(congViecId, scope);
-
-  const supabase = createAdminSupabaseClient();
   const { error } = await supabase.rpc("fn_qlcv_update_checklist", {
     p_cong_viec_id: congViecId,
     p_checklist: parsed.data,

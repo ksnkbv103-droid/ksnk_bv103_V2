@@ -24,8 +24,8 @@ Go-live 3 module: [`../../core/pilot-core-modules-go-live.md`](../../core/pilot-
 
 | Luồng | Trạng thái |
 |-------|------------|
-| **Smart import** | SSOT mới — từng trang DM (`smart-import.actions.ts`) |
-| **Master Excel modal** | Legacy (`master-import.actions.ts`) — HC, TB, nhân sự; **khoa phòng** đã chuyển smart import (`mdm_dm_khoa_phong` + `specs` JSONB) |
+| **Smart import** | SSOT mới — khoa phòng, hóa chất, thiết bị, nhân sự, dụng cụ (`smart-import.actions.ts`) |
+| **Master Excel modal** | Legacy (`master-import.actions.ts`) — chỉ còn fallback nếu gọi trực tiếp modal cũ |
 
 ## MDM Governance & trigger DB
 

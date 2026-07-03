@@ -14,6 +14,11 @@ function isLoginRoutePath(pathname: string): boolean {
   return pathname === "/login" || pathname.startsWith("/login/");
 }
 
+/** Cookie phiên Supabase (@supabase/ssr) — chỉ gọi Auth API khi có dấu hiệu đã đăng nhập. */
+function hasSupabaseAuthCookies(request: NextRequest): boolean {
+  return request.cookies.getAll().some((c) => c.name.includes("auth-token") || c.name.startsWith("sb-"));
+}
+
 function copyResponseCookies(from: NextResponse, to: NextResponse) {
   from.cookies.getAll().forEach((c) => {
     to.cookies.set(c.name, c.value, {
@@ -87,21 +92,51 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  // IMPORTANT: getUser() xác minh JWT qua Supabase Auth API (server-side),
-  // không chỉ đọc cookie như getSession() — ngăn JWT spoofing.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const onLoginRoute = isLoginRoutePath(pathname);
+  const mayHaveSession = hasSupabaseAuthCookies(request);
 
-  if (!user && !isLoginRoutePath(pathname)) {
+  // Không có cookie phiên → chuyển login ngay, tránh gọi Auth API (~100–800ms mỗi request dev).
+  if (!onLoginRoute && !mayHaveSession) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
+    loginUrl.search = "";
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Khách vào /login: không gọi Supabase Auth (tránh treo ~10s khi mạng/Cloudflare timeout).
+  if (onLoginRoute && !mayHaveSession) {
+    return supabaseResponse;
+  }
+
+  // IMPORTANT: getUser() xác minh JWT qua Supabase Auth API (server-side),
+  // không chỉ đọc cookie như getSession() — ngăn JWT spoofing.
+  let user: { id: string } | null = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch (err) {
+    console.error("[proxy] Supabase auth.getUser failed:", err);
+    if (!onLoginRoute) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/login";
+      loginUrl.search = "";
+      const redirectResponse = NextResponse.redirect(loginUrl);
+      copyResponseCookies(supabaseResponse, redirectResponse);
+      return redirectResponse;
+    }
+    return supabaseResponse;
+  }
+
+  if (!user && !onLoginRoute) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.search = "";
     const redirectResponse = NextResponse.redirect(loginUrl);
     copyResponseCookies(supabaseResponse, redirectResponse);
     return redirectResponse;
   }
 
-  if (user && isLoginRoutePath(pathname)) {
+  if (user && onLoginRoute) {
     const homeUrl = request.nextUrl.clone();
     homeUrl.pathname = "/";
     const redirectResponse = NextResponse.redirect(homeUrl);

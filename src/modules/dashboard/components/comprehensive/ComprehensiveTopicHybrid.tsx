@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
+import { resolveSortedChecklistOverview } from "@/lib/analytics/gsc-checklist-intervention";
 import type { BaoCaoChuyenDe, BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 import { buildAnalyticsDeepLink } from "../../lib/bao-cao-tong-hop-core";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
@@ -142,8 +143,8 @@ function buildGscLines(payload: BaoCaoTongHopPayload | null): string[] {
   ];
   const topVp = payload?.gsc?.top_violations?.[0];
   if (topVp) lines.push(`Vi phạm nổi bật: ${topVp.ten_tieu_chi} (${topVp.so_vi_pham} lần, ${topVp.ten_bang_kiem})`);
-  const bkLow = [...(payload?.gsc?.dynamic_checklists ?? [])].sort((a, b) => a.ty_le_tuan_thu - b.ty_le_tuan_thu)[0];
-  if (bkLow) lines.push(`Bảng kiểm thấp nhất: ${bkLow.ten_bang_kiem} (${bkLow.ty_le_tuan_thu}%)`);
+  const bkLow = resolveSortedChecklistOverview(payload?.gsc ?? null)[0];
+  if (bkLow) lines.push(`BK rủi ro nhất: ${bkLow.ma_bk} (${bkLow.ty_le_tuan_thu}% · ${bkLow.tong_vi_pham} vi phạm)`);
   return lines;
 }
 

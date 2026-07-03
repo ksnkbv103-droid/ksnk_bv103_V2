@@ -9,6 +9,7 @@ export async function replenishSetInstrumentCore(
     quyTrinhId?: string | null;
     quantity: number;
     note?: string;
+    suCoId?: string | null;
   },
 ) {
   const loaiId = String(params.loaiDungCuId || "").trim();
@@ -44,6 +45,7 @@ export async function replenishSetInstrumentCore(
     loai_giao_dich: "BO_SUNG",
     so_luong_thay_doi: quantity,
     ghi_chu: String(params.note || "").trim() || "Bổ sung dụng cụ vào bộ từ kho dự phòng",
+    su_co_id: params.suCoId || null,
     updated_at: new Date().toISOString(),
   });
   if (insErr) return { success: false as const, error: insErr.message };

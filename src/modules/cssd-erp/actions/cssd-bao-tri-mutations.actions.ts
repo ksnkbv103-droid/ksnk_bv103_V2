@@ -7,6 +7,8 @@ import { normalizeCssdCode } from "../shared/domain/cssd-qr-core";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
 import { verifyCssdMaintenanceEdit } from "@/lib/cssd-server-gates";
 import { cssdMaintenanceStartInputSchema } from "../shared/contracts/cssd-context.contracts";
+import { buildPmChecklistForLoaiMay, allChecklistDone, parseChecklistJson } from "@/lib/domain/cssd-equipment-pm-checklist";
+import type { CssdPmChecklistItem } from "@/lib/domain/cssd-equipment-pm-checklist";
 
 function nextMaPhieu(): string {
   return `BT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
@@ -19,7 +21,13 @@ function addDaysIso(dateYmd: string, days: number): string {
 }
 
 /** Bắt đầu bảo trì: phiếu DANG_THUC_HIEN + đặt cssd_dm_thiet_bi = REPAIRING. */
-export async function batDauBaoTriThietBiAction(input: { thiet_bi_id?: string; ma_thiet_bi_hoac_qr?: string; ly_do: string }) {
+export async function batDauBaoTriThietBiAction(input: {
+  thiet_bi_id?: string;
+  ma_thiet_bi_hoac_qr?: string;
+  ly_do: string;
+  loai_phieu?: "DINH_KY" | "SUA_CHUA";
+  su_co_id?: string;
+}) {
   const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdMaintenanceEdit();
@@ -27,6 +35,8 @@ export async function batDauBaoTriThietBiAction(input: { thiet_bi_id?: string; m
     const tidRaw = String(parsed.thiet_bi_id || "").trim();
     const deviceCode = normalizeCssdCode(parsed.ma_thiet_bi_hoac_qr);
     const lyDo = String(parsed.ly_do || "").trim();
+    const loaiPhieu = parsed.loai_phieu === "SUA_CHUA" ? "SUA_CHUA" : "DINH_KY";
+    const suCoId = String(parsed.su_co_id || "").trim() || null;
     if (!tidRaw && !deviceCode) return { success: false as const, error: "Chọn thiết bị hoặc quét mã thiết bị." };
     if (!lyDo) return { success: false as const, error: "Nhập lý do / nội dung bảo trì." };
 
@@ -48,12 +58,21 @@ export async function batDauBaoTriThietBiAction(input: { thiet_bi_id?: string; m
       };
     }
 
-    const { data: tb, error: tbErr } = await supabase.from("cssd_dm_thiet_bi").select("trang_thai").eq("id", tid).maybeSingle();
+    const { data: tb, error: tbErr } = await supabase
+      .from("cssd_dm_thiet_bi")
+      .select("trang_thai, loai_may_id, loai_may:cssd_dm_loai_may(ma_loai_may)")
+      .eq("id", tid)
+      .maybeSingle();
     if (tbErr) return { success: false as const, error: mapFkError(tbErr.message) };
     const st = String((tb as { trang_thai?: string })?.trang_thai || "").trim();
     if (!["READY", "HOAT_DONG"].includes(st)) {
       return { success: false as const, error: `Thiết bị không ở trạng thái sẵn sàng (${st || "—"}).` };
     }
+
+    const lm = (tb as { loai_may?: { ma_loai_may?: string } | { ma_loai_may?: string }[] | null }).loai_may;
+    const lmRow = Array.isArray(lm) ? lm[0] : lm;
+    const maLoai = String(lmRow?.ma_loai_may || "").trim();
+    const checklist = loaiPhieu === "DINH_KY" ? buildPmChecklistForLoaiMay(maLoai) : [];
 
     const ma_phieu = nextMaPhieu();
     const now = new Date().toISOString();
@@ -64,7 +83,10 @@ export async function batDauBaoTriThietBiAction(input: { thiet_bi_id?: string; m
         ma_phieu,
         thiet_bi_id: tid,
         trang_thai: "DANG_THUC_HIEN",
+        loai_phieu: loaiPhieu,
         ly_do: lyDo,
+        checklist_jsonb: checklist,
+        su_co_id: suCoId,
         thoi_gian_bat_dau: now,
         updated_at: now,
       })
@@ -87,7 +109,11 @@ export async function batDauBaoTriThietBiAction(input: { thiet_bi_id?: string; m
 }
 
 /** Hoàn thành bảo trì: phiếu HOAN_THANH + cssd_dm_thiet_bi READY + cập nhật ngày bảo trì kế. */
-export async function ketThucBaoTriThietBiAction(input: { id: string; ket_qua_ghi_nhan: string }) {
+export async function ketThucBaoTriThietBiAction(input: {
+  id: string;
+  ket_qua_ghi_nhan: string;
+  checklist_jsonb?: CssdPmChecklistItem[];
+}) {
   const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdMaintenanceEdit();
@@ -98,7 +124,7 @@ export async function ketThucBaoTriThietBiAction(input: { id: string; ket_qua_gh
 
     const { data: ph, error: pErr } = await supabase
       .from("cssd_fact_bao_tri")
-      .select("id, trang_thai, thiet_bi_id")
+      .select("id, trang_thai, thiet_bi_id, loai_phieu, checklist_jsonb")
       .eq("id", id)
       .eq("is_active", true)
       .maybeSingle();
@@ -106,6 +132,15 @@ export async function ketThucBaoTriThietBiAction(input: { id: string; ket_qua_gh
     if (!ph) return { success: false as const, error: "Không tìm thấy phiếu." };
     if (String((ph as { trang_thai?: string }).trang_thai) !== "DANG_THUC_HIEN") {
       return { success: false as const, error: "Phiếu không đang ở trạng thái thực hiện." };
+    }
+
+    const loaiPhieu = String((ph as { loai_phieu?: string }).loai_phieu || "DINH_KY");
+    const checklist =
+      input.checklist_jsonb && input.checklist_jsonb.length
+        ? input.checklist_jsonb
+        : parseChecklistJson((ph as { checklist_jsonb?: unknown }).checklist_jsonb);
+    if (loaiPhieu === "DINH_KY" && checklist.length && !allChecklistDone(checklist)) {
+      return { success: false as const, error: "Hoàn thành tất cả mục checklist bảo dưỡng định kỳ." };
     }
 
     const thietBiId = String((ph as { thiet_bi_id?: string }).thiet_bi_id || "");
@@ -127,6 +162,7 @@ export async function ketThucBaoTriThietBiAction(input: { id: string; ket_qua_gh
       .update({
         trang_thai: "HOAN_THANH",
         ket_qua_ghi_nhan: ketQua,
+        checklist_jsonb: checklist,
         thoi_gian_ket_thuc: now,
         updated_at: now,
       })

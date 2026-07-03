@@ -9,17 +9,25 @@ export type ChiTietIssueSnapshot = {
   so_luong: number;
 };
 
-/** Pure: ghép dòng ghi chú audit + tách khỏi bộ (unit test). */
+/** Pure: ghép dòng ghi chú audit + tách khỏi bộ khi báo toàn bộ (unit test). */
 export function buildChiTietIssueNoteText(params: {
   issueType: InstrumentIssueType;
   note?: string;
   oldNote: string;
   oldBoId: string;
+  quantity?: number;
+  soLuongChiTiet?: number;
   now?: string;
 }): string {
   const now = params.now ?? new Date().toISOString().slice(0, 19).replace("T", " ");
-  const line = `[${params.issueType}] ${now}${params.note ? ` - ${String(params.note).trim()}` : ""}`;
-  const detachLine = params.oldBoId
+  const qty = Math.max(1, Math.floor(Number(params.quantity ?? 1) || 1));
+  const total = Math.max(1, Math.floor(Number(params.soLuongChiTiet ?? 1) || 1));
+  const qtyLabel = qty < total ? ` (SL ${qty}/${total})` : "";
+  const line = `[${params.issueType}] ${now}${qtyLabel}${params.note ? ` - ${String(params.note).trim()}` : ""}`;
+  const shouldDetach =
+    params.oldBoId &&
+    qty >= total;
+  const detachLine = shouldDetach
     ? `[AUTO] ${now} - Tách khỏi bộ hiện tại do báo ${params.issueType === "HONG" ? "hỏng" : "mất"}.`
     : "";
   const oldNote = params.oldNote.trim();
@@ -27,10 +35,10 @@ export function buildChiTietIssueNoteText(params: {
   return detachLine ? `${oldNote}\n${line}\n${detachLine}` : `${oldNote}\n${line}`;
 }
 
-/** Ghi chú audit + tách khỏi bộ trên `cssd_dm_bo_dung_cu_chi_tiet`. Caller phải verify quyền. */
+/** Ghi chú audit; tách khỏi bộ chỉ khi báo toàn bộ số lượng dòng chi tiết. Caller phải verify quyền. */
 export async function appendChiTietIssueNoteCore(
   supabase: SupabaseClient,
-  params: { chiTietId: string; issueType: InstrumentIssueType; note?: string },
+  params: { chiTietId: string; issueType: InstrumentIssueType; note?: string; quantity?: number },
 ): Promise<{ success: true; snapshot: ChiTietIssueSnapshot } | { success: false; error: string }> {
   const id = String(params.chiTietId || "").trim();
   if (!id) return { success: false, error: "Thiếu id dụng cụ chi tiết." };
@@ -49,20 +57,26 @@ export async function appendChiTietIssueNoteCore(
     so_luong: Math.max(1, Number((row as { so_luong?: number | null } | null)?.so_luong || 1) || 1),
   };
 
+  const quantity = Math.max(1, Number(params.quantity ?? snapshot.so_luong) || 1);
   const nextNote = buildChiTietIssueNoteText({
     issueType: params.issueType,
     note: params.note,
     oldNote: snapshot.ghi_chu,
     oldBoId: snapshot.bo_dung_cu_id,
+    quantity,
+    soLuongChiTiet: snapshot.so_luong,
   });
+
+  const detach = snapshot.bo_dung_cu_id && quantity >= snapshot.so_luong;
+  const updatePayload: Record<string, unknown> = {
+    ghi_chu: nextNote,
+    updated_at: new Date().toISOString(),
+  };
+  if (detach) updatePayload.bo_dung_cu_id = null;
 
   const { error: ue } = await supabase
     .from("cssd_dm_bo_dung_cu_chi_tiet")
-    .update({
-      ghi_chu: nextNote,
-      bo_dung_cu_id: null,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq("id", id);
   if (ue) return { success: false, error: ue.message };
 
@@ -79,6 +93,7 @@ export async function insertInstrumentIssueLedgerCore(
     boDungCuId?: string | null;
     quyTrinhId?: string | null;
     note?: string;
+    suCoId?: string | null;
   },
 ): Promise<{ success: true } | { success: false; error: string }> {
   const loaiId = String(params.loaiDungCuId || "").trim();
@@ -93,6 +108,7 @@ export async function insertInstrumentIssueLedgerCore(
     loai_giao_dich: params.issueType === "HONG" ? "BAO_HONG" : "BAO_MAT",
     so_luong_thay_doi: -quantity,
     ghi_chu: String(params.note || "").trim() || null,
+    su_co_id: params.suCoId || null,
     updated_at: new Date().toISOString(),
   });
 

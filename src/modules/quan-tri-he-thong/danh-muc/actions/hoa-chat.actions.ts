@@ -3,7 +3,6 @@
 import { verifyPermission } from "@/lib/server-permission";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import {
-  listMasterRows,
   softDeleteManyMasterRows,
   softDeleteMasterRow,
   toggleMasterStatus,

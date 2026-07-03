@@ -38,6 +38,21 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
     actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
   },
   {
+    code: "DANH_MUC_ORG",
+    displayName: "Danh mục Tổ chức (lookup)",
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
+  },
+  {
+    code: "DANH_MUC_GSTT",
+    displayName: "Danh mục Giám sát (lookup)",
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
+  },
+  {
+    code: "DANH_MUC_CSSD_LOOKUP",
+    displayName: "Danh mục CSSD (lookup)",
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
+  },
+  {
     code: "NHAN_SU",
     displayName: "Quản lý Nhân sự",
     actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]

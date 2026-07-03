@@ -142,7 +142,45 @@
 ### D-UX-01 — UI shell fragmentation (2026-06-04)
 
 *   **Mô tả:** Nhiều hệ header/layout song song; typography micro `8px`/`9px`.
-*   **Trạng thái:** **Done** — codemod 70 file → `text-[11px]`; `layout:typography-check` exit 1 on drift.
+*   **Trạng thái:** **Done** — codemod 70 file → `text-[11px]`; re-verified **2026-06-30** (`layout:drift-check` 0 blocking).
 *   **Exit:** **Đạt** — 0 hits `text-[8px]`/`text-[9px]`.
 
 Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2026h2-sync.md)
+
+---
+
+## Audit 2026-06-30 re-verification
+
+> Nguồn: [audit-evidence-pack-20260630.md](../reports/audit-evidence-pack-20260630.md) · [gap-register-20260630.md](../reports/gap-register-20260630.md)
+
+| ID | Trạng thái | Ghi chú |
+|----|------------|---------|
+| G-01/G-02 | **Done** | `20260701000000` — DROP `dm_bang_kiem` + RPC `rpc_gstt_dm_bang_kiem_max_numeric_suffix` |
+| G-03/G-04 | **Done** | ESLint hooks + layout drift 38→0 |
+| G-05/G-06 | **Done** | SQL runner JSON + repo hygiene allowlist |
+| G-07 | **Done** | `use-analytics-filter-payload.ts` |
+| G-08 | **Done** | `gsc-checklist-intervention.ts` |
+| G-09 | **Done** | panel:wire |
+| G-13 | **Blocked** | staging token 401 — cần refresh `.env.local` |
+
+**Gates:** `verify` + `pilot:go-live:gate:local` PASS · 87 migrations local parity.
+
+---
+
+## Audit 2026-07-03 — Cải tổ pilot toàn diện (local)
+
+> Nguồn: [gap-register-20260703.md](../reports/gap-register-20260703.md) · `local:golden:verify`
+
+| Mục cũ | Trạng thái mới | Ghi chú |
+|--------|----------------|---------|
+| D-01 | **Obsolete** | Done 2026-06-03 — Digital BOM |
+| D-02 | **Obsolete** | Done 2026-06-03 — Ledger hard gate |
+| D-03 | **Obsolete** | Runbook squash + repair baseline |
+| D-04 | **Done** | Seeds `00-rbac.sql` + `01-pilot-nhan-su.sql`; SOP §2.1.2 |
+| D-05 | **Obsolete** | `legacy:guard` PASS — không còn view alias cũ trong src |
+| D-06 | **Obsolete** | Chỉ `strategic-dashboard-v4.types.ts` |
+| D-09 | **Obsolete** | `src/proxy.ts` server-side auth |
+| D-10 | **Partial** | Spec có prefix; mapping compat history — accepted |
+| D-14 | **Eng done / UAT pending** | NKBV clinical — chờ PO §B |
+
+**P0/P1 mở:** 0

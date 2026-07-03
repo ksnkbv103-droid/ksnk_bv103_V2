@@ -1,19 +1,19 @@
 "use server";
 
-import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import type { QlcvFormCatalog, QlcvSelectOption } from "../lib/qlcv-form-options";
+import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 
-const MAX_NHAN_SU_OPTIONS = 2000;
+const MAX_NHAN_SU_OPTIONS = 500;
 const MAX_DM_OPTIONS = 500;
 
-async function getNhanSuOptions(): Promise<QlcvSelectOption[]> {
-  await verifyPermission("CONG_VIEC", "view");
-  const supabase = createAdminSupabaseClient();
+async function getKsnkNhanSuOptions(ksnkKhoaId: string): Promise<QlcvSelectOption[]> {
+  const { supabase } = await ensureQlcvKsnkAccess("view");
   const { data, error } = await supabase
     .from("v_mdm_nhan_su_full")
     .select("id, ho_ten, chuc_vu, to_id")
     .eq("is_active", true)
+    .eq("khoa_id", ksnkKhoaId)
     .order("ho_ten")
     .limit(MAX_NHAN_SU_OPTIONS);
 
@@ -25,26 +25,8 @@ async function getNhanSuOptions(): Promise<QlcvSelectOption[]> {
   }));
 }
 
-async function getKhoaPhongOptions(): Promise<QlcvSelectOption[]> {
-  await verifyPermission("CONG_VIEC", "view");
-  const supabase = createAdminSupabaseClient();
-  const { data, error } = await supabase
-    .from("mdm_dm_khoa_phong")
-    .select("id, ten_khoa")
-    .eq("is_active", true)
-    .order("ten_khoa")
-    .limit(MAX_DM_OPTIONS);
-
-  if (error) throw error;
-  return (data || []).map((item) => ({
-    id: String(item.id),
-    label: String(item.ten_khoa ?? ""),
-  }));
-}
-
 async function getToCongTacOptions(): Promise<QlcvSelectOption[]> {
-  await verifyPermission("CONG_VIEC", "view");
-  const supabase = createAdminSupabaseClient();
+  const { supabase } = await ensureQlcvKsnkAccess("view");
   const { data, error } = await supabase
     .from("mdm_dm_to_cong_tac")
     .select("id, ten_to, ma_to")
@@ -60,8 +42,7 @@ async function getToCongTacOptions(): Promise<QlcvSelectOption[]> {
 }
 
 async function getLoaiCongViecOptions(): Promise<QlcvSelectOption[]> {
-  await verifyPermission("CONG_VIEC", "view");
-  const supabase = createAdminSupabaseClient();
+  const { supabase } = await ensureQlcvKsnkAccess("view");
   const query = supabase.from("qlcv_dm_loai_cong_viec").select("id, ma, ten").order("ma").limit(MAX_DM_OPTIONS);
   const { data, error } = await query;
 
@@ -72,22 +53,22 @@ async function getLoaiCongViecOptions(): Promise<QlcvSelectOption[]> {
   }));
 }
 
-/** Một round-trip: tổ + nhân sự + loại + khoa + màu trạng thái (form QLCV). */
+/** Một round-trip: tổ + nhân sự KSNK + loại + màu trạng thái. */
 export async function getQlcvFormCatalog(): Promise<QlcvFormCatalog> {
-  const [nhanSu, toCongTac, loaiCongViec, khoaPhong, trangThaiMauSac] = await Promise.all([
-    getNhanSuOptions(),
+  const { ksnkKhoaId } = await ensureQlcvKsnkAccess("view");
+  const [nhanSu, toCongTac, loaiCongViec, trangThaiMauSac] = await Promise.all([
+    getKsnkNhanSuOptions(ksnkKhoaId),
     getToCongTacOptions(),
     getLoaiCongViecOptions(),
-    getKhoaPhongOptions(),
     getTrangThaiMauSacMap(),
   ]);
-  return { nhanSu, toCongTac, loaiCongViec, khoaPhong, trangThaiMauSac };
+  return { nhanSu, toCongTac, loaiCongViec, trangThaiMauSac };
 }
 
 /** Map mã trạng thái → mau_sac từ MDM (qlcv_dm_trang_thai_cong_viec). */
 export async function getTrangThaiMauSacMap(): Promise<Record<string, string>> {
   await verifyPermission("CONG_VIEC", "view");
-  const supabase = createAdminSupabaseClient();
+  const { supabase } = await ensureQlcvKsnkAccess("view");
   const { data, error } = await supabase
     .from("qlcv_dm_trang_thai_cong_viec")
     .select("ma, mau_sac")

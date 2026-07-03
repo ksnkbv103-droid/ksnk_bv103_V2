@@ -4,7 +4,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Download, List, AlertTriangle, Printer, CalendarClock, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { usePrint } from "@/hooks/usePrint";
+import { useCssdPrint } from "../hooks/use-cssd-print";
+import CssdPrintPortal from "../components/print/CssdPrintPortal";
 import { fetchCssdKhoDungCuList } from "../actions/cssd-kho-read.actions";
 import { useImportExport } from "@/hooks/useImportExport";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
@@ -21,7 +22,7 @@ import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_DATA_SURFACE } from "../shared/ui/cssd-
  * hiển thị Mã khoa thay vì Tên khoa để tinh gọn giao diện.
  */
 export default function KhoDungCuPage({ suppressShell = false }: { suppressShell?: boolean } = {}) {
-  const { printLabel } = usePrint();
+  const { printState, onPrintCapPhat, isPrinting: isCssdPrinting } = useCssdPrint();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<FilterStatusType>("ALL");
@@ -230,16 +231,11 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
           </button>
           <button
             onClick={() =>
-              printLabel({
-                qrCode: i.ma_vach_qr,
-                tenBoDungCu: i.cssd_dm_bo_dung_cu?.ten_bo || "NA",
-                tram: i.trang_thai_hien_tai,
-                nguoiThucHien: "CSSD",
-                thoiGian: new Date().toLocaleString("vi-VN"),
-              })
+              void onPrintCapPhat({ quyTrinhId: String(i.id), nguoiCapPhat: "CSSD — Kho" })
             }
-            className="p-2 bg-slate-50 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
-            title="In nhãn QR"
+            disabled={isCssdPrinting || i.trang_thai_hien_tai !== "CAP_PHAT" || !i.lo_tiet_khuan_id}
+            className="p-2 bg-slate-50 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all disabled:opacity-40"
+            title="In phiếu cấp phát A4 (QR mã mẻ)"
           >
             <Printer size={16} />
           </button>
@@ -293,7 +289,12 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
   );
 
   if (suppressShell) {
-    return mainContent;
+    return (
+      <>
+        {mainContent}
+        <CssdPrintPortal printState={printState} />
+      </>
+    );
   }
 
   return (
@@ -328,6 +329,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       }
     >
       {mainContent}
+      <CssdPrintPortal printState={printState} />
     </CSSDPageShell>
   );
 }

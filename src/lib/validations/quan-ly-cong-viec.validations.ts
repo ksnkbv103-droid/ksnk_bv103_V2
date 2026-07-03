@@ -40,7 +40,6 @@ export const congViecSchema = z.object({
   muc_do_uu_tien: z.enum(["THAP", "TRUNG_BINH", "CAO"]).default("TRUNG_BINH"),
 
   nguoi_phu_trach_id: optionalUuid("Người phụ trách"),
-  khoa_thuc_hien_id: optionalUuid("Khoa thực hiện"),
   to_cong_tac_id: optionalUuid("Tổ công tác"),
 
   han_hoan_thanh: z.preprocess(qlcvEmptyToNull, z.union([z.string().min(1), z.null()]).optional()),

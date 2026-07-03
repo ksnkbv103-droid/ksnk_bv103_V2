@@ -45,8 +45,8 @@ export function isPilotScopeActive(): boolean {
   return isPilotCoreModulesScopeEnabled() || isPilotFourModulesScopeEnabled();
 }
 
-/** Bật/tắt Digital BOM Checklist tại trạm Đóng gói. */
+/** @deprecated Digital BOM modal — thay bằng panel đối chiếu + báo sự cố dụng cụ. Chỉ bật khi BV103_FEATURE_BOM_CHECKLIST=1. */
 export function isBOMChecklistEnabled(): boolean {
-  return process.env.BV103_FEATURE_BOM_CHECKLIST !== "0";
+  return process.env.BV103_FEATURE_BOM_CHECKLIST === "1";
 }
 

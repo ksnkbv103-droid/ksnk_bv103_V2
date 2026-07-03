@@ -278,7 +278,7 @@
 
 @page {
   size: A4 portrait;
-  margin: 15mm 12mm 15mm 15mm;
+  margin: 12mm 10mm 12mm 12mm;
 }
 
 @media print {
@@ -300,6 +300,7 @@
     height: auto !important;
     max-height: none !important;
     overflow: visible !important;
+    position: relative !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -315,14 +316,17 @@
     display: none !important;
   }
 
-  /* 3. Vùng in A4 — KHÔNG dùng position:fixed (Chrome chỉ in 1 trang, cắt phần còn lại) */
+  /* 3. Vùng in A4 — absolute (không fixed) để bám đỉnh trang & vẫn in nhiều trang */
   .print-area, #print-area {
     display: block !important;
-    position: static !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
     inset: auto !important;
     width: 100% !important;
-    max-width: 210mm !important;
-    margin: 0 auto !important;
+    max-width: none !important;
+    margin: 0 !important;
     padding: 0 !important;
     background: white !important;
     font-family: 'Times New Roman', Times, serif !important;
@@ -330,19 +334,50 @@
     border-radius: 0 !important;
     outline: none !important;
     overflow: visible !important;
+    z-index: 99999 !important;
   }
   
   .print-a4-page {
     width: 100% !important;
-    max-width: 210mm !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 1.5mm !important;
+    box-sizing: border-box !important;
     background: white !important;
     font-family: 'Times New Roman', Times, serif !important;
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     overflow: visible !important;
+  }
+
+  #print-area .print-content {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Khung ảnh minh chứng CSSD — vừa ô bảng khi in */
+  .cssd-print-proof-frame {
+    width: 100% !important;
+    height: 12mm !important;
+    min-height: 12mm !important;
+    max-height: 12mm !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    padding: 1mm !important;
+  }
+
+  .cssd-print-proof-frame img {
+    display: block !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    object-position: center center !important;
   }
 
   /* 3b. Phẳng hóa vùng in: bỏ bóng, lớp kính, bo góc trang trí */
@@ -369,9 +404,12 @@
   /* 4. Bảng: phẳng, không nền màu */
   table {
     width: 100% !important;
+    max-width: 100% !important;
     border-collapse: collapse !important;
     border: 1px solid #000 !important;
     font-family: 'Times New Roman', Times, serif !important;
+    table-layout: fixed !important;
+    box-sizing: border-box !important;
   }
 
   /* Cho phép tách hàng giữa các trang — tránh một hàng quá cao bị cắt / chỉ in một trang */
@@ -381,9 +419,13 @@
 
   th, td {
     border: 1px solid #000 !important;
-    padding: 6px 8px !important;
-    font-size: 13px !important;
+    padding: 4px 5px !important;
+    font-size: 11px !important;
     font-family: 'Times New Roman', Times, serif !important;
+    overflow: hidden !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    box-sizing: border-box !important;
   }
 
   th {

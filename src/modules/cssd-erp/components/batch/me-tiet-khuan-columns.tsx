@@ -2,14 +2,18 @@
 "use client";
 
 import type { Column } from "@/components/shared/AdvancedDataTable";
+import { Printer } from "lucide-react";
 import {
   CSSD_UI_CELL_CODE,
-  CSSD_UI_CELL_BODY,
   CSSD_UI_CELL_INDEX,
   CSSD_UI_CELL_META,
 } from "../../shared/ui/cssd-ui-chrome";
 
-export const meTietKhuanBatchColumns: Column<any>[] = [
+export function buildMeTietKhuanBatchColumns(opts?: {
+  onPrintBatch?: (batchId: string) => void;
+  isPrinting?: boolean;
+}): Column<any>[] {
+  const cols: Column<any>[] = [
   {
     header: "Mã lô",
     accessorKey: "ma_lo_tiet_khuan",
@@ -67,4 +71,35 @@ export const meTietKhuanBatchColumns: Column<any>[] = [
     accessorKey: "ghi_chu",
     cell: (i: any) => <span className={`block max-w-[150px] truncate ${CSSD_UI_CELL_META}`}>{i.ghi_chu || "---"}</span>,
   },
-];
+  ];
+
+  if (opts?.onPrintBatch) {
+    cols.push({
+      header: "In phiếu",
+      accessorKey: "id",
+      cell: (i: any) => {
+        const canPrint = i.ket_qua_test === true;
+        if (!canPrint) return <span className={CSSD_UI_CELL_META}>—</span>;
+        return (
+          <button
+            type="button"
+            disabled={opts.isPrinting}
+            onClick={(e) => {
+              e.stopPropagation();
+              opts.onPrintBatch?.(String(i.id));
+            }}
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--primary)] hover:bg-emerald-50 disabled:opacity-50"
+            title="In phiếu mẻ A4"
+          >
+            <Printer size={14} /> Phiếu mẻ
+          </button>
+        );
+      },
+    });
+  }
+
+  return cols;
+}
+
+/** @deprecated Dùng `buildMeTietKhuanBatchColumns()` */
+export const meTietKhuanBatchColumns = buildMeTietKhuanBatchColumns();

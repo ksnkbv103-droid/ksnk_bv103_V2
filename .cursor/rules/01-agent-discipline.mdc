@@ -19,7 +19,7 @@ Tinh gọn từ [Karpathy-style guidelines](https://github.com/multica-ai/andrej
 ## 2. Simplicity first
 
 - Chỉ code đủ **một vertical slice** đang làm; không feature/abstraction/config “phòng hờ”.
-- Không xử lý edge case không thực tế; file lớn → tách theo `30-code-style-and-size`, không bọc thêm layer chỉ để polish.
+- Không xử lý edge case không thực tế; file lớn → tách theo `03-src-editing-compact`, không bọc thêm layer chỉ để polish.
 
 ## 3. Surgical changes (và Boy Scout)
 

@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useMemo, useCallback, useEffect } from "react";
+import React, { useMemo, useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import { LayoutGrid, Table2 } from "lucide-react";
 import { KsnkSupervisionPanel, KsnkSupervisionTabList, type SupervisionTabDef } from "@/components/shared/ksnk-supervision-chrome";
 import SearchBar from "@/components/shared/SearchBar";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
-import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
 import { QlcvGateStats } from "./QlcvGateStats";
 import { buildQlcvCommandTableColumns } from "./qlcv-table-columns";
 import { deleteCongViec } from "../actions/cong-viec.actions";
@@ -22,6 +22,7 @@ import type { CongViecView } from "../types";
 import type { UseQlcvKanbanReturn } from "../hooks/useQlcvKanban";
 import type { UseQlcvTableReturn } from "../hooks/useQlcvTable";
 import type { QlcvUiAccessFlags } from "../lib/qlcv-access";
+import { QlcvConfirmDialog } from "./dialogs/QlcvConfirmDialog";
 
 const CongViecKanban = dynamic(() => import("./CongViecKanban"), {
   ssr: false,
@@ -65,6 +66,28 @@ export function QlcvOperationsPanel({
   routerRefresh,
   mauSacByMa,
 }: QlcvOperationsPanelProps) {
+  const [deleteTarget, setDeleteTarget] = useState<CongViecView | null>(null);
+
+  const deleteDialogCopy = useMemo(() => {
+    if (!deleteTarget) return { title: "", description: "" };
+    if (deleteTarget.trang_thai === "HOAN_THANH") {
+      return {
+        title: "Xóa công việc đã hoàn thành?",
+        description: "Thao tác này xóa vĩnh viễn phiếu và không thể hoàn tác.",
+      };
+    }
+    if (deleteTarget.trang_thai === "DA_HUY") {
+      return {
+        title: "Xóa phiếu đã hủy?",
+        description: "Thao tác này xóa vĩnh viễn phiếu và không thể hoàn tác.",
+      };
+    }
+    return {
+      title: "Xóa công việc này?",
+      description: "Phiếu sẽ bị xóa khỏi bảng điều hành KSNK.",
+    };
+  }, [deleteTarget]);
+
   const kanbanTasks = useMemo(() => {
     const term = kanban.kanbanSearchDebounced;
     return mergedTasks.filter((t) => {
@@ -82,9 +105,11 @@ export function QlcvOperationsPanel({
   const filteredKanbanTasks = useMemo(() => {
     if (kanban.boardFilter == null) return kanbanTasks;
     return kanbanTasks.filter((t) =>
-      matchesQlcvBoardFilter(t as unknown as Record<string, unknown>, kanban.boardFilter),
+      matchesQlcvBoardFilter(t as unknown as Record<string, unknown>, kanban.boardFilter, {
+        actorStaffId,
+      }),
     );
-  }, [kanbanTasks, kanban.boardFilter]);
+  }, [kanbanTasks, kanban.boardFilter, actorStaffId]);
 
   const kanbanFocusColumn = useMemo(
     () => getKanbanFocusColumnForFilter(kanban.boardFilter, canApprove),
@@ -104,25 +129,21 @@ export function QlcvOperationsPanel({
     void table.loadTablePage();
   }, [viewMode, table.loadTablePage, kanban.boardFilter]);
 
-  const handleDelete = useCallback(
-    async (row: CongViecView) => {
-      const msg =
-        row.trang_thai === "HOAN_THANH"
-          ? "Xóa vĩnh viễn công việc đã hoàn thành?"
-          : row.trang_thai === "DA_HUY"
-            ? "Xóa vĩnh viễn phiếu đã hủy?"
-            : "Xóa công việc này?";
-      if (!confirm(msg)) return;
-      try {
-        await deleteCongViec(row.id);
-        toast.success("Đã xóa công việc.");
-        await onRefreshAll();
-      } catch (err: unknown) {
-        toast.error(err instanceof Error ? err.message : "Không xóa được.");
-      }
-    },
-    [onRefreshAll],
-  );
+  const handleDelete = useCallback(async (row: CongViecView) => {
+    setDeleteTarget(row);
+  }, []);
+
+  const confirmDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteCongViec(deleteTarget.id);
+      toast.success("Đã xóa công việc.");
+      setDeleteTarget(null);
+      await onRefreshAll();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Không xóa được.");
+    }
+  }, [deleteTarget, onRefreshAll]);
 
   const columns = useMemo(
     () => buildQlcvCommandTableColumns({ qlcvUi, mauSacByMa, onEdit: onEditTask, onDelete: handleDelete }),
@@ -130,7 +151,7 @@ export function QlcvOperationsPanel({
   );
 
   return (
-    <KsnkSupervisionPanel className="space-y-4">
+    <KsnkSupervisionPanel className={UI.sectionGap}>
       <p className="text-xs leading-relaxed text-slate-600">
         Bảng điều hành: một dòng = một phiếu — rõ <strong>việc</strong>, <strong>người giao</strong>,{" "}
         <strong>phụ trách</strong>, <strong>cổng trách nhiệm</strong>, <strong>tiến độ</strong> và{" "}
@@ -160,9 +181,10 @@ export function QlcvOperationsPanel({
         activeFilter={kanban.boardFilter}
         onFilterChange={onBoardFilter}
         showAllGatePills={canApprove}
+        actorStaffId={actorStaffId}
       />
 
-      <div className={`min-w-0 ${bv103LayoutChrome.panelSurface} space-y-3 p-3 sm:p-4`}>
+      <div className={`min-w-0 ${UI.shell} space-y-3 p-3 sm:p-4`}>
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <KsnkSupervisionTabList
             tabs={viewTabs}
@@ -222,6 +244,18 @@ export function QlcvOperationsPanel({
           </div>
         )}
       </div>
+
+      <QlcvConfirmDialog
+        open={deleteTarget != null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title={deleteDialogCopy.title}
+        description={deleteDialogCopy.description}
+        confirmLabel="Xóa"
+        variant="danger"
+        onConfirm={confirmDelete}
+      />
     </KsnkSupervisionPanel>
   );
 }

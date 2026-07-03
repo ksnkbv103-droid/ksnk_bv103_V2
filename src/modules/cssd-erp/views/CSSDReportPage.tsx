@@ -25,6 +25,7 @@ import {
   CSSD_UI_TAB_IDLE,
 } from "../shared/ui/cssd-ui-chrome";
 import { INCIDENT_GROUP_LABEL, INCIDENT_GROUPS } from "@/modules/cssd-su-co/domain/cssd-incident-taxonomy";
+import IncidentJournalPrintButton from "@/modules/cssd-su-co/components/IncidentJournalPrintButton";
 
 const ReportCharts = dynamic(() => import("../components/report/ReportCharts"), {
   ssr: false,
@@ -112,7 +113,7 @@ function CSSDReportPageInner() {
         count: raw.suCo.filter((x) => x.incident_group === g).length,
       })),
       processAccountabilityRows: raw.suCo
-        .filter((x) => x.incident_group === "PROCESS")
+        .filter((x) => x.fault_operator || x.tram_gay_loi)
         .map((x) => ({ ...x, fault_operator: x.fault_operator || x.reporter_email || "Chưa ghi nhận" })),
     };
   }, [raw]);
@@ -222,9 +223,14 @@ function CSSDReportPageInner() {
               columns={[
                 { header: "Mã qr", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-mono text-[11px] font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
                 { header: "Nhóm", accessorKey: "incident_group_label", cell: (v: any) => <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium">{v.incident_group_label}</span> },
-                { header: "Loại chi tiết", accessorKey: "loai_su_co", cell: (v: any) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
+                { header: "Tình huống", accessorKey: "loai_su_co", cell: (v: any) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
                 { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{String(v.tram_phat_hien || "Không áp dụng").replace(/_/g, " ")}</span> },
                 { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{String(v.tram_gay_loi || "Không áp dụng").replace(/_/g, " ")}</span> },
+                {
+                  header: "In",
+                  accessorKey: "id",
+                  cell: (v: any) => (v.id ? <IncidentJournalPrintButton incidentId={String(v.id)} /> : null),
+                },
               ]}
               data={raw.suCo}
               loading={loading}
@@ -237,12 +243,12 @@ function CSSDReportPageInner() {
       {tab === "ACCOUNTABILITY" && (
         <div className={`${CSSD_UI_DATA_SURFACE} print:hidden`}>
           <div className="flex items-center justify-between px-6 pb-2 pt-6 sm:px-8">
-            <h3 className="text-[11px] font-medium text-slate-500">Sự cố quy trình: khâu lỗi và người thao tác</h3>
+            <h3 className="text-[11px] font-medium text-slate-500">Khâu gây lỗi &amp; người thao tác</h3>
           </div>
           <AdvancedDataTable
             columns={[
               { header: "Mã qr", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-mono text-[11px] font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
-              { header: "Loại lỗi", accessorKey: "loai_su_co", cell: (v: any) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
+              { header: "Tình huống", accessorKey: "loai_su_co", cell: (v: any) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
               { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{String(v.tram_phat_hien || "Không áp dụng").replace(/_/g, " ")}</span> },
               { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{String(v.tram_gay_loi || "Không áp dụng").replace(/_/g, " ")}</span> },
               { header: "Người thao tác", accessorKey: "fault_operator", cell: (v: any) => <span className="font-medium text-slate-700">{v.fault_operator || "Chưa ghi nhận"}</span> },

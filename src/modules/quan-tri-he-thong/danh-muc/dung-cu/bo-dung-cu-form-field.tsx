@@ -8,10 +8,11 @@ interface Props {
   type?: "text" | "number";
   required?: boolean;
   disabled?: boolean;
+  placeholder?: string;
 }
 
 /** Ô nhập một dòng — dùng trong modal Bộ dụng cụ. */
-export default function BoDungCuTextField({ label, value, onChange, type = "text", required, disabled }: Props) {
+export default function BoDungCuTextField({ label, value, onChange, type = "text", required, disabled, placeholder }: Props) {
   return (
     <div className="space-y-1">
       <label className={`${C.labelField} ml-1`}>
@@ -23,6 +24,7 @@ export default function BoDungCuTextField({ label, value, onChange, type = "text
         value={value}
         disabled={disabled}
         required={required}
+        placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         className={C.controlInput}
       />

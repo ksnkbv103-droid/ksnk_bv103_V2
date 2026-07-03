@@ -50,10 +50,11 @@ export interface CongViec {
   nguoi_tao_id?: string | null;
   nguoi_giao_viec_id?: string | null;
   nguoi_phu_trach_id?: string | null;
-  khoa_thuc_hien_id?: string | null;
   to_cong_tac_id?: string | null;
   /** Mục tick 1 chạm — [{ id, label, done }] */
   checklist?: unknown;
+  /** Nhật ký sự kiện — SSOT thay bảng hoat_dong. */
+  nhat_ky?: unknown;
 
   created_at: string;
   updated_at: string;
@@ -64,7 +65,6 @@ export interface CongViecView extends CongViec {
   nguoi_tao_ten?: string | null;
   nguoi_giao_ten?: string | null;
   nguoi_phu_trach_ten?: string | null;
-  khoa_thuc_hien_ten?: string | null;
   to_cong_tac_ten?: string | null;
   trang_thai_mau_sac?: string | null;
   is_qua_han?: boolean;
@@ -78,14 +78,12 @@ export interface CongViecInput {
   muc_do_uu_tien?: "THAP" | "TRUNG_BINH" | "CAO";
   han_hoan_thanh?: string | null;
   nguoi_phu_trach_id?: string | null;
-  khoa_thuc_hien_id?: string | null;
   to_cong_tac_id?: string | null;
 }
 
-// ---------- Bảng qlcv_fact_cong_viec_hoat_dong ----------
-export interface HoatDong {
-  id: string;
-  id_cong_viec: string;
+// ---------- Nhật ký JSON trên qlcv_fact_cong_viec.nhat_ky ----------
+export interface NhatKyEntry {
+  id?: string;
   loai_hoat_dong:
     | "PHAN_CONG"
     | "DE_XUAT"
@@ -100,6 +98,9 @@ export interface HoatDong {
   nguoi_thuc_hien_id?: string | null;
   trang_thai?: string | null;
   noi_dung?: string | null;
-  phan_tram_hoan_thanh: number;
-  created_at: string;
+  phan_tram_hoan_thanh?: number | null;
+  created_at?: string;
 }
+
+/** @deprecated Alias timeline — cùng shape NhatKyEntry + join ho_ten UI. */
+export type HoatDong = NhatKyEntry & { id: string; created_at: string };

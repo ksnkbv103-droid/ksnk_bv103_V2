@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import type { LucideIcon } from "lucide-react";
 import RBACPermissionCell from "../components/RBACPermissionCell";
 import { getModuleDisplayName, MODULE_GROUPS, MODULE_TO_GROUP } from "@/lib/permission-registry";
+import { getPermissionModuleBusinessDescription } from "@/lib/permission-module-business-descriptions";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import {
@@ -160,6 +161,11 @@ export function RBACMatrixDataGrid({
                           <span className="text-sm font-semibold leading-tight text-slate-700">
                             {getModuleDisplayName(moduleName)}
                           </span>
+                          {getPermissionModuleBusinessDescription(moduleName) ? (
+                            <span className="mt-0.5 text-[11px] font-normal leading-snug text-slate-500">
+                              {getPermissionModuleBusinessDescription(moduleName)}
+                            </span>
+                          ) : null}
                           <span className={`mt-0.5 ${bv103DesignTokens.metaMono} uppercase opacity-70`}>
                             {moduleName}
                           </span>

@@ -30,7 +30,6 @@ import {
   NAV_GATE_GSC,
   NAV_GATE_LICH_SU,
   NAV_GATE_NKBV,
-  NAV_GATE_THONG_KE,
   NAV_GATE_VST,
   type NavGate,
 } from "@/lib/nav/ksnk-nav-gates";
@@ -40,6 +39,8 @@ export type SidebarNavItem = {
   href: string;
   icon: LucideIcon;
   gate: NavGate;
+  /** Khớp verifyCommandCenterShell — cần widget CC + nguồn giám sát. */
+  requireCommandCenterShell?: boolean;
 };
 
 export type SidebarNavGroup = {
@@ -50,11 +51,13 @@ export type SidebarNavGroup = {
 
 export const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
   {
-    id: "command",
-    label: "Điều hành và báo cáo",
+    id: "analytics",
+    label: "Phân tích KSNK",
     items: [
-      { name: "Trung tâm điều hành", href: "/", icon: LayoutDashboard, gate: NAV_GATE_DASHBOARD },
-      { name: "Báo cáo tổng hợp KSNK", href: "/bao-cao-tong-hop", icon: FileBarChart, gate: NAV_GATE_DASHBOARD },
+      { name: "Trung tâm điều hành", href: "/", icon: LayoutDashboard, gate: NAV_GATE_DASHBOARD, requireCommandCenterShell: true },
+      { name: "Thống kê VST", href: "/thong-ke/vst", icon: Stethoscope, gate: NAV_GATE_VST },
+      { name: "Thống kê GSC", href: "/thong-ke/gsc", icon: BarChart2, gate: NAV_GATE_GSC },
+      { name: "Báo cáo tổng hợp KSNK", href: "/bao-cao-tong-hop", icon: FileBarChart, gate: NAV_GATE_DASHBOARD, requireCommandCenterShell: true },
     ],
   },
   {
@@ -72,7 +75,6 @@ export const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
     label: "Tra cứu giám sát",
     items: [
       { name: "Lịch sử giám sát", href: "/lich-su", icon: History, gate: NAV_GATE_LICH_SU },
-      { name: "Thống kê giám sát", href: "/thong-ke", icon: BarChart2, gate: NAV_GATE_THONG_KE },
     ],
   },
   {

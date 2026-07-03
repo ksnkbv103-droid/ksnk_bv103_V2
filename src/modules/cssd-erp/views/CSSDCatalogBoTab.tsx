@@ -29,7 +29,7 @@ export function CSSDCatalogBoTab(props: {
     setTab,
   } = props;
 
-  const { printLabel } = usePrint();
+  const { printBoLabel } = usePrint();
   const [printingId, setPrintingId] = useState<string | null>(null);
 
   async function handlePrintQr(e: React.MouseEvent, boId: string) {
@@ -41,13 +41,10 @@ export function CSSDCatalogBoTab(props: {
         toast.error(res.error || "Không tạo được nhãn QR.");
         return;
       }
-      toast.success(`Đã tạo mã QR: ${res.ma_vach_qr}`);
-      await printLabel({
+      toast.success(`Đã tạo mã bộ: ${res.ma_vach_qr}`);
+      await printBoLabel({
         qrCode: res.ma_vach_qr,
-        tenBoDungCu: res.ten_bo,
-        tram: "TIEP_NHAN",
-        nguoiThucHien: "CSSD",
-        thoiGian: new Date().toLocaleString("vi-VN"),
+        tenBo: res.ten_bo,
       });
       window.dispatchEvent(new CustomEvent("cssd:kho-refetch"));
     } catch (err: any) {

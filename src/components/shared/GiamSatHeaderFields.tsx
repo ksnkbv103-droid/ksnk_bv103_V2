@@ -256,7 +256,7 @@ export default function GiamSatHeaderFields({
               ) : (
                 <button
                   type="button"
-                  onClick={() => (window.location.href = "/quan-tri-he-thong/tai-khoan-nhan-su")}
+                  onClick={() => (window.location.href = "/tai-khoan")}
                   className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-amber-700"
                 >
                   <UserPlus className="w-3.5 h-3.5" />

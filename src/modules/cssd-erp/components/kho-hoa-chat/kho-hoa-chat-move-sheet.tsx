@@ -1,6 +1,12 @@
 "use client";
 
 import React from "react";
+import {
+  fefoSortLots,
+  isFefoLotKey,
+  isLotExpired,
+  lotRowToKey,
+} from "@/lib/domain/cssd-kho-hoa-chat-fefo";
 import type { KhoHoaChatTonLo } from "../../actions/cssd-kho-hoa-chat.actions";
 
 type DmOpt = {
@@ -33,16 +39,21 @@ type Props = {
   onMaLoNhap: (v: string) => void;
   hanNhap: string;
   onHanNhap: (v: string) => void;
+  linkedSuCoId?: string | null;
 };
 
-function lotOptsForDm(dmId: string, tons: KhoHoaChatTonLo[]): { key: string; label: string; ton: number }[] {
-  return tons
-    .filter((t) => t.dm_hoa_chat_id === dmId && t.ton_so_luong > 0)
-    .map((t) => ({
-      key: `${t.ma_lo ?? ""}|${t.han_su_dung ?? ""}`,
-      label: `${t.ma_lo?.length ? `Lô ${t.ma_lo}` : "Không lô"}${t.han_su_dung ? ` — HSD ${t.han_su_dung}` : ""} — Tồn ${t.ton_so_luong}`,
+function lotOptsForDm(dmId: string, tons: KhoHoaChatTonLo[]): { key: string; label: string; ton: number; disabled: boolean }[] {
+  const rows = tons.filter((t) => t.dm_hoa_chat_id === dmId && t.ton_so_luong > 0);
+  return fefoSortLots(rows).map((t, idx) => {
+    const expired = isLotExpired(t.han_su_dung);
+    const fefoHint = idx === 0 && !expired ? " ★ FEFO" : "";
+    return {
+      key: lotRowToKey(t),
+      label: `${t.ma_lo?.length ? `Lô ${t.ma_lo}` : "Không lô"}${t.han_su_dung ? ` — HSD ${t.han_su_dung}` : ""} — Tồn ${t.ton_so_luong}${fefoHint}${expired ? " (HẾT HẠN)" : ""}`,
       ton: t.ton_so_luong,
-    }));
+      disabled: expired,
+    };
+  });
 }
 
 export default function KhoHoaChatMoveSheet({
@@ -65,10 +76,13 @@ export default function KhoHoaChatMoveSheet({
   onMaLoNhap,
   hanNhap,
   onHanNhap,
+  linkedSuCoId,
 }: Props) {
   if (!open) return null;
 
+  const dmRows = tonLots.filter((t) => t.dm_hoa_chat_id === dmId && t.ton_so_luong > 0);
   const lots = mode === "NHAP" ? [] : lotOptsForDm(dmId, tonLots);
+  const showFefoWarning = mode === "XUAT" && Boolean(lotKey && dmId && !isFefoLotKey(lotKey, dmRows));
 
   const title =
     mode === "NHAP" ? "Nhập kho" : mode === "XUAT" ? "Xuất kho (theo lô)" : "Điều chỉnh tồn (kiểm kê)";
@@ -78,7 +92,13 @@ export default function KhoHoaChatMoveSheet({
       <div className="flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-2xl border border-slate-200 bg-white shadow-xl sm:rounded-2xl">
         <div className="border-b border-slate-100 px-5 py-4">
           <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-          <p className="text-xs text-slate-500">{mode === "XUAT" ? "Chọn đúng lô có tồn > 0." : "Đơn vị theo danh mục (chai, lọ, kg…)."}</p>
+          <p className="text-xs text-slate-500">
+            {linkedSuCoId
+              ? "Phiếu này sẽ liên kết với báo cáo sự cố CHEMICAL đã chọn."
+              : mode === "XUAT"
+                ? "Lô được sắp theo FEFO (hết hạn trước). Không xuất lô quá hạn."
+                : "Đơn vị theo danh mục (chai, lọ, kg…)."}
+          </p>
         </div>
         <div className="space-y-3 overflow-y-auto px-5 py-4">
           <div>
@@ -99,11 +119,16 @@ export default function KhoHoaChatMoveSheet({
               <select className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={lotKey} onChange={(e) => onLotKey(e.target.value)}>
                 <option value="">— Không lô / không HSD —</option>
                 {lots.map((l) => (
-                  <option key={l.key} value={l.key}>
+                  <option key={l.key} value={l.key} disabled={l.disabled}>
                     {l.label}
                   </option>
                 ))}
               </select>
+              {showFefoWarning ? (
+                <p className="mt-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] font-medium text-amber-800">
+                  Bạn đang chọn lô không theo FEFO — nên ưu tiên lô có hạn sử dụng gần nhất.
+                </p>
+              ) : null}
             </div>
           ) : null}
 

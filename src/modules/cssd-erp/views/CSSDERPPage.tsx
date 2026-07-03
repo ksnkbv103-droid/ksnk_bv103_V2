@@ -15,14 +15,14 @@ import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-s
 import CssdBatchMeLinkChip from "../components/workflow/cssd-batch-me-link-chip";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import type { Station } from "../types/cssd.types";
-import { CSSD_UI_CONTROL, CSSD_UI_FORM_LABEL, CSSD_UI_PANEL, CSSD_UI_SECTION_TITLE, CSSD_UI_STEP_HINT } from "../shared/ui/cssd-ui-chrome";
-import WorkflowManualOpsPanel from "../components/workflow/WorkflowManualOpsPanel";
+import { CSSD_UI_PANEL, CSSD_UI_SECTION_TITLE, CSSD_UI_STEP_HINT } from "../shared/ui/cssd-ui-chrome";
 import { SCAN_STATIONS } from "../workflow/domain/cssd-stations";
 import { isValidStation } from "../workflow/domain/cssd-state-engine";
-import { CSSD_ROUTES } from "@/lib/cssd-routes";
-import { isBOMChecklistEnabled } from "@/lib/bv103-feature-config";
-import { resolveQuyTrinhForCheckpoint } from "../actions/cssd-bom-checkpoint.actions";
-import BomChecklistModal from "../components/packaging/BomChecklistModal";
+import { CSSD_ROUTES, cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
+import { useCssdPrint } from "../hooks/use-cssd-print";
+import CssdPrintPortal from "../components/print/CssdPrintPortal";
+import CompositionReconcilePanel from "../components/packaging/CompositionReconcilePanel";
+import { usePrint } from "@/hooks/usePrint";
 
 const MODULE_KEY = "CSSD_WORKFLOW";
 
@@ -43,11 +43,10 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
   const searchParams = useSearchParams();
   const { currentStation, scanStations, waitingList, loading: _workflowLoading, lastScan, scanSuccess, selectStation, handleQRScan, refresh } = useCSSDWorkflow();
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
-  const [maCaMoId, setMaCaMoId] = useState("");
-  const [bomModalOpen, setBomModalOpen] = useState(false);
-  const [bomQuyTrinhId, setBomQuyTrinhId] = useState("");
-  const [bomBoDungCuId, setBomBoDungCuId] = useState("");
-  const [pendingQrCode, setPendingQrCode] = useState("");
+  const { printState, onPrintCapPhat, isPrinting: isCssdPrinting } = useCssdPrint();
+  const { printCycleLabel } = usePrint();
+  const lastCapPhatPrintKey = React.useRef<string | null>(null);
+  const lastDongGoiCyclePrintKey = React.useRef<string | null>(null);
 
   const stationParam = searchParams.get("station");
   useEffect(() => {
@@ -57,6 +56,31 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     selectStation(raw as Station);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- chỉ khi ?station= đổi trên URL
   }, [stationParam]);
+
+  useEffect(() => {
+    if (currentStation !== "CAP_PHAT" || !lastScan?.quyTrinhId) return;
+    const key = `${lastScan.qrCode}-${lastScan.thoiGianQuet}`;
+    if (lastCapPhatPrintKey.current === key) return;
+    lastCapPhatPrintKey.current = key;
+    void onPrintCapPhat({
+      quyTrinhId: String(lastScan.quyTrinhId),
+      nguoiCapPhat: String(lastScan.nguoiThucHien || "CSSD"),
+    });
+  }, [currentStation, lastScan, onPrintCapPhat]);
+
+  useEffect(() => {
+    if (currentStation !== "DONG_GOI" || !lastScan?.maCycleQr) return;
+    const key = `${lastScan.maCycleQr}-${lastScan.thoiGianQuet}`;
+    if (lastDongGoiCyclePrintKey.current === key) return;
+    lastDongGoiCyclePrintKey.current = key;
+    void printCycleLabel({
+      qrCode: String(lastScan.maCycleQr),
+      tenBo: String(lastScan.tenBoDungCu || "Bộ dụng cụ CSSD"),
+    }).catch(() => {
+      toast.message(`Đã đóng gói — mã chu trình: ${lastScan.maCycleQr}`);
+    });
+  }, [currentStation, lastScan, printCycleLabel]);
+
   const { loading: permLoading, allowed } = useModulePermission(MODULE_KEY);
   const { allowed: incidentAllowed } = useModulePermission("BAO_SU_CO");
   const canViewWorkflow = allowed.view;
@@ -95,42 +119,15 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     );
   }
 
-  const handleBomCheckFinished = (isOk: boolean, warningSummary?: string) => {
-    const extra = warningSummary ? { warning: warningSummary } : undefined;
-    void handleQRScan(pendingQrCode, extra);
-    setBomModalOpen(false);
-  };
-
   const submitWorkflowQr = async (raw: string) => {
     const code = raw.trim().toUpperCase();
     if (!code) return;
     if (currentStation === "TIET_KHUAN") {
-      toast.error("Không quét trạm Tiệt khuẩn tại đây. Dùng trang Mẻ tiệt khuẩn (/cssd-erp/batch).", { duration: 9000 });
+      toast.error(`Không quét trạm Tiệt khuẩn tại đây. Dùng tab Mẻ tiệt khuẩn (${cssdQuyTrinhBatchTabHref()}).`, { duration: 9000 });
       return;
     }
 
-    const isBomEnabled = typeof window !== "undefined" && isBOMChecklistEnabled();
-
-    if (currentStation === "DONG_GOI" && isBomEnabled) {
-      toast.loading("Đang đối chiếu dữ liệu thiết kế...", { id: "bom-resolve" });
-      try {
-        const res = await resolveQuyTrinhForCheckpoint(code);
-        toast.dismiss("bom-resolve");
-        if (res.success) {
-          setBomQuyTrinhId(res.quyTrinhId);
-          setBomBoDungCuId(res.boDungCuId ?? "");
-          setPendingQrCode(code);
-          setBomModalOpen(true);
-        }
-      } catch (e: any) {
-        toast.dismiss("bom-resolve");
-        toast.error(e.message || "Lỗi truy vấn quy trình.");
-      }
-      return;
-    }
-
-    const extra = currentStation === "CAP_PHAT" && maCaMoId ? { ma_ca_mo_id: maCaMoId } : undefined;
-    void handleQRScan(code, extra);
+    void handleQRScan(code);
   };
 
   const mainContent = (
@@ -202,19 +199,6 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
         <div className="space-y-4 lg:col-span-6 lg:sticky lg:top-8">
           <h3 className={`px-1 ${CSSD_UI_SECTION_TITLE}`}>Quét & kết quả</h3>
           <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            
-            {currentStation === "CAP_PHAT" && (
-              <div className="animate-in slide-in-from-top-2">
-                <label className={`mb-2 ${CSSD_UI_FORM_LABEL} text-emerald-800`}>Truy vết ca mổ / bệnh nhân (tùy chọn)</label>
-                <input
-                  value={maCaMoId}
-                  onChange={e => setMaCaMoId(e.target.value)}
-                  placeholder="Nhập mã số ca mổ hoặc tên bệnh nhân…"
-                  className={CSSD_UI_CONTROL}
-                />
-              </div>
-            )}
-
             <WorkflowStationQrEntry
               waitingItems={waitingList}
               disabled={!currentStation}
@@ -225,11 +209,23 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
                 <QRScanSuccessCard
                   {...lastScan}
                   tramDisplay={currentStation?.replace(/_/g, " ") || "CSSD"}
+                  ledgerWarning={lastScan?.ledgerWarning}
+                  onPrintCapPhat={
+                    lastScan?.quyTrinhId
+                      ? () =>
+                          void onPrintCapPhat({
+                            quyTrinhId: String(lastScan.quyTrinhId),
+                            nguoiCapPhat: String(lastScan.nguoiThucHien || "CSSD"),
+                          })
+                      : undefined
+                  }
+                  isPrintBusy={isCssdPrinting}
                 />
-                {lastScan?.qrCode && !lastScan?.isOffline ? (
-                  <WorkflowManualOpsPanel
-                    qrCode={lastScan.qrCode}
-                    onSuccess={() => refresh()}
+                {lastScan?.boDungCuId ? (
+                  <CompositionReconcilePanel
+                    boDungCuId={String(lastScan.boDungCuId)}
+                    quyTrinhId={lastScan.quyTrinhId ? String(lastScan.quyTrinhId) : null}
+                    enabled={currentStation === "DONG_GOI"}
                   />
                 ) : null}
               </>
@@ -243,18 +239,16 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
         </div>
       </main>
       <IncidentReportModal isOpen={isIncidentOpen && canCreateIncident} onClose={() => setIsIncidentOpen(false)} station={currentStation || 'TIEP_NHAN'} onSuccess={refresh} />
-      <BomChecklistModal
-        isOpen={bomModalOpen}
-        onClose={() => setBomModalOpen(false)}
-        quyTrinhId={bomQuyTrinhId}
-        boDungCuId={bomBoDungCuId}
-        onCheckFinished={handleBomCheckFinished}
-      />
     </div>
   );
 
   if (suppressShell) {
-    return mainContent;
+    return (
+      <>
+        {mainContent}
+        <CssdPrintPortal printState={printState} />
+      </>
+    );
   }
 
   return (
@@ -287,6 +281,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
       }
     >
       {mainContent}
+      <CssdPrintPortal printState={printState} />
     </CSSDPageShell>
   );
 }

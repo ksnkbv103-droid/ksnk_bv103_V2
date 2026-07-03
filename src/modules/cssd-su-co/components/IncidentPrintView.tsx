@@ -22,7 +22,6 @@ export interface IncidentPrintViewProps {
     created_at?: string | null;
     incident_group?: string | null;
     incident_type_label?: string | null;
-    ten_loai_su_co?: string | null;
     ten_bo?: string | null;
     ma_bo?: string | null;
   };
@@ -81,6 +80,8 @@ export default function IncidentPrintView({ incident, details }: IncidentPrintVi
   const errorQr = detailsMap["ERROR_QR"];
   const machineId = detailsMap["MACHINE_ID"];
   const faultOperator = detailsMap["FAULT_OPERATOR"];
+  const nguoiPhatHien = detailsMap["NGUOI_PHAT_HIEN"];
+  const thoiGianPhatHienAttr = detailsMap["THOI_GIAN_PHAT_HIEN"];
   const rollbackTarget = detailsMap["ROLLBACK_TARGET_STATION"];
   const incidentKind = detailsMap["INCIDENT_KIND"];
   const reporterEmail = detailsMap["REPORTER_EMAIL"];
@@ -91,14 +92,15 @@ export default function IncidentPrintView({ incident, details }: IncidentPrintVi
   }, [imageEvidence]);
 
   const formattedDate = useMemo(() => {
-    if (!incident.created_at) return "—";
+    const raw = thoiGianPhatHienAttr || incident.created_at;
+    if (!raw) return "—";
     try {
-      const d = new Date(incident.created_at);
+      const d = new Date(raw);
       return `${d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })} ngày ${d.toLocaleDateString("vi-VN")}`;
     } catch {
-      return incident.created_at;
+      return String(raw);
     }
-  }, [incident.created_at]);
+  }, [incident.created_at, thoiGianPhatHienAttr]);
 
   // Hướng xử lý đề xuất tương ứng
   const solutionText = useMemo(() => {
@@ -159,8 +161,13 @@ export default function IncidentPrintView({ incident, details }: IncidentPrintVi
             <strong>Trạm phát hiện:</strong> {STATION_LABEL_MAP[incident.ma_tram_phat_hien] || incident.ma_tram_phat_hien}
           </div>
           <div>
-            <strong>Người báo cáo:</strong> {reporterEmail || "Nhân viên KSNK"}
+            <strong>Người lập biên bản:</strong> {reporterEmail || "Nhân viên KSNK"}
           </div>
+          {nguoiPhatHien ? (
+            <div>
+              <strong>Người phát hiện:</strong> {nguoiPhatHien}
+            </div>
+          ) : null}
         </div>
 
         <div style={{ borderBottom: "1px solid #000", marginBottom: "16px" }} />
@@ -168,10 +175,13 @@ export default function IncidentPrintView({ incident, details }: IncidentPrintVi
         {/* CHI TIẾT SỰ CỐ */}
         <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "20px" }}>
           <div style={{ marginBottom: "8px" }}>
-            <strong>Phân loại sự cố:</strong> <span style={{ textTransform: "uppercase", fontWeight: "bold" }}>{GROUP_LABEL_MAP[incident.incident_group || ""] || incident.incident_group}</span>
+            <strong>Nhóm nghiệp vụ:</strong>{" "}
+            <span style={{ textTransform: "uppercase", fontWeight: "bold" }}>
+              {GROUP_LABEL_MAP[incident.incident_group || ""] || incident.incident_group}
+            </span>
           </div>
           <div style={{ marginBottom: "8px" }}>
-            <strong>Loại sự cố chi tiết:</strong> {incident.incident_type_label || incident.ten_loai_su_co || "Không xác định"}
+            <strong>Loại sự cố:</strong> {incident.incident_type_label || "Không xác định"}
           </div>
           <div style={{ marginBottom: "12px", textAlign: "justify" }}>
             <strong>Mô tả chi tiết sự việc:</strong>
@@ -237,7 +247,7 @@ export default function IncidentPrintView({ incident, details }: IncidentPrintVi
 
             {faultOperator && (
               <div>
-                <strong>Nhân sự liên quan / Người liên quan:</strong> {faultOperator}
+                <strong>Người liên quan:</strong> {faultOperator}
               </div>
             )}
           </div>

@@ -108,7 +108,9 @@ export function QlcvChecklistPanel({ congViecId, initialChecklist, readOnly, onU
         ))}
         {items.length === 0 ? (
           <li className="rounded-xl border border-dashed border-slate-200 py-6 text-center text-xs text-slate-500">
-            Chưa có mục — thêm bước việc (ví dụ: kiểm tra van, ghi sổ…)
+            {readOnly
+              ? "Chưa có checklist."
+              : "Tùy chọn — thêm bước việc hoặc báo cáo % qua thanh tiến độ phía trên."}
           </li>
         ) : null}
       </ul>

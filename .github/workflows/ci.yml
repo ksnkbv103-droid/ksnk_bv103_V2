@@ -55,6 +55,16 @@ jobs:
 
       - name: Layout drift check
         run: npm run layout:drift-check
+
+      - name: Layout typography check
+        run: npm run layout:typography-check
+
+      - name: Repo hygiene
+        run: npm run repo:hygiene
+
+      - name: Dead code scan (warn-only)
+        run: npm run dead-code:scan
+        continue-on-error: true
       
       - name: Lint (ESLint + CSSD Architecture)
         run: npm run lint && npm run lint:cssd-architecture

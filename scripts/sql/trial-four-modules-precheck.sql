@@ -45,8 +45,8 @@ SELECT
   ) AS rpc_gsc_strategic_ok,
   EXISTS (
     SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-    WHERE n.nspname = 'public' AND p.proname = 'rpc_get_compliance_dashboard_v4'
-  ) AS rpc_compliance_v4_ok,
+    WHERE n.nspname = 'public' AND p.proname = 'rpc_gsc_checklist_detail'
+  ) AS rpc_gsc_checklist_detail_ok,
   EXISTS (
     SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
     WHERE n.nspname = 'public' AND p.proname = 'rpc_get_dashboard_ksnk_staff_supervision_stats'

@@ -32,6 +32,23 @@ const MODULE_HINTS = [
       "BV103 MDM: read-minimum dòng MDM; rules 15-danh-muc + 20-master-data-placement.",
   },
   {
+    pattern:
+      /dashboard|bao-cao|báo cáo|thong-ke|thống kê|metric-dictionary|command.center|điều hành/i,
+    context:
+      "BV103 Dashboard: read-minimum dòng Dashboard; rule 18-dashboard; @dashboard-pilot; metric-dictionary.md.",
+  },
+  {
+    pattern: /bang-kiem|bảng kiểm|modules\/quan-tri-he-thong\/bang-kiem/i,
+    context:
+      "BV103 Bảng kiểm: read-minimum dòng BK; rule 16-bang-kiem-spec-context.",
+  },
+  {
+    pattern:
+      /intake-nv|không rành code|nghiệp vụ|product owner|po-intake/i,
+    context:
+      "BV103 PO: /intake-nv hoặc @po-intake; agent intake-coach; docs/core/po-cursor-guide.md.",
+  },
+  {
     pattern: /supabase\/migrations|\.sql\b/i,
     context:
       "BV103 DB: read-minimum migration; rule 51-database-migration; @smart-db-bv103.",

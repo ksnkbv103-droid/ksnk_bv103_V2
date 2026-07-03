@@ -12,6 +12,7 @@ import type { RBACDataSuccess, RBACPermissionRow, RBACRoleRow } from "../rbac.ty
 import { selectRolesForRbacMatrixColumns } from "../rbac.types";
 import { RBAC_ACTION_FALLBACK_META, RBAC_ACTION_META } from "./rbac-matrix-action-meta";
 import { RBACMatrixDataGrid } from "./rbac-matrix-data-grid";
+import RbacMenuPreviewPanel from "./RbacMenuPreviewPanel";
 
 export default function RBACMatrixView() {
   const { isAdmin, loading: permLoading, allowed } = useModulePermission("PHAN_QUYEN");
@@ -21,6 +22,7 @@ export default function RBACMatrixView() {
   const [matrix, setMatrix] = useState<Record<string, Set<string>>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [previewRoleId, setPreviewRoleId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -42,6 +44,8 @@ export default function RBACMatrixView() {
           }
         });
         setMatrix(newMatrix);
+        const cols = selectRolesForRbacMatrixColumns(res.roles || []);
+        if (cols[0]?.id) setPreviewRoleId((prev) => prev ?? cols[0].id);
       } else {
         toast.error("Lỗi tải dữ liệu: " + res.error);
       }
@@ -203,6 +207,16 @@ export default function RBACMatrixView() {
           </>
         }
       />
+
+      {previewRoleId && data?.permissions?.length ? (
+        <RbacMenuPreviewPanel
+          roles={roles}
+          matrix={matrix}
+          permissions={data.permissions}
+          previewRoleId={previewRoleId}
+          onPreviewRoleChange={setPreviewRoleId}
+        />
+      ) : null}
 
       <RBACMatrixDataGrid
         roles={roles}

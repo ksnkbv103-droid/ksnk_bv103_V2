@@ -1,45 +1,32 @@
 "use server";
 
-import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
-import { verifyPermission } from "@/lib/server-permission";
 import { assertQlcvHanHoanThanhNotPast, insertQlcvTaskRow } from "../lib/qlcv-create-task";
 import { parseQlcvImportRow, type QlcvImportRow } from "../lib/qlcv-import-parse";
+import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
+import { validateAssigneeForQlcv } from "../lib/qlcv-ksnk-server";
+import { appendQlcvNhatKy } from "../lib/qlcv-nhat-ky";
 
-async function resolveNhanSuIdByMa(
-  supabase: ReturnType<typeof createAdminSupabaseClient>,
+async function resolveKsnkNhanSuIdByMa(
+  supabase: Awaited<ReturnType<typeof ensureQlcvKsnkAccess>>["supabase"],
+  ksnkKhoaId: string,
   maNv: string,
 ): Promise<string> {
   const { data, error } = await supabase
     .from("mdm_nhan_su")
-    .select("id")
+    .select("id, khoa_id")
     .eq("ma_nv", maNv)
     .eq("is_active", true)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  if (!data?.id) throw new Error(`Không tìm thấy nhân sự ma_nv=${maNv}`);
-  return String(data.id);
-}
-
-async function resolveKhoaIdByMa(
-  supabase: ReturnType<typeof createAdminSupabaseClient>,
-  maKhoa: string | null,
-): Promise<string | null> {
-  if (!maKhoa) return null;
-  const { data, error } = await supabase
-    .from("mdm_dm_khoa_phong")
-    .select("id")
-    .eq("ma_khoa", maKhoa)
-    .eq("is_active", true)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data?.id) throw new Error(`Không tìm thấy khoa ma_khoa=${maKhoa}`);
+  if (!data?.id) throw new Error(`Không tìm thấy nhân sự KSNK ma_nv=${maNv}`);
+  await validateAssigneeForQlcv(supabase, String(data.id), ksnkKhoaId);
   return String(data.id);
 }
 
 async function resolveToIdByMa(
-  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  supabase: Awaited<ReturnType<typeof ensureQlcvKsnkAccess>>["supabase"],
   maTo: string | null,
 ): Promise<string | null> {
   if (!maTo) return null;
@@ -55,13 +42,13 @@ async function resolveToIdByMa(
 }
 
 async function importOneRow(
-  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  supabase: Awaited<ReturnType<typeof ensureQlcvKsnkAccess>>["supabase"],
+  ksnkKhoaId: string,
   actor: string,
   row: QlcvImportRow,
 ) {
   assertQlcvHanHoanThanhNotPast(row.han_hoan_thanh);
-  const nguoi_phu_trach_id = await resolveNhanSuIdByMa(supabase, row.ma_nv);
-  const khoa_thuc_hien_id = await resolveKhoaIdByMa(supabase, row.ma_khoa);
+  const nguoi_phu_trach_id = await resolveKsnkNhanSuIdByMa(supabase, ksnkKhoaId, row.ma_nv);
   const to_cong_tac_id = await resolveToIdByMa(supabase, row.ma_to);
 
   const data = await insertQlcvTaskRow(supabase, {
@@ -71,32 +58,31 @@ async function importOneRow(
     muc_do_uu_tien: row.muc_do_uu_tien,
     han_hoan_thanh: row.han_hoan_thanh,
     nguoi_phu_trach_id,
-    khoa_thuc_hien_id,
+    ksnkKhoaId,
     to_cong_tac_id,
     is_active: true,
     nguoi_tao_id: actor,
     nguoi_giao_viec_id: actor,
   });
 
-  await supabase.from("qlcv_fact_cong_viec_hoat_dong").insert({
-    id_cong_viec: String(data.id),
-    loai_hoat_dong: "PHAN_CONG",
-    nguoi_thuc_hien_id: actor,
-    noi_dung: "Import lô công việc",
+  await appendQlcvNhatKy(supabase, {
+    congViecId: String(data.id),
+    loaiHoatDong: "PHAN_CONG",
+    nguoiThucHienId: actor,
+    noiDung: "Import lô công việc nội bộ KSNK",
   });
 
   return data;
 }
 
-/** Import công việc từ Excel/CSV — một phiếu một dòng, bắt buộc ma_nv phụ trách. */
+/** Import công việc từ Excel/CSV — nhân viên KSNK only. */
 export async function importCongViecRows(rows: Record<string, unknown>[]) {
-  await verifyPermission("CONG_VIEC", "import");
+  const { supabase, ksnkKhoaId } = await ensureQlcvKsnkAccess("import");
   const actor = await getActorNhanSuId();
   if (!actor) {
     throw new Error("Tài khoản cần gắn hồ sơ nhân sự (mdm_nhan_su) mới import được.");
   }
 
-  const supabase = createAdminSupabaseClient();
   const parsed = (rows || []).map((row, idx) => parseQlcvImportRow(row, idx + 2));
   const invalid = parsed.filter((r) => !r.ok);
   if (invalid.length) {
@@ -109,7 +95,7 @@ export async function importCongViecRows(rows: Record<string, unknown>[]) {
   let inserted = 0;
   for (const item of parsed) {
     if (!item.ok) continue;
-    await importOneRow(supabase, actor, item.row);
+    await importOneRow(supabase, ksnkKhoaId, actor, item.row);
     inserted += 1;
   }
 

@@ -1,6 +1,14 @@
 import { addWeeks, format, parseISO, startOfMonth, startOfQuarter, startOfWeek, startOfYear } from "date-fns";
 import { vi } from "date-fns/locale";
 import { KHU_VUC_ZONE_LABELS, KHU_VUC_ZONE_ORDER } from "@/lib/khu-vuc-giam-sat-ui";
+import { khoaChartLabel } from "@/lib/analytics/supervision-matrix-mappers";
+import {
+  computeCcs,
+  computeTyLeGsc,
+  computeTyLeVst,
+  deltaFromTrend,
+  rateFromTotals,
+} from "@/lib/analytics/supervision-metrics";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import type { NkbvDashboardPayload } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
@@ -15,21 +23,13 @@ import type {
   SourceLoadStatus,
 } from "../types/bao-cao-tong-hop.types";
 
-const CCS_WEIGHT_VST = 0.5;
-const CCS_WEIGHT_GSC = 0.5;
-
-type TrendSlice = {
-  label: string;
-  min_date: string;
-  ty_le: number;
-  tong: number;
-  dat: number;
-};
-
-function rateFromTotals(dat: number, tong: number): number | null {
-  if (tong <= 0) return null;
-  return Math.round((dat / tong) * 1000) / 10;
-}
+export {
+  computeCcs,
+  computeTyLeGsc,
+  computeTyLeVst,
+  deltaFromTrend,
+  rateFromTotals,
+} from "@/lib/analytics/supervision-metrics";
 
 function finalizeTrendPoint(row: {
   label: string;
@@ -55,43 +55,13 @@ function finalizeTrendPoint(row: {
   };
 }
 
-export function computeTyLeVst(kpis: VstStrategicPayload["kpis"] | undefined): number | null {
-  if (!kpis || kpis.tong_co_hoi <= 0) return null;
-  return kpis.ty_le_tuan_thu;
-}
-
-export function computeTyLeGsc(kpis: GscStrategicPayload["kpis"] | undefined): number | null {
-  if (!kpis || kpis.tong_quan_sat <= 0) return null;
-  return kpis.ty_le_tuan_thu;
-}
-
-/** CCS chỉ từ VST+GSC (process); NKBV là outcome riêng. */
-export function computeCcs(
-  tyLeVst: number | null,
-  tyLeGsc: number | null,
-): { value: number | null; note: string | null } {
-  if (tyLeVst == null && tyLeGsc == null) return { value: null, note: null };
-  if (tyLeVst != null && tyLeGsc != null) {
-    const value = Math.round((tyLeVst * CCS_WEIGHT_VST + tyLeGsc * CCS_WEIGHT_GSC) * 10) / 10;
-    return {
-      value,
-      note: `Công thức: ${Math.round(CCS_WEIGHT_VST * 100)}% Tuân thủ VST + ${Math.round(CCS_WEIGHT_GSC * 100)}% Tuân thủ GSC`,
-    };
-  }
-  const single = tyLeVst ?? tyLeGsc;
-  return {
-    value: single,
-    note: tyLeVst != null ? "Chỉ có dữ liệu VST trong phạm vi quyền/lọc" : "Chỉ có dữ liệu GSC trong phạm vi quyền/lọc",
-  };
-}
-
-export function deltaFromTrend(tyLeSeries: number[]): number | null {
-  const valid = tyLeSeries.filter((x) => Number.isFinite(x));
-  if (valid.length < 2) return null;
-  const prev = valid[valid.length - 2];
-  const cur = valid[valid.length - 1];
-  return Math.round((cur - prev) * 10) / 10;
-}
+type TrendSlice = {
+  label: string;
+  min_date: string;
+  ty_le: number;
+  tong: number;
+  dat: number;
+};
 
 /** Khóa tuần ISO (Thứ 2) — tránh tách VST/GSC cùng tuần thành 2 điểm vì min_date khác ngày. */
 export function isoWeekBucketKey(minDate: string): string {
@@ -287,6 +257,7 @@ export function buildKhoaRank(vst: VstStrategicPayload | null, gsc: GscStrategic
       finalizeKhoaRankRow({
         id: row.id,
         ten: row.ten,
+        label: khoaChartLabel(row),
         ty_le_vst: row.ty_le_tuan_thu,
         ty_le_gsc: null,
         ty_le_avg: row.ty_le_tuan_thu,
@@ -309,6 +280,7 @@ export function buildKhoaRank(vst: VstStrategicPayload | null, gsc: GscStrategic
         finalizeKhoaRankRow({
           id: row.id,
           ten: row.ten,
+          label: khoaChartLabel(row),
           ty_le_vst: null,
           ty_le_gsc: row.ty_le_tuan_thu,
           ty_le_avg: row.ty_le_tuan_thu,
@@ -360,9 +332,12 @@ export function mergeKhoaRankWithSelected(
       continue;
     }
     const opt = khoaOptions.find((o) => o.id === id);
+    const ten = opt?.label ?? id;
+    const maMatch = ten.match(/^\[([^\]]+)\]/);
     merged.push({
       id,
-      ten: opt?.label ?? id,
+      ten,
+      label: maMatch?.[1] ?? (ten.length > 12 ? `${ten.slice(0, 10)}…` : ten),
       ty_le_vst: null,
       ty_le_gsc: null,
       ty_le_avg: null,
@@ -414,6 +389,8 @@ export function buildIpacZoneCompare(vst: VstStrategicPayload | null, gsc: GscSt
 const SUPERVISION_ANALYTICS_CANONICAL: Record<string, { analytics: string; history: string }> = {
   "/giam-sat-vst": { analytics: "/thong-ke/vst", history: "/lich-su/vst" },
   "/giam-sat-chung": { analytics: "/thong-ke/gsc", history: "/lich-su/gsc" },
+  "/thong-ke/vst": { analytics: "/thong-ke/vst", history: "/lich-su/vst" },
+  "/thong-ke/gsc": { analytics: "/thong-ke/gsc", history: "/lich-su/gsc" },
 };
 
 export type AnalyticsDeepLinkFilters = Pick<BaoCaoTongHopFilters, "tu_ngay" | "den_ngay" | "khoa_ids"> & {
@@ -439,6 +416,9 @@ export function buildAnalyticsDeepLink(
   }
   if (canonical && tab === "history") {
     return qs ? `${canonical.history}?${qs}` : canonical.history;
+  }
+  if (canonical && !tab && (basePath === "/thong-ke/vst" || basePath === "/thong-ke/gsc")) {
+    return qs ? `${canonical.analytics}?${qs}` : canonical.analytics;
   }
 
   if (tab) q.set("tab", tab);

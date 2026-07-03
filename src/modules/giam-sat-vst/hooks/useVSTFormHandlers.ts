@@ -146,8 +146,9 @@ export function useVSTFormHandlers(
           observations,
           existingSessionId: sid || null,
         });
-        toast.message(
-          "Đã lưu vào hàng đợi ngoại tuyến. Hệ thống sẽ gửi phiên khi có mạng trở lại (tự động hoặc khi bạn mở lại ứng dụng).",
+        toast.warning(
+          "Chưa lên máy chủ — phiên đang chờ mạng. Khi có internet, bấm «Đồng bộ» ở góc màn hình hoặc mở lại trang.",
+          { duration: 8000 },
         );
         return;
       }
@@ -169,7 +170,10 @@ export function useVSTFormHandlers(
           observations,
           existingSessionId: sid || null,
         });
-        toast.message("Mạng không ổn định — đã giữ phiên trong hàng đợi ngoại tuyến để gửi sau.");
+        toast.warning(
+          "Chưa lên máy chủ — mạng lỗi, phiên đang chờ. Khi có internet, bấm «Đồng bộ» ở góc màn hình.",
+          { duration: 8000 },
+        );
       } else {
         toast.error(err instanceof Error ? err.message : "Lỗi lưu phiên");
       }
@@ -222,7 +226,9 @@ export function useVSTFormHandlers(
     // Cơ hội mới ở cuối danh sách: các cơ hội đã ghi nhận nằm ở trên, cơ hội đang nhập nằm ở dưới.
     newPersons[pIdx].opportunities.push(createNewOpp());
     setPersons(newPersons);
-    toast.success("Đã ghi nhận cơ hội");
+    toast.success("Đã ghi nhận cơ hội trên phiên — nhớ bấm «Lưu phiên giám sát» để đưa lên hệ thống.", {
+      duration: 6000,
+    });
   };
 
   return { updatePerson, toggleMoment, updateAction, updateAssessment, openOpportunity, submitOpportunity, handleFinalSave };

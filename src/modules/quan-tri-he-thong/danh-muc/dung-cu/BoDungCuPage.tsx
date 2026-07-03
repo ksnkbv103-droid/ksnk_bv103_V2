@@ -15,6 +15,8 @@ import { BO_DUNG_CU_COLUMN_MAP } from "./bo-dung-cu-import";
 import type { BoDungCuTableRow } from "./bo-dung-cu-form-shared";
 import { BoDungCuPageHeader } from "./bo-dung-cu-page-header";
 import { BoDungCuChiTietPanel } from "./bo-dung-cu-chi-tiet-panel";
+import { BoDungCuMaBoHealthBanner } from "./bo-dung-cu-ma-bo-health-banner";
+import { BoDungCuQuickSetupPanel } from "./bo-dung-cu-quick-setup-panel";
 import {
   getBoDungCuRowsAction,
   getKhoaPhongOptionsForBoAction,
@@ -37,6 +39,7 @@ export function BoDungCuPageContent() {
   const [loadingLoai, setLoadingLoai] = useState(true);
   const [loadingKhoa, setLoadingKhoa] = useState(true);
   const [selectedBoId, setSelectedBoId] = useState<string | null>(null);
+  const [lastCreatedMaBo, setLastCreatedMaBo] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadOptions() {
@@ -128,6 +131,11 @@ export function BoDungCuPageContent() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
+      <BoDungCuMaBoHealthBanner />
+      <BoDungCuQuickSetupPanel
+        onStartCreateBo={openCreate}
+        lastCreatedMaBo={lastCreatedMaBo}
+      />
       <BoDungCuPageHeader
         fileInputRef={fileInputRef}
         onFileChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
@@ -187,6 +195,7 @@ export function BoDungCuPageContent() {
           setEditing(null);
         }}
         onSaved={() => setRefreshKey((k) => k + 1)}
+        onSavedMaBo={(ma) => setLastCreatedMaBo(ma)}
       />
     </div>
   );

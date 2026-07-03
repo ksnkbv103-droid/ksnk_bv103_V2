@@ -15,6 +15,8 @@ function errNhanSuWrite(e: unknown) {
 }
 
 import { nhanSuSchema } from "@/lib/validations";
+import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
+import { syncStaffAuthEmail } from "@/lib/auth/staff-auth-email";
 
 /**
  * Lưu hồ sơ nhân sự (Thêm hoặc Cập nhật)
@@ -54,16 +56,19 @@ export async function saveNhanSuAction(data: Partial<NhanSu>) {
       vai_tro_he_thong_id?: string | null;
     } | null = null;
 
+    let existingAuthUserId: string | null = null;
+
     if (id) {
       const { data: existing, error: exErr } = await supabase
         .from("mdm_nhan_su")
-        .select("khoa_id, to_id, chuc_vu_id, chuc_danh_id, vai_tro_he_thong_id, extra_data")
+        .select("khoa_id, to_id, chuc_vu_id, chuc_danh_id, vai_tro_he_thong_id, extra_data, auth_user_id")
         .eq("id", id)
         .maybeSingle();
       if (exErr) throw new Error(exErr.message);
       if (existing) {
         current = existing as any;
         existingExtraData = existing.extra_data || {};
+        existingAuthUserId = existing.auth_user_id ?? null;
       }
     }
 
@@ -74,6 +79,20 @@ export async function saveNhanSuAction(data: Partial<NhanSu>) {
       ...(ngay_sinh !== undefined ? { ngay_sinh } : {}),
       ...(gioi_tinh !== undefined ? { gioi_tinh } : {}),
     };
+
+    if (id && existingAuthUserId && email !== undefined) {
+      const oldEmail = normalizeEmail(String((existingExtraData as { email?: string }).email || ""));
+      const newEmail = normalizeEmail(String(email));
+      if (newEmail && newEmail !== oldEmail) {
+        const syncRes = await syncStaffAuthEmail(supabase, existingAuthUserId, newEmail);
+        if (!syncRes.ok) {
+          return {
+            success: false,
+            error: `Không đồng bộ được email đăng nhập: ${syncRes.error}`,
+          };
+        }
+      }
+    }
 
     const merged = await buildSaveNhanSuMergedFields(supabase, physicalFields, current);
     const payload = {

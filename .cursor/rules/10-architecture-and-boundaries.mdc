@@ -1,16 +1,10 @@
 ---
-description: "[Superseded] Architecture boundaries — dùng 03-src-editing-compact; @mention khi review sâu"
+description: "[Redirect] Architecture — dùng 03-src-editing-compact"
 alwaysApply: false
 ---
 
-# Architecture and Boundaries
+# Redirect
 
-> **Superseded** cho edit `src/` hàng ngày: [`03-src-editing-compact.mdc`](./03-src-editing-compact.mdc).  
-> Invoke `@10-architecture-and-boundaries` khi review ranh giới đa module hoặc HIS/FHIR roadmap.
+Rule này đã gộp vào [`03-src-editing-compact.mdc`](./03-src-editing-compact.mdc).
 
-- `permission-registry.ts` là SSOT module/quyền.
-- Master data: `mdm_dm_*`, `sys_lookup_value` — không `dm_*` compat.
-- CSSD ERP: workflow scope only; incident = Configuration-Driven Hybrid EAV.
-- VST/GSC: tối đa **3 đối tượng** một phiên trừ spec mới.
-- Sensitive facts: amendment + soft-delete; không hard-delete traceability.
-- HIS/LIS: thiết kế input map FHIR sau; stack giữ Server Actions + Supabase.
+Review ranh giới đa module: `@03-src-editing-compact` + `implementation-mapping.md`.

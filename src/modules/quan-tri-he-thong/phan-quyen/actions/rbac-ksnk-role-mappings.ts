@@ -71,6 +71,7 @@ function isKsnkStaffPerm(p: PermRow): boolean {
   if (isDashboardCcExport(p)) return true;
 
   if (m === "DANH_MUC" && a === "view") return true;
+  if (["DANH_MUC_ORG", "DANH_MUC_GSTT", "DANH_MUC_CSSD_LOOKUP"].includes(m) && a === "view") return true;
 
   if (["NHAN_SU", "BANG_KIEM", "CONG_VIEC"].includes(m)) {
     return ["view", "create", "edit", "delete", "import"].includes(a);
@@ -84,17 +85,14 @@ function isKsnkStaffPerm(p: PermRow): boolean {
     return ["view", "create", "edit", "delete", "import"].includes(a);
   }
 
-  const cssd = [
+  const cssdOps = [
     "CSSD_WORKFLOW",
     "CSSD_KHO_DUNGCU",
     "CSSD_REPORT",
     "CSSD_ME_TIET_KHUAN",
-    "CSSD_DM_DUNGCU",
-    "CSSD_DM_THIETBI",
-    "CSSD_DM_HOACHAT",
     "KSNK_KHO_HOACHAT",
   ];
-  if (cssd.includes(m)) {
+  if (cssdOps.includes(m)) {
     if (m === "CSSD_REPORT" && ["view", "export"].includes(a)) return true;
     if (m === "KSNK_KHO_HOACHAT") {
       return ["view", "create", "edit", "export"].includes(a);
@@ -105,6 +103,7 @@ function isKsnkStaffPerm(p: PermRow): boolean {
     return ["view", "create", "edit", "delete", "import"].includes(a);
   }
 
+  /** Danh mục CSSD/MDM chi tiết — xem; sửa qua module LOAI_DC/BO_DC/… riêng nếu cần. */
   const dmDetail = [
     "LOAI_DC",
     "BO_DC",
@@ -114,24 +113,19 @@ function isKsnkStaffPerm(p: PermRow): boolean {
     "KHOA_PHONG",
     "BANG_KIEM_DETAIL",
   ];
-  if (dmDetail.includes(m)) return a === "view";
+  if (dmDetail.includes(m)) {
+    if (["LOAI_DC", "BO_DC", "DC_LE", "THIET_BI", "HOA_CHAT"].includes(m)) {
+      return ["view", "create", "edit", "delete", "import"].includes(a);
+    }
+    return a === "view";
+  }
 
   return false;
 }
 
 /**
- * Vai trò tiếp nhận ticket RCA (reform v4, Slice 9).
- *
- * Quyền chung cho cả `BAN_QLCL` và `KHOA_TRANG_BI`:
- *  - Dashboard family view + export → đọc báo cáo compliance.
- *  - GIAM_SAT_CHUNG / GIAM_SAT_VST `view` → mở session/observation gốc của ticket.
- *  - MDM_FAILURE_REASON `view` → tra danh mục căn nguyên lỗi.
- *  - RCA_TICKET `view, assign, close` → chủ trì xử lý ticket.
- *  - DANH_MUC `view` → tra mã khoa/phòng cần tham chiếu.
- *
- * Lọc theo `phong_ban_xu_ly` đúng phòng được thực thi ở tầng app (queue UI).
- * RLS hiện tại cho phép bất cứ ai có RCA_TICKET.assign/close cập nhật ticket;
- * khi cần siết, bổ sung policy lọc theo `phong_ban_xu_ly` trong migration sau.
+ * Ban QLCL / Khoa Trang bị — xem báo cáo và phiên giám sát liên quan sự cố.
+ * (Module RCA_TICKET chưa có trong permission-registry — quyền xử lý ticket bổ sung sau.)
  */
 function isRcaHandlerPerm(p: PermRow): boolean {
   const m = mod(p);

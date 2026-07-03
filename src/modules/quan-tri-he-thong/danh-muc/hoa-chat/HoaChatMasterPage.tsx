@@ -1,13 +1,13 @@
 // src/modules/quan-tri-he-thong/danh-muc/hoa-chat/HoaChatMasterPage.tsx
 "use client";
 import React, { useEffect, useState } from "react";
-import { Plus, Beaker, Upload, BarChart2, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Beaker, Upload, BarChart2, ChevronDown, ChevronUp, Download, Loader2 } from "lucide-react";
 import HoaChatStatsPanel from "./HoaChatStatsPanel";
+import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { toast } from "sonner";
 import HoaChatFormModal from "./hoa-chat-form-modal";
-import MasterDataImportExportModal from "../../components/MasterDataImportExportModal";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
@@ -20,13 +20,14 @@ import {
   toggleHoaChatStatusAction,
 } from "../actions/hoa-chat.actions";
 import { DmMasterPageGuard } from "../views/dm-master-page-guard";
+import { smartImportData } from "../actions/smart-import.actions";
+import { getMasterDataExport } from "../actions/export.actions";
 
 function HoaChatMasterPageContent() {
   const [data, setData] = useState<HoaChatRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
-  const [importModalOpen, setImportModalOpen] = useState(false);
   const [editing, setEditing] = useState<HoaChatRow | null>(null);
   const [showStats, setShowStats] = useState(true);
 
@@ -71,7 +72,25 @@ function HoaChatMasterPageContent() {
     },
   });
 
-  // Removed legacy useImportExport hook to improve bundle size and maintain cleanliness
+  const { exportTemplate, handleFileUpload, isImporting, triggerImport, fileInputRef } = useImportExport({
+    moduleKey: "HOA_CHAT",
+    tableName: "cssd_dm_hoa_chat",
+    displayName: "Hóa chất",
+    uniqueKey: "ma_hoa_chat",
+    columnMapping: {
+      "Mã hóa chất": "ma_hoa_chat",
+      "Tên hóa chất": "ten_hoa_chat",
+      "Loại hóa chất": "loai_hoa_chat",
+      "Đơn vị tính": "don_vi_tinh",
+      "Hạn sử dụng": "han_su_dung",
+      "Ngưỡng tồn tối thiểu": "nguong_ton_toi_thieu",
+      is_active: "is_active",
+    },
+    onGetData: () => getMasterDataExport("cssd_dm_hoa_chat", "ma_hoa_chat"),
+    onImport: (d) => smartImportData({ tableName: "cssd_dm_hoa_chat", uniqueKey: "ma_hoa_chat" }, d),
+    onSuccess: () => setRefreshKey((k) => k + 1),
+  });
+
   const columns = getHoaChatColumns(actionUi);
   const modalKey = editing?.id ? `edit-${editing.id}` : "create";
 
@@ -88,8 +107,13 @@ function HoaChatMasterPageContent() {
               Thống kê
               {showStats ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
             </button>
-            <button type="button" onClick={() => setImportModalOpen(true)} className={C.ctaEmerald}>
-              <Upload size={15} /> Nhập/Xuất Excel
+            <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} accept=".xlsx,.xls" className="hidden" />
+            <button type="button" onClick={triggerImport} disabled={isImporting} className={C.ctaEmerald}>
+              {isImporting ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
+              Import Excel
+            </button>
+            <button type="button" onClick={() => exportTemplate()} className={T.btnSecondary}>
+              <Download size={15} /> Export mẫu
             </button>
             <button type="button" onClick={() => { setEditing(null); setFormOpen(true); }} className={C.ctaPrimary}>
               <Plus size={16} /> Thêm mới
@@ -129,14 +153,6 @@ function HoaChatMasterPageContent() {
           setEditing(null);
         }}
         onSaved={() => setRefreshKey((k) => k + 1)}
-      />
-      <MasterDataImportExportModal
-        isOpen={importModalOpen}
-        onClose={() => {
-          setImportModalOpen(false);
-          setRefreshKey((k) => k + 1);
-        }}
-        type="hoa-chat"
       />
     </div>
   );

@@ -40,11 +40,20 @@ export async function listTonTheoLoKhoHoaChatAction(): Promise<
     if (!tonRes.success) return tonRes;
     const vRows = tonRes.data;
     const dmIds = [...new Set((vRows || []).map((r: { dm_hoa_chat_id?: string }) => String(r.dm_hoa_chat_id || "")).filter(Boolean))];
-    let dmMap = new Map<string, { ma_hoa_chat?: string; ten_hoa_chat?: string; don_vi_tinh?: string | null; nguong_ton_toi_thieu?: number | null }>();
+    let dmMap = new Map<
+      string,
+      {
+        ma_hoa_chat?: string;
+        ten_hoa_chat?: string;
+        don_vi_tinh?: string | null;
+        nguong_ton_toi_thieu?: number | null;
+        loai_hoa_chat?: string | null;
+      }
+    >();
     if (dmIds.length) {
       const { data: dms, error: dErr } = await supabase
         .from("cssd_dm_hoa_chat")
-        .select("id, ma_hoa_chat, ten_hoa_chat, don_vi_tinh, nguong_ton_toi_thieu")
+        .select("id, ma_hoa_chat, ten_hoa_chat, don_vi_tinh, nguong_ton_toi_thieu, loai_hoa_chat")
         .in("id", dmIds);
       if (dErr) return { success: false, error: mapFkError(dErr.message) };
       dmMap = new Map((dms || []).map((x: Record<string, unknown>) => [String(x.id), x as never]));
@@ -69,6 +78,7 @@ export async function listTonTheoLoKhoHoaChatAction(): Promise<
             dm && (dm as { nguong_ton_toi_thieu?: unknown }).nguong_ton_toi_thieu != null
               ? Number((dm as { nguong_ton_toi_thieu?: number }).nguong_ton_toi_thieu)
               : null,
+          loai_hoa_chat: dm ? String((dm as { loai_hoa_chat?: string | null }).loai_hoa_chat || "HOA_CHAT") : null,
         };
       })
       .filter((x) => x.ton_so_luong > 0);
@@ -89,7 +99,7 @@ export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number }):
     const lim = Math.min(500, Math.max(10, Number(params?.limit) || 150));
     const { data: rows, error } = await supabase
       .from("cssd_fact_kho_hoa_chat_giao_dich")
-      .select("id, ma_phieu, dm_hoa_chat_id, loai_giao_dich, so_luong_co_dau, ma_lo, han_su_dung, ghi_chu, created_at")
+      .select("id, ma_phieu, dm_hoa_chat_id, loai_giao_dich, so_luong_co_dau, ma_lo, han_su_dung, ghi_chu, su_co_id, created_at")
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .limit(lim);
@@ -112,6 +122,7 @@ export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number }):
       ma_lo: r.ma_lo != null ? String(r.ma_lo) : null,
       han_su_dung: r.han_su_dung != null ? String(r.han_su_dung).slice(0, 10) : null,
       ghi_chu: r.ghi_chu != null ? String(r.ghi_chu) : null,
+      su_co_id: r.su_co_id != null ? String(r.su_co_id) : null,
       created_at: r.created_at != null ? String(r.created_at) : null,
       ten_hoa_chat: tenMap.get(String(r.dm_hoa_chat_id)) || null,
     }));
@@ -125,7 +136,14 @@ export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number }):
 export async function listDmHoaChatChoKhoAction(search?: string): Promise<
   {
     success: true;
-    data: { id: string; ma_hoa_chat: string; ten_hoa_chat: string; don_vi_tinh: string | null; nguong_ton_toi_thieu: number | null }[];
+    data: {
+      id: string;
+      ma_hoa_chat: string;
+      ten_hoa_chat: string;
+      don_vi_tinh: string | null;
+      nguong_ton_toi_thieu: number | null;
+      loai_hoa_chat: string | null;
+    }[];
   } | {
     success: false;
     error: string;
@@ -136,7 +154,7 @@ export async function listDmHoaChatChoKhoAction(search?: string): Promise<
     await verifyPermission("KSNK_KHO_HOACHAT", "view");
     let q = supabase
       .from("cssd_dm_hoa_chat")
-      .select("id, ma_hoa_chat, ten_hoa_chat, don_vi_tinh, nguong_ton_toi_thieu")
+      .select("id, ma_hoa_chat, ten_hoa_chat, don_vi_tinh, nguong_ton_toi_thieu, loai_hoa_chat")
       .eq("is_active", true)
       .order("ma_hoa_chat", { ascending: true });
 
@@ -153,6 +171,7 @@ export async function listDmHoaChatChoKhoAction(search?: string): Promise<
         ten_hoa_chat: String(x.ten_hoa_chat || ""),
         don_vi_tinh: x.don_vi_tinh != null ? String(x.don_vi_tinh) : null,
         nguong_ton_toi_thieu: x.nguong_ton_toi_thieu != null && x.nguong_ton_toi_thieu !== "" ? Number(x.nguong_ton_toi_thieu) : null,
+        loai_hoa_chat: x.loai_hoa_chat != null ? String(x.loai_hoa_chat) : "HOA_CHAT",
       })),
     };
   } catch (e: unknown) {

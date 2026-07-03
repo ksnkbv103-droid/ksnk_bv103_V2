@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Plus, Settings, Wrench, CheckCircle2, Zap, Upload } from "lucide-react";
+import { Plus, Settings, Wrench, CheckCircle2, Zap, Upload, Download, Loader2 } from "lucide-react";
+import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { toast } from "sonner";
 import ThietBiFormModal from "./thiet-bi-form-modal";
-import MasterDataImportExportModal from "../../components/MasterDataImportExportModal";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { getThietBiColumns } from "./thiet-bi-columns";
 import type { ThietBiRow } from "../actions/thiet-bi.types";
 import {
@@ -18,13 +19,14 @@ import {
   toggleThietBiStatusAction,
 } from "../actions/thiet-bi.actions";
 import { DmMasterPageGuard } from "../views/dm-master-page-guard";
+import { smartImportData } from "../actions/smart-import.actions";
+import { getMasterDataExport } from "../actions/export.actions";
 
 function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?: boolean }) {
   const [data, setData] = useState<ThietBiRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
-  const [importModalOpen, setImportModalOpen] = useState(false);
   const [editing, setEditing] = useState<ThietBiRow | null>(null);
 
   useEffect(() => {
@@ -75,7 +77,23 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
     },
   });
 
-  // Removed legacy useImportExport hook to improve bundle size and maintain cleanliness
+  const { exportTemplate, handleFileUpload, isImporting, triggerImport, fileInputRef } = useImportExport({
+    moduleKey: "THIET_BI",
+    tableName: "cssd_dm_thiet_bi",
+    displayName: "Thiết bị",
+    uniqueKey: "ma_thiet_bi",
+    columnMapping: {
+      "Mã thiết bị": "ma_thiet_bi",
+      "Tên thiết bị": "ten_thiet_bi",
+      "Loại máy tiệt khuẩn": "ten_loai_may",
+      "Ngày sử dụng": "ngay_dua_vao_su_dung",
+      "Chu kỳ bảo trì (ngày)": "chu_ky_bao_tri_ngay",
+      is_active: "is_active",
+    },
+    onGetData: () => getMasterDataExport("cssd_dm_thiet_bi", "ma_thiet_bi"),
+    onImport: (d) => smartImportData({ tableName: "cssd_dm_thiet_bi", uniqueKey: "ma_thiet_bi" }, d),
+    onSuccess: () => setRefreshKey((k) => k + 1),
+  });
 
   const columns = getThietBiColumns(actionUi);
   const modalKey = editing?.id ? `edit-${editing.id}` : "create";
@@ -91,18 +109,29 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
   }).length;
   const totalMeTietKhuan = data.reduce((acc, x) => acc + (x.so_lan_su_dung || 0), 0);
 
+  const importButtons = (
+    <>
+      <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} accept=".xlsx,.xls" className="hidden" />
+      <button type="button" onClick={triggerImport} disabled={isImporting} className={C.ctaEmerald}>
+        {isImporting ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+        Import Excel
+      </button>
+      <button type="button" onClick={() => exportTemplate()} className={T.btnSecondary}>
+        <Download size={14} /> Export mẫu
+      </button>
+    </>
+  );
+
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
       {!suppressHeader && (
         <KsnkListPageHeader
           icon={Settings}
           title="Thiết bị và máy"
-          eyebrow="Danh mục master · Thiết bị tiệt khuẩn"
+          eyebrow="Danh mục master · Mã thiết bị = tem QR gắn suốt vòng đời"
           actions={
             <>
-              <button type="button" onClick={() => setImportModalOpen(true)} className={C.ctaEmerald}>
-                <Upload size={16} /> Nhập/Xuất Excel
-              </button>
+              {importButtons}
               <button type="button" onClick={openCreate} className={C.ctaPrimary}>
                 <Plus size={18} /> Thêm mới
               </button>
@@ -114,13 +143,7 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
       {/* Nếu suppressHeader là true, ta cần render lại các nút hành động (Add, Import) để không bị mất chức năng */}
       {suppressHeader && (
         <div className="flex flex-wrap justify-end gap-3 mb-4">
-          <button
-            type="button"
-            onClick={() => setImportModalOpen(true)}
-            className={C.ctaEmerald}
-          >
-            <Upload size={14} /> Nhập/Xuất Excel
-          </button>
+          {importButtons}
           <button type="button" onClick={openCreate} className={C.ctaPrimary}>
             <Plus size={16} /> Thêm thiết bị mới
           </button>
@@ -198,14 +221,6 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
           setEditing(null);
         }}
         onSaved={() => setRefreshKey((k) => k + 1)}
-      />
-      <MasterDataImportExportModal
-        isOpen={importModalOpen}
-        onClose={() => {
-          setImportModalOpen(false);
-          setRefreshKey((k) => k + 1);
-        }}
-        type="thiet-bi"
       />
     </div>
   );

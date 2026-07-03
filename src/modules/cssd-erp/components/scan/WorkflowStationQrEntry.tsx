@@ -83,9 +83,8 @@ export default function WorkflowStationQrEntry({ waitingItems, disabled, onConfi
               {waitingItems.length === 0 ? "— Không có bộ chờ tại trạm —" : "— Chọn mã QR trong danh sách chờ —"}
             </option>
             {waitingItems.map((item) => {
-              const shortLabel = item.ma_vach_qr.startsWith("CATALOG::")
-                ? `CAT:${item.ma_vach_qr.replace("CATALOG::", "").slice(0, 6)}…`
-                : item.ma_vach_qr.length > 16
+              const shortLabel =
+                item.ma_vach_qr.length > 16
                   ? `${item.ma_vach_qr.slice(0, 8)}…${item.ma_vach_qr.slice(-4)}`
                   : item.ma_vach_qr;
               return (

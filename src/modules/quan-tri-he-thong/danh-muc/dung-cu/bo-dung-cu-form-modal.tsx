@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { X, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import BoDungCuTextField from "./bo-dung-cu-form-field";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { BoDungCuFormValues, BoDungCuTableRow, mapBoDungCuRowToForm } from "./bo-dung-cu-form-shared";
-import { saveBoDungCuAction } from "../actions/bo-dung-cu.actions";
+import { saveBoDungCuAction, suggestNextBoMaAction } from "../actions/bo-dung-cu.actions";
 
 interface Props {
   open: boolean;
@@ -18,28 +18,53 @@ interface Props {
   loadingKhoa: boolean;
   onClose: () => void;
   onSaved: () => void;
+  onSavedMaBo?: (maBo: string) => void;
 }
 
-export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaOptions, loadingLoai, loadingKhoa, onClose, onSaved }: Props) {
+export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaOptions, loadingLoai, loadingKhoa, onClose, onSaved, onSavedMaBo }: Props) {
   const formSeed = useMemo(() => mapBoDungCuRowToForm(initialRow), [initialRow]);
   const [form, setForm] = useState<BoDungCuFormValues>(formSeed);
   const [loading, setLoading] = useState(false);
+  const [suggestingMa, setSuggestingMa] = useState(false);
   const isEdit = Boolean(initialRow?.id);
+
+  useEffect(() => {
+    setForm(formSeed);
+  }, [formSeed]);
+
+  useEffect(() => {
+    if (isEdit || !form.khoa_su_dung_id.trim()) return;
+    let cancelled = false;
+    setSuggestingMa(true);
+    void suggestNextBoMaAction(form.khoa_su_dung_id).then((res) => {
+      if (cancelled) return;
+      setSuggestingMa(false);
+      if (res.success) {
+        setForm((prev) => ({ ...prev, ma_bo: prev.ma_bo.trim() ? prev.ma_bo : res.ma_bo }));
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [form.khoa_su_dung_id, isEdit]);
 
   if (!open) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const ma_bo = form.ma_bo.trim();
     const ten_bo = form.ten_bo.trim();
-    if (!ma_bo || !ten_bo) {
-      toast.error("Vui lòng nhập đủ mã và tên bộ dụng cụ.");
+    if (!ten_bo) {
+      toast.error("Vui lòng nhập tên bộ dụng cụ.");
+      return;
+    }
+    if (!isEdit && !form.ma_bo.trim() && !form.khoa_su_dung_id.trim()) {
+      toast.error("Chọn khoa để tự sinh mã bộ, hoặc nhập mã dạng B01.SET.01.");
       return;
     }
     setLoading(true);
     const payload: Record<string, unknown> = {
       id: initialRow?.id,
-      ma_bo: ma_bo.toUpperCase(),
+      ma_bo: form.ma_bo.trim().toUpperCase(),
       ten_bo,
       loai_dung_cu_id: form.loai_dung_cu_id.trim() ? form.loai_dung_cu_id.trim() : null,
       khoa_su_dung_id: form.khoa_su_dung_id.trim() ? form.khoa_su_dung_id.trim() : null,
@@ -59,7 +84,12 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
       toast.error(result.error || "Không thể lưu bộ dụng cụ.");
       return;
     }
+    const savedMa =
+      result.success && "ma_bo" in result && result.ma_bo
+        ? String(result.ma_bo)
+        : form.ma_bo.trim().toUpperCase() || String(payload.ma_bo || "");
     toast.success(isEdit ? "Đã cập nhật bộ dụng cụ." : "Đã thêm bộ dụng cụ.");
+    if (!isEdit && savedMa && onSavedMaBo) onSavedMaBo(savedMa);
     onSaved();
     onClose();
   };
@@ -75,7 +105,9 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
             <h3 className={C.modalTitleLight}>
               {isEdit ? "Cập nhật bộ dụng cụ" : "Thêm bộ dụng cụ"}
             </h3>
-            <p className="text-[11px] text-slate-400 font-semibold mt-1">Điền thông tin theo dữ liệu master kho và phân loại.</p>
+            <p className="text-[11px] text-slate-400 font-semibold mt-1">
+              Mã bộ = mã QR (vd. B01.SET.01). Thêm mới: chọn khoa → tự sinh STT.
+            </p>
           </div>
           <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-red-600 rounded-xl -mr-2">
             <X size={22} />
@@ -83,8 +115,14 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <BoDungCuTextField label="Mã bộ" required value={form.ma_bo} disabled={isEdit}
-            onChange={(v) => setForm({ ...form, ma_bo: v.toUpperCase() })} />
+          <BoDungCuTextField
+            label={isEdit ? "Mã bộ (QR)" : "Mã bộ (QR — để trống = tự sinh)"}
+            required={isEdit}
+            value={form.ma_bo}
+            disabled={isEdit}
+            placeholder={suggestingMa ? "Đang gợi ý…" : "B01.SET.01"}
+            onChange={(v) => setForm({ ...form, ma_bo: v.toUpperCase() })}
+          />
           <BoDungCuTextField label="Tên bộ" required value={form.ten_bo}
             onChange={(v) => setForm({ ...form, ten_bo: v })} />
         </div>
