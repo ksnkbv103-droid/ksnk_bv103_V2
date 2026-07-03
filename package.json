@@ -46,8 +46,8 @@
     "smoke:gsc-vst:local": "node scripts/gsc-vst-rpc-smoke.mjs --local",
     "trial:auth:precheck": "node scripts/run-supabase-sql.mjs --linked --file scripts/sql/auth-pilot-precheck.sql",
     "trial:auth:precheck:local": "node scripts/run-supabase-sql.mjs --local --file scripts/sql/auth-pilot-precheck.sql",
-    "trial:qlcv:precheck": "node scripts/run-supabase-sql.mjs --linked --file scripts/sql/qlcv-pilot-precheck.sql",
-    "trial:qlcv:precheck:local": "node scripts/run-supabase-sql.mjs --local --file scripts/sql/qlcv-pilot-precheck.sql",
+    "trial:qlcv:precheck": "npx supabase db query --linked --agent=no -f scripts/sql/qlcv-pilot-precheck.sql -o table",
+    "trial:qlcv:precheck:local": "npx supabase db query --local --agent=no -f scripts/sql/qlcv-pilot-precheck.sql -o table",
     "trial:audit:probe": "node scripts/run-supabase-sql.mjs --linked --file scripts/sql/audit-orphan-trigger-probe.sql",
     "trial:audit:probe:local": "node scripts/run-supabase-sql.mjs --local --file scripts/sql/audit-orphan-trigger-probe.sql",
     "pilot:dashboard:explain:linked": "node scripts/run-pilot-dashboard-explain.mjs --linked",
@@ -106,9 +106,7 @@
     "test:admin": "vitest run src/modules/quan-tri-he-thong src/lib/auth/quan-tri-access.spec.ts src/lib/master-data/categories-by-type.ts src/lib/master-data/master-table-permission-map.ts src/lib/master-data/danh-muc-permission-map.ts src/lib/master-data/cssd-set-replenish-core.ts src/lib/master-data/cssd-instrument-ops.spec.ts src/lib/mdm-read-gateway.spec.ts",
     "test:pilot": "vitest run src/lib/bv103-feature-config.spec.ts src/lib/analytics/filter-helpers.spec.ts src/lib/analytics/gsc-analytics-data.spec.ts src/lib/analytics/gsc-checklist-intervention.spec.ts src/lib/rpc-contract-dashboard.spec.ts",
     "test:e2e": "playwright test",
-    "test:e2e:install": "playwright install chromium",
-    "trial:qlcv:precheck": "npx supabase db query --linked --agent=no -f scripts/sql/qlcv-pilot-precheck.sql -o table",
-    "trial:qlcv:precheck:local": "npx supabase db query --local --agent=no -f scripts/sql/qlcv-pilot-precheck.sql -o table"
+    "test:e2e:install": "playwright install chromium"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.16",
@@ -116,7 +114,6 @@
     "@radix-ui/react-tabs": "^1.1.14",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.107.0",
-    "@tanstack/react-query": "^5.101.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
@@ -130,7 +127,6 @@
     "recharts": "^3.8.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
-    "xlsx": "^0.18.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {

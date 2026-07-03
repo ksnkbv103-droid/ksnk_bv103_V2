@@ -3,9 +3,9 @@
 import React, { useMemo, useRef, useState } from "react";
 import { Download, Loader2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import { excelCellToPlain } from "@/hooks/importExport.utils";
 import { importCongViecRows } from "../actions/qlcv-import.actions";
 import { parseQlcvImportRows } from "../lib/qlcv-import-parse";
 
@@ -57,10 +57,32 @@ export function QlcvImportDialog({ isOpen, onClose, onImported }: Props) {
     if (!file) return;
     setBusy(true);
     try {
-      const buf = await file.arrayBuffer();
-      const wb = XLSX.read(buf, { type: "array" });
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      const parsed = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.load(await file.arrayBuffer());
+      const sheet = wb.worksheets[0];
+      if (!sheet) throw new Error("File trống");
+
+      const headerRow = sheet.getRow(1);
+      const maxCol = Math.min(Math.max(headerRow.actualCellCount || 1, 1), 40);
+      const headers: string[] = [];
+      for (let c = 1; c <= maxCol; c++) {
+        headers.push(String(excelCellToPlain(headerRow.getCell(c).value) ?? "").trim());
+      }
+
+      const parsed: Record<string, unknown>[] = [];
+      for (let r = 2; r <= sheet.rowCount; r++) {
+        const row = sheet.getRow(r);
+        const record: Record<string, unknown> = {};
+        let hasData = false;
+        headers.forEach((header, idx) => {
+          if (!header) return;
+          const v = excelCellToPlain(row.getCell(idx + 1).value);
+          const plain = v instanceof Date ? v.toISOString().split("T")[0] : v ?? "";
+          if (String(plain).trim() !== "") hasData = true;
+          record[header] = plain;
+        });
+        if (hasData) parsed.push(record);
+      }
       setRows(parsed);
     } catch {
       toast.error("Không đọc được file Excel.");

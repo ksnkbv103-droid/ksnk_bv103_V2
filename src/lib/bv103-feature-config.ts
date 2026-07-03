@@ -14,12 +14,6 @@ export { isPathBlockedUnderPilotFourModules };
 
 /** Pilot 4 module — re-export để UI/docs dùng một import. */
 
-/** TanStack Query staleTime dashboard (ms). */
-export function dashboardQueryStaleTimeMs(): number {
-  const raw = Number(process.env.BV103_DASHBOARD_QUERY_STALE_MS ?? "90000");
-  return Number.isFinite(raw) && raw >= 0 ? raw : 90_000;
-}
-
 /** Module flags bổ sung (ngoài pilot). */
 export function isModuleEnabled(moduleKey: "CSSD" | "QLCV" | "NKBV" | "HIS"): boolean {
   const envMap: Record<string, string | undefined> = {

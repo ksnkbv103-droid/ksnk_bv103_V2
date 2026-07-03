@@ -1,8 +1,8 @@
 "use client";
 
 import ExcelJS from "exceljs";
-import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { excelCellToPlain } from "@/hooks/importExport.utils";
 
 export type DanhMucType = "khoa-phong" | "hoa-chat" | "thiet-bi" | "nhan-su";
 
@@ -183,66 +183,66 @@ export async function exportDanhMucTemplate(type: DanhMucType) {
  * Parses uploaded Excel File on Client-side into JSON array.
  * Robustly normalizes columns to match database keys.
  */
-export function parseExcelFile(file: File): Promise<any[]> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    
-    reader.onload = (e) => {
-      try {
-        const data = e.target?.result;
-        if (!data) {
-          throw new Error("Tệp tin trống hoặc không thể đọc dữ liệu.");
-        }
-        
-        const workbook = XLSX.read(data, { type: "array" });
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        
-        // Convert to array of arrays, defval: "" preserves empty columns
-        const rawRows = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1, defval: "" });
-        
-        if (rawRows.length < 4) {
-          throw new Error("Tệp không có dữ liệu nhập liệu. Dòng dữ liệu bắt đầu từ dòng thứ 4.");
-        }
+export async function parseExcelFile(file: File): Promise<any[]> {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(await file.arrayBuffer());
+  const worksheet = workbook.worksheets[0];
+  if (!worksheet) {
+    throw new Error("Tệp tin trống hoặc không thể đọc dữ liệu.");
+  }
 
-        const headers = rawRows[2] as string[]; // Row 3 contains headers (0-indexed 2)
-        if (!headers || headers.length === 0) {
-          throw new Error("Không tìm thấy dòng tiêu đề cột y tế (dòng số 3).");
+  // Convert to array of arrays, "" preserves empty columns (giống sheet_to_json header:1 cũ)
+  let maxCol = 1;
+  for (let r = 1; r <= worksheet.rowCount; r++) {
+    maxCol = Math.max(maxCol, worksheet.getRow(r).actualCellCount || 0);
+  }
+  maxCol = Math.min(maxCol, 80);
+
+  const rawRows: any[][] = [];
+  for (let r = 1; r <= worksheet.rowCount; r++) {
+    const row = worksheet.getRow(r);
+    const vals: any[] = [];
+    for (let c = 1; c <= maxCol; c++) {
+      const v = excelCellToPlain(row.getCell(c).value);
+      vals.push(v ?? "");
+    }
+    rawRows.push(vals);
+  }
+
+  if (rawRows.length < 4) {
+    throw new Error("Tệp không có dữ liệu nhập liệu. Dòng dữ liệu bắt đầu từ dòng thứ 4.");
+  }
+
+  const headers = rawRows[2] as string[]; // Row 3 contains headers (0-indexed 2)
+  if (!headers || headers.length === 0) {
+    throw new Error("Không tìm thấy dòng tiêu đề cột y tế (dòng số 3).");
+  }
+
+  const dataRows = rawRows.slice(3) as any[][];
+
+  // Map header labels to database fields based on column indexing
+  const mappedData = dataRows
+    .filter((row: any[]) => row.some((val: any) => String(val).trim() !== "")) // Filter out empty rows
+    .map((row: any[]) => {
+      const record: Record<string, any> = {};
+      headers.forEach((header, cIdx) => {
+        const cleanHeader = String(header || "").trim();
+        const dbKey = getDbKeyFromHeader(cleanHeader);
+        if (dbKey) {
+          let cellVal = row[cIdx];
+
+          // Normalize dates parsed as Excel numbers
+          if (dbKey.startsWith("ngay_") || dbKey === "han_su_dung" || dbKey === "ngay_sinh") {
+            cellVal = normalizeExcelDate(cellVal);
+          }
+
+          record[dbKey] = cellVal !== undefined ? String(cellVal).trim() : "";
         }
+      });
+      return record;
+    });
 
-        const dataRows = rawRows.slice(3) as any[][];
-        
-        // Map header labels to database fields based on column indexing
-        const mappedData = dataRows
-          .filter((row: any[]) => row.some((val: any) => String(val).trim() !== "")) // Filter out empty rows
-          .map((row: any[]) => {
-            const record: Record<string, any> = {};
-            headers.forEach((header, cIdx) => {
-              const cleanHeader = String(header || "").trim();
-              const dbKey = getDbKeyFromHeader(cleanHeader);
-              if (dbKey) {
-                let cellVal = row[cIdx];
-                
-                // Normalize dates parsed as Excel numbers
-                if (dbKey.startsWith("ngay_") || dbKey === "han_su_dung" || dbKey === "ngay_sinh") {
-                  cellVal = normalizeExcelDate(cellVal);
-                }
-                
-                record[dbKey] = cellVal !== undefined ? String(cellVal).trim() : "";
-              }
-            });
-            return record;
-          });
-
-        resolve(mappedData);
-      } catch (err) {
-        reject(err);
-      }
-    };
-    
-    reader.onerror = () => reject(new Error("Lỗi đọc tệp Excel."));
-    reader.readAsArrayBuffer(file);
-  });
+  return mappedData;
 }
 
 /**
@@ -291,6 +291,9 @@ function getDbKeyFromHeader(header: string): string | null {
  */
 function normalizeExcelDate(val: any): string {
   if (!val) return "";
+  if (val instanceof Date) {
+    return val.toISOString().split("T")[0];
+  }
   if (typeof val === "number") {
     // Excel base date is Dec 30, 1899 due to leap year bug
     const date = new Date(Math.round((val - 25569) * 86400 * 1000));

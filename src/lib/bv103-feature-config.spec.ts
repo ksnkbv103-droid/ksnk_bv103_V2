@@ -1,8 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
-import {
-  dashboardQueryStaleTimeMs,
-  isModuleEnabled,
-} from "./bv103-feature-config";
+import { isModuleEnabled } from "./bv103-feature-config";
 
 describe("bv103-feature-config", () => {
   const env = process.env;
@@ -13,11 +10,6 @@ describe("bv103-feature-config", () => {
 
   afterEach(() => {
     process.env = env;
-  });
-
-  it("dashboard stale time fallback", () => {
-    process.env.BV103_DASHBOARD_QUERY_STALE_MS = "120000";
-    expect(dashboardQueryStaleTimeMs()).toBe(120_000);
   });
 
   it("module disabled under pilot four", () => {

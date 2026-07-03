@@ -42,6 +42,11 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
+    // eslint-plugin-react 7.x tự dò version React bằng context.getFilename (đã bỏ ở ESLint 10)
+    // → khai báo tường minh để tránh crash khi lint.
+    settings: {
+      react: { version: "19.2" },
+    },
     rules: phasedRelaxRules,
   },
   {

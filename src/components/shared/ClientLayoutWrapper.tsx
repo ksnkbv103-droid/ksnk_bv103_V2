@@ -10,7 +10,6 @@ import { pathnameUsesPhase1KsnkUnifiedContentShell } from "@/lib/app-shell-scope
 import { supabase } from "@/lib/supabase";
 import StaffSessionGate from "@/components/auth/StaffSessionGate";
 import SupervisionOfflineSyncListener from "@/components/shared/SupervisionOfflineSyncListener";
-import QueryProvider from "@/components/providers/QueryProvider";
 import RbacRefreshListener from "@/components/shared/RbacRefreshListener";
 
 export default function ClientLayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -45,31 +44,29 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
   }
 
   return (
-    <QueryProvider>
-      <div className="flex min-h-screen bg-slate-50 touch-manipulation pointer-events-auto">
-        <StaffSessionGate />
-        <RbacRefreshListener />
-        <SupervisionOfflineSyncListener />
-        <Sidebar isOpen={isOpen} onClose={closeSidebar} />
+    <div className="flex min-h-screen bg-slate-50 touch-manipulation pointer-events-auto">
+      <StaffSessionGate />
+      <RbacRefreshListener />
+      <SupervisionOfflineSyncListener />
+      <Sidebar isOpen={isOpen} onClose={closeSidebar} />
 
-        <div className="flex flex-1 flex-col min-w-0 min-h-0">
-          <Header onMenuClick={toggleSidebar} />
-          <main className="relative z-0 flex-1 touch-manipulation p-4 md:p-8 pointer-events-auto">
-            {pathnameUsesPhase1KsnkUnifiedContentShell(pathname) ? (
-              <KsnkPageShell rolloutPhase="phase-1">{children}</KsnkPageShell>
-            ) : (
-              children
-            )}
-          </main>
-        </div>
-
-        {isOpen && (
-          <div
-            onClick={closeSidebar}
-            className="md:hidden fixed inset-0 bg-black/50 z-[9999] cursor-pointer pointer-events-auto touch-manipulation"
-          />
-        )}
+      <div className="flex flex-1 flex-col min-w-0 min-h-0">
+        <Header onMenuClick={toggleSidebar} />
+        <main className="relative z-0 flex-1 touch-manipulation p-4 md:p-8 pointer-events-auto">
+          {pathnameUsesPhase1KsnkUnifiedContentShell(pathname) ? (
+            <KsnkPageShell rolloutPhase="phase-1">{children}</KsnkPageShell>
+          ) : (
+            children
+          )}
+        </main>
       </div>
-    </QueryProvider>
+
+      {isOpen && (
+        <div
+          onClick={closeSidebar}
+          className="md:hidden fixed inset-0 bg-black/50 z-[9999] cursor-pointer pointer-events-auto touch-manipulation"
+        />
+      )}
+    </div>
   );
 }
