@@ -4,7 +4,6 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import { verifyPermission } from "@/lib/server-permission";
 import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import { mapDanhMucOptions } from "@/lib/master-data/gateway";
-import { GscSessionHistoryRow } from "../types";
 import { enrichGscHistoryRows } from "../lib/gsc-read-utils";
 import {
   GSC_SESSIONS_FULL_LIST_SELECT,

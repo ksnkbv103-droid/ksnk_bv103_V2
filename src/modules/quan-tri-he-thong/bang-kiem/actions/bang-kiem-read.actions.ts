@@ -6,7 +6,6 @@ import { verifyPermission } from "../../actions/verify-permission";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
 import type { DanhMucBangKiem, TieuChiBangKiem } from "../bang-kiem.types";
-import { DM_TIEU_CHI_BANG_KIEM_ROW_SELECT } from "../lib/bang-kiem-dm-tieu-chi-select";
 
 function errMsg(e: unknown) {
   if (e instanceof Error) return e.message;

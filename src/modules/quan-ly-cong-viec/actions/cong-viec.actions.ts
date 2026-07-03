@@ -17,7 +17,6 @@ import {
 import { congViecSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
 import {
   assigneeBlockedFromTaskCrud,
-  isQlcvTaskInQuaHanLane,
 } from "../lib/qlcv-access";
 import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import { normalizeQlcvDmFields } from "../lib/qlcv-persist-dm-fields";

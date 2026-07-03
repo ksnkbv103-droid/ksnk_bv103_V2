@@ -30,7 +30,7 @@ export function addDays(dateStr: string, days: number): string {
     const d = new Date(dateStr);
     d.setDate(d.getDate() + days);
     return d.toISOString().slice(0, 10);
-  } catch (e) {
+  } catch {
     return "";
   }
 }
@@ -41,7 +41,7 @@ export function subDays(dateStr: string, days: number): string {
     const d = new Date(dateStr);
     d.setDate(d.getDate() - days);
     return d.toISOString().slice(0, 10);
-  } catch (e) {
+  } catch {
     return "";
   }
 }
@@ -52,7 +52,7 @@ function getDaysBetween(d1Str: string, d2Str: string): number {
     const d1 = new Date(d1Str.slice(0, 10));
     const d2 = new Date(d2Str.slice(0, 10));
     return Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
-  } catch (e) {
+  } catch {
     return 0;
   }
 }

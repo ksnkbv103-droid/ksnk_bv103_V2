@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
-import { X, CheckCircle, HelpCircle, ShieldAlert, FileText, Ban } from "lucide-react";
+import { X, CheckCircle, HelpCircle, FileText, Ban } from "lucide-react";
 import { toast } from "sonner";
 import type { 
   BsiVerificationData, 
@@ -232,7 +232,7 @@ export default function NkbvClinicalChecklistModal({
       } else if (checklistType === "SSI" && ssiForm) {
         return evaluateSsi(ssiForm);
       }
-    } catch (e) {
+    } catch {
       // fail-safe
     }
     return { is_positive: false, classification: "ERROR", reason: "Chưa đủ dữ liệu để tính toán." };

@@ -8,7 +8,6 @@ import {
   AlertTriangle, 
   Trash2, 
   CheckCircle, 
-  Check, 
   Plus, 
   Zap, 
   ToggleLeft, 
@@ -35,7 +34,7 @@ export default function MdmGovernanceView() {
   const [refreshing, setRefreshing] = useState(false);
   const [registry, setRegistry] = useState<MdmFieldRegistryRow[]>([]);
   const [suggestions, setSuggestions] = useState<MdmSuggestionRow[]>([]);
-  const [coverage, setCoverage] = useState<MdmCoverageRow[]>([]);
+  const [_coverage, setCoverage] = useState<MdmCoverageRow[]>([]);
   const [subTab, setSubTab] = useState<"REGISTRY" | "SUGGESTIONS">("REGISTRY");
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<MdmSuggestionRow | null>(null);
@@ -352,7 +351,7 @@ export default function MdmGovernanceView() {
               <div className="p-3.5 bg-amber-50/20 border border-amber-100 rounded-xl flex items-start gap-2.5">
                 <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                 <p className="text-slate-600 leading-relaxed text-[11px]">
-                  Hệ thống tự động phát hiện các cột khóa ngoại <code>*_id</code> hoặc cột text enum thô mới được thêm vào database nhưng chưa được bảo vệ. Hãy bấm **"Thiết lập Bảo vệ"** để cấu hình và tự động đính kèm trigger cứng mức cơ sở dữ liệu.
+                  Hệ thống tự động phát hiện các cột khóa ngoại <code>*_id</code> hoặc cột text enum thô mới được thêm vào database nhưng chưa được bảo vệ. Hãy bấm **&quot;Thiết lập Bảo vệ&quot;** để cấu hình và tự động đính kèm trigger cứng mức cơ sở dữ liệu.
                 </p>
               </div>
 

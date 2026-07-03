@@ -2,13 +2,12 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { History, Stethoscope, ClipboardList } from "lucide-react";
+import { Stethoscope, ClipboardList } from "lucide-react";
 import {
   KsnkSupervisionHero,
   KsnkSupervisionTabLinks,
   type SupervisionTabLinkDef,
 } from "@/components/shared/ksnk-supervision-chrome";
-import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 
 const historyTabs: SupervisionTabLinkDef[] = [
   { id: "vst", label: "Vệ sinh tay", icon: Stethoscope, href: "/lich-su/vst" },

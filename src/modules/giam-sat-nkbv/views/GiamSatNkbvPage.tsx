@@ -136,7 +136,6 @@ export default function GiamSatNkbvPage() {
   const [recordsPage, setRecordsPage] = useState(1);
   const [recordsTotalCount, setRecordsTotalCount] = useState(0);
   const [recordsSearch, setRecordsSearch] = useState("");
-  const [selectedMaBenhAn, setSelectedMaBenhAn] = useState<string | null>(null);
 
   const fetchRecords = useCallback(async () => {
     if (mainTab !== "records") return;

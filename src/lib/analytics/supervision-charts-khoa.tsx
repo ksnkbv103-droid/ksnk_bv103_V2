@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   Bar,
   BarChart,
@@ -29,7 +29,7 @@ import {
   type CoverageCellStatus,
 } from "@/lib/analytics/supervision-matrix-mappers";
 import type { BaoCaoKhoaRankRow } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
-import { BAO_CAO_TONG_HOP_THRESHOLDS, complianceToneFromPercent } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
+import { complianceToneFromPercent } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
 import { formatPercent2 } from "@/lib/analytics/supervision-percent";
 import {
   complianceBarColor,
@@ -290,7 +290,7 @@ export function SupervisionKsnkDeploymentChart({
               <XAxis type="number" allowDecimals={false} tick={{ fontSize: 10 }} />
               <YAxis {...khoaCategoryYAxis} />
               <Tooltip
-                formatter={(value: unknown, _name: unknown, item: { payload?: { fullName?: string; covered?: boolean } }) => {
+                formatter={(value: unknown) => {
                   const vol = Number(value ?? 0);
                   const status = vol > 0 ? "Đã có GS KSNK" : "Chưa có GS KSNK";
                   return [`${vol.toLocaleString()} · ${status}`, volumeLabel];

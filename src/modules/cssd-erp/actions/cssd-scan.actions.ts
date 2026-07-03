@@ -99,7 +99,7 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
   }
 
   // 1. Thực hiện nghiệp vụ qua RPC tập trung (Atomicity & Speed)
-  const execResult = await executeWorkflowStationScan(supabase, {
+  await executeWorkflowStationScan(supabase, {
     maQR: code,
     station,
     quyTrinh: {} as any, // quyTrinh no longer needed for primary logic

@@ -339,7 +339,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
                   <div className="space-y-1">
                     <h4 className={`${UI.sectionTitle} text-green-800`}>Tệp tin hoàn hảo (Hợp lệ 100%)</h4>
                     <p className="text-xs text-green-700 leading-relaxed">
-                      Tất cả <strong>{parsedRows.length} dòng dữ liệu đều hợp lệ</strong> và đã sẵn sàng được đẩy lên cơ sở dữ liệu. Bấm nút "Bắt đầu tải lên" để lưu.
+                      Tất cả <strong>{parsedRows.length} dòng dữ liệu đều hợp lệ</strong> và đã sẵn sàng được đẩy lên cơ sở dữ liệu. Bấm nút &quot;Bắt đầu tải lên&quot; để lưu.
                     </p>
                   </div>
                 </div>

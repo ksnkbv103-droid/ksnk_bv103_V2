@@ -6,7 +6,6 @@ import {
   computeCcs,
   computeTyLeGsc,
   computeTyLeVst,
-  deltaFromTrend,
   rateFromTotals,
 } from "@/lib/analytics/supervision-metrics";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";

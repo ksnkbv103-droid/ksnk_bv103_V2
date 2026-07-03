@@ -78,7 +78,7 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
           setCurrentHoSoId(null);
           toast.error(result.error || "Lỗi tải danh mục.");
         }
-      } catch (err) {
+      } catch {
         if (cancelled) return;
         setMasterDataFetchFailed(true);
         setKhoas([]);

@@ -23,8 +23,6 @@ export default function SsiClinicalSubForm({
   symptomDates,
   onSymptomDateChange,
   allowedEdit,
-  ngayVaoVien,
-  ngayPhatHien,
   iwpStart,
   iwpEnd,
   activeTab = 'VI_SINH',

@@ -66,8 +66,6 @@ export default function GiamSatChungForm({
     editingSessionId: editingSessionId ?? null,
   });
 
-  const evaluatedCount = results.filter((r) => r.value !== "NA").length;
-  const totalCount = template.criteria.length;
   const resultByCriterionId = useMemo(
     () => new Map(results.map((r) => [r.criterionId, r])),
     [results],

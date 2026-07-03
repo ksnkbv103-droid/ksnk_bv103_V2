@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Stethoscope, ClipboardList } from "lucide-react";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
-import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 
 const analyticsTabs = [
   { id: "vst", label: "VST", href: "/thong-ke/vst", icon: Stethoscope },

@@ -26,7 +26,6 @@ const SKIP = new Set([
 
 const CELL_CODE = "font-mono text-[11px] font-medium text-[var(--primary)]";
 const CELL_BODY = "text-sm font-medium leading-relaxed text-slate-700";
-const CELL_TITLE = "text-sm font-semibold leading-snug text-slate-800";
 const CELL_META = "text-[11px] font-medium text-slate-500";
 const CELL_INDEX = "text-[11px] font-medium text-slate-400";
 
@@ -49,13 +48,6 @@ const REPLACEMENTS = [
   ["text-[11px] font-semibold uppercase tracking-wide text-slate-600", CELL_META],
   ["rounded-full bg-slate-100 px-2 py-1 text-[11px] font-bold", "rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium"],
 ];
-
-function isMostlyUppercase(s) {
-  const letters = [...s].filter((c) => /[A-Za-zÀ-ỹ]/.test(c));
-  if (letters.length < 2) return false;
-  const up = letters.filter((c) => c === c.toUpperCase() && c !== c.toLowerCase()).length;
-  return up / letters.length > 0.65;
-}
 
 /** Header cột BV103: chữ thường, chỉ chữ cái đầu (và sau `/`) viết hoa. */
 function headerCaseVi(s) {

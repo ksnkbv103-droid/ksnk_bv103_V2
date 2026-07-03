@@ -6,9 +6,6 @@ export const MOMENTS = [
   "Sau khi tiếp xúc xung quanh người bệnh",
 ] as const;
 
-/** RPC: cơ hội không tách được mốc nào từ `thoi_diem` (ô trống / dữ liệu cũ). */
-const VST_DASHBOARD_MOMENT_GAP_LABEL = "— Chưa ghi thời điểm trong phiếu" as const;
-
 export type MomentType = (typeof MOMENTS)[number];
 
 export const ACTIONS = [

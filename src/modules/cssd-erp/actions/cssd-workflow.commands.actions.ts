@@ -5,7 +5,7 @@
  */
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import type { Station } from "../types/cssd.types";
-import { mapFkError, revalidateCssdWorkflowSurfaces, tableHasColumn, appendQuyTrinhException } from "./cssd-action-common";
+import { revalidateCssdWorkflowSurfaces, tableHasColumn, appendQuyTrinhException } from "./cssd-action-common";
 import { scanQR } from "./cssd-scan.actions";
 import {
   executeRejectToPreviousStation,
@@ -66,7 +66,7 @@ export async function cssdCommandFreezeSet(maQR: string, lyDo?: string) {
   const row = await fetchLatestActiveWorkflowByQr(supabase, code);
   if (!row) throw new Error("Không tìm thấy QR.");
 
-  const { error } = await supabase
+  await supabase
     .from("cssd_fact_quy_trinh")
     .update({ is_dong_bang: true, updated_at: new Date().toISOString() })
     .eq("id", String((row as { id?: string }).id));

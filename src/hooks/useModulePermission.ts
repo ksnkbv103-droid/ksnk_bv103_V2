@@ -21,7 +21,6 @@ export function useModulePermission(moduleKey: string) {
     canCreate,
     canEdit,
     canDelete,
-    canApprove,
     canImport,
     hasPermission,
   } = usePermission(moduleKey, "view");

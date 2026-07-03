@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import VSTForm from "../components/VSTForm";
 import { KsnkSupervisionPanel } from "@/components/shared/ksnk-supervision-chrome";
-import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 import { getVSTSessionDetail } from "../actions/vst-read.actions";
 import { assertCanEditVSTSession } from "../actions/vst-write-delete.actions";
 

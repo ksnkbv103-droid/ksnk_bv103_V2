@@ -6,7 +6,7 @@ import { congViecSchema, type CongViecInput } from "@/lib/validations/quan-ly-co
 import { applyQlcvListScopeToQuery, resolveQlcvListScope } from "../lib/qlcv-list-scope";
 import { verifyQlcvApproveCapability } from "../lib/qlcv-rbac";
 import { normalizeQlcvDmFields } from "../lib/qlcv-persist-dm-fields";
-import { assertQlcvHanHoanThanhNotPast, assertQlcvHanHoanThanhChangeAllowed, insertQlcvTaskRow, normalizeQlcvHanDate } from "../lib/qlcv-create-task";
+import { assertQlcvHanHoanThanhNotPast, assertQlcvHanHoanThanhChangeAllowed, insertQlcvTaskRow } from "../lib/qlcv-create-task";
 import { resolveQlcvTrangThaiMaForTask } from "../lib/qlcv-initial-trang-thai";
 import { isDeXuatChoDuyet, type CongViecLike } from "../lib/qlcv-workflow-display";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";

@@ -24,8 +24,6 @@ export default function PneuClinicalSubForm({
   symptomDates,
   onSymptomDateChange,
   allowedEdit,
-  ngayVaoVien,
-  ngayPhatHien,
   iwpStart,
   iwpEnd,
   activeTab = 'VI_SINH',

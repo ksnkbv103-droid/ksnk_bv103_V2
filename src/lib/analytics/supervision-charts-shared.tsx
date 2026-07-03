@@ -17,7 +17,7 @@ import {
 } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
 import { formatPercent2, roundPercent2 } from "@/lib/analytics/supervision-percent";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
-import { Bar, BarChart, CartesianGrid, Cell, Legend, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
 import type { CSSProperties, ReactElement } from "react";
 
 /** Wrapper SSOT — tránh Recharts width(-1)/height(-1) khi flex/tab chưa layout. */
@@ -77,7 +77,6 @@ const khoaCategoryYAxis = {
   interval: 0 as const,
 };
 
-import type { CompareRow } from "@/lib/analytics/supervision-analytics.types";
 export type { CompareRow } from "@/lib/analytics/supervision-analytics.types";
 
 export type MomentRow = {

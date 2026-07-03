@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Check, XCircle } from "lucide-react";
+import { Check, XCircle } from "lucide-react";
 
 /** Nút chọn Đạt / Không đạt — to, rõ, dễ bấm trên thiết bị nhỏ */
 export function PassFailToggle({
@@ -40,36 +40,6 @@ export function PassFailToggle({
         <XCircle size={14} />
         KHÔNG ĐẠT
       </button>
-    </div>
-  );
-}
-
-/** Ô upload / nhập URL ảnh minh chứng */
-function PhotoProof({
-  label,
-  value,
-  onChange,
-  required = false,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  required?: boolean;
-}) {
-  return (
-    <div className="mt-2 space-y-1.5">
-      <label className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
-        <Camera size={12} className={required ? "text-amber-500" : "text-slate-400"} />
-        Ảnh minh chứng — {label}
-        {required && <span className="text-red-500">*</span>}
-      </label>
-      <input
-        type="url"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="https://..."
-        className="h-10 w-full rounded-lg border border-slate-200 px-3 text-xs"
-      />
     </div>
   );
 }

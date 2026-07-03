@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /** Migrate text-[8px]/text-[9px] → text-[11px] in src/ */
 import { readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
-import { dirname, extname, join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "src");

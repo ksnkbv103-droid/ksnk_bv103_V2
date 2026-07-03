@@ -12,7 +12,6 @@ import {
   formatBaoCaoIssueDateVi,
   mergeKhoaRankWithSelected,
   sortKhoaRankByCcs,
-  computeTyLeGsc,
   computeTyLeVst,
   deltaFromPeriodPoints,
   deltaFromTrend,

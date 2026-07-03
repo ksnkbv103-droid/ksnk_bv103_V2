@@ -4,14 +4,9 @@ import React from "react";
 import { 
   Calendar, 
   Activity, 
-  RefreshCw, 
-  Home, 
-  MapPin, 
-  Layers, 
   ShieldCheck, 
   AlertCircle, 
-  CheckCircle,
-  HelpCircle
+  CheckCircle
 } from "lucide-react";
 import type { CdcMetricsResult } from "../lib/nkbv-timeline-math";
 import type { DepartmentStay } from "../types/nkbv-verification";

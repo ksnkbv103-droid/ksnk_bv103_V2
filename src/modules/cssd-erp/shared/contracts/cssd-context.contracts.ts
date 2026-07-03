@@ -1,8 +1,5 @@
 import { z } from "zod";
-import {
-  cssdIncidentReportInputSchema,
-  type CssdIncidentReportInput,
-} from "@/modules/cssd-su-co/contracts/su-co-report-input.schema";
+import { type CssdIncidentReportInput } from "@/modules/cssd-su-co/contracts/su-co-report-input.schema";
 
 export { type CssdIncidentReportInput };
 

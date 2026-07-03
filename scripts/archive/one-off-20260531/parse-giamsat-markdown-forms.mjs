@@ -368,7 +368,6 @@ function main() {
 
   writeFileSync(OUT_SQL, lines.join("\n"), "utf8");
 
-  const unmatchedTitles = forms.filter((f) => !catalog.maList.includes(f.ma_bk));
   const missingFromDoc = catalog.maList.filter((m) => !formByMa.has(m));
   const report = {
     parsedForms: forms.length,

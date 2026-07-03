@@ -123,7 +123,7 @@ export default function ChecklistItem({
       const fileName = `criterion-${criterion.id}-${Date.now()}.${fileExt}`;
       const filePath = `session-temp/${fileName}`;
 
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from("gsc-evidences")
         .upload(filePath, file, {
           cacheControl: "3600",

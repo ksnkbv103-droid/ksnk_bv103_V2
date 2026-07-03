@@ -32,7 +32,6 @@ export async function reportInventoryIssue(input: {
 
   const reason = input.reason === "MAT" ? "MAT" : "HONG";
   const note = String(input.note || "").trim();
-  const maVach = String(input.ma_vach_qr || "").trim().toUpperCase();
 
   const { error: updateErr } = await supabase
     .from("cssd_fact_quy_trinh")

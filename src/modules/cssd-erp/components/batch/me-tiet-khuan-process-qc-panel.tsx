@@ -18,8 +18,6 @@ import {
 import { toast } from "sonner";
 import { PassFailToggle } from "./me-tiet-khuan-qc-primitives";
 
-type Tri = "DAT" | "KHONG_DAT" | "" | "NA";
-
 /** Ô upload / nhập URL ảnh minh chứng */
 function PhotoProof({
   label,
@@ -103,7 +101,6 @@ export default function MeTietKhuanProcessQcPanel({
   nhietDo,
   setNhietDo,
   thongSoMay,
-  setThongSoMay,
   chiThiTiepXuc,
   setChiThiTiepXuc,
   chiThiDaThongSo,
@@ -128,7 +125,6 @@ export default function MeTietKhuanProcessQcPanel({
 }: {
   showForm: boolean;
   showBowieDick: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   thietBi: any;
   nguoiUnload: string;
   setNguoiUnload: (v: string) => void;

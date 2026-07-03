@@ -2,10 +2,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   saveTieuChi,
   deleteTieuChi,
-  importTieuChis,
-  deleteMultipleTieuChis,
-  toggleIsActive,
-  reorderTieuChis,
 } from "./bang-kiem-write.actions";
 
 const mocks = vi.hoisted(() => ({

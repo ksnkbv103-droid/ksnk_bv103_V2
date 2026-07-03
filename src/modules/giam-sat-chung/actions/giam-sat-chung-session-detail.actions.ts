@@ -4,7 +4,7 @@ import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { enrichGscHistoryRows } from "../lib/gsc-read-utils";
 import { parseGscResultsJsonb } from "../lib/gsc-results-jsonb";
-import { GSC_RESULTS_ROW_SELECT, GSC_SESSIONS_FULL_DETAIL_SELECT } from "../lib/gsc-read-view-select";
+import { GSC_SESSIONS_FULL_DETAIL_SELECT } from "../lib/gsc-read-view-select";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 
 function getErrorMessage(error: unknown): string {

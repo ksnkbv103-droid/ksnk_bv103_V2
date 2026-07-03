@@ -18,7 +18,6 @@ import {
   timeLocalHmFromIso,
 } from "@/lib/supervision-session-time";
 import type { GiamSatSession, NhanSuOption } from "./giam-sat-header.types";
-import SearchableSelect from "./SearchableSelect";
 import RegistrySelect from "./RegistrySelect";
 import {
   buildKhuVucGroupedSelectOptions,

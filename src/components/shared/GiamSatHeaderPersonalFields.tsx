@@ -5,7 +5,6 @@ import React, { type Dispatch, type SetStateAction } from "react";
 import { formatNhanSuOptionLabel } from "@/lib/master-data/nhan-su-enrich";
 import type { MasterOption } from "@/lib/master-data/gateway";
 import type { GiamSatSession, NhanSuOption } from "./giam-sat-header.types";
-import SearchableSelect from "./SearchableSelect";
 import RegistrySelect from "./RegistrySelect";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 

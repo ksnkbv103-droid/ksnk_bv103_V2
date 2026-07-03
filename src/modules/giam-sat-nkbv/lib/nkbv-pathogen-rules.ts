@@ -43,7 +43,7 @@ function getSuggestedDays(ngay_vao_vien?: string, ngay_phat_hien?: string): numb
     const dVao = parseISO(String(ngay_vao_vien).slice(0, 10));
     const dPh = parseISO(String(ngay_phat_hien).slice(0, 10));
     return Math.max(0, differenceInCalendarDays(dPh, dVao) + 1);
-  } catch (e) {
+  } catch {
     return 0;
   }
 }
@@ -84,7 +84,7 @@ export function prepopulateVaeData(row: Record<string, any>, existing: Record<st
   if (row.ngay_sinh) {
     try {
       patientAge = Math.max(1, new Date().getFullYear() - new Date(row.ngay_sinh).getFullYear());
-    } catch (e) {
+    } catch {
       // ignore
     }
   }
@@ -118,15 +118,6 @@ export function prepopulateUtiData(row: Record<string, any>, existing: Record<st
   const pathogen = String(row.tac_nhan_vi_khuan || "").trim();
   const cls = classifyPathogen(pathogen);
   const suggestedDays = getSuggestedDays(row.ngay_vao_vien, row.ngay_phat_hien);
-
-  let patientAge = 18;
-  if (row.ngay_sinh) {
-    try {
-      patientAge = Math.max(1, new Date().getFullYear() - new Date(row.ngay_sinh).getFullYear());
-    } catch (e) {
-      // ignore
-    }
-  }
 
   return {
     urine_cfu_count: existing.urine_cfu_count ?? 100000,

@@ -27,7 +27,6 @@ import {
   tuChoiHoanThanhCongViec,
 } from "../actions/cong-viec.actions";
 import { huyKhiChoNghiemThuKhongDat } from "../actions/cong-viec-write.actions";
-import { isBoardLaneQuaHan } from "../lib/qlcv-board-lanes";
 import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import {
   canShowDeleteTask,
@@ -96,7 +95,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<CongViecDetailData | null>(null);
   const [mauSacByMa, setMauSacByMa] = useState<Record<string, string>>({});
-  const [activeId, setActiveId] = useState(id);
+  const [activeId] = useState(id);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   // Dialog state — thay thế browser prompt()/confirm()
@@ -156,9 +155,6 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const checklistReadOnly =
     isDeXuatChoDuyet(data) || st === "HOAN_THANH" || st === "DA_HUY" || isChoNghiemThuHoanThanh(data);
   const showNghiemThuToolbar = isChoNghiemThuHoanThanh(data) && canNghiemThu;
-  const isCreatorOrAssigner =
-    (accessFlags.actorStaffId && data.nguoi_tao_id && String(accessFlags.actorStaffId) === String(data.nguoi_tao_id)) ||
-    (accessFlags.actorStaffId && data.nguoi_giao_viec_id && String(accessFlags.actorStaffId) === String(data.nguoi_giao_viec_id));
   const showHuyButton =
     (accessFlags.isRBACAdmin || accessFlags.hasDelete) &&
     st !== "HOAN_THANH" &&

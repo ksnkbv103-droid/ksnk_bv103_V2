@@ -13,7 +13,6 @@ import {
   HelpCircle, 
   ArrowRight,
   Database,
-  Search,
   Sparkles
 } from "lucide-react";
 import { importViSinhExcel } from "../actions/giam-sat-nkbv-write.actions";
@@ -147,7 +146,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
           const dMau = parseISO(ngay_lay_mau.includes("T") ? ngay_lay_mau : `${ngay_lay_mau}T00:00:00`);
           diffDays = differenceInCalendarDays(dMau, dVao);
           isHaiSuspect = diffDays >= 2;
-        } catch (e) {
+        } catch {
           // ignore parsing error, will default to false
         }
 
@@ -262,7 +261,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
               <li>Chọn và copy dòng tiêu đề và các dòng dữ liệu. Các cột bắt buộc bao gồm: 
                 <span className="font-bold text-slate-800"> ma_benh_nhan, ho_ten_benh_nhan, ngay_vao_vien, ngay_lay_mau, loai_benh_pham, tac_nhan</span>.
               </li>
-              <li>Dán trực tiếp vào ô văn bản phía dưới và ấn <strong>"Phân tích dữ liệu"</strong>.</li>
+              <li>Dán trực tiếp vào ô văn bản phía dưới và ấn <strong>&quot;Phân tích dữ liệu&quot;</strong>.</li>
               <li>
                 <span className="font-bold text-slate-800">Quy tắc LIS Day 3:</span> Các kết quả cấy có ngày lấy mẫu sau ngày nhập viện <span className="font-bold text-[var(--primary)]">&ge; 2 ngày</span> (tức là ngày nằm viện thứ 3 trở lên, tính ngày nhập viện là ngày 1) sẽ được hệ thống đánh dấu là <span className="font-bold text-emerald-600">Nghi ngờ NKBV</span> và tự động tạo ca giám sát chờ bác sĩ xác minh lâm sàng. Các ca cấy sớm hơn sẽ được ghi nhận vào nhật ký nhưng không tạo ca lâm sàng.
               </li>

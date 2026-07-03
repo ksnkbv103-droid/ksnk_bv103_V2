@@ -80,7 +80,6 @@ export async function syncBangKiemImportToDatabase(
 
     if (parentId && parentRow) {
       const currentTcs = Array.isArray(parentRow.tieu_chi_jsonb) ? [...parentRow.tieu_chi_jsonb] : [];
-      const tcCodesInDB = new Set(currentTcs.map((t) => t.ma_tc).filter(Boolean) as string[]);
       const tcByNoiDung = new Map(
         currentTcs
           .map((t) => [String(t.noi_dung ?? "").trim().toUpperCase(), t] as const)

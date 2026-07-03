@@ -54,7 +54,6 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     if (!raw || !isValidStation(raw) || raw === "TIET_KHUAN") return;
     if (!(SCAN_STATIONS as readonly string[]).includes(raw)) return;
     selectStation(raw as Station);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- chỉ khi ?station= đổi trên URL
   }, [stationParam]);
 
   useEffect(() => {

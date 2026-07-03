@@ -63,7 +63,6 @@ export function QlcvOperationsPanel({
   onEditTask,
   onRefreshAll,
   onBoardFilter,
-  routerRefresh,
   mauSacByMa,
 }: QlcvOperationsPanelProps) {
   const [deleteTarget, setDeleteTarget] = useState<CongViecView | null>(null);

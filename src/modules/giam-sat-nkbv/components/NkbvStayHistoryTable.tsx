@@ -23,7 +23,6 @@ export default function NkbvStayHistoryTable({
   khoas,
   allowedEdit,
   ngayVaoVien,
-  ngayPhatHien,
 }: NkbvStayHistoryTableProps) {
   const [newStayKhoaId, setNewStayKhoaId] = useState("");
   const [newStayNgayVao, setNewStayNgayVao] = useState("");
@@ -62,7 +61,6 @@ export default function NkbvStayHistoryTable({
   };
 
   const cleanNgayVaoVien = ngayVaoVien ? ngayVaoVien.slice(0, 10) : "";
-  const cleanNgayPhatHien = ngayPhatHien ? ngayPhatHien.slice(0, 10) : "";
   const todayStr = new Date().toISOString().slice(0, 10);
 
   return (

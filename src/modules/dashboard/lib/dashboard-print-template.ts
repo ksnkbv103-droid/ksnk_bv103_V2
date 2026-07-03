@@ -139,7 +139,6 @@ export function getDashboardPrintHtml(p: PrintParams) {
       </thead>
       <tbody>
         ${(p.vstPayload.moments || []).map((m: any, i: number) => {
-          const khongTT = m.tong_co_hoi - m.da_tuan_thu;
           const tyLeKhongTT = 100 - m.ty_le_tuan_thu;
           return `
           <tr>

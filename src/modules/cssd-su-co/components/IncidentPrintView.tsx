@@ -83,7 +83,6 @@ export default function IncidentPrintView({ incident, details }: IncidentPrintVi
   const nguoiPhatHien = detailsMap["NGUOI_PHAT_HIEN"];
   const thoiGianPhatHienAttr = detailsMap["THOI_GIAN_PHAT_HIEN"];
   const rollbackTarget = detailsMap["ROLLBACK_TARGET_STATION"];
-  const incidentKind = detailsMap["INCIDENT_KIND"];
   const reporterEmail = detailsMap["REPORTER_EMAIL"];
   const imageEvidence = detailsMap["ANH_MINH_CHUNG"];
 

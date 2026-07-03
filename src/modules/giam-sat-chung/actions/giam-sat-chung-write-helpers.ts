@@ -6,18 +6,12 @@ import {
 } from "@/lib/supervision-policy";
 import { isKnownHinhThucLabel, resolveCanonicalHinhThucLabel } from "@/lib/supervision-hinh-thuc-legacy";
 
-const HINH_THUC_GIAM_SAT_OPTIONS = [
-  HINH_THUC_TU_GIAM_SAT,
-  HINH_THUC_CHUYEN_TRACH,
-  HINH_THUC_GIAM_SAT_CHEO,
-] as const;
 const CACH_THUC_GIAM_SAT_OPTIONS = [
   "Giám sát trực tiếp tại chỗ",
   "Giám sát trực tiếp qua camera",
   "Giám sát lại qua camera",
 ] as const;
 const LEGACY_CACH_THUC_VALUES = new Set(CACH_THUC_GIAM_SAT_OPTIONS);
-type ModeOption = (typeof HINH_THUC_GIAM_SAT_OPTIONS)[number];
 type CachOption = (typeof CACH_THUC_GIAM_SAT_OPTIONS)[number];
 export type GscSessionInput = Record<string, unknown> & {
   khoa_id?: string;

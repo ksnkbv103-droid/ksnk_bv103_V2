@@ -20,16 +20,6 @@ const optionalUuid = (field: string) =>
 /**
  * Zod Schema cho Quản lý công việc v2.2 — CHECK `qlcv_fact_cong_viec` (migration 20260716005 Track B).
  */
-const CONG_VIEC_TRANG_THAI = [
-  "MOI",
-  "DANG_LAM",
-  "CHO_DUYET",
-  "HOAN_THANH",
-  "TU_CHOI",
-  "QUA_HAN",
-  "DA_HUY",
-] as const;
-
 export const congViecSchema = z.object({
   tieu_de: z.preprocess(
     (v) => (typeof v === "string" ? v.replace(/\u0000/g, "") : v),

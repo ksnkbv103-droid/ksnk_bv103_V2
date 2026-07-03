@@ -1,7 +1,6 @@
 import { MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
 import {
   resolveChecklistOverview,
-  resolveSortedChecklistOverview,
   resolveTopInterventionChecklists,
 } from "@/lib/analytics/gsc-checklist-intervention";
 import {

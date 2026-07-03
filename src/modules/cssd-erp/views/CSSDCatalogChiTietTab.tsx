@@ -13,7 +13,6 @@ export function CSSDCatalogChiTietTab(props: {
   boBySelectedChiTietLoai: CSSDBo[];
 }) {
   const {
-    catalog,
     chiTietRows,
     selectedChiTietId,
     setSelectedChiTietId,
