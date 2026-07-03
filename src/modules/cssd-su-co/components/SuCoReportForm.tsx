@@ -77,7 +77,7 @@ function groupTypeDefaults(group: IncidentGroup) {
   if (group === "OTHER") return OTHER_GENERIC_INCIDENT;
   const options = INCIDENT_TYPE_PRESETS[group];
   const first = options[0];
-  return { typeId: first?.id || "", typeTen: first?.ten || "" };
+  return { typeId: first?.code || "", typeTen: first?.label || "" };
 }
 
 export default function SuCoReportForm({
@@ -103,10 +103,10 @@ export default function SuCoReportForm({
   const [detectionStation, setDetectionStation] = useState<Station>(initialStation);
   const [incidentGroup, setIncidentGroup] = useState<IncidentGroup>(initialGroup || "PROCESS");
   const [instrumentState, setInstrumentState] = useState<InstrumentIncidentFormState | null>(null);
-  const [typeId, setTypeId] = useState(initialTypeId || INCIDENT_TYPE_PRESETS.PROCESS[0]?.id || "");
+  const [typeId, setTypeId] = useState(initialTypeId || INCIDENT_TYPE_PRESETS.PROCESS[0]?.code || "");
   const [typeTen, setTypeTen] = useState(
-    INCIDENT_TYPE_PRESETS.PROCESS.find((x) => x.id === initialTypeId)?.ten ||
-      INCIDENT_TYPE_PRESETS.PROCESS[0]?.ten ||
+    INCIDENT_TYPE_PRESETS.PROCESS.find((x) => x.code === initialTypeId)?.label ||
+      INCIDENT_TYPE_PRESETS.PROCESS[0]?.label ||
       "",
   );
   const [maQR, setMaQR] = useState(initialMaQR || "");
@@ -337,8 +337,8 @@ export default function SuCoReportForm({
     setMachineId("");
     setMaLo("");
     setViTriPhatHien("");
-    setTypeId(INCIDENT_TYPE_PRESETS.PROCESS[0]?.id || "");
-    setTypeTen(INCIDENT_TYPE_PRESETS.PROCESS[0]?.ten || "");
+    setTypeId(INCIDENT_TYPE_PRESETS.PROCESS[0]?.code || "");
+    setTypeTen(INCIDENT_TYPE_PRESETS.PROCESS[0]?.label || "");
     setFaultStation(initialStation);
     setMeta({
       thoiGianPhatHien: defaultDetectionDateTimeLocal(),
@@ -667,7 +667,7 @@ function TypePicker({
   typeId,
   onChange,
 }: {
-  options: Array<{ id: string; ten: string }>;
+  options: Array<{ code: string; label: string }>;
   typeId: string;
   onChange: (id: string, ten: string) => void;
 }) {
@@ -678,13 +678,13 @@ function TypePicker({
         <select
           value={typeId}
           onChange={(e) => {
-            const sel = options.find((c) => c.id === e.target.value);
-            onChange(e.target.value, sel?.ten || "");
+            const sel = options.find((c) => c.code === e.target.value);
+            onChange(e.target.value, sel?.label || "");
           }}
           className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none focus:border-[var(--primary)] focus:bg-white"
         >
           {options.map((c) => (
-            <option key={c.id} value={c.id}>{c.ten}</option>
+            <option key={c.code} value={c.code}>{c.label}</option>
           ))}
         </select>
         <ChevronDown className="pointer-events-none absolute right-4 top-3.5 text-slate-400" size={16} />

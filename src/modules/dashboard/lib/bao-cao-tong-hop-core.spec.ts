@@ -344,6 +344,7 @@ describe("bao-cao-tong-hop-core", () => {
         {
           id: "1",
           ten: "A",
+          label: "A",
           ty_le_avg: 90,
           ty_le_ccs: 90,
           ty_le_vst: 90,
@@ -354,6 +355,7 @@ describe("bao-cao-tong-hop-core", () => {
         {
           id: "2",
           ten: "B",
+          label: "B",
           ty_le_avg: 50,
           ty_le_ccs: 50,
           ty_le_vst: 50,

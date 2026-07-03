@@ -53,8 +53,8 @@ describe("bang-kiem-ap-dung", () => {
       muc_do: "BAT_BUOC",
     });
     expect(derivePhamVi(ap)).toBe("THEO_KHOA");
-    expect(resolveBkApDungChoKhoa({ ap_dung_jsonb: ap }, khoaNgoai)).toBe(true);
-    expect(resolveBkApDungChoKhoa({ ap_dung_jsonb: ap }, khoaNoi)).toBe(false);
+    expect(resolveBkApDungChoKhoa({ id: "b2", ap_dung_jsonb: ap }, khoaNgoai)).toBe(true);
+    expect(resolveBkApDungChoKhoa({ id: "b2", ap_dung_jsonb: ap }, khoaNoi)).toBe(false);
   });
 
   it("CHI_KSNK chỉ Khoa KSNK", () => {
@@ -66,9 +66,9 @@ describe("bang-kiem-ap-dung", () => {
       bat_buoc: { tu_giam_sat: false, ksnk_giam_sat: true },
       muc_do: "CHI_KSNK",
     });
-    expect(resolveBkApDungChoKhoa({ ap_dung_jsonb: ap }, khoaKsnk)).toBe(true);
-    expect(resolveBkApDungChoKhoa({ ap_dung_jsonb: ap }, khoaNgoai)).toBe(false);
-    expect(isBkBatBuocTgsChoKhoa({ ap_dung_jsonb: ap, is_active: true }, khoaNgoai)).toBe(false);
+    expect(resolveBkApDungChoKhoa({ id: "b3", ap_dung_jsonb: ap }, khoaKsnk)).toBe(true);
+    expect(resolveBkApDungChoKhoa({ id: "b3", ap_dung_jsonb: ap }, khoaNgoai)).toBe(false);
+    expect(isBkBatBuocTgsChoKhoa({ id: "b3", ap_dung_jsonb: ap, is_active: true }, khoaNgoai)).toBe(false);
   });
 
   it("KHUYEN_NGH không bắt buộc TGS", () => {
