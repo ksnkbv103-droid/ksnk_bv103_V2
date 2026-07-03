@@ -20,6 +20,16 @@ const steps = [
       "scripts/sql/gstt-gap-id-parity-check.sql",
     ],
   },
+  {
+    name: "fact-orphan-fk-sweep",
+    cmd: "node",
+    args: [
+      "scripts/run-supabase-sql.mjs",
+      "--local",
+      "--file",
+      "scripts/sql/fact-orphan-fk-sweep.sql",
+    ],
+  },
   { name: "cssd:db:audit:local", cmd: "npm", args: ["run", "cssd:db:audit:local"] },
   { name: "admin:rbac:parity:local", cmd: "npm", args: ["run", "admin:rbac:parity:local"] },
   { name: "trial:db:precheck:local", cmd: "npm", args: ["run", "trial:db:precheck:local"] },

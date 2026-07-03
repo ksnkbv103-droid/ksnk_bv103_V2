@@ -26,6 +26,8 @@
     "coverage": "npm run test:coverage",
     "cssd:db:audit": "node scripts/run-supabase-sql.mjs --linked --file scripts/sql/cssd-tram-fk-health-audit.sql",
     "cssd:db:audit:local": "node scripts/run-supabase-sql.mjs --local --file scripts/sql/cssd-tram-fk-health-audit.sql",
+    "fact:orphan:sweep": "node scripts/run-supabase-sql.mjs --linked --file scripts/sql/fact-orphan-fk-sweep.sql",
+    "fact:orphan:sweep:local": "node scripts/run-supabase-sql.mjs --local --file scripts/sql/fact-orphan-fk-sweep.sql",
     "cssd:demo:reset": "node scripts/cssd-demo-reset.mjs",
     "cssd:demo:reset:local": "node scripts/cssd-demo-reset.mjs",
     "gstt:db:audit": "node scripts/run-supabase-sql.mjs --linked --file scripts/sql/health-check-gstt-introspect.sql && node scripts/run-supabase-sql.mjs --linked --file scripts/sql/health-check-gstt-summary-kinds.sql && node scripts/run-supabase-sql.mjs --linked --file scripts/sql/health-check-gstt-triggers.sql",
