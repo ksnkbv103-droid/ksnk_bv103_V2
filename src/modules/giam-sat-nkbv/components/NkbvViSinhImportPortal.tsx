@@ -15,7 +15,7 @@ import {
   Database,
   Sparkles
 } from "lucide-react";
-import { importViSinhExcel } from "../actions/giam-sat-nkbv-write.actions";
+import { importViSinhExcel } from "../actions/giam-sat-nkbv-import.actions";
 
 type NkbvViSinhImportPortalProps = {
   khoas: Array<{ id: string; ten_danh_muc: string }>;

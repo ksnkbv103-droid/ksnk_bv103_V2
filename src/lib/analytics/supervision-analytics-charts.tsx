@@ -16,13 +16,19 @@ export {
   SupervisionKsnkDeploymentChart,
   SupervisionGapExclusionTable,
   SupervisionCoverageMatrix,
+} from "./supervision-charts-khoa-matrix";
+
+export {
   SupervisionKhoaComplianceChart,
   SupervisionKhoaVolumeChart,
+  SupervisionKhoaAnalyticsBlock,
+  SupervisionGapChart,
+} from "./supervision-charts-khoa-compare";
+
+export {
   SupervisionKhoaComplianceTable,
   SupervisionKhoaCountsTable,
   SupervisionKhoaMasterTable,
-  SupervisionKhoaAnalyticsBlock,
-  SupervisionGapChart,
-} from "./supervision-charts-khoa";
+} from "./supervision-charts-khoa-tables";
 
 export { percentTooltipFormatter } from "./supervision-charts-shared";

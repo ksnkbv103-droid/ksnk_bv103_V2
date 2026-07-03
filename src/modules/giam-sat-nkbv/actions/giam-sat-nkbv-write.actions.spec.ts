@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { importViSinhExcel } from "./giam-sat-nkbv-write.actions";
+import { importViSinhExcel } from "./giam-sat-nkbv-import.actions";
 import { createClient } from "@supabase/supabase-js";
 
 // Mock Next.js and permission modules to allow running action outside next-server
