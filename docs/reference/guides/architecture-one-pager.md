@@ -1,6 +1,6 @@
 # Kiến trúc KSNK BV103 — One-pager
 
-> Tài liệu một trang cho reviewer / skeptic. Chi tiết sâu: [`implementation-mapping.md`](./implementation-mapping.md), [`domain-specification.md`](./domain-specification.md), [`../reference/architecture/system-overview.md`](../reference/architecture/system-overview.md).
+> Tài liệu một trang cho reviewer / skeptic. Chi tiết sâu: [`implementation-mapping.md`](../../core/implementation-mapping.md), [`domain-specification.md`](../../core/domain-specification.md), [`../architecture/system-overview.md`](../architecture/system-overview.md).
 
 ## 1. System stack
 
@@ -25,7 +25,7 @@
 | **NKBV** | `giam-sat-nkbv/` | **W3** | CDC forms, adjudication |
 | **Dashboard** | `dashboard/` | **W3** | Command Center `/`, báo cáo tổng hợp `/bao-cao-tong-hop` |
 
-Env `KSNK_PILOT_CORE_MODULES=1` ẩn CSSD, NKBV, Dashboard — chỉ mở W1. Xem [`pilot-core-modules-go-live.md`](./pilot-core-modules-go-live.md).
+Env `KSNK_PILOT_CORE_MODULES=1` ẩn CSSD, NKBV, Dashboard — chỉ mở W1. Xem [`pilot-core-modules-go-live.md`](../../core/pilot-core-modules-go-live.md).
 
 ## 3. Kiến trúc dữ liệu 3 tầng
 
@@ -44,7 +44,7 @@ rpc_*                            (analytics, dashboard, batch read)
 - Lookup 14 loại ghi `sys_lookup_value`; RBAC SSOT `sys_roles` / `sys_permissions`.
 - Báo cáo / Command Center đọc qua **RPC**, không quét `fact_*` không giới hạn.
 
-Prefix map: [`implementation-mapping.md`](./implementation-mapping.md) § Bản đồ Prefix.
+Prefix map: [`implementation-mapping.md`](../../core/implementation-mapping.md) § Bản đồ Prefix.
 
 ## 4. Security model
 
@@ -61,14 +61,14 @@ Prefix map: [`implementation-mapping.md`](./implementation-mapping.md) § Bản 
 - QLCV: scope list server (`qlcv-list-scope`) + RBAC; RLS chưa thắt đủ như CSSD.
 - Không hứa pentest-ready — có precheck `trial:auth:precheck` (`mdm_email_no_auth = 0`).
 
-Chi tiết: [`operations-sop.md`](./operations-sop.md) § Auth & RBAC.
+Chi tiết: [`operations-sop.md`](../../core/operations-sop.md) § Auth & RBAC.
 
 ## 5. UI governance
 
 - **Design tokens:** `src/lib/bv103-design-tokens.ts`, `bv103-layout-chrome.ts`, `bv103-panel-chrome.ts`
 - **Module chrome:** `*-form-chrome.ts`, `*-table-chrome.ts` per domain
 - **Gates:** `npm run layout:drift-check`, `layout:typography-check`, `panel:chrome-check`, `columns:chrome-check`
-- **SSOT visual:** [`../reference/guides/bv103-visual-language.md`](../reference/guides/bv103-visual-language.md)
+- **SSOT visual:** [`bv103-visual-language.md`](./bv103-visual-language.md)
 
 ## 6. Verification gates
 
@@ -79,7 +79,7 @@ Chi tiết: [`operations-sop.md`](./operations-sop.md) § Auth & RBAC.
 | Schema | `npm run verify:mdm` | Sau migration |
 | Pilot go-live | `npm run pilot:go-live:gate` | Trước ký W1 prod |
 
-Checklist ký tay: [`pilot-go-live-signoff-202606.md`](./pilot-go-live-signoff-202606.md). Pipeline: [`governance-pipeline.md`](./governance-pipeline.md). Demo terminal live: [`demo-governance-gates.md`](./demo-governance-gates.md).
+Checklist ký tay: [`pilot-go-live-signoff-202606.md`](../../core/pilot-go-live-signoff-202606.md). Pipeline: [`governance-pipeline.md`](../../core/governance-pipeline.md). Demo terminal live: [`demo-governance-gates.md`](./demo-governance-gates.md).
 
 ## 7. Clinical differentiators (không phải CRUD generic)
 
@@ -90,7 +90,7 @@ Checklist ký tay: [`pilot-go-live-signoff-202606.md`](./pilot-go-live-signoff-2
 | **Bảng kiểm áp dụng** | `ap_dung_jsonb` trên `gstt_dm_bang_kiem` → analytics gap TGS vs KSNK |
 | **CSSD 6-station QR** | Trạm 1–6, Digital BOM, ledger gate chặn phát trả không nhập kho |
 
-Luồng nghiệp vụ: [`domain-specification.md`](./domain-specification.md).
+Luồng nghiệp vụ: [`domain-specification.md`](../../core/domain-specification.md).
 
 ## 8. Đọc tiếp
 
@@ -98,7 +98,7 @@ Luồng nghiệp vụ: [`domain-specification.md`](./domain-specification.md).
 |--------|------|
 | Demo 10 phút (skeptic) | [`demo-script-skeptics-10min.md`](./demo-script-skeptics-10min.md) |
 | Demo terminal gates | [`demo-governance-gates.md`](./demo-governance-gates.md) |
-| Ship & agent workflow | [`../../AGENTS.md`](../../AGENTS.md) |
-| Lean execution / DoD | [`lean-execution.md`](./lean-execution.md) |
-| Lộ trình phase dài | [`../reference/architecture/roadmap-2026h2.md`](../reference/architecture/roadmap-2026h2.md) |
-| Wiki entities | [`../wiki/entities.md`](../wiki/entities.md) |
+| Ship & agent workflow | [`../../../AGENTS.md`](../../../AGENTS.md) |
+| Lean execution / DoD | [`lean-execution.md`](../../core/lean-execution.md) |
+| Lộ trình phase dài | [`../architecture/roadmap-2026h2.md`](../architecture/roadmap-2026h2.md) |
+| Wiki entities | [`../../wiki/entities.md`](../../wiki/entities.md) |

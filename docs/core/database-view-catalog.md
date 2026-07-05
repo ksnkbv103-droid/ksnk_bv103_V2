@@ -35,7 +35,7 @@
 - Migration `20260602180000`: DROP toàn bộ compat `dm_*` / `fact_*`; lookup `{module}_dm_*`; `v_gstt_*` / `v_qlcv_*` JOIN module; RPC/sync dùng `gstt_fact_*`, `qlcv_fact_*`, …
 - Migration `20260602190000`: DROP `rel_user_roles`, `rel_role_permissions`; RPC `rpc_assign_staff_ksnk_role` → `sys_user_roles`.
 - App `src/`: codemod + guard `legacy:guard` cấm `.from('dm_*'|'fact_*')`.
-- Audit: `node scripts/audit-view-usage.mjs`.
+- Audit: `npm run audit:views`.
 
 ## View chỉ dùng trong SQL/RPC (giữ — không xóa tùy tiện)
 
@@ -46,4 +46,4 @@
 | `v_cssd_bo_dung_cu_bien_dong` | JOIN trong view tồn kho CSSD |
 | `v_sys_audit_log_full`, `v_sys_audit_table_choices` | Legacy audit UI đã DROP — có thể xóa sau grep SQL |
 
-**Audit 2026-06-03:** `node scripts/audit-view-usage.mjs` — 0 unused; 7 sql-only (dashboard RPC nội bộ).
+**Audit 2026-06-03:** `npm run audit:views` — 0 unused; 7 sql-only (dashboard RPC nội bộ).

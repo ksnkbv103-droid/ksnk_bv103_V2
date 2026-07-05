@@ -52,6 +52,8 @@
 | [`core/handover-roadmap.md`](core/handover-roadmap.md) | Lộ trình, cấu trúc app |
 | [`core/cursor-operating-playbook.md`](core/cursor-operating-playbook.md) | Cursor: intake, verify, tiết kiệm quota |
 
+Runbook demo / auth / kiến trúc one-pager: [`reference/guides/`](reference/guides/) (`architecture-one-pager`, `demo-governance-gates`, `auth-pilot-link-sop`).
+
 ## Lớp 2 — Module docs
 
 | Module | README |
@@ -64,9 +66,9 @@
 
 ## Lớp 3 — Reference (audit / kiến trúc)
 
-- [`reference/architecture/`](reference/architecture/) — overview, debt, roadmap
-- [`reference/reports/`](reference/reports/) — **audit 2026-06-03:** [comprehensive-review-20260603.md](reference/reports/comprehensive-review-20260603.md) · [evidence pack](reference/reports/audit-evidence-pack-20260603.md) · [traceability](reference/reports/traceability-matrix-20260603.md) · [remediation sync](reference/architecture/remediation-plan-2026h2-sync.md)
-- Báo cáo 2026-05-30: archive only — superseded by 20260603
+- [`reference/architecture/`](reference/architecture/) — overview, debt, roadmap, [remediation sync](reference/architecture/remediation-plan-2026h2-sync.md)
+- [`reference/reports/`](reference/reports/) — **SSOT:** [gap-register-20260703](reference/reports/gap-register-20260703.md) · [db-hygiene-20260703](reference/reports/db-hygiene-20260703.md) · [index](reference/reports/README.md)
+- Audit lịch sử (06/2026 trở về trước): [`archive/reports/`](archive/reports/) only
 - [`reference/guides/`](reference/guides/) — import JSON, migration runbook, [Cursor prompt templates](reference/guides/cursor-command-intake-template.md)
 
 ## Lớp 4 — Data (⚠️ machine source)
@@ -83,6 +85,7 @@
 
 - `npm run docs:links:check` — kiểm tra link nội bộ
 - `npm run repo:hygiene` — SQL active, view pilot, inventory docs
+- Inventory scripts: [`../scripts/README.md`](../scripts/README.md)
 - `npm run verify` — full gate trước push
 - Manifest: [`DOCS_MANIFEST.yaml`](DOCS_MANIFEST.yaml)
 

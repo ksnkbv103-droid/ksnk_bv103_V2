@@ -64,7 +64,7 @@
 
 ## Liên kết
 
-- Gap register: [gap-register-20260630.md](./gap-register-20260630.md)
+- Gap register: [gap-register-20260630.md](../../archive/reports/gap-register-20260630.md)
 - Domain/DB: [domain-db-audit-20260630.md](./domain-db-audit-20260630.md)
 - Backend: [backend-audit-20260630.md](./backend-audit-20260630.md)
 - UX: [ux-audit-20260630.md](./ux-audit-20260630.md)

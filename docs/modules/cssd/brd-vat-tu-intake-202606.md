@@ -34,4 +34,4 @@
 ## Tham chiếu
 
 - [`pilot-checklist-hoa-chat-202606.md`](./pilot-checklist-hoa-chat-202606.md)
-- [`../../reference/reports/domain-audit-phase3-20260610.md`](../../reference/reports/domain-audit-phase3-20260610.md) §4.3
+- [`../../archive/reports/domain-audit-phase3-20260610.md`](../../archive/reports/domain-audit-phase3-20260610.md) §4.3

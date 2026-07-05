@@ -1,6 +1,6 @@
 # Gap register — Cải tổ pilot toàn diện (2026-07-03)
 
-> Baseline trước Wave 0–5 chương trình cải tổ local (7 khối pilot). Tiếp nối [gap-register-20260702.md](./gap-register-20260702.md).
+> Baseline trước Wave 0–5 chương trình cải tổ local (7 khối pilot). Tiếp nối [gap-register-20260702.md](../../archive/reports/gap-register-20260702.md).
 
 ## Automated gates (local — 2026-07-03)
 
@@ -8,14 +8,14 @@
 |------|---------|
 | `npm run pilot:go-live:gate:local` | **PASS** |
 | `npm run audit:legacy-rpc` | **PASS** (0 RPC không ref) |
-| `node scripts/audit-view-usage.mjs` | **PASS** (0 unused · 15 sql-only — **giữ**) |
+| `npm run audit:views` | **PASS** (0 unused · 15 sql-only — **giữ**) |
 | `npm run repo:hygiene` | **PASS** (rbac-registry-parity-probe allowlist fixed) |
 
 ## DB snapshot
 
 | Metric | Giá trị |
 |--------|---------|
-| Migration files (repo) | 87 (head `20260702100000`) |
+| Migration files (repo) | 92 (head `20260704120000`) |
 | View audit | 0 unused · 15 sql-only |
 | Auth pilot | `mdm_email_no_auth` = 0 (1 user local) |
 

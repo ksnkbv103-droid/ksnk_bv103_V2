@@ -98,6 +98,8 @@
     "layout:typography-check": "node scripts/check-layout-typography.mjs",
     "codemod:typography": "node scripts/codemod-typography-min-label.mjs",
     "audit:legacy-rpc": "node scripts/audit-legacy-rpc.mjs",
+    "audit:views": "node scripts/audit-view-usage.mjs",
+    "gstt:gap:backfill": "node scripts/gstt-gap-backfill.mjs",
     "brand:logo-circular-alpha": "node scripts/brand-circular-alpha-logo.mjs",
     "admin:health:check": "node scripts/admin-health-check.mjs",
     "admin:rbac:sync": "npx tsx scripts/admin-rbac-sync.ts",

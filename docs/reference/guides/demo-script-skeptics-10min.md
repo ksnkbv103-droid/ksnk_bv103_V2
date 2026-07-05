@@ -24,7 +24,7 @@
 | **Khuyến nghị** | Staging **không** set `KSNK_PILOT_CORE_MODULES` | Sidebar đủ nhóm Điều hành; `/` và `/bao-cao-tong-hop` mở — counter-point C trọn vẹn |
 | **W1 prod-like** | `KSNK_PILOT_CORE_MODULES=1` | Chỉ MDM + GSC/VST + QLCV; sidebar ẩn Dashboard/NKBV/CSSD; `/bao-cao-tong-hop` → 404 |
 
-Wave rollout: [`pilot-core-modules-go-live.md`](./pilot-core-modules-go-live.md) · [`pilot-go-live-signoff-202606.md`](./pilot-go-live-signoff-202606.md).
+Wave rollout: [`pilot-core-modules-go-live.md`](../../core/pilot-core-modules-go-live.md) · [`pilot-go-live-signoff-202606.md`](../../core/pilot-go-live-signoff-202606.md).
 
 ### Tài khoản
 
@@ -62,7 +62,7 @@ npm run pilot:go-live:gate:local
 
 | | |
 |---|---|
-| **SHOW** | Tab terminal: `npm run pilot:go-live:gate` (hoặc kết quả đã chạy sẵn); mở [`pilot-go-live-signoff-202606.md`](./pilot-go-live-signoff-202606.md) §A |
+| **SHOW** | Tab terminal: `npm run pilot:go-live:gate` (hoặc kết quả đã chạy sẵn); mở [`pilot-go-live-signoff-202606.md`](../../core/pilot-go-live-signoff-202606.md) §A |
 | **SAY** | «Trước go-live W1, IT chạy gate tự động: engineering contract, smoke GSC/VST, auth precheck. Đây là checklist ký tay song song — không phải demo tự chấm.» |
 | **SAY** | «Prod W1 chỉ mở 3 khối: Quản trị, Giám sát VST/GSC, QLCV. CSSD và NKBV là wave 2–3 — tôi không che giấu phạm vi.» |
 
@@ -188,8 +188,8 @@ npm run layout:drift-check
 | Tài liệu / lệnh | Đường dẫn |
 |-----------------|-----------|
 | Kiến trúc one-pager | [`architecture-one-pager.md`](./architecture-one-pager.md) |
-| Ký go-live | [`pilot-go-live-signoff-202606.md`](./pilot-go-live-signoff-202606.md) |
-| Pilot 3 module | [`pilot-core-modules-go-live.md`](./pilot-core-modules-go-live.md) |
+| Ký go-live | [`pilot-go-live-signoff-202606.md`](../../core/pilot-go-live-signoff-202606.md) |
+| Pilot 3 module | [`pilot-core-modules-go-live.md`](../../core/pilot-core-modules-go-live.md) |
 | Verify đầy đủ | `npm run verify` |
 | Engineering contract | `npm run verify:engineering` |
 | Gate go-live | `npm run pilot:go-live:gate` |

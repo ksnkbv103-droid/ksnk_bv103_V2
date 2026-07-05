@@ -37,14 +37,14 @@ npm run pilot:go-live:gate      # linked: precheck DB/auth + verify + smoke
 npm run pilot:go-live:gate:local
 ```
 
-Pipeline schema & ship: [`docs/core/governance-pipeline.md`](docs/core/governance-pipeline.md) · Demo terminal gates: [`docs/core/demo-governance-gates.md`](docs/core/demo-governance-gates.md)
+Pipeline schema & ship: [`docs/core/governance-pipeline.md`](docs/core/governance-pipeline.md) · Demo terminal gates: [`docs/reference/guides/demo-governance-gates.md`](docs/reference/guides/demo-governance-gates.md)
 
 ## Tài liệu cốt lõi
 
 | Tài liệu | Mục đích |
 |----------|----------|
 | [`AGENTS.md`](AGENTS.md) | Cổng ship code — quy tắc agent & dev |
-| [`docs/core/architecture-one-pager.md`](docs/core/architecture-one-pager.md) | Tổng quan kiến trúc một trang |
+| [`docs/reference/guides/architecture-one-pager.md`](docs/reference/guides/architecture-one-pager.md) | Tổng quan kiến trúc một trang |
 | [`docs/core/domain-specification.md`](docs/core/domain-specification.md) | Đặc tả nghiệp vụ y tế |
 | [`docs/core/implementation-mapping.md`](docs/core/implementation-mapping.md) | Ánh xạ spec ↔ module ↔ bảng DB |
 | [`docs/reference/guides/bv103-visual-language.md`](docs/reference/guides/bv103-visual-language.md) | Design tokens & layout governance |

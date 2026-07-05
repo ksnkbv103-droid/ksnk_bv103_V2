@@ -8,7 +8,7 @@ CLI chỉ apply file `*.sql` **trực tiếp trong thư mục này** (không qu�
 
 ### Linked / staging / prod (chuỗi incremental)
 
-Thư mục gốc giữ chuỗi incremental **`20260530000000` … `20260612100000`** (~63 migration).
+Thư mục gốc giữ chuỗi incremental **`20260530000000` … `20260704120000`** (92 migration — head `20260704120000_vst_gap_analysis_filter_fix.sql`).
 
 | Ghi chú | |
 |---------|--|

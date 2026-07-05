@@ -68,7 +68,7 @@ npm run pilot:go-live:gate         # linked: DB + auth + verify + smoke
 npm run pilot:go-live:gate:local   # docker local
 ```
 
-**Auth link SOP:** [`auth-pilot-link-sop.md`](./auth-pilot-link-sop.md)
+**Auth link SOP:** [`auth-pilot-link-sop.md`](../reference/guides/auth-pilot-link-sop.md)
 
 ### Wave rollout (tóm tắt)
 

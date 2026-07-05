@@ -2,6 +2,7 @@
 /**
  * Báo cáo hygiene repo — không sửa file.
  * SSOT SQL active: scripts/sql/README.md
+ * SSOT scripts: scripts/README.md
  * SSOT docs: docs/DOCS_MANIFEST.yaml
  */
 
@@ -38,6 +39,7 @@ const SQL_ACTIVE = new Set([
   "mdm-governance-audit-probe.sql",
   "mdm-governance-fk-export.sql",
   "rbac-registry-parity-probe.sql",
+  "fact-orphan-fk-sweep.sql",
 ]);
 
 const LEGACY_TABLE_RE =
@@ -95,11 +97,16 @@ const pkgText = readPkgScripts();
 const scriptRoot = path.join(ROOT, "scripts");
 const rootScripts = fs
   .readdirSync(scriptRoot)
-  .filter((f) => /\.(mjs|ts|sh)$/.test(f) && fs.statSync(path.join(scriptRoot, f)).isFile());
+  .filter(
+    (f) =>
+      /\.(mjs|ts|sh)$/.test(f) &&
+      fs.statSync(path.join(scriptRoot, f)).isFile(),
+  );
 const unreferenced = rootScripts.filter((f) => !pkgText.includes(`scripts/${f}`) && !pkgText.includes(f));
 if (unreferenced.length) {
   console.log("Not referenced in package.json scripts (may still be CI/manual):");
   for (const f of unreferenced.sort()) console.log(`  - ${f}`);
+  exitCode = 1;
 } else {
   console.log("All root scripts appear in package.json.");
 }

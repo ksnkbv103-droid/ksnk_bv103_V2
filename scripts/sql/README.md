@@ -2,6 +2,8 @@
 
 Script **không** thuộc chuỗi migration Supabase. Chỉ file trong thư mục này (+ `scripts/master-data-cutover-postcheck.sql`) là **active**; phần còn lại → [`../archive/sql-20260531/`](../archive/sql-20260531/).
 
+Inventory runner/gate: [`../README.md`](../README.md).
+
 ## Precheck pilot / migrate
 
 | File | Lệnh npm | Mục đích |
@@ -36,6 +38,7 @@ Script **không** thuộc chuỗi migration Supabase. Chỉ file trong thư mụ
 | `fk-public-referencing-danh-muc-tuy-bien.sql` | `mdm:postcheck:fk` / `:local` |
 | `ssot-legacy-guard.sql` | `ssot:db:guard` / `:local` |
 | `khu-vuc-verify.sql` | Chạy tay — khu vực SSOT JSON |
+| `fact-orphan-fk-sweep.sql` | `fact:orphan:sweep` / `:local` | FK mồ côi fact (NKBV, QLCV, CSSD kho) |
 
 ## CI guard SQL active
 
@@ -47,7 +50,7 @@ Script **không** thuộc chuỗi migration Supabase. Chỉ file trong thư mụ
 
 ## Migration SSOT
 
-Chuỗi apply: `supabase/migrations/*.sql` (~63 file, `20260530000000` … `20260612100000`).
+Chuỗi apply: `supabase/migrations/*.sql` (92 file, `20260530000000` … `20260704120000`).
 
 **Lưu ý khu vực giám sát:** chuỗi `20260608030000` → `20260608032500` (revert) → `20260608050000` (mã code cuối) — trạng thái cuối SSOT là sau `20260608050000`; không tái dùng mã `KV_TR_*`/`KV_DO_*` trong app/script mới.
 

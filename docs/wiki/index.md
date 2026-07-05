@@ -73,8 +73,8 @@ _Generated 2026-05-31 — `npm run wiki:index`_
 - [`docs/reference/architecture/unstaged-slice-split.md`](../reference/architecture/unstaged-slice-split.md) — Kế hoạch tách PR — Vertical slices unstaged
 - [`docs/reference/guides/json-import-export.md`](../reference/guides/json-import-export.md) — Cẩm nang Kiến trúc Hybrid JSONB: Import / Export & Mở rộng Danh mục
 - [`docs/reference/guides/migration-squash-runbook.md`](../reference/guides/migration-squash-runbook.md) — Migration Squash Runbook — BV103 Pilot Baseline
-- [`docs/reference/reports/comprehensive-review-20260530.md`](../reference/reports/comprehensive-review-20260530.md) — Ngày rà soát:
-- [`docs/reference/reports/dashboard-pre-aggregation-dictionary.md`](../reference/reports/dashboard-pre-aggregation-dictionary.md) — archived stub → ADR dashboard KPI path
+- [`docs/archive/reports/comprehensive-review-20260530.md`](../archive/reports/comprehensive-review-20260530.md) — Ngày rà soát (archived):
+- [`docs/archive/reports/dashboard-pre-aggregation-dictionary.md`](../archive/reports/dashboard-pre-aggregation-dictionary.md) — STALE stub → ADR dashboard KPI path
 
 ### Data (machine)
 

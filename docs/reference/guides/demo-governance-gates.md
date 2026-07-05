@@ -1,6 +1,6 @@
 # Demo governance gates — runbook terminal (~2–3 phút)
 
-> Runbook cho người trình bày **chứng minh bằng terminal** rằng pilot BV103 có rào kỹ thuật, không phải side project. Đọc trước: [`demo-script-skeptics-10min.md`](./demo-script-skeptics-10min.md) (phút 0–2), [`pilot-go-live-signoff-202606.md`](./pilot-go-live-signoff-202606.md) §A.
+> Runbook cho người trình bày **chứng minh bằng terminal** rằng pilot BV103 có rào kỹ thuật, không phải side project. Đọc trước: [`demo-script-skeptics-10min.md`](./demo-script-skeptics-10min.md) (phút 0–2), [`pilot-go-live-signoff-202606.md`](../../core/pilot-go-live-signoff-202606.md) §A.
 
 ---
 
@@ -23,7 +23,7 @@
 | Repo clone, `npm install` | Có | Thư mục làm việc: root `ksnk_bv103` |
 | `.env.local` | Tier 2–3 linked | Tier 1 không cần |
 | Docker + Supabase local | Tier 3 `:local` | `supabase start`; không có docker → dùng log pass đã lưu hoặc Tier 2 |
-| Tab editor | Khuyến nghị | Mở sẵn [`pilot-go-live-signoff-202606.md`](./pilot-go-live-signoff-202606.md) §A (bảng gate IT) |
+| Tab editor | Khuyến nghị | Mở sẵn [`pilot-go-live-signoff-202606.md`](../../core/pilot-go-live-signoff-202606.md) §A (bảng gate IT) |
 | Terminal full-screen | Khuyến nghị | Font ≥14px; tắt notification |
 
 **Không cần:** badge CI giả, slide marketing, claim «100% RLS».
@@ -84,7 +84,7 @@ npm run pilot:go-live:gate:local    # docker local
 npm run pilot:go-live:gate
 ```
 
-**SHOW song song:** Bảng §A trong [`pilot-go-live-signoff-202606.md`](./pilot-go-live-signoff-202606.md) — đối chiếu từng dòng khi terminal chạy.
+**SHOW song song:** Bảng §A trong [`pilot-go-live-signoff-202606.md`](../../core/pilot-go-live-signoff-202606.md) — đối chiếu từng dòng khi terminal chạy.
 
 **SAY:**
 
@@ -148,10 +148,10 @@ Dùng câu này khi skeptic nói «pilot không có gate»:
 | Tài liệu | Đường dẫn |
 |----------|-----------|
 | Demo 10 phút skeptic | [`demo-script-skeptics-10min.md`](./demo-script-skeptics-10min.md) |
-| Sign-off go-live | [`pilot-go-live-signoff-202606.md`](./pilot-go-live-signoff-202606.md) |
-| Pipeline schema & ship | [`governance-pipeline.md`](./governance-pipeline.md) |
-| Ánh xạ spec ↔ DB | [`implementation-mapping.md`](./implementation-mapping.md) |
-| Agent / verify workflow | [`../../AGENTS.md`](../../AGENTS.md) |
+| Sign-off go-live | [`pilot-go-live-signoff-202606.md`](../../core/pilot-go-live-signoff-202606.md) |
+| Pipeline schema & ship | [`governance-pipeline.md`](../../core/governance-pipeline.md) |
+| Ánh xạ spec ↔ DB | [`implementation-mapping.md`](../../core/implementation-mapping.md) |
+| Agent / verify workflow | [`../../../AGENTS.md`](../../../AGENTS.md) |
 | Kiến trúc one-pager §6 | [`architecture-one-pager.md`](./architecture-one-pager.md) |
 
 ---

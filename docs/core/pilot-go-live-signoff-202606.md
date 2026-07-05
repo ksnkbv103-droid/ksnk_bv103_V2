@@ -51,14 +51,14 @@ npm run pilot:go-live:gate:local
 | **W2** (CSSD week) | Staging | **tắt** flag | + CSSD toàn bộ — ký P3/P4/P5 |
 | **W3** (mở rộng) | Prod | **tắt** hoặc flag mới | + NKBV, Dashboard (khi checklist pass) |
 
-Chi tiết: [`pilot-core-modules-go-live.md`](./pilot-core-modules-go-live.md), auth: [`auth-pilot-link-sop.md`](./auth-pilot-link-sop.md).
+Chi tiết: [`pilot-core-modules-go-live.md`](./pilot-core-modules-go-live.md), auth: [`auth-pilot-link-sop.md`](../reference/guides/auth-pilot-link-sop.md).
 
 ## D. Deferred (không chặn W1)
 
 | Hạng mục | Trạng thái |
 |----------|------------|
 | BRD vật tư phi-hóa-chất | Chờ workshop [`brd-vat-tu-intake-202606.md`](../modules/cssd/brd-vat-tu-intake-202606.md) |
-| HIS/LIS auto | Research [`his-lis-integration-spike-20260610.md`](../reference/reports/his-lis-integration-spike-20260610.md) |
+| HIS/LIS auto | Research [`his-lis-integration-spike-20260610.md`](../archive/reports/his-lis-integration-spike-20260610.md) |
 
 ## E. Sign-off cuối
 

@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-**Accepted (2026-06-03)** — benchmark local: [dashboard-rpc-benchmark-20260603.md](../reports/dashboard-rpc-benchmark-20260603.md). Staging: chạy lại `npm run pilot:dashboard:explain:linked` khi data pilot đầy.
+**Accepted (2026-06-03)** — benchmark local: [dashboard-rpc-benchmark-20260603.md](../../archive/reports/dashboard-rpc-benchmark-20260603.md). Staging: chạy lại `npm run pilot:dashboard:explain:linked` khi data pilot đầy.
 
 ## Bối cảnh
 
@@ -31,4 +31,4 @@ Hiện có **ba** nguồn KPI giám sát:
 npm run pilot:dashboard:explain:linked   # hoặc :local
 ```
 
-Kết quả mẫu: [dashboard-rpc-benchmark-20260603.md](../reports/dashboard-rpc-benchmark-20260603.md).
+Kết quả mẫu: [dashboard-rpc-benchmark-20260603.md](../../archive/reports/dashboard-rpc-benchmark-20260603.md).

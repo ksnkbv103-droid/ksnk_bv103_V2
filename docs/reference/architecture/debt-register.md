@@ -50,7 +50,7 @@
 *   **Exit Criteria:** Refactor đổi tên tệp kiểu dữ liệu khớp chính xác với phiên bản Dashboard V4.
 
 ### [D-07] Dual Dashboard Data Path — **Done (2026-06-04)**
-*   **Đã làm:** Migration `20260604100000` — DROP `gstt_fact_*_summary` + trigger sync; `v_gstt_giam_sat_vst_sessions_full` aggregate live từ `gstt_fact_vst`. Benchmark: [dashboard-rpc-benchmark-20260603.md](../reports/dashboard-rpc-benchmark-20260603.md).
+*   **Đã làm:** Migration `20260604100000` — DROP `gstt_fact_*_summary` + trigger sync; `v_gstt_giam_sat_vst_sessions_full` aggregate live từ `gstt_fact_vst`. Benchmark: [dashboard-rpc-benchmark-20260603.md](../../archive/reports/dashboard-rpc-benchmark-20260603.md).
 *   **Exit Criteria:** ~~Benchmark~~ **Đạt** — RPC-only read path (ADR accepted).
 
 ### [D-QLCV-01] QLCV — chuyển `trang_thai`/`loai` sang TEXT+CHECK — **Done (2026-06-04)**
@@ -116,7 +116,7 @@
 
 ## Audit 2026-06-03 re-verification
 
-> Nguồn: [comprehensive-review-20260603.md](../reports/comprehensive-review-20260603.md) — chỉ trạng thái sau grep/code + CLI trên HEAD; **không** copy báo cáo 30/05.
+> Nguồn: [comprehensive-review-20260603.md](../../archive/reports/comprehensive-review-20260603.md) — chỉ trạng thái sau grep/code + CLI trên HEAD; **không** copy báo cáo 30/05.
 
 | ID | Trạng thái mới | Bằng chứng ngắn |
 |----|----------------|-----------------|
@@ -149,7 +149,7 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 
 ## Audit 2026-06-30 re-verification
 
-> Nguồn: [audit-evidence-pack-20260630.md](../reports/audit-evidence-pack-20260630.md) · [gap-register-20260630.md](../reports/gap-register-20260630.md)
+> Nguồn: [audit-evidence-pack-20260630.md](../../archive/reports/audit-evidence-pack-20260630.md) · [gap-register-20260630.md](../../archive/reports/gap-register-20260630.md)
 
 | ID | Trạng thái | Ghi chú |
 |----|------------|---------|
