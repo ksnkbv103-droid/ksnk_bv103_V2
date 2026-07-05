@@ -53,3 +53,15 @@
 3. `operations-sop.md` §2.1.2 — quy trình db reset local
 4. CI: `repo:hygiene`, `layout:typography-check`, `dead-code:scan` (warn)
 5. [pilot-module-automated-gates-20260703.md](./pilot-module-automated-gates-20260703.md)
+
+---
+
+## Repo cleanup waves (07/2026)
+
+| Wave | Nội dung | Trạng thái |
+|------|----------|------------|
+| 1 | Core docs 19→15; README migration/SQL; archive gap register cũ | **Done** |
+| 2 | Archive 12 báo cáo audit 06/2026 → `docs/archive/reports/` | **Done** |
+| 3 | Archive codemod script; `scripts/README.md`; `audit:views` + `gstt:gap:backfill` npm | **Done** |
+
+Chi tiết script: [`../../../scripts/README.md`](../../../scripts/README.md).
