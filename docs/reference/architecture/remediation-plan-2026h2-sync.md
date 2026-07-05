@@ -97,7 +97,7 @@
 |----|----------|-------|--------|---------------|--------|
 | R-30 | **implementation-mapping** — xóa/đánh dấu DEPRECATED mọi dòng `v_fact_*` / compat `.from` | Dev | M | Không còn compat read path trong doc | peer review |
 | R-31 | **interaction-matrix** — thêm GSC lock, NKBV trace, bao-cao-tong-hop | Dev | S | Matrix khớp traceability 20260603 | — |
-| R-32 | **database-view-catalog** — 7 sql-only views + RPC callers | DBA | S | Catalog complete | `audit-view-usage.mjs` |
+| R-32 | **database-view-catalog** — 7 sql-only views + RPC callers | DBA | S | Catalog complete | `npm run audit:views` |
 | R-33 | Module README pointers → wiki; tránh duplicate spec | Dev | M | `docs/modules/*` ≤ pointer + pilot checklist | `docs:links:check` |
 
 *Maps F-05.*

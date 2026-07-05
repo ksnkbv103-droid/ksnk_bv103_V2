@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Audit public views: usage in src/ vs supabase/ vs unused.
- * Usage: node scripts/audit-view-usage.mjs
+ * Usage: npm run audit:views  (node scripts/audit-view-usage.mjs)
  */
 import { execSync } from "node:child_process";
 import { readFileSync, readdirSync, statSync } from "node:fs";
