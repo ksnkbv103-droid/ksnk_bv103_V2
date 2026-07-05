@@ -156,9 +156,11 @@ export default function QuanLyCongViecPage() {
   );
 
   const mainTabs = useMemo((): SupervisionTabDef[] => {
-    const tabs: SupervisionTabDef[] = [{ id: "DIEN_HANH", label: "Điều hành", icon: LayoutGrid }];
+    const tabs: SupervisionTabDef[] = [
+      { id: "DIEN_HANH", label: "Điều hành", mobileLabel: "Điều hành", icon: LayoutGrid },
+    ];
     if (canManageDinhKy) {
-      tabs.push({ id: "DINH_KY", label: "Việc định kỳ", icon: CalendarClock });
+      tabs.push({ id: "DINH_KY", label: "Việc định kỳ", mobileLabel: "Định kỳ", icon: CalendarClock });
     }
     return tabs;
   }, [canManageDinhKy]);
@@ -176,11 +178,11 @@ export default function QuanLyCongViecPage() {
             className="absolute inset-0 bg-slate-900/50 bv103-panel-backdrop-in"
             onClick={closeTaskDetail}
           />
-          <div className="relative h-full w-full max-w-7xl overflow-y-auto border-l border-slate-200/90 bg-slate-50 p-6 shadow-2xl animate-in slide-in-from-right duration-500 sm:rounded-l-2xl sm:p-8">
+          <div className="relative h-full w-full max-w-7xl overflow-y-auto border-l border-slate-200/90 bg-slate-50 p-4 shadow-2xl animate-in slide-in-from-right duration-500 sm:rounded-l-2xl sm:p-6 md:p-8">
             <button
               type="button"
               onClick={closeTaskDetail}
-              className="app-shell-focus mb-6 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest text-slate-500 hover:text-slate-800"
+              className="app-shell-focus mb-4 flex min-h-11 items-center gap-2 rounded-xl px-2 text-[11px] font-semibold uppercase tracking-widest text-slate-500 hover:bg-slate-100 hover:text-slate-800 touch-manipulation sm:mb-6"
             >
               <ArrowLeft size={16} aria-hidden /> Quay lại danh sách
             </button>
@@ -217,7 +219,7 @@ export default function QuanLyCongViecPage() {
         />
 
         <div
-          className={`no-print flex flex-col gap-2 ${bv103LayoutChrome.panelSurface} p-3 sm:flex-row sm:items-center sm:justify-end sm:gap-3 sm:p-3.5`}
+          className={`no-print flex flex-col gap-2 ${bv103LayoutChrome.panelSurface} p-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3 sm:p-3.5`}
         >
           {canShowDeXuatButton(qlcvUi) ? (
             <Dialog modal={false} open={isSuggesting} onOpenChange={setIsSuggesting}>

@@ -1,6 +1,5 @@
 import { addWeeks, format, parseISO, startOfMonth, startOfQuarter, startOfWeek, startOfYear } from "date-fns";
 import { vi } from "date-fns/locale";
-import { KHU_VUC_ZONE_LABELS, KHU_VUC_ZONE_ORDER } from "@/lib/khu-vuc-giam-sat-ui";
 import { khoaChartLabel } from "@/lib/analytics/supervision-matrix-mappers";
 import {
   computeCcs,
@@ -13,7 +12,6 @@ import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strat
 import type { NkbvDashboardPayload } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
 import type {
   BaoCaoChuyenDe,
-  BaoCaoIpacZoneRow,
   BaoCaoKhoaRankRow,
   BaoCaoTrendGranularity,
   BaoCaoTrendPoint,
@@ -358,32 +356,6 @@ export function topBottomKhoa(rows: BaoCaoKhoaRankRow[], n = 5): { top: BaoCaoKh
   };
 }
 
-/** Gộp matrix_khu_vuc_nhom VST + GSC theo 4 vùng IPAC. */
-export function buildIpacZoneCompare(vst: VstStrategicPayload | null, gsc: GscStrategicPayload | null): BaoCaoIpacZoneRow[] {
-  const byZone = new Map<string, BaoCaoIpacZoneRow>();
-
-  for (const zone of KHU_VUC_ZONE_ORDER) {
-    byZone.set(zone, {
-      ma_nhom: zone,
-      ten: KHU_VUC_ZONE_LABELS[zone],
-      ty_le_vst: null,
-      ty_le_gsc: null,
-    });
-  }
-
-  for (const row of vst?.matrix_khu_vuc_nhom ?? []) {
-    const z = String(row.ma_nhom || "").toUpperCase();
-    const cur = byZone.get(z);
-    if (cur) cur.ty_le_vst = row.ty_le_tuan_thu;
-  }
-  for (const row of gsc?.matrix_khu_vuc_nhom ?? []) {
-    const z = String(row.ma_nhom || "").toUpperCase();
-    const cur = byZone.get(z);
-    if (cur) cur.ty_le_gsc = row.ty_le_tuan_thu;
-  }
-
-  return KHU_VUC_ZONE_ORDER.map((z) => byZone.get(z)!);
-}
 
 const SUPERVISION_ANALYTICS_CANONICAL: Record<string, { analytics: string; history: string }> = {
   "/giam-sat-vst": { analytics: "/thong-ke/vst", history: "/lich-su/vst" },
@@ -461,7 +433,6 @@ export function composeBaoCaoTongHopPayload(args: {
   const trendWeek = buildMergedTrend(args.vst, args.gsc);
   const trendMonth = bucketTrendByMonth(trendWeek);
   const khoaRank = buildKhoaRank(args.vst, args.gsc);
-  const ipacZoneCompare = buildIpacZoneCompare(args.vst, args.gsc);
 
   return {
     filters: args.filters,
@@ -484,7 +455,6 @@ export function composeBaoCaoTongHopPayload(args: {
     trend_week: trendWeek,
     trend_month: trendMonth,
     khoa_rank: khoaRank,
-    ipac_zone_compare: ipacZoneCompare,
     capabilities: {
       topic_vst: args.sources.vst === "ok",
       topic_gsc: args.sources.gsc === "ok",
@@ -492,8 +462,8 @@ export function composeBaoCaoTongHopPayload(args: {
       compare_khoa: khoaRank.length > 0 || (args.filters.khoa_ids?.length ?? 0) > 0,
       compare_khoi: false,
       compare_khu_vuc:
-        (args.vst?.matrix_khu_vuc_nhom?.length ?? 0) > 0 ||
-        (args.gsc?.matrix_khu_vuc_nhom?.length ?? 0) > 0,
+        (args.vst?.matrix_khu_vuc?.length ?? 0) > 0 ||
+        (args.gsc?.matrix_khu_vuc?.length ?? 0) > 0,
       compare_doi_tuong: (args.vst?.matrix_nghe?.length ?? 0) > 0,
     },
   };

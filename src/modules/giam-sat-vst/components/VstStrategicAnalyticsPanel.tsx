@@ -56,13 +56,17 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
   const compareSections = useMemo(
     () => [
       { title: "Theo khối", rows: toCompareRows(p.payload?.matrix_khoi) },
-      { title: "Theo vùng IPAC (4 màu)", rows: toCompareRows(p.payload?.matrix_khu_vuc_nhom) },
-      { title: "Theo khu vực (chi tiết)", rows: toCompareRows(p.payload?.matrix_khu_vuc) },
+      { title: "Theo chức năng phòng", rows: toCompareRows(p.payload?.matrix_khu_vuc) },
       { title: "Theo đối tượng (nghề)", rows: toCompareRows(p.payload?.matrix_nghe) },
       { title: "Theo hình thức giám sát", rows: toCompareRows(p.payload?.matrix_hinh_thuc) },
+      ...(p.payload?.matrix_cach_thuc?.length
+        ? [{ title: "Theo cách thức giám sát", rows: toCompareRows(p.payload.matrix_cach_thuc) }]
+        : []),
     ],
     [p.payload],
   );
+
+  const workloadItems = p.payload?.workload?.co_cau_giam_sat ?? [];
 
   return (
     <div className={`${UI.sectionGap} space-y-6 pb-8`}>
@@ -96,23 +100,44 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{p.loadError}</div>
       ) : null}
 
-      <SupervisionKpiRow
-        loading={p.loading}
-        items={[
-          { label: "Tỷ lệ tuân thủ", value: formatPercent2(p.payload?.kpis?.ty_le_tuan_thu ?? 0) },
-          { label: "Cơ hội quan sát", value: p.payload?.kpis?.tong_co_hoi ?? 0 },
-          { label: "Đã tuân thủ", value: p.payload?.kpis?.da_tuan_thu ?? 0 },
-          { label: "Đúng kỹ thuật", value: formatPercent2(p.payload?.kpis?.ty_le_dung_ky_thuat ?? 0) },
-        ]}
-      />
+      <details className={`${UI.shell} open:shadow-sm`} open>
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+          Tổng hợp chung
+          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">KPI và xu hướng tuân thủ</span>
+        </summary>
+        <div className="space-y-4 border-t border-slate-100 px-4 pb-4 pt-3">
+          <SupervisionKpiRow
+            loading={p.loading}
+            items={[
+              { label: "Tỷ lệ tuân thủ", value: formatPercent2(p.payload?.kpis?.ty_le_tuan_thu ?? 0) },
+              { label: "Cơ hội quan sát", value: p.payload?.kpis?.tong_co_hoi ?? 0 },
+              { label: "Đã tuân thủ", value: p.payload?.kpis?.da_tuan_thu ?? 0 },
+              { label: "Đúng kỹ thuật", value: formatPercent2(p.payload?.kpis?.ty_le_dung_ky_thuat ?? 0) },
+            ]}
+          />
 
-      <SupervisionTrendChart
-        title="Xu hướng tuân thủ"
-        data={p.payload?.trendline ?? []}
-        loading={p.loading}
-        source="vst"
-        stroke="#10b981"
-      />
+          <SupervisionTrendChart
+            title="Xu hướng tuân thủ"
+            data={p.payload?.trendline ?? []}
+            loading={p.loading}
+            source="vst"
+            stroke="#10b981"
+          />
+        </div>
+      </details>
+
+      {workloadItems.length > 0 ? (
+        <div className={`${UI.shell} p-4`}>
+          <p className="text-sm font-bold text-slate-700">Khối lượng giám sát</p>
+          <ul className="mt-2 space-y-1 text-xs text-slate-600">
+            {workloadItems.map((row) => (
+              <li key={row.ten}>
+                {row.ten}: <strong>{row.so_co_hoi}</strong> cơ hội
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <SupervisionKhoaAnalyticsBlock
         rows={gapKhoaRows}
@@ -124,9 +149,9 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
 
       <SupervisionMomentsPanel moments={p.payload?.moments ?? []} loading={p.loading} stroke="#10b981" />
 
-      <details className="rounded-xl border border-slate-200 bg-white">
+      <details className={`${UI.shell}`}>
         <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
-          Ma trận phân tích (vùng IPAC, đối tượng, hình thức…)
+          Ma trận phân tích (chức năng phòng, đối tượng, hình thức…)
           <span className="mt-0.5 block text-[11px] font-normal text-slate-400">Mở để xem chi tiết</span>
         </summary>
         <div className="border-t border-slate-100 px-4 pb-4 pt-2">

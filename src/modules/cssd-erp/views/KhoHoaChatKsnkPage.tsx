@@ -25,6 +25,7 @@ import {
   type SuCoChemicalRow,
 } from "../actions/cssd-kho-hoa-chat.actions";
 import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY, CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_GROUP, CSSD_UI_TAB_IDLE } from "../shared/ui/cssd-ui-chrome";
+import { CssdHorizTabButton } from "../components/layout/CssdHorizTabButton";
 import { CSSDCatalogHoaChatTab } from "./CSSDCatalogHoaChatTab";
 import { lotRowToKey, pickFefoLotKey } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
 import { matchesLoaiFilter, type HoaChatLoaiFilter } from "@/lib/domain/cssd-hoa-chat-loai";
@@ -397,20 +398,18 @@ export default function KhoHoaChatKsnkPage() {
         )}
 
         <div className={CSSD_UI_TAB_GROUP}>
-          <button
-            type="button"
+          <CssdHorizTabButton
+            active={activeTab === "STOCK"}
             onClick={() => setActiveTab("STOCK")}
-            className={`rounded-lg px-5 py-2 text-xs font-semibold ${activeTab === 'STOCK' ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE}`}
-          >
-            Giám sát tồn kho &amp; Giao dịch
-          </button>
-          <button
-            type="button"
+            label="Giám sát tồn kho & Giao dịch"
+            mobileLabel="Tồn kho"
+          />
+          <CssdHorizTabButton
+            active={activeTab === "CATALOG"}
             onClick={() => setActiveTab("CATALOG")}
-            className={`rounded-lg px-5 py-2 text-xs font-semibold ${activeTab === 'CATALOG' ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE}`}
-          >
-            Danh mục hóa chất &amp; vật tư ({dms.length})
-          </button>
+            label={`Danh mục hóa chất & vật tư (${dms.length})`}
+            mobileLabel={`Danh mục (${dms.length})`}
+          />
         </div>
 
         {activeTab === "STOCK" ? (

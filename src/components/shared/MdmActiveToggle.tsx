@@ -19,7 +19,10 @@ export function MdmActiveToggle({
   className,
 }: MdmActiveToggleProps) {
   const interactive = Boolean(onToggle) && !disabled;
-  const sizing = size === "sm" ? "h-[28px] min-w-[148px]" : "h-[34px] min-w-[168px]";
+  const sizing =
+    size === "sm"
+      ? "h-[2.75rem] min-w-[11rem] sm:h-[28px] sm:min-w-[148px]"
+      : "h-[2.75rem] min-w-[11.5rem] sm:h-[34px] sm:min-w-[168px]";
   const textSize = size === "sm" ? "text-[11px]" : "text-[11px]";
 
   const track = cn(

@@ -26,9 +26,16 @@ type RBACSnapshot = {
   userData: UserDataProfile | null;
 };
 
-/** Cột view `v_sys_user_permissions` — khớp `20260707004_fix_auth_performance_index.sql`. */
+/** Cột view `v_sys_user_permissions` — khớp baseline `20260530000000_init_pilot_baseline.sql`. */
 const V_AUTH_USER_PERMISSIONS_SELECT =
   "staff_id,auth_user_id,ho_ten,ma_nv,email,khoa_id,is_active,ten_khoa_phong,ma_khoa_phong,roles,permissions" as const;
+
+function formatRbacQueryError(error: unknown): string {
+  if (!error || typeof error !== "object") return String(error);
+  const e = error as { message?: string; code?: string; details?: string; hint?: string };
+  const parts = [e.message, e.code, e.details, e.hint].filter((x) => typeof x === "string" && x.trim());
+  return parts.length > 0 ? parts.join(" | ") : JSON.stringify(error);
+}
 
 /**
  * 5 phút — đủ ngắn để admin đổi quyền không phải đăng xuất quá lâu;
@@ -135,7 +142,7 @@ export function usePermission(moduleKey?: string, action: string = "view") {
         rbacCache = { userId: user.id, snapshot, cachedAt: now };
         applySnapshot(snapshot);
       } catch (error) {
-        console.error("RBAC Error (Smart DB View):", error);
+        console.error("RBAC Error (Smart DB View):", formatRbacQueryError(error), error);
         if (mounted) setLoading(false);
       } finally {
         if (mounted) setLoading(false);
@@ -196,6 +203,7 @@ export function usePermission(moduleKey?: string, action: string = "view") {
     isToTruongMangLuoiKSNK: api.isToTruongMangLuoiKSNK,
     isThanhVienMangLuoiKSNK: api.isThanhVienMangLuoiKSNK,
     isHoiDongKSNK: api.isHoiDongKSNK,
+    isGuestStatsOnly: api.isGuestStatsOnly,
     hasPermission: api.hasPermission,
   };
 }

@@ -129,10 +129,8 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
   const phanTichCheo = `
     <div class="page-break"></div>
     <h2>PHÂN TÍCH THEO KHU VỰC VÀ ĐỐI TƯỢNG</h2>
-    ${renderMatrixTable("VST — Theo vùng IPAC (4 màu)", toVstMatrixRows(p.vstPayload?.matrix_khu_vuc_nhom), "Cơ hội", "Tuân thủ")}
-    ${renderMatrixTable("GSC — Theo vùng IPAC (4 màu)", toGscMatrixRows(p.gscPayload?.matrix_khu_vuc_nhom), "Khảo sát", "Đạt")}
-    ${renderMatrixTable("VST — Theo khu vực giám sát (chi tiết)", toVstMatrixRows(p.vstPayload?.matrix_khu_vuc), "Cơ hội", "Tuân thủ")}
-    ${renderMatrixTable("GSC — Theo khu vực giám sát (chi tiết)", toGscMatrixRows(p.gscPayload?.matrix_khu_vuc), "Khảo sát", "Đạt")}
+    ${renderMatrixTable("VST — Theo chức năng phòng", toVstMatrixRows(p.vstPayload?.matrix_khu_vuc), "Cơ hội", "Tuân thủ")}
+    ${renderMatrixTable("GSC — Theo chức năng phòng", toGscMatrixRows(p.gscPayload?.matrix_khu_vuc), "Khảo sát", "Đạt")}
     ${renderMatrixTable("VST — Theo đối tượng (nghề)", toVstMatrixRows(p.vstPayload?.matrix_nghe), "Cơ hội", "Tuân thủ")}
     ${renderMatrixTable("GSC — Theo đối tượng (nghề)", toGscMatrixRows(p.gscPayload?.matrix_nghe), "Khảo sát", "Đạt")}
     ${renderGscKhoaMatrix(p.gscPayload)}

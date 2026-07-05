@@ -11,12 +11,18 @@ import { supabase } from "@/lib/supabase";
 import StaffSessionGate from "@/components/auth/StaffSessionGate";
 import SupervisionOfflineSyncListener from "@/components/shared/SupervisionOfflineSyncListener";
 import RbacRefreshListener from "@/components/shared/RbacRefreshListener";
+import { GuestStatsShell } from "@/components/auth/GuestStatsShell";
+import { GuestStatsRouteGuard } from "@/components/auth/GuestStatsRouteGuard";
+import { usePermission } from "@/hooks/usePermission";
+import { canSeeCommandCenterNav } from "@/lib/nav/ksnk-nav-gates";
+import { resolvePostLoginPath } from "@/lib/auth/guest-stats-access";
 
 export default function ClientLayoutWrapper({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const isLoginPage = pathname === "/login" || pathname.startsWith("/login/");
+  const { loading, isAdmin, canView, userRoles, isGuestStatsOnly } = usePermission(undefined, "view");
 
   const toggleSidebar = () => setIsOpen(!isOpen);
   const closeSidebar = () => setIsOpen(false);
@@ -29,7 +35,11 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
       startTransition(() => {
         if (!mounted) return;
         if (!session && !isLoginPage) router.replace("/login");
-        if (session && isLoginPage) router.replace("/");
+        if (session && isLoginPage) {
+          const roles = userRoles.length > 0 ? userRoles : [];
+          const canSeeCc = canSeeCommandCenterNav(isAdmin, canView);
+          router.replace(resolvePostLoginPath(roles, canSeeCc));
+        }
       });
     });
 
@@ -37,14 +47,38 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
       mounted = false;
       listener.subscription.unsubscribe();
     };
-  }, [isLoginPage, router]);
+  }, [isLoginPage, router, isAdmin, canView, userRoles]);
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isOpen]);
 
   if (isLoginPage) {
     return <>{children}</>;
   }
 
+  if (!loading && isGuestStatsOnly) {
+    return (
+      <>
+        <GuestStatsRouteGuard />
+        <RbacRefreshListener />
+        <GuestStatsShell>{children}</GuestStatsShell>
+      </>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-slate-50 touch-manipulation pointer-events-auto">
+      <GuestStatsRouteGuard />
       <StaffSessionGate />
       <RbacRefreshListener />
       <SupervisionOfflineSyncListener />
@@ -52,7 +86,7 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
 
       <div className="flex flex-1 flex-col min-w-0 min-h-0">
         <Header onMenuClick={toggleSidebar} />
-        <main className="relative z-0 flex-1 touch-manipulation p-4 md:p-8 pointer-events-auto">
+        <main className="relative z-0 flex-1 touch-manipulation px-2 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-4 md:p-8 pointer-events-auto">
           {pathnameUsesPhase1KsnkUnifiedContentShell(pathname) ? (
             <KsnkPageShell rolloutPhase="phase-1">{children}</KsnkPageShell>
           ) : (

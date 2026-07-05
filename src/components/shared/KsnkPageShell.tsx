@@ -34,10 +34,10 @@ type KsnkPageHeaderProps = {
 /** Khối tiêu đề trang dùng chung — `bv103DesignTokens.pageTitle` */
 export function KsnkPageHeader({ title, subtitle, actions }: KsnkPageHeaderProps) {
   return (
-    <header className="mb-6 flex flex-col gap-3 border-b border-slate-200/90 pb-5 sm:mb-8 sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:pb-6">
+    <header className="mb-4 flex flex-col gap-2 border-b border-slate-200/90 pb-3 sm:mb-8 sm:gap-3 sm:flex-row sm:items-end sm:justify-between sm:pb-6">
       <div className="min-w-0">
-        <h1 className={T.pageTitle}>{title}</h1>
-        {subtitle ? <p className={T.pageSubtitle}>{subtitle}</p> : null}
+        <h1 className={`${T.pageTitle} max-sm:text-lg`}>{title}</h1>
+        {subtitle ? <p className={`${T.pageSubtitle} max-sm:hidden`}>{subtitle}</p> : null}
       </div>
       {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
     </header>
@@ -54,15 +54,15 @@ type KsnkListPageHeaderProps = {
 /** Toolbar danh sách MDM / master — card header + CTA (Phase 1 Quản trị). */
 export function KsnkListPageHeader({ title, eyebrow, icon: Icon, actions }: KsnkListPageHeaderProps) {
   return (
-    <header className={T.pageToolbar}>
+    <header className={`${T.pageToolbar} max-sm:p-4`}>
       <div className="min-w-0">
-        <h1 className={`inline-flex items-center gap-2.5 ${T.pageTitle}`}>
-          {Icon ? <Icon className="h-6 w-6 shrink-0 text-[var(--primary)]" aria-hidden /> : null}
+        <h1 className={`inline-flex items-center gap-2 ${T.pageTitle} max-sm:text-lg`}>
+          {Icon ? <Icon className="h-5 w-5 shrink-0 text-[var(--primary)] sm:h-6 sm:w-6" aria-hidden /> : null}
           {title}
         </h1>
-        {eyebrow ? <p className={T.pageEyebrow}>{eyebrow}</p> : null}
+        {eyebrow ? <p className={`${T.pageEyebrow} max-sm:hidden`}>{eyebrow}</p> : null}
       </div>
-      {actions ? <div className="flex w-full flex-wrap gap-3 sm:w-auto sm:justify-end">{actions}</div> : null}
+      {actions ? <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:gap-3 sm:justify-end">{actions}</div> : null}
     </header>
   );
 }

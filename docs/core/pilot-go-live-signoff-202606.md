@@ -13,19 +13,21 @@
 | Smoke GSC/VST | `npm run smoke:gsc-vst:local` | Exit 0 | ☑ 2026-07-03 local |
 | DB precheck | `npm run trial:db:precheck:local` | Không blocker | ☑ 2026-07-03 local |
 | Auth precheck | `npm run trial:auth:precheck:local` | `mdm_email_no_auth` = **0** | ☑ 2026-07-03 local |
-| Local golden | `npm run local:golden:verify` | 9/9 probe OK | ☑ 2026-07-03 local |
+| Local golden | `npm run local:golden:verify` | 10/10 probe OK | ☑ 2026-07-03 local |
 | Repo hygiene | `npm run repo:hygiene` | No blocking | ☑ 2026-07-03 |
-| Migrate | `npm run mdm:migrate:local` | Head `20260702100000` | ☑ 2026-07-03 local |
+| Migrate | `npm run mdm:migrate:local` | Head `20260703101000` | ☑ 2026-07-03 local |
 | Full gate | `npm run pilot:go-live:gate:local` | Exit 0 | ☑ 2026-07-03 local |
 | Full verify | `npm run verify` | lint + layout + build | ☑ 2026-06-30 local |
 
 ```bash
 npm run local:golden:reset      # db reset + migrate + rbac sync (local)
-npm run local:golden:verify     # 9 probe sau reset
+npm run local:golden:verify     # 10 probe sau reset
 npm run pilot:go-live:gate:local
 ```
 
 ## B. Checklist tay (NV KSNK) — ≥5/6 mỗi khối
+
+> Hướng dẫn cho PO (thứ tự làm + cách ghi): [`po-uat-signoff-202607.md`](./po-uat-signoff-202607.md)
 
 | Khối | File | Pass | Tester | Ngày |
 |------|------|------|--------|------|

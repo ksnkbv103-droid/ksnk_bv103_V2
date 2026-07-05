@@ -4,6 +4,7 @@ import React from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 export type GenericDmRow = { id: string } & Record<string, unknown>;
 
@@ -78,21 +79,21 @@ export function buildGenericDmColumns(
             {canMutate && (
               <button
                 type="button"
-                className="h-8 w-8 flex items-center justify-center rounded-lg bg-[var(--primary)]/5 text-[var(--primary)] transition-all hover:bg-[var(--primary)] hover:text-white"
+                className={`${C.tableIconBtn} bg-[var(--primary)]/5 text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white`}
                 onClick={() => openEdit(row)}
                 title="Sửa thông tin"
               >
-                <Pencil size={14} />
+                <Pencil size={16} />
               </button>
             )}
             {canDelete && onSoftDelete && (
               <button
                 type="button"
-                className="h-8 w-8 flex items-center justify-center rounded-lg bg-red-50 text-red-500 transition-all hover:bg-red-500 hover:text-white"
+                className={`${C.tableIconBtn} bg-red-50 text-red-500 hover:bg-red-500 hover:text-white`}
                 onClick={() => void onSoftDelete(row)}
                 title="Xóa dữ liệu"
               >
-                <Trash2 size={14} />
+                <Trash2 size={16} />
               </button>
             )}
           </div>

@@ -11,6 +11,14 @@
 | Q5 | Checklist | Tick → Lưu → reload | JSONB giữ trạng thái |
 | Q6 | Chặn ngoài KSNK | User khoa lâm sàng mở `/quan-ly-cong-viec` | 403 hoặc thông báo chỉ KSNK |
 
+## Kanban mobile (điện thoại thật hoặc DevTools ≤ 400px)
+
+| # | Kịch bản | Các bước | Pass khi |
+|---|----------|----------|----------|
+| M1 | Vuốt ngang cột | Mở `/quan-ly-cong-viec` trên điện thoại → vuốt ngang | Mỗi lần vuốt dừng đúng 1 cột (snap); cột rộng ~92% màn hình, không tràn ngang trang |
+| M2 | Mở chi tiết bằng chạm | Chạm 1 thẻ việc → panel chi tiết mở → đổi trạng thái từ panel | Chạm 1 lần ăn ngay (không double-tap); panel không che mất nút đóng |
+| M3 | Tick checklist trên màn nhỏ | Trong chi tiết việc: tick/bỏ tick tiêu chí → Lưu | Ô tick đủ lớn để chạm chính xác; sau Lưu + reload trạng thái giữ nguyên |
+
 ```bash
 npm run mdm:migrate:local
 npm run trial:qlcv:precheck:local

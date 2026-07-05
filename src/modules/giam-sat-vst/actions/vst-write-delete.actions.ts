@@ -9,6 +9,7 @@ import {
   isSupervisionSessionMutationExpired,
   SUPERVISION_SESSION_MUTATION_EXPIRED_VI,
 } from "@/lib/supervision-mutation-window";
+import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock";
 
 const VST_OWNER_ONLY_VI = "Chỉ người giám sát đã ghi nhận phiên này mới được sửa hoặc xóa.";
 
@@ -28,7 +29,7 @@ export async function deleteVSTSessions(sessionIds: string[]) {
 
     const { data: rows, error: qErr } = await supabase
       .from("gstt_fact_vst_sessions")
-      .select("id,nguoi_giam_sat_id,is_active,created_at")
+      .select("id,nguoi_giam_sat_id,is_active,created_at,ngay_giam_sat")
       .in("id", ids);
     if (qErr) throw qErr;
 
@@ -62,6 +63,11 @@ export async function deleteVSTSessions(sessionIds: string[]) {
     });
     if (inactive.length) {
       return { success: false, error: "Phiên đã bị vô hiệu, không xóa được theo luồng hiện tại." };
+    }
+
+    const ngayRows = (rows || []) as Array<{ id?: string; ngay_giam_sat?: string | null }>;
+    for (const row of ngayRows) {
+      await assertSupervisionNotLockedForDate(supabase, "VST", row.ngay_giam_sat ?? null);
     }
 
     const { error: detailErr } = await supabase.from("gstt_fact_vst").delete().in("session_id", ids);

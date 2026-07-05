@@ -8,15 +8,16 @@ import {
   KsnkSupervisionTabLinks,
   type SupervisionTabLinkDef,
 } from "@/components/shared/ksnk-supervision-chrome";
+import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 
 const historyTabs: SupervisionTabLinkDef[] = [
-  { id: "vst", label: "Vệ sinh tay", icon: Stethoscope, href: "/lich-su/vst" },
-  { id: "gsc", label: "Giám sát chung", icon: ClipboardList, href: "/lich-su/gsc" },
+  { id: "vst", label: "Vệ sinh tay", mobileLabel: "VST", icon: Stethoscope, href: "/lich-su/vst" },
+  { id: "gsc", label: "Giám sát chung", mobileLabel: "GSC", icon: ClipboardList, href: "/lich-su/gsc" },
 ];
 
 export default function LichSuLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="space-y-6 pb-12">
+    <div className={bv103DesignTokens.pageOuter}>
       <Suspense fallback={null}>
         <KsnkSupervisionHero
           eyebrow="Tra cứu"
@@ -27,10 +28,7 @@ export default function LichSuLayout({ children }: { children: React.ReactNode }
             </>
           }
           trailing={
-            <KsnkSupervisionTabLinks
-              tabs={historyTabs}
-              ariaLabel="Lịch sử giám sát"
-            />
+            <KsnkSupervisionTabLinks tabs={historyTabs} ariaLabel="Lịch sử giám sát" />
           }
         />
       </Suspense>

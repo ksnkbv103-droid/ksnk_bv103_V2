@@ -15,10 +15,10 @@ function ThongKeToolbar() {
   const pathname = usePathname();
 
   return (
-    <div className={`no-print sticky top-4 z-40 ${bv103DesignTokens.analyticsToolbarShell}`}>
-      <div className="flex min-h-9 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-base font-semibold tracking-tight text-slate-900">Thống kê giám sát</h1>
-        <nav aria-label="Module thống kê" className="flex shrink-0 gap-1 rounded-lg bg-slate-100 p-1">
+    <div className={`no-print ${bv103DesignTokens.analyticsToolbarShell}`}>
+      <div className="flex min-h-8 flex-col gap-2 sm:min-h-9 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <h1 className="text-sm font-semibold tracking-tight text-slate-900 sm:text-base">Thống kê giám sát</h1>
+        <nav aria-label="Module thống kê" className="flex w-full shrink-0 gap-1 rounded-lg bg-slate-100 p-0.5 sm:w-auto sm:p-1">
           {analyticsTabs.map((tab) => {
             const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
             const Icon = tab.icon;
@@ -26,7 +26,7 @@ function ThongKeToolbar() {
               <Link
                 key={tab.id}
                 href={tab.href}
-                className={`inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-semibold transition-colors ${
+                className={`inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-md px-2.5 text-xs font-semibold transition-colors touch-manipulation sm:h-8 sm:flex-initial sm:px-3 ${
                   active ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
                 }`}
               >

@@ -126,4 +126,107 @@ FROM public.sys_roles r
 WHERE r.name = 'ADMIN'
 ON CONFLICT (user_id, role_id) DO NOTHING;
 
+-- Tài khoản khách xem thống kê (local pilot — đổi mật khẩu trên Supabase Auth khi go-live)
+INSERT INTO auth.users (
+  instance_id,
+  id,
+  aud,
+  role,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  raw_app_meta_data,
+  raw_user_meta_data,
+  created_at,
+  updated_at,
+  confirmation_token,
+  email_change,
+  email_change_token_new,
+  recovery_token
+)
+VALUES (
+  '00000000-0000-0000-0000-000000000000',
+  'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb002',
+  'authenticated',
+  'authenticated',
+  'chuyennghiephieuqua@bv103',
+  extensions.crypt('antoanhoptac@bv103', extensions.gen_salt('bf')),
+  now(),
+  '{"provider":"email","providers":["email"]}'::jsonb,
+  '{"full_name":"Khách xem thống kê giám sát"}'::jsonb,
+  now(),
+  now(),
+  '',
+  '',
+  '',
+  ''
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO auth.identities (
+  id,
+  user_id,
+  identity_data,
+  provider,
+  provider_id,
+  last_sign_in_at,
+  created_at,
+  updated_at
+)
+SELECT
+  'cccccccc-cccc-cccc-cccc-cccccccc0002',
+  'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb002',
+  jsonb_build_object(
+    'sub', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb002',
+    'email', 'chuyennghiephieuqua@bv103',
+    'email_verified', true
+  ),
+  'email',
+  'chuyennghiephieuqua@bv103',
+  now(),
+  now(),
+  now()
+WHERE NOT EXISTS (
+  SELECT 1 FROM auth.identities
+  WHERE provider = 'email' AND provider_id = 'chuyennghiephieuqua@bv103'
+);
+
+INSERT INTO public.mdm_nhan_su (
+  id,
+  ho_ten,
+  ma_nv,
+  khoa_id,
+  is_active,
+  auth_user_id,
+  extra_data,
+  created_at,
+  updated_at
+)
+VALUES (
+  'dddddddd-dddd-dddd-dddd-dddddddddd02',
+  'Khách xem thống kê giám sát',
+  'KHACH01',
+  NULL,
+  true,
+  'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb002',
+  '{"email":"chuyennghiephieuqua@bv103"}'::jsonb,
+  now(),
+  now()
+)
+ON CONFLICT (id) DO UPDATE SET
+  ho_ten = EXCLUDED.ho_ten,
+  ma_nv = EXCLUDED.ma_nv,
+  is_active = EXCLUDED.is_active,
+  auth_user_id = EXCLUDED.auth_user_id,
+  extra_data = EXCLUDED.extra_data,
+  updated_at = now();
+
+INSERT INTO public.sys_user_roles (user_id, role_id)
+SELECT
+  'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb002',
+  r.id
+FROM public.sys_roles r
+WHERE r.name = 'KHACH_THONG_KE_GSTT'
+ON CONFLICT (user_id, role_id) DO NOTHING;
+
 COMMIT;

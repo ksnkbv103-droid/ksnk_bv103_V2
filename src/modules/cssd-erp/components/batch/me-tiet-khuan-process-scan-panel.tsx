@@ -4,6 +4,7 @@ import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui
 
 import React, { useEffect, useRef } from "react";
 import { Scan } from "lucide-react";
+import QrScanInput from "@/components/shared/QrScanInput";
 
 export type MeTkItemRow = {
   id: string;
@@ -48,18 +49,23 @@ export default function MeTietKhuanProcessScanPanel({
         Chỉ quét bộ đang ở <span className="text-[var(--primary)]">ĐÓNG GÓI</span> và chưa gán mẻ khác. Sau khi{" "}
         <span className="text-red-600">xác nhận bắt đầu tiệt khuẩn</span> hệ thống khóa, không nạp thêm được.
       </p>
-      <input
-        ref={inputRef}
+      <QrScanInput
+        inputRef={inputRef}
         disabled={napLocked}
         autoFocus={!napLocked}
         placeholder={napLocked ? "Đã chốt nạp — không quét thêm" : "Quét mã QR bộ dụng cụ..."}
-        className="mb-4 h-16 w-full rounded-2xl border-2 border-emerald-100 bg-emerald-50/50 px-6 text-lg font-black outline-none focus:border-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-60"
-        onKeyDown={(e) => {
+        cameraTitle="Quét QR bộ vào mẻ tiệt khuẩn"
+        className="mb-4"
+        inputClassName="h-16 w-full rounded-2xl border-2 border-emerald-100 bg-emerald-50/50 px-6 text-lg font-black uppercase outline-none focus:border-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-60"
+        onEnter={(code) => {
           if (napLocked) return;
-          if (e.key === "Enter") {
-            onAddItemByCode(e.currentTarget.value);
-            e.currentTarget.value = "";
-          }
+          onAddItemByCode(code);
+          if (inputRef.current) inputRef.current.value = "";
+        }}
+        onCameraScan={(code) => {
+          if (napLocked) return;
+          onAddItemByCode(code);
+          if (inputRef.current) inputRef.current.value = "";
         }}
       />
       <div className="custom-scrollbar flex-1 space-y-2 overflow-y-auto pr-2">

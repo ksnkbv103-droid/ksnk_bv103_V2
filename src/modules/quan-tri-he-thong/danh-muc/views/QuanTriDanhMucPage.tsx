@@ -160,7 +160,7 @@ export default function QuanTriDanhMucPage() {
   }
 
   return (
-    <div className="touch-manipulation space-y-8 pb-16 animate-in fade-in duration-500">
+    <div className="touch-manipulation space-y-4 pb-12 animate-in fade-in duration-500 sm:space-y-8 sm:pb-16">
       <QuanTriDanhMucTabStrip
         active={activeTab}
         onChange={setActiveTab}

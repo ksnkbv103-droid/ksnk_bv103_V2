@@ -1,6 +1,5 @@
 "use client";
 
-import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { toast } from "sonner";
 import { buildLockedTemplateMapping } from "@/lib/import-export-template";
@@ -16,6 +15,8 @@ export function useExcelExport(config: ImportExportConfig, normalizedMapping: Re
         if (res.success) dataToExport = res.data;
       }
 
+      // exceljs nặng ~940KB — chỉ tải khi user thực sự export
+      const { default: ExcelJS } = await import("exceljs");
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet(config.displayName);
       const exportMapping = !config.isHierarchical

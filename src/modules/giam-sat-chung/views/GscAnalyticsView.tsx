@@ -23,8 +23,9 @@ function resolveLoaiFromSearchParams(
   if (!loaiParam) return undefined;
   return LOAI_FROM_SEARCH[loaiParam.trim().toUpperCase()];
 }
-import { AnalyticsKhoaScopeBanner } from "@/modules/dashboard/components/AnalyticsKhoaScopeBanner";
+import { AnalyticsThongKeScopeBanner } from "@/modules/dashboard/components/AnalyticsThongKeScopeBanner";
 import GscAnalyticsScopeBanner from "../components/GscAnalyticsScopeBanner";
+import { usePermission } from "@/hooks/usePermission";
 
 const GscStrategicAnalyticsPanel = dynamic(() => import("../components/GscStrategicAnalyticsPanel"), {
   ssr: false,
@@ -62,6 +63,8 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
   const d = useGscAnalyticsData(resolvedLoai);
   const pathname = usePathname();
   const router = useRouter();
+  const { isGuestStatsOnly } = usePermission(undefined, "view");
+  const onThongKeRoute = pathname.startsWith("/thong-ke/gsc");
   const activeTab: AnalyticsTab = searchParams.get("view") === "bk-toi" ? "bk-toi" : "thong-ke";
 
   const setTab = useCallback(
@@ -75,39 +78,53 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
 
   return (
     <KsnkSupervisionPanel className="min-h-[50vh]">
-      {resolvedLoai && !pathname.startsWith("/thong-ke/gsc") ? (
+      {resolvedLoai && !onThongKeRoute ? (
         <GscAnalyticsScopeBanner loai={resolvedLoai} />
       ) : null}
-      {d.khoaFilterLocked && d.lockedKhoaLabel ? <AnalyticsKhoaScopeBanner khoaLabel={d.lockedKhoaLabel} /> : null}
+      {onThongKeRoute ? (
+        <AnalyticsThongKeScopeBanner
+          khoaFilterLocked={d.khoaFilterLocked}
+          lockedKhoaLabel={d.lockedKhoaLabel}
+        />
+      ) : d.khoaFilterLocked && d.lockedKhoaLabel ? (
+        <AnalyticsThongKeScopeBanner
+          khoaFilterLocked={d.khoaFilterLocked}
+          lockedKhoaLabel={d.lockedKhoaLabel}
+        />
+      ) : null}
 
-      <div className="px-2 pb-2">
-        <div className="inline-flex gap-1 rounded-[var(--radius-shell)] bg-slate-100 p-1">
+      {!isGuestStatsOnly ? (
+      <div className="px-1 pb-1 sm:px-2 sm:pb-2">
+        <div className="inline-flex w-full gap-1 rounded-[var(--radius-shell)] bg-slate-100 p-0.5 sm:w-auto sm:p-1">
           <button
             type="button"
             onClick={() => setTab("thong-ke")}
-            className={`rounded-[var(--radius-shell)] px-4 py-2 text-xs font-bold transition-colors ${
+            className={`min-h-9 flex-1 rounded-[var(--radius-shell)] px-2 py-1.5 text-xs font-bold transition-colors touch-manipulation sm:flex-initial sm:px-4 sm:py-2 ${
               activeTab === "thong-ke"
                 ? "bg-white text-[var(--primary)] shadow-sm"
                 : "text-slate-500 hover:text-slate-700"
             }`}
           >
-            Thống kê theo bảng kiểm
+            <span className="sm:hidden">Thống kê</span>
+            <span className="hidden sm:inline">Thống kê theo bảng kiểm</span>
           </button>
           <button
             type="button"
             onClick={() => setTab("bk-toi")}
-            className={`rounded-[var(--radius-shell)] px-4 py-2 text-xs font-bold transition-colors ${
+            className={`min-h-9 flex-1 rounded-[var(--radius-shell)] px-2 py-1.5 text-xs font-bold transition-colors touch-manipulation sm:flex-initial sm:px-4 sm:py-2 ${
               activeTab === "bk-toi"
                 ? "bg-white text-[var(--primary)] shadow-sm"
                 : "text-slate-500 hover:text-slate-700"
             }`}
           >
-            BK tôi phải TGS
+            <span className="sm:hidden">BK TGS</span>
+            <span className="hidden sm:inline">BK tôi phải TGS</span>
           </button>
         </div>
       </div>
+      ) : null}
 
-      {activeTab === "bk-toi" ? (
+      {!isGuestStatsOnly && activeTab === "bk-toi" ? (
         <GscBangKiemToiPhaiTgsPanel
           tuNgay={d.tuNgay}
           setTuNgay={d.setTuNgay}

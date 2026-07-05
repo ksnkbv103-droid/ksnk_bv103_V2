@@ -23,6 +23,11 @@ type Props = {
   quyTrinhId?: string | null;
   /** Chỉ hiện khi đang ở trạm Đóng gói hoặc vừa quét bộ. */
   enabled?: boolean;
+  /** Trạm đóng gói: kiểm cấu phần trước khi chuyển trạm. */
+  gateMode?: boolean;
+  onConfirmAdvance?: () => void;
+  onCancelGate?: () => void;
+  advancing?: boolean;
 };
 
 const KIND_TO_TYPE: Record<string, string> = {
@@ -31,7 +36,15 @@ const KIND_TO_TYPE: Record<string, string> = {
   BO_SUNG: "INSTRUMENT_REPLENISH",
 };
 
-export default function CompositionReconcilePanel({ boDungCuId, quyTrinhId, enabled = true }: Props) {
+export default function CompositionReconcilePanel({
+  boDungCuId,
+  quyTrinhId,
+  enabled = true,
+  gateMode = false,
+  onConfirmAdvance,
+  onCancelGate,
+  advancing = false,
+}: Props) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<CompositionReconcilePayload | null>(null);
   const [suCoOpen, setSuCoOpen] = useState(false);
@@ -77,11 +90,18 @@ export default function CompositionReconcilePanel({ boDungCuId, quyTrinhId, enab
       <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h4 className={CSSD_UI_SECTION_TITLE}>Đối chiếu cấu phần bộ</h4>
+            <h4 className={CSSD_UI_SECTION_TITLE}>
+              {gateMode ? "Danh mục chi tiết bộ dụng cụ" : "Đối chiếu cấu phần bộ"}
+            </h4>
             <p className="text-[11px] font-medium text-slate-500">
               {data?.maBo ? `${data.maBo} — ` : ""}
               {data?.tenBo || "Đang tải…"}
             </p>
+            {gateMode ? (
+              <p className="mt-1 text-[11px] font-medium leading-relaxed text-amber-800">
+                Kiểm đếm từng dụng cụ; báo Hỏng / Mất / Bổ sung nếu cần. Sau đó bạn quyết định có chuyển chờ tiệt khuẩn hay không.
+              </p>
+            ) : null}
           </div>
           {loading ? <Loader2 className="animate-spin text-slate-400" size={18} /> : null}
         </div>
@@ -165,6 +185,27 @@ export default function CompositionReconcilePanel({ boDungCuId, quyTrinhId, enab
                 ))}
               </tbody>
             </table>
+          </div>
+        ) : null}
+
+        {gateMode ? (
+          <div className="flex flex-col gap-2 border-t border-slate-100 pt-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={onCancelGate}
+              disabled={advancing}
+              className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-xs font-semibold uppercase tracking-wide text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+            >
+              Đóng (chưa chuyển)
+            </button>
+            <button
+              type="button"
+              onClick={onConfirmAdvance}
+              disabled={advancing || loading}
+              className="h-11 rounded-xl bg-emerald-600 px-5 text-xs font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {advancing ? "Đang chuyển…" : "Xác nhận chuyển chờ tiệt khuẩn"}
+            </button>
           </div>
         ) : null}
       </section>

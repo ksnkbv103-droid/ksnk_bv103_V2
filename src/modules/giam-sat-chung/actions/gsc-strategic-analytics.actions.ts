@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
+import { resolveAnalyticsRpcFilters } from "@/lib/analytics/resolve-analytics-rpc-scope";
 import type { GscStrategicFilters, GscStrategicPayload } from "../types/gsc-strategic.types";
 
 const gscStrategicFiltersSchema = z.object({
@@ -31,28 +32,13 @@ export async function getGscStrategicAnalytics(filters: GscStrategicFilters) {
 
   const supabase = await createServerSupabaseUserClient();
   const scope = await getActorKsnkScope();
-  const isNetwork = scope.isMangLuoiKsnk;
-  const p_khoi_ids = isNetwork ? null : f.khoi_ids && f.khoi_ids.length > 0 ? f.khoi_ids : null;
-  const p_khoa_ids = isNetwork
-    ? scope.actorKhoaId
-      ? [scope.actorKhoaId]
-      : null
-    : f.khoa_ids && f.khoa_ids.length > 0
-      ? f.khoa_ids
-      : null;
-  const p_nghe_nghiep_ids = isNetwork ? null : f.nghe_nghiep_ids && f.nghe_nghiep_ids.length > 0 ? f.nghe_nghiep_ids : null;
-  const p_khu_vuc_ids = isNetwork ? null : f.khu_vuc_ids && f.khu_vuc_ids.length > 0 ? f.khu_vuc_ids : null;
-  const p_hinh_thuc_ids = isNetwork ? null : f.hinh_thuc_ids && f.hinh_thuc_ids.length > 0 ? f.hinh_thuc_ids : null;
+  const rpcFilters = resolveAnalyticsRpcFilters(scope, f, "gsc");
   const p_bang_kiem_mas = f.bang_kiem_mas && f.bang_kiem_mas.length > 0 ? f.bang_kiem_mas : null;
 
   const rpcArgs = {
     p_tu_ngay: f.tu_ngay,
     p_den_ngay: f.den_ngay,
-    p_khoi_ids,
-    p_khoa_ids,
-    p_nghe_nghiep_ids,
-    p_khu_vuc_ids,
-    p_hinh_thuc_ids,
+    ...rpcFilters,
     p_bang_kiem_mas,
   };
 

@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { mdmGetSupervisionMasterDataBundle } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
+import { getVstHeaderDmDropdowns } from "../actions/vst-read.actions";
 import type { VstSessionLocationHistoryRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/master-data-gateway.actions";
 import { toast } from "sonner";
 import { createDefaultVSTFormPersons, type VSTFormPerson, useVSTFormHandlers } from "./useVSTFormHandlers";
@@ -52,10 +53,14 @@ export function useVSTForm(onSuccess: () => void, editingSessionId?: string | nu
         if (cancelled) return;
         if (result.success) {
           setMasterDataFetchFailed(false);
-          setKhoas(result.data.khoas || []);
-          setKhuVucs(result.data.khuVucs || []);
+          const scoped = await getVstHeaderDmDropdowns();
+          const scopedData = scoped.success ? scoped.data : null;
+          setKhoas(scopedData?.khoas?.length ? scopedData.khoas : result.data.khoas || []);
+          setKhuVucs(scopedData?.khuVucs?.length ? scopedData.khuVucs : result.data.khuVucs || []);
+          // Nhân sự form: luôn dùng bundle đầy đủ (khoa_id, nghe_nghiep_id, chức danh…) — parity GSC.
+          // getVstHeaderDmDropdowns chỉ trả { id, ho_ten } → lọc theo khoa/nghề trống dropdown.
           setNhanSus(result.data.nhanSus || []);
-          setNgheNghieps(result.data.ngheNghieps || []);
+          setNgheNghieps(scopedData?.ngheNghieps?.length ? scopedData.ngheNghieps : result.data.ngheNghieps || []);
           setHinhThucGiamSats((result.data as any).hinhThucGiamSats || []);
           setCachThucGiamSats((result.data as any).cachThucGiamSats || []);
           setHistoryLocations(result.data.historyLocations || []);

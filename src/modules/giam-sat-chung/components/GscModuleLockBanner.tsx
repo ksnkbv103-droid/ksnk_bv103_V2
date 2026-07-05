@@ -2,6 +2,7 @@
 
 import { AlertTriangle } from "lucide-react";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import { MobileCollapsibleNotice } from "@/components/shared/MobileCollapsibleNotice";
 
 export default function GscModuleLockBanner({
   lockedUntilDate,
@@ -12,15 +13,12 @@ export default function GscModuleLockBanner({
 }) {
   if (!lockedUntilDate || !lockMessage) return null;
   return (
-    <div
-      role="status"
-      className={`${C.noticeAmber} flex items-start gap-3 px-4 py-3 text-sm`}
-    >
-      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden />
-      <div>
-        <p className="font-semibold">Module GSC đang khóa báo cáo đến {lockedUntilDate}</p>
-        <p className="mt-1 text-xs leading-relaxed text-amber-900/90">{lockMessage}</p>
-      </div>
-    </div>
+    <MobileCollapsibleNotice
+      className={`${C.noticeAmber} px-3 py-2 text-sm sm:px-4 sm:py-3`}
+      icon={<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden />}
+      summary={<span className="font-semibold">GSC khóa báo cáo đến {lockedUntilDate}</span>}
+      detail={lockMessage}
+      dismissible={false}
+    />
   );
 }

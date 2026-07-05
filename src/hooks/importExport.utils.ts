@@ -1,6 +1,6 @@
 "use client";
 
-import ExcelJS from "exceljs";
+import type ExcelJS from "exceljs";
 import { buildLockedTemplateMapping, hasImportTemplatePreset } from "@/lib/import-export-template";
 
 export function excelCellToPlain(val: unknown): unknown {

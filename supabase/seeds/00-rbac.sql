@@ -12,7 +12,8 @@ VALUES
   ('TO_TRUONG_MANG_LUOI_KSNK', 'Tổ trưởng tổ mạng lưới KSNK theo khoa', true),
   ('THANH_VIEN_MANG_LUOI_KSNK', 'Thành viên mạng lưới KSNK theo khoa', true),
   ('BAN_QLCL', 'Ban Quản lý Chất lượng Bệnh viện — tiếp nhận ticket RCA hệ thống', true),
-  ('KHOA_TRANG_BI', 'Khoa Trang bị — tiếp nhận ticket RCA về thiết bị/nguồn lực', true)
+  ('KHOA_TRANG_BI', 'Khoa Trang bị — tiếp nhận ticket RCA về thiết bị/nguồn lực', true),
+  ('KHACH_THONG_KE_GSTT', 'Khách — chỉ xem Thống kê VST và GSC (tài khoản chung)', true)
 ON CONFLICT (name) DO UPDATE SET
   description = EXCLUDED.description,
   is_active = EXCLUDED.is_active,
@@ -151,6 +152,16 @@ WHERE r.name = 'NHAN_VIEN_KSNK'
     OR (p.module_name = 'PHAN_QUYEN' AND p.action = 'view')
     OR (p.module_name IN ('LOAI_DC','BO_DC','DC_LE','THIET_BI','HOA_CHAT','KHOA_PHONG','BANG_KIEM_DETAIL') AND p.action = 'view')
   )
+ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+-- KHACH_THONG_KE_GSTT: chỉ xem Thống kê VST/GSC
+INSERT INTO public.sys_role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM public.sys_roles r
+JOIN public.sys_permissions p ON true
+WHERE r.name = 'KHACH_THONG_KE_GSTT'
+  AND p.module_name IN ('GIAM_SAT_VST', 'GIAM_SAT_CHUNG')
+  AND p.action = 'view'
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 
 COMMIT;

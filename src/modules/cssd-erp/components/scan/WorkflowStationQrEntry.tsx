@@ -5,15 +5,18 @@ import React, { useEffect, useRef, useState } from "react";
 import { ChevronDown, QrCode } from "lucide-react";
 import type { CSSDWaitingItem } from "../../types/cssd.types";
 import { CSSD_UI_ACTION_PRIMARY } from "../../shared/ui/cssd-ui-chrome";
+import QrScanInput from "@/components/shared/QrScanInput";
 
 type Props = {
   waitingItems: CSSDWaitingItem[];
   disabled?: boolean;
   onConfirm: (code: string) => void;
+  /** Đang mở bảng kiểm đóng gói — vẫn cho quét bộ khác. */
+  gateActive?: boolean;
 };
 
 /** Ô quét QR + dropdown chọn bộ đang chờ tại trạm (khi máy quét hỏng). */
-export default function WorkflowStationQrEntry({ waitingItems, disabled, onConfirm }: Props) {
+export default function WorkflowStationQrEntry({ waitingItems, disabled, onConfirm, gateActive }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [pickId, setPickId] = useState("");
 
@@ -41,17 +44,22 @@ export default function WorkflowStationQrEntry({ waitingItems, disabled, onConfi
 
   return (
     <div className="space-y-3">
+      {gateActive ? (
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-medium leading-relaxed text-amber-900">
+          Đang kiểm bộ đã chọn. Hoàn tất báo sự cố (nếu có) rồi bấm «Xác nhận chuyển chờ tiệt khuẩn» — hoặc «Đóng» nếu chưa chuyển.
+        </p>
+      ) : null}
+
       <div className="flex w-full items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 p-2">
-        <input
-          ref={inputRef}
-          type="text"
+        <QrScanInput
+          inputRef={inputRef}
           disabled={disabled}
           placeholder={disabled ? "Chọn trạm trước" : "Quét hoặc gõ mã QR bộ…"}
-          autoCapitalize="characters"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") submitCode(e.currentTarget.value);
-          }}
-          className="h-12 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold uppercase text-slate-800 outline-none transition-all placeholder:normal-case placeholder:text-slate-400 focus:border-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+          cameraTitle="Quét QR bộ dụng cụ"
+          onEnter={submitCode}
+          onCameraScan={submitCode}
+          className="min-w-0 flex-1"
+          inputClassName="h-12 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold uppercase text-slate-800 outline-none transition-all placeholder:normal-case placeholder:text-slate-400 focus:border-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
         />
         <button
           type="button"
@@ -97,7 +105,7 @@ export default function WorkflowStationQrEntry({ waitingItems, disabled, onConfi
           <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
         </div>
         <p className="text-[11px] leading-snug text-slate-500">
-          Dùng khi máy quét QR hỏng: chọn một dòng sẽ xác nhận xử lý ngay (cùng danh sách bên trái).
+          Dùng khi không quét được: chọn một dòng sẽ mở bảng kiểm (trạm Đóng gói) hoặc xác nhận xử lý ngay (các trạm khác).
         </p>
       </div>
     </div>

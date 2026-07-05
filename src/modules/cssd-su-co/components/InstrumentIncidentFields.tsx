@@ -130,7 +130,7 @@ export default function InstrumentIncidentFields({
                 setSelectedChiTietId(e.target.value);
                 setQuantity(1);
               }}
-              className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none focus:border-[var(--primary)]"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-bold text-slate-800 outline-none focus:border-[var(--primary)] sm:text-xs"
             >
               <option value="">— Chọn dụng cụ —</option>
               {data.items.map((row) => (

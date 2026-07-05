@@ -3,6 +3,7 @@
 import React from "react";
 import { Edit2, Trash2 } from "lucide-react";
 import { MdmActiveToggle } from "@/components/shared/MdmActiveToggle";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 interface ActionUiConfig<T> {
   onToggleStatus: (item: T) => void | Promise<void>;
@@ -53,20 +54,20 @@ export function useTableActionUi<T>(config: ActionUiConfig<T>) {
           <button
             type="button"
             onClick={() => config.onEdit(item)}
-            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+            className={`${C.tableIconBtn} text-blue-600 hover:bg-blue-50`}
             title="Sửa"
           >
-            <Edit2 size={14} />
+            <Edit2 size={16} />
           </button>
         ) : null}
         {cd ? (
           <button
             type="button"
             onClick={() => config.onDelete(item)}
-            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+            className={`${C.tableIconBtn} text-red-600 hover:bg-red-50`}
             title="Xóa mềm"
           >
-            <Trash2 size={14} />
+            <Trash2 size={16} />
           </button>
         ) : null}
       </div>

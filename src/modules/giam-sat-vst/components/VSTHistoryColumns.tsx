@@ -8,6 +8,7 @@ import { formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
 import { classifyVstAction } from "../lib/vst-action-classifier";
 import type { VstHistoryRow } from "../lib/vst-read-utils";
 import { gscTableChrome as G } from "@/modules/giam-sat-chung/lib/gsc-table-chrome";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 function formatHHmm(value: unknown): string {
   const raw = String(value ?? "").trim();
@@ -24,6 +25,7 @@ function formatHHmm(value: unknown): string {
  */
 export function getVSTHistoryColumns(
   printingSessionId: string | null,
+  onView: (session: VstHistoryRow) => void,
   onPrint: (sessionId: string) => void,
   onEdit: ((sessionId: string) => void) | undefined,
   canEdit: boolean,
@@ -134,15 +136,26 @@ export function getVSTHistoryColumns(
     {
       header: "",
       accessorKey: "id",
-      headerClassName: "w-[7.5rem] min-w-[7.5rem]",
-      cellClassName: "w-[7.5rem] min-w-[7.5rem]",
+      headerClassName: "w-[9rem] min-w-[9rem]",
+      cellClassName: "w-[9rem] min-w-[9rem]",
       cell: (s: VstHistoryRow) => (
-        <div className="flex items-center justify-end gap-1.5">
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onView(s);
+            }}
+            className={C.tableActionBtn}
+            disabled={!s?.id}
+          >
+            Xem
+          </button>
           {onEdit && canEdit ? (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onEdit(String(s.id || "")); }}
-              className="h-8 px-3 rounded-md border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:border-slate-400 transition-colors"
+              className={C.tableActionBtn}
               disabled={!s?.id}
             >
               Sửa
@@ -152,7 +165,7 @@ export function getVSTHistoryColumns(
             type="button"
             onClick={(e) => { e.stopPropagation(); onPrint(String(s.id || "")); }}
             disabled={printingSessionId === String(s.id || "")}
-            className="h-8 px-3 rounded-md bg-slate-800 text-xs font-semibold text-white hover:bg-slate-700 transition-colors disabled:opacity-50"
+            className={C.tableActionBtnPrimary}
           >
             {printingSessionId === String(s.id || "") ? "Đang in..." : "In phiếu"}
           </button>

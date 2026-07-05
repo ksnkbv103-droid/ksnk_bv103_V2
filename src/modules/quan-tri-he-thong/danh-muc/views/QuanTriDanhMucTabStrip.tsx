@@ -1,5 +1,6 @@
 import React from "react";
 import { Database, ShieldCheck, ShieldAlert } from "lucide-react";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 type TabId = "DANH_MUC" | "PHAN_QUYEN" | "MDM_GOVERNANCE";
 
@@ -10,8 +11,7 @@ type Props = {
   canConfigureRbac: boolean;
 };
 
-const tabBase =
-  "flex min-w-0 flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 sm:flex-initial sm:px-5 touch-manipulation";
+const tabBase = C.navTabBtn;
 
 export default function QuanTriDanhMucTabStrip({
   active,
@@ -23,7 +23,7 @@ export default function QuanTriDanhMucTabStrip({
     <div
       role="tablist"
       aria-label="Khu vực quản trị danh mục"
-      className="flex flex-wrap gap-1 rounded-xl border border-slate-200/90 bg-slate-100/90 p-1 shadow-inner"
+      className={C.navTabStrip}
     >
       <button
         type="button"
@@ -35,8 +35,9 @@ export default function QuanTriDanhMucTabStrip({
         className={`${tabBase} ${active === "DANH_MUC" ? "bg-white text-[var(--primary)] shadow-sm ring-1 ring-slate-200/80" : "text-slate-500 hover:bg-white/60 hover:text-slate-800"} disabled:cursor-not-allowed disabled:opacity-45`}
         onClick={() => onChange("DANH_MUC")}
       >
-        <Database className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
-        <span className="truncate">Trung tâm danh mục</span>
+        <Database className="h-4 w-4 shrink-0 opacity-90 max-sm:h-3.5 max-sm:w-3.5" aria-hidden />
+        <span className="truncate sm:hidden">Danh mục</span>
+        <span className="hidden truncate sm:inline">Trung tâm danh mục</span>
       </button>
       <button
         type="button"
@@ -61,8 +62,9 @@ export default function QuanTriDanhMucTabStrip({
         className={`${tabBase} ${active === "MDM_GOVERNANCE" ? "bg-white text-[var(--primary)] shadow-sm ring-1 ring-slate-200/80" : "text-slate-500 hover:bg-white/60 hover:text-slate-800"} disabled:cursor-not-allowed disabled:opacity-45`}
         onClick={() => onChange("MDM_GOVERNANCE")}
       >
-        <ShieldAlert className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
-        <span className="truncate">Giám trị dữ liệu (MDM)</span>
+        <ShieldAlert className="h-4 w-4 shrink-0 opacity-90 max-sm:h-3.5 max-sm:w-3.5" aria-hidden />
+        <span className="truncate sm:hidden">MDM</span>
+        <span className="hidden truncate sm:inline">Giám trị dữ liệu (MDM)</span>
       </button>
     </div>
   );

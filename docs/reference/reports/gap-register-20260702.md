@@ -99,8 +99,8 @@
 
 | ID | P | Slice đề xuất |
 |----|---|---------------|
-| G-12 | P2 | Boy-scout unused-var từng module |
-| G-11 / W2-02 | P3 | S-RLS-01 GSTT RLS hardening |
+| G-12 | P2 | Boy-scout unused-var từng module — **ĐÃ XONG 2026-07-03** (cải tổ Đợt 1: 0 cảnh báo unused-vars) |
+| G-11 / W2-02 | P3 | S-RLS-01 GSTT RLS hardening — **ĐÃ XONG 2026-07-03** (migration `20260703100000` + `20260703101000`; test 3 vai pass local) |
 | G-10 / W3-07 | P3 | S-NKBV-UAT clinical sign-off |
 
 ---

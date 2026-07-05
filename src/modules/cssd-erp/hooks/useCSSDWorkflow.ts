@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Station, CSSDWaitingItem } from "../types/cssd.types";
 import { scanQR, getWaitingListByStation } from "../actions/cssd.actions";
+import { prepareDongGoiBomGateScan } from "../actions/cssd-bom-checkpoint.actions";
 import { usePermission } from "@/hooks/usePermission";
 import { toast } from "sonner";
 import { SCAN_STATIONS, WORKFLOW_STEPS, nextStationLabel } from "../workflow/domain/cssd-stations";
@@ -22,6 +23,13 @@ type ScanResultPayload = {
   issuanceOnly?: boolean;
 };
 
+export type DongGoiGateState = {
+  code: string;
+  quyTrinhId: string;
+  boDungCuId: string;
+  tenBoDungCu: string;
+};
+
 export function useCSSDWorkflow() {
   const { userData } = usePermission();
   const operatorLabel =
@@ -32,6 +40,7 @@ export function useCSSDWorkflow() {
   const [loading, setLoading] = useState(false);
 
   const [lastScan, setLastScan] = useState<any>(null);
+  const [dongGoiGate, setDongGoiGate] = useState<DongGoiGateState | null>(null);
 
   const fetchWaitingList = useCallback(async (station: Station) => {
     try {
@@ -52,8 +61,31 @@ export function useCSSDWorkflow() {
   const selectStation = (station: Station) => {
     setCurrentStation(station);
     setLastScan(null);
+    setDongGoiGate(null);
     fetchWaitingList(station);
   };
+
+  const openDongGoiGate = useCallback(async (code: string) => {
+    const normalized = code.trim().toUpperCase();
+    if (!normalized) return;
+    setLoading(true);
+    setLastScan(null);
+    try {
+      const prep = await prepareDongGoiBomGateScan(normalized);
+      setDongGoiGate({
+        code: prep.code,
+        quyTrinhId: prep.quyTrinhId,
+        boDungCuId: prep.boDungCuId,
+        tenBoDungCu: prep.tenBoDungCu,
+      });
+      toast.success(`Mở bảng kiểm cấu phần: ${prep.tenBoDungCu}`);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Không mở được bảng kiểm đóng gói.");
+      setDongGoiGate(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const applyScanSuccess = useCallback(
     (
@@ -132,8 +164,24 @@ export function useCSSDWorkflow() {
       return;
     }
 
+    if (currentStation === "DONG_GOI") {
+      await openDongGoiGate(code);
+      return;
+    }
+
     await runStationScan(currentStation, code, extraPayload);
   };
+
+  const confirmDongGoiAdvance = useCallback(async () => {
+    if (!dongGoiGate) return;
+    await runStationScan("DONG_GOI", dongGoiGate.code);
+    setDongGoiGate(null);
+  }, [dongGoiGate, runStationScan]);
+
+  const cancelDongGoiGate = useCallback(() => {
+    setDongGoiGate(null);
+    toast.message("Đã đóng bảng kiểm — bộ chưa chuyển chờ tiệt khuẩn.");
+  }, []);
 
   useEffect(() => {
     if (currentStation) {
@@ -150,8 +198,11 @@ export function useCSSDWorkflow() {
     loading,
     lastScan,
     scanSuccess: !!lastScan,
+    dongGoiGate,
     selectStation,
     handleQRScan,
+    confirmDongGoiAdvance,
+    cancelDongGoiGate,
     refresh: () => currentStation && fetchWaitingList(currentStation),
   };
 }

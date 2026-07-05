@@ -40,7 +40,7 @@ export default function QuanTriHeThongPage() {
   }
 
   return (
-    <div className="space-y-8 pb-20 animate-in fade-in duration-500">
+    <div className="space-y-4 pb-12 animate-in fade-in duration-500 sm:space-y-8 sm:pb-20">
       <KsnkPageHeader
         title={
           <span className="inline-flex items-center gap-2">

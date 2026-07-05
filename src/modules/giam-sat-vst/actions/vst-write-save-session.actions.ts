@@ -11,7 +11,9 @@ import {
   SUPERVISION_SESSION_MUTATION_EXPIRED_VI,
 } from "@/lib/supervision-mutation-window";
 import { resolveSupervisorPolicy } from "@/lib/supervision-policy";
+import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
+import { resolveVstScopedKhoaId } from "../lib/vst-khoa-scope";
 import {
   formatVstKhoaFkViolation,
   logVstSaveDebug,
@@ -21,7 +23,8 @@ import {
   vstWriteErrorMessage,
 } from "./vst-write.helpers";
 
-import { vstSaveSessionSchema } from "@/lib/validations";
+import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock";
+import { vstSaveSessionSchema } from "@/lib/validations/giam-sat-vst.validations";
 
 type SaveVSTSessionOpts = { existingSessionId?: string | null };
 
@@ -43,9 +46,17 @@ export async function saveVSTSession(
     if (!parsed.success) {
       return { success: false, error: "Dữ liệu không hợp lệ: " + parsed.error.issues.map((e) => e.message).join(", ") };
     }
+    const actorScope = await getActorKsnkScope();
+    const khoaScoped = resolveVstScopedKhoaId(
+      { isMangLuoiKsnk: actorScope.isMangLuoiKsnk, actorKhoaId: actorScope.actorKhoaId ?? null },
+      sessionData.khoa_id || null,
+    );
+    if (!khoaScoped.ok) {
+      return { success: false, error: khoaScoped.error };
+    }
     const khoaSessionNorm = await normalizeAndValidateDmKhoaPhong({
       supabase,
-      idRaw: sessionData.khoa_id,
+      idRaw: khoaScoped.khoaId,
       fieldLabel: "Khoa phòng",
     });
     await validateDanhMucIdByType({
@@ -85,7 +96,8 @@ export async function saveVSTSession(
     validateVstModeFields(hinh, cach);
     const ngayGiamSat = sessionData.ngay_giam_sat?.trim();
     if (!ngayGiamSat) throw new Error("Ngày giám sát là bắt buộc.");
-    if ((observations || []).some((obs) => String(obs.khoa_id || "") !== String(sessionData.khoa_id || ""))) {
+    await assertSupervisionNotLockedForDate(supabase, "VST", ngayGiamSat);
+    if ((observations || []).some((obs) => String(obs.khoa_id || "") !== String(khoaSessionNorm || ""))) {
       throw new Error("Dữ liệu lệch: khoa_id trong cơ hội giám sát không khớp khoa của phiên.");
     }
     logVstSaveDebug("Bắt đầu lưu phiên", {

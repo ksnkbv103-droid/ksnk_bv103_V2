@@ -19,14 +19,7 @@ import {
 } from "@/lib/supervision-session-time";
 import type { GiamSatSession, NhanSuOption } from "./giam-sat-header.types";
 import RegistrySelect from "./RegistrySelect";
-import {
-  buildKhuVucGroupedSelectOptions,
-  filterKhuVucsForKhoa,
-  khuVucZoneBadgeClass,
-  KHU_VUC_ZONE_LABELS,
-  zoneFromKhuVucMa,
-  type KhuVucZoneCode,
-} from "@/lib/khu-vuc-giam-sat-ui";
+import { buildKhuVucFlatSelectOptions, filterKhuVucsForKhoa } from "@/lib/khu-vuc-giam-sat-ui";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
@@ -155,15 +148,7 @@ export default function GiamSatHeaderFields({
     return filterKhuVucsForKhoa(khuVucs, allowedKhuVucs);
   }, [khuVucs, session.khoa_id, selectedKhoa]);
 
-  const khuVucSelectOptions = useMemo(() => buildKhuVucGroupedSelectOptions(filteredKhuVucs), [filteredKhuVucs]);
-
-  const selectedKhuVucZone = useMemo(() => {
-    const row = filteredKhuVucs.find((kv) => String(kv.id) === String(session.khu_vuc_id || ""));
-    if (!row) return null;
-    const zone = zoneFromKhuVucMa(row.ma_danh_muc || "", row.nhom_mau);
-    if (!(zone in KHU_VUC_ZONE_LABELS)) return null;
-    return zone as KhuVucZoneCode;
-  }, [filteredKhuVucs, session.khu_vuc_id]);
+  const khuVucSelectOptions = useMemo(() => buildKhuVucFlatSelectOptions(filteredKhuVucs), [filteredKhuVucs]);
 
   const headerIdentityReady = !loading && !permLoading;
 
@@ -295,17 +280,7 @@ export default function GiamSatHeaderFields({
           </div>
 
           <div className="flex min-h-0 min-w-0 flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <label className={C.labelField}>2. Chức năng phòng</label>
-              {selectedKhuVucZone ? (
-                <span
-                  className={`rounded px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${khuVucZoneBadgeClass(selectedKhuVucZone)}`}
-                  title={KHU_VUC_ZONE_LABELS[selectedKhuVucZone]}
-                >
-                  {selectedKhuVucZone}
-                </span>
-              ) : null}
-            </div>
+            <label className={C.labelField}>2. Chức năng phòng</label>
             <RegistrySelect
               loaiDanhMuc="KHU_VUC_GIAM_SAT"
               value={session.khu_vuc_id}

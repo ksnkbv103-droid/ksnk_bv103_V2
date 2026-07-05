@@ -12,7 +12,7 @@
 | GSC | `rpc_dashboard_gsc_strategic_analytics` | Phiên checklist động |
 | NKBV | aggregate action module NKBV | Outcome nhiễm khuẩn — **không** gộp CCS |
 
-App **không** đọc trực tiếp `gstt_fact_*_summary` (ADR 2026-06-03).
+App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript (ADR 2026-06-03). RPC `rpc_vst_compare_matrices` vẫn scan view summary ở lớp DB.
 
 ---
 
@@ -81,8 +81,8 @@ SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 
 | Route | Đối tượng | Số liệu |
 |-------|-----------|---------|
-| `/` | Điều hành ngày | Brief VST+GSC, top gap comparable |
-| `/thong-ke/vst`, `/thong-ke/gsc` | Chuyên viên KSNK / khoa | **BK-first GSC** · drill tiêu chí × khoa · **so sánh theo khối** (accordion) |
+| `/` | Điều hành ngày (KSNK / ADMIN / HĐ) | Brief VST+GSC, top gap comparable |
+| `/thong-ke/vst`, `/thong-ke/gsc` | Chuyên viên KSNK; **mạng lưới khoa** (so sánh toàn viện); **khách** (chỉ xem) | **BK-first GSC** · drill tiêu chí × khoa · **so sánh theo khối** (accordion) |
 | `/bao-cao-tong-hop` | BGĐ / HĐ KSNK | Compose + in A4 + Phần III narrative |
 
 ---
@@ -94,11 +94,10 @@ Gộp song song vào payload VST/GSC (và detail BK khi lọc 1 BK). Công thứ
 | Key | Chiều | Nguồn join |
 |-----|-------|------------|
 | `matrix_khoi[]` | Khối lâm sàng | `mdm_dm_khoa_phong.khoi_id` → `mdm_dm_khoi_khoa` |
-| `matrix_khu_vuc_nhom[]` | Vùng IPAC 4 màu | `sys_lookup_value.metadata.nhom_mau` |
-| `matrix_khu_vuc[]` | Khu vực chi tiết | `khu_vuc_id` |
-| `matrix_nghe[]` | Đối tượng / nghề | GSC only |
+| `matrix_khu_vuc[]` | Chức năng phòng | `khu_vuc_id` → `KHU_VUC_GIAM_SAT` |
+| `matrix_nghe[]` | Đối tượng / nghề | VST + GSC (strategic RPC) |
 | `matrix_hinh_thuc[]` | Hình thức giám sát | VST: `stype`; GSC: session lookup |
-| `matrix_cach_thuc[]` | Cách thức giám sát | GSC only |
+| `matrix_cach_thuc[]` | Cách thức giám sát | GSC (`rpc_gsc_compare_matrices`); VST khi RPC trả về |
 
 ---
 
@@ -108,5 +107,5 @@ Gộp song song vào payload VST/GSC (và detail BK khi lọc 1 BK). Công thứ
 |-----------|-------|---------|
 | `checklist_overview[]` | `rpc_dashboard_gsc_strategic_analytics` | Một dòng/BK có phiên: % tuân thủ, vi phạm, lỗi nổi bật, khoa yếu nhất |
 | `rpc_gsc_checklist_detail` | Lazy khi chọn BK (`?bk=`) | KPI · trend · gap TGS/KSNK · `matrix_criterion[]` (mọi tiêu chí áp dụng) · `criterion_khoa[]` (drill khoa) |
-| `rpc_gsc_compare_matrices` | Gộp vào strategic + detail BK | **Khối** · IPAC · khu vực · đối tượng · hình thức · cách thức (accordion) |
+| `rpc_gsc_compare_matrices` | Gộp vào strategic + detail BK | **Khối** · chức năng phòng · đối tượng · hình thức · cách thức (accordion) |
 | Xếp hạng rủi ro | App `sortChecklistOverviewByRisk` / `sortCriterionMatrix` | BK và tiêu chí: tuân thủ ASC · vi phạm DESC — **không đổi CCS** |

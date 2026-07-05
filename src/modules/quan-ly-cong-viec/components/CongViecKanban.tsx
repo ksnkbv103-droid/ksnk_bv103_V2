@@ -75,7 +75,7 @@ export default function CongViecKanban({
   };
 
   return (
-    <div className="flex min-w-0 gap-3 overflow-x-auto pb-4 min-h-[520px] snap-x snap-mandatory sm:gap-4">
+    <div className="flex min-w-0 gap-3 overflow-x-auto pb-4 min-h-[min(520px,72dvh)] snap-x snap-mandatory touch-manipulation sm:gap-4 sm:min-h-[520px]">
       {columns.map((col) => {
         const colTasks = tasks.filter((t) => getKanbanColumnIdForTask(t, showProposalColumn) === col.id);
 
@@ -116,7 +116,7 @@ export default function CongViecKanban({
                         onTaskClick?.(task);
                       }
                     }}
-                    className={`cursor-pointer rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm outline-none transition-all hover:border-[var(--primary)]/30 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 sm:p-4 ${qlcvKanbanCardAttentionClass(task)}`}
+                    className={`cursor-pointer rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm outline-none transition-all hover:border-[var(--primary)]/30 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 touch-manipulation active:scale-[0.99] sm:p-4 ${qlcvKanbanCardAttentionClass(task)}`}
                   >
                     <div className="mb-2 flex items-start justify-between gap-2">
                       <span

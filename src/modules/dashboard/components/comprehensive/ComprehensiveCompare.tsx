@@ -34,18 +34,10 @@ export function ComprehensiveCompare({
     [payload?.gsc?.gap_analysis, selectedKhoaIds, khoaOptions],
   );
 
-  const zoneChartData = useMemo(
-    () =>
-      (payload?.ipac_zone_compare ?? []).filter((r) => r.ty_le_vst != null || r.ty_le_gsc != null),
-    [payload?.ipac_zone_compare],
-  );
-
   const hasVst = (module === "all" || module === "vst") && payload?.sources.vst === "ok" && vstGapRows.length > 0;
   const hasGsc = (module === "all" || module === "gsc") && payload?.sources.gsc === "ok" && gscGapRows.length > 0;
-  const hasZone =
-    module === "all" && payload?.capabilities.compare_khu_vuc && zoneChartData.length > 0;
 
-  if (!hasVst && !hasGsc && !hasZone) {
+  if (!hasVst && !hasGsc) {
     return (
       <section className="rounded-xl border border-dashed border-slate-200 bg-slate-50/80 p-5 text-sm text-slate-500">
         {module === "vst"
@@ -85,18 +77,6 @@ export function ComprehensiveCompare({
           tgsVolumeLabel="Khảo sát TGS"
           showHeader={module === "all"}
         />
-      ) : null}
-
-      {hasZone ? (
-        <details className="rounded-xl border border-slate-200 bg-white">
-          <summary className="cursor-pointer list-none px-5 py-3 text-sm font-semibold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
-            Phân tích theo vùng IPAC
-            <span className="mt-0.5 block text-[11px] font-normal text-slate-400">VST và GSC theo nhóm màu khu vực</span>
-          </summary>
-          <div className="border-t border-slate-100 px-5 pb-5 pt-3">
-            <IpacZoneMiniTable rows={zoneChartData} />
-          </div>
-        </details>
       ) : null}
     </div>
   );
@@ -141,32 +121,5 @@ function ModuleKhoaDashboard({
         tgsVolumeLabel={tgsVolumeLabel}
       />
     </section>
-  );
-}
-
-function IpacZoneMiniTable({
-  rows,
-}: {
-  rows: { ten: string; ty_le_vst: number | null; ty_le_gsc: number | null }[];
-}) {
-  return (
-    <table className="w-full text-left text-xs">
-      <thead>
-        <tr className="border-b border-slate-200 text-[11px] font-bold uppercase tracking-wide text-slate-500">
-          <th className="px-2 py-2">Vùng IPAC</th>
-          <th className="px-2 py-2 text-right">VST (%)</th>
-          <th className="px-2 py-2 text-right">GSC (%)</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r) => (
-          <tr key={r.ten} className="border-b border-slate-100">
-            <td className="px-2 py-2 font-medium text-slate-800">{r.ten}</td>
-            <td className="px-2 py-2 text-right tabular-nums">{r.ty_le_vst != null ? `${r.ty_le_vst}%` : "—"}</td>
-            <td className="px-2 py-2 text-right tabular-nums">{r.ty_le_gsc != null ? `${r.ty_le_gsc}%` : "—"}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
   );
 }

@@ -7,4 +7,6 @@ export type ActorKsnkScope = {
   isAdmin: boolean;
   isNhanVienKsnk: boolean;
   isMangLuoiKsnk: boolean;
+  /** Vai trò KHACH_THONG_KE_GSTT — chỉ Thống kê VST/GSC. */
+  isGuestStatsOnly: boolean;
 };

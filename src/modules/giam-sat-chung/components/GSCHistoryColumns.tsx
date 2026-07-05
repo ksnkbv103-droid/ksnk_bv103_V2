@@ -8,6 +8,7 @@ import { formatGscHistoryScore } from "../lib/gsc-score-display";
 import { gscSessionDisplayRef } from "../lib/gsc-display-ref";
 import type { GscHistoryRow } from "../lib/gsc-read-utils";
 import { gscTableChrome as G } from "../lib/gsc-table-chrome";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 /**
  * Trả về mảng column config cho HistoryTable Giám sát chung
@@ -132,11 +133,11 @@ export function getGSCHistoryColumns(
       headerClassName: "w-[9.5rem] min-w-[9.5rem]",
       cellClassName: "w-[9.5rem] min-w-[9.5rem]",
       cell: (s: GscHistoryRow) => (
-        <div className="flex items-center justify-end gap-1.5">
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onView(s); }}
-            className="h-8 px-3 rounded-md border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:border-slate-400 transition-colors"
+            className={C.tableActionBtn}
           >
             Xem
           </button>
@@ -144,7 +145,7 @@ export function getGSCHistoryColumns(
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onEdit(s); }}
-              className="h-8 px-3 rounded-md border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:border-slate-400 transition-colors"
+              className={C.tableActionBtn}
             >
               Sửa
             </button>
@@ -152,7 +153,7 @@ export function getGSCHistoryColumns(
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onPrint(s); }}
-            className="h-8 px-3 rounded-md bg-slate-800 text-xs font-semibold text-white hover:bg-slate-700 transition-colors"
+            className={C.tableActionBtnPrimary}
           >
             In
           </button>

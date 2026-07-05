@@ -5,7 +5,7 @@ import React, { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { IdCard } from "lucide-react";
+import { IdCard, KeyRound } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { usePermission } from "@/hooks/usePermission";
 import { SIDEBAR_ADMIN_GROUPS } from "@/lib/nav/sidebar-admin-nav-groups";
@@ -63,7 +63,7 @@ function NavLinkRow({
       prefetch={false}
       onClick={onClose}
       aria-current={isActive ? "page" : undefined}
-      className={`app-shell-focus flex items-center gap-3 rounded-[var(--radius-control)] px-4 py-3 text-sm font-medium transition-colors touch-manipulation ${
+      className={`app-shell-focus flex min-h-12 items-center gap-3 rounded-[var(--radius-control)] px-4 py-3.5 text-[0.9375rem] font-medium transition-colors touch-manipulation md:min-h-0 md:py-3 md:text-sm ${
         isActive
           ? "bg-[var(--primary)] text-white shadow-sm shadow-[var(--primary)]/20"
           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -164,10 +164,11 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
   return (
     <aside
       className={`
-      fixed md:sticky left-0 top-0 z-[10000] flex min-h-0 w-[17.5rem] flex-col md:min-h-screen
+      fixed md:sticky left-0 top-0 z-[10000] flex h-dvh max-h-dvh w-[min(18.5rem,92vw)] flex-col md:h-auto md:max-h-none md:min-h-screen md:w-[17.5rem]
       border-r border-slate-200/90 bg-[var(--bg-panel)] transition-transform duration-300
       ${isOpen ? "translate-x-0 pointer-events-auto" : "-translate-x-full md:translate-x-0 pointer-events-none md:pointer-events-auto"}
       touch-manipulation
+      max-md:pt-[env(safe-area-inset-top,0px)]
     `}
     >
       <div className="shrink-0 border-b border-slate-100 px-4 pb-4 pt-5 md:px-5">
@@ -198,7 +199,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
           <button
             type="button"
             onClick={onClose}
-            className="app-shell-focus shrink-0 rounded-xl p-2.5 text-slate-500 hover:bg-slate-100 md:hidden"
+            className="app-shell-focus flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 md:hidden touch-manipulation"
             aria-label="Đóng menu"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -217,8 +218,19 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
         </Suspense>
       </nav>
 
-      <div className="mt-auto shrink-0 border-t border-slate-200/80 px-3 py-3 text-center">
-        <p className="text-[11px] font-medium leading-snug text-slate-500 md:text-[11px]">
+      <div className="mt-auto shrink-0 space-y-2 border-t border-slate-200/80 px-3 py-3">
+        <div className="md:hidden">
+          <Link
+            href="/tai-khoan/doi-mat-khau"
+            prefetch={false}
+            onClick={onClose}
+            className="app-shell-focus flex min-h-11 items-center gap-3 rounded-[var(--radius-control)] px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 touch-manipulation"
+          >
+            <KeyRound className="h-5 w-5 shrink-0 opacity-80" aria-hidden />
+            Đổi mật khẩu
+          </Link>
+        </div>
+        <p className="text-center text-[11px] font-medium leading-snug text-slate-500 md:text-[11px]">
           Số hóa quy trình kiểm soát nhiễm khuẩn
         </p>
       </div>

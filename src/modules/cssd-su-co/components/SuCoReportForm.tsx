@@ -45,6 +45,8 @@ export type SuCoReportFormProps = {
   allowStationOverride?: boolean;
   enabled: boolean;
   onSubmitted?: () => void;
+  /** `modal` = popup mobile full-height, một cột, nút gửi dính đáy */
+  layout?: "page" | "modal";
 };
 
 export default function SuCoReportForm({
@@ -58,7 +60,9 @@ export default function SuCoReportForm({
   allowStationOverride = false,
   enabled,
   onSubmitted,
+  layout = "page",
 }: SuCoReportFormProps) {
+  const isModal = layout === "modal";
   const { userData } = usePermission();
   const nguoiLapLabel =
     String(userData?.ho_ten || "").trim() || String(userData?.email || "").trim() || "Nhân viên CSSD";
@@ -163,16 +167,14 @@ export default function SuCoReportForm({
     void runFaultTrace(maQR, faultStation, true);
   }, [incidentGroup, maQR, faultStation, runFaultTrace]);
 
-  const handleQrKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>, mode: "SET" | "MACHINE" = "SET") => {
-    if (e.key !== "Enter") return;
-    e.preventDefault();
-    const raw = maQR.trim();
-    if (!raw) return;
+  const processQrCode = async (raw: string, mode: "SET" | "MACHINE" = "SET") => {
+    const code = raw.trim();
+    if (!code) return;
 
     setLoading(true);
     try {
       const { resolveCssdCodeAction } = await import("@/modules/cssd-erp/actions/cssd-qr.actions");
-      const res = await resolveCssdCodeAction(raw);
+      const res = await resolveCssdCodeAction(code);
       if (!res.success) {
         toast.error(res.error || "Không nhận diện được mã QR.");
         return;
@@ -192,6 +194,12 @@ export default function SuCoReportForm({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleQrKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>, mode: "SET" | "MACHINE" = "SET") => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    await processQrCode(maQR, mode);
   };
 
   const handleMetaChange = (key: keyof SuCoIncidentMetaState, val: string) => {
@@ -332,7 +340,7 @@ export default function SuCoReportForm({
   ) : null;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className={isModal ? "space-y-4" : "space-y-6"}>
       {fError ? (
         <div className="flex gap-3 rounded-xl border border-red-100 bg-red-50 p-4 text-red-600">
           <AlertCircle className="shrink-0" size={20} />
@@ -346,11 +354,11 @@ export default function SuCoReportForm({
           <p className="text-[11px] font-semibold uppercase tracking-wide opacity-40">Đang tải danh mục…</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          <IncidentGroupPicker incidentGroup={incidentGroup} onSelect={setIncidentGroup} />
+        <div className={isModal ? "space-y-4" : "space-y-6"}>
+          <IncidentGroupPicker incidentGroup={incidentGroup} onSelect={setIncidentGroup} compact={isModal} />
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
+          <div className={`grid grid-cols-1 gap-4 ${isModal ? "" : "gap-6 lg:grid-cols-2"}`}>
+            <div className={`space-y-4 rounded-2xl border border-slate-200 bg-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] ${isModal ? "p-4" : "p-5"}`}>
               <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
                 <FileText size={16} className="text-[var(--primary)]" />
                 Ngữ cảnh sự cố
@@ -363,6 +371,7 @@ export default function SuCoReportForm({
                     value={maQR}
                     onChange={setMaQR}
                     onKeyDown={(e) => void handleQrKeyDown(e)}
+                    onScanComplete={(code) => void processQrCode(code)}
                     loading={loading || tracing}
                   />
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -400,6 +409,7 @@ export default function SuCoReportForm({
                     value={maQR}
                     onChange={setMaQR}
                     onKeyDown={(e) => void handleQrKeyDown(e)}
+                    onScanComplete={(code) => void processQrCode(code)}
                     loading={loading}
                   />
                   <TypePicker
@@ -439,6 +449,7 @@ export default function SuCoReportForm({
                   maQR={maQR}
                   setMaQR={setMaQR}
                   onQrKeyDown={(e) => void handleQrKeyDown(e, "MACHINE")}
+                  onScanComplete={(code) => void processQrCode(code, "MACHINE")}
                   loading={loading}
                   machineId={machineId}
                   setMachineId={setMachineId}
@@ -462,7 +473,7 @@ export default function SuCoReportForm({
               ) : null}
             </div>
 
-            <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
+            <div className={`space-y-4 rounded-2xl border border-slate-200 bg-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] ${isModal ? "p-4" : "p-5"}`}>
               <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
                 <FileText size={16} className="text-[var(--primary)]" />
                 Thông tin sự cố
@@ -477,13 +488,23 @@ export default function SuCoReportForm({
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading || tracing || !!fError || fLoading}
-            className="flex h-16 w-full cursor-pointer items-center justify-center gap-3 rounded-xl bg-red-600 text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-lg shadow-red-100 transition-all hover:bg-red-700 active:scale-[0.98] disabled:opacity-50"
+          <div
+            className={
+              isModal
+                ? "sticky bottom-0 z-10 -mx-4 border-t border-slate-200 bg-white/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-sm sm:-mx-6 sm:px-6"
+                : ""
+            }
           >
-            {loading ? <Loader2 className="animate-spin" /> : <><CheckCircle2 size={18} /> Gửi báo cáo</>}
-          </button>
+            <button
+              type="submit"
+              disabled={loading || tracing || !!fError || fLoading}
+              className={`flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl bg-red-600 font-semibold uppercase text-white shadow-lg shadow-red-100 transition-all hover:bg-red-700 active:scale-[0.98] disabled:opacity-50 touch-manipulation ${
+                isModal ? "h-14 text-sm tracking-wide" : "h-16 text-xs tracking-[0.2em]"
+              }`}
+            >
+              {loading ? <Loader2 className="animate-spin" /> : <><CheckCircle2 size={18} /> Gửi báo cáo</>}
+            </button>
+          </div>
         </div>
       )}
     </form>

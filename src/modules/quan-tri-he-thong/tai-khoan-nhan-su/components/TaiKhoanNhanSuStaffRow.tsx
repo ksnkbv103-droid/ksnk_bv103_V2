@@ -97,7 +97,7 @@ export default function TaiKhoanNhanSuStaffRow({
                   value={newPw}
                   onChange={(e) => setNewPw(e.target.value)}
                   placeholder="Mật khẩu mới (≥8 ký tự)"
-                  className="min-h-8 min-w-[110px] flex-1 rounded-lg border border-slate-200 px-2 text-xs"
+                  className="bv103-control-h min-w-[110px] flex-1 rounded-lg border border-slate-200 px-2 text-xs"
                 />
                 <button
                   type="button"

@@ -20,10 +20,9 @@ import {
   CSSD_UI_ACTION_PRIMARY,
   CSSD_UI_ACTION_SECONDARY,
   CSSD_UI_DATA_SURFACE,
-  CSSD_UI_TAB_ACTIVE,
   CSSD_UI_TAB_GROUP,
-  CSSD_UI_TAB_IDLE,
 } from "../shared/ui/cssd-ui-chrome";
+import { CssdHorizTabButton } from "../components/layout/CssdHorizTabButton";
 import { INCIDENT_GROUP_LABEL, INCIDENT_GROUPS } from "@/modules/cssd-su-co/domain/cssd-incident-taxonomy";
 import IncidentJournalPrintButton from "@/modules/cssd-su-co/components/IncidentJournalPrintButton";
 
@@ -159,15 +158,9 @@ function CSSDReportPageInner() {
       <CssdModuleChrome />
       <ReportFilters filters={filters} setFilters={setFilters} stations={[...STATIONS]} />
       <div className={CSSD_UI_TAB_GROUP}>
-        <button onClick={() => setTab("OVERVIEW")} className={`rounded-lg px-4 py-2 text-xs font-semibold ${tab === "OVERVIEW" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE}`}>
-          Tổng quan
-        </button>
-        <button onClick={() => setTab("INCIDENT")} className={`rounded-lg px-4 py-2 text-xs font-semibold ${tab === "INCIDENT" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE}`}>
-          Sự cố theo nhóm
-        </button>
-        <button onClick={() => setTab("ACCOUNTABILITY")} className={`rounded-lg px-4 py-2 text-xs font-semibold ${tab === "ACCOUNTABILITY" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE}`}>
-          Khâu lỗi & người lỗi
-        </button>
+        <CssdHorizTabButton active={tab === "OVERVIEW"} onClick={() => setTab("OVERVIEW")} label="Tổng quan" />
+        <CssdHorizTabButton active={tab === "INCIDENT"} onClick={() => setTab("INCIDENT")} label="Sự cố theo nhóm" mobileLabel="Sự cố" />
+        <CssdHorizTabButton active={tab === "ACCOUNTABILITY"} onClick={() => setTab("ACCOUNTABILITY")} label="Khâu lỗi & người lỗi" mobileLabel="Trách nhiệm" />
       </div>
 
       {tab === "OVERVIEW" && (

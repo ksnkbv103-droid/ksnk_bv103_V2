@@ -43,7 +43,7 @@ export default function SuCoIncidentMetaFields({
             type="datetime-local"
             value={values.thoiGianPhatHien}
             onChange={(e) => onChange("thoiGianPhatHien", e.target.value)}
-            className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-xs font-semibold text-slate-800 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
+            className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-base font-semibold text-slate-800 outline-none transition-all focus:border-[var(--primary)] focus:bg-white sm:text-xs"
           />
         </div>
         <div className="space-y-1.5">
@@ -62,7 +62,7 @@ export default function SuCoIncidentMetaFields({
           <input
             value={values.nguoiPhatHien}
             onChange={(e) => onChange("nguoiPhatHien", e.target.value)}
-            className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
+            className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-base font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white sm:text-sm"
             placeholder="Tên hoặc mã nhân viên..."
           />
         </div>
@@ -71,7 +71,7 @@ export default function SuCoIncidentMetaFields({
           <input
             value={values.nguoiLienQuan}
             onChange={(e) => onChange("nguoiLienQuan", e.target.value)}
-            className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
+            className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-base font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white sm:text-sm"
             placeholder="Tự điền hoặc truy vết từ khâu lỗi..."
           />
         </div>
@@ -84,8 +84,8 @@ export default function SuCoIncidentMetaFields({
         <textarea
           value={values.moTa}
           onChange={(e) => onChange("moTa", e.target.value)}
-          rows={4}
-          className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-800 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
+          rows={5}
+          className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-4 text-base font-medium text-slate-800 outline-none transition-all focus:border-[var(--primary)] focus:bg-white sm:text-sm"
           placeholder="Mô tả cụ thể sự việc..."
         />
       </div>
@@ -99,7 +99,7 @@ export default function SuCoIncidentMetaFields({
             <input
               value={values.anhMinhChung}
               onChange={(e) => onChange("anhMinhChung", e.target.value)}
-              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-10 text-xs font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 pr-10 text-base font-semibold text-slate-700 outline-none transition-all focus:border-[var(--primary)] focus:bg-white sm:text-xs"
               placeholder="Dán link ảnh hoặc link Google Drive..."
             />
             <div className="absolute right-3.5 top-3.5 text-slate-400">

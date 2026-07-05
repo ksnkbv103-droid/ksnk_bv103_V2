@@ -307,11 +307,11 @@ export function SupervisionCompareGrid({
   );
 }
 
-/** Accordion cho IPAC · nghề · hình thức — tránh trùng visual với block khoa. */
+/** Accordion cho chức năng phòng · nghề · hình thức — tránh trùng visual với block khoa. */
 export function SupervisionCompareAccordion({
   sections,
   loading,
-  summaryLabel = "Chi tiết: IPAC · nghề · hình thức",
+  summaryLabel = "Chi tiết: chức năng phòng · nghề · hình thức",
 }: {
   loading?: boolean;
   sections: { title: string; rows: CompareRow[] }[];

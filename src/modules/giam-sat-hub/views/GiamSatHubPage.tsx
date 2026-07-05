@@ -35,7 +35,7 @@ function HubSection({ title, links }: { title: string; links: HubLink[] }) {
               key={link.href}
               href={link.href}
               prefetch={false}
-              className={`${bv103LayoutChrome.panelSurface} group flex min-h-[5.5rem] flex-col gap-2 p-4 transition-colors hover:border-[var(--primary)]/30 hover:bg-slate-50/80`}
+              className={`${bv103LayoutChrome.panelSurface} group flex min-h-[5.5rem] flex-col gap-2 p-4 transition-colors hover:border-[var(--primary)]/30 hover:bg-slate-50/80 touch-manipulation active:scale-[0.99]`}
             >
               <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900 group-hover:text-[var(--primary)]">
                 <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />

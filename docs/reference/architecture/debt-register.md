@@ -73,11 +73,9 @@
 *   **Ưu tiên:** P1.
 *   **Exit Criteria:** Triển khai Next.js `middleware.ts` ở thư mục gốc để chặn truy cập trái phép ngay từ tầng server.
 
-### [D-10] UNIFIED_DOMAIN_SPEC chưa đồng bộ tên bảng mới
-*   **Mô tả:** Tài liệu đặc tả y tế chung vẫn đang mô tả cấu trúc theo tên các bảng lâm sàng cũ (không có prefix phân vùng).
-*   **Vị trí:** [domain-specification.md](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/docs/core/domain-specification.md).
-*   **Ưu tiên:** P1.
-*   **Exit Criteria:** Đồng bộ 100% tên bảng trong spec trùng khớp với CSDL thực tế.
+### [D-10] UNIFIED_DOMAIN_SPEC chưa đồng bộ tên bảng mới — **Done (2026-07-03)**
+*   **Đã làm:** Spec dùng 100% tên prefix (`gstt_`/`nkbv_`/`cssd_`/`qlcv_`/`mdm_`/`sys_`); cột "View compat" đổi nhãn thành "Tên legacy (đã DROP khỏi DB 2026-06-02)" vì các view compat `fact_*`/`dm_*` đã gỡ (chỉ còn 5 view `fact_*_summary` đang dùng thật).
+*   **Exit Criteria:** **Đạt** — grep spec không còn tên bảng cũ ngoài cột legacy được ghi chú rõ.
 
 ---
 
@@ -131,7 +129,7 @@
 | D-07 | **Done (2026-06-04)** | Migration `20260604100000` DROP summary + triggers |
 | D-08 | **Done** | (giữ nguyên 2026-05-31) |
 | D-09 | **Done (2026-06-03)** | `src/proxy.ts` — `getUser()` server-side (Next.js 16 proxy, không `middleware.ts`) |
-| D-10 | **Partial** | `domain-specification.md` có prefix; mapping vẫn nhắc compat |
+| D-10 | **Done (2026-07-03)** | Spec 100% prefix; cột legacy relabel "đã DROP 2026-06-02" |
 | D-11 | **Done (2026-06-03)** | Migration `20260603160000` applied local + linked |
 | D-12 | **Done** | CI align (theo ghi chú 30/05) — chưa re-verify workflow file |
 | D-13 | **Done (2026-06-04)** | `audit:legacy-rpc` + `20260604110000` |
@@ -180,7 +178,7 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 | D-05 | **Obsolete** | `legacy:guard` PASS — không còn view alias cũ trong src |
 | D-06 | **Obsolete** | Chỉ `strategic-dashboard-v4.types.ts` |
 | D-09 | **Obsolete** | `src/proxy.ts` server-side auth |
-| D-10 | **Partial** | Spec có prefix; mapping compat history — accepted |
+| D-10 | **Done (2026-07-03)** | Spec 100% prefix; legacy chỉ còn cột tra cứu có ghi chú |
 | D-14 | **Eng done / UAT pending** | NKBV clinical — chờ PO §B |
 
 **P0/P1 mở:** 0

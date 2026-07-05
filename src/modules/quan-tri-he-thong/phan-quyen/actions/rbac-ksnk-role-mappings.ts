@@ -8,6 +8,8 @@ export const KSNK_RBAC_ROLE_NAMES = [
   "MANG_LUOI_KSNK",
   "TO_TRUONG_MANG_LUOI_KSNK",
   "THANH_VIEN_MANG_LUOI_KSNK",
+  /** Tài khoản khách chung — chỉ xem Thống kê VST/GSC (không nhập liệu). */
+  "KHACH_THONG_KE_GSTT",
   // Reform v4 (Slice 9): hai vai trò tiếp nhận ticket RCA. Khớp tên thực tế trong
   // `mdm_dm_khoa_phong`: `QLCL` = Ban Quản lý Chất lượng Bệnh viện, `C15` = Khoa Trang bị.
   "BAN_QLCL",
@@ -45,12 +47,10 @@ function isDashboardCcExport(p: PermRow): boolean {
   return mod(p) === "DASHBOARD_CC_EXPORT" && act(p) === "export";
 }
 
-/** Nhập liệu mạng lưới — giám sát + công việc + sự cố + xem dashboard/danh mục. */
+/** Nhập liệu mạng lưới — giám sát + công việc + sự cố; Thống kê VST/GSC qua GIAM_SAT_* view (không Command Center). */
 function isNetworkOperatorPerm(p: PermRow): boolean {
   const m = mod(p);
   const a = act(p);
-  if (isDashboardFamilyView(p)) return true;
-  if (isDashboardCcExport(p)) return true;
   if (m === "DANH_MUC" && a === "view") return true;
   if (m === "GIAM_SAT_NKBV" && a === "view") return true;
   if (m === "BAO_SU_CO" && ["view", "create"].includes(a)) return true;
@@ -58,6 +58,13 @@ function isNetworkOperatorPerm(p: PermRow): boolean {
   if (m === "GIAM_SAT_CHUNG" && ["view", "create", "edit", "delete"].includes(a)) return true;
   if (m === "CONG_VIEC" && ["view", "create", "edit", "delete"].includes(a)) return true;
   return false;
+}
+
+/** Khách xem thống kê — chỉ VST/GSC view; không dashboard / không CRUD. */
+function isGuestStatsPerm(p: PermRow): boolean {
+  const m = mod(p);
+  const a = act(p);
+  return a === "view" && (m === "GIAM_SAT_VST" || m === "GIAM_SAT_CHUNG");
 }
 
 /** Nhân viên khoa KSNK — vận hành lõi + MDM nhân sự/bảng kiểm; PHAN_QUYEN chỉ xem. */
@@ -146,6 +153,7 @@ const matchers: Record<string, (p: PermRow) => boolean> = {
   THANH_VIEN_MANG_LUOI_KSNK: isNetworkOperatorPerm,
   BAN_QLCL: isRcaHandlerPerm,
   KHOA_TRANG_BI: isRcaHandlerPerm,
+  KHACH_THONG_KE_GSTT: isGuestStatsPerm,
 };
 
 /** Đồng bộ vai trò KSNK + ma trận quyền mặc định (idempotent). */
@@ -159,6 +167,7 @@ export async function syncKsnkRolePermissionMappings(supabase: SupabaseClient) {
     THANH_VIEN_MANG_LUOI_KSNK: "Thành viên mạng lưới KSNK theo khoa",
     BAN_QLCL: "Ban Quản lý Chất lượng Bệnh viện — tiếp nhận ticket RCA hệ thống",
     KHOA_TRANG_BI: "Khoa Trang bị — tiếp nhận ticket RCA về thiết bị/nguồn lực",
+    KHACH_THONG_KE_GSTT: "Khách — chỉ xem Thống kê VST và GSC (tài khoản chung)",
   };
 
   const roleRows = KSNK_RBAC_ROLE_NAMES.map((name) => ({

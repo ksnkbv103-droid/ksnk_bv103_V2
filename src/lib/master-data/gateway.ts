@@ -5,7 +5,6 @@ export type MasterOption = {
   loai_danh_muc: string;
   source: "registry_lookup" | "mdm_dm_khoa_phong" | "mdm_dm_nghe_nghiep";
   is_active?: boolean;
-  nhom_mau?: string | null;
   thu_tu?: number | null;
   metadata?: any;
   specs?: any;

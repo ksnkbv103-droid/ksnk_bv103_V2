@@ -46,7 +46,7 @@ export default function SearchBar({
             onChange("");
             onClear?.();
           }}
-          className="bv103-control-h absolute right-1 top-1/2 flex w-8 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+          className="bv103-control-h absolute right-1 top-1/2 flex w-11 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 touch-manipulation sm:w-8"
           title="Xóa tìm kiếm"
         >
           <X size={15} strokeWidth={2.5} aria-hidden />

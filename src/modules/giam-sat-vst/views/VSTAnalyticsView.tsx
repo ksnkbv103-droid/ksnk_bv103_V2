@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import { useVstAnalyticsData } from "../hooks/use-vst-analytics-data";
 import { KsnkSupervisionPanel } from "@/components/shared/ksnk-supervision-chrome";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
-import { AnalyticsKhoaScopeBanner } from "@/modules/dashboard/components/AnalyticsKhoaScopeBanner";
+import { AnalyticsThongKeScopeBanner } from "@/modules/dashboard/components/AnalyticsThongKeScopeBanner";
 
 const VstStrategicAnalyticsPanel = dynamic(() => import("../components/VstStrategicAnalyticsPanel"), {
   ssr: false,
@@ -21,9 +21,29 @@ export default function VSTAnalyticsView() {
 
   if (!d.initDone) return <SupervisionPageSkeleton />;
 
+  if (d.filterInitError) {
+    return (
+      <KsnkSupervisionPanel className="min-h-[50vh]">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          {d.filterInitError}
+        </div>
+        <button
+          type="button"
+          className="mt-3 text-sm font-semibold text-[var(--primary)] underline"
+          onClick={() => window.location.reload()}
+        >
+          Thử lại
+        </button>
+      </KsnkSupervisionPanel>
+    );
+  }
+
   return (
     <KsnkSupervisionPanel className="min-h-[50vh]">
-      {d.khoaFilterLocked && d.lockedKhoaLabel ? <AnalyticsKhoaScopeBanner khoaLabel={d.lockedKhoaLabel} /> : null}
+      <AnalyticsThongKeScopeBanner
+        khoaFilterLocked={d.khoaFilterLocked}
+        lockedKhoaLabel={d.lockedKhoaLabel}
+      />
       <VstStrategicAnalyticsPanel
         khoaFilterLocked={d.khoaFilterLocked}
         tuNgay={d.tuNgay}

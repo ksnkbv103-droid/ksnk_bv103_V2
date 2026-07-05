@@ -2,23 +2,30 @@
 
 import React, { Suspense, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { WashingMachine, Flame, Package, History } from "lucide-react";
+import { WashingMachine, Flame, Package, History, type LucideIcon } from "lucide-react";
 import {
   CSSDInstrumentInventoryEmbeddedPage,
   CSSDProcessingLifecyclePage,
   CSSDSterilizationBatchPage,
 } from "@/modules/cssd-erp/contexts/processing-lifecycle/entrypoint";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
+import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
 import QRHistoryViewer from "@/modules/cssd-erp/components/history/QRHistoryViewer";
-import { CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_GROUP, CSSD_UI_TAB_IDLE } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 
 type QuyTrinhTab = "WORKFLOW" | "BATCH" | "KHO" | "TRACE";
 
-const TAB_CONFIG: { key: QuyTrinhTab; label: string; icon: React.ElementType; param: string }[] = [
-  { key: "WORKFLOW", label: "Chu trình xử lý", icon: WashingMachine, param: "" },
-  { key: "BATCH", label: "Mẻ tiệt khuẩn", icon: Flame, param: "batch" },
-  { key: "KHO", label: "Kho dụng cụ", icon: Package, param: "kho" },
-  { key: "TRACE", label: "Truy vết", icon: History, param: "trace" },
+const TAB_CONFIG: {
+  key: QuyTrinhTab;
+  label: string;
+  mobileLabel: string;
+  icon: LucideIcon;
+  param: string;
+}[] = [
+  { key: "WORKFLOW", label: "Chu trình xử lý", mobileLabel: "Chu trình", icon: WashingMachine, param: "" },
+  { key: "BATCH", label: "Mẻ tiệt khuẩn", mobileLabel: "Mẻ TK", icon: Flame, param: "batch" },
+  { key: "KHO", label: "Kho dụng cụ", mobileLabel: "Kho", icon: Package, param: "kho" },
+  { key: "TRACE", label: "Truy vết", mobileLabel: "Truy vết", icon: History, param: "trace" },
 ];
 
 function resolveTab(param: string | null): QuyTrinhTab {
@@ -62,19 +69,17 @@ function CssdQuyTrinhPageInner() {
       }
       subtitle="Quét xác nhận tại trạm, tiệt khuẩn, giám sát kho và hạn sử dụng dụng cụ."
     >
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className={CSSD_UI_TAB_GROUP}>
-          {TAB_CONFIG.map(({ key, label, icon: Icon }) => (
-            <button
+          {TAB_CONFIG.map(({ key, label, mobileLabel, icon }) => (
+            <CssdHorizTabButton
               key={key}
-              type="button"
+              active={activeTab === key}
               onClick={() => setTab(key)}
-              className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
-                activeTab === key ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
-              }`}
-            >
-              <Icon size={14} /> {label}
-            </button>
+              label={label}
+              mobileLabel={mobileLabel}
+              icon={icon}
+            />
           ))}
         </div>
 

@@ -3,16 +3,18 @@
  * @see docs/reference/guides/bv103-visual-language.md
  */
 export const bv103DesignTokens = {
-  pageOuter: "w-full min-h-[40vh] space-y-6 pb-12 touch-manipulation [-webkit-tap-highlight-color:transparent]",
-  pageOuterAnalytics: "w-full space-y-8 pb-24",
-  pageSectionGap: "space-y-8",
+  pageOuter:
+    "w-full min-h-[40vh] space-y-4 pb-8 touch-manipulation [-webkit-tap-highlight-color:transparent] sm:space-y-6 sm:pb-12",
+  pageOuterAnalytics: "w-full space-y-4 pb-16 sm:space-y-8 sm:pb-24",
+  pageSectionGap: "space-y-4 sm:space-y-8",
 
   stickyAnalyticsShell:
-    "no-print sticky top-4 z-40 rounded-xl border border-slate-200/90 bg-white/95 p-3 shadow-sm ring-1 ring-slate-900/[0.03] backdrop-blur-md md:p-4",
+    "no-print sticky top-0 z-40 rounded-xl border border-slate-200/90 bg-white/95 p-2 shadow-sm ring-1 ring-slate-900/[0.03] backdrop-blur-md sm:top-4 sm:p-3 md:p-4",
   /** Thanh tiêu đề + lọc analytics (một khối, không lồng hero). */
   analyticsToolbarShell:
-    "no-print sticky top-4 z-40 rounded-xl border border-slate-200 bg-white p-4 shadow-sm backdrop-blur-md",
-  analyticsToolbarShellStatic: "no-print rounded-xl border border-slate-200 bg-white p-4 shadow-sm",
+    "no-print sticky top-0 z-40 rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm backdrop-blur-md sm:top-4 sm:p-4",
+  analyticsToolbarShellStatic:
+    "no-print rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm sm:p-4",
 
   /** H1 trang — title case, không primary, không IN HOA */
   pageTitle: "text-xl font-semibold tracking-tight text-slate-900 md:text-2xl",

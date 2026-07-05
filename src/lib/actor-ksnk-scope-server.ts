@@ -4,6 +4,7 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { getActorAuthUserId } from "@/lib/actor-auth-server";
 import type { ActorKsnkScope } from "@/lib/actor-ksnk-scope.types";
+import { isGuestStatsOnlyRole } from "@/lib/auth/guest-stats-access";
 
 function normRole(r: unknown): string {
   return String(r || "").trim().toUpperCase();
@@ -19,6 +20,7 @@ export async function getActorKsnkScope(): Promise<ActorKsnkScope> {
       isAdmin: false,
       isNhanVienKsnk: false,
       isMangLuoiKsnk: false,
+      isGuestStatsOnly: false,
     };
   }
 
@@ -48,6 +50,16 @@ export async function getActorKsnkScope(): Promise<ActorKsnkScope> {
     "THANH_VIEN_MANG_LUOI_KSNK",
   ].some((r) => rolesNorm.includes(r));
 
-  return { roles: rolesNorm, actorNhanSuId, actorKhoaId, isAdmin, isNhanVienKsnk, isMangLuoiKsnk };
+  const isGuestStatsOnly = isGuestStatsOnlyRole(rolesNorm);
+
+  return {
+    roles: rolesNorm,
+    actorNhanSuId,
+    actorKhoaId,
+    isAdmin,
+    isNhanVienKsnk,
+    isMangLuoiKsnk,
+    isGuestStatsOnly,
+  };
 }
 

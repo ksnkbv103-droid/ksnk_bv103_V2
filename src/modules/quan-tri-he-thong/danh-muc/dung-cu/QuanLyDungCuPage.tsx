@@ -10,6 +10,12 @@ import { DmTabGuard } from "../views/dm-tab-guard";
 import { DungCuWorkflowGuide } from "./dung-cu-workflow-guide";
 import { quanTriDungCuHref, type DungCuTab } from "@/lib/master-data/quan-tri-paths";
 import { useModulePermission } from "@/hooks/useModulePermission";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+
+const dungCuTabBtn = (active: boolean) =>
+  `${C.navTabBtn} px-5 text-[11px] font-bold uppercase tracking-wider ${
+    active ? "bg-white text-[var(--primary)] shadow-sm ring-1 ring-slate-200/80" : "text-slate-500 hover:bg-white/70 hover:text-slate-800"
+  }`;
 
 function parseDungCuTab(raw: string | null): DungCuTab {
   if (raw === "bo" || raw === "chi-tiet") return raw;
@@ -65,17 +71,13 @@ export default function QuanLyDungCuPage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-1.5 bg-slate-100/90 p-1.5 rounded-xl w-fit" role="tablist" aria-label="Phân hệ dụng cụ">
+          <div className={`${C.navTabStrip} w-full max-sm:rounded-xl sm:w-fit`} role="tablist" aria-label="Phân hệ dụng cụ">
             <button
               type="button"
               role="tab"
               aria-selected={activeTab === "loai"}
               onClick={() => selectTab("loai")}
-              className={`px-5 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
-                activeTab === "loai"
-                  ? "bg-white text-[var(--primary)] shadow-sm"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
+              className={dungCuTabBtn(activeTab === "loai")}
             >
               <LayoutGrid size={14} aria-hidden /> Loại dụng cụ
             </button>
@@ -84,11 +86,7 @@ export default function QuanLyDungCuPage() {
               role="tab"
               aria-selected={activeTab === "bo"}
               onClick={() => selectTab("bo")}
-              className={`px-5 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
-                activeTab === "bo"
-                  ? "bg-white text-[var(--primary)] shadow-sm"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
+              className={dungCuTabBtn(activeTab === "bo")}
             >
               <Database size={14} aria-hidden /> Bộ dụng cụ
             </button>
@@ -97,11 +95,7 @@ export default function QuanLyDungCuPage() {
               role="tab"
               aria-selected={activeTab === "chi-tiet"}
               onClick={() => selectTab("chi-tiet")}
-              className={`px-5 py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
-                activeTab === "chi-tiet"
-                  ? "bg-white text-[var(--primary)] shadow-sm"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
+              className={dungCuTabBtn(activeTab === "chi-tiet")}
             >
               <List size={14} aria-hidden /> Thành phần
             </button>

@@ -50,14 +50,6 @@ export type BaoCaoKhoaRankRow = {
   has_data?: boolean;
 };
 
-/** So sánh 4 vùng IPAC (TR/DO/VA/XA) từ matrix_khu_vuc_nhom RPC. */
-export type BaoCaoIpacZoneRow = {
-  ma_nhom: string;
-  ten: string;
-  ty_le_vst: number | null;
-  ty_le_gsc: number | null;
-};
-
 export type BaoCaoTongHopPayload = {
   filters: BaoCaoTongHopFilters;
   sources: {
@@ -83,7 +75,6 @@ export type BaoCaoTongHopPayload = {
   trend_week: BaoCaoTrendPoint[];
   trend_month: BaoCaoTrendPoint[];
   khoa_rank: BaoCaoKhoaRankRow[];
-  ipac_zone_compare: BaoCaoIpacZoneRow[];
   capabilities: {
     topic_vst: boolean;
     topic_gsc: boolean;

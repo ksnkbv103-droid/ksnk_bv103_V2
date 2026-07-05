@@ -1,6 +1,7 @@
 "use server";
 
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
+import { resolveAnalyticsKhoaFilterLocked } from "@/lib/analytics/resolve-analytics-rpc-scope";
 import {
   verifyAnalyticsShell,
   type AnalyticsShellContext,
@@ -19,8 +20,7 @@ export async function getAnalyticsViewerScope(
   try {
     await verifyAnalyticsShell(shell);
     const scope = await getActorKsnkScope();
-    const isKhoaLocked =
-      scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk && Boolean(scope.actorKhoaId);
+    const isKhoaLocked = resolveAnalyticsKhoaFilterLocked(scope, shell);
     return {
       success: true,
       data: {

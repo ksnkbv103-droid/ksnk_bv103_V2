@@ -65,8 +65,7 @@ export function GscBkAnalyticsDashboard({
   const compareSections = useMemo(
     () => [
       { title: "Theo khối", rows: toCompareRows(detail?.matrix_khoi) },
-      { title: "Theo vùng IPAC (4 màu)", rows: toCompareRows(detail?.matrix_khu_vuc_nhom) },
-      { title: "Theo khu vực (chi tiết)", rows: toCompareRows(detail?.matrix_khu_vuc) },
+      { title: "Theo chức năng phòng", rows: toCompareRows(detail?.matrix_khu_vuc) },
       { title: "Theo đối tượng", rows: toCompareRows(detail?.matrix_nghe) },
       { title: "Theo hình thức giám sát", rows: toCompareRows(detail?.matrix_hinh_thuc) },
       { title: "Theo cách thức giám sát", rows: toCompareRows(detail?.matrix_cach_thuc) },
@@ -137,7 +136,7 @@ export function GscBkAnalyticsDashboard({
 
         <details className="rounded-xl border border-slate-200 bg-white">
           <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
-            Ma trận phân tích (vùng IPAC, đối tượng, hình thức…)
+            Ma trận phân tích (chức năng phòng, đối tượng, hình thức…)
             <span className="mt-0.5 block text-[11px] font-normal text-slate-400">Mở để xem chi tiết</span>
           </summary>
           <div className="border-t border-slate-100 px-4 pb-4 pt-2">

@@ -57,6 +57,20 @@ export const bv103LayoutChrome = {
   chipBadge:
     "inline-flex h-5 shrink-0 items-center justify-center rounded-full bg-[var(--primary)] px-1.5 text-[11px] font-semibold text-white",
 
+  /** Thanh tab điều hướng — mobile: cuộn ngang, nút ≥44px; desktop: wrap bình thường. */
+  navTabStrip:
+    "flex gap-1 rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-100/90 p-1 shadow-inner max-sm:w-full max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:scrollbar-hide max-sm:snap-x max-sm:snap-mandatory sm:flex-wrap",
+  navTabBtn:
+    "inline-flex min-h-9 shrink-0 snap-start items-center justify-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 touch-manipulation max-sm:max-w-[9.5rem] sm:min-h-[2.75rem] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm sm:shrink sm:min-w-0 sm:max-w-none sm:flex-initial",
+
+  /** Nút hành động trong bảng / lịch sử — cao hơn trên mobile */
+  tableActionBtn:
+    "inline-flex min-h-[2.75rem] shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition-colors touch-manipulation hover:border-slate-400 sm:min-h-8",
+  tableActionBtnPrimary:
+    "inline-flex min-h-[2.75rem] shrink-0 items-center justify-center rounded-[var(--radius-control)] bg-slate-800 px-3 text-xs font-semibold text-white transition-colors touch-manipulation hover:bg-slate-700 disabled:opacity-50 sm:min-h-8",
+  tableIconBtn:
+    "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-all touch-manipulation sm:h-8 sm:w-8",
+
   panelSurface,
   panelInset: "rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50/40",
   panelShellPadded: `${panelSurface} p-5`,

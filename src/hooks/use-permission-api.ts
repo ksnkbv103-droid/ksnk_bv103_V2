@@ -40,6 +40,7 @@ export function createPermissionApi(permissions: PermissionRow[], userRoles: str
     isToTruongMangLuoiKSNK: userRoles.includes("TO_TRUONG_MANG_LUOI_KSNK"),
     isThanhVienMangLuoiKSNK: userRoles.includes("THANH_VIEN_MANG_LUOI_KSNK"),
     isHoiDongKSNK: userRoles.includes("HOI_DONG_KSNK"),
+    isGuestStatsOnly: userRoles.includes("KHACH_THONG_KE_GSTT"),
     hasPermission: (permName: string) => {
       if (finalIsAdmin) return true;
       return permissions.some((p) => `${p.module}_${p.action.toUpperCase()}` === permName.toUpperCase());

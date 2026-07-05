@@ -7,7 +7,8 @@ import { CSSDMaintenancePage } from "@/modules/cssd-erp/contexts/maintenance/ent
 import ThietBiFleetPanel from "@/modules/cssd-erp/components/equipment/thiet-bi-fleet-panel";
 import ThietBiVanHanhPanel from "@/modules/cssd-erp/components/equipment/thiet-bi-van-hanh-panel";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
-import { CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_GROUP, CSSD_UI_TAB_IDLE } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
+import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 
 type ThietBiTab = "FLEET" | "MAINTENANCE" | "VAN_HANH";
 
@@ -35,35 +36,29 @@ function CssdThietBiPageInner() {
       }
       subtitle="Bảo dưỡng vận hành tại CSSD; danh mục máy CRUD tại Quản trị."
     >
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className={CSSD_UI_TAB_GROUP}>
-          <button
-            type="button"
+          <CssdHorizTabButton
+            active={activeTab === "FLEET"}
             onClick={() => setActiveTab("FLEET")}
-            className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
-              activeTab === "FLEET" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
-            }`}
-          >
-            <List size={14} /> Danh sách máy
-          </button>
-          <button
-            type="button"
+            icon={List}
+            label="Danh sách máy"
+            mobileLabel="Danh sách"
+          />
+          <CssdHorizTabButton
+            active={activeTab === "MAINTENANCE"}
             onClick={() => setActiveTab("MAINTENANCE")}
-            className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
-              activeTab === "MAINTENANCE" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
-            }`}
-          >
-            <Wrench size={14} /> Bảo dưỡng &amp; sửa chữa
-          </button>
-          <button
-            type="button"
+            icon={Wrench}
+            label="Bảo dưỡng & sửa chữa"
+            mobileLabel="Bảo dưỡng"
+          />
+          <CssdHorizTabButton
+            active={activeTab === "VAN_HANH"}
             onClick={() => setActiveTab("VAN_HANH")}
-            className={`flex items-center gap-2 rounded-xl px-6 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
-              activeTab === "VAN_HANH" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
-            }`}
-          >
-            <Activity size={14} /> Lịch sử vận hành
-          </button>
+            icon={Activity}
+            label="Lịch sử vận hành"
+            mobileLabel="Vận hành"
+          />
         </div>
 
         <div className="animate-in fade-in duration-300">

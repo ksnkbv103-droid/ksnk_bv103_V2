@@ -26,10 +26,11 @@ export default function GenericDmMasterHeader({ title, onBack, onCreate, canCrea
             <button
               type="button"
               onClick={onBack}
-              className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50 touch-manipulation"
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 touch-manipulation sm:px-3"
               aria-label="Quay lại"
             >
-              <ArrowLeft size={16} /> Quay lại
+              <ArrowLeft size={16} />
+              <span className="hidden sm:inline">Quay lại</span>
             </button>
             {canCreate ? (
               <button type="button" onClick={onCreate} className={C.ctaPrimary}>

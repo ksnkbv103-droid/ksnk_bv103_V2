@@ -50,9 +50,9 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   };
 
   return (
-    <header className="sticky top-0 z-50 flex min-h-[4.25rem] items-center justify-between gap-3 border-b border-slate-200/90 bg-[var(--bg-panel)] px-4 py-2 shadow-[var(--shadow-app-header)] md:gap-6 md:px-8">
+    <header className="sticky top-0 z-50 flex min-h-12 items-center justify-between gap-2 border-b border-slate-200/90 bg-[var(--bg-panel)] px-2 py-1.5 pt-[max(0.375rem,env(safe-area-inset-top))] shadow-[var(--shadow-app-header)] sm:min-h-[4.25rem] sm:gap-3 sm:px-4 sm:py-2 md:gap-6 md:px-8">
       <div className="flex min-w-0 flex-1 flex-col gap-2 lg:flex-row lg:items-center lg:gap-4">
-        <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 md:gap-4">
           <button
             type="button"
             onClick={(e) => {
@@ -60,7 +60,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
               e.stopPropagation();
               onMenuClick?.();
             }}
-            className="app-shell-focus flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)] text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)] md:hidden touch-manipulation"
+            className="app-shell-focus flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)] text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)] md:hidden touch-manipulation"
             aria-label="Mở menu điều hướng"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -70,8 +70,12 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
             </svg>
           </button>
           <nav aria-label="Ngữ cảnh trang" className="min-w-0 flex-1">
-            <p className={T.shellZone}>{breadcrumb.zone}</p>
-            {breadcrumb.page ? <p className={T.shellPage}>{breadcrumb.page}</p> : null}
+            <p className={`${T.shellZone} hidden sm:block`}>{breadcrumb.zone}</p>
+            {breadcrumb.page ? (
+              <p className={`${T.shellPage} ${breadcrumb.zone ? "sm:mt-0" : ""}`}>{breadcrumb.page}</p>
+            ) : (
+              <p className={`${T.shellPage} sm:hidden`}>{breadcrumb.zone}</p>
+            )}
           </nav>
         </div>
         {/*
@@ -104,9 +108,10 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
             <button
               type="button"
               onClick={handleSignOut}
-              className="app-shell-focus shrink-0 items-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-[var(--primary)] transition-colors hover:bg-slate-50 sm:px-4 sm:text-sm touch-manipulation bv103-control-h"
+              className="app-shell-focus inline-flex shrink-0 items-center rounded-lg border border-slate-200 bg-white px-2.5 text-[11px] font-semibold text-[var(--primary)] transition-colors hover:bg-slate-50 sm:px-4 sm:text-sm touch-manipulation min-h-9 sm:min-h-[var(--bv103-control-h)]"
             >
-              Đăng xuất
+              <span className="sm:hidden">Thoát</span>
+              <span className="hidden sm:inline">Đăng xuất</span>
             </button>
           </>
         ) : null}

@@ -23,7 +23,8 @@ SSOT tên vai trò: bảng **`sys_roles.name`**. Cấu hình ma trận: `/quan-t
 | **`ADMIN`** | Quản trị hệ thống — toàn quyền cấu hình | Mọi module trong `permission-registry-data.ts` |
 | **`NHAN_VIEN_KSNK`** | Nhân viên khoa Kiểm soát nhiễm khuẩn — vận hành lõi | Giám sát (VST/GSC/NKBV), CSSD, danh mục (xem/sửa theo module), QLCV, nhân sự, bảng kiểm |
 | **`HOI_DONG_KSNK`** | Hội đồng KSNK — chủ yếu xem báo cáo | Chỉ action `view` trên mọi module |
-| **`TO_TRUONG_MANG_LUOI_KSNK`** / **`THANH_VIEN_MANG_LUOI_KSNK`** | Mạng lưới KSNK theo khoa — nhập liệu giám sát | Giám sát VST/GSC, QLCV, báo cáo sự cố, dashboard |
+| **`TO_TRUONG_MANG_LUOI_KSNK`** / **`THANH_VIEN_MANG_LUOI_KSNK`** | Mạng lưới KSNK theo khoa — nhập liệu giám sát tại khoa mình; **Thống kê** VST/GSC so sánh toàn viện (`/thong-ke/*`) | Giám sát VST/GSC (CRUD), QLCV, báo cáo sự cố — **không** Command Center / Báo cáo tổng hợp |
+| **`KHACH_THONG_KE_GSTT`** | Khách — tài khoản chung chỉ xem thống kê | Chỉ `view` trên `GIAM_SAT_VST` + `GIAM_SAT_CHUNG`; `/thong-ke/vst`, `/thong-ke/gsc` |
 | **`BAN_QLCL`** / **`KHOA_TRANG_BI`** | Tiếp nhận sự cố liên phòng ban | Dashboard, giám sát (view), danh mục (view) |
 
 **Module quyền** (không phải vai trò): `GIAM_SAT_VST`, `GIAM_SAT_CHUNG`, `CSSD_WORKFLOW`, `DANH_MUC`, `PHAN_QUYEN`, … — xem [`permission-registry-data.ts`](../../src/lib/permission-registry-data.ts).

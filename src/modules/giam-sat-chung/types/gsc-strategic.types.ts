@@ -11,8 +11,7 @@ export type GscStrategicPayload = {
   trendline: { label: string; min_date: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
   matrix_khoa: { id: string; ma_khoa?: string; ten: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
   matrix_khoi?: { ten: string; ma_khoi?: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
-  matrix_khu_vuc?: { ten: string; ma_nhom?: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
-  matrix_khu_vuc_nhom?: { ma_nhom: string; ten: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
+  matrix_khu_vuc?: { ten: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
   matrix_nghe?: { ten: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
   matrix_hinh_thuc?: { ten: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
   matrix_cach_thuc?: { ten: string; tong_quan_sat: number; tong_dat: number; ty_le_tuan_thu: number }[];
@@ -101,7 +100,6 @@ export type GscChecklistDetailPayload = {
   gap_analysis: GscStrategicPayload["gap_analysis"];
   matrix_khoi?: GscStrategicPayload["matrix_khoi"];
   matrix_khu_vuc?: GscStrategicPayload["matrix_khu_vuc"];
-  matrix_khu_vuc_nhom?: GscStrategicPayload["matrix_khu_vuc_nhom"];
   matrix_nghe?: GscStrategicPayload["matrix_nghe"];
   matrix_hinh_thuc?: GscStrategicPayload["matrix_hinh_thuc"];
   matrix_cach_thuc?: GscStrategicPayload["matrix_cach_thuc"];

@@ -4,6 +4,7 @@ import React from "react";
 import type { LoaiPhieuBaoTri } from "../../actions/cssd-bao-tri.types";
 import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import { matchesDeviceCode, normalizeCssdCode } from "../../shared/domain/cssd-qr-core";
+import QrCameraButton from "@/components/shared/QrCameraButton";
 
 type Props = {
   open: boolean;
@@ -60,19 +61,32 @@ export default function BaoTriStartModal({
         </div>
 
         <label className="mt-4 block text-[11px] font-medium text-slate-500">Mã máy / QR máy</label>
-        <input
-          className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm uppercase"
-          value={maMayHoacQr}
-          onChange={(e) => {
-            const raw = e.target.value;
-            onMaMayHoacQr(raw);
-            const code = normalizeCssdCode(raw);
-            if (!code) return;
-            const matched = machines.find((m) => matchesDeviceCode(code, m.ma_thiet_bi));
-            if (matched) onSelTb(matched.id);
-          }}
-          placeholder="Ví dụ: MAY-01 hoặc mã QR tương đương"
-        />
+        <div className="mt-1 flex items-center gap-2">
+          <input
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm uppercase"
+            value={maMayHoacQr}
+            onChange={(e) => {
+              const raw = e.target.value;
+              onMaMayHoacQr(raw);
+              const code = normalizeCssdCode(raw);
+              if (!code) return;
+              const matched = machines.find((m) => matchesDeviceCode(code, m.ma_thiet_bi));
+              if (matched) onSelTb(matched.id);
+            }}
+            placeholder="Ví dụ: MAY-01 hoặc mã QR tương đương"
+          />
+          <QrCameraButton
+            onScan={(code) => {
+              onMaMayHoacQr(code);
+              const normalized = normalizeCssdCode(code);
+              if (!normalized) return;
+              const matched = machines.find((m) => matchesDeviceCode(normalized, m.ma_thiet_bi));
+              if (matched) onSelTb(matched.id);
+            }}
+            title="Quét QR máy"
+            className="h-10"
+          />
+        </div>
         <label className="mt-4 block text-[11px] font-medium text-slate-500">Thiết bị</label>
         <select className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={selTb} onChange={(e) => onSelTb(e.target.value)}>
           <option value="">— Chọn —</option>

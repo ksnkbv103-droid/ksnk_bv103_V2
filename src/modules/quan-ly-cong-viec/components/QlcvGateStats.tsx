@@ -17,7 +17,7 @@ interface Props {
 }
 
 const cardInteractive =
-  "cursor-pointer select-none transition-[box-shadow,transform,border-color] hover:border-[var(--primary)]/35 hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2";
+  "cursor-pointer select-none transition-[box-shadow,transform,border-color] touch-manipulation hover:border-[var(--primary)]/35 hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 min-h-[3.25rem] sm:min-h-0";
 
 export function QlcvGateStats({ tasks, activeFilter, onFilterChange, showAllGatePills, actorStaffId }: Props) {
   const list = tasks ?? [];
@@ -106,7 +106,7 @@ export function QlcvGateStats({ tasks, activeFilter, onFilterChange, showAllGate
   }
 
   return (
-    <div className="flex min-w-0 flex-nowrap items-stretch gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]">
+    <div className="scrollbar-hide flex min-w-0 flex-nowrap items-stretch gap-2 overflow-x-auto pb-1 snap-x snap-mandatory">
       {baseCard(
         "TOTAL",
         isSel("TOTAL"),

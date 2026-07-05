@@ -18,7 +18,10 @@ export function useVstAnalyticsData() {
     setLoadError(null);
     try {
       const { vst: res } = await fetchStrategicAnalytics(filterPayload(), ["vst"]);
-      if (!res) return;
+      if (!res) {
+        setLoadError("Không nhận được phản hồi thống kê VST.");
+        return;
+      }
       if (res.success) setPayload(res.data);
       else setLoadError(res.error);
     } catch (err) {

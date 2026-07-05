@@ -1,6 +1,5 @@
 "use client";
 
-import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { excelCellToPlain } from "@/hooks/importExport.utils";
 
@@ -81,6 +80,8 @@ export async function exportDanhMucTemplate(type: DanhMucType) {
   const dummy = DUMMY_DATA[type];
   if (!columns) return;
 
+  // exceljs nặng ~940KB — chỉ tải khi user thực sự xuất template
+  const { default: ExcelJS } = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
   const sheetName = type === "khoa-phong" ? "Khoa Phong" : type === "hoa-chat" ? "Hoa Chat" : type === "thiet-bi" ? "Thiet Bi" : "Nhan Su";
   const worksheet = workbook.addWorksheet(sheetName, {
@@ -184,6 +185,7 @@ export async function exportDanhMucTemplate(type: DanhMucType) {
  * Robustly normalizes columns to match database keys.
  */
 export async function parseExcelFile(file: File): Promise<any[]> {
+  const { default: ExcelJS } = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(await file.arrayBuffer());
   const worksheet = workbook.worksheets[0];

@@ -8,7 +8,7 @@
 
 ## 1. Từ điển Thuật ngữ Nghiệp vụ (Ubiquitous Language)
 
-| Thuật ngữ Spec | Ý nghĩa Nghiệp vụ Y tế | Bảng vật lý (SSOT) | View compat (read-only legacy) |
+| Thuật ngữ Spec | Ý nghĩa Nghiệp vụ Y tế | Bảng vật lý (SSOT) | Tên legacy (đã DROP khỏi DB 2026-06-02 — chỉ để tra cứu tài liệu cũ) |
 | :--- | :--- | :--- | :--- |
 | **VST (Vệ sinh tay)** | Giám sát tuân thủ 5 thời điểm vệ sinh tay WHO. | `gstt_fact_vst_sessions`, `gstt_fact_vst` | `fact_giam_sat_vst_*` |
 | **GSC (Giám sát chung)** | Giám sát checklist động; kết quả inline `results_jsonb`. | `gstt_fact_chung_sessions`, `gstt_dm_bang_kiem` | `fact_giam_sat_chung_sessions`, `dm_bang_kiem` |

@@ -27,7 +27,7 @@ function RBACPermissionCellInner({
     <div className="flex items-center justify-center gap-1.5">
       {actions.map((action) => {
         const permId = permLookup.get(`${moduleName}::${action.key}`);
-        if (!permId) return <div key={action.key} className="w-8 h-8" />;
+        if (!permId) return <div key={action.key} className="h-11 w-11 sm:h-8 sm:w-8" />;
 
         const isChecked = rolePerms?.has(permId) || false;
 
@@ -38,7 +38,7 @@ function RBACPermissionCellInner({
           <label
             key={action.key}
             className={`
-              relative flex items-center justify-center w-8 h-8 rounded-lg cursor-pointer transition-all duration-150 border
+              relative flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg border transition-all duration-150 touch-manipulation sm:h-8 sm:w-8
               ${
                 isChecked
                   ? `${activeBg} ${activeBorder} shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]`

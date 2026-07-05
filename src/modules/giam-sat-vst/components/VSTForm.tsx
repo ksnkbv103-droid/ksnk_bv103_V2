@@ -7,8 +7,10 @@ import GiamSatHeader from "@/components/shared/GiamSatHeader";
 import VSTPersonColumn from "./VSTPersonColumn";
 import VSTPrintView from "./VSTPrintView";
 import { useVSTForm } from "../hooks/useVSTForm";
+import { useVstModuleLock } from "../hooks/use-vst-module-lock";
+import VstModuleLockBanner from "./VstModuleLockBanner";
 import { MOMENTS, ACTIONS, type MomentType, type ActionType } from "../lib/vst-constants";
-import { createDefaultVSTFormPersons } from "../lib/vst-form-model";
+import { createDefaultVSTFormPersons, createNewOpp } from "../lib/vst-form-model";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import { resolveCanonicalHinhThucLabel } from "@/lib/supervision-hinh-thuc-legacy";
 import type { VSTFormPerson } from "../hooks/useVSTFormHandlers";
@@ -53,13 +55,22 @@ export default function VSTForm({
     updatePerson, toggleMoment, updateAction, updateAssessment, openOpportunity, submitOpportunity, handleFinalSave
   } = useVSTForm(onSuccess, editingSessionId ?? null);
 
+  const { lockedUntilDate, isLockedForSelectedDate, lockMessage } = useVstModuleLock(
+    session.ngay_giam_sat ?? null,
+  );
+
   const [activePersonTab, setActivePersonTab] = React.useState<number>(0);
+  const editHydratedKeyRef = useRef<string | null>(null);
+  const editBaselineRef = useRef<string | null>(null);
+  const [isEditDirty, setIsEditDirty] = React.useState(false);
 
   const recordedOpportunityCount = persons.reduce(
     (sum, p) => sum + p.opportunities.filter((o) => o.isCollapsed).length,
     0,
   );
-  const hasUnsavedSession = recordedOpportunityCount > 0 && !editingSessionId;
+  const hasUnsavedSession =
+    (!editingSessionId && recordedOpportunityCount > 0) ||
+    Boolean(editingSessionId && isEditDirty);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -67,11 +78,10 @@ export default function VSTForm({
     return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
-  // Phải gọi trước mọi return có điều kiện (Rules of Hooks).
+  // Cuộn tới khoa khi mở form mới (không chạy lại khi hydrate edit).
   useEffect(() => {
-    if (initialLoading) return;
-    
-    // Đảm bảo mở form là cuộn ngay đến trường chọn khoa để nhập ngay
+    if (initialLoading || editDetail) return;
+
     const timer = setTimeout(() => {
       const khoaSelect = document.getElementById("vst-khoa-select");
       if (khoaSelect) {
@@ -81,8 +91,18 @@ export default function VSTForm({
       }
     }, 100);
 
-    if (editDetail) {
-      const sess = (editDetail.session as Record<string, any>) || {};
+    return () => clearTimeout(timer);
+  }, [initialLoading, editDetail]);
+
+  // Hydrate edit — một lần mỗi phiên; không ghi đè khi MDM reload.
+  useEffect(() => {
+    if (initialLoading || !editDetail) return;
+
+    const sessionId = String(editDetail.session?.id ?? editingSessionId ?? "").trim();
+    if (!sessionId || editHydratedKeyRef.current === sessionId) return;
+    editHydratedKeyRef.current = sessionId;
+
+    const sess = (editDetail.session as Record<string, any>) || {};
       const cach = String(sess.cach_thuc_giam_sat ?? sess.cach_thuc ?? "");
       const isReplayCamera = isReplayCameraSupervisionCachThuc(cach);
 
@@ -198,15 +218,24 @@ export default function VSTForm({
           is_manual: group.is_manual,
           ten_manual: group.ten_manual,
           nghe_nghiep_id: group.nghe_nghiep_id,
-          opportunities: nextOpps.length ? nextOpps : basePersons[idx].opportunities,
+          opportunities: nextOpps.length ? [...nextOpps, createNewOpp()] : basePersons[idx].opportunities,
         };
       }
 
       setPersons(basePersons);
-    }
+      editBaselineRef.current = null;
+      setIsEditDirty(false);
+    }, [editDetail, initialLoading, editingSessionId, ngheNghieps, hinhThucGiamSats, cachThucGiamSats, setPersons, setSession]);
 
-    return () => clearTimeout(timer);
-  }, [editDetail, initialLoading, ngheNghieps, hinhThucGiamSats, cachThucGiamSats, setPersons, setSession]);
+  useEffect(() => {
+    if (!editingSessionId || !editHydratedKeyRef.current) return;
+    const snap = JSON.stringify({ session, persons });
+    if (editBaselineRef.current === null) {
+      editBaselineRef.current = snap;
+      return;
+    }
+    setIsEditDirty(snap !== editBaselineRef.current);
+  }, [session, persons, editingSessionId]);
 
   const didInitHeaderScrollRef = useRef(false);
 
@@ -243,8 +272,12 @@ export default function VSTForm({
   }
 
   return (
-    <div className={`relative ${UI.sectionGapLg} pb-32`}>
+    <div className={`relative ${UI.sectionGapLg} pb-32 max-sm:pb-44`}>
       <div className="print:hidden space-y-6">
+        <VstModuleLockBanner
+          lockedUntilDate={lockedUntilDate}
+          lockMessage={isLockedForSelectedDate ? lockMessage : null}
+        />
         <div className="relative">
           <GiamSatHeader
             session={session}
@@ -277,7 +310,9 @@ export default function VSTForm({
         {hasUnsavedSession && (
           <div className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950">
             <p className="font-semibold">
-              Đã ghi {recordedOpportunityCount} cơ hội trên màn hình — chưa lưu vào hệ thống.
+              {editingSessionId
+                ? "Phiên đang sửa có thay đổi chưa lưu."
+                : `Đã ghi ${recordedOpportunityCount} cơ hội trên màn hình — chưa lưu vào hệ thống.`}
             </p>
             <p className="mt-1 text-xs text-sky-800">
               Bấm nút <strong>Lưu phiên giám sát</strong> (góc dưới phải) sau khi hoàn tất phiên; nếu không, dữ liệu sẽ mất khi thoát trang.
@@ -340,9 +375,17 @@ export default function VSTForm({
           })}
         </div>
 
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+        <div className="fixed bottom-6 right-6 z-40 flex max-sm:bottom-[5.5rem] flex-col gap-3">
           <button
-            onClick={() => window.print()}
+            onClick={() => {
+              if (hasUnsavedSession) {
+                const ok = window.confirm(
+                  "In bản nháp từ màn hình — có thể khác dữ liệu đã lưu trên hệ thống. Tiếp tục?",
+                );
+                if (!ok) return;
+              }
+              window.print();
+            }}
             title="In phiếu A4"
             className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
           >
@@ -350,7 +393,7 @@ export default function VSTForm({
           </button>
 
           <button
-            disabled={loading}
+            disabled={loading || isLockedForSelectedDate}
             onClick={handleFinalSave}
             className="inline-flex h-12 items-center justify-center rounded-lg bg-[var(--primary)] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
           >

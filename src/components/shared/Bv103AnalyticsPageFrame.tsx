@@ -38,7 +38,7 @@ export function Bv103AnalyticsPageFrame({
             <h1 className="min-w-0 truncate text-base font-semibold tracking-tight text-slate-900">{title}</h1>
             {actions ? <div className="flex shrink-0 items-center gap-1.5">{actions}</div> : null}
           </div>
-          <div className="mt-3 border-t border-slate-100 pt-3">{filterBar}</div>
+          <div className="mt-2 border-t border-slate-100 pt-2 sm:mt-3 sm:pt-3">{filterBar}</div>
         </div>
       ) : (
         <KsnkSupervisionHero eyebrow={eyebrow} title={title} description={description} actions={actions} />

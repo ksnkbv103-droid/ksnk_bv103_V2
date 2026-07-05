@@ -15,6 +15,7 @@ import {
   Printer,
   PlusCircle,
 } from "lucide-react";
+import QrCameraButton from "@/components/shared/QrCameraButton";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import {
   INCIDENT_GROUP_LABEL,
@@ -47,27 +48,38 @@ export function QrField({
   value,
   onChange,
   onKeyDown,
+  onScanComplete,
   loading,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onScanComplete?: (code: string) => void;
   loading?: boolean;
 }) {
   return (
     <div className="space-y-1.5">
       <label className={bv103LayoutChrome.labelBlock}>{label}</label>
-      <div className="relative">
+      <div className="relative flex items-center gap-2">
         <input
           value={value}
           onChange={(e) => onChange(e.target.value.toUpperCase())}
           onKeyDown={onKeyDown}
           disabled={loading}
-          className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pl-4 pr-12 text-lg font-black uppercase tracking-widest text-red-600 outline-none transition-all focus:border-[var(--primary)] focus:bg-white focus:ring-2 focus:ring-[var(--primary)]/10 disabled:opacity-60"
+          className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pl-4 pr-4 text-lg font-black uppercase tracking-widest text-red-600 outline-none transition-all focus:border-[var(--primary)] focus:bg-white focus:ring-2 focus:ring-[var(--primary)]/10 disabled:opacity-60"
           placeholder="QUÉT QR..."
         />
-        <div className="absolute right-4 top-4 text-slate-300">
+        <QrCameraButton
+          disabled={loading}
+          onScan={(code) => {
+            onChange(code);
+            onScanComplete?.(code);
+          }}
+          className="h-14 w-14 shrink-0 px-0"
+          label=""
+        />
+        <div className="pointer-events-none absolute right-16 top-4 text-slate-300 sm:right-20">
           {loading ? <Loader2 className="animate-spin" size={20} /> : <QrCode size={20} className={value ? "text-[var(--primary)]" : ""} />}
         </div>
       </div>
@@ -94,7 +106,7 @@ export function TypePicker({
             const sel = options.find((c) => c.code === e.target.value);
             onChange(e.target.value, sel?.label || "");
           }}
-          className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none focus:border-[var(--primary)] focus:bg-white"
+          className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-700 outline-none focus:border-[var(--primary)] focus:bg-white sm:text-base"
         >
           {options.map((c) => (
             <option key={c.code} value={c.code}>{c.label}</option>
@@ -109,14 +121,18 @@ export function TypePicker({
 export function IncidentGroupPicker({
   incidentGroup,
   onSelect,
+  compact = false,
 }: {
   incidentGroup: IncidentGroup;
   onSelect: (group: IncidentGroup) => void;
+  compact?: boolean;
 }) {
   return (
-    <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]">
+    <div
+      className={`space-y-3 rounded-2xl border border-slate-200 bg-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] ${compact ? "p-4" : "p-5"}`}
+    >
       <h4 className={bv103LayoutChrome.labelBlockAccent}>Bước 1: Chọn nhóm sự cố</h4>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-5">
         {INCIDENT_GROUPS.map((g) => {
           const IconComp = GROUP_ICONS[g];
           const isSelected = incidentGroup === g;
@@ -125,19 +141,19 @@ export function IncidentGroupPicker({
               key={g}
               type="button"
               onClick={() => onSelect(g)}
-              className={`group relative flex flex-col items-start rounded-xl border p-4 text-left transition-all ${
+              className={`group relative flex min-h-[5.5rem] touch-manipulation flex-col items-start rounded-xl border p-3 text-left transition-all sm:min-h-[6.5rem] sm:p-4 ${
                 isSelected
                   ? "border-[var(--primary)] bg-emerald-50/50 shadow-sm ring-2 ring-emerald-500/10"
-                  : "border-slate-200 bg-slate-50 hover:bg-slate-100/70"
+                  : "border-slate-200 bg-slate-50 hover:bg-slate-100/70 active:scale-[0.98]"
               }`}
             >
-              <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${isSelected ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-white text-slate-400"}`}>
-                <IconComp size={18} />
+              <div className={`mb-2 flex h-10 w-10 items-center justify-center rounded-lg sm:mb-3 sm:h-9 sm:w-9 ${isSelected ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-white text-slate-400"}`}>
+                <IconComp size={20} />
               </div>
-              <span className={`text-[11px] font-semibold uppercase leading-tight tracking-wide ${isSelected ? "text-[var(--primary)]" : "text-slate-700"}`}>
+              <span className={`text-xs font-semibold uppercase leading-tight tracking-wide sm:text-[11px] ${isSelected ? "text-[var(--primary)]" : "text-slate-700"}`}>
                 {INCIDENT_GROUP_LABEL[g].split(" (")[0]}
               </span>
-              <span className="mt-1 text-[11px] font-medium leading-relaxed text-slate-400">{GROUP_SUBTITLES[g]}</span>
+              <span className="mt-1 hidden text-[11px] font-medium leading-relaxed text-slate-400 sm:block">{GROUP_SUBTITLES[g]}</span>
             </button>
           );
         })}
@@ -181,7 +197,7 @@ export function SubmittedSuccessView({
   onReset: () => void;
 }) {
   return (
-    <div className="mx-auto my-6 max-w-2xl animate-in space-y-6 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] fade-in duration-300">
+    <div className="mx-auto my-4 max-w-2xl animate-in space-y-6 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] fade-in duration-300 sm:my-6 sm:p-8">
       <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-8 ring-emerald-500/10">
         <CheckCircle2 size={36} />
       </div>
@@ -259,6 +275,7 @@ export function EquipmentContextFields({
   maQR,
   setMaQR,
   onQrKeyDown,
+  onScanComplete,
   loading,
   machineId,
   setMachineId,
@@ -271,6 +288,7 @@ export function EquipmentContextFields({
   maQR: string;
   setMaQR: (v: string) => void;
   onQrKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onScanComplete?: (code: string) => void;
   loading: boolean;
   machineId: string;
   setMachineId: (v: string) => void;
@@ -287,6 +305,7 @@ export function EquipmentContextFields({
         value={maQR}
         onChange={setMaQR}
         onKeyDown={onQrKeyDown}
+        onScanComplete={onScanComplete}
         loading={loading}
       />
       <div className="space-y-1.5">

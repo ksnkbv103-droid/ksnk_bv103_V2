@@ -3,7 +3,6 @@
 import React, { useMemo, useRef, useState } from "react";
 import { Download, Loader2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
-import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import { excelCellToPlain } from "@/hooks/importExport.utils";
 import { importCongViecRows } from "../actions/qlcv-import.actions";
@@ -37,6 +36,8 @@ export function QlcvImportDialog({ isOpen, onClose, onImported }: Props) {
   if (!isOpen) return null;
 
   async function downloadTemplate() {
+    // exceljs nặng ~940KB — chỉ tải khi user thực sự tải template
+    const { default: ExcelJS } = await import("exceljs");
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("QLCV");
     ws.columns = TEMPLATE_HEADERS.map((c) => ({ header: c.header, key: c.key, width: 22 }));
@@ -57,6 +58,7 @@ export function QlcvImportDialog({ isOpen, onClose, onImported }: Props) {
     if (!file) return;
     setBusy(true);
     try {
+      const { default: ExcelJS } = await import("exceljs");
       const wb = new ExcelJS.Workbook();
       await wb.xlsx.load(await file.arrayBuffer());
       const sheet = wb.worksheets[0];

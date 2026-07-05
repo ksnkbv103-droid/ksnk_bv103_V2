@@ -41,7 +41,20 @@ const stationVnNames: Record<Station, string> = {
  */
 export default function CSSDERPPage({ suppressShell = false }: { suppressShell?: boolean } = {}) {
   const searchParams = useSearchParams();
-  const { currentStation, scanStations, waitingList, loading: _workflowLoading, lastScan, scanSuccess, selectStation, handleQRScan, refresh } = useCSSDWorkflow();
+  const {
+    currentStation,
+    scanStations,
+    waitingList,
+    loading: workflowLoading,
+    lastScan,
+    scanSuccess,
+    dongGoiGate,
+    selectStation,
+    handleQRScan,
+    confirmDongGoiAdvance,
+    cancelDongGoiGate,
+    refresh,
+  } = useCSSDWorkflow();
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
   const { printState, onPrintCapPhat, isPrinting: isCssdPrinting } = useCssdPrint();
   const { printCycleLabel } = usePrint();
@@ -129,30 +142,33 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     void handleQRScan(code);
   };
 
+  const showDongGoiGate = currentStation === "DONG_GOI" && !!dongGoiGate;
+  const showScanSuccess = scanSuccess && !showDongGoiGate;
+
   const mainContent = (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-4 animate-in fade-in duration-500 sm:space-y-6">
       {/* Lựa chọn trạm làm việc */}
-      <section className={`space-y-4 p-4 ${CSSD_UI_PANEL}`}>
-        <div className="flex flex-wrap items-end justify-between gap-2 px-1">
-          <h2 className={CSSD_UI_SECTION_TITLE}>Quy trình quét trạm (không gồm mẻ hấp)</h2>
-          <span className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+      <section className={`space-y-3 p-2.5 sm:space-y-4 sm:p-4 ${CSSD_UI_PANEL}`}>
+        <div className="flex flex-wrap items-end justify-between gap-2 px-0.5 sm:px-1">
+          <h2 className={`${CSSD_UI_SECTION_TITLE} max-sm:text-sm`}>Quy trình quét trạm (không gồm mẻ hấp)</h2>
+          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 sm:px-3 sm:py-1">
             {currentStation ? stationVnNames[currentStation] : "Chưa chọn trạm"}
           </span>
         </div>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-6">
           {stationsBeforeCap.map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => selectStation(s)}
-              className={`group flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-2xl border p-3 transition-all ${
+              className={`group flex min-h-[4.25rem] flex-col items-center justify-center gap-1 rounded-xl border p-2 transition-all touch-manipulation sm:min-h-[88px] sm:gap-2 sm:rounded-2xl sm:p-3 ${
                 currentStation === s
                    ? "border-emerald-600 bg-emerald-600 text-white shadow-lg"
                    : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
               }`}
             >
               <div
-                className={`${currentStation === s ? "text-amber-300" : "text-slate-300 group-hover:text-emerald-600"} transition-all`}
+                className={`${currentStation === s ? "text-amber-300" : "text-slate-300 group-hover:text-emerald-600"} transition-all [&_svg]:h-4 [&_svg]:w-4 sm:[&_svg]:h-5 sm:[&_svg]:w-5`}
               >
                 {stationIcons[s]}
               </div>
@@ -167,14 +183,14 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
           <button
             type="button"
             onClick={() => selectStation(capStation)}
-            className={`group flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-2xl border p-3 transition-all ${
+            className={`group flex min-h-[4.25rem] flex-col items-center justify-center gap-1 rounded-xl border p-2 transition-all touch-manipulation sm:min-h-[88px] sm:gap-2 sm:rounded-2xl sm:p-3 ${
               currentStation === capStation
                 ? "border-emerald-600 bg-emerald-600 text-white shadow-lg"
                 : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
             }`}
           >
             <div
-              className={`${currentStation === capStation ? "text-amber-300" : "text-slate-300 group-hover:text-emerald-600"} transition-all`}
+              className={`${currentStation === capStation ? "text-amber-300" : "text-slate-300 group-hover:text-emerald-600"} transition-all [&_svg]:h-4 [&_svg]:w-4 sm:[&_svg]:h-5 sm:[&_svg]:w-5`}
             >
               {stationIcons[capStation]}
             </div>
@@ -200,38 +216,44 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
           <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <WorkflowStationQrEntry
               waitingItems={waitingList}
-              disabled={!currentStation}
+              disabled={!currentStation || workflowLoading}
               onConfirm={submitWorkflowQr}
+              gateActive={showDongGoiGate}
             />
-            {scanSuccess ? (
-              <>
-                <QRScanSuccessCard
-                  {...lastScan}
-                  tramDisplay={currentStation?.replace(/_/g, " ") || "CSSD"}
-                  ledgerWarning={lastScan?.ledgerWarning}
-                  onPrintCapPhat={
-                    lastScan?.quyTrinhId
-                      ? () =>
-                          void onPrintCapPhat({
-                            quyTrinhId: String(lastScan.quyTrinhId),
-                            nguoiCapPhat: String(lastScan.nguoiThucHien || "CSSD"),
-                          })
-                      : undefined
-                  }
-                  isPrintBusy={isCssdPrinting}
-                />
-                {lastScan?.boDungCuId ? (
-                  <CompositionReconcilePanel
-                    boDungCuId={String(lastScan.boDungCuId)}
-                    quyTrinhId={lastScan.quyTrinhId ? String(lastScan.quyTrinhId) : null}
-                    enabled={currentStation === "DONG_GOI"}
-                  />
-                ) : null}
-              </>
+            {showDongGoiGate && dongGoiGate ? (
+              <CompositionReconcilePanel
+                boDungCuId={dongGoiGate.boDungCuId}
+                quyTrinhId={dongGoiGate.quyTrinhId}
+                enabled
+                gateMode
+                advancing={workflowLoading}
+                onConfirmAdvance={() => void confirmDongGoiAdvance()}
+                onCancelGate={cancelDongGoiGate}
+              />
+            ) : showScanSuccess ? (
+              <QRScanSuccessCard
+                {...lastScan}
+                tramDisplay={currentStation?.replace(/_/g, " ") || "CSSD"}
+                ledgerWarning={lastScan?.ledgerWarning}
+                onPrintCapPhat={
+                  lastScan?.quyTrinhId
+                    ? () =>
+                        void onPrintCapPhat({
+                          quyTrinhId: String(lastScan.quyTrinhId),
+                          nguoiCapPhat: String(lastScan.nguoiThucHien || "CSSD"),
+                        })
+                    : undefined
+                }
+                isPrintBusy={isCssdPrinting}
+              />
             ) : (
               <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 py-16 text-slate-400">
                 <QrCode size={36} className="opacity-40" />
-                <p className={CSSD_UI_STEP_HINT}>Chờ lệnh quét QR mới</p>
+                <p className={CSSD_UI_STEP_HINT}>
+                  {currentStation === "DONG_GOI"
+                    ? "Quét hoặc chọn bộ để mở bảng kiểm cấu phần"
+                    : "Chờ lệnh quét QR mới"}
+                </p>
               </div>
             )}
           </div>

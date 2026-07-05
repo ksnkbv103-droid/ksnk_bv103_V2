@@ -82,7 +82,7 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
         : Promise.resolve({ data: [], error: null }),
       supabase
         .from("gstt_dm_khu_vuc_giam_sat")
-        .select("id, ma_khu_vuc, ten_khu_vuc, nhom_mau, thu_tu")
+        .select("id, ma_khu_vuc, ten_khu_vuc, thu_tu")
         .eq("is_active", true)
         .order("thu_tu"),
     ]);
@@ -155,7 +155,6 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
       id: String(x.id || ""),
       ma: String(x.ma_khu_vuc || ""),
       ten: String(x.ten_khu_vuc || ""),
-      nhom_mau: String(x.nhom_mau || ""),
       thu_tu: typeof x.thu_tu === "number" ? x.thu_tu : null,
     }));
     const effectiveKhuVucs = rpcKhuVucs.length > 0 ? rpcKhuVucs : fallbackKhuVucs;
@@ -176,7 +175,6 @@ export async function getSupervisionMasterDataBundle(options: LoadOptions = {}) 
           ten_danh_muc: x.ten,
           loai_danh_muc: "KHU_VUC_GIAM_SAT",
           source: "registry_lookup" as const,
-          nhom_mau: x.nhom_mau ?? null,
           thu_tu: typeof x.thu_tu === "number" ? x.thu_tu : null,
         })),
         ngheNghieps: (registry.NGHE_NGHIEP || []).map((x: any) => ({ id: x.id, ma_danh_muc: x.ma, ten_danh_muc: x.ten })),

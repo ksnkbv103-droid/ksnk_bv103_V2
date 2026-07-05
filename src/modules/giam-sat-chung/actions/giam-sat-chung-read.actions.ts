@@ -153,7 +153,7 @@ export async function getGscHeaderDmDropdowns() {
       })(),
       supabase
         .from("gstt_dm_khu_vuc_giam_sat")
-        .select("id, ma_khu_vuc, ten_khu_vuc, nhom_mau, thu_tu")
+        .select("id, ma_khu_vuc, ten_khu_vuc, thu_tu")
         .eq("is_active", true)
         .order("thu_tu"),
     ]);
@@ -186,7 +186,6 @@ export async function getGscHeaderDmDropdowns() {
       id: String(x.id || ""),
       ten: String(x.ten_khu_vuc || ""),
       ma: String(x.ma_khu_vuc || ""),
-      nhom_mau: String(x.nhom_mau || ""),
       thu_tu: typeof x.thu_tu === "number" ? x.thu_tu : null,
     }));
     const effectiveKhuVucs = rpcKhuVucs.length > 0 ? rpcKhuVucs : fallbackKhuVucs;
@@ -196,7 +195,6 @@ export async function getGscHeaderDmDropdowns() {
       ten_danh_muc: r.ten,
       loai_danh_muc: "KHU_VUC_GIAM_SAT",
       source: "registry_lookup" as const,
-      nhom_mau: (r as { nhom_mau?: string }).nhom_mau ?? null,
       thu_tu: typeof (r as { thu_tu?: number }).thu_tu === "number" ? (r as { thu_tu?: number }).thu_tu : null,
     }));
     const ngheNghieps = mapDanhMucOptions(

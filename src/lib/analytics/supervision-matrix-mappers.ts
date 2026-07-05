@@ -275,7 +275,6 @@ export function mapGapRowsForKhoaMa(
 export type GscCompareMatrices = {
   matrix_khoi?: MatrixRow[];
   matrix_khu_vuc?: MatrixRow[];
-  matrix_khu_vuc_nhom?: MatrixRow[];
   matrix_nghe?: MatrixRow[];
   matrix_hinh_thuc?: MatrixRow[];
   matrix_cach_thuc?: MatrixRow[];
@@ -284,6 +283,5 @@ export type GscCompareMatrices = {
 export type VstCompareMatrices = {
   matrix_khoi?: MatrixRow[];
   matrix_khu_vuc?: MatrixRow[];
-  matrix_khu_vuc_nhom?: MatrixRow[];
   matrix_hinh_thuc?: MatrixRow[];
 };

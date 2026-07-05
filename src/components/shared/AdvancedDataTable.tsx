@@ -7,6 +7,7 @@ import { ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 import SearchBar from "./SearchBar";
 import ServerPaginationBar from "./ServerPaginationBar";
 import DataTableBody from "./DataTableBody";
+import DataTableMobileCards from "./DataTableMobileCards";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useMinWidth } from "@/hooks/use-min-width";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
@@ -82,6 +83,7 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
 }: AdvancedDataTableProps<T>) {
   const headerPortal = searchPlacement === "header";
   const isLgUp = useMinWidth(1024, false, headerPortal);
+  const isSmUp = useMinWidth(640, false);
   const [headerSlotEl, setHeaderSlotEl] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -168,8 +170,23 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
         </div>
       )}
 
-      {/* Bảng dữ liệu chính */}
+      {/* Bảng dữ liệu chính — mobile: thẻ; desktop: bảng */}
       <div className="overflow-hidden rounded-[var(--radius-table)] bg-white ring-1 ring-slate-200/90">
+        {!isSmUp ? (
+          <div className="custom-scrollbar max-h-[min(68dvh,640px)] overflow-y-auto overscroll-contain">
+            <DataTableMobileCards
+              columns={columns}
+              data={displayData}
+              loading={loading}
+              emptyMessage={emptyMessage}
+              enableMultiSelect={enableMultiSelect}
+              selectedIds={selectedIds}
+              toggleSelectRow={toggleSelectRow}
+              onRowClick={onRowClick}
+              rowClassName={rowClassName}
+            />
+          </div>
+        ) : (
         <div className="custom-scrollbar max-h-[min(520px,62dvh)] overflow-auto overscroll-contain">
           <table className={tableClassName ?? "w-full min-w-[640px] border-collapse text-left"}>
             <thead className="sticky top-0 z-20 bg-slate-50/95 shadow-[0_1px_0_rgb(226_232_240/0.95)]">
@@ -212,6 +229,7 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
             </tbody>
           </table>
         </div>
+        )}
       </div>
       
       {/* Footer */}

@@ -2,6 +2,7 @@
 
 import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
 import React from "react";
+import QrCameraButton from "@/components/shared/QrCameraButton";
 import type { SsiVerificationData } from "../../types/nkbv-verification";
 
 interface SsiClinicalSubFormProps {
@@ -34,14 +35,21 @@ export default function SsiClinicalSubForm({
     <div className={C.sectionGap}>
       <div className="rounded-[var(--radius-shell)] border border-emerald-100 bg-emerald-50/60 p-4 space-y-2">
         <label className={`${C.formLabel} text-emerald-800`}>Mã QR bộ dụng cụ CSSD (truy vết SSI)</label>
-        <input
-          type="text"
-          value={form.ma_qr_cssd_lien_quan || ""}
-          disabled={!allowedEdit}
-          onChange={(e) => onChange({ ...form, ma_qr_cssd_lien_quan: e.target.value.toUpperCase() })}
-          placeholder="Quét hoặc nhập mã QR chu trình..."
-          className={C.controlInput}
-        />
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={form.ma_qr_cssd_lien_quan || ""}
+            disabled={!allowedEdit}
+            onChange={(e) => onChange({ ...form, ma_qr_cssd_lien_quan: e.target.value.toUpperCase() })}
+            placeholder="Quét hoặc nhập mã QR chu trình..."
+            className={`${C.controlInput} min-w-0 flex-1`}
+          />
+          <QrCameraButton
+            disabled={!allowedEdit}
+            onScan={(code) => onChange({ ...form, ma_qr_cssd_lien_quan: code })}
+            title="Quét QR bộ CSSD"
+          />
+        </div>
         <p className="text-[11px] text-emerald-900/80 font-medium">
           Sau khi lưu checklist, hệ thống liên kết ca với timeline CSSD (tab Truy vết).
         </p>

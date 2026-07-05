@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
+import { resolveAnalyticsRpcFilters } from "@/lib/analytics/resolve-analytics-rpc-scope";
 import type { GscChecklistDetailPayload, GscStrategicFilters } from "../types/gsc-strategic.types";
 
 const detailFiltersSchema = z.object({
@@ -33,22 +34,11 @@ export async function getGscChecklistDetail(
   const supabase = await createServerSupabaseUserClient();
   const scope = await getActorKsnkScope();
   const f = parsed.data;
-  const isNetwork = scope.isMangLuoiKsnk;
 
   const filterRpcArgs = {
     p_tu_ngay: f.tu_ngay,
     p_den_ngay: f.den_ngay,
-    p_khoi_ids: isNetwork ? null : f.khoi_ids?.length ? f.khoi_ids : null,
-    p_khoa_ids: isNetwork
-      ? scope.actorKhoaId
-        ? [scope.actorKhoaId]
-        : null
-      : f.khoa_ids?.length
-        ? f.khoa_ids
-        : null,
-    p_nghe_nghiep_ids: isNetwork ? null : f.nghe_nghiep_ids?.length ? f.nghe_nghiep_ids : null,
-    p_khu_vuc_ids: isNetwork ? null : f.khu_vuc_ids?.length ? f.khu_vuc_ids : null,
-    p_hinh_thuc_ids: isNetwork ? null : f.hinh_thuc_ids?.length ? f.hinh_thuc_ids : null,
+    ...resolveAnalyticsRpcFilters(scope, f, "gsc"),
   };
 
   const [{ data, error }, { data: matrices, error: matrixErr }] = await Promise.all([

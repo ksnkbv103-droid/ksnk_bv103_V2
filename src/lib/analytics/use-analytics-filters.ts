@@ -45,6 +45,7 @@ export function useAnalyticsFilters(shell: AnalyticsShellContext = "command-cent
   const [filterOptions, setFilterOptions] = useState<DashboardFilterOptions | null>(null);
   const [viewerScope, setViewerScope] = useState<AnalyticsViewerScope | null>(null);
   const [initDone, setInitDone] = useState(false);
+  const [filterInitError, setFilterInitError] = useState<string | null>(null);
   const filtersLoadedRef = useRef(false);
 
   const { bangKiemOptions, khoiOptions, khoaOptions, ngheOptions, khuVucOptions, bkLabelMap } =
@@ -124,6 +125,7 @@ export function useAnalyticsFilters(shell: AnalyticsShellContext = "command-cent
         if (cancelled) return;
         if (scopeRes.success) setViewerScope(scopeRes.data);
         if (res.success) {
+          setFilterInitError(null);
           setFilterOptions(res.data);
           setSelectedBangKiemMas([]);
           setSelectedHinhThucIds([]);
@@ -140,9 +142,16 @@ export function useAnalyticsFilters(shell: AnalyticsShellContext = "command-cent
           setSelectedKhuVucIds(res.data.khu_vuc.map((x) => x.id));
           filtersLoadedRef.current = true;
           setInitDone(true);
+        } else {
+          setFilterInitError(res.error || "Không tải được bộ lọc thống kê.");
+          setInitDone(true);
         }
       } catch (err) {
         console.error("[AnalyticsFilters] init error:", err);
+        if (!cancelled) {
+          setFilterInitError(err instanceof Error ? err.message : "Không tải được bộ lọc thống kê.");
+          setInitDone(true);
+        }
       }
     }
 
@@ -184,6 +193,7 @@ export function useAnalyticsFilters(shell: AnalyticsShellContext = "command-cent
     setDenNgay,
     filterOptions,
     initDone,
+    filterInitError,
     bangKiemOptions,
     khoiOptions,
     khoaOptions,

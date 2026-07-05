@@ -1,90 +1,58 @@
 // src/modules/giam-sat-vst/components/HistoryTable.tsx
 "use client";
 
-import React, { useCallback, useMemo } from "react";
-import { deleteVSTSessions } from "../actions/vst-write-delete.actions";
-import { getVSTSessionsPaginated } from "../actions/vst-read.actions";
+import React from "react";
 import VSTPrintView from "./VSTPrintView";
-import { toast } from "sonner";
+import VstSessionViewer from "./VstSessionViewer";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
-import { useModulePermission } from "@/hooks/useModulePermission";
-import { useServerPaginatedTable, type ServerPaginationParams } from "@/hooks/use-server-paginated-table";
-import { getVSTHistoryColumns } from "./VSTHistoryColumns";
-import { useVstPrint } from "../hooks/use-vst-print";
-import { enrichVstSessionRows, type VstHistoryRow } from "../lib/vst-read-utils";
+import { useVstHistoryTable } from "../hooks/use-vst-history-table";
 
-const MODULE_KEY = "GIAM_SAT_VST";
-
-export default function HistoryTable({
-  onEditSessionId,
-}: {
-  onEditSessionId?: (sessionId: string) => void;
-}) {
-  const { allowed } = useModulePermission(MODULE_KEY);
-  const { isPrinting: _isPrinting, printingSessionId, printData, onPrint } = useVstPrint();
-
-  const fetchAction = useCallback(async (params: ServerPaginationParams) => {
-    const res = await getVSTSessionsPaginated({
-      page: params.page,
-      pageSize: params.pageSize,
-      search: params.search,
-      sortKey: params.sortKey,
-      sortDir: params.sortDir,
-    });
-    if (!res.success) {
-      toast.error("Lỗi tải lịch sử: " + res.error);
-      return { success: false, data: [], totalCount: 0, error: res.error };
-    }
-    return { success: true, data: enrichVstSessionRows(res.data || []), totalCount: res.totalCount };
-  }, []);
-
+export default function HistoryTable() {
   const {
-    data: processedData,
-    totalCount, totalPages,
-    page, setPage,
-    pageSize, searchTerm,
-    handleSearch, handleSort,
-    loading, refresh,
-  } = useServerPaginatedTable({ fetchAction, defaultPageSize: 20 });
-
-  const handleDelete = async (items: VstHistoryRow[]) => {
-    const ids = items.map((i) => String(i.id)).filter(Boolean);
-    if (!ids.length || !confirm(`Xóa vĩnh viễn ${ids.length} phiên khỏi cơ sở dữ liệu? Chỉ phiên do bạn giám sát mới được xóa.`)) return;
-    try {
-      const res = await deleteVSTSessions(ids);
-      if (res.success) {
-        toast.success(`Đã xóa ${ids.length} phiên khỏi cơ sở dữ liệu`);
-        refresh();
-      } else {
-        toast.error("Lỗi khi xóa: " + res.error);
-      }
-    } catch (error: unknown) {
-      toast.error("Lỗi: " + (error instanceof Error ? error.message : String(error)));
-    }
-  };
-
-  const columns = useMemo(
-    () =>
-      getVSTHistoryColumns(
-        printingSessionId,
-        onPrint,
-        onEditSessionId,
-        Boolean(allowed.edit),
-      ),
-    [printingSessionId, onPrint, onEditSessionId, allowed.edit],
-  );
+    allowed,
+    columns,
+    processedData,
+    loading,
+    searchTerm,
+    handleSort,
+    handleSearch,
+    handleDelete,
+    onView,
+    printData,
+    viewData,
+    viewSessionId,
+    setViewData,
+    setViewSessionId,
+    onPrint,
+    page,
+    setPage,
+    pageSize,
+    totalCount,
+    totalPages,
+  } = useVstHistoryTable();
 
   return (
     <div className="w-full space-y-4">
       {printData && <VSTPrintView {...printData} />}
+      <VstSessionViewer
+        open={Boolean(viewData)}
+        data={viewData}
+        onClose={() => {
+          setViewData(null);
+          setViewSessionId(null);
+        }}
+        onPrint={() => {
+          if (viewSessionId) void onPrint(viewSessionId);
+        }}
+      />
       <div className="print:hidden">
-        <AdvancedDataTable 
+        <AdvancedDataTable
           columns={columns}
           data={processedData}
           tableClassName="w-full min-w-[1024px] table-fixed border-collapse text-left"
           enableMultiSelect={allowed.delete}
           onDeleteSelected={allowed.delete ? handleDelete : undefined}
-          onRowClick={(s) => onPrint(s.id)}
+          onRowClick={(s) => void onView(s)}
           onSearch={handleSearch}
           onSort={handleSort}
           searchValue={searchTerm}

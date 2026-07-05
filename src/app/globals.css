@@ -61,6 +61,13 @@
   color-scheme: light;
 }
 
+@media (max-width: 639px) {
+  :root {
+  /* Điện thoại: vùng chạm tối thiểu ~44px (Apple HIG) */
+    --bv103-control-h: 2.75rem;
+  }
+}
+
 /* ============================================
    BASE STYLES
    ============================================ */
@@ -226,6 +233,16 @@
 
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
+  }
+
+  /** Cuộn ngang tab/menu mobile — ẩn thanh cuộn nhưng vẫn vuốt được */
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 
   /** Nhịp nhẹ thẻ Kanban QLCV — quá hạn / ưu tiên cao */

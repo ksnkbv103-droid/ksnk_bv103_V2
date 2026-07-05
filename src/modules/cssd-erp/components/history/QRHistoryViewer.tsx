@@ -3,6 +3,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { Search, History, CheckCircle2, AlertTriangle, Clock, User, QrCode } from "lucide-react";
+import QrCameraButton from "@/components/shared/QrCameraButton";
 import { toast } from "sonner";
 import { fetchCssdQrHistory, assignCssdCaMoTrace } from "../../actions/cssd-qr-history.actions";
 import { useCssdPrint } from "../../hooks/use-cssd-print";
@@ -107,6 +108,14 @@ export default function QRHistoryViewer({ initialQr }: Props) {
         >
           {loading ? "..." : <Search size={20} strokeWidth={3} />}
         </button>
+        <QrCameraButton
+          onScan={(scanned) => {
+            setCode(scanned);
+            void fetchHistory(scanned);
+          }}
+          className="mr-1 h-14 rounded-[22px] border-[#FFD700]/40 bg-white/10"
+          label=""
+        />
       </div>
 
       {/* 2. Hiển thị nội dung */}

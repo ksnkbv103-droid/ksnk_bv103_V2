@@ -13,7 +13,9 @@ import {
 import CssdCatalogMdmBanner from "@/modules/cssd-erp/components/catalog/CssdCatalogMdmBanner";
 import InventoryHistoryTable from "@/modules/cssd-erp/components/inventory/InventoryHistoryTable";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
-import { CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_GROUP, CSSD_UI_TAB_IDLE } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
+import QrCameraButton from "@/components/shared/QrCameraButton";
 
 export default function Page() {
   const s = useCssdCatalogPage();
@@ -29,69 +31,46 @@ export default function Page() {
       }
       subtitle="Xem danh mục bộ, loại, chi tiết; quét QR; lịch sử luân chuyển. Chỉnh master data tại Quản trị."
     >
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {isCatalogTab ? <CssdCatalogMdmBanner /> : null}
 
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
           <div className={CSSD_UI_TAB_GROUP}>
-            <button
-              type="button"
-              onClick={() => s.setTab("BO")}
-              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
-                s.tab === "BO" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
-              }`}
-            >
-              <Layers size={14} /> Bộ dụng cụ
-            </button>
-            <button
-              type="button"
-              onClick={() => s.setTab("CHI_TIET")}
-              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
-                s.tab === "CHI_TIET" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
-              }`}
-            >
-              <ListFilter size={14} /> Dụng cụ chi tiết
-            </button>
-            <button
-              type="button"
-              onClick={() => s.setTab("LOAI")}
-              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
-                s.tab === "LOAI" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
-              }`}
-            >
-              <AppWindow size={14} /> Loại dụng cụ
-            </button>
-            <button
-              type="button"
-              onClick={() => s.setTab("HISTORY")}
-              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-[11px] font-semibold uppercase tracking-wide transition-all ${
-                s.tab === "HISTORY" ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE
-              }`}
-            >
-              <History size={14} /> Lịch sử luân chuyển
-            </button>
+            <CssdHorizTabButton active={s.tab === "BO"} onClick={() => s.setTab("BO")} icon={Layers} label="Bộ dụng cụ" mobileLabel="Bộ" />
+            <CssdHorizTabButton active={s.tab === "CHI_TIET"} onClick={() => s.setTab("CHI_TIET")} icon={ListFilter} label="Dụng cụ chi tiết" mobileLabel="Chi tiết" />
+            <CssdHorizTabButton active={s.tab === "LOAI"} onClick={() => s.setTab("LOAI")} icon={AppWindow} label="Loại dụng cụ" mobileLabel="Loại" />
+            <CssdHorizTabButton active={s.tab === "HISTORY"} onClick={() => s.setTab("HISTORY")} icon={History} label="Lịch sử luân chuyển" mobileLabel="Lịch sử" />
           </div>
         </div>
 
         <div className="animate-in fade-in duration-300">
           {isCatalogTab && (
             <div className="mb-6 space-y-4">
-              <div className="relative">
-                <input
-                  value={s.q}
-                  onChange={(e) => s.setQ(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      void s.handleScan(s.q);
-                    }
-                  }}
-                  placeholder="Tìm kiếm danh mục hoặc quét mã QR bộ/quy trình (nhấn Enter)..."
-                  className="h-12 w-full rounded-xl border border-slate-200 pl-11 pr-4 text-sm font-medium outline-none transition-all placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--primary)]/20"
-                />
-                <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                  <QrCode size={18} className="text-[var(--primary)]" />
+              <div className="relative flex items-center gap-2">
+                <div className="relative min-w-0 flex-1">
+                  <input
+                    value={s.q}
+                    onChange={(e) => s.setQ(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        void s.handleScan(s.q);
+                      }
+                    }}
+                    placeholder="Tìm kiếm danh mục hoặc quét mã QR bộ/quy trình (nhấn Enter)..."
+                    className="h-12 w-full rounded-xl border border-slate-200 pl-11 pr-4 text-sm font-medium outline-none transition-all placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--primary)]/20"
+                  />
+                  <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                    <QrCode size={18} className="text-[var(--primary)]" />
+                  </div>
                 </div>
+                <QrCameraButton
+                  onScan={(code) => {
+                    s.setQ(code);
+                    void s.handleScan(code);
+                  }}
+                  title="Quét QR danh mục dụng cụ"
+                />
               </div>
             </div>
           )}

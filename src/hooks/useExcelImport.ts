@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import ExcelJS from "exceljs";
 import { toast } from "sonner";
 import type { ImportExportConfig, ImportRow } from "./importExport.types";
 import {
@@ -25,6 +24,8 @@ export function useExcelImport(config: ImportExportConfig, normalizedMapping: Re
     setIsImporting(true);
     const toastId = toast.loading(`Đang xử lý ${file.name}...`);
     try {
+      // exceljs nặng ~940KB — chỉ tải khi user thực sự import
+      const { default: ExcelJS } = await import("exceljs");
       const workbook = new ExcelJS.Workbook();
       await workbook.xlsx.load(await file.arrayBuffer());
       const worksheet = workbook.getWorksheet(1);

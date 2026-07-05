@@ -1,13 +1,14 @@
 "use server";
 
-import { createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { createServerSupabaseUserClient, createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
-import { buildDisplayMaps, toDistinctIds } from "@/lib/master-data/gateway";
+import { buildDisplayMaps, toDistinctIds, mapDanhMucOptions } from "@/lib/master-data/gateway";
+import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import { vstReadErrorMessage } from "../lib/vst-read-utils";
 import { VST_OBSERVATION_FULL_VIEW_SELECT, VST_SESSIONS_FULL_VIEW_SELECT } from "../lib/vst-read-view-select";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
-import { applyVstHistoryReadScope } from "../lib/vst-read-scope";
+import { applyVstHistoryReadScope, assertVstHistoryAccess } from "../lib/vst-read-scope";
 
 /**
  * Phiên bản phân trang Server-side cho Lịch sử VST.
@@ -24,6 +25,10 @@ export async function getVSTSessionsPaginated(params: {
   try {
     await verifyPermission("GIAM_SAT_VST", "view");
     const scope = await getActorKsnkScope();
+    const historyAccess = assertVstHistoryAccess(scope);
+    if (!historyAccess.ok) {
+      return { success: false, error: historyAccess.error };
+    }
 
     const page = params.page ?? 1;
     const size = Math.min(Math.max(params.pageSize ?? 20, 10), 50);
@@ -60,7 +65,8 @@ export async function getVSTSessionsPaginated(params: {
     // 1. COUNT
     let countQ = supabase
       .from("v_gstt_giam_sat_vst_sessions_full")
-      .select("id", { count: "exact", head: true });
+      .select("id", { count: "exact", head: true })
+      .eq("is_active", true);
     countQ = applyVstHistoryReadScope(countQ, scope);
     if (searchFilter) countQ = countQ.or(searchFilter);
     const { count, error: cErr } = await countQ;
@@ -70,6 +76,7 @@ export async function getVSTSessionsPaginated(params: {
     let dataQ = supabase
       .from("v_gstt_giam_sat_vst_sessions_full")
       .select(VST_SESSIONS_FULL_VIEW_SELECT)
+      .eq("is_active", true)
       .order(sortCol, { ascending })
       .range(from, to);
     dataQ = applyVstHistoryReadScope(dataQ, scope);
@@ -98,6 +105,10 @@ export async function getVSTSessionDetail(sessionId: string) {
   try {
     await verifyPermission("GIAM_SAT_VST", "view");
     const scope = await getActorKsnkScope();
+    const historyAccess = assertVstHistoryAccess(scope);
+    if (!historyAccess.ok) {
+      return { success: false, error: historyAccess.error };
+    }
 
     // 1. Fetch Session Metadata from View (Smart DB pattern)
     const { data: sessionView, error: sErr } = await supabase
@@ -153,6 +164,93 @@ export async function getVSTSessionDetail(sessionId: string) {
     return { success: true, session, observations, nhanSuForPrint };
   } catch (error: unknown) {
     return { success: false, error: vstReadErrorMessage(error) };
+  }
+}
+
+/** Danh mục header VST — khóa khoa/nhân sự theo phạm vi mạng lưới (parity GSC). */
+export async function getVstHeaderDmDropdowns() {
+  const supabase = createAdminSupabaseClient();
+  try {
+    await verifyPermission("GIAM_SAT_VST", "view");
+    const scope = await getActorKsnkScope();
+    const historyAccess = assertVstHistoryAccess(scope);
+    if (!historyAccess.ok) {
+      return { success: false as const, error: historyAccess.error };
+    }
+
+    const actorKhoaId = scope.actorKhoaId ? String(scope.actorKhoaId) : null;
+    if (scope.isMangLuoiKsnk && !actorKhoaId) {
+      return {
+        success: true as const,
+        data: { khoas: [], khuVucs: [], ngheNghieps: [], nhanSus: [] },
+      };
+    }
+
+    const [registriesRes, khoaData, nhanSuRes, khuVucFallbackRes] = await Promise.all([
+      supabase.rpc("rpc_get_registry_options", {
+        p_categories: ["KHU_VUC_GIAM_SAT", "NGHE_NGHIEP"],
+      }),
+      getCachedDmKhoaPhong(),
+      (() => {
+        let q = supabase.from("mdm_nhan_su").select("id, ho_ten, khoa_id").eq("is_active", true);
+        if (scope.isMangLuoiKsnk && actorKhoaId) q = q.eq("khoa_id", actorKhoaId);
+        return q.order("ho_ten");
+      })(),
+      supabase
+        .from("gstt_dm_khu_vuc_giam_sat")
+        .select("id, ma_khu_vuc, ten_khu_vuc, thu_tu")
+        .eq("is_active", true)
+        .order("thu_tu"),
+    ]);
+
+    if (registriesRes.error) throw registriesRes.error;
+    if (nhanSuRes.error) throw nhanSuRes.error;
+    if (khuVucFallbackRes.error) throw khuVucFallbackRes.error;
+
+    const khoaFiltered = scope.isMangLuoiKsnk
+      ? actorKhoaId
+        ? khoaData.filter((x) => String(x.id) === actorKhoaId)
+        : []
+      : khoaData;
+
+    const khoas = khoaFiltered.map((x) => ({
+      id: x.id,
+      ma_danh_muc: x.ma_khoa,
+      ten_danh_muc: x.ten_khoa,
+      loai_danh_muc: "KHOA_PHONG",
+    }));
+
+    const nhanSus = (nhanSuRes.data || []).map((x) => ({ id: x.id, ho_ten: x.ho_ten }));
+
+    const registry = (registriesRes.data || {}) as Record<string, Array<{ id: string; ten: string; ma?: string }>>;
+    const rpcKhuVucs = Array.isArray(registry.KHU_VUC_GIAM_SAT) ? registry.KHU_VUC_GIAM_SAT : [];
+    const fallbackKhuVucs = (khuVucFallbackRes.data || []).map((x) => ({
+      id: String(x.id || ""),
+      ten: String(x.ten_khu_vuc || ""),
+      ma: String(x.ma_khu_vuc || ""),
+      thu_tu: typeof x.thu_tu === "number" ? x.thu_tu : null,
+    }));
+    const effectiveKhuVucs = rpcKhuVucs.length > 0 ? rpcKhuVucs : fallbackKhuVucs;
+    const khuVucs = effectiveKhuVucs.map((r) => ({
+      id: r.id,
+      ma_danh_muc: r.ma || "",
+      ten_danh_muc: r.ten,
+      loai_danh_muc: "KHU_VUC_GIAM_SAT",
+      source: "registry_lookup" as const,
+      thu_tu: typeof (r as { thu_tu?: number }).thu_tu === "number" ? (r as { thu_tu?: number }).thu_tu : null,
+    }));
+    const ngheNghieps = mapDanhMucOptions(
+      (registry.NGHE_NGHIEP || []).map((r) => ({
+        id: r.id,
+        ma_danh_muc: r.ma || "",
+        ten_danh_muc: r.ten,
+      })),
+      "NGHE_NGHIEP",
+    );
+
+    return { success: true as const, data: { khoas, khuVucs, ngheNghieps, nhanSus } };
+  } catch (error: unknown) {
+    return { success: false as const, error: vstReadErrorMessage(error) };
   }
 }
 
