@@ -34,6 +34,7 @@ const steps = [
   { name: "admin:rbac:parity:local", cmd: "npm", args: ["run", "admin:rbac:parity:local"] },
   { name: "trial:db:precheck:local", cmd: "npm", args: ["run", "trial:db:precheck:local"] },
   { name: "trial:qlcv:precheck:local", cmd: "npm", args: ["run", "trial:qlcv:precheck:local"] },
+  { name: "audit:views", cmd: "npm", args: ["run", "audit:views"] },
 ];
 
 console.log("=== local:golden:verify —", steps.length, "probes ===\n");

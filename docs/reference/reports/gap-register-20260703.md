@@ -29,7 +29,7 @@
 | W1 | Local golden (`local:golden:verify`) + SOP reset | **Done** |
 | W2 | Fallow dead-code + CI hygiene | **Done** |
 | W3 | Nghiệm thu 7 khối pilot (automated gates) | **Done** — [pilot-module-automated-gates-20260703.md](./pilot-module-automated-gates-20260703.md) |
-| W4 | Perf/doc ongoing | **Deferred** |
+| W4 | Perf/doc ongoing | **Done** — probe 11 `audit:views`; CI hygiene re-verify (D-12) |
 | W5 | Sign-off §B automated | **Done** — checklist tay ☐ PO |
 
 ---
@@ -63,5 +63,6 @@
 | 1 | Core docs 19→15; README migration/SQL; archive gap register cũ | **Done** |
 | 2 | Archive 12 báo cáo audit 06/2026 → `docs/archive/reports/` | **Done** |
 | 3 | Archive codemod script; `scripts/README.md`; `audit:views` + `gstt:gap:backfill` npm | **Done** |
+| 4 | `audit:views` → probe 11 `local:golden:verify`; CI D-12 re-verify; cập nhật reports index | **Done** |
 
 Chi tiết script: [`../../../scripts/README.md`](../../../scripts/README.md).

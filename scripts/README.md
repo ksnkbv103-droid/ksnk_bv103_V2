@@ -18,9 +18,9 @@
 | Nhóm | Lệnh | Mục đích |
 |------|------|----------|
 | Hygiene | `repo:hygiene`, `docs:links:check`, `dead-code:scan` | Inventory repo + link docs |
-| Local golden | `local:golden:verify`, `local:golden:reset` | DB local sạch sau reset |
+| Local golden | `local:golden:verify`, `local:golden:reset` | DB local sạch sau reset (**11 probe**) |
 | DB probe | `trial:db:precheck`, `ssot:db:guard`, `fact:orphan:sweep`, `cssd:db:audit`, `gstt:db:audit` | `:local` cho Docker |
-| View audit | `audit:views` | View orphan vs src/sql (cần DB local `:54322`) |
+| View audit | `audit:views` | View orphan vs src/sql — probe 11 trong `local:golden:verify` (cần `:54322`) |
 | Pilot ship | `pilot:go-live:gate`, `verify`, `verify:engineering` | Trước push / ký go-live |
 | MDM | `mdm:migrate`, `mdm:apply-and-verify`, `admin:rbac:sync` | Schema + RBAC |
 | Layout | `layout:drift-check`, `panel:chrome-check`, `columns:chrome-check` | UI governance |

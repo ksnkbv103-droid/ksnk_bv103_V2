@@ -8,6 +8,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
+const PG_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
 
 function listFiles(dir, acc = []) {
   for (const name of readdirSync(dir)) {
@@ -20,13 +21,22 @@ function listFiles(dir, acc = []) {
   return acc;
 }
 
-const views = execSync(
-  `psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -t -A -c "SELECT viewname FROM pg_views WHERE schemaname='public' ORDER BY 1;"`,
-  { encoding: "utf8" },
-)
-  .trim()
-  .split("\n")
-  .filter(Boolean);
+let views;
+try {
+  views = execSync(
+    `psql "${PG_URL}" -t -A -c "SELECT viewname FROM pg_views WHERE schemaname='public' ORDER BY 1;"`,
+    { encoding: "utf8" },
+  )
+    .trim()
+    .split("\n")
+    .filter(Boolean);
+} catch {
+  console.error(
+    "[audit:views] PostgreSQL local không phản hồi tại 127.0.0.1:54322.\n" +
+      "  Chạy: npx supabase start   hoặc   npm run local:golden:reset",
+  );
+  process.exit(1);
+}
 
 const srcFiles = listFiles(join(ROOT, "src"));
 const sqlFiles = [
@@ -57,4 +67,21 @@ for (const v of views) {
   else both.push(v);
 }
 
-console.log(JSON.stringify({ total: views.length, unused, sqlOnly: sqlOnly.map((x) => x.v), counts: { unused: unused.length, sqlOnly: sqlOnly.length, both: both.length, srcOnly: srcOnly.length } }, null, 2));
+const report = {
+  total: views.length,
+  unused,
+  sqlOnly: sqlOnly.map((x) => x.v),
+  counts: {
+    unused: unused.length,
+    sqlOnly: sqlOnly.length,
+    both: both.length,
+    srcOnly: srcOnly.length,
+  },
+};
+console.log(JSON.stringify(report, null, 2));
+
+if (unused.length > 0) {
+  console.error(`[audit:views] FAIL — ${unused.length} view không được tham chiếu trong src/ hoặc sql/`);
+  process.exit(1);
+}
+console.log("[audit:views] PASS — 0 unused view");

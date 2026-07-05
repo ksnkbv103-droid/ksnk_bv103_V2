@@ -62,6 +62,8 @@ jobs:
       - name: Repo hygiene
         run: npm run repo:hygiene
 
+      # audit:views cần Postgres local :54322 — chỉ trong local:golden:verify, không CI
+
       - name: Dead code scan (warn-only)
         run: npm run dead-code:scan
         continue-on-error: true

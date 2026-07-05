@@ -7,10 +7,10 @@
 | File | Vai trò |
 |------|---------|
 | [`gap-register-20260703.md`](./gap-register-20260703.md) | Gap register mới nhất — P0/P1 mở = 0 |
-| [`db-hygiene-20260703.md`](./db-hygiene-20260703.md) | Vệ sinh DB local + linked (10 probe PASS) |
+| [`db-hygiene-20260703.md`](./db-hygiene-20260703.md) | Vệ sinh DB local + linked (11 probe PASS) |
 | [`traceability-matrix-20260702.md`](./traceability-matrix-20260702.md) | Ma trận traceability spec ↔ code |
 | [`pilot-module-automated-gates-20260703.md`](./pilot-module-automated-gates-20260703.md) | Gate tự động 7 khối pilot |
-| [`perf-audit-20260703.md`](./perf-audit-20260703.md) | Perf audit (Wave 4 deferred items) |
+| [`perf-audit-20260703.md`](./perf-audit-20260703.md) | Perf audit — exceljs lazy-load **Done**; recharts/linked RPC đo **Wave 5** |
 
 ## Archived
 

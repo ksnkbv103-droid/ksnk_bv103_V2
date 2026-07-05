@@ -82,7 +82,7 @@ npm run local:golden:reset
 # Tuỳ chọn — dữ liệu demo CSSD (pilot P3–P5)
 npm run cssd:demo:reset:local
 
-# Xác nhận 10 probe DB/auth/RBAC
+# Xác nhận 11 probe DB/auth/RBAC + view orphan
 npm run local:golden:verify
 ```
 
@@ -92,7 +92,7 @@ npm run local:golden:verify
 | 2 | `npm run mdm:migrate:local` | Head repo = DB local |
 | 3 | `npm run admin:rbac:sync:local` | Registry quyền → `sys_permissions` |
 | 4 | `npm run cssd:demo:reset:local` | (Tuỳ chọn) Demo quy trình CSSD |
-| 5 | `npm run local:golden:verify` | 10 probe: SSOT, audit trigger, auth, GSTT, orphan sweep (QLCV/NKBV/hóa chất), CSSD, RBAC, QLCV |
+| 5 | `npm run local:golden:verify` | 11 probe: SSOT, audit trigger, auth, GSTT, orphan sweep, CSSD, RBAC, QLCV, **audit:views** |
 
 **Đăng nhập pilot:** tài khoản trong `supabase/seeds/01-pilot-nhan-su.sql` (sau reset). `trial:auth:precheck:local` phải báo `mdm_email_no_auth` = **0**.
 

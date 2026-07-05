@@ -131,7 +131,7 @@
 | D-09 | **Done (2026-06-03)** | `src/proxy.ts` — `getUser()` server-side (Next.js 16 proxy, không `middleware.ts`) |
 | D-10 | **Done (2026-07-03)** | Spec 100% prefix; cột legacy relabel "đã DROP 2026-06-02" |
 | D-11 | **Done (2026-06-03)** | Migration `20260603160000` applied local + linked |
-| D-12 | **Done** | CI align (theo ghi chú 30/05) — chưa re-verify workflow file |
+| D-12 | **Done (2026-07-06 re-verify)** | CI: `verify:cssd`, `layout:drift-check`, `docs:links:check`, `repo:hygiene`, `dead-code:scan` (warn) — `.github/workflows/ci.yml` |
 | D-13 | **Done (2026-06-04)** | `audit:legacy-rpc` + `20260604110000` |
 | D-14 | **Eng done / UAT pending** | Checklist + spec pass; sign-off khoa KSNK |
 | D-18 | **Partial done** | Migration `20260602150000` + `CssdTraceLink` — chưa đủ RCA SSI end-to-end |
