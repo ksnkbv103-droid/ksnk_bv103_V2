@@ -6,7 +6,7 @@
 
 | File | Vai trò |
 |------|---------|
-| [`gap-register-20260709.md`](./gap-register-20260709.md) | Gap register — remediation P0/P1 **Done** (còn OPS-01 Docker + UAT NKBV) |
+| [`gap-register-20260709.md`](./gap-register-20260709.md) | Gap register — P0/P1/OPS-01 **Done** (còn UAT NKBV tay) |
 | [`comprehensive-review-20260709.md`](./comprehensive-review-20260709.md) | Báo cáo tổng Domain→DB→BE→UI→Features |
 | [`audit-evidence-pack-20260709.md`](./audit-evidence-pack-20260709.md) | Evidence pack Wave 0 (gates + Blocked Docker) |
 | [`gap-register-20260703.md`](./gap-register-20260703.md) | Gap cải tổ pilot 03/07 — baseline trước audit 09/07 |

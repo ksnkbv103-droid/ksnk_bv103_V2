@@ -14,11 +14,11 @@
 | `audit:legacy-rpc` / `audit:views` | **PASS** |
 | `verify:cssd` / `test:pilot` | **PASS** (49 / 24) |
 | `layout:typography-check` | **PASS** |
-| `layout:drift-check` | **FAIL** — 2 adoption |
-| `dead-code:scan` | **WARN** — 5 unused files |
-| `local:golden:verify` / `pilot:go-live:gate:local` | **BLOCKED** (Docker) |
+| `layout:drift-check` | **PASS** (UI-01 Done) |
+| `dead-code:scan` | **WARN** — 0 unused files · residual unused exports |
+| `local:golden:verify` / `pilot:go-live:gate:local` | **PASS** (2026-07-09 re-verify) |
 
-**P0 mở: 0 · P1 mở: 1 (OPS-01 Docker) · P2/P3: xem bảng**
+**P0 mở: 0 · P1 mở: 0 · P2/P3 residual · UAT NKBV tay #2–#5**
 
 ---
 
@@ -27,13 +27,13 @@
 | ID | Trạng thái | Bằng chứng |
 |----|------------|------------|
 | DOM-07 | **Done** | `isHaiSuspectByDay3Rule` + skip spawn POA trong `giam-sat-nkbv-import.actions.ts` |
-| BE-RPC-01 | **Done (migration pending apply)** | `20260709120000` REVOKE authenticated trên `fn_qlcv_update_checklist` |
+| BE-RPC-01 | **Done** (local applied) | `20260709120000` REVOKE authenticated trên `fn_qlcv_update_checklist` |
 | DOM-04 | **Done** | Bỏ auto `bom_kiem_dem_at` trong `cssd-scan.actions.ts` |
 | DOM-08 | **Eng Done / UAT pending** | Status ưu tiên `CHO_XAC_MINH`; checklist #1 cập nhật |
-| BE-RPC-02 | **Done (migration pending apply)** | Wrapper GSC analytics + revoke anon |
-| BE-RPC-03 | **Done (migration pending apply)** | Wrap CSSD RPC + `fn_require_cssd_workflow_edit` |
+| BE-RPC-02 | **Done** (local applied) | Wrapper GSC analytics + revoke anon |
+| BE-RPC-03 | **Done** (local applied) | Wrap CSSD RPC + `fn_require_cssd_workflow_edit` |
 | UI-01 | **Done** | QrCameraModal + IncidentReportModal dùng `bv103PanelChrome as UI` |
-| OPS-01 | **Blocked** | Docker vẫn chặn — PO chạy `npm run mdm:migrate:local` |
+| OPS-01 | **Done** | `mdm:migrate:local` up-to-date · `verify:mdm:local` PASS · golden 11/11 · `pilot:go-live:gate:local` PASS (2026-07-09) |
 
 **Verify session:** `verify:engineering` PASS · `verify:cssd` 49 PASS · timeline-math 25 PASS · `layout:drift-check` PASS
 
@@ -104,12 +104,12 @@
 | **Verify** | Sau migrate + `verify:cssd` |
 | **Effort** | M |
 
-### OPS-01 — Local golden / go-live gate Blocked (Docker) — **Open**
+### OPS-01 — Local golden / go-live gate — **Done** (2026-07-09)
 
 | | |
 |--|--|
-| **Bằng chứng** | `permission denied` docker.sock; Supabase CLI EPERM telemetry. |
-| **Khắc phục** | PO mở Docker Desktop + quyền CLI; chạy `mdm:migrate:local` + `local:golden:verify` + `pilot:go-live:gate:local`. |
+| **Bằng chứng (trước)** | `permission denied` docker.sock; Supabase CLI EPERM telemetry. |
+| **Khắc phục** | Docker Desktop OK · `mdm:migrate:local` (head `20260709140000`) · `verify:mdm:local` PASS · `local:golden:verify` 11/11 PASS · `pilot:go-live:gate:local` PASS (engineering + cssd 49 + pilot 24 + smoke GSC/VST). |
 | **Effort** | S (ops) |
 
 ---
@@ -159,12 +159,12 @@
 | # | Gap | Module | Effort | Trạng thái |
 |---|-----|--------|--------|------------|
 | 1 | DOM-07 | NKBV | M | **Done** |
-| 2 | BE-RPC-01 | QLCV | S–M | **Done** (cần migrate) |
+| 2 | BE-RPC-01 | QLCV | S–M | **Done** (local applied) |
 | 3 | DOM-04 | CSSD | M | **Done** |
-| 4 | BE-RPC-02 | Giám sát GSC | M | **Done** (cần migrate) |
-| 5 | BE-RPC-03 | CSSD | M | **Done** (cần migrate) |
+| 4 | BE-RPC-02 | Giám sát GSC | M | **Done** (local applied) |
+| 5 | BE-RPC-03 | CSSD | M | **Done** (local applied) |
 | 6 | DOM-08 | NKBV UAT | M + PO tay | Eng Done — UAT #2–#5 |
-| 7 | OPS-01 | Ops | S | **Blocked env** — PO: Docker Desktop → `npm run mdm:migrate:local` (áp `…120000`/`…130000`/`…140000`) |
+| 7 | OPS-01 | Ops | S | **Done** — migrate head `…140000`; golden 11/11; go-live gate local PASS |
 | 8 | UI-01 | UI shell | S | **Done** |
 | 9 | DOM-01 + DB-01 | Docs | S | **Done** |
 | 10 | BE-ORPHAN-01 | Dashboard/QLCV | S | **Done** |
