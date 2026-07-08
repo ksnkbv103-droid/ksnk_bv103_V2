@@ -14,6 +14,7 @@ import {
   Cell,
 } from "recharts";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { Activity, Layers, PieChart, ShieldCheck, Warehouse } from "lucide-react";
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
@@ -322,7 +323,68 @@ export default function NkbvDashboardPanel({
               })()}
 
               {/* JCI Detailed Table */}
-              <div className="overflow-x-auto border border-slate-100 rounded-[var(--radius-shell)]">
+              <ResponsiveTableShell
+                unboxed
+                className="border border-slate-100 rounded-[var(--radius-shell)]"
+                maxHeight="max-h-[min(480px,60dvh)]"
+                scrollHint="Vuốt ngang để xem chỉ số JCI đầy đủ"
+                mobileCards={
+                  payload.epidemiologyRates?.length ? (
+                    <ul className="divide-y divide-slate-100">
+                      {payload.epidemiologyRates.map((r: {
+                        khoa_id: string;
+                        ten_khoa: string;
+                        obs_clabsi_cases?: number;
+                        obs_cvc_days?: number;
+                        clabsi_sir?: number;
+                        obs_cauti_cases?: number;
+                        obs_foley_days?: number;
+                        cauti_sir?: number;
+                        obs_vap_cases?: number;
+                        obs_vent_days?: number;
+                        vae_sir?: number;
+                        obs_ssi_cases?: number;
+                        obs_total_surgeries?: number;
+                        ssi_sir?: number;
+                      }) => (
+                        <li key={r.khoa_id} className="space-y-2 px-3 py-3.5">
+                          <p className="font-bold text-slate-800">{r.ten_khoa}</p>
+                          <div className="grid grid-cols-2 gap-2 text-[11px]">
+                            <div className="rounded-lg bg-red-50/50 p-2">
+                              <p className="font-medium text-red-700">CLABSI</p>
+                              <p className="tabular-nums text-slate-800">
+                                {r.obs_clabsi_cases || 0}/{r.obs_cvc_days || 0}
+                                {Number(r.clabsi_sir || 0) > 0 ? ` · SIR ${Number(r.clabsi_sir).toFixed(2)}` : ""}
+                              </p>
+                            </div>
+                            <div className="rounded-lg bg-amber-50/50 p-2">
+                              <p className="font-medium text-amber-700">CAUTI</p>
+                              <p className="tabular-nums text-slate-800">
+                                {r.obs_cauti_cases || 0}/{r.obs_foley_days || 0}
+                                {Number(r.cauti_sir || 0) > 0 ? ` · SIR ${Number(r.cauti_sir).toFixed(2)}` : ""}
+                              </p>
+                            </div>
+                            <div className="rounded-lg bg-teal-50/50 p-2">
+                              <p className="font-medium text-teal-700">VAP</p>
+                              <p className="tabular-nums text-slate-800">
+                                {r.obs_vap_cases || 0}/{r.obs_vent_days || 0}
+                                {Number(r.vae_sir || 0) > 0 ? ` · SIR ${Number(r.vae_sir).toFixed(2)}` : ""}
+                              </p>
+                            </div>
+                            <div className="rounded-lg bg-blue-50/50 p-2">
+                              <p className="font-medium text-blue-700">SSI</p>
+                              <p className="tabular-nums text-slate-800">
+                                {r.obs_ssi_cases || 0}/{r.obs_total_surgeries || 0}
+                                {Number(r.ssi_sir || 0) > 0 ? ` · SIR ${Number(r.ssi_sir).toFixed(2)}` : ""}
+                              </p>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null
+                }
+              >
                 <table className="w-full min-w-[900px] border-collapse text-left text-xs font-medium text-slate-600">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-medium">
@@ -432,7 +494,7 @@ export default function NkbvDashboardPanel({
                     })}
                   </tbody>
                 </table>
-              </div>
+              </ResponsiveTableShell>
             </div>
           )}
 

@@ -1,10 +1,18 @@
-import GiamSatNkbvPage from "@/modules/giam-sat-nkbv/views/GiamSatNkbvPage";
+"use client";
 
-export const metadata = {
-  title: "Giám sát NKBV | KSNK 103",
-  description: "Ghi nhận và theo dõi ca nhiễm khuẩn liên quan chăm sóc y tế (HAI/NKBV)",
-};
+import { Suspense } from "react";
+import dynamic from "next/dynamic";
+import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
+
+const GiamSatNkbvPage = dynamic(
+  () => import("@/modules/giam-sat-nkbv/views/GiamSatNkbvPage"),
+  { ssr: false, loading: () => <SupervisionPageSkeleton /> },
+);
 
 export default function Page() {
-  return <GiamSatNkbvPage />;
+  return (
+    <Suspense fallback={<SupervisionPageSkeleton />}>
+      <GiamSatNkbvPage />
+    </Suspense>
+  );
 }

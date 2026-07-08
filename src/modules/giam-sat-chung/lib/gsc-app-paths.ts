@@ -4,6 +4,7 @@ export const GSC_APP_PATHS = [
   "/giam-sat-chung/tuan-thu",
   "/giam-sat-chung/nhat-ky",
   "/giam-sat-chung/he-thong",
+  "/lich-su/gsc",
 ] as const;
 
 export type GscLoaiGiamSatRoute = "TUAN_THU" | "NHAT_KY_VAN_HANH" | "DANH_GIA_HE_THONG";

@@ -1,0 +1,191 @@
+"use client";
+
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import type { User } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
+import { ADMIN_EMAILS } from "@/lib/constants";
+import { createPermissionApi, type PermissionRow } from "@/hooks/use-permission-api";
+
+export type UserDataProfile = {
+  id: string | null;
+  ma_nv: string | null;
+  ho_ten: string | null;
+  email: string | null;
+  khoa_id: string | null;
+  khoa: {
+    ma_khoa: string | null;
+    ten_khoa: string | null;
+  } | null;
+};
+
+type RBACSnapshot = {
+  userRoles: string[];
+  permissions: PermissionRow[];
+  userEmail: string;
+  userData: UserDataProfile | null;
+};
+
+const V_AUTH_USER_PERMISSIONS_SELECT =
+  "staff_id,auth_user_id,ho_ten,ma_nv,email,khoa_id,is_active,ten_khoa_phong,ma_khoa_phong,roles,permissions" as const;
+
+function formatRbacQueryError(error: unknown): string {
+  if (!error || typeof error !== "object") return String(error);
+  const e = error as { message?: string; code?: string; details?: string; hint?: string };
+  const parts = [e.message, e.code, e.details, e.hint].filter((x) => typeof x === "string" && x.trim());
+  return parts.length > 0 ? parts.join(" | ") : JSON.stringify(error);
+}
+
+const RBAC_CACHE_TTL_MS = 5 * 60_000;
+let rbacCache: { userId: string; snapshot: RBACSnapshot; cachedAt: number } | null = null;
+let rbacInFlight: Promise<RBACSnapshot> | null = null;
+
+/** Xóa cache client — gọi sau đổi ma trận hoặc khi refetch (RbacRefreshListener). */
+export function invalidateClientRbacCache() {
+  rbacCache = null;
+  rbacInFlight = null;
+}
+
+type PermissionContextValue = {
+  loading: boolean;
+  userRoles: string[];
+  permissions: PermissionRow[];
+  userEmail: string;
+  userData: UserDataProfile | null;
+};
+
+const PermissionContext = createContext<PermissionContextValue | null>(null);
+
+async function fetchRBAC(user: User): Promise<RBACSnapshot> {
+  const { data: authData, error: authErr } = await supabase
+    .from("v_sys_user_permissions")
+    .select(V_AUTH_USER_PERMISSIONS_SELECT)
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
+
+  if (authErr) throw authErr;
+
+  const userDataProfile: UserDataProfile | null = authData
+    ? {
+        id: authData.staff_id,
+        ma_nv: authData.ma_nv,
+        ho_ten: authData.ho_ten,
+        email: authData.email,
+        khoa_id: authData.khoa_id,
+        khoa: authData.ten_khoa_phong
+          ? {
+              ma_khoa: authData.ma_khoa_phong,
+              ten_khoa: authData.ten_khoa_phong,
+            }
+          : null,
+      }
+    : null;
+
+  const roles = ((authData?.roles as string[]) || []).slice();
+  const emailNorm = String(user.email || "").toLowerCase().trim();
+  const isAdminEmail = ADMIN_EMAILS.some((a) => a.toLowerCase().trim() === emailNorm);
+  if (isAdminEmail && !roles.includes("ADMIN")) {
+    roles.push("ADMIN");
+  }
+
+  return {
+    userRoles: roles,
+    permissions: ((authData?.permissions as PermissionRow[]) || []).slice(),
+    userEmail: user.email || "",
+    userData: userDataProfile,
+  };
+}
+
+export function PermissionProvider({ children }: { children: React.ReactNode }) {
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [permissions, setPermissions] = useState<PermissionRow[]>([]);
+  const [userEmail, setUserEmail] = useState<string>("");
+  const [userData, setUserData] = useState<UserDataProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    function applySnapshot(snapshot: RBACSnapshot) {
+      if (!mounted) return;
+      setUserRoles(snapshot.userRoles);
+      setPermissions(snapshot.permissions);
+      setUserEmail(snapshot.userEmail);
+      setUserData(snapshot.userData);
+      setLoading(false);
+    }
+
+    async function loadRBAC(user: User | null) {
+      if (!user) {
+        rbacCache = null;
+        rbacInFlight = null;
+        setUserRoles([]);
+        setPermissions([]);
+        setUserEmail("");
+        setUserData(null);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const now = Date.now();
+        if (rbacCache && rbacCache.userId === user.id && now - rbacCache.cachedAt < RBAC_CACHE_TTL_MS) {
+          applySnapshot(rbacCache.snapshot);
+          return;
+        }
+
+        if (!rbacInFlight) {
+          rbacInFlight = fetchRBAC(user).finally(() => {
+            rbacInFlight = null;
+          });
+        }
+        const snapshot = await rbacInFlight;
+        rbacCache = { userId: user.id, snapshot, cachedAt: now };
+        applySnapshot(snapshot);
+      } catch (error) {
+        console.error("RBAC Error (Smart DB View):", formatRbacQueryError(error), error);
+        if (mounted) setLoading(false);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      void loadRBAC(session?.user ?? null);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      void loadRBAC(session?.user ?? null);
+    });
+
+    const onRbacInvalidate = () => {
+      invalidateClientRbacCache();
+      void supabase.auth.getSession().then(({ data: { session } }) => {
+        void loadRBAC(session?.user ?? null);
+      });
+    };
+    window.addEventListener("rbac:invalidate", onRbacInvalidate);
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+      window.removeEventListener("rbac:invalidate", onRbacInvalidate);
+    };
+  }, []);
+
+  const value = useMemo(
+    () => ({ loading, userRoles, permissions, userEmail, userData }),
+    [loading, userRoles, permissions, userEmail, userData],
+  );
+
+  return <PermissionContext.Provider value={value}>{children}</PermissionContext.Provider>;
+}
+
+export function usePermissionContext(): PermissionContextValue {
+  const ctx = useContext(PermissionContext);
+  if (!ctx) {
+    throw new Error("usePermissionContext must be used within PermissionProvider");
+  }
+  return ctx;
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import type { GapKhoaRow, GapKhoaSortMetric, GapKhoaSortOrder } from "@/lib/analytics/supervision-matrix-mappers";
 import {
   countKsnkCoveredKhoa,
@@ -50,7 +51,7 @@ export function SupervisionKhoaComplianceTable({
         onSortOrderChange={onSortOrderChange}
         moduleLabel={moduleLabel}
       />
-      <div className="overflow-x-auto">
+      <ResponsiveTableShell unboxed maxHeight="max-h-[min(420px,55dvh)]">
         <table className="w-full min-w-[560px] text-left text-xs">
           <thead>
             <tr className="border-b border-slate-200 text-[11px] font-bold uppercase tracking-wide text-slate-500">
@@ -100,7 +101,7 @@ export function SupervisionKhoaComplianceTable({
             )}
           </tbody>
         </table>
-      </div>
+      </ResponsiveTableShell>
     </div>
   );
 }
@@ -151,7 +152,7 @@ export function SupervisionKhoaCountsTable({
         onSortOrderChange={onSortOrderChange}
         moduleLabel={moduleLabel}
       />
-      <div className="overflow-x-auto">
+      <ResponsiveTableShell unboxed maxHeight="max-h-[min(420px,55dvh)]">
         <table className="w-full min-w-[480px] text-left text-xs">
           <thead>
             <tr className="border-b border-slate-200 text-[11px] font-bold uppercase tracking-wide text-slate-500">
@@ -205,7 +206,7 @@ export function SupervisionKhoaCountsTable({
             )}
           </tbody>
         </table>
-      </div>
+      </ResponsiveTableShell>
     </div>
   );
 }
@@ -236,7 +237,7 @@ export function SupervisionKhoaMasterTable({
         Khối lượng TGS/KSNK, tỷ lệ tuân thủ (đạt/tổng) và trạng thái đối soát — tô cảnh báo &lt;
         {KHOA_COMPLIANCE_WARN_PCT}%.
       </p>
-      <div className="overflow-x-auto">
+      <ResponsiveTableShell unboxed maxHeight="max-h-[min(420px,55dvh)]">
         <table className="w-full min-w-[720px] text-left text-xs">
           <thead>
             <tr className="border-b border-slate-200 text-[11px] font-bold uppercase tracking-wide text-slate-500">
@@ -302,7 +303,7 @@ export function SupervisionKhoaMasterTable({
             )}
           </tbody>
         </table>
-      </div>
+      </ResponsiveTableShell>
     </div>
   );
 }

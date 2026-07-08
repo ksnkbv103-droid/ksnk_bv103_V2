@@ -1,6 +1,6 @@
 "use server";
 
-import { createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { enrichGscHistoryRows } from "../lib/gsc-read-utils";
 import { parseGscResultsJsonb } from "../lib/gsc-results-jsonb";
@@ -20,12 +20,13 @@ function getErrorMessage(error: unknown): string {
  * Dùng trước in/xem bundle để không phụ thuộc bản sao đã map trên client.
  */
 export async function getGiamSatChungSessionForViewBundle(sessionId: string) {
-  const supabase = await createServerSupabaseUserClient();
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
     const scope = await getActorKsnkScope();
     const id = String(sessionId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã phiên." };
+
+    const supabase = createAdminSupabaseClient();
 
     // 1. Fetch Session Metadata from View (Smart DB pattern)
     const { data: ses, error: sErr } = await supabase

@@ -2,6 +2,7 @@
 
 import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import React, { useState, useRef, useMemo } from "react";
 import { X, Download, Upload, AlertTriangle, CheckCircle, FileSpreadsheet, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -350,7 +351,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
                 <div className="space-y-2">
                   <h4 className="text-xs text-[11px] font-medium text-slate-400">Bảng xem trước dữ liệu (Xem trước tối đa 10 dòng đầu)</h4>
                   <div className="overflow-hidden border border-slate-200 rounded-xl shadow-sm">
-                    <div className="overflow-x-auto">
+                    <ResponsiveTableShell unboxed maxHeight="max-h-[min(280px,40dvh)]">
                       <table className="w-full border-collapse text-left text-xs table-fixed">
                         <thead>
                           <tr className="bg-slate-50 border-b border-slate-200 text-slate-400 font-medium text-[11px]">
@@ -402,7 +403,7 @@ export default function MasterDataImportExportModal({ isOpen, onClose, type }: P
                           })}
                         </tbody>
                       </table>
-                    </div>
+                    </ResponsiveTableShell>
                   </div>
                   {parsedRows.length > 10 && (
                     <p className="text-[11px] font-bold text-slate-400 italic text-center">

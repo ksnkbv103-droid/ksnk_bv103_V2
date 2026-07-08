@@ -14,6 +14,7 @@ import { enrichGscHistoryRows, type GscHistoryRow } from "../lib/gsc-read-utils"
 import type { GscViewBundle } from "../lib/load-gsc-view-bundle";
 import { assertCanEditGiamSatChungSession } from "../actions/giam-sat-chung-session-meta.actions";
 import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
+import { consumeSupervisionHistoryStale } from "@/lib/supervision-form-nav";
 
 const MODULE_KEY = "GIAM_SAT_CHUNG";
 
@@ -52,6 +53,10 @@ export function useGscHistoryTable(
     handleSearch, handleSort,
     loading, refresh,
   } = useServerPaginatedTable({ fetchAction, defaultPageSize: 20 });
+
+  useEffect(() => {
+    if (consumeSupervisionHistoryStale("gsc")) refresh();
+  }, [refresh]);
 
   useEffect(() => {
     async function loadTemplates() {

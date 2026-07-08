@@ -108,6 +108,14 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse;
   }
 
+  // Prefetch link (hover menu): bỏ qua getUser() — navigation thật vẫn xác minh JWT.
+  const isPrefetch =
+    request.headers.get("Next-Router-Prefetch") === "1" ||
+    request.headers.get("Purpose") === "prefetch";
+  if (isPrefetch && mayHaveSession) {
+    return supabaseResponse;
+  }
+
   // IMPORTANT: getUser() xác minh JWT qua Supabase Auth API (server-side),
   // không chỉ đọc cookie như getSession() — ngăn JWT spoofing.
   let user: { id: string } | null = null;

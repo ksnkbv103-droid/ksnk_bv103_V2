@@ -1,6 +1,6 @@
 "use server";
 
-import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import { mapDanhMucOptions } from "@/lib/master-data/gateway";
@@ -34,10 +34,11 @@ export async function getGiamSatChungHistoryPaginated(params: {
   /** Slice 5: lọc theo `gstt_dm_bang_kiem.loai_giam_sat`. */
   loaiGiamSat?: GscLoaiGiamSatRoute;
 }) {
-  const supabase = await createServerSupabaseUserClient();
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
     const scope = await getActorKsnkScope();
+
+    const supabase = createAdminSupabaseClient();
 
     const page = params.page ?? 1;
     const size = Math.min(Math.max(params.pageSize ?? 20, 10), 50);

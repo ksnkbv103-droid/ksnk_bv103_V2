@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { deleteVSTSessions, assertCanEditVSTSession } from "../actions/vst-write-delete.actions";
@@ -11,6 +11,7 @@ import { getVSTHistoryColumns } from "../components/VSTHistoryColumns";
 import { useVstPrint } from "../hooks/use-vst-print";
 import { enrichVstSessionRows, type VstHistoryRow } from "../lib/vst-read-utils";
 import { buildVstViewDataFromDetail } from "../lib/vst-session-view-data";
+import { consumeSupervisionHistoryStale } from "@/lib/supervision-form-nav";
 import { getCategoriesByType } from "@/lib/master-data/categories-by-type";
 import { getCategoriesByTypeCached } from "@/lib/client-cache/danh-muc-cache";
 import type { VstPrintData } from "../hooks/use-vst-print";
@@ -52,6 +53,10 @@ export function useVstHistoryTable() {
     loading,
     refresh,
   } = useServerPaginatedTable({ fetchAction, defaultPageSize: 20 });
+
+  useEffect(() => {
+    if (consumeSupervisionHistoryStale("vst")) refresh();
+  }, [refresh]);
 
   const loadViewData = useCallback(async (sessionId: string) => {
     const [detailRes, nnRes, kRes, kvRes] = await Promise.all([

@@ -13,7 +13,7 @@ export default function VSTHistoryView() {
   return (
     <VstModuleAccessGate>
       <KsnkSupervisionPanel className="min-h-[50vh]">
-        <div className="app-data-shell overflow-hidden p-2">
+        <div className="app-data-shell p-2">
           <HistoryTable />
         </div>
       </KsnkSupervisionPanel>

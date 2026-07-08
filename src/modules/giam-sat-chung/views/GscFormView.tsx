@@ -18,6 +18,7 @@ import {
 } from "../lib/gsc-form-template-sync";
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
 import { KsnkSupervisionPanel } from "@/components/shared/ksnk-supervision-chrome";
+import { markSupervisionHistoryStale, SUPERVISION_HISTORY_PATHS } from "@/lib/supervision-form-nav";
 import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
 import type { GscFormProgress } from "../lib/gsc-score-display";
 
@@ -41,17 +42,6 @@ function filterBangKiemByLoai(
     if (initialLoaiGiamSat === "TUAN_THU") return !lg || lg === "TUAN_THU";
     return lg === initialLoaiGiamSat;
   });
-}
-
-/** Resolve base path cho navigation dựa trên loaiGiamSat. */
-function resolveBasePath(loai?: GscLoaiGiamSatRoute): string {
-  if (!loai) return "/giam-sat-chung";
-  switch (loai) {
-    case "TUAN_THU": return "/giam-sat-chung/tuan-thu";
-    case "NHAT_KY_VAN_HANH": return "/giam-sat-chung/nhat-ky";
-    case "DANH_GIA_HE_THONG": return "/giam-sat-chung/he-thong";
-    default: return "/giam-sat-chung";
-  }
 }
 
 interface GscFormViewProps {
@@ -121,8 +111,6 @@ export default function GscFormView({ initialLoaiGiamSat }: GscFormViewProps) {
     void loadTemplates();
   }, [initialLoaiGiamSat]);
 
-  const basePath = resolveBasePath(initialLoaiGiamSat);
-
   return (
     <KsnkSupervisionPanel className={`min-h-[50vh] ${UI.sectionGapLg}`}>
       {selectedTemplate ? (
@@ -172,7 +160,9 @@ export default function GscFormView({ initialLoaiGiamSat }: GscFormViewProps) {
               setEditSourceSessionId(null);
               setEditPayload(null);
               setFormProgress(null);
-              router.push(`${basePath}/lich-su`);
+              markSupervisionHistoryStale("gsc");
+              router.push(SUPERVISION_HISTORY_PATHS.gsc);
+              router.refresh();
             }}
             onCancel={() => {
               setSelectedTemplate(null);

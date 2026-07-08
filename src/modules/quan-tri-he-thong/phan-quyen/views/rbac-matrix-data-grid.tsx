@@ -12,6 +12,8 @@ import {
   type RBACPermissionRow,
   type RBACRoleRow,
 } from "../rbac.types";
+import { RBACMatrixMobileView } from "./rbac-matrix-mobile-view";
+import { useMinWidth } from "@/hooks/use-min-width";
 
 export type RbacMatrixActionCol = {
   key: string;
@@ -61,6 +63,30 @@ export function RBACMatrixDataGrid({
   }, {} as Record<string, string[]>);
 
   const groupKeys = Object.keys(MODULE_GROUPS) as (keyof typeof MODULE_GROUPS)[];
+  const isSmUp = useMinWidth(640, false);
+
+  if (!isSmUp) {
+    return (
+      <div className="overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 px-4 py-3">
+          <p className="text-sm font-semibold text-slate-800">Ma trận phân quyền</p>
+          <p className="mt-0.5 text-[11px] text-slate-500">Chạm module để mở quyền theo vai trò.</p>
+        </div>
+        <div className="custom-scrollbar max-h-[min(calc(100dvh-13rem),720px)] overflow-y-auto overscroll-contain touch-manipulation">
+          <RBACMatrixMobileView
+            roles={roles}
+            moduleNames={moduleNames}
+            actions={actions}
+            permissions={permissions}
+            matrix={matrix}
+            onTogglePermission={onTogglePermission}
+            onBulkSetActionForRole={onBulkSetActionForRole}
+            onBulkSetAllForRole={onBulkSetAllForRole}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-hidden border border-slate-200 rounded-[var(--radius-shell)] bg-white shadow-sm">

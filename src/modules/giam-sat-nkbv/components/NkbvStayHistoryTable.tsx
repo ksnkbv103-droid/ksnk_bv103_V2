@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { X, Plus } from "lucide-react";
 import { toast } from "sonner";
 import type { DepartmentStay } from "../types/nkbv-verification";
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 
 interface NkbvStayHistoryTableProps {
@@ -73,7 +74,37 @@ export default function NkbvStayHistoryTable({
       </div>
 
       {treatmentHistory.length > 0 ? (
-        <div className="overflow-x-auto border border-slate-100 rounded-xl bg-white shadow-sm">
+        <ResponsiveTableShell
+          unboxed
+          className="border border-slate-100 rounded-xl bg-white shadow-sm"
+          maxHeight="max-h-[min(320px,45dvh)]"
+          mobileCards={
+            <ul className="divide-y divide-slate-100">
+              {treatmentHistory.map((stay, idx) => (
+                <li key={idx} className="flex items-start justify-between gap-2 px-3 py-3">
+                  <div className="min-w-0">
+                    <p className="font-bold text-slate-800">{stay.ten_khoa}</p>
+                    <p className="mt-1 text-xs font-mono text-slate-600">
+                      {stay.ngay_vao ? new Date(stay.ngay_vao).toLocaleDateString("vi-VN") : "—"}
+                      {" → "}
+                      {stay.ngay_ra ? new Date(stay.ngay_ra).toLocaleDateString("vi-VN") : "Hiện tại"}
+                    </p>
+                  </div>
+                  {allowedEdit && treatmentHistory.length > 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => onDeleteStay(idx)}
+                      className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-red-500 transition-colors touch-manipulation hover:bg-red-50"
+                      title="Xóa khoa điều trị"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          }
+        >
           <table className="min-w-full divide-y divide-slate-100 text-left text-xs">
             <thead className="bg-slate-50">
               <tr>
@@ -125,7 +156,7 @@ export default function NkbvStayHistoryTable({
               ))}
             </tbody>
           </table>
-        </div>
+        </ResponsiveTableShell>
       ) : (
         <div className="text-xs text-slate-400 italic text-center py-4 bg-white border border-slate-100 rounded-xl">
           Chưa khai báo lịch sử điều trị.

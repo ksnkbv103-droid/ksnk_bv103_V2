@@ -1,11 +1,13 @@
+"use client";
+
 import { Suspense } from "react";
-import VSTAnalyticsView from "@/modules/giam-sat-vst/views/VSTAnalyticsView";
+import dynamic from "next/dynamic";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 
-export const metadata = {
-  title: "Thống kê Vệ sinh tay | KSNK 103",
-  description: "Dashboard phân tích giám sát vệ sinh tay",
-};
+const VSTAnalyticsView = dynamic(
+  () => import("@/modules/giam-sat-vst/views/VSTAnalyticsView"),
+  { ssr: false, loading: () => <SupervisionPageSkeleton /> },
+);
 
 export default function ThongKeVstPage() {
   return (

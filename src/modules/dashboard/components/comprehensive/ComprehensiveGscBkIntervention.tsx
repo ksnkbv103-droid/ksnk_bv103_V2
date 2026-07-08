@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useMemo } from "react";
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { resolveTopInterventionChecklists } from "@/lib/analytics/gsc-checklist-intervention";
 import { formatPercent2 } from "@/lib/analytics/supervision-percent";
-import { buildGscAnalyticsDeepLink } from "@/modules/giam-sat-chung/components/GscStrategicAnalyticsPanel";
+import { buildGscAnalyticsDeepLink } from "@/lib/analytics/supervision-deep-link";
 import type { BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 
 type Props = {
@@ -40,7 +41,7 @@ export function ComprehensiveGscBkIntervention({ payload }: Props) {
           Phân tích đầy đủ <ExternalLink size={10} aria-hidden />
         </Link>
       </div>
-      <div className="overflow-x-auto rounded-xl border border-slate-200">
+      <ResponsiveTableShell unboxed className="rounded-xl border border-slate-200" maxHeight="max-h-[min(360px,50dvh)]">
         <table className="w-full min-w-[560px] text-left text-xs">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wide text-slate-500">
@@ -77,7 +78,7 @@ export function ComprehensiveGscBkIntervention({ payload }: Props) {
             ))}
           </tbody>
         </table>
-      </div>
+      </ResponsiveTableShell>
     </div>
   );
 }

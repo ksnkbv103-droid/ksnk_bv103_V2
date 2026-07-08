@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import VSTForm from "../components/VSTForm";
 import { KsnkSupervisionPanel } from "@/components/shared/ksnk-supervision-chrome";
+import { markSupervisionHistoryStale, SUPERVISION_HISTORY_PATHS } from "@/lib/supervision-form-nav";
 import { VstModuleAccessGate } from "../components/VstModuleAccessGate";
 import { getVSTSessionDetail } from "../actions/vst-read.actions";
 import { assertCanEditVSTSession } from "../actions/vst-write-delete.actions";
@@ -91,7 +92,9 @@ export default function VSTFormView({ editSessionId }: { editSessionId?: string 
         onSuccess={() => {
           setEditVstSourceSessionId(null);
           setEditVstDetail(null);
-          router.push("/lich-su/vst");
+          markSupervisionHistoryStale("vst");
+          router.push(SUPERVISION_HISTORY_PATHS.vst);
+          router.refresh();
         }}
       />
     </KsnkSupervisionPanel>

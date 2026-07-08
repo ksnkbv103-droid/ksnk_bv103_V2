@@ -1,6 +1,6 @@
 "use server";
 
-import { createServerSupabaseUserClient, createAdminSupabaseClient } from "@/lib/supabase-server";
+import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { buildDisplayMaps, toDistinctIds, mapDanhMucOptions } from "@/lib/master-data/gateway";
 import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
@@ -21,7 +21,6 @@ export async function getVSTSessionsPaginated(params: {
   sortKey?: string;
   sortDir?: "asc" | "desc";
 }) {
-  const supabase = await createServerSupabaseUserClient();
   try {
     await verifyPermission("GIAM_SAT_VST", "view");
     const scope = await getActorKsnkScope();
@@ -29,6 +28,8 @@ export async function getVSTSessionsPaginated(params: {
     if (!historyAccess.ok) {
       return { success: false, error: historyAccess.error };
     }
+
+    const supabase = createAdminSupabaseClient();
 
     const page = params.page ?? 1;
     const size = Math.min(Math.max(params.pageSize ?? 20, 10), 50);
@@ -101,7 +102,6 @@ export async function getVSTSessionsPaginated(params: {
 
 
 export async function getVSTSessionDetail(sessionId: string) {
-  const supabase = await createServerSupabaseUserClient();
   try {
     await verifyPermission("GIAM_SAT_VST", "view");
     const scope = await getActorKsnkScope();
@@ -109,6 +109,8 @@ export async function getVSTSessionDetail(sessionId: string) {
     if (!historyAccess.ok) {
       return { success: false, error: historyAccess.error };
     }
+
+    const supabase = createAdminSupabaseClient();
 
     // 1. Fetch Session Metadata from View (Smart DB pattern)
     const { data: sessionView, error: sErr } = await supabase

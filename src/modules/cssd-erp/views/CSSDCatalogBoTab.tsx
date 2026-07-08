@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import type { CSSDBo, CSSDChiTiet } from "../types/catalog.types";
 import type { CatalogTab } from "./cssd-catalog-page-helpers";
 import { Layers, ListFilter, Printer, Loader2 } from "lucide-react";
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { usePrint } from "@/hooks/usePrint";
 import { registerPhysicalBoLabelFromDmAction } from "../contexts/instrument-catalog/entrypoint";
 import { toast } from "sonner";
@@ -68,7 +69,57 @@ export function CSSDCatalogBoTab(props: {
           <span className="text-xs text-slate-500 font-medium">Click chọn một dòng để xem dụng cụ thành phần</span>
         </div>
 
-        <div className="max-h-[350px] overflow-auto rounded-xl border border-slate-100 relative">
+        <ResponsiveTableShell
+          unboxed
+          className="relative rounded-xl border border-slate-100"
+          maxHeight="max-h-[350px]"
+          mobileCards={
+            boRows.length === 0 ? (
+              <p className="py-6 text-center text-sm text-slate-500">Không tìm thấy bộ dụng cụ nào khớp từ khóa.</p>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {boRows.map((x) => {
+                  const isSelected = selectedBoId === x.id;
+                  return (
+                    <li key={x.id}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedBoId(x.id)}
+                        className={`w-full space-y-2 px-3 py-3.5 text-left touch-manipulation ${
+                          isSelected ? "bg-emerald-50/70 ring-1 ring-inset ring-emerald-200" : "active:bg-slate-50"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="font-bold text-[var(--primary)]">{x.ma_bo || "—"}</p>
+                            <p className="font-semibold text-slate-800">{x.ten_bo || "—"}</p>
+                          </div>
+                          <span className="text-[11px] font-bold text-slate-600">{x.tong_so_luong_dung_cu ?? 0} DC</span>
+                        </div>
+                        <p className="text-xs text-slate-500">{x.ten_khoa || "Chưa phân bổ"}</p>
+                        <span
+                          onClick={(e) => e.stopPropagation()}
+                          role="presentation"
+                          className="inline-block"
+                        >
+                          <button
+                            type="button"
+                            disabled={printingId === x.id}
+                            onClick={(e) => void handlePrintQr(e, x.id)}
+                            className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-lg border border-emerald-200/50 bg-emerald-50 px-3 py-1.5 font-mono text-[11px] font-medium text-[var(--primary)] touch-manipulation hover:bg-[var(--primary)] hover:text-white disabled:opacity-50"
+                          >
+                            {printingId === x.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Printer className="h-3 w-3" />}
+                            In QR
+                          </button>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )
+          }
+        >
           <table className="w-full border-collapse text-left text-sm text-slate-700">
             <thead>
               <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">
@@ -152,7 +203,7 @@ export function CSSDCatalogBoTab(props: {
               )}
             </tbody>
           </table>
-        </div>
+        </ResponsiveTableShell>
       </section>
 
       {/* Danh sách Dụng cụ thành phần (hiển thị khi chọn Bộ) */}
@@ -186,8 +237,13 @@ export function CSSDCatalogBoTab(props: {
             </p>
           </div>
         ) : (
-          <div className="max-h-[350px] overflow-auto rounded-xl border border-slate-100 relative">
-            <table className="w-full border-collapse text-left text-sm text-slate-700">
+          <ResponsiveTableShell
+            unboxed
+            className="relative rounded-xl border border-slate-100"
+            maxHeight="max-h-[350px]"
+            scrollHint="Vuốt ngang để xem cột chi tiết dụng cụ"
+          >
+            <table className="w-full min-w-[640px] border-collapse text-left text-sm text-slate-700">
               <thead>
                 <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">
                   <th className="px-4 py-3">Mã dụng cụ</th>
@@ -230,7 +286,7 @@ export function CSSDCatalogBoTab(props: {
                 )}
               </tbody>
             </table>
-          </div>
+          </ResponsiveTableShell>
         )}
       </section>
     </div>

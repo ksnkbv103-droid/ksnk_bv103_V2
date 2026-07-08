@@ -1,5 +1,6 @@
 "use client";
 
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import React, { useState } from "react";
 import { toast } from "sonner";
@@ -342,7 +343,11 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
             </div>
           </div>
 
-          <div className="overflow-x-auto border border-slate-100 rounded-[var(--radius-shell)]">
+          <ResponsiveTableShell
+            unboxed
+            className="border border-slate-100 rounded-[var(--radius-shell)]"
+            maxHeight="max-h-[min(52dvh,520px)]"
+          >
             <table className="w-full min-w-[1000px] border-collapse text-left text-xs">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
@@ -440,7 +445,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                 ))}
               </tbody>
             </table>
-          </div>
+          </ResponsiveTableShell>
 
           <div className="flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-slate-400 bg-slate-50 rounded-[var(--radius-shell)] p-4">
             <div className="flex gap-4">

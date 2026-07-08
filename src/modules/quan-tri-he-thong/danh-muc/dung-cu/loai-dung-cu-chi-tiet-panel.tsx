@@ -2,6 +2,7 @@
 
 import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import React, { useEffect, useState } from "react";
 import { Layers, Loader2, RefreshCcw, History, Box } from "lucide-react";
 import { toast } from "sonner";
@@ -121,7 +122,7 @@ export function LoaiDungCuChiTietPanel({
                 Chưa có bộ dụng cụ nào chứa loại dụng cụ này
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <ResponsiveTableShell unboxed maxHeight="max-h-[min(320px,45dvh)]">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-slate-100">
@@ -149,7 +150,7 @@ export function LoaiDungCuChiTietPanel({
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </ResponsiveTableShell>
             )}
           </div>
         ) : (
@@ -169,7 +170,7 @@ export function LoaiDungCuChiTietPanel({
                 </button>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <ResponsiveTableShell unboxed maxHeight="max-h-[min(320px,45dvh)]">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-slate-100">
@@ -206,7 +207,7 @@ export function LoaiDungCuChiTietPanel({
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </ResponsiveTableShell>
             )}
           </div>
         )}

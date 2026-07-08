@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, ExternalLink, Layers, Loader2, PackagePlus, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import DungCuChiTietFormModal from "./dung-cu-chi-tiet-form-modal";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import type { DungCuChiTietTableRow } from "./dung-cu-chi-tiet-form-shared";
@@ -294,7 +295,7 @@ export function BoDungCuChiTietPanel({
                   </button>
                 </div>
 
-                <div className="overflow-x-auto rounded-[var(--radius-shell)] border border-slate-100 bg-white">
+                <ResponsiveTableShell unboxed className="rounded-[var(--radius-shell)] border border-slate-100 bg-white" maxHeight="max-h-[min(360px,50dvh)]">
                   <table className="w-full min-w-[640px] border-collapse text-left text-sm">
                     <thead>
                       <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-medium text-slate-500">
@@ -338,7 +339,7 @@ export function BoDungCuChiTietPanel({
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </ResponsiveTableShell>
 
                 {selectedChiTiet ? (
                   <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/80 p-6 space-y-4">
@@ -523,7 +524,7 @@ export function BoDungCuChiTietPanel({
                   Chưa có phân bổ cơ số khoa phòng nào cho bộ này.
                 </p>
               ) : (
-                <div className="overflow-x-auto rounded-[var(--radius-shell)] border border-slate-100 bg-white">
+                <ResponsiveTableShell unboxed className="rounded-[var(--radius-shell)] border border-slate-100 bg-white" maxHeight="max-h-[min(360px,50dvh)]">
                   <table className="w-full min-w-[500px] border-collapse text-left text-sm">
                     <thead>
                       <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-medium text-slate-500">
@@ -591,7 +592,7 @@ export function BoDungCuChiTietPanel({
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </ResponsiveTableShell>
               )}
             </div>
           )}

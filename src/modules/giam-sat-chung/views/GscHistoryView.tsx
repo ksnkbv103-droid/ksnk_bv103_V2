@@ -32,7 +32,7 @@ export default function GscHistoryView({ loaiGiamSat }: GscHistoryViewProps) {
 
   return (
     <KsnkSupervisionPanel className="min-h-[50vh]">
-      <div className="app-data-shell overflow-hidden p-2">
+      <div className="app-data-shell p-2">
         <HistoryTable
           loaiGiamSat={loaiGiamSat}
           onEditBundle={(bundle, row) => {

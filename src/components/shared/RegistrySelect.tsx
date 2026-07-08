@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useTransition } from "react";
+import React, { useEffect, useMemo, useState, useTransition } from "react";
 import SearchableSelect, { SearchableSelectOption } from "./SearchableSelect";
 import { getActiveMasterDataAction } from "@/lib/master-data/master-data.actions";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
@@ -29,6 +29,30 @@ type Props = {
   searchable?: boolean;
 };
 
+function mapRegistryOptions(
+  items: RegistrySelectOption[],
+  loaiDanhMuc: string,
+): SearchableSelectOption[] {
+  return items.map((opt) => {
+    const hasCode = opt.ma && opt.ma.trim();
+    const displayLabel =
+      hasCode && loaiDanhMuc === "KHOA_PHONG" ? `[${opt.ma}] ${opt.label}` : opt.label;
+    return {
+      id: opt.id,
+      label: displayLabel,
+      keywords: opt.keywords || [opt.ma || "", opt.label],
+      groupLabel: opt.groupLabel,
+    };
+  });
+}
+
+/** Khóa ổn định — tránh effect/memo chạy lại khi parent truyền mảng mới cùng nội dung. */
+function staticOptionsFingerprint(items: RegistrySelectOption[]): string {
+  return items
+    .map((o) => `${o.id}|${o.label}|${o.ma ?? ""}|${o.groupLabel ?? ""}|${(o.keywords ?? []).join(",")}`)
+    .join("\u0001");
+}
+
 export default function RegistrySelect({
   loaiDanhMuc,
   value,
@@ -42,33 +66,23 @@ export default function RegistrySelect({
   staticOptions,
   searchable = true,
 }: Props) {
-  const [options, setOptions] = useState<SearchableSelectOption[]>([]);
+  const [fetchedOptions, setFetchedOptions] = useState<SearchableSelectOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  // 1. Đồng bộ staticOptions nếu được truyền từ bên ngoài (Zero-Latency)
-  useEffect(() => {
-    if (staticOptions) {
-      const mapped = staticOptions.map((opt) => {
-        const hasCode = opt.ma && opt.ma.trim();
-        const displayLabel = hasCode && loaiDanhMuc === "KHOA_PHONG"
-          ? `[${opt.ma}] ${opt.label}`
-          : opt.label;
-        return {
-          id: opt.id,
-          label: displayLabel,
-          keywords: opt.keywords || [opt.ma || "", opt.label],
-          groupLabel: opt.groupLabel,
-        };
-      });
-      setOptions(mapped);
-      setLoading(false);
-    }
-  }, [staticOptions, loaiDanhMuc]);
+  const staticFingerprint = staticOptions ? staticOptionsFingerprint(staticOptions) : null;
+  const staticMappedOptions = useMemo(() => {
+    if (!staticOptions) return null;
+    return mapRegistryOptions(staticOptions, loaiDanhMuc);
+    // staticFingerprint ổn định khi parent truyền mảng mới cùng nội dung
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- staticOptions đọc theo fingerprint
+  }, [staticFingerprint, loaiDanhMuc]);
 
-  // 2. Fetch động nếu không có staticOptions
+  const options = staticMappedOptions ?? fetchedOptions;
+
+  // Fetch động chỉ khi không có staticOptions
   useEffect(() => {
-    if (staticOptions) return; // Bỏ qua nếu dùng staticOptions
+    if (staticOptions) return;
 
     let active = true;
     setLoading(true);
@@ -80,9 +94,8 @@ export default function RegistrySelect({
 
         const mappedOptions = rows.map((row) => {
           const hasCode = row.ma && row.ma.trim();
-          const displayLabel = hasCode && loaiDanhMuc === "KHOA_PHONG"
-            ? `[${row.ma}] ${row.ten}`
-            : row.ten;
+          const displayLabel =
+            hasCode && loaiDanhMuc === "KHOA_PHONG" ? `[${row.ma}] ${row.ten}` : row.ten;
           return {
             id: row.id,
             label: displayLabel,
@@ -90,7 +103,7 @@ export default function RegistrySelect({
           };
         });
 
-        setOptions(mappedOptions);
+        setFetchedOptions(mappedOptions);
       } catch (err) {
         console.error(`Failed to load dynamic master-data for ${loaiDanhMuc}:`, err);
       } finally {
@@ -101,7 +114,7 @@ export default function RegistrySelect({
     return () => {
       active = false;
     };
-  }, [loaiDanhMuc, staticOptions]);
+  }, [loaiDanhMuc, staticFingerprint]);
 
   const selectPlaceholder = loading || isPending ? "Đang tải danh mục..." : placeholder;
 

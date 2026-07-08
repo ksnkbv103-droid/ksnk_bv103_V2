@@ -86,7 +86,7 @@ export default function CongViecKanban({
               if (node) columnEls.current[col.id] = node;
               else delete columnEls.current[col.id];
             }}
-            className="flex min-w-0 flex-col w-[min(92vw,300px)] shrink-0 rounded-2xl border border-slate-200/90 bg-slate-50/90 p-3 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] snap-center sm:w-[280px] md:p-4 lg:w-[300px]"
+            className="flex min-w-0 flex-col w-[min(88vw,300px)] shrink-0 rounded-2xl border border-slate-200/90 bg-slate-50/90 p-3 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] snap-center sm:w-[280px] md:p-4 lg:w-[300px]"
           >
             <div className="mb-3 flex items-center justify-between gap-2 px-1">
               <div className="flex min-w-0 items-center gap-2">

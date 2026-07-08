@@ -1,6 +1,7 @@
 "use client";
 
 import type { Catalog, CSSDBo, CSSDChiTiet } from "../types/catalog.types";
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { ListFilter } from "lucide-react";
 
 export function CSSDCatalogChiTietTab(props: {
@@ -32,8 +33,8 @@ export function CSSDCatalogChiTietTab(props: {
           <span className="text-xs text-slate-500 font-medium">Danh sách toàn bộ các dòng dụng cụ lẻ trong hệ thống</span>
         </div>
 
-        <div className="max-h-[500px] overflow-auto rounded-xl border border-slate-100 relative">
-          <table className="w-full border-collapse text-left text-sm text-slate-700">
+        <ResponsiveTableShell unboxed className="relative rounded-xl border border-slate-100" maxHeight="max-h-[500px]">
+          <table className="w-full min-w-[720px] border-collapse text-left text-sm text-slate-700">
             <thead>
               <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">
                 <th className="px-4 py-3">Mã dụng cụ</th>
@@ -92,7 +93,7 @@ export function CSSDCatalogChiTietTab(props: {
               )}
             </tbody>
           </table>
-        </div>
+        </ResponsiveTableShell>
       </section>
     </div>
   );

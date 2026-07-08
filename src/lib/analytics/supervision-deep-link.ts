@@ -52,6 +52,17 @@ export function buildAnalyticsUrlQuery(seed: AnalyticsUrlSeed): string {
   return q.toString();
 }
 
+export function buildGscAnalyticsDeepLink(
+  seed: { tu_ngay?: string; den_ngay?: string; khoa_ids?: string[] },
+  maBk?: string,
+): string {
+  const q = buildAnalyticsUrlQuery(seed);
+  const params = new URLSearchParams(q);
+  if (maBk) params.set("bk", maBk);
+  const s = params.toString();
+  return s ? `/thong-ke/gsc?${s}` : "/thong-ke/gsc";
+}
+
 /** Query do filter bar không quản — giữ khi sync URL (vd. `bk` drill-down GSC). */
 export const ANALYTICS_PRESERVED_QUERY_KEYS = ["bk", "view", "loai"] as const;
 

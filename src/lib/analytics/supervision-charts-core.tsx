@@ -1,5 +1,6 @@
 "use client";
 
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import React, { useMemo, useState } from "react";
 import {
   Bar,
@@ -245,7 +246,7 @@ export function SupervisionMomentsPanel({
 
         <div className="flex flex-col justify-center">
           {!loading && rows.length > 0 ? (
-            <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <ResponsiveTableShell unboxed className="rounded-lg border border-slate-200" maxHeight="max-h-[min(280px,40dvh)]">
               <table className="w-full min-w-[280px] text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wide text-slate-500">
@@ -275,7 +276,7 @@ export function SupervisionMomentsPanel({
                   })}
                 </tbody>
               </table>
-            </div>
+            </ResponsiveTableShell>
           ) : (
             <p className="text-sm text-slate-400">{loading ? "Đang tải…" : "Chưa có dữ liệu"}</p>
           )}

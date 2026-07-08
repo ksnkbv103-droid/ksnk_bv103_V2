@@ -10,6 +10,7 @@ const ClientLayoutWrapper = dynamic(() => import("../components/shared/ClientLay
 });
 
 import OfflineSyncManager from "@/components/shared/OfflineSyncManager";
+import { PermissionProvider } from "@/contexts/PermissionProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -45,7 +46,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="vi" className={inter.className}>
       <body className="bg-slate-50 text-slate-900 touch-manipulation pointer-events-auto">
-        <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
+        <PermissionProvider>
+          <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
+        </PermissionProvider>
         <OfflineSyncManager />
         <Toaster position="top-right" richColors />
       </body>

@@ -1,19 +1,51 @@
 "use client";
 
 import React, { Suspense, useCallback, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { WashingMachine, Flame, Package, History, type LucideIcon } from "lucide-react";
-import {
-  CSSDInstrumentInventoryEmbeddedPage,
-  CSSDProcessingLifecyclePage,
-  CSSDSterilizationBatchPage,
-} from "@/modules/cssd-erp/contexts/processing-lifecycle/entrypoint";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
-import QRHistoryViewer from "@/modules/cssd-erp/components/history/QRHistoryViewer";
 import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 
 type QuyTrinhTab = "WORKFLOW" | "BATCH" | "KHO" | "TRACE";
+
+function TabPanelSkeleton() {
+  return (
+    <div className="flex h-[40vh] items-center justify-center" aria-busy="true">
+      <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[var(--primary)]" />
+    </div>
+  );
+}
+
+const CSSDProcessingLifecyclePage = dynamic(
+  () =>
+    import("@/modules/cssd-erp/contexts/processing-lifecycle/entrypoint").then((m) => ({
+      default: m.CSSDProcessingLifecyclePage,
+    })),
+  { ssr: false, loading: () => <TabPanelSkeleton /> },
+);
+
+const CSSDSterilizationBatchPage = dynamic(
+  () =>
+    import("@/modules/cssd-erp/contexts/processing-lifecycle/entrypoint").then((m) => ({
+      default: m.CSSDSterilizationBatchPage,
+    })),
+  { ssr: false, loading: () => <TabPanelSkeleton /> },
+);
+
+const CSSDInstrumentInventoryEmbeddedPage = dynamic(
+  () =>
+    import("@/modules/cssd-erp/contexts/processing-lifecycle/entrypoint").then((m) => ({
+      default: m.CSSDInstrumentInventoryEmbeddedPage,
+    })),
+  { ssr: false, loading: () => <TabPanelSkeleton /> },
+);
+
+const QRHistoryViewer = dynamic(
+  () => import("@/modules/cssd-erp/components/history/QRHistoryViewer"),
+  { ssr: false, loading: () => <TabPanelSkeleton /> },
+);
 
 const TAB_CONFIG: {
   key: QuyTrinhTab;
@@ -101,13 +133,7 @@ function CssdQuyTrinhPageInner() {
 
 export default function CssdQuyTrinhPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex h-[40vh] items-center justify-center" aria-busy="true">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[var(--primary)]" />
-        </div>
-      }
-    >
+    <Suspense fallback={<TabPanelSkeleton />}>
       <CssdQuyTrinhPageInner />
     </Suspense>
   );

@@ -226,6 +226,7 @@ export async function saveVSTSession(
     logVstSaveDebug("Insert observations xong");
 
     revalidatePath("/giam-sat-vst");
+    revalidatePath("/lich-su/vst");
     return { success: true, sessionId, message: "Lưu phiên giám sát thành công" };
   } catch (error: unknown) {
     if (process.env.NODE_ENV !== "production") {

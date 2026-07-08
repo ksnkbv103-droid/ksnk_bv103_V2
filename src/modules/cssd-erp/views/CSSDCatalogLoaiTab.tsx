@@ -1,6 +1,7 @@
 "use client";
 
 import type { Catalog, CSSDBo, CSSDLoai } from "../types/catalog.types";
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { AppWindow, Layers } from "lucide-react";
 
 export function CSSDCatalogLoaiTab(props: {
@@ -27,8 +28,8 @@ export function CSSDCatalogLoaiTab(props: {
           <span className="text-xs text-slate-500 font-medium">Click chọn một dòng để xem các bộ chứa loại dụng cụ này</span>
         </div>
 
-        <div className="max-h-[350px] overflow-auto rounded-xl border border-slate-100 relative">
-          <table className="w-full border-collapse text-left text-sm text-slate-700">
+        <ResponsiveTableShell unboxed className="relative rounded-xl border border-slate-100" maxHeight="max-h-[350px]">
+          <table className="w-full min-w-[720px] border-collapse text-left text-sm text-slate-700">
             <thead>
               <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">
                 <th className="px-4 py-3">Mã loại</th>
@@ -96,7 +97,7 @@ export function CSSDCatalogLoaiTab(props: {
               )}
             </tbody>
           </table>
-        </div>
+        </ResponsiveTableShell>
       </section>
 
       {/* Danh sách các bộ đang chứa loại dụng cụ này */}
@@ -130,8 +131,8 @@ export function CSSDCatalogLoaiTab(props: {
             </p>
           </div>
         ) : (
-          <div className="max-h-[350px] overflow-auto rounded-xl border border-slate-100 relative">
-            <table className="w-full border-collapse text-left text-sm text-slate-700">
+          <ResponsiveTableShell unboxed className="relative rounded-xl border border-slate-100" maxHeight="max-h-[350px]">
+            <table className="w-full min-w-[480px] border-collapse text-left text-sm text-slate-700">
               <thead>
                 <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">
                   <th className="px-4 py-3">Mã bộ</th>
@@ -181,7 +182,7 @@ export function CSSDCatalogLoaiTab(props: {
                 )}
               </tbody>
             </table>
-          </div>
+          </ResponsiveTableShell>
         )}
       </section>
     </div>

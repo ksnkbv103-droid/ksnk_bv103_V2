@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, X } from "lucide-react";
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import {
   SupervisionCompareAccordion,
   SupervisionKhoaAnalyticsBlock,
@@ -169,7 +170,7 @@ function GscCriterionTable({
       <p className="mb-3 text-[11px] text-slate-500">
         Sắp xếp tiêu chí yếu trước. Nhấn dòng để xem vi phạm theo từng khoa.
       </p>
-      <div className="overflow-x-auto rounded-lg border border-slate-200">
+      <ResponsiveTableShell unboxed className="rounded-lg border border-slate-200" maxHeight="max-h-[min(360px,50dvh)]">
         <table className="w-full min-w-[560px] text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wide text-slate-500">
@@ -217,7 +218,7 @@ function GscCriterionTable({
                     {expanded && khoaRows.length > 0 ? (
                       <tr className="bg-slate-50/80">
                         <td colSpan={5} className="px-3 py-2">
-                          <div className="ml-6 overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                          <ResponsiveTableShell unboxed className="ml-6 rounded-lg border border-slate-200 bg-white" maxHeight="max-h-[240px]">
                             <table className="w-full min-w-[400px] text-xs">
                               <thead>
                                 <tr className="border-b border-slate-100 bg-slate-50 text-[11px] font-bold uppercase text-slate-500">
@@ -240,7 +241,7 @@ function GscCriterionTable({
                                 ))}
                               </tbody>
                             </table>
-                          </div>
+                          </ResponsiveTableShell>
                         </td>
                       </tr>
                     ) : null}
@@ -250,7 +251,7 @@ function GscCriterionTable({
             )}
           </tbody>
         </table>
-      </div>
+      </ResponsiveTableShell>
     </div>
   );
 }

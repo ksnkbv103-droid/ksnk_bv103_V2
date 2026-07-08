@@ -9,6 +9,7 @@ import {
   type CompositionReconcileRow,
 } from "../../actions/cssd-composition-reconcile.actions";
 import { CSSD_UI_SECTION_TITLE, CSSD_UI_TABLE_HEADER } from "../../shared/ui/cssd-ui-chrome";
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 
 type SuCoPrefill = {
@@ -127,7 +128,7 @@ export default function CompositionReconcilePanel({
         ) : null}
 
         {data && data.items.length > 0 ? (
-          <div className="overflow-x-auto rounded-xl border border-slate-100">
+          <ResponsiveTableShell unboxed className="rounded-xl border border-slate-100" maxHeight="max-h-[min(360px,50dvh)]">
             <table className="w-full min-w-[420px] text-left text-xs">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
@@ -185,7 +186,7 @@ export default function CompositionReconcilePanel({
                 ))}
               </tbody>
             </table>
-          </div>
+          </ResponsiveTableShell>
         ) : null}
 
         {gateMode ? (

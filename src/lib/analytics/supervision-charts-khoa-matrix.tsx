@@ -12,6 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import type { CoverageTopicInput, GapKhoaRow, GapKhoaSortMetric, GapKhoaSortOrder } from "@/lib/analytics/supervision-matrix-mappers";
 import {
   buildCoverageMatrix,
@@ -322,7 +323,7 @@ export function SupervisionGapExclusionTable({
       <p className="mb-3 text-[11px] text-slate-500">
         Chỉ khoa có cả TGS và KSNK trong kỳ mới xuất hiện biểu đồ đối soát.
       </p>
-      <div className="overflow-x-auto">
+      <ResponsiveTableShell unboxed maxHeight="max-h-[min(360px,50dvh)]">
         <table className="w-full min-w-[320px] text-left text-sm">
           <thead>
             <tr className="border-b border-amber-200/80 text-[11px] font-bold uppercase tracking-wide text-slate-500">
@@ -356,7 +357,7 @@ export function SupervisionGapExclusionTable({
             )}
           </tbody>
         </table>
-      </div>
+      </ResponsiveTableShell>
     </div>
   );
 }
@@ -402,7 +403,7 @@ export function SupervisionCoverageMatrix({
           </p>
         );
       })}
-      <div className="overflow-x-auto">
+      <ResponsiveTableShell unboxed maxHeight="max-h-[min(360px,50dvh)]">
         <table className="w-full min-w-[360px] text-left text-xs">
           <thead>
             <tr className="border-b border-slate-200 text-[11px] font-bold uppercase tracking-wide text-slate-500">
@@ -443,7 +444,7 @@ export function SupervisionCoverageMatrix({
             )}
           </tbody>
         </table>
-      </div>
+      </ResponsiveTableShell>
     </div>
   );
 }
