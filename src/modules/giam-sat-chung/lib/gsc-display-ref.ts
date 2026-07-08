@@ -7,8 +7,3 @@ export function gscSessionDisplayRef(sessionId: string, ngayGiamSat?: string | n
   const d = ngayGiamSat ? String(ngayGiamSat).slice(0, 10).replace(/-/g, "") : "";
   return d.length >= 8 ? `GSC-${d}-${suffix}` : `GSC-${suffix}`;
 }
-
-export function gscShortUuid(uuid: string | undefined): string {
-  const u = String(uuid || "").replace(/-/g, "");
-  return u ? u.slice(0, 8).toUpperCase() : "";
-}

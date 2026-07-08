@@ -13,11 +13,6 @@ export function vstReadErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Lỗi không xác định";
 }
 
-export function khuTenFromSessionRow(x: Record<string, unknown>): string {
-  const dm = x.gstt_dm_khu_vuc_giam_sat as { ten_khu_vuc?: string } | undefined;
-  return String(dm?.ten_khu_vuc || "").trim();
-}
-
 export type VstObs = { hanh_dong?: string };
 
 export type VstHistoryRow = Record<string, unknown> & {

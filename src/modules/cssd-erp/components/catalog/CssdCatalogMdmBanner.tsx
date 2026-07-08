@@ -52,20 +52,3 @@ export default function CssdCatalogMdmBanner(props: { className?: string; focusT
     </div>
   );
 }
-
-export function CssdThietBiMdmBanner() {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center sm:p-8">
-      <p className="text-sm text-slate-600">
-        Danh mục máy tiệt khuẩn / rửa (CRUD) nằm tại Quản trị — CSSD chỉ vận hành bảo dưỡng và chọn máy cho mẻ.
-      </p>
-      <Link
-        href="/quan-tri-he-thong/danh-muc/thiet-bi"
-        className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-white hover:bg-[#025214] sm:mt-4 sm:px-5 sm:py-3"
-      >
-        Quản trị thiết bị
-        <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-      </Link>
-    </div>
-  );
-}

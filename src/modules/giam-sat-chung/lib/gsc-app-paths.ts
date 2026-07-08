@@ -48,11 +48,6 @@ export const GSC_ROUTE_CHROME: Record<GscLoaiGiamSatRoute | "ALL", GscRouteChrom
   },
 };
 
-export function resolveGscRouteChrome(initialLoaiGiamSat?: GscLoaiGiamSatRoute): GscRouteChrome {
-  if (!initialLoaiGiamSat) return GSC_ROUTE_CHROME.ALL;
-  return GSC_ROUTE_CHROME[initialLoaiGiamSat];
-}
-
 /** Đường dẫn form GSC theo loại giám sát của bảng kiểm. */
 export function gscFormHrefForLoaiGiamSat(loai: string | null | undefined): string {
   const key = String(loai ?? "").trim() as GscLoaiGiamSatRoute;

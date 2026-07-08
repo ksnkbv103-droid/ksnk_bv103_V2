@@ -74,15 +74,4 @@ export function validateStationAdvance(ctx: AdvanceContext): { ok: true } | { ok
   return { ok: true };
 }
 
-export function lifecycleEventCodeForAdvance(targetStation: Station): string {
-  const map: Partial<Record<Station, string>> = {
-    LAM_SACH: "BAT_DAU_LAM_SACH",
-    QC: "HOAN_QC",
-    DONG_GOI: "HOAN_DONG_GOI",
-    CAP_PHAT: "XAC_NHAN_CAP_PHAT",
-    TIEP_NHAN: "TIEP_NHAN_CHU_KY_MOI",
-  };
-  return map[targetStation] || `CHUYEN_TRAM_${targetStation}`;
-}
-
 export { previousWorkflowStation };

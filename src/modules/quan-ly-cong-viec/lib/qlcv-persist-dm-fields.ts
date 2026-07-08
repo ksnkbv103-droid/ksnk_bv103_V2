@@ -17,14 +17,6 @@ export function normalizeQlcvDmFields(params: {
   };
 }
 
-/** @deprecated Alias — dùng normalizeQlcvDmFields (sync, không SELECT FK). */
-export async function buildQlcvDmPersistFields(
-  _supabase: unknown,
-  params: { loai_cong_viec?: string | null; trang_thai?: string | null },
-): Promise<QlcvDmPersistFields> {
-  return normalizeQlcvDmFields(params);
-}
-
 /** Chỉ dùng trong test — giữ API ổn định sau khi bỏ cache lookup. */
 export function clearQlcvLookupIdCacheForTests(): void {
   /* no-op */

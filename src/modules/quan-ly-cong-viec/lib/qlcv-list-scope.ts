@@ -48,13 +48,3 @@ export function qlcvRowMatchesListScope(_row: QlcvScopeRow, _scope: QlcvListScop
 export function assertQlcvRowInListScope(_row: QlcvScopeRow, _scope: QlcvListScope): void {
   // no-op — ranh giới module tại ensureQlcvKsnkAccess
 }
-
-/** @deprecated Không còn filter khoa trên fact. */
-export function buildQlcvKsnkKhoaEqFilter(_scope: QlcvListScope): string {
-  return "";
-}
-
-/** @deprecated Alias — giữ test cũ gọi buildQlcvScopeOrFilter */
-export function buildQlcvScopeOrFilter(scope: QlcvListScope): string | null {
-  return mergeQlcvScopeWithSearchOr(scope, null);
-}

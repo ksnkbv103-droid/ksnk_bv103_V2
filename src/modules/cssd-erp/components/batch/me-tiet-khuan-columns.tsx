@@ -100,6 +100,3 @@ export function buildMeTietKhuanBatchColumns(opts?: {
 
   return cols;
 }
-
-/** @deprecated Dùng `buildMeTietKhuanBatchColumns()` */
-export const meTietKhuanBatchColumns = buildMeTietKhuanBatchColumns();

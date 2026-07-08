@@ -52,7 +52,7 @@ flowchart LR
 
 ### 2.3 Quản lý Công việc Nội bộ KSNK (Track B Workflow)
 * **Trạng thái canonical (7):** `MOI` → `DANG_LAM` → `CHO_DUYET` → `HOAN_THANH` / `TU_CHOI` / `QUA_HAN` / `DA_HUY`.
-* **Alias legacy** (CHECK DB vẫn chấp nhận; UI map về canonical): `CHUA_BAT_DAU`, `CHO_NHAN_VIEC`, `DANG_THUC_HIEN`, `CHO_XAC_NHAN_HOAN_THANH`. Thu hẹp CHECK = slice riêng sau audit dữ liệu.
+* **Alias legacy** (chỉ còn ở UI display nếu gặp dữ liệu cũ): `CHUA_BAT_DAU`→`MOI`, `CHO_NHAN_VIEC`/`DANG_THUC_HIEN`→`DANG_LAM`, `CHO_XAC_NHAN_HOAN_THANH`→`CHO_DUYET`. DB CHECK thu hẹp 7 mã — migration `20260709140000`.
 * **Spawn định kỳ:** `qlcv_fact_cong_viec_dinh_ky` + `fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay()`.
 
 ---

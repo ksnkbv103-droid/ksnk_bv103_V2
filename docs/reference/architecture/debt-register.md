@@ -213,4 +213,5 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 | DB-01/02/03/08 | **Done** (`20260709130000` + doc) |
 | BE-ORPHAN-01 | **Done** (xóa 5 file W3) |
 | BE-AUTH-04 | **Done** (proxy thiếu env → login) |
-| DOM-10 | **Deferred P3** |
+| DOM-10 | **Done** (`20260709140000`) |
+| G-12 | **Partial** (dead exports ↓) |

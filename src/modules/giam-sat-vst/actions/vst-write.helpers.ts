@@ -29,12 +29,6 @@ export function vstWriteErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Lỗi không xác định";
 }
 
-export function optionalFkFromUnknown(raw: unknown): string | null {
-  if (raw == null || raw === "") return null;
-  if (typeof raw === "string") return raw.trim() || null;
-  return String(raw).trim() || null;
-}
-
 export function normalizeVstModeFields(input: SessionInput) {
   const hinhRaw = String(input.hinh_thuc_giam_sat ?? "").trim();
   const hinh = resolveCanonicalHinhThucLabel(hinhRaw) || hinhRaw;

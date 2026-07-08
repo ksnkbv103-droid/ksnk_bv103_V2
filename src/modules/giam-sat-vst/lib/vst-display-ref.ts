@@ -8,9 +8,3 @@ export function vstSessionDisplayRef(sessionId: string, ngayGiamSat?: string | n
   const d = ngayGiamSat ? String(ngayGiamSat).slice(0, 10).replace(/-/g, "") : "";
   return d.length >= 8 ? `VST-${d}-${suffix}` : `VST-${suffix}`;
 }
-
-/** Rút UUID xuống 8 ký tự HEX (nhận dạng nhanh, không nhầm là mã hoàn chỉnh). */
-export function vstShortUuid(uuid: string | undefined): string {
-  const u = String(uuid || "").replace(/-/g, "");
-  return u ? u.slice(0, 8).toUpperCase() : "";
-}

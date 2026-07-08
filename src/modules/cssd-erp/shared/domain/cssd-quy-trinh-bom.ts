@@ -43,20 +43,6 @@ export function parseBomLinesFromMetadata(metadata: unknown): QuyTrinhBomLine[] 
   return out;
 }
 
-export function assertDuSoBomLines(
-  lines: QuyTrinhBomLine[],
-): { ok: true } | { ok: false; message: string } {
-  for (const r of lines) {
-    if (r.so_luong_thuc_te < r.so_luong_ke_hoach) {
-      return {
-        ok: false,
-        message: `Thiếu cấu phần «${r.ten_dung_cu_le}»: thực tế ${r.so_luong_thuc_te}/${r.so_luong_ke_hoach}.`,
-      };
-    }
-  }
-  return { ok: true };
-}
-
 export function mergeBomLineQuantities(
   lines: QuyTrinhBomLine[],
   updates: Array<{ line_key: string; so_luong_thuc_te: number }>,

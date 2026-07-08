@@ -49,16 +49,6 @@ async function lookupBangKiem(
   };
 }
 
-/** Mã bảng kiểm (đọc từ view / dm) — không còn cột text trên phiên GSC. */
-export async function resolveCanonicalLoaiBangKiemForPersist(
-  supabase: SupabaseClient,
-  raw: unknown,
-): Promise<string> {
-  const row = await lookupBangKiem(supabase, raw);
-  const ma = String(row.ma_bk ?? "").trim();
-  return ma || row.id;
-}
-
 /** SSOT FK `bang_kiem_id` trên gstt_fact_chung_sessions. */
 export async function resolveBangKiemPersistFields(
   supabase: SupabaseClient,
