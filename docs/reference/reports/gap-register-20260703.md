@@ -36,13 +36,13 @@
 
 ## P0/P1 mở: **0**
 
-## Backlog P2/P3 (giữ từ 02/07)
+## Backlog P2/P3 (giữ từ 02/07) — cập nhật 2026-07-09
 
-| ID | P | Slice |
-|----|---|-------|
-| G-12 | P2 | Boy-scout unused-var |
-| G-11 / W2-02 | P3 | S-RLS-01 GSTT RLS |
-| G-10 / W3-07 | P3 | NKBV clinical UAT (PO tay) |
+| ID | P | Slice | Trạng thái 2026-07-09 |
+|----|---|-------|------------------------|
+| G-12 | P2 | Boy-scout unused-var | Ongoing |
+| G-11 / W2-02 | P3 | S-RLS-01 GSTT RLS fact phiên | **Done** (`20260703100000`); residual summary → `20260709130000` |
+| G-10 / W3-07 | P3 | NKBV clinical UAT (PO tay) | Vẫn mở — DOM-08 |
 
 ---
 

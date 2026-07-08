@@ -15,7 +15,6 @@ const SKIP_TYPOGRAPHY = new Set([
   "src/app/globals.css",
   "src/lib/bv103-design-tokens.ts",
   "src/lib/bv103-layout-chrome.ts",
-  "src/modules/dashboard/lib/dashboard-print-template.ts",
   "src/modules/dashboard/lib/bao-cao-tong-hop-print.ts",
   "src/modules/cssd-erp/components/scan/QRScanSuccessCard.tsx",
   "src/components/shared/PrintLayout.tsx",

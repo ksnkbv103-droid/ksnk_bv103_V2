@@ -11,7 +11,6 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SCAN = ["src/modules", "src/components", "src/app"];
 const SKIP = new Set([
   "src/modules/cssd-erp/components/scan/QRScanSuccessCard.tsx",
-  "src/modules/dashboard/lib/dashboard-print-template.ts",
   "src/modules/dashboard/lib/bao-cao-tong-hop-print.ts",
   "src/components/shared/PrintLayout.tsx",
   "src/hooks/usePrint.ts",

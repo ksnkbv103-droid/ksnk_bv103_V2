@@ -172,7 +172,7 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 | Mục cũ | Trạng thái mới | Ghi chú |
 |--------|----------------|---------|
 | D-01 | **Obsolete** | Done 2026-06-03 — Digital BOM |
-| D-02 | **Obsolete** | Done 2026-06-03 — Ledger hard gate |
+| D-02 | **Obsolete** | Soft-warning CAP_PHAT (SSOT 2026-07-01); không còn hard gate |
 | D-03 | **Obsolete** | Runbook squash + repair baseline |
 | D-04 | **Done** | Seeds `00-rbac.sql` + `01-pilot-nhan-su.sql`; SOP §2.1.2 |
 | D-05 | **Obsolete** | `legacy:guard` PASS — không còn view alias cũ trong src |
@@ -204,3 +204,13 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 | D-14 | P2 | **UAT pending** | Giữ — gộp DOM-08 |
 
 **P0/P1 mở (sau remediation 2026-07-09):** 0 P0 · 1 P1 (OPS-01 Docker) · UAT NKBV tay
+
+### P2 batch (cùng ngày)
+
+| ID | Trạng thái |
+|----|------------|
+| DOM-01/02/03/05/14 | **Done** (docs) |
+| DB-01/02/03/08 | **Done** (`20260709130000` + doc) |
+| BE-ORPHAN-01 | **Done** (xóa 5 file W3) |
+| BE-AUTH-04 | **Done** (proxy thiếu env → login) |
+| DOM-10 | **Deferred P3** |

@@ -15,13 +15,13 @@ Sau tái cấu trúc, **Form / Thống kê / Lịch sử** tách route — khôn
 | Chức năng | VST | GSC (tất cả loại) | GSC theo loại |
 |-----------|-----|-------------------|---------------|
 | **Form nhập liệu** | `/giam-sat-vst` | `/giam-sat-chung` | `/giam-sat-chung/tuan-thu`, `/nhat-ky`, `/he-thong` |
-| **Thống kê** | `/thong-ke/vst` | `/thong-ke/gsc` | `/giam-sat-chung/{loai}/thong-ke` — filter `initialLoaiGiamSat` |
+| **Thống kê** | `/thong-ke/vst` | `/thong-ke/gsc` | Deep link `/thong-ke/gsc?loai=` (redirect từ URL cũ) |
 | **Lịch sử** | `/lich-su/vst` | `/lich-su/gsc` | edit quay về `basePath?edit=id` |
 
-**Dual entry GSC analytics (cố ý):**
+**GSC analytics — một shell canonical:**
 
-- `/thong-ke/gsc` — tổng hợp mọi `loai_giam_sat`, entry từ Sidebar **Thống kê giám sát**.
-- `/giam-sat-chung/tuan-thu/thong-ke` (và tương tự nhat-ky, he-thong) — pre-filter một loại khi vào từ form theo chuyên đề. UI hiển thị banner **「Đang lọc theo chuyên đề」** + link **Tổng hợp mọi chuyên đề** → `/thong-ke/gsc`.
+- `/thong-ke/gsc` — tổng hợp mọi `loai_giam_sat`; query `?loai=tuan-thu|nhat-ky|he-thong` khi vào từ form chuyên đề.
+- Bookmark cũ `/giam-sat-chung/{loai}/thong-ke` → **redirect** `next.config.ts` sang `/thong-ke/gsc?loai=…` (không còn page shadow).
 
 **Khóa module:** [`module-lock.md`](module-lock.md)
 

@@ -60,8 +60,8 @@ sequenceDiagram
     UI->>UI: DigitalChecklistPanel
   end
   W->>R: advance station
-  alt CAP_PHAT chưa KIEM_DEM_BOM
-    W-->>UI: Error — chặn cấp phát
+  alt CAP_PHAT thiếu cấu phần BOM
+    W-->>UI: Soft-warning — vẫn cho cấp phát (QLDCPT Q2)
   end
 ```
 

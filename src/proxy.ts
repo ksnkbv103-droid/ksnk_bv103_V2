@@ -54,6 +54,13 @@ export async function proxy(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !anon) {
+    // Thiếu cấu hình Auth — không pass-through trang bảo vệ (BE-AUTH-04).
+    if (!isLoginRoutePath(pathname)) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/login";
+      loginUrl.search = "";
+      return NextResponse.redirect(loginUrl);
+    }
     return NextResponse.next({
       request: {
         headers: request.headers,

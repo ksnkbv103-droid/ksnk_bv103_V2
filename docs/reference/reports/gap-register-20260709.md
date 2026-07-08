@@ -116,37 +116,41 @@
 
 ## P2 — Trung bình
 
-| ID | Slice | Exit |
-|----|-------|------|
-| DOM-01 | Spec §2.1 VST còn trigger summary + route analytics cũ | Cập nhật `domain-specification.md` |
-| DOM-02 | `bang-kiem-toi-phai-tgs.actions` đọc `gstt_fact_gsc_dashboard_summary` trực tiếp | Chuyển RPC hoặc sửa metric-dictionary |
-| DOM-05 | Changelog hard-gate CAP_PHAT vs code soft-warning | Chốt nghiệp vụ + đồng bộ mapping/debt |
-| DOM-10 | QLCV CHECK còn mã legacy ngoài 7 trạng thái | Backfill + thu hẹp CHECK |
-| DB-01 | gap-register-0703 còn G-11 backlog dù migration Done | Đánh dấu Done / Obsolete |
-| DB-02 | RLS `gstt_fact_*_summary` vẫn `USING(true)` | Policy scoped (nếu PostgREST expose) |
-| DB-03 | CSSD `bao_tri` / `kho_*` RLS permissive | Module-scoped như workflow |
-| DB-04 | = BE-RPC-02 (GSC RPC) | — |
-| DB-08 | NKBV fact RLS `USING(true)` | Harden khi expose client |
-| UI-01 | Layout adoption 2 modal | **Done** — `bv103PanelChrome as UI` |
-| BE-AUTH-03/04 | Prefetch skip getUser; missing env pass-through | Defense-in-depth nhỏ |
-| G-12 (cũ) | ESLint unused-var boy-scout | Ongoing |
+| ID | Slice | Trạng thái |
+|----|-------|------------|
+| DOM-01 | Spec §2.1 VST | **Done** — domain-spec 1.2 |
+| DOM-02 | TGS đọc summary VIEW | **Done** — metric-dictionary ghi ngoại lệ |
+| DOM-05 | CAP_PHAT hard vs soft | **Done** — mapping + interaction-matrix soft-warning |
+| DOM-10 | QLCV CHECK legacy mã | **Deferred P3** — cần audit dữ liệu trước thu hẹp CHECK |
+| DB-01 | G-11 backlog 0703 | **Done** — gap-register-0703 cập nhật |
+| DB-02 | RLS summary | **Done/N/A** — VIEW live; DROP policy legacy; underlying fact RLS |
+| DB-03 | CSSD bao_tri/kho RLS | **Done** — `20260709130000` |
+| DB-04 | = BE-RPC-02 | **Done** (P1) |
+| DB-08 | NKBV fact RLS | **Done** — `20260709130000` |
+| UI-01 | Layout 2 modal | **Done** |
+| BE-AUTH-03/04 | Prefetch / missing env | Prefetch giữ (perf); **BE-AUTH-04 Done** — thiếu env → redirect login |
+| G-12 (cũ) | unused-var boy-scout | Ongoing (không block) |
+| BE-ORPHAN-01 | 5 file Pilot W3 | **Done** — đã xóa |
+| DOM-03 | GSC README dual entry | **Done** |
+| DOM-14 | spawn RPC tên cũ | **Done** |
 
 ---
 
 ## P3 — Thấp / roadmap
 
-| ID | Slice |
-|----|-------|
-| DOM-03 | README GSC dual entry vs redirect — sửa doc/E2E |
-| DOM-09 | CDC baseline DB chưa dùng trong rules engine — MVP OK |
-| DOM-11 | QLCV badge màu qua MDM lookup |
-| DOM-14 | mapping spawn RPC tên cũ |
-| DB-05 | Dual naming `fact_*_summary` compat |
-| DB-06 | mapping lệch bảng đã DROP |
-| DB-07 | `v_auth_user_permissions` CANDIDATE_REVIEW |
-| BE-ORPHAN-01 | Xóa hoặc wire 5 file Pilot W3 latent |
-| BE-CSSD-02 | Whitelist MDM import từ CSSD routes |
-| D-15…D-20 | Roadmap (Spaulding, FHIR, …) — giữ |
+| ID | Slice | Trạng thái |
+|----|-------|------------|
+| DOM-03 | README GSC dual entry | **Done** (P2 batch) |
+| DOM-09 | CDC baseline DB chưa dùng | MVP OK — giữ |
+| DOM-10 | Thu hẹp QLCV CHECK legacy | Deferred — cần audit data |
+| DOM-11 | QLCV badge màu qua MDM lookup | Giữ |
+| DOM-14 | mapping spawn RPC tên cũ | **Done** |
+| DB-05 | Dual naming `fact_*_summary` compat | Giữ (RPC hotpath) |
+| DB-06 | mapping lệch bảng đã DROP | Giữ / boy-scout |
+| DB-07 | `v_auth_user_permissions` CANDIDATE_REVIEW | Giữ |
+| BE-ORPHAN-01 | 5 file Pilot W3 | **Done** |
+| BE-CSSD-02 | Whitelist MDM import CSSD | Giữ |
+| D-15…D-20 | Roadmap | Giữ |
 
 ---
 
@@ -162,8 +166,9 @@
 | 6 | DOM-08 | NKBV UAT | M + PO tay | Eng Done — UAT #2–#5 |
 | 7 | OPS-01 | Ops | S | **Open** — mở Docker + `mdm:migrate:local` |
 | 8 | UI-01 | UI shell | S | **Done** |
-| 9 | DOM-01 + DB-01 | Docs | S | Pending |
-| 10 | BE-ORPHAN-01 | Dashboard/QLCV | S | Pending |
+| 9 | DOM-01 + DB-01 | Docs | S | **Done** |
+| 10 | BE-ORPHAN-01 | Dashboard/QLCV | S | **Done** |
+| 11 | P2 batch | Docs+RLS+proxy | M | **Done** (DOM-10 deferred) |
 
 ---
 

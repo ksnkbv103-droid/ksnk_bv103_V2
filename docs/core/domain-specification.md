@@ -1,6 +1,6 @@
 # ĐẶC TẢ NGHIỆP VỤ Y TẾ THỐNG NHẤT — KSNK BV103
 
-> **Phiên bản:** 1.1 (30/05/2026)  
+> **Phiên bản:** 1.2 (09/07/2026)  
 > **Trạng thái:** Hoạt động (SSOT Nghiệp vụ Bounded Context)  
 > **Ánh xạ runtime:** [implementation-mapping.md](./implementation-mapping.md) (prefix `sys_`/`mdm_`/`cssd_`/`gstt_`/`qlcv_`/`nkbv_`).
 
@@ -32,7 +32,7 @@
 ### 2.1 Giám sát Vệ sinh tay (VST - WHO 5 Moments)
 * **Đối tượng giám sát:** Nhân viên y tế tại các khoa lâm sàng.
 * **Thời điểm giám sát (WHO 5 Moments):** T1–T5 theo chuẩn WHO.
-* **Luồng dữ liệu:** Phiên → `gstt_fact_vst_sessions` + quan sát `gstt_fact_vst` → trigger sync `gstt_fact_vst_*_summary` → RPC **`rpc_dashboard_vst_strategic_analytics`** (Command Center + tab Thống kê `/giam-sat-vst?tab=analytics`). Đọc lịch sử/chi tiết: **`v_gstt_giam_sat_vst_*_full`**.
+* **Luồng dữ liệu:** Phiên → `gstt_fact_vst_sessions` + quan sát `gstt_fact_vst` → KPI qua RPC **`rpc_dashboard_vst_strategic_analytics`** (Command Center + `/thong-ke/vst`). Bảng `gstt_fact_*_summary` đã DROP (2026-06-04); thay bằng **VIEW live** phục vụ RPC — app không đọc summary trực tiếp trừ ngoại lệ TGS coverage (xem metric-dictionary). Đọc lịch sử/chi tiết: **`v_gstt_giam_sat_vst_*_full`**. Bookmark cũ `?tab=analytics|history` redirect sang `/thong-ke/vst` / `/lich-su/vst`.
 
 ### 2.2 Quy trình Tái xử lý Dụng cụ y tế (CSSD Workflow)
 
@@ -51,7 +51,8 @@ flowchart LR
 * **Trạm 6:** Ledger soft-warning nếu thiếu cấu phần (QLDCPT Q2).
 
 ### 2.3 Quản lý Công việc Nội bộ KSNK (Track B Workflow)
-* **Trạng thái:** `MOI` → `DANG_LAM` → `CHO_DUYET` → `HOAN_THANH` / `TU_CHOI` / `QUA_HAN` / `DA_HUY`.
+* **Trạng thái canonical (7):** `MOI` → `DANG_LAM` → `CHO_DUYET` → `HOAN_THANH` / `TU_CHOI` / `QUA_HAN` / `DA_HUY`.
+* **Alias legacy** (CHECK DB vẫn chấp nhận; UI map về canonical): `CHUA_BAT_DAU`, `CHO_NHAN_VIEC`, `DANG_THUC_HIEN`, `CHO_XAC_NHAN_HOAN_THANH`. Thu hẹp CHECK = slice riêng sau audit dữ liệu.
 * **Spawn định kỳ:** `qlcv_fact_cong_viec_dinh_ky` + `fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay()`.
 
 ---

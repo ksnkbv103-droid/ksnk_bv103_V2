@@ -12,7 +12,9 @@
 | GSC | `rpc_dashboard_gsc_strategic_analytics` | Phiên checklist động |
 | NKBV | aggregate action module NKBV | Outcome nhiễm khuẩn — **không** gộp CCS |
 
-App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript (ADR 2026-06-03). RPC `rpc_vst_compare_matrices` vẫn scan view summary ở lớp DB.
+App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KPI strategic (ADR 2026-06-03). RPC `rpc_*_strategic_analytics` / compare matrices scan VIEW summary ở lớp DB.
+
+**Ngoại lệ có chủ đích:** `getBangKiemToiPhaiTgsAction` đọc VIEW `gstt_fact_gsc_dashboard_summary` (filter `stype=TU_GIAM_SAT`) để đếm phiên TGS theo bảng kiểm — chưa có RPC riêng; không dùng cho CCS/Command Center.
 
 ---
 

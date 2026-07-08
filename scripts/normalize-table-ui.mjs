@@ -18,7 +18,6 @@ const SCAN_MODULES = [
   "src/modules/quan-ly-cong-viec",
 ];
 const SKIP = new Set([
-  "src/modules/dashboard/lib/dashboard-print-template.ts",
   "src/modules/dashboard/lib/bao-cao-tong-hop-print.ts",
   "src/modules/quan-tri-he-thong/lib/excel-io.helpers.ts",
   "src/modules/cssd-erp/components/scan/QRScanSuccessCard.tsx",
