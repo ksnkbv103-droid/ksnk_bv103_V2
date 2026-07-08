@@ -1,3 +1,4 @@
+// Pilot W3 latent — export/print Dashboard; chưa wired khi pilot-3 bật.
 import { useCallback } from "react";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";

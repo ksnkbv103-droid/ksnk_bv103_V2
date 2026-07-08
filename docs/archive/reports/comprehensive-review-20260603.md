@@ -240,7 +240,7 @@ Baseline chứa `gstt_fact_vst_*_summary`, `gstt_fact_gsc_*_summary` + trigger s
 
 ## 8. Liên thông & traceability
 
-Ma trận 25 luồng: [traceability-matrix-20260603.md](./traceability-matrix-20260603.md)
+Ma trận 25 luồng: [traceability-matrix-20260702.md](../../reference/reports/traceability-matrix-20260702.md) (SSOT; thay `traceability-matrix-20260603` đã archive)
 
 **Gap chính:**
 

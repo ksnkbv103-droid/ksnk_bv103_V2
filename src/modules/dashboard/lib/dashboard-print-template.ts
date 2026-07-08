@@ -1,3 +1,4 @@
+// Pilot W3 latent — HTML template cho export Dashboard.
 import { MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";

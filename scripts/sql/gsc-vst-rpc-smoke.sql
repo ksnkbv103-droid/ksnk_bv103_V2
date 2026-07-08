@@ -1,10 +1,14 @@
 -- Smoke: GSC/VST strategic + compare matrices RPC (fail fast via RAISE EXCEPTION).
+-- CLI `supabase db query` không có JWT PostgREST — giả lập pilot admin local (seed 01-pilot-nhan-su.sql).
 DO $smoke$
 DECLARE
   v_tu date := (date_trunc('month', CURRENT_DATE::timestamp) - INTERVAL '2 month')::date;
   v_den date := CURRENT_DATE::date;
   j jsonb;
 BEGIN
+  PERFORM set_config('request.jwt.claim.sub', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbb001', true);
+  PERFORM set_config('request.jwt.claim.role', 'authenticated', true);
+
   j := public.rpc_dashboard_vst_strategic_analytics(v_tu, v_den, NULL, NULL, NULL, NULL, NULL);
   IF NOT (
     j ? 'kpis'

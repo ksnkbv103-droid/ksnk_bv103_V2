@@ -1,5 +1,6 @@
 "use server";
 
+// Pilot W3 latent — consumer: QlcvCommandCenterCard (Dashboard W3).
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { QLCV_ROOT_TASK_LIST_MAX } from "../lib/qlcv-query-limits";
 import { QLCV_ROOT_TASK_VIEW_SELECT } from "../lib/qlcv-root-list-select";

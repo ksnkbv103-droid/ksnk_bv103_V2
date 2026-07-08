@@ -1,5 +1,6 @@
 "use server";
 
+// Pilot W3 latent — scope filter cho qlcv/dashboard.actions (Dashboard W3).
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import {
   qlcvRowMatchesListScope,

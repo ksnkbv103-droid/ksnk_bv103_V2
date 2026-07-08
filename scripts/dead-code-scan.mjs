@@ -18,22 +18,35 @@ if (r.error) {
   process.exit(strict ? 1 : 0);
 }
 
+const compatWhitelist = [
+  "src/modules/cssd-erp/actions/cssd.actions.ts", // compat re-export — backend audit
+];
+
+function filePath(entry) {
+  if (typeof entry === "string") return entry;
+  return entry?.path ?? entry?.file ?? "";
+}
+
 let summary = { unusedExports: 0, unusedFiles: 0 };
+let unusedFilePaths = [];
 try {
   const out = JSON.parse(r.stdout || "{}");
-  summary.unusedExports = out.unusedExports?.length ?? out.findings?.length ?? 0;
-  summary.unusedFiles = out.unusedFiles?.length ?? 0;
+  const unusedFiles = out.unused_files ?? out.unusedFiles ?? [];
+  const unusedExports = out.unused_exports ?? out.unusedExports ?? [];
+  summary.unusedFiles = out.summary?.unused_files ?? unusedFiles.length;
+  summary.unusedExports = out.summary?.unused_exports ?? unusedExports.length;
+  unusedFilePaths = unusedFiles.map(filePath).filter(Boolean);
 } catch {
   // fallow có thể in text — vẫn pass warn mode
   if (r.stdout) process.stdout.write(r.stdout.slice(0, 4000));
 }
 
-const compatWhitelist = [
-  "src/modules/cssd-erp/actions/cssd.actions.ts", // compat re-export — backend audit
-];
-
 console.log("[dead-code:scan] Summary:", JSON.stringify(summary));
 console.log("[dead-code:scan] Whitelist (by design):", compatWhitelist.join(", "));
+if (unusedFilePaths.length > 0) {
+  console.log("[dead-code:scan] Unused files:");
+  for (const p of unusedFilePaths) console.log(`  - ${p}`);
+}
 
 if (r.status !== 0 && strict) {
   console.error("[dead-code:scan] STRICT — exit", r.status);

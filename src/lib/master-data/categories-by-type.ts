@@ -2,7 +2,6 @@
 
 /**
  * Đọc danh mục theo `loaiDanhMuc` (registry) — cổng trung lập cho module vận hành.
- * UI quản trị có thể re-export qua `danh-muc.actions.ts`.
  */
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { unstable_cache } from "next/cache";

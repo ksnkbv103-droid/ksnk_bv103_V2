@@ -16,7 +16,7 @@
 |------|---------|
 | `comprehensive-review-20260603.md` | Rà soát tổng hợp 03/06 |
 | `audit-evidence-pack-20260603.md` / `20260609` / `20260630` | Evidence packs |
-| `traceability-matrix-20260603.md` | Superseded bởi `traceability-matrix-20260702` |
+| `traceability-matrix-20260603.md` | **Removed 2026-07-08** — SSOT: [`../../reference/reports/traceability-matrix-20260702.md`](../../reference/reports/traceability-matrix-20260702.md) |
 | `dashboard-rpc-benchmark-20260603.md` | Benchmark ADR dashboard KPI |
 | `dashboard-pre-aggregation-dictionary.md` | STALE — bảng summary đã DROP |
 | `health-check-walkthrough-20260609.md` | Health check walkthrough |

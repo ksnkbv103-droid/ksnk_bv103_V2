@@ -1,5 +1,6 @@
 "use client";
 
+// Pilot W3 latent — Dashboard module ẩn khi KSNK_PILOT_CORE_MODULES=1; giữ cho go-live W3.
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { dashboardChrome as D } from "../lib/dashboard-chrome";

@@ -64,5 +64,42 @@
 | 2 | Archive 12 báo cáo audit 06/2026 → `docs/archive/reports/` | **Done** |
 | 3 | Archive codemod script; `scripts/README.md`; `audit:views` + `gstt:gap:backfill` npm | **Done** |
 | 4 | `audit:views` → probe 11 `local:golden:verify`; CI D-12 re-verify; cập nhật reports index | **Done** |
+| 5 | Fallow 20 unused files; sửa `dead-code-scan.mjs`; xóa orphan/deprecated/shadow (2026-07-08) | **Done** — xem mục dưới |
 
 Chi tiết script: [`../../../scripts/README.md`](../../../scripts/README.md).
+
+---
+
+## Repo cleanup wave 5 (2026-07-08)
+
+### Baseline gates
+
+| Gate | Kết quả |
+|------|---------|
+| `npm run dead-code:scan` | **WARN** — 20 unused (trước cleanup); wrapper parse JSON **đã sửa** |
+| `npm run repo:hygiene` | **PASS** |
+| `npm run audit:legacy-rpc` | **PASS** (0 RPC không ref) |
+| `npm run audit:views` | **PASS** (0 unused · 16 sql-only — **giữ**) |
+| `npm run pilot:go-live:gate:local` | **PASS** (Docker + Supabase local; smoke JWT pilot admin) |
+
+### Fallow snapshot (trước cleanup)
+
+- **20** `unused_files`, **138** `unused_exports`
+- Whitelist giữ: `cssd.actions.ts` (compat barrel)
+
+### Đã xóa (pilot-safe)
+
+| Nhóm | Files |
+|------|-------|
+| Orphan UI/lib | `TaiKhoanNhanSuStaffActions`, `DungCuChiTietPage`, `CSSDSubNav`, `BomGapBadge`, `SplitAndPrintSubQrButton`, `gsc-history-loai-filter`, `bang-kiem-dm-tieu-chi-select`, `qlcv-permission-server` |
+| Deprecated MDM import | `MasterDataImportExportModal`, `master-import.actions`, `excel-io.helpers`, `danh-muc.actions`, `categories-cache-tags` |
+| QLCV legacy | `checklist.actions`, `qlcv-checklist` (module lib — khác `@/lib/domain/qlcv-checklist`) |
+| GSC shadow routes | 3× `giam-sat-chung/*/thong-ke/page.tsx` (redirect `next.config.ts` cover) |
+| Docs archive | `traceability-matrix-20260603.md` (superseded → `reference/reports/traceability-matrix-20260702.md`) |
+
+### Sau cleanup (2026-07-08)
+
+- **5** `unused_files` còn lại — toàn bộ **Dashboard W3 latent** (có comment `pilot W3`)
+- `verify:engineering` **PASS** · `test:pilot` **24/24** · `docs:links:check` **PASS**
+- `pilot:go-live:gate:local` **PASS** · `local:golden:verify` **PASS** (11 probes)
+- Smoke fix: `gsc-vst-rpc-smoke.sql` set JWT pilot admin (sau migration VST security hardening)
