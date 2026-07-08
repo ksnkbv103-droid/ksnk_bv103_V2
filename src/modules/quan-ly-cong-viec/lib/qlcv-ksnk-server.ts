@@ -5,10 +5,6 @@ import { QLCV_KSNK_MA_KHOA, pickKsnkKhoaFromRows, isKsnkStaff } from "@/lib/doma
 
 let cachedKsnkKhoaId: string | null = null;
 
-export function clearQlcvKsnkKhoaIdCacheForTests(): void {
-  cachedKsnkKhoaId = null;
-}
-
 /** SSOT id khoa KSNK — tra MDM (ma_khoa KSNK / alias / tên khoa). */
 export async function resolveKsnkKhoaId(supabase: SupabaseClient): Promise<string> {
   if (cachedKsnkKhoaId) return cachedKsnkKhoaId;
@@ -28,7 +24,7 @@ export async function resolveKsnkKhoaId(supabase: SupabaseClient): Promise<strin
   return cachedKsnkKhoaId;
 }
 
-export async function assertStaffBelongsToKsnk(
+async function assertStaffBelongsToKsnk(
   supabase: SupabaseClient,
   staffId: string,
   ksnkKhoaId: string,

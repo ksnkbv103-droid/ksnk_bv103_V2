@@ -1,8 +1,8 @@
 # Audit evidence pack — 2026-07-09
 
 > **Phạm vi:** Wave 0 baseline — chương trình rà soát toàn diện BV103 (1B + 2A)  
-> **Repo head:** `1c8e057` · **92** migrations (head `20260704120000`)  
-> **Môi trường đo:** Gate tĩnh trên workspace; **Docker/Supabase local bị chặn** (permission denied `docker.sock` + Supabase CLI EPERM telemetry) → probe DB live = **Blocked**
+> **Repo head (audit):** `1c8e057` · **Re-verify OPS-01:** 2026-07-09 (Docker OK, migrate head `20260709140000`)  
+> **Môi trường đo:** Gate tĩnh + local Supabase (Docker Desktop healthy)
 
 ---
 
@@ -10,19 +10,21 @@
 
 | Gate | Kết quả | Ghi chú |
 |------|---------|---------|
-| `npm run verify:engineering` | **PASS** | baseline 142 action files · 146 `verifyPermission` · 0 unbounded fact reads · contract + legacy guards |
+| `npm run verify:engineering` | **PASS** | baseline ~141 action files · 146 `verifyPermission` · 0 unbounded fact reads |
 | `npm run audit:legacy-rpc` | **PASS** | 16 active RPC · 0 không ref trong `src/` |
 | `npm run audit:views` | **PASS** | 54 views · **0 unused** · **16 sql-only** (giữ) |
-| `npm run dead-code:scan` | **WARN** | 5 unused files · 133 unused exports (exit 1 warn; không fail CI trừ `DEAD_CODE_STRICT=1`) |
+| `npm run dead-code:scan` | **WARN** | 0 unused files · residual unused exports (warn-only) |
 | `npm run repo:hygiene` | **PASS** | 0 blocking |
 | `npm run layout:typography-check` | **PASS** | 0 `text-[8px]`/`text-[9px]` ngoài allowlist |
-| `npm run layout:drift-check` | **FAIL (2 adoption)** | `QrCameraModal.tsx`, `IncidentReportModal.tsx` thiếu `*-form-chrome` / `bv103-panel-chrome` |
+| `npm run layout:drift-check` | **PASS** | UI-01 Done (`bv103PanelChrome`) |
 | `npm run verify:cssd` | **PASS** | 49/49 tests |
 | `npm run test:pilot` | **PASS** | 24/24 tests |
 | `npm run imports:cssd-mdm` | **PASS** | |
 | `npm run legacy:guard` | **PASS** | |
-| `npm run local:golden:verify` | **BLOCKED** | Docker sock permission denied · Supabase CLI EPERM `~/.supabase/telemetry.json` |
-| `npm run pilot:go-live:gate:local` | **BLOCKED** | phụ thuộc Docker/local DB (không chạy được trong session này) |
+| `npm run mdm:migrate:local` | **PASS** | Local up to date (head `20260709140000`) |
+| `npm run verify:mdm:local` | **PASS** | coverage 100% · postcheck SQL/FK OK |
+| `npm run local:golden:verify` | **PASS** | 11/11 probes |
+| `npm run pilot:go-live:gate:local` | **PASS** | precheck + engineering + cssd + pilot + smoke GSC/VST |
 
 ---
 
@@ -30,12 +32,12 @@
 
 | Metric | Giá trị |
 |--------|---------|
-| Action files (baseline scan) | 142 |
+| Action files (baseline scan) | ~141 |
 | `verifyPermission()` calls | 146 |
 | `.rpc()` in actions | 21 |
 | Potential full fact reads | 0 |
 | App routes (`page.tsx`) | 41 |
-| Migration files (repo) | 92 |
+| Migration files (repo) | head `20260709140000` |
 | CSSD domain tests | 49 pass |
 | Pilot contract tests | 24 pass |
 
@@ -43,15 +45,11 @@
 
 ## Dead-code inventory (Fallow)
 
-| File | Ghi chú |
-|------|---------|
-| `src/modules/dashboard/components/QlcvCommandCenterCard.tsx` | Pilot W3 latent — true orphan |
-| `src/modules/dashboard/hooks/use-dashboard-export-report.ts` | Pilot W3 latent |
-| `src/modules/dashboard/lib/dashboard-print-template.ts` | Pilot W3 latent |
-| `src/modules/quan-ly-cong-viec/actions/dashboard.actions.ts` | Chỉ consumer = card W3; live CC dùng `qlcv-brief.actions` |
-| `src/modules/quan-ly-cong-viec/lib/qlcv-list-scope-server.ts` | Chỉ consumer = dashboard.actions W3 |
-
-Whitelist by design: `src/modules/cssd-erp/actions/cssd.actions.ts`.
+| Trạng thái | Ghi chú |
+|------------|---------|
+| Unused files | **0** (Pilot W3 orphans đã xóa) |
+| Unused exports | Residual (G-12 boy-scout ongoing) |
+| Whitelist | `src/modules/cssd-erp/actions/cssd.actions.ts` |
 
 ---
 
@@ -63,21 +61,21 @@ Whitelist by design: `src/modules/cssd-erp/actions/cssd.actions.ts`.
 
 ---
 
-## Cannot-verify (mở khóa Docker)
+## OPS-01 re-verify (2026-07-09)
 
-1. `local:golden:verify` (11 probes) + `pilot:go-live:gate:local`
-2. `pg_policies` live sau migrate head
-3. Smoke JWT GSC/VST RPC (`smoke:gsc-vst:local`)
-4. `trial:auth:precheck:local` / `trial:db:precheck:local`
-5. `EXPLAIN` dashboard RPC trên DB có dữ liệu
-6. Migration parity staging vs repo
+Đã mở khóa Docker. Kết quả:
 
-**Cách mở khóa:** cấp quyền Docker Desktop cho agent/terminal; hoặc PO chạy tay các lệnh trên và dán kết quả vào gap register.
+1. `local:golden:verify` — **PASS** (11 probes)
+2. `pilot:go-live:gate:local` — **PASS**
+3. `smoke:gsc-vst:local` — **PASS**
+4. `trial:auth:precheck:local` / `trial:db:precheck:local` — **PASS**
+5. Migration local head `20260709140000` (gồm RPC harden `…120000`, RLS `…130000`, QLCV CHECK `…140000`)
+
+Còn ngoài scope session: EXPLAIN dashboard trên staging; parity staging vs repo production.
 
 ---
 
 ## Liên kết
 
-- Báo cáo tổng: [comprehensive-review-20260709.md](./comprehensive-review-20260709.md)
-- Gap register: [gap-register-20260709.md](./gap-register-20260709.md)
-- Baseline trước: [gap-register-20260703.md](./gap-register-20260703.md)
+- [gap-register-20260709.md](./gap-register-20260709.md)
+- [comprehensive-review-20260709.md](./comprehensive-review-20260709.md)

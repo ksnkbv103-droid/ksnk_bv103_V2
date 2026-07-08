@@ -15,7 +15,7 @@
 | `verify:cssd` / `test:pilot` | **PASS** (49 / 24) |
 | `layout:typography-check` | **PASS** |
 | `layout:drift-check` | **PASS** (UI-01 Done) |
-| `dead-code:scan` | **WARN** — 0 unused files · residual unused exports |
+| `dead-code:scan` | **WARN** — 0 unused files · unusedExports **75** (wave B −40) |
 | `local:golden:verify` / `pilot:go-live:gate:local` | **PASS** (2026-07-09 re-verify) |
 
 **P0 mở: 0 · P1 mở: 0 · P2/P3 residual · UAT NKBV tay #2–#5**
@@ -29,7 +29,7 @@
 | DOM-07 | **Done** | `isHaiSuspectByDay3Rule` + skip spawn POA trong `giam-sat-nkbv-import.actions.ts` |
 | BE-RPC-01 | **Done** (local applied) | `20260709120000` REVOKE authenticated trên `fn_qlcv_update_checklist` |
 | DOM-04 | **Done** | Bỏ auto `bom_kiem_dem_at` trong `cssd-scan.actions.ts` |
-| DOM-08 | **Eng Done / UAT pending** | Status ưu tiên `CHO_XAC_MINH`; checklist #1 cập nhật |
+| DOM-08 | **Eng Ready / UAT PO** | Status `CHO_XAC_MINH`; checklist #2–#5 có hướng dẫn PO (2026-07-09) |
 | BE-RPC-02 | **Done** (local applied) | Wrapper GSC analytics + revoke anon |
 | BE-RPC-03 | **Done** (local applied) | Wrap CSSD RPC + `fn_require_cssd_workflow_edit` |
 | UI-01 | **Done** | QrCameraModal + IncidentReportModal dùng `bv103PanelChrome as UI` |
@@ -77,31 +77,31 @@
 | **Verify** | `verify:cssd` PASS |
 | **Effort** | M |
 
-### DOM-08 / FEAT-NKBV-02 — NKBV UAT + trạng thái auto-case lệch checklist — **Eng Done / UAT pending**
+### DOM-08 / FEAT-NKBV-02 — NKBV UAT + trạng thái auto-case lệch checklist — **Eng Ready / UAT PO**
 
 | | |
 |--|--|
 | **Bằng chứng** | Checklist: kỳ vọng `CHO_XAC_MINH`; import set `DANG_GHI_NHAN`. UAT #2–#5 `[ ]` chưa ký. |
-| **Khắc phục** | Map import → `CHO_XAC_MINH` (fallback DANG_GHI_NHAN). UAT #2–#5 vẫn cần PO. |
-| **Verify** | Checklist #1 eng 2026-07-09 |
+| **Khắc phục** | Map import → `CHO_XAC_MINH` (fallback DANG_GHI_NHAN). Checklist PO hướng dẫn #2–#5 cập nhật 2026-07-09. |
+| **Verify** | Eng: vitest NKBV PASS · PO: ký [`pilot-clinical-checklist-20260603.md`](../../modules/nkbv/pilot-clinical-checklist-20260603.md) |
 | **Effort** | M (code S + UAT PO) |
 
-### BE-RPC-02 — GSC analytics RPC chưa harden như VST — **Done (pending migrate)**
+### BE-RPC-02 — GSC analytics RPC chưa harden như VST — **Done** (local applied)
 
 | | |
 |--|--|
 | **Bằng chứng** | VST: `20260704110000` + `fn_require_gstt_analytics_access`. GSC: `20260630140000` GRANT rộng, chưa wrapper. |
 | **Khắc phục** | `20260709120000` mirror VST cho GSC strategic / checklist detail / compare. |
-| **Verify** | Sau migrate + smoke JWT |
+| **Verify** | `smoke:gsc-vst:local` PASS 2026-07-09 |
 | **Effort** | M |
 
-### BE-RPC-03 — CSSD workflow RPC GRANT authenticated không `fn_sys_has_permission` — **Done (pending migrate)**
+### BE-RPC-03 — CSSD workflow RPC GRANT authenticated không `fn_sys_has_permission` — **Done** (local applied)
 
 | | |
 |--|--|
 | **Bằng chứng** | `rpc_scan_workflow_station`, `rpc_cssd_persist_bom_checkpoint`, `rpc_cssd_assign_cycle_qr` — gate nghiệp vụ trong RPC nhưng thiếu permission module. |
 | **Khắc phục** | `fn_require_cssd_workflow_edit` + wrap 3 RPC; service_role bypass cho admin client. |
-| **Verify** | Sau migrate + `verify:cssd` |
+| **Verify** | Local migrate + `verify:cssd` 49 PASS |
 | **Effort** | M |
 
 ### OPS-01 — Local golden / go-live gate — **Done** (2026-07-09)
@@ -129,7 +129,7 @@
 | DB-08 | NKBV fact RLS | **Done** — `20260709130000` |
 | UI-01 | Layout 2 modal | **Done** |
 | BE-AUTH-03/04 | Prefetch / missing env | Prefetch giữ (perf); **BE-AUTH-04 Done** — thiếu env → redirect login |
-| G-12 (cũ) | unused-var boy-scout | **Partial Done** — xóa ~20 dead exports (unusedExports 132→113); còn residual Fallow |
+| G-12 (cũ) | unused-var boy-scout | **Partial Done** — wave B 2026-07-09: unusedExports **115→75** (−40); residual Fallow giữ |
 | BE-ORPHAN-01 | 5 file Pilot W3 | **Done** — đã xóa |
 | DOM-03 | GSC README dual entry | **Done** |
 | DOM-14 | spawn RPC tên cũ | **Done** |
@@ -163,13 +163,14 @@
 | 3 | DOM-04 | CSSD | M | **Done** |
 | 4 | BE-RPC-02 | Giám sát GSC | M | **Done** (local applied) |
 | 5 | BE-RPC-03 | CSSD | M | **Done** (local applied) |
-| 6 | DOM-08 | NKBV UAT | M + PO tay | Eng Done — UAT #2–#5 |
+| 6 | DOM-08 | NKBV UAT | M + PO tay | Eng Ready — checklist hướng dẫn #2–#5 cập nhật; chờ ký khoa |
 | 7 | OPS-01 | Ops | S | **Done** — migrate head `…140000`; golden 11/11; go-live gate local PASS |
 | 8 | UI-01 | UI shell | S | **Done** |
 | 9 | DOM-01 + DB-01 | Docs | S | **Done** |
 | 10 | BE-ORPHAN-01 | Dashboard/QLCV | S | **Done** |
 | 11 | P2 batch | Docs+RLS+proxy | M | **Done** |
-| 12 | DOM-10 + G-12 | QLCV + dead-code | M | **Done** |
+| 12 | DOM-10 + G-12 | QLCV + dead-code | M | **Done** (+ wave B −40 exports) |
+| 13 | Mobile CSSD | CSSD quét QR | S | **Done** — scroll lock + touch targets trạm/BOM/camera |
 
 ---
 

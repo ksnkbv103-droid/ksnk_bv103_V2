@@ -59,13 +59,13 @@ export default function WorkflowStationQrEntry({ waitingItems, disabled, onConfi
           onEnter={submitCode}
           onCameraScan={submitCode}
           className="min-w-0 flex-1"
-          inputClassName="h-12 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold uppercase text-slate-800 outline-none transition-all placeholder:normal-case placeholder:text-slate-400 focus:border-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+          inputClassName="h-12 w-full min-w-0 touch-manipulation rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold uppercase text-slate-800 outline-none transition-all placeholder:normal-case placeholder:text-slate-400 focus:border-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
         />
         <button
           type="button"
           disabled={disabled}
           onClick={() => submitCode(inputRef.current?.value || "")}
-          className={`${CSSD_UI_ACTION_PRIMARY} h-12 shrink-0 px-5 sm:px-6 disabled:cursor-not-allowed disabled:opacity-50`}
+          className={`${CSSD_UI_ACTION_PRIMARY} h-12 shrink-0 touch-manipulation px-5 sm:px-6 disabled:cursor-not-allowed disabled:opacity-50`}
         >
           Xác nhận
         </button>
@@ -85,7 +85,7 @@ export default function WorkflowStationQrEntry({ waitingItems, disabled, onConfi
             value={pickId}
             disabled={disabled || waitingItems.length === 0}
             onChange={(e) => handlePick(e.target.value)}
-            className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-4 pr-10 text-sm font-semibold text-slate-800 outline-none focus:border-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
+            className="h-12 w-full appearance-none touch-manipulation rounded-xl border border-slate-200 bg-white py-2 pl-4 pr-10 text-sm font-semibold text-slate-800 outline-none focus:border-emerald-300 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
           >
             <option value="">
               {waitingItems.length === 0 ? "— Không có bộ chờ tại trạm —" : "— Chọn mã QR trong danh sách chờ —"}

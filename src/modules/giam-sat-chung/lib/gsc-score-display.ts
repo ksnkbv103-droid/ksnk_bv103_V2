@@ -17,12 +17,12 @@ import type { ChecklistCriterion, ChecklistResult } from "@/types/giam-sat-chung
 
 const VALID_CACH = new Set<GsttCachTinhDiem>(["TY_LE", "TRON_GOI", "DAT_KHONG_DAT", "NHAT_KY"]);
 
-export function normalizeCachTinhDiem(raw: unknown): GsttCachTinhDiem | null {
+function normalizeCachTinhDiem(raw: unknown): GsttCachTinhDiem | null {
   const v = String(raw ?? "").trim().toUpperCase();
   return VALID_CACH.has(v as GsttCachTinhDiem) ? (v as GsttCachTinhDiem) : null;
 }
 
-export function inferCachFromLoaiGiamSat(loai: unknown): GsttCachTinhDiem | null {
+function inferCachFromLoaiGiamSat(loai: unknown): GsttCachTinhDiem | null {
   const lg = String(loai ?? "").trim().toUpperCase();
   if (lg === "NHAT_KY_VAN_HANH") return "NHAT_KY";
   if (lg === "DANH_GIA_HE_THONG") return "DAT_KHONG_DAT";
@@ -30,7 +30,7 @@ export function inferCachFromLoaiGiamSat(loai: unknown): GsttCachTinhDiem | null
   return null;
 }
 
-export function mapChecklistToScoringInput(
+function mapChecklistToScoringInput(
   results: readonly ChecklistResult[],
   criteria: readonly ChecklistCriterion[],
 ): GsttScoringInputItem[] {

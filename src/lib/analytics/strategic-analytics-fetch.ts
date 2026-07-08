@@ -61,8 +61,3 @@ export async function fetchStrategicAnalytics(
 
   return { vst: vstRes, gsc: gscRes };
 }
-
-/** Xóa cache sau đổi filter lớn (test / debug). */
-export function clearStrategicAnalyticsCache(): void {
-  cache.clear();
-}

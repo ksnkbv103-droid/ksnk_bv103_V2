@@ -7,12 +7,7 @@ import {
 } from "@/lib/ksnk-pilot-core-modules-scope";
 import {
   isPilotFourModulesScopeEnabled,
-  isPathBlockedUnderPilotFourModules,
 } from "@/lib/ksnk-pilot-four-modules-scope";
-
-export { isPathBlockedUnderPilotFourModules };
-
-/** Pilot 4 module — re-export để UI/docs dùng một import. */
 
 /** Module flags bổ sung (ngoài pilot). */
 export function isModuleEnabled(moduleKey: "CSSD" | "QLCV" | "NKBV" | "HIS"): boolean {
@@ -35,12 +30,7 @@ export function isModuleEnabled(moduleKey: "CSSD" | "QLCV" | "NKBV" | "HIS"): bo
   return true;
 }
 
-export function isPilotScopeActive(): boolean {
-  return isPilotCoreModulesScopeEnabled() || isPilotFourModulesScopeEnabled();
-}
-
 /** @deprecated Digital BOM modal — thay bằng panel đối chiếu + báo sự cố dụng cụ. Chỉ bật khi BV103_FEATURE_BOM_CHECKLIST=1. */
 export function isBOMChecklistEnabled(): boolean {
   return process.env.BV103_FEATURE_BOM_CHECKLIST === "1";
 }
-

@@ -569,7 +569,7 @@ export default function GiamSatNkbvPage() {
       ) : null}
 
       {mainTab === "cases" ? (
-        <div className="app-data-shell mx-4 overflow-hidden p-2 md:p-3">
+        <div className="app-data-shell mx-4 min-w-0 p-2 md:p-3">
           <AdvancedDataTable
             columns={tableColumns as Parameters<typeof AdvancedDataTable>[0]["columns"]}
             data={rows as Parameters<typeof AdvancedDataTable>[0]["data"]}
@@ -590,7 +590,7 @@ export default function GiamSatNkbvPage() {
       ) : null}
 
       {mainTab === "records" ? (
-        <div className="app-data-shell mx-4 overflow-hidden p-2 md:p-3 animate-in fade-in duration-300">
+        <div className="app-data-shell mx-4 min-w-0 p-2 md:p-3 animate-in fade-in duration-300">
           <AdvancedDataTable
             columns={recordColumns as Parameters<typeof AdvancedDataTable>[0]["columns"]}
             data={medicalRecords as Parameters<typeof AdvancedDataTable>[0]["data"]}

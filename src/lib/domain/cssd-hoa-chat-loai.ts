@@ -4,7 +4,7 @@ export type HoaChatLoaiMa = "HOA_CHAT" | "VAT_TU" | "TEST";
 
 export type HoaChatLoaiFilter = "ALL" | "HOA_CHAT" | "VAT_TU";
 
-export function normalizeLoaiHoaChat(raw: string | null | undefined): HoaChatLoaiMa {
+function normalizeLoaiHoaChat(raw: string | null | undefined): HoaChatLoaiMa {
   const v = String(raw || "HOA_CHAT").trim().toUpperCase();
   if (v === "VAT_TU" || v === "TEST") return v;
   return "HOA_CHAT";

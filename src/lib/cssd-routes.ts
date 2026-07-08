@@ -26,10 +26,3 @@ export const CSSD_APP_SHELL_PREFIXES: readonly string[] = [
   CSSD_ROUTES.hoaChat,
   "/cssd-erp",
 ];
-
-export function pathnameIsCssdModule(pathname: string | null): boolean {
-  const p = (pathname || "").trim();
-  if (!p) return false;
-  const norm = p.startsWith("/") ? p : `/${p}`;
-  return CSSD_APP_SHELL_PREFIXES.some((prefix) => norm === prefix || norm.startsWith(`${prefix}/`));
-}

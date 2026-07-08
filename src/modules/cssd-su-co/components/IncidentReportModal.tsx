@@ -1,11 +1,12 @@
 // src/modules/cssd-su-co/components/IncidentReportModal.tsx
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import SuCoReportForm from "./SuCoReportForm";
 
 interface Props {
@@ -35,14 +36,7 @@ export default function IncidentReportModal({
 }: Props) {
   const { allowed } = useModulePermission("BAO_SU_CO");
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [isOpen]);
+  useBodyScrollLock(isOpen);
 
   if (!isOpen || !allowed.create) return null;
 

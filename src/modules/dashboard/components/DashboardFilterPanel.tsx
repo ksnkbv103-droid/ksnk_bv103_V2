@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, RefreshCw, SlidersHorizontal, X } from "lucide-
 import SearchableMultiSelect, { type MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
 import { dashboardChrome as UI } from "@/modules/dashboard/lib/dashboard-chrome";
 import { useMinWidth } from "@/hooks/use-min-width";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
 type DashboardFilterPanelProps = {
   hideBangKiem?: boolean;
@@ -100,14 +101,7 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
   const khoaChip = summarizeKhoa(p.selectedKhoaIds, filteredKhoaOptions, p.khoaFilterLocked);
   const periodChip = `${fmtShortDate(p.tuNgay)} – ${fmtShortDate(p.denNgay)}`;
 
-  React.useEffect(() => {
-    if (isDesktop || !mobileOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [isDesktop, mobileOpen]);
+  useBodyScrollLock(!isDesktop && mobileOpen);
 
   const filterBody = (
     <>
@@ -284,8 +278,8 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
   if (!isDesktop && mobileOpen) {
     return (
       <div className="fixed inset-0 z-[200] flex flex-col bg-slate-900/40 p-2 pt-[max(0.5rem,env(safe-area-inset-top))] touch-manipulation">
-        <div className="flex max-h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2.5">
+        <div className="flex min-h-0 max-h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+          <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-3 py-2.5">
             <p className="text-sm font-semibold text-slate-900">Bộ lọc thống kê</p>
             <button
               type="button"
@@ -296,7 +290,7 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
               <X className="h-4 w-4" aria-hidden />
             </button>
           </div>
-          <div className="overflow-y-auto p-3 custom-scrollbar">{filterBody}</div>
+          <div className="custom-scrollbar bv103-scroll-y min-h-0 flex-1 p-3">{filterBody}</div>
           <div className="border-t border-slate-100 p-3">
             <button
               type="button"

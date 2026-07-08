@@ -195,7 +195,7 @@ export default function CompositionReconcilePanel({
               type="button"
               onClick={onCancelGate}
               disabled={advancing}
-              className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-xs font-semibold uppercase tracking-wide text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              className="h-11 touch-manipulation rounded-xl border border-slate-200 bg-white px-4 text-xs font-semibold uppercase tracking-wide text-slate-600 hover:bg-slate-50 disabled:opacity-50"
             >
               Đóng (chưa chuyển)
             </button>
@@ -203,7 +203,7 @@ export default function CompositionReconcilePanel({
               type="button"
               onClick={onConfirmAdvance}
               disabled={advancing || loading}
-              className="h-11 rounded-xl bg-emerald-600 px-5 text-xs font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="h-11 touch-manipulation rounded-xl bg-emerald-600 px-5 text-xs font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {advancing ? "Đang chuyển…" : "Xác nhận chuyển chờ tiệt khuẩn"}
             </button>

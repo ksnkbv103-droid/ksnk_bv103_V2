@@ -184,7 +184,7 @@ export default function QuanTriDanhMucPage() {
                 Một danh sách thống nhất — trang riêng và lookup — tìm kiếm xuyên catalog.
               </p>
             </div>
-            <div className="app-data-shell overflow-hidden p-2">
+            <div className="app-data-shell min-w-0 p-2">
               <div className="mb-2 min-w-0 px-1">
                 <SearchBar value={hubSearch} onChange={setHubSearch} placeholder="Tìm danh mục, domain, bảng…" />
               </div>

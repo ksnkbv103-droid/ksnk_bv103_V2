@@ -64,7 +64,7 @@ export function buildGscAnalyticsDeepLink(
 }
 
 /** Query do filter bar không quản — giữ khi sync URL (vd. `bk` drill-down GSC). */
-export const ANALYTICS_PRESERVED_QUERY_KEYS = ["bk", "view", "loai"] as const;
+const ANALYTICS_PRESERVED_QUERY_KEYS = ["bk", "view", "loai"] as const;
 
 export function appendPreservedAnalyticsQueryKeys(
   target: URLSearchParams,
@@ -83,7 +83,7 @@ export function preservedAnalyticsQuerySnapshot(source: Pick<URLSearchParams, "g
 }
 
 /** Các route analytics đồng bộ filter qua URL. */
-export const ANALYTICS_FILTER_PATHS = ["/", "/bao-cao-tong-hop", "/thong-ke/vst", "/thong-ke/gsc"] as const;
+const ANALYTICS_FILTER_PATHS = ["/", "/bao-cao-tong-hop", "/thong-ke/vst", "/thong-ke/gsc"] as const;
 
 export function isAnalyticsFilterPath(pathname: string): boolean {
   return ANALYTICS_FILTER_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));

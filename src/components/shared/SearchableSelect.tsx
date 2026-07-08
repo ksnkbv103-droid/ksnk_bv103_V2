@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useMobilePickerSheet } from "@/hooks/use-mobile-picker-sheet";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 export type SearchableSelectOption = {
@@ -62,6 +63,7 @@ export default function SearchableSelect({
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const canUseDOM = typeof document !== "undefined";
   const isMobileSheet = useMobilePickerSheet();
+  useBodyScrollLock(open && isMobileSheet);
 
   const selectedOption = useMemo(() => {
     return options.find((opt) => opt.id === value);
@@ -120,15 +122,6 @@ export default function SearchableSelect({
       return nodes;
     });
   };
-
-  useEffect(() => {
-    if (!open || !isMobileSheet) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open, isMobileSheet]);
 
   useEffect(() => {
     if (!open || isMobileSheet) return;
@@ -276,7 +269,7 @@ export default function SearchableSelect({
                       enterKeyHint="search"
                     />
                   </div>
-                  <div className="custom-scrollbar min-h-0 max-h-[min(52dvh,420px)] flex-1 overflow-y-auto overscroll-contain px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2">
+                  <div className="custom-scrollbar bv103-scroll-y min-h-0 max-h-[min(52dvh,420px)] flex-1 px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2">
                     <button
                       type="button"
                       onClick={() => handleSelect("")}

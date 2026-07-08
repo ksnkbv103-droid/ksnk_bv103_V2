@@ -1,9 +1,9 @@
 /** SSOT mã bộ CSSD — format `{ma_khoa}.SET.{stt}` (vd. B01.SET.01). */
 
-export const CSSD_BO_MA_SET_SEGMENT = "SET" as const;
+const CSSD_BO_MA_SET_SEGMENT = "SET" as const;
 
 /** Mã bộ chuẩn: KHOA.SET.NN (NN ≥ 2 chữ số). */
-export const CSSD_UNIFIED_BO_MA_RE = /^[A-Z0-9][A-Z0-9.-]*\.SET\.\d{2,}$/;
+const CSSD_UNIFIED_BO_MA_RE = /^[A-Z0-9][A-Z0-9.-]*\.SET\.\d{2,}$/;
 
 export function normalizeBoMa(raw: string | null | undefined): string {
   return String(raw || "").trim().toUpperCase();

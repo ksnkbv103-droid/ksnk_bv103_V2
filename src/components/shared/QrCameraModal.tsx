@@ -109,7 +109,7 @@ export default function QrCameraModal({
         <button
           type="button"
           onClick={onClose}
-          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20"
+          className="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-xl bg-white/10 text-white hover:bg-white/20"
           aria-label="Đóng camera"
         >
           <X size={22} />

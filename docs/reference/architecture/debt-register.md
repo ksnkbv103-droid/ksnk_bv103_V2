@@ -198,7 +198,7 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 | DOM-08 | P1 | **Eng Done / UAT pending** | `CHO_XAC_MINH`; UAT #2–#5 |
 | BE-RPC-02 | P1 | **Done** | GSC RPC harden mirror VST |
 | BE-RPC-03 | P1 | **Done** | CSSD RPC permission wrap |
-| OPS-01 | P1 | **Done** (2026-07-09) | Local migrate + `local:golden:verify` PASSED (4 migration `…04120000`/`…120000`/`…130000`/`…140000`) |
+| OPS-01 | P1 | **Done** (2026-07-09) | Migrate local 4 file + `local:golden:verify` **PASSED** (11/11). Bypass Cursor TCC: `resolve-local-supabase-env` + `run-supabase-sql --db-url` |
 | UI-01 | P2 | **Done** | 2 modal chrome |
 | G-11 / S-RLS-01 | P3 | **Eng Done / residual** | Fact phiên Done; summary views vẫn permissive |
 | D-14 | P2 | **UAT pending** | Giữ — gộp DOM-08 |

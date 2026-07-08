@@ -73,16 +73,32 @@
    ============================================ */
 @layer base {
   * {
-    touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
 
-  html, body {
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  label,
+  summary,
+  [role="button"],
+  [role="tab"] {
+    touch-action: manipulation;
+  }
+
+  html {
     height: 100%;
     overflow-x: hidden;
   }
 
   body {
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
     font-family: 'Inter', system-ui, sans-serif;
     background-color: var(--bg-body);
     color: var(--text-primary);
@@ -217,6 +233,25 @@
     scrollbar-gutter: stable;
     scrollbar-width: thin;
     scrollbar-color: rgb(148 163 184 / 0.65) transparent;
+    touch-action: pan-x pan-y;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /** Vùng cuộn dọc mobile — tránh “đơ” khi nested trong flex/overflow-hidden */
+  .bv103-scroll-y {
+    overflow-y: auto;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  /** Vùng cuộn ngang bảng mobile */
+  .bv103-scroll-x {
+    overflow-x: auto;
+    touch-action: pan-x pan-y;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
   }
 
   .custom-scrollbar::-webkit-scrollbar {

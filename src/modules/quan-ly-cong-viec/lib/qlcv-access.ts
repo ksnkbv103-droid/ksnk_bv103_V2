@@ -20,7 +20,7 @@ export function isQlcvTaskInQuaHanLane(row: QlcvTaskAccessRow): boolean {
 }
 
 /** Phiếu active đã giao (không còn đề xuất chờ duyệt). */
-export function isDaGiaoChoPhuTrachThucHien(row: QlcvTaskAccessRow): boolean {
+function isDaGiaoChoPhuTrachThucHien(row: QlcvTaskAccessRow): boolean {
   if (isDeXuatChoDuyet(row)) return false;
   if (String(row.trang_thai || "") === "DA_HUY") return false;
   return row.is_active !== false;

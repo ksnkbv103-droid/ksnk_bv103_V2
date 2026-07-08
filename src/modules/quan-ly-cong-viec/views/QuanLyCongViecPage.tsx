@@ -10,6 +10,7 @@ import {
   KsnkSupervisionTabList,
   type SupervisionTabDef,
 } from "@/components/shared/ksnk-supervision-chrome";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -165,6 +166,8 @@ export default function QuanLyCongViecPage() {
     return tabs;
   }, [canManageDinhKy]);
 
+  useBodyScrollLock(Boolean(selectedTaskId));
+
   return (
     <div className="relative space-y-6 px-3 pb-12 pt-1 sm:px-0">
       {analyticsGapHint ? (
@@ -178,7 +181,8 @@ export default function QuanLyCongViecPage() {
             className="absolute inset-0 bg-slate-900/50 bv103-panel-backdrop-in"
             onClick={closeTaskDetail}
           />
-          <div className="relative h-full w-full max-w-7xl overflow-y-auto border-l border-slate-200/90 bg-slate-50 p-4 shadow-2xl animate-in slide-in-from-right duration-500 sm:rounded-l-2xl sm:p-6 md:p-8">
+          <div className="relative flex h-[100dvh] w-full max-w-7xl flex-col overflow-hidden border-l border-slate-200/90 bg-slate-50 shadow-2xl animate-in slide-in-from-right duration-500 sm:rounded-l-2xl">
+            <div className="bv103-scroll-y min-h-0 flex-1 p-4 sm:p-6 md:p-8">
             <button
               type="button"
               onClick={closeTaskDetail}
@@ -195,6 +199,7 @@ export default function QuanLyCongViecPage() {
                 router.refresh();
               }}
             />
+            </div>
           </div>
         </div>
       ) : null}
@@ -222,7 +227,7 @@ export default function QuanLyCongViecPage() {
           className={`no-print flex flex-col gap-2 ${bv103LayoutChrome.panelSurface} p-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3 sm:p-3.5`}
         >
           {canShowDeXuatButton(qlcvUi) ? (
-            <Dialog modal={false} open={isSuggesting} onOpenChange={setIsSuggesting}>
+            <Dialog open={isSuggesting} onOpenChange={setIsSuggesting}>
               <DialogTrigger asChild>
                 <button
                   type="button"
@@ -270,7 +275,7 @@ export default function QuanLyCongViecPage() {
           ) : null}
         </div>
 
-        <Dialog modal={false} open={isAdding} onOpenChange={setIsAdding}>
+        <Dialog open={isAdding} onOpenChange={setIsAdding}>
           <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-2xl border border-slate-200/90 bg-slate-50 p-6 shadow-xl sm:p-8">
             <DialogHeader className="mb-4">
               <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">Tạo công việc</DialogTitle>
@@ -279,7 +284,7 @@ export default function QuanLyCongViecPage() {
           </DialogContent>
         </Dialog>
 
-        <Dialog modal={false} open={!!editingTask} onOpenChange={(o) => !o && setEditingTask(null)}>
+        <Dialog open={!!editingTask} onOpenChange={(o) => !o && setEditingTask(null)}>
           <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-2xl border border-slate-200/90 bg-slate-50 p-6 shadow-xl sm:p-8">
             <DialogHeader className="mb-4">
               <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">Chỉnh sửa công việc</DialogTitle>
@@ -294,7 +299,7 @@ export default function QuanLyCongViecPage() {
           </DialogContent>
         </Dialog>
 
-        <Dialog modal={false} open={!!kanban.kanbanApproveRow} onOpenChange={(o) => !o && kanban.setKanbanApproveRow(null)}>
+        <Dialog open={!!kanban.kanbanApproveRow} onOpenChange={(o) => !o && kanban.setKanbanApproveRow(null)}>
           <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-2xl border border-slate-200/90 bg-slate-50 p-6 shadow-xl">
             <DialogHeader className="mb-4">
               <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">Phê duyệt đề xuất</DialogTitle>

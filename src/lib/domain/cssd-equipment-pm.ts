@@ -28,10 +28,6 @@ export function trangThaiMayLabel(st: string | null | undefined): string {
   return s || "—";
 }
 
-export function isMaySanSangVanHanh(st: string | null | undefined): boolean {
-  return ["READY", "HOAT_DONG"].includes(String(st || "").trim());
-}
-
 function addDaysIso(dateYmd: string, days: number): string {
   const d = new Date(`${dateYmd}T12:00:00.000Z`);
   d.setUTCDate(d.getUTCDate() + days);

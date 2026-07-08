@@ -49,9 +49,3 @@ export function getKsnkAppHeaderBreadcrumb(pathname: string | null): KsnkHeaderB
   if (p.startsWith("/tai-khoan")) return { zone: "Tài khoản", page: "Hồ sơ" };
   return { zone: "Hệ thống KSNK" };
 }
-
-/** @deprecated Dùng `getKsnkAppHeaderBreadcrumb`. */
-export function getKsnkAppHeaderTitle(pathname: string | null): string {
-  const crumb = getKsnkAppHeaderBreadcrumb(pathname);
-  return crumb.page ? `${crumb.zone} · ${crumb.page}` : crumb.zone;
-}

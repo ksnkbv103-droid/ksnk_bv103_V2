@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useMobilePickerSheet } from "@/hooks/use-mobile-picker-sheet";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
 /** Vùng danh sách desktop: cao cố định mục tiêu, cuộn nội bộ. */
 const DESKTOP_PICKER_LIST_IDEAL_PX = 240;
@@ -39,6 +40,7 @@ export default function SearchableMultiSelect({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const canUseDOM = typeof document !== "undefined";
   const isMobileSheet = useMobilePickerSheet();
+  useBodyScrollLock(open && isMobileSheet);
 
   const normalizeSearchText = (value: unknown) =>
     String(value ?? "")
@@ -62,15 +64,6 @@ export default function SearchableMultiSelect({
   }, [options, query]);
 
   const allSelected = selected.length === options.length && options.length > 0;
-
-  useEffect(() => {
-    if (!open || !isMobileSheet) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open, isMobileSheet]);
 
   useEffect(() => {
     if (!open || isMobileSheet) return;
@@ -224,7 +217,7 @@ export default function SearchableMultiSelect({
                       {allSelected ? "Bỏ chọn tất cả" : "Chọn tất cả"}
                     </button>
                   </div>
-                  <div className="custom-scrollbar min-h-0 max-h-[min(52dvh,440px)] flex-1 space-y-0.5 overflow-y-auto overscroll-contain px-3 py-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                  <div className="custom-scrollbar bv103-scroll-y min-h-0 max-h-[min(52dvh,440px)] flex-1 space-y-0.5 px-3 py-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
                     {filtered.map((opt) => {
                       const checked = selected.includes(opt.id);
                       return (

@@ -4,8 +4,8 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { spawnSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
+import { resolveLocalSupabaseEnv } from "./lib/resolve-local-supabase-env.mjs";
 
 function parseEnv(raw) {
   const out = {};
@@ -42,19 +42,16 @@ async function main() {
   let serviceKey = env.SUPABASE_SERVICE_ROLE_KEY || "";
 
   if (mode === "local") {
-    const status = spawnSync("npx", ["supabase", "status", "-o", "env"], {
-      cwd: process.cwd(),
-      encoding: "utf8",
-    });
-    if (status.status !== 0) {
-      console.error("[admin:rbac:parity] Supabase local chưa chạy. Thử: npx supabase start");
+    try {
+      const local = await resolveLocalSupabaseEnv({ cwd: process.cwd() });
+      url = local.url;
+      serviceKey = local.serviceKey;
+      if (local.source !== "supabase-status") {
+        console.error(`[admin:rbac:parity] local env via ${local.source} (bypass Docker CLI)`);
+      }
+    } catch (err) {
+      console.error("[admin:rbac:parity]", err instanceof Error ? err.message : err);
       process.exit(1);
-    }
-    for (const line of (status.stdout || "").split(/\r?\n/)) {
-      const m = line.match(/^([A-Z_]+)=(.*)$/);
-      if (!m) continue;
-      if (m[1] === "API_URL") url = m[2].replace(/^"|"$/g, "");
-      if (m[1] === "SERVICE_ROLE_KEY") serviceKey = m[2].replace(/^"|"$/g, "");
     }
   }
 

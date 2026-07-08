@@ -1,9 +1,10 @@
 // src/modules/cssd-erp/components/report/ReportFilters.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Calendar, SlidersHorizontal, X } from "lucide-react";
 import { useMinWidth } from "@/hooks/use-min-width";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
 interface Props {
   filters: { from: string; to: string; station: string };
@@ -32,14 +33,7 @@ export default function ReportFilters({ filters, setFilters, stations }: Props) 
   const isDesktop = useMinWidth(640, false);
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    if (isDesktop || !open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [isDesktop, open]);
+  useBodyScrollLock(!isDesktop && open);
 
   const body = (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">

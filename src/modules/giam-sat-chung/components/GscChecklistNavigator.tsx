@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import { AlertTriangle } from "lucide-react";
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { resolveSortedChecklistOverview } from "@/lib/analytics/gsc-checklist-intervention";
 import { formatPercent2 } from "@/lib/analytics/supervision-percent";
 import { complianceToneFromPercent } from "@/lib/analytics/supervision-thresholds";
@@ -42,14 +43,14 @@ export function GscChecklistNavigator({ payload, loading, selectedMaBk, onSelect
   }
 
   return (
-    <div className={`${UI.shell} overflow-hidden`}>
+    <div className={`${UI.shell} max-sm:overflow-visible sm:overflow-hidden`}>
       <div className="border-b border-slate-100 px-4 py-3">
         <h3 className="text-sm font-bold text-slate-800">Bảng kiểm — trục phân tích chính</h3>
         <p className="mt-0.5 text-[11px] text-slate-500">
           Sắp xếp theo rủi ro (tuân thủ thấp · vi phạm nhiều). Chọn một dòng để xem lỗi chi tiết theo khoa và tiêu chí.
         </p>
       </div>
-      <div className="overflow-x-auto">
+      <ResponsiveTableShell unboxed maxHeight="max-h-[min(52dvh,480px)]">
         <table className="w-full min-w-[720px] text-left text-xs">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wide text-slate-500">
@@ -81,7 +82,7 @@ export function GscChecklistNavigator({ payload, loading, selectedMaBk, onSelect
             )}
           </tbody>
         </table>
-      </div>
+      </ResponsiveTableShell>
     </div>
   );
 }

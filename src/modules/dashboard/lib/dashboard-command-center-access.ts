@@ -24,7 +24,7 @@ export async function verifyCommandCenterShell() {
 }
 
 /** Tab Thống kê VST/GSC — chỉ cần quyền module tương ứng (khớp NAV_GATE_VST / NAV_GATE_GSC). */
-export async function verifyAnalyticsModuleShell(module: "vst" | "gsc") {
+async function verifyAnalyticsModuleShell(module: "vst" | "gsc") {
   const key = module === "vst" ? "GIAM_SAT_VST" : "GIAM_SAT_CHUNG";
   await verifyPermission(key, "view");
 }

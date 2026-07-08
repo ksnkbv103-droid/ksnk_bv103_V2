@@ -228,7 +228,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           )}
 
           {showApproveDeXuat && (
-            <Dialog modal={false} open={isApproveOpen} onOpenChange={setIsApproveOpen}>
+            <Dialog open={isApproveOpen} onOpenChange={setIsApproveOpen}>
               <DialogTrigger asChild>
                 <Button className={qlcvDetailChrome.btnPrimary}>Phê duyệt & giao</Button>
               </DialogTrigger>
@@ -252,7 +252,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           )}
 
           {showEditMetadata && (
-            <Dialog modal={false} open={isEditOpen} onOpenChange={setIsEditOpen}>
+            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" className={qlcvDetailChrome.btnOutline}>
                   Sửa nhiệm vụ

@@ -3,16 +3,11 @@
 export const QLCV_KSNK_MA_KHOA = "KSNK" as const;
 
 /** Mã khoa thực tế trong MDM pilot (excel import, legacy). */
-export const QLCV_KSNK_MA_KHOA_ALIASES = ["KSNK", "C18", "KHOA_KSNK"] as const;
+const QLCV_KSNK_MA_KHOA_ALIASES = ["KSNK", "C18", "KHOA_KSNK"] as const;
 
 export type QlcvKsnkStaffRow = {
   id: string;
   khoa_id?: string | null;
-};
-
-export type QlcvKsnkTaskRow = {
-  khoa_thuc_hien_id?: string | null;
-  nguoi_phu_trach_id?: string | null;
 };
 
 export type QlcvKhoaPhongRow = {
@@ -39,14 +34,10 @@ export function pickKsnkKhoaFromRows(rows: QlcvKhoaPhongRow[]): QlcvKhoaPhongRow
   return byName ?? null;
 }
 
-export function isKsnkKhoaId(khoaId: string | null | undefined, ksnkKhoaId: string): boolean {
+function isKsnkKhoaId(khoaId: string | null | undefined, ksnkKhoaId: string): boolean {
   return khoaId != null && String(khoaId) === String(ksnkKhoaId);
 }
 
 export function isKsnkStaff(staff: QlcvKsnkStaffRow, ksnkKhoaId: string): boolean {
   return isKsnkKhoaId(staff.khoa_id, ksnkKhoaId);
-}
-
-export function assertKsnkTaskRow(row: QlcvKsnkTaskRow, ksnkKhoaId: string): boolean {
-  return isKsnkKhoaId(row.khoa_thuc_hien_id, ksnkKhoaId);
 }

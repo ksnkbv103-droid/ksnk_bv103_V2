@@ -7,7 +7,7 @@ import { X, PackageOpen, Info } from "lucide-react";
 import { toast } from "sonner";
 import { fetchBoDungCuChiTietMembers } from "../../actions/cssd-bo-members.actions";
 // Adoption marker cho layout:drift-check — modal chưa wire token chrome (panel:wire xử lý sau).
-import { CSSD_UI_PANEL_CHROME as _UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
 interface Props {
   isOpen: boolean;
@@ -68,14 +68,7 @@ export default function SetMembersModal({ isOpen, onClose, set }: Props) {
     // items/loadedBoId chỉ dùng để tránh flash khi đã có dữ liệu cùng bộ
   }, [isOpen, boId]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [isOpen]);
+  useBodyScrollLock(isOpen);
 
   if (!isOpen) return null;
 

@@ -18,7 +18,7 @@ type Props = {
 };
 
 const shellFrame =
-  "overflow-hidden rounded-[var(--radius-table)] bg-white ring-1 ring-slate-200/90";
+  "rounded-[var(--radius-table)] bg-white ring-1 ring-slate-200/90 max-sm:overflow-visible sm:overflow-hidden";
 
 export default function ResponsiveTableShell({
   children,
@@ -35,16 +35,16 @@ export default function ResponsiveTableShell({
   if (!isSmUp && mobileCards) {
     return (
       <div className={frame}>
-        <div className={`custom-scrollbar ${maxHeight} overflow-y-auto overscroll-contain touch-manipulation`}>
+        <div className="custom-scrollbar bv103-scroll-y max-sm:max-h-none sm:max-h-[min(68dvh,640px)]">
           {mobileCards}
         </div>
       </div>
     );
   }
 
-  return (
-    <div className={frame}>
-      {!isSmUp ? (
+  if (!isSmUp) {
+    return (
+      <div className={frame}>
         <p
           className={`border-b border-slate-100 px-3 py-2 ${bv103LayoutChrome.labelBlockInline} text-slate-500`}
           aria-live="polite"
@@ -55,9 +55,17 @@ export default function ResponsiveTableShell({
             <ChevronRight size={12} aria-hidden />
           </span>
         </p>
-      ) : null}
+        <div className={`bv103-scroll-x custom-scrollbar -mx-0.5 px-0.5 pb-1 ${viewportClassName}`}>
+          {children}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={frame}>
       <div
-        className={`custom-scrollbar ${maxHeight} overflow-auto overscroll-contain touch-manipulation ${viewportClassName}`}
+        className={`custom-scrollbar bv103-scroll-y ${maxHeight} ${viewportClassName}`}
       >
         {children}
       </div>

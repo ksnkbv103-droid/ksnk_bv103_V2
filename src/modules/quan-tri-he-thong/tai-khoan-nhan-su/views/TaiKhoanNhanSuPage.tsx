@@ -116,11 +116,11 @@ export default function TaiKhoanNhanSuPage() {
         }
       />
 
-      <div className="flex max-h-[min(calc(100dvh-13rem),720px)] flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="min-w-0 shrink-0 border-b border-slate-200 bg-slate-50/70 p-3">
-          <SearchBar value={search} onChange={setSearch} placeholder="Mã NV, họ tên, email…" />
-        </div>
-        <div className="custom-scrollbar min-h-0 flex-1 overflow-auto overscroll-contain">
+        <div className="flex min-h-0 max-h-[min(92dvh,720px)] flex-col rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="min-w-0 shrink-0 border-b border-slate-200 bg-slate-50/70 p-3">
+            <SearchBar value={search} onChange={setSearch} placeholder="Mã NV, họ tên, email…" />
+          </div>
+          <div className="custom-scrollbar bv103-scroll-x min-h-0 flex-1 sm:bv103-scroll-y">
           <table className="w-full min-w-[720px] table-fixed border-collapse text-left text-sm">
             <thead className="sticky top-0 z-20 border-b border-slate-200 bg-slate-50 text-xs font-black uppercase text-slate-500 shadow-[0_1px_0_rgb(226_232_240)]">
               <tr>

@@ -13,7 +13,3 @@ export function isEligibleForNghiemThu(input: QlcvNghiemThuGateInput): boolean {
   if (st === "CHO_DUYET" || st === "CHO_XAC_NHAN_HOAN_THANH") return true;
   return (st === "DANG_LAM" || st === "DANG_THUC_HIEN") && pct >= 100;
 }
-
-export function canForceCloseWithoutNghiemThuGate(_input: QlcvNghiemThuGateInput): boolean {
-  return false;
-}

@@ -20,7 +20,7 @@ export type QlcvInsertTaskPayload = {
   nguoi_giao_viec_id?: string | null;
 };
 
-export function qlcvTodayDateStr(): string {
+function qlcvTodayDateStr(): string {
   return new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString().split("T")[0];
 }
 

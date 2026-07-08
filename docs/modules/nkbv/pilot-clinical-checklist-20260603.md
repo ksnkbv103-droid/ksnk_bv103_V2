@@ -13,13 +13,23 @@
 
 ## Kịch bản tay (Pilot DoD)
 
-| # | Kịch bản | Kỹ thuật verify | UAT khoa KSNK |
-|---|----------|-----------------|---------------|
-| 1 | Day-3 rule → phiếu `CHO_XAC_MINH` từ cấy dương tính | `npm run test -- src/modules/giam-sat-nkbv/lib/nkbv-timeline-math.spec.ts` + import server gate | [x] eng 2026-07-09 (server Day-3 + status map); UAT khoa vẫn cần ký |
-| 2 | Khoa lâm sàng điền form → `CHO_DUYET` | Manual `/giam-sat-nkbv` | [ ] |
-| 3 | KSNK `XAC_NHAN` / `LOAI_TRU` | Manual adjudication panel | [ ] |
-| 4 | Import vi sinh trùng MD5 bỏ qua dòng trùng | Manual `NkbvViSinhImportPortal` | [ ] |
-| 5 | SSI ↔ CSSD trace link hiển thị | Manual + migration `20260602150000` | [ ] |
+| # | Kịch bản | Làm gì trên UI | Kỳ vọng thấy | Kỹ thuật verify | UAT khoa KSNK |
+|---|----------|----------------|--------------|-----------------|---------------|
+| 1 | Day-3 → phiếu chờ xác minh | Import Excel có ca Day≥3 và ca POA (ngày 1–2) | Chỉ ca Day≥3 tạo sự kiện `CHO_XAC_MINH`; POA không vào giám sát HAI | `npx vitest run src/modules/giam-sat-nkbv/lib/nkbv-timeline-math.spec.ts` + import server gate | [x] eng 2026-07-09; **khoa vẫn ký tay** |
+| 2 | Khoa điền form → chờ duyệt | Mở ca `CHO_XAC_MINH` → điền form lâm sàng → gửi | Trạng thái → `CHO_DUYET` | Manual `/giam-sat-nkbv` | [ ] |
+| 3 | KSNK xác nhận / loại trừ | Panel thẩm định: Phê duyệt hoặc Loại trừ (+ lý do) | `XAC_NHAN` hoặc `LOAI_TRU` | Manual adjudication | [ ] |
+| 4 | Import trùng MD5 | Import lại cùng file Excel đã import | Hệ thống bỏ qua dòng trùng (không nhân đôi) | Manual `NkbvViSinhImportPortal` | [ ] |
+| 5 | SSI ↔ CSSD | Ca SSI có `ma_cycle_qr_lien_quan` | Hiện link truy vết CSSD (`CssdTraceLink`) | Manual + migration `20260602150000` | [ ] |
+
+## Hướng dẫn PO (đợt C — 2026-07-09)
+
+1. Đăng nhập tài khoản khoa lâm sàng → `/giam-sat-nkbv` → làm **#2**.
+2. Đăng nhập KSNK → làm **#3** trên cùng ca.
+3. Vào portal import vi sinh → làm **#4** (file đã import một lần).
+4. Mở / tạo ca SSI có QR chu kỳ CSSD → làm **#5**.
+5. Ký bảng Sign-off bên dưới khi 4 kịch bản tay PASS. Nếu fail: mở chat mới `/intake-nv` ghi rõ #kịch bản + ảnh/mô tả.
+
+**Engineering sẵn sàng UAT (2026-07-09):** Day-3 server + map `CHO_XAC_MINH` Done · vitest NKBV 28 PASS · `pilot:go-live:gate:local` PASS. Chữ ký khoa = bước còn lại của DOM-08.
 
 ## Sign-off
 
@@ -32,9 +42,7 @@
 
 Form đủ cho pilot BV103; trường NHSN bổ sung theo yêu cầu BV — backlog riêng.
 
-**Engineering gate Wave 2 (2026-07-01):** spec rules engine PASS — chờ ký 5 kịch bản tay khoa KSNK.
-
 ```bash
 npm run verify:engineering
-npm run test -- src/modules/giam-sat-nkbv/lib/nkbv-rules-engine.spec.ts
+npx vitest run src/modules/giam-sat-nkbv/lib/nkbv-rules-engine.spec.ts src/modules/giam-sat-nkbv/lib/nkbv-timeline-math.spec.ts
 ```

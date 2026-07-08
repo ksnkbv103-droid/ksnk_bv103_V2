@@ -22,10 +22,8 @@ import type {
 
 export {
   computeCcs,
-  computeTyLeGsc,
   computeTyLeVst,
   deltaFromTrend,
-  rateFromTotals,
 } from "@/lib/analytics/supervision-metrics";
 
 function finalizeTrendPoint(row: {
@@ -61,7 +59,7 @@ type TrendSlice = {
 };
 
 /** Khóa tuần ISO (Thứ 2) — tránh tách VST/GSC cùng tuần thành 2 điểm vì min_date khác ngày. */
-export function isoWeekBucketKey(minDate: string): string {
+function isoWeekBucketKey(minDate: string): string {
   const start = startOfWeek(parseISO(`${minDate}T12:00:00`), { weekStartsOn: 1 });
   return format(start, "yyyy-MM-dd");
 }

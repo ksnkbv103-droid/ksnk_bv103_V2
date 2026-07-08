@@ -261,17 +261,6 @@ export function toCompareRows(
   }));
 }
 
-/** @deprecated Dùng buildGapKhoaRows + SupervisionKhoaTriptych */
-export function mapGapRowsForKhoaMa(
-  rows: { ten?: string; ma_khoa?: string; ty_le_tgs?: number | null; ty_le_ksnk?: number | null }[] | null | undefined,
-) {
-  return (rows ?? []).map((r) => ({
-    ten: khoaChartLabel(r),
-    ty_le_tgs: r.ty_le_tgs == null ? null : roundPercent2(r.ty_le_tgs),
-    ty_le_ksnk: r.ty_le_ksnk == null ? null : roundPercent2(r.ty_le_ksnk),
-  }));
-}
-
 export type GscCompareMatrices = {
   matrix_khoi?: MatrixRow[];
   matrix_khu_vuc?: MatrixRow[];

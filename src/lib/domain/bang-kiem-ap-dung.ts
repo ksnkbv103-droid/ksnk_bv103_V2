@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const BK_PHAM_VI = [
+const BK_PHAM_VI = [
   "CA_VIEN",
   "THEO_KHOI",
   "THEO_KHOA",
@@ -10,22 +10,22 @@ export const BK_PHAM_VI = [
 
 export type BkPhamVi = (typeof BK_PHAM_VI)[number];
 
-export const BK_MUC_DO = ["BAT_BUOC", "KHUYEN_NGH", "CHI_KSNK"] as const;
+const BK_MUC_DO = ["BAT_BUOC", "KHUYEN_NGH", "CHI_KSNK"] as const;
 
 export type BkMucDo = (typeof BK_MUC_DO)[number];
 
-export const BK_TAN_SUAT_DON_VI = ["TUAN", "THANG", "QUY"] as const;
+const BK_TAN_SUAT_DON_VI = ["TUAN", "THANG", "QUY"] as const;
 
 export type BkTanSuatDonVi = (typeof BK_TAN_SUAT_DON_VI)[number];
 
-export const tanSuatToiThieuSchema = z.object({
+const tanSuatToiThieuSchema = z.object({
   don_vi: z.enum(BK_TAN_SUAT_DON_VI),
   so_lan: z.coerce.number().int().min(1),
 });
 
 export type BangKiemTanSuatToiThieu = z.infer<typeof tanSuatToiThieuSchema>;
 
-export const apDungJsonbSchema = z.object({
+const apDungJsonbSchema = z.object({
   pham_vi: z.enum(BK_PHAM_VI),
   khoi_ids: z.array(z.string().min(1)).default([]),
   khoa_ids: z.array(z.string().min(1)).default([]),
@@ -117,7 +117,7 @@ function stripTanSuatIfInvalid(ap: BangKiemApDungJsonb): BangKiemApDungJsonb {
 }
 
 /** Khoa thuộc Khoa Kiểm soát nhiễm khuẩn (không vào mẫu số TGS lâm sàng). */
-export function isKhoaKsnkDepartment(khoa: Pick<KhoaApDungContext, "ma_khoa" | "ten_khoa">): boolean {
+function isKhoaKsnkDepartment(khoa: Pick<KhoaApDungContext, "ma_khoa" | "ten_khoa">): boolean {
   const ma = String(khoa.ma_khoa ?? "").trim().toUpperCase();
   const ten = String(khoa.ten_khoa ?? "").trim().toLowerCase();
   if (ma === "KSNK" || ma === "C18") return true;
@@ -415,7 +415,7 @@ export function listKhoaTrongPhamVi(
   );
 }
 
-export function isBkBatBuocTgs(bk: BangKiemApDungSource): boolean {
+function isBkBatBuocTgs(bk: BangKiemApDungSource): boolean {
   if (bk.is_active === false) return false;
   const ap = parseApDungJsonb(bk.ap_dung_jsonb, bk);
   return ap.muc_do === "BAT_BUOC" && ap.bat_buoc.tu_giam_sat;
@@ -433,11 +433,8 @@ export function listBkBatBuocTgsChoKhoa(
   return catalog.filter((bk) => isBkBatBuocTgsChoKhoa(bk, khoa));
 }
 
-/** Alias intake — BK bắt buộc TGS áp dụng cho khoa. */
-export const listBkBatBuocChoKhoa = listBkBatBuocTgsChoKhoa;
-
 /** BK áp dụng cho khoa và gán mạng lưới KSNK khoa (TGS) — dùng tab «BK tôi phải làm». */
-export function isBkTuGiamSatChoKhoa(bk: BangKiemApDungSource, khoa: KhoaApDungContext): boolean {
+function isBkTuGiamSatChoKhoa(bk: BangKiemApDungSource, khoa: KhoaApDungContext): boolean {
   if (bk.is_active === false) return false;
   const ap = parseApDungJsonb(bk.ap_dung_jsonb, bk);
   return resolveBkApDungChoKhoa(bk, khoa) && ap.bat_buoc.tu_giam_sat;
