@@ -4,6 +4,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
 import crypto from "crypto";
+import { isHaiSuspectByDay3Rule } from "../lib/nkbv-timeline-math";
 
 interface ViSinhRecordInput {
   ma_benh_nhan: string;
@@ -123,22 +124,20 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
       .select("id, ma_loai, ten_loai")
       .eq("is_active", true);
 
-    const { data: statusRow } = await supabase
-      .from("nkbv_dm_trang_thai_ca")
-      .select("id")
-      .eq("ma_trang_thai", "DANG_GHI_NHAN")
-      .eq("is_active", true)
-      .maybeSingle();
-
-    let defaultStatusId = statusRow?.id;
-    if (!defaultStatusId) {
-      const { data: altStatus } = await supabase
+    // Auto-case từ Day-3 → chờ lâm sàng điền form (pilot checklist CHO_XAC_MINH).
+    const statusPriority = ["CHO_XAC_MINH", "DANG_GHI_NHAN", "CHO_XAC_NHAN"] as const;
+    let defaultStatusId: string | undefined;
+    for (const ma of statusPriority) {
+      const { data: statusRow } = await supabase
         .from("nkbv_dm_trang_thai_ca")
         .select("id")
-        .eq("ma_trang_thai", "CHO_XAC_NHAN")
+        .eq("ma_trang_thai", ma)
         .eq("is_active", true)
         .maybeSingle();
-      defaultStatusId = altStatus?.id;
+      if (statusRow?.id) {
+        defaultStatusId = statusRow.id;
+        break;
+      }
     }
     if (!defaultStatusId) {
       const { data: firstStatus } = await supabase
@@ -198,6 +197,11 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
     for (const r of (insertedRecords || [])) {
       const cleanMaBenhAn = r.ma_benh_an || `BA-TEMP-${r.ma_benh_nhan || r.id}`;
       const rDateStr = r.ngay_lay_mau ? r.ngay_lay_mau.slice(0, 10) : "";
+
+      // Day-3 server gate: POA chỉ giữ nkbv_fact_vi_sinh, không spawn/gộp ca HAI.
+      if (!isHaiSuspectByDay3Rule(r.ngay_vao_vien, r.ngay_lay_mau)) {
+        continue;
+      }
 
       const ritMatchedEvent = (existingEvents || []).find((e) => {
         if (e.ma_benh_an !== cleanMaBenhAn) return false;

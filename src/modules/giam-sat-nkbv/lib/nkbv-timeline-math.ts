@@ -58,6 +58,20 @@ function getDaysBetween(d1Str: string, d2Str: string): number {
 }
 
 /**
+ * Day-3 HAI gate (NHSN): nghi ngờ HAI khi ngày lấy mẫu ≥ ngày vào viện + 2 lịch
+ * (tức ngày nằm viện ≥ 3). Dùng cho import LIS — POA chỉ lưu vi sinh, không spawn ca.
+ */
+export function isHaiSuspectByDay3Rule(
+  ngayVaoVien: string | null | undefined,
+  ngayLayMau: string | null | undefined,
+): boolean {
+  const vao = ngayVaoVien ? String(ngayVaoVien).slice(0, 10) : "";
+  const mau = ngayLayMau ? String(ngayLayMau).slice(0, 10) : "";
+  if (!vao || !mau) return false;
+  return getDaysBetween(vao, mau) >= 2;
+}
+
+/**
  * Calculates DOE, IWP, SBAP, and Attributes Location based on NHSN 2023 Rules
  */
 export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {

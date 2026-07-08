@@ -181,4 +181,26 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 | D-10 | **Done (2026-07-03)** | Spec 100% prefix; legacy chỉ còn cột tra cứu có ghi chú |
 | D-14 | **Eng done / UAT pending** | NKBV clinical — chờ PO §B |
 
-**P0/P1 mở:** 0
+**P0/P1 mở:** 0 (tính đến 2026-07-03)
+
+---
+
+## Audit 2026-07-09 — Rà soát toàn diện (1B + 2A)
+
+> Nguồn: [comprehensive-review-20260709.md](../reports/comprehensive-review-20260709.md) · [gap-register-20260709.md](../reports/gap-register-20260709.md) · [audit-evidence-pack-20260709.md](../reports/audit-evidence-pack-20260709.md)  
+> Gate tĩnh PASS; Docker/local golden **Blocked** session audit.
+
+| ID | Mức | Trạng thái | Ghi chú |
+|----|-----|------------|---------|
+| DOM-07 | P0 | **Done** | Day-3 server gate + spec |
+| BE-RPC-01 | P0 | **Done** | `20260709120000` REVOKE authenticated checklist RPC |
+| DOM-04 | P1 | **Done** | Bỏ auto `bom_kiem_dem_at` |
+| DOM-08 | P1 | **Eng Done / UAT pending** | `CHO_XAC_MINH`; UAT #2–#5 |
+| BE-RPC-02 | P1 | **Done** | GSC RPC harden mirror VST |
+| BE-RPC-03 | P1 | **Done** | CSSD RPC permission wrap |
+| OPS-01 | P1 | **Blocked** | Docker — cần PO `mdm:migrate:local` |
+| UI-01 | P2 | **Done** | 2 modal chrome |
+| G-11 / S-RLS-01 | P3 | **Eng Done / residual** | Fact phiên Done; summary views vẫn permissive |
+| D-14 | P2 | **UAT pending** | Giữ — gộp DOM-08 |
+
+**P0/P1 mở (sau remediation 2026-07-09):** 0 P0 · 1 P1 (OPS-01 Docker) · UAT NKBV tay

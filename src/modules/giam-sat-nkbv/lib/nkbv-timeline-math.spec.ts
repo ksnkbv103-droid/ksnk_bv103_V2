@@ -1,7 +1,24 @@
 import { describe, it, expect } from "vitest";
 import { classifyPathogen } from "./nkbv-pathogen-rules";
-import { calculateCdcMetrics } from "./nkbv-timeline-math";
+import { calculateCdcMetrics, isHaiSuspectByDay3Rule } from "./nkbv-timeline-math";
 import type { DepartmentStay } from "../types/nkbv-verification";
+
+describe("isHaiSuspectByDay3Rule (import LIS gate)", () => {
+  it("POA: lấy mẫu ngày 1–2 không nghi HAI", () => {
+    expect(isHaiSuspectByDay3Rule("2026-05-10", "2026-05-10")).toBe(false);
+    expect(isHaiSuspectByDay3Rule("2026-05-10", "2026-05-11")).toBe(false);
+  });
+
+  it("HAI: lấy mẫu từ ngày lịch thứ 3 trở đi", () => {
+    expect(isHaiSuspectByDay3Rule("2026-05-10", "2026-05-12")).toBe(true);
+    expect(isHaiSuspectByDay3Rule("2026-05-10", "2026-05-15")).toBe(true);
+  });
+
+  it("thiếu ngày → không spawn ca", () => {
+    expect(isHaiSuspectByDay3Rule(null, "2026-05-12")).toBe(false);
+    expect(isHaiSuspectByDay3Rule("2026-05-10", "")).toBe(false);
+  });
+});
 
 describe("Nkbv Pathogen Classification Rules", () => {
   it("should classify pathogens accurately", () => {

@@ -5,6 +5,7 @@ import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { format, parseISO, differenceInCalendarDays } from "date-fns";
+import { isHaiSuspectByDay3Rule } from "../lib/nkbv-timeline-math";
 import { 
   FileSpreadsheet, 
   UploadCloud, 
@@ -139,14 +140,14 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
           }
         }
 
-        // Compute LIS Day 3 Rule (calendar days >= 2)
+        // Compute LIS Day 3 Rule (calendar days >= 2) — cùng helper server
         let diffDays = 0;
         let isHaiSuspect = false;
         try {
           const dVao = parseISO(ngay_vao_vien.includes("T") ? ngay_vao_vien : `${ngay_vao_vien}T00:00:00`);
           const dMau = parseISO(ngay_lay_mau.includes("T") ? ngay_lay_mau : `${ngay_lay_mau}T00:00:00`);
           diffDays = differenceInCalendarDays(dMau, dVao);
-          isHaiSuspect = diffDays >= 2;
+          isHaiSuspect = isHaiSuspectByDay3Rule(ngay_vao_vien, ngay_lay_mau);
         } catch {
           // ignore parsing error, will default to false
         }

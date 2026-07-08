@@ -10,6 +10,7 @@ import { bootstrapCssdQuyTrinhFromMaBo } from "../shared/application/cssd-bo-boo
 import { verifyCssdWorkflowEdit } from "@/lib/cssd-server-gates";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
+// DOM-04: không auto-stamp bom_kiem_dem_at khi quét — chỉ qua rpc_cssd_persist_bom_checkpoint.
 
 async function cssdScanOperatorLabel(): Promise<string> {
   try {
@@ -129,23 +130,6 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       p_quy_trinh_id: qtId,
     });
     maCycleQr = String((cycleRes as { ma_cycle_qr?: string | null } | null)?.ma_cycle_qr || "").trim() || null;
-
-    const uc = await createServerSupabaseUserClient();
-    const { data: authData } = await uc.auth.getUser();
-    const operatorId = await resolveCssdOperatorNhanSuId(supabase, {
-      authUserId: authData.user?.id,
-      email: authData.user?.email || operatorLabel,
-    });
-    const nowIso = new Date().toISOString();
-    await supabase
-      .from("cssd_fact_quy_trinh")
-      .update({
-        bom_kiem_dem_at: nowIso,
-        bom_kiem_dem_boi_id: operatorId,
-        updated_at: nowIso,
-      })
-      .eq("id", qtId)
-      .is("bom_kiem_dem_at", null);
 
     if (!maCycleQr) {
       const { data: refreshed } = await supabase

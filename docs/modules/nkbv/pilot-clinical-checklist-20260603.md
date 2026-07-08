@@ -15,7 +15,7 @@
 
 | # | Kịch bản | Kỹ thuật verify | UAT khoa KSNK |
 |---|----------|-----------------|---------------|
-| 1 | Day-3 rule → phiếu `CHO_XAC_MINH` từ cấy dương tính | `npm run test -- src/modules/giam-sat-nkbv/lib/nkbv-rules-engine.spec.ts` | [x] auto 2026-06-30 |
+| 1 | Day-3 rule → phiếu `CHO_XAC_MINH` từ cấy dương tính | `npm run test -- src/modules/giam-sat-nkbv/lib/nkbv-timeline-math.spec.ts` + import server gate | [x] eng 2026-07-09 (server Day-3 + status map); UAT khoa vẫn cần ký |
 | 2 | Khoa lâm sàng điền form → `CHO_DUYET` | Manual `/giam-sat-nkbv` | [ ] |
 | 3 | KSNK `XAC_NHAN` / `LOAI_TRU` | Manual adjudication panel | [ ] |
 | 4 | Import vi sinh trùng MD5 bỏ qua dòng trùng | Manual `NkbvViSinhImportPortal` | [ ] |

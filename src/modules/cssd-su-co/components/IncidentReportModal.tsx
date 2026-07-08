@@ -5,6 +5,7 @@ import React, { useEffect } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
+import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
 import SuCoReportForm from "./SuCoReportForm";
 
 interface Props {
@@ -57,11 +58,11 @@ export default function IncidentReportModal({
       <div className="flex max-h-[100dvh] w-full touch-manipulation flex-col overflow-hidden rounded-t-[1.25rem] border-t-4 border-red-500/30 bg-white shadow-2xl sm:max-h-[min(92dvh,920px)] sm:max-w-2xl sm:rounded-2xl sm:border sm:border-slate-200">
         <div className="flex shrink-0 items-center justify-between gap-3 bg-[var(--primary)] px-4 py-4 text-[#FFD700] shadow-md sm:px-5">
           <div className="min-w-0">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide sm:text-[11px] sm:tracking-[0.2em]">
+            <div className={`flex items-center gap-2 ${UI.panelSubtitle} uppercase tracking-wide text-[#FFD700] sm:text-[11px] sm:tracking-[0.2em]`}>
               <AlertTriangle className="shrink-0 animate-pulse" size={20} aria-hidden />
               <span>Báo cáo sự cố</span>
             </div>
-            <p className="mt-0.5 truncate text-[11px] font-medium text-[#FFD700]/80">
+            <p className={`mt-0.5 truncate ${UI.modalSubtitle} text-[#FFD700]/80`}>
               Điền đủ thông tin — vuốt xuống nếu form dài
             </p>
           </div>

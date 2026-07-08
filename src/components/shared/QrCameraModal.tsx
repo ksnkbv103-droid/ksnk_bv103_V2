@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Camera, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
+import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
 
 type Props = {
   open: boolean;
@@ -103,7 +104,7 @@ export default function QrCameraModal({
       <div className="flex items-center justify-between gap-3 px-4 py-3 text-white">
         <div className="flex min-w-0 items-center gap-2">
           <Camera size={20} className="shrink-0 text-emerald-400" aria-hidden />
-          <p className="truncate text-sm font-semibold">{title}</p>
+          <p className={`truncate ${UI.modalTitle} text-white`}>{title}</p>
         </div>
         <button
           type="button"

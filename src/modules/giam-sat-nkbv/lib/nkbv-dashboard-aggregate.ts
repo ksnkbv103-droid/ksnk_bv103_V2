@@ -27,7 +27,7 @@ export type NkbvDashboardPayload = {
   epidemiologyRates?: any[];
 };
 
-const CHO_TAC = new Set(["DANG_GHI_NHAN", "CHO_XAC_NHAN"]);
+const CHO_TAC = new Set(["DANG_GHI_NHAN", "CHO_XAC_NHAN", "CHO_XAC_MINH"]);
 
 /** Lọc theo tu/den (**yyyy-MM-dd**), tổng hợp dashboard. */
 export function aggregateNkbvDashboard(
