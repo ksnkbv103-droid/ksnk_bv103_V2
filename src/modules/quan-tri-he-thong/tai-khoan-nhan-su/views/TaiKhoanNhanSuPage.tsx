@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { usePermission } from "@/hooks/usePermission";
 import TaiKhoanNhanSuStaffRow from "../components/TaiKhoanNhanSuStaffRow";
+import GuestStatsAccountCard from "../components/GuestStatsAccountCard";
 import SearchBar from "@/components/shared/SearchBar";
 import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import {
@@ -115,6 +116,8 @@ export default function TaiKhoanNhanSuPage() {
           </button>
         }
       />
+
+      <GuestStatsAccountCard onUpdated={() => void load()} />
 
         <div className="flex min-h-0 max-h-[min(92dvh,720px)] flex-col rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="min-w-0 shrink-0 border-b border-slate-200 bg-slate-50/70 p-3">

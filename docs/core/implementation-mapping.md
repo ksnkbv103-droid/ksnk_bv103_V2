@@ -130,7 +130,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
-| 2026-07-09 | **Audit residual:** DOM-10 migration `20260709140000` — backfill alias → 7 mã canonical + thu hẹp CHECK; G-12 boy-scout xóa ~20 dead exports; OPS-01 vẫn cần PO mở Docker + `mdm:migrate:local`. |
+| 2026-07-09 | **Tài khoản khách cloud:** UI gán `KHACH_THONG_KE_GSTT` trên `/quan-tri-he-thong/tai-khoan-nhan-su`; thẻ **Thiết lập tài khoản khách** (provision Auth + hồ sơ KHACH01); migration `20260709150000` RPC loại trừ vai trò Khách với KSNK khác. |
 | 2026-07-09 | **Audit P2 hygiene:** domain-spec §2.1/§2.3; metric-dictionary TGS exception; CAP_PHAT soft-warning SSOT; GSC README redirect; spawn RPC tên `fn_qlcv_*`; xóa 5 orphan Pilot W3; migration `20260709130000` RLS summary GSTT + CSSD bao_tri/kho + NKBV; proxy thiếu env → redirect login. |
 | 2026-07-09 | **Audit gap remediation P0/P1:** (1) NKBV import Day-3 server gate `isHaiSuspectByDay3Rule` + trạng thái auto-case ưu tiên `CHO_XAC_MINH`; (2) CSSD bỏ auto-stamp `bom_kiem_dem_at` khi quét Đóng gói; (3) migration `20260709120000` — REVOKE `fn_qlcv_update_checklist` khỏi authenticated; harden GSC analytics RPC (mirror VST); wrap CSSD scan/BOM/cycle QR + `fn_require_cssd_workflow_edit` (service_role bypass). Gap: [gap-register-20260709.md](../reference/reports/gap-register-20260709.md). |
 | 2026-07-01 | **CSSD Đóng gói / CAP_PHAT (chốt soft-warning):** quét `DONG_GOI` + cycle QR; panel đối chiếu realtime; **cấp phát soft-warning** khi thiếu cấu phần (không hard-block `bom_kiem_dem_at`). Changelog 2026-06-03 ghi «hard gate» là **lệch** — lấy dòng này + domain-spec §2.2 làm SSOT. |

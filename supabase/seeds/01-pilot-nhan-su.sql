@@ -153,7 +153,7 @@ VALUES (
   extensions.crypt('antoanhoptac@bv103', extensions.gen_salt('bf')),
   now(),
   '{"provider":"email","providers":["email"]}'::jsonb,
-  '{"full_name":"Khách xem thống kê giám sát"}'::jsonb,
+  '{"full_name":"chuyennghiephieuqua@bv103"}'::jsonb,
   now(),
   now(),
   '',
@@ -204,7 +204,7 @@ INSERT INTO public.mdm_nhan_su (
 )
 VALUES (
   'dddddddd-dddd-dddd-dddd-dddddddddd02',
-  'Khách xem thống kê giám sát',
+  'chuyennghiephieuqua@bv103',
   'KHACH01',
   NULL,
   true,

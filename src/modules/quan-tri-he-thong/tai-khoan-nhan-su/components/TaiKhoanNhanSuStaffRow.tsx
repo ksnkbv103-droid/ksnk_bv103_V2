@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import type { StaffAuthRow } from "@/types/nhan-su";
+import { RBAC_STAFF_ASSIGNABLE_ROLE_LABEL } from "@/modules/quan-tri-he-thong/phan-quyen/rbac.types";
 import { toast } from "sonner";
 
 export default function TaiKhoanNhanSuStaffRow({
@@ -76,7 +77,7 @@ export default function TaiKhoanNhanSuStaffRow({
                 <option value="">— Vai trò —</option>
                 {availableRoles.map((role) => (
                   <option key={role.id} value={role.name}>
-                    {role.name}
+                    {RBAC_STAFF_ASSIGNABLE_ROLE_LABEL[role.name] ?? role.name}
                   </option>
                 ))}
               </select>

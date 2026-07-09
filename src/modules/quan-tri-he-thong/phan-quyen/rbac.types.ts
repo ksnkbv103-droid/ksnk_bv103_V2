@@ -70,7 +70,17 @@ export const RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER = [
   "NHAN_VIEN_KSNK",
   "TO_TRUONG_MANG_LUOI_KSNK",
   "THANH_VIEN_MANG_LUOI_KSNK",
+  "KHACH_THONG_KE_GSTT",
 ] as const;
+
+/** Nhãn dropdown gán vai trò trên trang Tài khoản nhân sự. */
+export const RBAC_STAFF_ASSIGNABLE_ROLE_LABEL: Record<string, string> = {
+  HOI_DONG_KSNK: "Hội đồng KSNK",
+  NHAN_VIEN_KSNK: "Nhân viên khoa KSNK",
+  TO_TRUONG_MANG_LUOI_KSNK: "Tổ trưởng tổ KSNK khoa",
+  THANH_VIEN_MANG_LUOI_KSNK: "Thành viên mạng lưới KSNK",
+  KHACH_THONG_KE_GSTT: "Khách — chỉ xem Thống kê",
+};
 
 export function selectRolesForStaffKsnkAssignment<T extends { id: string; name: string }>(allRoles: T[]): T[] {
   const byName = new Map(allRoles.map((r) => [String(r.name ?? "").trim().toUpperCase(), r]));
