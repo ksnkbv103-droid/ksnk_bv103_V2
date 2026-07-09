@@ -61,4 +61,4 @@ supabase/         # Migrations (SSOT schema)
 
 ---
 
-**Staging:** https://ksnk-bv103.vercel.app
+**Staging / Production:** https://ksnk-bv103-v2.vercel.app
