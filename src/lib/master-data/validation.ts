@@ -58,7 +58,7 @@ export async function validateDanhMucIdByType(params: {
   }
 }
 
-export async function validateDanhMucItemExactType(params: {
+async function validateDanhMucItemExactType(params: {
   supabase: any;
   id?: string | null;
   expectedType: string;

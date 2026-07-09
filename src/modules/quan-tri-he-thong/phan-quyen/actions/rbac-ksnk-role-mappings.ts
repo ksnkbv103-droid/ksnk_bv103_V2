@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 type PermRow = { id: string; module_name: string; action: string };
 
-export const KSNK_RBAC_ROLE_NAMES = [
+const KSNK_RBAC_ROLE_NAMES = [
   "NHAN_VIEN_KSNK",
   "HOI_DONG_KSNK",
   "MANG_LUOI_KSNK",

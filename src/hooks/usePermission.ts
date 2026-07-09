@@ -5,7 +5,7 @@ import { createPermissionApi } from "./use-permission-api";
 import { usePermissionContext } from "@/contexts/PermissionProvider";
 
 export type { UserDataProfile } from "@/contexts/PermissionProvider";
-export { invalidateClientRbacCache, PermissionProvider } from "@/contexts/PermissionProvider";
+export { invalidateClientRbacCache } from "@/contexts/PermissionProvider";
 
 /**
  * Hook kiểm tra quyền hạn của người dùng (RBAC Linh hoạt).

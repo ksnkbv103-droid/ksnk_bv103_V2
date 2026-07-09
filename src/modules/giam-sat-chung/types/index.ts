@@ -37,19 +37,6 @@ export interface BangKiemMetadataV4 {
   phien_ban?: string | null;
 }
 
-const BANG_KIEM_LOAI_GIAM_SAT_LABEL: Record<BangKiemLoaiGiamSat, string> = {
-  TUAN_THU: "Giám sát tuân thủ",
-  NHAT_KY_VAN_HANH: "Nhật ký vận hành",
-  DANH_GIA_HE_THONG: "Đánh giá hệ thống",
-};
-
-const BANG_KIEM_CACH_TINH_DIEM_LABEL: Record<BangKiemCachTinhDiem, string> = {
-  TY_LE: "Tỷ lệ phần trăm (%)",
-  TRON_GOI: "Trọn gói (Care Bundle)",
-  DAT_KHONG_DAT: "Đạt / Không đạt",
-  NHAT_KY: "Nhật ký vận hành",
-};
-
 export interface ChecklistResult {
   criterionId: string;
   value: ChecklistResultValue;
@@ -89,16 +76,6 @@ export interface ChecklistTemplate {
   criteria: ChecklistCriterion[];
   loai_giam_sat?: BangKiemLoaiGiamSat | null;
   cach_tinh_diem?: BangKiemCachTinhDiem | null;
-}
-
-export function bangKiemLoaiGiamSatLabel(loai: BangKiemLoaiGiamSat | null | undefined): string {
-  if (!loai) return "Giám sát tuân thủ";
-  return BANG_KIEM_LOAI_GIAM_SAT_LABEL[loai] ?? loai;
-}
-
-export function bangKiemCachTinhDiemLabel(cach: BangKiemCachTinhDiem | null | undefined): string {
-  if (!cach) return "Tỷ lệ (legacy)";
-  return BANG_KIEM_CACH_TINH_DIEM_LABEL[cach] ?? cach;
 }
 
 export interface GscSessionHistoryRow {

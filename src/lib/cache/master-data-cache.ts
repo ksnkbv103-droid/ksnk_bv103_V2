@@ -29,7 +29,7 @@ export const getCachedDmKhoaPhong = unstable_cache(
  * Toàn bộ `mdm_dm_khoa_phong` (kể cả `is_active = false`) — dùng để nối `ten → id → khoi_id`
  * khi payload RPC cũ chưa kèm `id` trên `by_khoa`. Cache 15' + tag `mdm_dm_khoa_phong_all`.
  */
-export const getCachedDmKhoaPhongAll = unstable_cache(
+const getCachedDmKhoaPhongAll = unstable_cache(
   async () => {
     const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase

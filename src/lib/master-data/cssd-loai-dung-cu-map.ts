@@ -1,6 +1,6 @@
 /** SSOT cột vật lý `cssd_dm_loai_dung_cu` vs alias UI/view (`ma_loai_dung_cu`). */
 
-export const CSSD_LOAI_DM_TABLE = "cssd_dm_loai_dung_cu" as const;
+const CSSD_LOAI_DM_TABLE = "cssd_dm_loai_dung_cu" as const;
 export const CSSD_LOAI_DM_VIEW = "v_cssd_loai_dung_cu_summary" as const;
 
 export const CSSD_LOAI_PHYSICAL_SELECT = "id, ma_loai, ten_loai, is_active" as const;

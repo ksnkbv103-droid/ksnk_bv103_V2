@@ -2,7 +2,7 @@ import { isCssdSubBoMa, isCssdUnifiedBoMa, isRejectedLegacyHexBoQr } from "@/lib
 
 export type CssdQrTargetType = "INSTRUMENT_SET" | "MACHINE" | "STERILIZATION_BATCH" | "UNKNOWN";
 
-export const CSSD_CYCLE_QR_PREFIX = "BV103-CYC-" as const;
+const CSSD_CYCLE_QR_PREFIX = "BV103-CYC-" as const;
 /** Mã phiếu/mẻ tiệt khuẩn — quét để truy vết toàn mẻ. */
 export const CSSD_BATCH_QR_PREFIX = "LOT-" as const;
 

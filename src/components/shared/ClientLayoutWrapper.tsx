@@ -13,7 +13,7 @@ import SupervisionOfflineSyncListener from "@/components/shared/SupervisionOffli
 import RbacRefreshListener from "@/components/shared/RbacRefreshListener";
 import { GuestStatsShell } from "@/components/auth/GuestStatsShell";
 import { GuestStatsRouteGuard } from "@/components/auth/GuestStatsRouteGuard";
-import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
+import { repairBodyScrollLockIfStale, useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { usePermission } from "@/hooks/usePermission";
 import { canSeeCommandCenterNav } from "@/lib/nav/ksnk-nav-gates";
 import { resolvePostLoginPath } from "@/lib/auth/guest-stats-access";
@@ -52,6 +52,7 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
 
   useEffect(() => {
     setIsOpen(false);
+    repairBodyScrollLockIfStale();
   }, [pathname]);
 
   useBodyScrollLock(isOpen);
@@ -71,7 +72,7 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 touch-manipulation pointer-events-auto">
+    <div className="flex min-h-screen bg-slate-50 pointer-events-auto">
       <GuestStatsRouteGuard />
       <StaffSessionGate />
       <RbacRefreshListener />
@@ -80,7 +81,7 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
 
       <div className="flex flex-1 flex-col min-w-0 min-h-0">
         <Header onMenuClick={toggleSidebar} />
-        <main className="relative z-0 flex-1 min-h-0 touch-manipulation px-2 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-4 md:p-8 pointer-events-auto overscroll-y-contain">
+        <main className="relative z-0 flex-1 px-2 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-4 md:p-8 pointer-events-auto">
           {pathnameUsesPhase1KsnkUnifiedContentShell(pathname) ? (
             <KsnkPageShell rolloutPhase="phase-1">{children}</KsnkPageShell>
           ) : (

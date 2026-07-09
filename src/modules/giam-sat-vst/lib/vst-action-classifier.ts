@@ -1,4 +1,4 @@
-export function normalizeVstAction(value: string | null | undefined): string {
+function normalizeVstAction(value: string | null | undefined): string {
   return String(value || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")

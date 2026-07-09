@@ -80,7 +80,7 @@ export async function getCategoriesByTypeCached<T>(
 }
 
 /** Gọi sau khi CRUD danh mục (module Quản trị) để đảm bảo các tab khác sẽ fetch mới khi mở. */
-export function invalidateClientDanhMucCache(type?: string): void {
+function invalidateClientDanhMucCache(type?: string): void {
   if (!isBrowserStorageAvailable()) return;
   try {
     if (type) {

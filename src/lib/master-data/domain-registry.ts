@@ -83,7 +83,7 @@ export function getAllLoaiDanhMucs(): string[] {
 }
 
 /** Lấy tất cả các entries đã đăng ký. */
-export function getAllRegistryEntries(): RegistryEntry[] {
+function getAllRegistryEntries(): RegistryEntry[] {
   return [...ENTRIES];
 }
 

@@ -121,6 +121,7 @@ export function GscBkAnalyticsDashboard({
 
         <SupervisionKhoaAnalyticsBlock
           rows={gapKhoaRows}
+          matrixKhoaRows={detail?.matrix_khoa}
           loading={loading}
           moduleLabel="GSC"
           tgsVolumeLabel="Khảo sát TGS"

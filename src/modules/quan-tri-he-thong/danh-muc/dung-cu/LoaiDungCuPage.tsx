@@ -18,7 +18,6 @@ import {
   softDeleteManyLoaiDungCuAction,
   toggleLoaiDungCuStatusAction,
 } from "../actions/loai-dung-cu.actions";
-import { DmMasterPageGuard } from "../views/dm-master-page-guard";
 
 function clip(s: string | null | undefined, n: number) {
   const t = String(s ?? "").trim();
@@ -201,13 +200,5 @@ export function LoaiDungCuPageContent() {
         onSaved={() => setRefreshKey((k) => k + 1)}
       />
     </div>
-  );
-}
-
-export default function LoaiDungCuPage() {
-  return (
-    <DmMasterPageGuard moduleKey="LOAI_DC" label="Danh mục Loại dụng cụ">
-      <LoaiDungCuPageContent />
-    </DmMasterPageGuard>
   );
 }

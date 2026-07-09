@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import { X, PackageOpen, Info } from "lucide-react";
 import { toast } from "sonner";
 import { fetchBoDungCuChiTietMembers } from "../../actions/cssd-bo-members.actions";
-// Adoption marker cho layout:drift-check — modal chưa wire token chrome (panel:wire xử lý sau).
+import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
 interface Props {

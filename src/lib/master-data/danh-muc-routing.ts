@@ -84,7 +84,7 @@ export function buildMigratedUpsertPayload(
 }
 
 /** Bật/tắt is_active trên bảng `{module}_dm_*` từ registry. */
-export async function setDanhMucActiveFlag(supabase: any, id: string, isActive: boolean): Promise<void> {
+async function setDanhMucActiveFlag(supabase: any, id: string, isActive: boolean): Promise<void> {
   const item = await getDanhMucItemById(supabase, id);
   if (!item?.loai_danh_muc) throw new Error("Không tìm thấy danh mục.");
   const reg = getRegistryEntry(item.loai_danh_muc);

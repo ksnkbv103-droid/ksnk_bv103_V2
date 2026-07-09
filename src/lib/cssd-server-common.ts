@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { CSSD_ROUTES } from "./cssd-routes";
 
-export function safeRevalidateCssdPath(path: string) {
+function safeRevalidateCssdPath(path: string) {
   try {
     revalidatePath(path);
   } catch {

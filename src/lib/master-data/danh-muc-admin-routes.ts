@@ -9,7 +9,7 @@ const DEDICATED_LOAI_TO_PATH: Record<string, string> = {
 };
 
 /** `loaiDanhMuc` có trang quản trị riêng (không dùng generic chuyen-biet làm nguồn chính). */
-export function isDedicatedDanhMucLoai(loaiDanhMuc: string): boolean {
+function isDedicatedDanhMucLoai(loaiDanhMuc: string): boolean {
   return REGISTRY_LOAI_TRUNG_TAM_ONLY.has(loaiDanhMuc.trim());
 }
 
@@ -30,7 +30,7 @@ export type InstrumentMdmHubRow = {
 };
 
 /** Ba phân hệ dụng cụ CSSD — hiển thị riêng trên hub (không gộp một thẻ). */
-export function getInstrumentMdmHubRows(stats: {
+function getInstrumentMdmHubRows(stats: {
   loai?: DanhMucStat;
   bo?: DanhMucStat;
   le?: DanhMucStat;

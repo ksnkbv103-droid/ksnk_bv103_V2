@@ -7,7 +7,7 @@ export const FACT_LIST_DEFAULT_PAGE_SIZE = 20 as const;
  * Hợp đồng phân trang dùng chung cho Server Action + hook `useServerPaginatedTable`.
  * `coerce` để an toàn khi tham số lọc từ URL/query string.
  */
-export const factListPaginationSchema = z.object({
+const factListPaginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce
     .number()

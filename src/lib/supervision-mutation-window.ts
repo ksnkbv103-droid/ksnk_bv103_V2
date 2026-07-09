@@ -1,5 +1,5 @@
 /** Cho phép thêm / sửa / xóa phiên giám sát sau khi tạo (30 phút). */
-export const SUPERVISION_SESSION_MUTATION_WINDOW_MS = 30 * 60 * 1000;
+const SUPERVISION_SESSION_MUTATION_WINDOW_MS = 30 * 60 * 1000;
 
 export function isSupervisionSessionMutationExpired(createdAtIso: string | null | undefined): boolean {
   if (createdAtIso == null || createdAtIso === "") return true;

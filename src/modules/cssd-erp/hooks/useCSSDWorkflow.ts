@@ -11,7 +11,7 @@ import { SCAN_STATIONS, WORKFLOW_STEPS, nextStationLabel } from "../workflow/dom
 import { cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
 
 /** Các ô chọn được trên trang 6 bước — không có «trạm quét TK» (TK chỉ qua phiếu mẻ). */
-export const CSSD_SCAN_STATIONS: Station[] = [...SCAN_STATIONS];
+const CSSD_SCAN_STATIONS: Station[] = [...SCAN_STATIONS];
 
 type ScanResultPayload = {
   maQr?: string;

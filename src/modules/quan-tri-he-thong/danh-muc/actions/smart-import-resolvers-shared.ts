@@ -7,7 +7,6 @@ export {
   UUID_RE,
   normalizeImportMa,
   isImportMaEmpty,
-  DM_TABLE_BY_LOAI,
   looksLikeShortBusinessCode,
 } from "../lib/smart-import/import-ma-utils";
 

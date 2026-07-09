@@ -1,7 +1,7 @@
 /**
  * Mô tả nghiệp vụ tiếng Việt cho ma trận RBAC — giúp PO/IT duyệt quyền.
  */
-export const PERMISSION_MODULE_BUSINESS_DESCRIPTIONS: Record<string, string> = {
+const PERMISSION_MODULE_BUSINESS_DESCRIPTIONS: Record<string, string> = {
   DASHBOARD: "Xem Trung tâm điều hành tổng quan KSNK.",
   DASHBOARD_CC_OVERVIEW: "Tab cơ cấu nguồn và tổng hợp trên Command Center.",
   DASHBOARD_CC_SUPERVISION: "Tab giám sát chuyên trách / chéo / tự giám sát.",

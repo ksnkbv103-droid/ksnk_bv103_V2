@@ -38,8 +38,19 @@ export type GapKhoaRow = {
   dat_ksnk: number;
 };
 
-export type GapKhoaSortMetric = "ty_le_ksnk" | "ty_le_tgs" | "vol_ksnk" | "vol_tgs" | "label";
+export type GapKhoaSortMetric =
+  | "ty_le_ksnk"
+  | "ty_le_tgs"
+  | "vol_ksnk"
+  | "vol_tgs"
+  | "vol_total"
+  | "label";
 export type GapKhoaSortOrder = "asc" | "desc";
+
+/** Tổng cơ hội/khảo sát (KSNK + TGS) — dùng sắp xếp biểu đồ khối lượng. */
+export function gapRowVolTotal(row: GapKhoaRow): number {
+  return row.vol_ksnk + row.vol_tgs;
+}
 
 export function khoaChartLabel(row: {
   ten?: string | null;
@@ -105,6 +116,12 @@ export function sortGapRowsByMetric(
   const dir = order === "asc" ? 1 : -1;
   return [...rows].sort((a, b) => {
     if (key === "label") return dir * a.label.localeCompare(b.label, "vi");
+    if (key === "vol_total") {
+      const av = gapRowVolTotal(a);
+      const bv = gapRowVolTotal(b);
+      if (av !== bv) return dir * (av - bv);
+      return a.label.localeCompare(b.label, "vi");
+    }
     const av = a[key];
     const bv = b[key];
     const aNull = av == null;
@@ -241,12 +258,56 @@ export function buildCoverageMatrix(
   return { khoaRows, topicLabels };
 }
 
-export function countKhoaMissingTgs(rows: GapKhoaRow[]): number {
-  return rows.filter((r) => r.vol_tgs === 0).length;
+
+/** % tuân thủ gộp hiển thị trên biểu đồ khoa — ưu tiên KSNK, rồi TGS, rồi matrix_khoa. */
+export function resolveKhoaAggregateTyLe(
+  gap: GapKhoaRow,
+  matrixTyLe: number | null | undefined,
+): number | null {
+  if (gap.ty_le_ksnk != null) return gap.ty_le_ksnk;
+  if (gap.ty_le_tgs != null) return gap.ty_le_tgs;
+  if (matrixTyLe == null || Number.isNaN(matrixTyLe)) return null;
+  return roundPercent2(matrixTyLe);
 }
 
-export function findGapRowByKhoaId(rows: GapKhoaRow[], khoaId: string): GapKhoaRow | undefined {
-  return rows.find((r) => r.id === khoaId);
+export function resolveKhoaAggregateVol(
+  gap: GapKhoaRow,
+  matrix: MatrixRow | undefined,
+): { dat: number; tong: number } {
+  if (gap.vol_ksnk > 0) return { dat: gap.dat_ksnk, tong: gap.vol_ksnk };
+  if (gap.vol_tgs > 0) return { dat: gap.dat_tgs, tong: gap.vol_tgs };
+  const tong = Number(matrix?.tong_quan_sat ?? matrix?.tong_co_hoi ?? 0);
+  const dat = Number(matrix?.tong_dat ?? matrix?.da_tuan_thu ?? 0);
+  return { dat, tong };
+}
+
+function matrixRowId(row: MatrixRow & { id?: string }): string {
+  return String(row.id ?? row.ma_khoa ?? "").trim();
+}
+
+/** Sắp xếp khoa theo % tuân thủ gộp — mặc định dashboard: cao → thấp. */
+export function sortGapRowsByAggregateTyLe(
+  rows: GapKhoaRow[],
+  matrixRows: (MatrixRow & { id?: string })[] | null | undefined,
+  order: GapKhoaSortOrder = "desc",
+): GapKhoaRow[] {
+  const matrixById = new Map<string, MatrixRow & { id?: string }>();
+  for (const m of matrixRows ?? []) {
+    const id = matrixRowId(m);
+    if (id) matrixById.set(id, m);
+  }
+  const dir = order === "asc" ? 1 : -1;
+  return [...rows].sort((a, b) => {
+    const av = resolveKhoaAggregateTyLe(a, matrixById.get(a.id)?.ty_le_tuan_thu);
+    const bv = resolveKhoaAggregateTyLe(b, matrixById.get(b.id)?.ty_le_tuan_thu);
+    const aNull = av == null;
+    const bNull = bv == null;
+    if (aNull && bNull) return a.label.localeCompare(b.label, "vi");
+    if (aNull) return 1;
+    if (bNull) return -1;
+    if (av !== bv) return dir * (av - bv);
+    return a.label.localeCompare(b.label, "vi");
+  });
 }
 
 export function toCompareRows(

@@ -48,7 +48,7 @@
 | Trạng thái | Ghi chú |
 |------------|---------|
 | Unused files | **0** (Pilot W3 orphans đã xóa) |
-| Unused exports | Residual (G-12 boy-scout ongoing) |
+| Unused exports | **Done** G-12 — 75→5 residual (shadcn dialog + scripts local env) |
 | Whitelist | `src/modules/cssd-erp/actions/cssd.actions.ts` |
 
 ---

@@ -15,10 +15,10 @@
 | `verify:cssd` / `test:pilot` | **PASS** (49 / 24) |
 | `layout:typography-check` | **PASS** |
 | `layout:drift-check` | **PASS** (UI-01 Done) |
-| `dead-code:scan` | **WARN** — 0 unused files · unusedExports **75** (wave B −40) |
+| `dead-code:scan` | **WARN** — 0 unused files · unusedExports **5** (G-12 Done; residual dialog + scripts env) |
 | `local:golden:verify` / `pilot:go-live:gate:local` | **PASS** (2026-07-09 re-verify) |
 
-**P0 mở: 0 · P1 mở: 0 · P2/P3 residual · UAT NKBV tay #2–#5**
+**P0 mở: 0 · P1 mở: 0 · P2 Done (G-12) · P3 roadmap · UAT NKBV tay #2–#5**
 
 ---
 
@@ -129,7 +129,7 @@
 | DB-08 | NKBV fact RLS | **Done** — `20260709130000` |
 | UI-01 | Layout 2 modal | **Done** |
 | BE-AUTH-03/04 | Prefetch / missing env | Prefetch giữ (perf); **BE-AUTH-04 Done** — thiếu env → redirect login |
-| G-12 (cũ) | unused-var boy-scout | **Partial Done** — wave B 2026-07-09: unusedExports **115→75** (−40); residual Fallow giữ |
+| G-12 (cũ) | unused-var boy-scout | **Done** (2026-07-09) — unusedExports **75→5**; residual: shadcn `dialog` + script local env (giữ by design) |
 | BE-ORPHAN-01 | 5 file Pilot W3 | **Done** — đã xóa |
 | DOM-03 | GSC README dual entry | **Done** |
 | DOM-14 | spawn RPC tên cũ | **Done** |
@@ -169,7 +169,7 @@
 | 9 | DOM-01 + DB-01 | Docs | S | **Done** |
 | 10 | BE-ORPHAN-01 | Dashboard/QLCV | S | **Done** |
 | 11 | P2 batch | Docs+RLS+proxy | M | **Done** |
-| 12 | DOM-10 + G-12 | QLCV + dead-code | M | **Done** (+ wave B −40 exports) |
+| 12 | DOM-10 + G-12 | QLCV + dead-code | M | **Done** (unusedExports 75→5) |
 | 13 | Mobile CSSD | CSSD quét QR | S | **Done** — scroll lock + touch targets trạm/BOM/camera |
 
 ---
@@ -178,7 +178,7 @@
 
 | ID cũ | Trạng thái mới |
 |-------|----------------|
-| G-12 unused-var | Vẫn P2 ongoing |
+| G-12 unused-var | **Done** — residual 5 (dialog + scripts env) by design |
 | G-11 / S-RLS-01 | **Engineering Done** (migration 0703) — residual DB-02 summary; cập nhật doc |
 | G-10 NKBV UAT | Vẫn mở → gộp DOM-08 |
 

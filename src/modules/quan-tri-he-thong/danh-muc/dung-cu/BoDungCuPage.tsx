@@ -25,7 +25,6 @@ import {
   softDeleteManyBoDungCuAction,
   toggleBoDungCuStatusAction,
 } from "../actions/bo-dung-cu.actions";
-import { DmMasterPageGuard } from "../views/dm-master-page-guard";
 
 export function BoDungCuPageContent() {
   const router = useRouter();
@@ -198,13 +197,5 @@ export function BoDungCuPageContent() {
         onSavedMaBo={(ma) => setLastCreatedMaBo(ma)}
       />
     </div>
-  );
-}
-
-export default function BoDungCuPage() {
-  return (
-    <DmMasterPageGuard moduleKey="BO_DC" label="Danh mục Bộ dụng cụ">
-      <BoDungCuPageContent />
-    </DmMasterPageGuard>
   );
 }

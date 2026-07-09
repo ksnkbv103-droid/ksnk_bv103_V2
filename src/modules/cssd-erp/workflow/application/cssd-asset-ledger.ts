@@ -5,9 +5,6 @@ import {
 
 export type { QuyTrinhBomLine as ThanhPhanRow } from "../../shared/domain/cssd-quy-trinh-bom";
 
-/** @deprecated Dùng syncBomLinesFromTemplate — giữ alias cho call site cũ. */
-export { syncBomLinesFromTemplate as syncThanhPhanTuTemplate } from "../../shared/application/cssd-quy-trinh-bom";
-
 /** Kiểm tra cấu phần trước cấp phát — soft warning từ view realtime (Q2). */
 export type LedgerCapPhatResult =
   | { ok: true }

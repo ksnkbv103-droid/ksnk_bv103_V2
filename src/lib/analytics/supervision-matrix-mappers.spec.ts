@@ -6,11 +6,14 @@ import {
   countTgsCoveredKhoa,
   coverageCellStatus,
   gapExclusionReason,
+  gapRowVolTotal,
   isGapComparable,
   KHOA_COMPLIANCE_WARN_PCT,
   mergeMasterGapRows,
   normalizeGapKhoaRow,
   partitionGapKhoaRows,
+  resolveKhoaAggregateTyLe,
+  sortGapRowsByAggregateTyLe,
   sortGapRowsByMetric,
 } from "./supervision-matrix-mappers";
 
@@ -64,6 +67,26 @@ describe("supervision-matrix-mappers", () => {
       normalizeGapKhoaRow({ id: "b", ten: "B", ma_khoa: "B1", ty_le_ksnk: 40, ksnk_co_hoi: 1, ksnk_dat: 1 }),
     ];
     expect(sortGapRowsByMetric(rows, "ty_le_ksnk", "desc").map((r) => r.id)).toEqual(["a", "b"]);
+  });
+
+  it("sortGapRowsByMetric sorts vol_total desc", () => {
+    const rows = [
+      normalizeGapKhoaRow({ id: "a", ten: "A", ma_khoa: "A1", ksnk_co_hoi: 2, ksnk_dat: 1, tgs_co_hoi: 1, tgs_dat: 1 }),
+      normalizeGapKhoaRow({ id: "b", ten: "B", ma_khoa: "B1", ksnk_co_hoi: 5, ksnk_dat: 3 }),
+      normalizeGapKhoaRow({ id: "c", ten: "C", ma_khoa: "C1", ksnk_co_hoi: 0, tgs_co_hoi: 10, tgs_dat: 8 }),
+    ];
+    expect(gapRowVolTotal(rows[0])).toBe(3);
+    expect(sortGapRowsByMetric(rows, "vol_total", "desc").map((r) => r.id)).toEqual(["c", "b", "a"]);
+  });
+
+  it("sortGapRowsByAggregateTyLe sorts desc with matrix fallback", () => {
+    const rows = [
+      normalizeGapKhoaRow({ id: "k1", ten: "K1", ma_khoa: "K1", ty_le_ksnk: null, ksnk_co_hoi: 0 }),
+      normalizeGapKhoaRow({ id: "k2", ten: "K2", ma_khoa: "K2", ty_le_ksnk: 60, ksnk_co_hoi: 1, ksnk_dat: 1 }),
+      normalizeGapKhoaRow({ id: "k3", ten: "K3", ma_khoa: "K3", ty_le_ksnk: 90, ksnk_co_hoi: 1, ksnk_dat: 1 }),
+    ];
+    const matrix = [{ id: "k1", ma_khoa: "K1", ty_le_tuan_thu: 75 }];
+    expect(sortGapRowsByAggregateTyLe(rows, matrix, "desc").map((r) => r.id)).toEqual(["k3", "k1", "k2"]);
   });
 
   it("buildGapKhoaRows adds placeholder for filtered khoa without gap data", () => {
@@ -188,6 +211,30 @@ describe("supervision-matrix-mappers", () => {
 
   it("KHOA_COMPLIANCE_WARN_PCT is 80 for dashboard highlight", () => {
     expect(KHOA_COMPLIANCE_WARN_PCT).toBe(80);
+  });
+
+  it("resolveKhoaAggregateTyLe prefers KSNK then TGS then matrix aggregate", () => {
+    const row = normalizeGapKhoaRow({
+      id: "k1",
+      ten: "Khoa A",
+      ma_khoa: "A01",
+      ty_le_ksnk: 88,
+      ty_le_tgs: 70,
+      ksnk_co_hoi: 5,
+    });
+    expect(resolveKhoaAggregateTyLe(row, 60)).toBe(88);
+    expect(
+      resolveKhoaAggregateTyLe(
+        { ...row, ty_le_ksnk: null, ty_le_tgs: 72 },
+        60,
+      ),
+    ).toBe(72);
+    expect(
+      resolveKhoaAggregateTyLe(
+        { ...row, ty_le_ksnk: null, ty_le_tgs: null },
+        65.555,
+      ),
+    ).toBe(65.56);
   });
 
   it("mergeMasterGapRows combines VST and GSC volumes per khoa", () => {

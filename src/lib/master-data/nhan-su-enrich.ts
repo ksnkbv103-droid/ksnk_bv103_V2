@@ -10,7 +10,7 @@ import {
 
 export type HoSoRow = Record<string, unknown>;
 
-export async function enrichHoSoForSupervisionUi(supabase: any, rows: HoSoRow[]): Promise<HoSoRow[]> {
+async function enrichHoSoForSupervisionUi(supabase: any, rows: HoSoRow[]): Promise<HoSoRow[]> {
   if (!rows?.length) return [];
   const dmIds = rows.flatMap((x) => [
     String(x.to_id || "").trim(),

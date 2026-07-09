@@ -59,3 +59,16 @@ export function useBodyScrollLock(active: boolean) {
     return () => unlockBodyScroll();
   }, [active]);
 }
+
+/** Gỡ khóa body còn sót sau điều hướng (lockCount=0 nhưng body vẫn fixed). */
+export function repairBodyScrollLockIfStale() {
+  if (lockCount > 0 || document.body.dataset.bv103ScrollLock !== "1") return;
+
+  document.body.style.overflow = "";
+  document.body.style.position = "";
+  document.body.style.top = "";
+  document.body.style.width = "";
+  document.body.style.paddingRight = "";
+  delete document.body.dataset.bv103ScrollLock;
+  savedBody = null;
+}

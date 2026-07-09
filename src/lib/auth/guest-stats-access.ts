@@ -1,6 +1,6 @@
 /** Vai trò khách — chỉ xem Thống kê VST/GSC. */
 
-export const GUEST_STATS_ROLE = "KHACH_THONG_KE_GSTT" as const;
+const GUEST_STATS_ROLE = "KHACH_THONG_KE_GSTT" as const;
 
 export const GUEST_STATS_HOME_PATH = "/thong-ke/vst" as const;
 

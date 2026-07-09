@@ -7,6 +7,8 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  LabelList,
+  Legend,
   Line,
   LineChart,
   PolarAngleAxis,
@@ -14,6 +16,7 @@ import {
   PolarRadiusAxis,
   Radar,
   RadarChart,
+  ReferenceLine,
   Tooltip,
   XAxis,
   YAxis,
@@ -25,13 +28,17 @@ import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strat
 import { roundPercent2, formatPercent2 } from "@/lib/analytics/supervision-percent";
 import { complianceToneFromPercent } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
 import {
-  bottomPercentHighlightIndices,
-  highlightBarFill,
   momentRowBg,
   momentToneClass,
   percentTooltipFormatter,
   SupervisionResponsiveChart,
+  complianceBarColor,
+  KHOA_BAR_CHART_MARGIN,
+  KhoaChartViewport,
+  KhoaComplianceBarLabel,
+  khoaCategoryYAxis,
 } from "@/lib/analytics/supervision-charts-shared";
+import { KHOA_COMPLIANCE_WARN_PCT } from "@/lib/analytics/supervision-matrix-mappers";
 import {
   normalizeGscTrendline,
   normalizeVstTrendline,
@@ -137,7 +144,7 @@ export function SupervisionTrendChart({
   );
 }
 
-export function SupervisionCompareBarChart({
+function SupervisionCompareBarChart({
   title,
   rows,
   loading,
@@ -148,26 +155,49 @@ export function SupervisionCompareBarChart({
   loading?: boolean;
   layout?: "vertical" | "horizontal";
 }) {
-  const data = rows.filter((r) => r.ten);
+  const data = useMemo(
+    () =>
+      [...rows]
+        .filter((r) => r.ten)
+        .sort((a, b) => {
+          const av = a.ty_le_tuan_thu ?? -1;
+          const bv = b.ty_le_tuan_thu ?? -1;
+          if (av !== bv) return bv - av;
+          return String(a.ten).localeCompare(String(b.ten), "vi");
+        }),
+    [rows],
+  );
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-4">
       <h3 className="mb-3 text-sm font-bold text-slate-800">{title}</h3>
-      <div className={layout === "vertical" ? "h-[220px]" : "h-[200px]"}>
+      <KhoaChartViewport rowCount={data.length}>
         {!loading && data.length > 0 ? (
           <SupervisionResponsiveChart className="h-full w-full min-w-0">
             {layout === "vertical" ? (
-              <BarChart data={data} layout="vertical" margin={{ left: 8, right: 8 }}>
+              <BarChart data={data} layout="vertical" margin={KHOA_BAR_CHART_MARGIN}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                 <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 10 }} />
-                <YAxis type="category" dataKey="ten" width={88} tick={{ fontSize: 9 }} interval={0} />
+                <YAxis {...khoaCategoryYAxis} />
                 <Tooltip formatter={percentTooltipFormatter} />
-                <Bar dataKey="ty_le_tuan_thu" name="Tuân thủ %" fill="#38bdf8" radius={[0, 4, 4, 0]}>
-                  {data.map((entry, index) => {
-                    const highlights = bottomPercentHighlightIndices(data.map((r) => r.ty_le_tuan_thu));
-                    return (
-                      <Cell key={`${entry.ten}-${index}`} fill={highlightBarFill("#38bdf8", highlights.has(index))} />
-                    );
-                  })}
+                <ReferenceLine
+                  x={KHOA_COMPLIANCE_WARN_PCT}
+                  stroke="#94a3b8"
+                  strokeDasharray="4 4"
+                  label={{
+                    value: `${KHOA_COMPLIANCE_WARN_PCT}%`,
+                    position: "insideTopRight",
+                    fontSize: 9,
+                    fill: "#64748b",
+                  }}
+                />
+                <Bar dataKey="ty_le_tuan_thu" name="Tuân thủ %" fill="#38bdf8" maxBarSize={18} radius={[0, 4, 4, 0]}>
+                  {data.map((entry) => (
+                    <Cell
+                      key={entry.ten}
+                      fill={complianceBarColor("#38bdf8", entry.ty_le_tuan_thu)}
+                    />
+                  ))}
+                  <LabelList dataKey="ty_le_tuan_thu" content={KhoaComplianceBarLabel} />
                 </Bar>
               </BarChart>
             ) : (
@@ -176,23 +206,28 @@ export function SupervisionCompareBarChart({
                 <XAxis dataKey="ten" tick={{ fontSize: 9 }} angle={-25} textAnchor="end" height={56} interval={0} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
                 <Tooltip formatter={percentTooltipFormatter} />
+                <ReferenceLine
+                  y={KHOA_COMPLIANCE_WARN_PCT}
+                  stroke="#94a3b8"
+                  strokeDasharray="4 4"
+                />
                 <Bar dataKey="ty_le_tuan_thu" name="Tuân thủ %" fill="#38bdf8">
-                  {data.map((entry, index) => {
-                    const highlights = bottomPercentHighlightIndices(data.map((r) => r.ty_le_tuan_thu));
-                    return (
-                      <Cell key={`${entry.ten}-${index}`} fill={highlightBarFill("#38bdf8", highlights.has(index))} />
-                    );
-                  })}
+                  {data.map((entry) => (
+                    <Cell
+                      key={entry.ten}
+                      fill={complianceBarColor("#38bdf8", entry.ty_le_tuan_thu)}
+                    />
+                  ))}
                 </Bar>
               </BarChart>
             )}
           </SupervisionResponsiveChart>
         ) : (
-          <p className="flex h-full items-center justify-center text-sm text-slate-400">
+          <p className="flex h-full min-h-[200px] items-center justify-center text-sm text-slate-400">
             {loading ? "Đang tải…" : "Chưa có dữ liệu"}
           </p>
         )}
-      </div>
+      </KhoaChartViewport>
     </div>
   );
 }
@@ -289,7 +324,7 @@ export function SupervisionMomentsPanel({
   );
 }
 
-export function SupervisionCompareGrid({
+function SupervisionCompareGrid({
   sections,
   loading,
 }: {
@@ -300,7 +335,7 @@ export function SupervisionCompareGrid({
   if (!loading && visible.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4">
       {visible.map((s) => (
         <SupervisionCompareBarChart key={s.title} title={s.title} rows={s.rows} loading={loading} />
       ))}

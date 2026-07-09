@@ -4,7 +4,7 @@
  */
 export const bv103DesignTokens = {
   pageOuter:
-    "w-full min-h-[40vh] space-y-4 pb-8 touch-manipulation [-webkit-tap-highlight-color:transparent] sm:space-y-6 sm:pb-12",
+    "w-full min-h-[40vh] space-y-4 pb-8 [-webkit-tap-highlight-color:transparent] sm:space-y-6 sm:pb-12",
   pageOuterAnalytics: "w-full space-y-4 pb-16 sm:space-y-8 sm:pb-24",
   pageSectionGap: "space-y-4 sm:space-y-8",
 
@@ -66,4 +66,4 @@ export const bv103DesignTokens = {
   skeletonBlock: "animate-pulse rounded-[var(--radius-shell)] border border-slate-200 bg-slate-100/80",
 } as const;
 
-export const BV103_MIN_LABEL_CLASS = "text-[11px]" as const;
+const BV103_MIN_LABEL_CLASS = "text-[11px]" as const;

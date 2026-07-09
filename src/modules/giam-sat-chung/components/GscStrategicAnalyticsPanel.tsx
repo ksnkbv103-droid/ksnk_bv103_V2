@@ -11,7 +11,6 @@ import {
 } from "@/lib/analytics/supervision-analytics-charts";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatPercent2 } from "@/lib/analytics/supervision-percent";
-import { buildAnalyticsUrlQuery } from "@/lib/analytics/supervision-deep-link";
 import type { GscStrategicPayload } from "../types/gsc-strategic.types";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
 import { GscChecklistNavigator } from "./GscChecklistNavigator";
@@ -174,10 +173,27 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         />
       ) : null}
 
+      <section className={`${UI.shell} w-full min-w-0 p-4`}>
+        <header className="mb-4">
+          <h2 className="text-sm font-bold text-slate-800">Thống kê theo khoa</h2>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Tỷ lệ tuân thủ và khối lượng khảo sát — đủ mã khoa trong phạm vi lọc; khoa dưới 80% được tô cảnh báo.
+          </p>
+        </header>
+        <SupervisionKhoaAnalyticsBlock
+          rows={gapKhoaRows}
+          matrixKhoaRows={p.payload?.matrix_khoa}
+          loading={p.loading}
+          moduleLabel="GSC"
+          tgsVolumeLabel="Khảo sát TGS"
+          ksnkVolumeLabel="Khảo sát KSNK"
+        />
+      </section>
+
       <details className={`${UI.shell} group`}>
         <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           Tổng hợp chung (mọi BK trong kỳ)
-          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">KPI · xu hướng · so sánh khoa gộp</span>
+          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">KPI · xu hướng · top vi phạm</span>
         </summary>
         <div className="space-y-4 border-t border-slate-100 px-4 pb-4 pt-3">
           <SupervisionKpiRow
@@ -194,13 +210,6 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
             data={p.payload?.trendline ?? []}
             loading={p.loading}
             source="gsc"
-          />
-          <SupervisionKhoaAnalyticsBlock
-            rows={gapKhoaRows}
-            loading={p.loading}
-            moduleLabel="GSC"
-            tgsVolumeLabel="Khảo sát TGS"
-            ksnkVolumeLabel="Khảo sát KSNK"
           />
           {(p.payload?.top_violations?.length ?? 0) > 0 ? (
             <div className={`${UI.inset} p-3`}>
@@ -224,15 +233,4 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       </details>
     </div>
   );
-}
-
-export function buildGscAnalyticsDeepLink(
-  seed: { tu_ngay?: string; den_ngay?: string; khoa_ids?: string[] },
-  maBk?: string,
-): string {
-  const q = buildAnalyticsUrlQuery(seed);
-  const params = new URLSearchParams(q);
-  if (maBk) params.set("bk", maBk);
-  const s = params.toString();
-  return s ? `/thong-ke/gsc?${s}` : "/thong-ke/gsc";
 }

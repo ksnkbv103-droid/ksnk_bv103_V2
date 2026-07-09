@@ -214,4 +214,4 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 | BE-ORPHAN-01 | **Done** (xóa 5 file W3) |
 | BE-AUTH-04 | **Done** (proxy thiếu env → login) |
 | DOM-10 | **Done** (`20260709140000`) |
-| G-12 | **Partial** (dead exports ↓) |
+| G-12 | **Done** (unusedExports 75→5; giữ dialog/scripts) |

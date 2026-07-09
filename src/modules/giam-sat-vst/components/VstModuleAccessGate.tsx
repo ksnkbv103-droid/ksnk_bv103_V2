@@ -7,7 +7,7 @@ import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 const MODULE_KEY = "GIAM_SAT_VST";
 
-export function VstPermissionDeniedPanel({
+function VstPermissionDeniedPanel({
   message = "Bạn không có quyền truy cập module Giám sát vệ sinh tay.",
 }: {
   message?: string;

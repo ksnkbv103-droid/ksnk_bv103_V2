@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const stationEnum = z.enum(["TIEP_NHAN", "LAM_SACH", "QC", "DONG_GOI", "TIET_KHUAN", "CAP_PHAT"]);
 
-export const incidentGroupSchema = z.enum([
+const incidentGroupSchema = z.enum([
   "PROCESS",
   "INSTRUMENT",
   "CHEMICAL",
@@ -10,7 +10,7 @@ export const incidentGroupSchema = z.enum([
   "OTHER",
 ]);
 
-export const instrumentIncidentPayloadSchema = z.object({
+const instrumentIncidentPayloadSchema = z.object({
   chiTietId: z.string().uuid().optional(),
   loaiDungCuId: z.string().uuid().optional(),
   boDungCuId: z.string().uuid().optional(),

@@ -17,7 +17,6 @@ import {
 } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
 import { formatPercent2, roundPercent2 } from "@/lib/analytics/supervision-percent";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
-import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
 import type { CSSProperties, ReactElement } from "react";
 
 /** Wrapper SSOT — tránh Recharts width(-1)/height(-1) khi flex/tab chưa layout. */
@@ -37,18 +36,18 @@ export function SupervisionResponsiveChart({
   );
 }
 
-/** Chiều cao tối thiểu / tối đa vùng vẽ khoa — vượt max thì cuộn dọc. */
+/** Chiều cao tối thiểu vùng vẽ khoa — mở rộng theo số hàng; cuộn theo trang (không hộp lồng). */
 const KHOA_CHART_HEIGHT_MIN = 260;
-const KHOA_CHART_HEIGHT_MAX = 720;
 /** px mỗi hàng khoa (layout ngang — mã khoa trên trục Y). */
 const KHOA_BAR_SLOT_HEIGHT = 26;
-const KHOA_Y_AXIS_WIDTH = 56;
+const KHOA_Y_AXIS_WIDTH = 72;
 
 function khoaChartPlotHeight(rowCount: number): number {
   if (rowCount <= 0) return KHOA_CHART_HEIGHT_MIN;
   return Math.max(KHOA_CHART_HEIGHT_MIN, rowCount * KHOA_BAR_SLOT_HEIGHT + 56);
 }
 
+/** Vùng vẽ biểu đồ khoa — chiều cao theo số hàng; wheel/trackpad cuộn trang như phần còn lại. */
 function KhoaChartViewport({
   rowCount,
   children,
@@ -57,14 +56,9 @@ function KhoaChartViewport({
   children: React.ReactNode;
 }) {
   const plotHeight = khoaChartPlotHeight(rowCount);
-  const needsScroll = plotHeight > KHOA_CHART_HEIGHT_MAX;
-  const viewportHeight = needsScroll ? KHOA_CHART_HEIGHT_MAX : plotHeight;
   return (
-    <div
-      className={needsScroll ? "overflow-y-auto overscroll-y-contain touch-pan-y" : undefined}
-      style={{ height: viewportHeight }}
-    >
-      <div style={{ height: plotHeight }}>{children}</div>
+    <div className="w-full min-w-0" style={{ height: plotHeight }}>
+      {children}
     </div>
   );
 }
@@ -153,25 +147,55 @@ function useSortedGapRows(
 }
 
 function GapSortToolbar({
+  sortMetric,
   sortOrder,
   onSortOrderChange,
+  onSortMetricChange,
 }: {
   sortMetric?: GapKhoaSortMetric;
   sortOrder: GapKhoaSortOrder;
   onSortOrderChange?: (order: GapKhoaSortOrder) => void;
+  onSortMetricChange?: (metric: GapKhoaSortMetric) => void;
   moduleLabel?: string;
 }) {
+  const metricLabels: Partial<Record<GapKhoaSortMetric, string>> = {
+    label: "Mã khoa",
+    ty_le_ksnk: "% KSNK",
+    ty_le_tgs: "% TGS",
+    vol_ksnk: "Vol KSNK",
+    vol_tgs: "Vol TGS",
+  };
+
   return (
-    <div className="mb-2 flex flex-wrap items-center justify-end gap-2">
-      {onSortOrderChange ? (
-        <button
-          type="button"
-          className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-50"
-          onClick={() => onSortOrderChange(sortOrder === "desc" ? "asc" : "desc")}
-        >
-          {sortOrder === "desc" ? "Cao → thấp" : "Thấp → cao"}
-        </button>
-      ) : null}
+    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+      <p className="text-[11px] text-slate-500">
+        Hiển thị đủ mã khoa trong phạm vi lọc · cảnh báo màu khi tuân thủ &lt;{KHOA_COMPLIANCE_WARN_PCT}%
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        {onSortMetricChange ? (
+          <select
+            className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600"
+            value={sortMetric ?? "label"}
+            onChange={(e) => onSortMetricChange(e.target.value as GapKhoaSortMetric)}
+            aria-label="Sắp xếp theo"
+          >
+            {(Object.keys(metricLabels) as GapKhoaSortMetric[]).map((key) => (
+              <option key={key} value={key}>
+                {metricLabels[key]}
+              </option>
+            ))}
+          </select>
+        ) : null}
+        {onSortOrderChange ? (
+          <button
+            type="button"
+            className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-50"
+            onClick={() => onSortOrderChange(sortOrder === "desc" ? "asc" : "desc")}
+          >
+            {sortOrder === "desc" ? "Cao → thấp" : "Thấp → cao"}
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -241,86 +265,200 @@ function TgsDashedBarShape({ x = 0, y = 0, width = 0, height = 0, fill = "#fbbf2
   );
 }
 
-function khoaHorizontalPercentChart(
-  data: { label: string; value: number | null; dat?: number; tong?: number; fullName?: string }[],
-  barName: string,
-  fill: string,
-  showThreshold?: boolean,
-) {
-  const chartData = data.map((d) => ({
-    ten: d.label,
-    value: d.value,
-    dat: d.dat,
-    tong: d.tong,
-    fullName: d.fullName,
-  }));
-  const highlights = bottomPercentHighlightIndices(chartData.map((d) => d.value));
+/** Lề phải đủ chỗ nhãn % + đạt/tổng ngoài cột ngắn. */
+const KHOA_BAR_CHART_MARGIN = { left: 4, right: 108, top: 4, bottom: 4 };
+
+const complianceLabelToneFill: Record<ComplianceTone, string> = {
+  green: "#047857",
+  yellow: "#b45309",
+  red: "#dc2626",
+  neutral: "#64748b",
+};
+
+type KhoaBarLabelPayload = {
+  ty_le_tuan_thu?: number | null;
+  dat?: number;
+  tong?: number;
+  dat_ksnk?: number;
+  dat_tgs?: number;
+  vol_ksnk?: number;
+  vol_tgs?: number;
+};
+
+type KhoaBarLabelProps = {
+  x?: number | string;
+  y?: number | string;
+  width?: number | string;
+  height?: number | string;
+  value?: number | string | null;
+  payload?: KhoaBarLabelPayload | Record<string, unknown>;
+};
+
+function labelCoord(value: number | string | undefined): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function readBarLabelPayload(payload: KhoaBarLabelProps["payload"]): KhoaBarLabelPayload {
+  return (payload ?? {}) as KhoaBarLabelPayload;
+}
+
+function formatDatTongLabel(dat: number, tong: number): string {
+  if (tong <= 0) return "";
+  return `${dat.toLocaleString("vi-VN")}/${tong.toLocaleString("vi-VN")}`;
+}
+
+/** Nhãn trên cột % tuân thủ — % đậm + đạt/tổng, màu theo ngưỡng. */
+function KhoaComplianceBarLabel(rawProps: unknown) {
+  const props = rawProps as KhoaBarLabelProps;
+  const x = labelCoord(props.x);
+  const y = labelCoord(props.y);
+  const width = labelCoord(props.width);
+  const height = labelCoord(props.height);
+  const { value } = props;
+  const payload = readBarLabelPayload(props.payload);
+  const pctRaw = payload?.ty_le_tuan_thu ?? (typeof value === "number" ? value : null);
+  const pct = pctRaw != null && Number.isFinite(Number(pctRaw)) ? Number(pctRaw) : null;
+  const dat = Number(payload?.dat ?? 0);
+  const tong = Number(payload?.tong ?? 0);
+  const centerY = y + height / 2;
+
+  if (pct == null && tong === 0) {
+    return (
+      <text x={x + 4} y={centerY} dy="0.35em" fontSize={10} fill="#94a3b8" fontWeight={700}>
+        —
+      </text>
+    );
+  }
+
+  const pctText = pct != null ? formatPercent2(pct) : "—";
+  const ratioText = formatDatTongLabel(dat, tong);
+  const tone = gapPctTone(pct);
+  const outsideFill = complianceLabelToneFill[tone];
+  const inside = width >= 68;
+
+  if (inside) {
+    const label = ratioText ? `${pctText} · ${ratioText}` : pctText;
+    return (
+      <text
+        x={x + width - 5}
+        y={centerY}
+        dy="0.35em"
+        textAnchor="end"
+        fontSize={10}
+        fontWeight={800}
+        fill="#ffffff"
+        style={{ paintOrder: "stroke", stroke: "rgba(15,23,42,0.4)", strokeWidth: 2.5 }}
+      >
+        {label}
+      </text>
+    );
+  }
+
   return (
-    <SupervisionResponsiveChart className="h-full w-full min-w-0">
-      <BarChart data={chartData} layout="vertical" margin={{ left: 4, right: 12, top: 4, bottom: 4 }}>
-        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-        <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 10 }} />
-        <YAxis {...khoaCategoryYAxis} />
-        <Tooltip
-          formatter={percentTooltipFormatter}
-          labelFormatter={(_label, payload) => {
-            const row = Array.isArray(payload) ? payload[0]?.payload : undefined;
-            return String(row?.fullName ?? _label);
-          }}
-        />
-        {showThreshold ? (
-          <ReferenceLine
-            x={BAO_CAO_TONG_HOP_THRESHOLDS.GREEN_MIN}
-            stroke="#94a3b8"
-            strokeDasharray="4 4"
-            label={{
-              value: `${BAO_CAO_TONG_HOP_THRESHOLDS.GREEN_MIN}%`,
-              position: "insideTopRight",
-              fontSize: 9,
-              fill: "#64748b",
-            }}
-          />
-        ) : null}
-        <Bar dataKey="value" name={barName} fill={fill} maxBarSize={20}>
-          {chartData.map((entry, index) => (
-            <Cell key={entry.ten} fill={highlightBarFill(fill, highlights.has(index))} />
-          ))}
-        </Bar>
-      </BarChart>
-    </SupervisionResponsiveChart>
+    <g>
+      <text
+        x={x + width + 6}
+        y={centerY}
+        dy={ratioText ? "-0.15em" : "0.35em"}
+        textAnchor="start"
+        fontSize={11}
+        fontWeight={800}
+        fill={outsideFill}
+      >
+        {pctText}
+      </text>
+      {ratioText ? (
+        <text
+          x={x + width + 6}
+          y={centerY}
+          dy="0.95em"
+          textAnchor="start"
+          fontSize={9}
+          fontWeight={700}
+          fill="#475569"
+        >
+          {ratioText}
+        </text>
+      ) : null}
+    </g>
   );
 }
 
-function SupervisionKhoaPercentBlock({
-  title,
-  children,
-  loading,
-  hasData,
-  rowCount,
-}: {
-  title: string;
-  children: React.ReactNode;
-  loading?: boolean;
-  hasData: boolean;
-  rowCount: number;
-}) {
+/** Nhãn khối lượng trên cột KSNK/TGS — đạt/tổng cơ hội. */
+function KhoaVolumeBarLabel(props: KhoaBarLabelProps & { variant: "ksnk" | "tgs" }) {
+  const x = labelCoord(props.x);
+  const y = labelCoord(props.y);
+  const width = labelCoord(props.width);
+  const height = labelCoord(props.height);
+  const { value, variant } = props;
+  const payload = readBarLabelPayload(props.payload);
+  const vol =
+    variant === "ksnk"
+      ? Number(payload?.vol_ksnk ?? value ?? 0)
+      : Number(payload?.vol_tgs ?? value ?? 0);
+  const dat = variant === "ksnk" ? Number(payload?.dat_ksnk ?? 0) : Number(payload?.dat_tgs ?? 0);
+  if (vol <= 0) return null;
+
+  const text = formatDatTongLabel(dat, vol);
+  const centerY = y + height / 2;
+  const inside = width >= 40;
+  const outsideFill = variant === "ksnk" ? "#0369a1" : "#b45309";
+  const insideFill = variant === "ksnk" ? "#ffffff" : "#78350f";
+
+  if (inside) {
+    return (
+      <text
+        x={x + width / 2}
+        y={centerY}
+        dy="0.35em"
+        textAnchor="middle"
+        fontSize={9}
+        fontWeight={800}
+        fill={insideFill}
+        style={
+          variant === "ksnk"
+            ? { paintOrder: "stroke", stroke: "rgba(3,105,161,0.45)", strokeWidth: 2 }
+            : undefined
+        }
+      >
+        {text}
+      </text>
+    );
+  }
+
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <h3 className="mb-3 text-sm font-bold text-slate-800">{title}</h3>
-      <KhoaChartViewport rowCount={rowCount}>
-        {!loading && hasData ? (
-          children
-        ) : (
-          <p className="flex h-full min-h-[200px] items-center justify-center text-sm text-slate-400">
-            {loading ? "Đang tải…" : "Chưa có dữ liệu"}
-          </p>
-        )}
-      </KhoaChartViewport>
-    </div>
+    <text
+      x={x + width + 4}
+      y={centerY}
+      dy="0.35em"
+      textAnchor="start"
+      fontSize={9}
+      fontWeight={800}
+      fill={outsideFill}
+    >
+      {text}
+    </text>
   );
 }
+
+function khoaVolumeBarLabelContent(variant: "ksnk" | "tgs") {
+  return function KhoaVolumeBarLabelContent(rawProps: unknown) {
+    return <KhoaVolumeBarLabel {...(rawProps as KhoaBarLabelProps)} variant={variant} />;
+  };
+}
+
 
 export { percentTooltipFormatter, KhoaChartViewport, khoaCategoryYAxis, KsnkSolidBarShape, TgsDashedBarShape };
-export { gapPctTone, gapCompareStatus, formatGapPctWithDatTong, useSortedGapRows, GapSortToolbar };
-export { momentToneClass, momentRowBg, khoaHorizontalPercentChart, SupervisionKhoaPercentBlock };
+export {
+  gapPctTone,
+  gapCompareStatus,
+  formatGapPctWithDatTong,
+  useSortedGapRows,
+  GapSortToolbar,
+  KHOA_BAR_CHART_MARGIN,
+  KhoaComplianceBarLabel,
+  khoaVolumeBarLabelContent,
+};
+export { momentToneClass, momentRowBg };
 export { bottomPercentHighlightIndices, highlightBarFill, complianceBarColor };

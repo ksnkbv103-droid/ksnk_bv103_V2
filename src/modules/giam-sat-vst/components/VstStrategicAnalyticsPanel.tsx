@@ -3,8 +3,6 @@
 import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";
 
 import React, { useMemo } from "react";
-import Link from "next/link";
-import { ExternalLink } from "lucide-react";
 import { AnalyticsFilterBar } from "@/components/shared/AnalyticsFilterBar";
 import {
   SupervisionCompareAccordion,
@@ -66,8 +64,6 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
     [p.payload],
   );
 
-  const workloadItems = p.payload?.workload?.co_cau_giam_sat ?? [];
-
   return (
     <div className={`${UI.sectionGap} space-y-6 pb-8`}>
       <AnalyticsFilterBar
@@ -100,6 +96,23 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{p.loadError}</div>
       ) : null}
 
+      <section className={`${UI.shell} w-full min-w-0 p-4`}>
+        <header className="mb-4">
+          <h2 className="text-sm font-bold text-slate-800">Thống kê theo khoa</h2>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Tỷ lệ tuân thủ và số cơ hội giám sát — đủ mã khoa trong phạm vi lọc; khoa dưới 80% được tô cảnh báo.
+          </p>
+        </header>
+        <SupervisionKhoaAnalyticsBlock
+          rows={gapKhoaRows}
+          matrixKhoaRows={p.payload?.matrix_khoa}
+          loading={p.loading}
+          moduleLabel="VST"
+          tgsVolumeLabel="Cơ hội TGS"
+          ksnkVolumeLabel="Cơ hội KSNK"
+        />
+      </section>
+
       <details className={`${UI.shell} open:shadow-sm`} open>
         <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           Tổng hợp chung
@@ -126,27 +139,6 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         </div>
       </details>
 
-      {workloadItems.length > 0 ? (
-        <div className={`${UI.shell} p-4`}>
-          <p className="text-sm font-bold text-slate-700">Khối lượng giám sát</p>
-          <ul className="mt-2 space-y-1 text-xs text-slate-600">
-            {workloadItems.map((row) => (
-              <li key={row.ten}>
-                {row.ten}: <strong>{row.so_co_hoi}</strong> cơ hội
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
-      <SupervisionKhoaAnalyticsBlock
-        rows={gapKhoaRows}
-        loading={p.loading}
-        moduleLabel="VST"
-        tgsVolumeLabel="Cơ hội TGS"
-        ksnkVolumeLabel="Cơ hội KSNK"
-      />
-
       <SupervisionMomentsPanel moments={p.payload?.moments ?? []} loading={p.loading} stroke="#10b981" />
 
       <details className={`${UI.shell}`}>
@@ -159,16 +151,5 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         </div>
       </details>
     </div>
-  );
-}
-
-export function VstAnalyticsDeepLinkHint() {
-  return (
-    <Link
-      href="/thong-ke/vst"
-      className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:underline"
-    >
-      Xem chi tiết tại module VST <ExternalLink size={12} />
-    </Link>
   );
 }

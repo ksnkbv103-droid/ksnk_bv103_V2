@@ -1,6 +1,6 @@
 import type { ActorKsnkScope } from "@/lib/actor-ksnk-scope.types";
 
-export const VST_GUEST_HISTORY_DENIED_VI =
+const VST_GUEST_HISTORY_DENIED_VI =
   "Tài khoản khách chỉ được xem Thống kê VST/GSC.";
 
 export function assertVstHistoryAccess(

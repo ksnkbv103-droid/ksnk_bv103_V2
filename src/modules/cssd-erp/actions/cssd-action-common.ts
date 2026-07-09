@@ -8,7 +8,6 @@ import {
   revalidateCssdInventorySurfaces,
   revalidateCssdMaintenanceSurfaces,
   revalidateCssdWorkflowSurfaces,
-  safeRevalidateCssdPath,
 } from "@/lib/cssd-server-common";
 
 /** SSOT: [`../workflow/domain/cssd-stations.ts`](../workflow/domain/cssd-stations.ts) */
@@ -23,7 +22,6 @@ export {
   revalidateCssdInventorySurfaces,
   revalidateCssdMaintenanceSurfaces,
   revalidateCssdWorkflowSurfaces,
-  safeRevalidateCssdPath,
 };
 
 export { appendQuyTrinhException } from "../shared/application/cssd-quy-trinh-exceptions";

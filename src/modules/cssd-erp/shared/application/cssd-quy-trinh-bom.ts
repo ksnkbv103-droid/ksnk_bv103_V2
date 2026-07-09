@@ -39,7 +39,7 @@ export async function readQuyTrinhBomContext(
 }
 
 /** Khởi tạo metadata.bom_lines từ danh mục bộ nếu chưa có. */
-export async function syncBomLinesFromTemplate(
+async function syncBomLinesFromTemplate(
   supabase: SupabaseClient,
   quyTrinhId: string,
   boDungCuId: string | null,
@@ -85,7 +85,7 @@ export async function syncBomLinesFromTemplate(
   return { ok: true, bomLines };
 }
 
-export async function saveBomLinesOnQuyTrinh(
+async function saveBomLinesOnQuyTrinh(
   supabase: SupabaseClient,
   quyTrinhId: string,
   bomLines: QuyTrinhBomLine[],

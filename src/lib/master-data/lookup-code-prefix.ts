@@ -1,6 +1,6 @@
 /** Prefix mã lookup theo category_type / loaiDanhMuc (đồng bộ wave 2). */
 
-export const LOOKUP_CODE_PREFIX: Readonly<Record<string, string>> = {
+const LOOKUP_CODE_PREFIX: Readonly<Record<string, string>> = {
   NGHE_NGHIEP: "NN",
   HINH_THUC_GIAM_SAT: "HT",
   CACH_THUC_GIAM_SAT: "CT",

@@ -1,8 +1,8 @@
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 
-export const CCS_WEIGHT_VST = 0.5;
-export const CCS_WEIGHT_GSC = 0.5;
+const CCS_WEIGHT_VST = 0.5;
+const CCS_WEIGHT_GSC = 0.5;
 
 export function rateFromTotals(dat: number, tong: number): number | null {
   if (tong <= 0) return null;

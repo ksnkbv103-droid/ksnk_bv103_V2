@@ -40,7 +40,7 @@
 
 | ID | P | Slice | Trạng thái 2026-07-09 |
 |----|---|-------|------------------------|
-| G-12 | P2 | Boy-scout unused-var | **Partial** 2026-07-09 — dead exports ↓; residual Fallow |
+| G-12 | P2 | Boy-scout unused-var | **Done** 2026-07-09 — unusedExports 75→5 (dialog + scripts env giữ) |
 | G-11 / W2-02 | P3 | S-RLS-01 GSTT RLS fact phiên | **Done** (`20260703100000`); residual summary → `20260709130000` |
 | G-10 / W3-07 | P3 | NKBV clinical UAT (PO tay) | Vẫn mở — DOM-08 |
 

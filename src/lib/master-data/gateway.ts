@@ -36,7 +36,7 @@ export function toDistinctIds(values: unknown[]): string[] {
   return Array.from(new Set((values || []).map((x) => String(x || "").trim()).filter(Boolean)));
 }
 
-export function mapKhoaOptions(rows: KhoaRow[]): MasterOption[] {
+function mapKhoaOptions(rows: KhoaRow[]): MasterOption[] {
   return (rows || []).map((x) => ({
     id: String(x.id || ""),
     ma_danh_muc: String(x.ma_khoa || ""),
