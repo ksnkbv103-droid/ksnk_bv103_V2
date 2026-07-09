@@ -146,7 +146,7 @@ export default function BangKiemTable({
     isFormOpen && ((editingBK != null && allowEdit) || (editingBK == null && allowCreate));
 
   return (
-    <div className={`min-h-[400px] overflow-hidden p-0 animate-in fade-in ${C.panelSurface}`}>
+    <div className={`min-h-[400px] p-0 animate-in fade-in ${C.panelSurface}`}>
       <div className={C.pageToolbar}>
         <div className={TC.toolbarActions}>
           <button type="button" onClick={() => exportTemplate()} className={TC.ctaExport}>

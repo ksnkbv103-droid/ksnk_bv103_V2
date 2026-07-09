@@ -171,7 +171,7 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
       )}
 
       {/* Bảng dữ liệu chính — mobile: thẻ; desktop: bảng */}
-      <div className="overflow-hidden rounded-[var(--radius-table)] bg-white ring-1 ring-slate-200/90">
+      <div className="overflow-clip rounded-[var(--radius-table)] bg-white ring-1 ring-slate-200/90">
         {!isSmUp ? (
           <div className="custom-scrollbar bv103-scroll-y">
             <DataTableMobileCards
@@ -187,7 +187,7 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
             />
           </div>
         ) : (
-        <div className="custom-scrollbar bv103-scroll-y max-h-[min(520px,62dvh)]">
+        <div className="custom-scrollbar bv103-scroll-x overflow-x-auto">
           <table className={tableClassName ?? "w-full min-w-[640px] border-collapse text-left"}>
             <thead className="sticky top-0 z-20 bg-slate-50/95 shadow-[0_1px_0_rgb(226_232_240/0.95)]">
               <tr className="border-b border-slate-200/90">

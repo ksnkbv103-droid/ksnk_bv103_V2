@@ -23,9 +23,14 @@ export function GuestStatsShell({ children }: { children: React.ReactNode }) {
     }
   }, [pathname, router]);
 
+  useEffect(() => {
+    document.documentElement.classList.add("bv103-app-shell");
+    return () => document.documentElement.classList.remove("bv103-app-shell");
+  }, []);
+
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white px-4 py-3 md:px-6">
+    <div className="flex h-dvh max-h-dvh flex-col overflow-hidden bg-slate-50">
+      <header className="z-50 shrink-0 border-b border-slate-200 bg-white px-4 py-3 md:px-6">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <Image
@@ -51,7 +56,10 @@ export function GuestStatsShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-7xl flex-1 px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-4 md:py-6">
+      <main
+        data-bv103-app-scroll
+        className="mx-auto w-full max-w-7xl flex-1 min-h-0 overflow-x-hidden overflow-y-auto bv103-scroll-y custom-scrollbar px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-4 md:py-6"
+      >
         {children}
       </main>
     </div>

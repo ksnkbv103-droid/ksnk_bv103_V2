@@ -13,7 +13,7 @@ import SupervisionOfflineSyncListener from "@/components/shared/SupervisionOffli
 import RbacRefreshListener from "@/components/shared/RbacRefreshListener";
 import { GuestStatsShell } from "@/components/auth/GuestStatsShell";
 import { GuestStatsRouteGuard } from "@/components/auth/GuestStatsRouteGuard";
-import { repairBodyScrollLockIfStale, useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
+import { forceReleaseScrollLock, useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { usePermission } from "@/hooks/usePermission";
 import { canSeeCommandCenterNav } from "@/lib/nav/ksnk-nav-gates";
 import { resolvePostLoginPath } from "@/lib/auth/guest-stats-access";
@@ -51,8 +51,13 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
   }, [isLoginPage, router, isAdmin, canView, userRoles]);
 
   useEffect(() => {
+    document.documentElement.classList.add("bv103-app-shell");
+    return () => document.documentElement.classList.remove("bv103-app-shell");
+  }, []);
+
+  useEffect(() => {
     setIsOpen(false);
-    repairBodyScrollLockIfStale();
+    forceReleaseScrollLock();
   }, [pathname]);
 
   useBodyScrollLock(isOpen);
@@ -72,16 +77,19 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 pointer-events-auto">
+    <div className="flex h-dvh max-h-dvh overflow-hidden bg-slate-50 pointer-events-auto">
       <GuestStatsRouteGuard />
       <StaffSessionGate />
       <RbacRefreshListener />
       <SupervisionOfflineSyncListener />
       <Sidebar isOpen={isOpen} onClose={closeSidebar} />
 
-      <div className="flex flex-1 flex-col min-w-0 min-h-0">
+      <div className="flex min-h-0 flex-1 flex-col min-w-0 overflow-hidden">
         <Header onMenuClick={toggleSidebar} />
-        <main className="relative z-0 flex-1 px-2 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-4 md:p-8 pointer-events-auto">
+        <main
+          data-bv103-app-scroll
+          className="relative z-0 flex-1 min-h-0 overflow-x-hidden overflow-y-auto bv103-scroll-y custom-scrollbar px-2 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-4 md:p-8 pointer-events-auto"
+        >
           {pathnameUsesPhase1KsnkUnifiedContentShell(pathname) ? (
             <KsnkPageShell rolloutPhase="phase-1">{children}</KsnkPageShell>
           ) : (

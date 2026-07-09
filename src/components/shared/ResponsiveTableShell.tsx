@@ -18,7 +18,7 @@ type Props = {
 };
 
 const shellFrame =
-  "rounded-[var(--radius-table)] bg-white ring-1 ring-slate-200/90 max-sm:overflow-visible sm:overflow-hidden";
+  "rounded-[var(--radius-table)] bg-white ring-1 ring-slate-200/90 overflow-clip";
 
 export default function ResponsiveTableShell({
   children,
@@ -26,7 +26,7 @@ export default function ResponsiveTableShell({
   scrollHint = "Vuốt ngang để xem thêm cột",
   className = "",
   viewportClassName = "",
-  maxHeight = "max-h-[min(68dvh,640px)]",
+  maxHeight = "max-h-none",
   unboxed = false,
 }: Props) {
   const isSmUp = useMinWidth(640, false);
@@ -35,7 +35,7 @@ export default function ResponsiveTableShell({
   if (!isSmUp && mobileCards) {
     return (
       <div className={frame}>
-        <div className="custom-scrollbar bv103-scroll-y max-sm:max-h-none sm:max-h-[min(68dvh,640px)]">
+        <div className="custom-scrollbar bv103-scroll-y">
           {mobileCards}
         </div>
       </div>

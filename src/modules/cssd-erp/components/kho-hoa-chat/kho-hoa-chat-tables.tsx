@@ -172,11 +172,11 @@ type Props = {
 export default function KhoHoaChatTables({ tons, movs, loading }: Props) {
   return (
     <>
-      <div className="mt-6 min-h-[300px] overflow-hidden rounded-3xl border border-slate-100 bg-white p-2 shadow-sm">
+      <div className="mt-6 min-h-[300px] overflow-clip rounded-3xl border border-slate-100 bg-white p-2 shadow-sm">
         <AdvancedDataTable columns={tonCols} data={tons} loading={loading} searchPlaceholder="Tìm trong tồn lô..." />
       </div>
       <p className="mt-6 text-[11px] font-medium text-slate-500">Phiếu gần đây</p>
-      <div className="mt-2 min-h-[260px] overflow-hidden rounded-3xl border border-slate-100 bg-white p-2 shadow-sm">
+      <div className="mt-2 min-h-[260px] overflow-clip rounded-3xl border border-slate-100 bg-white p-2 shadow-sm">
         <AdvancedDataTable columns={movCols} data={movs} loading={loading} searchPlaceholder="Tìm phiếu..." />
       </div>
     </>

@@ -45,7 +45,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="vi" className={inter.className}>
-      <body className="bg-slate-50 text-slate-900 touch-manipulation pointer-events-auto">
+      <body className="bg-slate-50 text-slate-900 pointer-events-auto">
         <PermissionProvider>
           <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
         </PermissionProvider>
