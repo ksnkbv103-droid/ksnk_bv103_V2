@@ -89,12 +89,11 @@
   }
 
   html {
-    height: 100%;
     overflow-x: hidden;
   }
 
   body {
-    min-height: 100%;
+    min-height: 100dvh;
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -244,6 +243,17 @@
     touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
+  }
+
+  /** Vuốt dọc trong panel/sidebar: không dùng manipulation trên nút/link con (iOS Safari). */
+  .bv103-scroll-y a,
+  .bv103-scroll-y button,
+  .bv103-scroll-y input,
+  .bv103-scroll-y select,
+  .bv103-scroll-y textarea,
+  .bv103-scroll-y [role="button"],
+  .bv103-scroll-y [role="tab"] {
+    touch-action: pan-y;
   }
 
   /** Vùng cuộn ngang bảng mobile */

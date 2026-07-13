@@ -50,7 +50,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   };
 
   return (
-    <header className="sticky top-0 z-50 flex min-h-12 items-center justify-between gap-2 border-b border-slate-200/90 bg-[var(--bg-panel)] px-2 py-1.5 pt-[max(0.375rem,env(safe-area-inset-top))] shadow-[var(--shadow-app-header)] sm:min-h-[4.25rem] sm:gap-3 sm:px-4 sm:py-2 md:gap-6 md:px-8">
+    <header className="sticky top-0 z-50 flex shrink-0 min-h-12 items-center justify-between gap-2 border-b border-slate-200/90 bg-[var(--bg-panel)] px-2 py-1.5 pt-[max(0.375rem,env(safe-area-inset-top))] shadow-[var(--shadow-app-header)] sm:min-h-[4.25rem] sm:gap-3 sm:px-4 sm:py-2 md:gap-6 md:px-8">
       <div className="flex min-w-0 flex-1 flex-col gap-2 lg:flex-row lg:items-center lg:gap-4">
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 md:gap-4">
           <button

@@ -63,7 +63,7 @@ function NavLinkRow({
       prefetch={false}
       onClick={onClose}
       aria-current={isActive ? "page" : undefined}
-      className={`app-shell-focus flex min-h-12 items-center gap-3 rounded-[var(--radius-control)] px-4 py-3.5 text-[0.9375rem] font-medium transition-colors touch-manipulation md:min-h-0 md:py-3 md:text-sm ${
+      className={`app-shell-focus flex min-h-12 items-center gap-3 rounded-[var(--radius-control)] px-4 py-3.5 text-[0.9375rem] font-medium transition-colors md:min-h-0 md:py-3 md:text-sm ${
         isActive
           ? "bg-[var(--primary)] text-white shadow-sm shadow-[var(--primary)]/20"
           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -167,7 +167,6 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
       fixed md:sticky left-0 top-0 z-[10000] flex h-dvh max-h-dvh w-[min(18.5rem,92vw)] flex-col md:h-auto md:max-h-none md:min-h-screen md:w-[17.5rem]
       border-r border-slate-200/90 bg-[var(--bg-panel)] transition-transform duration-300
       ${isOpen ? "translate-x-0 pointer-events-auto" : "-translate-x-full md:translate-x-0 pointer-events-none md:pointer-events-auto"}
-      touch-manipulation
       max-md:pt-[env(safe-area-inset-top,0px)]
     `}
     >
@@ -210,7 +209,10 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
         </div>
       </div>
 
-      <nav className="custom-scrollbar min-h-0 flex-1 overflow-y-auto px-3 py-4" aria-label="Điều hướng chính">
+      <nav
+        className="custom-scrollbar bv103-scroll-y min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4"
+        aria-label="Điều hướng chính"
+      >
         <Suspense
           fallback={<div className="px-2 py-8 text-center text-xs font-medium text-slate-400">Đang tải menu…</div>}
         >
