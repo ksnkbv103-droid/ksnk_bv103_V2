@@ -24,7 +24,7 @@ export function GuestStatsShell({ children }: { children: React.ReactNode }) {
   }, [pathname, router]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 max-md:h-dvh max-md:max-h-dvh max-md:overflow-hidden">
+    <div className="flex min-h-screen flex-col bg-slate-50 max-md:h-dvh max-md:max-h-dvh max-md:min-h-0 max-md:overflow-hidden">
       <header className="sticky top-0 z-50 shrink-0 border-b border-slate-200 bg-white px-4 py-3 md:px-6">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
@@ -53,7 +53,7 @@ export function GuestStatsShell({ children }: { children: React.ReactNode }) {
       </header>
       <main
         data-bv103-app-scroll
-        className="mx-auto w-full max-w-7xl flex-1 min-h-0 px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-4 md:py-6 max-md:overflow-y-auto max-md:overscroll-y-contain max-md:bv103-scroll-y max-md:custom-scrollbar"
+        className="mx-auto w-full max-w-7xl flex-1 min-h-0 px-3 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-4 md:py-6 max-md:overflow-y-auto max-md:overscroll-y-contain max-md:bv103-scroll-y"
       >
         {children}
       </main>

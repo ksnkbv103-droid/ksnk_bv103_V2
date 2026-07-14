@@ -72,7 +72,7 @@ export function RBACMatrixDataGrid({
           <p className="text-sm font-semibold text-slate-800">Ma trận phân quyền</p>
           <p className="mt-0.5 text-[11px] text-slate-500">Chạm module để mở quyền theo vai trò.</p>
         </div>
-        <div className="custom-scrollbar max-h-[min(calc(100dvh-13rem),720px)] overflow-y-auto overscroll-contain touch-manipulation">
+        <div className="custom-scrollbar bv103-scroll-y max-h-[min(calc(100dvh-13rem),720px)] overflow-y-auto overscroll-contain">
           <RBACMatrixMobileView
             roles={roles}
             moduleNames={moduleNames}

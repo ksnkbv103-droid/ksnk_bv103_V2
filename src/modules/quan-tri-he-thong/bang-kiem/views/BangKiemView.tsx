@@ -60,9 +60,9 @@ export default function BangKiemView() {
       />
 
       <div className="flex flex-col md:flex-row gap-8 items-start relative max-w-[1800px] mx-auto">
-        <div className="w-full md:w-[55%] md:sticky md:top-24 space-y-6 max-h-[calc(100vh-140px)] flex flex-col">
+        <div className="w-full space-y-6 md:sticky md:top-24 md:flex md:w-[55%] md:max-h-[calc(100vh-140px)] md:flex-col">
           <h2 className={`shrink-0 px-2 ${T.sectionTitle}`}>Mẫu bảng kiểm</h2>
-          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar animate-in fade-in duration-500 pb-10">
+          <div className="pb-10 animate-in fade-in duration-500 md:flex-1 md:overflow-y-auto md:pr-2 md:custom-scrollbar">
             <BangKiemTable
               onSelectBK={setSelectedBK}
               onDataLoaded={(rows) => {
@@ -82,14 +82,14 @@ export default function BangKiemView() {
           </div>
         </div>
 
-        <div className="w-full md:w-[45%] md:sticky md:top-24 space-y-4 max-h-[calc(100vh-140px)] flex flex-col">
+        <div className="w-full space-y-4 md:sticky md:top-24 md:flex md:w-[45%] md:max-h-[calc(100vh-140px)] md:flex-col">
           <h2 className={`truncate shrink-0 px-2 ${T.sectionTitle} text-[var(--primary)]`}>
             {selectedBK
               ? `${selectedBK.ma_bk} — ${selectedBK.ten_bang_kiem || selectedBK.ten_bk}`
               : "Chọn bảng kiểm bên trái"}
           </h2>
 
-          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 animate-in fade-in slide-in-from-right-6 duration-500 pb-10">
+          <div className="space-y-4 pb-10 animate-in fade-in slide-in-from-right-6 duration-500 md:flex-1 md:overflow-y-auto md:pr-2 md:custom-scrollbar">
             {selectedBK ? (
               <>
                 <BangKiemApDungPanel

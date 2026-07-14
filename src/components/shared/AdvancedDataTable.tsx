@@ -173,7 +173,7 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
       {/* Bảng dữ liệu chính — mobile: thẻ; desktop: bảng */}
       <div className="overflow-clip rounded-[var(--radius-table)] bg-white ring-1 ring-slate-200/90">
         {!isSmUp ? (
-          <div className="custom-scrollbar bv103-scroll-y">
+          <div>
             <DataTableMobileCards
               columns={columns}
               data={displayData}

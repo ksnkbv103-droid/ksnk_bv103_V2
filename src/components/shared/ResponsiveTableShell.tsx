@@ -33,13 +33,8 @@ export default function ResponsiveTableShell({
   const frame = unboxed ? className : `${shellFrame} ${className}`.trim();
 
   if (!isSmUp && mobileCards) {
-    return (
-      <div className={frame}>
-        <div className="custom-scrollbar bv103-scroll-y">
-          {mobileCards}
-        </div>
-      </div>
-    );
+    /* Không tạo scroll container giả — để [data-bv103-app-scroll] cuộn trang (Android). */
+    return <div className={frame}>{mobileCards}</div>;
   }
 
   if (!isSmUp) {

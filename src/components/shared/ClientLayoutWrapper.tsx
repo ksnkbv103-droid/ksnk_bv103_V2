@@ -32,6 +32,17 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
     forceReleaseScrollLock();
   }, []);
 
+  /** Mobile: khóa cuộn body — chỉ <main data-bv103-app-scroll> cuộn (Android). */
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isLoginPage) {
+      root.classList.remove("bv103-app-inner-scroll");
+      return;
+    }
+    root.classList.add("bv103-app-inner-scroll");
+    return () => root.classList.remove("bv103-app-inner-scroll");
+  }, [isLoginPage]);
+
   useEffect(() => {
     let mounted = true;
 
@@ -76,7 +87,7 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 pointer-events-auto max-md:h-dvh max-md:max-h-dvh max-md:overflow-hidden">
+    <div className="flex min-h-screen bg-slate-50 pointer-events-auto max-md:h-dvh max-md:max-h-dvh max-md:min-h-0 max-md:overflow-hidden">
       <GuestStatsRouteGuard />
       <StaffSessionGate />
       <RbacRefreshListener />
@@ -87,7 +98,7 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
         <Header onMenuClick={toggleSidebar} />
         <main
           data-bv103-app-scroll
-          className="relative z-0 flex-1 min-h-0 px-2 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-4 md:p-8 pointer-events-auto max-md:overflow-y-auto max-md:overscroll-y-contain max-md:bv103-scroll-y max-md:custom-scrollbar"
+          className="relative z-0 flex-1 min-h-0 px-2 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-4 md:p-8 pointer-events-auto max-md:overflow-y-auto max-md:overscroll-y-contain max-md:bv103-scroll-y"
         >
           {pathnameUsesPhase1KsnkUnifiedContentShell(pathname) ? (
             <KsnkPageShell rolloutPhase="phase-1">{children}</KsnkPageShell>

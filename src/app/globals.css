@@ -104,6 +104,33 @@
     @apply pointer-events-auto;
   }
 
+  /**
+   * Mobile app shell: một chủ nhân cuộn = [data-bv103-app-scroll].
+   * Android Chrome đơ khi body + <main> cùng là scroll container (iOS vẫn “nuốt” được).
+   */
+  @media (max-width: 767px) {
+    html.bv103-app-inner-scroll {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    html.bv103-app-inner-scroll body {
+      height: 100%;
+      max-height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: auto;
+    }
+
+    html.bv103-app-inner-scroll [data-bv103-app-scroll] {
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+    }
+  }
+
   h1,
   h2,
   h3,
@@ -237,7 +264,7 @@
     overscroll-behavior: contain;
   }
 
-  /** Vùng cuộn dọc mobile — tránh “đơ” khi nested trong flex/overflow-hidden */
+  /** Vùng cuộn dọc có giới hạn chiều cao (sidebar, sheet, panel) — không dùng cho danh sách “cao theo nội dung”. */
   .bv103-scroll-y {
     overflow-y: auto;
     touch-action: pan-y;
@@ -245,7 +272,10 @@
     overscroll-behavior-y: contain;
   }
 
-  /** Vuốt dọc trong panel/sidebar: không dùng manipulation trên nút/link con (iOS Safari). */
+  /**
+   * Vuốt dọc bắt đầu trên nút/link vẫn cuộn được.
+   * Chỉ áp cho vùng cuộn cố ý — tránh bọc cả trang bằng touch-manipulation.
+   */
   .bv103-scroll-y a,
   .bv103-scroll-y button,
   .bv103-scroll-y input,
