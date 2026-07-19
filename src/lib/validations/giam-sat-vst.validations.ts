@@ -10,7 +10,7 @@ import { z } from "zod";
 const requiredUuid = (msgMissing: string, msgInvalid: string) =>
   z.preprocess(
     (v) => (typeof v === "string" && v.trim() === "" ? undefined : v),
-    z.string({ required_error: msgMissing }).uuid(msgInvalid),
+    z.string({ error: msgMissing }).uuid({ error: msgInvalid }),
   );
 
 /** UUID tùy chọn — chuỗi rỗng "" → null. */

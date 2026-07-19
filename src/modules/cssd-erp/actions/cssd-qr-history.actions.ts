@@ -75,12 +75,14 @@ export async function fetchCssdQrHistory(maQr: string) {
     // Sort by created_at descending (newest first)
     combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
+    const maCaMoFromMeta = metadata.ma_ca_mo_id != null ? String(metadata.ma_ca_mo_id).trim() : "";
     const process = {
       ...q,
       ma_vach_qr: q.ma_qr_quy_trinh || q.ma_qr_bo_vinh_vien || qr,
       trang_thai_hien_tai: q.ma_trang_thai_hien_tai,
       ma_cycle_qr: q.ma_cycle_qr || null,
       ma_qr_bo_vinh_vien: q.ma_qr_bo_vinh_vien || null,
+      ma_ca_mo_id: maCaMoFromMeta || null,
       qr_kind_matched:
         String(q.ma_cycle_qr || "").toUpperCase() === qr
           ? "CYCLE"
