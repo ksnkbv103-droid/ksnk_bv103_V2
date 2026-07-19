@@ -44,11 +44,7 @@ export async function getActorKsnkScope(): Promise<ActorKsnkScope> {
 
   const isAdmin = rolesNorm.includes("ADMIN");
   const isNhanVienKsnk = rolesNorm.includes("NHAN_VIEN_KSNK");
-  const isMangLuoiKsnk = [
-    "MANG_LUOI_KSNK",
-    "TO_TRUONG_MANG_LUOI_KSNK",
-    "THANH_VIEN_MANG_LUOI_KSNK",
-  ].some((r) => rolesNorm.includes(r));
+  const isMangLuoiKsnk = rolesNorm.includes("MANG_LUOI_KSNK");
 
   const isGuestStatsOnly = isGuestStatsOnlyRole(rolesNorm);
 

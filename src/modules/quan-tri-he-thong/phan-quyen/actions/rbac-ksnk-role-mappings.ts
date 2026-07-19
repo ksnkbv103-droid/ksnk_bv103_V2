@@ -2,21 +2,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 type PermRow = { id: string; module_name: string; action: string };
 
+/** Vai trò active có preset sync — không gồm ADMIN (full grant riêng) hay role đã deprecate. */
 const KSNK_RBAC_ROLE_NAMES = [
   "NHAN_VIEN_KSNK",
   "HOI_DONG_KSNK",
   "MANG_LUOI_KSNK",
-  "TO_TRUONG_MANG_LUOI_KSNK",
-  "THANH_VIEN_MANG_LUOI_KSNK",
-  /** Tài khoản khách chung — chỉ xem Thống kê VST/GSC (không nhập liệu). */
   "KHACH_THONG_KE_GSTT",
-  // Reform v4 (Slice 9): hai vai trò tiếp nhận ticket RCA. Khớp tên thực tế trong
-  // `mdm_dm_khoa_phong`: `QLCL` = Ban Quản lý Chất lượng Bệnh viện, `C15` = Khoa Trang bị.
-  "BAN_QLCL",
-  "KHOA_TRANG_BI",
 ] as const;
-
-
 
 function mod(p: PermRow) {
   return String(p.module_name || "").toUpperCase();
@@ -47,7 +39,7 @@ function isDashboardCcExport(p: PermRow): boolean {
   return mod(p) === "DASHBOARD_CC_EXPORT" && act(p) === "export";
 }
 
-/** Nhập liệu mạng lưới — giám sát + công việc + sự cố; Thống kê VST/GSC qua GIAM_SAT_* view (không Command Center). */
+/** Nhập liệu mạng lưới — giám sát + công việc + sự cố; Thống kê qua GIAM_SAT_* view (không Command Center). */
 function isNetworkOperatorPerm(p: PermRow): boolean {
   const m = mod(p);
   const a = act(p);
@@ -84,8 +76,6 @@ function isKsnkStaffPerm(p: PermRow): boolean {
     return ["view", "create", "edit", "delete", "import"].includes(a);
   }
 
-
-
   if (m === "BAO_SU_CO") return ["view", "create"].includes(a);
 
   if (["GIAM_SAT_VST", "GIAM_SAT_CHUNG", "GIAM_SAT_NKBV"].includes(m)) {
@@ -110,7 +100,6 @@ function isKsnkStaffPerm(p: PermRow): boolean {
     return ["view", "create", "edit", "delete", "import"].includes(a);
   }
 
-  /** Danh mục CSSD/MDM chi tiết — xem; sửa qua module LOAI_DC/BO_DC/… riêng nếu cần. */
   const dmDetail = [
     "LOAI_DC",
     "BO_DC",
@@ -130,49 +119,30 @@ function isKsnkStaffPerm(p: PermRow): boolean {
   return false;
 }
 
-/**
- * Ban QLCL / Khoa Trang bị — xem báo cáo và phiên giám sát liên quan sự cố.
- * (Module RCA_TICKET chưa có trong permission-registry — quyền xử lý ticket bổ sung sau.)
- */
-function isRcaHandlerPerm(p: PermRow): boolean {
-  const m = mod(p);
-  const a = act(p);
-  if (isDashboardFamilyView(p)) return true;
-  if (isDashboardCcExport(p)) return true;
-  if (m === "DANH_MUC" && a === "view") return true;
-  if (m === "GIAM_SAT_CHUNG" && a === "view") return true;
-  if (m === "GIAM_SAT_VST" && a === "view") return true;
-  return false;
-}
-
-const matchers: Record<string, (p: PermRow) => boolean> = {
+const matchers: Record<(typeof KSNK_RBAC_ROLE_NAMES)[number], (p: PermRow) => boolean> = {
   NHAN_VIEN_KSNK: isKsnkStaffPerm,
   HOI_DONG_KSNK: isCouncilPerm,
   MANG_LUOI_KSNK: isNetworkOperatorPerm,
-  TO_TRUONG_MANG_LUOI_KSNK: isNetworkOperatorPerm,
-  THANH_VIEN_MANG_LUOI_KSNK: isNetworkOperatorPerm,
-  BAN_QLCL: isRcaHandlerPerm,
-  KHOA_TRANG_BI: isRcaHandlerPerm,
   KHACH_THONG_KE_GSTT: isGuestStatsPerm,
 };
 
-/** Đồng bộ vai trò KSNK + ma trận quyền mặc định (idempotent). */
+/**
+ * Áp dụng lại ma trận quyền mặc định cho các vai trò KSNK active (ghi đè mapping).
+ * Không đụng ADMIN. Không tái kích hoạt role đã soft-deprecate.
+ */
 export async function syncKsnkRolePermissionMappings(supabase: SupabaseClient) {
   const now = new Date().toISOString();
   const ROLE_DESCRIPTIONS: Record<(typeof KSNK_RBAC_ROLE_NAMES)[number], string> = {
     NHAN_VIEN_KSNK: "Nhân viên khoa Kiểm soát nhiễm khuẩn",
     HOI_DONG_KSNK: "Hội đồng KSNK — chủ yếu xem báo cáo",
-    MANG_LUOI_KSNK: "Mạng lưới KSNK (vai trò hệ thống)",
-    TO_TRUONG_MANG_LUOI_KSNK: "Tổ trưởng tổ mạng lưới KSNK theo khoa",
-    THANH_VIEN_MANG_LUOI_KSNK: "Thành viên mạng lưới KSNK theo khoa",
-    BAN_QLCL: "Ban Quản lý Chất lượng Bệnh viện — tiếp nhận ticket RCA hệ thống",
-    KHOA_TRANG_BI: "Khoa Trang bị — tiếp nhận ticket RCA về thiết bị/nguồn lực",
+    MANG_LUOI_KSNK: "Mạng lưới KSNK — nhập liệu giám sát theo khoa (gồm tổ trưởng và thành viên)",
     KHACH_THONG_KE_GSTT: "Khách — chỉ xem Thống kê VST và GSC (tài khoản chung)",
   };
 
   const roleRows = KSNK_RBAC_ROLE_NAMES.map((name) => ({
     name,
     description: ROLE_DESCRIPTIONS[name],
+    is_active: true,
     updated_at: now,
   }));
 
@@ -191,7 +161,8 @@ export async function syncKsnkRolePermissionMappings(supabase: SupabaseClient) {
   const { data: ksnkRoles, error: rErr } = await supabase
     .from("sys_roles")
     .select("id, name")
-    .in("name", [...KSNK_RBAC_ROLE_NAMES]);
+    .in("name", [...KSNK_RBAC_ROLE_NAMES])
+    .eq("is_active", true);
   if (rErr) throw rErr;
 
   for (const role of ksnkRoles || []) {

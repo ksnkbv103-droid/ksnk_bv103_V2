@@ -70,7 +70,11 @@ export async function getAvailableRolesAction() {
   try {
     await ensureRbacAdmin();
     const supabase = createAdminSupabaseClient();
-    const { data, error } = await supabase.from("sys_roles").select("id, name").order("name");
+    const { data, error } = await supabase
+      .from("sys_roles")
+      .select("id, name")
+      .eq("is_active", true)
+      .order("name");
     if (error) throw error;
     const rows = selectRolesForStaffKsnkAssignment(data || []);
     return { success: true as const, data: rows };
@@ -98,19 +102,20 @@ export async function setStaffKsnkRbacRole(params: {
       return {
         success: false as const,
         error:
-          "Chỉ được gán một trong: Hội đồng KSNK, Nhân viên khoa KSNK, Tổ trưởng/Thành viên mạng lưới KSNK, hoặc Khách xem Thống kê.",
+          "Chỉ được gán một trong: Hội đồng KSNK, Nhân viên khoa KSNK, Mạng lưới KSNK, hoặc Khách xem Thống kê.",
       };
     }
 
-    // Kiểm tra role tồn tại trong DB
+    // Kiểm tra role tồn tại và còn active trong DB
     const { data: roleExists } = await supabase
       .from("sys_roles")
       .select("id")
       .eq("name", canonicalName)
+      .eq("is_active", true)
       .maybeSingle();
 
     if (!roleExists) {
-      return { success: false as const, error: "Vai trò không hợp lệ hoặc không tồn tại trong hệ thống." };
+      return { success: false as const, error: "Vai trò không hợp lệ hoặc đã ngưng hoạt động." };
     }
 
     // Sử dụng RPC nguyên tử để tránh lỗi mất quyền khi thực hiện nhiều bước

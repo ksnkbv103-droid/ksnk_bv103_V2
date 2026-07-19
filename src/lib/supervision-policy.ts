@@ -22,15 +22,9 @@ function isNetworkRoleName(name: string | null | undefined) {
 
 /** Vai trò hệ thống (bảng `roles`) được phép đứng tên giám sát khi đã có quyền module giám sát. */
 const SUPERVISION_ELIGIBLE_ROLE_NAMES = new Set(
-  [
-    "ADMIN",
-    "NHAN_VIEN_KSNK",
-    "TO_TRUONG_MANG_LUOI_KSNK",
-    "THANH_VIEN_MANG_LUOI_KSNK",
-    "MANG_LUOI_KSNK",
-    "CHI_HUY_KHOA",
-    "GIAM_DOC",
-  ].map((s) => s.toUpperCase()),
+  ["ADMIN", "NHAN_VIEN_KSNK", "MANG_LUOI_KSNK", "CHI_HUY_KHOA", "GIAM_DOC"].map((s) =>
+    s.toUpperCase(),
+  ),
 );
 
 async function userHasSupervisionEligibleRole(

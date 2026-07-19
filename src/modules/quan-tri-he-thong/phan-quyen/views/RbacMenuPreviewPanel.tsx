@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { SIDEBAR_NAV_GROUPS } from "@/lib/nav/sidebar-nav-groups";
 import { SIDEBAR_ADMIN_GROUPS } from "@/lib/nav/sidebar-admin-nav-groups";
-import { canSeeNavGate } from "@/lib/nav/ksnk-nav-gates";
+import { canSeeCommandCenterNav, canSeeNavGate } from "@/lib/nav/ksnk-nav-gates";
 import type { RBACRoleRow } from "../rbac.types";
 import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 
@@ -44,7 +44,13 @@ export default function RbacMenuPreviewPanel({
     roles.find((r) => r.id === previewRoleId)?.name?.trim().toUpperCase() === "ADMIN";
 
   const visibleOps = SIDEBAR_NAV_GROUPS.flatMap((g) =>
-    g.items.filter((item) => canSeeNavGate(isAdminPreview, canView, item.gate)).map((item) => item.name),
+    g.items
+      .filter((item) =>
+        item.requireCommandCenterShell
+          ? canSeeCommandCenterNav(isAdminPreview, canView)
+          : canSeeNavGate(isAdminPreview, canView, item.gate),
+      )
+      .map((item) => item.name),
   );
   const visibleAdmin = SIDEBAR_ADMIN_GROUPS.flatMap((g) =>
     g.items.filter((item) => canSeeNavGate(isAdminPreview, canView, item.gate)).map((item) => item.name),

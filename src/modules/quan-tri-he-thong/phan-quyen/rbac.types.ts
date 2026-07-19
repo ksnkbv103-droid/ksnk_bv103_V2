@@ -33,15 +33,15 @@ export type RBACDataSuccess = {
 export type RBACDataResult = RBACDataSuccess | { success: false; error: string };
 
 /**
- * Thứ tự cột ma trận phân quyền BV103 — chỉ các vai trò này.
- * Không hiển thị `MANG_LUOI_KSNK` (legacy) hay vai trò khác trong `sys_roles`.
+ * Thứ tự cột ma trận — 5 chân dung active:
+ * Quản trị · Hội đồng · NV KSNK · Mạng lưới · Khách.
  */
 const RBAC_MATRIX_COLUMN_ROLE_ORDER = [
   "ADMIN",
   "HOI_DONG_KSNK",
   "NHAN_VIEN_KSNK",
-  "TO_TRUONG_MANG_LUOI_KSNK",
-  "THANH_VIEN_MANG_LUOI_KSNK",
+  "MANG_LUOI_KSNK",
+  "KHACH_THONG_KE_GSTT",
 ] as const;
 
 /** Nhãn hiển thị trên cột ma trận (tiếng Việt ngắn). */
@@ -49,8 +49,8 @@ export const RBAC_MATRIX_ROLE_HEADER_LABEL: Record<string, string> = {
   ADMIN: "Quản trị",
   HOI_DONG_KSNK: "Hội đồng KSNK",
   NHAN_VIEN_KSNK: "Nhân viên khoa KSNK",
-  TO_TRUONG_MANG_LUOI_KSNK: "Tổ trưởng tổ KSNK khoa",
-  THANH_VIEN_MANG_LUOI_KSNK: "Thành viên mạng lưới KSNK",
+  MANG_LUOI_KSNK: "Mạng lưới KSNK",
+  KHACH_THONG_KE_GSTT: "Khách — xem thống kê",
 };
 
 /** Lọc + sắp xếp vai trò theo thứ tự cột ma trận (chỉ các dòng có trong DB). */
@@ -68,8 +68,7 @@ export function selectRolesForRbacMatrixColumns(allRoles: RBACRoleRow[]): RBACRo
 export const RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER = [
   "HOI_DONG_KSNK",
   "NHAN_VIEN_KSNK",
-  "TO_TRUONG_MANG_LUOI_KSNK",
-  "THANH_VIEN_MANG_LUOI_KSNK",
+  "MANG_LUOI_KSNK",
   "KHACH_THONG_KE_GSTT",
 ] as const;
 
@@ -77,9 +76,8 @@ export const RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER = [
 export const RBAC_STAFF_ASSIGNABLE_ROLE_LABEL: Record<string, string> = {
   HOI_DONG_KSNK: "Hội đồng KSNK",
   NHAN_VIEN_KSNK: "Nhân viên khoa KSNK",
-  TO_TRUONG_MANG_LUOI_KSNK: "Tổ trưởng tổ KSNK khoa",
-  THANH_VIEN_MANG_LUOI_KSNK: "Thành viên mạng lưới KSNK",
-  KHACH_THONG_KE_GSTT: "Khách — chỉ xem Thống kê",
+  MANG_LUOI_KSNK: "Mạng lưới KSNK",
+  KHACH_THONG_KE_GSTT: "Khách — xem thống kê",
 };
 
 export function selectRolesForStaffKsnkAssignment<T extends { id: string; name: string }>(allRoles: T[]): T[] {

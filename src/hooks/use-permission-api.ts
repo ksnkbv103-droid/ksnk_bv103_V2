@@ -33,12 +33,7 @@ export function createPermissionApi(permissions: PermissionRow[], userRoles: str
     canImportBK: () => checkPermission("BANG_KIEM", "import"),
     canManageDM: () => checkPermission("DANH_MUC", "view"),
     isNhanVienKSNK: userRoles.includes("NHAN_VIEN_KSNK"),
-    isMangLuoi:
-      userRoles.includes("MANG_LUOI_KSNK") ||
-      userRoles.includes("TO_TRUONG_MANG_LUOI_KSNK") ||
-      userRoles.includes("THANH_VIEN_MANG_LUOI_KSNK"),
-    isToTruongMangLuoiKSNK: userRoles.includes("TO_TRUONG_MANG_LUOI_KSNK"),
-    isThanhVienMangLuoiKSNK: userRoles.includes("THANH_VIEN_MANG_LUOI_KSNK"),
+    isMangLuoi: userRoles.includes("MANG_LUOI_KSNK"),
     isHoiDongKSNK: userRoles.includes("HOI_DONG_KSNK"),
     isGuestStatsOnly: userRoles.includes("KHACH_THONG_KE_GSTT"),
     hasPermission: (permName: string) => {

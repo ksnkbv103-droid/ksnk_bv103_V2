@@ -35,8 +35,9 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 1. **Migration mới**: WRITE/DDL bắt buộc nhắm vào **TABLE physical** (xem cột "TABLE vật lý" ở bảng trên). Tuyệt đối không `ALTER TABLE` lên VIEW.
 2. **App code**: `.from('{module}_fact_*'|'{module}_dm_*')` — không dùng `dm_*`/`fact_*` compat (guard `legacy:guard`). Lookup phẳng ghi `sys_lookup_value` qua `master-crud-core`.
 3. **View phẳng `v_*_full`**: nên JOIN từ table physical (`sys_lookup_value`, `mdm_dm_khoa_phong`, …) thay vì view trung gian — giảm chuỗi view lồng.
-4. **WRITE cho 14 loại lookup** (TO_CONG_TAC/CHUC_DANH/CHUC_VU/NGHE_NGHIEP/KHOI_KHOA/LOAI_DUNG_CU? KHU_VUC/HINH_THUC/CACH_THUC/LOAI_CONG_VIEC/TRANG_THAI_CONG_VIEC/LOAI_NKBV/TRANG_THAI_NKBV_CA/LOAI_MAY_TIET_KHUAN/TRAM_CSSD/LOAI_SU_CO): luôn ghi vào `sys_lookup_value`. App `master-crud-core.ts` đã làm đúng (CONSOLIDATED_MAPS).
-5. **RBAC**: SSOT là `sys_roles`/`sys_permissions`/`sys_role_permissions`/`sys_user_roles` (TABLES); đọc quyền qua `v_sys_user_permissions`. **Audit DB/UI:** đã DROP (`20260602193500`) — không còn `sys_audit_log` / `fn_sys_audit_row`.
+4. **WRITE cho lookup phẳng** (TO_CONG_TAC/CHUC_DANH/CHUC_VU/NGHE_NGHIEP/KHOI_KHOA/KHU_VUC_GIAM_SAT/HINH_THUC_GIAM_SAT/CACH_THUC_GIAM_SAT/LOAI_CONG_VIEC/TRANG_THAI_CONG_VIEC/LOAI_NKBV/TRANG_THAI_NKBV_CA/LOAI_MAY_TIET_KHUAN/TRAM_CSSD/LOAI_SU_CO, …): luôn ghi vào `sys_lookup_value`. App `master-crud-core.ts` đã làm đúng (CONSOLIDATED_MAPS).
+5. **`LOAI_DUNG_CU` / InstrumentType ≠ lookup:** SSOT là **TABLE `cssd_dm_loai_dung_cu`** (CRUD dedicated tại `/quan-tri-he-thong/danh-muc/dung-cu?tab=loai`). **Không** ghi loại dụng cụ vào `sys_lookup_value`. Cột nghiệp vụ: Spaulding / chịu nhiệt / phương pháp tiệt khuẩn — xem lộ trình Lớp 1.1 [`../modules/mdm/improvement-roadmap-20260717.md`](../modules/mdm/improvement-roadmap-20260717.md).
+6. **RBAC**: SSOT là `sys_roles`/`sys_permissions`/`sys_role_permissions`/`sys_user_roles` (TABLES); đọc quyền qua `v_sys_user_permissions`. **Audit DB/UI:** đã DROP (`20260602193500`) — không còn `sys_audit_log` / `fn_sys_audit_row`.
 
 ---
 
@@ -51,7 +52,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 | Lookup thống nhất (SSOT 14 loại) | `quan-tri-he-thong/danh-muc/` | **TABLE `sys_lookup_value`** (`category_type`, `code`, `name`, `metadata` JSONB) | Toàn bộ 14 loại lookup phẳng SSOT về đây. Migration `20260520000006` consolidate; `20260525000011` rename → `sys_lookup_value`. |
 | RBAC | `quan-tri-he-thong/phan-quyen/` | **TABLE `sys_roles`**, **`sys_permissions`**, **`sys_role_permissions`**, **`sys_user_roles`**; view tổng hợp **`v_sys_user_permissions`** | View compat (DROP Phase 1): `v_auth_user_permissions`. Matrix: `v_sys_role_permissions_matrix`. |
 | Module locks | `gstt_*` (VST/GSC) | **`sys_module_locks`** (`module_name` IN ('VST','GSC')) | Khóa cứng ngày báo cáo; trigger `fn_assert_vst_gsc_not_locked` (`20260525000003`). |
-| Ledger dụng cụ (CSSD vận hành) | `cssd-erp` + `danh-muc/actions/kho-dung-cu-giao-dich` | **`cssd_fact_kho_giao_dich`**, **`cssd_dm_bo_phan_bo`**, **`cssd_fact_kho_chi_tiet`** | SSOT định nghĩa: MDM; giao dịch tồn/kho: `000013`, RLS `000014`; rename 25/05 (`000010`+`000011`). |
+| Ledger dụng cụ (CSSD vận hành) | `cssd-erp` + `danh-muc/actions/kho-dung-cu-giao-dich` | **`cssd_fact_kho_giao_dich`**, **`cssd_dm_bo_phan_bo`**, **`cssd_fact_kho_chi_tiet`** | SSOT định nghĩa: **Master CSSD** (`cssd_dm_*`); giao dịch tồn/kho: fact; RLS `000014`. |
 
 ---
 
@@ -59,8 +60,8 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Spec term | Module | Bảng / thực thể thật | Ghi chú |
 |-----------|--------|---------------------|---------|
-| `InstrumentType` (Loại dụng cụ) | `cssd-erp` + `quan-tri-he-thong/danh-muc/dung-cu/` | **`cssd_dm_loai_dung_cu`** (view compat `dm_loai_dung_cu`) | Cột nghiệp vụ JSONB hóa từ `20260522000005_dung_cu_hybrid_jsonb`. |
-| `InstrumentSet` (Bộ dụng cụ định nghĩa) | `quan-tri-he-thong/danh-muc/dung-cu/` | **`cssd_dm_bo_dung_cu`**, **`cssd_dm_bo_dung_cu_chi_tiet`** | Spec `dm_cau_truc_bo_dung_cu` → BV103 dùng `cssd_dm_bo_dung_cu_chi_tiet`. |
+| `InstrumentType` (Loại dụng cụ) | **CRUD:** `quan-tri-he-thong/danh-muc/dung-cu/` · **RO ops:** `cssd-erp` `/cssd-dung-cu` | **TABLE `cssd_dm_loai_dung_cu`** — **không** phải `sys_lookup_value` | Spaulding / `is_chiu_nhiet` / `phuong_phap_tiet_khuan_chi_dinh`; map app `cssd-loai-dung-cu-map.ts`. Compat `dm_loai_dung_cu` đã DROP. |
+| `InstrumentSet` (Bộ dụng cụ định nghĩa) | `quan-tri-he-thong/danh-muc/dung-cu/` | **TABLE `cssd_dm_bo_dung_cu`**, **`cssd_dm_bo_dung_cu_chi_tiet`** | BOM / thành phần bộ; vận hành đọc qua CSSD — không CRUD dưới `/cssd-*`. |
 | `InstrumentInstance` (Bộ vật lý / QR) | `/cssd-quy-trinh` (+ `src/lib/cssd-routes.ts`) | **`cssd_fact_quy_trinh`** — `tram_hien_tai_id` → **`cssd_dm_tram`**; view **`v_fact_quy_trinh_full`** alias `ma_trang_thai_hien_tai` | Migration `20260716014`; ghi qua `buildQuyTrinhTramPatch`. `20260525000009` đã persist mốc thời gian + nhân sự ở từng trạm trên `cssd_fact_quy_trinh`. |
 | Module thành phần (menu) | `src/lib/cssd-routes.ts` + `contexts/*/entrypoint` | — | Route: quy-trinh, dung-cu, su-co, thiet-bi, hoa-chat. |
 | `SterilizationBatch` (Mẻ hấp) | `cssd-erp` | **`cssd_fact_lo_tiet_khuan`** (view compat `fact_lo_tiet_khuan`, `lo_tiet_khuan`) | Liên kết `cssd_fact_quy_trinh.lo_tiet_khuan_id`. Chuỗi: nạp bộ (DONG_GOI) → `tk_chot_nap_at` → `tk_mo_form_qc_at` → `ket_qua_test` + `tk_qc_json`. |
@@ -130,6 +131,16 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-07-18 | **RBAC gom 5 vai trò:** `ADMIN` · `HOI_DONG_KSNK` · `NHAN_VIEN_KSNK` · `MANG_LUOI_KSNK` · `KHACH_THONG_KE_GSTT`. Gộp Tổ trưởng/Thành viên → Mạng lưới; soft-deprecate `BAN_QLCL`/`KHOA_TRANG_BI`. Migration `20260718100000` + ensure Khách `20260718110000`. UI: Đồng bộ Registry ≠ Áp dụng preset; `local:golden:reset` có `--with-presets`. |
+| 2026-07-19 | **Cloud migration history align (prod `cvzwslpxwgqiugzzhqej`):** orphan `20260717063027` (duplicate VST nghe_nghiep registry) → reverted; ghi nhận `20260717140000`…`20260718110000` khớp git/local; RBAC taxonomy + Khách apply trên cloud. |
+| 2026-07-18 | **Sidebar Quản trị 1 cổng:** chỉ «Quản trị hệ thống» → `/quan-tri-he-thong`; gỡ shortcut Khoa/Master CSSD/BK/Lookup/Phân quyền/Tài khoản trên sidebar (chọn trong hub). SSOT `sidebar-admin-nav-groups.ts`. |
+| 2026-07-18 | **Sidebar module-first:** gỡ khỏi sidebar Thống kê VST/GSC, Lịch sử giám sát, hub `/giam-sat`; nhóm «Điều hành KSNK» (CC + Báo cáo tổng hợp) + «Giám sát» (3 module). Route `/lich-su/*` `/thong-ke/*` giữ cho ModeNav/deep-link. SSOT `sidebar-nav-groups.ts`. |
+| 2026-07-17 | **Dashboard P3 residual:** RPC `rpc_gsc_tgs_session_hits` (`20260717220000`); xếp hạng bao phủ TGS trên `/thong-ke/gsc` (Không áp dụng vs Thiếu); deep-link QLCV `?from=analytics`; chrome NKBV `Bv103AnalyticsPageFrame`; metric-dictionary bao phủ TGS. |
+| 2026-07-17 | **Liên thông tinh chỉnh:** RCA SSI → nhật ký sự cố `cssdSuCoIncidentJournalHref` (`/cssd-erp/report?tab=incident&id=`); empty state QR/mẻ; BOM runtime normalize Spaulding/PP TK dùng chung master (`cssd-loai-dung-cu-map`); nhãn shell «Master CSSD / Quản trị danh mục»; sync `interaction-matrix` + debt D-01/D-16/D-18. |
+| 2026-07-17 | **VST nghề bắt buộc:** form + Zod + `saveVSTSession` bắt `nghe_nghiep_id`; registry `sys_mdm_registry` (`gstt_fact_vst.nghe_nghiep_id`) `is_required=true` (`20260717140000`). Residual NULL → SQL [`vst-residual-null-nghe-nghiep.sql`](../../scripts/sql/vst-residual-null-nghe-nghiep.sql); RPC vẫn `COALESCE(…,'Không rõ')` cho dữ liệu cũ. |
+| 2026-07-17 | **Quản trị Lớp 0 (doc):** lộ trình 4 lớp [`improvement-roadmap-20260717.md`](../modules/mdm/improvement-roadmap-20260717.md); tách ngôn ngữ MDM tổ chức vs Master CSSD; `LOAI_DUNG_CU` = TABLE (không lookup); rule `20-master-data-placement` bỏ `dm_*`. |
+| 2026-07-15 | **NKBV chiến lược sản phẩm (PO):** giữ **một** module `giam-sat-nkbv` — không tách 4 app; ADR [`adr-nkbv-unified-module-20260715.md`](../reference/architecture/adr-nkbv-unified-module-20260715.md). |
+| 2026-07-15 | **NKBV hô hấp tách loại:** VAE (VAC→IVAC→PVAP) ≠ VAP ≠ HAP trên picker/engine/persist; import LIS hô hấp gợi ý `HAP`; lọc danh sách `loai`+`trạng thái`. Không gộp nhãn VAE/VAP. |
 | 2026-07-09 | **Tài khoản khách cloud:** UI gán `KHACH_THONG_KE_GSTT` trên `/quan-tri-he-thong/tai-khoan-nhan-su`; thẻ **Thiết lập tài khoản khách** (provision Auth + hồ sơ KHACH01); migration `20260709150000` RPC loại trừ vai trò Khách với KSNK khác. |
 | 2026-07-09 | **Audit P2 hygiene:** domain-spec §2.1/§2.3; metric-dictionary TGS exception; CAP_PHAT soft-warning SSOT; GSC README redirect; spawn RPC tên `fn_qlcv_*`; xóa 5 orphan Pilot W3; migration `20260709130000` RLS summary GSTT + CSSD bao_tri/kho + NKBV; proxy thiếu env → redirect login. |
 | 2026-07-09 | **Audit gap remediation P0/P1:** (1) NKBV import Day-3 server gate `isHaiSuspectByDay3Rule` + trạng thái auto-case ưu tiên `CHO_XAC_MINH`; (2) CSSD bỏ auto-stamp `bom_kiem_dem_at` khi quét Đóng gói; (3) migration `20260709120000` — REVOKE `fn_qlcv_update_checklist` khỏi authenticated; harden GSC analytics RPC (mirror VST); wrap CSSD scan/BOM/cycle QR + `fn_require_cssd_workflow_edit` (service_role bypass). Gap: [gap-register-20260709.md](../reference/reports/gap-register-20260709.md). |

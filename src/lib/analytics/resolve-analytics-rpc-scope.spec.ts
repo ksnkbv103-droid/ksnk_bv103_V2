@@ -6,7 +6,7 @@ import {
 import type { ActorKsnkScope } from "@/lib/actor-ksnk-scope.types";
 
 const networkScope: ActorKsnkScope = {
-  roles: ["THANH_VIEN_MANG_LUOI_KSNK"],
+  roles: ["MANG_LUOI_KSNK"],
   actorNhanSuId: "ns-1",
   actorKhoaId: "khoa-a",
   isAdmin: false,

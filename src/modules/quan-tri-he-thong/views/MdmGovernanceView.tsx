@@ -235,7 +235,7 @@ export default function MdmGovernanceView() {
       <div className="flex h-[40vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-10 h-10 text-emerald-600 animate-spin" />
-          <span className={bv103DesignTokens.labelBlockMuted}>Đang tải Snapshot Giám trị…</span>
+          <span className={bv103DesignTokens.labelBlockMuted}>Đang tải bảo vệ liên kết…</span>
         </div>
       </div>
     );
@@ -244,15 +244,36 @@ export default function MdmGovernanceView() {
   return (
     <div className={`${bv103DesignTokens.pageOuter} text-sm`}>
       <KsnkPageHeader
-        title="Giám trị MDM"
-        subtitle="Registry bảo vệ cột, gợi ý phê duyệt và tỷ lệ phủ master data."
+        title="Bảo vệ liên kết dữ liệu"
+        subtitle="Công cụ IT — gắn cột nghiệp vụ với danh mục chuẩn, duyệt gợi ý và bật trigger toàn vẹn."
       />
+
+      <div
+        className={`${bv103LayoutChrome.panelShellPadded} mb-4 border-amber-200/80 bg-amber-50/60 text-sm leading-relaxed text-slate-700`}
+        role="note"
+      >
+        <p className="font-semibold text-amber-900">Dành cho IT / Quản trị hệ thống</p>
+        <ul className="mt-2 list-inside list-disc space-y-1 text-slate-600">
+          <li>
+            <strong className="font-medium text-slate-800">Dùng khi:</strong> cần bảo vệ cột khóa ngoại
+            trỏ đúng danh mục, duyệt gợi ý sau import hoặc đổi schema.
+          </li>
+          <li>
+            <strong className="font-medium text-slate-800">Không dùng để:</strong> sửa khoa, nhân sự,
+            loại dụng cụ — việc đó ở tab <strong className="font-medium">Trung tâm danh mục</strong>.
+          </li>
+          <li>
+            Sau khi duyệt mapping: chạy bước kỹ thuật refresh trigger (xem SOP vận hành /
+            <code className="rounded bg-white/80 px-1 text-[11px]">npm run mdm:refresh</code>).
+          </li>
+        </ul>
+      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className={`${bv103LayoutChrome.panelShellPadded} flex items-center justify-between`}>
           <div className="flex-1 space-y-1.5 pr-4">
-            <p className={bv103DesignTokens.labelBlockMuted}>Tỷ lệ phủ MDM</p>
+            <p className={bv103DesignTokens.labelBlockMuted}>Tỷ lệ phủ bảo vệ</p>
             <p className="text-3xl font-semibold text-slate-800">{stats.coverageScore}%</p>
             <div className="w-full bg-slate-100 rounded-full h-1.5">
               <div 

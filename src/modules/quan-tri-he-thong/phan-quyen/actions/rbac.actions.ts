@@ -16,7 +16,10 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import { revalidatePath } from "next/cache";
 import { quanTriHubHref } from "@/lib/master-data/quan-tri-paths";
 import { ensureRbacAdmin } from "./rbac-auth.helpers";
-import { upsertRegistryPermissionsAndAdminMappings } from "./rbac-registry-sync";
+import {
+  applyKsnkRolePermissionPresets,
+  upsertRegistryPermissionsAndAdminMappings,
+} from "./rbac-registry-sync";
 import type { RBACDataResult } from "../rbac.types";
 
 function errRbac(e: unknown) {
@@ -24,24 +27,45 @@ function errRbac(e: unknown) {
 }
 
 /**
- * Đồng bộ toàn bộ Permission Registry vào Database.
- * Tự động gán FULL quyền cho ADMIN.
+ * Đồng bộ Permission Registry → DB + full quyền ADMIN.
+ * Không ghi đè ma trận vai trò KSNK (dùng `resetKsnkRolePermissionPresets`).
  */
 export async function syncPermissionRegistry() {
   try {
     await ensureRbacAdmin();
     const supabase = createAdminSupabaseClient();
 
-    console.log("[RBAC] Syncing Permission Registry...");
+    console.log("[RBAC] Syncing Permission Registry (no KSNK preset overwrite)...");
     await upsertRegistryPermissionsAndAdminMappings(supabase);
 
-    console.log("[RBAC] Sync completed successfully!");
+    console.log("[RBAC] Registry sync completed successfully!");
     await invalidateUserPermissionsCache();
     revalidatePath(quanTriHubHref("PHAN_QUYEN"));
     revalidatePath(quanTriHubHref());
     return { success: true };
   } catch (error: unknown) {
     console.error("[SYNC ERROR]", error);
+    return { success: false, error: errRbac(error) };
+  }
+}
+
+/**
+ * Ghi đè quyền các vai trò KSNK active theo preset code (Hội đồng / NV / Mạng lưới / Khách).
+ */
+export async function resetKsnkRolePermissionPresets() {
+  try {
+    await ensureRbacAdmin();
+    const supabase = createAdminSupabaseClient();
+
+    console.log("[RBAC] Applying KSNK role permission presets (overwrite)...");
+    await applyKsnkRolePermissionPresets(supabase);
+
+    await invalidateUserPermissionsCache();
+    revalidatePath(quanTriHubHref("PHAN_QUYEN"));
+    revalidatePath(quanTriHubHref());
+    return { success: true };
+  } catch (error: unknown) {
+    console.error("[PRESET RESET ERROR]", error);
     return { success: false, error: errRbac(error) };
   }
 }

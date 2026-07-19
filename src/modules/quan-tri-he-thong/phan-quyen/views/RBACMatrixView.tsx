@@ -1,10 +1,15 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { getRBACData, saveFullRBACMatrix, syncPermissionRegistry } from "../actions/rbac.actions";
+import {
+  getRBACData,
+  resetKsnkRolePermissionPresets,
+  saveFullRBACMatrix,
+  syncPermissionRegistry,
+} from "../actions/rbac.actions";
 import { toast } from "sonner";
 import { useModulePermission } from "@/hooks/useModulePermission";
-import { Shield, Lock, RefreshCw } from "lucide-react";
+import { Shield, Lock, RefreshCw, RotateCcw } from "lucide-react";
 import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
@@ -22,6 +27,7 @@ export default function RBACMatrixView() {
   const [matrix, setMatrix] = useState<Record<string, Set<string>>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isResettingPresets, setIsResettingPresets] = useState(false);
   const [previewRoleId, setPreviewRoleId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
@@ -58,15 +64,51 @@ export default function RBACMatrixView() {
   }, []);
 
   const handleSync = useCallback(async () => {
+    const ok = window.confirm(
+      "Đồng bộ Registry quyền?\n\n" +
+        "• Thêm/cập nhật danh sách module × hành động từ mã nguồn\n" +
+        "• Gán đủ quyền cho Quản trị (ADMIN)\n" +
+        "• KHÔNG ghi đè ô đã chỉnh trên Hội đồng / NV KSNK / Mạng lưới / Khách\n\n" +
+        "Muốn đưa các vai trò về preset mặc định → dùng «Áp dụng preset vai trò».",
+    );
+    if (!ok) return;
     setIsSyncing(true);
     try {
-      await syncPermissionRegistry();
-      toast.success("Đã đồng bộ Registry quyền thành công!");
-      await loadData();
+      const res = await syncPermissionRegistry();
+      if (res.success) {
+        toast.success("Đã đồng bộ Registry (không ghi đè vai trò KSNK).");
+        await loadData();
+      } else {
+        toast.error("Lỗi đồng bộ Registry: " + (res.error || ""));
+      }
     } catch {
       toast.error("Lỗi đồng bộ Registry.");
     } finally {
       setIsSyncing(false);
+    }
+  }, [loadData]);
+
+  const handleResetPresets = useCallback(async () => {
+    const ok = window.confirm(
+      "Áp dụng preset vai trò KSNK?\n\n" +
+        "Sẽ GHI ĐÈ toàn bộ quyền của: Hội đồng, Nhân viên KSNK, Mạng lưới KSNK, Khách theo cấu hình mặc định.\n" +
+        "Các chỉnh tay trên 4 vai trò này sẽ mất.\n\n" +
+        "Quản trị (ADMIN) không bị ảnh hưởng.",
+    );
+    if (!ok) return;
+    setIsResettingPresets(true);
+    try {
+      const res = await resetKsnkRolePermissionPresets();
+      if (res.success) {
+        toast.success("Đã áp dụng lại preset vai trò KSNK.");
+        await loadData();
+      } else {
+        toast.error("Lỗi áp dụng preset: " + (res.error || ""));
+      }
+    } catch {
+      toast.error("Lỗi áp dụng preset vai trò.");
+    } finally {
+      setIsResettingPresets(false);
     }
   }, [loadData]);
 
@@ -188,17 +230,28 @@ export default function RBACMatrixView() {
     <div className={`${bv103DesignTokens.pageOuter} pb-24`}>
       <KsnkPageHeader
         title="Ma trận phân quyền"
-        subtitle="Cấu hình quyền theo module × hành động — đồng bộ Registry trước khi chỉnh."
+        subtitle="5 vai trò: Quản trị · Hội đồng · NV KSNK · Mạng lưới · Khách. Đồng bộ Registry không ghi đè chỉnh tay."
         actions={
           <>
             <button
               type="button"
               onClick={() => void handleSync()}
-              disabled={isSyncing}
+              disabled={isSyncing || isResettingPresets}
               className={bv103DesignTokens.btnSecondary}
+              title="Thêm quyền mới từ mã nguồn; không ghi đè vai trò KSNK"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`} />
               {isSyncing ? "Đang đồng bộ…" : "Đồng bộ Registry"}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleResetPresets()}
+              disabled={isSyncing || isResettingPresets}
+              className={bv103DesignTokens.btnSecondary}
+              title="Ghi đè quyền Hội đồng / NV / Mạng lưới / Khách về preset mặc định"
+            >
+              <RotateCcw className={`h-3.5 w-3.5 ${isResettingPresets ? "animate-spin" : ""}`} />
+              {isResettingPresets ? "Đang áp dụng…" : "Áp dụng preset vai trò"}
             </button>
             <button type="button" onClick={() => void handleSaveAll()} disabled={isSaving} className={bv103DesignTokens.btnPrimary}>
               <Shield className="h-3.5 w-3.5" />

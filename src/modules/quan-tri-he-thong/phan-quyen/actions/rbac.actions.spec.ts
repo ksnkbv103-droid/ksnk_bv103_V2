@@ -6,5 +6,6 @@ describe("rbac.actions", () => {
     expect(typeof mod.getRBACData).toBe("function");
     expect(typeof mod.saveFullRBACMatrix).toBe("function");
     expect(typeof mod.syncPermissionRegistry).toBe("function");
+    expect(typeof mod.resetKsnkRolePermissionPresets).toBe("function");
   });
 });

@@ -63,8 +63,8 @@ export default function QuanTriDanhMucTabStrip({
         onClick={() => onChange("MDM_GOVERNANCE")}
       >
         <ShieldAlert className="h-4 w-4 shrink-0 opacity-90 max-sm:h-3.5 max-sm:w-3.5" aria-hidden />
-        <span className="truncate sm:hidden">MDM</span>
-        <span className="hidden truncate sm:inline">Giám trị dữ liệu (MDM)</span>
+        <span className="truncate sm:hidden">Bảo vệ LK</span>
+        <span className="hidden truncate sm:inline">Bảo vệ liên kết dữ liệu</span>
       </button>
     </div>
   );

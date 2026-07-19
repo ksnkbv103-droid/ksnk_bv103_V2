@@ -8,12 +8,12 @@ VALUES
   ('ADMIN', 'Quản trị hệ thống (Root)', true),
   ('NHAN_VIEN_KSNK', 'Nhân viên khoa Kiểm soát nhiễm khuẩn', true),
   ('HOI_DONG_KSNK', 'Hội đồng KSNK — chủ yếu xem báo cáo', true),
-  ('MANG_LUOI_KSNK', 'Mạng lưới KSNK (vai trò hệ thống)', true),
-  ('TO_TRUONG_MANG_LUOI_KSNK', 'Tổ trưởng tổ mạng lưới KSNK theo khoa', true),
-  ('THANH_VIEN_MANG_LUOI_KSNK', 'Thành viên mạng lưới KSNK theo khoa', true),
-  ('BAN_QLCL', 'Ban Quản lý Chất lượng Bệnh viện — tiếp nhận ticket RCA hệ thống', true),
-  ('KHOA_TRANG_BI', 'Khoa Trang bị — tiếp nhận ticket RCA về thiết bị/nguồn lực', true),
-  ('KHACH_THONG_KE_GSTT', 'Khách — chỉ xem Thống kê VST và GSC (tài khoản chung)', true)
+  ('MANG_LUOI_KSNK', 'Mạng lưới KSNK — nhập liệu giám sát theo khoa (gồm tổ trưởng và thành viên)', true),
+  ('KHACH_THONG_KE_GSTT', 'Khách — chỉ xem Thống kê VST và GSC (tài khoản chung)', true),
+  ('TO_TRUONG_MANG_LUOI_KSNK', 'DEPRECATED — gộp vào MANG_LUOI_KSNK', false),
+  ('THANH_VIEN_MANG_LUOI_KSNK', 'DEPRECATED — gộp vào MANG_LUOI_KSNK', false),
+  ('BAN_QLCL', 'DEPRECATED — không thuộc bộ vai trò KSNK gán quyền', false),
+  ('KHOA_TRANG_BI', 'DEPRECATED — không thuộc bộ vai trò KSNK gán quyền', false)
 ON CONFLICT (name) DO UPDATE SET
   description = EXCLUDED.description,
   is_active = EXCLUDED.is_active,
@@ -162,6 +162,30 @@ JOIN public.sys_permissions p ON true
 WHERE r.name = 'KHACH_THONG_KE_GSTT'
   AND p.module_name IN ('GIAM_SAT_VST', 'GIAM_SAT_CHUNG')
   AND p.action = 'view'
+ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+-- HOI_DONG_KSNK: view-only
+INSERT INTO public.sys_role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM public.sys_roles r
+JOIN public.sys_permissions p ON true
+WHERE r.name = 'HOI_DONG_KSNK'
+  AND p.action = 'view'
+ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+-- MANG_LUOI_KSNK: giám sát + QLCV + sự cố (không Command Center)
+INSERT INTO public.sys_role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+FROM public.sys_roles r
+JOIN public.sys_permissions p ON true
+WHERE r.name = 'MANG_LUOI_KSNK'
+  AND (
+    (p.module_name = 'DANH_MUC' AND p.action = 'view')
+    OR (p.module_name = 'GIAM_SAT_NKBV' AND p.action = 'view')
+    OR (p.module_name = 'BAO_SU_CO' AND p.action IN ('view', 'create'))
+    OR (p.module_name IN ('GIAM_SAT_VST', 'GIAM_SAT_CHUNG', 'CONG_VIEC')
+        AND p.action IN ('view', 'create', 'edit', 'delete'))
+  )
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 
 COMMIT;

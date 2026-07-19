@@ -48,7 +48,7 @@ export default function QuanTriHeThongPage() {
             Hệ thống
           </span>
         }
-        subtitle="Trung tâm danh mục, phân quyền và giám trị dữ liệu master (MDM)."
+        subtitle="Danh mục gốc · phân quyền · bảo vệ liên kết dữ liệu (công cụ IT)."
       />
 
       <div className="animate-in slide-in-from-bottom-4 duration-500">

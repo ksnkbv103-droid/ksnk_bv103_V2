@@ -2,7 +2,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getFlatPermissions } from "@/lib/permission-registry";
 import { syncKsnkRolePermissionMappings } from "./rbac-ksnk-role-mappings";
 
-/** Upsert ADMIN role, permissions từ registry, và gán full quyền cho ADMIN. */
+/**
+ * Upsert ADMIN + permissions từ registry + gán full quyền ADMIN.
+ * Không ghi đè ma trận vai trò KSNK (dùng `applyKsnkRolePermissionPresets`).
+ */
 export async function upsertRegistryPermissionsAndAdminMappings(supabase: SupabaseClient) {
   // 0. Dọn dẹp các vai trò trùng lặp (ví dụ 'Admin', 'admin') để đảm bảo SSOT duy nhất là 'ADMIN'
   const { data: legacyAdmins } = await supabase
@@ -48,6 +51,9 @@ export async function upsertRegistryPermissionsAndAdminMappings(supabase: Supaba
       if (rErr) throw rErr;
     }
   }
+}
 
+/** Ghi đè mapping quyền các vai trò KSNK active theo preset code. */
+export async function applyKsnkRolePermissionPresets(supabase: SupabaseClient) {
   await syncKsnkRolePermissionMappings(supabase);
 }

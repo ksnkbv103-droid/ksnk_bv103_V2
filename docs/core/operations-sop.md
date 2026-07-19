@@ -23,9 +23,10 @@ SSOT tên vai trò: bảng **`sys_roles.name`**. Cấu hình ma trận: `/quan-t
 | **`ADMIN`** | Quản trị hệ thống — toàn quyền cấu hình | Mọi module trong `permission-registry-data.ts` |
 | **`NHAN_VIEN_KSNK`** | Nhân viên khoa Kiểm soát nhiễm khuẩn — vận hành lõi | Giám sát (VST/GSC/NKBV), CSSD, danh mục (xem/sửa theo module), QLCV, nhân sự, bảng kiểm |
 | **`HOI_DONG_KSNK`** | Hội đồng KSNK — chủ yếu xem báo cáo | Chỉ action `view` trên mọi module |
-| **`TO_TRUONG_MANG_LUOI_KSNK`** / **`THANH_VIEN_MANG_LUOI_KSNK`** | Mạng lưới KSNK theo khoa — nhập liệu giám sát tại khoa mình; **Thống kê** VST/GSC so sánh toàn viện (`/thong-ke/*`) | Giám sát VST/GSC (CRUD), QLCV, báo cáo sự cố — **không** Command Center / Báo cáo tổng hợp |
+| **`MANG_LUOI_KSNK`** | Mạng lưới KSNK theo khoa (một vai trò cho tổ trưởng + thành viên) — nhập liệu tại khoa; **Thống kê** VST/GSC (`/thong-ke/*`) | Giám sát VST/GSC (CRUD), QLCV, báo cáo sự cố — **không** Command Center / Báo cáo tổng hợp |
 | **`KHACH_THONG_KE_GSTT`** | Khách — tài khoản chung chỉ xem thống kê | Chỉ `view` trên `GIAM_SAT_VST` + `GIAM_SAT_CHUNG`; `/thong-ke/vst`, `/thong-ke/gsc` |
-| **`BAN_QLCL`** / **`KHOA_TRANG_BI`** | Tiếp nhận sự cố liên phòng ban | Dashboard, giám sát (view), danh mục (view) |
+
+> **Không còn gán:** `TO_TRUONG_MANG_LUOI_KSNK`, `THANH_VIEN_MANG_LUOI_KSNK` (đã gộp → `MANG_LUOI_KSNK`); `BAN_QLCL`, `KHOA_TRANG_BI` (soft-deprecate — không thuộc bộ vai trò KSNK). Migration `20260718100000`.
 
 **Module quyền** (không phải vai trò): `GIAM_SAT_VST`, `GIAM_SAT_CHUNG`, `CSSD_WORKFLOW`, `DANH_MUC`, `PHAN_QUYEN`, … — xem [`permission-registry-data.ts`](../../src/lib/permission-registry-data.ts).
 
@@ -38,11 +39,18 @@ SSOT mã quyền: [`permission-registry-data.ts`](../../src/lib/permission-regis
 | Bước | Local | Staging / linked |
 |------|-------|------------------|
 | Kiểm tra parity | `npm run admin:rbac:parity:local` | `npm run admin:rbac:parity` (cần `.env.local` + Supabase linked) |
-| Đồng bộ | `npm run admin:rbac:sync:local` **hoặc** UI `/quan-tri-he-thong?tab=phan_quyen` → **Đồng bộ Registry** | Đăng nhập admin → UI **Đồng bộ Registry** hoặc `npm run admin:rbac:sync` trên máy có service role |
+| Đồng bộ | `npm run admin:rbac:sync:local` (chỉ registry) hoặc `npx tsx scripts/admin-rbac-sync.ts --local --with-presets` / `local:golden:reset` | UI **Đồng bộ Registry**; preset riêng nút **Áp dụng preset** hoặc CLI `--with-presets` |
+| Deploy schema | `npm run mdm:migrate:local` | `npm run mdm:migrate` (linked cloud — cần token) |
+| Lệch lịch sử cloud | — | Nếu `Remote migration versions not found…`: đối chiếu `supabase migration list`; **không** `repair` bừa — chỉ repair version orphan sau khi PO/IT xác nhận (vd. `20260717063027`) |
 | Xác nhận ADMIN | `admin_granted` = `db_permission_count` = số quyền registry | Cùng metric trong output parity |
 | Auth pilot | `npm run trial:auth:precheck:local` | `npm run trial:auth:precheck` |
 
-**Khi nào chạy:** Sau deploy có thêm module/action mới trong registry; khi `parity_ok: false`. Nút **Đồng bộ Registry** cũng chạy preset vai trò KSNK (`syncKsnkRolePermissionMappings`) — ma trận tay trên vai trò không thuộc preset vẫn giữ nguyên.
+**Khi nào chạy:** Sau deploy có thêm module/action mới trong registry; khi `parity_ok: false`.
+
+| Thao tác | UI | CLI | Hiệu ứng |
+|----------|----|-----|----------|
+| **Đồng bộ Registry** | Nút cùng tên | `npm run admin:rbac:sync(:local)` | Upsert `sys_permissions` + full ADMIN — **không** ghi đè Hội đồng / NV / Mạng lưới / Khách |
+| **Áp dụng preset vai trò** | Nút cùng tên (confirm) | `…sync… --with-presets` | Ghi đè mapping 4 vai trò KSNK active theo `rbac-ksnk-role-mappings.ts` |
 
 **Staging 401 linked:** Kiểm tra `SUPABASE_ACCESS_TOKEN` / `supabase link` trước khi chạy parity linked; local vẫn dùng Docker (`npx supabase start`).
 

@@ -14,8 +14,6 @@ export function useModulePermission(moduleKey: string) {
     isAdmin,
     isNhanVienKSNK,
     isMangLuoi,
-    isToTruongMangLuoiKSNK,
-    isThanhVienMangLuoiKSNK,
     isHoiDongKSNK,
     canView,
     canCreate,
@@ -39,8 +37,6 @@ export function useModulePermission(moduleKey: string) {
     isAdmin,
     isNhanVienKSNK,
     isMangLuoi,
-    isToTruongMangLuoiKSNK,
-    isThanhVienMangLuoiKSNK,
     isHoiDongKSNK,
     allowed: {
       view: canView(moduleKey),

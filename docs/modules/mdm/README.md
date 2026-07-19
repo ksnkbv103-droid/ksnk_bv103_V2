@@ -1,7 +1,10 @@
 # MDM & quản trị
 
+> **Ngôn ngữ:** **MDM tổ chức** = khoa / nhân sự / lookup tổ chức (`mdm_*`, `sys_lookup_value`). **Master CSSD** = loại–bộ–BOM / thiết bị / hóa chất (`cssd_dm_*` TABLE) — CRUD tại Quản trị, không phải phiên QR/mẻ. Chi tiết ranh giới: [`../../wiki/concepts.md`](../../wiki/concepts.md#cssd-vs-mdm).
+
 | Đọc khi | File |
 |---------|------|
+| **Lộ trình cải tiến (4 lớp)** | [`improvement-roadmap-20260717.md`](./improvement-roadmap-20260717.md) |
 | Entrypoints code | [`../../../src/modules/quan-tri-he-thong/ENTRYPOINTS.md`](../../../src/modules/quan-tri-he-thong/ENTRYPOINTS.md) |
 | Tổng hợp entity | [`../../wiki/entities.md`](../../wiki/entities.md#mdm--rbac--audit) |
 | Nghiệp vụ | [`../../core/domain-specification.md`](../../core/domain-specification.md) § MDM |
@@ -27,7 +30,9 @@ Go-live 3 module: [`../../core/pilot-core-modules-go-live.md`](../../core/pilot-
 | **Smart import** | SSOT mới — khoa phòng, hóa chất, thiết bị, nhân sự, dụng cụ (`smart-import.actions.ts`) |
 | **Master Excel modal** | Legacy (`master-import.actions.ts`) — chỉ còn fallback nếu gọi trực tiếp modal cũ |
 
-## MDM Governance & trigger DB
+## Bảo vệ liên kết dữ liệu (IT) & trigger DB
+
+> Tab hub nhãn **«Bảo vệ liên kết dữ liệu»** (không phải CRUD danh mục). Persona: IT / ADMIN.
 
 - UI: hub `?tab=mdm_governance` → `sys_mdm_registry`, `sys_mdm_suggestion`.
 - Sau khi approve mapping FK: chạy `npm run mdm:refresh` (script) để đồng bộ trigger `fn_mdm_validate_lookup_integrity` trên bảng đích.

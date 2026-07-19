@@ -15,7 +15,7 @@
     "docs:links:check": "node scripts/docs-links-check.mjs",
     "repo:hygiene": "node scripts/repo-hygiene-audit.mjs",
     "local:golden:verify": "node scripts/local-golden-verify.mjs",
-    "local:golden:reset": "npx supabase db reset --local && npm run mdm:migrate:local && npm run admin:rbac:sync:local",
+    "local:golden:reset": "npx supabase db reset --local && npm run mdm:migrate:local && npx tsx scripts/admin-rbac-sync.ts --local --with-presets",
     "dead-code:scan": "node scripts/dead-code-scan.mjs",
     "pilot:views:precheck": "docker exec -i supabase_db_ksnk_bv103 psql -U postgres -d postgres -t -c \"SELECT bool_and(to_regclass('public.' || name) IS NOT NULL) FROM (VALUES ('v_qlcv_cong_viec_full'),('v_gstt_giam_sat_vst_sessions_full'),('v_cssd_quy_trinh_full'),('v_nkbv_su_kien_full')) AS t(name);\" 2>/dev/null || npx supabase db query --linked --agent=no -f scripts/sql/pilot-app-views-precheck.sql",
     "wiki:index": "node scripts/wiki-index-generate.mjs",

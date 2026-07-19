@@ -1,13 +1,17 @@
 #!/usr/bin/env npx tsx
 /**
- * Đồng bộ permission-registry → sys_permissions + gán full ADMIN + preset KSNK.
- * Cùng logic nút 「Đồng bộ registry」 trên UI (rbac-registry-sync.ts).
+ * Đồng bộ permission-registry → sys_permissions + gán full ADMIN.
+ * Mặc định KHÔNG ghi đè preset vai trò KSNK (giống nút UI 「Đồng bộ Registry」).
+ * Thêm `--with-presets` để áp dụng lại preset Hội đồng / NV / Mạng lưới / Khách.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { getFlatPermissions } from "../src/lib/permission-registry";
-import { upsertRegistryPermissionsAndAdminMappings } from "../src/modules/quan-tri-he-thong/phan-quyen/actions/rbac-registry-sync";
+import {
+  applyKsnkRolePermissionPresets,
+  upsertRegistryPermissionsAndAdminMappings,
+} from "../src/modules/quan-tri-he-thong/phan-quyen/actions/rbac-registry-sync";
 import { resolveLocalSupabaseEnv } from "./lib/resolve-local-supabase-env.mjs";
 
 function parseEnv(raw: string) {
@@ -24,6 +28,7 @@ function parseEnv(raw: string) {
 
 async function main() {
   const useLocal = process.argv.includes("--local");
+  const withPresets = process.argv.includes("--with-presets");
   const envPath = join(process.cwd(), ".env.local");
   if (!existsSync(envPath)) {
     console.error("[admin:rbac:sync] Không tìm thấy .env.local");
@@ -56,9 +61,15 @@ async function main() {
   const registryCount = getFlatPermissions().length;
   const supabase = createClient(url, serviceKey, { auth: { persistSession: false } });
 
-  console.log(`[admin:rbac:sync] Registry SSOT: ${registryCount} permissions — syncing…`);
+  console.log(
+    `[admin:rbac:sync] Registry SSOT: ${registryCount} permissions — syncing…` +
+      (withPresets ? " (+ áp dụng preset KSNK)" : " (không ghi đè preset; thêm --with-presets nếu cần)"),
+  );
 
   await upsertRegistryPermissionsAndAdminMappings(supabase);
+  if (withPresets) {
+    await applyKsnkRolePermissionPresets(supabase);
+  }
 
   const { count: dbCount, error: countErr } = await supabase
     .from("sys_permissions")

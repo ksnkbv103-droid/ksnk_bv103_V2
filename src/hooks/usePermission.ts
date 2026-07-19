@@ -40,8 +40,6 @@ export function usePermission(moduleKey?: string, action: string = "view") {
     canManageDM: api.canManageDM,
     isNhanVienKSNK: api.isNhanVienKSNK,
     isMangLuoi: api.isMangLuoi,
-    isToTruongMangLuoiKSNK: api.isToTruongMangLuoiKSNK,
-    isThanhVienMangLuoiKSNK: api.isThanhVienMangLuoiKSNK,
     isHoiDongKSNK: api.isHoiDongKSNK,
     isGuestStatsOnly: api.isGuestStatsOnly,
     hasPermission: api.hasPermission,
