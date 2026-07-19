@@ -19,6 +19,8 @@ import { Activity, Layers, PieChart, ShieldCheck, Warehouse } from "lucide-react
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 
+type KhoaOption = { id: string; ten_danh_muc: string };
+
 type NkbvDashboardPanelProps = {
   payload: NkbvDashboardPayload | null;
   loading?: boolean;
@@ -27,6 +29,10 @@ type NkbvDashboardPanelProps = {
   onTuNgayChange: (v: string) => void;
   onDenNgayChange: (v: string) => void;
   onApplyRange: () => void;
+  khoaOptions?: KhoaOption[];
+  selectedKhoaId?: string;
+  onKhoaChange?: (khoaId: string) => void;
+  khoaOptionsLoading?: boolean;
 };
 
 const COL_LOAI = ["var(--primary)", "#0d9488", "#2563eb", "#d97706", "#7c3aed", "#db2777", "#64748b"];
@@ -39,8 +45,15 @@ export default function NkbvDashboardPanel({
   onTuNgayChange,
   onDenNgayChange,
   onApplyRange,
+  khoaOptions = [],
+  selectedKhoaId = "",
+  onKhoaChange,
+  khoaOptionsLoading = false,
 }: NkbvDashboardPanelProps) {
   const k = payload?.kpis;
+  const khoaLabel = selectedKhoaId
+    ? khoaOptions.find((x) => x.id === selectedKhoaId)?.ten_danh_muc || "Một khoa"
+    : "Tất cả khoa";
 
   return (
     <div className="space-y-6 px-4 pb-10 animate-in fade-in duration-400">
@@ -63,6 +76,24 @@ export default function NkbvDashboardPanel({
             className={C.controlInput}
           />
         </label>
+        {onKhoaChange ? (
+          <label className={C.formLabelFlex}>
+            Khoa ghi nhận
+            <select
+              value={selectedKhoaId}
+              disabled={khoaOptionsLoading}
+              onChange={(e) => onKhoaChange(e.target.value)}
+              className="min-w-[200px] rounded-[var(--radius-shell)] border-0 bg-white px-4 py-2.5 text-sm font-semibold shadow-sm"
+            >
+              <option value="">Tất cả khoa</option>
+              {khoaOptions.map((khoa) => (
+                <option key={khoa.id} value={khoa.id}>
+                  {khoa.ten_danh_muc}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
         <button
           type="button"
           onClick={onApplyRange}
@@ -70,8 +101,10 @@ export default function NkbvDashboardPanel({
         >
           Cập nhật số liệu
         </button>
-        <p className="pb-2 text-[11px] text-slate-500">
-          Mặc định: 12 tháng lịch gần nhất theo đến ngày. Chỉ tính phiếu trong khoảng và có ngày phát hiện.
+        <p className="w-full pb-1 text-[11px] text-slate-500">
+          Đang lọc: <span className="font-semibold text-slate-700">{khoaLabel}</span>
+          {" · "}
+          Mặc định 12 tháng lịch gần nhất. Chỉ tính phiếu có ngày phát hiện trong khoảng.
         </p>
       </div>
 
@@ -217,16 +250,32 @@ export default function NkbvDashboardPanel({
                 <div>
                   <h3 className={`${C.sectionTitle} flex items-center gap-2`}>
                     <Activity className="h-5 w-5 text-[var(--primary)]" />
-                    Chỉ số Dịch tễ học Lâm sàng & Kiểm soát rủi ro JCI (NHSN/CDC 2023)
+                    Chỉ số dịch tễ lâm sàng (chuẩn JCI / NHSN–CDC)
                   </h3>
-                  <p className="text-xs text-slate-400">
-                    Phân tích tỷ suất nhiễm khuẩn và sử dụng thiết bị xâm lấn chuẩn hóa theo thời gian thực (DUR, SIR, SUR) không qua tổng hợp tĩnh.
+                  <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
+                    Theo dõi mật độ nhiễm khuẩn liên quan thiết bị và mức dùng thiết bị xâm lấn trong kỳ lọc.
+                    Đây là outcome NKBV — không gộp vào chỉ số tuân thủ CCS (VST/GSC).
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-2 text-[11px] font-medium text-slate-400 bg-slate-50 p-1.5 rounded-full border border-slate-100">
-                  <span className="bg-white text-slate-700 px-3 py-1 rounded-full shadow-sm">DUR: Tỷ lệ sử dụng thiết bị</span>
-                  <span className="bg-white text-slate-700 px-3 py-1 rounded-full shadow-sm">SIR: Tỷ số nhiễm khuẩn chuẩn hóa</span>
-                  <span className="bg-white text-slate-700 px-3 py-1 rounded-full shadow-sm">SUR: Tỷ số sử dụng thiết bị chuẩn hóa</span>
+                <div className="flex flex-wrap gap-2 text-[11px] font-medium text-slate-500 bg-slate-50 p-1.5 rounded-full border border-slate-100">
+                  <span
+                    className="bg-white text-slate-700 px-3 py-1 rounded-full shadow-sm"
+                    title="Device Utilization Ratio — số ngày dùng thiết bị ÷ số ngày nằm viện"
+                  >
+                    DUR: tỷ lệ ngày dùng thiết bị / ngày nằm viện
+                  </span>
+                  <span
+                    className="bg-white text-slate-700 px-3 py-1 rounded-full shadow-sm"
+                    title="Standardized Infection Ratio — ca quan sát ÷ ca kỳ vọng (chuẩn hóa)"
+                  >
+                    SIR: ca nhiễm quan sát so với kỳ vọng
+                  </span>
+                  <span
+                    className="bg-white text-slate-700 px-3 py-1 rounded-full shadow-sm"
+                    title="Standardized Utilization Ratio — mức dùng thiết bị so với kỳ vọng"
+                  >
+                    SUR: mức dùng thiết bị so với kỳ vọng
+                  </span>
                 </div>
               </div>
 
@@ -290,7 +339,7 @@ export default function NkbvDashboardPanel({
                     {/* VAP Card */}
                     <div className="premium-card bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-3xl p-4 space-y-2 transition-all">
                       <div className="flex justify-between items-center">
-                        <span className="text-[11px] font-medium text-teal-600 tracking-wider">Viêm phổi máy (VAP)</span>
+                        <span className="text-[11px] font-medium text-teal-600 tracking-wider">VAP (viêm phổi liên quan thở máy)</span>
                         <span className="rounded-full bg-teal-100 text-teal-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
@@ -397,7 +446,7 @@ export default function NkbvDashboardPanel({
                       <th className="px-4 py-3 text-center bg-amber-50/30 text-amber-700">CAUTI SIR</th>
                       <th className="px-4 py-3 text-center bg-teal-50/30 text-teal-700">VAP / Vent Days</th>
                       <th className="px-4 py-3 text-center bg-teal-50/30 text-teal-700">Vent DUR</th>
-                      <th className="px-4 py-3 text-center bg-teal-50/30 text-teal-700">VAP/VAE SIR</th>
+                      <th className="px-4 py-3 text-center bg-teal-50/30 text-teal-700">VAP SIR</th>
                       <th className="px-4 py-3 text-center bg-blue-50/30 text-blue-700">SSI / Mổ</th>
                       <th className="px-4 py-3 text-center bg-blue-50/30 text-blue-700">SSI SIR</th>
                     </tr>

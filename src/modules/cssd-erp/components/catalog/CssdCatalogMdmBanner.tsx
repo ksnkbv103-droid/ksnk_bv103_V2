@@ -19,7 +19,8 @@ export default function CssdCatalogMdmBanner(props: { className?: string; focusT
         dismissible={false}
         summary={
           <span>
-            <span className="font-semibold text-slate-900">Chế độ xem vận hành.</span> Sửa master data tại Quản trị.
+            <span className="font-semibold text-slate-900">Chế độ xem vận hành.</span> Sửa{" "}
+            <span className="font-semibold">danh mục dụng cụ (Master CSSD)</span> tại Quản trị — không phải khoa/nhân sự.
           </span>
         }
         detail={
@@ -45,7 +46,11 @@ export default function CssdCatalogMdmBanner(props: { className?: string; focusT
       >
         <span className="sm:hidden">{adminLabel}</span>
         <span className="hidden sm:inline">
-          {focus === "loai" ? "Quản trị loại dụng cụ" : focus === "chi-tiet" ? "Quản trị thành phần bộ" : "Quản trị bộ dụng cụ"}
+          {focus === "loai"
+            ? "Quản trị danh mục — loại dụng cụ"
+            : focus === "chi-tiet"
+              ? "Quản trị danh mục — thành phần bộ"
+              : "Quản trị danh mục — bộ dụng cụ"}
         </span>
         <ExternalLink className="h-3.5 w-3.5" aria-hidden />
       </Link>

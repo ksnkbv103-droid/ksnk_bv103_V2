@@ -10,6 +10,8 @@ export const nkbvListPaginationSchema = z.object({
   search: z.string().max(500).default(""),
   sortKey: z.string().max(64).default("ngay_phat_hien"),
   sortDir: z.enum(["asc", "desc"]).default("desc"),
+  loai_nkbv_id: z.string().uuid().optional(),
+  trang_thai_id: z.string().uuid().optional(),
 });
 
 export type NkbvListPaginationInput = z.infer<typeof nkbvListPaginationSchema>;

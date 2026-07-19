@@ -19,6 +19,7 @@ import {
   parseApDungJsonb,
 } from "@/lib/domain/bang-kiem-ap-dung";
 import { buildTgsHitSet } from "@/lib/analytics/tgs-coverage-mappers";
+import { fetchGscTgsSessionHits } from "@/lib/analytics/gsc-tgs-session-hits";
 import { gscFormHrefForLoaiGiamSat } from "@/modules/giam-sat-chung/lib/gsc-app-paths";
 
 const inputSchema = z.object({
@@ -116,21 +117,15 @@ export async function getBangKiemToiPhaiTgsAction(
     const catalog = catalogRows ?? [];
     const mine = listBkTuGiamSatChoKhoa(catalog, khoaCtx);
 
-    const { data: hitRows, error: hitErr } = await supabase
-      .from("gstt_fact_gsc_dashboard_summary")
-      .select("khoa_id, bang_kiem_id, session_id")
-      .eq("stype", "TU_GIAM_SAT")
-      .eq("khoa_id", khoaId)
-      .gte("ngay_giam_sat", parsed.data.tu_ngay)
-      .lte("ngay_giam_sat", parsed.data.den_ngay);
-    if (hitErr) return { success: false, error: hitErr.message };
+    const hitsRes = await fetchGscTgsSessionHits(supabase, {
+      tu_ngay: parsed.data.tu_ngay,
+      den_ngay: parsed.data.den_ngay,
+      khoa_id: khoaId,
+    });
+    if (hitsRes.error) return { success: false, error: hitsRes.error };
 
-    const hitSet = buildTgsHitSet((hitRows ?? []) as { khoa_id: string; bang_kiem_id: string }[]);
-    const sessionCountByBk = new Map<string, number>();
-    for (const row of hitRows ?? []) {
-      const bkKey = String((row as { bang_kiem_id: string }).bang_kiem_id);
-      sessionCountByBk.set(bkKey, (sessionCountByBk.get(bkKey) ?? 0) + 1);
-    }
+    const hitSet = buildTgsHitSet(hitsRes.hits);
+    const sessionCountByBk = hitsRes.sessionCountByBk;
 
     const toRow = (bk: BangKiemApDungSource): BangKiemToiPhaiTgsRow => {
       const ap = normalizeApDungForSave(parseApDungJsonb(bk.ap_dung_jsonb, bk));

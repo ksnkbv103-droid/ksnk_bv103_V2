@@ -3,7 +3,7 @@ import type { DepartmentStay } from "../types/nkbv-verification";
 export interface CdcMetricsInput {
   ngay_phat_hien: string;
   ngay_vao_vien: string;
-  checklistType: 'BSI' | 'VAE' | 'UTI' | 'SSI';
+  checklistType: "BSI" | "VAE" | "VAP" | "HAP" | "UTI" | "SSI";
   activeForm: any;
   symptomDates: Record<string, string>;
   treatmentHistory: DepartmentStay[];
@@ -103,7 +103,7 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
   let symptomKeys: string[] = [];
   if (checklistType === "BSI") {
     symptomKeys = ['symptoms_window_7days'];
-  } else if (checklistType === "VAE") {
+  } else if (checklistType === "VAE" || checklistType === "VAP" || checklistType === "HAP") {
     symptomKeys = [
       'temp_fever_or_hypothermia', 'wbc_abnormal', 'peep_increase_ge_3', 
       'fio2_increase_ge_20', 'has_chest_imaging_abnormal', 'fever_or_wbc_abnormal', 
@@ -221,7 +221,7 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
     } else if (checklistType === 'UTI') {
       device_placed_days = activeForm?.foley_placed_days || 0;
       device_active_on_event = activeForm?.foley_active_on_event || false;
-    } else if (checklistType === 'VAE') {
+    } else if (checklistType === "VAE" || checklistType === "VAP" || checklistType === "HAP") {
       device_placed_days = activeForm?.vent_days || 0;
       device_active_on_event = true;
     }

@@ -82,9 +82,16 @@ export function CSSDCatalogBoTab(props: {
                   const isSelected = selectedBoId === x.id;
                   return (
                     <li key={x.id}>
-                      <button
-                        type="button"
+                      <div
+                        role="button"
+                        tabIndex={0}
                         onClick={() => setSelectedBoId(x.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelectedBoId(x.id);
+                          }
+                        }}
                         className={`w-full space-y-2 px-3 py-3.5 text-left touch-manipulation ${
                           isSelected ? "bg-emerald-50/70 ring-1 ring-inset ring-emerald-200" : "active:bg-slate-50"
                         }`}
@@ -97,22 +104,16 @@ export function CSSDCatalogBoTab(props: {
                           <span className="text-[11px] font-bold text-slate-600">{x.tong_so_luong_dung_cu ?? 0} DC</span>
                         </div>
                         <p className="text-xs text-slate-500">{x.ten_khoa || "Chưa phân bổ"}</p>
-                        <span
-                          onClick={(e) => e.stopPropagation()}
-                          role="presentation"
-                          className="inline-block"
+                        <button
+                          type="button"
+                          disabled={printingId === x.id}
+                          onClick={(e) => void handlePrintQr(e, x.id)}
+                          className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-lg border border-emerald-200/50 bg-emerald-50 px-3 py-1.5 font-mono text-[11px] font-medium text-[var(--primary)] touch-manipulation hover:bg-[var(--primary)] hover:text-white disabled:opacity-50"
                         >
-                          <button
-                            type="button"
-                            disabled={printingId === x.id}
-                            onClick={(e) => void handlePrintQr(e, x.id)}
-                            className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-lg border border-emerald-200/50 bg-emerald-50 px-3 py-1.5 font-mono text-[11px] font-medium text-[var(--primary)] touch-manipulation hover:bg-[var(--primary)] hover:text-white disabled:opacity-50"
-                          >
-                            {printingId === x.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Printer className="h-3 w-3" />}
-                            In QR
-                          </button>
-                        </span>
-                      </button>
+                          {printingId === x.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Printer className="h-3 w-3" />}
+                          In QR
+                        </button>
+                      </div>
                     </li>
                   );
                 })}

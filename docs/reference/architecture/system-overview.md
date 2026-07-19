@@ -82,6 +82,7 @@ Hệ thống phân rã thành 8 miền nghiệp vụ (Domain) tách biệt, đư
 
 ### 2.4 Giám sát Nhiễm khuẩn bệnh viện (NKBV / HAI Surveillance)
 *   **Khái niệm:** Phát hiện ca bệnh nhiễm khuẩn phát sinh khi nằm viện theo chuẩn CDC/NHSN.
+*   **Sản phẩm:** **Một** module `giam-sat-nkbv` cho đủ hội chứng (BSI / UTI / VAE-PNEU / SSI); chuyên biệt hóa bằng form con + lọc UX — **không** tách 4 app. ADR: [`adr-nkbv-unified-module-20260715.md`](adr-nkbv-unified-module-20260715.md). VST/GSC vẫn tách riêng.
 *   **Đồng bộ dữ liệu:** Nhận kết quả cấy vi sinh dương tính từ khoa Vi sinh → Sàng lọc qua Rules Engine dựa trên quy tắc **"Ngày lịch thứ 3 (Calendar Day 3 Rule)"** $\to$ Kích hoạt phiếu nghi ngờ.
 *   **Quy trình Phê duyệt:** Khoa lâm sàng điền Form Xác minh lâm sàng (VAP, BSI, UTI, SSI) $\to$ Khoa KSNK thẩm định và Phê duyệt (`XAC_NHAN`) hoặc bác bỏ (`LOAI_TRU`).
 

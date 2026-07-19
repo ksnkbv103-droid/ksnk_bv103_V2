@@ -5,7 +5,7 @@ import React, { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { IdCard, KeyRound } from "lucide-react";
+import { KeyRound } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { usePermission } from "@/hooks/usePermission";
 import { SIDEBAR_ADMIN_GROUPS } from "@/lib/nav/sidebar-admin-nav-groups";
@@ -20,11 +20,11 @@ type NavItem = { name: string; href: string; icon: LucideIcon };
 
 function menuItemIsActive(pathname: string, href: string, urlTab: string | null) {
   const [path, query] = href.split("?");
+  if (path === "/quan-tri-he-thong" && (pathname === "/quan-tri-he-thong" || pathname.startsWith("/quan-tri-he-thong/"))) {
+    return true;
+  }
   if (path === "/giam-sat-chung" && pathname.startsWith("/giam-sat-chung")) {
     return !query;
-  }
-  if (path === "/giam-sat" && (pathname === "/giam-sat" || pathname.startsWith("/giam-sat/"))) {
-    return pathname === "/giam-sat";
   }
   if (pathname !== path) return false;
   if (!query) return urlTab !== "dm_registry";
@@ -79,9 +79,8 @@ function SidebarNavLinks({ onClose }: { onClose: () => void }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const urlTab = searchParams.get("tab");
-  const { loading, isAdmin, canView, can } = usePermission(undefined, "view");
+  const { loading, isAdmin, canView } = usePermission(undefined, "view");
   const showQt = !loading && canSeeQuanTriSection(isAdmin, canView);
-  const showTaiKhoanKsnk = !loading && (isAdmin || can("PHAN_QUYEN", "edit"));
   const pilotCore = isPilotCoreModulesScopeEnabled();
   const visibleGroups = !loading
     ? SIDEBAR_NAV_GROUPS.map((group) => ({
@@ -90,6 +89,11 @@ function SidebarNavLinks({ onClose }: { onClose: () => void }) {
       })).filter((group) => group.items.length > 0)
     : [];
   const hasAnyNav = visibleGroups.length > 0;
+  const adminHubItems = showQt
+    ? SIDEBAR_ADMIN_GROUPS.flatMap((group) =>
+        group.items.filter((row) => canSeeNavGate(isAdmin, canView, row.gate)),
+      )
+    : [];
 
   return (
     <div className="space-y-6">
@@ -120,40 +124,20 @@ function SidebarNavLinks({ onClose }: { onClose: () => void }) {
           </div>
         ))
       )}
-      {showQt ? (
-        <div className="space-y-4 border-t border-slate-200/90 pt-4">
+      {adminHubItems.length > 0 ? (
+        <div className="space-y-1 border-t border-slate-200/90 pt-4">
           <p className="section-label mb-2 px-4">Quản trị</p>
-          {SIDEBAR_ADMIN_GROUPS.map((group) => {
-            const visible = group.items.filter((row) => canSeeNavGate(isAdmin, canView, row.gate));
-            if (!visible.length) return null;
+          {adminHubItems.map((row) => {
+            const { gate: _g, ...item } = row;
             return (
-              <div key={group.id} className="space-y-0.5">
-                <p className="px-4 text-[11px] font-semibold uppercase tracking-wide text-slate-400">{group.label}</p>
-                {visible.map((row) => {
-                  const { gate: _g, ...item } = row;
-                  return (
-                    <NavLinkRow
-                      key={row.href}
-                      item={item}
-                      isActive={menuItemIsActive(pathname, row.href, urlTab)}
-                      onClose={onClose}
-                    />
-                  );
-                })}
-              </div>
+              <NavLinkRow
+                key={row.href}
+                item={item}
+                isActive={menuItemIsActive(pathname, row.href, urlTab)}
+                onClose={onClose}
+              />
             );
           })}
-          {showTaiKhoanKsnk ?
-            <NavLinkRow
-              item={{
-                name: "Tài khoản KSNK",
-                href: "/quan-tri-he-thong/tai-khoan-nhan-su",
-                icon: IdCard,
-              }}
-              isActive={pathname === "/quan-tri-he-thong/tai-khoan-nhan-su"}
-              onClose={onClose}
-            />
-          : null}
         </div>
       ) : null}
     </div>

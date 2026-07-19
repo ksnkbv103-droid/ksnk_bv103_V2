@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { AlertTriangle, ExternalLink } from "lucide-react";
-import { CSSD_ROUTES } from "@/lib/cssd-routes";
+import { cssdSuCoInstrumentHref } from "@/lib/cssd-routes";
 import type { CSSDChiTiet } from "../types/catalog.types";
 import { CSSD_UI_ACTION_SECONDARY, CSSD_UI_SECTION_TITLE } from "../shared/ui/cssd-ui-chrome";
 
@@ -12,11 +12,16 @@ const MDM_DUNG_CU_HREF = "/quan-tri-he-thong/danh-muc/dung-cu";
 export function CSSDCatalogQuickActions(props: {
   selectedBoId: string | null;
   selectedChiTiet: CSSDChiTiet | null;
+  selectedMaBo?: string | null;
   reload: () => Promise<void>;
 }) {
-  const { selectedBoId, selectedChiTiet } = props;
-  const suCoHref = `${CSSD_ROUTES.suCo}${selectedChiTiet ? `?prefill=1` : ""}`;
-  void selectedBoId;
+  const { selectedChiTiet, selectedMaBo } = props;
+  const suCoHref = cssdSuCoInstrumentHref({
+    type: "INSTRUMENT_BROKEN",
+    ma: selectedMaBo || null,
+    loai: selectedChiTiet?.loai_dung_cu_id || null,
+    chiTiet: selectedChiTiet?.id || null,
+  });
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-4">

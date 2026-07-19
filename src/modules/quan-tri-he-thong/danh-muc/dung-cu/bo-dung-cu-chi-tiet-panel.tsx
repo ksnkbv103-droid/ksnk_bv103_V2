@@ -8,11 +8,7 @@ import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import DungCuChiTietFormModal from "./dung-cu-chi-tiet-form-modal";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import type { DungCuChiTietTableRow } from "./dung-cu-chi-tiet-form-shared";
-import { reportChiTietInstrumentIssueAction } from "@/lib/master-data/append-chi-tiet-issue-note.action";
-import {
-  replenishSetInstrumentAction,
-  reportIndividualInstrumentIssueAction,
-} from "@/lib/master-data/cssd-instrument-ops.actions";
+import { cssdSuCoInstrumentHref } from "@/lib/cssd-routes";
 import {
   getBoRefsByLoaiAction,
   getBoDungCuChiTietPreviewAction,
@@ -26,6 +22,14 @@ import type {
   BoRefByLoai,
   BoDungCuChiTietPreviewRow,
 } from "../actions/bo-dung-cu-chi-tiet.types";
+
+type AllocationRow = {
+  id: string;
+  khoa_phong_id: string;
+  so_luong_co_so: number;
+  so_luong_hien_tai: number;
+  khoa_phong?: { ten_khoa: string; ma_khoa: string };
+};
 
 type Props = {
   /** `null` = chưa chọn bộ */
@@ -92,7 +96,7 @@ export function BoDungCuChiTietPanel({
   const [editing, setEditing] = useState<DungCuChiTietTableRow | null>(null);
 
   // Allocations States
-  const [allocations, setAllocations] = useState<{ id: string; khoa_phong_id: string; so_luong: number; khoa_phong?: { ten_khoa: string; ma_khoa: string } }[]>([]);
+  const [allocations, setAllocations] = useState<AllocationRow[]>([]);
   const [departments, setDepartments] = useState<{ id: string; ten_khoa: string; ma_khoa: string }[]>([]);
   const [loadingAllocations, setLoadingAllocations] = useState(false);
   const [selectedDeptId, setSelectedDeptId] = useState<string>("");
@@ -105,7 +109,7 @@ export function BoDungCuChiTietPanel({
       getBoDungCuAllocationsAction(selectedBoId),
       getKhoaPhongOptionsForBoAction(),
     ]);
-    if (allocRes.success) setAllocations((allocRes.data || []) as typeof allocations);
+    if (allocRes.success) setAllocations((allocRes.data || []) as AllocationRow[]);
     if (deptRes.success) setDepartments((deptRes.data || []) as typeof departments);
     setLoadingAllocations(false);
   };
@@ -255,44 +259,28 @@ export function BoDungCuChiTietPanel({
                   >
                     <RefreshCcw className="h-3.5 w-3.5" /> Điều chuyển / chỉnh thông tin dụng cụ đã chọn
                   </button>
-                  <button
-                    type="button"
-                    disabled={!selectedChiTiet}
-                    onClick={async () => {
-                      if (!selectedChiTiet) return;
-                      const note = window.prompt("Mô tả tình trạng hỏng (tùy chọn):", "") || "";
-                      const r = await reportChiTietInstrumentIssueAction({
-                        chiTietId: selectedChiTiet.id,
-                        issueType: "HONG",
-                        note,
-                      });
-                      if (!r.success) return toast.error(r.error || "Không ghi nhận được báo hỏng.");
-                      toast.success("Đã ghi nhận báo hỏng (ghi chú + sổ giao dịch).");
-                      onChanged?.();
-                    }}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-rose-100 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-rose-800 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95"
+                  <Link
+                    href={cssdSuCoInstrumentHref({
+                      type: "INSTRUMENT_BROKEN",
+                      ma: selectedMaBo,
+                      loai: selectedChiTiet?.loai_dung_cu_id,
+                      chiTiet: selectedChiTiet?.id,
+                    })}
+                    className={`inline-flex items-center gap-1.5 rounded-xl bg-rose-100 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-rose-800 hover:opacity-90 transition-all active:scale-95 ${!selectedChiTiet ? "pointer-events-none opacity-50" : ""}`}
                   >
-                    <AlertTriangle className="h-3.5 w-3.5" /> Báo hỏng bộ
-                  </button>
-                  <button
-                    type="button"
-                    disabled={!selectedChiTiet}
-                    onClick={async () => {
-                      if (!selectedChiTiet) return;
-                      const note = window.prompt("Mô tả mất / thất lạc (tùy chọn):", "") || "";
-                      const r = await reportChiTietInstrumentIssueAction({
-                        chiTietId: selectedChiTiet.id,
-                        issueType: "MAT",
-                        note,
-                      });
-                      if (!r.success) return toast.error(r.error || "Không ghi nhận được báo mất.");
-                      toast.success("Đã ghi nhận báo mất (ghi chú + sổ giao dịch).");
-                      onChanged?.();
-                    }}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-amber-100 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-amber-800 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95"
+                    <AlertTriangle className="h-3.5 w-3.5" /> Báo hỏng (sự cố)
+                  </Link>
+                  <Link
+                    href={cssdSuCoInstrumentHref({
+                      type: "INSTRUMENT_MISSING",
+                      ma: selectedMaBo,
+                      loai: selectedChiTiet?.loai_dung_cu_id,
+                      chiTiet: selectedChiTiet?.id,
+                    })}
+                    className={`inline-flex items-center gap-1.5 rounded-xl bg-amber-100 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-amber-800 hover:opacity-90 transition-all active:scale-95 ${!selectedChiTiet ? "pointer-events-none opacity-50" : ""}`}
                   >
-                    <AlertTriangle className="h-3.5 w-3.5" /> Báo mất bộ
-                  </button>
+                    <AlertTriangle className="h-3.5 w-3.5" /> Báo mất (sự cố)
+                  </Link>
                 </div>
 
                 <ResponsiveTableShell unboxed className="rounded-[var(--radius-shell)] border border-slate-100 bg-white" maxHeight="max-h-[min(360px,50dvh)]">
@@ -353,85 +341,55 @@ export function BoDungCuChiTietPanel({
                       </span>
                     </p>
 
-                    {/* Fine-grained actions */}
                     <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-200">
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          const qtyStr = window.prompt("Nhập số lượng báo hỏng lẻ:", "1");
-                          if (!qtyStr) return;
-                          const qty = parseInt(qtyStr);
-                          if (isNaN(qty) || qty <= 0) return toast.error("Số lượng không hợp lệ.");
-                          const note = window.prompt("Ghi chú báo hỏng (tùy chọn):", "") || "";
-                          const r = await reportIndividualInstrumentIssueAction({
-                            loaiDungCuId: selectedChiTiet.loai_dung_cu_id || "",
-                            boDungCuId: selectedBoId,
-                            issueType: "HONG",
-                            quantity: qty,
-                            note,
-                          });
-                          if (!r.success) return toast.error(r.error || "Lỗi báo hỏng.");
-                          toast.success(`Đã ghi nhận báo hỏng ${qty} dụng cụ.`);
-                          onChanged?.();
-                          const preview = await getBoDungCuChiTietPreviewAction(selectedBoId!);
-                          if (preview.success) setRows(preview.data);
-                        }}
-                        className="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-semibold px-3 py-1.5 rounded-lg uppercase tracking-wide transition-colors"
+                      <Link
+                        href={cssdSuCoInstrumentHref({
+                          type: "INSTRUMENT_BROKEN",
+                          ma: selectedMaBo,
+                          loai: selectedChiTiet.loai_dung_cu_id,
+                          chiTiet: selectedChiTiet.id,
+                        })}
+                        className="inline-flex items-center gap-1 bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-semibold px-3 py-1.5 rounded-lg uppercase tracking-wide transition-colors"
                       >
-                        Báo hỏng lẻ
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          const qtyStr = window.prompt("Nhập số lượng báo mất lẻ:", "1");
-                          if (!qtyStr) return;
-                          const qty = parseInt(qtyStr);
-                          if (isNaN(qty) || qty <= 0) return toast.error("Số lượng không hợp lệ.");
-                          const note = window.prompt("Ghi chú báo mất (tùy chọn):", "") || "";
-                          const r = await reportIndividualInstrumentIssueAction({
-                            loaiDungCuId: selectedChiTiet.loai_dung_cu_id || "",
-                            boDungCuId: selectedBoId,
-                            issueType: "MAT",
-                            quantity: qty,
-                            note,
-                          });
-                          if (!r.success) return toast.error(r.error || "Lỗi báo mất.");
-                          toast.success(`Đã ghi nhận báo mất ${qty} dụng cụ.`);
-                          onChanged?.();
-                          const preview = await getBoDungCuChiTietPreviewAction(selectedBoId!);
-                          if (preview.success) setRows(preview.data);
-                        }}
-                        className="bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-semibold px-3 py-1.5 rounded-lg uppercase tracking-wide transition-colors"
+                        Báo hỏng (sự cố)
+                      </Link>
+                      <Link
+                        href={cssdSuCoInstrumentHref({
+                          type: "INSTRUMENT_MISSING",
+                          ma: selectedMaBo,
+                          loai: selectedChiTiet.loai_dung_cu_id,
+                          chiTiet: selectedChiTiet.id,
+                        })}
+                        className="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-semibold px-3 py-1.5 rounded-lg uppercase tracking-wide transition-colors"
                       >
-                        Báo mất lẻ
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          const qtyStr = window.prompt("Nhập số lượng bổ sung từ kho dự phòng:", "1");
-                          if (!qtyStr) return;
-                          const qty = parseInt(qtyStr);
-                          if (isNaN(qty) || qty <= 0) return toast.error("Số lượng không hợp lệ.");
-                          const note = window.prompt("Ghi chú bổ sung (tùy chọn):", "") || "";
-                          const r = await replenishSetInstrumentAction({
-                            loaiDungCuId: String(selectedChiTiet.loai_dung_cu_id || ""),
-                            boDungCuId: selectedBoId!,
-                            quantity: qty,
-                            note,
-                          });
-                          if (!r.success) return toast.error(r.error || "Lỗi bổ sung.");
-                          toast.success(`Đã bổ sung ${qty} dụng cụ từ kho dự phòng vào bộ.`);
-                          onChanged?.();
-                          const preview = await getBoDungCuChiTietPreviewAction(selectedBoId!);
-                          if (preview.success) setRows(preview.data);
-                        }}
-                        className="bg-emerald-50 hover:bg-emerald-100 text-[var(--primary)] text-[11px] font-semibold px-3 py-1.5 rounded-lg uppercase tracking-wide transition-colors"
+                        Báo mất (sự cố)
+                      </Link>
+                      <Link
+                        href={cssdSuCoInstrumentHref({
+                          type: "INSTRUMENT_REPLENISH",
+                          ma: selectedMaBo,
+                          loai: selectedChiTiet.loai_dung_cu_id,
+                          chiTiet: selectedChiTiet.id,
+                        })}
+                        className="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-[var(--primary)] text-[11px] font-semibold px-3 py-1.5 rounded-lg uppercase tracking-wide transition-colors"
                       >
-                        Bổ sung lẻ từ dự phòng
-                      </button>
+                        Bổ sung (sự cố)
+                      </Link>
+                      <Link
+                        href={cssdSuCoInstrumentHref({
+                          type: "INSTRUMENT_TRANSFER",
+                          ma: selectedMaBo,
+                          loai: selectedChiTiet.loai_dung_cu_id,
+                          chiTiet: selectedChiTiet.id,
+                        })}
+                        className="inline-flex items-center gap-1 bg-sky-50 hover:bg-sky-100 text-sky-800 text-[11px] font-semibold px-3 py-1.5 rounded-lg uppercase tracking-wide transition-colors"
+                      >
+                        Điều chuyển (sự cố)
+                      </Link>
                     </div>
+                    <p className="text-[11px] text-slate-500">
+                      Hỏng / Mất / Bổ sung / Điều chuyển chỉ thực hiện tại trang Báo cáo sự cố CSSD (một cửa sổ giao dịch).
+                    </p>
 
                     <p className="text-[11px] text-slate-600 font-medium mt-2">
                       Các bộ khác đang chứa loại này:
@@ -530,16 +488,24 @@ export function BoDungCuChiTietPanel({
                       <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-medium text-slate-500">
                         <th className="p-3">Mã khoa</th>
                         <th className="p-3">Tên khoa</th>
-                        <th className="p-3 text-center w-32">Cơ số phân bổ</th>
+                        <th className="p-3 text-center w-28">Cơ số phân bổ</th>
+                        <th className="p-3 text-center w-28">Tồn hiện tại</th>
+                        <th className="p-3 text-center w-24">Chênh</th>
                         <th className="p-3 text-right w-40">Thao tác</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {allocations.map((a) => (
+                      {allocations.map((a) => {
+                        const gap = a.so_luong_hien_tai - a.so_luong_co_so;
+                        return (
                         <tr key={a.id} className="hover:bg-slate-50/50">
                           <td className="p-3 font-mono text-xs font-bold text-rose-700">{a.khoa_phong?.ma_khoa || "—"}</td>
                           <td className="p-3 text-xs font-semibold text-slate-800">{a.khoa_phong?.ten_khoa || "—"}</td>
-                          <td className="p-3 text-center text-xs font-semibold text-slate-700">{a.so_luong}</td>
+                          <td className="p-3 text-center text-xs font-semibold text-slate-700">{a.so_luong_co_so}</td>
+                          <td className="p-3 text-center text-xs font-bold text-emerald-700">{a.so_luong_hien_tai}</td>
+                          <td className={`p-3 text-center text-xs font-bold ${gap < 0 ? "text-rose-600" : gap > 0 ? "text-amber-600" : "text-slate-500"}`}>
+                            {gap > 0 ? `+${gap}` : gap}
+                          </td>
                           <td className="p-3 text-right flex justify-end gap-1.5">
                             <button
                               type="button"
@@ -547,7 +513,7 @@ export function BoDungCuChiTietPanel({
                                 const r = await allocateProceduralSetAction({
                                   boDungCuId: selectedBoId!,
                                   khoaPhongId: a.khoa_phong_id,
-                                  quantity: a.so_luong + 1,
+                                  quantity: a.so_luong_co_so + 1,
                                 });
                                 if (r.success) { fetchAllocations(); onChanged?.(); }
                               }}
@@ -558,13 +524,13 @@ export function BoDungCuChiTietPanel({
                             <button
                               type="button"
                               onClick={async () => {
-                                if (a.so_luong <= 1) {
+                                if (a.so_luong_co_so <= 1) {
                                   if (!window.confirm("Thu hồi toàn bộ phân bổ cho khoa này?")) return;
                                 }
                                 const r = await allocateProceduralSetAction({
                                   boDungCuId: selectedBoId!,
                                   khoaPhongId: a.khoa_phong_id,
-                                  quantity: a.so_luong - 1,
+                                  quantity: a.so_luong_co_so - 1,
                                 });
                                 if (r.success) { fetchAllocations(); onChanged?.(); }
                               }}
@@ -589,7 +555,8 @@ export function BoDungCuChiTietPanel({
                             </button>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </ResponsiveTableShell>

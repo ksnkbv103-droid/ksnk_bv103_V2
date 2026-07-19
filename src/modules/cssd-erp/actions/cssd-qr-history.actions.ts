@@ -5,6 +5,7 @@ import { verifyCssdWorkflowView } from "@/lib/cssd-server-gates";
 import { getErrorMessage } from "../shared/cssd-db-utils";
 import { CSSD_BATCH_QR_PREFIX, classifyCssdCode } from "../shared/domain/cssd-qr-core";
 import { fetchCssdBatchPrintDataByMaLo } from "./cssd-print.actions";
+import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 
 export async function fetchCssdQrHistory(maQr: string) {
   const supabase = createAdminSupabaseClient();
@@ -25,14 +26,7 @@ export async function fetchCssdQrHistory(maQr: string) {
       };
     }
 
-    const { data: q, error: qErr } = await supabase
-      .from("v_cssd_quy_trinh_full")
-      .select("*")
-      .eq("ma_qr_quy_trinh", qr)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (qErr) return { success: false as const, error: qErr.message };
+    const q = await fetchActiveQuyTrinhByScanCode(supabase, qr);
     if (!q) return { success: false as const, error: "Không tìm thấy thông tin cho mã QR này" };
 
     // Lịch sử từ metadata.ngoai_le (hub quy_trinh)
@@ -83,8 +77,16 @@ export async function fetchCssdQrHistory(maQr: string) {
 
     const process = {
       ...q,
-      ma_vach_qr: q.ma_qr_quy_trinh,
+      ma_vach_qr: q.ma_qr_quy_trinh || q.ma_qr_bo_vinh_vien || qr,
       trang_thai_hien_tai: q.ma_trang_thai_hien_tai,
+      ma_cycle_qr: q.ma_cycle_qr || null,
+      ma_qr_bo_vinh_vien: q.ma_qr_bo_vinh_vien || null,
+      qr_kind_matched:
+        String(q.ma_cycle_qr || "").toUpperCase() === qr
+          ? "CYCLE"
+          : String(q.ma_qr_bo_vinh_vien || "").toUpperCase() === qr
+            ? "PERMANENT"
+            : "SET",
     };
 
     return { success: true as const, kind: "SET" as const, process, history: combined };

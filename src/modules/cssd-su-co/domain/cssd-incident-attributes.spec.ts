@@ -21,6 +21,19 @@ describe("cssd-incident-attributes", () => {
     expect(attrs.ERROR_QR).toBe("LOT-001");
   });
 
+  it("embeds process batch ids for PROCESS incidents", () => {
+    const attrs = buildIncidentAttributes({
+      incidentGroup: "PROCESS",
+      typeTen: "Chất lượng tiệt khuẩn / mẻ không đạt",
+      incidentKind: "PROCESS_STERILIZATION_FAIL",
+      rollbackTargetStation: "DONG_GOI",
+      loTietKhuanId: "11111111-1111-1111-1111-111111111111",
+      maLo: "LO-2026-01",
+    });
+    expect(attrs.LO_TIET_KHUAN_ID).toBe("11111111-1111-1111-1111-111111111111");
+    expect(attrs.MA_LO).toBe("LO-2026-01");
+  });
+
   it("reads type label with legacy lowercase fallback", () => {
     expect(readIncidentTypeLabel({ incident_type_label: "Máy hỏng" })).toBe("Máy hỏng");
     expect(readIncidentTypeLabel({ INCIDENT_TYPE_LABEL: "QC fail" })).toBe("QC fail");

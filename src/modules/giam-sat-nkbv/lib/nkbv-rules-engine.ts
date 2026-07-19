@@ -108,12 +108,27 @@ export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResu
 }
 
 /**
- * 2. Thuật toán chẩn đoán VAE / VAP (Adult) & PNEU (Pediatric/Non-vent)
+ * 2. Thuật toán hô hấp:
+ * - pathway `VAE`: người lớn thở máy — VAC → IVAC → PVAP (không X-quang)
+ * - pathway `PNEU`: HAP / VAP lâm sàng (PedVAP) — hình ảnh + lâm sàng + vi sinh (PNU1–3)
  */
-export function evaluateVaeVap(data: VaeVerificationData): RuleEvaluationResult {
-  const isAdultVentilated = data.patient_age >= 18 && data.vent_days >= 4;
+export function evaluateVaeVap(
+  data: VaeVerificationData,
+  pathway: "VAE" | "PNEU" = "VAE",
+): RuleEvaluationResult {
+  const useVaePathway =
+    pathway === "VAE" && data.patient_age >= 18 && data.vent_days >= 4;
 
-  if (isAdultVentilated) {
+  if (pathway === "VAE" && !useVaePathway) {
+    return {
+      is_positive: false,
+      classification: "NO_EVENT",
+      reason:
+        "VAE chỉ áp dụng người lớn ≥18 tuổi thở máy ≥4 ngày lịch. Chọn VAP (PedVAP) hoặc HAP nếu dùng tiêu chuẩn viêm phổi lâm sàng (PNEU).",
+    };
+  }
+
+  if (useVaePathway) {
     // Luồng VAE cho người lớn thở máy >= 4 ngày
     // Giai đoạn 1: VAC
     const hasVac = data.has_stable_baseline_peep_fio2 && (data.peep_increase_ge_3 || data.fio2_increase_ge_20);
@@ -156,7 +171,7 @@ export function evaluateVaeVap(data: VaeVerificationData): RuleEvaluationResult 
     };
 
   } else {
-    // Luồng PNEU (Viêm phổi lâm sàng/vi sinh cho người lớn không thở máy, trẻ em)
+    // Luồng PNEU (HAP không thở máy / VAP–PedVAP theo tiêu chuẩn hình ảnh + lâm sàng)
     // Bước 1: Hình ảnh học
     const needsTwoFilms = data.has_cardiopulmonary_disease_underlying;
     const hasValidImaging = data.has_chest_imaging_abnormal && 

@@ -24,9 +24,15 @@ import {
   prepopulateSsiData 
 } from "@/modules/giam-sat-nkbv/lib/nkbv-pathogen-rules";
 import { calculateCdcMetrics, addDays } from "@/modules/giam-sat-nkbv/lib/nkbv-timeline-math";
+import {
+  nkbvClinicalFormPathway,
+  normalizeNkbvLoaiCode,
+  type NkbvChecklistTypeCode,
+} from "@/modules/giam-sat-nkbv/lib/nkbv-loai-labels";
 
-export type NkbvChecklistTab = 'VI_SINH' | 'LAM_SANG' | 'KSNK';
-export type NkbvSuspectedType = 'BSI' | 'VAE' | 'UTI' | 'SSI' | 'LOAI_TRU';
+export type NkbvChecklistTab = "VI_SINH" | "LAM_SANG" | "KSNK";
+export type NkbvSuspectedType = NkbvChecklistTypeCode;
+export type NkbvActiveChecklistType = Exclude<NkbvChecklistTypeCode, "LOAI_TRU">;
 
 export function useNkbvChecklistModalState({
   row,
@@ -55,21 +61,38 @@ export function useNkbvChecklistModalState({
     setSimulatedRole(tab);
   };
 
-  // Smart suspected infection type guessing
+  // Smart suspected infection type guessing — VAE / VAP / HAP không gộp
   const suggestedType = useMemo<NkbvSuspectedType>(() => {
     const specimen = String(row.loai_benh_pham || "").toLowerCase();
     const viTri = String(row.vi_tri_nhiem_khuan || "").toLowerCase();
     const typeCode = String(row.loai_ma || row.loai_nkbv?.ma_loai || "").toUpperCase();
 
-    if (typeCode.includes("CLABSI") || typeCode.includes("BSI") || viTri === "máu") return "BSI";
-    if (typeCode.includes("VAP") || typeCode.includes("VAE") || typeCode.includes("PNEU") || viTri === "đường hô hấp" || viTri === "phổi") return "VAE";
-    if (typeCode.includes("UTI") || typeCode.includes("CAUTI") || viTri === "đường tiết niệu") return "UTI";
-    if (typeCode.includes("SSI") || viTri === "vết mổ") return "SSI";
+    const fromMa = normalizeNkbvLoaiCode(typeCode);
+    if (fromMa) return fromMa;
+
+    if (viTri.includes("vae")) return "VAE";
+    if (viTri.includes("vap")) return "VAP";
+    if (viTri.includes("hap") || viTri.includes("pneu")) return "HAP";
+    if (viTri === "máu") return "BSI";
+    if (viTri === "đường tiết niệu") return "UTI";
+    if (viTri === "vết mổ") return "SSI";
 
     if (specimen.includes("nước tiểu") || specimen.includes("urine") || specimen.includes("niệu")) return "UTI";
     if (specimen.includes("máu") || specimen.includes("blood") || specimen.includes("cvc")) return "BSI";
-    if (specimen.includes("đờm") || specimen.includes("sputum") || specimen.includes("phế quản") || specimen.includes("bal") || specimen.includes("eta") || specimen.includes("phổi")) return "VAE";
-    if (specimen.includes("vết mổ") || specimen.includes("pus") || specimen.includes("mủ") || specimen.includes("mổ") || specimen.includes("vết thương")) return "SSI";
+    // Cấy hô hấp (LIS) → gợi ý HAP theo module PNEU đa cò súng; KSNK đổi sang VAE/VAP nếu đúng pathway
+    if (
+      specimen.includes("đờm") ||
+      specimen.includes("sputum") ||
+      specimen.includes("phế quản") ||
+      specimen.includes("bal") ||
+      specimen.includes("eta") ||
+      specimen.includes("phổi")
+    ) {
+      return "HAP";
+    }
+    if (specimen.includes("vết mổ") || specimen.includes("pus") || specimen.includes("mủ") || specimen.includes("mổ") || specimen.includes("vết thương")) {
+      return "SSI";
+    }
 
     return "BSI";
   }, [row]);
@@ -78,10 +101,15 @@ export function useNkbvChecklistModalState({
   const [suspectedType, setSuspectedType] = useState<NkbvSuspectedType | null>(null);
 
   // Compute active checklist type for evaluation
-  const checklistType = useMemo<'BSI' | 'VAE' | 'UTI' | 'SSI'>(() => {
-    if (suspectedType && suspectedType !== 'LOAI_TRU') return suspectedType;
+  const checklistType = useMemo<NkbvActiveChecklistType>(() => {
+    if (suspectedType && suspectedType !== "LOAI_TRU") return suspectedType;
     return "BSI";
   }, [suspectedType]);
+
+  const clinicalPathway = useMemo(
+    () => nkbvClinicalFormPathway(checklistType),
+    [checklistType],
+  );
 
   // States for each form
   const [bsiForm, setBsiForm] = useState<BsiVerificationData | null>(null);
@@ -92,11 +120,8 @@ export function useNkbvChecklistModalState({
   // Initialize suspectedType and prepopulate forms on mount
   useEffect(() => {
     const typeCode = String(row.loai_ma || row.loai_nkbv?.ma_loai || "").toUpperCase();
-    let initialType: NkbvSuspectedType = suggestedType;
-    if (typeCode.includes("CLABSI") || typeCode.includes("BSI")) initialType = "BSI";
-    else if (typeCode.includes("VAP") || typeCode.includes("VAE") || typeCode.includes("PNEU")) initialType = "VAE";
-    else if (typeCode.includes("UTI") || typeCode.includes("CAUTI")) initialType = "UTI";
-    else if (typeCode.includes("SSI")) initialType = "SSI";
+    const fromMa = normalizeNkbvLoaiCode(typeCode);
+    const initialType: NkbvSuspectedType = fromMa || suggestedType;
 
     setSuspectedType(initialType);
 
@@ -176,11 +201,14 @@ export function useNkbvChecklistModalState({
     const ngay_phat_hien = row.ngay_phat_hien ? row.ngay_phat_hien.slice(0, 10) : "";
     if (!ngay_phat_hien) return null;
 
-    const activeForm = 
-      checklistType === "BSI" ? bsiForm :
-      checklistType === "VAE" ? vaeForm :
-      checklistType === "UTI" ? utiForm :
-      ssiForm;
+    const activeForm =
+      checklistType === "BSI"
+        ? bsiForm
+        : clinicalPathway === "VAE" || clinicalPathway === "PNEU"
+          ? vaeForm
+          : checklistType === "UTI"
+            ? utiForm
+            : ssiForm;
 
     if (!activeForm) return null;
 
@@ -192,7 +220,7 @@ export function useNkbvChecklistModalState({
       symptomDates,
       treatmentHistory,
     });
-  }, [checklistType, bsiForm, vaeForm, utiForm, ssiForm, symptomDates, treatmentHistory, row]);
+  }, [checklistType, clinicalPathway, bsiForm, vaeForm, utiForm, ssiForm, symptomDates, treatmentHistory, row]);
 
   // Live rules engine evaluation preview
   const liveEvaluation = useMemo<RuleEvaluationResult>(() => {
@@ -204,12 +232,18 @@ export function useNkbvChecklistModalState({
           cvc_active_on_event: liveCdcMetrics?.device_active_on_event ?? bsiForm.cvc_active_on_event,
         };
         return evaluateBsiClabsi(enrichedForm);
-      } else if (checklistType === "VAE" && vaeForm) {
+      } else if (clinicalPathway === "VAE" && vaeForm) {
         const enrichedForm = {
           ...vaeForm,
           vent_days: liveCdcMetrics?.device_placed_days ?? vaeForm.vent_days,
         };
-        return evaluateVaeVap(enrichedForm);
+        return evaluateVaeVap(enrichedForm, "VAE");
+      } else if (clinicalPathway === "PNEU" && vaeForm) {
+        const enrichedForm = {
+          ...vaeForm,
+          vent_days: liveCdcMetrics?.device_placed_days ?? vaeForm.vent_days,
+        };
+        return evaluateVaeVap(enrichedForm, "PNEU");
       } else if (checklistType === "UTI" && utiForm) {
         const enrichedForm = {
           ...utiForm,
@@ -224,7 +258,7 @@ export function useNkbvChecklistModalState({
       // fail-safe
     }
     return { is_positive: false, classification: "ERROR", reason: "Chưa đủ dữ liệu để tính toán." };
-  }, [checklistType, bsiForm, vaeForm, utiForm, ssiForm, liveCdcMetrics]);
+  }, [checklistType, clinicalPathway, bsiForm, vaeForm, utiForm, ssiForm, liveCdcMetrics]);
 
   // Save / Submit checklist
   const handleSaveChecklist = async () => {
@@ -233,12 +267,16 @@ export function useNkbvChecklistModalState({
       return;
     }
 
-    const activePayload = 
-      suspectedType === "LOAI_TRU" ? { clinical_notes: { ly_do_loai_tru: "Bác sĩ phán quyết loại trừ ca bệnh." } } :
-      checklistType === "BSI" ? bsiForm :
-      checklistType === "VAE" ? vaeForm :
-      checklistType === "UTI" ? utiForm :
-      ssiForm;
+    const activePayload =
+      suspectedType === "LOAI_TRU"
+        ? { clinical_notes: { ly_do_loai_tru: "Bác sĩ phán quyết loại trừ ca bệnh." } }
+        : checklistType === "BSI"
+          ? bsiForm
+          : clinicalPathway === "VAE" || clinicalPathway === "PNEU"
+            ? vaeForm
+            : checklistType === "UTI"
+              ? utiForm
+              : ssiForm;
 
     if (!activePayload) {
       toast.error("Biểu mẫu chưa được khởi tạo!");
@@ -349,9 +387,9 @@ export function useNkbvChecklistModalState({
           foley_placed_days: liveCdcMetrics?.device_placed_days || 0,
           foley_active_on_event: liveCdcMetrics?.device_active_on_event || false,
         }),
-        ...(checklistType === 'VAE' && {
-          vent_days: liveCdcMetrics?.device_placed_days || 0,
-        }),
+        ...(checklistType === "VAE" || checklistType === "VAP" || checklistType === "HAP"
+          ? { vent_days: liveCdcMetrics?.device_placed_days || 0 }
+          : {}),
       };
 
       const res = await submitClinicalVerification(String(row.id), suspectedType || checklistType, mergedPayload);
@@ -401,6 +439,7 @@ export function useNkbvChecklistModalState({
     suspectedType,
     setSuspectedType,
     checklistType,
+    clinicalPathway,
     bsiForm,
     setBsiForm,
     vaeForm,

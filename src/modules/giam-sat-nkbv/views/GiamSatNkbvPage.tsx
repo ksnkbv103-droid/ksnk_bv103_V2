@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BarChart3, LayoutList, Plus, Trash2, FileSpreadsheet, Activity, HeartPulse } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
@@ -12,6 +13,7 @@ import {
   KsnkSupervisionTabList,
   KsnkSupervisionPanel,
 } from "@/components/shared/ksnk-supervision-chrome";
+import { Bv103AnalyticsPageFrame } from "@/components/shared/Bv103AnalyticsPageFrame";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import { useGiamSatHeader } from "@/hooks/useGiamSatHeader";
@@ -35,6 +37,7 @@ import NkbvViSinhImportPortal from "../components/NkbvViSinhImportPortal";
 import NkbvMauSoDailyPortal from "../components/NkbvMauSoDailyPortal";
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
 import NkbvClinicalChecklistModal from "../components/NkbvClinicalChecklistModal";
+import { formatNkbvLoaiDisplay } from "../lib/nkbv-loai-labels";
 
 const NkbvDashboardPanel = dynamic(() => import("../components/NkbvDashboardPanel"), {
   ssr: false,
@@ -45,9 +48,26 @@ const MODULE_KEY = "GIAM_SAT_NKBV";
 
 type NkbvTableRow = NkbvCaseLike & { id: string };
 
+type NkbvMainTab = "cases" | "records" | "dashboard" | "vi-sinh" | "mau-so";
+
+const MAIN_TABS = new Set<NkbvMainTab>(["cases", "records", "dashboard", "vi-sinh", "mau-so"]);
+
+function parseMainTab(raw: string | null): NkbvMainTab | null {
+  if (!raw) return null;
+  const t = raw.trim().toLowerCase();
+  if (MAIN_TABS.has(t as NkbvMainTab)) return t as NkbvMainTab;
+  return null;
+}
+
 export default function GiamSatNkbvPage() {
   const header = useGiamSatHeader("nkbv");
   const { loading: permLoading, allowed } = useModulePermission(MODULE_KEY);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const deepLinkApplied = useRef(false);
+  const [filterLoaiId, setFilterLoaiId] = useState("");
+  const [filterTrangThaiId, setFilterTrangThaiId] = useState("");
   const fetchNkbvPage = useCallback(
     async (params: ServerPaginationParams) => {
       const res = await listGiamSatNkbvCas({
@@ -57,6 +77,8 @@ export default function GiamSatNkbvPage() {
         sortKey: params.sortKey,
         sortDir: params.sortDir,
         khoa_ghi_nhan_id: header.selectedKhoa || undefined,
+        loai_nkbv_id: filterLoaiId || undefined,
+        trang_thai_id: filterTrangThaiId || undefined,
       });
       if (!res.success) {
         toast.error(res.error || "Lỗi tải danh sách");
@@ -68,7 +90,7 @@ export default function GiamSatNkbvPage() {
         totalCount: res.totalCount ?? 0,
       };
     },
-    [header.selectedKhoa],
+    [filterLoaiId, filterTrangThaiId, header.selectedKhoa],
   );
 
   const {
@@ -95,11 +117,58 @@ export default function GiamSatNkbvPage() {
   const [draft, setDraft] = useState<NkbvCaseLike | null>(null);
   const [checklistOpen, setChecklistOpen] = useState(false);
   const [checklistCase, setChecklistCase] = useState<NkbvTableRow | null>(null);
-  const [mainTab, setMainTab] = useState<"cases" | "records" | "dashboard" | "vi-sinh" | "mau-so">("cases");
+  const [mainTab, setMainTab] = useState<NkbvMainTab>("cases");
   const [dashTu, setDashTu] = useState(() => bv103DefaultTuNgayFromToday());
   const [dashDen, setDashDen] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const [dashPayload, setDashPayload] = useState<NkbvDashboardPayload | null>(null);
   const [dashLoading, setDashLoading] = useState(false);
+
+  const setSelectedKhoa = header.setSelectedKhoa;
+
+  /** Deep link: ?tab=dashboard&tu_ngay=&den_ngay=&khoa= (hoặc khoa_ids, tu, den). */
+  useEffect(() => {
+    if (deepLinkApplied.current || header.loading) return;
+    const tab = parseMainTab(searchParams.get("tab"));
+    const tu = (searchParams.get("tu_ngay") || searchParams.get("tu") || "").trim();
+    const den = (searchParams.get("den_ngay") || searchParams.get("den") || "").trim();
+    const khoa =
+      (searchParams.get("khoa") || "").trim() ||
+      (searchParams.get("khoa_ids") || "").split(",")[0]?.trim() ||
+      "";
+    if (!tab && !tu && !den && !khoa) {
+      deepLinkApplied.current = true;
+      return;
+    }
+    if (tab) setMainTab(tab);
+    if (tu) setDashTu(tu);
+    if (den) setDashDen(den);
+    if (khoa) setSelectedKhoa(khoa);
+    deepLinkApplied.current = true;
+  }, [header.loading, searchParams, setSelectedKhoa]);
+
+  const syncNkbvUrl = useCallback(
+    (next: { tab?: NkbvMainTab; tu?: string; den?: string; khoa?: string }) => {
+      const q = new URLSearchParams(searchParams.toString());
+      const tab = next.tab ?? mainTab;
+      if (tab === "cases") q.delete("tab");
+      else q.set("tab", tab);
+      if (tab === "dashboard") {
+        const tu = next.tu ?? dashTu;
+        const den = next.den ?? dashDen;
+        const khoa = next.khoa !== undefined ? next.khoa : header.selectedKhoa;
+        q.set("tu_ngay", tu);
+        q.set("den_ngay", den);
+        q.delete("tu");
+        q.delete("den");
+        if (khoa) q.set("khoa", khoa);
+        else q.delete("khoa");
+        q.delete("khoa_ids");
+      }
+      const qs = q.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [dashDen, dashTu, header.selectedKhoa, mainTab, pathname, router, searchParams],
+  );
 
   const supervisionTabs = useMemo(
     () => [
@@ -260,19 +329,25 @@ export default function GiamSatNkbvPage() {
     [],
   );
 
-  const prevKhoaRef = useRef<string | undefined>(undefined);
+  const prevListFilterRef = useRef<{ khoa?: string; loai: string; tt: string } | undefined>(undefined);
   useEffect(() => {
     if (permLoading || !allowed.view) return;
-    if (prevKhoaRef.current === undefined) {
-      prevKhoaRef.current = header.selectedKhoa;
+    const next = {
+      khoa: header.selectedKhoa,
+      loai: filterLoaiId,
+      tt: filterTrangThaiId,
+    };
+    if (prevListFilterRef.current === undefined) {
+      prevListFilterRef.current = next;
       return;
     }
-    if (prevKhoaRef.current !== header.selectedKhoa) {
-      prevKhoaRef.current = header.selectedKhoa;
+    const prev = prevListFilterRef.current;
+    if (prev.khoa !== next.khoa || prev.loai !== next.loai || prev.tt !== next.tt) {
+      prevListFilterRef.current = next;
       setPage(1);
       refresh();
     }
-  }, [allowed.view, header.selectedKhoa, permLoading, refresh, setPage]);
+  }, [allowed.view, filterLoaiId, filterTrangThaiId, header.selectedKhoa, permLoading, refresh, setPage]);
 
   const handleColumnSort = useCallback(
     (key: keyof NkbvTableRow) => {
@@ -376,7 +451,10 @@ export default function GiamSatNkbvPage() {
         accessorKey: "loai",
         cell: (item: NkbvCaseLike) => (
           <span className="font-mono text-[11px] font-medium text-[var(--primary)] bg-[var(--primary)]/10 px-2.5 py-0.5 rounded-full">
-            {(item as { loai_nkbv?: { ten_loai?: string } }).loai_nkbv?.ten_loai || "—"}
+            {formatNkbvLoaiDisplay(
+              (item as { loai_nkbv?: { ma_loai?: string; ten_loai?: string } }).loai_nkbv?.ma_loai,
+              (item as { loai_nkbv?: { ma_loai?: string; ten_loai?: string } }).loai_nkbv?.ten_loai,
+            )}
           </span>
         ),
       },
@@ -475,7 +553,10 @@ export default function GiamSatNkbvPage() {
             tabs={supervisionTabs}
             activeId={mainTab}
             onChange={(id) => {
-              if (id === "cases" || id === "records" || id === "dashboard" || id === "vi-sinh" || id === "mau-so") setMainTab(id);
+              if (id === "cases" || id === "records" || id === "dashboard" || id === "vi-sinh" || id === "mau-so") {
+                setMainTab(id);
+                syncNkbvUrl({ tab: id });
+              }
             }}
             ariaLabel="Chế độ NKBV"
           />
@@ -484,6 +565,7 @@ export default function GiamSatNkbvPage() {
 
       <div className="flex flex-col gap-3 px-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-3">
+          {mainTab !== "dashboard" ? (
           <label className={C.formLabelFlex}>
             Lọc khoa
             <select
@@ -500,6 +582,41 @@ export default function GiamSatNkbvPage() {
               ))}
             </select>
           </label>
+          ) : null}
+          {mainTab === "cases" ? (
+            <>
+              <label className={C.formLabelFlex}>
+                Lọc loại
+                <select
+                  value={filterLoaiId}
+                  onChange={(e) => setFilterLoaiId(e.target.value)}
+                  className="min-w-[200px] rounded-[var(--radius-shell)] border-0 bg-white px-4 py-2.5 text-sm font-semibold shadow-sm"
+                >
+                  <option value="">Tất cả loại</option>
+                  {loaiRows.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {formatNkbvLoaiDisplay(r.ma, r.ten)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className={C.formLabelFlex}>
+                Lọc trạng thái
+                <select
+                  value={filterTrangThaiId}
+                  onChange={(e) => setFilterTrangThaiId(e.target.value)}
+                  className="min-w-[200px] rounded-[var(--radius-shell)] border-0 bg-white px-4 py-2.5 text-sm font-semibold shadow-sm"
+                >
+                  <option value="">Tất cả trạng thái</option>
+                  {ttRows.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.ten}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
+          ) : null}
         </div>
         {mainTab === "cases" && allowed.create ? (
           <button
@@ -539,7 +656,10 @@ export default function GiamSatNkbvPage() {
       </div>
 
       {mainTab === "dashboard" ? (
-        <KsnkSupervisionPanel className="pt-2">
+        <Bv103AnalyticsPageFrame
+          title="Thống kê NKBV"
+          description="Outcome nhiễm khuẩn theo kỳ — tách khỏi chỉ số tuân thủ CCS (VST/GSC)."
+        >
           <NkbvDashboardPanel
             payload={dashPayload}
             loading={dashLoading}
@@ -547,9 +667,19 @@ export default function GiamSatNkbvPage() {
             denNgay={dashDen}
             onTuNgayChange={setDashTu}
             onDenNgayChange={setDashDen}
-            onApplyRange={() => void loadDashboard()}
+            onApplyRange={() => {
+              syncNkbvUrl({ tab: "dashboard", tu: dashTu, den: dashDen, khoa: header.selectedKhoa });
+              void loadDashboard();
+            }}
+            khoaOptions={header.khoas}
+            selectedKhoaId={header.selectedKhoa}
+            khoaOptionsLoading={header.loading}
+            onKhoaChange={(id) => {
+              header.setSelectedKhoa(id);
+              syncNkbvUrl({ tab: "dashboard", khoa: id });
+            }}
           />
-        </KsnkSupervisionPanel>
+        </Bv103AnalyticsPageFrame>
       ) : null}
 
       {mainTab === "vi-sinh" ? (

@@ -1,18 +1,18 @@
 /**
- * SSOT menu sidebar — nhóm theo công việc (IA lớp 2).
+ * SSOT menu sidebar — module-first (IA lớp 2).
+ * Sidebar = cổng vào module/workspace; Lịch sử/Thống kê nằm trong ModeNav/tab của module.
+ * Route `/lich-su/*`, `/thong-ke/*`, `/giam-sat` vẫn tồn tại (deep-link) — không đặt trên sidebar.
  * @see docs/wiki/concepts.md#layout-primitives
  */
 
 import {
   Activity,
   AlertTriangle,
-  BarChart2,
   Box,
   ClipboardList,
   Clock,
   Droplets,
   FileBarChart,
-  History,
   LayoutDashboard,
   PanelsTopLeft,
   Stethoscope,
@@ -28,7 +28,6 @@ import {
   NAV_GATE_CSSD_THIET_BI,
   NAV_GATE_DASHBOARD,
   NAV_GATE_GSC,
-  NAV_GATE_LICH_SU,
   NAV_GATE_NKBV,
   NAV_GATE_VST,
   type NavGate,
@@ -51,30 +50,20 @@ export type SidebarNavGroup = {
 
 export const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
   {
-    id: "analytics",
-    label: "Phân tích KSNK",
+    id: "command",
+    label: "Điều hành KSNK",
     items: [
       { name: "Trung tâm điều hành", href: "/", icon: LayoutDashboard, gate: NAV_GATE_DASHBOARD, requireCommandCenterShell: true },
-      { name: "Thống kê VST", href: "/thong-ke/vst", icon: Stethoscope, gate: NAV_GATE_VST },
-      { name: "Thống kê GSC", href: "/thong-ke/gsc", icon: BarChart2, gate: NAV_GATE_GSC },
       { name: "Báo cáo tổng hợp KSNK", href: "/bao-cao-tong-hop", icon: FileBarChart, gate: NAV_GATE_DASHBOARD, requireCommandCenterShell: true },
     ],
   },
   {
     id: "supervision",
-    label: "Giám sát lâm sàng",
+    label: "Giám sát",
     items: [
-      { name: "Trung tâm giám sát", href: "/giam-sat", icon: ClipboardList, gate: NAV_GATE_LICH_SU },
       { name: "Vệ sinh tay (WHO)", href: "/giam-sat-vst", icon: Stethoscope, gate: NAV_GATE_VST },
       { name: "Giám sát tuân thủ KSNK", href: "/giam-sat-chung", icon: ClipboardList, gate: NAV_GATE_GSC },
       { name: "Giám sát NKBV", href: "/giam-sat-nkbv", icon: Activity, gate: NAV_GATE_NKBV },
-    ],
-  },
-  {
-    id: "supervision-read",
-    label: "Tra cứu giám sát",
-    items: [
-      { name: "Lịch sử giám sát", href: "/lich-su", icon: History, gate: NAV_GATE_LICH_SU },
     ],
   },
   {

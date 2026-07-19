@@ -14,7 +14,7 @@
 
 App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KPI strategic (ADR 2026-06-03). RPC `rpc_*_strategic_analytics` / compare matrices scan VIEW summary ở lớp DB.
 
-**Ngoại lệ có chủ đích:** `getBangKiemToiPhaiTgsAction` đọc VIEW `gstt_fact_gsc_dashboard_summary` (filter `stype=TU_GIAM_SAT`) để đếm phiên TGS theo bảng kiểm — chưa có RPC riêng; không dùng cho CCS/Command Center.
+**Hits TGS (bao phủ / BK tôi):** app gọi RPC `rpc_gsc_tgs_session_hits` (không select VIEW summary trực tiếp). RPC scan live VIEW `gstt_fact_gsc_dashboard_summary` ở lớp DB — **không** dùng cho CCS / Command Center KPI.
 
 ---
 
@@ -100,6 +100,25 @@ Gộp song song vào payload VST/GSC (và detail BK khi lọc 1 BK). Công thứ
 | `matrix_nghe[]` | Đối tượng / nghề | VST + GSC (strategic RPC) |
 | `matrix_hinh_thuc[]` | Hình thức giám sát | VST: `stype`; GSC: session lookup |
 | `matrix_cach_thuc[]` | Cách thức giám sát | GSC (`rpc_gsc_compare_matrices`); VST khi RPC trả về |
+
+---
+
+## Bao phủ TGS (breadth — ngoài CCS)
+
+| Chỉ số | Công thức | Ghi chú |
+|--------|-----------|---------|
+| `ty_le_bao_phu_tgs` | `|BK bắt TGS đã có ≥1 phiên TGS| / |BK bắt TGS áp dụng cho khoa|` | Distinct BK, không cộng số phiên. Khoa không thuộc phạm vi `ap_dung_jsonb` → **Không áp dụng** (không tính thiếu). |
+| Ô khoa × BK | `Đã TGS` / `Thiếu TGS` / `Không áp dụng` | SSOT resolve: `resolveTgsBkCellStatus` · UI xếp hạng: `/thong-ke/gsc` |
+
+---
+
+## CSSD Report — chỉ số vận hành (ngoài CCS)
+
+| Chỉ số | Công thức | Ghi chú |
+|--------|-----------|---------|
+| `ty_le_quy_trinh_khong_su_co` | `100 − (số sự cố / số quy trình) × 100` trong kỳ lọc | Hiển thị trên `/cssd-erp/report` với nhãn **「Tỷ lệ quy trình không sự cố」**. **Không** phải `ty_le_ccs` / tuân thủ VST–GSC. |
+
+Ngưỡng cảnh báo trạm CSSD (banner đỏ): tỷ lệ sự cố/trạm `> 5%` — độc lập với `GREEN_MIN` / `YELLOW_MIN` của giám sát.
 
 ---
 

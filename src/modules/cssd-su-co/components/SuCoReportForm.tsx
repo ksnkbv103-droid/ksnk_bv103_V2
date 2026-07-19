@@ -42,6 +42,8 @@ export type SuCoReportFormProps = {
   initialLoaiDungCuId?: string;
   initialTypeId?: string;
   quyTrinhId?: string | null;
+  initialMaLo?: string;
+  initialLoTietKhuanId?: string;
   allowStationOverride?: boolean;
   enabled: boolean;
   onSubmitted?: () => void;
@@ -57,6 +59,8 @@ export default function SuCoReportForm({
   initialLoaiDungCuId,
   initialTypeId,
   quyTrinhId,
+  initialMaLo,
+  initialLoTietKhuanId,
   allowStationOverride = false,
   enabled,
   onSubmitted,
@@ -83,7 +87,8 @@ export default function SuCoReportForm({
   const [maQR, setMaQR] = useState(initialMaQR || "");
   const [faultStation, setFaultStation] = useState<Station>(initialStation);
   const [machineId, setMachineId] = useState("");
-  const [maLo, setMaLo] = useState("");
+  const [maLo, setMaLo] = useState(initialMaLo || "");
+  const [loTietKhuanId, setLoTietKhuanId] = useState(initialLoTietKhuanId || "");
   const [viTriPhatHien, setViTriPhatHien] = useState("");
   const [meta, setMeta] = useState<SuCoIncidentMetaState>(() => ({
     thoiGianPhatHien: defaultDetectionDateTimeLocal(),
@@ -99,6 +104,13 @@ export default function SuCoReportForm({
   useEffect(() => {
     if (!allowStationOverride) setDetectionStation(initialStation);
   }, [initialStation, allowStationOverride]);
+
+  useEffect(() => {
+    if (!enabled) return;
+    if (initialMaQR) setMaQR(initialMaQR);
+    if (initialMaLo) setMaLo(initialMaLo);
+    if (initialLoTietKhuanId) setLoTietKhuanId(initialLoTietKhuanId);
+  }, [enabled, initialMaQR, initialMaLo, initialLoTietKhuanId]);
 
   const activeGroupOptions = useMemo(() => INCIDENT_TYPE_PRESETS[incidentGroup], [incidentGroup]);
   const showTypePicker = incidentGroup === "PROCESS" || incidentGroup === "INSTRUMENT" || incidentGroup === "EQUIPMENT";
@@ -125,18 +137,24 @@ export default function SuCoReportForm({
 
   useEffect(() => {
     const defaults = groupTypeDefaults(incidentGroup);
-    setTypeId(defaults.typeId);
-    setTypeTen(defaults.typeTen);
+    const presetMatch = INCIDENT_TYPE_PRESETS[incidentGroup].find((x) => x.code === initialTypeId);
+    if (presetMatch) {
+      setTypeId(presetMatch.code);
+      setTypeTen(presetMatch.label);
+    } else {
+      setTypeId(defaults.typeId);
+      setTypeTen(defaults.typeTen);
+    }
     setFaultStation(detectionStation);
     if (incidentGroup === "OTHER" || incidentGroup === "CHEMICAL") {
-      setMaQR("");
+      if (!initialMaQR) setMaQR("");
       setMachineId("");
       setMaLo("");
     }
     if (incidentGroup !== "PROCESS" && incidentGroup !== "INSTRUMENT" && incidentGroup !== "EQUIPMENT") {
       setMaQR("");
     }
-  }, [incidentGroup, detectionStation]);
+  }, [incidentGroup, detectionStation, initialTypeId, initialMaQR]);
 
   const runFaultTrace = useCallback(
     async (qr: string, station: Station, silent = false) => {
@@ -271,6 +289,14 @@ export default function SuCoReportForm({
                 maQrDen: instrumentState.maQrDen || undefined,
                 tenDungCuLe: instrumentState.tenDungCuLe,
                 quantity: instrumentState.quantity,
+              }
+            : undefined,
+        processPayload:
+          incidentGroup === "PROCESS"
+            ? {
+                loTietKhuanId: loTietKhuanId.trim() || undefined,
+                maLo: maLo.trim() || undefined,
+                quyTrinhId: quyTrinhId || undefined,
               }
             : undefined,
       };

@@ -6,7 +6,7 @@
 
 | Lớp | File / component | Khi dùng |
 |-----|------------------|----------|
-| App shell | `ClientLayoutWrapper` + `Sidebar` | Toàn app |
+| App shell | `ClientLayoutWrapper` + `Sidebar` | Toàn app — sidebar **module-first** (`sidebar-nav-groups.ts`): cổng module; ModeNav = Nhập / Lịch sử / Thống kê |
 | Page width | `KsnkPageShell` (`max-w-7xl`) | **Chỉ** bọc `<main>` — không lặp `max-w-*` trong view |
 | Giám sát / CSSD page | `KsnkSupervisionHero` + tabs | VST, GSC, QLCV, CSSD workflow |
 | Admin page title | `KsnkPageHeader` | Quản trị, RBAC, tài khoản |

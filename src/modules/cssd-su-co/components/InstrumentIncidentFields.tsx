@@ -9,6 +9,7 @@ import {
   type CompositionReconcileRow,
 } from "@/modules/cssd-erp/contexts/inventory-instrument/entrypoint";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { listActiveBoForInstrumentTransferAction } from "../actions/su-co-bo-picker.actions";
 
 export type InstrumentIncidentFormState = {
   chiTietId: string;
@@ -31,6 +32,8 @@ type Props = {
   onChange: (state: InstrumentIncidentFormState | null) => void;
 };
 
+type BoOption = { id: string; ten_bo: string; ma_bo: string };
+
 export default function InstrumentIncidentFields({
   maQR,
   typeId,
@@ -45,6 +48,8 @@ export default function InstrumentIncidentFields({
   const [selectedChiTietId, setSelectedChiTietId] = useState(initialChiTietId || "");
   const [quantity, setQuantity] = useState(1);
   const [maQrDen, setMaQrDen] = useState("");
+  const [boOptions, setBoOptions] = useState<BoOption[]>([]);
+  const [boLoading, setBoLoading] = useState(false);
 
   const isTransfer = typeId === "INSTRUMENT_TRANSFER";
   const isReplenish = typeId === "INSTRUMENT_REPLENISH";
@@ -67,11 +72,33 @@ export default function InstrumentIncidentFields({
     } finally {
       setLoading(false);
     }
-  }, [maQR, enabled]);
+  }, [maQR, enabled, onChange]);
 
   useEffect(() => {
     void fetchComposition();
   }, [fetchComposition]);
+
+  useEffect(() => {
+    if (!isTransfer || !enabled) {
+      setBoOptions([]);
+      return;
+    }
+    let alive = true;
+    setBoLoading(true);
+    void listActiveBoForInstrumentTransferAction().then((res) => {
+      if (!alive) return;
+      setBoLoading(false);
+      if (!res.success) {
+        toast.error(res.error || "Không tải danh sách bộ đích.");
+        return;
+      }
+      const source = maQR.trim().toUpperCase();
+      setBoOptions(res.data.filter((b) => b.ma_bo.toUpperCase() !== source));
+    });
+    return () => {
+      alive = false;
+    };
+  }, [isTransfer, enabled, maQR]);
 
   const selectedRow: CompositionReconcileRow | undefined = data?.items.find(
     (r) => r.chiTietId === selectedChiTietId,
@@ -165,7 +192,24 @@ export default function InstrumentIncidentFields({
           {selectedRow && isTransfer ? (
             <>
               <div className="space-y-1.5">
-                <label className={bv103LayoutChrome.labelBlock}>QR bộ đích</label>
+                <label className={bv103LayoutChrome.labelBlock}>
+                  Bộ đích {boLoading ? <Loader2 className="ml-1 inline animate-spin" size={12} /> : null}
+                </label>
+                <select
+                  value={maQrDen}
+                  onChange={(e) => setMaQrDen(e.target.value.toUpperCase())}
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-bold text-slate-800 outline-none focus:border-[var(--primary)] sm:text-xs"
+                >
+                  <option value="">— Chọn bộ đích —</option>
+                  {boOptions.map((b) => (
+                    <option key={b.id} value={b.ma_bo}>
+                      {b.ma_bo} — {b.ten_bo}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className={bv103LayoutChrome.labelBlock}>Hoặc quét / nhập QR bộ đích</label>
                 <input
                   value={maQrDen}
                   onChange={(e) => setMaQrDen(e.target.value.toUpperCase())}

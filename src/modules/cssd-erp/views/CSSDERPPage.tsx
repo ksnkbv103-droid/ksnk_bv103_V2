@@ -22,6 +22,7 @@ import { CSSD_ROUTES, cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
 import { useCssdPrint } from "../hooks/use-cssd-print";
 import CssdPrintPortal from "../components/print/CssdPrintPortal";
 import CompositionReconcilePanel from "../components/packaging/CompositionReconcilePanel";
+import CssdStationFlowMap from "../components/workflow/CssdStationFlowMap";
 import { usePrint } from "@/hooks/usePrint";
 
 const MODULE_KEY = "CSSD_WORKFLOW";
@@ -203,6 +204,17 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
         </div>
       </section>
 
+      <CssdStationFlowMap
+        activeStation={currentStation}
+        onSelectStation={(s) => {
+          if (s === "TIET_KHUAN") {
+            toast.message(`Tiệt khuẩn chỉ qua tab Mẻ (${cssdQuyTrinhBatchTabHref()}).`);
+            return;
+          }
+          selectStation(s);
+        }}
+      />
+
       {/* 4. Workflow Area */}
       <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-6">
@@ -259,7 +271,15 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
           </div>
         </div>
       </main>
-      <IncidentReportModal isOpen={isIncidentOpen && canCreateIncident} onClose={() => setIsIncidentOpen(false)} station={currentStation || 'TIEP_NHAN'} onSuccess={refresh} />
+      <IncidentReportModal
+        isOpen={isIncidentOpen && canCreateIncident}
+        onClose={() => setIsIncidentOpen(false)}
+        station={currentStation || "TIEP_NHAN"}
+        onSuccess={refresh}
+        defaultGroup="PROCESS"
+        initialMaQR={lastScan?.qrCode ? String(lastScan.qrCode) : undefined}
+        quyTrinhId={lastScan?.quyTrinhId ? String(lastScan.quyTrinhId) : undefined}
+      />
     </div>
   );
 

@@ -2,7 +2,8 @@
 
 > **Phiên bản:** 1.0 (22/05/2026)  
 > **Trạng thái:** Kế hoạch Thiết kế (SSOT Nghiệp vụ NKBV)  
-> **Tiêu chuẩn tham chiếu:** CDC/NHSN (National Healthcare Safety Network) Guidelines for HAI Surveillance
+> **Tiêu chuẩn tham chiếu:** CDC/NHSN (National Healthcare Safety Network) Guidelines for HAI Surveillance  
+> **Chiến lược sản phẩm (PO 2026-07-15):** Một module NKBV thống nhất; tách UX theo vai trò/loại — **không** tách 4 app. SSOT: [`adr-nkbv-unified-module-20260715.md`](../../reference/architecture/adr-nkbv-unified-module-20260715.md) · tóm tắt: [`product-strategy-unified-20260715.md`](product-strategy-unified-20260715.md).
 
 ---
 

@@ -148,11 +148,14 @@ export default function VSTPersonColumn({
 
         <div className="mt-3 space-y-3">
           <div className="space-y-1">
-            <label className={C.labelField}>Nghề nghiệp</label>
+            <label className={C.labelField}>
+              Nghề nghiệp <span className="text-rose-600">*</span>
+            </label>
             <RegistrySelect
               loaiDanhMuc="NGHE_NGHIEP"
               placeholder="Chọn nghề nghiệp…"
               value={person.nghe_nghiep_id}
+              required
               onChange={(val) => {
                 updatePerson(pIdx, "nghe_nghiep_id", val);
                 if (!person.is_manual) {

@@ -13,6 +13,9 @@ export type IncidentAttributeInput = {
   anhMinhChung?: string;
   reporterEmail?: string | null;
   reporterAuthUserId?: string | null;
+  /** PROCESS: gắn mẻ TK (không cần cột FK — đọc từ attributes). */
+  loTietKhuanId?: string;
+  maLo?: string;
 };
 
 /** SSOT thuộc tính sự cố — app chỉ ghi JSONB; cột generated đọc từ đây. */
@@ -31,7 +34,15 @@ export function buildIncidentAttributes(data: IncidentAttributeInput): Record<st
   if (data.anhMinhChung) attributes.ANH_MINH_CHUNG = data.anhMinhChung;
   if (data.reporterEmail) attributes.REPORTER_EMAIL = String(data.reporterEmail);
   if (data.reporterAuthUserId) attributes.REPORTER_AUTH_USER_ID = String(data.reporterAuthUserId);
+  if (data.loTietKhuanId) attributes.LO_TIET_KHUAN_ID = data.loTietKhuanId;
+  if (data.maLo) attributes.MA_LO = data.maLo;
   return attributes;
+}
+
+export function readLoTietKhuanId(attrs: Record<string, unknown>): string | null {
+  const raw = attrs.LO_TIET_KHUAN_ID ?? attrs.lo_tiet_khuan_id ?? null;
+  const text = raw != null ? String(raw).trim() : "";
+  return text || null;
 }
 
 export function readIncidentTypeLabel(attrs: Record<string, unknown>): string | null {

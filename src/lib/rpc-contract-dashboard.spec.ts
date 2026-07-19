@@ -10,6 +10,7 @@ const APP_DASHBOARD_RPC = [
   "rpc_gsc_compare_matrices",
   "rpc_vst_compare_matrices",
   "rpc_get_dashboard_ksnk_staff_supervision_stats",
+  "rpc_gsc_tgs_session_hits",
 ] as const;
 
 /** Legacy RPC — DROP migration 20260604110000 + 20260701100000. */

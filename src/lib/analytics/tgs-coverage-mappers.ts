@@ -34,6 +34,20 @@ export function computeTyLeBaoPhuTgs(daTgs: number, batBuoc: number): number {
   return roundPercent2((daTgs / batBuoc) * 100);
 }
 
+/** Trạng thái ô khoa × BK bắt buộc TGS — không phạt ngoài phạm vi. */
+export type TgsBkCellStatus = "khong_ap_dung" | "thieu_tgs" | "da_tgs";
+
+export const TGS_BK_CELL_LABELS: Record<TgsBkCellStatus, string> = {
+  khong_ap_dung: "Không áp dụng",
+  thieu_tgs: "Thiếu TGS",
+  da_tgs: "Đã TGS",
+};
+
+export function resolveTgsBkCellStatus(args: { appliesBatBuocTgs: boolean; hasHit: boolean }): TgsBkCellStatus {
+  if (!args.appliesBatBuocTgs) return "khong_ap_dung";
+  return args.hasHit ? "da_tgs" : "thieu_tgs";
+}
+
 export function buildTgsCoverageRow(args: {
   khoa: KhoaApDungContext;
   catalog: BangKiemApDungSource[];

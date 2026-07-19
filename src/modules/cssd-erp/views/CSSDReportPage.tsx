@@ -37,6 +37,7 @@ type ReportTab = "OVERVIEW" | "INCIDENT" | "ACCOUNTABILITY";
 function CSSDReportPageInner() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
+  const highlightIncidentId = String(searchParams.get("id") || "").trim();
   const { allowed } = useModulePermission("CSSD_REPORT");
   const { exportTemplate } = useImportExport({
     moduleKey: "CSSD_REPORT",
@@ -52,18 +53,23 @@ function CSSDReportPageInner() {
     onImport: async () => ({ success: true }),
   });
   const initialTab: ReportTab =
-    tabParam === "incident" ? "INCIDENT" : tabParam === "accountability" ? "ACCOUNTABILITY" : "OVERVIEW";
+    tabParam === "incident" || highlightIncidentId
+      ? "INCIDENT"
+      : tabParam === "accountability"
+        ? "ACCOUNTABILITY"
+        : "OVERVIEW";
   const [tab, setTab] = useState<ReportTab>(initialTab);
 
   useEffect(() => {
-    if (tabParam === "incident") setTab("INCIDENT");
+    if (tabParam === "incident" || highlightIncidentId) setTab("INCIDENT");
     else if (tabParam === "accountability") setTab("ACCOUNTABILITY");
     else if (tabParam === "overview" || !tabParam) setTab("OVERVIEW");
-  }, [tabParam]);
-  const [filters, setFilters] = useState({
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    to: new Date().toISOString().split("T")[0],
-    station: "ALL",
+  }, [tabParam, highlightIncidentId]);
+  const [filters, setFilters] = useState(() => {
+    const to = new Date().toISOString().split("T")[0];
+    const fromDays = highlightIncidentId ? 365 : 30;
+    const from = new Date(new Date().setDate(new Date().getDate() - fromDays)).toISOString().split("T")[0];
+    return { from, to, station: "ALL" };
   });
   const [raw, setRaw] = useState<{ quyTrinh: any[]; suCo: any[] }>({ quyTrinh: [], suCo: [] });
   const [loading, setLoading] = useState(true);
@@ -99,7 +105,10 @@ function CSSDReportPageInner() {
       stats: {
         total: raw.quyTrinh.length,
         incidents: raw.suCo.length,
-        compliance: raw.quyTrinh.length ? (100 - (raw.suCo.length / raw.quyTrinh.length) * 100).toFixed(1) : "100",
+        /** Chỉ số CSSD riêng — không gộp CCS. */
+        tyLeQuyTrinhKhongSuCo: raw.quyTrinh.length
+          ? (100 - (raw.suCo.length / raw.quyTrinh.length) * 100).toFixed(1)
+          : "100",
         bestStation: sorted[0]?.name.replace(/_/g, " ") || "Không áp dụng",
         worstStation: sorted[sorted.length - 1]?.name.replace(/_/g, " ") || "Không áp dụng",
       },
@@ -200,6 +209,22 @@ function CSSDReportPageInner() {
 
       {tab === "INCIDENT" && (
         <>
+          {highlightIncidentId ? (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-950">
+              {raw.suCo.some((x) => String(x.id) === highlightIncidentId) ? (
+                <p className="font-semibold">
+                  Đang mở phiếu sự cố từ truy vết SSI/RCA — dòng được tô sáng trong nhật ký bên dưới.
+                </p>
+              ) : loading ? (
+                <p className="font-medium text-slate-600">Đang tìm phiếu sự cố trong kỳ lọc…</p>
+              ) : (
+                <p className="font-medium text-amber-900">
+                  Không thấy phiếu trong kỳ lọc hiện tại. Mở rộng khoảng ngày phía trên hoặc kiểm tra quyền báo cáo
+                  CSSD.
+                </p>
+              )}
+            </div>
+          ) : null}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {incidentGroupStats.map((x) => (
               <div key={x.group} className="rounded-2xl border border-slate-200 bg-white p-4">
@@ -225,9 +250,20 @@ function CSSDReportPageInner() {
                   cell: (v: any) => (v.id ? <IncidentJournalPrintButton incidentId={String(v.id)} /> : null),
                 },
               ]}
-              data={raw.suCo}
+              data={
+                highlightIncidentId
+                  ? [...raw.suCo].sort((a, b) =>
+                      String(a.id) === highlightIncidentId ? -1 : String(b.id) === highlightIncidentId ? 1 : 0,
+                    )
+                  : raw.suCo
+              }
               loading={loading}
               enableMultiSelect={false}
+              rowClassName={(row) =>
+                highlightIncidentId && String((row as { id?: string }).id) === highlightIncidentId
+                  ? "bg-emerald-50 ring-2 ring-inset ring-emerald-300"
+                  : ""
+              }
             />
           </div>
         </>

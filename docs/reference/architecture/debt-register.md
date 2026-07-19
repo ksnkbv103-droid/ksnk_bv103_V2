@@ -9,11 +9,11 @@
 
 ## 1. NỢ KỸ THUẬT NHÓM P0 (CRITICAL - ẢNH HƯỞNG NGHIỆP VỤ & DỮ LIỆU)
 
-### [D-01] Thiếu Digital BOM checklist tại Trạm Đóng gói
-*   **Mô tả:** Trạm Đóng gói chưa có giao diện chọn và xác nhận danh sách dụng cụ thực tế trong bộ. Cột `so_luong_thuc_te` không được cập nhật khi đóng gói, dẫn tới việc không phát hiện được sự thiếu hụt dụng cụ vật lý trước khi hấp.
-*   **Vị trí:** QLDCPT B1 / [DigitalChecklistPanel.tsx](file:///Users/trinhhuunghia/Desktop/ksnk_bv103/src/modules/cssd-erp/components/workflow/DigitalChecklistPanel.tsx) (chỉ mới khai báo khung).
-*   **Ưu tiên:** P0 (Chí mạng).
-*   **Exit Criteria:** Trạm Đóng gói hiển thị danh sách dụng cụ chuẩn từ `dm_bo_dung_cu_chi_tiet`. Điều dưỡng bắt buộc phải tích chọn xác nhận số lượng thực tế mới cho phép in nhãn QR.
+### [D-01] Digital BOM checklist tại Trạm Đóng gói — **Done (soft-warning path)**
+*   **Đã làm (pilot 2026-07):** Trạm Đóng gói dùng `CompositionReconcilePanel` + đối chiếu `v_cssd_bo_dung_cu_chi_tiet_realtime`; báo sự cố Hỏng/Mất/Bổ sung tại chỗ. Cấp phát **soft-warning** khi thiếu cấu phần (không hard-block `bom_kiem_dem_at`). Flag legacy `BV103_FEATURE_BOM_CHECKLIST` không còn là đường chính.
+*   **Vị trí:** [CompositionReconcilePanel.tsx](../../../src/modules/cssd-erp/components/packaging/CompositionReconcilePanel.tsx), `CSSDERPPage`.
+*   **Ưu tiên:** ~~P0~~ đóng theo soft-warning SSOT (changelog mapping 2026-07-01).
+*   **Exit Criteria:** **Đạt (engineering)** — UAT vận hành theo reform CSSD; không reopen DigitalChecklistPanel.
 
 ### [D-02] Ledger Bypass trong CSSD Workflow
 *   **Mô tả:** Hàm kiểm tra tồn kho phát trả `assertLedgerDuChoCapPhat` tự động cho qua (bypass) nếu hệ thống chưa cấu hình hoặc không tìm thấy bản ghi số dư cơ sở, làm mất đi tính kiểm soát nghiêm ngặt của sổ cái dụng cụ sạch.
@@ -106,9 +106,9 @@
 ## 4. NỢ KỸ THUẬT NHÓM P3 (LOW - ROADMAP / DEFERRED)
 
 *   **[D-15] Trực quan hóa luồng di chuyển dụng cụ:** Bản đồ 6 trạm trực quan (Mermaid/SVG) thời gian thực hiển thị vị trí bộ dụng cụ.
-*   **[D-16] Spaulding/Heat Domain Engine:** Tự động đề xuất trạm tiệt khuẩn dựa trên phân loại Spaulding (Dụng cụ cực kỳ nguy hiểm, nguy hiểm, không nguy hiểm).
-*   **[D-17] CSSD↔MDM Facade Replenish:** Động cơ tự động cảnh báo bổ sung nguyên liệu/hóa chất từ kho tổng bệnh viện.
-*   **[D-18] Trace NKBV↔CSSD:** Liên kết ca nhiễm khuẩn vết mổ (SSI) ngược lại mã vạch mẻ hấp dụng cụ mổ tương ứng để tìm nguyên nhân gốc rễ.
+*   **[D-16] Spaulding/Heat Domain Engine:** Tự động đề xuất trạm tiệt khuẩn dựa trên phân loại Spaulding. **Partial (2026-07-17):** master + BOM runtime dùng chung `normalizeSpauldingForMaster` / `normalizeSterileMethodForMaster` ([`cssd-loai-dung-cu-map.ts`](../../../src/lib/master-data/cssd-loai-dung-cu-map.ts) → [`cssd-quy-trinh-bom.ts`](../../../src/modules/cssd-erp/shared/domain/cssd-quy-trinh-bom.ts)). Còn lại: đề xuất trạm tự động — Lớp 1.1 [`improvement-roadmap-20260717.md`](../../modules/mdm/improvement-roadmap-20260717.md).
+*   **[D-17] CSSD↔MDM Facade Replenish:** Động cơ tự động cảnh báo bổ sung nguyên liệu/hóa chất từ kho tổng bệnh viện. **Lộ trình Quản trị Lớp 1.4:** cùng file trên.
+*   **[D-18] Trace NKBV↔CSSD — Partial → near-complete (2026-07-17):** SSI gắn QR chu trình → `quy_trinh_id` / mẻ; `NkbvCssdRcaPanel` (mẻ QC + sự cố); deep-link nhật ký `cssdSuCoIncidentJournalHref`; chiều ngược `MeTkNkbvLinkBanner` trên mẻ TK. Còn lại: UAT khoa + mở rộng ngoài SSI nếu cần.
 *   **[D-19] Cycle QR vs Permanent set QR:** Phân biệt vòng đời của nhãn dán tạm thời của túi hấp và nhãn khắc kim loại vĩnh viễn của khay dụng cụ phòng mổ.
 *   **[D-20] HIS/LIS FHIR Integration:** API đồng bộ tự động ca cấy vi sinh từ máy xét nghiệm theo chuẩn HL7/FHIR thay thế cho import file Excel vi sinh.
 
@@ -120,7 +120,7 @@
 
 | ID | Trạng thái mới | Bằng chứng ngắn |
 |----|----------------|-----------------|
-| D-01 | **Done (2026-06-03)** | `DigitalChecklistPanel` + `persistBomCheckpoint` / `KIEM_DEM_BOM` |
+| D-01 | **Done (soft-warning 2026-07)** | `CompositionReconcilePanel` + soft-warning CAP_PHAT — không DigitalChecklistPanel |
 | D-02 | **Done (2026-06-03)** | CAP_PHAT `assertLedgerDuChoCapPhat` → `ok: false` nếu chưa BOM / thiếu cấu phần |
 | D-03 | **Done (2026-06-03)** | Local + staging head **30** migrations (`20260603160000`) |
 | D-04 | Verify per env | Seed paths trong `supabase/seeds/` — chưa re-test `db reset` timing |
@@ -134,7 +134,7 @@
 | D-12 | **Done (2026-07-06 re-verify)** | CI: `verify:cssd`, `layout:drift-check`, `docs:links:check`, `repo:hygiene`, `dead-code:scan` (warn) — `.github/workflows/ci.yml` |
 | D-13 | **Done (2026-06-04)** | `audit:legacy-rpc` + `20260604110000` |
 | D-14 | **Eng done / UAT pending** | Checklist + spec pass; sign-off khoa KSNK |
-| D-18 | **Partial done** | Migration `20260602150000` + `CssdTraceLink` — chưa đủ RCA SSI end-to-end |
+| D-18 | **Near-complete (2026-07-17)** | RCA panel + journal deep-link + banner mẻ↔NKBV; UAT khoa còn lại |
 | D-QLCV-01 | **Done (2026-06-04)** | `20260604120000` + app dual-write |
 
 ### D-UX-01 — UI shell fragmentation (2026-06-04)

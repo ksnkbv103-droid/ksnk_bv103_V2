@@ -117,6 +117,7 @@ export default function Page() {
             <CSSDCatalogQuickActions
               selectedBoId={s.selectedBoId}
               selectedChiTiet={s.selectedChiTiet}
+              selectedMaBo={s.selectedBo?.ma_bo || null}
               reload={s.reload}
             />
           )}

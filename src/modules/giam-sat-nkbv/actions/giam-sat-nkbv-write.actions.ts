@@ -233,8 +233,10 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
     let result;
     if (viTriNhiemKhuan === "BSI") {
       result = evaluateBsiClabsi(verificationInput);
-    } else if (viTriNhiemKhuan === "VAP" || viTriNhiemKhuan === "VAE") {
-      result = evaluateVaeVap(verificationInput);
+    } else if (viTriNhiemKhuan === "VAE") {
+      result = evaluateVaeVap(verificationInput, "VAE");
+    } else if (viTriNhiemKhuan === "VAP" || viTriNhiemKhuan === "HAP" || viTriNhiemKhuan === "PNEU") {
+      result = evaluateVaeVap(verificationInput, "PNEU");
     } else if (viTriNhiemKhuan === "UTI") {
       result = evaluateUtiCauti(verificationInput);
     } else if (viTriNhiemKhuan === "SSI") {
@@ -243,15 +245,21 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       throw new Error(`Vị trí nhiễm khuẩn không hợp lệ: ${viTriNhiemKhuan}`);
     }
 
-    // Map code to Vietnamese label and category code
+    // Map code to Vietnamese label and category code — VAE / VAP / HAP tách riêng
     let mappedViTri = "";
     let loaiCode = "";
     if (viTriNhiemKhuan === "BSI") {
       mappedViTri = "Máu";
       loaiCode = "BSI";
-    } else if (viTriNhiemKhuan === "VAP" || viTriNhiemKhuan === "VAE") {
-      mappedViTri = "Đường hô hấp";
+    } else if (viTriNhiemKhuan === "VAE") {
+      mappedViTri = "Đường hô hấp (VAE)";
+      loaiCode = "VAE";
+    } else if (viTriNhiemKhuan === "VAP") {
+      mappedViTri = "Đường hô hấp (VAP)";
       loaiCode = "VAP";
+    } else if (viTriNhiemKhuan === "HAP" || viTriNhiemKhuan === "PNEU") {
+      mappedViTri = "Đường hô hấp (HAP)";
+      loaiCode = "HAP";
     } else if (viTriNhiemKhuan === "UTI") {
       mappedViTri = "Đường tiết niệu";
       loaiCode = "UTI";
@@ -260,19 +268,24 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       loaiCode = "SSI";
     }
 
-    // Query loai_nkbv_id based on loaiCode
+    // Query loai_nkbv_id based on loaiCode (VAE / VAP / HAP tách; HAP fallback PNEU)
     let loaiNkbvId = undefined;
     if (loaiCode) {
+      const orParts = [`ma_loai.ilike.%${loaiCode}%`, `ma_loai.ilike.%${viTriNhiemKhuan}%`];
+      if (loaiCode === "HAP") orParts.push("ma_loai.ilike.%PNEU%");
+      if (loaiCode === "VAP") orParts.push("ma_loai.ilike.%PEDVAP%");
       const { data: matchedLoai } = await supabase
         .from("nkbv_dm_loai")
-        .select("id")
-        .or(`ma_loai.ilike.%${loaiCode}%,ma_loai.ilike.%${viTriNhiemKhuan}%`)
+        .select("id, ma_loai")
+        .or(orParts.join(","))
         .eq("is_active", true)
-        .limit(1)
-        .maybeSingle();
-      
-      if (matchedLoai) {
-        loaiNkbvId = matchedLoai.id;
+        .limit(5);
+
+      const exact =
+        (matchedLoai || []).find((r) => String(r.ma_loai || "").toUpperCase() === loaiCode) ||
+        (matchedLoai || [])[0];
+      if (exact) {
+        loaiNkbvId = exact.id;
       }
     }
 

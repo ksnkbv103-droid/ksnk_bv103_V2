@@ -1,6 +1,6 @@
 # MA TRẬN TƯƠNG TÁC MODULE — BV103
 
-> **Phiên bản:** 1.1 (03/06/2026 — remediation audit)  
+> **Phiên bản:** 1.2 (17/07/2026 — liên thông SSI/RCA + Composition Reconcile)  
 > **Trạng thái:** SSOT phụ thuộc giữa bounded contexts  
 > **Đồng bộ với:** [system-overview.md](./system-overview.md)
 
@@ -21,7 +21,8 @@
 | `auth` | `sys` RBAC | View read | `v_sys_user_permissions` |
 | `quan-tri-he-thong` | `sys` | CRUD | `sys_roles`, `sys_lookup_value`, `mdm_nhan_su` |
 | `giam-sat-chung` | `sys` | Read/write | `sys_module_locks` — khóa ngày giám sát |
-| `giam-sat-nkbv` | `cssd-erp` | UI trace | `CssdTraceLink` → `cssd_fact_lo_tiet_khuan` |
+| `giam-sat-nkbv` | `cssd-erp` / `cssd-su-co` | Trace + RCA | `CssdTraceLink`, `NkbvCssdRcaPanel` → mẻ QC + sự cố; deep-link `cssdSuCoIncidentJournalHref` → `/cssd-erp/report?tab=incident&id=` |
+| `cssd-erp` (mẻ TK) | `giam-sat-nkbv` | UI reverse | `MeTkNkbvLinkBanner` → `/giam-sat-nkbv?case=` |
 | `dashboard` | `vst`, `gsc`, `nkbv`, `qlcv` | Compose | `/bao-cao-tong-hop`, Command Center brief |
 
 ---
@@ -52,16 +53,16 @@ sequenceDiagram
   participant UI as CSSDERPPage / QRScan
   participant W as cssd-workflow-application
   participant R as rpc_scan_workflow_station
-  participant B as cssd_fact_quy_trinh_thanh_phan
+  participant C as CompositionReconcilePanel
 
   UI->>W: executeWorkflowStationScan
   alt DONG_GOI
-    W->>B: syncThanhPhanTuTemplate
-    UI->>UI: DigitalChecklistPanel
+    W->>R: advance + assign cycle QR
+    UI->>C: đối chiếu cấu phần realtime
   end
   W->>R: advance station
   alt CAP_PHAT thiếu cấu phần BOM
-    W-->>UI: Soft-warning — vẫn cho cấp phát (QLDCPT Q2)
+    W-->>UI: Soft-warning — vẫn cho cấp phát
   end
 ```
 

@@ -2,7 +2,14 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
-import { buildLoaiPhysicalUpsertPayload } from "@/lib/master-data/cssd-loai-dung-cu-map";
+import {
+  buildLoaiPhysicalUpsertPayload,
+  mapIsChiuNhietToKhaNang,
+  normalizeSpauldingForMaster,
+  normalizeSterileMethodForMaster,
+  spauldingLabel,
+  sterileMethodLabel,
+} from "@/lib/master-data/cssd-loai-dung-cu-map";
 import {
   softDeleteManyMasterRows,
   softDeleteMasterRow,
@@ -21,21 +28,30 @@ export async function getLoaiDungCuRowsAction() {
     .order("ma_loai_dung_cu", { ascending: true });
   if (error) return { success: false, error: error.message };
   const strOrNull = (v: unknown) => (v == null || v === "" ? null : String(v));
-  const mapped = (data || []).map((r: Record<string, unknown>) => ({
-    id: String(r.id || ""),
-    ma_danh_muc: String(r.ma_loai_dung_cu || r.ma_loai || ""),
-    ten_danh_muc: String(r.ten_loai_dung_cu || r.ten_loai || ""),
-    hinh_dang: strOrNull(r.hinh_dang),
-    kich_thuoc: strOrNull(r.kich_thuoc),
-    cong_dung: strOrNull(r.cong_dung),
-    kha_nang_chiu_nhiet: strOrNull(r.kha_nang_chiu_nhiet),
-    phuong_phap_tiet_khuan: strOrNull(r.phuong_phap_tiet_khuan),
-    phan_loai: String(r.phan_loai || "PHAU_THUAT"),
-    so_luong_kho_du_phong: Number(r.so_luong_kho_du_phong || 0),
-    so_luong_tong: Number(r.so_luong_tong || 0),
-    bo_dung_cu_chua: (r.bo_dung_cu_chua as { id: string; ma_bo: string | null; ten_bo: string | null }[]) || [],
-    is_active: r.is_active !== false,
-  }));
+  const mapped = (data || []).map((r: Record<string, unknown>) => {
+    const isChiuNhiet = r.is_chiu_nhiet !== false;
+    const sterile = normalizeSterileMethodForMaster(r.phuong_phap_tiet_khuan);
+    const spaulding = normalizeSpauldingForMaster(r.phan_loai_spaulding);
+    return {
+      id: String(r.id || ""),
+      ma_danh_muc: String(r.ma_loai_dung_cu || r.ma_loai || ""),
+      ten_danh_muc: String(r.ten_loai_dung_cu || r.ten_loai || ""),
+      hinh_dang: strOrNull(r.hinh_dang),
+      kich_thuoc: strOrNull(r.kich_thuoc),
+      cong_dung: strOrNull(r.cong_dung),
+      is_chiu_nhiet: isChiuNhiet,
+      kha_nang_chiu_nhiet: mapIsChiuNhietToKhaNang(isChiuNhiet),
+      phan_loai_spaulding: spaulding,
+      phan_loai_spaulding_label: spauldingLabel(spaulding),
+      phuong_phap_tiet_khuan: sterile,
+      phuong_phap_tiet_khuan_label: sterileMethodLabel(sterile),
+      phan_loai: String(r.phan_loai || "PHAU_THUAT"),
+      so_luong_kho_du_phong: Number(r.so_luong_kho_du_phong || 0),
+      so_luong_tong: Number(r.so_luong_tong || 0),
+      bo_dung_cu_chua: (r.bo_dung_cu_chua as { id: string; ma_bo: string | null; ten_bo: string | null }[]) || [],
+      is_active: r.is_active !== false,
+    };
+  });
   return { success: true, data: mapped };
 }
 

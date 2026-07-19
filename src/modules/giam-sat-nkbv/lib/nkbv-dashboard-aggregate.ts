@@ -1,5 +1,6 @@
 import { eachMonthOfInterval, format, parseISO, startOfMonth } from "date-fns";
 import { vi } from "date-fns/locale";
+import { formatNkbvLoaiDisplay } from "./nkbv-loai-labels";
 
 export type NkbvCasRowMinimal = {
   ngay_phat_hien?: string | null;
@@ -59,7 +60,7 @@ export function aggregateNkbvDashboard(
     const ma_tt = String(r.trang_thai_row?.ma_trang_thai || "").trim();
     const ten_tt = String(r.trang_thai_row?.ten_trang_thai || "").trim() || ma_tt;
     const ma_loai = String(r.loai_nkbv?.ma_loai || "").trim();
-    const ten_loai = String(r.loai_nkbv?.ten_loai || "").trim() || ma_loai || "Không rõ";
+    const ten_loai = formatNkbvLoaiDisplay(ma_loai, r.loai_nkbv?.ten_loai);
     const tn = parseISO(`${String(r.ngay_phat_hien).slice(0, 10)}T12:00:00`);
 
     const yk = format(tn, "yyyy-MM");

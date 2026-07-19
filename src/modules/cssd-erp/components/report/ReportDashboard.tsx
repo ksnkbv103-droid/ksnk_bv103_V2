@@ -7,7 +7,14 @@ import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 interface Props {
-  stats: { total: number; incidents: number; compliance: string; bestStation: string; worstStation: string };
+  stats: {
+    total: number;
+    incidents: number;
+    /** % quy trình không gắn sự cố — không phải CCS / tuân thủ VST–GSC */
+    tyLeQuyTrinhKhongSuCo: string;
+    bestStation: string;
+    worstStation: string;
+  };
   alerts: { name: string; rate: string }[];
 }
 
@@ -17,7 +24,14 @@ export default function ReportDashboard({ stats, alerts }: Props) {
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Tổng quy trình" value={stats.total} icon={<Zap size={20} strokeWidth={2} />} color="bg-emerald-50" textColor="text-emerald-700" />
         <StatCard title="Số vụ sự cố" value={stats.incidents} icon={<ShieldAlert size={20} strokeWidth={2} />} color="bg-red-50" textColor="text-red-600" />
-        <StatCard title="Tỷ lệ tuân thủ" value={`${stats.compliance}%`} icon={<Target size={20} strokeWidth={2} />} color="bg-blue-50" textColor="text-blue-700" />
+        <StatCard
+          title="Tỷ lệ quy trình không sự cố"
+          value={`${stats.tyLeQuyTrinhKhongSuCo}%`}
+          icon={<Target size={20} strokeWidth={2} />}
+          color="bg-blue-50"
+          textColor="text-blue-700"
+          hint="100 − (sự cố ÷ quy trình) × 100 trong kỳ lọc. Không phải CCS / tuân thủ giám sát VST–GSC."
+        />
         <StatCard title="Trạm tốt nhất" value={stats.bestStation} icon={<Trophy size={20} strokeWidth={2} />} color="bg-amber-50" textColor="text-amber-700" isStation />
       </div>
 
@@ -56,6 +70,7 @@ function StatCard({
   color,
   textColor,
   isStation,
+  hint,
 }: {
   title: string;
   value: React.ReactNode;
@@ -63,14 +78,18 @@ function StatCard({
   color: string;
   textColor: string;
   isStation?: boolean;
+  hint?: string;
 }) {
   return (
     <div className={`${color} relative flex h-40 flex-col justify-between overflow-hidden rounded-2xl border border-white p-6 shadow-sm`}>
-      <div className="relative z-10 flex items-start justify-between">
+      <div className="relative z-10 flex items-start justify-between gap-2">
         <p className={bv103DesignTokens.labelBlockMuted}>{title}</p>
         <div className={`rounded-xl bg-white p-2.5 shadow-sm ${textColor}`}>{icon}</div>
       </div>
-      <p className={`relative z-10 font-semibold tracking-tight ${isStation ? "text-base uppercase" : "text-3xl"}`}>{value}</p>
+      <div className="relative z-10 space-y-1">
+        <p className={`font-semibold tracking-tight ${isStation ? "text-base uppercase" : "text-3xl"}`}>{value}</p>
+        {hint ? <p className="text-[10px] font-medium leading-snug text-slate-500">{hint}</p> : null}
+      </div>
     </div>
   );
 }

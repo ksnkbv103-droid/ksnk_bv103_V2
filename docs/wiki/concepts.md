@@ -25,9 +25,12 @@
 
 | Câu hỏi | Trả lời |
 |---------|---------|
-| Định nghĩa bộ / loại dụng cụ? | **MDM** (`cssd_dm_*`, admin) |
-| Phiên QR trạm 3–6? | **CSSD** `cssd_fact_quy_trinh*` |
-| Scan, QC mẻ, sự cố? | CSSD only |
+| Khoa / nhân sự / chức danh? | **MDM tổ chức** — `mdm_dm_khoa_phong`, `mdm_nhan_su`, lookup `sys_lookup_value` |
+| Định nghĩa loại / bộ / BOM / thiết bị / hóa chất? | **Master CSSD** — TABLE `cssd_dm_*`, CRUD tại `/quan-tri-he-thong/danh-muc/*` |
+| Phiên QR trạm 3–6? | **CSSD vận hành** — `cssd_fact_quy_trinh*` |
+| Scan, QC mẻ, sự cố, giao dịch kho? | CSSD only — `cssd_fact_*` (không CRUD master dưới `/cssd-*`) |
+
+Tránh gọi “MDM” cho cả master CSSD — dễ lẫn với khoa/nhân sự. Lộ trình: [`../modules/mdm/improvement-roadmap-20260717.md`](../modules/mdm/improvement-roadmap-20260717.md).
 
 Rules: `20-master-data-placement.mdc`, `12-cssd-erp-spec-context.mdc`. Reform: [`../modules/cssd/reform-plan.md`](../modules/cssd/reform-plan.md).
 
@@ -48,6 +51,8 @@ Rules: `20-master-data-placement.mdc`, `12-cssd-erp-spec-context.mdc`. Reform: [
 | CSSD chrome | `cssd-ui-chrome.ts` (extends layout chrome) |
 
 Doc chi tiết: [`modules/giam-sat/layout-primitives.md`](../modules/giam-sat/layout-primitives.md).
+
+**Sidebar (module-first):** SSOT [`sidebar-nav-groups.ts`](../../src/lib/nav/sidebar-nav-groups.ts) — chỉ cổng vào module/workspace (Điều hành liên module + Giám sát VST/GSC/NKBV + QLCV + CSSD). Lịch sử / Thống kê VST·GSC nằm trong ModeNav của module (`/lich-su/*`, `/thong-ke/*` vẫn deep-link được). **Quản trị:** một mục «Quản trị hệ thống» → hub [`/quan-tri-he-thong`](../../src/lib/nav/sidebar-admin-nav-groups.ts); danh mục/RBAC chọn trong hub. Ai thấy mục nào = phân quyền `NavGate`, không nhân bản menu theo vai trò.
 
 1. `rounded-2xl` / `xl` — `npm run layout:drift-check`
 2. Label tối thiểu `text-[11px]` — `npm run layout:typography-check`

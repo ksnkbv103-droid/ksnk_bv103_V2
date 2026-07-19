@@ -163,7 +163,7 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
         lower.includes("sputum") ||
         lower.includes("bronchial")
       ) {
-        code = "VAE";
+        code = "HAP";
       } else if (
         lower.includes("mủ") ||
         lower.includes("vết mổ") ||

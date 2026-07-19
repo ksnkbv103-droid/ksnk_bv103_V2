@@ -21,7 +21,7 @@
 
 | Ưu tiên | Cấu hình | Lý do |
 |---------|----------|-------|
-| **Khuyến nghị** | Staging **không** set `KSNK_PILOT_CORE_MODULES` | Sidebar đủ nhóm Điều hành; `/` và `/bao-cao-tong-hop` mở — counter-point C trọn vẹn |
+| **Khuyến nghị** | Staging **không** set `KSNK_PILOT_CORE_MODULES` | Sidebar module-first: Điều hành KSNK + Giám sát + QLCV (+ CSSD/NKBV nếu mở); `/` và `/bao-cao-tong-hop` mở — counter-point C trọn vẹn. Thống kê VST/GSC vào qua ModeNav trong module hoặc deep-link `/thong-ke/*` |
 | **W1 prod-like** | `KSNK_PILOT_CORE_MODULES=1` | Chỉ MDM + GSC/VST + QLCV; sidebar ẩn Dashboard/NKBV/CSSD; `/bao-cao-tong-hop` → 404 |
 
 Wave rollout: [`pilot-core-modules-go-live.md`](../../core/pilot-core-modules-go-live.md) · [`pilot-go-live-signoff-202606.md`](../../core/pilot-go-live-signoff-202606.md).
@@ -164,7 +164,7 @@ Runbook terminal chi tiết (Tier 1–3, kịch bản nói): [`demo-governance-g
 | Tình huống | Xử lý |
 |------------|--------|
 | **Mạng chậm / Recharts treo** | Bỏ `/thong-ke/*`; giữ `/giam-sat-vst`, `/giam-sat-chung/tuan-thu`, `/quan-tri-he-thong/bang-kiem` (form tĩnh) |
-| **Sidebar thiếu Dashboard** | Flag W1 đang bật — vào thẳng `/` hoặc giải thích wave; analytics đầy đủ: `/thong-ke/gsc` |
+| **Sidebar thiếu Dashboard / không thấy Thống kê VST·GSC** | Flag W1 ẩn Điều hành; hoặc menu module-first — vào module rồi tab Thống kê / URL `/thong-ke/gsc` |
 | **Không có gap / KPI N/A** | Nói: «Chưa đủ phiên TGS hoặc KSNK trong kỳ lọc» — show bảng loại trừ trên `/thong-ke/gsc` |
 | **Gate terminal fail** | Không bào chữa live; mở sign-off + architecture one-pager §6; hẹn chạy lại sau |
 | **User không đăng nhập** | Dừng demo — auth là phần của RBAC story |

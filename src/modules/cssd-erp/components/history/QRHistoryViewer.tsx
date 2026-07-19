@@ -162,12 +162,37 @@ export default function QRHistoryViewer({ initialQr }: Props) {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Card thông tin tóm tắt */}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between overflow-hidden relative">
-            <div className="relative z-10">
+            <div className="relative z-10 space-y-2">
               <h3 className="text-xl font-semibold tracking-tight text-slate-900 md:text-2xl mb-1">{process.ma_vach_qr}</h3>
               <p className="text-[11px] font-medium text-[var(--primary)] flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-[#FFD700] rounded-full" /> Trạng thái:{" "}
                 {String(process.trang_thai_hien_tai || "").replace(/_/g, " ")}
               </p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {process.ma_qr_bo_vinh_vien ? (
+                  <span className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-[10px] font-bold text-slate-700">
+                    Tem bộ (vĩnh viễn): {String(process.ma_qr_bo_vinh_vien)}
+                  </span>
+                ) : null}
+                {process.ma_cycle_qr ? (
+                  <span className="rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 font-mono text-[10px] font-bold text-emerald-800">
+                    Tem chu trình (túi hấp): {String(process.ma_cycle_qr)}
+                  </span>
+                ) : (
+                  <span className="rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-800">
+                    Chưa gắn tem chu trình — thường sau Đóng gói
+                  </span>
+                )}
+                {process.qr_kind_matched === "CYCLE" ? (
+                  <span className="rounded-lg bg-emerald-700 px-2 py-1 text-[10px] font-bold uppercase text-white">
+                    Bạn vừa quét tem chu trình
+                  </span>
+                ) : process.qr_kind_matched === "PERMANENT" ? (
+                  <span className="rounded-lg bg-slate-700 px-2 py-1 text-[10px] font-bold uppercase text-white">
+                    Bạn vừa quét tem bộ vĩnh viễn
+                  </span>
+                ) : null}
+              </div>
             </div>
             {process.is_red_alert && (
               <div className="bg-red-500 text-white p-3 rounded-2xl shadow-lg shadow-red-200 animate-bounce">

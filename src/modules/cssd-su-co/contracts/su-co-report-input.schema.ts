@@ -22,6 +22,13 @@ const instrumentIncidentPayloadSchema = z.object({
   note: z.string().trim().max(500).optional(),
 });
 
+/** PROCESS: gắn mẻ / bước — mirror cấu trúc instrumentPayload (không ledger). */
+const processIncidentPayloadSchema = z.object({
+  loTietKhuanId: z.string().uuid().optional(),
+  maLo: z.string().trim().max(80).optional(),
+  quyTrinhId: z.string().uuid().optional().nullable(),
+});
+
 export const cssdIncidentReportInputSchema = z.object({
   maQR: z.string().trim().toUpperCase().optional(),
   station: stationEnum,
@@ -37,6 +44,7 @@ export const cssdIncidentReportInputSchema = z.object({
   machineId: z.string().trim().optional(),
   anhMinhChung: z.string().trim().optional(),
   instrumentPayload: instrumentIncidentPayloadSchema.optional(),
+  processPayload: processIncidentPayloadSchema.optional(),
 });
 
 export type CssdIncidentReportInput = z.infer<typeof cssdIncidentReportInputSchema>;

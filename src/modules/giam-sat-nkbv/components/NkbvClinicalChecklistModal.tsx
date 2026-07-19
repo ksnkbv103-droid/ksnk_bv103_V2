@@ -8,10 +8,15 @@ import PneuClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/Pn
 import VaeClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/VaeClinicalSubForm";
 import SsiClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/SsiClinicalSubForm";
 import NkbvStayHistoryTable from "@/modules/giam-sat-nkbv/components/NkbvStayHistoryTable";
-import CssdTraceLink from "@/modules/giam-sat-nkbv/components/CssdTraceLink";
+import NkbvCssdRcaPanel from "@/modules/giam-sat-nkbv/components/NkbvCssdRcaPanel";
 import NkbvChecklistKsnkTab from "@/modules/giam-sat-nkbv/components/NkbvChecklistKsnkTab";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import { useNkbvChecklistModalState } from "./useNkbvChecklistModalState";
+import {
+  formatNkbvChecklistTypeLabel,
+  NKBV_CHECKLIST_TYPE_PICKER_LABELS,
+  type NkbvChecklistTypeCode,
+} from "../lib/nkbv-loai-labels";
 
 export type NkbvClinicalChecklistModalProps = {
   row: Record<string, any>;
@@ -41,6 +46,7 @@ export default function NkbvClinicalChecklistModal({
     suspectedType,
     setSuspectedType,
     checklistType,
+    clinicalPathway,
     bsiForm,
     setBsiForm,
     vaeForm,
@@ -79,7 +85,7 @@ export default function NkbvClinicalChecklistModal({
               Thẩm định triệu chứng lâm sàng (CDC/NHSN 2023)
             </h2>
             <span className="rounded-full bg-[var(--primary)]/10 px-3 py-1 font-mono text-[11px] font-medium text-[var(--primary)]">
-              Mẫu {checklistType}
+              {formatNkbvChecklistTypeLabel(checklistType)}
             </span>
           </div>
 
@@ -106,10 +112,14 @@ export default function NkbvClinicalChecklistModal({
             </div>
           </div>
 
-          {(row as { ma_cycle_qr_lien_quan?: string }).ma_cycle_qr_lien_quan ? (
-            <div className="mt-3">
-              <CssdTraceLink maQr={(row as { ma_cycle_qr_lien_quan?: string }).ma_cycle_qr_lien_quan} />
-            </div>
+          {checklistType === "SSI" ||
+          (row as { ma_cycle_qr_lien_quan?: string }).ma_cycle_qr_lien_quan ||
+          (row as { quy_trinh_id?: string }).quy_trinh_id ? (
+            <NkbvCssdRcaPanel
+              maQr={(row as { ma_cycle_qr_lien_quan?: string }).ma_cycle_qr_lien_quan}
+              quyTrinhId={(row as { quy_trinh_id?: string }).quy_trinh_id}
+              showEmptyHint={checklistType === "SSI"}
+            />
           ) : null}
 
           {/* Role-based Workflow Tabs Header */}
@@ -145,30 +155,34 @@ export default function NkbvClinicalChecklistModal({
                 Phán quyết dịch tễ: Xác định loại nhiễm khuẩn nghi ngờ
               </span>
               <span className="text-[11px] bg-emerald-100 text-emerald-800 font-extrabold px-2.5 py-0.5 rounded-full">
-                💡 Gợi ý hệ thống: {suggestedType}
+                💡 Gợi ý hệ thống: {formatNkbvChecklistTypeLabel(suggestedType)}
               </span>
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-              {[
-                { id: 'UTI', label: '🚰 Tiết niệu (UTI)', color: 'border-blue-200 hover:bg-blue-50/50 text-blue-900 bg-blue-50/10' },
-                { id: 'VAE', label: '🫁 Hô hấp (VAE/PNEU)', color: 'border-purple-200 hover:bg-purple-50/50 text-purple-900 bg-purple-50/10' },
-                { id: 'BSI', label: '💉 Huyết (BSI/CLABSI)', color: 'border-rose-200 hover:bg-rose-50/50 text-rose-900 bg-rose-50/10' },
-                { id: 'SSI', label: '✂️ Vết mổ (SSI)', color: 'border-amber-200 hover:bg-amber-50/50 text-amber-900 bg-amber-50/10' },
-                { id: 'LOAI_TRU', label: '🚫 Loại trừ / Không', color: 'border-slate-200 hover:bg-slate-50/50 text-slate-900 bg-slate-50/10' }
-              ].map((item) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2">
+              {(
+                [
+                  { id: "UTI" as const, color: "border-blue-200 hover:bg-blue-50/50 text-blue-900 bg-blue-50/10" },
+                  { id: "VAE" as const, color: "border-purple-200 hover:bg-purple-50/50 text-purple-900 bg-purple-50/10" },
+                  { id: "VAP" as const, color: "border-fuchsia-200 hover:bg-fuchsia-50/50 text-fuchsia-900 bg-fuchsia-50/10" },
+                  { id: "HAP" as const, color: "border-indigo-200 hover:bg-indigo-50/50 text-indigo-900 bg-indigo-50/10" },
+                  { id: "BSI" as const, color: "border-rose-200 hover:bg-rose-50/50 text-rose-900 bg-rose-50/10" },
+                  { id: "SSI" as const, color: "border-amber-200 hover:bg-amber-50/50 text-amber-900 bg-amber-50/10" },
+                  { id: "LOAI_TRU" as const, color: "border-slate-200 hover:bg-slate-50/50 text-slate-900 bg-slate-50/10" },
+                ] satisfies Array<{ id: NkbvChecklistTypeCode; color: string }>
+              ).map((item) => (
                 <button
                   key={item.id}
                   type="button"
-                  disabled={!allowedEdit || simulatedRole === 'VI_SINH'}
-                  onClick={() => setSuspectedType(item.id as any)}
+                  disabled={!allowedEdit || simulatedRole === "VI_SINH"}
+                  onClick={() => setSuspectedType(item.id)}
                   className={`border rounded-xl py-2 px-1 text-[11px] font-bold tracking-tight text-center transition-all duration-200 ${
-                    suspectedType === item.id 
-                      ? 'border-[var(--primary)] bg-white text-[var(--primary)] font-black shadow-sm ring-2 ring-emerald-500/10 scale-[1.02]'
+                    suspectedType === item.id
+                      ? "border-[var(--primary)] bg-white text-[var(--primary)] font-black shadow-sm ring-2 ring-emerald-500/10 scale-[1.02]"
                       : `${item.color} opacity-80 hover:opacity-100`
                   }`}
                 >
-                  {item.label}
+                  {NKBV_CHECKLIST_TYPE_PICKER_LABELS[item.id]}
                 </button>
               ))}
             </div>
@@ -216,10 +230,8 @@ export default function NkbvClinicalChecklistModal({
                   />
                 )}
 
-                {suspectedType !== "LOAI_TRU" && checklistType === "VAE" && vaeForm && (
-                  <>
-                    {vaeForm.patient_age >= 18 && vaeForm.vent_days >= 4 ? (
-                      <VaeClinicalSubForm
+                {suspectedType !== "LOAI_TRU" && clinicalPathway === "VAE" && vaeForm && (
+                  <VaeClinicalSubForm
                         form={vaeForm}
                         onChange={setVaeForm}
                         symptomDates={symptomDates}
@@ -232,7 +244,9 @@ export default function NkbvClinicalChecklistModal({
                         iwpEnd={liveCdcMetrics?.iwp_end}
                         activeTab="VI_SINH"
                       />
-                    ) : (
+                )}
+
+                {suspectedType !== "LOAI_TRU" && clinicalPathway === "PNEU" && vaeForm && (
                       <PneuClinicalSubForm
                         form={vaeForm}
                         onChange={setVaeForm}
@@ -245,8 +259,6 @@ export default function NkbvClinicalChecklistModal({
                         iwpEnd={liveCdcMetrics?.iwp_end}
                         activeTab="VI_SINH"
                       />
-                    )}
-                  </>
                 )}
 
                 {suspectedType !== "LOAI_TRU" && checklistType === "UTI" && utiForm && (
@@ -329,9 +341,7 @@ export default function NkbvClinicalChecklistModal({
                   />
                 )}
 
-                {suspectedType !== "LOAI_TRU" && checklistType === "VAE" && vaeForm && (
-                  <>
-                    {vaeForm.patient_age >= 18 && vaeForm.vent_days >= 4 ? (
+                {suspectedType !== "LOAI_TRU" && clinicalPathway === "VAE" && vaeForm && (
                       <VaeClinicalSubForm
                         form={vaeForm}
                         onChange={setVaeForm}
@@ -345,7 +355,9 @@ export default function NkbvClinicalChecklistModal({
                         iwpEnd={liveCdcMetrics?.iwp_end}
                         activeTab="LAM_SANG"
                       />
-                    ) : (
+                )}
+
+                {suspectedType !== "LOAI_TRU" && clinicalPathway === "PNEU" && vaeForm && (
                       <PneuClinicalSubForm
                         form={vaeForm}
                         onChange={setVaeForm}
@@ -358,8 +370,6 @@ export default function NkbvClinicalChecklistModal({
                         iwpEnd={liveCdcMetrics?.iwp_end}
                         activeTab="LAM_SANG"
                       />
-                    )}
-                  </>
                 )}
 
                 {suspectedType !== "LOAI_TRU" && checklistType === "UTI" && utiForm && (

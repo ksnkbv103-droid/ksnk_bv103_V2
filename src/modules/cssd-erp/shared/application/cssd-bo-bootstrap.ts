@@ -97,7 +97,7 @@ export async function bootstrapCssdQuyTrinhFromMaBo(
   if (boErr) throw new Error(mapFkError(boErr.message));
   if (!bo?.id) {
     throw new Error(
-      `Không tìm thấy bộ "${maBo}" trong danh mục bộ dụng cụ. Kiểm tra MDM → Bộ dụng cụ (không phải danh mục dụng cụ lẻ).`,
+      `Không tìm thấy bộ "${maBo}" trong danh mục bộ dụng cụ. Kiểm tra Quản trị danh mục → Bộ dụng cụ (không phải danh mục dụng cụ lẻ).`,
     );
   }
 

@@ -11,6 +11,7 @@ import {
 import { CSSD_UI_SECTION_TITLE, CSSD_UI_TABLE_HEADER } from "../../shared/ui/cssd-ui-chrome";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
+import { requestReplenishFromReserveAction } from "@/lib/master-data/cssd-instrument-ops.actions";
 
 type SuCoPrefill = {
   maBo: string;
@@ -50,6 +51,7 @@ export default function CompositionReconcilePanel({
   const [data, setData] = useState<CompositionReconcilePayload | null>(null);
   const [suCoOpen, setSuCoOpen] = useState(false);
   const [suCoPrefill, setSuCoPrefill] = useState<SuCoPrefill | null>(null);
+  const [replenishingId, setReplenishingId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     const id = String(boDungCuId || "").trim();
@@ -86,6 +88,28 @@ export default function CompositionReconcilePanel({
     setSuCoOpen(true);
   };
 
+  const quickReplenish = async (row: CompositionReconcileRow) => {
+    if (!data || row.reserveShortage || row.soLuongKhoDuPhong <= 0 || !row.isMissing) return;
+    const qty = Math.min(row.missingCount, row.soLuongKhoDuPhong);
+    setReplenishingId(row.chiTietId);
+    try {
+      const res = await requestReplenishFromReserveAction({
+        loaiDungCuId: row.loaiDungCuId,
+        boDungCuId: data.boDungCuId,
+        quyTrinhId: quyTrinhId || undefined,
+        quantity: qty,
+        note: `Bù nhanh từ đối chiếu đóng gói (${data.maBo})`,
+      });
+      if (!res.success) throw new Error(("error" in res && res.error) || "Không bù được kho");
+      toast.success(`Đã bù ${qty} × ${row.tenDungCuLe} từ kho dự phòng`);
+      await fetchData();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Lỗi bù kho");
+    } finally {
+      setReplenishingId(null);
+    }
+  };
+
   return (
     <>
       <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -110,7 +134,22 @@ export default function CompositionReconcilePanel({
         {data?.heat.requireSplit ? (
           <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-rose-900">
             <ShieldAlert className="mt-0.5 shrink-0" size={18} />
-            <p className="text-[11px] font-medium leading-relaxed">{data.heat.reason}</p>
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-wide">Cần tách / đổi phương pháp TK</p>
+              <p className="text-[11px] font-medium leading-relaxed">{data.heat.reason}</p>
+              {data.heat.methodLabelVi ? (
+                <p className="text-[11px] font-bold text-rose-800">
+                  Gợi ý: {data.heat.methodLabelVi}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        ) : data?.heat.methodLabelVi ? (
+          <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-emerald-950">
+            <ShieldAlert className="mt-0.5 shrink-0 opacity-70" size={18} />
+            <p className="text-[11px] font-medium leading-relaxed">
+              Spaulding / phương pháp: {data.heat.reason}
+            </p>
           </div>
         ) : null}
 
@@ -120,6 +159,19 @@ export default function CompositionReconcilePanel({
             <p className="text-[11px] font-medium">
               Bộ đang thiếu cấu phần so với thiết kế. Bấm «Báo sự cố» trên dòng tương ứng để ghi Hỏng / Mất / Bổ sung.
             </p>
+          </div>
+        ) : null}
+
+        {data?.replenishWarnings && data.replenishWarnings.length > 0 ? (
+          <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-sky-950 space-y-1">
+            <p className="text-[11px] font-semibold uppercase tracking-wide">
+              Cảnh báo kho dự phòng (danh mục dụng cụ)
+            </p>
+            <ul className="list-disc pl-4 text-[11px] font-medium space-y-0.5">
+              {data.replenishWarnings.map((w) => (
+                <li key={w}>{w}</li>
+              ))}
+            </ul>
           </div>
         ) : null}
 
@@ -180,6 +232,16 @@ export default function CompositionReconcilePanel({
                         >
                           Bổ sung
                         </button>
+                        {row.isMissing && row.soLuongKhoDuPhong > 0 && !row.reserveShortage ? (
+                          <button
+                            type="button"
+                            disabled={replenishingId === row.chiTietId}
+                            onClick={() => void quickReplenish(row)}
+                            className="rounded-lg border border-sky-200 bg-sky-50 px-1.5 py-1 text-[11px] font-semibold uppercase text-sky-800 disabled:opacity-50"
+                          >
+                            {replenishingId === row.chiTietId ? "…" : "Bù kho"}
+                          </button>
+                        ) : null}
                       </div>
                     </td>
                   </tr>

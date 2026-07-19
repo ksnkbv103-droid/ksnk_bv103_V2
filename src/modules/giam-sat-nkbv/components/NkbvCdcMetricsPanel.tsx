@@ -15,7 +15,7 @@ import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 
 interface NkbvCdcMetricsPanelProps {
   metrics: CdcMetricsResult | null;
-  checklistType: "BSI" | "VAE" | "UTI" | "SSI";
+  checklistType: "BSI" | "VAE" | "VAP" | "HAP" | "UTI" | "SSI";
   isSecondaryBsi?: boolean;
   treatmentHistory?: DepartmentStay[];
 }
@@ -53,7 +53,11 @@ export default function NkbvCdcMetricsPanel({
       case "UTI":
         return { name: "sonde Foley", term: "CAUTI", limit: 2 };
       case "VAE":
-        return { name: "Máy thở", term: "VAP/VAE", limit: 3 };
+        return { name: "Máy thở", term: "VAE", limit: 3 };
+      case "VAP":
+        return { name: "Máy thở", term: "VAP", limit: 3 };
+      case "HAP":
+        return { name: "Nằm viện", term: "HAP", limit: 3 };
       default:
         return { name: "Thiết bị", term: "NKBV", limit: 2 };
     }

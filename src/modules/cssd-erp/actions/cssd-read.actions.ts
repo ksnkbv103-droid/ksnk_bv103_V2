@@ -230,3 +230,48 @@ export async function getCSSDImportExportData() {
     return { success: true, data: mapped };
   } catch (error: unknown) { return { success: false, error: getErrorMessage(error) }; }
 }
+
+export type StationFlowMapCell = {
+  station: Station;
+  count: number;
+  redAlertCount: number;
+  frozenCount: number;
+};
+
+/** Bản đồ 6 trạm — đếm quy trình active theo `ma_trang_thai_hien_tai`. */
+export async function getCssdStationFlowMap(): Promise<
+  { success: true; cells: StationFlowMapCell[]; fetchedAt: string } | { success: false; error: string }
+> {
+  const supabase = createAdminSupabaseClient();
+  try {
+    await verifyPermission("CSSD_WORKFLOW", "view");
+    const { data, error } = await supabase
+      .from("v_cssd_quy_trinh_full")
+      .select("ma_trang_thai_hien_tai, is_red_alert, is_dong_bang")
+      .eq("is_active", true)
+      .limit(5000);
+    if (error) throw error;
+
+    const cells: StationFlowMapCell[] = STEPS.map((station) => ({
+      station,
+      count: 0,
+      redAlertCount: 0,
+      frozenCount: 0,
+    }));
+    const byStation = new Map(cells.map((c) => [c.station, c]));
+
+    for (const row of data || []) {
+      const st = String((row as { ma_trang_thai_hien_tai?: string | null }).ma_trang_thai_hien_tai || "").trim() as Station;
+      const cell = byStation.get(st);
+      if (!cell) continue;
+      cell.count += 1;
+      if ((row as { is_red_alert?: boolean | null }).is_red_alert === true) cell.redAlertCount += 1;
+      if ((row as { is_dong_bang?: boolean | null }).is_dong_bang === true) cell.frozenCount += 1;
+    }
+
+    return { success: true, cells, fetchedAt: new Date().toISOString() };
+  } catch (error: unknown) {
+    return { success: false, error: getErrorMessage(error) };
+  }
+}
+

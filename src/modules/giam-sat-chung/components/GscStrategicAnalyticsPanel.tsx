@@ -15,6 +15,7 @@ import type { GscStrategicPayload } from "../types/gsc-strategic.types";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
 import { GscChecklistNavigator } from "./GscChecklistNavigator";
 import { GscBkAnalyticsDashboard } from "./GscBkAnalyticsDashboard";
+import GscTgsCoverageRankingPanel from "./GscTgsCoverageRankingPanel";
 import { useGscChecklistDetail } from "../hooks/use-gsc-checklist-detail";
 import { AlertTriangle } from "lucide-react";
 
@@ -189,6 +190,12 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
           ksnkVolumeLabel="Khảo sát KSNK"
         />
       </section>
+
+      <GscTgsCoverageRankingPanel
+        tuNgay={p.tuNgay}
+        denNgay={p.denNgay}
+        selectedKhoaIds={p.selectedKhoaIds}
+      />
 
       <details className={`${UI.shell} group`}>
         <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">

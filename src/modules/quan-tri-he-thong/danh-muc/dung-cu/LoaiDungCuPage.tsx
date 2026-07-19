@@ -32,8 +32,12 @@ type LoaiDungCuRow = {
   hinh_dang?: string | null;
   kich_thuoc?: string | null;
   cong_dung?: string | null;
+  is_chiu_nhiet?: boolean;
   kha_nang_chiu_nhiet?: string | null;
+  phan_loai_spaulding?: string | null;
+  phan_loai_spaulding_label?: string | null;
   phuong_phap_tiet_khuan?: string | null;
+  phuong_phap_tiet_khuan_label?: string | null;
   phan_loai?: string;
   so_luong_kho_du_phong?: number;
   so_luong_tong?: number;
@@ -95,7 +99,17 @@ export function LoaiDungCuPageContent() {
 
   const { exportTemplate, handleFileUpload, isImporting, triggerImport, fileInputRef } = useImportExport({
     moduleKey: "LOAI_DC", tableName: "cssd_dm_loai_dung_cu", displayName: "Loại dụng cụ", uniqueKey: "ma_loai_dung_cu",
-    columnMapping: { "Mã Loại": "ma_loai_dung_cu", "Tên Loại": "ten_loai_dung_cu", "Hình dáng": "hinh_dang", "Kích thước": "kich_thuoc", "Công dụng": "cong_dung", "Chịu nhiệt": "kha_nang_chiu_nhiet", "Tiệt khuẩn": "phuong_phap_tiet_khuan", "is_active": "is_active" },
+    columnMapping: {
+      "Mã Loại": "ma_loai_dung_cu",
+      "Tên Loại": "ten_loai_dung_cu",
+      "Hình dáng": "hinh_dang",
+      "Kích thước": "kich_thuoc",
+      "Công dụng": "cong_dung",
+      "Chịu nhiệt": "kha_nang_chiu_nhiet",
+      "Spaulding": "phan_loai_spaulding",
+      "Tiệt khuẩn": "phuong_phap_tiet_khuan",
+      is_active: "is_active",
+    },
     onGetData: () => getMasterDataExport("cssd_dm_loai_dung_cu", "ma_loai_dung_cu"),
     onImport: (d) => smartImportData({ tableName: "cssd_dm_loai_dung_cu", uniqueKey: "ma_loai_dung_cu", codePrefix: "LDC" }, d),
     onSuccess: () => { setRefreshKey(k => k + 1); router.refresh(); }
@@ -133,9 +147,22 @@ export function LoaiDungCuPageContent() {
         Dự phòng: <span className="text-amber-600 font-black">{i.so_luong_kho_du_phong || 0}</span> / Tổng: <span className="text-emerald-700 font-black">{i.so_luong_tong || 0}</span>
       </div>
     )},
-    { header: "Logic tiệt khuẩn", accessorKey: "phuong_phap_tiet_khuan", sortable: true, cell: (i) => (
-      <div className="text-[11px] font-bold uppercase space-y-0.5"><div className={i.kha_nang_chiu_nhiet==='Cao'?'text-emerald-600':'text-amber-600'}>Nhiệt: {i.kha_nang_chiu_nhiet}</div><div className="text-blue-600 font-black">{i.phuong_phap_tiet_khuan}</div></div>
-    )},
+    {
+      header: "Spaulding / Nhiệt / TK",
+      accessorKey: "phan_loai_spaulding",
+      sortable: true,
+      cell: (i) => (
+        <div className="text-[11px] font-bold uppercase space-y-0.5">
+          <div className="text-indigo-700">{i.phan_loai_spaulding_label || i.phan_loai_spaulding || "—"}</div>
+          <div className={i.kha_nang_chiu_nhiet === "Cao" ? "text-emerald-600" : "text-amber-600"}>
+            Nhiệt: {i.kha_nang_chiu_nhiet || "—"}
+          </div>
+          <div className="text-blue-600 font-black">
+            {i.phuong_phap_tiet_khuan_label || i.phuong_phap_tiet_khuan || "—"}
+          </div>
+        </div>
+      ),
+    },
     { header: "Trạng thái", accessorKey: "is_active", sortable: true, cell: (i) => actionUi.renderStatusCell(i) },
     { header: "Quản lý", accessorKey: "id", cell: (i) => actionUi.renderManagementCell(i) }
   ];

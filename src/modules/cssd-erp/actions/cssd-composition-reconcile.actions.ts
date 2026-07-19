@@ -21,6 +21,9 @@ export type CompositionReconcileRow = {
   missingCount: number;
   isChiuNhiet: boolean;
   phanLoaiSpaulding: string;
+  soLuongKhoDuPhong: number;
+  /** Thiếu cấu phần và kho dự phòng không đủ để bù. */
+  reserveShortage: boolean;
 };
 
 export type CompositionReconcilePayload = {
@@ -30,6 +33,8 @@ export type CompositionReconcilePayload = {
   items: CompositionReconcileRow[];
   heat: ReturnType<typeof evaluateHeatCompatibility>;
   hasGap: boolean;
+  /** Cảnh báo bù MDM (D-17). */
+  replenishWarnings: string[];
 };
 
 /** Tải đối chiếu cấu phần theo mã QR bộ (tem). */
@@ -74,18 +79,41 @@ export async function loadBoCompositionReconcile(boDungCuId: string) {
   const maBo = String((list[0] as { ma_bo?: string } | undefined)?.ma_bo || "").trim();
   const tenBo = String((list[0] as { ten_bo?: string } | undefined)?.ten_bo || "").trim();
 
+  const loaiIds = [
+    ...new Set(list.map((r) => String((r as { loai_dung_cu_id?: string }).loai_dung_cu_id || "").trim()).filter(Boolean)),
+  ];
+  const reserveByLoai = new Map<string, number>();
+  if (loaiIds.length) {
+    const { data: loaiRows } = await supabase
+      .from("cssd_dm_loai_dung_cu")
+      .select("id, so_luong_kho_du_phong")
+      .in("id", loaiIds);
+    for (const lr of loaiRows || []) {
+      reserveByLoai.set(
+        String((lr as { id: string }).id),
+        Number((lr as { so_luong_kho_du_phong?: number | null }).so_luong_kho_du_phong || 0),
+      );
+    }
+  }
+
   const items: CompositionReconcileRow[] = list.map((row) => {
     const r = row as Record<string, unknown>;
+    const loaiId = String(r.loai_dung_cu_id || "");
+    const missingCount = Number(r.missing_count ?? 0) || 0;
+    const isMissing = r.is_missing === true;
+    const reserve = reserveByLoai.get(loaiId) ?? 0;
     return {
       chiTietId: String(r.chi_tiet_id || ""),
-      loaiDungCuId: String(r.loai_dung_cu_id || ""),
+      loaiDungCuId: loaiId,
       tenDungCuLe: String(r.ten_loai_dung_cu || "—"),
       soLuongKeHoach: Number(r.so_luong_tieu_chuan ?? 0) || 0,
       soLuongThucTe: Number(r.so_luong_thuc_te ?? 0) || 0,
-      isMissing: r.is_missing === true,
-      missingCount: Number(r.missing_count ?? 0) || 0,
+      isMissing,
+      missingCount,
       isChiuNhiet: r.is_chiu_nhiet !== false,
       phanLoaiSpaulding: normalizeSpaulding(r.phan_loai_spaulding),
+      soLuongKhoDuPhong: reserve,
+      reserveShortage: isMissing && missingCount > reserve,
     };
   });
 
@@ -105,6 +133,21 @@ export async function loadBoCompositionReconcile(boDungCuId: string) {
 
   const heat = evaluateHeatCompatibility(domainItems);
   const hasGap = items.some((i) => i.isMissing);
+  const replenishWarnings: string[] = [];
+  for (const item of items) {
+    if (!item.isMissing) continue;
+    if (item.reserveShortage) {
+      replenishWarnings.push(
+        `${item.tenDungCuLe}: thiếu ${item.missingCount}, kho dự phòng chỉ còn ${item.soLuongKhoDuPhong} — cần bổ sung tại Quản trị danh mục dụng cụ.`,
+      );
+    } else if (item.soLuongKhoDuPhong > 0) {
+      replenishWarnings.push(
+        `${item.tenDungCuLe}: có thể bù ${Math.min(item.missingCount, item.soLuongKhoDuPhong)} từ kho dự phòng (còn ${item.soLuongKhoDuPhong}).`,
+      );
+    } else {
+      replenishWarnings.push(`${item.tenDungCuLe}: thiếu ${item.missingCount}, kho dự phòng = 0.`);
+    }
+  }
 
   return {
     success: true as const,
@@ -115,6 +158,7 @@ export async function loadBoCompositionReconcile(boDungCuId: string) {
       items,
       heat,
       hasGap,
+      replenishWarnings,
     } satisfies CompositionReconcilePayload,
   };
 }

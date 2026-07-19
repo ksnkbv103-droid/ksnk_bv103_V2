@@ -20,6 +20,8 @@ interface Props {
   initialLoaiDungCuId?: string;
   initialTypeId?: string;
   quyTrinhId?: string | null;
+  initialMaLo?: string;
+  initialLoTietKhuanId?: string;
 }
 
 export default function IncidentReportModal({
@@ -33,6 +35,8 @@ export default function IncidentReportModal({
   initialLoaiDungCuId,
   initialTypeId,
   quyTrinhId,
+  initialMaLo,
+  initialLoTietKhuanId,
 }: Props) {
   const { allowed } = useModulePermission("BAO_SU_CO");
 
@@ -81,6 +85,8 @@ export default function IncidentReportModal({
               initialLoaiDungCuId={initialLoaiDungCuId}
               initialTypeId={initialTypeId}
               quyTrinhId={quyTrinhId}
+              initialMaLo={initialMaLo}
+              initialLoTietKhuanId={initialLoTietKhuanId}
               enabled={isOpen}
               onSubmitted={() => {
                 onSuccess?.();

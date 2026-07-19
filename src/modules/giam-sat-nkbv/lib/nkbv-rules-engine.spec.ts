@@ -196,9 +196,35 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         respiratory_symptoms_count: 2,
         microbiology_evidence: "NONE"
       };
-      const res = evaluateVaeVap(data);
+      const res = evaluateVaeVap(data, "PNEU");
       expect(res.is_positive).toBe(true);
       expect(res.classification).toBe("PNU1");
+    });
+
+    it("rejects VAE pathway when not adult ventilated", () => {
+      const data: VaeVerificationData = {
+        patient_age: 45,
+        vent_days: 0,
+        has_stable_baseline_peep_fio2: false,
+        peep_increase_ge_3: false,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: false,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: false,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: true,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 1,
+        fever_or_wbc_abnormal: true,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 2,
+        microbiology_evidence: "NONE",
+      };
+      const res = evaluateVaeVap(data, "VAE");
+      expect(res.is_positive).toBe(false);
+      expect(res.classification).toBe("NO_EVENT");
     });
 
     it("identifies PVAP in ventilated adults meeting VAC + IVAC + culture criteria", () => {

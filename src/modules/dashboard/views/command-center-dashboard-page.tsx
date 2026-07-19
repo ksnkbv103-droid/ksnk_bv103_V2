@@ -12,6 +12,7 @@ import {
 } from "@/modules/dashboard/components/command-center/CommandCenterBriefSections";
 import { CommandCenterQuickActions } from "@/modules/dashboard/components/command-center/CommandCenterQuickActions";
 import { CommandCenterQlcvSection } from "@/modules/dashboard/components/command-center/CommandCenterQlcvSection";
+import { CommandCenterCrossModuleBrief } from "@/modules/dashboard/components/command-center/CommandCenterCrossModuleBrief";
 import { AnalyticsKhoaScopeBanner } from "@/modules/dashboard/components/AnalyticsKhoaScopeBanner";
 
 export function CommandCenterDashboardPage() {
@@ -84,6 +85,13 @@ export function CommandCenterDashboardPage() {
         <CommandCenterBriefSections
           vstPayload={d.vstPayload}
           gscPayload={d.gscPayload}
+          tuNgay={d.tuNgay}
+          denNgay={d.denNgay}
+          selectedKhoaIds={d.selectedKhoaIds}
+          loading={d.loading}
+        />
+
+        <CommandCenterCrossModuleBrief
           tuNgay={d.tuNgay}
           denNgay={d.denNgay}
           selectedKhoaIds={d.selectedKhoaIds}

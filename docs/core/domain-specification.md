@@ -12,7 +12,7 @@
 | :--- | :--- | :--- | :--- |
 | **VST (Vệ sinh tay)** | Giám sát tuân thủ 5 thời điểm vệ sinh tay WHO. | `gstt_fact_vst_sessions`, `gstt_fact_vst` | `fact_giam_sat_vst_*` |
 | **GSC (Giám sát chung)** | Giám sát checklist động; kết quả inline `results_jsonb`. | `gstt_fact_chung_sessions`, `gstt_dm_bang_kiem` | `fact_giam_sat_chung_sessions`, `dm_bang_kiem` |
-| **NKBV (Nhiễm khuẩn BV)** | HAI surveillance stay-centric. | `nkbv_fact_su_kien`, `nkbv_fact_benh_an`, `nkbv_fact_vi_sinh` | `fact_nkbv_*`, `dm_loai_nkbv` |
+| **NKBV (Nhiễm khuẩn BV)** | HAI surveillance stay-centric; **1 module** cho mọi hội chứng (không tách 4 app — ADR 2026-07-15). | `nkbv_fact_su_kien`, `nkbv_fact_benh_an`, `nkbv_fact_vi_sinh` | `fact_nkbv_*`, `dm_loai_nkbv` |
 | **CSSD (Tái xử lý dụng cụ)** | 6 trạm QR workflow tiệt khuẩn. | `cssd_fact_quy_trinh`, `cssd_fact_lo_tiet_khuan`, `cssd_fact_quy_trinh_thanh_phan` | `fact_quy_trinh`, `fact_lo_tiet_khuan` |
 | **Mẻ Tiệt Khuẩn** | Chu trình hấp sấy + QC chỉ thị. | `cssd_fact_lo_tiet_khuan` | `fact_lo_tiet_khuan` |
 | **QLCV (Quản lý công việc)** | Task nội bộ KSNK Track B (7 trạng thái). | `qlcv_fact_cong_viec`, `qlcv_fact_cong_viec_dinh_ky` | `fact_cong_viec` |
@@ -63,7 +63,13 @@ flowchart LR
 MVP NKBV nhập liệu lâm sàng; kiến trúc hướng FHIR (`Patient`, `Encounter`, `Observation`).
 
 ### 3.2 Cơ chế Đồng bộ Master Data (MDM)
+
+**MDM tổ chức** (dùng chung toàn viện):
+
 * Khoa phòng: **`mdm_dm_khoa_phong`**
 * Nhân sự: **`mdm_nhan_su`** + `auth_user_id` → `auth.users`
 * Lookup phẳng: **`sys_lookup_value`** (14+ category_type)
+
+**Master CSSD** (định nghĩa dụng cụ/máy/hóa chất — CRUD tại Quản trị, không phải phiên QR): TABLE **`cssd_dm_loai_dung_cu`**, **`cssd_dm_bo_dung_cu`**, **`cssd_dm_bo_dung_cu_chi_tiet`**, **`cssd_dm_thiet_bi`**, **`cssd_dm_hoa_chat`**. Ranh giới: [`../wiki/concepts.md`](../wiki/concepts.md#cssd-vs-mdm). Lộ trình: [`../modules/mdm/improvement-roadmap-20260717.md`](../modules/mdm/improvement-roadmap-20260717.md).
+
 * Audit hệ thống: **không còn** (DROP 2026-06-02; xem `implementation-mapping.md` changelog)

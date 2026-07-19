@@ -121,9 +121,13 @@ export default function QuanLyCongViecPage() {
     if (searchParams.get("from") !== "analytics") return null;
     const topic = searchParams.get("topic")?.trim();
     const gap = searchParams.get("gap")?.trim();
-    const parts = ["Mở từ thống kê / báo cáo — khoa thiếu bao phủ giám sát."];
+    const khoa = searchParams.get("khoa")?.trim();
+    const bk = searchParams.get("bk")?.trim();
+    const parts = ["Mở từ thống kê / báo cáo — tạo việc theo dõi bao phủ giám sát."];
     if (topic) parts.push(`Chuyên đề: ${topic}.`);
     if (gap) parts.push(`Trạng thái: ${gap}.`);
+    if (khoa) parts.push(`Khoa: ${khoa}.`);
+    if (bk) parts.push(`BK thiếu: ${bk}.`);
     return parts.join(" ");
   }, [searchParams]);
 

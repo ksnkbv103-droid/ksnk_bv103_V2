@@ -10,6 +10,8 @@ import { NKBV_LIST_SORT_KEYS, nkbvListPaginationSchema } from "@/lib/validations
 
 type GiamSatNkbvFilters = {
   khoa_ghi_nhan_id?: string;
+  loai_nkbv_id?: string;
+  trang_thai_id?: string;
 };
 
 type ListGiamSatNkbvCasParams = GiamSatNkbvFilters & {
@@ -37,6 +39,8 @@ export async function listGiamSatNkbvCas(filters: ListGiamSatNkbvCasParams) {
     search: filters.search ?? "",
     sortKey: filters.sortKey ?? "ngay_phat_hien",
     sortDir: filters.sortDir ?? "desc",
+    loai_nkbv_id: filters.loai_nkbv_id || undefined,
+    trang_thai_id: filters.trang_thai_id || undefined,
   });
   if (!parsed.success) {
     return {
@@ -46,7 +50,7 @@ export async function listGiamSatNkbvCas(filters: ListGiamSatNkbvCasParams) {
       totalCount: 0,
     };
   }
-  const { page, pageSize, search, sortKey, sortDir } = parsed.data;
+  const { page, pageSize, search, sortKey, sortDir, loai_nkbv_id, trang_thai_id } = parsed.data;
   const sortCol = resolveSortColumn(sortKey);
   const ascending = sortDir === "asc";
   const from = (page - 1) * pageSize;
@@ -60,6 +64,8 @@ export async function listGiamSatNkbvCas(filters: ListGiamSatNkbvCasParams) {
     .eq("is_active", true);
   if (searchFilter) countQ = countQ.or(searchFilter);
   if (filters.khoa_ghi_nhan_id) countQ = countQ.eq("khoa_ghi_nhan_id", filters.khoa_ghi_nhan_id);
+  if (loai_nkbv_id) countQ = countQ.eq("loai_nkbv_id", loai_nkbv_id);
+  if (trang_thai_id) countQ = countQ.eq("trang_thai_id", trang_thai_id);
 
   let dataQ = supabase
     .from("v_nkbv_su_kien_full")
@@ -69,6 +75,8 @@ export async function listGiamSatNkbvCas(filters: ListGiamSatNkbvCasParams) {
     .range(from, to);
   if (searchFilter) dataQ = dataQ.or(searchFilter);
   if (filters.khoa_ghi_nhan_id) dataQ = dataQ.eq("khoa_ghi_nhan_id", filters.khoa_ghi_nhan_id);
+  if (loai_nkbv_id) dataQ = dataQ.eq("loai_nkbv_id", loai_nkbv_id);
+  if (trang_thai_id) dataQ = dataQ.eq("trang_thai_id", trang_thai_id);
 
   const [{ count, error: cErr }, { data, error: dErr }] = await Promise.all([countQ, dataQ]);
 

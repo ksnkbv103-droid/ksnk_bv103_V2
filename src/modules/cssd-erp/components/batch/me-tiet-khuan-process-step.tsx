@@ -21,6 +21,7 @@ import MeTietKhuanProcessScanPanel, { type MeTkItemRow } from "./me-tiet-khuan-p
 import MeTietKhuanProcessQcPanel from "./me-tiet-khuan-process-qc-panel";
 import MeTietKhuanWaitingPanel, { type MeTkWaitingRow } from "./me-tiet-khuan-waiting-panel";
 import MeTietKhuanHeatBanner from "./me-tiet-khuan-heat-banner";
+import MeTkNkbvLinkBanner from "./me-tk-nkbv-link-banner";
 import { CSSD_UI_ACTION_SECONDARY } from "../../shared/ui/cssd-ui-chrome";
 import { isSteamSterilizerProfile } from "../../helpers/me-tiet-khuan-machine-kind";
 
@@ -72,6 +73,7 @@ export default function MeTietKhuanProcessStep({
   onFinishQc,
   onPrintBatch,
   isPrintBusy,
+  onReportIncident,
 }: {
   activeMe: MeRow | null;
   batchGate: MeRow | null;
@@ -110,6 +112,7 @@ export default function MeTietKhuanProcessStep({
   onFinishQc: (isPass: boolean, overrideThongSoMay?: string) => void | Promise<void>;
   onPrintBatch?: () => void;
   isPrintBusy?: boolean;
+  onReportIncident?: () => void;
 }) {
   const [scanPrefillToken, setScanPrefillToken] = useState<string | undefined>(undefined);
   const napLocked = Boolean(batchGate?.tk_chot_nap_at);
@@ -145,10 +148,21 @@ export default function MeTietKhuanProcessStep({
       title={<span className="text-[var(--primary)]">Mẻ tiệt khuẩn: đang xử lý</span>}
       subtitle="Nạp bộ → bắt đầu TK → kết thúc chu trình → đánh giá QC → kết luận."
       actions={
-        <button type="button" onClick={onBackToList} className={`${CSSD_UI_ACTION_SECONDARY} h-10`}>
-          <History size={16} aria-hidden="true" />
-          Về danh sách
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {onReportIncident ? (
+            <button
+              type="button"
+              onClick={onReportIncident}
+              className="flex h-10 items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 text-[11px] font-semibold uppercase tracking-wide text-red-600 shadow-sm hover:bg-red-100"
+            >
+              Báo sự cố
+            </button>
+          ) : null}
+          <button type="button" onClick={onBackToList} className={`${CSSD_UI_ACTION_SECONDARY} h-10`}>
+            <History size={16} aria-hidden="true" />
+            Về danh sách
+          </button>
+        </div>
       }
     >
       <div className={`${CSSD_PAGE_OUTER} animate-in slide-in-from-right-6 duration-300`}>
@@ -213,6 +227,7 @@ export default function MeTietKhuanProcessStep({
         </header>
 
         {activeMe?.id ? <MeTietKhuanHeatBanner batchId={activeMe.id} /> : null}
+        {activeMe?.id ? <MeTkNkbvLinkBanner loTietKhuanId={activeMe.id} /> : null}
 
         {/* Process Stepper 4 bước */}
         <div className="my-4 bg-slate-50 border border-slate-200/50 p-5 rounded-2xl shadow-inner">

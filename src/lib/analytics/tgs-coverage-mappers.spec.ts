@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { buildTgsCoverageRow, buildTgsHitSet, computeTyLeBaoPhuTgs } from "./tgs-coverage-mappers";
+import {
+  buildTgsCoverageRow,
+  buildTgsHitSet,
+  computeTyLeBaoPhuTgs,
+  resolveTgsBkCellStatus,
+  TGS_BK_CELL_LABELS,
+} from "./tgs-coverage-mappers";
 
 const khoa = { id: "k1", khoi_id: "kh1", ma_khoa: "NGOAI", ten_khoa: "Khoa Ngoại", is_active: true };
 
@@ -37,5 +43,12 @@ describe("tgs-coverage-mappers", () => {
   it("computeTyLeBaoPhuTgs", () => {
     expect(computeTyLeBaoPhuTgs(1, 10)).toBe(10);
     expect(computeTyLeBaoPhuTgs(0, 0)).toBe(100);
+  });
+
+  it("ô Không áp dụng / Thiếu TGS / Đã TGS", () => {
+    expect(resolveTgsBkCellStatus({ appliesBatBuocTgs: false, hasHit: false })).toBe("khong_ap_dung");
+    expect(resolveTgsBkCellStatus({ appliesBatBuocTgs: true, hasHit: false })).toBe("thieu_tgs");
+    expect(resolveTgsBkCellStatus({ appliesBatBuocTgs: true, hasHit: true })).toBe("da_tgs");
+    expect(TGS_BK_CELL_LABELS.khong_ap_dung).toBe("Không áp dụng");
   });
 });

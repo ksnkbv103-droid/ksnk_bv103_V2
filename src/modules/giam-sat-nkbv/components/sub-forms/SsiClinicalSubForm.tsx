@@ -50,9 +50,15 @@ export default function SsiClinicalSubForm({
             title="Quét QR bộ CSSD"
           />
         </div>
-        <p className="text-[11px] text-emerald-900/80 font-medium">
-          Sau khi lưu checklist, hệ thống liên kết ca với timeline CSSD (tab Truy vết).
+        <p className="text-[11px] text-emerald-900/80 font-medium leading-relaxed">
+          Bắt buộc để truy vết SSI ↔ mẻ tiệt khuẩn. Sau khi lưu checklist, panel RCA phía trên hiện mẻ QC và sự cố
+          CSSD liên quan (một click mở nhật ký sự cố).
         </p>
+        {!form.ma_qr_cssd_lien_quan?.trim() ? (
+          <p className="text-[11px] font-semibold text-amber-800">
+            Chưa có QR — quét tem chu trình trên bộ dụng cụ đã dùng trong ca mổ.
+          </p>
+        ) : null}
       </div>
 
       {/* Microbiology Tab */}

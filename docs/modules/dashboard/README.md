@@ -5,6 +5,10 @@
 | Công thức KPI / CCS | [`metric-dictionary.md`](metric-dictionary.md) |
 | Báo cáo tổng hợp pilot | [`bao-cao-tong-hop.md`](bao-cao-tong-hop.md) |
 | Reform kiến trúc | [`analytics-reform-202606.md`](analytics-reform-202606.md) |
+| Rà soát UX toàn hệ thống (2026-07) | [`dashboard-ux-audit-20260717.md`](dashboard-ux-audit-20260717.md) |
+| Intake P0 metric CSSD Report | [`intake-cssd-report-metric-20260717.md`](intake-cssd-report-metric-20260717.md) |
+| Intake P1 chrome VST/GSC | [`intake-analytics-chrome-unify-20260717.md`](intake-analytics-chrome-unify-20260717.md) |
+| Intake P1 NKBV filter + deep link | [`intake-nkbv-dashboard-filter-deeplink-20260717.md`](intake-nkbv-dashboard-filter-deeplink-20260717.md) |
 | Mapping RPC | [`../../core/implementation-mapping.md`](../../core/implementation-mapping.md) |
 
 Rule: `18-dashboard-analytics-spec-context.mdc` · Skill: `@dashboard-pilot`

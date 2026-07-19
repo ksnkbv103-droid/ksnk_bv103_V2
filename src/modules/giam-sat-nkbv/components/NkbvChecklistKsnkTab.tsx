@@ -13,7 +13,7 @@ import type { NkbvSuspectedType } from "./useNkbvChecklistModalState";
 type NkbvChecklistKsnkTabProps = {
   row: Record<string, any>;
   suspectedType: NkbvSuspectedType | null;
-  checklistType: 'BSI' | 'VAE' | 'UTI' | 'SSI';
+  checklistType: "BSI" | "VAE" | "VAP" | "HAP" | "UTI" | "SSI";
   liveEvaluation: RuleEvaluationResult;
   liveCdcMetrics: CdcMetricsResult | null;
   treatmentHistory: DepartmentStay[];

@@ -34,7 +34,7 @@ Hệ thống **KSNK BV103** là ERP giám sát nhiễm khuẩn + CSSD trên **Ne
 | F-01 | **P0** | **Drift môi trường DB:** local chỉ 2 migration applied; staging 26/29; repo có tới `20260603140000`. Audit local EXPLAIN/size **không đại diện**. |
 | F-02 | **P1** | **Không có `middleware.ts`** — auth redirect chỉ client (`ClientLayoutWrapper` + `onAuthStateChange`). |
 | F-03 | **P1** | **Dashboard đa luồng:** RPC strategic V4 + bảng `gstt_fact_*_summary` (trigger) + báo cáo tổng hợp compose client — cần benchmark trước khi dọn summary. |
-| F-04 | **P1** | **`quan-tri-he-thong` 137 file** — hub MDM/RBAC/danh mục chiếm ~28% module code; ranh giới CSSD↔MDM dễ lẫn. |
+| F-04 | **P1** | **`quan-tri-he-thong` 137 file** — hub MDM/RBAC/danh mục chiếm ~28% module code; ranh giới CSSD↔MDM dễ lẫn. **Mitigation lộ trình (2026-07-17):** UX hub Lớp 3 sau khi Master CSSD ổn — không big-bang tách module; xem [`../../modules/mdm/improvement-roadmap-20260717.md`](../../modules/mdm/improvement-roadmap-20260717.md). |
 | F-05 | **P2** | **Doc drift:** `implementation-mapping` vẫn nhắc compat view `v_fact_*`; `debt-register` D-05 **obsolete** (guard pass). |
 | F-06 | **P2** | **Layout drift:** 22 chỗ radius tùy ý (`rounded-[32px]`/`[40px]`) vs `bv103LayoutChrome`. |
 | F-07 | **P2** | **Ledger cấp phát:** `assertLedgerDuChoCapPhat` — thiếu BOM digital → **warning**, không chặn cứng. |

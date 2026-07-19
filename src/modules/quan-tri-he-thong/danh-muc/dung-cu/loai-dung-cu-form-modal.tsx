@@ -6,6 +6,14 @@ import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import { saveLoaiDungCuAction } from "../actions/loai-dung-cu.actions";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import {
+  mapIsChiuNhietToKhaNang,
+  mapKhaNangToIsChiuNhiet,
+  normalizeSpauldingForMaster,
+  normalizeSterileMethodForMaster,
+  type CssdSpaulding,
+  type CssdSterileMethod,
+} from "@/lib/master-data/cssd-loai-dung-cu-map";
 
 type FormData = {
   id?: string;
@@ -14,8 +22,9 @@ type FormData = {
   hinh_dang: string;
   kich_thuoc: string;
   cong_dung: string;
-  kha_nang_chiu_nhiet: string;
-  phuong_phap_tiet_khuan: string;
+  kha_nang_chiu_nhiet: "Cao" | "Thấp";
+  phuong_phap_tiet_khuan: CssdSterileMethod;
+  phan_loai_spaulding: CssdSpaulding;
   phan_loai: string;
   so_luong_kho_du_phong: number;
   is_active: boolean;
@@ -30,12 +39,17 @@ function mapForm(input: Record<string, unknown> | null): FormData {
       kich_thuoc: "",
       cong_dung: "",
       kha_nang_chiu_nhiet: "Cao",
-      phuong_phap_tiet_khuan: "Hơi nước",
+      phuong_phap_tiet_khuan: "STEAM_134",
+      phan_loai_spaulding: "CRITICAL",
       phan_loai: "PHAU_THUAT",
       so_luong_kho_du_phong: 0,
       is_active: true,
     };
   }
+  const isChiu =
+    input.is_chiu_nhiet !== undefined && input.is_chiu_nhiet !== null
+      ? Boolean(input.is_chiu_nhiet)
+      : mapKhaNangToIsChiuNhiet(input.kha_nang_chiu_nhiet);
   return {
     id: String(input.id || ""),
     ma_danh_muc: String(input.ma_danh_muc || ""),
@@ -43,8 +57,11 @@ function mapForm(input: Record<string, unknown> | null): FormData {
     hinh_dang: String(input.hinh_dang || ""),
     kich_thuoc: String(input.kich_thuoc || ""),
     cong_dung: String(input.cong_dung || ""),
-    kha_nang_chiu_nhiet: String(input.kha_nang_chiu_nhiet || "Cao"),
-    phuong_phap_tiet_khuan: String(input.phuong_phap_tiet_khuan || "Hơi nước"),
+    kha_nang_chiu_nhiet: mapIsChiuNhietToKhaNang(isChiu),
+    phuong_phap_tiet_khuan: normalizeSterileMethodForMaster(
+      input.phuong_phap_tiet_khuan || input.phuong_phap_tiet_khuan_chi_dinh,
+    ),
+    phan_loai_spaulding: normalizeSpauldingForMaster(input.phan_loai_spaulding),
     phan_loai: String(input.phan_loai || "PHAU_THUAT"),
     so_luong_kho_du_phong: Number(input.so_luong_kho_du_phong || 0),
     is_active: input.is_active !== false,
@@ -80,7 +97,9 @@ export default function LoaiDungCuFormModal({
       kich_thuoc: form.kich_thuoc,
       cong_dung: form.cong_dung,
       kha_nang_chiu_nhiet: form.kha_nang_chiu_nhiet,
+      is_chiu_nhiet: form.kha_nang_chiu_nhiet === "Cao",
       phuong_phap_tiet_khuan: form.phuong_phap_tiet_khuan,
+      phan_loai_spaulding: form.phan_loai_spaulding,
       phan_loai: form.phan_loai,
       so_luong_kho_du_phong: form.so_luong_kho_du_phong,
       is_active: form.is_active,
@@ -111,18 +130,57 @@ export default function LoaiDungCuFormModal({
         </div>
         <F l="Công dụng" v={form.cong_dung} o={(v) => setForm({ ...form, cong_dung: v })} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <S l="Khả năng chịu nhiệt" v={form.kha_nang_chiu_nhiet} o={(v) => setForm({ ...form, kha_nang_chiu_nhiet: v })}
-            options={[{ v: "Cao", l: "Chịu nhiệt cao" }, { v: "Thấp", l: "Chịu nhiệt thấp" }]} />
-          <S l="Phương pháp tiệt khuẩn" v={form.phuong_phap_tiet_khuan} o={(v) => setForm({ ...form, phuong_phap_tiet_khuan: v })}
-            options={[{ v: "Hơi nước", l: "Hơi nước" }, { v: "Plasma", l: "Plasma" }, { v: "EO", l: "Khí EO" }]} />
+          <S
+            l="Phân loại Spaulding"
+            v={form.phan_loai_spaulding}
+            o={(v) => setForm({ ...form, phan_loai_spaulding: normalizeSpauldingForMaster(v) })}
+            options={[
+              { v: "CRITICAL", l: "Thiết yếu (Critical)" },
+              { v: "SEMI_CRITICAL", l: "Bán thiết yếu (Semi-critical)" },
+              { v: "NON_CRITICAL", l: "Không thiết yếu (Non-critical)" },
+            ]}
+          />
+          <S
+            l="Khả năng chịu nhiệt"
+            v={form.kha_nang_chiu_nhiet}
+            o={(v) => setForm({ ...form, kha_nang_chiu_nhiet: v === "Thấp" ? "Thấp" : "Cao" })}
+            options={[
+              { v: "Cao", l: "Chịu nhiệt cao (hấp hơi được)" },
+              { v: "Thấp", l: "Nhạy nhiệt (Plasma/EO)" },
+            ]}
+          />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <S l="Phân loại dụng cụ" v={form.phan_loai} o={(v) => setForm({ ...form, phan_loai: v })}
-            options={[{ v: "PHAU_THUAT", l: "Dụng cụ Phẫu thuật" }, { v: "THU_THUAT", l: "Dụng cụ Thủ thuật" }]} />
-          <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-400 ml-1">Số lượng dự phòng kho lẻ</label>
-            <input type="number" min="0" value={form.so_luong_kho_du_phong} onChange={(e) => setForm({ ...form, so_luong_kho_du_phong: parseInt(e.target.value) || 0 })} className={C.controlInput} />
-          </div>
+          <S
+            l="Phương pháp tiệt khuẩn chỉ định"
+            v={form.phuong_phap_tiet_khuan}
+            o={(v) => setForm({ ...form, phuong_phap_tiet_khuan: normalizeSterileMethodForMaster(v) })}
+            options={[
+              { v: "STEAM_134", l: "Hơi nước 134°C" },
+              { v: "STEAM_121", l: "Hơi nước 121°C" },
+              { v: "PLASMA", l: "Plasma" },
+              { v: "EO", l: "Khí EO" },
+            ]}
+          />
+          <S
+            l="Phân loại dụng cụ"
+            v={form.phan_loai}
+            o={(v) => setForm({ ...form, phan_loai: v })}
+            options={[
+              { v: "PHAU_THUAT", l: "Dụng cụ Phẫu thuật" },
+              { v: "THU_THUAT", l: "Dụng cụ Thủ thuật" },
+            ]}
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-[11px] font-medium text-slate-400 ml-1">Số lượng dự phòng kho lẻ</label>
+          <input
+            type="number"
+            min="0"
+            value={form.so_luong_kho_du_phong}
+            onChange={(e) => setForm({ ...form, so_luong_kho_du_phong: parseInt(e.target.value) || 0 })}
+            className={C.controlInput}
+          />
         </div>
         <MdmFormActiveToggleRow active={form.is_active} onChange={(next) => setForm({ ...form, is_active: next })} />
         <button type="submit" disabled={loading} className={`w-full ${C.btnPrimaryBlock} disabled:opacity-60`}>
@@ -147,7 +205,11 @@ function S({ l, v, o, options }: { l: string; v: string; o: (v: string) => void;
     <div className="space-y-1">
       <label className="text-[11px] font-medium text-slate-400 ml-1">{l}</label>
       <select value={v} onChange={(e) => o(e.target.value)} className={C.controlInput}>
-        {options.map((x) => <option key={x.v} value={x.v}>{x.l}</option>)}
+        {options.map((x) => (
+          <option key={x.v} value={x.v}>
+            {x.l}
+          </option>
+        ))}
       </select>
     </div>
   );

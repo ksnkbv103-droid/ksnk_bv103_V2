@@ -59,13 +59,16 @@ _Generated 2026-05-31 — `npm run wiki:index`_
 - [`docs/modules/giam-sat/README.md`](../modules/giam-sat/README.md) — Giám sát (VST / GSC)
 - [`docs/modules/giam-sat/bang-kiem-overview.md`](../modules/giam-sat/bang-kiem-overview.md) — Bảng kiểm GSC/VST — tóm tắt
 - [`docs/modules/mdm/README.md`](../modules/mdm/README.md) — MDM & quản trị
+- [`docs/modules/mdm/improvement-roadmap-20260717.md`](../modules/mdm/improvement-roadmap-20260717.md) — Lộ trình cải tiến Quản trị (4 lớp)
 - [`docs/modules/nkbv/README.md`](../modules/nkbv/README.md) — NKBV
 - [`docs/modules/nkbv/clinical-forms.md`](../modules/nkbv/clinical-forms.md) — ĐẶC TẢ THIẾT KẾ CÁC BIỂU MẪU NHẬP LIỆU LÂM SÀNG NKBV (CDC/NHSN SURVEILLANCE PROTOCOL)
 - [`docs/modules/nkbv/domain-specification.md`](../modules/nkbv/domain-specification.md) — ĐẶC TẢ NGHIỆP VỤ GIÁM SÁT NHIỄM KHUẨN BỆNH VIỆN (NKBV) — CDC/NHSN STANDARD
+- [`docs/modules/nkbv/product-strategy-unified-20260715.md`](../modules/nkbv/product-strategy-unified-20260715.md) — NKBV: tóm tắt quyết định PO (1 module)
 - [`docs/modules/qlcv/README.md`](../modules/qlcv/README.md) — QLCV
 
 ### Reference
 
+- [`docs/reference/architecture/adr-nkbv-unified-module-20260715.md`](../reference/architecture/adr-nkbv-unified-module-20260715.md) — ADR NKBV: 1 module thống nhất (PO Accepted 2026-07-15)
 - [`docs/reference/architecture/debt-register.md`](../reference/architecture/debt-register.md) — SỔ ĐĂNG KÝ NỢ KỸ THUẬT (TECHNICAL DEBT REGISTER)
 - [`docs/reference/architecture/interaction-matrix.md`](../reference/architecture/interaction-matrix.md) — MA TRẬN TƯƠNG TÁC MODULE — BV103
 - [`docs/reference/architecture/roadmap-2026h2.md`](../reference/architecture/roadmap-2026h2.md) — LỘ TRÌNH PHÁT TRIỂN & TIÊU CHÍ HOÀN THÀNH PILOT (2026H2)

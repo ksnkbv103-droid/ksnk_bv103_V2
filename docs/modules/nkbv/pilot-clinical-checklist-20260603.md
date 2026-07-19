@@ -20,6 +20,8 @@
 | 3 | KSNK xác nhận / loại trừ | Panel thẩm định: Phê duyệt hoặc Loại trừ (+ lý do) | `XAC_NHAN` hoặc `LOAI_TRU` | Manual adjudication | [ ] |
 | 4 | Import trùng MD5 | Import lại cùng file Excel đã import | Hệ thống bỏ qua dòng trùng (không nhân đôi) | Manual `NkbvViSinhImportPortal` | [ ] |
 | 5 | SSI ↔ CSSD | Ca SSI có `ma_cycle_qr_lien_quan` | Hiện link truy vết CSSD (`CssdTraceLink`) | Manual + migration `20260602150000` | [ ] |
+| 6 | Tách VAE / VAP / HAP | Phán quyết mẫu: chọn lần lượt VAE, VAP, HAP | Mỗi loại mở form/engine riêng (VAE: VAC→IVAC→PVAP; VAP/HAP: PNEU); nhãn cột danh sách không gộp | Manual + `nkbv-loai-labels.spec.ts` + `nkbv-rules-engine.spec.ts` | [ ] |
+| 7 | Lọc hàng đợi loại + trạng thái | Tab Danh sách phiếu: chọn 1 loại + 1 trạng thái | Bảng chỉ còn phiếu khớp bộ lọc; đổi «Tất cả» → hiện lại đủ | Manual `/giam-sat-nkbv` | [ ] |
 
 ## Hướng dẫn PO (đợt C — 2026-07-09)
 

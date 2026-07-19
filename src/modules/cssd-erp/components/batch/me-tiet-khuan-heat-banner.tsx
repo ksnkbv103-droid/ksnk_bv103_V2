@@ -25,7 +25,22 @@ export default function MeTietKhuanHeatBanner({ batchId }: { batchId: string }) 
     };
   }, [batchId]);
 
-  if (loading || !risk || risk.level === "OK") return null;
+  if (loading || !risk) return null;
+
+  if (risk.level === "OK") {
+    return (
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950" role="status">
+        <div className="flex items-start gap-3">
+          <Thermometer className="mt-0.5 shrink-0" size={20} aria-hidden />
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold uppercase tracking-wide">Gợi ý Spaulding / phương pháp TK</p>
+            <p className="text-xs font-medium">{risk.heat.reason}</p>
+            <p className="text-xs font-bold">Khuyến nghị: {risk.heat.methodLabelVi}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const isBlock = risk.level === "BLOCK";
   const Icon = isBlock ? ShieldAlert : AlertTriangle;
@@ -51,6 +66,7 @@ export default function MeTietKhuanHeatBanner({ batchId }: { batchId: string }) 
               <li key={m}>{m}</li>
             ))}
           </ul>
+          <p className="text-xs font-bold pt-1">Khuyến nghị: {risk.heat.methodLabelVi}</p>
         </div>
       </div>
     </div>

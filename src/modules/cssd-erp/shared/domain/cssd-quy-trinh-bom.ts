@@ -1,4 +1,8 @@
 import type { BomItem } from "@/lib/domain/cssd-packaging-rules";
+import {
+  normalizeSpauldingForMaster,
+  normalizeSterileMethodForMaster,
+} from "@/lib/master-data/cssd-loai-dung-cu-map";
 
 export type QuyTrinhBomLine = {
   line_key: string;
@@ -55,22 +59,14 @@ export function mergeBomLineQuantities(
   });
 }
 
-const SPAULDING = new Set<BomItem["phan_loai_spaulding"]>(["CRITICAL", "SEMI_CRITICAL", "NON_CRITICAL"]);
-const STEAM_METHODS = new Set<BomItem["phuong_phap_tiet_khuan_chi_dinh"]>([
-  "STEAM_134",
-  "STEAM_121",
-  "PLASMA",
-  "EO",
-]);
-
+/** SSOT Spaulding: dùng chung master loại dụng cụ (alias UI + mã chuẩn). */
 export function normalizeSpaulding(value: unknown): BomItem["phan_loai_spaulding"] {
-  const v = String(value || "CRITICAL") as BomItem["phan_loai_spaulding"];
-  return SPAULDING.has(v) ? v : "CRITICAL";
+  return normalizeSpauldingForMaster(value);
 }
 
+/** SSOT PP tiệt khuẩn: dùng chung master («Hơi nước» → STEAM_134, …). */
 export function normalizeSteamMethod(value: unknown): BomItem["phuong_phap_tiet_khuan_chi_dinh"] {
-  const v = String(value || "STEAM_134") as BomItem["phuong_phap_tiet_khuan_chi_dinh"];
-  return STEAM_METHODS.has(v) ? v : "STEAM_134";
+  return normalizeSterileMethodForMaster(value);
 }
 
 export function unwrapLoaiDungCuRelation(rel: unknown): Record<string, unknown> | undefined {

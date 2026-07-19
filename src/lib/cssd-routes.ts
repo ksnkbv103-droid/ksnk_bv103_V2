@@ -17,6 +17,33 @@ export function cssdQuyTrinhBatchTabHref(): string {
   return `${CSSD_ROUTES.quyTrinh}?tab=batch`;
 }
 
+/** Deep-link một cửa sự cố dụng cụ (`/cssd-su-co`). */
+export function cssdSuCoInstrumentHref(params?: {
+  type?: "INSTRUMENT_BROKEN" | "INSTRUMENT_MISSING" | "INSTRUMENT_REPLENISH" | "INSTRUMENT_TRANSFER";
+  ma?: string | null;
+  loai?: string | null;
+  chiTiet?: string | null;
+}): string {
+  const q = new URLSearchParams();
+  q.set("group", "INSTRUMENT");
+  if (params?.type) q.set("type", params.type);
+  const ma = String(params?.ma || "").trim();
+  if (ma) q.set("ma", ma);
+  const loai = String(params?.loai || "").trim();
+  if (loai) q.set("loai", loai);
+  const chiTiet = String(params?.chiTiet || "").trim();
+  if (chiTiet) q.set("chiTiet", chiTiet);
+  return `${CSSD_ROUTES.suCo}?${q.toString()}`;
+}
+
+/** Deep-link nhật ký sự cố trên báo cáo CSSD (tab Sự cố), optional highlight theo `id`. */
+export function cssdSuCoIncidentJournalHref(incidentId?: string | null): string {
+  const q = new URLSearchParams({ tab: "incident" });
+  const id = String(incidentId || "").trim();
+  if (id) q.set("id", id);
+  return `${CSSD_ROUTES.report}?${q.toString()}`;
+}
+
 /** Prefix cho shell CSSD (canonical + batch/report). */
 export const CSSD_APP_SHELL_PREFIXES: readonly string[] = [
   CSSD_ROUTES.quyTrinh,

@@ -9,6 +9,7 @@ import {
   ExternalLink,
   Eye,
   FileBarChart,
+  Lightbulb,
   ShieldCheck,
   Users,
 } from "lucide-react";
@@ -27,6 +28,7 @@ import {
   BAO_CAO_TONG_HOP_THRESHOLDS,
   complianceToneFromPercent,
 } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
+import { buildCommandCenterInsights } from "@/modules/dashboard/lib/command-center-insights";
 import {
   isPathBlockedUnderPilotCoreModules,
   isPilotCoreModulesScopeEnabled,
@@ -175,6 +177,18 @@ export function CommandCenterBriefSections({
     selectedKhoaIds,
   ]);
 
+  const insights = useMemo(
+    () =>
+      buildCommandCenterInsights({
+        vstGaps: vstPayload?.gap_analysis,
+        gscGaps: gscPayload?.gap_analysis,
+        checklistOverview: gscPayload?.checklist_overview,
+        thongKeVstHref,
+        thongKeGscHref,
+      }),
+    [vstPayload?.gap_analysis, gscPayload?.gap_analysis, gscPayload?.checklist_overview, thongKeVstHref, thongKeGscHref],
+  );
+
   return (
     <>
       <section className={`rounded-2xl border p-5 shadow-sm ${D.noticePeriod}`}>
@@ -300,6 +314,31 @@ export function CommandCenterBriefSections({
               trước khi chạy phiên GSC TGS.
             </p>
           ) : null}
+        </section>
+      ) : null}
+
+      {!loading ? (
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className={`mb-1 flex items-center gap-2 ${D.sectionHeadingSm}`}>
+            <Lightbulb size={16} className="text-amber-500" aria-hidden />
+            Gợi ý hành động
+          </h2>
+          <p className="mb-3 text-xs text-slate-500">Tự động từ gap TGS–KSNK và bảng kiểm yếu — không thay thế phán đoán chuyên môn.</p>
+          <ol className="list-decimal space-y-2 pl-5 text-sm text-slate-700">
+            {insights.map((item) => (
+              <li key={item.id}>
+                <span>{item.text}</span>
+                {item.href ? (
+                  <>
+                    {" "}
+                    <Link href={item.href} className="inline-flex items-center gap-0.5 font-semibold text-[var(--primary)] hover:underline">
+                      Xem <ExternalLink size={11} aria-hidden />
+                    </Link>
+                  </>
+                ) : null}
+              </li>
+            ))}
+          </ol>
         </section>
       ) : null}
     </>

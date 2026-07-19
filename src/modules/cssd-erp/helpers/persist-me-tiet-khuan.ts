@@ -216,6 +216,9 @@ export async function persistMeTietKhuanFinishWithClient(
           incidentKind: "PROCESS_STERILIZATION_FAIL",
           rollbackTargetStation: "DONG_GOI",
           faultOperator: p.nguoiUnload || "Hệ thống tự động",
+          errorQR: p.maLo,
+          loTietKhuanId: p.activeMeId,
+          maLo: p.maLo,
         });
 
         const suCoPayload: Record<string, unknown> = {

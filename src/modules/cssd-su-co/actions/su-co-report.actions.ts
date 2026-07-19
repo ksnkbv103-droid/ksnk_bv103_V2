@@ -33,6 +33,11 @@ export async function createIncidentReport(data: {
     quantity?: number;
     note?: string;
   };
+  processPayload?: {
+    loTietKhuanId?: string;
+    maLo?: string;
+    quyTrinhId?: string | null;
+  };
 }) {
   const supabase = createAdminSupabaseClient();
   await verifyCssdIncidentCreate();

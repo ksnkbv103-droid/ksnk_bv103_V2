@@ -34,6 +34,7 @@ export async function executeIncidentReportAndRollback(
     reporterEmail?: string | null;
     reporterAuthUserId?: string | null;
     instrumentPayload?: InstrumentIncidentPayload;
+    processPayload?: { loTietKhuanId?: string; maLo?: string; quyTrinhId?: string | null };
   },
   quyTrinhRow: QuyRow | null,
 ): Promise<{ incident_id: string; isRedAlert: boolean }> {
@@ -74,7 +75,7 @@ export async function executeIncidentReportAndRollback(
     typeTen: data.typeTen,
     incidentKind: rollbackStation ? rollbackStation.kind : "GENERAL_INCIDENT",
     rollbackTargetStation: rollbackStation ? rollbackStation.targetStation : "NONE",
-    errorQR: data.errorQR,
+    errorQR: data.errorQR || data.processPayload?.maLo,
     machineId: data.machineId,
     faultOperator: data.faultOperator,
     nguoiPhatHien: data.nguoiPhatHien,
@@ -82,6 +83,8 @@ export async function executeIncidentReportAndRollback(
     anhMinhChung: data.anhMinhChung,
     reporterEmail: data.reporterEmail,
     reporterAuthUserId: data.reporterAuthUserId,
+    loTietKhuanId: data.processPayload?.loTietKhuanId,
+    maLo: data.processPayload?.maLo,
   });
 
   const suCoPayload: Record<string, unknown> = {

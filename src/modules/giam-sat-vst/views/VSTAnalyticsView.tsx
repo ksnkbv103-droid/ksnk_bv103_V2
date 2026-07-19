@@ -4,8 +4,10 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { useVstAnalyticsData } from "../hooks/use-vst-analytics-data";
-import { KsnkSupervisionPanel } from "@/components/shared/ksnk-supervision-chrome";
-import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
+import {
+  Bv103AnalyticsPageFrame,
+  Bv103AnalyticsPageSkeleton,
+} from "@/components/shared/Bv103AnalyticsPageFrame";
 import { AnalyticsThongKeScopeBanner } from "@/modules/dashboard/components/AnalyticsThongKeScopeBanner";
 
 const VstStrategicAnalyticsPanel = dynamic(() => import("../components/VstStrategicAnalyticsPanel"), {
@@ -14,16 +16,16 @@ const VstStrategicAnalyticsPanel = dynamic(() => import("../components/VstStrate
 });
 
 /**
- * View chỉ chứa dashboard thống kê VST.
+ * View chỉ chứa dashboard thống kê VST — cùng khung analytics với Command Center / BCTH.
  */
 export default function VSTAnalyticsView() {
   const d = useVstAnalyticsData();
 
-  if (!d.initDone) return <SupervisionPageSkeleton />;
+  if (!d.initDone) return <Bv103AnalyticsPageSkeleton />;
 
   if (d.filterInitError) {
     return (
-      <KsnkSupervisionPanel className="min-h-[50vh]">
+      <Bv103AnalyticsPageFrame title="Thống kê vệ sinh tay">
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
           {d.filterInitError}
         </div>
@@ -34,12 +36,15 @@ export default function VSTAnalyticsView() {
         >
           Thử lại
         </button>
-      </KsnkSupervisionPanel>
+      </Bv103AnalyticsPageFrame>
     );
   }
 
   return (
-    <KsnkSupervisionPanel className="min-h-[50vh]">
+    <Bv103AnalyticsPageFrame
+      title="Thống kê vệ sinh tay"
+      description="Tuân thủ VST theo khoa, xu hướng và ma trận so sánh — cùng khung báo cáo KSNK."
+    >
       <AnalyticsThongKeScopeBanner
         khoaFilterLocked={d.khoaFilterLocked}
         lockedKhoaLabel={d.lockedKhoaLabel}
@@ -69,6 +74,6 @@ export default function VSTAnalyticsView() {
         loadError={d.loadError}
         onRefresh={() => void d.loadAnalytics()}
       />
-    </KsnkSupervisionPanel>
+    </Bv103AnalyticsPageFrame>
   );
 }

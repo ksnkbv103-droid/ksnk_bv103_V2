@@ -1,18 +1,49 @@
 // src/modules/cssd-su-co/views/SuCoBaoCaoPage.tsx
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { FileBarChart, ExternalLink } from "lucide-react";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import CssdModuleChrome from "@/modules/cssd-erp/components/layout/CssdModuleChrome";
 import { CSSD_UI_DATA_SURFACE } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
-import { CSSD_ROUTES } from "@/lib/cssd-routes";
+import { CSSD_ROUTES, cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
+import type { IncidentGroup } from "../domain/cssd-incident-taxonomy";
 import SuCoReportForm from "../components/SuCoReportForm";
+
+const INSTRUMENT_TYPES = new Set([
+  "INSTRUMENT_BROKEN",
+  "INSTRUMENT_MISSING",
+  "INSTRUMENT_REPLENISH",
+  "INSTRUMENT_TRANSFER",
+]);
 
 export default function SuCoBaoCaoPage() {
   const { loading, allowed } = useModulePermission("BAO_SU_CO");
+  const searchParams = useSearchParams();
+  const prefill = useMemo(() => {
+    const groupRaw = String(searchParams.get("group") || "").trim().toUpperCase();
+    const typeRaw = String(searchParams.get("type") || "").trim().toUpperCase();
+    const group: IncidentGroup | undefined =
+      groupRaw === "INSTRUMENT" || INSTRUMENT_TYPES.has(typeRaw)
+        ? "INSTRUMENT"
+        : groupRaw === "PROCESS" ||
+            groupRaw === "CHEMICAL" ||
+            groupRaw === "EQUIPMENT" ||
+            groupRaw === "OTHER"
+          ? (groupRaw as IncidentGroup)
+          : undefined;
+    const typeId = INSTRUMENT_TYPES.has(typeRaw) ? typeRaw : undefined;
+    return {
+      group,
+      typeId,
+      ma: String(searchParams.get("ma") || "").trim().toUpperCase() || undefined,
+      loai: String(searchParams.get("loai") || "").trim() || undefined,
+      chiTiet: String(searchParams.get("chiTiet") || "").trim() || undefined,
+    };
+  }, [searchParams]);
 
   if (loading) {
     return (
@@ -33,7 +64,7 @@ export default function SuCoBaoCaoPage() {
     );
   }
 
-  const reportHref = `${CSSD_ROUTES.report}?tab=incident`;
+  const reportHref = cssdSuCoIncidentJournalHref();
 
   return (
     <CSSDPageShell
@@ -79,7 +110,16 @@ export default function SuCoBaoCaoPage() {
             <strong>create</strong>.
           </div>
         ) : (
-          <SuCoReportForm initialStation="TIEP_NHAN" allowStationOverride enabled />
+          <SuCoReportForm
+            initialStation="TIEP_NHAN"
+            allowStationOverride
+            enabled
+            initialGroup={prefill.group}
+            initialTypeId={prefill.typeId}
+            initialMaQR={prefill.ma}
+            initialLoaiDungCuId={prefill.loai}
+            initialChiTietId={prefill.chiTiet}
+          />
         )}
       </div>
     </CSSDPageShell>

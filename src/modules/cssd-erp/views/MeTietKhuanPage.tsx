@@ -94,8 +94,18 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         onFinishQc={(isPass, overrideThongSoMay) => void w.finishQc(isPass, overrideThongSoMay)}
         onPrintBatch={() => w.activeMe?.id && void w.onPrintBatch({ batchId: w.activeMe.id })}
         isPrintBusy={w.isCssdPrinting}
+        onReportIncident={() => setIsIncidentOpen(true)}
       />
       {printPortal}
+      <IncidentReportModal
+        isOpen={isIncidentOpen}
+        onClose={() => setIsIncidentOpen(false)}
+        station="TIET_KHUAN"
+        defaultGroup="PROCESS"
+        initialTypeId="PROCESS_STERILIZATION_FAIL"
+        initialMaLo={w.activeMe?.ma_lo_tiet_khuan}
+        initialLoTietKhuanId={w.activeMe?.id}
+      />
       </>
     );
 
@@ -156,7 +166,10 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         isOpen={isIncidentOpen}
         onClose={() => setIsIncidentOpen(false)}
         station="TIET_KHUAN"
-        defaultGroup="EQUIPMENT"
+        defaultGroup="PROCESS"
+        initialTypeId="PROCESS_STERILIZATION_FAIL"
+        initialMaLo={w.activeMe?.ma_lo_tiet_khuan}
+        initialLoTietKhuanId={w.activeMe?.id}
       />
     </CSSDPageShell>
   );

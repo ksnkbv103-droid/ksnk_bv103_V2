@@ -5,9 +5,14 @@ import React, { useCallback } from "react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useGscAnalyticsData } from "../hooks/use-gsc-analytics-data";
-import { KsnkSupervisionPanel } from "@/components/shared/ksnk-supervision-chrome";
-import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
+import {
+  Bv103AnalyticsPageFrame,
+  Bv103AnalyticsPageSkeleton,
+} from "@/components/shared/Bv103AnalyticsPageFrame";
 import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
+import { AnalyticsThongKeScopeBanner } from "@/modules/dashboard/components/AnalyticsThongKeScopeBanner";
+import GscAnalyticsScopeBanner from "../components/GscAnalyticsScopeBanner";
+import { usePermission } from "@/hooks/usePermission";
 
 const LOAI_FROM_SEARCH: Record<string, GscLoaiGiamSatRoute> = {
   TUAN_THU: "TUAN_THU",
@@ -23,9 +28,6 @@ function resolveLoaiFromSearchParams(
   if (!loaiParam) return undefined;
   return LOAI_FROM_SEARCH[loaiParam.trim().toUpperCase()];
 }
-import { AnalyticsThongKeScopeBanner } from "@/modules/dashboard/components/AnalyticsThongKeScopeBanner";
-import GscAnalyticsScopeBanner from "../components/GscAnalyticsScopeBanner";
-import { usePermission } from "@/hooks/usePermission";
 
 const GscStrategicAnalyticsPanel = dynamic(() => import("../components/GscStrategicAnalyticsPanel"), {
   ssr: false,
@@ -52,7 +54,7 @@ function buildTabHref(tab: AnalyticsTab, current: URLSearchParams): string {
 }
 
 /**
- * View dashboard thống kê GSC + tab «BK tôi phải TGS» (nghĩa vụ khoa).
+ * View dashboard thống kê GSC + tab «BK tôi phải TGS» — cùng khung analytics KSNK.
  */
 export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsViewProps) {
   const searchParams = useSearchParams();
@@ -74,10 +76,13 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
     [router, searchParams, pathname],
   );
 
-  if (!d.initDone) return <SupervisionPageSkeleton />;
+  if (!d.initDone) return <Bv103AnalyticsPageSkeleton />;
 
   return (
-    <KsnkSupervisionPanel className="min-h-[50vh]">
+    <Bv103AnalyticsPageFrame
+      title="Thống kê giám sát chung"
+      description="Phân tích theo bảng kiểm, vi phạm và nghĩa vụ TGS — cùng khung báo cáo KSNK."
+    >
       {resolvedLoai && !onThongKeRoute ? (
         <GscAnalyticsScopeBanner loai={resolvedLoai} />
       ) : null}
@@ -94,34 +99,34 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
       ) : null}
 
       {!isGuestStatsOnly ? (
-      <div className="px-1 pb-1 sm:px-2 sm:pb-2">
-        <div className="inline-flex w-full gap-1 rounded-[var(--radius-shell)] bg-slate-100 p-0.5 sm:w-auto sm:p-1">
-          <button
-            type="button"
-            onClick={() => setTab("thong-ke")}
-            className={`min-h-9 flex-1 rounded-[var(--radius-shell)] px-2 py-1.5 text-xs font-bold transition-colors touch-manipulation sm:flex-initial sm:px-4 sm:py-2 ${
-              activeTab === "thong-ke"
-                ? "bg-white text-[var(--primary)] shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            <span className="sm:hidden">Thống kê</span>
-            <span className="hidden sm:inline">Thống kê theo bảng kiểm</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("bk-toi")}
-            className={`min-h-9 flex-1 rounded-[var(--radius-shell)] px-2 py-1.5 text-xs font-bold transition-colors touch-manipulation sm:flex-initial sm:px-4 sm:py-2 ${
-              activeTab === "bk-toi"
-                ? "bg-white text-[var(--primary)] shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            <span className="sm:hidden">BK TGS</span>
-            <span className="hidden sm:inline">BK tôi phải TGS</span>
-          </button>
+        <div className="px-1 pb-1 sm:px-2 sm:pb-2">
+          <div className="inline-flex w-full gap-1 rounded-[var(--radius-shell)] bg-slate-100 p-0.5 sm:w-auto sm:p-1">
+            <button
+              type="button"
+              onClick={() => setTab("thong-ke")}
+              className={`min-h-9 flex-1 rounded-[var(--radius-shell)] px-2 py-1.5 text-xs font-bold transition-colors touch-manipulation sm:flex-initial sm:px-4 sm:py-2 ${
+                activeTab === "thong-ke"
+                  ? "bg-white text-[var(--primary)] shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              <span className="sm:hidden">Thống kê</span>
+              <span className="hidden sm:inline">Thống kê theo bảng kiểm</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("bk-toi")}
+              className={`min-h-9 flex-1 rounded-[var(--radius-shell)] px-2 py-1.5 text-xs font-bold transition-colors touch-manipulation sm:flex-initial sm:px-4 sm:py-2 ${
+                activeTab === "bk-toi"
+                  ? "bg-white text-[var(--primary)] shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              <span className="sm:hidden">BK TGS</span>
+              <span className="hidden sm:inline">BK tôi phải TGS</span>
+            </button>
+          </div>
         </div>
-      </div>
       ) : null}
 
       {!isGuestStatsOnly && activeTab === "bk-toi" ? (
@@ -166,6 +171,6 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
           onRefresh={() => void d.loadAnalytics()}
         />
       )}
-    </KsnkSupervisionPanel>
+    </Bv103AnalyticsPageFrame>
   );
 }

@@ -65,6 +65,18 @@ export async function saveVSTSession(
       maLoai: "KHU_VUC_GIAM_SAT",
       fieldLabel: "Khu vực giám sát",
     });
+    for (const obs of observations) {
+      const ngheId = String(obs.nghe_nghiep_id || "").trim();
+      if (!ngheId) {
+        return { success: false, error: "Nghề nghiệp là bắt buộc cho mọi đối tượng giám sát." };
+      }
+      await validateDanhMucIdByType({
+        supabase,
+        id: ngheId,
+        maLoai: "NGHE_NGHIEP",
+        fieldLabel: "Nghề nghiệp",
+      });
+    }
     const actorAuthUserId = await getActorAuthUserId();
     const actorNhanSuId = await getActorNhanSuId();
 

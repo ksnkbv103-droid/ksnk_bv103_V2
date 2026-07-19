@@ -2,6 +2,7 @@
 
 | Đọc khi | File |
 |---------|------|
+| Chiến lược sản phẩm (1 module, không tách 4 app) | [`adr-nkbv-unified-module-20260715.md`](../../reference/architecture/adr-nkbv-unified-module-20260715.md) · tóm tắt PO [`product-strategy-unified-20260715.md`](product-strategy-unified-20260715.md) |
 | CDC / luồng xác minh | [`domain-specification.md`](domain-specification.md) |
 | Form lâm sàng | [`clinical-forms.md`](clinical-forms.md) |
 | Coverage audit P5 | [`clinical-forms-coverage-audit-20260610.md`](clinical-forms-coverage-audit-20260610.md) |

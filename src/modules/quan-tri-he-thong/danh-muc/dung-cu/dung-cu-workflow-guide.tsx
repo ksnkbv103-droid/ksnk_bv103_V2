@@ -14,7 +14,9 @@ const STEPS = [
 export function DungCuWorkflowGuide() {
   return (
     <section className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4 md:p-5">
-      <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-800">Luồng chuẩn MDM → CSSD</p>
+      <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-800">
+        Luồng chuẩn Master CSSD → vận hành
+      </p>
       <ol className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
         {STEPS.map((s) => (
           <li key={s.n} className="rounded-xl border border-white/80 bg-white/90 px-3 py-2.5 shadow-sm">

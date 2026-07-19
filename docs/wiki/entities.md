@@ -38,12 +38,15 @@ Scoring: [`concepts.md`](concepts.md#gsc-scoring). UI: [`concepts.md`](concepts.
 
 Stay-centric: `nkbv_fact_benh_an`, `nkbv_fact_su_kien`, `nkbv_fact_vi_sinh`.
 
+**Sản phẩm:** một module `/giam-sat-nkbv` cho đủ 4 hội chứng (BSI / UTI / VAE-PNEU / SSI); chuyên biệt hóa bằng form con + lọc UX theo vai trò/loại — **không** tách 4 app. PO chốt: [`../reference/architecture/adr-nkbv-unified-module-20260715.md`](../reference/architecture/adr-nkbv-unified-module-20260715.md). VST/GSC vẫn tách riêng (không gộp vào NKBV).
+
 | Hội chứng | Data | Runtime |
 |-----------|------|---------|
 | BSI, VAE, UTI, SSI, PNEU | `data/nkbv/algorithms/*` | `nkbv-rules-engine.ts` |
 
 Logic phân loại **không** đặt trong Zod — chỉ `giam-sat-nkbv.validations.ts`.
 
+- Chiến lược sản phẩm: [`../reference/architecture/adr-nkbv-unified-module-20260715.md`](../reference/architecture/adr-nkbv-unified-module-20260715.md)
 - CDC workflow: [`../modules/nkbv/domain-specification.md`](../modules/nkbv/domain-specification.md)
 - Form UI: [`../modules/nkbv/clinical-forms.md`](../modules/nkbv/clinical-forms.md)
 

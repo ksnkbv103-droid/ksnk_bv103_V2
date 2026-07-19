@@ -282,12 +282,24 @@ async function getBoAllocationListAction(boDungCuId: string) {
   const supabase = createAdminSupabaseClient();
   const { data, error } = await supabase
     .from("cssd_dm_bo_phan_bo")
-    .select("*, khoa:mdm_dm_khoa_phong!khoa_phong_id(id, ten_khoa, ma_khoa)")
+    .select("id, khoa_phong_id, so_luong_co_so, so_luong_hien_tai, is_active, khoa:mdm_dm_khoa_phong!khoa_phong_id(id, ten_khoa, ma_khoa)")
     .eq("bo_dung_cu_id", bid)
     .eq("is_active", true)
     .order("created_at", { ascending: true });
   if (error) return { success: false as const, error: error.message };
-  return { success: true as const, data: data || [] };
+  const rows = (data || []).map((r) => {
+    const khoa = (r as { khoa?: { ten_khoa?: string; ma_khoa?: string } | null }).khoa;
+    return {
+      id: String(r.id || ""),
+      khoa_phong_id: String(r.khoa_phong_id || ""),
+      so_luong_co_so: Number(r.so_luong_co_so || 0) || 0,
+      so_luong_hien_tai: Number(r.so_luong_hien_tai || 0) || 0,
+      khoa_phong: khoa
+        ? { ten_khoa: String(khoa.ten_khoa || ""), ma_khoa: String(khoa.ma_khoa || "") }
+        : undefined,
+    };
+  });
+  return { success: true as const, data: rows };
 }
 
 export async function getBoDungCuAllocationsAction(boDungCuId: string) {

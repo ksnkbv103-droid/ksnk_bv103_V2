@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { AlertCircle, CheckCircle2, ClipboardList, ExternalLink, Loader2, RefreshCw } from "lucide-react";
 import { useBangKiemToiPhaiTgs } from "@/lib/analytics/use-bang-kiem-toi-phai-tgs";
+import { buildQlcvAnalyticsDeepLink } from "@/lib/analytics/qlcv-analytics-deep-link";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
@@ -117,12 +118,26 @@ function BkTable({ rows, showStatus }: { rows: Row[]; showStatus: boolean }) {
                 </div>
               </td>
               <td className="py-3">
-                <Link
-                  href={row.gsc_form_href}
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--primary)] hover:underline"
-                >
-                  Tạo phiên <ExternalLink className="w-3 h-3" />
-                </Link>
+                <div className="flex flex-col gap-1.5">
+                  <Link
+                    href={row.gsc_form_href}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--primary)] hover:underline"
+                  >
+                    Tạo phiên <ExternalLink className="w-3 h-3" />
+                  </Link>
+                  {row.trang_thai === "thieu_tgs" ? (
+                    <Link
+                      href={buildQlcvAnalyticsDeepLink({
+                        topic: `BK phải TGS · ${row.ma_bk}`,
+                        gap: "Thiếu TGS",
+                        bkLabel: `${row.ma_bk} ${row.ten_bang_kiem}`.trim(),
+                      })}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 hover:underline"
+                    >
+                      Việc KSNK <ExternalLink className="w-3 h-3" />
+                    </Link>
+                  ) : null}
+                </div>
               </td>
             </tr>
           ))}

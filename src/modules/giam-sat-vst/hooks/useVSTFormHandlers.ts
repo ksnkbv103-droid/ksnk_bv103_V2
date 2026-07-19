@@ -117,6 +117,15 @@ export function useVSTFormHandlers(
       }
     }
 
+    const personsMissingNghe = persons.filter((p) => {
+      const hasIdentity = Boolean(p.nhan_vien_id || (p.is_manual && p.ten_manual));
+      const hasCompletedOpp = p.opportunities.some((o) => o.thoi_diems.length > 0 && o.hanh_dong);
+      return hasIdentity && hasCompletedOpp && !String(p.nghe_nghiep_id || "").trim();
+    });
+    if (personsMissingNghe.length > 0) {
+      return toast.error("Vui lòng chọn Nghề nghiệp cho mọi đối tượng giám sát trước khi lưu.");
+    }
+
     const sessionTenKhuVuc =
       khuVucs.find((kv) => kv.id === session.khu_vuc_id)?.ten_danh_muc?.trim() || undefined;
     const observations: VSTObservation[] = buildVstObservations({
@@ -127,6 +136,9 @@ export function useVSTFormHandlers(
     });
 
     if (!observations.length) return toast.error("Vui lòng hoàn thành ít nhất 1 cơ hội thực tế");
+    if (observations.some((o) => !String(o.nghe_nghiep_id || "").trim())) {
+      return toast.error("Vui lòng chọn Nghề nghiệp cho mọi đối tượng giám sát trước khi lưu.");
+    }
 
     const ketThucIso = isReplayCamera ? String(session.thoi_gian_ket_thuc).trim() : new Date().toISOString();
     const sessionPayload = {
@@ -184,7 +196,11 @@ export function useVSTFormHandlers(
 
   const submitOpportunity = (pIdx: number, oIdx: number) => {
     const newPersons = [...persons];
-    const opp = newPersons[pIdx].opportunities[oIdx];
+    const person = newPersons[pIdx];
+    if (!String(person.nghe_nghiep_id || "").trim()) {
+      return toast.error("Vui lòng chọn Nghề nghiệp trước khi ghi nhận cơ hội.");
+    }
+    const opp = person.opportunities[oIdx];
     const validationMessage = validateOpportunityInput(opp);
     if (validationMessage) return toast.error(validationMessage);
     const isReplayCamera = isReplayCameraSupervisionCachThuc(session.cach_thuc_giam_sat);
