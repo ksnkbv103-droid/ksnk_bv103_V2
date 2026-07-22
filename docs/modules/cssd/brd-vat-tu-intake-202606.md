@@ -1,11 +1,24 @@
 # BRD intake — Vật tư phi-hóa-chất (CSSD)
 
-> **Phase 4.3** · Intake trước code module mới. Trạng thái: **Chờ workshop NV KSNK**.
+> **Phase 4.3** · Intake trước code module mới. Trạng thái: **Chờ workshop NV KSNK**.  
+> **Điều kiện mở workshop:** W1 §E đã ký; khuyến nghị W2 hóa chất P4 Pass.
 
 ## Bối cảnh
 
 - Route `/cssd-hoa-chat` hiện gộp **hóa chất tiệt trùng** và nhãn UI «vật tư» trên cùng `cssd_dm_hoa_chat` + ledger `cssd_fact_kho_hoa_chat_giao_dich`.
 - Rubric audit Phase 0: module hóa chất ~3.0 — thiếu ranh giới nghiệp vụ với vật tư tiêu hao khác (bao bì, indicator, vải, …).
+
+## Agenda workshop W-VAT (90 phút)
+
+| Phút | Mục | Owner |
+|------|-----|-------|
+| 0–10 | Mục tiêu: tách hay gộp vật tư vs hóa chất | PO |
+| 10–40 | Trả lời V1–V5 (bảng dưới) — không code | NV KSNK + CSSD |
+| 40–60 | Ranh giới MDM vs CSSD kho (draft bảng dưới) | IT + KSNK |
+| 60–80 | Chốt: tab trong `/cssd-hoa-chat` vs route mới vs hoãn | PO |
+| 80–90 | Gán chữ ký Exit intake; mở chat `/intake-nv` **chỉ khi** V1–V5 đủ | PO |
+
+**Không** tạo migration trong buổi họp.
 
 ## Câu hỏi intake (workshop W-VAT)
 

@@ -16,7 +16,7 @@ Chi tiết ký go-live: [`docs/core/pilot-go-live-signoff-202606.md`](docs/core/
 
 - **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS v4
 - **Backend / DB:** Supabase (PostgreSQL + Auth + RLS)
-- **State & validation:** TanStack Query v5, Zod
+- **State & validation:** React 19 (Server Components + client state), Zod
 - **Deploy:** Vercel (preview staging)
 
 ## Quick start

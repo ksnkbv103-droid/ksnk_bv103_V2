@@ -204,7 +204,7 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 | BE-RPC-03 | P1 | **Done** | CSSD RPC permission wrap |
 | OPS-01 | P1 | **Done** (2026-07-09) | Migrate local 4 file + `local:golden:verify` **PASSED** (11/11). Bypass Cursor TCC: `resolve-local-supabase-env` + `run-supabase-sql --db-url` |
 | UI-01 | P2 | **Done** | 2 modal chrome |
-| G-11 / S-RLS-01 | P3 | **Eng Done / residual** | Fact phiên Done; summary views vẫn permissive |
+| G-11 / S-RLS-01 | P3 | **Done (2026-07-22)** | Fact phiên + summary VIEW invoker; `gstt_dm_bang_kiem` drop `USING (true)` (`20260722100000`); probe `trial:rbac:roles` |
 | D-14 | P2 | **UAT pending** | Giữ — gộp DOM-08 |
 
 **P0/P1 mở (sau remediation 2026-07-09):** 0 P0 · 0 P1 · UAT NKBV tay (lâm sàng)

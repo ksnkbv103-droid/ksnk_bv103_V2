@@ -17,6 +17,16 @@ Chạy sau `npm run mdm:migrate:local` (hoặc staging) và `npm run verify:cssd
 
 **Pass:** ≥5/6 ☐ · Tester ___ · Ngày ___
 
+### Training soft-warning (bắt buộc trước ký P3)
+
+Quyết định SSOT: [`cap-phat-soft-warning-decision-20260722.md`](./cap-phat-soft-warning-decision-20260722.md) — **giữ soft-warning**, không hard-block.
+
+| # | Xác nhận | Tick |
+|---|----------|------|
+| T1 | NV hiểu toast ⚠ ở cấp phát = cảnh báo, **không** chặn giao bộ | ☐ |
+| T2 | Biết mở báo sự cố Hỏng/Mất/Bổ sung khi thiếu cấu phần | ☐ |
+| T3 | Trưởng KSNK biết theo dõi lifecycle `CAP_PHAT_BO_THIEU_*` | ☐ |
+
 ## 1. Chu trình 6 trạm (tab Chu trình xử lý)
 
 - [ ] Tiếp nhận từ catalog `CATALOG::` → quét TIEP_NHAN thành công.

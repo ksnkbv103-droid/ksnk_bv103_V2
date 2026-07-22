@@ -37,6 +37,8 @@ Rule: `18-dashboard-analytics-spec-context.mdc` · Skill: `@dashboard-pilot`
 2. Deep link sang module giám sát khi có.
 3. In/export khi bật in — không đổi công thức CCS không qua Spec change.
 
+**UAT / mở W3:** [`../../reference/guides/w3-nkbv-dashboard-enablement-20260722.md`](../../reference/guides/w3-nkbv-dashboard-enablement-20260722.md) — tắt `KSNK_PILOT_CORE_MODULES` trên staging trước khi ký §B Dashboard.
+
 ## Verify
 
 ```bash

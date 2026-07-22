@@ -71,6 +71,8 @@
 
 Checklist vận hành sau cải tổ cửa vào/QR (2026-07-28): [`uat-after-reform-20260728.md`](../../reference/architecture/uat-after-reform-20260728.md) — mục D trỏ về bảng này.
 
+**Gói W3 (env + Dashboard):** [`../../reference/guides/w3-nkbv-dashboard-enablement-20260722.md`](../../reference/guides/w3-nkbv-dashboard-enablement-20260722.md).
+
 ## Sign-off
 
 | Vai trò | Họ tên | Ngày | Chữ ký |
