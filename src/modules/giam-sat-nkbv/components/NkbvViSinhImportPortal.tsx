@@ -389,7 +389,8 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                       ))}
                     </select>
                     <p className="text-[11px] text-slate-600">
-                      {r.ten_benh_pham || "—"} · {r.tac_nhan_cay_duong || "—"}
+                      {r.loai_benh_pham || "—"} · {r.tac_nhan || "—"}
+                      {r.ma_benh_pham ? ` · ${r.ma_benh_pham}` : ""}
                     </p>
                     <p className="text-[11px] font-semibold text-slate-700">
                       {r.isHaiSuspect ? "Nghi ngờ NKBV (Day 3+)" : "Nhiễm cộng đồng"}
