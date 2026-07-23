@@ -63,7 +63,7 @@ function NavLinkRow({
       prefetch={false}
       onClick={onClose}
       aria-current={isActive ? "page" : undefined}
-      className={`app-shell-focus flex min-h-12 items-center gap-3 rounded-[var(--radius-control)] px-4 py-3.5 text-[0.9375rem] font-medium transition-colors md:min-h-0 md:py-3 md:text-sm ${
+      className={`app-shell-focus flex min-h-12 items-center gap-3 rounded-[var(--radius-control)] px-4 py-3.5 text-[0.9375rem] font-medium transition-[colors,transform,background-color] touch-manipulation active:scale-[0.99] md:min-h-0 md:py-3 md:text-sm ${
         isActive
           ? "bg-[var(--primary)] text-white shadow-sm shadow-[var(--primary)]/20"
           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -149,12 +149,12 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
     <aside
       className={`
       fixed md:sticky left-0 top-0 z-[10000] flex h-dvh max-h-dvh w-[min(18.5rem,92vw)] flex-col md:h-auto md:max-h-none md:min-h-screen md:w-[17.5rem]
-      border-r border-slate-200/90 bg-[var(--bg-panel)] transition-transform duration-300
+      border-r border-slate-200/90 bg-[var(--bg-panel)]/98 shadow-[var(--shadow-app-soft)] backdrop-blur-md transition-transform duration-300 ease-out md:shadow-none
       ${isOpen ? "translate-x-0 pointer-events-auto" : "-translate-x-full md:translate-x-0 pointer-events-none md:pointer-events-auto"}
       max-md:pt-[env(safe-area-inset-top,0px)]
     `}
     >
-      <div className="shrink-0 border-b border-slate-100 px-4 pb-4 pt-5 md:px-5">
+      <div className="shrink-0 border-b border-slate-100/90 px-4 pb-4 pt-5 md:px-5">
         <div className="flex items-center justify-between gap-3">
           <Link
             href="/"
@@ -182,7 +182,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
           <button
             type="button"
             onClick={onClose}
-            className="app-shell-focus flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 md:hidden touch-manipulation"
+            className="app-shell-focus flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-500 transition-[colors,transform] hover:bg-slate-100 active:scale-[0.98] md:hidden touch-manipulation"
             aria-label="Đóng menu"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

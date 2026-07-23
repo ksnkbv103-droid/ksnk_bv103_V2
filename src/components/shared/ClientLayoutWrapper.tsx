@@ -87,7 +87,7 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 pointer-events-auto max-md:h-dvh max-md:max-h-dvh max-md:min-h-0 max-md:overflow-hidden">
+    <div className="bv103-app-shell-bg flex min-h-screen pointer-events-auto max-md:h-dvh max-md:max-h-dvh max-md:min-h-0 max-md:overflow-hidden">
       <GuestStatsRouteGuard />
       <StaffSessionGate />
       <RbacRefreshListener />
@@ -98,12 +98,12 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
         <Header onMenuClick={toggleSidebar} />
         <main
           data-bv103-app-scroll
-          className="relative z-0 flex-1 min-h-0 px-2 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-4 md:p-8 pointer-events-auto max-md:overflow-y-auto max-md:overscroll-y-contain max-md:bv103-scroll-y"
+          className="relative z-0 flex-1 min-h-0 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-4 md:p-8 pointer-events-auto max-md:overflow-y-auto max-md:overscroll-y-contain max-md:bv103-scroll-y"
         >
           {pathnameUsesPhase1KsnkUnifiedContentShell(pathname) ? (
             <KsnkPageShell rolloutPhase="phase-1">{children}</KsnkPageShell>
           ) : (
-            children
+            <div className="bv103-page-enter w-full min-w-0">{children}</div>
           )}
         </main>
       </div>
@@ -111,7 +111,7 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
       {isOpen && (
         <div
           onClick={closeSidebar}
-          className="md:hidden fixed inset-0 z-[9999] cursor-pointer bg-black/50 touch-none pointer-events-auto"
+          className="bv103-backdrop-in md:hidden fixed inset-0 z-[9999] cursor-pointer bg-slate-900/45 backdrop-blur-[1px] touch-none pointer-events-auto"
         />
       )}
     </div>

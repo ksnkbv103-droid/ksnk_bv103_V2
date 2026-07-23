@@ -50,7 +50,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   };
 
   return (
-    <header className="sticky top-0 z-50 flex shrink-0 min-h-12 items-center justify-between gap-2 border-b border-slate-200/90 bg-[var(--bg-panel)] px-2 py-1.5 pt-[max(0.375rem,env(safe-area-inset-top))] shadow-[var(--shadow-app-header)] sm:min-h-[4.25rem] sm:gap-3 sm:px-4 sm:py-2 md:gap-6 md:px-8">
+    <header className="sticky top-0 z-50 flex shrink-0 min-h-12 items-center justify-between gap-2 border-b border-slate-200/90 bg-[var(--bg-panel)]/95 px-3 py-1.5 pt-[max(0.375rem,env(safe-area-inset-top))] shadow-[var(--shadow-app-header)] backdrop-blur-md sm:min-h-[4.25rem] sm:gap-3 sm:px-4 sm:py-2 md:gap-6 md:px-8">
       <div className="flex min-w-0 flex-1 flex-col gap-2 lg:flex-row lg:items-center lg:gap-4">
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 md:gap-4">
           <button
@@ -60,7 +60,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
               e.stopPropagation();
               onMenuClick?.();
             }}
-            className="app-shell-focus flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)] text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)] md:hidden touch-manipulation"
+            className="app-shell-focus flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)] text-white shadow-sm transition-[colors,transform] hover:bg-[var(--primary-hover)] active:scale-[0.98] md:hidden touch-manipulation"
             aria-label="Mở menu điều hướng"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -101,14 +101,14 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
             <Link
               href="/tai-khoan/doi-mat-khau"
               prefetch={false}
-              className="app-shell-focus hidden shrink-0 items-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 sm:inline-flex sm:px-4 sm:text-sm touch-manipulation bv103-control-h"
+              className={`app-shell-focus hidden shrink-0 sm:inline-flex ${T.btnSecondary}`}
             >
               Đổi mật khẩu
             </Link>
             <button
               type="button"
               onClick={handleSignOut}
-              className="app-shell-focus inline-flex shrink-0 items-center rounded-lg border border-slate-200 bg-white px-2.5 text-[11px] font-semibold text-[var(--primary)] transition-colors hover:bg-slate-50 sm:px-4 sm:text-sm touch-manipulation min-h-9 sm:min-h-[var(--bv103-control-h)]"
+              className="app-shell-focus bv103-control-h inline-flex shrink-0 items-center rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-[11px] font-semibold text-[var(--primary)] shadow-sm transition-[colors,transform] touch-manipulation hover:bg-slate-50 active:scale-[0.98] sm:px-4 sm:text-xs"
             >
               <span className="sm:hidden">Thoát</span>
               <span className="hidden sm:inline">Đăng xuất</span>
@@ -119,7 +119,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
           <Link
             href="/login"
             prefetch={false}
-            className="app-shell-focus inline-flex shrink-0 items-center rounded-lg bg-[var(--primary)] px-4 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)] sm:text-sm touch-manipulation bv103-control-h"
+            className={`app-shell-focus inline-flex shrink-0 sm:text-sm ${T.btnPrimary}`}
           >
             Đăng nhập
           </Link>

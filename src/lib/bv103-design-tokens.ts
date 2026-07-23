@@ -26,7 +26,7 @@ export const bv103DesignTokens = {
   /** Dòng phụ list/toolbar (danh mục, breadcrumb nội dung) */
   pageEyebrow: "mt-1 text-[11px] font-medium text-slate-500",
   pageToolbar:
-    "flex flex-col gap-4 rounded-[var(--radius-shell)] border border-slate-100 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between",
+    "flex flex-col gap-3 rounded-[var(--radius-shell)] border border-slate-100 bg-white p-4 shadow-[var(--shadow-app-soft)] sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-6",
 
   /** App chrome: sidebar group + zone trên Header — IN HOA duy nhất ở lớp điều hướng */
   navGroupLabel: "text-[11px] font-semibold uppercase tracking-wider text-slate-400",
@@ -60,12 +60,13 @@ export const bv103DesignTokens = {
   /** @deprecated Dùng `navGroupLabel` — alias tương thích */
   eyebrow: "text-[11px] font-semibold uppercase tracking-wider text-slate-400",
 
+  /** Đồng bộ cảm giác chạm với `bv103LayoutChrome` (C+2). */
   btnPrimary:
-    "bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] bg-[var(--primary)] px-4 text-xs font-semibold text-white transition-colors hover:bg-[var(--primary-hover)] disabled:opacity-50",
+    "bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] bg-[var(--primary)] px-4 text-xs font-semibold text-white shadow-sm transition-[colors,transform] touch-manipulation hover:bg-[var(--primary-hover)] active:scale-[0.98] disabled:opacity-50",
   btnSecondary:
-    "bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50",
+    "bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 shadow-sm transition-[colors,transform] touch-manipulation hover:bg-slate-50 active:scale-[0.98] disabled:opacity-50",
   btnGhostDark:
-    "bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] bg-slate-900 px-3 text-xs font-semibold text-white hover:bg-slate-800",
+    "bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] bg-slate-900 px-3 text-xs font-semibold text-white transition-[colors,transform] touch-manipulation hover:bg-slate-800 active:scale-[0.98]",
 
   skeletonBlock: "animate-pulse rounded-[var(--radius-shell)] border border-slate-200 bg-slate-100/80",
 } as const;

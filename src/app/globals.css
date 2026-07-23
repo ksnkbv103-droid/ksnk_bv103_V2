@@ -32,10 +32,12 @@
   --surface-info-border: #e2e8f0;
   --surface-info-text: #334155;
 
-  /* Nền */
+  /* Nền — wash xanh quân y rất nhẹ (giữ brand, tránh nền phẳng đơn sắc) */
   --bg-body: #f8fafc;
+  --bg-body-wash: #eef6f0;
   --bg-panel: #ffffff;
   --bg-glass: rgba(255, 255, 255, 0.85);
+  --bg-app-shell: linear-gradient(165deg, var(--bg-body) 0%, var(--bg-body-wash) 42%, var(--bg-body) 100%);
 
   /* Text (semantic — ưu tiên token này trong code mới) */
   --text-title: #0f172a;
@@ -68,7 +70,7 @@
   }
 }
 
-/* Page enter — nhẹ, không gây distraction khi điều hướng module */
+/* Motion shell — nhẹ, tôn prefers-reduced-motion */
 @keyframes bv103-page-enter {
   from {
     opacity: 0;
@@ -80,13 +82,32 @@
   }
 }
 
+@keyframes bv103-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @layer utilities {
   .bv103-page-enter {
     animation: bv103-page-enter 220ms ease-out both;
   }
 
+  .bv103-backdrop-in {
+    animation: bv103-backdrop-in 180ms ease-out both;
+  }
+
+  .bv103-app-shell-bg {
+    background-color: var(--bg-body);
+    background-image: var(--bg-app-shell);
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .bv103-page-enter {
+    .bv103-page-enter,
+    .bv103-backdrop-in {
       animation: none;
     }
   }
