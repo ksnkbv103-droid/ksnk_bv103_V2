@@ -8,6 +8,7 @@ import {
   Bv103AnalyticsPageFrame,
   Bv103AnalyticsPageSkeleton,
 } from "@/components/shared/Bv103AnalyticsPageFrame";
+import { AnalyticsFilterBar } from "@/components/shared/AnalyticsFilterBar";
 import { AnalyticsThongKeScopeBanner } from "@/modules/dashboard/components/AnalyticsThongKeScopeBanner";
 
 const VstStrategicAnalyticsPanel = dynamic(() => import("../components/VstStrategicAnalyticsPanel"), {
@@ -40,11 +41,36 @@ export default function VSTAnalyticsView() {
     );
   }
 
+  const filterBar = (
+    <AnalyticsFilterBar
+      variant="compact"
+      hideBangKiem
+      khoaFilterLocked={d.khoaFilterLocked}
+      onRefresh={() => void d.loadAnalytics()}
+      refreshLoading={d.loading}
+      tuNgay={d.tuNgay}
+      setTuNgay={d.setTuNgay}
+      denNgay={d.denNgay}
+      setDenNgay={d.setDenNgay}
+      khoiOptions={d.khoiOptions}
+      selectedKhoiIds={d.selectedKhoiIds}
+      setSelectedKhoiIds={d.setSelectedKhoiIds}
+      khoaOptions={d.khoaOptions}
+      selectedKhoaIds={d.selectedKhoaIds}
+      setSelectedKhoaIds={d.setSelectedKhoaIds}
+      ngheOptions={d.ngheOptions}
+      selectedNgheIds={d.selectedNgheIds}
+      setSelectedNgheIds={d.setSelectedNgheIds}
+      khuVucOptions={d.khuVucOptions}
+      selectedKhuVucIds={d.selectedKhuVucIds}
+      setSelectedKhuVucIds={d.setSelectedKhuVucIds}
+      selectedHinhThucIds={d.selectedHinhThucIds}
+      setSelectedHinhThucIds={d.setSelectedHinhThucIds}
+    />
+  );
+
   return (
-    <Bv103AnalyticsPageFrame
-      title="Thống kê vệ sinh tay"
-      description="Tuân thủ VST theo khoa, xu hướng và ma trận so sánh — cùng khung báo cáo KSNK."
-    >
+    <Bv103AnalyticsPageFrame title="Thống kê vệ sinh tay" filterBar={filterBar}>
       <AnalyticsThongKeScopeBanner
         khoaFilterLocked={d.khoaFilterLocked}
         lockedKhoaLabel={d.lockedKhoaLabel}
@@ -52,27 +78,12 @@ export default function VSTAnalyticsView() {
       <VstStrategicAnalyticsPanel
         khoaFilterLocked={d.khoaFilterLocked}
         tuNgay={d.tuNgay}
-        setTuNgay={d.setTuNgay}
         denNgay={d.denNgay}
-        setDenNgay={d.setDenNgay}
-        khoiOptions={d.khoiOptions}
-        selectedKhoiIds={d.selectedKhoiIds}
-        setSelectedKhoiIds={d.setSelectedKhoiIds}
         khoaOptions={d.khoaOptions}
         selectedKhoaIds={d.selectedKhoaIds}
-        setSelectedKhoaIds={d.setSelectedKhoaIds}
-        ngheOptions={d.ngheOptions}
-        selectedNgheIds={d.selectedNgheIds}
-        setSelectedNgheIds={d.setSelectedNgheIds}
-        khuVucOptions={d.khuVucOptions}
-        selectedKhuVucIds={d.selectedKhuVucIds}
-        setSelectedKhuVucIds={d.setSelectedKhuVucIds}
-        selectedHinhThucIds={d.selectedHinhThucIds}
-        setSelectedHinhThucIds={d.setSelectedHinhThucIds}
         payload={d.payload}
         loading={d.loading}
         loadError={d.loadError}
-        onRefresh={() => void d.loadAnalytics()}
       />
     </Bv103AnalyticsPageFrame>
   );

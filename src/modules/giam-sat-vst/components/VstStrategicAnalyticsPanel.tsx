@@ -3,7 +3,6 @@
 import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";
 
 import React, { useMemo } from "react";
-import { AnalyticsFilterBar } from "@/components/shared/AnalyticsFilterBar";
 import {
   SupervisionCompareAccordion,
   SupervisionKhoaAnalyticsBlock,
@@ -15,35 +14,20 @@ import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-mat
 import { formatPercent2 } from "@/lib/analytics/supervision-percent";
 import type { VstStrategicPayload } from "../types/vst-strategic.types";
 
-type FilterProps = {
-  tuNgay: string;
-  setTuNgay: (v: string) => void;
-  denNgay: string;
-  setDenNgay: (v: string) => void;
-  khoiOptions: { id: string; label: string }[];
-  selectedKhoiIds: string[];
-  setSelectedKhoiIds: (v: string[]) => void;
-  khoaOptions: { id: string; label: string; khoi_id?: string }[];
-  selectedKhoaIds: string[];
-  setSelectedKhoaIds: (v: string[]) => void;
-  ngheOptions: { id: string; label: string }[];
-  selectedNgheIds: string[];
-  setSelectedNgheIds: (v: string[]) => void;
-  khuVucOptions: { id: string; label: string }[];
-  selectedKhuVucIds: string[];
-  setSelectedKhuVucIds: (v: string[]) => void;
-  selectedHinhThucIds: string[];
-  setSelectedHinhThucIds: (v: string[]) => void;
-};
-
-type Props = FilterProps & {
+type Props = {
   payload: VstStrategicPayload | null;
   loading?: boolean;
   loadError?: string | null;
-  onRefresh?: () => void;
   khoaFilterLocked?: boolean;
+  tuNgay: string;
+  denNgay: string;
+  khoaOptions: { id: string; label: string; khoi_id?: string }[];
+  selectedKhoaIds: string[];
 };
 
+/**
+ * Nội dung thống kê VST — bộ lọc nằm ở `Bv103AnalyticsPageFrame.filterBar` (sticky, luôn hiện).
+ */
 export default function VstStrategicAnalyticsPanel(p: Props) {
   const gapKhoaRows = useMemo(
     () =>
@@ -66,32 +50,6 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
 
   return (
     <div className={`${UI.sectionGap} space-y-6 pb-8`}>
-      <AnalyticsFilterBar
-        variant="compact"
-        hideBangKiem
-        khoaFilterLocked={p.khoaFilterLocked}
-        onRefresh={p.onRefresh}
-        refreshLoading={p.loading}
-          tuNgay={p.tuNgay}
-          setTuNgay={p.setTuNgay}
-          denNgay={p.denNgay}
-          setDenNgay={p.setDenNgay}
-          khoiOptions={p.khoiOptions}
-          selectedKhoiIds={p.selectedKhoiIds}
-          setSelectedKhoiIds={p.setSelectedKhoiIds}
-          khoaOptions={p.khoaOptions}
-          selectedKhoaIds={p.selectedKhoaIds}
-          setSelectedKhoaIds={p.setSelectedKhoaIds}
-          ngheOptions={p.ngheOptions}
-          selectedNgheIds={p.selectedNgheIds}
-          setSelectedNgheIds={p.setSelectedNgheIds}
-          khuVucOptions={p.khuVucOptions}
-          selectedKhuVucIds={p.selectedKhuVucIds}
-          setSelectedKhuVucIds={p.setSelectedKhuVucIds}
-          selectedHinhThucIds={p.selectedHinhThucIds}
-          setSelectedHinhThucIds={p.setSelectedHinhThucIds}
-      />
-
       {p.loadError ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{p.loadError}</div>
       ) : null}
@@ -101,6 +59,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
           <h2 className="text-sm font-bold text-slate-800">Thống kê theo khoa</h2>
           <p className="mt-1 text-[11px] text-slate-500">
             Tỷ lệ tuân thủ và số cơ hội giám sát — đủ mã khoa trong phạm vi lọc; khoa dưới 80% được tô cảnh báo.
+            {p.khoaFilterLocked ? " Phạm vi khoa đang khóa." : ""} Kỳ {p.tuNgay} → {p.denNgay}.
           </p>
         </header>
         <SupervisionKhoaAnalyticsBlock

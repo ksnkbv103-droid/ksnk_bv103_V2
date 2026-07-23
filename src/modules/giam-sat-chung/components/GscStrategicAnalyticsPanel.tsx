@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { AnalyticsFilterBar } from "@/components/shared/AnalyticsFilterBar";
 import {
   SupervisionCompareAccordion,
   SupervisionKhoaAnalyticsBlock,
@@ -19,39 +18,28 @@ import GscTgsCoverageRankingPanel from "./GscTgsCoverageRankingPanel";
 import { useGscChecklistDetail } from "../hooks/use-gsc-checklist-detail";
 import { AlertTriangle } from "lucide-react";
 
-type FilterProps = {
+type Props = {
   tuNgay: string;
-  setTuNgay: (v: string) => void;
   denNgay: string;
-  setDenNgay: (v: string) => void;
-  bangKiemOptions: { id: string; label: string }[];
-  selectedBangKiemMas: string[];
-  setSelectedBangKiemMas: (v: string[]) => void;
   khoiOptions: { id: string; label: string }[];
   selectedKhoiIds: string[];
-  setSelectedKhoiIds: (v: string[]) => void;
   khoaOptions: { id: string; label: string; khoi_id?: string }[];
   selectedKhoaIds: string[];
-  setSelectedKhoaIds: (v: string[]) => void;
   ngheOptions: { id: string; label: string }[];
   selectedNgheIds: string[];
-  setSelectedNgheIds: (v: string[]) => void;
   khuVucOptions: { id: string; label: string }[];
   selectedKhuVucIds: string[];
-  setSelectedKhuVucIds: (v: string[]) => void;
   selectedHinhThucIds: string[];
-  setSelectedHinhThucIds: (v: string[]) => void;
-};
-
-type Props = FilterProps & {
   payload: GscStrategicPayload | null;
   loading?: boolean;
   loadError?: string | null;
   bkLabelRecord?: Record<string, string>;
-  onRefresh?: () => void;
   khoaFilterLocked?: boolean;
 };
 
+/**
+ * Nội dung thống kê GSC — bộ lọc nằm ở `Bv103AnalyticsPageFrame.filterBar` (sticky, luôn hiện).
+ */
 export default function GscStrategicAnalyticsPanel(p: Props) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -120,34 +108,6 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
 
   return (
     <div className="space-y-6 pb-8">
-      <AnalyticsFilterBar
-        variant="compact"
-        khoaFilterLocked={p.khoaFilterLocked}
-        onRefresh={p.onRefresh}
-        refreshLoading={p.loading || detailLoading}
-        tuNgay={p.tuNgay}
-        setTuNgay={p.setTuNgay}
-        denNgay={p.denNgay}
-        setDenNgay={p.setDenNgay}
-        bangKiemOptions={p.bangKiemOptions}
-        selectedBangKiemMas={p.selectedBangKiemMas}
-        setSelectedBangKiemMas={p.setSelectedBangKiemMas}
-        khoiOptions={p.khoiOptions}
-        selectedKhoiIds={p.selectedKhoiIds}
-        setSelectedKhoiIds={p.setSelectedKhoiIds}
-        khoaOptions={p.khoaOptions}
-        selectedKhoaIds={p.selectedKhoaIds}
-        setSelectedKhoaIds={p.setSelectedKhoaIds}
-        ngheOptions={p.ngheOptions}
-        selectedNgheIds={p.selectedNgheIds}
-        setSelectedNgheIds={p.setSelectedNgheIds}
-        khuVucOptions={p.khuVucOptions}
-        selectedKhuVucIds={p.selectedKhuVucIds}
-        setSelectedKhuVucIds={p.setSelectedKhuVucIds}
-        selectedHinhThucIds={p.selectedHinhThucIds}
-        setSelectedHinhThucIds={p.setSelectedHinhThucIds}
-      />
-
       {p.loadError ? (
         <div className={`${UI.inset} border-red-200 bg-red-50 p-4 text-sm text-red-800`}>{p.loadError}</div>
       ) : null}
@@ -179,6 +139,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
           <h2 className="text-sm font-bold text-slate-800">Thống kê theo khoa</h2>
           <p className="mt-1 text-[11px] text-slate-500">
             Tỷ lệ tuân thủ và khối lượng khảo sát — đủ mã khoa trong phạm vi lọc; khoa dưới 80% được tô cảnh báo.
+            {p.khoaFilterLocked ? " Phạm vi khoa đang khóa." : ""}
           </p>
         </header>
         <SupervisionKhoaAnalyticsBlock

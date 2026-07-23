@@ -9,6 +9,7 @@ import {
   Bv103AnalyticsPageFrame,
   Bv103AnalyticsPageSkeleton,
 } from "@/components/shared/Bv103AnalyticsPageFrame";
+import { AnalyticsFilterBar } from "@/components/shared/AnalyticsFilterBar";
 import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
 import { AnalyticsThongKeScopeBanner } from "@/modules/dashboard/components/AnalyticsThongKeScopeBanner";
 import GscAnalyticsScopeBanner from "../components/GscAnalyticsScopeBanner";
@@ -78,11 +79,39 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
 
   if (!d.initDone) return <Bv103AnalyticsPageSkeleton />;
 
+  const showThongKeFilters = isGuestStatsOnly || activeTab === "thong-ke";
+  const filterBar = showThongKeFilters ? (
+    <AnalyticsFilterBar
+      variant="compact"
+      khoaFilterLocked={d.khoaFilterLocked}
+      onRefresh={() => void d.loadAnalytics()}
+      refreshLoading={d.loading}
+      tuNgay={d.tuNgay}
+      setTuNgay={d.setTuNgay}
+      denNgay={d.denNgay}
+      setDenNgay={d.setDenNgay}
+      bangKiemOptions={d.bangKiemOptions}
+      selectedBangKiemMas={d.selectedBangKiemMas}
+      setSelectedBangKiemMas={d.setSelectedBangKiemMas}
+      khoiOptions={d.khoiOptions}
+      selectedKhoiIds={d.selectedKhoiIds}
+      setSelectedKhoiIds={d.setSelectedKhoiIds}
+      khoaOptions={d.khoaOptions}
+      selectedKhoaIds={d.selectedKhoaIds}
+      setSelectedKhoaIds={d.setSelectedKhoaIds}
+      ngheOptions={d.ngheOptions}
+      selectedNgheIds={d.selectedNgheIds}
+      setSelectedNgheIds={d.setSelectedNgheIds}
+      khuVucOptions={d.khuVucOptions}
+      selectedKhuVucIds={d.selectedKhuVucIds}
+      setSelectedKhuVucIds={d.setSelectedKhuVucIds}
+      selectedHinhThucIds={d.selectedHinhThucIds}
+      setSelectedHinhThucIds={d.setSelectedHinhThucIds}
+    />
+  ) : undefined;
+
   return (
-    <Bv103AnalyticsPageFrame
-      title="Thống kê giám sát chung"
-      description="Phân tích theo bảng kiểm, vi phạm và nghĩa vụ TGS — cùng khung báo cáo KSNK."
-    >
+    <Bv103AnalyticsPageFrame title="Thống kê giám sát chung" filterBar={filterBar}>
       {resolvedLoai && !onThongKeRoute ? (
         <GscAnalyticsScopeBanner loai={resolvedLoai} />
       ) : null}
@@ -144,31 +173,20 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
         <GscStrategicAnalyticsPanel
           khoaFilterLocked={d.khoaFilterLocked}
           tuNgay={d.tuNgay}
-          setTuNgay={d.setTuNgay}
           denNgay={d.denNgay}
-          setDenNgay={d.setDenNgay}
-          bangKiemOptions={d.bangKiemOptions}
-          selectedBangKiemMas={d.selectedBangKiemMas}
-          setSelectedBangKiemMas={d.setSelectedBangKiemMas}
           khoiOptions={d.khoiOptions}
           selectedKhoiIds={d.selectedKhoiIds}
-          setSelectedKhoiIds={d.setSelectedKhoiIds}
           khoaOptions={d.khoaOptions}
           selectedKhoaIds={d.selectedKhoaIds}
-          setSelectedKhoaIds={d.setSelectedKhoaIds}
           ngheOptions={d.ngheOptions}
           selectedNgheIds={d.selectedNgheIds}
-          setSelectedNgheIds={d.setSelectedNgheIds}
           khuVucOptions={d.khuVucOptions}
           selectedKhuVucIds={d.selectedKhuVucIds}
-          setSelectedKhuVucIds={d.setSelectedKhuVucIds}
           selectedHinhThucIds={d.selectedHinhThucIds}
-          setSelectedHinhThucIds={d.setSelectedHinhThucIds}
           payload={d.payload}
           loading={d.loading}
           loadError={d.loadError}
           bkLabelRecord={d.bkLabelRecord}
-          onRefresh={() => void d.loadAnalytics()}
         />
       )}
     </Bv103AnalyticsPageFrame>

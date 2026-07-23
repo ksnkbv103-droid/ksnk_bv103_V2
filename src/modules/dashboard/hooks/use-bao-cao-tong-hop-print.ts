@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { buildAnalyticsFilterPayload } from "@/lib/analytics/filter-helpers";
 import { resolveChecklistOverview, resolveTopInterventionChecklists } from "@/lib/analytics/gsc-checklist-intervention";
+import { printHtmlDocument } from "@/lib/print-html";
 import { getGscChecklistDetail } from "@/modules/giam-sat-chung/actions/gsc-checklist-detail.actions";
 import type { GscChecklistDetailPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
@@ -94,16 +95,8 @@ export function useBaoCaoTongHopPrint(args: {
         kienNghiDeXuat: args.kienNghiDeXuat,
       });
 
-      const w = window.open("", "_blank");
-      if (!w) {
-        toast.error("Trình duyệt chặn cửa sổ in. Cho phép popup rồi thử lại.");
-        return;
-      }
-      w.document.write(html);
-      w.document.close();
-      w.focus();
-      w.print();
-      toast.success("Đã mở bản in A4", { id: toastId });
+      await printHtmlDocument(html);
+      toast.success("Đã mở hộp thoại in A4", { id: toastId });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Không in được báo cáo", { id: toastId });
     } finally {

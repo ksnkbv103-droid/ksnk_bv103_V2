@@ -89,7 +89,8 @@ export default function SearchableMultiSelect({
         top: openUpward ? Math.max(safeMargin, rect.top - gap - (panelChromeHeight + nextListHeight)) : rect.bottom + gap,
         left: rect.left,
         width: Math.max(rect.width, 320),
-        zIndex: 10000,
+        // Cao hơn sidebar (z-10000) để danh sách chọn không bị che.
+        zIndex: 10050,
       });
     };
 
@@ -218,25 +219,31 @@ export default function SearchableMultiSelect({
                     </button>
                   </div>
                   <div className="custom-scrollbar bv103-scroll-y min-h-0 max-h-[min(52dvh,440px)] flex-1 space-y-0.5 px-3 py-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
-                    {filtered.map((opt) => {
-                      const checked = selected.includes(opt.id);
-                      return (
-                        <label
-                          key={opt.id}
-                          className="flex cursor-pointer items-center gap-3 rounded-xl px-2 py-3.5 hover:bg-slate-50 active:bg-slate-100"
-                        >
-                          <input
-                            type="checkbox"
-                            className="h-5 w-5 shrink-0 accent-[var(--primary)]"
-                            checked={checked}
-                            onChange={(e) =>
-                              onChange(e.target.checked ? [...selected, opt.id] : selected.filter((x) => x !== opt.id))
-                            }
-                          />
-                          <span className="min-w-0 flex-1 text-base leading-snug">{opt.label}</span>
-                        </label>
-                      );
-                    })}
+                    {filtered.length === 0 ? (
+                      <p className="px-2 py-6 text-center text-sm text-slate-500">
+                        {options.length === 0 ? "Chưa có danh mục để chọn" : "Không tìm thấy"}
+                      </p>
+                    ) : (
+                      filtered.map((opt) => {
+                        const checked = selected.includes(opt.id);
+                        return (
+                          <label
+                            key={opt.id}
+                            className="flex cursor-pointer items-center gap-3 rounded-xl px-2 py-3.5 hover:bg-slate-50 active:bg-slate-100"
+                          >
+                            <input
+                              type="checkbox"
+                              className="h-5 w-5 shrink-0 accent-[var(--primary)]"
+                              checked={checked}
+                              onChange={(e) =>
+                                onChange(e.target.checked ? [...selected, opt.id] : selected.filter((x) => x !== opt.id))
+                              }
+                            />
+                            <span className="min-w-0 flex-1 text-base leading-snug">{opt.label}</span>
+                          </label>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               </div>
@@ -271,21 +278,27 @@ export default function SearchableMultiSelect({
                   className="custom-scrollbar space-y-1 overflow-y-auto overflow-x-hidden overscroll-contain pr-1"
                   style={{ maxHeight: `${listMaxHeight}px` }}
                 >
-                  {filtered.map((opt) => {
-                    const checked = selected.includes(opt.id);
-                    return (
-                      <label key={opt.id} className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-50">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={(e) =>
-                            onChange(e.target.checked ? [...selected, opt.id] : selected.filter((x) => x !== opt.id))
-                          }
-                        />
-                        <span className="text-sm">{opt.label}</span>
-                      </label>
-                    );
-                  })}
+                  {filtered.length === 0 ? (
+                    <p className="px-2 py-4 text-center text-sm text-slate-500">
+                      {options.length === 0 ? "Chưa có danh mục để chọn" : "Không tìm thấy"}
+                    </p>
+                  ) : (
+                    filtered.map((opt) => {
+                      const checked = selected.includes(opt.id);
+                      return (
+                        <label key={opt.id} className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-50">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) =>
+                              onChange(e.target.checked ? [...selected, opt.id] : selected.filter((x) => x !== opt.id))
+                            }
+                          />
+                          <span className="text-sm">{opt.label}</span>
+                        </label>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             ),
