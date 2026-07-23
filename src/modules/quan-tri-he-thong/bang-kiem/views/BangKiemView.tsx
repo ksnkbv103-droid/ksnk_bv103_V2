@@ -60,7 +60,7 @@ export default function BangKiemView() {
       />
 
       <div className="flex flex-col md:flex-row gap-8 items-start relative max-w-[1800px] mx-auto">
-        <div className="w-full space-y-6 md:sticky md:top-24 md:flex md:w-[55%] md:max-h-[calc(100vh-140px)] md:flex-col">
+        <div className="w-full space-y-6 md:sticky md:top-24 md:flex md:w-[55%] md:max-h-[calc(100dvh-140px)] md:flex-col">
           <h2 className={`shrink-0 px-2 ${T.sectionTitle}`}>Mẫu bảng kiểm</h2>
           <div className="pb-10 animate-in fade-in duration-500 md:flex-1 md:overflow-y-auto md:pr-2 md:custom-scrollbar">
             <BangKiemTable
@@ -82,7 +82,7 @@ export default function BangKiemView() {
           </div>
         </div>
 
-        <div className="w-full space-y-4 md:sticky md:top-24 md:flex md:w-[45%] md:max-h-[calc(100vh-140px)] md:flex-col">
+        <div className="w-full space-y-4 md:sticky md:top-24 md:flex md:w-[45%] md:max-h-[calc(100dvh-140px)] md:flex-col">
           <h2 className={`truncate shrink-0 px-2 ${T.sectionTitle} text-[var(--primary)]`}>
             {selectedBK
               ? `${selectedBK.ma_bk} — ${selectedBK.ten_bang_kiem || selectedBK.ten_bk}`

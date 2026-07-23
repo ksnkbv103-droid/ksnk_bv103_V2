@@ -42,7 +42,78 @@ export function SupervisionKhoaMasterTable({
         Khối lượng TGS/KSNK, tỷ lệ tuân thủ (đạt/tổng) và trạng thái đối soát — tô cảnh báo &lt;
         {KHOA_COMPLIANCE_WARN_PCT}%.
       </p>
-      <ResponsiveTableShell unboxed maxHeight="max-h-[min(420px,55dvh)]">
+      <ResponsiveTableShell
+        unboxed
+        maxHeight="max-h-[min(420px,55dvh)]"
+        mobileCards={
+          loading ? (
+            <p className="px-2 py-4 text-center text-xs text-slate-400">Đang tải…</p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {sorted.map((r, index) => {
+                const rank = rankById.get(r.id);
+                const compare = gapCompareStatus(r);
+                const ksnkTone = gapPctTone(r.ty_le_ksnk);
+                const tgsTone = gapPctTone(r.ty_le_tgs);
+                const ccsTone = rank ? complianceToneFromPercent(rank.ty_le_ccs) : "neutral";
+                const rowWarn =
+                  (r.ty_le_ksnk != null && r.ty_le_ksnk < KHOA_COMPLIANCE_WARN_PCT) ||
+                  (r.ty_le_tgs != null && r.ty_le_tgs < KHOA_COMPLIANCE_WARN_PCT);
+                return (
+                  <li
+                    key={r.id}
+                    className={`space-y-1.5 px-3 py-3 ${rowWarn ? momentRowBg[ksnkTone !== "neutral" ? ksnkTone : tgsTone] : ""}`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="min-w-0 font-semibold text-slate-800" title={r.ten}>
+                        <span className="mr-1.5 tabular-nums text-slate-400">{index + 1}.</span>
+                        {r.label}
+                      </p>
+                      <span className={`shrink-0 text-[11px] font-medium ${momentToneClass[compare.tone]}`}>
+                        {compare.label}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-slate-600">
+                      <p>
+                        TGS:{" "}
+                        <span className={`font-semibold tabular-nums ${momentToneClass[tgsTone]}`}>
+                          {formatGapPctWithDatTong(r.ty_le_tgs, r.dat_tgs, r.vol_tgs)}
+                        </span>
+                        <span className="text-slate-400">
+                          {" "}
+                          ({r.vol_tgs > 0 ? `${r.dat_tgs}/${r.vol_tgs}` : "0"})
+                        </span>
+                      </p>
+                      <p>
+                        KSNK:{" "}
+                        <span className={`font-semibold tabular-nums ${momentToneClass[ksnkTone]}`}>
+                          {formatGapPctWithDatTong(r.ty_le_ksnk, r.dat_ksnk, r.vol_ksnk)}
+                        </span>
+                        <span className="text-slate-400">
+                          {" "}
+                          ({r.vol_ksnk > 0 ? `${r.dat_ksnk}/${r.vol_ksnk}` : "0"})
+                        </span>
+                      </p>
+                      {rankRows ? (
+                        <p className="col-span-2">
+                          CCS:{" "}
+                          <span className={`font-semibold tabular-nums ${momentToneClass[ccsTone]}`}>
+                            {rank?.has_data === false
+                              ? "Chưa GS"
+                              : rank?.ty_le_ccs != null
+                                ? formatPercent2(rank.ty_le_ccs)
+                                : "—"}
+                          </span>
+                        </p>
+                      ) : null}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )
+        }
+      >
         <table className="w-full min-w-[720px] text-left text-xs">
           <thead>
             <tr className="border-b border-slate-200 text-[11px] font-bold uppercase tracking-wide text-slate-500">

@@ -280,7 +280,7 @@ export default function QuanLyCongViecPage() {
         </div>
 
         <Dialog open={isAdding} onOpenChange={setIsAdding}>
-          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-2xl border border-slate-200/90 bg-slate-50 p-6 shadow-xl sm:p-8">
+          <DialogContent className="max-h-[min(92dvh,720px)] max-w-4xl overflow-y-auto overscroll-contain rounded-2xl border border-slate-200/90 bg-slate-50 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-xl sm:p-8 sm:pb-8">
             <DialogHeader className="mb-4">
               <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">Tạo công việc</DialogTitle>
             </DialogHeader>
@@ -289,7 +289,7 @@ export default function QuanLyCongViecPage() {
         </Dialog>
 
         <Dialog open={!!editingTask} onOpenChange={(o) => !o && setEditingTask(null)}>
-          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-2xl border border-slate-200/90 bg-slate-50 p-6 shadow-xl sm:p-8">
+          <DialogContent className="max-h-[min(92dvh,720px)] max-w-4xl overflow-y-auto overscroll-contain rounded-2xl border border-slate-200/90 bg-slate-50 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-xl sm:p-8 sm:pb-8">
             <DialogHeader className="mb-4">
               <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">Chỉnh sửa công việc</DialogTitle>
             </DialogHeader>
@@ -304,7 +304,7 @@ export default function QuanLyCongViecPage() {
         </Dialog>
 
         <Dialog open={!!kanban.kanbanApproveRow} onOpenChange={(o) => !o && kanban.setKanbanApproveRow(null)}>
-          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-2xl border border-slate-200/90 bg-slate-50 p-6 shadow-xl">
+          <DialogContent className="max-h-[min(92dvh,720px)] max-w-4xl overflow-y-auto overscroll-contain rounded-2xl border border-slate-200/90 bg-slate-50 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-xl">
             <DialogHeader className="mb-4">
               <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">Phê duyệt đề xuất</DialogTitle>
             </DialogHeader>

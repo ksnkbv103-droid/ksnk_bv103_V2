@@ -68,6 +68,30 @@
   }
 }
 
+/* Page enter — nhẹ, không gây distraction khi điều hướng module */
+@keyframes bv103-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@layer utilities {
+  .bv103-page-enter {
+    animation: bv103-page-enter 220ms ease-out both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bv103-page-enter {
+      animation: none;
+    }
+  }
+}
+
 /* ============================================
    BASE STYLES
    ============================================ */

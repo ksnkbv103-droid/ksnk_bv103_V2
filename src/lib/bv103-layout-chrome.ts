@@ -34,11 +34,27 @@ export const bv103LayoutChrome = {
   sectionTitle: "text-sm font-semibold text-slate-800",
 
   btnPrimary:
-    "bv103-control-h inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-[var(--primary)] px-4 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-50",
+    "bv103-control-h inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-[var(--primary)] px-4 text-xs font-semibold text-white shadow-sm transition-[colors,transform] touch-manipulation hover:bg-[var(--primary-hover)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50",
   btnPrimaryBlock:
-    "bv103-control-h flex w-full items-center justify-center gap-2 rounded-[var(--radius-control)] bg-[var(--primary)] text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-50",
+    "bv103-control-h flex w-full items-center justify-center gap-2 rounded-[var(--radius-control)] bg-[var(--primary)] text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition-[colors,transform] touch-manipulation hover:bg-[var(--primary-hover)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50",
   btnSecondary:
-    "bv103-control-h inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 disabled:opacity-50",
+    "bv103-control-h inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 shadow-sm transition-[colors,transform] touch-manipulation hover:bg-slate-50 active:scale-[0.98] disabled:opacity-50",
+
+  /**
+   * Cụm nút nổi (lưu / in) — tránh đè toast offline + tai thỏ.
+   * Mobile: nhường ~5.5rem phía dưới; desktop: góc phải quen thuộc.
+   */
+  fabStack:
+    "fixed z-40 flex flex-col gap-3 no-print right-[max(1rem,env(safe-area-inset-right))] bottom-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:bottom-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] sm:bottom-8 sm:right-8",
+
+  /** Overlay modal danh mục / sheet — mobile: neo đáy; ≥sm: giữa màn. */
+  modalOverlay:
+    "fixed inset-0 z-[200] flex items-end justify-center bg-slate-900/60 p-0 backdrop-blur-md touch-manipulation pointer-events-auto sm:items-center sm:p-4",
+  /** Panel form modal — bottom sheet trên phone, card giữa trên desktop. */
+  modalPanel:
+    "w-full max-w-xl max-h-[min(92dvh,720px)] overflow-y-auto overscroll-contain rounded-t-2xl border-t-[6px] border-[var(--primary)] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl space-y-4 animate-in slide-in-from-bottom-4 duration-200 sm:rounded-[var(--radius-shell)] sm:p-8 sm:pb-8 sm:animate-in sm:fade-in-0 sm:zoom-in-95",
+  modalPanelWide:
+    "w-full max-w-2xl max-h-[min(92dvh,720px)] overflow-y-auto overscroll-contain rounded-t-2xl border-t-[6px] border-[var(--primary)] bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl space-y-4 animate-in slide-in-from-bottom-4 duration-200 sm:rounded-[var(--radius-shell)] sm:p-8 sm:pb-8 sm:animate-in sm:fade-in-0 sm:zoom-in-95",
 
   choiceBtn: choiceBtnBase,
   choiceBtnInline,

@@ -83,10 +83,10 @@ export default function DungCuChiTietFormModal({
     onClose();
   };
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md touch-manipulation pointer-events-auto">
+    <div className={C.modalOverlay}>
       <form
         onSubmit={submit}
-        className="bg-white w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-[var(--radius-shell)] p-8 space-y-4 shadow-2xl border-t-[6px] border-[var(--primary)]"
+        className={C.modalPanel}
       >
         <div className="flex justify-between items-start gap-4">
           <div>

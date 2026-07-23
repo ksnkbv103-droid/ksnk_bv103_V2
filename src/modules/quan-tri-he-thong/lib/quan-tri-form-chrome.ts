@@ -19,6 +19,11 @@ export const quanTriFormChrome = {
   modalTitleLight: "text-lg font-semibold tracking-tight text-slate-900 md:text-xl",
   modalSubtitle: "mt-1 text-sm font-normal text-white/80",
   modalFooterBtn: "bv103-control-h px-6",
+  /** Overlay + panel modal MDM — bottom sheet mobile (SSOT từ layout chrome). */
+  modalOverlay: bv103LayoutChrome.modalOverlay,
+  modalPanel: bv103LayoutChrome.modalPanel,
+  modalPanelWide: bv103LayoutChrome.modalPanelWide,
+
   /** Toolbar bảng MDM — đồng bộ padding/bo góc */
   pageToolbar:
     "flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 bg-white p-6",

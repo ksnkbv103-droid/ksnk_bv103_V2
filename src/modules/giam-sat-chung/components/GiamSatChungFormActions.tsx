@@ -13,12 +13,12 @@ interface GiamSatChungFormActionsProps {
 
 export default function GiamSatChungFormActions({ loading, headerLoading, onPrint, onSave }: GiamSatChungFormActionsProps) {
   return (
-    <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-3 animate-in slide-in-from-bottom-8 duration-500 no-print">
+    <div className={`${C.fabStack} z-50 animate-in slide-in-from-bottom-4 duration-300`}>
       <button
         type="button"
         onClick={onPrint}
         title="In phiếu A4"
-        className="app-shell-focus flex h-12 w-12 shrink-0 items-center justify-center self-end rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-800 text-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/10 transition-colors hover:bg-slate-900"
+        className="app-shell-focus flex h-12 w-12 shrink-0 items-center justify-center self-end rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-800 text-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/10 transition-[colors,transform] touch-manipulation hover:bg-slate-900 active:scale-[0.98]"
       >
         <span className="text-lg" aria-hidden>
           🖨️

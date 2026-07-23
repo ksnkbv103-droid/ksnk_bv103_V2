@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
 export type ReportSectionId =
   | "bc-kpi"
@@ -29,16 +30,13 @@ type Props = {
 
 export function ReportSectionNav({ activeId }: Props) {
   return (
-    <nav
-      aria-label="Mục lục báo cáo"
-      className="sticky top-[5.25rem] z-10 mb-4 overflow-x-auto rounded-lg border border-slate-200 bg-white/95 px-1.5 py-1.5 backdrop-blur-sm"
-    >
+    <nav aria-label="Mục lục báo cáo" className={T.reportSectionNav}>
       <ul className="flex min-w-max items-center gap-0.5">
         {SECTIONS.map((s) => (
           <li key={s.id}>
             <a
               href={`#${s.id}`}
-              className={`inline-flex rounded-md px-2.5 py-1 text-[11px] font-bold transition-colors ${
+              className={`inline-flex min-h-9 items-center rounded-md px-2.5 py-1 text-[11px] font-bold transition-colors touch-manipulation ${
                 activeId === s.id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"
               }`}
             >
@@ -63,7 +61,7 @@ export function ReportSection({
   className?: string;
 }) {
   return (
-    <section id={id} className={`scroll-mt-24 ${className}`}>
+    <section id={id} className={`scroll-mt-4 md:scroll-mt-24 ${className}`}>
       <h2 className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-400">{title}</h2>
       {children}
     </section>

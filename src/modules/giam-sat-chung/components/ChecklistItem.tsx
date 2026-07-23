@@ -208,7 +208,7 @@ export default function ChecklistItem({
 
         {previewOpen && result.image_url && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 transition-opacity animate-fade-in pointer-events-auto">
-            <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl bg-white p-2 shadow-2xl">
+            <div className="relative max-h-[90dvh] max-w-[90vw] overflow-hidden rounded-xl bg-white p-2 shadow-2xl">
               <img
                 src={result.image_url}
                 alt="Bằng chứng phóng to"
@@ -265,7 +265,7 @@ export default function ChecklistItem({
           <button
             type="button"
             onClick={() => pickValue("DAT")}
-            className={`${gscFormChrome.choiceBtnRow} min-w-[5.5rem] flex-1 md:flex-none ${
+            className={`${gscFormChrome.choiceBtnRow} min-w-0 flex-1 sm:min-w-[5.5rem] md:flex-none ${
               result.value === "DAT" ? gscFormChrome.choiceBtnActive : gscFormChrome.choiceBtnIdle
             }`}
           >
@@ -275,7 +275,7 @@ export default function ChecklistItem({
           <button
             type="button"
             onClick={() => pickValue("KHONG_DAT")}
-            className={`${gscFormChrome.choiceBtnRow} min-w-[6.5rem] flex-1 md:flex-none ${
+            className={`${gscFormChrome.choiceBtnRow} min-w-0 flex-1 sm:min-w-[6.5rem] md:flex-none ${
               result.value === "KHONG_DAT" ? gscFormChrome.choiceBtnActiveDanger : gscFormChrome.choiceBtnIdle
             }`}
           >
@@ -285,7 +285,7 @@ export default function ChecklistItem({
           <button
             type="button"
             onClick={() => pickValue("NA")}
-            className={`${gscFormChrome.choiceBtnRow} min-w-[8.5rem] flex-1 md:flex-none ${
+            className={`${gscFormChrome.choiceBtnRow} min-w-0 flex-1 sm:min-w-[8.5rem] md:flex-none ${
               result.value === "NA" ? "border-slate-500 bg-slate-600 text-white shadow-sm" : gscFormChrome.choiceBtnIdle
             }`}
           >
@@ -295,7 +295,7 @@ export default function ChecklistItem({
           <button
             type="button"
             onClick={() => setNoteOpen((v) => !v)}
-            className={`${gscFormChrome.choiceBtnRow} min-w-[8.5rem] flex-1 md:flex-none ${
+            className={`${gscFormChrome.choiceBtnRow} min-w-0 flex-1 sm:min-w-[8.5rem] md:flex-none ${
               noteOpen || String(result.note || "").trim()
                 ? gscFormChrome.choiceBtnNote
                 : gscFormChrome.choiceBtnIdle
@@ -310,7 +310,7 @@ export default function ChecklistItem({
                 type="button"
                 onClick={handleCameraClick}
                 disabled={uploading}
-                className={`${gscFormChrome.choiceBtnRow} min-w-[8.5rem] flex-1 md:flex-none ${
+                className={`${gscFormChrome.choiceBtnRow} col-span-2 min-w-0 flex-1 sm:min-w-[8.5rem] md:flex-none ${
                   result.image_url ? gscFormChrome.choiceBtnEvidence : gscFormChrome.choiceBtnIdle
                 }`}
               >
@@ -397,7 +397,7 @@ export default function ChecklistItem({
 
       {previewOpen && result.image_url && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 transition-opacity animate-fade-in">
-          <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl bg-white p-2 shadow-2xl">
+          <div className="relative max-h-[90dvh] max-w-[90vw] overflow-hidden rounded-xl bg-white p-2 shadow-2xl">
             <img
               src={result.image_url}
               alt="Bằng chứng phóng to"

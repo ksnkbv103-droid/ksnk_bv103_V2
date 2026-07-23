@@ -58,8 +58,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8fafc]">
-      <header className="sticky top-0 z-50 h-20 shrink-0 border-b border-gray-200 bg-white px-4 md:px-8 flex items-center">
+    <div className="flex min-h-dvh flex-col bg-[#f8fafc] pb-[env(safe-area-inset-bottom)]">
+      <header className="sticky top-0 z-50 flex h-20 shrink-0 items-center border-b border-gray-200 bg-white px-4 pt-[env(safe-area-inset-top)] md:px-8">
         <div className="flex min-w-0 items-center gap-3">
           <Image
             src="/brand/logo-bv103.png"

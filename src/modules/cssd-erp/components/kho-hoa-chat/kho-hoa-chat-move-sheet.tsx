@@ -7,6 +7,7 @@ import {
   isLotExpired,
   lotRowToKey,
 } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import type { KhoHoaChatTonLo } from "../../actions/cssd-kho-hoa-chat.actions";
 
 type DmOpt = {
@@ -88,8 +89,8 @@ export default function KhoHoaChatMoveSheet({
     mode === "NHAP" ? "Nhập kho" : mode === "XUAT" ? "Xuất kho (theo lô)" : "Điều chỉnh tồn (kiểm kê)";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true">
-      <div className="flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-2xl border border-slate-200 bg-white shadow-xl sm:rounded-2xl">
+    <div className={C.modalOverlay} role="dialog" aria-modal="true">
+      <div className="flex max-h-[min(92dvh,720px)] w-full max-w-lg flex-col rounded-t-2xl border border-slate-200 bg-white shadow-xl animate-in slide-in-from-bottom-4 duration-200 sm:rounded-2xl sm:animate-in sm:fade-in-0 sm:zoom-in-95">
         <div className="border-b border-slate-100 px-5 py-4">
           <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
           <p className="text-xs text-slate-500">
@@ -100,10 +101,10 @@ export default function KhoHoaChatMoveSheet({
                 : "Đơn vị theo danh mục (chai, lọ, kg…)."}
           </p>
         </div>
-        <div className="space-y-3 overflow-y-auto px-5 py-4">
+        <div className="space-y-3 overflow-y-auto overscroll-contain px-5 py-4">
           <div>
-            <label className="text-[11px] font-medium text-slate-500">Mặt hàng</label>
-            <select className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={dmId} onChange={(e) => onDmId(e.target.value)}>
+            <label className={C.labelField}>Mặt hàng</label>
+            <select className={`mt-1 ${C.controlSelectNative}`} value={dmId} onChange={(e) => onDmId(e.target.value)}>
               <option value="">— Chọn —</option>
               {dmList.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -115,8 +116,8 @@ export default function KhoHoaChatMoveSheet({
 
           {(mode === "XUAT" || mode === "DIEU") && dmId ? (
             <div>
-              <label className="text-[11px] font-medium text-slate-500">{mode === "XUAT" ? "Lô xuất" : "Lô điều chỉnh"}</label>
-              <select className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={lotKey} onChange={(e) => onLotKey(e.target.value)}>
+              <label className={C.labelField}>{mode === "XUAT" ? "Lô xuất" : "Lô điều chỉnh"}</label>
+              <select className={`mt-1 ${C.controlSelectNative}`} value={lotKey} onChange={(e) => onLotKey(e.target.value)}>
                 <option value="">— Không lô / không HSD —</option>
                 {lots.map((l) => (
                   <option key={l.key} value={l.key} disabled={l.disabled}>
@@ -125,7 +126,7 @@ export default function KhoHoaChatMoveSheet({
                 ))}
               </select>
               {showFefoWarning ? (
-                <p className="mt-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] font-medium text-amber-800">
+                <p className={`mt-1.5 ${C.noticeWarning}`}>
                   Bạn đang chọn lô không theo FEFO — nên ưu tiên lô có hạn sử dụng gần nhất.
                 </p>
               ) : null}
@@ -135,41 +136,41 @@ export default function KhoHoaChatMoveSheet({
           {mode === "NHAP" ? (
             <>
               <div>
-                <label className="text-[11px] font-medium text-slate-500">Mã lô (tuỳ chọn)</label>
-                <input className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={maLoNhap} onChange={(e) => onMaLoNhap(e.target.value)} />
+                <label className={C.labelField}>Mã lô (tuỳ chọn)</label>
+                <input className={`mt-1 ${C.controlInput}`} value={maLoNhap} onChange={(e) => onMaLoNhap(e.target.value)} />
               </div>
               <div>
-                <label className="text-[11px] font-medium text-slate-500">Hạn SD (tuỳ chọn)</label>
-                <input type="date" className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={hanNhap} onChange={(e) => onHanNhap(e.target.value)} />
+                <label className={C.labelField}>Hạn SD (tuỳ chọn)</label>
+                <input type="date" className={`mt-1 ${C.controlInput}`} value={hanNhap} onChange={(e) => onHanNhap(e.target.value)} />
               </div>
             </>
           ) : null}
 
           <div>
-            <label className="text-[11px] font-medium text-slate-500">
+            <label className={C.labelField}>
               {mode === "NHAP" ? "Số lượng nhập" : mode === "XUAT" ? "Số lượng xuất" : "Điều chỉnh (+ hoặc -)"}
             </label>
             <input
               type="number"
               step="0.01"
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              className={`mt-1 ${C.controlInput}`}
               value={qty}
               onChange={(e) => onQty(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="text-[11px] font-medium text-slate-500">Ghi chú</label>
-            <textarea className="mt-1 min-h-[64px] w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={note} onChange={(e) => onNote(e.target.value)} />
+            <label className={C.labelField}>Ghi chú</label>
+            <textarea className={`mt-1 ${C.textareaCompact}`} value={note} onChange={(e) => onNote(e.target.value)} />
           </div>
         </div>
-        <div className="flex justify-end gap-2 border-t border-slate-100 px-5 py-3">
-          <button type="button" className="rounded-lg px-4 py-2 text-sm text-slate-600" onClick={onClose}>
+        <div className="flex justify-end gap-2 border-t border-slate-100 px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <button type="button" className={C.btnSecondary} onClick={onClose}>
             Đóng
           </button>
           <button
             type="button"
-            className={`rounded-lg px-5 py-2 text-sm font-semibold ${canSubmit ? "bg-[var(--primary)] text-[#FFD700]" : "bg-slate-200 text-slate-500"}`}
+            className={canSubmit ? C.btnPrimary : `${C.btnPrimary} opacity-50`}
             disabled={!canSubmit}
             onClick={() => void onSubmit()}
           >

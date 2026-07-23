@@ -48,7 +48,7 @@ export default function ResetPasswordPage() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#f8fafc] px-4">
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-[#f8fafc] px-4 pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]">
         <div className="text-center">
           <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
           <p className={T.authSubtitle}>Đang xác thực liên kết đặt lại mật khẩu…</p>
@@ -61,8 +61,8 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8fafc]">
-      <div className="flex flex-1 items-center justify-center px-4 py-10">
+    <div className="flex min-h-dvh flex-col bg-[#f8fafc] pb-[env(safe-area-inset-bottom)]">
+      <div className="flex flex-1 items-center justify-center px-4 py-10 pt-[max(2.5rem,env(safe-area-inset-top))]">
         <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-xl">
           <h1 className={`text-center ${T.authTitle}`}>Đặt mật khẩu mới</h1>
           <form className="mt-8 space-y-4" onSubmit={onSubmit}>

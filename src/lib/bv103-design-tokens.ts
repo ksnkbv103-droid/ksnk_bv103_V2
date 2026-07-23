@@ -4,8 +4,9 @@
  */
 export const bv103DesignTokens = {
   pageOuter:
-    "w-full min-h-[40vh] space-y-4 pb-8 [-webkit-tap-highlight-color:transparent] sm:space-y-6 sm:pb-12",
-  pageOuterAnalytics: "w-full space-y-4 pb-16 sm:space-y-8 sm:pb-24",
+    "w-full min-h-[40dvh] space-y-4 pb-[max(2rem,env(safe-area-inset-bottom))] [-webkit-tap-highlight-color:transparent] sm:space-y-6 sm:pb-12",
+  pageOuterAnalytics:
+    "w-full space-y-4 pb-[max(4rem,env(safe-area-inset-bottom))] sm:space-y-8 sm:pb-24",
   pageSectionGap: "space-y-4 sm:space-y-8",
 
   stickyAnalyticsShell:
@@ -15,6 +16,9 @@ export const bv103DesignTokens = {
     "no-print sticky top-0 z-40 rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm backdrop-blur-md sm:top-4 sm:p-4",
   analyticsToolbarShellStatic:
     "no-print rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm sm:p-4",
+  /** Mục lục báo cáo — không sticky trên phone (tránh chồng header); desktop neo dưới toolbar. */
+  reportSectionNav:
+    "z-10 mb-4 overflow-x-auto rounded-lg border border-slate-200 bg-white/95 px-1.5 py-1.5 backdrop-blur-sm scrollbar-hide max-md:relative max-md:top-auto md:sticky md:top-4",
 
   /** H1 trang — title case, không primary, không IN HOA */
   pageTitle: "text-xl font-semibold tracking-tight text-slate-900 md:text-2xl",

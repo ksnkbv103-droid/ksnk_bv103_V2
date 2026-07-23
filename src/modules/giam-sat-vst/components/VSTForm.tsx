@@ -2,6 +2,7 @@
 "use client";
 
 import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";
+import { bv103LayoutChrome as L } from "@/lib/bv103-layout-chrome";
 import React, { useEffect, useRef } from "react";
 import GiamSatHeader from "@/components/shared/GiamSatHeader";
 import VSTPersonColumn from "./VSTPersonColumn";
@@ -375,7 +376,7 @@ export default function VSTForm({
           })}
         </div>
 
-        <div className="fixed bottom-6 right-6 z-40 flex max-sm:bottom-[5.5rem] flex-col gap-3">
+        <div className={L.fabStack}>
           <button
             onClick={() => {
               if (hasUnsavedSession) {
@@ -387,7 +388,7 @@ export default function VSTForm({
               window.print();
             }}
             title="In phiếu A4"
-            className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+            className={`${L.btnSecondary} h-11 px-4 text-sm`}
           >
             In / PDF
           </button>
@@ -395,7 +396,7 @@ export default function VSTForm({
           <button
             disabled={loading || isLockedForSelectedDate}
             onClick={handleFinalSave}
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-[var(--primary)] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
+            className={`${L.btnPrimary} h-12 px-5 text-sm disabled:cursor-not-allowed disabled:opacity-60`}
           >
             {loading ? (
               <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />

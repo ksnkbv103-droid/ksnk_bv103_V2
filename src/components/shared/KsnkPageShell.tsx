@@ -18,7 +18,7 @@ export default function KsnkPageShell({ children, rolloutPhase = "phase-1" }: Ks
   return (
     <div
       data-ksnk-page-shell={rolloutPhase}
-      className="mx-auto w-full max-w-7xl min-h-[40vh]"
+      className="bv103-page-enter mx-auto w-full max-w-7xl min-h-[40dvh]"
     >
       {children}
     </div>

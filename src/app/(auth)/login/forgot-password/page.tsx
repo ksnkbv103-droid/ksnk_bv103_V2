@@ -40,8 +40,8 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8fafc]">
-      <div className="flex flex-1 items-center justify-center px-4 py-10">
+    <div className="flex min-h-dvh flex-col bg-[#f8fafc] pb-[env(safe-area-inset-bottom)]">
+      <div className="flex flex-1 items-center justify-center px-4 py-10 pt-[max(2.5rem,env(safe-area-inset-top))]">
         <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-xl">
           <h1 className={`text-center ${T.authTitle}`}>Quên mật khẩu</h1>
           <p className={`mt-2 text-center ${T.authSubtitle}`}>

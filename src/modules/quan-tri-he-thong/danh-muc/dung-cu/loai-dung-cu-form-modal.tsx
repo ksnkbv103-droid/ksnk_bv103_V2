@@ -112,8 +112,8 @@ export default function LoaiDungCuFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-      <form onSubmit={save} className="bg-white w-full max-w-2xl rounded-[var(--radius-shell)] p-8 space-y-4 shadow-2xl border-t-[6px] border-[var(--primary)] max-h-[90vh] overflow-y-auto">
+    <div className={C.modalOverlay}>
+      <form onSubmit={save} className={C.modalPanelWide}>
         <div className="flex items-center justify-between">
           <h3 className={C.modalTitleLight}>
             {isEdit ? "Cập nhật loại dụng cụ" : "Thêm loại dụng cụ"}

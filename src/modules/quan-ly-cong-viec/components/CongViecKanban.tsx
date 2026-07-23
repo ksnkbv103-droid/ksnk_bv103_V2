@@ -100,7 +100,7 @@ export default function CongViecKanban({
               </span>
             </div>
 
-            <div className="scrollbar-hide flex max-h-[min(68vh,640px)] flex-1 flex-col gap-2.5 overflow-y-auto pr-0.5">
+            <div className="scrollbar-hide flex max-h-[min(68dvh,640px)] flex-1 flex-col gap-2.5 overflow-y-auto overscroll-contain pr-0.5">
               {colTasks.map((task) => {
                 const showSubtitle = showKanbanCardSubtitle(col.id, task, showProposalColumn);
 
