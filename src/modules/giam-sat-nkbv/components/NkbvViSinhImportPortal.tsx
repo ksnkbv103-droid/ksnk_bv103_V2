@@ -348,6 +348,56 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
             unboxed
             className="border border-slate-100 rounded-[var(--radius-shell)]"
             maxHeight="max-h-[min(52dvh,520px)]"
+            mobileCards={
+              <ul className="divide-y divide-slate-100">
+                {records.map((r, idx) => (
+                  <li
+                    key={idx}
+                    className={`space-y-2 px-3 py-3 ${r.isHaiSuspect ? "bg-emerald-50/30" : "bg-slate-50/40"}`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-bold text-slate-900">{r.ho_ten_benh_nhan}</p>
+                        <p className="text-[11px] text-slate-500">
+                          PID {r.ma_benh_nhan} · BA {r.ma_benh_an} · {r.diffDays} ngày
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveRow(idx)}
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-red-500 touch-manipulation hover:bg-red-50"
+                        title="Xóa dòng"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-slate-600">
+                      NV {format(parseISO(r.ngay_vao_vien.slice(0, 10)), "dd/MM/yyyy")} · Mẫu{" "}
+                      {format(parseISO(r.ngay_lay_mau.slice(0, 10)), "dd/MM/yyyy")}
+                    </p>
+                    <label className="block text-[11px] font-medium text-slate-500">Khoa chỉ định</label>
+                    <select
+                      value={r.khoa_yeu_cau_id}
+                      onChange={(e) => handleUpdateRowKhoa(idx, e.target.value)}
+                      className={C.controlInput}
+                    >
+                      <option value="">Chọn khoa chỉ định...</option>
+                      {khoas.map((k) => (
+                        <option key={k.id} value={k.id}>
+                          {k.ten_danh_muc}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[11px] text-slate-600">
+                      {r.ten_benh_pham || "—"} · {r.tac_nhan_cay_duong || "—"}
+                    </p>
+                    <p className="text-[11px] font-semibold text-slate-700">
+                      {r.isHaiSuspect ? "Nghi ngờ NKBV (Day 3+)" : "Nhiễm cộng đồng"}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            }
           >
             <table className="w-full min-w-[1000px] border-collapse text-left text-xs">
               <thead>

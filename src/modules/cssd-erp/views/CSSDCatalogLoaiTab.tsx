@@ -28,7 +28,46 @@ export function CSSDCatalogLoaiTab(props: {
           <span className="text-xs text-slate-500 font-medium">Click chọn một dòng để xem các bộ chứa loại dụng cụ này</span>
         </div>
 
-        <ResponsiveTableShell unboxed className="relative rounded-xl border border-slate-100" maxHeight="max-h-[350px]">
+        <ResponsiveTableShell
+          unboxed
+          className="relative rounded-xl border border-slate-100"
+          maxHeight="max-h-[350px]"
+          mobileCards={
+            loaiRows.length === 0 ? (
+              <p className="py-6 text-center text-sm text-slate-500">Không tìm thấy loại dụng cụ nào khớp từ khóa.</p>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {loaiRows.map((x) => {
+                  const isSelected = selectedLoaiId === x.id;
+                  return (
+                    <li key={x.id}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedLoaiId(x.id)}
+                        className={`w-full space-y-1.5 px-3 py-3.5 text-left touch-manipulation ${
+                          isSelected ? "bg-violet-50/70 ring-1 ring-inset ring-violet-200" : "active:bg-slate-50"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-bold text-violet-700">{x.ma_loai_dung_cu || "—"}</p>
+                            <p className="font-semibold text-slate-800">{x.ten_loai_dung_cu || "—"}</p>
+                          </div>
+                          <span className="shrink-0 text-[11px] font-bold text-slate-700">Tồn {x.so_luong_tong ?? 0}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500">
+                          {x.phan_loai === "THU_THUAT" ? "Thủ thuật" : "Phẫu thuật"}
+                          {x.kich_thuoc ? ` · ${x.kich_thuoc}` : ""}
+                          {` · Dự phòng ${x.so_luong_kho_du_phong ?? 0}`}
+                        </p>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )
+          }
+        >
           <table className="w-full min-w-[720px] border-collapse text-left text-sm text-slate-700">
             <thead>
               <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">
@@ -131,7 +170,37 @@ export function CSSDCatalogLoaiTab(props: {
             </p>
           </div>
         ) : (
-          <ResponsiveTableShell unboxed className="relative rounded-xl border border-slate-100" maxHeight="max-h-[350px]">
+          <ResponsiveTableShell
+            unboxed
+            className="relative rounded-xl border border-slate-100"
+            maxHeight="max-h-[350px]"
+            mobileCards={
+              boBySelectedLoai.length === 0 ? (
+                <p className="py-6 text-center text-sm text-slate-500">
+                  Loại dụng cụ này chưa được gán vào bất kỳ bộ dụng cụ nào.
+                </p>
+              ) : (
+                <ul className="divide-y divide-slate-100">
+                  {boBySelectedLoai.map((b) => {
+                    const chiTietItem = catalog.chi_tiet.find(
+                      (c) => c.bo_dung_cu_id === b.id && c.loai_dung_cu_id === selectedLoai.id
+                    );
+                    const qtyInSet = chiTietItem ? (chiTietItem.so_luong ?? 1) : 0;
+                    return (
+                      <li key={b.id} className="space-y-1 px-3 py-3">
+                        <p className="font-bold text-[var(--primary)]">{b.ma_bo || "—"}</p>
+                        <p className="font-semibold text-slate-800">{b.ten_bo || "—"}</p>
+                        <p className="text-[11px] text-slate-500">
+                          {b.phan_loai_bo === "THU_THUAT" ? "Thủ thuật" : "Phẫu thuật"} · {qtyInSet} dụng cụ ·{" "}
+                          {b.ten_khoa || "Chưa phân bổ"}
+                        </p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )
+            }
+          >
             <table className="w-full min-w-[480px] border-collapse text-left text-sm text-slate-700">
               <thead>
                 <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">

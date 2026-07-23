@@ -41,7 +41,39 @@ export function ComprehensiveGscBkIntervention({ payload }: Props) {
           Phân tích đầy đủ <ExternalLink size={10} aria-hidden />
         </Link>
       </div>
-      <ResponsiveTableShell unboxed className="rounded-xl border border-slate-200" maxHeight="max-h-[min(360px,50dvh)]">
+      <ResponsiveTableShell
+        unboxed
+        className="rounded-xl border border-slate-200"
+        maxHeight="max-h-[min(360px,50dvh)]"
+        mobileCards={
+          <ul className="divide-y divide-slate-100">
+            {rows.map((r) => (
+              <li key={r.ma_bk} className="space-y-1.5 px-3 py-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-800">{r.ma_bk}</p>
+                    <p className="truncate text-[11px] text-slate-500">{r.ten_bang_kiem}</p>
+                  </div>
+                  <span className="shrink-0 text-sm font-bold tabular-nums text-red-700">
+                    {formatPercent2(r.ty_le_tuan_thu)}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-600">
+                  {r.tong_vi_pham} vi phạm
+                  {r.top_violation_ten ? ` · ${r.top_violation_ten}` : ""}
+                  {r.worst_khoa_ten ? ` · ${r.worst_khoa_ten}` : ""}
+                </p>
+                <Link
+                  href={deepBase ? buildGscAnalyticsDeepLink(deepBase, r.ma_bk) : `/thong-ke/gsc?bk=${r.ma_bk}`}
+                  className="inline-flex min-h-11 items-center text-[11px] font-bold text-sky-700 touch-manipulation hover:underline"
+                >
+                  Chi tiết
+                </Link>
+              </li>
+            ))}
+          </ul>
+        }
+      >
         <table className="w-full min-w-[560px] text-left text-xs">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wide text-slate-500">

@@ -48,7 +48,7 @@ export default function UtiClinicalSubForm({
         <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3 animate-in fade-in">
           <span className={` text-slate-500`}>✨ Kết quả cấy nước tiểu (Mã: BM.VS.UTI.01)</span>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="text-xs font-bold text-slate-700 block mb-1">Số lượng vi khuẩn (CFU/ml)</label>
               <div className="relative">
@@ -110,7 +110,7 @@ export default function UtiClinicalSubForm({
           <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3">
             <span className={` text-slate-500`}>🔌 Thiết bị xâm lấn (Sonde Foley - Mã: BM.LS.UTI.01)</span>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Ngày ĐẶT Sonde Foley</label>
                 <input

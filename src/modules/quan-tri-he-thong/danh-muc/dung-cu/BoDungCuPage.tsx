@@ -144,7 +144,7 @@ export function BoDungCuPageContent() {
         onCreate={openCreate}
       />
 
-      <div className="bg-white p-2 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm min-w-0 sm:min-h-[450px]">
+      <div className="min-w-0 sm:min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
           data={data}

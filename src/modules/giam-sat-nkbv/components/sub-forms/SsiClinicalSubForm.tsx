@@ -137,7 +137,7 @@ export default function SsiClinicalSubForm({
           <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3">
             <span className={` text-slate-500`}>✂️ Thông tin phẫu thuật (Mã: BM.LS.SSI.01)</span>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Loại phẫu thuật NHSN</label>
                 <input

@@ -180,7 +180,67 @@ export default function CompositionReconcilePanel({
         ) : null}
 
         {data && data.items.length > 0 ? (
-          <ResponsiveTableShell unboxed className="rounded-xl border border-slate-100" maxHeight="max-h-[min(360px,50dvh)]">
+          <ResponsiveTableShell
+            unboxed
+            className="rounded-xl border border-slate-100"
+            maxHeight="max-h-[min(360px,50dvh)]"
+            mobileCards={
+              <ul className="divide-y divide-slate-100">
+                {data.items.map((row) => (
+                  <li key={row.chiTietId} className={`space-y-2 px-3 py-3 ${row.isMissing ? "bg-red-50/40" : ""}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="min-w-0 font-semibold text-slate-800">
+                        {row.tenDungCuLe}
+                        {!row.isChiuNhiet ? (
+                          <span className="ml-1 text-[11px] font-bold text-rose-600">· nhạy nhiệt</span>
+                        ) : null}
+                      </p>
+                      <span
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums ${
+                          row.isMissing ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-800"
+                        }`}
+                      >
+                        {row.soLuongThucTe}/{row.soLuongKeHoach}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => openSuCo(row, "HONG")}
+                        className="min-h-11 rounded-lg border border-amber-200 bg-amber-50 px-2.5 text-[11px] font-semibold uppercase text-amber-800 touch-manipulation"
+                      >
+                        Hỏng
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openSuCo(row, "MAT")}
+                        className="min-h-11 rounded-lg border border-rose-200 bg-rose-50 px-2.5 text-[11px] font-semibold uppercase text-rose-800 touch-manipulation"
+                      >
+                        Mất
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openSuCo(row, "BO_SUNG")}
+                        className="min-h-11 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-semibold uppercase text-emerald-800 touch-manipulation"
+                      >
+                        Bổ sung
+                      </button>
+                      {row.isMissing && row.soLuongKhoDuPhong > 0 && !row.reserveShortage ? (
+                        <button
+                          type="button"
+                          disabled={replenishingId === row.chiTietId}
+                          onClick={() => void quickReplenish(row)}
+                          className="min-h-11 rounded-lg border border-sky-200 bg-sky-50 px-2.5 text-[11px] font-semibold uppercase text-sky-800 touch-manipulation disabled:opacity-50"
+                        >
+                          {replenishingId === row.chiTietId ? "…" : "Bù kho"}
+                        </button>
+                      ) : null}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            }
+          >
             <table className="w-full min-w-[420px] text-left text-xs">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">

@@ -50,7 +50,55 @@ export function GscChecklistNavigator({ payload, loading, selectedMaBk, onSelect
           Sắp xếp theo rủi ro (tuân thủ thấp · vi phạm nhiều). Chọn một dòng để xem lỗi chi tiết theo khoa và tiêu chí.
         </p>
       </div>
-      <ResponsiveTableShell unboxed maxHeight="max-h-[min(52dvh,480px)]">
+      <ResponsiveTableShell
+        unboxed
+        maxHeight="max-h-[min(52dvh,480px)]"
+        mobileCards={
+          loading ? (
+            <p className="px-3 py-6 text-center text-slate-400">Đang tải…</p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {rows.map((r) => {
+                const active = selectedMaBk === r.ma_bk;
+                return (
+                  <li key={r.ma_bk}>
+                    <button
+                      type="button"
+                      onClick={() => onSelectMaBk(active ? null : r.ma_bk)}
+                      className={`w-full space-y-1.5 px-3 py-3 text-left touch-manipulation ${
+                        active ? "bg-sky-50/80 ring-1 ring-inset ring-sky-200" : "active:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-semibold text-slate-800">{r.ma_bk}</p>
+                          <p className="truncate text-[11px] text-slate-500">{r.label}</p>
+                        </div>
+                        <span className={`shrink-0 text-sm font-bold tabular-nums ${complianceClass(r.ty_le_tuan_thu)}`}>
+                          {formatPercent2(r.ty_le_tuan_thu)}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-600">
+                        {r.tong_phien} phiên · <span className="font-medium text-red-700">{r.tong_vi_pham} vi phạm</span>
+                        {r.worst_khoa_ten ? ` · ${r.worst_khoa_ten}` : ""}
+                      </p>
+                      {r.top_violation_ten ? (
+                        <p className="inline-flex items-start gap-1 text-[11px] text-slate-600">
+                          <AlertTriangle size={12} className="mt-0.5 shrink-0 text-amber-600" />
+                          <span>
+                            {r.top_violation_ten}
+                            {r.top_violation_so != null ? ` (${r.top_violation_so}×)` : ""}
+                          </span>
+                        </p>
+                      ) : null}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )
+        }
+      >
         <table className="w-full min-w-[720px] text-left text-xs">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wide text-slate-500">

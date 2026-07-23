@@ -61,7 +61,7 @@ export default function BsiClinicalSubForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="text-xs font-bold text-slate-700 block mb-1">Loại tác nhân</label>
               <select
@@ -93,7 +93,7 @@ export default function BsiClinicalSubForm({
               <p className="text-[11px] text-amber-800 font-medium">
                 💡 Đối với <strong>Vi khuẩn cộng sinh da</strong>, CDC yêu cầu cấy dương tính &ge; 2 lần riêng biệt và có triệu chứng lâm sàng.
               </p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <label className="text-[11px] font-bold text-amber-700 block mb-1">Số lần cấy riêng biệt (+)</label>
                   <input
@@ -138,7 +138,7 @@ export default function BsiClinicalSubForm({
           <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3">
             <span className={` text-slate-500`}>🔌 Thiết bị xâm lấn (CVC - Mã: BM.LS.BSI.01)</span>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">Ngày ĐẶT CVC</label>
                 <input

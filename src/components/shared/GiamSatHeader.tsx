@@ -152,7 +152,7 @@ export default function GiamSatHeader({
   return (
     <div
       id="vst-session-header"
-      className={`overflow-visible rounded-[var(--radius-shell)] border border-slate-200/90 bg-white shadow-sm transition-[padding] duration-200 ${isCollapsed ? "sticky top-4 z-30 p-3 max-md:static max-md:z-auto" : "space-y-4 p-4 sm:p-5"}`}
+      className={`overflow-visible rounded-[var(--radius-shell)] border border-slate-200/90 bg-white shadow-sm transition-[padding] duration-200 ${isCollapsed ? "sticky top-4 z-30 p-3 max-lg:static max-lg:z-auto" : "space-y-4 p-4 sm:p-5"}`}
     >
       <div className={`flex items-center justify-between gap-3 ${!isCollapsed ? "border-b border-slate-100 pb-3" : ""}`}>
         <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-3" onClick={() => setIsCollapsed(!isCollapsed)}>

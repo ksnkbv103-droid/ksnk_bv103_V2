@@ -243,6 +243,34 @@ export function CSSDCatalogBoTab(props: {
             className="relative rounded-xl border border-slate-100"
             maxHeight="max-h-[350px]"
             scrollHint="Vuốt ngang để xem cột chi tiết dụng cụ"
+            mobileCards={
+              chiTietBySelectedBo.length === 0 ? (
+                <p className="py-6 text-center text-sm text-slate-500">Bộ này chưa có dòng chi tiết.</p>
+              ) : (
+                <ul className="divide-y divide-slate-100">
+                  {chiTietBySelectedBo.map((x) => (
+                    <li key={x.id}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedChiTietId(x.id);
+                          if (x.loai_dung_cu_id) setSelectedLoaiId(x.loai_dung_cu_id);
+                          setTab("CHI_TIET");
+                        }}
+                        className="w-full space-y-1 px-3 py-3.5 text-left touch-manipulation active:bg-slate-50"
+                      >
+                        <p className="font-bold text-indigo-600">{x.ma_chi_tiet || "—"}</p>
+                        <p className="font-semibold text-slate-800">{x.ten_chi_tiet || "—"}</p>
+                        <p className="text-[11px] text-slate-500">
+                          {x.ten_loai || "Chưa phân loại"} · SL {x.so_luong ?? 1}
+                          {x.ma_qr_mau ? ` · QR ${x.ma_qr_mau}` : ""}
+                        </p>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )
+            }
           >
             <table className="w-full min-w-[640px] border-collapse text-left text-sm text-slate-700">
               <thead>

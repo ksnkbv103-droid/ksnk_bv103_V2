@@ -86,7 +86,7 @@ export default function VaeClinicalSubForm({
           <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3">
             <span className={` text-slate-500`}>🔌 Thiết bị & Độ tuổi (Máy thở - Mã: BM.LS.VAE.01)</span>
             
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
                 <label className="text-[11px] font-bold text-slate-700 block mb-1">Tuổi bệnh nhân</label>
                 <input

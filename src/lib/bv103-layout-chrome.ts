@@ -47,6 +47,13 @@ export const bv103LayoutChrome = {
   fabStack:
     "fixed z-40 flex flex-col gap-3 no-print right-[max(1rem,env(safe-area-inset-right))] bottom-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:bottom-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] sm:bottom-8 sm:right-8",
 
+  /**
+   * Chip trạng thái offline / đồng bộ — neo trái, tránh đè FAB góc phải.
+   * Mobile: nhường cùng khoảng với fabStack.
+   */
+  offlineChip:
+    "fixed z-[9998] flex items-center gap-3 rounded-2xl px-4 py-3 text-xs font-bold shadow-xl no-print left-[max(1rem,env(safe-area-inset-left))] bottom-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:bottom-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] sm:bottom-8",
+
   /** Overlay modal danh mục / sheet — mobile: neo đáy; ≥sm: giữa màn. */
   modalOverlay:
     "fixed inset-0 z-[200] flex items-end justify-center bg-slate-900/60 p-0 backdrop-blur-md touch-manipulation pointer-events-auto sm:items-center sm:p-4",

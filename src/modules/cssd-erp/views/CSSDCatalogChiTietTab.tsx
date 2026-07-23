@@ -33,7 +33,42 @@ export function CSSDCatalogChiTietTab(props: {
           <span className="text-xs text-slate-500 font-medium">Danh sách toàn bộ các dòng dụng cụ lẻ trong hệ thống</span>
         </div>
 
-        <ResponsiveTableShell unboxed className="relative rounded-xl border border-slate-100" maxHeight="max-h-[500px]">
+        <ResponsiveTableShell
+          unboxed
+          className="relative rounded-xl border border-slate-100"
+          maxHeight="max-h-[500px]"
+          mobileCards={
+            chiTietRows.length === 0 ? (
+              <p className="py-6 text-center text-sm text-slate-500">Không tìm thấy dụng cụ thành phần nào khớp từ khóa.</p>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {chiTietRows.map((x) => {
+                  const isSelected = selectedChiTietId === x.id;
+                  return (
+                    <li key={x.id}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedChiTietId(x.id);
+                          if (x.loai_dung_cu_id) setSelectedLoaiId(x.loai_dung_cu_id);
+                        }}
+                        className={`w-full space-y-1 px-3 py-3.5 text-left touch-manipulation ${
+                          isSelected ? "bg-sky-50/70 ring-1 ring-inset ring-sky-200" : "active:bg-slate-50"
+                        }`}
+                      >
+                        <p className="font-bold text-indigo-600">{x.ma_chi_tiet || "—"}</p>
+                        <p className="font-semibold text-slate-800">{x.ten_chi_tiet || "—"}</p>
+                        <p className="text-[11px] text-slate-500">
+                          {x.ten_bo || "Dụng cụ lẻ"} · {x.ten_loai || "Chưa gán loại"} · SL {x.so_luong ?? 1}
+                        </p>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )
+          }
+        >
           <table className="w-full min-w-[720px] border-collapse text-left text-sm text-slate-700">
             <thead>
               <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">

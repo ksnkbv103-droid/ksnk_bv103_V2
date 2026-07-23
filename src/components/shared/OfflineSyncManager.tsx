@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { getOfflineTasks, removeOfflineTask, type OfflineTask } from "@/lib/offline-sync";
 import { cssdCommandAdvanceStation } from "@/modules/cssd-erp/contexts/processing-lifecycle/entrypoint";
 import { createIncidentReport } from "@/modules/cssd-su-co/actions/su-co-report.actions";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 export default function OfflineSyncManager() {
   const [isOnline, setIsOnline] = useState(true);
@@ -111,7 +112,7 @@ export default function OfflineSyncManager() {
   if (isOnline && pendingTasks.length === 0) return null;
 
   return (
-    <div className={`fixed bottom-4 right-4 z-[9999] flex items-center gap-3 rounded-2xl px-4 py-3 text-xs font-bold shadow-xl transition-all ${
+    <div className={`${C.offlineChip} ${
       !isOnline ? "bg-red-600 text-white" : "bg-emerald-600 text-white"
     }`}>
       {!isOnline ? (
@@ -134,7 +135,7 @@ export default function OfflineSyncManager() {
       {isOnline && pendingTasks.length > 0 && !isSyncing && (
         <button 
           onClick={syncData}
-          className="ml-2 rounded-lg bg-white/20 p-1.5 hover:bg-white/30"
+          className="ml-2 rounded-lg bg-white/20 p-2 touch-manipulation hover:bg-white/30 active:scale-[0.98]"
           aria-label="Đồng bộ ngay"
         >
           <RefreshCw size={14} />

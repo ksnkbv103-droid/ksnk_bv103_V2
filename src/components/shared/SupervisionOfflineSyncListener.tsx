@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { RefreshCw, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { flushPendingSupervisionSaves, getPendingSupervisionCount } from "@/lib/offline-pending-supervision-save";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 const RETRY_MS = 60_000;
 
@@ -74,11 +75,11 @@ export default function SupervisionOfflineSyncListener() {
   if (pendingCount === 0) return null;
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-[9998] mx-auto flex max-w-lg items-center gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-lg md:left-auto md:right-6">
+    <div className={`${C.offlineChip} max-w-lg border border-amber-300 bg-amber-50 text-amber-950 md:left-auto md:right-[max(1.5rem,env(safe-area-inset-right))]`}>
       <WifiOff className="h-5 w-5 shrink-0 text-amber-600" aria-hidden />
       <div className="min-w-0 flex-1">
         <p className="font-semibold">Có {pendingCount} phiên giám sát chưa lên máy chủ</p>
-        <p className="text-xs text-amber-800">
+        <p className="text-[11px] font-medium text-amber-800">
           Dữ liệu đang chờ mạng hoặc cần sửa lỗi trước khi gửi. Bấm đồng bộ khi đã có internet.
         </p>
       </div>
@@ -86,7 +87,7 @@ export default function SupervisionOfflineSyncListener() {
         type="button"
         onClick={() => void run()}
         disabled={isSyncing}
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-60"
+        className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white touch-manipulation hover:bg-amber-700 active:scale-[0.98] disabled:opacity-60"
       >
         <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`} aria-hidden />
         Đồng bộ
