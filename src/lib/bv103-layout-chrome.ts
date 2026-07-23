@@ -12,7 +12,7 @@
  */
 
 const panelSurface =
-  "rounded-[var(--radius-shell)] border border-slate-200/90 bg-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]";
+  "rounded-[var(--radius-shell)] border border-slate-200/90 bg-white/95 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] backdrop-blur-[2px]";
 
 /** SSOT ô nhập / dropdown trigger — `--radius-control` (globals.css). */
 const controlBase =
