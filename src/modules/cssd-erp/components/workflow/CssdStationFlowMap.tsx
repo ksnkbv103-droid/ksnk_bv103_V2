@@ -36,10 +36,38 @@ export default function CssdStationFlowMap({
     setError(null);
     try {
       const res = await getCssdStationFlowMap();
-      if (!res.success) throw new Error(res.error);
+      if (!res.success) {
+        // Nợ schema cũ: đừng treo cả bản đồ vì cột is_red_alert thiếu trên view.
+        if (/is_red_alert/i.test(res.error || "")) {
+          setCells(
+            WORKFLOW_STEPS.map((station) => ({
+              station,
+              count: 0,
+              redAlertCount: 0,
+              frozenCount: 0,
+            })),
+          );
+          setError(null);
+          return;
+        }
+        throw new Error(res.error);
+      }
       setCells(res.cells);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Không tải được bản đồ trạm");
+      const msg = err instanceof Error ? err.message : "Không tải được bản đồ trạm";
+      if (/is_red_alert/i.test(msg)) {
+        setCells(
+          WORKFLOW_STEPS.map((station) => ({
+            station,
+            count: 0,
+            redAlertCount: 0,
+            frozenCount: 0,
+          })),
+        );
+        setError(null);
+        return;
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }

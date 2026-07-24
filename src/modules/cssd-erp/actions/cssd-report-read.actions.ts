@@ -55,11 +55,29 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
     if (resQ.error) return { success: false as const, error: resQ.error.message, quyTrinh: [], suCo: [] };
     if (resS.error) return { success: false as const, error: resS.error.message, quyTrinh: [], suCo: [] };
 
-    const quyTrinhRows = (resQ.data || []).map((x: Record<string, unknown>) => ({
-      ...x,
-      ma_vach_qr: x.ma_qr_quy_trinh,
-      trang_thai_hien_tai: x.ma_trang_thai_hien_tai,
-    }));
+    const redIds = new Set<string>();
+    const redQrs = new Set<string>();
+    for (const sc of resS.data || []) {
+      if ((sc as { is_red_alert?: boolean }).is_red_alert !== true) continue;
+      const qid = String((sc as { quy_trinh_id?: string | null }).quy_trinh_id || "").trim();
+      const qr = String((sc as { ma_qr_quy_trinh?: string | null }).ma_qr_quy_trinh || "")
+        .trim()
+        .toUpperCase();
+      if (qid) redIds.add(qid);
+      if (qr) redQrs.add(qr);
+    }
+
+    const quyTrinhRows = (resQ.data || []).map((x: Record<string, unknown>) => {
+      const id = String(x.id || "");
+      const qr = String(x.ma_qr_quy_trinh || "").trim().toUpperCase();
+      const fromSuCo = redIds.has(id) || (qr ? redQrs.has(qr) : false);
+      return {
+        ...x,
+        is_red_alert: x.is_red_alert === true || fromSuCo,
+        ma_vach_qr: x.ma_qr_quy_trinh,
+        trang_thai_hien_tai: x.ma_trang_thai_hien_tai,
+      };
+    });
 
     const suCoRows = (resS.data || []).map((x: Record<string, unknown>) => {
       const attrs = (x.attributes as Record<string, unknown>) || {};

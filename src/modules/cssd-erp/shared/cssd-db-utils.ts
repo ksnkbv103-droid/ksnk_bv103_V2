@@ -27,7 +27,14 @@ export async function tableHasColumn(supabase: SupabaseClient, table: string, co
   const key = `${table}.${column}`;
   if (columnExistCache.has(key)) return Boolean(columnExistCache.get(key));
   const { error } = await supabase.from(table).select(`id,${column}`).limit(1);
-  const ok = !error || !String(error.message || "").includes(`column ${table}.${column} does not exist`);
+  // Fail-safe: chỉ trả true khi probe không lỗi. Tránh false-positive (schema cache /
+  // "column … does not exist") rồi select/update cột thiếu trên localhost.
+  const ok = !error;
   columnExistCache.set(key, ok);
   return ok;
+}
+
+/** Xóa cache probe cột (test / sau migrate trong cùng process). */
+export function clearTableHasColumnCache(): void {
+  columnExistCache.clear();
 }

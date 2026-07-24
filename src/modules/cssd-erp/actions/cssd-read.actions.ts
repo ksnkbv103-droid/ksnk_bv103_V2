@@ -5,7 +5,7 @@ import { Station } from "../types/cssd.types";
 import { verifyPermission } from "@/lib/server-permission";
 import { resolveCssdTramId } from "../lib/cssd-tram-persist";
 import { parseBatchQcJson } from "../lib/cssd-print-format";
-import { getErrorMessage, STEPS, tableHasColumn } from "./cssd-action-common";
+import { getErrorMessage, STEPS } from "./cssd-action-common";
 import { isCssdUnifiedBoMa, normalizeBoMa } from "@/lib/domain/cssd-bo-ma";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -220,24 +220,22 @@ export async function getCSSDImportExportData() {
   const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("CSSD_KHO_DUNGCU", "view");
-    const viewHasRedAlert = await tableHasColumn(supabase, "v_cssd_quy_trinh_full", "is_red_alert");
-    const selectCols = viewHasRedAlert
-      ? "id, ma_qr_quy_trinh, ma_trang_thai_hien_tai, is_red_alert, tinh_trang, han_su_dung, lo_tiet_khuan_id, is_active, created_at, updated_at"
-      : "id, ma_qr_quy_trinh, ma_trang_thai_hien_tai, tinh_trang, han_su_dung, lo_tiet_khuan_id, is_active, created_at, updated_at";
+    // Không bao giờ select is_red_alert từ view — cột có thể chưa có trên localhost.
     const { data, error } = await supabase
       .from("v_cssd_quy_trinh_full")
-      .select(selectCols)
+      .select(
+        "id, ma_qr_quy_trinh, ma_trang_thai_hien_tai, tinh_trang, han_su_dung, lo_tiet_khuan_id, is_active, created_at, updated_at",
+      )
       .eq("is_active", true)
       .order("updated_at", { ascending: false })
       .limit(MAX_CSSD_IMPORT_EXPORT_ROWS);
     if (error) throw error;
-    const redKeys = viewHasRedAlert ? null : await loadRedAlertKeys(supabase);
+    const redKeys = await loadRedAlertKeys(supabase);
     const mapped = (data || []).map(
       (x: {
         id: string;
         ma_qr_quy_trinh?: string | null;
         ma_trang_thai_hien_tai?: string | null;
-        is_red_alert?: boolean | null;
         tinh_trang?: string | null;
         han_su_dung?: string | null;
         lo_tiet_khuan_id?: string | null;
@@ -246,13 +244,12 @@ export async function getCSSDImportExportData() {
         updated_at?: string | null;
       }) => {
         const qr = (x.ma_qr_quy_trinh || "").toUpperCase();
-        const fromSuCo =
-          redKeys != null && (redKeys.byQuyTrinhId.has(x.id) || (qr ? redKeys.byMaQr.has(qr) : false));
+        const isRed = redKeys.byQuyTrinhId.has(x.id) || (qr ? redKeys.byMaQr.has(qr) : false);
         return {
           id: x.id,
           ma_vach_qr: x.ma_qr_quy_trinh || "",
           trang_thai_hien_tai: x.ma_trang_thai_hien_tai || null,
-          is_red_alert: viewHasRedAlert ? x.is_red_alert === true : fromSuCo,
+          is_red_alert: isRed,
           tinh_trang: x.tinh_trang || null,
           han_su_dung: x.han_su_dung || null,
           lo_tiet_khuan_id: x.lo_tiet_khuan_id || null,
