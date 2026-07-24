@@ -5,8 +5,33 @@ import { Station } from "../types/cssd.types";
 import { verifyPermission } from "@/lib/server-permission";
 import { resolveCssdTramId } from "../lib/cssd-tram-persist";
 import { parseBatchQcJson } from "../lib/cssd-print-format";
-import { getErrorMessage, STEPS } from "./cssd-action-common";
+import { getErrorMessage, STEPS, tableHasColumn } from "./cssd-action-common";
 import { isCssdUnifiedBoMa, normalizeBoMa } from "@/lib/domain/cssd-bo-ma";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+/** Cờ đỏ: ưu tiên cột trên view (sau migrate); fallback phiếu sự cố — localhost không migrate vẫn chạy. */
+async function loadRedAlertKeys(supabase: SupabaseClient): Promise<{
+  byQuyTrinhId: Set<string>;
+  byMaQr: Set<string>;
+}> {
+  const byQuyTrinhId = new Set<string>();
+  const byMaQr = new Set<string>();
+  const { data, error } = await supabase
+    .from("cssd_fact_su_co")
+    .select("quy_trinh_id, ma_qr_quy_trinh")
+    .eq("is_red_alert", true)
+    .limit(5000);
+  if (error) return { byQuyTrinhId, byMaQr };
+  for (const row of data || []) {
+    const id = String((row as { quy_trinh_id?: string | null }).quy_trinh_id || "").trim();
+    const qr = String((row as { ma_qr_quy_trinh?: string | null }).ma_qr_quy_trinh || "")
+      .trim()
+      .toUpperCase();
+    if (id) byQuyTrinhId.add(id);
+    if (qr) byMaQr.add(qr);
+  }
+  return { byQuyTrinhId, byMaQr };
+}
 
 export async function getWaitingListByStation(station: Station) {
   const supabase = createAdminSupabaseClient();
@@ -195,13 +220,18 @@ export async function getCSSDImportExportData() {
   const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("CSSD_KHO_DUNGCU", "view");
+    const viewHasRedAlert = await tableHasColumn(supabase, "v_cssd_quy_trinh_full", "is_red_alert");
+    const selectCols = viewHasRedAlert
+      ? "id, ma_qr_quy_trinh, ma_trang_thai_hien_tai, is_red_alert, tinh_trang, han_su_dung, lo_tiet_khuan_id, is_active, created_at, updated_at"
+      : "id, ma_qr_quy_trinh, ma_trang_thai_hien_tai, tinh_trang, han_su_dung, lo_tiet_khuan_id, is_active, created_at, updated_at";
     const { data, error } = await supabase
       .from("v_cssd_quy_trinh_full")
-      .select("id, ma_qr_quy_trinh, ma_trang_thai_hien_tai, is_red_alert, tinh_trang, han_su_dung, lo_tiet_khuan_id, is_active, created_at, updated_at")
+      .select(selectCols)
       .eq("is_active", true)
       .order("updated_at", { ascending: false })
       .limit(MAX_CSSD_IMPORT_EXPORT_ROWS);
     if (error) throw error;
+    const redKeys = viewHasRedAlert ? null : await loadRedAlertKeys(supabase);
     const mapped = (data || []).map(
       (x: {
         id: string;
@@ -214,18 +244,23 @@ export async function getCSSDImportExportData() {
         is_active?: boolean | null;
         created_at?: string | null;
         updated_at?: string | null;
-      }) => ({
-        id: x.id,
-        ma_vach_qr: x.ma_qr_quy_trinh || "",
-        trang_thai_hien_tai: x.ma_trang_thai_hien_tai || null,
-        is_red_alert: x.is_red_alert === true,
-        tinh_trang: x.tinh_trang || null,
-        han_su_dung: x.han_su_dung || null,
-        lo_tiet_khuan_id: x.lo_tiet_khuan_id || null,
-        is_active: x.is_active !== false,
-        created_at: x.created_at || null,
-        updated_at: x.updated_at || null,
-      }),
+      }) => {
+        const qr = (x.ma_qr_quy_trinh || "").toUpperCase();
+        const fromSuCo =
+          redKeys != null && (redKeys.byQuyTrinhId.has(x.id) || (qr ? redKeys.byMaQr.has(qr) : false));
+        return {
+          id: x.id,
+          ma_vach_qr: x.ma_qr_quy_trinh || "",
+          trang_thai_hien_tai: x.ma_trang_thai_hien_tai || null,
+          is_red_alert: viewHasRedAlert ? x.is_red_alert === true : fromSuCo,
+          tinh_trang: x.tinh_trang || null,
+          han_su_dung: x.han_su_dung || null,
+          lo_tiet_khuan_id: x.lo_tiet_khuan_id || null,
+          is_active: x.is_active !== false,
+          created_at: x.created_at || null,
+          updated_at: x.updated_at || null,
+        };
+      },
     );
     return { success: true, data: mapped };
   } catch (error: unknown) { return { success: false, error: getErrorMessage(error) }; }
@@ -245,12 +280,15 @@ export async function getCssdStationFlowMap(): Promise<
   const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("CSSD_WORKFLOW", "view");
+    // Không select is_red_alert trên view — localhost trước migrate sẽ lỗi cột thiếu.
     const { data, error } = await supabase
       .from("v_cssd_quy_trinh_full")
-      .select("ma_trang_thai_hien_tai, is_red_alert, is_dong_bang")
+      .select("id, ma_qr_quy_trinh, ma_trang_thai_hien_tai, is_dong_bang")
       .eq("is_active", true)
       .limit(5000);
     if (error) throw error;
+
+    const redKeys = await loadRedAlertKeys(supabase);
 
     const cells: StationFlowMapCell[] = STEPS.map((station) => ({
       station,
@@ -265,7 +303,11 @@ export async function getCssdStationFlowMap(): Promise<
       const cell = byStation.get(st);
       if (!cell) continue;
       cell.count += 1;
-      if ((row as { is_red_alert?: boolean | null }).is_red_alert === true) cell.redAlertCount += 1;
+      const id = String((row as { id?: string }).id || "");
+      const qr = String((row as { ma_qr_quy_trinh?: string | null }).ma_qr_quy_trinh || "")
+        .trim()
+        .toUpperCase();
+      if (redKeys.byQuyTrinhId.has(id) || (qr && redKeys.byMaQr.has(qr))) cell.redAlertCount += 1;
       if ((row as { is_dong_bang?: boolean | null }).is_dong_bang === true) cell.frozenCount += 1;
     }
 

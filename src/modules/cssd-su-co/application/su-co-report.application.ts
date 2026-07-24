@@ -60,12 +60,13 @@ export async function executeIncidentReportAndRollback(
     isRedAlert = (count || 0) >= 2;
   }
 
+  const hasQuyTrinhIsRedAlert = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_red_alert");
   const hasDongBang = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_dong_bang");
 
   const originalState = q
     ? {
         tram_hien_tai_id: (q as { tram_hien_tai_id?: string | null }).tram_hien_tai_id,
-        is_red_alert: Boolean(q.is_red_alert),
+        is_red_alert: hasQuyTrinhIsRedAlert ? Boolean(q.is_red_alert) : undefined,
         is_dong_bang: hasDongBang ? Boolean((q as { is_dong_bang?: boolean }).is_dong_bang) : undefined,
         lo_tiet_khuan_id: (q as { lo_tiet_khuan_id?: string | null }).lo_tiet_khuan_id,
       }
@@ -115,7 +116,6 @@ export async function executeIncidentReportAndRollback(
       const rollbackPatch = await buildQuyTrinhTramPatch(supabase, rollbackStation.targetStation);
       const quyTrinhUpdate: Record<string, unknown> = {
         ...rollbackPatch,
-        is_red_alert: isRedAlert,
         updated_at: new Date().toISOString(),
       };
       if (rollbackStation.clearSterilizationBatchLink) quyTrinhUpdate.lo_tiet_khuan_id = null;
@@ -124,6 +124,7 @@ export async function executeIncidentReportAndRollback(
         quyTrinhUpdate.is_dong_bang = true;
       }
 
+      if (hasQuyTrinhIsRedAlert) quyTrinhUpdate.is_red_alert = isRedAlert;
       const { error: qErr } = await supabase.from("cssd_fact_quy_trinh").update(quyTrinhUpdate).eq("id", q.id);
       if (qErr) throw new Error(mapFkError(qErr.message));
 
@@ -150,8 +151,8 @@ export async function executeIncidentReportAndRollback(
         ly_do: `Sự cố ${data.typeTen}. ${data.desc?.slice(0, 160) || ""}`,
         nguoi_thao_tac: data.faultOperator || data.reporterEmail || "Nhân viên báo cáo",
       });
-    } else if (q && isRedAlert) {
-      // Không rollback trạm (vd. sự cố dụng cụ) nhưng vẫn gắn cờ đỏ trên quy trình cho kho/bản đồ.
+    } else if (q && isRedAlert && hasQuyTrinhIsRedAlert) {
+      // Không rollback trạm (vd. sự cố dụng cụ) nhưng vẫn gắn cờ đỏ trên quy trình khi DB đã có cột.
       const { error: alertErr } = await supabase
         .from("cssd_fact_quy_trinh")
         .update({ is_red_alert: true, updated_at: new Date().toISOString() })
@@ -163,9 +164,9 @@ export async function executeIncidentReportAndRollback(
       const rollbackPayload: Record<string, unknown> = {
         tram_hien_tai_id: originalState.tram_hien_tai_id,
         lo_tiet_khuan_id: originalState.lo_tiet_khuan_id,
-        is_red_alert: originalState.is_red_alert,
         updated_at: new Date().toISOString(),
       };
+      if (hasQuyTrinhIsRedAlert) rollbackPayload.is_red_alert = originalState.is_red_alert;
       if (hasDongBang) rollbackPayload.is_dong_bang = originalState.is_dong_bang;
       await supabase.from("cssd_fact_quy_trinh").update(rollbackPayload).eq("id", q.id);
     }
