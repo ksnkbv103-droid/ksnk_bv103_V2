@@ -100,7 +100,7 @@ export default function CssdStationFlowMap({
         <button
           type="button"
           onClick={() => void load()}
-          className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[10px] font-semibold uppercase tracking-wide text-slate-600 hover:bg-slate-50"
+          className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold uppercase tracking-wide text-slate-600 hover:bg-slate-50"
           disabled={loading}
         >
           <RefreshCw size={12} className={loading ? "animate-spin" : ""} aria-hidden />
@@ -121,7 +121,7 @@ export default function CssdStationFlowMap({
           const body = (
             <>
               <p
-                className={`text-[10px] font-bold uppercase tracking-wide ${
+                className={`text-[11px] font-bold uppercase tracking-wide ${
                   isActive ? "text-emerald-100" : "text-slate-500"
                 }`}
               >
@@ -133,7 +133,7 @@ export default function CssdStationFlowMap({
               <div className="mt-1 flex flex-wrap gap-1">
                 {cell.redAlertCount > 0 ? (
                   <span
-                    className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase ${
+                    className={`rounded px-1.5 py-0.5 text-[11px] font-bold uppercase ${
                       isActive ? "bg-red-500/90 text-white" : "bg-red-100 text-red-700"
                     }`}
                   >
@@ -142,7 +142,7 @@ export default function CssdStationFlowMap({
                 ) : null}
                 {cell.frozenCount > 0 ? (
                   <span
-                    className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase ${
+                    className={`rounded px-1.5 py-0.5 text-[11px] font-bold uppercase ${
                       isActive ? "bg-amber-400/90 text-amber-950" : "bg-amber-100 text-amber-800"
                     }`}
                   >
@@ -151,7 +151,7 @@ export default function CssdStationFlowMap({
                 ) : null}
                 {cell.station === "TIET_KHUAN" ? (
                   <span
-                    className={`rounded px-1.5 py-0.5 text-[9px] font-semibold ${
+                    className={`rounded px-1.5 py-0.5 text-[11px] font-semibold ${
                       isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
                     }`}
                   >
