@@ -11,7 +11,6 @@ import {
   revalidateCssdInventorySurfaces,
   revalidateCssdWorkflowSurfaces,
   STEPS,
-  tableHasColumn,
   appendQuyTrinhException,
 } from "./cssd-action-common";
 import { cssdImportRowSchema } from "@/lib/validations/cssd-erp.validations";
