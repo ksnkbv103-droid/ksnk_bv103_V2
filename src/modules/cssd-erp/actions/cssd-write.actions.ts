@@ -79,8 +79,6 @@ export async function importCSSDData(rows: Record<string, unknown>[]) {
     const importedCodes = new Set<string>();
     const rowErrors: string[] = [];
     const dbErrors: string[] = [];
-    const hasQuyTrinhIsRedAlert = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_red_alert");
-    
     for (const rawRow of rows || []) {
       const parseResult = cssdImportRowSchema.safeParse(rawRow);
       if (!parseResult.success) {
@@ -105,10 +103,10 @@ export async function importCSSDData(rows: Record<string, unknown>[]) {
         tinh_trang: row.tinh_trang || null,
         han_su_dung: row.han_su_dung || null,
         lo_tiet_khuan_id: loNorm,
+        is_red_alert: Boolean(row.is_red_alert),
         is_active: true,
         updated_at: new Date().toISOString(),
       };
-      if (hasQuyTrinhIsRedAlert) payload.is_red_alert = Boolean(row.is_red_alert);
       if (existingMap.has(code)) {
         const { error: upErr } = await supabase.from("cssd_fact_quy_trinh").update(payload).eq("id", existingMap.get(code)!);
         if (upErr) dbErrors.push(`${code}: ${mapFkError(upErr.message)}`);

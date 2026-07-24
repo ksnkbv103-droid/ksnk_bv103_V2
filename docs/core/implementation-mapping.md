@@ -131,6 +131,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-07-24 | **CSSD cờ cảnh báo đỏ trên quy trình:** thêm `cssd_fact_quy_trinh.is_red_alert` + expose `v_cssd_quy_trinh_full` (`20260724100000`); backfill từ sự cố; báo sự cố/import luôn ghi cờ — hết lỗi `column …is_red_alert does not exist` trên bản đồ 6 trạm/kho. |
 | 2026-07-18 | **RBAC gom 5 vai trò:** `ADMIN` · `HOI_DONG_KSNK` · `NHAN_VIEN_KSNK` · `MANG_LUOI_KSNK` · `KHACH_THONG_KE_GSTT`. Gộp Tổ trưởng/Thành viên → Mạng lưới; soft-deprecate `BAN_QLCL`/`KHOA_TRANG_BI`. Migration `20260718100000` + ensure Khách `20260718110000`. UI: Đồng bộ Registry ≠ Áp dụng preset; `local:golden:reset` có `--with-presets`. |
 | 2026-07-19 | **Cloud migration history align (prod `cvzwslpxwgqiugzzhqej`):** orphan `20260717063027` (duplicate VST nghe_nghiep registry) → reverted; ghi nhận `20260717140000`…`20260718110000` khớp git/local; RBAC taxonomy + Khách apply trên cloud. |
 | 2026-07-18 | **Sidebar Quản trị 1 cổng:** chỉ «Quản trị hệ thống» → `/quan-tri-he-thong`; gỡ shortcut Khoa/Master CSSD/BK/Lookup/Phân quyền/Tài khoản trên sidebar (chọn trong hub). SSOT `sidebar-admin-nav-groups.ts`. |
