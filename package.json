@@ -110,7 +110,9 @@
     "test:admin": "vitest run src/modules/quan-tri-he-thong src/lib/auth/quan-tri-access.spec.ts src/lib/master-data/categories-by-type.ts src/lib/master-data/master-table-permission-map.ts src/lib/master-data/danh-muc-permission-map.ts src/lib/master-data/cssd-set-replenish-core.ts src/lib/master-data/cssd-instrument-ops.spec.ts src/lib/mdm-read-gateway.spec.ts",
     "test:pilot": "vitest run src/lib/bv103-feature-config.spec.ts src/lib/analytics/filter-helpers.spec.ts src/lib/analytics/gsc-analytics-data.spec.ts src/lib/analytics/gsc-checklist-intervention.spec.ts src/lib/rpc-contract-dashboard.spec.ts",
     "test:e2e": "playwright test",
-    "test:e2e:install": "playwright install chromium"
+    "test:e2e:install": "playwright install chromium",
+    "smoke:cssd-station-map": "node scripts/smoke-cssd-station-map-query.mjs",
+    "guard:cssd-red-alert-view": "node scripts/guard-cssd-red-alert-view.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.16",

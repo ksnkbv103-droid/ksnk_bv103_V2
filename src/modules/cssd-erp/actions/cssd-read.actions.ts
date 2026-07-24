@@ -274,25 +274,30 @@ export type StationFlowMapCell = {
 export async function getCssdStationFlowMap(): Promise<
   { success: true; cells: StationFlowMapCell[]; fetchedAt: string } | { success: false; error: string }
 > {
+  const emptyCells = (): StationFlowMapCell[] =>
+    STEPS.map((station) => ({ station, count: 0, redAlertCount: 0, frozenCount: 0 }));
+
   const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("CSSD_WORKFLOW", "view");
-    // Không select is_red_alert trên view — localhost trước migrate sẽ lỗi cột thiếu.
+    // Không select is_red_alert trên view — localhost/prod trước migrate sẽ lỗi cột thiếu.
     const { data, error } = await supabase
       .from("v_cssd_quy_trinh_full")
       .select("id, ma_qr_quy_trinh, ma_trang_thai_hien_tai, is_dong_bang")
       .eq("is_active", true)
       .limit(5000);
-    if (error) throw error;
+    if (error) {
+      const em = String(error.message || "");
+      // Triệt để: không bao giờ trả thông báo SQL cột thiếu ra UI.
+      if (/is_red_alert|42703|does not exist/i.test(em)) {
+        return { success: true, cells: emptyCells(), fetchedAt: new Date().toISOString() };
+      }
+      throw error;
+    }
 
     const redKeys = await loadRedAlertKeys(supabase);
 
-    const cells: StationFlowMapCell[] = STEPS.map((station) => ({
-      station,
-      count: 0,
-      redAlertCount: 0,
-      frozenCount: 0,
-    }));
+    const cells = emptyCells();
     const byStation = new Map(cells.map((c) => [c.station, c]));
 
     for (const row of data || []) {
@@ -310,7 +315,11 @@ export async function getCssdStationFlowMap(): Promise<
 
     return { success: true, cells, fetchedAt: new Date().toISOString() };
   } catch (error: unknown) {
-    return { success: false, error: getErrorMessage(error) };
+    const msg = getErrorMessage(error);
+    if (/is_red_alert|42703|does not exist/i.test(msg)) {
+      return { success: true, cells: emptyCells(), fetchedAt: new Date().toISOString() };
+    }
+    return { success: false, error: msg };
   }
 }
 

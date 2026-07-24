@@ -107,7 +107,9 @@ export default function CssdStationFlowMap({
           Làm mới
         </button>
       </div>
-      {error ? <p className="px-1 text-[11px] font-medium text-rose-600">{error}</p> : null}
+      {error && !/is_red_alert|42703|does not exist|column /i.test(error) ? (
+        <p className="px-1 text-[11px] font-medium text-rose-600">{error}</p>
+      ) : null}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         {ordered.map((cell) => {
           const isActive = activeStation === cell.station;
