@@ -18,7 +18,7 @@ import { congViecSchema, type CongViecInput } from "@/lib/validations/quan-ly-co
 import {
   assigneeBlockedFromTaskCrud,
 } from "../lib/qlcv-access";
-import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
+import { isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import { normalizeQlcvDmFields } from "../lib/qlcv-persist-dm-fields";
 import {
   assertQlcvHanHoanThanhNotPast,
@@ -32,6 +32,7 @@ import { QLCV_BOARD_FETCH_MAX_PAGES, QLCV_BOARD_FETCH_PAGE_SIZE } from "../lib/q
 import { QLCV_ROOT_TASK_VIEW_SELECT } from "../lib/qlcv-root-list-select";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
+import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { invokeQlcvTransition } from "../lib/qlcv-transition-rpc";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import { validateAssigneeForQlcv } from "../lib/qlcv-ksnk-server";
@@ -327,7 +328,7 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
       nguoi_phu_trach_id: cur.nguoi_phu_trach_id,
       phan_tram_hoan_thanh: cur.phan_tram_hoan_thanh,
     };
-    if (isChoNghiemThuHoanThanh(curForGate)) {
+    if (isEligibleForNghiemThu(curForGate)) {
       const blockedAtNghiemThu = ["trang_thai", "phan_tram_hoan_thanh"] as const;
       const touchingBlocked = blockedAtNghiemThu.some((k) => updates[k] !== undefined);
       if (touchingBlocked) {
@@ -446,8 +447,8 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
   }
 
   if (cur.is_active && (nextPhuTrach || nextTo)) {
-    const st = curMa.trang_thai;
-    if (st === "MOI" || st === "CHUA_BAT_DAU" || st === "CHO_NHAN_VIEC") {
+    const st = normalizeQlcvTrangThaiToCanonical(curMa.trang_thai);
+    if (st === "MOI") {
       const tt = normalizeQlcvDmFields({ trang_thai: "DANG_LAM" });
       dbUpdates.trang_thai = tt.trang_thai;
     }
@@ -495,7 +496,7 @@ export async function getCongViecDetail(id: string) {
     .select(`
       *,
       nguoi_tao:mdm_nhan_su!nguoi_tao_id(ho_ten),
-      nguoi_phu_trach:mdm_nhan_su!nguoi_phu_trach_id(ho_ten),
+      nguoi_phu_trach:mdm_nhan_su!nguoi_phu_trach_id(ho_ten, is_active),
       nguoi_giao:mdm_nhan_su!nguoi_giao_viec_id(ho_ten),
       to_cong_tac:mdm_dm_to_cong_tac!to_cong_tac_id(ten_to)
     `)
@@ -585,14 +586,10 @@ export async function tuChoiHoanThanhCongViec(id: string, lyDo: string) {
     scope,
   );
 
-  const st = qlcvWorkflowMaFromViewRow(cur).trang_thai;
   const pct = Number(cur.phan_tram_hoan_thanh ?? 0);
-  const canReject =
-    st === "CHO_DUYET" ||
-    st === "CHO_XAC_NHAN_HOAN_THANH" ||
-    ((st === "DANG_LAM" || st === "DANG_THUC_HIEN") && pct >= 100);
-
-  if (!canReject) throw new Error("Công việc không ở trạng thái chờ nghiệm thu.");
+  if (!isEligibleForNghiemThu(cur)) {
+    throw new Error("Công việc không ở trạng thái chờ nghiệm thu.");
+  }
 
   await invokeQlcvTransition(supabase, {
     congViecId: id,

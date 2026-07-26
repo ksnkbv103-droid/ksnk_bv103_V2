@@ -1,3 +1,4 @@
+import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "./qlcv-workflow-display";
 import { isBoardLaneDangLam, isBoardLaneQuaHan, type KanbanColumnId } from "./qlcv-board-lanes";
 
@@ -33,7 +34,8 @@ export function getKanbanFocusColumnForFilter(
 
 function isNearDeadlineTask(t: { han_hoan_thanh?: string | null; trang_thai?: string | null }): boolean {
   if (!t.han_hoan_thanh) return false;
-  if (t.trang_thai === "HOAN_THANH" || t.trang_thai === "DA_HUY") return false;
+  const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
+  if (st === "HOAN_THANH" || st === "DA_HUY") return false;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const d = new Date(t.han_hoan_thanh);
@@ -87,7 +89,7 @@ export function matchesQlcvBoardFilter(
   if (filter === "MY_TASKS") return isMyQlcvTask(t, ctx?.actorStaffId);
   if (filter === "GATE_DEXUAT") return isDeXuatChoDuyet(t);
   if (filter === "GATE_NGHIEMTHU") return isChoNghiemThuHoanThanh(t);
-  if (filter === "COMPLETED") return t.trang_thai === "HOAN_THANH";
+  if (filter === "COMPLETED") return normalizeQlcvTrangThaiToCanonical(t.trang_thai as string | null) === "HOAN_THANH";
   if (filter === "OVERDUE") return isBoardLaneQuaHan(t);
   if (filter === "NEAR_DEADLINE") return isNearDeadlineTask(t);
   if (filter === "IN_PROGRESS") return isBoardLaneDangLam(t);

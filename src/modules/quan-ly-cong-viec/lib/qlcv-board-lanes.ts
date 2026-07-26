@@ -1,7 +1,11 @@
 /**
  * Map phiếu → lane Kanban (một hàm, thứ tự ưu tiên).
+ *
+ * QUA_HAN (P0-3): khớp view `v_qlcv_cong_viec_full.is_qua_han` + cron `fn_sync_overdue_tasks`
+ * (ghi `trang_thai=QUA_HAN`). FE còn soi hạn local để hiện quá hạn trước khi cron chạy.
  */
 
+import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet, type CongViecLike } from "./qlcv-workflow-display";
 
 export type QlcvBoardLaneId =
@@ -35,16 +39,23 @@ function isDeadlinePastOpen(t: CongViecBoardInput): boolean {
   return d.getTime() < today.getTime();
 }
 
+/** Phiếu mở + quá hạn (mã / cờ view / hạn) — cùng ý với view + cron. */
+export function isQlcvBoardOverdue(t: CongViecBoardInput): boolean {
+  const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
+  if (st === "HOAN_THANH" || st === "DA_HUY") return false;
+  return st === "QUA_HAN" || t.is_qua_han === true || isDeadlinePastOpen(t);
+}
+
 export function getBoardLaneId(t: CongViecBoardInput): QlcvBoardLaneId {
-  const st = String(t.trang_thai || "");
+  const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
   if (st === "DA_HUY") return "lane_da_huy";
   if (st === "HOAN_THANH") return "lane_hoan_thanh";
+  // Đề xuất chưa duyệt trước quá hạn — tránh nhảy cột Quá hạn khi có hạn cũ.
+  if (isDeXuatChoDuyet(t)) return "lane_de_xuat";
 
-  const quaHan = st === "QUA_HAN" || t.is_qua_han === true || isDeadlinePastOpen(t);
-  if (quaHan) return "lane_qua_han";
+  if (isQlcvBoardOverdue(t)) return "lane_qua_han";
 
   if (isChoNghiemThuHoanThanh(t)) return "lane_cho_duyet";
-  if (isDeXuatChoDuyet(t)) return "lane_de_xuat";
 
   return "lane_dang_lam";
 }

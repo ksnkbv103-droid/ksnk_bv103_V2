@@ -10,6 +10,7 @@ import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
 import { QlcvGateStats } from "./QlcvGateStats";
 import { buildQlcvCommandTableColumns } from "./qlcv-table-columns";
+import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { deleteCongViec } from "../actions/cong-viec.actions";
 import { isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import {
@@ -69,13 +70,14 @@ export function QlcvOperationsPanel({
 
   const deleteDialogCopy = useMemo(() => {
     if (!deleteTarget) return { title: "", description: "" };
-    if (deleteTarget.trang_thai === "HOAN_THANH") {
+    const st = normalizeQlcvTrangThaiToCanonical(deleteTarget.trang_thai);
+    if (st === "HOAN_THANH") {
       return {
         title: "Xóa công việc đã hoàn thành?",
         description: "Thao tác này xóa vĩnh viễn phiếu và không thể hoàn tác.",
       };
     }
-    if (deleteTarget.trang_thai === "DA_HUY") {
+    if (st === "DA_HUY") {
       return {
         title: "Xóa phiếu đã hủy?",
         description: "Thao tác này xóa vĩnh viễn phiếu và không thể hoàn tác.",

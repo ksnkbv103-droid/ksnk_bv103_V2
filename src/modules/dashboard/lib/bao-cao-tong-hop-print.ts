@@ -284,14 +284,13 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
 </head>
 <body>
   <div class="print-page-footer">
-    <span>Bệnh viện Quân y 103 · Khoa KSNK · ${escHtml(p.reportNo)}</span>
+    <span>BỆNH VIỆN QUÂN Y 103 · KHOA KIỂM SOÁT NHIỄM KHUẨN · ${escHtml(p.reportNo)}</span>
     <span>In từ hệ thống KSNK BV103</span>
   </div>
   <div class="header">
     <div class="header-left">
-      <div style="font-weight: bold; font-size: 12px;">BỘ QUỐC PHÒNG</div>
-      <div style="font-weight: bold; font-size: 13px; text-decoration: underline;">BỆNH VIỆN QUÂN Y 103</div>
-      <div style="margin-top: 6px; font-size: 11px; font-style: italic;">Khoa Kiểm soát nhiễm khuẩn</div>
+      <div style="font-weight: bold; font-size: 12px;">BỆNH VIỆN QUÂN Y 103</div>
+      <div style="font-weight: bold; font-size: 13px; text-decoration: underline;">KHOA KIỂM SOÁT NHIỄM KHUẨN</div>
     </div>
     <div class="header-right">
       <div style="font-weight: bold; font-size: 12px;">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>

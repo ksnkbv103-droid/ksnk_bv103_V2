@@ -5,7 +5,8 @@ import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { verifyQlcvDeleteCapability } from "../lib/qlcv-rbac";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import { assertQlcvRowInListScope, resolveQlcvListScope } from "../lib/qlcv-list-scope";
-import { isChoNghiemThuHoanThanh } from "../lib/qlcv-workflow-display";
+import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
+import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { qlcvWorkflowMaFromViewRow } from "../lib/qlcv-workflow-read";
 import { updateCongViecTrangThaiByMa } from "../lib/qlcv-workflow-mutate";
 
@@ -37,7 +38,7 @@ export async function huyKhiChoNghiemThuKhongDat(id: string, lyDo: string) {
     scope,
   );
 
-  const st = qlcvWorkflowMaFromViewRow(cur).trang_thai;
+  const st = normalizeQlcvTrangThaiToCanonical(qlcvWorkflowMaFromViewRow(cur).trang_thai);
   const pct = Number(cur.phan_tram_hoan_thanh ?? 0);
 
   const canHuy = st !== "HOAN_THANH" && st !== "DA_HUY";
@@ -53,7 +54,7 @@ export async function huyKhiChoNghiemThuKhongDat(id: string, lyDo: string) {
     han_hoan_thanh: cur.han_hoan_thanh,
     is_qua_han: cur.is_qua_han,
   };
-  const inGate = isChoNghiemThuHoanThanh(rowSnapshot);
+  const inGate = isEligibleForNghiemThu(rowSnapshot);
 
   const { updated } = await updateCongViecTrangThaiByMa(supabase, {
     id,

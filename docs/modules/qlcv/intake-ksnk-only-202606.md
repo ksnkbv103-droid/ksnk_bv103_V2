@@ -8,17 +8,18 @@
 |----|-------|
 | Việc nội bộ KSNK | Giao việc cho NV khoa Ngoại/Nội/… |
 | NV `mdm_nhan_su.khoa_id` = KSNK | User khoa khác truy cập module |
-| `khoa_thuc_hien_id` luôn = KSNK | Chọn khoa trên form/import |
+| Guard server `ensureQlcvKsnkAccess` + validate phụ trách KSNK | Chọn khoa trên form/import |
 
 ## Migration
 
-`20260617120000_qlcv_ksnk_only_scope.sql` — xóa phiếu giao ngoài KSNK, backfill khoa, NOT NULL.
+`20260617120000_qlcv_ksnk_only_scope.sql` — purge giao ngoài KSNK.  
+`20260617160000_qlcv_lean_nhat_ky_drop_khoa.sql` — DROP cột `khoa_thuc_hien_id` (scope không còn gắn cột fact).
 
 ## Checklist tay (thay Q6 cũ)
 
 | # | Kịch bản | Pass khi |
 |---|----------|----------|
-| K1 | Tạo việc KSNK | Chỉ chọn NV KSNK; `khoa_thuc_hien_id` = KSNK |
+| K1 | Tạo việc KSNK | Chỉ chọn NV KSNK; `trang_thai=DANG_LAM` |
 | K2 | NV khoa khác | 403 / không vào module |
 | K3 | Nghiệm thu | Chỉ khi 100% / CHO_DUYET |
 | K4 | Import | Không cột khoa; từ chối ma_nv ngoài KSNK |
@@ -35,4 +36,5 @@
 
 - Domain: `src/lib/domain/qlcv/ksnk-boundary.ts`, `nghiem-thu-gate.ts`
 - Server: `qlcv-ksnk-server.ts`, `qlcv-action-guard.ts`
-- Scope: `qlcv-list-scope.ts` (filter `khoa_thuc_hien_id = KSNK`)
+- Scope: `qlcv-list-scope.ts` (search / MY_TASKS — không filter cột khoa trên fact)
+- Canonical trạng thái: `src/lib/domain/qlcv/trang-thai-canonical.ts`

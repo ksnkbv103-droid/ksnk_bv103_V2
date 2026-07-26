@@ -220,7 +220,8 @@ export default function SearchableSelect({
         ? createPortal(
             isMobileSheet ? (
               <div
-                className="fixed inset-0 z-[10060] flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200"
+                data-bv103-picker-portal=""
+                className="pointer-events-auto fixed inset-0 z-[10060] flex items-center justify-center p-3 sm:p-5 animate-in fade-in duration-200"
                 role="presentation"
               >
                 <button
@@ -290,8 +291,10 @@ export default function SearchableSelect({
             ) : (
               <div
                 ref={panelRef}
-                style={dropdownStyle}
-                className="rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                data-bv103-picker-portal=""
+                style={{ ...dropdownStyle, pointerEvents: "auto" }}
+                className="pointer-events-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                onPointerDown={(e) => e.stopPropagation()}
               >
                 <input
                   ref={searchInputRef}

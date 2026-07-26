@@ -7,30 +7,23 @@
  */
 
 /**
- * Mã trạng thái trên view (sys_lookup_value.code).
- * - MOI / CHUA_BAT_DAU: mới / chưa bắt đầu (alias)
- * - CHO_NHAN_VIEC: alias legacy — UI lean gộp vào DANG_LAM khi đã giao phụ trách
- * - DANG_LAM / DANG_THUC_HIEN: đang thực hiện (alias)
- * - CHO_DUYET / CHO_XAC_NHAN_HOAN_THANH: đã báo 100%, chờ nghiệm thu
- * - TU_CHOI: bị từ chối nghiệm thu, cần làm lại
- * - HOAN_THANH: đã nghiệm thu và đóng
- * - QUA_HAN: đã qua hạn hoàn thành mà chưa xong
- * - DA_HUY: bị hủy (không hoàn thành)
- * - DE_XUAT_CHO_DUYET: trạng thái virtual (is_active=false, trang_thai=MOI) — không lưu DB
+ * Mã trạng thái — DB CHECK chỉ 7 mã canonical (xem `trang-thai-canonical.ts`).
+ * Alias legacy còn trên type để đọc dữ liệu cũ; ghi mới luôn normalize về 7 mã.
+ * DE_XUAT_CHO_DUYET: virtual (is_active=false + MOI) — không lưu DB.
  */
 export type CongViecTrangThai =
   | "MOI"
-  | "CHUA_BAT_DAU"
-  | "CHO_NHAN_VIEC"
+  | "CHUA_BAT_DAU" // alias → MOI
+  | "CHO_NHAN_VIEC" // alias → DANG_LAM
   | "DANG_LAM"
-  | "DANG_THUC_HIEN"
+  | "DANG_THUC_HIEN" // alias → DANG_LAM
   | "CHO_DUYET"
-  | "CHO_XAC_NHAN_HOAN_THANH"
+  | "CHO_XAC_NHAN_HOAN_THANH" // alias → CHO_DUYET
   | "TU_CHOI"
   | "HOAN_THANH"
   | "QUA_HAN"
   | "DA_HUY"
-  | "DE_XUAT_CHO_DUYET"; // virtual — chỉ dùng cho UI/display logic
+  | "DE_XUAT_CHO_DUYET";
 
 // ---------- Bảng qlcv_fact_cong_viec ----------
 export interface CongViec {

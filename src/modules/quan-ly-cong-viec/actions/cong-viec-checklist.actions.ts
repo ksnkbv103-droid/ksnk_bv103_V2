@@ -11,7 +11,9 @@ import {
 } from "@/lib/domain/qlcv-checklist";
 import { qlcvWorkflowMaFromViewRow } from "../lib/qlcv-workflow-read";
 import { trangThaiCongViecSauBaoCaoTienDo } from "../lib/qlcv-trang-thai-after-bao-cao-tien-do";
-import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
+import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
+import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
+import { isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import { persistQlcvChecklistViaRpc } from "../lib/qlcv-checklist-persist";
 import { formatQlcvDbError } from "../lib/qlcv-supabase-error";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
@@ -43,10 +45,11 @@ export async function updateQlcvChecklist(id: string, items: QlcvChecklistItem[]
 
   const wf = qlcvWorkflowMaFromViewRow(cur);
   if (isDeXuatChoDuyet(wf)) throw new Error("Đề xuất chưa được phê duyệt.");
-  if (isChoNghiemThuHoanThanh(wf)) {
+  if (isEligibleForNghiemThu(wf)) {
     throw new Error("Việc đang chờ nghiệm thu — không cập nhật checklist tại đây.");
   }
-  if (wf.trang_thai === "HOAN_THANH" || wf.trang_thai === "DA_HUY") {
+  const stClosed = normalizeQlcvTrangThaiToCanonical(wf.trang_thai);
+  if (stClosed === "HOAN_THANH" || stClosed === "DA_HUY") {
     throw new Error("Phiếu đã đóng.");
   }
 
@@ -121,10 +124,11 @@ export async function reportQlcvManualProgress(congViecId: string, phanTram: num
 
   const wf = qlcvWorkflowMaFromViewRow(cur);
   if (isDeXuatChoDuyet(wf)) throw new Error("Đề xuất chưa được phê duyệt.");
-  if (isChoNghiemThuHoanThanh(wf)) {
+  if (isEligibleForNghiemThu(wf)) {
     throw new Error("Việc đang chờ nghiệm thu — không cập nhật tiến độ tại đây.");
   }
-  if (wf.trang_thai === "HOAN_THANH" || wf.trang_thai === "DA_HUY") {
+  const stClosedManual = normalizeQlcvTrangThaiToCanonical(wf.trang_thai);
+  if (stClosedManual === "HOAN_THANH" || stClosedManual === "DA_HUY") {
     throw new Error("Phiếu đã đóng.");
   }
 

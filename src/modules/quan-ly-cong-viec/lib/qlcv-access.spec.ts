@@ -30,6 +30,14 @@ describe("canShowHoatDongProgressSection", () => {
       ),
     ).toBe(false);
   });
+  it("ẩn QUA_HAN @100% nếu không phải quản trị (cổng nghiệm thu)", () => {
+    expect(
+      canShowHoatDongProgressSection(
+        { trang_thai: "QUA_HAN", phan_tram_hoan_thanh: 100, is_active: true },
+        baseFlags,
+      ),
+    ).toBe(false);
+  });
   it("quản trị vẫn thấy form khi chờ nghiệm thu", () => {
     expect(
       canShowHoatDongProgressSection(

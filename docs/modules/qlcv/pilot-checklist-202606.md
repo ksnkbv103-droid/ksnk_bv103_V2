@@ -1,12 +1,13 @@
 # Pilot QLCV — checklist tay (KSNK-only)
 
-> **Tiền đề:** Nhân sự KSNK + RBAC; migration `20260617120000_qlcv_ksnk_only_scope.sql` apply.
+> **Tiền đề:** Nhân sự KSNK + RBAC; migration KSNK-only + lean (`20260617120000`…`20260617160000`) đã apply. Scope runtime = staff KSNK + `ensureQlcvKsnkAccess` (không còn cột `khoa_thuc_hien_id` trên fact).
 
 | # | Kịch bản | Các bước | Pass khi |
 |---|----------|----------|----------|
-| Q1 | Tạo việc trực tiếp | Tạo việc → giao NV **KSNK** | `trang_thai` = `DANG_LAM`; `khoa_thuc_hien_id` = KSNK |
-| Q2 | Đề xuất → duyệt | Đề xuất → duyệt + giao NV KSNK | `DANG_LAM`; `nguoi_giao_viec_id` đúng |
+| Q1 | Tạo việc trực tiếp | Tạo việc → giao NV **KSNK** | `trang_thai` = `DANG_LAM`; phụ trách là NV KSNK; hiện ở cột/hàng Đang thực hiện |
+| Q2 | Đề xuất → duyệt | Đề xuất → duyệt + giao NV KSNK | `is_active=true`; `DANG_LAM`; `nguoi_giao_viec_id` đúng |
 | Q3 | Nghiệm thu | Checklist 100% → nghiệm thu / từ chối | `HOAN_THANH` hoặc `TU_CHOI`; không force từ &lt;100% |
+| Q3b | Quá hạn + 100% | Phiếu `QUA_HAN` (hoặc hạn đã qua) đã 100% → Nghiệm thu | Vẫn ở cột Quá hạn trên Kanban; chi tiết có nút nghiệm thu → `HOAN_THANH` |
 | Q4 | Spawn định kỳ | Spawn 2 lần cùng ngày | Không trùng instance |
 | Q5 | Checklist | Tick → Lưu → reload | JSONB giữ trạng thái |
 | Q6 | Chặn ngoài KSNK | User khoa lâm sàng mở `/quan-ly-cong-viec` | 403 hoặc thông báo chỉ KSNK |
@@ -25,4 +26,4 @@ npm run trial:qlcv:precheck:local
 npm run verify:engineering
 ```
 
-Chi tiết: [`intake-ksnk-only-202606.md`](intake-ksnk-only-202606.md)
+Chi tiết: [`intake-ksnk-only-202606.md`](intake-ksnk-only-202606.md) · Ma trận liên thông: [`continuity-matrix-20260720.md`](continuity-matrix-20260720.md)

@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
 import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
 import { qlcvWorkflowMaFromViewRow } from "../lib/qlcv-workflow-read";
-import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
+import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
+import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
+import { isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import { assertQlcvRowInListScope, resolveQlcvListScope } from "../lib/qlcv-list-scope";
 import { appendQlcvNhatKy } from "../lib/qlcv-nhat-ky";
@@ -53,10 +55,11 @@ export async function createHoatDong(input: CreateHoatDongInput) {
 
   if (input.loai_hoat_dong === "BAO_CAO_TIEN_DO") {
     if (isDeXuatChoDuyet(wf)) throw new Error("Đề xuất chưa được phê duyệt.");
-    if (isChoNghiemThuHoanThanh(wf)) {
+    if (isEligibleForNghiemThu(wf)) {
       throw new Error("Việc đang chờ nghiệm thu — không ghi chú tiến độ tại đây.");
     }
-    if (wf.trang_thai === "HOAN_THANH" || wf.trang_thai === "DA_HUY") {
+    const stClosed = normalizeQlcvTrangThaiToCanonical(wf.trang_thai);
+    if (stClosed === "HOAN_THANH" || stClosed === "DA_HUY") {
       throw new Error("Phiếu đã đóng.");
     }
 
@@ -65,15 +68,13 @@ export async function createHoatDong(input: CreateHoatDongInput) {
       const isAssignee =
         Boolean(actorNhanSuId && task.nguoi_phu_trach_id) &&
         String(actorNhanSuId) === String(task.nguoi_phu_trach_id);
-      const st = wf.trang_thai;
+      const st = normalizeQlcvTrangThaiToCanonical(wf.trang_thai);
       const assigneeMayNote =
         isAssignee &&
         (st === "DANG_LAM" ||
           st === "TU_CHOI" ||
-          st === "DANG_THUC_HIEN" ||
-          st === "CHO_NHAN_VIEC" ||
           st === "QUA_HAN" ||
-          ((st === "MOI" || st === "CHUA_BAT_DAU") && Boolean(task.nguoi_phu_trach_id)));
+          (st === "MOI" && Boolean(task.nguoi_phu_trach_id)));
 
       if (!assigneeMayNote) {
         await verifyPermission("CONG_VIEC", "edit");

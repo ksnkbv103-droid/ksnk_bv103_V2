@@ -18,7 +18,7 @@ const optionalUuid = (field: string) =>
   );
 
 /**
- * Zod Schema cho Quản lý công việc v2.2 — CHECK `qlcv_fact_cong_viec` (migration 20260716005 Track B).
+ * Zod Schema cho Quản lý công việc — CHECK `qlcv_fact_cong_viec` (7 mã Track B, `20260709140000`).
  */
 export const congViecSchema = z.object({
   tieu_de: z.preprocess(

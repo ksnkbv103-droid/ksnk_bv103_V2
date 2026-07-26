@@ -2,6 +2,8 @@
  * Cổng nghiệp vụ QLCV (Track B lean): đề xuất | đang làm | chờ nghiệm thu | đóng.
  */
 
+import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
+
 export type CongViecLike = {
   trang_thai?: string | null;
   is_active?: boolean | null;
@@ -12,13 +14,16 @@ export type CongViecLike = {
 
 export function isDeXuatChoDuyet(t: CongViecLike): boolean {
   if (t.trang_thai === "DE_XUAT_CHO_DUYET") return true;
-  return t.is_active === false && (t.trang_thai === "MOI" || t.trang_thai === "CHUA_BAT_DAU");
+  const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
+  return t.is_active === false && st === "MOI";
 }
 
 export function isChoNghiemThuHoanThanh(t: CongViecLike): boolean {
-  if (t.trang_thai === "CHO_XAC_NHAN_HOAN_THANH" || t.trang_thai === "CHO_DUYET") return true;
+  const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
+  if (st === "CHO_DUYET") return true;
   const pct = Number(t.phan_tram_hoan_thanh ?? t.tien_do ?? 0);
-  return (t.trang_thai === "DANG_LAM" || t.trang_thai === "DANG_THUC_HIEN") && pct >= 100;
+  // Chỉ DANG_LAM@100% — TU_CHOI = làm lại; QUA_HAN để gate QUA_HAN / lane quá hạn ưu tiên.
+  return st === "DANG_LAM" && pct >= 100;
 }
 
 export type QlcvWorkflowGate =
@@ -34,13 +39,13 @@ export type QlcvWorkflowGate =
 export function getQlcvWorkflowGate(t: CongViecLike): QlcvWorkflowGate {
   if (isDeXuatChoDuyet(t)) return "DE_XUAT";
   if (isChoNghiemThuHoanThanh(t)) return "NGHIEM_THU";
-  const st = String(t.trang_thai || "").trim().toUpperCase();
+  const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
   if (st === "HOAN_THANH") return "HOAN_THANH";
   if (st === "DA_HUY") return "DA_HUY";
   if (st === "QUA_HAN") return "QUA_HAN";
   if (st === "TU_CHOI") return "TU_CHOI";
-  if (st === "DANG_LAM" || st === "DANG_THUC_HIEN" || st === "CHO_NHAN_VIEC") return "DANG_LAM";
-  if (t.is_active !== false && (st === "MOI" || st === "CHUA_BAT_DAU")) return "DANG_LAM";
+  if (st === "DANG_LAM") return "DANG_LAM";
+  if (t.is_active !== false && st === "MOI") return "DANG_LAM";
   return "MOI";
 }
 

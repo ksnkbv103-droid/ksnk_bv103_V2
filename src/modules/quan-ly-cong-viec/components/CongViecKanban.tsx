@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { Clock, ChevronRight } from "lucide-react";
+import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import { formatMucDoUuTienLabel, getCongViecTrangThaiLabel } from "../lib/qlcv-labels";
 import { getKanbanColumnIdForTask, type KanbanColumnId } from "../lib/qlcv-board-lanes";
@@ -26,8 +27,8 @@ function showKanbanCardSubtitle(colId: KanbanColId, t: CongViecView, showProposa
   if (logicalCol !== colId) return true;
   if (colId === "DE_XUAT" && isDeXuatChoDuyet(t)) return false;
   if (colId === "CHO_DUYET" && isChoNghiemThuHoanThanh(t)) return false;
-  const st = String(t.trang_thai || "");
-  if (colId === "DANG_LAM" && (st === "DANG_LAM" || st === "TU_CHOI" || st === "DANG_THUC_HIEN")) return false;
+  const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
+  if (colId === "DANG_LAM" && (st === "DANG_LAM" || st === "TU_CHOI")) return false;
   if (colId === "HOAN_THANH" || colId === "DA_HUY" || colId === "QUA_HAN") return false;
   return true;
 }

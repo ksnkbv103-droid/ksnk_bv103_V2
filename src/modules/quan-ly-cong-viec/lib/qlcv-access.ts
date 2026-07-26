@@ -1,5 +1,7 @@
+import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
+import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { getBoardLaneId, type CongViecBoardInput } from "./qlcv-board-lanes";
-import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet, type CongViecLike } from "./qlcv-workflow-display";
+import { isDeXuatChoDuyet, type CongViecLike } from "./qlcv-workflow-display";
 
 /** Dòng fact / view có đủ trường để kiểm tra quyền CRUD nhiệm vụ gốc + lane quá hạn. */
 export type QlcvTaskAccessRow = CongViecLike & {
@@ -22,7 +24,7 @@ export function isQlcvTaskInQuaHanLane(row: QlcvTaskAccessRow): boolean {
 /** Phiếu active đã giao (không còn đề xuất chờ duyệt). */
 function isDaGiaoChoPhuTrachThucHien(row: QlcvTaskAccessRow): boolean {
   if (isDeXuatChoDuyet(row)) return false;
-  if (String(row.trang_thai || "") === "DA_HUY") return false;
+  if (normalizeQlcvTrangThaiToCanonical(row.trang_thai) === "DA_HUY") return false;
   return row.is_active !== false;
 }
 
@@ -56,7 +58,8 @@ export function canShowDeleteTask(row: QlcvTaskAccessRow, f: QlcvUiAccessFlags):
 
 /** Sửa metadata form: người phụ trách đã nhận việc không được sửa nội dung gốc; chờ nghiệm thu vẫn sửa được (hạn/mô tả) nếu có quyền edit và không bị chặn phụ trách. */
 export function canShowEditTaskMetadata(row: QlcvTaskAccessRow, f: QlcvUiAccessFlags): boolean {
-  if (String(row.trang_thai || "") === "HOAN_THANH" || String(row.trang_thai || "") === "DA_HUY") return false;
+  const st = normalizeQlcvTrangThaiToCanonical(row.trang_thai);
+  if (st === "HOAN_THANH" || st === "DA_HUY") return false;
   if (isDeXuatChoDuyet(row)) return false;
   if (!(f.isRBACAdmin || f.hasEdit)) return false;
   if (!f.actorStaffId) return false;
@@ -66,12 +69,13 @@ export function canShowEditTaskMetadata(row: QlcvTaskAccessRow, f: QlcvUiAccessF
 
 /**
  * Form báo cáo % — ẩn khi đề xuất chưa kích hoạt, khi chờ nghiệm thu (trừ quản trị chỉnh tay), hoặc đã đóng.
+ * Cổng nghiệm thu = `isEligibleForNghiemThu` (gồm QUA_HAN@100%).
  */
 export function canShowHoatDongProgressSection(row: QlcvTaskAccessRow, f: QlcvUiAccessFlags): boolean {
-  const st = String(row.trang_thai || "");
+  const st = normalizeQlcvTrangThaiToCanonical(row.trang_thai);
   if (st === "HOAN_THANH" || st === "DA_HUY") return false;
   if (isDeXuatChoDuyet(row)) return false;
-  if (isChoNghiemThuHoanThanh(row) && !f.isRBACAdmin) return false;
+  if (isEligibleForNghiemThu(row) && !f.isRBACAdmin) return false;
   return true;
 }
 

@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import { AlertTriangle, CheckCircle2, Clock, ListTodo, UserRound } from "lucide-react";
+import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import { isBoardLaneDangLam, isBoardLaneQuaHan } from "../lib/qlcv-board-lanes";
 import { isMyQlcvTask, type QlcvBoardFilter } from "../lib/qlcv-board-filter";
@@ -24,7 +25,7 @@ export function QlcvGateStats({ tasks, activeFilter, onFilterChange, showAllGate
 
   const stats = useMemo(() => {
     const total = list.length;
-    const completed = list.filter((t) => t.trang_thai === "HOAN_THANH").length;
+    const completed = list.filter((t) => normalizeQlcvTrangThaiToCanonical(t.trang_thai) === "HOAN_THANH").length;
     const inProgress = list.filter((t) => isBoardLaneDangLam(t)).length;
 
     const today = new Date();
@@ -36,7 +37,8 @@ export function QlcvGateStats({ tasks, activeFilter, onFilterChange, showAllGate
 
     const nearDeadline = list.filter((t) => {
       if (!t.han_hoan_thanh) return false;
-      if (t.trang_thai === "HOAN_THANH" || t.trang_thai === "DA_HUY") return false;
+      const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
+      if (st === "HOAN_THANH" || st === "DA_HUY") return false;
       const d = new Date(t.han_hoan_thanh);
       d.setHours(0, 0, 0, 0);
       const diff = (d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);

@@ -109,6 +109,39 @@ describe("getBoardLaneId (§4.3 QLCV)", () => {
     ).toBe("lane_de_xuat");
   });
 
+  it("đề xuất ưu tiên trước quá hạn theo lịch", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-10T12:00:00Z"));
+    expect(
+      getBoardLaneId({
+        trang_thai: "MOI",
+        is_active: false,
+        han_hoan_thanh: "2026-06-01",
+      }),
+    ).toBe("lane_de_xuat");
+  });
+
+  it("QUA_HAN @100% vẫn lane quá hạn (nghiệm thu từ chi tiết)", () => {
+    expect(
+      getBoardLaneId({
+        trang_thai: "QUA_HAN",
+        phan_tram_hoan_thanh: 100,
+      }),
+    ).toBe("lane_qua_han");
+  });
+
+  it("alias legacy DANG_THUC_HIEN map vào đang làm", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-01T12:00:00Z"));
+    expect(
+      getBoardLaneId({
+        trang_thai: "DANG_THUC_HIEN",
+        phan_tram_hoan_thanh: 50,
+        han_hoan_thanh: "2026-12-31",
+      }),
+    ).toBe("lane_dang_lam");
+  });
+
   it("MOI + active → đang làm (kể cả chưa có phụ trách — dữ liệu cũ)", () => {
     expect(
       getBoardLaneId({ trang_thai: "MOI", is_active: true, nguoi_phu_trach_id: null }),

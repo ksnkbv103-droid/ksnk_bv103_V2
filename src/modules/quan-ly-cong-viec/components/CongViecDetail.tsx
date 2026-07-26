@@ -27,7 +27,7 @@ import {
   tuChoiHoanThanhCongViec,
 } from "../actions/cong-viec.actions";
 import { huyKhiChoNghiemThuKhongDat } from "../actions/cong-viec-write.actions";
-import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
+import { isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import {
   canShowDeleteTask,
   canShowEditTaskMetadata,
@@ -38,6 +38,8 @@ import { useModulePermission } from "@/hooks/useModulePermission";
 import { getCongViecTrangThaiLabel } from "../lib/qlcv-labels";
 import { resolveQlcvWorkflowBadgeAppearance } from "../lib/qlcv-workflow-badge";
 import { getTrangThaiMauSacMap } from "../actions/cong-viec-read.actions";
+import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
+import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
 import type { CongViecView } from "../types";
 
 interface Props {
@@ -46,7 +48,7 @@ interface Props {
   onRefreshList?: () => void;
 }
 
-type QlcvHoTenRef = { ho_ten?: string | null };
+type QlcvHoTenRef = { ho_ten?: string | null; is_active?: boolean | null };
 type QlcvToRef = { ten_to?: string | null };
 type CongViecDetailData = CongViecView & {
   nguoi_tao?: QlcvHoTenRef | null;
@@ -150,16 +152,22 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const showEditMetadata = canShowEditTaskMetadata(data, accessFlags);
   const showApproveDeXuat = isDeXuatChoDuyet(data) && canShowQlcvApproveActions(accessFlags);
   const usesChecklist = taskUsesQlcvChecklistForProgress(data.checklist);
-  const st = String(data.trang_thai || "");
+  const st = normalizeQlcvTrangThaiToCanonical(data.trang_thai);
+  const assigneeInactiveOpen =
+    Boolean(data.nguoi_phu_trach_id) &&
+    data.nguoi_phu_trach?.is_active === false &&
+    st !== "HOAN_THANH" &&
+    st !== "DA_HUY";
   const showHoatDong = canShowHoatDongProgressSection(data, accessFlags);
+  const atNghiemThuGate = isEligibleForNghiemThu(data);
   const checklistReadOnly =
-    isDeXuatChoDuyet(data) || st === "HOAN_THANH" || st === "DA_HUY" || isChoNghiemThuHoanThanh(data);
-  const showNghiemThuToolbar = isChoNghiemThuHoanThanh(data) && canNghiemThu;
+    isDeXuatChoDuyet(data) || st === "HOAN_THANH" || st === "DA_HUY" || atNghiemThuGate;
+  const showNghiemThuToolbar = atNghiemThuGate && canNghiemThu;
   const showHuyButton =
     (accessFlags.isRBACAdmin || accessFlags.hasDelete) &&
     st !== "HOAN_THANH" &&
     st !== "DA_HUY" &&
-    !isChoNghiemThuHoanThanh(data);
+    !atNghiemThuGate;
 
   const runHuyKhongDat = async (lyDo: string) => {
     try {
@@ -174,6 +182,15 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
 
   return (
     <div className="space-y-6 pb-16 animate-in slide-in-from-right-4 duration-300">
+      {assigneeInactiveOpen && (
+        <div
+          role="status"
+          className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+        >
+          Người phụ trách đã ngừng hoạt động trong danh mục nhân sự. Nên giao lại việc hoặc hủy phiếu để tránh
+          việc mở bị bỏ quên.
+        </div>
+      )}
       <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -445,9 +462,9 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
       <QlcvConfirmDialog
         open={confirmDeleteOpen}
         onOpenChange={setConfirmDeleteOpen}
-        title={data.trang_thai === "HOAN_THANH" ? "Xóa công việc đã hoàn thành" : "Xác nhận xóa công việc"}
+        title={st === "HOAN_THANH" ? "Xóa công việc đã hoàn thành" : "Xác nhận xóa công việc"}
         description={
-          data.trang_thai === "HOAN_THANH"
+          st === "HOAN_THANH"
             ? "Xóa vĩnh viễn công việc đã hoàn thành. Chỉ quản trị viên hoặc người có quyền xóa mới thực hiện được."
             : "Công việc sẽ bị xóa vĩnh viễn khỏi hệ thống."
         }
