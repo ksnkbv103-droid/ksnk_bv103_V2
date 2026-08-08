@@ -11,7 +11,7 @@ import { congViecSchema } from "@/lib/validations/quan-ly-cong-viec.validations"
 import type { QlcvSelectOption } from "../lib/qlcv-form-options";
 import type { CongViecView } from "../types";
 
-type QlcvLoaiCongViec = "DINH_KY" | "DOT_XUAT" | "KHAN_CAP";
+type QlcvLoaiCongViec = "DOT_XUAT" | "KHAN_CAP";
 type QlcvMucDoUuTien = "THAP" | "TRUNG_BINH" | "CAO";
 
 interface Props {
@@ -34,7 +34,7 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
   const [tieuDe, setTieuDe] = useState(proposal.tieu_de);
   const [moTa, setMoTa] = useState(proposal.mo_ta ?? "");
   const [loaiCongViec, setLoaiCongViec] = useState<QlcvLoaiCongViec>(
-    (proposal.loai_cong_viec as QlcvLoaiCongViec) || "DOT_XUAT",
+    proposal.loai_cong_viec === "KHAN_CAP" ? "KHAN_CAP" : "DOT_XUAT",
   );
   const [mucDoUuTien, setMucDoUuTien] = useState<QlcvMucDoUuTien>(
     (proposal.muc_do_uu_tien as QlcvMucDoUuTien) || "TRUNG_BINH",
@@ -46,7 +46,7 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
   useEffect(() => {
     setTieuDe(proposal.tieu_de);
     setMoTa(proposal.mo_ta ?? "");
-    setLoaiCongViec((proposal.loai_cong_viec as QlcvLoaiCongViec) || "DOT_XUAT");
+    setLoaiCongViec(proposal.loai_cong_viec === "KHAN_CAP" ? "KHAN_CAP" : "DOT_XUAT");
     setMucDoUuTien((proposal.muc_do_uu_tien as QlcvMucDoUuTien) || "TRUNG_BINH");
     setHanHoanThanh(proposal.han_hoan_thanh ? String(proposal.han_hoan_thanh).split("T")[0] : "");
     setSelectedNhanSu("");
@@ -135,11 +135,6 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
   return (
     <form onSubmit={handleApprove} className="space-y-6">
       <div className={`space-y-4 p-5 sm:p-6 ${bv103LayoutChrome.panelSurface}`}>
-        <p className={bv103LayoutChrome.noticeViolet}>
-          Đề xuất nội bộ KSNK — có thể chỉnh tiêu đề, mô tả, hạn trước khi giao; chọn <strong>tổ</strong> và{" "}
-          <strong>người phụ trách</strong> rồi phê duyệt.
-        </p>
-
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <label className={labelStyles}>Tiêu đề *</label>
@@ -167,7 +162,6 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
           <div>
             <label className={labelStyles}>Loại hình</label>
             <select value={loaiCongViec} onChange={(e) => setLoaiCongViec(e.target.value as QlcvLoaiCongViec)} className={inputStyles}>
-              <option value="DINH_KY">Định kỳ</option>
               <option value="DOT_XUAT">Đột xuất</option>
               <option value="KHAN_CAP">Khẩn cấp</option>
             </select>

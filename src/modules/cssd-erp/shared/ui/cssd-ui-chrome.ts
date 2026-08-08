@@ -24,11 +24,10 @@ export const CSSD_UI_CONTROL = bv103LayoutChrome.controlInput;
 export const CSSD_UI_CONTROL_NATIVE = bv103LayoutChrome.controlSelectNative;
 export const CSSD_UI_DATA_SURFACE =
   "min-h-[280px] overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white p-1.5 shadow-sm sm:min-h-[420px] sm:p-2";
-export const CSSD_UI_TAB_GROUP =
-  "flex w-full max-w-full gap-1 overflow-x-auto scrollbar-hide rounded-[var(--radius-control)] border border-slate-200 bg-slate-100 p-0.5 sm:w-fit sm:gap-2 sm:p-1";
-export const CSSD_UI_TAB_BTN =
-  "flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-[11px] font-semibold uppercase tracking-wide transition-all touch-manipulation sm:rounded-xl sm:gap-2 sm:px-5 sm:py-3 sm:text-[11px]";
+/** Alias strip chung — khớp `bv103LayoutChrome.navTabStrip` (Ops dialect). */
+export const CSSD_UI_TAB_GROUP = `${bv103LayoutChrome.navTabStrip} sm:w-fit`;
+export const CSSD_UI_TAB_BTN = bv103LayoutChrome.navTabBtn;
 export const CSSD_UI_TAB_ACTIVE = "bg-[var(--primary)] text-white shadow-sm";
-export const CSSD_UI_TAB_IDLE = "text-slate-500 hover:bg-white/70";
-export const CSSD_UI_ACTION_PRIMARY = `${bv103LayoutChrome.btnPrimary} shadow-sm ${touch}`;
-export const CSSD_UI_ACTION_SECONDARY = `${bv103LayoutChrome.btnSecondary} shadow-sm ${touch}`;
+export const CSSD_UI_TAB_IDLE = "bg-transparent text-slate-600 hover:bg-white/80";
+export const CSSD_UI_ACTION_PRIMARY = `${bv103LayoutChrome.btnPrimary} ${touch}`;
+export const CSSD_UI_ACTION_SECONDARY = `${bv103LayoutChrome.btnSecondary} ${touch}`;

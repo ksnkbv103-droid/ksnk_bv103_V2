@@ -12,6 +12,11 @@ import { normalizeImportedRowTypedValues, sanitizeSmartImportRowPayload } from "
 import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
 import { randomUUID } from "crypto";
 import { syncLoaiPhysicalColumnsOnImportPayload } from "@/lib/master-data/cssd-loai-dung-cu-map";
+import {
+  isSmartImportTable,
+  SMART_IMPORT_TABLE_UNIQUE_KEY,
+  type SmartImportOptions,
+} from "./smart-import.contract";
 
 interface SmartImportConfig {
   tableName: string;
@@ -20,14 +25,14 @@ interface SmartImportConfig {
   fixedValues?: Record<string, unknown>;
 }
 
-const SMART_IMPORT_TABLE_UNIQUE_KEY: Record<string, string> = {
-  mdm_dm_khoa_phong: "ma_khoa",
-  cssd_dm_bo_dung_cu_chi_tiet: "ma_chi_tiet",
-  cssd_dm_loai_dung_cu: "ma_loai_dung_cu",
-  cssd_dm_hoa_chat: "ma_hoa_chat",
-  cssd_dm_bo_dung_cu: "ma_bo",
-  cssd_dm_thiet_bi: "ma_thiet_bi",
-  mdm_nhan_su: "ma_nv",
+export type SmartImportAudit = {
+  tableName: string;
+  mode: "safe" | "sync_full" | "dry_run";
+  insertCount: number;
+  updateCount: number;
+  deactivateCount: number;
+  warningCount: number;
+  at: string;
 };
 
 function errSmartImport(e: unknown) {
@@ -39,15 +44,21 @@ function formatSmartImportDbError(tableName: string, message: string) {
   return formatHoSoNhanSuWriteError(message) || formatHoSoKhoaFkViolation(message) || message;
 }
 
-export async function smartImportData(config: SmartImportConfig, data: Record<string, unknown>[]) {
+export async function smartImportData(
+  config: SmartImportConfig,
+  data: Record<string, unknown>[],
+  options?: SmartImportOptions,
+) {
+  const softDeleteMissing = options?.softDeleteMissing === true;
+  const dryRun = options?.dryRun === true;
   try {
     if (!Array.isArray(data) || data.length === 0) {
       return { success: false, error: "File import không có dữ liệu hợp lệ." };
     }
-    const expectedUniqueKey = SMART_IMPORT_TABLE_UNIQUE_KEY[config.tableName];
-    if (!expectedUniqueKey) {
+    if (!isSmartImportTable(config.tableName)) {
       return { success: false, error: `Bảng không được phép Smart Import: ${config.tableName}` };
     }
+    const expectedUniqueKey = SMART_IMPORT_TABLE_UNIQUE_KEY[config.tableName];
     if (expectedUniqueKey !== config.uniqueKey) {
       return {
         success: false,
@@ -224,6 +235,39 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
       };
     }
 
+    const updateCount = preparedRows.filter((r) => existingCodeToId.has(r.code)).length;
+    const insertCount = preparedRows.length - updateCount;
+    const plannedCodes = new Set(preparedRows.map((r) => r.code));
+    const deactivateCount = softDeleteMissing
+      ? Array.from(existingCodes).filter((c) => !plannedCodes.has(c)).length
+      : 0;
+
+    const buildAudit = (mode: SmartImportAudit["mode"]): SmartImportAudit => ({
+      tableName: config.tableName,
+      mode,
+      insertCount,
+      updateCount,
+      deactivateCount,
+      warningCount: rowWarnings.length,
+      at: new Date().toISOString(),
+    });
+
+    if (dryRun) {
+      const audit = buildAudit("dry_run");
+      console.info("[IMPORT_AUDIT]", JSON.stringify(audit));
+      return {
+        success: true,
+        dryRun: true,
+        audit,
+        errorLines: rowWarnings.slice(0, 20),
+        errorTotal: rowWarnings.length,
+        warning:
+          rowWarnings.length > 0
+            ? `Dry-run: ${insertCount} thêm, ${updateCount} cập nhật, ${deactivateCount} sẽ ẩn. Cảnh báo: ${rowWarnings.slice(0, 3).join(" ; ")}`
+            : `Dry-run: ${insertCount} thêm, ${updateCount} cập nhật, ${deactivateCount} sẽ ẩn (không ghi DB).`,
+      };
+    }
+
     const CHUNK_SIZE = 200;
     for (let i = 0; i < preparedRows.length; i += CHUNK_SIZE) {
       const chunk = preparedRows.slice(i, i + CHUNK_SIZE);
@@ -255,26 +299,32 @@ export async function smartImportData(config: SmartImportConfig, data: Record<st
       return {
         success: false,
         error: buildImportErrorMessage(rowErrors, dbErrors),
+        audit: buildAudit(softDeleteMissing ? "sync_full" : "safe"),
       };
     }
 
-    const codesToDelete = Array.from(existingCodes).filter(c => !importedCodes.has(c));
-    if (codesToDelete.length > 0) {
-      const idsToDelete = codesToDelete.map(c => existingCodeToId.get(c)).filter(Boolean) as string[];
-      if (idsToDelete.length > 0) {
-        const { error } = await supabase
-          .from(config.tableName)
-          .update({ is_active: false })
-          .in("id", idsToDelete);
-        if (error) {
-          return { success: false, error: `Không thể soft-delete dữ liệu thiếu trong file: ${error.message}` };
+    if (softDeleteMissing) {
+      const codesToDelete = Array.from(existingCodes).filter((c) => !importedCodes.has(c));
+      if (codesToDelete.length > 0) {
+        const idsToDelete = codesToDelete.map((c) => existingCodeToId.get(c)).filter(Boolean) as string[];
+        if (idsToDelete.length > 0) {
+          const { error } = await supabase
+            .from(config.tableName)
+            .update({ is_active: false })
+            .in("id", idsToDelete);
+          if (error) {
+            return { success: false, error: `Không thể soft-delete dữ liệu thiếu trong file: ${error.message}` };
+          }
         }
       }
     }
 
+    const audit = buildAudit(softDeleteMissing ? "sync_full" : "safe");
+    console.info("[IMPORT_AUDIT]", JSON.stringify(audit));
     revalidatePath("/quan-tri-he-thong");
     return {
       success: true,
+      audit,
       warning:
         rowWarnings.length > 0
           ? `Có ${rowWarnings.length} cảnh báo mapping. Ví dụ: ${rowWarnings.slice(0, 3).join(" ; ")}`

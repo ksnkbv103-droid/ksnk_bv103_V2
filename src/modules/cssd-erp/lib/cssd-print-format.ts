@@ -1,25 +1,18 @@
 /** Định dạng hiển thị cho phiếu in CSSD (A4). */
 
+import { formatDateTimeVi, formatDateVi } from "@/lib/format-datetime-vi";
 import type { CssdBatchAnhMinhChung, CssdBatchPrintData, CssdQcProofRow } from "../types/cssd-print.types";
 
 export function formatCssdPrintDateTime(iso: string | null | undefined): string {
   if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return String(iso);
-  return d.toLocaleString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const formatted = formatDateTimeVi(iso, "");
+  return formatted || String(iso);
 }
 
 export function formatCssdPrintDate(iso: string | null | undefined): string {
   if (!iso) return "—";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return String(iso);
-  return d.toLocaleDateString("vi-VN");
+  const formatted = formatDateVi(iso, "");
+  return formatted || String(iso);
 }
 
 export function formatCssdTriLabel(raw: string | null | undefined): string {

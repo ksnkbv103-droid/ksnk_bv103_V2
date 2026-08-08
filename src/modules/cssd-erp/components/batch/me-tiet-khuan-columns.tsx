@@ -3,6 +3,7 @@
 
 import type { Column } from "@/components/shared/AdvancedDataTable";
 import { Printer } from "lucide-react";
+import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 import {
   CSSD_UI_CELL_CODE,
   CSSD_UI_CELL_INDEX,
@@ -17,7 +18,15 @@ export function buildMeTietKhuanBatchColumns(opts?: {
   {
     header: "Mã lô",
     accessorKey: "ma_lo_tiet_khuan",
-    cell: (i: any) => <span className={CSSD_UI_CELL_CODE}>{i.ma_lo_tiet_khuan}</span>,
+    cell: (i: any) => {
+      const code = String(i.ma_lo_tiet_khuan || "").trim();
+      return (
+        <span className="inline-flex items-center gap-2">
+          {code ? <InlineEntityQrThumb code={code} size={32} /> : null}
+          <span className={CSSD_UI_CELL_CODE}>{code || "—"}</span>
+        </span>
+      );
+    },
   },
   {
     header: "Số bộ trong mẻ",

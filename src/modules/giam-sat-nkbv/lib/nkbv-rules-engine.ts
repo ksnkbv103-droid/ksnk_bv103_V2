@@ -1,67 +1,125 @@
 /**
- * CDC/NHSN 2023 Rules Engine for HAI Surveillance (Giám sát NKBV)
- * 
- * Tài liệu tham chiếu: 
- * - docs/Thuạt̂ Toán Xác Định Nhiễm Khuẩn Huyết BSI Và CLABSI.md
- * - docs/Thuạt̂ toán Giám sát Viêm phổi Bệnh viện Bản 2.1.md
- * - docs/Thuạt̂ toán Giám sát và Chẩn đoán Nhiễm khuẩn Tiết niệu.md
- * - docs/Thuạt̂ toán Chẩn đoán và Giám sát Nhiễm khuẩn Vết mổ hiệu quả.md
+ * CDC/NHSN Rules Engine — wires Shared timeline / Secondary BSI (SSOT v2 W1–W2).
  */
 
-import { 
-  BsiVerificationData, 
-  VaeVerificationData, 
-  UtiVerificationData, 
-  SsiVerificationData 
+import {
+  BsiVerificationData,
+  VaeVerificationData,
+  UtiVerificationData,
+  SsiVerificationData,
 } from "../types/nkbv-verification";
+import { computeVacFromDailyVent } from "./nkbv-vae-vent-compute";
+import { evaluateSecondaryBsi } from "./nkbv-shared-secondary-bsi";
+import {
+  isDeviceAssociated,
+  resolveClinicalSbap,
+  ssiSbapWindow,
+  vaeEventPeriod,
+} from "./nkbv-shared-timeline";
+import {
+  getNhsnOrganSpaceSite,
+  getNhsnProcedure,
+  getNhsnSsiEventType,
+  isOrganSpaceSiteAllowedForProcedure,
+  isSecondaryIncisionalEvent,
+  nhsClassificationFromEvent,
+  resolveSsiSurveillanceDays,
+  secondaryIncisionMismatchWarning,
+} from "./nkbv-ssi-nhsn-catalog";
 
 export interface RuleEvaluationResult {
   is_positive: boolean;
   classification: string;
   is_secondary_bsi?: boolean;
-  lcbi_type?: string; // LCBI_1, LCBI_2, etc. (for BSI)
+  lcbi_type?: string;
   reason: string;
 }
 
-/**
- * 1. Thuật toán chẩn đoán BSI / CLABSI / MBI-LCBI
- */
+/** Triệu chứng lâm sàng LCBI — tách field SSOT hoặc legacy OR. */
+export function bsiHasClinicalSymptoms(data: BsiVerificationData): boolean {
+  if (data.has_fever || data.has_chills || data.has_hypotension) return true;
+  if (
+    data.is_infant_le1 &&
+    (data.has_fever || data.has_hypothermia || data.has_apnea || data.has_bradycardia)
+  ) {
+    return true;
+  }
+  return Boolean(data.symptoms_window_7days);
+}
+
 export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResult {
-  // Bước 1: Loại nấm cộng đồng
   if (data.is_fungi_respiratory) {
-    return { 
-      is_positive: false, 
-      classification: "COMMUNITY_INFECTION", 
-      reason: "Nhiễm nấm hô hấp cộng đồng (Blastomyces, Histoplasma...), không phải BSI bệnh viện." 
+    return {
+      is_positive: false,
+      classification: "COMMUNITY_INFECTION",
+      reason: "Nhiễm nấm hô hấp cộng đồng (Blastomyces, Histoplasma...), không phải BSI bệnh viện.",
     };
   }
 
   let isLcbi = false;
   let lcbiType = "";
+  const hasSx = bsiHasClinicalSymptoms(data);
 
-  // Bước 2: Xác định LCBI
-  if (data.pathogen_type === 'RECOGNIZED') {
+  if (data.pathogen_type === "RECOGNIZED") {
     isLcbi = true;
-    lcbiType = "LCBI_1";
-  } else if (data.pathogen_type === 'COMMON_COMMENSAL') {
-    if (data.commensal_culture_count >= 2 && data.commensal_drawn_separate && data.symptoms_window_7days) {
+    lcbiType = data.is_infant_le1 && hasSx ? "LCBI_1" : "LCBI_1";
+  } else if (data.pathogen_type === "COMMON_COMMENSAL") {
+    if (data.commensal_culture_count >= 2 && data.commensal_drawn_separate && hasSx) {
       isLcbi = true;
-      lcbiType = "LCBI_2";
+      lcbiType = data.is_infant_le1 ? "LCBI_3" : "LCBI_2";
     }
   }
 
   if (!isLcbi) {
-    return { 
-      is_positive: false, 
-      classification: "CONTAMINATION", 
-      reason: "Ngoại nhiễm hoặc thiếu triệu chứng lâm sàng đối với vi khuẩn cộng sinh ngoài da." 
+    return {
+      is_positive: false,
+      classification: "CONTAMINATION",
+      reason: "Ngoại nhiễm hoặc thiếu triệu chứng lâm sàng đối với vi khuẩn cộng sinh ngoài da.",
     };
   }
 
-  // Bước 3: Lọc Secondary BSI (Nhiễm khuẩn huyết thứ phát)
+  // Secondary BSI gate BEFORE CLABSI label (SSOT §6 + §4)
   let isSecondary = false;
   if (data.has_localized_infection) {
-    if (data.localized_pathogen_matches && data.is_in_sbap_window) {
+    const doe = data.calculated_doe || "";
+    const site =
+      data.localized_site_type === "UTI"
+        ? "UTI"
+        : data.localized_site_type === "PNEU"
+          ? "PNEU"
+          : data.localized_site_type === "SSI"
+            ? "SSI"
+            : "OTHER";
+
+    const sbap =
+      site === "SSI"
+        ? data.calculated_sbap_start && data.calculated_sbap_end
+          ? { start: data.calculated_sbap_start, end: data.calculated_sbap_end }
+          : doe
+            ? ssiSbapWindow(doe)
+            : { start: "", end: "" }
+        : resolveClinicalSbap({
+            sbapStart: data.calculated_sbap_start,
+            sbapEnd: data.calculated_sbap_end,
+            iwpStart: data.calculated_iwp_start,
+            doe,
+          });
+
+    const bloodDate = data.blood_collection_date || doe;
+    if (bloodDate && sbap.start) {
+      const sec = evaluateSecondaryBsi({
+        primarySite: site,
+        bloodCollectionDate: bloodDate,
+        sbapStart: sbap.start,
+        sbapEnd: sbap.end,
+        bloodOrganism: data.pathogen_name || "",
+        primaryOrganism: data.localized_pathogen_name,
+        organismsMatch: data.localized_pathogen_matches,
+        bloodMandatoryForPrimary: data.blood_mandatory_for_localized,
+        lungOrPleuralMatch: data.lung_or_pleural_match,
+      });
+      isSecondary = sec.isSecondary;
+    } else if (data.localized_pathogen_matches && data.is_in_sbap_window) {
       isSecondary = true;
     } else if (data.blood_mandatory_for_localized) {
       isSecondary = true;
@@ -69,55 +127,63 @@ export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResu
   }
 
   if (isSecondary) {
-    return { 
-      is_positive: true, 
-      classification: "SECONDARY_BSI", 
+    return {
+      is_positive: true,
+      classification: "SECONDARY_BSI",
       is_secondary_bsi: true,
       lcbi_type: lcbiType,
-      reason: "Nhiễm khuẩn huyết thứ phát xuất phát từ ổ nhiễm trùng tại chỗ khác. Tuyệt đối KHÔNG tính lỗi CLABSI."
+      reason:
+        "Nhiễm khuẩn huyết thứ phát xuất phát từ ổ nhiễm trùng tại chỗ khác. Tuyệt đối KHÔNG tính lỗi CLABSI.",
     };
   }
 
-  // Bước 4: Lọc thiết bị CVC để xác định CLABSI
-  const hasCvc = data.cvc_placed_days >= 3 && data.cvc_active_on_event;
+  let hasCvc = data.cvc_placed_days >= 3 && data.cvc_active_on_event;
+  if (data.device_placed_date && data.calculated_doe) {
+    const assoc = isDeviceAssociated({
+      placedDate: data.device_placed_date,
+      removedDate: data.device_removed_date,
+      doe: data.calculated_doe,
+    });
+    hasCvc = assoc.associated;
+  }
+
   if (!hasCvc) {
-    return { 
-      is_positive: true, 
-      classification: "PRIMARY_BSI_NON_CLABSI", 
-      lcbi_type: lcbiType, 
-      reason: "BSI tiên phát nhưng không đặt CVC liên tục > 2 ngày lịch." 
-    };
-  }
-
-  // Bước 5: Kiểm tra ngoại lệ MBI-LCBI (Tổn thương hàng rào niêm mạc)
-  if (data.is_intestinal_pathogen && data.is_neutropenia) {
-    return { 
-      is_positive: true, 
-      classification: "MBI_LCBI", 
+    return {
+      is_positive: true,
+      classification: "PRIMARY_BSI_NON_CLABSI",
       lcbi_type: lcbiType,
-      reason: "Ngoại lệ Tổn thương hàng rào niêm mạc ruột (MBI-LCBI) do hóa trị/giảm bạch cầu hạt nặng. Không tính lỗi CLABSI." 
+      reason: "BSI tiên phát nhưng không đặt CVC liên tục > 2 ngày lịch.",
     };
   }
 
-  return { 
-    is_positive: true, 
-    classification: "CLABSI", 
-    lcbi_type: lcbiType, 
-    reason: "Nhiễm khuẩn huyết liên quan đường truyền trung tâm (CLABSI). Ghi nhận lỗi cho khoa." 
+  // MBI-LCBI NHSN: tác nhân đường ruột + (ANC/WBC <500 ≥2 ngày lịch HOẶC HSCT/GVHD HOẶC neutropenia).
+  const mbiMucosalBarrier =
+    Boolean(data.anc_wbc_lt_500_ge_2d) ||
+    Boolean(data.has_hsct_or_gvhd) ||
+    Boolean(data.is_neutropenia);
+  if (data.is_intestinal_pathogen && mbiMucosalBarrier) {
+    return {
+      is_positive: true,
+      classification: "MBI_LCBI",
+      lcbi_type: lcbiType,
+      reason:
+        "Ngoại lệ Tổn thương hàng rào niêm mạc (MBI-LCBI): tác nhân đường ruột + ANC/WBC <500 ≥2 ngày lịch hoặc HSCT/GVHD/neutropenia. Không tính lỗi CLABSI.",
+    };
+  }
+
+  return {
+    is_positive: true,
+    classification: "CLABSI",
+    lcbi_type: lcbiType,
+    reason: "Nhiễm khuẩn huyết liên quan đường truyền trung tâm (CLABSI). Ghi nhận lỗi cho khoa.",
   };
 }
 
-/**
- * 2. Thuật toán hô hấp:
- * - pathway `VAE`: người lớn thở máy — VAC → IVAC → PVAP (không X-quang)
- * - pathway `PNEU`: HAP / VAP lâm sàng (PedVAP) — hình ảnh + lâm sàng + vi sinh (PNU1–3)
- */
 export function evaluateVaeVap(
   data: VaeVerificationData,
   pathway: "VAE" | "PNEU" = "VAE",
 ): RuleEvaluationResult {
-  const useVaePathway =
-    pathway === "VAE" && data.patient_age >= 18 && data.vent_days >= 4;
+  const useVaePathway = pathway === "VAE" && data.patient_age >= 18 && data.vent_days >= 4;
 
   if (pathway === "VAE" && !useVaePathway) {
     return {
@@ -129,109 +195,169 @@ export function evaluateVaeVap(
   }
 
   if (useVaePathway) {
-    // Luồng VAE cho người lớn thở máy >= 4 ngày
-    // Giai đoạn 1: VAC
-    const hasVac = data.has_stable_baseline_peep_fio2 && (data.peep_increase_ge_3 || data.fio2_increase_ge_20);
+    // APRV/HFV/ECMO: ngày đó loại khỏi eligibility VAC (NHSN — không dùng PEEP/FiO2 chuẩn).
+    if (data.on_aprv_or_hfv || data.on_ecmo) {
+      return {
+        is_positive: false,
+        classification: "NO_EVENT",
+        reason: data.on_ecmo
+          ? "Ngày trên ECMO — loại khỏi giám sát VAE (không áp dụng PEEP/FiO₂ chuẩn)."
+          : "Ngày trên APRV/HFV — loại khỏi giám sát VAE (chỉ theo dõi FiO₂; chưa đủ pipeline VAC chuẩn).",
+      };
+    }
+    let stable = data.has_stable_baseline_peep_fio2;
+    let peepUp = data.peep_increase_ge_3;
+    let fioUp = data.fio2_increase_ge_20;
+    if (data.vent_daily_params && data.vent_daily_params.length >= 4) {
+      const vac = computeVacFromDailyVent(data.vent_daily_params);
+      if (vac.has_stable_baseline && (vac.peep_increase_ge_3 || vac.fio2_increase_ge_20)) {
+        stable = true;
+        peepUp = vac.peep_increase_ge_3;
+        fioUp = vac.fio2_increase_ge_20;
+      }
+    }
+    const hasVac = stable && (peepUp || fioUp);
     if (!hasVac) {
       return {
         is_positive: false,
         classification: "NO_EVENT",
-        reason: "Không có biến cố suy giảm thông số máy thở (không đạt VAC)."
+        reason:
+          "Không có biến cố suy giảm thông số máy thở (không đạt VAC). Nhập bảng PEEP/FiO2 tối thiểu theo ngày hoặc tick VAC.",
       };
     }
 
-    // Giai đoạn 2: IVAC
-    const hasIvac = (data.temp_fever_or_hypothermia || data.wbc_abnormal) && data.new_antimicrobial_ge_4days;
+    const hasIvac =
+      (data.temp_fever_or_hypothermia || data.wbc_abnormal) && data.new_antimicrobial_ge_4days;
     if (!hasIvac) {
       return {
         is_positive: true,
         classification: "VAC",
-        reason: "Đạt tiêu chuẩn VAC (suy giảm máy thở) nhưng chưa đủ điều kiện nhiễm khuẩn (IVAC)."
+        reason: "Đạt tiêu chuẩn VAC (suy giảm máy thở) nhưng chưa đủ điều kiện nhiễm khuẩn (IVAC).",
       };
     }
 
-    // Giai đoạn 3: PVAP
-    const hasPvap = 
-      data.has_purulent_sputum_and_positive_culture || 
-      data.has_quantitative_culture_positive || 
+    const hasPvap =
+      data.has_purulent_sputum_and_positive_culture ||
+      data.has_quantitative_culture_positive ||
       data.has_respiratory_viral_or_pathogen_test_positive;
 
     if (hasPvap) {
+      let isSecondary = false;
+      if (data.has_blood_culture_in_event_period && data.blood_collection_date) {
+        const doe = data.calculated_doe || data.blood_collection_date;
+        const ep = vaeEventPeriod(doe);
+        const sec = evaluateSecondaryBsi({
+          primarySite: "PVAP",
+          bloodCollectionDate: data.blood_collection_date,
+          sbapStart: ep.start,
+          sbapEnd: ep.end,
+          bloodOrganism: data.blood_organism || "",
+          primaryOrganism: data.respiratory_organism,
+          organismsMatch: data.blood_respiratory_pathogen_matches,
+          lungOrPleuralMatch: data.lung_or_pleural_match,
+        });
+        isSecondary = sec.isSecondary;
+      }
+
       return {
         is_positive: true,
         classification: "PVAP",
-        reason: "Khả năng Viêm phổi liên quan đến thở máy (PVAP) đạt chuẩn CDC/NHSN."
+        is_secondary_bsi: isSecondary || undefined,
+        reason: isSecondary
+          ? "PVAP đạt chuẩn; kèm Secondary BSI (máu trong 14-day Event Period, match)."
+          : "Khả năng Viêm phổi liên quan đến thở máy (PVAP) đạt chuẩn CDC/NHSN.",
       };
     }
 
     return {
       is_positive: true,
       classification: "IVAC",
-      reason: "Biến chứng thở máy có nhiễm khuẩn (IVAC) đạt chuẩn CDC/NHSN."
-    };
-
-  } else {
-    // Luồng PNEU (HAP không thở máy / VAP–PedVAP theo tiêu chuẩn hình ảnh + lâm sàng)
-    // Bước 1: Hình ảnh học
-    const needsTwoFilms = data.has_cardiopulmonary_disease_underlying;
-    const hasValidImaging = data.has_chest_imaging_abnormal && 
-      (needsTwoFilms ? data.imaging_films_count >= 2 : data.imaging_films_count >= 1);
-    
-    if (!hasValidImaging) {
-      return {
-        is_positive: false,
-        classification: "NO_EVENT",
-        reason: "Không đủ tiêu chuẩn hình ảnh học ngực thâm nhiễm mới/tiến triển/dai dẳng."
-      };
-    }
-
-    // Bước 2: Triệu chứng lâm sàng
-    const hasSystemic = data.fever_or_wbc_abnormal || data.altered_mental_status_ge_70yo;
-    const hasLocal = data.respiratory_symptoms_count >= 2;
-
-    if (!hasSystemic || !hasLocal) {
-      return {
-        is_positive: false,
-        classification: "NO_EVENT",
-        reason: "Đạt tiêu chuẩn hình ảnh học nhưng thiếu triệu chứng toàn thân hoặc tại chỗ của Viêm phổi."
-      };
-    }
-
-    // Bước 3: Nâng cấp vi sinh
-    if (data.microbiology_evidence === 'PNU3') {
-      return {
-        is_positive: true,
-        classification: "PNU3",
-        reason: "Viêm phổi trên bệnh nhân suy giảm miễn dịch nặng (PNU3)."
-      };
-    }
-
-    if (data.microbiology_evidence === 'PNU2') {
-      return {
-        is_positive: true,
-        classification: "PNU2",
-        reason: "Viêm phổi có bằng chứng vi khuẩn/virus đặc hiệu (PNU2)."
-      };
-    }
-
-    return {
-      is_positive: true,
-      classification: "PNU1",
-      reason: "Viêm phổi lâm sàng (PNU1) đạt chuẩn CDC/NHSN."
+      reason: "Biến chứng thở máy có nhiễm khuẩn (IVAC) đạt chuẩn CDC/NHSN.",
     };
   }
+
+  // PNEU pathway
+  const needsTwoFilms = data.has_cardiopulmonary_disease_underlying;
+  const hasValidImaging =
+    data.has_chest_imaging_abnormal &&
+    (needsTwoFilms ? data.imaging_films_count >= 2 : data.imaging_films_count >= 1);
+
+  if (!hasValidImaging) {
+    return {
+      is_positive: false,
+      classification: "NO_EVENT",
+      reason: "Không đủ tiêu chuẩn hình ảnh học ngực thâm nhiễm mới/tiến triển/dai dẳng.",
+    };
+  }
+
+  const age = Number(data.patient_age) || 0;
+  const pediatricBranch = age > 0 && age <= 12;
+  const infantBranch = age > 0 && age <= 1;
+  const gas = !!data.has_worsening_gas_exchange;
+  // ≤1 tuổi: suy trao đổi khí bắt buộc + ≥3 triệu chứng khác (gas không tính vào 3)
+  const localCount = infantBranch
+    ? data.respiratory_symptoms_count - (gas ? 1 : 0)
+    : data.respiratory_symptoms_count;
+  const needLocal = pediatricBranch ? 3 : 2;
+  const hasSystemic =
+    infantBranch ||
+    data.fever_or_wbc_abnormal ||
+    data.altered_mental_status_ge_70yo;
+  const hasLocal = localCount >= needLocal;
+  const infantGasOk = !infantBranch || gas;
+
+  if (!hasSystemic || !hasLocal || !infantGasOk) {
+    return {
+      is_positive: false,
+      classification: "NO_EVENT",
+      reason: infantBranch
+        ? "Nhánh ≤1 tuổi: cần suy trao đổi khí + ≥3 triệu chứng lâm sàng (dòng riêng)."
+        : pediatricBranch
+          ? `Đạt hình ảnh nhưng thiếu triệu chứng (trẻ 1–12 tuổi cần ≥${needLocal} dấu hiệu).`
+          : "Đạt tiêu chuẩn hình ảnh học nhưng thiếu triệu chứng toàn thân hoặc tại chỗ của Viêm phổi.",
+    };
+  }
+
+  const ventEligible =
+    data.vent_days >= 3 &&
+    (data.device_placed_date
+      ? isDeviceAssociated({
+          placedDate: data.device_placed_date,
+          removedDate: data.device_removed_date,
+          doe: data.calculated_doe || data.device_placed_date,
+        }).activeOnEvent
+      : true);
+  const ventLabel = ventEligible ? "VAP" : "NON_VAP";
+
+  if (data.microbiology_evidence === "PNU3") {
+    return {
+      is_positive: true,
+      classification: `PNU3_${ventLabel}`,
+      reason: `Viêm phổi trên bệnh nhân suy giảm miễn dịch nặng (PNU3) — ${ventLabel}.`,
+    };
+  }
+
+  if (data.microbiology_evidence === "PNU2") {
+    return {
+      is_positive: true,
+      classification: `PNU2_${ventLabel}`,
+      reason: `Viêm phổi có bằng chứng vi khuẩn/virus đặc hiệu (PNU2) — ${ventLabel}.`,
+    };
+  }
+
+  return {
+    is_positive: true,
+    classification: `PNU1_${ventLabel}`,
+    reason: `Viêm phổi lâm sàng (PNU1) đạt chuẩn CDC/NHSN — ${ventLabel}.`,
+  };
 }
 
-/**
- * 3. Thuật toán chẩn đoán Nhiễm khuẩn tiết niệu (UTI / CAUTI)
- */
 export function evaluateUtiCauti(data: UtiVerificationData): RuleEvaluationResult {
-  // Bước 1: Bộ lọc vi sinh & loại bỏ rác
   if (data.pathogen_count > 2) {
     return {
       is_positive: false,
       classification: "CONTAMINATION",
-      reason: "Mẫu cấy nước tiểu bị tạp nhiễm (nhiều hơn 2 loại tác nhân vi sinh)."
+      reason: "Mẫu cấy nước tiểu bị tạp nhiễm (nhiều hơn 2 loại tác nhân vi sinh).",
     };
   }
 
@@ -239,7 +365,7 @@ export function evaluateUtiCauti(data: UtiVerificationData): RuleEvaluationResul
     return {
       is_positive: false,
       classification: "CANDIDA_EXCLUSION",
-      reason: "CDC/NHSN cấm tuyệt đối việc sử dụng Nấm (Candida) hoặc ký sinh trùng để chẩn đoán CAUTI/UTI."
+      reason: "CDC/NHSN cấm tuyệt đối việc sử dụng Nấm (Candida) hoặc ký sinh trùng để chẩn đoán CAUTI/UTI.",
     };
   }
 
@@ -247,86 +373,189 @@ export function evaluateUtiCauti(data: UtiVerificationData): RuleEvaluationResul
     return {
       is_positive: false,
       classification: "LOW_CFU",
-      reason: "Số lượng vi khuẩn trong nước tiểu không đạt ngưỡng chuẩn >= 10^5 CFU/ml."
+      reason: "Số lượng vi khuẩn trong nước tiểu không đạt ngưỡng chuẩn >= 10^5 CFU/ml.",
     };
   }
 
-  // Bước 2: Thiết bị (Foley)
-  const isCauti = data.foley_placed_days >= 3 && data.foley_active_on_event;
+  const foleyActive =
+    data.foley_present_doe_or_prior !== undefined
+      ? data.foley_present_doe_or_prior
+      : data.foley_active_on_event;
 
-  // Bước 3: Đánh giá lâm sàng (SUTI)
-  const hasDysuria = !data.foley_active_on_event && data.has_dysuria;
-  const hasAnySymptom = 
-    data.has_fever || 
-    data.has_suprapubic_tenderness || 
-    data.has_costovertebral_pain || 
-    hasDysuria;
+  let isCauti = data.foley_placed_days >= 3 && foleyActive;
+  if (data.device_placed_date && data.calculated_doe) {
+    isCauti = isDeviceAssociated({
+      placedDate: data.device_placed_date,
+      removedDate: data.device_removed_date,
+      doe: data.calculated_doe,
+    }).associated;
+  }
+
+  const hasVoidingSymptom =
+    !foleyActive &&
+    (data.has_dysuria || Boolean(data.has_urgency) || Boolean(data.has_frequency));
+  const hasInfantSymptom =
+    Boolean(data.is_infant_le1) &&
+    (data.has_fever ||
+      Boolean(data.has_infant_hypothermia) ||
+      Boolean(data.has_infant_apnea) ||
+      Boolean(data.has_infant_bradycardia) ||
+      Boolean(data.has_infant_lethargy) ||
+      Boolean(data.has_infant_vomiting));
+  const hasAnySymptom =
+    data.has_fever ||
+    data.has_suprapubic_tenderness ||
+    data.has_costovertebral_pain ||
+    hasVoidingSymptom ||
+    hasInfantSymptom;
 
   if (hasAnySymptom) {
+    // SUTI 1 (người lớn) giữ nhãn SUTI/CAUTI_SUTI; SUTI 2 (≤1 tuổi) tách nhánh riêng.
+    if (data.is_infant_le1) {
+      return {
+        is_positive: true,
+        classification: isCauti ? "CAUTI_SUTI_2" : "SUTI_2",
+        reason: isCauti
+          ? "CAUTI — SUTI 2 (≤1 tuổi) liên quan sonde tiểu."
+          : "SUTI 2 (≤1 tuổi) — nhiễm khuẩn tiết niệu có triệu chứng không liên quan sonde tiểu.",
+      };
+    }
     return {
       is_positive: true,
       classification: isCauti ? "CAUTI_SUTI" : "SUTI",
       reason: isCauti
-        ? "Nhiễm khuẩn tiết niệu có triệu chứng liên quan sonde tiểu (CAUTI SUTI)."
-        : "Nhiễm khuẩn tiết niệu có triệu chứng không liên quan sonde tiểu (SUTI)."
+        ? "Nhiễm khuẩn tiết niệu có triệu chứng liên quan sonde tiểu (CAUTI SUTI 1)."
+        : "SUTI 1 — nhiễm khuẩn tiết niệu có triệu chứng không liên quan sonde tiểu.",
     };
   }
 
-  // Bước 4: Kiểm tra ngoại lệ ABUTI (Cấy máu dương tính trùng khớp)
   if (data.has_blood_culture_positive_in_window && data.blood_urine_pathogen_matches) {
+    // Yeast blood cannot attribute secondary to UTI — guard via shared helper
+    if (data.blood_organism) {
+      const doe = data.calculated_doe || data.blood_collection_date || "";
+      const sbap = resolveClinicalSbap({
+        sbapStart: data.calculated_sbap_start,
+        sbapEnd: data.calculated_sbap_end,
+        iwpStart: data.calculated_iwp_start,
+        doe,
+      });
+      if (sbap.start && data.blood_collection_date) {
+        const sec = evaluateSecondaryBsi({
+          primarySite: "UTI",
+          bloodCollectionDate: data.blood_collection_date,
+          sbapStart: sbap.start,
+          sbapEnd: sbap.end,
+          bloodOrganism: data.blood_organism,
+          primaryOrganism: data.urine_organism,
+          organismsMatch: data.blood_urine_pathogen_matches,
+        });
+        if (!sec.isSecondary) {
+          return {
+            is_positive: false,
+            classification: "ASB",
+            reason: `${sec.reason} Phân loại ASB; đánh giá Primary BSI/CLABSI riêng.`,
+          };
+        }
+      }
+    }
+
     return {
       is_positive: true,
       classification: isCauti ? "CAUTI_ABUTI" : "ABUTI",
       is_secondary_bsi: true,
       reason: isCauti
         ? "Nhiễm khuẩn tiết niệu không triệu chứng kèm cấy máu trùng khớp liên quan sonde tiểu (CAUTI ABUTI)."
-        : "Nhiễm khuẩn tiết niệu không triệu chứng kèm cấy máu trùng khớp (ABUTI)."
+        : "Nhiễm khuẩn tiết niệu không triệu chứng kèm cấy máu trùng khớp (ABUTI).",
     };
   }
 
   return {
     is_positive: false,
     classification: "ASB",
-    reason: "Vi khuẩn niệu không triệu chứng (ASB), CDC khuyến cáo không điều trị kháng sinh thường quy và không tính là NKBV."
+    reason:
+      "Vi khuẩn niệu không triệu chứng (ASB), CDC khuyến cáo không điều trị kháng sinh thường quy và không tính là NKBV.",
   };
 }
 
-/**
- * 4. Thuật toán chẩn đoán Nhiễm khuẩn vết mổ (SSI)
- */
 export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
-  // Bước 1: Khung thời gian giám sát
-  const limitDays = data.has_implant ? 90 : 30;
-  if (data.days_since_surgery > limitDays) {
+  let days = data.days_since_surgery;
+  if (data.surgery_date && data.doe_date) {
+    const a = Date.parse(data.surgery_date.slice(0, 10));
+    const b = Date.parse(data.doe_date.slice(0, 10));
+    if (Number.isFinite(a) && Number.isFinite(b) && b >= a) {
+      days = Math.round((b - a) / 86400000);
+    }
+  }
+
+  const event = getNhsnSsiEventType(data.ssi_event_type);
+  const depth = event?.depth || data.ssi_depth;
+  const limitDays = resolveSsiSurveillanceDays({
+    depth,
+    procedureCode: data.loai_phau_thuat_nhsn,
+    hasImplantFallback: data.has_implant,
+    eventTypeCode: data.ssi_event_type,
+  });
+  const proc = getNhsnProcedure(data.loai_phau_thuat_nhsn);
+  const limitHint = isSecondaryIncisionalEvent(data.ssi_event_type)
+    ? "đường mổ phụ SIS/DIS luôn 30 ngày"
+    : proc
+      ? `mã PT ${proc.code} · Deep/Organ ${proc.deep_organ_surveillance_days} ngày (nông/SIS/DIS luôn 30)`
+      : data.has_implant
+        ? "fallback implant 90 ngày (chưa chọn mã PT NHSN)"
+        : "30 ngày (chưa chọn mã PT NHSN hoặc nông)";
+
+  if (days > limitDays) {
     return {
       is_positive: false,
       classification: "EXPIRED",
-      reason: `Vượt quá khung thời gian giám sát quy định (${limitDays} ngày đối với phẫu thuật ${data.has_implant ? 'có implant' : 'không implant'}).`
+      reason: `Vượt quá khung thời gian giám sát quy định (${limitDays} ngày — ${limitHint}).`,
+    };
+  }
+
+  if (data.is_patos) {
+    return {
+      is_positive: false,
+      classification: "PATOS",
+      reason: "PATOS (Present at time of surgery) — không báo cáo SSI mới trên ca này theo NHSN.",
     };
   }
 
   let matched = false;
-  let classification = "NONE";
   let reason = "";
 
-  // Bước 2: Phân loại độ sâu
-  if (data.ssi_depth === 'ORGAN_SPACE') {
-    if (data.organ_space_purulent_drainage || data.organ_space_culture_positive || data.organ_space_abscess_imaging_pathology) {
+  if (depth === "ORGAN_SPACE") {
+    const proc = String(data.loai_phau_thuat_nhsn || "").trim().toUpperCase();
+    const obgynPainOk =
+      !!data.organ_space_obgyn_abdominal_pain &&
+      (proc === "CSEC" || proc === "HYST" || proc === "VHYS");
+    if (
+      data.organ_space_purulent_drainage ||
+      data.organ_space_culture_positive ||
+      data.organ_space_abscess_imaging_pathology ||
+      obgynPainOk
+    ) {
       matched = true;
-      classification = "SSI_ORGAN_SPACE";
-      reason = "Nhiễm khuẩn vết mổ sâu mức cơ quan/khoang (Organ/Space SSI) đạt chuẩn CDC/NHSN.";
+      reason = obgynPainOk && !data.organ_space_purulent_drainage && !data.organ_space_culture_positive && !data.organ_space_abscess_imaging_pathology
+        ? "Organ/Space SSI — đau bụng sau mổ (CSEC/HYST/VHYS) đạt chuẩn NHSN."
+        : "Nhiễm khuẩn cơ quan/khoang (Organ/Space SSI) đạt chuẩn CDC/NHSN.";
     }
-  } else if (data.ssi_depth === 'DEEP') {
-    if (data.deep_purulent_drainage || data.deep_dehisced_or_opened_with_symptoms || data.deep_abscess_imaging_pathology) {
+  } else if (depth === "DEEP") {
+    if (
+      data.deep_purulent_drainage ||
+      data.deep_dehisced_or_opened_with_symptoms ||
+      data.deep_abscess_imaging_pathology
+    ) {
       matched = true;
-      classification = "SSI_DEEP";
       reason = "Nhiễm khuẩn vết mổ sâu mức cân/cơ (Deep Incisional SSI) đạt chuẩn CDC/NHSN.";
     }
-  } else if (data.ssi_depth === 'SUPERFICIAL') {
-    if (data.superficial_purulent_drainage || data.superficial_culture_positive || 
-        data.superficial_opened_with_inflammation || data.superficial_physician_diagnosis) {
+  } else if (depth === "SUPERFICIAL") {
+    if (
+      data.superficial_purulent_drainage ||
+      data.superficial_culture_positive ||
+      data.superficial_opened_with_inflammation ||
+      data.superficial_physician_diagnosis
+    ) {
       matched = true;
-      classification = "SSI_SUPERFICIAL";
       reason = "Nhiễm khuẩn vết mổ nông mức da/dưới da (Superficial Incisional SSI) đạt chuẩn CDC/NHSN.";
     }
   }
@@ -335,12 +564,82 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
     return {
       is_positive: false,
       classification: "NO_INFECTION",
-      reason: "Không đáp ứng bất kỳ tiêu chuẩn chẩn đoán lâm sàng hay cận lâm sàng nào của SSI."
+      reason: "Không đáp ứng bất kỳ tiêu chuẩn chẩn đoán lâm sàng hay cận lâm sàng nào của SSI.",
     };
   }
 
-  // Bước 3: Kiểm tra Secondary BSI trùng khớp
-  const isSecondaryBsi = data.has_blood_culture_positive && data.blood_ssi_pathogen_matches;
+  if (!event) {
+    return {
+      is_positive: false,
+      classification: "INCOMPLETE",
+      reason:
+        "Thiếu mã loại sự kiện NHSN (SIP/SIS/DIP/DIS hoặc ORGAN_SPACE) — bắt buộc trước khi chốt ca.",
+    };
+  }
+
+  if (depth === "ORGAN_SPACE") {
+    const siteCode = (data.organ_space_site || "").trim();
+    if (!siteCode) {
+      return {
+        is_positive: false,
+        classification: "INCOMPLETE",
+        reason: "Organ/Space SSI bắt buộc chọn mã vị trí cơ quan (Chương 17 NHSN).",
+      };
+    }
+    if (!getNhsnOrganSpaceSite(siteCode)) {
+      return {
+        is_positive: false,
+        classification: "INVALID_SITE",
+        reason: `Mã vị trí Organ/Space «${siteCode}» không thuộc danh mục NHSN.`,
+      };
+    }
+    if (!isOrganSpaceSiteAllowedForProcedure(siteCode, data.loai_phau_thuat_nhsn)) {
+      return {
+        is_positive: false,
+        classification: "INVALID_SITE",
+        reason: `Mã vị trí «${siteCode}» không hợp lệ với mã phẫu thuật «${data.loai_phau_thuat_nhsn || "—"}» (PJI chỉ HPRO/KPRO; VCUF chỉ HYST/VHYS).`,
+      };
+    }
+    reason = `${reason} Vị trí: ${siteCode}.`;
+  }
+
+  const classification =
+    nhsClassificationFromEvent(data.ssi_event_type, data.organ_space_site) || event.code;
+  reason = `${event.name_vi}. ${reason}`;
+
+  const secondaryWarn = secondaryIncisionMismatchWarning(
+    data.ssi_event_type,
+    data.loai_phau_thuat_nhsn,
+  );
+  if (secondaryWarn) {
+    reason = `${reason} Cảnh báo: ${secondaryWarn}`;
+  }
+
+  let isSecondaryBsi = false;
+  if (data.has_blood_culture_positive) {
+    const doe = data.calculated_doe || "";
+    const sbap =
+      data.calculated_sbap_start && data.calculated_sbap_end
+        ? { start: data.calculated_sbap_start, end: data.calculated_sbap_end }
+        : doe
+          ? ssiSbapWindow(doe)
+          : { start: "", end: "" };
+    if (sbap.start && data.blood_collection_date) {
+      const sec = evaluateSecondaryBsi({
+        primarySite: "SSI",
+        bloodCollectionDate: data.blood_collection_date,
+        sbapStart: sbap.start,
+        sbapEnd: sbap.end,
+        bloodOrganism: data.blood_organism || "",
+        primaryOrganism: data.wound_organism,
+        organismsMatch: data.blood_ssi_pathogen_matches,
+        bloodMandatoryForPrimary: data.blood_mandatory_for_organ_space,
+      });
+      isSecondaryBsi = sec.isSecondary;
+    } else {
+      isSecondaryBsi = Boolean(data.blood_ssi_pathogen_matches);
+    }
+  }
 
   return {
     is_positive: true,
@@ -348,6 +647,6 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
     is_secondary_bsi: isSecondaryBsi,
     reason: isSecondaryBsi
       ? `${reason} Kèm theo Nhiễm khuẩn huyết thứ phát (Secondary BSI) trùng khớp tác nhân.`
-      : reason
+      : reason,
   };
 }

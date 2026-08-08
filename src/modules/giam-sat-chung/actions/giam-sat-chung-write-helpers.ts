@@ -23,9 +23,18 @@ export type GscSessionInput = Record<string, unknown> & {
   is_manual_nhan_vien?: boolean;
   ten_manual_nhan_vien?: string;
   is_bo_sung_nguoi_benh?: boolean;
+  ma_benh_an?: string;
   ma_nguoi_benh?: string;
   ten_nguoi_benh?: string;
   so_giuong_nguoi_benh?: string;
+  bn_tho_may?: boolean;
+  bn_phau_thuat?: boolean;
+  bn_cvc?: boolean;
+  bn_foley?: boolean;
+  bn_nhiem_mdro?: boolean;
+  bn_mdro_phenotype?: string;
+  bn_nhiem_tac_nhan_nguy_hiem?: boolean;
+  bn_tac_nhan_nguy_hiem_ten?: string;
   hinh_thuc_id?: string | null;
   cach_thuc_id?: string | null;
 };
@@ -40,7 +49,7 @@ export function parseNgayGiamSatOrNull(raw: unknown): string | null {
 }
 
 /** Chuẩn hóa FK UUID tùy chọn khi đọc từ dòng import (unknown). */
-export function optionalFkFromUnknown(raw: unknown): string | null {
+function optionalFkFromUnknown(raw: unknown): string | null {
   if (raw == null || raw === "") return null;
   if (typeof raw === "string") return raw.trim() || null;
   return String(raw).trim() || null;
@@ -96,17 +105,13 @@ export async function resolveGscModeIds(
   return { hinh_thuc_id, cach_thuc_id };
 }
 
-import { calculateGscComplianceScore } from "@/lib/domain/giam-sat-chung.domain";
 import {
   computeScore,
-  scoreTyLe,
   type GsttCachTinhDiem,
   type GsttScoringInputItem,
   type GsttScoringSessionMeta,
 } from "@/lib/domain/giam-sat-scoring";
 import type { ChecklistResult } from "@/modules/giam-sat-chung/types";
-
-export const calculateScore = calculateGscComplianceScore;
 
 const VALID_CACH_TINH_DIEM = new Set<GsttCachTinhDiem>([
   "TY_LE",
@@ -114,6 +119,9 @@ const VALID_CACH_TINH_DIEM = new Set<GsttCachTinhDiem>([
   "DAT_KHONG_DAT",
   "NHAT_KY",
 ]);
+
+/** Local pilot 2026-07-26: mọi BK active đã có cach_tinh_diem — thiếu → TY_LE. */
+const DEFAULT_CACH_TINH_DIEM: GsttCachTinhDiem = "TY_LE";
 
 function buildThenChotMap(tieuChiJsonb: unknown): Map<string, boolean> | null {
   if (!Array.isArray(tieuChiJsonb)) return null;
@@ -137,29 +145,26 @@ function mapResultsToScoringItems(
   }));
 }
 
-/** Persist session: mọi form tuân thủ lưu % đạt/tiêu chí áp dụng; không dùng cờ trọn gói. */
+/**
+ * Persist song song (2026-07-27):
+ * - `tong_diem` = % tiêu chí (mọi kiểu trừ NHAT_KY)
+ * - `dat_tron_goi` = cờ care bundle khi TRON_GOI (null với kiểu khác)
+ */
 function mapScoringToSessionFields(
   cachTinhDiem: GsttCachTinhDiem,
   items: readonly GsttScoringInputItem[],
   meta?: GsttScoringSessionMeta,
 ): { tong_diem: number | null; dat_tron_goi: boolean | null; du_lieu_nghi_van: boolean } {
   const out = computeScore(cachTinhDiem, items, meta);
-  if (cachTinhDiem === "NHAT_KY") {
-    return { tong_diem: null, dat_tron_goi: null, du_lieu_nghi_van: out.du_lieu_nghi_van };
-  }
-  const hasEvaluable = items.some((r) => r.value !== "NA");
   return {
-    tong_diem: hasEvaluable ? scoreTyLe(items) : null,
-    dat_tron_goi: null,
+    tong_diem: out.tong_diem,
+    dat_tron_goi: out.dat_tron_goi,
     du_lieu_nghi_van: out.du_lieu_nghi_van,
   };
 }
 
 /**
- * Slice 4 hook (reform v4): tra `cach_tinh_diem` của bảng kiểm; nếu chưa set
- * (Slice 1 cột NULL-able) → fallback engine cũ `calculateGscComplianceScore`.
- * Lộ trình gỡ legacy: `src/lib/domain/giam-sat-scoring.ts` + `docs/wiki/concepts.md`.
- * Trả `du_lieu_nghi_van`, `tong_diem` (% tuân thủ) để spread vào sessionPayload.
+ * Engine `computeScore` — % + cờ phụ. Thiếu `cach_tinh_diem` → TY_LE.
  */
 export async function resolveScoringSummary(
   supabase: SupabaseClient,
@@ -167,7 +172,7 @@ export async function resolveScoringSummary(
   results: readonly ChecklistResult[],
   meta?: GsttScoringSessionMeta,
 ): Promise<{ tong_diem: number | null; dat_tron_goi: boolean | null; du_lieu_nghi_van: boolean }> {
-  let cachTinhDiem: GsttCachTinhDiem | null = null;
+  let cachTinhDiem: GsttCachTinhDiem = DEFAULT_CACH_TINH_DIEM;
   let thenChotMap: Map<string, boolean> | null = null;
 
   if (bangKiemId) {
@@ -183,19 +188,10 @@ export async function resolveScoringSummary(
       }
       thenChotMap = buildThenChotMap(data?.tieu_chi_jsonb);
     } catch {
-      // Non-fatal: fallback engine cũ ở dưới.
+      // Non-fatal: giữ DEFAULT_CACH_TINH_DIEM.
     }
   }
 
-  if (cachTinhDiem) {
-    const items = mapResultsToScoringItems(results, thenChotMap);
-    return mapScoringToSessionFields(cachTinhDiem, items, meta);
-  }
-
-  // Backward compat: bảng kiểm cũ chưa set cach_tinh_diem → engine cũ (weight tier).
-  return {
-    tong_diem: calculateGscComplianceScore(results as ChecklistResult[]),
-    dat_tron_goi: null,
-    du_lieu_nghi_van: false,
-  };
+  const items = mapResultsToScoringItems(results, thenChotMap);
+  return mapScoringToSessionFields(cachTinhDiem, items, meta);
 }

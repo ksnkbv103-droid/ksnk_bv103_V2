@@ -15,7 +15,7 @@ export default function KhoHoaChatSuCoPanel({ rows, canEdit, onXuatTuSuCo }: Pro
   if (!rows.length) return null;
 
   return (
-    <div className="rounded-2xl border border-violet-200 bg-violet-50/60 p-4 shadow-sm">
+    <div className="rounded-[var(--radius-shell)] border border-violet-200 bg-violet-50/60 p-4 shadow-sm">
       <div className="mb-3 flex items-center gap-2">
         <FlaskConical className="h-4 w-4 text-violet-700" />
         <h3 className={CSSD_UI_SECTION_TITLE}>Sự cố hóa chất chưa ghi xuất kho ({rows.length})</h3>

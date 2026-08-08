@@ -1,5 +1,7 @@
 # Cursor Operating Playbook (General Software)
 
+**Ai đọc gì:** Product Owner (không rành code) → [`po-cursor-guide.md`](po-cursor-guide.md) + `/intake-nv`. Dev / kỹ thuật → playbook này + `/intake`.
+
 This playbook is a practical operating system for using Cursor with high accuracy, low rework, and controlled token/quota usage.
 
 ## 1) One-task protocol

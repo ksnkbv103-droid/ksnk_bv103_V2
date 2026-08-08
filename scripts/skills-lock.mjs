@@ -17,6 +17,7 @@ const bv103Local = new Set([
   "qlcv-pilot",
   "po-intake",
   "dashboard-pilot",
+  "cssd-pilot",
 ]);
 const supabaseAgent = new Set(["supabase"]);
 const softaworksAgentToolkit = new Set(["react-dev"]);

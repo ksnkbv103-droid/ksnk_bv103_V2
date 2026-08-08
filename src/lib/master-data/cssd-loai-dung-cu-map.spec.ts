@@ -5,6 +5,7 @@ import {
   mapKhaNangToIsChiuNhiet,
   normalizeSpauldingForMaster,
   normalizeSterileMethodForMaster,
+  suggestCssdStationFromMaster,
   syncLoaiPhysicalColumnsOnImportPayload,
 } from "./cssd-loai-dung-cu-map";
 
@@ -41,6 +42,28 @@ describe("cssd-loai-dung-cu-map heat/Spaulding", () => {
     expect(p.phan_loai_spaulding).toBe("SEMI_CRITICAL");
     expect(p.phuong_phap_tiet_khuan_chi_dinh).toBe("PLASMA");
     expect((p.specs as { kha_nang_chiu_nhiet: string }).kha_nang_chiu_nhiet).toBe("Thấp");
+  });
+
+  it("suggests CSSD station from Spaulding/heat/PP (D-16)", () => {
+    expect(
+      suggestCssdStationFromMaster({
+        spaulding: "CRITICAL",
+        sterileMethod: "STEAM_134",
+        isChiuNhiet: true,
+      }).maTramGoiY,
+    ).toBe("TRAM_HOI_134");
+    expect(
+      suggestCssdStationFromMaster({
+        sterileMethod: "EO",
+        isChiuNhiet: true,
+      }).maTramGoiY,
+    ).toBe("TRAM_EO");
+    expect(
+      suggestCssdStationFromMaster({
+        sterileMethod: "STEAM_134",
+        isChiuNhiet: false,
+      }).maTramGoiY,
+    ).toBe("TRAM_PLASMA");
   });
 
   it("syncs import payload onto physical columns", () => {

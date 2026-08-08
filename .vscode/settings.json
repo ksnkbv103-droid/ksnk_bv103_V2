@@ -1,4 +1,5 @@
 {
+  "npm.autoDetect": "off",
   "tailwindCSS.includeLanguages": {
     "plaintext": "tailwindcss",
     "javascript": "tailwindcss",

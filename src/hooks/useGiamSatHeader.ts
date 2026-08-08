@@ -5,6 +5,9 @@ import { useState, useCallback, useEffect } from "react";
 import { MasterOption } from "@/lib/master-data/gateway";
 import { mdmGetSupervisionMasterDataBundle } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
 import type { VstSessionLocationHistoryRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/master-data-gateway.actions";
+import { getGscHeaderDmDropdowns } from "@/modules/giam-sat-chung/actions/giam-sat-chung-read.actions";
+import { resolveDefaultKhoaId } from "@/lib/supervision-admin-context";
+import { usePermission } from "@/hooks/usePermission";
 
 export type GiamSatHeaderPermissionContext = "admin" | "vst" | "gsc" | "nkbv";
 
@@ -13,6 +16,7 @@ export type GiamSatHeaderPermissionContext = "admin" | "vst" | "gsc" | "nkbv";
  * Hỗ trợ tự động tải danh mục Khoa, Khu vực và quản lý state chọn.
  */
 export function useGiamSatHeader(permissionContext: GiamSatHeaderPermissionContext = "admin", includeNhanSu = false) {
+  const { isMangLuoi, isAdmin, userData, loading: permLoading } = usePermission();
   const [khoas, setKhoas] = useState<MasterOption[]>([]);
   const [khuVucs, setKhuVucs] = useState<MasterOption[]>([]);
   const [ngheNghieps, setNgheNghieps] = useState<MasterOption[]>([]);
@@ -28,19 +32,39 @@ export function useGiamSatHeader(permissionContext: GiamSatHeaderPermissionConte
   const [selectedKhoa, setSelectedKhoa] = useState<string>("");
   const [selectedKhuVuc, setSelectedKhuVuc] = useState<string>("");
   const [ngayGiamSat, setNgayGiamSat] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [khoaDefaultsApplied, setKhoaDefaultsApplied] = useState(false);
+
+  const lockKhoa = Boolean(isMangLuoi && !isAdmin);
 
   // Tải danh mục khởi tạo
   useEffect(() => {
+    let cancelled = false;
     async function init() {
       setLoading(true);
+      setKhoaDefaultsApplied(false);
       try {
         const result = await mdmGetSupervisionMasterDataBundle({ permissionContext, includeNhanSu });
+        if (cancelled) return;
         if (result.success) {
-          setKhoas(result.data.khoas || []);
-          setKhuVucs(result.data.khuVucs || []);
-          setNgheNghieps(result.data.ngheNghieps || []);
-          setHinhThucGiamSats((result.data as any).hinhThucGiamSats || []);
-          setCachThucGiamSats((result.data as any).cachThucGiamSats || []);
+          let nextKhoas = result.data.khoas || [];
+          let nextKhuVucs = result.data.khuVucs || [];
+          let nextNghe = result.data.ngheNghieps || [];
+
+          // GSC create: parity VST — lọc khoa/NV theo phạm vi mạng lưới.
+          if (permissionContext === "gsc") {
+            const scoped = await getGscHeaderDmDropdowns();
+            if (!cancelled && scoped.success && scoped.data) {
+              if (scoped.data.khoas?.length) nextKhoas = scoped.data.khoas as MasterOption[];
+              if (scoped.data.khuVucs?.length) nextKhuVucs = scoped.data.khuVucs as MasterOption[];
+              if (scoped.data.ngheNghieps?.length) nextNghe = scoped.data.ngheNghieps as MasterOption[];
+            }
+          }
+
+          setKhoas(nextKhoas);
+          setKhuVucs(nextKhuVucs);
+          setNgheNghieps(nextNghe);
+          setHinhThucGiamSats((result.data as { hinhThucGiamSats?: MasterOption[] }).hinhThucGiamSats || []);
+          setCachThucGiamSats((result.data as { cachThucGiamSats?: MasterOption[] }).cachThucGiamSats || []);
           setNhanSus(result.data.nhanSus || []);
           setHistoryLocations(result.data.historyLocations || []);
           setHistoryLocationRows((result.data as { historyLocationRows?: VstSessionLocationHistoryRow[] }).historyLocationRows || []);
@@ -49,17 +73,54 @@ export function useGiamSatHeader(permissionContext: GiamSatHeaderPermissionConte
       } catch (error) {
         console.error("Lỗi tải danh mục header:", error);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
-    init();
+    void init();
+    return () => {
+      cancelled = true;
+    };
   }, [permissionContext, includeNhanSu]);
 
+  // Auto-chọn khoa mạng lưới / danh sách 1 khoa (create — không đụng khi đã chọn tay).
+  useEffect(() => {
+    if (loading || permLoading || khoaDefaultsApplied) return;
+    if (selectedKhoa) {
+      setKhoaDefaultsApplied(true);
+      return;
+    }
+    const defaultKhoa = resolveDefaultKhoaId({
+      isMangLuoi: Boolean(isMangLuoi && !isAdmin),
+      actorKhoaId: userData?.khoa_id ?? null,
+      khoas,
+    });
+    if (defaultKhoa) setSelectedKhoa(defaultKhoa);
+    setKhoaDefaultsApplied(true);
+  }, [
+    loading,
+    permLoading,
+    khoaDefaultsApplied,
+    selectedKhoa,
+    isMangLuoi,
+    isAdmin,
+    userData?.khoa_id,
+    khoas,
+  ]);
+
   const resetHeader = useCallback(() => {
-    setSelectedKhoa("");
+    const lockedId =
+      isMangLuoi && !isAdmin ? String(userData?.khoa_id || "").trim() : "";
+    const fallback =
+      lockedId ||
+      resolveDefaultKhoaId({
+        isMangLuoi: Boolean(isMangLuoi && !isAdmin),
+        actorKhoaId: userData?.khoa_id ?? null,
+        khoas,
+      });
+    setSelectedKhoa(fallback);
     setSelectedKhuVuc("");
     setNgayGiamSat(new Date().toISOString().split('T')[0]);
-  }, []);
+  }, [isMangLuoi, isAdmin, userData?.khoa_id, khoas]);
 
   return {
     // Data
@@ -73,6 +134,7 @@ export function useGiamSatHeader(permissionContext: GiamSatHeaderPermissionConte
     historyLocationRows,
     currentHoSoId,
     loading,
+    lockKhoa,
     
     // Selection state
     selectedKhoa,

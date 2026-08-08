@@ -1,0 +1,403 @@
+# ĐẶC TẢ LOGIC DOMAIN: CHƯƠNG 6 - VIÊM PHỔI (PNEUMONIA - PNEU / VAP / NON-VAP)
+*Chuẩn hóa theo Sổ tay Giám sát An toàn Người bệnh NHSN/CDC 2025*
+
+---
+
+## 1. ĐỊNH NGHĨA BIẾN SỐ VÀ CƠ SỞ DỮ LIỆU ĐẦU VÀO (DATA SCHEMA)
+
+Động cơ quy tắc (Rule Engine) của phần mềm yêu cầu cấu trúc dữ liệu JSON đầu vào dưới đây để thực hiện tính toán tự động và đồng bộ hóa dữ liệu.
+
+### 1.1. Thực thể Bệnh nhân & Đợt nhập viện (Patient & Admission Record)
+```json
+{
+  "PatientID": "string (Primary Key)",
+  "AdmissionID": "string (Primary Key)",
+  "AdmissionDate": "date [YYYY-MM-DD]",
+  "DischargeDate": "date [YYYY-MM-DD] or null",
+  "BirthDate": "date [YYYY-MM-DD]",
+  "PatientAgeYears": "integer",
+  "HasUnderlyingDisease": "boolean",
+  "UnderlyingDiseases": {
+    "RespiratoryDistressSyndrome": "boolean",
+    "BronchopulmonaryDysplasia": "boolean",
+    "PulmonaryEdema": "boolean",
+    "COPD": "boolean",
+    "CongestiveHeartFailure": "boolean",
+    "InterstitialLungDisease": "boolean"
+  }
+}
+```
+*Lưu ý dịch tễ:* Biến `HasUnderlyingDisease` (Có bệnh lý tim phổi nền) quyết định thuật toán yêu cầu **1 hay nhiều phim chụp X-quang/CT phổi** để xác nhận tiêu chuẩn hình ảnh.
+
+### 1.2. Thực thể Đăng ký can thiệp Máy thở (Ventilator Registry)
+```json
+{
+  "VentilatorRegistryID": "string (Primary Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "InsertionDateTime": "datetime [YYYY-MM-DD HH:MM:SS]",
+  "RemovalDateTime": "datetime [YYYY-MM-DD HH:MM:SS] or null",
+  "LocationCode": "string (CDC Location Code)"
+}
+```
+*Lưu ý dịch tễ:* Chỉ tính thiết bị hỗ trợ hô hấp qua **đường thở nhân tạo** (Nội khí quản miệng/mũi hoặc ống mở khí quản). Không tính các thiết bị không xâm lấn (CPAP, BiPAP, Bi-level, IPPB, PEEP qua mặt nạ/gọng mũi).
+
+### 1.3. Bảng dữ liệu theo dõi dọc hàng ngày (Daily Flowsheet)
+```json
+{
+  "FlowsheetID": "string (Primary Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "CalendarDate": "date [YYYY-MM-DD]",
+  "HospitalDay": "integer (AdmissionDate = Day 1)",
+  "VentilatorDay": "integer or null",
+  "DailyMaxTempC": "float or null",
+  "DailyMinTempC": "float or null",
+  "DailyMaxWBC": "float or null (cells/mm3)",
+  "DailyMinWBC": "float or null (cells/mm3)",
+  "PercentBands": "float or null (%)",
+  "AlteredMentalStatus": "boolean",
+  "HasNewOnsetPurulentSputum": "boolean",
+  "HasSputumCharacterChange": "boolean",
+  "HasIncreasedSecretions": "boolean",
+  "HasIncreasedSuctioning": "boolean",
+  "Dyspnea": "boolean",
+  "Tachypnea": "boolean",
+  "RespirationRate": "integer (breaths/minute)",
+  "NewOnsetOrWorseningCough": "boolean",
+  "Rales": "boolean",
+  "BronchialBreathSounds": "boolean",
+  "WorseningGasExchange": "boolean",
+  "PaO2FiO2Ratio": "float or null",
+  "OxygenDesaturationPercent": "float or null (%)",
+  "IncreasedOxygenRequirement": "boolean",
+  "IncreasedVentilatorDemand": "boolean",
+  "Hemoptysis": "boolean",
+  "PleuriticChestPain": "boolean",
+  "IsImmunocompromised": "boolean",
+  "ImmunocompromisedCriteria": {
+    "Neutropenia": "boolean (ANC or WBC < 500 cells/mm3)",
+    "LeukemiaOrLymphoma": "boolean",
+    "HIV_CD4_LT200": "boolean",
+    "Splenectomy": "boolean",
+    "SolidOrganOrHSCT_Transplant": "boolean",
+    "CytotoxicChemotherapy": "boolean",
+    "SteroidDailyGT14Days": "boolean"
+  }
+}
+```
+
+### 1.4. Thực thể Kết quả Chẩn đoán hình ảnh (Imaging Record)
+```json
+{
+  "ImagingID": "string (Primary Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "ImagingDate": "date [YYYY-MM-DD]",
+  "ImagingType": "enum [CHEST_XRAY, CT, MRI]",
+  "Findings": {
+    "Infiltrate": "boolean",
+    "Consolidation": "boolean",
+    "Cavitation": "boolean",
+    "Pneumatoceles": "boolean (Only for infants <= 1 y.o.)"
+  },
+  "IsEquivocal": "boolean",
+  "HasClinicalCorrelation": "boolean"
+}
+```
+
+### 1.5. Thực thể Kết quả Vi sinh & Giải phẫu bệnh (Microbiology & Pathology Lab Record)
+```json
+{
+  "LabRecordID": "string (Primary Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "CollectionDate": "date [YYYY-MM-DD]",
+  "SpecimenSource": "enum [SPUTUM, ETA, BAL, PBAL, PSB, PLEURAL_FLUID, LUNG_TISSUE, BLOOD, URINE_ANTIGEN]",
+  "IsMinimallyContaminated": "boolean",
+  "SputumGramStain": {
+    "NeutrophilsPerLPF": "integer",
+    "SquamousEpithelialCellsPerLPF": "integer",
+    "IsPurulent": "boolean"
+  },
+  "IntracellularBacteriaPercent": "float or null",
+  "CultureType": "enum [QUALITATIVE, SEMI_QUANTITATIVE, QUANTITATIVE]",
+  "CFU_Count": "float or null (CFU/ml or CFU/g)",
+  "SemiQuantitativeGrowth": "enum [NONE, SCANT, FEW, MODERATE, HEAVY]",
+  "IsHistopathologyPositive": "boolean",
+  "OrganismsIsolated": [
+    {
+      "OrganismCode": "string (SNOMED-CT)",
+      "OrganismName": "string",
+      "IsNormalFlora": "boolean",
+      "IsCandidaOrYeast": "boolean",
+      "IsCoNS": "boolean",
+      "IsEnterococcus": "boolean"
+    }
+  ]
+}
+```
+
+---
+
+## 2. CỔNG LỌC ĐIỀU KIỆN TIÊN QUYẾT (GATEKEEPERS)
+
+Trước khi chạy thuật toán xác định chẩn đoán viêm phổi PNEU / VAP, hệ thống phải tự động kiểm tra qua các cổng lọc logic sau:
+
+*   **Logic 1 (Vị trí & Lứa tuổi giám sát):**
+    *   Giám sát **In-plan PedVAP** chỉ được thực hiện tại các khoa điều trị nội trú **Nhi khoa** (Pediatric locations), loại trừ hoàn toàn các khoa Sơ sinh (Neonatal locations).
+    *   Giám sát tại các khoa **Người lớn** (Adult locations) bắt buộc phải sử dụng module **VAE (Chương 10)** thay thế cho PNEU đối với bệnh nhân thở máy.
+    *   Các khoa sơ sinh (NICU), nhi khoa và người lớn có thể thực hiện giám sát **Off-plan PNEU** cho cả bệnh nhân thở máy và không thở máy.
+*   **Logic 2 (Định nghĩa liên quan Máy thở - Ventilator-associated [VAP]):**
+    *   Bệnh nhân phải được hỗ trợ hô hấp bằng máy thở xâm lấn liên tục **$> 2$ ngày theo lịch** tính đến Ngày xảy ra sự kiện (DOE) (Ngày đặt máy thở là Ngày 1).
+    *   Thiết bị máy thở phải **đang hiện diện** vào ngày DOE hoặc **vừa được rút vào ngày liền trước** (Day -1) ngày DOE.
+*   **Logic 3 (Quy tắc gián đoạn máy thở - Break Rule):**
+    *   Nếu bệnh nhân được cai máy thở và rút ống hoàn toàn **$\ge 1$ ngày lịch trọn vẹn** (từ 00:00 đến 23:59), bộ đếm ngày máy thở sẽ bị xóa và **tính lại từ Ngày 1** nếu bệnh nhân phải đặt lại máy thở.
+
+---
+
+## 3. THUẬT TOÁN TÍNH TOÁN KHUNG THỜI GIAN
+
+Hệ thống phải tự động tính toán các mốc thời gian cốt lõi theo đúng nguyên lý của Chương 2.
+
+### 3.1. Thuật toán xác định Khoảng thời gian cửa sổ nhiễm khuẩn (IWP)
+*   **Index Date:** 
+    *   Là ngày thu thập mẫu xét nghiệm chẩn đoán dương tính đầu tiên (X-quang, cấy dịch, v.v.) được sử dụng để thỏa mãn tiêu chuẩn chẩn đoán.
+    *   Trong trường hợp tiêu chuẩn chẩn đoán không yêu cầu xét nghiệm (như PNU1), Index Date là ngày đầu tiên ghi nhận dấu hiệu hoặc triệu chứng lâm sàng khu trú đặc hiệu đầu tiên trong bệnh án.
+*   **Infection Window Period (IWP):** Là dải mảng thời gian 7 ngày tính bằng:
+    $$\text{IWP} = [\text{Index Date} - 3 \text{ ngày}, \text{ Index Date} + 3 \text{ ngày}]$$
+*   **Ràng buộc hình ảnh đặc biệt:** Ngày chụp phim X-quang đầu tiên có thâm nhiễm mới/tiến triển phải nằm trong IWP và toàn bộ các triệu chứng lâm sàng, xét nghiệm khác phải xuất hiện đồng thời trong 7 ngày này.
+
+### 3.2. Thuật toán xác định Ngày xảy ra sự kiện (Date of Event - DOE)
+*   **DOE** là ngày đầu tiên xuất hiện bất kỳ yếu tố nào (yếu tố lâm sàng, cận lâm sàng, hoặc hình ảnh học) được sử dụng để thỏa mãn tiêu chuẩn chẩn đoán viêm phổi trong khoảng thời gian IWP.
+*   *Lưu ý:* DOE không bắt buộc phải là ngày chụp X-quang hay ngày cấy dịch.
+
+### 3.3. Thuật toán phân loại POA vs HAI
+*   **Present on Admission (POA):** DOE xảy ra trong dải ngày từ ngày nhập viện (Hospital Day 1) đến hết ngày thứ 2 của đợt nhập viện.
+*   **Healthcare-Associated Infection (HAI):** DOE xảy ra từ Ngày thứ 3 của đợt nhập viện trở đi.
+
+### 3.4. Thuật toán Khung thời gian lặp lại (Repeat Infection Timeframe - RIT)
+*   Kích hoạt khung RIT **14 ngày** kể từ ngày DOE (với DOE là Ngày 1).
+*   *Quy tắc chặn:* Không ghi nhận ca viêm phổi mới trong RIT. RIT được áp dụng ở mức độ **Nhóm nhiễm khuẩn chính (Major Type of Infection)**. Do đó, bệnh nhân đã được chốt ca PNEU (bất kể PNU1, PNU2 hay PNU3) thì không được báo cáo ca PNEU mới trong dải RIT này. Mọi tác nhân vi khuẩn mới phát hiện trong dịch hô hấp thuộc RIT sẽ được cộng dồn vào ca bệnh gốc.
+
+---
+
+## 4. TIÊU CHUẨN CHẨN ĐOÁN CHI TIẾT (LOGIC TREES)
+
+Hệ thống tự động phân loại viêm phổi theo 3 phân cấp: **PNU1 (Viêm phổi lâm sàng)**, **PNU2 (Viêm phổi kèm bằng chứng vi sinh)**, và **PNU3 (Viêm phổi trên bệnh nhân suy giảm miễn dịch)**.
+
+### 4.1. Tiêu chuẩn Hình ảnh học bắt buộc (Mọi phân cấp PNU)
+*   **IF** (Bệnh nhân **KHÔNG** có bệnh lý tim phổi nền (`HasUnderlyingDisease = False`))
+    *   **THEN** Chấp nhận tối thiểu **1 phim chụp X-quang/CT phổi** có kết quả rõ ràng: thâm nhiễm mới hoặc tiến triển (new/progressive infiltrate), đông đặc (consolidation), tạo hang (cavitation), hoặc kén khí (pneumatoceles - chỉ áp dụng cho trẻ $\le 1$ tuổi).
+*   **IF** (Bệnh nhân **CÓ** bệnh lý tim phổi nền (`HasUnderlyingDisease = True`))
+    *   **THEN** Bắt buộc phải có từ **$\ge 2$ phim chụp X-quang/CT phổi nối tiếp** (serial imaging trong vòng 7 ngày) chứng minh **Sự tồn tại dai dẳng** (persistence) hoặc tiến triển của các tổn thương trên.
+    *   *Ngoại lệ:* Nếu hình ảnh X-quang ban đầu nghi ngờ (equivocal - ví dụ: thâm nhiễm vs xẹp phổi) nhưng phim chụp tiếp theo khẳng định rõ ràng là thâm nhiễm, hình ảnh ban đầu được chấp nhận hợp lệ. Nếu không có phim chụp tiếp theo để làm rõ, phải có tài liệu chứng minh sự tương quan lâm sàng (Clinical correlation - bác sĩ điều trị kháng sinh phù hợp cho tổn thương phổi đó).
+
+---
+
+### 4.2. Phân cấp PNU1: Viêm phổi Lâm sàng (Clinically Defined Pneumonia)
+
+Hệ thống áp dụng các nhánh điều kiện triệu chứng dựa trên nhóm tuổi của bệnh nhân:
+
+#### Nhánh A: Áp dụng cho Mọi đối tượng bệnh nhân (Mọi lứa tuổi)
+*   **IF** (Thỏa mãn tiêu chuẩn hình ảnh học)
+*   **AND** (Có ít nhất một triệu chứng toàn thân):
+    *   Sốt $> 38.0^{\circ}C$ ($> 100.4^{\circ}F$).
+    *   Bạch cầu bất thường: Leukopenia $\le 4,000 \text{ WBC/mm}^3$ OR Leukocytosis $\ge 12,000 \text{ WBC/mm}^3$.
+    *   *Riêng đối với người lớn $\ge 70$ tuổi:* Thay đổi trạng thái tâm thần (Altered mental status) mà không có nguyên nhân rõ ràng khác.
+*   **AND** (Có ít nhất hai triệu chứng đường hô hấp dưới thuộc các dòng khác nhau):
+    *   Xuất hiện đờm mủ mới (purulent sputum) OR Thay đổi tính chất đờm (màu sắc, độ đặc, mùi, số lượng) OR Tăng tiết đờm/tăng nhu cầu hút đờm.
+    *   Khó thở (dysnea) OR Thở nhanh (tachypnea).
+        *   *Ngưỡng thở nhanh ở người lớn:* $> 25$ nhịp/phút.
+        *   *Ngưỡng thở nhanh ở trẻ em $> 1$ tuổi:* $> 30$ nhịp/phút.
+    *   Ho mới xuất hiện hoặc ho xấu đi.
+    *   Nghe phổi có ran ẩm (rales/crackles) OR Tiếng thở phế quản (bronchial breath sounds).
+    *   Trao đổi khí xấu đi (Worsening gas exchange): Giảm độ bão hòa oxy máu ($PaO_2/FiO_2 \le 240$ OR Tăng nhu cầu oxy OR Tăng thông số máy thở).
+*   **THEN** Xác nhận ca bệnh **PNU1**.
+
+#### Nhánh B: Tiêu chuẩn thay thế dành cho Trẻ sơ sinh và Trẻ nhỏ $\le 1$ tuổi
+*   **IF** (Thỏa mãn tiêu chuẩn hình ảnh học)
+*   **AND** (Có tình trạng trao đổi khí xấu đi: Giảm bão hòa oxy, độ bão hòa pulse oximetry $< 94\%$, tăng nhu cầu oxy, hoặc tăng thông số máy thở)
+*   **AND** (Có ít nhất ba triệu chứng lâm sàng thuộc các dòng khác nhau):
+    *   Thân nhiệt không ổn định (Temperature instability).
+    *   Bạch cầu bất thường: Leukopenia $\le 4,000 \text{ WBC/mm}^3$ OR Leukocytosis $\ge 15,000 \text{ WBC/mm}^3$ VÀ có chuyển trái (left shift $\ge 10\%$ bạch cầu đũa/band forms).
+    *   Xuất hiện đờm mủ mới OR Thay đổi tính chất đờm OR Tăng tiết đờm/tăng nhu cầu hút đờm.
+    *   Cơn ngưng thở (apnea) OR Thở nhanh OR Phập phồng cánh mũi kèm co kéo lồng ngực OR Thở rên (grunting).
+        *   *Ngưỡng thở nhanh trẻ sinh non < 37 tuần:* $> 75$ nhịp/phút.
+        *   *Ngưỡng thở nhanh trẻ < 2 tháng tuổi:* $> 60$ nhịp/phút.
+        *   *Ngưỡng thở nhanh trẻ 2-12 tháng tuổi:* $> 50$ nhịp/phút.
+    *   Nghe phổi có tiếng rít (wheezing), ran rít/ran ngáy (rhonchi), hoặc ran ẩm (rales).
+    *   Ho.
+    *   Nhịp tim chậm (bradycardia $< 100$ nhịp/phút) OR Nhịp tim nhanh (tachycardia $> 170$ nhịp/phút).
+*   **THEN** Xác nhận ca bệnh **PNU1 (Infant)**.
+
+#### Nhánh C: Tiêu chuẩn thay thế dành cho Trẻ em $> 1$ tuổi đến $\le 12$ tuổi
+*   **IF** (Thỏa mãn tiêu chuẩn hình ảnh học)
+*   **AND** (Có ít nhất ba triệu chứng lâm sàng thuộc các dòng khác nhau):
+    *   Sốt $> 38.0^{\circ}C$ OR Hạ thân nhiệt $< 36.0^{\circ}C$.
+    *   Bạch cầu bất thường: Leukopenia $\le 4,000 \text{ WBC/mm}^3$ OR Leukocytosis $\ge 15,000 \text{ WBC/mm}^3$.
+    *   Xuất hiện đờm mủ mới OR Thay đổi tính chất đờm OR Tăng tiết đờm/tăng nhu cầu hút đờm.
+    *   Khó thở OR Cơn ngưng thở OR Thở nhanh ($> 30$ nhịp/phút) OR Ho mới/ho xấu đi.
+    *   Nghe phổi có ran ẩm hoặc tiếng thở phế quản.
+    *   Trao đổi khí xấu đi: Độ bão hòa pulse oximetry $< 94\%$, tăng nhu cầu oxy, hoặc tăng thông số máy thở.
+*   **THEN** Xác nhận ca bệnh **PNU1 (Child)**.
+
+---
+
+### 4.3. Phân cấp PNU2: Viêm phổi kèm bằng chứng Vi sinh hoặc Sinh học phân tử
+
+*   **IF** (Bệnh nhân thỏa mãn đầy đủ tiêu chuẩn hình ảnh học)
+*   **AND** (Có ít nhất một triệu chứng toàn thân: Sốt, Bạch cầu bất thường, hoặc AMS ở người lớn $\ge 70$ tuổi)
+*   **AND** (Có ít nhất một triệu chứng hô hấp: Đờm mủ mới, Khó thở/Thở nhanh, Ran ẩm/Thở phế quản, hoặc Trao đổi khí xấu đi)
+*   **AND** (Thỏa mãn ít nhất một trong hai nhóm bằng chứng xét nghiệm dưới đây):
+
+#### Nhóm 1: Bằng chứng vi sinh và giải phẫu bệnh thông thường (Table 2 - PNU2)
+*   **a.** Phân lập được vi sinh vật từ mẫu cấy **máu**.
+*   **b.** Phân lập được vi sinh vật từ mẫu cấy **dịch màng phổi**.
+*   **c.** Mẫu cấy dịch đường hô hấp dưới ít ngoại nhiễm (Minimally contaminated LRT specimen) có kết quả cấy định lượng hoặc bán định lượng đạt ngưỡng:
+    *   Dịch rửa phế quản phế nang (BAL) $\ge 10^4 \text{ CFU/ml}$.
+    *   Dịch rửa phế quản phế nang có bảo vệ (PBAL) $\ge 10^4 \text{ CFU/ml}$.
+    *   Chải phế quản có bảo vệ (PSB) $\ge 10^3 \text{ CFU/ml}$.
+    *   Dịch hút khí quản (ETA - chỉ áp dụng cho ca thở máy) $\ge 10^5 \text{ CFU/ml}$.
+    *   *Đối với kết quả bán định lượng:* Kết quả ghi nhận tăng trưởng ở mức "Trung bình" (Moderate), "Nhiều" (Heavy/Many), hoặc thang điểm 2+, 3+, 4+ được coi là đạt ngưỡng.
+*   **d.** Có $\ge 5\%$ tế bào thu thập từ BAL chứa vi khuẩn nội bào trên tiêu bản nhuộm trực tiếp (ví dụ nhuộm Gram).
+*   **e.** Kết quả cấy định lượng hoặc bán định lượng của **mô phổi** đạt ngưỡng $\ge 10^4 \text{ CFU/g}$.
+*   **f.** Kết quả giải phẫu bệnh phổi có bằng chứng viêm phổi rõ ràng:
+    *   Hình thành ổ áp xe hoặc vùng đông đặc kèm tích tụ dày đặc bạch cầu đa nhân trung tính (PMN) trong tiểu phế quản và phế nang.
+    *   Bằng chứng xâm lấn của sợi nấm (fungal hyphae) hoặc giả sợi nấm vào nhu mô phổi.
+
+#### Nhóm 2: Bằng chứng xét nghiệm đặc hiệu (Table 3 - PNU2)
+*   **a.** Xác định được các tác nhân: Virus hô hấp, *Bordetella*, *Legionella*, *Chlamydia*, hoặc *Mycoplasma* từ dịch tiết hoặc mô đường hô hấp bằng phương pháp cấy hoặc xét nghiệm không nuôi cấy (PCR, kháng nguyên, v.v.) dùng cho chẩn đoán lâm sàng.
+*   **b.** Hiệu giá kháng thể IgG tăng gấp 4 lần trong mẫu huyết thanh kép (đối với virus hô hấp hoặc *Chlamydia*).
+*   **c.** Hiệu giá kháng thể kháng *Legionella pneumophila* serogroup 1 tăng gấp 4 lần đạt mức $\ge 1:128$ trong mẫu huyết thanh kép bằng phương pháp IFA.
+*   **d.** Phát hiện kháng nguyên *Legionella pneumophila* serogroup 1 trong nước tiểu bằng phương pháp RIA hoặc EIA.
+
+*   **THEN** Xác nhận ca bệnh **PNU2**.
+
+---
+
+### 4.4. Phân cấp PNU3: Viêm phổi trên Bệnh nhân Suy giảm miễn dịch (Immunocompromised)
+
+*   **IF** (Bệnh nhân được xác định là **Suy giảm miễn dịch** (`IsImmunocompromised = True`) theo đúng các định nghĩa quy định tại Footnote 10):
+    *   ANC hoặc WBC $< 500 \text{ cells/mm}^3$.
+    *   Bị bệnh bạch cầu (leukemia), u hạch (lymphoma), hoặc HIV dương tính với số lượng CD4 $< 200$.
+    *   Đã cắt lách (splenectomy).
+    *   Có tiền sử ghép tạng đặc hoặc ghép tế bào gốc tạo máu (HSCT).
+    *   Đang điều trị bằng hóa chất diệt tế bào (cytotoxic chemotherapy).
+    *   Sử dụng steroid đường toàn thân (enteral/parenteral) liên tục $> 14$ ngày tính đến ngày xảy ra sự kiện.
+*   **AND** (Thỏa mãn tiêu chuẩn hình ảnh học)
+*   **AND** (Có ít nhất một triệu chứng lâm sàng): Sốt, Sa sút trí tuệ ở người lớn $\ge 70$ tuổi, Ho/Khó thở/Thở nhanh, Ran ẩm/Thở phế quản, Trao đổi khí xấu đi, Ho ra máu (hemoptysis), hoặc Đau ngực kiểu màng phổi (pleuritic chest pain).
+*   **AND** (Thỏa mãn ít nhất một trong ba bằng chứng xét nghiệm đặc thù):
+    *   **a.** Phát hiện loài nấm **Candida trùng khớp (matching Candida spp.)** đồng thời trong mẫu **máu** và một mẫu dịch đường hô hấp (đờm, dịch hút khí quản, BAL, hoặc PSB) lấy trong cùng khoảng thời gian IWP.
+    *   **b.** Có bằng chứng nhiễm nấm (loại trừ nấm men *Candida spp.* và nấm men không xác định loài khác) từ mẫu dịch đường hô hấp dưới ít ngoại nhiễm (BAL, PSB, ETA) bằng một trong các test: Soi trực tiếp, Cấy nấm dương tính, hoặc Xét nghiệm kháng nguyên/PCR nấm.
+    *   **c.** Thỏa mãn bất kỳ tiêu chuẩn chẩn đoán cận lâm sàng nào đã được định nghĩa tại **PNU2 (Nhóm 1 hoặc Nhóm 2)**.
+*   **THEN** Xác nhận ca bệnh **PNU3**.
+
+---
+
+## 5. LƯU ĐỒ THUẬT TOÁN (MERMAID FLOWCHART)
+
+```mermaid
+graph TD
+    A[Bắt đầu rà soát Viêm phổi PNEU] --> B{Bệnh lý tim phổi nền?}
+    B -- Không --> C{Có >= 1 phim X-quang/CT phổi thâm nhiễm mới/tiến triển?}
+    B -- Có --> D{Có >= 2 phim serial X-quang/CT phổi tồn tại dai dẳng tổn thương?}
+    
+    C -- Không --> E[Dừng - Không thỏa mãn PNEU]
+    D -- Không --> E
+    
+    C -- Có --> F{Phân loại nhóm tuổi và tình trạng miễn dịch?}
+    D -- Có --> F
+    
+    %% Phân nhánh PNU3
+    F -- Suy giảm miễn dịch --> G{Có triệu chứng PNU3 trong IWP? <br> Sốt, AMS, ho/khó thở, ran phổi, giảm oxy, ho máu, đau ngực}
+    G -- Có --> H{Xét nghiệm PNU3 trong IWP: <br> 1. Candida khớp máu & dịch hô hấp <br> 2. Bằng chứng nấm khác ở LRT <br> 3. Đạt bất kỳ tiêu chuẩn Lab PNU2?}
+    H -- Có --> I[Xác nhận ca bệnh: PNU3]
+    H -- Không --> E
+    G -- Không --> E
+
+    %% Phân nhánh PNU1 / PNU2 thường
+    F -- Miễn dịch bình thường --> K{Khảo sát tiêu chuẩn triệu chứng lâm sàng?}
+    
+    K -- Đủ Sốt/WBC + >= 2 triệu chứng hô hấp --> L{Khảo sát bằng chứng Lab PNU2 trong IWP?}
+    K -- Thiếu triệu chứng lâm sàng --> E
+    
+    L -- Không có Lab PNU2 --> M[Xác nhận ca bệnh: PNU1]
+    L -- Có Lab PNU2: <br> Cấy máu/dịch màng phổi dương tính OR <br> BAL/ETA đạt ngưỡng CFU OR <br> Virus/Legionella dương tính --> N[Xác nhận ca bệnh: PNU2]
+
+    %% Phân loại VAP
+    M --> O{Có đặt máy thở xâm lấn > 2 ngày tính đến DOE <br> và máy thở có tại DOE hoặc ngày DOE-1?}
+    N --> O
+    I --> O
+    
+    O -- Có --> P[Báo cáo: Ventilator-associated Pneumonia - VAP]
+    O -- Không --> Q[Báo cáo: Non-ventilator-associated Pneumonia - PNEU]
+```
+
+---
+
+## 6. QUY TẮC LOẠI TRỪ & NGOẠI LỆ (EXCLUSIONS & EDGE CASES)
+
+### 6.1. Loại trừ vi sinh vật đường hô hấp (Pathogen Exclusions)
+*   **CẤM** sử dụng các kết quả trả về ghi nhận hệ vi sinh vật bình thường để chẩn đoán PNU2 hoặc PNU3: "Normal respiratory flora", "normal oral flora", "mixed respiratory flora", "mixed oral flora", "altered oral flora".
+*   **Ngoại lệ về nấm men, Tụ cầu vàng kháng coagulase (CoNS), và Liên cầu đường ruột (Enterococcus):**
+    *   *Candida spp.* (hoặc kết quả trả về "yeast" không rõ loài), CoNS, và *Enterococcus spp.* **CẤM** được sử dụng để chẩn đoán PNU2 hoặc PNU3 nếu mẫu cấy từ **đờm, dịch hút khí quản (ETA), BAL hoặc PSB**.
+    *   *Ngoại lệ duy nhất cho phép dùng các tác nhân này:* Khi chúng được phân lập trực tiếp từ **Mô phổi** hoặc **Dịch màng phổi** thu thập đúng kỹ thuật vô khuẩn (với mẫu màng phổi lấy qua chọc dịch hoặc trong vòng 24 giờ đầu kể từ khi đặt ống dẫn lưu ngực).
+    *   *Ngoại lệ riêng cho PNU3:* Chấp nhận nấm *Candida spp.* cấy từ đờm/ETA/BAL/PSB nếu có mẫu **máu** cấy ra cùng loài *Candida* trong khoảng thời gian IWP.
+
+### 6.2. Thuật toán quy kết Nhiễm khuẩn huyết thứ phát (Secondary BSI for PNEU)
+Hệ thống áp dụng màng lọc SBAP để kiểm tra cấy máu dương tính:
+1.  **Tính toán khung SBAP cho PNEU:** 
+    $$\text{SBAP} = \text{IWP} + \text{RIT (Kéo dài từ 14-17 ngày tùy vị trí DOE)}$$
+2.  **Quy tắc quy kết (Scenario 1 & 2):**
+    *   Mẫu cấy máu dương tính được lấy trong khung SBAP của ca viêm phổi.
+    *   Tác nhân cấy máu phải trùng khớp (Match) hoàn toàn về chi và loài (hoặc trùng chi nếu một trong hai mẫu chỉ định danh đến chi) với tác nhân phân lập được từ mẫu dịch hô hấp.
+    *   *Ngoại lệ sinh học:* Các tác nhân *Candida spp.* (hoặc yeast NOS), CoNS, và *Enterococcus spp.* trong máu **CẤM** được quy kết là thứ phát sau PNEU, trừ khi các tác nhân này cũng được cấy ra trực tiếp từ mô phổi hoặc dịch màng phổi.
+
+### 6.3. Quy tắc chuyển khoa (Transfer Rule)
+*   Nếu DOE xảy ra vào **ngày chuyển khoa hoặc ngày liền kề sau đó** (Day +1) kể từ khi bệnh nhân được chuyển từ khoa nội trú này sang khoa nội trú khác, ca viêm phổi đó phải được quy kết cho **khoa chuyển đi**.
+*   Nếu bệnh nhân đi qua nhiều khoa trong vòng 24 giờ trước DOE, ca viêm phổi được tính cho khoa đầu tiên mà bệnh nhân nằm vào ngày trước DOE.
+
+### 6.4. Độc lập với Chẩn đoán của Bác sĩ lâm sàng
+*   **CẤM** phần mềm tự động chốt ca PNEU/VAP chỉ dựa trên dòng chẩn đoán "Viêm phổi" (physician's diagnosis of pneumonia alone) ghi trong hồ sơ bệnh án. Chẩn đoán viêm phổi bắt buộc phải được chứng minh bằng cách thỏa mãn đầy đủ các nhánh logic hình ảnh, lâm sàng và cận lâm sàng của NHSN.
+
+---
+
+## 7. BIỂU MẪU KẾT QUẢ ĐẦU RA (OUTPUT INVESTIGATION REPORTS)
+
+Hệ thống tự động biên dịch dữ liệu thô và xuất phiếu điều tra ca bệnh theo đúng biểu mẫu báo cáo y khoa của CDC:
+
+### 7.1. Phiếu chốt ca nhiễm phổi liên quan máy thở PNU2 (PedVAP)
+*   **Mã ca bệnh:** `VAP-2026-0045`
+*   **Thông tin hành chính:** Bệnh nhân Lê Văn C (8 tuổi) | HD 1: 2026-07-25 | Khoa: ICU Nhi khoa
+*   **Bệnh lý nền:** Không có bệnh lý tim phổi nền (`HasUnderlyingDisease = False`)
+*   **Mốc thời gian xác định:**
+    *   *Index Date (Ngày cấy BAL):* 2026-07-30
+    *   *Infection Window Period (IWP):* 2026-07-27 đến 2026-08-02
+    *   *Date of Event (DOE) (Ngày sốt đầu tiên):* 2026-07-29
+    *   *Phân loại thời gian:* **HAI** (DOE rơi vào Hospital Day 5)
+*   **Dữ liệu hình ảnh học:** X-quang ngực ngày 2026-07-29 ghi nhận tổn thương thâm nhiễm mới thùy dưới phổi phải (Chỉ cần 1 phim do không có bệnh nền).
+*   **Dữ liệu lâm sàng trong IWP:**
+    *   Sốt $38.9^{\circ}C$ (Ghi nhận ngày 2026-07-29)
+    *   Ho mới xuất hiện kèm tăng nhu cầu hút đờm mủ
+*   **Dữ liệu vi sinh:** Mẫu dịch rửa phế quản phế nang (BAL) ngày 2026-07-30 phân lập: *Pseudomonas aeruginosa* đạt nồng độ $\ge 10^4 \text{ CFU/ml}$.
+*   **Đánh giá dụng cụ:** Bệnh nhân được đặt nội khí quản và thở máy từ ngày 2026-07-25 (Thở máy ngày thứ 5 tại ngày DOE) $\rightarrow$ **Kết luận: Ca bệnh liên quan máy thở (VAP - PNU2)**.
+
+### 7.2. Phiếu chốt ca viêm phổi PNU3 kèm Nhiễm khuẩn huyết thứ phát (Secondary BSI)
+*   **Mã ca bệnh:** `PNEU-2026-0052`
+*   **Thông tin hành chính:** Bệnh nhân Phạm Thị D (45 tuổi) | HD 1: 2026-07-15 | Khoa: Nội hô hấp
+*   **Tình trạng miễn dịch:** Đang điều trị hóa chất diệt tế bào do ung thư phổi (`IsImmunocompromised = True`).
+*   **Mốc thời gian xác định:**
+    *   *Index Date (Ngày cấy dịch hút khí quản ETA):* 2026-07-22
+    *   *Infection Window Period (IWP):* 2026-07-19 đến 2026-07-25
+    *   *Date of Event (DOE):* 2026-07-21 (Ngày số lượng bạch cầu giảm sâu)
+    *   *Phân loại thời gian:* **HAI** (DOE rơi vào Hospital Day 7)
+*   **Dữ liệu hình ảnh học:** Phim chụp CT phổi ngày 2026-07-21 ghi nhận thâm nhiễm tiến triển hai phế trường (Đạt tiêu chuẩn hình ảnh).
+*   **Dữ liệu lâm sàng/xét nghiệm trong IWP:**
+    *   Giảm bạch cầu hạt nặng: WBC ngày 2026-07-21 đạt $350 \text{ cells/mm}^3$
+    *   Đau ngực kiểu màng phổi khi hít sâu
+*   **Dữ liệu vi sinh:** Mẫu dịch hút khí quản (ETA) thu thập ngày 2026-07-22 cấy ra *Klebsiella pneumoniae* nồng độ $2 \times 10^5 \text{ CFU/ml}$.
+*   **Khảo sát BSI thứ phát:** 
+    *   Cấy máu thu thập ngày 2026-07-23 dương tính với *Klebsiella pneumoniae*.
+    *   Đánh giá: Ngày lấy mẫu cấy máu (2026-07-23) nằm trong khung SBAP của PNEU (2026-07-19 đến 2026-08-04) VÀ có tác nhân trùng khớp hoàn toàn với tác nhân cấy đờm hô hấp (*Klebsiella pneumoniae*).
+    *   **Kết luận chẩn đoán: Ca bệnh PNU3 (HAI) kèm Secondary BSI (Không báo cáo ca CLABSI trùng lặp)**.
+
+---
+
+*   📊 **Nudge:** Tôi đã hoàn thành đặc tả logic chi tiết cho Viêm phổi (PNEU/VAP) Chương 6. Bạn có muốn tôi tiếp tục thiết lập một tài liệu Đặc tả Logic tương tự cho **Sự kiện LabID của MRSA/C. difficile (Chương 12)** - một phân hệ xử lý dữ liệu tự động từ phòng xét nghiệm vô cùng quan trọng không?

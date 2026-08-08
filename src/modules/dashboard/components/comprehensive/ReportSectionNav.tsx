@@ -1,6 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import { ChevronDown } from "lucide-react";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 export type ReportSectionId =
   | "bc-kpi"
@@ -8,45 +10,82 @@ export type ReportSectionId =
   | "bc-vst"
   | "bc-gsc"
   | "bc-gsc-bk"
+  | "bc-dimension"
+  | "bc-thoi-diem"
   | "bc-nkbv"
+  | "bc-cssd"
   | "bc-chuyen-de"
   | "bc-phan-iii";
 
-const SECTIONS: { id: ReportSectionId; label: string }[] = [
+/** Mục chính — luôn hiện trên thanh điều hướng (giảm mật độ 11 tab). */
+const PRIMARY_SECTIONS: { id: ReportSectionId; label: string; mobileLabel?: string }[] = [
   { id: "bc-kpi", label: "Tổng quan" },
   { id: "bc-trend", label: "Xu hướng" },
   { id: "bc-vst", label: "VST" },
   { id: "bc-gsc", label: "GSC" },
-  { id: "bc-gsc-bk", label: "BK cần can thiệp" },
   { id: "bc-nkbv", label: "NKBV" },
+  { id: "bc-cssd", label: "CSSD" },
+  { id: "bc-phan-iii", label: "Phần III", mobileLabel: "P.III" },
+];
+
+/** Mục phụ — gói trong «Thêm». */
+const MORE_SECTIONS: { id: ReportSectionId; label: string }[] = [
+  { id: "bc-gsc-bk", label: "BK cần can thiệp" },
+  { id: "bc-dimension", label: "Đa chiều" },
+  { id: "bc-thoi-diem", label: "Thời điểm" },
   { id: "bc-chuyen-de", label: "Chuyên đề" },
-  { id: "bc-phan-iii", label: "Phần III" },
 ];
 
 type Props = {
   activeId?: ReportSectionId;
 };
 
+function sectionLinkClass(active: boolean) {
+  return `${C.navTabBtn} ${
+    active
+      ? "bg-slate-900 text-white shadow-sm"
+      : "bg-transparent text-slate-600 hover:bg-white hover:text-slate-900"
+  }`;
+}
+
 export function ReportSectionNav({ activeId }: Props) {
+  const moreActive = MORE_SECTIONS.some((s) => s.id === activeId);
+  const [moreOpen, setMoreOpen] = useState(moreActive);
+
   return (
-    <nav
-      aria-label="Mục lục báo cáo"
-      className="sticky top-[5.25rem] z-10 mb-4 overflow-x-auto rounded-lg border border-slate-200 bg-white/95 px-1.5 py-1.5 backdrop-blur-sm"
-    >
-      <ul className="flex min-w-max items-center gap-0.5">
-        {SECTIONS.map((s) => (
-          <li key={s.id}>
-            <a
-              href={`#${s.id}`}
-              className={`inline-flex rounded-md px-2.5 py-1 text-[11px] font-bold transition-colors ${
-                activeId === s.id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"
-              }`}
-            >
-              {s.label}
-            </a>
-          </li>
+    <nav aria-label="Mục lục báo cáo" className="sticky top-[5.25rem] z-10 mb-3">
+      <div className={C.navTabStrip}>
+        {PRIMARY_SECTIONS.map((s) => (
+          <a
+            key={s.id}
+            href={`#${s.id}`}
+            className={sectionLinkClass(activeId === s.id)}
+          >
+            <span className="sm:hidden">{s.mobileLabel ?? s.label}</span>
+            <span className="hidden sm:inline">{s.label}</span>
+          </a>
         ))}
-      </ul>
+        <button
+          type="button"
+          className={`${sectionLinkClass(moreActive)} gap-1`}
+          aria-expanded={moreOpen}
+          onClick={() => setMoreOpen((v) => !v)}
+        >
+          Thêm
+          <ChevronDown className={`h-3.5 w-3.5 transition-transform ${moreOpen ? "rotate-180" : ""}`} />
+        </button>
+      </div>
+      {moreOpen ? (
+        <ul className="mt-1.5 flex min-w-max flex-wrap items-center gap-0.5 rounded-[var(--radius-control)] border border-slate-200/90 bg-white px-1.5 py-1">
+          {MORE_SECTIONS.map((s) => (
+            <li key={s.id}>
+              <a href={`#${s.id}`} className={sectionLinkClass(activeId === s.id)}>
+                {s.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </nav>
   );
 }
@@ -64,7 +103,7 @@ export function ReportSection({
 }) {
   return (
     <section id={id} className={`scroll-mt-24 ${className}`}>
-      <h2 className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-400">{title}</h2>
+      <h2 className="mb-2 text-[11px] font-semibold tracking-wide text-slate-500">{title}</h2>
       {children}
     </section>
   );

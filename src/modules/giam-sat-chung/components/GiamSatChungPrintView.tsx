@@ -16,6 +16,9 @@ import {
   resolveGscNgheTen,
   resolveGscNguoiGiamSatTen,
 } from "../lib/gsc-session-labels";
+import EntityQrBlock from "@/components/shared/EntityQrBlock";
+import { buildPrintFileTitle } from "@/lib/print/print-file-title";
+import { gscSessionDisplayRef } from "../lib/gsc-display-ref";
 
 interface GiamSatChungPrintViewProps {
   session: Record<string, unknown>;
@@ -26,6 +29,9 @@ interface GiamSatChungPrintViewProps {
   /** Tra cứu tên đối tượng / nghề khi phiên chỉ có UUID (form đang nhập). */
   ngheNghieps?: MasterOption[];
   nhanSus?: NhanSuLike[];
+  /** Mã QR mở lại phiên + ảnh đã sinh trước khi in */
+  qrCode?: string;
+  qrDataUrl?: string;
 }
 
 export default function GiamSatChungPrintView({
@@ -36,6 +42,8 @@ export default function GiamSatChungPrintView({
   khuVucs = [],
   ngheNghieps = [],
   nhanSus = [],
+  qrCode,
+  qrDataUrl,
 }: GiamSatChungPrintViewProps) {
   const currentKhoa = resolveGscKhoaTen(session, khoas);
   const currentKhuVuc = resolveGscKhuTen(session, khuVucs);
@@ -51,12 +59,25 @@ export default function GiamSatChungPrintView({
   const tBat = session.thoi_gian_bat_dau;
   const tKt = session.thoi_gian_ket_thuc;
   const khungGioDayDu = Boolean(tBat && tKt);
+  const sessionId = String(session.id || "").trim();
+  const ngayGS =
+    (session.ngay_giam_sat as string) || (session.created_at as string) || null;
+  const maHienThi = String(session.ma_hien_thi || "").trim();
+  const printMa =
+    maHienThi ||
+    (sessionId ? gscSessionDisplayRef(sessionId, ngayGS) : "GSC-KHONG_MA");
 
   return (
     <PrintLayout
       title={printTitle}
       headerTitle="BỆNH VIỆN QUÂN Y 103"
       departmentTitle={departmentTitle}
+      fileTitle={() => buildPrintFileTitle({ loai: "LSGS", ma: printMa })}
+      afterFooter={
+        qrDataUrl && qrCode ? (
+          <EntityQrBlock dataUrl={qrDataUrl} code={qrCode} caption="Quét mở lại phiếu GSC" variant="compact" />
+        ) : null
+      }
     >
       <div style={{ lineHeight: 1.35 }}>
         <div style={{ marginBottom: "10px" }}>
@@ -134,6 +155,33 @@ export default function GiamSatChungPrintView({
               </p>
               <p style={{ margin: 0, fontSize: "13px", gridColumn: "1 / -1" }}>
                 <strong>Số giường:</strong> {String(session.so_giuong_nguoi_benh || "").trim() || "—"}
+              </p>
+              <p style={{ margin: 0, fontSize: "13px", gridColumn: "1 / -1" }}>
+                <strong>Can thiệp xâm lấn:</strong>{" "}
+                {[
+                  session.bn_tho_may ? "Thở máy" : null,
+                  session.bn_phau_thuat ? "Phẫu thuật" : null,
+                  session.bn_cvc ? "Đường truyền trung tâm (CVC)" : null,
+                  session.bn_foley ? "Ống thông tiểu" : null,
+                ]
+                  .filter(Boolean)
+                  .join("; ") || "—"}
+              </p>
+              <p style={{ margin: 0, fontSize: "13px" }}>
+                <strong>Nhiễm đa kháng:</strong>{" "}
+                {session.bn_nhiem_mdro
+                  ? `Có${session.bn_mdro_phenotype ? ` (${String(session.bn_mdro_phenotype)})` : ""}`
+                  : "Không"}
+              </p>
+              <p style={{ margin: 0, fontSize: "13px" }}>
+                <strong>Tác nhân nguy hiểm:</strong>{" "}
+                {session.bn_nhiem_tac_nhan_nguy_hiem
+                  ? `Có${
+                      String(session.bn_tac_nhan_nguy_hiem_ten || "").trim()
+                        ? ` — ${String(session.bn_tac_nhan_nguy_hiem_ten).trim()}`
+                        : ""
+                    }`
+                  : "Không"}
               </p>
             </div>
           ) : null}

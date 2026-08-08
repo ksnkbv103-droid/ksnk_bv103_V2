@@ -9,7 +9,34 @@ import {
   type IncidentGroup,
 } from "@/modules/cssd-su-co/domain/cssd-incident-taxonomy";
 import { readIncidentGroup } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
-import { getErrorMessage } from "../shared/cssd-db-utils";
+import { getErrorMessage, tableHasColumn } from "../shared/cssd-db-utils";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
+import {
+  computeBoByKhoa,
+  computeCapPhatByKhoaNhan,
+  computeMayUsage,
+  computeMeQcSummary,
+  computeReuseFrequency,
+  computeStaffScans,
+  computeStationVolume,
+  computeStationVolumeTrend,
+  pivotVolumeTrendTotals,
+  roundIncidentFreeRate,
+  summarizeCssdAnalyticsBrief,
+  type CssdAnalyticsStation,
+  type CssdBoByKhoaRow,
+  type CssdCapPhatByKhoaNhanRow,
+  type CssdMayUsageRow,
+  type CssdMeQcSummary,
+  type CssdQuyTrinhAnalyticsRow,
+  type CssdReuseRow,
+  type CssdStaffScanRow,
+  type CssdStationVolumeRow,
+  type CssdVolumeBucket,
+  type CssdVolumeTrendPoint,
+  CSSD_ANALYTICS_STATIONS,
+} from "@/lib/analytics/cssd-metrics/cssd-analytics-core";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const MAX_REPORT_ROWS = 8000;
 
@@ -28,10 +55,45 @@ function parseIncidentType(raw: string): { group: IncidentGroup; typeName: strin
   return { group: classifyIncidentGroupByTypeName(text), typeName: text || "Chưa phân loại" };
 }
 
+/** Cột luôn có trên view từ consolidation 20260622. */
+const QUY_TRINH_ANALYTICS_BASE = [
+  "id",
+  "bo_dung_cu_id",
+  "ma_bo",
+  "ten_bo",
+  "ten_khoa",
+  "suds_count",
+  "created_at",
+  "ma_trang_thai_hien_tai",
+  "thoi_gian_tiep_nhan",
+  "thoi_gian_lam_sach",
+  "thoi_gian_qc",
+  "thoi_gian_dong_goi",
+  "thoi_gian_tiet_khuan",
+  "thoi_gian_cap_phat",
+  "nguoi_tiep_nhan_id",
+  "nguoi_lam_sach_id",
+  "nguoi_kiem_tra_id",
+  "nguoi_dong_goi_id",
+  "nguoi_tiet_khuan_id",
+  "nguoi_cap_phat_id",
+] as const;
+
+/** Cột additive — chỉ SELECT khi view đã migrate (`20260729…khoa_nhan_id`). */
+const QUY_TRINH_ANALYTICS_OPTIONAL = ["khoa_su_dung_id", "khoa_nhan_id", "ten_khoa_nhan"] as const;
+
+async function buildQuyTrinhAnalyticsSelect(supabase: SupabaseClient): Promise<string> {
+  const cols: string[] = [...QUY_TRINH_ANALYTICS_BASE];
+  for (const col of QUY_TRINH_ANALYTICS_OPTIONAL) {
+    if (await tableHasColumn(supabase, "v_cssd_quy_trinh_full", col)) cols.push(col);
+  }
+  return cols.join(",");
+}
+
 export async function fetchCssdReportBundle(filters: CssdReportFilters) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdReportView();
+    const supabase = createAdminSupabaseClient();
     const from = String(filters.from || "").trim();
     const to = String(filters.to || "").trim();
     const station = String(filters.station || "ALL").trim();
@@ -114,4 +176,271 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e), quyTrinh: [], suCo: [] };
   }
+}
+
+export type CssdAnalyticsBundle = {
+  stationVolume: CssdStationVolumeRow[];
+  volumeTrendDay: { bucket: string; total: number }[];
+  volumeTrendMonth: { bucket: string; total: number }[];
+  volumeTrendYear: { bucket: string; total: number }[];
+  volumeTrendPoints: CssdVolumeTrendPoint[];
+  boByKhoa: CssdBoByKhoaRow[];
+  /** Lượt cấp phát kỳ theo khoa nhận (SSOT destination). */
+  capPhatByKhoaNhan: CssdCapPhatByKhoaNhanRow[];
+  reuseRows: CssdReuseRow[];
+  meQc: CssdMeQcSummary;
+  mayUsage: CssdMayUsageRow[];
+  mayReady: number;
+  mayRepairing: number;
+  phieuBaoTriMo: number;
+  staffScans: Array<CssdStaffScanRow & { ho_ten: string; ma_nv: string }>;
+  brief: ReturnType<typeof summarizeCssdAnalyticsBrief>;
+  tyLeQuyTrinhKhongSuCo: number | null;
+  quyTrinhKyCount: number;
+  suCoKyCount: number;
+};
+
+function emptyAnalyticsBundle(): CssdAnalyticsBundle {
+  const stationVolume = CSSD_ANALYTICS_STATIONS.map((station) => ({
+    station,
+    label: station.replace(/_/g, " "),
+    completed: 0,
+  }));
+  const meQc = { so_me_ky: 0, so_me_da_qc: 0, so_me_dat: 0, ty_le_qc_dat_me: null as number | null };
+  return {
+    stationVolume,
+    volumeTrendDay: [],
+    volumeTrendMonth: [],
+    volumeTrendYear: [],
+    volumeTrendPoints: [],
+    boByKhoa: [],
+    capPhatByKhoaNhan: [],
+    reuseRows: [],
+    meQc,
+    mayUsage: [],
+    mayReady: 0,
+    mayRepairing: 0,
+    phieuBaoTriMo: 0,
+    staffScans: [],
+    brief: summarizeCssdAnalyticsBrief({
+      stationVolume,
+      tyLeQuyTrinhKhongSuCo: 100,
+      soBo: 0,
+      meQc,
+      mayReady: 0,
+      mayRepairing: 0,
+      redAlertTotal: 0,
+      frozenTotal: 0,
+    }),
+    tyLeQuyTrinhKhongSuCo: 100,
+    quyTrinhKyCount: 0,
+    suCoKyCount: 0,
+  };
+}
+
+/**
+ * Bundle analytics CSSD (sản lượng / bộ / máy / NV) — derive từ fact, không bảng summary.
+ * Station filter chỉ áp cho trend/volume display (ALL = mọi trạm).
+ */
+export async function fetchCssdAnalyticsBundle(filters: {
+  from: string;
+  to: string;
+  station?: string;
+  volumeBucket?: CssdVolumeBucket;
+}): Promise<{ success: true; data: CssdAnalyticsBundle } | { success: false; error: string; data: CssdAnalyticsBundle }> {
+  const empty = emptyAnalyticsBundle();
+  try {
+    await verifyCssdReportView();
+    const supabase = createAdminSupabaseClient();
+    const from = String(filters.from || "").trim();
+    const to = String(filters.to || "").trim();
+    const stationRaw = String(filters.station || "ALL").trim();
+    const stationFilter =
+      stationRaw !== "ALL" && CSSD_ANALYTICS_STATIONS.includes(stationRaw as CssdAnalyticsStation)
+        ? (stationRaw as CssdAnalyticsStation)
+        : "ALL";
+
+    const toEnd = `${to}T23:59:59`;
+    /** Lookback để bắt chu trình tạo trước kỳ nhưng hoàn thành trạm trong kỳ. */
+    const lookback = new Date(`${from}T00:00:00Z`);
+    lookback.setUTCDate(lookback.getUTCDate() - 90);
+    const lookbackFrom = lookback.toISOString().slice(0, 10);
+
+    const quyTrinhSelect = await buildQuyTrinhAnalyticsSelect(supabase);
+    const [resQ, resS, resBo, resMe, resTb, resBt, resKhoa] = await Promise.all([
+      supabase
+        .from("v_cssd_quy_trinh_full")
+        .select(quyTrinhSelect)
+        .eq("is_active", true)
+        .gte("created_at", lookbackFrom)
+        .lte("created_at", toEnd)
+        .limit(MAX_REPORT_ROWS),
+      supabase
+        .from("v_cssd_su_co_full")
+        .select("id")
+        .gte("created_at", from)
+        .lte("created_at", toEnd)
+        .limit(MAX_REPORT_ROWS),
+      supabase
+        .from("cssd_dm_bo_dung_cu")
+        .select("id, khoa_su_dung_id, is_active")
+        .eq("is_active", true)
+        .limit(5000),
+      supabase
+        .from("cssd_fact_lo_tiet_khuan")
+        .select("id, thiet_bi_id, ket_qua_test, thoi_gian_bat_dau, created_at, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)")
+        .eq("is_active", true)
+        .gte("created_at", lookbackFrom)
+        .lte("created_at", toEnd)
+        .limit(MAX_REPORT_ROWS),
+      supabase.from("cssd_dm_thiet_bi").select("id, trang_thai").eq("is_active", true).limit(500),
+      supabase
+        .from("cssd_fact_bao_tri")
+        .select("id", { count: "exact", head: true })
+        .eq("trang_thai", "DANG_THUC_HIEN"),
+      supabase.from("mdm_dm_khoa_phong").select("id, ten_khoa, ma_khoa").limit(2000),
+    ]);
+
+    if (resQ.error) return { success: false, error: resQ.error.message, data: empty };
+    if (resBo.error) return { success: false, error: resBo.error.message, data: empty };
+    if (resMe.error) return { success: false, error: resMe.error.message, data: empty };
+
+    const khoaMap = new Map<string, string>();
+    for (const k of resKhoa.data || []) {
+      const row = k as { id: string; ten_khoa?: string; ma_khoa?: string };
+      khoaMap.set(
+        String(row.id),
+        formatKhoaCompactLabel({ ma_khoa: row.ma_khoa, ten_khoa: row.ten_khoa }),
+      );
+    }
+
+    const quyTrinh = ((resQ.data || []) as unknown as CssdQuyTrinhAnalyticsRow[]).map((r) => {
+      const next = { ...r };
+      const kidNhan = String(r.khoa_nhan_id || "").trim();
+      const compactNhan = kidNhan ? khoaMap.get(kidNhan) : undefined;
+      if (compactNhan) next.ten_khoa_nhan = compactNhan;
+      const kidSoHuu = String(r.khoa_su_dung_id || "").trim();
+      const compactSoHuu = kidSoHuu ? khoaMap.get(kidSoHuu) : undefined;
+      if (compactSoHuu) next.ten_khoa = compactSoHuu;
+      return next;
+    });
+    const suCoKyCount = (resS.data || []).length;
+    const quyTrinhKyCount = quyTrinh.filter((r) => {
+      const day =
+        String(r.thoi_gian_tiep_nhan || "").slice(0, 10) || String(r.created_at || "").slice(0, 10);
+      return day >= from && day <= to;
+    }).length;
+    const tyLe = roundIncidentFreeRate(quyTrinhKyCount, suCoKyCount);
+
+    const stationVolume = computeStationVolume(quyTrinh, from, to);
+    const pointsDay = computeStationVolumeTrend(quyTrinh, from, to, "day", stationFilter);
+    const pointsMonth = computeStationVolumeTrend(quyTrinh, from, to, "month", stationFilter);
+    const pointsYear = computeStationVolumeTrend(quyTrinh, from, to, "year", stationFilter);
+
+    const boRows = (resBo.data || []).map((b: Record<string, unknown>) => {
+      const khoaId = b.khoa_su_dung_id ? String(b.khoa_su_dung_id) : null;
+      return {
+        id: String(b.id),
+        khoa_su_dung_id: khoaId,
+        ten_khoa: khoaId ? khoaMap.get(khoaId) || null : null,
+        is_active: b.is_active !== false,
+      };
+    });
+    const boByKhoa = computeBoByKhoa(boRows);
+    const capPhatByKhoaNhan = computeCapPhatByKhoaNhan(quyTrinh, from, to);
+    const reuseRows = computeReuseFrequency(quyTrinh, from, to, 80);
+
+    const meRows = (resMe.data || [])
+      .map((m: Record<string, unknown>) => {
+        const tb = m.thiet_bi as { ten_thiet_bi?: string } | { ten_thiet_bi?: string }[] | null;
+        const ten = Array.isArray(tb) ? String(tb[0]?.ten_thiet_bi || "") : String(tb?.ten_thiet_bi || "");
+        const day =
+          String(m.thoi_gian_bat_dau || "").slice(0, 10) || String(m.created_at || "").slice(0, 10);
+        return {
+          thiet_bi_id: m.thiet_bi_id ? String(m.thiet_bi_id) : null,
+          ten_thiet_bi: ten || null,
+          ket_qua_test: m.ket_qua_test == null ? null : Boolean(m.ket_qua_test),
+          _day: day,
+        };
+      })
+      .filter((m) => m._day >= from && m._day <= to);
+    const meQc = computeMeQcSummary(meRows);
+    const mayUsage = computeMayUsage(meRows);
+
+    let mayReady = 0;
+    let mayRepairing = 0;
+    for (const tb of resTb.data || []) {
+      const st = String((tb as { trang_thai?: string }).trang_thai || "").toUpperCase();
+      if (st === "READY" || st === "HOAT_DONG" || st === "SAN_SANG") mayReady += 1;
+      else if (st === "REPAIRING" || st === "BAO_TRI" || st === "BROKEN") mayRepairing += 1;
+    }
+    const phieuBaoTriMo = resBt.count ?? 0;
+
+    const staffRaw = computeStaffScans(quyTrinh, from, to);
+    const staffIds = [...new Set(staffRaw.map((s) => s.nguoi_id))];
+    const nameMap = new Map<string, { ho_ten: string; ma_nv: string }>();
+    if (staffIds.length > 0) {
+      const { data: ns } = await supabase
+        .from("mdm_nhan_su")
+        .select("id, ho_ten, ma_nv")
+        .in("id", staffIds.slice(0, 500));
+      for (const n of ns || []) {
+        nameMap.set(String((n as { id: string }).id), {
+          ho_ten: String((n as { ho_ten?: string }).ho_ten || "—"),
+          ma_nv: String((n as { ma_nv?: string }).ma_nv || "—"),
+        });
+      }
+    }
+    const staffScans = staffRaw.map((s) => {
+      const n = nameMap.get(s.nguoi_id);
+      return { ...s, ho_ten: n?.ho_ten || "—", ma_nv: n?.ma_nv || "—" };
+    });
+
+    const brief = summarizeCssdAnalyticsBrief({
+      stationVolume,
+      tyLeQuyTrinhKhongSuCo: tyLe,
+      soBo: boRows.length,
+      meQc,
+      mayReady,
+      mayRepairing,
+      redAlertTotal: 0,
+      frozenTotal: 0,
+    });
+
+    return {
+      success: true,
+      data: {
+        stationVolume,
+        volumeTrendDay: pivotVolumeTrendTotals(pointsDay),
+        volumeTrendMonth: pivotVolumeTrendTotals(pointsMonth),
+        volumeTrendYear: pivotVolumeTrendTotals(pointsYear),
+        volumeTrendPoints: pointsDay,
+        boByKhoa,
+        capPhatByKhoaNhan,
+        reuseRows,
+        meQc,
+        mayUsage,
+        mayReady,
+        mayRepairing,
+        phieuBaoTriMo,
+        staffScans,
+        brief,
+        tyLeQuyTrinhKhongSuCo: tyLe,
+        quyTrinhKyCount,
+        suCoKyCount,
+      },
+    };
+  } catch (e: unknown) {
+    return { success: false, error: getErrorMessage(e), data: empty };
+  }
+}
+
+/** Tóm tắt mỏng cho Command Center / BCTH — soft-fail ở caller. */
+export async function fetchCssdAnalyticsBriefSummary(filters: {
+  from: string;
+  to: string;
+}): Promise<{ success: true; data: CssdAnalyticsBundle["brief"] } | { success: false; error: string }> {
+  const res = await fetchCssdAnalyticsBundle({ from: filters.from, to: filters.to, station: "ALL" });
+  if (!res.success) return { success: false, error: res.error };
+  return { success: true, data: res.data.brief };
 }

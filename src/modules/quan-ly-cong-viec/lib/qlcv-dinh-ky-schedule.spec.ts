@@ -78,6 +78,19 @@ describe("dinhKyMatchDueOnDate (mirror RPC)", () => {
   it("QUARTERLY: due trước mốc → false", () => {
     expect(dinhKyMatchDueOnDate("QUARTERLY", "2026-06-15", parseIsoDateOnlyUtc("2026-03-15"))).toBe(false);
   });
+
+  // ---------------------------------------------------------------------------
+  // YEARLY
+  // ---------------------------------------------------------------------------
+  it("YEARLY: cùng tháng+ngày năm sau → khớp", () => {
+    expect(dinhKyMatchDueOnDate("YEARLY", "2026-03-15", parseIsoDateOnlyUtc("2027-03-15"))).toBe(true);
+  });
+  it("YEARLY: cùng ngày mốc → khớp", () => {
+    expect(dinhKyMatchDueOnDate("YEARLY", "2026-03-15", parseIsoDateOnlyUtc("2026-03-15"))).toBe(true);
+  });
+  it("YEARLY: sai tháng → false", () => {
+    expect(dinhKyMatchDueOnDate("YEARLY", "2026-03-15", parseIsoDateOnlyUtc("2027-04-15"))).toBe(false);
+  });
 });
 
 // =============================================================================
@@ -129,5 +142,11 @@ describe("nextDinhKySpawnDates", () => {
     const from = parseIsoDateOnlyUtc("2026-02-01"); // sau 2026-01-15, trước 2026-04-15
     const dates = nextDinhKySpawnDates("QUARTERLY", "2026-01-15", from, { maxScanDays: 200, maxMatches: 2 });
     expect(dates).toEqual(["2026-04-15", "2026-07-15"]);
+  });
+
+  it("YEARLY: 3 kỳ từ mốc", () => {
+    const from = parseIsoDateOnlyUtc("2026-03-15");
+    const dates = nextDinhKySpawnDates("YEARLY", "2026-03-15", from, { maxScanDays: 800, maxMatches: 3 });
+    expect(dates).toEqual(["2026-03-15", "2027-03-15", "2028-03-15"]);
   });
 });

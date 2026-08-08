@@ -4,10 +4,9 @@
 import React, { useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { FileBarChart, ExternalLink } from "lucide-react";
+import { FileBarChart, ExternalLink, Zap } from "lucide-react";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
-import CssdModuleChrome from "@/modules/cssd-erp/components/layout/CssdModuleChrome";
 import { CSSD_UI_DATA_SURFACE } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import { CSSD_ROUTES, cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
 import type { IncidentGroup } from "../domain/cssd-incident-taxonomy";
@@ -47,7 +46,7 @@ export default function SuCoBaoCaoPage() {
 
   if (loading) {
     return (
-      <CSSDPageShell title="Ghi nhận sự cố CSSD" subtitle="Đang kiểm tra quyền…">
+      <CSSDPageShell title="Ghi nhận sự cố CSSD">
         <div className="flex h-[40vh] items-center justify-center text-sm text-slate-500">Đang tải…</div>
       </CSSDPageShell>
     );
@@ -55,9 +54,8 @@ export default function SuCoBaoCaoPage() {
 
   if (!allowed.view && !allowed.create) {
     return (
-      <CSSDPageShell title="Ghi nhận sự cố CSSD" subtitle="Module báo cáo sự cố — BV103">
-        <CssdModuleChrome />
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-10 text-center text-sm text-amber-900">
+      <CSSDPageShell title="Ghi nhận sự cố CSSD">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-8 text-center text-sm text-amber-900">
           Bạn không có quyền module <strong>BAO_SU_CO</strong>. Liên hệ quản trị KSNK.
         </div>
       </CSSDPageShell>
@@ -68,46 +66,32 @@ export default function SuCoBaoCaoPage() {
 
   return (
     <CSSDPageShell
-      title={
-        <>
-          Ghi nhận <span className="text-[var(--primary)]">sự cố CSSD</span>
-        </>
-      }
-      subtitle="Nhóm: quy trình · dụng cụ · máy móc · hóa chất · tiệt khuẩn · khác — rollback theo chính sách an toàn BV103."
+      title="Ghi nhận sự cố CSSD"
       actions={
-        <Link
-          href={reportHref}
-          className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
-        >
-          <FileBarChart size={16} aria-hidden />
-          Nhật ký &amp; thống kê
-          <ExternalLink size={14} className="opacity-50" aria-hidden />
-        </Link>
-      }
-    >
-      <CssdModuleChrome />
-
-      <div className={`${CSSD_UI_DATA_SURFACE} space-y-6 p-4 sm:p-6`}>
-        <div className="flex flex-col gap-2 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs leading-relaxed text-slate-600">
-            Có thể báo nhanh tại{" "}
-            <Link className="font-semibold text-[var(--primary)] underline" href={CSSD_ROUTES.quyTrinh}>
-              Quy trình CSSD
-            </Link>
-            . Trang này dùng khi cần chọn <strong>trạm phát hiện</strong> và nhóm sự cố đầy đủ.
-          </p>
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
+          <Link
+            href={CSSD_ROUTES.quyTrinh}
+            className="bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            title="Báo nhanh tại trạm quy trình"
+          >
+            <Zap size={14} aria-hidden />
+            Báo nhanh
+          </Link>
           <Link
             href={reportHref}
-            className="inline-flex h-9 items-center gap-2 rounded-xl bg-white px-4 text-[11px] font-bold uppercase tracking-wider text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50"
+            className="bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
           >
-            <FileBarChart size={14} /> Xem nhật ký
+            <FileBarChart size={14} aria-hidden />
+            Nhật ký
+            <ExternalLink size={12} className="opacity-50" aria-hidden />
           </Link>
         </div>
-
+      }
+    >
+      <div className={`${CSSD_UI_DATA_SURFACE} p-3 sm:p-4`}>
         {!allowed.create ? (
           <div className="rounded-xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-600">
-            Tài khoản chỉ có quyền <strong>xem</strong> sự cố — dùng báo cáo CSSD để tra cứu; liên hệ quản trị nếu cần quyền{" "}
-            <strong>create</strong>.
+            Tài khoản chỉ có quyền <strong>xem</strong> — liên hệ quản trị để được cấp quyền ghi nhận.
           </div>
         ) : (
           <SuCoReportForm

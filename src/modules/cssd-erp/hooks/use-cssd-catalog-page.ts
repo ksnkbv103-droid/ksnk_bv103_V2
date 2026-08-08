@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { getKhoCatalogPayloadAction, lookupBoDungCuIdByQrAction } from "../actions/cssd-catalog.actions";
 import type { Catalog } from "../types/catalog.types";
+import { normalizeCssdCode } from "../shared/domain/cssd-qr-core";
 import { boIdsForLoai, filterCatalogRows, type CatalogTab } from "../views/cssd-catalog-page-helpers";
 
 export function useCssdCatalogPage() {
@@ -31,12 +32,12 @@ export function useCssdCatalogPage() {
   }, [reload]);
 
   const handleScan = useCallback(async (val: string) => {
-    const code = val.trim();
+    const code = normalizeCssdCode(val);
     if (!code) return;
 
     // 1. Tìm chính xác mã bộ (ma_bo) trong danh mục
     const matchedBo = catalog.bo.find(
-      (x) => x.ma_bo?.toLowerCase() === code.toLowerCase()
+      (x) => normalizeCssdCode(x.ma_bo) === code
     );
     if (matchedBo) {
       setTab("BO");
@@ -48,7 +49,7 @@ export function useCssdCatalogPage() {
 
     // 2. Tìm chính xác mã chi tiết (ma_chi_tiet) trong danh mục
     const matchedChiTiet = catalog.chi_tiet.find(
-      (x) => x.ma_chi_tiet?.toLowerCase() === code.toLowerCase()
+      (x) => normalizeCssdCode(x.ma_chi_tiet) === code
     );
     if (matchedChiTiet) {
       setTab("CHI_TIET");
@@ -60,7 +61,7 @@ export function useCssdCatalogPage() {
 
     // 3. Tìm chính xác mã loại (ma_loai_dung_cu) trong danh mục
     const matchedLoai = catalog.loai.find(
-      (x) => x.ma_loai_dung_cu?.toLowerCase() === code.toLowerCase()
+      (x) => normalizeCssdCode(x.ma_loai_dung_cu) === code
     );
     if (matchedLoai) {
       setTab("LOAI");

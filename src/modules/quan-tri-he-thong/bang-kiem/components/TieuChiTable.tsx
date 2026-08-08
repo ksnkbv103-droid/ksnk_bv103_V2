@@ -98,18 +98,18 @@ export default function TieuChiTable({
     childUniqueKey: "ma_tc",
     childArrayKey: "tieu_chi_bang_kiem",
     columnMapping: {
-      ma_bk: "ma_bk",
-      ten_bang_kiem: "ten_bang_kiem",
-      mo_ta_bang_kiem: "mo_ta",
-      nhom_chuyen_de: "nhom_chuyen_de",
-      ma_tc: "ma_tc",
-      noi_dung_tieu_chi: "noi_dung",
-      stt: "stt",
-      ghi_chu: "ghi_chu",
-      is_active: "is_active",
+      "Mã bảng kiểm": "ma_bk",
+      "Tên bảng kiểm": "ten_bang_kiem",
+      "Mô tả": "mo_ta",
+      "Nhóm chuyên đề": "nhom_chuyen_de",
+      "Mã tiêu chí": "ma_tc",
+      "Nội dung tiêu chí": "noi_dung",
+      STT: "stt",
+      "Ghi chú": "ghi_chu",
+      "Đang dùng": "is_active",
     },
-    onImport: async (val) => {
-      const res = await importFullBangKiemData(val);
+    onImport: async (val, options) => {
+      const res = await importFullBangKiemData(val, { softDeleteMissing: options?.softDeleteMissing, dryRun: options?.dryRun });
       if (res.success) {
         setRefreshKey((prev) => prev + 1);
         router.refresh();
@@ -123,12 +123,9 @@ export default function TieuChiTable({
     exportTemplate(exportData);
   };
 
-  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      await handleFileUpload(file);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
+  const onFileSelected = async (file: File) => {
+    await handleFileUpload(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const showForm =
@@ -146,7 +143,7 @@ export default function TieuChiTable({
           setEditingTC(null);
           setIsFormOpen(true);
         }}
-        onFileChange={onFileChange}
+        onFileSelected={(file) => void onFileSelected(file)}
       />
       <div className="px-4 pb-2 sm:px-6">
         <AdvancedDataTable

@@ -11,7 +11,9 @@ import {
 import type { CdcMetricsResult } from "../lib/nkbv-timeline-math";
 import type { DepartmentStay } from "../types/nkbv-verification";
 import { subDays } from "../lib/nkbv-timeline-math";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 
 interface NkbvCdcMetricsPanelProps {
   metrics: CdcMetricsResult | null;
@@ -28,22 +30,11 @@ export default function NkbvCdcMetricsPanel({
 }: NkbvCdcMetricsPanelProps) {
   if (!metrics) {
     return (
-      <div className={`${C.sectionGap} bg-slate-50/75 border border-slate-100 rounded-3xl p-6 text-center text-xs text-slate-400 font-medium italic animate-in fade-in duration-200`}>
-        💡 Vui lòng điền Ngày phát hiện và chọn Triệu chứng để kích hoạt Bản đồ Thuật toán CDC 7 Bước động.
+      <div className={`${C.sectionGap} ${C.panelInset} p-6 text-center text-xs text-slate-400 font-medium italic animate-in fade-in duration-200`}>
+        Điền Ngày phát hiện và Triệu chứng để mở bản đồ CDC.
       </div>
     );
   }
-
-  const formatDate = (dStr: string) => {
-    if (!dStr) return "—";
-    try {
-      const parts = dStr.split("-");
-      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-      return new Date(dStr).toLocaleDateString("vi-VN");
-    } catch {
-      return dStr;
-    }
-  };
 
   // Label mappings for device based on type
   const getDeviceLabels = () => {
@@ -66,11 +57,7 @@ export default function NkbvCdcMetricsPanel({
   const device = getDeviceLabels();
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-150 p-5 space-y-6 shadow-xl shadow-slate-100/50 animate-in fade-in duration-300 relative overflow-hidden">
-      {/* Decorative premium glassmorphism background glow */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
-
+    <div className={`${C.panelSurface} p-5 space-y-6 animate-in fade-in duration-300`}>
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div className="flex items-center gap-2">
           <div className="bg-[var(--primary)]/10 p-1.5 rounded-xl text-[var(--primary)]">
@@ -95,21 +82,31 @@ export default function NkbvCdcMetricsPanel({
             1
           </div>
           <div className="space-y-1">
-            <span className={` text-slate-500`}>Bước 1: Cửa sổ Nhiễm trùng (IWP)</span>
+            <span className={` text-slate-500`}>
+              Bước 1:{" "}
+              {metrics.uses_clinical_iwp === false && checklistType === "VAE"
+                ? "Khung Event Period VAE (14 ngày từ DOE — không dùng IWP ±3)"
+                : checklistType === "SSI"
+                  ? "Cửa sổ triệu chứng / SBAP SSI"
+                  : "Cửa sổ Nhiễm trùng (IWP)"}
+            </span>
             <div className="flex items-center justify-between bg-slate-50 border border-slate-100/70 p-2.5 rounded-[var(--radius-shell)]">
               <div>
-                <span className="text-[11px] text-[11px] font-medium text-slate-500 block">Khung Cửa sổ (Ngày X ± 3):</span>
+                <span className="text-[11px] text-[11px] font-medium text-slate-500 block">
+                  {metrics.uses_clinical_iwp === false && checklistType === "VAE"
+                    ? "Event Period:"
+                    : "Khung cửa sổ:"}
+                </span>
                 <strong className="text-xs font-semibold font-mono text-slate-800">
-                  {formatDate(metrics.iwp_start)} — {formatDate(metrics.iwp_end)}
+                  {formatDateVi(metrics.iwp_start)} — {formatDateVi(metrics.iwp_end)}
                 </strong>
               </div>
               <div className="bg-emerald-50 border border-emerald-100 text-emerald-800 px-2 py-1 rounded-xl text-[11px] font-semibold font-mono">
-                7 Ngày Lịch
+                {metrics.uses_clinical_iwp === false && checklistType === "VAE"
+                  ? "14 Ngày"
+                  : "IWP / cửa sổ"}
               </div>
             </div>
-            <p className="text-[11px] leading-relaxed text-slate-500 font-semibold italic">
-              💡 Dựa trên ngày xét nghiệm vi sinh dương tính vào ngày <strong className="font-mono text-slate-700">{formatDate(metrics.doe)}</strong>.
-            </p>
           </div>
         </div>
 
@@ -125,16 +122,13 @@ export default function NkbvCdcMetricsPanel({
                 <span className="text-[11px] font-bold text-indigo-700 block">Ngày Sự kiện quyết định:</span>
                 <strong className="text-xs font-semibold font-mono text-indigo-900 flex items-center gap-1">
                   <Calendar className="h-3.5 w-3.5" />
-                  {formatDate(metrics.doe)}
+                  {formatDateVi(metrics.doe)}
                 </strong>
               </div>
               <div className="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-lg text-[11px] font-semibold">
                 MIN(Symptom, Test)
               </div>
             </div>
-            <p className="text-[11px] leading-relaxed text-slate-500 font-semibold">
-              🎯 Xác định từ triệu chứng lâm sàng xuất hiện sớm nhất lọt khung IWP.
-            </p>
           </div>
         </div>
 
@@ -149,7 +143,7 @@ export default function NkbvCdcMetricsPanel({
               <div>
                 <span className="text-[11px] font-bold text-amber-800 block">Khung lặp lại dự kiến (DOE + 13):</span>
                 <strong className="text-xs font-semibold font-mono text-amber-900">
-                  {formatDate(metrics.doe)} — {formatDate(metrics.sbap_end)}
+                  {formatDateVi(metrics.doe)} — {formatDateVi(metrics.sbap_end)}
                 </strong>
               </div>
               <span className="bg-amber-100 text-amber-800 text-[11px] font-bold px-2 py-0.5 rounded-md">
@@ -186,7 +180,7 @@ export default function NkbvCdcMetricsPanel({
               </div>
             </div>
             <p className="text-[11px] leading-relaxed text-slate-500 font-semibold">
-              📊 Phép toán: `DOE` ({formatDate(metrics.doe)}) - `Ngày nhập viện` ({formatDate(metrics.sbap_start)}) + 1. Ngày thứ &ge; 3 quy chuẩn là HAI.
+              📊 Phép toán: `DOE` ({formatDateVi(metrics.doe)}) - `Ngày nhập viện` ({formatDateVi(metrics.sbap_start)}) + 1. Ngày thứ &ge; 3 quy chuẩn là HAI.
             </p>
           </div>
         </div>
@@ -202,7 +196,12 @@ export default function NkbvCdcMetricsPanel({
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-[11px] font-medium text-slate-500 block">Khoa chịu trách nhiệm KPI:</span>
                 <span className="bg-indigo-100 text-indigo-850 px-2 py-0.5 rounded-lg text-[11px] font-semibold font-sans shadow-sm">
-                  {metrics.attributedStay?.ten_khoa || "Chưa xác định"}
+                  {metrics.attributedStay
+                    ? formatKhoaCompactLabel({
+                        ten_khoa: metrics.attributedStay.ten_khoa,
+                        ma_khoa: (metrics.attributedStay as { ma_khoa?: string }).ma_khoa,
+                      })
+                    : "Chưa xác định"}
                 </span>
               </div>
               
@@ -221,20 +220,36 @@ export default function NkbvCdcMetricsPanel({
                 return (
                   <div className="border-t border-slate-200/50 pt-2 space-y-1 text-[11px] font-semibold text-slate-650">
                     <div className="flex justify-between">
-                      <span>🏥 Khoa nằm ngày DOE ({formatDate(metrics.doe)}):</span>
-                      <strong className="text-slate-800 font-bold">{doeStay?.ten_khoa || "Không rõ / POA"}</strong>
+                      <span>🏥 Khoa nằm ngày DOE ({formatDateVi(metrics.doe)}):</span>
+                      <strong className="text-slate-800 font-bold">
+                        {doeStay
+                          ? formatKhoaCompactLabel({
+                              ten_khoa: doeStay.ten_khoa,
+                              ma_khoa: (doeStay as { ma_khoa?: string }).ma_khoa,
+                            })
+                          : "Không rõ / POA"}
+                      </strong>
                     </div>
                     <div className="flex justify-between">
-                      <span>🏥 Khoa nằm ngày DOE - 1 ({formatDate(subDays(metrics.doe, 1))}):</span>
-                      <strong className="text-slate-800 font-bold">{doeMinus1Stay?.ten_khoa || "Không rõ / POA"}</strong>
+                      <span>🏥 Khoa nằm ngày DOE - 1 ({formatDateVi(subDays(metrics.doe, 1))}):</span>
+                      <strong className="text-slate-800 font-bold">
+                        {doeMinus1Stay
+                          ? formatKhoaCompactLabel({
+                              ten_khoa: doeMinus1Stay.ten_khoa,
+                              ma_khoa: (doeMinus1Stay as { ma_khoa?: string }).ma_khoa,
+                            })
+                          : "Không rõ / POA"}
+                      </strong>
                     </div>
                   </div>
                 );
               })()}
 
-              <p className="text-[11px] leading-relaxed text-indigo-750 font-semibold italic border-t border-slate-200/40 pt-1.5">
-                💡 {metrics.attributionReason}
-              </p>
+              {metrics.attributionReason ? (
+                <p className="border-t border-slate-200/40 pt-1.5 text-[11px] text-slate-600">
+                  {metrics.attributionReason}
+                </p>
+              ) : null}
             </div>
           </div>
         </div>

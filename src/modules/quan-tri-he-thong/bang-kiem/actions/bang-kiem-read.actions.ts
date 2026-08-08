@@ -6,6 +6,7 @@ import { verifyPermission } from "../../actions/verify-permission";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
 import type { DanhMucBangKiem, TieuChiBangKiem } from "../bang-kiem.types";
+import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 
 function errMsg(e: unknown) {
   if (e instanceof Error) return e.message;
@@ -124,6 +125,9 @@ export async function getTieuChisForGiamSatChung(bangKiemId: string, activeOnly 
 export async function getBangKiemsForGiamSat() {
   try {
     await verifyPermission("GIAM_SAT_CHUNG", "view");
+    const { getActorKsnkScope } = await import("@/lib/actor-ksnk-scope-server");
+    const { resolveBkApDungChoKhoa } = await import("@/lib/domain/bang-kiem-ap-dung");
+    const scope = await getActorKsnkScope();
     const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase
       .from("gstt_dm_bang_kiem")
@@ -131,12 +135,45 @@ export async function getBangKiemsForGiamSat() {
       .eq("is_active", true)
       .order("ma_bk", { ascending: true });
     if (error) throw error;
-    const filteredData = normalizeBangKiemRows(data || []).map((bk) => ({
+    let filteredData = normalizeBangKiemRows(data || []).map((bk) => ({
       ...bk,
       tieu_chi_bang_kiem: (bk.tieu_chi_bang_kiem || []).filter(
         (tc: TieuChiBangKiem) => tc.is_active === true,
       ),
     }));
+    // Mạng lưới KSNK: chỉ mẫu áp dụng cho khoa hồ sơ (KSNK/ADMIN giữ toàn bộ).
+    if (scope.isMangLuoiKsnk && !scope.isAdmin && !scope.isNhanVienKsnk) {
+      if (!scope.actorKhoaId) {
+        return { success: true, data: [] };
+      }
+      const { data: khoaRow } = await supabase
+        .from("mdm_dm_khoa_phong")
+        .select("id, khoi_id, ma_khoa, ten_khoa, is_active")
+        .eq("id", scope.actorKhoaId)
+        .maybeSingle();
+      if (!khoaRow) {
+        return { success: true, data: [] };
+      }
+      const khoaCtx = {
+        id: String(khoaRow.id),
+        khoi_id: khoaRow.khoi_id ? String(khoaRow.khoi_id) : null,
+        ma_khoa: khoaRow.ma_khoa ? String(khoaRow.ma_khoa) : null,
+        ten_khoa: khoaRow.ten_khoa ? String(khoaRow.ten_khoa) : null,
+        is_active: khoaRow.is_active !== false,
+      };
+      filteredData = filteredData.filter((bk) =>
+        resolveBkApDungChoKhoa(
+          {
+            id: String(bk.id),
+            ma_bk: bk.ma_bk,
+            ten_bang_kiem: bk.ten_bang_kiem,
+            is_active: true,
+            ap_dung_jsonb: (bk as { ap_dung_jsonb?: unknown }).ap_dung_jsonb,
+          },
+          khoaCtx,
+        ),
+      );
+    }
     return { success: true, data: filteredData };
   } catch (error: unknown) {
     return { success: false, error: errMsg(error) };
@@ -166,7 +203,7 @@ export async function getBangKiemApDungFormOptionsAction() {
       })),
       khoaOptions: (khoaRes.data ?? []).map((k) => ({
         id: String(k.id),
-        label: k.ma_khoa ? `[${k.ma_khoa}] ${k.ten_khoa}` : String(k.ten_khoa),
+        label: formatKhoaPickerLabel({ ma_khoa: k.ma_khoa, ten_khoa: k.ten_khoa }),
         khoi_id: k.khoi_id ? String(k.khoi_id) : undefined,
       })),
     };

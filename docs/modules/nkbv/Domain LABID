@@ -1,0 +1,251 @@
+# ĐẶC TẢ LOGIC DOMAIN: PHÂN HỆ GIÁM SÁT SỰ KIỆN XÁC ĐỊNH QUA PHÒNG XÉT NGHIỆM (LABID EVENT) CHO MRSA VÀ C. DIFFICILE
+*Chuẩn hóa theo Sổ tay Giám sát An toàn Người bệnh NHSN/CDC 2025 - Chương 12*
+
+---
+
+> **CẢNH BÁO HỆ THỐNG (LƯU Ý QUAN TRỌNG CHO LẬP TRÌNH VIÊN):** 
+> Toàn bộ các khái niệm và mốc thời gian cốt lõi của Chương 2 (bao gồm: Khoảng cửa sổ nhiễm khuẩn - IWP, Ngày xảy ra sự kiện - DOE lâm sàng, Khung thời gian lặp lại nhiễm khuẩn - RIT lâm sàng, và Khoảng quy kết BSI thứ phát - SBAP) **HOÀN TOÀN KHÔNG ÁP DỤNG** cho phân hệ giám sát LabID Event. Phân hệ LabID Event sử dụng thuật toán tính trùng lặp và phân loại thời gian (CO, HO, CO-HCFA) hoàn toàn riêng biệt dựa trên ngày nhập viện và ngày lấy mẫu xét nghiệm.
+
+---
+
+## 1. ĐỊNH NGHĨA BIẾN SỐ VÀ CƠ SỞ DỮ LIỆU ĐẦU VÀO (DATA SCHEMA)
+
+Động cơ quy tắc (Rule Engine) yêu cầu các cấu trúc dữ liệu JSON đầu vào dưới đây để thực hiện tính toán tự động và loại bỏ trùng lặp.
+
+### 1.1. Thực thể Đợt điều trị (Encounter / Admission Record)
+Ghi nhận thông tin hành chính từ ADT. Đối với NHSN, một ngày nằm viện của bệnh nhân nội trú (bất kể trạng thái thanh toán hay phân loại cục bộ) đều bắt đầu tính từ lúc bệnh nhân được xếp giường tại khoa nội trú.
+```json
+{
+  "PatientID": "string (Primary Key)",
+  "AdmissionID": "string (Primary Key)",
+  "NHSN_AdmissionDate": "date [YYYY-MM-DD] (Hospital Day 1)", 
+  "DischargeDate": "date [YYYY-MM-DD] or null",
+  "IsAdmittedToInpatient": "boolean",
+  "LastInpatientDischargeDate": "date [YYYY-MM-DD] or null (Dùng riêng cho CDI CO-HCFA)"
+}
+```
+*Lưu ý logic:* Ngày admitted to facility theo NHSN là ngày dương lịch bệnh nhân chính thức hiện diện tại một khoa nội trú (Hospital Day 1).
+
+### 1.2. Thực thể Ghi nhận Xét nghiệm Vi sinh (Lab Isolate Record)
+Dữ liệu thô từ LIS nạp vào hệ thống hàng ngày qua file Excel/CDA. **CẤM** nạp các mẫu thuộc diện cấy tầm soát chủ động (Active Surveillance Testing - AST/ASC) vào bảng này.
+```json
+{
+  "IsolateID": "string (Primary Key)",
+  "PatientID": "string (Foreign Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "SpecimenCollectionDate": "date [YYYY-MM-DD] (Day 1 of 14-day rule)",
+  "LocationCode": "string (Mapped to CDC Location Code)",
+  "SpecimenSource": "enum [BLOOD, STOOL, URINE, SPUTUM, WOUND, OTHER]",
+  "StoolConsistency": "enum [FORMED, UNFORMED] (Chỉ bắt buộc cho Stool)",
+  "OrganismCode": "string (SNOMED-CT)",
+  "OrganismName": "string",
+  "Is_MRSA": "boolean",
+  "CDI_MultiStepResults": [
+    {
+      "TestStepOrder": "integer (1, 2, 3)",
+      "TestMethod": "enum [GDH, NAAT, EIA]",
+      "Timestamp": "datetime [YYYY-MM-DD HH:MM:SS]",
+      "Result": "enum [POSITIVE, NEGATIVE]"
+    }
+  ]
+}
+```
+
+### 1.3. Thực thể Denominator gộp hàng tháng (Monthly Aggregate Denominators)
+```json
+{
+  "MonthlyDenominatorID": "string (Primary Key)",
+  "Year": "integer",
+  "Month": "integer",
+  "LocationCode": "string (Mapped to CDC Location Code)",
+  "Line1_TotalInpatientDays": "integer (Tổng ngày giường tất cả khoa nội trú)",
+  "Line1_TotalInpatientAdmissions": "integer (Tổng ca nhập viện tất cả khoa nội trú)",
+  "Line2_MRSA_Days": "integer (Line 1 minus IRF/IPF với CCN riêng)",
+  "Line2_MRSA_Admissions": "integer (Line 1 minus IRF/IPF với CCN riêng)",
+  "Line3_CDI_Days": "integer (Line 2 minus Baby-based locations)",
+  "Line3_CDI_Admissions": "integer (Line 2 minus Baby-based locations)",
+  "OutpatientEncounters": "integer (Số lượt khám tại ED/Observation)"
+}
+```
+
+---
+
+## 2. CỔNG LỌC ĐIỀU KIỆN TIÊN QUYẾT (GATEKEEPERS)
+
+Trước khi chạy thuật toán LabID Event, bản ghi phải đi qua các cổng lọc điều kiện để xác định tính hợp lệ:
+
+*   **Logic 1 (Nguồn gốc mẫu cấy - Clinical Purpose):** Chỉ chấp nhận các mẫu bệnh phẩm được thu thập vì mục đích chẩn đoán và điều trị lâm sàng. Hệ thống phải tự động kiểm tra và **LOẠI BỎ** các mẫu có mục đích là tầm soát chủ động (AST/ASC - ví dụ: quệt sàng lọc MRSA mũi khi nhập viện, quệt trực tràng tầm soát VRE).
+*   **Logic 2 (Vết mổ/Vết loét ngoài da đối với MRSA):** Chỉ theo dõi MRSA LabID Event từ các khoa lâm sàng được cấu hình giám sát trong Monthly Reporting Plan.
+*   **Logic 3 (Trạng thái phân của mẫu stool đối với C. difficile):** Chỉ chấp nhận mẫu phân **không hình thành khuôn** (unformed stool - phân chảy theo hình dáng vật chứa). Nếu trường `StoolConsistency` là `FORMED`, hệ thống phải **từ chối** chạy thuật toán chẩn đoán CDI.
+*   **Logic 4 (Khoa phòng ngoại trừ đối với C. difficile):** Cấm chạy thuật toán LabID CDI đối với mẫu bệnh phẩm thu thập từ các khoa: Sơ sinh cực non (NICU), dưỡng nhi (Specialty Care Nurseries - SCN), phòng sinh và hậu sản (LDRP/PP), phòng trẻ lành (well-baby nurseries/clinics).
+
+---
+
+## 3. THUẬT TOÁN TÍNH TOÁN KHUNG THỜI GIAN VÀ PHÂN LOẠI EVENT
+
+Hệ thống tự động phân tích thuộc tính thời gian của ca bệnh dựa trên ngày nhập viện (`NHSN_AdmissionDate`) và ngày lấy mẫu (`SpecimenCollectionDate`).
+
+```
+               [NGÀY LẤY MẪU XÉT NGHIỆM (SpecimenCollectionDate)]
+                                      │
+              ┌───────────────────────┴───────────────────────┐
+              ▼                                               ▼
+     Tại Khoa Ngoại trú                              Tại Khoa Nội trú
+    (ED / 24-hr Observation)                      (Hospital Day 1 = ADM Date)
+              │                                               │
+              ▼                                     ┌─────────┴─────────┐
+         Onset = CO                                 ▼                   ▼
+                                               HD 1, 2, hoặc 3     HD 4 trở đi
+                                                    │                   │
+                                                    ▼                   ▼
+                                               Onset = CO           Onset = HO
+```
+
+### 3.1. Thuật toán phân loại Khởi phát (Onset Categorization)
+*   **Community-Onset (CO):**
+    *   *Kịch bản ngoại trú:* Mẫu bệnh phẩm được thu thập khi bệnh nhân đang ở phòng cấp cứu (ED), phòng lưu theo dõi 24h (24-hr Observation Area), hoặc khoa ngoại trú.
+    *   *Kịch bản nội trú:* Mẫu bệnh phẩm được thu thập vào **Ngày 1 (ngày nhập viện), Ngày 2, hoặc Ngày 3** của đợt điều trị nội trú.
+*   **Healthcare Facility-Onset (HO):**
+    *   Mẫu bệnh phẩm được thu thập vào **Ngày thứ 4 trở đi** kể từ ngày nhập viện nội trú (với ngày nhập viện là Ngày 1).
+*   **Community-Onset Healthcare Facility-Associated (CO-HCFA) - *Duy nhất áp dụng cho C. difficile*:**
+    *   Ca bệnh được phân loại là CO-HCFA nếu thỏa mãn đồng thời:
+        1. Ca bệnh có phân loại khởi phát gốc là **Community-Onset (CO)**.
+        2. Bệnh nhân có lịch sử **đã từng xuất viện** từ một khoa nội trú của chính bệnh viện đó trong vòng **$\le 28$ ngày trước** ngày lấy mẫu hiện tại.
+        *Công thức kiểm tra:* 
+        $$\text{SpecimenCollectionDate} - \text{LastInpatientDischargeDate} \le 28 \text{ ngày}$$
+
+### 3.2. Thuật toán phân loại Ca mới (Incident) và Tái phát (Recurrent) - *Chỉ dành cho C. difficile*
+Mỗi ca CDI LabID Event hợp lệ sau khi được phê duyệt sẽ được hệ thống phân loại thuộc tính chu kỳ:
+*   **Incident CDI LabID Event:** Ca bệnh có ngày lấy mẫu xảy ra **$> 56$ ngày** kể từ ngày lấy mẫu của ca CDI LabID Event gần nhất trước đó của bệnh nhân đó, hoặc bệnh nhân chưa từng ghi nhận ca CDI LabID Event nào.
+*   **Recurrent CDI LabID Event:** Ca bệnh có ngày lấy mẫu xảy ra **từ ngày thứ 15 đến ngày thứ 56** kể từ ngày lấy mẫu của ca CDI LabID Event gần nhất trước đó của bệnh nhân đó.
+*   *Lưu ý lập trình:* Nếu khoảng cách ngày lấy mẫu giữa ca mới và ca cũ **$\le 14$ ngày**, ca này được tính là **mẫu trùng lặp (duplicate)** và hệ thống không được gán nhãn thuộc tính `cdiAssay` (để trống).
+
+---
+
+## 4. TIÊU CHUẨN CHẨN ĐOÁN CHI TIẾT VÀ QUY TẮC ĐA BƯỚC (LAB ALGORITHMS)
+
+### 4.1. Tiêu chuẩn xác định tác nhân MRSA
+*   **Bằng chứng 1:** Phân lập được *Staphylococcus aureus* từ mẫu cấy lâm sàng có kết quả kháng sinh đồ đề kháng với ít nhất một trong các thuốc: **Oxacillin, Cefoxitin, hoặc Methicillin**.
+*   **Bằng chứng 2:** Có kết quả xét nghiệm sinh học phân tử (như PCR mec-gene) khẳng định dương tính với MRSA trực tiếp từ mẫu bệnh phẩm.
+
+### 4.2. Thuật toán đa bước xác định C. difficile dương tính (Multi-step Testing Logic)
+Đối với các phòng xét nghiệm sử dụng quy trình xét nghiệm đa bước trên cùng một mẫu phân unformed, **kết quả của xét nghiệm được thực hiện cuối cùng** (Last test performed) có mốc thời gian (timestamp) muộn nhất trên báo cáo lab sẽ quyết định mẫu phân đó có dương tính hay không. 
+
+*Lưu ý lập trình:* Nếu báo cáo lab không có mốc thời gian cụ thể cho từng bước test, coi như các bước được thực hiện đồng thời và chỉ cần xuất hiện bất kỳ kết quả test nào dương tính thì mẫu đó được tính là dương tính.
+
+#### Bảng ma trận quyết định Multi-step cho Lập trình viên:
+| Tình huống | Thứ tự bước thực hiện | Loại xét nghiệm | Kết quả | Kết luận mẫu dương tính? |
+| :---: | :---: | :---: | :---: | :---: |
+| **A** | Bước 1 (13:00)<br>Bước 2 (13:00)<br>Bước 3 (14:00) | NAAT (PCR)<br>GDH (Kháng nguyên)<br>EIA (Độc tố) | Âm tính<br>Dương tính<br>**Dương tính** | **CÓ** (EIA thực hiện cuối cùng và dương tính) |
+| **B** | Bước 1 (13:00)<br>Bước 2 (13:00)<br>Bước 3 (14:00) | NAAT (PCR)<br>GDH (Kháng nguyên)<br>EIA (Độc tố) | Dương tính<br>Dương tính<br>**Âm tính** | **KHÔNG** (EIA thực hiện cuối cùng và âm tính) |
+| **C** | Bước 1 (13:00)<br>Bước 2 (13:00)<br>Bước 3 (14:00) | GDH (Kháng nguyên)<br>EIA (Độc tố)<br>NAAT (PCR) | Dương tính<br>Âm tính<br>**Dương tính** | **CÓ** (NAAT thực hiện cuối cùng và dương tính) |
+| **D** | Bước 1 (13:00)<br>Bước 2 (13:00)<br>Bước 3 (15:00) | GDH (Kháng nguyên)<br>EIA (Độc tố)<br>NAAT (PCR) | Dương tính<br>Dương tính<br>**Âm tính** | **KHÔNG** (NAAT thực hiện cuối cùng và âm tính) |
+
+---
+
+## 5. LƯU ĐỒ THUẬT TOÁN (MERMAID FLOWCHART)
+
+### 5.1. Thuật toán rà soát và loại bỏ trùng lặp MRSA LabID Event (All Specimens)
+
+```mermaid
+graph TD
+    A[Nạp mẫu cấy dương tính MRSA từ LIS] --> B{Mẫu thu thập từ khoa nội trú <br> hoặc ngoại trú hợp lệ?}
+    B -- No --> C[LOẠI BỎ - Không báo cáo]
+    B -- Yes --> D{Có phải là mẫu tầm soát chủ động AST/ASC?}
+    D -- Yes --> C
+    D -- No --> E{Isolate đầu tiên của bệnh nhân <br> tại khoa này trong tháng lịch?}
+    
+    %% Nhánh Isolate đầu tiên của tháng
+    E -- Yes --> F[BÁO CÁO: MRSA LabID Event <br> Non-duplicate Isolate]
+    
+    %% Nhánh Isolate trùng lặp trong tháng
+    E -- No --> G{Mẫu trùng lặp này lấy từ MÁU?}
+    G -- No --> H[LOẠI TRỪ - Trùng lặp non-blood]
+    G -- Yes --> I{Trong vòng 14 ngày trước đó <br> bệnh nhân có mẫu MRSA MÁU dương tính <br> tại cùng khoa này không? <br> Specimen date = Day 1}
+    I -- Yes --> H
+    I -- No --> K[BÁO CÁO: MRSA LabID Event <br> Unique Blood Source Event]
+    
+    F --> L{Hospital Day tại ngày lấy mẫu?}
+    K --> L
+    L -- Day 1, 2, hoặc 3 --> M[Phân loại khởi phát: Community-Onset CO]
+    L -- Day 4 trở đi --> N[Phân loại khởi phát: Healthcare Facility-Onset HO]
+```
+
+### 5.2. Thuật toán rà soát và loại bỏ trùng lặp C. difficile LabID Event
+
+```mermaid
+graph TD
+    A[Mẫu phân unformed có kết quả CDI (+)] --> B{Khoa lâm sàng hợp lệ? <br> Loại trừ NICU, SCN, LDRP, Well-Baby}
+    B -- No --> C[LOẠI BỎ - Không báo cáo]
+    B -- Yes --> D{Trong vòng 14 ngày trước đó <br> bệnh nhân có mẫu CDI (+) <br> tại cùng khoa này không?}
+    D -- Yes --> E[LOẠI TRỪ - Trùng lặp]
+    D -- No --> F[BÁO CÁO: CDI LabID Event]
+    
+    F --> G{Hospital Day tại ngày lấy mẫu?}
+    G -- Day 1, 2, hoặc 3 --> H[Phân loại khởi phát: CO]
+    G -- Day 4 trở đi --> I[Phân loại khởi phát: HO]
+    
+    H --> K{Bệnh nhân có lịch sử xuất viện nội trú <br> trong vòng <= 28 ngày trước đó?}
+    K -- Yes --> L[Nâng cấp phân loại: CO-HCFA]
+    K -- No --> M[Giữ nguyên phân loại: CO]
+    
+    F --> N{Khoảng cách đến ca CDI LabID <br> gần nhất trước đó của bệnh nhân?}
+    N -- > 56 ngày hoặc chưa từng có --> O[Gán thuộc tính: Incident CDI]
+    N -- Từ 15 đến 56 ngày --> P[Gán thuộc tính: Recurrent CDI]
+```
+
+---
+
+## 6. QUY TẮC LOẠI TRỪ & NGOẠI LỆ (EXCLUSIONS & EDGE CASES)
+
+### 6.1. Quy tắc 14 ngày đối với duy nhất một địa điểm (Location-Specific 14-day Rule)
+*   Quy tắc 14 ngày de-duplication được áp dụng **độc lập cho từng khoa lâm sàng (Location)** nơi bệnh nhân nằm điều trị.
+*   Nếu bệnh nhân được chuyển khoa (Transfer), bộ đếm 14 ngày de-duplication của khoa cũ lập tức bị **xóa bỏ (reset)**. Mẫu cấy dương tính đầu tiên tại khoa mới luôn được tính là một LabID Event mới (bất kể trước đó ở khoa cũ bệnh nhân vừa có mẫu cấy dương tính cách đó ít ngày).
+
+### 6.2. Ngoại lệ thu thập mẫu từ phòng Cấp cứu (ED) chuyển thẳng lên khoa điều trị (Inpatient Transfer)
+*   Nếu bệnh nhân có mẫu cấy dương tính lấy tại ED (khoa ngoại trú), sau đó bệnh nhân được nhập viện điều trị nội trú tại khoa ICU trong cùng ngày hoặc ngày hôm sau:
+    *   Hệ thống yêu cầu báo cáo **mẫu cấy tại ED** là một LabID Event của khoa ED (Phân loại Onset = CO).
+    *   Khi bệnh nhân lên khoa ICU, nếu phát hiện tiếp mẫu cấy dương tính mới: mẫu cấy tại ICU này vẫn được tính là một LabID Event riêng biệt thuộc về ICU (do đã đổi Location). Tuy nhiên, trong các báo cáo phân tích gộp FacWideIN cuối cùng, hệ thống phân tích của NHSN sẽ tự động de-duplicate ca trùng lặp này để tránh tính dư.
+
+### 6.3. Quy kết liên tục khi chuyển viện nội bộ IRF / IPF
+*   Đối với các khoa Phục hồi chức năng (IRF) hoặc khoa Tâm thần (IPF) nằm **bên trong** bệnh viện đa khoa:
+    *   Nếu các khoa này sử dụng chung mã định danh CCN (CMS Certification Number) với bệnh viện, việc chuyển bệnh nhân qua lại giữa các khoa này và khoa thường được coi là **chuyển khoa nội bộ (continuous stay)**.
+    *   Nếu các khoa IRF/IPF này có mã CCN riêng biệt, việc chuyển bệnh nhân qua lại được hệ thống tính là một đợt **xuất viện và nhập viện mới** (Admission/Discharge), do đó reset toàn bộ ngày nằm viện của bệnh nhân.
+
+---
+
+## 7. BIỂU MẪU BÁO CÁO ĐẦU RA MOCKUP (OUTPUT REPORTS)
+
+### 7.1. Phiếu báo cáo Sự kiện MRSA LabID Event (Mẫu cấy Máu)
+*   **Mã sự kiện:** `MRSA-LABID-2026-1022`
+*   **Thông tin hành chính:** Bệnh nhân Trần Văn X | Mã bệnh án: `BN-90887` | Khoa phòng: Hồi sức tim mạch (ICU-CARD)
+*   **Chi tiết đợt nhập viện:** Ngày nhập viện: 2026-07-28
+*   **Chi tiết xét nghiệm vi sinh:**
+    *   *Ngày lấy mẫu:* 2026-08-01 (Hospital Day 5)
+    *   *Nguồn bệnh phẩm:* Máu (Blood)
+    *   *Tác nhân phân lập:* *Staphylococcus aureus*
+    *   *Kháng sinh đồ:* Cefoxitin = Resistant | Oxacillin = Resistant $\rightarrow$ **Xác nhận MRSA**.
+*   **Đánh giá trùng lặp (14-day rule):** Bệnh nhân chưa từng có ca MRSA Máu nào tại khoa Hồi sức tim mạch trong vòng 14 ngày trước đó $\rightarrow$ **Kết luận: Ca bệnh hợp lệ (Unique Blood Source)**.
+*   **Phân loại Onset:** **Healthcare Facility-Onset (HO)** (Mẫu lấy vào Ngày nằm viện thứ 5 $\ge$ Ngày thứ 4).
+
+### 7.2. Phiếu báo cáo Sự kiện C. difficile LabID Event (Tái phát)
+*   **Mã sự kiện:** `CDI-LABID-2026-0442`
+*   **Thông tin hành chính:** Bệnh nhân Nguyễn Thị Y | Mã bệnh án: `BN-11223` | Khoa phòng: Khoa Nội tiêu hóa (WARD-GI)
+*   **Chi tiết đợt nhập viện:** Ngày nhập viện: 2026-08-02
+*   **Chi tiết xét nghiệm vi sinh:**
+    *   *Ngày lấy mẫu:* 2026-08-03 (Hospital Day 2)
+    *   *Trạng thái phân:* Unformed (Đạt tiêu chuẩn cổng lọc)
+    *   *Quy trình xét nghiệm đa bước:*
+        1. Bước 1 (08:00): GDH = Positive
+        2. Bước 2 (08:00): EIA Toxin = Negative
+        3. Bước 3 (09:30): NAAT (PCR) = Positive $\rightarrow$ **Last Test = Positive (Mẫu cấy dương tính hợp lệ)**.
+*   **Đánh giá Onset & Liên đới xuất viện cũ:**
+    *   *Phân loại ban đầu:* **Community-Onset (CO)** (Mẫu lấy vào Hospital Day 2).
+    *   *Lịch sử xuất viện:* Bệnh nhân từng xuất viện nội trú tại khoa Ngoại tiêu hóa vào ngày 2026-07-15 (cách 19 ngày $\le 28$ ngày).
+    *   *Phân loại cuối cùng:* **Community-Onset Healthcare Facility-Associated (CO-HCFA)**.
+*   **Phân loại Chu kỳ (cdiAssay):**
+    *   Bệnh nhân có một ca CDI LabID trước đó vào ngày 2026-07-10 (cách ngày lấy mẫu hiện tại 24 ngày - nằm trong khoảng từ 15 đến 56 ngày) $\rightarrow$ **Kết luận: Recurrent CDI Event (Ca tái phát)**.
+
+---
+
+🐾 **Nudge:** Tôi đã hoàn thành tài liệu Đặc tả Logic Chuyên ngành cho phân hệ LabID Event (MRSA và C. difficile) chuẩn NHSN 2025. Bạn có muốn tôi tiếp tục thiết lập một tài liệu tương tự về **Bảng kiểm Giám sát Tuân thủ thực hành đặt Đường truyền trung tâm (CLIP - Chương 5)** - một cấu phần bổ trợ cực kỳ quan trọng để đánh giá tỷ lệ tuân thủ thực hành của nhân viên y tế trước khi xảy ra CLABSI không?

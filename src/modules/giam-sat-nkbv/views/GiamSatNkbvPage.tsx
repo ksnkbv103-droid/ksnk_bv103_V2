@@ -4,9 +4,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BarChart3, LayoutList, Plus, Trash2, FileSpreadsheet, Activity, HeartPulse } from "lucide-react";
 import { toast } from "sonner";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { bv103DefaultTuNgayFromToday } from "@/lib/bv103-analytics-default-range";
-import { vi } from "date-fns/locale";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import {
   KsnkSupervisionHero,
@@ -14,6 +14,9 @@ import {
   KsnkSupervisionPanel,
 } from "@/components/shared/ksnk-supervision-chrome";
 import { Bv103AnalyticsPageFrame } from "@/components/shared/Bv103AnalyticsPageFrame";
+import SearchableSelect from "@/components/shared/SearchableSelect";
+import { formatKhoaCompactLabel, formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import SupervisionPageSkeleton from "@/components/shared/SupervisionPageSkeleton";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import { useGiamSatHeader } from "@/hooks/useGiamSatHeader";
@@ -22,7 +25,9 @@ import { useGenerateMa } from "@/hooks/useGenerateMa";
 import { useServerPaginatedTable, type ServerPaginationParams } from "@/hooks/use-server-paginated-table";
 import {
   createGiamSatNkbvCa,
+  ensureNkbvBaAnalysisCase,
   getNkbvFormDmBundle,
+  getGiamSatNkbvCaById,
   getGiamSatNkbvDashboardPayload,
   listAllMaNkbvCas,
   listGiamSatNkbvCas,
@@ -34,10 +39,15 @@ import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch"
 import dynamic from "next/dynamic";
 import NkbvCaseEditor, { type NkbvCaseLike } from "../components/NkbvCaseEditor";
 import NkbvViSinhImportPortal from "../components/NkbvViSinhImportPortal";
+import NkbvBenhAnImportPortal from "../components/NkbvBenhAnImportPortal";
+import NkbvBenhAnEditModal from "../components/NkbvBenhAnEditModal";
+import NkbvBenhAnHubPanel from "../components/NkbvBenhAnHubPanel";
+import NkbvMdroCensusPanel from "../components/NkbvMdroCensusPanel";
 import NkbvMauSoDailyPortal from "../components/NkbvMauSoDailyPortal";
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
 import NkbvClinicalChecklistModal from "../components/NkbvClinicalChecklistModal";
 import { formatNkbvLoaiDisplay } from "../lib/nkbv-loai-labels";
+import { classifyEntityQr } from "@/lib/entity-qr/entity-qr-core";
 
 const NkbvDashboardPanel = dynamic(() => import("../components/NkbvDashboardPanel"), {
   ssr: false,
@@ -122,12 +132,17 @@ export default function GiamSatNkbvPage() {
   const [dashDen, setDashDen] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const [dashPayload, setDashPayload] = useState<NkbvDashboardPayload | null>(null);
   const [dashLoading, setDashLoading] = useState(false);
+  const [hubBa, setHubBa] = useState<string | null>(null);
+  const [hubNonce, setHubNonce] = useState(0);
+  const [editStay, setEditStay] = useState<Record<string, unknown> | null>(null);
 
   const setSelectedKhoa = header.setSelectedKhoa;
 
-  /** Deep link: ?tab=dashboard&tu_ngay=&den_ngay=&khoa= (hoặc khoa_ids, tu, den). */
+  /** Deep link: ?case= | ?ba= | ?tab=dashboard&tu_ngay=&den_ngay=&khoa= (hoặc khoa_ids, tu, den). */
   useEffect(() => {
     if (deepLinkApplied.current || header.loading) return;
+    const caseId = (searchParams.get("case") || "").trim();
+    const ba = (searchParams.get("ba") || "").trim();
     const tab = parseMainTab(searchParams.get("tab"));
     const tu = (searchParams.get("tu_ngay") || searchParams.get("tu") || "").trim();
     const den = (searchParams.get("den_ngay") || searchParams.get("den") || "").trim();
@@ -135,7 +150,7 @@ export default function GiamSatNkbvPage() {
       (searchParams.get("khoa") || "").trim() ||
       (searchParams.get("khoa_ids") || "").split(",")[0]?.trim() ||
       "";
-    if (!tab && !tu && !den && !khoa) {
+    if (!caseId && !ba && !tab && !tu && !den && !khoa) {
       deepLinkApplied.current = true;
       return;
     }
@@ -144,7 +159,48 @@ export default function GiamSatNkbvPage() {
     if (den) setDashDen(den);
     if (khoa) setSelectedKhoa(khoa);
     deepLinkApplied.current = true;
+
+    if (ba) {
+      setMainTab("records");
+      setHubBa(ba);
+    }
+
+    if (caseId) {
+      void (async () => {
+        const res = await getGiamSatNkbvCaById(caseId);
+        if (!res.success || !res.data) {
+          toast.error(res.error || "Không mở được phiếu NKBV từ mã QR");
+          return;
+        }
+        setDraft(res.data as NkbvCaseLike);
+        setEditorOpen(true);
+        setMainTab("cases");
+        toast.success("Đã mở phiếu NKBV từ mã QR / liên kết");
+      })();
+    }
   }, [header.loading, searchParams, setSelectedKhoa]);
+
+  const openHubBa = useCallback(
+    (ma: string) => {
+      const next = String(ma || "").trim();
+      if (!next) return;
+      setHubBa(next);
+      setMainTab("records");
+      const q = new URLSearchParams(searchParams.toString());
+      q.set("tab", "records");
+      q.set("ba", next);
+      router.replace(`${pathname}?${q.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const closeHubBa = useCallback(() => {
+    setHubBa(null);
+    const q = new URLSearchParams(searchParams.toString());
+    q.delete("ba");
+    const qs = q.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   const syncNkbvUrl = useCallback(
     (next: { tab?: NkbvMainTab; tu?: string; den?: string; khoa?: string }) => {
@@ -160,9 +216,13 @@ export default function GiamSatNkbvPage() {
         q.set("den_ngay", den);
         q.delete("tu");
         q.delete("den");
-        if (khoa) q.set("khoa", khoa);
-        else q.delete("khoa");
-        q.delete("khoa_ids");
+        if (khoa) {
+          q.set("khoa_ids", khoa);
+          q.set("khoa", khoa); // alias legacy
+        } else {
+          q.delete("khoa");
+          q.delete("khoa_ids");
+        }
       }
       const qs = q.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
@@ -205,6 +265,10 @@ export default function GiamSatNkbvPage() {
   const [recordsPage, setRecordsPage] = useState(1);
   const [recordsTotalCount, setRecordsTotalCount] = useState(0);
   const [recordsSearch, setRecordsSearch] = useState("");
+  const [recordsInpatientOnly, setRecordsInpatientOnly] = useState(false);
+  const [recordsDevicePriority, setRecordsDevicePriority] = useState(false);
+  const [recordsChuaPtOnly, setRecordsChuaPtOnly] = useState(false);
+  const [recordsKhoaId, setRecordsKhoaId] = useState("");
 
   const fetchRecords = useCallback(async () => {
     if (mainTab !== "records") return;
@@ -214,6 +278,10 @@ export default function GiamSatNkbvPage() {
         page: recordsPage,
         pageSize: 15,
         search: recordsSearch,
+        inpatientOnly: recordsInpatientOnly,
+        devicePriorityOnly: recordsDevicePriority,
+        chuaPhanTichOnly: recordsChuaPtOnly,
+        khoaId: recordsKhoaId || null,
       });
       if (res.success) {
         setMedicalRecords(res.data);
@@ -226,7 +294,15 @@ export default function GiamSatNkbvPage() {
     } finally {
       setRecordsLoading(false);
     }
-  }, [mainTab, recordsPage, recordsSearch]);
+  }, [
+    mainTab,
+    recordsPage,
+    recordsSearch,
+    recordsInpatientOnly,
+    recordsDevicePriority,
+    recordsChuaPtOnly,
+    recordsKhoaId,
+  ]);
 
   useEffect(() => {
     void fetchRecords();
@@ -256,7 +332,7 @@ export default function GiamSatNkbvPage() {
             <span className="font-bold text-slate-900">{item.ho_ten_benh_nhan}</span>
             {item.ngay_sinh && (
               <span className="text-[11px] text-slate-400">
-                Sinh: {item.ngay_sinh} {item.gioi_tinh ? `(${item.gioi_tinh})` : ""}
+                Sinh: {formatDateVi(item.ngay_sinh)} {item.gioi_tinh ? `(${item.gioi_tinh})` : ""}
               </span>
             )}
           </div>
@@ -267,9 +343,9 @@ export default function GiamSatNkbvPage() {
         accessorKey: "ngay_vao_vien",
         cell: (item: any) => (
           <div className="text-xs text-slate-600 font-medium">
-            <span>{item.ngay_vao_vien ? format(parseISO(item.ngay_vao_vien), "dd/MM/yyyy") : "—"}</span>
+            <span>{formatDateVi(item.ngay_vao_vien)}</span>
             <span className="mx-1">→</span>
-            <span>{item.ngay_ra_vien ? format(parseISO(item.ngay_ra_vien), "dd/MM/yyyy") : <span className="text-emerald-600 font-bold italic">Đang nằm viện</span>}</span>
+            <span>{item.ngay_ra_vien ? formatDateVi(item.ngay_ra_vien) : <span className="text-emerald-600 font-bold italic">Đang nằm viện</span>}</span>
           </div>
         ),
       },
@@ -299,13 +375,18 @@ export default function GiamSatNkbvPage() {
         header: "Thống kê lis & ca bệnh",
         accessorKey: "lis_records",
         cell: (item: any) => (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-blue-50 text-blue-700 px-2.5 py-0.5 text-[11px] font-bold">
               LIS: {item.lis_records?.length || 0}
             </span>
             <span className="rounded-full bg-[var(--primary)]/10 text-[var(--primary)] px-2.5 py-0.5 text-[11px] font-bold">
               Ca NKBV: {item.nkbv_cases?.length || 0}
             </span>
+            {Number(item.chua_phan_tich_count || 0) > 0 ? (
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-900">
+                Chưa PT: {item.chua_phan_tich_count}
+              </span>
+            ) : null}
           </div>
         ),
       },
@@ -313,20 +394,28 @@ export default function GiamSatNkbvPage() {
         id: "actions",
         header: "",
         cell: (item: any) => (
-          <button
-            type="button"
-            onClick={() => {
-              setMainTab("cases");
-              handleSearch(item.ma_benh_an);
-            }}
-            className="rounded-full bg-[var(--primary)] hover:bg-[#026615] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm transition"
-          >
-            Hồ sơ dịch tễ
-          </button>
+          <div className="flex flex-wrap justify-end gap-1.5">
+            {allowed.edit ? (
+              <button
+                type="button"
+                onClick={() => setEditStay(item)}
+                className="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-200"
+              >
+                Sửa BA
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => openHubBa(String(item.ma_benh_an || ""))}
+              className="rounded-full bg-[var(--primary)] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm transition hover:bg-[#026615]"
+            >
+              Hub BA
+            </button>
+          </div>
         ),
       },
     ],
-    [],
+    [allowed.edit, openHubBa],
   );
 
   const prevListFilterRef = useRef<{ khoa?: string; loai: string; tt: string } | undefined>(undefined);
@@ -399,11 +488,14 @@ export default function GiamSatNkbvPage() {
       {
         header: "Khoa chỉ định",
         accessorKey: "khoa",
-        cell: (item: NkbvCaseLike) => (
-          <span className="text-xs font-medium text-slate-650">
-            {(item as { khoa_ghi_nhan?: { ten_khoa?: string } }).khoa_ghi_nhan?.ten_khoa || "—"}
-          </span>
-        ),
+        cell: (item: NkbvCaseLike) => {
+          const khoa = (item as { khoa_ghi_nhan?: { ma_khoa?: string; ten_khoa?: string } }).khoa_ghi_nhan;
+          return (
+            <span className="text-xs font-medium text-slate-650">
+              {formatKhoaCompactLabel({ ma_khoa: khoa?.ma_khoa, ten_khoa: khoa?.ten_khoa })}
+            </span>
+          );
+        },
       },
       {
         header: "Loại bệnh phẩm",
@@ -439,11 +531,7 @@ export default function GiamSatNkbvPage() {
         cell: (item: NkbvCaseLike) => {
           const d = (item as { ngay_phat_hien?: string }).ngay_phat_hien;
           if (!d) return "—";
-          try {
-            return format(new Date(d), "dd/MM/yyyy", { locale: vi });
-          } catch {
-            return d;
-          }
+          return formatDateVi(d, d);
         },
       },
       {
@@ -466,6 +554,35 @@ export default function GiamSatNkbvPage() {
             {(item as { trang_thai_row?: { ten_trang_thai?: string } }).trang_thai_row?.ten_trang_thai || "—"}
           </span>
         ),
+      },
+      {
+        header: "Cảnh báo",
+        accessorKey: "import_alerts",
+        cell: (item: NkbvCaseLike) => {
+          const notes = (item as { clinical_notes?: { import_alerts?: Array<{ code?: string }>; can_phan_tich_sbap?: boolean } }).clinical_notes;
+          const codes = new Set(
+            (Array.isArray(notes?.import_alerts) ? notes!.import_alerts! : [])
+              .map((a) => a.code)
+              .filter(Boolean) as string[],
+          );
+          if (notes?.can_phan_tich_sbap) codes.add("SBAP");
+          if (codes.size === 0) return <span className="text-slate-300">—</span>;
+          return (
+            <div className="flex flex-wrap gap-1">
+              {[...codes].map((c) => (
+                <span
+                  key={c}
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                    c === "SBAP" ? "bg-violet-100 text-violet-800" : "bg-amber-100 text-amber-900"
+                  }`}
+                  title="Cần phân tích khung thời gian — chưa tự chốt"
+                >
+                  {c}
+                </span>
+              ))}
+            </div>
+          );
+        },
       },
       {
         id: "actions",
@@ -546,7 +663,6 @@ export default function GiamSatNkbvPage() {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 space-y-6 pb-16 duration-500">
       <KsnkSupervisionHero
-        eyebrow="Giai đoạn 3 — MVP"
         title="Giám sát Nhiễm khuẩn BV (NKBV)"
         trailing={
           <KsnkSupervisionTabList
@@ -566,21 +682,25 @@ export default function GiamSatNkbvPage() {
       <div className="flex flex-col gap-3 px-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-3">
           {mainTab !== "dashboard" ? (
-          <label className={C.formLabelFlex}>
+          <label className={`${C.formLabelFlex} min-w-[220px]`}>
             Lọc khoa
-            <select
-              value={header.selectedKhoa}
+            <SearchableSelect
+              placeholder="Tất cả khoa"
               disabled={header.loading}
-              onChange={(e) => header.setSelectedKhoa(e.target.value)}
-              className="min-w-[200px] rounded-[var(--radius-shell)] border-0 bg-white px-4 py-2.5 text-sm font-semibold shadow-sm"
-            >
-              <option value="">Tất cả khoa</option>
-              {header.khoas.map((k) => (
-                <option key={k.id} value={k.id}>
-                  {k.ten_danh_muc}
-                </option>
-              ))}
-            </select>
+              options={[
+                { id: "", label: "Tất cả khoa" },
+                ...header.khoas.map((k) => ({
+                  id: k.id,
+                  label: formatKhoaPickerLabel({
+                    ma_danh_muc: k.ma_danh_muc,
+                    ten_danh_muc: k.ten_danh_muc,
+                  }),
+                })),
+              ]}
+              value={header.selectedKhoa || ""}
+              onChange={(id) => header.setSelectedKhoa(id)}
+              className="min-w-[200px]"
+            />
           </label>
           ) : null}
           {mainTab === "cases" ? (
@@ -658,11 +778,72 @@ export default function GiamSatNkbvPage() {
       {mainTab === "dashboard" ? (
         <Bv103AnalyticsPageFrame
           title="Thống kê NKBV"
-          description="Outcome nhiễm khuẩn theo kỳ — tách khỏi chỉ số tuân thủ CCS (VST/GSC)."
+          filterBar={
+            <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="w-7 shrink-0 text-xs font-medium text-slate-500">Kỳ</span>
+                <input
+                  type="date"
+                  value={dashTu}
+                  onChange={(e) => setDashTu(e.target.value)}
+                  aria-label="Từ ngày"
+                  className={T.analyticsDateInput}
+                />
+                <span className="text-xs text-slate-300">–</span>
+                <input
+                  type="date"
+                  value={dashDen}
+                  onChange={(e) => setDashDen(e.target.value)}
+                  aria-label="Đến ngày"
+                  className={T.analyticsDateInput}
+                />
+              </div>
+              <div className="min-w-0 sm:max-w-xs">
+                <SearchableSelect
+                  placeholder="Khoa ghi nhận"
+                  disabled={header.loading}
+                  options={[
+                    { id: "", label: "Tất cả khoa" },
+                    ...header.khoas.map((k) => ({
+                      id: k.id,
+                      label: formatKhoaPickerLabel({
+                        ma_danh_muc: k.ma_danh_muc,
+                        ten_danh_muc: k.ten_danh_muc,
+                      }),
+                    })),
+                  ]}
+                  value={header.selectedKhoa || ""}
+                  onChange={(id) => {
+                    header.setSelectedKhoa(id);
+                    syncNkbvUrl({ tab: "dashboard", khoa: id });
+                  }}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex justify-start sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    syncNkbvUrl({
+                      tab: "dashboard",
+                      tu: dashTu,
+                      den: dashDen,
+                      khoa: header.selectedKhoa,
+                    });
+                    void loadDashboard();
+                  }}
+                  className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 touch-manipulation"
+                >
+                  Cập nhật
+                </button>
+              </div>
+            </div>
+          }
         >
           <NkbvDashboardPanel
             payload={dashPayload}
             loading={dashLoading}
+            filtersInChrome
             tuNgay={dashTu}
             denNgay={dashDen}
             onTuNgayChange={setDashTu}
@@ -708,6 +889,23 @@ export default function GiamSatNkbvPage() {
             searchValue={searchTerm}
             onSearch={handleSearch}
             onSort={handleColumnSort}
+            enableQrScan
+            onQrScan={(code) => {
+              const resolved = classifyEntityQr(code);
+              if (resolved.kind === "NKBV_CASE" && resolved.recordId) {
+                void (async () => {
+                  const res = await getGiamSatNkbvCaById(resolved.recordId!);
+                  if (!res.success || !res.data) {
+                    toast.error(res.error || "Không mở được phiếu từ QR");
+                    return;
+                  }
+                  setDraft(res.data as NkbvCaseLike);
+                  setEditorOpen(true);
+                })();
+                return;
+              }
+              handleSearch(code);
+            }}
             serverPagination={{
               page,
               totalPages,
@@ -720,25 +918,97 @@ export default function GiamSatNkbvPage() {
       ) : null}
 
       {mainTab === "records" ? (
-        <div className="app-data-shell mx-4 min-w-0 p-2 md:p-3 animate-in fade-in duration-300">
-          <AdvancedDataTable
-            columns={recordColumns as Parameters<typeof AdvancedDataTable>[0]["columns"]}
-            data={medicalRecords as Parameters<typeof AdvancedDataTable>[0]["data"]}
-            loading={recordsLoading}
-            searchPlaceholder="Tìm kiếm Số bệnh án, mã bệnh nhân, họ tên..."
-            searchValue={recordsSearch}
-            onSearch={(val) => {
-              setRecordsSearch(val);
-              setRecordsPage(1);
-            }}
-            serverPagination={{
-              page: recordsPage,
-              totalPages: Math.ceil(recordsTotalCount / 15) || 1,
-              totalCount: recordsTotalCount,
-              pageSize: 15,
-              onPageChange: setRecordsPage,
-            }}
-          />
+        <div className="mx-4 min-w-0 space-y-3 animate-in fade-in duration-300 md:p-0">
+          <KsnkSupervisionPanel className="pt-2">
+            <NkbvMdroCensusPanel khoas={header.khoas} />
+          </KsnkSupervisionPanel>
+          {allowed.create ? (
+            <KsnkSupervisionPanel className="pt-2">
+              <NkbvBenhAnImportPortal
+                khoas={header.khoas}
+                onImported={() => {
+                  setRecordsPage(1);
+                  void fetchRecords();
+                }}
+              />
+            </KsnkSupervisionPanel>
+          ) : null}
+          <div className="app-data-shell min-w-0 space-y-3 p-2 md:p-3">
+            <div className="flex flex-wrap items-end gap-3">
+              <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={recordsInpatientOnly}
+                  onChange={(e) => {
+                    setRecordsInpatientOnly(e.target.checked);
+                    setRecordsPage(1);
+                  }}
+                />
+                Chỉ đang nằm viện
+              </label>
+              <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={recordsDevicePriority}
+                  onChange={(e) => {
+                    setRecordsDevicePriority(e.target.checked);
+                    setRecordsPage(1);
+                  }}
+                />
+                Trọng điểm xâm lấn (CVC/Foley/Vent)
+              </label>
+              <label className="flex items-center gap-2 text-xs font-semibold text-amber-900">
+                <input
+                  type="checkbox"
+                  checked={recordsChuaPtOnly}
+                  onChange={(e) => {
+                    setRecordsChuaPtOnly(e.target.checked);
+                    setRecordsPage(1);
+                  }}
+                />
+                Chỉ BA còn XN (+) chưa phân tích
+              </label>
+              <div className="min-w-[200px] flex-1">
+                <span className="mb-1 block text-[11px] font-medium text-slate-500">Khoa điều trị</span>
+                <SearchableSelect
+                  value={recordsKhoaId}
+                  onChange={(v) => {
+                    setRecordsKhoaId(String(v || ""));
+                    setRecordsPage(1);
+                  }}
+                  options={[
+                    { id: "", label: "Tất cả khoa" },
+                    ...header.khoas.map((k) => ({
+                      id: k.id,
+                      label: formatKhoaPickerLabel({
+                        ma_danh_muc: k.ma_danh_muc,
+                        ten_danh_muc: k.ten_danh_muc,
+                      }),
+                    })),
+                  ]}
+                  placeholder="Lọc khoa…"
+                />
+              </div>
+            </div>
+            <AdvancedDataTable
+              columns={recordColumns as Parameters<typeof AdvancedDataTable>[0]["columns"]}
+              data={medicalRecords as Parameters<typeof AdvancedDataTable>[0]["data"]}
+              loading={recordsLoading}
+              searchPlaceholder="Tìm kiếm Số bệnh án, mã bệnh nhân, họ tên..."
+              searchValue={recordsSearch}
+              onSearch={(val) => {
+                setRecordsSearch(val);
+                setRecordsPage(1);
+              }}
+              serverPagination={{
+                page: recordsPage,
+                totalPages: Math.ceil(recordsTotalCount / 15) || 1,
+                totalCount: recordsTotalCount,
+                pageSize: 15,
+                onPageChange: setRecordsPage,
+              }}
+            />
+          </div>
         </div>
       ) : null}
 
@@ -765,7 +1035,7 @@ export default function GiamSatNkbvPage() {
         />
       ) : null}
 
-      {checklistOpen && checklistCase && allowed.edit && (
+      {checklistOpen && checklistCase && (allowed.edit || allowed.create) && (
         <NkbvClinicalChecklistModal
           row={checklistCase}
           khoas={header.khoas}
@@ -776,10 +1046,103 @@ export default function GiamSatNkbvPage() {
           onSuccess={() => {
             void refresh();
             void fetchRecords();
+            setHubNonce((n) => n + 1);
           }}
           allowedEdit={allowed.edit}
         />
       )}
+
+      {hubBa ? (
+        <NkbvBenhAnHubPanel
+          key={`${hubBa}-${hubNonce}`}
+          maBenhAn={hubBa}
+          khoas={header.khoas}
+          allowedEdit={allowed.edit}
+          allowedCreate={allowed.create}
+          onClose={closeHubBa}
+          onEditStay={(stay) => setEditStay(stay)}
+          onOpenCase={(caseId) => {
+            void (async () => {
+              const res = await getGiamSatNkbvCaById(caseId);
+              if (!res.success || !res.data) {
+                toast.error(res.error || "Không mở được phiếu");
+                return;
+              }
+              setChecklistCase(res.data as unknown as NkbvTableRow);
+              setChecklistOpen(true);
+            })();
+          }}
+          onCreateCase={(stay) => {
+            setDraft({
+              ma_benh_an: String(stay.ma_benh_an || ""),
+              ma_benh_nhan: String(stay.ma_benh_nhan || ""),
+              ho_ten_benh_nhan: String(stay.ho_ten_benh_nhan || ""),
+              ngay_sinh: stay.ngay_sinh ? String(stay.ngay_sinh).slice(0, 10) : "",
+              gioi_tinh: String(stay.gioi_tinh || ""),
+              ngay_vao_vien: stay.ngay_vao_vien ? String(stay.ngay_vao_vien).slice(0, 10) : "",
+              khoa_ghi_nhan_id: String(stay.khoa_dieu_tri_id || header.selectedKhoa || ""),
+            });
+            setEditorOpen(true);
+          }}
+          onCaseMutated={() => {
+            void refresh();
+            void fetchRecords();
+          }}
+          onEnsureAnalysisCase={async ({ stay, milestone, gate, existingCaseId }) => {
+            if (!allowed.create && !allowed.edit) {
+              return { success: false, error: "Không có quyền tạo/mở phiếu từ mốc" };
+            }
+            const res = await ensureNkbvBaAnalysisCase({
+              ma_benh_an: String(stay.ma_benh_an || ""),
+              ma_benh_nhan: stay.ma_benh_nhan ? String(stay.ma_benh_nhan) : null,
+              ho_ten_benh_nhan: stay.ho_ten_benh_nhan ? String(stay.ho_ten_benh_nhan) : null,
+              ngay_sinh: stay.ngay_sinh ? String(stay.ngay_sinh).slice(0, 10) : null,
+              gioi_tinh: stay.gioi_tinh ? String(stay.gioi_tinh) : null,
+              ngay_vao_vien: stay.ngay_vao_vien
+                ? String(stay.ngay_vao_vien).slice(0, 10)
+                : null,
+              khoa_ghi_nhan_id: String(stay.khoa_dieu_tri_id || header.selectedKhoa || "") || null,
+              milestone_id: milestone.id,
+              milestone_date: milestone.date,
+              gate,
+              loai_benh_pham: milestone.loai_benh_pham || null,
+              tac_nhan: milestone.tac_nhan || null,
+              title: milestone.title || null,
+              existing_case_id: existingCaseId || null,
+            });
+            if (!res.success || !res.caseRow) {
+              return { success: false, error: res.error || "Không mở được khung điều tra" };
+            }
+            void refresh();
+            void fetchRecords();
+            return { success: true, caseRow: res.caseRow };
+          }}
+        />
+      ) : null}
+
+      {editStay && allowed.edit ? (
+        <NkbvBenhAnEditModal
+          stay={{
+            ma_benh_an: String(editStay.ma_benh_an || ""),
+            ma_benh_nhan: editStay.ma_benh_nhan as string | null,
+            ho_ten_benh_nhan: editStay.ho_ten_benh_nhan as string | null,
+            ngay_sinh: editStay.ngay_sinh as string | null,
+            gioi_tinh: editStay.gioi_tinh as string | null,
+            ngay_vao_vien: editStay.ngay_vao_vien as string | null,
+            ngay_ra_vien: editStay.ngay_ra_vien as string | null,
+            khoa_dieu_tri_id: editStay.khoa_dieu_tri_id as string | null,
+            ket_cuc_dieu_tri: editStay.ket_cuc_dieu_tri as string | null,
+            ly_do_tu_vong: editStay.ly_do_tu_vong as string | null,
+            tu_vong_lien_quan_nkbv: editStay.tu_vong_lien_quan_nkbv as boolean | null,
+          }}
+          khoas={header.khoas}
+          onClose={() => setEditStay(null)}
+          onSaved={() => {
+            void fetchRecords();
+            setHubNonce((n) => n + 1);
+          }}
+        />
+      ) : null}
 
     </div>
   );

@@ -8,6 +8,11 @@ import {
   isPathBlockedUnderPilotFourModules,
   isPilotFourModulesScopeEnabled,
 } from "@/lib/ksnk-pilot-four-modules-scope";
+import {
+  GUEST_STATS_HOME_PATH,
+  isGuestStatsOnlyRole,
+  isGuestStatsPathAllowed,
+} from "@/lib/auth/guest-stats-access";
 
 /** Trang đăng nhập / khôi phục mật khẩu — không chặn người chưa đăng nhập. */
 function isLoginRoutePath(pathname: string): boolean {
@@ -151,12 +156,42 @@ export async function proxy(request: NextRequest) {
     return redirectResponse;
   }
 
-  if (user && onLoginRoute) {
-    const homeUrl = request.nextUrl.clone();
-    homeUrl.pathname = "/";
-    const redirectResponse = NextResponse.redirect(homeUrl);
-    copyResponseCookies(supabaseResponse, redirectResponse);
-    return redirectResponse;
+  if (user) {
+    // BE-GUEST-01: enforce allowlist guest ở proxy (không chỉ client guard).
+    let guestOnly = false;
+    try {
+      const { data: permRow } = await supabase
+        .from("v_sys_user_permissions")
+        .select("roles")
+        .eq("auth_user_id", user.id)
+        .maybeSingle();
+      const roles = Array.isArray(permRow?.roles)
+        ? (permRow.roles as string[])
+        : [];
+      guestOnly = isGuestStatsOnlyRole(roles);
+    } catch (err) {
+      console.error("[proxy] guest role lookup failed:", err);
+    }
+
+    if (guestOnly) {
+      if (onLoginRoute || !isGuestStatsPathAllowed(pathname)) {
+        const homeUrl = request.nextUrl.clone();
+        homeUrl.pathname = GUEST_STATS_HOME_PATH;
+        homeUrl.search = "";
+        const redirectResponse = NextResponse.redirect(homeUrl);
+        copyResponseCookies(supabaseResponse, redirectResponse);
+        return redirectResponse;
+      }
+      return supabaseResponse;
+    }
+
+    if (onLoginRoute) {
+      const homeUrl = request.nextUrl.clone();
+      homeUrl.pathname = "/";
+      const redirectResponse = NextResponse.redirect(homeUrl);
+      copyResponseCookies(supabaseResponse, redirectResponse);
+      return redirectResponse;
+    }
   }
 
   return supabaseResponse;

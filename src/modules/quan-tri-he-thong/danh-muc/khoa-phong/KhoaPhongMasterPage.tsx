@@ -1,9 +1,10 @@
 // src/modules/quan-tri-he-thong/danh-muc/khoa-phong/KhoaPhongMasterPage.tsx
 "use client";
 import React, { useEffect, useState } from "react";
-import { Plus, Building2, Download, Upload, Loader2 } from "lucide-react";
+import { Plus, Building2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useImportExport } from "@/hooks/useImportExport";
+import { ImportExportHint, ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
@@ -21,7 +22,7 @@ import {
   toggleKhoaPhongStatusAction,
 } from "../actions/khoa-phong.actions";
 import { DmMasterPageGuard } from "../views/dm-master-page-guard";
-import { smartImportData } from "../actions/smart-import.actions";
+import { smartImportMasterTable } from "../actions/smart-import.gateway";
 import { getMasterDataExport } from "../actions/export.actions";
 
 function KhoaPhongMasterPageContent() {
@@ -115,7 +116,10 @@ function KhoaPhongMasterPageContent() {
       is_active: "is_active",
     },
     onGetData: () => getMasterDataExport("mdm_dm_khoa_phong", "ma_khoa"),
-    onImport: (d) => smartImportData({ tableName: "mdm_dm_khoa_phong", uniqueKey: "ma_khoa" }, d),
+    onImport: (d, options) =>
+      smartImportMasterTable("mdm_dm_khoa_phong", d, {
+        softDeleteMissing: options?.softDeleteMissing, dryRun: options?.dryRun,
+      }),
     onSuccess: () => {
       setRefreshKey((k) => k + 1);
       router.refresh();
@@ -133,28 +137,17 @@ function KhoaPhongMasterPageContent() {
             <Building2 size={22} aria-hidden /> Khoa phòng &amp; Đơn vị
           </span>
         }
-        subtitle="Quản lý khoa, phòng và liên kết khối tổ chức — dữ liệu dùng chung cho giám sát và nhân sự."
         actions={
           <>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
-              accept=".xlsx,.xls"
-              className="hidden"
+            <ImportExportToolbar
+              fileInputRef={fileInputRef}
+              isImporting={isImporting}
+              onExport={() => void exportTemplate()}
+              onImportClick={triggerImport}
+              onFileChange={(file) => void handleFileUpload(file)}
+              exportClassName={bv103DesignTokens.btnSecondary}
+              importClassName={bv103DesignTokens.btnSecondary}
             />
-            <button
-              type="button"
-              onClick={triggerImport}
-              disabled={isImporting}
-              className={bv103DesignTokens.btnSecondary}
-            >
-              {isImporting ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <Upload size={16} aria-hidden />}
-              Import Excel
-            </button>
-            <button type="button" onClick={() => exportTemplate()} className={bv103DesignTokens.btnSecondary}>
-              <Download size={16} aria-hidden /> Export mẫu
-            </button>
             <button
               type="button"
               onClick={() => {
@@ -168,6 +161,7 @@ function KhoaPhongMasterPageContent() {
           </>
         }
       />
+      <ImportExportHint className="list-decimal list-inside space-y-0.5 px-1 text-[11px] leading-relaxed text-slate-500" />
       <div className="bg-white p-2 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm min-w-0 sm:min-h-[450px]">
         <AdvancedDataTable
           columns={columns}

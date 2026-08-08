@@ -1,9 +1,11 @@
 # ĐẶC TẢ NGHIỆP VỤ GIÁM SÁT NHIỄM KHUẨN BỆNH VIỆN (NKBV) — CDC/NHSN STANDARD
 
-> **Phiên bản:** 1.0 (22/05/2026)  
-> **Trạng thái:** Kế hoạch Thiết kế (SSOT Nghiệp vụ NKBV)  
-> **Tiêu chuẩn tham chiếu:** CDC/NHSN (National Healthcare Safety Network) Guidelines for HAI Surveillance  
-> **Chiến lược sản phẩm (PO 2026-07-15):** Một module NKBV thống nhất; tách UX theo vai trò/loại — **không** tách 4 app. SSOT: [`adr-nkbv-unified-module-20260715.md`](../../reference/architecture/adr-nkbv-unified-module-20260715.md) · tóm tắt: [`product-strategy-unified-20260715.md`](product-strategy-unified-20260715.md).
+> **Phiên bản:** 1.1 (2026-08-06)  
+> **Trạng thái:** Hợp đồng vận hành pilot (RBAC / state / cổng nạp LIS).  
+> **Thuật toán cửa sổ / hội chứng:** xem [`hai-surveillance-domain-ssot-20260804.md`](hai-surveillance-domain-ssot-20260804.md) + [`clinical-forms.md`](clinical-forms.md).  
+> **Workspace phân tích:** [`ba-centric-timeline.md`](ba-centric-timeline.md) — **Bệnh án trung tâm**; cổng vi sinh chỉ nạp timeline.  
+> §3 form “VAP + 48h” bên dưới là **legacy pilot** — runtime dùng split VAE/PNEU và device **>2 ngày lịch** (SSOT §3.5).  
+> **Chiến lược sản phẩm:** [`adr-nkbv-unified-module-20260715.md`](../../reference/architecture/adr-nkbv-unified-module-20260715.md).
 
 ---
 
@@ -11,19 +13,20 @@
 
 Giám sát nhiễm khuẩn bệnh viện (NKBV) là một trong những nhiệm vụ cốt lõi của Khoa Kiểm soát Nhiễm khuẩn (KSNK). Mục tiêu là chủ động phát hiện sớm các ca bệnh nhiễm khuẩn phát sinh trong quá trình điều trị nội trú, đưa ra chẩn đoán chính xác dựa trên tiêu chí cận lâm sàng (vi sinh) kết hợp lâm sàng, từ đó triển khai kịp thời các biện pháp phòng ngừa lan truyền và báo cáo số liệu thống kê dịch tễ.
 
-Luồng quy trình nghiệp vụ tổng quát gồm 4 bước liên kết chặt chẽ:
+**Luồng chuẩn (BA-centric — CDC order):**
 
 ```mermaid
 flowchart TD
-    A[LIS: Kết quả cấy Vi sinh Dương tính] --> B{Quy tắc Lọc Tự động: Ngày cấy >= Ngày vào viện + 2 ngày?}
-    B -- Không --> C[Không xếp loại NKBV\nNhiễm khuẩn cộng đồng/POA]
-    B -- Có --> D[Kích hoạt Phiếu Nghi ngờ NKBV\nTrạng thái: Chờ Khoa Lâm sàng điền form]
-    D --> E[Khoa Lâm sàng điền Form Xác minh lâm sàng\nVAP, BSI, UTI, SSI tương ứng]
-    E --> F[Chuyển trạng thái: Chờ KSNK Duyệt]
-    F --> G{Khoa KSNK Thẩm định & Xác minh}
-    G -- Đạt chuẩn CDC --> H[Xác nhận NKBV\nXác nhận ca bệnh thực tế]
-    G -- Không đạt chuẩn --> I[Loại trừ\nGhi rõ lý do loại trừ]
+    A[ADT_Device_BA_trong_diem] --> B[Cong_nap_LIS_va_XQ]
+    B --> C[Timeline_tren_BA]
+    C --> D[Cong_tieu_chuan_theo_moc]
+    D -->|Du| E[Su_kien_DOE]
+    D -->|Thieu| C
+    E --> F[POA_HAI_RIT_SBSI_LOA_Device]
+    F --> G[KSNK_tham_dinh]
 ```
+
+Cổng LIS Day-3 (§2) chỉ **gợi ý / nạp mốc** — **không spawn phiếu**. XN (+) chưa phân tích vào **hàng đợi cảnh báo** (badge `Chưa PT`). POA/HAI theo **DOE** sau bảng phân tích; phiếu chỉ tạo khi IP bấm **Tạo phiếu** ([`ba-multi-timeline-architecture.md`](ba-multi-timeline-architecture.md)).
 
 ---
 
@@ -42,7 +45,7 @@ Theo định nghĩa chuẩn của CDC/NHSN, một nhiễm khuẩn được coi l
   - Nếu cấy máu dương tính lấy mẫu ngày 21/05/2026 $\to$ Coi là Nhiễm khuẩn có sẵn lúc vào viện (Present on Admission - POA).
 
 ### 2.2 Phân loại Nghi ngờ theo Loại bệnh phẩm (Microbiology Specimen Mapping)
-Khi phát hiện kết quả vi sinh dương tính đạt quy tắc "Ngày lịch thứ 3", hệ thống tự động phân loại loại nhiễm khuẩn bệnh viện nghi ngờ dựa trên **Loại bệnh phẩm** của kết quả xét nghiệm:
+Khi phát hiện kết quả vi sinh dương tính đạt quy tắc "Ngày lịch thứ 3", hệ thống **gợi ý** loại nhiễm khuẩn theo loại bệnh phẩm. Pilot BV103: **phán quyết tay** trên UI (không hard auto-map) — LIS chỉ gợi ý. Gợi ý mặc định:
 
 | Nhóm bệnh phẩm cấy | Loại bệnh phẩm chi tiết | Loại NKBV Nghi ngờ | Tên chuyên môn y tế |
 | :--- | :--- | :--- | :--- |
@@ -97,8 +100,8 @@ Dành cho bệnh phẩm cấy dịch vết mổ hoặc phát hiện lâm sàng v
 Quy trình phê duyệt ca bệnh NKBV được quản trị chặt chẽ nhằm tránh dữ liệu ảo và đảm bảo tính thống nhất chuyên môn:
 
 ### 4.1 Cơ chế Chuyển trạng thái Phiếu (Case State Transitions)
-* **`DANG_GHI_NHAN` (Đang ghi nhận/Chờ lâm sàng):** Ca bệnh được tự động sinh ra từ kết quả vi sinh dương tính Day 3 hoặc KSNK nhập tay. Hệ thống yêu cầu khoa lâm sàng điền form.
-* **`CHO_XAC_MINH` (Chờ lâm sàng điền form):** Phiếu đã được KSNK kích hoạt từ danh sách vi sinh cảnh báo, khoa lâm sàng cần hoàn thiện form.
+* **`DANG_GHI_NHAN` (Đang ghi nhận):** Phiếu do KSNK **tạo sau kết luận** trên bảng phân tích (hoặc nhập tay). Không tự sinh từ LIS Day-3.
+* **`CHO_XAC_MINH` (Chờ lâm sàng điền form):** Phiếu đã tạo, khoa lâm sàng cần hoàn thiện form.
 * **`CHO_DUYET` (Chờ duyệt):** Khoa lâm sàng đã hoàn tất khai báo đầy đủ các trường lâm sàng bắt buộc của form.
 * **`XAC_NHAN` (Xác nhận NKBV):** Cán bộ khoa KSNK thẩm định form thấy khớp chuẩn CDC và xác nhận ca bệnh. Ghi nhận là ca nhiễm khuẩn bệnh viện thực tế trong báo cáo dịch tễ.
 * **`LOAI_TRU` (Loại trừ):** Cán bộ khoa KSNK từ chối xác nhận ca bệnh do không đủ tiêu chuẩn lâm sàng của CDC. Yêu cầu nhập bắt buộc **Lý do loại trừ** (chuyển vào `clinical_notes->'ly_do_loai_tru'`).
@@ -153,5 +156,5 @@ Khoa Vi sinh xuất danh sách cấy dương tính từ hệ thống LIS nội b
 10. `so_luong_khuan_lac` (Mật độ khuẩn lạc nếu có, ví dụ: 10^5 CFU/ml - Tùy chọn)
 
 **Quy tắc xử lý trùng lặp dữ liệu (Idempotency Rule):**
-Hệ thống sử dụng khóa tự nhiên tổng hợp `unique_vi_sinh_key = md5(ma_benh_nhan + ngay_lay_mau + loai_benh_pham)` lưu tại cột `metadata->>'unique_key'` để ngăn chặn việc import trùng lặp dữ liệu cấy vi sinh khi người dùng tải lại cùng một file Excel nhiều lần.
+Khóa idempotency import: **`ma_xet_nghiem`** (duy nhất khi `is_active`); mẫu cột cố định (`nkbv-vi-sinh-template.ts`). Lưu cả `DUONG_TINH` / `AM_TINH` / `NHIEU`. Dương tính **không** spawn phiếu — vào hàng đợi `Chưa PT` đến khi tạo phiếu (`verification_data.index_vi_sinh_id`) hoặc Bỏ qua. UI: `NkbvViSinhImportPortal` + badge trên bảng chung.
 

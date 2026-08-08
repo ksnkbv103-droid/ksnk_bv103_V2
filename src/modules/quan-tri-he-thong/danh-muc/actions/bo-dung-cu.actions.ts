@@ -18,6 +18,7 @@ import {
   maxBoMaSequence,
   normalizeBoMa,
 } from "@/lib/domain/cssd-bo-ma";
+import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 
 type BoDungCuRow = {
   id: string;
@@ -118,7 +119,10 @@ export async function getKhoaPhongOptionsForBoAction() {
     const rows = await fetchActiveRegistryDmRows(supabase, "KHOA_PHONG");
     return {
       success: true as const,
-      data: rows.map((r) => ({ id: r.id, ten_khoa: r.ma ? `${r.ten} (${r.ma})` : r.ten })),
+      data: rows.map((r) => ({
+        id: r.id,
+        ten_khoa: formatKhoaPickerLabel({ ma: r.ma, ten_khoa: r.ten }),
+      })),
     };
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);

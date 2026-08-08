@@ -1,6 +1,7 @@
 # Luồng quản lý dụng cụ CSSD (MDM → vận hành)
 
-> SSOT bảng: `cssd_dm_loai_dung_cu` · `cssd_dm_bo_dung_cu` · `cssd_dm_bo_dung_cu_chi_tiet`
+> SSOT bảng: `cssd_dm_loai_dung_cu` · `cssd_dm_bo_dung_cu` · `cssd_dm_bo_dung_cu_chi_tiet`  
+> Domain vận hành đầy đủ (6 trạm, mẻ, luật): [`domain-overview.md`](domain-overview.md).
 
 ## Thứ tự chuẩn
 
@@ -29,6 +30,13 @@
 
 | Mã | Ý nghĩa | Dùng quét workflow? |
 |----|---------|---------------------|
-| `B01.SET.01` | Bộ (tem) | Có |
+| `B01.SET.01` | Bộ (tem vĩnh viễn) | Có |
+| `BV103-CYC-…` | Tem chu trình (Cycle QR) | Có |
+| `LOT-…` | Phiếu mẻ tiệt khuẩn | Có (màn mẻ) |
+| `TB-…` / `MAY-…` | Máy | Có (mẻ / bảo trì) |
 | `DC-0001` | Chi tiết trong bộ | Không |
 | `DM-xxxx` | Danh mục generic khác | Không |
+
+## Quét QR vận hành (SSOT)
+
+Mọi màn quét vận hành CSSD (chu trình, mẻ TK, truy vết, catalog RO, kho, bảo trì máy, sự cố, liên kết SSI) nhận diện mã qua **QR Hub** (`resolveCssdCodeWithClient`). Camera/ô nhập dùng chung `QrScanInput` / `QrCamera*`. Quản trị danh mục (CRUD) chỉ in/sửa mã — không thêm quét.

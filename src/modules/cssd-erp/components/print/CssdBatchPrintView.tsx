@@ -9,6 +9,7 @@ import {
   formatCssdPrintDateTime,
 } from "../../lib/cssd-print-format";
 import type { CssdBatchPrintData } from "../../types/cssd-print.types";
+import { buildPrintFileTitle } from "@/lib/print/print-file-title";
 
 const labelRow = (label: string, value: string) => (
   <p style={{ margin: "0 0 3px 0", fontSize: 12, lineHeight: 1.35 }}>
@@ -46,25 +47,21 @@ export default function CssdBatchPrintView({
       leftSignatureTitle="NHÂN VIÊN TIỆT KHUẨN"
       rightSignatureTitle="TRƯỞNG KHOA / ĐD TRƯỞNG CSSD"
       density="compact"
+      fileTitle={() =>
+        buildPrintFileTitle({ loai: "ME", ma: data.maLo || data.batchId })
+      }
+      afterFooter={
+        qrDataUrl ? (
+          <CssdPrintQrBlock dataUrl={qrDataUrl} maLo={data.maLo} caption="Quét truy vết mẻ" variant="compact" />
+        ) : null
+      }
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          gap: 10,
-          marginBottom: 6,
-          pageBreakInside: "avoid",
-        }}
-      >
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {labelRow("Thiết bị tiệt khuẩn", data.thietBi)}
-          {labelRow("Người load mẻ", data.nguoiLoad)}
-          {labelRow("Người dỡ mẻ / QC", data.nguoiUnload)}
-          {labelRow("Bắt đầu mẻ", formatCssdPrintDateTime(data.thoiGianBatDau))}
-          {labelRow("Kết thúc mẻ", formatCssdPrintDateTime(data.thoiGianKetThuc))}
-        </div>
-        <CssdPrintQrBlock dataUrl={qrDataUrl} maLo={data.maLo} variant="compact" />
+      <div style={{ marginBottom: 6, pageBreakInside: "avoid" }}>
+        {labelRow("Thiết bị tiệt khuẩn", data.thietBi)}
+        {labelRow("Người load mẻ", data.nguoiLoad)}
+        {labelRow("Người dỡ mẻ / QC", data.nguoiUnload)}
+        {labelRow("Bắt đầu mẻ", formatCssdPrintDateTime(data.thoiGianBatDau))}
+        {labelRow("Kết thúc mẻ", formatCssdPrintDateTime(data.thoiGianKetThuc))}
       </div>
 
       <CssdPrintQcProofTable rows={qcRows} />

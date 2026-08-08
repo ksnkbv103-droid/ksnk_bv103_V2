@@ -8,9 +8,9 @@ import { fetchCssdBatchPrintDataByMaLo } from "./cssd-print.actions";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 
 export async function fetchCssdQrHistory(maQr: string) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdWorkflowView();
+    const supabase = createAdminSupabaseClient();
     const qr = String(maQr || "").trim().toUpperCase();
     if (!qr) return { success: false as const, error: "Vui lòng nhập mã QR" };
 
@@ -99,9 +99,9 @@ export async function fetchCssdQrHistory(maQr: string) {
 
 /** Gán ca mổ / bệnh nhân khi truy vết (không nhập tại trạm Cấp phát workflow). */
 export async function assignCssdCaMoTrace(quyTrinhId: string, maCaMoId: string) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdWorkflowView();
+    const supabase = createAdminSupabaseClient();
     const id = String(quyTrinhId || "").trim();
     const val = String(maCaMoId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã quy trình" };

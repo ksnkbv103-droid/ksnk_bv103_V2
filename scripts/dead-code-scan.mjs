@@ -20,6 +20,9 @@ if (r.error) {
 
 const compatWhitelist = [
   "src/modules/cssd-erp/actions/cssd.actions.ts", // compat re-export — backend audit
+  "src/components/ui/dialog.tsx", // by design: DialogPortal / DialogOverlay / DialogClose
+  "src/components/ui/button.tsx", // shadcn — keep even if unused by Fallow entry graph
+  "scripts/lib/resolve-local-supabase-env.mjs", // by design: SUPABASE_LOCAL_* constants
 ];
 
 function filePath(entry) {

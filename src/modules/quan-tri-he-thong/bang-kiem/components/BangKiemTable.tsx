@@ -2,11 +2,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Download, Upload, Loader2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { getBangKiems, deleteBangKiem, saveBangKiem, getExportData, toggleIsActive } from "../actions/bang-kiem.actions";
 import { importFullBangKiemData } from "../actions/bang-kiem-import.actions";
 import { toast } from "sonner";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
+import { ImportExportHint, ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import BangKiemForm from "./BangKiemForm";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
@@ -70,18 +71,19 @@ export default function BangKiemTable({
     moduleKey: "BANG_KIEM", tableName: "gstt_dm_bang_kiem", displayName: "Danh mục Bảng kiểm", uniqueKey: "ma_bk",
     isHierarchical: true, childUniqueKey: "ma_tc", childArrayKey: "tieu_chi_bang_kiem",
     columnMapping: {
-      "ma_bk": "ma_bk",
-      "ten_bang_kiem": "ten_bang_kiem",
-      "mo_ta_bang_kiem": "mo_ta",
-      "nhom_chuyen_de": "phan_loai_chuyen_mon",
-      "ma_tc": "ma_tc",
-      "noi_dung_tieu_chi": "noi_dung",
-      "stt": "stt",
-      "ghi_chu": "ghi_chu",
-      "is_active": "is_active",
+      "Mã bảng kiểm": "ma_bk",
+      "Tên bảng kiểm": "ten_bang_kiem",
+      "Mô tả": "mo_ta",
+      "Nhóm chuyên đề": "phan_loai_chuyen_mon",
+      "Mã tiêu chí": "ma_tc",
+      "Nội dung tiêu chí": "noi_dung",
+      "STT": "stt",
+      "Ghi chú": "ghi_chu",
+      "Đang dùng": "is_active",
     },
     onGetData: getExportData,
-    onImport: (val) => importFullBangKiemData(val),
+    onImport: (val, options) =>
+      importFullBangKiemData(val, { softDeleteMissing: options?.softDeleteMissing, dryRun: options?.dryRun }),
     onSuccess: () => { setRefreshKey(k => k + 1); router.refresh(); }
   });
   const actionUi = useTableActionUi<DanhMucBangKiem>({
@@ -148,18 +150,19 @@ export default function BangKiemTable({
   return (
     <div className={`min-h-[400px] p-0 animate-in fade-in ${C.panelSurface}`}>
       <div className={C.pageToolbar}>
-        <div className={TC.toolbarActions}>
-          <button type="button" onClick={() => exportTemplate()} className={TC.ctaExport}>
-            <Download size={14} /> Export dữ liệu mẫu
-          </button>
-          {allowImport ? (
-            <>
-              <button type="button" onClick={() => triggerImport()} disabled={isImporting} className={TC.ctaImport}>
-                {isImporting ? <Loader2 size={14} className="animate-spin" /> : <><Upload size={14} /> Import dữ liệu</>}
-              </button>
-              <input ref={fileInputRef} type="file" className="hidden" accept=".xlsx,.xls" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} />
-            </>
-          ) : null}
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <ImportExportHint />
+          <ImportExportToolbar
+            fileInputRef={fileInputRef}
+            isImporting={isImporting}
+            onExport={() => void exportTemplate()}
+            onImportClick={() => triggerImport()}
+            onFileChange={(file) => void handleFileUpload(file)}
+            showImport={allowImport}
+            exportClassName={TC.ctaExport}
+            importClassName={TC.ctaImport}
+            actionsClassName={TC.toolbarActions}
+          />
         </div>
         {allowCreate ? (
           <button type="button" onClick={() => { setEditingBK(null); setIsFormOpen(true); }} className={TC.ctaPrimary}>

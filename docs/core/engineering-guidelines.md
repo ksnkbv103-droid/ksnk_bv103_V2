@@ -37,18 +37,21 @@ export async function actionGhiNghiepVu(payload: InputSchema) {
 
 ## 2. Hướng dẫn UI/UX và Layout Primitives (Chống Trôi lệch Giao diện)
 
-Để ngăn ngừa lỗi giao diện trôi lệch (Layout Drift) và đảm bảo trải nghiệm đồng nhất, hệ thống BV103 định nghĩa cấu trúc giao diện theo các primitive layout chuẩn:
+SSOT hình ảnh: [`docs/reference/guides/bv103-visual-language.md`](../reference/guides/bv103-visual-language.md) · dialect: [`docs/reference/architecture/design-dialect-matrix-20260731.md`](../reference/architecture/design-dialect-matrix-20260731.md) · **chrome L1:** [`docs/reference/architecture/page-chrome-contract-20260731.md`](../reference/architecture/page-chrome-contract-20260731.md) · tokens `src/lib/bv103-design-tokens.ts`.
 
-### 2.1 Cấu trúc Layout Chuẩn
-* Sử dụng bộ font y tế đồng nhất (Google Fonts - Outfit/Inter) để hiển thị thông tin lâm sàng rõ nét.
-* Giao diện Dashboard và các trang chức năng bắt buộc chia làm 3 khu vực rõ rệt:
-  1. **Thanh định hướng chính (Sidebar):** Điều hướng chéo giữa các phân hệ lâm sàng.
-  2. **Thanh trạng thái y tế (Context Bar):** Hiển thị bộ lọc thời gian toàn cục, khoa phòng đang thao tác và trạng thái đồng bộ dữ liệu.
-  3. **Không gian làm việc (Viewport Area):** Nơi chứa các widget thông số và các form nhập liệu lâm sàng.
+### 2.1 Cấu trúc Layout Chuẩn (module-first)
+
+* Font / radius / surface: theo `globals.css` + design tokens (không tự thêm stack font/poster UI).
+* Mọi trang authenticated nằm trong `KsnkPageShell` (`max-w-7xl`) — **cấm** thêm `max-w-5/6/7xl` trong view.
+* **L1 dưới App Header = một `KsnkPageChrome`** (title/actions → tabs → filters). Không sticky kép tiêu đề; không border-b vs card lệch mật độ.
+* Chọn **đúng một** vai trò trang (Ops / Analytics / Admin) — header qua chrome chung (`KsnkSupervisionHero` / `Bv103AnalyticsPageFrame` / `KsnkPageHeader` là wrapper).
+* Banner ngữ cảnh: `KsnkContextBanner` (không invent box màu riêng trừ trạng thái máy/mẻ CSSD).
+* Density: `--radius-shell` + `pageChromeShell`; tránh stack card dày trên Command Center.
 
 ### 2.2 Quy định Thiết kế Form và Empty State
-* **Empty State đồng nhất:** Khi không có dữ liệu (chưa chấm điểm VST, chưa có ca bệnh NKBV), bắt buộc hiển thị component `EmptyState` chuẩn kèm hình ảnh minh họa alpha rõ nét và nút hành động (Call-to-Action) hướng dẫn người dùng nhập liệu, không để màn hình trắng trơn.
-* **Loading Fallbacks:** Mọi widget tính toán phức tạp bằng RPC bắt buộc phải được bọc trong React `Suspense` hoặc skeleton loading thích hợp để tránh chặn tương tác của toàn trang (Waterfall blocking).
+* **Empty State đồng nhất:** Khi không có dữ liệu, dùng `EmptyState` (hoặc empty panel token) + CTA nhập liệu — không để viewport trống.
+* **Loading Fallbacks:** Widget RPC / analytics bọc skeleton hoặc `Suspense` — không chặn cả trang.
+* Gate: `npm run layout:drift-check` · `npm run layout:typography-check`.
 
 ---
 

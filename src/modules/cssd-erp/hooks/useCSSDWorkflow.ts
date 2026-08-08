@@ -8,6 +8,7 @@ import { prepareDongGoiBomGateScan } from "../actions/cssd-bom-checkpoint.action
 import { usePermission } from "@/hooks/usePermission";
 import { toast } from "sonner";
 import { SCAN_STATIONS, WORKFLOW_STEPS, nextStationLabel } from "../workflow/domain/cssd-stations";
+import { formatTimeVi } from "@/lib/format-datetime-vi";
 import { cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
 
 /** Các ô chọn được trên trang 6 bước — không có «trạm quét TK» (TK chỉ qua phiếu mẻ). */
@@ -59,6 +60,10 @@ export function useCSSDWorkflow() {
   }, []);
 
   const selectStation = (station: Station) => {
+    if (station === "TIET_KHUAN") {
+      toast.message("Tiệt khuẩn chỉ qua tab Mẻ (phiếu hấp) — không chọn quét tại trang 6 bước.");
+      return;
+    }
     setCurrentStation(station);
     setLastScan(null);
     setDongGoiGate(null);
@@ -99,7 +104,7 @@ export function useCSSDWorkflow() {
         qrCode: displayQr,
         tenBoDungCu: scanRes.tenBoDungCu || "Chưa gán bộ",
         nguoiThucHien: operatorLabel,
-        thoiGianQuet: new Date().toLocaleTimeString("vi-VN"),
+        thoiGianQuet: formatTimeVi(new Date()),
         buocTiepTheo: nextStationLabel(station),
         quyTrinhId: scanRes.quyTrinhId,
         boDungCuId: scanRes.boDungCuId,
@@ -138,7 +143,7 @@ export function useCSSDWorkflow() {
             qrCode: code,
             tenBoDungCu: "Đang chờ đồng bộ...",
             nguoiThucHien: operatorLabel,
-            thoiGianQuet: new Date().toLocaleTimeString("vi-VN"),
+            thoiGianQuet: formatTimeVi(new Date()),
             buocTiepTheo: nextStationLabel(station),
             isOffline: true,
           });

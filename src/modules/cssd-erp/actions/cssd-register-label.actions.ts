@@ -42,9 +42,9 @@ async function verifyCanReadBoListForCssd(): Promise<void> {
 export async function listActiveBoDungCuForCssdLabel(search?: string): Promise<
   { success: true; data: { id: string; ten_bo: string; ma_bo: string | null }[] } | { success: false; error: string }
 > {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCanReadBoListForCssd();
+    const supabase = createAdminSupabaseClient();
     let q = supabase
       .from("cssd_dm_bo_dung_cu")
       .select("id, ten_bo, ma_bo")
@@ -74,9 +74,9 @@ export async function registerPhysicalBoLabelFromDmAction(boDungCuId: string): P
   | { success: true; ma_vach_qr: string; ten_bo: string; bo_id: string }
   | { success: false; error: string }
 > {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCanRegisterPhysicalLabel();
+    const supabase = createAdminSupabaseClient();
     const boId = String(boDungCuId || "").trim();
     if (!boId) return { success: false, error: "Thiếu bộ dụng cụ (danh mục)." };
 
@@ -100,9 +100,9 @@ export async function registerPhysicalBoLabelFromDmAction(boDungCuId: string): P
 export async function registerSplitSubQrFromMainMaAction(maQrMain: string): Promise<
   { success: true; ma_vach_qr_phu: string; quy_trinh_cha_id: string } | { success: false; error: string }
 > {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCanRegisterPhysicalLabel();
+    const supabase = createAdminSupabaseClient();
     const mainCode = normalizeBoMa(maQrMain);
     if (!mainCode) return { success: false, error: "Thiếu mã QR bộ chính." };
 

@@ -1,9 +1,12 @@
 # SỔ ĐĂNG KÝ NỢ KỸ THUẬT (TECHNICAL DEBT REGISTER)
 ## HỆ THỐNG KIỂM SOÁT NHIỄM KHUẨN (KSNK) — BỆNH VIỆN 103
 
-> **Phiên bản:** 1.1 (Cập nhật chuẩn hóa theo CSDL thực tế - 30/05/2026)  
-> **Trạng thái:** Hoạt động (SSOT Quản trị Nợ kỹ thuật)  
+> **Phiên bản:** 1.2 (Hygiene A0 — 31/07/2026)  
+> **Trạng thái:** Hoạt động (SSOT lịch sử nợ + audit)  
+> **Backlog đang mở (đọc trước §1):** [`open-backlog-20260731.md`](./open-backlog-20260731.md)  
 > **Nguyên tắc phân loại:** P0 (Chí mạng - Ảnh hưởng nghiệp vụ/dữ liệu) | P1 (Kiến trúc/Độ duy trì) | P2 (Chất lượng/Perf/CI) | P3 (Roadmap/Deferred)
+
+> **Lưu ý 2026-07-31:** Nhiều mục ở §1–§2 bên dưới đã **Done/Obsolete** theo bảng Audit 07-03 / 07-09 / 07-26. Không dùng §1 như danh sách việc còn mở — dùng open-backlog.
 
 ---
 
@@ -105,12 +108,13 @@
 
 ## 4. NỢ KỸ THUẬT NHÓM P3 (LOW - ROADMAP / DEFERRED)
 
-*   **[D-15] Trực quan hóa luồng di chuyển dụng cụ:** Bản đồ 6 trạm trực quan (Mermaid/SVG) thời gian thực hiển thị vị trí bộ dụng cụ.
-*   **[D-16] Spaulding/Heat Domain Engine:** Tự động đề xuất trạm tiệt khuẩn dựa trên phân loại Spaulding. **Partial (2026-07-17):** master + BOM runtime dùng chung `normalizeSpauldingForMaster` / `normalizeSterileMethodForMaster` ([`cssd-loai-dung-cu-map.ts`](../../../src/lib/master-data/cssd-loai-dung-cu-map.ts) → [`cssd-quy-trinh-bom.ts`](../../../src/modules/cssd-erp/shared/domain/cssd-quy-trinh-bom.ts)). Còn lại: đề xuất trạm tự động — Lớp 1.1 [`improvement-roadmap-20260717.md`](../../modules/mdm/improvement-roadmap-20260717.md).
-*   **[D-17] CSSD↔MDM Facade Replenish:** Động cơ tự động cảnh báo bổ sung nguyên liệu/hóa chất từ kho tổng bệnh viện. **Lộ trình Quản trị Lớp 1.4:** cùng file trên.
+*   **[D-15] Trực quan hóa luồng di chuyển dụng cụ — Partial (2026-07-26 local):** Gộp chọn trạm + bản đồ đếm vào một lưới 6 bước (`CssdStationFlowMap` + ô Phiếu mẻ); bỏ panel chọn trạm trùng. Còn lại: SVG/Mermaid realtime nâng cao nếu cần sau UAT.
+*   **[D-16] Spaulding/Heat Domain Engine:** Tự động đề xuất trạm tiệt khuẩn dựa trên phân loại Spaulding. **Partial→advanced (2026-07-31):** normalize shared + `suggestCssdStationFromMaster` (gợi ý mã trạm trên form loại dụng cụ). Còn: map mã gợi ý ↔ bản ghi `cssd_dm_tram` thực tế viện (seed/UAT).
+*   **[D-17] CSSD↔MDM Facade Replenish:** Facade `requestReplenishFromReserveAction` (`CSSD_WORKFLOW.edit`) đã wire UI đối chiếu đóng gói; **2026-07-31** thêm thông báo từ chối rõ khi thiếu quyền. Còn: cảnh báo tự động từ kho tổng viện (ngoài scope facade hiện tại).
 *   **[D-18] Trace NKBV↔CSSD — Partial → near-complete (2026-07-17):** SSI gắn QR chu trình → `quy_trinh_id` / mẻ; `NkbvCssdRcaPanel` (mẻ QC + sự cố); deep-link nhật ký `cssdSuCoIncidentJournalHref`; chiều ngược `MeTkNkbvLinkBanner` trên mẻ TK. Còn lại: UAT khoa + mở rộng ngoài SSI nếu cần.
-*   **[D-19] Cycle QR vs Permanent set QR:** Phân biệt vòng đời của nhãn dán tạm thời của túi hấp và nhãn khắc kim loại vĩnh viễn của khay dụng cụ phòng mổ.
+*   **[D-19] Cycle QR vs Permanent set QR:** Phân biệt vòng đời của nhãn dán tạm thời của túi hấp và nhãn khắc kim loại vĩnh viễn của khay dụng cụ phòng mổ. **Partial (2026-07-28):** copy + nhãn in (`printBoLabel` = tem vĩnh viễn; `printCycleLabel` = tem chu trình) + `CssdQrLabelKindsNotice` trên master/catalog; còn lại: UAT dán tem thực tế kho CSSD.
 *   **[D-20] HIS/LIS FHIR Integration:** API đồng bộ tự động ca cấy vi sinh từ máy xét nghiệm theo chuẩn HL7/FHIR thay thế cho import file Excel vi sinh.
+*   **[D-21] GSC Excel session import — Done (2026-08-02):** Đã gỡ stub `importGiamSatChungData`, spec, và `import-session-ids.ts`. Không UI / không ops caller. Rollback: khôi phục từ git history.
 
 ---
 
@@ -215,3 +219,27 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 | BE-AUTH-04 | **Done** (proxy thiếu env → login) |
 | DOM-10 | **Done** (`20260709140000`) |
 | G-12 | **Done** (unusedExports 75→5; giữ dialog/scripts) |
+
+---
+
+## Audit 2026-07-26 — Local A→E (PO sequential)
+
+> Phạm vi: local only · không cloud.
+
+| Gate | Kết quả |
+|------|---------|
+| NKBV vitest (UAT eng) | **29 PASS** — chữ ký khoa #2–#5 vẫn mở |
+| `verify:engineering` | **PASS** |
+| `verify:cssd` | **53 PASS** |
+| `local:golden:verify` | **11/11 PASS** |
+| `mdm:migrate:local` | Applied `20260724100000_cssd_quy_trinh_is_red_alert` |
+| `layout:typography-check` | **PASS** |
+| `audit:legacy-rpc` | **PASS** (23 RPC, 0 orphan src) |
+| `dead-code:scan` | **WARN** — unusedExports **19** (tăng so 5@0709; warn-only CI) |
+| `layout:drift-check` | Còn adoption-warn ngoài CSSD map (InventoryIssueModal, NkbvCssdRcaPanel) |
+
+| ID | Trạng thái |
+|----|------------|
+| D-15 | **Partial** — gộp bản đồ + chọn trạm một lưới 6 bước |
+| DOM-08 / D-14 | **Eng ready** — chờ khoa ký UAT |
+| D-16…D-20 | **Giữ** roadmap |

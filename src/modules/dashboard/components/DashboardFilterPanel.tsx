@@ -2,6 +2,7 @@ import React from "react";
 import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import SearchableMultiSelect, { type MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
 import { dashboardChrome as UI } from "@/modules/dashboard/lib/dashboard-chrome";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
 type DashboardFilterPanelProps = {
   hideBangKiem?: boolean;
@@ -37,14 +38,13 @@ function isPartialSelection(selected: string[], options: MultiSelectOption[]) {
   return selected.length > 0 && selected.length < options.length;
 }
 
-const ctl =
-  "h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-800";
+const ctl = T.analyticsDateInput;
 const btn =
   "inline-flex h-9 shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60 touch-manipulation";
 
 export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => {
-  /** Mặc định mở sẵn — tránh cảm giác «không có trường lọc để chọn» trên Vercel/mobile. */
-  const [showAdvanced, setShowAdvanced] = React.useState(true);
+  /** Đóng mặc định — mở khi cần; giảm chiếm diện tích mobile. */
+  const [showAdvanced, setShowAdvanced] = React.useState(false);
   const isBrief = p.variant === "brief";
   const isCompact = p.variant === "compact" || isBrief;
   const hideBangKiem = isBrief || p.hideBangKiem;
@@ -82,7 +82,7 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
             value={p.tuNgay}
             onChange={(e) => p.setTuNgay(e.target.value)}
             aria-label="Từ ngày"
-            className={`${ctl} min-w-[9.5rem]`}
+            className={ctl}
           />
           <span className="text-xs text-slate-300">–</span>
           <input
@@ -90,7 +90,7 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
             value={p.denNgay}
             onChange={(e) => p.setDenNgay(e.target.value)}
             aria-label="Đến ngày"
-            className={`${ctl} min-w-[9.5rem]`}
+            className={ctl}
           />
         </div>
 

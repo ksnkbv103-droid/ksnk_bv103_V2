@@ -16,7 +16,7 @@ import {
   useSortedGapRows,
 } from "@/lib/analytics/supervision-charts-shared";
 
-/** Bảng master khoa: khối lượng · % · trạng thái đối soát · CCS (báo cáo tổng hợp). */
+/** Bảng master khoa: khối lượng · % · trạng thái đối soát · VST/GSC (không CCS). */
 export function SupervisionKhoaMasterTable({
   gapRows,
   rankRows,
@@ -29,9 +29,13 @@ export function SupervisionKhoaMasterTable({
   moduleLabel?: string;
 }) {
   const rankById = useMemo(() => new Map((rankRows ?? []).map((r) => [r.id, r])), [rankRows]);
-  const sorted = useSortedGapRows(gapRows, rankRows, "ty_le_ksnk", "desc");
+  const sortedRaw = useSortedGapRows(gapRows, rankRows, "ty_le_ksnk", "asc");
+  const sorted = useMemo(
+    () => sortedRaw.filter((r) => r.vol_tgs + r.vol_ksnk > 0),
+    [sortedRaw],
+  );
 
-  if (!loading && sorted.length === 0 && !rankRows?.length) return null;
+  if (!loading && sorted.length === 0) return null;
 
   const title = moduleLabel ? `Bảng tổng hợp khoa · ${moduleLabel}` : "Bảng tổng hợp khoa";
 
@@ -39,8 +43,7 @@ export function SupervisionKhoaMasterTable({
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <h3 className="mb-2 text-sm font-bold text-slate-800">{title}</h3>
       <p className="mb-3 text-[11px] text-slate-500">
-        Khối lượng TGS/KSNK, tỷ lệ tuân thủ (đạt/tổng) và trạng thái đối soát — tô cảnh báo &lt;
-        {KHOA_COMPLIANCE_WARN_PCT}%.
+        Chỉ khoa có dữ liệu · sắp KSNK % thấp → cao · tô cảnh báo &lt;{KHOA_COMPLIANCE_WARN_PCT}%.
       </p>
       <ResponsiveTableShell unboxed maxHeight="max-h-[min(420px,55dvh)]">
         <table className="w-full min-w-[720px] text-left text-xs">
@@ -53,13 +56,14 @@ export function SupervisionKhoaMasterTable({
               <th className="px-2 py-2 text-center">TGS %</th>
               <th className="px-2 py-2 text-center">KSNK %</th>
               <th className="px-2 py-2 text-center">Đối soát</th>
-              {rankRows ? <th className="px-2 py-2 text-center">CCS %</th> : null}
+              {rankRows ? <th className="px-2 py-2 text-center">VST %</th> : null}
+              {rankRows ? <th className="px-2 py-2 text-center">GSC %</th> : null}
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={rankRows ? 8 : 7} className="px-2 py-4 text-center text-slate-400">
+                <td colSpan={rankRows ? 9 : 7} className="px-2 py-4 text-center text-slate-400">
                   Đang tải…
                 </td>
               </tr>
@@ -69,7 +73,8 @@ export function SupervisionKhoaMasterTable({
                 const compare = gapCompareStatus(r);
                 const ksnkTone = gapPctTone(r.ty_le_ksnk);
                 const tgsTone = gapPctTone(r.ty_le_tgs);
-                const ccsTone = rank ? complianceToneFromPercent(rank.ty_le_ccs) : "neutral";
+                const vstTone = rank ? complianceToneFromPercent(rank.ty_le_vst) : "neutral";
+                const gscTone = rank ? complianceToneFromPercent(rank.ty_le_gsc) : "neutral";
                 const rowWarn =
                   (r.ty_le_ksnk != null && r.ty_le_ksnk < KHOA_COMPLIANCE_WARN_PCT) ||
                   (r.ty_le_tgs != null && r.ty_le_tgs < KHOA_COMPLIANCE_WARN_PCT);
@@ -98,8 +103,13 @@ export function SupervisionKhoaMasterTable({
                       {compare.label}
                     </td>
                     {rankRows ? (
-                      <td className={`px-2 py-2 text-center font-semibold tabular-nums ${momentToneClass[ccsTone]}`}>
-                        {rank?.has_data === false ? "Chưa GS" : rank?.ty_le_ccs != null ? formatPercent2(rank.ty_le_ccs) : "—"}
+                      <td className={`px-2 py-2 text-center font-semibold tabular-nums ${momentToneClass[vstTone]}`}>
+                        {rank?.ty_le_vst != null ? formatPercent2(rank.ty_le_vst) : "—"}
+                      </td>
+                    ) : null}
+                    {rankRows ? (
+                      <td className={`px-2 py-2 text-center font-semibold tabular-nums ${momentToneClass[gscTone]}`}>
+                        {rank?.ty_le_gsc != null ? formatPercent2(rank.ty_le_gsc) : "—"}
                       </td>
                     ) : null}
                   </tr>

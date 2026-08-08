@@ -1,6 +1,6 @@
 // src/modules/giam-sat-chung/lib/gsc-read-utils.ts
 import { gscSessionDisplayRef } from "./gsc-display-ref";
-import { format } from "date-fns";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 
 export type GscHistoryRow = Record<string, unknown> & {
   id: string;
@@ -22,12 +22,7 @@ export function enrichGscHistoryRows(rows: Record<string, unknown>[]): GscHistor
   return rows.map((row) => {
     const id = String(row.id);
     const ngayRaw = row.ngay_giam_sat ? String(row.ngay_giam_sat) : "";
-    const dateNorm = ngayRaw && !ngayRaw.includes("T") ? `${ngayRaw}T12:00:00` : ngayRaw;
-    let dateLabel = "—";
-    if (dateNorm) {
-      const parsed = new Date(dateNorm);
-      dateLabel = Number.isFinite(parsed.getTime()) ? format(parsed, "dd/MM/yyyy") : "—";
-    }
+    const dateLabel = formatDateVi(ngayRaw ? ngayRaw.slice(0, 10) : null);
 
     const maKhoaFlat = String(row.ma_khoa_phong || "").trim();
     const khoaNameFlat = String(row.ten_khoa_phong || "").trim();

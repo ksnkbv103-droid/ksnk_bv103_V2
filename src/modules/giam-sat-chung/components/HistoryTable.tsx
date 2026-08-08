@@ -2,6 +2,8 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import GiamSatChungPrintView from "./GiamSatChungPrintView";
 import GiamSatChungSessionViewer from "./GiamSatChungSessionViewer";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
@@ -9,6 +11,7 @@ import { useGscHistoryTable, type GscHistoryRow } from "../hooks/use-gsc-history
 import type { GscViewBundle } from "../lib/load-gsc-view-bundle";
 
 import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
+import { classifyEntityQr } from "@/lib/entity-qr/entity-qr-core";
 
 export default function HistoryTable({
   onEditBundle,
@@ -17,6 +20,7 @@ export default function HistoryTable({
   onEditBundle?: (bundle: GscViewBundle, row: GscHistoryRow) => void;
   loaiGiamSat?: GscLoaiGiamSatRoute;
 }) {
+  const router = useRouter();
   const {
     allowed,
     printingBundle,
@@ -49,6 +53,8 @@ export default function HistoryTable({
           khuVucs={printingBundle.khuVucs}
           ngheNghieps={printingBundle.ngheNghieps}
           nhanSus={printingBundle.nhanSus}
+          qrCode={printingBundle.qrCode}
+          qrDataUrl={printingBundle.qrDataUrl}
         />
       )}
 
@@ -82,6 +88,18 @@ export default function HistoryTable({
           onSort={handleSort}
           searchValue={searchTerm}
           searchPlaceholder="Tìm kiếm phiên giám sát..."
+          enableQrScan
+          onQrScan={(code) => {
+            const resolved = classifyEntityQr(code);
+            if (resolved.kind === "GSC_SESSION" && resolved.href) {
+              router.push(resolved.href);
+              return;
+            }
+            handleSearch(code);
+            if (resolved.kind !== "UNKNOWN") {
+              toast.message(resolved.label || "Đã đưa mã vào ô tìm");
+            }
+          }}
           onRowClick={(s) => void onView(s as GscHistoryRow)}
           serverPagination={{ page, totalPages, totalCount, pageSize, onPageChange: setPage }}
         />

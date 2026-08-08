@@ -1,21 +1,38 @@
 import type { MasterOption } from "@/lib/master-data/gateway";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
 export type NhanSuLike = { id?: string; ho_ten?: string };
 
 const sameId = (a: unknown, b: unknown) => String(a ?? "").trim() === String(b ?? "").trim();
 
-/** Tên khoa hiển thị: ưu tiên dữ liệu join từ server, sau đó tra dropdown. */
+type KhoaLookupRow = {
+  id?: string;
+  ten_danh_muc?: string;
+  ten_khoa?: string;
+  ma_danh_muc?: string;
+  ma_khoa?: string;
+};
+
+/** Nhãn khoa hiển thị: ưu tiên mã (compact); thiếu mã → tên. */
 export function resolveGscKhoaTen(
   session: Record<string, unknown>,
-  khoas: Array<{ id?: string; ten_danh_muc?: string; ten_khoa?: string }>,
+  khoas: KhoaLookupRow[],
 ): string {
-  const dm = session.danh_muc_khoa as { ten_danh_muc?: string } | undefined;
-  const fromDm = String(dm?.ten_danh_muc || "").trim();
-  if (fromDm && fromDm !== "—") return fromDm;
   const kid = String(session.khoa_id || "").trim();
-  if (!kid) return "—";
-  const row = khoas.find((k) => sameId(k.id, kid));
-  return String(row?.ten_danh_muc || row?.ten_khoa || "").trim() || "—";
+  const row = kid ? khoas.find((k) => sameId(k.id, kid)) : undefined;
+  const dm = session.danh_muc_khoa as { ten_danh_muc?: string; ma_danh_muc?: string } | undefined;
+  const ma =
+    String(session.ma_khoa_phong || "").trim() ||
+    String(dm?.ma_danh_muc || "").trim() ||
+    String(row?.ma_danh_muc || row?.ma_khoa || "").trim() ||
+    null;
+  const tenRaw =
+    String(dm?.ten_danh_muc || "").trim() ||
+    String(session.ten_khoa_phong || "").trim() ||
+    String(row?.ten_danh_muc || row?.ten_khoa || "").trim();
+  const ten = tenRaw && tenRaw !== "—" ? tenRaw : null;
+  if (!ma && !ten) return "—";
+  return formatKhoaCompactLabel({ ma_khoa: ma, ten_khoa: ten });
 }
 
 export function resolveGscKhuTen(
@@ -109,7 +126,7 @@ export function mergeGscSessionWithDbPrintLabels(
  */
 export function snapshotGscSessionForPrint(
   session: Record<string, unknown>,
-  khoas: Array<{ id?: string; ten_danh_muc?: string; ten_khoa?: string }>,
+  khoas: KhoaLookupRow[],
   khuVucs: Array<{ id?: string; ten_danh_muc?: string }>,
   ngheNghieps: MasterOption[] = [],
   nhanSus: NhanSuLike[] = [],

@@ -1,44 +1,8 @@
 /**
- * Giám sát chung - Domain Logic
- * 
- * Chứa các hàm tính toán nghiệp vụ thuần (Pure Functions).
- * KHÔNG phụ thuộc vào Supabase/Next.js.
- * Tham chiếu: AGENTS.md 5c (Domain Layer)
+ * Giám sát chung — domain thuần (không Supabase/Next).
+ * Scoring engine SSOT: `giam-sat-scoring.ts`.
+ * File này chỉ còn phân loại nhãn % TY_LE (Tốt / Đạt / Không đạt).
  */
-
-import { ChecklistResult } from "@/modules/giam-sat-chung/types";
-
-export function calculateGscComplianceScore(results: ChecklistResult[]): number {
-  if (!results || results.length === 0) return 0;
-  
-  const evaluableResults = results.filter(r => r.value !== "NA");
-  if (evaluableResults.length === 0) return 0;
-  
-  let hasRedFlagViolation = false;
-  let totalWeightedMax = 0;
-  let totalWeightedEarned = 0;
-
-  const weights = { CRITICAL: 10, MAJOR: 5, MINOR: 1 };
-
-  for (const r of evaluableResults) {
-    const weightType = r.weightType || 'MAJOR';
-    const w = weights[weightType] || 5;
-    totalWeightedMax += w;
-
-    if (r.value === "DAT") {
-      totalWeightedEarned += w;
-    } else if (r.value === "KHONG_DAT") {
-      if (r.isRedFlag) {
-        hasRedFlagViolation = true;
-      }
-    }
-  }
-
-  if (hasRedFlagViolation) return 0; // Vi phạm lỗi cờ đỏ chí mạng -> 0% Đạt
-  if (totalWeightedMax === 0) return 100;
-  
-  return Math.round((totalWeightedEarned / totalWeightedMax) * 100);
-}
 
 /**
  * Phân loại mức độ tuân thủ dựa trên điểm số (ngưỡng JCI: ≥90 Tốt, ≥80 Đạt).
@@ -55,7 +19,7 @@ const GSC_COMPLIANCE_LABELS: Record<ReturnType<typeof classifyGscCompliance>, st
   KHONG_DAT: "Không đạt",
 };
 
-/** Nhãn + class Tailwind cho cột lịch sử / dashboard. */
+/** Nhãn + class Tailwind cho cột lịch sử / dashboard (kiểu TY_LE). */
 export function gscComplianceDisplay(score: number): { label: string; className: string } {
   const tier = classifyGscCompliance(score);
   const className =

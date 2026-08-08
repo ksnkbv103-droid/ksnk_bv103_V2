@@ -2,7 +2,7 @@
 
 import React from "react";
 import type { LucideIcon } from "lucide-react";
-import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import { KsnkPageChrome } from "@/components/shared/KsnkPageChrome";
 
 type KsnkPageShellProps = {
   children: React.ReactNode;
@@ -31,17 +31,9 @@ type KsnkPageHeaderProps = {
   actions?: React.ReactNode;
 };
 
-/** Khối tiêu đề trang dùng chung — `bv103DesignTokens.pageTitle` */
+/** Khối tiêu đề trang Admin — cùng `KsnkPageChrome`. */
 export function KsnkPageHeader({ title, subtitle, actions }: KsnkPageHeaderProps) {
-  return (
-    <header className="mb-4 flex flex-col gap-2 border-b border-slate-200/90 pb-3 sm:mb-8 sm:gap-3 sm:flex-row sm:items-end sm:justify-between sm:pb-6">
-      <div className="min-w-0">
-        <h1 className={`${T.pageTitle} max-sm:text-lg`}>{title}</h1>
-        {subtitle ? <p className={`${T.pageSubtitle} max-sm:hidden`}>{subtitle}</p> : null}
-      </div>
-      {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
-    </header>
-  );
+  return <KsnkPageChrome title={title} subtitle={subtitle} actions={actions} showTitle />;
 }
 
 type KsnkListPageHeaderProps = {
@@ -51,18 +43,19 @@ type KsnkListPageHeaderProps = {
   actions?: React.ReactNode;
 };
 
-/** Toolbar danh sách MDM / master — card header + CTA (Phase 1 Quản trị). */
+/** Toolbar danh sách MDM / master — cùng mật độ chrome với hub. */
 export function KsnkListPageHeader({ title, eyebrow, icon: Icon, actions }: KsnkListPageHeaderProps) {
   return (
-    <header className={`${T.pageToolbar} max-sm:p-4`}>
-      <div className="min-w-0">
-        <h1 className={`inline-flex items-center gap-2 ${T.pageTitle} max-sm:text-lg`}>
-          {Icon ? <Icon className="h-5 w-5 shrink-0 text-[var(--primary)] sm:h-6 sm:w-6" aria-hidden /> : null}
+    <KsnkPageChrome
+      eyebrow={eyebrow}
+      title={
+        <span className="inline-flex items-center gap-2">
+          {Icon ? <Icon className="h-5 w-5 shrink-0 text-[var(--primary)]" aria-hidden /> : null}
           {title}
-        </h1>
-        {eyebrow ? <p className={`${T.pageEyebrow} max-sm:hidden`}>{eyebrow}</p> : null}
-      </div>
-      {actions ? <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:gap-3 sm:justify-end">{actions}</div> : null}
-    </header>
+        </span>
+      }
+      actions={actions}
+      showTitle
+    />
   );
 }

@@ -6,6 +6,7 @@ import { History, ArrowUpRight, ArrowDownLeft, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
 import { fetchCssdKhoGiaoDichHistory } from "../../actions/cssd-kho-history.actions";
+import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 
 /**
  * Bảng lịch sử giao dịch kho dụng cụ (≤ 180 dòng)
@@ -31,7 +32,7 @@ export default function InventoryHistoryTable() {
         <div className={`p-2 rounded-lg ${item.loai_giao_dich === 'NHAP_KHO' ? 'bg-emerald-50 text-emerald-500' : 'bg-amber-50 text-amber-600'}`}>
           {item.loai_giao_dich === 'NHAP_KHO' ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
         </div>
-        <span className="font-black text-[11px] uppercase tracking-tighter">{item.loai_giao_dich.replace('_', ' ')}</span>
+        <span className="text-[11px] font-semibold uppercase tracking-wide">{item.loai_giao_dich.replace('_', ' ')}</span>
       </div>
     )},
     { header: "Bộ / Loại", accessorKey: "cssd_dm_bo_dung_cu.ma_bo", cell: (item: any) => (
@@ -46,17 +47,17 @@ export default function InventoryHistoryTable() {
     )},
     { header: "Thời gian", accessorKey: "created_at", cell: (item: any) => (
       <span className="text-slate-400 font-bold text-[11px] whitespace-nowrap">
-        {new Date(item.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
+        {formatDateTimeVi(item.created_at)}
       </span>
     )}
   ];
 
   return (
-    <div className="bg-white p-2 rounded-2xl border border-slate-200/90 shadow-[var(--shadow-app-soft)] overflow-hidden animate-in fade-in duration-500">
+    <div className="bg-white p-2 rounded-[var(--radius-shell)] border border-slate-200/90 shadow-[var(--shadow-app-soft)] overflow-hidden animate-in fade-in duration-500">
       <div className="p-5 pb-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-slate-50 rounded-xl text-slate-400"><History size={20} /></div>
-          <h3 className="text-[11px] font-medium text-slate-400 tracking-[0.3em]">Lịch sử giao dịch kho</h3>
+          <h3 className="text-[11px] font-medium text-slate-400 tracking-wide">Lịch sử giao dịch kho</h3>
         </div>
         <button onClick={fetchHistory} className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-[var(--primary)] active:rotate-180 transition-all duration-500">
           <RefreshCw size={18} />

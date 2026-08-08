@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Building2 } from "lucide-react";
 import type { DanhMucHubRow } from "@/lib/master-data/danh-muc-hub-catalog";
 import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 
 /** Sơ đồ tổ chức nhẹ: Khối khoa → Khoa phòng (Wave 4). */
 export default function OrgStructurePanel(props: { khoiCount?: number; khoaCount?: number }) {
@@ -52,7 +53,7 @@ export function DanhMucRecentChangesPanel(props: { rows: DanhMucHubRow[]; onOpen
             >
               <span className="font-medium text-slate-700">{r.name}</span>
               <time className="text-xs tabular-nums text-slate-400" dateTime={r.stats?.last}>
-                {r.stats?.last ? new Date(r.stats.last).toLocaleDateString("vi-VN") : "—"}
+                {formatDateVi(r.stats?.last)}
               </time>
             </button>
           </li>

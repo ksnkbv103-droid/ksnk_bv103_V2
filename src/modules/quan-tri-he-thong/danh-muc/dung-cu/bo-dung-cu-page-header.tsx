@@ -1,13 +1,14 @@
 "use client";
 
 import React from "react";
-import { Plus, Database, Download, Upload, Loader2 } from "lucide-react";
+import { Plus, Database } from "lucide-react";
 import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
+import { ImportExportHint, ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 
 type Props = {
   fileInputRef: React.RefObject<HTMLInputElement | null>;
-  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileSelected: (file: File) => void;
   isImporting: boolean;
   onTriggerImport: () => void;
   onExportTemplate: () => void;
@@ -16,7 +17,7 @@ type Props = {
 
 export function BoDungCuPageHeader({
   fileInputRef,
-  onFileChange,
+  onFileSelected,
   isImporting,
   onTriggerImport,
   onExportTemplate,
@@ -24,25 +25,28 @@ export function BoDungCuPageHeader({
 }: Props) {
   return (
     <>
-      <input type="file" ref={fileInputRef} onChange={onFileChange} accept=".xlsx, .xls" className="hidden" />
       <KsnkListPageHeader
         icon={Database}
         title="Bộ dụng cụ"
         eyebrow="Danh mục master · Bộ dụng cụ CSSD"
         actions={
           <>
-            <button type="button" onClick={onTriggerImport} disabled={isImporting} className={C.ctaAmber}>
-              {isImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />} Import dữ liệu
-            </button>
-            <button type="button" onClick={onExportTemplate} className={C.ctaMuted}>
-              <Download size={16} /> Export dữ liệu mẫu
-            </button>
+            <ImportExportToolbar
+              fileInputRef={fileInputRef}
+              isImporting={isImporting}
+              onExport={onExportTemplate}
+              onImportClick={onTriggerImport}
+              onFileChange={onFileSelected}
+              exportClassName={C.ctaMuted}
+              importClassName={C.ctaAmber}
+            />
             <button type="button" onClick={onCreate} className={C.ctaPrimary}>
               <Plus size={18} /> Thêm mới
             </button>
           </>
         }
       />
+      <ImportExportHint />
     </>
   );
 }

@@ -10,9 +10,16 @@ type Props = {
   onBack: () => void;
   onCreate: () => void;
   canCreate?: boolean;
+  importExportSlot?: React.ReactNode;
 };
 
-export default function GenericDmMasterHeader({ title, onBack, onCreate, canCreate = true }: Props) {
+export default function GenericDmMasterHeader({
+  title,
+  onBack,
+  onCreate,
+  canCreate = true,
+  importExportSlot,
+}: Props) {
   return (
     <div className="space-y-4">
       <KsnkPageHeader
@@ -32,13 +39,14 @@ export default function GenericDmMasterHeader({ title, onBack, onCreate, canCrea
               <ArrowLeft size={16} />
               <span className="hidden sm:inline">Quay lại</span>
             </button>
+            {importExportSlot}
             {canCreate ? (
               <button type="button" onClick={onCreate} className={C.ctaPrimary}>
                 <Plus size={16} /> Thêm mới
               </button>
             ) : (
               <p className="max-w-xs text-right text-xs text-slate-500">
-                Chỉ xem — cần quyền tạo/sửa danh mục (DANH_MUC).
+                Chỉ xem — cần quyền tạo/sửa danh mục tương ứng.
               </p>
             )}
           </>

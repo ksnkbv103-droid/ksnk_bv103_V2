@@ -6,6 +6,7 @@ import { enrichGscHistoryRows } from "../lib/gsc-read-utils";
 import { parseGscResultsJsonb } from "../lib/gsc-results-jsonb";
 import { GSC_SESSIONS_FULL_DETAIL_SELECT } from "../lib/gsc-read-view-select";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
+import { parseGscBoSungNbFromUnknown } from "../lib/gsc-bo-sung-nguoi-benh";
 
 function getErrorMessage(error: unknown): string {
   if (error && typeof error === "object") {
@@ -47,12 +48,21 @@ export async function getGiamSatChungSessionForViewBundle(sessionId: string) {
       }
     }
 
+    // Ảnh chụp bổ sung NB nằm trong metadata fact (chưa lộ hết trên view).
+    const { data: metaRow } = await supabase
+      .from("gstt_fact_chung_sessions")
+      .select("metadata")
+      .eq("id", id)
+      .maybeSingle();
+    const meta = (metaRow?.metadata || {}) as Record<string, unknown>;
+    const boSungSnap = parseGscBoSungNbFromUnknown(meta);
+
     // 2. Map Results from JSONB column
     const rs = parseGscResultsJsonb(ses.results_jsonb);
 
     // 3. Enrich and Map back to expected format
     const enriched = enrichGscHistoryRows([ses as Record<string, unknown>])[0];
-    const row = { ...enriched, results: rs };
+    const row = { ...enriched, ...boSungSnap, results: rs };
     
     return { success: true as const, data: row };
   } catch (error: unknown) {

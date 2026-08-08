@@ -49,7 +49,7 @@ export default function MeTietKhuanCreateStep({
         <div className={`space-y-8 p-8 ${CSSD_UI_PANEL}`}>
           <div className="text-center">
             <h2 className={CSSD_UI_PANEL_TITLE}>Tạo mẻ mới</h2>
-            <p className={CSSD_UI_STEP_HINT}>Bước 1: Chọn thiết bị và người vận hành</p>
+            <p className={CSSD_UI_STEP_HINT}>Chọn thiết bị và người vận hành</p>
           </div>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -79,11 +79,6 @@ export default function MeTietKhuanCreateStep({
                   </option>
                 ))}
               </select>
-              <p className="ml-4 text-[11px] leading-relaxed text-slate-500">
-                Danh sách lấy từ{" "}
-                <strong className="font-semibold text-slate-700">thiết bị hoạt động/sẵn sàng</strong> có gắn loại trong
-                danh mục loại máy — chỉnh tại hai liên kết phía trên nếu cần thêm máy hay loại mới.
-              </p>
             </div>
             <div className="space-y-2">
               <label className={`ml-4 ${CSSD_UI_FORM_LABEL}`}>Người load mẻ</label>

@@ -20,7 +20,7 @@ export function CssdHorizTabButton({ active, onClick, label, mobileLabel, icon: 
       onClick={onClick}
       className={`${CSSD_UI_TAB_BTN} ${active ? CSSD_UI_TAB_ACTIVE : CSSD_UI_TAB_IDLE}`}
     >
-      {Icon ? <Icon size={14} className="shrink-0" aria-hidden /> : null}
+      {Icon ? <Icon className="h-4 w-4 shrink-0" aria-hidden /> : null}
       <span className="truncate sm:hidden">{mobileLabel ?? label}</span>
       <span className="hidden truncate sm:inline">{label}</span>
     </button>

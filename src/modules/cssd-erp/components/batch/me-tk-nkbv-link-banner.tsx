@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Activity } from "lucide-react";
 import { fetchNkbvCasesLinkedToCssd } from "@/modules/giam-sat-nkbv/actions/nkbv-cssd-rca.actions";
+import { KsnkContextBanner } from "@/components/shared/KsnkContextBanner";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 
 type Props = {
   loTietKhuanId?: string | null;
@@ -46,31 +48,34 @@ export default function MeTkNkbvLinkBanner({ loTietKhuanId }: Props) {
   if (!loTietKhuanId || !loaded) return null;
 
   return (
-    <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sky-950" role="status">
-      <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide">
-        <Activity size={14} aria-hidden />
-        Ca NKBV / SSI gắn mẻ này
-      </p>
-      {error ? <p className="mt-1 text-xs text-rose-600">{error}</p> : null}
-      {!error && cases.length === 0 ? (
-        <p className="mt-2 text-xs font-medium text-sky-900/80 leading-relaxed">
-          Chưa có ca SSI liên kết. Khi KSNK gắn mã QR chu trình trên checklist SSI, ca sẽ hiện tại đây để mở nhanh
-          giám sát NKBV.
-        </p>
-      ) : null}
-      {cases.length > 0 ? (
-        <ul className="mt-2 space-y-1 text-xs font-medium">
-          {cases.map((c) => (
-            <li key={c.id}>
-              <Link href={`/giam-sat-nkbv?case=${c.id}`} className="underline decoration-dotted font-semibold">
-                {c.maCa || c.id.slice(0, 8)}
-              </Link>
-              {c.hoTen ? ` — ${c.hoTen}` : ""}
-              {c.ngayPhatHien ? ` · ${new Date(c.ngayPhatHien).toLocaleDateString("vi-VN")}` : ""}
-            </li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
+    <KsnkContextBanner
+      tone="sky"
+      dismissible={false}
+      icon={<Activity className="mt-0.5 h-4 w-4 shrink-0 text-sky-700" aria-hidden />}
+      summary={<span className="font-semibold">Ca NKBV / SSI gắn mẻ này</span>}
+      detail={
+        <>
+          {error ? <span className="text-rose-600">{error}</span> : null}
+          {!error && cases.length === 0 ? (
+            <span>
+              Chưa có ca SSI liên kết. Khi KSNK gắn mã QR chu trình trên checklist SSI, ca sẽ hiện tại đây.
+            </span>
+          ) : null}
+          {cases.length > 0 ? (
+            <ul className="mt-1 space-y-1">
+              {cases.map((c) => (
+                <li key={c.id}>
+                  <Link href={`/giam-sat-nkbv?case=${c.id}`} className="font-semibold underline decoration-dotted">
+                    {c.maCa || c.id.slice(0, 8)}
+                  </Link>
+                  {c.hoTen ? ` — ${c.hoTen}` : ""}
+                  {c.ngayPhatHien ? ` · ${formatDateVi(c.ngayPhatHien)}` : ""}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </>
+      }
+    />
   );
 }

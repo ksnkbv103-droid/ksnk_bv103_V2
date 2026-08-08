@@ -1,7 +1,7 @@
 // src/modules/cssd-erp/components/batch/me-tiet-khuan-process-step.tsx
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   History,
   Lock,
@@ -114,7 +114,6 @@ export default function MeTietKhuanProcessStep({
   isPrintBusy?: boolean;
   onReportIncident?: () => void;
 }) {
-  const [scanPrefillToken, setScanPrefillToken] = useState<string | undefined>(undefined);
   const napLocked = Boolean(batchGate?.tk_chot_nap_at);
   const qcOpen = Boolean(batchGate?.tk_mo_form_qc_at);
   const showBowie = useMemo(() => isSteamSterilizerProfile(batchGate?.thiet_bi ?? null), [batchGate?.thiet_bi]);
@@ -146,19 +145,18 @@ export default function MeTietKhuanProcessStep({
   return (
     <CSSDPageShell
       title={<span className="text-[var(--primary)]">Mẻ tiệt khuẩn: đang xử lý</span>}
-      subtitle="Nạp bộ → bắt đầu TK → kết thúc chu trình → đánh giá QC → kết luận."
       actions={
         <div className="flex flex-wrap items-center gap-2">
           {onReportIncident ? (
             <button
               type="button"
               onClick={onReportIncident}
-              className="flex h-10 items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 text-[11px] font-semibold uppercase tracking-wide text-red-600 shadow-sm hover:bg-red-100"
+              className={`${CSSD_UI_ACTION_SECONDARY} border-red-200 text-red-600 hover:bg-red-50`}
             >
               Báo sự cố
             </button>
           ) : null}
-          <button type="button" onClick={onBackToList} className={`${CSSD_UI_ACTION_SECONDARY} h-10`}>
+          <button type="button" onClick={onBackToList} className={CSSD_UI_ACTION_SECONDARY}>
             <History size={16} aria-hidden="true" />
             Về danh sách
           </button>
@@ -167,7 +165,7 @@ export default function MeTietKhuanProcessStep({
     >
       <div className={`${CSSD_PAGE_OUTER} animate-in slide-in-from-right-6 duration-300`}>
         {/* Header Thông Tin Mẻ + Nút theo giai đoạn */}
-        <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-emerald-800 bg-emerald-700 p-5 text-white shadow-sm">
+        <header className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-shell)] border border-emerald-800 bg-emerald-700 p-5 text-white shadow-sm">
           <div>
             <h2 className="text-2xl font-semibold uppercase tracking-tight">{activeMe?.ma_lo_tiet_khuan}</h2>
             <p className="mt-1 text-[11px] font-medium uppercase tracking-wide opacity-90">
@@ -191,7 +189,7 @@ export default function MeTietKhuanProcessStep({
                 type="button"
                 disabled={!items.length}
                 onClick={() => void onConfirmBatDau()}
-                className="inline-flex h-10 items-center gap-2 rounded-xl border-2 border-amber-300 bg-amber-400 px-5 text-xs font-black uppercase tracking-wide text-slate-900 shadow-lg transition-all hover:bg-amber-300 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-amber-300 bg-amber-400 px-4 text-xs font-semibold uppercase tracking-wide text-slate-900 shadow-sm transition-all hover:bg-amber-300 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Lock size={16} aria-hidden="true" />
                 Xác nhận bắt đầu tiệt khuẩn
@@ -203,7 +201,7 @@ export default function MeTietKhuanProcessStep({
               <button
                 type="button"
                 onClick={() => void onConfirmKetThucChuTrinh()}
-                className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/30 bg-white/15 px-5 text-xs font-black uppercase tracking-wide text-white shadow-lg transition-all hover:bg-white/25 active:scale-95"
+                className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-white/30 bg-white/15 px-4 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition-all hover:bg-white/25 active:scale-95"
               >
                 <StopCircle size={16} aria-hidden="true" />
                 Kết thúc chu trình tiệt khuẩn
@@ -215,7 +213,7 @@ export default function MeTietKhuanProcessStep({
                 type="button"
                 disabled={isPrintBusy}
                 onClick={onPrintBatch}
-                className="inline-flex h-10 items-center gap-2 rounded-xl border-2 border-amber-300 bg-amber-400 px-5 text-xs font-black uppercase tracking-wide text-slate-900 shadow-lg transition-all hover:bg-amber-300 active:scale-95 disabled:opacity-50"
+                className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-amber-300 bg-amber-400 px-4 text-xs font-semibold uppercase tracking-wide text-slate-900 shadow-sm transition-all hover:bg-amber-300 active:scale-95 disabled:opacity-50"
               >
                 <Printer size={16} aria-hidden="true" />
                 In phiếu mẻ A4
@@ -229,81 +227,87 @@ export default function MeTietKhuanProcessStep({
         {activeMe?.id ? <MeTietKhuanHeatBanner batchId={activeMe.id} /> : null}
         {activeMe?.id ? <MeTkNkbvLinkBanner loTietKhuanId={activeMe.id} /> : null}
 
-        {/* Process Stepper 4 bước */}
-        <div className="my-4 bg-slate-50 border border-slate-200/50 p-5 rounded-2xl shadow-inner">
-          <div className="grid grid-cols-1 md:grid-cols-7 items-center gap-2">
-            {/* Step 1 */}
-            <div className="col-span-1 flex items-center gap-3">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 ${
-                step1State === "COMPLETED"
-                  ? "bg-emerald-50 border-emerald-500 text-emerald-600"
-                  : "bg-white border-sky-500 text-sky-600 shadow-md shadow-sky-100 animate-pulse"
-              }`}>
-                <Inbox size={18} strokeWidth={2.5} />
+        {/* Process stepper — 4 giai đoạn thật (nạp → TK → QC → cấp phát) */}
+        <div className="my-3 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50 px-3 py-2.5">
+          <div className="grid grid-cols-1 items-center gap-2 md:grid-cols-7">
+            <div className="col-span-1 flex items-center gap-2">
+              <div
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
+                  step1State === "COMPLETED"
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-600"
+                    : "animate-pulse border-sky-500 bg-white text-sky-600"
+                }`}
+              >
+                <Inbox size={14} strokeWidth={2.5} />
               </div>
-              <div className="space-y-0.5">
-                <p className="text-[11px] font-medium text-slate-400 tracking-wider">Bước 1</p>
-                <p className="text-xs font-bold text-slate-700">Chuẩn bị nạp mẻ</p>
-              </div>
+              <p className="text-xs font-semibold text-slate-700">Chuẩn bị nạp</p>
             </div>
 
-            <div className="hidden md:flex col-span-1 justify-center text-slate-300"><ChevronRight size={20} /></div>
-
-            {/* Step 2 */}
-            <div className="col-span-1 flex items-center gap-3">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 ${
-                step2State === "COMPLETED"
-                  ? "bg-emerald-50 border-emerald-500 text-emerald-600"
-                  : step2State === "ACTIVE"
-                  ? "bg-white border-blue-500 text-blue-600 shadow-md shadow-blue-100 animate-pulse"
-                  : "bg-slate-100 border-slate-200 text-slate-400"
-              }`}>
-                <Flame size={18} strokeWidth={2.5} />
-              </div>
-              <div className="space-y-0.5">
-                <p className="text-[11px] font-medium text-slate-400 tracking-wider">Bước 2</p>
-                <p className={`text-xs font-bold ${step2State === "PENDING" ? "text-slate-400" : "text-slate-700"}`}>Đang tiệt khuẩn</p>
-              </div>
+            <div className="col-span-1 hidden justify-center text-slate-300 md:flex">
+              <ChevronRight size={16} />
             </div>
 
-            <div className="hidden md:flex col-span-1 justify-center text-slate-300"><ChevronRight size={20} /></div>
-
-            {/* Step 3 */}
-            <div className="col-span-1 flex items-center gap-3">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 ${
-                step3State === "COMPLETED"
-                  ? "bg-emerald-50 border-emerald-500 text-emerald-600"
-                  : step3State === "ACTIVE"
-                  ? "bg-white border-amber-500 text-amber-600 shadow-md shadow-amber-100 animate-pulse"
-                  : "bg-slate-100 border-slate-200 text-slate-400"
-              }`}>
-                <ClipboardCheck size={18} strokeWidth={2.5} />
+            <div className="col-span-1 flex items-center gap-2">
+              <div
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
+                  step2State === "COMPLETED"
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-600"
+                    : step2State === "ACTIVE"
+                      ? "animate-pulse border-blue-500 bg-white text-blue-600"
+                      : "border-slate-200 bg-slate-100 text-slate-400"
+                }`}
+              >
+                <Flame size={14} strokeWidth={2.5} />
               </div>
-              <div className="space-y-0.5">
-                <p className="text-[11px] font-medium text-slate-400 tracking-wider">Bước 3</p>
-                <p className={`text-xs font-bold ${step3State === "PENDING" ? "text-slate-400" : "text-slate-700"}`}>Đánh giá QC</p>
-              </div>
+              <p className={`text-xs font-semibold ${step2State === "PENDING" ? "text-slate-400" : "text-slate-700"}`}>
+                Đang tiệt khuẩn
+              </p>
             </div>
 
-            <div className="hidden md:flex col-span-1 justify-center text-slate-300"><ChevronRight size={20} /></div>
+            <div className="col-span-1 hidden justify-center text-slate-300 md:flex">
+              <ChevronRight size={16} />
+            </div>
 
-            {/* Step 4 */}
-            <div className="col-span-1 flex items-center gap-3">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 ${
-                step4State === "COMPLETED"
-                  ? "bg-emerald-50 border-emerald-500 text-emerald-600"
-                  : step4State === "FAILED"
-                  ? "bg-red-50 border-red-500 text-red-600"
-                  : "bg-slate-100 border-slate-200 text-slate-400"
-              }`}>
-                {step4State === "FAILED" ? <AlertCircle size={18} strokeWidth={2.5} /> : <CheckCircle size={18} strokeWidth={2.5} />}
+            <div className="col-span-1 flex items-center gap-2">
+              <div
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
+                  step3State === "COMPLETED"
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-600"
+                    : step3State === "ACTIVE"
+                      ? "animate-pulse border-amber-500 bg-white text-amber-600"
+                      : "border-slate-200 bg-slate-100 text-slate-400"
+                }`}
+              >
+                <ClipboardCheck size={14} strokeWidth={2.5} />
               </div>
-              <div className="space-y-0.5">
-                <p className="text-[11px] font-medium text-slate-400 tracking-wider">Bước 4</p>
-                <p className={`text-xs font-bold ${step4State === "PENDING" ? "text-slate-400" : "text-slate-700"}`}>
-                  {step4State === "FAILED" ? "Lỗi tiệt khuẩn" : "Chờ cấp phát"}
-                </p>
+              <p className={`text-xs font-semibold ${step3State === "PENDING" ? "text-slate-400" : "text-slate-700"}`}>
+                Đánh giá QC
+              </p>
+            </div>
+
+            <div className="col-span-1 hidden justify-center text-slate-300 md:flex">
+              <ChevronRight size={16} />
+            </div>
+
+            <div className="col-span-1 flex items-center gap-2">
+              <div
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
+                  step4State === "COMPLETED"
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-600"
+                    : step4State === "FAILED"
+                      ? "border-red-500 bg-red-50 text-red-600"
+                      : "border-slate-200 bg-slate-100 text-slate-400"
+                }`}
+              >
+                {step4State === "FAILED" ? (
+                  <AlertCircle size={14} strokeWidth={2.5} />
+                ) : (
+                  <CheckCircle size={14} strokeWidth={2.5} />
+                )}
               </div>
+              <p className={`text-xs font-semibold ${step4State === "PENDING" ? "text-slate-400" : "text-slate-700"}`}>
+                {step4State === "FAILED" ? "Lỗi tiệt khuẩn" : "Chờ cấp phát"}
+              </p>
             </div>
           </div>
         </div>
@@ -313,16 +317,15 @@ export default function MeTietKhuanProcessStep({
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <MeTietKhuanWaitingPanel
               rows={waitingRows}
-              onPickCode={(code) => {
+              napLocked={napLocked}
+              onProcess={(code) => {
                 if (!code || napLocked) return;
-                setScanPrefillToken(`${Date.now()}|${code}`);
+                onAddItemByCode(code);
               }}
             />
             <MeTietKhuanProcessScanPanel
               items={items}
               napLocked={napLocked}
-              prefillToken={scanPrefillToken}
-              onPrefillConsumed={() => setScanPrefillToken(undefined)}
               onAddItemByCode={onAddItemByCode}
             />
           </div>
@@ -331,12 +334,12 @@ export default function MeTietKhuanProcessStep({
         {/* ===== GIAI ĐOẠN 2: Đang tiệt khuẩn (chờ kết thúc chu trình) ===== */}
         {phase === "DANG_TK" && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/60 p-12 text-center gap-4">
+            <div className="flex flex-col items-center justify-center rounded-[var(--radius-shell)] border-2 border-dashed border-blue-200 bg-blue-50/60 p-12 text-center gap-4">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 border-2 border-blue-300">
                 <Timer className="h-8 w-8 text-blue-600 animate-pulse" />
               </div>
               <div className="space-y-2">
-                <p className="text-base font-black uppercase tracking-widest text-blue-800">Đang tiệt khuẩn</p>
+                <p className="text-sm font-semibold uppercase tracking-wide text-blue-800">Đang tiệt khuẩn</p>
                 <p className="text-sm font-semibold text-blue-600">
                   Đã chốt <strong>{items.length} bộ</strong> trong phiếu
                 </p>
@@ -349,7 +352,7 @@ export default function MeTietKhuanProcessStep({
               <button
                 type="button"
                 onClick={() => void onConfirmKetThucChuTrinh()}
-                className="mt-2 inline-flex h-12 items-center gap-2 rounded-2xl border border-blue-300 bg-white px-8 text-sm font-black uppercase tracking-wide text-blue-700 shadow-md transition-all hover:bg-blue-50 hover:shadow-lg active:scale-95"
+                className="bv103-control-h mt-2 inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-blue-300 bg-white px-6 text-xs font-semibold uppercase tracking-wide text-blue-700 shadow-sm transition-all hover:bg-blue-50 active:scale-95"
               >
                 <StopCircle size={18} />
                 Kết thúc chu trình tiệt khuẩn

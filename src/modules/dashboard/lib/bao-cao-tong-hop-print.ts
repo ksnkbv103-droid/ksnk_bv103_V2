@@ -16,10 +16,12 @@ import {
   toGscMatrixRows,
   toVstMatrixRows,
 } from "./bao-cao-tong-hop-print-sections";
+import { renderKhoaGscBarChartSvg, renderTrendLineChartSvg } from "./bao-cao-tong-hop-print-charts";
 import { PRINT_STYLES } from "./bao-cao-tong-hop-print-styles";
 import type { BaoCaoTongHopPayload } from "../types/bao-cao-tong-hop.types";
 import type { GscChecklistDetailPayload, GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
+import { baoCaoPeriodMa, buildPrintFileTitle } from "@/lib/print/print-file-title";
 
 export type BaoCaoTongHopPrintParams = {
   reportNo: string;
@@ -75,7 +77,7 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
 
   const dieuHanhSection = `
     <h2>ĐIỀU HÀNH TỔNG HỢP (PROCESS)</h2>
-    <p class="muted">CCS = 50% tuân thủ VST + 50% tuân thủ GSC trong phạm vi lọc. NKBV là chỉ số lâm sàng, không gộp CCS.</p>
+    <p class="muted">Theo dõi riêng tỷ lệ VST và GSC trong phạm vi lọc. NKBV là chỉ số lâm sàng, tách khỏi tuân thủ process.</p>
     <h3>1. Chỉ số cốt lõi kỳ báo cáo</h3>
     <table>
       <thead>
@@ -87,29 +89,26 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
       </thead>
       <tbody>
         <tr>
-          <td class="text-left"><strong>Tuân thủ tổng hợp (CCS)</strong></td>
-          <td class="text-success"><strong>${fmtPct(kpi?.ty_le_ccs)}</strong></td>
-          <td style="font-size:11px;">${escHtml(fmtDelta(kpi?.delta_ccs))}</td>
-        </tr>
-        <tr>
-          <td class="text-left">Vệ sinh tay (VST)</td>
-          <td>${fmtPct(kpi?.ty_le_vst)}</td>
+          <td class="text-left"><strong>Vệ sinh tay (VST)</strong></td>
+          <td class="text-success"><strong>${fmtPct(kpi?.ty_le_vst)}</strong></td>
           <td style="font-size:11px;">${escHtml(fmtDelta(kpi?.delta_vst))}</td>
         </tr>
         <tr>
-          <td class="text-left">Giám sát chung (GSC)</td>
-          <td>${fmtPct(kpi?.ty_le_gsc)}</td>
+          <td class="text-left"><strong>Giám sát chung (GSC)</strong></td>
+          <td class="text-success"><strong>${fmtPct(kpi?.ty_le_gsc)}</strong></td>
           <td style="font-size:11px;">${escHtml(fmtDelta(kpi?.delta_gsc))}</td>
         </tr>
       </tbody>
     </table>
-    <h3>2. Xu hướng tuân thủ theo tuần (VST + GSC + CCS)</h3>
+    <h3>2. Xu hướng tuân thủ theo tuần (VST + GSC)</h3>
+    ${renderTrendLineChartSvg(p.payload?.trend_week ?? [])}
     ${renderTrendWeekTable(p.payload?.trend_week ?? [])}
-    <h3>3. So sánh theo khoa (CCS)</h3>
+    <h3>3. So sánh theo khoa (VST · GSC — thấp → cao)</h3>
+    ${renderKhoaGscBarChartSvg(fullKhoaRank)}
     ${renderFullKhoaRankSection(fullKhoaRank)}
     <h3>3b. Tuân thủ & khối lượng theo khoa (gộp VST · GSC)</h3>
     ${renderKhoaGapModulePrint("Gộp VST + GSC", masterGapRows)}
-    <h3>4. Kết quả NKBV (lâm sàng — tách khỏi CCS)</h3>
+    <h3>4. Kết quả NKBV (lâm sàng — tách khỏi tuân thủ process)</h3>
     <table>
       <thead>
         <tr>
@@ -124,6 +123,62 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
         </tr>
       </tbody>
     </table>
+    ${
+      p.payload?.cssd
+        ? `
+    <h3>5. Phụ lục CSSD (vận hành — tách khỏi tuân thủ process)</h3>
+    <table>
+      <thead>
+        <tr>
+          <th class="text-left">Chỉ số</th>
+          <th>Giá trị</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="text-left">Sản lượng cấp phát</td>
+          <td>${p.payload.cssd.san_luong_cap_phat.toLocaleString("vi-VN")}</td>
+        </tr>
+        <tr>
+          <td class="text-left">Tỷ lệ quy trình không sự cố</td>
+          <td>${fmtPct(p.payload.cssd.ty_le_quy_trinh_khong_su_co)}</td>
+        </tr>
+        <tr>
+          <td class="text-left">Số bộ danh mục</td>
+          <td>${p.payload.cssd.so_bo_danh_muc.toLocaleString("vi-VN")}</td>
+        </tr>
+        <tr>
+          <td class="text-left">Mẻ / QC đạt</td>
+          <td>${p.payload.cssd.so_me_ky.toLocaleString("vi-VN")}${
+            p.payload.cssd.ty_le_qc_dat_me != null
+              ? ` · ${fmtPct(p.payload.cssd.ty_le_qc_dat_me)}`
+              : ""
+          }</td>
+        </tr>
+        <tr>
+          <td class="text-left">Máy sẵn sàng / sửa·BT</td>
+          <td>${p.payload.cssd.may_ready} / ${p.payload.cssd.may_repairing}</td>
+        </tr>
+      </tbody>
+    </table>
+    <table>
+      <thead>
+        <tr>
+          <th class="text-left">Trạm</th>
+          <th>Hoàn thành kỳ</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${p.payload.cssd.station_volume
+          .map(
+            (s) =>
+              `<tr><td class="text-left">${escHtml(s.label)}</td><td>${s.completed.toLocaleString("vi-VN")}</td></tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>`
+        : ""
+    }
   `;
 
   const phanTichCheo = `
@@ -274,12 +329,16 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
     tongPhienKsnk,
   });
   const phanIii = renderPhanIiiSection(p.nhanXetDanhGia, p.kienNghiDeXuat, issueDate);
+  const fileTitle = buildPrintFileTitle({
+    loai: "BAOCAO",
+    ma: baoCaoPeriodMa(p.reportNo),
+  });
 
   return `<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Báo cáo tổng hợp KSNK - BV103</title>
+  <title>${escHtml(fileTitle)}</title>
   <style>${PRINT_STYLES}</style>
 </head>
 <body>

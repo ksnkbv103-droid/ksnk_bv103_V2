@@ -5,6 +5,7 @@ import { verifyPermission } from "@/lib/server-permission";
 import type { GscPrintLabelPack } from "../lib/gsc-session-labels";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { resolveGscScopedKhoaId } from "../lib/gsc-khoa-scope";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
 function getErrorMessage(error: unknown): string {
   if (error && typeof error === "object") {
@@ -40,8 +41,8 @@ export async function getGscSessionPrintLabels(input: {
     const ngsId = String(input.nguoi_giam_sat_id ?? "").trim();
 
     const khoaP = khoaId
-      ? supabase.from("mdm_dm_khoa_phong").select("ten_khoa").eq("id", khoaId).maybeSingle()
-      : Promise.resolve({ data: null as { ten_khoa?: string } | null, error: null });
+      ? supabase.from("mdm_dm_khoa_phong").select("ma_khoa, ten_khoa").eq("id", khoaId).maybeSingle()
+      : Promise.resolve({ data: null as { ma_khoa?: string; ten_khoa?: string } | null, error: null });
     const khuP = khuId
       ? supabase.from("gstt_dm_khu_vuc_giam_sat").select("ten_khu_vuc").eq("id", khuId).maybeSingle()
       : Promise.resolve({ data: null as { ten_khu_vuc?: string } | null, error: null });
@@ -70,8 +71,14 @@ export async function getGscSessionPrintLabels(input: {
     if (nnR.error) throw nnR.error;
     if (ngsR.error) throw ngsR.error;
 
+    const khoaCompact = khoaId
+      ? formatKhoaCompactLabel({
+          ma_khoa: khoaR.data?.ma_khoa,
+          ten_khoa: khoaR.data?.ten_khoa,
+        })
+      : "";
     const data: GscPrintLabelPack = {
-      khoa_ten: khoaId ? String(khoaR.data?.ten_khoa || "").trim() || undefined : undefined,
+      khoa_ten: khoaCompact && khoaCompact !== "—" ? khoaCompact : undefined,
       khu_ten: khuId ? String(khuR.data?.ten_khu_vuc || "").trim() || undefined : undefined,
       ho_ten_doi_tuong: nvId ? String(nvR.data?.ho_ten || "").trim() || undefined : undefined,
       nghe_ten: nnId ? String(nnR.data?.ten_nghe_nghiep || "").trim() || undefined : undefined,

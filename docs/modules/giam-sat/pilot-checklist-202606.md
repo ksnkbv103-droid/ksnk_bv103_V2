@@ -14,6 +14,7 @@
 | V1 | Tạo phiên VST | `/giam-sat-vst` → phiên mới → ghi ≥1 cơ hội WHO → Lưu | Hiện trên tab history |
 | V2 | Header VST | Chọn khoa/khu vực từ danh mục admin | Dropdown khớp MDM |
 | V3 | Không import cũ | Không dùng luồng import VST đã gỡ | Chỉ session UI |
+| G5 | Không Excel phiên GSC | Không tìm nút Import Excel trên `/giam-sat-chung` | Chỉ form phiên; action server đã deprecate |
 
 **Ghi nhận pilot:** ngày ___ | tester ___ | G1–G4 ___ | V1–V3 ___
 

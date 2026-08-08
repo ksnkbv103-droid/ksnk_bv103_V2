@@ -1,0 +1,220 @@
+# ĐẶC TẢ LOGIC DOMAIN: CHƯƠNG 9 - NHIỄM KHUỂN VẾT MỔ (SSI)
+*Chuẩn hóa theo Sổ tay Giám sát An toàn Người bệnh NHSN/CDC 2025*
+
+---
+
+## 1. ĐỊNH NGHĨA BIẾN SỐ VÀ CƠ SỞ DỮ LIỆU ĐẦU VÀO (DATA SCHEMA)
+
+Động cơ quy tắc (Rule Engine) của phần mềm yêu cầu cấu trúc dữ liệu JSON đầu vào dưới đây để thực hiện tính toán tự động và đồng bộ hóa dữ liệu.
+
+### 1.1. Thực thể Ca phẫu thuật - Mẫu số (Surgical Procedure - Denominator)
+Ghi nhận dữ liệu chi tiết của từng ca phẫu thuật từ phần mềm quản lý phòng mổ để làm mẫu số tính toán chỉ số SIR.
+```json
+{
+  "ProcedureID": "string (Primary Key)",
+  "PatientID": "string (Foreign Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "ProcedureDate": "date [YYYY-MM-DD] (Day 1 for Surveillance Period)",
+  "NHSNProcedureCode": "string (e.g., COLO, KPRO, CSEC, HYST mapped to ICD-10-PCS/CPT)",
+  "OR_IncisionStartTime": "datetime [YYYY-MM-DD HH:MM:SS]",
+  "OR_IncisionFinishTime": "datetime [YYYY-MM-DD HH:MM:SS]",
+  "ProcedureDurationMinutes": "integer",
+  "ASA_Class": "integer",
+  "WoundClass": "enum [C, CC, CO, D]",
+  "ClosureTechnique": "enum [PRIMARY, NON_PRIMARY]",
+  "IsEmergency": "boolean",
+  "IsGeneralAnesthesia": "boolean",
+  "IsScopeUsed": "boolean",
+  "IsTrauma": "boolean",
+  "PatientHeightMeters": "float",
+  "PatientWeightKg": "float",
+  "PatientAgeYears": "integer",
+  "PriorInfectionAtIndexJoint": "boolean (Only for revision HPRO/KPRO)"
+}
+```
+*   **Ràng buộc logic về Wound Class (Phân loại vết mổ):** Các loại phẫu thuật sau **CẤM** xếp loại vết mổ Sạch (Clean - C): `APPY`, `BILI`, `CHOL`, `COLO`, `REC`, `SB`, `VHYS`. Nếu dữ liệu đầu vào ghi nhận là Clean (C) cho các thủ thuật này, phần mềm phải tự động loại bỏ ca phẫu thuật khỏi tập mẫu số (Denominator) và bắn cảnh báo lỗi dữ liệu.
+*   **Ràng buộc logic về Thể chất ASA:** Chỉ bệnh nhân có điểm ASA từ 1 đến 5 mới đủ điều kiện đưa vào giám sát SSI. Điểm ASA = 6 (bệnh nhân chết não hiến tạng) phải bị loại trừ khỏi hệ thống.
+
+### 1.2. Thực thể Sự kiện Nhiễm khuẩn vết mổ - Tử số (SSI Event - Numerator)
+Bản ghi chi tiết khi phát hiện ca bệnh nghi ngờ biến cố SSI.
+```json
+{
+  "SSI_EventID": "string (Primary Key)",
+  "ProcedureID": "string (Foreign Key)",
+  "DateOfEvent": "date [YYYY-MM-DD] (DOE)",
+  "SSIDepth": "enum [SUPERFICIAL_PRIMARY, SUPERFICIAL_SECONDARY, DEEP_PRIMARY, DEEP_SECONDARY, ORGAN_SPACE]",
+  "SpecificOrganSpaceSite": "string (CDC Chapter 17 Site Code, e.g., IAB, EMET, VCUF, OREP)",
+  "PATOS": "boolean (Infection Present at Time of Surgery)",
+  "DetectionMethod": "enum [ADMISSION, READMISSION_SAME_FACILITY, READMISSION_OTHER_FACILITY, POST_DISCHARGE]",
+  "IsSecondaryBSIPresent": "boolean",
+  "CultureResults": [
+    {
+      "SpecimenSource": "enum [WOUND_DRAINAGE, DEEP_TISSUE, ORGAN_SPACE_FLUID, BLOOD]",
+      "CollectionDate": "date [YYYY-MM-DD]",
+      "OrganismCode": "string (SNOMED-CT)"
+    }
+  ]
+}
+```
+
+---
+
+## 2. CỔNG LỌC ĐIỀU KIỆN TIÊN QUYẾT (GATEKEEPERS)
+
+Trước khi chạy thuật toán xác định ca bệnh SSI, hệ thống phải kiểm tra các cổng lọc logic sau để quyết định chạy tiếp hay dừng:
+
+*   **Logic 1 (Định nghĩa phẫu thuật NHSN):** Ca phẫu thuật phải thỏa mãn đồng thời 3 điều kiện:
+    1. Có trong bảng ánh xạ mã ICD-10-PCS hoặc CPT của NHSN.
+    2. Có ít nhất một đường rạch qua da hoặc niêm mạc (hoặc đi qua đường mổ cũ).
+    3. Được thực hiện trọn vẹn trong Phòng mổ (OR) hợp lệ (bao gồm cả phòng C-section, phòng can thiệp tim mạch/mạch máu).
+*   **Logic 2 (Độ dài cuộc mổ):** Thời gian phẫu thuật phải $\ge 5$ phút và không vượt quá ngưỡng giới hạn IQR5 quy định của từng loại phẫu thuật. Nếu cuộc mổ $< 5$ phút, hệ thống tự động loại trừ khỏi mẫu số.
+*   **Logic 3 (Vết mổ không đóng thì đầu):** Nếu kỹ thuật đóng da là `NON_PRIMARY` (để hở hoàn toàn da và mô dưới da), ca mổ này sẽ bị loại trừ khỏi tập dữ liệu tính SIR của baseline cũ (BS1 - 2006-2008), nhưng vẫn được đưa vào tính toán cho các baseline mới.
+
+---
+
+## 3. THUẬT TOÁN TÍNH TOÁN KHUNG THỜI GIAN
+
+> **CẢNH BÁO HỆ THỐNG (BIAS PREVENTION):** 
+> Các khái niệm cốt lõi của Chương 2 bao gồm: Khoảng cửa sổ nhiễm khuẩn (IWP), Nhiễm khuẩn hiện diện lúc nhập viện (POA), Khung thời gian lặp lại (RIT) và Khoảng quy kết BSI thứ phát (SBAP) **HOÀN TOÀN KHÔNG ÁP DỤNG** cho giám sát Nhiễm khuẩn vết mổ (SSI).
+
+Hệ thống phải tự động tính toán khung thời gian dựa trên các quy tắc đặc thù sau:
+
+### 3.1. Thuật toán xác định Khung thời gian giám sát SSI (Surveillance Period)
+Khung thời gian giám sát bắt đầu từ ngày phẫu thuật (được tính là **Ngày 1**) và kéo dài **30 ngày** hoặc **90 ngày** tùy thuộc vào loại phẫu thuật cụ thể:
+
+*   **Quy tắc 30 ngày (30-day Surveillance) - Áp dụng cho mọi ca SSI nông (Superficial) và SSI sâu/cơ quan của các phẫu thuật sau:**
+    *   `AAA`, `AMP`, `APPY`, `AVSD`, `BILI`, `CEA`, `CHOL`, `COLO`, `CSEC`, `GAST`, `HTP`, `HYST`, `KTP`, `LAM`, `LTP`, `NECK`, `NEPH`, `OVRY`, `PRST`, `REC`, `SB`, `SPLE`, `THOR`, `THYR`, `VHYS`, `XLAP`.
+    *   *Ngoại lệ:* Mọi nhiễm khuẩn mổ phụ (Secondary Incisional SSI - ví dụ: nơi lấy tĩnh mạch hiển trong mổ bắc cầu chủ vành) chỉ được giám sát tối đa **30 ngày** kể cả khi mổ chính có khung giám sát 90 ngày.
+*   **Quy tắc 90 ngày (90-day Surveillance) - Áp dụng cho các ca SSI sâu (Deep) và SSI cơ quan/khoang (Organ/Space) của các phẫu thuật sau:**
+    *   `BRST`, `CARD`, `CBGB`, `CBGC`, `CRAN`, `FUSN`, `FX`, `HER`, `HPRO`, `KPRO`, `PACE`, `PVBY`, `VSHN`.
+
+### 3.2. Thuật toán chốt Ngày xảy ra sự kiện (Date of Event - DOE)
+*   **DOE** là ngày đầu tiên xuất hiện yếu tố lâm sàng hoặc cận lâm sàng đầu tiên dùng để thỏa mãn tiêu chuẩn chẩn đoán SSI nông, sâu hoặc cơ quan trong dải ngày giám sát.
+*   **Ràng buộc logic:** DOE phải nằm trọn vẹn trong khung giám sát (30 hoặc 90 ngày) tính từ ngày phẫu thuật.
+
+### 3.3. Thuật toán đè khoảng giám sát (Surveillance Reset Rules)
+*   **Trường hợp A (Thực hiện phẫu thuật NHSN mới đè lên vết mổ cũ):** Nếu bệnh nhân quay lại phòng mổ để thực hiện một phẫu thuật NHSN mới đi qua cùng một vết mổ cũ trong thời gian giám sát của cuộc mổ trước, khung giám sát của cuộc mổ trước **lập tức chấm dứt**. Hệ thống sẽ tự động kích hoạt một khung giám sát mới (30 hoặc 90 ngày) tính từ ngày của cuộc mổ mới.
+*   **Trường hợp B (Thực hiện phẫu thuật KHÔNG thuộc danh mục NHSN đè lên vết mổ cũ):** 
+    *   Nếu cuộc mổ mới (non-NHSN) đi qua cả 3 lớp mô (nông, sâu, cơ quan), khung giám sát của phẫu thuật NHSN trước đó **chấm dứt hoàn toàn** tại thời điểm kết thúc phẫu thuật non-NHSN.
+    *   Nếu cuộc mổ mới chỉ đi qua một số lớp mô, khung giám sát của phẫu thuật NHSN trước đó vẫn tiếp tục duy trì cho các lớp mô không bị xâm lấn. Không có khung giám sát mới nào được thiết lập cho cuộc mổ non-NHSN.
+
+---
+
+## 4. TIÊU CHUẨN CHẨN ĐOÁN CHI TIẾT (LOGIC TREES)
+
+Hệ thống tự động phân loại ca bệnh dựa trên độ sâu mô bị tổn thương. Ca bệnh phải được gán ở mức độ sâu nhất thỏa mãn tiêu chuẩn trong suốt chu kỳ giám sát.
+
+### 4.1. Nhiễm khuẩn vết mổ nông (Superficial Incisional SSI)
+*   **Thời gian xảy ra:** DOE nằm trong vòng **30 ngày** kể từ ngày phẫu thuật.
+*   **Độ sâu:** Chỉ liên quan đến da và mô dưới da của vết mổ.
+*   **Tiêu chuẩn chẩn đoán (IF/THEN Logic):**
+    *   **IF** (Bệnh nhân đáp ứng ít nhất một trong các điều kiện sau):
+        *   **a.** Có chảy mủ từ vết mổ nông (purulent drainage).
+        *   **b.** Phân lập được vi sinh vật từ bệnh phẩm lấy vô khuẩn ở vết mổ nông.
+        *   **c.** Vết mổ nông được bác sĩ chủ động mở ra hoặc tiếp cận lại (deliberately opened/re-accessed) VÀ không thực hiện cấy vi sinh **AND** Bệnh nhân có ít nhất một triệu chứng lâm sàng:
+            *   Đau hoặc tăng nhạy cảm đau khu trú (localized pain/tenderness).
+            *   Sưng nề khu trú (localized swelling).
+            *   Đỏ da (erythema).
+            *   Nóng khu trú (heat).
+        *   **d.** Được chẩn đoán xác định là nhiễm khuẩn vết mổ nông bởi bác sĩ điều trị hoặc bác sĩ KSNK.
+    *   **THEN** Xác nhận ca bệnh **Superficial Incisional SSI**.
+    *   *Ngoại lệ loại trừ (CẤM báo cáo nông):* 1) Stitch abscess (Nhiễm trùng chân chỉ khâu đơn thuần); 2) Nhiễm trùng tại vị trí chân ống dẫn lưu đơn thuần (stab wound/pin site); 3) Chẩn đoán/điều trị viêm mô tế bào (cellulitis) đơn thuần không đi kèm vết mổ nông.
+
+### 4.2. Nhiễm khuẩn vết mổ sâu (Deep Incisional SSI)
+*   **Thời gian xảy ra:** DOE nằm trong vòng **30 ngày** (phẫu thuật nhóm 30 ngày) hoặc **90 ngày** (phẫu thuật nhóm 90 ngày).
+*   **Độ sâu:** Liên quan đến mô mềm sâu của vết mổ (lớp cân cơ và cơ).
+*   **Tiêu chuẩn chẩn đoán (IF/THEN Logic):**
+    *   **IF** (Bệnh nhân đáp ứng ít nhất một trong các điều kiện sau):
+        *   **a.** Có chảy mủ từ lớp mô sâu của vết mổ.
+        *   **b.** Vết mổ sâu được bác sĩ chủ động mở ra, tiếp cận lại hoặc chọc hút (hoặc tự bục vết mổ - spontaneously dehisces) **AND** Cấy vi sinh dương tính HOẶC không thực hiện cấy vi sinh (Chú ý: Cấy âm tính sẽ **KHÔNG** thỏa mãn tiêu chí này) **AND** Bệnh nhân có ít nhất một triệu chứng:
+            *   Sốt $> 38.0^{\circ}C$.
+            *   Đau hoặc tăng cảm giác đau khu trú.
+        *   **c.** Phát hiện ổ áp xe hoặc bằng chứng nhiễm trùng khác ở mô sâu qua thăm khám giải phẫu trực tiếp, giải phẫu bệnh, hoặc các xét nghiệm chẩn đoán hình ảnh.
+    *   **THEN** Xác nhận ca bệnh **Deep Incisional SSI**.
+
+### 4.3. Nhiễm khuẩn cơ quan/khoang cơ thể (Organ/Space SSI)
+*   **Thời gian xảy ra:** DOE nằm trong vòng **30 ngày** (phẫu thuật nhóm 30 ngày) hoặc **90 ngày** (phẫu thuật nhóm 90 ngày).
+*   **Độ sâu:** Tổn thương các cơ quan hoặc khoang cơ thể sâu hơn lớp cân cơ, được can thiệp trong quá trình phẫu thuật.
+*   **Tiêu chuẩn chẩn đoán (IF/THEN Logic):**
+    *   **IF** (Bệnh nhân đáp ứng ít nhất một trong các điều kiện sau):
+        *   **a.** Có chảy mủ từ ống dẫn lưu được đặt vô khuẩn vào cơ quan/khoang cơ thể (ví dụ: dẫn lưu kín, dẫn lưu hở, dẫn lưu T-tube, dẫn lưu dưới hướng dẫn của CT).
+        *   **b.** Phân lập được vi sinh vật từ dịch hoặc mô trong cơ quan/khoang cơ thể.
+        *   **c.** Phát hiện ổ áp xe hoặc bằng chứng nhiễm trùng khác ở cơ quan/khoang cơ thể qua thăm khám trực tiếp, giải phẫu bệnh, hoặc chẩn đoán hình ảnh (chấp nhận cả kết quả nghi ngờ - equivocal imaging nếu có điều trị kháng sinh phù hợp).
+    *   **AND** (Bệnh nhân phải thỏa mãn ít nhất một tiêu chuẩn chẩn đoán vị trí cơ quan đặc hiệu tương ứng của Chương 17 - ví dụ: IAB cho phẫu thuật tiêu hóa, EMET cho CSEC, VCUF cho HYST).
+    *   **THEN** Xác nhận ca bệnh **Organ/Space SSI**.
+
+---
+
+## 5. LƯU ĐỒ THUẬT TOÁN (MERMAID FLOWCHART)
+
+```mermaid
+graph TD
+    A[Bệnh nhân có phẫu thuật thuộc danh mục NHSN] --> B{DOE nằm trong khung thời gian giám sát? <br> Nông: 30 ngày | Sâu/Cơ quan: 30 hoặc 90 ngày}
+    B -- No --> C[Dừng - Không thỏa mãn SSI]
+    B -- Yes --> D{Xác định lớp mô tổn thương sâu nhất?}
+    
+    %% Nhánh nông
+    D -- Nông --> E{Có mủ | Cấy dương tính | BS chẩn đoán | <br> BS mở vết mổ + Có triệu chứng & Không cấy?}
+    E -- No --> C
+    E -- Yes --> F{Có thuộc diện loại trừ? <br> Chân chỉ khâu | Chân dẫn lưu | Viêm mô tế bào đơn thuần}
+    F -- Yes --> C
+    F -- No --> G[Báo cáo: Superficial Incisional SSI]
+
+    %% Nhánh sâu
+    D -- Sâu --> H{Có mủ sâu | Áp xe cơ | <br> Vết mổ sâu bục/mở ra + Sốt/Đau + Cấy dương tính/Không cấy?}
+    H -- No --> C
+    H -- Yes --> I[Báo cáo: Deep Incisional SSI]
+
+    %% Nhánh cơ quan
+    D -- Cơ quan/Khoang --> K{Dẫn lưu ra mủ | Cấy dịch cơ quan dương tính | Áp xe trong khoang?}
+    K -- No --> C
+    K -- Yes --> L{Thỏa mãn ít nhất 1 tiêu chí đặc hiệu <br> của Chương 17 cho cơ quan đó?}
+    L -- No --> C
+    L -- Yes --> M[Báo cáo: Organ/Space SSI]
+    
+    M --> N{Có cấy máu dương tính đi kèm?}
+    N -- Yes --> O{Cấy máu trong vòng 17 ngày SBAP <br> và trùng khớp tác nhân với dịch cơ quan?}
+    O -- Yes --> P[Xác nhận ca bệnh kèm Secondary BSI]
+    O -- No --> Q[Báo cáo SSI độc lập & Khảo sát CLABSI mới cho cấy máu]
+```
+
+---
+
+## 6. QUY TẮC LOẠI TRỪ & NGOẠI LỆ (EXCLUSIONS & EDGE CASES)
+
+### 6.1. Quy tắc PATOS (Infection Present at Time of Surgery)
+PATOS là trường dữ liệu Yes/No bắt buộc phải đánh giá trên form báo cáo. PATOS biểu thị nhiễm trùng đã hiện diện từ trước tại chính độ sâu của vết mổ/cơ quan mổ ngay lúc tiến hành phẫu thuật.
+*   **Quy tắc gán logic:** Chỉ gán `PATOS = YES` nếu độ sâu của nhiễm trùng ghi nhận lúc mổ khớp với độ sâu của biến cố SSI xảy ra sau đó.
+    *   *Ví dụ 1 (PATOS = YES):* Khi mổ ruột thừa viêm vỡ, phẫu thuật viên ghi nhận viêm phúc mạc/áp xe ruột thừa trong biên bản mổ. 2 tuần sau bệnh nhân bị Organ/Space IAB SSI -> Gán `PATOS = YES`.
+    *   *Ví dụ 2 (PATOS = NO):* Khi mổ ruột thừa viêm vỡ, phẫu thuật viên ghi nhận áp xe trong bụng. 2 tuần sau bệnh nhân bị nhiễm khuẩn vết mổ nông (Superficial SSI) -> Gán `PATOS = NO` (Do lúc mổ da và tổ chức dưới da không có nhiễm trùng).
+*   *Điều kiện tài liệu:* Bằng chứng nhiễm trùng phải được ghi nhận trực tiếp bằng mắt (visualized) bởi phẫu thuật viên và viết trong biên bản phẫu thuật (Operative Note). Kết quả sinh thiết giải phẫu bệnh hoặc chẩn đoán hình ảnh trước mổ không được dùng để gán PATOS.
+
+### 6.2. Quy tắc 24 giờ quay lại phòng mổ (Same-day/24-hr Return to OR)
+Nếu bệnh nhân có nhiều cuộc mổ đi qua cùng một vết mổ/khoang cơ thể trong vòng 24 giờ (thời điểm cuộc mổ 2 bắt đầu cách thời điểm cuộc mổ 1 kết thúc $< 24$ giờ):
+*   **Xử lý dữ liệu mảng Denominator:** 
+    *   Chỉ tạo **MỘT bản ghi cuộc mổ duy nhất** cho cuộc mổ ban đầu (Original Procedure).
+    *   Cộng dồn thời gian của cả 2 cuộc mổ làm tổng thời gian phẫu thuật.
+    *   Nếu phân loại vết mổ (Wound class) hoặc phân loại thể chất ASA thay đổi giữa 2 cuộc mổ, hệ thống tự động **lấy giá trị cao nhất (tồi nhất)** để lưu trữ.
+    *   Không khai báo cuộc mổ thứ hai vào mẫu số.
+*   **Khung thời gian giám sát:** Khung 30 hoặc 90 ngày sẽ bắt đầu tính từ thời điểm kết thúc cuộc mổ thứ hai.
+
+### 6.3. Thuật toán quy kết BSI thứ phát từ vết mổ (Secondary BSI for SSI)
+Để quy kết một mẫu cấy máu dương tính là thứ phát từ SSI (tránh báo cáo sai chỉ số CLABSI), hệ thống phải thỏa mãn quy tắc thời gian và tác nhân đặc thù:
+1.  **Khung thời gian SBAP cho SSI:** Được cố định là **17 ngày** bao gồm:
+    $$\text{SBAP} = [\text{SSI DOE} - 3 \text{ ngày}, \text{ SSI DOE} + 13 \text{ ngày}]$$
+2.  **Quy tắc quy kết (Scenario 1):** 
+    *   Mẫu cấy máu dương tính được lấy trong 17 ngày SBAP này.
+    *   **AND** Phân lập được ít nhất một tác nhân vi sinh trùng khớp hoàn toàn (match) ở cấp độ loài (hoặc cấp độ chi nếu định danh không hoàn chỉnh) với tác nhân vi sinh thu thập được từ vết mổ nông, sâu hoặc cơ quan.
+3.  **Quy tắc đặc thù cho Organ/Space (Scenario 2):**
+    *   Đối với SSI cơ quan, nếu tác nhân vi sinh trong máu được dùng trực tiếp làm yếu tố chẩn đoán cấu thành tiêu chuẩn đặc hiệu cơ quan của Chương 17 (ví dụ: tiêu chuẩn IAB 3b cần cấy máu dương tính), cấy máu đó mặc định là **Secondary BSI** kể cả khi dịch ổ bụng cấy ra tác nhân khác hoặc không cấy được dịch ổ bụng.
+
+### 6.4. Ngoại lệ can thiệp hậu phẫu (Invasive Manipulation Exclusion)
+*   Nhiễm khuẩn xảy ra sau phẫu thuật sẽ **KHÔNG** được tính cho phẫu thuật ban đầu nếu thỏa mãn đồng thời 3 điều kiện:
+    1. Không có bất kỳ nghi ngờ hay dấu hiệu nhiễm khuẩn nào trước đó tại vết mổ.
+    2. Có thực hiện một can thiệp xâm lấn/thủ thuật tiếp cận vào vết mổ mổ cũ vì mục đích chẩn đoán hoặc điều trị (ví dụ: chọc hút kim, châm kim vào buồng chứa của túi giãn nở vú, chọc hút dịch shunt).
+    3. Nhiễm khuẩn phát sinh sau đó tại đúng lớp mô bị can thiệp.
+*   *Lưu ý:* Quy tắc loại trừ này không áp dụng cho các can thiệp đóng (như nắn khớp háng kín hậu phẫu) hoặc thay băng, nhét gạc vết mổ thông thường.
+
+---
+
+*   📊 **Nudge:** Tôi đã hoàn thành bản đặc tả logic cho SSI. Tiếp theo, bạn có muốn tôi thiết kế một bản hướng dẫn chi tiết về cấu trúc dữ liệu đầu ra và thuật toán xử lý dữ liệu cho module **LabID Event (MRSA/C. difficile)** - một phân hệ xử lý dữ liệu tự động từ phòng xét nghiệm vô cùng quan trọng không?

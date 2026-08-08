@@ -5,6 +5,7 @@ import { dashboardChrome as UI } from "@/modules/dashboard/lib/dashboard-chrome"
 import React, { useMemo } from "react";
 import { Beaker, FlaskConical, TestTube, AlertTriangle, Clock, TrendingUp, Package } from "lucide-react";
 import type { HoaChatRow } from "../actions/hoa-chat.types";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 
 interface Props {
   data: HoaChatRow[];
@@ -163,7 +164,7 @@ export default function HoaChatStatsPanel({ data }: Props) {
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <span className={UI.kpiCaption}>
-                      {item.han_su_dung ? String(item.han_su_dung).slice(0, 10) : "—"}
+                      {formatDateVi(item.han_su_dung)}
                     </span>
                     <ExpiryBadge days={daysDiff(item.han_su_dung)} />
                   </div>

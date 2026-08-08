@@ -21,8 +21,20 @@ export function classifyCssdCode(raw: string | null | undefined): CssdQrTargetTy
   return "UNKNOWN";
 }
 
-export function matchesDeviceCode(inputCode: string | null | undefined, machineCode: string | null | undefined): boolean {
+/** OR filter Supabase — QR bộ / chu trình / cycle (SSOT cho hub + workflow). */
+export function buildCssdQuyTrinhQrOrFilter(code: string): string {
+  const c = normalizeCssdCode(code);
+  return `ma_cycle_qr.eq.${c},ma_qr_bo_vinh_vien.eq.${c},ma_qr_quy_trinh.eq.${c}`;
+}
+
+/** Khớp mã máy in tem (`ma_thiet_bi`) hoặc mã QR phụ (`ma_qr_thiet_bi`, …). */
+export function matchesDeviceCode(
+  inputCode: string | null | undefined,
+  machineCode: string | null | undefined,
+  altCodes?: Array<string | null | undefined>,
+): boolean {
   const input = normalizeCssdCode(inputCode);
-  const machine = normalizeCssdCode(machineCode);
-  return Boolean(input && machine && input === machine);
+  if (!input) return false;
+  if (normalizeCssdCode(machineCode) === input) return true;
+  return (altCodes || []).some((c) => normalizeCssdCode(c) === input);
 }

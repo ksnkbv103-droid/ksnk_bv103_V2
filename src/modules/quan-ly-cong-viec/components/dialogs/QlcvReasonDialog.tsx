@@ -9,7 +9,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 interface QlcvReasonDialogProps {
   open: boolean;
@@ -45,7 +45,6 @@ export function QlcvReasonDialog({
   const [touched, setTouched] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Reset form khi mở/đóng dialog
   useEffect(() => {
     if (open) {
       setReason("");
@@ -72,7 +71,7 @@ export function QlcvReasonDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!busy) { onOpenChange(v); } }}>
-      <DialogContent className="max-w-md rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xl">
+      <DialogContent className="max-w-md rounded-[var(--radius-shell)] border border-slate-200/90 bg-white p-6 shadow-[var(--shadow-app-soft)]">
         <DialogHeader>
           <DialogTitle className="text-base font-semibold tracking-tight text-slate-900">
             {title}
@@ -89,11 +88,8 @@ export function QlcvReasonDialog({
             ref={textareaRef}
             id="qlcv-reason-dialog-input"
             className={[
-              "w-full resize-none rounded-xl border px-3 py-2.5 text-sm leading-relaxed text-slate-800 outline-none transition-colors",
-              "placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--primary)]/20",
-              showError
-                ? "border-red-300 bg-red-50/40 focus:border-red-400"
-                : "border-slate-200 bg-slate-50/60 focus:border-slate-300",
+              C.textareaCompact,
+              showError ? "border-red-300 bg-red-50/40 focus:border-red-400" : "",
             ].join(" ")}
             rows={3}
             maxLength={500}
@@ -116,23 +112,24 @@ export function QlcvReasonDialog({
         </div>
 
         <DialogFooter className="mt-4 flex justify-end gap-2">
-          <Button
+          <button
+            type="button"
             id="qlcv-reason-dialog-cancel"
-            variant="outline"
-            className="h-10 rounded-xl border-slate-200 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className={C.btnSecondary}
             onClick={() => onOpenChange(false)}
             disabled={busy}
           >
             {cancelLabel}
-          </Button>
-          <Button
+          </button>
+          <button
+            type="button"
             id="qlcv-reason-dialog-confirm"
             className={
               variant === "danger"
-                ? "h-10 rounded-xl bg-red-600 px-4 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
-                : "h-10 rounded-xl bg-[var(--primary)] px-4 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+                ? "bv103-control-h inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-red-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-red-700 disabled:opacity-50"
+                : C.btnPrimary
             }
-            onClick={handleConfirm}
+            onClick={() => void handleConfirm()}
             disabled={busy || !isValid}
           >
             {busy ? (
@@ -143,7 +140,7 @@ export function QlcvReasonDialog({
             ) : (
               confirmLabel
             )}
-          </Button>
+          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -455,10 +455,9 @@ export {
   gapCompareStatus,
   formatGapPctWithDatTong,
   useSortedGapRows,
-  GapSortToolbar,
   KHOA_BAR_CHART_MARGIN,
   KhoaComplianceBarLabel,
   khoaVolumeBarLabelContent,
 };
 export { momentToneClass, momentRowBg };
-export { bottomPercentHighlightIndices, highlightBarFill, complianceBarColor };
+export { complianceBarColor };

@@ -27,6 +27,8 @@ Ngôn ngữ giao diện thống nhất — MIS bệnh viện: trang trọng, đ�
 
 **Quy tắc đậm:** `font-semibold` tiêu đề dòng; `font-medium` nội dung; `font-black` chỉ số KPI (`statValue` / `kpiValue`) và nút touch workstation (CSSD/NKBV).
 
+**Ops density:** chọn loại = chip ngang; danh sách máy/danh mục = bảng + QR thumb; KPI list = strip 1 hàng; CTA = `btnPrimary`/`btnSecondary`/`btnPrimaryBlock`. Chi tiết bảng: [`page-chrome-contract-20260731.md`](../architecture/page-chrome-contract-20260731.md) §8.
+
 ### Module chrome (L3 domain)
 
 | Domain | File |
@@ -60,19 +62,20 @@ Mọi `*Panel*`, `*Form*`, `*Modal*` **bắt buộc** import chrome (`npm run pa
 | CTA | `--primary` |
 | Notice | `--surface-success-*`, `--surface-warning-*`, … |
 
-## Adoption tracker (thực tế repo — cập nhật 2026-06)
+## Adoption tracker (thực tế repo — cập nhật 2026-08-02)
 
 | Phase | Spec | Adoption ước lượng | Ghi chú |
 |-------|------|-------------------|---------|
 | 0 Token + spec | ✅ | **100%** | `globals.css`, `bv103-design-tokens` |
 | 1 Shell + bảng hub | ✅ | **~90%** | `AdvancedDataTable`, sidebar, auth |
 | 2 Form GSC/VST + Quản trị | ✅ | **~80%** | Form chrome; modal DM dùng `modalTitleLight` |
-| 3 NKBV + CSSD workstation | ✅ | **~75%** | Touch IN HOA cố ý; QC/scan giữ segment |
-| 4 Dashboard + gate typo | ✅ | **~85%** | KPI qua `dashboardChrome` |
-| 5 Notice semantic | ✅ | **~75%** | Badge cũ đang migrate `statusBadge` |
+| 3 NKBV + CSSD workstation | ✅ | **~75%** | Touch IN HOA cố ý; body poster → **B+3 S1** |
+| 4 Dashboard + gate typo | ✅ | **~85%** | CC thin Done; BCTH comprehensive → **B+3 S3** |
+| 5 Notice semantic | ✅ | **~75%** | Scope banner Done; lock/health → **B+3 S4** |
 | **L3 columns chrome** | ✅ | **100%** | 12/12 `*-columns.tsx` import chrome |
 | **L3 panel chrome import** | ✅ | **~98%** | 59/60 panel/form/modal — gate `panel:chrome-check` |
 | **L4 panel token wire** | ✅ | **~95%** | `UI.*` / `F.*` / `bv103LayoutChrome.*` / `CSSD_UI_*` |
+| **B+3 program** | 📋 | S0 Done | [`ui-consistency-program-20260802.md`](../architecture/ui-consistency-program-20260802.md) — S1–S5 chat implement riêng |
 
 **Chuẩn wire:** alias `UI` (panel), `F`/`C` (Quản trị), `D` (dashboard), `gscFormChrome` (GSC/VST), `bv103LayoutChrome` (QLCV). Gate **siết import** + **tiêu đề IN HOA**; `panel:wire` khi thêm panel mới.
 

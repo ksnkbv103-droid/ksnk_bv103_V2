@@ -112,7 +112,7 @@ export default function CompositionReconcilePanel({
 
   return (
     <>
-      <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <section className="space-y-3 rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex items-start justify-between gap-2">
           <div>
             <h4 className={CSSD_UI_SECTION_TITLE}>

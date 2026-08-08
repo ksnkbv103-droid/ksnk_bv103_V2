@@ -4,12 +4,19 @@ import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DM_HUB_LABELS } from "@/lib/master-data/domain-registry";
 import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
+import { useImportExport } from "@/hooks/useImportExport";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import { ImportExportHint, ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import GenericDmEditModal from "./GenericDmEditModal";
 import GenericDmHubRedirectBanner from "./GenericDmHubRedirectBanner";
 import GenericDmMasterDataTable from "./GenericDmMasterDataTable";
 import GenericDmMasterHeader from "./GenericDmMasterHeader";
 import { useGenericDmMasterPageModel } from "../hooks/useGenericDmMasterPageModel";
 import { useModulePermission } from "@/hooks/useModulePermission";
+import {
+  exportGenericDmExcelAction,
+  importGenericDmExcelAction,
+} from "../actions/generic-dm-import.actions";
 
 export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: string }) {
   const router = useRouter();
@@ -17,6 +24,7 @@ export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: stri
   const { loading: permLoading, allowed } = useModulePermission(permissionModule);
   const canMutate = allowed.create || allowed.edit;
   const canDelete = allowed.delete;
+  const canImport = allowed.import || allowed.edit;
   const m = useGenericDmMasterPageModel(loaiDanhMuc, canMutate, canDelete);
   const title = DM_HUB_LABELS[m.key] || loaiDanhMuc;
   const maCol = m.reg?.maColumn ?? "ma";
@@ -31,6 +39,25 @@ export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: stri
         String(r[tenCol] ?? "").toLowerCase().includes(t),
     );
   }, [listSearch, m.rows, maCol, tenCol]);
+
+  const { exportTemplate, handleFileUpload, isImporting, triggerImport, fileInputRef } = useImportExport({
+    moduleKey: permissionModule,
+    tableName: m.reg?.sourceTable || "sys_lookup_value",
+    displayName: title,
+    uniqueKey: maCol,
+    columnMapping: {
+      Mã: maCol,
+      Tên: tenCol,
+      is_active: "is_active",
+    },
+    onGetData: () => exportGenericDmExcelAction(loaiDanhMuc),
+    onImport: (d, options) =>
+      importGenericDmExcelAction(loaiDanhMuc, d, {
+        softDeleteMissing: options?.softDeleteMissing,
+        dryRun: options?.dryRun,
+      }),
+    onSuccess: () => void m.load(),
+  });
 
   if (!m.reg) {
     return (
@@ -56,7 +83,20 @@ export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: stri
         onBack={() => router.push("/quan-tri-he-thong")}
         onCreate={() => void m.openCreate()}
         canCreate={canMutate}
+        importExportSlot={
+          <ImportExportToolbar
+            fileInputRef={fileInputRef}
+            isImporting={isImporting}
+            onExport={() => void exportTemplate()}
+            onImportClick={triggerImport}
+            onFileChange={(file) => void handleFileUpload(file)}
+            showImport={canImport}
+            exportClassName={T.btnSecondary}
+            importClassName={T.btnSecondary}
+          />
+        }
       />
+      <ImportExportHint />
       <GenericDmMasterDataTable
         columns={m.columns}
         rows={filteredRows}

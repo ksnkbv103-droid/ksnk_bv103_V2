@@ -105,8 +105,13 @@ export async function getMasterDataExport(
           ...x,
           ma_loai_dung_cu: loaiMap.get(String(x.loai_dung_cu_id || ""))?.ma_danh_muc || null,
           ten_loai_dung_cu: loaiMap.get(String(x.loai_dung_cu_id || ""))?.ten_danh_muc || null,
-          ma_khoa_su_dung: khoaMap.get(String(x.khoa_su_dung_id || ""))?.ma_khoa || null,
-          ten_khoa_su_dung: khoaMap.get(String(x.khoa_su_dung_id || ""))?.ten_khoa || null,
+          /** Compact: ưu tiên mã; thiếu mã → tên (đồng bộ hiển thị app). */
+          ma_khoa_su_dung: (() => {
+            const k = khoaMap.get(String(x.khoa_su_dung_id || ""));
+            if (!k) return null;
+            const ma = String(k.ma_khoa || "").trim();
+            return ma || String(k.ten_khoa || "").trim() || null;
+          })(),
         })),
       };
     }
@@ -128,6 +133,78 @@ export async function getMasterDataExport(
           phuong_phap_tiet_khuan: r.phuong_phap_tiet_khuan ?? null,
           phan_loai: r.phan_loai ?? "PHAU_THUAT",
           so_luong_kho_du_phong: r.so_luong_kho_du_phong ?? 0,
+          is_active: r.is_active !== false,
+        })),
+      };
+    }
+    if (tableName === "cssd_dm_bo_dung_cu_chi_tiet") {
+      const { data: viewRows, error: viewErr } = await supabase
+        .from("v_cssd_bo_dung_cu_chi_tiet_full")
+        .select("*")
+        .order("ma_chi_tiet", { ascending: true });
+      if (viewErr) {
+        // Fallback flatten thủ công nếu view thiếu
+        const boIds = Array.from(
+          new Set(rows.map((x) => String(x.bo_dung_cu_id || "").trim()).filter(Boolean)),
+        );
+        const loaiIds = Array.from(
+          new Set(rows.map((x) => String(x.loai_dung_cu_id || "").trim()).filter(Boolean)),
+        );
+        const [boRes, loaiRes] = await Promise.all([
+          boIds.length
+            ? supabase.from("cssd_dm_bo_dung_cu").select("id, ma_bo, ten_bo").in("id", boIds)
+            : Promise.resolve({ data: [], error: null }),
+          loaiIds.length
+            ? supabase.from("cssd_dm_loai_dung_cu").select("id, ma_loai, ten_loai, specs").in("id", loaiIds)
+            : Promise.resolve({ data: [], error: null }),
+        ]);
+        if (boRes.error) throw boRes.error;
+        if (loaiRes.error) throw loaiRes.error;
+        const boMap = new Map(
+          (boRes.data || []).map((x: { id?: string; ma_bo?: string; ten_bo?: string }) => [String(x.id), x] as const),
+        );
+        const loaiMap = new Map(
+          (loaiRes.data || []).map((x) => {
+            const alias = resolveLoaiAlias(x as Parameters<typeof resolveLoaiAlias>[0]);
+            return [String((x as { id?: string }).id), alias] as const;
+          }),
+        );
+        return {
+          success: true,
+          data: rows.map((x) => {
+            const bo = boMap.get(String(x.bo_dung_cu_id || ""));
+            const loai = loaiMap.get(String(x.loai_dung_cu_id || ""));
+            return {
+              ma_chi_tiet: x.ma_chi_tiet,
+              ten_chi_tiet: x.ten_chi_tiet,
+              ma_bo_cha: bo?.ma_bo || null,
+              ten_bo_cha: bo?.ten_bo || null,
+              ma_loai_dung_cu: loai?.ma_loai_dung_cu || null,
+              ten_loai_dung_cu: loai?.ten_loai_dung_cu || null,
+              so_luong: x.so_luong,
+              max_suds_count: x.max_suds_count,
+              trong_luong: x.trong_luong,
+              ghi_chu: x.ghi_chu,
+              ma_qr_mau: x.ma_qr_mau,
+              is_active: x.is_active !== false,
+            };
+          }),
+        };
+      }
+      return {
+        success: true,
+        data: (viewRows || []).map((r: Record<string, unknown>) => ({
+          ma_chi_tiet: r.ma_chi_tiet,
+          ten_chi_tiet: r.ten_chi_tiet,
+          ma_bo_cha: r.ma_bo_cha ?? r.ma_bo ?? null,
+          ten_bo_cha: r.ten_bo_cha ?? r.ten_bo ?? null,
+          ma_loai_dung_cu: r.ma_loai_dung_cu ?? r.ma_loai ?? null,
+          ten_loai_dung_cu: r.ten_loai_dung_cu ?? r.ten_loai ?? null,
+          so_luong: r.so_luong,
+          max_suds_count: r.max_suds_count,
+          trong_luong: r.trong_luong,
+          ghi_chu: r.ghi_chu,
+          ma_qr_mau: r.ma_qr_mau,
           is_active: r.is_active !== false,
         })),
       };

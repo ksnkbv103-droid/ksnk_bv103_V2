@@ -87,3 +87,12 @@ export const INCIDENT_STATION_OPTIONS: Array<{ value: Station; label: string }> 
   { value: "TIET_KHUAN", label: "Tiệt khuẩn" },
   { value: "CAP_PHAT", label: "Cấp phát" },
 ];
+
+/** Mặc định loại sự cố khi đổi nhóm (OTHER = mô tả tự do). */
+export function groupTypeDefaults(group: IncidentGroup): { typeId: string; typeTen: string } {
+  if (group === "OTHER") {
+    return { typeId: "OTHER_CUSTOM", typeTen: "Sự cố khác" };
+  }
+  const first = INCIDENT_TYPE_PRESETS[group][0];
+  return { typeId: first?.code || "", typeTen: first?.label || "" };
+}

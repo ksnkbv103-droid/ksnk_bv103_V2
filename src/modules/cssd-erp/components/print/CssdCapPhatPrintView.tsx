@@ -11,9 +11,10 @@ import {
 } from "../../lib/cssd-print-format";
 import type { CssdCapPhatPrintData } from "../../types/cssd-print.types";
 import type { CssdCapPhatPrintQrs } from "../../hooks/use-cssd-print";
+import { buildPrintFileTitle, pickCssdCapPhatMa } from "@/lib/print/print-file-title";
 
 const labelRow = (label: string, value: string) => (
-  <p style={{ margin: "0 0 4px 0", fontSize: 13 }}>
+  <p style={{ margin: "0 0 4px 0", fontSize: 13, wordBreak: "break-word" }}>
     <strong>{label}:</strong> {value}
   </p>
 );
@@ -25,22 +26,31 @@ export default function CssdCapPhatPrintView({
   data: CssdCapPhatPrintData;
   qrs: CssdCapPhatPrintQrs;
 }) {
+  const printMa = pickCssdCapPhatMa({
+    maBo: data.maQrBo,
+    maCycleQr: data.maCycleQr,
+    maLo: data.maLo,
+    quyTrinhId: data.quyTrinhId,
+  });
+
   return (
     <PrintLayout
       title="PHIẾU CẤP PHÁT DỤNG CỤ VÔ KHUẨN"
       subtitle={`Bộ: ${data.tenBo}`}
       leftSignatureTitle="NHÂN VIÊN CSSD (CẤP PHÁT)"
       rightSignatureTitle="NGƯỜI NHẬN (PHÒNG MỔ / KHOA LÂM SÀNG)"
+      fileTitle={() => buildPrintFileTitle({ loai: "CP", ma: printMa })}
+      afterFooter={
+        <CssdCapPhatQrStrip
+          maQrBo={data.maQrBo}
+          maCycleQr={data.maCycleQr}
+          maLo={data.maLo}
+          qrBoDataUrl={qrs.qrBoDataUrl}
+          qrCycleDataUrl={qrs.qrCycleDataUrl}
+          qrMeDataUrl={qrs.qrMeDataUrl}
+        />
+      }
     >
-      <CssdCapPhatQrStrip
-        maQrBo={data.maQrBo}
-        maCycleQr={data.maCycleQr}
-        maLo={data.maLo}
-        qrBoDataUrl={qrs.qrBoDataUrl}
-        qrCycleDataUrl={qrs.qrCycleDataUrl}
-        qrMeDataUrl={qrs.qrMeDataUrl}
-      />
-
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
         <div>
           {labelRow("Tên bộ dụng cụ", data.tenBo.toUpperCase())}
@@ -62,7 +72,15 @@ export default function CssdCapPhatPrintView({
       <p style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", margin: "12px 0 6px" }}>
         Thông số tiệt khuẩn (từ mẻ {data.maLo})
       </p>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, fontSize: 12 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gap: 8,
+          fontSize: 12,
+          wordBreak: "break-word",
+        }}
+      >
         <span><strong>Nhiệt/áp:</strong> {data.nhietDoApSuat}</span>
         <span><strong>Thông số máy:</strong> {data.thongSoMay}</span>
         <span><strong>CI:</strong> {formatCssdTriLabel(data.testCI)}</span>

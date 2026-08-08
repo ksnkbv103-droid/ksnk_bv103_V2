@@ -13,7 +13,6 @@ import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { formatUnknownError } from "@/lib/supabase-error-message";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import {
-  calculateScore,
   GscSessionInput,
   normalizeGscModeFields,
   resolveGscModeIds,
@@ -23,6 +22,10 @@ import {
 } from "./giam-sat-chung-write-helpers";
 import { resolveBangKiemPersistFields } from "../lib/resolve-loai-bang-kiem-persist";
 import { gscSaveSessionSchema } from "@/lib/validations";
+import {
+  parseGscBoSungNbFromUnknown,
+  serializeGscBoSungNbForMetadata,
+} from "../lib/gsc-bo-sung-nguoi-benh";
 
 import {
   isSupervisionSessionMutationExpired,
@@ -127,16 +130,17 @@ export async function saveGiamSatChung(
       : new Date().toISOString();
 
     const boSungRaw = Boolean(sessionData.is_bo_sung_nguoi_benh);
+    const maBa = String((sessionData as { ma_benh_an?: string }).ma_benh_an ?? "").trim() || null;
     const maNb = String(sessionData.ma_nguoi_benh ?? "").trim() || null;
     const tenNb = String(sessionData.ten_nguoi_benh ?? "").trim() || null;
     const giuongNb = String(sessionData.so_giuong_nguoi_benh ?? "").trim() || null;
-    const boSungEffective = boSungRaw && Boolean(maNb || tenNb || giuongNb);
+    const boSungNbSnap = parseGscBoSungNbFromUnknown(sessionData);
+    const boSungEffective = boSungRaw && Boolean(maBa || maNb || tenNb || giuongNb);
 
     const thoiGianBatDauNorm = String(sessionData.thoi_gian_bat_dau ?? "").trim() || null;
     const thoiGianKetThucNorm = String(sessionData.thoi_gian_ket_thuc ?? "").trim() || null;
 
-    // Slice 4 hook (reform v4): scoring engine theo cach_tinh_diem nếu bảng kiểm
-    // đã được seed metadata ở Slice 1; fallback engine cũ cho bảng kiểm legacy.
+    // P5: một engine theo cach_tinh_diem (mặc định TY_LE nếu thiếu metadata).
     const scoring = await resolveScoringSummary(
       supabase,
       bangKiem.bang_kiem_id,
@@ -159,7 +163,7 @@ export async function saveGiamSatChung(
       thoi_gian_bat_dau: thoiGianBatDauNorm,
       thoi_gian_ket_thuc: thoiGianKetThucNorm,
       thoi_gian_ghi_nhan: thoiGianGhiNhan,
-      tong_diem: scoring.tong_diem ?? calculateScore(results),
+      tong_diem: scoring.tong_diem,
       dat_tron_goi: scoring.dat_tron_goi,
       du_lieu_nghi_van: scoring.du_lieu_nghi_van,
       ghi_chu_chung: sessionData.ghi_chu_chung,
@@ -181,9 +185,11 @@ export async function saveGiamSatChung(
         is_manual_nhan_vien: isManualNv,
         ten_manual_nhan_vien: tenManualNv,
         is_bo_sung_nguoi_benh: boSungEffective,
+        ma_benh_an: boSungEffective ? maBa : null,
         ma_nguoi_benh: boSungEffective ? maNb : null,
         ten_nguoi_benh: boSungEffective ? tenNb : null,
         so_giuong_nguoi_benh: boSungEffective ? giuongNb : null,
+        ...serializeGscBoSungNbForMetadata(boSungNbSnap, boSungEffective),
       },
     };
 

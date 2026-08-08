@@ -1,11 +1,12 @@
 // src/modules/quan-tri-he-thong/danh-muc/hoa-chat/HoaChatMasterPage.tsx
 "use client";
 import React, { useEffect, useState } from "react";
-import { Plus, Beaker, Upload, BarChart2, ChevronDown, ChevronUp, Download, Loader2 } from "lucide-react";
+import { Plus, Beaker, BarChart2, ChevronDown, ChevronUp } from "lucide-react";
 import HoaChatStatsPanel from "./HoaChatStatsPanel";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
+import { ImportExportHint, ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { toast } from "sonner";
 import HoaChatFormModal from "./hoa-chat-form-modal";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
@@ -87,7 +88,10 @@ function HoaChatMasterPageContent() {
       is_active: "is_active",
     },
     onGetData: () => getMasterDataExport("cssd_dm_hoa_chat", "ma_hoa_chat"),
-    onImport: (d) => smartImportData({ tableName: "cssd_dm_hoa_chat", uniqueKey: "ma_hoa_chat" }, d),
+    onImport: (d, options) =>
+      smartImportData({ tableName: "cssd_dm_hoa_chat", uniqueKey: "ma_hoa_chat" }, d, {
+        softDeleteMissing: options?.softDeleteMissing, dryRun: options?.dryRun,
+      }),
     onSuccess: () => setRefreshKey((k) => k + 1),
   });
 
@@ -107,20 +111,22 @@ function HoaChatMasterPageContent() {
               Thống kê
               {showStats ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
             </button>
-            <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} accept=".xlsx,.xls" className="hidden" />
-            <button type="button" onClick={triggerImport} disabled={isImporting} className={C.ctaEmerald}>
-              {isImporting ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
-              Import Excel
-            </button>
-            <button type="button" onClick={() => exportTemplate()} className={T.btnSecondary}>
-              <Download size={15} /> Export mẫu
-            </button>
+            <ImportExportToolbar
+              fileInputRef={fileInputRef}
+              isImporting={isImporting}
+              onExport={() => void exportTemplate()}
+              onImportClick={triggerImport}
+              onFileChange={(file) => void handleFileUpload(file)}
+              exportClassName={T.btnSecondary}
+              importClassName={C.ctaEmerald}
+            />
             <button type="button" onClick={() => { setEditing(null); setFormOpen(true); }} className={C.ctaPrimary}>
               <Plus size={16} /> Thêm mới
             </button>
           </>
         }
       />
+      <ImportExportHint />
 
       {/* Thống kê tóm tắt */}
       {showStats && !loading && <HoaChatStatsPanel data={data} />}

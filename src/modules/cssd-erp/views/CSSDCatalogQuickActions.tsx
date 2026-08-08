@@ -24,7 +24,7 @@ export function CSSDCatalogQuickActions(props: {
   });
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-4">
+    <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4">
       <h4 className={CSSD_UI_SECTION_TITLE}>Tác vụ vận hành</h4>
       <div className="mt-3 flex flex-wrap gap-2">
         <Link

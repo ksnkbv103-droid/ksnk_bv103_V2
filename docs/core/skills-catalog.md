@@ -9,6 +9,7 @@
 |-------|----------|--------|
 | `po-intake` | PO không rành code — dịch nghiệp vụ → intake | `/intake-nv` hoặc `@po-intake` |
 | `smart-db-bv103` | Migration, RPC, index, RLS, import lô, refactor data layer | `@smart-db-bv103` |
+| `cssd-pilot` | Mẻ/QR, tiệt khuẩn, ranh giới CSSD↔MDM | `@cssd-pilot` |
 | `dashboard-pilot` | KPI, CCS, báo cáo tổng hợp, analytics | `@dashboard-pilot` |
 | `react-dev` | Component React 19, hooks, typing UI mới | `@react-dev` |
 | `reviewing-code` | Review PR / diff trước merge | `/review` hoặc `@reviewing-code` |
@@ -17,6 +18,12 @@
 | `qlcv-pilot` | Kanban, checklist RPC, spawn định kỳ | `@qlcv-pilot` |
 
 Khóa phiên bản: `npm run skills:lock` → `skills-lock.json`.
+
+## MCP (project)
+
+- Config: [`.cursor/mcp.json`](../../.cursor/mcp.json) — **Supabase MCP** (OAuth trong Cursor; không commit secret).
+- Khi đụng schema / RLS / bảng thật: **ưu tiên MCP Supabase** để đối chiếu, rồi mới CLI (`mdm:migrate`, `verify:mdm`).
+- Không đoán schema từ trí nhớ — khớp `01-agent-discipline`.
 
 ## Agents (`.cursor/agents/`)
 
@@ -48,7 +55,7 @@ Cập nhật `scripts/skills-lock.mjs` nếu thư mục skill mới chưa map ng
 ## Cursor rules
 
 - Lõi: `00-core`, `01-agent-discipline`, **`04-po-workflow`** (PO — always on)
-- Edit `src/`: `03-src-editing-compact` (+ module `12–18`)
+- Edit `src/`: `03-src-editing-compact` (+ module `12–19`)
 - Workflow PO: `/intake-nv` → `02-task-intake-freeze` (manual)
 - Playbook: [`cursor-operating-playbook.md`](cursor-operating-playbook.md) · PO: [`po-cursor-guide.md`](po-cursor-guide.md)
 

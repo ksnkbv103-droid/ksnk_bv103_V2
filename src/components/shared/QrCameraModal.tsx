@@ -56,7 +56,11 @@ export default function QrCameraModal({
           {
             fps: 10,
             qrbox: (viewfinderWidth, viewfinderHeight) => {
-              const edge = Math.min(viewfinderWidth, viewfinderHeight) * 0.72;
+              // html5-qrcode rejects qrbox < 50px (common when modal/video not sized yet).
+              const edge = Math.max(
+                50,
+                Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.72),
+              );
               return { width: edge, height: edge };
             },
           },
@@ -125,7 +129,7 @@ export default function QrCameraModal({
         ) : null}
         <div
           id={READER_ID}
-          className="w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-black [&_video]:rounded-2xl"
+          className="h-[min(70vw,360px)] min-h-[240px] w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-black [&_video]:h-full [&_video]:w-full [&_video]:rounded-2xl [&_video]:object-cover"
         />
         <p className="mt-4 max-w-sm text-center text-xs leading-relaxed text-white/70">
           Đưa mã QR vào khung. Trên điện thoại/máy tính bảng cần cho phép quyền camera (HTTPS hoặc localhost).

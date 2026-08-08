@@ -18,7 +18,7 @@ Admin KSNK đặt **ngày khóa đến** (`locked_until_date`) trên module **GS
 | Domain | [`src/lib/supervision-module-lock.ts`](../../../src/lib/supervision-module-lock.ts) |
 | GSC action (read status) | [`gsc-module-lock.actions.ts`](../../../src/modules/giam-sat-chung/actions/gsc-module-lock.actions.ts) |
 | GSC UI hook + banner | `use-gsc-module-lock.ts`, `GscModuleLockBanner.tsx` |
-| Write guard | `giam-sat-chung-write.actions.ts`, `giam-sat-chung-import.actions.ts`, `giam-sat-chung-session-meta.actions.ts` |
+| Write guard | `giam-sat-chung-write.actions.ts`, `giam-sat-chung-session-meta.actions.ts` |
 | VST write | `vst-write-save-session.actions.ts`, `vst-write-delete.actions.ts` |
 
 ## UX

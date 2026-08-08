@@ -49,10 +49,11 @@ function isNetworkOperatorPerm(p: PermRow): boolean {
   if (m === "GIAM_SAT_VST" && ["view", "create", "edit", "delete"].includes(a)) return true;
   if (m === "GIAM_SAT_CHUNG" && ["view", "create", "edit", "delete"].includes(a)) return true;
   if (m === "CONG_VIEC" && ["view", "create", "edit", "delete"].includes(a)) return true;
+  if (m === "DAO_TAO" && ["view", "create"].includes(a)) return true;
   return false;
 }
 
-/** Khách xem thống kê — chỉ VST/GSC view; không dashboard / không CRUD. */
+/** Khách xem thống kê — chỉ VST/GSC view; không dashboard / không CRUD / không Đào tạo. */
 function isGuestStatsPerm(p: PermRow): boolean {
   const m = mod(p);
   const a = act(p);
@@ -72,7 +73,7 @@ function isKsnkStaffPerm(p: PermRow): boolean {
   if (m === "DANH_MUC" && a === "view") return true;
   if (["DANH_MUC_ORG", "DANH_MUC_GSTT", "DANH_MUC_CSSD_LOOKUP"].includes(m) && a === "view") return true;
 
-  if (["NHAN_SU", "BANG_KIEM", "CONG_VIEC"].includes(m)) {
+  if (["NHAN_SU", "BANG_KIEM", "CONG_VIEC", "DAO_TAO"].includes(m)) {
     return ["view", "create", "edit", "delete", "import"].includes(a);
   }
 

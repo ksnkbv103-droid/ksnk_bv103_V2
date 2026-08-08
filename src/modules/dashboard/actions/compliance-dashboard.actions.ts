@@ -8,6 +8,7 @@ import {
 } from "../lib/dashboard-command-center-access";
 import { getCachedDmKhoaPhong, getCachedDmNgheNghiep, getCachedDmKhuVucGiamSat, getCachedDmKhoiKhoa } from "@/lib/cache/master-data-cache";
 import type { DashboardFilterOptions } from "../compliance-dashboard.types";
+import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 
 async function loadComplianceFilterOptionsData(supabase: SupabaseClient) {
   const [bkRes, khoiData, khoaData, ngheData, khuData] = await Promise.all([
@@ -31,15 +32,11 @@ async function loadComplianceFilterOptionsData(supabase: SupabaseClient) {
       }),
     ],
     khoi: khoiData.map((x) => ({ id: String(x.id), label: String(x.ten_khoi || "—") })),
-    khoa: khoaData.map((x) => {
-      const hasCode = x.ma_khoa && x.ma_khoa.trim();
-      const displayLabel = hasCode ? `[${x.ma_khoa}] ${x.ten_khoa}` : String(x.ten_khoa || "—");
-      return {
-        id: String(x.id),
-        label: displayLabel,
-        khoi_id: String(x.khoi_id || ""),
-      };
-    }),
+    khoa: khoaData.map((x) => ({
+      id: String(x.id),
+      label: formatKhoaPickerLabel({ ma_khoa: x.ma_khoa, ten_khoa: x.ten_khoa }),
+      khoi_id: String(x.khoi_id || ""),
+    })),
     nghe_nghiep: ngheData.map((x) => ({ id: String(x.id), label: String(x.ten_nghe_nghiep || "—") })),
     khu_vuc: khuData.map((x) => ({ id: String(x.id), label: String(x.ten_khu_vuc || "—") })),
   };

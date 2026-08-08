@@ -1,7 +1,10 @@
-"use server";
-
 /**
- * Master CRUD core - server actions thao tác bảng MDM/DM.
+ * Master CRUD core — helper nội bộ (không phải Server Action).
+ * Caller `"use server"` phải `verifyPermission` / `verifyDanhMucLookupPermission` trước khi gọi.
+ *
+ * Không gắn `"use server"` ở file này — tránh export CRUD trần callable từ client.
+ *
+ * Thao tác bảng MDM/DM:
  *
  * SSOT bảng vật lý sau đợt rename 25/05/2026 (xem `docs/core/implementation-mapping.md`):
  * - `cssd_dm_thiet_bi`         → SSOT `cssd_dm_thiet_bi`

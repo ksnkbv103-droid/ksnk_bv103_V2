@@ -29,6 +29,17 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
   );
 
   const printPortal = <CssdPrintPortal printState={w.printState} />;
+  const [listSearch, setListSearch] = React.useState("");
+
+  const filteredBatches = React.useMemo(() => {
+    const q = listSearch.trim().toUpperCase();
+    if (!q) return w.batches;
+    return (w.batches || []).filter((b: { ma_lo_tiet_khuan?: string; thiet_bi?: { ten_thiet_bi?: string } }) => {
+      const ma = String(b.ma_lo_tiet_khuan || "").toUpperCase();
+      const tb = String(b.thiet_bi?.ten_thiet_bi || "").toUpperCase();
+      return ma.includes(q) || tb.includes(q);
+    });
+  }, [listSearch, w.batches]);
 
   if (w.step === "CREATE") {
     const createContent = (
@@ -46,7 +57,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
     );
     if (suppressShell) return (<>{createContent}{printPortal}</>);
     return (
-      <CSSDPageShell title={<span className="text-[var(--primary)]">Mẻ tiệt khuẩn</span>} subtitle="Thiết lập mẻ mới theo quy trình chuẩn CSSD">
+      <CSSDPageShell title={<span className="text-[var(--primary)]">Mẻ tiệt khuẩn</span>}>
         {createContent}
         {printPortal}
       </CSSDPageShell>
@@ -113,7 +124,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
     <div className="space-y-4">
       {suppressShell && (
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-black text-slate-700 uppercase tracking-wide">Danh sách mẻ tiệt khuẩn</h3>
+          <h3 className="text-sm font-semibold text-slate-700">Danh sách mẻ tiệt khuẩn</h3>
           <button
             type="button"
             onClick={() => w.setStep("CREATE")}
@@ -126,9 +137,21 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
       <div className={CSSD_UI_DATA_SURFACE}>
         <AdvancedDataTable
           columns={batchColumns}
-          data={w.batches}
+          data={filteredBatches}
           loading={w.loading}
           searchPlaceholder="Tìm theo mã lô..."
+          searchValue={listSearch}
+          onSearch={setListSearch}
+          enableQrScan
+          onQrScan={(code) => {
+            const c = String(code || "").trim().toUpperCase();
+            setListSearch(c);
+            const hit = (w.batches || []).find(
+              (b: { ma_lo_tiet_khuan?: string }) =>
+                String(b.ma_lo_tiet_khuan || "").trim().toUpperCase() === c,
+            );
+            if (hit) w.openRowForProcess(hit);
+          }}
           onRowClick={w.openRowForProcess}
         />
       </div>
@@ -140,7 +163,6 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
   return (
     <CSSDPageShell
       title={<span className="text-[var(--primary)]">Mẻ tiệt khuẩn</span>}
-      subtitle="Giám sát 6 chốt chặn vô khuẩn — BV103"
       actions={
         <div className="flex gap-2">
           <button

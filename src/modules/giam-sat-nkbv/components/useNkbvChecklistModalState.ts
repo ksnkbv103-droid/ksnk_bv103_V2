@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import type {
   BsiVerificationData,
@@ -16,7 +16,12 @@ import {
   evaluateSsi,
   type RuleEvaluationResult
 } from "@/modules/giam-sat-nkbv/lib/nkbv-rules-engine";
-import { submitClinicalVerification, approveOrExcludeNkbvCase } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-write.actions";
+import {
+  submitClinicalVerification,
+  approveOrExcludeNkbvCase,
+  syncNkbvAdmissionDate,
+} from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-write.actions";
+import { getNkbvBenhAnByMa } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-read.actions";
 import { 
   prepopulateBsiData, 
   prepopulateVaeData, 
@@ -26,11 +31,13 @@ import {
 import { calculateCdcMetrics, addDays } from "@/modules/giam-sat-nkbv/lib/nkbv-timeline-math";
 import {
   nkbvClinicalFormPathway,
-  normalizeNkbvLoaiCode,
+  suggestNkbvTypeFromSpecimen,
   type NkbvChecklistTypeCode,
 } from "@/modules/giam-sat-nkbv/lib/nkbv-loai-labels";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
-export type NkbvChecklistTab = "VI_SINH" | "LAM_SANG" | "KSNK";
+/** Legacy tab ids — form xác định ca dùng một màn; giữ type cho tương thích. */
+export type NkbvChecklistTab = "LAM_SANG" | "KSNK";
 export type NkbvSuspectedType = NkbvChecklistTypeCode;
 export type NkbvActiveChecklistType = Exclude<NkbvChecklistTypeCode, "LOAI_TRU">;
 
@@ -45,57 +52,40 @@ export function useNkbvChecklistModalState({
   onSuccess: () => void;
   allowedEdit: boolean;
 }) {
+  const rowRef = useRef(row);
+  rowRef.current = row;
   const [submitting, setSubmitting] = useState(false);
   const [adjudicating, setAdjudicating] = useState(false);
   
-  // Tab-based roles workflow
-  const [activeTab, setActiveTab] = useState<NkbvChecklistTab>('VI_SINH');
-  const [simulatedRole, setSimulatedRole] = useState<'KSNK' | 'LAM_SANG' | 'VI_SINH'>('VI_SINH');
+  const [activeTab, setActiveTab] = useState<NkbvChecklistTab>("LAM_SANG");
+  const [simulatedRole, setSimulatedRole] = useState<"KSNK" | "LAM_SANG">("LAM_SANG");
 
-  // States
   const [treatmentHistory, setTreatmentHistory] = useState<DepartmentStay[]>([]);
   const [symptomDates, setSymptomDates] = useState<Record<string, string>>({});
+  const [ghiChuTuyBien, setGhiChuTuyBien] = useState("");
+  /** Ngày vào viện ưu tiên từ hồ sơ bệnh án (HAI/POA). */
+  const [ngayVaoVienEffective, setNgayVaoVienEffective] = useState(() =>
+    String(row.ngay_vao_vien || "").slice(0, 10),
+  );
+  const [benhAnLoaded, setBenhAnLoaded] = useState(false);
+  const [benhAnMissing, setBenhAnMissing] = useState(false);
 
   const handleTabChange = (tab: NkbvChecklistTab) => {
     setActiveTab(tab);
     setSimulatedRole(tab);
   };
 
-  // Smart suspected infection type guessing — VAE / VAP / HAP không gộp
-  const suggestedType = useMemo<NkbvSuspectedType>(() => {
-    const specimen = String(row.loai_benh_pham || "").toLowerCase();
-    const viTri = String(row.vi_tri_nhiem_khuan || "").toLowerCase();
-    const typeCode = String(row.loai_ma || row.loai_nkbv?.ma_loai || "").toUpperCase();
-
-    const fromMa = normalizeNkbvLoaiCode(typeCode);
-    if (fromMa) return fromMa;
-
-    if (viTri.includes("vae")) return "VAE";
-    if (viTri.includes("vap")) return "VAP";
-    if (viTri.includes("hap") || viTri.includes("pneu")) return "HAP";
-    if (viTri === "máu") return "BSI";
-    if (viTri === "đường tiết niệu") return "UTI";
-    if (viTri === "vết mổ") return "SSI";
-
-    if (specimen.includes("nước tiểu") || specimen.includes("urine") || specimen.includes("niệu")) return "UTI";
-    if (specimen.includes("máu") || specimen.includes("blood") || specimen.includes("cvc")) return "BSI";
-    // Cấy hô hấp (LIS) → gợi ý HAP theo module PNEU đa cò súng; KSNK đổi sang VAE/VAP nếu đúng pathway
-    if (
-      specimen.includes("đờm") ||
-      specimen.includes("sputum") ||
-      specimen.includes("phế quản") ||
-      specimen.includes("bal") ||
-      specimen.includes("eta") ||
-      specimen.includes("phổi")
-    ) {
-      return "HAP";
-    }
-    if (specimen.includes("vết mổ") || specimen.includes("pus") || specimen.includes("mủ") || specimen.includes("mổ") || specimen.includes("vết thương")) {
-      return "SSI";
-    }
-
-    return "BSI";
-  }, [row]);
+  const specimenSuggestion = useMemo(
+    () =>
+      suggestNkbvTypeFromSpecimen({
+        loai_benh_pham: row.loai_benh_pham,
+        vi_tri_nhiem_khuan: row.vi_tri_nhiem_khuan,
+        loai_ma: row.loai_ma || row.loai_nkbv?.ma_loai,
+      }),
+    [row],
+  );
+  const suggestedType = specimenSuggestion.type;
+  const suggestedReason = specimenSuggestion.reason;
 
   // Suspected infection type selected by user
   const [suspectedType, setSuspectedType] = useState<NkbvSuspectedType | null>(null);
@@ -119,21 +109,28 @@ export function useNkbvChecklistModalState({
 
   // Initialize suspectedType and prepopulate forms on mount
   useEffect(() => {
-    const typeCode = String(row.loai_ma || row.loai_nkbv?.ma_loai || "").toUpperCase();
-    const fromMa = normalizeNkbvLoaiCode(typeCode);
-    const initialType: NkbvSuspectedType = fromMa || suggestedType;
-
-    setSuspectedType(initialType);
+    // Gợi ý theo bệnh phẩm (đã xử lý mâu thuẫn loai_ma) — không ưu tiên SSI từ MDM lệch.
+    setSuspectedType(suggestedType);
 
     const existing = row.verification_data || {};
     setSymptomDates(existing.symptom_dates || {});
-    
+    const notes =
+      row.clinical_notes && typeof row.clinical_notes === "object" ? row.clinical_notes : {};
+    setGhiChuTuyBien(
+      String(
+        (notes as { ghi_chu_tuy_bien?: string }).ghi_chu_tuy_bien ||
+          existing.ghi_chu_tuy_bien ||
+          "",
+      ),
+    );
+
     if (existing.treatment_history && existing.treatment_history.length > 0) {
       setTreatmentHistory(existing.treatment_history);
     } else {
       const defaultStay: DepartmentStay = {
         khoa_id: row.khoa_ghi_nhan_id || row.khoa_ghi_nhan?.id || "",
         ten_khoa: row.khoa_ghi_nhan?.ten_khoa || "Khoa hiện tại",
+        ma_khoa: row.khoa_ghi_nhan?.ma_khoa,
         ngay_vao: row.ngay_vao_vien ? row.ngay_vao_vien.slice(0, 10) : "",
         ngay_ra: undefined,
       };
@@ -144,7 +141,40 @@ export function useNkbvChecklistModalState({
     setVaeForm(prepopulateVaeData(row, existing));
     setUtiForm(prepopulateUtiData(row, existing));
     setSsiForm(prepopulateSsiData(row, existing));
-  }, [row, suggestedType]);
+    setNgayVaoVienEffective(String(row.ngay_vao_vien || "").slice(0, 10));
+    setBenhAnLoaded(false);
+    setBenhAnMissing(false);
+    // Identity = mốc BA (không đổi khi nháp → phiếu thật), tránh xóa dữ liệu đang nhập
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional identity
+  }, [
+    String((row as { _draft_milestone_id?: string })._draft_milestone_id || row.id),
+    suggestedType,
+  ]);
+
+  useEffect(() => {
+    const ma = String(row.ma_benh_an || "").trim();
+    if (!ma) {
+      setBenhAnMissing(true);
+      setBenhAnLoaded(true);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const res = await getNkbvBenhAnByMa(ma);
+      if (cancelled) return;
+      setBenhAnLoaded(true);
+      if (!res.success || !res.data) {
+        setBenhAnMissing(true);
+        return;
+      }
+      setBenhAnMissing(false);
+      const fromBa = String(res.data.ngay_vao_vien || "").slice(0, 10);
+      if (fromBa) setNgayVaoVienEffective(fromBa);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [row.ma_benh_an, row.id]);
 
   // Stay history handlers
   const handleAddStay = (newStay: DepartmentStay) => {
@@ -176,7 +206,9 @@ export function useNkbvChecklistModalState({
       const nOut = newStay.ngay_ra || "9999-12-31";
 
       if (Math.max(new Date(sIn).getTime(), new Date(nIn).getTime()) < Math.min(new Date(sOut).getTime(), new Date(nOut).getTime())) {
-        toast.error(`Sai logic: Khoảng thời gian này chồng chéo với khoa [${stay.ten_khoa}] (${stay.ngay_vao} -> ${stay.ngay_ra || "Hiện tại"})!`);
+        toast.error(
+          `Sai logic: Khoảng thời gian này chồng chéo với khoa [${formatKhoaCompactLabel(stay)}] (${stay.ngay_vao} -> ${stay.ngay_ra || "Hiện tại"})!`,
+        );
         return;
       }
     }
@@ -214,13 +246,45 @@ export function useNkbvChecklistModalState({
 
     return calculateCdcMetrics({
       ngay_phat_hien,
-      ngay_vao_vien: row.ngay_vao_vien || "",
+      ngay_vao_vien: ngayVaoVienEffective || row.ngay_vao_vien || "",
       checklistType,
       activeForm,
       symptomDates,
       treatmentHistory,
     });
-  }, [checklistType, clinicalPathway, bsiForm, vaeForm, utiForm, ssiForm, symptomDates, treatmentHistory, row]);
+  }, [
+    checklistType,
+    clinicalPathway,
+    bsiForm,
+    vaeForm,
+    utiForm,
+    ssiForm,
+    symptomDates,
+    treatmentHistory,
+    row,
+    ngayVaoVienEffective,
+  ]);
+
+  const handleSyncAdmissionDate = async (next: string) => {
+    const ngay = String(next || "").slice(0, 10);
+    setNgayVaoVienEffective(ngay);
+    if (!allowedEdit || !ngay) return;
+    const ma = String(row.ma_benh_an || "").trim();
+    if (!ma) {
+      toast.error("Thiếu mã bệnh án — không đồng bộ được hồ sơ");
+      return;
+    }
+    const res = await syncNkbvAdmissionDate({
+      ma_benh_an: ma,
+      su_kien_id: row.id ? String(row.id) : null,
+      ngay_vao_vien: ngay,
+    });
+    if (!res.success) {
+      toast.error(res.error || "Không lưu được ngày vào viện");
+      return;
+    }
+    toast.success("Đã đồng bộ ngày vào viện vào hồ sơ bệnh án");
+  };
 
   // Live rules engine evaluation preview
   const liveEvaluation = useMemo<RuleEvaluationResult>(() => {
@@ -286,7 +350,18 @@ export function useNkbvChecklistModalState({
     if (suspectedType === "LOAI_TRU") {
       setSubmitting(true);
       try {
-        const res = await submitClinicalVerification(String(row.id), "LOAI_TRU", activePayload);
+        const res = await submitClinicalVerification(String(rowRef.current.id), "LOAI_TRU", {
+          ...activePayload,
+          clinical_notes: {
+            ...((activePayload as any).clinical_notes || {}),
+            ly_do_loai_tru:
+              ghiChuTuyBien.trim() ||
+              (activePayload as any).clinical_notes?.ly_do_loai_tru ||
+              "Bác sĩ phán quyết loại trừ ca bệnh.",
+            ghi_chu_tuy_bien: ghiChuTuyBien.trim() || undefined,
+          },
+          ghi_chu_tuy_bien: ghiChuTuyBien.trim() || undefined,
+        });
         if (res.success) {
           toast.success("Đã lưu phán quyết loại trừ ca bệnh thành công!");
           onSuccess();
@@ -305,13 +380,16 @@ export function useNkbvChecklistModalState({
     // --- KHUNG KIỂM SOÁT NHẬP LIỆU CHẶT CHẼ ---
     const ngayPhatHien = row.ngay_phat_hien ? row.ngay_phat_hien.slice(0, 10) : "";
     const khoaGhiNhanId = row.khoa_ghi_nhan_id || row.khoa_ghi_nhan?.id || "";
-    const khoaGhiNhanTen = row.khoa_ghi_nhan?.ten_khoa || "khoa ghi nhận xét nghiệm";
+    const khoaGhiNhanLabel = formatKhoaCompactLabel({
+      ma_khoa: row.khoa_ghi_nhan?.ma_khoa,
+      ten_khoa: row.khoa_ghi_nhan?.ten_khoa || "khoa ghi nhận xét nghiệm",
+    });
 
     // 1. Kiểm tra chỉ định xét nghiệm vs Lịch sử nằm khoa
     if (ngayPhatHien && khoaGhiNhanId) {
       const hasReportingWardStay = treatmentHistory.some(s => s.khoa_id === khoaGhiNhanId);
       if (!hasReportingWardStay) {
-        toast.error(`Lỗi logic nhập liệu: Phiếu xét nghiệm được ghi nhận tại khoa [${khoaGhiNhanTen}] vào ngày [${ngayPhatHien}], nhưng trong lịch sử điều trị của bệnh nhân không hề có khoa này! Vui lòng bổ sung.`);
+        toast.error(`Lỗi logic nhập liệu: Phiếu xét nghiệm được ghi nhận tại khoa [${khoaGhiNhanLabel}] vào ngày [${ngayPhatHien}], nhưng trong lịch sử điều trị của bệnh nhân không hề có khoa này! Vui lòng bổ sung.`);
         return;
       }
 
@@ -331,7 +409,9 @@ export function useNkbvChecklistModalState({
 
         const isValidTransfer = (isTransferDay || isDayAfterTransfer) && prevStay?.khoa_id === khoaGhiNhanId;
         if (!isValidTransfer) {
-          toast.error(`Lỗi logic nhập liệu: Ngày xét nghiệm (${ngayPhatHien}) thuộc khoa [${khoaGhiNhanTen}] nhưng lịch sử nằm viện hiển thị bệnh nhân đang nằm điều trị tại khoa [${stayAtTestDate.ten_khoa}]. Vui lòng điều chỉnh lại cho chính xác.`);
+          toast.error(
+            `Lỗi logic nhập liệu: Ngày xét nghiệm (${ngayPhatHien}) thuộc khoa [${khoaGhiNhanLabel}] nhưng lịch sử nằm viện hiển thị bệnh nhân đang nằm điều trị tại khoa [${formatKhoaCompactLabel(stayAtTestDate)}]. Vui lòng điều chỉnh lại cho chính xác.`,
+          );
           return;
         }
       }
@@ -370,13 +450,19 @@ export function useNkbvChecklistModalState({
         ...activePayload,
         treatment_history: treatmentHistory,
         symptom_dates: symptomDates,
+        ghi_chu_tuy_bien: ghiChuTuyBien.trim() || undefined,
         calculated_doe: liveCdcMetrics?.doe,
         calculated_iwp_start: liveCdcMetrics?.iwp_start,
         calculated_iwp_end: liveCdcMetrics?.iwp_end,
         calculated_sbap_start: liveCdcMetrics?.sbap_start,
         calculated_sbap_end: liveCdcMetrics?.sbap_end,
         attributed_khoa_id: liveCdcMetrics?.attributedStay?.khoa_id || row.khoa_ghi_nhan_id || "",
-        attributed_khoa_name: liveCdcMetrics?.attributedStay?.ten_khoa || row.khoa_ghi_nhan?.ten_khoa || "",
+        attributed_khoa_name: formatKhoaCompactLabel(
+          liveCdcMetrics?.attributedStay || {
+            ma_khoa: row.khoa_ghi_nhan?.ma_khoa,
+            ten_khoa: row.khoa_ghi_nhan?.ten_khoa,
+          },
+        ),
         hai_status: liveCdcMetrics?.haiStatus,
         
         ...(checklistType === 'BSI' && {
@@ -392,7 +478,11 @@ export function useNkbvChecklistModalState({
           : {}),
       };
 
-      const res = await submitClinicalVerification(String(row.id), suspectedType || checklistType, mergedPayload);
+      const res = await submitClinicalVerification(
+        String(rowRef.current.id),
+        suspectedType || checklistType,
+        mergedPayload,
+      );
       if (res.success) {
         toast.success(`Đã lưu checklist lâm sàng! Đề xuất CDC: ${res.evaluation?.classification} (${res.evaluation?.is_positive ? 'Dương tính' : 'Âm tính'})`);
         onSuccess();
@@ -411,7 +501,7 @@ export function useNkbvChecklistModalState({
   const handleAdjudicate = async (decision: "APPROVE" | "EXCLUDE", reason?: string) => {
     setAdjudicating(true);
     try {
-      const res = await approveOrExcludeNkbvCase(String(row.id), decision, reason);
+      const res = await approveOrExcludeNkbvCase(String(rowRef.current.id), decision, reason);
       if (res.success) {
         toast.success(decision === "APPROVE" ? "Đã phê duyệt ca bệnh NKBV chính thức!" : "Đã từ chối/loại trừ ca bệnh khỏi thống kê.");
         onSuccess();
@@ -435,7 +525,10 @@ export function useNkbvChecklistModalState({
     treatmentHistory,
     symptomDates,
     setSymptomDates,
+    ghiChuTuyBien,
+    setGhiChuTuyBien,
     suggestedType,
+    suggestedReason,
     suspectedType,
     setSuspectedType,
     checklistType,
@@ -454,5 +547,10 @@ export function useNkbvChecklistModalState({
     liveEvaluation,
     handleSaveChecklist,
     handleAdjudicate,
+    ngayVaoVienEffective,
+    setNgayVaoVienEffective,
+    handleSyncAdmissionDate,
+    benhAnLoaded,
+    benhAnMissing,
   };
 }

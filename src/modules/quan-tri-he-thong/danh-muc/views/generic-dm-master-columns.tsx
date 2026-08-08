@@ -5,6 +5,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 
 export type GenericDmRow = { id: string } & Record<string, unknown>;
 
@@ -64,7 +65,7 @@ export function buildGenericDmColumns(
       cellClassName: "whitespace-nowrap align-middle",
       cell: (row) => (
         <span className="text-[11px] font-normal text-slate-400 italic">
-          {row.updated_at ? new Date(String(row.updated_at)).toLocaleDateString("vi-VN") : "---"}
+          {formatDateVi(row.updated_at ? String(row.updated_at) : null, "---")}
         </span>
       )
     },

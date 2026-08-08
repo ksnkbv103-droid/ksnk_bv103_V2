@@ -5,6 +5,8 @@ import { Loader2, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { getIncidentForPrint } from "../actions/su-co-report.actions";
 import IncidentPrintView, { type IncidentPrintViewProps } from "./IncidentPrintView";
+import { buildEntityQrCode } from "@/lib/entity-qr/entity-qr-core";
+import { generateEntityQrDataUrl } from "@/lib/entity-qr/generate-entity-qr";
 
 type Props = {
   incidentId: string;
@@ -23,9 +25,18 @@ export default function IncidentJournalPrintButton({ incidentId, className }: Pr
         toast.error("Không tải được biên bản in.");
         return;
       }
+      const qrCode = buildEntityQrCode("CSSD_INCIDENT", incidentId);
+      let qrDataUrl = "";
+      try {
+        qrDataUrl = await generateEntityQrDataUrl(qrCode, { width: 200 });
+      } catch {
+        /* vẫn in được không QR */
+      }
       setPrintBundle({
         incident: res.incident as IncidentPrintViewProps["incident"],
         details: res.details as IncidentPrintViewProps["details"],
+        qrCode,
+        qrDataUrl,
       });
       setTimeout(() => window.print(), 150);
     } catch (e: unknown) {

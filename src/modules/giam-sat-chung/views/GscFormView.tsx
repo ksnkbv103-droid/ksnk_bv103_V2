@@ -21,6 +21,11 @@ import { KsnkSupervisionPanel } from "@/components/shared/ksnk-supervision-chrom
 import { markSupervisionHistoryStale, SUPERVISION_HISTORY_PATHS } from "@/lib/supervision-form-nav";
 import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
 import type { GscFormProgress } from "../lib/gsc-score-display";
+import { loadGscViewBundle } from "../lib/load-gsc-view-bundle";
+import type { GscLocPrefill } from "../lib/gsc-loc-prefill";
+import type { GscPatientPrefill } from "../lib/gsc-patient-prefill";
+
+export type { GscLocPrefill };
 
 type BangKiemListRow = {
   id: string;
@@ -46,9 +51,20 @@ function filterBangKiemByLoai(
 
 interface GscFormViewProps {
   initialLoaiGiamSat?: GscLoaiGiamSatRoute;
+  /** Deep-link / quét QR: `?edit=<sessionUuid>` */
+  editSessionId?: string | null;
+  /** Deep-link tem vị trí: `?loc=khoa|khu&ma=` */
+  locPrefill?: GscLocPrefill | null;
+  /** Deep-link MDRO / BN: `?bk=BM.31.03&ma_benh_an=…` */
+  patientPrefill?: GscPatientPrefill | null;
 }
 
-export default function GscFormView({ initialLoaiGiamSat }: GscFormViewProps) {
+export default function GscFormView({
+  initialLoaiGiamSat,
+  editSessionId,
+  locPrefill = null,
+  patientPrefill = null,
+}: GscFormViewProps) {
   const router = useRouter();
   const [selectedTemplate, setSelectedTemplate] = useState<ChecklistTemplate | null>(null);
   const [editSourceSessionId, setEditSourceSessionId] = useState<string | null>(null);
@@ -60,6 +76,7 @@ export default function GscFormView({ initialLoaiGiamSat }: GscFormViewProps) {
   const [dbTemplates, setDbTemplates] = useState<BangKiemListRow[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [loadingTemplateDetail, setLoadingTemplateDetail] = useState(false);
+  const [editHydrating, setEditHydrating] = useState(Boolean(editSessionId));
 
   const { processedData, handleSort, handleSearch, searchTerm } = useDataTable<BangKiemListRow>(dbTemplates, [
     "ten_bk",
@@ -111,6 +128,75 @@ export default function GscFormView({ initialLoaiGiamSat }: GscFormViewProps) {
     void loadTemplates();
   }, [initialLoaiGiamSat]);
 
+  useEffect(() => {
+    const sid = String(editSessionId || "").trim();
+    if (!sid) {
+      setEditHydrating(false);
+      return;
+    }
+    if (dbTemplates.length === 0) return;
+
+    let cancelled = false;
+    setEditHydrating(true);
+    void (async () => {
+      const res = await loadGscViewBundle(dbTemplates as Record<string, unknown>[], { id: sid });
+      if (cancelled) return;
+      if (!res.ok) {
+        toast.error(res.error || "Không mở được phiên từ mã QR");
+        setEditHydrating(false);
+        return;
+      }
+      setEditSourceSessionId(sid);
+      setEditPayload({
+        session: res.bundle.session as Partial<GiamSatSession>,
+        results: res.bundle.results,
+      });
+      setSelectedTemplate(res.bundle.template);
+      setEditHydrating(false);
+      toast.success("Đã mở phiếu giám sát từ mã QR / liên kết");
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [editSessionId, dbTemplates]);
+
+  /** Prefill BK + BN từ deep-link MDRO (không có edit session). */
+  useEffect(() => {
+    if (editSessionId || !patientPrefill || selectedTemplate || dbTemplates.length === 0) return;
+    const maBk = String(patientPrefill.bangKiemMa || "").trim().toUpperCase();
+    if (!maBk) return;
+    const bk = dbTemplates.find((t) => String(t.ma_bk || "").trim().toUpperCase() === maBk);
+    if (!bk) {
+      toast.message(`Không tìm thấy bảng kiểm ${maBk} trong danh mục`);
+      return;
+    }
+    void handleSelectTemplate(bk).then(() => {
+      setEditPayload({
+        session: {
+          khoa_id: patientPrefill.khoaId || "",
+          is_bo_sung_nguoi_benh: patientPrefill.boSungNb,
+          ma_benh_an: patientPrefill.maBenhAn || "",
+          ma_nguoi_benh: patientPrefill.maNguoiBenh || "",
+          ten_nguoi_benh: patientPrefill.tenNguoiBenh || "",
+        },
+        results: [],
+      });
+      toast.success(`Đã mở ${maBk} với bệnh nhân được gắn`);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot deep-link
+  }, [patientPrefill, dbTemplates, editSessionId, selectedTemplate]);
+
+  if (editHydrating) {
+    return (
+      <KsnkSupervisionPanel className={`min-h-[50vh] ${UI.sectionGapLg}`}>
+        <div className={`${UI.shell} px-4 py-6 text-sm font-semibold text-slate-600`}>
+          Đang mở phiếu giám sát…
+        </div>
+      </KsnkSupervisionPanel>
+    );
+  }
+
   return (
     <KsnkSupervisionPanel className={`min-h-[50vh] ${UI.sectionGapLg}`}>
       {selectedTemplate ? (
@@ -154,6 +240,7 @@ export default function GscFormView({ initialLoaiGiamSat }: GscFormViewProps) {
             template={selectedTemplate}
             editPayload={editPayload || undefined}
             editingSessionId={editSourceSessionId}
+            locPrefill={editSourceSessionId ? null : locPrefill}
             onProgressChange={setFormProgress}
             onSuccess={() => {
               setSelectedTemplate(null);

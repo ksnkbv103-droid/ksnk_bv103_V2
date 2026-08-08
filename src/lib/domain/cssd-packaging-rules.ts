@@ -36,20 +36,20 @@ const SPAULDING_RANK: Record<SpauldingClass, number> = {
   CRITICAL: 2,
 };
 
-export const STERILIZATION_METHOD_LABEL_VI: Record<SterilizationMethod, string> = {
+const STERILIZATION_METHOD_LABEL_VI: Record<SterilizationMethod, string> = {
   STEAM_134: "Hấp hơi nước 134°C",
   STEAM_121: "Hấp hơi nước 121°C",
   PLASMA: "Plasma (nhiệt thấp)",
   EO: "Ethylene oxide (EO)",
 };
 
-export const SPAULDING_LABEL_VI: Record<SpauldingClass, string> = {
+const SPAULDING_LABEL_VI: Record<SpauldingClass, string> = {
   CRITICAL: "Cực kỳ nguy hiểm (Critical)",
   SEMI_CRITICAL: "Nguy hiểm (Semi-critical)",
   NON_CRITICAL: "Không nguy hiểm (Non-critical)",
 };
 
-export function resolveHighestSpaulding(items: BomItem[]): SpauldingClass {
+function resolveHighestSpaulding(items: BomItem[]): SpauldingClass {
   let max: SpauldingClass = "NON_CRITICAL";
   for (const item of items) {
     if (SPAULDING_RANK[item.phan_loai_spaulding] > SPAULDING_RANK[max]) {

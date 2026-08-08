@@ -3,29 +3,44 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { clearStaleSupabaseAuthCookies } from "@/lib/auth/clear-stale-supabase-cookies";
 import { loginWithStaffIdentifier } from "@/modules/auth/actions/staff-login.actions";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
+const AUTH_NETWORK_TOAST =
+  "Không kết nối được máy chủ đăng nhập. Kiểm tra mạng rồi thử lại.";
+
+function isAuthNetworkError(err: unknown): boolean {
+  if (!err) return false;
+  const msg =
+    err instanceof Error
+      ? err.message
+      : typeof err === "object" && err !== null && "message" in err
+        ? String((err as { message: unknown }).message)
+        : String(err);
+  const name =
+    err instanceof Error
+      ? err.name
+      : typeof err === "object" && err !== null && "name" in err
+        ? String((err as { name: unknown }).name)
+        : "";
+  return (
+    name === "AuthRetryableFetchError" ||
+    /failed to fetch|networkerror|network request failed|load failed/i.test(msg)
+  );
+}
+
 export default function LoginPage() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
+  // Chỉ dọn cookie project khác — không gọi getSession (proxy đã redirect user có phiên).
   useEffect(() => {
-    const ensureGuest = async () => {
-      clearStaleSupabaseAuthCookies(process.env.NEXT_PUBLIC_SUPABASE_URL);
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        router.replace("/");
-      }
-    };
-    void ensureGuest();
-  }, [router]);
+    clearStaleSupabaseAuthCookies(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,16 +57,20 @@ export default function LoginPage() {
       });
       if (browserErr) {
         toast.error(
-          browserErr.message ||
-            "Phiên chưa đồng bộ trình duyệt. Thử tải lại trang hoặc đăng nhập lại.",
+          isAuthNetworkError(browserErr)
+            ? AUTH_NETWORK_TOAST
+            : browserErr.message ||
+                "Phiên chưa đồng bộ trình duyệt. Thử tải lại trang hoặc đăng nhập lại.",
         );
-        window.location.assign("/");
+        if (!isAuthNetworkError(browserErr)) {
+          window.location.assign("/");
+        }
         return;
       }
       toast.success("Đăng nhập thành công!");
       window.location.assign("/");
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Đăng nhập thất bại.");
+      toast.error(isAuthNetworkError(err) ? AUTH_NETWORK_TOAST : err instanceof Error ? err.message : "Đăng nhập thất bại.");
     } finally {
       setLoading(false);
     }
@@ -74,7 +93,7 @@ export default function LoginPage() {
       </header>
 
       <div className="flex-1 flex items-center justify-center px-4 py-8">
-        <div className="max-w-md w-full p-8 bg-white rounded-2xl shadow-xl border border-slate-100">
+        <div className="max-w-md w-full rounded-[var(--radius-shell)] border border-slate-100 bg-white p-8 shadow-[var(--shadow-app-soft)]">
           <div className="text-center mb-8">
             <Image
               src="/brand/logo-bv103.png"

@@ -11,6 +11,7 @@ import {
   normalizeGapKhoaRow,
   sortGapRowsByMetric,
 } from "@/lib/analytics/supervision-matrix-mappers";
+import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 import { formatBaoCaoIssueDateVi } from "./bao-cao-tong-hop-core";
 import { escHtml, fmtIsoDate, fmtPct } from "./bao-cao-tong-hop-print-format";
 import { BAO_CAO_TONG_HOP_THRESHOLDS } from "./bao-cao-tong-hop-thresholds";
@@ -42,7 +43,7 @@ export function renderPrintCoverMeta(args: {
   ksnkPhuKhoa: number;
   tongPhienKsnk: number;
 }): string {
-  const printedAt = `${String(args.printedAt.getHours()).padStart(2, "0")}:${String(args.printedAt.getMinutes()).padStart(2, "0")} — ${fmtIsoDate(args.printedAt.toISOString().slice(0, 10))}`;
+  const printedAt = formatDateTimeVi(args.printedAt);
   return `
     <dl class="cover-meta">
       <div class="cover-meta-row">
@@ -166,9 +167,15 @@ export function renderMatrixTable(
     </table>`;
 }
 
+function worstCompliance(row: BaoCaoKhoaRankRow): number | null {
+  const parts = [row.ty_le_gsc, row.ty_le_vst].filter((x): x is number => x != null);
+  if (parts.length === 0) return null;
+  return Math.min(...parts);
+}
+
 function khoaRankPrintClass(row: BaoCaoKhoaRankRow): string {
   if (row.has_data === false || row.tong_co_hoi_vst + row.tong_quan_sat_gsc === 0) return "";
-  const v = row.ty_le_ccs;
+  const v = worstCompliance(row);
   if (v == null) return "";
   if (v >= BAO_CAO_TONG_HOP_THRESHOLDS.GREEN_MIN) return "text-success";
   if (v >= BAO_CAO_TONG_HOP_THRESHOLDS.YELLOW_MIN) return "text-warning";
@@ -177,7 +184,7 @@ function khoaRankPrintClass(row: BaoCaoKhoaRankRow): string {
 
 function khoaGroupPrintLabel(row: BaoCaoKhoaRankRow): string {
   if (row.has_data === false || row.tong_co_hoi_vst + row.tong_quan_sat_gsc === 0) return "Chưa GS";
-  const v = row.ty_le_ccs;
+  const v = worstCompliance(row);
   if (v == null) return "—";
   if (v >= BAO_CAO_TONG_HOP_THRESHOLDS.GREEN_MIN) return "Nhóm cao";
   if (v >= BAO_CAO_TONG_HOP_THRESHOLDS.YELLOW_MIN) return "Trung bình";
@@ -185,11 +192,12 @@ function khoaGroupPrintLabel(row: BaoCaoKhoaRankRow): string {
 }
 
 export function renderFullKhoaRankSection(rows: BaoCaoKhoaRankRow[]): string {
-  if (rows.length === 0) {
-    return `<p class="muted">Chưa có xếp hạng khoa trong phạm vi lọc.</p>`;
+  const withData = rows.filter((r) => r.has_data !== false && r.tong_co_hoi_vst + r.tong_quan_sat_gsc > 0);
+  if (withData.length === 0) {
+    return `<p class="muted">Chưa có xếp hạng khoa có dữ liệu trong phạm vi lọc.</p>`;
   }
   return `
-    <p class="muted">Xếp hạng theo CCS (50% VST + 50% GSC). Ngưỡng xanh ≥${BAO_CAO_TONG_HOP_THRESHOLDS.GREEN_MIN}%, vàng ≥${BAO_CAO_TONG_HOP_THRESHOLDS.YELLOW_MIN}%.</p>
+    <p class="muted">Sắp xếp GSC rồi VST thấp → cao (ẩn khoa không có dữ liệu). Ngưỡng xanh ≥${BAO_CAO_TONG_HOP_THRESHOLDS.GREEN_MIN}%, vàng ≥${BAO_CAO_TONG_HOP_THRESHOLDS.YELLOW_MIN}%.</p>
     <div class="table-wrap">
     <table>
       <thead>
@@ -198,32 +206,25 @@ export function renderFullKhoaRankSection(rows: BaoCaoKhoaRankRow[]): string {
           <th class="text-left">Khoa/phòng</th>
           <th>VST %</th>
           <th>GSC %</th>
-          <th>CCS %</th>
           <th>Mẫu số</th>
           <th>Nhóm</th>
         </tr>
       </thead>
       <tbody>
-        ${rows
+        ${withData
           .map((r, i) => {
-            const sample =
-              r.tong_co_hoi_vst > 0 || r.tong_quan_sat_gsc > 0
-                ? [
-                    r.tong_co_hoi_vst > 0 ? `${r.tong_co_hoi_vst} CH` : null,
-                    r.tong_quan_sat_gsc > 0 ? `${r.tong_quan_sat_gsc} QS` : null,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")
-                : "—";
-            const ccsCell =
-              r.has_data === false ? "Chưa GS" : `<strong>${fmtPct(r.ty_le_ccs)}</strong>`;
+            const sample = [
+              r.tong_co_hoi_vst > 0 ? `${r.tong_co_hoi_vst} CH` : null,
+              r.tong_quan_sat_gsc > 0 ? `${r.tong_quan_sat_gsc} QS` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ");
             return `
-          <tr>
+          <tr class="${khoaRankPrintClass(r)}">
             <td>${i + 1}</td>
             <td class="text-left">${escHtml(r.label)}</td>
             <td>${fmtPct(r.ty_le_vst)}</td>
-            <td>${fmtPct(r.ty_le_gsc)}</td>
-            <td class="${khoaRankPrintClass(r)}">${ccsCell}</td>
+            <td><strong>${fmtPct(r.ty_le_gsc)}</strong></td>
             <td style="font-size:11px;">${escHtml(sample)}</td>
             <td style="font-size:11px;">${escHtml(khoaGroupPrintLabel(r))}</td>
           </tr>`;
@@ -235,7 +236,8 @@ export function renderFullKhoaRankSection(rows: BaoCaoKhoaRankRow[]): string {
 }
 
 export function renderTrendWeekTable(points: BaoCaoTrendPoint[]): string {
-  if (points.length === 0) {
+  const withData = points.filter((p) => (p.vst_tong ?? 0) > 0 || (p.gsc_tong ?? 0) > 0);
+  if (withData.length === 0) {
     return `<p class="muted">Chưa đủ dữ liệu xu hướng tuần.</p>`;
   }
   return `
@@ -245,27 +247,23 @@ export function renderTrendWeekTable(points: BaoCaoTrendPoint[]): string {
           <th>Tuần</th>
           <th>VST %</th>
           <th>GSC %</th>
-          <th>CCS %</th>
           <th>Ghi chú</th>
         </tr>
       </thead>
       <tbody>
-        ${points
+        ${withData
           .map((p) => {
             const note =
-              (p.vst_tong ?? 0) === 0 && (p.gsc_tong ?? 0) === 0
-                ? "Không có phiên"
-                : (p.vst_tong ?? 0) === 0
-                  ? "Chỉ GSC"
-                  : (p.gsc_tong ?? 0) === 0
-                    ? "Chỉ VST"
-                    : "";
+              (p.vst_tong ?? 0) === 0
+                ? "Chỉ GSC"
+                : (p.gsc_tong ?? 0) === 0
+                  ? "Chỉ VST"
+                  : "";
             return `
           <tr>
             <td class="text-left">${escHtml(p.label)}</td>
             <td>${fmtPct(p.ty_le_vst)}</td>
             <td>${fmtPct(p.ty_le_gsc)}</td>
-            <td><strong>${fmtPct(p.ty_le_ccs)}</strong></td>
             <td class="text-left" style="font-size:11px;">${escHtml(note)}</td>
           </tr>`;
           })

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Lightbulb, MessageSquare } from "lucide-react";
+import { Lightbulb, MessageSquare, Sparkles } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -71,6 +71,9 @@ type Props = {
   onNhanXetChange: (value: string) => void;
   kienNghiDeXuat: string;
   onKienNghiChange: (value: string) => void;
+  /** Gợi ý draft từ số liệu BCTH — user vẫn sửa tay trước khi ký. */
+  onGenerateDraft?: () => void;
+  draftBusy?: boolean;
 };
 
 function narrativeBtnClass(filled: boolean) {
@@ -86,6 +89,8 @@ export function ReportPrintNarrativeControls({
   onNhanXetChange,
   kienNghiDeXuat,
   onKienNghiChange,
+  onGenerateDraft,
+  draftBusy,
 }: Props) {
   const [openNhanXet, setOpenNhanXet] = useState(false);
   const [openKienNghi, setOpenKienNghi] = useState(false);
@@ -94,6 +99,18 @@ export function ReportPrintNarrativeControls({
 
   return (
     <>
+      {onGenerateDraft ? (
+        <button
+          type="button"
+          onClick={onGenerateDraft}
+          disabled={draftBusy}
+          className="flex h-9 items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 text-xs font-bold text-indigo-900 hover:bg-indigo-100 disabled:opacity-50"
+          title="Điền gợi ý nhận xét/kiến nghị từ số liệu kỳ lọc — bạn chỉnh trước khi in/ký"
+        >
+          <Sparkles size={14} aria-hidden />
+          {draftBusy ? "Đang tạo…" : "Tạo nhận xét gợi ý"}
+        </button>
+      ) : null}
       <button
         type="button"
         onClick={() => setOpenNhanXet(true)}

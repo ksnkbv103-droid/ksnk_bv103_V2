@@ -12,7 +12,7 @@ import {
   resolveGscNguoiGiamSatTen,
 } from "../lib/gsc-session-labels";
 import ChecklistItem from "./ChecklistItem";
-import { format } from "date-fns";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 export default function GiamSatChungSessionViewer({
@@ -44,12 +44,7 @@ export default function GiamSatChungSessionViewer({
   );
   if (!open) return null;
   const ngayRaw = session.ngay_giam_sat as string | undefined;
-  let ngayStr = "—";
-  try {
-    if (ngayRaw) ngayStr = format(new Date(ngayRaw), "dd/MM/yyyy");
-  } catch {
-    ngayStr = String(ngayRaw || "—");
-  }
+  const ngayStr = formatDateVi(ngayRaw?.slice(0, 10), String(ngayRaw || "—"));
   return (
     <div
       className="fixed inset-0 z-[60] flex touch-manipulation items-center justify-center bg-black/45 p-4"
@@ -57,7 +52,7 @@ export default function GiamSatChungSessionViewer({
       aria-modal="true"
       aria-labelledby="gsc-viewer-title"
     >
-      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-xl">
+      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-[var(--shadow-app-soft)]">
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
           <div className="min-w-0">
             <h2 id="gsc-viewer-title" className="text-sm font-semibold text-[var(--primary)]">

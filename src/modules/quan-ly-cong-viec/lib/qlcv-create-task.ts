@@ -4,6 +4,8 @@ import { QLCV_FACT_WRITE_TABLE } from "./qlcv-fact-write";
 import { throwQlcvDbError } from "./qlcv-supabase-error";
 import { resolveQlcvTrangThaiMaForTask } from "./qlcv-initial-trang-thai";
 import { validateAssigneeForQlcv } from "./qlcv-ksnk-server";
+import { resolveQlcvNhiemVuId } from "./qlcv-nhiem-vu-chain";
+import { normalizeQlcvStaffIdList } from "./qlcv-staff-ids";
 
 export type QlcvInsertTaskPayload = {
   tieu_de: string;
@@ -15,9 +17,20 @@ export type QlcvInsertTaskPayload = {
   /** Dùng validate assignee thuộc KSNK — không ghi DB. */
   ksnkKhoaId: string;
   to_cong_tac_id?: string | null;
+  vi_tri_thuc_hien?: string | null;
+  nguoi_phoi_hop_ids?: string[];
+  nguoi_theo_doi_ids?: string[];
   is_active: boolean;
   nguoi_tao_id: string;
   nguoi_giao_viec_id?: string | null;
+  dia_diem_khoa_id?: string | null;
+  nhiem_vu_id?: string | null;
+  analytics_meta?: {
+    chi_so?: string | null;
+    khoa_id?: string | null;
+    ky_do_lai?: string | null;
+    gia_tri_luc_tao?: number | null;
+  } | null;
 };
 
 function qlcvTodayDateStr(): string {
@@ -56,6 +69,26 @@ export function assertQlcvHanHoanThanhChangeAllowed(
   }
 }
 
+/** Kiểm tra FK khoa địa điểm MDM (active). */
+export async function assertQlcvDiaDiemKhoaValid(
+  supabase: SupabaseClient,
+  diaDiemKhoaId: string | null | undefined,
+  required: boolean,
+): Promise<void> {
+  if (!diaDiemKhoaId) {
+    if (required) throw new Error("Chọn khoa/đơn vị địa điểm thực hiện (danh mục khoa).");
+    return;
+  }
+  const { data, error } = await supabase
+    .from("mdm_dm_khoa_phong")
+    .select("id")
+    .eq("id", diaDiemKhoaId)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (error) throwQlcvDbError(error, "Không kiểm tra khoa địa điểm.");
+  if (!data) throw new Error("Khoa/đơn vị địa điểm không hợp lệ hoặc đã ngưng.");
+}
+
 /** Insert một dòng qlcv_fact_cong_viec — SSOT tạo việc / đề xuất (nội bộ KSNK). */
 export async function insertQlcvTaskRow(
   supabase: SupabaseClient,
@@ -64,7 +97,14 @@ export async function insertQlcvTaskRow(
   if (!payload.ksnkKhoaId) {
     throw new Error("Thiếu cấu hình khoa KSNK.");
   }
+  await assertQlcvDiaDiemKhoaValid(supabase, payload.dia_diem_khoa_id, true);
+  const nhiemVuId = await resolveQlcvNhiemVuId(supabase, payload.nhiem_vu_id || null);
   await validateAssigneeForQlcv(supabase, payload.nguoi_phu_trach_id, payload.ksnkKhoaId);
+  const phoiHop = normalizeQlcvStaffIdList(payload.nguoi_phoi_hop_ids);
+  const theoDoi = normalizeQlcvStaffIdList(payload.nguoi_theo_doi_ids);
+  for (const sid of [...phoiHop, ...theoDoi]) {
+    await validateAssigneeForQlcv(supabase, sid, payload.ksnkKhoaId);
+  }
 
   const trangThaiMa = resolveQlcvTrangThaiMaForTask({
     isActive: payload.is_active,
@@ -77,6 +117,19 @@ export async function insertQlcvTaskRow(
     trang_thai: trangThaiMa,
   });
 
+  const meta = payload.analytics_meta;
+  const analytics_meta =
+    meta && (meta.chi_so || meta.khoa_id || meta.ky_do_lai || meta.gia_tri_luc_tao != null)
+      ? {
+          ...(meta.chi_so ? { chi_so: String(meta.chi_so).trim() } : {}),
+          ...(meta.khoa_id ? { khoa_id: String(meta.khoa_id).trim() } : {}),
+          ...(meta.ky_do_lai ? { ky_do_lai: String(meta.ky_do_lai).trim() } : {}),
+          ...(meta.gia_tri_luc_tao != null && Number.isFinite(meta.gia_tri_luc_tao)
+            ? { gia_tri_luc_tao: Number(meta.gia_tri_luc_tao) }
+            : {}),
+        }
+      : {};
+
   const { data, error } = await supabase
     .from(QLCV_FACT_WRITE_TABLE)
     .insert({
@@ -87,12 +140,18 @@ export async function insertQlcvTaskRow(
       han_hoan_thanh: payload.han_hoan_thanh || null,
       nguoi_phu_trach_id: payload.nguoi_phu_trach_id || null,
       to_cong_tac_id: payload.to_cong_tac_id || null,
+      vi_tri_thuc_hien: payload.vi_tri_thuc_hien?.trim() || null,
+      dia_diem_khoa_id: payload.dia_diem_khoa_id || null,
+      nhiem_vu_id: nhiemVuId,
+      nguoi_phoi_hop_ids: phoiHop,
+      nguoi_theo_doi_ids: theoDoi,
       nguoi_tao_id: payload.nguoi_tao_id,
       nguoi_giao_viec_id: payload.nguoi_giao_viec_id ?? payload.nguoi_tao_id,
       trang_thai: dm.trang_thai,
       phan_tram_hoan_thanh: 0,
       is_active: payload.is_active,
       nhat_ky: [],
+      analytics_meta,
     })
     .select()
     .single();

@@ -26,9 +26,9 @@ async function loadRedAlertKeys(supabase: ReturnType<typeof createAdminSupabaseC
 }
 
 export async function fetchCssdKhoDungCuList() {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdKhoDungCuView();
+    const supabase = createAdminSupabaseClient();
     const { data: res, error } = await supabase
       .from("v_cssd_quy_trinh_full")
       .select("*")

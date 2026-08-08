@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react";
 import { Layers, Loader2, RefreshCcw, History, Box } from "lucide-react";
 import { toast } from "sonner";
 import { getDungCuGiaoDichLogsAction, type DungCuGiaoDichRow } from "../actions/kho-dung-cu-giao-dich.actions";
+import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 
 type Props = {
   selectedLoaiId: string | null;
@@ -186,7 +187,7 @@ export function LoaiDungCuChiTietPanel({
                     {logs.map((log) => (
                       <tr key={log.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                         <td className="py-3 text-[11px] text-[11px] font-medium text-slate-500">
-                          {new Date(log.created_at).toLocaleString("vi-VN")}
+                          {formatDateTimeVi(log.created_at)}
                         </td>
                         <td className="py-3">{renderBadge(log.loai_giao_dich)}</td>
                         <td className={`py-3 text-[11px] font-semibold ${

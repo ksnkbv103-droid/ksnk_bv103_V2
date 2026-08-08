@@ -19,9 +19,14 @@ export default function ResetPasswordPage() {
         setReady(true);
       }
     });
-    void supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setReady(true);
-    });
+    void supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (data.session) setReady(true);
+      })
+      .catch(() => {
+        // Mạng/Auth timeout — giữ màn hình chờ + link về login, không spam console đỏ.
+      });
     return () => sub.subscription.unsubscribe();
   }, []);
 
@@ -63,7 +68,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#f8fafc]">
       <div className="flex flex-1 items-center justify-center px-4 py-10">
-        <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-xl">
+        <div className="w-full max-w-md rounded-[var(--radius-shell)] border border-slate-100 bg-white p-8 shadow-[var(--shadow-app-soft)]">
           <h1 className={`text-center ${T.authTitle}`}>Đặt mật khẩu mới</h1>
           <form className="mt-8 space-y-4" onSubmit={onSubmit}>
             <div>

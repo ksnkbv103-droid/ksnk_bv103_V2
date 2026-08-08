@@ -5,7 +5,7 @@ import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import {
   newChecklistItem,
   normalizeQlcvChecklist,
@@ -65,7 +65,7 @@ export function QlcvChecklistPanel({ congViecId, initialChecklist, readOnly, onU
   };
 
   return (
-    <div className="space-y-4 rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm ring-1 ring-slate-900/[0.02] sm:p-5">
+    <div className="space-y-4 rounded-[var(--radius-shell)] border border-slate-200/90 bg-white p-4 shadow-sm ring-1 ring-slate-900/[0.02] sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className={UI.panelTitle}>Checklist thực hiện</h3>
         <span className="text-sm font-semibold tabular-nums text-[var(--primary)]">{pct}%</span>
@@ -108,9 +108,7 @@ export function QlcvChecklistPanel({ congViecId, initialChecklist, readOnly, onU
         ))}
         {items.length === 0 ? (
           <li className="rounded-xl border border-dashed border-slate-200 py-6 text-center text-xs text-slate-500">
-            {readOnly
-              ? "Chưa có checklist."
-              : "Tùy chọn — thêm bước việc hoặc báo cáo % qua thanh tiến độ phía trên."}
+            {readOnly ? "Chưa có checklist." : "Chưa có mục — thêm bên dưới."}
           </li>
         ) : null}
       </ul>
@@ -123,12 +121,12 @@ export function QlcvChecklistPanel({ congViecId, initialChecklist, readOnly, onU
             onChange={(e) => setNewLabel(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addItem())}
             placeholder="Thêm mục checklist…"
-            className="bv103-control-h flex-1 rounded-xl border border-slate-200/90 bg-white px-3 text-sm"
+            className={`${C.controlInput} flex-1`}
             disabled={saving}
           />
-          <Button type="button" variant="outline" className="shrink-0 rounded-xl" onClick={addItem} disabled={saving}>
-            <Plus size={16} className="mr-1" aria-hidden /> Thêm
-          </Button>
+          <button type="button" className={`${C.btnSecondary} shrink-0`} onClick={addItem} disabled={saving}>
+            <Plus className="h-4 w-4" aria-hidden /> Thêm
+          </button>
         </div>
       ) : null}
     </div>

@@ -11,6 +11,7 @@ import {
   mapKhaNangToIsChiuNhiet,
   normalizeSpauldingForMaster,
   normalizeSterileMethodForMaster,
+  suggestCssdStationFromMaster,
   type CssdSpaulding,
   type CssdSterileMethod,
 } from "@/lib/master-data/cssd-loai-dung-cu-map";
@@ -83,6 +84,15 @@ export default function LoaiDungCuFormModal({
   const [form, setForm] = useState<FormData>(seed);
   const [loading, setLoading] = useState(false);
   const isEdit = Boolean(initialData?.id);
+  const stationHint = useMemo(
+    () =>
+      suggestCssdStationFromMaster({
+        spaulding: form.phan_loai_spaulding,
+        sterileMethod: form.phuong_phap_tiet_khuan,
+        isChiuNhiet: form.kha_nang_chiu_nhiet === "Cao",
+      }),
+    [form.phan_loai_spaulding, form.phuong_phap_tiet_khuan, form.kha_nang_chiu_nhiet],
+  );
 
   if (!open) return null;
 
@@ -113,7 +123,7 @@ export default function LoaiDungCuFormModal({
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-      <form onSubmit={save} className="bg-white w-full max-w-2xl rounded-[var(--radius-shell)] p-8 space-y-4 shadow-2xl border-t-[6px] border-[var(--primary)] max-h-[90vh] overflow-y-auto">
+      <form onSubmit={save} className="bg-white w-full max-w-2xl rounded-[var(--radius-shell)] p-8 space-y-4 shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)] max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h3 className={C.modalTitleLight}>
             {isEdit ? "Cập nhật loại dụng cụ" : "Thêm loại dụng cụ"}
@@ -182,6 +192,13 @@ export default function LoaiDungCuFormModal({
             className={C.controlInput}
           />
         </div>
+        <p className="rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-xs text-emerald-950">
+          <strong>Gợi ý trạm CSSD:</strong> {stationHint.maTramGoiY}
+          <span className="mt-0.5 block text-[11px] font-normal text-emerald-800/90">{stationHint.lyDo}</span>
+          <span className="mt-0.5 block text-[11px] text-slate-500">
+            Đối chiếu mã với danh mục «Trạm workflow CSSD» tại Quản trị. Không tự ghi đè quy trình đang chạy.
+          </span>
+        </p>
         <MdmFormActiveToggleRow active={form.is_active} onChange={(next) => setForm({ ...form, is_active: next })} />
         <button type="submit" disabled={loading} className={`w-full ${C.btnPrimaryBlock} disabled:opacity-60`}>
           {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Lưu

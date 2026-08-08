@@ -5,6 +5,7 @@ import { verifyPermission } from "@/lib/server-permission";
 import { format, parseISO } from "date-fns";
 import { bv103DefaultTuNgayFromDenIso } from "@/lib/bv103-analytics-default-range";
 import { aggregateNkbvDashboard, type NkbvCasRowMinimal } from "../lib/nkbv-dashboard-aggregate";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
 type GiamSatNkbvDashboardFilters = {
   khoa_ghi_nhan_id?: string;
@@ -30,7 +31,7 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
 
   let q = supabase
     .from("v_nkbv_su_kien_full")
-    .select("ngay_phat_hien, loai_ma, loai_ten, trang_thai_ma, trang_thai_ten, khoa_ten")
+    .select("ngay_phat_hien, loai_ma, loai_ten, trang_thai_ma, trang_thai_ten, khoa_ten, khoa_ma")
     .eq("is_active", true)
     .gte("ngay_phat_hien", tuStr)
     .lte("ngay_phat_hien", denStr);
@@ -59,15 +60,23 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
     ngay_phat_hien: x.ngay_phat_hien,
     loai_nkbv: { ma_loai: x.loai_ma, ten_loai: x.loai_ten },
     trang_thai_row: { ma_trang_thai: x.trang_thai_ma, ten_trang_thai: x.trang_thai_ten },
-    khoa_ghi_nhan: { ten_khoa: x.khoa_ten },
+    khoa_ghi_nhan: { ma_khoa: x.khoa_ma, ten_khoa: x.khoa_ten },
   })) as NkbvCasRowMinimal[];
   const payload = aggregateNkbvDashboard(rows, tuStr, denStr);
   
-  return { 
-    success: true as const, 
+  const epidemiologyRates = ((rpcData || []) as Array<Record<string, unknown>>).map((r) => ({
+    ...r,
+    ten_khoa: formatKhoaCompactLabel({
+      ma_khoa: r.ma_khoa != null ? String(r.ma_khoa) : null,
+      ten_khoa: r.ten_khoa != null ? String(r.ten_khoa) : null,
+    }),
+  }));
+
+  return {
+    success: true as const,
     data: {
       ...payload,
-      epidemiologyRates: rpcData || []
-    } 
+      epidemiologyRates,
+    },
   };
 }

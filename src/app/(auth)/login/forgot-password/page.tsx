@@ -1,23 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
 import { requestPasswordResetEmail } from "@/modules/auth/actions/staff-password.actions";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
 export default function ForgotPasswordPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) router.replace("/");
-    });
-  }, [router]);
+  // Không gọi getSession ở đây — proxy đã redirect user có phiên khỏi /login/*.
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +35,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#f8fafc]">
       <div className="flex flex-1 items-center justify-center px-4 py-10">
-        <div className="w-full max-w-md rounded-2xl border border-slate-100 bg-white p-8 shadow-xl">
+        <div className="w-full max-w-md rounded-[var(--radius-shell)] border border-slate-100 bg-white p-8 shadow-[var(--shadow-app-soft)]">
           <h1 className={`text-center ${T.authTitle}`}>Quên mật khẩu</h1>
           <p className={`mt-2 text-center ${T.authSubtitle}`}>
             Nhập email đã đăng ký trong hệ thống để nhận liên kết đặt lại mật khẩu.

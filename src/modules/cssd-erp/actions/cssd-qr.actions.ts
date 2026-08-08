@@ -15,9 +15,9 @@ async function verifyCanResolveCssdCode(): Promise<void> {
 }
 
 export async function resolveCssdCodeAction(rawCode: string): Promise<ResolveCssdCodeResult> {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCanResolveCssdCode();
+    const supabase = createAdminSupabaseClient();
     const resolved = await resolveCssdCodeWithClient(supabase, rawCode);
     return { success: true, ...resolved };
   } catch (e: unknown) {

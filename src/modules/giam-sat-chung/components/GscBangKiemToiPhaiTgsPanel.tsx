@@ -185,9 +185,6 @@ export default function GscBangKiemToiPhaiTgsPanel({
               <ClipboardList className="w-5 h-5 text-[var(--primary)]" />
               BK tôi phải tự giám sát (TGS)
             </h2>
-            <p className="mt-1 text-xs font-medium text-slate-500 max-w-xl leading-relaxed">
-              Mạng lưới KSNK khoa xem bảng kiểm mình phải làm — theo quy định phạm vi trên danh mục BK.
-            </p>
           </div>
           <button
             type="button"

@@ -2,13 +2,14 @@
 
 import React from "react";
 import type { LoaiPhieuBaoTri } from "../../actions/cssd-bao-tri.types";
+import type { BaoTriMachineOption } from "../../actions/cssd-bao-tri-list.actions";
 import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import { matchesDeviceCode, normalizeCssdCode } from "../../shared/domain/cssd-qr-core";
-import QrCameraButton from "@/components/shared/QrCameraButton";
+import QrScanInput from "@/components/shared/QrScanInput";
 
 type Props = {
   open: boolean;
-  machines: { id: string; ma_thiet_bi: string; ten_thiet_bi: string }[];
+  machines: BaoTriMachineOption[];
   selTb: string;
   loaiPhieu: LoaiPhieuBaoTri;
   maMayHoacQr: string;
@@ -20,6 +21,10 @@ type Props = {
   onClose: () => void;
   onSubmit: () => void;
 };
+
+function matchMachine(code: string, machines: BaoTriMachineOption[]) {
+  return machines.find((m) => matchesDeviceCode(code, m.ma_thiet_bi, [m.ma_qr_thiet_bi]));
+}
 
 export default function BaoTriStartModal({
   open,
@@ -36,9 +41,18 @@ export default function BaoTriStartModal({
   onSubmit,
 }: Props) {
   if (!open) return null;
+
+  const applyScan = (raw: string) => {
+    const code = normalizeCssdCode(raw);
+    onMaMayHoacQr(code);
+    if (!code) return;
+    const matched = matchMachine(code, machines);
+    if (matched) onSelTb(matched.id);
+  };
+
   return (
     <div className={`${UI.sectionGap} fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4`} role="dialog" aria-modal="true">
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+      <div className="w-full max-w-md rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-[var(--shadow-app-soft)]">
         <h2 className="text-lg font-semibold text-slate-900">Mở phiếu bảo dưỡng / sửa chữa</h2>
         <p className="mt-1 text-xs text-slate-500">Quét mã máy (nếu có) hoặc chọn tay. Chỉ máy sẵn sàng và không có mẻ TK mở.</p>
 
@@ -61,31 +75,16 @@ export default function BaoTriStartModal({
         </div>
 
         <label className="mt-4 block text-[11px] font-medium text-slate-500">Mã máy / QR máy</label>
-        <div className="mt-1 flex items-center gap-2">
-          <input
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm uppercase"
-            value={maMayHoacQr}
-            onChange={(e) => {
-              const raw = e.target.value;
-              onMaMayHoacQr(raw);
-              const code = normalizeCssdCode(raw);
-              if (!code) return;
-              const matched = machines.find((m) => matchesDeviceCode(code, m.ma_thiet_bi));
-              if (matched) onSelTb(matched.id);
-            }}
+        <div className="mt-1">
+          <QrScanInput
             placeholder="Ví dụ: MAY-01 hoặc mã QR tương đương"
+            cameraTitle="Quét QR máy"
+            onEnter={applyScan}
+            onCameraScan={applyScan}
           />
-          <QrCameraButton
-            onScan={(code) => {
-              onMaMayHoacQr(code);
-              const normalized = normalizeCssdCode(code);
-              if (!normalized) return;
-              const matched = machines.find((m) => matchesDeviceCode(normalized, m.ma_thiet_bi));
-              if (matched) onSelTb(matched.id);
-            }}
-            title="Quét QR máy"
-            className="h-10"
-          />
+          {maMayHoacQr ? (
+            <p className="mt-1 font-mono text-[11px] text-slate-500">Đã nhận: {maMayHoacQr}</p>
+          ) : null}
         </div>
         <label className="mt-4 block text-[11px] font-medium text-slate-500">Thiết bị</label>
         <select className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={selTb} onChange={(e) => onSelTb(e.target.value)}>
@@ -104,7 +103,7 @@ export default function BaoTriStartModal({
           </button>
           <button
             type="button"
-            className="rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[#FFD700]"
+            className="rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white"
             onClick={() => void onSubmit()}
             disabled={!selTb.trim() || !lyDo.trim()}
           >

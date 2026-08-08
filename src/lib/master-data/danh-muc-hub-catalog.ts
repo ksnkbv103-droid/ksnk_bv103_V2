@@ -12,7 +12,14 @@ import { quanTriDungCuHref, quanTriHubHref } from "./quan-tri-paths";
 
 export type DanhMucDomain = "MDM" | "CSSD" | "GSTT" | "QLCV" | "NKBV" | "RBAC";
 
-export type DanhMucHubGroup = "to-chuc" | "cssd" | "giam-sat" | "cong-viec" | "he-thong" | "lookup";
+export type DanhMucHubGroup =
+  | "to-chuc"
+  | "cssd"
+  | "giam-sat"
+  | "nkbv"
+  | "cong-viec"
+  | "he-thong"
+  | "lookup";
 
 export type DanhMucHubTier = "dedicated" | "lookup";
 
@@ -29,22 +36,35 @@ export type DanhMucHubRow = {
   stats?: DanhMucStat;
 };
 
+/** Nhãn hub theo ngôn ngữ viện — key kỹ thuật giữ ổn định. */
 export const DANH_MUC_HUB_GROUP_LABELS: Record<DanhMucHubGroup, string> = {
   "to-chuc": "Tổ chức & nhân sự",
+  "giam-sat": "Giám sát & bảng kiểm",
   cssd: "Master CSSD",
-  "giam-sat": "Master giám sát",
-  "cong-viec": "Master công việc",
-  "he-thong": "Hệ thống",
-  lookup: "Danh mục lookup",
+  nkbv: "NKBV",
+  "cong-viec": "Công việc (mẫu)",
+  "he-thong": "Hệ thống & quyền",
+  lookup: "Danh mục dùng chung",
 };
 
+/** Thứ tự hiển thị hub (SSOT). */
+const DANH_MUC_HUB_GROUP_ORDER: DanhMucHubGroup[] = [
+  "to-chuc",
+  "giam-sat",
+  "cssd",
+  "nkbv",
+  "cong-viec",
+  "lookup",
+  "he-thong",
+];
+
 export const DANH_MUC_DOMAIN_BADGE: Record<DanhMucDomain, { label: string; className: string }> = {
-  MDM: { label: "MDM", className: "bg-rose-50 text-rose-700 ring-rose-600/15" },
+  MDM: { label: "Tổ chức", className: "bg-rose-50 text-rose-700 ring-rose-600/15" },
   CSSD: { label: "CSSD", className: "bg-emerald-50 text-emerald-800 ring-emerald-600/15" },
-  GSTT: { label: "GSTT", className: "bg-orange-50 text-orange-800 ring-orange-600/15" },
-  QLCV: { label: "QLCV", className: "bg-violet-50 text-violet-800 ring-violet-600/15" },
+  GSTT: { label: "Giám sát", className: "bg-orange-50 text-orange-800 ring-orange-600/15" },
+  QLCV: { label: "Công việc", className: "bg-violet-50 text-violet-800 ring-violet-600/15" },
   NKBV: { label: "NKBV", className: "bg-sky-50 text-sky-800 ring-sky-600/15" },
-  RBAC: { label: "RBAC", className: "bg-slate-100 text-slate-700 ring-slate-400/20" },
+  RBAC: { label: "Quyền", className: "bg-slate-100 text-slate-700 ring-slate-400/20" },
 };
 
 const DEDICATED_ROWS: Omit<DanhMucHubRow, "stats">[] = [
@@ -145,6 +165,7 @@ function groupForRegistryEntry(entry: RegistryEntry): DanhMucHubGroup {
   const d = domainForRegistryEntry(entry);
   if (d === "CSSD") return "cssd";
   if (d === "GSTT") return "giam-sat";
+  if (d === "NKBV") return "nkbv";
   if (d === "QLCV") return "cong-viec";
   if (d === "RBAC") return "he-thong";
   if (["KHOI_KHOA", "TO_CONG_TAC", "CHUC_VU", "CHUC_DANH", "NGHE_NGHIEP"].includes(entry.loaiDanhMuc)) {
@@ -235,8 +256,7 @@ export function filterDanhMucHubRows(rows: DanhMucHubRow[], query: string): Danh
 }
 
 export function groupDanhMucHubRows(rows: DanhMucHubRow[]): { group: DanhMucHubGroup; label: string; rows: DanhMucHubRow[] }[] {
-  const order: DanhMucHubGroup[] = ["to-chuc", "cssd", "giam-sat", "cong-viec", "lookup", "he-thong"];
-  return order
+  return DANH_MUC_HUB_GROUP_ORDER
     .map((group) => ({
       group,
       label: DANH_MUC_HUB_GROUP_LABELS[group],

@@ -8,7 +8,9 @@ type DbBkRow = { id: string; ma_bk?: string | null; ten_bang_kiem?: string | nul
 export async function syncBangKiemImportToDatabase(
   supabase: SupabaseClient,
   normalizedGroups: NormalizedBangKiemGroup[],
+  options?: { softDeleteMissing?: boolean },
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  const softDeleteMissing = options?.softDeleteMissing === true;
   const { data: allBKs } = await supabase.from("gstt_dm_bang_kiem").select("ma_bk, ten_bang_kiem, id, tieu_chi_jsonb");
   const bkRows = (allBKs || []) as DbBkRow[];
   const existingBKs = new Map(bkRows.filter((b) => b.ma_bk).map((b) => [String(b.ma_bk), b]));
@@ -137,20 +139,27 @@ export async function syncBangKiemImportToDatabase(
         }
       }
 
-      // Handle soft deletes for missing ones
-      for (const oldTc of currentTcs) {
-         if (oldTc.ma_tc && !importedTCCodes.has(oldTc.ma_tc)) {
-            // It wasn't in the imported children
-            // Add it back but mark as inactive
-            const alreadyAdded = newTcArray.find(t => t.id === oldTc.id);
+      // Soft-delete tiêu chí thiếu trong file (chỉ khi đồng bộ đầy đủ)
+      if (softDeleteMissing) {
+        for (const oldTc of currentTcs) {
+          if (oldTc.ma_tc && !importedTCCodes.has(oldTc.ma_tc)) {
+            const alreadyAdded = newTcArray.find((t) => t.id === oldTc.id);
             if (!alreadyAdded) {
-                newTcArray.push({
-                    ...oldTc,
-                    is_active: false,
-                    updated_at: new Date().toISOString()
-                });
+              newTcArray.push({
+                ...oldTc,
+                is_active: false,
+                updated_at: new Date().toISOString(),
+              });
             }
-         }
+          }
+        }
+      } else {
+        for (const oldTc of currentTcs) {
+          if (oldTc.ma_tc && !importedTCCodes.has(oldTc.ma_tc)) {
+            const alreadyAdded = newTcArray.find((t) => t.id === oldTc.id);
+            if (!alreadyAdded) newTcArray.push(oldTc);
+          }
+        }
       }
       
       // Save new TC array back to DB
@@ -165,13 +174,15 @@ export async function syncBangKiemImportToDatabase(
     }
   }
 
-  const bksToDelete = Array.from(existingBKs.keys()).filter((c) => !importedBKCodes.has(c));
-  if (bksToDelete.length > 0) {
-    const { error } = await supabase
-      .from("gstt_dm_bang_kiem")
-      .update({ is_active: false })
-      .in("ma_bk", bksToDelete);
-    if (error) dbErrors.push(`BK delete missing: ${error.message}`);
+  if (softDeleteMissing) {
+    const bksToDelete = Array.from(existingBKs.keys()).filter((c) => !importedBKCodes.has(c));
+    if (bksToDelete.length > 0) {
+      const { error } = await supabase
+        .from("gstt_dm_bang_kiem")
+        .update({ is_active: false })
+        .in("ma_bk", bksToDelete);
+      if (error) dbErrors.push(`BK delete missing: ${error.message}`);
+    }
   }
 
   if (dbErrors.length > 0) {

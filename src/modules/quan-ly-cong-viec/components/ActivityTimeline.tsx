@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 import {
   User,
   CheckCircle,
@@ -127,7 +126,7 @@ const getActivityConfig = (loai: string): ActivityVisual => {
 export function ActivityTimeline({ activities }: ActivityTimelineProps) {
   if (!activities || activities.length === 0) {
     return (
-      <div className="rounded-2xl border-2 border-dashed border-slate-100 bg-slate-50/50 py-16 text-center">
+      <div className="rounded-[var(--radius-shell)] border-2 border-dashed border-slate-100 bg-slate-50/50 py-16 text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm">
           <Clock className="h-8 w-8 text-slate-300" />
         </div>
@@ -159,7 +158,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
 
             <div className="min-w-0 flex-1 pb-2">
               <div
-                className={`rounded-2xl border p-4 transition-shadow group-hover:shadow-md sm:p-5 ${
+                className={`rounded-[var(--radius-shell)] border p-4 transition-shadow group-hover:shadow-md sm:p-5 ${
                   showCommentStyle
                     ? "border-violet-100/90 bg-violet-50/35"
                     : "border-slate-100 bg-white shadow-sm"
@@ -177,7 +176,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
                     </span>
                   </div>
                   <span className="shrink-0 text-[11px] font-medium uppercase tracking-wide text-slate-400 tabular-nums">
-                    {format(new Date(activity.created_at), "HH:mm • dd/MM/yyyy", { locale: vi })}
+                    {formatDateTimeVi(activity.created_at)}
                   </span>
                 </div>
 

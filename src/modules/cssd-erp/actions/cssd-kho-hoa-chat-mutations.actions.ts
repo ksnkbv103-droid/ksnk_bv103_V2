@@ -42,9 +42,9 @@ export async function nhapKhoHoaChatAction(input: {
   han_su_dung?: string | null;
   ghi_chu?: string | null;
 }) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("KSNK_KHO_HOACHAT", "edit");
+    const supabase = createAdminSupabaseClient();
     const dmId = String(input.dm_hoa_chat_id || "").trim();
     const qty = Number(input.so_luong);
     if (!dmId) return { success: false as const, error: "Chọn hóa chất." };
@@ -78,9 +78,9 @@ export async function xuatKhoHoaChatAction(input: {
   ghi_chu?: string | null;
   su_co_id?: string | null;
 }) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("KSNK_KHO_HOACHAT", "edit");
+    const supabase = createAdminSupabaseClient();
     const dmId = String(input.dm_hoa_chat_id || "").trim();
     const qtyUi = Number(input.so_luong);
     if (!dmId) return { success: false as const, error: "Chọn hóa chất." };
@@ -126,9 +126,9 @@ export async function dieuChinhKhoHoaChatAction(input: {
   ghi_chu?: string | null;
   su_co_id?: string | null;
 }) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("KSNK_KHO_HOACHAT", "edit");
+    const supabase = createAdminSupabaseClient();
     const dmId = String(input.dm_hoa_chat_id || "").trim();
     const delta = Number(input.so_luong_thay_doi);
     if (!dmId) return { success: false as const, error: "Chọn hóa chất." };

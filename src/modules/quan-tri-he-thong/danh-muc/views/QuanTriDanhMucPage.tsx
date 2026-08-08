@@ -19,10 +19,13 @@ import {
   groupDanhMucHubRows,
   type DanhMucHubRow,
 } from "@/lib/master-data/danh-muc-hub-catalog";
+import { quanTriHubHref, type QuanTriHubTab } from "@/lib/master-data/quan-tri-paths";
 import QuanTriDanhMucTabStrip from "./QuanTriDanhMucTabStrip";
 import SearchBar from "@/components/shared/SearchBar";
 import { buildUnifiedHubColumns, type UnifiedHubRow } from "./quan-tri-danh-muc-table-columns";
 import OrgStructurePanel, { DanhMucRecentChangesPanel } from "./QuanTriDanhMucHubPanels";
+import { SystemHealthPanel } from "../../components/SystemHealthPanel";
+import { getPermissionModuleBusinessDescription } from "@/lib/permission-module-business-descriptions";
 
 const HUB_ICONS: Record<string, React.ReactNode> = {
   "dung-cu-loai": <Layers className="h-5 w-5 text-emerald-600" />,
@@ -37,39 +40,52 @@ const HUB_ICONS: Record<string, React.ReactNode> = {
   "phan-quyen": <Settings className="h-5 w-5 text-slate-600" />,
 };
 
-function toUnifiedRow(row: DanhMucHubRow): UnifiedHubRow {
+function toUnifiedRow(row: DanhMucHubRow, showTechnical: boolean): UnifiedHubRow {
   const badge = DANH_MUC_DOMAIN_BADGE[row.domain];
+  const count = row.stats?.count ?? 0;
   return {
     id: row.id,
     name: row.name,
     path: row.path,
     stats: row.stats || { count: 0 },
     icon: HUB_ICONS[row.id] ?? <Layers className="h-5 w-5 text-teal-600" />,
-    subtitle: row.sourceTable,
+    subtitle: showTechnical ? row.sourceTable : undefined,
     domainLabel: badge.label,
     domainClassName: badge.className,
     groupLabel: DANH_MUC_HUB_GROUP_LABELS[row.group],
     tierLabel: row.tier === "dedicated" ? "Trang riêng" : "Lookup",
+    statusKind: count > 0 ? "active" : "empty",
   };
 }
 
 export default function QuanTriDanhMucPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<"DANH_MUC" | "PHAN_QUYEN" | "MDM_GOVERNANCE">("DANH_MUC");
+  const [activeTab, setActiveTab] = useState<"DANH_MUC" | "PHAN_QUYEN" | "MDM_GOVERNANCE" | "SUC_KHOE">(
+    "DANH_MUC",
+  );
   const [stats, setStats] = useState<Partial<TrungTamDanhMucStatsPayload>>({});
   const [loading, setLoading] = useState(true);
   const [registryLoaded, setRegistryLoaded] = useState(false);
   const [registryLoading, setRegistryLoading] = useState(false);
   const [hubSearch, setHubSearch] = useState("");
+  const [showTechnical, setShowTechnical] = useState(false);
   const { loading: permLoading, isAdmin, canView, canEdit } = usePermission();
   const canViewDanhMuc = canView("DANH_MUC");
   const phanQuyenAllowed = { view: canView("PHAN_QUYEN"), edit: canEdit("PHAN_QUYEN") };
   const canConfigureRbac = isAdmin || phanQuyenAllowed.edit;
 
+  const setHubTab = useCallback(
+    (tab: QuanTriHubTab) => {
+      setActiveTab(tab);
+      router.replace(quanTriHubHref(tab), { scroll: false });
+    },
+    [router],
+  );
+
   useEffect(() => {
-    if (!canViewDanhMuc && canConfigureRbac && activeTab !== "PHAN_QUYEN") setActiveTab("PHAN_QUYEN");
-  }, [canViewDanhMuc, canConfigureRbac, activeTab]);
+    if (!canViewDanhMuc && canConfigureRbac && activeTab !== "PHAN_QUYEN") setHubTab("PHAN_QUYEN");
+  }, [canViewDanhMuc, canConfigureRbac, activeTab, setHubTab]);
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -80,6 +96,8 @@ export default function QuanTriDanhMucPage() {
       });
     } else if (tab === "phan_quyen") setActiveTab("PHAN_QUYEN");
     else if (tab === "mdm_governance") setActiveTab("MDM_GOVERNANCE");
+    else if (tab === "suc_khoe") setActiveTab("SUC_KHOE");
+    else if (!tab) setActiveTab("DANH_MUC");
   }, [searchParams]);
 
   useEffect(() => {
@@ -122,12 +140,17 @@ export default function QuanTriDanhMucPage() {
   const filteredCatalog = useMemo(() => filterDanhMucHubRows(catalogRows, hubSearch), [catalogRows, hubSearch]);
   const grouped = useMemo(() => groupDanhMucHubRows(filteredCatalog), [filteredCatalog]);
   const recentChanges = useMemo(() => getRecentDanhMucHubChanges(catalogRows), [catalogRows]);
-  const unifiedFlat = useMemo(() => filteredCatalog.map(toUnifiedRow), [filteredCatalog]);
+  const unifiedFlat = useMemo(
+    () => filteredCatalog.map((r) => toUnifiedRow(r, showTechnical)),
+    [filteredCatalog, showTechnical],
+  );
 
   const go = useCallback((path: string) => router.push(path), [router]);
   const columns = useMemo(() => buildUnifiedHubColumns(go), [go]);
 
   const khoiCount = stats.registryByLoai?.KHOI_KHOA?.count;
+  const danhMucDesc = getPermissionModuleBusinessDescription("DANH_MUC") ?? "Danh mục gốc toàn viện";
+  const phanQuyenDesc = getPermissionModuleBusinessDescription("PHAN_QUYEN") ?? "Ma trận phân quyền";
 
   if (permLoading) {
     return (
@@ -141,7 +164,9 @@ export default function QuanTriDanhMucPage() {
     return (
       <div className="app-empty-state rounded-[var(--radius-shell)] border border-slate-200 bg-[var(--bg-panel)] px-8 py-12 text-center shadow-sm">
         <p className="text-sm font-medium text-slate-600">Không đủ quyền truy cập khu danh mục hoặc phân quyền.</p>
-        <p className="mt-2 text-xs text-slate-500">Liên hệ quản trị nếu cần được cấp quyền.</p>
+        <p className="mt-2 text-xs text-slate-500">
+          Cần quyền xem «{danhMucDesc}» hoặc «{phanQuyenDesc}», hoặc vai trò quản trị. Liên hệ quản trị viên để được cấp.
+        </p>
       </div>
     );
   }
@@ -150,10 +175,10 @@ export default function QuanTriDanhMucPage() {
     return (
       <div className="app-empty-state rounded-[var(--radius-shell)] border border-amber-200 bg-amber-50/40 px-8 py-12 text-center shadow-sm">
         <p className="text-sm font-medium text-slate-800">
-          Tài khoản có nhắc tới quyền Phân quyền nhưng chưa đủ quyền <strong>Sửa</strong> ma trận và không có quyền Danh mục.
+          Tài khoản xem được khu Phân quyền nhưng chưa có quyền <strong>Sửa</strong> ma trận, và cũng chưa có quyền Danh mục.
         </p>
         <p className="mt-2 text-xs text-slate-600">
-          Người dùng cần thêm action <strong>edit</strong> trên module <strong>PHAN_QUYEN</strong> hoặc quyền xem/chỉnh Danh mục để làm việc tại đây.
+          Cần quyền sửa «{phanQuyenDesc}» hoặc xem/chỉnh «{danhMucDesc}» để làm việc tại đây.
         </p>
       </div>
     );
@@ -163,48 +188,82 @@ export default function QuanTriDanhMucPage() {
     <div className="space-y-4 pb-12 animate-in fade-in duration-500 sm:space-y-8 sm:pb-16">
       <QuanTriDanhMucTabStrip
         active={activeTab}
-        onChange={setActiveTab}
+        onChange={setHubTab}
         canAccessDmTabs={canViewDanhMuc}
         canConfigureRbac={canConfigureRbac}
       />
 
       {activeTab === "DANH_MUC" && canViewDanhMuc ? (
         <div className="space-y-6" id="dm-unified-catalog">
+          <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs text-slate-600">
+            <p className="font-medium text-slate-700">Ai làm gì ở đây?</p>
+            <ul className="mt-1 list-inside list-disc space-y-0.5">
+              <li>
+                <strong>Trung tâm danh mục</strong> — định nghĩa khoa, nhân sự, Master CSSD, bảng kiểm… ({danhMucDesc})
+              </li>
+              <li>
+                <strong>Phân quyền</strong> — chỉ mở khi có quyền sửa «{phanQuyenDesc}» (hoặc quản trị)
+              </li>
+              <li>
+                <strong>Bảo vệ liên kết / Sức khỏe</strong> — công cụ IT kiểm tra FK và trạng thái hệ thống
+              </li>
+            </ul>
+          </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <OrgStructurePanel khoiCount={khoiCount} khoaCount={stats.khoa?.count} />
             <DanhMucRecentChangesPanel rows={recentChanges} onOpen={go} />
           </div>
 
           <section className="space-y-4" aria-labelledby="tab-danhmuc-unified">
-            <div>
-              <h2 id="tab-danhmuc-unified" className="text-sm font-semibold text-slate-800">
-                Trung tâm danh mục
-              </h2>
-              <p className="text-xs text-slate-500">
-                Một danh sách thống nhất — trang riêng và lookup — tìm kiếm xuyên catalog.
-              </p>
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <h2 id="tab-danhmuc-unified" className="text-sm font-semibold text-slate-800">
+                  Trung tâm danh mục
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Nhóm: Tổ chức &amp; nhân sự · Giám sát &amp; bảng kiểm · Master CSSD · NKBV · Công việc · Dùng chung · Hệ
+                  thống &amp; quyền. Tìm theo tên hoặc mã danh mục.
+                </p>
+              </div>
+              {(isAdmin || canConfigureRbac) && (
+                <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-slate-600">
+                  <input
+                    type="checkbox"
+                    className="rounded border-slate-300"
+                    checked={showTechnical}
+                    onChange={(e) => setShowTechnical(e.target.checked)}
+                  />
+                  Chi tiết IT (tên bảng)
+                </label>
+              )}
             </div>
             <div className="app-data-shell min-w-0 p-2">
-              <div className="mb-2 min-w-0 px-1">
-                <SearchBar value={hubSearch} onChange={setHubSearch} placeholder="Tìm danh mục, domain, bảng…" />
-              </div>
               {hubSearch.trim() ? (
                 <AdvancedDataTable
                   columns={columns}
                   data={unifiedFlat}
                   loading={loading || registryLoading}
                   onRowClick={(r) => go(r.path)}
-                  hideSearch
+                  searchPlaceholder="Tìm: loại dụng cụ, chức danh, bảng kiểm…"
+                  searchValue={hubSearch}
+                  onSearch={setHubSearch}
                   tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
                 />
               ) : (
                 <div className="space-y-8 px-1 pb-2">
+                  <div className="min-w-0 px-1">
+                    <SearchBar
+                      value={hubSearch}
+                      onChange={setHubSearch}
+                      placeholder="Tìm: loại dụng cụ, chức danh, bảng kiểm…"
+                    />
+                  </div>
                   {grouped.map((section) => (
                     <div key={section.group} className="space-y-2">
                       <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{section.label}</h3>
                       <AdvancedDataTable
                         columns={columns}
-                        data={section.rows.map(toUnifiedRow)}
+                        data={section.rows.map((r) => toUnifiedRow(r, showTechnical))}
                         loading={loading || registryLoading}
                         onRowClick={(r) => go(r.path)}
                         hideSearch
@@ -224,6 +283,10 @@ export default function QuanTriDanhMucPage() {
       ) : activeTab === "MDM_GOVERNANCE" && canViewDanhMuc ? (
         <section aria-labelledby="tab-mdm-governance">
           <MdmGovernanceView />
+        </section>
+      ) : activeTab === "SUC_KHOE" && (canViewDanhMuc || canConfigureRbac) ? (
+        <section aria-labelledby="tab-suc-khoe">
+          <SystemHealthPanel />
         </section>
       ) : null}
     </div>

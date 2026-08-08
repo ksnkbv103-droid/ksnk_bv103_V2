@@ -6,6 +6,7 @@ import type { Column } from "@/components/shared/AdvancedDataTable";
 import type { DanhMucStat } from "../actions/danh-muc-hybrid.types";
 import { quanTriTableChrome as TC } from "../../lib/quan-tri-table-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 
 export type HubRegistryRow = {
   id: string;
@@ -16,10 +17,17 @@ export type HubRegistryRow = {
   subtitle?: string;
 };
 
-function StatusPill() {
+function StatusPill({ kind }: { kind: "active" | "empty" }) {
+  if (kind === "empty") {
+    return (
+      <span className="inline-flex items-center rounded-lg bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 ring-1 ring-inset ring-slate-400/20">
+        Trống
+      </span>
+    );
+  }
   return (
     <span className="inline-flex items-center rounded-lg bg-[var(--surface-success-bg)] px-2 py-0.5 text-[11px] font-medium text-[var(--surface-success-text)] ring-1 ring-inset ring-emerald-600/15">
-      Hoạt động
+      Có dữ liệu
     </span>
   );
 }
@@ -31,6 +39,7 @@ export type UnifiedHubRow = HubRegistryRow & {
   domainClassName: string;
   groupLabel: string;
   tierLabel: string;
+  statusKind: "active" | "empty";
 };
 
 function DomainBadge({ label, className }: { label: string; className: string }) {
@@ -86,7 +95,7 @@ export function buildUnifiedHubColumns(onOpen: (path: string) => void): Column<U
         <div className="flex items-center gap-2 text-slate-500">
           <Clock className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden />
           <time className="text-xs font-medium tabular-nums" dateTime={r.stats?.last}>
-            {r.stats?.last ? new Date(r.stats.last).toLocaleDateString("vi-VN") : "—"}
+            {formatDateVi(r.stats?.last)}
           </time>
         </div>
       ),
@@ -96,7 +105,7 @@ export function buildUnifiedHubColumns(onOpen: (path: string) => void): Column<U
       accessorKey: "status",
       headerClassName: "w-28",
       cellClassName: "align-middle",
-      cell: () => <StatusPill />,
+      cell: (r) => <StatusPill kind={r.statusKind} />,
     },
     {
       header: "",

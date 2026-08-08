@@ -21,6 +21,7 @@ import {
 import { buildTgsHitSet } from "@/lib/analytics/tgs-coverage-mappers";
 import { fetchGscTgsSessionHits } from "@/lib/analytics/gsc-tgs-session-hits";
 import { gscFormHrefForLoaiGiamSat } from "@/modules/giam-sat-chung/lib/gsc-app-paths";
+import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 
 const inputSchema = z.object({
   tu_ngay: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -167,9 +168,10 @@ export async function getBangKiemToiPhaiTgsAction(
     const tong = batBuoc.length;
     const thieu = tong - daTgs;
 
-    const label = khoaCtx.ma_khoa
-      ? `[${khoaCtx.ma_khoa}] ${khoaCtx.ten_khoa}`
-      : khoaCtx.ten_khoa;
+    const label = formatKhoaPickerLabel({
+      ma_khoa: khoaCtx.ma_khoa,
+      ten_khoa: khoaCtx.ten_khoa,
+    });
 
     return {
       success: true,

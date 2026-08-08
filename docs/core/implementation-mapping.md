@@ -67,7 +67,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 | `SterilizationBatch` (Mẻ hấp) | `cssd-erp` | **`cssd_fact_lo_tiet_khuan`** (view compat `fact_lo_tiet_khuan`, `lo_tiet_khuan`) | Liên kết `cssd_fact_quy_trinh.lo_tiet_khuan_id`. Chuỗi: nạp bộ (DONG_GOI) → `tk_chot_nap_at` → `tk_mo_form_qc_at` → `ket_qua_test` + `tk_qc_json`. |
 | `LifecycleAuditLog` | `cssd-erp` | **`cssd_fact_quy_trinh.metadata`** (ngoại lệ, audit QR) | DROP `cssd_fact_lifecycle_event`, `cssd_fact_nhat_ky_quet` (`20260622120000`). Không còn bảng `cssd_fact_nhat_ky_quet`. |
 | `ComponentSplit` / rẽ nhánh tiệt khuẩn | `cssd-erp` | **`registerSplitSubQrFromMainMaAction`**, batch actions, **`cssd-merge-gate`** | Persist mẻ: [`persist-me-tiet-khuan.ts`](../../src/modules/cssd-erp/helpers/persist-me-tiet-khuan.ts). |
-| Runtime cấu phần (ledger) | `cssd-erp` | **`cssd_fact_quy_trinh.metadata.bom_lines`** + **`bom_kiem_dem_at`** | DROP `cssd_fact_quy_trinh_thanh_phan`; gate cấp phát: `bom_kiem_dem_at IS NOT NULL`. |
+| Runtime cấu phần (ledger) | `cssd-erp` | **`cssd_fact_quy_trinh.metadata.bom_lines`** + **`bom_kiem_dem_at`** | DROP `cssd_fact_quy_trinh_thanh_phan`; cấp phát: **soft-warning** thiếu cấu phần (Q2) — `bom_kiem_dem_at` là audit đóng gói, **không** hard gate. |
 | Sự cố CSSD | **`cssd-su-co`** (UI `/cssd-su-co`) | **`cssd_fact_su_co.attributes`** + `loai_su_co_id` → `LOAI_SU_CO` (SC_QUY_TRINH/SC_CHU_QUAN/SC_HE_THONG); generated `incident_group` | 3 lớp: nhóm nghiệp vụ · bản chất nguyên nhân · tình huống cụ thể; domino **`cssd-incident-policy`**. |
 | NKBV ↔ CSSD trace | `giam-sat-nkbv` + `/cssd-quy-trinh?tab=trace` | **`nkbv_fact_su_kien.quy_trinh_id`**, **`ma_cycle_qr_lien_quan`** | Ca SSI nhập QR bộ → deep link timeline (`20260602150000`). |
 | Phiếu bảo trì thiết bị / khóa máy | `cssd-erp` | **`cssd_fact_bao_tri`**, `cssd_dm_thiet_bi.trang_thai` (`REPAIRING` ↔ `READY`) | UI **`/cssd-erp/equipment-maintenance`**; chặn mẻ TK khi máy không sẵn sàng (`assert-thiet-bi-cho-me-tiet-khuan`). |
@@ -97,8 +97,18 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 | Ba cổng (phê đề xuất / nhận việc / nghiệm thu xong) | `quan-ly-cong-viec` | **`qlcv_fact_cong_viec.trang_thai`** (Track B CHECK): `MOI`, `DANG_LAM`, `CHO_DUYET`, `HOAN_THANH`, `TU_CHOI`, `QUA_HAN`, `DA_HUY` | Nhật ký **`qlcv_fact_cong_viec.nhat_ky`** jsonb (thay bảng `hoat_dong`). |
 | Người giao (RACI) | `quan-ly-cong-viec` | **`qlcv_fact_cong_viec.nguoi_giao_viec_id`** → `mdm_nhan_su` | Ghi khi phê duyệt đề xuất / tạo việc trực tiếp. |
 | Việc định kỳ (mẫu → instance) | `quan-ly-cong-viec` | **`qlcv_fact_cong_viec_dinh_ky`**; instance có **`qlcv_fact_cong_viec.dinh_ky_mau_id`** | RPC idempotent: `public.fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay()`. |
+| Nhiệm vụ (mục tiêu) | `quan-ly-cong-viec` | **`qlcv_fact_nhiem_vu`** (`nam`/`quy`/`thang`/`han`); FK `nhiem_vu_id` trên phiếu + mẫu định kỳ | Độc lập — không còn `chuong_trinh` / mốc / KH tuần (`20260802140000`). |
+| Địa điểm thực hiện QLCV | `quan-ly-cong-viec` | **`dia_diem_khoa_id`** → `mdm_dm_khoa_phong` (+ `vi_tri_thuc_hien` chi tiết) | Khác phạm vi KSNK-only (ai được giao việc). Mẫu định kỳ có thêm `gio_bat_dau`/`gio_ket_thuc`. Phiếu có `ngay_thuc_hien`/`gio_*`. |
 | `Task` lifecycle (legacy naming trong spec) | `quan-ly-cong-viec` | `qlcv_fact_cong_viec` (view list `v_fact_cong_viec_full`) | Không dùng enum TODO/IN_PROGRESS của spec nguyên bản. |
 | KPI / đánh giá tháng (Track A) | — | **Đã gỡ pilot** (`20260531200000_qlcv_drop_monthly_kpi_pilot.sql`) | UI lean không còn tab KPI; không restore trừ khi có slice mới. |
+
+---
+
+## Đào tạo / Thi KSNK
+
+| Spec term | Module | Bảng / thực thể thật | Ghi chú |
+|-----------|--------|---------------------|---------|
+| Ngân hàng MCQ + thi thử/thật | `dao-tao` | **Lean 3 bảng** + `ma_cau` upsert; export/import P4; `dao_tao_cau_hinh` / `dao_tao_lan_thi` | Route `/dao-tao`; quyền `DAO_TAO`; engine `src/lib/dao-tao/`. Migrations `…150000` + lean `…160000` + `ma_cau` `20260802120000`. |
 
 ---
 
@@ -106,7 +116,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Spec term | Module | Bảng / thực thể thật | Ghi chú |
 |-----------|--------|---------------------|---------|
-| `HAI` / ca NKBV (ghi nhận BV103) | `giam-sat-nkbv` | **`nkbv_fact_benh_an`**, **`nkbv_fact_vi_sinh`**, **`nkbv_fact_su_kien`**, **`nkbv_fact_mau_so_daily`**, **`nkbv_fact_mau_so_phau_thuat`**; DM **`nkbv_dm_loai`**, **`nkbv_dm_trang_thai_ca`**, **`nkbv_dm_cdc_baseline`** | Route **`/giam-sat-nkbv`**, quyền **`GIAM_SAT_NKBV`**. Schema chuẩn hóa từ `20260524000000_nkbv_normalized_stay_centric`. View compat: `dm_loai_nkbv`, `dm_trang_thai_nkbv_ca`, `fact_nkbv_*`. |
+| `HAI` / ca NKBV (ghi nhận BV103) | `giam-sat-nkbv` | **`nkbv_fact_benh_an`**, **`nkbv_fact_vi_sinh`**, **`nkbv_fact_su_kien`**, **`nkbv_fact_mau_so_daily`**, **`nkbv_fact_mau_so_phau_thuat`**, **`nkbv_fact_device_registry`**; DM **`nkbv_dm_loai`**, **`nkbv_dm_trang_thai_ca`**, **`nkbv_dm_cdc_baseline`** | Route **`/giam-sat-nkbv`**, quyền **`GIAM_SAT_NKBV`**. Schema chuẩn hóa từ `20260524000000_nkbv_normalized_stay_centric`. Device Registry W1: `20260804190000_nkbv_device_registry`. View compat: `dm_loai_nkbv`, `dm_trang_thai_nkbv_ca`, `fact_nkbv_*`. |
 | Loại NKBV / HAI | `giam-sat-nkbv` + hub danh mục | `nkbv_dm_loai` | Registry hub `LOAI_NKBV`. |
 | Trạng thái phiếu NKBV | `giam-sat-nkbv` + hub | `nkbv_dm_trang_thai_ca` | Registry hub `TRANG_THAI_NKBV_CA`. |
 
@@ -114,7 +124,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Phân hệ (spec §04 / journeys) | Trạng thái BV103 | Ghi chú |
 |------------------------------|------------------|---------|
-| HAI / NKBV **Rules CDC** + tích hợp HIS/LIS | Lộ trình [`handover-roadmap.md`](./handover-roadmap.md) | **Chưa** — ngoài MVP; SSOT ca: `nkbv_fact_benh_an` / `nkbv_fact_su_kien`. `nkbv_dm_cdc_baseline` seed-only (rules engine roadmap). |
+| HAI / NKBV **Rules CDC** + cổng LIS | `giam-sat-nkbv` | **Rules engine** `nkbv-rules-engine.ts` + shared `nkbv-shared-timeline` / `nkbv-shared-secondary-bsi` / `nkbv-shared-device-days` (BSI/UTI/VAE/PNEU/SSI); cổng LIS copy+Excel `nkbv-lis-adapter.ts` (không API HIS realtime). VAE vent-first + PNEU multi-trigger 2026-08. Device Registry W1 2026-08-04. |
 | Laundry, Waste, Environmental + HIS | `domain-specification.md` (lộ trình) | Triển khai sau BRD + permission registry. |
 | REST `/api/v1/proxy/...` | **Không** — Server Actions + Supabase | Payload thiết kế có thể map FHIR sau. |
 
@@ -131,8 +141,32 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-08-09 | **NKBV lưới BA cải tổ:** unique index `ux_nkbv_ba_timeline_ba_date_criteria` (chống lặp XQ/TC active theo BA+ngày+criteria) + RPC `fn_nkbv_ba_hub` gộp 5 query hub thành 1 round-trip (SECURITY INVOKER); action timeline insert-first bắt 23505, `verifyAnyPermission` 1 lần. Migration `20260809120000`. |
+| 2026-08-02 | **QLCV A+2 tinh gọn:** DROP `qlcv_fact_ke_hoach_tuan`/`_dong`, `qlcv_fact_chuong_trinh`, `qlcv_fact_nhiem_vu_moc`; `nhiem_vu` bỏ `ke_hoach_id`; phiếu bỏ `chuong_trinh_id`/`moc_id`/`ke_hoach_tuan_dong_id`; wipe trial; UI tabs Điều hành · Nhiệm vụ · Định kỳ. Migration `20260802140000`. |
+| 2026-07-31 | **QLCV Kế hoạch năm → Nhiệm vụ → Mốc → Việc:** *(lịch sử — đã gỡ A+2)* `20260731160000`. |
+| 2026-07-31 | **QLCV kế hoạch + chương trình:** giờ trên mẫu định kỳ; `dia_diem_khoa_id` (MDM) trên mẫu/dòng tuần/phiếu; tự nạp occurrence tuần; `qlcv_fact_chuong_trinh` + tiến độ; in tuần đủ cột. Migration `20260731140000`. |
+| 2026-07-31 | **QLCV bảng phân công tuần:** `qlcv_fact_ke_hoach_tuan` + `_dong`; Nháp→Chốt (`fn_qlcv_ke_hoach_tuan_publish`)→Điều chỉnh→Khóa snapshot; cột lịch phiếu; UNIQUE spawn; tab UI «Phân công tuần» + in gộp. Migration `20260731120000`. |
+| 2026-07-31 | **Page chrome L1 thống nhất:** `KsnkPageChrome` + `pageChromeShell`; Hero/PageHeader/ListHeader/AnalyticsFrame wrapper; VST/GSC ModeNav trong chrome; `/thong-ke` một sticky (tab+filter portal); `pageOuterAnalytics` = alias `pageOuter`. Contract: `page-chrome-contract-20260731.md`. |
+| 2026-07-31 | **Full System Audit + Wave 1 UI / W2 harden:** open-backlog + scorecard UI + PO summary; dialect matrix (Ops/Analytics/Admin); thin CC; `KsnkContextBanner`; `/thong-ke` `embedded` frame; DaoTao bỏ pad kép; width NKBV/QLCV; `master-crud-core` không còn `"use server"`; `requireDaoTaoUser` + `DAO_TAO` view. Docs: `open-backlog-20260731.md`, `ui-consistency-scorecard-20260731.md`, `design-dialect-matrix-20260731.md`. |
+| 2026-07-31 | **Giám sát analytics (không CCS):** deprecate CCS trên surface BCTH/Command Center/in; xu hướng đa line theo BK; ẩn chiều vol=0; góc thời điểm; in SVG chart; export Excel thô VST/GSC; in mẫu trống GSC; lọc mẫu form theo `ap_dung` cho mạng lưới. Spec: [`metric-dictionary.md`](../modules/dashboard/metric-dictionary.md). |
+| 2026-07-29 | **Báo cáo tổng hợp Sprint 3 (plan):** so sánh đa chiều khối/khu vực/đối tượng (`ComprehensiveDimensionCompare`); capability `compare_khoi` từ matrix; deep-link giữ query khi redirect analytics; checklist UAT [`pilot-checklist-bao-cao-tong-hop.md`](../modules/dashboard/pilot-checklist-bao-cao-tong-hop.md). |
+| 2026-08-02 | **UI B+3 residual cleanup:** QRScanSuccessCard bỏ poster vàng; heat/NKBV banner → `KsnkContextBanner` (+ tone `rose`); CTA `#FFD700`→trắng; typography CSSD làm mỏng; QLCV Detail bỏ shadcn Button; SearchableSelect/MultiSelect shell soft. |
+| 2026-08-02 | **Đào tạo ngân hàng P4:** `ma_cau` unique (`20260802120000`); export mẫu/NH + import dry-run/upsert/sync_full; UI bật-tắt + sửa nhanh. |
+| 2026-08-09 | **NKBV kho vi sinh chuẩn hóa bệnh phẩm CDC:** cột `loai_benh_pham_chuan` + SSOT `nkbv-specimen-canonical`; kho dạng bảng (LIS \| chuẩn), CRUD + xóa cứng có chặn, MDRO nhanh; major/RIT/hội chứng ưu tiên mã chuẩn. Migration `20260809140000`. |
+| 2026-07-29 | **Đào tạo lean 3 bảng:** gộp 8→`dao_tao_cau_hoi`·`dao_tao_cau_hinh`·`dao_tao_lan_thi` (`20260729160000`); phương án + đề snapshot JSONB; giữ id PA để chấm shuffle an toàn. |
+| 2026-07-29 | **Đào tạo / Thi KSNK (MVP):** module `dao-tao` — thi thử (mức độ↔số câu/phút) + thi thật (gán khoa); import Excel MCQ; rút đề loại×Bloom×chủ đề; shuffle đáp án theo id (an toàn `order`); timer server. Migration `20260729150000_dao_tao_exam_module.sql`. |
+| 2026-07-29 | **CSSD sự cố / analytics view:** local xác nhận `v_cssd_quy_trinh_full` đã có `khoa_su_dung_id`·`khoa_nhan_id`·`is_red_alert` (`20260724100000`+`20260729122000`); report analytics SELECT cột khoa optional qua `tableHasColumn` — hết lỗi `khoa_su_dung_id does not exist` khi DB chưa migrate. |
+| 2026-07-29 | **QLCV phân công + in/Điều hành:** cột `vi_tri_thuc_hien`, `nguoi_phoi_hop_ids`, `nguoi_theo_doi_ids` (fact + mẫu định kỳ, spawn copy) `20260729170000`; in kế hoạch/thực thi/phiếu chi tiết; Điều hành mặc định lọc theo kỳ (đột xuất + định kỳ). |
+| 2026-07-29 | **QLCV đột xuất vs định kỳ:** form Điều hành mặc định/chỉ DOT_XUAT·KHAN_CAP; CRUD mẫu + checklist editor + YEARLY (`20260729140000`); chip `dinh_ky_mau_id`; tổng hợp kỳ + lọc Điều hành; CC brief định kỳ; in kế hoạch/thực thi tuần–tháng–quý–năm. |
+| 2026-07-28 | **CSSD domain overview (PO chốt):** [`domain-overview.md`](../modules/cssd/domain-overview.md) — ranh giới, 6 trạm, mẻ, QR, luật đóng băng; domain-spec §2.2 mở rộng; wiki entities sửa lệch «kho = trạm»; mapping ledger CAP_PHAT soft-warning (bỏ ghi hard gate `bom_kiem_dem_at`). |
+| 2026-07-28 | **Entity QR toàn viện:** SSOT `src/lib/entity-qr/` + hook `useEntityQr` / `EntityQrBlock`; phiếu GSC/VST/sự cố in QR; cổng quét `/qr` mở lại bản ghi (`GSC-`/`VST-`/`SC-`/`NKBV-`/`QLCV-`/`LOC-*` + CSSD); deep-link GSC `?edit=` + NKBV `?case=`; tem vị trí khoa. Doc: [`entity-qr-allocation-20260728.md`](../reference/architecture/entity-qr-allocation-20260728.md). |
+| 2026-07-28 | **CSSD QR Hub SSOT:** mọi quét vận hành → `resolveCssdCodeWithClient` (cycle / `ma_bo` / máy / `LOT-`); catalog+NKBV+sự cố bỏ lookup hẹp; Kho + fleet máy thêm `QrScanInput`; success card QR local (`qrcode`). |
+| 2026-08-04 | **NKBV SSOT alignment W0–W2:** ADR + roadmap + gap catalog; shared timeline/SBSI/device-days; `nkbv_fact_device_registry`; harden PNEU VAP label + VAE non-IWP metrics; mau_so Registry preview. W4–W6 tạm dừng. |
+| 2026-07-26 | **Import/Export harden:** CSSD Kho thống nhất `ma_vach_qr`; Nhân sự export qua `getNhanSuExportData`; dialog Import an toàn (`softDeleteMissing`); NKBV MD5 SSOT `buildViSinhUniqueKey`; GSC Excel import deprecate (no UI). |
 | 2026-07-24 | **CSSD cờ cảnh báo đỏ trên quy trình:** thêm `cssd_fact_quy_trinh.is_red_alert` + expose `v_cssd_quy_trinh_full` (`20260724100000`); backfill từ sự cố; báo sự cố/import luôn ghi cờ — hết lỗi `column …is_red_alert does not exist` trên bản đồ 6 trạm/kho. |
 | 2026-07-18 | **RBAC gom 5 vai trò:** `ADMIN` · `HOI_DONG_KSNK` · `NHAN_VIEN_KSNK` · `MANG_LUOI_KSNK` · `KHACH_THONG_KE_GSTT`. Gộp Tổ trưởng/Thành viên → Mạng lưới; soft-deprecate `BAN_QLCL`/`KHOA_TRANG_BI`. Migration `20260718100000` + ensure Khách `20260718110000`. UI: Đồng bộ Registry ≠ Áp dụng preset; `local:golden:reset` có `--with-presets`. |
+| 2026-07-29 | **CSSD Analytics + 4 trụ quản trị:** metric-dictionary chương CSSD/năng suất; `/cssd-erp/report` tabs Sản lượng·Bộ·Máy·NV; `/thong-ke/cssd` redirect; Command Center `CommandCenterFourPillarsBrief`; BCTH phụ lục `bc-cssd` + in A4. Pure lib `src/lib/analytics/cssd-metrics/`. **Không** gộp CSSD vào CCS. |
+| 2026-07-29 | **Thống kê mô tả (chương trình):** roadmap [`descriptive-analytics-roadmap-20260729.md`](../modules/dashboard/descriptive-analytics-roadmap-20260729.md); metric-dictionary § câu mô tả 4 trụ; UAT baseline §F trong [`uat-after-reform-20260728.md`](../reference/architecture/uat-after-reform-20260728.md). Pha 1–5: narrative 4 trụ, draft Phần III BCTH, cầu QLCV Thiếu TGS, so kỳ lãnh đạo, panel sức khỏe Quản trị. **Không** đổi CCS. |
 | 2026-07-19 | **Cloud migration history align (prod `cvzwslpxwgqiugzzhqej`):** orphan `20260717063027` (duplicate VST nghe_nghiep registry) → reverted; ghi nhận `20260717140000`…`20260718110000` khớp git/local; RBAC taxonomy + Khách apply trên cloud. |
 | 2026-07-18 | **Sidebar Quản trị 1 cổng:** chỉ «Quản trị hệ thống» → `/quan-tri-he-thong`; gỡ shortcut Khoa/Master CSSD/BK/Lookup/Phân quyền/Tài khoản trên sidebar (chọn trong hub). SSOT `sidebar-admin-nav-groups.ts`. |
 | 2026-07-18 | **Sidebar module-first:** gỡ khỏi sidebar Thống kê VST/GSC, Lịch sử giám sát, hub `/giam-sat`; nhóm «Điều hành KSNK» (CC + Báo cáo tổng hợp) + «Giám sát» (3 module). Route `/lich-su/*` `/thong-ke/*` giữ cho ModeNav/deep-link. SSOT `sidebar-nav-groups.ts`. |
@@ -237,6 +271,8 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 | 2026-06-04 | **D-07 views:** live `gstt_fact_*_summary` VIEW thay bảng DROP (`20260604140000`) — RPC strategic không đổi contract. |
 | 2026-06-04 | **QLCV TEXT+CHECK (D-QLCV-01):** cột `trang_thai`/`loai_cong_viec` + CHECK + trigger sync FK (`20260604120000`); app dual-write. |
 | 2026-06-04 | **Typography gate:** codemod `text-[8px]`/`text-[9px]` → `text-[11px]`; `layout:typography-check` fail on drift. |
+| 2026-07-29 | **Dashboard Điều khiển quản trị (M1–M4):** hàng đợi «Cần quyết định hôm nay» (`decision-queue`); PDCA `qlcv_fact_cong_viec.analytics_meta` + khối can thiệp Δ; mục tiêu viện `ksnk_dm_muc_tieu_kpi` trên BCTH; trụ D rate/SIR; định mức phiên NV (`resource-norms`); CSSD `khoa_nhan_id` + `cap_phat_theo_khoa_nhan`. Migrations `20260729120000`–`122000`. Spec: [`metric-dictionary.md`](../modules/dashboard/metric-dictionary.md). **Không đổi CCS.** |
+| 2026-07-28 | **Cải tổ đẳng cấp Sóng 0–2:** QR luôn hiện + in tem danh mục bộ (`InlineEntityQrThumb`, `BoDungCuPrintQrButton`); sidebar giám sát hub-first + QR trong nhóm Giám sát; CSSD ModeNav 2 cụm Vận hành/Tra cứu; D-19 copy tem bộ vs chu trình (`CssdQrLabelKindsNotice`). UAT: [`uat-after-reform-20260728.md`](../reference/architecture/uat-after-reform-20260728.md). Roadmap deferred: [`roadmap-dang-cap-wave4-20260728.md`](../reference/architecture/roadmap-dang-cap-wave4-20260728.md). |
 | 2026-07-01 | **CSSD sự cố dụng cụ thống nhất:** form `/cssd-su-co` theo preset (dropdown thành phần bộ, validate SL ≤ thực tế); nhóm INSTRUMENT không rollback quy trình; `su_co_id` trên `cssd_fact_kho_giao_dich` + RPC `rpc_cssd_apply_instrument_ledger`; catalog `/cssd-dung-cu` read-only (bỏ prompt Hỏng/Mất); lối tắt trạm Đóng gói → `IncidentReportModal`. |
 | 2026-07-01 | **CSSD Đóng gói — bỏ BOM modal:** quét `DONG_GOI` trực tiếp + `rpc_cssd_assign_cycle_qr`; panel đối chiếu `v_cssd_bo_dung_cu_chi_tiet_realtime` + `DungCuSuCoModal` (Hỏng/Mất/Bổ sung); gate cấp phát soft-warning realtime (không hard `bom_kiem_dem_at`). Flag legacy: `BV103_FEATURE_BOM_CHECKLIST=1`. |
 | 2026-06-30 | **Audit tổng thể:** DROP compat `dm_bang_kiem` (reprise) + RPC `rpc_gstt_dm_bang_kiem_max_numeric_suffix` (`20260701000000`); SQL audit scripts JSON single-query; layout drift 38→0. Evidence: [audit-evidence-pack-20260630.md](../archive/reports/audit-evidence-pack-20260630.md). |

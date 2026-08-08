@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -9,7 +10,7 @@ const debugConnection = !isProd && process.env.NEXT_PUBLIC_DEBUG_SUPABASE === "1
 
 if (debugConnection) {
   console.log("--- [DEBUG] KIỂM TRA KẾT NỐI SUPABASE (dev, NEXT_PUBLIC_DEBUG_SUPABASE=1) ---");
-  console.log("Thời gian:", new Date().toLocaleString("vi-VN"));
+  console.log("Thời gian:", formatDateTimeVi(new Date()));
   console.log("URL Gốc:", supabaseUrl);
   console.log("KEY Gốc:", supabaseAnonKey ? `${supabaseAnonKey.substring(0, 15)}...` : "MISSING");
 }

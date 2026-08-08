@@ -99,7 +99,6 @@ function CssdQuyTrinhPageInner() {
           Chu trình xử lý <span className="text-[var(--primary)]">dụng cụ</span>
         </>
       }
-      subtitle="Quét xác nhận tại trạm, tiệt khuẩn, giám sát kho và hạn sử dụng dụng cụ."
     >
       <div className="space-y-4 sm:space-y-6">
         <div className={CSSD_UI_TAB_GROUP}>

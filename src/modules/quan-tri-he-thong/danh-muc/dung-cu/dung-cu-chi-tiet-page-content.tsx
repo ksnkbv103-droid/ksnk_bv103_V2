@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { Plus, List, Download, Upload, Loader2 } from "lucide-react";
+import { Plus, List } from "lucide-react";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
+import { ImportExportHint, ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { smartImportData } from "../actions/smart-import.actions";
 import { getMasterDataExport } from "../actions/export.actions";
 import { toast } from "sonner";
@@ -132,8 +133,12 @@ export function DungCuChiTietPageContent() {
     uniqueKey: "ma_chi_tiet",
     columnMapping: DC_CHI_TIET_COLUMN_MAP,
     onGetData: () => getMasterDataExport("cssd_dm_bo_dung_cu_chi_tiet", "ma_chi_tiet"),
-    onImport: (d) =>
-      smartImportData({ tableName: "cssd_dm_bo_dung_cu_chi_tiet", uniqueKey: "ma_chi_tiet", codePrefix: "DC" }, d),
+    onImport: (d, options) =>
+      smartImportData(
+        { tableName: "cssd_dm_bo_dung_cu_chi_tiet", uniqueKey: "ma_chi_tiet", codePrefix: "DC" },
+        d,
+        { softDeleteMissing: options?.softDeleteMissing, dryRun: options?.dryRun },
+      ),
     onSuccess: () => {
       setRefreshKey((k) => k + 1);
       router.refresh();
@@ -145,31 +150,28 @@ export function DungCuChiTietPageContent() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
-        accept=".xlsx, .xls"
-        className="hidden"
-      />
       <KsnkListPageHeader
         icon={List}
         title="Dụng cụ chi tiết"
         eyebrow="Danh mục master · Chi tiết trong bộ dụng cụ"
         actions={
           <>
-            <button type="button" onClick={triggerImport} disabled={isImporting} className={C.ctaAmber}>
-              {isImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />} Import dữ liệu
-            </button>
-            <button type="button" onClick={() => exportTemplate()} className={C.ctaMuted}>
-              <Download size={16} /> Export dữ liệu mẫu
-            </button>
+            <ImportExportToolbar
+              fileInputRef={fileInputRef}
+              isImporting={isImporting}
+              onExport={() => void exportTemplate()}
+              onImportClick={triggerImport}
+              onFileChange={(file) => void handleFileUpload(file)}
+              exportClassName={C.ctaMuted}
+              importClassName={C.ctaAmber}
+            />
             <button type="button" onClick={openCreate} className={C.ctaPrimary}>
               <Plus size={18} /> Thêm mới
             </button>
           </>
         }
       />
+      <ImportExportHint />
       <div className="bg-white p-2 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm min-w-0 sm:min-h-[450px]">
         <AdvancedDataTable
           columns={columns}

@@ -4,13 +4,23 @@ import { z } from "zod";
 import { getGscStrategicAnalytics } from "@/modules/giam-sat-chung/actions/gsc-strategic-analytics.actions";
 import { getVstStrategicAnalytics } from "@/modules/giam-sat-vst/actions/vst-strategic-analytics.actions";
 import { getGiamSatNkbvDashboardPayload } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-dashboard.actions";
+import { fetchCssdAnalyticsBundle } from "@/modules/cssd-erp/actions/cssd-report-read.actions";
+import { describeCssdKhoaOwnershipProxy } from "@/lib/analytics/cssd-metrics/cssd-analytics-core";
 import { verifyBaoCaoTongHopShell } from "../lib/dashboard-command-center-access";
-import { composeBaoCaoTongHopPayload, shouldFetchSource } from "../lib/bao-cao-tong-hop-core";
+import {
+  composeBaoCaoTongHopPayload,
+  computeCcs,
+  computeTyLeGsc,
+  computeTyLeVst,
+  shouldFetchSource,
+} from "../lib/bao-cao-tong-hop-core";
+import { previousEqualLengthPeriod } from "../lib/bao-cao-period-compare";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import type { NkbvDashboardPayload } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
 import type {
   BaoCaoChuyenDe,
+  BaoCaoCssdAppendix,
   BaoCaoTongHopFilters,
   BaoCaoTongHopPayload,
   SourceLoadStatus,
@@ -67,12 +77,14 @@ export async function getBaoCaoTongHopAnalytics(
     vst: "skipped" as SourceLoadStatus,
     gsc: "skipped" as SourceLoadStatus,
     nkbv: "skipped" as SourceLoadStatus,
+    cssd: "skipped" as SourceLoadStatus,
   };
-  const errors: { vst?: string; gsc?: string; nkbv?: string } = {};
+  const errors: { vst?: string; gsc?: string; nkbv?: string; cssd?: string } = {};
 
   let vst: VstStrategicPayload | null = null;
   let gsc: GscStrategicPayload | null = null;
   let nkbv: NkbvDashboardPayload | null = null;
+  let cssd: BaoCaoCssdAppendix | null = null;
 
   const tasks: Promise<void>[] = [];
 
@@ -113,6 +125,85 @@ export async function getBaoCaoTongHopAnalytics(
     );
   }
 
+  // CSSD phụ lục — luôn cố gắng tải khi chuyên đề ALL (không đổi CCS). Soft-fail.
+  if (chuyenDe === "ALL") {
+    tasks.push(
+      fetchCssdAnalyticsBundle({ from: f.tu_ngay, to: f.den_ngay, station: "ALL" }).then((res) => {
+        if (!res.success) {
+          sources.cssd = /permission|quyền|denied|403/i.test(res.error) ? "denied" : "error";
+          errors.cssd = res.error;
+          return;
+        }
+        sources.cssd = "ok";
+        const b = res.data.brief;
+        const ownership = describeCssdKhoaOwnershipProxy(res.data.boByKhoa, 5);
+        cssd = {
+          san_luong_cap_phat: b.san_luong_cap_phat,
+          tong_hoan_thanh_tram: b.tong_hoan_thanh_tram,
+          ty_le_quy_trinh_khong_su_co: b.ty_le_quy_trinh_khong_su_co,
+          so_bo_danh_muc: b.so_bo_danh_muc,
+          so_me_ky: b.so_me_ky,
+          ty_le_qc_dat_me: b.ty_le_qc_dat_me,
+          may_ready: b.may_ready,
+          may_repairing: b.may_repairing,
+          station_volume: res.data.stationVolume.map((s) => ({
+            station: s.station,
+            label: s.label,
+            completed: s.completed,
+          })),
+          khoa_ownership_proxy: {
+            disclaimer: ownership.disclaimer,
+            top: ownership.top,
+          },
+        };
+      }),
+    );
+  }
+
+  // Kỳ trước cùng độ dài — chạy song song với tải kỳ hiện tại (soft-fail).
+  let kyTruoc:
+    | {
+        tu_ngay: string;
+        den_ngay: string;
+        ty_le_vst: number | null;
+        ty_le_gsc: number | null;
+        ty_le_ccs: number | null;
+      }
+    | null = null;
+  const priorBounds = previousEqualLengthPeriod(f.tu_ngay, f.den_ngay);
+  if (priorBounds && (shouldFetchSource(chuyenDe, "VST") || shouldFetchSource(chuyenDe, "GSC"))) {
+    const priorInput = {
+      ...analyticsInput,
+      tu_ngay: priorBounds.tu_ngay,
+      den_ngay: priorBounds.den_ngay,
+    };
+    tasks.push(
+      (async () => {
+        const [priorVst, priorGsc] = await Promise.all([
+          shouldFetchSource(chuyenDe, "VST")
+            ? getVstStrategicAnalytics(priorInput)
+            : Promise.resolve(null),
+          shouldFetchSource(chuyenDe, "GSC")
+            ? getGscStrategicAnalytics(priorInput)
+            : Promise.resolve(null),
+        ]);
+        const priorVstPct =
+          priorVst && priorVst.success ? computeTyLeVst(priorVst.data.kpis) : null;
+        const priorGscPct =
+          priorGsc && priorGsc.success ? computeTyLeGsc(priorGsc.data.kpis) : null;
+        if (priorVstPct != null || priorGscPct != null) {
+          kyTruoc = {
+            tu_ngay: priorBounds.tu_ngay,
+            den_ngay: priorBounds.den_ngay,
+            ty_le_vst: priorVstPct,
+            ty_le_gsc: priorGscPct,
+            ty_le_ccs: computeCcs(priorVstPct, priorGscPct).value,
+          };
+        }
+      })(),
+    );
+  }
+
   await Promise.all(tasks);
 
   const payload = composeBaoCaoTongHopPayload({
@@ -120,16 +211,23 @@ export async function getBaoCaoTongHopAnalytics(
     vst,
     gsc,
     nkbv,
+    cssd,
     sources,
     errors,
+    kyTruoc,
   });
 
-  const anyOk = sources.vst === "ok" || sources.gsc === "ok" || sources.nkbv === "ok";
+  const anyOk =
+    sources.vst === "ok" || sources.gsc === "ok" || sources.nkbv === "ok" || sources.cssd === "ok";
   if (!anyOk) {
     return {
       success: false,
       error:
-        errors.vst || errors.gsc || errors.nkbv || "Không tải được dữ liệu từ các nguồn trong phạm vi quyền của bạn",
+        errors.vst ||
+        errors.gsc ||
+        errors.nkbv ||
+        errors.cssd ||
+        "Không tải được dữ liệu từ các nguồn trong phạm vi quyền của bạn",
     };
   }
 

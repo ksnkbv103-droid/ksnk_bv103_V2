@@ -4,10 +4,9 @@ import React from "react";
 import { Beaker, CalendarClock, AlertTriangle, Settings2 } from "lucide-react";
 import {
   CSSD_UI_ACTION_PRIMARY,
-  CSSD_UI_STAT_LABEL,
-  CSSD_UI_STAT_VALUE,
   CSSD_UI_SECTION_TITLE,
 } from "../../shared/ui/cssd-ui-chrome";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 type Dm = {
   id: string;
@@ -26,6 +25,28 @@ type Props = {
   onSaveThr: () => void;
 };
 
+function StatInline({
+  label,
+  value,
+  icon,
+  tone,
+}: {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+  tone: "amber" | "rose" | "emerald";
+}) {
+  const toneClass =
+    tone === "amber" ? "text-amber-600" : tone === "rose" ? "text-rose-600" : "text-emerald-600";
+  return (
+    <span className={`inline-flex items-center gap-1.5 font-semibold ${toneClass}`}>
+      {icon}
+      <span className="text-slate-500">{label}</span>
+      <span className="tabular-nums text-slate-800">{value}</span>
+    </span>
+  );
+}
+
 export default function KhoHoaChatOverview({
   countSapHetHan,
   countDuoiNguong,
@@ -38,53 +59,36 @@ export default function KhoHoaChatOverview({
   onSaveThr,
 }: Props) {
   return (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-      {/* Card 1: Hạn sử dụng */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
-        <div>
-          <p className={CSSD_UI_STAT_LABEL}>Hạn dùng ≤ 30 ngày</p>
-          <p className={`${CSSD_UI_STAT_VALUE} text-amber-600 mt-1`}>{countSapHetHan} lô</p>
-        </div>
-        <div className={`h-10 w-10 rounded-xl bg-amber-50/50 flex items-center justify-center text-amber-500 ${countSapHetHan > 0 ? "animate-pulse" : ""}`}>
-          <CalendarClock size={20} />
-        </div>
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-white px-3 py-2 text-[11px] shadow-sm">
+        <StatInline
+          label="Hạn ≤ 30 ngày"
+          value={countSapHetHan}
+          icon={<CalendarClock size={14} className={countSapHetHan > 0 ? "animate-pulse" : undefined} />}
+          tone="amber"
+        />
+        <StatInline
+          label="Dưới ngưỡng"
+          value={countDuoiNguong}
+          icon={<AlertTriangle size={14} className={countDuoiNguong > 0 ? "animate-pulse" : undefined} />}
+          tone="rose"
+        />
+        <StatInline label="Mặt hàng" value={dms.length} icon={<Beaker size={14} />} tone="emerald" />
       </div>
 
-      {/* Card 2: Dưới ngưỡng tồn */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
-        <div>
-          <p className={CSSD_UI_STAT_LABEL}>Dưới ngưỡng an toàn</p>
-          <p className={`${CSSD_UI_STAT_VALUE} text-rose-600 mt-1`}>{countDuoiNguong} mục</p>
+      <div className="flex flex-col gap-2 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/80 px-3 py-2.5 sm:flex-row sm:items-end sm:gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+          <Settings2 size={13} className="shrink-0 text-slate-500" />
+          <span className={CSSD_UI_SECTION_TITLE}>Ngưỡng an toàn</span>
         </div>
-        <div className={`h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-500 ${countDuoiNguong > 0 ? "animate-pulse" : ""}`}>
-          <AlertTriangle size={20} />
-        </div>
-      </div>
-
-      {/* Card 3: Tổng số mặt hàng */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
-        <div>
-          <p className={CSSD_UI_STAT_LABEL}>Mặt hàng trong kho</p>
-          <p className={`${CSSD_UI_STAT_VALUE} text-[var(--primary)] mt-1`}>{dms.length} loại</p>
-        </div>
-        <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-          <Beaker size={20} />
-        </div>
-      </div>
-
-      {/* Card 4: Form cấu hình nhanh */}
-      <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <Settings2 size={13} className="text-slate-500" />
-          <span className={CSSD_UI_SECTION_TITLE}>Thiết lập ngưỡng an toàn</span>
-        </div>
-        <div className="grid grid-cols-2 gap-1.5">
-          <select 
-            className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 outline-none focus:border-slate-300"
-            value={thrDm} 
+        <div className="grid min-w-0 flex-[2] grid-cols-2 gap-1.5 sm:max-w-md">
+          <select
+            className={bv103LayoutChrome.controlSelectNative}
+            value={thrDm}
             onChange={(e) => onThrDm(e.target.value)}
+            disabled={!canEdit}
           >
-            <option value="">Chọn HC/VT...</option>
+            <option value="">Chọn HC/VT…</option>
             {dms.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.ma_hoa_chat}
@@ -93,7 +97,7 @@ export default function KhoHoaChatOverview({
           </select>
           <input
             type="number"
-            className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-700 placeholder:text-slate-400 outline-none focus:border-slate-300"
+            className={bv103LayoutChrome.controlInput}
             placeholder="Số lượng"
             value={thrVal}
             onChange={(e) => onThrVal(e.target.value)}
@@ -102,11 +106,11 @@ export default function KhoHoaChatOverview({
         </div>
         <button
           type="button"
-          className={`${CSSD_UI_ACTION_PRIMARY} mt-2 w-full text-[#FFD700] disabled:opacity-40`}
+          className={`${CSSD_UI_ACTION_PRIMARY} w-full shrink-0 sm:w-auto`}
           disabled={!canEdit || !thrDm}
           onClick={() => void onSaveThr()}
         >
-          Lưu ngưỡng an toàn
+          Lưu ngưỡng
         </button>
       </div>
     </div>

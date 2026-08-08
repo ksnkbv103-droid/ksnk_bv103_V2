@@ -1,48 +1,73 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { Beaker } from "lucide-react";
+import AdvancedDataTable, { type Column } from "@/components/shared/AdvancedDataTable";
+import { bv103TableLayout } from "@/lib/bv103-table-layout";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { CSSD_UI_CELL_CODE, CSSD_UI_DATA_SURFACE } from "../shared/ui/cssd-ui-chrome";
 import type { CSSDHoaChat } from "../types/catalog.types";
 
 export function CSSDCatalogHoaChatTab({ hoaChatRows }: { hoaChatRows: CSSDHoaChat[] }) {
+  const columns = useMemo<Column<CSSDHoaChat>[]>(
+    () => [
+      {
+        header: "Mã",
+        accessorKey: "ma_hoa_chat",
+        sortable: true,
+        headerClassName: bv103TableLayout.colMeta,
+        cellClassName: bv103TableLayout.colMeta,
+        cell: (x) => <span className={CSSD_UI_CELL_CODE}>{x.ma_hoa_chat || "—"}</span>,
+      },
+      {
+        header: "Tên",
+        accessorKey: "ten_hoa_chat",
+        sortable: true,
+        headerClassName: bv103TableLayout.colTitle,
+        cellClassName: bv103TableLayout.colTitle,
+        cell: (x) => (
+          <span className="block truncate text-sm font-medium text-slate-800" title={x.ten_hoa_chat || undefined}>
+            {x.ten_hoa_chat || "—"}
+          </span>
+        ),
+      },
+      {
+        header: "Loại",
+        accessorKey: "loai_hoa_chat",
+        sortable: true,
+        headerClassName: bv103TableLayout.colStatus,
+        cellClassName: bv103TableLayout.colStatus,
+        cell: (x) => (
+          <span className="truncate text-[11px] text-slate-600">{x.loai_hoa_chat || "Vật tư"}</span>
+        ),
+      },
+      {
+        header: "ĐVT",
+        accessorKey: "don_vi_tinh",
+        sortable: true,
+        headerClassName: bv103TableLayout.colNarrow,
+        cellClassName: bv103TableLayout.colNarrow,
+        cell: (x) => (
+          <span className="text-[11px] font-semibold text-slate-700">{x.don_vi_tinh || "—"}</span>
+        ),
+      },
+    ],
+    [],
+  );
+
   return (
-    <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm animate-in fade-in duration-300">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-black uppercase text-[var(--primary)] tracking-wider flex items-center gap-1.5">
-          <Beaker size={16} /> Danh mục Hóa chất &amp; Vật tư ({hoaChatRows.length})
-        </h3>
-      </div>
-      
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 max-h-[520px] overflow-y-auto no-scrollbar p-1">
-        {hoaChatRows.map((x) => (
-          <div 
-            key={x.id} 
-            className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 hover:bg-white hover:shadow-md hover:border-emerald-100 transition-all flex flex-col justify-between"
-          >
-            <div>
-              <span className="font-mono text-[11px] font-medium text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
-                {x.ma_hoa_chat || "UNNAMED"}
-              </span>
-              <h4 className="mt-2 text-xs font-bold text-slate-800 uppercase tracking-wide leading-tight line-clamp-2">
-                {x.ten_hoa_chat || "—"}
-              </h4>
-            </div>
-            <div className="mt-4 pt-2 border-t border-slate-100/60 flex items-center justify-between text-[11px] text-slate-500 font-semibold">
-              <span>{x.loai_hoa_chat || "Vật tư"}</span>
-              {x.don_vi_tinh && (
-                <span className="bg-emerald-50 text-[var(--primary)] px-2 py-0.5 rounded-lg border border-emerald-100 font-black">
-                  ĐVT: {x.don_vi_tinh}
-                </span>
-              )}
-            </div>
-          </div>
-        ))}
-        {hoaChatRows.length === 0 && (
-          <div className="col-span-full py-12 text-center text-sm font-medium text-slate-500">
-            Không có dữ liệu hóa chất vật tư.
-          </div>
-        )}
-      </div>
+    <div className={`${CSSD_UI_DATA_SURFACE} space-y-3 p-4 animate-in fade-in duration-300`}>
+      <h3 className={`${bv103LayoutChrome.labelBlockAccent} flex items-center gap-1.5`}>
+        <Beaker size={14} aria-hidden />
+        Danh mục hóa chất &amp; vật tư ({hoaChatRows.length})
+      </h3>
+      <AdvancedDataTable
+        columns={columns}
+        data={hoaChatRows}
+        searchPlaceholder="Tìm mã, tên hóa chất…"
+        emptyMessage="Không có dữ liệu hóa chất vật tư."
+        tableClassName={bv103TableLayout.tableFixed}
+      />
     </div>
   );
 }

@@ -130,12 +130,12 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   {
     code: "GIAM_SAT_VST",
     displayName: "Giám sát Vệ sinh tay",
-    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "EXPORT"]
   },
   {
     code: "GIAM_SAT_CHUNG",
     displayName: "Giám sát Bảng kiểm chung",
-    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "EXPORT"]
   },
   {
     code: "GIAM_SAT_NKBV",
@@ -151,5 +151,10 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
     code: "BAO_SU_CO",
     displayName: "Báo cáo Sự cố",
     actions: ["VIEW", "CREATE"]
+  },
+  {
+    code: "DAO_TAO",
+    displayName: "Đào tạo / Thi trắc nghiệm KSNK",
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
   },
 ];

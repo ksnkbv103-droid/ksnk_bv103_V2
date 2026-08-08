@@ -95,25 +95,35 @@ describe("computeScore — engine dispatch", () => {
     expect(out.ket_qua_pass_fail).toBeNull();
   });
 
-  it("TRON_GOI: dat_tron_goi=true → tong_diem=100; false → 0", () => {
+  it("TRON_GOI: song song % tiêu chí + cờ care bundle", () => {
     const passItems = [
       r("1", "DAT", { la_then_chot: true }),
       r("2", "DAT", { la_then_chot: true }),
+      r("3", "KHONG_DAT"),
     ];
     const failItems = [
       r("1", "DAT", { la_then_chot: true }),
       r("2", "KHONG_DAT", { la_then_chot: true }),
     ];
-    expect(computeScore("TRON_GOI", passItems).dat_tron_goi).toBe(true);
-    expect(computeScore("TRON_GOI", passItems).tong_diem).toBe(100);
-    expect(computeScore("TRON_GOI", failItems).dat_tron_goi).toBe(false);
-    expect(computeScore("TRON_GOI", failItems).tong_diem).toBe(0);
+    const pass = computeScore("TRON_GOI", passItems);
+    expect(pass.dat_tron_goi).toBe(true);
+    expect(pass.tong_diem).toBeCloseTo(66.67, 1);
+    expect(pass.ty_le_percent).toBeCloseTo(66.67, 1);
+
+    const fail = computeScore("TRON_GOI", failItems);
+    expect(fail.dat_tron_goi).toBe(false);
+    expect(fail.tong_diem).toBe(50);
+    expect(fail.ty_le_percent).toBe(50);
   });
 
-  it("DAT_KHONG_DAT: ket_qua_pass_fail=true → tong_diem=100", () => {
-    const out = computeScore("DAT_KHONG_DAT", [r("1", "DAT"), r("2", "DAT")]);
-    expect(out.ket_qua_pass_fail).toBe(true);
-    expect(out.tong_diem).toBe(100);
+  it("DAT_KHONG_DAT: % tiêu chí + cờ pass/fail", () => {
+    const allPass = computeScore("DAT_KHONG_DAT", [r("1", "DAT"), r("2", "DAT")]);
+    expect(allPass.ket_qua_pass_fail).toBe(true);
+    expect(allPass.tong_diem).toBe(100);
+
+    const mixed = computeScore("DAT_KHONG_DAT", [r("1", "DAT"), r("2", "KHONG_DAT")]);
+    expect(mixed.ket_qua_pass_fail).toBe(false);
+    expect(mixed.tong_diem).toBe(50);
   });
 
   it("NHAT_KY: tong_diem=null + so_oor đếm đúng", () => {

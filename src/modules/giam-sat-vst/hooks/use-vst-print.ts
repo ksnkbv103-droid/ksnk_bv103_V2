@@ -8,6 +8,8 @@ import { buildVstViewDataFromDetail } from "../lib/vst-session-view-data";
 import { getCategoriesByType } from "@/lib/master-data/categories-by-type";
 import { getCategoriesByTypeCached } from "@/lib/client-cache/danh-muc-cache";
 import type { VSTFormPerson } from "../lib/vst-form-model";
+import { buildEntityQrCode } from "@/lib/entity-qr/entity-qr-core";
+import { generateEntityQrDataUrl } from "@/lib/entity-qr/generate-entity-qr";
 
 export type VstDmRow = { id?: string; ten_danh_muc?: string; ten_khoa?: string };
 
@@ -18,6 +20,8 @@ export type VstPrintData = {
   khoas: VstDmRow[];
   khuVucs: VstDmRow[];
   nhanSus: { id: string; ho_ten: string }[];
+  qrCode?: string;
+  qrDataUrl?: string;
 };
 
 /**
@@ -103,20 +107,26 @@ export function useVstPrint() {
 
       void markVSTSessionsSeen([sessionId]);
 
-      setPrintData(
-        buildVstViewDataFromDetail(
-          {
-            session: detailRes.session as Record<string, unknown>,
-            observations: (detailRes.observations || []) as Array<Record<string, unknown>>,
-            nhanSuForPrint: detailRes.nhanSuForPrint,
-          },
-          {
-            ngheNghieps: (nnRes.data || []) as VstDmRow[],
-            khoas: (kRes.data || []) as VstDmRow[],
-            khuVucs: (kvRes.data || []) as VstDmRow[],
-          },
-        ),
+      const base = buildVstViewDataFromDetail(
+        {
+          session: detailRes.session as Record<string, unknown>,
+          observations: (detailRes.observations || []) as Array<Record<string, unknown>>,
+          nhanSuForPrint: detailRes.nhanSuForPrint,
+        },
+        {
+          ngheNghieps: (nnRes.data || []) as VstDmRow[],
+          khoas: (kRes.data || []) as VstDmRow[],
+          khuVucs: (kvRes.data || []) as VstDmRow[],
+        },
       );
+      const qrCode = buildEntityQrCode("VST_SESSION", sessionId);
+      let qrDataUrl = "";
+      try {
+        qrDataUrl = await generateEntityQrDataUrl(qrCode, { width: 200 });
+      } catch {
+        toast.error("Không tạo được mã QR trên phiếu");
+      }
+      setPrintData({ ...base, qrCode, qrDataUrl });
 
       // Wait for React to render the print view
       await new Promise<void>((resolve) =>

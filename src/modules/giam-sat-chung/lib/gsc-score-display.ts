@@ -1,12 +1,10 @@
 /**
- * Hiển thị điểm / kết quả GSC — dùng chung form preview và cột lịch sử.
- * Engine tính: `giam-sat-scoring.ts` + fallback legacy weighted.
+ * Hiển thị điểm GSC — form preview và cột lịch sử.
+ * UI chỉ tỷ lệ % (+ Tốt/Đạt/Không đạt). Cờ care bundle lưu DB, không hiện phụ.
  */
 
-import { calculateGscComplianceScore } from "@/lib/domain/giam-sat-chung.domain";
 import {
   computeScore,
-  scoreTyLe,
   type GsttCachTinhDiem,
   type GsttScoringInputItem,
   type GsttScoringSessionMeta,
@@ -53,11 +51,13 @@ function mapChecklistToScoringInput(
 export type GscFormProgress = {
   evaluated: number;
   total: number;
-  /** % tuân thủ (đạt / tiêu chí áp dụng); null khi NHAT_KY hoặc chưa đánh giá */
+  /** % tiêu chí DAT/(DAT+KHONG_DAT); null khi NHAT_KY / chưa đánh giá */
   rate: number | null;
   scoreLabel: string;
   scoreClassName: string;
   duLieuNghiVan?: boolean;
+  /** Care bundle (chỉ TRON_GOI). */
+  careBundlePass?: boolean | null;
 };
 
 function gscRatioTier(pct: number): { label: string; className: string } {
@@ -66,31 +66,22 @@ function gscRatioTier(pct: number): { label: string; className: string } {
   return { label: "Không đạt", className: "text-red-600" };
 }
 
-function buildGscRatioFormProgress(
-  evaluated: number,
-  total: number,
-  items: readonly GsttScoringInputItem[],
-  duLieuNghiVan: boolean,
-): GscFormProgress {
-  if (evaluated === 0) {
-    return {
-      evaluated,
-      total,
-      rate: null,
-      scoreLabel: "Chưa đánh giá",
-      scoreClassName: "text-slate-500",
-      duLieuNghiVan,
-    };
-  }
-  const pct = scoreTyLe(items);
+function withNghiVan(label: string, duLieuNghiVan: boolean): string {
+  return duLieuNghiVan ? `${label} · Nghi ngờ` : label;
+}
+
+function formatPercentPrimary(
+  pct: number,
+  nghi: boolean,
+  suffix?: string,
+): Pick<GscFormProgress, "rate" | "scoreLabel" | "scoreClassName" | "duLieuNghiVan"> {
   const tier = gscRatioTier(pct);
+  const extra = suffix ? ` · ${suffix}` : ` · ${tier.label}`;
   return {
-    evaluated,
-    total,
     rate: pct,
-    scoreLabel: `${formatPercent2(pct)} · ${tier.label}`,
+    scoreLabel: withNghiVan(`${formatPercent2(pct)}${extra}`, nghi),
     scoreClassName: tier.className,
-    duLieuNghiVan,
+    duLieuNghiVan: nghi,
   };
 }
 
@@ -107,20 +98,9 @@ export function previewGscFormProgress(
     normalizeCachTinhDiem(cachTinhDiem) ?? inferCachFromLoaiGiamSat(loaiGiamSat);
 
   const items = mapChecklistToScoringInput(results, criteria);
+  const effectiveCach: GsttCachTinhDiem = cach ?? "TY_LE";
 
-  if (!cach && evaluated > 0) {
-    const legacy = calculateGscComplianceScore([...results]);
-    const tier = gscRatioTier(legacy);
-    return {
-      evaluated,
-      total,
-      rate: legacy,
-      scoreLabel: `${formatPercent2(legacy)} · ${tier.label}`,
-      scoreClassName: tier.className,
-    };
-  }
-
-  if (!cach) {
+  if (evaluated === 0 && effectiveCach !== "NHAT_KY") {
     return {
       evaluated,
       total,
@@ -130,20 +110,42 @@ export function previewGscFormProgress(
     };
   }
 
-  const out = computeScore(cach, items, meta);
+  const out = computeScore(effectiveCach, items, meta);
+  const nghi = out.du_lieu_nghi_van;
 
-  if (cach === "NHAT_KY") {
+  if (effectiveCach === "NHAT_KY") {
     return {
       evaluated,
       total,
       rate: null,
-      scoreLabel: out.so_oor > 0 ? `Nhật ký · ${out.so_oor} ngoài ngưỡng` : "Nhật ký · trong ngưỡng",
+      scoreLabel: withNghiVan(
+        out.so_oor > 0 ? `Nhật ký · ${out.so_oor} ngoài ngưỡng` : "Nhật ký · trong ngưỡng",
+        nghi,
+      ),
       scoreClassName: out.so_oor > 0 ? "text-red-600" : "text-emerald-700",
-      duLieuNghiVan: out.du_lieu_nghi_van,
+      duLieuNghiVan: nghi,
     };
   }
 
-  return buildGscRatioFormProgress(evaluated, total, items, out.du_lieu_nghi_van);
+  const pct = out.ty_le_percent ?? out.tong_diem;
+  if (pct == null) {
+    return {
+      evaluated,
+      total,
+      rate: null,
+      scoreLabel: "Chưa đánh giá",
+      scoreClassName: "text-slate-500",
+      duLieuNghiVan: nghi,
+    };
+  }
+
+  // GSC UI: chỉ tỷ lệ % (+ nhãn Tốt/Đạt/Không đạt). Cờ care bundle vẫn lưu DB, không hiện phụ.
+  return {
+    evaluated,
+    total,
+    ...formatPercentPrimary(pct, nghi),
+    careBundlePass: effectiveCach === "TRON_GOI" ? out.dat_tron_goi : undefined,
+  };
 }
 
 export type GscHistoryScoreDisplay = {
@@ -163,18 +165,15 @@ export function gscCompliancePercentFromCounts(
   return roundPercent2((dat / total) * 100);
 }
 
-/**
- * % hiển thị cột lịch sử — ưu tiên counts live từ `results_jsonb` (view),
- * fallback cờ/tong_diem khi thiếu counts (phiên cũ).
- */
+/** % lịch sử — ưu tiên counts live, rồi `tong_diem` (đã là %). */
 export function resolveGscHistoryCompliancePercent(
   row: Record<string, unknown>,
   cach: GsttCachTinhDiem | null,
 ): number | null {
+  if (cach === "NHAT_KY") return null;
+
   const fromCounts = gscCompliancePercentFromCounts(row.tong_quan_sat, row.tong_dat);
   if (fromCounts != null) return fromCounts;
-
-  if (cach === "NHAT_KY") return null;
 
   const tong = row.tong_diem;
   const tongNum = tong == null || tong === "" ? null : Number(tong);
@@ -182,7 +181,7 @@ export function resolveGscHistoryCompliancePercent(
   return null;
 }
 
-/** Cột lịch sử — hiển thị % tuân thủ (2 chữ số thập phân). */
+/** Cột lịch sử GSC: chỉ tỷ lệ %. */
 export function formatGscHistoryScore(row: Record<string, unknown>): GscHistoryScoreDisplay {
   const cach =
     normalizeCachTinhDiem(row.cach_tinh_diem) ??
@@ -199,19 +198,14 @@ export function formatGscHistoryScore(row: Record<string, unknown>): GscHistoryS
   }
 
   const pct = resolveGscHistoryCompliancePercent(row, cach);
-
   if (pct == null) {
     return { label: "—", className: "text-slate-400" };
   }
 
   const val = roundPercent2(pct);
-  const tier =
-    val >= 90 ? { className: "text-emerald-700" } : val >= 80
-      ? { className: "text-amber-600" }
-      : { className: "text-red-600" };
-
+  const tier = gscRatioTier(val);
   return {
-    label: `${formatPercent2(val)}${suffix}`,
+    label: `${formatPercent2(val)} · ${tier.label}${suffix}`,
     className: tier.className,
     title: formatPercent2(val),
   };

@@ -34,6 +34,22 @@ describe("cssd-incident-attributes", () => {
     expect(attrs.MA_LO).toBe("LO-2026-01");
   });
 
+  it("persists fault operator id and detector id", () => {
+    const attrs = buildIncidentAttributes({
+      incidentGroup: "PROCESS",
+      typeTen: "Sai thao tác",
+      incidentKind: "process_failure",
+      rollbackTargetStation: "DONG_GOI",
+      faultOperator: "Nguyễn A",
+      faultOperatorId: "22222222-2222-2222-2222-222222222222",
+      nguoiPhatHien: "Trần B",
+      nguoiPhatHienId: "33333333-3333-3333-3333-333333333333",
+    });
+    expect(attrs.FAULT_OPERATOR).toBe("Nguyễn A");
+    expect(attrs.FAULT_OPERATOR_ID).toBe("22222222-2222-2222-2222-222222222222");
+    expect(attrs.NGUOI_PHAT_HIEN_ID).toBe("33333333-3333-3333-3333-333333333333");
+  });
+
   it("reads type label with legacy lowercase fallback", () => {
     expect(readIncidentTypeLabel({ incident_type_label: "Máy hỏng" })).toBe("Máy hỏng");
     expect(readIncidentTypeLabel({ INCIDENT_TYPE_LABEL: "QC fail" })).toBe("QC fail");

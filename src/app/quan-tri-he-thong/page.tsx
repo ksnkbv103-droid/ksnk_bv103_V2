@@ -26,9 +26,9 @@ export default function QuanTriHeThongPage() {
         <div className="text-5xl">🔒</div>
         <h2 className={`${T.pageTitle} text-red-700`}>Truy cập bị từ chối</h2>
         <p className="text-sm font-normal leading-relaxed text-slate-600">
-          Cần quyền xem ít nhất một trong: Danh mục (<strong className="font-semibold text-slate-700">DANH_MUC</strong>), Phân quyền (
-          <strong className="font-semibold text-slate-700">PHAN_QUYEN</strong>
-          ), Nhân sự (<strong className="font-semibold text-slate-700">NHAN_SU</strong>), hoặc vai trò quản trị.
+          Cần quyền xem ít nhất một trong: <strong className="font-semibold text-slate-700">Danh mục gốc</strong>,{" "}
+          <strong className="font-semibold text-slate-700">Phân quyền</strong>,{" "}
+          <strong className="font-semibold text-slate-700">Nhân sự</strong>, hoặc vai trò quản trị.
         </p>
         <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50 p-4">
           <p className={T.labelBlock}>Tài khoản hiện tại</p>
@@ -45,7 +45,7 @@ export default function QuanTriHeThongPage() {
         title={
           <span className="inline-flex items-center gap-2">
             <Settings className="h-6 w-6 text-[var(--primary)]" aria-hidden />
-            Hệ thống
+            Quản trị hệ thống
           </span>
         }
         subtitle="Danh mục gốc · phân quyền · bảo vệ liên kết dữ liệu (công cụ IT)."

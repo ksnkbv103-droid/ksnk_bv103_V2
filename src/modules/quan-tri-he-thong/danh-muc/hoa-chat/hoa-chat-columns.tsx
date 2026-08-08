@@ -3,6 +3,7 @@ import type { Column } from "@/components/shared/AdvancedDataTable";
 import type { HoaChatRow } from "../actions/hoa-chat.types";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
 import { loaiHoaChatLabel } from "@/lib/domain/cssd-hoa-chat-loai";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 
 interface ActionCells {
   renderStatusCell: (item: HoaChatRow) => ReactNode;
@@ -59,7 +60,7 @@ export function getHoaChatColumns(actionUi: ActionCells): Column<HoaChatRow>[] {
       sortable: true,
       cell: (i) => (
         <span className="text-[11px] font-semibold text-slate-600">
-          {i.han_su_dung ? String(i.han_su_dung).slice(0, 10) : "—"}
+          {formatDateVi(i.han_su_dung)}
         </span>
       ),
     },

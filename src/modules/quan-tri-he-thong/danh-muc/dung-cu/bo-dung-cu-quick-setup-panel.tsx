@@ -16,10 +16,10 @@ export function BoDungCuQuickSetupPanel({ onStartCreateBo, lastCreatedMaBo }: Pr
   const [open, setOpen] = useState(false);
 
   return (
-    <div className={`${UI.sectionGap} rounded-2xl border border-[var(--primary)]/20 bg-gradient-to-br from-emerald-50/80 to-white p-4 shadow-sm`}>
+    <div className={`${UI.sectionGap} ${UI.panelInset} border-[var(--primary)]/20 bg-gradient-to-br from-emerald-50/80 to-white p-4`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[var(--primary)]">
+          <p className="flex items-center gap-2 text-xs font-semibold tracking-tight text-[var(--primary)]">
             <Sparkles size={14} aria-hidden /> Tạo bộ nhanh
           </p>
           <p className="mt-1 text-sm text-slate-600">Khoa → mã bộ → thành phần → in tem CSSD</p>
@@ -27,7 +27,7 @@ export function BoDungCuQuickSetupPanel({ onStartCreateBo, lastCreatedMaBo }: Pr
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="rounded-lg border border-emerald-200 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wide text-[var(--primary)] hover:bg-emerald-50"
+          className={`${UI.btnSecondary} px-4 text-xs font-semibold text-[var(--primary)]`}
         >
           {open ? "Thu gọn" : "Bắt đầu"}
         </button>

@@ -43,22 +43,23 @@ export interface GsttScoringSessionMeta {
 
 export interface GsttScoringOutput {
   cach_tinh_diem: GsttCachTinhDiem;
-  /** % 0..100 cho TY_LE; null cho các loại khác. */
+  /**
+   * % tiêu chí DAT/(DAT+KHONG_DAT) — luôn tính cho TY_LE / TRON_GOI / DAT_KHONG_DAT.
+   * null chỉ với NHAT_KY hoặc không có tiêu chí evaluable.
+   */
   ty_le_percent: number | null;
-  /** Boolean cho TRON_GOI (care bundle); null khi KHÔNG phải TRON_GOI. */
+  /** Care bundle (TRON_GOI) — cờ phụ song song với %; null khi không phải TRON_GOI. */
   dat_tron_goi: boolean | null;
-  /** Boolean Đạt/Không cho DAT_KHONG_DAT; null khi không phải. */
+  /** Pass/fail toàn bộ tiêu chí (DAT_KHONG_DAT) — cờ phụ; null khi không phải. */
   ket_qua_pass_fail: boolean | null;
   /** Số tiêu chí ngoài ngưỡng (out-of-range) cho NHAT_KY. */
   so_oor: number;
   /** Anti-Hawthorne flag (tốc độ quá nhanh hoặc start=end). */
   du_lieu_nghi_van: boolean;
   /**
-   * `tong_diem` để cập nhật cột legacy của `gstt_fact_chung_sessions`:
-   *   - TY_LE: bằng `ty_le_percent` (0..100)
-   *   - TRON_GOI: 100 nếu PASS, 0 nếu FAIL
-   *   - DAT_KHONG_DAT: 100 nếu Đạt, 0 nếu Không
-   *   - NHAT_KY: null (không tính rate)
+   * Cột `gstt_fact_chung_sessions.tong_diem` = tỷ lệ tiêu chí (0..100).
+   * Care bundle / pass-fail lưu ở `dat_tron_goi` / suy ra từ `ket_qua_pass_fail` — không thay %.
+   * NHAT_KY: null.
    */
   tong_diem: number | null;
 }
@@ -159,27 +160,32 @@ export function computeScore(
       };
     }
     case "TRON_GOI": {
+      // Song song: % tiêu chí (vận hành) + cờ care bundle (chuẩn gói).
+      const pct = scoreTyLe(results);
       const pass = scoreTronGoi(results);
+      const hasEvaluable = (results || []).some(isEvaluable);
       return {
         cach_tinh_diem: "TRON_GOI",
-        ty_le_percent: null,
+        ty_le_percent: hasEvaluable ? pct : null,
         dat_tron_goi: pass,
         ket_qua_pass_fail: null,
         so_oor: 0,
         du_lieu_nghi_van,
-        tong_diem: pass === null ? null : pass ? 100 : 0,
+        tong_diem: hasEvaluable ? pct : null,
       };
     }
     case "DAT_KHONG_DAT": {
+      const pct = scoreTyLe(results);
       const ok = scoreDatKhongDat(results);
+      const hasEvaluable = (results || []).some(isEvaluable);
       return {
         cach_tinh_diem: "DAT_KHONG_DAT",
-        ty_le_percent: null,
+        ty_le_percent: hasEvaluable ? pct : null,
         dat_tron_goi: null,
         ket_qua_pass_fail: ok,
         so_oor: 0,
         du_lieu_nghi_van,
-        tong_diem: ok === null ? null : ok ? 100 : 0,
+        tong_diem: hasEvaluable ? pct : null,
       };
     }
     case "NHAT_KY": {

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, MessageSquare, Ban } from "lucide-react";
+import { CheckCircle2, MessageSquare, Ban, Printer } from "lucide-react";
 import { QlcvConfirmDialog } from "./dialogs/QlcvConfirmDialog";
 import { QlcvReasonDialog } from "./dialogs/QlcvReasonDialog";
 import {
@@ -12,20 +12,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { ActivityTimeline, type Activity } from "./ActivityTimeline";
 import { CongViecForm } from "./CongViecForm";
 import { HoatDongForm } from "./HoatDongForm";
 import { QlcvChecklistPanel } from "./QlcvChecklistPanel";
 import { QlcvManualProgressPanel } from "./QlcvManualProgressPanel";
 import { DeXuatApproveForm } from "./DeXuatApproveForm";
+import { QlcvTaskPrintView } from "./print/QlcvTaskPrintView";
 import { taskUsesQlcvChecklistForProgress } from "@/lib/domain/qlcv-checklist";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 import {
   getCongViecDetail,
   xacNhanHoanThanh,
   deleteCongViec,
   tuChoiHoanThanhCongViec,
 } from "../actions/cong-viec.actions";
+import { getQlcvFormCatalog } from "../actions/cong-viec-read.actions";
 import { huyKhiChoNghiemThuKhongDat } from "../actions/cong-viec-write.actions";
 import { isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import {
@@ -40,7 +43,9 @@ import { resolveQlcvWorkflowBadgeAppearance } from "../lib/qlcv-workflow-badge";
 import { getTrangThaiMauSacMap } from "../actions/cong-viec-read.actions";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
+import { labelsForStaffIds, normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
 import type { CongViecView } from "../types";
+import type { QlcvSelectOption } from "../lib/qlcv-form-options";
 
 interface Props {
   id: string;
@@ -56,6 +61,9 @@ type CongViecDetailData = CongViecView & {
   nguoi_phu_trach?: QlcvHoTenRef | null;
   to_cong_tac?: QlcvToRef | null;
   hoat_dong?: Activity[] | null;
+  dia_diem_khoa_ten?: string | null;
+  dia_diem_khoa_ma?: string | null;
+  nhiem_vu_ten?: string | null;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -65,22 +73,23 @@ function getErrorMessage(error: unknown): string {
 /** Đồng bộ với KsnkSupervisionHero / trang QLCV */
 const qlcvDetailChrome = {
   panel:
-    "rounded-2xl border border-slate-200/90 bg-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]",
+    "rounded-[var(--radius-shell)] border border-slate-200/90 bg-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]",
   panelToolbar:
-    "rounded-2xl border border-slate-200/90 bg-white/95 p-2 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]",
+    "rounded-[var(--radius-shell)] border border-slate-200/90 bg-white/95 p-2 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]",
   metaTile:
-    "rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/[0.02] sm:p-5",
-  dashedEmpty: "rounded-2xl border-2 border-dashed border-slate-200/90 bg-slate-50/50 py-10 text-center",
+    "rounded-[var(--radius-shell)] border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/[0.02] sm:p-5",
+  dashedEmpty: "rounded-[var(--radius-shell)] border-2 border-dashed border-slate-200/90 bg-slate-50/50 py-10 text-center",
   sectionLabel: "text-[11px] font-semibold uppercase tracking-wider text-slate-500",
   sectionHeading: "text-sm font-semibold uppercase tracking-wider text-slate-800",
   btnOutline:
-    "bv103-control-h h-11 shrink-0 rounded-xl border border-slate-200/90 bg-white px-4 text-[11px] font-semibold uppercase tracking-wide text-slate-800 shadow-sm hover:bg-slate-50",
+    "bv103-control-h shrink-0 rounded-[var(--radius-control)] border border-slate-200/90 bg-white px-4 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50",
   btnPrimary:
-    "bv103-control-h h-11 shrink-0 rounded-xl bg-[var(--primary)] px-4 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm hover:opacity-90",
-  btnBlue: "bv103-control-h h-11 shrink-0 rounded-xl bg-blue-600 px-4 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-blue-700",
+    "bv103-control-h shrink-0 rounded-[var(--radius-control)] bg-[var(--primary)] px-4 text-xs font-semibold text-white shadow-sm hover:bg-[var(--primary-hover)]",
+  btnBlue:
+    "bv103-control-h shrink-0 rounded-[var(--radius-control)] bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700",
   btnGhost:
-    "bv103-control-h h-11 shrink-0 rounded-xl border border-transparent px-3 text-[11px] font-semibold uppercase tracking-wide text-red-600 hover:border-red-100 hover:bg-red-50",
-  dialogContent: "max-w-4xl rounded-2xl border border-slate-200/90 bg-slate-50 p-6 shadow-xl sm:p-8",
+    "bv103-control-h shrink-0 rounded-[var(--radius-control)] border border-transparent px-3 text-xs font-semibold text-red-600 hover:border-red-100 hover:bg-red-50",
+  dialogContent: "max-w-4xl rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-6 shadow-[var(--shadow-app-soft)] sm:p-8",
 } as const;
 
 export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
@@ -105,6 +114,8 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [reasonHuyOpen, setReasonHuyOpen] = useState(false);
   const [reasonTuChoiOpen, setReasonTuChoiOpen] = useState(false);
+  const [printing, setPrinting] = useState(false);
+  const [nhanSuOptions, setNhanSuOptions] = useState<QlcvSelectOption[]>([]);
 
   const fetchDetail = async () => {
     setLoading(true);
@@ -127,6 +138,35 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
       .then(setMauSacByMa)
       .catch(() => setMauSacByMa({}));
   }, []);
+
+  useEffect(() => {
+    void getQlcvFormCatalog()
+      .then((c) => setNhanSuOptions(c.nhanSu))
+      .catch(() => setNhanSuOptions([]));
+  }, []);
+
+  useEffect(() => {
+    if (!printing) return;
+    const onAfter = () => setPrinting(false);
+    window.addEventListener("afterprint", onAfter);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => window.print());
+    });
+    return () => window.removeEventListener("afterprint", onAfter);
+  }, [printing]);
+
+  const staffLabelOpts = useMemo(
+    () => nhanSuOptions.map((o) => ({ id: o.id, label: o.label })),
+    [nhanSuOptions],
+  );
+  const phoiHopLabel = useMemo(
+    () => labelsForStaffIds(normalizeQlcvStaffIdList(data?.nguoi_phoi_hop_ids), staffLabelOpts),
+    [data?.nguoi_phoi_hop_ids, staffLabelOpts],
+  );
+  const theoDoiLabel = useMemo(
+    () => labelsForStaffIds(normalizeQlcvStaffIdList(data?.nguoi_theo_doi_ids), staffLabelOpts),
+    [data?.nguoi_theo_doi_ids, staffLabelOpts],
+  );
 
   if (loading)
     return (
@@ -182,6 +222,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
 
   return (
     <div className="space-y-6 pb-16 animate-in slide-in-from-right-4 duration-300">
+      <div className="no-print space-y-6">
       {assigneeInactiveOpen && (
         <div
           role="status"
@@ -202,52 +243,74 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
             </span>
           </div>
           <h2 className="text-xl font-semibold tracking-tight text-slate-900 md:text-2xl">{data.tieu_de}</h2>
-          <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
-            {data.mo_ta || "Không có mô tả chi tiết cho nhiệm vụ này."}
-          </p>
+          {data.loai_cong_viec === "DINH_KY" || data.dinh_ky_mau_id ? (
+            <p className="text-xs">
+              <a
+                href={
+                  data.dinh_ky_mau_id
+                    ? `/quan-ly-cong-viec?tab=DINH_KY&mau=${encodeURIComponent(String(data.dinh_ky_mau_id))}`
+                    : "/quan-ly-cong-viec?tab=DINH_KY"
+                }
+                className="font-semibold text-emerald-800 hover:underline"
+              >
+                Mẫu định kỳ
+              </a>
+            </p>
+          ) : null}
+          {data.mo_ta ? (
+            <p className="max-w-2xl text-sm leading-relaxed text-slate-600">{data.mo_ta}</p>
+          ) : null}
         </div>
 
         <div className={`flex shrink-0 flex-wrap gap-2 ${qlcvDetailChrome.panelToolbar}`}>
+          <button
+            type="button"
+            className={`${qlcvDetailChrome.btnOutline} inline-flex items-center`}
+            onClick={() => setPrinting(true)}
+          >
+            <Printer className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />
+            In phiếu
+          </button>
           {showHuyButton && (
-            <Button
-              variant="outline"
+            <button
+              type="button"
               className={`${qlcvDetailChrome.btnOutline} inline-flex items-center border-red-200/90 text-red-800 hover:bg-red-50`}
               onClick={() => setReasonHuyOpen(true)}
             >
-              <Ban size={16} className="mr-1.5 shrink-0" aria-hidden />
+              <Ban className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />
               Hủy công việc
-            </Button>
+            </button>
           )}
 
           {showNghiemThuToolbar && (
             <>
-              <Button
-                variant="outline"
+              <button
+                type="button"
                 className={`${qlcvDetailChrome.btnOutline} border-amber-200/90 text-amber-800 hover:bg-amber-50`}
                 onClick={() => setReasonTuChoiOpen(true)}
               >
                 Yêu cầu làm lại
-              </Button>
+              </button>
 
-              <Button
-                variant="outline"
+              <button
+                type="button"
                 className={`${qlcvDetailChrome.btnOutline} inline-flex items-center border-red-200/90 text-red-800 hover:bg-red-50`}
                 onClick={() => setReasonHuyOpen(true)}
               >
-                <Ban size={16} className="mr-1.5 shrink-0" aria-hidden />
+                <Ban className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />
                 Hủy (không đạt)
-              </Button>
+              </button>
 
-              <Button className={qlcvDetailChrome.btnPrimary} onClick={() => setConfirmNghiemThuOpen(true)}>
+              <button type="button" className={qlcvDetailChrome.btnPrimary} onClick={() => setConfirmNghiemThuOpen(true)}>
                 Nghiệm thu & Đóng
-              </Button>
+              </button>
             </>
           )}
 
           {showApproveDeXuat && (
             <Dialog open={isApproveOpen} onOpenChange={setIsApproveOpen}>
               <DialogTrigger asChild>
-                <Button className={qlcvDetailChrome.btnPrimary}>Phê duyệt & giao</Button>
+                <button type="button" className={qlcvDetailChrome.btnPrimary}>Phê duyệt & giao</button>
               </DialogTrigger>
               <DialogContent className={qlcvDetailChrome.dialogContent}>
                 <DialogHeader className="mb-6">
@@ -271,9 +334,9 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           {showEditMetadata && (
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className={qlcvDetailChrome.btnOutline}>
+                <button type="button" className={qlcvDetailChrome.btnOutline}>
                   Sửa nhiệm vụ
-                </Button>
+                </button>
               </DialogTrigger>
               <DialogContent className={qlcvDetailChrome.dialogContent}>
                 <DialogHeader className="mb-6">
@@ -295,9 +358,9 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           )}
 
           {showDelete && (
-            <Button variant="ghost" className={qlcvDetailChrome.btnGhost} onClick={() => setConfirmDeleteOpen(true)}>
+            <button type="button" className={qlcvDetailChrome.btnGhost} onClick={() => setConfirmDeleteOpen(true)}>
               Xóa
-            </Button>
+            </button>
           )}
         </div>
       </div>
@@ -318,7 +381,6 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
                   style={{ width: `${Math.min(100, Math.max(0, Number(data.phan_tram_hoan_thanh ?? 0)))}%` }}
                 />
               </div>
-              <p className="text-xs text-slate-500">Tiến độ tính từ checklist bên dưới.</p>
             </div>
           ) : (
             <QlcvManualProgressPanel
@@ -350,8 +412,19 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
             { label: "Tổ công tác", val: data.to_cong_tac?.ten_to || "—" },
             {
               label: "Hạn chót",
-              val: data.han_hoan_thanh ? new Date(data.han_hoan_thanh).toLocaleDateString("vi-VN") : "—",
+              val: formatDateVi(data.han_hoan_thanh),
             },
+            {
+              label: "Khoa địa điểm",
+              val: formatKhoaCompactLabel({
+                ma_khoa: data.dia_diem_khoa_ma,
+                ten_khoa: data.dia_diem_khoa_ten,
+              }),
+            },
+            { label: "Vị trí chi tiết", val: data.vi_tri_thuc_hien || "—" },
+            { label: "Nhiệm vụ", val: data.nhiem_vu_ten || "—" },
+            { label: "Người phối hợp", val: phoiHopLabel },
+            { label: "Người theo dõi", val: theoDoiLabel },
           ].map((item) => (
             <div key={item.label} className="min-w-0">
               <dt className={`${qlcvDetailChrome.sectionLabel} mb-0.5`}>{item.label}</dt>
@@ -376,13 +449,8 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           <div className="space-y-4 border-t border-slate-100 p-4 sm:p-5">
             <div className="flex items-center gap-2">
               <CheckCircle2 size={18} className="shrink-0 text-[var(--primary)]" aria-hidden />
-              <h3 className={qlcvDetailChrome.sectionHeading}>Ghi chú tiến độ (tùy chọn)</h3>
+              <h3 className={qlcvDetailChrome.sectionHeading}>Ghi chú tiến độ</h3>
             </div>
-            <p className="text-xs text-slate-500">
-              {usesChecklist
-                ? "Ghi chú bổ sung — % tiến độ cập nhật qua checklist."
-                : "Ghi chú bổ sung — % tiến độ cập nhật qua thanh tiến độ phía trên."}
-            </p>
             <HoatDongForm
               congViecId={data.id}
               usesChecklist={usesChecklist}
@@ -481,6 +549,10 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           }
         }}
       />
+      </div>
+      {printing ? (
+        <QlcvTaskPrintView task={data} phoiHopLabels={phoiHopLabel} theoDoiLabels={theoDoiLabel} />
+      ) : null}
     </div>
   );
 }

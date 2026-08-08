@@ -243,31 +243,12 @@ export default function MdmGovernanceView() {
 
   return (
     <div className={`${bv103DesignTokens.pageOuter} text-sm`}>
-      <KsnkPageHeader
-        title="Bảo vệ liên kết dữ liệu"
-        subtitle="Công cụ IT — gắn cột nghiệp vụ với danh mục chuẩn, duyệt gợi ý và bật trigger toàn vẹn."
-      />
+      <KsnkPageHeader title="Bảo vệ liên kết dữ liệu" />
 
-      <div
-        className={`${bv103LayoutChrome.panelShellPadded} mb-4 border-amber-200/80 bg-amber-50/60 text-sm leading-relaxed text-slate-700`}
-        role="note"
-      >
-        <p className="font-semibold text-amber-900">Dành cho IT / Quản trị hệ thống</p>
-        <ul className="mt-2 list-inside list-disc space-y-1 text-slate-600">
-          <li>
-            <strong className="font-medium text-slate-800">Dùng khi:</strong> cần bảo vệ cột khóa ngoại
-            trỏ đúng danh mục, duyệt gợi ý sau import hoặc đổi schema.
-          </li>
-          <li>
-            <strong className="font-medium text-slate-800">Không dùng để:</strong> sửa khoa, nhân sự,
-            loại dụng cụ — việc đó ở tab <strong className="font-medium">Trung tâm danh mục</strong>.
-          </li>
-          <li>
-            Sau khi duyệt mapping: chạy bước kỹ thuật refresh trigger (xem SOP vận hành /
-            <code className="rounded bg-white/80 px-1 text-[11px]">npm run mdm:refresh</code>).
-          </li>
-        </ul>
-      </div>
+      <p className={`${bv103LayoutChrome.noticeAmber} mb-4`} role="note">
+        IT — sau duyệt mapping: <code className="rounded bg-white/80 px-1 text-[11px]">npm run mdm:refresh</code>
+        . Danh mục thường ở Trung tâm danh mục.
+      </p>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -344,7 +325,7 @@ export default function MdmGovernanceView() {
               Gợi ý chuẩn hóa ({suggestions.length})
             </button>
           </div>
-          <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest italic pr-2">
+          <div className="pr-2 text-[11px] font-medium italic text-slate-400">
             BV103 Metadata Control Center
           </div>
         </div>
@@ -379,7 +360,7 @@ export default function MdmGovernanceView() {
               {suggestions.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                   <CheckCircle className="w-12 h-12 text-emerald-500 mb-2 animate-bounce" />
-                  <span className="font-black text-sm uppercase tracking-widest">Không có cảnh báo nào!</span>
+                  <span className="text-sm font-semibold text-slate-600">Không có cảnh báo nào</span>
                   <span className="text-xs text-slate-400 mt-1 font-medium">Toàn vẹn dữ liệu MDM đã phủ kín 100%.</span>
                 </div>
               ) : (
@@ -393,7 +374,7 @@ export default function MdmGovernanceView() {
                         {/* Title Table & Column */}
                         <div className="flex justify-between items-start gap-2">
                           <div>
-                            <span className="font-mono font-black text-slate-700 text-xs truncate max-w-[200px] block">{s.table_name}</span>
+                            <span className="block max-w-[200px] truncate font-mono text-xs font-semibold text-slate-700">{s.table_name}</span>
                             <span className="font-mono font-bold text-amber-600 text-[11px] block mt-0.5">↳ {s.column_name}</span>
                           </div>
                           <span className={`inline-flex px-2 py-0.5 rounded text-[11px] font-extrabold uppercase ${s.suggestion_type === "REGISTER_FK" ? "bg-amber-100 text-amber-700 border border-amber-200" : "bg-cyan-50 text-cyan-600 border border-cyan-200"}`}>
@@ -420,14 +401,14 @@ export default function MdmGovernanceView() {
                         <button
                           type="button"
                           onClick={() => handleRejectSuggestion(s)}
-                          className="px-3 py-1.5 border border-slate-200 hover:bg-slate-50 hover:text-slate-600 rounded-lg font-extrabold text-[11px] uppercase tracking-wider transition-colors text-slate-400"
+                          className="rounded-lg border border-slate-200 px-3 py-1.5 text-[11px] font-semibold text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-600"
                         >
                           Bỏ qua
                         </button>
                         <button
                           type="button"
                           onClick={() => handleOpenApprove(s)}
-                          className="flex items-center gap-1 px-4 py-1.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg font-extrabold text-[11px] uppercase tracking-wider transition-all shadow-sm active:translate-y-[1px]"
+                          className="flex items-center gap-1 rounded-lg bg-[var(--primary)] px-4 py-1.5 text-[11px] font-semibold text-white shadow-sm transition-all hover:bg-[var(--primary-hover)] active:translate-y-[1px]"
                         >
                           <Plus className="w-3 h-3 shrink-0" />
                           Thiết lập Bảo vệ

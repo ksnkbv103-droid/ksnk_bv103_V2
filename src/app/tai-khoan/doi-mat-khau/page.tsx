@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { changePasswordWithReauth } from "@/modules/auth/actions/staff-password.actions";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 export default function DoiMatKhauPage() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function DoiMatKhauPage() {
   return (
     <div className="mx-auto max-w-md space-y-6 p-4">
       <h1 className={T.pageTitle}>Đổi mật khẩu</h1>
-      <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <form onSubmit={onSubmit} className={`space-y-4 p-6 ${C.panelSurface}`}>
         <div>
           <label className={T.labelBlock}>Email đăng nhập</label>
           <input

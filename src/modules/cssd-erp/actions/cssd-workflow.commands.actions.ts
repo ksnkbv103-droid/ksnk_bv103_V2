@@ -30,15 +30,19 @@ export async function cssdCommandStartNewCycle(maQR: string) {
   return scanQR(maQR, "TIEP_NHAN");
 }
 
-/** Bước tiếp theo theo ô trạm đang quét — cùng hành vi `scanQR`. */
-export async function cssdCommandAdvanceStation(maQR: string, station: Exclude<Station, "TIET_KHUAN">) {
-  return scanQR(maQR, station as Station);
+/** Bước tiếp theo theo ô trạm đang quét — cùng hành vi `scanQR` (kể cả offline replay). */
+export async function cssdCommandAdvanceStation(
+  maQR: string,
+  station: Exclude<Station, "TIET_KHUAN">,
+  extraPayload?: Record<string, unknown>,
+) {
+  return scanQR(maQR, station as Station, extraPayload);
 }
 
 /** Trả lui đúng 1 trạm (không dùng tại TK/CP). */
 export async function cssdCommandRejectToPrevious(maQR: string, lyDo: string) {
-  const supabase = createAdminSupabaseClient();
   await verifyCssdWorkflowEdit();
+  const supabase = createAdminSupabaseClient();
   const code = String(maQR || "").trim().toUpperCase();
   const row = await fetchLatestActiveWorkflowByQr(supabase, code);
   if (!row) throw new Error("Không tìm thấy QR quy trình.");
@@ -57,8 +61,8 @@ export async function cssdCommandRejectToPrevious(maQR: string, lyDo: string) {
 
 /** Đóng băng thủ công (thiết bị kẹt / chờ QA). */
 export async function cssdCommandFreezeSet(maQR: string, lyDo?: string) {
-  const supabase = createAdminSupabaseClient();
   await verifyCssdWorkflowEdit();
+  const supabase = createAdminSupabaseClient();
   const has = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_dong_bang");
   if (!has) throw new Error("Phiên bản DB chưa có cột khóa an toàn.");
 

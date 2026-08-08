@@ -1,0 +1,235 @@
+# ĐẶC TẢ LOGIC DOMAIN: CHƯƠNG 4 - NHIỄM KHUẨN HUYẾT LIÊN QUAN ĐƯỜNG TRUYỀN TRUNG TÂM (CLABSI)
+*Chuẩn hóa theo Sổ tay Giám sát An toàn Người bệnh NHSN/CDC 2025*
+
+---
+
+## 1. ĐỊNH NGHĨA BIẾN SỐ VÀ CƠ SỞ DỮ LIỆU ĐẦU VÀO (DATA SCHEMA)
+
+Động cơ quy tắc (Rule Engine) của phần mềm yêu cầu cấu trúc dữ liệu JSON đầu vào dưới đây để thực hiện tính toán tự động.
+
+### 1.1. Dữ liệu hành chính và nhập viện (Admission Record)
+```json
+{
+  "PatientID": "string (Primary Key)",
+  "AdmissionID": "string (Primary Key)",
+  "AdmissionDate": "date [YYYY-MM-DD]",
+  "DischargeDate": "date [YYYY-MM-DD] or null",
+  "BirthDate": "date [YYYY-MM-DD]",
+  "PatientAgeYears": "integer"
+}
+```
+
+### 1.2. Dữ liệu can thiệp Đường truyền trung tâm (Central Line Registry)
+```json
+{
+  "CentralLineRegistryID": "string (Primary Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "LineType": "enum [TEMPORARY, PERMANENT, UMBILICAL]", 
+  "FirstAccessDateTime": "datetime [YYYY-MM-DD HH:MM:SS]", 
+  "RemovalDateTime": "datetime [YYYY-MM-DD HH:MM:SS] or null",
+  "LocationCode": "string (CDC Location Code)",
+  "IsAccessedInpatient": "boolean" 
+}
+```
+*   **LineType Definitions:**
+    *   `TEMPORARY`: Catheter không đường hầm, không cấy ghép.
+    *   `PERMANENT`: Catheter có đường hầm (tunneled) hoặc cổng cấy dưới da (implanted ports).
+    *   `UMBILICAL`: Catheter động mạch hoặc tĩnh mạch rốn ở trẻ sơ sinh (luôn là đường truyền trung tâm).
+
+### 1.3. Bảng dữ liệu theo dõi dọc hàng ngày (Daily Longitudinal Flowsheet)
+```json
+{
+  "FlowsheetID": "string (Primary Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "CalendarDate": "date [YYYY-MM-DD]",
+  "HospitalDay": "integer (AdmissionDate = Day 1)",
+  "DailyMaxTempC": "float or null (Nhiệt độ lớn nhất trong ngày)",
+  "DailyMinTempC": "float or null (Nhiệt độ nhỏ nhất trong ngày)",
+  "HasChills": "boolean",
+  "HasHypotension": "boolean",
+  "HasApnea": "boolean (Chỉ dùng cho trẻ <= 1 tuổi)",
+  "HasBradycardia": "boolean (Chỉ dùng cho trẻ <= 1 tuổi)",
+  "DailyMinANC": "float or null (cells/mm3, Absolute Neutrophil Count)",
+  "DailyMinWBC": "float or null (cells/mm3, White Blood Cell Count)",
+  "HasGIGVHD": "boolean (Grade III/IV Gastrointestinal Graft-Versus-Host Disease)",
+  "DailyDiarrheaVolume": "float (Liters/24h hoặc mL/kg/24h)"
+}
+```
+
+### 1.4. Dữ liệu vi sinh cấy máu (Blood Culture Record)
+```json
+{
+  "BloodCultureID": "string (Primary Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "CollectionDateTime": "datetime [YYYY-MM-DD HH:MM:SS]",
+  "SpecimenNumber": "string (Số thứ tự mẫu cấy từ LIS)",
+  "IsNCT": "boolean (Non-culture based microbiologic testing)",
+  "OrganismCode": "string (SNOMED-CT)",
+  "OrganismName": "string",
+  "IsCommonCommensal": "boolean (Tra cứu bảng tác nhân hội sinh NHSN)"
+}
+```
+
+---
+
+## 2. CỔNG LỌC ĐIỀU KIỆN TIÊN QUYẾT (GATEKEEPERS)
+
+Trước khi chạy thuật toán xác định CLABSI, hệ thống phải kiểm tra các cổng lọc logic sau:
+
+*   **Logic 1 (Vị trí giám sát):** Bệnh nhân phải nằm tại các khoa thuộc diện giám sát theo kế hoạch báo cáo tháng (Monthly Reporting Plan).
+*   **Logic 2 (Tính hợp lệ của Đường truyền trung tâm - Eligible CL):**
+    *   Đường truyền trung tâm phải được **Đặt và Truy cập (Access)** liên tục **$> 2$ ngày theo lịch** tính đến Ngày xảy ra sự kiện (DOE).
+    *   *Công thức tính:* Ngày truy cập đầu tiên tại khu điều trị nội trú được tính là **CL Day 1**. Bệnh nhân đủ điều kiện CLABSI từ **CL Day 3** trở đi.
+*   **Logic 3 (Sự hiện diện của dụng cụ vào DOE):**
+    *   Đường truyền trung tâm hợp lệ phải **đang hiện diện** vào ngày DOE HOẶC **được rút vào ngày liền trước** (Day -1) ngày DOE.
+
+---
+
+## 3. THUẬT TOÁN TÍNH TOÁN KHUNG THỜI GIAN
+
+### 3.1. Thuật toán xác định Ngày lấy mẫu (Index Date) và Sinh khoảng cửa sổ (IWP)
+*   **Index Date:** Là ngày thu thập mẫu cấy máu dương tính đầu tiên dùng để thỏa mãn tiêu chuẩn LCBI.
+*   **Infection Window Period (IWP):** Là mảng thời gian 7 ngày tính bằng:
+    $$\text{IWP} = [\text{Index Date} - 3 \text{ ngày}, \text{ Index Date} + 3 \text{ ngày}]$$
+
+### 3.2. Thuật toán xác định Ngày xảy ra sự kiện (Date of Event - DOE)
+*   **Đối với tiêu chuẩn LCBI 1 (Pathogen):** Do chỉ cần duy nhất kết quả cấy máu dương tính, **DOE luôn trùng với ngày thu thập mẫu cấy máu đầu tiên** trong IWP.
+*   **Đối với tiêu chuẩn LCBI 2 & LCBI 3 (Common Commensal):** DOE là ngày đầu tiên xuất hiện bất kỳ yếu tố nào của tiêu chuẩn (có thể là ngày xuất hiện triệu chứng đầu tiên như sốt/rét run/tụt huyết áp hoặc ngày cấy máu dương tính đầu tiên) trong IWP.
+
+### 3.3. Thuật toán phân loại POA vs HAI
+*   **Present on Admission (POA):** DOE xảy ra từ ngày nhập viện (Hospital Day 1) đến ngày thứ 2 của đợt nhập viện.
+*   **Healthcare-Associated Infection (HAI):** DOE xảy ra từ Ngày thứ 3 của đợt nhập viện trở đi.
+
+### 3.4. Thuật toán Khung thời gian lặp lại (Repeat Infection Timeframe - RIT)
+*   Kích hoạt khung RIT **14 ngày** kể từ ngày DOE (với DOE là Ngày 1).
+*   *Quy tắc chặn:* Không ghi nhận ca nhiễm khuẩn huyết mới cùng loại trong khoảng RIT này. Các tác nhân vi khuẩn mới phát hiện trong cấy máu thuộc RIT sẽ được cộng dồn (add) vào ca bệnh gốc ban đầu.
+
+---
+
+## 4. TIÊU CHUẨN CHẨN ĐOÁN CHI TIẾT (LOGIC TREES)
+
+Hệ thống phải tự động phân tích và đối chiếu dữ liệu để phân loại ca bệnh theo 2 nhánh: **LCBI thường** và nhánh phụ **MBI-LCBI (Tổn thương hàng rào niêm mạc)**.
+
+### 4.1. Nhánh Tiêu chuẩn LCBI (Laboratory-Confirmed Bloodstream Infection)
+
+#### Tiêu chuẩn LCBI 1 (Áp dụng cho mọi lứa tuổi)
+*   **IF** (Phân lập được vi sinh vật gây bệnh từ $\ge 1$ mẫu cấy máu, tác nhân này **không nằm** trong danh sách vi khuẩn hội sinh [Common Commensal list] của NHSN)
+*   **AND** (Tác nhân cấy máu không liên quan đến một ổ nhiễm khuẩn tại vị trí cơ quan khác - tức không phải Secondary BSI)
+*   **THEN** Đạt tiêu chuẩn **LCBI 1**. (Đánh giá tiếp điều kiện MBI-LCBI 1).
+
+> **Lưu ý xử lý kết quả kiểm tra không cấy (NCT) cho Devs:**
+> Nếu có mẫu cấy máu làm đồng thời trong vòng 2 ngày trước hoặc 1 ngày sau ngày làm xét nghiệm NCT:
+> *   Bỏ qua kết quả NCT, chỉ sử dụng kết quả cấy máu để chạy thuật toán.
+> *   Nếu không có mẫu cấy máu nào trong khoảng thời gian trên, kết quả NCT dương tính được chấp nhận như kết quả cấy.
+
+#### Tiêu chuẩn LCBI 2 (Áp dụng cho mọi lứa tuổi - Vi khuẩn hội sinh)
+*   **IF** (Bệnh nhân xuất hiện ít nhất một triệu chứng lâm sàng trong IWP: Sốt $>38.0^\circ\text{C}$, rét run, hoặc tụt huyết áp)
+*   **AND** (Cùng một loài vi khuẩn hội sinh [Common Commensal] được phân lập từ $\ge 2$ mẫu cấy máu thu thập vào các lần riêng biệt trong cùng ngày hoặc 2 ngày lịch liên tiếp)
+*   **AND** (Tác nhân này không liên quan đến ổ nhiễm khuẩn ở vị trí khác)
+*   **THEN** Đạt tiêu chuẩn **LCBI 2**. (Đánh giá tiếp điều kiện MBI-LCBI 2).
+
+#### Tiêu chuẩn LCBI 3 (Áp dụng riêng cho bệnh nhi $\le 1$ tuổi)
+*   **IF** (Bệnh nhi $\le 1$ tuổi có ít nhất một triệu chứng lâm sàng trong IWP: Sốt $>38.0^\circ\text{C}$, hạ thân nhiệt $<36.0^\circ\text{C}$, ngưng thở, hoặc nhịp tim chậm)
+*   **AND** (Cùng một loài vi khuẩn hội sinh [Common Commensal] được phân lập từ $\ge 2$ mẫu cấy máu thu thập vào các lần riêng biệt trong cùng ngày hoặc 2 ngày lịch liên tiếp)
+*   **AND** (Tác nhân này không liên quan đến ổ nhiễm khuẩn ở vị trí khác)
+*   **THEN** Đạt tiêu chuẩn **LCBI 3**. (Đánh giá tiếp điều kiện MBI-LCBI 3).
+
+---
+
+### 4.2. Nhánh Tiêu chuẩn MBI-LCBI (Mucosal Barrier Injury)
+*Điều kiện tiên quyết: Ca bệnh bắt buộc phải thỏa mãn đầy đủ tiêu chuẩn LCBI tương ứng trước khi xét MBI-LCBI.*
+
+#### Tiêu chuẩn MBI-LCBI 1
+*   **IF** (Bệnh nhân thỏa mãn đầy đủ tiêu chuẩn **LCBI 1**)
+*   **AND** (Mẫu cấy máu **chỉ phân lập được** các tác nhân thuộc danh sách MBI Organism của NHSN - ví dụ: *Candida spp.*, *Enterobacteriaceae*, *Saccharomyces spp.*)
+*   **AND** (Bệnh nhân đáp ứng ít nhất một trong hai điều kiện lâm sàng đặc biệt dưới đây):
+
+##### Điều kiện 1: Ghép tế bào gốc tạo máu đồng loài (Allogeneic HSCT)
+Bệnh nhân được ghép HSCT trong vòng 1 năm qua VÀ ghi nhận trong cùng đợt nằm viện:
+*   Có bệnh ghép chống chủ đường tiêu hóa (GI GVHD) Độ III hoặc IV.
+*   **OR** Tiêu chảy $\ge 1 \text{ Lít/24 giờ}$ (hoặc $\ge 20 \text{ mL/kg/24 giờ}$ đối với bệnh nhân $<18$ tuổi) khởi phát trong vòng 7 ngày trước ngày lấy mẫu máu dương tính.
+
+##### Điều kiện 2: Giảm bạch cầu hạt nặng (Neutropenia)
+Bệnh nhân có ít nhất 2 ngày lịch riêng biệt ghi nhận chỉ số Absolute Neutrophil Count (ANC) hoặc White Blood Cell (WBC) $< 500 \text{ cells/mm}^3$:
+*   *Khung quét:* Chỉ số này phải rơi vào khoảng 7 ngày xung quanh ngày cấy máu dương tính (Ngày cấy máu $\pm 3$ ngày).
+*   *Công thức tính ANC khi lab không trả kết quả trực tiếp:*
+    $$\text{ANC} = \text{WBC} \times (\% \text{Segmented Neutrophils} + \% \text{Bands}) \div 100$$
+*   **THEN** Đạt tiêu chuẩn **MBI-LCBI 1**.
+
+#### Tiêu chuẩn MBI-LCBI 2
+*   **IF** (Bệnh nhân thỏa mãn đầy đủ tiêu chuẩn **LCBI 2**)
+*   **AND** (Mẫu cấy máu **chỉ phân lập được** *Viridans Group Streptococcus* và/hoặc *Rothia spp.* đơn độc, không kèm tác nhân nào khác)
+*   **AND** (Đáp ứng ít nhất một trong hai điều kiện lâm sàng đặc biệt của MBI-LCBI 1 [HSCT hoặc Neutropenia])
+*   **THEN** Đạt tiêu chuẩn **MBI-LCBI 2**.
+
+#### Tiêu chuẩn MBI-LCBI 3
+*   **IF** (Bệnh nhi $< 1$ tuổi thỏa mãn đầy đủ tiêu chuẩn **LCBI 3**)
+*   **AND** (Mẫu cấy máu **chỉ phân lập được** *Viridans Group Streptococcus* và/hoặc *Rothia spp.* đơn độc, không kèm tác nhân nào khác)
+*   **AND** (Đáp ứng ít nhất một trong hai điều kiện lâm sàng đặc biệt của MBI-LCBI 1 [HSCT hoặc Neutropenia])
+*   **THEN** Đạt tiêu chuẩn **MBI-LCBI 3**.
+
+---
+
+## 5. LƯU ĐỒ THUẬT TOÁN (MERMAID FLOWCHART)
+
+```mermaid
+graph TD
+    A[Mẫu cấy máu dương tính] --> B{Tác nhân có thuộc danh sách Excluded Genus? <br> Blastomyces, Histoplasma, Coccidiodes...}
+    B -- Yes --> C[LOẠI TRỪ - Không phải HAI/POA]
+    B -- No --> D{Tác nhân có thuộc danh sách Common Commensal?}
+    
+    %% Nhánh Recognized Pathogen
+    D -- No (Pathogen) --> E{Có liên quan đến ổ nhiễm trùng cơ quan khác? <br> Secondary BSI}
+    E -- Yes --> F[Secondary BSI - Không báo cáo CLABSI]
+    E -- No --> G[Thỏa mãn LCBI 1]
+    G --> H{Có lưu C-Line hợp lệ > 2 ngày <br> và C-line hiện diện vào DOE hoặc DOE -1?}
+    H -- No --> I[Báo cáo: Primary BSI thường]
+    H -- Yes --> K{Tác nhân thuộc danh sách MBI? <br> AND HSCT hoặc Neutropenia < 500?}
+    K -- Yes --> L[Báo cáo: MBI-CLABSI 1]
+    K -- No --> M[Báo cáo: CLABSI 1]
+    
+    %% Nhánh Common Commensal
+    D -- Yes (Hội sinh) --> N{Cấy dương tính từ >= 2 mẫu máu riêng biệt <br> trong cùng ngày hoặc 2 ngày liên tiếp?}
+    N -- No --> O[LOẠI TRỪ - Ngoại nhiễm/Nhiễm bẩn]
+    N -- Yes --> P{Có triệu chứng trong IWP? <br> Tuổi > 1: Sốt, rét run, tụt HA <br> Tuổi <= 1: Sốt, hạ thân nhiệt, ngưng thở, mạch chậm}
+    P -- No --> O
+    P -- Yes --> Q{Có liên quan đến ổ nhiễm trùng khác?}
+    Q -- Yes --> F
+    Q -- No --> R{Tuổi bệnh nhân?}
+    R -- > 1 tuổi --> S[Thỏa mãn LCBI 2]
+    R -- <= 1 tuổi --> T[Thỏa mãn LCBI 3]
+    
+    S --> U{Có lưu C-Line hợp lệ > 2 ngày <br> và hiện diện vào DOE hoặc DOE-1?}
+    T --> U
+    U -- No --> V[Báo cáo: Primary BSI thường]
+    U -- Yes --> W{Mẫu cấy CHỈ chứa Viridans Strep / Rothia? <br> AND HSCT hoặc Neutropenia < 500?}
+    W -- Yes --> X[Báo cáo: MBI-CLABSI 2 hoặc 3]
+    W -- No --> Y[Báo cáo: CLABSI 2 hoặc 3]
+```
+
+---
+
+## 6. QUY TẮC LOẠI TRỪ & NGOẠI LỆ (EXCLUSIONS & EDGE CASES)
+
+### 6.1. Ngoại lệ kỹ thuật không tính liên quan dụng cụ (Mark Yes nhưng không tính CLABSI)
+Khi bệnh nhân có đặt đường truyền trung tâm nhưng đáp ứng một trong các điều kiện ngoại lệ đặc thù dưới đây, phần mềm vẫn yêu cầu ghi nhận ca bệnh lên NHSN nhưng **đánh dấu đặc hiệu** để hệ thống tự động loại ra khỏi chỉ số SIR (Standardized Infection Ratio):
+
+*   **Extracorporeal Life Support (ECMO):** Thiết bị ECMO/ECLS hiện diện $> 2$ ngày tính đến ngày DOE VÀ còn lưu trên người bệnh nhân vào ngày DOE hoặc ngày liền trước DOE. (Ghi nhận trường `ECMO = Yes`).
+*   **Ventricular Assist Device (VAD):** Thiết bị hỗ trợ tâm thất (VAD) hiện diện $> 2$ ngày tính đến ngày DOE VÀ còn lưu trên người bệnh nhân vào ngày DOE hoặc ngày liền trước DOE. (Ghi nhận trường `VAD = Yes`).
+*   **Patient Injection (Bệnh nhân tự tiêm):** Có bệnh án ghi nhận rõ ràng nhân viên y tế trực tiếp quan sát thấy hoặc nghi ngờ bệnh nhân tự tiêm chất lạ vào đường truyền tĩnh mạch trong khoảng thời gian IWP. *Chú ý:* Chỉ chấp nhận từ "tiêm" (injection), không chấp nhận các hành vi cắn, kéo, hút ống thông. (Ghi nhận trường `Patient Injection = Yes`).
+*   **Epidermolysis bullosa (EB):** Bệnh nhân (đặc biệt là nhi khoa) có chẩn đoán di truyền EB trong đợt điều trị. (Ghi nhận trường `EB = Yes`).
+*   **Munchausen Syndrome by Proxy (MSBP/FDIA):** Có chẩn đoán hoặc nghi ngờ rõ ràng về hội chứng giả bệnh do người chăm sóc gây ra trong đợt điều trị. (Ghi nhận trường `MSBP = Yes`).
+*   **Pus at the vascular access site (Mủ tại vị trí đường truyền khác):** Bệnh nhân có mủ tại chân một đường truyền khác không phải đường truyền trung tâm (như peripheral IV, midline, A-line) VÀ mẫu cấy mủ tại chỗ đó dương tính với ít nhất một tác nhân trùng khớp với tác nhân trong máu cấy ở IWP. (Ghi nhận trường `Pus at vascular access site = Yes`).
+
+### 6.2. Ngoại lệ sinh học và de-duplication của MBI-RIT
+*   **Sự xuất hiện của tác nhân ngoài MBI trong RIT:** Nếu một mẫu cấy máu dương tính với tác nhân không thuộc danh mục MBI (ví dụ: *S. aureus*) được thu thập trong khoảng RIT 14 ngày của một ca **MBI-LCBI đang hoạt động**, hệ thống phải tự động **chuyển đổi (edit) ca MBI-LCBI đó thành ca LCBI thường** và cập nhật thêm tác nhân mới này vào hồ sơ.
+*   *Ngoại lệ của ngoại lệ (MBI-RIT Exception):* Ca MBI-LCBI sẽ **giữ nguyên** nhãn MBI-LCBI, không bị chuyển đổi sang LCBI thường nếu tác nhân ngoài MBI phát hiện sau đó được chứng minh là **thứ phát (Secondary BSI) của một nhiễm khuẩn cơ quan khác** (ví dụ: vết mổ sâu hoặc nhiễm khuẩn da).
+
+### 6.3. Quy tắc loại trừ theo nhóm tuổi và tác nhân
+*   **Group B Streptococcus ở trẻ sơ sinh:** Không báo cáo là CLABSI nếu phát hiện vi khuẩn *Group B Streptococcus* trong máu trẻ sơ sinh trong vòng **6 ngày đầu đời** kể từ khi sinh. Vẫn thiết lập một RIT 14 ngày cho tác nhân này.
+*   **Tác nhân loại trừ tuyệt đối:** Các chi nấm/ký sinh trùng sau đây không được tính vào bất kỳ định nghĩa NKBV nào của NHSN do chủ yếu gây nhiễm trùng cộng đồng: *Blastomyces, Histoplasma, Coccidioides, Paracoccidioides, Cryptococcus và Pneumocystis*.
+*   **Tác nhân loại trừ riêng cho BSI nguyên phát:** Các tác nhân đường ruột sau đây không được báo cáo là tác nhân duy nhất trong ca BSI nguyên phát (nhưng được dùng trong quy kết thứ phát): *Campylobacter, Salmonella, Shigella, Listeria, Vibrio, Yersinia, C. difficile* và các chủng *E. coli* sinh độc tố/gây bệnh đường ruột.
+
+---
+
+*   🔍 **Nudge:** Tôi có thể tiếp tục tiến hành soạn thảo một tài liệu Đặc tả Logic chi tiết tương tự cho **Chương 7: Nhiễm khuẩn tiết niệu liên quan đến ống thông tiểu (CAUTI)** để lập trình viên hoàn thiện nốt phân hệ giám sát dụng cụ xâm lấn này không?

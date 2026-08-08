@@ -23,6 +23,7 @@ import { normalizeQlcvDmFields } from "../lib/qlcv-persist-dm-fields";
 import {
   assertQlcvHanHoanThanhNotPast,
   assertQlcvHanHoanThanhChangeAllowed,
+  assertQlcvDiaDiemKhoaValid,
   insertQlcvTaskRow,
   normalizeQlcvHanDate,
 } from "../lib/qlcv-create-task";
@@ -47,6 +48,11 @@ export async function createCongViec(input: CongViecInput) {
     throw new Error("Dữ liệu không hợp lệ: " + parsed.error.issues.map((i) => i.message).join(", "));
   }
   const payload = parsed.data;
+  if (payload.loai_cong_viec === "DINH_KY") {
+    throw new Error(
+      "Không tạo việc định kỳ từ Điều hành. Vào tab Việc định kỳ để thêm mẫu — hệ thống sẽ sinh phiếu.",
+    );
+  }
   assertQlcvHanHoanThanhNotPast(payload.han_hoan_thanh);
   if (!payload.nguoi_phu_trach_id) {
     throw new Error("Chọn người phụ trách (nhân viên KSNK) trước khi tạo công việc.");
@@ -65,9 +71,15 @@ export async function createCongViec(input: CongViecInput) {
     nguoi_phu_trach_id: payload.nguoi_phu_trach_id,
     ksnkKhoaId: ksnkKhoaId,
     to_cong_tac_id: payload.to_cong_tac_id,
+    vi_tri_thuc_hien: payload.vi_tri_thuc_hien,
+    dia_diem_khoa_id: payload.dia_diem_khoa_id,
+    nhiem_vu_id: payload.nhiem_vu_id,
+    nguoi_phoi_hop_ids: payload.nguoi_phoi_hop_ids,
+    nguoi_theo_doi_ids: payload.nguoi_theo_doi_ids,
     is_active: true,
     nguoi_tao_id: actor,
     nguoi_giao_viec_id: actor,
+    analytics_meta: payload.analytics_meta ?? null,
   });
 
   await appendQlcvNhatKy(supabase, {
@@ -303,7 +315,9 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
 
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
-    .select("id, trang_thai, is_active, nguoi_phu_trach_id, to_cong_tac_id, han_hoan_thanh, phan_tram_hoan_thanh, nguoi_phu_trach_ten, nguoi_tao_id, nguoi_giao_viec_id")
+    .select(
+      "id, trang_thai, is_active, nguoi_phu_trach_id, to_cong_tac_id, han_hoan_thanh, phan_tram_hoan_thanh, nguoi_phu_trach_ten, nguoi_tao_id, nguoi_giao_viec_id, nhiem_vu_id",
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -396,6 +410,27 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
   if (updates.han_hoan_thanh !== undefined) dbUpdates.han_hoan_thanh = updates.han_hoan_thanh;
   if (updates.nguoi_phu_trach_id !== undefined) dbUpdates.nguoi_phu_trach_id = updates.nguoi_phu_trach_id;
   if (updates.to_cong_tac_id !== undefined) dbUpdates.to_cong_tac_id = updates.to_cong_tac_id;
+  if (updates.vi_tri_thuc_hien !== undefined) {
+    dbUpdates.vi_tri_thuc_hien = updates.vi_tri_thuc_hien?.trim() || null;
+  }
+  if (updates.dia_diem_khoa_id !== undefined) {
+    await assertQlcvDiaDiemKhoaValid(supabase, updates.dia_diem_khoa_id, false);
+    dbUpdates.dia_diem_khoa_id = updates.dia_diem_khoa_id;
+  }
+  if (updates.nhiem_vu_id !== undefined) {
+    const { resolveQlcvNhiemVuId } = await import("../lib/qlcv-nhiem-vu-chain");
+    dbUpdates.nhiem_vu_id = await resolveQlcvNhiemVuId(supabase, updates.nhiem_vu_id);
+  }
+  if (updates.nguoi_phoi_hop_ids !== undefined) {
+    const ids = updates.nguoi_phoi_hop_ids ?? [];
+    for (const sid of ids) await validateAssigneeForQlcv(supabase, sid, ksnkKhoaId);
+    dbUpdates.nguoi_phoi_hop_ids = ids;
+  }
+  if (updates.nguoi_theo_doi_ids !== undefined) {
+    const ids = updates.nguoi_theo_doi_ids ?? [];
+    for (const sid of ids) await validateAssigneeForQlcv(supabase, sid, ksnkKhoaId);
+    dbUpdates.nguoi_theo_doi_ids = ids;
+  }
 
   const nextPhuTrach = (updates.nguoi_phu_trach_id ?? cur.nguoi_phu_trach_id) as string | null;
   const nextTo = (updates.to_cong_tac_id ?? cur.to_cong_tac_id) as string | null | undefined;
@@ -434,6 +469,8 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
     if (updates.loai_cong_viec !== undefined) patch.loai_cong_viec = dmFk.loai_cong_viec;
     if (updates.muc_do_uu_tien !== undefined) patch.muc_do_uu_tien = updates.muc_do_uu_tien;
     if (updates.han_hoan_thanh !== undefined) patch.han_hoan_thanh = updates.han_hoan_thanh;
+    if (updates.dia_diem_khoa_id !== undefined) patch.dia_diem_khoa_id = updates.dia_diem_khoa_id;
+    if (updates.nhiem_vu_id !== undefined) patch.nhiem_vu_id = updates.nhiem_vu_id;
 
     await invokeQlcvTransition(supabase, {
       congViecId: id,

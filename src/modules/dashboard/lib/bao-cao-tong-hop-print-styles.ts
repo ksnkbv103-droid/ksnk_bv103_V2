@@ -1,6 +1,7 @@
 export const PRINT_STYLES = `
     :root { --primary: #065f46; --primary-light: #ecfdf5; }
-    @page { size: A4 portrait; margin: 18mm 15mm 22mm 18mm; }
+    /* Đồng bộ lề với phiếu A4 PrintLayout (globals.css @page 12/10/12/12) — footer cố định dùng padding body */
+    @page { size: A4 portrait; margin: 12mm 10mm 12mm 12mm; }
     * { box-sizing: border-box; }
     body {
       font-family: "Times New Roman", Times, serif;
@@ -8,7 +9,7 @@ export const PRINT_STYLES = `
       font-size: 13px;
       line-height: 1.5;
       margin: 0;
-      padding: 0 0 14mm;
+      padding: 0 0 12mm;
     }
     .page-break { page-break-before: always; break-before: page; }
     .header {
@@ -69,6 +70,8 @@ export const PRINT_STYLES = `
     .summary-box { background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px; border-radius: 4px; margin-bottom: 20px; }
     .summary-box p { margin: 5px 0; font-size: 13px; }
     .muted { font-size: 12px; color: #64748b; font-style: italic; }
+    .chart-block { margin: 8px 0 14px; page-break-inside: avoid; }
+    .chart-block svg { display: block; }
     .table-wrap { overflow: visible; width: 100%; margin: 8px 0 16px; }
     table {
       width: 100%;
@@ -124,7 +127,7 @@ export const PRINT_STYLES = `
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 18mm 4px;
+      padding: 6px 10mm 4px;
       font-size: 10px;
       color: #64748b;
       border-top: 0.5pt solid #cbd5e1;

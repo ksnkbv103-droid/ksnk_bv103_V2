@@ -40,6 +40,12 @@ alwaysApply: false
 - Sau thay đổi quan trọng: CRUD, import/export (nếu có), RLS, test tay luồng vừa sửa.
 - Verify: `verify:engineering` khi đụng action/`fact_*`; `verify:quick` chỉ UI thuần.
 
+## Page chrome / shell
+
+- Sửa layout shell, header module, tab bar, page frame → đọc [`wiki/concepts.md`](../../docs/wiki/concepts.md#layout-primitives) + [`page-chrome-contract-20260731.md`](../../docs/reference/architecture/page-chrome-contract-20260731.md). Không invent dialect chrome mới ngoài contract.
+
 ## Mobile (tóm tắt)
 
-- Control tương tác: `touch-manipulation`, target đủ lớn; form hiện trường xem `engineering-guidelines` § mobile.
+- Control tương tác: `touch-manipulation`, `pointer-events-auto`, `-webkit-tap-highlight-color: transparent`; target đủ lớn.
+- Sidebar mobile: overlay + toggle rõ; form hiện trường xem `engineering-guidelines` § mobile.
+- Hardening touch đầy đủ sau khi core logic/data ổn định.

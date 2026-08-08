@@ -5,7 +5,7 @@ import React from "react";
 import { PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
 
-const COLORS = ['var(--primary)', '#FFD700', '#dc2626', '#3b82f6', '#8b5cf6', '#ec4899'];
+const COLORS = ['var(--primary)', '#f59e0b', '#dc2626', '#3b82f6', '#8b5cf6', '#ec4899'];
 
 interface Props { pieData: any[]; barData: any[]; }
 
@@ -17,8 +17,8 @@ export default function ReportCharts({ pieData, barData }: Props) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* 1. Biểu đồ tròn: Tỷ lệ sự cố theo loại */}
-      <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm space-y-8 flex flex-col">
-        <h3 className="text-[11px] font-medium text-slate-400 tracking-[0.3em]">Tỷ lệ sự cố theo danh mục</h3>
+      <div className="bg-white p-8 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm space-y-8 flex flex-col">
+        <h3 className="text-[11px] font-medium text-slate-400 tracking-wide">Tỷ lệ sự cố theo danh mục</h3>
         <div className="h-[320px] w-full min-w-0 relative">
           <Bv103ResponsiveChart className="absolute inset-0 min-h-[320px]">
             <PieChart>
@@ -38,8 +38,8 @@ export default function ReportCharts({ pieData, barData }: Props) {
       </div>
 
       {/* 2. Biểu đồ cột chồng: So sánh mẻ tiệt khuẩn và sự cố */}
-      <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm space-y-8">
-        <h3 className="text-[11px] font-medium text-slate-400 tracking-[0.3em]">Hiệu suất mẻ tiệt khuẩn vs Sự cố</h3>
+      <div className="bg-white p-8 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm space-y-8">
+        <h3 className="text-[11px] font-medium text-slate-400 tracking-wide">Hiệu suất mẻ tiệt khuẩn vs Sự cố</h3>
         <div className="h-[320px] w-full min-w-0">
           <Bv103ResponsiveChart className="h-full w-full">
             <BarChart data={barData}>

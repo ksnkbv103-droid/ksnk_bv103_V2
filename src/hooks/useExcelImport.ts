@@ -10,6 +10,7 @@ import {
   excelCellToPlain,
   normalizeImportedIsActive,
 } from "./importExport.utils";
+import { requestImportContract } from "./import-confirm-contract";
 
 export function useExcelImport(config: ImportExportConfig, normalizedMapping: Record<string, string>) {
   const [isImporting, setIsImporting] = useState(false);
@@ -114,29 +115,86 @@ export function useExcelImport(config: ImportExportConfig, normalizedMapping: Re
         finalData = Array.from(groupedMap.values());
       }
 
-      const updateCount = finalData.filter((x) => !!x[config.uniqueKey]).length;
-      const insertCount = finalData.length - updateCount;
-      const preview = window.confirm(
-        `Xác nhận import ${config.displayName}?\n` +
-          `- Tổng bản ghi: ${finalData.length}\n` +
-          `- Cập nhật (có mã): ${updateCount}\n` +
-          `- Thêm mới (không mã): ${insertCount}\n` +
-          `- Dòng thiếu trong file sẽ được soft delete (is_active=false).`,
-      );
-      if (!preview) {
-        toast.info("Đã hủy import theo yêu cầu.", { id: toastId });
+      let updateCount = finalData.filter((x) => !!x[config.uniqueKey]).length;
+      let insertCount = finalData.length - updateCount;
+      let deactivateCount: number | undefined;
+      let errorLines: string[] | undefined;
+      let errorTotal: number | undefined;
+      try {
+        const dry = await config.onImport(finalData, {
+          softDeleteMissing: !config.disableSyncFull,
+          dryRun: true,
+        });
+        if (dry.errorLines?.length) {
+          errorLines = dry.errorLines;
+          errorTotal = dry.errorTotal ?? dry.errorLines.length;
+        }
+        if (dry.success && dry.audit) {
+          insertCount = dry.audit.insertCount;
+          updateCount = dry.audit.updateCount;
+          deactivateCount = dry.audit.deactivateCount;
+        } else if (dry.success === false && dry.error && dry.error !== "USER_CANCELLED") {
+          throw new Error(dry.error);
+        }
+      } catch (dryErr: unknown) {
+        if (dryErr instanceof Error && dryErr.message && !dryErr.message.includes("dry")) {
+          /* Lỗi validate thật từ dry-run — dừng trước dialog */
+          if (
+            dryErr.message.includes("thiếu") ||
+            dryErr.message.includes("không") ||
+            dryErr.message.includes("lỗi") ||
+            dryErr.message.includes("Lỗi") ||
+            dryErr.message.includes("File")
+          ) {
+            throw dryErr;
+          }
+        }
+        /* server không hỗ trợ dry-run — giữ heuristic client */
+      }
+      const sampleLines = finalData.slice(0, 5).map((row, i) => {
+        const ma = String(row[config.uniqueKey] ?? "").trim();
+        const tenKey = Object.keys(row).find((k) => k.startsWith("ten_") || k === "name");
+        const ten = tenKey ? String(row[tenKey] ?? "").trim() : "";
+        return `${i + 1}. ${ma || "(không mã)"}${ten ? ` — ${ten}` : ""}`;
+      });
+
+      toast.dismiss(toastId);
+      const decision = await requestImportContract({
+        displayName: config.displayName,
+        total: finalData.length,
+        updateCount,
+        insertCount,
+        deactivateCount,
+        disableSyncFull: config.disableSyncFull,
+        sampleLines,
+        errorLines,
+        errorTotal,
+      });
+      if (decision === "cancel") {
+        toast.info("Đã hủy — không ghi dữ liệu.", { id: toastId });
         return { success: false, error: "USER_CANCELLED" };
       }
 
-      const res = await config.onImport(finalData);
+      const softDeleteMissing = !config.disableSyncFull && decision === "sync_full";
+      const writeToastId = toast.loading(
+        softDeleteMissing
+          ? `Đang đồng bộ đầy đủ ${config.displayName}…`
+          : `Đang thêm/cập nhật ${config.displayName}…`,
+      );
+
+      const res = await config.onImport(finalData, { softDeleteMissing, dryRun: false });
       if (res.success) {
-        toast.success("Import thành công!", { id: toastId });
+        toast.success(
+          softDeleteMissing ? "Đồng bộ đầy đủ thành công." : "Import an toàn thành công.",
+          { id: writeToastId },
+        );
         if (res.warning) {
           toast.warning(res.warning);
         }
         config.onSuccess?.();
       } else {
-        toast.error(`Lỗi: ${res.error}`, { id: toastId });
+        const detail = res.error || "Không rõ lỗi";
+        toast.error(`Lỗi: ${detail}`, { id: writeToastId });
       }
       return res;
     } catch (e: unknown) {

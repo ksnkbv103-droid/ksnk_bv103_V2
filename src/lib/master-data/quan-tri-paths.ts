@@ -2,12 +2,13 @@
 const QUAN_TRI_HUB_PATH = "/quan-tri-he-thong";
 const QUAN_TRI_DUNG_CU_PATH = "/quan-tri-he-thong/danh-muc/dung-cu";
 
-export type QuanTriHubTab = "DANH_MUC" | "PHAN_QUYEN" | "MDM_GOVERNANCE";
+export type QuanTriHubTab = "DANH_MUC" | "PHAN_QUYEN" | "MDM_GOVERNANCE" | "SUC_KHOE";
 
 const TAB_QUERY: Record<QuanTriHubTab, string> = {
   DANH_MUC: "",
   PHAN_QUYEN: "phan_quyen",
   MDM_GOVERNANCE: "mdm_governance",
+  SUC_KHOE: "suc_khoe",
 };
 
 export function quanTriHubHref(tab?: QuanTriHubTab): string {

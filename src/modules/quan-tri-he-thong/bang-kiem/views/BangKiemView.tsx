@@ -56,10 +56,9 @@ export default function BangKiemView() {
             <ClipboardList size={22} aria-hidden /> Danh mục Bảng kiểm
           </span>
         }
-        subtitle="Quản lý mẫu bảng kiểm, quy định phạm vi áp dụng (TGS/KSNK) và tiêu chí — SSOT cho ma trận giám sát."
       />
 
-      <div className="flex flex-col md:flex-row gap-8 items-start relative max-w-[1800px] mx-auto">
+      <div className="flex flex-col md:flex-row gap-8 items-start relative w-full">
         <div className="w-full space-y-6 md:sticky md:top-24 md:flex md:w-[55%] md:max-h-[calc(100vh-140px)] md:flex-col">
           <h2 className={`shrink-0 px-2 ${T.sectionTitle}`}>Mẫu bảng kiểm</h2>
           <div className="pb-10 animate-in fade-in duration-500 md:flex-1 md:overflow-y-auto md:pr-2 md:custom-scrollbar">

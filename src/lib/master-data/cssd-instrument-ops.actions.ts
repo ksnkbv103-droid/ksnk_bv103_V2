@@ -51,7 +51,18 @@ export async function requestReplenishFromReserveAction(params: {
   quantity?: number;
   note?: string;
 }) {
-  await verifyPermission("CSSD_WORKFLOW", "edit");
+  try {
+    await verifyPermission("CSSD_WORKFLOW", "edit");
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return {
+      success: false as const,
+      error:
+        msg.includes("không có quyền") || msg.includes("chưa đăng nhập")
+          ? "Không đủ quyền vận hành CSSD (sửa quy trình) để bù kho lẻ. Liên hệ quản trị cấp quyền «Quy trình luân chuyển QR trạm CSSD» — không cần quyền sửa danh mục dụng cụ."
+          : msg,
+    };
+  }
   const supabase = createAdminSupabaseClient();
   const result = await replenishSetInstrumentCore(supabase, {
     loaiDungCuId: params.loaiDungCuId,

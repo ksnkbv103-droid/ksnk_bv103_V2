@@ -2,7 +2,8 @@
 
 import React from "react";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
-import { KsnkSupervisionHero } from "@/components/shared/ksnk-supervision-chrome";
+import { KsnkPageChrome } from "@/components/shared/KsnkPageChrome";
+import { ThongKeChromeSlot, useThongKeChrome } from "@/components/shared/ThongKeChromeContext";
 
 type Props = {
   eyebrow?: string | null;
@@ -12,12 +13,17 @@ type Props = {
   filterBar?: React.ReactNode;
   children: React.ReactNode;
   sticky?: boolean;
-  /** @deprecated Dùng layout toolbar mặc định khi có filterBar. */
+  /**
+   * Khi layout `/thong-ke` đã có sticky chrome — đẩy filter/actions lên band cha,
+   * không tạo shell L1 thứ hai.
+   */
+  embedded?: boolean;
+  /** @deprecated */
   compact?: boolean;
 };
 
 /**
- * Khung analytics — một thanh sticky: tiêu đề | thao tác, rồi bộ lọc (không lồng card).
+ * Khung analytics — `KsnkPageChrome` + filters (page-chrome-contract).
  */
 export function Bv103AnalyticsPageFrame({
   eyebrow,
@@ -27,21 +33,39 @@ export function Bv103AnalyticsPageFrame({
   filterBar,
   children,
   sticky = true,
+  embedded = false,
 }: Props) {
-  const shell = sticky ? bv103DesignTokens.analyticsToolbarShell : bv103DesignTokens.analyticsToolbarShellStatic;
+  const thongKe = useThongKeChrome();
+
+  if (embedded || thongKe) {
+    return (
+      <div className={bv103DesignTokens.pageSectionGap}>
+        <ThongKeChromeSlot filters={filterBar} actions={actions} />
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className={bv103DesignTokens.pageOuterAnalytics}>
-      {filterBar ? (
-        <div className={shell}>
-          <div className="flex min-h-9 items-center justify-between gap-3">
-            <h1 className="min-w-0 truncate text-base font-semibold tracking-tight text-slate-900">{title}</h1>
-            {actions ? <div className="flex shrink-0 items-center gap-1.5">{actions}</div> : null}
-          </div>
-          <div className="mt-2 border-t border-slate-100 pt-2 sm:mt-3 sm:pt-3">{filterBar}</div>
-        </div>
+      {filterBar || title ? (
+        <KsnkPageChrome
+          eyebrow={eyebrow}
+          title={title}
+          subtitle={description}
+          actions={actions}
+          filters={filterBar}
+          showTitle={Boolean(title)}
+          sticky={sticky && Boolean(filterBar)}
+        />
       ) : (
-        <KsnkSupervisionHero eyebrow={eyebrow} title={title} description={description} actions={actions} />
+        <KsnkPageChrome
+          eyebrow={eyebrow}
+          title={title}
+          subtitle={description}
+          actions={actions}
+          showTitle
+        />
       )}
       <div className={bv103DesignTokens.pageSectionGap}>{children}</div>
     </div>
@@ -51,10 +75,10 @@ export function Bv103AnalyticsPageFrame({
 export function Bv103AnalyticsPageSkeleton({ kpiCount = 4 }: { kpiCount?: number }) {
   return (
     <div className={`${bv103DesignTokens.pageOuterAnalytics} animate-pulse`}>
-      <div className="h-20 rounded-xl border border-slate-100 bg-slate-50" />
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="h-16 rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50" />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {Array.from({ length: kpiCount }, (_, i) => (
-          <div key={i} className="h-24 rounded-2xl bg-slate-50" />
+          <div key={i} className="h-20 rounded-[var(--radius-shell)] bg-slate-50" />
         ))}
       </div>
     </div>

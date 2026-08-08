@@ -235,7 +235,7 @@ export default function SearchableSelect({
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="searchable-select-sheet-title"
-                  className="relative z-10 flex max-h-[min(90dvh,720px)] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200/80"
+                  className="relative z-10 flex max-h-[min(90dvh,720px)] w-full max-w-lg flex-col overflow-hidden rounded-[var(--radius-shell)] bg-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-200/80"
                   onPointerDown={(e) => e.stopPropagation()}
                 >
                   <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-4 py-3.5">
@@ -293,7 +293,7 @@ export default function SearchableSelect({
                 ref={panelRef}
                 data-bv103-picker-portal=""
                 style={{ ...dropdownStyle, pointerEvents: "auto" }}
-                className="pointer-events-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                className="pointer-events-auto rounded-[var(--radius-shell)] border border-slate-200 bg-white p-3 shadow-[var(--shadow-app-soft)] animate-in fade-in zoom-in-95 duration-200"
                 onPointerDown={(e) => e.stopPropagation()}
               >
                 <input

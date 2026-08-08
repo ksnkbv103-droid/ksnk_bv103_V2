@@ -41,6 +41,8 @@ export function buildFullReverseMapping(params: {
   }
   Object.entries(params.normalizedMapping).forEach(([header, key]) => {
     out[String(header).trim().toUpperCase()] = key;
+    // Chấp nhận header = tên field DB (file cũ / snake_case).
+    out[String(key).trim().toUpperCase()] = key;
   });
   return out;
 }

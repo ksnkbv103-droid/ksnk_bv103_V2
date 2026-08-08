@@ -8,9 +8,9 @@ import { CSSD_LOAI_PHYSICAL_SELECT, resolveLoaiAlias } from "@/lib/master-data/c
 const MAX_HISTORY_ROWS = 50;
 
 export async function fetchCssdKhoGiaoDichHistory() {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdKhoDungCuView();
+    const supabase = createAdminSupabaseClient();
     const { data: rows, error } = await supabase
       .from("cssd_fact_kho_giao_dich")
       .select(

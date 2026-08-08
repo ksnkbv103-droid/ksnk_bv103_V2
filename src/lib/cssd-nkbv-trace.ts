@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CSSD_ROUTES } from "@/lib/cssd-routes";
+import { resolveCssdCodeWithClient } from "@/modules/cssd-erp/shared/application/cssd-qr-hub";
 
 export type CssdQuyTrinhLink = {
   quy_trinh_id: string;
@@ -8,7 +9,7 @@ export type CssdQuyTrinhLink = {
   ten_bo: string | null;
 };
 
-/** Resolve mã QR chu trình CSSD → quy trình active (SSOT read). */
+/** Resolve mã QR chu trình CSSD → quy trình active (ủy quyền QR Hub). */
 export async function resolveCssdQuyTrinhLinkFromMaQr(
   supabase: SupabaseClient,
   maQrRaw: string,
@@ -16,20 +17,18 @@ export async function resolveCssdQuyTrinhLinkFromMaQr(
   const ma_qr = String(maQrRaw || "").trim().toUpperCase();
   if (!ma_qr) return null;
 
-  const { data: hit, error: hitErr } = await supabase
-    .from("cssd_fact_quy_trinh")
-    .select("id")
-    .eq("is_active", true)
-    .or(`ma_cycle_qr.eq.${ma_qr},ma_qr_bo_vinh_vien.eq.${ma_qr},ma_qr_quy_trinh.eq.${ma_qr}`)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (hitErr || !hit?.id) return null;
+  let resolved;
+  try {
+    resolved = await resolveCssdCodeWithClient(supabase, ma_qr);
+  } catch {
+    return null;
+  }
+  if (resolved.targetType !== "INSTRUMENT_SET" || !resolved.workflowId) return null;
 
   const { data, error } = await supabase
     .from("v_cssd_quy_trinh_full")
     .select("id, ma_qr_quy_trinh, ma_cycle_qr, lo_tiet_khuan_id, ten_bo")
-    .eq("id", hit.id)
+    .eq("id", resolved.workflowId)
     .maybeSingle();
 
   if (error || !data?.id) return null;

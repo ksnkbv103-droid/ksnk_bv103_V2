@@ -3,13 +3,20 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { verifyPermission } from "@/lib/server-permission";
-import crypto from "crypto";
-import { isHaiSuspectByDay3Rule } from "../lib/nkbv-timeline-math";
+import { buildViSinhUniqueKey } from "../lib/nkbv-vi-sinh-unique-key";
+import type { NkbvViSinhKetQua } from "../lib/nkbv-vi-sinh-template";
+import {
+  scanImportWindowAlerts,
+  type ExistingNkbvEventForScan,
+  type ImportWindowAlert,
+} from "../lib/nkbv-import-window-scan";
+import type { NkbvMdroPhenotype, NkbvMdroSource } from "../lib/nkbv-mdro";
 
-interface ViSinhRecordInput {
+export type ViSinhRecordInput = {
   ma_benh_nhan: string;
   ma_benh_an: string;
-  ma_benh_pham: string;
+  ma_xet_nghiem: string;
+  ma_benh_pham?: string;
   ho_ten_benh_nhan: string;
   ngay_sinh?: string;
   gioi_tinh?: string;
@@ -19,15 +26,71 @@ interface ViSinhRecordInput {
   loai_benh_pham: string;
   tac_nhan: string;
   so_luong?: string;
+  ket_qua: NkbvViSinhKetQua;
+  is_mdro?: boolean;
+  mdro_phenotype?: NkbvMdroPhenotype | null;
+  mdro_source?: NkbvMdroSource;
+  /** Metadata LIS gốc (barcode, chẩn đoán, …). */
+  lis_metadata?: Record<string, string>;
+};
+
+/** Preview cảnh báo RIT/SBAP trước khi đẩy DB (cùng ma_benh_an với ca đang mở). */
+export async function previewViSinhImportAlerts(
+  rows: Array<{ ma_benh_an: string; ngay_lay_mau: string; loai_benh_pham: string; ma_xet_nghiem: string }>,
+): Promise<{ success: true; alertsByXn: Record<string, ImportWindowAlert[]> } | { success: false; error: string }> {
+  await verifyPermission("GIAM_SAT_NKBV", "view");
+  const supabase = createAdminSupabaseClient();
+  try {
+    const stayIds = Array.from(new Set(rows.map((r) => r.ma_benh_an).filter(Boolean)));
+    if (stayIds.length === 0) return { success: true, alertsByXn: {} };
+
+    const { data: existingEvents, error } = await supabase
+      .from("nkbv_fact_su_kien")
+      .select("id, ma_benh_an, ngay_phat_hien, vi_tri_nhiem_khuan")
+      .in("ma_benh_an", stayIds)
+      .eq("is_active", true);
+    if (error) throw error;
+
+    const mapped: ExistingNkbvEventForScan[] = (existingEvents || []).map((e: any) => ({
+      id: e.id,
+      ma_benh_an: e.ma_benh_an,
+      ngay_phat_hien: e.ngay_phat_hien,
+      vi_tri_nhiem_khuan: e.vi_tri_nhiem_khuan,
+    }));
+
+    const alertsByXn: Record<string, ImportWindowAlert[]> = {};
+    for (const r of rows) {
+      alertsByXn[r.ma_xet_nghiem] = scanImportWindowAlerts({
+        ma_benh_an: r.ma_benh_an,
+        ngay_lay_mau: r.ngay_lay_mau,
+        loai_benh_pham: r.loai_benh_pham,
+        existingEvents: mapped,
+      });
+    }
+    return { success: true, alertsByXn };
+  } catch (e: any) {
+    return { success: false, error: e.message || "Lỗi rà soát khung thời gian" };
+  }
 }
 
-/** Nạp kết quả cấy vi sinh dương tính LIS từ Excel. */
+/** Nạp kết quả vi sinh LIS theo mẫu cố định (âm / dương / nhiễu). */
 export async function importViSinhExcel(records: ViSinhRecordInput[]) {
   await verifyPermission("GIAM_SAT_NKBV", "create");
   const supabase = createAdminSupabaseClient();
-  
+
   try {
-    // 1. Ensure unique stayed medical records exist in nkbv_fact_benh_an
+    for (const r of records) {
+      if (!r.ma_benh_an?.trim()) {
+        return { success: false as const, error: "Thiếu mã bệnh án (ma_benh_an) — không tự sinh mã giả." };
+      }
+      if (!r.ma_xet_nghiem?.trim()) {
+        return { success: false as const, error: "Thiếu mã xét nghiệm (ma_xet_nghiem)." };
+      }
+      if (!r.ket_qua) {
+        return { success: false as const, error: "Thiếu phân loại kết quả (ket_qua)." };
+      }
+    }
+
     const uniqueStays = Array.from(
       new Map(
         records.map((r) => [
@@ -38,12 +101,14 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
             ho_ten_benh_nhan: r.ho_ten_benh_nhan,
             ngay_sinh: r.ngay_sinh ? r.ngay_sinh.slice(0, 10) : null,
             gioi_tinh: r.gioi_tinh ?? null,
-            ngay_vao_vien: r.ngay_vao_vien ? new Date(r.ngay_vao_vien).toISOString() : new Date().toISOString(),
+            ngay_vao_vien: r.ngay_vao_vien
+              ? new Date(r.ngay_vao_vien).toISOString()
+              : new Date().toISOString(),
             khoa_dieu_tri_id: r.khoa_yeu_cau_id || null,
             is_active: true,
           },
-        ])
-      ).values()
+        ]),
+      ).values(),
     );
 
     for (const stay of uniqueStays) {
@@ -55,24 +120,32 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
         .maybeSingle();
 
       if (!existingStay) {
-        const { error: stayErr } = await supabase
-          .from("nkbv_fact_benh_an")
-          .insert(stay);
+        const { error: stayErr } = await supabase.from("nkbv_fact_benh_an").insert(stay);
         if (stayErr) throw stayErr;
       }
     }
 
-    // 2. Prepare raw LIS records to insert
+    for (const r of records) {
+      if (r.is_mdro && !r.mdro_phenotype) {
+        return {
+          success: false as const,
+          error: `XN ${r.ma_xet_nghiem}: đa kháng phải chọn phenotype (MRSA/VRE/CRE/…).`,
+        };
+      }
+    }
+
     const recordsToInsert = records.map((r) => {
-      const unique_key = crypto
-        .createHash("md5")
-        .update(`${r.ma_benh_nhan}_${r.ma_benh_an}_${r.ma_benh_pham}_${r.tac_nhan}`)
-        .digest("hex");
-      
+      const unique_key = buildViSinhUniqueKey({ ma_xet_nghiem: r.ma_xet_nghiem });
+      const is_mdro = Boolean(r.is_mdro);
+      const mdro_phenotype = is_mdro ? r.mdro_phenotype || null : null;
+      const mdro_source: NkbvMdroSource | null = is_mdro
+        ? r.mdro_source || (r.lis_metadata?.is_mdro ? "LIS" : "MANUAL")
+        : null;
       return {
         ma_benh_nhan: r.ma_benh_nhan,
         ma_benh_an: r.ma_benh_an,
-        ma_benh_pham: r.ma_benh_pham,
+        ma_benh_pham: r.ma_benh_pham || null,
+        ma_xet_nghiem: r.ma_xet_nghiem.trim(),
         ho_ten_benh_nhan: r.ho_ten_benh_nhan,
         ngay_sinh: r.ngay_sinh ? r.ngay_sinh.slice(0, 10) : null,
         gioi_tinh: r.gioi_tinh ?? null,
@@ -80,255 +153,198 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
         ngay_lay_mau: new Date(r.ngay_lay_mau).toISOString(),
         khoa_yeu_cau_id: r.khoa_yeu_cau_id || null,
         loai_benh_pham: r.loai_benh_pham,
-        tac_nhan: r.tac_nhan,
+        tac_nhan: r.tac_nhan || "—",
         so_luong: r.so_luong ?? null,
-        ket_qua_duong_tinh: true,
+        ket_qua_phan_loai: r.ket_qua,
+        ket_qua_duong_tinh: r.ket_qua === "DUONG_TINH",
+        is_mdro,
+        mdro_phenotype,
+        mdro_source,
         is_active: true,
-        metadata: { unique_key }
+        metadata: {
+          unique_key,
+          ma_xet_nghiem: r.ma_xet_nghiem.trim(),
+          ket_qua: r.ket_qua,
+          ...(r.lis_metadata || {}),
+        },
       };
     });
 
     if (recordsToInsert.length === 0) {
-      return { success: true as const, count: 0, createdCasesCount: 0 };
+      return { success: true as const, count: 0, createdCasesCount: 0, mergedRitCount: 0, skippedDuplicate: 0 };
     }
 
-    const { data: existingRecords, error: fetchErr } = await supabase
+    const xnList = recordsToInsert.map((r) => r.ma_xet_nghiem);
+    const { data: existingByXn, error: fetchErr } = await supabase
       .from("nkbv_fact_vi_sinh")
-      .select("metadata")
-      .eq("is_active", true);
-    
+      .select("ma_xet_nghiem, metadata")
+      .eq("is_active", true)
+      .in("ma_xet_nghiem", xnList);
     if (fetchErr) throw fetchErr;
 
-    const existingKeysSet = new Set(
-      (existingRecords || [])
-        .map((r: any) => r.metadata?.unique_key)
-        .filter(Boolean)
-    );
+    const existingKeysSet = new Set<string>();
+    for (const row of existingByXn || []) {
+      if (row.ma_xet_nghiem) existingKeysSet.add(String(row.ma_xet_nghiem));
+      const mk = (row as any).metadata?.unique_key;
+      if (mk) existingKeysSet.add(String(mk));
+    }
 
-    const filteredRecords = recordsToInsert.filter(r => !existingKeysSet.has(r.metadata.unique_key));
+    const filteredRecords = recordsToInsert.filter(
+      (r) => !existingKeysSet.has(r.ma_xet_nghiem) && !existingKeysSet.has(r.metadata.unique_key),
+    );
+    const skippedDuplicate = recordsToInsert.length - filteredRecords.length;
 
     if (filteredRecords.length === 0) {
-      return { success: true as const, count: 0, createdCasesCount: 0 };
+      return {
+        success: true as const,
+        count: 0,
+        createdCasesCount: 0,
+        mergedRitCount: 0,
+        skippedDuplicate,
+      };
     }
 
-    const { data: insertedRecords, error: insertErr } = await supabase
-      .from("nkbv_fact_vi_sinh")
-      .insert(filteredRecords)
-      .select();
-
+    const { error: insertErr } = await supabase.from("nkbv_fact_vi_sinh").insert(filteredRecords);
     if (insertErr) throw insertErr;
 
-    // Fetch active NKBV categories and statuses
-    const { data: categories } = await supabase
-      .from("nkbv_dm_loai")
-      .select("id, ma_loai, ten_loai")
-      .eq("is_active", true);
-
-    // Auto-case từ Day-3 → chờ lâm sàng điền form (pilot checklist CHO_XAC_MINH).
-    const statusPriority = ["CHO_XAC_MINH", "DANG_GHI_NHAN", "CHO_XAC_NHAN"] as const;
-    let defaultStatusId: string | undefined;
-    for (const ma of statusPriority) {
-      const { data: statusRow } = await supabase
-        .from("nkbv_dm_trang_thai_ca")
-        .select("id")
-        .eq("ma_trang_thai", ma)
-        .eq("is_active", true)
-        .maybeSingle();
-      if (statusRow?.id) {
-        defaultStatusId = statusRow.id;
-        break;
-      }
-    }
-    if (!defaultStatusId) {
-      const { data: firstStatus } = await supabase
-        .from("nkbv_dm_trang_thai_ca")
-        .select("id")
-        .eq("is_active", true)
-        .limit(1)
-        .maybeSingle();
-      defaultStatusId = firstStatus?.id;
-    }
-
-    const getLoaiNkbvId = (loaiBenhPham: string) => {
-      const lower = (loaiBenhPham || "").toLowerCase();
-      let code = "BSI";
-      if (lower.includes("tiểu") || lower.includes("urine")) {
-        code = "UTI";
-      } else if (
-        lower.includes("đờm") ||
-        lower.includes("phế quản") ||
-        lower.includes("phế nang") ||
-        lower.includes("phổi") ||
-        lower.includes("hút") ||
-        lower.includes("sputum") ||
-        lower.includes("bronchial")
-      ) {
-        code = "HAP";
-      } else if (
-        lower.includes("mủ") ||
-        lower.includes("vết mổ") ||
-        lower.includes("vết thương") ||
-        lower.includes("dịch vết mổ") ||
-        lower.includes("surgical") ||
-        lower.includes("wound") ||
-        lower.includes("pus")
-      ) {
-        code = "SSI";
-      } else if (lower.includes("máu") || lower.includes("blood")) {
-        code = "BSI";
-      }
-
-      const matched = categories?.find(c => c.ma_loai === code || c.ma_loai?.toUpperCase() === code);
-      return matched?.id || categories?.[0]?.id;
+    // Kho vi sinh chỉ lưu dữ liệu thô toàn viện — không spawn phiếu điều tra HAI.
+    // Phân tích / chốt sự kiện chỉ trên Hub bệnh án (timeline → form mẫu).
+    revalidatePath("/giam-sat-nkbv");
+    return {
+      success: true as const,
+      count: filteredRecords.length,
+      createdCasesCount: 0,
+      mergedRitCount: 0,
+      skippedDuplicate,
     };
+  } catch (e: any) {
+    return { success: false as const, error: e.message || "Lỗi xử lý import vi sinh" };
+  }
+}
 
-    // Query active events for the stayed records in these imports for RIT 14-day check
-    const importedStayIds = Array.from(new Set(insertedRecords.map((r) => r.ma_benh_an).filter(Boolean)));
-    const { data: existingEvents } = await supabase
-      .from("nkbv_fact_su_kien")
-      .select("id, ma_benh_an, ngay_phat_hien, tac_nhan_vi_khuan, clinical_notes")
-      .in("ma_benh_an", importedStayIds)
+export type BenhAnRecordInput = {
+  ma_benh_an: string;
+  ma_benh_nhan: string;
+  ho_ten_benh_nhan: string;
+  ngay_vao_vien: string;
+  khoa_dieu_tri_id?: string;
+  ngay_sinh?: string;
+  gioi_tinh?: string;
+  ngay_ra_vien?: string;
+};
+
+/**
+ * Nạp hồ sơ bệnh án (ADT/HIS) vào nkbv_fact_benh_an.
+ * Upsert theo ma_benh_an: cập nhật ra viện / khoa / tên khi BA đã tồn tại.
+ * Conflict PID khác trên cùng BA → bỏ qua (skippedConflict).
+ * Không tạo phiếu HAI — chỉ stay pool.
+ */
+export async function importBenhAnExcel(records: BenhAnRecordInput[]) {
+  await verifyPermission("GIAM_SAT_NKBV", "create");
+  const supabase = createAdminSupabaseClient();
+
+  try {
+    for (const r of records) {
+      if (!r.ma_benh_an?.trim()) {
+        return { success: false as const, error: "Thiếu mã bệnh án (ma_benh_an)." };
+      }
+      if (!r.ma_benh_nhan?.trim()) {
+        return { success: false as const, error: "Thiếu mã bệnh nhân (ma_benh_nhan)." };
+      }
+      if (!r.ho_ten_benh_nhan?.trim()) {
+        return { success: false as const, error: "Thiếu họ tên bệnh nhân." };
+      }
+      if (!r.ngay_vao_vien?.trim()) {
+        return { success: false as const, error: "Thiếu ngày vào viện." };
+      }
+    }
+
+    const baList = Array.from(new Set(records.map((r) => r.ma_benh_an.trim())));
+    const { data: existing, error: fetchErr } = await supabase
+      .from("nkbv_fact_benh_an")
+      .select("id, ma_benh_an, ma_benh_nhan")
+      .in("ma_benh_an", baList)
       .eq("is_active", true);
+    if (fetchErr) throw fetchErr;
 
-    const casesToInsert: any[] = [];
-    const eventsToUpdate: { id: string; patch: any }[] = [];
+    const existingByBa = new Map<string, { id: string; ma_benh_nhan: string }>();
+    for (const row of existing || []) {
+      existingByBa.set(String(row.ma_benh_an).toUpperCase(), {
+        id: String(row.id),
+        ma_benh_nhan: String(row.ma_benh_nhan || ""),
+      });
+    }
 
-    // 3. Construct case events or update them for each newly inserted record
-    for (const r of (insertedRecords || [])) {
-      const cleanMaBenhAn = r.ma_benh_an || `BA-TEMP-${r.ma_benh_nhan || r.id}`;
-      const rDateStr = r.ngay_lay_mau ? r.ngay_lay_mau.slice(0, 10) : "";
+    let inserted = 0;
+    let updated = 0;
+    let skippedDuplicate = 0;
+    let skippedConflict = 0;
+    const seenBa = new Set<string>();
+    const nowIso = new Date().toISOString();
 
-      // Day-3 server gate: POA chỉ giữ nkbv_fact_vi_sinh, không spawn/gộp ca HAI.
-      if (!isHaiSuspectByDay3Rule(r.ngay_vao_vien, r.ngay_lay_mau)) {
+    for (const r of records) {
+      const ba = r.ma_benh_an.trim();
+      const bn = r.ma_benh_nhan.trim();
+      const baKey = ba.toUpperCase();
+      if (seenBa.has(baKey)) {
+        skippedDuplicate += 1;
+        continue;
+      }
+      seenBa.add(baKey);
+
+      const payload = {
+        ma_benh_an: ba,
+        ma_benh_nhan: bn,
+        ho_ten_benh_nhan: r.ho_ten_benh_nhan.trim(),
+        ngay_sinh: r.ngay_sinh ? r.ngay_sinh.slice(0, 10) : null,
+        gioi_tinh: r.gioi_tinh?.trim() || null,
+        ngay_vao_vien: new Date(r.ngay_vao_vien).toISOString(),
+        ngay_ra_vien: r.ngay_ra_vien ? new Date(r.ngay_ra_vien).toISOString() : null,
+        khoa_dieu_tri_id: r.khoa_dieu_tri_id || null,
+        is_active: true,
+        updated_at: nowIso,
+      };
+
+      const prev = existingByBa.get(baKey);
+      if (prev) {
+        if (prev.ma_benh_nhan.trim() && prev.ma_benh_nhan.trim().toUpperCase() !== bn.toUpperCase()) {
+          skippedConflict += 1;
+          continue;
+        }
+        const { error: upErr } = await supabase
+          .from("nkbv_fact_benh_an")
+          .update({
+            ho_ten_benh_nhan: payload.ho_ten_benh_nhan,
+            ngay_sinh: payload.ngay_sinh,
+            gioi_tinh: payload.gioi_tinh,
+            ngay_vao_vien: payload.ngay_vao_vien,
+            ngay_ra_vien: payload.ngay_ra_vien,
+            khoa_dieu_tri_id: payload.khoa_dieu_tri_id,
+            ma_benh_nhan: payload.ma_benh_nhan,
+            updated_at: nowIso,
+          })
+          .eq("id", prev.id);
+        if (upErr) throw upErr;
+        updated += 1;
         continue;
       }
 
-      const ritMatchedEvent = (existingEvents || []).find((e) => {
-        if (e.ma_benh_an !== cleanMaBenhAn) return false;
-        const doeStr = e.ngay_phat_hien ? String(e.ngay_phat_hien).slice(0, 10) : "";
-        if (!doeStr || !rDateStr) return false;
-
-        const rTime = new Date(rDateStr).getTime();
-        const doeTime = new Date(doeStr).getTime();
-        const diffDays = (rTime - doeTime) / (1000 * 60 * 60 * 24);
-        // RIT 14-day window: [0, 13] days from DOE
-        return diffDays >= 0 && diffDays <= 13;
-      });
-
-      if (ritMatchedEvent) {
-        // RIT Gộp mẫu: don't create a new event, update existing event
-        const oldPathogens = String(ritMatchedEvent.tac_nhan_vi_khuan || "").split(",").map(p => p.trim()).filter(Boolean);
-        const newPathogen = String(r.tac_nhan || "").trim();
-        if (newPathogen && !oldPathogens.includes(newPathogen)) {
-          oldPathogens.push(newPathogen);
-        }
-        const updatedPathogens = oldPathogens.join(", ");
-
-        const oldNotes = (ritMatchedEvent.clinical_notes && typeof ritMatchedEvent.clinical_notes === "object") 
-          ? ritMatchedEvent.clinical_notes 
-          : {};
-        const oldHistory = (oldNotes as any).tom_tat_dien_bien || "";
-        const mergeLog = `\n[RIT Gộp mẫu] LIS cấy mẫu ${r.loai_benh_pham} (${r.so_luong || "không định lượng"}) phát hiện ${r.tac_nhan} vào ngày ${new Date(r.ngay_lay_mau).toLocaleDateString("vi-VN")}. Tự động gộp vào sự kiện chẩn đoán trước đó.`;
-
-        eventsToUpdate.push({
-          id: ritMatchedEvent.id,
-          patch: {
-            tac_nhan_vi_khuan: updatedPathogens,
-            clinical_notes: {
-              ...oldNotes,
-              tom_tat_dien_bien: oldHistory + mergeLog,
-            },
-            updated_at: new Date().toISOString(),
-          }
-        });
-      } else {
-        const cleanMaBenhPham = r.ma_benh_pham || `BP-TEMP-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
-        const maCa = `NK-${cleanMaBenhAn}-${cleanMaBenhPham}`;
-
-        let viTri = "BSI";
-        const lower = (r.loai_benh_pham || "").toLowerCase();
-        if (lower.includes("tiểu") || lower.includes("urine")) {
-          viTri = "Đường tiết niệu";
-        } else if (
-          lower.includes("đờm") ||
-          lower.includes("phế quản") ||
-          lower.includes("phế nang") ||
-          lower.includes("phổi") ||
-          lower.includes("hút") ||
-          lower.includes("sputum") ||
-          lower.includes("bronchial")
-        ) {
-          viTri = "Đường hô hấp";
-        } else if (
-          lower.includes("mủ") ||
-          lower.includes("vết mổ") ||
-          lower.includes("vết thương") ||
-          lower.includes("dịch vết mổ") ||
-          lower.includes("surgical") ||
-          lower.includes("wound") ||
-          lower.includes("pus")
-        ) {
-          viTri = "Vết mổ";
-        } else {
-          viTri = "Máu";
-        }
-
-        casesToInsert.push({
-          ma_ca: maCa,
-          khoa_ghi_nhan_id: r.khoa_yeu_cau_id || null,
-          ma_benh_nhan: r.ma_benh_nhan,
-          ho_ten_benh_nhan: r.ho_ten_benh_nhan,
-          ngay_sinh: r.ngay_sinh,
-          gioi_tinh: r.gioi_tinh,
-          ngay_vao_vien: r.ngay_vao_vien,
-          ngay_phat_hien: r.ngay_lay_mau ? r.ngay_lay_mau.slice(0, 10) : new Date().toISOString().slice(0, 10),
-          vi_tri_nhiem_khuan: viTri,
-          tac_nhan_vi_khuan: r.tac_nhan,
-          clinical_notes: {
-            tom_tat_dien_bien: `Tự động tạo sự kiện giám sát từ kết quả vi sinh dương tính: cấy phát hiện ${r.tac_nhan} trong mẫu ${r.loai_benh_pham}.`,
-            bien_phap_phong_ngua: null,
-            ly_do_loai_tru: null,
-          },
-          vi_sinh_record_id: r.id,
-          verification_data: {},
-          loai_nkbv_id: getLoaiNkbvId(r.loai_benh_pham),
-          trang_thai_id: defaultStatusId,
-          nguoi_ghi_id: null,
-          ma_benh_an: cleanMaBenhAn,
-          ma_benh_pham: cleanMaBenhPham,
-          loai_benh_pham: r.loai_benh_pham,
-          so_luong: r.so_luong,
-          is_active: true,
-        });
-      }
-    }
-
-    // Execute updates
-    for (const update of eventsToUpdate) {
-      const { error: updErr } = await supabase
-        .from("nkbv_fact_su_kien")
-        .update(update.patch)
-        .eq("id", update.id);
-      if (updErr) throw updErr;
-    }
-
-    // Execute inserts
-    if (casesToInsert.length > 0) {
-      const { error: casesErr } = await supabase
-        .from("nkbv_fact_su_kien")
-        .insert(casesToInsert);
-      if (casesErr) {
-        throw new Error("Lỗi tự động tạo sự kiện giám sát từ vi sinh LIS: " + casesErr.message);
-      }
+      const { error: insertErr } = await supabase.from("nkbv_fact_benh_an").insert(payload);
+      if (insertErr) throw insertErr;
+      inserted += 1;
     }
 
     revalidatePath("/giam-sat-nkbv");
     return {
       success: true as const,
-      count: filteredRecords.length,
-      createdCasesCount: casesToInsert.length
+      count: inserted + updated,
+      inserted,
+      updated,
+      skippedDuplicate,
+      skippedConflict,
     };
-  } catch (e: any) {
-    return { success: false as const, error: e.message || "Lỗi xử lý Excel" };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Lỗi xử lý import hồ sơ bệnh án";
+    return { success: false as const, error: msg };
   }
 }

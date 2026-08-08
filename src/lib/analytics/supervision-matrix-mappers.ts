@@ -1,5 +1,12 @@
 import type { CompareRow } from "@/lib/analytics/supervision-analytics.types";
 import { roundPercent2 } from "@/lib/analytics/supervision-percent";
+import {
+  formatKhoaCompactLabel,
+  parseMaFromKhoaOptionLabel,
+} from "@/lib/domain/khoa-display";
+
+/** Alias SSOT — bảng/chart dùng mã khoa. */
+export const khoaChartLabel = formatKhoaCompactLabel;
 
 type MatrixRow = {
   ten?: string;
@@ -52,22 +59,11 @@ export function gapRowVolTotal(row: GapKhoaRow): number {
   return row.vol_ksnk + row.vol_tgs;
 }
 
-export function khoaChartLabel(row: {
-  ten?: string | null;
-  ten_khoa?: string | null;
-  ma_khoa?: string | null;
-}): string {
-  const ma = String(row.ma_khoa ?? "").trim();
-  if (ma) return ma;
-  return String(row.ten ?? row.ten_khoa ?? "").trim() || "—";
-}
-
-function parseMaFromKhoaOptionLabel(label: string): string | null {
-  const bracket = label.match(/^\[([^\]]+)\]/);
-  if (bracket) return bracket[1].trim();
-  const paren = label.match(/\(([A-Z0-9][A-Z0-9-]*)\)\s*$/i);
-  if (paren) return paren[1].toUpperCase();
-  return null;
+function stripPickerPrefix(label: string): string {
+  return label
+    .replace(/^\[[^\]]+\]\s*/, "")
+    .replace(/^[A-Za-z0-9][A-Za-z0-9_-]*\s+-\s+/, "")
+    .trim();
 }
 
 function placeholderGapKhoaRow(id: string, khoaOptions: { id: string; label: string }[]): GapKhoaRow {
@@ -77,7 +73,7 @@ function placeholderGapKhoaRow(id: string, khoaOptions: { id: string; label: str
   return {
     id,
     ten,
-    label: khoaChartLabel({ ten_khoa: ten.replace(/^\[[^\]]+\]\s*/, ""), ma_khoa: ma }),
+    label: formatKhoaCompactLabel({ ten_khoa: stripPickerPrefix(ten), ma_khoa: ma }),
     ty_le_tgs: null,
     ty_le_ksnk: null,
     vol_tgs: 0,

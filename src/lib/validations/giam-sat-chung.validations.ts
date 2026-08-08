@@ -43,9 +43,18 @@ const gscSessionSchema = z.object({
   is_manual_nhan_vien: z.boolean().optional(),
   ten_manual_nhan_vien: z.string().optional(),
   is_bo_sung_nguoi_benh: z.boolean().optional(),
+  ma_benh_an: z.string().max(200).optional(),
   ma_nguoi_benh: z.string().max(200).optional(),
   ten_nguoi_benh: z.string().max(300).optional(),
   so_giuong_nguoi_benh: z.string().max(120).optional(),
+  bn_tho_may: z.boolean().optional(),
+  bn_phau_thuat: z.boolean().optional(),
+  bn_cvc: z.boolean().optional(),
+  bn_foley: z.boolean().optional(),
+  bn_nhiem_mdro: z.boolean().optional(),
+  bn_mdro_phenotype: z.string().max(40).optional(),
+  bn_nhiem_tac_nhan_nguy_hiem: z.boolean().optional(),
+  bn_tac_nhan_nguy_hiem_ten: z.string().max(300).optional(),
 });
 
 // ============================================================

@@ -25,9 +25,11 @@ export default function CssdCapPhatQrStrip({
         display: "flex",
         justifyContent: "space-between",
         alignItems: "flex-start",
+        flexWrap: "wrap",
         gap: 10,
-        marginBottom: 14,
-        pageBreakInside: "avoid",
+        marginBottom: 8,
+        /* Cho phép tách trang có chủ đích — tránh đẩy cả khối chữ ký+3 QR sang trang trống */
+        pageBreakInside: "auto",
       }}
     >
       <CssdPrintQrBlock

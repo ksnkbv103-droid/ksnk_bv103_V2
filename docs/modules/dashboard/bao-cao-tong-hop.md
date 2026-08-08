@@ -12,13 +12,15 @@
 | Action | `getBaoCaoTongHopAnalytics` — `bao-cao-tong-hop.actions.ts` |
 | Domain thuần | `bao-cao-tong-hop-core.ts` (+ spec) |
 
-## Công thức CCS (process)
+## Tuân thủ process (không dùng CCS trên surface)
 
-**CCS** = *Chỉ số tuân thủ tổng hợp* (process): `50%` tuân thủ VST + `50%` tuân thủ GSC trong phạm vi lọc; NKBV là outcome riêng (không gộp CCS).
+**Spec 2026-07-31:** UI / in / xếp hạng / Command Center **không** hiển thị CCS. Điều hành theo dõi riêng **`ty_le_vst`** và **`ty_le_gsc`**. Field `ty_le_ccs` có thể còn trong payload backend (deprecated). NKBV là outcome riêng.
 
-Badge **“vs kỳ trước”** trên KPI: chênh lệch % giữa **hai tuần cuối** trên trendline tuần (điểm cuối − điểm kế cuối), làm tròn 1 chữ số thập phân — không phải so cùng độ dài kỳ lọc trước đó.
+Badge **«Δ 2 tuần ISO»** trên KPI: chênh lệch % giữa **hai tuần cuối** trên trendline tuần (điểm cuối − điểm kế cuối), làm tròn 1 chữ số thập phân.
 
-Biểu đồ xu hướng: lọc **Tuần / Tháng / Quý / Năm** (gộp trung bình đơn giản các điểm tuần trong bucket).
+Badge **«vs kỳ trước»**: so sánh **cùng độ dài kỳ lọc** liền trước (`ky_truoc` trên payload) — tách nhãn khỏi delta tuần ISO. Xem [`metric-dictionary.md`](metric-dictionary.md) § `ky_truoc`.
+
+Biểu đồ xu hướng: lọc **Tuần / Tháng / Quý / Năm**. Khi chọn ≥1 chuyên đề (BK): **mỗi BK một đường màu**; khi Tất cả: một đường GSC tổng + VST (nếu có dữ liệu).
 
 ## Thứ tự màn hình (Wave 1–2)
 
@@ -33,8 +35,10 @@ Template `bao-cao-tong-hop-print.ts`: bìa (kỳ, mã BC-TH, phạm vi, ngày in
 ## Pilot DoD
 
 1. Lọc khoa/thời gian → KPI + trend + so sánh kỳ.  
-2. Deep link sang module (`buildAnalyticsDeepLink`).  
+2. Deep link sang module (`buildAnalyticsDeepLink` → `/thong-ke/vst` · `/thong-ke/gsc`).  
 3. In/export narrative controls khi bật in.
+
+Checklist tay: [`pilot-checklist-bao-cao-tong-hop.md`](./pilot-checklist-bao-cao-tong-hop.md).
 
 ## SSOT mapping
 

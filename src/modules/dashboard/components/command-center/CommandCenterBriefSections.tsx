@@ -28,6 +28,10 @@ import {
   BAO_CAO_TONG_HOP_THRESHOLDS,
   complianceToneFromPercent,
 } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
+import {
+  KSNK_STAFF_RESOURCE_NORMS,
+  staffBelowPhienNorm,
+} from "@/lib/analytics/resource-norms";
 import { buildCommandCenterInsights } from "@/modules/dashboard/lib/command-center-insights";
 import {
   isPathBlockedUnderPilotCoreModules,
@@ -191,7 +195,7 @@ export function CommandCenterBriefSections({
 
   return (
     <>
-      <section className={`rounded-2xl border p-5 shadow-sm ${D.noticePeriod}`}>
+      <section className={`rounded-[var(--radius-shell)] border p-4 ${D.noticePeriod}`}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className={`text-xs font-medium ${D.trafficText.green}`}>Báo cáo kỳ</p>
@@ -225,7 +229,7 @@ export function CommandCenterBriefSections({
         />
       </div>
 
-      <details className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <details className="rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-sm">
         <summary className="cursor-pointer list-none px-5 py-4 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           Cường độ giám sát trong kỳ
           <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
@@ -241,16 +245,13 @@ export function CommandCenterBriefSections({
       </details>
 
       {loading || topGapAlerts.length > 0 || gapStatusMessage ? (
-        <section className={`rounded-2xl p-5 ${D.noticeGap}`}>
+        <section className={`rounded-[var(--radius-shell)] p-5 ${D.noticeGap}`}>
           <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 className={`flex items-center gap-2 ${D.sectionHeadingSm}`}>
                 <AlertTriangle size={16} className="text-[var(--surface-warning-text)]" aria-hidden />
                 Cảnh báo chênh lệch TGS vs KSNK
               </h2>
-              <p className="mt-1 text-xs text-slate-500">
-                Chỉ tóm tắt khoa đủ hai nguồn trong kỳ — hệ thống không bịa Δ%.
-              </p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-2">
               <Link
@@ -272,7 +273,7 @@ export function CommandCenterBriefSections({
                   href={baoCaoHref}
                   className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-50"
                 >
-                  Báo cáo tổng hợp
+                  Báo cáo chính thức
                   <ExternalLink size={12} aria-hidden />
                 </Link>
               ) : null}
@@ -318,12 +319,11 @@ export function CommandCenterBriefSections({
       ) : null}
 
       {!loading ? (
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className={`mb-1 flex items-center gap-2 ${D.sectionHeadingSm}`}>
+        <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4">
+          <h2 className={`mb-3 flex items-center gap-2 ${D.sectionHeadingSm}`}>
             <Lightbulb size={16} className="text-amber-500" aria-hidden />
             Gợi ý hành động
           </h2>
-          <p className="mb-3 text-xs text-slate-500">Tự động từ gap TGS–KSNK và bảng kiểm yếu — không thay thế phán đoán chuyên môn.</p>
           <ol className="list-decimal space-y-2 pl-5 text-sm text-slate-700">
             {insights.map((item) => (
               <li key={item.id}>
@@ -361,7 +361,7 @@ function TrafficLightCard({
   const toneText = D.trafficText[tone];
 
   return (
-    <div className={`rounded-2xl border border-slate-200 p-5 shadow-sm ring-2 ${toneRing}`}>
+    <div className={`rounded-[var(--radius-shell)] border border-slate-200 p-4 ring-1 ${toneRing}`}>
       <div className="flex items-start justify-between gap-2">
         <h2 className={`flex items-center gap-2 ${D.sectionHeadingSm}`}>
           <Icon size={18} className={toneText} aria-hidden />
@@ -397,7 +397,7 @@ function BriefCard({
 }) {
   const bg = { blue: "bg-blue-500", emerald: "bg-emerald-500", purple: "bg-purple-500", orange: "bg-orange-500" }[tone];
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4">
       <div className="flex items-center gap-3">
         <div className={`rounded-xl p-3 text-white ${bg}`}>
           <Icon size={20} />
@@ -417,14 +417,18 @@ export function CommandCenterKsnkStaffSection({
   rows,
   loading,
   onExpand,
+  tuNgay,
+  denNgay,
 }: {
   rows: { id: string; ho_ten: string; ma_nv: string; so_co_hoi_vst: number; so_phien_vst: number; so_phien_gsc: number }[];
   loading: boolean;
   onExpand: () => void;
+  tuNgay?: string;
+  denNgay?: string;
 }) {
   if (rows.length === 0 && !loading) {
     return (
-      <section className="rounded-2xl border border-dashed border-slate-200 bg-white p-6">
+      <section id="ksnk-staff-workload" className="rounded-[var(--radius-shell)] border border-dashed border-slate-200 bg-white p-4">
         <button
           type="button"
           onClick={onExpand}
@@ -436,13 +440,34 @@ export function CommandCenterKsnkStaffSection({
     );
   }
 
+  const tongPhien = rows.reduce((s, r) => s + r.so_phien_vst + r.so_phien_gsc, 0);
+  const normCheck =
+    tuNgay && denNgay && rows.length > 0
+      ? staffBelowPhienNorm({
+          soNv: rows.length,
+          tongPhienGs: tongPhien,
+          tuNgay,
+          denNgay,
+        })
+      : null;
+
   return (
-    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <section id="ksnk-staff-workload" className="overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-sm">
       <div className="flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-6 py-4">
         <Users className="text-indigo-600" size={20} />
         <div>
           <h3 className="font-bold text-slate-800">Hoạt động Nhân viên KSNK</h3>
-          <p className="text-xs text-slate-500">Tải theo yêu cầu — không chặn KPI tóm tắt</p>
+          {normCheck ? (
+            <p className="text-xs text-slate-500">
+              Định mức {KSNK_STAFF_RESOURCE_NORMS.PHIEN_GS_PER_NV_PER_WEEK} phiên/NV/tuần
+            </p>
+          ) : null}
+          {normCheck?.below ? (
+            <p className="mt-1 text-xs font-semibold text-amber-700">
+              Dưới định mức: {normCheck.actual}/{normCheck.expected} phiên GS kỳ (
+              {normCheck.ratioPct ?? "—"}%)
+            </p>
+          ) : null}
         </div>
         {loading ? <span className="text-xs text-slate-400">Đang tải…</span> : null}
       </div>
@@ -471,6 +496,18 @@ export function CommandCenterKsnkStaffSection({
                     <td className="px-4 py-2.5 text-right">{nv.so_phien_gsc.toLocaleString()}</td>
                   </tr>
                 ))}
+              <tr className="bg-slate-50 font-semibold text-slate-800">
+                <td className="px-6 py-2.5">Tổng ({rows.length} NV)</td>
+                <td className="px-4 py-2.5 text-right">
+                  {rows.reduce((s, r) => s + r.so_co_hoi_vst, 0).toLocaleString()}
+                </td>
+                <td className="px-4 py-2.5 text-right">
+                  {rows.reduce((s, r) => s + r.so_phien_vst, 0).toLocaleString()}
+                </td>
+                <td className="px-4 py-2.5 text-right">
+                  {rows.reduce((s, r) => s + r.so_phien_gsc, 0).toLocaleString()}
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>

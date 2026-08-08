@@ -79,14 +79,14 @@ export default function SetMembersModal({ isOpen, onClose, set }: Props) {
       aria-modal="true"
       aria-labelledby="cssd-set-members-title"
     >
-      <div className="bg-white w-full max-w-xl rounded-t-[var(--radius-shell)] sm:rounded-[var(--radius-shell)] p-6 sm:p-8 shadow-2xl max-h-[85vh] min-h-0 flex flex-col">
+      <div className="bg-white w-full max-w-xl rounded-t-[var(--radius-shell)] sm:rounded-[var(--radius-shell)] p-6 sm:p-8 shadow-[var(--shadow-app-soft)] max-h-[85vh] min-h-0 flex flex-col">
         <div className="flex shrink-0 justify-between items-center gap-3">
           <div className="flex items-center gap-4 min-w-0">
-            <div className="p-3 bg-emerald-50 text-[var(--primary)] rounded-2xl shrink-0">
+            <div className="p-3 bg-emerald-50 text-[var(--primary)] rounded-[var(--radius-shell)] shrink-0">
               <PackageOpen size={24} />
             </div>
             <div className="min-w-0">
-              <h4 id="cssd-set-members-title" className="text-[11px] font-medium text-slate-400 tracking-widest">
+              <h4 id="cssd-set-members-title" className="text-[11px] font-medium text-slate-400 tracking-wide">
                 Thành phần bộ dụng cụ
               </h4>
               <p className="text-sm font-semibold text-slate-700 uppercase truncate">{tenBo}</p>
@@ -104,18 +104,18 @@ export default function SetMembersModal({ isOpen, onClose, set }: Props) {
 
         <div className="mt-6 min-h-0 flex-1 overflow-y-auto overscroll-contain space-y-3 pr-1 custom-scrollbar">
           {loading ? (
-            <div className="py-16 text-center text-slate-300 font-bold uppercase text-[11px] tracking-widest">
+            <div className="py-16 text-center text-slate-300 font-bold uppercase text-[11px] tracking-wide">
               Đang tải thành phần…
             </div>
           ) : items.length === 0 ? (
-            <div className="py-16 text-center text-slate-300 font-bold uppercase text-[11px] tracking-widest">
+            <div className="py-16 text-center text-slate-300 font-bold uppercase text-[11px] tracking-wide">
               Bộ này chưa có dụng cụ chi tiết
             </div>
           ) : (
             items.map((item) => (
               <div
                 key={item.id}
-                className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center gap-3"
+                className="p-4 bg-slate-50 rounded-[var(--radius-shell)] border border-slate-100 flex justify-between items-center gap-3"
               >
                 <div className="space-y-1 min-w-0">
                   <p className="text-xs font-semibold text-slate-700 uppercase truncate">

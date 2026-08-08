@@ -1,6 +1,7 @@
 // src/modules/giam-sat-vst/lib/vst-read-utils.ts
 import { classifyVstAction } from "./vst-action-classifier";
 import { vstSessionDisplayRef } from "./vst-display-ref";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 
 export type VstSessionRow = { id?: string; khoa_id?: string; nguoi_giam_sat_id?: string; [key: string]: unknown };
 export type VstObservationLite = { session_id?: string; hanh_dong?: string; [key: string]: unknown };
@@ -49,9 +50,7 @@ export function enrichVstSessionRows(rows: Record<string, unknown>[]): VstHistor
     const compliance = total_opps > 0 ? Math.round((compliant / total_opps) * 100) : 0;
     
     const ngayt = s.ngay_giam_sat as string | undefined;
-    const dateSrc = ngayt?.trim() 
-      ? new Date(`${ngayt}T12:00:00`) 
-      : s.created_at ? new Date(String(s.created_at)) : null;
+    const dateSrc = ngayt?.trim() ? ngayt.slice(0, 10) : s.created_at ? String(s.created_at).slice(0, 10) : null;
 
     return {
       ...s,
@@ -63,7 +62,7 @@ export function enrichVstSessionRows(rows: Record<string, unknown>[]): VstHistor
       ma_hien_thi: vstSessionDisplayRef(String(s.id), ngayt || null),
       total_opps,
       compliance,
-      date_str: dateSrc && Number.isFinite(dateSrc.getTime()) ? dateSrc.toLocaleDateString("vi-VN") : "---",
+      date_str: formatDateVi(dateSrc, "---"),
     } as VstHistoryRow;
   });
 }

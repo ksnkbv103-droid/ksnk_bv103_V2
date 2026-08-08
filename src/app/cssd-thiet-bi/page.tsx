@@ -1,14 +1,16 @@
 "use client";
 
 import React, { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Activity, List, Wrench } from "lucide-react";
+import { Activity, ExternalLink, List, Wrench } from "lucide-react";
 import { CSSDMaintenancePage } from "@/modules/cssd-erp/contexts/maintenance/entrypoint";
 import ThietBiFleetPanel from "@/modules/cssd-erp/components/equipment/thiet-bi-fleet-panel";
 import ThietBiVanHanhPanel from "@/modules/cssd-erp/components/equipment/thiet-bi-van-hanh-panel";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
 import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 type ThietBiTab = "FLEET" | "MAINTENANCE" | "VAN_HANH";
 
@@ -29,12 +31,16 @@ function CssdThietBiPageInner() {
 
   return (
     <CSSDPageShell
-      title={
-        <>
-          Máy móc &amp; Thiết bị <span className="text-[var(--primary)]">KSNK</span>
-        </>
+      title="Thiết bị KSNK"
+      actions={
+        <Link
+          href="/quan-tri-he-thong/danh-muc/thiet-bi"
+          className={`${bv103LayoutChrome.btnSecondary} gap-1.5 px-2.5`}
+        >
+          Sửa tại Quản trị
+          <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+        </Link>
       }
-      subtitle="Bảo dưỡng vận hành tại CSSD; danh mục máy CRUD tại Quản trị."
     >
       <div className="space-y-4 sm:space-y-6">
         <div className={CSSD_UI_TAB_GROUP}>

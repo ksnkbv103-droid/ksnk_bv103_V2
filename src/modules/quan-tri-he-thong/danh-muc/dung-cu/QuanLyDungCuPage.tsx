@@ -50,8 +50,8 @@ export default function QuanLyDungCuPage() {
 
   if (!loaiAllowed.view && !boAllowed.view && !leAllowed.view) {
     return (
-      <div className="mx-auto max-w-xl rounded-3xl border border-slate-200 bg-white p-10 text-center">
-        <p className="font-black uppercase tracking-widest text-slate-400 text-sm">Không có quyền truy cập</p>
+      <div className={`mx-auto max-w-xl ${C.panelSurface} p-10 text-center`}>
+        <p className="text-sm font-semibold text-slate-500">Không có quyền truy cập</p>
         <p className="mt-2 text-xs font-medium text-slate-500">
           Cần ít nhất một trong: LOAI_DC, BO_DC, DC_LE (View).
         </p>
@@ -66,8 +66,8 @@ export default function QuanLyDungCuPage() {
             <h1 className="text-xl font-semibold tracking-tight text-[var(--primary)] flex items-center gap-3">
               <LayoutGrid size={24} aria-hidden /> Quản lý dụng cụ
             </h1>
-            <p className="text-slate-500 text-[11px] font-semibold uppercase tracking-wider mt-1">
-              Master Data • đồng bộ CSSD
+            <p className="mt-1 text-[11px] font-medium text-slate-500">
+              Master Data · đồng bộ CSSD
             </p>
           </div>
 

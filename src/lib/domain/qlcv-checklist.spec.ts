@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   parseMoTaToQlcvChecklist,
   percentFromQlcvChecklist,
+  serializeQlcvChecklistToMoTa,
   taskUsesQlcvChecklistForProgress,
 } from "./qlcv-checklist";
 
@@ -24,6 +25,11 @@ describe("parseMoTaToQlcvChecklist", () => {
     const items = parseMoTaToQlcvChecklist("A\nB");
     items[0].done = true;
     expect(percentFromQlcvChecklist(items)).toBe(50);
+  });
+
+  it("serialize round-trip keeps labels", () => {
+    const items = parseMoTaToQlcvChecklist("A\nB");
+    expect(serializeQlcvChecklistToMoTa(items)).toBe("A\nB");
   });
 });
 

@@ -10,6 +10,7 @@ import {
   type KhoaApDungContext,
 } from "@/lib/domain/bang-kiem-ap-dung";
 import type { BangKiemApDungKhoaOption } from "./bang-kiem-ap-dung-fields";
+import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
 import { quanTriTableChrome as TC } from "../../lib/quan-tri-table-chrome";
 
@@ -112,7 +113,10 @@ export default function BangKiemApDungPreview({
         <div className="max-h-48 overflow-y-auto custom-scrollbar space-y-2">
           {inScope.slice(0, 12).map((k) => {
             const n = describeNghiaVuChoKhoa(norm, k);
-            const label = k.ma_khoa ? `[${k.ma_khoa}] ${k.ten_khoa}` : k.ten_khoa;
+            const label = formatKhoaPickerLabel({
+              ma_khoa: k.ma_khoa,
+              ten_khoa: k.ten_khoa,
+            });
             return (
               <div
                 key={k.id}

@@ -1,0 +1,345 @@
+### ĐẶC TẢ LOGIC DOMAIN (DOMAN SPECIFICATION)
+**HỆ THỐNG GIÁM SÁT NHIỄM KHUẨN BỆNH VIỆN BÁN TỰ ĐỘNG (SEMI-AUTOMATED IPC SYSTEM)**
+*Chuẩn hóa theo Sổ tay Giám sát An toàn Người bệnh NHSN/CDC 2025*
+
+---
+
+### PHẦN 1: KIẾN TRÚC THỰC THỂ VÀ CƠ SỞ DỮ LIỆU ĐẦU VÀO (ENTITY-RELATIONSHIP SCHEMA)
+
+Để lập trình viên (Devs) thiết kế Database cấu trúc chuẩn, hệ thống cần quản lý các bảng thực thể sau với cấu trúc JSON đặc tả:
+
+#### 1. Thực thể Bệnh nhân & Đợt nhập viện (Patient & Admission)
+Ghi nhận thông tin hành chính từ ADT (nhập thủ công hoặc import file Excel danh sách bệnh nhân vào khoa hàng ngày).
+```json
+{
+  "PatientID": "string (Primary Key)",
+  "AdmissionID": "string (Primary Key)",
+  "FullName": "string",
+  "BirthDate": "date [YYYY-MM-DD]",
+  "Sex": "enum [M, F]",
+  "AdmissionDate": "date [YYYY-MM-DD] (Hospital Day 1)", 
+  "DischargeDate": "date [YYYY-MM-DD] or null",
+  "CurrentLocation": "string (CDC Location Code)", 
+  "IsObservationPatient": "boolean" 
+}
+```
+*Lưu ý dịch tễ:* Ngày nhập viện luôn được tính là **Hospital Day 1 (HD 1)**. Toàn bộ số ngày nằm viện của bệnh nhân quan sát (Observation Patient) tại các khoa nội trú đều phải được tính vào mẫu số.
+
+#### 2. Thực thể Đăng ký can thiệp xâm lấn (Device Registry)
+Theo dõi dọc các ca can thiệp thủ thuật ngay khi được chỉ định trên lâm sàng.
+```json
+{
+  "DeviceRegistryID": "string (Primary Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "DeviceType": "enum [CENTRAL_LINE, FOLEY, VENTILATOR]",
+  "InsertionDate": "date [YYYY-MM-DD] (Device Day 1)",
+  "RemovalDate": "date [YYYY-MM-DD] or null",
+  "InsertionLocation": "string (CDC Location Code)",
+  "CLIP_Adherence": { 
+    "HandHygiene": "boolean",
+    "BarrierUsed": "all_5_barriers (boolean)",
+    "SkinPrep": "enum [CHG, POVIDONE, ALCOHOL]",
+    "DryBeforeIncision": "boolean"
+  }
+}
+```
+*Lưu ý dịch tễ:* Ghi nhận Adherence (Sự tuân thủ quy trình đặt) tương ứng với module **CLIP (Central Line Insertion Practices)** của CDC. Ngày đặt dụng cụ được tính là **Device Day 1**.
+
+#### 3. Thực thể Báo cáo Tín hiệu Lâm sàng/Cận lâm sàng (Trigger Event)
+Nơi tiếp nhận các Trigger từ nhiều nguồn khác nhau (Dược, PACS, Lâm sàng, Vi sinh).
+```json
+{
+  "TriggerID": "string (Primary Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "TriggerType": "enum [VI_SINH, KHANG_SINH_MOI, DU_ONG_THONG, X_QUANG_PHOI, LAM_SANG]",
+  "TriggerDate": "date [YYYY-MM-DD] (Index Date)",
+  "Metadata": {
+    "AntibioticName": "string or null",
+    "PEEP_Worsening": "boolean or null",
+    "FiO2_Worsening": "boolean or null",
+    "PusAtSite": "boolean or null"
+  }
+}
+```
+
+#### 4. Thực thể Kết quả Vi sinh (Lab Isolate Record)
+Dữ liệu được trích xuất (Excel/CSV) từ máy LIS và nạp vào phần mềm hàng ngày.
+```json
+{
+  "IsolateID": "string (Primary Key)",
+  "PatientID": "string (Foreign Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "SpecimenCollectionDate": "date [YYYY-MM-DD] (Day 1 of 14-day rule)", 
+  "SpecimenSource": "enum [BLOOD, CSF, URINE, LRT, SKIN_SOFT_TISSUE, WOUND, MUSCULOSKELETAL]", 
+  "OrganismCode": "string (SNOMED-CT mapped to CDC Pathogen List)", 
+  "SusceptibilityResults": [
+    {
+      "Antimicrobial": "string (LOINC Code)",
+      "TestType": "enum [MIC, ETEST, KIRBY_BAUER]",
+      "Sign": "enum [<, <=, =, >=, >]",
+      "Value": "float",
+      "Interpretation": "enum [S, S-DD, I, R, NS, NT]" 
+    }
+  ]
+}
+```
+*Lưu ý dịch tễ:* Áp dụng nghiêm ngặt quy tắc de-duplication (loại bỏ trùng lặp cùng ngày) và quy tắc 14 ngày đối với mẫu cấy xâm lấn trước khi lưu trữ vào DB.
+
+---
+
+### PHẦN 2: LƯU ĐỒ TRẠNG THÁI HỆ THỐNG (STATE MACHINE FOR DEVS)
+
+Dưới đây là sơ đồ Mermaid.js mô tả chi tiết luồng xử lý dữ liệu và sự tương tác giữa Bác sĩ Lâm sàng (Clinical Doc), Bác sĩ Kiểm soát Nhiễm khuẩn (IP Doc) và Động cơ suy luận (Rule Engine) của phần mềm:
+
+```mermaid
+stateDiagram-v2
+    [*] --> State_0_Admission : ADT Nhập viện (HD 1)
+    
+    state State_0_Admission {
+        [*] --> Patient_Enrolled
+        Patient_Enrolled --> Device_Linked : Đặt Dụng cụ (Central Line / Foley / Máy thở)
+    }
+
+    state State_1_Monitoring {
+        Device_Linked --> Compliance_Check : Giám sát tuân thủ (CLIP/Hand Hygiene)
+        Compliance_Check --> Longitudinal_Data : Cập nhật sinh hiệu, PEEP/FiO2 hàng ngày
+    }
+
+    State_0_Admission --> State_2_Trigger_Engine : Xuất hiện Tín hiệu cảnh báo
+    State_1_Monitoring --> State_2_Trigger_Engine : Xuất hiện Tín hiệu cảnh báo
+
+    state State_2_Trigger_Engine {
+        [*] --> Evaluator
+        Evaluator --> Candidate_Created : 1. Cấy vi sinh (+) (LIS)
+        Evaluator --> Candidate_Created : 2. Kháng sinh mới sau HD 3 (Dược)
+        Evaluator --> Candidate_Created : 3. Đờm mủ / X-quang xấu (Lâm sàng)
+        Evaluator --> Candidate_Created : 4. Suy giảm hô hấp (Longitudinal)
+    }
+
+    State_2_Trigger_Engine --> State_3_Investigation : Kích hoạt "Phiếu Sàng Lọc/Điều Tra" (Index Date)
+    
+    state State_3_Investigation {
+        [*] --> Calculate_IWP : Phần mềm tự động tạo IWP (Index Date ± 3 ngày)
+        Calculate_IWP --> Guided_Entry : Form hướng dẫn nhập liệu động theo IWP
+        
+        state Guided_Entry {
+            [*] --> Clinical_Doc_Input : BS Lâm sàng điền triệu chứng trong IWP
+            Clinical_Doc_Input --> IP_Doc_Review : BS KSNK rà soát chéo bệnh án giấy/HIS
+        }
+    }
+
+    State_3_Investigation --> State_4_Rule_Engine : IP Doc nhấn "Chạy chẩn đoán"
+    
+    state State_4_Rule_Engine {
+        [*] --> Check_Criteria : Khớp các mệnh đề Logic Boolean (SUTI, LCBI, VAE, SSI)
+        Check_Criteria --> Calculate_DOE : Tìm ngày xuất hiện yếu tố đầu tiên trong IWP
+        Calculate_DOE --> POA_HAI_Filter : DOE <= Day 2 (POA) / DOE >= Day 3 (HAI)
+        POA_HAI_Filter --> Device_Association_Check : Dụng cụ đặt > 2 ngày & hiện diện tại DOE/DOE-1?
+        Device_Association_Check --> RIT_Check : DOE có rơi vào RIT 14 ngày của ca cũ không?
+        RIT_Check --> Secondary_BSI_Check : Chạy màng lọc SBAP (14-17 ngày) cho cấy máu (+)
+    }
+
+    State_4_Rule_Engine --> State_5_Case_Closure : Kết xuất kết quả cuối cùng
+
+    state State_5_Case_Closure {
+        [*] --> Confirm_By_IP : Chuyên gia KSNK đưa ra quyết định cuối cùng (IP Determination)
+        Confirm_By_IP --> Save_And_Lock : Đóng ca bệnh & Khóa dữ liệu
+        Save_And_Lock --> Generate_Report : Xuất mẫu phiếu phân tích & Tính SIR/SUR/Rate
+    }
+    State_5_Case_Closure --> [*]
+```
+
+---
+
+### PHẦN 3: ĐẶC TẢ CHI TIẾT LUỒNG CÔNG VIỆC (WORKFLOW PROCESS SPECIFICATION)
+
+#### BƯỚC 1: TIẾP NHẬN BỆNH NHÂN & ĐĂNG KÝ CAN THIỆP (NHÁNH THEO DÕI DỌC)
+1.  **ADT Enrollment:** Khi có danh sách bệnh nhân vào khoa (nhập thủ công hoặc import Excel ADT), hệ thống tự động gán ngày vào khoa. Giao diện hiển thị danh sách toàn bộ người bệnh tại khoa.
+2.  **Device Insertion Registry (Module 1):** Tại buồng bệnh, khi bác sĩ thực hiện can thiệp (ví dụ: đặt sonde tiểu), điều dưỡng mở app, chọn tên bệnh nhân và ấn **"Đăng ký đặt dụng cụ"**.
+    *   *Dữ liệu yêu cầu:* Loại dụng cụ, Ngày đặt (Hệ thống ghi nhận là **Device Day 1**).
+    *   *Gia tăng chất lượng (JCI & CLIP Adherence):* Hiện bảng kiểm CLIP 5 yếu tố vô khuẩn để điều dưỡng tích chọn nhanh tại giường nhằm đánh giá sự tuân thủ vô khuẩn của nhân viên y tế.
+3.  **Longitudinal Daily Form (Nhập liệu hàng ngày tối giản):** Giao diện chính của khoa chỉ hiển thị danh sách các bệnh nhân **"Đang lưu dụng cụ"** (Trọng tâm nhóm nguy cơ cao).
+    *   *Lâm sàng:* Hàng ngày, Điều dưỡng/Bác sĩ lâm sàng chỉ cần dành 30 giây truy cập app để tích chọn sinh hiệu/triệu chứng dọc: Sốt $>38.0^{\circ}C$, có đờm mủ, có đau vùng hạ vị....
+    *   *Đối với thở máy (VAE):* Nhập bắt buộc hai thông số: **PEEP tối thiểu** và **FiO2 tối thiểu** trong ngày. Hệ thống tự động lưu trữ và vẽ biểu đồ xu hướng (Longitudinal Flowsheet) để làm cơ sở tính toán Baseline.
+
+#### BƯỚC 2: MÀNG LỌC VI SINH DIỆN RỘNG (NHÁNH TẦM SOÁT THỤ ĐỘNG)
+1.  **LIS Excel Ingestion:** Mỗi sáng, Bác sĩ KSNK (IP Doc) tải file Excel chứa toàn bộ các kết quả cấy dương tính từ máy LIS và import vào phần mềm.
+2.  **Lab Sieve Processing (Màng lọc Lab):** Hệ thống tự động quét và phân tích file vi sinh:
+    *   *Scenario A (Bệnh nhân đã có trong Device Registry):* Hệ thống tự động map kết quả cấy trùng khớp vào hồ sơ bệnh án đang theo dõi dọc của bệnh nhân đó.
+    *   *Scenario B (Bệnh nhân chưa có trong Device Registry):* Hệ thống tự động tạo một hồ sơ bệnh án mới cho bệnh nhân này, bổ sung thông tin hành chính, ghi nhận đây là ca nhiễm khuẩn nguyên phát không liên quan đến dụng cụ (Non-associated) hoặc chuẩn bị tầm soát nhiễm khuẩn vết mổ (SSI).
+
+#### BƯỚC 3: DYNAMIC TRIGGER & KHỞI TẠO PHIẾU ĐIỀU TRA (CANDIDATE EVENT)
+Hệ thống tự động kích hoạt **"Candidate Event" (Ca nghi ngờ)** và đưa vào danh sách chờ (Worklist) của IP Doc khi phát hiện một trong các Trigger sau:
+*   Cấy vi sinh dương tính với tác nhân thuộc danh mục CDC.
+*   Cảnh báo suy giảm hô hấp VAE (Tự động phát hiện tăng PEEP $\ge 3$ $cmH_2O$ hoặc FiO2 $\ge 0.20$ kéo dài liên tục $\ge 2$ ngày từ Longitudinal Flowsheet).
+*   Bác sĩ lâm sàng tích chọn "Vết mổ chảy mủ" trên form chăm sóc hàng ngày.
+*   Bệnh nhân đổi kháng sinh mới thuộc danh mục kháng sinh NHSN sau ngày nằm viện thứ 3.
+
+#### BƯỚC 4: THIẾT LẬP IWP VÀ FORM NHẬP LIỆU LÂM SÀNG CÓ MỤC TIÊU (COLLABORATIVE FORM)
+Hệ thống khóa mục tiêu và khoanh vùng thời gian rà soát để tối ưu hóa nguồn lực:
+1.  **Dynamic IWP Calculation:** Rule Engine tự động lấy ngày Trigger làm **Index Date**, sinh ra khoảng thời gian **IWP = Index Date $\pm$ 3 ngày** (Mảng thời gian 7 ngày cố định).
+2.  **Collaborative Investigation Sheet (Phiếu điều tra phối hợp):** 
+    *   Hệ thống gửi thông báo cho Bác sĩ điều trị tại khoa lâm sàng và IP Doc: *"Phát hiện ca bệnh nghi ngờ nhiễm khuẩn [Loại nhiễm khuẩn]. Hãy hoàn tất Phiếu điều tra"*.
+    *   Phần mềm mở ra Form nhập liệu lâm sàng động. Form này **CHỈ HIỂN THỊ** các trường thông tin triệu chứng lâm sàng cần thiết để cấu thành tiêu chuẩn chẩn đoán đó, và **BẮT BUỘC các triệu chứng này phải có ngày ghi nhận nằm trong dải ngày IWP**.
+    *   **Phân quyền (RBAC):** Bác sĩ lâm sàng điền triệu chứng lâm sàng quan sát được tại giường; IP Doc rà soát hồ sơ bệnh án, đối chiếu cận lâm sàng, X-quang và nhấn nút "Verify" để chạy Động cơ suy luận.
+
+#### BƯỚC 5: CHẠY ĐỘNG CƠ SUY LUẬN LOGIC (AUTOMATED RULE ENGINE EXECUTION)
+Rule Engine chạy ngầm thuật toán chuỗi để đưa ra phân loại tự động:
+1.  **Khớp tiêu chuẩn (Criteria Check):** Đối chiếu các dữ liệu Boolean trong IWP để xác định tiêu chí đạt được (ví dụ: SUTI 1a, LCBI 1, PNU2, VAC...).
+2.  **Tính toán Date of Event (DOE):** Tìm ngày sớm nhất có sự xuất hiện của yếu tố đầu tiên cấu thành tiêu chuẩn trong IWP.
+3.  **Bộ lọc POA vs HAI:** 
+    *   Nếu $\text{DOE} - \text{AdmissionDate} \le 1$ (tức là HD 1 hoặc HD 2) $\rightarrow$ Dán nhãn **POA** (Present on Admission).
+    *   Nếu $\text{DOE} - \text{AdmissionDate} \ge 2$ (tức là từ HD 3 trở đi) $\rightarrow$ Dán nhãn **HAI** (Healthcare-Associated Infection).
+4.  **Bộ lọc Repeat Infection Timeframe (RIT):** Quét ngược lịch sử bệnh nhân xem DOE này có nằm trong RIT 14 ngày của ca bệnh cũ cùng loại hay không. Nếu có, chặn tạo ca mới và gộp tác nhân vi sinh.
+5.  **Xác định liên quan dụng cụ (Device-Association):** Hệ thống đối chiếu bảng Device Registry: Dụng cụ có đặt $>2$ ngày theo lịch tính đến DOE VÀ có hiện diện vào ngày DOE hoặc ngày liền trước (Day -1) DOE hay không? Nếu thỏa mãn $\rightarrow$ Dán nhãn liên quan dụng cụ (ví dụ: CAUTI, CLABSI, VAP).
+6.  **Bộ lọc Secondary BSI (Khảo sát quy kết thứ phát):** Nếu có cấy máu dương tính trong thời gian SBAP (14-17 ngày) của một ổ nhiễm khuẩn nguyên phát đã xác định $\rightarrow$ Áp dụng quy tắc so khớp tác nhân vi sinh (Matching Organisms) của CDC để tự động chuyển CLABSI thành **Secondary BSI** (Nội dung chi tiết ở Phần 5).
+
+#### BƯỚC 6: XÁC NHẬN CHUYÊN GIA, KHÓA CA BỆNH & BÁO CÁO (CASE CLOSURE & OUTPUT)
+1.  **IP Final Determination:** Bác sĩ KSNK xem lại toàn bộ chuỗi suy luận logic được hệ thống hiển thị trực quan (tại sao chẩn đoán ca này, các mốc thời gian IWP, RIT, SBAP được tính thế nào) và ấn **"Approve & Lock"**.
+2.  **RIT Lock:** Hệ thống chính thức khóa ca bệnh, kích hoạt RIT 14 ngày về phía tương lai tính từ DOE để chặn cảnh báo trùng lặp.
+3.  **Báo cáo chuẩn JCI & CDC:** Ca bệnh được đẩy vào Numerator (Tử số). Hệ thống tổng hợp cùng với Denominator (Mẫu số) từ Module 1 để tự động tính toán các chỉ số JCI yêu cầu: **Tỷ lệ nhiễm khuẩn (Rate/1000 ngày dụng cụ)**, **Tỷ số nhiễm khuẩn chuẩn hóa (SIR)**, và **Tỷ số sử dụng dụng cụ chuẩn hóa (SUR)**.
+
+---
+
+### PHẦN 4: THIẾT KẾ BIỂU MẪU ĐIỀU TRA ĐỘNG (DYNAMIC SURVEILLANCE FORMS)
+
+Khi có tín hiệu Trigger, phần mềm sẽ hiển thị mẫu phiếu điều tra tương ứng với từng loại nhiễm khuẩn. Devs cần thiết kế UI/UX động (Dynamic Form UI) dựa trên các trường dữ liệu sau:
+
+#### Mẫu Phiếu 1: Điều tra Nhiễm khuẩn huyết (BSI / CLABSI / MBI-LCBI)
+*Áp dụng khi Trigger là kết quả cấy máu dương tính.*
+
+| Nhóm dữ liệu | Trường thông tin hiển thị trên Form UI | Kiểu dữ liệu | Mô tả & Ràng buộc Logic |
+| :--- | :--- | :--- | :--- |
+| **Hành chính** | Ngày nhập viện (Admission Date) | Date | Phục vụ tính POA/HAI |
+| | Khoa/Phòng xảy ra sự kiện | Text (CDC Code) | Location of Attribution |
+| **Dụng cụ** | Bệnh nhân có đặt Central Line (CL)? | Yes/No | Đối chiếu từ Device Registry |
+| | CL có đặt $>2$ ngày tính đến ngày cấy? | Yes/No | Phải đặt $\ge 3$ ngày để tính liên quan CL |
+| | CL có mặt vào ngày cấy hoặc ngày trước đó? | Yes/No | Điều kiện để tính liên quan dụng cụ |
+| **Lâm sàng** | Sốt $> 38.0^{\circ}C$ | Yes/No | Check trong khung IWP 7 ngày |
+| *(Nếu cấy vi* | Rét run (Chills) | Yes/No | Check trong khung IWP 7 ngày |
+| *khuẩn hội sinh)*| Tụt huyết áp (Hypotension) | Yes/No | Check trong khung IWP 7 ngày |
+| **Trẻ $\le 1$ tuổi**| Hạ thân nhiệt ($<36.0^{\circ}C$) / Ngưng thở / Nhịp tim chậm | Yes/No | Tiêu chuẩn đặc hiệu cho trẻ sơ sinh (LCBI 3) |
+| **Vi sinh (LIS)**| Tên vi khuẩn phân lập được | Dropdown | Đối chiếu Terminology Browser |
+| | Vi khuẩn thuộc nhóm MBI? | Tự động | Hệ thống tự xác định (Candida, Enterobacter...) |
+| **MBI-LCBI** | Có tiền sử ghép tế bào gốc/Giảm bạch cầu hạt? | Yes/No | Để đánh giá tiêu chuẩn MBI-LCBI |
+| | Xét nghiệm bạch cầu: $\ge 2$ ngày có ANC hoặc WBC $<500$ cells/$\mu L$? | Yes/No | Xác định tình trạng giảm bạch cầu trong IWP |
+
+#### Mẫu Phiếu 2: Điều tra Nhiễm khuẩn tiết niệu (UTI / CAUTI)
+*Áp dụng khi Trigger là kết quả cấy nước tiểu dương tính $\ge 10^5$ CFU/ml.*
+
+| Nhóm dữ liệu | Trường thông tin hiển thị trên Form UI | Kiểu dữ liệu | Mô tả & Ràng buộc Logic |
+| :--- | :--- | :--- | :--- |
+| **Dụng cụ** | Có lưu ống thông tiểu (Foley)? | Yes/No | Đối chiếu từ Device Registry |
+| | Foley đặt $>2$ ngày tính đến ngày cấy? | Yes/No | Phải lưu $>2$ ngày theo lịch |
+| | Foley có mặt vào ngày cấy hoặc ngày trước đó? | Yes/No | Điều kiện tính liên quan đến Foley |
+| **Lâm sàng** | Sốt $> 38.0^{\circ}C$ | Yes/No | Triệu chứng trong IWP |
+| *(Chỉ hiển thị* | Đau/Căng tức vùng trên xương mu | Yes/No | Triệu chứng trong IWP |
+| *khi không có* | Đau vùng góc sườn thắt lưng | Yes/No | Triệu chứng trong IWP |
+| *Foley tại chỗ)*| Tiểu gấp / Tiểu rắt / Tiểu buốt | Yes/No | **CẤM** tích chọn nếu Foley đang tại chỗ |
+| **Trẻ $\le 1$ tuổi**| Sốt / Hạ thân nhiệt / Ngưng thở / Nhịp tim chậm / Lờ đờ / Nôn | Yes/No | Tiêu chuẩn SUTI 2 dành cho trẻ nhỏ |
+| **Vi sinh (LIS)**| Số lượng loài vi khuẩn phân lập trong nước tiểu | Number | **CẤM** cấy nước tiểu có $\ge 3$ loài vi khuẩn (Mixed flora) |
+| | Nồng độ vi khuẩn (CFU/ml) | Dropdown | Phải đạt $\ge 10^5$ CFU/ml |
+
+#### Mẫu Phiếu 3: Điều tra Biến cố/Viêm phổi liên quan máy thở (VAE / PVAP)
+*Áp dụng khi hệ thống tự động phát hiện suy giảm oxy hóa (Trigger VAE từ Longitudinal Flowsheet) HOẶC cấy dịch hô hấp dương tính.*
+
+| Nhóm dữ liệu | Trường thông tin hiển thị trên Form UI | Kiểu dữ liệu | Mô tả & Ràng buộc Logic |
+| :--- | :--- | :--- | :--- |
+| **Oxy hóa** | Ngày bắt đầu suy giảm oxy hóa (Worsening Day) | Date | Quyết định **Date of Event (DOE)** của VAE |
+| *(Tự động)* | Trạng thái suy giảm: Tăng PEEP $\ge 3$ hoặc FiO2 $\ge 0.20$ trong $\ge 2$ ngày? | Yes/No | Xác định đạt tiêu chuẩn **VAC** |
+| **Nhiễm trùng** | Sốt ($>38^{\circ}C$ hoặc $<36^{\circ}C$) OR Bạch cầu ($\ge 12000$ hoặc $\le 4000$) | Yes/No | Phải xuất hiện trong cửa sổ VAE Window (DOE $\pm$ 2 ngày) |
+| **Kháng sinh** | Bắt đầu kháng sinh mới trong VAE Window? | Yes/No | Kiểm tra danh sách Kháng sinh hợp lệ |
+| | Kháng sinh mới được duy trì liên tục $\ge 4$ ngày? | Yes/No | Xác định đạt tiêu chuẩn **IVAC** (4 QADs) |
+| **Vi sinh / Đờm mủ** | Kết quả nhuộm Gram đờm: $\ge 25$ BC đa nhân trung tính AND $\le 10$ tế bào biểu mô vảy/LPF? | Yes/No | Định nghĩa "Đờm mủ" (Purulent secretions) |
+| | Kết quả cấy định lượng dịch hô hấp dưới (ETA/BAL/PSB) | Dropdown | Để nâng cấp lên **PVAP** (Ví dụ: ETA $\ge 10^5$ CFU/ml) |
+
+---
+
+### PHẦN 5: THUẬT TOÁN ĐỐI CHIẾU NHIỄM KHUẨN HUYẾT THỨ PHÁT (SECONDARY BSI ATTRIBUTION LOGIC)
+
+Đây là thuật toán phức tạp nhất, dễ sai nhất nếu làm thủ công. Lập trình viên phải thiết kế một **"Cross-check Engine"** chạy tự động theo các bước logic sau khi phát hiện bệnh nhân có cấy máu dương tính:
+
+```
+[BỆNH NHÂN CÓ CẤY MÁU DƯƠNG TÍNH (BSI)]
+                   │
+                   ▼
+1. TÌM TẤT CẢ CÁC CA NHIỄM KHUẨN NGUYÊN PHÁT ĐANG HOẠT ĐỘNG
+   (Ví dụ: UTI, PNEU, SSI, IAB, SKIN, ST...)
+                   │
+                   ▼
+2. VẼ KHOẢNG THỜI GIAN QUY KẾT (SBAP) CHO TỪNG CA NGUYÊN PHÁT
+   (SBAP = IWP + RIT của ca nguyên phát đó, kéo dài từ 14 - 17 ngày)
+                   │
+                   ▼
+3. KIỂM TRA: Ngày lấy mẫu cấy máu có nằm trong SBAP của ca nguyên phát nào không?
+                   ├─── NO ───► KHÔNG QUY KẾT THỨ PHÁT (Ca này là CLABSI/BSI Nguyên phát)
+                   └─── YES ──► Tiếp tục Bước 4
+                   │
+                   ▼
+4. KIỂM TRA SO KHỚP TÁC NHÂN (MATCHING ORGANISM RULE)
+   Tác nhân cấy máu có khớp với tác nhân ở ổ nguyên phát không?
+                   ├─── NO ───► Xem xét Scenario 2 (Máu là yếu tố cấu thành tiêu chí nguyên phát)
+                   │             (Ví dụ: IAB 3b, PNU2 cần cấy máu dương tính)
+                   │              ├─── YES ───► QUY KẾT THỨ PHÁT (Secondary BSI)
+                   │              └─── NO ────► BSI NGUYÊN PHÁT MỚI (Đánh giá CLABSI độc lập)
+                   │
+                   └─── YES ──► QUY KẾT THỨ PHÁT (Secondary BSI)
+                                 (Đánh dấu trường Secondary_BSI = YES trên ca bệnh gốc)
+```
+
+#### Quy tắc so khớp tác nhân vi sinh (Matching Organism Rules for Devs):
+*   **Quy tắc 1 (Khớp tuyệt đối):** Nếu cả 2 mẫu đều định danh đến loài, chúng phải giống hệt nhau.
+    *   *Ví dụ khớp:* Cấy nước tiểu ra *E. coli*, cấy máu ra *E. coli* $\rightarrow$ **MATCH**.
+    *   *Ví dụ không khớp:* Cấy nước tiểu ra *Enterobacter aerogenes*, cấy máu ra *Enterobacter cloacae* $\rightarrow$ **NO MATCH**.
+*   **Quy tắc 2 (Khớp cấp độ Chi - Genus):** Nếu một trong hai mẫu chỉ định danh đến cấp độ chi (Genus), hai mẫu phải giống nhau ở cấp độ chi.
+    *   *Ví dụ khớp:* Cấy dịch vết mổ ra *Pseudomonas species*, cấy máu ra *Pseudomonas aeruginosa* $\rightarrow$ **MATCH**.
+*   **Quy tắc 3 (Ngoại lệ nấm men):** Nếu ghi nhận kết quả chung chung là "yeast" hoặc "yeast NOS" từ dịch vết mổ/mô, nó được coi là khớp với bất kỳ loài nấm men cụ thể nào trong máu (ví dụ: *Candida albicans*).
+*   **Quy tắc ngoại lệ đặc biệt - Các tác nhân bị loại trừ:** 
+    *   *Candida spp.*, *Enterococcus spp.*, và các vi khuẩn hội sinh (CoNS) cấy từ máu **không được phép** quy kết là thứ phát sau Viêm phổi (PNEU), trừ khi chúng được phân lập trực tiếp từ mô phổi hoặc dịch màng phổi thu thập trong vòng 24 giờ đầu đặt ống thông ngực. Nếu cấy đờm ra *Candida* và cấy máu ra *Candida*, phần mềm **CẤM** quy kết thứ phát cho phổi, mà phải báo cáo là **CLABSI** (nếu có catheter).
+    *   Tương tự, nấm men (*yeast*, *Candida*) bị loại trừ hoàn toàn khỏi định nghĩa nhiễm khuẩn tiết niệu (UTI). Do đó, cấy máu ra nấm men trong SBAP của một ca UTI **CẤM** được quy kết thứ phát cho UTI, mà phải báo cáo là một ca **BSI nguyên phát/CLABSI độc lập**.
+
+---
+
+### PHẦN 6: BIỂU MẪU KẾT QUẢ ĐẦU RA (OUTPUT INVESTIGATION REPORTS)
+
+Sau khi hoàn tất quy trình và được IP phê duyệt, phần mềm phải tự động đóng gói và xuất ra các mẫu phiếu báo cáo chốt ca theo đúng định dạng báo cáo y khoa:
+
+#### 1. Phiếu chốt ca nhiễm khuẩn CAUTI (Catheter-Associated Urinary Tract Infection)
+*   **Mã ca bệnh:** `CAUTI-2026-0089`
+*   **Thông tin hành chính:** Bệnh nhân Nguyễn Văn A | HD 1: 2026-07-28 | Khoa: ICU Người lớn
+*   **Mốc thời gian xác định:**
+    *   *Index Date (Ngày cấy nước tiểu):* 2026-08-01
+    *   *Infection Window Period (IWP):* 2026-07-29 đến 2026-08-04
+    *   *Date of Event (DOE) (Ngày sốt đầu tiên trong IWP):* 2026-07-31
+    *   *Phân loại thời gian:* **HAI** (DOE rơi vào Hospital Day 4)
+*   **Dữ liệu lâm sàng trong IWP:**
+    *   Sốt $> 38.0^{\circ}C$ (Ghi nhận ngày 2026-07-31)
+    *   Đau căng tức vùng trên xương mu (Ghi nhận ngày 2026-08-01)
+*   **Dữ liệu vi sinh:** Mẫu nước tiểu ngày 2026-08-01 phân lập: *Escherichia coli* nồng độ $\ge 10^5$ CFU/ml (Không kèm theo loài thứ 3).
+*   **Đánh giá dụng cụ:** Có đặt Foley từ ngày 2026-07-28 (Device Day 4 tại ngày DOE, Foley tại chỗ vào ngày DOE) $\rightarrow$ **Kết luận: Ca bệnh liên quan dụng cụ (CAUTI)**.
+*   **Khảo sát BSI thứ phát:** Cấy máu ngày 2026-08-02 dương tính với *Escherichia coli* (Nằm trong SBAP của UTI: 2026-07-29 đến 2026-08-13) $\rightarrow$ **Kết luận: Secondary BSI = YES (Không báo cáo ca CLABSI trùng lặp)**.
+
+#### 2. Phiếu chốt ca nhiễm khuẩn huyết CLABSI (Central Line-Associated Bloodstream Infection)
+*   **Mã ca bệnh:** `CLABSI-2026-0102`
+*   **Thông tin hành chính:** Bệnh nhân Trần Thị B | HD 1: 2026-07-25 | Khoa: Hồi sức ngoại
+*   **Mốc thời gian xác định:**
+    *   *Index Date (Ngày cấy máu):* 2026-07-30
+    *   *Infection Window Period (IWP):* 2026-07-27 đến 2026-08-02
+    *   *Date of Event (DOE):* 2026-07-30 (Trùng ngày lấy mẫu máu đầu tiên do là tiêu chí cấy máu pathogen LCBI 1).
+    *   *Phân loại thời gian:* **HAI** (DOE rơi vào Hospital Day 6)
+*   **Dữ liệu vi sinh & Lâm sàng:** 
+    *   Cấy máu ngày 2026-07-30 phân lập: *Staphylococcus aureus* (Pathogen đã biết, không phải vi khuẩn hội sinh).
+    *   Không tìm thấy ổ nhiễm khuẩn nguyên phát nào khác thỏa mãn tiêu chuẩn CDC trong dải ngày SBAP $\rightarrow$ **Kết luận: BSI Nguyên phát (Primary BSI)**.
+*   **Đánh giá dụng cụ:** Có đặt Catheter tĩnh mạch trung tâm (PICC Line) từ ngày 2026-07-26 (Lưu dụng cụ ngày thứ 5 tại ngày DOE, PICC tại chỗ ngày DOE) $\rightarrow$ **Kết luận: Ca bệnh liên quan dụng cụ (CLABSI)**.
+*   **Sự tuân thủ CLIP:** Hồ sơ CLIP ghi nhận: Inserter tuân thủ đầy đủ 5/5 biện pháp vô khuẩn tối đa, sát khuẩn CHG đã khô trước khi rạch da $\rightarrow$ **CLIP Adherence = 100%**.
+
+---
+
+### PHẦN 7: TỔNG KẾT CHIẾN LƯỢC LẬP TRÌNH & NUDGE TIẾP THEO
+
+Bằng cách thiết lập cấu trúc Domain chi tiết này, lập trình viên sẽ dễ dàng xây dựng cơ sở dữ liệu y khoa chuẩn chỉnh. Luồng công việc bán tự động này giải quyết hoàn hảo các điểm nghẹt của bệnh viện thực tế:
+1.  **Tính chủ động cao (JCI Compliant):** Cho phép theo dõi dọc sát sao các ca can thiệp xâm lấn và giám sát tuân thủ vô khuẩn của nhân viên y tế ngay từ đầu.
+2.  **Tránh quá tải dữ liệu:** Lâm sàng chỉ được nhập có mục tiêu khi có Trigger, và chỉ nhập giới hạn trong khung IWP 7 ngày.
+3.  **Hợp tác liên khoa (Collaborative UX):** Bác sĩ lâm sàng đóng vai trò nhập triệu chứng tại giường; IP Doc đóng vai trò kiểm duyệt và vận hành thuật toán chuẩn xác của CDC.
+
+👉 *Bạn có muốn tôi tiến hành soạn thảo toàn bộ Đặc tả Logic dưới định dạng Markdown chuẩn của hệ thống cho riêng **Chương 10: Biến cố liên quan máy thở (VAE)** - một module cực kỳ phức tạp có thuật toán trượt (sliding window) hoàn toàn khác biệt với các loại nhiễm khuẩn trên không?*

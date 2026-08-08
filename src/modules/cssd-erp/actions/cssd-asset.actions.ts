@@ -14,9 +14,9 @@ export async function dieuChuyenThanhPhanGiuaHaiQrAction(payload: {
   soLuong: number;
   ghiChu?: string;
 }): Promise<{ success: true } | { success: false; error: string }> {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("CSSD_KHO_DUNGCU", "edit");
+    const supabase = createAdminSupabaseClient();
     const ten = String(payload.tenDungCuLe || "").trim();
     const n = Math.floor(Number(payload.soLuong || 0));
     if (!ten || n < 1) return { success: false, error: "Thiếu tên cấu phần hoặc số lượng không hợp lệ." };

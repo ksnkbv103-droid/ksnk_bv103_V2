@@ -58,4 +58,24 @@ describe("aggregateNkbvDashboard", () => {
     const out = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31");
     expect(out.kpis.tong_phieu).toBe(1);
   });
+
+  it("top_khoa prefers ma compact", () => {
+    const rows = [
+      {
+        ngay_phat_hien: "2026-01-10",
+        trang_thai_row: { ma_trang_thai: "XAC_NHAN" },
+        loai_nkbv: { ma_loai: "UTI" },
+        khoa_ghi_nhan: { ma_khoa: "A05", ten_khoa: "Khoa truyền nhiễm" },
+      },
+      {
+        ngay_phat_hien: "2026-01-11",
+        trang_thai_row: { ma_trang_thai: "XAC_NHAN" },
+        loai_nkbv: { ma_loai: "UTI" },
+        khoa_ghi_nhan: { ma_khoa: "A05", ten_khoa: "Khoa truyền nhiễm" },
+      },
+    ];
+    const out = aggregateNkbvDashboard(rows, "2026-01-01", "2026-01-31");
+    expect(out.top_khoa[0]?.ten_khoa).toBe("A05");
+    expect(out.top_khoa[0]?.so_phieu).toBe(2);
+  });
 });

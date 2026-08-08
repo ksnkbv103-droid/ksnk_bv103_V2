@@ -135,7 +135,7 @@ export default function InstrumentIncidentFields({
   if (!maQR.trim()) {
     return (
       <p className="text-[11px] font-medium text-slate-500">
-        Quét mã QR bộ dụng cụ trước để chọn loại dụng cụ trong bộ.
+        Chọn hoặc quét mã bộ dụng cụ trước để chọn loại dụng cụ trong bộ.
       </p>
     );
   }
@@ -157,7 +157,7 @@ export default function InstrumentIncidentFields({
                 setSelectedChiTietId(e.target.value);
                 setQuantity(1);
               }}
-              className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-bold text-slate-800 outline-none focus:border-[var(--primary)] sm:text-xs"
+              className={bv103LayoutChrome.controlSelectNative}
             >
               <option value="">— Chọn dụng cụ —</option>
               {data.items.map((row) => (
@@ -184,7 +184,7 @@ export default function InstrumentIncidentFields({
                 max={isReplenish ? 99 : selectedRow.soLuongThucTe}
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value) || 1)}
-                className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 font-bold text-slate-800 outline-none focus:border-[var(--primary)]"
+                className={bv103LayoutChrome.controlInput}
               />
             </div>
           ) : null}
@@ -198,7 +198,7 @@ export default function InstrumentIncidentFields({
                 <select
                   value={maQrDen}
                   onChange={(e) => setMaQrDen(e.target.value.toUpperCase())}
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-base font-bold text-slate-800 outline-none focus:border-[var(--primary)] sm:text-xs"
+                  className={bv103LayoutChrome.controlSelectNative}
                 >
                   <option value="">— Chọn bộ đích —</option>
                   {boOptions.map((b) => (
@@ -213,8 +213,8 @@ export default function InstrumentIncidentFields({
                 <input
                   value={maQrDen}
                   onChange={(e) => setMaQrDen(e.target.value.toUpperCase())}
-                  placeholder="QUÉT QR BỘ ĐÍCH..."
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 font-mono font-bold uppercase tracking-widest text-slate-800 outline-none focus:border-[var(--primary)]"
+                  placeholder="Quét QR bộ đích…"
+                  className={`${bv103LayoutChrome.controlInput} font-mono uppercase tracking-wider`}
                 />
               </div>
               <div className="space-y-1.5">
@@ -230,7 +230,7 @@ export default function InstrumentIncidentFields({
                   max={selectedRow.soLuongThucTe}
                   value={quantity}
                   onChange={(e) => setQuantity(Number(e.target.value) || 1)}
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 font-bold text-slate-800 outline-none focus:border-[var(--primary)]"
+                  className={bv103LayoutChrome.controlInput}
                 />
               </div>
             </>

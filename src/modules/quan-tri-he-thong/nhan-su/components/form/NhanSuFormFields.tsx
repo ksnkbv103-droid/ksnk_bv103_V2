@@ -6,13 +6,14 @@ import { Sparkles } from "lucide-react";
 import type { NhanSu } from "@/modules/quan-tri-he-thong/nhan-su/types";
 import NhanSuFormFieldsOrg from "./NhanSuFormFieldsOrg";
 import SearchableSelect from "@/components/shared/SearchableSelect";
+import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 import { quanTriFormChrome as F } from "../../../lib/quan-tri-form-chrome";
 
 interface NhanSuFormFieldsProps {
   formData: Partial<NhanSu> & Record<string, unknown>;
   setFormData: (data: Partial<NhanSu> & Record<string, unknown>) => void;
   loading: boolean;
-  khoas: { id: string; ten_danh_muc: string }[];
+  khoas: { id: string; ten_danh_muc: string; ma_danh_muc?: string }[];
   chucDanhs: { id: string; ten_danh_muc: string }[];
   chucVus: { id: string; ten_danh_muc: string }[];
   tos: { id: string; ten_danh_muc: string; extra_data?: Record<string, unknown> | null }[];
@@ -65,7 +66,13 @@ export default function NhanSuFormFields({
         <SearchableSelect
           value={formData.khoa_id ?? ""}
           onChange={(val) => setFormData({ ...formData, khoa_id: val })}
-          options={khoas.map((k) => ({ id: k.id, label: k.ten_danh_muc }))}
+          options={khoas.map((k) => ({
+            id: k.id,
+            label: formatKhoaPickerLabel({
+              ma_danh_muc: k.ma_danh_muc,
+              ten_danh_muc: k.ten_danh_muc,
+            }),
+          }))}
           placeholder="-- Chọn Khoa / Phòng --"
           disabled={loading}
         />

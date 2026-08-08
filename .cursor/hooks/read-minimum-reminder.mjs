@@ -18,9 +18,14 @@ const MODULE_HINTS = [
       "BV103 QLCV: read-minimum dòng QLCV; rule 14-cong-viec; @qlcv-pilot nếu pilot.",
   },
   {
-    pattern: /cssd-erp|modules\/cssd/i,
+    pattern: /cssd-erp|modules\/cssd|cssd-|tiệt khuẩn|tiet khuan/i,
     context:
-      "BV103 CSSD: read-minimum dòng CSSD; rules 12-cssd + 20-master-data-placement.",
+      "BV103 CSSD: read-minimum dòng CSSD; rules 12-cssd + 20-master-data-placement; @cssd-pilot nếu pilot.",
+  },
+  {
+    pattern: /dao-tao|đào tạo|dao tao|mcq|ky-thi|ngân hàng câu/i,
+    context:
+      "BV103 Đào tạo: read-minimum dòng Đào tạo; rule 19-dao-tao-spec-context; docs/modules/dao-tao/README.md.",
   },
   {
     pattern: /giam-sat-nkbv|modules\/nkbv|nkbv_/i,

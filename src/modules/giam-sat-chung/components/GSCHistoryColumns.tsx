@@ -2,13 +2,17 @@
 "use client";
 
 import React from "react";
-import { format } from "date-fns";
 import { Column } from "@/components/shared/AdvancedDataTable";
+import { formatDateVi, formatTimeVi } from "@/lib/format-datetime-vi";
 import { formatGscHistoryScore } from "../lib/gsc-score-display";
 import { gscSessionDisplayRef } from "../lib/gsc-display-ref";
 import type { GscHistoryRow } from "../lib/gsc-read-utils";
 import { gscTableChrome as G } from "../lib/gsc-table-chrome";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
+import { buildEntityQrCode } from "@/lib/entity-qr/entity-qr-core";
+import { bv103TableLayout } from "@/lib/bv103-table-layout";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
 /**
  * Trả về mảng column config cho HistoryTable Giám sát chung
@@ -29,12 +33,9 @@ export function getGSCHistoryColumns(
       cellClassName: "w-[7rem] min-w-[7rem]",
       cell: (s: Record<string, unknown>) => {
         const raw = s.ngay_giam_sat ? String(s.ngay_giam_sat) : "";
-        const norm = raw && !raw.includes("T") ? `${raw.slice(0, 10)}T12:00:00` : raw;
-        const d = norm ? new Date(norm) : null;
-        const dateLine = d && Number.isFinite(d.getTime()) ? format(d, "dd/MM/yyyy") : "—";
+        const dateLine = formatDateVi(raw ? raw.slice(0, 10) : null);
         const tg = s.thoi_gian_ghi_nhan ? String(s.thoi_gian_ghi_nhan) : "";
-        const tObj = tg ? new Date(tg) : null;
-        const timeLine = tObj && Number.isFinite(tObj.getTime()) ? format(tObj, "HH:mm") : null;
+        const timeLine = tg ? formatTimeVi(tg, "") : null;
         return (
           <div className="min-w-0">
             <p className={`text-xs ${G.cellBody}`}>{dateLine}</p>
@@ -47,13 +48,18 @@ export function getGSCHistoryColumns(
       header: "Mã phiên",
       accessorKey: "ma_hien_thi",
       sortable: false,
-      headerClassName: "w-[9.5rem] min-w-[9.5rem]",
-      cellClassName: "w-[9.5rem] min-w-[9.5rem]",
-      cell: (s: { id?: string; ngay_giam_sat?: string; ma_hien_thi?: string }) => (
-        <span className={`${G.cellCode} truncate block max-w-full text-slate-600`}>
-          {s.ma_hien_thi || (s.id ? gscSessionDisplayRef(s.id, s.ngay_giam_sat) : "—")}
-        </span>
-      ),
+      headerClassName: bv103TableLayout.colCodeQr,
+      cellClassName: bv103TableLayout.colCodeQr,
+      cell: (s: { id?: string; ngay_giam_sat?: string; ma_hien_thi?: string }) => {
+        const label = s.ma_hien_thi || (s.id ? gscSessionDisplayRef(s.id, s.ngay_giam_sat) : "—");
+        const qrCode = s.id ? buildEntityQrCode("GSC_SESSION", s.id) : "";
+        return (
+          <span className="inline-flex max-w-full items-center gap-1.5">
+            {qrCode ? <InlineEntityQrThumb code={qrCode} size={28} /> : null}
+            <span className={`${G.cellCode} truncate text-slate-600`}>{label}</span>
+          </span>
+        );
+      },
     },
     {
       header: "Bảng kiểm",
@@ -80,7 +86,9 @@ export function getGSCHistoryColumns(
       headerClassName: "w-[4rem] min-w-[4rem]",
       cellClassName: "w-[4rem] min-w-[4rem]",
       cell: (s: GscHistoryRow) => (
-        <span className="text-xs font-semibold text-slate-800" title={s.khoa_name}>{s.ma_khoa || s.khoa_name || "—"}</span>
+        <span className="text-xs font-semibold text-slate-800" title={s.khoa_name}>
+          {formatKhoaCompactLabel({ ma_khoa: s.ma_khoa, ten_khoa: s.khoa_name })}
+        </span>
       ),
     },
     {
@@ -128,12 +136,12 @@ export function getGSCHistoryColumns(
       },
     },
     {
-      header: "",
+      header: "Thao tác",
       accessorKey: "actions",
-      headerClassName: "w-[9.5rem] min-w-[9.5rem]",
-      cellClassName: "w-[9.5rem] min-w-[9.5rem]",
+      headerClassName: bv103TableLayout.colActionsWide,
+      cellClassName: bv103TableLayout.colActionsWide,
       cell: (s: GscHistoryRow) => (
-        <div className="flex flex-wrap items-center justify-end gap-1.5">
+        <div className={bv103TableLayout.actionsCell}>
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onView(s); }}

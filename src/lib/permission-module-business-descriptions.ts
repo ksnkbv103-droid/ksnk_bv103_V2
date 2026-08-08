@@ -2,7 +2,7 @@
  * Mô tả nghiệp vụ tiếng Việt cho ma trận RBAC — giúp PO/IT duyệt quyền.
  */
 const PERMISSION_MODULE_BUSINESS_DESCRIPTIONS: Record<string, string> = {
-  DASHBOARD: "Xem Trung tâm điều hành tổng quan KSNK.",
+  DASHBOARD: "Xem Tổng quan KSNK (nhìn nhanh KPI và khoảng trống giám sát).",
   DASHBOARD_CC_OVERVIEW: "Tab cơ cấu nguồn và tổng hợp trên Command Center.",
   DASHBOARD_CC_SUPERVISION: "Tab giám sát chuyên trách / chéo / tự giám sát.",
   DASHBOARD_CC_GAP: "Tab đối soát và phát hiện lệch dữ liệu giám sát.",
@@ -15,6 +15,7 @@ const PERMISSION_MODULE_BUSINESS_DESCRIPTIONS: Record<string, string> = {
   BANG_KIEM: "Mẫu bảng kiểm giám sát tuân thủ.",
   BANG_KIEM_DETAIL: "Tiêu chí chi tiết trong từng mẫu bảng kiểm.",
   CONG_VIEC: "Quản lý công việc KSNK — Kanban, đề xuất, nghiệm thu.",
+  DAO_TAO: "Thi thử / thi thật KSNK — ngân hàng MCQ, rút đề cân Bloom, kết quả.",
   LOAI_DC: "Danh mục loại dụng cụ phẫu thuật (master CSSD).",
   BO_DC: "Danh mục bộ dụng cụ và mã tem QR.",
   DC_LE: "Thành phần / chi tiết trong bộ dụng cụ.",

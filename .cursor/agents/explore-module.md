@@ -20,10 +20,11 @@ Readonly agent — khám phá **một** module BV103, không sửa code.
 | `command-center` | `src/modules/dashboard/views/command-center-*` |
 | `danh-muc` / `mdm` | `src/modules/quan-tri-he-thong/danh-muc/` |
 | `bang-kiem` | `src/modules/quan-tri-he-thong/bang-kiem/` |
+| `dao-tao` | `src/modules/dao-tao/`, `src/app/dao-tao/`, `src/lib/dao-tao/` |
 
 ## Quy trình
 
-1. Đọc `read-minimum.md` dòng module + rule glob `12–18` tương ứng
+1. Đọc `read-minimum.md` dòng module + rule glob `12–19` tương ứng
 2. `grep`/`semantic search` trong phạm vi module — không scan toàn repo
 3. Đối chiếu `implementation-mapping.md` cho bảng/RPC
 

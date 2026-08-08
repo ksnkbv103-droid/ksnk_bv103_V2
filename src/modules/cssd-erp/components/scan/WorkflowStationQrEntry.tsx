@@ -74,7 +74,7 @@ export default function WorkflowStationQrEntry({ waitingItems, disabled, onConfi
       <div className="space-y-1.5">
         <label
           htmlFor="cssd-waiting-qr-pick"
-          className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-slate-500"
+          className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500"
         >
           <QrCode size={12} className="text-[var(--primary)]" aria-hidden />
           Hoặc chọn bộ đang chờ ({waitingItems.length})

@@ -16,8 +16,8 @@ export async function createIncidentReport(data: Parameters<typeof createInciden
 }
 
 export async function unlockDongBangQuyTrinhByMaQr(maQR: string) {
-  const supabase = createAdminSupabaseClient();
   await verifyCssdInventoryEdit();
+  const supabase = createAdminSupabaseClient();
   const code = String(maQR || "").trim().toUpperCase();
   const hasCol = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "is_dong_bang");
   if (!hasCol) throw new Error("Phiên bản DB chưa hỗ trợ khóa an toàn.");

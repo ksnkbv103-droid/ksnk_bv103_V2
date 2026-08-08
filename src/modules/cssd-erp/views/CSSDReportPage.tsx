@@ -8,18 +8,25 @@ import dynamic from "next/dynamic";
 import { Download, Printer, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useModulePermission } from "@/hooks/useModulePermission";
-import { fetchCssdReportBundle } from "../actions/cssd-report-read.actions";
+import {
+  fetchCssdAnalyticsBundle,
+  fetchCssdReportBundle,
+  type CssdAnalyticsBundle,
+} from "../actions/cssd-report-read.actions";
+import { formatDateVi, formatDateTimeVi } from "@/lib/format-datetime-vi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { useImportExport } from "@/hooks/useImportExport";
 import ReportFilters from "../components/report/ReportFilters";
 import ReportDashboard from "../components/report/ReportDashboard";
+import ReportAnalyticsPanels from "../components/report/ReportAnalyticsPanels";
 import CSSDPageShell from "../components/layout/cssd-page-shell";
-import CssdModuleChrome from "../components/layout/CssdModuleChrome";
 import { CSSD_ROUTES } from "@/lib/cssd-routes";
 import {
   CSSD_UI_ACTION_PRIMARY,
   CSSD_UI_ACTION_SECONDARY,
   CSSD_UI_DATA_SURFACE,
+  CSSD_UI_STAT_LABEL,
+  CSSD_UI_STAT_VALUE,
   CSSD_UI_TAB_GROUP,
 } from "../shared/ui/cssd-ui-chrome";
 import { CssdHorizTabButton } from "../components/layout/CssdHorizTabButton";
@@ -32,7 +39,17 @@ const ReportCharts = dynamic(() => import("../components/report/ReportCharts"), 
 });
 
 const STATIONS = ["TIEP_NHAN", "LAM_SACH", "QC", "DONG_GOI", "TIET_KHUAN", "CAP_PHAT"] as const;
-type ReportTab = "OVERVIEW" | "INCIDENT" | "ACCOUNTABILITY";
+type ReportTab = "OVERVIEW" | "VOLUME" | "SETS" | "EQUIPMENT" | "STAFF" | "INCIDENT" | "ACCOUNTABILITY";
+
+function parseReportTab(tabParam: string | null, highlightIncidentId: string): ReportTab {
+  if (tabParam === "incident" || highlightIncidentId) return "INCIDENT";
+  if (tabParam === "accountability") return "ACCOUNTABILITY";
+  if (tabParam === "volume" || tabParam === "san-luong") return "VOLUME";
+  if (tabParam === "sets" || tabParam === "bo") return "SETS";
+  if (tabParam === "equipment" || tabParam === "may") return "EQUIPMENT";
+  if (tabParam === "staff" || tabParam === "nhan-su") return "STAFF";
+  return "OVERVIEW";
+}
 
 function CSSDReportPageInner() {
   const searchParams = useSearchParams();
@@ -52,27 +69,27 @@ function CSSDReportPageInner() {
     },
     onImport: async () => ({ success: true }),
   });
-  const initialTab: ReportTab =
-    tabParam === "incident" || highlightIncidentId
-      ? "INCIDENT"
-      : tabParam === "accountability"
-        ? "ACCOUNTABILITY"
-        : "OVERVIEW";
-  const [tab, setTab] = useState<ReportTab>(initialTab);
+  const [tab, setTab] = useState<ReportTab>(() => parseReportTab(tabParam, highlightIncidentId));
 
   useEffect(() => {
-    if (tabParam === "incident" || highlightIncidentId) setTab("INCIDENT");
-    else if (tabParam === "accountability") setTab("ACCOUNTABILITY");
-    else if (tabParam === "overview" || !tabParam) setTab("OVERVIEW");
+    setTab(parseReportTab(tabParam, highlightIncidentId));
   }, [tabParam, highlightIncidentId]);
+
   const [filters, setFilters] = useState(() => {
-    const to = new Date().toISOString().split("T")[0];
+    const toParam = String(searchParams.get("to") || searchParams.get("den_ngay") || "").trim();
+    const fromParam = String(searchParams.get("from") || searchParams.get("tu_ngay") || "").trim();
+    const stationParam = String(searchParams.get("station") || "").trim();
+    const to = toParam || new Date().toISOString().split("T")[0];
     const fromDays = highlightIncidentId ? 365 : 30;
-    const from = new Date(new Date().setDate(new Date().getDate() - fromDays)).toISOString().split("T")[0];
-    return { from, to, station: "ALL" };
+    const from =
+      fromParam ||
+      new Date(new Date().setDate(new Date().getDate() - fromDays)).toISOString().split("T")[0];
+    return { from, to, station: stationParam || "ALL" };
   });
   const [raw, setRaw] = useState<{ quyTrinh: any[]; suCo: any[] }>({ quyTrinh: [], suCo: [] });
+  const [analytics, setAnalytics] = useState<CssdAnalyticsBundle | null>(null);
   const [loading, setLoading] = useState(true);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -85,6 +102,24 @@ function CSSDReportPageInner() {
         setRaw({ quyTrinh: res.quyTrinh, suCo: res.suCo });
       }
       setLoading(false);
+    })();
+  }, [filters]);
+
+  useEffect(() => {
+    (async () => {
+      setAnalyticsLoading(true);
+      const res = await fetchCssdAnalyticsBundle({
+        from: filters.from,
+        to: filters.to,
+        station: filters.station,
+      });
+      if (!res.success) {
+        toast.error(res.error || "Không tải thống kê sản lượng CSSD");
+        setAnalytics(res.data);
+      } else {
+        setAnalytics(res.data);
+      }
+      setAnalyticsLoading(false);
     })();
   }, [filters]);
 
@@ -130,13 +165,16 @@ function CSSDReportPageInner() {
 
   if (!allowed.view) {
     return (
-      <CSSDPageShell title="Báo cáo CSSD" subtitle="Khoa KSNK — BV103">
-        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-sm font-black uppercase tracking-widest text-slate-400 shadow-sm">
+      <CSSDPageShell title="Báo cáo CSSD">
+        <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-12 text-center text-sm font-semibold text-slate-400 shadow-sm">
           Bạn không có quyền xem báo cáo tổng hợp
         </div>
       </CSSDPageShell>
     );
   }
+
+  const analyticsPanel =
+    tab === "VOLUME" || tab === "SETS" || tab === "EQUIPMENT" || tab === "STAFF" ? tab : null;
 
   return (
     <CSSDPageShell
@@ -164,10 +202,13 @@ function CSSDReportPageInner() {
         </>
       }
     >
-      <CssdModuleChrome />
       <ReportFilters filters={filters} setFilters={setFilters} stations={[...STATIONS]} />
       <div className={CSSD_UI_TAB_GROUP}>
         <CssdHorizTabButton active={tab === "OVERVIEW"} onClick={() => setTab("OVERVIEW")} label="Tổng quan" />
+        <CssdHorizTabButton active={tab === "VOLUME"} onClick={() => setTab("VOLUME")} label="Sản lượng" />
+        <CssdHorizTabButton active={tab === "SETS"} onClick={() => setTab("SETS")} label="Bộ & tái sử dụng" mobileLabel="Bộ" />
+        <CssdHorizTabButton active={tab === "EQUIPMENT"} onClick={() => setTab("EQUIPMENT")} label="Máy & bảo trì" mobileLabel="Máy" />
+        <CssdHorizTabButton active={tab === "STAFF"} onClick={() => setTab("STAFF")} label="NV CSSD" />
         <CssdHorizTabButton active={tab === "INCIDENT"} onClick={() => setTab("INCIDENT")} label="Sự cố theo nhóm" mobileLabel="Sự cố" />
         <CssdHorizTabButton active={tab === "ACCOUNTABILITY"} onClick={() => setTab("ACCOUNTABILITY")} label="Khâu lỗi & người lỗi" mobileLabel="Trách nhiệm" />
       </div>
@@ -175,7 +216,47 @@ function CSSDReportPageInner() {
       {tab === "OVERVIEW" && (
         <>
           <ReportDashboard stats={stats} alerts={alerts} />
+          {analytics?.brief ? (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className={CSSD_UI_STAT_LABEL}>Sản lượng cấp phát</p>
+                <p className={`mt-1 ${CSSD_UI_STAT_VALUE}`}>
+                  {analyticsLoading ? "…" : analytics.brief.san_luong_cap_phat.toLocaleString()}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className={CSSD_UI_STAT_LABEL}>Số bộ danh mục</p>
+                <p className={`mt-1 ${CSSD_UI_STAT_VALUE}`}>
+                  {analyticsLoading ? "…" : analytics.brief.so_bo_danh_muc.toLocaleString()}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className={CSSD_UI_STAT_LABEL}>Mẻ / QC đạt</p>
+                <p className={`mt-1 ${CSSD_UI_STAT_VALUE}`}>
+                  {analyticsLoading
+                    ? "…"
+                    : `${analytics.brief.so_me_ky}${
+                        analytics.brief.ty_le_qc_dat_me != null
+                          ? ` · ${analytics.brief.ty_le_qc_dat_me}%`
+                          : ""
+                      }`}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <p className={CSSD_UI_STAT_LABEL}>Máy sẵn sàng</p>
+                <p className={`mt-1 ${CSSD_UI_STAT_VALUE}`}>
+                  {analyticsLoading
+                    ? "…"
+                    : `${analytics.brief.may_ready}/${analytics.brief.may_ready + analytics.brief.may_repairing}`}
+                </p>
+              </div>
+            </div>
+          ) : null}
           <ReportCharts pieData={pieData} barData={barData} />
+          <p className="text-[11px] text-slate-500">
+            Biểu đồ cột trạm phía trên = <strong>tồn hiện tại</strong> (trạng thái cuối). Tab «Sản lượng» = hoàn thành
+            trong kỳ theo timestamp quét.
+          </p>
           <div className={`${CSSD_UI_DATA_SURFACE} print:hidden`}>
             <div className="flex items-center justify-between px-6 pb-2 pt-6 sm:px-8">
               <h3 className="text-[11px] font-medium text-slate-500">Nhật ký quy trình (kỳ lọc)</h3>
@@ -196,7 +277,7 @@ function CSSDReportPageInner() {
                 {
                   header: "Ngày tạo",
                   accessorKey: "created_at",
-                  cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{new Date(v.created_at).toLocaleDateString("vi-VN")}</span>,
+                  cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{formatDateVi(v.created_at)}</span>,
                 },
               ]}
               data={raw.quyTrinh}
@@ -206,6 +287,10 @@ function CSSDReportPageInner() {
           </div>
         </>
       )}
+
+      {analyticsPanel ? (
+        <ReportAnalyticsPanels data={analytics} loading={analyticsLoading} panel={analyticsPanel} />
+      ) : null}
 
       {tab === "INCIDENT" && (
         <>
@@ -227,9 +312,9 @@ function CSSDReportPageInner() {
           ) : null}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {incidentGroupStats.map((x) => (
-              <div key={x.group} className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div key={x.group} className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{x.label}</p>
-                <p className="mt-2 text-2xl font-black text-slate-800">{x.count}</p>
+                <p className={`mt-2 ${CSSD_UI_STAT_VALUE}`}>{x.count}</p>
               </div>
             ))}
           </div>
@@ -281,7 +366,7 @@ function CSSDReportPageInner() {
               { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{String(v.tram_phat_hien || "Không áp dụng").replace(/_/g, " ")}</span> },
               { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{String(v.tram_gay_loi || "Không áp dụng").replace(/_/g, " ")}</span> },
               { header: "Người thao tác", accessorKey: "fault_operator", cell: (v: any) => <span className="font-medium text-slate-700">{v.fault_operator || "Chưa ghi nhận"}</span> },
-              { header: "Thời gian", accessorKey: "created_at", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{new Date(v.created_at).toLocaleString("vi-VN")}</span> },
+              { header: "Thời gian", accessorKey: "created_at", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{formatDateTimeVi(v.created_at)}</span> },
             ]}
             data={processAccountabilityRows}
             loading={loading}

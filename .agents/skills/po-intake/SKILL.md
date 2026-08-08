@@ -13,7 +13,7 @@ Nhận lệnh theo **module / tính năng / domain** → xuất intake chuẩn B
 
 1. Đọc mô tả user — không yêu cầu tên file, migration, RPC.
 2. Map module (bảng từ khóa trong `/intake-nv`).
-3. Đọc `read-minimum.md` dòng module + rule glob `12–18` tương ứng.
+3. Đọc `read-minimum.md` dòng module + rule glob `12–19` tương ứng.
 4. Nếu CSSD vs MDM vs Giám sát mơ hồ → **hỏi 1 câu**, không đoán.
 5. Sinh intake đủ 7 mục kỹ thuật (goal, in/out scope, acceptance, verify, risk).
 6. Nếu user chưa có 3 case kiểm tay → **đề xuất** case cụ thể trên UI.

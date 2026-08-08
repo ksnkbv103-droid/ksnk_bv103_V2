@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { AnalyticsFilterBar } from "@/components/shared/AnalyticsFilterBar";
 import { Bv103AnalyticsPageFrame, Bv103AnalyticsPageSkeleton } from "@/components/shared/Bv103AnalyticsPageFrame";
@@ -13,10 +13,16 @@ import {
 import { CommandCenterQuickActions } from "@/modules/dashboard/components/command-center/CommandCenterQuickActions";
 import { CommandCenterQlcvSection } from "@/modules/dashboard/components/command-center/CommandCenterQlcvSection";
 import { CommandCenterCrossModuleBrief } from "@/modules/dashboard/components/command-center/CommandCenterCrossModuleBrief";
+import { CommandCenterFourPillarsBrief } from "@/modules/dashboard/components/command-center/CommandCenterFourPillarsBrief";
+import { CommandCenterDecisionQueue } from "@/modules/dashboard/components/command-center/CommandCenterDecisionQueue";
+import { CommandCenterOpenInterventions } from "@/modules/dashboard/components/command-center/CommandCenterOpenInterventions";
 import { AnalyticsKhoaScopeBanner } from "@/modules/dashboard/components/AnalyticsKhoaScopeBanner";
+import { computeTyLeGsc, computeTyLeVst } from "@/lib/analytics/supervision-metrics";
 
 export function CommandCenterDashboardPage() {
   const d = useCommandCenterBriefData();
+  const tyLeVst = useMemo(() => computeTyLeVst(d.vstPayload?.kpis), [d.vstPayload]);
+  const tyLeGsc = useMemo(() => computeTyLeGsc(d.gscPayload?.kpis), [d.gscPayload]);
 
   if (d.loading && !d.initDone) {
     return <Bv103AnalyticsPageSkeleton />;
@@ -52,7 +58,7 @@ export function CommandCenterDashboardPage() {
 
   return (
     <Bv103AnalyticsPageFrame
-      title="Trung tâm điều hành"
+      title="Tổng quan KSNK"
       actions={
         <button
           type="button"
@@ -75,7 +81,7 @@ export function CommandCenterDashboardPage() {
         </div>
       ) : null}
 
-      <div className={`space-y-8 transition-opacity ${d.loading ? "pointer-events-none opacity-50" : ""}`}>
+      <div className={`space-y-3 sm:space-y-4 transition-opacity ${d.loading ? "pointer-events-none opacity-50" : ""}`}>
         {d.khoaFilterLocked && d.lockedKhoaLabel ? <AnalyticsKhoaScopeBanner khoaLabel={d.lockedKhoaLabel} /> : null}
         <CommandCenterQuickActions
           tuNgay={d.tuNgay}
@@ -89,6 +95,34 @@ export function CommandCenterDashboardPage() {
           denNgay={d.denNgay}
           selectedKhoaIds={d.selectedKhoaIds}
           loading={d.loading}
+        />
+
+        <CommandCenterFourPillarsBrief
+          tuNgay={d.tuNgay}
+          denNgay={d.denNgay}
+          selectedKhoaIds={d.selectedKhoaIds}
+          tyLeVst={tyLeVst}
+          tyLeGsc={tyLeGsc}
+          loading={d.loading}
+        />
+
+        <CommandCenterDecisionQueue
+          tuNgay={d.tuNgay}
+          denNgay={d.denNgay}
+          selectedKhoaIds={d.selectedKhoaIds}
+          vstPayload={d.vstPayload}
+          gscPayload={d.gscPayload}
+          qlcvBrief={d.qlcvBrief}
+          loading={d.loading}
+        />
+
+        <CommandCenterOpenInterventions
+          loading={d.loading}
+          tuNgay={d.tuNgay}
+          denNgay={d.denNgay}
+          selectedKhoaIds={d.selectedKhoaIds}
+          vstPayload={d.vstPayload}
+          gscPayload={d.gscPayload}
         />
 
         <CommandCenterCrossModuleBrief
@@ -107,6 +141,8 @@ export function CommandCenterDashboardPage() {
             rows={d.ksnkStaffStats}
             loading={d.staffLoading}
             onExpand={() => void d.loadKsnkStaff()}
+            tuNgay={d.tuNgay}
+            denNgay={d.denNgay}
           />
         ) : null}
       </div>

@@ -31,17 +31,19 @@ export type KsnkHeaderBreadcrumb = {
 /** Context bar — zone + trang hiện tại. */
 export function getKsnkAppHeaderBreadcrumb(pathname: string | null): KsnkHeaderBreadcrumb {
   const p = normalizePath(pathname);
-  if (p === "/" || p === "") return { zone: "Điều hành", page: "Trung tâm điều hành" };
+  if (p === "/" || p === "") return { zone: "Điều hành", page: "Tổng quan KSNK" };
   if (p === "/bao-cao-tong-hop" || p.startsWith("/bao-cao-tong-hop/")) {
-    return { zone: "Điều hành", page: "Báo cáo tổng hợp" };
+    return { zone: "Điều hành", page: "Báo cáo chính thức" };
   }
   if (p.startsWith("/giam-sat-vst")) return { zone: "Giám sát", page: "Vệ sinh tay" };
   if (p.startsWith("/giam-sat-chung")) return { zone: "Giám sát", page: "Giám sát tuân thủ" };
   if (p.startsWith("/giam-sat-nkbv")) return { zone: "Giám sát", page: "NKBV" };
-  if (p === "/giam-sat") return { zone: "Giám sát", page: "Trung tâm giám sát" };
+  if (p === "/giam-sat") return { zone: "Giám sát", page: "Cổng giám sát" };
+  if (p === "/qr" || p.startsWith("/qr/")) return { zone: "Giám sát", page: "Quét QR truy vết" };
   if (p.startsWith("/lich-su")) return { zone: "Tra cứu", page: "Lịch sử giám sát" };
   if (p.startsWith("/thong-ke")) return { zone: "Tra cứu", page: "Thống kê giám sát" };
   if (p.startsWith("/quan-ly-cong-viec")) return { zone: "Vận hành", page: "Công việc" };
+  if (p.startsWith("/dao-tao")) return { zone: "Vận hành", page: "Đào tạo" };
   if (CSSD_APP_SHELL_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`))) {
     return { zone: "CSSD", page: "Quản lý CSSD" };
   }

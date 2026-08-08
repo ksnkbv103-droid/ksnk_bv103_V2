@@ -16,6 +16,7 @@ import {
   PlusCircle,
 } from "lucide-react";
 import QrCameraButton from "@/components/shared/QrCameraButton";
+import SearchableSelect from "@/components/shared/SearchableSelect";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import {
   INCIDENT_GROUP_LABEL,
@@ -25,7 +26,10 @@ import {
 } from "../domain/cssd-incident-taxonomy";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import IncidentPrintView from "./IncidentPrintView";
+
+export type BoCatalogOption = { id: string; ten_bo: string; ma_bo: string };
 
 const GROUP_ICONS: Record<IncidentGroup, React.ComponentType<{ className?: string; size?: number }>> = {
   PROCESS: Layers,
@@ -33,14 +37,6 @@ const GROUP_ICONS: Record<IncidentGroup, React.ComponentType<{ className?: strin
   CHEMICAL: FlaskConical,
   EQUIPMENT: Cpu,
   OTHER: AlertTriangle,
-};
-
-const GROUP_SUBTITLES: Record<IncidentGroup, string> = {
-  PROCESS: "Sai thao tác, QC khâu, chất lượng tiệt khuẩn…",
-  INSTRUMENT: "Hỏng, mất, bổ sung, điều chuyển dụng cụ",
-  CHEMICAL: "Sự cố chất lượng hóa chất / vật tư",
-  EQUIPMENT: "Máy hỏng, thông số bất thường…",
-  OTHER: "Tình huống đặc thù — form tối giản",
 };
 
 export function QrField({
@@ -67,8 +63,8 @@ export function QrField({
           onChange={(e) => onChange(e.target.value.toUpperCase())}
           onKeyDown={onKeyDown}
           disabled={loading}
-          className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 pl-4 pr-4 text-lg font-black uppercase tracking-widest text-red-600 outline-none transition-all focus:border-[var(--primary)] focus:bg-white focus:ring-2 focus:ring-[var(--primary)]/10 disabled:opacity-60"
-          placeholder="QUÉT QR..."
+          className={`${bv103LayoutChrome.controlInput} bg-slate-50 pr-10 font-mono uppercase tracking-wider text-[var(--primary)] disabled:opacity-60`}
+          placeholder="Quét QR…"
         />
         <QrCameraButton
           disabled={loading}
@@ -76,12 +72,71 @@ export function QrField({
             onChange(code);
             onScanComplete?.(code);
           }}
-          className="h-14 w-14 shrink-0 px-0"
+          className="bv103-control-h w-10 shrink-0 px-0"
           label=""
         />
-        <div className="pointer-events-none absolute right-16 top-4 text-slate-300 sm:right-20">
-          {loading ? <Loader2 className="animate-spin" size={20} /> : <QrCode size={20} className={value ? "text-[var(--primary)]" : ""} />}
+        <div className="pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 text-slate-300">
+          {loading ? <Loader2 className="animate-spin" size={16} /> : <QrCode size={16} className={value ? "text-[var(--primary)]" : ""} />}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** QR bộ + dropdown danh mục bộ active (PROCESS / INSTRUMENT). */
+export function BoSourceFields({
+  maQR,
+  setMaQR,
+  boOptions,
+  boLoading,
+  onKeyDown,
+  onScanComplete,
+  onSelectBo,
+  loading,
+}: {
+  maQR: string;
+  setMaQR: (v: string) => void;
+  boOptions: BoCatalogOption[];
+  boLoading?: boolean;
+  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onScanComplete?: (code: string) => void;
+  onSelectBo: (maBo: string) => void;
+  loading?: boolean;
+}) {
+  const selectOptions = boOptions.map((b) => ({
+    id: b.ma_bo.toUpperCase(),
+    label: `${b.ma_bo} — ${b.ten_bo}`,
+    keywords: [b.ten_bo, b.ma_bo],
+  }));
+  const selected = maQR.trim().toUpperCase();
+  return (
+    <div className="space-y-3">
+      <QrField
+        label="Quét mã QR bộ dụng cụ *"
+        value={maQR}
+        onChange={setMaQR}
+        onKeyDown={onKeyDown}
+        onScanComplete={onScanComplete}
+        loading={loading || boLoading}
+      />
+      <div className="space-y-1.5">
+        <label className={bv103LayoutChrome.labelBlock}>
+          Hoặc chọn bộ từ danh mục
+          {boLoading ? <Loader2 className="ml-1 inline animate-spin" size={12} /> : null}
+        </label>
+        <SearchableSelect
+          value={selectOptions.some((o) => o.id === selected) ? selected : ""}
+          onChange={(v) => {
+            const code = String(v || "").trim().toUpperCase();
+            if (!code) return;
+            setMaQR(code);
+            onSelectBo(code);
+          }}
+          options={selectOptions}
+          placeholder="— Chọn bộ dụng cụ đang có —"
+          searchPlaceholder="Tìm mã / tên bộ…"
+          disabled={!!loading || !!boLoading}
+        />
       </div>
     </div>
   );
@@ -106,13 +161,13 @@ export function TypePicker({
             const sel = options.find((c) => c.code === e.target.value);
             onChange(e.target.value, sel?.label || "");
           }}
-          className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-700 outline-none focus:border-[var(--primary)] focus:bg-white sm:text-base"
+          className={`${bv103LayoutChrome.controlSelectNative} appearance-none bg-slate-50 pr-9`}
         >
           {options.map((c) => (
             <option key={c.code} value={c.code}>{c.label}</option>
           ))}
         </select>
-        <ChevronDown className="pointer-events-none absolute right-4 top-3.5 text-slate-400" size={16} />
+        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
       </div>
     </div>
   );
@@ -129,10 +184,10 @@ export function IncidentGroupPicker({
 }) {
   return (
     <div
-      className={`space-y-3 rounded-2xl border border-slate-200 bg-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] ${compact ? "p-4" : "p-5"}`}
+      className={`space-y-2 rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-sm ${compact ? "p-3" : "p-3.5"}`}
     >
-      <h4 className={bv103LayoutChrome.labelBlockAccent}>Bước 1: Chọn nhóm sự cố</h4>
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-5">
+      <h4 className={bv103LayoutChrome.labelBlockAccent}>Nhóm sự cố</h4>
+      <div className="flex flex-wrap gap-1.5">
         {INCIDENT_GROUPS.map((g) => {
           const IconComp = GROUP_ICONS[g];
           const isSelected = incidentGroup === g;
@@ -141,19 +196,14 @@ export function IncidentGroupPicker({
               key={g}
               type="button"
               onClick={() => onSelect(g)}
-              className={`group relative flex min-h-[5.5rem] touch-manipulation flex-col items-start rounded-xl border p-3 text-left transition-all sm:min-h-[6.5rem] sm:p-4 ${
+              className={`inline-flex h-9 touch-manipulation items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 text-[11px] font-semibold transition-colors sm:px-3 ${
                 isSelected
-                  ? "border-[var(--primary)] bg-emerald-50/50 shadow-sm ring-2 ring-emerald-500/10"
-                  : "border-slate-200 bg-slate-50 hover:bg-slate-100/70 active:scale-[0.98]"
+                  ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]"
+                  : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 disabled:opacity-50"
               }`}
             >
-              <div className={`mb-2 flex h-10 w-10 items-center justify-center rounded-lg sm:mb-3 sm:h-9 sm:w-9 ${isSelected ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "bg-white text-slate-400"}`}>
-                <IconComp size={20} />
-              </div>
-              <span className={`text-xs font-semibold uppercase leading-tight tracking-wide sm:text-[11px] ${isSelected ? "text-[var(--primary)]" : "text-slate-700"}`}>
-                {INCIDENT_GROUP_LABEL[g].split(" (")[0]}
-              </span>
-              <span className="mt-1 hidden text-[11px] font-medium leading-relaxed text-slate-400 sm:block">{GROUP_SUBTITLES[g]}</span>
+              <IconComp size={14} className="shrink-0 opacity-80" />
+              <span className="whitespace-nowrap">{INCIDENT_GROUP_LABEL[g].split(" (")[0]}</span>
             </button>
           );
         })}
@@ -175,7 +225,7 @@ export function StationOverrideSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as Station)}
-        className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-800 outline-none focus:border-[var(--primary)]"
+        className={bv103LayoutChrome.controlSelectNative}
       >
         {INCIDENT_STATION_OPTIONS.map((s) => (
           <option key={s.value} value={s.value}>
@@ -197,27 +247,19 @@ export function SubmittedSuccessView({
   onReset: () => void;
 }) {
   return (
-    <div className="mx-auto my-4 max-w-2xl animate-in space-y-6 rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] fade-in duration-300 sm:my-6 sm:p-8">
-      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 ring-8 ring-emerald-500/10">
-        <CheckCircle2 size={36} />
+    <div className="mx-auto my-4 max-w-2xl animate-in space-y-4 rounded-[var(--radius-shell)] border border-slate-200 bg-white p-5 text-center shadow-sm fade-in duration-300 sm:my-6 sm:p-6">
+      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+        <CheckCircle2 size={28} />
       </div>
       <h3 className={UI.modalTitle}>Ghi nhận sự cố thành công!</h3>
-      <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-slate-500">
+      <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-slate-500">
         Biên bản đã lưu. Hộp thoại in sẽ mở tự động.
       </p>
-      <div className="mt-6 flex flex-col items-center justify-center gap-4 sm:flex-row">
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-xs font-semibold uppercase tracking-wide text-white shadow-md transition-all hover:bg-blue-700 active:scale-[0.98] sm:w-auto"
-        >
+      <div className="mt-4 flex flex-col items-center justify-center gap-2 sm:flex-row">
+        <button type="button" onClick={() => window.print()} className={`${T.btnPrimary} w-full justify-center sm:w-auto`}>
           <Printer size={16} /> In biên bản
         </button>
-        <button
-          type="button"
-          onClick={onReset}
-          className="flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-6 text-xs font-semibold uppercase tracking-wide text-slate-700 transition-all hover:bg-slate-100 active:scale-[0.98] sm:w-auto"
-        >
+        <button type="button" onClick={onReset} className={`${T.btnSecondary} w-full justify-center sm:w-auto`}>
           <PlusCircle size={16} /> Báo cáo mới
         </button>
       </div>
@@ -232,6 +274,9 @@ export function ChemicalContextFields({
   maLo,
   setMaLo,
   chemicals,
+  typeOptions,
+  typeId,
+  onTypeChange,
   renderStationOverride,
 }: {
   machineId: string;
@@ -239,16 +284,20 @@ export function ChemicalContextFields({
   maLo: string;
   setMaLo: (v: string) => void;
   chemicals: { id: string; ten: string; ma: string }[];
+  typeOptions: Array<{ code: string; label: string }>;
+  typeId: string;
+  onTypeChange: (id: string, ten: string) => void;
   renderStationOverride: React.ReactNode;
 }) {
   return (
     <div className={UI.sectionGap}>
+      <TypePicker options={typeOptions} typeId={typeId} onChange={onTypeChange} />
       <div className="space-y-1.5">
         <label className={bv103LayoutChrome.labelBlock}>Hóa chất / vật tư *</label>
         <select
           value={machineId}
           onChange={(e) => setMachineId(e.target.value)}
-          className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none focus:border-[var(--primary)]"
+          className={`${bv103LayoutChrome.controlSelectNative} bg-slate-50`}
           required
         >
           <option value="">— Chọn từ danh mục —</option>
@@ -262,7 +311,7 @@ export function ChemicalContextFields({
         <input
           value={maLo}
           onChange={(e) => setMaLo(e.target.value.toUpperCase())}
-          className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-semibold text-slate-700 outline-none focus:border-[var(--primary)]"
+          className={`${bv103LayoutChrome.controlInput} bg-slate-50 uppercase`}
           placeholder="Nhập mã lô nếu có..."
         />
       </div>
@@ -313,7 +362,7 @@ export function EquipmentContextFields({
         <select
           value={machineId}
           onChange={(e) => setMachineId(e.target.value)}
-          className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 font-bold text-slate-700 outline-none focus:border-[var(--primary)]"
+          className={`${bv103LayoutChrome.controlSelectNative} bg-slate-50`}
         >
           <option value="">— Chọn máy —</option>
           {machines.map((m) => (
@@ -343,7 +392,7 @@ export function OtherContextFields({
         <select
           value={viTriPhatHien}
           onChange={(e) => setViTriPhatHien(e.target.value)}
-          className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 font-semibold text-slate-700 outline-none focus:border-[var(--primary)]"
+          className={`${bv103LayoutChrome.controlSelectNative} bg-slate-50`}
         >
           <option value="">— Chọn vị trí —</option>
           {INCIDENT_STATION_OPTIONS.map((s) => (

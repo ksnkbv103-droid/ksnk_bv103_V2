@@ -1,9 +1,23 @@
 "use client";
 
-import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
-import React from "react";
+import React, { useMemo } from "react";
 import QrCameraButton from "@/components/shared/QrCameraButton";
+import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
+import {
+  depthFromSsiEventType,
+  formatNhsnOptionLabel,
+  getNhsnProcedure,
+  NKBV_NHSN_PROCEDURES,
+  NKBV_NHSN_SSI_EVENT_TYPES,
+  organSpaceSitesForProcedure,
+  resolveSsiSurveillanceDays,
+  secondaryIncisionMismatchWarning,
+} from "../../lib/nkbv-ssi-nhsn-catalog";
+import { formSymptomRowsFor } from "../../lib/nkbv-clinical-symptom-catalog";
 import type { SsiVerificationData } from "../../types/nkbv-verification";
+import NkbvDomainFormShell from "../NkbvDomainFormShell";
+import NkbvFormSection from "../NkbvFormSection";
+import NkbvCatalogSymptomRows from "./NkbvCatalogSymptomRows";
 
 interface SsiClinicalSubFormProps {
   form: SsiVerificationData;
@@ -15,7 +29,21 @@ interface SsiClinicalSubFormProps {
   ngayPhatHien?: string;
   iwpStart?: string;
   iwpEnd?: string;
-  activeTab?: 'VI_SINH' | 'LAM_SANG' | 'KSNK';
+  activeTab?: "LAM_SANG" | "KSNK" | "VI_SINH";
+  classificationBadge?: string | null;
+  embedded?: boolean;
+}
+
+function syncDays(form: SsiVerificationData, patch: Partial<SsiVerificationData>): SsiVerificationData {
+  const next = { ...form, ...patch };
+  if (next.surgery_date && next.doe_date) {
+    const a = Date.parse(next.surgery_date.slice(0, 10));
+    const b = Date.parse(next.doe_date.slice(0, 10));
+    if (Number.isFinite(a) && Number.isFinite(b) && b >= a) {
+      next.days_since_surgery = Math.round((b - a) / 86400000);
+    }
+  }
+  return next;
 }
 
 export default function SsiClinicalSubForm({
@@ -24,17 +52,63 @@ export default function SsiClinicalSubForm({
   symptomDates,
   onSymptomDateChange,
   allowedEdit,
-  iwpStart,
-  iwpEnd,
-  activeTab = 'VI_SINH',
+  activeTab = "LAM_SANG",
+  classificationBadge,
+  embedded = false,
 }: SsiClinicalSubFormProps) {
-  const limitDays = form.has_implant ? 90 : 30;
+  const eventDepth = depthFromSsiEventType(form.ssi_event_type);
+  const depth = eventDepth || form.ssi_depth;
+  const limitDays = resolveSsiSurveillanceDays({
+    depth,
+    procedureCode: form.loai_phau_thuat_nhsn,
+    hasImplantFallback: form.has_implant,
+    eventTypeCode: form.ssi_event_type,
+  });
   const isTimeframeExpired = form.days_since_surgery > limitDays;
+  const showMicro = activeTab === "LAM_SANG" || activeTab === "VI_SINH";
+  const showClinical = activeTab === "LAM_SANG";
+  const siteOptions = useMemo(
+    () => organSpaceSitesForProcedure(form.loai_phau_thuat_nhsn),
+    [form.loai_phau_thuat_nhsn],
+  );
+  const proc = getNhsnProcedure(form.loai_phau_thuat_nhsn);
+  const secondaryWarn = secondaryIncisionMismatchWarning(
+    form.ssi_event_type,
+    form.loai_phau_thuat_nhsn,
+  );
+  const survStart = form.surgery_date || undefined;
+  const survEnd = form.surgery_date
+    ? (() => {
+        const d = new Date(`${form.surgery_date}T12:00:00`);
+        d.setDate(d.getDate() + limitDays);
+        return d.toISOString().slice(0, 10);
+      })()
+    : undefined;
+
+  const applyEventType = (code: string) => {
+    const d = depthFromSsiEventType(code);
+    onChange({
+      ...form,
+      ssi_event_type: code || undefined,
+      ssi_depth: d || form.ssi_depth,
+      organ_space_site: d === "ORGAN_SPACE" ? form.organ_space_site : undefined,
+    });
+  };
 
   return (
-    <div className={C.sectionGap}>
-      <div className="rounded-[var(--radius-shell)] border border-emerald-100 bg-emerald-50/60 p-4 space-y-2">
-        <label className={`${C.formLabel} text-emerald-800`}>Mã QR bộ dụng cụ CSSD (truy vết SSI)</label>
+    <NkbvDomainFormShell
+      title="Phiếu SSI (nhiễm khuẩn vết mổ)"
+      subtypeLabel="Nhiễm khuẩn vết mổ"
+      indexFactorHint="SP nông luôn 30 ngày; Deep/Organ theo mã phẫu thuật NHSN (30 hoặc 90) — không dùng IWP ±3."
+      windowLabel="Cửa sổ theo dõi sau mổ"
+      windowStart={survStart}
+      windowEnd={survEnd}
+      windowExtra={`${limitDays} ngày · ${form.days_since_surgery} ngày sau mổ${proc ? ` · ${proc.code}` : ""}`}
+      classificationBadge={classificationBadge}
+      embedded={embedded}
+    >
+      <div className="space-y-2 rounded-[var(--radius-shell)] border border-emerald-100 bg-emerald-50/60 p-4">
+        <label className={`${C.formLabel} text-emerald-800`}>Mã QR bộ dụng cụ CSSD</label>
         <div className="flex items-center gap-2">
           <input
             type="text"
@@ -50,275 +124,234 @@ export default function SsiClinicalSubForm({
             title="Quét QR bộ CSSD"
           />
         </div>
-        <p className="text-[11px] text-emerald-900/80 font-medium leading-relaxed">
-          Bắt buộc để truy vết SSI ↔ mẻ tiệt khuẩn. Sau khi lưu checklist, panel RCA phía trên hiện mẻ QC và sự cố
-          CSSD liên quan (một click mở nhật ký sự cố).
-        </p>
-        {!form.ma_qr_cssd_lien_quan?.trim() ? (
-          <p className="text-[11px] font-semibold text-amber-800">
-            Chưa có QR — quét tem chu trình trên bộ dụng cụ đã dùng trong ca mổ.
-          </p>
-        ) : null}
       </div>
 
-      {/* Microbiology Tab */}
-      {activeTab === 'VI_SINH' && (
-        <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3 animate-in fade-in">
-          <span className={` text-slate-500`}>🧫 Kết quả vi sinh vết mổ</span>
-          
-          <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer font-semibold py-1">
+      {showClinical && (
+        <NkbvFormSection title="Phẫu thuật & PATOS" hint="Mã PT NHSN quyết định SP Deep/Organ; ngày mổ + DOE tự tính.">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="mb-1 block text-xs font-bold">Mã phẫu thuật NHSN</label>
+              <select
+                value={form.loai_phau_thuat_nhsn || ""}
+                disabled={!allowedEdit}
+                onChange={(e) => {
+                  const code = e.target.value;
+                  const nextSite =
+                    form.organ_space_site &&
+                    organSpaceSitesForProcedure(code).some((s) => s.code === form.organ_space_site)
+                      ? form.organ_space_site
+                      : undefined;
+                  onChange({
+                    ...form,
+                    loai_phau_thuat_nhsn: code,
+                    organ_space_site: nextSite,
+                  });
+                }}
+                className={C.controlInput}
+              >
+                <option value="">— Chọn mã phẫu thuật —</option>
+                {NKBV_NHSN_PROCEDURES.map((p) => (
+                  <option key={p.code} value={p.code} title={p.name_en}>
+                    {formatNhsnOptionLabel(p)}
+                    {p.deep_organ_surveillance_days === 90 ? " · SP90" : " · SP30"}
+                  </option>
+                ))}
+              </select>
+              {proc ? (
+                <p className="mt-1 text-[10px] text-slate-500">{proc.name_en}</p>
+              ) : null}
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-bold">Ngày phẫu thuật</label>
+              <input
+                type="date"
+                value={form.surgery_date || ""}
+                disabled={!allowedEdit}
+                onChange={(e) => onChange(syncDays(form, { surgery_date: e.target.value || undefined }))}
+                className={C.controlInput}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-bold">DOE (ngày sự kiện)</label>
+              <input
+                type="date"
+                value={form.doe_date || ""}
+                disabled={!allowedEdit}
+                onChange={(e) => onChange(syncDays(form, { doe_date: e.target.value || undefined }))}
+                className={C.controlInput}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-bold">Số ngày sau mổ</label>
+              <input
+                type="number"
+                value={form.days_since_surgery}
+                disabled={!allowedEdit}
+                onChange={(e) =>
+                  onChange({ ...form, days_since_surgery: parseInt(e.target.value) || 0 })
+                }
+                className={C.controlInput}
+              />
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.has_implant}
+              disabled={!allowedEdit}
+              onChange={(e) => onChange({ ...form, has_implant: e.target.checked })}
+            />
+            Có implant (thuộc tính ca — không quyết định SP khi đã có mã PT)
+          </label>
+          <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!form.is_patos}
+              disabled={!allowedEdit}
+              onChange={(e) => onChange({ ...form, is_patos: e.target.checked })}
+            />
+            PATOS — nhiễm đã có tại thời điểm mổ
+          </label>
+          <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!form.return_to_or_within_24h}
+              disabled={!allowedEdit}
+              onChange={(e) => onChange({ ...form, return_to_or_within_24h: e.target.checked })}
+            />
+            Quay lại phòng mổ trong 24 giờ
+          </label>
+          {isTimeframeExpired ? (
+            <p className="rounded-xl border border-red-100 bg-red-50 p-2 text-[11px] text-red-800">
+              Vượt surveillance {limitDays} ngày.
+            </p>
+          ) : null}
+        </NkbvFormSection>
+      )}
+
+      {showMicro && (
+        <NkbvFormSection title="Vi sinh & Secondary BSI" hint="SBAP quanh ngày sự kiện SSI.">
+          <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
             <input
               type="checkbox"
               checked={form.superficial_culture_positive}
               disabled={!allowedEdit}
               onChange={(e) => onChange({ ...form, superficial_culture_positive: e.target.checked })}
-              className="rounded border-slate-300 text-[var(--primary)]"
             />
-            Cấy dịch/mô lấy vô khuẩn từ vết mổ nông dương tính
+            Cấy nông (+)
           </label>
-          <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer font-semibold py-1">
+          <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
             <input
               type="checkbox"
               checked={form.organ_space_culture_positive}
               disabled={!allowedEdit}
               onChange={(e) => onChange({ ...form, organ_space_culture_positive: e.target.checked })}
-              className="rounded border-slate-300 text-[var(--primary)]"
             />
-            Cấy dịch/mô lấy vô khuẩn từ organ/space dương tính
+            Cấy organ/space (+)
           </label>
-          
-          <div className="border-t border-slate-100 pt-3 space-y-3">
-            <span className={` text-slate-500`}>🔄 Biến chứng cấy máu kèm theo (Secondary BSI)</span>
-            <label className="flex items-center gap-2.5 text-xs text-slate-700 cursor-pointer font-bold py-1">
-              <input
-                type="checkbox"
-                checked={form.has_blood_culture_positive}
-                disabled={!allowedEdit || isTimeframeExpired}
-                onChange={(e) => onChange({ ...form, has_blood_culture_positive: e.target.checked })}
-                className="rounded border-slate-300 text-[var(--primary)]"
-              />
-              Có cấy máu dương tính
-            </label>
-            {form.has_blood_culture_positive && (
-              <div className="flex flex-col gap-2 pl-6 animate-in slide-in-from-top-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-slate-400 font-bold">Ngày cấy máu:</span>
-                  <input
-                    type="date"
-                    value={symptomDates.has_blood_culture_positive || ""}
-                    disabled={!allowedEdit}
-                    min={iwpStart}
-                    max={iwpEnd}
-                    onChange={(e) => onSymptomDateChange("has_blood_culture_positive", e.target.value)}
-                    className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
-                    required
-                  />
-                </div>
-                <label className="flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer font-semibold">
-                  <input
-                    type="checkbox"
-                    checked={form.blood_ssi_pathogen_matches}
-                    disabled={!allowedEdit}
-                    onChange={(e) => onChange({ ...form, blood_ssi_pathogen_matches: e.target.checked })}
-                    className="rounded border-slate-300 text-[var(--primary)]"
-                  />
-                  Trùng tác nhân cấy vết mổ
-                </label>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Clinical Tab */}
-      {activeTab === 'LAM_SANG' && (
-        <div className="space-y-4 animate-in fade-in">
-          {/* Surgical Details Group */}
-          <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3">
-            <span className={` text-slate-500`}>✂️ Thông tin phẫu thuật (Mã: BM.LS.SSI.01)</span>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Loại phẫu thuật NHSN</label>
-                <input
-                  value={form.loai_phau_thuat_nhsn}
-                  disabled={!allowedEdit}
-                  onChange={(e) => onChange({ ...form, loai_phau_thuat_nhsn: e.target.value })}
-                  className={C.controlInput}
-                  placeholder="VD: COLO, HPRO..."
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">Số ngày sau mổ (Days to Event)</label>
-                <input
-                  type="number"
-                  value={form.days_since_surgery}
-                  disabled={!allowedEdit}
-                  onChange={(e) => onChange({ ...form, days_since_surgery: parseInt(e.target.value) || 0 })}
-                  className={`w-full rounded-xl bg-white px-3 py-2 text-xs font-semibold focus:ring-1 focus:ring-[var(--primary)] ${
-                    isTimeframeExpired ? "border-red-300 focus:border-red-500" : "border-slate-200 focus:border-[var(--primary)]"
-                  }`}
-                />
-              </div>
-            </div>
-
-            <label className="flex items-center gap-2.5 text-xs text-slate-700 cursor-pointer font-bold py-1">
-              <input
-                type="checkbox"
-                checked={form.has_implant}
-                disabled={!allowedEdit}
-                onChange={(e) => onChange({ ...form, has_implant: e.target.checked })}
-                className="rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
-              />
-              Phẫu thuật có đặt vật liệu nhân tạo (Implant) cấy ghép?
-            </label>
-
-            {isTimeframeExpired && (
-              <div className="bg-red-50 text-red-800 rounded-xl p-2.5 text-[11px] font-medium border border-red-100 animate-in slide-in-from-top-2">
-                ⚠️ Đã vượt quá thời hiệu giám sát tối đa ({limitDays} ngày đối với phẫu thuật {form.has_implant ? "có implant" : "không implant"}). Hệ thống sẽ tự động loại bỏ ca này khỏi thống kê SSI.
-              </div>
-            )}
-          </div>
-
-          {/* Depth selection & symptoms checklist */}
-          <div className="bg-slate-50/75 rounded-[var(--radius-shell)] p-4 border border-slate-100 space-y-3">
-            <span className={` text-slate-500`}>
-              🏥 Đánh giá triệu chứng lâm sàng vết mổ
-            </span>
-            
-            <select
-              value={form.ssi_depth}
+          <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.has_blood_culture_positive}
               disabled={!allowedEdit || isTimeframeExpired}
-              onChange={(e) => onChange({ ...form, ssi_depth: e.target.value as any })}
-              className={`${C.controlInput} mb-2`}
-            >
-              <option value="NONE">Chưa xác định độ sâu</option>
-              <option value="SUPERFICIAL">Nông (Vết rạch nông - da/dưới da)</option>
-              <option value="DEEP">Sâu (Vết mổ sâu - cân/cơ)</option>
-              <option value="ORGAN_SPACE">Khoang/Cơ quan (Vùng cơ quan thao tác phẫu thuật)</option>
-            </select>
-
-            {/* Dynamic checklist elements based on depth */}
-            {form.ssi_depth === "SUPERFICIAL" && (
-              <div className="bg-white rounded-xl p-3 border border-slate-100 space-y-2.5 animate-in fade-in duration-200">
-                <span className="text-[11px] font-medium text-slate-400 block border-b border-slate-100 pb-1">Tiêu chí vết mổ Nông</span>
-                {[
-                  { key: "superficial_purulent_drainage", label: "Có chảy mủ từ vết rạch nông" },
-                  { key: "superficial_culture_positive", label: "Cấy dịch/mô lấy vô khuẩn từ vết mổ nông dương tính" },
-                  { key: "superficial_opened_with_inflammation", label: "PT viên mở vết nông + BN bị sưng/nóng/đỏ/đau" },
-                  { key: "superficial_physician_diagnosis", label: "Bác sĩ trực tiếp chẩn đoán là SSI nông" }
-                ].map(({ key, label }) => (
-                  <div key={key} className="flex flex-col gap-1.5">
-                    <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer font-semibold">
-                      <input
-                        type="checkbox"
-                        checked={(form as any)[key] || false}
-                        disabled={!allowedEdit}
-                        onChange={(e) => onChange({ ...form, [key]: e.target.checked })}
-                        className="rounded border-slate-300 text-[var(--primary)]"
-                      />
-                      {label}
-                    </label>
-                    {(form as any)[key] && (
-                      <div className="pl-6 flex items-center gap-2 animate-in slide-in-from-top-1">
-                        <span className="text-[11px] text-slate-400 font-bold">Ngày:</span>
-                        <input
-                          type="date"
-                          value={symptomDates[key] || ""}
-                          disabled={!allowedEdit}
-                          min={iwpStart}
-                          max={iwpEnd}
-                          onChange={(e) => onSymptomDateChange(key, e.target.value)}
-                          className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
-                          required
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {form.ssi_depth === "DEEP" && (
-              <div className="bg-white rounded-xl p-3 border border-slate-100 space-y-2.5 animate-in fade-in duration-200">
-                <span className="text-[11px] font-medium text-slate-400 block border-b border-slate-100 pb-1">Tiêu chí vết mổ Sâu</span>
-                {[
-                  { key: "deep_purulent_drainage", label: "Chảy mủ từ vết rạch sâu" },
-                  { key: "deep_dehisced_or_opened_with_symptoms", label: "Vết mổ tự toác/mở sâu + bệnh nhân sốt > 38°C hoặc đau tại chỗ" },
-                  { key: "deep_abscess_imaging_pathology", label: "Phát hiện ổ áp xe/nhiễm khuẩn mô sâu qua mổ lại, CĐHA, hoặc giải phẫu bệnh" }
-                ].map(({ key, label }) => (
-                  <div key={key} className="flex flex-col gap-1.5">
-                    <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer font-semibold">
-                      <input
-                        type="checkbox"
-                        checked={(form as any)[key] || false}
-                        disabled={!allowedEdit}
-                        onChange={(e) => onChange({ ...form, [key]: e.target.checked })}
-                        className="rounded border-slate-300 text-[var(--primary)]"
-                      />
-                      {label}
-                    </label>
-                    {(form as any)[key] && (
-                      <div className="pl-6 flex items-center gap-2 animate-in slide-in-from-top-1">
-                        <span className="text-[11px] text-slate-400 font-bold">Ngày:</span>
-                        <input
-                          type="date"
-                          value={symptomDates[key] || ""}
-                          disabled={!allowedEdit}
-                          min={iwpStart}
-                          max={iwpEnd}
-                          onChange={(e) => onSymptomDateChange(key, e.target.value)}
-                          className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
-                          required
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {form.ssi_depth === "ORGAN_SPACE" && (
-              <div className="bg-white rounded-xl p-3 border border-slate-100 space-y-2.5 animate-in fade-in duration-200">
-                <span className="text-[11px] font-medium text-slate-400 block border-b border-slate-100 pb-1">Tiêu chí vết mổ Cơ quan/Khoang</span>
-                {[
-                  { key: "organ_space_purulent_drainage", label: "Có chảy mủ từ dẫn lưu organ/space" },
-                  { key: "organ_space_culture_positive", label: "Cấy dịch/mô lấy vô khuẩn từ organ/space dương tính" },
-                  { key: "organ_space_abscess_imaging_pathology", label: "Phát hiện áp xe trong organ/space qua mổ lại, CĐHA, hoặc giải phẫu bệnh" }
-                ].map(({ key, label }) => (
-                  <div key={key} className="flex flex-col gap-1.5">
-                    <label className="flex items-center gap-2 text-xs text-slate-700 cursor-pointer font-semibold">
-                      <input
-                        type="checkbox"
-                        checked={(form as any)[key] || false}
-                        disabled={!allowedEdit}
-                        onChange={(e) => onChange({ ...form, [key]: e.target.checked })}
-                        className="rounded border-slate-300 text-[var(--primary)]"
-                      />
-                      {label}
-                    </label>
-                    {(form as any)[key] && (
-                      <div className="pl-6 flex items-center gap-2 animate-in slide-in-from-top-1">
-                        <span className="text-[11px] text-slate-400 font-bold">Ngày:</span>
-                        <input
-                          type="date"
-                          value={symptomDates[key] || ""}
-                          disabled={!allowedEdit}
-                          min={iwpStart}
-                          max={iwpEnd}
-                          onChange={(e) => onSymptomDateChange(key, e.target.value)}
-                          className="rounded-lg border-slate-200 bg-white px-2 py-1 text-xs font-semibold focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]"
-                          required
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+              onChange={(e) => onChange({ ...form, has_blood_culture_positive: e.target.checked })}
+            />
+            Cấy máu (+) (Secondary BSI)
+          </label>
+          {form.has_blood_culture_positive ? (
+            <div className="space-y-2 pl-6">
+              <span className="text-[11px] font-bold text-slate-400">Ngày cấy máu ∈ cửa sổ theo dõi:</span>
+              <input
+                type="date"
+                value={symptomDates.has_blood_culture_positive || ""}
+                disabled={!allowedEdit}
+                min={survStart}
+                max={survEnd}
+                onChange={(e) => onSymptomDateChange("has_blood_culture_positive", e.target.value)}
+                className="rounded-lg border-slate-200 px-2 py-1 text-xs"
+              />
+              <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.blood_ssi_pathogen_matches}
+                  disabled={!allowedEdit}
+                  onChange={(e) => onChange({ ...form, blood_ssi_pathogen_matches: e.target.checked })}
+                />
+                Trùng tác nhân vết mổ
+              </label>
+            </div>
+          ) : null}
+        </NkbvFormSection>
       )}
-    </div>
+
+      {showClinical && (
+        <NkbvFormSection title="Loại sự kiện & tiêu chí" hint="SIP/SIS/DIP/DIS hoặc Organ/Space + mã vị trí Ch.17.">
+          <label className="mb-1 block text-xs font-bold">
+            Mã loại sự kiện SSI (bắt buộc khi chốt)
+          </label>
+          <select
+            value={form.ssi_event_type || ""}
+            disabled={!allowedEdit || isTimeframeExpired}
+            onChange={(e) => applyEventType(e.target.value)}
+            className={C.controlInput}
+          >
+            <option value="">— Chọn SIP / SIS / DIP / DIS / Organ —</option>
+            {NKBV_NHSN_SSI_EVENT_TYPES.map((ev) => (
+              <option key={ev.code} value={ev.code} title={ev.name_en}>
+                {formatNhsnOptionLabel(ev)}
+              </option>
+            ))}
+          </select>
+          {secondaryWarn ? (
+            <p className="mt-1 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] text-amber-950">
+              {secondaryWarn}
+            </p>
+          ) : null}
+          {depth === "ORGAN_SPACE" ? (
+            <div className="mt-2">
+              <label className="mb-1 block text-xs font-bold">
+                Mã vị trí Organ/Space (bắt buộc)
+              </label>
+              <select
+                value={form.organ_space_site || ""}
+                disabled={!allowedEdit || isTimeframeExpired}
+                onChange={(e) =>
+                  onChange({ ...form, organ_space_site: e.target.value || undefined })
+                }
+                className={C.controlInput}
+              >
+                <option value="">— Chọn vị trí cơ quan —</option>
+                {siteOptions.map((s) => (
+                  <option key={s.code} value={s.code} title={s.name_en}>
+                    {formatNhsnOptionLabel(s)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+          {depth === "SUPERFICIAL" || depth === "DEEP" || depth === "ORGAN_SPACE" ? (
+            <NkbvCatalogSymptomRows
+              rows={formSymptomRowsFor("SSI", {
+                ssiDepth: depth,
+                procedureCode: form.loai_phau_thuat_nhsn,
+              }).filter(
+                (r) =>
+                  r.form_field !== "superficial_culture_positive" &&
+                  r.form_field !== "organ_space_culture_positive",
+              )}
+              form={form as unknown as Record<string, unknown>}
+              onToggle={(field, checked) =>
+                onChange({ ...form, [field]: checked } as SsiVerificationData)
+              }
+              symptomDates={symptomDates}
+              onSymptomDateChange={onSymptomDateChange}
+              allowedEdit={allowedEdit}
+              iwpStart={iwpStart}
+              iwpEnd={iwpEnd}
+            />
+          ) : null}
+        </NkbvFormSection>
+      )}
+    </NkbvDomainFormShell>
   );
 }

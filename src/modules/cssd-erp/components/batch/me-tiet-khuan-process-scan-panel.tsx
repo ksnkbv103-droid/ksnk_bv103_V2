@@ -1,10 +1,14 @@
 "use client";
 
-import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+import {
+  CSSD_UI_ACTION_PRIMARY,
+  CSSD_UI_PANEL_CHROME as UI,
+} from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 
 import React, { useEffect, useRef } from "react";
-import { Scan } from "lucide-react";
+import { CheckCircle2, Scan } from "lucide-react";
 import QrScanInput from "@/components/shared/QrScanInput";
+import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 
 export type MeTkItemRow = {
   id: string;
@@ -39,35 +43,46 @@ export default function MeTietKhuanProcessScanPanel({
     onPrefillConsumed?.();
   }, [prefillToken, onPrefillConsumed]);
 
+  const submitCurrent = () => {
+    if (napLocked) return;
+    const code = String(inputRef.current?.value || "").trim();
+    if (!code) return;
+    onAddItemByCode(code);
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
   return (
-    <div className="flex h-full min-h-[320px] flex-col rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
-      <div className="mb-4 flex items-center gap-3">
+    <div className="flex h-full min-h-[280px] flex-col rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <div className="mb-3 flex items-center gap-2">
         <Scan className="text-[var(--primary)]" />
         <h3 className={UI.panelTitle}>Đưa bộ vào phiếu TK</h3>
       </div>
-      <p className="mb-3 text-[11px] font-medium leading-relaxed text-slate-500">
-        Chỉ quét bộ đang ở <span className="text-[var(--primary)]">ĐÓNG GÓI</span> và chưa gán mẻ khác. Sau khi{" "}
-        <span className="text-red-600">xác nhận bắt đầu tiệt khuẩn</span> hệ thống khóa, không nạp thêm được.
-      </p>
-      <QrScanInput
-        inputRef={inputRef}
-        disabled={napLocked}
-        autoFocus={!napLocked}
-        placeholder={napLocked ? "Đã chốt nạp — không quét thêm" : "Quét mã QR bộ dụng cụ..."}
-        cameraTitle="Quét QR bộ vào mẻ tiệt khuẩn"
-        className="mb-4"
-        inputClassName="h-16 w-full rounded-2xl border-2 border-emerald-100 bg-emerald-50/50 px-6 text-lg font-black uppercase outline-none focus:border-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-60"
-        onEnter={(code) => {
-          if (napLocked) return;
-          onAddItemByCode(code);
-          if (inputRef.current) inputRef.current.value = "";
-        }}
-        onCameraScan={(code) => {
-          if (napLocked) return;
-          onAddItemByCode(code);
-          if (inputRef.current) inputRef.current.value = "";
-        }}
-      />
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-stretch">
+        <QrScanInput
+          inputRef={inputRef}
+          disabled={napLocked}
+          autoFocus={!napLocked}
+          placeholder={napLocked ? "Đã chốt nạp — không quét thêm" : "Quét mã QR bộ dụng cụ..."}
+          cameraTitle="Quét QR bộ vào mẻ tiệt khuẩn"
+          className="min-w-0 flex-1"
+          inputClassName="bv103-control-h w-full rounded-[var(--radius-control)] border border-emerald-200 bg-emerald-50/40 px-3 text-sm font-semibold uppercase outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/10 disabled:cursor-not-allowed disabled:opacity-60"
+          onEnter={submitCurrent}
+          onCameraScan={(code) => {
+            if (napLocked) return;
+            onAddItemByCode(code);
+            if (inputRef.current) inputRef.current.value = "";
+          }}
+        />
+        <button
+          type="button"
+          disabled={napLocked}
+          onClick={submitCurrent}
+          className={`${CSSD_UI_ACTION_PRIMARY} h-auto min-h-[var(--control-h,2.5rem)] shrink-0 px-5`}
+        >
+          <CheckCircle2 className="h-4 w-4" aria-hidden />
+          Xác nhận
+        </button>
+      </div>
       <div className="custom-scrollbar flex-1 space-y-2 overflow-y-auto pr-2">
         {items.map((it) => {
           const st = String(it.trang_thai_hien_tai || "").trim();
@@ -75,13 +90,21 @@ export default function MeTietKhuanProcessScanPanel({
             st === "TIET_KHUAN" ? "Đang TK" : st === "DONG_GOI" ? "Trong phiếu (chờ TK)" : st.replace(/_/g, " ");
           const tone =
             st === "TIET_KHUAN" ? "bg-sky-50 text-sky-700" : "bg-emerald-50 text-emerald-600";
+          const code = String(it.ma_vach_qr || "").trim();
           return (
-            <div key={it.id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 p-4">
-              <div className="min-w-0">
-                <span className="block truncate font-mono text-[11px] font-medium text-[var(--primary)]">{it.ma_vach_qr}</span>
-                <span className="text-xs font-bold uppercase text-slate-700">{it.bo?.ten_bo || "Bộ dụng cụ"}</span>
+            <div key={it.id} className="flex items-center justify-between gap-2 rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50 p-2.5">
+              <div className="flex min-w-0 items-center gap-2">
+                {code ? <InlineEntityQrThumb code={code} size={36} /> : null}
+                <div className="min-w-0">
+                  <span className="block truncate font-mono text-[11px] font-medium text-[var(--primary)]">
+                    {code || "—"}
+                  </span>
+                  <span className="text-xs font-semibold text-slate-700">{it.bo?.ten_bo || "Bộ dụng cụ"}</span>
+                </div>
               </div>
-              <span className={`shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide ${tone}`}>{label}</span>
+              <span className={`shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold ${tone}`}>
+                {label}
+              </span>
             </div>
           );
         })}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CSSD_ROUTES, cssdSuCoIncidentJournalHref, cssdSuCoInstrumentHref } from "./cssd-routes";
+import { CSSD_ROUTES, cssdReportAnalyticsHref, cssdSuCoIncidentJournalHref, cssdSuCoInstrumentHref } from "./cssd-routes";
 
 describe("cssd-routes deep links", () => {
   it("builds instrument prefill URL", () => {
@@ -14,6 +14,12 @@ describe("cssd-routes deep links", () => {
     expect(cssdSuCoIncidentJournalHref()).toBe(`${CSSD_ROUTES.report}?tab=incident`);
     expect(cssdSuCoIncidentJournalHref("abc-123")).toBe(
       `${CSSD_ROUTES.report}?tab=incident&id=abc-123`,
+    );
+  });
+
+  it("builds report analytics deep link with period", () => {
+    expect(cssdReportAnalyticsHref({ tab: "volume", from: "2026-07-01", to: "2026-07-31" })).toBe(
+      `${CSSD_ROUTES.report}?tab=volume&from=2026-07-01&to=2026-07-31`,
     );
   });
 });

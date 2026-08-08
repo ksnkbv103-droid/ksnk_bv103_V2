@@ -156,6 +156,7 @@ export async function requestReplenishFromReserveAction(params: {
   quantity?: number;
   note?: string;
 }) {
+  // Facade đã verify CSSD_WORKFLOW edit trước khi ghi kho.
   const result = await requestReplenishFromReserveFacade(params);
   if (!result.success) return result;
 

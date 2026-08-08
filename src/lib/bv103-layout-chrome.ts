@@ -97,6 +97,7 @@ export const bv103LayoutChrome = {
   /** @deprecated — alias `noticeInfo` */
   noticeSlate:
     "rounded-[var(--radius-shell)] border border-[var(--surface-info-border)] bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700",
+  /** @deprecated Không dùng cho intro panel — copy vận hành = tên + nút (page-chrome §7). */
   noticeSlateRelaxed:
     "rounded-[var(--radius-shell)] border border-[var(--surface-info-border)] bg-slate-50 px-3 py-2.5 text-xs font-medium leading-relaxed text-slate-700",
   noticeViolet:

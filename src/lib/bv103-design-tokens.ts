@@ -2,27 +2,37 @@
  * SSOT typography + page rhythm BV103.
  * @see docs/reference/guides/bv103-visual-language.md
  */
+const PAGE_OUTER =
+  "w-full min-h-[40vh] space-y-3 pb-6 [-webkit-tap-highlight-color:transparent] sm:space-y-4 sm:pb-8";
+
+/** Band L1 duy nhất — page-chrome-contract-20260731 */
+const PAGE_CHROME_SHELL =
+  "no-print rounded-[var(--radius-shell)] border border-slate-200 bg-white p-2.5 shadow-sm sm:p-3";
+const PAGE_CHROME_SHELL_STICKY = `${PAGE_CHROME_SHELL} sticky top-0 z-40 backdrop-blur-md sm:top-4`;
+
 export const bv103DesignTokens = {
-  pageOuter:
-    "w-full min-h-[40vh] space-y-4 pb-8 [-webkit-tap-highlight-color:transparent] sm:space-y-6 sm:pb-12",
-  pageOuterAnalytics: "w-full space-y-4 pb-16 sm:space-y-8 sm:pb-24",
-  pageSectionGap: "space-y-4 sm:space-y-8",
+  pageOuter: PAGE_OUTER,
+  /** Alias — cùng nhịp `pageOuter` (không nhảy gap khi đổi Analytics). */
+  pageOuterAnalytics: PAGE_OUTER,
+  pageSectionGap: "space-y-3 sm:space-y-4",
 
-  stickyAnalyticsShell:
-    "no-print sticky top-0 z-40 rounded-xl border border-slate-200/90 bg-white/95 p-2 shadow-sm ring-1 ring-slate-900/[0.03] backdrop-blur-md sm:top-4 sm:p-3 md:p-4",
-  /** Thanh tiêu đề + lọc analytics (một khối, không lồng hero). */
-  analyticsToolbarShell:
-    "no-print sticky top-0 z-40 rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm backdrop-blur-md sm:top-4 sm:p-4",
-  analyticsToolbarShellStatic:
-    "no-print rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm sm:p-4",
+  pageChromeShell: PAGE_CHROME_SHELL,
+  pageChromeShellSticky: PAGE_CHROME_SHELL_STICKY,
 
-  /** H1 trang — title case, không primary, không IN HOA */
-  pageTitle: "text-xl font-semibold tracking-tight text-slate-900 md:text-2xl",
-  pageSubtitle: "mt-2 max-w-2xl text-sm font-normal leading-relaxed text-slate-600",
+  /** @deprecated Dùng `pageChromeShellSticky` */
+  stickyAnalyticsShell: PAGE_CHROME_SHELL_STICKY,
+  /** @deprecated Dùng `pageChromeShellSticky` */
+  analyticsToolbarShell: PAGE_CHROME_SHELL_STICKY,
+  /** @deprecated Dùng `pageChromeShell` */
+  analyticsToolbarShellStatic: PAGE_CHROME_SHELL,
+
+  /** H1 trong chrome — compact (App Header đã có tên trang) */
+  pageTitle: "text-base font-semibold tracking-tight text-slate-900 sm:text-lg",
+  pageSubtitle: "mt-0.5 max-w-2xl text-[11px] font-normal leading-snug text-slate-500 sm:text-sm",
   /** Dòng phụ list/toolbar (danh mục, breadcrumb nội dung) */
-  pageEyebrow: "mt-1 text-[11px] font-medium text-slate-500",
-  pageToolbar:
-    "flex flex-col gap-4 rounded-[var(--radius-shell)] border border-slate-100 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between",
+  pageEyebrow: "text-[11px] font-medium text-slate-500",
+  /** @deprecated Dùng `pageChromeShell` + KsnkPageChrome */
+  pageToolbar: PAGE_CHROME_SHELL,
 
   /** App chrome: sidebar group + zone trên Header — IN HOA duy nhất ở lớp điều hướng */
   navGroupLabel: "text-[11px] font-semibold uppercase tracking-wider text-slate-400",
@@ -63,7 +73,11 @@ export const bv103DesignTokens = {
   btnGhostDark:
     "bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] bg-slate-900 px-3 text-xs font-semibold text-white hover:bg-slate-800",
 
+  /** Input date / kỳ lọc analytics + CSSD report (FLT-DATE-01). */
+  analyticsDateInput:
+    "bv103-control-h min-w-[9.5rem] rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-800",
+
   skeletonBlock: "animate-pulse rounded-[var(--radius-shell)] border border-slate-200 bg-slate-100/80",
 } as const;
 
-const BV103_MIN_LABEL_CLASS = "text-[11px]" as const;
+export const BV103_MIN_LABEL_CLASS = "text-[11px]" as const;

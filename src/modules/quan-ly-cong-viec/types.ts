@@ -34,6 +34,10 @@ export interface CongViec {
   muc_do_uu_tien: "THAP" | "TRUNG_BINH" | "CAO";
   trang_thai: CongViecTrangThai;
   han_hoan_thanh?: string | null;
+  /** Ngày thực hiện theo lịch (khác hạn hoàn thành). */
+  ngay_thuc_hien?: string | null;
+  gio_bat_dau?: string | null;
+  gio_ket_thuc?: string | null;
   phan_tram_hoan_thanh: number;
   /** Set bởi trigger DB khi nghiệm thu (HOAN_THANH). */
   hoan_thanh_luc?: string | null;
@@ -44,6 +48,18 @@ export interface CongViec {
   nguoi_giao_viec_id?: string | null;
   nguoi_phu_trach_id?: string | null;
   to_cong_tac_id?: string | null;
+  /** Vị trí thực hiện (text tùy biến). */
+  vi_tri_thuc_hien?: string | null;
+  /** FK khoa MDM — địa điểm bắt buộc. */
+  dia_diem_khoa_id?: string | null;
+  /** FK nhiệm vụ (tuỳ chọn). */
+  nhiem_vu_id?: string | null;
+  /** Nhân sự phối hợp (uuid[]). */
+  nguoi_phoi_hop_ids?: string[] | null;
+  /** Nhân sự theo dõi / giám sát (uuid[]). */
+  nguoi_theo_doi_ids?: string[] | null;
+  /** FK mẫu định kỳ khi phiếu sinh từ spawn (null = đột xuất / đề xuất). */
+  dinh_ky_mau_id?: string | null;
   /** Mục tick 1 chạm — [{ id, label, done }] */
   checklist?: unknown;
   /** Nhật ký sự kiện — SSOT thay bảng hoat_dong. */
@@ -59,6 +75,9 @@ export interface CongViecView extends CongViec {
   nguoi_giao_ten?: string | null;
   nguoi_phu_trach_ten?: string | null;
   to_cong_tac_ten?: string | null;
+  dia_diem_khoa_ten?: string | null;
+  dia_diem_khoa_ma?: string | null;
+  nhiem_vu_ten?: string | null;
   trang_thai_mau_sac?: string | null;
   is_qua_han?: boolean;
 }

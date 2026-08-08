@@ -1,0 +1,248 @@
+Bản đặc tả logic dưới đây được thiết kế chi tiết để làm tài liệu nền tảng (blueprint) cho đội ngũ lập trình viên thiết kế hệ thống cơ sở dữ liệu, APIs, và động cơ suy luận (Rule Engine) cho riêng **Hợp phần Biến cố liên quan máy thở (Ventilator-Associated Event - VAE)** theo đúng chuẩn của Sổ tay NHSN 2025.
+
+---
+
+# ĐẶC TẢ LOGIC DOMAIN: HỆ THỐNG GIÁM SÁT BIẾN CỐ LIÊN QUAN MÁY THỞ (VAE)
+*Chuẩn hóa theo Sổ tay NHSN/CDC 2025 - Chương 10*
+
+## 1. ĐỊNH NGHĨA BIẾN SỐ VÀ CƠ SỞ DỮ LIỆU ĐẦU VÀO (DATA SCHEMA)
+
+Động cơ quy tắc (Rule Engine) yêu cầu các cấu trúc dữ liệu JSON đầu vào dưới đây để thực hiện tính toán tự động.
+
+### 1.1. Dữ liệu hành chính và nhập viện (Admission Record)
+```json
+{
+  "PatientID": "string (Primary Key)",
+  "AdmissionID": "string (Primary Key)",
+  "AdmissionDate": "date [YYYY-MM-DD]",
+  "DischargeDate": "date [YYYY-MM-DD] or null",
+  "BirthDate": "date [YYYY-MM-DD]",
+  "PatientAgeYears": "integer"
+}
+```
+
+### 1.2. Dữ liệu can thiệp Máy thở (Ventilator Registry)
+```json
+{
+  "VentilatorRegistryID": "string (Primary Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "LocationCode": "string (CDC Location Code)",
+  "IntubationDateTime": "datetime [YYYY-MM-DD HH:MM:SS]",
+  "ExtubationDateTime": "datetime [YYYY-MM-DD HH:MM:SS] or null",
+  "IsHighFrequencyVent": "boolean",
+  "IsECMO_ECLS": "boolean",
+  "IsPronePosition": "boolean",
+  "IsAPRVMode": "boolean"
+}
+```
+
+### 1.3. Bảng dữ liệu theo dõi dọc hàng ngày (Daily Longitudinal Flowsheet)
+Mỗi ngày lịch (calendar day) ghi nhận một bản ghi duy nhất chứa các giá trị PEEP và $\text{FiO}_2$ tối thiểu, sinh hiệu và kết quả xét nghiệm máu.
+```json
+{
+  "FlowsheetID": "string (Primary Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "CalendarDate": "date [YYYY-MM-DD]",
+  "HospitalDay": "integer (AdmissionDate = Day 1)",
+  "VentilatorDay": "integer or null (IntubationDate = Day 1)",
+  "DailyMinPEEP": "integer (lowest PEEP set & maintained for > 1 hour)",
+  "DailyMinFiO2": "float (lowest FiO2 set & maintained for > 1 hour, range 0.21 - 1.0)",
+  "DailyMaxTempC": "float (highest temp recorded in calendar day)",
+  "DailyMinTempC": "float (lowest temp recorded in calendar day)",
+  "DailyMaxWBC": "float (cells/mm3)",
+  "DailyMinWBC": "float (cells/mm3)",
+  "AntimicrobialsAdministered": [
+    {
+      "DrugID": "string (RXNORM)",
+      "DrugName": "string",
+      "Route": "enum [INTRAVENOUS, INTRAMUSCULAR, DIGESTIVE, RESPIRATORY]"
+    }
+  ]
+}
+```
+
+### 1.4. Dữ liệu vi sinh và lâm sàng đặc hiệu (Paraclinical & Lab ID)
+```json
+{
+  "MicroLabID": "string (Primary Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "CollectionDate": "date [YYYY-MM-DD]",
+  "SpecimenSource": "enum [ETA, BAL, PSB, SPUTUM, PLEURAL_FLUID, LUNG_TISSUE]",
+  "QuantitativeValue": "float (CFU/ml or CFU/g)",
+  "IsPurulentSecretions": "boolean (Neutrophils >= 25 AND Epithelial cells <= 10 per LPF)",
+  "IsHistopathologyPositive": "boolean",
+  "IsLegionellaPositive": "boolean",
+  "IsRespiratoryVirusPositive": "boolean",
+  "OrganismsIsolated": [
+    {
+      "OrganismCode": "string (SNOMED-CT)",
+      "OrganismName": "string"
+    }
+  ]
+}
+```
+
+---
+
+## 2. CỔNG LỌC ĐIỀU KIỆN TIÊN QUYẾT (GATEKEEPERS)
+
+Trước khi chạy động cơ phân tích VAE, hệ thống phải rà soát qua các cổng lọc điều kiện để xác định tính hợp lệ của ca bệnh:
+
+*   **Logic 1 (Vị trí & Lứa tuổi):** Bệnh nhân phải nằm tại khoa điều trị nội trú dành cho **người lớn** (Adult locations). Các khoa nhi (Pediatric) và sơ sinh (Neonatal) bị loại trừ hoàn toàn khỏi thuật toán này (chuyển sang thuật toán PedVAE).
+*   **Logic 2 (Thời gian thở máy tối thiểu):** Bệnh nhân phải được thở máy liên tục **$\ge 4$ ngày lịch** (với ngày đặt máy thở đầu tiên là Ngày 1).
+*   **Logic 3 (Loại trừ thiết bị hỗ trợ đặc biệt):** Nếu bệnh nhân có sử dụng máy thở cao tần (High-frequency ventilation), hỗ trợ tuần hoàn ngoài cơ thể (ECMO/ECLS) hoặc máy hỗ trợ tâm thất (VAD) **trong toàn bộ ngày lịch** (trọn vẹn từ 00:00 đến 23:59), ngày đó phải bị loại trừ khỏi dữ liệu tính toán.
+*   **Logic 4 (APRV Mode):** Nếu bệnh nhân sử dụng chế độ thở máy xả áp đường thở (Airway Pressure Release Ventilation - APRV) hoặc các chế độ tương tự trong toàn bộ ngày lịch, thuật toán chỉ được phép tính toán tiêu chí biến động dựa trên **$\text{FiO}_2$**, bỏ qua hoàn toàn biến động PEEP.
+
+---
+
+## 3. THUẬT TOÁN TÍNH TOÁN KHUNG THỜI GIAN VAE
+
+Khác với các nhiễm khuẩn khác, VAE sử dụng một hệ thống định vị thời gian trượt (sliding window) đặc thù.
+
+### 3.1. Thuật toán chuẩn hóa PEEP tối thiểu hàng ngày (Daily Minimum PEEP)
+*   Đối với các cơ sở ghi nhận dữ liệu PEEP hàng giờ hoặc thường xuyên hơn:
+    $$\text{DailyMinPEEP} = \min(\{\text{PEEP value } | \text{ Duy trì liên tục } > 1 \text{ giờ trong ngày lịch}\})$$
+*   **Quy tắc tương đương (Equivalency Rule):** Tất cả các giá trị PEEP thực tế từ $0$ đến $5\text{ cmH}_2\text{O}$ đều được hệ thống tự động quy đổi thành **$5\text{ cmH}_2\text{O}$** để làm mốc tính toán.
+
+### 3.2. Thuật toán xác định Baseline và Sự suy giảm hô hấp (VAC)
+Hệ thống sử dụng một thuật toán trượt liên tục (sliding window) quét mảng `DailyLongitudinalFlowsheet` để tìm biến cố:
+
+*   **Bước 1: Tìm Baseline Period (2 ngày ổn định):** Tìm 2 ngày liên tiếp ($D_1$ và $D_2$) có mức PEEP hoặc $\text{FiO}_2$ tối thiểu ổn định hoặc giảm:
+    $$\text{PEEP}_{D2} \le \text{PEEP}_{D1} \quad \text{OR} \quad \text{FiO}_{2, D2} \le \text{FiO}_{2, D1}$$
+*   **Bước 2: Phát hiện Period of Worsening Oxygenation (2 ngày suy giảm):** Tìm 2 ngày liên tiếp ngay sau đó ($D_3$ và $D_4$) có sự gia tăng đột ngột và duy trì so với ngày đầu tiên của Baseline ($D_1$):
+    *   *Nhánh PEEP (Không áp dụng nếu thở APRV):*
+        $$\text{PEEP}_{D3} \ge \text{PEEP}_{D1} + 3\text{ cmH}_2\text{O} \quad \text{AND} \quad \text{PEEP}_{D4} \ge \text{PEEP}_{D1} + 3\text{ cmH}_2\text{O}$$
+    *   *Nhánh $\text{FiO}_2$:*
+        $$\text{FiO}_{2, D3} \ge \text{FiO}_{2, D1} + 0.20 \quad \text{AND} \quad \text{FiO}_{2, D4} \ge \text{FiO}_{2, D1} + 0.20$$
+*   **Bước 3: Chốt ngày xảy ra sự kiện (Date of Event - DOE):** Nếu thỏa mãn cả 2 bước trên, ngày **$D_3$** (ngày đầu tiên của chu kỳ suy giảm hô hấp) được chốt làm **DOE**.
+
+### 3.3. Thuật toán tạo VAE Window Period
+Hệ thống tự động thiết lập cửa sổ VAE để quét các dấu hiệu nhiễm trùng:
+$$\text{VAE Window Period} = [\text{DOE} - 2 \text{ ngày lịch}, \text{ DOE} + 2 \text{ ngày lịch}]$$
+*Ngoại lệ:* Nếu DOE rơi vào Ngày máy thở thứ 3 (Ventilator Day 3), cửa sổ chỉ kéo dài 3 ngày [$\text{DOE}$, $\text{DOE} + 2$]; nếu rơi vào Ngày máy thở thứ 4, cửa sổ kéo dài 4 ngày [$\text{DOE}-1$, $\text{DOE}+2$] (Do không được phép quét dữ liệu lâm sàng trước ngày thở máy thứ 3).
+
+### 3.4. Thuật toán xác định mốc 14 ngày sự kiện (14-day Event Period)
+*   Khi có một VAE được phê duyệt với ngày bắt đầu là $\text{DOE}_1$, hệ thống kích hoạt trạng thái khóa từ ngày **$\text{DOE}_1$ đến $\text{DOE}_1 + 13\text{ ngày}$**. 
+*   Mọi biến động hô hấp hay nhiễm trùng mới trong khoảng này đều được tính gộp vào VAE ban đầu, cấm báo cáo ca VAE mới.
+
+---
+
+## 4. TIÊU CHUẨN CHẨN ĐOÁN CHI TIẾT (LOGIC TREES)
+
+Hệ thống phân tích phân cấp VAE theo 3 bậc tăng dần từ VAC lên PVAP:
+
+```
+                     [MÁY THỞ >= 4 NGÀY & ĐỦ BASELINE]
+                                     │
+                                     ▼
+               Thỏa mãn tăng PEEP (>= 3) hoặc FiO2 (>= 0.20)
+                       duy trì liên tục >= 2 ngày?
+                                     ├─── NO ───► KHÔNG PHẢI VAE
+                                     └─── YES ──► THỎA MÃN VAC [DOE]
+                                                     │
+                                                     ▼
+                                 Quét trong VAE Window (DOE ± 2 ngày):
+                                 1. Sốt (>38C) hoặc Hạ thân nhiệt (<36C) OR Bạch cầu tăng/giảm?
+                                 AND 2. Khởi trị kháng sinh mới & duy trì >= 4 QADs?
+                                                     ├─── NO ───► BÁO CÁO CA VAC
+                                                     └─── YES ──► THỎA MÃN IVAC
+                                                                     │
+                                                                     ▼
+                                                 Quét vi sinh trong VAE Window:
+                                                 Có bằng chứng Criterion 1, 2, hoặc 3?
+                                                                     ├─── NO ───► BÁO CÁO CA IVAC
+                                                                     └─── YES ──► BÁO CÁO CA PVAP
+```
+
+### Bậc 1: Điều kiện đạt VAC (Ventilator-Associated Condition)
+*   **IF** (Bệnh nhân có PEEP tối thiểu tăng $\ge 3\text{ cmH}_2\text{O}$ OR $\text{FiO}_2$ tối thiểu tăng $\ge 0.20$ duy trì $\ge 2$ ngày sau chuỗi 2 ngày ổn định) **AND** (Hospital Day tại DOE $\ge 3$)
+*   **THEN** Đạt tiêu chí **VAC**.
+
+### Bậc 2: Điều kiện đạt IVAC (Infection-related Ventilator-Associated Complication)
+*   **IF** (Bệnh nhân đã đạt tiêu chí **VAC**)
+*   **AND** (Trong cửa sổ **VAE Window Period**, xuất hiện ít nhất một ngày ghi nhận: Nhiệt độ $> 38^\circ\text{C}$ hoặc $< 36^\circ\text{C}$ OR Số lượng bạch cầu $\ge 12,000\text{ cells/mm}^3$ hoặc $\le 4,000\text{ cells/mm}^3$)
+*   **AND** (Có chỉ định khởi trị một loại **Kháng sinh mới** nằm trong danh mục quy định bắt đầu trong cửa sổ **VAE Window Period** và được duy trì liên tục **$\ge 4$ ngày kháng sinh hợp lệ (QAD)**).
+*   **THEN** Đạt tiêu chí **IVAC**.
+
+> **Định nghĩa Kháng sinh mới & QAD cho lập trình viên:**
+> 1. *Kháng sinh mới:* Kháng sinh được bắt đầu sử dụng nhưng **không** xuất hiện trong danh sách điều trị của 2 ngày trước ngày bắt đầu.
+> 2. *Ngày kháng sinh hợp lệ (QAD):* Ngày ghi nhận có dùng thuốc. Cho phép khoảng trống (gap) tối đa **1 ngày lịch** đối với cùng một mã thuốc (để xử lý trường hợp suy thận/lọc máu dùng thuốc cách ngày). Gaps giữa hai thuốc khác nhau không được tính làm QAD.
+
+### Bậc 3: Điều kiện đạt PVAP (Possible Ventilator-Associated Pneumonia)
+*   **IF** (Bệnh nhân đã đạt tiêu chí **IVAC**)
+*   **AND** (Trong cửa sổ **VAE Window Period**, đáp ứng một trong ba nhóm bằng chứng sau:
+
+#### Nhóm 1: Kết quả cấy định lượng hoặc bán định lượng đạt ngưỡng (Criterion 1)
+Mẫu bệnh phẩm đường hô hấp dưới đạt các ngưỡng cấy định lượng sau (không bắt buộc có đờm mủ):
+*   Dịch hút khí quản (ETA) $\ge 10^5\text{ CFU/ml}$ (hoặc bán định lượng mức "Nhiều/Dày/3+/4+").
+*   Dịch rửa phế quản phế nang (BAL / Protected BAL) $\ge 10^4\text{ CFU/ml}$.
+*   Chải phế quản có bảo vệ (PSB) $\ge 10^3\text{ CFU/ml}$.
+*   Mô phổi $\ge 10^4\text{ CFU/g}$.
+
+#### Nhóm 2: Có tế bào đờm mủ kết hợp cấy định tính/định lượng thấp (Criterion 2)
+*   Mẫu soi trực tiếp đờm/dịch tiết hô hấp ghi nhận đờm mủ: **$\ge 25$ tế bào bạch cầu đa nhân trung tính (PMNs) và $\le 10$ tế bào biểu mô vảy** trên mỗi vi trường kính hiển vi lực phóng đại thấp (LPF, x100).
+*   **AND** Phát hiện vi khuẩn từ các mẫu cấy định tính thông thường (Sputum, ETA, BAL, PSB, hoặc Lung tissue).
+
+#### Nhóm 3: Xét nghiệm đặc hiệu khác (Criterion 3)
+*   Phân lập được vi sinh vật từ dịch màng phổi (với mẫu lấy trong vòng 24 giờ đầu đặt ống thông).
+*   Kết quả giải phẫu bệnh phổi dương tính (Abscess, xâm lấn nấm sợi).
+*   Xét nghiệm kháng nguyên nước tiểu hoặc PCR dương tính với *Legionella*.
+*   Xét nghiệm PCR dịch hô hấp dương tính với các virus hô hấp chỉ định (Influenza, RSV, Adenovirus, Parainfluenza, Rhinovirus, Metapneumovirus, Coronavirus).
+
+*   **THEN** Đạt tiêu chí cao nhất: **PVAP**.
+
+---
+
+## 5. LƯU ĐỒ THUẬT TOÁN (MERMAID FLOWCHART)
+
+```mermaid
+graph TD
+    A[Bắt đầu rà soát bệnh nhân thở máy người lớn] --> B{Thở máy >= 4 ngày?}
+    B -- No --> C[Dừng - Không thuộc VAE]
+    B -- Yes --> D{Có 2 ngày Baseline ổn định & 2 ngày PEEP hoặc FiO2 tăng đạt ngưỡng?}
+    D -- No --> C
+    D -- Yes --> E[Xác định DOE & thiết lập VAE Window]
+    E --> F[Dán nhãn: VAC]
+    F --> G{Trong VAE Window: Có Sốt/Hạ thân nhiệt hoặc WBC bất thường?}
+    G -- No --> H[Báo cáo ca bệnh: VAC]
+    G -- Yes --> I{Trong VAE Window: Có khởi trị Kháng sinh mới?}
+    I -- No --> H
+    I -- Yes --> K{Kháng sinh mới được dùng duy trì >= 4 QADs?}
+    K -- No --> H
+    K -- Yes --> L[Dán nhãn: IVAC]
+    L --> M{Trong VAE Window: Có xét nghiệm vi sinh đạt tiêu chuẩn?}
+    M -- No --> N[Báo cáo ca bệnh: IVAC]
+    M -- Yes --> O[Dán nhãn: PVAP]
+    O --> P{Có cấy máu dương tính trùng khớp tác nhân hô hấp trong 14 ngày?}
+    P -- Yes --> Q[Báo cáo ca bệnh: PVAP + Secondary BSI]
+    P -- No --> R[Báo cáo ca bệnh: PVAP]
+```
+
+---
+
+## 6. QUY TẮC LOẠI TRỪ & NGOẠI LỆ (EXCLUSIONS & EDGE CASES)
+
+### 6.1. Loại trừ vi sinh vật đối với PVAP (Organism Exclusions)
+*   **CẤM** sử dụng các tác nhân sau để chẩn đoán PVAP nếu chúng được phân lập từ đờm, ETA, BAL hoặc PSB:
+    *   Các vi sinh vật ghi nhận là "Normal respiratory flora", "mixed oral flora" hoặc các từ tương đương chỉ hệ vi sinh vật hội sinh vùng hầu họng.
+    *   Mọi loài nấm men và nấm *Candida spp.*
+    *   Mọi loài tụ cầu vàng kháng coagulase (Coagulase-negative *Staphylococcus spp.*).
+    *   Mọi loài liên cầu đường ruột (*Enterococcus spp.*).
+*   *Ngoại lệ duy nhất:* Các vi sinh vật này vẫn được chấp nhận nếu mẫu bệnh phẩm là **Mô phổi** hoặc **Dịch màng phổi** thu thập đúng chuẩn vô khuẩn.
+
+### 6.2. Thuật toán quy kết Nhiễm khuẩn huyết thứ phát (Secondary BSI for VAE)
+Quy tắc quy kết thứ phát được áp dụng để tránh báo cáo nhầm một ca nhiễm khuẩn huyết độc lập (CLABSI):
+*   **Điều kiện 1:** Ca bệnh đạt mức chẩn đoán **PVAP** (Cấm áp dụng quy kết thứ phát cho VAC và IVAC).
+*   **Điều kiện 2 (Thời gian lấy mẫu):**
+    *   Mẫu cấy đường hô hấp dưới (dùng để thỏa mãn PVAP) phải được thu thập trong vòng **DOE $\pm 2$ ngày**.
+    *   Mẫu cấy máu dương tính phải được thu thập trong vòng **Khung sự kiện 14 ngày VAE** (với ngày DOE là Ngày 1).
+*   **Điều kiện 3 (Khớp tác nhân - Matching Organisms):**
+    *   Tác nhân phân lập được trong máu phải trùng khớp (Match) về chi và loài (hoặc trùng chi nếu một trong hai mẫu chỉ định danh đến chi) với tác nhân phân lập được từ mẫu đường hô hấp dưới.
+    *   *Ngoại lệ an toàn:* Các tác nhân cấy máu là *Candida spp.*, *Enterococcus spp.*, hoặc *CoNS* **không bao giờ** được quy kết là thứ phát sau PVAP trừ khi chúng được cấy ra trực tiếp từ mô phổi hoặc dịch màng phổi.
+
+### 6.3. Quy tắc chuyển khoa (Transfer Rule)
+*   Nếu DOE xảy ra vào **ngày chuyển khoa** (hoặc ngày hôm sau) từ một khoa nội trú người lớn sang khoa khác, toàn bộ biến cố VAE đó phải được hệ thống tự động quy kết và tính cho **khoa chuyển đi**. Khoa tiếp nhận không phải báo cáo ca bệnh này và không tính ngày máy thở phát sinh sau đó vào mẫu số của sự kiện.
+
+---
+
+*   🎧 **Nudge:** Tôi có thể tiến hành soạn thảo tiếp tục một Hướng dẫn Đặc tả Logic chi tiết tương tự cho **Chương 4: Nhiễm khuẩn huyết liên quan đến đường truyền trung tâm (CLABSI)** để giúp lập trình viên hoàn thiện tiếp phân hệ quan trọng này không?

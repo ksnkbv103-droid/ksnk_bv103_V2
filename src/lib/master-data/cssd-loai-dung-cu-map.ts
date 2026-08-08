@@ -104,6 +104,56 @@ export function spauldingLabel(code: unknown): string {
   }
 }
 
+/** Mã trạm CSSD gợi ý (lookup TRAM_CSSD) từ Spaulding + chịu nhiệt + PP tiệt khuẩn — D-16. */
+export type CssdStationSuggestion = {
+  maTramGoiY: string;
+  lyDo: string;
+};
+
+export function suggestCssdStationFromMaster(input: {
+  spaulding?: unknown;
+  sterileMethod?: unknown;
+  isChiuNhiet?: unknown;
+}): CssdStationSuggestion {
+  const method = normalizeSterileMethodForMaster(input.sterileMethod);
+  const spaulding = normalizeSpauldingForMaster(input.spaulding);
+  const chiuNhiet =
+    input.isChiuNhiet !== undefined && input.isChiuNhiet !== null
+      ? Boolean(input.isChiuNhiet)
+      : mapKhaNangToIsChiuNhiet(input.isChiuNhiet);
+
+  if (method === "EO") {
+    return {
+      maTramGoiY: "TRAM_EO",
+      lyDo: "PP chỉ định EO → trạm khí EO",
+    };
+  }
+  if (method === "PLASMA" || !chiuNhiet) {
+    return {
+      maTramGoiY: "TRAM_PLASMA",
+      lyDo: !chiuNhiet
+        ? "Nhạy nhiệt → ưu tiên Plasma (không hấp hơi)"
+        : "PP chỉ định Plasma → trạm Plasma",
+    };
+  }
+  if (method === "STEAM_121") {
+    return {
+      maTramGoiY: "TRAM_HOI_121",
+      lyDo: "PP hơi 121°C → trạm hấp 121",
+    };
+  }
+  if (spaulding === "NON_CRITICAL") {
+    return {
+      maTramGoiY: "TRAM_KHU_TRUNG",
+      lyDo: "Non-critical → trạm khử trùng / mức thấp hơn tiệt khuẩn",
+    };
+  }
+  return {
+    maTramGoiY: "TRAM_HOI_134",
+    lyDo: "Critical/Semi + chịu nhiệt + hơi 134°C → trạm hấp 134",
+  };
+}
+
 /** Ghi bảng vật lý từ form MDM (alias UI → ma_loai/ten_loai + specs + cột domain). */
 export function buildLoaiPhysicalUpsertPayload(input: Record<string, unknown>): Record<string, unknown> {
   const ma = String(

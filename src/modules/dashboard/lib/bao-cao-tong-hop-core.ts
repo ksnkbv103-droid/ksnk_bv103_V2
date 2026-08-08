@@ -12,6 +12,7 @@ import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strat
 import type { NkbvDashboardPayload } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
 import type {
   BaoCaoChuyenDe,
+  BaoCaoCssdAppendix,
   BaoCaoKhoaRankRow,
   BaoCaoTrendGranularity,
   BaoCaoTrendPoint,
@@ -23,6 +24,7 @@ import type {
 export {
   computeCcs,
   computeTyLeVst,
+  computeTyLeGsc,
   deltaFromTrend,
 } from "@/lib/analytics/supervision-metrics";
 
@@ -294,15 +296,31 @@ function khoaRankHasVolume(row: BaoCaoKhoaRankRow): boolean {
   return row.has_data !== false && row.tong_co_hoi_vst + row.tong_quan_sat_gsc > 0;
 }
 
-/** Xếp hạng theo CCS giảm dần; khoa chưa có dữ liệu xuống cuối. */
-export function sortKhoaRankByCcs(rows: BaoCaoKhoaRankRow[]): BaoCaoKhoaRankRow[] {
+/**
+ * Xếp hạng can thiệp: ưu tiên khoa có dữ liệu, sắp **GSC tăng dần** (thấp → cao),
+ * rồi VST tăng dần. Không dùng CCS (deprecated trên surface).
+ * `sortKhoaRankByCcs` giữ alias tương thích test/call cũ.
+ */
+function sortKhoaRankByComplianceAsc(rows: BaoCaoKhoaRankRow[]): BaoCaoKhoaRankRow[] {
   return [...rows].sort((a, b) => {
     const aVol = khoaRankHasVolume(a);
     const bVol = khoaRankHasVolume(b);
     if (aVol && !bVol) return -1;
     if (!aVol && bVol) return 1;
-    return (b.ty_le_ccs ?? -1) - (a.ty_le_ccs ?? -1);
+    const aGsc = a.ty_le_gsc;
+    const bGsc = b.ty_le_gsc;
+    if (aGsc != null && bGsc != null && aGsc !== bGsc) return aGsc - bGsc;
+    if (aGsc != null && bGsc == null) return -1;
+    if (aGsc == null && bGsc != null) return 1;
+    const aVst = a.ty_le_vst ?? 999;
+    const bVst = b.ty_le_vst ?? 999;
+    return aVst - bVst;
   });
+}
+
+/** @deprecated Dùng sortKhoaRankByComplianceAsc — không xếp theo CCS. */
+export function sortKhoaRankByCcs(rows: BaoCaoKhoaRankRow[]): BaoCaoKhoaRankRow[] {
+  return sortKhoaRankByComplianceAsc(rows);
 }
 
 /** Gộp khoa đã chọn (lọc) với dữ liệu RPC — khoa 0 phiên vẫn hiện «Chưa GS». */
@@ -316,7 +334,7 @@ export function mergeKhoaRankWithSelected(
   const isFiltered = Boolean(selectedKhoaIds?.length && selectedKhoaIds.length < khoaOptionCount);
 
   if (!isFiltered) {
-    return sortKhoaRankByCcs([...byId.values()]);
+    return sortKhoaRankByComplianceAsc([...byId.values()]);
   }
 
   const merged: BaoCaoKhoaRankRow[] = [];
@@ -342,7 +360,7 @@ export function mergeKhoaRankWithSelected(
       has_data: false,
     });
   }
-  return sortKhoaRankByCcs(merged);
+  return sortKhoaRankByComplianceAsc(merged);
 }
 
 export function topBottomKhoa(rows: BaoCaoKhoaRankRow[], n = 5): { top: BaoCaoKhoaRankRow[]; bottom: BaoCaoKhoaRankRow[] } {
@@ -399,7 +417,7 @@ export function buildAnalyticsDeepLink(
 export function formatBaoCaoIsoDateVi(iso: string): string {
   const [y, m, d] = iso.split("-");
   if (!y || !m || !d) return iso;
-  return `${d}/${m}/${y}`;
+  return `${d.padStart(2, "0")}/${m.padStart(2, "0")}/${y}`;
 }
 
 /** Dòng ngày ban hành chuẩn văn bản (Hà Nội, ngày …). */
@@ -422,8 +440,17 @@ export function composeBaoCaoTongHopPayload(args: {
   vst: VstStrategicPayload | null;
   gsc: GscStrategicPayload | null;
   nkbv: NkbvDashboardPayload | null;
-  sources: { vst: SourceLoadStatus; gsc: SourceLoadStatus; nkbv: SourceLoadStatus };
-  errors: { vst?: string; gsc?: string; nkbv?: string };
+  cssd?: BaoCaoCssdAppendix | null;
+  sources: { vst: SourceLoadStatus; gsc: SourceLoadStatus; nkbv: SourceLoadStatus; cssd?: SourceLoadStatus };
+  errors: { vst?: string; gsc?: string; nkbv?: string; cssd?: string };
+  /** Kỳ trước cùng độ dài — chỉ số process; null nếu không tải. */
+  kyTruoc?: {
+    tu_ngay: string;
+    den_ngay: string;
+    ty_le_vst: number | null;
+    ty_le_gsc: number | null;
+    ty_le_ccs: number | null;
+  } | null;
 }): BaoCaoTongHopPayload {
   const tyLeVst = computeTyLeVst(args.vst?.kpis);
   const tyLeGsc = computeTyLeGsc(args.gsc?.kpis);
@@ -431,14 +458,40 @@ export function composeBaoCaoTongHopPayload(args: {
   const trendWeek = buildMergedTrend(args.vst, args.gsc);
   const trendMonth = bucketTrendByMonth(trendWeek);
   const khoaRank = buildKhoaRank(args.vst, args.gsc);
+  const cssdStatus = args.sources.cssd ?? "skipped";
+
+  const kyTruocBase = args.kyTruoc ?? null;
+  const ky_truoc = kyTruocBase
+    ? {
+        ...kyTruocBase,
+        delta_vst:
+          tyLeVst != null && kyTruocBase.ty_le_vst != null
+            ? Math.round((tyLeVst - kyTruocBase.ty_le_vst) * 10) / 10
+            : null,
+        delta_gsc:
+          tyLeGsc != null && kyTruocBase.ty_le_gsc != null
+            ? Math.round((tyLeGsc - kyTruocBase.ty_le_gsc) * 10) / 10
+            : null,
+        delta_ccs:
+          tyLeCcs != null && kyTruocBase.ty_le_ccs != null
+            ? Math.round((tyLeCcs - kyTruocBase.ty_le_ccs) * 10) / 10
+            : null,
+      }
+    : null;
 
   return {
     filters: args.filters,
-    sources: args.sources,
+    sources: {
+      vst: args.sources.vst,
+      gsc: args.sources.gsc,
+      nkbv: args.sources.nkbv,
+      cssd: cssdStatus,
+    },
     errors: args.errors,
     vst: args.vst,
     gsc: args.gsc,
     nkbv: args.nkbv,
+    cssd: args.cssd ?? null,
     kpis: {
       ty_le_vst: tyLeVst,
       ty_le_gsc: tyLeGsc,
@@ -450,6 +503,7 @@ export function composeBaoCaoTongHopPayload(args: {
       delta_gsc: deltaFromPeriodPoints(trendWeek, "ty_le_gsc"),
       delta_ccs: deltaFromPeriodPoints(trendWeek, "ty_le_ccs"),
     },
+    ky_truoc,
     trend_week: trendWeek,
     trend_month: trendMonth,
     khoa_rank: khoaRank,
@@ -457,12 +511,15 @@ export function composeBaoCaoTongHopPayload(args: {
       topic_vst: args.sources.vst === "ok",
       topic_gsc: args.sources.gsc === "ok",
       topic_nkbv: args.sources.nkbv === "ok",
+      topic_cssd: cssdStatus === "ok",
       compare_khoa: khoaRank.length > 0 || (args.filters.khoa_ids?.length ?? 0) > 0,
-      compare_khoi: false,
+      compare_khoi:
+        (args.vst?.matrix_khoi?.length ?? 0) > 0 || (args.gsc?.matrix_khoi?.length ?? 0) > 0,
       compare_khu_vuc:
         (args.vst?.matrix_khu_vuc?.length ?? 0) > 0 ||
         (args.gsc?.matrix_khu_vuc?.length ?? 0) > 0,
-      compare_doi_tuong: (args.vst?.matrix_nghe?.length ?? 0) > 0,
+      compare_doi_tuong:
+        (args.vst?.matrix_nghe?.length ?? 0) > 0 || (args.gsc?.matrix_nghe?.length ?? 0) > 0,
     },
   };
 }

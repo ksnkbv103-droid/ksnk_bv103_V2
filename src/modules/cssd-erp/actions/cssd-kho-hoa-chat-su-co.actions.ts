@@ -25,9 +25,9 @@ export type SuCoChemicalRow = {
 export async function listSuCoChemicalChuaGhiKhoAction(): Promise<
   { success: true; data: SuCoChemicalRow[] } | { success: false; error: string }
 > {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("KSNK_KHO_HOACHAT", "view");
+    const supabase = createAdminSupabaseClient();
     const { data: rows, error } = await supabase
       .from("cssd_fact_su_co")
       .select("id, mo_ta, attributes, incident_type_label, created_at")

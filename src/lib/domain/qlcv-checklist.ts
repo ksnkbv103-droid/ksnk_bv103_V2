@@ -50,3 +50,11 @@ export function parseMoTaToQlcvChecklist(moTa: string | null | undefined): QlcvC
   }
   return out;
 }
+
+/** Serialize checklist mẫu → `mo_ta` newline (spawn RPC `fn_qlcv_mo_ta_to_checklist`). */
+export function serializeQlcvChecklistToMoTa(items: QlcvChecklistItem[]): string {
+  return items
+    .map((i) => i.label.trim())
+    .filter(Boolean)
+    .join("\n");
+}

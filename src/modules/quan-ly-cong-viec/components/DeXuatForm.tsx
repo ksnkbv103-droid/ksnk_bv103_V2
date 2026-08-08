@@ -47,10 +47,6 @@ export function DeXuatForm({ onSuccess, onCancel }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className={`space-y-5 p-5 sm:p-6 ${bv103LayoutChrome.panelSurface}`}>
-        <p className={bv103LayoutChrome.noticeSlateRelaxed}>
-          Đề xuất chỉ áp dụng cho <strong className="font-semibold text-slate-900">công việc nội bộ Khoa KSNK</strong>.
-        </p>
-
         <div>
           <label className={labelStyles}>Tên công việc đề xuất *</label>
           <input
@@ -87,8 +83,7 @@ export function DeXuatForm({ onSuccess, onCancel }: Props) {
           <div>
             <label className={labelStyles}>Loại hình công việc</label>
             <select name="loai_cong_viec" defaultValue="DOT_XUAT" className={inputPlainStyles}>
-              <option value="DOT_XUAT">Đột xuất (mặc định)</option>
-              <option value="DINH_KY">Định kỳ</option>
+              <option value="DOT_XUAT">Đột xuất</option>
               <option value="KHAN_CAP">Khẩn cấp</option>
             </select>
           </div>

@@ -13,11 +13,12 @@ import { AnalyticsThongKeScopeBanner } from "@/modules/dashboard/components/Anal
 
 const VstStrategicAnalyticsPanel = dynamic(() => import("../components/VstStrategicAnalyticsPanel"), {
   ssr: false,
-  loading: () => <div className="h-64 animate-pulse rounded-2xl bg-slate-50" />,
+  loading: () => <div className="h-64 animate-pulse rounded-[var(--radius-shell)] bg-slate-50" />,
 });
 
 /**
  * View chỉ chứa dashboard thống kê VST — cùng khung analytics với Command Center / BCTH.
+ * Trên `/thong-ke/*` filter vào sticky chrome layout (ThongKeChromeSlot).
  */
 export default function VSTAnalyticsView() {
   const d = useVstAnalyticsData();

@@ -167,4 +167,5 @@ Cải trải nghiệm, không big-bang tách module (F-04).
 
 | Ngày | Việc |
 |------|------|
+| 2026-07-28 | Ghi nhận Sóng 4 deferred (HIS/LIS, Spaulding engine, facade kho) — [`roadmap-dang-cap-wave4-20260728.md`](../../reference/architecture/roadmap-dang-cap-wave4-20260728.md). Không mở Lớp 1 trong đợt IA/UX. |
 | 2026-07-17 | Tạo lộ trình 4 lớp; đóng Lớp 0 (doc/rule/mapping). |

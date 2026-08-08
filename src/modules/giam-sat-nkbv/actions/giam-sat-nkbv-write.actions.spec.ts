@@ -62,6 +62,8 @@ describe.skipIf(!hasIntegrationDb)("importViSinhExcel and automatic case creatio
         ma_benh_nhan: "PID-TEST-SPEC-777",
         ma_benh_an: "BA-TEST-SPEC-777",
         ma_benh_pham: "BP-TEST-UTI",
+        ma_xet_nghiem: "XN-TEST-SPEC-UTI-777",
+        ket_qua: "DUONG_TINH" as const,
         ho_ten_benh_nhan: "Trần UAT Nhập LIS",
         ngay_sinh: "1992-05-10",
         gioi_tinh: "Nữ",
@@ -75,6 +77,8 @@ describe.skipIf(!hasIntegrationDb)("importViSinhExcel and automatic case creatio
         ma_benh_nhan: "PID-TEST-SPEC-777",
         ma_benh_an: "BA-TEST-SPEC-777",
         ma_benh_pham: "BP-TEST-BSI",
+        ma_xet_nghiem: "XN-TEST-SPEC-BSI-777",
+        ket_qua: "DUONG_TINH" as const,
         ho_ten_benh_nhan: "Trần UAT Nhập LIS",
         ngay_sinh: "1992-05-10",
         gioi_tinh: "Nữ",
@@ -89,48 +93,44 @@ describe.skipIf(!hasIntegrationDb)("importViSinhExcel and automatic case creatio
     const result = await importViSinhExcel(testRecords);
     expect(result.success).toBe(true);
     expect(result.count).toBe(2);
-    expect(result.createdCasesCount).toBe(2);
+    expect(result.createdCasesCount).toBe(0); // kho vi sinh không spawn phiếu điều tra
 
-    // Verify stays created
     const { data: stayData } = await sb
       .from("nkbv_fact_benh_an")
       .select("*")
       .eq("ma_benh_an", "BA-TEST-SPEC-777")
       .single();
-    
+
     const stay = stayData as any;
     expect(stay).not.toBeNull();
     expect(stay.ma_benh_nhan).toBe("PID-TEST-SPEC-777");
-    expect(stay.ho_ten_benh_nhan).toBe("Trần UAT Nhập LIS");
 
-    // Verify database inserts
+    const { data: lisData } = await sb
+      .from("nkbv_fact_vi_sinh")
+      .select("ma_xet_nghiem, loai_benh_pham, tac_nhan")
+      .eq("ma_benh_an", "BA-TEST-SPEC-777")
+      .eq("is_active", true);
+
+    const lis = (lisData || []) as Array<{ tac_nhan: string | null }>;
+    expect(lis.length).toBe(2);
+    expect(lis.some((r) => r.tac_nhan === "Klebsiella pneumoniae")).toBe(true);
+    expect(lis.some((r) => r.tac_nhan === "Staphylococcus aureus")).toBe(true);
+
     const { data: casesData } = await sb
       .from("nkbv_fact_su_kien")
-      .select("ma_ca, vi_tri_nhiem_khuan, tac_nhan_vi_khuan, loai_nkbv_id")
+      .select("id")
       .eq("ma_benh_an", "BA-TEST-SPEC-777");
-
-    const cases = casesData as any[] | null;
-    expect(cases).not.toBeNull();
-    expect(cases?.length).toBe(2);
-
-    // 1. Urine record must match UTI / Đường tiết niệu
-    const utiCase = cases?.find(c => c.vi_tri_nhiem_khuan === "Đường tiết niệu");
-    expect(utiCase).toBeDefined();
-    expect(utiCase?.tac_nhan_vi_khuan).toBe("Klebsiella pneumoniae");
-
-    // 2. Blood record must match BSI / Máu
-    const bsiCase = cases?.find(c => c.vi_tri_nhiem_khuan === "Máu");
-    expect(bsiCase).toBeDefined();
-    expect(bsiCase?.tac_nhan_vi_khuan).toBe("Staphylococcus aureus");
+    expect(casesData?.length ?? 0).toBe(0);
   });
 
-  it("successfully merges duplicate positive LIS records falling under RIT 14-day window", async () => {
-    // 1. Import a first record to create the event
+  it("does not spawn HAI cases on second LIS import (store-only)", async () => {
     const recordsFirst = [
       {
         ma_benh_nhan: "PID-TEST-RIT-888",
         ma_benh_an: "BA-TEST-RIT-888",
         ma_benh_pham: "BP-TEST-RIT-01",
+        ma_xet_nghiem: "XN-TEST-RIT-01",
+        ket_qua: "DUONG_TINH" as const,
         ho_ten_benh_nhan: "Trần UAT Nhập LIS RIT",
         ngay_sinh: "1992-05-10",
         gioi_tinh: "Nữ",
@@ -139,21 +139,22 @@ describe.skipIf(!hasIntegrationDb)("importViSinhExcel and automatic case creatio
         khoa_yeu_cau_id: khoaId || undefined,
         loai_benh_pham: "Urine (Nước tiểu)",
         tac_nhan: "Escherichia coli",
-        so_luong: "10^5 CFU/ml"
-      }
+        so_luong: "10^5 CFU/ml",
+      },
     ];
 
     const res1 = await importViSinhExcel(recordsFirst);
     expect(res1.success).toBe(true);
     expect(res1.count).toBe(1);
-    expect(res1.createdCasesCount).toBe(1);
+    expect(res1.createdCasesCount).toBe(0);
 
-    // 2. Import a duplicate record for the same stay, same specimen type, 5 days later (within 14-day RIT)
     const recordsSecond = [
       {
         ma_benh_nhan: "PID-TEST-RIT-888",
         ma_benh_an: "BA-TEST-RIT-888",
         ma_benh_pham: "BP-TEST-RIT-02",
+        ma_xet_nghiem: "XN-TEST-RIT-02",
+        ket_qua: "DUONG_TINH" as const,
         ho_ten_benh_nhan: "Trần UAT Nhập LIS RIT",
         ngay_sinh: "1992-05-10",
         gioi_tinh: "Nữ",
@@ -162,31 +163,26 @@ describe.skipIf(!hasIntegrationDb)("importViSinhExcel and automatic case creatio
         khoa_yeu_cau_id: khoaId || undefined,
         loai_benh_pham: "Urine (Nước tiểu)",
         tac_nhan: "Klebsiella pneumoniae",
-        so_luong: "10^6 CFU/ml"
-      }
+        so_luong: "10^6 CFU/ml",
+      },
     ];
 
     const res2 = await importViSinhExcel(recordsSecond);
     expect(res2.success).toBe(true);
     expect(res2.count).toBe(1);
-    expect(res2.createdCasesCount).toBe(0); // 0 new cases created because it falls under RIT!
+    expect(res2.createdCasesCount).toBe(0);
 
-    // 3. Verify the existing event is updated and contains both pathogens
+    const { data: lisData } = await sb
+      .from("nkbv_fact_vi_sinh")
+      .select("ma_xet_nghiem, tac_nhan")
+      .eq("ma_benh_an", "BA-TEST-RIT-888")
+      .eq("is_active", true);
+    expect(lisData?.length).toBe(2);
+
     const { data: casesData } = await sb
       .from("nkbv_fact_su_kien")
-      .select("ma_ca, tac_nhan_vi_khuan, clinical_notes")
+      .select("id")
       .eq("ma_benh_an", "BA-TEST-RIT-888");
-
-    expect(casesData).not.toBeNull();
-    const cleanCases = casesData as any[];
-    
-    // There should be only 1 event created for this urine/stay
-    const matchedCase = cleanCases.find(c => c.ma_ca.includes("BP-TEST-RIT-01"));
-    expect(matchedCase).toBeDefined();
-    
-    // Pathogen must be merged/appended
-    expect(matchedCase.tac_nhan_vi_khuan).toContain("Escherichia coli");
-    expect(matchedCase.tac_nhan_vi_khuan).toContain("Klebsiella pneumoniae");
-    expect(matchedCase.clinical_notes?.tom_tat_dien_bien).toContain("[RIT Gộp mẫu]");
+    expect(casesData?.length ?? 0).toBe(0);
   });
 });

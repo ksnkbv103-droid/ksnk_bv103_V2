@@ -9,14 +9,14 @@ import { classifyVstAction } from "../lib/vst-action-classifier";
 import type { VstHistoryRow } from "../lib/vst-read-utils";
 import { gscTableChrome as G } from "@/modules/giam-sat-chung/lib/gsc-table-chrome";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
+import { buildEntityQrCode } from "@/lib/entity-qr/entity-qr-core";
+import { bv103TableLayout } from "@/lib/bv103-table-layout";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
+import { formatDateVi, formatTimeVi } from "@/lib/format-datetime-vi";
 
 function formatHHmm(value: unknown): string {
-  const raw = String(value ?? "").trim();
-  if (!raw) return "—";
-  const d = new Date(raw);
-  return Number.isFinite(d.getTime())
-    ? d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
-    : "—";
+  return formatTimeVi(value as string | null | undefined);
 }
 
 /**
@@ -39,8 +39,7 @@ export function getVSTHistoryColumns(
       cellClassName: "w-[7rem] min-w-[7rem]",
       cell: (s: Record<string, unknown>) => {
         const raw = (s.ngay_giam_sat as string) || (s.created_at as string);
-        const d = raw ? new Date(raw.includes("T") ? raw : `${raw}T12:00:00`) : null;
-        const dateLine = d ? d.toLocaleDateString("vi-VN") : "—";
+        const dateLine = formatDateVi(raw ? raw.slice(0, 10) : null);
         return <span className={`text-xs ${G.cellBody}`}>{dateLine}</span>;
       },
     },
@@ -48,13 +47,18 @@ export function getVSTHistoryColumns(
       header: "Mã phiên",
       accessorKey: "ma_hien_thi",
       sortable: false,
-      headerClassName: "w-[9.5rem] min-w-[9.5rem]",
-      cellClassName: "w-[9.5rem] min-w-[9.5rem]",
-      cell: (s: { id?: string; ngay_giam_sat?: string; ma_hien_thi?: string }) => (
-        <span className="font-mono text-[11px] font-semibold text-slate-600">
-          {s.ma_hien_thi || (s.id ? vstSessionDisplayRef(s.id, s.ngay_giam_sat) : "—")}
-        </span>
-      ),
+      headerClassName: bv103TableLayout.colCodeQr,
+      cellClassName: bv103TableLayout.colCodeQr,
+      cell: (s: { id?: string; ngay_giam_sat?: string; ma_hien_thi?: string }) => {
+        const label = s.ma_hien_thi || (s.id ? vstSessionDisplayRef(s.id, s.ngay_giam_sat) : "—");
+        const qrCode = s.id ? buildEntityQrCode("VST_SESSION", s.id) : "";
+        return (
+          <span className="inline-flex max-w-full items-center gap-1.5">
+            {qrCode ? <InlineEntityQrThumb code={qrCode} size={28} /> : null}
+            <span className="truncate font-mono text-[11px] font-semibold text-slate-600">{label}</span>
+          </span>
+        );
+      },
     },
     {
       header: "Khoa",
@@ -63,7 +67,9 @@ export function getVSTHistoryColumns(
       headerClassName: "w-[4rem] min-w-[4rem]",
       cellClassName: "w-[4rem] min-w-[4rem]",
       cell: (s: VstHistoryRow) => (
-        <span className="text-xs font-semibold text-slate-800" title={s.khoa_name}>{s.ma_khoa || s.khoa_name || "—"}</span>
+        <span className="text-xs font-semibold text-slate-800" title={s.khoa_name}>
+          {formatKhoaCompactLabel({ ma_khoa: s.ma_khoa, ten_khoa: s.khoa_name })}
+        </span>
       )
     },
     {
@@ -134,12 +140,12 @@ export function getVSTHistoryColumns(
       )
     },
     {
-      header: "",
+      header: "Thao tác",
       accessorKey: "id",
-      headerClassName: "w-[9rem] min-w-[9rem]",
-      cellClassName: "w-[9rem] min-w-[9rem]",
+      headerClassName: bv103TableLayout.colActionsWide,
+      cellClassName: bv103TableLayout.colActionsWide,
       cell: (s: VstHistoryRow) => (
-        <div className="flex flex-wrap items-center justify-end gap-1.5">
+        <div className={bv103TableLayout.actionsCell}>
           <button
             type="button"
             onClick={(e) => {

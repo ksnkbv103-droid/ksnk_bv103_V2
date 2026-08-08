@@ -1,7 +1,11 @@
 import type { ReactNode } from "react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
+import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 import type { BoDungCuTableRow } from "./bo-dung-cu-form-shared";
+import BoDungCuPrintQrButton from "./bo-dung-cu-print-qr-button";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 
 interface ActionCells {
   renderStatusCell: (item: BoDungCuTableRow) => ReactNode;
@@ -18,10 +22,18 @@ function clip(s: string | null | undefined, n: number) {
 export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableRow>[] {
   return [
     {
-      header: "Mã bộ",
+      header: "Mã bộ / QR",
       accessorKey: "ma_bo",
       sortable: true,
-      cell: (i) => <span className={`${TC.cellCode} text-slate-700`}>{i.ma_bo || "—"}</span>,
+      cell: (i) => {
+        const code = String(i.ma_bo || "").trim();
+        return (
+          <span className="inline-flex items-center gap-2">
+            {code ? <InlineEntityQrThumb code={code} size={36} /> : null}
+            <span className={`${TC.cellCode} text-slate-700`}>{code || "—"}</span>
+          </span>
+        );
+      },
     },
     {
       header: "Tên bộ",
@@ -81,9 +93,11 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       header: "Khoa sử dụng",
       accessorKey: "khoa_su_dung",
       cell: (i) => (
-        <span className={`inline-flex max-w-[13rem] flex-col gap-0.5 ${TC.cellMeta}`}>
-          <span className="font-mono text-rose-700">{i.khoa_su_dung?.ma_khoa || "—"}</span>
-          <span>{clip(i.khoa_su_dung?.ten_khoa, 44)}</span>
+        <span className={`font-mono text-rose-700 ${TC.cellMeta}`}>
+          {formatKhoaCompactLabel({
+            ma_khoa: i.khoa_su_dung?.ma_khoa,
+            ten_khoa: i.khoa_su_dung?.ten_khoa,
+          })}
         </span>
       ),
     },
@@ -104,14 +118,23 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       cell: (i) => {
         const raw = i.ngay_kiem_ke_gan_nhat;
         if (!raw) return <span className="text-[11px] text-slate-400">—</span>;
-        const t = String(raw);
-        return <span className="text-[11px] font-semibold text-slate-600">{t.slice(0, 10)}</span>;
+        return <span className="text-[11px] font-semibold text-slate-600">{formatDateVi(raw)}</span>;
       },
     },
     {
       header: "Ghi chú",
       accessorKey: "ghi_chu",
       cell: (i) => <span className="text-[11px] text-slate-500">{clip(i.ghi_chu, 56)}</span>,
+    },
+    {
+      header: "Tem QR",
+      accessorKey: "id",
+      cell: (i) =>
+        i.ma_bo ? (
+          <BoDungCuPrintQrButton boId={i.id} />
+        ) : (
+          <span className="text-[11px] text-slate-400">Chưa có mã</span>
+        ),
     },
     {
       header: TH.status,

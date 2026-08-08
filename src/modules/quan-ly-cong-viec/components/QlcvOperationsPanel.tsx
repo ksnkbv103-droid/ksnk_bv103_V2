@@ -24,13 +24,38 @@ import type { UseQlcvKanbanReturn } from "../hooks/useQlcvKanban";
 import type { UseQlcvTableReturn } from "../hooks/useQlcvTable";
 import type { QlcvUiAccessFlags } from "../lib/qlcv-access";
 import { QlcvConfirmDialog } from "./dialogs/QlcvConfirmDialog";
+import type { QlcvLoaiFilter } from "./QlcvDinhKySummaryBar";
+import { resolveQlcvPeriodRange, type QlcvPeriodKind } from "../lib/qlcv-period-range";
 
 const CongViecKanban = dynamic(() => import("./CongViecKanban"), {
   ssr: false,
-  loading: () => <div className="min-h-[240px] animate-pulse rounded-2xl border border-slate-200/90 bg-slate-50" />,
+  loading: () => <div className="min-h-[240px] animate-pulse rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50" />,
 });
 
 type ViewMode = "BANG" | "KANBAN";
+
+function matchesLoaiFilter(t: CongViecView, loai: QlcvLoaiFilter): boolean {
+  if (loai === "ALL") return true;
+  if (loai === "DINH_KY") return t.loai_cong_viec === "DINH_KY";
+  return t.loai_cong_viec !== "DINH_KY";
+}
+
+function matchesPeriodHan(t: CongViecView, periodKind: QlcvPeriodKind | null): boolean {
+  if (!periodKind) return true;
+  const period = resolveQlcvPeriodRange(periodKind);
+  const han = t.han_hoan_thanh ? String(t.han_hoan_thanh).slice(0, 10) : "";
+  if (han && han >= period.startIso && han <= period.endIso) return true;
+  // Việc chưa ghi hạn: vẫn hiện nếu ngày tạo nằm trong kỳ (giám sát bao phủ)
+  const created = t.created_at ? String(t.created_at).slice(0, 10) : "";
+  if (!han && created && created >= period.startIso && created <= period.endIso) return true;
+  return false;
+}
+
+function matchesNhiemVuFilter(t: CongViecView, nhiemVuId: string | null | undefined): boolean {
+  if (!nhiemVuId) return true;
+  if (nhiemVuId === "__NONE__") return !t.nhiem_vu_id;
+  return t.nhiem_vu_id === nhiemVuId;
+}
 
 export type QlcvOperationsPanelProps = {
   kanban: UseQlcvKanbanReturn;
@@ -48,6 +73,13 @@ export type QlcvOperationsPanelProps = {
   onRefreshAll: () => Promise<void>;
   onBoardFilter: (f: QlcvBoardFilter) => void;
   routerRefresh: () => void;
+  /** Lọc loại — client trên danh sách điều hành. */
+  loaiFilter?: QlcvLoaiFilter;
+  /** Khi set: chỉ phiếu có hạn trong kỳ (client). */
+  periodKindFilter?: QlcvPeriodKind | null;
+  /** Lọc theo nhiệm vụ kế hoạch năm (`__NONE__` = chưa gắn). */
+  nhiemVuFilter?: string | null;
+  summarySlot?: React.ReactNode;
 };
 
 export function QlcvOperationsPanel({
@@ -65,8 +97,24 @@ export function QlcvOperationsPanel({
   onRefreshAll,
   onBoardFilter,
   mauSacByMa,
+  loaiFilter = "ALL",
+  periodKindFilter = null,
+  nhiemVuFilter = null,
+  summarySlot,
 }: QlcvOperationsPanelProps) {
   const [deleteTarget, setDeleteTarget] = useState<CongViecView | null>(null);
+  const scopedTasks = useMemo(
+    () =>
+      mergedTasks.filter(
+        (t) =>
+          matchesLoaiFilter(t, loaiFilter) &&
+          matchesPeriodHan(t, periodKindFilter) &&
+          matchesNhiemVuFilter(t, nhiemVuFilter),
+      ),
+    [mergedTasks, loaiFilter, periodKindFilter, nhiemVuFilter],
+  );
+  const useClientLoaiPeriod =
+    loaiFilter !== "ALL" || periodKindFilter != null || Boolean(nhiemVuFilter);
 
   const deleteDialogCopy = useMemo(() => {
     if (!deleteTarget) return { title: "", description: "" };
@@ -91,7 +139,7 @@ export function QlcvOperationsPanel({
 
   const kanbanTasks = useMemo(() => {
     const term = kanban.kanbanSearchDebounced;
-    return mergedTasks.filter((t) => {
+    return scopedTasks.filter((t) => {
       if (!term) return true;
       return (
         t.tieu_de?.toLowerCase().includes(term) ||
@@ -101,7 +149,7 @@ export function QlcvOperationsPanel({
           .includes(term)
       );
     });
-  }, [mergedTasks, kanban.kanbanSearchDebounced]);
+  }, [scopedTasks, kanban.kanbanSearchDebounced]);
 
   const filteredKanbanTasks = useMemo(() => {
     if (kanban.boardFilter == null) return kanbanTasks;
@@ -151,13 +199,11 @@ export function QlcvOperationsPanel({
     [qlcvUi, mauSacByMa, onEditTask, handleDelete],
   );
 
+  const tableData = useClientLoaiPeriod ? scopedTasks : table.tableRows;
+
   return (
     <KsnkSupervisionPanel className={UI.sectionGap}>
-      <p className="text-xs leading-relaxed text-slate-600">
-        Bảng điều hành: một dòng = một phiếu — rõ <strong>việc</strong>, <strong>người giao</strong>,{" "}
-        <strong>phụ trách</strong>, <strong>cổng trách nhiệm</strong>, <strong>tiến độ</strong> và{" "}
-        <strong>hạn</strong>. Bấm dòng để xem kết quả / nhật ký thực hiện.
-      </p>
+      {summarySlot}
 
       {kanban.boardFilter ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200/90 bg-slate-50/90 px-3 py-2 text-xs text-slate-700">
@@ -178,7 +224,7 @@ export function QlcvOperationsPanel({
       ) : null}
 
       <QlcvGateStats
-        tasks={mergedTasks}
+        tasks={scopedTasks}
         activeFilter={kanban.boardFilter}
         onFilterChange={onBoardFilter}
         showAllGatePills={canApprove}
@@ -195,18 +241,13 @@ export function QlcvOperationsPanel({
           />
         </div>
 
-        <SearchBar
-          value={viewMode === "KANBAN" ? kanban.searchTerm : table.tableSearchInput}
-          onChange={(v) => {
-            if (viewMode === "KANBAN") kanban.setSearchTerm(v);
-            else table.handleTableSearch(v);
-          }}
-          placeholder={
-            viewMode === "KANBAN"
-              ? "Tìm tên việc, người phụ trách…"
-              : "Tìm tiêu đề, người giao, phụ trách…"
-          }
-        />
+        {viewMode === "KANBAN" ? (
+          <SearchBar
+            value={kanban.searchTerm}
+            onChange={kanban.setSearchTerm}
+            placeholder="Tìm tên việc, người phụ trách…"
+          />
+        ) : null}
 
         {viewMode === "KANBAN" ? (
           <CongViecKanban
@@ -226,21 +267,25 @@ export function QlcvOperationsPanel({
           <div className="min-w-0 overflow-x-auto rounded-xl border border-slate-100/90 bg-white">
             <AdvancedDataTable
               columns={columns}
-              data={table.tableRows}
+              data={tableData}
               loading={table.tableLoading || kanban.loading}
               onRowClick={(item) => onSelectTask(item.id)}
-              hideSearch
               tableClassName="w-full min-w-0 table-fixed border-collapse text-sm"
               searchValue={table.tableSearchInput}
               onSearch={table.handleTableSearch}
+              searchPlaceholder="Tìm tiêu đề, người giao, phụ trách…"
               onSort={table.handleTableSort}
-              serverPagination={{
-                page: table.tablePage,
-                totalPages: table.tableTotalPages,
-                totalCount: table.tableTotal,
-                pageSize: table.tablePageSize,
-                onPageChange: table.setTablePage,
-              }}
+              serverPagination={
+                useClientLoaiPeriod
+                  ? undefined
+                  : {
+                      page: table.tablePage,
+                      totalPages: table.tableTotalPages,
+                      totalCount: table.tableTotal,
+                      pageSize: table.tablePageSize,
+                      onPageChange: table.setTablePage,
+                    }
+              }
             />
           </div>
         )}

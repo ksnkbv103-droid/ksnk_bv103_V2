@@ -17,8 +17,8 @@ interface Props {
   actorStaffId?: string | null;
 }
 
-const cardInteractive =
-  "cursor-pointer select-none transition-[box-shadow,transform,border-color] touch-manipulation hover:border-[var(--primary)]/35 hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 min-h-[3.25rem] sm:min-h-0";
+const chipBase =
+  "inline-flex h-9 shrink-0 touch-manipulation items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 text-[11px] font-semibold transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-1";
 
 export function QlcvGateStats({ tasks, activeFilter, onFilterChange, showAllGatePills, actorStaffId }: Props) {
   const list = tasks ?? [];
@@ -62,20 +62,27 @@ export function QlcvGateStats({ tasks, activeFilter, onFilterChange, showAllGate
   }, [list, actorStaffId]);
 
   const pick = onFilterChange;
-
   const isSel = (f: QlcvBoardFilter) => (f === "TOTAL" && (activeFilter == null || activeFilter === "TOTAL")) || activeFilter === f;
 
-  const baseCard = (f: QlcvBoardFilter, selected: boolean, className: string, children: React.ReactNode) => (
+  const chip = (
+    f: QlcvBoardFilter,
+    label: string,
+    value: number,
+    icon: React.ReactNode,
+    className: string,
+  ) => (
     <button
       type="button"
       key={f}
       disabled={!pick}
       onClick={() => pick?.(f)}
-      className={`flex min-w-[9.5rem] shrink-0 items-center gap-3 rounded-xl border px-3 py-2.5 text-left shadow-sm ${cardInteractive} ${className} ${
-        selected ? "ring-2 ring-[var(--primary)]/40 ring-offset-1" : ""
-      } ${pick ? "" : "cursor-default opacity-95"}`}
+      className={`${chipBase} ${className} ${
+        isSel(f) ? "ring-2 ring-[var(--primary)]/40 ring-offset-1" : ""
+      } ${pick ? "hover:bg-white/80 active:scale-[0.99]" : "cursor-default opacity-95"}`}
     >
-      {children}
+      {icon}
+      <span className="whitespace-nowrap text-slate-600">{label}</span>
+      <span className="tabular-nums text-slate-900">{value}</span>
     </button>
   );
 
@@ -84,122 +91,57 @@ export function QlcvGateStats({ tasks, activeFilter, onFilterChange, showAllGate
       key: "GATE_DEXUAT",
       label: "Chờ phê đề xuất",
       value: stats.gateDeXuat,
-      className: "border-violet-100 bg-violet-50/80 text-violet-900",
+      className: "border-violet-200 bg-violet-50/80 text-violet-900",
     },
     {
       key: "GATE_NGHIEMTHU",
       label: "Chờ nghiệm thu",
       value: stats.gateNghiemThu,
-      className: "border-orange-100 bg-orange-50/80 text-orange-900",
+      className: "border-orange-200 bg-orange-50/80 text-orange-900",
     },
   ];
 
-  const gatePills = showAllGatePills
-    ? gateDefs
-    : gateDefs.filter((p) => p.value > 0);
+  const gatePills = showAllGatePills ? gateDefs : gateDefs.filter((p) => p.value > 0);
 
   if (stats.nearDeadline > 0 || showAllGatePills) {
     gatePills.push({
       key: "NEAR_DEADLINE",
-      label: "Sắp đến hạn (≤2 ngày)",
+      label: "Sắp đến hạn",
       value: stats.nearDeadline,
-      className: "border-amber-100 bg-amber-50/80 text-amber-950",
+      className: "border-amber-200 bg-amber-50/80 text-amber-950",
     });
   }
 
   return (
-    <div className="scrollbar-hide flex min-w-0 flex-nowrap items-stretch gap-2 overflow-x-auto pb-1 snap-x snap-mandatory">
-      {baseCard(
-        "TOTAL",
-        isSel("TOTAL"),
-        "border-slate-200 bg-white",
-        <>
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-800">
-            <ListTodo size={18} strokeWidth={2.5} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Tổng công việc</p>
-            <p className="text-xl font-bold leading-tight text-slate-800">{stats.total}</p>
-          </div>
-        </>,
-      )}
-
+    <div className="scrollbar-hide flex min-w-0 flex-nowrap items-center gap-1.5 overflow-x-auto pb-1">
+      {chip("TOTAL", "Tổng", stats.total, <ListTodo size={14} className="text-slate-500" />, "border-slate-200 bg-white")}
       {actorStaffId
-        ? baseCard(
+        ? chip(
             "MY_TASKS",
-            isSel("MY_TASKS"),
-            "border-sky-100 bg-sky-50/80",
-            <>
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-sky-700">
-                <UserRound size={18} strokeWidth={2.5} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-sky-800/80">Việc của tôi</p>
-                <p className="text-xl font-bold leading-tight text-sky-800">{stats.myTasks}</p>
-              </div>
-            </>,
+            "Của tôi",
+            stats.myTasks,
+            <UserRound size={14} className="text-sky-600" />,
+            "border-sky-200 bg-sky-50/80",
           )
         : null}
-
-      {baseCard(
-        "IN_PROGRESS",
-        isSel("IN_PROGRESS"),
-        "border-slate-200 bg-white",
-        <>
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-50 text-blue-600">
-            <Clock size={18} strokeWidth={2.5} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Đang làm</p>
-            <p className="text-xl font-bold leading-tight text-blue-600">{stats.inProgress}</p>
-          </div>
-        </>,
-      )}
-
-      {baseCard(
+      {chip("IN_PROGRESS", "Đang làm", stats.inProgress, <Clock size={14} className="text-blue-600" />, "border-slate-200 bg-white")}
+      {chip(
         "COMPLETED",
-        isSel("COMPLETED"),
+        "Hoàn thành",
+        stats.completed,
+        <CheckCircle2 size={14} className="text-emerald-600" />,
         "border-slate-200 bg-white",
-        <>
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-50 text-emerald-600">
-            <CheckCircle2 size={18} strokeWidth={2.5} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Đã hoàn thành</p>
-            <p className="text-xl font-bold leading-tight text-emerald-600">{stats.completed}</p>
-          </div>
-        </>,
       )}
-
-      {baseCard(
+      {chip(
         "OVERDUE",
-        isSel("OVERDUE"),
-        "border-red-100 bg-red-50",
-        <>
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-red-600">
-            <AlertTriangle size={18} strokeWidth={2.5} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-red-800/80">Cần xử lý gấp</p>
-            <p className="text-xl font-bold leading-tight text-red-600">{stats.overdueCount}</p>
-          </div>
-        </>,
+        "Gấp",
+        stats.overdueCount,
+        <AlertTriangle size={14} className="text-red-600" />,
+        "border-red-200 bg-red-50",
       )}
-
-      {gatePills.map((p) => (
-        <button
-          key={p.key}
-          type="button"
-          disabled={!pick}
-          onClick={() => pick?.(p.key)}
-          className={`flex min-w-[9rem] shrink-0 flex-col justify-center rounded-xl border px-3 py-2.5 text-left text-xs shadow-sm ${cardInteractive} ${p.className} ${
-            isSel(p.key) ? "ring-2 ring-[var(--primary)]/35 ring-offset-1" : ""
-          } ${pick ? "" : "cursor-default"}`}
-        >
-          <span className="font-semibold uppercase tracking-wide opacity-90">{p.label}</span>
-          <span className="text-lg font-bold tabular-nums leading-tight">{p.value}</span>
-        </button>
-      ))}
+      {gatePills.map((p) =>
+        chip(p.key, p.label, p.value, null, p.className),
+      )}
     </div>
   );
 }

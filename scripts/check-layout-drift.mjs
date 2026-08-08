@@ -32,6 +32,8 @@ const PANEL_CHROME_NEEDLE =
 const PANEL_SKIP = new Set([
   "src/modules/giam-sat-chung/components/GiamSatChungForm.tsx",
   "src/modules/giam-sat-vst/components/VSTForm.tsx",
+  // Thin alias → IncidentReportModal (đã wire panel chrome).
+  "src/modules/cssd-erp/components/inventory/InventoryIssueModal.tsx",
 ]);
 
 /** Chỉ tiêu đề khối — nút touch (btnTouch) giữ IN HOA */

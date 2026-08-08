@@ -504,6 +504,11 @@
     box-sizing: border-box !important;
   }
 
+  /* Lặp hàng tiêu đề bảng khi sang trang 2+ */
+  thead {
+    display: table-header-group !important;
+  }
+
   /* Cho phép tách hàng giữa các trang — tránh một hàng quá cao bị cắt / chỉ in một trang */
   tr {
     page-break-inside: auto !important;

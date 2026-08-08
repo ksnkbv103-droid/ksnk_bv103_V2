@@ -1,0 +1,192 @@
+# ĐẶC TẢ LOGIC DOMAIN: PHÂN HỆ GIÁM SÁT TUÂN THỦ THỰC HÀNH ĐẶT ĐƯỜNG TRUYỀN TĨNH MẠCH TRUNG TÂM (CLIP)
+*Chuẩn hóa theo Sổ tay Giám sát An toàn Người bệnh NHSN/CDC 2025 - Chương 5*
+
+---
+
+Hợp phần Giám sát Tuân thủ Thực hành đặt Đường truyền Tĩnh mạch Trung tâm (Central Line Insertion Practices - CLIP) là một công cụ kiểm soát chất lượng quan trọng nhằm đánh giá việc tuân thủ các quy tắc vô khuẩn dựa trên bằng chứng, giúp phòng ngừa nguy cơ nhiễm khuẩn huyết liên quan đến đường truyền trung tâm (CLABSI).
+
+---
+
+## 1. ĐỊNH NGHĨA BIẾN SỐ VÀ CƠ SỞ DỮ LIỆU ĐẦU VÀO (DATA SCHEMA)
+
+Để lập trình viên thiết kế cơ sở dữ liệu cho Phân hệ CLIP, cấu trúc dữ liệu JSON cần ghi nhận chi tiết cho mỗi nỗ lực đặt catheter (bám sát Biểu mẫu CDC 57.125):
+
+### 1.1. Thực thể Ca bệnh & Thông tin Hành chính
+```json
+{
+  "CLIP_EventID": "string (Primary Key)",
+  "PatientID": "string (Foreign Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "LocationCode": "string (CDC Location Code nơi thực hiện đặt)",
+  "PatientAgeDays": "integer (Tuổi bệnh nhân tính theo ngày tại thời điểm thực hiện thủ thuật)"
+}
+```
+
+### 1.2. Thực thể Chi tiết Thủ thuật & Người thực hiện (Procedure & Inserter Details)
+```json
+{
+  "InsertionDateTime": "datetime [YYYY-MM-DD HH:MM:SS]",
+  "IsSuccessfulAttempt": "boolean (Thủ thuật có thành công không?)",
+  "IsNewSitePrepPerformed": "boolean (Có sát khuẩn lại vùng da mới nếu nỗ lực trước thất bại?)",
+  "InserterID": "string (Mã định danh người thực hiện đặt)",
+  "InserterType": "enum [FELLOW, RESIDENT, ATTENDING_PHYSICIAN, PHYSICIAN_ASSISTANT, NURSE_PRACTITIONER, IV_TEAM_NURSE, OTHER]",
+  "ReasonForInsertion": "enum [NEW_ACCESS, REPLACE_SUSPECTED_INFECTED_LINE, ROUTINE_REPLACEMENT, OTHER]",
+  "IsGuidewireUsed": "boolean (Sử dụng guidewire để thay catheter mới?)",
+  "LineType": "enum [TEMPORARY, PERMANENT, UMBILICAL]",
+  "IsAntimicrobialCoated": "boolean (Catheter có phủ kháng sinh/chất chống khuẩn?)",
+  "InsertionSite": "enum [INTERNAL_JUGULAR, SUBCLAVIAN, FEMORAL, UMBILICAL_ARTERY, UMBILICAL_VEIN, OTHER]"
+}
+```
+
+### 1.3. Thực thể Giám sát Vô khuẩn đặt đường truyền (Aseptic Practices Checklist)
+```json
+{
+  "HandHygienePerformed": "boolean (Có thực hiện sát khuẩn tay trước khi đặt?)",
+  "MaximalSterileBarriers": {
+    "SterileGloves": "boolean (Đeo găng vô khuẩn?)",
+    "SterileGown": "boolean (Mặc áo choàng vô khuẩn?)",
+    "Cap": "boolean (Đội mũ vô khuẩn?)",
+    "Mask": "boolean (Đeo khẩu trang vô khuẩn?)",
+    "LargeSterileDrape": "boolean (Sử dụng săng vô khuẩn lớn che toàn bộ cơ thể bệnh nhân?)"
+  },
+  "SkinPrep": {
+    "AgentUsed": "enum [CHG, POVIDONE_IODINE, ALCOHOL, OTHER]",
+    "IsCHGContraindicated": "boolean (Bệnh nhân có chống chỉ định với CHG được ghi nhận?)",
+    "IsCompletelyDriedBeforeIncision": "boolean (Chất sát khuẩn đã khô hoàn toàn trước khi rạch da/đâm kim?)"
+  }
+}
+```
+
+---
+
+## 2. CỔNG LỌC ĐIỀU KIỆN TIÊN QUYẾT (GATEKEEPERS & INGESTION RULES)
+
+Hệ thống phải tự động kiểm tra và áp dụng các quy tắc lọc dữ liệu sau khi ghi nhận một sự kiện CLIP:
+
+*   **Logic 1 (Vị trí áp dụng):** Giám sát CLIP có thể thực hiện tại bất kỳ khoa phòng nào có phát sinh thủ thuật đặt đường truyền trung tâm (khoa nội trú, ngoại trú, phòng mổ, phòng cấp cứu, phòng can thiệp mạch).
+*   **Logic 2 (Đơn vị ghi nhận nỗ lực đặt - Ingestion Attempt Unit):** 
+    *   Hệ thống ghi nhận dữ liệu cho **từng nỗ lực đặt** (insertion attempt).
+    *   Nếu nỗ lực đặt trước đó không thành công (unsuccessful attempt), hệ thống chỉ được phép tạo và lưu trữ một bản ghi CLIP mới **nếu và chỉ nếu** người thực hiện có tiến hành chuẩn bị/sát khuẩn lại vùng da mới (`IsNewSitePrepPerformed == True`).
+*   **Logic 3 (Phương thức thu thập):** 
+    *   Biểu mẫu giám sát có thể được hoàn thành ngay tại giường bệnh bởi chính người thực hiện thủ thuật hoặc bởi một người quan sát độc lập (như điều dưỡng phụ tá đặt).
+    *   Hệ thống cho phép hồi cứu từ bệnh án **chỉ khi** tất cả các trường thông tin vô khuẩn của CLIP đã được tích hợp đầy đủ thành các trường bắt buộc trong mẫu quy trình đặt catheter chuẩn của bệnh viện.
+
+---
+
+## 3. THUẬT TOÁN ĐÁNH GIÁ SỰ TUÂN THỦ GÓI CLIP (CLIP BUNDLE ADHERENCE LOGIC)
+
+Động cơ quy tắc (Rule Engine) của phần mềm sẽ tự động đánh giá trạng thái tuân thủ Gói CLIP (NHSN CLIP Bundle) cho từng bản ghi. Một ca đặt catheter chỉ được hệ thống công nhận là **ĐẠT GÓI TUÂN THỦ (Bundle-Compliant = YES)** khi và chỉ khi thỏa mãn đồng thời cả 4 điều kiện cốt lõi sau:
+
+### Điều kiện 1: Sát khuẩn tay trước thủ thuật (Hand Hygiene)
+*   Giá trị biến số: `HandHygienePerformed == True`.
+
+### Điều kiện 2: Sử dụng chất sát khuẩn da phù hợp (Appropriate Skin Prep)
+Hệ thống phân nhánh logic kiểm tra dựa trên tuổi của bệnh nhân:
+*   **IF** Tuổi bệnh nhân $\ge 60$ ngày tuổi (`PatientAgeDays >= 60`):
+    *   Chất sát khuẩn bắt buộc phải là Chlorhexidine Gluconate (`AgentUsed == 'CHG'`).
+    *   *Ngoại lệ:* Nếu dùng chất khác (Povidone Iodine, Alcohol), hệ thống chỉ chấp nhận đạt khi có ghi nhận chống chỉ định lâm sàng với CHG (`IsCHGContraindicated == True`).
+*   **IF** Tuổi bệnh nhân < 60 ngày tuổi (`PatientAgeDays < 60`):
+    *   Chấp nhận bất kỳ chất sát khuẩn nào trong danh mục: `CHG`, `POVIDONE_IODINE`, `ALCOHOL`, hoặc chất chỉ định khác.
+    *   *Lưu ý hệ thống:* Hiển thị khuyến cáo cảnh báo cho nhân viên lâm sàng: "FDA khuyến cáo cần sử dụng CHG thận trọng cho trẻ sinh non và trẻ dưới 2 tháng tuổi".
+
+### Điều kiện 3: Đảm bảo thời gian khô hoàn toàn (Antisepsis Dry Time)
+*   Giá trị biến số: `IsCompletelyDriedBeforeIncision == True` (Chất sát khuẩn da phải được để khô hoàn toàn tự nhiên trước khi rạch da hoặc đâm kim).
+
+### Điều kiện 4: Sử dụng đầy đủ 5 rào chắn vô khuẩn tối đa (All 5 Maximal Sterile Barriers)
+*   Hệ thống kiểm tra đồng thời cả 5 biến rào chắn vô khuẩn sau phải bằng `True`:
+    *   `SterileGloves == True` (Sử dụng găng tay vô khuẩn)
+    *   `SterileGown == True` (Mặc áo choàng vô khuẩn)
+    *   `Cap == True` (Đội mũ vô khuẩn che kín tóc)
+    *   `Mask == True` (Đeo khẩu trang y tế ôm khít)
+    *   `LargeSterileDrape == True` (Sử dụng săng vô khuẩn lớn che phủ hoàn toàn cơ thể bệnh nhân).
+
+---
+
+## 4. THUẬT TOÁN TÍNH TOÁN CHỈ SỐ ADHERENCE RATE
+
+Tỷ lệ tuân thủ thực hành đặt đường truyền trung tâm được phần mềm tự động tính toán tổng hợp theo từng tháng lịch:
+
+### 4.1. Công thức tính Tỷ lệ tuân thủ Gói CLIP chung (CLIP Bundle Adherence Rate)
+$$\text{Tỷ lệ tuân thủ CLIP (\%)} = \left( \frac{\text{Tổng số ca đặt ĐẠT chuẩn cả 4 điều kiện Gói CLIP (Numerator)}}{\text{Tổng số nỗ lực đặt catheter được báo cáo trong tháng (Denominator)}} \right) \times 100$$
+
+### 4.2. Phân tách chỉ số (Aggregation Levels)
+Phần mềm hỗ trợ phân tách chỉ số tự động theo các chiều sau để phục vụ phân tích chất lượng của JCI:
+*   **Khoa phòng (Location-specific Adherence):** Tính tỷ lệ tuân thủ riêng biệt cho từng khoa điều trị (ví dụ: ICU, Cấp cứu, Phòng mổ).
+*   **Người thực hiện (Inserter-specific Adherence):** Tính tỷ lệ tuân thủ riêng biệt cho từng đối tượng hoặc cá nhân người thực hiện đặt để hỗ trợ phản hồi hiệu quả thực hành lâm sàng.
+
+---
+
+## 5. LƯU ĐỒ THUẬT TOÁN ĐÁNH GIÁ (MERMAID FLOWCHART)
+
+```mermaid
+graph TD
+    A[Ghi nhận nỗ lực đặt Catheter tĩnh mạch trung tâm] --> B{Địa điểm hợp lệ? <br> Có nằm trong Reporting Plan?}
+    B -- No --> C[Lưu trữ để theo dõi nội bộ - Off-plan]
+    B -- Yes --> D{Có phải ca mới không? <br> Nếu nỗ lực trước đó bại, có chuẩn bị lại da mới?}
+    D -- No --> E[Hủy bỏ bản ghi trùng lặp]
+    D -- Yes --> F[Bắt đầu đánh giá Gói CLIP Bundle]
+    
+    %% Đánh giá các điều kiện
+    F --> G{1. Sát khuẩn tay đạt? <br> HandHygienePerformed == True}
+    G -- No --> Z[KẾT LUẬN: KHÔNG ĐẠT GÓI CLIP]
+    G -- Yes --> H{2. Rào chắn đạt? <br> Sử dụng đủ 5/5 rào chắn tối đa?}
+    H -- No --> Z
+    H -- Yes --> I{3. Sát khuẩn da khô hoàn toàn trước đâm kim? <br> IsCompletelyDried == True}
+    I -- No --> Z
+    I -- Yes --> K{4. Đánh giá nhóm tuổi bệnh nhân?}
+    
+    %% Đánh giá sát khuẩn da theo tuổi
+    K -- Trẻ < 60 ngày tuổi --> L{Chất sát khuẩn thuộc danh mục cho phép?}
+    L -- Yes --> Y[KẾT LUẬN: ĐẠT GÓI CLIP BUNDLE]
+    L -- No --> Z
+    
+    K -- Bệnh nhân >= 60 ngày tuổi --> M{Sử dụng chất sát khuẩn CHG?}
+    M -- Yes --> Y
+    M -- No --> N{Có lý do chống chỉ định CHG ghi nhận?}
+    N -- Yes --> Y
+    N -- No --> Z
+    
+    %% Tính toán đầu ra
+    Y --> P[Gán nhãn: Bundle-Compliant = YES]
+    Z --> Q[Gán nhãn: Bundle-Compliant = NO]
+    P --> R[Tính tỷ lệ tuân thủ tổng hợp của Khoa/Inserter]
+    Q --> R
+```
+
+---
+
+## 6. MẪU BIỂU KẾT QUẢ ĐẦU RA MOCKUP (OUTPUT REPORTS)
+
+### 6.1. Phiếu giám sát đặt Catheter đạt chuẩn (Compliant Event)
+*   **Mã CLIP:** `CLIP-2026-00412`
+*   **Thông tin hành chính:** Bệnh nhân Lê Hoàng M (45 tuổi) | Khoa: Hồi sức tích cực Ngoại (ICU-SURG)
+*   **Chi tiết thủ thuật:**
+    *   *Thời điểm đặt:* 2026-08-04 09:30:00
+    *   *Người thực hiện:* BS. Nguyễn Văn T (Bác sĩ điều trị - Attending Physician)
+    *   *Kết quả đặt:* Thành công lần 1 (`IsSuccessfulAttempt = YES`)
+    *   *Vị trí đặt:* Tĩnh mạch dưới đòn phải (`Subclavian`) | Catheter: Temporary
+*   **Đánh giá sự tuân thủ vô khuẩn (Gói CLIP):**
+    *   *1. Sát khuẩn tay:* ĐẠT (Có thực hiện sát khuẩn tay trước thủ thuật)
+    *   *2. Rào chắn vô khuẩn tối đa (5/5):* ĐẠT
+        *   `Mũ vô khuẩn`: Có | `Khẩu trang`: Có | `Áo choàng`: Có | `Găng tay`: Có | `Săng phủ lớn toàn thân`: Có
+    *   *3. Sát khuẩn da:* ĐẠT (Sử dụng dung dịch CHG, chất sát khuẩn đã khô hoàn toàn tự nhiên trước khi đâm kim)
+*   **KẾT LUẬN CỦA PHẦN MỀM:** **Gói tuân thủ CLIP (Bundle-Compliant) = ĐẠT (YES)**.
+
+### 6.2. Phiếu giám sát đặt Catheter không đạt chuẩn (Non-compliant Event)
+*   **Mã CLIP:** `CLIP-2026-00413`
+*   **Thông tin hành chính:** Bệnh nhân Trần Thị H (28 tuổi) | Khoa: Cấp cứu (ED)
+*   **Chi tiết thủ thuật:**
+    *   *Thời điểm đặt:* 2026-08-04 10:15:00
+    *   *Người thực hiện:* BS. Phạm Minh K (Bác sĩ nội trú - Resident)
+    *   *Kết quả đặt:* Thành công lần 1 (`IsSuccessfulAttempt = YES`)
+    *   *Vị trí đặt:* Tĩnh mạch đùi trái (`Femoral`) | Catheter: Temporary
+*   **Đánh giá sự tuân thủ vô khuẩn (Gói CLIP):**
+    *   *1. Sát khuẩn tay:* ĐẠT (Có thực hiện sát khuẩn tay trước thủ thuật)
+    *   *2. Rào chắn vô khuẩn tối đa (4/5):* **KHÔNG ĐẠT**
+        *   `Mũ vô khuẩn`: Có | `Khẩu trang`: Có | `Áo choàng`: Có | `Găng tay`: Có | `Săng phủ lớn toàn thân`: **Không dùng (chỉ dùng săng nhỏ)**
+    *   *3. Sát khuẩn da:* **KHÔNG ĐẠT** (Sử dụng dung dịch Povidone Iodine, đâm kim ngay khi dung dịch chưa khô hoàn toàn)
+*   **KẾT LUẬN CỦA PHẦN MỀM:** **Gói tuân thủ CLIP (Bundle-Compliant) = KHÔNG ĐẠT (NO)** (Lý do: Thiếu săng phủ toàn thân vô khuẩn, đâm kim khi chất sát khuẩn chưa khô hoàn toàn).
+
+---
+
+🐾 **Nudge:** Tôi đã hoàn thiện đầy đủ Đặc tả Logic Chuyên ngành cho Phân hệ Giám sát Tuân thủ CLIP chuẩn NHSN 2025. Để hỗ trợ đội ngũ phát triển phần mềm có thể tối ưu hóa và liên kết dữ liệu hiệu quả, bạn có muốn tôi thiết kế một **Báo cáo Phân tích Tương quan (Correlation Dashboard Specification)** giúp hiển thị trực quan mối liên hệ giữa tỷ lệ tuân thủ CLIP (Adherence Rate) và tỷ lệ phát sinh ca bệnh CLABSI (SIR/SUR) theo từng khoa phòng không?

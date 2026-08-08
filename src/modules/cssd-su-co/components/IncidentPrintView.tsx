@@ -3,6 +3,11 @@
 
 import React, { useMemo } from "react";
 import PrintLayout from "@/components/shared/PrintLayout";
+import EntityQrBlock from "@/components/shared/EntityQrBlock";
+import { buildEntityQrCode } from "@/lib/entity-qr/entity-qr-core";
+import { useEntityQrImage } from "@/hooks/useEntityQr";
+import { buildPrintFileTitle, pickSuCoPrintMa } from "@/lib/print/print-file-title";
+import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 
 export interface IncidentDetailRow {
   id: string;
@@ -26,6 +31,8 @@ export interface IncidentPrintViewProps {
     ma_bo?: string | null;
   };
   details: IncidentDetailRow[];
+  qrCode?: string;
+  qrDataUrl?: string;
 }
 
 /**
@@ -69,7 +76,17 @@ const GROUP_LABEL_MAP: Record<string, string> = {
   OTHER: "Sự cố khác",
 };
 
-export default function IncidentPrintView({ incident, details }: IncidentPrintViewProps) {
+export default function IncidentPrintView({
+  incident,
+  details,
+  qrCode: qrCodeProp,
+  qrDataUrl: qrDataUrlProp,
+}: IncidentPrintViewProps) {
+  const autoQrCode = incident.id ? buildEntityQrCode("CSSD_INCIDENT", incident.id) : "";
+  const qrCode = qrCodeProp || autoQrCode;
+  const autoQrDataUrl = useEntityQrImage(qrDataUrlProp ? null : qrCode);
+  const qrDataUrl = qrDataUrlProp || autoQrDataUrl;
+
   const detailsMap = useMemo(() => {
     return details.reduce((acc, curr) => {
       acc[curr.ma_chi_tiet_su_co] = curr.gia_tri_chi_tiet;
@@ -92,13 +109,7 @@ export default function IncidentPrintView({ incident, details }: IncidentPrintVi
 
   const formattedDate = useMemo(() => {
     const raw = thoiGianPhatHienAttr || incident.created_at;
-    if (!raw) return "—";
-    try {
-      const d = new Date(raw);
-      return `${d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })} ngày ${d.toLocaleDateString("vi-VN")}`;
-    } catch {
-      return String(raw);
-    }
+    return formatDateTimeVi(raw, String(raw || "—"));
   }, [incident.created_at, thoiGianPhatHienAttr]);
 
   // Hướng xử lý đề xuất tương ứng
@@ -126,38 +137,52 @@ export default function IncidentPrintView({ incident, details }: IncidentPrintVi
       departmentTitle="KHOA KIỂM SOÁT NHIỄM KHUẨN"
       leftSignatureTitle="NGƯỜI PHÁT HIỆN SỰ CỐ"
       rightSignatureTitle="TRƯỞNG BỘ PHẬN KSNK"
+      fileTitle={() =>
+        buildPrintFileTitle({
+          loai: "SUCO",
+          ma: pickSuCoPrintMa({ id: incident.id, createdAt: incident.created_at }),
+        })
+      }
+      afterFooter={
+        qrDataUrl && qrCode ? (
+          <EntityQrBlock
+            dataUrl={qrDataUrl}
+            code={qrCode}
+            caption="Quét mở lại biên bản"
+            variant="compact"
+          />
+        ) : null
+      }
     >
-      <div style={{ lineHeight: 1.5, fontSize: "14px", color: "#000" }}>
-        
-        {/* CẢNH BÁO ĐỎ NẾU TÁI DIỄN */}
-        {incident.is_red_alert && (
-          <div style={{
-            border: "2px solid #dc2626",
-            backgroundColor: "#fef2f2",
-            color: "#991b1b",
-            padding: "10px 14px",
-            borderRadius: "8px",
-            marginBottom: "16px",
-            fontSize: "13px",
-            fontWeight: "bold",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px"
-          }}>
-            <span>⚠️ CẢNH BÁO ĐỎ: Mã bộ dụng cụ này đã xảy ra sự cố từ 2 lần trở lên. Cần rà soát đặc biệt quy trình!</span>
+      <div style={{ lineHeight: 1.45, fontSize: "13px", color: "#000" }}>
+        {incident.is_red_alert ? (
+          <div
+            style={{
+              border: "2px solid #000",
+              padding: "8px 12px",
+              marginBottom: "14px",
+              fontSize: "12px",
+              fontWeight: 800,
+              textTransform: "uppercase",
+            }}
+          >
+            Cảnh báo đỏ: mã bộ dụng cụ này đã xảy ra sự cố từ 2 lần trở lên. Cần rà soát đặc biệt quy trình.
           </div>
-        )}
+        ) : null}
 
-        {/* THÔNG TIN HÀNH CHÍNH */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", marginBottom: "16px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 16px", marginBottom: "12px" }}>
           <div>
-            <strong>Mã biên bản:</strong> <span style={{ fontFamily: "monospace", fontSize: "13px" }}>{incident.id.slice(0, 8).toUpperCase()}</span>
+            <strong>Mã biên bản:</strong>{" "}
+            <span style={{ fontFamily: "monospace", fontSize: "12px" }}>
+              {pickSuCoPrintMa({ id: incident.id, createdAt: incident.created_at })}
+            </span>
           </div>
           <div>
             <strong>Thời điểm phát hiện:</strong> {formattedDate}
           </div>
           <div>
-            <strong>Trạm phát hiện:</strong> {STATION_LABEL_MAP[incident.ma_tram_phat_hien] || incident.ma_tram_phat_hien}
+            <strong>Trạm phát hiện:</strong>{" "}
+            {STATION_LABEL_MAP[incident.ma_tram_phat_hien] || incident.ma_tram_phat_hien}
           </div>
           <div>
             <strong>Người lập biên bản:</strong> {reporterEmail || "Nhân viên KSNK"}
@@ -169,116 +194,123 @@ export default function IncidentPrintView({ incident, details }: IncidentPrintVi
           ) : null}
         </div>
 
-        <div style={{ borderBottom: "1px solid #000", marginBottom: "16px" }} />
+        <div style={{ borderBottom: "1px solid #000", marginBottom: "12px" }} />
 
-        {/* CHI TIẾT SỰ CỐ */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "20px" }}>
-          <div style={{ marginBottom: "8px" }}>
+        <div style={{ marginBottom: "14px" }}>
+          <p style={{ margin: "0 0 6px" }}>
             <strong>Nhóm nghiệp vụ:</strong>{" "}
-            <span style={{ textTransform: "uppercase", fontWeight: "bold" }}>
+            <span style={{ textTransform: "uppercase", fontWeight: 800 }}>
               {GROUP_LABEL_MAP[incident.incident_group || ""] || incident.incident_group}
             </span>
-          </div>
-          <div style={{ marginBottom: "8px" }}>
+          </p>
+          <p style={{ margin: "0 0 6px" }}>
             <strong>Loại sự cố:</strong> {incident.incident_type_label || "Không xác định"}
-          </div>
-          <div style={{ marginBottom: "12px", textAlign: "justify" }}>
+          </p>
+          <p style={{ margin: 0, textAlign: "justify" }}>
             <strong>Mô tả chi tiết sự việc:</strong>
-            <p style={{ margin: "4px 0 0 0", paddingLeft: "12px", fontStyle: "italic", whiteSpace: "pre-wrap" }}>
-              {incident.mo_ta || "Không có mô tả chi tiết."}
-            </p>
-          </div>
+          </p>
+          <p style={{ margin: "4px 0 0", paddingLeft: 12, fontStyle: "italic", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+            {incident.mo_ta || "Không có mô tả chi tiết."}
+          </p>
         </div>
 
-        {/* ĐỐI TƯỢNG LIÊN QUAN TRỰC TIẾP */}
-        <div style={{
-          backgroundColor: "#f8fafc",
-          border: "1px solid #e2e8f0",
-          borderRadius: "8px",
-          padding: "12px 16px",
-          marginBottom: "20px"
-        }}>
-          <h4 style={{ margin: "0 0 8px 0", fontSize: "13px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.02em" }}>
+        <div
+          style={{
+            border: "1px solid #000",
+            padding: "10px 12px",
+            marginBottom: "14px",
+          }}
+        >
+          <p
+            style={{
+              margin: "0 0 8px",
+              fontSize: "12px",
+              fontWeight: 800,
+              textTransform: "uppercase",
+            }}
+          >
             Đối tượng liên quan trực tiếp
-          </h4>
+          </p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", fontSize: "13px" }}>
-            {incident.ma_qr_quy_trinh && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 16px", fontSize: "12px" }}>
+            {incident.ma_qr_quy_trinh ? (
               <>
                 <div>
-                  <strong>Mã QR Bộ dụng cụ:</strong> <span style={{ fontFamily: "monospace" }}>{incident.ma_qr_quy_trinh}</span>
+                  <strong>Mã QR Bộ dụng cụ:</strong>{" "}
+                  <span style={{ fontFamily: "monospace" }}>{incident.ma_qr_quy_trinh}</span>
                 </div>
                 <div>
                   <strong>Tên bộ dụng cụ:</strong> {incident.ten_bo || "—"}
                 </div>
               </>
-            )}
+            ) : null}
 
-            {machineId && incident.incident_group === "EQUIPMENT" && (
+            {machineId && incident.incident_group === "EQUIPMENT" ? (
               <div>
-                <strong>Thiết bị gặp sự cố (ID/Mã):</strong> <span style={{ fontFamily: "monospace" }}>{machineId}</span>
+                <strong>Thiết bị gặp sự cố (ID/Mã):</strong>{" "}
+                <span style={{ fontFamily: "monospace" }}>{machineId}</span>
               </div>
-            )}
+            ) : null}
 
-            {machineId && incident.incident_group === "CHEMICAL" && (
+            {machineId && incident.incident_group === "CHEMICAL" ? (
               <div>
                 <strong>Hóa chất / Vật tư liên quan:</strong> <span>{machineId}</span>
               </div>
-            )}
+            ) : null}
 
-            {errorQr && incident.incident_group === "CHEMICAL" && (
+            {errorQr && incident.incident_group === "CHEMICAL" ? (
               <div>
-                <strong>Mã lô hóa chất/vật tư:</strong> <span style={{ fontFamily: "monospace" }}>{errorQr}</span>
+                <strong>Mã lô hóa chất/vật tư:</strong>{" "}
+                <span style={{ fontFamily: "monospace" }}>{errorQr}</span>
               </div>
-            )}
+            ) : null}
 
-            {errorQr && incident.incident_group === "INSTRUMENT" && (
+            {errorQr && incident.incident_group === "INSTRUMENT" ? (
               <div>
-                <strong>Mã dụng cụ lẻ lỗi:</strong> <span style={{ fontFamily: "monospace" }}>{errorQr}</span>
+                <strong>Mã dụng cụ lẻ lỗi:</strong>{" "}
+                <span style={{ fontFamily: "monospace" }}>{errorQr}</span>
               </div>
-            )}
+            ) : null}
 
-            {incident.ma_tram_gay_loi && (
+            {incident.ma_tram_gay_loi ? (
               <div>
-                <strong>Trạm gây lỗi:</strong> {STATION_LABEL_MAP[incident.ma_tram_gay_loi] || incident.ma_tram_gay_loi}
+                <strong>Trạm gây lỗi:</strong>{" "}
+                {STATION_LABEL_MAP[incident.ma_tram_gay_loi] || incident.ma_tram_gay_loi}
               </div>
-            )}
+            ) : null}
 
-            {faultOperator && (
+            {faultOperator ? (
               <div>
                 <strong>Người liên quan:</strong> {faultOperator}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
 
-        {/* PHƯƠNG ÁN KHẮC PHỤC / DOMINO ACTION */}
-        <div style={{ marginBottom: "24px" }}>
+        <div style={{ marginBottom: "16px" }}>
           <strong>Phương án khắc phục / Trạng thái xử lý:</strong>
-          <p style={{ margin: "4px 0 0 0", paddingLeft: "12px", fontWeight: "bold", color: "#1e3a8a" }}>
+          <p style={{ margin: "4px 0 0", paddingLeft: 12, fontWeight: 700, color: "#000" }}>
             {solutionText}
           </p>
         </div>
 
-        {/* ẢNH MINH CHỨNG THỰC ĐỊA */}
-        {directImageLink && (
-          <div style={{ marginBottom: "32px", pageBreakInside: "avoid" }}>
-            <strong style={{ display: "block", marginBottom: "8px" }}>Ảnh minh chứng thực địa:</strong>
-            <div style={{ display: "flex", justifyContent: "center", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "8px", backgroundColor: "#fff" }}>
+        {directImageLink ? (
+          <div style={{ marginBottom: "16px", pageBreakInside: "avoid" }}>
+            <strong style={{ display: "block", marginBottom: "6px" }}>Ảnh minh chứng thực địa:</strong>
+            <div style={{ display: "flex", justifyContent: "center", border: "1px solid #000", padding: "6px" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={directImageLink}
                 alt="Minh chứng sự cố"
                 style={{
-                  maxHeight: "260px",
+                  maxHeight: "180px",
                   maxWidth: "100%",
                   objectFit: "contain",
-                  borderRadius: "4px"
                 }}
               />
             </div>
           </div>
-        )}
-
+        ) : null}
       </div>
     </PrintLayout>
   );

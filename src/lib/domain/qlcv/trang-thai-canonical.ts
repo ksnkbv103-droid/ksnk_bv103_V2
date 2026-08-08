@@ -3,7 +3,7 @@
  * Alias legacy chỉ để đọc dữ liệu cũ / UI; ghi mới luôn canonical.
  */
 
-export const QLCV_CANONICAL_TRANG_THAI = [
+const QLCV_CANONICAL_TRANG_THAI = [
   "MOI",
   "DANG_LAM",
   "CHO_DUYET",

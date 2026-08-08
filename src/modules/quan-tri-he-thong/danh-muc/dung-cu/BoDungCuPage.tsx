@@ -117,7 +117,10 @@ export function BoDungCuPageContent() {
     uniqueKey: "ma_bo",
     columnMapping: BO_DUNG_CU_COLUMN_MAP,
     onGetData: () => getMasterDataExport("cssd_dm_bo_dung_cu", "ma_bo"),
-    onImport: (d) => smartImportData({ tableName: "cssd_dm_bo_dung_cu", uniqueKey: "ma_bo", codePrefix: "BDC" }, d),
+    onImport: (d, options) =>
+      smartImportData({ tableName: "cssd_dm_bo_dung_cu", uniqueKey: "ma_bo", codePrefix: "BDC" }, d, {
+        softDeleteMissing: options?.softDeleteMissing, dryRun: options?.dryRun,
+      }),
     onSuccess: () => {
       setRefreshKey((k) => k + 1);
       router.refresh();
@@ -137,10 +140,10 @@ export function BoDungCuPageContent() {
       />
       <BoDungCuPageHeader
         fileInputRef={fileInputRef}
-        onFileChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
+        onFileSelected={(file) => void handleFileUpload(file)}
         isImporting={isImporting}
         onTriggerImport={triggerImport}
-        onExportTemplate={() => exportTemplate()}
+        onExportTemplate={() => void exportTemplate()}
         onCreate={openCreate}
       />
 

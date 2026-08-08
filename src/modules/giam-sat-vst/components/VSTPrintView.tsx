@@ -9,6 +9,10 @@ import { formatDateVi, formatDtVi } from "./vst-print-helpers";
 import { VSTPrintPersonBlocks } from "./VSTPrintPersonBlocks";
 import { classifyVstAction } from "../lib/vst-action-classifier";
 import { formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
+import EntityQrBlock from "@/components/shared/EntityQrBlock";
+import { buildPrintFileTitle } from "@/lib/print/print-file-title";
+import { vstSessionDisplayRef } from "../lib/vst-display-ref";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
 const sameId = (a: unknown, b: unknown) => String(a ?? "").trim() === String(b ?? "").trim();
 
@@ -16,17 +20,37 @@ interface VSTPrintViewProps {
   session: Record<string, unknown>;
   persons: VSTFormPerson[];
   ngheNghieps: Array<{ id?: string; ten_danh_muc?: string }>;
-  khoas: Array<{ id?: string; ten_danh_muc?: string; ten_khoa?: string }>;
+  khoas: Array<{ id?: string; ten_danh_muc?: string; ten_khoa?: string; ma_danh_muc?: string; ma_khoa?: string }>;
   khuVucs: Array<{ id?: string; ten_danh_muc?: string }>;
   nhanSus?: Array<{ id?: string; ho_ten?: string }>;
+  qrCode?: string;
+  qrDataUrl?: string;
 }
 
-export default function VSTPrintView({ session, persons, ngheNghieps, khoas, khuVucs, nhanSus = [] }: VSTPrintViewProps) {
-  const currentKhoa =
-    (session.danh_muc_khoa as { ten_danh_muc?: string } | undefined)?.ten_danh_muc ||
-    khoas.find((k) => sameId(k.id, session.khoa_id))?.ten_danh_muc ||
-    khoas.find((k) => sameId(k.id, session.khoa_id))?.ten_khoa ||
-    "—";
+export default function VSTPrintView({
+  session,
+  persons,
+  ngheNghieps,
+  khoas,
+  khuVucs,
+  nhanSus = [],
+  qrCode,
+  qrDataUrl,
+}: VSTPrintViewProps) {
+  const khoaRow = khoas.find((k) => sameId(k.id, session.khoa_id));
+  const currentKhoa = formatKhoaCompactLabel({
+    ma_khoa:
+      String(session.ma_khoa_phong || "").trim() ||
+      khoaRow?.ma_danh_muc ||
+      khoaRow?.ma_khoa ||
+      null,
+    ten_khoa:
+      (session.danh_muc_khoa as { ten_danh_muc?: string } | undefined)?.ten_danh_muc ||
+      khoaRow?.ten_danh_muc ||
+      khoaRow?.ten_khoa ||
+      String(session.ten_khoa_phong || "").trim() ||
+      null,
+  });
   const currentKhuVuc =
     (session.danh_muc_khu_vuc as { ten_danh_muc?: string } | undefined)?.ten_danh_muc ||
     khuVucs.find((kv) => sameId(kv.id, session.khu_vuc_id))?.ten_danh_muc ||
@@ -59,12 +83,23 @@ export default function VSTPrintView({ session, persons, ngheNghieps, khoas, khu
   const tBat = session.thoi_gian_bat_dau as string | undefined;
   const tKt = session.thoi_gian_ket_thuc as string | undefined;
   const khungGioDayDu = Boolean(tBat && tKt);
+  const sessionId = String(session.id || "").trim();
+  const maHienThi = String(session.ma_hien_thi || "").trim();
+  const printMa =
+    maHienThi ||
+    (sessionId ? vstSessionDisplayRef(sessionId, ngayGS) : "VST-KHONG_MA");
 
   return (
     <PrintLayout
       title="PHIẾU GIÁM SÁT THỰC HÀNH VỆ SINH TAY (WHO 5 THỜI ĐIỂM)"
       headerTitle="BỆNH VIỆN QUÂN Y 103"
       departmentTitle={departmentTitle}
+      fileTitle={() => buildPrintFileTitle({ loai: "LSGS", ma: printMa })}
+      afterFooter={
+        qrDataUrl && qrCode ? (
+          <EntityQrBlock dataUrl={qrDataUrl} code={qrCode} caption="Quét mở lại phiếu VST" variant="compact" />
+        ) : null
+      }
     >
       <div>
         <div style={{ marginBottom: "16px" }}>

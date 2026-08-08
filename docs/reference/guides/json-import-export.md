@@ -2,6 +2,20 @@
 
 Tài liệu này giải thích cách tiếp cận kiến trúc **Hybrid JSONB**, tại sao nó được chọn làm giải pháp cốt lõi cho KSNK BV103, và cách áp dụng nó cho các bài toán Import/Export Excel cũng như mở rộng các danh mục phức tạp như Nhân viên.
 
+## 0. Hợp đồng UX nạp Excel (P4 — 2026-07-26; chuẩn hóa nhãn 2026-08)
+
+Mọi màn dùng `useImportExport` / `useExcelImport` (danh mục, bảng kiểm, …) đi qua **một hộp thoại**:
+
+1. Xem trước số dòng + mẫu vài dòng (+ lỗi dòng nếu dry-run trả về)  
+2. Chọn **Chỉ thêm/cập nhật (an toàn)** hoặc **Đồng bộ đầy đủ** (**ẩn/tắt** bản ghi thiếu trong file — **không xóa** khỏi DB)  
+3. **Hủy** = không ghi DB  
+
+**Nhãn toolbar chuẩn (người dùng phổ thông):** **Tải file mẫu** / **Nạp Excel** — SSOT [`ImportExportToolbar.tsx`](../../../src/components/shared/ImportExportToolbar.tsx).  
+File mẫu có sheet **Huong dan** (3 bước). Happy path: tải mẫu → sửa Excel (giữ mã khi cập nhật) → nạp → xác nhận.
+
+SSOT UI: [`src/hooks/import-confirm-contract.tsx`](../../../src/hooks/import-confirm-contract.tsx).  
+Import Excel phiên Giám sát chung: **đã ngừng** (stub deprecated) — nhập phiên qua form. LIS vi sinh NKBV / QLCV giữ portal/dialog riêng nhưng cùng nhãn 3 bước + P4 xác nhận (QLCV chỉ thêm).
+
 ## 1. Kiến trúc Hybrid JSONB là gì? Tại sao lại dùng?
 
 Thay vì lưu trữ dữ liệu theo mô hình truyền thống (mỗi thuộc tính là một cột phẳng - Flat columns) hoặc hoàn toàn NoSQL (mọi thứ nằm trong 1 file JSON lớn), chúng ta sử dụng mô hình **Lai (Hybrid)**:
@@ -22,7 +36,7 @@ Thay vì lưu trữ dữ liệu theo mô hình truyền thống (mỗi thuộc t
 
 ## 2. Hướng dẫn Xử lý Import / Export Excel với Hybrid JSONB
 
-Khi cấu trúc Database đã chuyển sang Hybrid JSON, logic Import/Export (ví dụ bằng thư viện `xlsx`) tại phân hệ Quản trị Hệ thống sẽ thay đổi đôi chút:
+Khi cấu trúc Database đã chuyển sang Hybrid JSON, logic Import/Export Excel (app dùng **exceljs** qua `useImportExport` / Smart Import) tại phân hệ Quản trị Hệ thống sẽ thay đổi đôi chút:
 
 ### 2.1 Chiều Export (Tải về máy)
 Thay vì chỉ query các cột phẳng, bạn lấy thêm cột `specs`. Tại lớp Repository/Action, bạn sẽ "trải phẳng" (Flatten) object JSON này ra thành các cột Excel:

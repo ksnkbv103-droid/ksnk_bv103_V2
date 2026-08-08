@@ -9,6 +9,7 @@ import DungCuChiTietFormModal from "./dung-cu-chi-tiet-form-modal";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import type { DungCuChiTietTableRow } from "./dung-cu-chi-tiet-form-shared";
 import { cssdSuCoInstrumentHref } from "@/lib/cssd-routes";
+import { formatKhoaCompactLabel, formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 import {
   getBoRefsByLoaiAction,
   getBoDungCuChiTietPreviewAction,
@@ -433,7 +434,7 @@ export function BoDungCuChiTietPanel({
                     <option value="">— Chọn khoa phòng —</option>
                     {departments.map((d) => (
                       <option key={d.id} value={d.id}>
-                        {d.ma_khoa} — {d.ten_khoa}
+                        {formatKhoaPickerLabel({ ma_khoa: d.ma_khoa, ten_khoa: d.ten_khoa })}
                       </option>
                     ))}
                   </select>
@@ -486,8 +487,7 @@ export function BoDungCuChiTietPanel({
                   <table className="w-full min-w-[500px] border-collapse text-left text-sm">
                     <thead>
                       <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-medium text-slate-500">
-                        <th className="p-3">Mã khoa</th>
-                        <th className="p-3">Tên khoa</th>
+                        <th className="p-3">Khoa</th>
                         <th className="p-3 text-center w-28">Cơ số phân bổ</th>
                         <th className="p-3 text-center w-28">Tồn hiện tại</th>
                         <th className="p-3 text-center w-24">Chênh</th>
@@ -499,8 +499,12 @@ export function BoDungCuChiTietPanel({
                         const gap = a.so_luong_hien_tai - a.so_luong_co_so;
                         return (
                         <tr key={a.id} className="hover:bg-slate-50/50">
-                          <td className="p-3 font-mono text-xs font-bold text-rose-700">{a.khoa_phong?.ma_khoa || "—"}</td>
-                          <td className="p-3 text-xs font-semibold text-slate-800">{a.khoa_phong?.ten_khoa || "—"}</td>
+                          <td className="p-3 font-mono text-xs font-bold text-rose-700">
+                            {formatKhoaCompactLabel({
+                              ma_khoa: a.khoa_phong?.ma_khoa,
+                              ten_khoa: a.khoa_phong?.ten_khoa,
+                            })}
+                          </td>
                           <td className="p-3 text-center text-xs font-semibold text-slate-700">{a.so_luong_co_so}</td>
                           <td className="p-3 text-center text-xs font-bold text-emerald-700">{a.so_luong_hien_tai}</td>
                           <td className={`p-3 text-center text-xs font-bold ${gap < 0 ? "text-rose-600" : gap > 0 ? "text-amber-600" : "text-slate-500"}`}>

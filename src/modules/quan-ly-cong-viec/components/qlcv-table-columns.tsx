@@ -7,6 +7,8 @@ import { formatMucDoUuTienLabel } from "../lib/qlcv-labels";
 import { canShowDeleteTask, canShowEditTaskMetadata, type QlcvUiAccessFlags } from "../lib/qlcv-access";
 import type { CongViecView } from "../types";
 import { qlcvTableChrome as Q } from "../lib/qlcv-table-chrome";
+import { QlcvDinhKyMauChip } from "./QlcvDinhKyMauChip";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 
 export type QlcvTableColumnHandlers = {
   qlcvUi: QlcvUiAccessFlags;
@@ -25,9 +27,14 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
       cell: (row: CongViecView) => (
         <div className="flex flex-col gap-0.5 py-1 text-left">
           <span className={Q.cellTitle}>{row.tieu_de}</span>
-          <span className={Q.cellMeta}>
-            {row.loai_cong_viec || "—"}
-          </span>
+          <QlcvDinhKyMauChip
+            loaiCongViec={row.loai_cong_viec}
+            dinhKyMauId={row.dinh_ky_mau_id}
+            className={Q.cellMeta}
+          />
+          {row.vi_tri_thuc_hien ? (
+            <span className={`${Q.cellMeta} block truncate`}>Vị trí: {row.vi_tri_thuc_hien}</span>
+          ) : null}
         </div>
       ),
       sortable: true,
@@ -96,7 +103,7 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
         <span
           className={`text-[11px] font-semibold ${row.is_qua_han ? "text-red-600" : "text-slate-600"}`}
         >
-          {row.han_hoan_thanh ? new Date(row.han_hoan_thanh).toLocaleDateString("vi-VN") : "—"}
+          {formatDateVi(row.han_hoan_thanh)}
         </span>
       ),
       sortable: true,

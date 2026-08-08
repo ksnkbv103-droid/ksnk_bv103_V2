@@ -1,6 +1,6 @@
 # ĐẶC TẢ NGHIỆP VỤ Y TẾ THỐNG NHẤT — KSNK BV103
 
-> **Phiên bản:** 1.2 (09/07/2026)  
+> **Phiên bản:** 1.3 (28/07/2026)  
 > **Trạng thái:** Hoạt động (SSOT Nghiệp vụ Bounded Context)  
 > **Ánh xạ runtime:** [implementation-mapping.md](./implementation-mapping.md) (prefix `sys_`/`mdm_`/`cssd_`/`gstt_`/`qlcv_`/`nkbv_`).
 
@@ -18,6 +18,7 @@
 | **QLCV (Quản lý công việc)** | Task nội bộ KSNK Track B (7 trạng thái). | `qlcv_fact_cong_viec`, `qlcv_fact_cong_viec_dinh_ky` | `fact_cong_viec` |
 | **MDM Nhân sự / Khoa** | Master data dùng chung. | `mdm_nhan_su`, `mdm_dm_khoa_phong` | `dm_khoa_phong` |
 | **RBAC** | Phân quyền module×action. | `sys_roles`, `sys_permissions`, `sys_role_permissions`, `sys_user_roles` | `dm_roles`, `dm_permissions` |
+| **Đào tạo / Thi KSNK** | Thi thử + thi thật MCQ (Bloom, đa loại câu). | `dao_tao_cau_hoi`, `dao_tao_cau_hinh`, `dao_tao_lan_thi` (lean) | — |
 
 ### Entities đã loại bỏ (không mô tả workflow mới)
 
@@ -36,6 +37,8 @@
 
 ### 2.2 Quy trình Tái xử lý Dụng cụ y tế (CSSD Workflow)
 
+> Bản nghiệp vụ đầy đủ (entity, QR, mẻ, luật đóng băng, màn hình): [`../modules/cssd/domain-overview.md`](../modules/cssd/domain-overview.md) — **chốt PO 2026-07-28**.
+
 ```mermaid
 flowchart LR
     A[Trạm 1: Tiếp nhận] --> B[Trạm 2: Làm sạch]
@@ -45,10 +48,22 @@ flowchart LR
     E --> F[Trạm 6: Cấp phát]
 ```
 
-* **Tab Kho** (`/cssd-quy-trinh?tab=kho`): giám sát FEFO/tồn — không phải trạm quét workflow.
-* **Trạm 4 (Đóng gói):** Quét QR chuyển trạm + panel **đối chiếu cấu phần** (read-only, view realtime) + báo sự cố dụng cụ (Hỏng/Mất/Bổ sung). Digital BOM modal deprecated (`BV103_FEATURE_BOM_CHECKLIST=1` để bật lại).
-* **Trạm 5:** `cssd_fact_lo_tiet_khuan`; QC mẻ không đạt → rollback + sự cố.
-* **Trạm 6:** Ledger soft-warning nếu thiếu cấu phần (QLDCPT Q2).
+| Trạm | Việc chính |
+|------|------------|
+| 1 `TIEP_NHAN` | Quét bộ bẩn / mở chu trình; sau cấp phát → vòng mới |
+| 2 `LAM_SACH` | Quét chuyển bước (chỉ +1) |
+| 3 `QC` | Kiểm trước đóng gói |
+| 4 `DONG_GOI` | Quét + đối chiếu cấu phần + báo Hỏng/Mất/Bổ sung; sinh Cycle QR; thiếu cấu phần = **cảnh báo** (không chặn) |
+| 5 `TIET_KHUAN` | **Chỉ qua phiếu mẻ** (không quét trên shell 6 trạm); nạp từ Đóng gói → chốt → máy → QC mẻ |
+| 6 `CAP_PHAT` | Quét giao khoa / kho sạch; soft-warning thiếu cấu phần (Q2); bắt buộc mẻ ĐẠT |
+
+* **Tab Kho** (`/cssd-quy-trinh?tab=kho`): giám sát FEFO/tồn — **không** phải trạm quét.
+* **Tab Trace** (`?tab=trace`): timeline + liên kết SSI — không phải trạm.
+* **Thu hồi / Recall:** phản ứng an toàn (không phải trạm 7); quay lại = `CAP_PHAT` → `TIEP_NHAN`.
+* **Trạm 4:** panel đối chiếu cấu phần (read-only realtime). Digital BOM modal deprecated (`BV103_FEATURE_BOM_CHECKLIST=1` để bật lại).
+* **Trạm 5:** `cssd_fact_lo_tiet_khuan`; QC mẻ không đạt → rollback về `DONG_GOI` + sự cố (+ đóng băng nếu cần).
+* **Trạm 6:** Ledger soft-warning nếu thiếu cấu phần (QLDCPT Q2) — **không** hard-block.
+* **Luật đóng băng (tóm tắt):** tách SUB khi lẫn nhiệt; master CRUD ≠ quét vận hành; Cycle QR reset khi vòng mới (giữ tem bộ vĩnh viễn). Chi tiết: domain-overview §5.
 
 ### 2.3 Quản lý Công việc Nội bộ KSNK (Track B Workflow)
 * **Trạng thái canonical (7):** `MOI` → `DANG_LAM` → `CHO_DUYET` → `HOAN_THANH` / `TU_CHOI` / `QUA_HAN` / `DA_HUY`.

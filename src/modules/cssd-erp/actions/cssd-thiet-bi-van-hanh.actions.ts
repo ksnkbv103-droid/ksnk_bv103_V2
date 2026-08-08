@@ -21,11 +21,11 @@ export type MeTietKhuanTheoMayRow = {
 export async function listMeTietKhuanTheoThietBiAction(thietBiId: string): Promise<
   { success: true; data: MeTietKhuanTheoMayRow[] } | { success: false; error: string }
 > {
-  const supabase = createAdminSupabaseClient();
   const id = String(thietBiId || "").trim();
   if (!id) return { success: false, error: "Chọn thiết bị." };
   try {
     await verifyCssdMaintenanceView();
+    const supabase = createAdminSupabaseClient();
     const { data, error } = await supabase
       .from("cssd_fact_lo_tiet_khuan")
       .select(
@@ -59,9 +59,9 @@ export async function listMeTietKhuanTheoThietBiAction(thietBiId: string): Promi
 export async function listThietBiCoMeTietKhuanAction(): Promise<
   { success: true; data: { id: string; ma_thiet_bi: string; ten_thiet_bi: string }[] } | { success: false; error: string }
 > {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdMaintenanceView();
+    const supabase = createAdminSupabaseClient();
     const { data: meRows, error: meErr } = await supabase
       .from("cssd_fact_lo_tiet_khuan")
       .select("thiet_bi_id")

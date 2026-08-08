@@ -29,7 +29,18 @@ export type GiamSatSession = {
   ghi_chu_chung?: string;
   /** GSC: bổ sung người bệnh đang chăm sóc (gói phòng ngừa NKBV). */
   is_bo_sung_nguoi_benh?: boolean;
+  /** Mã bệnh án — join census / MDRO / RCA. */
+  ma_benh_an?: string;
   ma_nguoi_benh?: string;
   ten_nguoi_benh?: string;
   so_giuong_nguoi_benh?: string;
+  /** Ảnh chụp can thiệp / nhiễm trên phiên (metadata). */
+  bn_tho_may?: boolean;
+  bn_phau_thuat?: boolean;
+  bn_cvc?: boolean;
+  bn_foley?: boolean;
+  bn_nhiem_mdro?: boolean;
+  bn_mdro_phenotype?: string;
+  bn_nhiem_tac_nhan_nguy_hiem?: boolean;
+  bn_tac_nhan_nguy_hiem_ten?: string;
 };

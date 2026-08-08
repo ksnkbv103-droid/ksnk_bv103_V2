@@ -1,6 +1,6 @@
 ---
 description: CSSD ERP — bắt buộc neo spec luồng & mapping trước khi đổi sâu
-globs: src/modules/cssd-erp/**/*.{ts,tsx}
+globs: src/modules/cssd-erp/**/*.{ts,tsx},src/modules/cssd-su-co/**/*.{ts,tsx},src/app/cssd-*/**/*.{ts,tsx}
 alwaysApply: false
 ---
 
@@ -12,5 +12,6 @@ Trước khi chốt thiết kế / sửa lớn server action hoặc schema CSSD:
 2. [`implementation-mapping.md`](../../docs/core/implementation-mapping.md) — bảng/cột thật.
 3. [`read-minimum.md`](../../docs/core/read-minimum.md).
 4. `AGENTS.md` — CSSD **read-only** catalog tại `/cssd-dung-cu`; CRUD DM tại `quan-tri-he-thong/danh-muc`. Gate: `npm run imports:cssd-mdm`.
+5. Skill `@cssd-pilot` khi pilot hoặc đụng mẻ/QR/RLS.
 
 **Luật nghiệp vụ:** tiệt khuẩn theo nhiệt/phi nhiệt; bộ chỉ đạt vô khuẩn khi **mọi** thành phần/mẻ liên quan đạt — không shortcut trong action.

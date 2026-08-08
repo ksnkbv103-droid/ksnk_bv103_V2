@@ -44,6 +44,25 @@ export function cssdSuCoIncidentJournalHref(incidentId?: string | null): string 
   return `${CSSD_ROUTES.report}?${q.toString()}`;
 }
 
+/** Deep-link báo cáo CSSD (sản lượng / bộ / máy / NV) với kỳ lọc tùy chọn. */
+export function cssdReportAnalyticsHref(params?: {
+  tab?: "overview" | "volume" | "sets" | "equipment" | "staff" | "incident";
+  from?: string | null;
+  to?: string | null;
+  station?: string | null;
+}): string {
+  const q = new URLSearchParams();
+  const tab = params?.tab || "volume";
+  q.set("tab", tab);
+  const from = String(params?.from || "").trim();
+  const to = String(params?.to || "").trim();
+  const station = String(params?.station || "").trim();
+  if (from) q.set("from", from);
+  if (to) q.set("to", to);
+  if (station && station !== "ALL") q.set("station", station);
+  return `${CSSD_ROUTES.report}?${q.toString()}`;
+}
+
 /** Prefix cho shell CSSD (canonical + batch/report). */
 export const CSSD_APP_SHELL_PREFIXES: readonly string[] = [
   CSSD_ROUTES.quyTrinh,

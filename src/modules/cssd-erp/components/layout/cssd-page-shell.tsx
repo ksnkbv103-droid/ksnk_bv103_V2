@@ -2,10 +2,10 @@
 
 import React from "react";
 import { KsnkSupervisionHero } from "@/components/shared/ksnk-supervision-chrome";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
-/** Vỏ trang CSSD trong `KsnkPageShell` — không nhân đôi max-width/padding của `<main>`. */
-export const CSSD_PAGE_OUTER =
-  "w-full min-h-[40vh] space-y-4 pb-8 animate-in fade-in duration-500 touch-manipulation [-webkit-tap-highlight-color:transparent] sm:space-y-6 sm:pb-12";
+/** Vỏ trang CSSD — nhịp dọc = `pageOuter` SSOT. */
+export const CSSD_PAGE_OUTER = `${T.pageOuter} animate-in fade-in duration-500 touch-manipulation`;
 
 type Props = {
   title: React.ReactNode;
@@ -14,13 +14,17 @@ type Props = {
   children: React.ReactNode;
 };
 
-/** Khung trang CSSD: hero + nội dung. Điều hướng module → Sidebar (không nhân SubNav). */
-export default function CSSDPageShell({ title, subtitle, actions, children }: Props) {
+/** Khung trang CSSD: hero (title/actions) + nội dung. Chuyển màn = sidebar (SSOT). */
+export default function CSSDPageShell({
+  title,
+  subtitle: _subtitle,
+  actions,
+  children,
+}: Props) {
   return (
     <div className={CSSD_PAGE_OUTER}>
-      <KsnkSupervisionHero eyebrow="CSSD · BV103" title={title} description={typeof subtitle === "string" ? subtitle : undefined} actions={actions} />
+      <KsnkSupervisionHero eyebrow="CSSD" title={title} actions={actions} />
       {children}
     </div>
   );
 }
-

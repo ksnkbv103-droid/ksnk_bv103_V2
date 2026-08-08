@@ -36,7 +36,6 @@ export default function QuanLyNhanSuPage() {
             <Users size={22} aria-hidden /> Hồ sơ Nhân sự
           </span>
         }
-        subtitle="Quản lý danh sách và phân bổ nhân lực toàn viện — liên kết khoa phòng cho giám sát và tài khoản đăng nhập."
       />
 
       <NhanSuTable

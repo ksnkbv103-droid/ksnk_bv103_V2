@@ -27,8 +27,9 @@ Go-live 3 module: [`../../core/pilot-core-modules-go-live.md`](../../core/pilot-
 
 | Luồng | Trạng thái |
 |-------|------------|
-| **Smart import** | SSOT mới — khoa phòng, hóa chất, thiết bị, nhân sự, dụng cụ (`smart-import.actions.ts`) |
-| **Master Excel modal** | Legacy (`master-import.actions.ts`) — chỉ còn fallback nếu gọi trực tiếp modal cũ |
+| **Smart import + `useImportExport`** | SSOT — khoa phòng, hóa chất, thiết bị, nhân sự, dụng cụ (`smart-import.actions.ts`). Lookup generic cũng nạp Excel qua `importGenericDmExcelAction`. Export/Import khóa cột qua `import-export-template.ts`. |
+| **Hộp thoại xác nhận (P4)** | Xem trước → **Chỉ thêm/cập nhật (an toàn)** · **Đồng bộ đầy đủ** (ẩn/tắt bản ghi thiếu — không xóa DB) · **Hủy** (= không ghi). Nhãn toolbar: **Tải file mẫu** / **Nạp Excel** (`ImportExportToolbar`). SSOT UI: `src/hooks/import-confirm-contract.tsx`. Server mặc định **an toàn** (`softDeleteMissing` chỉ khi explicit). |
+| **Legacy Master Excel modal** | Đã gỡ (2026-07) — không còn `master-import.actions.ts` / `MasterDataImportExportModal`. |
 
 ## Bảo vệ liên kết dữ liệu (IT) & trigger DB
 

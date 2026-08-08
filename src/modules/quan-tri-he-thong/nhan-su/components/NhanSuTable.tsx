@@ -1,18 +1,19 @@
 // src/modules/quan-tri-he-thong/nhan-su/components/NhanSuTable.tsx
 "use client";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { getNhanSus, getNhanSuFormOptionsAction } from "../actions/nhan-su-read.actions";
+import { getNhanSus, getNhanSuExportData, getNhanSuFormOptionsAction } from "../actions/nhan-su-read.actions";
 import type { NhanSu } from "../types";
 import NhanSuForm from "./NhanSuForm";
 import { useMasterDataCrud } from "@/hooks/useMasterDataCrud";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
-import { Upload, Plus, Download, Loader2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
+import { ImportExportHint, ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { useImportExport } from "@/hooks/useImportExport";
 import { smartImportData } from "../../danh-muc/actions/smart-import.actions";
-import { getMasterDataExport } from "../../danh-muc/actions/export.actions";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
 const NHAN_SU_PAGE_SIZE = 20;
 
@@ -156,8 +157,11 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       "Tên chức danh": "ten_chuc_danh",
       is_active: "is_active",
     },
-    onGetData: () => getMasterDataExport("mdm_nhan_su", "ma_nv"),
-    onImport: (d) => smartImportData({ tableName: "mdm_nhan_su", uniqueKey: "ma_nv" }, d),
+    onGetData: () => getNhanSuExportData(),
+    onImport: (d, options) =>
+      smartImportData({ tableName: "mdm_nhan_su", uniqueKey: "ma_nv" }, d, {
+        softDeleteMissing: options?.softDeleteMissing, dryRun: options?.dryRun,
+      }),
     onSuccess: () => setRefreshKey((k) => k + 1),
   });
 
@@ -185,7 +189,9 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
       cell: (i) => (
         <div className="flex flex-col gap-1">
           <span className="text-[11px] font-medium text-slate-600">
-            {i.khoa?.ten_khoa || "---"}
+            {i.khoa
+              ? formatKhoaCompactLabel({ ma_khoa: i.khoa.ma_khoa, ten_khoa: i.khoa.ten_khoa })
+              : "---"}
           </span>
           {i.to?.ten_danh_muc && (
             <span className="text-[11px] font-normal italic text-amber-600">
@@ -232,31 +238,33 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
   return (
     <div className="space-y-4 animate-in fade-in duration-700">
       {(allowImport || allowCreate) && (
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          {allowImport && (
-            <>
-              <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} accept=".xlsx,.xls" className="hidden" />
-              <button type="button" onClick={triggerImport} disabled={isImporting} className={bv103DesignTokens.btnSecondary}>
-                {isImporting ? <Loader2 size={14} className="animate-spin" aria-hidden /> : <Upload size={14} aria-hidden />}
-                Import Excel
+        <div className="flex flex-col gap-2">
+          {allowImport ? <ImportExportHint /> : null}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {allowImport ? (
+              <ImportExportToolbar
+                fileInputRef={fileInputRef}
+                isImporting={isImporting}
+                onExport={() => void exportTemplate()}
+                onImportClick={triggerImport}
+                onFileChange={(file) => void handleFileUpload(file)}
+                exportClassName={bv103DesignTokens.btnSecondary}
+                importClassName={bv103DesignTokens.btnSecondary}
+              />
+            ) : null}
+            {allowCreate ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingItem(null);
+                  setIsFormOpen(true);
+                }}
+                className={bv103DesignTokens.btnPrimary}
+              >
+                <Plus size={16} aria-hidden /> Thêm nhân sự
               </button>
-              <button type="button" onClick={() => exportTemplate()} className={bv103DesignTokens.btnSecondary}>
-                <Download size={14} aria-hidden /> Export mẫu
-              </button>
-            </>
-          )}
-          {allowCreate && (
-            <button
-              type="button"
-              onClick={() => {
-                setEditingItem(null);
-                setIsFormOpen(true);
-              }}
-              className={bv103DesignTokens.btnPrimary}
-            >
-              <Plus size={16} aria-hidden /> Thêm nhân sự
-            </button>
-          )}
+            ) : null}
+          </div>
         </div>
       )}
 
@@ -265,7 +273,9 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
           columns={columns}
           data={data}
           loading={loading}
-          hideSearch={true}
+          searchPlaceholder="Tìm mã NV, họ tên, email…"
+          searchValue={search}
+          onSearch={_setSearch}
           enableMultiSelect={allowDelete}
           onDeleteSelected={allowDelete ? crud.softDeleteMany : undefined}
           serverPagination={{

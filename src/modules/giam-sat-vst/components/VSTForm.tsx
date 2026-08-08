@@ -4,6 +4,7 @@
 import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";
 import React, { useEffect, useRef } from "react";
 import GiamSatHeader from "@/components/shared/GiamSatHeader";
+import ContinueSupervisionBar from "@/components/shared/ContinueSupervisionBar";
 import VSTPersonColumn from "./VSTPersonColumn";
 import VSTPrintView from "./VSTPrintView";
 import { useVSTForm } from "../hooks/useVSTForm";
@@ -14,6 +15,8 @@ import { createDefaultVSTFormPersons, createNewOpp } from "../lib/vst-form-model
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import { resolveCanonicalHinhThucLabel } from "@/lib/supervision-hinh-thuc-legacy";
 import type { VSTFormPerson } from "../hooks/useVSTFormHandlers";
+import { buildEntityQrCode } from "@/lib/entity-qr/entity-qr-core";
+import { useEntityQrImage } from "@/hooks/useEntityQr";
 
 type VstEditDetail = {
   session: Record<string, unknown>;
@@ -52,6 +55,14 @@ export default function VSTForm({
     loading, initialLoading, timeLeft,
     currentHoSoId,
     masterDataFetchFailed,
+    lockKhoa,
+    stickyHintActive,
+    clearStickyHint,
+    showContinuePrompt,
+    continueSummary,
+    continueHere,
+    changeLocation,
+    finishToHistory,
     updatePerson, toggleMoment, updateAction, updateAssessment, openOpportunity, submitOpportunity, handleFinalSave
   } = useVSTForm(onSuccess, editingSessionId ?? null);
 
@@ -295,6 +306,9 @@ export default function VSTForm({
             hinhThucGiamSats={hinhThucGiamSats}
             cachThucGiamSats={cachThucGiamSats}
             moduleContext="vst"
+            lockKhoa={lockKhoa}
+            showClearStickyHint={stickyHintActive && !editingSessionId && !showContinuePrompt}
+            onClearStickyHint={clearStickyHint}
           />
           
           {timeLeft !== null && (
@@ -392,28 +406,79 @@ export default function VSTForm({
             In / PDF
           </button>
 
-          <button
-            disabled={loading || isLockedForSelectedDate}
-            onClick={handleFinalSave}
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-[var(--primary)] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {loading ? (
-              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <span>Lưu phiên giám sát</span>
-            )}
-          </button>
+          {!showContinuePrompt ? (
+            <button
+              disabled={loading || isLockedForSelectedDate}
+              onClick={handleFinalSave}
+              className="inline-flex h-12 items-center justify-center rounded-lg bg-[var(--primary)] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? (
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <span>Lưu phiên giám sát</span>
+              )}
+            </button>
+          ) : null}
         </div>
+
+        {showContinuePrompt ? (
+          <div className="print:hidden fixed inset-x-0 bottom-0 z-50 px-3 pb-3 sm:px-6 sm:pb-6">
+            <ContinueSupervisionBar
+              summaryLine={continueSummary}
+              onContinueHere={continueHere}
+              onChangeLocation={changeLocation}
+              onDone={finishToHistory}
+              showKeepSubjectsOption
+            />
+          </div>
+        ) : null}
       </div>
 
-      <VSTPrintView
+      <VSTFormPrintShell
         session={session}
         persons={persons}
         ngheNghieps={ngheNghieps}
         khoas={khoas}
         khuVucs={khuVucs}
         nhanSus={nhanSus}
+        qrCode={
+          String(editingSessionId || "").trim()
+            ? buildEntityQrCode("VST_SESSION", String(editingSessionId).trim())
+            : ""
+        }
       />
     </div>
+  );
+}
+
+function VSTFormPrintShell({
+  session,
+  persons,
+  ngheNghieps,
+  khoas,
+  khuVucs,
+  nhanSus,
+  qrCode,
+}: {
+  session: Record<string, unknown>;
+  persons: VSTFormPerson[];
+  ngheNghieps: Array<{ id?: string; ten_danh_muc?: string }>;
+  khoas: Array<{ id?: string; ten_danh_muc?: string; ten_khoa?: string }>;
+  khuVucs: Array<{ id?: string; ten_danh_muc?: string }>;
+  nhanSus: Array<{ id?: string; ho_ten?: string }>;
+  qrCode: string;
+}) {
+  const qrDataUrl = useEntityQrImage(qrCode || null);
+  return (
+    <VSTPrintView
+      session={session}
+      persons={persons}
+      ngheNghieps={ngheNghieps}
+      khoas={khoas}
+      khuVucs={khuVucs}
+      nhanSus={nhanSus}
+      qrCode={qrCode || undefined}
+      qrDataUrl={qrDataUrl || undefined}
+    />
   );
 }

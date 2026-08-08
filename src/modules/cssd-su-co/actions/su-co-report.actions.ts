@@ -16,7 +16,9 @@ export async function createIncidentReport(data: {
   typeTen: string;
   faultStation?: Station;
   faultOperator?: string;
+  faultOperatorId?: string;
   nguoiPhatHien?: string;
+  nguoiPhatHienId?: string;
   thoiGianPhatHien?: string;
   desc: string;
   errorQR?: string;
@@ -51,14 +53,14 @@ export async function createIncidentReport(data: {
     if (resolved.targetType === "MACHINE") {
       throw new Error("Mã vừa quét là mã máy. Báo sự cố quy trình cần mã QR bộ dụng cụ.");
     }
+    if (resolved.targetType !== "INSTRUMENT_SET" || !resolved.workflowId) {
+      throw new Error("Mã QR không tồn tại trong hệ thống!");
+    }
     qr = resolved.code;
     const { data: quyTrinh, error: qReadErr } = await supabase
       .from("v_cssd_quy_trinh_full")
       .select("*")
-      .eq("ma_qr_quy_trinh", qr)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
+      .eq("id", resolved.workflowId)
       .maybeSingle();
     if (qReadErr) throw new Error("Lỗi đọc quy trình: " + qReadErr.message);
     if (!quyTrinh) throw new Error("Mã QR không tồn tại trong hệ thống!");

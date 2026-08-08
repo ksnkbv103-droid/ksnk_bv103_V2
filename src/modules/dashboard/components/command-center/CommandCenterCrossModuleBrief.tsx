@@ -8,6 +8,7 @@ import {
   type CrossModuleBrief,
 } from "../../actions/dashboard-cross-module-brief.actions";
 import { buildAnalyticsDeepLink } from "../../lib/bao-cao-tong-hop-core";
+import { cssdReportAnalyticsHref } from "@/lib/cssd-routes";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import {
   isPathBlockedUnderPilotCoreModules,
@@ -64,11 +65,8 @@ export function CommandCenterCrossModuleBrief({ tuNgay, denNgay, selectedKhoaIds
   );
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className={`mb-1 ${D.sectionHeadingSm}`}>Toàn viện (tóm tắt)</h2>
-      <p className="mb-4 text-xs text-slate-500">
-        Outcome NKBV và cảnh báo vận hành CSSD — tách khỏi chỉ số tuân thủ CCS (VST/GSC).
-      </p>
+    <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4">
+      <h2 className={`mb-4 ${D.sectionHeadingSm}`}>Toàn viện (tóm tắt)</h2>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {brief?.nkbv.available ? (
           <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-4">
@@ -100,10 +98,10 @@ export function CommandCenterCrossModuleBrief({ tuNgay, denNgay, selectedKhoaIds
                 CSSD cảnh báo đỏ
               </p>
               <Link
-                href="/cssd-quy-trinh"
+                href={cssdReportAnalyticsHref({ tab: "volume", from: tuNgay, to: denNgay })}
                 className="text-[11px] font-bold text-[var(--primary)] inline-flex items-center gap-0.5"
               >
-                Quy trình <ExternalLink size={11} aria-hidden />
+                Báo cáo <ExternalLink size={11} aria-hidden />
               </Link>
             </div>
             <p className="mt-2 text-2xl font-semibold tabular-nums text-slate-900">

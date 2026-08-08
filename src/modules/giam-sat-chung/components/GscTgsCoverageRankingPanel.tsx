@@ -55,11 +55,6 @@ export default function GscTgsCoverageRankingPanel({ tuNgay, denNgay, selectedKh
             <ClipboardCheck className="h-5 w-5 text-[var(--primary)]" aria-hidden />
             Bao phủ TGS theo khoa
           </h2>
-          <p className="mt-1 max-w-2xl text-xs font-medium leading-relaxed text-slate-500">
-            Breadth = số loại BK bắt buộc đã có ≥1 phiên TGS ÷ số BK bắt buộc áp dụng cho khoa.
-            Khoa ngoài phạm vi BK không bị tính «thiếu» (
-            {TGS_BK_CELL_LABELS.khong_ap_dung}). Không gộp vào CCS.
-          </p>
         </div>
         <button
           type="button"

@@ -7,6 +7,7 @@ import {
   buildBaoCaoReportNo,
   buildKhoaRank,
   buildMergedTrend,
+  composeBaoCaoTongHopPayload,
   computeCcs,
   formatBaoCaoIsoDateVi,
   formatBaoCaoIssueDateVi,
@@ -268,7 +269,7 @@ describe("bao-cao-tong-hop-core", () => {
     expect(rows[0].label).toBe("B01");
   });
 
-  it("sortKhoaRankByCcs ranks by CCS and puts no-data last", () => {
+  it("sortKhoaRankByCcs ranks VST/GSC thấp→cao and puts no-data last", () => {
     const sorted = sortKhoaRankByCcs([
       {
         id: "1",
@@ -307,7 +308,7 @@ describe("bao-cao-tong-hop-core", () => {
         has_data: false,
       },
     ]);
-    expect(sorted.map((r) => r.ten)).toEqual(["B", "A", "C"]);
+    expect(sorted.map((r) => r.ten)).toEqual(["A", "B", "C"]);
   });
 
   it("mergeKhoaRankWithSelected adds placeholder for filtered khoa without sessions", () => {
@@ -374,6 +375,30 @@ describe("bao-cao-tong-hop-core", () => {
     expect(shouldFetchSource("ALL", "VST")).toBe(true);
     expect(shouldFetchSource("GSC", "VST")).toBe(false);
     expect(shouldFetchSource("NKBV", "NKBV")).toBe(true);
+  });
+
+  it("compose capabilities flags compare dimensions from source matrices", () => {
+    const payload = composeBaoCaoTongHopPayload({
+      filters: { tu_ngay: "2026-01-01", den_ngay: "2026-01-31", chuyen_de: "ALL" },
+      vst: {
+        kpis: { tong_co_hoi: 10, da_tuan_thu: 8, ty_le_tuan_thu: 80 },
+        trendline: [],
+        matrix_khoi: [{ ten: "Khối A", tong_co_hoi: 10, da_tuan_thu: 8, ty_le_tuan_thu: 80 }],
+        matrix_nghe: [{ id: "n1", ten: "ĐD", tong_co_hoi: 5, da_tuan_thu: 4, ty_le_tuan_thu: 80 }],
+      } as never,
+      gsc: {
+        kpis: { tong_phien: 1, tong_quan_sat: 10, tong_dat: 9, tong_vi_pham: 1, ty_le_tuan_thu: 90 },
+        trendline: [],
+        matrix_khu_vuc: [{ ten: "ICU", tong_quan_sat: 10, tong_dat: 9, ty_le_tuan_thu: 90 }],
+      } as never,
+      nkbv: null,
+      cssd: null,
+      sources: { vst: "ok", gsc: "ok", nkbv: "skipped", cssd: "skipped" },
+      errors: {},
+    });
+    expect(payload.capabilities.compare_khoi).toBe(true);
+    expect(payload.capabilities.compare_khu_vuc).toBe(true);
+    expect(payload.capabilities.compare_doi_tuong).toBe(true);
   });
 
   it("buildAnalyticsDeepLink maps supervision modules to /thong-ke canonical routes", () => {

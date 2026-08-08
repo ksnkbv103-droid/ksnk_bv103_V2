@@ -46,7 +46,7 @@ export default function ThietBiPrintQrButton({
         type="button"
         disabled={printing || !qrCode}
         onClick={(e) => void handlePrint(e)}
-        className={`inline-flex items-center gap-1 rounded-lg border border-emerald-200/50 bg-emerald-50 px-2 py-1 font-mono text-[11px] font-semibold text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all disabled:opacity-50 touch-manipulation ${className}`}
+        className={`bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-[11px] font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 touch-manipulation ${className}`}
         title="In tem QR máy"
       >
         {printing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Printer className="h-3 w-3" />}
@@ -68,7 +68,7 @@ export default function ThietBiPrintQrButton({
         disabled={printing || !qrCode}
         onClick={(e) => void handlePrint(e)}
         data-thiet-bi-id={thietBiId}
-        className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-emerald-200/50 bg-emerald-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all disabled:opacity-50 touch-manipulation"
+        className="bv103-control-h inline-flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-[11px] font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 touch-manipulation"
       >
         {printing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Printer className="h-3.5 w-3.5" />}
         In tem QR

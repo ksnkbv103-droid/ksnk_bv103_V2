@@ -1,16 +1,19 @@
 "use client";
 
 import React from "react";
-import { format } from "date-fns";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 import type { VstPrintData } from "../hooks/use-vst-print";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
 function resolveKhoaTen(session: Record<string, unknown>, khoas: VstPrintData["khoas"]): string {
   const id = String(session.khoa_id ?? "");
   const fromDm = khoas.find((k) => String(k.id) === id);
-  return (
-    String(session.ten_khoa_phong ?? fromDm?.ten_khoa ?? fromDm?.ten_danh_muc ?? "").trim() || "—"
-  );
+  return formatKhoaCompactLabel({
+    ma_khoa: String(session.ma_khoa_phong ?? "").trim() || (fromDm as { ma_danh_muc?: string } | undefined)?.ma_danh_muc,
+    ten_khoa:
+      String(session.ten_khoa_phong ?? fromDm?.ten_khoa ?? fromDm?.ten_danh_muc ?? "").trim() || null,
+  });
 }
 
 export default function VstSessionViewer({
@@ -28,12 +31,7 @@ export default function VstSessionViewer({
 
   const session = data.session;
   const ngayRaw = session.ngay_giam_sat as string | undefined;
-  let ngayStr = "—";
-  try {
-    if (ngayRaw) ngayStr = format(new Date(ngayRaw.includes("T") ? ngayRaw : `${ngayRaw}T12:00:00`), "dd/MM/yyyy");
-  } catch {
-    ngayStr = String(ngayRaw || "—");
-  }
+  const ngayStr = formatDateVi(ngayRaw?.slice(0, 10), String(ngayRaw || "—"));
 
   const totalOpps = data.persons.reduce((sum, p) => sum + (p.opportunities?.length ?? 0), 0);
 

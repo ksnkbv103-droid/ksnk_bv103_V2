@@ -43,10 +43,17 @@ export async function createDeXuat(input: CreateDeXuatInput) {
 
   assertQlcvHanHoanThanhNotPast(input.han_hoan_thanh);
 
+  const loai = input.loai_cong_viec || "DOT_XUAT";
+  if (loai === "DINH_KY") {
+    throw new Error(
+      "Không đề xuất loại định kỳ. Việc lặp theo chu kỳ quản lý ở tab Việc định kỳ (mẫu → sinh phiếu).",
+    );
+  }
+
   const data = await insertQlcvTaskRow(supabase, {
     tieu_de: tieuDe,
     mo_ta: input.mo_ta != null ? String(input.mo_ta).trim() || null : null,
-    loai_cong_viec: input.loai_cong_viec || "DOT_XUAT",
+    loai_cong_viec: loai,
     muc_do_uu_tien: input.muc_do_uu_tien,
     han_hoan_thanh: input.han_hoan_thanh || null,
     ksnkKhoaId: ksnkKhoaId,

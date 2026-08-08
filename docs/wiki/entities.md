@@ -4,15 +4,18 @@
 
 ## CSSD
 
-6 trạm QR: tiếp nhận → làm sạch → đóng gói/BOM → tiệt khuẩn → kho → phát trả.
+6 trạm quét: Tiếp nhận → Làm sạch → QC → Đóng gói → Mẻ tiệt khuẩn → Cấp phát.  
+**Kho / Trace / Thu hồi** không phải trạm quét. Bản nghiệp vụ đầy đủ: [`../modules/cssd/domain-overview.md`](../modules/cssd/domain-overview.md).
 
 | Chủ đề | SSOT |
 |--------|------|
-| Quy trình | `cssd_fact_quy_trinh`, `cssd_fact_quy_trinh_thanh_phan` |
+| Domain (PO) | [`../modules/cssd/domain-overview.md`](../modules/cssd/domain-overview.md) |
+| Hành trình ngắn | [`../core/domain-specification.md`](../core/domain-specification.md) §2.2 |
+| Quy trình | `cssd_fact_quy_trinh` (BOM runtime trong `metadata.bom_lines`) |
 | Mẻ / QC | `cssd_fact_lo_tiet_khuan` |
-| Kho | `cssd_fact_kho_*` |
+| Kho | `cssd_fact_kho_*` (tab giám sát FEFO — không phải trạm) |
 | Reform QLDCPT | [`../modules/cssd/reform-plan.md`](../modules/cssd/reform-plan.md) |
-| Code | `cssd-stations.ts`, `cssd-packaging-rules.ts` |
+| Code | `cssd-stations.ts`, `cssd-packaging-rules.ts`, `cssd-qr-hub.ts` |
 
 Ranh giới MDM: [`concepts.md`](concepts.md#cssd-vs-mdm).
 
@@ -68,13 +71,16 @@ Import JSON: [`../reference/guides/json-import-export.md`](../reference/guides/j
 
 ## QLCV
 
-Pilot: điều hành + checklist + phê duyệt đề xuất (không KPI tháng trên UI).
+Pilot tinh gọn: **Điều hành** + **Nhiệm vụ** + **Định kỳ/Đột xuất** + checklist + phê duyệt đề xuất (không KPI tháng trên UI). Đã gỡ Kế hoạch năm / Phân công tuần / Mốc.
 
 | Giai đoạn | Hành vi |
 |-----------|---------|
+| Điều hành | Phiếu công việc; lọc tuần/tháng/quý/năm |
+| Nhiệm vụ | Mục tiêu độc lập (`nam`/`quy`/`thang`/`hạn`) — gắn tuỳ chọn lên phiếu |
+| Định kỳ | Mẫu → spawn phiếu (`fn_qlcv_fact_cong_viec_spawn_dinh_ky_hom_nay`) |
 | Đề xuất | `is_active=false` → cột Kanban «Đề xuất chờ duyệt» |
 | Tạo việc (chỉ huy) | Bắt buộc phụ trách → `DANG_LAM` |
 | Phê duyệt đề xuất | Giao tổ + phụ trách → kích hoạt |
 | Checklist | RPC `fn_qlcv_update_checklist` |
 
-DB: `qlcv_fact_cong_viec`, `qlcv_fact_cong_viec_dinh_ky`. Chi tiết migrate / lỗi: [`../modules/qlcv/README.md`](../modules/qlcv/README.md).
+DB: `qlcv_fact_cong_viec`, `qlcv_fact_cong_viec_dinh_ky`, `qlcv_fact_nhiem_vu`. Địa điểm: `dia_diem_khoa_id` + `vi_tri_thuc_hien`. Chi tiết: [`../modules/qlcv/README.md`](../modules/qlcv/README.md).

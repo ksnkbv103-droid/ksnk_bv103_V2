@@ -5,49 +5,49 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Stethoscope, ClipboardList } from "lucide-react";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import { ThongKeChromeProvider } from "@/components/shared/ThongKeChromeContext";
 
 const analyticsTabs = [
   { id: "vst", label: "VST", href: "/thong-ke/vst", icon: Stethoscope },
   { id: "gsc", label: "GSC", href: "/thong-ke/gsc", icon: ClipboardList },
 ] as const;
 
-function ThongKeToolbar() {
+function ThongKeModuleTabs() {
   const pathname = usePathname();
 
   return (
-    <div className={`no-print ${bv103DesignTokens.analyticsToolbarShell}`}>
-      <div className="flex min-h-8 flex-col gap-2 sm:min-h-9 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-        <h1 className="text-sm font-semibold tracking-tight text-slate-900 sm:text-base">Thống kê giám sát</h1>
-        <nav aria-label="Module thống kê" className="flex w-full shrink-0 gap-1 rounded-lg bg-slate-100 p-0.5 sm:w-auto sm:p-1">
-          {analyticsTabs.map((tab) => {
-            const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
-            const Icon = tab.icon;
-            return (
-              <Link
-                key={tab.id}
-                href={tab.href}
-                className={`inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-md px-2.5 text-xs font-semibold transition-colors touch-manipulation sm:h-8 sm:flex-initial sm:px-3 ${
-                  active ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <Icon size={14} aria-hidden />
-                {tab.label}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
-    </div>
+    <nav aria-label="Module thống kê" className={`no-print ${C.navTabStrip}`}>
+      {analyticsTabs.map((tab) => {
+        const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+        const Icon = tab.icon;
+        return (
+          <Link
+            key={tab.id}
+            href={tab.href}
+            className={`${C.navTabBtn} ${
+              active
+                ? "bg-white text-[var(--primary)] shadow-sm ring-1 ring-slate-200/80"
+                : "text-slate-500 hover:bg-white/70 hover:text-slate-800"
+            }`}
+          >
+            <Icon className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
+            {tab.label}
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
 
 export default function ThongKeLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={bv103DesignTokens.pageOuterAnalytics}>
+    <div className={bv103DesignTokens.pageOuter}>
       <Suspense fallback={null}>
-        <ThongKeToolbar />
+        <ThongKeChromeProvider tabs={<ThongKeModuleTabs />}>
+          <div className={bv103DesignTokens.pageSectionGap}>{children}</div>
+        </ThongKeChromeProvider>
       </Suspense>
-      <div className={bv103DesignTokens.pageSectionGap}>{children}</div>
     </div>
   );
 }

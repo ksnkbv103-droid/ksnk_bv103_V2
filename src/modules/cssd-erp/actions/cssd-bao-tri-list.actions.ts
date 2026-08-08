@@ -1,18 +1,26 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { getErrorMessage, mapFkError } from "./cssd-action-common";
+import { getErrorMessage, mapFkError, tableHasColumn } from "./cssd-action-common";
 import { parseChecklistJson } from "@/lib/domain/cssd-equipment-pm-checklist";
 import type { FactBaoTriRow, LoaiPhieuBaoTri } from "./cssd-bao-tri.types";
 import { verifyCssdMaintenanceView } from "@/lib/cssd-server-gates";
+
+export type BaoTriMachineOption = {
+  id: string;
+  ma_thiet_bi: string;
+  ten_thiet_bi: string;
+  trang_thai: string | null;
+  ma_qr_thiet_bi?: string | null;
+};
 
 /** Danh sách phiếu bảo trì (mới nhất trước). */
 export async function listFactBaoTriThietBiAction(): Promise<
   { success: true; data: FactBaoTriRow[] } | { success: false; error: string }
 > {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdMaintenanceView();
+    const supabase = createAdminSupabaseClient();
     const { data: rows, error } = await supabase
       .from("cssd_fact_bao_tri")
       .select(
@@ -50,17 +58,21 @@ export async function listFactBaoTriThietBiAction(): Promise<
 
 /** Thiết bị có thể mở phiếu: READY/HOAT_DONG và không có mẻ TK chưa kết thúc. */
 export async function listThietBiCoTheBatDauBaoTriAction(): Promise<
-  { success: true; data: { id: string; ma_thiet_bi: string; ten_thiet_bi: string; trang_thai: string | null }[] } | {
+  { success: true; data: BaoTriMachineOption[] } | {
     success: false;
     error: string;
   }
 > {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdMaintenanceView();
+    const supabase = createAdminSupabaseClient();
+    const hasMachineQr = await tableHasColumn(supabase, "cssd_dm_thiet_bi", "ma_qr_thiet_bi");
+    const selectCols = hasMachineQr
+      ? "id, ma_thiet_bi, ten_thiet_bi, trang_thai, ma_qr_thiet_bi"
+      : "id, ma_thiet_bi, ten_thiet_bi, trang_thai";
     const { data: all, error } = await supabase
       .from("cssd_dm_thiet_bi")
-      .select("id, ma_thiet_bi, ten_thiet_bi, trang_thai")
+      .select(selectCols)
       .eq("is_active", true)
       .in("trang_thai", ["READY", "HOAT_DONG"])
       .order("ma_thiet_bi", { ascending: true });
@@ -79,15 +91,22 @@ export async function listThietBiCoTheBatDauBaoTriAction(): Promise<
       openBatchByMachine = new Set((openRows || []).map((r) => String((r as { thiet_bi_id?: string | null }).thiet_bi_id || "")).filter(Boolean));
     }
 
-    const out: { id: string; ma_thiet_bi: string; ten_thiet_bi: string; trang_thai: string | null }[] = [];
+    const out: BaoTriMachineOption[] = [];
     for (const r of all || []) {
       const id = String((r as { id?: string }).id || "");
       if (openBatchByMachine.has(id)) continue;
+      const row = r as {
+        ma_thiet_bi?: string;
+        ten_thiet_bi?: string;
+        trang_thai?: string | null;
+        ma_qr_thiet_bi?: string | null;
+      };
       out.push({
         id,
-        ma_thiet_bi: String((r as { ma_thiet_bi?: string }).ma_thiet_bi || ""),
-        ten_thiet_bi: String((r as { ten_thiet_bi?: string }).ten_thiet_bi || ""),
-        trang_thai: (r as { trang_thai?: string | null }).trang_thai ?? null,
+        ma_thiet_bi: String(row.ma_thiet_bi || ""),
+        ten_thiet_bi: String(row.ten_thiet_bi || ""),
+        trang_thai: row.trang_thai ?? null,
+        ma_qr_thiet_bi: row.ma_qr_thiet_bi != null ? String(row.ma_qr_thiet_bi) : null,
       });
     }
     return { success: true, data: out };

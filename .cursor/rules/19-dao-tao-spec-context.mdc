@@ -1,0 +1,20 @@
+---
+description: Đào tạo / thi MCQ — neo schema lean, import ngân hàng, chế độ thi thử/thật
+globs: src/app/dao-tao/**/*.{ts,tsx},src/modules/dao-tao/**/*.{ts,tsx},src/lib/dao-tao/**/*.{ts,tsx},scripts/dao-tao-*.ts
+alwaysApply: false
+---
+
+# Đào tạo — ngữ cảnh spec
+
+Trước khi sửa ngân hàng câu, cấu hình kỳ thi, làm bài / chấm điểm:
+
+1. [`modules/dao-tao/README.md`](../../docs/modules/dao-tao/README.md) — schema 3 bảng, import Excel, thi thử vs thi thật
+2. [`read-minimum.md`](../../docs/core/read-minimum.md) — dòng Đào tạo
+3. [`implementation-mapping.md`](../../docs/core/implementation-mapping.md) — bảng/RPC liên quan (nếu có)
+
+**Invariant:**
+
+- Schema lean: `dao_tao_cau_hoi` · `dao_tao_cau_hinh` · `dao_tao_lan_thi` — không đẻ bảng summary khi chưa đo nhu cầu.
+- Đáp án gắn **id phương án** trong JSON — đảo vị trí hiển thị không làm sai chấm.
+- Upsert ngân hàng theo `ma_cau`; import theo chuẩn MDM (xem trước → An toàn / Đồng bộ đầy đủ).
+- Thi thử: config `thi_thu_muc_do` + quyền `DAO_TAO` view. Thi thật: config `thi_that` published + `gan` khoa/NV.

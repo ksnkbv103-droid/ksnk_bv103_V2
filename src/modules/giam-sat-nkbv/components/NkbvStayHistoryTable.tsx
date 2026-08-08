@@ -6,15 +6,28 @@ import { toast } from "sonner";
 import type { DepartmentStay } from "../types/nkbv-verification";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
+import {
+  formatKhoaCompactLabel,
+  formatKhoaPickerLabel,
+} from "@/lib/domain/khoa-display";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 
 interface NkbvStayHistoryTableProps {
   treatmentHistory: DepartmentStay[];
   onAddStay: (newStay: DepartmentStay) => void;
   onDeleteStay: (index: number) => void;
-  khoas: Array<{ id: string; ten_danh_muc: string }>;
+  khoas: Array<{ id: string; ten_danh_muc: string; ma_danh_muc?: string }>;
   allowedEdit: boolean;
   ngayVaoVien?: string;
   ngayPhatHien?: string;
+}
+
+function stayKhoaLabel(stay: DepartmentStay, khoas: NkbvStayHistoryTableProps["khoas"]) {
+  const opt = khoas.find((k) => k.id === stay.khoa_id);
+  return formatKhoaCompactLabel({
+    ma_khoa: stay.ma_khoa || opt?.ma_danh_muc,
+    ten_khoa: stay.ten_khoa || opt?.ten_danh_muc,
+  });
 }
 
 export default function NkbvStayHistoryTable({
@@ -49,6 +62,7 @@ export default function NkbvStayHistoryTable({
     const newStay: DepartmentStay = {
       khoa_id: newStayKhoaId,
       ten_khoa,
+      ma_khoa: khoaOpt?.ma_danh_muc,
       ngay_vao: newStayNgayVao,
       ngay_ra: newStayNgayRa || undefined,
     };
@@ -83,11 +97,11 @@ export default function NkbvStayHistoryTable({
               {treatmentHistory.map((stay, idx) => (
                 <li key={idx} className="flex items-start justify-between gap-2 px-3 py-3">
                   <div className="min-w-0">
-                    <p className="font-bold text-slate-800">{stay.ten_khoa}</p>
+                    <p className="font-bold text-slate-800">{stayKhoaLabel(stay, khoas)}</p>
                     <p className="mt-1 text-xs font-mono text-slate-600">
-                      {stay.ngay_vao ? new Date(stay.ngay_vao).toLocaleDateString("vi-VN") : "—"}
+                      {formatDateVi(stay.ngay_vao)}
                       {" → "}
-                      {stay.ngay_ra ? new Date(stay.ngay_ra).toLocaleDateString("vi-VN") : "Hiện tại"}
+                      {stay.ngay_ra ? formatDateVi(stay.ngay_ra) : "Hiện tại"}
                     </p>
                   </div>
                   {allowedEdit && treatmentHistory.length > 1 ? (
@@ -124,16 +138,14 @@ export default function NkbvStayHistoryTable({
               {treatmentHistory.map((stay, idx) => (
                 <tr key={idx} className="hover:bg-slate-50/50">
                   <td className="px-3 py-2.5 font-bold text-slate-800">
-                    {stay.ten_khoa}
+                    {stayKhoaLabel(stay, khoas)}
                   </td>
                   <td className="px-3 py-2.5 font-mono text-slate-600">
-                    {stay.ngay_vao
-                      ? new Date(stay.ngay_vao).toLocaleDateString("vi-VN")
-                      : "—"}
+                    {formatDateVi(stay.ngay_vao)}
                   </td>
                   <td className="px-3 py-2.5 font-mono text-slate-600">
                     {stay.ngay_ra ? (
-                      new Date(stay.ngay_ra).toLocaleDateString("vi-VN")
+                      formatDateVi(stay.ngay_ra)
                     ) : (
                       <span className="text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded text-[11px]">
                         Hiện tại
@@ -182,7 +194,10 @@ export default function NkbvStayHistoryTable({
                 <option value="">-- Chọn khoa --</option>
                 {khoas.map((k) => (
                   <option key={k.id} value={k.id}>
-                    {k.ten_danh_muc}
+                    {formatKhoaPickerLabel({
+                      ma_danh_muc: k.ma_danh_muc,
+                      ten_danh_muc: k.ten_danh_muc,
+                    })}
                   </option>
                 ))}
               </select>

@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState, useTransition } from "react";
 import SearchableSelect, { SearchableSelectOption } from "./SearchableSelect";
 import { getActiveMasterDataAction } from "@/lib/master-data/master-data.actions";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 
 export type RegistrySelectOption = {
   id: string;
@@ -34,9 +35,10 @@ function mapRegistryOptions(
   loaiDanhMuc: string,
 ): SearchableSelectOption[] {
   return items.map((opt) => {
-    const hasCode = opt.ma && opt.ma.trim();
     const displayLabel =
-      hasCode && loaiDanhMuc === "KHOA_PHONG" ? `[${opt.ma}] ${opt.label}` : opt.label;
+      loaiDanhMuc === "KHOA_PHONG"
+        ? formatKhoaPickerLabel({ ma: opt.ma, ten_khoa: opt.label })
+        : opt.label;
     return {
       id: opt.id,
       label: displayLabel,
@@ -93,9 +95,10 @@ export default function RegistrySelect({
         if (!active) return;
 
         const mappedOptions = rows.map((row) => {
-          const hasCode = row.ma && row.ma.trim();
           const displayLabel =
-            hasCode && loaiDanhMuc === "KHOA_PHONG" ? `[${row.ma}] ${row.ten}` : row.ten;
+            loaiDanhMuc === "KHOA_PHONG"
+              ? formatKhoaPickerLabel({ ma: row.ma, ten_khoa: row.ten })
+              : row.ten;
           return {
             id: row.id,
             label: displayLabel,

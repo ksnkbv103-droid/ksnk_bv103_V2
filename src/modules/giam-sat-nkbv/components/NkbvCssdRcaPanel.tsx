@@ -6,6 +6,7 @@ import { Loader2, ShieldAlert } from "lucide-react";
 import CssdTraceLink from "./CssdTraceLink";
 import { fetchCssdRcaBundle, type CssdRcaBundle } from "../actions/nkbv-cssd-rca.actions";
 import { cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
+import { nkbvFormChrome as UI } from "@/modules/giam-sat-nkbv/lib/nkbv-form-chrome";
 
 type Props = {
   maQr?: string | null;
@@ -51,8 +52,8 @@ export default function NkbvCssdRcaPanel({ maQr, quyTrinhId, showEmptyHint = fal
 
   if (!hasLink && showEmptyHint) {
     return (
-      <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50/70 p-3 space-y-1.5">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-900 flex items-center gap-1.5">
+      <div className={`mt-3 space-y-1.5 p-3 ${UI.noticeWarning}`}>
+        <p className={`${UI.panelTitle} flex items-center gap-1.5 text-amber-900`}>
           <ShieldAlert size={14} aria-hidden />
           RCA CSSD (SSI ↔ dụng cụ)
         </p>
@@ -65,9 +66,9 @@ export default function NkbvCssdRcaPanel({ maQr, quyTrinhId, showEmptyHint = fal
   }
 
   return (
-    <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 space-y-2">
+    <div className={`mt-3 space-y-2 p-3 ${UI.noticeSuccess}`}>
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-900 flex items-center gap-1.5">
+        <p className={`${UI.panelTitle} flex items-center gap-1.5 text-emerald-900`}>
           <ShieldAlert size={14} aria-hidden />
           RCA CSSD (SSI ↔ dụng cụ)
         </p>

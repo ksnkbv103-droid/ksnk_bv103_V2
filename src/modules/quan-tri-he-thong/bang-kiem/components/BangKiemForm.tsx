@@ -104,7 +104,7 @@ export default function BangKiemForm({ initialData, onClose, onSave }: Props) {
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-2xl max-h-[92vh] rounded-[var(--radius-shell)] shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+      <div className="bg-white w-full max-w-2xl max-h-[92vh] rounded-[var(--radius-shell)] shadow-[var(--shadow-app-soft)] border border-slate-100 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
         <header className="px-10 py-8 bg-slate-50/50 flex items-center justify-between">
           <h2 className={F.modalTitleLight}>
             {formData.id ? "Cập nhật mẫu bảng kiểm" : "Thêm mới mẫu bảng kiểm"}

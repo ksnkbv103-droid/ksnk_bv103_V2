@@ -31,8 +31,40 @@ export const congViecSchema = z.object({
 
   nguoi_phu_trach_id: optionalUuid("Người phụ trách"),
   to_cong_tac_id: optionalUuid("Tổ công tác"),
+  dia_diem_khoa_id: z.preprocess(
+    qlcvEmptyToNull,
+    z.string().uuid("Chọn khoa/đơn vị địa điểm"),
+  ),
+  nhiem_vu_id: optionalUuid("Nhiệm vụ"),
+
+  vi_tri_thuc_hien: z.preprocess(qlcvEmptyToNull, z.union([z.string(), z.null()]).optional()),
+  nguoi_phoi_hop_ids: z
+    .array(z.string().uuid("Người phối hợp không hợp lệ"))
+    .max(20)
+    .optional()
+    .default([]),
+  nguoi_theo_doi_ids: z
+    .array(z.string().uuid("Người theo dõi không hợp lệ"))
+    .max(20)
+    .optional()
+    .default([]),
 
   han_hoan_thanh: z.preprocess(qlcvEmptyToNull, z.union([z.string().min(1), z.null()]).optional()),
+
+  /** PDCA từ analytics — map sang cột analytics_meta. */
+  analytics_meta: z
+    .object({
+      chi_so: z.string().trim().min(1).optional().nullable(),
+      khoa_id: z.string().uuid().optional().nullable(),
+      ky_do_lai: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .optional()
+        .nullable(),
+      gia_tri_luc_tao: z.number().finite().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
 });
 
 export type CongViecInput = z.infer<typeof congViecSchema>;

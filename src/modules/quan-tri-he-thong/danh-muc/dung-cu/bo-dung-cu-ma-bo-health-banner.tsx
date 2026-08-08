@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 import { getBoDungCuMaBoHealthAction } from "../actions/bo-dung-cu.actions";
 import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
+import { KsnkContextBanner } from "@/components/shared/KsnkContextBanner";
 
 export function BoDungCuMaBoHealthBanner() {
   const [state, setState] = useState<
@@ -29,29 +30,34 @@ export function BoDungCuMaBoHealthBanner() {
 
   if (state.loading || state.invalidCount === 0) return null;
 
+  const sampleLine =
+    state.samples.length > 0
+      ? `Ví dụ: ${state.samples.map((s) => `${s.ten_bo || "Bộ"} (${s.ma_bo || "trống"})`).join(" · ")}`
+      : null;
+
   return (
-    <div className="flex flex-wrap items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden />
-      <div className="min-w-0 flex-1 space-y-1">
-        <p className="font-semibold">
-          {state.invalidCount} bộ chưa có mã chuẩn <span className="font-mono">KHOA.SET.NN</span> — không vào workflow CSSD.
-        </p>
-        {state.samples.length > 0 ? (
-          <p className="text-xs text-amber-900/90">
-            Ví dụ:{" "}
-            {state.samples
-              .map((s) => `${s.ten_bo || "Bộ"} (${s.ma_bo || "trống"})`)
-              .join(" · ")}
-          </p>
-        ) : null}
-        <p className="text-xs">
-          Sửa tại đây (chọn khoa → lưu để tự sinh mã) hoặc{" "}
-          <Link href={quanTriDungCuHref("bo")} className="font-semibold underline">
-            mở tab Bộ dụng cụ
-          </Link>
-          .
-        </p>
-      </div>
-    </div>
+    <KsnkContextBanner
+      tone="amber"
+      dismissible={false}
+      icon={<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" aria-hidden />}
+      summary={
+        <span className="font-semibold">
+          {state.invalidCount} bộ chưa có mã chuẩn <span className="font-mono">KHOA.SET.NN</span> — không vào workflow
+          CSSD.
+        </span>
+      }
+      detail={
+        <>
+          {sampleLine ? <span className="block">{sampleLine}</span> : null}
+          <span className="block">
+            Sửa tại đây (chọn khoa → lưu để tự sinh mã) hoặc{" "}
+            <Link href={quanTriDungCuHref("bo")} className="font-semibold underline">
+              mở tab Bộ dụng cụ
+            </Link>
+            .
+          </span>
+        </>
+      }
+    />
   );
 }

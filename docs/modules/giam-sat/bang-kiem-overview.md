@@ -10,17 +10,15 @@
 
 ## Cách tính điểm (`cach_tinh_diem`)
 
-| Giá trị | Ý nghĩa | Engine |
-|---------|---------|--------|
-| `TY_LE` | % đạt trên tổng có trọng số | `giam-sat-scoring.ts` |
-| `TRON_GOI` | Care bundle — all-or-none tiêu chí then chốt | `giam-sat-scoring.ts` |
-| `DAT_KHONG_DAT` | Pass/fail theo ngưỡng critical | `giam-sat-scoring.ts` |
-| `NHAT_KY` | Nhật ký / Hawthorne — không % tuân thủ | `giam-sat-scoring.ts` |
-| *(NULL)* | Bảng cũ chưa backfill | `calculateGscComplianceScore` (legacy) |
+| Giá trị | Tỷ lệ tiêu chí (`tong_diem`) | UI |
+|---------|------------------------------|-----|
+| `TY_LE` | % DAT/(DAT+KHÔNG ĐẠT) | `% · Tốt/Đạt/Không đạt` |
+| `TRON_GOI` | % như trên (+ `dat_tron_goi` trong DB) | Chỉ `%` trên UI |
+| `DAT_KHONG_DAT` | % như trên | Chỉ `%` trên UI |
+| `NHAT_KY` | null | Cảnh báo ngoài ngưỡng |
 
-SSOT audit 36 mẫu (code): `src/lib/domain/gsc-canonical-36-scoring.ts` · CLI: `node scripts/audit-gsc-canonical-36-scoring.mjs`
-
-Lộ trình gỡ legacy: [`../../wiki/concepts.md`](../../wiki/concepts.md#gsc-scoring).
+UI GSC **chỉ hiện tỷ lệ %** (không nhãn “Chưa đủ 100%” / Bundle). Phân tích tiêu chí lỗi: `results_jsonb` + thống kê.  
+Engine: `giam-sat-scoring.ts` · UI: `gsc-score-display.ts` · [`concepts.md#gsc-scoring`](../../wiki/concepts.md#gsc-scoring).
 
 ## Data files (không mở tay)
 
@@ -30,6 +28,10 @@ Lộ trình gỡ legacy: [`../../wiki/concepts.md`](../../wiki/concepts.md#gsc-s
 | `data/bang-kiem/raw-forms-full.md` | Nguồn trích xuất gốc |
 | `data/bang-kiem/master-bangkiem.md` | Master template list |
 | `data/bang-kiem/master-tieuchi.md` | Master tiêu chí |
+
+## Điểm nguy cơ P×I×S (kế hoạch / chưa ship)
+
+Phân tích khả thi (SOP 7.1): P/I chấm tay, S gợi ý từ `% tuân thủ năm trước`, điểm = `P×I×S` — **tách** khỏi `tong_diem` phiên. Chi tiết: [`bang-kiem-rui-ro-pis-feasibility-20260731.md`](bang-kiem-rui-ro-pis-feasibility-20260731.md).
 
 ## Quy tắc phiên
 

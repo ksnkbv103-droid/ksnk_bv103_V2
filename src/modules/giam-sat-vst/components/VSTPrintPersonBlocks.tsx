@@ -9,6 +9,8 @@ import { tenNhanVien, tenNghe } from "./vst-print-helpers";
 type Nghe = { id?: string; ten_danh_muc?: string };
 type NhanSu = { id?: string; ho_ten?: string };
 
+const border = "1px solid #000";
+
 export function VSTPrintPersonBlocks({
   persons,
   ngheNghieps,
@@ -51,16 +53,17 @@ export function VSTPrintPersonBlocks({
         );
 
         return (
-          <div key={pIdx} className="break-inside-avoid" style={{ marginBottom: "16px" }}>
+          <div key={pIdx} style={{ marginBottom: "16px" }}>
             <p
               style={{
                 fontSize: "12px",
                 fontWeight: 900,
                 textTransform: "uppercase",
-                borderBottom: "1px solid #000",
+                borderBottom: border,
                 padding: "6px 0",
                 marginBottom: "8px",
                 color: "#000",
+                pageBreakAfter: "avoid",
               }}
             >
               Nhân viên {pIdx + 1}: {tenNv} — {nn}
@@ -68,12 +71,12 @@ export function VSTPrintPersonBlocks({
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
               <thead>
                 <tr>
-                  <th style={{ width: "32px", textAlign: "center", border: "1px solid #000", padding: "6px", background: "#fff" }}>STT</th>
-                  <th style={{ border: "1px solid #000", padding: "6px", background: "#fff" }}>Thời điểm vệ sinh tay (WHO)</th>
-                  <th style={{ width: "110px", textAlign: "center", border: "1px solid #000", padding: "6px", background: "#fff" }}>Hành động</th>
-                  <th style={{ width: "72px", textAlign: "center", border: "1px solid #000", padding: "6px", background: "#fff" }}>Đúng KT</th>
-                  <th style={{ width: "72px", textAlign: "center", border: "1px solid #000", padding: "6px", background: "#fff" }}>Đủ TG</th>
-                  <th style={{ width: "80px", textAlign: "center", border: "1px solid #000", padding: "6px", background: "#fff" }}>Găng tay</th>
+                  <th style={{ width: "32px", textAlign: "center", border, padding: "6px", background: "#fff" }}>STT</th>
+                  <th style={{ border, padding: "6px", background: "#fff" }}>Thời điểm vệ sinh tay (WHO)</th>
+                  <th style={{ width: "110px", textAlign: "center", border, padding: "6px", background: "#fff" }}>Hành động</th>
+                  <th style={{ width: "72px", textAlign: "center", border, padding: "6px", background: "#fff" }}>Đúng KT</th>
+                  <th style={{ width: "72px", textAlign: "center", border, padding: "6px", background: "#fff" }}>Đủ TG</th>
+                  <th style={{ width: "80px", textAlign: "center", border, padding: "6px", background: "#fff" }}>Găng tay</th>
                 </tr>
               </thead>
               <tbody>
@@ -83,29 +86,29 @@ export function VSTPrintPersonBlocks({
                   const isMiss = classifyVstAction(opp.hanh_dong).isMissed;
                   return (
                     <tr key={oIdx}>
-                      <td style={{ textAlign: "center", border: "1px solid #e2e8f0", padding: "6px" }}>{oIdx + 1}</td>
-                      <td style={{ border: "1px solid #e2e8f0", padding: "6px" }}>
+                      <td style={{ textAlign: "center", border, padding: "6px" }}>{oIdx + 1}</td>
+                      <td style={{ border, padding: "6px" }}>
                         {moments.length > 0 ? moments.join("; ") : "— (không ghi mốc WHO trên dòng)"}
                       </td>
                       <td
                         style={{
                           textAlign: "center",
                           fontWeight: "bold",
-                          border: "1px solid #e2e8f0",
+                          border,
                           padding: "6px",
-                          color: isMiss ? "#e63939" : "var(--primary)",
+                          color: "#000",
                         }}
                       >
                         {isMiss ? "✕ " : "✓ "}
                         {hd}
                       </td>
-                      <td style={{ textAlign: "center", border: "1px solid #e2e8f0", padding: "6px", fontSize: "16px" }}>
-                        {isMiss ? "—" : opp.dung_ky_thuat ? <span style={{ color: "var(--primary)" }}>✓</span> : <span style={{ color: "#e63939" }}>✕</span>}
+                      <td style={{ textAlign: "center", border, padding: "6px", fontSize: "16px" }}>
+                        {isMiss ? "—" : opp.dung_ky_thuat ? "✓" : "✕"}
                       </td>
-                      <td style={{ textAlign: "center", border: "1px solid #e2e8f0", padding: "6px", fontSize: "16px" }}>
-                        {isMiss ? "—" : opp.du_thoi_gian ? <span style={{ color: "var(--primary)" }}>✓</span> : <span style={{ color: "#e63939" }}>✕</span>}
+                      <td style={{ textAlign: "center", border, padding: "6px", fontSize: "16px" }}>
+                        {isMiss ? "—" : opp.du_thoi_gian ? "✓" : "✕"}
                       </td>
-                      <td style={{ textAlign: "center", border: "1px solid #e2e8f0", padding: "6px" }}>
+                      <td style={{ textAlign: "center", border, padding: "6px" }}>
                         {getVstPrintGloveDisplay(isMiss, opp.co_deo_gang)}
                       </td>
                     </tr>

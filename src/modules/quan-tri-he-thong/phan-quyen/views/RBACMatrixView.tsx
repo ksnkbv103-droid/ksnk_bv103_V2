@@ -230,7 +230,6 @@ export default function RBACMatrixView() {
     <div className={`${bv103DesignTokens.pageOuter} pb-24`}>
       <KsnkPageHeader
         title="Ma trận phân quyền"
-        subtitle="5 vai trò: Quản trị · Hội đồng · NV KSNK · Mạng lưới · Khách. Đồng bộ Registry không ghi đè chỉnh tay."
         actions={
           <>
             <button

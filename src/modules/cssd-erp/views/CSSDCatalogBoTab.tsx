@@ -5,6 +5,7 @@ import type { CSSDBo, CSSDChiTiet } from "../types/catalog.types";
 import type { CatalogTab } from "./cssd-catalog-page-helpers";
 import { Layers, ListFilter, Printer, Loader2 } from "lucide-react";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
+import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 import { usePrint } from "@/hooks/usePrint";
 import { registerPhysicalBoLabelFromDmAction } from "../contexts/instrument-catalog/entrypoint";
 import { toast } from "sonner";
@@ -58,7 +59,7 @@ export function CSSDCatalogBoTab(props: {
   return (
     <div className="space-y-6">
       {/* Bảng Danh mục Bộ dụng cụ */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-[var(--primary)]" />
@@ -97,9 +98,12 @@ export function CSSDCatalogBoTab(props: {
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <p className="font-bold text-[var(--primary)]">{x.ma_bo || "—"}</p>
-                            <p className="font-semibold text-slate-800">{x.ten_bo || "—"}</p>
+                          <div className="flex min-w-0 items-start gap-2">
+                            {x.ma_bo ? <InlineEntityQrThumb code={x.ma_bo} size={40} /> : null}
+                            <div className="min-w-0">
+                              <p className="font-bold text-[var(--primary)]">{x.ma_bo || "—"}</p>
+                              <p className="font-semibold text-slate-800">{x.ten_bo || "—"}</p>
+                            </div>
                           </div>
                           <span className="text-[11px] font-bold text-slate-600">{x.tong_so_luong_dung_cu ?? 0} DC</span>
                         </div>
@@ -145,7 +149,12 @@ export function CSSDCatalogBoTab(props: {
                       isSelected ? "bg-emerald-50/70 font-medium text-slate-900" : ""
                     }`}
                   >
-                    <td className="px-4 py-3.5 font-bold text-[var(--primary)]">{x.ma_bo || "—"}</td>
+                    <td className="px-4 py-3.5">
+                      <span className="inline-flex items-center gap-2">
+                        {x.ma_bo ? <InlineEntityQrThumb code={x.ma_bo} size={36} /> : null}
+                        <span className="font-bold text-[var(--primary)]">{x.ma_bo || "—"}</span>
+                      </span>
+                    </td>
                     <td className="px-4 py-3.5 font-semibold">{x.ten_bo || "—"}</td>
                     <td className="px-4 py-3.5 text-center">
                       <span
@@ -208,14 +217,14 @@ export function CSSDCatalogBoTab(props: {
       </section>
 
       {/* Danh sách Dụng cụ thành phần (hiển thị khi chọn Bộ) */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ListFilter className="h-5 w-5 text-indigo-600" />
             <h3 className="text-sm font-bold text-slate-800">
               Thành phần dụng cụ trong bộ{" "}
               {selectedBo ? (
-                <span className="text-[var(--primary)] font-black">
+                <span className="text-[var(--primary)] font-semibold">
                   — {selectedBo.ten_bo} ({selectedBo.ma_bo})
                 </span>
               ) : (

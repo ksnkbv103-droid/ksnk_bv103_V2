@@ -10,10 +10,10 @@ import {
   type MeTietKhuanTheoMayRow,
 } from "../../actions/cssd-thiet-bi-van-hanh.actions";
 import { CSSD_UI_DATA_SURFACE } from "../../shared/ui/cssd-ui-chrome";
+import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 
 function fmtDt(v: string | null) {
-  if (!v) return "—";
-  return new Date(v).toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" });
+  return formatDateTimeVi(v);
 }
 
 function triLabel(v: boolean | null) {
@@ -108,7 +108,7 @@ export default function ThietBiVanHanhPanel() {
       </div>
 
       {!selId ? (
-        <div className={`${CSSD_UI_DATA_SURFACE} rounded-2xl p-8 text-center text-sm text-slate-600`}>Chọn máy để xem lịch sử.</div>
+        <div className={`${CSSD_UI_DATA_SURFACE} rounded-[var(--radius-shell)] p-8 text-center text-sm text-slate-600`}>Chọn máy để xem lịch sử.</div>
       ) : loadingRows ? (
         <div className="flex h-32 items-center justify-center">
           <Loader2 className="h-6 w-6 animate-spin text-[var(--primary)]" />

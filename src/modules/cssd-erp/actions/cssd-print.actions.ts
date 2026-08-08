@@ -132,9 +132,9 @@ async function buildBatchPrintPayload(
 }
 
 export async function fetchCssdBatchPrintData(batchId: string) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdBatchView();
+    const supabase = createAdminSupabaseClient();
     const id = String(batchId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã mẻ." };
     const data = await buildBatchPrintPayload(supabase, { batchId: id });
@@ -166,9 +166,9 @@ async function loadBatchSummaryForCapPhat(
 }
 
 export async function fetchCssdCapPhatPrintData(quyTrinhId: string) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdKhoDungCuView();
+    const supabase = createAdminSupabaseClient();
     const id = String(quyTrinhId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu quy trình." };
 
@@ -230,9 +230,9 @@ export async function fetchCssdCapPhatPrintData(quyTrinhId: string) {
 }
 
 export async function fetchCssdCapPhatPrintDataByQr(qr: string) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdKhoDungCuView();
+    const supabase = createAdminSupabaseClient();
     const qt = await fetchActiveQuyTrinhByScanCode(supabase, qr);
     if (!qt?.id) return { success: false as const, error: "Không tìm thấy bộ theo mã QR." };
     return fetchCssdCapPhatPrintData(String(qt.id));

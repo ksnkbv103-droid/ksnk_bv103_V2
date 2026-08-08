@@ -1,5 +1,9 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import { CheckCircle2, User, Clock, ArrowRight, Printer } from "lucide-react";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
 interface Props {
   qrCode: string;
@@ -19,7 +23,7 @@ interface Props {
 }
 
 /**
- * Thẻ thông báo quét thành công — thống nhất mọi trạm workflow.
+ * Thẻ thông báo quét thành công — Ops dialect (không poster vàng).
  */
 export default function QRScanSuccessCard({
   qrCode,
@@ -36,108 +40,124 @@ export default function QRScanSuccessCard({
 }: Props) {
   const tramKey = tramDisplay.replace(/\s+/g, "_").toUpperCase();
   const isCapPhat = tramKey === "CAP_PHAT" || tramDisplay === "Cấp phát";
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const code = String(qrCode || "").trim();
+    if (!code) {
+      setQrDataUrl(null);
+      return;
+    }
+    void import("qrcode")
+      .then((QRCode) =>
+        QRCode.toDataURL(code, {
+          margin: 1,
+          width: 200,
+          color: { dark: "#000000", light: "#ffffff" },
+        }),
+      )
+      .then((url) => {
+        if (!cancelled) setQrDataUrl(url);
+      })
+      .catch(() => {
+        if (!cancelled) setQrDataUrl(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [qrCode]);
 
   return (
-    <div className="w-full max-w-[360px] mx-auto animate-in zoom-in-95 duration-200 touch-manipulation pointer-events-auto -webkit-tap-highlight-color-transparent">
-      <div className="bg-[var(--primary)] rounded-2xl overflow-hidden shadow-xl border-2 border-[#FFD700]/20 relative">
-        <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[radial-gradient(#FFD700_1px,transparent_1px)] [background-size:20px_20px]" />
-
-        <div className="p-5 flex flex-col items-center text-center relative z-10">
-          <div className="mb-4 bg-[#FFD700] p-3 rounded-full shadow-lg">
-            <CheckCircle2 className="text-[var(--primary)]" size={32} strokeWidth={3} />
+    <div className="pointer-events-auto mx-auto w-full max-w-[360px] animate-in zoom-in-95 duration-200 touch-manipulation [-webkit-tap-highlight-color:transparent]">
+      <div className={`${C.panelSurface} overflow-hidden`}>
+        <div className="flex flex-col items-center p-5 text-center">
+          <div className="mb-3 rounded-full bg-[var(--primary)]/10 p-3 text-[var(--primary)]">
+            <CheckCircle2 className="h-8 w-8" strokeWidth={2.5} aria-hidden />
           </div>
 
-          <h2 className="text-[#FFD700] text-lg font-black uppercase tracking-tight mb-1">
-            QUÉT THÀNH CÔNG
-          </h2>
-          <p className="text-white/50 text-[11px] font-bold uppercase tracking-[0.2em] mb-6">
-            Hệ thống đã ghi nhận bản ghi
-          </p>
+          <h2 className={T.sectionTitle}>Quét thành công</h2>
+          <p className="mt-0.5 text-[11px] font-medium text-slate-500">Hệ thống đã ghi nhận bản ghi</p>
 
-          <div className="w-full bg-white/5 backdrop-blur-md rounded-xl p-4 border border-white/10 space-y-5">
-            <div className="flex flex-col items-center gap-3">
-              <div className="bg-white p-3 rounded-2xl shadow-lg border-2 border-white">
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${qrCode}`}
-                  alt="QR"
-                  className="w-28 h-28 object-contain"
-                />
+          <div className="mt-4 w-full space-y-4 rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50/60 p-4">
+            <div className="flex flex-col items-center gap-2">
+              <div className="rounded-[var(--radius-control)] border border-slate-200 bg-white p-2 shadow-sm">
+                {qrDataUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={qrDataUrl} alt="QR" className="h-28 w-28 object-contain" />
+                ) : (
+                  <div className="flex h-28 w-28 items-center justify-center font-mono text-[11px] text-slate-400">
+                    QR
+                  </div>
+                )}
               </div>
-              <div className="font-black text-[#FFD700] text-xl tracking-[0.1em]">
-                {qrCode}
-              </div>
+              <p className={`${T.metaMono} text-sm text-[var(--primary)]`}>{qrCode}</p>
               {maCycleQr && maCycleQr !== qrCode ? (
-                <p className="text-[10px] font-bold uppercase tracking-wide text-[#FFD700]/80">
-                  Tem chu trình: <span className="font-mono tracking-normal">{maCycleQr}</span>
+                <p className="text-[11px] font-medium text-slate-500">
+                  Tem chu trình: <span className="font-mono">{maCycleQr}</span>
                 </p>
               ) : null}
             </div>
 
-            <div className="h-px bg-white/10 w-full" />
+            <div className="h-px w-full bg-slate-200/80" />
 
-            <div className="space-y-4 text-left px-1">
-              <div className="space-y-0.5">
-                <label className="text-[11px] font-black text-[#FFD700]/40 uppercase tracking-widest">
-                  Bộ dụng cụ
-                </label>
-                <div className="text-white text-base font-black uppercase leading-tight">
-                  {tenBoDungCu}
-                </div>
+            <div className="space-y-3 px-0.5 text-left">
+              <div>
+                <p className={T.labelBlock}>Bộ dụng cụ</p>
+                <p className="text-sm font-semibold leading-snug text-slate-800">{tenBoDungCu}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 bg-black/20 p-3 rounded-xl border border-white/5">
+              <div className="grid grid-cols-2 gap-3 rounded-[var(--radius-control)] border border-slate-200 bg-white p-3">
                 <div className="space-y-0.5">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#FFD700]/40 uppercase">
-                    <User size={10} /> Người thực hiện
-                  </div>
-                  <div className="text-white text-[11px] font-black truncate">{nguoiThucHien}</div>
+                  <p className={`flex items-center gap-1 ${T.labelBlock}`}>
+                    <User className="h-3 w-3" aria-hidden /> Người thực hiện
+                  </p>
+                  <p className="truncate text-[11px] font-semibold text-slate-800">{nguoiThucHien}</p>
                 </div>
-                <div className="space-y-0.5 border-l border-white/10 pl-3">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#FFD700]/40 uppercase">
-                    <Clock size={10} /> Thời gian
-                  </div>
-                  <div className="text-white text-[11px] font-black">{thoiGianQuet}</div>
+                <div className="space-y-0.5 border-l border-slate-100 pl-3">
+                  <p className={`flex items-center gap-1 ${T.labelBlock}`}>
+                    <Clock className="h-3 w-3" aria-hidden /> Thời gian
+                  </p>
+                  <p className="text-[11px] font-semibold text-slate-800">{thoiGianQuet}</p>
                 </div>
               </div>
             </div>
 
-            {maLoTietKhuan && (
-              <div className="w-full bg-emerald-500/15 border border-emerald-400/30 rounded-xl p-3 text-left">
-                <label className="text-[11px] font-black text-emerald-200 uppercase tracking-widest block mb-1">
-                  Mã mẻ tiệt khuẩn (QR trên phiếu)
-                </label>
-                <div className="text-white text-sm font-black font-mono tracking-wider">{maLoTietKhuan}</div>
+            {maLoTietKhuan ? (
+              <div className={`${C.noticeSuccess} text-left`}>
+                <p className={T.labelBlock}>Mã mẻ tiệt khuẩn (QR trên phiếu)</p>
+                <p className="font-mono text-sm font-semibold">{maLoTietKhuan}</p>
               </div>
-            )}
+            ) : null}
 
-            {ledgerWarning && (
-              <div className="w-full bg-rose-500/20 border border-rose-500/40 rounded-xl p-3 text-left animate-in fade-in slide-in-from-bottom-1">
-                <label className="text-[11px] font-black text-rose-300 uppercase tracking-widest block mb-1">⚠️ CẢNH BÁO CẤU PHẦN (SỔ CÁI)</label>
-                <div className="text-rose-100 text-[11px] font-bold leading-relaxed">{ledgerWarning}</div>
+            {ledgerWarning ? (
+              <div className={`${C.noticeDanger} text-left`}>
+                <p className="text-[11px] font-semibold">Cảnh báo cấu phần (sổ cái)</p>
+                <p className="mt-0.5 text-[11px] font-medium leading-relaxed">{ledgerWarning}</p>
               </div>
-            )}
+            ) : null}
           </div>
 
-          <div className="mt-6 w-full bg-[#FFD700] text-[var(--primary)] p-4 rounded-2xl flex items-center justify-between shadow-lg">
-            <div className="text-left">
-              <div className="text-[11px] font-black uppercase opacity-60 mb-0.5">Bước tiếp theo</div>
-              <div className="text-sm font-black uppercase tracking-tight">{buocTiepTheo}</div>
+          <div className="mt-4 flex w-full items-center justify-between gap-3 rounded-[var(--radius-shell)] border border-slate-200 bg-white px-4 py-3 text-left shadow-sm">
+            <div>
+              <p className={T.labelBlock}>Bước tiếp theo</p>
+              <p className="text-sm font-semibold text-slate-800">{buocTiepTheo}</p>
             </div>
-            <div className="bg-[var(--primary)] p-2 rounded-full text-[#FFD700]"><ArrowRight size={20} strokeWidth={3} /></div>
+            <div className="rounded-full bg-[var(--primary)] p-2 text-white">
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </div>
           </div>
 
           {isCapPhat && onPrintCapPhat ? (
-            <div className="mt-4 w-full">
-              <button
-                type="button"
-                disabled={isPrintBusy}
-                onClick={onPrintCapPhat}
-                className="w-full h-14 rounded-[20px] flex items-center justify-center gap-3 font-black uppercase text-[11px] tracking-widest shadow-lg active:scale-95 transition-all disabled:opacity-50 touch-manipulation bg-[#FFD700] text-[var(--primary)] border-2 border-[var(--primary)]/10"
-              >
-                <Printer size={20} strokeWidth={2.5} />
-                {isPrintBusy ? "ĐANG CHUẨN BỊ IN..." : "IN PHIẾU CẤP PHÁT A4"}
-              </button>
-            </div>
+            <button
+              type="button"
+              disabled={isPrintBusy}
+              onClick={onPrintCapPhat}
+              className={`${C.btnPrimary} mt-4 w-full`}
+            >
+              <Printer className="h-4 w-4" aria-hidden />
+              {isPrintBusy ? "Đang chuẩn bị in…" : "In phiếu cấp phát A4"}
+            </button>
           ) : null}
         </div>
       </div>

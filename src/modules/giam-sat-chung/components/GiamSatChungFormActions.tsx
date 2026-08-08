@@ -8,12 +8,30 @@ interface GiamSatChungFormActionsProps {
   loading: boolean;
   headerLoading: boolean;
   onPrint: () => void;
+  /** In mẫu trống (tiêu chí chưa chấm) — dùng giấy ngoại tuyến. */
+  onPrintBlank?: () => void;
   onSave: () => void;
 }
 
-export default function GiamSatChungFormActions({ loading, headerLoading, onPrint, onSave }: GiamSatChungFormActionsProps) {
+export default function GiamSatChungFormActions({
+  loading,
+  headerLoading,
+  onPrint,
+  onPrintBlank,
+  onSave,
+}: GiamSatChungFormActionsProps) {
   return (
     <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-3 animate-in slide-in-from-bottom-8 duration-500 no-print">
+      {onPrintBlank ? (
+        <button
+          type="button"
+          onClick={onPrintBlank}
+          title="In mẫu bảng kiểm trống"
+          className="app-shell-focus flex h-12 w-12 shrink-0 items-center justify-center self-end rounded-[var(--radius-control)] border border-slate-200 bg-white text-slate-700 shadow-[var(--shadow-app-soft)] transition-colors hover:bg-slate-50"
+        >
+          <span className="text-[11px] font-bold leading-tight">Mẫu</span>
+        </button>
+      ) : null}
       <button
         type="button"
         onClick={onPrint}

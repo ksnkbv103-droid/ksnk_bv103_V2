@@ -33,9 +33,9 @@ async function aggregateTonTheoLo(
 export async function listTonTheoLoKhoHoaChatAction(): Promise<
   { success: true; data: KhoHoaChatTonLo[] } | { success: false; error: string }
 > {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("KSNK_KHO_HOACHAT", "view");
+    const supabase = createAdminSupabaseClient();
     const tonRes = await aggregateTonTheoLo(supabase);
     if (!tonRes.success) return tonRes;
     const vRows = tonRes.data;
@@ -93,9 +93,9 @@ export async function listTonTheoLoKhoHoaChatAction(): Promise<
 export async function listGiaoDichKhoHoaChatAction(params?: { limit?: number }): Promise<
   { success: true; data: KhoHoaChatGiaoDichRow[] } | { success: false; error: string }
 > {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("KSNK_KHO_HOACHAT", "view");
+    const supabase = createAdminSupabaseClient();
     const lim = Math.min(500, Math.max(10, Number(params?.limit) || 150));
     const { data: rows, error } = await supabase
       .from("cssd_fact_kho_hoa_chat_giao_dich")
@@ -149,9 +149,9 @@ export async function listDmHoaChatChoKhoAction(search?: string): Promise<
     error: string;
   }
 > {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("KSNK_KHO_HOACHAT", "view");
+    const supabase = createAdminSupabaseClient();
     let q = supabase
       .from("cssd_dm_hoa_chat")
       .select("id, ma_hoa_chat, ten_hoa_chat, don_vi_tinh, nguong_ton_toi_thieu, loai_hoa_chat")
@@ -180,9 +180,9 @@ export async function listDmHoaChatChoKhoAction(search?: string): Promise<
 }
 
 export async function capNhatNguongTonKhoAction(input: { dm_hoa_chat_id: string; nguong_ton_toi_thieu: string | number | null }) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("KSNK_KHO_HOACHAT", "edit");
+    const supabase = createAdminSupabaseClient();
     const id = String(input.dm_hoa_chat_id || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mặt hàng." };
     const raw = input.nguong_ton_toi_thieu;

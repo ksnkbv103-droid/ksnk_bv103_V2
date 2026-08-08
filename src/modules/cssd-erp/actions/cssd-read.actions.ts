@@ -34,8 +34,8 @@ async function loadRedAlertKeys(supabase: SupabaseClient): Promise<{
 }
 
 export async function getWaitingListByStation(station: Station) {
-  const supabase = createAdminSupabaseClient();
   await verifyPermission("CSSD_WORKFLOW", "view");
+  const supabase = createAdminSupabaseClient();
   /** Trạm TK không có «chờ quét» tại trang 6 bước — vào mẻ chỉ trên /cssd-erp/batch. */
   if (station === "TIEP_NHAN") {
     // Chờ tiếp nhận: bộ danh mục chưa có quy trình active CÓ trạm (shell tram=null vẫn chờ quét).
@@ -217,9 +217,9 @@ export async function getWaitingListByStation(station: Station) {
 const MAX_CSSD_IMPORT_EXPORT_ROWS = 8000;
 
 export async function getCSSDImportExportData() {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("CSSD_KHO_DUNGCU", "view");
+    const supabase = createAdminSupabaseClient();
     // Không bao giờ select is_red_alert từ view — cột có thể chưa có trên localhost.
     const { data, error } = await supabase
       .from("v_cssd_quy_trinh_full")
@@ -277,9 +277,9 @@ export async function getCssdStationFlowMap(): Promise<
   const emptyCells = (): StationFlowMapCell[] =>
     STEPS.map((station) => ({ station, count: 0, redAlertCount: 0, frozenCount: 0 }));
 
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyPermission("CSSD_WORKFLOW", "view");
+    const supabase = createAdminSupabaseClient();
     // Không select is_red_alert trên view — localhost/prod trước migrate sẽ lỗi cột thiếu.
     const { data, error } = await supabase
       .from("v_cssd_quy_trinh_full")

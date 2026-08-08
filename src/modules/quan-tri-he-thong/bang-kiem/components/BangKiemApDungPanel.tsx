@@ -12,6 +12,7 @@ import { parseApDungJsonb, validateApDungForSave } from "@/lib/domain/bang-kiem-
 import BangKiemApDungFields, { type BangKiemApDungFormState } from "./bang-kiem-ap-dung-fields";
 import BangKiemApDungPreview from "./bang-kiem-ap-dung-preview";
 import { usePermission } from "@/hooks/usePermission";
+import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
 
 type Props = {
@@ -24,9 +25,10 @@ export default function BangKiemApDungPanel({ bangKiem, canEdit, onSaved }: Prop
   const { userData } = usePermission();
   const actorKhoaId = userData?.khoa_id ?? null;
   const actorKhoaLabel = userData?.khoa?.ten_khoa
-    ? userData.khoa.ma_khoa
-      ? `[${userData.khoa.ma_khoa}] ${userData.khoa.ten_khoa}`
-      : userData.khoa.ten_khoa
+    ? formatKhoaPickerLabel({
+        ma_khoa: userData.khoa.ma_khoa,
+        ten_khoa: userData.khoa.ten_khoa,
+      })
     : null;
   const meta = {
     phan_loai_chuyen_mon: bangKiem.phan_loai_chuyen_mon ?? null,
@@ -84,11 +86,10 @@ export default function BangKiemApDungPanel({ bangKiem, canEdit, onSaved }: Prop
     <div className={`${F.shellPadded} ${F.sectionGap}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className={F.panelTitle}>Quy định áp dụng</h3>
-          <p className={`mt-1 max-w-md leading-relaxed ${F.panelSubtitle}`}>
-            Thiết lập theo thứ tự: nghĩa vụ → khối → khoa → miễn trừ → đối tượng → tần suất phiên. Mẫu{" "}
-            <span className={F.innerTableCode}>{bangKiem.ma_bk}</span>.
-          </p>
+          <h3 className={F.panelTitle}>
+            Quy định áp dụng{" "}
+            <span className={`${F.innerTableCode} font-normal`}>{bangKiem.ma_bk}</span>
+          </h3>
         </div>
         {canEdit ? (
           <button

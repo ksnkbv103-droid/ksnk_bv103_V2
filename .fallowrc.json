@@ -4,14 +4,17 @@
     "next.config.{js,mjs,ts}",
     "src/app/**/{page,layout,route,default}.{tsx,ts,jsx,js}",
     "src/middleware.{ts,js}",
+    "src/proxy.ts",
     "src/instrumentation.{ts,js}",
     "vitest.config.{ts,mjs}",
-    "playwright.config.{ts,mjs}"
+    "playwright.config.{ts,mjs}",
+    "scripts/dao-tao-import-mcq.ts"
   ],
   "ignorePatterns": [
     "scripts/archive/**",
     "supabase/**",
-    "docs/**"
+    "docs/**",
+    "src/components/ui/button.tsx"
   ],
   "rules": {
     "unused-dependencies": "warn"

@@ -4,6 +4,7 @@ import React from "react";
 import AdvancedDataTable, { type Column } from "@/components/shared/AdvancedDataTable";
 import { isHoaChatLoai, loaiHoaChatLabel } from "@/lib/domain/cssd-hoa-chat-loai";
 import type { KhoHoaChatGiaoDichRow, KhoHoaChatTonLo } from "../../actions/cssd-kho-hoa-chat.actions";
+import { formatDateTimeVi, formatDateVi } from "@/lib/format-datetime-vi";
 
 const tonCols: Column<KhoHoaChatTonLo>[] = [
   {
@@ -50,7 +51,7 @@ const tonCols: Column<KhoHoaChatTonLo>[] = [
       const isNear = !Number.isNaN(h) && (h - Date.now() <= 30 * 864e5);
       return (
         <span className={`text-[11px] font-bold ${isNear ? "text-amber-600 animate-pulse bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100" : "text-slate-600"}`}>
-          {i.han_su_dung}
+          {formatDateVi(i.han_su_dung)}
         </span>
       );
     } 
@@ -65,13 +66,13 @@ const tonCols: Column<KhoHoaChatTonLo>[] = [
       }
       if (q <= 10) {
         return (
-          <span className="inline-flex rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[11px] font-black text-amber-700 tabular-nums">
+          <span className="inline-flex rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[11px] font-semibold text-amber-700 tabular-nums">
             {q} (Cảnh báo ít)
           </span>
         );
       }
       return (
-        <span className="inline-flex rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-black text-emerald-700 tabular-nums">
+        <span className="inline-flex rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 tabular-nums">
           {q}
         </span>
       );
@@ -128,7 +129,7 @@ const movCols: Column<KhoHoaChatGiaoDichRow>[] = [
       const q = i.so_luong_co_dau;
       const isPos = q > 0;
       return (
-        <span className={`tabular-nums text-[11px] font-black ${isPos ? "text-emerald-600" : "text-rose-600"}`}>
+        <span className={`tabular-nums text-[11px] font-semibold ${isPos ? "text-emerald-600" : "text-rose-600"}`}>
           {isPos ? `+${q}` : q}
         </span>
       );
@@ -140,7 +141,7 @@ const movCols: Column<KhoHoaChatGiaoDichRow>[] = [
     cell: (i) => (
       <span className="text-[11px] text-slate-600">
         Lô: <span className="font-mono font-bold text-slate-700">{i.ma_lo || "Không"}</span>
-        {i.han_su_dung ? ` · HSD: ${i.han_su_dung}` : ""}
+        {i.han_su_dung ? ` · HSD: ${formatDateVi(i.han_su_dung)}` : ""}
       </span>
     ) 
   },
@@ -159,7 +160,7 @@ const movCols: Column<KhoHoaChatGiaoDichRow>[] = [
   { 
     header: "Thời điểm", 
     accessorKey: "created_at", 
-    cell: (i) => <span className="text-[11px] text-slate-500">{i.created_at ? new Date(i.created_at).toLocaleString("vi-VN") : "—"}</span> 
+    cell: (i) => <span className="text-[11px] text-slate-500">{formatDateTimeVi(i.created_at)}</span> 
   },
 ];
 

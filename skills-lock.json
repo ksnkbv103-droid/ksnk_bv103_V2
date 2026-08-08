@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "cssd-pilot": {
+      "source": "local/bv103",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/cssd-pilot/SKILL.md",
+      "computedHash": "cc3680597c69162ce44c5a143f83b09a85d4da19c79a2b5cd2af6b8a3ba89d2a"
+    },
     "dashboard-pilot": {
       "source": "local/bv103",
       "sourceType": "github",
@@ -17,7 +23,7 @@
       "source": "local/bv103",
       "sourceType": "github",
       "skillPath": ".agents/skills/po-intake/SKILL.md",
-      "computedHash": "e96246396781fb3b29dafb09072d43284f477103fa3d5efdabc6f7bf225977e1"
+      "computedHash": "e119f1b1eb0d8231385ca6e074d5cf884f12a621c7ea277c03cbc81c7fe6e447"
     },
     "qlcv-pilot": {
       "source": "local/bv103",

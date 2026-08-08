@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import QRCode from "qrcode";
 import { toast } from "sonner";
+import { buildPrintFileTitle, type PrintFileLoai } from "@/lib/print/print-file-title";
 
 type MinimalLabelInput = {
   /** Mã bộ SSOT — QR và chữ in cùng một mã (vd. B01.SET.01). */
@@ -24,6 +25,7 @@ function buildMinimalThermalLabelHtml(opts: {
   displayCode: string;
   tenBo: string;
   kindLabel?: string;
+  fileTitle: string;
 }): string {
   const code = escapeHtml(opts.displayCode);
   const name = escapeHtml(opts.tenBo);
@@ -32,7 +34,7 @@ function buildMinimalThermalLabelHtml(opts: {
   return `<!DOCTYPE html>
 <html>
   <head>
-    <title>${escapeHtml(opts.qrCode)}</title>
+    <title>${escapeHtml(opts.fileTitle)}</title>
     <style>
       @page { size: 80mm auto; margin: 0; }
       * { box-sizing: border-box; }
@@ -101,11 +103,13 @@ function buildMinimalThermalLabelHtml(opts: {
 
 async function openMinimalLabelPrint(
   input: MinimalLabelInput,
-  kindLabel?: string,
+  kindLabel: string | undefined,
+  loai: Extract<PrintFileLoai, "TEMBO" | "TEMMAY" | "TEMCYC">,
 ): Promise<void> {
   const qrCode = String(input.qrCode || "").trim();
   const tenBo = String(input.tenBo || "").trim() || "Bộ dụng cụ CSSD";
   const displayCode = qrCode;
+  const fileTitle = buildPrintFileTitle({ loai, ma: qrCode });
 
   const qrDataUrl = await QRCode.toDataURL(qrCode, {
     margin: 1,
@@ -117,7 +121,7 @@ async function openMinimalLabelPrint(
   if (!printWindow) throw new Error("Vui lòng cho phép mở popup để in");
 
   printWindow.document.write(
-    buildMinimalThermalLabelHtml({ qrDataUrl, qrCode, displayCode, tenBo, kindLabel }),
+    buildMinimalThermalLabelHtml({ qrDataUrl, qrCode, displayCode, tenBo, kindLabel, fileTitle }),
   );
   printWindow.document.close();
 }
@@ -128,10 +132,10 @@ export function usePrint() {
 
   const printBoLabel = useCallback(async (input: MinimalLabelInput) => {
     setIsPrinting(true);
-    const toastId = toast.loading("Đang chuẩn bị nhãn bộ...");
+    const toastId = toast.loading("Đang chuẩn bị nhãn bộ (tem vĩnh viễn)...");
     try {
-      await openMinimalLabelPrint(input);
-      toast.success("Đã mở lệnh in nhãn bộ dụng cụ", { id: toastId });
+      await openMinimalLabelPrint(input, "Bộ dụng cụ · Tem vĩnh viễn", "TEMBO");
+      toast.success("Đã mở lệnh in nhãn bộ dụng cụ (tem vĩnh viễn)", { id: toastId });
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
       toast.error("Lỗi in: " + msg, { id: toastId });
@@ -143,13 +147,14 @@ export function usePrint() {
 
   const printCycleLabel = useCallback(async (input: Pick<MinimalLabelInput, "qrCode" | "tenBo">) => {
     setIsPrinting(true);
-    const toastId = toast.loading("Đang chuẩn bị tem chu trình...");
+    const toastId = toast.loading("Đang chuẩn bị tem chu trình (túi hấp, tạm)...");
     try {
       await openMinimalLabelPrint(
         { qrCode: input.qrCode, tenBo: input.tenBo },
-        "Niêm phong · Chu trình",
+        "Niêm phong · Tem chu trình (túi hấp)",
+        "TEMCYC",
       );
-      toast.success("Đã mở lệnh in tem chu trình", { id: toastId });
+      toast.success("Đã mở lệnh in tem chu trình (dán túi hấp)", { id: toastId });
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
       toast.error("Lỗi in: " + msg, { id: toastId });
@@ -166,6 +171,7 @@ export function usePrint() {
       await openMinimalLabelPrint(
         { qrCode: input.qrCode, tenBo: input.tenBo },
         "Máy · Thiết bị CSSD",
+        "TEMMAY",
       );
       toast.success("Đã mở lệnh in nhãn máy", { id: toastId });
     } catch (error: unknown) {

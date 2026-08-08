@@ -52,7 +52,7 @@ Rules: `20-master-data-placement.mdc`, `12-cssd-erp-spec-context.mdc`. Reform: [
 
 Doc chi tiết: [`modules/giam-sat/layout-primitives.md`](../modules/giam-sat/layout-primitives.md).
 
-**Sidebar (module-first):** SSOT [`sidebar-nav-groups.ts`](../../src/lib/nav/sidebar-nav-groups.ts) — chỉ cổng vào module/workspace (Điều hành liên module + Giám sát VST/GSC/NKBV + QLCV + CSSD). Lịch sử / Thống kê VST·GSC nằm trong ModeNav của module (`/lich-su/*`, `/thong-ke/*` vẫn deep-link được). **Quản trị:** một mục «Quản trị hệ thống» → hub [`/quan-tri-he-thong`](../../src/lib/nav/sidebar-admin-nav-groups.ts); danh mục/RBAC chọn trong hub. Ai thấy mục nào = phân quyền `NavGate`, không nhân bản menu theo vai trò.
+**Sidebar (module-first):** SSOT [`sidebar-nav-groups.ts`](../../src/lib/nav/sidebar-nav-groups.ts) — cổng vào module/workspace. **Điều hành:** «Tổng quan KSNK» → `/` + «Báo cáo chính thức» → `/bao-cao-tong-hop`. **Giám sát:** một mục «Giám sát» → `/giam-sat` (QR / lịch sử / thống kê vào từ hub; bookmark `/qr` vẫn sống). Deep-link VST/GSC/NKBV mở từ hub. Lịch sử / Thống kê VST·GSC: `/lich-su/*`, `/thong-ke/*`. **CSSD:** sidebar tách «Vận hành» vs «Tra cứu» là **cổng chuyển màn duy nhất** (không ModeNav trùng trên hero). **Quản trị:** một mục «Quản trị hệ thống» → hub [`/quan-tri-he-thong`](../../src/lib/nav/sidebar-admin-nav-groups.ts). Ai thấy mục nào = `NavGate`. Chương trình giản hóa: [`simplification-program-20260726.md`](../reference/architecture/simplification-program-20260726.md).
 
 1. `rounded-2xl` / `xl` — `npm run layout:drift-check`
 2. Label tối thiểu `text-[11px]` — `npm run layout:typography-check`
@@ -63,14 +63,22 @@ Doc chi tiết: [`modules/giam-sat/layout-primitives.md`](../modules/giam-sat/la
 
 ## GSC scoring {#gsc-scoring}
 
-| Engine | File | Khi |
-|--------|------|-----|
-| Legacy weight | `giam-sat-chung.domain.ts` | `cach_tinh_diem` NULL |
-| JCI v4 | `giam-sat-scoring.ts` | `TY_LE`, `TRON_GOI`, … |
+**Hai lớp đo song song (2026-07-27):**
 
-**Gỡ legacy khi:** 0 bản ghi `cach_tinh_diem IS NULL` + regression 3 bảng + `verify:engineering`.
+| Lớp | Cột / nguồn | Ý nghĩa |
+|-----|-------------|---------|
+| **Tỷ lệ tiêu chí** | `tong_diem` + view `tong_dat`/`tong_quan_sat` | % Đạt/(Đạt+Không đạt) — luôn có (trừ nhật ký) |
+| **Care bundle** | `dat_tron_goi` | Chỉ `TRON_GOI` — đạt gói then chốt hay không |
+| **Chi tiết lỗi** | `results_jsonb` | Thống kê tiêu chí hay vi phạm |
 
-Write path: `resolveScoringSummary` trong `giam-sat-chung-write-helpers.ts`.
+| Kiểu BK | Persist `tong_diem` | Cờ phụ (DB) | UI người dùng |
+|---------|---------------------|--------------|----------------|
+| `TY_LE` | % | — | `66.67% · Đạt` |
+| `TRON_GOI` | % | `dat_tron_goi` (không hiện phụ) | `66.67% · Đạt` |
+| `DAT_KHONG_DAT` | % | — | `66.67% · Đạt` (không “Chưa đủ 100%”) |
+| `NHAT_KY` | null | — | Nhật ký / ngoài ngưỡng |
+
+Engine: `giam-sat-scoring.ts` · Write: `resolveScoringSummary` · UI: `gsc-score-display.ts`.
 
 ---
 

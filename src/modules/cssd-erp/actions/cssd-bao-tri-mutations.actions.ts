@@ -28,9 +28,9 @@ export async function batDauBaoTriThietBiAction(input: {
   loai_phieu?: "DINH_KY" | "SUA_CHUA";
   su_co_id?: string;
 }) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdMaintenanceEdit();
+    const supabase = createAdminSupabaseClient();
     const parsed = cssdMaintenanceStartInputSchema.parse(input);
     const tidRaw = String(parsed.thiet_bi_id || "").trim();
     const deviceCode = normalizeCssdCode(parsed.ma_thiet_bi_hoac_qr);
@@ -114,9 +114,9 @@ export async function ketThucBaoTriThietBiAction(input: {
   ket_qua_ghi_nhan: string;
   checklist_jsonb?: CssdPmChecklistItem[];
 }) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdMaintenanceEdit();
+    const supabase = createAdminSupabaseClient();
     const id = String(input.id || "").trim();
     const ketQua = String(input.ket_qua_ghi_nhan || "").trim();
     if (!id) return { success: false as const, error: "Thiếu phiếu." };
@@ -189,9 +189,9 @@ export async function ketThucBaoTriThietBiAction(input: {
 
 /** Hủy phiếu đang mở: trả máy về READY (không cập nhật lịch bảo trì). */
 export async function huyBaoTriThietBiAction(input: { id: string }) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdMaintenanceEdit();
+    const supabase = createAdminSupabaseClient();
     const id = String(input.id || "").trim();
     if (!id) return { success: false as const, error: "Thiếu phiếu." };
 

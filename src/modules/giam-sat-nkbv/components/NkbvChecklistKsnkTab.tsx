@@ -101,7 +101,7 @@ export default function NkbvChecklistKsnkTab({
         </div>
 
         {/* Validation Checks Checklist Questions */}
-        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-4 space-y-3">
+        <div className={`${C.panelInset} p-4 space-y-3`}>
           <span className={` text-slate-500`}>📊 ĐIỀU TRA VÀ THẨM ĐỊNH LÂM SÀNG (DATA VALIDATION)</span>
           <div className="space-y-2.5">
             <label className="flex items-start gap-2.5 text-xs font-semibold text-slate-700 cursor-pointer">
@@ -135,7 +135,7 @@ export default function NkbvChecklistKsnkTab({
       </div>
 
       {/* Right Column: CDC Live Timeline (5 cols) */}
-      <div className="lg:col-span-5 flex flex-col h-full space-y-4 bg-slate-50/80 rounded-3xl p-4 border border-slate-100 overflow-y-auto">
+      <div className={`lg:col-span-5 flex flex-col h-full space-y-4 ${C.panelInset} p-4 overflow-y-auto`}>
         <span className={`${C.blockSection} block border-b border-slate-200 pb-2 text-slate-500`}>
           🗓️ CDC LIVE TIMELINE & ATTRIBUTION
         </span>

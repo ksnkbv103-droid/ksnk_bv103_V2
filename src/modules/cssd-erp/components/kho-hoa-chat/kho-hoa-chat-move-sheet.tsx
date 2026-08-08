@@ -7,6 +7,7 @@ import {
   isLotExpired,
   lotRowToKey,
 } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 import type { KhoHoaChatTonLo } from "../../actions/cssd-kho-hoa-chat.actions";
 
 type DmOpt = {
@@ -49,7 +50,7 @@ function lotOptsForDm(dmId: string, tons: KhoHoaChatTonLo[]): { key: string; lab
     const fefoHint = idx === 0 && !expired ? " ★ FEFO" : "";
     return {
       key: lotRowToKey(t),
-      label: `${t.ma_lo?.length ? `Lô ${t.ma_lo}` : "Không lô"}${t.han_su_dung ? ` — HSD ${t.han_su_dung}` : ""} — Tồn ${t.ton_so_luong}${fefoHint}${expired ? " (HẾT HẠN)" : ""}`,
+      label: `${t.ma_lo?.length ? `Lô ${t.ma_lo}` : "Không lô"}${t.han_su_dung ? ` — HSD ${formatDateVi(t.han_su_dung)}` : ""} — Tồn ${t.ton_so_luong}${fefoHint}${expired ? " (HẾT HẠN)" : ""}`,
       ton: t.ton_so_luong,
       disabled: expired,
     };
@@ -89,7 +90,7 @@ export default function KhoHoaChatMoveSheet({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true">
-      <div className="flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-2xl border border-slate-200 bg-white shadow-xl sm:rounded-2xl">
+      <div className="flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-2xl border border-slate-200 bg-white shadow-[var(--shadow-app-soft)] sm:rounded-[var(--radius-shell)]">
         <div className="border-b border-slate-100 px-5 py-4">
           <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
           <p className="text-xs text-slate-500">
@@ -169,7 +170,7 @@ export default function KhoHoaChatMoveSheet({
           </button>
           <button
             type="button"
-            className={`rounded-lg px-5 py-2 text-sm font-semibold ${canSubmit ? "bg-[var(--primary)] text-[#FFD700]" : "bg-slate-200 text-slate-500"}`}
+            className={`rounded-lg px-5 py-2 text-sm font-semibold ${canSubmit ? "bg-[var(--primary)] text-white" : "bg-slate-200 text-slate-500"}`}
             disabled={!canSubmit}
             onClick={() => void onSubmit()}
           >

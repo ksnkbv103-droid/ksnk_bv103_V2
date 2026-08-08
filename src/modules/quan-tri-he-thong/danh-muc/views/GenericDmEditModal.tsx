@@ -39,7 +39,7 @@ export default function GenericDmEditModal({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex touch-manipulation items-center justify-center bg-black/45 p-4">
-      <div className="w-full max-w-md space-y-4 rounded-[var(--radius-shell)] border border-slate-100 bg-white p-6 shadow-2xl">
+      <div className="w-full max-w-md space-y-4 rounded-[var(--radius-shell)] border border-slate-100 bg-white p-6 shadow-[var(--shadow-app-soft)]">
         <h2 className={C.panelTitle}>
           {editMode ? "Sửa" : "Thêm"} danh mục
         </h2>

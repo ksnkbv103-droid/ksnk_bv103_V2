@@ -8,7 +8,10 @@ export type IncidentAttributeInput = {
   errorQR?: string;
   machineId?: string;
   faultOperator?: string;
+  /** FK mdm_nhan_su — người liên quan (khâu lỗi / chọn tay). */
+  faultOperatorId?: string;
   nguoiPhatHien?: string;
+  nguoiPhatHienId?: string;
   thoiGianPhatHien?: string;
   anhMinhChung?: string;
   reporterEmail?: string | null;
@@ -29,7 +32,9 @@ export function buildIncidentAttributes(data: IncidentAttributeInput): Record<st
   if (data.errorQR) attributes.ERROR_QR = data.errorQR;
   if (data.machineId) attributes.MACHINE_ID = data.machineId;
   if (data.faultOperator) attributes.FAULT_OPERATOR = data.faultOperator;
+  if (data.faultOperatorId) attributes.FAULT_OPERATOR_ID = data.faultOperatorId;
   if (data.nguoiPhatHien) attributes.NGUOI_PHAT_HIEN = data.nguoiPhatHien;
+  if (data.nguoiPhatHienId) attributes.NGUOI_PHAT_HIEN_ID = data.nguoiPhatHienId;
   if (data.thoiGianPhatHien) attributes.THOI_GIAN_PHAT_HIEN = data.thoiGianPhatHien;
   if (data.anhMinhChung) attributes.ANH_MINH_CHUNG = data.anhMinhChung;
   if (data.reporterEmail) attributes.REPORTER_EMAIL = String(data.reporterEmail);

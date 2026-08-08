@@ -8,6 +8,7 @@ import type { ExtendedOpportunity, VSTOppAssessmentField } from "../hooks/useVST
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { bv103PanelChrome } from "@/lib/bv103-panel-chrome";
+import { formatTimeVi } from "@/lib/format-datetime-vi";
 
 interface VSTOpportunityFormProps {
   opp: ExtendedOpportunity;
@@ -106,13 +107,7 @@ export default function VSTOpportunityForm({
           </div>
           {!hideOppRecordTime ? (
             <span className={bv103PanelChrome.innerTableHead}>
-              {opp.thoi_gian_ghi_nhan
-                ? new Date(opp.thoi_gian_ghi_nhan).toLocaleTimeString("vi-VN", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                  })
-                : "—"}
+              {formatTimeVi(opp.thoi_gian_ghi_nhan)}
             </span>
           ) : null}
         </div>

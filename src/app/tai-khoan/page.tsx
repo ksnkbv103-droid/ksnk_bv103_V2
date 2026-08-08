@@ -57,7 +57,7 @@ export default function AccountPage() {
   const isLinked = !!userData?.id;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header Section */}
       <div className={`relative overflow-hidden p-8 md:p-12 ${C.panelSurface}`}>
         <div className="absolute top-0 right-0 p-8 opacity-5">
@@ -65,7 +65,7 @@ export default function AccountPage() {
         </div>
         
         <div className="relative flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
-          <div className="flex h-24 w-24 items-center justify-center rounded-[var(--radius-shell)] bg-gradient-to-br from-[var(--primary)] to-purple-600 text-white shadow-lg">
+          <div className="flex h-24 w-24 items-center justify-center rounded-[var(--radius-shell)] bg-[var(--primary)] text-white shadow-[var(--shadow-app-soft)]">
             <User size={48} />
           </div>
           
@@ -169,7 +169,7 @@ export default function AccountPage() {
         </div>
 
         {/* Security Info Card */}
-        <div className={`space-y-6 bg-slate-900 p-8 text-white shadow-xl ${C.panelSurface}`}>
+        <div className={`space-y-6 bg-slate-900 p-8 text-white shadow-[var(--shadow-app-soft)] ${C.panelSurface}`}>
           <div className="flex items-center gap-4">
             <div className="rounded-[var(--radius-shell)] bg-white/10 p-3 text-[var(--primary)]">
               <Shield size={24} />

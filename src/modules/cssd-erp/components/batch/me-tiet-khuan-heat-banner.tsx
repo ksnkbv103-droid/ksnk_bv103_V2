@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { AlertTriangle, ShieldAlert, Thermometer } from "lucide-react";
 import { fetchCssdBatchHeatRisk } from "../../actions/cssd-batch.actions";
 import type { BatchHeatRisk } from "../../lib/me-tiet-khuan-batch-heat";
+import { KsnkContextBanner } from "@/components/shared/KsnkContextBanner";
 
 export default function MeTietKhuanHeatBanner({ batchId }: { batchId: string }) {
   const [risk, setRisk] = useState<BatchHeatRisk | null>(null);
@@ -29,16 +30,18 @@ export default function MeTietKhuanHeatBanner({ batchId }: { batchId: string }) 
 
   if (risk.level === "OK") {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-950" role="status">
-        <div className="flex items-start gap-3">
-          <Thermometer className="mt-0.5 shrink-0" size={20} aria-hidden />
-          <div className="space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wide">Gợi ý Spaulding / phương pháp TK</p>
-            <p className="text-xs font-medium">{risk.heat.reason}</p>
-            <p className="text-xs font-bold">Khuyến nghị: {risk.heat.methodLabelVi}</p>
-          </div>
-        </div>
-      </div>
+      <KsnkContextBanner
+        tone="emerald"
+        dismissible={false}
+        icon={<Thermometer className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" aria-hidden />}
+        summary={<span className="font-semibold">Gợi ý Spaulding / phương pháp TK</span>}
+        detail={
+          <>
+            <span className="block">{risk.heat.reason}</span>
+            <span className="mt-0.5 block font-semibold">Khuyến nghị: {risk.heat.methodLabelVi}</span>
+          </>
+        }
+      />
     );
   }
 
@@ -46,29 +49,30 @@ export default function MeTietKhuanHeatBanner({ batchId }: { batchId: string }) 
   const Icon = isBlock ? ShieldAlert : AlertTriangle;
 
   return (
-    <div
-      className={`rounded-2xl border p-4 text-sm ${
-        isBlock
-          ? "border-red-300 bg-red-50 text-red-900"
-          : "border-amber-300 bg-amber-50 text-amber-950"
-      }`}
-      role="alert"
-    >
-      <div className="flex items-start gap-3">
-        <Icon className="mt-0.5 shrink-0" size={20} aria-hidden />
-        <div className="space-y-1">
-          <p className="text-[11px] font-semibold uppercase tracking-wide flex items-center gap-1.5">
-            <Thermometer size={12} aria-hidden />
-            {isBlock ? "Chặn an toàn Spaulding / nhiệt" : "Cảnh báo Spaulding / nhiệt"}
-          </p>
-          <ul className="list-disc pl-4 space-y-0.5 text-xs font-medium">
+    <KsnkContextBanner
+      tone={isBlock ? "rose" : "amber"}
+      dismissible={false}
+      icon={
+        <Icon
+          className={`mt-0.5 h-5 w-5 shrink-0 ${isBlock ? "text-red-600" : "text-amber-600"}`}
+          aria-hidden
+        />
+      }
+      summary={
+        <span className="font-semibold">
+          {isBlock ? "Chặn an toàn Spaulding / nhiệt" : "Cảnh báo Spaulding / nhiệt"}
+        </span>
+      }
+      detail={
+        <>
+          <ul className="list-disc space-y-0.5 pl-4">
             {risk.messages.map((m) => (
               <li key={m}>{m}</li>
             ))}
           </ul>
-          <p className="text-xs font-bold pt-1">Khuyến nghị: {risk.heat.methodLabelVi}</p>
-        </div>
-      </div>
-    </div>
+          <span className="mt-1 block font-semibold">Khuyến nghị: {risk.heat.methodLabelVi}</span>
+        </>
+      }
+    />
   );
 }

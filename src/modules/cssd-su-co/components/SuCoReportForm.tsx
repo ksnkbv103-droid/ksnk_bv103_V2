@@ -5,15 +5,26 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { CheckCircle2, Loader2, AlertCircle, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { usePermission } from "@/hooks/usePermission";
-import { fetchSuCoFormCatalog, resolveSuCoFaultTrace } from "../actions/su-co-form-catalog.actions";
+import {
+  fetchSuCoFormCatalog,
+  listSuCoNhanSuOptionsAction,
+  resolveSuCoFaultTrace,
+} from "../actions/su-co-form-catalog.actions";
+import { listActiveBoForInstrumentTransferAction } from "../actions/su-co-bo-picker.actions";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { createIncidentReport, getIncidentForPrint } from "../actions/su-co-report.actions";
 import {
   INCIDENT_GROUP_LABEL,
   INCIDENT_TYPE_PRESETS,
   INCIDENT_STATION_OPTIONS,
+  groupTypeDefaults,
   type IncidentGroup,
 } from "../domain/cssd-incident-taxonomy";
+import {
+  buildSuCoStaffOptions,
+  type SuCoCyclePerformerOption,
+  type SuCoNhanSuRow,
+} from "../domain/cssd-incident-staff-options";
 import { isInstrumentIncidentImageRequired } from "../domain/cssd-incident-trace";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
@@ -23,16 +34,16 @@ import SuCoIncidentMetaFields, {
   type SuCoIncidentMetaState,
 } from "./SuCoIncidentMetaFields";
 import {
+  BoSourceFields,
   ChemicalContextFields,
   EquipmentContextFields,
   IncidentGroupPicker,
   OtherContextFields,
-  QrField,
   StationOverrideSelect,
   SubmittedSuccessView,
   TypePicker,
+  type BoCatalogOption,
 } from "./SuCoReportFormFields";
-import { groupTypeDefaults } from "./su-co-report-form.helpers";
 
 export type SuCoReportFormProps = {
   initialStation: Station;
@@ -47,9 +58,18 @@ export type SuCoReportFormProps = {
   allowStationOverride?: boolean;
   enabled: boolean;
   onSubmitted?: () => void;
-  /** `modal` = popup mobile full-height, một cột, nút gửi dính đáy */
   layout?: "page" | "modal";
 };
+
+const emptyMeta = (): SuCoIncidentMetaState => ({
+  thoiGianPhatHien: defaultDetectionDateTimeLocal(),
+  nguoiPhatHien: "",
+  nguoiPhatHienId: "",
+  nguoiLienQuan: "",
+  nguoiLienQuanId: "",
+  moTa: "",
+  anhMinhChung: "",
+});
 
 export default function SuCoReportForm({
   initialStation,
@@ -90,16 +110,14 @@ export default function SuCoReportForm({
   const [maLo, setMaLo] = useState(initialMaLo || "");
   const [loTietKhuanId, setLoTietKhuanId] = useState(initialLoTietKhuanId || "");
   const [viTriPhatHien, setViTriPhatHien] = useState("");
-  const [meta, setMeta] = useState<SuCoIncidentMetaState>(() => ({
-    thoiGianPhatHien: defaultDetectionDateTimeLocal(),
-    nguoiPhatHien: "",
-    nguoiLienQuan: "",
-    moTa: "",
-    anhMinhChung: "",
-  }));
+  const [meta, setMeta] = useState<SuCoIncidentMetaState>(emptyMeta);
   const [machines, setMachines] = useState<{ id: string; ten: string }[]>([]);
   const [chemicals, setChemicals] = useState<{ id: string; ten: string; ma: string }[]>([]);
-  const [submittedIncident, setSubmittedIncident] = useState<{ incident: any; details: any[] } | null>(null);
+  const [boOptions, setBoOptions] = useState<BoCatalogOption[]>([]);
+  const [boLoading, setBoLoading] = useState(false);
+  const [nhanSu, setNhanSu] = useState<SuCoNhanSuRow[]>([]);
+  const [cyclePerformers, setCyclePerformers] = useState<SuCoCyclePerformerOption[]>([]);
+  const [submittedIncident, setSubmittedIncident] = useState<{ incident: unknown; details: unknown[] } | null>(null);
 
   useEffect(() => {
     if (!allowStationOverride) setDetectionStation(initialStation);
@@ -113,9 +131,31 @@ export default function SuCoReportForm({
   }, [enabled, initialMaQR, initialMaLo, initialLoTietKhuanId]);
 
   const activeGroupOptions = useMemo(() => INCIDENT_TYPE_PRESETS[incidentGroup], [incidentGroup]);
-  const showTypePicker = incidentGroup === "PROCESS" || incidentGroup === "INSTRUMENT" || incidentGroup === "EQUIPMENT";
+  const showTypePicker =
+    incidentGroup === "PROCESS" ||
+    incidentGroup === "INSTRUMENT" ||
+    incidentGroup === "EQUIPMENT" ||
+    incidentGroup === "CHEMICAL";
   const imageRequired = incidentGroup === "INSTRUMENT" && isInstrumentIncidentImageRequired(typeId);
   const imageHidden = incidentGroup === "INSTRUMENT" && typeId === "INSTRUMENT_MISSING";
+  const needsBoCatalog = incidentGroup === "PROCESS" || incidentGroup === "INSTRUMENT";
+
+  const { detectorOptions, relatedOptions } = useMemo(
+    () =>
+      buildSuCoStaffOptions({
+        cyclePerformers,
+        nhanSu,
+        preferCycleForRelated: incidentGroup === "PROCESS",
+      }),
+    [cyclePerformers, nhanSu, incidentGroup],
+  );
+
+  const relatedHint =
+    incidentGroup === "PROCESS"
+      ? maQR.trim()
+        ? "Ưu tiên người đã thực hiện khâu phát sinh lỗi trên chu kỳ đã chọn."
+        : "Chọn hoặc quét bộ để hệ thống đề xuất người từ khâu đã lưu."
+      : undefined;
 
   useEffect(() => {
     if (!enabled) return;
@@ -123,10 +163,14 @@ export default function SuCoReportForm({
       setFLoading(true);
       setFError(null);
       try {
-        const res = await fetchSuCoFormCatalog();
-        if (!res.success) throw new Error(res.error);
-        setMachines(res.machines);
-        setChemicals(res.chemicals || []);
+        const [catalog, staff] = await Promise.all([
+          fetchSuCoFormCatalog(),
+          listSuCoNhanSuOptionsAction(),
+        ]);
+        if (!catalog.success) throw new Error(catalog.error);
+        setMachines(catalog.machines);
+        setChemicals(catalog.chemicals || []);
+        if (staff.success) setNhanSu(staff.data);
       } catch (err: unknown) {
         setFError(err instanceof Error ? err.message : "Lỗi tải danh mục");
       } finally {
@@ -134,6 +178,27 @@ export default function SuCoReportForm({
       }
     })();
   }, [enabled]);
+
+  useEffect(() => {
+    if (!enabled || !needsBoCatalog) {
+      setBoOptions([]);
+      return;
+    }
+    let alive = true;
+    setBoLoading(true);
+    void listActiveBoForInstrumentTransferAction().then((res) => {
+      if (!alive) return;
+      setBoLoading(false);
+      if (!res.success) {
+        toast.error(res.error || "Không tải danh sách bộ.");
+        return;
+      }
+      setBoOptions(res.data);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [enabled, needsBoCatalog]);
 
   useEffect(() => {
     const defaults = groupTypeDefaults(incidentGroup);
@@ -154,7 +219,33 @@ export default function SuCoReportForm({
     if (incidentGroup !== "PROCESS" && incidentGroup !== "INSTRUMENT" && incidentGroup !== "EQUIPMENT") {
       setMaQR("");
     }
+    if (incidentGroup !== "PROCESS") setCyclePerformers([]);
   }, [incidentGroup, detectionStation, initialTypeId, initialMaQR]);
+
+  const applyFaultTraceResult = useCallback(
+    (
+      res: Extract<Awaited<ReturnType<typeof resolveSuCoFaultTrace>>, { success: true }>,
+      station: Station,
+      silent: boolean,
+    ) => {
+      setCyclePerformers(res.cyclePerformers || []);
+      if (res.operatorId && res.operatorName) {
+        setMeta((m) => ({
+          ...m,
+          nguoiLienQuan: res.operatorName!,
+          nguoiLienQuanId: res.operatorId!,
+        }));
+        if (!silent) {
+          toast.success(
+            `Truy vết: ${res.operatorName} (${INCIDENT_STATION_OPTIONS.find((s) => s.value === station)?.label})`,
+          );
+        }
+      } else if (!silent) {
+        toast.info("Khâu này chưa ghi nhận người thực hiện — chọn từ danh sách chu kỳ hoặc danh mục.");
+      }
+    },
+    [],
+  );
 
   const runFaultTrace = useCallback(
     async (qr: string, station: Station, silent = false) => {
@@ -165,23 +256,22 @@ export default function SuCoReportForm({
         const res = await resolveSuCoFaultTrace(code, station);
         if (!res.success) {
           if (!silent) toast.error(res.error || "Không truy vết được người liên quan.");
+          setCyclePerformers([]);
           return;
         }
-        if (res.operatorName) {
-          setMeta((m) => ({ ...m, nguoiLienQuan: res.operatorName! }));
-          if (!silent) toast.success(`Truy vết: ${res.operatorName} (${INCIDENT_STATION_OPTIONS.find((s) => s.value === station)?.label})`);
-        } else if (!silent) {
-          toast.info("Khâu này chưa ghi nhận người thực hiện — bạn có thể nhập tay.");
-        }
+        applyFaultTraceResult(res, station, silent);
       } finally {
         setTracing(false);
       }
     },
-    [incidentGroup],
+    [incidentGroup, applyFaultTraceResult],
   );
 
   useEffect(() => {
-    if (incidentGroup !== "PROCESS" || !maQR.trim()) return;
+    if (incidentGroup !== "PROCESS" || !maQR.trim()) {
+      if (incidentGroup !== "PROCESS") setCyclePerformers([]);
+      return;
+    }
     void runFaultTrace(maQR, faultStation, true);
   }, [incidentGroup, maQR, faultStation, runFaultTrace]);
 
@@ -205,7 +295,7 @@ export default function SuCoReportForm({
         return;
       }
       setMaQR(res.code);
-      toast.success(`Đã quét bộ: ${res.code}`);
+      toast.success(`Đã chọn bộ: ${res.code}`);
       if (incidentGroup === "PROCESS") await runFaultTrace(res.code, faultStation);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Lỗi quét QR");
@@ -228,7 +318,7 @@ export default function SuCoReportForm({
     e.preventDefault();
 
     if ((incidentGroup === "PROCESS" || incidentGroup === "INSTRUMENT") && !maQR.trim()) {
-      return toast.error(`Nhóm "${INCIDENT_GROUP_LABEL[incidentGroup]}" cần quét mã QR bộ dụng cụ.`);
+      return toast.error(`Nhóm "${INCIDENT_GROUP_LABEL[incidentGroup]}" cần chọn hoặc quét mã bộ dụng cụ.`);
     }
     if (!meta.moTa.trim()) return toast.error("Vui lòng điền mô tả chi tiết sự cố.");
     if (incidentGroup === "EQUIPMENT" && !machineId.trim()) {
@@ -244,7 +334,7 @@ export default function SuCoReportForm({
     if (incidentGroup === "INSTRUMENT") {
       if (!instrumentState) return toast.error("Vui lòng chọn dụng cụ trong bộ.");
       if (typeId === "INSTRUMENT_TRANSFER" && !instrumentState.maQrDen) {
-        return toast.error("Điều chuyển cần quét QR bộ đích.");
+        return toast.error("Điều chuyển cần chọn hoặc quét QR bộ đích.");
       }
       if (
         typeId !== "INSTRUMENT_REPLENISH" &&
@@ -272,7 +362,9 @@ export default function SuCoReportForm({
         errorQR: maLo.trim() || undefined,
         machineId: machineId.trim() || undefined,
         faultOperator: meta.nguoiLienQuan.trim() || undefined,
+        faultOperatorId: meta.nguoiLienQuanId.trim() || undefined,
         nguoiPhatHien: meta.nguoiPhatHien.trim() || undefined,
+        nguoiPhatHienId: meta.nguoiPhatHienId.trim() || undefined,
         thoiGianPhatHien: meta.thoiGianPhatHien || undefined,
         anhMinhChung: meta.anhMinhChung.trim() || undefined,
         station: detectionStation,
@@ -338,16 +430,11 @@ export default function SuCoReportForm({
     setMachineId("");
     setMaLo("");
     setViTriPhatHien("");
+    setCyclePerformers([]);
     setTypeId(INCIDENT_TYPE_PRESETS.PROCESS[0]?.code || "");
     setTypeTen(INCIDENT_TYPE_PRESETS.PROCESS[0]?.label || "");
     setFaultStation(initialStation);
-    setMeta({
-      thoiGianPhatHien: defaultDetectionDateTimeLocal(),
-      nguoiPhatHien: "",
-      nguoiLienQuan: "",
-      moTa: "",
-      anhMinhChung: "",
-    });
+    setMeta(emptyMeta());
     setSubmittedIncident(null);
   };
 
@@ -384,20 +471,22 @@ export default function SuCoReportForm({
           <IncidentGroupPicker incidentGroup={incidentGroup} onSelect={setIncidentGroup} compact={isModal} />
 
           <div className={`grid grid-cols-1 gap-4 ${isModal ? "" : "gap-6 lg:grid-cols-2"}`}>
-            <div className={`space-y-4 rounded-2xl border border-slate-200 bg-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] ${isModal ? "p-4" : "p-5"}`}>
-              <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
+            <div className={`space-y-4 rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-sm ${isModal ? "p-3.5" : "p-4"}`}>
+              <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-2.5 ${UI.sectionTitle}`}>
                 <FileText size={16} className="text-[var(--primary)]" />
                 Ngữ cảnh sự cố
               </h4>
 
               {incidentGroup === "PROCESS" ? (
                 <div className={UI.sectionGap}>
-                  <QrField
-                    label="Quét mã QR bộ dụng cụ *"
-                    value={maQR}
-                    onChange={setMaQR}
+                  <BoSourceFields
+                    maQR={maQR}
+                    setMaQR={setMaQR}
+                    boOptions={boOptions}
+                    boLoading={boLoading}
                     onKeyDown={(e) => void handleQrKeyDown(e)}
                     onScanComplete={(code) => void processQrCode(code)}
+                    onSelectBo={(code) => void processQrCode(code)}
                     loading={loading || tracing}
                   />
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -406,7 +495,7 @@ export default function SuCoReportForm({
                       <select
                         value={faultStation}
                         onChange={(e) => setFaultStation(e.target.value as Station)}
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 font-semibold text-slate-700 outline-none focus:border-[var(--primary)]"
+                        className={bv103LayoutChrome.controlSelectNative}
                       >
                         {INCIDENT_STATION_OPTIONS.map((s) => (
                           <option key={s.value} value={s.value}>{s.label}</option>
@@ -430,12 +519,14 @@ export default function SuCoReportForm({
 
               {incidentGroup === "INSTRUMENT" ? (
                 <div className={UI.sectionGap}>
-                  <QrField
-                    label="Quét mã QR bộ dụng cụ *"
-                    value={maQR}
-                    onChange={setMaQR}
+                  <BoSourceFields
+                    maQR={maQR}
+                    setMaQR={setMaQR}
+                    boOptions={boOptions}
+                    boLoading={boLoading}
                     onKeyDown={(e) => void handleQrKeyDown(e)}
                     onScanComplete={(code) => void processQrCode(code)}
+                    onSelectBo={(code) => void processQrCode(code)}
                     loading={loading}
                   />
                   <TypePicker
@@ -466,6 +557,12 @@ export default function SuCoReportForm({
                   maLo={maLo}
                   setMaLo={setMaLo}
                   chemicals={chemicals}
+                  typeOptions={activeGroupOptions}
+                  typeId={typeId}
+                  onTypeChange={(id, ten) => {
+                    setTypeId(id);
+                    setTypeTen(ten);
+                  }}
                   renderStationOverride={renderStationOverride}
                 />
               ) : null}
@@ -499,8 +596,8 @@ export default function SuCoReportForm({
               ) : null}
             </div>
 
-            <div className={`space-y-4 rounded-2xl border border-slate-200 bg-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] ${isModal ? "p-4" : "p-5"}`}>
-              <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-3 ${UI.sectionTitle}`}>
+            <div className={`space-y-4 rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-sm ${isModal ? "p-3.5" : "p-4"}`}>
+              <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-2.5 ${UI.sectionTitle}`}>
                 <FileText size={16} className="text-[var(--primary)]" />
                 Thông tin sự cố
               </h4>
@@ -509,7 +606,27 @@ export default function SuCoReportForm({
                 nguoiLapLabel={nguoiLapLabel}
                 imageRequired={imageRequired}
                 imageHidden={imageHidden}
+                detectorOptions={detectorOptions}
+                relatedOptions={relatedOptions}
+                relatedHint={relatedHint}
                 onChange={handleMetaChange}
+                onSelectDetector={(id, label) => {
+                  const row = nhanSu.find((n) => n.id === id);
+                  setMeta((m) => ({
+                    ...m,
+                    nguoiPhatHienId: id,
+                    nguoiPhatHien: row?.ho_ten || label,
+                  }));
+                }}
+                onSelectRelated={(id, label) => {
+                  const fromCycle = cyclePerformers.find((p) => p.operatorId === id);
+                  const row = nhanSu.find((n) => n.id === id);
+                  setMeta((m) => ({
+                    ...m,
+                    nguoiLienQuanId: id,
+                    nguoiLienQuan: fromCycle?.operatorName || row?.ho_ten || label,
+                  }));
+                }}
               />
             </div>
           </div>
@@ -524,11 +641,9 @@ export default function SuCoReportForm({
             <button
               type="submit"
               disabled={loading || tracing || !!fError || fLoading}
-              className={`flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl bg-red-600 font-semibold uppercase text-white shadow-lg shadow-red-100 transition-all hover:bg-red-700 active:scale-[0.98] disabled:opacity-50 touch-manipulation ${
-                isModal ? "h-14 text-sm tracking-wide" : "h-16 text-xs tracking-[0.2em]"
-              }`}
+              className={`${bv103LayoutChrome.btnPrimaryBlock} normal-case tracking-normal touch-manipulation`}
             >
-              {loading ? <Loader2 className="animate-spin" /> : <><CheckCircle2 size={18} /> Gửi báo cáo</>}
+              {loading ? <Loader2 className="animate-spin" size={16} /> : <><CheckCircle2 size={16} /> Gửi báo cáo</>}
             </button>
           </div>
         </div>

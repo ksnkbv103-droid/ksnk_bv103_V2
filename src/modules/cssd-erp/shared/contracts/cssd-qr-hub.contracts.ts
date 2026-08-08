@@ -12,6 +12,8 @@ export const cssdQrHubResolvedSchema = z.object({
   targetType: cssdQrHubTargetTypeSchema,
   code: cssdQrHubCodeSchema,
   workflowId: z.string().trim().min(1).optional(),
+  /** Bộ danh mục — có khi resolve từ quy trình hoặc fallback `ma_bo`. */
+  boDungCuId: z.string().trim().min(1).optional(),
   batchId: z.string().trim().min(1).optional(),
   machineId: z.string().trim().min(1).optional(),
   machineCode: z.string().trim().min(1).optional(),

@@ -34,9 +34,9 @@ export type ThietBiFleetRow = {
 export async function listThietBiFleetAction(): Promise<
   { success: true; data: ThietBiFleetRow[] } | { success: false; error: string }
 > {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdMaintenanceView();
+    const supabase = createAdminSupabaseClient();
     const [tbRes, loRes] = await Promise.all([
       supabase
         .from("v_cssd_thiet_bi_full")

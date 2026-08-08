@@ -141,7 +141,7 @@ export default function InventoryDashboard({ data, activeStatus, onSelectStatus 
             key={key}
             onClick={() => onSelectStatus(key)}
             type="button"
-            className={`group flex flex-col justify-between p-4 rounded-2xl border text-left transition-all duration-300 active:scale-[0.96] shadow-sm ${
+            className={`group flex flex-col justify-between p-4 rounded-[var(--radius-shell)] border text-left transition-all duration-300 active:scale-[0.96] shadow-sm ${
               isActive ? activeColor : color
             }`}
           >
@@ -167,8 +167,8 @@ export default function InventoryDashboard({ data, activeStatus, onSelectStatus 
                 {title}
               </p>
               <p
-                className={`text-xl font-black tracking-tight tabular-nums ${
-                  isActive ? "text-[#FFD700]" : "text-slate-900"
+                className={`text-xl font-semibold tracking-tight tabular-nums ${
+                  isActive ? "text-white" : "text-slate-900"
                 }`}
               >
                 {value}

@@ -9,7 +9,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 interface QlcvConfirmDialogProps {
   open: boolean;
@@ -53,7 +53,7 @@ export function QlcvConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!isLoading) onOpenChange(v); }}>
-      <DialogContent className="max-w-md rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xl">
+      <DialogContent className="max-w-md rounded-[var(--radius-shell)] border border-slate-200/90 bg-white p-6 shadow-[var(--shadow-app-soft)]">
         <DialogHeader>
           <DialogTitle className="text-base font-semibold tracking-tight text-slate-900">
             {title}
@@ -65,23 +65,24 @@ export function QlcvConfirmDialog({
           )}
         </DialogHeader>
         <DialogFooter className="mt-5 flex justify-end gap-2">
-          <Button
+          <button
+            type="button"
             id="qlcv-confirm-dialog-cancel"
-            variant="outline"
-            className="h-10 rounded-xl border-slate-200 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className={C.btnSecondary}
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
           >
             {cancelLabel}
-          </Button>
-          <Button
+          </button>
+          <button
+            type="button"
             id="qlcv-confirm-dialog-confirm"
             className={
               variant === "danger"
-                ? "h-10 rounded-xl bg-red-600 px-4 text-sm font-medium text-white hover:bg-red-700"
-                : "h-10 rounded-xl bg-[var(--primary)] px-4 text-sm font-medium text-white hover:opacity-90"
+                ? "bv103-control-h inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-red-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-red-700 disabled:opacity-50"
+                : C.btnPrimary
             }
-            onClick={handleConfirm}
+            onClick={() => void handleConfirm()}
             disabled={isLoading}
           >
             {isLoading ? (
@@ -92,7 +93,7 @@ export function QlcvConfirmDialog({
             ) : (
               confirmLabel
             )}
-          </Button>
+          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

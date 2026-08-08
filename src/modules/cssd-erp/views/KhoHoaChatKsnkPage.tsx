@@ -6,7 +6,6 @@ import { Loader2, AlertTriangle, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
-import CssdModuleChrome from "../components/layout/CssdModuleChrome";
 import KhoHoaChatMoveSheet, { type MoveMode } from "../components/kho-hoa-chat/kho-hoa-chat-move-sheet";
 import KhoHoaChatOverview from "../components/kho-hoa-chat/kho-hoa-chat-overview";
 import KhoHoaChatTables from "../components/kho-hoa-chat/kho-hoa-chat-tables";
@@ -30,6 +29,8 @@ import { CSSDCatalogHoaChatTab } from "./CSSDCatalogHoaChatTab";
 import { lotRowToKey, pickFefoLotKey } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
 import { matchesLoaiFilter, type HoaChatLoaiFilter } from "@/lib/domain/cssd-hoa-chat-loai";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
+import { KsnkContextBanner } from "@/components/shared/KsnkContextBanner";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 
 const MODULE_KEY = "KSNK_KHO_HOACHAT";
 
@@ -297,9 +298,8 @@ export default function KhoHoaChatKsnkPage() {
 
   if (!allowed.view) {
     return (
-      <CSSDPageShell title={<span className="text-[var(--primary)]">Kho hóa chất &amp; vật tư</span>} subtitle="Không có quyền truy cập.">
-        <CssdModuleChrome />
-        <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-600">
+      <CSSDPageShell title="Kho hóa chất & vật tư">
+        <div className="rounded-xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-600">
           Bạn không có quyền module Kho hóa chất — liên hệ quản trị (KSNK_KHO_HOACHAT).
         </div>
       </CSSDPageShell>
@@ -318,7 +318,6 @@ export default function KhoHoaChatKsnkPage() {
   return (
     <CSSDPageShell
       title={<span className="text-[var(--primary)]">Kho hóa chất &amp; vật tư KSNK</span>}
-      subtitle="Tồn theo lô và hạn SD; nhập / xuất / điều chỉnh có mã phiếu; ngưỡng cảnh báo theo danh mục."
       actions={
         <div className="flex flex-wrap gap-2">
           {canEdit && (
@@ -344,11 +343,10 @@ export default function KhoHoaChatKsnkPage() {
         </div>
       }
     >
-      <CssdModuleChrome />
       <div className="space-y-6">
         {/* Banner cảnh báo tồn kho hóa chất dưới ngưỡng an toàn */}
         {duoiNguongItems.length > 0 && (
-          <div className="rounded-2xl border border-red-200 bg-red-50/70 p-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="rounded-[var(--radius-shell)] border border-red-200 bg-red-50/70 p-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
             <div className="flex items-start gap-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-sm font-bold">
                 <AlertTriangle className="h-4 w-4" />
@@ -373,28 +371,34 @@ export default function KhoHoaChatKsnkPage() {
           </div>
         )}
 
-        {/* Banner cảnh báo lô sắp hết hạn sử dụng */}
         {sapHetHanItems.length > 0 && (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
-            <div className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white shadow-sm font-bold">
-                <CalendarClock className="h-4 w-4" />
+          <KsnkContextBanner
+            tone="amber"
+            dismissible={false}
+            icon={<CalendarClock className="h-4 w-4" aria-hidden />}
+            summary={
+              <span className="text-xs font-semibold">
+                {sapHetHanItems.length} lô hóa chất / vật tư sắp hết hạn (dưới 30 ngày)
               </span>
-              <div className="flex-1 space-y-1">
-                <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wide">Cảnh báo: Lô hóa chất / Vật tư sắp hết hạn sử dụng!</h4>
-                <p className="text-[11px] text-amber-700 font-medium leading-relaxed">
-                  Có <span className="font-extrabold">{sapHetHanItems.length}</span> lô hàng đang có hạn sử dụng dưới 30 ngày. Vui lòng ưu tiên xuất dùng trước hoặc liên hệ nhà cung cấp nếu cần đổi lô mới.
+            }
+            detail={
+              <div className="space-y-2">
+                <p className="text-[11px] font-medium leading-relaxed">
+                  Ưu tiên xuất dùng trước hoặc liên hệ nhà cung cấp nếu cần đổi lô mới.
                 </p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5">
                   {sapHetHanItems.map((item) => (
-                    <span key={item.id} className="inline-flex items-center rounded-lg bg-amber-100/80 px-2 py-0.5 text-[11px] font-bold text-amber-800 border border-amber-200/50">
-                      Lô {item.ma_lo || "Không mã"}: {item.ton_so_luong} ({item.han_su_dung})
+                    <span
+                      key={item.id}
+                      className="inline-flex items-center rounded-lg border border-amber-200/50 bg-amber-100/80 px-2 py-0.5 text-[11px] font-semibold text-amber-800"
+                    >
+                      Lô {item.ma_lo || "Không mã"}: {item.ton_so_luong} ({formatDateVi(item.han_su_dung)})
                     </span>
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
+            }
+          />
         )}
 
         <div className={CSSD_UI_TAB_GROUP}>

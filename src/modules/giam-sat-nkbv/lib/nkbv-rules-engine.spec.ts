@@ -60,6 +60,29 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.lcbi_type).toBe("LCBI_1");
     });
 
+    it("accepts split IWP symptoms (fever) for LCBI 2 without legacy OR flag", () => {
+      const data: BsiVerificationData = {
+        is_fungi_respiratory: false,
+        pathogen_name: "Staphylococcus epidermidis",
+        pathogen_type: "COMMON_COMMENSAL",
+        commensal_culture_count: 2,
+        commensal_drawn_separate: true,
+        symptoms_window_7days: false,
+        has_fever: true,
+        cvc_placed_days: 4,
+        cvc_active_on_event: true,
+        is_neutropenia: false,
+        is_intestinal_pathogen: false,
+        has_localized_infection: false,
+        localized_pathogen_matches: false,
+        is_in_sbap_window: false,
+        blood_mandatory_for_localized: false,
+      };
+      const res = evaluateBsiClabsi(data);
+      expect(res.is_positive).toBe(true);
+      expect(res.lcbi_type).toBe("LCBI_2");
+    });
+
     it("excludes commensals without multiple cultures as contamination", () => {
       const data: BsiVerificationData = {
         is_fungi_respiratory: false,
@@ -171,6 +194,28 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.is_positive).toBe(true);
       expect(res.classification).toBe("MBI_LCBI");
     });
+
+    it("applies MBI_LCBI when ANC/WBC <500 ≥2 ngày lịch (không cần tick neutropenia)", () => {
+      const data: BsiVerificationData = {
+        is_fungi_respiratory: false,
+        pathogen_name: "Enterococcus faecalis",
+        pathogen_type: "RECOGNIZED",
+        commensal_culture_count: 0,
+        commensal_drawn_separate: false,
+        symptoms_window_7days: false,
+        cvc_placed_days: 5,
+        cvc_active_on_event: true,
+        is_neutropenia: false,
+        anc_wbc_lt_500_ge_2d: true,
+        is_intestinal_pathogen: true,
+        has_localized_infection: false,
+        localized_pathogen_matches: false,
+        is_in_sbap_window: false,
+        blood_mandatory_for_localized: false,
+      };
+      const res = evaluateBsiClabsi(data);
+      expect(res.classification).toBe("MBI_LCBI");
+    });
   });
 
   describe("evaluateVaeVap", () => {
@@ -198,7 +243,62 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       };
       const res = evaluateVaeVap(data, "PNEU");
       expect(res.is_positive).toBe(true);
-      expect(res.classification).toBe("PNU1");
+      expect(res.classification).toBe("PNU1_NON_VAP");
+    });
+
+    it("labels PNEU as VAP when vent eligible ≥3 days", () => {
+      const data: VaeVerificationData = {
+        patient_age: 45,
+        vent_days: 4,
+        device_placed_date: "2026-08-01",
+        calculated_doe: "2026-08-05",
+        has_stable_baseline_peep_fio2: false,
+        peep_increase_ge_3: false,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: false,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: false,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: true,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 1,
+        fever_or_wbc_abnormal: true,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 2,
+        microbiology_evidence: "NONE",
+      };
+      const res = evaluateVaeVap(data, "PNEU");
+      expect(res.classification).toBe("PNU1_VAP");
+    });
+
+    it("excludes VAE day when on ECMO", () => {
+      const data: VaeVerificationData = {
+        patient_age: 60,
+        vent_days: 6,
+        has_stable_baseline_peep_fio2: true,
+        peep_increase_ge_3: true,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: true,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: true,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: false,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 0,
+        fever_or_wbc_abnormal: false,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 0,
+        microbiology_evidence: "NONE",
+        on_ecmo: true,
+      };
+      const res = evaluateVaeVap(data, "VAE");
+      expect(res.is_positive).toBe(false);
+      expect(res.classification).toBe("NO_EVENT");
+      expect(res.reason).toMatch(/ECMO/i);
     });
 
     it("rejects VAE pathway when not adult ventilated", () => {
@@ -252,6 +352,38 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       const res = evaluateVaeVap(data);
       expect(res.is_positive).toBe(true);
       expect(res.classification).toBe("PVAP");
+    });
+
+    it("VAC từ bảng PEEP/FiO2 hàng ngày (vent-first) khi checkbox còn false", () => {
+      const data: VaeVerificationData = {
+        patient_age: 40,
+        vent_days: 6,
+        has_stable_baseline_peep_fio2: false,
+        peep_increase_ge_3: false,
+        fio2_increase_ge_20: false,
+        vent_daily_params: [
+          { date: "2026-05-01", peep_min: 5, fio2_min: 40 },
+          { date: "2026-05-02", peep_min: 5, fio2_min: 40 },
+          { date: "2026-05-03", peep_min: 8, fio2_min: 40 },
+          { date: "2026-05-04", peep_min: 8, fio2_min: 40 },
+        ],
+        temp_fever_or_hypothermia: true,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: true,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: false,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 0,
+        fever_or_wbc_abnormal: false,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 0,
+        microbiology_evidence: "NONE",
+      };
+      const res = evaluateVaeVap(data, "VAE");
+      expect(res.is_positive).toBe(true);
+      expect(res.classification).toBe("IVAC");
     });
 
     it("returns IVAC when ventilator-associated infection exists but without positive culture evidence", () => {
@@ -378,6 +510,47 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.is_positive).toBe(true);
       expect(res.classification).toBe("SUTI");
     });
+
+    it("classifies SUTI_2 for infant ≤1 tuổi with infant symptoms", () => {
+      const data: UtiVerificationData = {
+        urine_cfu_count: 150000,
+        pathogen_count: 1,
+        has_fungi_yeast_parasite: false,
+        foley_placed_days: 0,
+        foley_active_on_event: false,
+        has_fever: false,
+        has_suprapubic_tenderness: false,
+        has_costovertebral_pain: false,
+        has_dysuria: false,
+        is_infant_le1: true,
+        has_infant_apnea: true,
+        has_blood_culture_positive_in_window: false,
+        blood_urine_pathogen_matches: false,
+      };
+      const res = evaluateUtiCauti(data);
+      expect(res.is_positive).toBe(true);
+      expect(res.classification).toBe("SUTI_2");
+    });
+
+    it("counts urgency/frequency separately when Foley inactive", () => {
+      const data: UtiVerificationData = {
+        urine_cfu_count: 150000,
+        pathogen_count: 1,
+        has_fungi_yeast_parasite: false,
+        foley_placed_days: 0,
+        foley_active_on_event: false,
+        has_fever: false,
+        has_suprapubic_tenderness: false,
+        has_costovertebral_pain: false,
+        has_dysuria: false,
+        has_urgency: true,
+        has_frequency: false,
+        has_blood_culture_positive_in_window: false,
+        blood_urine_pathogen_matches: false,
+      };
+      const res = evaluateUtiCauti(data);
+      expect(res.classification).toBe("SUTI");
+    });
   });
 
   describe("evaluateSsi", () => {
@@ -386,6 +559,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         days_since_surgery: 35,
         has_implant: false,
         ssi_depth: "SUPERFICIAL",
+        ssi_event_type: "SIP",
         superficial_purulent_drainage: true,
         superficial_culture_positive: false,
         superficial_opened_with_inflammation: false,
@@ -405,11 +579,38 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.classification).toBe("EXPIRED");
     });
 
+    it("excludes PATOS from new SSI count", () => {
+      const data: SsiVerificationData = {
+        days_since_surgery: 5,
+        is_patos: true,
+        has_implant: false,
+        ssi_depth: "SUPERFICIAL",
+        ssi_event_type: "SIP",
+        superficial_purulent_drainage: true,
+        superficial_culture_positive: false,
+        superficial_opened_with_inflammation: false,
+        superficial_physician_diagnosis: false,
+        deep_purulent_drainage: false,
+        deep_dehisced_or_opened_with_symptoms: false,
+        deep_abscess_imaging_pathology: false,
+        organ_space_purulent_drainage: false,
+        organ_space_culture_positive: false,
+        organ_space_abscess_imaging_pathology: false,
+        has_blood_culture_positive: false,
+        blood_ssi_pathogen_matches: false,
+        loai_phau_thuat_nhsn: "COLO",
+      };
+      const res = evaluateSsi(data);
+      expect(res.is_positive).toBe(false);
+      expect(res.classification).toBe("PATOS");
+    });
+
     it("accepts implant SSI deep infection within 90 days window", () => {
       const data: SsiVerificationData = {
         days_since_surgery: 60,
         has_implant: true,
         ssi_depth: "DEEP",
+        ssi_event_type: "DIP",
         superficial_purulent_drainage: false,
         superficial_culture_positive: false,
         superficial_opened_with_inflammation: false,
@@ -426,7 +627,121 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       };
       const res = evaluateSsi(data);
       expect(res.is_positive).toBe(true);
-      expect(res.classification).toBe("SSI_DEEP");
+      expect(res.classification).toBe("DIP");
+    });
+
+    it("COLO deep ngày 40 → EXPIRED; KPRO deep ngày 60 → DIP theo mã PT", () => {
+      const base = {
+        has_implant: false,
+        ssi_depth: "DEEP" as const,
+        ssi_event_type: "DIP",
+        superficial_purulent_drainage: false,
+        superficial_culture_positive: false,
+        superficial_opened_with_inflammation: false,
+        superficial_physician_diagnosis: false,
+        deep_purulent_drainage: true,
+        deep_dehisced_or_opened_with_symptoms: false,
+        deep_abscess_imaging_pathology: false,
+        organ_space_purulent_drainage: false,
+        organ_space_culture_positive: false,
+        organ_space_abscess_imaging_pathology: false,
+        has_blood_culture_positive: false,
+        blood_ssi_pathogen_matches: false,
+      };
+      expect(
+        evaluateSsi({ ...base, days_since_surgery: 40, loai_phau_thuat_nhsn: "COLO" })
+          .classification,
+      ).toBe("EXPIRED");
+      expect(
+        evaluateSsi({ ...base, days_since_surgery: 60, loai_phau_thuat_nhsn: "KPRO" })
+          .classification,
+      ).toBe("DIP");
+    });
+
+    it("DIS luôn SP 30 dù mã PT nhóm 90 (CBGB)", () => {
+      const res = evaluateSsi({
+        days_since_surgery: 40,
+        has_implant: false,
+        ssi_depth: "DEEP",
+        ssi_event_type: "DIS",
+        superficial_purulent_drainage: false,
+        superficial_culture_positive: false,
+        superficial_opened_with_inflammation: false,
+        superficial_physician_diagnosis: false,
+        deep_purulent_drainage: true,
+        deep_dehisced_or_opened_with_symptoms: false,
+        deep_abscess_imaging_pathology: false,
+        organ_space_purulent_drainage: false,
+        organ_space_culture_positive: false,
+        organ_space_abscess_imaging_pathology: false,
+        has_blood_culture_positive: false,
+        blood_ssi_pathogen_matches: false,
+        loai_phau_thuat_nhsn: "CBGB",
+      });
+      expect(res.classification).toBe("EXPIRED");
+    });
+
+    it("thiếu ssi_event_type → INCOMPLETE dù đủ tiêu chí", () => {
+      const res = evaluateSsi({
+        days_since_surgery: 10,
+        has_implant: false,
+        ssi_depth: "SUPERFICIAL",
+        superficial_purulent_drainage: true,
+        superficial_culture_positive: false,
+        superficial_opened_with_inflammation: false,
+        superficial_physician_diagnosis: false,
+        deep_purulent_drainage: false,
+        deep_dehisced_or_opened_with_symptoms: false,
+        deep_abscess_imaging_pathology: false,
+        organ_space_purulent_drainage: false,
+        organ_space_culture_positive: false,
+        organ_space_abscess_imaging_pathology: false,
+        has_blood_culture_positive: false,
+        blood_ssi_pathogen_matches: false,
+        loai_phau_thuat_nhsn: "COLO",
+      });
+      expect(res.is_positive).toBe(false);
+      expect(res.classification).toBe("INCOMPLETE");
+    });
+
+    it("Organ/Space bắt buộc site hợp lệ; PJI chỉ sau HPRO/KPRO", () => {
+      const base: SsiVerificationData = {
+        days_since_surgery: 10,
+        has_implant: false,
+        ssi_depth: "ORGAN_SPACE",
+        ssi_event_type: "ORGAN_SPACE",
+        superficial_purulent_drainage: false,
+        superficial_culture_positive: false,
+        superficial_opened_with_inflammation: false,
+        superficial_physician_diagnosis: false,
+        deep_purulent_drainage: false,
+        deep_dehisced_or_opened_with_symptoms: false,
+        deep_abscess_imaging_pathology: false,
+        organ_space_purulent_drainage: true,
+        organ_space_culture_positive: false,
+        organ_space_abscess_imaging_pathology: false,
+        has_blood_culture_positive: false,
+        blood_ssi_pathogen_matches: false,
+        loai_phau_thuat_nhsn: "COLO",
+      };
+      expect(evaluateSsi(base).classification).toBe("INCOMPLETE");
+      expect(
+        evaluateSsi({ ...base, organ_space_site: "IAB" }).classification,
+      ).toBe("ORGAN_SPACE:IAB");
+      expect(
+        evaluateSsi({
+          ...base,
+          loai_phau_thuat_nhsn: "COLO",
+          organ_space_site: "PJI",
+        }).classification,
+      ).toBe("INVALID_SITE");
+      expect(
+        evaluateSsi({
+          ...base,
+          loai_phau_thuat_nhsn: "KPRO",
+          organ_space_site: "PJI",
+        }).classification,
+      ).toBe("ORGAN_SPACE:PJI");
     });
 
     it("diagnoses SSI superficial with secondary blood pathogen matching", () => {
@@ -434,6 +749,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         days_since_surgery: 15,
         has_implant: false,
         ssi_depth: "SUPERFICIAL",
+        ssi_event_type: "SIP",
         superficial_purulent_drainage: true,
         superficial_culture_positive: false,
         superficial_opened_with_inflammation: false,
@@ -450,7 +766,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       };
       const res = evaluateSsi(data);
       expect(res.is_positive).toBe(true);
-      expect(res.classification).toBe("SSI_SUPERFICIAL");
+      expect(res.classification).toBe("SIP");
       expect(res.is_secondary_bsi).toBe(true);
     });
   });

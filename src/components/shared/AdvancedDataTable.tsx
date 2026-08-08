@@ -1,10 +1,10 @@
 // src/components/shared/AdvancedDataTable.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
+import React, { useMemo } from "react";
 import { ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 import SearchBar from "./SearchBar";
+import QrScanInput from "./QrScanInput";
 import ServerPaginationBar from "./ServerPaginationBar";
 import DataTableBody from "./DataTableBody";
 import DataTableMobileCards from "./DataTableMobileCards";
@@ -56,12 +56,14 @@ interface AdvancedDataTableProps<T> {
   rowClassName?: (item: T) => string;
   /** Khi được cung cấp, bảng dùng Server-side Pagination thay vì client-side useDataTable. */
   serverPagination?: ServerPaginationConfig;
-  /** Gắn thêm class cho &lt;table&gt; (ví dụ `table-fixed` để khớp độ rộng cột). */
+  /**
+   * Class bổ sung cho &lt;table&gt; — luôn gộp với base `w-full min-w-[640px] border-collapse text-left`
+   * (ví dụ chỉ cần `"table-fixed"`; không thay thế mất `w-full`).
+   */
   tableClassName?: string;
   /**
-   * `inline` (mặc định): thanh tìm trong khối bảng.
-   * `header`: từ breakpoint lg, portal ô tìm lên `#bv103-header-toolbar-slot` trong Header (một bảng / trang);
-   * dưới lg vẫn hiển thị inline để không chật mobile.
+   * `inline` (mặc định): thanh tìm trong khối bảng — **SSOT Ops** (FLT-SEARCH-01).
+   * `header` — **deprecated** (không consumer); bị ép về `inline`.
    */
   searchPlacement?: "inline" | "header";
   /**
@@ -69,6 +71,13 @@ interface AdvancedDataTableProps<T> {
    * Chỉ đặt `false` khi cần giới hạn chiều rộng trong layout chật (ví dụ panel phụ).
    */
   searchStretchToContainer?: boolean;
+  /** Hiện ô quét QR cạnh thanh tìm (camera + Enter). */
+  enableQrScan?: boolean;
+  /**
+   * Khi quét QR: ưu tiên callback này.
+   * Không truyền → đưa mã vào ô tìm (`onSearch` / filter nội bộ).
+   */
+  onQrScan?: (code: string) => void;
 }
 
 export default function AdvancedDataTable<T extends { id: string | number }>({
@@ -80,19 +89,12 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
   onDeleteSelected, onSearch, onSort, searchValue, rowClassName, serverPagination, tableClassName,
   searchPlacement = "inline",
   searchStretchToContainer = true,
+  enableQrScan = false,
+  onQrScan,
 }: AdvancedDataTableProps<T>) {
-  const headerPortal = searchPlacement === "header";
-  const isLgUp = useMinWidth(1024, false, headerPortal);
+  /** FLT-SEARCH-01: `searchPlacement="header"` deprecated — luôn inline. */
+  void searchPlacement;
   const isSmUp = useMinWidth(640, false);
-  const [headerSlotEl, setHeaderSlotEl] = useState<HTMLElement | null>(null);
-
-  useEffect(() => {
-    if (!headerPortal) {
-      setHeaderSlotEl(null);
-      return;
-    }
-    setHeaderSlotEl(document.getElementById("bv103-header-toolbar-slot"));
-  }, [headerPortal]);
   const searchableKeys = useMemo(() => columns.map(col => col.accessorKey as keyof T), [columns]);
 
   const {
@@ -111,36 +113,53 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
   const onSortAction = (key: keyof T) => { if (onSort) onSort(String(key)); else internalHandleSort(key); };
   const finalSearchTerm = searchValue !== undefined ? searchValue : searchTerm;
 
-  const useHeaderSearchPortal = searchPlacement === "header" && !hideSearch && isLgUp && Boolean(headerSlotEl);
-  const showInlineSearch = !hideSearch && (searchPlacement === "inline" || (searchPlacement === "header" && !isLgUp));
+  const showInlineSearch = !hideSearch;
+  const applyQrCode = (code: string) => {
+    const c = String(code || "").trim();
+    if (!c) return;
+    if (onQrScan) {
+      onQrScan(c);
+      return;
+    }
+    onSearchAction(c);
+  };
 
   const searchBarNode = !hideSearch ? (
-    <SearchBar
-      value={finalSearchTerm}
-      onChange={onSearchAction}
-      placeholder={searchPlaceholder}
+    <div
       className={
-        useHeaderSearchPortal
-          ? "min-w-0 w-full max-w-none"
-          : searchStretchToContainer
-            ? "min-w-0 w-full max-w-none grow basis-full sm:basis-0 sm:flex-1"
-            : "min-w-0 w-full max-w-none flex-1 basis-0 sm:max-w-2xl"
+        searchStretchToContainer
+          ? "flex min-w-0 w-full max-w-none grow basis-full items-center gap-1.5 sm:basis-0 sm:flex-1"
+          : "flex min-w-0 w-full max-w-none flex-1 basis-0 items-center gap-1.5 sm:max-w-2xl"
       }
-    />
+    >
+      <SearchBar
+        value={finalSearchTerm}
+        onChange={onSearchAction}
+        placeholder={searchPlaceholder}
+        className="min-w-0 w-full flex-1"
+      />
+      {enableQrScan ? (
+        <div className="w-[min(100%,11rem)] shrink-0 sm:w-40">
+          <QrScanInput
+            placeholder="Quét QR…"
+            cameraTitle="Quét QR tìm kiếm"
+            onEnter={applyQrCode}
+            onCameraScan={applyQrCode}
+            inputClassName="bv103-control-h w-full touch-manipulation rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-xs font-semibold uppercase text-slate-800 outline-none placeholder:normal-case placeholder:text-slate-400 focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-[var(--primary)]/15"
+          />
+        </div>
+      ) : null}
+    </div>
   ) : null;
 
   const toolbarRowNeeded =
     showInlineSearch || (selectedIds.size > 0 && (enableMultiSelect || bulkActions));
 
   return (
-    <div className="w-full min-w-0 space-y-3 animate-in fade-in duration-500">
-      {useHeaderSearchPortal && headerSlotEl && searchBarNode
-        ? createPortal(searchBarNode, headerSlotEl)
-        : null}
-
+    <div className="w-full min-w-0 space-y-2 animate-in fade-in duration-500">
       {toolbarRowNeeded && (
         <div
-          className={`flex w-full min-w-0 flex-wrap items-center gap-2 no-print transition-all duration-300 ${
+          className={`flex w-full min-w-0 flex-row flex-wrap items-center gap-1.5 no-print transition-all duration-300 ${
             !showInlineSearch && selectedIds.size > 0 ? "justify-end" : ""
           }`}
         >
@@ -148,18 +167,18 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
 
           {selectedIds.size > 0 && (enableMultiSelect || bulkActions) && (
             <div
-              className={`flex flex-wrap items-center gap-2 rounded-lg border border-[var(--primary)]/15 bg-[var(--primary)]/5 p-1 animate-in slide-in-from-top-2 ${
+              className={`flex flex-wrap items-center gap-1.5 rounded-lg border border-[var(--primary)]/15 bg-[var(--primary)]/5 px-1.5 py-0.5 animate-in slide-in-from-top-2 ${
                 showInlineSearch ? "ml-auto" : ""
               }`}
             >
-              <span className={`whitespace-nowrap px-3 ${T.labelBlock} text-[var(--primary)]`}>
-                Đã chọn {selectedIds.size} mục
+              <span className={`whitespace-nowrap px-2 ${T.labelBlock} text-[var(--primary)]`}>
+                Đã chọn {selectedIds.size}
               </span>
               {enableMultiSelect && onDeleteSelected && (
                 <button
                   type="button"
                   onClick={() => onDeleteSelected(selectedItems)}
-                  className="bv103-control-h inline-flex items-center gap-2 rounded-lg bg-red-50 px-3 text-xs font-semibold text-red-700 transition-colors hover:bg-red-600 hover:text-white"
+                  className="bv103-control-h inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-2.5 text-xs font-semibold text-red-700 transition-colors hover:bg-red-600 hover:text-white"
                 >
                   <Trash2 size={14} aria-hidden /> Xóa
                 </button>
@@ -188,7 +207,11 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
           </div>
         ) : (
         <div className="custom-scrollbar bv103-scroll-x overflow-x-auto">
-          <table className={tableClassName ?? "w-full min-w-[640px] border-collapse text-left"}>
+          <table
+            className={["w-full min-w-[640px] border-collapse text-left", tableClassName]
+              .filter(Boolean)
+              .join(" ")}
+          >
             <thead className="sticky top-0 z-20 bg-slate-50/95 shadow-[0_1px_0_rgb(226_232_240/0.95)]">
               <tr className="border-b border-slate-200/90">
                 {enableMultiSelect && (

@@ -124,7 +124,12 @@ VALUES
   ('PHAN_QUYEN', 'edit', 'Sửa Quản trị Phân quyền'),
   ('PHAN_QUYEN', 'delete', 'Xóa Quản trị Phân quyền'),
   ('BAO_SU_CO', 'view', 'Xem Báo cáo Sự cố'),
-  ('BAO_SU_CO', 'create', 'Thêm Báo cáo Sự cố')
+  ('BAO_SU_CO', 'create', 'Thêm Báo cáo Sự cố'),
+  ('DAO_TAO', 'view', 'Xem Đào tạo / Thi trắc nghiệm KSNK'),
+  ('DAO_TAO', 'create', 'Thêm Đào tạo / Thi trắc nghiệm KSNK'),
+  ('DAO_TAO', 'edit', 'Sửa Đào tạo / Thi trắc nghiệm KSNK'),
+  ('DAO_TAO', 'delete', 'Xóa Đào tạo / Thi trắc nghiệm KSNK'),
+  ('DAO_TAO', 'import', 'Import Đào tạo / Thi trắc nghiệm KSNK')
 ON CONFLICT (module_name, action) DO UPDATE SET
   description = EXCLUDED.description;
 
@@ -143,7 +148,7 @@ FROM public.sys_roles r
 JOIN public.sys_permissions p ON true
 WHERE r.name = 'NHAN_VIEN_KSNK'
   AND (
-    (p.module_name IN ('GIAM_SAT_VST','GIAM_SAT_CHUNG','GIAM_SAT_NKBV','CONG_VIEC','BAO_SU_CO')
+    (p.module_name IN ('GIAM_SAT_VST','GIAM_SAT_CHUNG','GIAM_SAT_NKBV','CONG_VIEC','BAO_SU_CO','DAO_TAO')
      AND p.action IN ('view','create','edit','delete','import'))
     OR (p.module_name LIKE 'DASHBOARD%' AND p.action IN ('view','export'))
     OR (p.module_name IN ('CSSD_WORKFLOW','CSSD_KHO_DUNGCU','CSSD_REPORT','CSSD_ME_TIET_KHUAN','KSNK_KHO_HOACHAT')
@@ -185,6 +190,7 @@ WHERE r.name = 'MANG_LUOI_KSNK'
     OR (p.module_name = 'BAO_SU_CO' AND p.action IN ('view', 'create'))
     OR (p.module_name IN ('GIAM_SAT_VST', 'GIAM_SAT_CHUNG', 'CONG_VIEC')
         AND p.action IN ('view', 'create', 'edit', 'delete'))
+    OR (p.module_name = 'DAO_TAO' AND p.action IN ('view', 'create'))
   )
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 

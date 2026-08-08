@@ -1,7 +1,7 @@
 // src/components/shared/PrintLayout.tsx
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 
 interface PrintLayoutProps {
   children: React.ReactNode;
@@ -15,6 +15,13 @@ interface PrintLayoutProps {
   rightSignatureTitle?: string;
   /** compact — giảm khoảng trống header/footer cho phiếu dày nội dung (CSSD…) */
   density?: "default" | "compact";
+  /** QR / phụ lục in sau chữ ký (cuối trang). */
+  afterFooter?: React.ReactNode;
+  /**
+   * Tên file gợi ý khi Lưu PDF / hộp thoại in (`{LOAI}_{MA}`).
+   * Truyền hàm để ghép lại lúc beforeprint.
+   */
+  fileTitle?: string | (() => string);
 }
 
 /**
@@ -30,17 +37,24 @@ const PrintLayout: React.FC<PrintLayoutProps> = ({
   leftSignatureTitle = "NGƯỜI GIÁM SÁT",
   rightSignatureTitle = "ĐẠI DIỆN ĐƠN VỊ ĐƯỢC GIÁM SÁT",
   density = "default",
+  afterFooter,
+  fileTitle,
 }) => {
   const compact = density === "compact";
   const headerMb = compact ? 10 : 32;
   const titleMb = compact ? 8 : 20;
   const footerMt = compact ? 14 : 32;
   const signBoxH = compact ? 56 : 80;
-  /** Giảm chữ trong header/footer mặc định của trình duyệt khi in (tiêu đề tab). URL/ngày giờ vẫn do tùy chọn in của Chrome. */
+  const fileTitleRef = useRef(fileTitle);
+  fileTitleRef.current = fileTitle;
+
+  /** Đặt document.title = tên file lưu trữ; khôi phục sau in. */
   useEffect(() => {
     const saved = document.title;
     const onBefore = () => {
-      document.title = "";
+      const ft = fileTitleRef.current;
+      const next = typeof ft === "function" ? ft() : String(ft || "").trim();
+      document.title = next || saved;
     };
     const onAfter = () => {
       document.title = saved;
@@ -142,6 +156,20 @@ const PrintLayout: React.FC<PrintLayoutProps> = ({
             </div>
           </div>
         )}
+
+        {afterFooter ? (
+          <div
+            style={{
+              marginTop: compact ? 10 : 16,
+              pageBreakInside: "avoid",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "flex-start",
+            }}
+          >
+            {afterFooter}
+          </div>
+        ) : null}
 
       </div>
     </div>

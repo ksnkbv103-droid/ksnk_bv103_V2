@@ -21,9 +21,9 @@ import type { BomItem } from "@/lib/domain/cssd-packaging-rules";
 import { evaluateBatchSterilizationHeatRisk } from "../lib/me-tiet-khuan-batch-heat";
 
 export async function fetchCssdMeListData() {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdBatchView();
+    const supabase = createAdminSupabaseClient();
     const { batches, machines, batchError, machineError } = await fetchBatchesAndMachines(supabase);
     return { success: true as const, batches, machines, batchError, machineError };
   } catch (e: unknown) {
@@ -38,9 +38,9 @@ export async function fetchCssdMeListData() {
 
 /** Bộ đang ĐÓNG GÓI, chưa gán mẻ — chờ đưa vào phiếu tiệt khuẩn (tương tự “danh sách chờ” trạm). */
 export async function fetchCssdTietKhuanWaitingRows(limit = 120) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdBatchView();
+    const supabase = createAdminSupabaseClient();
     const cap = Math.min(Math.max(Number(limit) || 120, 1), 500);
     const dongGoiId = await resolveCssdTramId(supabase, "DONG_GOI");
     if (!dongGoiId) return { success: true as const, data: [] };
@@ -69,6 +69,7 @@ export async function fetchCssdTietKhuanWaitingRows(limit = 120) {
       id: x.id,
       ma_vach_qr: x.ma_qr_quy_trinh || "",
       updated_at: x.updated_at || "",
+      bo_dung_cu_id: x.bo_dung_cu_id ? String(x.bo_dung_cu_id) : null,
       bo: x.bo_dung_cu_id ? { ten_bo: boMap.get(String(x.bo_dung_cu_id))?.ten_bo || null } : null,
     }));
     return { success: true as const, data: mapped };
@@ -78,9 +79,9 @@ export async function fetchCssdTietKhuanWaitingRows(limit = 120) {
 }
 
 export async function fetchCssdBatchWorkflowState(batchId: string) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdBatchView();
+    const supabase = createAdminSupabaseClient();
     const id = String(batchId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã mẻ." };
     const { data, error } = await supabase
@@ -100,9 +101,9 @@ export async function fetchCssdBatchWorkflowState(batchId: string) {
 
 /** Chốt nạp: khóa thêm bộ, chuyển toàn bộ bộ trong mẻ sang trạng thái TIET_KHUAN. */
 export async function confirmBatDauTietKhuanBatch(batchId: string) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdBatchEdit();
+    const supabase = createAdminSupabaseClient();
     const id = String(batchId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã mẻ." };
     const { data: me, error: meErr } = await supabase
@@ -144,9 +145,9 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
 
 /** Kết thúc chu trình vật lý — mở form nhập thông số / đánh giá QC. */
 export async function confirmKetThucChuTrinhTietKhuan(batchId: string) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdBatchEdit();
+    const supabase = createAdminSupabaseClient();
     const id = String(batchId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã mẻ." };
     const { data: me, error: meErr } = await supabase
@@ -171,9 +172,9 @@ export async function confirmKetThucChuTrinhTietKhuan(batchId: string) {
 }
 
 export async function fetchCssdBatchMembers(batchId: string) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdBatchView();
+    const supabase = createAdminSupabaseClient();
     const id = String(batchId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã mẻ.", data: [] as unknown[] };
     const { data: rows, error } = await supabase
@@ -204,9 +205,9 @@ export async function fetchCssdBatchMembers(batchId: string) {
 
 /** P2: Đánh giá Spaulding/nhiệt gộp cho các bộ trong mẻ + profile máy. */
 export async function fetchCssdBatchHeatRisk(batchId: string) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdBatchView();
+    const supabase = createAdminSupabaseClient();
     const id = String(batchId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã mẻ." };
 
@@ -261,9 +262,9 @@ export async function fetchCssdBatchHeatRisk(batchId: string) {
 }
 
 export async function createCssdSterilizationBatch(machineId: string, nguoiLoad: string) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdBatchEdit();
+    const supabase = createAdminSupabaseClient();
     const validated = createSterilizationBatchSchema.parse({ machineId, nguoiLoad });
     const mid = validated.machineId;
     const nguoi = validated.nguoiLoad;
@@ -290,9 +291,9 @@ export async function createCssdSterilizationBatch(machineId: string, nguoiLoad:
 }
 
 export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: string) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdBatchEdit();
+    const supabase = createAdminSupabaseClient();
     const validated = addQuyTrinhToBatchSchema.parse({ activeMeId, code });
     const meId = validated.activeMeId;
     const resolved = await resolveCssdCodeWithClient(supabase, validated.code);
@@ -362,9 +363,9 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
 }
 
 export async function finishCssdSterilizationBatch(input: PersistMeTietKhuanInput) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdBatchEdit();
+    const supabase = createAdminSupabaseClient();
     const validated = finishSterilizationBatchSchema.parse(input);
     let operatorAuthUserId: string | null = null;
     let operatorEmail: string | null = null;

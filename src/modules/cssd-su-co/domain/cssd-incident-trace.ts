@@ -24,6 +24,25 @@ export function readFaultStationOperator(
   return { operatorId, stationTime };
 }
 
+export type CyclePerformer = {
+  station: Station;
+  operatorId: string;
+  stationTime: string | null;
+};
+
+/** Người đã ghi nhận trên các khâu của chu kỳ (duy nhất theo operatorId, giữ khâu đầu tiên). */
+export function listCyclePerformers(row: Record<string, unknown>): CyclePerformer[] {
+  const seen = new Set<string>();
+  const out: CyclePerformer[] = [];
+  for (const station of Object.keys(FAULT_STATION_OPERATOR_COLS) as Station[]) {
+    const { operatorId, stationTime } = readFaultStationOperator(row, station);
+    if (!operatorId || seen.has(operatorId)) continue;
+    seen.add(operatorId);
+    out.push({ station, operatorId, stationTime });
+  }
+  return out;
+}
+
 /** Ảnh minh chứng bắt buộc theo loại sự cố dụng cụ. */
 export function isInstrumentIncidentImageRequired(typeId: string): boolean {
   return typeId === "INSTRUMENT_BROKEN" || typeId === "INSTRUMENT_REPLENISH";

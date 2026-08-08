@@ -5,23 +5,20 @@ import { FlameKindling } from "lucide-react";
 import { CSSD_ROUTES } from "@/lib/cssd-routes";
 
 /**
- * Ô không phải trạm quét: dẫn tới phiếu/mẻ tiệt khuẩn — bắt buộc có phiếu rồi mới quét bộ vào mẻ.
+ * Ô phiếu mẻ — mở tab Mẻ tiệt khuẩn (không quét tại trang chu trình).
+ * Cùng khung với ô chọn trạm.
  */
 export default function CssdBatchMeLinkChip() {
   return (
     <Link
       href={`${CSSD_ROUTES.quyTrinh}?tab=batch`}
-      className="app-shell-focus group flex min-h-[88px] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-amber-300 bg-gradient-to-br from-amber-50 to-white p-3 text-center shadow-sm transition-colors hover:border-amber-500 hover:bg-amber-50"
+      aria-label="Mở tab phiếu mẻ tiệt khuẩn"
+      className="app-shell-focus group relative flex h-14 w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-amber-300 bg-amber-50/80 px-2 py-1.5 text-center transition-colors touch-manipulation hover:border-amber-500 hover:bg-amber-50 sm:h-16 sm:px-2.5"
     >
-      <div className="text-amber-600 transition-all group-hover:scale-105">
-        <FlameKindling size={20} aria-hidden />
-      </div>
-      <div className="space-y-0.5">
-        <span className="block text-[11px] font-semibold uppercase tracking-wide leading-tight tracking-tight text-amber-900">
-          Phiếu mẻ
-        </span>
-        <span className="block text-[11px] font-bold uppercase tracking-wider text-amber-800/80">Tạo phiếu & quét tại đây</span>
-      </div>
+      <span className="shrink-0 text-amber-600">
+        <FlameKindling size={16} aria-hidden />
+      </span>
+      <span className="truncate text-[11px] font-bold leading-tight text-amber-900">Phiếu mẻ</span>
     </Link>
   );
 }

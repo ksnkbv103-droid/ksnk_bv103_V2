@@ -121,7 +121,7 @@ export function CommandCenterQuickActions({ tuNgay, denNgay, selectedKhoaIds }: 
 
   if (loading) {
     return (
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4">
         <p className={D.kpiLabel}>Đang tải thao tác nhanh…</p>
       </section>
     );
@@ -163,7 +163,7 @@ function QuickActionCard({
   return (
     <Link
       href={href}
-      className="group flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-[var(--primary)]/30 hover:bg-slate-50/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20"
+      className="group flex items-start gap-3 rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-[var(--primary)]/30 hover:bg-slate-50/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20"
     >
       <div className={`shrink-0 rounded-xl p-2.5 text-white ${iconBg}`}>
         <Icon size={20} aria-hidden />

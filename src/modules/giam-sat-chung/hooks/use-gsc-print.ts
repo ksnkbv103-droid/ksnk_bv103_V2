@@ -4,9 +4,16 @@
 import { useState, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import { loadGscViewBundle, type GscViewBundle } from "../lib/load-gsc-view-bundle";
+import { buildEntityQrCode } from "@/lib/entity-qr/entity-qr-core";
+import { generateEntityQrDataUrl } from "@/lib/entity-qr/generate-entity-qr";
+
+export type GscPrintBundle = GscViewBundle & {
+  qrCode?: string;
+  qrDataUrl?: string;
+};
 
 export function useGscPrint(dbTemplates: Record<string, unknown>[]) {
-  const [printingBundle, setPrintingBundle] = useState<GscViewBundle | null>(null);
+  const [printingBundle, setPrintingBundle] = useState<GscPrintBundle | null>(null);
   const printLocked = useRef(false);
 
   const buildBundle = useCallback(
@@ -30,7 +37,17 @@ export function useGscPrint(dbTemplates: Record<string, unknown>[]) {
         printLocked.current = false;
         return;
       }
-      setPrintingBundle(b);
+      const sid = String(b.session.id || session.id || "").trim();
+      const qrCode = sid ? buildEntityQrCode("GSC_SESSION", sid) : "";
+      let qrDataUrl = "";
+      if (qrCode) {
+        try {
+          qrDataUrl = await generateEntityQrDataUrl(qrCode, { width: 200 });
+        } catch {
+          toast.error("Không tạo được mã QR trên phiếu");
+        }
+      }
+      setPrintingBundle({ ...b, qrCode, qrDataUrl });
 
       let settled = false;
       const timeout = { id: undefined as number | undefined };

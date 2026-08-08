@@ -10,9 +10,9 @@ import { verifyCssdMaintenanceView } from "@/lib/cssd-server-gates";
 export async function listSuCoEquipmentGanDayAction(): Promise<
   { success: true; data: SuCoEquipmentRow[] } | { success: false; error: string }
 > {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdMaintenanceView();
+    const supabase = createAdminSupabaseClient();
     const { data: rows, error } = await supabase
       .from("cssd_fact_su_co")
       .select("id, mo_ta, attributes, incident_type_label, created_at")

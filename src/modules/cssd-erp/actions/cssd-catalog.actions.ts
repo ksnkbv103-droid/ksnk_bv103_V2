@@ -24,9 +24,9 @@ async function verifyCanViewKhoCatalog(): Promise<void> {
 export async function getKhoCatalogPayloadAction(): Promise<
   { success: true; data: Catalog } | { success: false; error: string }
 > {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCanViewKhoCatalog();
+    const supabase = createAdminSupabaseClient();
 
     // Lấy trực tiếp từ bảng DM để không phụ thuộc category của RPC registry.
     const [boRes, boMetaRes, loaiRes, chiTietRes, hoaChatRes, khoaRes] = await Promise.all([
@@ -162,23 +162,17 @@ export async function getKhoCatalogPayloadAction(): Promise<
 export async function lookupBoDungCuIdByQrAction(qrCode: string): Promise<
   { success: true; boDungCuId: string | null } | { success: false; error: string }
 > {
-  const supabase = createAdminSupabaseClient();
   try {
+    await verifyCanViewKhoCatalog();
+    const supabase = createAdminSupabaseClient();
     const code = String(qrCode || "").trim().toUpperCase();
     if (!code) return { success: true, boDungCuId: null };
 
-    const { data, error } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("bo_dung_cu_id")
-      .eq("ma_qr_quy_trinh", code)
-      .eq("is_active", true)
-      .maybeSingle();
-
-    if (error) throw error;
-    if (data?.bo_dung_cu_id) {
-      return { success: true, boDungCuId: String(data.bo_dung_cu_id) };
+    const { resolveCssdCodeWithClient } = await import("../shared/application/cssd-qr-hub");
+    const resolved = await resolveCssdCodeWithClient(supabase, code);
+    if (resolved.targetType === "INSTRUMENT_SET" && resolved.boDungCuId) {
+      return { success: true, boDungCuId: resolved.boDungCuId };
     }
-
     return { success: true, boDungCuId: null };
   } catch (e: unknown) {
     return { success: false, error: getErrorMessage(e) };

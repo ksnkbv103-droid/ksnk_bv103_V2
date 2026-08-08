@@ -71,7 +71,7 @@ function ChiThiBlock({
   showPhoto: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-4 space-y-3 shadow-sm">
+    <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-white p-4 space-y-3 shadow-sm">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-wide text-slate-700">{label}</span>
         {required ? (
@@ -204,13 +204,9 @@ export default function MeTietKhuanProcessQcPanel({
 
   if (!showForm) {
     return (
-      <div className="flex min-h-[320px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-8 text-center shadow-inner">
+      <div className="flex min-h-[320px] flex-col items-center justify-center rounded-[var(--radius-shell)] border border-dashed border-slate-200 bg-slate-50/80 p-8 text-center shadow-inner">
         <Settings2 className="mb-3 h-10 w-10 text-slate-300 animate-pulse" aria-hidden />
-        <p className="text-xs font-mediumst text-slate-500">Chưa mở form đánh giá</p>
-        <p className="mt-2 max-w-sm text-[11px] font-medium leading-relaxed text-slate-400">
-          Sau khi chạy xong chu trình, bấm{" "}
-          <strong className="text-slate-600">«Kết thúc chu trình tiệt khuẩn»</strong> để mở form đánh giá.
-        </p>
+        <p className="text-xs font-medium text-slate-500">Chưa mở form — bấm «Kết thúc chu trình tiệt khuẩn».</p>
       </div>
     );
   }
@@ -304,7 +300,7 @@ export default function MeTietKhuanProcessQcPanel({
     "bg-emerald-100 text-emerald-700 border-emerald-200";
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white shadow-sm">
+    <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-white shadow-sm">
       {/* QC Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
         <div className="flex items-center gap-3">
@@ -354,7 +350,7 @@ export default function MeTietKhuanProcessQcPanel({
         </div>
 
         {/* === 1. THÔNG SỐ MÁY: chỉ Đạt/Không đạt + ảnh === */}
-        <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-5 space-y-3">
+        <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50/60 p-5 space-y-3">
           <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
             <h4 className={`flex items-center gap-2 ${UI.sectionTitle}`}>
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-[11px] font-semibold text-white">1</span>
@@ -374,7 +370,7 @@ export default function MeTietKhuanProcessQcPanel({
         </div>
 
         {/* === 2. CHỈ THỊ & TEST CHẤT LƯỢNG theo loại máy === */}
-        <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-5 space-y-4">
+        <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50/60 p-5 space-y-4">
           <h4 className={`flex items-center gap-2 border-b border-slate-200/60 pb-2 ${UI.sectionTitle}`}>
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-[11px] font-semibold text-white">2</span>
             Chỉ thị & Test chất lượng
@@ -422,7 +418,7 @@ export default function MeTietKhuanProcessQcPanel({
             )}
 
             {/* Test sinh học — tùy chọn cả 3 loại máy */}
-            <div className="rounded-2xl border border-slate-100 bg-white p-4 space-y-3 shadow-sm">
+            <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-white p-4 space-y-3 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wide text-slate-700">Test sinh học (BIM)</span>
                 <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[11px] font-semibold uppercase text-slate-400">
@@ -471,7 +467,7 @@ export default function MeTietKhuanProcessQcPanel({
 
             {/* Bowie-Dick — Steam-only, tùy chọn */}
             {machineType === "STEAM" && showBowieDick && (
-              <div className="rounded-2xl border border-slate-100 bg-white p-4 space-y-3 shadow-sm">
+              <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-white p-4 space-y-3 shadow-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold uppercase tracking-wide text-slate-700">Bowie–Dick (Steam)</span>
                   <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[11px] font-semibold uppercase text-slate-400">
@@ -523,7 +519,7 @@ export default function MeTietKhuanProcessQcPanel({
 
         {/* === AUTO-FAIL NOTICE === */}
         {hasAnyFailure && (
-          <div className="rounded-2xl border-2 border-red-200 bg-red-50 p-5 space-y-2">
+          <div className="rounded-[var(--radius-shell)] border-2 border-red-200 bg-red-50 p-5 space-y-2">
             <div className={`flex items-center gap-2 ${UI.panelTitle} text-red-700`}>
               <ShieldAlert className="h-5 w-5 animate-bounce" />
               Tự động khóa kết quả: KHÔNG ĐẠT
@@ -541,20 +537,20 @@ export default function MeTietKhuanProcessQcPanel({
             type="button"
             disabled={hasAnyFailure}
             onClick={() => handleFinish(true)}
-            className={`flex h-14 items-center justify-center gap-2 rounded-2xl text-sm font-semibold uppercase tracking-widest transition-all active:scale-[0.99] ${
+            className={`bv103-control-h inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-control)] text-xs font-semibold uppercase tracking-wide transition-all active:scale-[0.99] sm:h-12 ${
               hasAnyFailure
-                ? "bg-slate-100 text-slate-400 cursor-not-allowed border-2 border-slate-200"
-                : "bg-[var(--primary)] text-[#FFD700] shadow-lg shadow-emerald-200 hover:bg-[var(--primary-hover)] hover:shadow-xl"
+                ? "cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400"
+                : "bg-[var(--primary)] text-white shadow-sm hover:bg-[var(--primary-hover)]"
             }`}
           >
-            <CheckCircle size={20} /> Kết luận ĐẠT → Cấp phát
+            <CheckCircle className="h-5 w-5" aria-hidden /> Kết luận ĐẠT → Cấp phát
           </button>
           <button
             type="button"
             onClick={() => handleFinish(false)}
-            className="flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-red-200 bg-red-50 text-sm font-semibold uppercase tracking-widest text-red-700 transition-all hover:bg-red-100 hover:shadow-md active:scale-[0.99]"
+            className="bv103-control-h inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-control)] border border-red-200 bg-red-50 text-xs font-semibold uppercase tracking-wide text-red-700 transition-all hover:bg-red-100 active:scale-[0.99] sm:h-12"
           >
-            <AlertCircle size={20} /> Kết luận KHÔNG ĐẠT
+            <AlertCircle className="h-5 w-5" aria-hidden /> Kết luận KHÔNG ĐẠT
           </button>
         </div>
       </div>

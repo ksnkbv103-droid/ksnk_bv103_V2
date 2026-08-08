@@ -5,17 +5,16 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { Clock, QrCode, AlertTriangle, WashingMachine, Microscope, Box, Truck } from "lucide-react";
+import { QrCode, AlertTriangle } from "lucide-react";
 import { useCSSDWorkflow } from "../hooks/useCSSDWorkflow";
 import WaitingList from "../components/waiting-list/WaitingList";
 import QRScanSuccessCard from "../components/scan/QRScanSuccessCard";
 import WorkflowStationQrEntry from "../components/scan/WorkflowStationQrEntry";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
-import CssdBatchMeLinkChip from "../components/workflow/cssd-batch-me-link-chip";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import type { Station } from "../types/cssd.types";
-import { CSSD_UI_PANEL, CSSD_UI_SECTION_TITLE, CSSD_UI_STEP_HINT } from "../shared/ui/cssd-ui-chrome";
+import { CSSD_UI_SECTION_TITLE, CSSD_UI_STEP_HINT } from "../shared/ui/cssd-ui-chrome";
 import { SCAN_STATIONS } from "../workflow/domain/cssd-stations";
 import { isValidStation } from "../workflow/domain/cssd-state-engine";
 import { CSSD_ROUTES, cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
@@ -27,15 +26,6 @@ import { usePrint } from "@/hooks/usePrint";
 
 const MODULE_KEY = "CSSD_WORKFLOW";
 
-const stationVnNames: Record<Station, string> = {
-  TIEP_NHAN: "Tiếp nhận",
-  LAM_SACH: "Làm sạch",
-  QC: "QC / Kiểm chuẩn",
-  DONG_GOI: "Đóng gói",
-  TIET_KHUAN: "Tiệt khuẩn",
-  CAP_PHAT: "Cấp phát",
-};
-
 /**
  * Trang quản lý quy trình CSSD ERP - Layout 2 cột tối ưu Workflow
  * Đã bổ sung thanh điều hướng Module (Sub-menu).
@@ -44,7 +34,6 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
   const searchParams = useSearchParams();
   const {
     currentStation,
-    scanStations,
     waitingList,
     loading: workflowLoading,
     lastScan,
@@ -100,17 +89,6 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
   // Quyền báo sự cố phải theo module BAO_SU_CO (không phụ thuộc workflow edit/delete).
   const canCreateIncident = incidentAllowed.create;
 
-  const stationIcons: Record<string, React.ReactNode> = {
-    TIEP_NHAN: <Clock size={20} />,
-    LAM_SACH: <WashingMachine size={20} />,
-    QC: <Microscope size={20} />,
-    DONG_GOI: <Box size={20} />,
-    CAP_PHAT: <Truck size={20} />,
-  };
-
-  const stationsBeforeCap = scanStations.slice(0, 4) as Station[];
-  const capStation = scanStations[4] as Station;
-
   if (permLoading) {
     return (
       <div className={CSSD_PAGE_OUTER}>
@@ -124,7 +102,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
   if (!canViewWorkflow) {
     return (
       <div className={CSSD_PAGE_OUTER}>
-        <div className="rounded-2xl border border-slate-200 bg-[var(--bg-panel)] px-8 py-12 text-center shadow-[var(--shadow-app-soft)]">
+        <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-[var(--bg-panel)] px-8 py-12 text-center shadow-[var(--shadow-app-soft)]">
           <p className="text-sm font-medium text-slate-600">Bạn không có quyền truy cập luồng quy trình CSSD.</p>
           <p className="mt-2 text-xs text-slate-500">Liên hệ quản trị nếu cần cấp quyền module workflow.</p>
         </div>
@@ -148,84 +126,19 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
 
   const mainContent = (
     <div className="space-y-4 animate-in fade-in duration-500 sm:space-y-6">
-      {/* Lựa chọn trạm làm việc */}
-      <section className={`space-y-3 p-2.5 sm:space-y-4 sm:p-4 ${CSSD_UI_PANEL}`}>
-        <div className="flex flex-wrap items-end justify-between gap-2 px-0.5 sm:px-1">
-          <h2 className={`${CSSD_UI_SECTION_TITLE} max-sm:text-sm`}>Quy trình quét trạm (không gồm mẻ hấp)</h2>
-          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 sm:px-3 sm:py-1">
-            {currentStation ? stationVnNames[currentStation] : "Chưa chọn trạm"}
-          </span>
-        </div>
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-6">
-          {stationsBeforeCap.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => selectStation(s)}
-              className={`group flex min-h-[4.25rem] flex-col items-center justify-center gap-1 rounded-xl border p-2 transition-all touch-manipulation sm:min-h-[88px] sm:gap-2 sm:rounded-2xl sm:p-3 ${
-                currentStation === s
-                   ? "border-emerald-600 bg-emerald-600 text-white shadow-lg"
-                   : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
-              }`}
-            >
-              <div
-                className={`${currentStation === s ? "text-amber-300" : "text-slate-300 group-hover:text-emerald-600"} transition-all [&_svg]:h-4 [&_svg]:w-4 sm:[&_svg]:h-5 sm:[&_svg]:w-5`}
-              >
-                {stationIcons[s]}
-              </div>
-              <span
-                className={`text-center text-[11px] font-bold leading-tight tracking-wide ${currentStation === s ? "text-white" : "text-slate-700"}`}
-              >
-                {stationVnNames[s]}
-              </span>
-            </button>
-          ))}
-          <CssdBatchMeLinkChip />
-          <button
-            type="button"
-            onClick={() => selectStation(capStation)}
-            className={`group flex min-h-[4.25rem] flex-col items-center justify-center gap-1 rounded-xl border p-2 transition-all touch-manipulation sm:min-h-[88px] sm:gap-2 sm:rounded-2xl sm:p-3 ${
-              currentStation === capStation
-                ? "border-emerald-600 bg-emerald-600 text-white shadow-lg"
-                : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
-            }`}
-          >
-            <div
-              className={`${currentStation === capStation ? "text-amber-300" : "text-slate-300 group-hover:text-emerald-600"} transition-all [&_svg]:h-4 [&_svg]:w-4 sm:[&_svg]:h-5 sm:[&_svg]:w-5`}
-            >
-              {stationIcons[capStation]}
-            </div>
-            <span
-              className={`text-center text-[11px] font-bold leading-tight tracking-wide ${currentStation === capStation ? "text-white" : "text-slate-700"}`}
-            >
-              {stationVnNames[capStation]}
-            </span>
-          </button>
-        </div>
-      </section>
-
-      <CssdStationFlowMap
-        activeStation={currentStation}
-        onSelectStation={(s) => {
-          if (s === "TIET_KHUAN") {
-            toast.message(`Tiệt khuẩn chỉ qua tab Mẻ (${cssdQuyTrinhBatchTabHref()}).`);
-            return;
-          }
-          selectStation(s);
-        }}
-      />
+      <CssdStationFlowMap activeStation={currentStation} onSelectStation={selectStation} />
 
       {/* 4. Workflow Area */}
       <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-6">
           {currentStation ? <WaitingList items={waitingList} onAction={submitWorkflowQr} /> : (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-20 text-center text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">Vui lòng chọn trạm làm việc để bắt đầu</div>
+            <div className="rounded-[var(--radius-shell)] border border-dashed border-slate-300 bg-white py-20 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400">Vui lòng chọn trạm làm việc để bắt đầu</div>
           )}
         </div>
 
         <div className="space-y-4 lg:col-span-6 lg:sticky lg:top-8">
           <h3 className={`px-1 ${CSSD_UI_SECTION_TITLE}`}>Quét & kết quả</h3>
-          <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="space-y-4 rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 shadow-sm">
             <WorkflowStationQrEntry
               waitingItems={waitingList}
               disabled={!currentStation || workflowLoading}
@@ -299,24 +212,23 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
           Quản lý <span className="text-[var(--primary)]">CSSD</span>
         </>
       }
-      subtitle="Chọn trạm làm việc và quét mã QR đã in từ danh mục."
       actions={
-        <div className="flex flex-wrap items-center justify-end gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
           {canCreateIncident ? (
             <Link
               href={CSSD_ROUTES.suCo}
-              className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+              className="bv103-control-h inline-flex items-center justify-center rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
             >
-              Trang ghi nhận sự cố
+              Sự cố
             </Link>
           ) : null}
           <button
             type="button"
             onClick={() => setIsIncidentOpen(true)}
             disabled={!canCreateIncident}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 text-xs font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="bv103-control-h inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-control)] bg-red-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <AlertTriangle size={18} aria-hidden /> Báo sự cố (nhanh)
+            <AlertTriangle size={16} aria-hidden /> Báo sự cố
           </button>
         </div>
       }

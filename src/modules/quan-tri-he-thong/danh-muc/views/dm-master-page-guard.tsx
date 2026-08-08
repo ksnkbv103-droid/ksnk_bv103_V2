@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useModulePermission } from "@/hooks/useModulePermission";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 /** Cổng quyền client cho trang master dedicated (khớp mã `permission-registry`). */
 export function DmMasterPageGuard({
@@ -24,9 +25,9 @@ export function DmMasterPageGuard({
   }
   if (!allowed.view) {
     return (
-      <div className="mx-auto max-w-xl rounded-3xl border border-slate-200 bg-white p-10 text-center">
-        <p className="font-black uppercase tracking-widest text-slate-400 text-sm">Không có quyền truy cập</p>
-        <p className="mt-2 text-xs text-[11px] font-medium text-slate-500">{label}</p>
+      <div className={`mx-auto max-w-xl ${C.panelSurface} p-10 text-center`}>
+        <p className="text-sm font-semibold text-slate-500">Không có quyền truy cập</p>
+        <p className="mt-2 text-[11px] font-medium text-slate-500">{label}</p>
       </div>
     );
   }

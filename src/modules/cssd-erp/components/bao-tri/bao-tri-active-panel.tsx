@@ -30,7 +30,7 @@ export default function BaoTriActivePanel({
 }: Props) {
   const active = rows.filter((x) => x.trang_thai === "DANG_THUC_HIEN");
   return (
-    <div className={`${UI.sectionGap} space-y-4 rounded-2xl border border-amber-100 bg-amber-50/40 p-4 text-sm text-slate-700`}>
+    <div className={`${UI.sectionGap} space-y-4 rounded-[var(--radius-shell)] border border-amber-100 bg-amber-50/40 p-4 text-sm text-slate-700`}>
       <p className="font-semibold text-slate-800">Phiếu đang thực hiện — checklist + biên bản</p>
       <div className="grid gap-3 md:grid-cols-1">
         {active.map((x) => {
@@ -76,7 +76,7 @@ export default function BaoTriActivePanel({
               <div className="flex shrink-0 gap-2">
                 <button
                   type="button"
-                  className="rounded-lg bg-[var(--primary)] px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-[#FFD700]"
+                  className="rounded-lg bg-[var(--primary)] px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-white"
                   onClick={() => void onKetThuc(x.id)}
                 >
                   Hoàn thành

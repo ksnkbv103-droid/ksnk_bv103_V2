@@ -15,6 +15,11 @@ import { SupervisionResponsiveChart } from "@/lib/analytics/supervision-charts-s
 import type { BaoCaoTongHopPayload, BaoCaoTrendGranularity } from "../../types/bao-cao-tong-hop.types";
 import { pickTrend } from "../../lib/bao-cao-tong-hop-core";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
+import {
+  CHUYEN_DE_LINE_COLORS,
+  type ChuyenDeTrendSeries,
+  mergeMultiChuyenDeTrendRows,
+} from "../../lib/chuyen-de-trend-series";
 
 const GRANULARITY_OPTIONS: { id: BaoCaoTrendGranularity; label: string }[] = [
   { id: "week", label: "Theo tuần" },
@@ -23,22 +28,43 @@ const GRANULARITY_OPTIONS: { id: BaoCaoTrendGranularity; label: string }[] = [
   { id: "year", label: "Theo năm" },
 ];
 
-export function ComprehensiveTrend({ payload }: { payload: BaoCaoTongHopPayload | null }) {
-  const [granularity, setGranularity] = useState<BaoCaoTrendGranularity>("week");
+export type ComprehensiveTrendProps = {
+  payload: BaoCaoTongHopPayload | null;
+  /** Khi chọn ≥1 BK: mỗi chuyên đề một line. Khi rỗng/Tất cả: một line GSC tổng. */
+  chuyenDeSeries?: ChuyenDeTrendSeries[];
+  selectedBangKiemMas?: string[];
+};
 
-  const data = useMemo(() => {
+export function ComprehensiveTrend({
+  payload,
+  chuyenDeSeries = [],
+  selectedBangKiemMas = [],
+}: ComprehensiveTrendProps) {
+  const [granularity, setGranularity] = useState<BaoCaoTrendGranularity>("week");
+  const multiMode = selectedBangKiemMas.length > 0 && chuyenDeSeries.length > 0;
+
+  const aggData = useMemo(() => {
     if (!payload) return [];
     return pickTrend(payload.trend_week, granularity);
   }, [payload, granularity]);
 
+  const multiData = useMemo(() => {
+    if (!multiMode) return [];
+    return mergeMultiChuyenDeTrendRows(chuyenDeSeries, granularity);
+  }, [multiMode, chuyenDeSeries, granularity]);
+
+  const data = multiMode ? multiData : aggData;
+  const showVst = !multiMode && aggData.some((p) => (p.vst_tong ?? 0) > 0 && p.ty_le_vst != null);
+  const showGsc = !multiMode && aggData.some((p) => (p.gsc_tong ?? 0) > 0 && p.ty_le_gsc != null);
+
   if (!payload || data.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className={`flex items-center gap-2 ${D.sectionHeading}`}>
           <TrendingUp size={18} className="text-[var(--primary)]" aria-hidden />
-          Xu hướng tuân thủ (process)
+          Xu hướng tuân thủ
         </h2>
         <div className="flex flex-wrap rounded-lg border border-slate-200 p-0.5 text-xs font-bold">
           {GRANULARITY_OPTIONS.map(({ id, label }) => (
@@ -53,7 +79,11 @@ export function ComprehensiveTrend({ payload }: { payload: BaoCaoTongHopPayload 
           ))}
         </div>
       </div>
-      <p className="mb-4 text-xs text-slate-500">VST, GSC và CCS — NKBV xem biểu đồ riêng bên dưới.</p>
+      <p className="mb-4 text-xs text-slate-500">
+        {multiMode
+          ? `Mỗi chuyên đề (bảng kiểm) một đường màu riêng · ${chuyenDeSeries.length} chuyên đề đã chọn.`
+          : "VST và GSC tổng hợp khi chọn tất cả chuyên đề. NKBV xem biểu đồ riêng bên dưới."}
+      </p>
       <div className="h-[300px] min-w-0">
         <SupervisionResponsiveChart className="h-full w-full min-w-0">
           <LineChart data={data}>
@@ -62,9 +92,42 @@ export function ComprehensiveTrend({ payload }: { payload: BaoCaoTongHopPayload 
             <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
             <Tooltip />
             <Legend />
-            <Line type="monotone" dataKey="ty_le_vst" name="VST (%)" stroke="#10b981" strokeWidth={2} dot={false} connectNulls />
-            <Line type="monotone" dataKey="ty_le_gsc" name="GSC (%)" stroke="#38bdf8" strokeWidth={2} dot={false} connectNulls />
-            <Line type="monotone" dataKey="ty_le_ccs" name="CCS (%)" stroke="#6366f1" strokeWidth={2} strokeDasharray="4 4" dot={false} connectNulls />
+            {multiMode
+              ? chuyenDeSeries.map((s, i) => (
+                  <Line
+                    key={s.ma_bk}
+                    type="monotone"
+                    dataKey={s.dataKey}
+                    name={s.name}
+                    stroke={CHUYEN_DE_LINE_COLORS[i % CHUYEN_DE_LINE_COLORS.length]}
+                    strokeWidth={2}
+                    dot={false}
+                    connectNulls
+                  />
+                ))
+              : null}
+            {!multiMode && showVst ? (
+              <Line
+                type="monotone"
+                dataKey="ty_le_vst"
+                name="VST (%)"
+                stroke="#10b981"
+                strokeWidth={2}
+                dot={false}
+                connectNulls
+              />
+            ) : null}
+            {!multiMode && showGsc ? (
+              <Line
+                type="monotone"
+                dataKey="ty_le_gsc"
+                name="GSC (%)"
+                stroke="#38bdf8"
+                strokeWidth={2}
+                dot={false}
+                connectNulls
+              />
+            ) : null}
           </LineChart>
         </SupervisionResponsiveChart>
       </div>

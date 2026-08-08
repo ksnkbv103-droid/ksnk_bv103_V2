@@ -4,7 +4,7 @@
  * Dùng UTC date-only để khớp `YYYY-MM-DD` không giờ.
  */
 
-export type QlcvMaChuKyDinhKy = "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY";
+export type QlcvMaChuKyDinhKy = "DAILY" | "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY";
 
 export function parseIsoDateOnlyUtc(iso: string): Date {
   const [y, m, d] = iso.split("-").map((x) => parseInt(x, 10));
@@ -54,6 +54,9 @@ export function dinhKyMatchDueOnDate(maChuKy: QlcvMaChuKyDinhKy, ngayBatDauIso: 
     const anchorMonths = anchor.getUTCFullYear() * 12 + anchor.getUTCMonth();
     const dueMonths = d.getUTCFullYear() * 12 + d.getUTCMonth();
     return (dueMonths - anchorMonths) % 3 === 0;
+  }
+  if (maChuKy === "YEARLY") {
+    return d.getUTCMonth() === anchor.getUTCMonth() && d.getUTCDate() === anchor.getUTCDate();
   }
   return false;
 }

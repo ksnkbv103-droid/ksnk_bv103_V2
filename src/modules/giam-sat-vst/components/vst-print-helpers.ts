@@ -1,21 +1,11 @@
 /** Hàm định dạng & tra cứu hiển thị cho phiếu in VST — tách khỏi component để giữ file < 180 dòng. */
 
-export function formatDateVi(d: string | Date | undefined): string {
-  if (!d) return "—";
-  try {
-    return new Date(d).toLocaleDateString("vi-VN");
-  } catch {
-    return "—";
-  }
-}
+import { formatDateTimeVi, formatDateVi } from "@/lib/format-datetime-vi";
+
+export { formatDateVi };
 
 export function formatDtVi(iso: string | undefined): string {
-  if (!iso) return "—";
-  try {
-    return new Date(iso).toLocaleString("vi-VN");
-  } catch {
-    return "—";
-  }
+  return formatDateTimeVi(iso);
 }
 
 export function tenNhanVien(

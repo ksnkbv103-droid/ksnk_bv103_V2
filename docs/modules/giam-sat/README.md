@@ -4,7 +4,9 @@
 |---------|------|
 | Nghiệp vụ | [`../../core/domain-specification.md`](../../core/domain-specification.md) + [`../../wiki/entities.md`](../../wiki/entities.md#giám-sát-vst--gsc) |
 | Bảng kiểm 36 mẫu | [`bang-kiem-overview.md`](bang-kiem-overview.md) — **không** mở `data/bang-kiem/canonical-36.md` |
+| Điểm nguy cơ P×I×S (khả thi) | [`bang-kiem-rui-ro-pis-feasibility-20260731.md`](bang-kiem-rui-ro-pis-feasibility-20260731.md) — phân tích; chưa implement |
 | Layout / scoring | [`../../wiki/concepts.md`](../../wiki/concepts.md) |
+| Banner khóa → `KsnkContextBanner` (B+3 S4) | [`../../reference/architecture/ui-consistency-program-20260802.md`](../../reference/architecture/ui-consistency-program-20260802.md) § S4 |
 
 Rule: `13-giam-sat-spec-context.mdc`, `16-bang-kiem-spec-context.mdc`
 
@@ -24,6 +26,8 @@ Sau tái cấu trúc, **Form / Thống kê / Lịch sử** tách route — khôn
 - Bookmark cũ `/giam-sat-chung/{loai}/thong-ke` → **redirect** `next.config.ts` sang `/thong-ke/gsc?loai=…` (không còn page shadow).
 
 **Khóa module:** [`module-lock.md`](module-lock.md)
+
+**Import Excel phiên GSC:** Đã gỡ triệt để (D-21, 2026-08-02). Pilot chỉ nhập phiên qua form. VST: không import Excel (đã gỡ cố ý).
 
 Deep link từ Command Center / Báo cáo tổng hợp: `buildAnalyticsDeepLink` → `/thong-ke/{vst,gsc}?tu_ngay=…`.
 

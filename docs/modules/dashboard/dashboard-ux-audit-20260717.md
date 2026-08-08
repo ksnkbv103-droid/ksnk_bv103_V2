@@ -13,10 +13,10 @@ Kiến trúc analytics (reform 2026-06) theo 3 tầng:
 
 | Tầng | Màn hình | Route | Vai trò |
 |------|----------|-------|---------|
-| Điều hành | Trung tâm điều hành | `/` | Nhìn nhanh VST/GSC + gap + QLCV |
+| Điều hành | Tổng quan KSNK | `/` | Nhìn nhanh VST/GSC + gap + QLCV |
 | Chuyên đề | Thống kê VST | `/thong-ke/vst` | Phân tích tuân thủ rửa tay |
 | Chuyên đề | Thống kê GSC (+ drill BK) | `/thong-ke/gsc` | Phân tích bảng kiểm + vi phạm |
-| Báo cáo | Báo cáo tổng hợp KSNK | `/bao-cao-tong-hop` | Báo cáo chính thức + CCS + in A4 |
+| Báo cáo | Báo cáo chính thức | `/bao-cao-tong-hop` | Báo cáo chính thức + CCS + in A4 |
 | Module | NKBV — tab Thống kê | `/giam-sat-nkbv` (tab dashboard) | Outcome nhiễm khuẩn / dịch tễ |
 | Module | Báo cáo CSSD | `/cssd-erp/report` | Sự cố & chỉ số trạm |
 | Ops | Kho + Bản đồ 6 trạm | `/cssd-quy-trinh` | Vận hành realtime |

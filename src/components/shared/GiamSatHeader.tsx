@@ -11,6 +11,7 @@ import GiamSatHeaderFields from "./GiamSatHeaderFields";
 import type { GiamSatSession, NhanSuOption } from "./giam-sat-header.types";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import type { VstSessionLocationHistoryRow } from "@/modules/quan-tri-he-thong/danh-muc/actions/master-data-gateway.actions";
 
 export type { GiamSatSession, NhanSuOption };
@@ -37,8 +38,14 @@ interface GiamSatHeaderProps {
   deferLocationHistoryUntilTyped?: boolean;
   /** GSC: hiện tùy chọn bổ sung mã/tên/giường người bệnh. */
   showBoSungNguoiBenhToggle?: boolean;
+  /** Mã bảng kiểm GSC đang mở — lọc BN MDRO mặc định với BM.31.03 / BM.14.01. */
+  bangKiemMa?: string | null;
   /** Context module để áp dụng giá trị mặc định (vst | gsc) */
   moduleContext?: "vst" | "gsc";
+  /** Mạng lưới: khóa chọn khoa. */
+  lockKhoa?: boolean;
+  showClearStickyHint?: boolean;
+  onClearStickyHint?: () => void;
 }
 
 export default function GiamSatHeader({ 
@@ -56,7 +63,11 @@ export default function GiamSatHeader({
   suppressStaffIdentityBanner = false,
   deferLocationHistoryUntilTyped = false,
   showBoSungNguoiBenhToggle = false,
+  bangKiemMa = null,
   moduleContext = "vst",
+  lockKhoa = false,
+  showClearStickyHint = false,
+  onClearStickyHint,
 }: GiamSatHeaderProps) {
   const toText = (value: unknown): string => String(value ?? "").trim();
   const resolveNhanSuKhoaId = (ns: NhanSuOption): string => {
@@ -146,41 +157,54 @@ export default function GiamSatHeader({
   const showPersonalPanel = Boolean(showGiamSatCaNhan && session.is_giam_sat_ca_nhan);
   const showPatientPanel = Boolean(showBoSungNguoiBenhToggle && session.is_bo_sung_nguoi_benh);
   
-  const selectedKhoaName = displayKhoas.find(k => k.id === session.khoa_id)?.ten_danh_muc || "Chưa chọn khoa";
+  const selectedKhoaRow = displayKhoas.find((k) => k.id === session.khoa_id);
+  const selectedKhoaName = selectedKhoaRow
+    ? formatKhoaCompactLabel({
+        ma_danh_muc: selectedKhoaRow.ma_danh_muc,
+        ten_danh_muc: selectedKhoaRow.ten_danh_muc,
+      })
+    : "Chưa chọn khoa";
   const selectedKhuVucName = displayKhuVucs.find(k => k.id === session.khu_vuc_id)?.ten_danh_muc || "Chưa chọn khu vực";
 
   return (
     <div
       id="vst-session-header"
-      className={`overflow-visible rounded-[var(--radius-shell)] border border-slate-200/90 bg-white shadow-sm transition-[padding] duration-200 ${isCollapsed ? "sticky top-4 z-30 p-3 max-md:static max-md:z-auto" : "space-y-4 p-4 sm:p-5"}`}
+      className={`overflow-visible rounded-[var(--radius-shell)] border border-slate-200/90 bg-white shadow-sm transition-[padding] duration-200 ${isCollapsed ? "sticky top-4 z-30 space-y-3 p-3 max-md:static max-md:z-auto" : "space-y-4 p-4 sm:p-5"}`}
     >
       <div className={`flex items-center justify-between gap-3 ${!isCollapsed ? "border-b border-slate-100 pb-3" : ""}`}>
-        <div className="flex min-w-0 flex-1 cursor-pointer items-center gap-3" onClick={() => setIsCollapsed(!isCollapsed)}>
-          <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <div className={`shrink-0 rounded-full bg-[var(--primary)] transition-all ${isCollapsed ? "h-4 w-1" : "h-7 w-1.5"}`} />
-            <div>
+            <div className="min-w-0">
               <h2 className={`${T.sectionTitle} transition-all ${isCollapsed ? "text-sm" : ""}`}>
-                {isCollapsed ? `Phiên giám sát: ${selectedKhoaName} — ${selectedKhuVucName}` : "Thông tin phiên giám sát"}
+                {isCollapsed ? "Phiên giám sát" : "Thông tin phiên giám sát"}
               </h2>
-              {isCollapsed ? <p className={T.pageEyebrow}>Nhấn để mở rộng cấu hình</p> : null}
+              {isCollapsed ? (
+                <p className={`${T.pageEyebrow} truncate`}>
+                  {selectedKhoaName} — {selectedKhuVucName}
+                  {session.vi_tri ? ` · ${session.vi_tri}` : ""}
+                </p>
+              ) : null}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-3">
           {loading ? <div className={`${T.pageEyebrow} animate-pulse text-[var(--primary)]`}>Đang đồng bộ…</div> : null}
-          
-          <button 
+
+          <button
+            type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
             className={`${C.btnSecondary} h-auto min-h-0 gap-2 px-3 py-1.5 text-[11px]`}
+            aria-expanded={!isCollapsed}
           >
-            {isCollapsed ? 'Mở rộng' : 'Thu gọn'}
+            {isCollapsed ? "Chi tiết phiên" : "Thu gọn"}
           </button>
 
           {!isCollapsed && (
             <div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-2">
               {showGiamSatCaNhan && (
-                <label className="flex cursor-pointer items-center gap-2 group">
-                  <span className={`${T.labelBlock} group-hover:text-slate-700 transition-colors`}>
+                <label className="group flex cursor-pointer items-center gap-2">
+                  <span className={`${T.labelBlock} transition-colors group-hover:text-slate-700`}>
                     Giám sát nhân viên
                   </span>
                   <input
@@ -205,8 +229,8 @@ export default function GiamSatHeader({
                 </label>
               )}
               {showBoSungNguoiBenhToggle && (
-                <label className="flex cursor-pointer items-center gap-2 group">
-                  <span className={`${T.labelBlock} group-hover:text-slate-700 transition-colors`}>
+                <label className="group flex cursor-pointer items-center gap-2">
+                  <span className={`${T.labelBlock} transition-colors group-hover:text-slate-700`}>
                     Bổ sung người bệnh
                   </span>
                   <input
@@ -220,9 +244,18 @@ export default function GiamSatHeader({
                         ...(e.target.checked
                           ? {}
                           : {
+                              ma_benh_an: "",
                               ma_nguoi_benh: "",
                               ten_nguoi_benh: "",
                               so_giuong_nguoi_benh: "",
+                              bn_tho_may: false,
+                              bn_phau_thuat: false,
+                              bn_cvc: false,
+                              bn_foley: false,
+                              bn_nhiem_mdro: false,
+                              bn_mdro_phenotype: "",
+                              bn_nhiem_tac_nhan_nguy_hiem: false,
+                              bn_tac_nhan_nguy_hiem_ten: "",
                             }),
                       }))
                     }
@@ -234,7 +267,29 @@ export default function GiamSatHeader({
         </div>
       </div>
 
-      {!isCollapsed && (
+      {/* Dải bắt buộc luôn hiện — không cần mở rộng để chọn khoa/khu/vị trí */}
+      {isCollapsed ? (
+        <GiamSatHeaderFields
+          session={session}
+          setSession={setSession}
+          khoas={displayKhoas}
+          khuVucs={displayKhuVucs}
+          allNhanSus={displayNhanSus}
+          historyLocations={displayHistory}
+          historyLocationRows={displayHistoryRows}
+          hinhThucGiamSats={displayHinhThuc}
+          cachThucGiamSats={displayCachThuc}
+          deferLocationHistoryUntilTyped={deferLocationHistoryUntilTyped}
+          loading={loading}
+          lockedSupervisorHoSoId={lockedSupervisorHoSoId ?? undefined}
+          suppressStaffIdentityBanner={suppressStaffIdentityBanner}
+          moduleContext={moduleContext}
+          lockKhoa={lockKhoa}
+          showClearStickyHint={showClearStickyHint}
+          onClearStickyHint={onClearStickyHint}
+          density="essentials"
+        />
+      ) : (
         <div className="space-y-6">
           <GiamSatHeaderFields
             session={session}
@@ -251,10 +306,14 @@ export default function GiamSatHeader({
             lockedSupervisorHoSoId={lockedSupervisorHoSoId ?? undefined}
             suppressStaffIdentityBanner={suppressStaffIdentityBanner}
             moduleContext={moduleContext}
+            lockKhoa={lockKhoa}
+            showClearStickyHint={showClearStickyHint}
+            onClearStickyHint={onClearStickyHint}
+            density="full"
           />
 
           {(showPersonalPanel || showPatientPanel) && (
-            <div className={`grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-5`}>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:gap-5">
               {showPersonalPanel && (
                 <GiamSatHeaderPersonalFields
                   session={session}
@@ -269,6 +328,7 @@ export default function GiamSatHeader({
                   session={session}
                   setSession={setSession}
                   labelStartIndex={showPersonalPanel ? 8 : 5}
+                  bangKiemMa={bangKiemMa}
                 />
               )}
             </div>

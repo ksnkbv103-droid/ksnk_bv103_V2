@@ -83,6 +83,6 @@ export function forceReleaseScrollLock() {
 }
 
 /** @deprecated — dùng `forceReleaseScrollLock` */
-export function repairBodyScrollLockIfStale() {
+function repairBodyScrollLockIfStale() {
   forceReleaseScrollLock();
 }

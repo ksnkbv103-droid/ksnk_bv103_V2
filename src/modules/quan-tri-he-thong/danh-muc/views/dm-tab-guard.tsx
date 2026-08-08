@@ -2,8 +2,10 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { ShieldAlert } from "lucide-react";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { quanTriHubHref } from "@/lib/master-data/quan-tri-paths";
+import { KsnkContextBanner } from "@/components/shared/KsnkContextBanner";
 
 /** Cổng quyền theo tab — không chặn cả trang khi thiếu quyền một phân hệ. */
 export function DmTabGuard({
@@ -26,17 +28,26 @@ export function DmTabGuard({
   }
   if (!allowed.view) {
     return (
-      <div className="mx-auto max-w-lg rounded-2xl border border-amber-200 bg-amber-50/60 p-8 text-center">
-        <p className="text-sm font-semibold text-amber-900">Không có quyền xem {label}</p>
-        <p className="mt-2 text-xs text-amber-800/90">
-          Cần quyền <span className="font-mono font-bold">{moduleKey}</span> → View trên ma trận phân quyền.
-        </p>
-        <Link
-          href={quanTriHubHref("PHAN_QUYEN")}
-          className="mt-4 inline-block text-xs font-semibold text-[var(--primary)] underline"
-        >
-          Mở ma trận phân quyền
-        </Link>
+      <div className="mx-auto max-w-lg py-6">
+        <KsnkContextBanner
+          tone="amber"
+          dismissible={false}
+          icon={<ShieldAlert className="h-4 w-4" aria-hidden />}
+          summary={<span className="text-sm font-semibold">Không có quyền xem {label}</span>}
+          detail={
+            <div className="space-y-2">
+              <p className="text-xs">
+                Cần quyền <span className="font-mono font-semibold">{moduleKey}</span> → View trên ma trận phân quyền.
+              </p>
+              <Link
+                href={quanTriHubHref("PHAN_QUYEN")}
+                className="inline-block text-xs font-semibold text-[var(--primary)] underline"
+              >
+                Mở ma trận phân quyền
+              </Link>
+            </div>
+          }
+        />
       </div>
     );
   }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCssdQuyTrinhQrOrFilter } from "../shared/application/cssd-workflow-resolve";
+import { buildCssdQuyTrinhQrOrFilter } from "../shared/domain/cssd-qr-core";
 
 describe("buildCssdQuyTrinhQrOrFilter", () => {
   it("includes cycle and unified bo columns", () => {

@@ -126,12 +126,23 @@ export function useMeTietKhuanWorkflow() {
 
   const addItem = async (code: string) => {
     if (!activeMe?.id) return toast.error("Chưa có phiếu/mẻ đang mở");
-    if (!code) return;
-    const r = await addQuyTrinhToSterilizationBatch(activeMe.id, code.trim());
+    const raw = String(code || "").trim().toUpperCase();
+    if (!raw) return;
+    // Quét mã mẻ (LOT-*) khi đang PROCESS: xác nhận đúng phiếu, không coi là mã bộ.
+    if (raw.startsWith("LOT-")) {
+      const maLo = String(activeMe.ma_lo_tiet_khuan || "").trim().toUpperCase();
+      if (maLo && raw === maLo) {
+        toast.success("Đúng phiếu mẻ đang mở — tiếp tục quét mã bộ để nạp vào mẻ.");
+        return;
+      }
+      toast.error("Đây là mã phiếu mẻ khác. Mở đúng mẻ từ danh sách, rồi quét mã bộ để nạp.");
+      return;
+    }
+    const r = await addQuyTrinhToSterilizationBatch(activeMe.id, raw);
     if (!r.success) return toast.error(r.error);
     if ("logWarning" in r && r.logWarning) toast.warning("Đã vào mẻ; nhật ký: " + r.logWarning);
     await reloadProcessContext();
-    toast.success(`Đã thêm vào phiếu TK: ${"tenBo" in r ? r.tenBo : code}`);
+    toast.success(`Đã thêm vào phiếu TK: ${"tenBo" in r ? r.tenBo : raw}`);
   };
 
   const assertBatchHeatAllows = async (batchId: string) => {

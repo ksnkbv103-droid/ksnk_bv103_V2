@@ -1,15 +1,19 @@
 // src/modules/cssd-erp/components/report/ReportFilters.tsx
 "use client";
 
-import React, { useState } from "react";
-import { Calendar, SlidersHorizontal, X } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { RefreshCw, SlidersHorizontal, X } from "lucide-react";
 import { useMinWidth } from "@/hooks/use-min-width";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
+import SearchableSelect from "@/components/shared/SearchableSelect";
+import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 
 interface Props {
   filters: { from: string; to: string; station: string };
   setFilters: (f: Props["filters"]) => void;
   stations: string[];
+  onRefresh?: () => void;
+  refreshLoading?: boolean;
 }
 
 function fmtShort(iso: string) {
@@ -23,65 +27,83 @@ function stationLabel(station: string) {
   return station.replace(/_/g, " ");
 }
 
-const dateInput =
-  "w-full h-11 pl-4 pr-10 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-sm outline-none focus:border-[var(--primary)] transition-all sm:h-14 sm:pl-5 sm:border-2 sm:border-slate-50 sm:rounded-2xl";
+const btn =
+  "inline-flex h-9 shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60 touch-manipulation";
 
 /**
- * Bộ lọc báo cáo CSSD — mobile: chip tóm tắt + panel; desktop: form đầy đủ.
+ * Bộ lọc báo cáo CSSD — thin adapter họ AnalyticsFilterBar (kỳ h-9 + SearchableSelect trạm).
  */
-export default function ReportFilters({ filters, setFilters, stations }: Props) {
+export default function ReportFilters({
+  filters,
+  setFilters,
+  stations,
+  onRefresh,
+  refreshLoading,
+}: Props) {
   const isDesktop = useMinWidth(640, false);
   const [open, setOpen] = useState(false);
 
   useBodyScrollLock(!isDesktop && open);
 
+  const stationOptions = useMemo(
+    () => [
+      { id: "ALL", label: "Tất cả trạm" },
+      ...stations.map((s) => ({ id: s, label: s.replace(/_/g, " ") })),
+    ],
+    [stations],
+  );
+
   const body = (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-      <div className="space-y-1">
-        <label className="text-[11px] font-medium text-slate-500 px-1">Từ ngày</label>
-        <div className="relative">
-          <input
-            type="date"
-            value={filters.from}
-            onChange={(e) => setFilters({ ...filters, from: e.target.value })}
-            className={dateInput}
-          />
-          <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none sm:right-4" size={18} />
-        </div>
+    <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="w-7 shrink-0 text-xs font-medium text-slate-500">Kỳ</span>
+        <input
+          type="date"
+          value={filters.from}
+          onChange={(e) => setFilters({ ...filters, from: e.target.value })}
+          aria-label="Từ ngày"
+          className={T.analyticsDateInput}
+        />
+        <span className="text-xs text-slate-300">–</span>
+        <input
+          type="date"
+          value={filters.to}
+          onChange={(e) => setFilters({ ...filters, to: e.target.value })}
+          aria-label="Đến ngày"
+          className={T.analyticsDateInput}
+        />
       </div>
-      <div className="space-y-1">
-        <label className="text-[11px] font-medium text-slate-500 px-1">Đến ngày</label>
-        <div className="relative">
-          <input
-            type="date"
-            value={filters.to}
-            onChange={(e) => setFilters({ ...filters, to: e.target.value })}
-            className={dateInput}
-          />
-          <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none sm:right-4" size={18} />
-        </div>
+
+      <div className="min-w-0 sm:max-w-xs">
+        <SearchableSelect
+          placeholder="Trạm"
+          options={stationOptions}
+          value={filters.station || "ALL"}
+          onChange={(id) => setFilters({ ...filters, station: id || "ALL" })}
+          className="w-full"
+        />
       </div>
-      <div className="space-y-1">
-        <label className="text-[11px] font-medium text-slate-500 px-1">Khu vực / Trạm</label>
-        <select
-          value={filters.station}
-          onChange={(e) => setFilters({ ...filters, station: e.target.value })}
-          className={`${dateInput} appearance-none`}
-        >
-          <option value="ALL">Tất cả các trạm</option>
-          {stations.map((s) => (
-            <option key={s} value={s}>
-              {s.replace("_", " ")}
-            </option>
-          ))}
-        </select>
+
+      <div className="flex items-center justify-start gap-1.5 sm:justify-end">
+        {onRefresh ? (
+          <button
+            type="button"
+            className={btn}
+            disabled={refreshLoading}
+            onClick={onRefresh}
+            aria-label="Làm mới"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshLoading ? "animate-spin" : ""}`} aria-hidden />
+            Làm mới
+          </button>
+        ) : null}
       </div>
     </div>
   );
 
   if (!isDesktop && !open) {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+      <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2 shadow-sm">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -90,13 +112,11 @@ export default function ReportFilters({ filters, setFilters, stations }: Props) 
           <span className="text-xs font-semibold text-slate-800">
             {fmtShort(filters.from)} – {fmtShort(filters.to)}
           </span>
-          <span className="truncate text-[11px] font-medium text-slate-500">{stationLabel(filters.station)}</span>
+          <span className="truncate text-[11px] font-medium text-slate-500">
+            {stationLabel(filters.station)}
+          </span>
         </button>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 touch-manipulation"
-        >
+        <button type="button" onClick={() => setOpen(true)} className={btn}>
           <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden />
           Lọc
         </button>
@@ -107,7 +127,7 @@ export default function ReportFilters({ filters, setFilters, stations }: Props) 
   if (!isDesktop && open) {
     return (
       <div className="fixed inset-0 z-[200] flex flex-col bg-slate-900/40 p-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
-        <div className="flex max-h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+        <div className="flex max-h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[var(--shadow-app-soft)]">
           <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2.5">
             <p className="text-sm font-semibold text-slate-900">Bộ lọc báo cáo</p>
             <button
@@ -134,10 +154,5 @@ export default function ReportFilters({ filters, setFilters, stations }: Props) 
     );
   }
 
-  return (
-    <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-sm space-y-3 sm:rounded-2xl sm:p-6 sm:space-y-5">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Bộ lọc báo cáo</p>
-      {body}
-    </div>
-  );
+  return <div className="space-y-2">{body}</div>;
 }

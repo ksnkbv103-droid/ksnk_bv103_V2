@@ -1,6 +1,11 @@
 /**
- * Barrel tương thích: toàn bộ export đọc/ghi CSSD qua hai entrypoint chuẩn + lệnh workflow.
- * Ưu tiên import trực tiếp `read.actions` / `write.actions` trong code mới.
+ * Barrel CSSD — entry tổng.
+ * Bản đồ command/query: docs/reference/architecture/cssd-action-map-20260727.md
+ *
+ * Ưu tiên trong code mới:
+ *   - Query  → `./read.actions`  (alias `cssd-read.actions`)
+ *   - Write  → `./write.actions` (alias `cssd-write.actions`)
+ *   - QR/mẻ  → workflow / batch (giữ tách — safety)
  */
 export * from "./read.actions";
 export * from "./write.actions";

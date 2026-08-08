@@ -56,11 +56,14 @@ export type BaoCaoTongHopPayload = {
     vst: SourceLoadStatus;
     gsc: SourceLoadStatus;
     nkbv: SourceLoadStatus;
+    cssd: SourceLoadStatus;
   };
-  errors: { vst?: string; gsc?: string; nkbv?: string };
+  errors: { vst?: string; gsc?: string; nkbv?: string; cssd?: string };
   vst: VstStrategicPayload | null;
   gsc: GscStrategicPayload | null;
   nkbv: NkbvDashboardPayload | null;
+  /** Phụ lục vận hành CSSD — ngoài CCS. */
+  cssd: BaoCaoCssdAppendix | null;
   kpis: {
     ty_le_vst: number | null;
     ty_le_gsc: number | null;
@@ -68,10 +71,25 @@ export type BaoCaoTongHopPayload = {
     ccs_formula_note: string | null;
     ti_le_xac_nhan_nkbv: number | null;
     tong_phieu_nkbv: number | null;
+    /** Chênh 2 tuần ISO cuối trên trendline — không phải so kỳ lọc. */
     delta_vst: number | null;
     delta_gsc: number | null;
     delta_ccs: number | null;
   };
+  /**
+   * So kỳ lãnh đạo: cùng độ dài kỳ lọc liền trước.
+   * Tách nhãn khỏi delta_* (2 tuần ISO).
+   */
+  ky_truoc: {
+    tu_ngay: string;
+    den_ngay: string;
+    ty_le_vst: number | null;
+    ty_le_gsc: number | null;
+    ty_le_ccs: number | null;
+    delta_vst: number | null;
+    delta_gsc: number | null;
+    delta_ccs: number | null;
+  } | null;
   trend_week: BaoCaoTrendPoint[];
   trend_month: BaoCaoTrendPoint[];
   khoa_rank: BaoCaoKhoaRankRow[];
@@ -79,9 +97,28 @@ export type BaoCaoTongHopPayload = {
     topic_vst: boolean;
     topic_gsc: boolean;
     topic_nkbv: boolean;
+    topic_cssd: boolean;
     compare_khoa: boolean;
     compare_khoi: boolean;
     compare_khu_vuc: boolean;
     compare_doi_tuong: boolean;
   };
+};
+
+/** Tóm tắt CSSD trên BCTH — không vào công thức CCS. */
+export type BaoCaoCssdAppendix = {
+  san_luong_cap_phat: number;
+  tong_hoan_thanh_tram: number;
+  ty_le_quy_trinh_khong_su_co: number | null;
+  so_bo_danh_muc: number;
+  so_me_ky: number;
+  ty_le_qc_dat_me: number | null;
+  may_ready: number;
+  may_repairing: number;
+  station_volume: { station: string; label: string; completed: number }[];
+  /** Proxy sở hữu danh mục — chưa SSOT khoa nhận cấp phát. */
+  khoa_ownership_proxy?: {
+    disclaimer: string;
+    top: { ten_khoa: string; so_bo: number }[];
+  } | null;
 };

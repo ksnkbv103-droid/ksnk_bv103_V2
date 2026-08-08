@@ -9,7 +9,7 @@ import { useModulePermission } from "@/hooks/useModulePermission";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
 import BaoTriActivePanel from "../components/bao-tri/bao-tri-active-panel";
 import BaoTriStartModal from "../components/bao-tri/bao-tri-start-modal";
-import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_DATA_SURFACE } from "../shared/ui/cssd-ui-chrome";
+import { CSSD_UI_ACTION_PRIMARY } from "../shared/ui/cssd-ui-chrome";
 import {
   batDauBaoTriThietBiAction,
   huyBaoTriThietBiAction,
@@ -19,6 +19,7 @@ import {
 } from "../actions/cssd-bao-tri.actions";
 import { listSuCoEquipmentGanDayAction } from "../actions/cssd-bao-tri-su-co.actions";
 import type { FactBaoTriRow, LoaiPhieuBaoTri, SuCoEquipmentRow } from "../actions/cssd-bao-tri.types";
+import type { BaoTriMachineOption } from "../actions/cssd-bao-tri-list.actions";
 import type { CssdPmChecklistItem } from "@/lib/domain/cssd-equipment-pm-checklist";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 
@@ -35,7 +36,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   const { loading: permLoading, allowed } = useModulePermission(MODULE_KEY);
   const [rows, setRows] = useState<FactBaoTriRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [machines, setMachines] = useState<{ id: string; ma_thiet_bi: string; ten_thiet_bi: string }[]>([]);
+  const [machines, setMachines] = useState<BaoTriMachineOption[]>([]);
   const [openStart, setOpenStart] = useState(false);
   const [selTb, setSelTb] = useState("");
   const [loaiPhieu, setLoaiPhieu] = useState<LoaiPhieuBaoTri>("DINH_KY");
@@ -185,7 +186,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   if (!allowed.view) {
     return (
       <div className={CSSD_PAGE_OUTER}>
-        <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-600">Bạn không có quyền xem mục này.</div>
+        <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-600">Bạn không có quyền xem mục này.</div>
       </div>
     );
   }
@@ -224,55 +225,25 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         </div>
       )}
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
-          <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tổng phiếu bảo dưỡng</p>
-            <p className="text-2xl font-black text-slate-800 mt-1">{totalBaoTri}</p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500">
-            <Wrench size={20} />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
-          <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Đang bảo dưỡng</p>
-            <p className="text-2xl font-black text-blue-600 mt-1">{activeBaoTri}</p>
-          </div>
-          <div className={`h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 ${activeBaoTri > 0 ? "animate-pulse" : ""}`}>
-            <Activity size={20} />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
-          <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Đã hoàn thành</p>
-            <p className="text-2xl font-black text-emerald-600 mt-1">{doneBaoTri}</p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-            <CheckCircle2 size={20} />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
-          <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Phiếu đã hủy</p>
-            <p className="text-2xl font-black text-slate-500 mt-1">{canceledBaoTri}</p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400">
-            <XCircle size={20} />
-          </div>
-        </div>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-white px-3 py-2 text-[11px] shadow-sm">
+        <span className="inline-flex items-center gap-1.5 font-semibold text-slate-600">
+          <Wrench size={14} /> Tổng <span className="tabular-nums text-slate-800">{totalBaoTri}</span>
+        </span>
+        <span className={`inline-flex items-center gap-1.5 font-semibold text-blue-600 ${activeBaoTri > 0 ? "animate-pulse" : ""}`}>
+          <Activity size={14} /> Đang BD <span className="tabular-nums text-slate-800">{activeBaoTri}</span>
+        </span>
+        <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-600">
+          <CheckCircle2 size={14} /> Xong <span className="tabular-nums text-slate-800">{doneBaoTri}</span>
+        </span>
+        <span className="inline-flex items-center gap-1.5 font-semibold text-slate-500">
+          <XCircle size={14} /> Hủy <span className="tabular-nums text-slate-800">{canceledBaoTri}</span>
+        </span>
       </div>
 
-      <div className={CSSD_UI_DATA_SURFACE}>
-        <AdvancedDataTable columns={columns} data={rows} loading={loading} searchPlaceholder="Tìm mã phiếu, thiết bị..." />
-      </div>
+      <AdvancedDataTable columns={columns} data={rows} loading={loading} searchPlaceholder="Tìm mã phiếu, thiết bị..." />
 
       {canEdit && suCoRows.length > 0 ? (
-        <div className="rounded-2xl border border-red-100 bg-red-50/30 p-4 space-y-3">
+        <div className="rounded-[var(--radius-shell)] border border-red-100 bg-red-50/30 p-4 space-y-3">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-red-700">Sự cố máy gần đây — mở phiếu sửa chữa</p>
           <div className="space-y-2">
             {suCoRows.slice(0, 5).map((sc) => (
@@ -342,7 +313,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   return (
     <CSSDPageShell
       title={<span className="text-[var(--primary)]">Bảo trì thiết bị</span>}
-      subtitle="Khóa máy khi bảo trì — không mở mẻ tiệt khuẩn / không thêm bộ vào mẻ cho đến khi hoàn thành hoặc hủy phiếu."
+      subtitle="Đang bảo trì — khóa mở mẻ / nạp bộ."
       actions={actionsNode}
     >
       {contentNode}

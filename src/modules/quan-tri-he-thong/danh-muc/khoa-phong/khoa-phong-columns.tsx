@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
+import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 import type { KhoaPhongRow } from "../actions/khoa-phong.types";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
+import LocationQrPrintButton from "@/components/shared/LocationQrPrintButton";
+import { buildLocationQrCode } from "@/lib/entity-qr/entity-qr-core";
 
 interface ActionCells {
   renderStatusCell: (item: KhoaPhongRow) => ReactNode;
@@ -11,16 +14,22 @@ interface ActionCells {
 export function getKhoaPhongColumns(actionUi: ActionCells): Column<KhoaPhongRow>[] {
   return [
     {
-      header: "Mã khoa",
+      header: "Mã khoa / QR",
       accessorKey: "ma_danh_muc",
       sortable: true,
-      headerClassName: "w-[8rem] min-w-[8rem]",
-      cellClassName: "w-[8rem] min-w-[8rem]",
-      cell: (i) => (
-        <span className={`${TC.cellCode} rounded-md border border-slate-100 bg-slate-50 px-2 py-1 text-slate-500`}>
-          {i.ma_danh_muc}
-        </span>
-      ),
+      headerClassName: "w-[10rem] min-w-[10rem]",
+      cellClassName: "w-[10rem] min-w-[10rem]",
+      cell: (i) => {
+        const locCode = buildLocationQrCode("LOC_KHOA", String(i.ma_danh_muc || ""));
+        return (
+          <span className="inline-flex items-center gap-2">
+            {locCode ? <InlineEntityQrThumb code={locCode} size={32} /> : null}
+            <span className={`${TC.cellCode} rounded-md border border-slate-100 bg-slate-50 px-2 py-1 text-slate-500`}>
+              {i.ma_danh_muc}
+            </span>
+          </span>
+        );
+      },
     },
     {
       header: "Tên khoa phòng",
@@ -59,9 +68,18 @@ export function getKhoaPhongColumns(actionUi: ActionCells): Column<KhoaPhongRow>
     {
       header: TH.manage,
       accessorKey: "id",
-      headerClassName: "w-[8rem] min-w-[8rem]",
-      cellClassName: "w-[8rem] min-w-[8rem]",
-      cell: (i) => actionUi.renderManagementCell(i),
+      headerClassName: "w-[11rem] min-w-[11rem]",
+      cellClassName: "w-[11rem] min-w-[11rem]",
+      cell: (i) => (
+        <div className="flex flex-wrap items-center gap-1">
+          <LocationQrPrintButton
+            kind="LOC_KHOA"
+            ma={String(i.ma_danh_muc || "")}
+            ten={String(i.ten_danh_muc || "")}
+          />
+          {actionUi.renderManagementCell(i)}
+        </div>
+      ),
     },
   ];
 }

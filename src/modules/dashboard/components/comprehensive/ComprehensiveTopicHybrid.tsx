@@ -32,7 +32,7 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
     : null;
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className={D.sectionHeading}>Chuyên đề — tóm tắt điều hành</h2>
@@ -60,7 +60,7 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
         <TopicSummary
           title="Vệ sinh tay"
           available={payload?.capabilities.topic_vst}
-          deepHref={deep ? buildAnalyticsDeepLink("/giam-sat-vst", deep, "analytics") : "/giam-sat-vst"}
+          deepHref={deep ? buildAnalyticsDeepLink("/thong-ke/vst", deep) : "/thong-ke/vst"}
           lines={buildVstLines(payload)}
         />
       )}
@@ -70,9 +70,7 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
           title="Giám sát chung"
           available={payload?.capabilities.topic_gsc}
           deepHref={
-            deep
-              ? buildAnalyticsDeepLink("/giam-sat-chung", deep, "analytics")
-              : "/thong-ke/gsc"
+            deep ? buildAnalyticsDeepLink("/thong-ke/gsc", deep) : "/thong-ke/gsc"
           }
           lines={buildGscLines(payload)}
         />

@@ -5,9 +5,9 @@ import { verifyCssdKhoDungCuView } from "@/lib/cssd-server-gates";
 import { getErrorMessage } from "../shared/cssd-db-utils";
 
 export async function fetchBoDungCuChiTietMembers(boDungCuId: string) {
-  const supabase = createAdminSupabaseClient();
   try {
     await verifyCssdKhoDungCuView();
+    const supabase = createAdminSupabaseClient();
     const id = String(boDungCuId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã bộ", data: [] as unknown[] };
     const { data, error } = await supabase

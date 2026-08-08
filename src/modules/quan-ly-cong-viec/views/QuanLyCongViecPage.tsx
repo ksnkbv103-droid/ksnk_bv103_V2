@@ -4,7 +4,8 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Plus, LayoutGrid, CalendarClock, ArrowLeft, Send, Upload } from "lucide-react";
+import { Plus, LayoutGrid, CalendarClock, ArrowLeft, Send, Upload, ListTodo } from "lucide-react";
+import { toast } from "sonner";
 import {
   KsnkSupervisionHero,
   KsnkSupervisionTabList,
@@ -16,6 +17,13 @@ import { useModulePermission } from "@/hooks/useModulePermission";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { QlcvOperationsPanel } from "@/modules/quan-ly-cong-viec/components/QlcvOperationsPanel";
 import { QlcvDinhKyPanel } from "@/modules/quan-ly-cong-viec/components/QlcvDinhKyPanel";
+import { NhiemVuPanel } from "@/modules/quan-ly-cong-viec/components/NhiemVuPanel";
+import {
+  QlcvDinhKySummaryBar,
+  type QlcvLoaiFilter,
+} from "@/modules/quan-ly-cong-viec/components/QlcvDinhKySummaryBar";
+import { QlcvPeriodPlanPrintView } from "@/modules/quan-ly-cong-viec/components/print/QlcvPeriodPlanPrintView";
+import { QlcvPeriodExecPrintView } from "@/modules/quan-ly-cong-viec/components/print/QlcvPeriodExecPrintView";
 import { useQlcvKanban } from "@/modules/quan-ly-cong-viec/hooks/useQlcvKanban";
 import { useQlcvTable } from "@/modules/quan-ly-cong-viec/hooks/useQlcvTable";
 import {
@@ -29,8 +37,15 @@ import { isDeXuatChoDuyet } from "@/modules/quan-ly-cong-viec/lib/qlcv-workflow-
 import { QlcvDmAdminLinks } from "@/modules/quan-ly-cong-viec/components/QlcvDmAdminLinks";
 import { QlcvImportDialog } from "@/modules/quan-ly-cong-viec/components/QlcvImportDialog";
 import { getTrangThaiMauSacMap } from "@/modules/quan-ly-cong-viec/actions/cong-viec-read.actions";
+import { listDinhKyMau } from "@/modules/quan-ly-cong-viec/actions/dinh-ky.actions";
+import { filterMauDueInPeriod } from "@/modules/quan-ly-cong-viec/lib/qlcv-dinh-ky-period-match";
+import {
+  resolveQlcvPeriodRange,
+  type QlcvPeriodKind,
+} from "@/modules/quan-ly-cong-viec/lib/qlcv-period-range";
 import type { CongViecView } from "@/modules/quan-ly-cong-viec/types";
 import type { QlcvBoardFilter } from "@/modules/quan-ly-cong-viec/lib/qlcv-board-filter";
+import { buildQlcvAnalyticsPrefill } from "@/lib/analytics/qlcv-analytics-deep-link";
 
 const CongViecDetail = dynamic(
   () => import("@/modules/quan-ly-cong-viec/components/CongViecDetail").then((m) => ({ default: m.CongViecDetail })),
@@ -58,11 +73,23 @@ export default function QuanLyCongViecPage() {
   const [activeTab, setActiveTab] = useState("DIEN_HANH");
   const [viewMode, setViewMode] = useState<"BANG" | "KANBAN">("BANG");
   const [isAdding, setIsAdding] = useState(false);
+  const [createPrefill, setCreatePrefill] = useState<Partial<CongViecView> | undefined>(undefined);
+  const [createStayTab, setCreateStayTab] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<CongViecView | null>(null);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [mauSacByMa, setMauSacByMa] = useState<Record<string, string>>({});
+  const [loaiFilter, setLoaiFilter] = useState<QlcvLoaiFilter>("ALL");
+  const [nhiemVuFilter, setNhiemVuFilter] = useState("");
+  const [periodKind, setPeriodKind] = useState<QlcvPeriodKind>("MONTH");
+  const [filterBoardByPeriod, setFilterBoardByPeriod] = useState(true);
+  const [highlightMauId, setHighlightMauId] = useState<string | null>(null);
+  const [printMode, setPrintMode] = useState<"plan" | "exec" | null>(null);
+  const [printPlanMaus, setPrintPlanMaus] = useState<
+    import("@/modules/quan-ly-cong-viec/lib/qlcv-dinh-ky-period-match").DinhKyMauForPeriod[]
+  >([]);
+  const [printPeriodSnapshot, setPrintPeriodSnapshot] = useState(() => resolveQlcvPeriodRange("MONTH"));
 
   const { isAdmin, allowed, userData } = useModulePermission("CONG_VIEC");
   const qlcvUi: QlcvUiAccessFlags = useMemo(
@@ -117,6 +144,95 @@ export default function QuanLyCongViecPage() {
     if (openId) setSelectedTaskId(openId);
   }, [searchParams]);
 
+  useEffect(() => {
+    const tab = searchParams.get("tab")?.trim().toUpperCase();
+    if (tab === "DINH_KY" && canManageDinhKy) setActiveTab("DINH_KY");
+    else if (tab === "NHIEM_VU" && canManageDinhKy) setActiveTab("NHIEM_VU");
+    else if (tab === "DIEN_HANH") setActiveTab("DIEN_HANH");
+    else if (tab === "PHAN_CONG_TUAN" || tab === "TUAN" || tab === "CHUONG_TRINH" || tab === "KE_HOACH_NAM") {
+      setActiveTab("DIEN_HANH");
+    }
+    const mau = searchParams.get("mau")?.trim();
+    if (mau) {
+      setHighlightMauId(mau);
+      if (canManageDinhKy) setActiveTab("DINH_KY");
+    }
+    const loai = searchParams.get("loai")?.trim().toUpperCase();
+    if (loai === "DINH_KY") setLoaiFilter("DINH_KY");
+    else if (loai === "DOT_XUAT") setLoaiFilter("DOT_XUAT");
+  }, [searchParams, canManageDinhKy]);
+
+  useEffect(() => {
+    if (searchParams.get("from") !== "analytics") return;
+    if (searchParams.get("create") === "1") {
+      setCreateStayTab("DIEN_HANH");
+      setIsAdding(true);
+    }
+  }, [searchParams]);
+
+  const periodRange = useMemo(() => resolveQlcvPeriodRange(periodKind), [periodKind]);
+
+  const execPrintTasks = useMemo(() => {
+    return mergedTasks.filter((t) => {
+      const han = t.han_hoan_thanh ? String(t.han_hoan_thanh).slice(0, 10) : "";
+      if (han && han >= periodRange.startIso && han <= periodRange.endIso) return true;
+      const created = t.created_at ? String(t.created_at).slice(0, 10) : "";
+      if (!han && created && created >= periodRange.startIso && created <= periodRange.endIso) return true;
+      return false;
+    });
+  }, [mergedTasks, periodRange.startIso, periodRange.endIso]);
+
+  const runPrintAfterPaint = useCallback(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.setTimeout(() => window.print(), 50);
+      });
+    });
+  }, []);
+
+  const runPrintPlan = useCallback(async (kind: QlcvPeriodKind) => {
+    setPeriodKind(kind);
+    try {
+      const rows = await listDinhKyMau();
+      const range = resolveQlcvPeriodRange(kind);
+      const active = rows
+        .filter((r) => r.is_active)
+        .map((r) => ({
+          id: r.id,
+          tieu_de: r.tieu_de,
+          mo_ta: r.mo_ta,
+          ma_chu_ky: r.ma_chu_ky,
+          ngay_bat_dau: r.ngay_bat_dau,
+          is_active: r.is_active,
+          muc_do_uu_tien: r.muc_do_uu_tien,
+          vi_tri_thuc_hien: r.vi_tri_thuc_hien,
+        }));
+      // Ưu tiên mẫu đến hạn trong kỳ; nếu không có vẫn in toàn bộ mẫu active (phổ biến)
+      const due = filterMauDueInPeriod(active, range);
+      setPrintPeriodSnapshot(range);
+      setPrintPlanMaus(due.length > 0 ? due : active);
+      setPrintMode("plan");
+      runPrintAfterPaint();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Không tải mẫu để in.");
+    }
+  }, [runPrintAfterPaint]);
+
+  const runPrintExec = useCallback(() => {
+    if (execPrintTasks.length === 0) {
+      toast.message("Không có phiếu trong kỳ đã chọn — vẫn mở bản in (có ghi chú trống).");
+    }
+    setPrintPeriodSnapshot(periodRange);
+    setPrintMode("exec");
+    runPrintAfterPaint();
+  }, [execPrintTasks.length, periodRange, runPrintAfterPaint]);
+
+  useEffect(() => {
+    const onAfter = () => setPrintMode(null);
+    window.addEventListener("afterprint", onAfter);
+    return () => window.removeEventListener("afterprint", onAfter);
+  }, []);
+
   const analyticsGapHint = useMemo(() => {
     if (searchParams.get("from") !== "analytics") return null;
     const topic = searchParams.get("topic")?.trim();
@@ -131,6 +247,38 @@ export default function QuanLyCongViecPage() {
     return parts.join(" ");
   }, [searchParams]);
 
+  const analyticsCreatePrefill = useMemo(() => {
+    if (searchParams.get("from") !== "analytics") return undefined;
+    const giaRaw = searchParams.get("gia_tri_luc_tao");
+    const giaTri =
+      giaRaw != null && giaRaw !== "" && Number.isFinite(Number(giaRaw)) ? Number(giaRaw) : null;
+    const p = buildQlcvAnalyticsPrefill({
+      topic: searchParams.get("topic"),
+      gap: searchParams.get("gap"),
+      khoa: searchParams.get("khoa"),
+      bk: searchParams.get("bk"),
+      chiSo: searchParams.get("chi_so"),
+      kyDoLai: searchParams.get("ky_do_lai"),
+      giaTriLucTao: giaTri,
+    });
+    const khoaIdRaw = searchParams.get("khoa_id")?.trim() || "";
+    const khoaId =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(khoaIdRaw)
+        ? khoaIdRaw
+        : null;
+    return {
+      tieu_de: p.tieu_de,
+      mo_ta: p.mo_ta,
+      loai_cong_viec: "DOT_XUAT" as const,
+      muc_do_uu_tien: "CAO" as const,
+      analytics_meta: {
+        ...p.analytics_meta,
+        khoa_id: khoaId,
+      },
+      han_hoan_thanh: searchParams.get("ky_do_lai")?.trim() || undefined,
+    };
+  }, [searchParams]);
+
   const refreshAll = useCallback(async () => {
     await kanban.refreshTasks();
     if (viewMode === "BANG") await table.loadTablePage();
@@ -139,13 +287,28 @@ export default function QuanLyCongViecPage() {
   const navigateQlcvMain = useCallback(() => {
     closeTaskDetail();
     setIsAdding(false);
+    setCreatePrefill(undefined);
     setEditingTask(null);
     kanban.setBoardFilter(null);
-    setActiveTab("DIEN_HANH");
+    if (createStayTab) {
+      setActiveTab(createStayTab);
+      setCreateStayTab(null);
+    } else {
+      setActiveTab("DIEN_HANH");
+    }
     setViewMode("BANG");
     void refreshAll();
     router.refresh();
-  }, [kanban, refreshAll, router, closeTaskDetail]);
+  }, [kanban, refreshAll, router, closeTaskDetail, createStayTab]);
+
+  const openCreateCongViec = useCallback(
+    (prefill?: Partial<CongViecView>, stayTab?: string) => {
+      setCreatePrefill(prefill);
+      setCreateStayTab(stayTab ?? activeTab);
+      setIsAdding(true);
+    },
+    [activeTab],
+  );
 
   const handleBoardFilter = useCallback(
     (f: QlcvBoardFilter) => {
@@ -165,7 +328,8 @@ export default function QuanLyCongViecPage() {
       { id: "DIEN_HANH", label: "Điều hành", mobileLabel: "Điều hành", icon: LayoutGrid },
     ];
     if (canManageDinhKy) {
-      tabs.push({ id: "DINH_KY", label: "Việc định kỳ", mobileLabel: "Định kỳ", icon: CalendarClock });
+      tabs.push({ id: "NHIEM_VU", label: "Nhiệm vụ", mobileLabel: "Nhiệm vụ", icon: ListTodo });
+      tabs.push({ id: "DINH_KY", label: "Danh mục định kỳ", mobileLabel: "Định kỳ", icon: CalendarClock });
     }
     return tabs;
   }, [canManageDinhKy]);
@@ -174,6 +338,7 @@ export default function QuanLyCongViecPage() {
 
   return (
     <div className="relative space-y-6 px-3 pb-12 pt-1 sm:px-0">
+      <div className={printMode ? "no-print space-y-6" : "space-y-6"}>
       {analyticsGapHint ? (
         <div className="rounded-xl border border-indigo-200 bg-indigo-50/80 px-4 py-3 text-sm text-indigo-900">
           {analyticsGapHint}
@@ -185,7 +350,7 @@ export default function QuanLyCongViecPage() {
             className="absolute inset-0 bg-slate-900/50 bv103-panel-backdrop-in"
             onClick={closeTaskDetail}
           />
-          <div className="relative flex h-[100dvh] w-full max-w-7xl flex-col overflow-hidden border-l border-slate-200/90 bg-slate-50 shadow-2xl animate-in slide-in-from-right duration-500 sm:rounded-l-2xl">
+          <div className="relative flex h-[100dvh] w-full max-w-xl flex-col overflow-hidden border-l border-slate-200/90 bg-slate-50 shadow-[var(--shadow-app-soft)] animate-in slide-in-from-right duration-500 sm:max-w-2xl sm:rounded-l-[var(--radius-shell)] lg:max-w-3xl">
             <div className="bv103-scroll-y min-h-0 flex-1 p-4 sm:p-6 md:p-8">
             <button
               type="button"
@@ -216,7 +381,6 @@ export default function QuanLyCongViecPage() {
               Quản lý <span className="text-[var(--primary)]">công việc</span>
             </>
           }
-          description="Công việc nội bộ Khoa KSNK — giao việc cho nhân viên KSNK, tick checklist, nghiệm thu. Việc định kỳ sinh tự động từ mẫu."
           trailing={
             <KsnkSupervisionTabList
               tabs={mainTabs}
@@ -240,7 +404,7 @@ export default function QuanLyCongViecPage() {
                   <Send size={15} aria-hidden /> Đề xuất việc mới
                 </button>
               </DialogTrigger>
-              <DialogContent className="max-w-xl rounded-2xl border border-slate-200/90 bg-slate-50 p-6 shadow-xl sm:p-8">
+              <DialogContent className="max-w-xl rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-6 shadow-[var(--shadow-app-soft)] sm:p-8">
                 <DialogHeader className="mb-4">
                   <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">
                     Gửi đề xuất công việc
@@ -264,14 +428,14 @@ export default function QuanLyCongViecPage() {
               onClick={() => setImportOpen(true)}
               className="bv103-control-h inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200/90 bg-white px-4 py-2.5 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50 sm:w-auto"
             >
-              <Upload size={15} aria-hidden /> Import Excel
+              <Upload size={15} aria-hidden /> Nạp Excel
             </button>
           ) : null}
 
           {canShowDirectCreateTask(qlcvUi) ? (
             <button
               type="button"
-              onClick={() => setIsAdding(true)}
+              onClick={() => openCreateCongViec(undefined, activeTab)}
               className="bv103-control-h inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[var(--primary-hover)] sm:w-auto"
             >
               <Plus size={15} aria-hidden /> Tạo công việc
@@ -279,17 +443,39 @@ export default function QuanLyCongViecPage() {
           ) : null}
         </div>
 
-        <Dialog open={isAdding} onOpenChange={setIsAdding}>
-          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-2xl border border-slate-200/90 bg-slate-50 p-6 shadow-xl sm:p-8">
+        <Dialog
+          open={isAdding}
+          onOpenChange={(o) => {
+            setIsAdding(o);
+            if (!o) {
+              setCreatePrefill(undefined);
+              setCreateStayTab(null);
+            }
+          }}
+        >
+          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-6 shadow-[var(--shadow-app-soft)] sm:p-8">
             <DialogHeader className="mb-4">
               <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">Tạo công việc</DialogTitle>
             </DialogHeader>
-            <CongViecForm onSuccess={() => void navigateQlcvMain()} onCancel={() => setIsAdding(false)} />
+            <CongViecForm
+              key={
+                createPrefill?.nhiem_vu_id ||
+                analyticsCreatePrefill?.tieu_de ||
+                "new-task"
+              }
+              initialData={createPrefill ?? analyticsCreatePrefill}
+              onSuccess={() => void navigateQlcvMain()}
+              onCancel={() => {
+                setIsAdding(false);
+                setCreatePrefill(undefined);
+                setCreateStayTab(null);
+              }}
+            />
           </DialogContent>
         </Dialog>
 
         <Dialog open={!!editingTask} onOpenChange={(o) => !o && setEditingTask(null)}>
-          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-2xl border border-slate-200/90 bg-slate-50 p-6 shadow-xl sm:p-8">
+          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-6 shadow-[var(--shadow-app-soft)] sm:p-8">
             <DialogHeader className="mb-4">
               <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">Chỉnh sửa công việc</DialogTitle>
             </DialogHeader>
@@ -304,7 +490,7 @@ export default function QuanLyCongViecPage() {
         </Dialog>
 
         <Dialog open={!!kanban.kanbanApproveRow} onOpenChange={(o) => !o && kanban.setKanbanApproveRow(null)}>
-          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-2xl border border-slate-200/90 bg-slate-50 p-6 shadow-xl">
+          <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-6 shadow-[var(--shadow-app-soft)]">
             <DialogHeader className="mb-4">
               <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">Phê duyệt đề xuất</DialogTitle>
             </DialogHeader>
@@ -346,6 +532,23 @@ export default function QuanLyCongViecPage() {
             onBoardFilter={handleBoardFilter}
             routerRefresh={() => router.refresh()}
             mauSacByMa={mauSacByMa}
+            loaiFilter={loaiFilter}
+            periodKindFilter={filterBoardByPeriod ? periodKind : null}
+            nhiemVuFilter={nhiemVuFilter || null}
+            summarySlot={
+              <QlcvDinhKySummaryBar
+                tasks={mergedTasks}
+                loaiFilter={loaiFilter}
+                onLoaiFilterChange={setLoaiFilter}
+                periodKind={periodKind}
+                onPeriodKindChange={setPeriodKind}
+                filterBoardByPeriod={filterBoardByPeriod}
+                onFilterBoardByPeriodChange={setFilterBoardByPeriod}
+                nhiemVuFilter={nhiemVuFilter}
+                onNhiemVuFilterChange={setNhiemVuFilter}
+                onPrintExec={runPrintExec}
+              />
+            }
           />
           <QlcvImportDialog
             isOpen={importOpen}
@@ -358,11 +561,38 @@ export default function QuanLyCongViecPage() {
         </Tabs.Content>
 
         {canManageDinhKy ? (
+          <Tabs.Content value="NHIEM_VU" className="outline-none">
+            <NhiemVuPanel
+              onOpenCongViec={setSelectedTaskId}
+              onCreateCongViec={(p) =>
+                openCreateCongViec(
+                  {
+                    loai_cong_viec: "DOT_XUAT",
+                    nhiem_vu_id: p.nhiem_vu_id,
+                    nguoi_phu_trach_id: p.nguoi_phu_trach_id ?? null,
+                    han_hoan_thanh: p.han_hoan_thanh ?? null,
+                  },
+                  "NHIEM_VU",
+                )
+              }
+            />
+          </Tabs.Content>
+        ) : null}
+
+        {canManageDinhKy ? (
           <Tabs.Content value="DINH_KY" className="outline-none">
-            <QlcvDinhKyPanel />
+            <QlcvDinhKyPanel highlightMauId={highlightMauId} onRequestPrintPlan={runPrintPlan} />
           </Tabs.Content>
         ) : null}
       </Tabs.Root>
+      </div>
+
+      {printMode === "plan" ? (
+        <QlcvPeriodPlanPrintView period={printPeriodSnapshot} maus={printPlanMaus} />
+      ) : null}
+      {printMode === "exec" ? (
+        <QlcvPeriodExecPrintView period={printPeriodSnapshot} tasks={execPrintTasks} />
+      ) : null}
     </div>
   );
 }

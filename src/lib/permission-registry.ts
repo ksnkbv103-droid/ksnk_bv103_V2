@@ -29,6 +29,7 @@ export const MODULE_TO_GROUP: Record<string, keyof typeof MODULE_GROUPS> = {
   NHAN_SU: "SYSTEM",
   BANG_KIEM: "SYSTEM",
   CONG_VIEC: "SYSTEM",
+  DAO_TAO: "SYSTEM",
   PHAN_QUYEN: "SYSTEM",
 
   LOAI_DC: "MASTER_DATA",

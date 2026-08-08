@@ -1,11 +1,17 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import type { MasterOption } from "@/lib/master-data/gateway";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
+import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
+import EntityQrBlock from "@/components/shared/EntityQrBlock";
+import { buildEntityQrCode } from "@/lib/entity-qr/entity-qr-core";
+import { useEntityQrImage } from "@/hooks/useEntityQr";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 
 export type NkbvCaseLike = Record<string, unknown> & {
   id?: string;
@@ -35,6 +41,7 @@ export default function NkbvCaseEditor({
   maTuDong,
   onSubmit,
 }: NkbvCaseEditorProps) {
+  const [mounted, setMounted] = useState(false);
   const [form, setForm] = useState({
     ma_ca: "",
     khoa_ghi_nhan_id: "",
@@ -56,13 +63,10 @@ export default function NkbvCaseEditor({
     ma_benh_pham: "",
     loai_benh_pham: "",
     so_luong: "",
-    ngay_ra_vien: "",
-    ket_cuc_dieu_tri: "",
-    ly_do_tu_vong: "",
-    tu_vong_lien_quan_nkbv: false,
   });
 
   const todayStr = new Date().toISOString().slice(0, 10);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (row?.id) {
@@ -87,10 +91,6 @@ export default function NkbvCaseEditor({
         ma_benh_pham: String(row.ma_benh_pham || ""),
         loai_benh_pham: String((row as any).loai_benh_pham || ""),
         so_luong: String((row as any).so_luong || ""),
-        ngay_ra_vien: toDate(row.ngay_ra_vien),
-        ket_cuc_dieu_tri: String(row.ket_cuc_dieu_tri || ""),
-        ly_do_tu_vong: String(row.ly_do_tu_vong || ""),
-        tu_vong_lien_quan_nkbv: Boolean(row.tu_vong_lien_quan_nkbv),
       });
     } else {
       setForm((prev) => ({
@@ -98,14 +98,16 @@ export default function NkbvCaseEditor({
         ma_ca: maTuDong || prev.ma_ca,
         trang_thai_id: defaultTrangThaiId,
         loai_nkbv_id: loaiRows[0]?.id || prev.loai_nkbv_id,
-        ma_benh_an: "",
+        khoa_ghi_nhan_id: String(row?.khoa_ghi_nhan_id || prev.khoa_ghi_nhan_id || ""),
+        ma_benh_nhan: String(row?.ma_benh_nhan || ""),
+        ho_ten_benh_nhan: String(row?.ho_ten_benh_nhan || ""),
+        ngay_sinh: toDate(row?.ngay_sinh),
+        gioi_tinh: String(row?.gioi_tinh || ""),
+        ngay_vao_vien: toDate(row?.ngay_vao_vien),
+        ma_benh_an: String(row?.ma_benh_an || ""),
         ma_benh_pham: "",
         loai_benh_pham: "",
         so_luong: "",
-        ngay_ra_vien: "",
-        ket_cuc_dieu_tri: "",
-        ly_do_tu_vong: "",
-        tu_vong_lien_quan_nkbv: false,
       }));
     }
   }, [row, maTuDong, defaultTrangThaiId, loaiRows]);
@@ -128,49 +130,40 @@ export default function NkbvCaseEditor({
 
     // Date Logic Validations
     if (form.ngay_sinh && form.ngay_sinh > todayStr) {
-      toast.error(`Sai logic: Ngày sinh [${form.ngay_sinh}] không thể ở tương lai!`);
+      toast.error(`Sai logic: Ngày sinh [${formatDateVi(form.ngay_sinh)}] không thể ở tương lai!`);
       return;
     }
     if (form.ngay_vao_vien) {
       if (form.ngay_vao_vien > todayStr) {
-        toast.error(`Sai logic: Ngày vào viện [${form.ngay_vao_vien}] không thể ở tương lai!`);
+        toast.error(`Sai logic: Ngày vào viện [${formatDateVi(form.ngay_vao_vien)}] không thể ở tương lai!`);
         return;
       }
       if (form.ngay_sinh && form.ngay_vao_vien < form.ngay_sinh) {
-        toast.error(`Sai logic: Ngày vào viện [${form.ngay_vao_vien}] không thể trước Ngày sinh [${form.ngay_sinh}]!`);
+        toast.error(`Sai logic: Ngày vào viện [${formatDateVi(form.ngay_vao_vien)}] không thể trước Ngày sinh [${formatDateVi(form.ngay_sinh)}]!`);
         return;
       }
     }
     if (form.ngay_phat_hien) {
       if (form.ngay_phat_hien > todayStr) {
-        toast.error(`Sai logic: Ngày phát hiện [${form.ngay_phat_hien}] không thể ở tương lai!`);
+        toast.error(`Sai logic: Ngày phát hiện [${formatDateVi(form.ngay_phat_hien)}] không thể ở tương lai!`);
         return;
       }
       if (form.ngay_vao_vien && form.ngay_phat_hien < form.ngay_vao_vien) {
-        toast.error(`Sai logic: Ngày phát hiện [${form.ngay_phat_hien}] không thể trước Ngày vào viện [${form.ngay_vao_vien}]!`);
+        toast.error(`Sai logic: Ngày phát hiện [${formatDateVi(form.ngay_phat_hien)}] không thể trước Ngày vào viện [${formatDateVi(form.ngay_vao_vien)}]!`);
         return;
       }
       if (form.ngay_sinh && form.ngay_phat_hien < form.ngay_sinh) {
-        toast.error(`Sai logic: Ngày phát hiện [${form.ngay_phat_hien}] không thể trước Ngày sinh [${form.ngay_sinh}]!`);
+        toast.error(`Sai logic: Ngày phát hiện [${formatDateVi(form.ngay_phat_hien)}] không thể trước Ngày sinh [${formatDateVi(form.ngay_sinh)}]!`);
         return;
       }
     }
-    if (form.ngay_ra_vien) {
-      if (form.ngay_ra_vien > todayStr) {
-        toast.error(`Sai logic: Ngày ra viện [${form.ngay_ra_vien}] không thể ở tương lai!`);
-        return;
-      }
-      if (form.ngay_vao_vien && form.ngay_ra_vien < form.ngay_vao_vien) {
-        toast.error(`Sai logic: Ngày ra viện [${form.ngay_ra_vien}] không thể trước Ngày vào viện [${form.ngay_vao_vien}]!`);
-        return;
-      }
-    }
-
     onSubmit({ ...form });
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-900/45 p-4 backdrop-blur-sm">
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[10050] flex items-center justify-center overflow-y-auto bg-slate-900/45 p-4 backdrop-blur-sm">
       <div className="relative my-8 w-full max-w-3xl rounded-[28px] border border-slate-100 bg-white p-6 shadow-2xl">
         <button
           type="button"
@@ -181,8 +174,13 @@ export default function NkbvCaseEditor({
           <X className="h-5 w-5" />
         </button>
         <h2 className={`mb-6 ${C.modalTitle}`}>
-          {row?.id ? "Sửa phiếu NKBV" : row?.ma_benh_an !== undefined ? "Đăng ký đợt bệnh án / Hồ sơ dịch tễ" : "Ghi nhận ca NKBV / HAI"}
+          {row?.id ? "Sửa phiếu xác định ca NKBV" : "Ghi nhận phiếu xác định ca NKBV / HAI"}
         </h2>
+        <p className="mb-4 -mt-4 text-xs text-slate-500">
+          Kết cục / ra viện thuộc <strong>hồ sơ đợt nằm viện</strong> — sửa ở tab Hồ sơ Bệnh án (hub BA), không
+          lưu trên phiếu này.
+        </p>
+        {row?.id ? <NkbvCaseQrPanel caseId={String(row.id)} /> : null}
         <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
@@ -204,7 +202,10 @@ export default function NkbvCaseEditor({
                 <option value="">— Chọn —</option>
                 {khoas.map((k) => (
                   <option key={k.id} value={k.id}>
-                    {k.ten_danh_muc}
+                    {formatKhoaPickerLabel({
+                      ma_danh_muc: k.ma_danh_muc,
+                      ten_danh_muc: k.ten_danh_muc,
+                    })}
                   </option>
                 ))}
               </select>
@@ -379,7 +380,7 @@ export default function NkbvCaseEditor({
               value={form.tom_tat_dien_bien}
               onChange={(e) => setForm({ ...form, tom_tat_dien_bien: e.target.value })}
               rows={3}
-              className="w-full rounded-3xl border-0 bg-slate-50 px-4 py-3 text-sm"
+              className="w-full rounded-[var(--radius-control)] border-0 bg-slate-50 px-4 py-3 text-sm"
             />
           </div>
           <div>
@@ -388,66 +389,10 @@ export default function NkbvCaseEditor({
               value={form.bien_phap_phong_ngua}
               onChange={(e) => setForm({ ...form, bien_phap_phong_ngua: e.target.value })}
               rows={2}
-              className="w-full rounded-3xl border-0 bg-slate-50 px-4 py-3 text-sm"
+              className="w-full rounded-[var(--radius-control)] border-0 bg-slate-50 px-4 py-3 text-sm"
             />
           </div>
 
-          <div className="border border-slate-100 rounded-3xl p-4 bg-slate-50/50 space-y-4">
-            <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5 uppercase">
-              🏥 Kết cục Đợt điều trị & Ra viện (Stay Outcomes)
-            </h4>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <label className={C.formLabel}>Ngày ra viện (nếu có)</label>
-                <input
-                  type="date"
-                  value={form.ngay_ra_vien}
-                  min={form.ngay_vao_vien || undefined}
-                  max={todayStr}
-                  onChange={(e) => setForm({ ...form, ngay_ra_vien: e.target.value })}
-                  className="w-full rounded-[var(--radius-shell)] border-0 bg-white px-4 py-3 text-sm"
-                />
-              </div>
-              <div>
-                <label className={C.formLabel}>Kết cục điều trị</label>
-                <select
-                  value={form.ket_cuc_dieu_tri}
-                  onChange={(e) => setForm({ ...form, ket_cuc_dieu_tri: e.target.value })}
-                  className="w-full rounded-[var(--radius-shell)] border-0 bg-white px-4 py-3 text-sm font-semibold"
-                >
-                  <option value="">— Chưa xác định —</option>
-                  <option value="KHOI_DO">Khỏi / Đỡ</option>
-                  <option value="NANG_XIN_VE">Nặng xin về</option>
-                  <option value="TU_VONG">Tử vong</option>
-                  <option value="CHUYEN_VIEN">Chuyển viện</option>
-                </select>
-              </div>
-            </div>
-            {form.ket_cuc_dieu_tri === "TU_VONG" && (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 p-3 bg-red-50/30 rounded-[var(--radius-shell)] border border-red-100 animate-in fade-in duration-300">
-                <div>
-                  <label className={` text-red-700`}>Nguyên nhân tử vong</label>
-                  <input
-                    value={form.ly_do_tu_vong}
-                    onChange={(e) => setForm({ ...form, ly_do_tu_vong: e.target.value })}
-                    className="w-full rounded-[var(--radius-shell)] border-0 bg-white px-4 py-3 text-sm"
-                    placeholder="Nhập nguyên nhân tử vong..."
-                  />
-                </div>
-                <div className="flex items-center pt-5">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.tu_vong_lien_quan_nkbv}
-                      onChange={(e) => setForm({ ...form, tu_vong_lien_quan_nkbv: e.target.checked })}
-                      className="rounded text-red-600 focus:ring-red-500 h-4 w-4"
-                    />
-                    <span className="text-xs font-bold text-red-800">Tử vong có liên quan đến NKBV</span>
-                  </label>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
         <div className="mt-6 flex justify-end gap-3 border-t border-slate-100 pt-4">
           <button type="button" onClick={onClose} className={C.ctaSecondary}>
@@ -458,6 +403,18 @@ export default function NkbvCaseEditor({
           </button>
         </div>
       </div>
+    </div>,
+    document.body,
+  );
+}
+
+function NkbvCaseQrPanel({ caseId }: { caseId: string }) {
+  const code = buildEntityQrCode("NKBV_CASE", caseId);
+  const dataUrl = useEntityQrImage(code);
+  if (!dataUrl) return null;
+  return (
+    <div className="mb-4 flex justify-end print:hidden">
+      <EntityQrBlock dataUrl={dataUrl} code={code} caption="Quét mở lại phiếu NKBV" variant="screen" />
     </div>
   );
 }

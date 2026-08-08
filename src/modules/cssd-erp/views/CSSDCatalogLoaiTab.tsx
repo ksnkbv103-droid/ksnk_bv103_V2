@@ -17,7 +17,7 @@ export function CSSDCatalogLoaiTab(props: {
   return (
     <div className="space-y-6">
       {/* Bảng Danh mục Loại dụng cụ */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AppWindow className="h-5 w-5 text-[var(--primary)]" />
@@ -101,14 +101,14 @@ export function CSSDCatalogLoaiTab(props: {
       </section>
 
       {/* Danh sách các bộ đang chứa loại dụng cụ này */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-violet-600" />
             <h3 className="text-sm font-bold text-slate-800">
               Danh sách bộ chứa loại dụng cụ{" "}
               {selectedLoai ? (
-                <span className="text-violet-700 font-black">
+                <span className="text-violet-700 font-semibold">
                   — {selectedLoai.ten_loai_dung_cu} ({selectedLoai.ma_loai_dung_cu})
                 </span>
               ) : (

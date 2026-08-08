@@ -75,10 +75,10 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
       ngay_vao_vien: "2026-05-10",
       checklistType: "BSI" as const,
       activeForm: {
-        symptoms_window_7days: true,
+        has_fever: true,
       },
       symptomDates: {
-        symptoms_window_7days: "2026-05-12", // Day of transfer
+        has_fever: "2026-05-12", // Day of transfer
       },
       treatmentHistory,
     };
@@ -101,10 +101,10 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
       ngay_vao_vien: "2026-05-10",
       checklistType: "BSI" as const,
       activeForm: {
-        symptoms_window_7days: true,
+        has_fever: true,
       },
       symptomDates: {
-        symptoms_window_7days: "2026-05-15", // 3 days after transfer
+        has_fever: "2026-05-15", // 3 days after transfer
       },
       treatmentHistory,
     };
@@ -114,5 +114,81 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
     expect(metrics.doe).toBe("2026-05-15");
     expect(metrics.attributedStay?.khoa_id).toBe("ICU"); // Attributes to ICU (current ward)
     expect(metrics.attributionReason).toContain("Quy kết cho khoa đang điều trị [ICU]");
+  });
+
+  it("BSI: DOE ưu tiên has_fever trong IWP (không chỉ symptoms_window_7days)", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-05-15",
+      ngay_vao_vien: "2026-05-10",
+      checklistType: "BSI",
+      activeForm: { has_fever: true, has_chills: true },
+      symptomDates: { has_fever: "2026-05-13", has_chills: "2026-05-14" },
+      treatmentHistory: [],
+    });
+    expect(metrics.doe).toBe("2026-05-13");
+  });
+
+  it("PNEU: DOE đọc ngày thở khó / hô hấp tại chỗ trong IWP", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-05-15",
+      ngay_vao_vien: "2026-05-10",
+      checklistType: "HAP",
+      activeForm: {
+        has_dyspnea: true,
+        fever_or_wbc_abnormal: true,
+        pneu_trigger: "CULTURE",
+      },
+      symptomDates: {
+        has_dyspnea: "2026-05-14",
+        fever_or_wbc_abnormal: "2026-05-15",
+      },
+      treatmentHistory: [],
+    });
+    expect(metrics.doe).toBe("2026-05-14");
+  });
+
+  it("UTI infant: ngày hạ thân nhiệt đóng góp DOE", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-05-15",
+      ngay_vao_vien: "2026-05-10",
+      checklistType: "UTI",
+      activeForm: { is_infant_le1: true, has_infant_hypothermia: true },
+      symptomDates: { has_infant_hypothermia: "2026-05-13" },
+      treatmentHistory: [],
+    });
+    expect(metrics.doe).toBe("2026-05-13");
+  });
+
+  it("clinical SBAP = Index−3 … DOE+13 (không neo DOE±3)", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-05-15",
+      ngay_vao_vien: "2026-05-10",
+      checklistType: "UTI",
+      activeForm: { has_fever: true },
+      symptomDates: { has_fever: "2026-05-12" }, // DOE = Index−3
+      treatmentHistory: [],
+      indexDateOverride: "2026-05-15",
+    });
+    expect(metrics.index_date).toBe("2026-05-15");
+    expect(metrics.doe).toBe("2026-05-12");
+    expect(metrics.sbap_start).toBe("2026-05-12"); // Index−3
+    expect(metrics.sbap_end).toBe("2026-05-25"); // DOE+13
+  });
+
+  it("SSI SBAP vẫn [DOE−3, DOE+13]", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-05-15",
+      ngay_vao_vien: "2026-05-01",
+      checklistType: "SSI",
+      activeForm: {
+        ssi_depth: "SUPERFICIAL",
+        superficial_purulent_drainage: true,
+      },
+      symptomDates: { superficial_purulent_drainage: "2026-05-14" },
+      treatmentHistory: [],
+    });
+    expect(metrics.doe).toBe("2026-05-14");
+    expect(metrics.sbap_start).toBe("2026-05-11");
+    expect(metrics.sbap_end).toBe("2026-05-27");
   });
 });

@@ -21,7 +21,7 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
     suggestNextMaNhanSuMaAction(NHAN_SU_DEFAULT_MA_NV_PREFIX),
   );
   const [loading, setLoading] = useState(false);
-  const [khoas, setKhoas] = useState<{ id: string; ten_danh_muc: string }[]>([]);
+  const [khoas, setKhoas] = useState<{ id: string; ten_danh_muc: string; ma_danh_muc?: string }[]>([]);
   const [chucDanhs, setChucDanhs] = useState<{ id: string; ten_danh_muc: string }[]>([]);
   const [tos, setTos] = useState<{ id: string; ten_danh_muc: string; extra_data?: Record<string, unknown> | null }[]>([]);
   const [vaiTros, setVaiTros] = useState<{ id: string; ten_danh_muc: string }[]>([]);
@@ -63,7 +63,15 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
         rows
           .filter((r): r is T & { id: string } => Boolean(r.id))
           .map((r) => ({ id: r.id, ten_danh_muc: String(r.ten_danh_muc ?? "") }));
-      setKhoas(norm(res.data.khoas || []));
+      setKhoas(
+        (res.data.khoas || [])
+          .filter((r): r is { id: string; ten_danh_muc?: string; ma_danh_muc?: string } => Boolean(r.id))
+          .map((r) => ({
+            id: r.id,
+            ten_danh_muc: String(r.ten_danh_muc ?? ""),
+            ma_danh_muc: r.ma_danh_muc ? String(r.ma_danh_muc) : undefined,
+          })),
+      );
       setChucDanhs(norm(res.data.chucDanhs || []));
       setTos(
         (res.data.tos || [])
@@ -129,7 +137,7 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-[var(--radius-shell)] w-full max-w-2xl overflow-hidden shadow-2xl premium-card animate-in zoom-in-95 duration-300">
+      <div className="bg-white rounded-[var(--radius-shell)] w-full max-w-2xl overflow-hidden shadow-[var(--shadow-app-soft)] animate-in zoom-in-95 duration-300">
         <div className="bg-[var(--primary)] p-8 text-white">
           <h3 className={F.modalTitle}>
             {initialData?.id ? "Cập nhật hồ sơ nhân sự" : "Thêm nhân sự mới"}

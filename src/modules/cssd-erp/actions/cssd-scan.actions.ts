@@ -26,8 +26,8 @@ async function cssdScanOperatorLabel(): Promise<string> {
 
 
 export async function scanQR(maQR: string, station: Station, extraPayload?: Record<string, any>) {
-  const supabase = createAdminSupabaseClient();
   await verifyCssdWorkflowEdit();
+  const supabase = createAdminSupabaseClient();
 
   /** TK chỉ qua phiếu/mẻ (/cssd-erp/batch): không có quét «trạm tiệt khuẩn» trên luồng 6 trạm. */
   if (station === "TIET_KHUAN") {
@@ -77,6 +77,19 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
     if (extraPayload?.ma_ca_mo_id) {
       capUpdate.metadata = { ma_ca_mo_id: String(extraPayload.ma_ca_mo_id) };
     }
+    // SSOT khoa nhận: ưu tiên payload; không có thì giữ sẵn có / bootstrap từ khoa sở hữu bộ.
+    const khoaNhanPayload = String(extraPayload?.khoa_nhan_id || "").trim();
+    if (khoaNhanPayload) {
+      capUpdate.khoa_nhan_id = khoaNhanPayload;
+    } else if (!preRow.khoa_nhan_id && preRow.bo_dung_cu_id) {
+      const { data: bo } = await supabase
+        .from("cssd_dm_bo_dung_cu")
+        .select("khoa_su_dung_id")
+        .eq("id", String(preRow.bo_dung_cu_id))
+        .maybeSingle();
+      const kid = String((bo as { khoa_su_dung_id?: string } | null)?.khoa_su_dung_id || "").trim();
+      if (kid) capUpdate.khoa_nhan_id = kid;
+    }
     await supabase.from("cssd_fact_quy_trinh").update(capUpdate).eq("id", preRow.id);
     let maLoTietKhuan = "";
     const loId = String(preRow.lo_tiet_khuan_id || "").trim();
@@ -122,6 +135,24 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       .eq("id", loId)
       .maybeSingle();
     maLoTietKhuan = String((me as { ma_lo_tiet_khuan?: string } | null)?.ma_lo_tiet_khuan || "");
+  }
+
+  if (station === "CAP_PHAT" && fullQt?.id) {
+    const khoaNhanPayload = String(extraPayload?.khoa_nhan_id || "").trim();
+    const patch: Record<string, unknown> = {};
+    if (khoaNhanPayload) patch.khoa_nhan_id = khoaNhanPayload;
+    else if (!fullQt.khoa_nhan_id && fullQt.bo_dung_cu_id) {
+      const { data: bo } = await supabase
+        .from("cssd_dm_bo_dung_cu")
+        .select("khoa_su_dung_id")
+        .eq("id", String(fullQt.bo_dung_cu_id))
+        .maybeSingle();
+      const kid = String((bo as { khoa_su_dung_id?: string } | null)?.khoa_su_dung_id || "").trim();
+      if (kid) patch.khoa_nhan_id = kid;
+    }
+    if (Object.keys(patch).length > 0) {
+      await supabase.from("cssd_fact_quy_trinh").update(patch).eq("id", String(fullQt.id));
+    }
   }
 
   if (station === "DONG_GOI" && fullQt?.id) {

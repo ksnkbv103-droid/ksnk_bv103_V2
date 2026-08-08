@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { reportQlcvManualProgress } from "../actions/cong-viec-checklist.actions";
 import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
 
@@ -82,15 +82,14 @@ export function QlcvManualProgressPanel({ congViecId, initialPercent, readOnly, 
                 </button>
               ))}
             </div>
-            <Button
+            <button
               type="button"
-              size="sm"
-              className="rounded-xl"
+              className={C.btnPrimary}
               disabled={saving || !dirty}
               onClick={() => void persist()}
             >
               {saving ? "Đang lưu…" : "Lưu tiến độ"}
-            </Button>
+            </button>
           </div>
         </div>
       ) : null}

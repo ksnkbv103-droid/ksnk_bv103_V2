@@ -1,16 +1,21 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { WifiOff, Wifi, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { getOfflineTasks, removeOfflineTask, type OfflineTask } from "@/lib/offline-sync";
 import { cssdCommandAdvanceStation } from "@/modules/cssd-erp/contexts/processing-lifecycle/entrypoint";
 import { createIncidentReport } from "@/modules/cssd-su-co/actions/su-co-report.actions";
 
+/** Trình duyệt hay nháy offline/online giả — chỉ báo khi vẫn offline sau debounce. */
+const OFFLINE_TOAST_DEBOUNCE_MS = 2500;
+
 export default function OfflineSyncManager() {
   const [isOnline, setIsOnline] = useState(true);
   const [pendingTasks, setPendingTasks] = useState<OfflineTask[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
+  const offlineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const offlineToastShownRef = useRef(false);
 
   const checkQueue = useCallback(async (mountedRef: { current: boolean }) => {
     try {
@@ -38,8 +43,12 @@ export default function OfflineSyncManager() {
       for (const task of tasks) {
         try {
           if (task.type === "SCAN_QR") {
-            const { maQR, station } = task.payload;
-            await cssdCommandAdvanceStation(maQR, station);
+            const { maQR, station, extraPayload } = task.payload as {
+              maQR: string;
+              station: Parameters<typeof cssdCommandAdvanceStation>[1];
+              extraPayload?: Record<string, unknown>;
+            };
+            await cssdCommandAdvanceStation(maQR, station, extraPayload);
           } else if (task.type === "REPORT_INCIDENT") {
             await createIncidentReport(task.payload);
           }
@@ -49,8 +58,15 @@ export default function OfflineSyncManager() {
         } catch (err: unknown) {
           console.error("Lỗi đồng bộ task", task, err);
           errorCount++;
-          const msg = err instanceof Error ? err.message : String(err);
-          if (!msg.includes("fetch")) {
+          const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+          const retryable =
+            msg.includes("fetch") ||
+            msg.includes("network") ||
+            msg.includes("timeout") ||
+            msg.includes("offline") ||
+            msg.includes("failed to load");
+          // Chỉ loại hàng đợi khi lỗi nghiệp vụ rõ; lỗi mạng giữ để thử lại.
+          if (!retryable) {
             await removeOfflineTask(task.id);
           }
         }
@@ -62,7 +78,9 @@ export default function OfflineSyncManager() {
         toast.success(`Đã đồng bộ ${successCount} thao tác ngoại tuyến thành công.`);
       }
       if (errorCount > 0) {
-        toast.error(`Có ${errorCount} thao tác ngoại tuyến bị lỗi nghiệp vụ (đã loại bỏ).`);
+        toast.error(
+          `Có ${errorCount} thao tác ngoại tuyến chưa đồng bộ được (lỗi mạng giữ lại; lỗi nghiệp vụ đã loại).`,
+        );
       }
     } catch (err: unknown) {
       console.warn("Offline sync skipped:", err);
@@ -76,21 +94,39 @@ export default function OfflineSyncManager() {
     setIsOnline(navigator.onLine);
     void checkQueue(mountedRef);
 
+    const clearOfflineTimer = () => {
+      if (offlineTimerRef.current) {
+        clearTimeout(offlineTimerRef.current);
+        offlineTimerRef.current = null;
+      }
+    };
+
     const handleOnline = () => {
       if (!mountedRef.current) return;
+      clearOfflineTimer();
+      const wasShown = offlineToastShownRef.current;
+      offlineToastShownRef.current = false;
       setIsOnline(true);
-      toast.success("Đã có kết nối mạng", {
-        description: "Hệ thống sẽ tự động đồng bộ dữ liệu ngoại tuyến.",
-      });
+      // Chỉ toast «đã có mạng» nếu trước đó đã báo mất mạng thật (debounce đã cháy).
+      if (wasShown) {
+        toast.success("Đã có kết nối mạng", {
+          description: "Hệ thống sẽ tự động đồng bộ dữ liệu ngoại tuyến.",
+        });
+      }
       void syncData();
     };
 
     const handleOffline = () => {
       if (!mountedRef.current) return;
       setIsOnline(false);
-      toast.error("Mất kết nối mạng!", {
-        description: "Phần mềm đang chạy ở chế độ Offline. Các thao tác quét sẽ được lưu tạm.",
-      });
+      clearOfflineTimer();
+      offlineTimerRef.current = setTimeout(() => {
+        if (!mountedRef.current || navigator.onLine) return;
+        offlineToastShownRef.current = true;
+        toast.error("Mất kết nối mạng!", {
+          description: "Phần mềm đang chạy ở chế độ Offline. Các thao tác quét sẽ được lưu tạm.",
+        });
+      }, OFFLINE_TOAST_DEBOUNCE_MS);
     };
 
     window.addEventListener("online", handleOnline);
@@ -102,6 +138,7 @@ export default function OfflineSyncManager() {
 
     return () => {
       mountedRef.current = false;
+      clearOfflineTimer();
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
       clearInterval(interval);
@@ -111,9 +148,11 @@ export default function OfflineSyncManager() {
   if (isOnline && pendingTasks.length === 0) return null;
 
   return (
-    <div className={`fixed bottom-4 right-4 z-[9999] flex items-center gap-3 rounded-2xl px-4 py-3 text-xs font-bold shadow-xl transition-all ${
-      !isOnline ? "bg-red-600 text-white" : "bg-emerald-600 text-white"
-    }`}>
+    <div
+      className={`fixed bottom-4 right-4 z-[9999] flex items-center gap-3 rounded-2xl px-4 py-3 text-xs font-bold shadow-xl transition-all ${
+        !isOnline ? "bg-red-600 text-white" : "bg-emerald-600 text-white"
+      }`}
+    >
       {!isOnline ? (
         <WifiOff size={18} className="animate-pulse" />
       ) : isSyncing ? (
@@ -121,7 +160,7 @@ export default function OfflineSyncManager() {
       ) : (
         <Wifi size={18} />
       )}
-      
+
       <div className="flex flex-col">
         <span>{!isOnline ? "Chế độ Offline" : "Đang kết nối..."}</span>
         {pendingTasks.length > 0 && (
@@ -132,7 +171,8 @@ export default function OfflineSyncManager() {
       </div>
 
       {isOnline && pendingTasks.length > 0 && !isSyncing && (
-        <button 
+        <button
+          type="button"
           onClick={syncData}
           className="ml-2 rounded-lg bg-white/20 p-1.5 hover:bg-white/30"
           aria-label="Đồng bộ ngay"

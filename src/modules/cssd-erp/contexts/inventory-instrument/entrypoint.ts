@@ -1,7 +1,6 @@
 /**
- * Bounded context entrypoint: Instrument inventory (issue reporting from kho UI).
+ * Bounded context entrypoint: Instrument inventory (composition reconcile from kho UI).
  */
-export { reportInventoryIssue } from "../../actions/cssd-write.actions";
 export {
   loadBoCompositionByMaBo,
   type CompositionReconcilePayload,

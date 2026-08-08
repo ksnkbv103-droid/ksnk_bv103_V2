@@ -25,7 +25,9 @@ export async function executeIncidentReportAndRollback(
     typeTen: string;
     faultStation?: Station;
     faultOperator?: string;
+    faultOperatorId?: string;
     nguoiPhatHien?: string;
+    nguoiPhatHienId?: string;
     thoiGianPhatHien?: string;
     desc: string;
     errorQR?: string;
@@ -80,7 +82,9 @@ export async function executeIncidentReportAndRollback(
     errorQR: data.errorQR || data.processPayload?.maLo,
     machineId: data.machineId,
     faultOperator: data.faultOperator,
+    faultOperatorId: data.faultOperatorId,
     nguoiPhatHien: data.nguoiPhatHien,
+    nguoiPhatHienId: data.nguoiPhatHienId,
     thoiGianPhatHien: data.thoiGianPhatHien,
     anhMinhChung: data.anhMinhChung,
     reporterEmail: data.reporterEmail,

@@ -8,6 +8,7 @@ import { formatMucDoUuTienLabel, getCongViecTrangThaiLabel } from "../lib/qlcv-l
 import { getKanbanColumnIdForTask, type KanbanColumnId } from "../lib/qlcv-board-lanes";
 import { qlcvKanbanCardAttentionClass } from "../lib/qlcv-ux-chrome";
 import type { CongViecView } from "../types";
+import { QlcvDinhKyMauChip } from "./QlcvDinhKyMauChip";
 
 type KanbanColId = KanbanColumnId;
 
@@ -87,7 +88,7 @@ export default function CongViecKanban({
               if (node) columnEls.current[col.id] = node;
               else delete columnEls.current[col.id];
             }}
-            className="flex min-w-0 flex-col w-[min(88vw,300px)] shrink-0 rounded-2xl border border-slate-200/90 bg-slate-50/90 p-3 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] snap-center sm:w-[280px] md:p-4 lg:w-[300px]"
+            className="flex min-w-0 flex-col w-[min(88vw,300px)] shrink-0 rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50/90 p-3 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] snap-center sm:w-[280px] md:p-4 lg:w-[300px]"
           >
             <div className="mb-3 flex items-center justify-between gap-2 px-1">
               <div className="flex min-w-0 items-center gap-2">
@@ -117,7 +118,7 @@ export default function CongViecKanban({
                         onTaskClick?.(task);
                       }
                     }}
-                    className={`cursor-pointer rounded-2xl border border-slate-200/90 bg-white p-3.5 shadow-sm outline-none transition-all hover:border-[var(--primary)]/30 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 touch-manipulation active:scale-[0.99] sm:p-4 ${qlcvKanbanCardAttentionClass(task)}`}
+                    className={`cursor-pointer rounded-[var(--radius-shell)] border border-slate-200/90 bg-white p-3.5 shadow-sm outline-none transition-all hover:border-[var(--primary)]/30 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 touch-manipulation active:scale-[0.99] sm:p-4 ${qlcvKanbanCardAttentionClass(task)}`}
                   >
                     <div className="mb-2 flex items-start justify-between gap-2">
                       <span
@@ -136,7 +137,10 @@ export default function CongViecKanban({
                       </p>
                     ) : null}
 
-                    <h4 className="mb-2 line-clamp-2 text-sm font-black leading-tight text-slate-800">{task.tieu_de}</h4>
+                    <h4 className="mb-1 line-clamp-2 text-sm font-black leading-tight text-slate-800">{task.tieu_de}</h4>
+                    <div className="mb-2">
+                      <QlcvDinhKyMauChip loaiCongViec={task.loai_cong_viec} dinhKyMauId={task.dinh_ky_mau_id} />
+                    </div>
 
                     <div className="flex flex-col gap-2 border-t border-slate-100 pt-2.5 sm:flex-row sm:items-center sm:justify-between">
                       <div className="min-w-0 flex-1">
@@ -157,7 +161,7 @@ export default function CongViecKanban({
                 );
               })}
               {colTasks.length === 0 && (
-                <div className="rounded-2xl border-2 border-dashed border-slate-200 py-8 text-center text-[11px] font-bold uppercase tracking-widest text-slate-300">
+                <div className="rounded-[var(--radius-shell)] border-2 border-dashed border-slate-200 py-8 text-center text-[11px] font-medium text-slate-400">
                   Trống
                 </div>
               )}

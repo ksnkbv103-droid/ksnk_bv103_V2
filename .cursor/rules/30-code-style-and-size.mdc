@@ -1,8 +1,0 @@
----
-description: "[Redirect] Code style — dùng 03-src-editing-compact"
-alwaysApply: false
----
-
-# Redirect
-
-Rule này đã gộp vào [`03-src-editing-compact.mdc`](./03-src-editing-compact.mdc).

@@ -1,10 +1,47 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { isRejectedLegacyHexBoQr } from "@/lib/domain/cssd-bo-ma";
+import { isCssdSubBoMa, isCssdUnifiedBoMa, isRejectedLegacyHexBoQr, normalizeBoMa } from "@/lib/domain/cssd-bo-ma";
 import { tableHasColumn } from "../cssd-db-utils";
-import { classifyCssdCode, normalizeCssdCode } from "../domain/cssd-qr-core";
+import {
+  buildCssdQuyTrinhQrOrFilter,
+  classifyCssdCode,
+  normalizeCssdCode,
+} from "../domain/cssd-qr-core";
 import { cssdQrHubResolvedSchema, type CssdQrHubResolved } from "../contracts/cssd-qr-hub.contracts";
-import { buildCssdQuyTrinhQrOrFilter } from "./cssd-workflow-resolve";
 
+async function resolveInstrumentSetByBoMaCatalog(
+  supabase: SupabaseClient,
+  code: string,
+): Promise<{ workflowId?: string; boDungCuId: string } | null> {
+  if (!isCssdUnifiedBoMa(code) && !isCssdSubBoMa(code)) return null;
+
+  const { data: bo, error: boErr } = await supabase
+    .from("cssd_dm_bo_dung_cu")
+    .select("id")
+    .eq("ma_bo", normalizeBoMa(code))
+    .eq("is_active", true)
+    .limit(1)
+    .maybeSingle();
+  if (boErr) throw new Error(boErr.message);
+  if (!bo?.id) return null;
+
+  const boDungCuId = String(bo.id);
+  const { data: qt, error: qtErr } = await supabase
+    .from("cssd_fact_quy_trinh")
+    .select("id")
+    .eq("bo_dung_cu_id", boDungCuId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (qtErr) throw new Error(qtErr.message);
+
+  return {
+    boDungCuId,
+    workflowId: qt?.id ? String(qt.id) : undefined,
+  };
+}
+
+/** SSOT nhận diện mã quét CSSD — bộ / máy / mẻ. Mọi màn quét vận hành gọi qua đây. */
 export async function resolveCssdCodeWithClient(
   supabase: SupabaseClient,
   rawCode: string,
@@ -41,7 +78,7 @@ export async function resolveCssdCodeWithClient(
 
   const workflowResult = await supabase
     .from("cssd_fact_quy_trinh")
-    .select("id")
+    .select("id, bo_dung_cu_id")
     .eq("is_active", true)
     .or(buildCssdQuyTrinhQrOrFilter(code))
     .order("created_at", { ascending: false })
@@ -49,38 +86,61 @@ export async function resolveCssdCodeWithClient(
     .maybeSingle();
   if (workflowResult.error) throw new Error(workflowResult.error.message);
   if (workflowResult.data?.id) {
+    const boId = workflowResult.data.bo_dung_cu_id
+      ? String(workflowResult.data.bo_dung_cu_id)
+      : undefined;
     return cssdQrHubResolvedSchema.parse({
       targetType: "INSTRUMENT_SET",
       code,
       workflowId: String(workflowResult.data.id),
+      boDungCuId: boId,
+    });
+  }
+
+  const byBo = await resolveInstrumentSetByBoMaCatalog(supabase, code);
+  if (byBo) {
+    return cssdQrHubResolvedSchema.parse({
+      targetType: "INSTRUMENT_SET",
+      code,
+      workflowId: byBo.workflowId,
+      boDungCuId: byBo.boDungCuId,
     });
   }
 
   const hasMachineQrColumn = await tableHasColumn(supabase, "cssd_dm_thiet_bi", "ma_qr_thiet_bi");
-  let machineQuery = supabase
-    .from("cssd_dm_thiet_bi")
-    .select("id, ma_thiet_bi")
-    .eq("is_active", true)
-    .eq("ma_thiet_bi", code)
-    .limit(1)
-    .maybeSingle();
+  type MachineRow = { id: string; ma_thiet_bi: string | null };
+  let machineRow: MachineRow | null = null;
   if (hasMachineQrColumn) {
-    machineQuery = supabase
+    const machineResult = await supabase
       .from("cssd_dm_thiet_bi")
-      .select("id, ma_thiet_bi")
+      .select("id, ma_thiet_bi, ma_qr_thiet_bi")
       .eq("is_active", true)
       .or(`ma_thiet_bi.eq.${code},ma_qr_thiet_bi.eq.${code}`)
       .limit(1)
       .maybeSingle();
+    if (machineResult.error) throw new Error(machineResult.error.message);
+    machineRow = machineResult.data
+      ? { id: String(machineResult.data.id), ma_thiet_bi: machineResult.data.ma_thiet_bi }
+      : null;
+  } else {
+    const machineResult = await supabase
+      .from("cssd_dm_thiet_bi")
+      .select("id, ma_thiet_bi")
+      .eq("is_active", true)
+      .eq("ma_thiet_bi", code)
+      .limit(1)
+      .maybeSingle();
+    if (machineResult.error) throw new Error(machineResult.error.message);
+    machineRow = machineResult.data
+      ? { id: String(machineResult.data.id), ma_thiet_bi: machineResult.data.ma_thiet_bi }
+      : null;
   }
-  const machineResult = await machineQuery;
-  if (machineResult.error) throw new Error(machineResult.error.message);
-  if (machineResult.data?.id) {
+  if (machineRow?.id) {
     return cssdQrHubResolvedSchema.parse({
       targetType: "MACHINE",
       code,
-      machineId: String(machineResult.data.id),
-      machineCode: String((machineResult.data as { ma_thiet_bi?: string | null }).ma_thiet_bi || ""),
+      machineId: machineRow.id,
+      machineCode: String(machineRow.ma_thiet_bi || ""),
     });
   }
 

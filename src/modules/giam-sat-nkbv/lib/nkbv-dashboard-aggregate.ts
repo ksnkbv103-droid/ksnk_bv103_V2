@@ -1,12 +1,13 @@
 import { eachMonthOfInterval, format, parseISO, startOfMonth } from "date-fns";
 import { vi } from "date-fns/locale";
 import { formatNkbvLoaiDisplay } from "./nkbv-loai-labels";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
 export type NkbvCasRowMinimal = {
   ngay_phat_hien?: string | null;
   loai_nkbv?: { ma_loai?: string | null; ten_loai?: string | null } | null;
   trang_thai_row?: { ma_trang_thai?: string | null; ten_trang_thai?: string | null } | null;
-  khoa_ghi_nhan?: { ten_khoa?: string | null } | null;
+  khoa_ghi_nhan?: { ma_khoa?: string | null; ten_khoa?: string | null } | null;
 };
 
 export type NkbvDashboardPayload = {
@@ -81,8 +82,12 @@ export function aggregateNkbvDashboard(
     curT.n += 1;
     ttMap.set(tk, curT);
 
-    const kten = String(r.khoa_ghi_nhan?.ten_khoa || "").trim() || "Không xác định khoa";
-    khoaCount.set(kten, (khoaCount.get(kten) ?? 0) + 1);
+    const kten = formatKhoaCompactLabel({
+      ma_khoa: r.khoa_ghi_nhan?.ma_khoa,
+      ten_khoa: r.khoa_ghi_nhan?.ten_khoa,
+    });
+    const khoaKey = kten === "—" ? "Không xác định khoa" : kten;
+    khoaCount.set(khoaKey, (khoaCount.get(khoaKey) ?? 0) + 1);
   }
 
   const monthsSeq = eachMonthOfInterval({

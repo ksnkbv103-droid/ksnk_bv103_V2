@@ -1,8 +1,8 @@
 import React from "react";
-import { Database, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Activity, Database, ShieldCheck, ShieldAlert } from "lucide-react";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
-type TabId = "DANH_MUC" | "PHAN_QUYEN" | "MDM_GOVERNANCE";
+type TabId = "DANH_MUC" | "PHAN_QUYEN" | "MDM_GOVERNANCE" | "SUC_KHOE";
 
 type Props = {
   active: TabId;
@@ -65,6 +65,24 @@ export default function QuanTriDanhMucTabStrip({
         <ShieldAlert className="h-4 w-4 shrink-0 opacity-90 max-sm:h-3.5 max-sm:w-3.5" aria-hidden />
         <span className="truncate sm:hidden">Bảo vệ LK</span>
         <span className="hidden truncate sm:inline">Bảo vệ liên kết dữ liệu</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={active === "SUC_KHOE"}
+        id="tab-suc-khoe"
+        disabled={!canAccessDmTabs && !canConfigureRbac}
+        title={
+          canAccessDmTabs || canConfigureRbac
+            ? undefined
+            : "Cần quyền Xem Danh mục hoặc Phân quyền"
+        }
+        className={`${tabBase} ${active === "SUC_KHOE" ? "bg-white text-[var(--primary)] shadow-sm ring-1 ring-slate-200/80" : "text-slate-500 hover:bg-white/60 hover:text-slate-800"} disabled:cursor-not-allowed disabled:opacity-45`}
+        onClick={() => onChange("SUC_KHOE")}
+      >
+        <Activity className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
+        <span className="truncate sm:hidden">Sức khỏe</span>
+        <span className="hidden truncate sm:inline">Sức khỏe hệ thống</span>
       </button>
     </div>
   );

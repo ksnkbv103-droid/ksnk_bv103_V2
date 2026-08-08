@@ -6,8 +6,9 @@ const SCHEMA_CACHE_RE =
 export function formatQlcvDbError(message: string): string {
   if (SCHEMA_CACHE_RE.test(message)) {
     return (
-      "Cơ sở dữ liệu chưa có cột checklist hoặc PostgREST chưa reload schema. " +
-      "Chạy: npm run mdm:migrate (hoặc mdm:migrate:local), rồi khởi động lại Supabase local (supabase stop && supabase start). " +
+      "Cơ sở dữ liệu / schema API chưa khớp với app (thiếu cột hoặc PostgREST chưa reload). " +
+      "App trỏ cloud: chạy `npm run mdm:migrate` (đẩy migration lên project Supabase). " +
+      "Chỉ dùng local: `npm run mdm:migrate:local` rồi `supabase stop && supabase start`. " +
       "Chi tiết: docs/modules/qlcv/README.md"
     );
   }

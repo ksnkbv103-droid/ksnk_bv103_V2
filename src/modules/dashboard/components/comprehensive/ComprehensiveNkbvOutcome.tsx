@@ -36,7 +36,7 @@ export function ComprehensiveNkbvOutcome({ payload }: { payload: BaoCaoTongHopPa
     isPilotCoreModulesScopeEnabled() && isPathBlockedUnderPilotCoreModules("/giam-sat-nkbv");
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
         <h2 className={`flex items-center gap-2 ${D.sectionHeading}`}>
           <Activity size={18} className="text-[var(--primary)]" aria-hidden />
@@ -53,7 +53,7 @@ export function ComprehensiveNkbvOutcome({ payload }: { payload: BaoCaoTongHopPa
         ) : null}
       </div>
       <p className="mb-4 text-xs text-slate-500">
-        Số phiếu theo tháng — tách khỏi biểu đồ tuân thủ VST/GSC (không gộp CCS). Link giữ kỳ lọc báo cáo.
+        Số phiếu theo tháng — tách khỏi biểu đồ tuân thủ VST/GSC. Link giữ kỳ lọc báo cáo.
       </p>
       <div className="h-[240px] min-w-0">
         <SupervisionResponsiveChart className="h-full w-full min-w-0">

@@ -2,12 +2,16 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import VSTPrintView from "./VSTPrintView";
 import VstSessionViewer from "./VstSessionViewer";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { useVstHistoryTable } from "../hooks/use-vst-history-table";
+import { classifyEntityQr } from "@/lib/entity-qr/entity-qr-core";
 
 export default function HistoryTable() {
+  const router = useRouter();
   const {
     allowed,
     columns,
@@ -57,6 +61,16 @@ export default function HistoryTable() {
           onSort={handleSort}
           searchValue={searchTerm}
           searchPlaceholder="Tìm kiếm người giám sát, hình thức..."
+          enableQrScan
+          onQrScan={(code) => {
+            const resolved = classifyEntityQr(code);
+            if (resolved.kind === "VST_SESSION" && resolved.href) {
+              router.push(resolved.href);
+              return;
+            }
+            handleSearch(code);
+            if (resolved.kind !== "UNKNOWN") toast.message(resolved.label || "Đã đưa mã vào ô tìm");
+          }}
           loading={loading}
           serverPagination={{ page, totalPages, totalCount, pageSize, onPageChange: setPage }}
         />

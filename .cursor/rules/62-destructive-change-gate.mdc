@@ -1,6 +1,6 @@
 ---
-description: Follow these rules when deleting data, dropping schema objects, removing features or files, or making irreversible changes (DB or app).
-globs: supabase/migrations/*.sql, src/**/*.{ts,tsx}, docs/**/*.md
+description: Destructive change gate — drop schema objects, mass-delete src modules, remove production features, irreversible migration, triệt để / xóa 100%.
+globs: supabase/migrations/*.sql,src/**/*.{ts,tsx}
 alwaysApply: false
 ---
 

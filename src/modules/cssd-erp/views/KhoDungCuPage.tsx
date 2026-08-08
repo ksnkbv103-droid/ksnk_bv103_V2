@@ -2,19 +2,23 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Download, List, AlertTriangle, Printer, CalendarClock, Upload, Loader2 } from "lucide-react";
+import { List, AlertTriangle, Printer, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { useCssdPrint } from "../hooks/use-cssd-print";
 import CssdPrintPortal from "../components/print/CssdPrintPortal";
 import { fetchCssdKhoDungCuList } from "../actions/cssd-kho-read.actions";
 import { useImportExport } from "@/hooks/useImportExport";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
+import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
+import QrScanInput from "@/components/shared/QrScanInput";
 import InventoryDashboard, { FilterStatusType } from "../components/inventory/InventoryDashboard";
 import SetMembersModal from "../components/inventory/SetMembersModal";
 import InventoryIssueModal from "../components/inventory/InventoryIssueModal";
 import { importCSSDData } from "../actions/cssd.actions";
 import CSSDPageShell from "../components/layout/cssd-page-shell";
 import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_DATA_SURFACE } from "../shared/ui/cssd-ui-chrome";
+import { normalizeCssdCode } from "../shared/domain/cssd-qr-core";
+import { formatDateVi } from "@/lib/format-datetime-vi";
 
 /**
  * Trang Giám sát Kho Dụng cụ CSSD - BV103
@@ -27,6 +31,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<FilterStatusType>("ALL");
   const [filterFEFO, setFilterFEFO] = useState<boolean>(false);
+  const [qrFilter, setQrFilter] = useState("");
   const [selectedSet, setSelectedSet] = useState<any>(null);
   const [issueTool, setIssueTool] = useState<any>(null);
 
@@ -46,17 +51,23 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
     moduleKey: "CSSD_KHO_DUNGCU",
     tableName: "cssd_fact_quy_trinh",
     displayName: "Kho Dụng Cụ",
-    uniqueKey: "ma_qr_quy_trinh",
+    uniqueKey: "ma_vach_qr",
+    /** Fact vận hành — không cho ẩn hàng loạt tem đang chạy. */
+    disableSyncFull: true,
     columnMapping: {
-      "MÃ QR": "ma_qr_quy_trinh",
+      "MÃ QR": "ma_vach_qr",
       "TÊN BỘ": "ten_bo",
       "KHOA": "khoa_su_dung",
       "SỐ MÓN": "so_luong_mon",
       "FEFO": "han_su_dung",
-      "TRẠNG THÁI": "ma_trang_thai_hien_tai",
+      "TRẠNG THÁI": "trang_thai_hien_tai",
       "MÃ LÔ TK": "lo_tiet_khuan_id",
     },
-    onImport: async (rows) => importCSSDData(rows as Record<string, unknown>[]),
+    onImport: (rows, options) =>
+      importCSSDData(rows as Record<string, unknown>[], {
+        softDeleteMissing: false,
+        dryRun: options?.dryRun,
+      }),
     onSuccess: () => { void fetchData(); },
   });
 
@@ -67,6 +78,20 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
     window.addEventListener("cssd:kho-refetch", onRefetch);
     return () => window.removeEventListener("cssd:kho-refetch", onRefetch);
   }, [fetchData]);
+
+  const applyQrFilter = useCallback((raw: string) => {
+    const code = normalizeCssdCode(raw);
+    setQrFilter(code);
+    if (!code) return;
+    const hit = data.some((d) => {
+      const qr = normalizeCssdCode(d.ma_vach_qr);
+      const maBo = normalizeCssdCode(d.cssd_dm_bo_dung_cu?.ma_bo);
+      const cycle = normalizeCssdCode(d.ma_cycle_qr);
+      return qr === code || maBo === code || cycle === code;
+    });
+    if (hit) toast.success(`Đã lọc theo mã: ${code}`);
+    else toast.error(`Không thấy bộ nào khớp mã ${code}`);
+  }, [data]);
 
   const filteredData = useMemo(() => {
     let filtered = data;
@@ -96,26 +121,29 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
         return daysLeft <= 7 && daysLeft >= 0;
       });
     }
+
+    if (qrFilter) {
+      filtered = filtered.filter((d) => {
+        const qr = normalizeCssdCode(d.ma_vach_qr);
+        const maBo = normalizeCssdCode(d.cssd_dm_bo_dung_cu?.ma_bo);
+        const cycle = normalizeCssdCode(d.ma_cycle_qr);
+        return qr === qrFilter || maBo === qrFilter || cycle === qrFilter
+          || qr.includes(qrFilter) || maBo.includes(qrFilter);
+      });
+    }
     return filtered;
-  }, [data, filterStatus, filterFEFO]);
+  }, [data, filterStatus, filterFEFO, qrFilter]);
 
   const handleExport = () => {
     const exportData = filteredData.map((d: any) => ({
-      "MÃ QR": d.ma_vach_qr,
-      "TÊN BỘ": d.cssd_dm_bo_dung_cu?.ten_bo,
-      "KHOA": d.cssd_dm_bo_dung_cu?.khoa?.ma_khoa || "DÙNG CHUNG",
-      "SỐ MÓN": d.cssd_dm_bo_dung_cu?.so_luong_mon || 1,
-      "FEFO": d.han_su_dung ? new Date(d.han_su_dung).toLocaleDateString("vi-VN") : "---",
-      "TRẠNG THÁI": d.trang_thai_hien_tai,
+      ma_vach_qr: d.ma_vach_qr,
+      ten_bo: d.cssd_dm_bo_dung_cu?.ten_bo,
+      khoa_su_dung: d.cssd_dm_bo_dung_cu?.khoa?.ma_khoa || "DÙNG CHUNG",
+      so_luong_mon: d.cssd_dm_bo_dung_cu?.so_luong_mon || 1,
+      han_su_dung: formatDateVi(d.han_su_dung, "---"),
+      trang_thai_hien_tai: d.trang_thai_hien_tai,
+      lo_tiet_khuan_id: d.lo_tiet_khuan_id || "",
     }));
-    exportData.push({
-      "MÃ QR": "BỆNH VIỆN 103",
-      "TÊN BỘ": "BÁO CÁO KHO FEFO",
-      "KHOA": `Tổng: ${filteredData.length} bộ`,
-      "SỐ MÓN": "",
-      "FEFO": "",
-      "TRẠNG THÁI": "",
-    });
     exportTemplate(exportData);
   };
 
@@ -149,7 +177,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       header: "Số món",
       accessorKey: "cssd_dm_bo_dung_cu.so_luong_mon",
       cell: (i: any) => (
-        <span className="font-black text-slate-600 text-[11px]">{i.cssd_dm_bo_dung_cu?.so_luong_mon || 1}</span>
+        <span className="font-semibold text-slate-600 text-[11px]">{i.cssd_dm_bo_dung_cu?.so_luong_mon || 1}</span>
       ),
     },
     {
@@ -158,7 +186,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       cell: (i: any) => {
         if (!i.han_su_dung) return <span className="text-[11px] text-slate-300 italic">Chưa TK</span>;
         const daysLeft = (new Date(i.han_su_dung).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
-        const dateStr = new Date(i.han_su_dung).toLocaleDateString("vi-VN");
+        const dateStr = formatDateVi(i.han_su_dung);
         if (daysLeft <= 0)
           return (
             <span className="text-[11px] font-mono text-[11px] font-medium text-red-600 flex items-center gap-1 bg-red-50 px-2 py-1 rounded-lg">
@@ -173,7 +201,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
           );
         if (daysLeft <= 7)
           return (
-            <span className="text-[11px] font-black text-orange-600 flex items-center gap-1 bg-orange-50 px-2 py-1 rounded-lg">
+            <span className="text-[11px] font-semibold text-orange-600 flex items-center gap-1 bg-orange-50 px-2 py-1 rounded-lg">
               <CalendarClock size={12} /> {dateStr} ({Math.ceil(daysLeft)}d)
             </span>
           );
@@ -258,11 +286,20 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
         
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-[11px] font-medium text-slate-500">
-            Danh sách lọc: <span className="text-[var(--primary)] font-black">{filteredData.length}</span> bộ dụng cụ
+            Danh sách lọc: <span className="text-[var(--primary)] font-semibold">{filteredData.length}</span> bộ dụng cụ
+            {qrFilter ? (
+              <button
+                type="button"
+                className="ml-2 text-[var(--primary)] underline-offset-2 hover:underline"
+                onClick={() => setQrFilter("")}
+              >
+                Xóa lọc QR ({qrFilter})
+              </button>
+            ) : null}
           </p>
           <button
             onClick={() => setFilterFEFO(!filterFEFO)}
-            className={`px-6 py-3 rounded-2xl font-black text-[11px] uppercase transition-all flex items-center gap-2 border-2 ${
+            className={`px-6 py-3 rounded-[var(--radius-shell)] font-semibold text-[11px] uppercase transition-all flex items-center gap-2 border-2 ${
               filterFEFO
                 ? "border-orange-500 bg-orange-50 text-orange-600"
                 : "border-slate-100 bg-slate-50 text-slate-400 hover:bg-slate-100/50"
@@ -270,6 +307,15 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
           >
             <CalendarClock size={14} /> Chỉ hiển thị Sắp hết hạn (FEFO)
           </button>
+        </div>
+
+        <div className="max-w-xl">
+          <QrScanInput
+            placeholder="Quét hoặc gõ mã QR bộ / chu trình để lọc kho…"
+            cameraTitle="Quét QR kho dụng cụ"
+            onEnter={applyQrFilter}
+            onCameraScan={applyQrFilter}
+          />
         </div>
 
         <div className={CSSD_UI_DATA_SURFACE}>
@@ -304,27 +350,18 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
           Giám sát kho <span className="text-[var(--primary)]">FEFO</span>
         </>
       }
-      subtitle="Dữ liệu đồng bộ từ mẻ tiệt khuẩn & cấp phát"
       actions={
         <>
-          <input
-            type="file"
-            ref={fileInputRef}
-            accept=".xlsx,.xls"
-            className="hidden"
-            onChange={(e) => e.target.files?.[0] && void handleFileUpload(e.target.files[0])}
+          <ImportExportToolbar
+            fileInputRef={fileInputRef}
+            isImporting={isImporting}
+            onExport={handleExport}
+            onImportClick={triggerImport}
+            onFileChange={(file) => void handleFileUpload(file)}
+            disableSyncFull
+            exportClassName={CSSD_UI_ACTION_PRIMARY}
+            importClassName="inline-flex h-10 items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-100 disabled:opacity-50"
           />
-          <button
-            type="button"
-            onClick={triggerImport}
-            disabled={isImporting}
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-100 disabled:opacity-50"
-          >
-            {isImporting ? <Loader2 size={20} className="animate-spin" /> : <Upload size={20} />} Import
-          </button>
-          <button type="button" onClick={handleExport} className={CSSD_UI_ACTION_PRIMARY}>
-            <Download size={20} /> Xuất
-          </button>
         </>
       }
     >

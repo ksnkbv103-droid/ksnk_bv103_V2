@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Plus, Settings, Wrench, CheckCircle2, Zap, Upload, Download, Loader2 } from "lucide-react";
+import { Plus, Settings, Wrench, CheckCircle2, Zap } from "lucide-react";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
+import { ImportExportHint, ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { toast } from "sonner";
 import ThietBiFormModal from "./thiet-bi-form-modal";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
@@ -91,7 +92,10 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
       is_active: "is_active",
     },
     onGetData: () => getMasterDataExport("cssd_dm_thiet_bi", "ma_thiet_bi"),
-    onImport: (d) => smartImportData({ tableName: "cssd_dm_thiet_bi", uniqueKey: "ma_thiet_bi" }, d),
+    onImport: (d, options) =>
+      smartImportData({ tableName: "cssd_dm_thiet_bi", uniqueKey: "ma_thiet_bi" }, d, {
+        softDeleteMissing: options?.softDeleteMissing, dryRun: options?.dryRun,
+      }),
     onSuccess: () => setRefreshKey((k) => k + 1),
   });
 
@@ -110,16 +114,15 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
   const totalMeTietKhuan = data.reduce((acc, x) => acc + (x.so_lan_su_dung || 0), 0);
 
   const importButtons = (
-    <>
-      <input type="file" ref={fileInputRef} onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} accept=".xlsx,.xls" className="hidden" />
-      <button type="button" onClick={triggerImport} disabled={isImporting} className={C.ctaEmerald}>
-        {isImporting ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-        Import Excel
-      </button>
-      <button type="button" onClick={() => exportTemplate()} className={T.btnSecondary}>
-        <Download size={14} /> Export mẫu
-      </button>
-    </>
+    <ImportExportToolbar
+      fileInputRef={fileInputRef}
+      isImporting={isImporting}
+      onExport={() => void exportTemplate()}
+      onImportClick={triggerImport}
+      onFileChange={(file) => void handleFileUpload(file)}
+      exportClassName={T.btnSecondary}
+      importClassName={C.ctaEmerald}
+    />
   );
 
   return (
@@ -139,6 +142,7 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
           }
         />
       )}
+      <ImportExportHint />
 
       {/* Nếu suppressHeader là true, ta cần render lại các nút hành động (Add, Import) để không bị mất chức năng */}
       {suppressHeader && (
@@ -154,8 +158,8 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tổng số máy móc</p>
-            <p className="text-2xl font-black text-slate-800 mt-1">{totalThietBi}</p>
+            <p className="text-[11px] font-medium text-slate-500">Tổng số máy móc</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-800">{totalThietBi}</p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500">
             <Settings size={20} />
@@ -164,8 +168,8 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
 
         <div className="bg-white p-5 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Sẵn sàng vận hành</p>
-            <p className="text-2xl font-black text-emerald-600 mt-1">{readyCount}</p>
+            <p className="text-[11px] font-medium text-slate-500">Sẵn sàng vận hành</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-emerald-600">{readyCount}</p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
             <CheckCircle2 size={20} />
@@ -174,8 +178,8 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
 
         <div className="bg-white p-5 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Đang bảo trì / sửa chữa</p>
-            <p className="text-2xl font-black text-rose-600 mt-1">{repairingCount}</p>
+            <p className="text-[11px] font-medium text-slate-500">Đang bảo trì / sửa chữa</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-rose-600">{repairingCount}</p>
           </div>
           <div className={`h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 ${repairingCount > 0 ? "animate-pulse" : ""}`}>
             <Wrench size={20} />
@@ -184,8 +188,8 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
 
         <div className="bg-white p-5 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tổng mẻ tiệt khuẩn</p>
-            <p className="text-2xl font-black text-amber-600 mt-1">🔥 {totalMeTietKhuan}</p>
+            <p className="text-[11px] font-medium text-slate-500">Tổng mẻ tiệt khuẩn</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-amber-600">{totalMeTietKhuan}</p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
             <Zap size={20} />

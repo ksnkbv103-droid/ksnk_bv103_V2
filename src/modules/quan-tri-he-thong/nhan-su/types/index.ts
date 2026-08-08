@@ -23,7 +23,7 @@ export interface NhanSu {
   extra_data?: Record<string, unknown>;
 
   // UI Enrichment Objects
-  khoa?: { id: string; ten_khoa: string };
+  khoa?: { id: string; ten_khoa: string; ma_khoa?: string };
   to?: { id: string; ten_danh_muc: string };
   nghe_nghiep?: { id: string; ten_nghe_nghiep: string };
   chuc_danh?: string;

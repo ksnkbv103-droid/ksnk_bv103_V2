@@ -34,6 +34,8 @@ export function useVSTFormHandlers(
   setLoading: Dispatch<SetStateAction<boolean>>,
   onSuccess: () => void,
   editingSessionId: string | null,
+  /** Create-mode: sau lưu hiện CTA tiếp tục thay vì nhảy lịch sử ngay. */
+  onCreateSaveSuccess?: (savedPersons: VSTFormPerson[]) => void,
 ) {
   const mutatePersons = (mutator: (draft: VSTFormPerson[]) => void) => {
     const next = [...persons];
@@ -172,8 +174,15 @@ export function useVSTFormHandlers(
       if (res.success) {
         toast.success(res.message);
         setSession((prev) => ({ ...prev, thoi_gian_ket_thuc: ketThucIso }));
-        setPersons(createDefaultVSTFormPersons());
-        onSuccess();
+        if (sid) {
+          setPersons(createDefaultVSTFormPersons());
+          onSuccess();
+        } else if (onCreateSaveSuccess) {
+          onCreateSaveSuccess(persons);
+        } else {
+          setPersons(createDefaultVSTFormPersons());
+          onSuccess();
+        }
       } else toast.error(res.error);
     } catch (err: unknown) {
       if (isLikelyOfflineOrNetworkFailure(err)) {

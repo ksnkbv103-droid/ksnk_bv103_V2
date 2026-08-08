@@ -22,6 +22,7 @@
 3. **Không** card lồng card — tối đa: hero → một panel → bảng.
 4. Radius: `rounded-2xl` / `rounded-xl` — `npm run layout:drift-check`.
 5. Filter analytics: **`AnalyticsFilterBar`** cho mọi màn có bộ lọc khoa/kỳ.
+6. **Mật độ (2026-07-28):** `KsnkSupervisionHero` mặc định `compact`; `pageToolbar`/`pageOuter`/`KsnkPageHeader` đã siết — không phình padding one-off trên từng trang.
 
 ## Verify
 

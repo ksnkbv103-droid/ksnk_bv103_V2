@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { ADMIN_EMAILS } from "@/lib/constants";
-import { createPermissionApi, type PermissionRow } from "@/hooks/use-permission-api";
+import type { PermissionRow } from "@/hooks/use-permission-api";
 
 export type UserDataProfile = {
   id: string | null;
@@ -28,14 +28,37 @@ type RBACSnapshot = {
 const V_AUTH_USER_PERMISSIONS_SELECT =
   "staff_id,auth_user_id,ho_ten,ma_nv,email,khoa_id,is_active,ten_khoa_phong,ma_khoa_phong,roles,permissions" as const;
 
+const RBAC_FETCH_ATTEMPTS = 3;
+const RBAC_RETRY_BASE_MS = 400;
+
 function formatRbacQueryError(error: unknown): string {
   if (!error || typeof error !== "object") return String(error);
-  const e = error as { message?: string; code?: string; details?: string; hint?: string };
-  const parts = [e.message, e.code, e.details, e.hint].filter((x) => typeof x === "string" && x.trim());
+  const e = error as { message?: string; code?: string; details?: string; hint?: string; name?: string };
+  const parts = [e.name, e.message, e.code, e.details, e.hint].filter((x) => typeof x === "string" && x.trim());
   return parts.length > 0 ? parts.join(" | ") : JSON.stringify(error);
 }
 
+/** Lỗi mạng tạm (Wi‑Fi chớp / tab ngủ / DNS) — không phải sai quyền DB. */
+function isTransientRbacNetworkError(error: unknown): boolean {
+  if (typeof navigator !== "undefined" && !navigator.onLine) return true;
+  const msg =
+    error instanceof Error
+      ? `${error.name} ${error.message}`
+      : typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message: unknown }).message)
+        : String(error ?? "");
+  return /failed to fetch|networkerror|network request failed|load failed|fetch failed|authretryablefetcherror/i.test(
+    msg,
+  );
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 const RBAC_CACHE_TTL_MS = 5 * 60_000;
+/** Giữ snapshot cũ lâu hơn khi mạng chớp — tránh mất quyền trên UI. */
+const RBAC_STALE_CACHE_MAX_MS = 30 * 60_000;
 let rbacCache: { userId: string; snapshot: RBACSnapshot; cachedAt: number } | null = null;
 let rbacInFlight: Promise<RBACSnapshot> | null = null;
 
@@ -55,7 +78,7 @@ type PermissionContextValue = {
 
 const PermissionContext = createContext<PermissionContextValue | null>(null);
 
-async function fetchRBAC(user: User): Promise<RBACSnapshot> {
+async function fetchRBACOnce(user: User): Promise<RBACSnapshot> {
   const { data: authData, error: authErr } = await supabase
     .from("v_sys_user_permissions")
     .select(V_AUTH_USER_PERMISSIONS_SELECT)
@@ -93,6 +116,20 @@ async function fetchRBAC(user: User): Promise<RBACSnapshot> {
     userEmail: user.email || "",
     userData: userDataProfile,
   };
+}
+
+async function fetchRBAC(user: User): Promise<RBACSnapshot> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= RBAC_FETCH_ATTEMPTS; attempt++) {
+    try {
+      return await fetchRBACOnce(user);
+    } catch (err) {
+      lastError = err;
+      if (!isTransientRbacNetworkError(err) || attempt === RBAC_FETCH_ATTEMPTS) break;
+      await sleep(RBAC_RETRY_BASE_MS * attempt);
+    }
+  }
+  throw lastError;
 }
 
 export function PermissionProvider({ children }: { children: React.ReactNode }) {
@@ -142,7 +179,31 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
         rbacCache = { userId: user.id, snapshot, cachedAt: now };
         applySnapshot(snapshot);
       } catch (error) {
-        console.error("RBAC Error (Smart DB View):", formatRbacQueryError(error), error);
+        const stale =
+          rbacCache &&
+          rbacCache.userId === user.id &&
+          Date.now() - rbacCache.cachedAt < RBAC_STALE_CACHE_MAX_MS
+            ? rbacCache.snapshot
+            : null;
+
+        if (stale) {
+          if (isTransientRbacNetworkError(error)) {
+            console.warn(
+              "RBAC: mạng tạm thời — giữ quyền đã cache.",
+              formatRbacQueryError(error),
+            );
+          } else {
+            console.error("RBAC Error (Smart DB View):", formatRbacQueryError(error), error);
+          }
+          applySnapshot(stale);
+          return;
+        }
+
+        if (isTransientRbacNetworkError(error)) {
+          console.warn("RBAC: không tải được quyền (mạng tạm).", formatRbacQueryError(error));
+        } else {
+          console.error("RBAC Error (Smart DB View):", formatRbacQueryError(error), error);
+        }
         if (mounted) setLoading(false);
       } finally {
         if (mounted) setLoading(false);

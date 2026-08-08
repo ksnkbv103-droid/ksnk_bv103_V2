@@ -19,7 +19,17 @@ export type QlcvImportParseResult =
 
 function cell(row: Record<string, unknown>, ...keys: string[]): string {
   for (const k of keys) {
-    const v = row[k];
+    const candidates = [k, `${k}*`, k.replace(/\*$/, "")];
+    for (const candidate of candidates) {
+      const v = row[candidate];
+      if (v != null && String(v).trim() !== "") return String(v).trim();
+    }
+  }
+  // Khớp không phân biệt hoa thường / bỏ dấu * cuối header Excel mẫu.
+  const norm = (s: string) => s.trim().replace(/\*$/, "").toLowerCase();
+  const wanted = new Set(keys.map(norm));
+  for (const [header, v] of Object.entries(row)) {
+    if (!wanted.has(norm(header))) continue;
     if (v != null && String(v).trim() !== "") return String(v).trim();
   }
   return "";

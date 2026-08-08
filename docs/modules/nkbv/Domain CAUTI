@@ -1,0 +1,248 @@
+# ĐẶC TẢ LOGIC DOMAIN: CHƯƠNG 7 - NHIỄM KHUẨN TIẾT NIỆU (UTI / CAUTI)
+*Chuẩn hóa theo Sổ tay Giám sát An toàn Người bệnh NHSN/CDC 2025*
+
+---
+
+## 1. ĐỊNH NGHĨA BIẾN SỐ VÀ CƠ SỞ DỮ LIỆU ĐẦU VÀO (DATA SCHEMA)
+
+Động cơ quy tắc (Rule Engine) của phần mềm yêu cầu cấu trúc dữ liệu JSON đầu vào dưới đây để thực hiện tính toán tự động.
+
+### 1.1. Dữ liệu hành chính và nhập viện (Admission Record)
+```json
+{
+  "PatientID": "string (Primary Key)",
+  "AdmissionID": "string (Primary Key)",
+  "AdmissionDate": "date [YYYY-MM-DD]",
+  "DischargeDate": "date [YYYY-MM-DD] or null",
+  "BirthDate": "date [YYYY-MM-DD]",
+  "PatientAgeYears": "integer"
+}
+```
+*Lưu ý dịch tễ:* Ngày nhập viện vào khu vực nội trú được tính là **Hospital Day 1**.
+
+### 1.2. Dữ liệu can thiệp Ống thông tiểu (Indwelling Urinary Catheter - IUC Registry)
+```json
+{
+  "IUC_RegistryID": "string (Primary Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "InsertionDateTime": "datetime [YYYY-MM-DD HH:MM:SS]",
+  "RemovalDateTime": "datetime [YYYY-MM-DD HH:MM:SS] or null",
+  "LocationCode": "string (CDC Location Code)"
+}
+```
+*Lưu ý dịch tễ:* Chỉ áp dụng cho ống thông tiểu lưu (Foley). Không tính condom catheter hay thông tiểu ngắt quãng (straight catheter). Các loại catheter như nephrostomy tubes, suprapubic catheters hay ileoconduits không được tính là IUC trừ khi bệnh nhân có đặt đồng thời cả Foley.
+
+### 1.3. Bảng dữ liệu theo dõi dọc hàng ngày (Daily Longitudinal Flowsheet)
+```json
+{
+  "FlowsheetID": "string (Primary Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "CalendarDate": "date [YYYY-MM-DD]",
+  "HospitalDay": "integer (AdmissionDate = Day 1)",
+  "DailyMaxTempC": "float or null (Nhiệt độ lớn nhất trong ngày)",
+  "DailyMinTempC": "float or null (Nhiệt độ nhỏ nhất trong ngày)",
+  "HasSuprapubicTenderness": "boolean",
+  "HasCVA_Pain": "boolean",
+  "HasUrgency": "boolean",
+  "HasFrequency": "boolean",
+  "HasDysuria": "boolean",
+  "HasLethargy": "boolean (Chỉ dùng cho trẻ <= 1 tuổi)",
+  "HasVomiting": "boolean (Chỉ dùng cho trẻ <= 1 tuổi)",
+  "HasApnea": "boolean (Chỉ dùng cho trẻ <= 1 tuổi)",
+  "HasBradycardia": "boolean (Chỉ dùng cho trẻ <= 1 tuổi)"
+}
+```
+
+### 1.4. Dữ liệu vi sinh cấy nước tiểu và cấy máu (Microbiology Lab Records)
+```json
+{
+  "UrineCultureID": "string (Primary Key)",
+  "AdmissionID": "string (Foreign Key)",
+  "CollectionDateTime": "datetime [YYYY-MM-DD HH:MM:SS]",
+  "Organisms": [
+    {
+      "OrganismName": "string",
+      "CFU_Count": "float (CFU/ml)",
+      "IsBacterium": "boolean",
+      "IsYeast": "boolean",
+      "IsFungi": "boolean",
+      "IsParasite": "boolean"
+    }
+  ]
+}
+```
+*Lưu ý dịch tễ:* Để chạy thuật toán, mảng `Organisms` trong kết quả cấy nước tiểu phải có tối đa **2 loài** sinh vật được xác định. "Mixed flora" (Hệ vi khuẩn hỗn hợp) đại diện cho ít nhất 2 loài sinh vật và không được tính là tác nhân gây bệnh.
+
+---
+
+## 2. CỔNG LỌC ĐIỀU KIỆN TIÊN QUYẾT (GATEKEEPERS)
+
+Trước khi chạy thuật toán xác định UTI / CAUTI, hệ thống phải tự động kiểm tra các cổng lọc logic sau:
+
+*   **Logic 1 (Vị trí giám sát):** Bệnh nhân phải nằm tại các khoa điều trị nội trú hoặc ngoại trú thuộc diện giám sát theo kế hoạch báo cáo tháng (Monthly Reporting Plan). NICU chỉ được tham gia off-plan.
+*   **Logic 2 (Tính hợp lệ của ống thông tiểu - Eligible IUC cho CAUTI):**
+    *   Bệnh nhân có đặt ống thông tiểu lưu (IUC) liên tục **$> 2$ ngày theo lịch** tính đến Ngày xảy ra sự kiện (DOE).
+    *   *Công thức tính:* Ngày đặt IUC tại chỗ đầu tiên được tính là **IUC Day 1**. Nếu IUC được đặt trước khi nhập viện, ngày nhập viện được tính là **IUC Day 1**.
+*   **Logic 3 (Sự hiện diện của dụng cụ vào DOE):**
+    *   Để được tính là CAUTI, IUC phải **đang hiện diện** vào ngày DOE HOẶC **được rút vào ngày liền trước** (Day -1) ngày DOE.
+    *   Nếu IUC được rút ra, Ngày xảy ra sự kiện (DOE) phải rơi đúng vào ngày rút dụng cụ hoặc ngày tiếp theo.
+
+---
+
+## 3. THUẬT TOÁN TÍNH TOÁN KHUNG THỜI GIAN
+
+Hệ thống áp dụng chính xác các khoảng mốc thời gian quy định tại Chương 2.
+
+### 3.1. Thuật toán xác định Ngày lấy mẫu (Index Date) và Sinh khoảng cửa sổ (IWP)
+*   **Index Date:** Là ngày thu thập mẫu cấy nước tiểu dương tính hợp lệ đầu tiên dùng để thỏa mãn tiêu chuẩn SUTI / ABUTI.
+*   **Infection Window Period (IWP):** Là mảng thời gian 7 ngày tính bằng:
+    $$\text{IWP} = [\text{Index Date} - 3 \text{ ngày}, \text{ Index Date} + 3 \text{ ngày}]$$
+*   Tất cả các triệu chứng lâm sàng và cận lâm sàng cấu thành tiêu chuẩn chẩn đoán phải xuất hiện trọn vẹn trong khoảng IWP này.
+
+### 3.2. Thuật toán xác định Ngày xảy ra sự kiện (Date of Event - DOE)
+*   **DOE** là ngày đầu tiên xuất hiện bất kỳ yếu tố nào của tiêu chuẩn chẩn đoán (triệu chứng lâm sàng đầu tiên HOẶC ngày cấy nước tiểu dương tính đầu tiên) trong khoảng IWP.
+*   *Lưu ý:* DOE không nhất thiết phải là ngày làm xét nghiệm chẩn đoán (Index Date).
+
+### 3.3. Thuật toán phân loại POA vs HAI
+*   **Present on Admission (POA):** DOE xảy ra từ ngày nhập viện (Hospital Day 1) đến ngày thứ 2 của đợt nhập viện.
+*   **Healthcare-Associated Infection (HAI):** DOE xảy ra từ Ngày thứ 3 của đợt nhập viện trở đi.
+
+### 3.4. Thuật toán Khung thời gian lặp lại (Repeat Infection Timeframe - RIT)
+*   Kích hoạt khung RIT **14 ngày** kể từ ngày DOE (với DOE là Ngày 1).
+*   *Quy tắc chặn:* Không báo cáo ca UTI mới trong RIT. Mọi tác nhân vi sinh mới phát hiện trong nước tiểu thuộc RIT sẽ được cộng dồn vào ca bệnh gốc ban đầu.
+
+---
+
+## 4. TIÊU CHUẨN CHẨN ĐOÁN CHI TIẾT (LOGIC TREES)
+
+Hệ thống tự động phân loại ca bệnh theo 3 nhánh: **SUTI 1 (Người lớn/Trẻ em > 1 tuổi)**, **SUTI 2 (Trẻ em $\le 1$ tuổi)**, và **ABUTI (Mọi lứa tuổi không triệu chứng)**.
+
+### 4.1. Tiêu chuẩn Symptomatic UTI (SUTI) cho Bệnh nhân > 1 tuổi
+
+#### Tiêu chuẩn SUTI 1a (Catheter-Associated Urinary Tract Infection - CAUTI)
+*   **IF** (Bệnh nhân có IUC đặt $> 2$ ngày liên tục theo lịch tại thời điểm DOE VÀ đang hiện diện hoặc đã rút vào ngày liền trước DOE)
+*   **AND** (Có ít nhất một dấu hiệu hoặc triệu chứng lâm sàng trong IWP:
+    *   Sốt $> 38.0^{\circ}C$
+    *   Đau hoặc căng tức vùng trên xương mu (với điều kiện không có nguyên nhân nào khác)
+    *   Đau/căng tức góc sườn thắt lưng (với điều kiện không có nguyên nhân nào khác)
+    *   *Ràng buộc lâm sàng:* Các triệu chứng Tiểu gấp (urgency), Tiểu rắt (frequency), và Tiểu buốt (dysuria) **CẤM** được sử dụng khi IUC đang tại chỗ).
+*   **AND** (Mẫu cấy nước tiểu thu thập trong IWP thỏa mãn đồng thời:
+    *   Không có quá 2 loài vi sinh vật được định danh.
+    *   Có ít nhất một loại vi khuẩn đạt nồng độ $\ge 10^5$ CFU/ml.
+    *   *Ràng buộc vi sinh:* Tác nhân $\ge 10^5$ CFU/ml bắt buộc phải là **vi khuẩn** (bacterial pathogen). Nấm men, nấm sợi, nấm lưỡng hình và ký sinh trùng bị loại trừ hoàn toàn khỏi định nghĩa UTI.
+*   **THEN** Đạt tiêu chuẩn **SUTI 1a (CAUTI)**.
+
+#### Tiêu chuẩn SUTI 1b (Non-Catheter-Associated Urinary Tract Infection - Non-CAUTI)
+*   **IF** (Bệnh nhân không đặt IUC trên 2 ngày theo lịch tại thời điểm DOE)
+*   **AND** (Có ít nhất một dấu hiệu hoặc triệu chứng lâm sàng trong IWP:
+    *   Sốt $> 38.0^{\circ}C$
+    *   Đau hoặc căng tức vùng trên xương mu (không có nguyên nhân khác)
+    *   Đau hoặc căng tức góc sườn thắt lưng (không có nguyên nhân khác)
+    *   Tiểu gấp (urgency) (chỉ dùng khi không lưu IUC)
+    *   Tiểu rắt (frequency) (chỉ dùng khi không lưu IUC)
+    *   Tiểu buốt (dysuria) (chỉ dùng khi không lưu IUC)
+*   **AND** (Mẫu cấy nước tiểu thu thập trong IWP thỏa mãn đồng thời:
+    *   Không có quá 2 loài vi sinh vật được định danh.
+    *   Có ít nhất một loại vi khuẩn đạt nồng độ $\ge 10^5$ CFU/ml.
+    *   Tác nhân $\ge 10^5$ CFU/ml bắt buộc phải là vi khuẩn.
+*   **THEN** Đạt tiêu chuẩn **SUTI 1b (Non-CAUTI)**.
+
+---
+
+### 4.2. Tiêu chuẩn SUTI cho Bệnh nhân $\le 1$ tuổi (SUTI 2)
+*   **IF** (Bệnh nhân có độ tuổi $\le 1$ tuổi tại thời điểm DOE, có hoặc không có đặt IUC)
+*   **AND** (Có ít nhất một dấu hiệu hoặc triệu chứng lâm sàng trong IWP:
+    *   Sốt $> 38.0^{\circ}C$ HOẶC Hạ thân nhiệt $< 36.0^{\circ}C$
+    *   Ngưng thở (Apnea) (không có nguyên nhân khác)
+    *   Nhịp tim chậm (Bradycardia) (không có nguyên nhân khác)
+    *   Lờ đờ (Lethargy) (không có nguyên nhân khác)
+    *   Nôn (Vomiting) (không có nguyên nhân khác)
+    *   Đau/căng tức vùng trên xương mu (không có nguyên nhân khác)
+*   **AND** (Mẫu cấy nước tiểu thu thập trong IWP thỏa mãn đồng thời:
+    *   Không có quá 2 loài vi sinh vật được định danh.
+    *   Có ít nhất một loại vi khuẩn đạt nồng độ $\ge 10^5$ CFU/ml.
+    *   Tác nhân $\ge 10^5$ CFU/ml bắt buộc phải là vi khuẩn.
+*   **THEN** Đạt tiêu chuẩn **SUTI 2**.
+    *   *Phân loại dụng cụ:* Nếu IUC lưu $> 2$ ngày theo lịch và hiện diện tại DOE/DOE-1 $\rightarrow$ Gán nhãn CAUTI. Ngược lại $\rightarrow$ Gán nhãn Non-CAUTI.
+
+---
+
+### 4.3. Tiêu chuẩn Asymptomatic Bacteremic UTI (ABUTI)
+*   **IF** (Bệnh nhân thuộc mọi lứa tuổi, có hoặc không có đặt IUC)
+*   **AND** (Bệnh nhân **KHÔNG CÓ** bất kỳ dấu hiệu/triệu chứng lâm sàng nào của SUTI 1 hoặc SUTI 2 trong IWP)
+*   **AND** (Mẫu cấy nước tiểu thu thập trong IWP thỏa mãn đồng thời:
+    *   Không có quá 2 loài vi sinh vật được định danh.
+    *   Có ít nhất một loại vi khuẩn đạt nồng độ $\ge 10^5$ CFU/ml.
+    *   Tác nhân $\ge 10^5$ CFU/ml bắt buộc phải là vi khuẩn.
+*   **AND** (Mẫu cấy máu thu thập trong dải IWP có kết quả dương tính với:
+    *   Ít nhất một vi khuẩn trùng khớp (Match) hoàn toàn với vi khuẩn đạt nồng độ $\ge 10^5$ CFU/ml trong nước tiểu.
+    *   *Hoặc:* Trong trường hợp tác nhân nước tiểu là vi khuẩn hội sinh (Common Commensal), cấy máu phải thỏa mãn tiêu chuẩn LCBI 2 (không sốt) với cùng loại vi khuẩn hội sinh đó xuất hiện ở $\ge 2$ mẫu máu riêng biệt.
+*   **THEN** Đạt tiêu chuẩn **ABUTI**.
+    *   *Phân loại dụng cụ:* Nếu có IUC lưu $> 2$ ngày theo lịch và hiện diện tại DOE/DOE-1 $\rightarrow$ Gán nhãn CAUTI. Ngược lại $\rightarrow$ Gán nhãn Non-CAUTI.
+
+---
+
+## 5. LƯU ĐỒ THUẬT TOÁN (MERMAID FLOWCHART)
+
+```mermaid
+graph TD
+    A[Nạp kết quả cấy nước tiểu từ LIS] --> B{Mẫu cấy có <= 2 loài vi sinh vật <br> và chứa ít nhất 1 vi khuẩn >= 10^5 CFU/ml?}
+    B -- No --> C[Dừng - Không thỏa mãn tiêu chuẩn UTI]
+    B -- Yes --> D{Xét tuổi của bệnh nhân?}
+    
+    %% Nhánh bệnh nhân > 1 tuổi
+    D -- > 1 Tuổi --> E{Có triệu chứng trong IWP: <br> Sốt >38C, Đau trên xương mu, Đau góc sườn thắt lưng, <br> Tiểu gấp*, Tiểu rắt*, Tiểu buốt*?}
+    E -- No --> F[Đánh giá tiêu chuẩn ABUTI]
+    E -- Yes --> G{Bệnh nhân có đặt ống thông tiểu lưu IUC <br> liên tục > 2 ngày tính đến DOE?}
+    G -- Yes --> H{IUC hiện diện vào DOE <br> hoặc rút vào ngày DOE-1?}
+    H -- Yes --> I[Xác nhận CAUTI - SUTI 1a]
+    H -- No --> K[Xác nhận Non-CAUTI - SUTI 1b]
+    G -- No --> K
+
+    %% Nhánh bệnh nhân <= 1 tuổi
+    D -- <= 1 Tuổi --> L{Có triệu chứng trong IWP: <br> Sốt/Hạ thân nhiệt, Ngưng thở, Nhịp tim chậm, <br> Lờ đờ, Nôn, Đau trên xương mu?}
+    L -- No --> F
+    L -- Yes --> M{Có đặt IUC > 2 ngày <br> và hiện diện tại DOE/DOE-1?}
+    M -- Yes --> N[Xác nhận CAUTI - SUTI 2]
+    M -- No --> O[Xác nhận Non-CAUTI - SUTI 2]
+
+    %% Nhánh ABUTI
+    F --> P{Có cấy máu dương tính trong IWP <br> chứa vi khuẩn khớp với vi khuẩn trong nước tiểu?}
+    P -- No --> C
+    P -- Yes --> Q{Có đặt IUC > 2 ngày <br> và hiện diện tại DOE/DOE-1?}
+    Q -- Yes --> R[Xác nhận CAUTI - ABUTI]
+    Q -- No --> S[Xác nhận Non-CAUTI - ABUTI]
+```
+
+---
+
+## 6. QUY TẮC LOẠI TRỪ & NGOẠI LỆ (EXCLUSIONS & EDGE CASES)
+
+### 6.1. Tác nhân vi sinh bị loại trừ tuyệt đối (Pathogen Exclusions)
+*   **CẤM** sử dụng các tác nhân không phải vi khuẩn để chẩn đoán UTI dưới mọi hình thức, bao gồm:
+    *   Tất cả các loài nấm men và nấm sợi (*Candida spp.*, *Yeast not otherwise specified*, *molds*).
+    *   Nấm lưỡng hình (*dimorphic fungi*).
+    *   Ký sinh trùng (*parasites*).
+*   *Lưu ý xử lý kết quả lab:* Một mẫu nước tiểu chứa nấm men và vi khuẩn vẫn được coi là hợp lệ **nếu và chỉ nếu** chỉ có duy nhất 1 loài vi khuẩn xuất hiện với nồng độ $\ge 10^5$ CFU/ml. Phần mềm phải tự động bỏ qua nấm men và chỉ chạy thuật toán cho loài vi khuẩn đó.
+
+### 6.2. Quy tắc loại trừ trùng lặp "Mixed Flora" (Hệ vi sinh vật hỗn hợp)
+*   Nếu kết quả cấy nước tiểu trả về ghi nhận là "Mixed flora" hoặc tương đương, hệ thống phải tự động gán nhãn **không hợp lệ** và từ chối chạy thuật toán chẩn đoán.
+*   *Công thức logic:* "Mixed flora" mặc định đại diện cho ít nhất 2 loài sinh vật. Nếu mẫu cấy xuất hiện thêm bất kỳ vi sinh vật nào khác ngoài mixed flora, tổng số loài thực tế đã $\ge 3$ loài, vi phạm nghiêm trọng quy tắc $\le 2$ loài của NHSN.
+
+### 6.3. Quy tắc tính liên tục của ống thông tiểu (IUC Gaps / Removal)
+Để giảm tải sai lệch dữ liệu khi tính toán ngày mang dụng cụ, phần mềm áp dụng thuật toán sau:
+*   Nếu IUC được rút ra và một IUC mới được đặt lại **trước khi kết thúc 1 ngày lịch đầy đủ** (Full calendar day - từ 00:00 đến 11:59 PM, không tính theo 24 giờ) $\rightarrow$ Bộ đếm ngày dụng cụ được tính **tiếp tục, không gián đoạn**.
+*   Nếu bệnh nhân không mang IUC trọn vẹn **ít nhất 1 ngày lịch đầy đủ** $\rightarrow$ Bộ đếm ngày dụng cụ của IUC cũ bị hủy bỏ, bộ đếm mới được **thiết lập lại từ Ngày 1** (IUC Day 1) khi đặt ống mới.
+
+### 6.4. Chặn quy kết Nhiễm khuẩn huyết thứ phát từ đường tiết niệu (Secondary BSI Rules)
+Theo NHSN, nhiễm khuẩn tiết niệu (UTI) luôn luôn là **vị trí nhiễm khuẩn nguyên phát** và không bao giờ được coi là thứ phát sau một nhiễm khuẩn ở cơ quan khác. Tuy nhiên, cấy máu dương tính có thể được quy kết là thứ phát sau UTI theo các quy tắc:
+*   **IF** (Bệnh nhân thỏa mãn đầy đủ tiêu chuẩn SUTI)
+*   **AND** (Cấy máu dương tính được lấy mẫu trong **Secondary BSI Attribution Period (SBAP)** của ca SUTI đó)
+    *   *Độ dài SBAP:* Từ 14 đến 17 ngày (bằng IWP + RIT của ca SUTI).
+*   **AND** (Cấy máu chứa ít nhất một vi khuẩn khớp (Match) hoàn toàn về chi và loài với vi khuẩn được định danh từ mẫu nước tiểu dùng để thỏa mãn tiêu chuẩn SUTI).
+*   **THEN** Động cơ chẩn đoán dán nhãn ca cấy máu là **Secondary BSI**. Ca này không được báo cáo là Nhiễm khuẩn huyết nguyên phát (Primary BSI) và không đóng góp vào chỉ số CLABSI của khoa.
+*   *Ngoại lệ loại trừ:* Do nấm men (*Candida spp.*) bị loại trừ khỏi định nghĩa UTI, cấy máu dương tính với nấm men phát hiện trong SBAP của một ca SUTI **nghiêm cấm** quy kết là thứ phát sau UTI. Ca cấy máu nấm men này bắt buộc phải được đánh giá độc lập như một ca Primary BSI / CLABSI mới.
+
+---
+
+*   📊 **Nudge:** Tôi có thể tiếp tục tiến hành soạn thảo một tài liệu Đặc tả Logic chi tiết tương tự cho **Chương 9: Nhiễm khuẩn vết mổ (SSI)** để giúp lập trình viên hoàn thiện nốt phân hệ giám sát quy trình ngoại khoa cực kỳ quan trọng này không?

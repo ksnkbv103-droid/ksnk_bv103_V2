@@ -17,13 +17,16 @@ import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { Activity, Layers, PieChart, ShieldCheck, Warehouse } from "lucide-react";
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
+import { formatKhoaCompactLabel, formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 
-type KhoaOption = { id: string; ten_danh_muc: string };
+type KhoaOption = { id: string; ten_danh_muc: string; ma_danh_muc?: string };
 
 type NkbvDashboardPanelProps = {
   payload: NkbvDashboardPayload | null;
   loading?: boolean;
+  /** Khi true — kỳ/khoa nằm ở chrome (filterBar), không render trong body. */
+  filtersInChrome?: boolean;
   tuNgay: string;
   denNgay: string;
   onTuNgayChange: (v: string) => void;
@@ -40,6 +43,7 @@ const COL_LOAI = ["var(--primary)", "#0d9488", "#2563eb", "#d97706", "#7c3aed", 
 export default function NkbvDashboardPanel({
   payload,
   loading,
+  filtersInChrome = false,
   tuNgay,
   denNgay,
   onTuNgayChange,
@@ -52,11 +56,17 @@ export default function NkbvDashboardPanel({
 }: NkbvDashboardPanelProps) {
   const k = payload?.kpis;
   const khoaLabel = selectedKhoaId
-    ? khoaOptions.find((x) => x.id === selectedKhoaId)?.ten_danh_muc || "Một khoa"
+    ? (() => {
+        const row = khoaOptions.find((x) => x.id === selectedKhoaId);
+        return row
+          ? formatKhoaPickerLabel({ ma_danh_muc: row.ma_danh_muc, ten_danh_muc: row.ten_danh_muc })
+          : "Một khoa";
+      })()
     : "Tất cả khoa";
 
   return (
     <div className="space-y-6 px-4 pb-10 animate-in fade-in duration-400">
+      {!filtersInChrome ? (
       <div className="flex flex-wrap items-end gap-3 rounded-[var(--radius-shell)] border border-slate-200/90 bg-white/90 p-4 shadow-sm">
         <label className={C.formLabelFlex}>
           Từ ngày
@@ -88,7 +98,10 @@ export default function NkbvDashboardPanel({
               <option value="">Tất cả khoa</option>
               {khoaOptions.map((khoa) => (
                 <option key={khoa.id} value={khoa.id}>
-                  {khoa.ten_danh_muc}
+                  {formatKhoaPickerLabel({
+                    ma_danh_muc: khoa.ma_danh_muc,
+                    ten_danh_muc: khoa.ten_danh_muc,
+                  })}
                 </option>
               ))}
             </select>
@@ -107,6 +120,13 @@ export default function NkbvDashboardPanel({
           Mặc định 12 tháng lịch gần nhất. Chỉ tính phiếu có ngày phát hiện trong khoảng.
         </p>
       </div>
+      ) : (
+        <p className="text-[11px] text-slate-500">
+          Đang lọc: <span className="font-semibold text-slate-700">{khoaLabel}</span>
+          {" · "}
+          {tuNgay} → {denNgay}. Chỉ tính phiếu có ngày phát hiện trong khoảng.
+        </p>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {[
@@ -151,7 +171,7 @@ export default function NkbvDashboardPanel({
         ].map((c) => (
           <div
             key={c.label}
-            className={`premium-card rounded-3xl border border-slate-100 bg-white p-5 shadow-[var(--shadow-app-soft)] border-l-4 ${c.tint}`}
+            className={`${C.panelSurface} p-5 border-l-4 ${c.tint}`}
           >
             <div className="flex items-start justify-between gap-2">
               <p className={C.statLabel}>{c.label}</p>
@@ -170,7 +190,7 @@ export default function NkbvDashboardPanel({
       ) : payload ? (
         <>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="premium-card rounded-[36px] border border-slate-50 bg-white p-6 shadow-xl shadow-slate-200/40">
+            <div className={`${C.panelSurface} p-6`}>
               <h3 className={`mb-4 ${C.blockSection}`}>Xu hướng phiếu theo tháng</h3>
               <Bv103ResponsiveChart className="h-[280px] w-full min-h-[260px] min-w-0">
                   <LineChart data={payload.monthly} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
@@ -193,7 +213,7 @@ export default function NkbvDashboardPanel({
               </Bv103ResponsiveChart>
             </div>
 
-            <div className="premium-card rounded-[36px] border border-slate-50 bg-white p-6 shadow-xl shadow-slate-200/40">
+            <div className={`${C.panelSurface} p-6`}>
               <h3 className={`mb-4 ${C.blockSection}`}>
                 Phân bố theo loại HAI/NKBV
               </h3>
@@ -212,7 +232,7 @@ export default function NkbvDashboardPanel({
               </Bv103ResponsiveChart>
             </div>
 
-            <div className="premium-card rounded-[36px] border border-slate-50 bg-white p-6 shadow-xl shadow-slate-200/40">
+            <div className={`${C.panelSurface} p-6`}>
               <h3 className={`mb-4 ${C.blockSection}`}>
                 Theo trạng thái xử lý
               </h3>
@@ -227,7 +247,7 @@ export default function NkbvDashboardPanel({
               </Bv103ResponsiveChart>
             </div>
 
-            <div className="premium-card rounded-[36px] border border-slate-50 bg-white p-6 shadow-xl shadow-slate-200/40">
+            <div className={`${C.panelSurface} p-6`}>
               <h3 className={`mb-4 ${C.blockSection}`}>
                 Khoa có nhiều phiếu (top trong khoảng)
               </h3>
@@ -245,7 +265,7 @@ export default function NkbvDashboardPanel({
 
           {/* Premium JCI / CDC NHSN Epidemiology Surveillance Dashboard */}
           {payload.epidemiologyRates && payload.epidemiologyRates.length > 0 && (
-            <div className="premium-card rounded-[36px] border border-slate-100 bg-white p-6 shadow-xl shadow-slate-200/40 space-y-6">
+            <div className={`${C.panelSurface} p-6 space-y-6`}>
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
                 <div>
                   <h3 className={`${C.sectionTitle} flex items-center gap-2`}>
@@ -305,7 +325,7 @@ export default function NkbvDashboardPanel({
                 return (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {/* CLABSI Card */}
-                    <div className="premium-card bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-3xl p-4 space-y-2 transition-all">
+                    <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
                         <span className="text-[11px] font-semibold uppercase tracking-wide text-red-500 tracking-wider">Nhiễm khuẩn huyết (CLABSI)</span>
                         <span className="rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
@@ -321,7 +341,7 @@ export default function NkbvDashboardPanel({
                     </div>
 
                     {/* CAUTI Card */}
-                    <div className="premium-card bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-3xl p-4 space-y-2 transition-all">
+                    <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
                         <span className="text-[11px] font-semibold uppercase tracking-wide text-amber-500 tracking-wider">Tiết niệu (CAUTI)</span>
                         <span className="rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
@@ -337,7 +357,7 @@ export default function NkbvDashboardPanel({
                     </div>
 
                     {/* VAP Card */}
-                    <div className="premium-card bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-3xl p-4 space-y-2 transition-all">
+                    <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
                         <span className="text-[11px] font-medium text-teal-600 tracking-wider">VAP (viêm phổi liên quan thở máy)</span>
                         <span className="rounded-full bg-teal-100 text-teal-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
@@ -353,7 +373,7 @@ export default function NkbvDashboardPanel({
                     </div>
 
                     {/* SSI Card */}
-                    <div className="premium-card bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-3xl p-4 space-y-2 transition-all">
+                    <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
                         <span className="text-[11px] font-medium text-blue-600 tracking-wider">Vết mổ (SSI)</span>
                         <span className="rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
@@ -397,7 +417,9 @@ export default function NkbvDashboardPanel({
                         ssi_sir?: number;
                       }) => (
                         <li key={r.khoa_id} className="space-y-2 px-3 py-3.5">
-                          <p className="font-bold text-slate-800">{r.ten_khoa}</p>
+                          <p className="font-bold text-slate-800">
+                            {formatKhoaCompactLabel({ ten_khoa: r.ten_khoa, ma_khoa: (r as { ma_khoa?: string }).ma_khoa })}
+                          </p>
                           <div className="grid grid-cols-2 gap-2 text-[11px]">
                             <div className="rounded-lg bg-red-50/50 p-2">
                               <p className="font-medium text-red-700">CLABSI</p>
@@ -460,7 +482,12 @@ export default function NkbvDashboardPanel({
 
                       return (
                         <tr key={r.khoa_id} className="hover:bg-slate-50/50 transition">
-                          <td className="px-4 py-3 font-bold text-slate-800">{r.ten_khoa}</td>
+                          <td className="px-4 py-3 font-bold text-slate-800">
+                            {formatKhoaCompactLabel({
+                              ten_khoa: r.ten_khoa,
+                              ma_khoa: r.ma_khoa,
+                            })}
+                          </td>
                           
                           {/* CLABSI columns */}
                           <td className="px-4 py-3 text-center bg-red-50/10">
