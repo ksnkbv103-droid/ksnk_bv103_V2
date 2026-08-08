@@ -65,7 +65,7 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
           .map((r) => ({ id: r.id, ten_danh_muc: String(r.ten_danh_muc ?? "") }));
       setKhoas(
         (res.data.khoas || [])
-          .filter((r): r is { id: string; ten_danh_muc?: string; ma_danh_muc?: string } => Boolean(r.id))
+          .filter((r): r is { id: string; ten_danh_muc: string | null; ma_danh_muc: string | null } => Boolean(r.id))
           .map((r) => ({
             id: r.id,
             ten_danh_muc: String(r.ten_danh_muc ?? ""),

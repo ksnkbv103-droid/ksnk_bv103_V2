@@ -74,10 +74,53 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "wired",
   },
   {
-    id: "sx.fever_or_wbc_pneu",
-    name_en: "Fever / hypothermia / abnormal WBC (PNEU systemic)",
-    name_vi: "Sốt / hạ thân nhiệt / WBC bất thường",
-    threshold_note: "Sốt >38°C hoặc WBC ≤4000 hoặc ≥12000/mm³ (bundled view pilot)",
+    id: "sx.pneu_fever",
+    name_en: "Fever >38.0°C (PNEU)",
+    name_vi: "Sốt > 38,0°C",
+    threshold_note: "> 38.0°C (hoặc > 100.4°F)",
+    syndromes: ["PNEU"],
+    checklist_gates: ["HAP", "VAP"],
+    age_gate: "any",
+    window: "IWP",
+    doe_eligible: true,
+    form_field: "has_pneu_fever",
+    criteria_key: "fever_or_wbc",
+    group: "Toàn thân PNEU",
+    runtime_status: "wired",
+  },
+  {
+    id: "sx.pneu_hypothermia",
+    name_en: "Hypothermia <36.0°C (PNEU)",
+    name_vi: "Hạ thân nhiệt < 36,0°C",
+    syndromes: ["PNEU"],
+    checklist_gates: ["HAP", "VAP"],
+    age_gate: "any",
+    window: "IWP",
+    doe_eligible: true,
+    form_field: "has_pneu_hypothermia",
+    criteria_key: "fever_or_wbc",
+    group: "Toàn thân PNEU",
+    runtime_status: "wired",
+  },
+  {
+    id: "sx.pneu_wbc_abnormal",
+    name_en: "Abnormal WBC (PNEU)",
+    name_vi: "Bạch cầu ≤ 4.000 hoặc ≥ 12.000/mm³",
+    syndromes: ["PNEU"],
+    checklist_gates: ["HAP", "VAP"],
+    age_gate: "any",
+    window: "IWP",
+    doe_eligible: true,
+    form_field: "has_pneu_wbc_abnormal",
+    criteria_key: "fever_or_wbc",
+    group: "Toàn thân PNEU",
+    runtime_status: "wired",
+  },
+  {
+    id: "sx.fever_or_wbc_pneu_legacy",
+    name_en: "Fever / hypothermia / abnormal WBC (legacy bundle)",
+    name_vi: "Sốt / hạ thân nhiệt / WBC (gộp — ca cũ)",
+    threshold_note: "Derived từ atom; giữ tương thích JSON cũ",
     syndromes: ["PNEU"],
     checklist_gates: ["HAP", "VAP"],
     age_gate: "any",
@@ -1204,7 +1247,7 @@ export function symptomsForSyndrome(syndrome: NkbvSymptomSyndrome): NkbvClinical
 
 export function wiredSymptomsForSyndrome(syndrome: NkbvSymptomSyndrome): NkbvClinicalSymptomDef[] {
   return symptomsForSyndrome(syndrome).filter(
-    (s) => s.runtime_status !== "catalog_only" && s.form_field,
+    (s) => s.runtime_status === "wired" && s.form_field,
   );
 }
 
@@ -1358,10 +1401,15 @@ export function criteriaKeyToFormField(
     const byDepth = pool.filter((s) => !s.ssi_depth || s.ssi_depth === depth);
     if (byDepth.length) pool = byDepth;
   }
-  // VAE: fever_or_wbc → ưu tiên nhiệt độ IVAC (rồi WBC vẫn sync form→BA)
+  // VAE: fever_or_wbc → ưu tiên nhiệt độ IVAC
   if (syn === "VAE" && criteriaKey === "fever_or_wbc") {
     const temp = pool.find((s) => s.form_field === "temp_fever_or_hypothermia");
     if (temp?.form_field) return temp.form_field;
+  }
+  // PNEU: ưu tiên atom sốt (không map về legacy bundle)
+  if (syn === "PNEU" && criteriaKey === "fever_or_wbc") {
+    const fever = pool.find((s) => s.form_field === "has_pneu_fever");
+    if (fever?.form_field) return fever.form_field;
   }
   return pool[0]?.form_field ?? CRITERIA_TO_FORM[criteriaKey] ?? null;
 }

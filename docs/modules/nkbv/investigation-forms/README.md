@@ -9,6 +9,7 @@
 | 0 | [`00-lean-cdc-methodology.md`](00-lean-cdc-methodology.md) | L1/L2/L3, rubric, bề mặt A/B |
 | 1 | [`01-shared-spine.md`](01-shared-spine.md) | Hàng 0–9 Shared vs Delta; VAE≠PNEU |
 | 2 | [`02-clinical-symptom-catalog.md`](02-clinical-symptom-catalog.md) | SSOT triệu chứng lâm sàng + ánh xạ form/criteria |
+| 2b | [`symptom-catalog-uat-20260809.md`](symptom-catalog-uat-20260809.md) | UAT tay 3–4 case + lệnh verify unit |
 | 3 | [`trees/`](trees/) | Cây + bảng phân lớp từng hội chứng |
 | 4 | `*-2026.md` | Phần A vận hành + Phần B phụ lục |
 | 5 | [`gap-lean-vs-runtime.md`](gap-lean-vs-runtime.md) | P0 / P1 — **PO duyệt tại đây** |

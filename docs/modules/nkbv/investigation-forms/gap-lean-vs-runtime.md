@@ -8,7 +8,7 @@
 
 | ID | Hội chứng | Gap | Hướng xử lý A6 |
 |----|-----------|-----|----------------|
-| PNEU-P0-1 | PNEU | Checklist miễn dịch PNU3 từng tiêu chí | L2 khi chọn PNU3 |
+| PNEU-P0-1 | PNEU | Checklist miễn dịch PNU3 từng tiêu chí | **Đóng 2026-08-09** — hemoptysis/pleuritic + engine INCOMPLETE |
 | PNEU-P0-2 | PNEU | Lab ngưỡng BAL/ETA/PSB/PBAL tách dòng | L2 khi PNU2 |
 | PNEU-P0-3 | PNEU | Khối Ruled-out (Phần V giấy) | L3 bắt buộc khi loại trừ |
 | PNEU-P0-4 | PNEU | Nhãn VAP/Non-VAP rõ trên hàng device | UI badge từ engine |

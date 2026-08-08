@@ -104,7 +104,14 @@ export interface VaeVerificationData extends NkbvAnalysisIndexFields {
   has_chest_imaging_abnormal: boolean; // Có X-quang/CT ngực thâm nhiễm mới/tiến triển/dai dẳng, đông đặc, tạo hang
   has_cardiopulmonary_disease_underlying: boolean; // Có bệnh lý tim phổi nền (nếu có cần >= 2 phim, nếu không chỉ cần 1 phim)
   imaging_films_count: number; // Số lượng phim X-quang/CT ngực đạt chuẩn bất thường
-  fever_or_wbc_abnormal: boolean; // Triệu chứng toàn thân (Sốt > 38°C, hạ thân nhiệt < 36°C, hoặc WBC bất thường)
+  /** Legacy / derived — true nếu ≥1 atom toàn thân (hoặc ca cũ chỉ tick gộp). */
+  fever_or_wbc_abnormal: boolean;
+  /** Atom PNEU — sốt > 38°C */
+  has_pneu_fever?: boolean;
+  /** Atom PNEU — hạ thân nhiệt < 36°C */
+  has_pneu_hypothermia?: boolean;
+  /** Atom PNEU — WBC ≤4000 hoặc ≥12000/mm³ */
+  has_pneu_wbc_abnormal?: boolean;
   altered_mental_status_ge_70yo: boolean; // Lú lẫn/thay đổi ý thức ở người >= 70 tuổi
   respiratory_symptoms_count: number; // Số triệu chứng tại chỗ (suy từ checklist hoặc nhập tay)
   has_new_cough?: boolean;
@@ -226,6 +233,11 @@ export interface SsiVerificationData extends NkbvAnalysisIndexFields {
   organ_space_abscess_imaging_pathology: boolean; // Phát hiện áp xe trong organ/space qua mổ lại, CĐHA, hoặc giải phẫu bệnh
   /** Ngoại lệ CSEC/HYST/VHYS — đau bụng / tăng nhạy cảm đau bụng sau mổ (OREP/EMET/VCUF) */
   organ_space_obgyn_abdominal_pain?: boolean;
+  /**
+   * Cờ triệu chứng Chương 17 theo site (key = form_field catalog `ch17_*`).
+   * Dùng khi Organ/Space chọn mã site NHSN.
+   */
+  chapter17_flags?: Record<string, boolean>;
   
   // Secondary BSI criteria
   has_blood_culture_positive: boolean; // Có cấy máu dương tính

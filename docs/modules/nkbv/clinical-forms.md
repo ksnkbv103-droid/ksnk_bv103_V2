@@ -4,7 +4,7 @@
 > **Phiên bản:** 3.2 (2026-08-05) — lớp L1/L2/L3 tinh gọn CDC + investigation-forms  
 > Neo domain: [`hai-surveillance-domain-ssot-20260804.md`](./hai-surveillance-domain-ssot-20260804.md)  
 > Phân tích phiếu: [`investigation-forms/README.md`](./investigation-forms/README.md)  
-> **SSOT triệu chứng:** [`investigation-forms/02-clinical-symptom-catalog.md`](./investigation-forms/02-clinical-symptom-catalog.md) · code `nkbv-clinical-symptom-catalog.ts`
+> **SSOT triệu chứng:** [`investigation-forms/02-clinical-symptom-catalog.md`](./investigation-forms/02-clinical-symptom-catalog.md) · code `nkbv-clinical-symptom-catalog.ts` · Ch.17 SSI `nkbv-chapter17-clinical.ts` · UAT [`investigation-forms/symptom-catalog-uat-20260809.md`](./investigation-forms/symptom-catalog-uat-20260809.md)
 
 ## Cập nhật 2026-08 — form hàng chẩn đoán (2 cột)
 

@@ -5,6 +5,7 @@ import {
   countPneuRespiratoryLines,
   formSymptomRowsFor,
 } from "../../lib/nkbv-clinical-symptom-catalog";
+import { syncPneuSystemicBundle } from "../../lib/nkbv-pneu-systemic";
 import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
 import type { VaeVerificationData } from "../../types/nkbv-verification";
 import NkbvDomainFormShell from "../NkbvDomainFormShell";
@@ -212,16 +213,22 @@ export default function PneuClinicalSubForm({
             title="Triệu chứng trong IWP"
             hint="SSOT catalog · toàn thân ≥1 + hô hấp ≥2 dòng. Mỗi dấu hiệu dương tính gắn ngày ∈ IWP."
           >
-            <p className="text-[11px] font-bold uppercase text-slate-400">Toàn thân</p>
+            <p className="text-[11px] font-bold uppercase text-slate-400">
+              Toàn thân (tách sốt / hạ thân nhiệt / WBC)
+            </p>
             <NkbvCatalogSymptomRows
               rows={formSymptomRowsFor("PNEU").filter(
                 (r) =>
-                  r.form_field === "fever_or_wbc_abnormal" ||
+                  r.group === "Toàn thân PNEU" ||
                   (ageBranch === "ADULT" && r.form_field === "altered_mental_status_ge_70yo"),
               )}
               form={form as unknown as Record<string, unknown>}
               onToggle={(field, checked) =>
-                onChange({ ...form, [field]: checked } as VaeVerificationData)
+                onChange(
+                  syncPneuSystemicBundle(form, {
+                    [field]: checked,
+                  } as Partial<VaeVerificationData>),
+                )
               }
               symptomDates={symptomDates}
               onSymptomDateChange={onSymptomDateChange}

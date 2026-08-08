@@ -13,6 +13,11 @@ import {
   resolveSsiSurveillanceDays,
   secondaryIncisionMismatchWarning,
 } from "../../lib/nkbv-ssi-nhsn-catalog";
+import {
+  ch17RuleForSite,
+  countCh17Signs,
+  isCh17SiteCriteriaMet,
+} from "../../lib/nkbv-chapter17-clinical";
 import { formSymptomRowsFor } from "../../lib/nkbv-clinical-symptom-catalog";
 import type { SsiVerificationData } from "../../types/nkbv-verification";
 import NkbvDomainFormShell from "../NkbvDomainFormShell";
@@ -52,6 +57,8 @@ export default function SsiClinicalSubForm({
   symptomDates,
   onSymptomDateChange,
   allowedEdit,
+  iwpStart,
+  iwpEnd,
   activeTab = "LAM_SANG",
   classificationBadge,
   embedded = false,
@@ -308,7 +315,7 @@ export default function SsiClinicalSubForm({
             </p>
           ) : null}
           {depth === "ORGAN_SPACE" ? (
-            <div className="mt-2">
+            <div className="mt-2 space-y-2">
               <label className="mb-1 block text-xs font-bold">
                 Mã vị trí Organ/Space (bắt buộc)
               </label>
@@ -316,7 +323,11 @@ export default function SsiClinicalSubForm({
                 value={form.organ_space_site || ""}
                 disabled={!allowedEdit || isTimeframeExpired}
                 onChange={(e) =>
-                  onChange({ ...form, organ_space_site: e.target.value || undefined })
+                  onChange({
+                    ...form,
+                    organ_space_site: e.target.value || undefined,
+                    chapter17_flags: {},
+                  })
                 }
                 className={C.controlInput}
               >
@@ -327,6 +338,55 @@ export default function SsiClinicalSubForm({
                   </option>
                 ))}
               </select>
+              {(() => {
+                const rule = ch17RuleForSite(form.organ_space_site);
+                if (!rule) {
+                  return form.organ_space_site ? (
+                    <p className="text-[11px] text-slate-500">
+                      Site {form.organ_space_site}: dùng tiêu chí Organ/Space chung (mủ dẫn lưu /
+                      cấy / áp xe). Checklist Ch.17 chi tiết sẽ bổ sung theo từng site.
+                    </p>
+                  ) : null;
+                }
+                const flags = form.chapter17_flags || {};
+                const n = countCh17Signs(rule, flags);
+                const status = isCh17SiteCriteriaMet({
+                  siteCode: form.organ_space_site,
+                  flags,
+                  procedureCode: form.loai_phau_thuat_nhsn,
+                });
+                return (
+                  <div className="rounded-xl border border-violet-100 bg-violet-50/70 p-3 space-y-2">
+                    <p className="text-[11px] font-bold text-violet-900">
+                      Chương 17 — {rule.name_vi} (cần ≥{rule.min_signs})
+                    </p>
+                    {rule.signs.map((s) => (
+                      <label
+                        key={s.key}
+                        className="flex items-center gap-2 text-xs font-semibold cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={flags[s.key] === true}
+                          disabled={!allowedEdit || isTimeframeExpired}
+                          onChange={(e) =>
+                            onChange({
+                              ...form,
+                              chapter17_flags: { ...flags, [s.key]: e.target.checked },
+                            })
+                          }
+                        />
+                        {s.label_vi}
+                      </label>
+                    ))}
+                    <p
+                      className={`text-[11px] ${status.met ? "text-emerald-800" : "text-amber-900"}`}
+                    >
+                      {status.reason} · đang chọn {n}/{rule.min_signs}
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
           ) : null}
           {depth === "SUPERFICIAL" || depth === "DEEP" || depth === "ORGAN_SPACE" ? (

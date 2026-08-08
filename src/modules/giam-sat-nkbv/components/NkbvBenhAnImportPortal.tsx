@@ -13,6 +13,7 @@ import {
   UploadCloud,
 } from "lucide-react";
 import SearchableSelect from "@/components/shared/SearchableSelect";
+import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import {
   buildBenhAnTemplateTsv,

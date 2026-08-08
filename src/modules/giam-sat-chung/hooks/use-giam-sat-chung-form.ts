@@ -594,7 +594,7 @@ export function useGiamSatChungForm(
     setSession((prev) => {
       const patch = rest as Record<string, unknown>;
       if (!hasSessionDiff(prev as Record<string, unknown>, patch)) return prev;
-      return { ...prev, ...rest };
+      return { ...prev, ...rest } as typeof prev;
     });
   }, [session, selectedKhoa, selectedKhuVuc, ngayGiamSat]);
 

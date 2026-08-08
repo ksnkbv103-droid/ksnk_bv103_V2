@@ -216,6 +216,29 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       const res = evaluateBsiClabsi(data);
       expect(res.classification).toBe("MBI_LCBI");
     });
+
+    it("applies MBI_LCBI when intestinal pathogen + tiêu chảy nặng (catalog)", () => {
+      const data: BsiVerificationData = {
+        is_fungi_respiratory: false,
+        pathogen_name: "Candida tropicalis",
+        pathogen_type: "RECOGNIZED",
+        commensal_culture_count: 0,
+        commensal_drawn_separate: false,
+        symptoms_window_7days: false,
+        cvc_placed_days: 5,
+        cvc_active_on_event: true,
+        is_neutropenia: false,
+        is_intestinal_pathogen: true,
+        has_severe_diarrhea_mbi: true,
+        has_localized_infection: false,
+        localized_pathogen_matches: false,
+        is_in_sbap_window: false,
+        blood_mandatory_for_localized: false,
+      };
+      const res = evaluateBsiClabsi(data);
+      expect(res.classification).toBe("MBI_LCBI");
+      expect(res.reason).toMatch(/tiêu chảy nặng/i);
+    });
   });
 
   describe("evaluateVaeVap", () => {
@@ -244,6 +267,84 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       const res = evaluateVaeVap(data, "PNEU");
       expect(res.is_positive).toBe(true);
       expect(res.classification).toBe("PNU1_NON_VAP");
+    });
+
+    it("accepts PNEU systemic from atom sốt (không cần legacy bundle)", () => {
+      const data: VaeVerificationData = {
+        patient_age: 50,
+        vent_days: 0,
+        has_stable_baseline_peep_fio2: false,
+        peep_increase_ge_3: false,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: false,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: false,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: true,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 1,
+        fever_or_wbc_abnormal: false,
+        has_pneu_fever: true,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 2,
+        microbiology_evidence: "NONE",
+      };
+      expect(evaluateVaeVap(data, "PNEU").classification).toBe("PNU1_NON_VAP");
+    });
+
+    it("blocks PNU3 without hemoptysis/pleuritic pain", () => {
+      const data: VaeVerificationData = {
+        patient_age: 60,
+        vent_days: 0,
+        has_stable_baseline_peep_fio2: false,
+        peep_increase_ge_3: false,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: false,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: false,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: true,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 1,
+        fever_or_wbc_abnormal: true,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 2,
+        microbiology_evidence: "PNU3",
+        has_hemoptysis: false,
+        has_pleuritic_chest_pain: false,
+      };
+      const res = evaluateVaeVap(data, "PNEU");
+      expect(res.is_positive).toBe(false);
+      expect(res.classification).toBe("INCOMPLETE");
+    });
+
+    it("allows PNU3 when hemoptysis present", () => {
+      const data: VaeVerificationData = {
+        patient_age: 60,
+        vent_days: 0,
+        has_stable_baseline_peep_fio2: false,
+        peep_increase_ge_3: false,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: false,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: false,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: true,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 1,
+        fever_or_wbc_abnormal: true,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 2,
+        microbiology_evidence: "PNU3",
+        has_hemoptysis: true,
+      };
+      expect(evaluateVaeVap(data, "PNEU").classification).toBe("PNU3_NON_VAP");
     });
 
     it("labels PNEU as VAP when vent eligible ≥3 days", () => {
@@ -768,6 +869,36 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.is_positive).toBe(true);
       expect(res.classification).toBe("SIP");
       expect(res.is_secondary_bsi).toBe(true);
+    });
+
+    it("Organ/Space IAB đạt khi ≥2 triệu chứng Ch.17", () => {
+      const res = evaluateSsi({
+        days_since_surgery: 10,
+        has_implant: false,
+        ssi_depth: "ORGAN_SPACE",
+        ssi_event_type: "ORGAN_SPACE",
+        organ_space_site: "IAB",
+        superficial_purulent_drainage: false,
+        superficial_culture_positive: false,
+        superficial_opened_with_inflammation: false,
+        superficial_physician_diagnosis: false,
+        deep_purulent_drainage: false,
+        deep_dehisced_or_opened_with_symptoms: false,
+        deep_abscess_imaging_pathology: false,
+        organ_space_purulent_drainage: false,
+        organ_space_culture_positive: false,
+        organ_space_abscess_imaging_pathology: false,
+        chapter17_flags: {
+          ch17_iab_fever: true,
+          ch17_iab_abdominal_pain: true,
+        },
+        has_blood_culture_positive: false,
+        blood_ssi_pathogen_matches: false,
+        loai_phau_thuat_nhsn: "COLO",
+      });
+      expect(res.is_positive).toBe(true);
+      expect(res.classification).toBe("ORGAN_SPACE:IAB");
+      expect(res.reason).toMatch(/IAB/);
     });
   });
 });

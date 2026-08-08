@@ -47,9 +47,7 @@ describe("nkbv-clinical-symptom-catalog", () => {
   });
 
   it("resolves shared criteria keys by syndrome / SSI depth", () => {
-    expect(criteriaKeyToFormField("fever_or_wbc", { syndrome: "PNEU" })).toBe(
-      "fever_or_wbc_abnormal",
-    );
+    expect(criteriaKeyToFormField("fever_or_wbc", { syndrome: "PNEU" })).toBe("has_pneu_fever");
     expect(criteriaKeyToFormField("fever_or_wbc", { syndrome: "VAE" })).toBe(
       "temp_fever_or_hypothermia",
     );
@@ -92,6 +90,6 @@ describe("nkbv-clinical-symptom-catalog", () => {
   it("criteria→form map is non-empty and stable for imaging", () => {
     const map = buildCriteriaKeyToFormFieldMap();
     expect(map.imaging_chest).toBe("has_chest_imaging_abnormal");
-    expect(map.fever_or_wbc).toBe("fever_or_wbc_abnormal");
+    expect(map.fever_or_wbc).toBe("has_pneu_fever");
   });
 });

@@ -8,6 +8,8 @@ import {
   UtiVerificationData,
   SsiVerificationData,
 } from "../types/nkbv-verification";
+import { isCh17SiteCriteriaMet } from "./nkbv-chapter17-clinical";
+import { derivePneuSystemic } from "./nkbv-pneu-systemic";
 import { computeVacFromDailyVent } from "./nkbv-vae-vent-compute";
 import { evaluateSecondaryBsi } from "./nkbv-shared-secondary-bsi";
 import {
@@ -156,18 +158,20 @@ export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResu
     };
   }
 
-  // MBI-LCBI NHSN: tác nhân đường ruột + (ANC/WBC <500 ≥2 ngày lịch HOẶC HSCT/GVHD HOẶC neutropenia).
+  // MBI-LCBI NHSN: tác nhân đường ruột + (ANC/WBC <500 ≥2d | HSCT/GVHD | neutropenia | tiêu chảy nặng MBI).
   const mbiMucosalBarrier =
     Boolean(data.anc_wbc_lt_500_ge_2d) ||
     Boolean(data.has_hsct_or_gvhd) ||
-    Boolean(data.is_neutropenia);
+    Boolean(data.is_neutropenia) ||
+    Boolean(data.has_severe_diarrhea_mbi);
   if (data.is_intestinal_pathogen && mbiMucosalBarrier) {
     return {
       is_positive: true,
       classification: "MBI_LCBI",
       lcbi_type: lcbiType,
-      reason:
-        "Ngoại lệ Tổn thương hàng rào niêm mạc (MBI-LCBI): tác nhân đường ruột + ANC/WBC <500 ≥2 ngày lịch hoặc HSCT/GVHD/neutropenia. Không tính lỗi CLABSI.",
+      reason: data.has_severe_diarrhea_mbi && !data.anc_wbc_lt_500_ge_2d && !data.has_hsct_or_gvhd && !data.is_neutropenia
+        ? "MBI-LCBI: tác nhân đường ruột + tiêu chảy nặng (≥1 L/24h hoặc ≥20 mL/kg/24h) trong 7 ngày trước cấy máu (+). Không tính lỗi CLABSI."
+        : "Ngoại lệ Tổn thương hàng rào niêm mạc (MBI-LCBI): tác nhân đường ruột + ANC/WBC <500 ≥2 ngày lịch hoặc HSCT/GVHD/neutropenia/tiêu chảy nặng. Không tính lỗi CLABSI.",
     };
   }
 
@@ -301,7 +305,7 @@ export function evaluateVaeVap(
   const needLocal = pediatricBranch ? 3 : 2;
   const hasSystemic =
     infantBranch ||
-    data.fever_or_wbc_abnormal ||
+    derivePneuSystemic(data) ||
     data.altered_mental_status_ge_70yo;
   const hasLocal = localCount >= needLocal;
   const infantGasOk = !infantBranch || gas;
@@ -330,6 +334,14 @@ export function evaluateVaeVap(
   const ventLabel = ventEligible ? "VAP" : "NON_VAP";
 
   if (data.microbiology_evidence === "PNU3") {
+    if (!data.has_hemoptysis && !data.has_pleuritic_chest_pain) {
+      return {
+        is_positive: false,
+        classification: "INCOMPLETE",
+        reason:
+          "PNU3: cần thêm ho ra máu hoặc đau ngực kiểu màng phổi (triệu chứng bổ sung suy giảm miễn dịch).",
+      };
+    }
     return {
       is_positive: true,
       classification: `PNU3_${ventLabel}`,
@@ -528,12 +540,25 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
     const obgynPainOk =
       !!data.organ_space_obgyn_abdominal_pain &&
       (proc === "CSEC" || proc === "HYST" || proc === "VHYS");
-    if (
+    const ch17 = isCh17SiteCriteriaMet({
+      siteCode: data.organ_space_site,
+      flags: data.chapter17_flags,
+      procedureCode: data.loai_phau_thuat_nhsn,
+    });
+    const genericOrgan =
       data.organ_space_purulent_drainage ||
       data.organ_space_culture_positive ||
       data.organ_space_abscess_imaging_pathology ||
-      obgynPainOk
-    ) {
+      obgynPainOk;
+    // Site có checklist Ch.17 vận hành → phải đạt Ch.17 (hoặc vẫn chấp nhận tiêu chí Organ chung)
+    if (ch17.applicable) {
+      if (ch17.met || genericOrgan) {
+        matched = true;
+        reason = ch17.met
+          ? `Organ/Space SSI — ${ch17.reason}`
+          : "Nhiễm khuẩn cơ quan/khoang (Organ/Space SSI) đạt chuẩn CDC/NHSN.";
+      }
+    } else if (genericOrgan) {
       matched = true;
       reason = obgynPainOk && !data.organ_space_purulent_drainage && !data.organ_space_culture_positive && !data.organ_space_abscess_imaging_pathology
         ? "Organ/Space SSI — đau bụng sau mổ (CSEC/HYST/VHYS) đạt chuẩn NHSN."
