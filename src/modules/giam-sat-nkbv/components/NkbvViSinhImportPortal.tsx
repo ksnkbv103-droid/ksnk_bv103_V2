@@ -366,7 +366,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
             </h3>
             <p className="text-xs text-slate-400 mt-1">
               Chỉ lưu / chuẩn hóa dữ liệu vi sinh thô — không phải phiếu điều tra dịch tễ. Phân tích
-              nhiễm khuẩn trên Hub bệnh án. 1) Tải mẫu → 2) dán từ LIS → 3) lưu kho.
+              nhiễm khuẩn trên Hub bệnh án (sau phân tích, kho hiện cột «Đã PT?»). 1) Tải mẫu → 2) dán từ LIS → 3) lưu kho.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -483,7 +483,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                 <ClipboardPaste className="h-4 w-4" />
                 {showPastePanel ? "Ẩn khung dán" : "Dán bảng"}
                 {pasteData.trim() && !showPastePanel ? (
-                  <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
+                  <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[11px] font-bold text-amber-800">
                     có nội dung
                   </span>
                 ) : null}

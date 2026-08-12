@@ -48,6 +48,8 @@ describe("nkbv-clinical-symptom-catalog", () => {
 
   it("resolves shared criteria keys by syndrome / SSI depth", () => {
     expect(criteriaKeyToFormField("fever_or_wbc", { syndrome: "PNEU" })).toBe("has_pneu_fever");
+    expect(criteriaKeyToFormField("fever", { syndrome: "PNEU" })).toBe("has_pneu_fever");
+    expect(criteriaKeyToFormField("fever", { syndrome: "UTI" })).toBe("has_fever");
     expect(criteriaKeyToFormField("fever_or_wbc", { syndrome: "VAE" })).toBe(
       "temp_fever_or_hypothermia",
     );

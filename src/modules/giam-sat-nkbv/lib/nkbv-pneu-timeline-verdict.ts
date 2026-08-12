@@ -11,7 +11,12 @@ import {
   type BaGridXnCell,
 } from "./nkbv-ba-grid-engine";
 import type { NkbvCriteriaKey } from "./nkbv-criteria-matrix";
-import { isDeviceAssociated } from "./nkbv-shared-timeline";
+import {
+  applyPneuLabDerivedFlags,
+  derivePneuLabTier,
+  labFactsFromXnCell,
+} from "./nkbv-pneu-lab-tier";
+import { deviceAssociationFromCanThiepDates } from "./nkbv-shared-timeline";
 import { ageYearsFromNgaySinh } from "./nkbv-uti-timeline-verdict";
 
 /** Triệu chứng hô hấp tại chỗ — đếm ≥2 cho PNU. */
@@ -118,6 +123,8 @@ export type BuildPneuTimelineVerdictInput = {
   bloodCriterionIds: string[];
   bloodXn?: BaGridXnCell[];
   patientAge?: number | null;
+  admissionDate?: string | null;
+  dischargeDate?: string | null;
   devicePlacedDate?: string | null;
   deviceRemovedDate?: string | null;
   /** Lớp 2 — bệnh tim phổi nền → cần ≥2 phim. */
@@ -175,26 +182,47 @@ export function buildPneuTimelineVerdict(
   const hasLocalRespiratory = respiratoryCount >= 2;
 
   const bloodIds = new Set(input.bloodCriterionIds);
-  const bloodTicked = (input.bloodXn || []).some((b) => bloodIds.has(b.id));
-  const respIndexPositive =
-    isRespiratoryIndexXn(input.indexXn) &&
-    Boolean(input.indexXn?.vi_khuan && input.indexXn.vi_khuan !== "—");
-  const microbiology: PneuTimelineGate["microbiology"] =
-    bloodTicked || respIndexPositive ? "PNU2" : "NONE";
+  const bloodTickedXn = (input.bloodXn || []).find((b) => bloodIds.has(b.id));
+  const bloodTicked = Boolean(bloodTickedXn);
 
   const ventDates = input.canThiepDates.map((d) => d.slice(0, 10)).sort();
-  const placed = input.devicePlacedDate?.slice(0, 10) || ventDates[0] || "";
-  const removed = input.deviceRemovedDate?.slice(0, 10) || null;
-  let ventDays = 0;
-  if (placed && doe) {
-    ventDays = isDeviceAssociated({
-      placedDate: placed,
-      removedDate: removed,
-      doe,
-    }).placedDays;
-  } else if (ventDates.length) {
-    ventDays = ventDates.length;
-  }
+  const ventAssoc = doe
+    ? deviceAssociationFromCanThiepDates(input.canThiepDates, doe, {
+        placedDate: input.devicePlacedDate || ventDates[0] || null,
+        removedDate: input.deviceRemovedDate || null,
+        admissionDate: input.admissionDate,
+        dischargeDate: input.dischargeDate,
+      })
+    : { placedDays: 0, activeOnEvent: false, associated: false, episodeStart: undefined, episodeRemoved: null };
+  const ventDays = ventAssoc.placedDays;
+  const placed =
+    ventAssoc.episodeStart || input.devicePlacedDate?.slice(0, 10) || ventDates[0] || "";
+  const removed =
+    ventAssoc.episodeRemoved !== undefined
+      ? ventAssoc.episodeRemoved
+      : input.deviceRemovedDate?.slice(0, 10) || null;
+
+  // Lab-first từ index XN (CFU/semi) hoặc cấy máu tick ∈ IWP
+  const labFromIndex = labFactsFromXnCell(input.indexXn);
+  const labFromBlood = bloodTickedXn ? labFactsFromXnCell(bloodTickedXn) : null;
+  const labPatch = bloodTicked
+    ? {
+        ...labFromBlood,
+        pneu_lab_specimen: "BLOOD" as const,
+        pneu_lab_organism:
+          labFromBlood?.pneu_lab_organism ||
+          bloodTickedXn?.vi_khuan ||
+          "",
+      }
+    : isRespiratoryIndexXn(input.indexXn)
+      ? labFromIndex
+      : {
+          pneu_lab_specimen: "NONE" as const,
+          pneu_lab_organism: "",
+          pneu_lab_cfu_per_ml: null,
+          pneu_lab_semi_quant: "NONE" as const,
+          pneu_lab_table3_positive: false,
+        };
 
   // Map LS → optional symptom flags (criteriaKeyToSymptomDateKey)
   let hasNewCough = false;
@@ -222,7 +250,7 @@ export function buildPneuTimelineVerdict(
   const needsTwo = cardio;
   const filmsForEngine = needsTwo ? imagingCount : Math.max(imagingCount, hasImaging ? 1 : 0);
 
-  const data: VaeVerificationData = {
+  const data = applyPneuLabDerivedFlags({
     ...baseVaeStub(),
     patient_age: age,
     vent_days: ventDays,
@@ -241,10 +269,14 @@ export function buildPneuTimelineVerdict(
     has_worsening_gas_exchange: hasWorsening,
     has_dyspnea: hasDyspnea,
     has_tachypnea: hasTachypnea,
-    microbiology_evidence: microbiology,
+    microbiology_evidence: "NONE" as const,
     calculated_doe: doe || undefined,
     respiratory_organism: input.indexXn?.vi_khuan || undefined,
-  };
+    ...labPatch,
+  }) as VaeVerificationData;
+
+  const labTier = derivePneuLabTier(data);
+  const microbiology: PneuTimelineGate["microbiology"] = labTier.tier;
 
   const result = evaluateVaeVap(data, "PNEU");
   const criteriaMet = result.is_positive;
@@ -261,6 +293,16 @@ export function buildPneuTimelineVerdict(
   if (!hasSystemic) warnings.push("Thiếu triệu chứng toàn thân (sốt/WBC hoặc AMS ≥70)");
   if (!hasLocalRespiratory) {
     warnings.push(`Thiếu triệu chứng hô hấp tại chỗ (cần ≥2, hiện ${respiratoryCount})`);
+  }
+  if (labTier.lab_excluded) {
+    warnings.push(labTier.reasons.find((r) => /Loại khỏi/i.test(r)) || "Lab LRT bị loại khỏi PNU2/3");
+  } else if (
+    labPatch.pneu_lab_specimen &&
+    labPatch.pneu_lab_specimen !== "NONE" &&
+    labTier.tier === "NONE" &&
+    labTier.used_lab_facts
+  ) {
+    warnings.push("Lab chưa đạt ngưỡng Table 2/3 — giữ PNU1 nếu đủ lâm sàng");
   }
 
   return {

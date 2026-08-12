@@ -11,7 +11,8 @@ import {
   evaluateBsiClabsi,
   evaluateVaeVap,
   evaluateUtiCauti,
-  evaluateSsi
+  evaluateSsi,
+  evaluateCh17,
 } from "../lib/nkbv-rules-engine";
 import { assertClinicalEvidenceForSubmit } from "../lib/nkbv-clinical-submit-gate";
 import { resolveCssdQuyTrinhLinkFromMaQr } from "@/lib/cssd-nkbv-trace";
@@ -278,6 +279,8 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       result = evaluateUtiCauti(verificationInput);
     } else if (viTriNhiemKhuan === "SSI") {
       result = evaluateSsi(verificationInput);
+    } else if (viTriNhiemKhuan === "CH17") {
+      result = evaluateCh17(verificationInput);
     } else {
       throw new Error(`Vị trí nhiễm khuẩn không hợp lệ: ${viTriNhiemKhuan}`);
     }
@@ -303,6 +306,14 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
     } else if (viTriNhiemKhuan === "SSI") {
       mappedViTri = "Vết mổ";
       loaiCode = "SSI";
+    } else if (viTriNhiemKhuan === "CH17") {
+      const cls = String(result.classification || "");
+      const site =
+        cls.startsWith("CH17:") || cls.startsWith("SSI:")
+          ? cls.split(":")[1]
+          : String(verificationInput?.ch17_type_code || "CH17").toUpperCase();
+      mappedViTri = `Chương 17 (${site})`;
+      loaiCode = site || "CH17";
     }
 
     // Query loai_nkbv_id based on loaiCode (VAE / VAP / HAP tách; HAP fallback PNEU)

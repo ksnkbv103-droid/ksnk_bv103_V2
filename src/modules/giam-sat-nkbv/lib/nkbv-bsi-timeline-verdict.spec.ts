@@ -41,6 +41,52 @@ describe("nkbv-bsi-timeline-verdict", () => {
     expect(v.gate.cvcAssociated).toBe(true);
   });
 
+  it("CVC chỉ 1 ngày tại DOE → PRIMARY_BSI_NON_CLABSI (không gắn)", () => {
+    const ix = "2026-07-20";
+    const v = buildBsiTimelineVerdict({
+      indexXn: blood({ id: "b1", ngay: ix }),
+      bloodXn: [blood({ id: "b1", ngay: ix })],
+      lamSang: { "2026-07-19": [{ key: "fever", label: "Sốt" }] },
+      canThiepDates: ["2026-07-20"],
+      iwpDates: iwpAround(ix),
+      nsk: ix,
+      devicePlacedDate: "2026-07-01", // sổ cũ — bị bỏ qua khi lưới có ngày
+    });
+    expect(v.gate.cvcAssociated).toBe(false);
+    expect(v.result.classification).toBe("PRIMARY_BSI_NON_CLABSI");
+  });
+
+  it("CVC 2 ngày liên tiếp (Day1–2) → chưa đủ Day 3 → không CLABSI", () => {
+    const ix = "2026-07-20";
+    const v = buildBsiTimelineVerdict({
+      indexXn: blood({ id: "b1", ngay: ix }),
+      bloodXn: [blood({ id: "b1", ngay: ix })],
+      lamSang: { "2026-07-20": [{ key: "fever", label: "Sốt" }] },
+      canThiepDates: ["2026-07-19", "2026-07-20"],
+      iwpDates: iwpAround(ix),
+      nsk: ix,
+    });
+    expect(v.gate.cvcPlacedDays).toBe(2);
+    expect(v.gate.cvcAssociated).toBe(false);
+    expect(v.result.classification).toBe("PRIMARY_BSI_NON_CLABSI");
+  });
+
+  it("CVC tick trước vào viện bị loại — không phình CLABSI", () => {
+    const ix = "2026-07-20";
+    const v = buildBsiTimelineVerdict({
+      indexXn: blood({ id: "b1", ngay: ix }),
+      bloodXn: [blood({ id: "b1", ngay: ix })],
+      lamSang: { "2026-07-19": [{ key: "fever", label: "Sốt" }] },
+      canThiepDates: ["2026-07-17", "2026-07-18", "2026-07-19", "2026-07-20"],
+      iwpDates: iwpAround(ix),
+      nsk: ix,
+      admissionDate: "2026-07-19",
+    });
+    expect(v.gate.cvcPlacedDays).toBe(2);
+    expect(v.gate.cvcAssociated).toBe(false);
+    expect(v.result.classification).toBe("PRIMARY_BSI_NON_CLABSI");
+  });
+
   it("Site Secondary defer: localized + match → SECONDARY_BSI (không CLABSI)", () => {
     const ix = "2026-07-20";
     const v = buildBsiTimelineVerdict({

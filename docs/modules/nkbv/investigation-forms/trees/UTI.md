@@ -1,6 +1,8 @@
 # Cây quyết định + phân lớp — UTI / CAUTI / ABUTI
 
-> **A2** · SSOT §7 · Runtime: `UtiClinicalSubForm` + `UtiVerificationData`
+> **A2** · SSOT §7 · Runtime: `UtiClinicalSubForm` + `UtiVerificationData`  
+> **PO audit chuẩn vs runtime (2026-08-10):** [`../uti-standard-vs-runtime-audit-20260810.md`](../uti-standard-vs-runtime-audit-20260810.md) — lệch A1–A5 / B1–B5; chưa sửa engine trong audit.  
+> Flowchart dưới ghi «Foley ≥2d» = diễn giải NHSN «>2 ngày lịch» → đủ từ **Day 3** (xem audit §2.5).
 
 ## Decision tree
 

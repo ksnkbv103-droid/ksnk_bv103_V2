@@ -141,6 +141,12 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-08-10 | **NKBV audit UTI chuẩn vs runtime (PO):** [`uti-standard-vs-runtime-audit-20260810.md`](../modules/nkbv/investigation-forms/uti-standard-vs-runtime-audit-20260810.md) — SUTI/ABUTI/CAUTI·lab·Foley·SBSI; lệch UTI-AUDIT-A1–A5/B1–B5; thứ tự sửa A1→A2→A3→A5→A4. Không sửa engine trong slice. |
+| 2026-08-10 | **NKBV audit PNEU chuẩn vs runtime (PO):** [`pneu-standard-vs-runtime-audit-20260810.md`](../modules/nkbv/investigation-forms/pneu-standard-vs-runtime-audit-20260810.md) — điều kiện PNU1/2/3·VAP·SBSI·LOA; lệch A1–A5/B1–B5; quyết định A/B; backlog audit hội chứng tiếp [`syndrome-audit-backlog.md`](../modules/nkbv/investigation-forms/syndrome-audit-backlog.md). Không sửa engine trong slice. |
+| 2026-08-09 | **NKBV Tạo phiếu seed + Đã PT:** `nkbv-analysis-session-to-verification` đổ LS/ngày/Secondary/kết luận vào `verification_data` lúc «Tạo phiếu»; đánh dấu Index+RIT+máu SBAP `metadata.analysis_disposition=DA_PHAN_TICH`; kho VS cột «Đã PT?»; hub dispositions gồm attributed. |
+| 2026-08-09 | **NKBV phân tích thông minh RIT/SBAP:** `nkbv-ket-luan-smart` gộp tác nhân trong RIT + tự Secondary BSI từ máu∈SBAP; kết luận 5 ý (HAI/POA · loại[+Secondary] · NSK · tác nhân · nơi); banner RIT trên bảng UTI/PNEU/BSI; tinh gọn hàng (Ngày X / IPW+DOE / RIT / SBAP) + legend màu trên workspace. |
+| 2026-08-09 | **NKBV Chương 17 (cây tiêu chuẩn):** engine `nkbv-ch17-criteria` + 16 loại Phần II; SSI Organ/Space + ca độc lập `CH17`; seed `LOAI_NKBV` migration `20260809180000_nkbv_loai_ch17_seed.sql` (local trước). |
+| 2026-08-09 | **NKBV Ch.17 REPR gap-close:** EMET/OREP/VCUF cây tiêu chuẩn + seed `20260809181000_nkbv_loai_ch17_repr_seed.sql`; bridge tick OB/GYN → evidence. |
 | 2026-08-09 | **NKBV lưới BA cải tổ:** unique index `ux_nkbv_ba_timeline_ba_date_criteria` (chống lặp XQ/TC active theo BA+ngày+criteria) + RPC `fn_nkbv_ba_hub` gộp 5 query hub thành 1 round-trip (SECURITY INVOKER); action timeline insert-first bắt 23505, `verifyAnyPermission` 1 lần. Migration `20260809120000`. |
 | 2026-08-02 | **QLCV A+2 tinh gọn:** DROP `qlcv_fact_ke_hoach_tuan`/`_dong`, `qlcv_fact_chuong_trinh`, `qlcv_fact_nhiem_vu_moc`; `nhiem_vu` bỏ `ke_hoach_id`; phiếu bỏ `chuong_trinh_id`/`moc_id`/`ke_hoach_tuan_dong_id`; wipe trial; UI tabs Điều hành · Nhiệm vụ · Định kỳ. Migration `20260802140000`. |
 | 2026-07-31 | **QLCV Kế hoạch năm → Nhiệm vụ → Mốc → Việc:** *(lịch sử — đã gỡ A+2)* `20260731160000`. |

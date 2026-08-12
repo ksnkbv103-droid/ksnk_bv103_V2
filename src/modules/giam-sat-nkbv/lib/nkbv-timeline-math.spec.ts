@@ -159,6 +159,22 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
     expect(metrics.doe).toBe("2026-05-13");
   });
 
+  it("DOE: nhiều ngày cùng key → min ∈ IWP (không lấy ngày ngoài cửa sổ)", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-07-30",
+      ngay_vao_vien: "2026-07-10",
+      checklistType: "UTI",
+      activeForm: { has_fever: true },
+      symptomDates: {
+        has_fever: ["2026-07-18", "2026-07-28"],
+      },
+      treatmentHistory: [],
+      indexDateOverride: "2026-07-30",
+    });
+    expect(metrics.iwp_start).toBe("2026-07-27");
+    expect(metrics.doe).toBe("2026-07-28");
+  });
+
   it("clinical SBAP = Index−3 … DOE+13 (không neo DOE±3)", () => {
     const metrics = calculateCdcMetrics({
       ngay_phat_hien: "2026-05-15",
@@ -190,5 +206,36 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
     expect(metrics.doe).toBe("2026-05-14");
     expect(metrics.sbap_start).toBe("2026-05-11");
     expect(metrics.sbap_end).toBe("2026-05-27");
+  });
+
+  it("CH17 IWP ±3 và uses_clinical_iwp", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-08-10",
+      ngay_vao_vien: "2026-08-01",
+      checklistType: "CH17",
+      activeForm: { ch17_type_code: "GIT" },
+      symptomDates: {},
+      treatmentHistory: [],
+    });
+    expect(metrics.iwp_start).toBe("2026-08-07");
+    expect(metrics.iwp_end).toBe("2026-08-13");
+    expect(metrics.uses_clinical_iwp).toBe(true);
+    expect(metrics.doe).toBe("2026-08-10");
+  });
+
+  it("CH17 ENDO IWP ±10", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-08-10",
+      ngay_vao_vien: "2026-08-01",
+      checklistType: "CH17",
+      activeForm: { ch17_type_code: "ENDO", ngay_ra_vien: "2026-08-30" },
+      symptomDates: {},
+      treatmentHistory: [],
+    });
+    expect(metrics.iwp_start).toBe("2026-07-31");
+    expect(metrics.iwp_end).toBe("2026-08-20");
+    expect(metrics.sbap_start).toBe("2026-07-31");
+    expect(metrics.sbap_end).toBe("2026-08-30");
+    expect(metrics.rit_end).toBe("2026-08-30");
   });
 });

@@ -32,6 +32,11 @@ import {
   type NkbvSpecimenCode,
 } from "../lib/nkbv-specimen-canonical";
 import { nkbvKhoaDisplayName, nkbvKhoaSelectOptions } from "../lib/nkbv-khoa-options";
+import {
+  statusBadgeClass,
+  statusBadgeLabel,
+  type ViSinhAnalysisStatus,
+} from "../lib/nkbv-vi-sinh-analysis-status";
 
 type Draft = {
   khoa_yeu_cau_id: string;
@@ -332,7 +337,7 @@ export default function NkbvViSinhStorePanel({
           <p className="text-xs font-semibold text-slate-800">Thêm xét nghiệm tay</p>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             <label className="space-y-1">
-              <span className="text-[10px] text-slate-500">Mã XN *</span>
+              <span className="text-[11px] text-slate-500">Mã XN *</span>
               <input
                 value={createDraft.ma_xet_nghiem}
                 onChange={(e) => setCreateDraft({ ...createDraft, ma_xet_nghiem: e.target.value })}
@@ -340,7 +345,7 @@ export default function NkbvViSinhStorePanel({
               />
             </label>
             <label className="space-y-1">
-              <span className="text-[10px] text-slate-500">Mã BA *</span>
+              <span className="text-[11px] text-slate-500">Mã BA *</span>
               <input
                 value={createDraft.ma_benh_an}
                 onChange={(e) => setCreateDraft({ ...createDraft, ma_benh_an: e.target.value })}
@@ -348,7 +353,7 @@ export default function NkbvViSinhStorePanel({
               />
             </label>
             <label className="space-y-1">
-              <span className="text-[10px] text-slate-500">Ngày lấy mẫu *</span>
+              <span className="text-[11px] text-slate-500">Ngày lấy mẫu *</span>
               <input
                 type="date"
                 value={createDraft.ngay_lay_mau}
@@ -357,7 +362,7 @@ export default function NkbvViSinhStorePanel({
               />
             </label>
             <label className="space-y-1 sm:col-span-2 lg:col-span-3">
-              <span className="text-[10px] text-slate-500">Khoa chỉ định *</span>
+              <span className="text-[11px] text-slate-500">Khoa chỉ định *</span>
               <SearchableSelect
                 value={createDraft.khoa_yeu_cau_id}
                 onChange={(v) => setCreateDraft({ ...createDraft, khoa_yeu_cau_id: v })}
@@ -367,7 +372,7 @@ export default function NkbvViSinhStorePanel({
                 className="text-xs"
               />
             </label>            <label className="space-y-1 sm:col-span-2">
-              <span className="text-[10px] text-slate-500">Bệnh phẩm LIS / nhập tay *</span>
+              <span className="text-[11px] text-slate-500">Bệnh phẩm LIS / nhập tay *</span>
               <input
                 value={createDraft.loai_benh_pham}
                 onChange={(e) => setCreateDraft({ ...createDraft, loai_benh_pham: e.target.value })}
@@ -375,14 +380,14 @@ export default function NkbvViSinhStorePanel({
                 placeholder="Chuỗi gốc từ LIS hoặc mô tả tay"
               />
             </label>            <label className="space-y-1">
-              <span className="text-[10px] text-slate-500">Bệnh phẩm chuẩn</span>
+              <span className="text-[11px] text-slate-500">Bệnh phẩm chuẩn</span>
               <SpecimenSelect
                 value={createDraft.loai_benh_pham_chuan}
                 onChange={(v) => setCreateDraft({ ...createDraft, loai_benh_pham_chuan: v })}
               />
             </label>
             <label className="space-y-1">
-              <span className="text-[10px] text-slate-500">Tác nhân</span>
+              <span className="text-[11px] text-slate-500">Tác nhân</span>
               <input
                 value={createDraft.tac_nhan}
                 onChange={(e) => setCreateDraft({ ...createDraft, tac_nhan: e.target.value })}
@@ -390,7 +395,7 @@ export default function NkbvViSinhStorePanel({
               />
             </label>
             <label className="space-y-1">
-              <span className="text-[10px] text-slate-500">Kết quả</span>
+              <span className="text-[11px] text-slate-500">Kết quả</span>
               <select
                 value={createDraft.ket_qua}
                 onChange={(e) =>
@@ -424,7 +429,7 @@ export default function NkbvViSinhStorePanel({
             </label>
             {createDraft.is_mdro ? (
               <label className="space-y-1">
-                <span className="text-[10px] text-slate-500">Phenotype</span>
+                <span className="text-[11px] text-slate-500">Phenotype</span>
                 <select
                   value={createDraft.mdro_phenotype}
                   onChange={(e) =>
@@ -469,7 +474,7 @@ export default function NkbvViSinhStorePanel({
         className="border border-slate-100 rounded-[var(--radius-shell)]"
         maxHeight="max-h-[min(56dvh,560px)]"
       >
-        <table className="w-full min-w-[1200px] border-collapse text-left text-xs">
+        <table className="w-full min-w-[1280px] border-collapse text-left text-xs">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
               <th className="px-3 py-2.5">Mã XN</th>
@@ -480,6 +485,7 @@ export default function NkbvViSinhStorePanel({
               <th className="px-3 py-2.5">Bệnh phẩm chuẩn</th>
               <th className="px-3 py-2.5">Tác nhân</th>
               <th className="px-3 py-2.5">KQ</th>
+              <th className="px-3 py-2.5">Đã PT?</th>
               <th className="px-3 py-2.5">MDRO</th>
               <th className="px-3 py-2.5 text-right">Thao tác</th>
             </tr>
@@ -487,7 +493,7 @@ export default function NkbvViSinhStorePanel({
           <tbody className="divide-y divide-slate-100">
             {rows.length === 0 && !loading ? (
               <tr>
-                <td colSpan={10} className="px-3 py-6 text-slate-500">
+                <td colSpan={11} className="px-3 py-6 text-slate-500">
                   Chưa có bản ghi — nạp Excel/LIS phía trên hoặc thêm tay.
                 </td>
               </tr>
@@ -495,6 +501,12 @@ export default function NkbvViSinhStorePanel({
             {rows.map((r) => {
               const editing = editId === r.id && draft;
               const khoaTen = resolveKhoaTen(r);
+              const ptStatus: ViSinhAnalysisStatus =
+                r.analysis_disposition === "BO_QUA"
+                  ? "BO_QUA"
+                  : r.analysis_disposition === "DA_PHAN_TICH"
+                    ? "DA_PHAN_TICH"
+                    : "CHUA_PHAN_TICH";
               return (
                 <React.Fragment key={r.id}>
                   <tr className="align-top hover:bg-slate-50/60">
@@ -530,12 +542,20 @@ export default function NkbvViSinhStorePanel({
                       <span className="line-clamp-2">{r.tac_nhan || "—"}</span>
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">{ketQuaLabel(r.ket_qua_phan_loai)}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <span
+                        className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${statusBadgeClass(ptStatus)}`}
+                        title="Trạng thái phân tích NKBV trên Hub BA"
+                      >
+                        {statusBadgeLabel(ptStatus)}
+                      </span>
+                    </td>
                     <td className="px-3 py-2">
                       <button
                         type="button"
                         disabled={busyId === r.id}
                         onClick={() => void onQuickMdro(r)}
-                        className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${
+                        className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
                           r.is_mdro
                             ? "bg-rose-100 text-rose-800"
                             : "bg-slate-100 text-slate-600 hover:bg-rose-50"
@@ -584,10 +604,10 @@ export default function NkbvViSinhStorePanel({
                   </tr>
                   {editing ? (
                     <tr className="bg-slate-50/90">
-                      <td colSpan={10} className="px-3 py-3">
+                      <td colSpan={11} className="px-3 py-3">
                         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                           <label className="space-y-1 sm:col-span-2 lg:col-span-3">
-                            <span className="text-[10px] text-slate-500">Khoa chỉ định *</span>
+                            <span className="text-[11px] text-slate-500">Khoa chỉ định *</span>
                             <SearchableSelect
                               value={draft.khoa_yeu_cau_id}
                               onChange={(v) => setDraft({ ...draft, khoa_yeu_cau_id: v })}
@@ -597,7 +617,7 @@ export default function NkbvViSinhStorePanel({
                               className="text-xs"
                             />
                           </label>                          <label className="space-y-1 sm:col-span-2">
-                            <span className="text-[10px] text-slate-500">Bệnh phẩm LIS (giữ nguyên)</span>
+                            <span className="text-[11px] text-slate-500">Bệnh phẩm LIS (giữ nguyên)</span>
                             <input
                               value={draft.loai_benh_pham}
                               onChange={(e) =>
@@ -606,14 +626,14 @@ export default function NkbvViSinhStorePanel({
                               className={`${C.controlInput} w-full text-xs`}
                             />
                           </label>                          <label className="space-y-1">
-                            <span className="text-[10px] text-slate-500">Bệnh phẩm chuẩn *</span>
+                            <span className="text-[11px] text-slate-500">Bệnh phẩm chuẩn *</span>
                             <SpecimenSelect
                               value={draft.loai_benh_pham_chuan}
                               onChange={(v) => setDraft({ ...draft, loai_benh_pham_chuan: v })}
                             />
                           </label>
                           <label className="space-y-1">
-                            <span className="text-[10px] text-slate-500">Tác nhân</span>
+                            <span className="text-[11px] text-slate-500">Tác nhân</span>
                             <input
                               value={draft.tac_nhan}
                               onChange={(e) => setDraft({ ...draft, tac_nhan: e.target.value })}
@@ -621,7 +641,7 @@ export default function NkbvViSinhStorePanel({
                             />
                           </label>
                           <label className="space-y-1">
-                            <span className="text-[10px] text-slate-500">Số lượng / CFU</span>
+                            <span className="text-[11px] text-slate-500">Số lượng / CFU</span>
                             <input
                               value={draft.so_luong}
                               onChange={(e) => setDraft({ ...draft, so_luong: e.target.value })}
@@ -629,7 +649,7 @@ export default function NkbvViSinhStorePanel({
                             />
                           </label>
                           <label className="space-y-1">
-                            <span className="text-[10px] text-slate-500">Kết quả</span>
+                            <span className="text-[11px] text-slate-500">Kết quả</span>
                             <select
                               value={draft.ket_qua}
                               onChange={(e) =>
@@ -663,7 +683,7 @@ export default function NkbvViSinhStorePanel({
                           </label>
                           {draft.is_mdro ? (
                             <label className="space-y-1">
-                              <span className="text-[10px] text-slate-500">Phenotype MDRO</span>
+                              <span className="text-[11px] text-slate-500">Phenotype MDRO</span>
                               <select
                                 value={draft.mdro_phenotype}
                                 onChange={(e) =>

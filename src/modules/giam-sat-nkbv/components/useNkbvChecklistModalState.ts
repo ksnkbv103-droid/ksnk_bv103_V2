@@ -7,14 +7,16 @@ import type {
   VaeVerificationData,
   UtiVerificationData,
   SsiVerificationData,
-  DepartmentStay
+  Ch17VerificationData,
+  DepartmentStay,
 } from "@/modules/giam-sat-nkbv/types/nkbv-verification";
 import {
   evaluateBsiClabsi,
   evaluateVaeVap,
   evaluateUtiCauti,
   evaluateSsi,
-  type RuleEvaluationResult
+  evaluateCh17,
+  type RuleEvaluationResult,
 } from "@/modules/giam-sat-nkbv/lib/nkbv-rules-engine";
 import {
   submitClinicalVerification,
@@ -67,6 +69,11 @@ export function useNkbvChecklistModalState({
   const [ngayVaoVienEffective, setNgayVaoVienEffective] = useState(() =>
     String(row.ngay_vao_vien || "").slice(0, 10),
   );
+  /** Ngày sinh — từ phiếu / BA; thiếu → form ẩn nhánh nhi. */
+  const [ngaySinhEffective, setNgaySinhEffective] = useState<string | null>(() => {
+    const s = String(row.ngay_sinh || "").slice(0, 10);
+    return s || null;
+  });
   const [benhAnLoaded, setBenhAnLoaded] = useState(false);
   const [benhAnMissing, setBenhAnMissing] = useState(false);
 
@@ -106,6 +113,7 @@ export function useNkbvChecklistModalState({
   const [vaeForm, setVaeForm] = useState<VaeVerificationData | null>(null);
   const [utiForm, setUtiForm] = useState<UtiVerificationData | null>(null);
   const [ssiForm, setSsiForm] = useState<SsiVerificationData | null>(null);
+  const [ch17Form, setCh17Form] = useState<Ch17VerificationData | null>(null);
 
   // Initialize suspectedType and prepopulate forms on mount
   useEffect(() => {
@@ -141,7 +149,19 @@ export function useNkbvChecklistModalState({
     setVaeForm(prepopulateVaeData(row, existing));
     setUtiForm(prepopulateUtiData(row, existing));
     setSsiForm(prepopulateSsiData(row, existing));
+    setCh17Form({
+      ch17_type_code: String(existing.ch17_type_code || "").toUpperCase(),
+      chapter17_flags: existing.chapter17_flags || {},
+      is_infant_le1: existing.is_infant_le1 ?? false,
+      procedure_code: existing.procedure_code ?? null,
+      treatment_history: existing.treatment_history,
+      symptom_dates: existing.symptom_dates,
+    });
     setNgayVaoVienEffective(String(row.ngay_vao_vien || "").slice(0, 10));
+    {
+      const s = String(row.ngay_sinh || "").slice(0, 10);
+      setNgaySinhEffective(s || null);
+    }
     setBenhAnLoaded(false);
     setBenhAnMissing(false);
     // Identity = mốc BA (không đổi khi nháp → phiếu thật), tránh xóa dữ liệu đang nhập
@@ -170,6 +190,8 @@ export function useNkbvChecklistModalState({
       setBenhAnMissing(false);
       const fromBa = String(res.data.ngay_vao_vien || "").slice(0, 10);
       if (fromBa) setNgayVaoVienEffective(fromBa);
+      const dob = String(res.data.ngay_sinh || "").slice(0, 10);
+      if (dob) setNgaySinhEffective(dob);
     })();
     return () => {
       cancelled = true;
@@ -317,12 +339,14 @@ export function useNkbvChecklistModalState({
         return evaluateUtiCauti(enrichedForm);
       } else if (checklistType === "SSI" && ssiForm) {
         return evaluateSsi(ssiForm);
+      } else if (checklistType === "CH17" && ch17Form) {
+        return evaluateCh17(ch17Form);
       }
     } catch {
       // fail-safe
     }
     return { is_positive: false, classification: "ERROR", reason: "Chưa đủ dữ liệu để tính toán." };
-  }, [checklistType, clinicalPathway, bsiForm, vaeForm, utiForm, ssiForm, liveCdcMetrics]);
+  }, [checklistType, clinicalPathway, bsiForm, vaeForm, utiForm, ssiForm, ch17Form, liveCdcMetrics]);
 
   // Save / Submit checklist
   const handleSaveChecklist = async () => {
@@ -340,7 +364,9 @@ export function useNkbvChecklistModalState({
             ? vaeForm
             : checklistType === "UTI"
               ? utiForm
-              : ssiForm;
+              : checklistType === "CH17"
+                ? ch17Form
+                : ssiForm;
 
     if (!activePayload) {
       toast.error("Biểu mẫu chưa được khởi tạo!");
@@ -541,6 +567,8 @@ export function useNkbvChecklistModalState({
     setUtiForm,
     ssiForm,
     setSsiForm,
+    ch17Form,
+    setCh17Form,
     handleAddStay,
     handleDeleteStay,
     liveCdcMetrics,
@@ -549,6 +577,7 @@ export function useNkbvChecklistModalState({
     handleAdjudicate,
     ngayVaoVienEffective,
     setNgayVaoVienEffective,
+    ngaySinhEffective,
     handleSyncAdmissionDate,
     benhAnLoaded,
     benhAnMissing,

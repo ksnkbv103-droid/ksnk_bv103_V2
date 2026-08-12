@@ -9,6 +9,7 @@ import {
   type DeviceRegistryType,
 } from "../lib/nkbv-shared-device-days";
 import { parseClipAdherence, type ClipAdherence } from "../lib/nkbv-clip";
+import { validateDeviceRegistryDates } from "../lib/nkbv-ba-device-timeline";
 
 export type DeviceRegistryRecord = {
   id: string;
@@ -61,8 +62,21 @@ export async function upsertNkbvDeviceRegistry(payload: {
   notes?: string | null;
   /** CLIP adherence — chỉ áp dụng CENTRAL_LINE. */
   clip_adherence?: ClipAdherence | null;
+  /** Ràng buộc đợt nằm viện (tùy chọn — nếu có thì validate). */
+  ngay_vao_vien?: string | null;
+  ngay_ra_vien?: string | null;
 }) {
   await verifyPermission("GIAM_SAT_NKBV", payload.id ? "edit" : "create");
+  const check = validateDeviceRegistryDates({
+    insertionDate: payload.insertion_date,
+    removalDate: payload.removal_date,
+    firstAccessDate: payload.first_access_date,
+    admissionDate: payload.ngay_vao_vien,
+    dischargeDate: payload.ngay_ra_vien,
+  });
+  if (!check.ok) {
+    return { success: false as const, error: check.reason || "Ngày đăng ký dụng cụ không hợp lệ" };
+  }
   const supabase = createAdminSupabaseClient();
   const clip =
     payload.device_type === "CENTRAL_LINE" && payload.clip_adherence

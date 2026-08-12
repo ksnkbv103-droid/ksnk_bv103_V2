@@ -128,7 +128,7 @@ Gap P0/P1: [`investigation-forms/gap-lean-vs-runtime.md`](./investigation-forms/
 | PNEU | toàn thân + hình ảnh + hô hấp tại chỗ (`has_dyspnea`, `has_tachypnea`, ho, đờm, rale, PaO₂…) |
 | VAE / SSI | Event Period / Surveillance — không ép IWP ±3 cho DOE kiểu lâm sàng |
 
-PNEU checklist tối thiểu theo tuổi: ≤1 / 1–12 / người lớn (chưa nhồi đủ Table 2/3 PNU2/3).
+PNEU checklist tối thiểu theo tuổi: ≤1 / 1–12 / người lớn; PNU1/2/3 lab-first từ loại mẫu + CFU/bán định lượng + Table 3 atoms + checklist miễn dịch; CFU/`so_luong` LIS đổ từ lưới BA (`nkbv-pneu-lab-tier`).
 
 ---
 

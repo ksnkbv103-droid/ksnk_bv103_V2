@@ -13,6 +13,9 @@
 | 3 | [`trees/`](trees/) | Cây + bảng phân lớp từng hội chứng |
 | 4 | `*-2026.md` | Phần A vận hành + Phần B phụ lục |
 | 5 | [`gap-lean-vs-runtime.md`](gap-lean-vs-runtime.md) | P0 / P1 — **PO duyệt tại đây** |
+| 5b | [`pneu-standard-vs-runtime-audit-20260810.md`](pneu-standard-vs-runtime-audit-20260810.md) | **PO:** điều kiện chuẩn PNEU vs runtime + chọn A/B |
+| 5c | [`uti-standard-vs-runtime-audit-20260810.md`](uti-standard-vs-runtime-audit-20260810.md) | **PO:** điều kiện chuẩn UTI/CAUTI vs runtime + lệch A1–A5 |
+| 5d | [`syndrome-audit-backlog.md`](syndrome-audit-backlog.md) | Khung audit BSI/SSI/SBSI/LOA tiếp |
 | 6 | [`a6-ui-implementation-backlog.md`](a6-ui-implementation-backlog.md) | Thứ tự chat implement |
 
 ## Năm mã phiếu
@@ -37,6 +40,8 @@
 - [ ] Spine Shared / VAE≠PNEU chấp nhận  
 - [ ] Bảng phân lớp 5 trees chấp nhận  
 - [ ] Gap P0 ưu tiên chấp nhận → mở A6 theo backlog  
+- [ ] Audit PNEU chuẩn vs runtime ([`pneu-standard-vs-runtime-audit-20260810.md`](pneu-standard-vs-runtime-audit-20260810.md)) — chọn A hoặc B  
+- [ ] Audit UTI chuẩn vs runtime ([`uti-standard-vs-runtime-audit-20260810.md`](uti-standard-vs-runtime-audit-20260810.md)) — xác nhận A1→… / trì hoãn  
 - [ ] UAT BA-centric (pilot checklist #1 + BA-1…BA-4) PASS → mở route `/giam-sat-nkbv` khỏi pilot block  
 
 Hợp đồng UI: [`../clinical-forms.md`](../clinical-forms.md) v3.2+.  

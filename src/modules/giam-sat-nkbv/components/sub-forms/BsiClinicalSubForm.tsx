@@ -1,6 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
+import {
+  ageYearsFromNgaySinh,
+  resolveIsInfantLe1Flag,
+  showInfantCriteriaUi,
+} from "../../lib/nkbv-age-ui";
 import { formSymptomRowsFor } from "../../lib/nkbv-clinical-symptom-catalog";
 import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
 import type { BsiVerificationData } from "../../types/nkbv-verification";
@@ -18,6 +23,8 @@ interface BsiClinicalSubFormProps {
   liveDeviceActive?: boolean;
   ngayVaoVien?: string;
   ngayPhatHien?: string;
+  /** Ngày sinh — thiếu/DOB người lớn → ẩn LCBI 3 */
+  ngaySinh?: string | null;
   iwpStart?: string;
   iwpEnd?: string;
   activeTab?: "LAM_SANG" | "KSNK" | "VI_SINH";
@@ -58,6 +65,7 @@ export default function BsiClinicalSubForm({
   liveDeviceActive,
   ngayVaoVien,
   ngayPhatHien,
+  ngaySinh,
   iwpStart,
   iwpEnd,
   activeTab = "LAM_SANG",
@@ -68,6 +76,28 @@ export default function BsiClinicalSubForm({
   const cleanNgayVaoVien = ngayVaoVien ? ngayVaoVien.slice(0, 10) : "";
   const cleanNgayPhatHien = ngayPhatHien ? ngayPhatHien.slice(0, 10) : "";
   const todayStr = new Date().toISOString().slice(0, 10);
+  const ageYears = ageYearsFromNgaySinh(ngaySinh, cleanNgayPhatHien || undefined);
+  const showInfantUi = showInfantCriteriaUi(ageYears);
+  const infantFlag = resolveIsInfantLe1Flag(ageYears);
+
+  useEffect(() => {
+    if (form.is_infant_le1 === infantFlag) return;
+    if (!infantFlag) {
+      onChange(
+        patchSymptoms(form, {
+          is_infant_le1: false,
+          has_hypothermia: false,
+          has_apnea: false,
+          has_bradycardia: false,
+        }),
+      );
+      return;
+    }
+    onChange(patchSymptoms(form, { is_infant_le1: true }));
+    // Chỉ đồng bộ khi tuổi / cờ lệch — không phụ thuộc toàn form
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional sync on age gate
+  }, [infantFlag]);
+
   const showMicro = activeTab === "LAM_SANG" || activeTab === "VI_SINH";
   const showClinical = activeTab === "LAM_SANG";
   const showDevice = !omitSections.includes("device");
@@ -235,28 +265,24 @@ export default function BsiClinicalSubForm({
               iwpStart={iwpStart}
               iwpEnd={iwpEnd}
             />
-            <label className="flex items-center gap-2 border-t border-slate-100 pt-3 text-xs font-semibold cursor-pointer">
-              <input
-                type="checkbox"
-                checked={!!form.is_infant_le1}
-                disabled={!allowedEdit}
-                onChange={(e) => onChange(patchSymptoms(form, { is_infant_le1: e.target.checked }))}
-              />
-              Bệnh nhân ≤ 1 tuổi (LCBI 3 tối thiểu)
-            </label>
-            {form.is_infant_le1 ? (
-              <div className="rounded-lg border border-violet-100 bg-violet-50/80 p-3">
-                <NkbvCatalogSymptomRows
-                  rows={lcbi3Rows}
-                  form={form as unknown as Record<string, unknown>}
-                  onToggle={toggleSymptom}
-                  symptomDates={symptomDates}
-                  onSymptomDateChange={onSymptomDateChange}
-                  allowedEdit={allowedEdit}
-                  iwpStart={iwpStart}
-                  iwpEnd={iwpEnd}
-                />
-              </div>
+            {showInfantUi ? (
+              <>
+                <p className="border-t border-slate-100 pt-3 text-[11px] font-semibold text-violet-800">
+                  Bệnh nhi ≤ 1 tuổi (theo ngày sinh) — LCBI 3
+                </p>
+                <div className="rounded-lg border border-violet-100 bg-violet-50/80 p-3">
+                  <NkbvCatalogSymptomRows
+                    rows={lcbi3Rows}
+                    form={form as unknown as Record<string, unknown>}
+                    onToggle={toggleSymptom}
+                    symptomDates={symptomDates}
+                    onSymptomDateChange={onSymptomDateChange}
+                    allowedEdit={allowedEdit}
+                    iwpStart={iwpStart}
+                    iwpEnd={iwpEnd}
+                  />
+                </div>
+              </>
             ) : null}
           </NkbvFormSection>
 

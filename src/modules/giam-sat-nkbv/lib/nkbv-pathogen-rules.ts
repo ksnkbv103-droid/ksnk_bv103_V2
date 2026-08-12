@@ -5,6 +5,11 @@ import type {
   SsiVerificationData 
 } from "../types/nkbv-verification";
 import { differenceInCalendarDays, parseISO } from "date-fns";
+import {
+  applyPneuLabDerivedFlags,
+  inferPneuLabSpecimenFromBenhPham,
+  parsePneuSoLuong,
+} from "./nkbv-pneu-lab-tier";
 
 export interface PathogenClassification {
   isFungiRespiratory: boolean;
@@ -101,7 +106,13 @@ export function prepopulateBsiData(row: Record<string, any>, existing: Record<st
  */
 export function prepopulateVaeData(row: Record<string, any>, existing: Record<string, any> = {}): VaeVerificationData {
   const suggestedDays = getSuggestedDays(row.ngay_vao_vien, row.ngay_phat_hien);
-  
+  const pathogen = String(row.tac_nhan_vi_khuan || row.vi_khuan || row.tac_nhan || "").trim();
+  const benhPham = String(
+    row.loai_mau || row.specimen_type || row.loai_benh_pham || row.benh_pham || "",
+  );
+  const inferredSpecimen = inferPneuLabSpecimenFromBenhPham(benhPham);
+  const parsedQty = parsePneuSoLuong(row.so_luong != null ? String(row.so_luong) : "");
+
   let patientAge = 18;
   if (row.ngay_sinh) {
     try {
@@ -111,7 +122,7 @@ export function prepopulateVaeData(row: Record<string, any>, existing: Record<st
     }
   }
 
-  return {
+  const base: VaeVerificationData = {
     patient_age: existing.patient_age ?? patientAge,
     vent_days: existing.vent_days ?? (suggestedDays >= 4 ? suggestedDays : 0),
     vent_daily_params: existing.vent_daily_params,
@@ -145,11 +156,42 @@ export function prepopulateVaeData(row: Record<string, any>, existing: Record<st
     has_infant_respiratory_distress: existing.has_infant_respiratory_distress ?? false,
     has_infant_hr_abnormal: existing.has_infant_hr_abnormal ?? false,
     microbiology_evidence: existing.microbiology_evidence || "NONE",
+    pneu_lab_specimen:
+      existing.pneu_lab_specimen ??
+      (inferredSpecimen !== "NONE" ? inferredSpecimen : "NONE"),
+    pneu_lab_cfu_per_ml:
+      existing.pneu_lab_cfu_per_ml ?? parsedQty.cfu_per_ml,
+    pneu_lab_semi_quant:
+      existing.pneu_lab_semi_quant ?? parsedQty.semi_quant,
+    pneu_lab_organism: existing.pneu_lab_organism ?? pathogen,
+    pneu_lab_is_normal_flora: existing.pneu_lab_is_normal_flora ?? false,
+    pneu_lab_table3_positive: existing.pneu_lab_table3_positive ?? false,
+    pneu_t3_influenza: existing.pneu_t3_influenza ?? false,
+    pneu_t3_rsv: existing.pneu_t3_rsv ?? false,
+    pneu_t3_other_virus: existing.pneu_t3_other_virus ?? false,
+    pneu_t3_legionella: existing.pneu_t3_legionella ?? false,
+    pneu_t3_mycoplasma: existing.pneu_t3_mycoplasma ?? false,
+    pneu_t3_chlamydia: existing.pneu_t3_chlamydia ?? false,
+    pneu_t3_bordetella: existing.pneu_t3_bordetella ?? false,
+    pneu_lab_bal_intracellular_ge_5pct:
+      existing.pneu_lab_bal_intracellular_ge_5pct ?? false,
+    pneu_lab_histopath_positive: existing.pneu_lab_histopath_positive ?? false,
+    pneu_is_immunocompromised: existing.pneu_is_immunocompromised ?? false,
+    pneu_ic_neutropenia: existing.pneu_ic_neutropenia ?? false,
+    pneu_ic_leukemia_lymphoma: existing.pneu_ic_leukemia_lymphoma ?? false,
+    pneu_ic_hiv_cd4_lt_200: existing.pneu_ic_hiv_cd4_lt_200 ?? false,
+    pneu_ic_splenectomy: existing.pneu_ic_splenectomy ?? false,
+    pneu_ic_solid_organ_or_hsct: existing.pneu_ic_solid_organ_or_hsct ?? false,
+    pneu_ic_chemotherapy: existing.pneu_ic_chemotherapy ?? false,
+    pneu_ic_steroid_ge_14d: existing.pneu_ic_steroid_ge_14d ?? false,
+    pneu_candida_blood_and_lrt_match:
+      existing.pneu_candida_blood_and_lrt_match ?? false,
     has_blood_culture_in_event_period: existing.has_blood_culture_in_event_period ?? false,
     blood_respiratory_pathogen_matches: existing.blood_respiratory_pathogen_matches ?? false,
     on_aprv_or_hfv: existing.on_aprv_or_hfv ?? false,
     on_ecmo: existing.on_ecmo ?? false,
   };
+  return applyPneuLabDerivedFlags(base);
 }
 
 /**
@@ -199,12 +241,12 @@ export function prepopulateSsiData(row: Record<string, any>, existing: Record<st
     is_patos: existing.is_patos ?? false,
     return_to_or_within_24h: existing.return_to_or_within_24h ?? false,
     has_implant: existing.has_implant ?? false,
-    ssi_depth: existing.ssi_depth || "SUPERFICIAL",
+    ssi_depth: existing.ssi_depth || existing.infection_depth || "SUPERFICIAL",
     ssi_event_type:
       existing.ssi_event_type ||
-      (existing.ssi_depth === "DEEP"
+      ((existing.ssi_depth || existing.infection_depth) === "DEEP"
         ? "DIP"
-        : existing.ssi_depth === "ORGAN_SPACE"
+        : (existing.ssi_depth || existing.infection_depth) === "ORGAN_SPACE"
           ? "ORGAN_SPACE"
           : "SIP"),
     organ_space_site: existing.organ_space_site,
@@ -222,7 +264,7 @@ export function prepopulateSsiData(row: Record<string, any>, existing: Record<st
     chapter17_flags: existing.chapter17_flags ?? {},
     has_blood_culture_positive: existing.has_blood_culture_positive ?? false,
     blood_ssi_pathogen_matches: existing.blood_ssi_pathogen_matches ?? false,
-    loai_phau_thuat_nhsn: existing.loai_phau_thuat_nhsn || "COLO",
+    loai_phau_thuat_nhsn: existing.loai_phau_thuat_nhsn || existing.procedure_code || "COLO",
     ma_qr_cssd_lien_quan: existing.ma_qr_cssd_lien_quan,
   };
 }

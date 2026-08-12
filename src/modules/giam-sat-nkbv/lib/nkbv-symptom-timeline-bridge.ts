@@ -61,8 +61,9 @@ export function isBaFactorMilestone(m: BaTimelineMilestone): boolean {
 
 export function timelineMilestoneToSymptomPatch(
   m: BaTimelineMilestone,
+  ctx?: CriteriaMapContext,
 ): { key: string; date: string; label: string } | null {
-  const key = criteriaKeyToFormField(m.criteriaKey || null);
+  const key = criteriaKeyToFormField(m.criteriaKey || null, ctx);
   if (!key) return null;
   const date = String(m.date || "").slice(0, 10);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
@@ -88,10 +89,12 @@ export function prefillSymptomDatesFromTimeline(input: {
   iwpStart?: string | null;
   iwpEnd?: string | null;
   existing: Record<string, string>;
+  /** Hội chứng / độ sâu SSI — map criteria_key đúng field form. */
+  mapContext?: CriteriaMapContext;
 }): Record<string, string> {
   const next = { ...input.existing };
   for (const m of input.milestones) {
-    const patch = timelineMilestoneToSymptomPatch(m);
+    const patch = timelineMilestoneToSymptomPatch(m, input.mapContext);
     if (!patch) continue;
     if (!dateInInclusiveWindow(patch.date, input.iwpStart, input.iwpEnd)) continue;
     if (next[patch.key]) continue;

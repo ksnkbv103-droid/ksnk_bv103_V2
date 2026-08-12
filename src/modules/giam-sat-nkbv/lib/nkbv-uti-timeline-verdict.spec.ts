@@ -92,6 +92,22 @@ describe("nkbv-uti-timeline-verdict", () => {
     expect(v.result.classification).toBe("SUTI");
   });
 
+  it("Foley chỉ 1 ngày + sốt → SUTI (không CAUTI), dù sổ đặt sớm hơn", () => {
+    const iwp = new Set(["2026-07-18", "2026-07-19", "2026-07-20", "2026-07-21"]);
+    const v = buildUtiTimelineVerdict({
+      indexXn: urine({ id: "u", ngay: "2026-07-20", so_luong: "10^5" }),
+      lamSang: { "2026-07-20": [{ key: "fever", label: "Sốt" }] },
+      canThiepDates: ["2026-07-20"],
+      iwpDates: iwp,
+      nsk: "2026-07-20",
+      bloodXn: [],
+      abutiBloodIds: [],
+      devicePlacedDate: "2026-07-17",
+    });
+    expect(v.result.classification).toBe("SUTI");
+    expect(v.result.classification).not.toBe("CAUTI_SUTI");
+  });
+
   it("Foley + dysuria bị bỏ → ASB nếu không sx khác", () => {
     const iwp = new Set(["2026-07-18", "2026-07-19", "2026-07-20"]);
     const v = buildUtiTimelineVerdict({

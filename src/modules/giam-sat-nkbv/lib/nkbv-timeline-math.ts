@@ -10,6 +10,8 @@ import {
   clinicalRitEnd,
   clinicalSbapWindow,
   daysBetween,
+  endoExtendedIwp,
+  endoRitSbapToDischarge,
   isDeviceAssociated,
   poaOrHai,
   ssiSbapWindow,
@@ -24,9 +26,10 @@ export { addDays, subDays };
 export interface CdcMetricsInput {
   ngay_phat_hien: string;
   ngay_vao_vien: string;
-  checklistType: "BSI" | "VAE" | "VAP" | "HAP" | "UTI" | "SSI";
+  checklistType: "BSI" | "VAE" | "VAP" | "HAP" | "UTI" | "SSI" | "CH17";
   activeForm: any;
-  symptomDates: Record<string, string>;
+  /** Ngày (hoặc nhiều ngày) từng form_field — DOE lấy min ∈ IWP. */
+  symptomDates: Record<string, string | string[]>;
   treatmentHistory: DepartmentStay[];
   /**
    * Index Date cố định từ lưới (ô XN hoặc CĐHA Active).
@@ -51,7 +54,7 @@ export interface CdcMetricsResult {
   attributionReason: string;
   device_placed_days: number;
   device_active_on_event: boolean;
-  /** True when clinical IWP±3 applies (not VAE/SSI) */
+  /** True when clinical IWP±3 (hoặc ENDO ±10) applies (not VAE/SSI) */
   uses_clinical_iwp: boolean;
 }
 
@@ -125,6 +128,14 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
     const ep = vaeEventPeriod(doe);
     iwp_start = ep.start;
     iwp_end = ep.end;
+  } else if (checklistType === "CH17") {
+    // Ch.17: IWP ±3; ENDO dùng IWP ±10 (21 ngày lịch)
+    indexDate = override || ngay_phat_hien_clean;
+    const typeCode = String(activeForm?.ch17_type_code || "").toUpperCase();
+    const iwp =
+      typeCode === "ENDO" ? endoExtendedIwp(indexDate) : clinicalIwp(indexDate);
+    iwp_start = iwp.start;
+    iwp_end = iwp.end;
   } else if (syndrome === "SSI") {
     // SSI: surveillance period elsewhere; for symptom window still use detection ±3 for DOE pick heuristic
     indexDate = override || ngay_phat_hien_clean;
@@ -159,15 +170,20 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
   }
 
   if (syndrome !== "VAE") {
-    // DOE = min(ngày yếu tố TC ∈ IWP). Có ngày là đủ — không bắt buộc boolean trước.
-    // Index cũng là yếu tố TC → luôn đưa vào tập so sánh khi ∈ IWP.
+    // DOE = ngày sớm nhất có yếu tố TC ∈ IWP (SSOT §3.2) — không mặc định = Index
+    // khi đã có triệu chứng/XQ sớm hơn trong cửa sổ. Index là một ứng viên (cấy/CĐHA).
     symptomKeys.forEach((k) => {
-      const dVal = String(symptomDates[k] || "").slice(0, 10);
-      if (!dVal) return;
-      const present = activeForm?.[k] === true || Boolean(dVal);
-      if (!present) return;
-      if (dVal >= iwp_start && dVal <= iwp_end) {
-        validDates.push(dVal);
+      const raw = symptomDates[k];
+      const candidates = Array.isArray(raw)
+        ? raw.map((x) => String(x || "").slice(0, 10))
+        : [String(raw || "").slice(0, 10)];
+      for (const dVal of candidates) {
+        if (!dVal) continue;
+        const present = activeForm?.[k] === true || Boolean(dVal);
+        if (!present) continue;
+        if (dVal >= iwp_start && dVal <= iwp_end) {
+          validDates.push(dVal);
+        }
       }
     });
     if (indexDate && indexDate >= iwp_start && indexDate <= iwp_end) {
@@ -184,6 +200,7 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
 
   let sbap_start = "";
   let sbap_end = "";
+  let rit_end = doe ? clinicalRitEnd(doe) : "";
   if (syndrome === "SSI") {
     const w = ssiSbapWindow(doe);
     sbap_start = w.start;
@@ -192,6 +209,17 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
     const w = vaeEventPeriod(doe);
     sbap_start = w.start;
     sbap_end = w.end;
+  } else if (
+    checklistType === "CH17" &&
+    String(activeForm?.ch17_type_code || "").toUpperCase() === "ENDO"
+  ) {
+    const endo = endoRitSbapToDischarge({
+      indexDate,
+      dischargeDate: activeForm?.ngay_ra_vien || null,
+    });
+    sbap_start = endo.sbapStart;
+    sbap_end = endo.sbapEnd;
+    rit_end = endo.ritEnd;
   } else {
     const w = clinicalSbapWindow(indexDate, doe);
     sbap_start = w.start;
@@ -249,16 +277,20 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
       doe,
     });
     device_placed_days = assoc.placedDays;
-    device_active_on_event = assoc.activeOnEvent;
+    // «Hiện diện gắn được» = đủ eligibility NHSN (≥3d + DOE/DOE−1), không chỉ tick 1 ngày
+    device_active_on_event = assoc.associated;
   } else if (checklistType === "BSI") {
     device_placed_days = activeForm?.cvc_placed_days || 0;
-    device_active_on_event = activeForm?.cvc_active_on_event || false;
+    device_active_on_event =
+      Boolean(activeForm?.cvc_active_on_event) && device_placed_days >= 3;
   } else if (checklistType === "UTI") {
     device_placed_days = activeForm?.foley_placed_days || 0;
-    device_active_on_event = activeForm?.foley_active_on_event || false;
+    device_active_on_event =
+      Boolean(activeForm?.foley_active_on_event) && device_placed_days >= 3;
   } else if (checklistType === "VAE" || checklistType === "VAP" || checklistType === "HAP") {
     device_placed_days = activeForm?.vent_days || 0;
-    device_active_on_event = true;
+    // VAP/HAP: không mặc định «hiện diện» khi thiếu ngày đặt
+    device_active_on_event = device_placed_days >= 3;
   }
 
   return {
@@ -268,13 +300,13 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
     iwp_end,
     sbap_start,
     sbap_end,
-    rit_end: doe ? clinicalRitEnd(doe) : "",
+    rit_end,
     dayOfHospitalization,
     haiStatus,
     attributedStay,
     attributionReason,
     device_placed_days,
     device_active_on_event,
-    uses_clinical_iwp: useIwp,
+    uses_clinical_iwp: useIwp || checklistType === "CH17",
   };
 }

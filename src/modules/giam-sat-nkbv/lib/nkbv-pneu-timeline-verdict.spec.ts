@@ -55,7 +55,7 @@ describe("nkbv-pneu-timeline-verdict", () => {
     expect(v.gate.warnings.some((w) => /toàn thân|hô hấp/i.test(w))).toBe(true);
   });
 
-  it("sputum + XQ + LS ≥2 + Vent ≥3d → PNU2_VAP", () => {
+  it("sputum + XQ + LS ≥2 + Vent ≥3d → PNU1_VAP (đờm không đủ Table 2)", () => {
     const ix = "2026-07-20";
     const v = buildPneuTimelineVerdict({
       indexKind: "XN",
@@ -75,9 +75,42 @@ describe("nkbv-pneu-timeline-verdict", () => {
       bloodCriterionIds: [],
       devicePlacedDate: "2026-07-17",
     });
+    expect(v.gate.microbiology).toBe("NONE");
+    expect(v.result.classification).toBe("PNU1_VAP");
+    expect(v.data.pneu_lab_cfu_per_ml).toBe(1e5);
+    expect(v.criteriaMet).toBe(true);
+  });
+
+  it("BAL 10^4 + LS + Vent → PNU2_VAP (lab-first từ so_luong)", () => {
+    const ix = "2026-07-20";
+    const v = buildPneuTimelineVerdict({
+      indexKind: "XN",
+      indexXn: {
+        id: "x1",
+        ngay: ix,
+        benh_pham: "BAL",
+        vi_khuan: "P. aeruginosa",
+        so_luong: "10^4",
+        source: "LIS",
+      },
+      indexCdha: null,
+      cdha: [xq({ id: "c1", ngay: "2026-07-19" })],
+      lamSang: {
+        "2026-07-19": [
+          { key: "fever_or_wbc", label: "Sốt/WBC" },
+          { key: "cough", label: "Ho" },
+          { key: "rales", label: "Ran" },
+        ],
+      },
+      canThiepDates: ["2026-07-17", "2026-07-18", "2026-07-19", "2026-07-20"],
+      iwpDates: iwpAround(ix),
+      nsk: "2026-07-19",
+      bloodCriterionIds: [],
+      devicePlacedDate: "2026-07-17",
+    });
     expect(v.gate.microbiology).toBe("PNU2");
     expect(v.result.classification).toBe("PNU2_VAP");
-    expect(v.criteriaMet).toBe(true);
+    expect(v.data.pneu_lab_cfu_per_ml).toBe(1e4);
   });
 
   it("XQ + LS đủ, không Vent → PNU1_NON_VAP", () => {

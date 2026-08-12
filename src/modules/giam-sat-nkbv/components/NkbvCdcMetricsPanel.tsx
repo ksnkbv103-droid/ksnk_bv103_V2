@@ -17,7 +17,7 @@ import { formatDateVi } from "@/lib/format-datetime-vi";
 
 interface NkbvCdcMetricsPanelProps {
   metrics: CdcMetricsResult | null;
-  checklistType: "BSI" | "VAE" | "VAP" | "HAP" | "UTI" | "SSI";
+  checklistType: "BSI" | "VAE" | "VAP" | "HAP" | "UTI" | "SSI" | "CH17";
   isSecondaryBsi?: boolean;
   treatmentHistory?: DepartmentStay[];
 }

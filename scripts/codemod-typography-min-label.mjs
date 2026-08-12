@@ -21,7 +21,10 @@ let files = 0;
 let replacements = 0;
 for (const file of walk(ROOT)) {
   const before = readFileSync(file, "utf8");
-  const after = before.replace(/text-\[8px\]/g, "text-[11px]").replace(/text-\[9px\]/g, "text-[11px]");
+  const after = before
+    .replace(/text-\[8px\]/g, "text-[11px]")
+    .replace(/text-\[9px\]/g, "text-[11px]")
+    .replace(/text-\[10px\]/g, "text-[11px]");
   if (after !== before) {
     writeFileSync(file, after);
     files++;

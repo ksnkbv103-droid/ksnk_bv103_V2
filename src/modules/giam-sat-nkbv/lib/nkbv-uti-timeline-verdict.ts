@@ -10,7 +10,7 @@ import {
   UTI_VOIDING_CRITERIA_KEYS,
 } from "./nkbv-ba-grid-engine";
 import { organismsMatch } from "./nkbv-secondary-bsi-gate";
-import { isDeviceAssociated } from "./nkbv-shared-timeline";
+import { deviceAssociationFromCanThiepDates } from "./nkbv-shared-timeline";
 
 const YEAST_RE = /candida|yeast|nấm men|nam men|fungi|ký sinh/i;
 
@@ -103,6 +103,8 @@ export type BuildUtiTimelineVerdictInput = {
   /** Máu gắn ABUTI (ids). */
   abutiBloodIds: string[];
   isInfantLe1?: boolean;
+  admissionDate?: string | null;
+  dischargeDate?: string | null;
   devicePlacedDate?: string | null;
   deviceRemovedDate?: string | null;
 };
@@ -122,23 +124,22 @@ export function buildUtiTimelineVerdict(
   const doe = input.nsk || input.indexXn?.ngay.slice(0, 10) || "";
 
   const foleyDates = input.canThiepDates.map((d) => d.slice(0, 10)).sort();
-  const foleyActive =
-    Boolean(doe) &&
-    foleyDates.some((d) => d === doe || d === addDay(doe, -1));
-
-  let foleyPlacedDays = 0;
-  let placed = input.devicePlacedDate?.slice(0, 10) || foleyDates[0] || "";
-  let removed = input.deviceRemovedDate?.slice(0, 10) || null;
-  if (placed && doe) {
-    const assoc = isDeviceAssociated({
-      placedDate: placed,
-      removedDate: removed,
-      doe,
-    });
-    foleyPlacedDays = assoc.placedDays;
-  } else if (foleyDates.length) {
-    foleyPlacedDays = foleyDates.length;
-  }
+  const assoc = doe
+    ? deviceAssociationFromCanThiepDates(input.canThiepDates, doe, {
+        placedDate: input.devicePlacedDate || foleyDates[0] || null,
+        removedDate: input.deviceRemovedDate || null,
+        admissionDate: input.admissionDate,
+        dischargeDate: input.dischargeDate,
+      })
+    : { placedDays: 0, activeOnEvent: false, associated: false };
+  const foleyPlacedDays = assoc.placedDays;
+  const foleyActive = assoc.activeOnEvent;
+  // Seed form theo đợt liên tục đã gắn (không lấy ngày sổ làm phình CAUTI)
+  const placed = assoc.episodeStart || input.devicePlacedDate?.slice(0, 10) || foleyDates[0] || "";
+  const removed =
+    assoc.episodeRemoved !== undefined
+      ? assoc.episodeRemoved
+      : input.deviceRemovedDate?.slice(0, 10) || null;
 
   const hasFever = anyKeyInIwp(lamSang, input.iwpDates, ["fever", "fever_or_wbc"]);
   const hasSupra = anyKeyInIwp(lamSang, input.iwpDates, ["suprapubic_pain"]);
@@ -171,7 +172,8 @@ export function buildUtiTimelineVerdict(
     has_fungi_yeast_parasite: lab.yeast,
     foley_placed_days: foleyPlacedDays,
     foley_active_on_event: foleyActive,
-    foley_present_doe_or_prior: foleyActive,
+    // CAUTI chỉ khi đủ ≥3d — không dùng «có Foley 1 ngày» làm present-for-CAUTI
+    foley_present_doe_or_prior: assoc.associated,
     device_placed_date: placed || undefined,
     device_removed_date: removed || undefined,
     has_fever: hasFever,

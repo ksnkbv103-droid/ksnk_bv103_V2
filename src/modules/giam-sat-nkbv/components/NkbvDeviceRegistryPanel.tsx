@@ -11,6 +11,7 @@ import {
 import type { DeviceRegistryType } from "../lib/nkbv-shared-device-days";
 import { emptyClipAdherence, scoreClipAdherence, type ClipAdherence } from "../lib/nkbv-clip";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
+import { validateDeviceRegistryDates } from "../lib/nkbv-ba-device-timeline";
 
 const TYPE_LABEL: Record<DeviceRegistryType, string> = {
   CENTRAL_LINE: "Catheter TMTT (CVC)",
@@ -22,6 +23,8 @@ type Props = {
   maBenhAn: string;
   maBenhNhan?: string | null;
   khoaId?: string | null;
+  ngayVaoVien?: string | null;
+  ngayRaVien?: string | null;
   allowedEdit: boolean;
   onChanged?: (rows: DeviceRegistryRecord[]) => void;
 };
@@ -30,6 +33,8 @@ export default function NkbvDeviceRegistryPanel({
   maBenhAn,
   maBenhNhan,
   khoaId,
+  ngayVaoVien = null,
+  ngayRaVien = null,
   allowedEdit,
   onChanged,
 }: Props) {
@@ -70,6 +75,23 @@ export default function NkbvDeviceRegistryPanel({
       toast.error("Chọn ngày đặt / Day 1");
       return;
     }
+    const check = validateDeviceRegistryDates({
+      insertionDate,
+      removalDate: removalDate || null,
+      firstAccessDate:
+        deviceType === "CENTRAL_LINE" ? firstAccess || insertionDate : null,
+      admissionDate: ngayVaoVien,
+      dischargeDate: ngayRaVien,
+    });
+    if (!check.ok) {
+      toast.error(check.reason || "Ngày đăng ký dụng cụ không hợp lệ");
+      return;
+    }
+    if (check.warnPreAdmission) {
+      toast.message(
+        "Ngày đặt trước vào viện — trên lưới BA tick từ ngày vào viện (Ngày 1 NHSN)",
+      );
+    }
     const res = await upsertNkbvDeviceRegistry({
       ma_benh_an: maBenhAn,
       ma_benh_nhan: maBenhNhan,
@@ -79,6 +101,8 @@ export default function NkbvDeviceRegistryPanel({
       first_access_date: deviceType === "CENTRAL_LINE" ? firstAccess || insertionDate : null,
       khoa_id: khoaId || null,
       clip_adherence: deviceType === "CENTRAL_LINE" ? clip : null,
+      ngay_vao_vien: ngayVaoVien,
+      ngay_ra_vien: ngayRaVien,
     });
     if (!res.success) {
       toast.error(res.error || "Lưu thất bại");
@@ -142,7 +166,7 @@ export default function NkbvDeviceRegistryPanel({
                 </p>
                 {clipScore ? (
                   <p
-                    className={`mt-0.5 text-[10px] font-semibold ${
+                    className={`mt-0.5 text-[11px] font-semibold ${
                       clipScore.adherent ? "text-emerald-700" : "text-amber-700"
                     }`}
                   >

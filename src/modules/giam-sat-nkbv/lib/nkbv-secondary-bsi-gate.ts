@@ -20,6 +20,8 @@ export type PrimarySiteForSbap = {
   sbapDates: string[];
   /** Organism from local culture at site (for S1 match). */
   siteOrganism?: string | null;
+  /** Nhiều VK ổ tại chỗ (Index ∪ RIT) — S1 khớp bất kỳ. */
+  siteOrganisms?: string[] | null;
   /**
    * Blood culture ids used as constituent criteria to meet site definition
    * (PNU2, SSI Organ/Space Ch.17, …) — Scenario 2.
@@ -33,6 +35,8 @@ export type PrimarySiteForSbap = {
   isPvap?: boolean;
   /** Site already meets definition (enough criteria). */
   criteriaMet: boolean;
+  /** DOE của site (hiển thị kết luận đa site). */
+  doe?: string | null;
 };
 
 export type SecondaryBsiVerdict = {
@@ -42,6 +46,13 @@ export type SecondaryBsiVerdict = {
   siteId: string | null;
   siteMajorType: NkbvMajorType | null;
   reason: string;
+  /** SSOT §4.1 — máu có thể Secondary từ nhiều site cùng lúc. */
+  allSites?: Array<{
+    siteId: string;
+    siteMajorType: NkbvMajorType;
+    scenario: NonNullable<SecondaryBsiScenario>;
+    reason: string;
+  }>;
 };
 
 function normOrg(s: string | null | undefined): string {
@@ -115,6 +126,9 @@ export function evaluateSecondaryBsiForBlood(input: {
   const bloodDate = input.blood.date.slice(0, 10);
   const eligibleSites = input.sites.filter((s) => s.criteriaMet);
 
+  const secondaryHits: NonNullable<SecondaryBsiVerdict["allSites"]> = [];
+  let exclusionHit: SecondaryBsiVerdict | null = null;
+
   for (const site of eligibleSites) {
     if (site.majorType === "VAE" && !site.isPvap) {
       continue;
@@ -127,14 +141,20 @@ export function evaluateSecondaryBsiForBlood(input: {
       lungTissueOrPleuralExempt: input.lungTissueOrPleuralExempt,
     });
     if (excl.excluded) {
-      return {
-        bloodId: input.blood.id,
-        outcome: "EXCLUDED_PRIMARY",
-        scenario: null,
-        siteId: site.id,
-        siteMajorType: site.majorType,
-        reason: excl.reason,
-      };
+      if (
+        !exclusionHit &&
+        site.sbapDates.map((d) => d.slice(0, 10)).includes(bloodDate)
+      ) {
+        exclusionHit = {
+          bloodId: input.blood.id,
+          outcome: "EXCLUDED_PRIMARY",
+          scenario: null,
+          siteId: site.id,
+          siteMajorType: site.majorType,
+          reason: excl.reason,
+        };
+      }
+      continue; // site này không Secondary — vẫn xét site khác
     }
 
     const inSbap = site.sbapDates.map((d) => d.slice(0, 10)).includes(bloodDate);
@@ -144,47 +164,51 @@ export function evaluateSecondaryBsiForBlood(input: {
     const window = (site.criteriaWindowDates || site.sbapDates).map((d) => d.slice(0, 10));
     const inCriteriaWindow = window.includes(bloodDate);
     if (usedAsCriterion && inCriteriaWindow) {
-      return {
-        bloodId: input.blood.id,
-        outcome: "SECONDARY",
+      secondaryHits.push({
+        siteId: site.id,
+        siteMajorType: site.majorType,
         scenario: "S2",
-        siteId: site.id,
-        siteMajorType: site.majorType,
         reason: `Secondary S2 — máu cấu thành tiêu chuẩn ${site.majorType}`,
-      };
+      });
+      continue;
     }
 
-    // Scenario 1: in SBAP + organism match
-    if (inSbap && organismsMatch(input.blood.organism, site.siteOrganism)) {
-      return {
-        bloodId: input.blood.id,
-        outcome: "SECONDARY",
+    // Scenario 1: in SBAP + organism match (Index ∪ pack RIT)
+    const siteOrgs = [
+      ...(site.siteOrganisms || []).map((o) => String(o || "").trim()).filter(Boolean),
+      ...(site.siteOrganism ? [String(site.siteOrganism).trim()] : []),
+    ];
+    if (
+      inSbap &&
+      siteOrgs.some((o) => organismsMatch(input.blood.organism, o))
+    ) {
+      secondaryHits.push({
+        siteId: site.id,
+        siteMajorType: site.majorType,
         scenario: "S1",
-        siteId: site.id,
-        siteMajorType: site.majorType,
         reason: `Secondary S1 — máu ∈ SBAP ${site.majorType} + khớp loài`,
-      };
+      });
     }
   }
 
-  // Exclusion-only hit without secondary path already returned; remaining → primary
-  for (const site of eligibleSites) {
-    const excl = isSecondaryExcluded({
-      siteMajorType: site.majorType,
-      bloodOrganism: input.blood.organism,
-      lungTissueOrPleuralExempt: input.lungTissueOrPleuralExempt,
-    });
-    if (excl.excluded && site.sbapDates.map((d) => d.slice(0, 10)).includes(bloodDate)) {
-      return {
-        bloodId: input.blood.id,
-        outcome: "EXCLUDED_PRIMARY",
-        scenario: null,
-        siteId: site.id,
-        siteMajorType: site.majorType,
-        reason: excl.reason,
-      };
-    }
+  if (secondaryHits.length > 0) {
+    const first = secondaryHits[0]!;
+    const reason =
+      secondaryHits.length > 1
+        ? secondaryHits.map((h) => h.reason).join(" · ")
+        : first.reason;
+    return {
+      bloodId: input.blood.id,
+      outcome: "SECONDARY",
+      scenario: first.scenario,
+      siteId: first.siteId,
+      siteMajorType: first.siteMajorType,
+      reason,
+      allSites: secondaryHits,
+    };
   }
+
+  if (exclusionHit) return exclusionHit;
 
   return {
     bloodId: input.blood.id,

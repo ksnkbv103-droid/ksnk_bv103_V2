@@ -84,6 +84,8 @@ export default function NkbvBaCaseSheet({
     setUtiForm,
     ssiForm,
     setSsiForm,
+    ch17Form,
+    setCh17Form,
     handleAddStay,
     handleDeleteStay,
     liveCdcMetrics,
@@ -109,8 +111,9 @@ export default function NkbvBaCaseSheet({
     if (checklistType === "BSI") return bsiForm as Record<string, unknown> | null;
     if (checklistType === "UTI") return utiForm as Record<string, unknown> | null;
     if (checklistType === "SSI") return ssiForm as Record<string, unknown> | null;
+    if (checklistType === "CH17") return ch17Form as Record<string, unknown> | null;
     return vaeForm as Record<string, unknown> | null;
-  }, [checklistType, bsiForm, utiForm, ssiForm, vaeForm]);
+  }, [checklistType, bsiForm, utiForm, ssiForm, ch17Form, vaeForm]);
 
   const lockStatus: "DRAFT" | "DA_CHOT" = useMemo(() => {
     const ma = String(
@@ -204,12 +207,28 @@ export default function NkbvBaCaseSheet({
     const stamp = `${caseId}:${liveCdcMetrics?.iwp_start || ""}:${liveCdcMetrics?.iwp_end || ""}:${timelineMilestones.length}`;
     if (prefillDoneRef.current === stamp) return;
     prefillDoneRef.current = stamp;
+    const pathway = clinicalPathway || checklistType;
+    const mapContext =
+      pathway === "SSI"
+        ? {
+            syndrome: "SSI" as const,
+            ssiDepth:
+              (ssiForm as { infection_depth?: string } | null)?.infection_depth ||
+              "SUPERFICIAL",
+          }
+        : pathway === "PNEU" ||
+            pathway === "VAE" ||
+            pathway === "UTI" ||
+            pathway === "BSI"
+          ? { syndrome: pathway }
+          : undefined;
     setSymptomDates((prev) =>
       prefillSymptomDatesFromTimeline({
         milestones: timelineMilestones,
         iwpStart: liveCdcMetrics?.iwp_start,
         iwpEnd: liveCdcMetrics?.iwp_end,
         existing: prev,
+        mapContext,
       }),
     );
   }, [
@@ -218,6 +237,9 @@ export default function NkbvBaCaseSheet({
     liveCdcMetrics?.iwp_start,
     liveCdcMetrics?.iwp_end,
     setSymptomDates,
+    clinicalPathway,
+    checklistType,
+    ssiForm,
   ]);
 
   const syncSymptomToTimeline = async (key: string, date: string) => {
@@ -438,6 +460,8 @@ export default function NkbvBaCaseSheet({
             setVaeForm={setVaeForm}
             ssiForm={ssiForm}
             setSsiForm={setSsiForm}
+            ch17Form={ch17Form}
+            setCh17Form={setCh17Form}
             liveCdcMetrics={liveCdcMetrics}
             liveEvaluation={liveEvaluation}
             onPrefillDevice={() => void handlePrefillDevice()}

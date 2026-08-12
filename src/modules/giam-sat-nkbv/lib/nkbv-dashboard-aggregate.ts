@@ -10,6 +10,46 @@ export type NkbvCasRowMinimal = {
   khoa_ghi_nhan?: { ma_khoa?: string | null; ten_khoa?: string | null } | null;
 };
 
+/**
+ * Một dòng kết quả `fn_nkbv_dich_te_hoc_rates`.
+ * SIR/SUR/DUR là `null` khi không tính được (chưa cấu hình baseline CDC,
+ * predicted < 1 theo SSOT §18.4, hoặc mẫu số bằng 0) — **không** phải 0.
+ */
+export type NkbvEpidemiologyRate = {
+  khoa_id: string;
+  ma_khoa: string | null;
+  ten_khoa: string | null;
+  obs_vap_cases: number;
+  obs_vae_cases: number;
+  obs_clabsi_cases: number;
+  obs_mbi_lcbi_cases: number;
+  obs_cauti_cases: number;
+  obs_ssi_cases: number;
+  obs_vent_days: number;
+  obs_cvc_days: number;
+  obs_foley_days: number;
+  obs_patient_days: number;
+  obs_emv_episodes: number;
+  obs_total_surgeries: number;
+  clabsi_rate_per_1000: number | null;
+  mbi_lcbi_rate_per_1000: number | null;
+  cvc_dur: number | null;
+  clabsi_sir: number | null;
+  cvc_sur: number | null;
+  vap_rate_per_1000: number | null;
+  vae_rate_per_1000: number | null;
+  vae_rate_per_100_emv: number | null;
+  vent_dur: number | null;
+  vae_sir: number | null;
+  vent_sur: number | null;
+  cauti_rate_per_1000: number | null;
+  foley_dur: number | null;
+  cauti_sir: number | null;
+  foley_sur: number | null;
+  ssi_raw_rate: number | null;
+  ssi_sir: number | null;
+};
+
 export type NkbvDashboardPayload = {
   tu_ngay: string;
   den_ngay: string;
@@ -26,7 +66,9 @@ export type NkbvDashboardPayload = {
   by_loai: { ma: string; ten: string; so_phieu: number }[];
   by_trang_thai: { ma: string; ten: string; so_phieu: number }[];
   top_khoa: { ten_khoa: string; so_phieu: number }[];
-  epidemiologyRates?: any[];
+  epidemiologyRates?: NkbvEpidemiologyRate[];
+  /** Có giá trị khi RPC tỷ suất lỗi — UI phải báo, không được hiển thị bảng rỗng. */
+  epidemiologyError?: string | null;
 };
 
 const CHO_TAC = new Set(["DANG_GHI_NHAN", "CHO_XAC_NHAN", "CHO_XAC_MINH"]);

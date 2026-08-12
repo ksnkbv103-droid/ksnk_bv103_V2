@@ -269,7 +269,42 @@ export const NKBV_CRITERIA_ADD_CATALOG: Array<{
     title: "Đau bụng sau mổ (CSEC/HYST/VHYS)",
     gates: ["SSI"],
   },
+  {
+    criteriaKey: "device_foley",
+    milestoneKind: "SYMPTOM",
+    title: "Ống thông tiểu lưu (Foley)",
+    gates: ["UTI"],
+  },
+  {
+    criteriaKey: "device_ventilator",
+    milestoneKind: "SYMPTOM",
+    title: "Thở máy xâm lấn",
+    gates: ["HAP", "VAP", "VAE"],
+  },
+  {
+    criteriaKey: "device_central_line",
+    milestoneKind: "SYMPTOM",
+    title: "Đường truyền trung tâm (CVC)",
+    gates: ["BSI"],
+  },
 ];
+
+/** Can thiệp xâm lấn — lưu từng ngày trên timeline BA (không dùng sổ đăng ký cho lưới). */
+export const DEVICE_CRITERIA_KEYS = [
+  "device_foley",
+  "device_ventilator",
+  "device_central_line",
+] as const;
+
+export type DeviceCriteriaKey = (typeof DEVICE_CRITERIA_KEYS)[number];
+
+export function isDeviceCriteriaKey(key: string | null | undefined): key is DeviceCriteriaKey {
+  return (
+    key === "device_foley" ||
+    key === "device_ventilator" ||
+    key === "device_central_line"
+  );
+}
 
 function matrixForGate(gate: NkbvChecklistTypeCode): CriteriaRowDef[] {
   if (gate === "UTI") {

@@ -1088,7 +1088,7 @@ export default function GiamSatNkbvPage() {
             void refresh();
             void fetchRecords();
           }}
-          onEnsureAnalysisCase={async ({ stay, milestone, gate, existingCaseId }) => {
+          onEnsureAnalysisCase={async ({ stay, milestone, gate, existingCaseId, analysisSeed }) => {
             if (!allowed.create && !allowed.edit) {
               return { success: false, error: "Không có quyền tạo/mở phiếu từ mốc" };
             }
@@ -1109,9 +1109,13 @@ export default function GiamSatNkbvPage() {
               tac_nhan: milestone.tac_nhan || null,
               title: milestone.title || null,
               existing_case_id: existingCaseId || null,
+              analysisSeed: analysisSeed || null,
             });
-            if (!res.success || !res.caseRow) {
+            if (!res.success) {
               return { success: false, error: res.error || "Không mở được khung điều tra" };
+            }
+            if (!res.caseRow) {
+              return { success: false, error: "Không mở được khung điều tra" };
             }
             void refresh();
             void fetchRecords();

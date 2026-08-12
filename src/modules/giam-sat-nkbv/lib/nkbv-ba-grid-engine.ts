@@ -5,24 +5,40 @@
 import { calculateCdcMetrics, type CdcMetricsResult } from "./nkbv-timeline-math";
 import {
   addDays,
+  clinicalIwp,
   clinicalRitEnd,
   daysBetween,
-  isDeviceAssociated,
+  deviceAssociationFromCanThiepDates,
 } from "./nkbv-shared-timeline";
 import { resolveNkbvMajorType, sameMajorType, type NkbvMajorType } from "./nkbv-major-type";
 import type { NkbvChecklistTypeCode } from "./nkbv-loai-labels";
 import type { BaTimelineMilestone } from "./nkbv-ba-timeline-core";
 import {
+  DEVICE_CRITERIA_META,
+  emptyBaDeviceByDate,
+  type BaDeviceByDate,
+} from "./nkbv-ba-device-timeline";
+import {
   NKBV_CRITERIA_ADD_CATALOG,
+  isDeviceCriteriaKey,
   type NkbvCriteriaKey,
 } from "./nkbv-criteria-matrix";
 import {
+  INFANT_LE1_CRITERIA_KEYS_FROM_CATALOG,
   UTI_INFANT_CRITERIA_KEYS_FROM_CATALOG,
   UTI_VOIDING_CRITERIA_KEYS_FROM_CATALOG,
   criteriaKeyToFormField,
   type CriteriaMapContext,
 } from "./nkbv-clinical-symptom-catalog";
 import { displaySpecimenOnGrid } from "./nkbv-specimen-canonical";
+import {
+  collectRitPathogens,
+  detectSecondaryBsiFromSbap,
+  formatBaKetLuanSummary,
+  formatBaKetLuanProgressive,
+  mergePathogenLists,
+} from "./nkbv-ket-luan-smart";
+import type { SecondaryBsiPrimarySite } from "./nkbv-shared-secondary-bsi";
 
 export type BaGridNghiNgo = "PNEU" | "BSI" | "UTI" | "VAE" | "SSI";
 
@@ -69,6 +85,8 @@ export type BaGridKetLuan = {
   tac_nhan: string | null;
   noi_xay_ra: string | null;
   lien_quan_xam_lan: "co" | "khong" | "chua_ro";
+  /** Tự quy kết từ cấy máu ∈ SBAP khớp VK tại chỗ. */
+  is_secondary_bsi?: boolean;
   trang_thai: "nhap" | "chot" | "khong_du_tc";
   /** Hiển thị (override nếu có). */
   summary: string;
@@ -94,7 +112,7 @@ export type BaGridSessionInput = {
   canThiepDates: BaGridCanThiepDates;
   /** IP ghi đè chuỗi Kết luận */
   ketLuanOverride?: string | null;
-  /** Đánh dấu sẵn sàng chốt (không còn bắt buộc để tô RIT) */
+  /** Đủ TC cấu thành sự kiện — bắt buộc để tô RIT/SBAP và gom mẫu */
   criteriaMetPreview?: boolean;
   lockedEvent?: { nsk: string; majorType: NkbvMajorType; chot: boolean } | null;
 };
@@ -213,13 +231,14 @@ export function buildGridColumns(input: {
 
 export function nghiNgoToChecklistType(
   nghiNgo: BaGridNghiNgo,
-  canThiepActiveOnNsk?: boolean,
+  /** Chỉ true khi đủ NHSN device-associated (≥3 ngày lịch + hiện diện DOE/DOE−1). */
+  deviceAssociatedOnDoe?: boolean,
 ): NkbvChecklistTypeCode {
   if (nghiNgo === "BSI") return "BSI";
   if (nghiNgo === "UTI") return "UTI";
   if (nghiNgo === "SSI") return "SSI";
   if (nghiNgo === "VAE") return "VAE";
-  return canThiepActiveOnNsk ? "VAP" : "HAP";
+  return deviceAssociatedOnDoe ? "VAP" : "HAP";
 }
 
 export function suggestNghiNgoFromIndex(input: {
@@ -277,13 +296,14 @@ export const SSI_DIAGNOSTIC_CRITERIA_KEYS = new Set<string>([
   "physician_diagnosis",
 ]);
 
-/** Catalog triệu chứng lâm sàng trong tiêu chuẩn (không gồm CĐHA / SSI chẩn đoán). */
+/** Catalog triệu chứng lâm sàng trong tiêu chuẩn (không gồm CĐHA / SSI chẩn đoán / device). */
 export function clinicalCatalogForNghiNgo(nghiNgo: BaGridNghiNgo) {
   const gates = gatesForNghiNgo(nghiNgo);
   return NKBV_CRITERIA_ADD_CATALOG.filter(
     (c) =>
       c.milestoneKind === "SYMPTOM" &&
       !SSI_DIAGNOSTIC_CRITERIA_KEYS.has(c.criteriaKey) &&
+      !isDeviceCriteriaKey(c.criteriaKey) &&
       c.gates.some((g) => gates.includes(g)),
   );
 }
@@ -346,6 +366,9 @@ export const UTI_VOIDING_CRITERIA_KEYS = UTI_VOIDING_CRITERIA_KEYS_FROM_CATALOG;
 /** Triệu chứng SUTI 2 — chỉ hiện khi ≤1 tuổi. */
 export const UTI_INFANT_CRITERIA_KEYS = UTI_INFANT_CRITERIA_KEYS_FROM_CATALOG;
 
+/** Mọi chip lâm sàng ≤1 tuổi — ẩn khi không phải infant. */
+export const INFANT_LE1_CRITERIA_KEYS = INFANT_LE1_CRITERIA_KEYS_FROM_CATALOG;
+
 export function dateSetInclusive(start: string, end: string): Set<string> {
   const out = new Set<string>();
   if (!start || !end) return out;
@@ -399,6 +422,8 @@ export function splitMilestonesToGridRows(milestones: BaTimelineMilestone[]): {
   tieuChuanChuyenBietByDate: BaGridSymptomByDate;
   /** Catalog triệu chứng lâm sàng trong tiêu chuẩn CDC. */
   trieuChungLamSangByDate: BaGridSymptomByDate;
+  /** Foley / Vent / CVC — từng ngày trên timeline. */
+  deviceByDate: BaDeviceByDate;
   notesByDate: Record<string, string>;
   noteIdsByDate: Record<string, string>;
   /** @deprecated alias lâm sàng — tương thích cũ */
@@ -410,6 +435,7 @@ export function splitMilestonesToGridRows(milestones: BaTimelineMilestone[]): {
   const surgeryByDate: BaGridSymptomByDate = {};
   const tieuChuanChuyenBietByDate: BaGridSymptomByDate = {};
   const trieuChungLamSangByDate: BaGridSymptomByDate = {};
+  const deviceByDate: BaDeviceByDate = emptyBaDeviceByDate();
   const notesByDate: Record<string, string> = {};
   const noteIdsByDate: Record<string, string> = {};
 
@@ -420,6 +446,22 @@ export function splitMilestonesToGridRows(milestones: BaTimelineMilestone[]): {
     if (kind === "NOTE") {
       notesByDate[d] = m.title || m.detail || "";
       noteIdsByDate[d] = m.id;
+      continue;
+    }
+
+    // Can thiệp xâm lấn — cột Foley/Vent/CVC (không vào LS)
+    if (isDeviceCriteriaKey(m.criteriaKey)) {
+      const meta = DEVICE_CRITERIA_META[m.criteriaKey];
+      const bucket = deviceByDate[meta.bucket];
+      if (!bucket[d]) bucket[d] = [];
+      if (!bucket[d].some((x) => x.key === m.criteriaKey)) {
+        bucket[d].push({
+          id: m.id,
+          ngay: d,
+          key: m.criteriaKey,
+          label: meta.label,
+        });
+      }
       continue;
     }
 
@@ -528,6 +570,7 @@ export function splitMilestonesToGridRows(milestones: BaTimelineMilestone[]): {
     surgeryByDate,
     tieuChuanChuyenBietByDate,
     trieuChungLamSangByDate,
+    deviceByDate,
     notesByDate,
     noteIdsByDate,
     tieuChuanByDate: trieuChungLamSangByDate,
@@ -535,6 +578,11 @@ export function splitMilestonesToGridRows(milestones: BaTimelineMilestone[]): {
   };
 }
 
+/**
+ * Gom ngày yếu tố TC cho DOE — chỉ ngày ∈ IWP của Index đang xét.
+ * Progressive: sốt lần trước ngoài IWP mới không được “che” sốt trong IWP mới.
+ * CDC §3.2: DOE = min(yếu tố ∈ IWP); Index là một ứng viên (tính ở calculateCdcMetrics).
+ */
 function buildSymptomDatesForMetrics(
   tieuChuanByDate: BaGridSymptomByDate,
   cdha: BaGridCdhaCell[],
@@ -543,36 +591,55 @@ function buildSymptomDatesForMetrics(
   nghiNgo?: BaGridNghiNgo | null,
 ): Record<string, string> {
   const mapCtx: CriteriaMapContext = { syndrome: nghiNgo || undefined };
-  const out = { ...base };
+  const indexDate = activeIndex?.date.slice(0, 10) || "";
+  const iwp = indexDate ? clinicalIwp(indexDate) : null;
+  const inIwp = (raw: string) => {
+    const d = raw.slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return false;
+    if (!iwp) return true;
+    return d >= iwp.start && d <= iwp.end;
+  };
+
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(base || {})) {
+    const d = String(v || "").slice(0, 10);
+    if (d && inIwp(d)) out[k] = d;
+  }
   for (const [date, items] of Object.entries(tieuChuanByDate)) {
+    const day = date.slice(0, 10);
+    if (!inIwp(day)) continue;
     for (const it of items) {
       const formKey =
         criteriaKeyToSymptomDateKey(it.key as NkbvCriteriaKey, mapCtx) ||
         (it.key.startsWith("has_") || it.key.includes("_") ? it.key : null);
       if (!formKey) continue;
       const prev = out[formKey];
-      if (!prev || date < prev) out[formKey] = date;
+      if (!prev || day < prev) out[formKey] = day;
     }
   }
   for (const c of cdha) {
+    const day = c.ngay.slice(0, 10);
+    if (!inIwp(day)) continue;
     if (
       c.tieu_chuan_key === "imaging_chest" ||
       /viêm phổi|thâm nhiễm|đông đặc/i.test(c.mo_ta_benh_ly)
     ) {
       const prev = out.has_chest_imaging_abnormal;
-      if (!prev || c.ngay < prev) out.has_chest_imaging_abnormal = c.ngay.slice(0, 10);
+      if (!prev || day < prev) out.has_chest_imaging_abnormal = day;
     }
   }
   // Index = tiêu chí chẩn đoán: đảm bảo ngày Index vào tập DOE
   if (activeIndex?.kind === "TIEU_CHUAN") {
     const d = activeIndex.date.slice(0, 10);
-    const cell = Object.values(tieuChuanByDate)
-      .flat()
-      .find((x) => x.id === activeIndex.id);
-    const formKey = cell
-      ? criteriaKeyToSymptomDateKey(cell.key as NkbvCriteriaKey, mapCtx)
-      : null;
-    if (formKey && (!out[formKey] || d < out[formKey])) out[formKey] = d;
+    if (inIwp(d)) {
+      const cell = Object.values(tieuChuanByDate)
+        .flat()
+        .find((x) => x.id === activeIndex.id);
+      const formKey = cell
+        ? criteriaKeyToSymptomDateKey(cell.key as NkbvCriteriaKey, mapCtx)
+        : null;
+      if (formKey && (!out[formKey] || d < out[formKey])) out[formKey] = d;
+    }
   }
   return out;
 }
@@ -629,8 +696,8 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
         ? "CULTURE"
         : "CULTURE";
 
-  const deviceOnIndex = input.canThiepDates.some((d) => d.slice(0, 10) === indexDate);
-  let checklistType = nghiNgoToChecklistType(input.nghiNgo, deviceOnIndex);
+  // Chưa có DOE → tạm HAP; sau metrics mới gắn VAP khi đủ ≥3d + hiện diện
+  let checklistType = nghiNgoToChecklistType(input.nghiNgo, false);
 
   const metricsChecklist =
     checklistType === "VAP" ||
@@ -649,7 +716,16 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
     activeForm: {
       pneu_trigger: pneuTrigger,
       ...(input.nghiNgo === "PNEU" || input.nghiNgo === "VAE"
-        ? { vent_days: input.canThiepDates.length }
+        ? {
+            vent_days: deviceAssociationFromCanThiepDates(
+              input.canThiepDates,
+              indexDate,
+              {
+                admissionDate: input.ngayVaoVien,
+                dischargeDate: input.ngayRaVien,
+              },
+            ).placedDays,
+          }
         : {}),
     },
     symptomDates,
@@ -658,46 +734,40 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
   });
 
   if (input.nghiNgo === "PNEU" && metrics.doe) {
-    const sorted = [...input.canThiepDates].map((d) => d.slice(0, 10)).sort();
-    const placed = sorted[0];
-    if (placed) {
-      const assoc = isDeviceAssociated({
-        placedDate: placed,
-        removedDate: null,
-        doe: metrics.doe,
-      });
-      const active =
-        assoc.activeOnEvent ||
-        input.canThiepDates.some((d) => {
-          const x = d.slice(0, 10);
-          return x === metrics.doe || x === addDays(metrics.doe, -1);
-        });
-      checklistType = active ? "VAP" : "HAP";
-    }
+    const assoc = deviceAssociationFromCanThiepDates(
+      input.canThiepDates,
+      metrics.doe,
+      {
+        admissionDate: input.ngayVaoVien,
+        dischargeDate: input.ngayRaVien,
+      },
+    );
+    // VAP chỉ khi đủ Day 3+ và hiện diện DOE/DOE−1 (không gắn vì chỉ tick 1 ngày)
+    checklistType = assoc.associated ? "VAP" : "HAP";
   }
 
   const iwpDates = dateSetInclusive(metrics.iwp_start, metrics.iwp_end);
-  // Có Index → luôn có NSK (ít nhất = Index) — chế độ phân tích
+  // DOE/NSK = min(yếu tố TC ∈ IWP); không có yếu tố lâm sàng sớm hơn → = Index
   const nsk = metrics.doe || indexDate;
 
-  // RIT/SBAP luôn tô khi có NSK (không phụ thuộc tick Đủ TC)
-  const ritEnd = (nsk && (metrics.rit_end || clinicalRitEnd(nsk))) || null;
-  const ritDates = nsk && ritEnd ? dateSetInclusive(nsk, ritEnd) : new Set<string>();
+  // Đủ TC → khóa attributed / smart Secondary / kết luận đầy đủ
+  const enough =
+    Boolean(input.criteriaMetPreview) || Boolean(input.lockedEvent?.chot);
+
+  // Paint RIT/SBAP ngay khi có NSK (ứng viên để IP rà) — không chờ đủ TC CDC
+  const ritEnd = nsk ? metrics.rit_end || clinicalRitEnd(nsk) : null;
+  const ritDates =
+    nsk && ritEnd ? dateSetInclusive(nsk, ritEnd) : new Set<string>();
   const sbapDates =
     nsk && metrics.sbap_start
       ? dateSetInclusive(metrics.sbap_start, metrics.sbap_end)
       : new Set<string>();
 
-  // Khung cột neo Index: trước 7 ngày · sau 14 ngày (IWP/RIT vẫn tính đủ, chỉ cắt hiển thị)
+  // Khung hiển thị VV−2 → hết (đồng bộ bảng chung; IWP vẫn tính khi phân tích)
   const columns = buildGridColumns({
     ngayVaoVien: input.ngayVaoVien,
     ngayRaVien: input.ngayRaVien,
-    evidenceDates: [],
-    indexAnchor: {
-      date: indexDate,
-      beforeDays: GRID_INDEX_BEFORE_DAYS,
-      afterDays: GRID_INDEX_AFTER_DAYS,
-    },
+    evidenceDates: [indexDate],
   });
 
   const majorType: NkbvMajorType =
@@ -711,15 +781,16 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
             ? "SSI"
             : "VAE";
 
-  const { attributedXnIds, attributedCdhaIds } = nsk
-    ? attributeWithinRit({
-        nsk,
-        majorType,
-        xn: input.xn,
-        cdha: input.cdha,
-        activeIndexId: input.activeIndex?.id,
-      })
-    : { attributedXnIds: [], attributedCdhaIds: [] };
+  const { attributedXnIds, attributedCdhaIds } =
+    enough && nsk
+      ? attributeWithinRit({
+          nsk,
+          majorType,
+          xn: input.xn,
+          cdha: input.cdha,
+          activeIndexId: input.activeIndex?.id,
+        })
+      : { attributedXnIds: [], attributedCdhaIds: [] };
 
   const noi =
     (nsk && input.khoaByDate[nsk]) ||
@@ -728,7 +799,36 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
       .find(([d]) => nsk && d <= nsk)?.[1] ||
     null;
 
+  const ritPathogens = nsk
+    ? collectRitPathogens({
+        nsk,
+        majorType,
+        xn: input.xn,
+        excludeBlood: majorType !== "BSI",
+      })
+    : [];
+
+  const secondaryScan =
+    enough &&
+    nsk &&
+    metrics.sbap_start &&
+    metrics.sbap_end &&
+    (majorType === "UTI" || majorType === "PNEU" || majorType === "SSI")
+      ? detectSecondaryBsiFromSbap({
+          primarySite: majorType as SecondaryBsiPrimarySite,
+          sbapStart: metrics.sbap_start,
+          sbapEnd: metrics.sbap_end,
+          xn: input.xn,
+          primaryOrganisms: ritPathogens,
+        })
+      : null;
+
+  const tacNhanMerged = mergePathogenLists(
+    ritPathogens,
+    secondaryScan?.isSecondary ? secondaryScan.bloodOrganisms : null,
+  );
   const tacNhan =
+    tacNhanMerged ||
     input.xn.find((x) => x.id === input.activeIndex?.id)?.vi_khuan ||
     input.xn.find((x) => attributedXnIds.includes(x.id))?.vi_khuan ||
     input.xn.find((x) => x.ngay.slice(0, 10) === indexDate)?.vi_khuan ||
@@ -736,30 +836,15 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
 
   let lien_quan: BaGridKetLuan["lien_quan_xam_lan"] = "chua_ro";
   if (nsk && input.canThiepDates.length > 0) {
-    const sorted = [...input.canThiepDates].map((d) => d.slice(0, 10)).sort();
-    const assoc = isDeviceAssociated({
-      placedDate: sorted[0],
-      removedDate: null,
-      doe: nsk,
+    const assoc = deviceAssociationFromCanThiepDates(input.canThiepDates, nsk, {
+      admissionDate: input.ngayVaoVien,
+      dischargeDate: input.ngayRaVien,
     });
-    const dayHit = input.canThiepDates.some((d) => {
-      const x = d.slice(0, 10);
-      return x === nsk || x === addDays(nsk, -1);
-    });
-    lien_quan = assoc.associated || (dayHit && assoc.placedDays >= 3) ? "co" : dayHit ? "co" : "khong";
+    // CDC: chỉ «có» khi ≥3 ngày đặt + hiện diện DOE/DOE−1
+    lien_quan = assoc.associated ? "co" : "khong";
   } else if (nsk) {
     lien_quan = "khong";
   }
-
-  const hasTcInIwp = Object.keys(tieuChuanByDate).some((d) => iwpDates.has(d));
-  const enough =
-    Boolean(input.criteriaMetPreview) ||
-    Boolean(input.lockedEvent?.chot) ||
-    (Boolean(nsk) &&
-      (hasTcInIwp ||
-        input.activeIndex?.kind === "CDHA" ||
-        input.activeIndex?.kind === "XN" ||
-        input.activeIndex?.kind === "TIEU_CHUAN"));
 
   const loaiNk =
     checklistType === "VAP"
@@ -770,33 +855,40 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
           ? "LCBI"
           : checklistType;
 
-  const suggestedSummary = [
-    loaiNk,
-    enough ? metrics.haiStatus : "Không đủ TC",
-    `NSK ${formatGridDayLabel(nsk)}`,
-    tacNhan && tacNhan !== "—" ? tacNhan : null,
-    noi,
-    lien_quan === "co" ? canThiepLabel : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-
+  const isSecondaryBsi = Boolean(secondaryScan?.isSecondary);
   const override = input.ketLuanOverride?.trim() || "";
+  const suggestedSummary = enough
+    ? formatBaKetLuanSummary({
+        haiPoa: metrics.haiStatus,
+        loaiNk,
+        secondaryBsi: isSecondaryBsi,
+        nsk,
+        tacNhan: tacNhan && tacNhan !== "—" ? tacNhan : null,
+        noi,
+      })
+    : formatBaKetLuanProgressive({
+        indexDate,
+        verdictLabel: override || null,
+        tacNhanHint: tacNhan && tacNhan !== "—" ? tacNhan : null,
+      });
+
   const ketLuan: BaGridKetLuan | null = nsk
     ? {
-        loai_nk: loaiNk,
+        loai_nk: enough ? loaiNk : "đang phân tích",
         nkbv: enough ? metrics.haiStatus : "THIEU_TC",
         nsk,
         tac_nhan: tacNhan && tacNhan !== "—" ? tacNhan : null,
         noi_xay_ra: noi,
         lien_quan_xam_lan: lien_quan,
+        is_secondary_bsi: enough && isSecondaryBsi ? true : undefined,
         trang_thai: input.lockedEvent?.chot
           ? "chot"
           : enough
             ? "nhap"
             : "khong_du_tc",
         suggestedSummary,
-        summary: override || suggestedSummary,
+        // Khi chưa đủ TC: ưu tiên nhãn verdict (override) làm summary hiển thị
+        summary: enough ? override || suggestedSummary : suggestedSummary,
       }
     : null;
 

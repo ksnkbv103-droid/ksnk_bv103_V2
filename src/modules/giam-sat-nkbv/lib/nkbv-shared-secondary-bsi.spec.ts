@@ -10,6 +10,21 @@ describe("nkbv-shared-secondary-bsi", () => {
     expect(organismsMatchForSecondary("yeast", "Candida albicans")).toBe(true);
   });
 
+  it("genus-level Pseudomonas species ↔ P. aeruginosa; cấm Staph species ↔ CoNS", () => {
+    expect(
+      organismsMatchForSecondary("Pseudomonas species", "Pseudomonas aeruginosa"),
+    ).toBe(true);
+    expect(
+      organismsMatchForSecondary("Staphylococcus species", "Coagulase-negative Staphylococcus"),
+    ).toBe(false);
+    expect(
+      organismsMatchForSecondary("Staphylococcus species", "Staphylococcus aureus"),
+    ).toBe(false);
+    expect(
+      organismsMatchForSecondary("Enterococcus faecalis", "Enterococcus faecium"),
+    ).toBe(false);
+  });
+
   it("bans PedVAE secondary", () => {
     const r = evaluateSecondaryBsi({
       primarySite: "PEDVAE",

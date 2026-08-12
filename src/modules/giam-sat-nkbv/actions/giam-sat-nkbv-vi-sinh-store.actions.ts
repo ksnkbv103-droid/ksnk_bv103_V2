@@ -31,10 +31,12 @@ export type NkbvViSinhStoreRow = {
   ket_qua_phan_loai: string | null;
   is_mdro: boolean | null;
   mdro_phenotype: string | null;
+  /** Đã phân tích / bỏ qua — từ metadata. */
+  analysis_disposition: "DA_PHAN_TICH" | "BO_QUA" | "KHONG_DU_TC" | null;
 };
 
 const STORE_SELECT =
-  "id, ma_xet_nghiem, ma_benh_an, ma_benh_nhan, ho_ten_benh_nhan, ngay_lay_mau, khoa_yeu_cau_id, loai_benh_pham, loai_benh_pham_chuan, tac_nhan, so_luong, ket_qua_phan_loai, is_mdro, mdro_phenotype";
+  "id, ma_xet_nghiem, ma_benh_an, ma_benh_nhan, ho_ten_benh_nhan, ngay_lay_mau, khoa_yeu_cau_id, loai_benh_pham, loai_benh_pham_chuan, tac_nhan, so_luong, ket_qua_phan_loai, is_mdro, mdro_phenotype, metadata";
 
 function assertSpecimenCode(
   code: string | null | undefined,
@@ -47,7 +49,7 @@ function assertSpecimenCode(
   return { ok: true, code: t };
 }
 
-/** XN đã dùng trên Hub BA: Index phiếu hoặc đã bỏ qua phân tích. */
+/** XN đã dùng trên Hub BA: Index phiếu, đã PT, hoặc bỏ qua. */
 async function isViSinhInUse(
   supabase: ReturnType<typeof createAdminSupabaseClient>,
   viSinhId: string,
@@ -66,7 +68,13 @@ async function isViSinhInUse(
     .eq("id", viSinhId)
     .maybeSingle();
   const meta = (row as { metadata?: Record<string, unknown> | null } | null)?.metadata;
-  if (meta && typeof meta === "object" && meta.analysis_disposition === "BO_QUA") {
+  if (
+    meta &&
+    typeof meta === "object" &&
+    (meta.analysis_disposition === "BO_QUA" ||
+      meta.analysis_disposition === "DA_PHAN_TICH" ||
+      meta.analysis_disposition === "KHONG_DU_TC")
+  ) {
     return true;
   }
   return false;
@@ -98,6 +106,11 @@ export async function listNkbvViSinhStore(params?: {
   if (error) return { success: false as const, error: error.message, data: [] as NkbvViSinhStoreRow[] };
   const rows: NkbvViSinhStoreRow[] = (data || []).map((raw) => {
     const r = raw as Record<string, unknown>;
+    const meta =
+      r.metadata && typeof r.metadata === "object"
+        ? (r.metadata as Record<string, unknown>)
+        : {};
+    const disp = meta.analysis_disposition;
     return {
       id: String(r.id),
       ma_xet_nghiem: String(r.ma_xet_nghiem || ""),
@@ -114,6 +127,12 @@ export async function listNkbvViSinhStore(params?: {
       ket_qua_phan_loai: r.ket_qua_phan_loai ? String(r.ket_qua_phan_loai) : null,
       is_mdro: r.is_mdro == null ? null : Boolean(r.is_mdro),
       mdro_phenotype: r.mdro_phenotype ? String(r.mdro_phenotype) : null,
+      analysis_disposition:
+        disp === "BO_QUA" ||
+        disp === "DA_PHAN_TICH" ||
+        disp === "KHONG_DU_TC"
+          ? disp
+          : null,
     };
   });
   return { success: true as const, data: rows };

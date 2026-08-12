@@ -1411,6 +1411,10 @@ export function criteriaKeyToFormField(
     const fever = pool.find((s) => s.form_field === "has_pneu_fever");
     if (fever?.form_field) return fever.form_field;
   }
+  // PNEU: key "fever" từ timeline UTI/BA chung → atom sốt PNEU (DOE ∈ IWP)
+  if (syn === "PNEU" && criteriaKey === "fever") {
+    return "has_pneu_fever";
+  }
   return pool[0]?.form_field ?? CRITERIA_TO_FORM[criteriaKey] ?? null;
 }
 
@@ -1502,6 +1506,13 @@ export const UTI_INFANT_CRITERIA_KEYS_FROM_CATALOG = new Set(
   NKBV_CLINICAL_SYMPTOMS.filter(
     (s) => s.syndromes.includes("UTI") && s.age_gate === "le1" && s.criteria_key,
   ).map((s) => s.criteria_key as string),
+);
+
+/** Mọi criteria_key age_gate le1 (BSI LCBI3 / UTI SUTI2 / PNEU infant) — ẩn trên UI người lớn. */
+export const INFANT_LE1_CRITERIA_KEYS_FROM_CATALOG = new Set(
+  NKBV_CLINICAL_SYMPTOMS.filter((s) => s.age_gate === "le1" && s.criteria_key).map(
+    (s) => s.criteria_key as string,
+  ),
 );
 
 export const PILOT_SYNDROMES: NkbvSymptomSyndrome[] = ["BSI", "UTI", "PNEU", "VAE", "SSI"];

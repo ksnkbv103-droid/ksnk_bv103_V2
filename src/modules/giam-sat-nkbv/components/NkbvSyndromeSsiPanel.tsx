@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
-  hospitalDayNumber,
   ssiTcCatalogWithoutSurgery,
   type BaGridActiveIndex,
   type BaGridCdhaCell,
@@ -20,7 +19,8 @@ import {
   type SsiDepth,
 } from "../lib/nkbv-ssi-timeline-verdict";
 import { mergeLamSangByDate } from "../lib/nkbv-ba-lam-sang-merge";
-import { isBloodSpecimen } from "../lib/nkbv-sbap-rit-chips";
+import { buildSbapRitChips, isBloodSpecimen } from "../lib/nkbv-sbap-rit-chips";
+import { collectRitPathogens } from "../lib/nkbv-ket-luan-smart";
 import {
   depthFromSsiEventType,
   formatNhsnOptionLabel,
@@ -31,6 +31,17 @@ import {
   secondaryIncisionMismatchWarning,
 } from "../lib/nkbv-ssi-nhsn-catalog";
 import { ssiReportingContractGaps } from "../lib/nkbv-ssi-reporting-contract";
+import { baCellToneClass } from "../lib/nkbv-ba-day-row-tone";
+import type { ViSinhAnalysisDispositionRow } from "../lib/nkbv-vi-sinh-analysis-status";
+import type {
+  OpenSiteSessionForSbap,
+  PriorEventForDisposition,
+} from "../lib/nkbv-index-event-disposition";
+import {
+  BA_DAY_COL_W_ANALYSIS,
+  type BaDayGridColumnDef,
+} from "./NkbvBaDayGrid";
+import NkbvBaConcludeCell from "./NkbvBaConcludeCell";
 
 type Props = {
   columns: BaGridColumn[];
@@ -44,24 +55,37 @@ type Props = {
   baLamSangByDate?: BaGridSymptomByDate;
   draft: BaAnalysisSessionDraft;
   onDraftChange: (patch: Partial<BaAnalysisSessionDraft>) => void;
+  onCloseInsufficient?: () => void;
   /** Ghi TC SSI lên timeline BA (SSOT bằng chứng) */
   onPersistSsiTc?: (date: string, key: string, label: string, turnOn: boolean) => void;
   allowedEdit: boolean;
+  analysisDispositions?: ViSinhAnalysisDispositionRow[];
+  sampleConclusions?: import("../lib/nkbv-ba-sample-conclusions").BaSampleConclusion[];
+  analysisMode?: import("../lib/nkbv-ba-analysis-mode").BaAnalysisMode;
+  onManualSampleConclude?: (payload: {
+    indexId: string;
+    kind: "XN" | "CDHA";
+    date: string;
+    disposition: import("../lib/nkbv-ba-sample-conclusions").BaSampleConclusion["disposition"];
+    label: string;
+  }) => void;
+  onManualSampleClear?: (payload: { indexId: string }) => void;
+  priorEvents?: PriorEventForDisposition[];
+  openSiteSessions?: OpenSiteSessionForSbap[];
   scrollRef?: (el: HTMLDivElement | null) => void;
   onScrollSync?: () => void;
   onClose: () => void;
   onOpenPrimaryBsi?: (bloodId: string) => void;
+  /** Phủ quyết máu Secondary — không mở khung BSI. */
+  onConfirmSecondaryBlood?: (payload: {
+    sampleId: string;
+    date: string;
+    label: string;
+  }) => void;
   colW?: number;
   labelW?: number;
+  children?: (api: { analysisColumns: BaDayGridColumnDef[] }) => React.ReactNode;
 };
-
-function cellTone(on: boolean, kind: "sp" | "sbap" | "nsk" | "ix") {
-  if (!on) return "bg-white";
-  if (kind === "sp") return "bg-violet-100";
-  if (kind === "sbap") return "bg-sky-100";
-  if (kind === "nsk") return "bg-rose-300 font-bold";
-  return "bg-violet-200 font-black text-violet-950";
-}
 
 export default function NkbvSyndromeSsiPanel({
   columns,
@@ -75,15 +99,29 @@ export default function NkbvSyndromeSsiPanel({
   baLamSangByDate = {},
   draft,
   onDraftChange,
+  onCloseInsufficient,
   onPersistSsiTc,
   allowedEdit,
+  analysisDispositions = [],
+  sampleConclusions = [],
+  analysisMode = "CDC",
+  onManualSampleConclude,
+  onManualSampleClear,
+  priorEvents = [],
+  openSiteSessions = [],
   scrollRef,
   onScrollSync,
   onClose,
   onOpenPrimaryBsi,
+  onConfirmSecondaryBlood,
   colW = 100,
   labelW = 128,
+  children,
 }: Props) {
+  void colW;
+  void labelW;
+  void scrollRef;
+  void onScrollSync;
   const surgeryDate = useMemo(() => {
     const keys = Object.keys(surgeryByDate).sort();
     if (keys.length) return keys[0];
@@ -156,6 +194,16 @@ export default function NkbvSyndromeSsiPanel({
 
   const sbsiVerdicts: SecondaryBsiVerdict[] = useMemo(() => {
     const sbap = [...verdict.gate.sbapDates];
+    const siteOrgs = [
+      ...(woundOrg ? [woundOrg] : []),
+      ...collectRitPathogens({
+        nsk: (verdict.gate.doe || index.date).slice(0, 10),
+        majorType: "SSI",
+        xn,
+        excludeBlood: true,
+      }),
+    ];
+    const uniq = [...new Set(siteOrgs.map((o) => o.trim()).filter(Boolean))];
     return bloodXn.map((b) =>
       evaluateSecondaryBsiForBlood({
         blood: { id: b.id, date: b.ngay, organism: b.vi_khuan },
@@ -163,10 +211,11 @@ export default function NkbvSyndromeSsiPanel({
           {
             id: "site-SSI",
             majorType: "SSI",
-            criteriaMet: verdict.criteriaMet || draft.readyToChot,
+            criteriaMet: verdict.criteriaMet,
             sbapDates: sbap,
             criteriaWindowDates: sbap,
-            siteOrganism: woundOrg,
+            siteOrganism: uniq[0] || woundOrg,
+            siteOrganisms: uniq,
             bloodCriterionIds: draft.bloodCriterionIds,
           },
         ],
@@ -175,15 +224,44 @@ export default function NkbvSyndromeSsiPanel({
   }, [
     bloodXn,
     verdict.gate.sbapDates,
+    verdict.gate.doe,
     verdict.criteriaMet,
-    draft.readyToChot,
     draft.bloodCriterionIds,
     woundOrg,
+    xn,
+    index.date,
   ]);
 
+  useEffect(() => {
+    const established = Boolean(verdict.criteriaMet);
+    if (Boolean(draft.eventEstablished) === established) return;
+    onDraftChange({ eventEstablished: established });
+  }, [verdict.criteriaMet, draft.eventEstablished, onDraftChange]);
+
+  const sbapRitChips = useMemo(() => {
+    const doe = (verdict.gate.doe || index.date).slice(0, 10);
+    const primaries = [
+      ...(woundOrg ? [woundOrg] : []),
+      ...collectRitPathogens({
+        nsk: doe,
+        majorType: "SSI",
+        xn,
+        excludeBlood: true,
+      }),
+    ];
+    return buildSbapRitChips({
+      xn,
+      indexId: index.id,
+      indexSpecimen: "Dịch vết mổ",
+      ritDates: new Set<string>(),
+      sbapDates: verdict.gate.sbapDates,
+      primaryOrganisms: [...new Set(primaries.map((o) => o.trim()).filter(Boolean))],
+    });
+  }, [xn, index.id, index.date, woundOrg, verdict.gate.doe, verdict.gate.sbapDates]);
+
   const bloodInSbap = useMemo(
-    () => bloodXn.filter((b) => verdict.gate.sbapDates.has(b.ngay.slice(0, 10))),
-    [bloodXn, verdict.gate.sbapDates],
+    () => Object.values(sbapRitChips.sbapByDate).flat(),
+    [sbapRitChips.sbapByDate],
   );
 
   const toggleTc = (date: string, key: string, label: string) => {
@@ -223,7 +301,15 @@ export default function NkbvSyndromeSsiPanel({
     return [...map.values()];
   };
 
-  const ketLuanDisplay = draft.ketLuan || verdict.ketLuanLabel || "";
+  const ketLuanDisplay =
+    analysisMode === "MANUAL" || draft.analysisMode === "MANUAL"
+      ? draft.ketLuan || ""
+      : draft.ketLuan || verdict.ketLuanLabel || "";
+  const ketLuanLocked =
+    analysisMode !== "MANUAL" &&
+    draft.analysisMode !== "MANUAL" &&
+    (draft.eventDisposition?.kind === "BELONGS_PRIOR_EVENT" ||
+      draft.eventDisposition?.kind === "SECONDARY_BSI");
   const indexDate = index.date.slice(0, 10);
   const doe = verdict.gate.doe;
 
@@ -335,14 +421,20 @@ export default function NkbvSyndromeSsiPanel({
             />
             PATOS
           </label>
-          <label className="flex items-center gap-1 text-[11px] text-slate-700">
-            <input
-              type="checkbox"
-              checked={draft.readyToChot || verdict.criteriaMet}
-              onChange={(e) => onDraftChange({ readyToChot: e.target.checked })}
-            />
-            Đủ TC / sẵn sàng chốt
-          </label>
+          {!verdict.criteriaMet ? (
+            <button
+              type="button"
+              disabled={!allowedEdit}
+              onClick={() => onCloseInsufficient?.()}
+              className="rounded-full border border-amber-400 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-950 hover:bg-amber-100 disabled:opacity-50"
+            >
+              Đã phân tích xong
+            </button>
+          ) : (
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-900">
+              Đủ TC sự kiện
+            </span>
+          )}
           <button
             type="button"
             onClick={onClose}
@@ -364,7 +456,7 @@ export default function NkbvSyndromeSsiPanel({
         </div>
       ) : null}
 
-      <p className="mt-1 text-[10px] text-violet-700">
+      <p className="mt-1 text-[11px] text-violet-700">
         NHSN: mã PT · loại sự kiện (SIP/SIS/DIP/DIS/Organ) · site Ch.17 khi Organ/Space.
         {(() => {
           const p = getNhsnProcedure(procedureCode);
@@ -376,7 +468,7 @@ export default function NkbvSyndromeSsiPanel({
           {secondaryWarn}
         </p>
       ) : null}
-      {draft.readyToChot && reportingGaps.length ? (
+      {verdict.criteriaMet && reportingGaps.length ? (
         <p className="mt-1 rounded-lg border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] text-rose-900">
           Thiếu khóa báo cáo trước khi chốt: {reportingGaps.join(", ")}
         </p>
@@ -392,9 +484,10 @@ export default function NkbvSyndromeSsiPanel({
                 <li key={b.id} className="flex flex-wrap items-center gap-2">
                   <span>
                     {b.ngay} · {b.vi_khuan}
+                    {b.organismMatched ? " · trùng VK" : ""}
                   </span>
                   {v ? (
-                    <span className="rounded-full bg-white px-1.5 py-0.5 text-[10px] font-semibold">
+                    <span className="rounded-full bg-white px-1.5 py-0.5 text-[11px] font-semibold">
                       {v.outcome === "SECONDARY"
                         ? `Secondary ${v.scenario}`
                         : v.outcome === "EXCLUDED_PRIMARY"
@@ -408,7 +501,7 @@ export default function NkbvSyndromeSsiPanel({
                   onOpenPrimaryBsi ? (
                     <button
                       type="button"
-                      className="text-[10px] font-semibold text-sky-800 underline"
+                      className="text-[11px] font-semibold text-sky-800 underline"
                       onClick={() => onOpenPrimaryBsi(b.id)}
                     >
                       Mở bảng BSI
@@ -431,105 +524,90 @@ export default function NkbvSyndromeSsiPanel({
         </p>
       ) : null}
 
-      <div
-        ref={scrollRef}
-        onScroll={onScrollSync}
-        className="mt-3 overflow-x-auto overscroll-contain border border-violet-100 bg-white text-[10px]"
-      >
-        <div style={{ minWidth: labelW + Math.max(columns.length, 1) * colW }}>
-          <Row label="Ngày lịch" labelW={labelW}>
-            {columns.map((c) => (
-              <div
-                key={`d-${c.date}`}
-                className="flex shrink-0 items-center justify-center border-b border-r bg-slate-50 font-semibold"
-                style={{ width: colW, minWidth: colW, minHeight: 26 }}
-              >
-                {c.label}
-              </div>
-            ))}
-          </Row>
-          <Row label="Ngày (HD)" labelW={labelW}>
-            {columns.map((c) => {
-              const hd =
-                c.hd ??
-                hospitalDayNumber(ngayVaoVien, c.date);
+      <p className="mt-2 text-[11px] text-violet-800/90">
+        Cột SSI (SP · TC · SBAP · kết luận) gắn cùng hàng bảng chung; highlight theo cột.
+      </p>
+
+      {(() => {
+        const aw = BA_DAY_COL_W_ANALYSIS;
+        const xnByDate: Record<string, BaGridXnCell[]> = {};
+        for (const x of xn) {
+          const d = x.ngay.slice(0, 10);
+          (xnByDate[d] ||= []).push(x);
+        }
+        const analysisColumns: BaDayGridColumnDef[] = [
+          {
+            id: "ssi_index",
+            header: "Index",
+            minWidth: aw,
+            cellClassName: (day) => {
+              const isIx = indexDate === day.date;
+              const isSurg = Boolean(surgeryByDate[day.date]?.length);
+              return baCellToneClass(isIx || isSurg ? "index" : "none");
+            },
+            render: (day) => {
+              const isIx = indexDate === day.date;
+              const isSurg = Boolean(surgeryByDate[day.date]?.length);
+              if (isIx) {
+                return (
+                  <span className="line-clamp-3 text-[10px] font-semibold">
+                    {indexLabel || "Index"}
+                  </span>
+                );
+              }
+              if (isSurg) {
+                return <span className="text-[10px] font-semibold text-violet-800">Mổ</span>;
+              }
+              return <span className="text-slate-300">—</span>;
+            },
+          },
+          {
+            id: "ssi_sp",
+            header: `SP ${verdict.gate.spDays}d`,
+            minWidth: Math.min(aw, 64),
+            cellClassName: (day) =>
+              baCellToneClass(verdict.gate.spDates.has(day.date) ? "iwp" : "none"),
+            render: (day) =>
+              verdict.gate.spDates.has(day.date) ? (
+                <span className="font-bold">·</span>
+              ) : (
+                <span className="text-slate-300">—</span>
+              ),
+          },
+          {
+            /** Khác id `ssi_tc` của bảng chung (NkbvBaCommonDayGrid) — tránh key trùng khi merge extraColumns. */
+            id: "ssi_panel_tc",
+            header: "TC",
+            minWidth: aw,
+            cellClassName: (day) =>
+              baCellToneClass(verdict.gate.spDates.has(day.date) ? "iwp" : "none"),
+            render: (day) => {
+              const items = tcOnDate(day.date);
+              const inSp = verdict.gate.spDates.has(day.date);
               return (
-                <div
-                  key={`hd-${c.date}`}
-                  className="flex shrink-0 items-center justify-center border-b border-r"
-                  style={{ width: colW, minWidth: colW, minHeight: 22 }}
-                >
-                  {hd == null ? "—" : hd}
-                </div>
-              );
-            })}
-          </Row>
-          <Row label="Index (mổ / TC)" labelW={labelW}>
-            {columns.map((c) => {
-              const isIx = indexDate === c.date;
-              const isSurg = Boolean(surgeryByDate[c.date]?.length);
-              return (
-                <div
-                  key={`ix-${c.date}`}
-                  className={`flex shrink-0 items-center justify-center border-b border-r p-0.5 ${cellTone(isIx || isSurg, "ix")}`}
-                  style={{ width: colW, minWidth: colW, minHeight: 40 }}
-                >
-                  {isIx ? (
-                    <span className="line-clamp-3 text-center text-[9px] font-semibold">
-                      {indexLabel || "Index"}
-                    </span>
-                  ) : isSurg ? (
-                    <span className="text-[9px] font-semibold text-violet-800">Mổ</span>
-                  ) : (
-                    <span className="text-slate-300">—</span>
-                  )}
-                </div>
-              );
-            })}
-          </Row>
-          <Row label={`SP ${verdict.gate.spDays}d`} labelW={labelW}>
-            {columns.map((c) => (
-              <div
-                key={`sp-${c.date}`}
-                className={`flex shrink-0 items-center justify-center border-b border-r ${cellTone(verdict.gate.spDates.has(c.date), "sp")}`}
-                style={{ width: colW, minWidth: colW, minHeight: 22 }}
-              >
-                {verdict.gate.spDates.has(c.date) ? "·" : ""}
-              </div>
-            ))}
-          </Row>
-          <Row label="TC / criteria" labelW={labelW}>
-            {columns.map((c) => {
-              const items = tcOnDate(c.date);
-              const inSp = verdict.gate.spDates.has(c.date);
-              return (
-                <div
-                  key={`tc-${c.date}`}
-                  className={`relative flex shrink-0 flex-col gap-0.5 border-b border-r p-0.5 ${inSp ? "bg-violet-50/50" : "bg-white"}`}
-                  style={{ width: colW, minWidth: colW, minHeight: 48 }}
-                >
+                <div className="relative flex flex-col gap-0.5">
                   {items.map((it) => (
                     <span
                       key={it.key}
-                      className="line-clamp-2 text-[9px] font-semibold text-violet-950"
+                      className="line-clamp-2 text-[10px] font-semibold text-violet-950"
                     >
                       {it.label}
                     </span>
                   ))}
                   {allowedEdit && inSp ? (
                     <details className="mt-auto">
-                      <summary className="cursor-pointer text-[9px] font-semibold text-violet-600">
+                      <summary className="cursor-pointer text-[10px] font-semibold text-violet-600">
                         + TC
                       </summary>
                       <ul className="absolute z-30 mt-0.5 max-h-40 w-56 overflow-auto rounded border bg-white p-1 shadow-lg">
                         {tcCatalog.map((entry) => (
                           <li key={entry.criteriaKey}>
-                            <label className="flex cursor-pointer gap-1 px-1 py-0.5 text-[10px] hover:bg-slate-50">
+                            <label className="flex cursor-pointer gap-1 px-1 py-0.5 text-[11px] hover:bg-slate-50">
                               <input
                                 type="checkbox"
                                 checked={items.some((x) => x.key === entry.criteriaKey)}
                                 onChange={() =>
-                                  toggleTc(c.date, entry.criteriaKey, entry.title)
+                                  toggleTc(day.date, entry.criteriaKey, entry.title)
                                 }
                               />
                               {entry.title}
@@ -539,116 +617,152 @@ export default function NkbvSyndromeSsiPanel({
                       </ul>
                     </details>
                   ) : null}
+                  {!items.length && !inSp ? (
+                    <span className="text-slate-300">—</span>
+                  ) : null}
                 </div>
               );
-            })}
-          </Row>
-          <Row label="DOE / NSK" labelW={labelW}>
-            {columns.map((c) => (
-              <div
-                key={`doe-${c.date}`}
-                className={`flex shrink-0 items-center justify-center border-b border-r ${cellTone(doe === c.date, "nsk")}`}
-                style={{ width: colW, minWidth: colW, minHeight: 26 }}
-              >
-                {doe === c.date ? "DOE" : ""}
-              </div>
-            ))}
-          </Row>
-          <Row label="SBAP 17d" labelW={labelW}>
-            {columns.map((c) => {
-              const chips = bloodInSbap.filter((b) => b.ngay.slice(0, 10) === c.date);
+            },
+          },
+          {
+            id: "ssi_sbap",
+            header: "SBAP · ứng viên",
+            minWidth: aw,
+            cellClassName: (day) =>
+              baCellToneClass(verdict.gate.sbapDates.has(day.date) ? "sbap" : "none"),
+            render: (day) => {
+              const chips = sbapRitChips.sbapByDate[day.date] || [];
+              if (!chips.length) {
+                return verdict.gate.sbapDates.has(day.date) ? (
+                  <span className="text-center text-[9px]">·</span>
+                ) : (
+                  <span className="text-slate-300">—</span>
+                );
+              }
               return (
-                <div
-                  key={`sbap-${c.date}`}
-                  className={`flex shrink-0 flex-col items-center justify-center gap-0.5 border-b border-r p-0.5 ${cellTone(verdict.gate.sbapDates.has(c.date), "sbap")}`}
-                  style={{ width: colW, minWidth: colW, minHeight: 20 }}
-                >
+                <div className="flex flex-col gap-0.5">
                   {chips.map((b) => (
                     <button
                       key={b.id}
                       type="button"
                       disabled={!onOpenPrimaryBsi}
                       onClick={() => onOpenPrimaryBsi?.(b.id)}
-                      className="max-w-full truncate rounded bg-sky-200/80 px-1 text-[9px] font-semibold text-sky-950 hover:bg-sky-300"
-                      title={`Cấy máu (+) ${b.vi_khuan} — click xét Secondary BSI`}
+                      className={`truncate rounded px-0.5 text-left text-[9px] font-semibold ${
+                        b.organismMatched
+                          ? "bg-sky-400/90 text-sky-950 ring-1 ring-sky-600"
+                          : "bg-sky-200/80 text-sky-950"
+                      }`}
+                      title={
+                        b.organismMatched
+                          ? `Cấy máu trùng VK vết mổ — ứng viên Secondary · ${b.vi_khuan}`
+                          : `Cấy máu (+) ∈ SBAP · ${b.vi_khuan}`
+                      }
                     >
-                      🩸 {b.vi_khuan || "Máu (+)"}
+                      {b.organismMatched ? "≈ " : ""}
+                      Máu · {b.vi_khuan || "+"}
                     </button>
                   ))}
                 </div>
               );
-            })}
-          </Row>
-          <Row label="Kết luận" labelW={labelW}>
-            {columns.map((c) => {
-              const isIx = indexDate === c.date || doe === c.date;
+            },
+          },
+          {
+            id: "ssi_ket_luan",
+            header: "Kết luận",
+            minWidth: aw,
+            cellClassName: (day) =>
+              baCellToneClass(
+                indexDate === day.date || doe === day.date ? "index" : "none",
+              ),
+            render: (day) => {
+              const isIx = indexDate === day.date || doe === day.date;
               return (
-                <div
-                  key={`kl-${c.date}`}
-                  className={`flex shrink-0 items-center border-b border-r px-0.5 ${isIx ? "bg-amber-50" : "bg-white"}`}
-                  style={{ width: colW, minWidth: colW, minHeight: 36 }}
-                >
+                <div className="flex flex-col gap-0.5">
+                  <NkbvBaConcludeCell
+                    date={day.date}
+                    xnOnDay={xnByDate[day.date] || []}
+                    priorEvents={priorEvents}
+                    openSiteSessions={openSiteSessions}
+                    analysisDispositions={analysisDispositions}
+                    sampleConclusions={sampleConclusions}
+                    confirmedIds={draft.ritAttributedIds || []}
+                    excludeSampleId={index.id}
+                    progressiveLabel={null}
+                    allowedEdit={allowedEdit}
+                    analysisMode={analysisMode}
+                    onManualSampleConclude={onManualSampleConclude}
+                    onManualSampleClear={onManualSampleClear}
+                    onConclude={(payload) => {
+                      if (payload.scope === "session_rit" || payload.scope === "prior") {
+                        const prev = draft.ritAttributedIds || [];
+                        if (!prev.includes(payload.indexId)) {
+                          onDraftChange({
+                            ritAttributedIds: [...prev, payload.indexId],
+                          });
+                        }
+                        return;
+                      }
+                      if (payload.scope === "secondary") {
+                        const prev = draft.ritAttributedIds || [];
+                        if (!prev.includes(payload.indexId)) {
+                          onDraftChange({
+                            ritAttributedIds: [...prev, payload.indexId],
+                          });
+                        }
+                        onConfirmSecondaryBlood?.({
+                          sampleId: payload.indexId,
+                          date: day.date,
+                          label: payload.label,
+                        });
+                      }
+                    }}
+                  />
                   {isIx ? (
                     <input
-                      className="w-full bg-transparent text-center text-[9px] font-semibold outline-none"
+                      className="w-full border-t border-amber-200/60 bg-transparent pt-0.5 text-[9px] font-semibold outline-none"
                       value={ketLuanDisplay}
-                      disabled={!allowedEdit}
-                      placeholder={verdict.result.classification || "SSI"}
+                      disabled={!allowedEdit || ketLuanLocked}
+                      placeholder={
+                        analysisMode === "MANUAL"
+                          ? "Gõ kết luận sự kiện…"
+                          : verdict.result.classification || "SSI"
+                      }
                       onChange={(e) => onDraftChange({ ketLuan: e.target.value })}
                     />
-                  ) : (
-                    <span className="w-full text-center text-slate-300">—</span>
-                  )}
+                  ) : null}
                 </div>
               );
-            })}
-          </Row>
-          <Row label="Ghi chú" labelW={labelW}>
-            {columns.map((c) => (
-              <div
-                key={`gc-${c.date}`}
-                className="flex shrink-0 items-center border-b border-r bg-white p-0.5"
-                style={{ width: colW, minWidth: colW, minHeight: 28 }}
-              >
-                <input
-                  className="w-full bg-transparent text-center text-[10px] outline-none"
-                  value={draft.notesByDate[c.date] || ""}
-                  disabled={!allowedEdit}
-                  onChange={(e) =>
-                    onDraftChange({
-                      notesByDate: { ...draft.notesByDate, [c.date]: e.target.value },
-                    })
-                  }
-                />
-              </div>
-            ))}
-          </Row>
-        </div>
-      </div>
-    </section>
-  );
-}
+            },
+          },
+          {
+            id: "ssi_ghi_chu",
+            header: "Ghi chú",
+            minWidth: 72,
+            render: (day) => (
+              <input
+                className="w-full bg-transparent text-[10px] outline-none"
+                value={draft.notesByDate[day.date] || ""}
+                disabled={!allowedEdit}
+                onChange={(e) =>
+                  onDraftChange({
+                    notesByDate: { ...draft.notesByDate, [day.date]: e.target.value },
+                  })
+                }
+              />
+            ),
+          },
+        ];
 
-function Row({
-  label,
-  labelW,
-  children,
-}: {
-  label: string;
-  labelW: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex">
-      <div
-        className="sticky left-0 z-10 flex shrink-0 items-center border-b border-r bg-violet-50/80 px-1 font-semibold text-violet-800"
-        style={{ width: labelW, minWidth: labelW }}
-      >
-        <span className="truncate" title={label}>
-          {label}
-        </span>
-      </div>
-      {children}
-    </div>
+        if (typeof children === "function") {
+          return children({ analysisColumns });
+        }
+        return (
+          <p className="mt-2 text-[11px] text-amber-800">
+            Thiếu slot bảng chung — truyền children để gắn cột SSI.
+          </p>
+        );
+      })()}
+
+    </section>
   );
 }

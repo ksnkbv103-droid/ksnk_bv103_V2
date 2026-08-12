@@ -298,7 +298,7 @@ export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
                 <ClipboardPaste className="h-4 w-4" />
                 {showPastePanel ? "Ẩn khung dán" : "Dán bảng"}
                 {paste.trim() && !showPastePanel ? (
-                  <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
+                  <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[11px] font-bold text-amber-800">
                     có nội dung
                   </span>
                 ) : null}

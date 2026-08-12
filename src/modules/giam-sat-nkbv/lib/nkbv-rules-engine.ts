@@ -4,15 +4,21 @@
 
 import {
   BsiVerificationData,
+  Ch17VerificationData,
   VaeVerificationData,
   UtiVerificationData,
   SsiVerificationData,
 } from "../types/nkbv-verification";
-import { isCh17SiteCriteriaMet } from "./nkbv-chapter17-clinical";
+import { ch17TypeDef, evaluateCh17Type } from "./nkbv-ch17-definitions";
+import { resolveCh17Hierarchy } from "./nkbv-ch17-hierarchy";
+import { normalizeCh17EvidenceFlags } from "./nkbv-ch17-legacy-flags";
+import { derivePneuLabTier } from "./nkbv-pneu-lab-tier";
 import { derivePneuSystemic } from "./nkbv-pneu-systemic";
 import { computeVacFromDailyVent } from "./nkbv-vae-vent-compute";
 import { evaluateSecondaryBsi } from "./nkbv-shared-secondary-bsi";
 import {
+  endoExtendedIwp,
+  endoRitSbapToDischarge,
   isDeviceAssociated,
   resolveClinicalSbap,
   ssiSbapWindow,
@@ -139,14 +145,20 @@ export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResu
     };
   }
 
-  let hasCvc = data.cvc_placed_days >= 3 && data.cvc_active_on_event;
+  // CLABSI: ≥3 ngày lịch liên tục (Day 3) + hiện diện DOE hoặc rút DOE−1
+  let hasCvc = false;
   if (data.device_placed_date && data.calculated_doe) {
-    const assoc = isDeviceAssociated({
+    hasCvc = isDeviceAssociated({
       placedDate: data.device_placed_date,
       removedDate: data.device_removed_date,
       doe: data.calculated_doe,
-    });
-    hasCvc = assoc.associated;
+    }).associated;
+  } else {
+    hasCvc = data.cvc_placed_days >= 3 && Boolean(data.cvc_active_on_event);
+  }
+  // Lưới đã đếm <3 ngày → không CLABSI dù ngày đặt form lệch
+  if (data.cvc_placed_days > 0 && data.cvc_placed_days < 3) {
+    hasCvc = false;
   }
 
   if (!hasCvc) {
@@ -154,7 +166,8 @@ export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResu
       is_positive: true,
       classification: "PRIMARY_BSI_NON_CLABSI",
       lcbi_type: lcbiType,
-      reason: "BSI tiên phát nhưng không đặt CVC liên tục > 2 ngày lịch.",
+      reason:
+        "BSI tiên phát — chưa đủ CVC liên tục ≥3 ngày lịch (Day 1→Day 3) và hiện diện DOE/DOE−1 → không CLABSI.",
     };
   }
 
@@ -322,18 +335,24 @@ export function evaluateVaeVap(
     };
   }
 
-  const ventEligible =
-    data.vent_days >= 3 &&
-    (data.device_placed_date
-      ? isDeviceAssociated({
-          placedDate: data.device_placed_date,
-          removedDate: data.device_removed_date,
-          doe: data.calculated_doe || data.device_placed_date,
-        }).activeOnEvent
-      : true);
+  const ventAssoc = data.device_placed_date
+    ? isDeviceAssociated({
+        placedDate: data.device_placed_date,
+        removedDate: data.device_removed_date,
+        doe: data.calculated_doe || data.device_placed_date,
+      })
+    : null;
+  // VAP (PNEU): ≥3 ngày lịch thở máy liên tục + hiện diện DOE/DOE−1
+  const ventEligible = ventAssoc
+    ? ventAssoc.associated
+    : data.vent_days >= 3;
   const ventLabel = ventEligible ? "VAP" : "NON_VAP";
 
-  if (data.microbiology_evidence === "PNU3") {
+  // Lab-first: Table 2/3 (và legacy dropdown khi chưa nhập fact lab)
+  const lab = derivePneuLabTier(data);
+  const microTier = lab.tier;
+
+  if (microTier === "PNU3") {
     if (!data.has_hemoptysis && !data.has_pleuritic_chest_pain) {
       return {
         is_positive: false,
@@ -345,22 +364,28 @@ export function evaluateVaeVap(
     return {
       is_positive: true,
       classification: `PNU3_${ventLabel}`,
-      reason: `Viêm phổi trên bệnh nhân suy giảm miễn dịch nặng (PNU3) — ${ventLabel}.`,
+      reason: `Viêm phổi trên bệnh nhân suy giảm miễn dịch nặng (PNU3) — ${ventLabel}. ${lab.reasons.join(" ")}`,
     };
   }
 
-  if (data.microbiology_evidence === "PNU2") {
+  if (microTier === "PNU2") {
     return {
       is_positive: true,
       classification: `PNU2_${ventLabel}`,
-      reason: `Viêm phổi có bằng chứng vi khuẩn/virus đặc hiệu (PNU2) — ${ventLabel}.`,
+      reason: `Viêm phổi có bằng chứng vi khuẩn/virus đặc hiệu (PNU2) — ${ventLabel}. ${lab.reasons.join(" ")}`,
     };
   }
+
+  const exclusionNote = lab.lab_excluded
+    ? ` Lab LRT bị loại (không nâng bậc): ${lab.reasons.join(" ")}`
+    : lab.used_lab_facts
+      ? ` ${lab.reasons.join(" ")}`
+      : "";
 
   return {
     is_positive: true,
     classification: `PNU1_${ventLabel}`,
-    reason: `Viêm phổi lâm sàng (PNU1) đạt chuẩn CDC/NHSN — ${ventLabel}.`,
+    reason: `Viêm phổi lâm sàng (PNU1) đạt chuẩn CDC/NHSN — ${ventLabel}.${exclusionNote}`,
   };
 }
 
@@ -389,22 +414,31 @@ export function evaluateUtiCauti(data: UtiVerificationData): RuleEvaluationResul
     };
   }
 
-  const foleyActive =
-    data.foley_present_doe_or_prior !== undefined
-      ? data.foley_present_doe_or_prior
-      : data.foley_active_on_event;
-
-  let isCauti = data.foley_placed_days >= 3 && foleyActive;
+  // CAUTI: ≥3 ngày lịch liên tục + hiện diện DOE/DOE−1
+  // Ưu tiên số ngày đã tính từ lưới (foley_placed_days); ngày đặt/rút seed phải khớp đợt đó.
+  let isCauti = false;
   if (data.device_placed_date && data.calculated_doe) {
     isCauti = isDeviceAssociated({
       placedDate: data.device_placed_date,
       removedDate: data.device_removed_date,
       doe: data.calculated_doe,
     }).associated;
+  } else {
+    const present =
+      data.foley_present_doe_or_prior !== undefined
+        ? data.foley_present_doe_or_prior
+        : data.foley_active_on_event;
+    isCauti = data.foley_placed_days >= 3 && Boolean(present);
+  }
+  // Lưới đã đếm <3 ngày → không CAUTI dù ngày sổ cũ dài hơn
+  if (data.foley_placed_days > 0 && data.foley_placed_days < 3) {
+    isCauti = false;
   }
 
+  // Voiding chỉ khi không còn Foley hiện diện quanh DOE (kể cả đợt <3 ngày)
+  const foleyBlockingVoiding = Boolean(data.foley_active_on_event);
   const hasVoidingSymptom =
-    !foleyActive &&
+    !foleyBlockingVoiding &&
     (data.has_dysuria || Boolean(data.has_urgency) || Boolean(data.has_frequency));
   const hasInfantSymptom =
     Boolean(data.is_infant_le1) &&
@@ -540,17 +574,23 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
     const obgynPainOk =
       !!data.organ_space_obgyn_abdominal_pain &&
       (proc === "CSEC" || proc === "HYST" || proc === "VHYS");
-    const ch17 = isCh17SiteCriteriaMet({
-      siteCode: data.organ_space_site,
-      flags: data.chapter17_flags,
+    const ch17 = evaluateCh17Type({
+      typeCode: data.organ_space_site,
+      evidence: normalizeCh17EvidenceFlags({
+        ...(data.chapter17_flags || {}),
+        ...(data.organ_space_obgyn_abdominal_pain
+          ? { organ_space_obgyn_abdominal_pain: true }
+          : {}),
+      }),
       procedureCode: data.loai_phau_thuat_nhsn,
+      isInfantLe1: data.is_infant_le1,
     });
     const genericOrgan =
       data.organ_space_purulent_drainage ||
       data.organ_space_culture_positive ||
       data.organ_space_abscess_imaging_pathology ||
       obgynPainOk;
-    // Site có checklist Ch.17 vận hành → phải đạt Ch.17 (hoặc vẫn chấp nhận tiêu chí Organ chung)
+    // Site có định nghĩa Ch.17 → đạt cây tiêu chuẩn hoặc tiêu chí Organ chung (purulent/culture/abscess)
     if (ch17.applicable) {
       if (ch17.met || genericOrgan) {
         matched = true;
@@ -673,5 +713,77 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
     reason: isSecondaryBsi
       ? `${reason} Kèm theo Nhiễm khuẩn huyết thứ phát (Secondary BSI) trùng khớp tác nhân.`
       : reason,
+  };
+}
+
+/** Ca Chương 17 độc lập (không SSI) — cùng cây tiêu chuẩn với Organ/Space. */
+export function evaluateCh17(data: Ch17VerificationData): RuleEvaluationResult {
+  const code = String(data.ch17_type_code || "")
+    .trim()
+    .toUpperCase();
+  if (!code) {
+    return {
+      is_positive: false,
+      classification: "INCOMPLETE",
+      reason: "Thiếu mã loại nhiễm khuẩn Chương 17.",
+    };
+  }
+  if (!ch17TypeDef(code)) {
+    return {
+      is_positive: false,
+      classification: "INVALID_SITE",
+      reason: `Mã «${code}» chưa có định nghĩa Ch.17 vận hành.`,
+    };
+  }
+
+  const evalResult = evaluateCh17Type({
+    typeCode: code,
+    evidence: normalizeCh17EvidenceFlags(data.chapter17_flags),
+    procedureCode: data.procedure_code,
+    isInfantLe1: data.is_infant_le1,
+  });
+
+  if (!evalResult.met) {
+    const miss =
+      evalResult.missing.length > 0
+        ? ` Thiếu: ${evalResult.missing.slice(0, 6).join(", ")}.`
+        : "";
+    return {
+      is_positive: false,
+      classification: "NO_INFECTION",
+      reason: `${evalResult.reason}${miss}`,
+    };
+  }
+
+  const hier = resolveCh17Hierarchy({
+    metCodes: [code],
+    daysSinceShunt: data.days_since_shunt,
+    postCardiacMediastinitisWithSternum: data.post_cardiac_mediastinitis_with_sternum,
+    menWithIcPostOpAbscess: data.men_with_ic_post_op_abscess,
+    pneuMet: data.pneu_met,
+    ssiLungAfterThor: data.ssi_lung_after_thor,
+    procedureCode: data.procedure_code,
+  });
+
+  const report = hier.reportCode || code;
+  let reason = `${evalResult.reason} ${hier.reason}`;
+
+  if (report === "ENDO") {
+    const idx = data.calculated_doe || "";
+    if (idx) {
+      const iwp = endoExtendedIwp(idx);
+      const sbap = endoRitSbapToDischarge({
+        indexDate: idx,
+        dischargeDate: data.discharge_date,
+      });
+      reason = `${reason} ENDO IWP ${iwp.start}→${iwp.end}; SBAP/RIT tới ${sbap.sbapEnd}.`;
+    }
+  }
+
+  const classification = hier.asSsi ? `SSI:${report}` : `CH17:${report}`;
+  return {
+    is_positive: true,
+    classification,
+    reason,
   };
 }

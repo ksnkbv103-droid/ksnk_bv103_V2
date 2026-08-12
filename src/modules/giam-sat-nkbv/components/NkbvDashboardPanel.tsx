@@ -15,7 +15,7 @@ import {
 } from "recharts";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
-import { Activity, Layers, PieChart, ShieldCheck, Warehouse } from "lucide-react";
+import { Activity, AlertTriangle, Layers, PieChart, ShieldCheck, Warehouse } from "lucide-react";
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
 import { formatKhoaCompactLabel, formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
@@ -39,6 +39,39 @@ type NkbvDashboardPanelProps = {
 };
 
 const COL_LOAI = ["var(--primary)", "#0d9488", "#2563eb", "#d97706", "#7c3aed", "#db2777", "#64748b"];
+
+/** SIR/SUR/DUR `null` nghĩa là chưa tính được — không được hiển thị thành 0. */
+function formatRatio(value: number | null | undefined, digits = 2): string {
+  return value == null ? "—" : Number(value).toFixed(digits);
+}
+
+function formatPercentRatio(value: number | null | undefined): string {
+  return value == null ? "—" : `${(Number(value) * 100).toFixed(2)}%`;
+}
+
+/** SIR `null` = chưa đủ dữ liệu để chuẩn hoá; SIR = 0 là kết quả hợp lệ (không có ca). */
+function SirCell({ value, className }: { value: number | null | undefined; className: string }) {
+  if (value == null) {
+    return (
+      <td className={`px-4 py-3 text-center ${className}`}>
+        <span className="text-slate-300" title="Chưa đủ dữ liệu chuẩn hoá (thiếu baseline CDC hoặc số ca kỳ vọng < 1)">
+          —
+        </span>
+      </td>
+    );
+  }
+  return (
+    <td className={`px-4 py-3 text-center ${className}`}>
+      <span
+        className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+          value > 1.0 ? "bg-red-100 text-red-800" : "bg-emerald-100 text-emerald-800"
+        }`}
+      >
+        {formatRatio(value)}
+      </span>
+    </td>
+  );
+}
 
 export default function NkbvDashboardPanel({
   payload,
@@ -263,8 +296,25 @@ export default function NkbvDashboardPanel({
             </div>
           </div>
 
+          {payload.epidemiologyError && (
+            <div
+              role="alert"
+              className="flex items-start gap-3 rounded-[var(--radius-shell)] border border-red-200 bg-red-50 p-4 text-sm text-red-800"
+            >
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+              <div className="space-y-1">
+                <p className="font-semibold">Không tính được chỉ số dịch tễ (tỷ suất / SIR / SUR)</p>
+                <p className="text-[13px] leading-relaxed">
+                  Bảng chỉ số bên dưới không hiển thị được — đây là <strong>lỗi hệ thống</strong>,
+                  không phải &laquo;kỳ này không có ca&raquo;. Vui lòng báo quản trị hệ thống.
+                </p>
+                <p className="font-mono text-[11px] text-red-600">{payload.epidemiologyError}</p>
+              </div>
+            </div>
+          )}
+
           {/* Premium JCI / CDC NHSN Epidemiology Surveillance Dashboard */}
-          {payload.epidemiologyRates && payload.epidemiologyRates.length > 0 && (
+          {!payload.epidemiologyError && payload.epidemiologyRates && payload.epidemiologyRates.length > 0 && (
             <div className={`${C.panelSurface} p-6 space-y-6`}>
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
                 <div>
@@ -400,53 +450,34 @@ export default function NkbvDashboardPanel({
                 mobileCards={
                   payload.epidemiologyRates?.length ? (
                     <ul className="divide-y divide-slate-100">
-                      {payload.epidemiologyRates.map((r: {
-                        khoa_id: string;
-                        ten_khoa: string;
-                        obs_clabsi_cases?: number;
-                        obs_cvc_days?: number;
-                        clabsi_sir?: number;
-                        obs_cauti_cases?: number;
-                        obs_foley_days?: number;
-                        cauti_sir?: number;
-                        obs_vap_cases?: number;
-                        obs_vent_days?: number;
-                        vae_sir?: number;
-                        obs_ssi_cases?: number;
-                        obs_total_surgeries?: number;
-                        ssi_sir?: number;
-                      }) => (
+                      {payload.epidemiologyRates.map((r) => (
                         <li key={r.khoa_id} className="space-y-2 px-3 py-3.5">
                           <p className="font-bold text-slate-800">
-                            {formatKhoaCompactLabel({ ten_khoa: r.ten_khoa, ma_khoa: (r as { ma_khoa?: string }).ma_khoa })}
+                            {formatKhoaCompactLabel({ ten_khoa: r.ten_khoa, ma_khoa: r.ma_khoa })}
                           </p>
                           <div className="grid grid-cols-2 gap-2 text-[11px]">
                             <div className="rounded-lg bg-red-50/50 p-2">
                               <p className="font-medium text-red-700">CLABSI</p>
                               <p className="tabular-nums text-slate-800">
-                                {r.obs_clabsi_cases || 0}/{r.obs_cvc_days || 0}
-                                {Number(r.clabsi_sir || 0) > 0 ? ` · SIR ${Number(r.clabsi_sir).toFixed(2)}` : ""}
+                                {r.obs_clabsi_cases || 0}/{r.obs_cvc_days || 0} · SIR {formatRatio(r.clabsi_sir)}
                               </p>
                             </div>
                             <div className="rounded-lg bg-amber-50/50 p-2">
                               <p className="font-medium text-amber-700">CAUTI</p>
                               <p className="tabular-nums text-slate-800">
-                                {r.obs_cauti_cases || 0}/{r.obs_foley_days || 0}
-                                {Number(r.cauti_sir || 0) > 0 ? ` · SIR ${Number(r.cauti_sir).toFixed(2)}` : ""}
+                                {r.obs_cauti_cases || 0}/{r.obs_foley_days || 0} · SIR {formatRatio(r.cauti_sir)}
                               </p>
                             </div>
                             <div className="rounded-lg bg-teal-50/50 p-2">
                               <p className="font-medium text-teal-700">VAP</p>
                               <p className="tabular-nums text-slate-800">
-                                {r.obs_vap_cases || 0}/{r.obs_vent_days || 0}
-                                {Number(r.vae_sir || 0) > 0 ? ` · SIR ${Number(r.vae_sir).toFixed(2)}` : ""}
+                                {r.obs_vap_cases || 0}/{r.obs_vent_days || 0} · SIR {formatRatio(r.vae_sir)}
                               </p>
                             </div>
                             <div className="rounded-lg bg-blue-50/50 p-2">
                               <p className="font-medium text-blue-700">SSI</p>
                               <p className="tabular-nums text-slate-800">
-                                {r.obs_ssi_cases || 0}/{r.obs_total_surgeries || 0}
-                                {Number(r.ssi_sir || 0) > 0 ? ` · SIR ${Number(r.ssi_sir).toFixed(2)}` : ""}
+                                {r.obs_ssi_cases || 0}/{r.obs_total_surgeries || 0} · SIR {formatRatio(r.ssi_sir)}
                               </p>
                             </div>
                           </div>
@@ -474,100 +505,53 @@ export default function NkbvDashboardPanel({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {payload.epidemiologyRates.map((r: any) => {
-                      const hasClabsiSir = Number(r.clabsi_sir || 0) > 0;
-                      const hasCautiSir = Number(r.cauti_sir || 0) > 0;
-                      const hasVaeSir = Number(r.vae_sir || 0) > 0;
-                      const hasSsiSir = Number(r.ssi_sir || 0) > 0;
+                    {payload.epidemiologyRates.map((r) => (
+                      <tr key={r.khoa_id} className="hover:bg-slate-50/50 transition">
+                        <td className="px-4 py-3 font-bold text-slate-800">
+                          {formatKhoaCompactLabel({
+                            ten_khoa: r.ten_khoa,
+                            ma_khoa: r.ma_khoa,
+                          })}
+                        </td>
 
-                      return (
-                        <tr key={r.khoa_id} className="hover:bg-slate-50/50 transition">
-                          <td className="px-4 py-3 font-bold text-slate-800">
-                            {formatKhoaCompactLabel({
-                              ten_khoa: r.ten_khoa,
-                              ma_khoa: r.ma_khoa,
-                            })}
-                          </td>
-                          
-                          {/* CLABSI columns */}
-                          <td className="px-4 py-3 text-center bg-red-50/10">
-                            <span className="font-bold text-slate-900">{r.obs_clabsi_cases || 0}</span>
-                            <span className="text-slate-400"> / {r.obs_cvc_days || 0}</span>
-                          </td>
-                          <td className="px-4 py-3 text-center bg-red-50/10 font-mono">
-                            {(Number(r.cvc_dur) * 100).toFixed(2)}%
-                          </td>
-                          <td className="px-4 py-3 text-center bg-red-50/10">
-                            {hasClabsiSir ? (
-                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                                Number(r.clabsi_sir) > 1.0 
-                                  ? "bg-red-100 text-red-800" 
-                                  : "bg-emerald-100 text-emerald-800"
-                              }`}>
-                                {Number(r.clabsi_sir).toFixed(2)}
-                              </span>
-                            ) : <span className="text-slate-300">—</span>}
-                          </td>
+                        {/* CLABSI columns */}
+                        <td className="px-4 py-3 text-center bg-red-50/10">
+                          <span className="font-bold text-slate-900">{r.obs_clabsi_cases || 0}</span>
+                          <span className="text-slate-400"> / {r.obs_cvc_days || 0}</span>
+                        </td>
+                        <td className="px-4 py-3 text-center bg-red-50/10 font-mono">
+                          {formatPercentRatio(r.cvc_dur)}
+                        </td>
+                        <SirCell value={r.clabsi_sir} className="bg-red-50/10" />
 
-                          {/* CAUTI columns */}
-                          <td className="px-4 py-3 text-center bg-amber-50/10">
-                            <span className="font-bold text-slate-900">{r.obs_cauti_cases || 0}</span>
-                            <span className="text-slate-400"> / {r.obs_foley_days || 0}</span>
-                          </td>
-                          <td className="px-4 py-3 text-center bg-amber-50/10 font-mono">
-                            {(Number(r.foley_dur) * 100).toFixed(2)}%
-                          </td>
-                          <td className="px-4 py-3 text-center bg-amber-50/10">
-                            {hasCautiSir ? (
-                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                                Number(r.cauti_sir) > 1.0 
-                                  ? "bg-red-100 text-red-800" 
-                                  : "bg-emerald-100 text-emerald-800"
-                              }`}>
-                                {Number(r.cauti_sir).toFixed(2)}
-                              </span>
-                            ) : <span className="text-slate-300">—</span>}
-                          </td>
+                        {/* CAUTI columns */}
+                        <td className="px-4 py-3 text-center bg-amber-50/10">
+                          <span className="font-bold text-slate-900">{r.obs_cauti_cases || 0}</span>
+                          <span className="text-slate-400"> / {r.obs_foley_days || 0}</span>
+                        </td>
+                        <td className="px-4 py-3 text-center bg-amber-50/10 font-mono">
+                          {formatPercentRatio(r.foley_dur)}
+                        </td>
+                        <SirCell value={r.cauti_sir} className="bg-amber-50/10" />
 
-                          {/* VAP columns */}
-                          <td className="px-4 py-3 text-center bg-teal-50/10">
-                            <span className="font-bold text-slate-900">{r.obs_vap_cases || 0}</span>
-                            <span className="text-slate-400"> / {r.obs_vent_days || 0}</span>
-                          </td>
-                          <td className="px-4 py-3 text-center bg-teal-50/10 font-mono">
-                            {(Number(r.vent_dur) * 100).toFixed(2)}%
-                          </td>
-                          <td className="px-4 py-3 text-center bg-teal-50/10">
-                            {hasVaeSir ? (
-                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                                Number(r.vae_sir) > 1.0 
-                                  ? "bg-red-100 text-red-800" 
-                                  : "bg-emerald-100 text-emerald-800"
-                              }`}>
-                                {Number(r.vae_sir).toFixed(2)}
-                              </span>
-                            ) : <span className="text-slate-300">—</span>}
-                          </td>
+                        {/* VAP columns */}
+                        <td className="px-4 py-3 text-center bg-teal-50/10">
+                          <span className="font-bold text-slate-900">{r.obs_vap_cases || 0}</span>
+                          <span className="text-slate-400"> / {r.obs_vent_days || 0}</span>
+                        </td>
+                        <td className="px-4 py-3 text-center bg-teal-50/10 font-mono">
+                          {formatPercentRatio(r.vent_dur)}
+                        </td>
+                        <SirCell value={r.vae_sir} className="bg-teal-50/10" />
 
-                          {/* SSI columns */}
-                          <td className="px-4 py-3 text-center bg-blue-50/10">
-                            <span className="font-bold text-slate-900">{r.obs_ssi_cases || 0}</span>
-                            <span className="text-slate-400"> / {r.obs_total_surgeries || 0}</span>
-                          </td>
-                          <td className="px-4 py-3 text-center bg-blue-50/10">
-                            {hasSsiSir ? (
-                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                                Number(r.ssi_sir) > 1.0 
-                                  ? "bg-red-100 text-red-800" 
-                                  : "bg-emerald-100 text-emerald-800"
-                              }`}>
-                                {Number(r.ssi_sir).toFixed(2)}
-                              </span>
-                            ) : <span className="text-slate-300">—</span>}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                        {/* SSI columns */}
+                        <td className="px-4 py-3 text-center bg-blue-50/10">
+                          <span className="font-bold text-slate-900">{r.obs_ssi_cases || 0}</span>
+                          <span className="text-slate-400"> / {r.obs_total_surgeries || 0}</span>
+                        </td>
+                        <SirCell value={r.ssi_sir} className="bg-blue-50/10" />
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </ResponsiveTableShell>
@@ -575,7 +559,8 @@ export default function NkbvDashboardPanel({
           )}
 
           <p className="text-center text-[11px] font-medium italic text-slate-400">
-            * Mật độ JCI được tính theo ngày nằm viện thực tế thu thập từ Mẫu Số hàng ngày. SIR và SUR được chuẩn hóa đối chiếu với baselines CDC/NHSN 2023.
+            * Mật độ JCI tính theo ngày nằm viện thu thập từ tab Mẫu số. SIR/SUR chuẩn hoá theo baseline CDC/NHSN
+            cấu hình trong danh mục; ô &laquo;—&raquo; nghĩa là chưa đủ dữ liệu chuẩn hoá, không phải bằng 0.
           </p>
         </>
       ) : (

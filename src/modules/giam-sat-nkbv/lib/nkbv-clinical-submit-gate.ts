@@ -182,6 +182,22 @@ export function assertClinicalEvidenceForSubmit(
     return { ok: true };
   }
 
+  if (type === "CH17") {
+    const code = String(verificationInput?.ch17_type_code || "").trim();
+    if (!code) {
+      return { ok: false, error: "Chưa chọn mã loại nhiễm khuẩn Chương 17." };
+    }
+    const flags = verificationInput?.chapter17_flags || {};
+    const anyEvidence = Object.values(flags).some((v) => v === true);
+    if (!anyEvidence) {
+      return {
+        ok: false,
+        error: `Chưa tick bằng chứng lâm sàng/cận lâm sàng cho ${code}.`,
+      };
+    }
+    return { ok: true };
+  }
+
   return {
     ok: false,
     error: `Loại checklist không hỗ trợ cổng lâm sàng: ${checklistType}`,

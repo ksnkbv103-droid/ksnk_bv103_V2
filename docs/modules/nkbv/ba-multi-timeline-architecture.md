@@ -15,6 +15,15 @@ Bảng chung (bằng chứng)
 
 **Cấm** tạo `nkbv_fact_su_kien` ngay khi chọn Index.
 
+### Chế độ phân tích (toggle trên cùng bảng)
+
+| Chế độ | Hành vi |
+|--------|---------|
+| **Theo CDC** (mặc định) | Disposition Index + gợi ý KL (`evaluate*` / smart summary) như hiện tại |
+| **Tự phân tích** | Giữ nhập liệu + highlight cửa sổ; **không** auto gắn XN / Secondary / progressive KL — IP tự gõ KL sự kiện + từng mẫu; Tạo phiếu khi đã có KL |
+
+Đổi chế độ → đóng phiên đang mở. Nháp phiên localStorage tách key theo mode (`…:CDC` / `…:MANUAL`).
+
 ## Khối 1 — Bảng chung (6 hàng)
 
 | # | Hàng | Hành vi |
@@ -40,8 +49,8 @@ Mở khi chọn bệnh phẩm / CĐHA / TC SSI. Cùng trục cột ngày với b
 | 3 | Ngày X | Index = ngày XN / CĐHA đã chọn |
 | 4 | CĐHA | Lôi CĐHA liên quan hội chứng từ bảng chung; highlight **IWP** |
 | 5 | Triệu chứng LS | Highlight IWP; user chọn TC; ngày TC sớm nhất = **DOE** (màu khác) |
-| 6 | RIT | Highlight DOE → DOE+13; lôi VS **cùng loại bệnh phẩm** |
-| 7 | SBAP | Highlight đầu IWP → cuối RIT; lôi **cấy máu** trong cửa sổ |
+| 6 | RIT | Highlight DOE → DOE+13 **ngay khi mở phiên** (ứng viên, không chờ đủ TC). Lôi VS **cùng loại bệnh phẩm** + **CĐHA** ∈ RIT (Index = XQ vẫn gợi ý đờm/NT theo hội chứng). Mục đích: loại trừ không mở SK mới với mẫu đó. |
+| 7 | SBAP | Highlight cửa sổ SBAP **ngay khi mở phiên**. Lôi **cấy máu**; badge **trùng VK** khi khớp pack RIT (đờm/NT/vết mổ…). Mục đích: quy kết NKH thứ phát, không PT lại máu. |
 | 8 | Can thiệp | Foley / CVC / Vent theo hội chứng (Registry) |
 
 SSI: cửa sổ **SP 30/90** (không giả IWP±3). VAE: Event Period 14d.
@@ -61,10 +70,11 @@ SSI: cửa sổ **SP 30/90** (không giả IWP±3). VAE: Event Period 14d.
 
 | Hàng | Vai trò |
 |------|---------|
-| Kết luận | Máy gợi ý (`evaluate*`) + IP chỉnh |
+| Kết luận | **CDC:** máy gợi ý (`evaluate*`) + IP chỉnh. **Tự phân tích:** chỉ chữ IP gõ |
 | Ghi chú | Free text phiên |
 
 Nút **Tạo phiếu phân tích trên bệnh án** → form mẫu sẵn có → lưu phiếu.  
+**Tự phân tích:** nút mở khi đã nhập KL sự kiện (không bắt buộc đủ TC CDC).  
 Nút **Bỏ qua** (có lý do) → XN ra khỏi hàng đợi, không tạo HAI.
 
 ## Hàng đợi XN (+) chưa phân tích
@@ -98,3 +108,4 @@ Không spawn phiếu Day-3 tự động.
 | Map bệnh phẩm | `nkbv-specimen-syndrome.ts` |
 | Verdict | `nkbv-*-timeline-verdict.ts` → `nkbv-rules-engine.ts` |
 | Tạo phiếu muộn | sau kết luận — không `ensureNkbvBaAnalysisCase` lúc chọn Index |
+| Audit PNEU chuẩn vs runtime (PO) | [`investigation-forms/pneu-standard-vs-runtime-audit-20260810.md`](investigation-forms/pneu-standard-vs-runtime-audit-20260810.md) |

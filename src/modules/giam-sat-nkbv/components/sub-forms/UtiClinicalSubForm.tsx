@@ -1,6 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
+import {
+  ageYearsFromNgaySinh,
+  resolveIsInfantLe1Flag,
+  showInfantCriteriaUi,
+} from "../../lib/nkbv-age-ui";
 import { formSymptomRowsFor } from "../../lib/nkbv-clinical-symptom-catalog";
 import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
 import type { UtiVerificationData } from "../../types/nkbv-verification";
@@ -18,6 +23,7 @@ interface UtiClinicalSubFormProps {
   liveDeviceActive?: boolean;
   ngayVaoVien?: string;
   ngayPhatHien?: string;
+  ngaySinh?: string | null;
   iwpStart?: string;
   iwpEnd?: string;
   activeTab?: "LAM_SANG" | "KSNK" | "VI_SINH";
@@ -36,6 +42,7 @@ export default function UtiClinicalSubForm({
   liveDeviceActive,
   ngayVaoVien,
   ngayPhatHien,
+  ngaySinh,
   iwpStart,
   iwpEnd,
   activeTab = "LAM_SANG",
@@ -48,6 +55,47 @@ export default function UtiClinicalSubForm({
   const isMicrobiologyBlocked = form.pathogen_count > 2 || form.has_fungi_yeast_parasite;
   const cleanNgayVaoVien = ngayVaoVien ? ngayVaoVien.slice(0, 10) : "";
   const cleanNgayPhatHien = ngayPhatHien ? ngayPhatHien.slice(0, 10) : "";
+  const ageYears = ageYearsFromNgaySinh(ngaySinh, cleanNgayPhatHien || undefined);
+  const showInfantUi = showInfantCriteriaUi(ageYears);
+  const infantFlag = resolveIsInfantLe1Flag(ageYears);
+
+  useEffect(() => {
+    if (form.is_infant_le1 === infantFlag) {
+      if (
+        !infantFlag &&
+        (form.has_infant_hypothermia ||
+          form.has_infant_apnea ||
+          form.has_infant_bradycardia ||
+          form.has_infant_lethargy ||
+          form.has_infant_vomiting)
+      ) {
+        onChange({
+          ...form,
+          is_infant_le1: false,
+          has_infant_hypothermia: false,
+          has_infant_apnea: false,
+          has_infant_bradycardia: false,
+          has_infant_lethargy: false,
+          has_infant_vomiting: false,
+        });
+      }
+      return;
+    }
+    if (!infantFlag) {
+      onChange({
+        ...form,
+        is_infant_le1: false,
+        has_infant_hypothermia: false,
+        has_infant_apnea: false,
+        has_infant_bradycardia: false,
+        has_infant_lethargy: false,
+        has_infant_vomiting: false,
+      });
+      return;
+    }
+    onChange({ ...form, is_infant_le1: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional sync on age gate
+  }, [infantFlag]);
   const todayStr = new Date().toISOString().slice(0, 10);
   const showMicro = activeTab === "LAM_SANG" || activeTab === "VI_SINH";
   const showClinical = activeTab === "LAM_SANG";
@@ -195,31 +243,27 @@ export default function UtiClinicalSubForm({
                 Đang Foley → không nhập tiểu buốt/gấp/rắt (tiêu chuẩn loại trừ).
               </p>
             ) : null}
-            <label className="flex items-center gap-2 border-t border-slate-100 pt-3 text-xs font-semibold cursor-pointer">
-              <input
-                type="checkbox"
-                checked={!!form.is_infant_le1}
-                disabled={!allowedEdit || isMicrobiologyBlocked}
-                onChange={(e) => onChange({ ...form, is_infant_le1: e.target.checked })}
-              />
-              ≤ 1 tuổi (SUTI 2 tối thiểu)
-            </label>
-            {form.is_infant_le1 ? (
-              <div className="rounded-lg border border-violet-100 bg-violet-50/70 p-3">
-                <NkbvCatalogSymptomRows
-                  rows={formSymptomRowsFor("UTI").filter((r) => r.age_gate === "le1")}
-                  form={form as unknown as Record<string, unknown>}
-                  onToggle={(field, checked) =>
-                    onChange({ ...form, [field]: checked } as UtiVerificationData)
-                  }
-                  symptomDates={symptomDates}
-                  onSymptomDateChange={onSymptomDateChange}
-                  allowedEdit={allowedEdit}
-                  iwpStart={iwpStart}
-                  iwpEnd={iwpEnd}
-                  disabled={isMicrobiologyBlocked}
-                />
-              </div>
+            {showInfantUi ? (
+              <>
+                <p className="border-t border-slate-100 pt-3 text-[11px] font-semibold text-violet-800">
+                  Bệnh nhi ≤ 1 tuổi (theo ngày sinh) — SUTI 2
+                </p>
+                <div className="rounded-lg border border-violet-100 bg-violet-50/70 p-3">
+                  <NkbvCatalogSymptomRows
+                    rows={formSymptomRowsFor("UTI").filter((r) => r.age_gate === "le1")}
+                    form={form as unknown as Record<string, unknown>}
+                    onToggle={(field, checked) =>
+                      onChange({ ...form, [field]: checked } as UtiVerificationData)
+                    }
+                    symptomDates={symptomDates}
+                    onSymptomDateChange={onSymptomDateChange}
+                    allowedEdit={allowedEdit}
+                    iwpStart={iwpStart}
+                    iwpEnd={iwpEnd}
+                    disabled={isMicrobiologyBlocked}
+                  />
+                </div>
+              </>
             ) : null}
           </NkbvFormSection>
 

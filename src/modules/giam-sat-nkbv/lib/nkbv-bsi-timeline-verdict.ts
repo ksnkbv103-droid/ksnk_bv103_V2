@@ -9,7 +9,7 @@ import type { BaGridSymptomByDate, BaGridXnCell } from "./nkbv-ba-grid-engine";
 import { classifyPathogen } from "./nkbv-pathogen-rules";
 import { organismsMatch } from "./nkbv-secondary-bsi-gate";
 import {
-  isDeviceAssociated,
+  deviceAssociationFromCanThiepDates,
   resolveClinicalSbap,
   ssiSbapWindow,
 } from "./nkbv-shared-timeline";
@@ -104,6 +104,9 @@ export type BuildBsiTimelineVerdictInput = {
   iwpDates: Set<string>;
   nsk: string | null;
   isInfantLe1?: boolean;
+  /** Ngày vào viện — Day 1 CVC không trước VV. */
+  admissionDate?: string | null;
+  dischargeDate?: string | null;
   devicePlacedDate?: string | null;
   deviceRemovedDate?: string | null;
   localizedSite?: BsiLocalizedSiteContext | null;
@@ -117,6 +120,9 @@ export type BsiTimelineGate = {
   hasFever: boolean;
   hasChills: boolean;
   hasHypotension: boolean;
+  /** Số ngày lịch liên tục của đợt CVC gắn DOE (Day 1 = ngày đặt). */
+  cvcPlacedDays: number;
+  /** True chỉ khi ≥3 ngày liên tục + hiện diện DOE hoặc rút DOE−1. */
   cvcAssociated: boolean;
   warnings: string[];
 };
@@ -165,25 +171,22 @@ export function buildBsiTimelineVerdict(
       : null);
 
   const cvcDates = input.canThiepDates.map((d) => d.slice(0, 10)).sort();
-  const placed = input.devicePlacedDate?.slice(0, 10) || cvcDates[0] || "";
-  const removed = input.deviceRemovedDate?.slice(0, 10) || null;
-  let cvcPlacedDays = 0;
-  let cvcActive = false;
-  let cvcAssociated = false;
-  if (placed && doe) {
-    const assoc = isDeviceAssociated({
-      placedDate: placed,
-      removedDate: removed,
-      doe,
-    });
-    cvcPlacedDays = assoc.placedDays;
-    cvcActive = assoc.activeOnEvent;
-    cvcAssociated = assoc.associated;
-  } else if (cvcDates.length && doe) {
-    cvcActive = cvcDates.some((d) => d === doe || d === addDay(doe, -1));
-    cvcPlacedDays = cvcDates.length;
-    cvcAssociated = cvcPlacedDays >= 3 && cvcActive;
-  }
+  const cvcAssoc = doe
+    ? deviceAssociationFromCanThiepDates(input.canThiepDates, doe, {
+        placedDate: input.devicePlacedDate || cvcDates[0] || null,
+        removedDate: input.deviceRemovedDate || null,
+        admissionDate: input.admissionDate,
+        dischargeDate: input.dischargeDate,
+      })
+    : { placedDays: 0, activeOnEvent: false, associated: false };
+  const cvcPlacedDays = cvcAssoc.placedDays;
+  const cvcAssociated = cvcAssoc.associated;
+  const placed =
+    cvcAssoc.episodeStart || input.devicePlacedDate?.slice(0, 10) || cvcDates[0] || "";
+  const removed =
+    cvcAssoc.episodeRemoved !== undefined
+      ? cvcAssoc.episodeRemoved
+      : input.deviceRemovedDate?.slice(0, 10) || null;
 
   const site = input.localizedSite;
   const hasLocalized = Boolean(site?.criteriaMet);
@@ -244,7 +247,8 @@ export function buildBsiTimelineVerdict(
     has_apnea: hasInfantApnea,
     has_bradycardia: hasInfantBrady,
     cvc_placed_days: cvcPlacedDays,
-    cvc_active_on_event: cvcActive,
+    // Chỉ true khi đủ eligibility gắn CLABSI (≥3d + DOE/DOE−1) — không dùng «có CVC 1 ngày»
+    cvc_active_on_event: cvcAssociated,
     device_placed_date: placed || undefined,
     device_removed_date: removed || undefined,
     is_neutropenia: Boolean(input.isNeutropenia),
@@ -281,6 +285,7 @@ export function buildBsiTimelineVerdict(
       hasFever,
       hasChills,
       hasHypotension,
+      cvcPlacedDays,
       cvcAssociated,
       warnings,
     },

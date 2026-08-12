@@ -47,7 +47,7 @@ export default function NkbvCatalogSymptomRows({
               <span>
                 {row.name_vi}
                 {row.threshold_note ? (
-                  <span className="mt-0.5 block text-[10px] font-normal text-slate-500">
+                  <span className="mt-0.5 block text-[11px] font-normal text-slate-500">
                     {row.threshold_note}
                   </span>
                 ) : null}

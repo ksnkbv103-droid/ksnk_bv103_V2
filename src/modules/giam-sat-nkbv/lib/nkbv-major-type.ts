@@ -8,7 +8,37 @@ import {
   isNkbvSpecimenCode,
 } from "./nkbv-specimen-canonical";
 
-export type NkbvMajorType = "BSI" | "UTI" | "PNEU" | "VAE" | "SSI" | "OTHER";
+export type NkbvMajorType =
+  | "BSI"
+  | "UTI"
+  | "PNEU"
+  | "VAE"
+  | "SSI"
+  | "CH17"
+  | "OTHER";
+
+const CH17_TYPE_CODES = new Set([
+  "BONE",
+  "DISC",
+  "JNT",
+  "PJI",
+  "IC",
+  "MEN",
+  "SA",
+  "CARD",
+  "MED",
+  "VASC",
+  "ENDO",
+  "CDI",
+  "GE",
+  "GIT",
+  "IAB",
+  "LUNG",
+  "EMET",
+  "OREP",
+  "VCUF",
+  "CH17",
+]);
 
 export function resolveNkbvMajorType(input: {
   loai_ma?: string | null;
@@ -20,11 +50,12 @@ export function resolveNkbvMajorType(input: {
   const loai = String(input.loai_ma || "")
     .trim()
     .toUpperCase();
-  if (loai === "SSI") return "SSI";
+  if (loai === "SSI" || loai.startsWith("SSI:")) return "SSI";
   if (loai === "VAE" || loai === "VAC" || loai === "IVAC" || loai === "PVAP") return "VAE";
   if (loai === "VAP" || loai === "HAP" || loai === "PNEU" || loai.startsWith("PNU")) return "PNEU";
   if (loai === "UTI" || loai === "CAUTI" || loai === "ABUTI") return "UTI";
   if (loai === "BSI" || loai === "CLABSI" || loai === "LCBI" || loai === "MBI") return "BSI";
+  if (CH17_TYPE_CODES.has(loai) || loai.startsWith("CH17:")) return "CH17";
 
   const chuan = String(input.loai_benh_pham_chuan || "").trim();
   if (chuan && isNkbvSpecimenCode(chuan)) {

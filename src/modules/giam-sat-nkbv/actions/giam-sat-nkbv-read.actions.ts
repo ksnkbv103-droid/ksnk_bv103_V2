@@ -505,6 +505,8 @@ export type NkbvBenhAnHubCase = {
   /** Index XN gắn phiếu (hàng đợi chưa PT) */
   index_vi_sinh_id: string | null;
   analysis_disposition: "BO_QUA" | null;
+  /** XN attributed trong RIT/SBAP (đã PT cùng phiếu). */
+  attributed_vi_sinh_ids: string[];
 };
 
 export type NkbvBenhAnHubLis = {
@@ -519,7 +521,7 @@ export type NkbvBenhAnHubLis = {
   ket_qua_duong_tinh: boolean | null;
   is_mdro: boolean;
   mdro_phenotype: string | null;
-  analysis_disposition: "BO_QUA" | null;
+  analysis_disposition: "BO_QUA" | "DA_PHAN_TICH" | "KHONG_DU_TC" | null;
 };
 
 /** Hub 1 màn theo mã BA: ADT + LIS/MDRO + phiếu + cảnh báo RIT/SBAP. */
@@ -624,6 +626,9 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
     const loaiMa = c.loai_ma ? String(c.loai_ma) : null;
     const disp = vd.analysis_disposition === "BO_QUA" ? ("BO_QUA" as const) : null;
     const idxVs = vd.index_vi_sinh_id ? String(vd.index_vi_sinh_id) : null;
+    const attributed = Array.isArray(vd.attributed_vi_sinh_ids)
+      ? (vd.attributed_vi_sinh_ids as unknown[]).map((x) => String(x)).filter(Boolean)
+      : [];
     return {
       id: String(c.id),
       ma_ca: c.ma_ca ? String(c.ma_ca) : null,
@@ -642,6 +647,7 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
       }),
       index_vi_sinh_id: idxVs,
       analysis_disposition: disp,
+      attributed_vi_sinh_ids: attributed,
     };
   });
 
@@ -663,7 +669,14 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
           : Boolean(r.ket_qua_duong_tinh),
       is_mdro: Boolean(r.is_mdro),
       mdro_phenotype: r.mdro_phenotype ? String(r.mdro_phenotype) : null,
-      analysis_disposition: meta.analysis_disposition === "BO_QUA" ? ("BO_QUA" as const) : null,
+      analysis_disposition:
+        meta.analysis_disposition === "BO_QUA"
+          ? ("BO_QUA" as const)
+          : meta.analysis_disposition === "DA_PHAN_TICH"
+            ? ("DA_PHAN_TICH" as const)
+            : meta.analysis_disposition === "KHONG_DU_TC"
+              ? ("KHONG_DU_TC" as const)
+              : null,
     };
   });
   // Timeline BA chỉ nạp XN dương tính (âm tính không lên lưới)
@@ -713,17 +726,52 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
     })),
   );
 
-  const dispositions = [
-    ...cases.map((c) => ({
-      index_vi_sinh_id: c.index_vi_sinh_id,
-      analysis_disposition: c.analysis_disposition,
-      is_active: true as boolean | null,
-    })),
+  const dispositions: Array<{
+    index_vi_sinh_id: string | null;
+    analysis_disposition: "BO_QUA" | "DA_PHAN_TICH" | "KHONG_DU_TC" | null;
+    is_active: boolean | null;
+  }> = [
+    ...cases.flatMap((c) => {
+      const rows: Array<{
+        index_vi_sinh_id: string | null;
+        analysis_disposition: "BO_QUA" | "DA_PHAN_TICH" | "KHONG_DU_TC" | null;
+        is_active: boolean | null;
+      }> = [
+        {
+          index_vi_sinh_id: c.index_vi_sinh_id,
+          analysis_disposition: c.analysis_disposition,
+          is_active: true,
+        },
+      ];
+      // attributed_vi_sinh_ids từ phiếu đã seed
+      const caseRaw = (casesRaw || []).find((x) => String(x.id) === c.id);
+      const vd =
+        caseRaw?.verification_data && typeof caseRaw.verification_data === "object"
+          ? (caseRaw.verification_data as Record<string, unknown>)
+          : {};
+      const attributed = Array.isArray(vd.attributed_vi_sinh_ids)
+        ? (vd.attributed_vi_sinh_ids as string[])
+        : [];
+      for (const aid of attributed) {
+        if (!aid || aid === c.index_vi_sinh_id) continue;
+        rows.push({
+          index_vi_sinh_id: String(aid),
+          analysis_disposition: "DA_PHAN_TICH",
+          is_active: true,
+        });
+      }
+      return rows;
+    }),
     ...lis
-      .filter((l) => l.analysis_disposition === "BO_QUA")
+      .filter(
+        (l) =>
+          l.analysis_disposition === "BO_QUA" ||
+          l.analysis_disposition === "DA_PHAN_TICH" ||
+          l.analysis_disposition === "KHONG_DU_TC",
+      )
       .map((l) => ({
         index_vi_sinh_id: l.id,
-        analysis_disposition: "BO_QUA" as const,
+        analysis_disposition: l.analysis_disposition,
         is_active: true as boolean | null,
       })),
   ];

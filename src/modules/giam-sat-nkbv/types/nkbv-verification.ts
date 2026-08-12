@@ -130,7 +130,57 @@ export interface VaeVerificationData extends NkbvAnalysisIndexFields {
   has_infant_respiratory_distress?: boolean;
   /** PNEU ≤1 tuổi — nhịp chậm (<100) hoặc nhanh (>170) */
   has_infant_hr_abnormal?: boolean;
-  microbiology_evidence: 'NONE' | 'PNU2' | 'PNU3'; // Bằng chứng vi sinh nâng cấp
+  /**
+   * Tier vi sinh PNU (đồng bộ từ lab-first hoặc legacy chọn tay).
+   * Lab-first: ưu tiên fact `pneu_lab_*` qua `derivePneuLabTier`.
+   */
+  microbiology_evidence: 'NONE' | 'PNU2' | 'PNU3';
+  /** Loại mẫu lab PNEU — Table 2/3 (lab-first). */
+  pneu_lab_specimen?:
+    | 'NONE'
+    | 'BLOOD'
+    | 'PLEURAL'
+    | 'LUNG_TISSUE'
+    | 'BAL'
+    | 'PBAL'
+    | 'PSB'
+    | 'ETA'
+    | 'SPUTUM'
+    | 'OTHER_LRT';
+  pneu_lab_cfu_per_ml?: number | null;
+  pneu_lab_semi_quant?:
+    | 'NONE'
+    | 'LIGHT'
+    | 'MODERATE'
+    | 'HEAVY'
+    | 'MANY'
+    | 'PLUS_2'
+    | 'PLUS_3'
+    | 'PLUS_4';
+  pneu_lab_organism?: string;
+  pneu_lab_is_normal_flora?: boolean;
+  /** Table 3 gộp (derived từ atom hoặc tick tay). */
+  pneu_lab_table3_positive?: boolean;
+  pneu_t3_influenza?: boolean;
+  pneu_t3_rsv?: boolean;
+  pneu_t3_other_virus?: boolean;
+  pneu_t3_legionella?: boolean;
+  pneu_t3_mycoplasma?: boolean;
+  pneu_t3_chlamydia?: boolean;
+  pneu_t3_bordetella?: boolean;
+  pneu_lab_bal_intracellular_ge_5pct?: boolean;
+  pneu_lab_histopath_positive?: boolean;
+  /** Cửa PNU3 gộp (derived từ atom IC hoặc tick tay). */
+  pneu_is_immunocompromised?: boolean;
+  pneu_ic_neutropenia?: boolean;
+  pneu_ic_leukemia_lymphoma?: boolean;
+  pneu_ic_hiv_cd4_lt_200?: boolean;
+  pneu_ic_splenectomy?: boolean;
+  pneu_ic_solid_organ_or_hsct?: boolean;
+  pneu_ic_chemotherapy?: boolean;
+  pneu_ic_steroid_ge_14d?: boolean;
+  /** Ngoại lệ PNU3: Candida máu khớp LRT trong IWP. */
+  pneu_candida_blood_and_lrt_match?: boolean;
 
   /** PVAP Secondary BSI (optional) */
   has_blood_culture_in_event_period?: boolean;
@@ -208,6 +258,8 @@ export interface SsiVerificationData extends NkbvAnalysisIndexFields {
   /** Present at time of surgery */
   is_patos?: boolean;
   return_to_or_within_24h?: boolean;
+  /** ≤1 tuổi — nhánh Ch.17 infant */
+  is_infant_le1?: boolean;
   /** Fallback khi chưa chọn mã PT NHSN — không còn nguồn chính cho SP 30/90. */
   has_implant: boolean;
   ssi_depth: 'SUPERFICIAL' | 'DEEP' | 'ORGAN_SPACE' | 'NONE';
@@ -266,8 +318,35 @@ export interface SsiVerificationData extends NkbvAnalysisIndexFields {
   hai_status?: 'HAI' | 'POA';
 }
 
-export type NkbvVerificationPayload = 
-  | { type: 'BSI'; data: BsiVerificationData }
-  | { type: 'VAE'; data: VaeVerificationData }
-  | { type: 'UTI'; data: UtiVerificationData }
-  | { type: 'SSI'; data: SsiVerificationData };
+/** Ca nhiễm khuẩn chuyên biệt Chương 17 (độc lập, không SSI). */
+export interface Ch17VerificationData extends NkbvAnalysisIndexFields {
+  /** Mã Specific Type: BONE, MEN, IAB, … */
+  ch17_type_code: string;
+  chapter17_flags?: Record<string, boolean>;
+  is_infant_le1?: boolean;
+  procedure_code?: string | null;
+  /** Hierarchy / shunt context (optional) */
+  days_since_shunt?: number | null;
+  post_cardiac_mediastinitis_with_sternum?: boolean;
+  men_with_ic_post_op_abscess?: boolean;
+  pneu_met?: boolean;
+  ssi_lung_after_thor?: boolean;
+  discharge_date?: string | null;
+  treatment_history?: DepartmentStay[];
+  symptom_dates?: Record<string, string>;
+  calculated_doe?: string;
+  calculated_iwp_start?: string;
+  calculated_iwp_end?: string;
+  calculated_sbap_start?: string;
+  calculated_sbap_end?: string;
+  attributed_khoa_id?: string;
+  attributed_khoa_name?: string;
+  hai_status?: "HAI" | "POA";
+}
+
+export type NkbvVerificationPayload =
+  | { type: "BSI"; data: BsiVerificationData }
+  | { type: "VAE"; data: VaeVerificationData }
+  | { type: "UTI"; data: UtiVerificationData }
+  | { type: "SSI"; data: SsiVerificationData }
+  | { type: "CH17"; data: Ch17VerificationData };

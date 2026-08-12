@@ -1,7 +1,11 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import QrCameraButton from "@/components/shared/QrCameraButton";
+import {
+  ageYearsFromNgaySinh,
+  resolveIsInfantLe1Flag,
+} from "../../lib/nkbv-age-ui";
 import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
 import {
   depthFromSsiEventType,
@@ -13,13 +17,9 @@ import {
   resolveSsiSurveillanceDays,
   secondaryIncisionMismatchWarning,
 } from "../../lib/nkbv-ssi-nhsn-catalog";
-import {
-  ch17RuleForSite,
-  countCh17Signs,
-  isCh17SiteCriteriaMet,
-} from "../../lib/nkbv-chapter17-clinical";
 import { formSymptomRowsFor } from "../../lib/nkbv-clinical-symptom-catalog";
 import type { SsiVerificationData } from "../../types/nkbv-verification";
+import NkbvCh17CriteriaChecklist from "../NkbvCh17CriteriaChecklist";
 import NkbvDomainFormShell from "../NkbvDomainFormShell";
 import NkbvFormSection from "../NkbvFormSection";
 import NkbvCatalogSymptomRows from "./NkbvCatalogSymptomRows";
@@ -32,6 +32,7 @@ interface SsiClinicalSubFormProps {
   allowedEdit: boolean;
   ngayVaoVien?: string;
   ngayPhatHien?: string;
+  ngaySinh?: string | null;
   iwpStart?: string;
   iwpEnd?: string;
   activeTab?: "LAM_SANG" | "KSNK" | "VI_SINH";
@@ -57,12 +58,23 @@ export default function SsiClinicalSubForm({
   symptomDates,
   onSymptomDateChange,
   allowedEdit,
+  ngayPhatHien,
+  ngaySinh,
   iwpStart,
   iwpEnd,
   activeTab = "LAM_SANG",
   classificationBadge,
   embedded = false,
 }: SsiClinicalSubFormProps) {
+  const ageYears = ageYearsFromNgaySinh(ngaySinh, ngayPhatHien);
+  const infantFlag = resolveIsInfantLe1Flag(ageYears);
+
+  useEffect(() => {
+    if (form.is_infant_le1 === infantFlag) return;
+    onChange({ ...form, is_infant_le1: infantFlag });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional sync on age gate
+  }, [infantFlag]);
+
   const eventDepth = depthFromSsiEventType(form.ssi_event_type);
   const depth = eventDepth || form.ssi_depth;
   const limitDays = resolveSsiSurveillanceDays({
@@ -165,7 +177,7 @@ export default function SsiClinicalSubForm({
                 ))}
               </select>
               {proc ? (
-                <p className="mt-1 text-[10px] text-slate-500">{proc.name_en}</p>
+                <p className="mt-1 text-[11px] text-slate-500">{proc.name_en}</p>
               ) : null}
             </div>
             <div>
@@ -338,55 +350,14 @@ export default function SsiClinicalSubForm({
                   </option>
                 ))}
               </select>
-              {(() => {
-                const rule = ch17RuleForSite(form.organ_space_site);
-                if (!rule) {
-                  return form.organ_space_site ? (
-                    <p className="text-[11px] text-slate-500">
-                      Site {form.organ_space_site}: dùng tiêu chí Organ/Space chung (mủ dẫn lưu /
-                      cấy / áp xe). Checklist Ch.17 chi tiết sẽ bổ sung theo từng site.
-                    </p>
-                  ) : null;
-                }
-                const flags = form.chapter17_flags || {};
-                const n = countCh17Signs(rule, flags);
-                const status = isCh17SiteCriteriaMet({
-                  siteCode: form.organ_space_site,
-                  flags,
-                  procedureCode: form.loai_phau_thuat_nhsn,
-                });
-                return (
-                  <div className="rounded-xl border border-violet-100 bg-violet-50/70 p-3 space-y-2">
-                    <p className="text-[11px] font-bold text-violet-900">
-                      Chương 17 — {rule.name_vi} (cần ≥{rule.min_signs})
-                    </p>
-                    {rule.signs.map((s) => (
-                      <label
-                        key={s.key}
-                        className="flex items-center gap-2 text-xs font-semibold cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={flags[s.key] === true}
-                          disabled={!allowedEdit || isTimeframeExpired}
-                          onChange={(e) =>
-                            onChange({
-                              ...form,
-                              chapter17_flags: { ...flags, [s.key]: e.target.checked },
-                            })
-                          }
-                        />
-                        {s.label_vi}
-                      </label>
-                    ))}
-                    <p
-                      className={`text-[11px] ${status.met ? "text-emerald-800" : "text-amber-900"}`}
-                    >
-                      {status.reason} · đang chọn {n}/{rule.min_signs}
-                    </p>
-                  </div>
-                );
-              })()}
+              <NkbvCh17CriteriaChecklist
+                typeCode={form.organ_space_site}
+                flags={form.chapter17_flags || {}}
+                procedureCode={form.loai_phau_thuat_nhsn}
+                isInfantLe1={infantFlag}
+                allowedEdit={allowedEdit && !isTimeframeExpired}
+                onFlagsChange={(chapter17_flags) => onChange({ ...form, chapter17_flags })}
+              />
             </div>
           ) : null}
           {depth === "SUPERFICIAL" || depth === "DEEP" || depth === "ORGAN_SPACE" ? (

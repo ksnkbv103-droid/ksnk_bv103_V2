@@ -5,6 +5,9 @@
     },
     "vercel": {
       "enabled": true
+    },
+    "slack": {
+      "enabled": true
     }
   }
 }

@@ -12,6 +12,7 @@ import {
   type NkbvPatientRcaRow,
 } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv.actions";
 import { formatDateVi } from "@/lib/format-datetime-vi";
+import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 
 type KhoaOpt = { id: string; ma_danh_muc?: string; ten_danh_muc?: string };
 
@@ -47,7 +48,7 @@ export default function NkbvMdroCensusPanel({ khoas }: { khoas: KhoaOpt[] }) {
   }, [load]);
 
   return (
-    <div className="space-y-4 rounded-2xl border border-rose-100 bg-rose-50/40 p-4">
+    <div className={`${C.sectionGap} space-y-4 rounded-2xl border border-rose-100 bg-rose-50/40 p-4`}>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h3 className="text-sm font-bold text-rose-950">BN đa kháng đang nằm viện · RCA tuân thủ</h3>

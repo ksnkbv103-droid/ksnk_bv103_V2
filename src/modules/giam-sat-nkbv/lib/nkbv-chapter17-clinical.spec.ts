@@ -7,10 +7,13 @@ import {
 describe("nkbv-chapter17-clinical", () => {
   it("lists operational sites", () => {
     expect(ch17OperationalSites()).toContain("IAB");
+    expect(ch17OperationalSites()).toContain("BONE");
+    expect(ch17OperationalSites()).toContain("MEN");
     expect(ch17OperationalSites()).toContain("EMET");
+    expect(ch17OperationalSites()).toContain("VCUF");
   });
 
-  it("IAB needs ≥2 signs", () => {
+  it("IAB đạt khi có vi sinh dịch ổ bụng (IAB1)", () => {
     const fail = isCh17SiteCriteriaMet({
       siteCode: "IAB",
       flags: { ch17_iab_fever: true },
@@ -20,19 +23,16 @@ describe("nkbv-chapter17-clinical", () => {
 
     const ok = isCh17SiteCriteriaMet({
       siteCode: "IAB",
-      flags: { ch17_iab_fever: true, ch17_iab_abdominal_pain: true },
+      flags: { micro_iab_fluid_or_abscess: true },
     });
     expect(ok.met).toBe(true);
   });
 
-  it("EMET rejects wrong procedure", () => {
+  it("PJI rejects wrong procedure", () => {
     const r = isCh17SiteCriteriaMet({
-      siteCode: "EMET",
+      siteCode: "PJI",
       procedureCode: "COLO",
-      flags: {
-        ch17_emet_fever: true,
-        ch17_emet_uterine_pain: true,
-      },
+      flags: { sx_pji_sinus_tract: true },
     });
     expect(r.met).toBe(false);
     expect(r.reason).toMatch(/COLO/);

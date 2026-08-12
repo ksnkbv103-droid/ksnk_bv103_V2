@@ -1,15 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { 
-  evaluateBsiClabsi, 
-  evaluateVaeVap, 
-  evaluateUtiCauti, 
-  evaluateSsi 
+import {
+  evaluateBsiClabsi,
+  evaluateVaeVap,
+  evaluateUtiCauti,
+  evaluateSsi,
+  evaluateCh17,
 } from "./nkbv-rules-engine";
-import { 
-  BsiVerificationData, 
-  VaeVerificationData, 
-  UtiVerificationData, 
-  SsiVerificationData 
+import {
+  BsiVerificationData,
+  VaeVerificationData,
+  UtiVerificationData,
+  SsiVerificationData,
 } from "../types/nkbv-verification";
 
 describe("CDC/NHSN 2023 Rules Engine tests", () => {
@@ -345,6 +346,60 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         has_hemoptysis: true,
       };
       expect(evaluateVaeVap(data, "PNEU").classification).toBe("PNU3_NON_VAP");
+    });
+
+    it("lab-first: BAL đạt ngưỡng → PNU2 dù dropdown NONE", () => {
+      const data: VaeVerificationData = {
+        patient_age: 55,
+        vent_days: 0,
+        has_stable_baseline_peep_fio2: false,
+        peep_increase_ge_3: false,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: false,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: false,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: true,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 1,
+        fever_or_wbc_abnormal: true,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 2,
+        microbiology_evidence: "NONE",
+        pneu_lab_specimen: "BAL",
+        pneu_lab_organism: "Klebsiella pneumoniae",
+        pneu_lab_cfu_per_ml: 2e4,
+      };
+      expect(evaluateVaeVap(data, "PNEU").classification).toBe("PNU2_NON_VAP");
+    });
+
+    it("lab-first: đờm + vi khuẩn thường → vẫn PNU1", () => {
+      const data: VaeVerificationData = {
+        patient_age: 55,
+        vent_days: 0,
+        has_stable_baseline_peep_fio2: false,
+        peep_increase_ge_3: false,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: false,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: false,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: true,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 1,
+        fever_or_wbc_abnormal: true,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 2,
+        microbiology_evidence: "PNU2",
+        pneu_lab_specimen: "SPUTUM",
+        pneu_lab_organism: "Klebsiella pneumoniae",
+        pneu_lab_cfu_per_ml: 1e6,
+      };
+      expect(evaluateVaeVap(data, "PNEU").classification).toBe("PNU1_NON_VAP");
     });
 
     it("labels PNEU as VAP when vent eligible ≥3 days", () => {
@@ -871,7 +926,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.is_secondary_bsi).toBe(true);
     });
 
-    it("Organ/Space IAB đạt khi ≥2 triệu chứng Ch.17", () => {
+    it("Organ/Space IAB đạt khi Ch.17 IAB1 (vi sinh dịch ổ bụng)", () => {
       const res = evaluateSsi({
         days_since_surgery: 10,
         has_implant: false,
@@ -889,8 +944,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         organ_space_culture_positive: false,
         organ_space_abscess_imaging_pathology: false,
         chapter17_flags: {
-          ch17_iab_fever: true,
-          ch17_iab_abdominal_pain: true,
+          micro_iab_fluid_or_abscess: true,
         },
         has_blood_culture_positive: false,
         blood_ssi_pathogen_matches: false,
@@ -899,6 +953,26 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.is_positive).toBe(true);
       expect(res.classification).toBe("ORGAN_SPACE:IAB");
       expect(res.reason).toMatch(/IAB/);
+    });
+  });
+
+  describe("evaluateCh17 standalone", () => {
+    it("MEN1 CSF → CH17:MEN", () => {
+      const res = evaluateCh17({
+        ch17_type_code: "MEN",
+        chapter17_flags: { micro_csf_positive: true },
+      });
+      expect(res.is_positive).toBe(true);
+      expect(res.classification).toBe("CH17:MEN");
+    });
+
+    it("shunt ≤90 ngày → SSI:MEN", () => {
+      const res = evaluateCh17({
+        ch17_type_code: "MEN",
+        chapter17_flags: { micro_csf_positive: true },
+        days_since_shunt: 45,
+      });
+      expect(res.classification).toBe("SSI:MEN");
     });
   });
 });

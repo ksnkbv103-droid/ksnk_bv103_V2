@@ -8,7 +8,14 @@ import NkbvDiagnosticCaseForm from "@/modules/giam-sat-nkbv/components/NkbvDiagn
 import NkbvCasePrintView from "@/modules/giam-sat-nkbv/components/NkbvCasePrintView";
 import NkbvAdjudicationPanel from "@/modules/giam-sat-nkbv/components/NkbvAdjudicationPanel";
 import { getDevicePrefillForStay } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-device-registry.actions";
+import { getNkbvBenhAnHub } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-read.actions";
+import { syncFormSymptomToBaTimeline } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv.actions";
 import type { DeviceRegistryType } from "@/modules/giam-sat-nkbv/lib/nkbv-shared-device-days";
+import type { BaTimelineMilestone } from "@/modules/giam-sat-nkbv/lib/nkbv-ba-timeline-core";
+import {
+  SYMPTOM_DATE_TO_TIMELINE,
+  prefillSymptomDatesFromTimeline,
+} from "@/modules/giam-sat-nkbv/lib/nkbv-symptom-timeline-bridge";
 import { toast } from "sonner";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import { useNkbvChecklistModalState } from "./useNkbvChecklistModalState";
@@ -84,6 +91,8 @@ export default function NkbvClinicalChecklistModal({
     setUtiForm,
     ssiForm,
     setSsiForm,
+    ch17Form,
+    setCh17Form,
     handleAddStay,
     handleDeleteStay,
     liveCdcMetrics,
@@ -91,6 +100,7 @@ export default function NkbvClinicalChecklistModal({
     handleSaveChecklist,
     handleAdjudicate,
     ngayVaoVienEffective,
+    ngaySinhEffective,
     handleSyncAdmissionDate,
     benhAnLoaded,
     benhAnMissing,
@@ -98,15 +108,106 @@ export default function NkbvClinicalChecklistModal({
 
   const [clinicalConfirmed, setClinicalConfirmed] = useState(false);
   const [ksnkConfirmed, setKsnkConfirmed] = useState(false);
+  const [timelineMilestones, setTimelineMilestones] = useState<BaTimelineMilestone[]>([]);
   /** KSNK được tick khi user có quyền sửa (pilot: mọi allowedEdit; UI vẫn tách vai trò). */
   const canConfirmKsnk = allowedEdit;
+
+  useEffect(() => {
+    const ma = String(row.ma_benh_an || "").trim();
+    if (!ma) {
+      setTimelineMilestones([]);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const res = await getNkbvBenhAnHub(ma);
+      if (cancelled) return;
+      if (res.success && Array.isArray(res.data?.timeline)) {
+        setTimelineMilestones(res.data.timeline as BaTimelineMilestone[]);
+      } else {
+        setTimelineMilestones([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [row.ma_benh_an, row.id]);
+
+  const timelinePrefillRef = useRef("");
+  useEffect(() => {
+    const caseId = String(row.id || "");
+    if (!caseId || !timelineMilestones.length) return;
+    const stamp = `${caseId}:${liveCdcMetrics?.iwp_start || ""}:${liveCdcMetrics?.iwp_end || ""}:${timelineMilestones.length}`;
+    if (timelinePrefillRef.current === stamp) return;
+    timelinePrefillRef.current = stamp;
+    const pathway = clinicalPathway || checklistType;
+    const mapContext =
+      pathway === "SSI"
+        ? {
+            syndrome: "SSI" as const,
+            ssiDepth:
+              (ssiForm as { infection_depth?: string } | null)?.infection_depth ||
+              "SUPERFICIAL",
+          }
+        : pathway === "PNEU" ||
+            pathway === "VAE" ||
+            pathway === "UTI" ||
+            pathway === "BSI"
+          ? { syndrome: pathway }
+          : undefined;
+    setSymptomDates((prev) =>
+      prefillSymptomDatesFromTimeline({
+        milestones: timelineMilestones,
+        iwpStart: liveCdcMetrics?.iwp_start,
+        iwpEnd: liveCdcMetrics?.iwp_end,
+        existing: prev,
+        mapContext,
+      }),
+    );
+  }, [
+    row.id,
+    timelineMilestones,
+    liveCdcMetrics?.iwp_start,
+    liveCdcMetrics?.iwp_end,
+    setSymptomDates,
+    clinicalPathway,
+    checklistType,
+    ssiForm,
+  ]);
+
+  const handleSymptomDateChange = (key: string, date: string) => {
+    setSymptomDates((prev) => ({ ...prev, [key]: date }));
+    const meta = SYMPTOM_DATE_TO_TIMELINE[key];
+    const maBa = String(row.ma_benh_an || "");
+    if (!meta || !maBa || !allowedEdit) return;
+    void (async () => {
+      const res = await syncFormSymptomToBaTimeline({
+        ma_benh_an: maBa,
+        criteria_key: meta.criteriaKey,
+        milestone_kind: meta.milestoneKind,
+        title: meta.title,
+        milestone_date: date || null,
+        form_field_key: key,
+      });
+      if (!res.success) {
+        toast.error(res.error || "Không đồng bộ timeline BA");
+        return;
+      }
+      // Làm mới mốc để lần mở sau khớp lưới
+      const hub = await getNkbvBenhAnHub(maBa);
+      if (hub.success && Array.isArray(hub.data?.timeline)) {
+        setTimelineMilestones(hub.data.timeline as BaTimelineMilestone[]);
+      }
+    })();
+  };
 
   const activeForm = useMemo(() => {
     if (checklistType === "BSI") return bsiForm as Record<string, unknown> | null;
     if (checklistType === "UTI") return utiForm as Record<string, unknown> | null;
     if (checklistType === "SSI") return ssiForm as Record<string, unknown> | null;
+    if (checklistType === "CH17") return ch17Form as Record<string, unknown> | null;
     return vaeForm as Record<string, unknown> | null;
-  }, [checklistType, bsiForm, utiForm, ssiForm, vaeForm]);
+  }, [checklistType, bsiForm, utiForm, ssiForm, ch17Form, vaeForm]);
 
   const lockStatus: "DRAFT" | "DA_CHOT" = useMemo(() => {
     const ma = String(row.trang_thai_ma || "").toUpperCase();
@@ -389,9 +490,7 @@ export default function NkbvClinicalChecklistModal({
             onAddStay={handleAddStay}
             onDeleteStay={handleDeleteStay}
             symptomDates={symptomDates}
-            onSymptomDateChange={(key, date) =>
-              setSymptomDates((prev) => ({ ...prev, [key]: date }))
-            }
+            onSymptomDateChange={handleSymptomDateChange}
             bsiForm={bsiForm}
             setBsiForm={setBsiForm}
             utiForm={utiForm}
@@ -400,6 +499,8 @@ export default function NkbvClinicalChecklistModal({
             setVaeForm={setVaeForm}
             ssiForm={ssiForm}
             setSsiForm={setSsiForm}
+            ch17Form={ch17Form}
+            setCh17Form={setCh17Form}
             liveCdcMetrics={liveCdcMetrics}
             liveEvaluation={liveEvaluation}
             onPrefillDevice={() => void handlePrefillDevice()}
@@ -413,6 +514,7 @@ export default function NkbvClinicalChecklistModal({
             ngayVaoVienEffective={ngayVaoVienEffective}
             onAdmissionDateChange={(d) => void handleSyncAdmissionDate(d)}
             benhAnMissing={benhAnMissing}
+            ngaySinhEffective={ngaySinhEffective}
           />
 
           {allowedEdit ? (

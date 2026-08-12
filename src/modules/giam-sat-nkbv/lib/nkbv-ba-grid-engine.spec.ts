@@ -60,6 +60,52 @@ describe("nkbv-ba-grid-engine shift timeline", () => {
     expect(cols.some((c) => c.date === "2026-08-12")).toBe(true);
   });
 
+  it("split: device_foley/vent/cvc → deviceByDate, không vào LS", () => {
+    const milestones: BaTimelineMilestone[] = [
+      {
+        id: "f1",
+        date: "2026-08-01",
+        kind: "SYMPTOM",
+        title: "Foley",
+        source: "MANUAL",
+        criteriaKey: "device_foley",
+        detail: null,
+        majorType: "UTI",
+        gate: null,
+      },
+      {
+        id: "v1",
+        date: "2026-08-02",
+        kind: "SYMPTOM",
+        title: "Vent",
+        source: "MANUAL",
+        criteriaKey: "device_ventilator",
+        detail: null,
+        majorType: "PNEU",
+        gate: null,
+      },
+      {
+        id: "c1",
+        date: "2026-08-03",
+        kind: "SYMPTOM",
+        title: "CVC",
+        source: "MANUAL",
+        criteriaKey: "device_central_line",
+        detail: null,
+        majorType: "BSI",
+        gate: null,
+      },
+    ];
+    const split = splitMilestonesToGridRows(milestones);
+    expect(split.deviceByDate.foley["2026-08-01"]?.[0]?.key).toBe("device_foley");
+    expect(split.deviceByDate.vent["2026-08-02"]?.[0]?.key).toBe("device_ventilator");
+    expect(split.deviceByDate.cvc["2026-08-03"]?.[0]?.key).toBe("device_central_line");
+    expect(split.trieuChungLamSangByDate["2026-08-01"]).toBeUndefined();
+    expect(
+      clinicalCatalogForNghiNgo("UTI").some((c) => c.criteriaKey === "device_foley"),
+    ).toBe(false);
+  });
+
   it("dedupe CĐHA theo ngày|criteria_key (không theo id)", () => {
     const milestones: BaTimelineMilestone[] = [
       {
@@ -168,7 +214,7 @@ describe("nkbv-ba-grid-engine shift timeline", () => {
     expect(split.tieuChuanChuyenBietByDate["2026-07-15"]).toBeUndefined();
   });
 
-  it("RIT tô ngay khi có NSK (không cần criteriaMetPreview)", () => {
+  it("chưa đủ TC → vẫn tô RIT/SBAP (ứng viên), chưa attributed", () => {
     const session = computeBaGridSession({
       ngayVaoVien: "2026-07-17",
       xn: [],
@@ -189,12 +235,40 @@ describe("nkbv-ba-grid-engine shift timeline", () => {
       canThiepDates: [],
     });
     expect(session.nsk).toBe("2026-07-19");
+    expect(session.iwpDates.size).toBeGreaterThan(0);
+    expect(session.ritDates.has("2026-07-19")).toBe(true);
+    expect(session.ritDates.has("2026-08-01")).toBe(true);
+    expect(session.sbapDates.size).toBeGreaterThan(0);
+    expect(session.attributedXnIds).toEqual([]);
+  });
+
+  it("đủ TC (criteriaMetPreview) → tô RIT/SBAP", () => {
+    const session = computeBaGridSession({
+      ngayVaoVien: "2026-07-17",
+      xn: [],
+      cdha: [
+        {
+          id: "xq-1",
+          ngay: "2026-07-19",
+          loai: "XQ",
+          mo_ta_benh_ly: "XQ viêm phổi",
+          tieu_chuan_key: "imaging_chest",
+        },
+      ],
+      activeIndex: { kind: "CDHA", id: "xq-1", date: "2026-07-19" },
+      nghiNgo: "PNEU",
+      symptomDates: {},
+      tieuChuanByDate: {},
+      khoaByDate: {},
+      canThiepDates: [],
+      criteriaMetPreview: true,
+    });
     expect(session.ritDates.has("2026-07-19")).toBe(true);
     expect(session.ritDates.has("2026-08-01")).toBe(true);
     expect(session.sbapDates.size).toBeGreaterThan(0);
   });
 
-  it("cột ngày neo Index: trước 7 · sau 14 ngày", () => {
+  it("cột ngày session: neo VV−2 → ra viện (đồng bộ bảng chung)", () => {
     const session = computeBaGridSession({
       ngayVaoVien: "2026-07-17",
       ngayRaVien: "2026-07-20",
@@ -215,9 +289,9 @@ describe("nkbv-ba-grid-engine shift timeline", () => {
       khoaByDate: {},
       canThiepDates: [],
     });
-    expect(session.columns[0]?.date).toBe("2026-07-12");
-    expect(session.columns[session.columns.length - 1]?.date).toBe("2026-08-02");
-    expect(session.columns).toHaveLength(22); // 7 + 1 + 14
+    expect(session.columns[0]?.date).toBe("2026-07-15"); // VV−2
+    expect(session.columns[session.columns.length - 1]?.date).toBe("2026-07-20");
+    expect(session.columns).toHaveLength(6);
   });
 
   it("bảng chung không Index: khung VV−2 → ra viện (không đuôi +3)", () => {
@@ -338,7 +412,7 @@ describe("nkbv-ba-grid-engine shift timeline", () => {
     expect(b.nsk).not.toBe("2026-07-17");
   });
 
-  it("ketLuanOverride ghi đè summary; giữ suggestedSummary", () => {
+  it("Index XQ chưa đủ TC → không kết luận HAI/PNU1/NSK", () => {
     const session = computeBaGridSession({
       ngayVaoVien: "2026-07-17",
       xn: [],
@@ -357,10 +431,45 @@ describe("nkbv-ba-grid-engine shift timeline", () => {
       tieuChuanByDate: {},
       khoaByDate: {},
       canThiepDates: [],
-      ketLuanOverride: "PNEU1 thủ công",
+      ketLuanOverride: "NO_EVENT · thiếu triệu chứng hô hấp",
     });
-    expect(session.ketLuan?.summary).toBe("PNEU1 thủ công");
-    expect(session.ketLuan?.suggestedSummary).toContain("PNEU1");
+    expect(session.ketLuan?.nkbv).toBe("THIEU_TC");
+    expect(session.ketLuan?.trang_thai).toBe("khong_du_tc");
+    expect(session.ketLuan?.summary).toBe("NO_EVENT · thiếu triệu chứng hô hấp");
+    expect(session.ketLuan?.suggestedSummary).not.toMatch(/\bHAI\b|\bPOA\b|NSK /);
+    expect(session.ketLuan?.loai_nk).toBe("đang phân tích");
+  });
+
+  it("đủ TC (criteriaMetPreview) → kết luận đầy đủ có NSK", () => {
+    const session = computeBaGridSession({
+      ngayVaoVien: "2026-07-17",
+      xn: [],
+      cdha: [
+        {
+          id: "xq-1",
+          ngay: "2026-07-19",
+          loai: "XQ",
+          mo_ta_benh_ly: "XQ",
+          tieu_chuan_key: "imaging_chest",
+        },
+      ],
+      activeIndex: { kind: "CDHA", id: "xq-1", date: "2026-07-19" },
+      nghiNgo: "PNEU",
+      symptomDates: {},
+      tieuChuanByDate: {
+        "2026-07-19": [
+          { key: "fever", label: "Sốt" },
+          { key: "cough", label: "Ho" },
+          { key: "rales", label: "Ran" },
+        ],
+      },
+      khoaByDate: { "2026-07-19": "ICU" },
+      canThiepDates: [],
+      criteriaMetPreview: true,
+    });
+    expect(session.ketLuan?.nkbv).not.toBe("THIEU_TC");
+    expect(session.ketLuan?.suggestedSummary).toMatch(/NSK /);
+    expect(session.ketLuan?.trang_thai).toBe("nhap");
   });
 
   it("case ảnh PNEU: Index XQ → NSK sớm + quy kết đờm trong RIT", () => {
@@ -402,6 +511,7 @@ describe("nkbv-ba-grid-engine shift timeline", () => {
         "2026-07-21",
         "2026-07-22",
       ],
+      criteriaMetPreview: true,
     });
 
     expect(session.indexDate).toBe("2026-07-19");
@@ -431,6 +541,34 @@ describe("nkbv-ba-grid-engine shift timeline", () => {
     expect(cat.some((c) => c.criteriaKey === "frequency")).toBe(true);
     expect(cat.some((c) => c.criteriaKey === "fever")).toBe(true);
     expect(imagingCatalogForNghiNgo("UTI")).toHaveLength(0);
+  });
+
+  it("PNEU: thở máy 1 ngày → HAP (không VAP); liên quan xâm lấn = không", () => {
+    const session = computeBaGridSession({
+      ngayVaoVien: "2026-07-17",
+      xn: [],
+      cdha: [
+        {
+          id: "xq-1",
+          ngay: "2026-07-20",
+          loai: "XQ",
+          mo_ta_benh_ly: "XQ",
+          tieu_chuan_key: "imaging_chest",
+        },
+      ],
+      activeIndex: { kind: "CDHA", id: "xq-1", date: "2026-07-20" },
+      nghiNgo: "PNEU",
+      symptomDates: {},
+      tieuChuanByDate: {
+        "2026-07-20": [{ key: "fever", label: "Sốt" }],
+      },
+      khoaByDate: { "2026-07-20": "B11" },
+      canThiepDates: ["2026-07-20"],
+      criteriaMetPreview: true,
+    });
+    expect(session.checklistType).toBe("HAP");
+    expect(session.ketLuan?.lien_quan_xam_lan).toBe("khong");
+    expect(session.ketLuan?.summary || "").not.toMatch(/VAP/i);
   });
 
   it("UTI session: Foley label + SBAP + sốt ∈ IWP → NSK", () => {
@@ -466,5 +604,89 @@ describe("nkbv-ba-grid-engine shift timeline", () => {
     expect(session.nsk).toBe("2026-07-19");
     expect(session.ketLuan?.summary).toContain("CAUTI_SUTI");
     expect(session.iwpDates.has("2026-07-20")).toBe(true);
+  });
+
+  it("progressive Index2: sốt cũ ngoài IWP không che sốt ∈ IWP mới → DOE ≠ Index", () => {
+    // Index1 ~20 với sốt 18 (ngoài IWP Index2); Index2 = 30 với sốt 28 ∈ IWP
+    const session = computeBaGridSession({
+      ngayVaoVien: "2026-07-10",
+      xn: [
+        {
+          id: "urine-2",
+          ngay: "2026-07-30",
+          benh_pham: "Nước tiểu",
+          vi_khuan: "E. coli",
+          so_luong: "10^5",
+          source: "LIS",
+        },
+      ],
+      cdha: [],
+      activeIndex: { kind: "XN", id: "urine-2", date: "2026-07-30" },
+      nghiNgo: "UTI",
+      symptomDates: {},
+      tieuChuanByDate: {
+        "2026-07-18": [{ key: "fever", label: "Sốt lần 1" }],
+        "2026-07-28": [{ key: "fever", label: "Sốt lần 2" }],
+      },
+      trieuChungLamSangByDate: {
+        "2026-07-18": [{ key: "fever", label: "Sốt lần 1" }],
+        "2026-07-28": [{ key: "fever", label: "Sốt lần 2" }],
+      },
+      khoaByDate: {},
+      canThiepDates: [],
+    });
+    expect(session.indexDate).toBe("2026-07-30");
+    expect(session.nsk).toBe("2026-07-28");
+    expect(session.metrics?.doe).toBe("2026-07-28");
+  });
+
+  it("progressive: chỉ Index trong IWP (không TC lâm sàng) → DOE = Index", () => {
+    const session = computeBaGridSession({
+      ngayVaoVien: "2026-07-10",
+      xn: [
+        {
+          id: "urine-2",
+          ngay: "2026-07-30",
+          benh_pham: "Nước tiểu",
+          vi_khuan: "K.p",
+          source: "LIS",
+        },
+      ],
+      cdha: [],
+      activeIndex: { kind: "XN", id: "urine-2", date: "2026-07-30" },
+      nghiNgo: "UTI",
+      symptomDates: {},
+      tieuChuanByDate: {
+        "2026-07-18": [{ key: "fever", label: "Sốt cũ ngoài IWP" }],
+      },
+      khoaByDate: {},
+      canThiepDates: [],
+    });
+    expect(session.nsk).toBe("2026-07-30");
+  });
+
+  it("PNEU: key fever trên BA → DOE sớm hơn Index culture", () => {
+    const session = computeBaGridSession({
+      ngayVaoVien: "2026-07-10",
+      xn: [
+        {
+          id: "sputum-1",
+          ngay: "2026-07-25",
+          benh_pham: "Đờm",
+          vi_khuan: "K.p",
+          source: "LIS",
+        },
+      ],
+      cdha: [],
+      activeIndex: { kind: "XN", id: "sputum-1", date: "2026-07-25" },
+      nghiNgo: "PNEU",
+      symptomDates: {},
+      tieuChuanByDate: {
+        "2026-07-22": [{ key: "fever", label: "Sốt" }],
+      },
+      khoaByDate: {},
+      canThiepDates: [],
+    });
+    expect(session.nsk).toBe("2026-07-22");
   });
 });

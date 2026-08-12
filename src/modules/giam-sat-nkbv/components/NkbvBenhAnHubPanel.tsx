@@ -9,6 +9,8 @@ import { formatDateVi } from "@/lib/format-datetime-vi";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import {
   getNkbvBenhAnHub,
+  markNkbvViSinhKhongDuTc,
+  clearNkbvViSinhAnalysisDisposition,
   skipNkbvViSinhAnalysis,
   upsertNkbvBaTimelineMilestone,
   type NkbvBenhAnHubCase,
@@ -62,6 +64,7 @@ type Props = {
     milestone: BaTimelineMilestone;
     gate: NkbvChecklistTypeCode;
     existingCaseId?: string | null;
+    analysisSeed?: import("../actions/giam-sat-nkbv-ba-analysis.actions").NkbvBaAnalysisSeedInput | null;
   }) => Promise<NkbvEnsureAnalysisCaseResult>;
 };
 
@@ -402,6 +405,7 @@ export default function NkbvBenhAnHubPanel({
   const createPhieuFromSession = async (input: {
     milestoneId: string;
     panel: SyndromePanelId;
+    analysisSeed?: import("../actions/giam-sat-nkbv-ba-analysis.actions").NkbvBaAnalysisSeedInput | null;
   }) => {
     if (!stay) return;
     const milestone =
@@ -414,11 +418,15 @@ export default function NkbvBenhAnHubPanel({
     const gateMap: Record<SyndromePanelId, NkbvChecklistTypeCode> = {
       BSI: "BSI",
       UTI: "UTI",
-      PNEU: "VAP",
+      PNEU: "HAP",
       VAE: "VAE",
       SSI: "SSI",
     };
-    const gate = gateMap[input.panel] || gatePreview?.gate || "BSI";
+    const gate =
+      input.analysisSeed?.checklistGate ||
+      gateMap[input.panel] ||
+      gatePreview?.gate ||
+      "BSI";
     setIndexMilestoneId(milestone.id);
     setAnalysisLoading(true);
     setAnalysisError(null);
@@ -427,6 +435,7 @@ export default function NkbvBenhAnHubPanel({
       milestone,
       gate,
       existingCaseId: caseIdByMilestone[milestone.id] || linkedCase?.id || null,
+      analysisSeed: input.analysisSeed || null,
     });
     setAnalysisLoading(false);
     if (!res.success || !res.caseRow) {
@@ -438,7 +447,7 @@ export default function NkbvBenhAnHubPanel({
     if (cid) setCaseIdByMilestone((prev) => ({ ...prev, [milestone.id]: cid }));
     setAnalysisRow(res.caseRow);
     setPhieuSheetOpen(true);
-    toast.success("Đã tạo phiếu phân tích — điền form bên dưới");
+    toast.success("Đã tạo phiếu — form đã điền từ bảng phân tích");
     void reload();
     onCaseMutated?.();
   };
@@ -454,6 +463,35 @@ export default function NkbvBenhAnHubPanel({
     }
     toast.success("Đã bỏ qua XN — ra khỏi hàng đợi Chưa PT");
     void reload();
+  };
+
+  const markKhongDuTc = async (input: { viSinhId: string; indexDate: string }) => {
+    const res = await markNkbvViSinhKhongDuTc({
+      vi_sinh_id: input.viSinhId,
+      index_date: input.indexDate,
+    });
+    if (!res.success) {
+      toast.error(res.error || "Không chốt không đủ TC");
+      return;
+    }
+    toast.message(
+      "Đã phân tích xong — không đủ yếu tố tạo sự kiện; có thể phân tích XN/CĐHA tiếp.",
+    );
+    void reload();
+  };
+
+  const clearViSinhDisposition = async (input: { viSinhId: string }) => {
+    const res = await clearNkbvViSinhAnalysisDisposition({
+      vi_sinh_id: input.viSinhId,
+    });
+    if (!res.success) {
+      // DA_PHAN_TICH / BO_QUA — bỏ qua im lặng hoặc báo nhẹ
+      if (res.error && !/không gỡ|bỏ qua/i.test(res.error)) {
+        toast.error(res.error);
+      }
+      return;
+    }
+    void reload({ silent: true });
   };
 
   const persistDraftForSheet = async (): Promise<Record<string, unknown> | null> => {
@@ -593,6 +631,9 @@ export default function NkbvBenhAnHubPanel({
               ngayRaVien={stay.ngay_ra_vien ? String(stay.ngay_ra_vien) : null}
               ngaySinh={stay.ngay_sinh ? String(stay.ngay_sinh).slice(0, 10) : null}
               defaultKhoa={defaultKhoaMa}
+              khoaId={stay.khoa_dieu_tri_id ? String(stay.khoa_dieu_tri_id) : null}
+              maBenhNhan={stay.ma_benh_nhan ? String(stay.ma_benh_nhan) : null}
+              hoTen={stay.ho_ten_benh_nhan ? String(stay.ho_ten_benh_nhan) : null}
               khoaTen={khoaName}
               khoas={khoas.map((k) => ({
                 id: k.id,
@@ -603,9 +644,21 @@ export default function NkbvBenhAnHubPanel({
               devices={devices}
               analysisDispositions={analysisDispositions}
               allowedEdit={allowedEdit || allowedCreate}
+              priorEvents={cases.map((c) => ({
+                id: c.id,
+                ngay_phat_hien: c.doe || c.ngay_phat_hien,
+                loai_ma: c.loai_ma,
+                loai_ten: c.loai_ten,
+                vi_tri_nhiem_khuan: c.vi_tri_nhiem_khuan,
+                index_vi_sinh_id: c.index_vi_sinh_id,
+                tac_nhan_vi_khuan: c.tac_nhan_vi_khuan,
+                attributed_vi_sinh_ids: c.attributed_vi_sinh_ids || [],
+              }))}
               onIndexChange={onGridIndexChange}
               onCreatePhieu={(input) => void createPhieuFromSession(input)}
               onSkipViSinh={(input) => void skipViSinh(input)}
+              onMarkKhongDuTc={(input) => void markKhongDuTc(input)}
+              onClearViSinhDisposition={(input) => void clearViSinhDisposition(input)}
               onReload={() => void reload({ silent: true })}
               onTimelineUpsertLocal={upsertTimelineLocal}
               onTimelineRemoveLocal={removeTimelineLocal}
@@ -712,6 +765,8 @@ export default function NkbvBenhAnHubPanel({
                     maBenhAn={maBenhAn}
                     maBenhNhan={stay ? String(stay.ma_benh_nhan || "") : null}
                     khoaId={stay?.khoa_dieu_tri_id ? String(stay.khoa_dieu_tri_id) : null}
+                    ngayVaoVien={stay?.ngay_vao_vien ? String(stay.ngay_vao_vien) : null}
+                    ngayRaVien={stay?.ngay_ra_vien ? String(stay.ngay_ra_vien) : null}
                     allowedEdit={allowedEdit}
                     onChanged={() => void reload({ silent: true })}
                   />

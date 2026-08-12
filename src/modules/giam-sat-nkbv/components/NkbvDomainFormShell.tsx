@@ -48,7 +48,7 @@ export default function NkbvDomainFormShell({
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h3 className={C.panelTitle}>{title}</h3>
             {subtype ? (
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                 {subtype}
               </span>
             ) : null}

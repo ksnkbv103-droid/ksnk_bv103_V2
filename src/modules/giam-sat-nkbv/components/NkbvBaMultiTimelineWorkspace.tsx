@@ -3,16 +3,33 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type { BaTimelineMilestone } from "../lib/nkbv-ba-timeline-core";
 import {
+  attributeWithinRit,
   buildGridColumns,
+  computeBaGridSession,
   imagingCatalogForNghiNgo,
   splitMilestonesToGridRows,
   ssiTcCatalogWithoutSurgery,
   type BaGridActiveIndex,
   type BaGridCdhaCell,
+  type BaGridNghiNgo,
 } from "../lib/nkbv-ba-grid-engine";
+import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
+import { collectRitPathogens, detectSecondaryBsiFromSbap } from "../lib/nkbv-ket-luan-smart";
+import type { NkbvBaAnalysisSeedInput } from "../actions/giam-sat-nkbv-ba-analysis.actions";
+import {
+  openSessionsToSecondarySites,
+  priorEventsToSecondarySites,
+  resolveBelongsOpenSessionByDate,
+  resolveIndexEventDisposition,
+  type OpenSiteSessionForSbap,
+  type SecondarySiteHit,
+} from "../lib/nkbv-index-event-disposition";
 import {
   buildSessionIndexSuggestions,
+  cdhaToSyndromePanel,
+  isSsiIndexCriteriaKey,
   shouldDeferPrimaryBsi,
+  siteSbapWindowsFromSites,
   specimenToSyndromePanel,
   type SessionIndexSuggestion,
   type SyndromePanelId,
@@ -28,10 +45,27 @@ import {
   type BaAnalysisSession,
   type BaAnalysisSessionDraft,
 } from "../lib/nkbv-ba-analysis-session";
-import { useSyncedHorizontalScroll } from "../hooks/useSyncedHorizontalScroll";
-import NkbvSyndromeIwpPanel, { deviceDatesForPanel } from "./NkbvSyndromeIwpPanel";
-import NkbvSyndromeShellPanel, { isShellPanel } from "./NkbvSyndromeShellPanel";
+import NkbvSyndromeIwpPanel from "./NkbvSyndromeIwpPanel";
+import NkbvSyndromeShellPanel, {
+  isShellPanel,
+  vaeBaReadyToCreatePhieu,
+} from "./NkbvSyndromeShellPanel";
 import NkbvSyndromeSsiPanel from "./NkbvSyndromeSsiPanel";
+import NkbvBaCommonDayGrid from "./NkbvBaCommonDayGrid";
+import NkbvBaAddViSinhModal from "./NkbvBaAddViSinhModal";
+import NkbvBaConcludeCell from "./NkbvBaConcludeCell";
+import { BA_DAY_COL_W_ANALYSIS, type BaDayGridColumnDef } from "./NkbvBaDayGrid";
+import {
+  DEVICE_CRITERIA_META,
+  canThiepDatesForPanel,
+  isDeviceDateInStay,
+  type BaDeviceByDate,
+} from "../lib/nkbv-ba-device-timeline";
+import {
+  filterPanelAnalysisColumns,
+  splitBaAnalysisColumns,
+} from "../lib/nkbv-ba-master-columns";
+import type { DeviceCriteriaKey } from "../lib/nkbv-criteria-matrix";
 import {
   softDeleteNkbvBaTimelineByKey,
   softDeleteNkbvBaTimelineMilestone,
@@ -41,24 +75,43 @@ import { clinicalRitEnd } from "../lib/nkbv-shared-timeline";
 import {
   bareViSinhIdFromMilestoneId,
   resolveViSinhAnalysisStatus,
-  statusBadgeLabel,
   type ViSinhAnalysisDispositionRow,
   type ViSinhAnalysisStatus,
 } from "../lib/nkbv-vi-sinh-analysis-status";
+import { buildBaSeedLabs } from "../lib/nkbv-analysis-session-to-verification";
+import {
+  hydrateLamSangDraftFromBa,
+  mergeLamSangByDate,
+  pickLamSangInDates,
+  provisionalIwpDateSet,
+} from "../lib/nkbv-ba-lam-sang-merge";
+import { SSI_DIAGNOSTIC_CRITERIA_KEYS } from "../lib/nkbv-ba-grid-engine";
+import { khongDuTcKetLuanLabel } from "../lib/nkbv-vi-sinh-analysis-status";
+import {
+  findBaSampleConclusion,
+  loadBaSampleConclusions,
+  normalizeSampleId,
+  removeBaSampleConclusion,
+  removeBaSampleConclusionsMany,
+  sampleConclusionsToDispositionRows,
+  sampleIdsOwnedByAnalysisSession,
+  upsertBaSampleConclusion,
+  type BaSampleConclusion,
+} from "../lib/nkbv-ba-sample-conclusions";
+import {
+  type BaAnalysisMode,
+  isManualAnalysisMode,
+  loadBaAnalysisModePref,
+  saveBaAnalysisModePref,
+} from "../lib/nkbv-ba-analysis-mode";
 import { toast } from "sonner";
-import NkbvGridCriteriaAddPopover from "./NkbvGridCriteriaAddPopover";
 
 type KhoaOpt = { id: string; ma: string; ten: string };
 
-const COL_W = 100;
+const COL_W = 132;
 const LABEL_W = 128;
-/** Trên ngưỡng này bảng chung render cửa sổ cột theo scroll (BA nằm lâu). */
-const WINDOW_THRESHOLD = 40;
-const WINDOW_OVERSCAN = 6;
 
 type XnCell = ReturnType<typeof splitMilestonesToGridRows>["xn"][number];
-type TcItem = { key: string; label: string; id?: string };
-type CdhaCatalogItem = { criteriaKey: string; title: string; milestoneKind: string };
 
 /** Handler ổn định tham chiếu — hàng memo không re-render vì closure mới. */
 function useStableCallback<A extends unknown[], R>(fn: (...args: A) => R): (...args: A) => R {
@@ -69,65 +122,16 @@ function useStableCallback<A extends unknown[], R>(fn: (...args: A) => R): (...a
   return useCallback((...args: A) => ref.current(...args), []);
 }
 
-/** Cửa sổ cột theo scrollLeft (rAF) — chỉ bật khi quá ngưỡng cột. */
-function useColumnWindow(colCount: number, colW: number, enabled: boolean) {
-  const elRef = React.useRef<HTMLDivElement | null>(null);
-  const rafRef = React.useRef(0);
-  const [range, setRange] = useState<{ from: number; to: number }>({ from: 0, to: colCount });
-
-  const update = useCallback(() => {
-    const el = elRef.current;
-    if (!el) return;
-    const visible = Math.ceil(el.clientWidth / colW) + 1;
-    const from = Math.max(0, Math.floor(el.scrollLeft / colW) - WINDOW_OVERSCAN);
-    const to = Math.min(colCount, from + visible + WINDOW_OVERSCAN * 2);
-    setRange((p) => (p.from === from && p.to === to ? p : { from, to }));
-  }, [colCount, colW]);
-
-  const setEl = useCallback(
-    (el: HTMLDivElement | null) => {
-      elRef.current = el;
-      if (el) update();
-    },
-    [update],
-  );
-
-  const onScroll = useCallback(() => {
-    if (rafRef.current) return;
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = 0;
-      update();
-    });
-  }, [update]);
-
-  const scrollToColumn = useCallback(
-    (index: number) => {
-      const el = elRef.current;
-      if (el && index >= 0) el.scrollLeft = Math.max(0, index * colW);
-    },
-    [colW],
-  );
-
-  useEffect(() => {
-    if (enabled) update();
-    else setRange({ from: 0, to: colCount });
-  }, [enabled, colCount, update]);
-
-  return {
-    setEl,
-    onScroll,
-    scrollToColumn,
-    from: enabled ? range.from : 0,
-    to: enabled ? Math.max(range.to, Math.min(colCount, 1)) : colCount,
-  };
-}
-
 type Props = {
   maBenhAn: string;
   ngayVaoVien: string;
   ngayRaVien?: string | null;
   ngaySinh?: string | null;
   defaultKhoa?: string | null;
+  /** UUID khoa điều trị — prefill khi thêm XN từ lưới */
+  khoaId?: string | null;
+  maBenhNhan?: string | null;
+  hoTen?: string | null;
   khoaTen?: string | null;
   khoas?: KhoaOpt[];
   timeline: BaTimelineMilestone[];
@@ -143,9 +147,17 @@ type Props = {
   /** Chọn Index — chỉ đánh dấu mốc, không tạo phiếu */
   onIndexChange?: (input: { milestoneId: string }) => void;
   /** Sau kết luận — tạo phiếu phân tích (late create) */
-  onCreatePhieu?: (input: { milestoneId: string; panel: SyndromePanelId }) => void;
+  onCreatePhieu?: (input: {
+    milestoneId: string;
+    panel: SyndromePanelId;
+    analysisSeed?: NkbvBaAnalysisSeedInput | null;
+  }) => void;
   /** Bỏ qua XN (+) có lý do */
   onSkipViSinh?: (input: { viSinhId: string; reason: string }) => void;
+  /** Chốt Index không đủ TC (KHONG_DU_TC) */
+  onMarkKhongDuTc?: (input: { viSinhId: string; indexDate: string }) => void;
+  /** Xóa phiên → mở lại XN đã gắn KHONG_DU_TC trên DB */
+  onClearViSinhDisposition?: (input: { viSinhId: string }) => void | Promise<void>;
   /** Soft reload hub (silent) — dùng khi cần đồng bộ LIS/case, không mỗi tick TC */
   onReload: () => void;
   /** Patch timeline local sau upsert DB — tránh reload cả hub */
@@ -159,6 +171,17 @@ type Props = {
     criteria_key?: string | null;
   }) => void;
   onTimelineRemoveLocal?: (milestoneId: string) => void;
+  /** Phiếu đã có trên BA — cảnh báo RIT khi mở Index mới. */
+  priorEvents?: Array<{
+    id: string;
+    ngay_phat_hien: string | null;
+    loai_ma?: string | null;
+    loai_ten?: string | null;
+    vi_tri_nhiem_khuan?: string | null;
+    index_vi_sinh_id?: string | null;
+    tac_nhan_vi_khuan?: string | null;
+    attributed_vi_sinh_ids?: string[] | null;
+  }>;
 };
 
 /**
@@ -170,20 +193,27 @@ export default function NkbvBaMultiTimelineWorkspace({
   ngayRaVien,
   ngaySinh,
   defaultKhoa,
+  khoaId,
+  maBenhNhan,
+  hoTen,
+  khoas = [],
   timeline,
-  devices,
+  devices: _registryDevices,
   analysisDispositions = [],
   allowedEdit,
   onIndexChange,
   onCreatePhieu,
   onSkipViSinh,
+  onMarkKhongDuTc,
+  onClearViSinhDisposition,
   onReload,
   onTimelineUpsertLocal,
   onTimelineRemoveLocal,
+  priorEvents = [],
 }: Props) {
+  void _registryDevices; // Hub vẫn truyền registry — association lưới chỉ dùng timeline
+  const [addXnDate, setAddXnDate] = useState<string | null>(null);
   const split = useMemo(() => splitMilestonesToGridRows(timeline), [timeline]);
-  // Bảng chung và bảng phân tích có khung ngày khác nhau → scroll độc lập
-  const panelSync = useSyncedHorizontalScroll();
   const ssiTcCatalog = useMemo(() => ssiTcCatalogWithoutSurgery(), []);
   const cdhaCatalog = useMemo(() => {
     const pneu = imagingCatalogForNghiNgo("PNEU");
@@ -196,9 +226,31 @@ export default function NkbvBaMultiTimelineWorkspace({
     });
   }, []);
 
+  const [analysisMode, setAnalysisMode] = useState<BaAnalysisMode>("CDC");
   const [sessions, setSessions] = useState<BaAnalysisSession[]>([]);
   const [openSessionId, setOpenSessionId] = useState<string | null>(null);
+  /** Kết luận đã chốt theo mẫu — luôn hiện khi PT Index khác. */
+  const [sampleConclusions, setSampleConclusions] = useState<BaSampleConclusion[]>(
+    [],
+  );
   const [preferVae, setPreferVae] = useState(false);
+  const isManual = isManualAnalysisMode(analysisMode);
+
+  useEffect(() => {
+    setAnalysisMode(loadBaAnalysisModePref(maBenhAn));
+    setOpenSessionId(null);
+  }, [maBenhAn]);
+
+  const switchAnalysisMode = useCallback(
+    (next: BaAnalysisMode) => {
+      if (next === analysisMode) return;
+      saveBaAnalysisModePref(maBenhAn, next);
+      setAnalysisMode(next);
+      setOpenSessionId(null);
+      setSessions(loadBaAnalysisSessions(maBenhAn, next));
+    },
+    [analysisMode, maBenhAn],
+  );
   const [localCdha, setLocalCdha] = useState<BaGridCdhaCell[]>([]);
   /** Optimistic tick SSI TC — giảm lag chờ Server Action. */
   const [localSsiTc, setLocalSsiTc] = useState<
@@ -253,18 +305,48 @@ export default function NkbvBaMultiTimelineWorkspace({
     return m;
   }, [split.tieuChuanChuyenBietByDate, localSsiTc]);
 
-  /** Gợi ý phiên đúng domain: chỉ Index từ XN / CĐHA / TC DOE SSI / ngày mổ. */
-  const sessionSuggestions = useMemo(
-    () =>
-      buildSessionIndexSuggestions({
-        xn: split.xn,
-        cdha: cdhaList,
-        surgeryByDate: split.surgeryByDate,
-        ssiTcByDate,
-        preferVae,
-      }),
-    [split.xn, cdhaList, split.surgeryByDate, ssiTcByDate, preferVae],
-  );
+  /** Cổng Secondary: SBAP từ phiếu + phiên site đủ TC; pack VK = Index ∪ RIT. */
+  const openSiteSessionsForSbap: OpenSiteSessionForSbap[] = useMemo(() => {
+    return sessions
+      .filter((s) => s.panel !== "BSI")
+      .map((s) => {
+        const indexXn = split.xn.find((x) => x.id === s.index.id);
+        const nsk = (s.draft.nsk || s.index.date).slice(0, 10);
+        const major = resolveNkbvMajorType({ loai_ma: s.panel });
+        const ritOrgs = collectRitPathogens({
+          nsk,
+          majorType: major,
+          xn: split.xn,
+          excludeBlood: true,
+        });
+        const indexOrg = indexXn?.vi_khuan?.trim();
+        const siteOrganisms = [
+          ...new Set(
+            [...(indexOrg ? [indexOrg] : []), ...ritOrgs]
+              .map((o) => o.trim())
+              .filter(Boolean),
+          ),
+        ];
+        return {
+          id: s.id,
+          panel: s.panel,
+          eventEstablished: Boolean(s.draft.eventEstablished),
+          indexDate: s.index.date,
+          doe: s.draft.nsk || null,
+          siteOrganism: siteOrganisms[0] || null,
+          siteOrganisms,
+          bloodCriterionIds: s.draft.bloodCriterionIds,
+        };
+      });
+  }, [sessions, split.xn]);
+
+  const establishedSiteSbaps = useMemo(() => {
+    const sites = [
+      ...priorEventsToSecondarySites(priorEvents),
+      ...openSessionsToSecondarySites(openSiteSessionsForSbap),
+    ];
+    return siteSbapWindowsFromSites(sites);
+  }, [priorEvents, openSiteSessionsForSbap]);
 
   // Nạp phiên + cắt phiên mồ côi (Index không còn trên bảng chung)
   useEffect(() => {
@@ -277,15 +359,31 @@ export default function NkbvBaMultiTimelineWorkspace({
     for (const items of Object.values(ssiTcByDate)) {
       for (const t of items) if (t.id && !t.id.startsWith("local-")) validIds.add(t.id);
     }
-    const next = pruneBaAnalysisSessions(maBenhAn, validIds);
+    const next = pruneBaAnalysisSessions(maBenhAn, validIds, analysisMode);
     setSessions(next);
     setOpenSessionId((cur) => (cur && next.some((s) => s.id === cur) ? cur : null));
-  }, [maBenhAn, split.xn, cdhaList, split.surgeryByDate, ssiTcByDate]);
+    setSampleConclusions(loadBaSampleConclusions(maBenhAn));
+  }, [maBenhAn, analysisMode, split.xn, cdhaList, split.surgeryByDate, ssiTcByDate]);
 
   const openSession = useMemo(
     () => sessions.find((s) => s.id === openSessionId) || null,
     [sessions, openSessionId],
   );
+
+  /** Disposition DB ∪ sổ kết luận local — XN1 không đủ TC vẫn hiện khi PT XN2. */
+  const mergedDispositions = useMemo((): ViSinhAnalysisDispositionRow[] => {
+    const byId = new Map<string, ViSinhAnalysisDispositionRow>();
+    for (const r of analysisDispositions) {
+      const id = bareViSinhIdFromMilestoneId(String(r.index_vi_sinh_id || "")) ||
+        String(r.index_vi_sinh_id || "").trim();
+      if (id) byId.set(id, r);
+    }
+    for (const r of sampleConclusionsToDispositionRows(sampleConclusions)) {
+      const id = String(r.index_vi_sinh_id || "").trim();
+      if (id) byId.set(id, r);
+    }
+    return [...byId.values()];
+  }, [analysisDispositions, sampleConclusions]);
 
   /** Khung bảng chung: VV−2 → hết (ra viện/hôm nay) + kéo đến hết RIT nếu đã có DOE phiên. */
   const commonColumns = useMemo(() => {
@@ -313,37 +411,8 @@ export default function NkbvBaMultiTimelineWorkspace({
     sessions,
   ]);
 
-  /** Khung bảng phân tích: neo Index −7…+14 (hợp đồng UX). */
-  const panelColumns = useMemo(() => {
-    if (!openSession) return commonColumns;
-    return buildGridColumns({
-      ngayVaoVien,
-      ngayRaVien,
-      evidenceDates: [],
-      indexAnchor: {
-        date: openSession.index.date,
-        beforeDays: 7,
-        afterDays: 14,
-      },
-    });
-  }, [openSession, ngayVaoVien, ngayRaVien, commonColumns]);
-
-  const windowEnabled = commonColumns.length > WINDOW_THRESHOLD;
-  const {
-    setEl: setGridScrollEl,
-    onScroll: onGridScroll,
-    scrollToColumn,
-    from: colFrom,
-    to: colTo,
-  } = useColumnWindow(commonColumns.length, COL_W, windowEnabled);
-
-  // Mở phiên phân tích → cuộn bảng chung tới ngày Index cho dễ đối chiếu
-  useEffect(() => {
-    if (!openSession) return;
-    const ix = openSession.index.date.slice(0, 10);
-    const idx = commonColumns.findIndex((c) => c.date === ix);
-    if (idx >= 0) scrollToColumn(idx - 3);
-  }, [openSessionId]);
+  /** Khung phân tích tái dùng cùng cột bảng chung (neo VV−2) — không Index±7/14. */
+  const panelColumns = commonColumns;
 
   /** Map theo ngày — hàng memo không filter lại mỗi render. */
   const xnByDate = useMemo(() => {
@@ -368,18 +437,79 @@ export default function NkbvBaMultiTimelineWorkspace({
     const m: Record<string, ViSinhAnalysisStatus> = {};
     for (const x of split.xn) {
       const bare = bareViSinhIdFromMilestoneId(x.id) || x.id;
-      m[x.id] = resolveViSinhAnalysisStatus(bare, analysisDispositions);
+      m[x.id] = resolveViSinhAnalysisStatus(bare, mergedDispositions);
     }
     return m;
-  }, [split.xn, analysisDispositions]);
+  }, [split.xn, mergedDispositions]);
+
+  /** Cột phiên → window (Index…SBAP) + tail (Kết luận/GC); không nhân đôi Kết luận. */
+  const analysisSlotsForPanel = useCallback(
+    (analysisColumns: BaDayGridColumnDef[], panel: SyndromePanelId) => {
+      const filtered = filterPanelAnalysisColumns(analysisColumns, panel);
+      return splitBaAnalysisColumns(filtered);
+    },
+    [],
+  );
+
+  /** Gợi ý phiên: XN chưa PT + CĐHA phổi/áp xe + ngày mổ/TC DOE SSI. */
+  const sessionSuggestions = useMemo(
+    () =>
+      buildSessionIndexSuggestions({
+        xn: split.xn,
+        cdha: cdhaList,
+        surgeryByDate: split.surgeryByDate,
+        ssiTcByDate,
+        preferVae,
+        xnStatusById,
+        onlyPendingXn: true,
+      }),
+    [split.xn, cdhaList, split.surgeryByDate, ssiTcByDate, preferVae, xnStatusById],
+  );
 
   const patchDraft = useCallback(
     (sessionId: string, patch: Partial<BaAnalysisSessionDraft>) => {
-      const next = updateSessionDraft(maBenhAn, sessionId, patch);
+      const next = updateSessionDraft(maBenhAn, sessionId, patch, analysisMode);
       setSessions(next);
+    },
+    [maBenhAn, analysisMode],
+  );
+
+  const persistManualSampleConclusion = useCallback(
+    (payload: {
+      indexId: string;
+      kind: "XN" | "CDHA";
+      date: string;
+      disposition: BaSampleConclusion["disposition"];
+      label: string;
+    }) => {
+      const next = upsertBaSampleConclusion(maBenhAn, {
+        sampleId: payload.indexId,
+        date: payload.date.slice(0, 10),
+        kind: payload.kind,
+        disposition: payload.disposition,
+        label: payload.label,
+      });
+      setSampleConclusions(next);
     },
     [maBenhAn],
   );
+
+  const clearManualSampleConclusion = useCallback(
+    (indexId: string) => {
+      setSampleConclusions(removeBaSampleConclusion(maBenhAn, indexId));
+    },
+    [maBenhAn],
+  );
+
+  /** LS lâm sàng trên BA (hội chứng + ghi chú không phải TC SSI chẩn đoán). */
+  const baClinicalLamSang = useMemo(() => {
+    const free: typeof split.trieuChungLamSangByDate = {};
+    for (const [d, items] of Object.entries(split.tieuChuanChuyenBietByDate)) {
+      const keep = (items || []).filter((it) => !SSI_DIAGNOSTIC_CRITERIA_KEYS.has(it.key));
+      if (keep.length) free[d] = keep;
+    }
+    return mergeLamSangByDate(split.trieuChungLamSangByDate, free);
+  }, [split.trieuChungLamSangByDate, split.tieuChuanChuyenBietByDate]);
 
   const openOrCreateSession = useCallback(
     (
@@ -388,37 +518,212 @@ export default function NkbvBaMultiTimelineWorkspace({
       indexLabel: string,
       draftExtra?: Partial<BaAnalysisSessionDraft>,
     ) => {
-      const existing = loadBaAnalysisSessions(maBenhAn).find(
+      const existing = loadBaAnalysisSessions(maBenhAn, analysisMode).find(
         (s) => s.id === sessionIdForIndex(panel, index.id),
       );
-      const needsDevicePrefill =
-        (panel === "UTI" || panel === "PNEU" || panel === "BSI") &&
-        (!existing || !existing.draft.canThiepDates.length);
+      // LS đã có trên timeline ∈ IWP Index mới → đưa vào draft phiên (không loại trừ)
+      const iwpSeed = pickLamSangInDates(
+        baClinicalLamSang,
+        provisionalIwpDateSet(index.date),
+      );
+      const hydrated = hydrateLamSangDraftFromBa({
+        ba: baClinicalLamSang,
+        draft: mergeLamSangByDate(iwpSeed, existing?.draft.lamSang || {}),
+        indexDate: index.date,
+      });
+      // Can thiệp lấy từ timeline BA (không sổ đăng ký)
+      const baCt = canThiepDatesForPanel(
+        split.deviceByDate as BaDeviceByDate,
+        panel,
+      );
       const draftSeed: Partial<BaAnalysisSessionDraft> = {
-        ...(needsDevicePrefill
-          ? {
-              canThiepDates: deviceDatesForPanel(
-                panel === "UTI" ? "UTI" : panel === "PNEU" ? "PNEU" : "BSI",
-                devices,
-                ngayRaVien,
-              ),
-            }
-          : {}),
+        ...(baCt.length ? { canThiepDates: baCt } : {}),
+        lamSang: hydrated.next,
+        analysisMode,
         ...(draftExtra || {}),
       };
+      // draftExtra.lamSang (nếu có) vẫn merge với BA∩IWP
+      if (draftExtra?.lamSang) {
+        draftSeed.lamSang = hydrateLamSangDraftFromBa({
+          ba: baClinicalLamSang,
+          draft: draftExtra.lamSang,
+          indexDate: index.date,
+        }).next;
+      }
+      draftSeed.analysisMode = analysisMode;
+      // MANUAL: luôn NEW_ANALYSIS + KL trống khi mở mới / đổi từ CDC
+      if (isManualAnalysisMode(analysisMode)) {
+        draftSeed.eventDisposition = { kind: "NEW_ANALYSIS", label: "" };
+        if (!existing || existing.draft.analysisMode !== "MANUAL") {
+          draftSeed.ketLuan = "";
+        }
+      }
       const next = upsertBaAnalysisSession({
         maBenhAn,
         panel,
         index,
         indexLabel,
+        mode: analysisMode,
         draft: Object.keys(draftSeed).length ? draftSeed : undefined,
       });
       setSessions(next);
       setOpenSessionId(sessionIdForIndex(panel, index.id));
       onIndexChange?.({ milestoneId: index.id });
     },
-    [maBenhAn, onIndexChange, devices, ngayRaVien],
+    [maBenhAn, analysisMode, onIndexChange, baClinicalLamSang, split.deviceByDate],
   );
+
+  /**
+   * Phủ quyết Secondary: kết luận ngay trên mẫu máu (thuộc sự kiện ngày …),
+   * không mở khung Primary BSI. Nếu site đang PT → focus phiên site + gắn attributed.
+   */
+  const applySecondaryBsiVeto = useCallback(
+    (input: {
+      sampleId: string;
+      sampleDate: string;
+      ketLuanLabel: string;
+      sites: SecondarySiteHit[];
+    }) => {
+      const nextConclusions = upsertBaSampleConclusion(maBenhAn, {
+        sampleId: input.sampleId,
+        date: input.sampleDate.slice(0, 10),
+        kind: "XN",
+        disposition: "SECONDARY_BSI",
+        label: input.ketLuanLabel,
+      });
+      setSampleConclusions(nextConclusions);
+
+      // Ưu tiên focus phiên site đang PT nếu máu gắn session:*
+      const sessionOwner = input.sites.find((s) =>
+        String(s.eventId || "").startsWith("session:"),
+      );
+      if (sessionOwner) {
+        const sessId = String(sessionOwner.eventId).replace(/^session:/, "");
+        const owner = sessions.find((s) => s.id === sessId);
+        if (owner) {
+          const prev = owner.draft.ritAttributedIds || [];
+          if (!prev.includes(input.sampleId)) {
+            patchDraft(owner.id, {
+              ritAttributedIds: [...prev, input.sampleId],
+            });
+          }
+          setOpenSessionId(owner.id);
+        }
+      }
+      toast.message(input.ketLuanLabel);
+    },
+    [maBenhAn, sessions, patchDraft],
+  );
+
+  /** Không mở phiên: một cột Kết luận ở đuôi bảng (không ghép thêm khi đã có phiên). */
+  const closedGridConcludeColumns = useMemo((): BaDayGridColumnDef[] => {
+    return [
+      {
+        id: "master_ket_luan",
+        header: "Kết luận",
+        minWidth: BA_DAY_COL_W_ANALYSIS,
+        render: (day) => (
+          <NkbvBaConcludeCell
+            date={day.date}
+            xnOnDay={xnByDate[day.date] || []}
+            cdhaOnDay={cdhaByDate[day.date] || []}
+            priorEvents={priorEvents}
+            openSiteSessions={openSiteSessionsForSbap}
+            analysisDispositions={mergedDispositions}
+            sampleConclusions={sampleConclusions}
+            allowedEdit={allowedEdit}
+            analysisMode={analysisMode}
+            onConclude={(payload) => {
+              if (isManual || payload.scope !== "secondary") return;
+              applySecondaryBsiVeto({
+                sampleId: payload.indexId,
+                sampleDate: day.date,
+                ketLuanLabel: payload.label,
+                sites: [],
+              });
+            }}
+            onManualSampleConclude={persistManualSampleConclusion}
+            onManualSampleClear={(p) => clearManualSampleConclusion(p.indexId)}
+          />
+        ),
+      },
+    ];
+  }, [
+    xnByDate,
+    cdhaByDate,
+    priorEvents,
+    openSiteSessionsForSbap,
+    mergedDispositions,
+    sampleConclusions,
+    allowedEdit,
+    analysisMode,
+    isManual,
+    applySecondaryBsiVeto,
+    persistManualSampleConclusion,
+    clearManualSampleConclusion,
+  ]);
+
+  const foleyOnDate = useMemo(() => {
+    const m: Record<string, boolean> = {};
+    for (const d of Object.keys(split.deviceByDate.foley)) m[d] = true;
+    return m;
+  }, [split.deviceByDate.foley]);
+  const ventOnDate = useMemo(() => {
+    const m: Record<string, boolean> = {};
+    for (const d of Object.keys(split.deviceByDate.vent)) m[d] = true;
+    return m;
+  }, [split.deviceByDate.vent]);
+  const cvcOnDate = useMemo(() => {
+    const m: Record<string, boolean> = {};
+    for (const d of Object.keys(split.deviceByDate.cvc)) m[d] = true;
+    return m;
+  }, [split.deviceByDate.cvc]);
+
+  const toggleDevice = async (date: string, key: DeviceCriteriaKey) => {
+    if (!allowedEdit) return;
+    const meta = DEVICE_CRITERIA_META[key];
+    const bucket = split.deviceByDate[meta.bucket];
+    const existing = (bucket[date] || [])[0];
+    const flightKey = `ct|${date}|${key}`;
+    if (inFlightRef.current.has(flightKey)) return;
+    // Thêm mới: chỉ trong [VV…RV|hôm nay]; tick sai cũ vẫn cho tắt
+    if (!existing) {
+      const bound = isDeviceDateInStay(date, ngayVaoVien, ngayRaVien);
+      if (!bound.ok) {
+        toast.error(bound.reason || "Ngày can thiệp ngoài đợt nằm viện");
+        return;
+      }
+    }
+    if (existing) {
+      inFlightRef.current.add(flightKey);
+      if (existing.id) onTimelineRemoveLocal?.(existing.id);
+      const res = await softDeleteNkbvBaTimelineByKey({
+        ma_benh_an: maBenhAn,
+        milestone_date: date,
+        criteria_key: key,
+      });
+      inFlightRef.current.delete(flightKey);
+      if (!res.success) {
+        toast.error(res.error || "Không xóa được can thiệp");
+        onReload();
+      }
+      return;
+    }
+    inFlightRef.current.add(flightKey);
+    const res = await upsertNkbvBaTimelineMilestone({
+      ma_benh_an: maBenhAn,
+      milestone_kind: "SYMPTOM",
+      milestone_date: date,
+      title: meta.label,
+      criteria_key: key as never,
+    });
+    inFlightRef.current.delete(flightKey);
+    if (!res.success) {
+      toast.error(res.error || "Chưa lưu can thiệp");
+      return;
+    }
+    applyUpsertRow(res.data as Record<string, unknown> | undefined);
+  };
 
   const openFromXn = (x: (typeof split.xn)[0]) => {
     const panel = specimenToSyndromePanel({
@@ -435,36 +740,170 @@ export default function NkbvBaMultiTimelineWorkspace({
       return;
     }
 
-    const siteOpen =
-      openSession && openSession.panel !== "BSI" ? openSession.panel : null;
-    if (
-      shouldDeferPrimaryBsi({
-        selectedSpecimenPanel: panel,
-        activeSitePanel: siteOpen,
-      })
-    ) {
-      toast.message(
-        "Cấy máu: phân tích site khu trú (PNEU/UTI/SSI/VAE) trước — sau đó mở Secondary BSI từ bảng phân tích. Hoặc mở gợi ý BSI khi không còn phiên site.",
-      );
+    // MANUAL: không disposition / Secondary / RIT auto — IP tự phân tích
+    if (isManual) {
+      openOrCreateSession(panel, nextIndex, label || x.benh_pham, {
+        eventDisposition: { kind: "NEW_ANALYSIS", label: "" },
+        ketLuan: "",
+      });
       return;
     }
 
-    openOrCreateSession(panel, nextIndex, label || x.benh_pham);
+    const disp = resolveIndexEventDisposition({
+      indexId: x.id,
+      indexDate: x.ngay,
+      specimenOrLabel: x.benh_pham,
+      organism: x.vi_khuan,
+      priorEvents,
+      openSiteSessions: openSiteSessionsForSbap,
+      analysisDispositions: mergedDispositions,
+    });
+
+    if (disp.kind === "CLOSED_INSUFFICIENT") {
+      toast.message(disp.ketLuanLabel);
+      return;
+    }
+
+    // Phủ quyết Secondary: kết luận trên mẫu — không mở khung BSI
+    if (disp.kind === "SECONDARY_BSI") {
+      applySecondaryBsiVeto({
+        sampleId: x.id,
+        sampleDate: x.ngay,
+        ketLuanLabel: disp.ketLuanLabel,
+        sites: disp.sites,
+      });
+      return;
+    }
+
+    // ∈ RIT phiên đang phân tích (UTI / PNEU·HAP / VAE·VAP / BSI) → focus phiên chủ
+    const sampleMajor = resolveNkbvMajorType({
+      loai_benh_pham: x.benh_pham,
+      loai_ma: panel,
+    });
+    const sessionHit = resolveBelongsOpenSessionByDate({
+      sampleId: x.id,
+      sampleDate: x.ngay,
+      sampleMajor,
+      sessions: sessions.map((s) => ({
+        id: s.id,
+        panel: s.panel,
+        index: s.index,
+        indexLabel: s.indexLabel,
+        doe: s.draft.nsk || null,
+        eventEstablished: Boolean(s.draft.eventEstablished),
+      })),
+    });
+    if (sessionHit) {
+      const ownerId = String(sessionHit.priorEventId || "").replace(/^session:/, "");
+      const owner = sessions.find((s) => s.index.id === ownerId);
+      if (owner) {
+        const prev = owner.draft.ritAttributedIds || [];
+        if (!prev.includes(x.id)) {
+          patchDraft(owner.id, { ritAttributedIds: [...prev, x.id] });
+        }
+        setOpenSessionId(owner.id);
+      }
+      toast.message(sessionHit.ketLuanLabel);
+      return;
+    }
+
+    // ∈ RIT phiếu đã có (sự kiện đủ TC) → không mở IWP mới
+    if (disp.kind === "BELONGS_PRIOR_EVENT") {
+      toast.message(disp.ketLuanLabel);
+      return;
+    }
+
+    // Secondary / RIT đã xử lý ở trên. NEW_ANALYSIS = đã rà SBAP (không S1/S2) → Primary OK
+    // kể cả khi vẫn còn phiên site (máu ngoài SBAP hoặc bị loại trừ sinh học).
+    openOrCreateSession(panel, nextIndex, label || x.benh_pham, {
+      eventDisposition: { kind: "NEW_ANALYSIS", label: "" },
+    });
   };
 
   const openFromCdha = (c: BaGridCdhaCell) => {
-    if (c.tieu_chuan_key === "abscess_imaging") {
-      openOrCreateSession("SSI", { kind: "CDHA", id: c.id, date: c.ngay }, c.mo_ta_benh_ly || "Áp xe");
+    const panel = cdhaToSyndromePanel({
+      tieu_chuan_key: c.tieu_chuan_key,
+      preferVae,
+    });
+    if (!panel) {
+      toast.message("CĐHA này không phải Index (chỉ phổi → PNEU/VAE hoặc áp xe → SSI).");
       return;
     }
-    openOrCreateSession(
-      "PNEU",
-      { kind: "CDHA", id: c.id, date: c.ngay },
-      c.mo_ta_benh_ly || "CĐHA",
-    );
+    if (isManual) {
+      const label = c.mo_ta_benh_ly || (panel === "SSI" ? "Áp xe" : "CĐHA phổi");
+      openOrCreateSession(panel, { kind: "CDHA", id: c.id, date: c.ngay }, label, {
+        eventDisposition: { kind: "NEW_ANALYSIS", label: "" },
+        ketLuan: "",
+      });
+      return;
+    }
+    const localCdhaKl = findBaSampleConclusion(sampleConclusions, c.id);
+    if (localCdhaKl?.disposition === "KHONG_DU_TC") {
+      toast.message(localCdhaKl.label);
+      return;
+    }
+    const disp = resolveIndexEventDisposition({
+      indexId: c.id,
+      indexDate: c.ngay,
+      specimenOrLabel: c.mo_ta_benh_ly || "XQ phổi",
+      isImaging: true,
+      priorEvents,
+      analysisDispositions: mergedDispositions,
+    });
+    const label = c.mo_ta_benh_ly || (panel === "SSI" ? "Áp xe" : "CĐHA phổi");
+    if (disp.kind === "BELONGS_PRIOR_EVENT") {
+      toast.message(disp.ketLuanLabel);
+      return;
+    }
+
+    const sampleMajor = resolveNkbvMajorType({
+      loai_ma: panel,
+      loai_benh_pham: "Đờm",
+    });
+    const sessionHit = resolveBelongsOpenSessionByDate({
+      sampleId: c.id,
+      sampleDate: c.ngay,
+      sampleMajor,
+      sessions: sessions.map((s) => ({
+        id: s.id,
+        panel: s.panel,
+        index: s.index,
+        indexLabel: s.indexLabel,
+        doe: s.draft.nsk || null,
+        eventEstablished: Boolean(s.draft.eventEstablished),
+      })),
+    });
+    if (sessionHit) {
+      const ownerId = String(sessionHit.priorEventId || "").replace(/^session:/, "");
+      const owner = sessions.find((s) => s.index.id === ownerId);
+      if (owner) {
+        const prev = owner.draft.ritAttributedIds || [];
+        if (!prev.includes(c.id)) {
+          patchDraft(owner.id, { ritAttributedIds: [...prev, c.id] });
+        }
+        setOpenSessionId(owner.id);
+      }
+      toast.message(sessionHit.ketLuanLabel);
+      return;
+    }
+
+    openOrCreateSession(panel, { kind: "CDHA", id: c.id, date: c.ngay }, label, {
+      eventDisposition: { kind: "NEW_ANALYSIS", label: "" },
+    });
   };
 
-  const openFromSurgeryOrSsi = (id: string, date: string, label: string) => {
+  const openFromSurgeryOrSsi = (
+    id: string,
+    date: string,
+    label: string,
+    criteriaKey?: string,
+  ) => {
+    if (!isSsiIndexCriteriaKey(criteriaKey)) {
+      toast.message(
+        "Chỉ ngày mổ hoặc TC DOE SSI trong tiêu chuẩn (chảy mủ / mở vết / cấy vết / chẩn đoán BS) mới mở phiên SSI.",
+      );
+      return;
+    }
     openOrCreateSession("SSI", { kind: "TIEU_CHUAN", id, date }, label);
   };
 
@@ -717,37 +1156,186 @@ export default function NkbvBaMultiTimelineWorkspace({
 
   /** Mở phiên từ gợi ý Index đúng domain (không neo XN đầu bất kỳ). */
   const openFromSuggestion = (s: SessionIndexSuggestion) => {
-    if (s.panel === "BSI") {
-      const siteOpen =
-        openSession && openSession.panel !== "BSI" ? openSession.panel : null;
-      if (
-        shouldDeferPrimaryBsi({
-          selectedSpecimenPanel: "BSI",
-          activeSitePanel: siteOpen,
-        })
-      ) {
-        toast.message(
-          "Đang có phiên site khu trú — phân tích Secondary BSI trên bảng phân tích site, hoặc đóng phiên site rồi mở BSI.",
-        );
-        return;
-      }
+    if (isManual) {
+      openOrCreateSession(s.panel, s.index, s.label, {
+        eventDisposition: { kind: "NEW_ANALYSIS", label: "" },
+        ketLuan: "",
+      });
+      return;
     }
-    openOrCreateSession(s.panel, s.index, s.label);
+    const xnCell = split.xn.find((x) => x.id === s.index.id);
+    const specimen =
+      xnCell?.benh_pham ||
+      (s.panel === "UTI" ? "Nước tiểu" : s.panel === "BSI" ? "Máu" : "Đờm");
+    const disp = resolveIndexEventDisposition({
+      indexId: s.index.id,
+      indexDate: s.index.date,
+      specimenOrLabel: specimen,
+      organism: xnCell?.vi_khuan,
+      isImaging: s.index.kind === "CDHA",
+      priorEvents,
+      openSiteSessions: openSiteSessionsForSbap,
+      analysisDispositions: mergedDispositions,
+    });
+    if (disp.kind === "CLOSED_INSUFFICIENT") {
+      toast.message(disp.ketLuanLabel);
+      return;
+    }
+    if (disp.kind === "BELONGS_PRIOR_EVENT") {
+      toast.message(disp.ketLuanLabel);
+      return;
+    }
+    if (disp.kind === "SECONDARY_BSI") {
+      applySecondaryBsiVeto({
+        sampleId: s.index.id,
+        sampleDate: s.index.date,
+        ketLuanLabel: disp.ketLuanLabel,
+        sites: disp.sites,
+      });
+      return;
+    }
+    const sampleMajor = resolveNkbvMajorType({
+      loai_benh_pham: specimen,
+      loai_ma: s.panel,
+    });
+    const sessionHit = resolveBelongsOpenSessionByDate({
+      sampleId: s.index.id,
+      sampleDate: s.index.date,
+      sampleMajor,
+      sessions: sessions.map((sess) => ({
+        id: sess.id,
+        panel: sess.panel,
+        index: sess.index,
+        indexLabel: sess.indexLabel,
+        doe: sess.draft.nsk || null,
+        eventEstablished: Boolean(sess.draft.eventEstablished),
+      })),
+    });
+    if (sessionHit) {
+      const ownerId = String(sessionHit.priorEventId || "").replace(/^session:/, "");
+      const owner = sessions.find((sess) => sess.index.id === ownerId);
+      if (owner) {
+        const prev = owner.draft.ritAttributedIds || [];
+        if (!prev.includes(s.index.id)) {
+          patchDraft(owner.id, { ritAttributedIds: [...prev, s.index.id] });
+        }
+        setOpenSessionId(owner.id);
+      }
+      toast.message(sessionHit.ketLuanLabel);
+      return;
+    }
+    openOrCreateSession(s.panel, s.index, s.label, {
+      eventDisposition: { kind: "NEW_ANALYSIS", label: "" },
+    });
   };
 
-  const removeSession = (sessionId: string) => {
-    const next = removeBaAnalysisSession(maBenhAn, sessionId);
+  const removeSession = (
+    sessionId: string,
+    opts?: { clearConclusions?: boolean },
+  ) => {
+    const clearKl = opts?.clearConclusions !== false;
+    const victim = sessions.find((s) => s.id === sessionId) || null;
+    if (clearKl && victim) {
+      const owned = sampleIdsOwnedByAnalysisSession(victim);
+      const before = sampleConclusions;
+      const nextConclusions = removeBaSampleConclusionsMany(maBenhAn, owned);
+      setSampleConclusions(nextConclusions);
+      // DB: chỉ gỡ KHONG_DU_TC trên XN thuộc phiên (không đụng BO_QUA / phiếu đã tạo)
+      const ownedKeys = new Set(owned.map((id) => normalizeSampleId(id)));
+      for (const row of before) {
+        if (row.disposition !== "KHONG_DU_TC") continue;
+        if (row.kind !== "XN") continue;
+        if (!ownedKeys.has(normalizeSampleId(row.sampleId))) continue;
+        const bare =
+          bareViSinhIdFromMilestoneId(row.sampleId) ||
+          row.sampleId.replace(/^lis:/, "");
+        if (!bare) continue;
+        void onClearViSinhDisposition?.({ viSinhId: bare });
+      }
+      if (owned.length) {
+        toast.message("Đã xóa phiên và gỡ kết luận mẫu gắn với phiên này.");
+      }
+    }
+    const next = removeBaAnalysisSession(maBenhAn, sessionId, analysisMode);
     setSessions(next);
     if (openSessionId === sessionId) setOpenSessionId(null);
+  };
+
+  const closeInsufficient = () => {
+    if (!openSession) return;
+    const sid = openSession.id;
+    const indexDate = openSession.index.date.slice(0, 10);
+    const label = khongDuTcKetLuanLabel(indexDate);
+    // Neo sổ local ngay — cột Kết luận vẫn hiện khi mở PT Index tiếp theo
+    const nextConclusions = upsertBaSampleConclusion(maBenhAn, {
+      sampleId: openSession.index.id,
+      date: indexDate,
+      kind: openSession.index.kind === "CDHA" ? "CDHA" : "XN",
+      disposition: "KHONG_DU_TC",
+      label,
+    });
+    setSampleConclusions(nextConclusions);
+    if (openSession.index.kind === "XN") {
+      const bare =
+        bareViSinhIdFromMilestoneId(openSession.index.id) ||
+        openSession.index.id.replace(/^lis:/, "");
+      onMarkKhongDuTc?.({
+        viSinhId: bare,
+        indexDate,
+      });
+    } else {
+      toast.message(label);
+    }
+    // Giữ KL «không đủ TC» — chỉ đóng nháp bảng
+    removeSession(sid, { clearConclusions: false });
   };
 
   return (
     <div className="relative z-[1] flex min-h-0 flex-1 flex-col gap-2 bg-white">
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2 text-[11px]">
-        <span className="font-semibold text-slate-800">Bảng chung (6 hàng)</span>
+        <span className="font-semibold text-slate-800">Bảng BA dọc (hàng = ngày)</span>
         <span className="text-slate-500">
-          Ngày lịch · HD · VS (chọn từng bệnh phẩm) · CĐHA · TC DOE SSI · khoa → bảng phân tích → tạo phiếu
+          Cột chung gọn + cột phân tích cùng hàng (trượt ngang). Highlight theo cột: IPW / RIT / SBAP
         </span>
+        <span className="inline-flex flex-wrap items-center gap-1.5 text-slate-600" title="Chú thích màu mốc thời gian">
+          <span className="rounded bg-amber-200 px-1.5 py-0.5 font-semibold text-amber-950">Ngày X</span>
+          <span className="rounded bg-rose-100 px-1.5 py-0.5 font-semibold text-rose-800">IPW</span>
+          <span className="rounded bg-red-300 px-1.5 py-0.5 font-bold text-red-950">DOE</span>
+          <span className="rounded bg-emerald-100 px-1.5 py-0.5 font-semibold text-emerald-900">RIT</span>
+          <span className="rounded bg-sky-100 px-1.5 py-0.5 font-semibold text-sky-900">SBAP</span>
+        </span>
+        <div
+          className="inline-flex items-center gap-0.5 rounded-full border border-slate-200 bg-slate-50 p-0.5"
+          title="Theo CDC: máy gợi ý kết luận. Tự phân tích: bạn tự viết kết luận."
+        >
+          <button
+            type="button"
+            className={`rounded-full px-2.5 py-1 font-semibold ${
+              !isManual
+                ? "bg-[var(--primary)] text-white"
+                : "text-slate-600 hover:bg-white"
+            }`}
+            onClick={() => switchAnalysisMode("CDC")}
+          >
+            Theo CDC
+          </button>
+          <button
+            type="button"
+            className={`rounded-full px-2.5 py-1 font-semibold ${
+              isManual
+                ? "bg-violet-700 text-white"
+                : "text-slate-600 hover:bg-white"
+            }`}
+            onClick={() => switchAnalysisMode("MANUAL")}
+          >
+            Tự phân tích
+          </button>
+        </div>
+        {isManual ? (
+          <span className="rounded bg-violet-50 px-2 py-0.5 font-semibold text-violet-900">
+            Tự phân tích — kết luận do bạn nhập
+          </span>
+        ) : null}
         <label className="ml-auto flex items-center gap-1 text-slate-600">
           <input
             type="checkbox"
@@ -759,76 +1347,6 @@ export default function NkbvBaMultiTimelineWorkspace({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
-        <div
-          ref={setGridScrollEl}
-          onScroll={onGridScroll}
-          className="overflow-x-auto overscroll-contain border border-slate-200 text-[10px]"
-        >
-          <div
-            className="inline-block"
-            style={{ minWidth: LABEL_W + Math.max(commonColumns.length, 1) * COL_W }}
-          >
-            <GridHeadRows
-              columns={commonColumns}
-              from={colFrom}
-              to={colTo}
-              colW={COL_W}
-              labelW={LABEL_W}
-            />
-            <GridXnRow
-              columns={commonColumns}
-              from={colFrom}
-              to={colTo}
-              colW={COL_W}
-              labelW={LABEL_W}
-              xnByDate={xnByDate}
-              statusById={xnStatusById}
-              activeXnId={
-                openSession?.index.kind === "XN" ? openSession.index.id : null
-              }
-              onPickXn={stableOpenFromXn}
-            />
-            <GridCdhaRow
-              columns={commonColumns}
-              from={colFrom}
-              to={colTo}
-              colW={COL_W}
-              labelW={LABEL_W}
-              cdhaByDate={cdhaByDate}
-              catalog={cdhaCatalog}
-              allowedEdit={allowedEdit}
-              onOpen={stableOpenFromCdha}
-              onRemove={stableRemoveMilestone}
-              onEditDate={stableEditCdhaDate}
-              onToggle={stableToggleCdha}
-            />
-            <GridSsiTcRow
-              columns={commonColumns}
-              from={colFrom}
-              to={colTo}
-              colW={COL_W}
-              labelW={LABEL_W}
-              tcByDate={ssiTcByDate}
-              surgeryByDate={split.surgeryByDate}
-              catalog={ssiTcCatalog}
-              allowedEdit={allowedEdit}
-              onOpen={stableOpenFromSurgeryOrSsi}
-              onRemove={stableRemoveMilestone}
-              onAddSurgery={stableAddSurgery}
-              onToggle={stableToggleSsiTc}
-            />
-            <GridKhoaRow
-              columns={commonColumns}
-              from={colFrom}
-              to={colTo}
-              colW={COL_W}
-              labelW={LABEL_W}
-              allowedEdit={allowedEdit}
-              defaultKhoa={defaultKhoa || ""}
-            />
-          </div>
-        </div>
-
         {!sessionSuggestions.length ? (
           <p className="mt-3 text-xs text-slate-500">
             Chưa có Index để mở phiên — nạp XN vi sinh, thêm CĐHA, ngày mổ hoặc TC DOE SSI trên bảng
@@ -845,22 +1363,36 @@ export default function NkbvBaMultiTimelineWorkspace({
               sessionSuggestions.map((s) => {
                 const opened = sessions.some((x) => x.id === s.id);
                 const active = s.id === openSessionId;
+                const bloodInSiteSbap =
+                  s.panel === "BSI" &&
+                  shouldDeferPrimaryBsi({
+                    selectedSpecimenPanel: "BSI",
+                    bloodDate: s.index.date,
+                    establishedSiteSbaps,
+                  });
                 return (
                   <button
                     key={s.id}
                     type="button"
                     onClick={() => openFromSuggestion(s)}
                     className={`rounded-full border px-2.5 py-1 font-semibold ${
-                      active
-                        ? "border-rose-400 bg-rose-50 text-rose-900"
-                        : opened
-                          ? "border-emerald-300 bg-emerald-50/80 text-emerald-900"
-                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
+                      bloodInSiteSbap
+                        ? "border-amber-200 bg-amber-50/70 text-amber-900/80"
+                        : active
+                          ? "border-rose-400 bg-rose-50 text-rose-900"
+                          : opened
+                            ? "border-emerald-300 bg-emerald-50/80 text-emerald-900"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
                     }`}
-                    title={`${s.source} → ${s.panel}`}
+                    title={
+                      bloodInSiteSbap
+                        ? "Máu ∈ SBAP ổ tại chỗ — bấm để rà Secondary trước; chỉ Primary khi không khớp/loại trừ"
+                        : `${s.source} → ${s.panel}`
+                    }
                   >
                     {s.panel} · {s.label}
-                    {opened && !active ? " · đã mở" : ""}
+                    {bloodInSiteSbap ? " · rà SBAP" : ""}
+                    {opened && !active && !bloodInSiteSbap ? " · đã mở" : ""}
                   </button>
                 );
               })
@@ -898,11 +1430,12 @@ export default function NkbvBaMultiTimelineWorkspace({
                 );
               })
             )}
-            <span className="ml-auto text-[10px] text-slate-400">
+            <span className="ml-auto text-[11px] text-slate-400">
               Chỉ từ XN / CĐHA / TC DOE SSI — phiếu khi bấm «Tạo phiếu»
             </span>
           </div>
         </div>
+
 
         {openSession &&
         (openSession.panel === "UTI" ||
@@ -910,6 +1443,7 @@ export default function NkbvBaMultiTimelineWorkspace({
           openSession.panel === "BSI") ? (
           <NkbvSyndromeIwpPanel
             panel={openSession.panel}
+            maBenhAn={maBenhAn}
             ngayVaoVien={ngayVaoVien}
             ngayRaVien={ngayRaVien}
             ngaySinh={ngaySinh}
@@ -917,24 +1451,71 @@ export default function NkbvBaMultiTimelineWorkspace({
             index={openSession.index}
             xn={split.xn}
             cdha={cdhaList}
-            devices={devices}
+            baCanThiepDates={canThiepDatesForPanel(
+              split.deviceByDate,
+              openSession.panel,
+            )}
             defaultKhoa={defaultKhoa}
             allowedEdit={allowedEdit}
             draft={openSession.draft}
-            baLamSangByDate={split.trieuChungLamSangByDate}
+            baLamSangByDate={baClinicalLamSang}
+            priorEvents={priorEvents}
+            openSiteSessions={openSiteSessionsForSbap}
             onDraftChange={(patch) => patchDraft(openSession.id, patch)}
             onPersistLamSang={(date, key, label, on) =>
               void persistPanelLamSang(date, key, label, on)
             }
-            scrollRef={panelSync.register(0)}
-            onScrollSync={panelSync.onScroll(0)}
-            colW={COL_W}
-            labelW={LABEL_W}
+            analysisDispositions={mergedDispositions}
+            sampleConclusions={sampleConclusions}
+            analysisMode={analysisMode}
+            onManualSampleConclude={persistManualSampleConclusion}
+            onManualSampleClear={(p) => clearManualSampleConclusion(p.indexId)}
             onClose={() => setOpenSessionId(null)}
+            onCloseInsufficient={closeInsufficient}
+            onConfirmSecondaryBlood={(payload) => {
+              if (isManual) return;
+              applySecondaryBsiVeto({
+                sampleId: payload.sampleId,
+                sampleDate: payload.date,
+                ketLuanLabel: payload.label,
+                sites: [],
+              });
+            }}
             onOpenPrimaryBsi={(bloodId) => {
               const b = split.xn.find((x) => x.id === bloodId);
               if (!b) return;
+              if (isManual) {
+                openOrCreateSession(
+                  "BSI",
+                  { kind: "XN", id: b.id, date: b.ngay },
+                  [b.benh_pham, b.vi_khuan].filter(Boolean).join(" · "),
+                  { eventDisposition: { kind: "NEW_ANALYSIS", label: "" }, ketLuan: "" },
+                );
+                return;
+              }
               const site = openSession;
+              const disp = resolveIndexEventDisposition({
+                indexId: b.id,
+                indexDate: b.ngay,
+                specimenOrLabel: b.benh_pham,
+                organism: b.vi_khuan,
+                priorEvents,
+                openSiteSessions: openSiteSessionsForSbap,
+                analysisDispositions: mergedDispositions,
+              });
+              if (disp.kind === "SECONDARY_BSI") {
+                applySecondaryBsiVeto({
+                  sampleId: b.id,
+                  sampleDate: b.ngay,
+                  ketLuanLabel: disp.ketLuanLabel,
+                  sites: disp.sites,
+                });
+                return;
+              }
+              if (disp.kind === "BELONGS_PRIOR_EVENT" || disp.kind === "CLOSED_INSUFFICIENT") {
+                toast.message(disp.ketLuanLabel);
+                return;
+              }
               openOrCreateSession(
                 "BSI",
                 { kind: "XN", id: b.id, date: b.ngay },
@@ -943,21 +1524,57 @@ export default function NkbvBaMultiTimelineWorkspace({
                   ? {
                       bsiLocalizedSite: {
                         majorType: site.panel as "UTI" | "PNEU" | "SSI" | "VAE",
-                        criteriaMet: Boolean(site.draft.readyToChot),
+                        criteriaMet: Boolean(site.draft.eventEstablished),
                         siteOrganism:
                           split.xn.find((x) => x.id === site.index.id)?.vi_khuan ||
                           null,
                         siteIndexDate: site.index.date.slice(0, 10),
-                        siteDoe: site.index.date.slice(0, 10),
+                        siteDoe: (site.draft.nsk || site.index.date).slice(0, 10),
                       },
                     }
                   : undefined,
               );
             }}
-          />
-        ) : null}
-
-        {openSession && openSession.panel === "SSI" ? (
+          >
+            {({ analysisColumns }) => {
+              const slots = analysisSlotsForPanel(analysisColumns, openSession.panel);
+              return (
+              <NkbvBaCommonDayGrid
+                days={commonColumns}
+                xnByDate={xnByDate}
+                cdhaByDate={cdhaByDate}
+                ssiTcByDate={ssiTcByDate}
+                surgeryByDate={split.surgeryByDate}
+                foleyOnDate={foleyOnDate}
+                ventOnDate={ventOnDate}
+                cvcOnDate={cvcOnDate}
+                ngayVaoVien={ngayVaoVien}
+                ngayRaVien={ngayRaVien}
+                statusById={xnStatusById}
+                activeXnId={
+                  openSession.index.kind === "XN" ? openSession.index.id : null
+                }
+                cdhaCatalog={cdhaCatalog}
+                ssiTcCatalog={ssiTcCatalog}
+                allowedEdit={allowedEdit}
+                defaultKhoa={defaultKhoa || ""}
+                windowColumns={slots.windowColumns}
+                tailColumns={slots.tailColumns}
+                onPickXn={stableOpenFromXn}
+                onToggleDevice={allowedEdit ? (d, k) => void toggleDevice(d, k) : undefined}
+                onAddXn={allowedEdit ? setAddXnDate : undefined}
+                onOpenCdha={stableOpenFromCdha}
+                onRemoveMilestone={stableRemoveMilestone}
+                onEditCdhaDate={stableEditCdhaDate}
+                onToggleCdha={stableToggleCdha}
+                onOpenSurgeryOrSsi={stableOpenFromSurgeryOrSsi}
+                onAddSurgery={stableAddSurgery}
+                onToggleSsiTc={stableToggleSsiTc}
+              />
+              );
+            }}
+          </NkbvSyndromeIwpPanel>
+        ) : openSession && openSession.panel === "SSI" ? (
           <NkbvSyndromeSsiPanel
             columns={panelColumns}
             index={openSession.index}
@@ -967,21 +1584,65 @@ export default function NkbvBaMultiTimelineWorkspace({
             cdha={cdhaList}
             surgeryByDate={split.surgeryByDate}
             tieuChuanByDate={split.tieuChuanChuyenBietByDate}
-            baLamSangByDate={split.trieuChungLamSangByDate}
+            baLamSangByDate={baClinicalLamSang}
             draft={openSession.draft}
             onDraftChange={(patch) => patchDraft(openSession.id, patch)}
             onPersistSsiTc={(date, key, label, on) =>
               void persistPanelLamSang(date, key, label, on)
             }
             allowedEdit={allowedEdit}
-            scrollRef={panelSync.register(0)}
-            onScrollSync={panelSync.onScroll(0)}
-            colW={COL_W}
-            labelW={LABEL_W}
+            analysisDispositions={mergedDispositions}
+            sampleConclusions={sampleConclusions}
+            analysisMode={analysisMode}
+            onManualSampleConclude={persistManualSampleConclusion}
+            onManualSampleClear={(p) => clearManualSampleConclusion(p.indexId)}
+            priorEvents={priorEvents}
+            openSiteSessions={openSiteSessionsForSbap}
             onClose={() => setOpenSessionId(null)}
+            onCloseInsufficient={closeInsufficient}
+            onConfirmSecondaryBlood={(payload) => {
+              if (isManual) return;
+              applySecondaryBsiVeto({
+                sampleId: payload.sampleId,
+                sampleDate: payload.date,
+                ketLuanLabel: payload.label,
+                sites: [],
+              });
+            }}
             onOpenPrimaryBsi={(bloodId) => {
               const b = split.xn.find((x) => x.id === bloodId);
               if (!b) return;
+              if (isManual) {
+                openOrCreateSession(
+                  "BSI",
+                  { kind: "XN", id: b.id, date: b.ngay },
+                  [b.benh_pham, b.vi_khuan].filter(Boolean).join(" · "),
+                  { eventDisposition: { kind: "NEW_ANALYSIS", label: "" }, ketLuan: "" },
+                );
+                return;
+              }
+              const disp = resolveIndexEventDisposition({
+                indexId: b.id,
+                indexDate: b.ngay,
+                specimenOrLabel: b.benh_pham,
+                organism: b.vi_khuan,
+                priorEvents,
+                openSiteSessions: openSiteSessionsForSbap,
+                analysisDispositions: mergedDispositions,
+              });
+              if (disp.kind === "SECONDARY_BSI") {
+                applySecondaryBsiVeto({
+                  sampleId: b.id,
+                  sampleDate: b.ngay,
+                  ketLuanLabel: disp.ketLuanLabel,
+                  sites: disp.sites,
+                });
+                return;
+              }
+              if (disp.kind === "BELONGS_PRIOR_EVENT" || disp.kind === "CLOSED_INSUFFICIENT") {
+                toast.message(disp.ketLuanLabel);
+                return;
+              }
               openOrCreateSession(
                 "BSI",
                 { kind: "XN", id: b.id, date: b.ngay },
@@ -989,7 +1650,7 @@ export default function NkbvBaMultiTimelineWorkspace({
                 {
                   bsiLocalizedSite: {
                     majorType: "SSI",
-                    criteriaMet: Boolean(openSession.draft.readyToChot),
+                    criteriaMet: Boolean(openSession.draft.eventEstablished),
                     siteOrganism: null,
                     siteIndexDate: openSession.index.date.slice(0, 10),
                     siteDoe: openSession.index.date.slice(0, 10),
@@ -997,10 +1658,44 @@ export default function NkbvBaMultiTimelineWorkspace({
                 },
               );
             }}
-          />
-        ) : null}
-
-        {openSession && isShellPanel(openSession.panel) ? (
+          >
+            {({ analysisColumns }) => {
+              const slots = analysisSlotsForPanel(analysisColumns, openSession.panel);
+              return (
+              <NkbvBaCommonDayGrid
+                days={commonColumns}
+                xnByDate={xnByDate}
+                cdhaByDate={cdhaByDate}
+                ssiTcByDate={ssiTcByDate}
+                surgeryByDate={split.surgeryByDate}
+                foleyOnDate={foleyOnDate}
+                ventOnDate={ventOnDate}
+                cvcOnDate={cvcOnDate}
+                ngayVaoVien={ngayVaoVien}
+                ngayRaVien={ngayRaVien}
+                statusById={xnStatusById}
+                activeXnId={null}
+                cdhaCatalog={cdhaCatalog}
+                ssiTcCatalog={ssiTcCatalog}
+                allowedEdit={allowedEdit}
+                defaultKhoa={defaultKhoa || ""}
+                windowColumns={slots.windowColumns}
+                tailColumns={slots.tailColumns}
+                onPickXn={stableOpenFromXn}
+                onToggleDevice={allowedEdit ? (d, k) => void toggleDevice(d, k) : undefined}
+                onAddXn={allowedEdit ? setAddXnDate : undefined}
+                onOpenCdha={stableOpenFromCdha}
+                onRemoveMilestone={stableRemoveMilestone}
+                onEditCdhaDate={stableEditCdhaDate}
+                onToggleCdha={stableToggleCdha}
+                onOpenSurgeryOrSsi={stableOpenFromSurgeryOrSsi}
+                onAddSurgery={stableAddSurgery}
+                onToggleSsiTc={stableToggleSsiTc}
+              />
+              );
+            }}
+          </NkbvSyndromeSsiPanel>
+        ) : openSession && isShellPanel(openSession.panel) ? (
           <NkbvSyndromeShellPanel
             panel={openSession.panel}
             columns={panelColumns}
@@ -1009,453 +1704,357 @@ export default function NkbvBaMultiTimelineWorkspace({
             draft={openSession.draft}
             onDraftChange={(patch) => patchDraft(openSession.id, patch)}
             allowedEdit={allowedEdit}
-            scrollRef={panelSync.register(0)}
-            onScrollSync={panelSync.onScroll(0)}
-            colW={COL_W}
-            labelW={LABEL_W}
+            xn={split.xn}
+            cdha={cdhaList}
+            analysisDispositions={mergedDispositions}
+            sampleConclusions={sampleConclusions}
+            analysisMode={analysisMode}
+            onManualSampleConclude={persistManualSampleConclusion}
+            onManualSampleClear={(p) => clearManualSampleConclusion(p.indexId)}
+            priorEvents={priorEvents}
+            openSiteSessions={openSiteSessionsForSbap}
             onClose={() => setOpenSessionId(null)}
+          >
+            {({ analysisColumns }) => {
+              const slots = analysisSlotsForPanel(analysisColumns, openSession.panel);
+              return (
+              <NkbvBaCommonDayGrid
+                days={commonColumns}
+                xnByDate={xnByDate}
+                cdhaByDate={cdhaByDate}
+                ssiTcByDate={ssiTcByDate}
+                surgeryByDate={split.surgeryByDate}
+                foleyOnDate={foleyOnDate}
+                ventOnDate={ventOnDate}
+                cvcOnDate={cvcOnDate}
+                ngayVaoVien={ngayVaoVien}
+                ngayRaVien={ngayRaVien}
+                statusById={xnStatusById}
+                activeXnId={
+                  openSession.index.kind === "XN" ? openSession.index.id : null
+                }
+                cdhaCatalog={cdhaCatalog}
+                ssiTcCatalog={ssiTcCatalog}
+                allowedEdit={allowedEdit}
+                defaultKhoa={defaultKhoa || ""}
+                windowColumns={slots.windowColumns}
+                tailColumns={slots.tailColumns}
+                onPickXn={stableOpenFromXn}
+                onToggleDevice={allowedEdit ? (d, k) => void toggleDevice(d, k) : undefined}
+                onAddXn={allowedEdit ? setAddXnDate : undefined}
+                onOpenCdha={stableOpenFromCdha}
+                onRemoveMilestone={stableRemoveMilestone}
+                onEditCdhaDate={stableEditCdhaDate}
+                onToggleCdha={stableToggleCdha}
+                onOpenSurgeryOrSsi={stableOpenFromSurgeryOrSsi}
+                onAddSurgery={stableAddSurgery}
+                onToggleSsiTc={stableToggleSsiTc}
+              />
+              );
+            }}
+          </NkbvSyndromeShellPanel>
+        ) : (
+          <NkbvBaCommonDayGrid
+            days={commonColumns}
+            xnByDate={xnByDate}
+            cdhaByDate={cdhaByDate}
+            ssiTcByDate={ssiTcByDate}
+            surgeryByDate={split.surgeryByDate}
+            foleyOnDate={foleyOnDate}
+            ventOnDate={ventOnDate}
+            cvcOnDate={cvcOnDate}
+            ngayVaoVien={ngayVaoVien}
+            ngayRaVien={ngayRaVien}
+            statusById={xnStatusById}
+            activeXnId={null}
+            cdhaCatalog={cdhaCatalog}
+            ssiTcCatalog={ssiTcCatalog}
+            allowedEdit={allowedEdit}
+            defaultKhoa={defaultKhoa || ""}
+            windowColumns={[]}
+            tailColumns={closedGridConcludeColumns}
+            onToggleDevice={allowedEdit ? (d, k) => void toggleDevice(d, k) : undefined}
+            onPickXn={stableOpenFromXn}
+            onAddXn={allowedEdit ? setAddXnDate : undefined}
+            onOpenCdha={stableOpenFromCdha}
+            onRemoveMilestone={stableRemoveMilestone}
+            onEditCdhaDate={stableEditCdhaDate}
+            onToggleCdha={stableToggleCdha}
+            onOpenSurgeryOrSsi={stableOpenFromSurgeryOrSsi}
+            onAddSurgery={stableAddSurgery}
+            onToggleSsiTc={stableToggleSsiTc}
+          />
+        )}
+
+        {addXnDate ? (
+          <NkbvBaAddViSinhModal
+            key={addXnDate}
+            open
+            onClose={() => setAddXnDate(null)}
+            maBenhAn={maBenhAn}
+            ngayLayMau={addXnDate}
+            maBenhNhan={maBenhNhan}
+            hoTen={hoTen}
+            ngayVaoVien={ngayVaoVien}
+            defaultKhoaId={khoaId}
+            khoas={khoas}
+            onCreated={() => onReload()}
           />
         ) : null}
 
         {openSession && allowedEdit ? (
           <div className="mt-2 flex flex-wrap items-center gap-2 border-t border-slate-100 px-1 pt-2">
+            {(() => {
+              const dispKind = openSession.draft.eventDisposition?.kind;
+              const manualKl = String(openSession.draft.ketLuan || "").trim();
+              // BELONGS = không tạo phiếu mới; Secondary BSI vẫn cho tạo phiếu quy kết
+              const blockCreate = !isManual && dispKind === "BELONGS_PRIOR_EVENT";
+              const vaeReady =
+                openSession.panel !== "VAE" ||
+                (isManual
+                  ? Boolean(manualKl)
+                  : vaeBaReadyToCreatePhieu(openSession.draft));
+              const canCreate = isManual
+                ? Boolean(manualKl) && !blockCreate
+                : !blockCreate &&
+                  vaeReady &&
+                  (Boolean(openSession.draft.eventEstablished) ||
+                    dispKind === "SECONDARY_BSI" ||
+                    (openSession.panel === "VAE" && vaeReady));
+              return (
+                <>
+            {canCreate || blockCreate || openSession.panel === "VAE" || isManual ? (
             <button
               type="button"
-              className="rounded-full bg-[var(--primary)] px-3 py-1.5 text-[11px] font-semibold text-white"
-              title="Tạo phiếu sau khi đã xem kết luận trên bảng phân tích — không tạo lúc chọn Index"
-              onClick={() =>
+              disabled={blockCreate || !canCreate}
+              className={`rounded-full px-3 py-1.5 text-[11px] font-semibold text-white ${
+                blockCreate || !canCreate
+                  ? "cursor-not-allowed bg-slate-400"
+                  : "bg-[var(--primary)]"
+              }`}
+              title={
+                blockCreate
+                  ? "Đã thuộc sự kiện trước — không tạo phiếu phân tích mới"
+                  : isManual && !manualKl
+                    ? "Nhập kết luận sự kiện trước khi tạo phiếu"
+                    : openSession.panel === "VAE" && !vaeReady
+                      ? "Nhập VAC / IVAC / PVAP ở cột kết luận trước khi tạo phiếu"
+                      : isManual
+                        ? "Tạo phiếu với kết luận bạn đã nhập"
+                        : "Tạo phiếu khi đã đủ TC sự kiện — gom XN ∈ RIT/SBAP"
+              }
+              onClick={() => {
+                if (blockCreate) {
+                  toast.message("Đã thuộc sự kiện trước — không tạo phiếu mới.");
+                  return;
+                }
+                if (isManual && !manualKl) {
+                  toast.message("Tự phân tích: nhập kết luận sự kiện trước khi tạo phiếu.");
+                  return;
+                }
+                if (!isManual && openSession.panel === "VAE" && !vaeReady) {
+                  toast.message(
+                    "VAE: ghi VAC / IVAC / PVAP ở kết luận Index trước khi tạo phiếu (bảng vent trên form).",
+                  );
+                  return;
+                }
+                if (
+                  !isManual &&
+                  !(
+                    openSession.draft.eventEstablished ||
+                    dispKind === "SECONDARY_BSI" ||
+                    (openSession.panel === "VAE" && vaeReady)
+                  )
+                ) {
+                  toast.message("Chưa đủ tiêu chuẩn cấu thành sự kiện — không tạo phiếu.");
+                  return;
+                }
+                const nghi =
+                  openSession.panel === "PNEU" ||
+                  openSession.panel === "BSI" ||
+                  openSession.panel === "UTI" ||
+                  openSession.panel === "SSI" ||
+                  openSession.panel === "VAE"
+                    ? (openSession.panel as BaGridNghiNgo)
+                    : ("BSI" as BaGridNghiNgo);
+                const canThiep = canThiepDatesForPanel(
+                  split.deviceByDate,
+                  openSession.panel,
+                );
+                // LS BA ∩ draft — triệu chứng timeline trong IWP vẫn cấu thành sự kiện
+                const mergedLamSang = mergeLamSangByDate(
+                  baClinicalLamSang,
+                  openSession.draft.lamSang,
+                );
+                const session = computeBaGridSession({
+                  ngayVaoVien,
+                  ngayRaVien,
+                  xn: split.xn,
+                  cdha: cdhaList,
+                  activeIndex: openSession.index,
+                  nghiNgo: nghi,
+                  symptomDates: {},
+                  tieuChuanByDate: mergedLamSang,
+                  trieuChungLamSangByDate: mergedLamSang,
+                  khoaByDate: defaultKhoa
+                    ? { [openSession.index.date.slice(0, 10)]: defaultKhoa }
+                    : {},
+                  canThiepDates: canThiep,
+                  criteriaMetPreview: true,
+                });
+                const majorType = resolveNkbvMajorType({
+                  loai_ma: openSession.panel,
+                });
+                const attributed = session.nsk
+                  ? attributeWithinRit({
+                      nsk: session.nsk,
+                      majorType:
+                        majorType === "OTHER"
+                          ? (openSession.panel as typeof majorType)
+                          : majorType,
+                      xn: split.xn,
+                      cdha: cdhaList,
+                      activeIndexId: openSession.index.id,
+                    })
+                  : { attributedXnIds: [] as string[] };
+                const secondary =
+                  !isManual &&
+                  session.nsk &&
+                  session.metrics?.sbap_start &&
+                  session.metrics?.sbap_end &&
+                  (openSession.panel === "UTI" ||
+                    openSession.panel === "PNEU" ||
+                    openSession.panel === "SSI")
+                    ? detectSecondaryBsiFromSbap({
+                        primarySite:
+                          openSession.panel === "SSI" ? "SSI" : openSession.panel,
+                        sbapStart: session.metrics.sbap_start,
+                        sbapEnd: session.metrics.sbap_end,
+                        xn: split.xn,
+                        primaryOrganisms: (session.ketLuan?.tac_nhan || "")
+                          .split(";")
+                          .map((s) => s.trim())
+                          .filter(Boolean),
+                        bloodMandatoryIds: openSession.draft.bloodCriterionIds,
+                      })
+                    : null;
+
+                const ritAttributedIds = Array.from(
+                  new Set([
+                    ...attributed.attributedXnIds,
+                    ...(openSession.draft.ritAttributedIds || []),
+                    ...(secondary?.matchedBloodIds || []),
+                    ...(openSession.draft.bloodCriterionIds || []),
+                  ]),
+                );
+                const draftForSeed: BaAnalysisSessionDraft = {
+                  ...openSession.draft,
+                  lamSang: mergedLamSang,
+                  ritAttributedIds,
+                  canThiepDates: canThiep,
+                  eventEstablished: true,
+                  analysisMode,
+                  ketLuan: isManual ? manualKl : openSession.draft.ketLuan,
+                };
+                patchDraft(openSession.id, { ritAttributedIds, canThiepDates: canThiep });
+
+                const { rit_labs, sbap_labs } = buildBaSeedLabs({
+                  xn: split.xn,
+                  indexId: openSession.index.id,
+                  attributedXnIds: ritAttributedIds,
+                  secondaryBloodIds: secondary?.matchedBloodIds || [],
+                  sbapDates: session.sbapDates,
+                });
+
+                const analysisSeed: NkbvBaAnalysisSeedInput = {
+                  panel: openSession.panel,
+                  draft: draftForSeed,
+                  indexKind: openSession.index.kind,
+                  nsk: session.nsk,
+                  isSecondaryBsi: Boolean(
+                    !isManual &&
+                      (session.ketLuan?.is_secondary_bsi ||
+                        secondary?.isSecondary ||
+                        dispKind === "SECONDARY_BSI"),
+                  ),
+                  ketLuan: isManual
+                    ? manualKl
+                    : openSession.draft.ketLuan || session.ketLuan?.summary || null,
+                  attributedXnIds: ritAttributedIds,
+                  secondaryBloodIds: secondary?.matchedBloodIds || [],
+                  windows: session.metrics
+                    ? {
+                        iwp_start: session.metrics.iwp_start,
+                        iwp_end: session.metrics.iwp_end,
+                        sbap_start: session.metrics.sbap_start,
+                        sbap_end: session.metrics.sbap_end,
+                        rit_end: session.metrics.rit_end,
+                        doe: session.nsk || session.metrics.doe,
+                      }
+                    : session.nsk
+                      ? {
+                          doe: session.nsk,
+                          rit_end: clinicalRitEnd(session.nsk),
+                        }
+                      : null,
+                  ritLabs: rit_labs,
+                  sbapLabs: sbap_labs,
+                  checklistGate:
+                    session.checklistType === "VAP" ||
+                    session.checklistType === "HAP" ||
+                    session.checklistType === "BSI" ||
+                    session.checklistType === "UTI" ||
+                    session.checklistType === "SSI" ||
+                    session.checklistType === "VAE"
+                      ? session.checklistType
+                      : null,
+                };
                 onCreatePhieu?.({
                   milestoneId: openSession.index.id,
                   panel: openSession.panel,
-                })
-              }
+                  analysisSeed,
+                });
+              }}
             >
-              Tạo phiếu phân tích trên bệnh án
+              {blockCreate ? "Đã phân tích — không tạo phiếu mới" : "Tạo phiếu"}
             </button>
-            {openSession.index.kind === "XN" ? (
+            ) : null}
+            {openSession.index.kind === "XN" && !blockCreate ? (
               <button
                 type="button"
                 className="rounded-full border border-slate-300 px-3 py-1.5 text-[11px] font-semibold text-slate-700"
                 onClick={() => {
                   const bare =
-                    bareViSinhIdFromMilestoneId(openSession.index.id) || openSession.index.id;
+                    bareViSinhIdFromMilestoneId(openSession.index.id) ||
+                    openSession.index.id;
                   const reason = window.prompt("Lý do bỏ qua XN này (không tạo HAI)?");
                   if (!reason?.trim()) return;
-                  onSkipViSinh?.({ viSinhId: bare.replace(/^lis:/, ""), reason: reason.trim() });
+                  onSkipViSinh?.({
+                    viSinhId: bare.replace(/^lis:/, ""),
+                    reason: reason.trim(),
+                  });
                 }}
               >
                 Bỏ qua XN (có lý do)
               </button>
             ) : null}
-            <span className="text-[10px] text-slate-500">
-              Tick «Sẵn sàng chốt» / kết luận trên bảng phân tích trước khi tạo phiếu.
+            <span className="text-[11px] text-slate-500">
+              {blockCreate
+                ? "Mẫu đã thuộc sự kiện trước / Secondary — chỉ xem kết luận, không tạo phiếu trùng."
+                : isManual
+                  ? manualKl
+                    ? "Tự phân tích: tạo phiếu với kết luận bạn đã nhập."
+                    : "Tự phân tích: gõ kết luận sự kiện ở cột Kết luận (ngày Index) trước."
+                  : canCreate
+                    ? "Đủ TC: tô RIT/SBAP → Tạo phiếu (gom mẫu cùng loại / máu khớp)."
+                    : "Chưa đủ TC: dùng «Đã phân tích xong» trên bảng — không tô RIT; phân tích XN tiếp."}
             </span>
+                </>
+              );
+            })()}
           </div>
         ) : null}
       </div>
     </div>
   );
 }
-
-function EvidenceRow({
-  label,
-  labelW,
-  children,
-}: {
-  label: string;
-  labelW: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex">
-      <div
-        className="sticky left-0 z-10 flex shrink-0 items-center border-b border-r border-slate-200 bg-slate-50 px-1.5 font-semibold text-slate-600"
-        style={{ width: labelW, minWidth: labelW, maxWidth: labelW }}
-      >
-        <span className="truncate" title={label}>
-          {label}
-        </span>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-type GridColumn = { date: string; hd: number | null; label: string };
-
-type WindowedRowProps = {
-  columns: GridColumn[];
-  from: number;
-  to: number;
-  colW: number;
-  labelW: number;
-};
-
-/** Spacer trái/phải khi windowing cột — giữ tổng bề rộng để scroll không giật. */
-function WindowPad({ width }: { width: number }) {
-  if (width <= 0) return null;
-  return <div className="shrink-0 border-b border-r" style={{ width, minWidth: width }} />;
-}
-
-const GridHeadRows = React.memo(function GridHeadRows({
-  columns,
-  from,
-  to,
-  colW,
-  labelW,
-}: WindowedRowProps) {
-  const visible = columns.slice(from, to);
-  const leftPad = from * colW;
-  const rightPad = (columns.length - to) * colW;
-  return (
-    <>
-      <EvidenceRow label="Ngày lịch" labelW={labelW}>
-        <WindowPad width={leftPad} />
-        {visible.map((c) => (
-          <div
-            key={`d-${c.date}`}
-            className="flex shrink-0 items-center justify-center border-b border-r bg-slate-50 font-semibold"
-            style={{ width: colW, minWidth: colW, minHeight: 28 }}
-          >
-            {c.label}
-          </div>
-        ))}
-        <WindowPad width={rightPad} />
-      </EvidenceRow>
-      <EvidenceRow label="Ngày (HD)" labelW={labelW}>
-        <WindowPad width={leftPad} />
-        {visible.map((c) => (
-          <div
-            key={`hd-${c.date}`}
-            className="flex shrink-0 items-center justify-center border-b border-r"
-            style={{ width: colW, minWidth: colW, minHeight: 24 }}
-          >
-            {c.hd == null ? "—" : c.hd}
-          </div>
-        ))}
-        <WindowPad width={rightPad} />
-      </EvidenceRow>
-    </>
-  );
-});
-
-const GridXnRow = React.memo(function GridXnRow({
-  columns,
-  from,
-  to,
-  colW,
-  labelW,
-  xnByDate,
-  statusById,
-  activeXnId,
-  onPickXn,
-}: WindowedRowProps & {
-  xnByDate: Record<string, XnCell[]>;
-  statusById: Record<string, ViSinhAnalysisStatus>;
-  activeXnId: string | null;
-  onPickXn: (x: XnCell) => void;
-}) {
-  const visible = columns.slice(from, to);
-  return (
-    <EvidenceRow label="XN vi sinh" labelW={labelW}>
-      <WindowPad width={from * colW} />
-      {visible.map((c) => {
-        const items = xnByDate[c.date] || [];
-        return (
-          <div
-            key={`xn-${c.date}`}
-            className="flex shrink-0 flex-col gap-0.5 border-b border-r bg-white p-0.5"
-            style={{ width: colW, minWidth: colW, minHeight: 56 }}
-          >
-            {items.map((x) => {
-              const st = statusById[x.id] || "CHUA_PHAN_TICH";
-              const badge =
-                st === "CHUA_PHAN_TICH"
-                  ? "bg-amber-100 text-amber-900"
-                  : st === "BO_QUA"
-                    ? "bg-slate-100 text-slate-600"
-                    : "bg-emerald-100 text-emerald-800";
-              return (
-                <button
-                  key={x.id}
-                  type="button"
-                  onClick={() => onPickXn(x)}
-                  className={`rounded px-0.5 py-0.5 text-left leading-tight hover:bg-amber-50 ${
-                    activeXnId === x.id ? "ring-2 ring-rose-500 font-semibold" : ""
-                  }`}
-                  title="Chọn từng bệnh phẩm để phân tích (không chọn cả ô ngày)"
-                >
-                  <span
-                    className={`mb-0.5 inline-block rounded px-0.5 text-[8px] font-bold ${badge}`}
-                  >
-                    {statusBadgeLabel(st)}
-                  </span>
-                  <span className="block truncate font-semibold">{x.benh_pham}</span>
-                  <span className="block truncate text-slate-700">{x.vi_khuan}</span>
-                  {x.so_luong ? (
-                    <span className="block truncate text-slate-500">SL {x.so_luong}</span>
-                  ) : null}
-                </button>
-              );
-            })}
-            {!items.length ? <span className="text-[9px] text-slate-300">—</span> : null}
-          </div>
-        );
-      })}
-      <WindowPad width={(columns.length - to) * colW} />
-    </EvidenceRow>
-  );
-});
-
-const GridCdhaRow = React.memo(function GridCdhaRow({
-  columns,
-  from,
-  to,
-  colW,
-  labelW,
-  cdhaByDate,
-  catalog,
-  allowedEdit,
-  onOpen,
-  onRemove,
-  onEditDate,
-  onToggle,
-}: WindowedRowProps & {
-  cdhaByDate: Record<string, BaGridCdhaCell[]>;
-  catalog: CdhaCatalogItem[];
-  allowedEdit: boolean;
-  onOpen: (x: BaGridCdhaCell) => void;
-  onRemove: (id: string | undefined) => Promise<void>;
-  onEditDate: (id: string, nextDate: string) => Promise<void>;
-  onToggle: (date: string, criteriaKey: string, title: string, kind: string) => Promise<void>;
-}) {
-  const visible = columns.slice(from, to);
-  return (
-    <EvidenceRow label="Chẩn đoán HA" labelW={labelW}>
-      <WindowPad width={from * colW} />
-      {visible.map((c) => {
-        const items = cdhaByDate[c.date] || [];
-        return (
-          <div
-            key={`cdha-${c.date}`}
-            className="relative flex shrink-0 flex-col gap-0.5 border-b border-r p-0.5"
-            style={{ width: colW, minWidth: colW, minHeight: 48 }}
-          >
-            {items.map((x) => (
-              <div key={x.id} className="flex flex-col gap-0.5 border-b border-emerald-50 pb-0.5">
-                <div className="flex items-start gap-0.5">
-                  <button
-                    type="button"
-                    onClick={() => onOpen(x)}
-                    className="min-w-0 flex-1 truncate text-left font-medium text-emerald-900 hover:underline"
-                  >
-                    {x.mo_ta_benh_ly}
-                  </button>
-                  {allowedEdit && !x.id.startsWith("local-") ? (
-                    <button
-                      type="button"
-                      className="shrink-0 text-[9px] text-rose-500"
-                      title="Xóa"
-                      onClick={() => void onRemove(x.id)}
-                    >
-                      ×
-                    </button>
-                  ) : null}
-                </div>
-                {allowedEdit && !x.id.startsWith("local-") ? (
-                  <input
-                    type="date"
-                    className="w-full bg-emerald-50/50 text-[9px]"
-                    value={x.ngay.slice(0, 10)}
-                    title="Sửa ngày CĐHA"
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      if (v && v !== x.ngay.slice(0, 10)) void onEditDate(x.id, v);
-                    }}
-                  />
-                ) : null}
-              </div>
-            ))}
-            {allowedEdit ? (
-              <NkbvGridCriteriaAddPopover
-                triggerLabel="+ CĐHA"
-                triggerClassName="cursor-pointer text-[9px] font-semibold text-emerald-600"
-                maxHeight={160}
-              >
-                {catalog.map((cat) => (
-                  <li key={cat.criteriaKey}>
-                    <label className="flex cursor-pointer gap-1 px-1 py-0.5 text-[10px] hover:bg-slate-50">
-                      <input
-                        type="checkbox"
-                        checked={items.some(
-                          (x) => (x.tieu_chuan_key || "imaging_chest") === cat.criteriaKey,
-                        )}
-                        onChange={() =>
-                          void onToggle(c.date, cat.criteriaKey, cat.title, cat.milestoneKind)
-                        }
-                      />
-                      {cat.title}
-                    </label>
-                  </li>
-                ))}
-              </NkbvGridCriteriaAddPopover>
-            ) : null}
-          </div>
-        );
-      })}
-      <WindowPad width={(columns.length - to) * colW} />
-    </EvidenceRow>
-  );
-});
-
-const GridSsiTcRow = React.memo(function GridSsiTcRow({
-  columns,
-  from,
-  to,
-  colW,
-  labelW,
-  tcByDate,
-  surgeryByDate,
-  catalog,
-  allowedEdit,
-  onOpen,
-  onRemove,
-  onAddSurgery,
-  onToggle,
-}: WindowedRowProps & {
-  tcByDate: Record<string, TcItem[]>;
-  surgeryByDate: Record<string, TcItem[]>;
-  catalog: Array<{ criteriaKey: string; title: string }>;
-  allowedEdit: boolean;
-  onOpen: (id: string, date: string, label: string) => void;
-  onRemove: (id: string | undefined) => Promise<void>;
-  onAddSurgery: (date: string) => Promise<void>;
-  onToggle: (date: string, criteriaKey: string, title: string) => Promise<void>;
-}) {
-  const visible = columns.slice(from, to);
-  return (
-    <EvidenceRow label="TC DOE SSI" labelW={labelW}>
-      <WindowPad width={from * colW} />
-      {visible.map((c) => {
-        const items = tcByDate[c.date] || [];
-        const surgery = surgeryByDate[c.date] || [];
-        return (
-          <div
-            key={`ssi-tc-${c.date}`}
-            className="relative flex shrink-0 flex-col gap-0.5 border-b border-r p-0.5"
-            style={{ width: colW, minWidth: colW, minHeight: 48 }}
-          >
-            {surgery.map((s) => (
-              <div key={s.id || s.key} className="flex items-start gap-0.5">
-                <button
-                  type="button"
-                  onClick={() => onOpen(s.id || `surg-${c.date}`, c.date, s.label)}
-                  className="min-w-0 flex-1 truncate text-left text-[9px] font-semibold text-violet-800 hover:underline"
-                >
-                  {s.label}
-                </button>
-                {allowedEdit && s.id ? (
-                  <button
-                    type="button"
-                    className="shrink-0 text-[9px] text-rose-500"
-                    onClick={() => void onRemove(s.id)}
-                  >
-                    ×
-                  </button>
-                ) : null}
-              </div>
-            ))}
-            {items.map((it) => (
-              <div key={it.id || it.key} className="flex items-start gap-0.5">
-                <button
-                  type="button"
-                  onClick={() => onOpen(it.id || `tc-${c.date}-${it.key}`, c.date, it.label)}
-                  className="min-w-0 flex-1 line-clamp-2 text-left text-[9px] font-semibold text-violet-950 hover:underline"
-                >
-                  {it.label}
-                </button>
-                {allowedEdit && it.id ? (
-                  <button
-                    type="button"
-                    className="shrink-0 text-[9px] text-rose-500"
-                    onClick={() => void onRemove(it.id)}
-                  >
-                    ×
-                  </button>
-                ) : null}
-              </div>
-            ))}
-            {allowedEdit ? (
-              <NkbvGridCriteriaAddPopover
-                triggerLabel="+ TC / mổ"
-                triggerClassName="cursor-pointer text-[9px] font-semibold text-violet-600"
-                maxHeight={176}
-              >
-                <li>
-                  <button
-                    type="button"
-                    className="w-full px-1 py-0.5 text-left text-[10px] font-semibold text-violet-800 hover:bg-slate-50"
-                    onClick={() => void onAddSurgery(c.date)}
-                  >
-                    + Ngày mổ (Day 1 SP)
-                  </button>
-                </li>
-                {catalog.map((cat) => (
-                  <li key={cat.criteriaKey}>
-                    <label className="flex cursor-pointer gap-1 px-1 py-0.5 text-[10px] hover:bg-slate-50">
-                      <input
-                        type="checkbox"
-                        checked={items.some((x) => x.key === cat.criteriaKey)}
-                        onChange={() => void onToggle(c.date, cat.criteriaKey, cat.title)}
-                      />
-                      {cat.title}
-                    </label>
-                  </li>
-                ))}
-              </NkbvGridCriteriaAddPopover>
-            ) : null}
-          </div>
-        );
-      })}
-      <WindowPad width={(columns.length - to) * colW} />
-    </EvidenceRow>
-  );
-});
-
-const GridKhoaRow = React.memo(function GridKhoaRow({
-  columns,
-  from,
-  to,
-  colW,
-  labelW,
-  allowedEdit,
-  defaultKhoa,
-}: WindowedRowProps & {
-  allowedEdit: boolean;
-  defaultKhoa: string;
-}) {
-  // State cục bộ trong hàng memo — gõ Khoa chỉ re-render hàng này, không cả lưới
-  const [khoaMap, setKhoaMap] = useState<Record<string, string>>({});
-  const visible = columns.slice(from, to);
-  return (
-    <EvidenceRow label="Khoa điều trị" labelW={labelW}>
-      <WindowPad width={from * colW} />
-      {visible.map((c) => (
-        <div
-          key={`khoa-${c.date}`}
-          className="flex shrink-0 items-center justify-center border-b border-r px-0.5"
-          style={{ width: colW, minWidth: colW, minHeight: 32 }}
-        >
-          <input
-            className="w-full bg-transparent text-center text-[10px] outline-none"
-            value={khoaMap[c.date] ?? defaultKhoa}
-            disabled={!allowedEdit}
-            onChange={(e) => setKhoaMap((p) => ({ ...p, [c.date]: e.target.value }))}
-            placeholder="—"
-          />
-        </div>
-      ))}
-      <WindowPad width={(columns.length - to) * colW} />
-    </EvidenceRow>
-  );
-});

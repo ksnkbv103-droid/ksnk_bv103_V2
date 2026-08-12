@@ -13,6 +13,7 @@ export type NkbvChecklistTypeCode =
   | "VAE"
   | "VAP"
   | "HAP"
+  | "CH17"
   | "LOAI_TRU";
 
 /** Nhãn ngắn (chip, cột danh sách, thống kê). */
@@ -23,6 +24,7 @@ export const NKBV_CHECKLIST_TYPE_LABELS: Record<NkbvChecklistTypeCode, string> =
   VAE: "VAE — biến cố thở máy (VAC/IVAC/PVAP)",
   VAP: "VAP — viêm phổi liên quan thở máy",
   HAP: "HAP — viêm phổi bệnh viện (không thở máy)",
+  CH17: "Chương 17 — nhiễm khuẩn chuyên biệt",
   LOAI_TRU: "Loại trừ / Không",
 };
 
@@ -34,6 +36,7 @@ export const NKBV_CHECKLIST_TYPE_PICKER_LABELS: Record<NkbvChecklistTypeCode, st
   VAE: "🫁 VAE (VAC→IVAC→PVAP)",
   VAP: "🫁 VAP / PedVAP",
   HAP: "🏥 HAP (PNEU không thở máy)",
+  CH17: "📋 Chương 17 (site)",
   LOAI_TRU: "🚫 Loại trừ / Không",
 };
 
@@ -72,6 +75,14 @@ const CODE_ALIASES: Record<string, NkbvChecklistTypeCode> = {
   CAUTI: "UTI",
   UTI_NKBV: "UTI",
   SSI: "SSI",
+  CH17: "CH17",
+  BONE: "CH17",
+  MEN: "CH17",
+  IAB: "CH17",
+  ENDO: "CH17",
+  EMET: "CH17",
+  OREP: "CH17",
+  VCUF: "CH17",
   LOAI_TRU: "LOAI_TRU",
 };
 
@@ -86,6 +97,28 @@ export const NKBV_MDM_CODE_CANDIDATES: Record<
   VAE: ["VAE", "VAC", "IVAC", "PVAP"],
   VAP: ["VAP", "PEDVAP"],
   HAP: ["HAP", "PNEU", "VAP", "PNU1", "PNU2", "PNU3"],
+  CH17: [
+    "CH17",
+    "BONE",
+    "DISC",
+    "JNT",
+    "PJI",
+    "IC",
+    "MEN",
+    "SA",
+    "CARD",
+    "MED",
+    "VASC",
+    "ENDO",
+    "CDI",
+    "GE",
+    "GIT",
+    "IAB",
+    "LUNG",
+    "EMET",
+    "OREP",
+    "VCUF",
+  ],
 };
 
 /** Suy loại từ bệnh phẩm / vị trí — không đọc loai_ma. */
@@ -264,11 +297,11 @@ export function formatNkbvChecklistTypeLabel(code: string | null | undefined): s
 /** Form lâm sàng theo loại đã chọn (tách pathway). */
 export function nkbvClinicalFormPathway(
   code: NkbvChecklistTypeCode | string,
-): "VAE" | "PNEU" | "BSI" | "UTI" | "SSI" | null {
+): "VAE" | "PNEU" | "BSI" | "UTI" | "SSI" | "CH17" | null {
   const n = normalizeNkbvLoaiCode(code) ?? (code as NkbvChecklistTypeCode);
   if (n === "VAE") return "VAE";
   if (n === "VAP" || n === "HAP") return "PNEU";
-  if (n === "BSI" || n === "UTI" || n === "SSI") return n;
+  if (n === "BSI" || n === "UTI" || n === "SSI" || n === "CH17") return n;
   return null;
 }
 

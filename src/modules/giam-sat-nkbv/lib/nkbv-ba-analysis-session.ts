@@ -1,7 +1,10 @@
 /**
  * Phiên phân tích BA — nháp localStorage (không bảng summary DB).
+ * Key tách theo chế độ CDC | MANUAL để không lẫn draft KL.
  */
 
+import type { BaAnalysisMode } from "./nkbv-ba-analysis-mode";
+import { BA_ANALYSIS_MODE_DEFAULT, parseBaAnalysisMode } from "./nkbv-ba-analysis-mode";
 import type { BaGridActiveIndex, BaGridNghiNgo, BaGridSymptomByDate } from "./nkbv-ba-grid-engine";
 import type { SyndromePanelId } from "./nkbv-specimen-syndrome";
 
@@ -10,7 +13,17 @@ export type BaAnalysisSessionDraft = {
   bloodCriterionIds: string[];
   ketLuan: string;
   notesByDate: Record<string, string>;
+  /**
+   * @deprecated Không dùng để giả đủ TC. Giữ field tương thích localStorage cũ.
+   * Đủ TC lấy từ verdict engine (`eventEstablished`).
+   */
   readyToChot: boolean;
+  /** Engine đã đủ TC cấu thành sự kiện — tô RIT/SBAP + cho Tạo phiếu. */
+  eventEstablished?: boolean;
+  /** DOE/NSK phiên (để khóa RIT mẫu khác khi PT Index khác). */
+  nsk?: string | null;
+  /** Đã bấm «Đã phân tích xong» khi chưa đủ TC. */
+  closedInsufficient?: boolean;
   canThiepDates: string[];
   /** PNEU Lớp 2 — bệnh tim phổi nền → cần ≥2 phim ∈ IWP. */
   hasCardiopulmonaryDisease?: boolean;
@@ -32,6 +45,23 @@ export type BaAnalysisSessionDraft = {
     sbapEnd?: string;
     bloodMandatory?: boolean;
   } | null;
+  /**
+   * Quy kết lúc mở Index: thuộc sự kiện trước (RIT) / Secondary BSI (có thể đa site).
+   * Seed `ketLuan` — không tạo phiếu trùng khi BELONGS_PRIOR.
+   */
+  eventDisposition?: {
+    kind: "BELONGS_PRIOR_EVENT" | "SECONDARY_BSI" | "NEW_ANALYSIS";
+    label: string;
+    priorEventId?: string | null;
+    secondarySites?: string[];
+  } | null;
+  /**
+   * XN (và CĐHA) ∈ RIT của phiên đang phân tích — user đã bấm xác nhận «Đã phân tích».
+   * Không khóa tạo phiếu Index; chỉ gắn attributed khi chốt phiếu.
+   */
+  ritAttributedIds?: string[];
+  /** Chế độ phiên — CDC máy gợi ý / MANUAL IP tự KL. */
+  analysisMode?: BaAnalysisMode;
 };
 
 export type BaAnalysisSession = {
@@ -53,14 +83,18 @@ const emptyDraft = (): BaAnalysisSessionDraft => ({
   canThiepDates: [],
 });
 
-function storageKey(maBenhAn: string) {
+function legacyStorageKey(maBenhAn: string) {
   return `nkbv-ba-session:${maBenhAn}`;
 }
 
-export function loadBaAnalysisSessions(maBenhAn: string): BaAnalysisSession[] {
+function storageKey(maBenhAn: string, mode: BaAnalysisMode) {
+  return `nkbv-ba-session:${maBenhAn}:${mode}`;
+}
+
+function readSessionsRaw(key: string): BaAnalysisSession[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(storageKey(maBenhAn));
+    const raw = window.localStorage.getItem(key);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as BaAnalysisSession[];
     return Array.isArray(parsed) ? parsed : [];
@@ -69,13 +103,39 @@ export function loadBaAnalysisSessions(maBenhAn: string): BaAnalysisSession[] {
   }
 }
 
-export function saveBaAnalysisSessions(maBenhAn: string, sessions: BaAnalysisSession[]) {
+function writeSessionsRaw(key: string, sessions: BaAnalysisSession[]) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(storageKey(maBenhAn), JSON.stringify(sessions));
+    window.localStorage.setItem(key, JSON.stringify(sessions));
   } catch {
     /* quota / private mode */
   }
+}
+
+export function loadBaAnalysisSessions(
+  maBenhAn: string,
+  mode: BaAnalysisMode = BA_ANALYSIS_MODE_DEFAULT,
+): BaAnalysisSession[] {
+  const keyed = readSessionsRaw(storageKey(maBenhAn, mode));
+  if (keyed.length || mode !== "CDC") return keyed;
+  // Migrate legacy (chưa có suffix mode) → CDC
+  const legacy = readSessionsRaw(legacyStorageKey(maBenhAn));
+  if (!legacy.length) return [];
+  writeSessionsRaw(storageKey(maBenhAn, "CDC"), legacy);
+  try {
+    window.localStorage.removeItem(legacyStorageKey(maBenhAn));
+  } catch {
+    /* ignore */
+  }
+  return legacy;
+}
+
+export function saveBaAnalysisSessions(
+  maBenhAn: string,
+  sessions: BaAnalysisSession[],
+  mode: BaAnalysisMode = BA_ANALYSIS_MODE_DEFAULT,
+) {
+  writeSessionsRaw(storageKey(maBenhAn, mode), sessions);
 }
 
 export function sessionIdForIndex(panel: SyndromePanelId, indexId: string) {
@@ -88,8 +148,10 @@ export function upsertBaAnalysisSession(input: {
   index: BaGridActiveIndex;
   indexLabel: string;
   draft?: Partial<BaAnalysisSessionDraft>;
+  mode?: BaAnalysisMode;
 }): BaAnalysisSession[] {
-  const list = loadBaAnalysisSessions(input.maBenhAn);
+  const mode = parseBaAnalysisMode(input.mode ?? input.draft?.analysisMode);
+  const list = loadBaAnalysisSessions(input.maBenhAn, mode);
   const id = sessionIdForIndex(input.panel, input.index.id);
   const now = new Date().toISOString();
   const idx = list.findIndex((s) => s.id === id);
@@ -101,7 +163,11 @@ export function upsertBaAnalysisSession(input: {
       index: input.index,
       indexLabel: input.indexLabel,
       updatedAt: now,
-      draft: { ...prev.draft, ...(input.draft || {}) },
+      draft: {
+        ...prev.draft,
+        ...(input.draft || {}),
+        analysisMode: mode,
+      },
     };
   } else {
     list.push({
@@ -111,10 +177,10 @@ export function upsertBaAnalysisSession(input: {
       indexLabel: input.indexLabel,
       createdAt: now,
       updatedAt: now,
-      draft: { ...emptyDraft(), ...(input.draft || {}) },
+      draft: { ...emptyDraft(), ...(input.draft || {}), analysisMode: mode },
     });
   }
-  saveBaAnalysisSessions(input.maBenhAn, list);
+  saveBaAnalysisSessions(input.maBenhAn, list, mode);
   return list;
 }
 
@@ -122,16 +188,17 @@ export function updateSessionDraft(
   maBenhAn: string,
   sessionId: string,
   draft: Partial<BaAnalysisSessionDraft>,
+  mode: BaAnalysisMode = BA_ANALYSIS_MODE_DEFAULT,
 ): BaAnalysisSession[] {
-  const list = loadBaAnalysisSessions(maBenhAn);
+  const list = loadBaAnalysisSessions(maBenhAn, mode);
   const idx = list.findIndex((s) => s.id === sessionId);
   if (idx < 0) return list;
   list[idx] = {
     ...list[idx],
     updatedAt: new Date().toISOString(),
-    draft: { ...list[idx].draft, ...draft },
+    draft: { ...list[idx].draft, ...draft, analysisMode: mode },
   };
-  saveBaAnalysisSessions(maBenhAn, list);
+  saveBaAnalysisSessions(maBenhAn, list, mode);
   return list;
 }
 
@@ -139,9 +206,10 @@ export function updateSessionDraft(
 export function removeBaAnalysisSession(
   maBenhAn: string,
   sessionId: string,
+  mode: BaAnalysisMode = BA_ANALYSIS_MODE_DEFAULT,
 ): BaAnalysisSession[] {
-  const list = loadBaAnalysisSessions(maBenhAn).filter((s) => s.id !== sessionId);
-  saveBaAnalysisSessions(maBenhAn, list);
+  const list = loadBaAnalysisSessions(maBenhAn, mode).filter((s) => s.id !== sessionId);
+  saveBaAnalysisSessions(maBenhAn, list, mode);
   return list;
 }
 
@@ -149,11 +217,12 @@ export function removeBaAnalysisSession(
 export function pruneBaAnalysisSessions(
   maBenhAn: string,
   validIndexIds: Set<string>,
+  mode: BaAnalysisMode = BA_ANALYSIS_MODE_DEFAULT,
 ): BaAnalysisSession[] {
-  const list = loadBaAnalysisSessions(maBenhAn).filter((s) =>
+  const list = loadBaAnalysisSessions(maBenhAn, mode).filter((s) =>
     validIndexIds.has(s.index.id),
   );
-  saveBaAnalysisSessions(maBenhAn, list);
+  saveBaAnalysisSessions(maBenhAn, list, mode);
   return list;
 }
 

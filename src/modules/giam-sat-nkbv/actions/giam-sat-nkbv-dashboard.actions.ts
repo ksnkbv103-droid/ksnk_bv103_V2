@@ -4,7 +4,11 @@ import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { format, parseISO } from "date-fns";
 import { bv103DefaultTuNgayFromDenIso } from "@/lib/bv103-analytics-default-range";
-import { aggregateNkbvDashboard, type NkbvCasRowMinimal } from "../lib/nkbv-dashboard-aggregate";
+import {
+  aggregateNkbvDashboard,
+  type NkbvCasRowMinimal,
+  type NkbvEpidemiologyRate,
+} from "../lib/nkbv-dashboard-aggregate";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
 type GiamSatNkbvDashboardFilters = {
@@ -53,7 +57,11 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
   });
 
   if (rpcError) {
-    console.error("Error executing fn_nkbv_dich_te_hoc_rates RPC:", rpcError);
+    console.error("[giam-sat-nkbv] fn_nkbv_dich_te_hoc_rates thất bại", {
+      module: "giam-sat-nkbv",
+      action: "getGiamSatNkbvDashboardPayload",
+      error: rpcError.message,
+    });
   }
 
   const rows = ((data || []) as Array<Record<string, unknown>>).map((x) => ({
@@ -70,13 +78,14 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
       ma_khoa: r.ma_khoa != null ? String(r.ma_khoa) : null,
       ten_khoa: r.ten_khoa != null ? String(r.ten_khoa) : null,
     }),
-  }));
+  })) as NkbvEpidemiologyRate[];
 
   return {
     success: true as const,
     data: {
       ...payload,
       epidemiologyRates,
+      epidemiologyError: rpcError ? rpcError.message : null,
     },
   };
 }

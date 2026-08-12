@@ -1,16 +1,59 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
+import {
+  ageYearsFromNgaySinh,
+  coerceAdultPatientAge,
+  pneuAgeUiBranchFromAge,
+} from "../../lib/nkbv-age-ui";
 import {
   countPneuRespiratoryLines,
   formSymptomRowsFor,
 } from "../../lib/nkbv-clinical-symptom-catalog";
+import {
+  applyPneuLabDerivedFlags,
+  derivePneuLabTier,
+  type PneuLabSemiQuant,
+  type PneuLabSpecimen,
+} from "../../lib/nkbv-pneu-lab-tier";
 import { syncPneuSystemicBundle } from "../../lib/nkbv-pneu-systemic";
 import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
 import type { VaeVerificationData } from "../../types/nkbv-verification";
 import NkbvDomainFormShell from "../NkbvDomainFormShell";
 import NkbvFormSection from "../NkbvFormSection";
 import NkbvCatalogSymptomRows from "./NkbvCatalogSymptomRows";
+
+const TABLE3_ROWS: Array<{ field: keyof VaeVerificationData; label: string }> = [
+  { field: "pneu_t3_influenza", label: "Influenza (PCR/Ag)" },
+  { field: "pneu_t3_rsv", label: "RSV" },
+  { field: "pneu_t3_other_virus", label: "Virus hô hấp khác (Adeno/Para/HMPV…)" },
+  { field: "pneu_t3_legionella", label: "Legionella (cấy/PCR/Ag nước tiểu/IFA)" },
+  { field: "pneu_t3_mycoplasma", label: "Mycoplasma" },
+  { field: "pneu_t3_chlamydia", label: "Chlamydia / Chlamydophila" },
+  { field: "pneu_t3_bordetella", label: "Bordetella" },
+];
+
+const IC_ROWS: Array<{ field: keyof VaeVerificationData; label: string }> = [
+  { field: "pneu_ic_neutropenia", label: "Giảm bạch cầu hạt (neutropenia)" },
+  { field: "pneu_ic_leukemia_lymphoma", label: "Ung thư máu / lymphoma" },
+  { field: "pneu_ic_hiv_cd4_lt_200", label: "HIV với CD4 < 200" },
+  { field: "pneu_ic_splenectomy", label: "Cắt lách" },
+  { field: "pneu_ic_solid_organ_or_hsct", label: "Ghép tạng đặc / HSCT" },
+  { field: "pneu_ic_chemotherapy", label: "Đang hóa chất" },
+  { field: "pneu_ic_steroid_ge_14d", label: "Corticoid ≥ 14 ngày" },
+];
+
+function patchPneuLab(
+  form: VaeVerificationData,
+  patch: Partial<VaeVerificationData>,
+): VaeVerificationData {
+  const touchT3 = TABLE3_ROWS.some((r) => r.field in patch);
+  const touchIc = IC_ROWS.some((r) => r.field in patch);
+  return applyPneuLabDerivedFlags(
+    { ...form, ...patch },
+    { resetTable3Aggregate: touchT3, resetIcAggregate: touchIc },
+  );
+}
 
 interface PneuClinicalSubFormProps {
   form: VaeVerificationData;
@@ -20,6 +63,7 @@ interface PneuClinicalSubFormProps {
   allowedEdit: boolean;
   ngayVaoVien?: string;
   ngayPhatHien?: string;
+  ngaySinh?: string | null;
   iwpStart?: string;
   iwpEnd?: string;
   activeTab?: "LAM_SANG" | "KSNK" | "VI_SINH";
@@ -36,12 +80,6 @@ function syncRespCount(form: VaeVerificationData, patch: Partial<VaeVerification
   return next;
 }
 
-function pneuAgeBranch(age: number): "INFANT_LE1" | "CHILD_1_12" | "ADULT" {
-  if (age > 0 && age <= 1) return "INFANT_LE1";
-  if (age > 1 && age <= 12) return "CHILD_1_12";
-  return "ADULT";
-}
-
 export default function PneuClinicalSubForm({
   form,
   onChange,
@@ -50,6 +88,7 @@ export default function PneuClinicalSubForm({
   allowedEdit,
   ngayVaoVien,
   ngayPhatHien,
+  ngaySinh,
   iwpStart,
   iwpEnd,
   activeTab = "LAM_SANG",
@@ -59,7 +98,20 @@ export default function PneuClinicalSubForm({
   const showMicro = activeTab === "LAM_SANG" || activeTab === "VI_SINH";
   const showClinical = activeTab === "LAM_SANG";
   const trigger = form.pneu_trigger || "CULTURE";
-  const ageBranch = pneuAgeBranch(form.patient_age || 0);
+  const ageFromDob = ageYearsFromNgaySinh(ngaySinh, ngayPhatHien);
+  const ageBranch = pneuAgeUiBranchFromAge(ageFromDob);
+  const coercedAge = coerceAdultPatientAge(ageFromDob, form.patient_age);
+
+  useEffect(() => {
+    if (form.patient_age === coercedAge) return;
+    onChange({ ...form, patient_age: coercedAge });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync age from DOB / adult coerce
+  }, [coercedAge]);
+  const labTier = derivePneuLabTier(form);
+  const showPnu3Sx =
+    labTier.tier === "PNU3" ||
+    !!form.pneu_is_immunocompromised ||
+    form.microbiology_evidence === "PNU3";
   const cleanNgayVaoVien = ngayVaoVien ? ngayVaoVien.slice(0, 10) : "";
   const cleanNgayPhatHien = ngayPhatHien ? ngayPhatHien.slice(0, 10) : "";
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -109,10 +161,26 @@ export default function PneuClinicalSubForm({
           <input
             type="number"
             value={form.patient_age}
-            disabled={!allowedEdit}
-            onChange={(e) => onChange({ ...form, patient_age: parseInt(e.target.value) || 0 })}
+            disabled={!allowedEdit || ageFromDob != null}
+            onChange={(e) => {
+              const raw = parseInt(e.target.value) || 0;
+              // Thiếu DOB: không cho nhập tuổi nhi mở nhánh PNEU trẻ
+              onChange({
+                ...form,
+                patient_age: coerceAdultPatientAge(null, raw),
+              });
+            }}
             className={C.controlInput}
           />
+          {ageFromDob != null ? (
+            <p className="mt-1 text-[11px] text-slate-500">
+              Theo ngày sinh ({ageFromDob} tuổi) — không sửa tay.
+            </p>
+          ) : (
+            <p className="mt-1 text-[11px] text-slate-500">
+              Chưa có ngày sinh → mặc định nhánh người lớn (tuổi &lt; 13 bị ép ≥ 45).
+            </p>
+          )}
           {ageBranch === "INFANT_LE1" ? (
             <p className="mt-1 text-[11px] text-violet-800">
               Nhánh ≤1 tuổi: ưu tiên thở nhanh / thở khó / suy trao đổi khí + toàn thân trong IWP (checklist tối thiểu).
@@ -130,22 +198,211 @@ export default function PneuClinicalSubForm({
       </NkbvFormSection>
 
       {showMicro && (
-        <NkbvFormSection title="Bằng chứng nuôi cấy">
-          <select
-            value={form.microbiology_evidence}
-            disabled={!allowedEdit}
-            onChange={(e) =>
-              onChange({
-                ...form,
-                microbiology_evidence: e.target.value as "NONE" | "PNU2" | "PNU3",
-              })
-            }
-            className={C.controlInput}
+        <NkbvFormSection
+          title="Vi sinh nâng bậc (lab-first)"
+          hint="PNU1/2/3 suy từ loại mẫu + CFU/bán định lượng + Table 3 — không chọn tay bậc chẩn đoán. Vi khuẩn thường trên đờm không đủ nâng PNU2."
+        >
+          <div>
+            <label className="mb-1 block text-xs font-bold">Loại mẫu</label>
+            <select
+              value={form.pneu_lab_specimen || "NONE"}
+              disabled={!allowedEdit}
+              onChange={(e) =>
+                onChange(
+                  patchPneuLab(form, {
+                    pneu_lab_specimen: e.target.value as PneuLabSpecimen,
+                  }),
+                )
+              }
+              className={C.controlInput}
+            >
+              <option value="NONE">Chưa có / không dùng lab nâng bậc</option>
+              <option value="BLOOD">Cấy máu</option>
+              <option value="PLEURAL">Dịch màng phổi</option>
+              <option value="LUNG_TISSUE">Mô phổi</option>
+              <option value="BAL">BAL</option>
+              <option value="PBAL">PBAL</option>
+              <option value="PSB">PSB</option>
+              <option value="ETA">ETA (nội khí quản)</option>
+              <option value="SPUTUM">Đờm</option>
+              <option value="OTHER_LRT">LRT khác (minimally contaminated)</option>
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-bold">Tác nhân</label>
+            <input
+              type="text"
+              value={form.pneu_lab_organism || ""}
+              disabled={!allowedEdit}
+              placeholder="VD: K. pneumoniae, RSV…"
+              onChange={(e) =>
+                onChange(patchPneuLab(form, { pneu_lab_organism: e.target.value }))
+              }
+              className={C.controlInput}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="mb-1 block text-xs font-bold">CFU/ml</label>
+              <input
+                type="number"
+                value={form.pneu_lab_cfu_per_ml ?? ""}
+                disabled={!allowedEdit}
+                placeholder="BAL≥10⁴ · PSB≥10³ · ETA≥10⁵"
+                onChange={(e) =>
+                  onChange(
+                    patchPneuLab(form, {
+                      pneu_lab_cfu_per_ml: e.target.value
+                        ? parseFloat(e.target.value)
+                        : null,
+                    }),
+                  )
+                }
+                className={C.controlInput}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-bold">Bán định lượng</label>
+              <select
+                value={form.pneu_lab_semi_quant || "NONE"}
+                disabled={!allowedEdit}
+                onChange={(e) =>
+                  onChange(
+                    patchPneuLab(form, {
+                      pneu_lab_semi_quant: e.target.value as PneuLabSemiQuant,
+                    }),
+                  )
+                }
+                className={C.controlInput}
+              >
+                <option value="NONE">—</option>
+                <option value="LIGHT">Light / 1+</option>
+                <option value="MODERATE">Moderate / 2+</option>
+                <option value="HEAVY">Heavy / 3+</option>
+                <option value="MANY">Many / 4+</option>
+                <option value="PLUS_2">2+</option>
+                <option value="PLUS_3">3+</option>
+                <option value="PLUS_4">4+</option>
+              </select>
+            </div>
+          </div>
+          <div className="space-y-1 rounded-lg border border-slate-100 bg-white/60 px-2 py-2">
+            <p className="text-[11px] font-bold uppercase text-slate-400">
+              Table 3 — virus / nội bào không điển hình
+            </p>
+            {TABLE3_ROWS.map((r) => (
+              <label
+                key={String(r.field)}
+                className="flex items-center gap-2 text-xs font-semibold cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={Boolean(form[r.field])}
+                  disabled={!allowedEdit}
+                  onChange={(e) =>
+                    onChange(patchPneuLab(form, { [r.field]: e.target.checked }))
+                  }
+                />
+                {r.label}
+              </label>
+            ))}
+          </div>
+          <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!form.pneu_lab_bal_intracellular_ge_5pct}
+              disabled={!allowedEdit}
+              onChange={(e) =>
+                onChange(
+                  patchPneuLab(form, {
+                    pneu_lab_bal_intracellular_ge_5pct: e.target.checked,
+                  }),
+                )
+              }
+            />
+            BAL: ≥5% BC có vi khuẩn nội bào
+          </label>
+          <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!form.pneu_lab_histopath_positive}
+              disabled={!allowedEdit}
+              onChange={(e) =>
+                onChange(
+                  patchPneuLab(form, { pneu_lab_histopath_positive: e.target.checked }),
+                )
+              }
+            />
+            Mô bệnh học phù hợp viêm phổi / xâm nhập nấm
+          </label>
+          <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!form.pneu_lab_is_normal_flora}
+              disabled={!allowedEdit}
+              onChange={(e) =>
+                onChange(
+                  patchPneuLab(form, { pneu_lab_is_normal_flora: e.target.checked }),
+                )
+              }
+            />
+            Flora bình thường / hỗn hợp đường hô hấp (loại khỏi PNU2/3)
+          </label>
+          <div className="space-y-1 rounded-lg border border-amber-100 bg-amber-50/40 px-2 py-2">
+            <p className="text-[11px] font-bold uppercase text-amber-600">
+              Suy giảm miễn dịch (cửa PNU3)
+            </p>
+            {IC_ROWS.map((r) => (
+              <label
+                key={String(r.field)}
+                className="flex items-center gap-2 text-xs font-semibold cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={Boolean(form[r.field])}
+                  disabled={!allowedEdit}
+                  onChange={(e) =>
+                    onChange(patchPneuLab(form, { [r.field]: e.target.checked }))
+                  }
+                />
+                {r.label}
+              </label>
+            ))}
+          </div>
+          <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!form.pneu_candida_blood_and_lrt_match}
+              disabled={!allowedEdit}
+              onChange={(e) =>
+                onChange(
+                  patchPneuLab(form, {
+                    pneu_candida_blood_and_lrt_match: e.target.checked,
+                  }),
+                )
+              }
+            />
+            Candida máu khớp LRT trong IWP (ngoại lệ PNU3)
+          </label>
+          <div
+            className={`rounded-lg border px-3 py-2 text-xs ${
+              labTier.tier === "PNU3"
+                ? "border-amber-300 bg-amber-50 text-amber-900"
+                : labTier.tier === "PNU2"
+                  ? "border-sky-300 bg-sky-50 text-sky-900"
+                  : labTier.lab_excluded
+                    ? "border-rose-200 bg-rose-50 text-rose-900"
+                    : "border-slate-200 bg-slate-50 text-slate-700"
+            }`}
           >
-            <option value="NONE">PNU1 — lâm sàng + hình ảnh</option>
-            <option value="PNU2">PNU2 — có cấy / virus đạt ngưỡng</option>
-            <option value="PNU3">PNU3 — nấm / suy giảm miễn dịch</option>
-          </select>
+            <p className="font-bold">
+              Bậc vi sinh suy ra:{" "}
+              {labTier.tier === "NONE"
+                ? "PNU1 (không lab đạt ngưỡng)"
+                : labTier.tier}
+            </p>
+            <p className="mt-0.5 text-[11px] leading-snug">{labTier.reasons.join(" ")}</p>
+          </div>
         </NkbvFormSection>
       )}
 
@@ -278,7 +535,7 @@ export default function PneuClinicalSubForm({
                 />
               </>
             ) : null}
-            {form.microbiology_evidence === "PNU3" ? (
+            {showPnu3Sx ? (
               <>
                 <p className="text-[11px] font-bold uppercase text-amber-600">PNU3 bổ sung</p>
                 <NkbvCatalogSymptomRows

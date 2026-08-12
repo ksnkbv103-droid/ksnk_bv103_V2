@@ -36,7 +36,7 @@ export default function NkbvClinicalWindowStrip({
           </span>
         ) : null}
       </div>
-      <p className="mt-0.5 text-[10px] text-sky-800/80">
+      <p className="mt-0.5 text-[11px] text-sky-800/80">
         Mỗi triệu chứng dương tính phải gắn ngày thuộc cửa sổ trên. Prefill dụng cụ từ Registry khi có đăng
         ký.
       </p>

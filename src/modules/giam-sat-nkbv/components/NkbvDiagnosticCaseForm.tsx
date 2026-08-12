@@ -7,6 +7,7 @@ import UtiClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/Uti
 import PneuClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/PneuClinicalSubForm";
 import VaeClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/VaeClinicalSubForm";
 import SsiClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/SsiClinicalSubForm";
+import Ch17ClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/Ch17ClinicalSubForm";
 import NkbvStayHistoryTable from "@/modules/giam-sat-nkbv/components/NkbvStayHistoryTable";
 import NkbvDeviceRegistryPanel from "@/modules/giam-sat-nkbv/components/NkbvDeviceRegistryPanel";
 import NkbvDiagnosticRow from "@/modules/giam-sat-nkbv/components/NkbvDiagnosticRow";
@@ -16,6 +17,7 @@ import type { CdcMetricsResult } from "@/modules/giam-sat-nkbv/lib/nkbv-timeline
 import type { RuleEvaluationResult } from "@/modules/giam-sat-nkbv/lib/nkbv-rules-engine";
 import type {
   BsiVerificationData,
+  Ch17VerificationData,
   DepartmentStay,
   SsiVerificationData,
   UtiVerificationData,
@@ -39,6 +41,7 @@ function fmtDate(d?: string | null) {
 function windowKindLabel(checklistType: NkbvActiveChecklistType) {
   if (checklistType === "VAE") return "Event Period";
   if (checklistType === "SSI") return "Cửa sổ theo dõi sau mổ";
+  if (checklistType === "CH17") return "IWP Ch.17 (±3; ENDO ±10)";
   return "IWP (cửa sổ nhiễm khuẩn ±3 ngày)";
 }
 
@@ -55,6 +58,8 @@ function indexFactorLabel(checklistType: NkbvActiveChecklistType) {
       return "Cấy đờm/BAL hoặc X-quang/CT bất thường";
     case "SSI":
       return "Theo dõi sau phẫu thuật (30/90 ngày)";
+    case "CH17":
+      return "Bằng chứng cấu thành tiêu chuẩn site (Chương 17)";
     default:
       return "Yếu tố dương tính đầu dùng cho tiêu chuẩn";
   }
@@ -77,7 +82,7 @@ export type NkbvDiagnosticCaseFormProps = {
   suspectedType: NkbvSuspectedType | null;
   setSuspectedType: (t: NkbvChecklistTypeCode) => void;
   checklistType: NkbvActiveChecklistType;
-  clinicalPathway: "BSI" | "UTI" | "VAE" | "PNEU" | "SSI";
+  clinicalPathway: "BSI" | "UTI" | "VAE" | "PNEU" | "SSI" | "CH17";
   allowedEdit: boolean;
   khoas: Array<{ id: string; ten_danh_muc: string }>;
   treatmentHistory: DepartmentStay[];
@@ -93,6 +98,8 @@ export type NkbvDiagnosticCaseFormProps = {
   setVaeForm: (v: VaeVerificationData) => void;
   ssiForm: SsiVerificationData | null;
   setSsiForm: (v: SsiVerificationData) => void;
+  ch17Form: Ch17VerificationData | null;
+  setCh17Form: (v: Ch17VerificationData) => void;
   liveCdcMetrics: CdcMetricsResult | null;
   liveEvaluation: RuleEvaluationResult;
   onPrefillDevice: () => void;
@@ -107,6 +114,8 @@ export type NkbvDiagnosticCaseFormProps = {
   ngayVaoVienEffective?: string;
   onAdmissionDateChange?: (date: string) => void;
   benhAnMissing?: boolean;
+  /** Ngày sinh — ẩn nhánh nhi khi thiếu / người lớn. */
+  ngaySinhEffective?: string | null;
 };
 
 export default function NkbvDiagnosticCaseForm({
@@ -133,6 +142,8 @@ export default function NkbvDiagnosticCaseForm({
   setVaeForm,
   ssiForm,
   setSsiForm,
+  ch17Form,
+  setCh17Form,
   liveCdcMetrics,
   liveEvaluation,
   onPrefillDevice,
@@ -146,15 +157,26 @@ export default function NkbvDiagnosticCaseForm({
   ngayVaoVienEffective,
   onAdmissionDateChange,
   benhAnMissing = false,
+  ngaySinhEffective = null,
 }: NkbvDiagnosticCaseFormProps) {
   const ngayVaoVien =
     String(ngayVaoVienEffective || row.ngay_vao_vien || "").slice(0, 10);
+  const ngayRaVienCase =
+    String((row as { ngay_ra_vien?: string | null }).ngay_ra_vien || "").slice(
+      0,
+      10,
+    ) || null;
+  const ngaySinh =
+    (ngaySinhEffective && String(ngaySinhEffective).slice(0, 10)) ||
+    (row.ngay_sinh ? String(row.ngay_sinh).slice(0, 10) : null) ||
+    null;
   const clinicalFormProps = {
     symptomDates,
     onSymptomDateChange,
     allowedEdit,
     ngayVaoVien,
     ngayPhatHien: String(row.ngay_phat_hien || ""),
+    ngaySinh,
     iwpStart: liveCdcMetrics?.iwp_start,
     iwpEnd: liveCdcMetrics?.iwp_end,
     activeTab: "LAM_SANG" as const,
@@ -164,6 +186,35 @@ export default function NkbvDiagnosticCaseForm({
   const doe = liveCdcMetrics?.doe;
   const ritEnd = doe ? addDays(doe.slice(0, 10), 13) : "";
   const showSecondaryEditors = checklistType === "BSI" || checklistType === "UTI" || checklistType === "SSI";
+
+  const vd =
+    row.verification_data && typeof row.verification_data === "object"
+      ? (row.verification_data as Record<string, unknown>)
+      : {};
+  const baRitLabs = Array.isArray(vd.ba_rit_labs)
+    ? (vd.ba_rit_labs as Array<{
+        id?: string;
+        ngay?: string;
+        benh_pham?: string;
+        vi_khuan?: string | null;
+        is_index?: boolean;
+      }>)
+    : [];
+  const baSbapLabs = Array.isArray(vd.ba_sbap_labs)
+    ? (vd.ba_sbap_labs as Array<{
+        id?: string;
+        ngay?: string;
+        vi_khuan?: string | null;
+      }>)
+    : [];
+  const seededIwp =
+    vd.calculated_iwp_start && vd.calculated_iwp_end
+      ? `${fmtDate(String(vd.calculated_iwp_start))} → ${fmtDate(String(vd.calculated_iwp_end))}`
+      : null;
+  const seededSbap =
+    vd.calculated_sbap_start && vd.calculated_sbap_end
+      ? `${fmtDate(String(vd.calculated_sbap_start))} → ${fmtDate(String(vd.calculated_sbap_end))}`
+      : null;
 
   if (suspectedType === "LOAI_TRU") {
     return (
@@ -275,7 +326,8 @@ export default function NkbvDiagnosticCaseForm({
           <p className="font-mono text-sm font-semibold text-sky-900">
             {liveCdcMetrics?.iwp_start && liveCdcMetrics?.iwp_end
               ? `${fmtDate(liveCdcMetrics.iwp_start)} → ${fmtDate(liveCdcMetrics.iwp_end)}`
-              : "Chưa tính được — bổ sung ngày Index / triệu chứng"}
+              : seededIwp ||
+                "Chưa tính được — bổ sung ngày Index / triệu chứng"}
           </p>
         }
       >
@@ -285,9 +337,16 @@ export default function NkbvDiagnosticCaseForm({
             <span className="mt-1 block text-xs text-slate-500">
               Không dùng IWP ±3 ngày (VAE / một số hội chứng đặc biệt).
             </span>
+          ) : checklistType === "CH17" &&
+            String((ch17Form as { ch17_type_code?: string } | null)?.ch17_type_code || "").toUpperCase() ===
+              "ENDO" ? (
+            <span className="mt-1 block text-xs text-slate-500">
+              ENDO: IWP = ngày Index ± 10 ngày (21 ngày lịch).
+            </span>
           ) : (
             <span className="mt-1 block text-xs text-slate-500">
-              IWP = ngày Index ± 3 ngày (7 ngày cố định).
+              IWP = ngày Index ± 3 ngày (7 ngày cố định)
+              {checklistType === "CH17" ? " · Chương 17" : ""}.
             </span>
           )}
         </p>
@@ -334,6 +393,15 @@ export default function NkbvDiagnosticCaseForm({
           ) : null}
           {checklistType === "SSI" && ssiForm ? (
             <SsiClinicalSubForm form={ssiForm} onChange={setSsiForm} {...clinicalFormProps} />
+          ) : null}
+          {checklistType === "CH17" && ch17Form ? (
+            <Ch17ClinicalSubForm
+              form={ch17Form}
+              onChange={setCh17Form}
+              allowedEdit={allowedEdit}
+              ngaySinh={ngaySinh}
+              ngayPhatHien={String(row.ngay_phat_hien || "")}
+            />
           ) : null}
         </div>
       </NkbvDiagnosticRow>
@@ -411,7 +479,7 @@ export default function NkbvDiagnosticCaseForm({
           </div>
         }
       >
-        <div className="space-y-4">
+        <div className={C.sectionGap}>
           <p className="text-sm text-slate-600">
             Bổ sung lịch sử chuyển khoa quanh DOE (và ngày trước DOE) để quy kết đúng nơi xảy ra sự kiện.
           </p>
@@ -431,11 +499,24 @@ export default function NkbvDiagnosticCaseForm({
       <NkbvDiagnosticRow
         step={6}
         title="Dụng cụ xâm lấn"
-        hint="Gắn thiết bị khi ≥2 ngày lịch đến DOE và hiện diện DOE hoặc ngày trước (DOE−1)."
+        hint="Gắn dụng cụ khi đặt liên tục ≥3 ngày lịch (Day 1 = ngày đặt → đủ từ Day 3) và hiện diện DOE hoặc rút đúng DOE−1. Gap ≥1 ngày lịch trống → đếm lại từ đầu."
         tone="emerald"
         milestone={
           <div className="space-y-1 text-sm">
             <p className="font-semibold">{deviceLabel(checklistType)}</p>
+            {checklistType === "VAP" || checklistType === "HAP" ? (
+              <p>
+                <span
+                  className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                    checklistType === "VAP"
+                      ? "bg-fuchsia-100 text-fuchsia-900"
+                      : "bg-sky-100 text-sky-900"
+                  }`}
+                >
+                  {checklistType === "VAP" ? "VAP" : "Non-VAP (HAP)"}
+                </span>
+              </p>
+            ) : null}
             <p>
               {liveCdcMetrics
                 ? `${liveCdcMetrics.device_placed_days} ngày · ${
@@ -448,7 +529,7 @@ export default function NkbvDiagnosticCaseForm({
           </div>
         }
       >
-        <div className="space-y-4">
+        <div className={C.sectionGap}>
           {(checklistType === "BSI" ||
             checklistType === "UTI" ||
             checklistType === "VAE" ||
@@ -476,6 +557,8 @@ export default function NkbvDiagnosticCaseForm({
             maBenhAn={String(row.ma_benh_an || "")}
             maBenhNhan={row.ma_benh_nhan ? String(row.ma_benh_nhan) : null}
             khoaId={treatmentHistory[treatmentHistory.length - 1]?.khoa_id || null}
+            ngayVaoVien={ngayVaoVien}
+            ngayRaVien={ngayRaVienCase}
             allowedEdit={allowedEdit}
           />
         </div>
@@ -488,13 +571,31 @@ export default function NkbvDiagnosticCaseForm({
         hint="14 ngày kể từ DOE (DOE = ngày 1). Không báo cáo ca mới cùng major type trong RIT."
         milestone={
           <p className="font-mono text-sm font-semibold">
-            {doe ? `${fmtDate(doe)} → ${fmtDate(ritEnd)}` : "—"}
+            {doe
+              ? `${fmtDate(doe)} → ${fmtDate(
+                  String(vd.calculated_rit_end || ritEnd).slice(0, 10),
+                )}`
+              : "—"}
           </p>
         }
       >
         <p className="text-sm text-slate-600">
           Tác nhân mới trong RIT được bổ sung vào ca gốc, không tạo ca mới cùng loại chính.
         </p>
+        {baRitLabs.length > 0 ? (
+          <ul className="mt-2 space-y-1 rounded-lg border border-emerald-200 bg-emerald-50/60 px-2 py-1.5 text-[11px] text-emerald-950">
+            <li className="font-bold uppercase tracking-wide text-emerald-800">
+              Lab ∈ RIT (seed từ bảng BA)
+            </li>
+            {baRitLabs.map((l, i) => (
+              <li key={String(l.id || i)}>
+                {fmtDate(l.ngay)}
+                {l.is_index ? " · Index" : ""} · {l.benh_pham || "XN"} ·{" "}
+                {l.vi_khuan || "—"}
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </NkbvDiagnosticRow>
 
       {/* 8 Secondary BSI / SBAP */}
@@ -508,7 +609,7 @@ export default function NkbvDiagnosticCaseForm({
             <p className="font-mono font-semibold">
               {liveCdcMetrics?.sbap_start && liveCdcMetrics?.sbap_end
                 ? `${fmtDate(liveCdcMetrics.sbap_start)} → ${fmtDate(liveCdcMetrics.sbap_end)}`
-                : "—"}
+                : seededSbap || "—"}
             </p>
             <p className="font-bold">
               {liveEvaluation.is_secondary_bsi ? "Secondary BSI = CÓ" : "Secondary BSI = Không"}
@@ -516,6 +617,18 @@ export default function NkbvDiagnosticCaseForm({
           </div>
         }
       >
+        {baSbapLabs.length > 0 ? (
+          <ul className="mb-2 space-y-1 rounded-lg border border-sky-200 bg-sky-50/70 px-2 py-1.5 text-[11px] text-sky-950">
+            <li className="font-bold uppercase tracking-wide text-sky-800">
+              Cấy máu ∈ SBAP (seed từ bảng BA)
+            </li>
+            {baSbapLabs.map((l, i) => (
+              <li key={String(l.id || i)}>
+                {fmtDate(l.ngay)} · Máu · {l.vi_khuan || "—"}
+              </li>
+            ))}
+          </ul>
+        ) : null}
         {showSecondaryEditors ? (
           <SecondaryEditors
             checklistType={checklistType}
@@ -528,10 +641,16 @@ export default function NkbvDiagnosticCaseForm({
             setSsiForm={setSsiForm}
             symptomDates={symptomDates}
             onSymptomDateChange={onSymptomDateChange}
-            iwpStart={liveCdcMetrics?.iwp_start}
-            iwpEnd={liveCdcMetrics?.iwp_end}
-            sbapStart={liveCdcMetrics?.sbap_start}
-            sbapEnd={liveCdcMetrics?.sbap_end}
+            iwpStart={
+              liveCdcMetrics?.iwp_start || (vd.calculated_iwp_start as string | undefined)
+            }
+            iwpEnd={liveCdcMetrics?.iwp_end || (vd.calculated_iwp_end as string | undefined)}
+            sbapStart={
+              liveCdcMetrics?.sbap_start || (vd.calculated_sbap_start as string | undefined)
+            }
+            sbapEnd={
+              liveCdcMetrics?.sbap_end || (vd.calculated_sbap_end as string | undefined)
+            }
           />
         ) : (
           <p className="text-sm text-slate-600">
@@ -648,6 +767,7 @@ function TypePicker({
               { id: "HAP" as const, color: "border-indigo-200 text-indigo-900 bg-indigo-50/40" },
               { id: "BSI" as const, color: "border-rose-200 text-rose-900 bg-rose-50/40" },
               { id: "SSI" as const, color: "border-amber-200 text-amber-900 bg-amber-50/40" },
+              { id: "CH17" as const, color: "border-violet-200 text-violet-900 bg-violet-50/40" },
               { id: "LOAI_TRU" as const, color: "border-slate-200 text-slate-800 bg-slate-50/60" },
             ] satisfies Array<{ id: NkbvChecklistTypeCode; color: string }>
           ).map((item) => {
@@ -666,7 +786,7 @@ function TypePicker({
                 }`}
               >
                 {isSuggested ? (
-                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
                     Gợi ý
                   </span>
                 ) : null}

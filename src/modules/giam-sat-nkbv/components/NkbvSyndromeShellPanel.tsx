@@ -1,9 +1,26 @@
 "use client";
 
-import React from "react";
-import type { BaGridActiveIndex, BaGridColumn } from "../lib/nkbv-ba-grid-engine";
+import React, { useMemo } from "react";
+import type {
+  BaGridActiveIndex,
+  BaGridCdhaCell,
+  BaGridColumn,
+  BaGridXnCell,
+} from "../lib/nkbv-ba-grid-engine";
 import type { BaAnalysisSessionDraft } from "../lib/nkbv-ba-analysis-session";
 import type { SyndromePanelId } from "../lib/nkbv-specimen-syndrome";
+import type { ViSinhAnalysisDispositionRow } from "../lib/nkbv-vi-sinh-analysis-status";
+import type {
+  OpenSiteSessionForSbap,
+  PriorEventForDisposition,
+} from "../lib/nkbv-index-event-disposition";
+import { baCellToneClass } from "../lib/nkbv-ba-day-row-tone";
+import { vaeEventPeriod } from "../lib/nkbv-shared-timeline";
+import {
+  BA_DAY_COL_W_ANALYSIS,
+  type BaDayGridColumnDef,
+} from "./NkbvBaDayGrid";
+import NkbvBaConcludeCell from "./NkbvBaConcludeCell";
 
 type Props = {
   panel: "VAE";
@@ -13,17 +30,34 @@ type Props = {
   draft: BaAnalysisSessionDraft;
   onDraftChange: (patch: Partial<BaAnalysisSessionDraft>) => void;
   allowedEdit: boolean;
+  xn?: BaGridXnCell[];
+  cdha?: BaGridCdhaCell[];
+  analysisDispositions?: ViSinhAnalysisDispositionRow[];
+  sampleConclusions?: import("../lib/nkbv-ba-sample-conclusions").BaSampleConclusion[];
+  analysisMode?: import("../lib/nkbv-ba-analysis-mode").BaAnalysisMode;
+  onManualSampleConclude?: (payload: {
+    indexId: string;
+    kind: "XN" | "CDHA";
+    date: string;
+    disposition: import("../lib/nkbv-ba-sample-conclusions").BaSampleConclusion["disposition"];
+    label: string;
+  }) => void;
+  onManualSampleClear?: (payload: { indexId: string }) => void;
+  priorEvents?: PriorEventForDisposition[];
+  openSiteSessions?: OpenSiteSessionForSbap[];
   scrollRef?: (el: HTMLDivElement | null) => void;
   onScrollSync?: () => void;
   onClose: () => void;
   colW?: number;
   labelW?: number;
+  children?: (api: { analysisColumns: BaDayGridColumnDef[] }) => React.ReactNode;
 };
 
-/**
- * Shell VAE — cùng trục cột với bảng chung; Event Period đầy đủ = Wave 2.
- * SSI đã có NkbvSyndromeSsiPanel (timeline chuẩn).
- */
+function isVaeClassLabel(label: string): boolean {
+  const t = label.trim().toUpperCase();
+  return t === "VAC" || t === "IVAC" || t === "PVAP" || /\b(VAC|IVAC|PVAP)\b/.test(t);
+}
+
 export default function NkbvSyndromeShellPanel({
   panel,
   columns,
@@ -32,16 +66,160 @@ export default function NkbvSyndromeShellPanel({
   draft,
   onDraftChange,
   allowedEdit,
-  scrollRef,
-  onScrollSync,
+  xn = [],
+  cdha = [],
+  analysisDispositions = [],
+  sampleConclusions = [],
+  analysisMode = "CDC",
+  onManualSampleConclude,
+  onManualSampleClear,
+  priorEvents = [],
+  openSiteSessions = [],
   onClose,
-  colW = 100,
-  labelW = 128,
+  children,
 }: Props) {
-  const title = "VAE — Event Period (không IWP)";
-  const windowLabel = "Event Period";
-  const indexDate = index?.date.slice(0, 10) || null;
   void panel;
+  void columns;
+  const title = "VAE — Event Period (không IWP ±3)";
+  const indexDate = index?.date.slice(0, 10) || null;
+  /** DOE = draft.nsk (ngày xấu đi) hoặc Index khi chưa có. */
+  const doe = (draft.nsk || indexDate || "").slice(0, 10) || null;
+  const ep = useMemo(() => (doe ? vaeEventPeriod(doe) : null), [doe]);
+  const aw = BA_DAY_COL_W_ANALYSIS;
+
+  const xnByDate: Record<string, BaGridXnCell[]> = {};
+  for (const x of xn) {
+    const d = x.ngay.slice(0, 10);
+    (xnByDate[d] ||= []).push(x);
+  }
+  const cdhaByDate: Record<string, BaGridCdhaCell[]> = {};
+  for (const c of cdha) {
+    const d = c.ngay.slice(0, 10);
+    (cdhaByDate[d] ||= []).push(c);
+  }
+
+  const analysisColumns: BaDayGridColumnDef[] = [
+    {
+      id: "vae_index",
+      header: "Index",
+      minWidth: aw,
+      cellClassName: (day) =>
+        baCellToneClass(indexDate === day.date ? "index" : "none"),
+      render: (day) =>
+        indexDate === day.date ? (
+          <span className="line-clamp-3 text-center text-[10px] font-semibold">
+            {indexLabel || "Index"}
+          </span>
+        ) : (
+          <span className="text-slate-300">—</span>
+        ),
+    },
+    {
+      id: "vae_ep",
+      header: "Event Period",
+      minWidth: aw,
+      cellClassName: (day) => {
+        if (!ep) return baCellToneClass("none");
+        if (doe === day.date) return baCellToneClass("index");
+        if (day.date >= ep.start && day.date <= ep.end) return baCellToneClass("iwp");
+        return baCellToneClass("none");
+      },
+      render: (day) => {
+        if (!ep) return <span className="text-slate-300">·</span>;
+        if (doe === day.date) {
+          return <span className="text-[10px] font-semibold">DOE</span>;
+        }
+        if (day.date >= ep.start && day.date <= ep.end) {
+          return <span className="text-[9px] text-violet-800">EP</span>;
+        }
+        return <span className="text-slate-300">·</span>;
+      },
+    },
+    {
+      id: "vae_ket_luan",
+      header: "Kết luận",
+      minWidth: aw,
+      cellClassName: (day) =>
+        baCellToneClass(indexDate === day.date ? "index" : "none"),
+      render: (day) => {
+        const isIx = indexDate === day.date;
+        return (
+          <div className="flex flex-col gap-0.5">
+            <NkbvBaConcludeCell
+              date={day.date}
+              xnOnDay={xnByDate[day.date] || []}
+              cdhaOnDay={cdhaByDate[day.date] || []}
+              priorEvents={priorEvents}
+              openSiteSessions={openSiteSessions}
+              analysisDispositions={analysisDispositions}
+              sampleConclusions={sampleConclusions}
+              progressiveLabel={null}
+              allowedEdit={allowedEdit}
+              analysisMode={analysisMode}
+              onManualSampleConclude={onManualSampleConclude}
+              onManualSampleClear={onManualSampleClear}
+              onConclude={(payload) => {
+                if (analysisMode === "MANUAL") return;
+                onDraftChange({
+                  ketLuan: payload.label,
+                  eventDisposition: {
+                    kind: payload.label.includes("thứ phát")
+                      ? "SECONDARY_BSI"
+                      : "BELONGS_PRIOR_EVENT",
+                    label: payload.label,
+                  },
+                });
+              }}
+            />
+            {isIx ? (
+              <input
+                className="w-full border-t border-amber-200/60 bg-transparent pt-0.5 text-[9px] font-semibold outline-none"
+                value={draft.ketLuan}
+                disabled={
+                  !allowedEdit ||
+                  (analysisMode !== "MANUAL" &&
+                    (draft.eventDisposition?.kind === "BELONGS_PRIOR_EVENT" ||
+                      draft.eventDisposition?.kind === "SECONDARY_BSI"))
+                }
+                placeholder={
+                  analysisMode === "MANUAL"
+                    ? "Gõ kết luận (VAC/IVAC/PVAP hoặc tự do)…"
+                    : "VAC / IVAC / PVAP"
+                }
+                onChange={(e) => {
+                  const ketLuan = e.target.value;
+                  onDraftChange({
+                    ketLuan,
+                    eventEstablished:
+                      analysisMode === "MANUAL"
+                        ? Boolean(ketLuan.trim())
+                        : isVaeClassLabel(ketLuan),
+                  });
+                }}
+              />
+            ) : null}
+          </div>
+        );
+      },
+    },
+    {
+      id: "vae_ghi_chu",
+      header: "Ghi chú",
+      minWidth: 72,
+      render: (day) => (
+        <input
+          className="w-full bg-transparent text-[10px] outline-none"
+          value={draft.notesByDate[day.date] || ""}
+          disabled={!allowedEdit}
+          onChange={(e) =>
+            onDraftChange({
+              notesByDate: { ...draft.notesByDate, [day.date]: e.target.value },
+            })
+          }
+        />
+      ),
+    },
+  ];
 
   return (
     <section className="mt-3 rounded-xl border border-violet-200 bg-violet-50/40 p-3">
@@ -50,8 +228,12 @@ export default function NkbvSyndromeShellPanel({
           <h3 className="text-sm font-bold text-violet-950">{title}</h3>
           <p className="mt-0.5 text-[11px] text-violet-800">
             Index {indexDate || "—"}
-            {indexLabel ? ` · ${indexLabel}` : ""} · Wave này: đủ hàng Index / kết luận / ghi chú —
-            thuật toán PEEP đầy đủ Wave 2.
+            {indexLabel ? ` · ${indexLabel}` : ""}
+            {doe ? ` · DOE ${doe}` : ""}
+            {ep ? ` · EP ${ep.start} → ${ep.end}` : ""}
+          </p>
+          <p className="mt-1 text-[10px] text-violet-700/90">
+            Ghi VAC / IVAC / PVAP ở kết luận Index để mở «Tạo phiếu» (bảng vent đầy đủ trên form).
           </p>
         </div>
         <button
@@ -63,141 +245,20 @@ export default function NkbvSyndromeShellPanel({
         </button>
       </div>
 
-      <div
-        ref={scrollRef}
-        onScroll={onScrollSync}
-        className="mt-3 overflow-x-auto overscroll-contain border border-violet-100 bg-white text-[10px]"
-      >
-        <div style={{ minWidth: labelW + Math.max(columns.length, 1) * colW }}>
-          <ShellRow label="Ngày lịch" labelW={labelW}>
-            {columns.map((c) => (
-              <div
-                key={`d-${c.date}`}
-                className="flex shrink-0 items-center justify-center border-b border-r bg-slate-50 font-semibold"
-                style={{ width: colW, minWidth: colW, minHeight: 26 }}
-              >
-                {c.label}
-              </div>
-            ))}
-          </ShellRow>
-          <ShellRow label="Ngày (HD)" labelW={labelW}>
-            {columns.map((c) => (
-              <div
-                key={`hd-${c.date}`}
-                className="flex shrink-0 items-center justify-center border-b border-r"
-                style={{ width: colW, minWidth: colW, minHeight: 22 }}
-              >
-                {c.hd == null ? "—" : c.hd}
-              </div>
-            ))}
-          </ShellRow>
-          <ShellRow label="Index XN / CĐHA" labelW={labelW}>
-            {columns.map((c) => {
-              const isIx = indexDate === c.date;
-              return (
-                <div
-                  key={`ix-${c.date}`}
-                  className={`flex shrink-0 items-center justify-center border-b border-r p-0.5 ${
-                    isIx ? "bg-violet-100 font-semibold text-violet-950" : "bg-white"
-                  }`}
-                  style={{ width: colW, minWidth: colW, minHeight: 40 }}
-                >
-                  {isIx ? (
-                    <span className="line-clamp-3 text-center text-[9px]">
-                      {indexLabel || "Index"}
-                    </span>
-                  ) : (
-                    <span className="text-slate-300">—</span>
-                  )}
-                </div>
-              );
-            })}
-          </ShellRow>
-          <ShellRow label={windowLabel} labelW={labelW}>
-            {columns.map((c) => (
-              <div
-                key={`w-${c.date}`}
-                className={`flex shrink-0 items-center justify-center border-b border-r ${
-                  indexDate === c.date ? "bg-violet-50 text-violet-800" : "bg-white text-slate-300"
-                }`}
-                style={{ width: colW, minWidth: colW, minHeight: 24 }}
-              >
-                {indexDate === c.date ? "DOE?" : "·"}
-              </div>
-            ))}
-          </ShellRow>
-          <ShellRow label="Kết luận" labelW={labelW}>
-            {columns.map((c) => {
-              const isIx = indexDate === c.date;
-              return (
-                <div
-                  key={`kl-${c.date}`}
-                  className={`flex shrink-0 items-center border-b border-r px-0.5 ${isIx ? "bg-amber-50" : "bg-white"}`}
-                  style={{ width: colW, minWidth: colW, minHeight: 36 }}
-                >
-                  {isIx ? (
-                    <input
-                      className="w-full bg-transparent text-center text-[9px] font-semibold outline-none"
-                      value={draft.ketLuan}
-                      disabled={!allowedEdit}
-                      placeholder="VAC/IVAC/PVAP"
-                      onChange={(e) => onDraftChange({ ketLuan: e.target.value })}
-                    />
-                  ) : (
-                    <span className="w-full text-center text-slate-300">—</span>
-                  )}
-                </div>
-              );
-            })}
-          </ShellRow>
-          <ShellRow label="Ghi chú" labelW={labelW}>
-            {columns.map((c) => (
-              <div
-                key={`gc-${c.date}`}
-                className="flex shrink-0 items-center border-b border-r bg-white p-0.5"
-                style={{ width: colW, minWidth: colW, minHeight: 28 }}
-              >
-                <input
-                  className="w-full bg-transparent text-center text-[10px] outline-none"
-                  value={draft.notesByDate[c.date] || ""}
-                  disabled={!allowedEdit}
-                  onChange={(e) =>
-                    onDraftChange({
-                      notesByDate: { ...draft.notesByDate, [c.date]: e.target.value },
-                    })
-                  }
-                />
-              </div>
-            ))}
-          </ShellRow>
-        </div>
-      </div>
+      {typeof children === "function" ? (
+        children({ analysisColumns })
+      ) : (
+        <p className="mt-2 text-[11px] text-amber-800">Thiếu slot bảng chung.</p>
+      )}
     </section>
   );
 }
 
-function ShellRow({
-  label,
-  labelW,
-  children,
-}: {
-  label: string;
-  labelW: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex">
-      <div
-        className="sticky left-0 z-10 flex shrink-0 items-center border-b border-r bg-violet-50/80 px-1 font-semibold text-violet-800"
-        style={{ width: labelW, minWidth: labelW }}
-      >
-        <span className="truncate">{label}</span>
-      </div>
-      {children}
-    </div>
-  );
+export function isShellPanel(panel: SyndromePanelId): panel is "VAE" {
+  return panel === "VAE";
 }
 
-export function isShellPanel(p: SyndromePanelId): p is "VAE" {
-  return p === "VAE";
+/** Tạo phiếu VAE chỉ khi đã chọn lớp VAC/IVAC/PVAP trên lưới. */
+export function vaeBaReadyToCreatePhieu(draft: BaAnalysisSessionDraft): boolean {
+  return Boolean(draft.eventEstablished) || isVaeClassLabel(draft.ketLuan || "");
 }

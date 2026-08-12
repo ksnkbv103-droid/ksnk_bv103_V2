@@ -45,8 +45,23 @@ function isConsOrEnterococcus(organism: string): boolean {
   return /coagulase|epidermidis|cons\b|enterococ/i.test(organism);
 }
 
+function isStaphOrStrepGenus(token: string): boolean {
+  return token === "staphylococcus" || token === "streptococcus";
+}
+
+function isGenusOnlyLabel(organism: string): boolean {
+  // "Pseudomonas species" / "Pseudomonas sp." / single-token genus
+  return (
+    /\bspecies\b|\bsp\.?\b|\bspp\.?\b/i.test(organism) ||
+    organism.trim().split(/\s+/).length === 1
+  );
+}
+
 /**
- * Matching Organism Rules (SSOT §4.2) — pragmatic string match for pilot.
+ * Matching Organism Rules (SSOT §4.2):
+ * - Species-level: identical when both identified to species
+ * - Genus-level: only when one side is genus-only AND same genus
+ * - CẤM genus-match cho Staphylococcus / Streptococcus (species mơ hồ ↔ CoNS / S. aureus)
  */
 export function organismsMatchForSecondary(
   bloodOrganism: string,
@@ -56,17 +71,26 @@ export function organismsMatchForSecondary(
   const p = norm(primaryOrganism);
   if (!b || !p) return false;
   if (b === p) return true;
-  // Genus-level: first token
+
   const bg = b.split(/\s+/)[0];
   const pg = p.split(/\s+/)[0];
-  if (bg && pg && bg === pg && (b.includes("species") || p.includes("species") || b === bg || p === pg)) {
-    return true;
+  if (bg && pg && bg === pg) {
+    if (isStaphOrStrepGenus(bg)) {
+      // Chỉ khớp nếu cả hai cùng chuỗi đầy đủ đã xử lý ở trên; không ghép genus
+      return false;
+    }
+    if (isGenusOnlyLabel(b) || isGenusOnlyLabel(p)) {
+      return true;
+    }
   }
+
   // Yeast NOS ↔ Candida species
   if ((/yeast/.test(b) && /candida/.test(p)) || (/yeast/.test(p) && /candida/.test(b))) {
     return true;
   }
-  return b.includes(p) || p.includes(b);
+
+  // Không dùng includes substring rộng (tránh faecalis⊂faecium nhầm) — chỉ exact / genus ở trên
+  return false;
 }
 
 export function dateInInclusiveRange(date: string, start: string, end: string): boolean {

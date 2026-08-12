@@ -8,12 +8,20 @@
 
 | ID | Hội chứng | Gap | Hướng xử lý A6 |
 |----|-----------|-----|----------------|
-| PNEU-P0-1 | PNEU | Checklist miễn dịch PNU3 từng tiêu chí | **Đóng 2026-08-09** — hemoptysis/pleuritic + engine INCOMPLETE |
-| PNEU-P0-2 | PNEU | Lab ngưỡng BAL/ETA/PSB/PBAL tách dòng | L2 khi PNU2 |
+| PNEU-P0-1 | PNEU | Checklist miễn dịch PNU3 từng tiêu chí | **Đóng 2026-08-09** — hemoptysis/pleuritic + engine INCOMPLETE · **xem lại:** [AUDIT-A3](pneu-standard-vs-runtime-audit-20260810.md) (SSOT không bắt buộc 2 TC đó) |
+| PNEU-P0-2 | PNEU | Lab ngưỡng BAL/ETA/PSB/PBAL tách dòng | **Đóng 2026-08-09** — `nkbv-pneu-lab-tier` + form L2 lab-first |
 | PNEU-P0-3 | PNEU | Khối Ruled-out (Phần V giấy) | L3 bắt buộc khi loại trừ |
 | PNEU-P0-4 | PNEU | Nhãn VAP/Non-VAP rõ trên hàng device | UI badge từ engine |
+| PNEU-AUDIT-A1 | PNEU | Đếm key hô hấp ≠ nhóm CDC (dyspnea+tachypnea=2) | Sửa đếm nhóm — xem [audit 2026-08-10](pneu-standard-vs-runtime-audit-20260810.md) |
+| PNEU-AUDIT-A2 | PNEU | PNU2 bị siết ≥2 hô hấp như PNU1 | Gate lab PNU2 chỉ cần ≥1 hô hấp |
+| PNEU-AUDIT-A3 | PNEU | PNU3 bắt buộc hemoptysis/đau màng phổi | SSOT: ≥1 triệu chứng list rộng |
 | BSI-P0-1 | BSI | MBI đầy (ANC ≥2d trong IWP) nếu chỉ tick neutropenia | L2 MBI block |
-| UTI-P0-1 | UTI | — Core đủ pilot | Boy scout copy Ruled-out ASB |
+| UTI-P0-1 | UTI | — Core đủ pilot | Boy scout copy Ruled-out ASB · **xem lại audit:** [UTI 2026-08-10](uti-standard-vs-runtime-audit-20260810.md) |
+| UTI-AUDIT-A1 | UTI | CFU thiếu/`null` coi đạt (seed 1e5) | Fail closed — [audit](uti-standard-vs-runtime-audit-20260810.md) |
+| UTI-AUDIT-A2 | UTI | ABUTI máu UI ∈ SBAP; chuẩn ∈ IWP | Siết cửa sổ ABUTI = IWP |
+| UTI-AUDIT-A3 | UTI | Mọi yeast → CANDIDA_EXCLUSION; chuẩn bỏ yeast nếu còn 1 bacterium ≥1e5 | Tách yeast+bacterium |
+| UTI-AUDIT-A4 | UTI | pathogen_count BA chết (1 chuỗi VK) | Wire đa loài / mixed flora |
+| UTI-AUDIT-A5 | UTI | Secondary engine chủ yếu nhánh ABUTI | Set Secondary trên SUTI+máu SBAP |
 | VAE-P0-1 | VAE | — Core VAC/IVAC/PVAP đủ | Giữ Event Period copy |
 | SSI-P0-1 | SSI | — Core ngày mổ/PATOS/depth đủ | — |
 
@@ -23,7 +31,7 @@
 |----|----------|
 | ALL-P1-1 | CDC Location mã chuẩn (W4 tạm dừng) |
 | ALL-P1-2 | PDF/in phụ lục B đầy đủ 6 phần giấy |
-| PNEU-P1-1 | PCR panel từng virus liệt kê |
+| PNEU-P1-1 | PCR panel từng virus liệt kê | **Đóng một phần 2026-08-09** — atom Table 3 (Influenza/RSV/Legionella…) trên form; chi tiết IgG×4 vẫn phụ lục |
 | BSI-P1-1 | CLIP trên phiếu CLABSI (W3) |
 | BSI-P1-2 | Organism/site picker Secondary đầy |
 | SSI-P1-1 | Bảng procedure NHSN đầy |
@@ -34,9 +42,9 @@
 | Hội chứng | Ghi chú |
 |-----------|---------|
 | BSI | Triệu chứng tách + CVC + secondary flags |
-| UTI | CFU/≤2/nấm + sx + Foley gate + ẩn voiding |
+| UTI | CFU/≤2/nấm + sx + Foley gate + ẩn voiding · **audit 2026-08-10:** còn A1–A5 (CFU null, ABUTI IWP, yeast-mix…) |
 | VAE | Bảng vent + VAC/IVAC/PVAP + secondary PVAP |
-| PNEU | Imaging + toàn thân + hô hấp checklist + PNU tier (thiếu chi tiết PNU2/3) |
+| PNEU | Imaging + toàn thân + hô hấp + lab-first PNU1/2/3 (Table 2/3 L2) |
 | SSI | Surgery/DOE/PATOS/depth/CSSD |
 
 ## Quy tắc ưu tiên ship UI
