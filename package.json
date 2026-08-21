@@ -33,7 +33,7 @@
     "gstt:db:audit": "node scripts/run-supabase-sql.mjs --linked --file scripts/sql/health-check-gstt-introspect.sql && node scripts/run-supabase-sql.mjs --linked --file scripts/sql/health-check-gstt-summary-kinds.sql && node scripts/run-supabase-sql.mjs --linked --file scripts/sql/health-check-gstt-triggers.sql",
     "gstt:scoring:audit": "node scripts/audit-gsc-canonical-36-scoring.mjs",
     "gstt:db:audit:local": "node scripts/run-supabase-sql.mjs --local --file scripts/sql/health-check-gstt-introspect.sql && node scripts/run-supabase-sql.mjs --local --file scripts/sql/health-check-gstt-summary-kinds.sql && node scripts/run-supabase-sql.mjs --local --file scripts/sql/health-check-gstt-triggers.sql",
-    "verify:cssd": "npm run lint:cssd-architecture && npm run imports:cssd-mdm && npm run test:cssd -- src/modules/cssd-erp src/modules/cssd-su-co/domain",
+    "verify:cssd": "npm run lint:cssd-architecture && npm run imports:cssd-mdm && npm run test:cssd -- src/modules/cssd-erp src/modules/cssd-su-co/domain src/lib/domain/cssd-*.spec.ts",
     "env:bootstrap": "node scripts/supabase-env-bootstrap.mjs",
     "env:check": "node scripts/supabase-env-check.mjs",
     "trial:prep": "npm run env:bootstrap && npm run env:check",
