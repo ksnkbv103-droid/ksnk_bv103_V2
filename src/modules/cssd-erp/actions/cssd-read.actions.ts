@@ -80,11 +80,10 @@ export async function getWaitingListByStation(station: Station) {
 
     const prevCols = PREV_STATION_COLS.CAP_PHAT;
     const hasKhoaNhan = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "khoa_nhan_id");
-    const khoaSelect = hasKhoaNhan ? ", khoa_nhan_id" : "";
     const { data, error } = await supabase
       .from("v_cssd_quy_trinh_full")
       .select(
-        `id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, ten_bo, nguoi_tiet_khuan_id, thoi_gian_tiet_khuan, lo_tiet_khuan_id${khoaSelect}`,
+        "id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, ten_bo, nguoi_tiet_khuan_id, thoi_gian_tiet_khuan, lo_tiet_khuan_id, khoa_nhan_id",
       )
       .eq("tram_hien_tai_id", capTramId)
       .eq("is_active", true)
@@ -92,7 +91,7 @@ export async function getWaitingListByStation(station: Station) {
       .order("updated_at", { ascending: true });
     if (error) throw new Error(error.message);
 
-    const raw = (data || []) as Array<Record<string, unknown>>;
+    const raw = (data || []) as unknown as Array<Record<string, unknown>>;
     const loIds = [...new Set(raw.map((x) => String(x.lo_tiet_khuan_id || "").trim()).filter(Boolean))];
     const passedLoIds = new Set<string>();
     const batchUnloadMap = new Map<string, string>();
