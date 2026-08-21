@@ -71,7 +71,8 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 | Sự cố CSSD | **`cssd-su-co`** (UI `/cssd-su-co`) | **`cssd_fact_su_co.attributes`** + `loai_su_co_id` → `LOAI_SU_CO` (SC_QUY_TRINH/SC_CHU_QUAN/SC_HE_THONG); generated `incident_group` | 3 lớp: nhóm nghiệp vụ · bản chất nguyên nhân · tình huống cụ thể; domino **`cssd-incident-policy`**. |
 | NKBV ↔ CSSD trace | `giam-sat-nkbv` + `/cssd-quy-trinh?tab=trace` | **`nkbv_fact_su_kien.quy_trinh_id`**, **`ma_cycle_qr_lien_quan`** | Ca SSI nhập QR bộ → deep link timeline (`20260602150000`). |
 | Phiếu bảo trì thiết bị / khóa máy | `cssd-erp` | **`cssd_fact_bao_tri`**, `cssd_dm_thiet_bi.trang_thai` (`REPAIRING` ↔ `READY`) | UI **`/cssd-erp/equipment-maintenance`**; chặn mẻ TK khi máy không sẵn sàng (`assert-thiet-bi-cho-me-tiet-khuan`). |
-| Kho hóa chất — vật tư KSNK (tồn theo lô) | `cssd-erp` | **`cssd_fact_kho_hoa_chat_giao_dich`**; cột `cssd_dm_hoa_chat.nguong_ton_toi_thieu` | UI **`/cssd-erp/kho-hoa-chat`**, quyền **`KSNK_KHO_HOACHAT`**. |
+| Kho hóa chất — vật tư KSNK (tồn theo lô) | `cssd-erp` | **`cssd_fact_kho_hoa_chat_giao_dich`**; cột `cssd_dm_hoa_chat.nguong_ton_toi_thieu`; **`quy_trinh_id`** (xuất tại Làm sạch) | UI **`/cssd-erp/kho-hoa-chat`**, quyền **`KSNK_KHO_HOACHAT`**. Nhật ký rửa: `cssd_fact_quy_trinh.metadata.wash`. |
+| Cấp phát kho sạch | `cssd-erp` `/cssd-quy-trinh` | **`cssd_fact_quy_trinh.khoa_nhan_id`** | Danh sách chờ = `khoa_nhan_id` trống (không dùng `ma_ca_mo_id`). Ca mổ tùy chọn trong metadata. |
 
 ---
 
@@ -141,6 +142,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-08-21 | **CSSD vận hành ngày (KTV):** trạm Làm sạch ghi máy rửa + lô FEFO (`metadata.wash`) — thiếu/không đạt chặn QC; cấp phát bắt `khoa_nhan_id` (danh sách chờ không còn lọc `ma_ca_mo_id`); QC mẻ phân loại máy `LM_*`, ảnh camera/file, plasma/EO không bắt đa thông số hơi nước; đóng gói chặn Đạt khi lẫn nhiệt chưa tách SUB; một nút thu hồi mẻ HOAN_THANH. Cột `cssd_fact_kho_hoa_chat_giao_dich.quy_trinh_id` (`20260821120000`). |
 | 2026-08-10 | **NKBV audit UTI chuẩn vs runtime (PO):** [`uti-standard-vs-runtime-audit-20260810.md`](../modules/nkbv/investigation-forms/uti-standard-vs-runtime-audit-20260810.md) — SUTI/ABUTI/CAUTI·lab·Foley·SBSI; lệch UTI-AUDIT-A1–A5/B1–B5; thứ tự sửa A1→A2→A3→A5→A4. Không sửa engine trong slice. |
 | 2026-08-10 | **NKBV audit PNEU chuẩn vs runtime (PO):** [`pneu-standard-vs-runtime-audit-20260810.md`](../modules/nkbv/investigation-forms/pneu-standard-vs-runtime-audit-20260810.md) — điều kiện PNU1/2/3·VAP·SBSI·LOA; lệch A1–A5/B1–B5; quyết định A/B; backlog audit hội chứng tiếp [`syndrome-audit-backlog.md`](../modules/nkbv/investigation-forms/syndrome-audit-backlog.md). Không sửa engine trong slice. |
 | 2026-08-09 | **NKBV Tạo phiếu seed + Đã PT:** `nkbv-analysis-session-to-verification` đổ LS/ngày/Secondary/kết luận vào `verification_data` lúc «Tạo phiếu»; đánh dấu Index+RIT+máu SBAP `metadata.analysis_disposition=DA_PHAN_TICH`; kho VS cột «Đã PT?»; hub dispositions gồm attributed. |

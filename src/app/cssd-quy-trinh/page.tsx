@@ -7,6 +7,7 @@ import { WashingMachine, Flame, Package, History, type LucideIcon } from "lucide
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
 import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+import { useModulePermission } from "@/hooks/useModulePermission";
 
 type QuyTrinhTab = "WORKFLOW" | "BATCH" | "KHO" | "TRACE";
 
@@ -72,7 +73,22 @@ function CssdQuyTrinhPageInner() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const qrParam = searchParams.get("qr");
-  const activeTab = useMemo(() => resolveTab(tabParam), [tabParam]);
+  const stationParam = searchParams.get("station");
+  const { isAdmin, allowed: reportAllowed } = useModulePermission("CSSD_REPORT");
+  const { allowed: khoAllowed } = useModulePermission("CSSD_KHO_DUNGCU");
+  const canSeeKho = isAdmin || khoAllowed.view || reportAllowed.view;
+  const canSeeTrace = isAdmin || reportAllowed.view;
+  const activeTab = useMemo(() => {
+    const requested = resolveTab(tabParam);
+    if (requested === "KHO" && !canSeeKho) return "WORKFLOW";
+    if (requested === "TRACE" && !canSeeTrace) return "WORKFLOW";
+    return requested;
+  }, [tabParam, canSeeKho, canSeeTrace]);
+
+  const visibleTabs = useMemo(
+    () => TAB_CONFIG.filter((t) => (t.key === "KHO" ? canSeeKho : t.key === "TRACE" ? canSeeTrace : true)),
+    [canSeeKho, canSeeTrace],
+  );
 
   const setTab = useCallback(
     (key: QuyTrinhTab) => {
@@ -81,10 +97,11 @@ function CssdQuyTrinhPageInner() {
       const qs = new URLSearchParams();
       if (param) qs.set("tab", param);
       if (key === "TRACE" && qrParam) qs.set("qr", qrParam);
+      if (key === "WORKFLOW" && stationParam) qs.set("station", stationParam);
       const suffix = qs.toString() ? `?${qs.toString()}` : "";
       router.replace(`/cssd-quy-trinh${suffix}`, { scroll: false });
     },
-    [router, qrParam],
+    [router, qrParam, stationParam],
   );
 
   const traceQr = useMemo(
@@ -102,7 +119,7 @@ function CssdQuyTrinhPageInner() {
     >
       <div className="space-y-4 sm:space-y-6">
         <div className={CSSD_UI_TAB_GROUP}>
-          {TAB_CONFIG.map(({ key, label, mobileLabel, icon }) => (
+          {visibleTabs.map(({ key, label, mobileLabel, icon }) => (
             <CssdHorizTabButton
               key={key}
               active={activeTab === key}

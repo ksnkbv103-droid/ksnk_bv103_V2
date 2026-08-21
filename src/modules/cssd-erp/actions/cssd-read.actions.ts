@@ -5,9 +5,10 @@ import { Station } from "../types/cssd.types";
 import { verifyPermission } from "@/lib/server-permission";
 import { resolveCssdTramId } from "../lib/cssd-tram-persist";
 import { parseBatchQcJson } from "../lib/cssd-print-format";
-import { getErrorMessage, STEPS } from "./cssd-action-common";
+import { getErrorMessage, STEPS, tableHasColumn } from "./cssd-action-common";
 import { isCssdUnifiedBoMa, normalizeBoMa } from "@/lib/domain/cssd-bo-ma";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isWaitingForWardIssuance } from "@/lib/domain/cssd-issuance-waiting";
 
 /** Cờ đỏ: ưu tiên cột trên view (sau migrate); fallback phiếu sự cố — localhost không migrate vẫn chạy. */
 async function loadRedAlertKeys(supabase: SupabaseClient): Promise<{
@@ -72,20 +73,21 @@ export async function getWaitingListByStation(station: Station) {
     CAP_PHAT:  { nguoiCol: "nguoi_tiet_khuan_id", thoiGianCol: "thoi_gian_tiet_khuan", tramLabel: "TIET_KHUAN" },
   };
 
-  /** Sau mẻ TK đạt QC, bộ đã ở trạm Cấp phát — chờ quét cấp phát (chưa gán ca mổ). */
+  /** Sau mẻ TK đạt QC, bộ đã ở trạm Cấp phát — chờ giao khoa (khoa_nhan_id trống). */
   if (station === "CAP_PHAT") {
     const capTramId = await resolveCssdTramId(supabase, "CAP_PHAT");
     if (!capTramId) return [];
 
     const prevCols = PREV_STATION_COLS.CAP_PHAT;
+    const hasKhoaNhan = await tableHasColumn(supabase, "cssd_fact_quy_trinh", "khoa_nhan_id");
+    const khoaSelect = hasKhoaNhan ? ", khoa_nhan_id" : "";
     const { data, error } = await supabase
       .from("v_cssd_quy_trinh_full")
       .select(
-        "id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, ten_bo, nguoi_tiet_khuan_id, thoi_gian_tiet_khuan, ma_ca_mo_id, lo_tiet_khuan_id",
+        `id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, ten_bo, nguoi_tiet_khuan_id, thoi_gian_tiet_khuan, lo_tiet_khuan_id${khoaSelect}`,
       )
       .eq("tram_hien_tai_id", capTramId)
       .eq("is_active", true)
-      .is("ma_ca_mo_id", null)
       .not("lo_tiet_khuan_id", "is", null)
       .order("updated_at", { ascending: true });
     if (error) throw new Error(error.message);
@@ -107,7 +109,10 @@ export async function getWaitingListByStation(station: Station) {
       }
     }
 
-    const filtered = raw.filter((x) => passedLoIds.has(String(x.lo_tiet_khuan_id || "").trim()));
+    const filtered = raw.filter((x) => {
+      if (!passedLoIds.has(String(x.lo_tiet_khuan_id || "").trim())) return false;
+      return isWaitingForWardIssuance({ khoa_nhan_id: hasKhoaNhan ? (x.khoa_nhan_id as string | null) : null });
+    });
     const nguoiIds = [
       ...new Set(filtered.map((x) => String(x[prevCols.nguoiCol] || "").trim()).filter(Boolean)),
     ];
@@ -153,10 +158,10 @@ export async function getWaitingListByStation(station: Station) {
   if (!prevTramId) return [];
 
   const prevCols = PREV_STATION_COLS[station];
-  // Select thêm cột người trạm trước + thời gian trạm trước
+  // Select thêm cột người trạm trước + thời gian trạm trước + banner thu hồi
   const selectCols = prevCols
-    ? `id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, ${prevCols.nguoiCol}, ${prevCols.thoiGianCol}`
-    : "id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id";
+    ? `id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, metadata, ${prevCols.nguoiCol}, ${prevCols.thoiGianCol}`
+    : "id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, metadata";
 
   const { data, error } = await supabase
     .from("cssd_fact_quy_trinh")
@@ -199,6 +204,9 @@ export async function getWaitingListByStation(station: Station) {
     const nguoiInfo = nguoiId ? nguoiMap.get(nguoiId) : undefined;
     const thoiGianTramTruoc = prevCols ? (x[prevCols.thoiGianCol] as string | null) : null;
 
+    const meta = (x.metadata && typeof x.metadata === "object" ? x.metadata : {}) as Record<string, unknown>;
+    const recallBanner = String(meta.recall_banner || "").trim() || null;
+
     return {
       id: x.id,
       ma_vach_qr: x.ma_qr_quy_trinh || "",
@@ -209,6 +217,7 @@ export async function getWaitingListByStation(station: Station) {
       sdt_tram_truoc: nguoiInfo?.sdt || null,
       thoi_gian_tram_truoc: thoiGianTramTruoc || null,
       tram_truoc: prevCols?.tramLabel || null,
+      recall_banner: recallBanner,
     };
   });
 }

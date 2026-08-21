@@ -68,11 +68,11 @@ flowchart LR
 | Trạm | Mã | Việc làm | Ghi chú đã chốt |
 |------|-----|----------|-----------------|
 | 1. Tiếp nhận | `TIEP_NHAN` | Quét bộ bẩn / mở chu trình mới | Sau cấp phát, lần tiếp nhận = vòng mới |
-| 2. Làm sạch | `LAM_SACH` | Quét chuyển bước | Chỉ tiến đúng 1 bước |
-| 3. QC | `QC` | Kiểm trước đóng gói | |
-| 4. Đóng gói | `DONG_GOI` | Quét + đối chiếu cấu phần; báo Hỏng/Mất/Bổ sung; sinh Cycle QR | Thiếu cấu phần: **cảnh báo**, không chặn cứng |
-| 5. Mẻ tiệt khuẩn | `TIET_KHUAN` | **Không quét trên bản đồ 6 trạm** — mở phiếu mẻ | Nạp bộ đang Đóng gói → chốt nạp → chạy máy → QC mẻ |
-| 6. Cấp phát | `CAP_PHAT` | Quét giao khoa / vào kho sạch | Soft-warning thiếu cấu phần; phải có mẻ ĐẠT |
+| 2. Làm sạch | `LAM_SACH` | Quét → ghi máy rửa/siêu âm READY + lô hóa chất FEFO + Đạt/Không đạt | Không đạt hoặc chưa ghi lần rửa → **không** chuyển QC |
+| 3. QC | `QC` | Kiểm trước đóng gói | Cổng: đã có lần rửa ĐẠT |
+| 4. Đóng gói | `DONG_GOI` | Quét + đối chiếu cấu phần; báo Hỏng/Mất/Bổ sung; sinh Cycle QR | Thiếu cấu phần: **cảnh báo**, không chặn cứng. Lẫn chịu nhiệt / không chịu nhiệt: **chặn Đạt** đến khi tách SUB |
+| 5. Mẻ tiệt khuẩn | `TIET_KHUAN` | **Không quét trên bản đồ 6 trạm** — mở phiếu mẻ | Nạp bộ đang Đóng gói → chốt nạp → chạy máy → QC mẻ (ảnh camera/file; máy `LM_*`). Mẻ xong: **Thu hồi mẻ** kéo bộ về Tiếp nhận + khóa |
+| 6. Cấp phát | `CAP_PHAT` | Chọn khoa nhận rồi quét giao | Soft-warning thiếu cấu phần; phải có mẻ ĐẠT; sau quét bộ ra khỏi danh sách chờ |
 
 **Không phải trạm quét**
 

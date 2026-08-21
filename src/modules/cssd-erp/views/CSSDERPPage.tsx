@@ -22,6 +22,8 @@ import { useCssdPrint } from "../hooks/use-cssd-print";
 import CssdPrintPortal from "../components/print/CssdPrintPortal";
 import CompositionReconcilePanel from "../components/packaging/CompositionReconcilePanel";
 import CssdStationFlowMap from "../components/workflow/CssdStationFlowMap";
+import CssdWashRecordPanel from "../components/workflow/cssd-wash-record-panel";
+import CssdKhoaNhanPicker from "../components/workflow/cssd-khoa-nhan-picker";
 import { usePrint } from "@/hooks/usePrint";
 
 const MODULE_KEY = "CSSD_WORKFLOW";
@@ -39,13 +41,17 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     lastScan,
     scanSuccess,
     dongGoiGate,
+    lamSachGate,
     selectStation,
     handleQRScan,
     confirmDongGoiAdvance,
     cancelDongGoiGate,
+    confirmLamSachAdvance,
+    cancelLamSachGate,
     refresh,
   } = useCSSDWorkflow();
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
+  const [khoaNhanId, setKhoaNhanId] = useState("");
   const { printState, onPrintCapPhat, isPrinting: isCssdPrinting } = useCssdPrint();
   const { printCycleLabel } = usePrint();
   const lastCapPhatPrintKey = React.useRef<string | null>(null);
@@ -58,6 +64,14 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     if (!(SCAN_STATIONS as readonly string[]).includes(raw)) return;
     selectStation(raw as Station);
   }, [stationParam]);
+
+  const pickStation = (station: Station) => {
+    selectStation(station);
+    const qs = new URLSearchParams(searchParams.toString());
+    qs.set("station", station);
+    const suffix = qs.toString() ? `?${qs.toString()}` : "";
+    window.history.replaceState(null, "", `${window.location.pathname}${suffix}`);
+  };
 
   useEffect(() => {
     if (currentStation !== "CAP_PHAT" || !lastScan?.quyTrinhId) return;
@@ -118,15 +132,20 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
       return;
     }
 
-    void handleQRScan(code);
+    if (currentStation === "CAP_PHAT" && !khoaNhanId.trim()) {
+      toast.error("Chọn khoa nhận trước khi quét cấp phát.");
+      return;
+    }
+    void handleQRScan(code, currentStation === "CAP_PHAT" ? { khoa_nhan_id: khoaNhanId } : undefined);
   };
 
   const showDongGoiGate = currentStation === "DONG_GOI" && !!dongGoiGate;
-  const showScanSuccess = scanSuccess && !showDongGoiGate;
+  const showLamSachGate = currentStation === "LAM_SACH" && !!lamSachGate;
+  const showScanSuccess = scanSuccess && !showDongGoiGate && !showLamSachGate;
 
   const mainContent = (
     <div className="space-y-4 animate-in fade-in duration-500 sm:space-y-6">
-      <CssdStationFlowMap activeStation={currentStation} onSelectStation={selectStation} />
+      <CssdStationFlowMap activeStation={currentStation} onSelectStation={pickStation} />
 
       {/* 4. Workflow Area */}
       <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
@@ -143,8 +162,11 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
               waitingItems={waitingList}
               disabled={!currentStation || workflowLoading}
               onConfirm={submitWorkflowQr}
-              gateActive={showDongGoiGate}
+              gateActive={showDongGoiGate || showLamSachGate}
             />
+            {currentStation === "CAP_PHAT" ? (
+              <CssdKhoaNhanPicker value={khoaNhanId} onChange={setKhoaNhanId} disabled={workflowLoading} />
+            ) : null}
             {showDongGoiGate && dongGoiGate ? (
               <CompositionReconcilePanel
                 boDungCuId={dongGoiGate.boDungCuId}
@@ -154,6 +176,14 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
                 advancing={workflowLoading}
                 onConfirmAdvance={() => void confirmDongGoiAdvance()}
                 onCancelGate={cancelDongGoiGate}
+              />
+            ) : showLamSachGate && lamSachGate ? (
+              <CssdWashRecordPanel
+                quyTrinhId={lamSachGate.quyTrinhId}
+                tenBo={lamSachGate.tenBoDungCu}
+                advancing={workflowLoading}
+                onCancel={cancelLamSachGate}
+                onConfirmPass={() => void confirmLamSachAdvance()}
               />
             ) : showScanSuccess ? (
               <QRScanSuccessCard
@@ -177,7 +207,11 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
                 <p className={CSSD_UI_STEP_HINT}>
                   {currentStation === "DONG_GOI"
                     ? "Quét hoặc chọn bộ để mở bảng kiểm cấu phần"
-                    : "Chờ lệnh quét QR mới"}
+                    : currentStation === "LAM_SACH"
+                      ? "Quét bộ để ghi máy rửa, lô hóa chất và kết quả"
+                      : currentStation === "CAP_PHAT"
+                        ? "Chọn khoa nhận, rồi quét bộ để giao"
+                        : "Chờ lệnh quét QR mới"}
                 </p>
               </div>
             )}

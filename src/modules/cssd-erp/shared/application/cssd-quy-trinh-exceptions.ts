@@ -1,5 +1,27 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+export async function mergeQuyTrinhMetadata(
+  supabase: SupabaseClient,
+  quyTrinhId: string,
+  patch: Record<string, unknown>,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const id = String(quyTrinhId || "").trim();
+  if (!id) return { ok: false, message: "Thiếu quy_trinh_id." };
+  const { data, error } = await supabase.from("cssd_fact_quy_trinh").select("metadata").eq("id", id).maybeSingle();
+  if (error) return { ok: false, message: error.message };
+  if (!data) return { ok: false, message: "Không tìm thấy quy trình." };
+  const metadata =
+    data.metadata && typeof data.metadata === "object" && !Array.isArray(data.metadata)
+      ? (data.metadata as Record<string, unknown>)
+      : {};
+  const { error: upErr } = await supabase
+    .from("cssd_fact_quy_trinh")
+    .update({ metadata: { ...metadata, ...patch }, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (upErr) return { ok: false, message: upErr.message };
+  return { ok: true };
+}
+
 /** Ghi nhận lịch sử ngoại lệ vào metadata JSONB của quy trình (cssd_fact_quy_trinh). */
 export async function appendQuyTrinhException(
   supabase: SupabaseClient,

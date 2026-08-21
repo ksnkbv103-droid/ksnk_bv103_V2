@@ -14,10 +14,10 @@ import {
   fetchCssdTietKhuanWaitingRows,
   finishCssdSterilizationBatch,
   fetchCssdBatchHeatRisk,
+  recallCssdSterilizationBatch,
 } from "../actions/cssd.actions";
 
 import { usePermission } from "@/hooks/usePermission";
-import { isSteamSterilizerProfile } from "../helpers/me-tiet-khuan-machine-kind";
 
 export function useMeTietKhuanWorkflow() {
   const { isPrinting: isCssdPrinting, printState, onPrintBatch } = useCssdPrint();
@@ -190,8 +190,7 @@ export function useMeTietKhuanWorkflow() {
     if (!confirm(msg)) return;
 
     // Phân loại máy để tự động xử lý chỉ thị đa thông số cho máy EO/Plasma
-    const isSteam = isSteamSterilizerProfile(activeMe?.thiet_bi || batchGate?.thiet_bi || null);
-    const finalChiThiDaThongSo = isSteam ? chiThiDaThongSo : "DAT";
+    const finalChiThiDaThongSo = chiThiDaThongSo;
 
     const testBIMapped =
       testSinhHoc === "DAT" ? "DAT" : testSinhHoc === "KHONG_DAT" ? "KHONG_DAT" : "";
@@ -229,13 +228,24 @@ export function useMeTietKhuanWorkflow() {
     void fetchData();
   };
 
-  const openRowForProcess = (row: any) => {
-    if (row.ket_qua_test === true || row.ket_qua_test === false) {
-      toast.message("Mẻ đã kết thúc", {
-        description: "Dùng báo cáo / kho để tra cứu theo mã lô hoặc mã QR bộ.",
-      });
+  const recallBatch = async () => {
+    if (!activeMe?.id) return;
+    const lyDo =
+      window.prompt("Lý do thu hồi mẻ (hiển thị trên banner bộ):", "Thu hồi mẻ — kéo toàn bộ bộ về Tiếp nhận") || "";
+    if (
+      !window.confirm(
+        "Thu hồi toàn bộ bộ trong mẻ (kể cả đã cấp phát)? Bộ sẽ về Tiếp nhận, khóa an toàn và ghi sự cố.",
+      )
+    )
       return;
-    }
+    const r = await recallCssdSterilizationBatch(activeMe.id, lyDo);
+    if (!r.success) return toast.error(r.error);
+    toast.success(`Đã thu hồi ${r.count} bộ về Tiếp nhận.`);
+    setStep("LIST");
+    void fetchData();
+  };
+
+  const openRowForProcess = (row: any) => {
     setActiveMe(row);
     setStep("PROCESS");
     setNguoiUnload("");
@@ -298,6 +308,7 @@ export function useMeTietKhuanWorkflow() {
     confirmBatDau,
     confirmKetThucChuTrinh,
     finishQc,
+    recallBatch,
     backToList,
     openRowForProcess,
     printState,

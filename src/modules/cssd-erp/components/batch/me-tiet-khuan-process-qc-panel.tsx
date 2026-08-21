@@ -17,8 +17,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PassFailToggle } from "./me-tiet-khuan-qc-primitives";
+import { classifySterilizerKind } from "@/lib/domain/cssd-sterilizer-kind";
 
-/** Ô upload / nhập URL ảnh minh chứng */
+/** Ô chụp / chọn ảnh minh chứng — không nhập URL. */
 function PhotoProof({
   label,
   value,
@@ -37,15 +38,34 @@ function PhotoProof({
         Ảnh minh chứng — {label}
         {required && <span className="text-red-500">*</span>}
       </label>
-      <div className="relative">
-        <ImageIcon size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input
-          className="h-10 w-full rounded-xl border-2 border-slate-100 bg-slate-50 pl-8 pr-3 text-xs font-medium outline-none transition-all focus:border-[var(--primary)] focus:ring-2 focus:ring-emerald-50"
-          placeholder="URL ảnh hoặc mã tham chiếu file..."
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
+      <div className="flex items-center gap-2">
+        <label className="inline-flex h-10 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 hover:bg-slate-100">
+          <ImageIcon size={14} />
+          {value ? "Đổi ảnh" : "Chụp hoặc chọn file"}
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="sr-only"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = () => onChange(String(reader.result || ""));
+              reader.readAsDataURL(file);
+            }}
+          />
+        </label>
+        {value ? (
+          <button type="button" onClick={() => onChange("")} className="text-[11px] font-semibold text-slate-500 underline">
+            Xóa
+          </button>
+        ) : null}
       </div>
+      {value ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={value} alt={`Minh chứng ${label}`} className="h-20 w-20 rounded-lg border border-slate-200 object-cover" />
+      ) : null}
     </div>
   );
 }
@@ -155,23 +175,7 @@ export default function MeTietKhuanProcessQcPanel({
   onFinish: (isPass: boolean, overrideThongSoMay?: string) => void;
 }) {
   // Phân loại máy tiệt khuẩn
-  const machineType = useMemo(() => {
-    if (!thietBi) return "STEAM";
-    const m = Array.isArray(thietBi) ? thietBi[0] : thietBi;
-    const combined = [
-      m?.ten_thiet_bi,
-      m?.loai_thiet_bi,
-      m?.loai_ten_hien_thi,
-      m?.loai_may?.[0]?.ma_loai_may,
-      m?.loai_may?.[0]?.ten_loai_may,
-    ]
-      .map(String)
-      .join(" ")
-      .toLowerCase();
-    if (/eo|ethylen|oxit|oxide/.test(combined)) return "EO";
-    if (/plasma|h2o2|hydro/.test(combined)) return "PLASMA";
-    return "STEAM";
-  }, [thietBi]);
+  const machineType = useMemo(() => classifySterilizerKind(thietBi), [thietBi]);
 
   // Thông số máy: chỉ pass/fail + ảnh
   const [thongSoMayResult, setThongSoMayResult] = useState<"DAT" | "KHONG_DAT" | "">("");

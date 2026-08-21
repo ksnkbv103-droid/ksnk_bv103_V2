@@ -23,7 +23,7 @@ import MeTietKhuanWaitingPanel, { type MeTkWaitingRow } from "./me-tiet-khuan-wa
 import MeTietKhuanHeatBanner from "./me-tiet-khuan-heat-banner";
 import MeTkNkbvLinkBanner from "./me-tk-nkbv-link-banner";
 import { CSSD_UI_ACTION_SECONDARY } from "../../shared/ui/cssd-ui-chrome";
-import { isSteamSterilizerProfile } from "../../helpers/me-tiet-khuan-machine-kind";
+import { isSteamSterilizerKind } from "@/lib/domain/cssd-sterilizer-kind";
 
 type MeRow = {
   id: string;
@@ -74,6 +74,7 @@ export default function MeTietKhuanProcessStep({
   onPrintBatch,
   isPrintBusy,
   onReportIncident,
+  onRecallBatch,
 }: {
   activeMe: MeRow | null;
   batchGate: MeRow | null;
@@ -113,10 +114,11 @@ export default function MeTietKhuanProcessStep({
   onPrintBatch?: () => void;
   isPrintBusy?: boolean;
   onReportIncident?: () => void;
+  onRecallBatch?: () => void;
 }) {
   const napLocked = Boolean(batchGate?.tk_chot_nap_at);
   const qcOpen = Boolean(batchGate?.tk_mo_form_qc_at);
-  const showBowie = useMemo(() => isSteamSterilizerProfile(batchGate?.thiet_bi ?? null), [batchGate?.thiet_bi]);
+  const showBowie = useMemo(() => isSteamSterilizerKind(batchGate?.thiet_bi ?? null), [batchGate?.thiet_bi]);
 
   // Xác định giai đoạn hiện tại
   const phase: "CHUAN_BI" | "DANG_TK" | "DANH_GIA" | "HOAN_THANH" = qcOpen
@@ -207,6 +209,17 @@ export default function MeTietKhuanProcessStep({
                 Kết thúc chu trình tiệt khuẩn
               </button>
             )}
+
+            {phase === "HOAN_THANH" && onRecallBatch ? (
+              <button
+                type="button"
+                onClick={() => void onRecallBatch()}
+                className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-red-300 bg-red-500 px-4 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition-all hover:bg-red-400 active:scale-95"
+              >
+                <AlertCircle size={16} aria-hidden="true" />
+                Thu hồi mẻ
+              </button>
+            ) : null}
 
             {phase === "HOAN_THANH" && activeMe?.ket_qua_test === true && onPrintBatch ? (
               <button
@@ -367,7 +380,7 @@ export default function MeTietKhuanProcessStep({
             <MeTietKhuanProcessQcPanel
               showForm={qcOpen}
               showBowieDick={showBowie}
-              thietBi={activeMe?.thiet_bi || batchGate?.thiet_bi || null}
+              thietBi={batchGate?.thiet_bi || activeMe?.thiet_bi || null}
               nguoiUnload={nguoiUnload}
               setNguoiUnload={setNguoiUnload}
               nhietDo={nhietDo}

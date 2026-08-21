@@ -6,6 +6,8 @@ import { insertCssdLifecycleEvent } from "../../shared/application/cssd-lifecycl
 import { assertLedgerDuChoCapPhat } from "./cssd-asset-ledger";
 import { assertMergeGateForCapPhat } from "./cssd-merge-gate";
 import { fetchActiveQuyTrinhByScanCode } from "../../shared/application/cssd-workflow-resolve";
+import { mergeQuyTrinhMetadata } from "../../shared/application/cssd-quy-trinh-exceptions";
+import { assertHeatSplitForDongGoi, assertWashAllowsQc } from "./cssd-station-extra-gates";
 
 export type WorkflowQuyTrinhInput = {
   id: string;
@@ -57,6 +59,13 @@ export async function executeWorkflowStationScan(
     tiepNhanPending,
   });
   if (!advance.ok) throw new Error(advance.message);
+
+  if (targetStation === "QC" && quyTrinh.id) {
+    await assertWashAllowsQc(supabase, quyTrinh.id);
+  }
+  if (targetStation === "DONG_GOI" && quyTrinh.id) {
+    await assertHeatSplitForDongGoi(supabase, quyTrinh.id);
+  }
 
   // 1. Kiểm tra an toàn trước khi quét (Safety Lock cho Cấp phát)
   if (targetStation === "CAP_PHAT" && quyTrinh.id) {
@@ -117,16 +126,11 @@ export async function executeWorkflowStationScan(
     throw new Error(result.message || "Không thể thực hiện quét trạm.");
   }
 
-  // 3. Xử lý extraPayload (Ví dụ: Truy vết ca mổ tại trạm Cấp phát)
+  // 3. extraPayload: ca mổ tùy chọn — merge metadata, không ghi đè bom/wash.
   if (targetStation === "CAP_PHAT" && opts.extraPayload?.ma_ca_mo_id && quyTrinh.id) {
-    await supabase
-      .from("cssd_fact_quy_trinh")
-      .update({
-        metadata: {
-          ma_ca_mo_id: String(opts.extraPayload.ma_ca_mo_id),
-        },
-      })
-      .eq("id", quyTrinh.id);
+    await mergeQuyTrinhMetadata(supabase, quyTrinh.id, {
+      ma_ca_mo_id: String(opts.extraPayload.ma_ca_mo_id),
+    });
   }
 
   return { tenBoDungCu: qr };

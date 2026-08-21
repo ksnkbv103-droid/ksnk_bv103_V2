@@ -106,6 +106,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         onPrintBatch={() => w.activeMe?.id && void w.onPrintBatch({ batchId: w.activeMe.id })}
         isPrintBusy={w.isCssdPrinting}
         onReportIncident={() => setIsIncidentOpen(true)}
+        onRecallBatch={() => void w.recallBatch()}
       />
       {printPortal}
       <IncidentReportModal

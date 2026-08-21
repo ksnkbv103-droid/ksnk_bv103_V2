@@ -46,7 +46,7 @@ export default function WorkflowStationQrEntry({ waitingItems, disabled, onConfi
     <div className="space-y-3">
       {gateActive ? (
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-medium leading-relaxed text-amber-900">
-          Đang kiểm bộ đã chọn. Hoàn tất báo sự cố (nếu có) rồi bấm «Xác nhận chuyển chờ tiệt khuẩn» — hoặc «Đóng» nếu chưa chuyển.
+          Đang ghi nhận bộ đã chọn. Hoàn tất phiếu (rửa / đóng gói) rồi chuyển trạm — hoặc «Đóng» nếu chưa chuyển.
         </p>
       ) : null}
 

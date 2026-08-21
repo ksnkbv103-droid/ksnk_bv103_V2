@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Station, CSSDWaitingItem } from "../types/cssd.types";
-import { scanQR, getWaitingListByStation } from "../actions/cssd.actions";
+import { scanQR, getWaitingListByStation, prepareLamSachWashGateScan } from "../actions/cssd.actions";
 import { prepareDongGoiBomGateScan } from "../actions/cssd-bom-checkpoint.actions";
 import { usePermission } from "@/hooks/usePermission";
 import { toast } from "sonner";
@@ -31,6 +31,12 @@ export type DongGoiGateState = {
   tenBoDungCu: string;
 };
 
+export type LamSachGateState = {
+  code: string;
+  quyTrinhId: string;
+  tenBoDungCu: string;
+};
+
 export function useCSSDWorkflow() {
   const { userData } = usePermission();
   const operatorLabel =
@@ -42,6 +48,7 @@ export function useCSSDWorkflow() {
 
   const [lastScan, setLastScan] = useState<any>(null);
   const [dongGoiGate, setDongGoiGate] = useState<DongGoiGateState | null>(null);
+  const [lamSachGate, setLamSachGate] = useState<LamSachGateState | null>(null);
 
   const fetchWaitingList = useCallback(async (station: Station) => {
     try {
@@ -67,8 +74,30 @@ export function useCSSDWorkflow() {
     setCurrentStation(station);
     setLastScan(null);
     setDongGoiGate(null);
+    setLamSachGate(null);
     fetchWaitingList(station);
   };
+
+  const openLamSachGate = useCallback(async (code: string) => {
+    const normalized = code.trim().toUpperCase();
+    if (!normalized) return;
+    setLoading(true);
+    setLastScan(null);
+    try {
+      const prep = await prepareLamSachWashGateScan(normalized);
+      setLamSachGate({
+        code: prep.code,
+        quyTrinhId: prep.quyTrinhId,
+        tenBoDungCu: prep.tenBoDungCu,
+      });
+      toast.success(`Mở phiếu rửa: ${prep.tenBoDungCu}`);
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Không mở được phiếu làm sạch.");
+      setLamSachGate(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const openDongGoiGate = useCallback(async (code: string) => {
     const normalized = code.trim().toUpperCase();
@@ -173,6 +202,10 @@ export function useCSSDWorkflow() {
       await openDongGoiGate(code);
       return;
     }
+    if (currentStation === "LAM_SACH") {
+      await openLamSachGate(code);
+      return;
+    }
 
     await runStationScan(currentStation, code, extraPayload);
   };
@@ -183,9 +216,20 @@ export function useCSSDWorkflow() {
     setDongGoiGate(null);
   }, [dongGoiGate, runStationScan]);
 
+  const confirmLamSachAdvance = useCallback(async () => {
+    if (!lamSachGate) return;
+    await runStationScan("LAM_SACH", lamSachGate.code);
+    setLamSachGate(null);
+  }, [lamSachGate, runStationScan]);
+
   const cancelDongGoiGate = useCallback(() => {
     setDongGoiGate(null);
     toast.message("Đã đóng bảng kiểm — bộ chưa chuyển chờ tiệt khuẩn.");
+  }, []);
+
+  const cancelLamSachGate = useCallback(() => {
+    setLamSachGate(null);
+    toast.message("Đã đóng phiếu rửa — bộ chưa chuyển QC.");
   }, []);
 
   useEffect(() => {
@@ -204,10 +248,13 @@ export function useCSSDWorkflow() {
     lastScan,
     scanSuccess: !!lastScan,
     dongGoiGate,
+    lamSachGate,
     selectStation,
     handleQRScan,
     confirmDongGoiAdvance,
     cancelDongGoiGate,
+    confirmLamSachAdvance,
+    cancelLamSachGate,
     refresh: () => currentStation && fetchWaitingList(currentStation),
   };
 }

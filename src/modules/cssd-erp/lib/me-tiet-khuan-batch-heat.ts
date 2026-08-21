@@ -3,7 +3,7 @@ import {
   type BomItem,
   type HeatEvaluation,
 } from "@/lib/domain/cssd-packaging-rules";
-import { isSteamSterilizerProfile } from "../helpers/me-tiet-khuan-machine-kind";
+import { isSteamSterilizerKind } from "@/lib/domain/cssd-sterilizer-kind";
 
 export type BatchHeatRisk = {
   level: "OK" | "WARN" | "BLOCK";
@@ -16,11 +16,16 @@ export type BatchHeatRisk = {
  */
 export function evaluateBatchSterilizationHeatRisk(
   bomItems: BomItem[],
-  machine: { loai_ten_hien_thi?: string | null; loai_thiet_bi?: string | null } | null,
+  machine: {
+    ma_loai_may?: string | null;
+    loai_ten_hien_thi?: string | null;
+    loai_thiet_bi?: string | null;
+    loai_may?: { ma_loai_may?: string | null } | null;
+  } | null,
 ): BatchHeatRisk {
   const heat = evaluateHeatCompatibility(bomItems);
   const messages: string[] = [];
-  const steam = isSteamSterilizerProfile(machine);
+  const steam = isSteamSterilizerKind(machine);
 
   if (!bomItems.length) {
     return { level: "OK", heat, messages: ["Chưa có bộ trong mẻ — chưa đánh giá BOM."] };

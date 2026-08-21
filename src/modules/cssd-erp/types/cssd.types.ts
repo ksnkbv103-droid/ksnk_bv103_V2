@@ -24,6 +24,8 @@ export interface CSSDWaitingItem {
   thoi_gian_tram_truoc?: string | null;
   /** Mã trạm trước (LAM_SACH, QC, ...) */
   tram_truoc?: string | null;
+  /** Banner thu hồi mẻ (metadata.recall_banner) */
+  recall_banner?: string | null;
 }
 
 export interface IncidentReport {

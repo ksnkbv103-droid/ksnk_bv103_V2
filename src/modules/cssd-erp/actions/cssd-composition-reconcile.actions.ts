@@ -7,6 +7,11 @@ import {
   type BomItem,
 } from "@/lib/domain/cssd-packaging-rules";
 import {
+  packConfirmBlockedByHeatSplit,
+  resolveHeatSplitStatus,
+  type HeatSplitStatus,
+} from "@/lib/domain/cssd-heat-split-status";
+import {
   normalizeSpaulding,
   normalizeSteamMethod,
 } from "../shared/domain/cssd-quy-trinh-bom";
@@ -32,6 +37,8 @@ export type CompositionReconcilePayload = {
   tenBo: string;
   items: CompositionReconcileRow[];
   heat: ReturnType<typeof evaluateHeatCompatibility>;
+  heatSplit: HeatSplitStatus;
+  packBlockedReason: string | null;
   hasGap: boolean;
   /** Cảnh báo bù MDM (D-17). */
   replenishWarnings: string[];
@@ -58,7 +65,7 @@ export async function loadBoCompositionByMaBo(maBo: string) {
 }
 
 /** Tải danh sách đối chiếu cấu phần bộ từ view realtime (KH vs TT). */
-export async function loadBoCompositionReconcile(boDungCuId: string) {
+export async function loadBoCompositionReconcile(boDungCuId: string, quyTrinhId?: string | null) {
   await verifyPermission("CSSD_WORKFLOW", "view");
   const supabase = createAdminSupabaseClient();
   const boId = String(boDungCuId || "").trim();
@@ -132,6 +139,30 @@ export async function loadBoCompositionReconcile(boDungCuId: string) {
   }));
 
   const heat = evaluateHeatCompatibility(domainItems);
+  let heatSplit: HeatSplitStatus = resolveHeatSplitStatus({
+    requireSplit: heat.requireSplit,
+    hasActiveSub: false,
+  });
+  const qtId = String(quyTrinhId || "").trim();
+  if (qtId && heat.requireSplit) {
+    const { data: qt } = await supabase
+      .from("cssd_fact_quy_trinh")
+      .select("ma_vai_tro_bo")
+      .eq("id", qtId)
+      .maybeSingle();
+    const { count } = await supabase
+      .from("cssd_fact_quy_trinh")
+      .select("id", { count: "exact", head: true })
+      .eq("quy_trinh_cha_id", qtId)
+      .eq("ma_vai_tro_bo", "SUB")
+      .eq("is_active", true);
+    heatSplit = resolveHeatSplitStatus({
+      requireSplit: true,
+      maVaiTroBo: (qt as { ma_vai_tro_bo?: string | null } | null)?.ma_vai_tro_bo,
+      hasActiveSub: (count || 0) > 0,
+    });
+  }
+  const packBlock = packConfirmBlockedByHeatSplit(heatSplit);
   const hasGap = items.some((i) => i.isMissing);
   const replenishWarnings: string[] = [];
   for (const item of items) {
@@ -157,6 +188,8 @@ export async function loadBoCompositionReconcile(boDungCuId: string) {
       tenBo,
       items,
       heat,
+      heatSplit,
+      packBlockedReason: packBlock.blocked ? packBlock.reason || heat.reason : null,
       hasGap,
       replenishWarnings,
     } satisfies CompositionReconcilePayload,

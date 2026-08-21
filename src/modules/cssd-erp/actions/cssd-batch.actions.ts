@@ -247,11 +247,15 @@ export async function fetchCssdBatchHeatRisk(batchId: string) {
       }
     }
 
-    const tb = (me as { thiet_bi?: { ten_thiet_bi?: string; loai_may?: { ten_loai_may?: string; ma_loai_may?: string } } } | null)
+    const tb = (me as { thiet_bi?: { ten_thiet_bi?: string; loai_may?: { ten_loai_may?: string; ma_loai_may?: string } | { ten_loai_may?: string; ma_loai_may?: string }[] } } | null)
       ?.thiet_bi;
+    const lmRaw = tb?.loai_may;
+    const lm = Array.isArray(lmRaw) ? lmRaw[0] : lmRaw;
     const machine = {
-      loai_thiet_bi: tb?.ten_thiet_bi || tb?.loai_may?.ma_loai_may || null,
-      loai_ten_hien_thi: tb?.loai_may?.ten_loai_may || null,
+      ma_loai_may: lm?.ma_loai_may || null,
+      loai_thiet_bi: lm?.ma_loai_may || tb?.ten_thiet_bi || null,
+      loai_ten_hien_thi: lm?.ten_loai_may || null,
+      loai_may: lm || null,
     };
 
     const risk = evaluateBatchSterilizationHeatRisk(bomItems, machine);

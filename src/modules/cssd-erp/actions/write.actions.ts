@@ -5,3 +5,6 @@ export * from "./cssd-workflow.commands.actions";
 export * from "./cssd-workflow-ops.actions";
 export * from "./cssd-bao-tri-mutations.actions";
 export * from "./cssd-kho-hoa-chat-mutations.actions";
+export * from "./cssd-wash.actions";
+export * from "./cssd-khoa-nhan.actions";
+export * from "./cssd-batch-recall.actions";

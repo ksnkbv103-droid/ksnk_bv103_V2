@@ -49,6 +49,12 @@ export default function WaitingList({ items, onAction }: Props) {
                   </span>
                 </div>
 
+                {item.recall_banner ? (
+                  <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-semibold leading-relaxed text-red-800">
+                    {item.recall_banner}
+                  </p>
+                ) : null}
+
                 {item.nguoi_tram_truoc && (
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-blue-100 bg-blue-50/40 px-3 py-2 text-[11px] text-blue-800">

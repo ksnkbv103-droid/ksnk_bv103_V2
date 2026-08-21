@@ -4,6 +4,8 @@ import { tableHasColumn } from "../shared/cssd-db-utils";
 import { appendQuyTrinhException } from "../actions/cssd-action-common";
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
 import { buildIncidentAttributes } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
+import { classifySterilizerKind } from "@/lib/domain/cssd-sterilizer-kind";
+import { validateMeTietKhuanPassPayload } from "@/lib/domain/cssd-me-qc-payload";
 
 export type PersistMeTietKhuanInput = {
   activeMeId: string;
@@ -38,22 +40,16 @@ function normTri(v: string | undefined): string {
   return String(v || "").trim().toUpperCase();
 }
 
-function validateMeTietKhuanPassPayload(p: PersistMeTietKhuanInput): string | null {
-  if (!p.isPass) return null;
-  if (!String(p.nguoiUnload || "").trim()) return "Thiếu người dỡ mẻ.";
-  if (!String(p.nhietDo || "").trim()) return "Thiếu ghi nhận nhiệt độ / áp suất.";
-  if (!String(p.thongSoMay || "").trim()) return "Thiếu thông số máy.";
-  const ctx = normTri(p.chiThiTiepXuc);
-  const cda = normTri(p.chiThiDaThongSo);
-  if (ctx !== "DAT") return "Chỉ thị tiếp xúc phải ĐẠT để kết luận mẻ đạt.";
-  if (cda !== "DAT") return "Chỉ thị đa thông số phải ĐẠT để kết luận mẻ đạt.";
-  const bio = normTri(p.testSinhHoc) || normTri(p.testBI) || "NA";
-  if (bio === "KHONG_DAT") return "Test sinh học không đạt — không thể kết luận mẻ đạt.";
-  const chem = normTri(p.testCI) || "NA";
-  if (chem === "KHONG_DAT") return "Chỉ thị hóa học (CI) không đạt — không thể kết luận mẻ đạt.";
-  const bd = normTri(p.testBD) || "NA";
-  if (bd === "KHONG_DAT") return "Bowie–Dick không đạt — không thể kết luận mẻ đạt.";
-  return null;
+export { validateMeTietKhuanPassPayload };
+
+async function resolveBatchSterilizerKind(client: SupabaseClient, meId: string) {
+  const { data } = await client
+    .from("cssd_fact_lo_tiet_khuan")
+    .select("thiet_bi:cssd_dm_thiet_bi(loai_may_id, loai_may:cssd_dm_loai_may(ma_loai_may, ten_loai_may), ten_thiet_bi)")
+    .eq("id", meId)
+    .maybeSingle();
+  const tb = (data as { thiet_bi?: unknown } | null)?.thiet_bi;
+  return classifySterilizerKind(tb);
 }
 
 /** Ghi kết quả mẻ tiệt khuẩn + (nếu đạt) cập nhật quy_trình và nhật ký quét. */
@@ -77,7 +73,8 @@ export async function persistMeTietKhuanFinishWithClient(
   }
 
   if (p.isPass) {
-    const passErr = validateMeTietKhuanPassPayload(p);
+    const kind = await resolveBatchSterilizerKind(client, p.activeMeId);
+    const passErr = validateMeTietKhuanPassPayload(p, kind);
     if (passErr) return { ok: false, message: passErr };
   } else if (!String(p.nguoiUnload || "").trim()) {
     return { ok: false, message: "Thiếu người dỡ mẻ." };
@@ -163,14 +160,15 @@ export async function persistMeTietKhuanFinishWithClient(
       const qtPatch: Record<string, unknown> = {
         ...capPatch,
         thoi_gian_tiet_khuan: nowPass,
-        thoi_gian_cap_phat: nowPass,
         ngay_het_han: expiry.toISOString(),
         han_su_dung: expiry.toISOString(),
         updated_at: nowPass,
       };
+      if (await tableHasColumn(client, "cssd_fact_quy_trinh", "khoa_nhan_id")) {
+        qtPatch.khoa_nhan_id = null;
+      }
       if (operatorId) {
         qtPatch.nguoi_tiet_khuan_id = operatorId;
-        qtPatch.nguoi_cap_phat_id = operatorId;
       }
       await client.from("cssd_fact_quy_trinh").update(qtPatch).eq("id", id);
     }

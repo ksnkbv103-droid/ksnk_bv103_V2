@@ -40,10 +40,10 @@ export default function InventoryDashboard({ data, activeStatus, onSelectStatus 
   const countDongGoi = data.filter((d) => d.trang_thai_hien_tai === "DONG_GOI").length;
   const countTietKhuan = data.filter((d) => d.trang_thai_hien_tai === "TIET_KHUAN").length;
   const countDaTietKhuan = data.filter(
-    (d) => d.trang_thai_hien_tai === "CAP_PHAT" && !d.ma_ca_mo_id,
+    (d) => d.trang_thai_hien_tai === "CAP_PHAT" && !d.khoa_nhan_id,
   ).length;
   const countDaCapPhat = data.filter(
-    (d) => d.trang_thai_hien_tai === "CAP_PHAT" && d.ma_ca_mo_id,
+    (d) => d.trang_thai_hien_tai === "CAP_PHAT" && d.khoa_nhan_id,
   ).length;
   const countBroken = data.filter(
     (d) => d.is_red_alert === true || d.tinh_trang === "HONG" || d.tinh_trang === "MAT",

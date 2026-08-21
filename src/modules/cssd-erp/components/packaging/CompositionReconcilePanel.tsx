@@ -12,6 +12,7 @@ import { CSSD_UI_SECTION_TITLE, CSSD_UI_TABLE_HEADER } from "../../shared/ui/css
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 import { requestReplenishFromReserveAction } from "@/lib/master-data/cssd-instrument-ops.actions";
+import { registerSplitSubQrFromMainMaAction } from "../../actions/cssd-register-label.actions";
 
 type SuCoPrefill = {
   maBo: string;
@@ -52,6 +53,7 @@ export default function CompositionReconcilePanel({
   const [suCoOpen, setSuCoOpen] = useState(false);
   const [suCoPrefill, setSuCoPrefill] = useState<SuCoPrefill | null>(null);
   const [replenishingId, setReplenishingId] = useState<string | null>(null);
+  const [splitting, setSplitting] = useState(false);
 
   const fetchData = useCallback(async () => {
     const id = String(boDungCuId || "").trim();
@@ -61,7 +63,7 @@ export default function CompositionReconcilePanel({
     }
     setLoading(true);
     try {
-      const res = await loadBoCompositionReconcile(id);
+      const res = await loadBoCompositionReconcile(id, quyTrinhId);
       setData(res.data);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Không tải danh sách đối chiếu.");
@@ -69,7 +71,7 @@ export default function CompositionReconcilePanel({
     } finally {
       setLoading(false);
     }
-  }, [boDungCuId, enabled]);
+  }, [boDungCuId, enabled, quyTrinhId]);
 
   useEffect(() => {
     void fetchData();
@@ -134,14 +136,36 @@ export default function CompositionReconcilePanel({
         {data?.heat.requireSplit ? (
           <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-rose-900">
             <ShieldAlert className="mt-0.5 shrink-0" size={18} />
-            <div className="space-y-1">
+            <div className="space-y-2">
               <p className="text-[11px] font-semibold uppercase tracking-wide">Cần tách / đổi phương pháp TK</p>
               <p className="text-[11px] font-medium leading-relaxed">{data.heat.reason}</p>
               {data.heat.methodLabelVi ? (
-                <p className="text-[11px] font-bold text-rose-800">
-                  Gợi ý: {data.heat.methodLabelVi}
-                </p>
+                <p className="text-[11px] font-bold text-rose-800">Gợi ý: {data.heat.methodLabelVi}</p>
               ) : null}
+              {data.heatSplit === "DONE" ? (
+                <p className="text-[11px] font-bold text-emerald-800">Đã tách túi phụ (SUB) — có thể xác nhận đóng gói.</p>
+              ) : (
+                <button
+                  type="button"
+                  disabled={splitting || !data.maBo}
+                  onClick={async () => {
+                    setSplitting(true);
+                    try {
+                      const res = await registerSplitSubQrFromMainMaAction(data.maBo);
+                      if (!res.success) throw new Error(res.error);
+                      toast.success(`Đã tách SUB: ${res.ma_vach_qr_phu}`);
+                      await fetchData();
+                    } catch (e: unknown) {
+                      toast.error(e instanceof Error ? e.message : "Không tách được túi phụ.");
+                    } finally {
+                      setSplitting(false);
+                    }
+                  }}
+                  className="h-10 rounded-xl bg-rose-700 px-3 text-[11px] font-semibold uppercase tracking-wide text-white disabled:opacity-50"
+                >
+                  {splitting ? "Đang tách…" : "Tách túi phụ (SUB)"}
+                </button>
+              )}
             </div>
           </div>
         ) : data?.heat.methodLabelVi ? (
@@ -264,11 +288,14 @@ export default function CompositionReconcilePanel({
             <button
               type="button"
               onClick={onConfirmAdvance}
-              disabled={advancing || loading}
+              disabled={advancing || loading || !!data?.packBlockedReason}
               className="h-11 touch-manipulation rounded-xl bg-emerald-600 px-5 text-xs font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {advancing ? "Đang chuyển…" : "Xác nhận chuyển chờ tiệt khuẩn"}
             </button>
+            {data?.packBlockedReason ? (
+              <p className="w-full text-right text-[11px] font-medium text-rose-700">{data.packBlockedReason}</p>
+            ) : null}
           </div>
         ) : null}
       </section>

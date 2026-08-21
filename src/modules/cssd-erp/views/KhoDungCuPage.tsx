@@ -106,9 +106,9 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
     } else if (filterStatus === "TIET_KHUAN") {
       filtered = filtered.filter(d => d.trang_thai_hien_tai === "TIET_KHUAN");
     } else if (filterStatus === "DA_TIET_KHUAN") {
-      filtered = filtered.filter(d => d.trang_thai_hien_tai === "CAP_PHAT" && !d.ma_ca_mo_id);
+      filtered = filtered.filter(d => d.trang_thai_hien_tai === "CAP_PHAT" && !d.khoa_nhan_id);
     } else if (filterStatus === "DA_CAP_PHAT") {
-      filtered = filtered.filter(d => d.trang_thai_hien_tai === "CAP_PHAT" && d.ma_ca_mo_id);
+      filtered = filtered.filter(d => d.trang_thai_hien_tai === "CAP_PHAT" && d.khoa_nhan_id);
     } else if (filterStatus === "BROKEN") {
       filtered = filtered.filter(d => d.is_red_alert || d.tinh_trang === "HONG" || d.tinh_trang === "MAT");
     }
@@ -226,9 +226,9 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
           DONG_GOI: { icon: "📦", label: "Đóng gói", cls: "bg-amber-50 text-amber-700 border-amber-100" },
           TIET_KHUAN: { icon: "🔥", label: "Tiệt khuẩn", cls: "bg-orange-50 text-orange-700 border-orange-100" },
           CAP_PHAT: {
-            icon: i.ma_ca_mo_id ? "📦" : "✅",
-            label: i.ma_ca_mo_id ? "Đã cấp phát" : "Sẵn sàng",
-            cls: i.ma_ca_mo_id ? "bg-teal-50 text-teal-700 border-teal-100" : "bg-emerald-50 text-emerald-700 border-emerald-100",
+            icon: i.khoa_nhan_id ? "📦" : "✅",
+            label: i.khoa_nhan_id ? "Đã cấp phát" : "Sẵn sàng",
+            cls: i.khoa_nhan_id ? "bg-teal-50 text-teal-700 border-teal-100" : "bg-emerald-50 text-emerald-700 border-emerald-100",
           },
         };
         const badge = STATION_BADGE[station] || {

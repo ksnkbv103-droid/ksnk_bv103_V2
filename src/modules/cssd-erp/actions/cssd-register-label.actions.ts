@@ -101,7 +101,11 @@ export async function registerSplitSubQrFromMainMaAction(maQrMain: string): Prom
   { success: true; ma_vach_qr_phu: string; quy_trinh_cha_id: string } | { success: false; error: string }
 > {
   try {
-    await verifyCanRegisterPhysicalLabel();
+    try {
+      await verifyCanRegisterPhysicalLabel();
+    } catch {
+      await verifyPermission("CSSD_WORKFLOW", "edit");
+    }
     const supabase = createAdminSupabaseClient();
     const mainCode = normalizeBoMa(maQrMain);
     if (!mainCode) return { success: false, error: "Thiếu mã QR bộ chính." };
