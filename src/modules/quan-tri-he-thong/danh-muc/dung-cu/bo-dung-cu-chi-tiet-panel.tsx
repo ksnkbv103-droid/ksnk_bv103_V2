@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, ExternalLink, Layers, Loader2, PackagePlus, RefreshCcw } from "lucide-react";
+import { AlertTriangle, Layers, Loader2, PackagePlus, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import DungCuChiTietFormModal from "./dung-cu-chi-tiet-form-modal";
@@ -178,12 +178,9 @@ export function BoDungCuChiTietPanel({
             Quản lý thành phần bộ{titleBit}
           </h3>
         </div>
-        <Link
-          href="/quan-tri-he-thong/danh-muc/dung-cu"
-          className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 underline-offset-2 hover:underline"
-        >
-          Mở trang quản trị chi tiết lẻ <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-        </Link>
+        <p className="text-[11px] font-medium text-emerald-800">
+          Thành phần của bộ đang chọn — không cần sang trang khác.
+        </p>
       </div>
 
       {!selectedBoId ? (

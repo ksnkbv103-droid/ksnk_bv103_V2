@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   CH17_SYNDROMES,
+  countPneuRespiratoryCdcGroupsFromKeys,
+  countPneuRespiratoryLines,
   NKBV_CLINICAL_SYMPTOMS,
   PILOT_SYNDROMES,
   buildCriteriaKeyToFormFieldMap,
@@ -83,6 +85,23 @@ describe("nkbv-clinical-symptom-catalog", () => {
     const closed = formSymptomRowsFor("UTI", { foleyActive: true });
     expect(open.some((r) => r.form_field === "has_dysuria")).toBe(true);
     expect(closed.some((r) => r.form_field === "has_dysuria")).toBe(false);
+  });
+
+  it("đếm nhóm CDC hô hấp — khó thở + thở nhanh = 1", () => {
+    expect(
+      countPneuRespiratoryLines({
+        has_dyspnea: true,
+        has_tachypnea: true,
+      }),
+    ).toBe(1);
+    expect(
+      countPneuRespiratoryLines({
+        has_new_cough: true,
+        has_rales_or_wheeze: true,
+      }),
+    ).toBe(2);
+    expect(countPneuRespiratoryCdcGroupsFromKeys(["dyspnea", "tachypnea"])).toBe(1);
+    expect(countPneuRespiratoryCdcGroupsFromKeys(["cough", "rales"])).toBe(2);
   });
 
   it("labelOfFormField returns Vietnamese", () => {

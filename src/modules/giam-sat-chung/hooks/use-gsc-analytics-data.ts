@@ -6,12 +6,18 @@ import { useAnalyticsFilters } from "@/lib/analytics/use-analytics-filters";
 
 type LoaiGiamSat = "TUAN_THU" | "NHAT_KY_VAN_HANH" | "DANH_GIA_HE_THONG" | undefined;
 
+function isTuanThuLoai(loai: string | null | undefined): boolean {
+  const v = String(loai ?? "").trim().toUpperCase();
+  return v === "" || v === "TUAN_THU";
+}
+
 function filterBangKiemByLoai(
-  options: { id: string; label?: string }[],
+  options: { id: string; label?: string; loai_giam_sat?: string | null }[],
   loai: LoaiGiamSat,
 ): string[] {
-  if (!loai) return options.filter((o) => o.id !== "VST_WHO").map((o) => o.id);
-  return options.filter((o) => o.id !== "VST_WHO").map((o) => o.id);
+  const rest = options.filter((o) => o.id !== "VST_WHO");
+  if (!loai) return rest.filter((o) => isTuanThuLoai(o.loai_giam_sat)).map((o) => o.id);
+  return rest.filter((o) => String(o.loai_giam_sat ?? "").trim().toUpperCase() === loai).map((o) => o.id);
 }
 
 export function useGscAnalyticsData(initialLoaiGiamSat?: LoaiGiamSat) {

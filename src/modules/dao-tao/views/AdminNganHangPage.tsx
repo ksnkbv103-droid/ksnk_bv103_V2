@@ -21,6 +21,7 @@ import {
 } from "@/lib/dao-tao/parse-mcq-excel";
 import type { BloomLevel, DaoTaoQuestionLoai, DapAnDung } from "@/lib/dao-tao/types";
 import { requestImportContract } from "@/hooks/import-confirm-contract";
+import { DaoTaoAdminTabs } from "@/modules/dao-tao/components/DaoTaoAdminTabs";
 import {
   DaoTaoField,
   DaoTaoHeader,
@@ -30,6 +31,7 @@ import {
   daoTaoBtnSecondary,
   daoTaoInputClass,
 } from "@/modules/dao-tao/components/DaoTaoChrome";
+import { labelLoaiCau } from "@/lib/dao-tao/labels";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { cn } from "@/lib/utils";
 import {
@@ -177,10 +179,7 @@ export default function AdminNganHangPage() {
 
   return (
     <DaoTaoPage>
-      <DaoTaoHeader
-        title="Ngân hàng câu hỏi"
-        subtitle="Tải file mẫu / ngân hàng → sửa Excel → Nạp Excel (cập nhật theo mã câu). Có thể sửa nhanh từng câu."
-      />
+      <DaoTaoHeader title="Ngân hàng câu hỏi" tabs={<DaoTaoAdminTabs />} />
 
       {stats ? (
         <div className="grid gap-3 sm:grid-cols-3">
@@ -189,10 +188,10 @@ export default function AdminNganHangPage() {
             <p className={T.statValue}>{stats.total}</p>
           </DaoTaoPanel>
           <DaoTaoPanel className="!p-4 sm:col-span-2">
-            <p className={T.labelBlock}>Theo loại / Bloom</p>
+            <p className={T.labelBlock}>Theo loại câu</p>
             <p className="mt-1 text-sm text-slate-600">
               {Object.entries(stats.byLoai)
-                .map(([k, v]) => `${k}=${v}`)
+                .map(([k, v]) => `${labelLoaiCau(k)}: ${v}`)
                 .join(" · ") || "—"}
             </p>
             <p className="mt-1 text-sm text-slate-500">
@@ -204,7 +203,23 @@ export default function AdminNganHangPage() {
         </div>
       ) : null}
 
-      <DaoTaoPanel className="flex flex-wrap items-center gap-2">
+      <DaoTaoPanel className="space-y-3">
+        <p className={T.sectionTitle}>Nhập Excel — 3 bước</p>
+        <ol className="grid gap-2 text-sm text-slate-600 sm:grid-cols-3">
+          <li>
+            <span className="font-semibold text-slate-800">1. Tải mẫu</span>
+            <span className="block text-[11px] text-slate-500">Sửa offline, giữ mã câu khi cập nhật.</span>
+          </li>
+          <li>
+            <span className="font-semibold text-slate-800">2. Nạp file</span>
+            <span className="block text-[11px] text-slate-500">Chọn Excel đã sửa.</span>
+          </li>
+          <li>
+            <span className="font-semibold text-slate-800">3. Xác nhận</span>
+            <span className="block text-[11px] text-slate-500">An toàn hoặc đồng bộ đầy đủ.</span>
+          </li>
+        </ol>
+        <div className="flex flex-wrap items-center gap-2">
         <input
           ref={fileRef}
           type="file"
@@ -351,6 +366,7 @@ export default function AdminNganHangPage() {
           />
           Hiện câu đã tắt
         </label>
+        </div>
       </DaoTaoPanel>
 
       <DaoTaoPanel className="!p-0 overflow-hidden">
@@ -373,7 +389,7 @@ export default function AdminNganHangPage() {
                     {r.ma_cau || "—"}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2.5 text-xs font-medium text-slate-600">
-                    {r.loai}
+                    {labelLoaiCau(r.loai)}
                   </td>
                   <td className="px-3 py-2.5 text-xs text-slate-500">{r.bloom_level}</td>
                   <td className={cn("max-w-xl truncate px-3 py-2.5", T.tableCellBody)}>
@@ -401,7 +417,7 @@ export default function AdminNganHangPage() {
                         });
                       }}
                     >
-                      {r.is_active ? "ON" : "OFF"}
+                      {r.is_active ? "Đang dùng" : "Tạm ẩn"}
                     </button>
                   </td>
                   <td className="px-3 py-2.5">

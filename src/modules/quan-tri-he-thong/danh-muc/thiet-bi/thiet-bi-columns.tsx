@@ -76,6 +76,14 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
             </span>
           );
         }
+        if (val === "HOLD_QC") {
+          return (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800 border border-amber-200 shadow-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              Tạm giữ QC
+            </span>
+          );
+        }
         return (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-blue-700 border border-blue-100 shadow-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />

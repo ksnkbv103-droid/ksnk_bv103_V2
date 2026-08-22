@@ -70,7 +70,7 @@ export async function persistMeTietKhuanFinishWithClient(
   if (!gateRow) return { ok: false, message: "Không tìm thấy mẻ tiệt khuẩn." };
   const g = gateRow as { tk_mo_form_qc_at?: string | null; ket_qua_test?: boolean | null; tk_qc_json?: unknown };
   if (!g.tk_mo_form_qc_at) {
-    return { ok: false, message: "Chưa mở bước đánh giá QC — bấm «Kết thúc chu trình tiệt khuẩn» trước." };
+    return { ok: false, message: "Chưa mở bước đánh giá QC — bấm «Xong máy — mở đánh giá QC» trước." };
   }
   if (g.ket_qua_test === true || g.ket_qua_test === false) {
     return { ok: false, message: "Mẻ đã có kết quả QC — không ghi đè." };

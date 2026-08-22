@@ -9,8 +9,8 @@ import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { ThongKeChromeProvider } from "@/components/shared/ThongKeChromeContext";
 
 const analyticsTabs = [
-  { id: "vst", label: "VST", href: "/thong-ke/vst", icon: Stethoscope },
-  { id: "gsc", label: "GSC", href: "/thong-ke/gsc", icon: ClipboardList },
+  { id: "vst", label: "Vệ sinh tay", href: "/thong-ke/vst", icon: Stethoscope },
+  { id: "gsc", label: "Giám sát chung", href: "/thong-ke/gsc", icon: ClipboardList },
 ] as const;
 
 function ThongKeModuleTabs() {

@@ -56,7 +56,7 @@ const TAB_CONFIG: {
 }[] = [
   { key: "WORKFLOW", label: "Chu trình xử lý", mobileLabel: "Chu trình", icon: WashingMachine, param: "" },
   { key: "BATCH", label: "Mẻ tiệt khuẩn", mobileLabel: "Mẻ TK", icon: Flame, param: "batch" },
-  { key: "KHO", label: "Kho dụng cụ", mobileLabel: "Kho", icon: Package, param: "kho" },
+  { key: "KHO", label: "Tình trạng bộ", mobileLabel: "Tình trạng", icon: Package, param: "kho" },
   { key: "TRACE", label: "Truy vết", mobileLabel: "Truy vết", icon: History, param: "trace" },
 ];
 

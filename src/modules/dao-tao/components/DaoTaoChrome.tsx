@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
-import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
+import { KsnkPageChrome } from "@/components/shared/KsnkPageChrome";
 import { cn } from "@/lib/utils";
 
 export function DaoTaoPage({
@@ -21,12 +21,14 @@ export function DaoTaoHeader({
   title,
   subtitle,
   actions,
+  tabs,
   backHref = "/dao-tao",
-  backLabel = "Đào tạo",
+  backLabel = "Thi KSNK",
 }: {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   actions?: React.ReactNode;
+  tabs?: React.ReactNode;
   backHref?: string | null;
   backLabel?: string;
 }) {
@@ -41,7 +43,13 @@ export function DaoTaoHeader({
           {backLabel}
         </Link>
       ) : null}
-      <KsnkPageHeader title={title} subtitle={subtitle} actions={actions} />
+      <KsnkPageChrome
+        title={title}
+        subtitle={subtitle}
+        actions={actions}
+        tabs={tabs}
+        showTitle
+      />
     </div>
   );
 }

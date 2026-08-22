@@ -72,6 +72,9 @@ import {
   upsertNkbvBaTimelineMilestone,
 } from "../actions/giam-sat-nkbv.actions";
 import { clinicalRitEnd } from "../lib/nkbv-shared-timeline";
+import { countDeviceDaysInRange } from "../lib/nkbv-shared-device-days";
+import { isAdultVaeInPlan } from "../lib/nkbv-pneu-vae-route";
+import { ageYearsFromNgaySinh } from "../lib/nkbv-age-ui";
 import {
   bareViSinhIdFromMilestoneId,
   resolveViSinhAnalysisStatus,
@@ -198,7 +201,7 @@ export default function NkbvBaMultiTimelineWorkspace({
   hoTen,
   khoas = [],
   timeline,
-  devices: _registryDevices,
+  devices: registryDevices,
   analysisDispositions = [],
   allowedEdit,
   onIndexChange,
@@ -211,7 +214,6 @@ export default function NkbvBaMultiTimelineWorkspace({
   onTimelineRemoveLocal,
   priorEvents = [],
 }: Props) {
-  void _registryDevices; // Hub vẫn truyền registry — association lưới chỉ dùng timeline
   const [addXnDate, setAddXnDate] = useState<string | null>(null);
   const split = useMemo(() => splitMilestonesToGridRows(timeline), [timeline]);
   const ssiTcCatalog = useMemo(() => ssiTcCatalogWithoutSurgery(), []);
@@ -235,6 +237,29 @@ export default function NkbvBaMultiTimelineWorkspace({
   );
   const [preferVae, setPreferVae] = useState(false);
   const isManual = isManualAnalysisMode(analysisMode);
+  const stayAgeYears = ageYearsFromNgaySinh(ngaySinh, ngayVaoVien);
+  const ventStayDays = useMemo(() => {
+    const from = (ngayVaoVien || "").slice(0, 10);
+    const to = (ngayRaVien || new Date().toISOString()).slice(0, 10);
+    if (!from || !to) return 0;
+    let maxDays = 0;
+    for (const d of registryDevices) {
+      if (String(d.device_type || "").toUpperCase() !== "VENTILATOR") continue;
+      const n = countDeviceDaysInRange(
+        {
+          device_type: "VENTILATOR",
+          insertion_date: d.insertion_date,
+          removal_date: d.removal_date,
+        },
+        from,
+        to,
+      );
+      if (n > maxDays) maxDays = n;
+    }
+    return maxDays;
+  }, [registryDevices, ngayVaoVien, ngayRaVien]);
+  const autoPreferVae = isAdultVaeInPlan(stayAgeYears, ventStayDays);
+  const effectivePreferVae = preferVae || autoPreferVae;
 
   useEffect(() => {
     setAnalysisMode(loadBaAnalysisModePref(maBenhAn));
@@ -459,11 +484,11 @@ export default function NkbvBaMultiTimelineWorkspace({
         cdha: cdhaList,
         surgeryByDate: split.surgeryByDate,
         ssiTcByDate,
-        preferVae,
+        preferVae: effectivePreferVae,
         xnStatusById,
         onlyPendingXn: true,
       }),
-    [split.xn, cdhaList, split.surgeryByDate, ssiTcByDate, preferVae, xnStatusById],
+    [split.xn, cdhaList, split.surgeryByDate, ssiTcByDate, effectivePreferVae, xnStatusById],
   );
 
   const patchDraft = useCallback(
@@ -728,7 +753,7 @@ export default function NkbvBaMultiTimelineWorkspace({
   const openFromXn = (x: (typeof split.xn)[0]) => {
     const panel = specimenToSyndromePanel({
       loai_benh_pham: x.benh_pham,
-      preferVae,
+      preferVae: effectivePreferVae,
     });
     const nextIndex: BaGridActiveIndex = { kind: "XN", id: x.id, date: x.ngay };
     const label = [x.benh_pham, x.vi_khuan].filter(Boolean).join(" · ");
@@ -823,7 +848,7 @@ export default function NkbvBaMultiTimelineWorkspace({
   const openFromCdha = (c: BaGridCdhaCell) => {
     const panel = cdhaToSyndromePanel({
       tieu_chuan_key: c.tieu_chuan_key,
-      preferVae,
+      preferVae: effectivePreferVae,
     });
     if (!panel) {
       toast.message("CĐHA này không phải Index (chỉ phổi → PNEU/VAE hoặc áp xe → SSI).");
@@ -1339,11 +1364,17 @@ export default function NkbvBaMultiTimelineWorkspace({
         <label className="ml-auto flex items-center gap-1 text-slate-600">
           <input
             type="checkbox"
-            checked={preferVae}
+            checked={effectivePreferVae}
+            disabled={autoPreferVae}
             onChange={(e) => setPreferVae(e.target.checked)}
           />
           Hô hấp → ưu tiên VAE
         </label>
+        {autoPreferVae ? (
+          <span className="rounded bg-purple-50 px-2 py-0.5 font-semibold text-purple-900">
+            Người lớn thở máy ≥4 ngày — mở VAE, không cây PNEU/VAP
+          </span>
+        ) : null}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">

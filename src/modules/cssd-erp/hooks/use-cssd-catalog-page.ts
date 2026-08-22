@@ -42,7 +42,7 @@ export function useCssdCatalogPage() {
     if (matchedBo) {
       setTab("BO");
       setSelectedBoId(matchedBo.id);
-      setQ("");
+      setQ(code);
       toast.success(`Đã tìm thấy bộ dụng cụ: ${matchedBo.ten_bo}`);
       return;
     }
@@ -54,7 +54,7 @@ export function useCssdCatalogPage() {
     if (matchedChiTiet) {
       setTab("CHI_TIET");
       setSelectedChiTietId(matchedChiTiet.id);
-      setQ("");
+      setQ(code);
       toast.success(`Đã tìm thấy dụng cụ chi tiết: ${matchedChiTiet.ten_chi_tiet}`);
       return;
     }
@@ -66,7 +66,7 @@ export function useCssdCatalogPage() {
     if (matchedLoai) {
       setTab("LOAI");
       setSelectedLoaiId(matchedLoai.id);
-      setQ("");
+      setQ(code);
       toast.success(`Đã tìm thấy loại dụng cụ: ${matchedLoai.ten_loai_dung_cu}`);
       return;
     }
@@ -80,7 +80,7 @@ export function useCssdCatalogPage() {
         if (foundBo) {
           setTab("BO");
           setSelectedBoId(foundBo.id);
-          setQ("");
+          setQ(code);
           toast.success(`Đã tìm thấy bộ dụng cụ từ mã QR: ${foundBo.ten_bo}`, { id: toastId });
           return;
         }

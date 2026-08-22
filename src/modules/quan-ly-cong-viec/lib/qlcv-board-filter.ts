@@ -10,6 +10,7 @@ export type QlcvBoardFilter =
   | "OVERDUE"
   | "GATE_DEXUAT"
   | "GATE_NGHIEMTHU"
+  | "GATE_CHO_TOI"
   | "NEAR_DEADLINE";
 
 export type QlcvBoardFilterContext = {
@@ -23,12 +24,12 @@ export function getKanbanFocusColumnForFilter(
   showProposalColumn: boolean,
 ): KanbanColumnId | null {
   if (filter == null || filter === "TOTAL" || filter === "MY_TASKS") return null;
-  if (filter === "GATE_DEXUAT") return showProposalColumn ? "DE_XUAT" : "DANG_LAM";
+  if (filter === "GATE_DEXUAT" || filter === "GATE_CHO_TOI") {
+    return showProposalColumn ? "DE_XUAT" : "CHO_DUYET";
+  }
   if (filter === "GATE_NGHIEMTHU") return "CHO_DUYET";
-  if (filter === "IN_PROGRESS") return "DANG_LAM";
-  if (filter === "OVERDUE") return "QUA_HAN";
+  if (filter === "IN_PROGRESS" || filter === "OVERDUE" || filter === "NEAR_DEADLINE") return "DANG_LAM";
   if (filter === "COMPLETED") return "HOAN_THANH";
-  if (filter === "NEAR_DEADLINE") return "DANG_LAM";
   return null;
 }
 
@@ -44,16 +45,26 @@ function isNearDeadlineTask(t: { han_hoan_thanh?: string | null; trang_thai?: st
   return diff >= 0 && diff <= 2;
 }
 
-/** Việc giao cho tôi hoặc đề xuất do tôi gửi (chờ duyệt). */
+function isQlcvClosed(t: Record<string, unknown>): boolean {
+  const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai as string | null);
+  return st === "HOAN_THANH" || st === "DA_HUY";
+}
+
+/** Việc giao cho tôi hoặc đề xuất do tôi gửi — chỉ việc còn mở. */
 export function isMyQlcvTask(
   t: Record<string, unknown>,
   actorStaffId: string | null | undefined,
 ): boolean {
   if (!actorStaffId) return false;
+  if (isQlcvClosed(t)) return false;
   const assignee = String(t.nguoi_phu_trach_id ?? "");
   if (assignee && assignee === actorStaffId) return true;
   if (isDeXuatChoDuyet(t) && String(t.nguoi_tao_id ?? "") === actorStaffId) return true;
   return false;
+}
+
+export function isQlcvChoToiDuyet(t: Record<string, unknown>): boolean {
+  return isDeXuatChoDuyet(t) || isChoNghiemThuHoanThanh(t);
 }
 
 export function formatBoardFilterHint(f: QlcvBoardFilter): string {
@@ -61,17 +72,19 @@ export function formatBoardFilterHint(f: QlcvBoardFilter): string {
     case "TOTAL":
       return "Tất cả";
     case "MY_TASKS":
-      return "Việc của tôi";
+      return "Của tôi";
     case "IN_PROGRESS":
-      return "Đang làm";
+      return "Cần làm";
     case "COMPLETED":
       return "Đã hoàn thành";
     case "OVERDUE":
-      return "Cần xử lý gấp (quá hạn)";
+      return "Quá hạn";
     case "GATE_DEXUAT":
       return "Chờ phê đề xuất";
     case "GATE_NGHIEMTHU":
       return "Chờ nghiệm thu";
+    case "GATE_CHO_TOI":
+      return "Chờ tôi";
     case "NEAR_DEADLINE":
       return "Sắp đến hạn (≤2 ngày)";
     default:
@@ -89,6 +102,7 @@ export function matchesQlcvBoardFilter(
   if (filter === "MY_TASKS") return isMyQlcvTask(t, ctx?.actorStaffId);
   if (filter === "GATE_DEXUAT") return isDeXuatChoDuyet(t);
   if (filter === "GATE_NGHIEMTHU") return isChoNghiemThuHoanThanh(t);
+  if (filter === "GATE_CHO_TOI") return isQlcvChoToiDuyet(t);
   if (filter === "COMPLETED") return normalizeQlcvTrangThaiToCanonical(t.trang_thai as string | null) === "HOAN_THANH";
   if (filter === "OVERDUE") return isBoardLaneQuaHan(t);
   if (filter === "NEAR_DEADLINE") return isNearDeadlineTask(t);

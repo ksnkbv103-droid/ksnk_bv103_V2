@@ -23,9 +23,7 @@ import {
   listSuCoChemicalChuaGhiKhoAction,
   type SuCoChemicalRow,
 } from "../actions/cssd-kho-hoa-chat.actions";
-import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY, CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_GROUP, CSSD_UI_TAB_IDLE } from "../shared/ui/cssd-ui-chrome";
-import { CssdHorizTabButton } from "../components/layout/CssdHorizTabButton";
-import { CSSDCatalogHoaChatTab } from "./CSSDCatalogHoaChatTab";
+import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY, CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_IDLE } from "../shared/ui/cssd-ui-chrome";
 import { lotRowToKey, pickFefoLotKey } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
 import { matchesLoaiFilter, type HoaChatLoaiFilter } from "@/lib/domain/cssd-hoa-chat-loai";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
@@ -57,7 +55,6 @@ export default function KhoHoaChatKsnkPage() {
     }>
   >([]);
   const [busy, setBusy] = useState(true);
-  const [activeTab, setActiveTab] = useState<"STOCK" | "CATALOG">("STOCK");
   const [loaiFilter, setLoaiFilter] = useState<HoaChatLoaiFilter>("ALL");
 
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -306,15 +303,6 @@ export default function KhoHoaChatKsnkPage() {
     );
   }
 
-  const mappedDms = dms.map((d) => ({
-    id: d.id,
-    ma_hoa_chat: d.ma_hoa_chat,
-    ten_hoa_chat: d.ten_hoa_chat,
-    don_vi_tinh: d.don_vi_tinh,
-    loai_hoa_chat: d.loai_hoa_chat ?? "HOA_CHAT",
-    is_active: true,
-  }));
-
   return (
     <CSSDPageShell
       title={<span className="text-[var(--primary)]">Kho hóa chất &amp; vật tư KSNK</span>}
@@ -401,23 +389,7 @@ export default function KhoHoaChatKsnkPage() {
           />
         )}
 
-        <div className={CSSD_UI_TAB_GROUP}>
-          <CssdHorizTabButton
-            active={activeTab === "STOCK"}
-            onClick={() => setActiveTab("STOCK")}
-            label="Giám sát tồn kho & Giao dịch"
-            mobileLabel="Tồn kho"
-          />
-          <CssdHorizTabButton
-            active={activeTab === "CATALOG"}
-            onClick={() => setActiveTab("CATALOG")}
-            label={`Danh mục hóa chất & vật tư (${dms.length})`}
-            mobileLabel={`Danh mục (${dms.length})`}
-          />
-        </div>
-
-        {activeTab === "STOCK" ? (
-          <div className="space-y-6 animate-in fade-in duration-300">
+        <div className="space-y-6 animate-in fade-in duration-300">
             <div className="flex flex-wrap gap-2">
               {(
                 [
@@ -455,11 +427,6 @@ export default function KhoHoaChatKsnkPage() {
 
             <KhoHoaChatTables tons={filteredTons} movs={filteredMovs} loading={busy} />
           </div>
-        ) : (
-          <div className="animate-in fade-in duration-300">
-            <CSSDCatalogHoaChatTab hoaChatRows={mappedDms} />
-          </div>
-        )}
       </div>
 
       <KhoHoaChatMoveSheet

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pmDueLabel, pmDueStatus } from "./cssd-equipment-pm";
+import { pmDueLabel, pmDueStatus, trangThaiMayLabel } from "./cssd-equipment-pm";
 import { allChecklistDone, buildPmChecklistForLoaiMay } from "./cssd-equipment-pm-checklist";
 
 describe("cssd-equipment-pm", () => {
@@ -16,5 +16,10 @@ describe("cssd-equipment-pm", () => {
     const items = buildPmChecklistForLoaiMay("LM_HOI_NUOC");
     expect(items.length).toBeGreaterThanOrEqual(3);
     expect(allChecklistDone(items.map((x) => ({ ...x, done: true })))).toBe(true);
+  });
+
+  it("labels HOLD_QC machine status", () => {
+    expect(trangThaiMayLabel("HOLD_QC")).toBe("Tạm giữ QC");
+    expect(trangThaiMayLabel("READY")).toBe("Sẵn sàng");
   });
 });

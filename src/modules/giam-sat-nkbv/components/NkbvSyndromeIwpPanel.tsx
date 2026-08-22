@@ -32,6 +32,7 @@ import {
   shouldShowPneuAmsInCatalog,
 } from "../lib/nkbv-pneu-timeline-verdict";
 import { buildBsiTimelineVerdict } from "../lib/nkbv-bsi-timeline-verdict";
+import { PNEU_IC_ATOM_ROWS } from "../lib/nkbv-pneu-lab-tier";
 import {
   hydrateLamSangDraftFromBa,
   mergeLamSangByDate,
@@ -369,6 +370,7 @@ export default function NkbvSyndromeIwpPanel({
       devicePlacedDate: devicePlacedFromBa,
       deviceRemovedDate: null,
       hasCardiopulmonaryDisease: Boolean(draft.hasCardiopulmonaryDisease),
+      pneuIcAtoms: draft.pneuIcAtoms,
     });
   }, [
     panel,
@@ -382,6 +384,7 @@ export default function NkbvSyndromeIwpPanel({
     doeProbeNsk,
     draft.bloodCriterionIds,
     draft.hasCardiopulmonaryDisease,
+    draft.pneuIcAtoms,
     bloodXn,
     ageYears,
     ngayVaoVien,
@@ -519,6 +522,7 @@ export default function NkbvSyndromeIwpPanel({
       devicePlacedDate: devicePlacedFromBa,
       deviceRemovedDate: null,
       hasCardiopulmonaryDisease: Boolean(draft.hasCardiopulmonaryDisease),
+      pneuIcAtoms: draft.pneuIcAtoms,
     });
   }, [
     panel,
@@ -532,6 +536,7 @@ export default function NkbvSyndromeIwpPanel({
     session.nsk,
     draft.bloodCriterionIds,
     draft.hasCardiopulmonaryDisease,
+    draft.pneuIcAtoms,
     bloodXn,
     ageYears,
     ngayVaoVien,
@@ -1061,17 +1066,37 @@ export default function NkbvSyndromeIwpPanel({
         </div>
         <div className="flex items-center gap-2">
           {panel === "PNEU" ? (
-            <label className="flex items-center gap-1 text-[11px] text-slate-700">
-              <input
-                type="checkbox"
-                checked={Boolean(draft.hasCardiopulmonaryDisease)}
-                disabled={!allowedEdit}
-                onChange={(e) =>
-                  onDraftChange({ hasCardiopulmonaryDisease: e.target.checked })
-                }
-              />
-              Tim phổi nền (≥2 phim)
-            </label>
+            <div className="flex max-w-[28rem] flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-700">
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={Boolean(draft.hasCardiopulmonaryDisease)}
+                  disabled={!allowedEdit}
+                  onChange={(e) =>
+                    onDraftChange({ hasCardiopulmonaryDisease: e.target.checked })
+                  }
+                />
+                Tim phổi nền (≥2 phim)
+              </label>
+              {PNEU_IC_ATOM_ROWS.map((row) => (
+                <label key={row.field} className="flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(draft.pneuIcAtoms?.[row.field])}
+                    disabled={!allowedEdit}
+                    onChange={(e) =>
+                      onDraftChange({
+                        pneuIcAtoms: {
+                          ...(draft.pneuIcAtoms || {}),
+                          [row.field]: e.target.checked,
+                        },
+                      })
+                    }
+                  />
+                  {row.label}
+                </label>
+              ))}
+            </div>
           ) : null}
           {!criteriaMetForKetLuan &&
           draft.eventDisposition?.kind !== "BELONGS_PRIOR_EVENT" &&

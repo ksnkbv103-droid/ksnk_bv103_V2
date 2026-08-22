@@ -118,6 +118,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         selectedMaBk={selectedMaBk}
         onSelectMaBk={onSelectMaBk}
         bkLabelRecord={p.bkLabelRecord}
+        limit={5}
       />
 
       {selectedMaBk ? (
@@ -152,18 +153,27 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         />
       </section>
 
+      <details className={`${UI.shell} group`}>
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+          Xem thêm
+          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
+            Mọi bảng kiểm · bao phủ tự giám sát · xu hướng · so sánh khối/nghề
+          </span>
+        </summary>
+        <div className="space-y-4 border-t border-slate-100 px-4 pb-4 pt-3">
+      <GscChecklistNavigator
+        payload={p.payload}
+        loading={p.loading}
+        selectedMaBk={selectedMaBk}
+        onSelectMaBk={onSelectMaBk}
+        bkLabelRecord={p.bkLabelRecord}
+        limit={0}
+      />
       <GscTgsCoverageRankingPanel
         tuNgay={p.tuNgay}
         denNgay={p.denNgay}
         selectedKhoaIds={p.selectedKhoaIds}
       />
-
-      <details className={`${UI.shell} group`}>
-        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
-          Tổng hợp chung (mọi BK trong kỳ)
-          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">KPI · xu hướng · top vi phạm</span>
-        </summary>
-        <div className="space-y-4 border-t border-slate-100 px-4 pb-4 pt-3">
           <SupervisionKpiRow
             loading={p.loading}
             items={[

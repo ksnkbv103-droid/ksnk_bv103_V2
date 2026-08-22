@@ -1,5 +1,8 @@
 {
   "npm.autoDetect": "off",
+  "terminal.integrated.env.osx": {
+    "PATH": "${env:HOME}/.local/node/bin:${env:PATH}"
+  },
   "tailwindCSS.includeLanguages": {
     "plaintext": "tailwindcss",
     "javascript": "tailwindcss",

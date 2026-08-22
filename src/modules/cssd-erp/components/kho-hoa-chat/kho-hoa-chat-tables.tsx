@@ -67,7 +67,7 @@ const tonCols: Column<KhoHoaChatTonLo>[] = [
       if (q <= 10) {
         return (
           <span className="inline-flex rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[11px] font-semibold text-amber-700 tabular-nums">
-            {q} (Cảnh báo ít)
+            {q}
           </span>
         );
       }

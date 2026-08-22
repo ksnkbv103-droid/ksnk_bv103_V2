@@ -29,7 +29,7 @@ export async function updateQlcvChecklist(id: string, items: QlcvChecklistItem[]
 
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
-    .select("id, trang_thai, is_active, nguoi_phu_trach_id, phan_tram_hoan_thanh, nguoi_tao_id")
+    .select("id, trang_thai, is_active, nguoi_phu_trach_id, phan_tram_hoan_thanh, nguoi_tao_id, loai_cong_viec")
     .eq("id", id)
     .maybeSingle();
 
@@ -45,7 +45,7 @@ export async function updateQlcvChecklist(id: string, items: QlcvChecklistItem[]
 
   const wf = qlcvWorkflowMaFromViewRow(cur);
   if (isDeXuatChoDuyet(wf)) throw new Error("Đề xuất chưa được phê duyệt.");
-  if (isEligibleForNghiemThu(wf)) {
+  if (isEligibleForNghiemThu({ ...wf, phan_tram_hoan_thanh: cur.phan_tram_hoan_thanh })) {
     throw new Error("Việc đang chờ nghiệm thu — không cập nhật checklist tại đây.");
   }
   const stClosed = normalizeQlcvTrangThaiToCanonical(wf.trang_thai);
@@ -61,7 +61,11 @@ export async function updateQlcvChecklist(id: string, items: QlcvChecklistItem[]
     if (!isAssignee) await verifyPermission("CONG_VIEC", "edit");
   }
 
-  const stMoi = trangThaiCongViecSauBaoCaoTienDo(pct, wf.trang_thai);
+  const stMoi = trangThaiCongViecSauBaoCaoTienDo(
+    pct,
+    wf.trang_thai,
+    typeof cur.loai_cong_viec === "string" ? cur.loai_cong_viec : null,
+  );
 
   let result: { phan_tram_hoan_thanh: number };
   try {
@@ -90,6 +94,16 @@ export async function updateQlcvChecklist(id: string, items: QlcvChecklistItem[]
       phanTramHoanThanh: pct,
     });
   }
+  if (stMoi === "HOAN_THANH") {
+    await appendQlcvNhatKy(supabase, {
+      congViecId: id,
+      loaiHoatDong: "HOAN_THANH",
+      nguoiThucHienId: actorNhanSuId,
+      noiDung: "Hoàn thành — việc định kỳ đã tick đủ.",
+      trangThai: "HOAN_THANH",
+      phanTramHoanThanh: pct,
+    });
+  }
 
   revalidatePath("/quan-ly-cong-viec");
   return { phan_tram_hoan_thanh: result.phan_tram_hoan_thanh };
@@ -104,7 +118,7 @@ export async function reportQlcvManualProgress(congViecId: string, phanTram: num
 
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
-    .select("id, trang_thai, is_active, nguoi_phu_trach_id, phan_tram_hoan_thanh, nguoi_tao_id, checklist")
+    .select("id, trang_thai, is_active, nguoi_phu_trach_id, phan_tram_hoan_thanh, nguoi_tao_id, checklist, loai_cong_viec")
     .eq("id", congViecId)
     .maybeSingle();
 
@@ -124,7 +138,7 @@ export async function reportQlcvManualProgress(congViecId: string, phanTram: num
 
   const wf = qlcvWorkflowMaFromViewRow(cur);
   if (isDeXuatChoDuyet(wf)) throw new Error("Đề xuất chưa được phê duyệt.");
-  if (isEligibleForNghiemThu(wf)) {
+  if (isEligibleForNghiemThu({ ...wf, phan_tram_hoan_thanh: cur.phan_tram_hoan_thanh })) {
     throw new Error("Việc đang chờ nghiệm thu — không cập nhật tiến độ tại đây.");
   }
   const stClosedManual = normalizeQlcvTrangThaiToCanonical(wf.trang_thai);
@@ -140,7 +154,11 @@ export async function reportQlcvManualProgress(congViecId: string, phanTram: num
     if (!isAssignee) await verifyPermission("CONG_VIEC", "edit");
   }
 
-  const stMoi = trangThaiCongViecSauBaoCaoTienDo(pct, wf.trang_thai);
+  const stMoi = trangThaiCongViecSauBaoCaoTienDo(
+    pct,
+    wf.trang_thai,
+    typeof cur.loai_cong_viec === "string" ? cur.loai_cong_viec : null,
+  );
 
   let result: { phan_tram_hoan_thanh: number };
   try {
@@ -162,6 +180,16 @@ export async function reportQlcvManualProgress(congViecId: string, phanTram: num
       loaiHoatDong: "BAO_CAO_TIEN_DO",
       nguoiThucHienId: actorNhanSuId,
       noiDung: `Báo cáo tiến độ ${pct}%`,
+      phanTramHoanThanh: pct,
+    });
+  }
+  if (stMoi === "HOAN_THANH") {
+    await appendQlcvNhatKy(supabase, {
+      congViecId,
+      loaiHoatDong: "HOAN_THANH",
+      nguoiThucHienId: actorNhanSuId,
+      noiDung: "Hoàn thành — việc định kỳ đã báo đủ tiến độ.",
+      trangThai: "HOAN_THANH",
       phanTramHoanThanh: pct,
     });
   }

@@ -48,7 +48,7 @@ export default function QuanTriHeThongPage() {
             Quản trị hệ thống
           </span>
         }
-        subtitle="Danh mục gốc · phân quyền · bảo vệ liên kết dữ liệu (công cụ IT)."
+        subtitle="Tổ chức, bảng kiểm, Master CSSD, tài khoản — IT ở tab riêng."
       />
 
       <div className="animate-in slide-in-from-bottom-4 duration-500">

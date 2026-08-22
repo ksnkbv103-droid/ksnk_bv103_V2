@@ -11,6 +11,8 @@ import {
   updateKyThiThat,
 } from "@/modules/dao-tao/actions/dao-tao-admin.actions";
 import { listChuDeDaoTao } from "@/modules/dao-tao/actions/dao-tao-bank.actions";
+import { DaoTaoAdminTabs } from "@/modules/dao-tao/components/DaoTaoAdminTabs";
+import { DaoTaoMultiCheckList } from "@/modules/dao-tao/components/DaoTaoMultiCheckList";
 import {
   DaoTaoField,
   DaoTaoHeader,
@@ -22,7 +24,14 @@ import {
 } from "@/modules/dao-tao/components/DaoTaoChrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
-import { cn } from "@/lib/utils";
+import { labelTrangThaiKy } from "@/lib/dao-tao/labels";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type Ky = {
   id: string;
@@ -37,44 +46,6 @@ type Ky = {
   trang_thai: string;
   gan?: { khoa_ids?: string[]; nhan_su_ids?: string[] };
 };
-
-function MultiCheckList(props: {
-  label: string;
-  items: Array<{ id: string; label: string; hint?: string }>;
-  selected: string[];
-  onChange: (next: string[]) => void;
-  emptyText: string;
-}) {
-  return (
-    <div>
-      <p className={cn(T.labelBlock, "mb-1.5")}>{props.label}</p>
-      <div className="max-h-40 space-y-1 overflow-y-auto rounded-[var(--radius-control)] border border-slate-200 bg-slate-50/50 p-2.5 text-sm">
-        {props.items.map((it) => (
-          <label key={it.id} className="flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-white">
-            <input
-              type="checkbox"
-              checked={props.selected.includes(it.id)}
-              onChange={(e) => {
-                props.onChange(
-                  e.target.checked
-                    ? [...props.selected, it.id]
-                    : props.selected.filter((id) => id !== it.id),
-                );
-              }}
-            />
-            <span className="text-slate-700">
-              {it.label}{" "}
-              {it.hint ? <span className="text-[11px] text-slate-400">({it.hint})</span> : null}
-            </span>
-          </label>
-        ))}
-        {props.items.length === 0 ? (
-          <p className="px-1 py-2 text-sm text-slate-500">{props.emptyText}</p>
-        ) : null}
-      </div>
-    </div>
-  );
-}
 
 export default function AdminKyThiPage() {
   const [list, setList] = useState<Ky[]>([]);
@@ -95,15 +66,16 @@ export default function AdminKyThiPage() {
   const [selectedChuDe, setSelectedChuDe] = useState<string[]>([]);
   const [selectedKhoa, setSelectedKhoa] = useState<string[]>([]);
   const [selectedNv, setSelectedNv] = useState<string[]>([]);
+  const [ganKy, setGanKy] = useState<Ky | null>(null);
+  const [ganKhoa, setGanKhoa] = useState<string[]>([]);
+  const [ganNv, setGanNv] = useState<string[]>([]);
   const [pending, startTransition] = useTransition();
 
   const reload = async () => {
     const [kys, kp, ns, cd] = await Promise.all([
       listKyThiThatAdmin(),
       listKhoaPhongOptions(),
-      listNhanSuOptions(
-        selectedKhoa.length ? { khoaIds: selectedKhoa } : undefined,
-      ),
+      listNhanSuOptions(selectedKhoa.length ? { khoaIds: selectedKhoa } : undefined),
       listChuDeDaoTao(),
     ]);
     setList(kys as Ky[]);
@@ -114,7 +86,6 @@ export default function AdminKyThiPage() {
 
   useEffect(() => {
     void reload().catch((e) => toast.error(e instanceof Error ? e.message : "Lỗi"));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- load lần đầu
   }, []);
 
   useEffect(() => {
@@ -122,6 +93,13 @@ export default function AdminKyThiPage() {
       .then((ns) => setNhanSus(ns as never))
       .catch(() => undefined);
   }, [selectedKhoa]);
+
+  useEffect(() => {
+    if (!ganKy) return;
+    void listNhanSuOptions(ganKhoa.length ? { khoaIds: ganKhoa } : undefined)
+      .then((ns) => setNhanSus(ns as never))
+      .catch(() => undefined);
+  }, [ganKy, ganKhoa]);
 
   const khoaItems = useMemo(
     () =>
@@ -150,7 +128,7 @@ export default function AdminKyThiPage() {
 
   return (
     <DaoTaoPage className="mx-auto max-w-4xl">
-      <DaoTaoHeader title="Kỳ thi thật" />
+      <DaoTaoHeader title="Kỳ thi" tabs={<DaoTaoAdminTabs />} />
 
       <DaoTaoPanel className="space-y-3">
         <p className={T.sectionTitle}>Tạo kỳ mới</p>
@@ -215,31 +193,30 @@ export default function AdminKyThiPage() {
             Đảo thứ tự đáp án
           </label>
         </div>
-        <MultiCheckList
-          label="Chủ đề ngân hàng (trống = mọi chủ đề active)"
+        <DaoTaoMultiCheckList
+          label="Chủ đề ngân hàng (trống = mọi chủ đề đang dùng)"
           items={chuDeItems}
           selected={selectedChuDe}
           onChange={setSelectedChuDe}
           emptyText="Chưa có chủ đề trong ngân hàng."
         />
-        <MultiCheckList
-          label="Gán khoa (có thể chọn nhiều)"
+        <DaoTaoMultiCheckList
+          label="Gán khoa"
           items={khoaItems}
           selected={selectedKhoa}
           onChange={setSelectedKhoa}
           emptyText="Không tải được danh mục khoa."
         />
-        <MultiCheckList
-          label="Gán nhân sự (tuỳ chọn — lọc theo khoa đã chọn nếu có)"
+        <DaoTaoMultiCheckList
+          label="Gán nhân sự (tuỳ chọn)"
           items={nvItems}
           selected={selectedNv}
           onChange={setSelectedNv}
-          emptyText="Không có nhân sự (hoặc chưa chọn khoa có NV)."
+          emptyText="Không có nhân sự."
         />
         {ganCount === 0 ? (
           <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
-            Chưa gán khoa/NV — sau khi publish, học viên thường <strong>không vào được</strong> kỳ
-            (trừ tài khoản quản trị Đào tạo).
+            Chưa gán khoa hoặc nhân viên — học viên thường không vào được kỳ sau khi mở thi.
           </p>
         ) : null}
         <button
@@ -264,7 +241,7 @@ export default function AdminKyThiPage() {
                   khoaPhongIds: selectedKhoa,
                   nhanSuIds: selectedNv,
                 });
-                toast.success("Đã tạo kỳ (draft)");
+                toast.success("Đã tạo kỳ (nháp)");
                 setTen("");
                 await reload();
               } catch (e) {
@@ -288,16 +265,10 @@ export default function AdminKyThiPage() {
                   <p className="text-sm font-semibold text-slate-800">{ky.ten}</p>
                   <p className="mt-1 text-[11px] font-medium text-slate-500">
                     {ky.so_cau} câu · {ky.thoi_gian_phut} phút · đạt {ky.diem_dat_pct}% ·{" "}
-                    {ky.so_lan_cho_phep ?? 1} lần ·{" "}
-                    {ky.shuffle_cau !== false ? "đảo câu" : "cố định câu"} ·{" "}
-                    {ky.shuffle_dap_an !== false ? "đảo ĐA" : "cố định ĐA"} ·{" "}
-                    <span className="uppercase">{ky.trang_thai}</span>
+                    {ky.so_lan_cho_phep ?? 1} lần · {labelTrangThaiKy(ky.trang_thai)}
                   </p>
                   <p className="mt-0.5 text-[11px] text-slate-500">
                     Gán {nKhoa} khoa · {nNv} NV
-                    {(ky.chu_de_mas?.length ?? 0) > 0
-                      ? ` · chủ đề: ${ky.chu_de_mas!.join(", ")}`
-                      : " · mọi chủ đề"}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -306,26 +277,12 @@ export default function AdminKyThiPage() {
                       type="button"
                       className={daoTaoBtnSecondary}
                       onClick={() => {
-                        startTransition(async () => {
-                          try {
-                            if (selectedKhoa.length + selectedNv.length === 0) {
-                              toast.error("Chọn khoa/NV ở form tạo phía trên rồi bấm Gán");
-                              return;
-                            }
-                            await setKyThiGan({
-                              kyThiId: ky.id,
-                              khoaPhongIds: selectedKhoa,
-                              nhanSuIds: selectedNv,
-                            });
-                            toast.success("Đã cập nhật gán khoa/NV");
-                            await reload();
-                          } catch (e) {
-                            toast.error(e instanceof Error ? e.message : "Lỗi");
-                          }
-                        });
+                        setGanKy(ky);
+                        setGanKhoa(ky.gan?.khoa_ids ?? []);
+                        setGanNv(ky.gan?.nhan_su_ids ?? []);
                       }}
                     >
-                      Gán theo form
+                      Gán khoa / NV
                     </button>
                   ) : null}
                   {ky.trang_thai !== "published" && ky.trang_thai !== "closed" ? (
@@ -336,13 +293,11 @@ export default function AdminKyThiPage() {
                         startTransition(async () => {
                           try {
                             if (nKhoa + nNv === 0) {
-                              toast.error(
-                                "Chưa gán khoa/NV — chọn ở form trên rồi bấm «Gán theo form»",
-                              );
+                              toast.error("Chưa gán khoa hoặc nhân viên — bấm Gán khoa / NV");
                               return;
                             }
                             await updateKyThiThat(ky.id, { trang_thai: "published" });
-                            toast.success("Đã publish");
+                            toast.success("Đã mở thi");
                             await reload();
                           } catch (e) {
                             toast.error(e instanceof Error ? e.message : "Lỗi");
@@ -350,7 +305,7 @@ export default function AdminKyThiPage() {
                         });
                       }}
                     >
-                      Publish
+                      Mở thi
                     </button>
                   ) : ky.trang_thai === "published" ? (
                     <button
@@ -360,7 +315,7 @@ export default function AdminKyThiPage() {
                         startTransition(async () => {
                           try {
                             await updateKyThiThat(ky.id, { trang_thai: "closed" });
-                            toast.success("Đã đóng");
+                            toast.success("Đã kết thúc");
                             await reload();
                           } catch (e) {
                             toast.error(e instanceof Error ? e.message : "Lỗi");
@@ -368,7 +323,7 @@ export default function AdminKyThiPage() {
                         });
                       }}
                     >
-                      Đóng
+                      Kết thúc
                     </button>
                   ) : null}
                 </div>
@@ -377,6 +332,59 @@ export default function AdminKyThiPage() {
           );
         })}
       </div>
+
+      <Dialog open={!!ganKy} onOpenChange={(o) => !o && setGanKy(null)}>
+        <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Gán khoa / nhân viên{ganKy ? ` — ${ganKy.ten}` : ""}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <DaoTaoMultiCheckList
+              label="Khoa"
+              items={khoaItems}
+              selected={ganKhoa}
+              onChange={setGanKhoa}
+              emptyText="Không tải được danh mục khoa."
+            />
+            <DaoTaoMultiCheckList
+              label="Nhân sự (tuỳ chọn)"
+              items={nvItems}
+              selected={ganNv}
+              onChange={setGanNv}
+              emptyText="Không có nhân sự."
+            />
+          </div>
+          <DialogFooter>
+            <button type="button" className={daoTaoBtnSecondary} onClick={() => setGanKy(null)}>
+              Hủy
+            </button>
+            <button
+              type="button"
+              className={daoTaoBtnPrimary}
+              disabled={pending || !ganKy}
+              onClick={() => {
+                if (!ganKy) return;
+                startTransition(async () => {
+                  try {
+                    await setKyThiGan({
+                      kyThiId: ganKy.id,
+                      khoaPhongIds: ganKhoa,
+                      nhanSuIds: ganNv,
+                    });
+                    toast.success("Đã cập nhật danh sách thi");
+                    setGanKy(null);
+                    await reload();
+                  } catch (e) {
+                    toast.error(e instanceof Error ? e.message : "Lỗi");
+                  }
+                });
+              }}
+            >
+              Lưu gán
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DaoTaoPage>
   );
 }

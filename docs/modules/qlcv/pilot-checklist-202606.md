@@ -6,7 +6,8 @@
 |---|----------|----------|----------|
 | Q1 | Tạo việc trực tiếp | Tạo việc → giao NV **KSNK** | `trang_thai` = `DANG_LAM`; phụ trách là NV KSNK; hiện ở cột/hàng Đang thực hiện |
 | Q2 | Đề xuất → duyệt | Đề xuất → duyệt + giao NV KSNK | `is_active=true`; `DANG_LAM`; `nguoi_giao_viec_id` đúng |
-| Q3 | Nghiệm thu | Checklist 100% → nghiệm thu / từ chối | `HOAN_THANH` hoặc `TU_CHOI`; không force từ &lt;100% |
+| Q3 | Nghiệm thu (đột xuất) | Checklist 100% → nghiệm thu / từ chối | `HOAN_THANH` hoặc `TU_CHOI`; không force từ &lt;100% |
+| Q3c | Định kỳ tick đủ | Việc `DINH_KY` tick checklist 100% → Lưu | `HOAN_THANH` ngay, không chờ nghiệm thu |
 | Q3b | Quá hạn + 100% | Phiếu `QUA_HAN` (hoặc hạn đã qua) đã 100% → Nghiệm thu | Vẫn ở cột Quá hạn trên Kanban; chi tiết có nút nghiệm thu → `HOAN_THANH` |
 | Q4 | Spawn định kỳ | Spawn 2 lần cùng ngày | Không trùng instance |
 | Q5 | Checklist | Tick → Lưu → reload | JSONB giữ trạng thái |

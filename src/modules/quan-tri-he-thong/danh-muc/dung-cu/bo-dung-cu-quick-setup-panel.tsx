@@ -48,9 +48,9 @@ export function BoDungCuQuickSetupPanel({ onStartCreateBo, lastCreatedMaBo }: Pr
           </li>
           <li className="rounded-xl border border-white bg-white/90 p-3">
             <span className="text-[11px] font-bold text-emerald-700">2 · Thành phần</span>
-            <p className="text-xs font-semibold text-slate-800">Chọn bộ → thêm dòng chi tiết</p>
-            <Link href={quanTriDungCuHref("chi-tiet")} className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-[var(--primary)] underline">
-              Tab thành phần <ChevronRight size={12} />
+            <p className="text-xs font-semibold text-slate-800">Chọn bộ ở bảng dưới → thêm thành phần</p>
+            <Link href={quanTriDungCuHref("bo")} className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-[var(--primary)] underline">
+              Mở tab bộ <ChevronRight size={12} />
             </Link>
           </li>
           <li className="rounded-xl border border-white bg-white/90 p-3">

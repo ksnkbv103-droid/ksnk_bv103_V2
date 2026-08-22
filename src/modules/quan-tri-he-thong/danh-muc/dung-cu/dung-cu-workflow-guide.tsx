@@ -6,8 +6,7 @@ import { CssdQrLabelKindsNotice } from "@/modules/cssd-erp/components/catalog/Cs
 
 const STEPS = [
   { title: "Loại", tab: "loai" as const },
-  { title: "Bộ", tab: "bo" as const },
-  { title: "Thành phần", tab: "chi-tiet" as const },
+  { title: "Bộ và thành phần", tab: "bo" as const },
   { title: "CSSD", href: "/cssd-dung-cu" },
   { title: "Kho", href: "/cssd-erp" },
 ] as const;

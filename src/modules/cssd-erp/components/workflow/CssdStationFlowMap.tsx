@@ -10,10 +10,15 @@ import CssdBatchMeLinkChip from "./cssd-batch-me-link-chip";
 const STATION_LABEL: Record<Station, string> = {
   TIEP_NHAN: "Tiếp nhận",
   LAM_SACH: "Làm sạch",
-  QC: "QC",
+  QC: "Kiểm bộ",
   DONG_GOI: "Đóng gói",
   TIET_KHUAN: "Tiệt khuẩn",
   CAP_PHAT: "Cấp phát",
+};
+
+/** Helper QT.19 — tách QC trạm vs QC mẻ (domain). */
+const STATION_HINT: Partial<Record<Station, string>> = {
+  QC: "QC trước đóng gói (QT.19) ≠ QC mẻ",
 };
 
 const STATION_ICON: Record<Exclude<Station, "TIET_KHUAN">, React.ReactNode> = {
@@ -34,23 +39,30 @@ const CELL_BASE =
 type Props = {
   activeStation?: Station | null;
   onSelectStation: (station: Station) => void;
+  /** Đang mở thẻ đóng gói — không đổi trạm. */
+  gateLocked?: boolean;
 };
 
-/** Chỉ chọn trạm để quét — số liệu chờ/map xem tab Kho dụng cụ. */
-export default function CssdStationFlowMap({ activeStation, onSelectStation }: Props) {
+/** Chọn trạm để xem hàng chờ — quét không bắt buộc chọn trước. */
+export default function CssdStationFlowMap({ activeStation, onSelectStation, gateLocked }: Props) {
   const renderScanStation = (station: Station) => {
     const isActive = activeStation === station;
+    const locked = Boolean(gateLocked) && !isActive;
     return (
       <button
         key={station}
         type="button"
         onClick={() => onSelectStation(station)}
         aria-pressed={isActive}
-        aria-label={`Chọn trạm ${STATION_LABEL[station]}`}
+        aria-disabled={locked}
+        aria-label={`Xem hàng chờ ${STATION_LABEL[station]}`}
+        title={STATION_HINT[station] || STATION_LABEL[station]}
         className={`${CELL_BASE} ${
           isActive
             ? "border-emerald-600 bg-emerald-600 text-white shadow-md ring-2 ring-emerald-600/30"
-            : "border-slate-200 bg-white text-slate-500 hover:border-emerald-300 hover:bg-emerald-50/40"
+            : locked
+              ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
+              : "border-slate-200 bg-white text-slate-500 hover:border-emerald-300 hover:bg-emerald-50/40"
         }`}
       >
         <span className={`shrink-0 ${isActive ? "text-amber-300" : "text-slate-400 group-hover:text-emerald-600"}`}>
@@ -66,12 +78,14 @@ export default function CssdStationFlowMap({ activeStation, onSelectStation }: P
   };
 
   return (
-    <section className={`space-y-2 p-2.5 sm:p-3 ${CSSD_UI_PANEL}`} aria-label="Chọn trạm quét">
+    <section className={`space-y-2 p-2.5 sm:p-3 ${CSSD_UI_PANEL}`} aria-label="Xem hàng chờ theo trạm">
       <div className="flex flex-wrap items-center justify-between gap-2 px-0.5">
-        <h2 className={`${CSSD_UI_SECTION_TITLE} max-sm:text-sm`}>Chọn trạm</h2>
-        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-          {activeStation ? STATION_LABEL[activeStation] : "Chưa chọn"}
-        </span>
+        <h2 className={`${CSSD_UI_SECTION_TITLE} max-sm:text-sm`}>Xem hàng chờ</h2>
+        {activeStation ? (
+          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+            {STATION_LABEL[activeStation]}
+          </span>
+        ) : null}
       </div>
       <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:grid-cols-6">
         {SCAN_BEFORE_CAP.map((station) => renderScanStation(station))}

@@ -33,6 +33,7 @@ import { normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
 import { DinhKyChecklistEditor } from "./DinhKyChecklistEditor";
 import type { QlcvPeriodKind } from "../lib/qlcv-period-range";
 import { formatDateVi } from "@/lib/format-datetime-vi";
+import { useModulePermission } from "@/hooks/useModulePermission";
 
 function labelChuKy(ma: string): string {
   if (ma === "DAILY") return "Hàng ngày";
@@ -96,6 +97,8 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan }: Props) 
   const [nhiemVuId, setNhiemVuId] = useState("");
   const [nhiemVuOptions, setNhiemVuOptions] = useState<NhiemVuSelectOption[]>([]);
   const [printPeriod, setPrintPeriod] = useState<QlcvPeriodKind>("MONTH");
+  const [showDetails, setShowDetails] = useState(false);
+  const { isAdmin } = useModulePermission("CONG_VIEC");
 
   const resetForm = () => {
     setEditingId(null);
@@ -258,15 +261,17 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan }: Props) 
               </button>
             </div>
           ) : null}
-          <button
-            type="button"
-            onClick={() => void runSpawn()}
-            disabled={spawning}
-            className="bv103-control-h inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:opacity-90 disabled:opacity-50"
-          >
-            {spawning ? <RefreshCw className="h-4 w-4 animate-spin" aria-hidden /> : <PlayCircle className="h-4 w-4" aria-hidden />}
-            {spawning ? "Đang chạy…" : "Sinh phiếu hôm nay"}
-          </button>
+          {isAdmin ? (
+            <button
+              type="button"
+              onClick={() => void runSpawn()}
+              disabled={spawning}
+              className="bv103-control-h inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 disabled:opacity-50"
+            >
+              {spawning ? <RefreshCw className="h-4 w-4 animate-spin" aria-hidden /> : <PlayCircle className="h-4 w-4" aria-hidden />}
+              {spawning ? "Đang chạy…" : "Sinh phiếu hôm nay"}
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -324,15 +329,37 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan }: Props) 
           />
         </div>
         <div>
-          <label className={bv103LayoutChrome.labelBlock}>Tổ công tác (tuỳ chọn)</label>
-          <div className="mt-1.5">
-            <SearchableSelect options={to} placeholder="—" value={toId} onChange={setToId} />
-          </div>
-        </div>
-        <div>
           <label className={bv103LayoutChrome.labelBlock}>Người phụ trách mặc định (tuỳ chọn)</label>
           <div className="mt-1.5">
             <SearchableSelect options={ns} placeholder="—" value={nsId} onChange={setNsId} />
+          </div>
+        </div>
+        <div>
+          <label className={bv103LayoutChrome.labelBlock}>Khoa / đơn vị địa điểm *</label>
+          <div className="mt-1.5">
+            <SearchableSelect
+              options={khoaPhong}
+              placeholder="Chọn khoa từ danh mục MDM…"
+              value={diaDiemKhoaId}
+              onChange={setDiaDiemKhoaId}
+            />
+          </div>
+        </div>
+        <div className="md:col-span-2">
+          <button
+            type="button"
+            onClick={() => setShowDetails((v) => !v)}
+            className="text-xs font-semibold text-slate-600 underline-offset-2 hover:underline"
+          >
+            {showDetails ? "Ẩn chi tiết" : "Thêm chi tiết"}
+          </button>
+        </div>
+        {showDetails ? (
+          <>
+        <div>
+          <label className={bv103LayoutChrome.labelBlock}>Tổ công tác (tuỳ chọn)</label>
+          <div className="mt-1.5">
+            <SearchableSelect options={to} placeholder="—" value={toId} onChange={setToId} />
           </div>
         </div>
         <div>
@@ -347,7 +374,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan }: Props) 
           </div>
         </div>
         <div>
-          <label className={bv103LayoutChrome.labelBlock}>Giờ bắt đầu *</label>
+          <label className={bv103LayoutChrome.labelBlock}>Giờ bắt đầu (tuỳ chọn)</label>
           <input
             type="time"
             className="mt-1.5 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm"
@@ -356,24 +383,13 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan }: Props) 
           />
         </div>
         <div>
-          <label className={bv103LayoutChrome.labelBlock}>Giờ kết thúc *</label>
+          <label className={bv103LayoutChrome.labelBlock}>Giờ kết thúc (tuỳ chọn)</label>
           <input
             type="time"
             className="mt-1.5 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-sm"
             value={gioKet}
             onChange={(e) => setGioKet(e.target.value)}
           />
-        </div>
-        <div>
-          <label className={bv103LayoutChrome.labelBlock}>Khoa / đơn vị địa điểm *</label>
-          <div className="mt-1.5">
-            <SearchableSelect
-              options={khoaPhong}
-              placeholder="Chọn khoa từ danh mục MDM…"
-              value={diaDiemKhoaId}
-              onChange={setDiaDiemKhoaId}
-            />
-          </div>
         </div>
         <div className="md:col-span-2">
           <label className={bv103LayoutChrome.labelBlock}>Vị trí chi tiết (tuỳ chọn)</label>
@@ -414,6 +430,8 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan }: Props) 
             <option value="CAO">Cao</option>
           </select>
         </div>
+          </>
+        ) : null}
         <div className="md:col-span-2">
           <button type="submit" className="h-10 rounded-xl bg-slate-800 px-5 text-xs font-semibold text-white hover:bg-slate-900">
             {editingId ? "Lưu thay đổi" : "Thêm mẫu"}

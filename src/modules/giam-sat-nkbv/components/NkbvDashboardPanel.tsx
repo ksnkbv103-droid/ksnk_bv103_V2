@@ -313,9 +313,12 @@ export default function NkbvDashboardPanel({
             </div>
           )}
 
-          {/* Premium JCI / CDC NHSN Epidemiology Surveillance Dashboard */}
           {!payload.epidemiologyError && payload.epidemiologyRates && payload.epidemiologyRates.length > 0 && (
-            <div className={`${C.panelSurface} p-6 space-y-6`}>
+            <details className={`${C.panelSurface} p-6 space-y-6`}>
+            <summary className="cursor-pointer list-none text-sm font-semibold text-slate-700">
+              Xem thêm chỉ số dịch tễ (SIR / ngày thiết bị)
+            </summary>
+            <div className="space-y-6 pt-4">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
                 <div>
                   <h3 className={`${C.sectionTitle} flex items-center gap-2`}>
@@ -324,7 +327,7 @@ export default function NkbvDashboardPanel({
                   </h3>
                   <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
                     Theo dõi mật độ nhiễm khuẩn liên quan thiết bị và mức dùng thiết bị xâm lấn trong kỳ lọc.
-                    Đây là outcome NKBV — không gộp vào chỉ số tuân thủ CCS (VST/GSC).
+                    Đây là kết quả nhiễm khuẩn — không gộp vào tỷ lệ vệ sinh tay / giám sát chung.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2 text-[11px] font-medium text-slate-500 bg-slate-50 p-1.5 rounded-full border border-slate-100">
@@ -556,6 +559,7 @@ export default function NkbvDashboardPanel({
                 </table>
               </ResponsiveTableShell>
             </div>
+            </details>
           )}
 
           <p className="text-center text-[11px] font-medium italic text-slate-400">

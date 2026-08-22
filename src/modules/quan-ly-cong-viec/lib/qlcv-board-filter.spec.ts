@@ -20,6 +20,12 @@ describe("isMyQlcvTask", () => {
   it("rejects without actor", () => {
     expect(isMyQlcvTask({ nguoi_phu_trach_id: "ns-01" }, null)).toBe(false);
   });
+
+  it("excludes closed tasks", () => {
+    expect(
+      isMyQlcvTask({ nguoi_phu_trach_id: "ns-01", trang_thai: "HOAN_THANH" }, "ns-01"),
+    ).toBe(false);
+  });
 });
 
 describe("matchesQlcvBoardFilter MY_TASKS", () => {

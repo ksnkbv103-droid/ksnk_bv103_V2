@@ -15,6 +15,8 @@ type Props = {
   selectedMaBk: string | null;
   onSelectMaBk: (ma: string | null) => void;
   bkLabelRecord?: Record<string, string>;
+  /** Mặc định 5 biểu mẫu yếu nhất. */
+  limit?: number;
 };
 
 function complianceClass(tyLe: number): string {
@@ -25,14 +27,26 @@ function complianceClass(tyLe: number): string {
   return "text-slate-800";
 }
 
-export function GscChecklistNavigator({ payload, loading, selectedMaBk, onSelectMaBk, bkLabelRecord }: Props) {
+export function GscChecklistNavigator({
+  payload,
+  loading,
+  selectedMaBk,
+  onSelectMaBk,
+  bkLabelRecord,
+  limit = 5,
+}: Props) {
   const rows = useMemo(() => {
     const list = resolveSortedChecklistOverview(payload);
-    return list.map((r) => ({
+    const sliced = limit > 0 ? list.slice(0, limit) : list;
+    return sliced.map((r) => ({
       ...r,
       label: bkLabelRecord?.[r.ma_bk] ?? r.ten_bang_kiem ?? r.ma_bk,
     }));
-  }, [payload, bkLabelRecord]);
+  }, [payload, bkLabelRecord, limit]);
+  const hiddenCount = useMemo(() => {
+    const total = resolveSortedChecklistOverview(payload).length;
+    return limit > 0 ? Math.max(0, total - limit) : 0;
+  }, [payload, limit]);
 
   if (!loading && rows.length === 0) {
     return (
@@ -45,9 +59,11 @@ export function GscChecklistNavigator({ payload, loading, selectedMaBk, onSelect
   return (
     <div className={`${UI.shell} max-sm:overflow-visible sm:overflow-hidden`}>
       <div className="border-b border-slate-100 px-4 py-3">
-        <h3 className="text-sm font-bold text-slate-800">Bảng kiểm — trục phân tích chính</h3>
+        <h3 className="text-sm font-bold text-slate-800">Bảng kiểm yếu nhất</h3>
         <p className="mt-0.5 text-[11px] text-slate-500">
-          Sắp xếp theo rủi ro (tuân thủ thấp · vi phạm nhiều). Chọn một dòng để xem lỗi chi tiết theo khoa và tiêu chí.
+          {limit > 0
+            ? `Năm biểu mẫu tuân thủ thấp / vi phạm nhiều${hiddenCount > 0 ? ` (còn ${hiddenCount} — mở Xem thêm)` : ""}.`
+            : "Sắp xếp theo rủi ro. Chọn một dòng để xem lỗi theo khoa và tiêu chí."}
         </p>
       </div>
       <ResponsiveTableShell unboxed maxHeight="max-h-[min(52dvh,480px)]">

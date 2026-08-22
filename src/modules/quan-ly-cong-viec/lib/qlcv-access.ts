@@ -1,6 +1,6 @@
 import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
-import { getBoardLaneId, type CongViecBoardInput } from "./qlcv-board-lanes";
+import { isBoardLaneQuaHan, type CongViecBoardInput } from "./qlcv-board-lanes";
 import { isDeXuatChoDuyet, type CongViecLike } from "./qlcv-workflow-display";
 
 /** Dòng fact / view có đủ trường để kiểm tra quyền CRUD nhiệm vụ gốc + lane quá hạn. */
@@ -16,9 +16,9 @@ function rowAsBoardInput(row: QlcvTaskAccessRow): CongViecBoardInput {
   return row as CongViecBoardInput;
 }
 
-/** Lane UX «Quá hạn» — khớp `getBoardLaneId` (mã QUA_HAN / cờ view / hạn qua). */
+/** Việc mở đã quá hạn — nhãn, không phải cột đời sống. */
 export function isQlcvTaskInQuaHanLane(row: QlcvTaskAccessRow): boolean {
-  return getBoardLaneId(rowAsBoardInput(row)) === "lane_qua_han";
+  return isBoardLaneQuaHan(rowAsBoardInput(row));
 }
 
 /** Phiếu active đã giao (không còn đề xuất chờ duyệt). */

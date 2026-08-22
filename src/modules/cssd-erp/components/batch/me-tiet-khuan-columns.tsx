@@ -60,10 +60,13 @@ export function buildMeTietKhuanBatchColumns(opts?: {
     accessorKey: "trang_thai",
     cell: (i: any) => {
       const state = String(i.trang_thai || "");
+      // Domain: CHO_BI / Quarantine_BI = implant chờ BI (−); UI-ready map (derive full gate = P1/write path).
       const STATE_BADGES: Record<string, { label: string; cls: string }> = {
         DANG_CHUAN_NAP: { label: "📥 Chuẩn bị nạp", cls: "bg-sky-50 text-sky-700 border-sky-100" },
         DANG_TIET_KHUAN: { label: "🔥 Đang tiệt khuẩn", cls: "bg-blue-50 text-blue-700 border-blue-100" },
         CHO_DANH_GIA_QC: { label: "🔬 Chờ đánh giá QC", cls: "bg-amber-50 text-amber-700 border-amber-100 animate-pulse" },
+        CHO_BI: { label: "⏳ Chờ BI (quarantine)", cls: "bg-violet-50 text-violet-800 border-violet-200" },
+        Quarantine_BI: { label: "⏳ Chờ BI (quarantine)", cls: "bg-violet-50 text-violet-800 border-violet-200" },
         QC_KHONG_DAT: { label: "❌ Lỗi tiệt khuẩn", cls: "bg-red-50 text-red-700 border-red-100" },
         HOAN_THANH: { label: "🏆 Đạt (Chờ cấp phát)", cls: "bg-emerald-50 text-emerald-700 border-emerald-100" },
       };

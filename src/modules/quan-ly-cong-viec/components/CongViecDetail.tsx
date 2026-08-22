@@ -43,6 +43,7 @@ import { resolveQlcvWorkflowBadgeAppearance } from "../lib/qlcv-workflow-badge";
 import { getTrangThaiMauSacMap } from "../actions/cong-viec-read.actions";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
+import { isQlcvBoardOverdue } from "../lib/qlcv-board-lanes";
 import { labelsForStaffIds, normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
 import type { CongViecView } from "../types";
 import type { QlcvSelectOption } from "../lib/qlcv-form-options";
@@ -238,6 +239,11 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
             <span className={statusBadge.className} style={statusBadge.style}>
               {statusDisplay}
             </span>
+            {isQlcvBoardOverdue(data) ? (
+              <span className="rounded-md border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-800">
+                Quá hạn
+              </span>
+            ) : null}
             <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
               #{data.id?.slice(0, 8)}
             </span>
@@ -335,7 +341,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
               <DialogTrigger asChild>
                 <button type="button" className={qlcvDetailChrome.btnOutline}>
-                  Sửa nhiệm vụ
+                  Sửa việc
                 </button>
               </DialogTrigger>
               <DialogContent className={qlcvDetailChrome.dialogContent}>

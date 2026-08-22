@@ -31,7 +31,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<FilterStatusType>("ALL");
   const [filterFEFO, setFilterFEFO] = useState<boolean>(false);
-  const [qrFilter, setQrFilter] = useState("");
+  const [lookup, setLookup] = useState("");
   const [selectedSet, setSelectedSet] = useState<any>(null);
   const [issueTool, setIssueTool] = useState<any>(null);
 
@@ -79,25 +79,30 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
     return () => window.removeEventListener("cssd:kho-refetch", onRefetch);
   }, [fetchData]);
 
-  const applyQrFilter = useCallback((raw: string) => {
-    const code = normalizeCssdCode(raw);
-    setQrFilter(code);
-    if (!code) return;
+  const applyLookup = useCallback((raw: string) => {
+    const typed = raw.trim();
+    setLookup(typed);
+    if (!typed) return;
+    const code = normalizeCssdCode(typed);
+    const q = typed.toLowerCase();
     const hit = data.some((d) => {
+      const ten = String(d.cssd_dm_bo_dung_cu?.ten_bo || "").toLowerCase();
       const qr = normalizeCssdCode(d.ma_vach_qr);
       const maBo = normalizeCssdCode(d.cssd_dm_bo_dung_cu?.ma_bo);
       const cycle = normalizeCssdCode(d.ma_cycle_qr);
-      return qr === code || maBo === code || cycle === code;
+      return ten.includes(q) || qr.includes(code) || maBo.includes(code) || cycle.includes(code);
     });
-    if (hit) toast.success(`Đã lọc theo mã: ${code}`);
-    else toast.error(`Không thấy bộ nào khớp mã ${code}`);
+    if (!hit) toast.error(`Không thấy bộ nào khớp «${typed}»`);
   }, [data]);
 
   const filteredData = useMemo(() => {
     let filtered = data;
 
-    // Lọc theo 8 trạng thái click-to-filter
-    if (filterStatus === "LAM_SACH") {
+    if (filterStatus === "DANG_XU_LY") {
+      filtered = filtered.filter((d) =>
+        ["LAM_SACH", "QC", "DONG_GOI", "TIET_KHUAN"].includes(String(d.trang_thai_hien_tai || "")),
+      );
+    } else if (filterStatus === "LAM_SACH") {
       filtered = filtered.filter(d => d.trang_thai_hien_tai === "LAM_SACH");
     } else if (filterStatus === "QC") {
       filtered = filtered.filter(d => d.trang_thai_hien_tai === "QC");
@@ -122,17 +127,19 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       });
     }
 
-    if (qrFilter) {
+    if (lookup) {
+      const q = lookup.trim().toLowerCase();
+      const code = normalizeCssdCode(lookup);
       filtered = filtered.filter((d) => {
+        const ten = String(d.cssd_dm_bo_dung_cu?.ten_bo || "").toLowerCase();
         const qr = normalizeCssdCode(d.ma_vach_qr);
         const maBo = normalizeCssdCode(d.cssd_dm_bo_dung_cu?.ma_bo);
         const cycle = normalizeCssdCode(d.ma_cycle_qr);
-        return qr === qrFilter || maBo === qrFilter || cycle === qrFilter
-          || qr.includes(qrFilter) || maBo.includes(qrFilter);
+        return ten.includes(q) || qr.includes(code) || maBo.includes(code) || cycle.includes(code);
       });
     }
     return filtered;
-  }, [data, filterStatus, filterFEFO, qrFilter]);
+  }, [data, filterStatus, filterFEFO, lookup]);
 
   const handleExport = () => {
     const exportData = filteredData.map((d: any) => ({
@@ -175,10 +182,20 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
     },
     {
       header: "Số món",
-      accessorKey: "cssd_dm_bo_dung_cu.so_luong_mon",
-      cell: (i: any) => (
-        <span className="font-semibold text-slate-600 text-[11px]">{i.cssd_dm_bo_dung_cu?.so_luong_mon || 1}</span>
-      ),
+      accessorKey: "so_luong_thuc_te",
+      cell: (i: any) => {
+        const can = Number(i.so_luong_can);
+        const thuc = Number(i.so_luong_thuc_te);
+        const thieu = Number(i.so_luong_thieu || 0);
+        if (!Number.isFinite(can) || !Number.isFinite(thuc)) {
+          return <span className="text-[11px] text-slate-400">—</span>;
+        }
+        return (
+          <span className={`text-[11px] font-semibold tabular-nums ${thieu > 0 ? "text-red-700" : "text-slate-700"}`}>
+            {thieu > 0 ? `${thuc}/${can} · thiếu ${thieu}` : `${thuc}/${can}`}
+          </span>
+        );
+      },
     },
     {
       header: "Hạn sử dụng",
@@ -222,7 +239,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
         const STATION_BADGE: Record<string, { icon: string; label: string; cls: string }> = {
           TIEP_NHAN: { icon: "🕐", label: "Tiếp nhận", cls: "bg-sky-50 text-sky-700 border-sky-100" },
           LAM_SACH: { icon: "🧽", label: "Làm sạch", cls: "bg-teal-50 text-teal-700 border-teal-100" },
-          QC: { icon: "🔍", label: "Kiểm tra", cls: "bg-violet-50 text-violet-700 border-violet-100" },
+          QC: { icon: "🔍", label: "QC", cls: "bg-violet-50 text-violet-700 border-violet-100" },
           DONG_GOI: { icon: "📦", label: "Đóng gói", cls: "bg-amber-50 text-amber-700 border-amber-100" },
           TIET_KHUAN: { icon: "🔥", label: "Tiệt khuẩn", cls: "bg-orange-50 text-orange-700 border-orange-100" },
           CAP_PHAT: {
@@ -287,13 +304,13 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-[11px] font-medium text-slate-500">
             Danh sách lọc: <span className="text-[var(--primary)] font-semibold">{filteredData.length}</span> bộ dụng cụ
-            {qrFilter ? (
+            {lookup ? (
               <button
                 type="button"
                 className="ml-2 text-[var(--primary)] underline-offset-2 hover:underline"
-                onClick={() => setQrFilter("")}
+                onClick={() => setLookup("")}
               >
-                Xóa lọc QR ({qrFilter})
+                Xóa lọc ({lookup})
               </button>
             ) : null}
           </p>
@@ -309,22 +326,23 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
           </button>
         </div>
 
-        <div className="max-w-xl">
-          <QrScanInput
-            placeholder="Quét hoặc gõ mã QR bộ / chu trình để lọc kho…"
-            cameraTitle="Quét QR kho dụng cụ"
-            onEnter={applyQrFilter}
-            onCameraScan={applyQrFilter}
-          />
-        </div>
-
         <div className={CSSD_UI_DATA_SURFACE}>
+          <div className="mb-3 max-w-xl">
+            <QrScanInput
+              value={lookup}
+              onChange={setLookup}
+              placeholder="Tìm tên, mã hoặc quét QR…"
+              cameraTitle="Tìm hoặc quét QR kho"
+              onEnter={applyLookup}
+              onCameraScan={applyLookup}
+            />
+          </div>
           <AdvancedDataTable
             columns={columns}
             data={filteredData}
             loading={loading}
             enableMultiSelect={false}
-            searchPlaceholder="Tìm kiếm bộ dụng cụ, mã QR..."
+            hideSearch
           />
         </div>
       </div>

@@ -7,7 +7,10 @@ import { saveNhanSuAction } from "../actions/nhan-su-write.actions";
 import type { NhanSu } from "../types";
 import { toast } from "sonner";
 import NhanSuFormFields from "./form/NhanSuFormFields";
+import NhanSuLoginFields from "./form/NhanSuLoginFields";
+import { afterSaveNhanSuLogin } from "../lib/nhan-su-after-save-login";
 import { useGenerateMa } from "@/hooks/useGenerateMa";
+import { usePermission } from "@/hooks/usePermission";
 import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
 
 interface Props {
@@ -27,6 +30,11 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
   const [vaiTros, setVaiTros] = useState<{ id: string; ten_danh_muc: string }[]>([]);
   const [chucVus, setChucVus] = useState<{ id: string; ten_danh_muc: string }[]>([]);
   const [ngheNghieps, setNgheNghieps] = useState<{ id: string; ten_danh_muc: string }[]>([]);
+  const [loginPassword, setLoginPassword] = useState("");
+  const [createLogin, setCreateLogin] = useState(false);
+  const { isAdmin, canEdit } = usePermission();
+  const canProvision = isAdmin || canEdit("PHAN_QUYEN");
+  const hasAuth = Boolean(initialData?.auth_user_id);
   
   const defaults: Partial<NhanSu> = {
     ma_nv: "",
@@ -125,14 +133,28 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
       if (cleaned[key] === "") cleaned[key] = null;
     }
     const res = await saveNhanSuAction(cleaned as Partial<NhanSu>);
-    setLoading(false);
-
-    if (res.success) {
-      toast.success(res.message);
-      onSuccess();
-    } else {
+    if (!res.success) {
+      setLoading(false);
       toast.error(res.error || "Có lỗi xảy ra khi lưu dữ liệu");
+      return;
     }
+
+    const staffId = res.id || initialData?.id || "";
+    const roleName = String(
+      vaiTros.find((v) => v.id === String(formData.vai_tro_he_thong_id || ""))?.ten_danh_muc || "",
+    ).trim();
+    await afterSaveNhanSuLogin({
+      staffId,
+      savedMessage: res.message || "Đã lưu hồ sơ.",
+      canProvision,
+      hasAuth,
+      createLogin,
+      email: formData.email,
+      password: loginPassword,
+      roleName,
+    });
+    setLoading(false);
+    onSuccess();
   };
 
   return (
@@ -159,6 +181,18 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
             maTuDong={maTuDong}
             isNew={!initialData?.id}
           />
+
+          {canProvision ? (
+            <NhanSuLoginFields
+              hasAuth={hasAuth}
+              email={String(formData.email || "")}
+              password={loginPassword}
+              onPassword={setLoginPassword}
+              createLogin={createLogin}
+              onCreateLogin={setCreateLogin}
+              disabled={loading}
+            />
+          ) : null}
 
           <div className="flex gap-4 pt-4">
             <button type="button" onClick={onCancel} className={`${F.ctaSecondary} flex-1 ${F.modalFooterBtn}`} disabled={loading}>

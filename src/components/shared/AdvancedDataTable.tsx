@@ -132,23 +132,25 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
           : "flex min-w-0 w-full max-w-none flex-1 basis-0 items-center gap-1.5 sm:max-w-2xl"
       }
     >
-      <SearchBar
-        value={finalSearchTerm}
-        onChange={onSearchAction}
-        placeholder={searchPlaceholder}
-        className="min-w-0 w-full flex-1"
-      />
       {enableQrScan ? (
-        <div className="w-[min(100%,11rem)] shrink-0 sm:w-40">
-          <QrScanInput
-            placeholder="Quét QR…"
-            cameraTitle="Quét QR tìm kiếm"
-            onEnter={applyQrCode}
-            onCameraScan={applyQrCode}
-            inputClassName="bv103-control-h w-full touch-manipulation rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-xs font-semibold uppercase text-slate-800 outline-none placeholder:normal-case placeholder:text-slate-400 focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-[var(--primary)]/15"
-          />
-        </div>
-      ) : null}
+        <QrScanInput
+          value={String(finalSearchTerm ?? "")}
+          onChange={onSearchAction}
+          placeholder={searchPlaceholder}
+          cameraTitle="Tìm hoặc quét QR"
+          onEnter={applyQrCode}
+          onCameraScan={applyQrCode}
+          className="min-w-0 w-full flex-1"
+          inputClassName="bv103-control-h w-full touch-manipulation rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400 focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-[var(--primary)]/15"
+        />
+      ) : (
+        <SearchBar
+          value={finalSearchTerm}
+          onChange={onSearchAction}
+          placeholder={searchPlaceholder}
+          className="min-w-0 w-full flex-1"
+        />
+      )}
     </div>
   ) : null;
 

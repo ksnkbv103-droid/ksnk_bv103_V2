@@ -206,7 +206,7 @@ export default function MeTietKhuanProcessQcPanel({
     return (
       <div className="flex min-h-[320px] flex-col items-center justify-center rounded-[var(--radius-shell)] border border-dashed border-slate-200 bg-slate-50/80 p-8 text-center shadow-inner">
         <Settings2 className="mb-3 h-10 w-10 text-slate-300 animate-pulse" aria-hidden />
-        <p className="text-xs font-medium text-slate-500">Chưa mở form — bấm «Kết thúc chu trình tiệt khuẩn».</p>
+        <p className="text-xs font-medium text-slate-500">Chưa mở form — bấm «Xong máy — mở đánh giá QC».</p>
       </div>
     );
   }
@@ -416,8 +416,13 @@ export default function MeTietKhuanProcessQcPanel({
                 showPhoto
               />
             )}
+          </div>
 
-            {/* Test sinh học — tùy chọn cả 3 loại máy */}
+          <details className="rounded-xl border border-slate-200 bg-white p-3">
+            <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-slate-600">
+              Chỉ thị thêm (BIM, Bowie–Dick) — không bắt buộc mỗi mẻ
+            </summary>
+            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-white p-4 space-y-3 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wide text-slate-700">Test sinh học (BIM)</span>
@@ -514,7 +519,8 @@ export default function MeTietKhuanProcessQcPanel({
                 )}
               </div>
             )}
-          </div>
+            </div>
+          </details>
         </div>
 
         {/* === AUTO-FAIL NOTICE === */}

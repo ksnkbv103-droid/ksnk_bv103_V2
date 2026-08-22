@@ -1,12 +1,7 @@
 "use client";
 
 import React from "react";
-import { Beaker, CalendarClock, AlertTriangle, Settings2 } from "lucide-react";
-import {
-  CSSD_UI_ACTION_PRIMARY,
-  CSSD_UI_SECTION_TITLE,
-} from "../../shared/ui/cssd-ui-chrome";
-import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { Beaker, CalendarClock, AlertTriangle } from "lucide-react";
 
 type Dm = {
   id: string;
@@ -52,11 +47,11 @@ export default function KhoHoaChatOverview({
   countDuoiNguong,
   dms,
   canEdit,
-  thrDm,
-  thrVal,
-  onThrDm,
-  onThrVal,
-  onSaveThr,
+  thrDm: _thrDm,
+  thrVal: _thrVal,
+  onThrDm: _onThrDm,
+  onThrVal: _onThrVal,
+  onSaveThr: _onSaveThr,
 }: Props) {
   return (
     <div className="space-y-3">
@@ -76,43 +71,11 @@ export default function KhoHoaChatOverview({
         <StatInline label="Mặt hàng" value={dms.length} icon={<Beaker size={14} />} tone="emerald" />
       </div>
 
-      <div className="flex flex-col gap-2 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/80 px-3 py-2.5 sm:flex-row sm:items-end sm:gap-3">
-        <div className="flex min-w-0 flex-1 items-center gap-1.5">
-          <Settings2 size={13} className="shrink-0 text-slate-500" />
-          <span className={CSSD_UI_SECTION_TITLE}>Ngưỡng an toàn</span>
-        </div>
-        <div className="grid min-w-0 flex-[2] grid-cols-2 gap-1.5 sm:max-w-md">
-          <select
-            className={bv103LayoutChrome.controlSelectNative}
-            value={thrDm}
-            onChange={(e) => onThrDm(e.target.value)}
-            disabled={!canEdit}
-          >
-            <option value="">Chọn HC/VT…</option>
-            {dms.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.ma_hoa_chat}
-              </option>
-            ))}
-          </select>
-          <input
-            type="number"
-            className={bv103LayoutChrome.controlInput}
-            placeholder="Số lượng"
-            value={thrVal}
-            onChange={(e) => onThrVal(e.target.value)}
-            disabled={!canEdit || !thrDm}
-          />
-        </div>
-        <button
-          type="button"
-          className={`${CSSD_UI_ACTION_PRIMARY} w-full shrink-0 sm:w-auto`}
-          disabled={!canEdit || !thrDm}
-          onClick={() => void onSaveThr()}
-        >
-          Lưu ngưỡng
-        </button>
-      </div>
+      {canEdit ? (
+        <p className="text-[11px] text-slate-500">
+          Ngưỡng tồn chỉnh tại Quản trị danh mục hóa chất — không sửa trên ca hàng ngày.
+        </p>
+      ) : null}
     </div>
   );
 }

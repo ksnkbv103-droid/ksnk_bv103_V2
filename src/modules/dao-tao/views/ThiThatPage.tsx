@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Clock3, Layers } from "lucide-react";
-import type { ExamFormThongTin } from "@/lib/dao-tao/types";
 import {
   listKyThiThatCuaToi,
   startThiThatAttempt,
 } from "@/modules/dao-tao/actions/dao-tao-attempt.actions";
-import { DaoTaoExamInfoForm } from "@/modules/dao-tao/components/DaoTaoExamInfoForm";
+import { DaoTaoThiSinhBanner } from "@/modules/dao-tao/components/DaoTaoThiSinhBanner";
+import { useDaoTaoThiSinhForm } from "@/modules/dao-tao/hooks/use-dao-tao-thi-sinh-form";
 import {
   DaoTaoHeader,
   DaoTaoPage,
@@ -37,12 +37,7 @@ export default function ThiThatPage() {
   const [list, setList] = useState<KyRow[]>([]);
   const [kyThiId, setKyThiId] = useState("");
   const [loaded, setLoaded] = useState(false);
-  const [form, setForm] = useState<ExamFormThongTin>({
-    hoTen: "",
-    khoaDonVi: "",
-    soDienThoai: "",
-    email: "",
-  });
+  const { form, setForm, complete, banner } = useDaoTaoThiSinhForm();
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -58,20 +53,18 @@ export default function ThiThatPage() {
 
   return (
     <DaoTaoPage className="mx-auto max-w-2xl">
-      <DaoTaoHeader
-        title="Thi thật"
-      />
+      <DaoTaoHeader title="Thi chính thức" />
 
       <DaoTaoPanel className="space-y-3">
-        <p className={T.sectionTitle}>1. Kỳ thi được phân công</p>
+        <p className={T.sectionTitle}>Kỳ thi của khoa bạn</p>
         {!loaded ? (
           <p className="text-sm text-slate-500">Đang tải…</p>
         ) : list.length === 0 ? (
           <div className="rounded-[var(--radius-control)] border border-dashed border-slate-200 bg-slate-50/80 px-4 py-5 text-sm text-slate-600">
-            Hiện không có kỳ thi thật nào dành cho bạn.
+            Phòng KSNK chưa mở kỳ thi cho khoa của bạn. Liên hệ phòng KSNK nếu cần thi chính thức.
             <div className="mt-3">
               <Link href="/dao-tao/thi-thu" className={daoTaoBtnSecondary}>
-                Sang thi thử để ôn tập
+                Ôn tập trước
               </Link>
             </div>
           </div>
@@ -86,7 +79,7 @@ export default function ThiThatPage() {
                   disabled={!k.conLuot}
                   onClick={() => setKyThiId(k.id)}
                   className={cn(
-                    "w-full rounded-[var(--radius-control)] border px-3 py-3 text-left transition",
+                    "w-full rounded-[var(--radius-control)] border px-3 py-3 text-left transition touch-manipulation",
                     active
                       ? "border-[var(--primary)]/50 bg-[var(--primary)]/[0.04] ring-1 ring-[var(--primary)]/20"
                       : "border-slate-200 bg-white",
@@ -113,20 +106,19 @@ export default function ThiThatPage() {
         )}
       </DaoTaoPanel>
 
-      <DaoTaoPanel className="space-y-3">
-        <p className={T.sectionTitle}>2. Thông tin thí sinh</p>
-        <DaoTaoExamInfoForm value={form} onChange={setForm} />
+      <DaoTaoPanel>
+        <DaoTaoThiSinhBanner form={form} onChange={setForm} complete={complete} banner={banner} />
       </DaoTaoPanel>
 
       <button
         type="button"
-        disabled={pending || !kyThiId}
+        disabled={pending || !kyThiId || !form.hoTen.trim() || !form.khoaDonVi.trim()}
         className={cn(daoTaoBtnPrimary, "h-11 w-full justify-center text-sm")}
         onClick={() => {
           startTransition(async () => {
             try {
               const res = await startThiThatAttempt({ kyThiId, form });
-              toast.success("Bắt đầu thi thật");
+              toast.success("Bắt đầu thi");
               router.push(`/dao-tao/lam-bai/${res.lanThiId}`);
             } catch (e) {
               toast.error(e instanceof Error ? e.message : "Không bắt đầu được");

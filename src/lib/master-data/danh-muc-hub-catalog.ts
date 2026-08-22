@@ -90,8 +90,8 @@ const DEDICATED_ROWS: Omit<DanhMucHubRow, "stats">[] = [
   },
   {
     id: "dung-cu-le",
-    name: "Thành phần / chi tiết bộ",
-    path: quanTriDungCuHref("chi-tiet"),
+    name: "Thành phần bộ (trong bộ)",
+    path: quanTriDungCuHref("bo"),
     domain: "CSSD",
     group: "cssd",
     tier: "dedicated",

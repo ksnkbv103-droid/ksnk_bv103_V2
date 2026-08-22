@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import type { CSSDBo, CSSDChiTiet } from "../types/catalog.types";
 import type { CatalogTab } from "./cssd-catalog-page-helpers";
-import { Layers, ListFilter, Printer, Loader2 } from "lucide-react";
+import { Layers, Printer, Loader2 } from "lucide-react";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 import { usePrint } from "@/hooks/usePrint";
@@ -20,16 +20,12 @@ export function CSSDCatalogBoTab(props: {
   setSelectedLoaiId: (id: string) => void;
   setTab: (t: CatalogTab) => void;
 }) {
-  const {
-    boRows,
-    chiTietBySelectedBo,
-    selectedBoId,
-    setSelectedBoId,
-    selectedBo,
-    setSelectedChiTietId,
-    setSelectedLoaiId,
-    setTab,
-  } = props;
+  const { boRows, selectedBoId, setSelectedBoId } = props;
+  void props.chiTietBySelectedBo;
+  void props.selectedBo;
+  void props.setSelectedChiTietId;
+  void props.setSelectedLoaiId;
+  void props.setTab;
 
   const { printBoLabel } = usePrint();
   const [printingId, setPrintingId] = useState<string | null>(null);
@@ -214,90 +210,6 @@ export function CSSDCatalogBoTab(props: {
             </tbody>
           </table>
         </ResponsiveTableShell>
-      </section>
-
-      {/* Danh sách Dụng cụ thành phần (hiển thị khi chọn Bộ) */}
-      <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ListFilter className="h-5 w-5 text-indigo-600" />
-            <h3 className="text-sm font-bold text-slate-800">
-              Thành phần dụng cụ trong bộ{" "}
-              {selectedBo ? (
-                <span className="text-[var(--primary)] font-semibold">
-                  — {selectedBo.ten_bo} ({selectedBo.ma_bo})
-                </span>
-              ) : (
-                ""
-              )}
-            </h3>
-          </div>
-          {selectedBo && (
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-              {chiTietBySelectedBo.length} khoản dụng cụ
-            </span>
-          )}
-        </div>
-
-        {!selectedBo ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 py-10 text-center">
-            <Layers className="mb-3 h-10 w-10 text-slate-300" />
-            <p className="text-sm font-medium text-slate-500">
-              Hãy chọn một bộ dụng cụ ở danh mục phía trên để hiển thị chi tiết thành phần dụng cụ.
-            </p>
-          </div>
-        ) : (
-          <ResponsiveTableShell
-            unboxed
-            className="relative rounded-xl border border-slate-100"
-            maxHeight="max-h-[350px]"
-            scrollHint="Vuốt ngang để xem cột chi tiết dụng cụ"
-          >
-            <table className="w-full min-w-[640px] border-collapse text-left text-sm text-slate-700">
-              <thead>
-                <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">
-                  <th className="px-4 py-3">Mã dụng cụ</th>
-                  <th className="px-4 py-3">Tên dụng cụ thành phần</th>
-                  <th className="px-4 py-3">Loại dụng cụ</th>
-                  <th className="px-4 py-3 text-center">Số lượng trong bộ</th>
-                  <th className="px-4 py-3 text-center">Mã khắc / QR mẫu</th>
-                  <th className="px-4 py-3 text-center">Chu kỳ tối đa</th>
-                  <th className="px-4 py-3 text-center">Trọng lượng (g)</th>
-                  <th className="px-4 py-3">Ghi chú</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {chiTietBySelectedBo.map((x) => (
-                  <tr
-                    key={x.id}
-                    onClick={() => {
-                      setSelectedChiTietId(x.id);
-                      if (x.loai_dung_cu_id) setSelectedLoaiId(x.loai_dung_cu_id);
-                      setTab("CHI_TIET");
-                    }}
-                    className="cursor-pointer transition-colors hover:bg-slate-50/50"
-                  >
-                    <td className="px-4 py-3 font-bold text-indigo-600">{x.ma_chi_tiet || "—"}</td>
-                    <td className="px-4 py-3 font-semibold text-slate-800">{x.ten_chi_tiet || "—"}</td>
-                    <td className="px-4 py-3 text-slate-600">{x.ten_loai || "Chưa phân loại"}</td>
-                    <td className="px-4 py-3 text-center font-bold text-slate-800">{x.so_luong ?? 1}</td>
-                    <td className="px-4 py-3 text-center font-mono text-xs text-slate-500">{x.ma_qr_mau || "—"}</td>
-                    <td className="px-4 py-3 text-center text-slate-500">{x.max_suds_count ?? "Không giới hạn"}</td>
-                    <td className="px-4 py-3 text-center text-slate-500">{x.trong_luong ?? "—"}</td>
-                    <td className="px-4 py-3 text-xs text-slate-400">{x.ghi_chu || "—"}</td>
-                  </tr>
-                ))}
-                {chiTietBySelectedBo.length === 0 && (
-                  <tr>
-                    <td colSpan={8} className="py-6 text-center text-sm text-slate-500">
-                      Bộ này chưa được cấu hình danh sách dụng cụ thành phần.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </ResponsiveTableShell>
-        )}
       </section>
     </div>
   );

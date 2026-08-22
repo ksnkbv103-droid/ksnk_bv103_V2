@@ -69,11 +69,11 @@ describe("nkbv-pneu-timeline-verdict", () => {
           { key: "rales", label: "Ran" },
         ],
       },
-      canThiepDates: ["2026-07-17", "2026-07-18", "2026-07-19", "2026-07-20"],
+      canThiepDates: ["2026-07-18", "2026-07-19", "2026-07-20"],
       iwpDates: iwpAround(ix),
-      nsk: "2026-07-19",
+      nsk: "2026-07-20",
       bloodCriterionIds: [],
-      devicePlacedDate: "2026-07-17",
+      devicePlacedDate: "2026-07-18",
     });
     expect(v.gate.microbiology).toBe("NONE");
     expect(v.result.classification).toBe("PNU1_VAP");
@@ -102,11 +102,11 @@ describe("nkbv-pneu-timeline-verdict", () => {
           { key: "rales", label: "Ran" },
         ],
       },
-      canThiepDates: ["2026-07-17", "2026-07-18", "2026-07-19", "2026-07-20"],
+      canThiepDates: ["2026-07-18", "2026-07-19", "2026-07-20"],
       iwpDates: iwpAround(ix),
-      nsk: "2026-07-19",
+      nsk: "2026-07-20",
       bloodCriterionIds: [],
-      devicePlacedDate: "2026-07-17",
+      devicePlacedDate: "2026-07-18",
     });
     expect(v.gate.microbiology).toBe("PNU2");
     expect(v.result.classification).toBe("PNU2_VAP");
@@ -235,5 +235,113 @@ describe("nkbv-pneu-timeline-verdict", () => {
       hasCardiopulmonaryDisease: true,
     });
     expect(two.result.classification).toBe("PNU1_NON_VAP");
+  });
+
+  it("A1: khó thở + thở nhanh = 1 nhóm CDC → không PNU1", () => {
+    const ix = "2026-07-20";
+    const v = buildPneuTimelineVerdict({
+      indexKind: "CDHA",
+      indexXn: null,
+      indexCdha: xq({ id: "c1", ngay: ix }),
+      cdha: [xq({ id: "c1", ngay: ix })],
+      lamSang: {
+        "2026-07-20": [
+          { key: "fever", label: "Sốt" },
+          { key: "dyspnea", label: "Khó thở" },
+          { key: "tachypnea", label: "Thở nhanh" },
+        ],
+      },
+      canThiepDates: [],
+      iwpDates: iwpAround(ix),
+      nsk: ix,
+      bloodCriterionIds: [],
+    });
+    expect(v.gate.respiratoryCount).toBe(1);
+    expect(v.result.classification).toBe("NO_EVENT");
+    expect(v.criteriaMet).toBe(false);
+  });
+
+  it("A2: BAL + 1 nhóm hô hấp → PNU2", () => {
+    const ix = "2026-07-20";
+    const v = buildPneuTimelineVerdict({
+      indexKind: "XN",
+      indexXn: {
+        id: "x1",
+        ngay: ix,
+        benh_pham: "BAL",
+        vi_khuan: "P. aeruginosa",
+        so_luong: "10^4",
+        source: "LIS",
+      },
+      indexCdha: null,
+      cdha: [xq({ id: "c1", ngay: "2026-07-19" })],
+      lamSang: {
+        "2026-07-19": [
+          { key: "fever_or_wbc", label: "Sốt/WBC" },
+          { key: "cough", label: "Ho" },
+        ],
+      },
+      canThiepDates: [],
+      iwpDates: iwpAround(ix),
+      nsk: "2026-07-19",
+      bloodCriterionIds: [],
+    });
+    expect(v.gate.respiratoryCount).toBe(1);
+    expect(v.result.classification).toBe("PNU2_NON_VAP");
+  });
+
+  it("A4: atom miễn dịch + lab đạt → PNU3 (không cần ho ra máu)", () => {
+    const ix = "2026-07-20";
+    const v = buildPneuTimelineVerdict({
+      indexKind: "XN",
+      indexXn: {
+        id: "x1",
+        ngay: ix,
+        benh_pham: "BAL",
+        vi_khuan: "P. aeruginosa",
+        so_luong: "10^4",
+        source: "LIS",
+      },
+      indexCdha: null,
+      cdha: [xq({ id: "c1", ngay: "2026-07-19" })],
+      lamSang: {
+        "2026-07-19": [
+          { key: "fever_or_wbc", label: "Sốt/WBC" },
+          { key: "cough", label: "Ho" },
+          { key: "rales", label: "Ran" },
+        ],
+      },
+      canThiepDates: [],
+      iwpDates: iwpAround(ix),
+      nsk: "2026-07-19",
+      bloodCriterionIds: [],
+      pneuIcAtoms: { pneu_ic_neutropenia: true },
+    });
+    expect(v.result.classification).toBe("PNU3_NON_VAP");
+  });
+
+  it("A5: người lớn + vent ≥4 ngày → không PNU*_VAP", () => {
+    const ix = "2026-07-20";
+    const v = buildPneuTimelineVerdict({
+      indexKind: "CDHA",
+      indexXn: null,
+      indexCdha: xq({ id: "c1", ngay: ix }),
+      cdha: [xq({ id: "c1", ngay: ix })],
+      lamSang: {
+        "2026-07-20": [
+          { key: "fever", label: "Sốt" },
+          { key: "cough", label: "Ho" },
+          { key: "rales", label: "Ran" },
+        ],
+      },
+      canThiepDates: ["2026-07-17", "2026-07-18", "2026-07-19", "2026-07-20"],
+      iwpDates: iwpAround(ix),
+      nsk: ix,
+      bloodCriterionIds: [],
+      patientAge: 45,
+      devicePlacedDate: "2026-07-17",
+    });
+    expect(v.result.classification).toBe("NO_EVENT");
+    expect(v.result.reason).toMatch(/VAE/);
   });
 });

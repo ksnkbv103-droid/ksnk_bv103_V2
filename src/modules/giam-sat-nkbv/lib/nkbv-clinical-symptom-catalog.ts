@@ -1482,18 +1482,32 @@ export function formSymptomRowsFor(
   return out;
 }
 
-/** Đếm triệu chứng hô hấp PNEU theo dòng catalog (không tính PNU3/infant phụ). */
-export function countPneuRespiratoryLines(form: Record<string, unknown>): number {
-  const fields = new Set(
-    wiredSymptomsForSyndrome("PNEU")
-      .filter((s) => s.pneu_resp_line && s.form_field)
-      .map((s) => s.form_field as string),
-  );
-  let n = 0;
-  for (const f of fields) {
-    if (form[f] === true) n += 1;
+const PNEU_RESP_LINE_BY_CRITERIA_KEY: ReadonlyMap<string, 1 | 2 | 3 | 4> = (() => {
+  const m = new Map<string, 1 | 2 | 3 | 4>();
+  for (const s of NKBV_CLINICAL_SYMPTOMS) {
+    if (s.pneu_resp_line && s.criteria_key) m.set(s.criteria_key, s.pneu_resp_line);
   }
-  return n;
+  return m;
+})();
+
+/** Đếm nhóm CDC hô hấp PNEU (1–4) — khó thở+thở nhanh = 1 nhóm, không phải 2. */
+export function countPneuRespiratoryLines(form: Record<string, unknown>): number {
+  const lines = new Set<number>();
+  for (const s of wiredSymptomsForSyndrome("PNEU")) {
+    if (!s.pneu_resp_line || !s.form_field) continue;
+    if (form[s.form_field] === true) lines.add(s.pneu_resp_line);
+  }
+  return lines.size;
+}
+
+/** Đếm nhóm CDC từ criteria_key trên lưới BA (cùng 4 dòng catalog). */
+export function countPneuRespiratoryCdcGroupsFromKeys(keys: Iterable<string>): number {
+  const lines = new Set<number>();
+  for (const key of keys) {
+    const line = PNEU_RESP_LINE_BY_CRITERIA_KEY.get(key);
+    if (line) lines.add(line);
+  }
+  return lines.size;
 }
 
 export const UTI_VOIDING_CRITERIA_KEYS_FROM_CATALOG = new Set(

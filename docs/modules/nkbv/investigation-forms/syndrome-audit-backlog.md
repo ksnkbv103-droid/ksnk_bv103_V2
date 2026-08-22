@@ -7,7 +7,7 @@
 
 | Hội chứng | Audit | Trạng thái |
 |-----------|-------|------------|
-| PNEU / VAP / Non-VAP | [`pneu-standard-vs-runtime-audit-20260810.md`](pneu-standard-vs-runtime-audit-20260810.md) | **Done** — chờ PO chọn A/B |
+| PNEU / VAP / Non-VAP | [`pneu-standard-vs-runtime-audit-20260810.md`](pneu-standard-vs-runtime-audit-20260810.md) | **Done** — PO chọn A; A1–A5 ship 2026-08-18 |
 | UTI / CAUTI / SUTI / ABUTI | [`uti-standard-vs-runtime-audit-20260810.md`](uti-standard-vs-runtime-audit-20260810.md) | **Done** — chờ PO xác nhận lệch + thứ tự A1→… |
 | BSI / CLABSI / LCBI / MBI | `bsi-standard-vs-runtime-audit-YYYYMMDD.md` | Chưa mở |
 | SSI | `ssi-standard-vs-runtime-audit-YYYYMMDD.md` | Chưa mở |

@@ -205,7 +205,7 @@ export function QlcvOperationsPanel({
     <KsnkSupervisionPanel className={UI.sectionGap}>
       {summarySlot}
 
-      {kanban.boardFilter ? (
+      {kanban.boardFilter && kanban.boardFilter !== "MY_TASKS" ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200/90 bg-slate-50/90 px-3 py-2 text-xs text-slate-700">
           <span>
             Lọc: <strong>{formatBoardFilterHint(kanban.boardFilter)}</strong>
@@ -227,7 +227,6 @@ export function QlcvOperationsPanel({
         tasks={scopedTasks}
         activeFilter={kanban.boardFilter}
         onFilterChange={onBoardFilter}
-        showAllGatePills={canApprove}
         actorStaffId={actorStaffId}
       />
 

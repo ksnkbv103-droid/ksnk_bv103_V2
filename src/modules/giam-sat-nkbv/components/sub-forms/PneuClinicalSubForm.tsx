@@ -13,6 +13,7 @@ import {
 import {
   applyPneuLabDerivedFlags,
   derivePneuLabTier,
+  PNEU_IC_ATOM_ROWS,
   type PneuLabSemiQuant,
   type PneuLabSpecimen,
 } from "../../lib/nkbv-pneu-lab-tier";
@@ -33,15 +34,7 @@ const TABLE3_ROWS: Array<{ field: keyof VaeVerificationData; label: string }> = 
   { field: "pneu_t3_bordetella", label: "Bordetella" },
 ];
 
-const IC_ROWS: Array<{ field: keyof VaeVerificationData; label: string }> = [
-  { field: "pneu_ic_neutropenia", label: "Giảm bạch cầu hạt (neutropenia)" },
-  { field: "pneu_ic_leukemia_lymphoma", label: "Ung thư máu / lymphoma" },
-  { field: "pneu_ic_hiv_cd4_lt_200", label: "HIV với CD4 < 200" },
-  { field: "pneu_ic_splenectomy", label: "Cắt lách" },
-  { field: "pneu_ic_solid_organ_or_hsct", label: "Ghép tạng đặc / HSCT" },
-  { field: "pneu_ic_chemotherapy", label: "Đang hóa chất" },
-  { field: "pneu_ic_steroid_ge_14d", label: "Corticoid ≥ 14 ngày" },
-];
+const IC_ROWS = PNEU_IC_ATOM_ROWS;
 
 function patchPneuLab(
   form: VaeVerificationData,
@@ -557,9 +550,11 @@ export default function PneuClinicalSubForm({
               </>
             ) : null}
             <p className="text-[11px] text-slate-500">
-              Đếm hô hấp: <strong>{form.respiratory_symptoms_count}</strong> / cần ≥
+              Đếm nhóm hô hấp CDC: <strong>{form.respiratory_symptoms_count}</strong> / cần ≥
               {ageBranch === "INFANT_LE1" || ageBranch === "CHILD_1_12" ? "3 (nhánh trẻ)" : "2"}
               {ageBranch === "INFANT_LE1" ? " · kèm suy trao đổi khí" : ""}
+              {" "}
+              (khó thở + thở nhanh = 1 nhóm)
             </p>
           </NkbvFormSection>
         </>

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Database, LayoutGrid, List } from "lucide-react";
+import { Database, LayoutGrid } from "lucide-react";
 import { LoaiDungCuPageContent } from "./LoaiDungCuPage";
 import { BoDungCuPageContent } from "./BoDungCuPage";
 import { DungCuChiTietPageContent } from "./dung-cu-chi-tiet-page-content";
@@ -67,7 +67,7 @@ export default function QuanLyDungCuPage() {
               <LayoutGrid size={24} aria-hidden /> Quản lý dụng cụ
             </h1>
             <p className="mt-1 text-[11px] font-medium text-slate-500">
-              Master Data · đồng bộ CSSD
+              Định nghĩa loại và bộ — thành phần sửa trong từng bộ
             </p>
           </div>
 
@@ -89,15 +89,6 @@ export default function QuanLyDungCuPage() {
               className={dungCuTabBtn(activeTab === "bo")}
             >
               <Database size={14} aria-hidden /> Bộ dụng cụ
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === "chi-tiet"}
-              onClick={() => selectTab("chi-tiet")}
-              className={dungCuTabBtn(activeTab === "chi-tiet")}
-            >
-              <List size={14} aria-hidden /> Thành phần
             </button>
           </div>
         </div>

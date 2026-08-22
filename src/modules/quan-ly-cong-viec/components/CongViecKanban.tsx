@@ -5,7 +5,7 @@ import { Clock, ChevronRight } from "lucide-react";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import { formatMucDoUuTienLabel, getCongViecTrangThaiLabel } from "../lib/qlcv-labels";
-import { getKanbanColumnIdForTask, type KanbanColumnId } from "../lib/qlcv-board-lanes";
+import { getKanbanColumnIdForTask, isQlcvBoardOverdue, type KanbanColumnId } from "../lib/qlcv-board-lanes";
 import { qlcvKanbanCardAttentionClass } from "../lib/qlcv-ux-chrome";
 import type { CongViecView } from "../types";
 import { QlcvDinhKyMauChip } from "./QlcvDinhKyMauChip";
@@ -30,7 +30,7 @@ function showKanbanCardSubtitle(colId: KanbanColId, t: CongViecView, showProposa
   if (colId === "CHO_DUYET" && isChoNghiemThuHoanThanh(t)) return false;
   const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
   if (colId === "DANG_LAM" && (st === "DANG_LAM" || st === "TU_CHOI")) return false;
-  if (colId === "HOAN_THANH" || colId === "DA_HUY" || colId === "QUA_HAN") return false;
+  if (colId === "HOAN_THANH" || colId === "DA_HUY") return false;
   return true;
 }
 
@@ -59,7 +59,6 @@ export default function CongViecKanban({
       ? [{ id: "DE_XUAT" as const, title: "Đề xuất chờ duyệt", dot: "bg-violet-500" }]
       : []),
     { id: "DANG_LAM", title: "Đang thực hiện", dot: "bg-blue-500" },
-    { id: "QUA_HAN", title: "Quá hạn", dot: "bg-red-500" },
     { id: "CHO_DUYET", title: "Chờ nghiệm thu", dot: "bg-amber-500" },
     { id: "HOAN_THANH", title: "Hoàn thành", dot: "bg-emerald-500" },
     { id: "DA_HUY", title: "Đã hủy", dot: "bg-slate-500" },
@@ -137,6 +136,9 @@ export default function CongViecKanban({
                       </p>
                     ) : null}
 
+                    {isQlcvBoardOverdue(task) ? (
+                      <p className="mb-1 text-[11px] font-semibold text-red-700">Quá hạn</p>
+                    ) : null}
                     <h4 className="mb-1 line-clamp-2 text-sm font-black leading-tight text-slate-800">{task.tieu_de}</h4>
                     <div className="mb-2">
                       <QlcvDinhKyMauChip loaiCongViec={task.loai_cong_viec} dinhKyMauId={task.dinh_ky_mau_id} />

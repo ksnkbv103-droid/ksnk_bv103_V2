@@ -102,7 +102,7 @@ export default function LamBaiPage() {
               Câu {idx + 1}/{questions.length}
             </p>
             <p className="text-[11px] text-slate-500">
-              Đã trả lời {answered}/{questions.length} · Bloom {current.bloomLevel}
+              Đã trả lời {answered}/{questions.length}
             </p>
           </div>
           {hanNop && serverNow ? (
@@ -116,15 +116,17 @@ export default function LamBaiPage() {
               type="button"
               onClick={() => setIdx(i)}
               className={cn(
-                "h-2.5 w-2.5 shrink-0 rounded-full",
+                "inline-flex h-8 min-w-8 shrink-0 items-center justify-center rounded-[var(--radius-control)] px-1.5 text-xs font-semibold touch-manipulation",
                 i === idx
-                  ? "bg-[var(--primary)]"
+                  ? "bg-[var(--primary)] text-white"
                   : q.traLoi != null
-                    ? "bg-emerald-400"
-                    : "bg-slate-200",
+                    ? "bg-emerald-50 text-emerald-800"
+                    : "bg-slate-100 text-slate-600",
               )}
               aria-label={`Câu ${i + 1}`}
-            />
+            >
+              {i + 1}
+            </button>
           ))}
         </div>
       </div>

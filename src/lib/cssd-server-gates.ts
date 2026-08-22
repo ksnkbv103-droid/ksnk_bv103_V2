@@ -25,11 +25,21 @@ export async function verifyCssdIncidentPrint(): Promise<void> {
 }
 
 export async function verifyCssdMaintenanceView(): Promise<void> {
-  await verifyPermission("CSSD_ME_TIET_KHUAN", "view");
+  try {
+    await verifyPermission("THIET_BI", "view");
+    return;
+  } catch {
+    await verifyPermission("CSSD_ME_TIET_KHUAN", "view");
+  }
 }
 
 export async function verifyCssdMaintenanceEdit(): Promise<void> {
-  await verifyPermission("CSSD_ME_TIET_KHUAN", "edit");
+  try {
+    await verifyPermission("THIET_BI", "edit");
+    return;
+  } catch {
+    await verifyPermission("CSSD_ME_TIET_KHUAN", "edit");
+  }
 }
 
 export async function verifyCssdInventoryEdit(): Promise<void> {

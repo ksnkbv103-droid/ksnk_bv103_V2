@@ -65,6 +65,29 @@ export type PneuLabFacts = {
   pneu_ic_steroid_ge_14d?: boolean;
 };
 
+/** Footnote 10 lean — atom miễn dịch PNU3 (form + BA). */
+export const PNEU_IC_ATOM_ROWS: ReadonlyArray<{
+  field: keyof Pick<
+    PneuLabFacts,
+    | "pneu_ic_neutropenia"
+    | "pneu_ic_leukemia_lymphoma"
+    | "pneu_ic_hiv_cd4_lt_200"
+    | "pneu_ic_splenectomy"
+    | "pneu_ic_solid_organ_or_hsct"
+    | "pneu_ic_chemotherapy"
+    | "pneu_ic_steroid_ge_14d"
+  >;
+  label: string;
+}> = [
+  { field: "pneu_ic_neutropenia", label: "Giảm bạch cầu hạt (neutropenia)" },
+  { field: "pneu_ic_leukemia_lymphoma", label: "Ung thư máu / lymphoma" },
+  { field: "pneu_ic_hiv_cd4_lt_200", label: "HIV với CD4 < 200" },
+  { field: "pneu_ic_splenectomy", label: "Cắt lách" },
+  { field: "pneu_ic_solid_organ_or_hsct", label: "Ghép tạng đặc / HSCT" },
+  { field: "pneu_ic_chemotherapy", label: "Đang hóa chất" },
+  { field: "pneu_ic_steroid_ge_14d", label: "Corticoid ≥ 14 ngày" },
+];
+
 export type PneuLabTier = "NONE" | "PNU2" | "PNU3";
 
 export type PneuLabTierResult = {

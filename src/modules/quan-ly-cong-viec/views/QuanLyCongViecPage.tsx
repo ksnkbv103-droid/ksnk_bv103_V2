@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Plus, LayoutGrid, CalendarClock, ArrowLeft, Send, Upload, ListTodo } from "lucide-react";
+import { Plus, LayoutGrid, CalendarClock, ArrowLeft, Send, Upload } from "lucide-react";
 import { toast } from "sonner";
 import {
   KsnkSupervisionHero,
@@ -81,9 +81,8 @@ export default function QuanLyCongViecPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [mauSacByMa, setMauSacByMa] = useState<Record<string, string>>({});
   const [loaiFilter, setLoaiFilter] = useState<QlcvLoaiFilter>("ALL");
-  const [nhiemVuFilter, setNhiemVuFilter] = useState("");
   const [periodKind, setPeriodKind] = useState<QlcvPeriodKind>("MONTH");
-  const [filterBoardByPeriod, setFilterBoardByPeriod] = useState(true);
+  const [filterBoardByPeriod, setFilterBoardByPeriod] = useState(false);
   const [highlightMauId, setHighlightMauId] = useState<string | null>(null);
   const [printMode, setPrintMode] = useState<"plan" | "exec" | null>(null);
   const [printPlanMaus, setPrintPlanMaus] = useState<
@@ -132,6 +131,10 @@ export default function QuanLyCongViecPage() {
   useEffect(() => {
     void kanban.fetchTasksInitial();
   }, [kanban.fetchTasksInitial]);
+
+  useEffect(() => {
+    if (userData?.id) kanban.setBoardFilter("MY_TASKS");
+  }, [userData?.id, kanban.setBoardFilter]);
 
   useEffect(() => {
     void getTrangThaiMauSacMap()
@@ -328,7 +331,6 @@ export default function QuanLyCongViecPage() {
       { id: "DIEN_HANH", label: "Điều hành", mobileLabel: "Điều hành", icon: LayoutGrid },
     ];
     if (canManageDinhKy) {
-      tabs.push({ id: "NHIEM_VU", label: "Nhiệm vụ", mobileLabel: "Nhiệm vụ", icon: ListTodo });
       tabs.push({ id: "DINH_KY", label: "Danh mục định kỳ", mobileLabel: "Định kỳ", icon: CalendarClock });
     }
     return tabs;
@@ -422,16 +424,6 @@ export default function QuanLyCongViecPage() {
             </Dialog>
           ) : null}
 
-          {allowed.import ? (
-            <button
-              type="button"
-              onClick={() => setImportOpen(true)}
-              className="bv103-control-h inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200/90 bg-white px-4 py-2.5 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50 sm:w-auto"
-            >
-              <Upload size={15} aria-hidden /> Nạp Excel
-            </button>
-          ) : null}
-
           {canShowDirectCreateTask(qlcvUi) ? (
             <button
               type="button"
@@ -509,7 +501,29 @@ export default function QuanLyCongViecPage() {
         </Dialog>
 
         <Tabs.Content value="DIEN_HANH" className="outline-none space-y-4">
-          {isAdmin || allowed.edit ? <QlcvDmAdminLinks className="no-print" /> : null}
+          {isAdmin || allowed.edit || allowed.import || canManageDinhKy ? (
+            <div className="no-print flex flex-wrap items-center gap-2">
+              {isAdmin || allowed.edit ? <QlcvDmAdminLinks /> : null}
+              {allowed.import ? (
+                <button
+                  type="button"
+                  onClick={() => setImportOpen(true)}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:underline"
+                >
+                  <Upload size={12} aria-hidden /> Nạp Excel
+                </button>
+              ) : null}
+              {canManageDinhKy ? (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("NHIEM_VU")}
+                  className="text-xs font-semibold text-slate-600 hover:underline"
+                >
+                  Kế hoạch năm
+                </button>
+              ) : null}
+            </div>
+          ) : null}
           <QlcvOperationsPanel
             kanban={kanban}
             table={table}
@@ -534,7 +548,6 @@ export default function QuanLyCongViecPage() {
             mauSacByMa={mauSacByMa}
             loaiFilter={loaiFilter}
             periodKindFilter={filterBoardByPeriod ? periodKind : null}
-            nhiemVuFilter={nhiemVuFilter || null}
             summarySlot={
               <QlcvDinhKySummaryBar
                 tasks={mergedTasks}
@@ -544,8 +557,6 @@ export default function QuanLyCongViecPage() {
                 onPeriodKindChange={setPeriodKind}
                 filterBoardByPeriod={filterBoardByPeriod}
                 onFilterBoardByPeriodChange={setFilterBoardByPeriod}
-                nhiemVuFilter={nhiemVuFilter}
-                onNhiemVuFilterChange={setNhiemVuFilter}
                 onPrintExec={runPrintExec}
               />
             }

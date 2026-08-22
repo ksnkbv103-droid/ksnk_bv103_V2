@@ -16,7 +16,6 @@ export default function MeTkNkbvLinkBanner({ loTietKhuanId }: Props) {
   const [cases, setCases] = useState<
     Array<{ id: string; maCa: string | null; hoTen: string | null; ngayPhatHien: string | null }>
   >([]);
-  const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -24,20 +23,13 @@ export default function MeTkNkbvLinkBanner({ loTietKhuanId }: Props) {
     if (!id) {
       setCases([]);
       setLoaded(false);
-      setError(null);
       return;
     }
     let cancelled = false;
     setLoaded(false);
     void fetchNkbvCasesLinkedToCssd({ loTietKhuanId: id }).then((res) => {
       if (cancelled) return;
-      if (!res.success) {
-        setError(res.error);
-        setCases([]);
-      } else {
-        setError(null);
-        setCases(res.cases);
-      }
+      setCases(res.success ? res.cases : []);
       setLoaded(true);
     });
     return () => {
@@ -45,7 +37,7 @@ export default function MeTkNkbvLinkBanner({ loTietKhuanId }: Props) {
     };
   }, [loTietKhuanId]);
 
-  if (!loTietKhuanId || !loaded) return null;
+  if (!loTietKhuanId || !loaded || cases.length === 0) return null;
 
   return (
     <KsnkContextBanner
@@ -54,27 +46,17 @@ export default function MeTkNkbvLinkBanner({ loTietKhuanId }: Props) {
       icon={<Activity className="mt-0.5 h-4 w-4 shrink-0 text-sky-700" aria-hidden />}
       summary={<span className="font-semibold">Ca NKBV / SSI gắn mẻ này</span>}
       detail={
-        <>
-          {error ? <span className="text-rose-600">{error}</span> : null}
-          {!error && cases.length === 0 ? (
-            <span>
-              Chưa có ca SSI liên kết. Khi KSNK gắn mã QR chu trình trên checklist SSI, ca sẽ hiện tại đây.
-            </span>
-          ) : null}
-          {cases.length > 0 ? (
-            <ul className="mt-1 space-y-1">
-              {cases.map((c) => (
-                <li key={c.id}>
-                  <Link href={`/giam-sat-nkbv?case=${c.id}`} className="font-semibold underline decoration-dotted">
-                    {c.maCa || c.id.slice(0, 8)}
-                  </Link>
-                  {c.hoTen ? ` — ${c.hoTen}` : ""}
-                  {c.ngayPhatHien ? ` · ${formatDateVi(c.ngayPhatHien)}` : ""}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </>
+        <ul className="mt-1 space-y-1">
+          {cases.map((c) => (
+            <li key={c.id}>
+              <Link href={`/giam-sat-nkbv?case=${c.id}`} className="font-semibold underline decoration-dotted">
+                {c.maCa || c.id.slice(0, 8)}
+              </Link>
+              {c.hoTen ? ` — ${c.hoTen}` : ""}
+              {c.ngayPhatHien ? ` · ${formatDateVi(c.ngayPhatHien)}` : ""}
+            </li>
+          ))}
+        </ul>
       }
     />
   );

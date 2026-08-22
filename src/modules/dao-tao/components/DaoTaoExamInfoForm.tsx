@@ -8,9 +8,11 @@ type Props = {
   value: ExamFormThongTin;
   onChange: (v: ExamFormThongTin) => void;
   disabled?: boolean;
+  /** Chỉ hiện ô còn thiếu (họ tên / khoa). */
+  requiredOnly?: boolean;
 };
 
-export function DaoTaoExamInfoForm({ value, onChange, disabled }: Props) {
+export function DaoTaoExamInfoForm({ value, onChange, disabled, requiredOnly }: Props) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <DaoTaoField label="Họ và tên *">
@@ -30,25 +32,29 @@ export function DaoTaoExamInfoForm({ value, onChange, disabled }: Props) {
           onChange={(e) => onChange({ ...value, khoaDonVi: e.target.value })}
         />
       </DaoTaoField>
-      <DaoTaoField label="Số điện thoại">
-        <input
-          className={C.controlInput}
-          value={value.soDienThoai ?? ""}
-          disabled={disabled}
-          inputMode="tel"
-          onChange={(e) => onChange({ ...value, soDienThoai: e.target.value })}
-        />
-      </DaoTaoField>
-      <DaoTaoField label="Email nội bộ">
-        <input
-          className={C.controlInput}
-          value={value.email ?? ""}
-          disabled={disabled}
-          type="email"
-          autoComplete="email"
-          onChange={(e) => onChange({ ...value, email: e.target.value })}
-        />
-      </DaoTaoField>
+      {requiredOnly ? null : (
+        <>
+          <DaoTaoField label="Số điện thoại">
+            <input
+              className={C.controlInput}
+              value={value.soDienThoai ?? ""}
+              disabled={disabled}
+              inputMode="tel"
+              onChange={(e) => onChange({ ...value, soDienThoai: e.target.value })}
+            />
+          </DaoTaoField>
+          <DaoTaoField label="Email nội bộ">
+            <input
+              className={C.controlInput}
+              value={value.email ?? ""}
+              disabled={disabled}
+              type="email"
+              autoComplete="email"
+              onChange={(e) => onChange({ ...value, email: e.target.value })}
+            />
+          </DaoTaoField>
+        </>
+      )}
     </div>
   );
 }

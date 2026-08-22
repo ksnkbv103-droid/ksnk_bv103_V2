@@ -295,7 +295,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(evaluateVaeVap(data, "PNEU").classification).toBe("PNU1_NON_VAP");
     });
 
-    it("blocks PNU3 without hemoptysis/pleuritic pain", () => {
+    it("allows PNU3 without hemoptysis when ≥1 nhóm hô hấp (A3)", () => {
       const data: VaeVerificationData = {
         patient_age: 60,
         vent_days: 0,
@@ -319,8 +319,61 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         has_pleuritic_chest_pain: false,
       };
       const res = evaluateVaeVap(data, "PNEU");
+      expect(res.is_positive).toBe(true);
+      expect(res.classification).toBe("PNU3_NON_VAP");
+    });
+
+    it("PNU2 với đúng 1 nhóm hô hấp — không siết như PNU1 (A2)", () => {
+      const data: VaeVerificationData = {
+        patient_age: 55,
+        vent_days: 0,
+        has_stable_baseline_peep_fio2: false,
+        peep_increase_ge_3: false,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: false,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: false,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: true,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 1,
+        fever_or_wbc_abnormal: true,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 1,
+        microbiology_evidence: "NONE",
+        pneu_lab_specimen: "BAL",
+        pneu_lab_organism: "Klebsiella pneumoniae",
+        pneu_lab_cfu_per_ml: 2e4,
+      };
+      expect(evaluateVaeVap(data, "PNEU").classification).toBe("PNU2_NON_VAP");
+    });
+
+    it("PNU1 không đạt khi chỉ 1 nhóm hô hấp (A1)", () => {
+      const data: VaeVerificationData = {
+        patient_age: 50,
+        vent_days: 0,
+        has_stable_baseline_peep_fio2: false,
+        peep_increase_ge_3: false,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: false,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: false,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: true,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 1,
+        fever_or_wbc_abnormal: true,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 1,
+        microbiology_evidence: "NONE",
+      };
+      const res = evaluateVaeVap(data, "PNEU");
       expect(res.is_positive).toBe(false);
-      expect(res.classification).toBe("INCOMPLETE");
+      expect(res.classification).toBe("NO_EVENT");
     });
 
     it("allows PNU3 when hemoptysis present", () => {
@@ -402,7 +455,34 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(evaluateVaeVap(data, "PNEU").classification).toBe("PNU1_NON_VAP");
     });
 
-    it("labels PNEU as VAP when vent eligible ≥3 days", () => {
+    it("labels PNEU as VAP when vent eligible ≥3 days (chưa đủ 4 ngày VAE)", () => {
+      const data: VaeVerificationData = {
+        patient_age: 45,
+        vent_days: 3,
+        device_placed_date: "2026-08-01",
+        calculated_doe: "2026-08-05",
+        has_stable_baseline_peep_fio2: false,
+        peep_increase_ge_3: false,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: false,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: false,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: true,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 1,
+        fever_or_wbc_abnormal: true,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 2,
+        microbiology_evidence: "NONE",
+      };
+      const res = evaluateVaeVap(data, "PNEU");
+      expect(res.classification).toBe("PNU1_VAP");
+    });
+
+    it("chặn PNEU khi người lớn thở máy ≥4 ngày — chuyển VAE (A5)", () => {
       const data: VaeVerificationData = {
         patient_age: 45,
         vent_days: 4,
@@ -426,7 +506,35 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         microbiology_evidence: "NONE",
       };
       const res = evaluateVaeVap(data, "PNEU");
-      expect(res.classification).toBe("PNU1_VAP");
+      expect(res.is_positive).toBe(false);
+      expect(res.classification).toBe("NO_EVENT");
+      expect(res.reason).toMatch(/VAE/);
+    });
+
+    it("trẻ em thở máy ≥4 ngày vẫn đi cây PNEU/VAP (không PedVAE)", () => {
+      const data: VaeVerificationData = {
+        patient_age: 10,
+        vent_days: 4,
+        device_placed_date: "2026-08-01",
+        calculated_doe: "2026-08-05",
+        has_stable_baseline_peep_fio2: false,
+        peep_increase_ge_3: false,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: false,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: false,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: true,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 1,
+        fever_or_wbc_abnormal: true,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 3,
+        microbiology_evidence: "NONE",
+      };
+      expect(evaluateVaeVap(data, "PNEU").classification).toBe("PNU1_VAP");
     });
 
     it("excludes VAE day when on ECMO", () => {

@@ -113,12 +113,11 @@ function KpiCard({
         </p>
       ) : null}
       {volumeNote ? <p className="mt-1 text-xs font-medium tabular-nums opacity-80">{volumeNote}</p> : null}
-      <div className="mt-2 flex flex-col gap-0.5">
-        <DeltaLine label="Δ 2 tuần ISO" delta={weekDelta ?? null} prevRate={weekPrev} />
-        {periodLabel ? (
-          <DeltaLine label={periodLabel} delta={periodDelta ?? null} prevRate={periodPrev} />
-        ) : null}
-      </div>
+      {vsTarget == null && (weekDelta != null || periodDelta != null) ? (
+        <div className="mt-2 flex flex-col gap-0.5">
+          <DeltaLine label="So kỳ gần" delta={periodDelta ?? weekDelta ?? null} prevRate={periodPrev ?? weekPrev} />
+        </div>
+      ) : null}
       {note ? <p className="mt-2 text-[11px] leading-snug opacity-80">{note}</p> : null}
     </div>
   );
@@ -158,7 +157,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
     <div className="space-y-2">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard
-          label="Vệ sinh tay (VST)"
+          label="Vệ sinh tay"
           value={k?.ty_le_vst != null ? `${k.ty_le_vst}%` : "N/A"}
           weekDelta={k?.delta_vst}
           weekPrev={prevWeekRate(trend, "ty_le_vst")}
@@ -169,7 +168,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
           volumeNote={vstVol ? `Cơ hội: ${vstVol}` : null}
         />
         <KpiCard
-          label="Giám sát chung (GSC)"
+          label="Giám sát chung"
           value={k?.ty_le_gsc != null ? `${k.ty_le_gsc}%` : "N/A"}
           weekDelta={k?.delta_gsc}
           weekPrev={prevWeekRate(trend, "ty_le_gsc")}
@@ -180,15 +179,14 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
           volumeNote={gscVol ? `Khảo sát: ${gscVol}` : null}
         />
         <KpiCard
-          label="NKBV — tỷ lệ xác nhận/PA"
+          label="NKBV — tỷ lệ xác nhận"
           value={k?.ti_le_xac_nhan_nkbv != null ? `${k.ti_le_xac_nhan_nkbv}%` : "N/A"}
           suffix={k?.tong_phieu_nkbv != null ? `(${k.tong_phieu_nkbv} phiếu)` : undefined}
-          note="Chỉ số kết quả lâm sàng — tách khỏi tuân thủ process VST/GSC"
+          note="Kết quả nhiễm khuẩn — tách khỏi tỷ lệ vệ sinh tay / giám sát chung"
         />
       </div>
       <p className="text-[11px] text-slate-500">
-        «Mục tiêu viện» từ cấu hình `ksnk_dm_muc_tieu_kpi` (toàn viện). «Δ 2 tuần ISO» = chênh hai tuần cuối trên xu
-        hướng tuần. «vs kỳ trước» = cùng độ dài kỳ lọc liền trước — không phải QoQ lịch cố định.
+        Mũi tên trên thẻ = chênh so với mục tiêu viện. Xu hướng theo tuần nằm ở mục bên dưới.
       </p>
       {(payload.sources.vst === "denied" ||
         payload.sources.gsc === "denied" ||

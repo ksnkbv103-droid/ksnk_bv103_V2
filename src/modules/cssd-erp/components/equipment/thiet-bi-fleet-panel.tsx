@@ -22,6 +22,7 @@ function pmBadgeClass(status: ThietBiFleetRow["pm_status"]) {
 
 function statusBadgeClass(st: string | null) {
   if (st === "REPAIRING") return "bg-blue-50 text-blue-700 border-blue-200";
+  if (st === "HOLD_QC") return "bg-amber-50 text-amber-800 border-amber-200";
   if (st === "BROKEN") return "bg-red-50 text-red-700 border-red-200";
   if (st === "RETIRED") return "bg-slate-100 text-slate-500 border-slate-200";
   return "bg-emerald-50 text-emerald-700 border-emerald-200";
@@ -65,6 +66,7 @@ export default function ThietBiFleetPanel() {
 
   const ready = rows.filter((x) => ["READY", "HOAT_DONG"].includes(String(x.trang_thai || ""))).length;
   const repairing = rows.filter((x) => x.trang_thai === "REPAIRING").length;
+  const holdQc = rows.filter((x) => x.trang_thai === "HOLD_QC").length;
   const overduePm = rows.filter((x) => x.pm_status === "QUA_HAN").length;
 
   const columns = useMemo<Column<ThietBiFleetRow>[]>(
@@ -205,6 +207,7 @@ export default function ThietBiFleetPanel() {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-white px-3 py-2 text-[11px] shadow-sm">
         <StatInline label="Sẵn sàng" value={ready} icon={<CheckCircle2 size={14} />} tone="emerald" />
         <StatInline label="Đang BD" value={repairing} icon={<Wrench size={14} />} tone="blue" />
+        <StatInline label="Tạm giữ QC" value={holdQc} icon={<AlertTriangle size={14} />} tone="amber" />
         <StatInline label="Quá hạn PM" value={overduePm} icon={<AlertTriangle size={14} />} tone="red" />
       </div>
 
@@ -217,7 +220,7 @@ export default function ThietBiFleetPanel() {
           columns={columns}
           data={rows}
           loading={loading}
-          searchPlaceholder="Tìm mã, tên máy…"
+          searchPlaceholder="Tìm tên, mã máy hoặc quét QR…"
           enableQrScan
           onQrScan={applyScan}
           emptyMessage="Không có máy khớp tìm kiếm."
@@ -238,10 +241,16 @@ function StatInline({
   label: string;
   value: number;
   icon: React.ReactNode;
-  tone: "emerald" | "blue" | "red";
+  tone: "emerald" | "blue" | "red" | "amber";
 }) {
   const toneClass =
-    tone === "red" ? "text-red-600" : tone === "blue" ? "text-blue-600" : "text-emerald-600";
+    tone === "red"
+      ? "text-red-600"
+      : tone === "blue"
+        ? "text-blue-600"
+        : tone === "amber"
+          ? "text-amber-700"
+          : "text-emerald-600";
   return (
     <span className={`inline-flex items-center gap-1.5 font-semibold ${toneClass}`}>
       {icon}

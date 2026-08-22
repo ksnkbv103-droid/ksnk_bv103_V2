@@ -132,7 +132,7 @@ export default function QRScanSuccessCard({
 
             {ledgerWarning ? (
               <div className={`${C.noticeDanger} text-left`}>
-                <p className="text-[11px] font-semibold">Cảnh báo cấu phần (sổ cái)</p>
+                <p className="text-[11px] font-semibold">Thiếu dụng cụ — vẫn cấp</p>
                 <p className="mt-0.5 text-[11px] font-medium leading-relaxed">{ledgerWarning}</p>
               </div>
             ) : null}

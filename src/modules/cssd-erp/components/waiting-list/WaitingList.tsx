@@ -11,7 +11,7 @@ import { formatDateTimeVi, formatTimeVi } from "@/lib/format-datetime-vi";
 const ACTION_VERBS: Record<string, string> = {
   TIEP_NHAN: "Tiếp nhận bởi",
   LAM_SACH: "Làm sạch bởi",
-  QC: "Kiểm chuẩn bởi",
+  QC: "QC bởi",
   DONG_GOI: "Đóng gói bởi",
   TIET_KHUAN: "Tiệt khuẩn bởi",
   CAP_PHAT: "Cấp phát bởi",

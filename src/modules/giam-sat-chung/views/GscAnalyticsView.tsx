@@ -127,67 +127,59 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
         />
       ) : null}
 
-      {!isGuestStatsOnly ? (
-        <div className="px-1 pb-1 sm:px-2 sm:pb-2">
-          <div className="inline-flex w-full gap-1 rounded-[var(--radius-shell)] bg-slate-100 p-0.5 sm:w-auto sm:p-1">
-            <button
-              type="button"
-              onClick={() => setTab("thong-ke")}
-              className={`min-h-9 flex-1 rounded-[var(--radius-shell)] px-2 py-1.5 text-xs font-bold transition-colors touch-manipulation sm:flex-initial sm:px-4 sm:py-2 ${
-                activeTab === "thong-ke"
-                  ? "bg-white text-[var(--primary)] shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              <span className="sm:hidden">Thống kê</span>
-              <span className="hidden sm:inline">Thống kê theo bảng kiểm</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab("bk-toi")}
-              className={`min-h-9 flex-1 rounded-[var(--radius-shell)] px-2 py-1.5 text-xs font-bold transition-colors touch-manipulation sm:flex-initial sm:px-4 sm:py-2 ${
-                activeTab === "bk-toi"
-                  ? "bg-white text-[var(--primary)] shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              <span className="sm:hidden">BK TGS</span>
-              <span className="hidden sm:inline">BK tôi phải TGS</span>
-            </button>
-          </div>
+      {activeTab === "bk-toi" && !isGuestStatsOnly ? (
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={() => setTab("thong-ke")}
+            className="text-xs font-semibold text-[var(--primary)] hover:underline"
+          >
+            ← Về thống kê khoa và bảng kiểm yếu
+          </button>
+          <GscBangKiemToiPhaiTgsPanel
+            tuNgay={d.tuNgay}
+            setTuNgay={d.setTuNgay}
+            denNgay={d.denNgay}
+            setDenNgay={d.setDenNgay}
+            khoaOptions={d.khoaOptions}
+            selectedKhoaIds={d.selectedKhoaIds}
+            khoaFilterLocked={d.khoaFilterLocked}
+            lockedKhoaLabel={d.lockedKhoaLabel}
+          />
         </div>
-      ) : null}
-
-      {!isGuestStatsOnly && activeTab === "bk-toi" ? (
-        <GscBangKiemToiPhaiTgsPanel
-          tuNgay={d.tuNgay}
-          setTuNgay={d.setTuNgay}
-          denNgay={d.denNgay}
-          setDenNgay={d.setDenNgay}
-          khoaOptions={d.khoaOptions}
-          selectedKhoaIds={d.selectedKhoaIds}
-          khoaFilterLocked={d.khoaFilterLocked}
-          lockedKhoaLabel={d.lockedKhoaLabel}
-        />
       ) : (
-        <GscStrategicAnalyticsPanel
-          khoaFilterLocked={d.khoaFilterLocked}
-          tuNgay={d.tuNgay}
-          denNgay={d.denNgay}
-          khoiOptions={d.khoiOptions}
-          selectedKhoiIds={d.selectedKhoiIds}
-          khoaOptions={d.khoaOptions}
-          selectedKhoaIds={d.selectedKhoaIds}
-          ngheOptions={d.ngheOptions}
-          selectedNgheIds={d.selectedNgheIds}
-          khuVucOptions={d.khuVucOptions}
-          selectedKhuVucIds={d.selectedKhuVucIds}
-          selectedHinhThucIds={d.selectedHinhThucIds}
-          payload={d.payload}
-          loading={d.loading}
-          loadError={d.loadError}
-          bkLabelRecord={d.bkLabelRecord}
-        />
+        <div className="space-y-4">
+          <GscStrategicAnalyticsPanel
+            khoaFilterLocked={d.khoaFilterLocked}
+            tuNgay={d.tuNgay}
+            denNgay={d.denNgay}
+            khoiOptions={d.khoiOptions}
+            selectedKhoiIds={d.selectedKhoiIds}
+            khoaOptions={d.khoaOptions}
+            selectedKhoaIds={d.selectedKhoaIds}
+            ngheOptions={d.ngheOptions}
+            selectedNgheIds={d.selectedNgheIds}
+            khuVucOptions={d.khuVucOptions}
+            selectedKhuVucIds={d.selectedKhuVucIds}
+            selectedHinhThucIds={d.selectedHinhThucIds}
+            payload={d.payload}
+            loading={d.loading}
+            loadError={d.loadError}
+            bkLabelRecord={d.bkLabelRecord}
+          />
+          {!isGuestStatsOnly ? (
+            <p className="px-1 text-xs text-slate-500">
+              Việc tự giám sát khoa:{" "}
+              <button
+                type="button"
+                onClick={() => setTab("bk-toi")}
+                className="font-semibold text-[var(--primary)] hover:underline"
+              >
+                Bảng kiểm tôi phải tự giám sát
+              </button>
+            </p>
+          ) : null}
+        </div>
       )}
     </Bv103AnalyticsPageFrame>
   );

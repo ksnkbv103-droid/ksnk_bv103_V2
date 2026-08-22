@@ -37,7 +37,7 @@
 
 ### 2.2 Quy trình Tái xử lý Dụng cụ y tế (CSSD Workflow)
 
-> Bản nghiệp vụ đầy đủ (entity, QR, mẻ, luật đóng băng, màn hình): [`../modules/cssd/domain-overview.md`](../modules/cssd/domain-overview.md) — **chốt PO 2026-07-28**.
+> Bản nghiệp vụ đầy đủ (entity, QR, mẻ, luật đóng băng, màn hình): [`../modules/cssd/domain-overview.md`](../modules/cssd/domain-overview.md) — **chốt PO 2026-07-28**; **bổ sung domain 2026-08-22** từ PCI.03.00 (QT.18–25) — chỉ lấp domain đang có; HLD ngoài phạm vi.
 
 ```mermaid
 flowchart LR
@@ -52,18 +52,20 @@ flowchart LR
 |------|------------|
 | 1 `TIEP_NHAN` | Quét bộ bẩn / mở chu trình; sau cấp phát → vòng mới |
 | 2 `LAM_SACH` | Quét chuyển bước (chỉ +1) |
-| 3 `QC` | Kiểm trước đóng gói |
+| 3 `QC` | Kiểm trước đóng gói (**QC trạm** QT.19 — ≠ QC mẻ QT.23) |
 | 4 `DONG_GOI` | Quét + đối chiếu cấu phần + báo Hỏng/Mất/Bổ sung; sinh Cycle QR; thiếu cấu phần = **cảnh báo** (không chặn) |
-| 5 `TIET_KHUAN` | **Chỉ qua phiếu mẻ** (không quét trên shell 6 trạm); nạp từ Đóng gói → chốt → máy → QC mẻ |
+| 5 `TIET_KHUAN` | **Chỉ qua phiếu mẻ** (không quét trên shell 6 trạm); nạp từ Đóng gói → chốt → máy → QC mẻ 3 cấp |
 | 6 `CAP_PHAT` | Quét giao khoa / kho sạch; soft-warning thiếu cấu phần (Q2); bắt buộc mẻ ĐẠT |
 
 * **Tab Kho** (`/cssd-quy-trinh?tab=kho`): giám sát FEFO/tồn — **không** phải trạm quét.
 * **Tab Trace** (`?tab=trace`): timeline + liên kết SSI — không phải trạm.
-* **Thu hồi / Recall:** phản ứng an toàn (không phải trạm 7); quay lại = `CAP_PHAT` → `TIEP_NHAN`.
+* **Thu hồi / Recall:** phản ứng an toàn (không phải trạm 7); quay lại = `CAP_PHAT` → `TIEP_NHAN`. BI+ → recall theo `lo_tiet_khuan_id`.
 * **Trạm 4:** panel đối chiếu cấu phần (read-only realtime). Digital BOM modal deprecated (`BV103_FEATURE_BOM_CHECKLIST=1` để bật lại).
-* **Trạm 5:** `cssd_fact_lo_tiet_khuan`; QC mẻ không đạt → rollback về `DONG_GOI` + sự cố (+ đóng băng nếu cần).
+* **Trạm 5:** `cssd_fact_lo_tiet_khuan`; QC mẻ không đạt → rollback về `DONG_GOI` + sự cố (+ đóng băng nếu cần). Implant → `Quarantine_BI` / `CHO_BI` trước `HOAN_THANH`.
 * **Trạm 6:** Ledger soft-warning nếu thiếu cấu phần (QLDCPT Q2) — **không** hard-block.
-* **Luật đóng băng (tóm tắt):** tách SUB khi lẫn nhiệt; master CRUD ≠ quét vận hành; Cycle QR reset khi vòng mới (giữ tem bộ vĩnh viễn). Chi tiết: domain-overview §5.
+* **Dual-coding:** tem quét `B01.SET.*` ↔ alias `B01.CD*` ↔ `BO-01-*` (resolve QR Hub); nhãn/Cycle QR đủ QT.20 gồm số mẻ.
+* **Máy:** `READY` | `REPAIRING` | `HOLD_QC`; steam ⇒ BD đầu ngày đạt mới nạp.
+* **Luật đóng băng (tóm tắt):** tách SUB khi lẫn nhiệt; Plasma cấm cellulose; master CRUD ≠ quét vận hành; Cycle QR reset khi vòng mới (giữ tem bộ vĩnh viễn). Chi tiết: domain-overview §5.
 
 ### 2.3 Quản lý Công việc Nội bộ KSNK (Track B Workflow)
 * **Trạng thái canonical (7):** `MOI` → `DANG_LAM` → `CHO_DUYET` → `HOAN_THANH` / `TU_CHOI` / `QUA_HAN` / `DA_HUY`.

@@ -17,6 +17,7 @@ export interface NhanSu {
   chuc_danh_id?: string | null;
   nghe_nghiep_id?: string | null;
   vai_tro_he_thong_id?: string | null;
+  auth_user_id?: string | null;
   /** ISO date (YYYY-MM-DD) hoặc null */
   ngay_sinh?: string | null;
   gioi_tinh?: string | null;

@@ -25,6 +25,7 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 - **Công thức:** `round((đạt / tổng) × 100, 1 chữ số thập phân)`
 - **VST mẫu số:** `tong_co_hoi`
 - **GSC mẫu số:** `tong_quan_sat`
+- **Spec change 2026-08-22:** `ty_le_gsc` trên điều hành / BCTH / thống kê mặc định **chỉ** bảng kiểm loại tuân thủ (`TUAN_THU` hoặc `loai_giam_sat` trống). Nhật ký vận hành và đánh giá hệ thống không vào mẫu số trừ khi người dùng chọn đúng chuyên đề / `?loai=`.
 - **Null khi:** mẫu số = 0
 
 ### `ty_le_ccs` (Chỉ số tuân thủ tổng hợp) — **deprecated trên surface điều hành**
@@ -92,7 +93,7 @@ SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 | `khoa_id` | NULL = toàn viện; UUID = mục tiêu theo khoa (tương lai) |
 | `target_pct` | Mục tiêu % (0–100) |
 
-- **Hiển thị:** badge «Mục tiêu viện» + Δ trên KPI BCTH (`ComprehensiveKpiCards`) — **chỉ** VST/GSC; **tách** khỏi Δ 2 tuần ISO / `ky_truoc`.
+- **Hiển thị:** badge «Mục tiêu viện» + Δ trên KPI BCTH (`ComprehensiveKpiCards`) — **chỉ** VST/GSC. Spec 2026-08-22: **một mũi tên** so mục tiêu viện trên thẻ; Δ 2 tuần ISO / `ky_truoc` không hiện cạnh KPI (vẫn dùng cho xu hướng / payload).
 - **Fallback:** khi bảng chưa migrate / lỗi đọc → `GREEN_MIN`.
 - **Không** đổi công thức CCS; mục tiêu chỉ để so sánh lãnh đạo.
 - Seed mặc định toàn viện = 85% (có thể còn dòng `ty_le_ccs` trong DB — app **không** surface).
@@ -104,9 +105,9 @@ SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 | Lớp | Định nghĩa | Code |
 |-----|------------|------|
 | Hàng đợi quyết định ngày | Tối đa 10 dòng derive từ gap comparable · BK yếu · CSSD đỏ/đóng băng · NKBV chờ XN · QLCV quá hạn | `decision-queue.ts` · UI `/` |
-| QLCV CC brief | Quá hạn + tóm tắt định kỳ (mẫu bật, đến hạn tuần, phiếu mở tuần, preview sinh) | `getQlcvQuaHanBrief` · `CommandCenterQlcvSection` |
+| QLCV CC brief | Quá hạn trên «Việc hôm nay» (mẫu bật, đến hạn tuần, phiếu mở tuần) | `getQlcvQuaHanBrief` · `CommandCenterDecisionQueue` |
 | PDCA metadata | Khi tạo việc từ analytics: `analytics_meta` = `{ chi_so, khoa_id, ky_do_lai, gia_tri_luc_tao }` trên `qlcv_fact_cong_viec` | deep-link + `insertQlcvTaskRow` |
-| Can thiệp đang mở | Việc mở có `chi_so`; sau `ky_do_lai` hiện Δ = hiện tại − lúc tạo (cùng khóa chỉ số). UI dùng `labelAnalyticsChiSo` — **không** mono raw key | `CommandCenterOpenInterventions` |
+| Can thiệp đang mở | Việc mở có `chi_so`; sau `ky_do_lai` hiện Δ = hiện tại − lúc tạo (cùng khóa chỉ số). UI dùng `labelAnalyticsChiSo` — **không** mono raw key | Không còn khối riêng trên `/` (2026-08-22) |
 | Định mức nguồn lực | `PHIEN_GS_PER_NV_PER_WEEK` (mặc định 5); cảnh báo dưới định mức trên bảng NV KSNK | `resource-norms.ts` |
 
 ### Nhãn cảnh báo CSSD (Management Control)
@@ -114,7 +115,7 @@ SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 | Tín hiệu | Định nghĩa | UI |
 |----------|------------|-----|
 | **Đỏ** (`is_red_alert` / trạm rate sự cố `> 5%`) | Trạm/khoảng có tỷ lệ sự cố vượt ngưỡng banner | Command Center hàng đợi · CSSD report |
-| **Đóng băng** | Máy/`trang_thai` bảo trì hoặc quy trình bị khóa vận hành theo domain CSSD (không phải %) | Brief Trụ B/C · report |
+| **Đóng băng** | Máy/`trang_thai` bảo trì hoặc quy trình bị khóa vận hành theo domain CSSD (không phải %) | Việc hôm nay · CSSD report |
 
 ### PDCA `chi_so` → nhãn nghiệp vụ
 

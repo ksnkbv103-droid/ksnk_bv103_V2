@@ -51,17 +51,40 @@ export async function fetchCssdKhoDungCuList() {
 
     const redKeys = await loadRedAlertKeys(supabase);
 
+    const qtyByBo = new Map<string, { can: number; thuc: number; thieu: number }>();
+    if (boIds.length) {
+      const { data: rt } = await supabase
+        .from("v_cssd_bo_dung_cu_chi_tiet_realtime")
+        .select("bo_dung_cu_id, so_luong_tieu_chuan, so_luong_thuc_te, missing_count")
+        .in("bo_dung_cu_id", boIds)
+        .eq("is_active", true);
+      for (const r of rt || []) {
+        const bid = String((r as { bo_dung_cu_id?: string }).bo_dung_cu_id || "").trim();
+        if (!bid) continue;
+        const prev = qtyByBo.get(bid) || { can: 0, thuc: 0, thieu: 0 };
+        prev.can += Number((r as { so_luong_tieu_chuan?: number }).so_luong_tieu_chuan || 0);
+        prev.thuc += Number((r as { so_luong_thuc_te?: number }).so_luong_thuc_te || 0);
+        prev.thieu += Number((r as { missing_count?: number }).missing_count || 0);
+        qtyByBo.set(bid, prev);
+      }
+    }
+
     const data = rows.map((x) => {
       const id = String(x.id || "");
       const qr = String(x.ma_qr_quy_trinh || "").trim().toUpperCase();
       const fromSuCo = redKeys.byQuyTrinhId.has(id) || (qr ? redKeys.byMaQr.has(qr) : false);
       const fromRow = x.is_red_alert === true;
+      const boId = String(x.bo_dung_cu_id || "").trim();
+      const qty = qtyByBo.get(boId) || null;
       return {
         ...x,
         is_red_alert: fromRow || fromSuCo,
         ma_vach_qr: x.ma_qr_quy_trinh || "",
         trang_thai_hien_tai: x.ma_trang_thai_hien_tai || "",
         cssd_dm_bo_dung_cu: x.bo_dung_cu_id ? boMap.get(String(x.bo_dung_cu_id)) || null : null,
+        so_luong_can: qty?.can ?? null,
+        so_luong_thuc_te: qty?.thuc ?? null,
+        so_luong_thieu: qty?.thieu ?? 0,
       };
     });
 

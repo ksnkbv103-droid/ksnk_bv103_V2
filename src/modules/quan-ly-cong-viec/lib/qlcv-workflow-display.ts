@@ -10,6 +10,7 @@ export type CongViecLike = {
   nguoi_phu_trach_id?: string | null;
   phan_tram_hoan_thanh?: number | null;
   tien_do?: number | null;
+  loai_cong_viec?: string | null;
 };
 
 export function isDeXuatChoDuyet(t: CongViecLike): boolean {
@@ -19,11 +20,11 @@ export function isDeXuatChoDuyet(t: CongViecLike): boolean {
 }
 
 export function isChoNghiemThuHoanThanh(t: CongViecLike): boolean {
+  if (t.loai_cong_viec === "DINH_KY") return false;
   const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
   if (st === "CHO_DUYET") return true;
   const pct = Number(t.phan_tram_hoan_thanh ?? t.tien_do ?? 0);
-  // Chỉ DANG_LAM@100% — TU_CHOI = làm lại; QUA_HAN để gate QUA_HAN / lane quá hạn ưu tiên.
-  return st === "DANG_LAM" && pct >= 100;
+  return (st === "DANG_LAM" || st === "QUA_HAN") && pct >= 100;
 }
 
 export type QlcvWorkflowGate =
@@ -42,9 +43,8 @@ export function getQlcvWorkflowGate(t: CongViecLike): QlcvWorkflowGate {
   const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
   if (st === "HOAN_THANH") return "HOAN_THANH";
   if (st === "DA_HUY") return "DA_HUY";
-  if (st === "QUA_HAN") return "QUA_HAN";
   if (st === "TU_CHOI") return "TU_CHOI";
-  if (st === "DANG_LAM") return "DANG_LAM";
+  if (st === "DANG_LAM" || st === "QUA_HAN") return "DANG_LAM";
   if (t.is_active !== false && st === "MOI") return "DANG_LAM";
   return "MOI";
 }

@@ -24,6 +24,7 @@ import type { CssdPmChecklistItem } from "@/lib/domain/cssd-equipment-pm-checkli
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 
 const MODULE_KEY = "CSSD_ME_TIET_KHUAN";
+const MODULE_THIET_BI = "THIET_BI";
 
 function trangThaiLabel(s: string) {
   if (s === "DANG_THUC_HIEN") return "Đang thực hiện";
@@ -33,7 +34,13 @@ function trangThaiLabel(s: string) {
 }
 
 export default function BaoTriThietBiPage({ suppressShell = false }: { suppressShell?: boolean } = {}) {
-  const { loading: permLoading, allowed } = useModulePermission(MODULE_KEY);
+  const permTk = useModulePermission(MODULE_KEY);
+  const permTb = useModulePermission(MODULE_THIET_BI);
+  const permLoading = permTk.loading || permTb.loading;
+  const allowed = {
+    view: permTk.allowed.view || permTb.allowed.view,
+    edit: permTk.allowed.edit || permTb.allowed.edit,
+  };
   const [rows, setRows] = useState<FactBaoTriRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [machines, setMachines] = useState<BaoTriMachineOption[]>([]);

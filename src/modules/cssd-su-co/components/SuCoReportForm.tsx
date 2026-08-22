@@ -111,6 +111,9 @@ export default function SuCoReportForm({
   const [loTietKhuanId, setLoTietKhuanId] = useState(initialLoTietKhuanId || "");
   const [viTriPhatHien, setViTriPhatHien] = useState("");
   const [meta, setMeta] = useState<SuCoIncidentMetaState>(emptyMeta);
+  const [wizardStep, setWizardStep] = useState<1 | 2>(
+    initialTypeId || initialChiTietId || initialMaQR ? 2 : 1,
+  );
   const [machines, setMachines] = useState<{ id: string; ten: string }[]>([]);
   const [chemicals, setChemicals] = useState<{ id: string; ten: string; ma: string }[]>([]);
   const [boOptions, setBoOptions] = useState<BoCatalogOption[]>([]);
@@ -404,7 +407,7 @@ export default function SuCoReportForm({
           const printData = await getIncidentForPrint(res.incident_id);
           if (printData.success) {
             setSubmittedIncident({ incident: printData.incident, details: printData.details });
-            setTimeout(() => window.print(), 300);
+            toast.message("Đã lưu sự cố — bấm In biên bản nếu cần.");
           }
         }
         onSubmitted?.();
@@ -468,7 +471,38 @@ export default function SuCoReportForm({
         </div>
       ) : (
         <div className={isModal ? "space-y-4" : "space-y-6"}>
-          <IncidentGroupPicker incidentGroup={incidentGroup} onSelect={setIncidentGroup} compact={isModal} />
+          {wizardStep === 1 ? (
+            <div className="space-y-4">
+              <p className="text-xs font-semibold text-slate-600">Bước 1/2 — Chọn việc xảy ra</p>
+              <IncidentGroupPicker incidentGroup={incidentGroup} onSelect={setIncidentGroup} compact={isModal} />
+              <TypePicker
+                options={activeGroupOptions}
+                typeId={typeId}
+                onChange={(id, ten) => {
+                  setTypeId(id);
+                  setTypeTen(ten);
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setWizardStep(2)}
+                className={`${bv103LayoutChrome.btnPrimary} w-full sm:w-auto`}
+              >
+                Tiếp — điền chi tiết
+              </button>
+            </div>
+          ) : (
+            <>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-semibold text-slate-600">Bước 2/2 — Chi tiết sự cố</p>
+            <button
+              type="button"
+              onClick={() => setWizardStep(1)}
+              className="text-[11px] font-semibold text-slate-500 hover:text-slate-800"
+            >
+              ← Đổi nhóm / loại
+            </button>
+          </div>
 
           <div className={`grid grid-cols-1 gap-4 ${isModal ? "" : "gap-6 lg:grid-cols-2"}`}>
             <div className={`space-y-4 rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-sm ${isModal ? "p-3.5" : "p-4"}`}>
@@ -646,6 +680,8 @@ export default function SuCoReportForm({
               {loading ? <Loader2 className="animate-spin" size={16} /> : <><CheckCircle2 size={16} /> Gửi báo cáo</>}
             </button>
           </div>
+            </>
+          )}
         </div>
       )}
     </form>

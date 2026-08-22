@@ -106,6 +106,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         onPrintBatch={() => w.activeMe?.id && void w.onPrintBatch({ batchId: w.activeMe.id })}
         isPrintBusy={w.isCssdPrinting}
         onReportIncident={() => setIsIncidentOpen(true)}
+        suppressShell={suppressShell}
       />
       {printPortal}
       <IncidentReportModal
@@ -139,7 +140,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
           columns={batchColumns}
           data={filteredBatches}
           loading={w.loading}
-          searchPlaceholder="Tìm theo mã lô..."
+          searchPlaceholder="Tìm mã lô hoặc quét LOT-…"
           searchValue={listSearch}
           onSearch={setListSearch}
           enableQrScan

@@ -23,4 +23,21 @@ describe("isEligibleForNghiemThu", () => {
       true,
     );
   });
+
+  it("rejects việc định kỳ — tick đủ là đóng, không nghiệm thu", () => {
+    expect(
+      isEligibleForNghiemThu({
+        trang_thai: "CHO_DUYET",
+        phan_tram_hoan_thanh: 100,
+        loai_cong_viec: "DINH_KY",
+      }),
+    ).toBe(false);
+    expect(
+      isEligibleForNghiemThu({
+        trang_thai: "DANG_LAM",
+        phan_tram_hoan_thanh: 100,
+        loai_cong_viec: "DINH_KY",
+      }),
+    ).toBe(false);
+  });
 });

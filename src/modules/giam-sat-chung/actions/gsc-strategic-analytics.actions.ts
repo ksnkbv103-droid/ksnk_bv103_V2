@@ -33,7 +33,18 @@ export async function getGscStrategicAnalytics(filters: GscStrategicFilters) {
   const supabase = await createServerSupabaseUserClient();
   const scope = await getActorKsnkScope();
   const rpcFilters = resolveAnalyticsRpcFilters(scope, f, "gsc");
-  const p_bang_kiem_mas = f.bang_kiem_mas && f.bang_kiem_mas.length > 0 ? f.bang_kiem_mas : null;
+  let p_bang_kiem_mas = f.bang_kiem_mas && f.bang_kiem_mas.length > 0 ? f.bang_kiem_mas : null;
+  if (!p_bang_kiem_mas) {
+    const { data: tuanThuRows, error: bkErr } = await supabase
+      .from("gstt_dm_bang_kiem")
+      .select("ma_bk")
+      .or("loai_giam_sat.is.null,loai_giam_sat.eq.TUAN_THU");
+    if (bkErr) return { success: false as const, error: bkErr.message };
+    const mas = (tuanThuRows ?? [])
+      .map((r) => String(r.ma_bk ?? "").trim())
+      .filter((ma) => ma.length > 0);
+    p_bang_kiem_mas = mas.length > 0 ? mas : null;
+  }
 
   const rpcArgs = {
     p_tu_ngay: f.tu_ngay,

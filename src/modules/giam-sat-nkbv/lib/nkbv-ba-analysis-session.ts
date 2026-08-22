@@ -27,6 +27,16 @@ export type BaAnalysisSessionDraft = {
   canThiepDates: string[];
   /** PNEU Lớp 2 — bệnh tim phổi nền → cần ≥2 phim ∈ IWP. */
   hasCardiopulmonaryDisease?: boolean;
+  /** PNEU Footnote 10 — atom miễn dịch trên BA. */
+  pneuIcAtoms?: {
+    pneu_ic_neutropenia?: boolean;
+    pneu_ic_leukemia_lymphoma?: boolean;
+    pneu_ic_hiv_cd4_lt_200?: boolean;
+    pneu_ic_splenectomy?: boolean;
+    pneu_ic_solid_organ_or_hsct?: boolean;
+    pneu_ic_chemotherapy?: boolean;
+    pneu_ic_steroid_ge_14d?: boolean;
+  };
   /** SSI — độ sâu / mã NHSN / PATOS. */
   ssiDepth?: "SUPERFICIAL" | "DEEP" | "ORGAN_SPACE";
   hasImplant?: boolean;

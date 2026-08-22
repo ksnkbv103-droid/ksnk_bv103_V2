@@ -2,10 +2,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { QrCode, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { useCSSDWorkflow } from "../hooks/useCSSDWorkflow";
 import WaitingList from "../components/waiting-list/WaitingList";
 import QRScanSuccessCard from "../components/scan/QRScanSuccessCard";
@@ -14,10 +13,9 @@ import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportM
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import type { Station } from "../types/cssd.types";
-import { CSSD_UI_SECTION_TITLE, CSSD_UI_STEP_HINT } from "../shared/ui/cssd-ui-chrome";
 import { SCAN_STATIONS } from "../workflow/domain/cssd-stations";
 import { isValidStation } from "../workflow/domain/cssd-state-engine";
-import { CSSD_ROUTES, cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
+import { cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
 import { useCssdPrint } from "../hooks/use-cssd-print";
 import CssdPrintPortal from "../components/print/CssdPrintPortal";
 import CompositionReconcilePanel from "../components/packaging/CompositionReconcilePanel";
@@ -48,27 +46,16 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
   const { printState, onPrintCapPhat, isPrinting: isCssdPrinting } = useCssdPrint();
   const { printCycleLabel } = usePrint();
-  const lastCapPhatPrintKey = React.useRef<string | null>(null);
   const lastDongGoiCyclePrintKey = React.useRef<string | null>(null);
 
   const stationParam = searchParams.get("station");
   useEffect(() => {
+    if (dongGoiGate) return;
     const raw = stationParam?.trim().toUpperCase() || "";
     if (!raw || !isValidStation(raw) || raw === "TIET_KHUAN") return;
     if (!(SCAN_STATIONS as readonly string[]).includes(raw)) return;
     selectStation(raw as Station);
   }, [stationParam]);
-
-  useEffect(() => {
-    if (currentStation !== "CAP_PHAT" || !lastScan?.quyTrinhId) return;
-    const key = `${lastScan.qrCode}-${lastScan.thoiGianQuet}`;
-    if (lastCapPhatPrintKey.current === key) return;
-    lastCapPhatPrintKey.current = key;
-    void onPrintCapPhat({
-      quyTrinhId: String(lastScan.quyTrinhId),
-      nguoiCapPhat: String(lastScan.nguoiThucHien || "CSSD"),
-    });
-  }, [currentStation, lastScan, onPrintCapPhat]);
 
   useEffect(() => {
     if (currentStation !== "DONG_GOI" || !lastScan?.maCycleQr) return;
@@ -124,26 +111,36 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
   const showDongGoiGate = currentStation === "DONG_GOI" && !!dongGoiGate;
   const showScanSuccess = scanSuccess && !showDongGoiGate;
 
+  const requestSelectStation = (station: Station) => {
+    if (showDongGoiGate && station !== currentStation) {
+      toast.message("Đang kiểm bộ — bấm «Đóng» trên thẻ bộ trước khi đổi trạm.");
+      return;
+    }
+    selectStation(station);
+  };
+
   const mainContent = (
     <div className="space-y-4 animate-in fade-in duration-500 sm:space-y-6">
-      <CssdStationFlowMap activeStation={currentStation} onSelectStation={selectStation} />
+      <CssdStationFlowMap
+        activeStation={currentStation}
+        onSelectStation={requestSelectStation}
+        gateLocked={showDongGoiGate}
+      />
 
-      {/* 4. Workflow Area */}
       <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-6">
           {currentStation ? <WaitingList items={waitingList} onAction={submitWorkflowQr} /> : (
-            <div className="rounded-[var(--radius-shell)] border border-dashed border-slate-300 bg-white py-20 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400">Vui lòng chọn trạm làm việc để bắt đầu</div>
+            <div className="rounded-[var(--radius-shell)] border border-dashed border-slate-300 bg-white py-16 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+              Chọn trạm để xem hàng chờ.
+            </div>
           )}
         </div>
 
         <div className="space-y-4 lg:col-span-6 lg:sticky lg:top-8">
-          <h3 className={`px-1 ${CSSD_UI_SECTION_TITLE}`}>Quét & kết quả</h3>
           <div className="space-y-4 rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 shadow-sm">
             <WorkflowStationQrEntry
-              waitingItems={waitingList}
-              disabled={!currentStation || workflowLoading}
+              disabled={workflowLoading}
               onConfirm={submitWorkflowQr}
-              gateActive={showDongGoiGate}
             />
             {showDongGoiGate && dongGoiGate ? (
               <CompositionReconcilePanel
@@ -171,16 +168,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
                 }
                 isPrintBusy={isCssdPrinting}
               />
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 py-16 text-slate-400">
-                <QrCode size={36} className="opacity-40" />
-                <p className={CSSD_UI_STEP_HINT}>
-                  {currentStation === "DONG_GOI"
-                    ? "Quét hoặc chọn bộ để mở bảng kiểm cấu phần"
-                    : "Chờ lệnh quét QR mới"}
-                </p>
-              </div>
-            )}
+            ) : null}
           </div>
         </div>
       </main>
@@ -213,24 +201,14 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
         </>
       }
       actions={
-        <div className="flex flex-wrap items-center justify-end gap-1.5">
-          {canCreateIncident ? (
-            <Link
-              href={CSSD_ROUTES.suCo}
-              className="bv103-control-h inline-flex items-center justify-center rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              Sự cố
-            </Link>
-          ) : null}
-          <button
-            type="button"
-            onClick={() => setIsIncidentOpen(true)}
-            disabled={!canCreateIncident}
-            className="bv103-control-h inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-control)] bg-red-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <AlertTriangle size={16} aria-hidden /> Báo sự cố
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setIsIncidentOpen(true)}
+          disabled={!canCreateIncident}
+          className="bv103-control-h inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-control)] bg-red-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <AlertTriangle size={16} aria-hidden /> Báo sự cố
+        </button>
       }
     >
       {mainContent}

@@ -1,9 +1,9 @@
 "use client";
 
 /** CSSD vận hành catalog (read-only); CRUD: `/quan-tri-he-thong/danh-muc/dung-cu`. */
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { History, Layers, AppWindow, ListFilter, QrCode, ExternalLink } from "lucide-react";
+import { History, Layers, AppWindow, ListFilter, ExternalLink, ChevronDown } from "lucide-react";
 import {
   useCssdCatalogPage,
   CSSDCatalogBoTab,
@@ -12,15 +12,19 @@ import {
   CSSDCatalogQuickActions,
 } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
 import InventoryHistoryTable from "@/modules/cssd-erp/components/inventory/InventoryHistoryTable";
+import SetCompositionCard from "@/modules/cssd-erp/components/inventory/SetCompositionCard";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
 import QrScanInput from "@/components/shared/QrScanInput";
+import { CssdQrLabelKindsNotice } from "@/modules/cssd-erp/components/catalog/CssdQrLabelKindsNotice";
 import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
 
 export default function Page() {
   const s = useCssdCatalogPage();
+  const [showMore, setShowMore] = useState(false);
 
+  const extraOpen = showMore || s.tab === "CHI_TIET" || s.tab === "LOAI" || s.tab === "HISTORY";
   const isCatalogTab = s.tab === "BO" || s.tab === "CHI_TIET" || s.tab === "LOAI";
   const adminFocus = s.tab === "LOAI" ? "loai" : s.tab === "CHI_TIET" ? "chi-tiet" : "bo";
 
@@ -40,38 +44,36 @@ export default function Page() {
       }
     >
       <div className="space-y-3 sm:space-y-4">
-        <div className={CSSD_UI_TAB_GROUP}>
-          <CssdHorizTabButton active={s.tab === "BO"} onClick={() => s.setTab("BO")} icon={Layers} label="Bộ dụng cụ" mobileLabel="Bộ" />
-          <CssdHorizTabButton active={s.tab === "CHI_TIET"} onClick={() => s.setTab("CHI_TIET")} icon={ListFilter} label="Dụng cụ chi tiết" mobileLabel="Chi tiết" />
-          <CssdHorizTabButton active={s.tab === "LOAI"} onClick={() => s.setTab("LOAI")} icon={AppWindow} label="Loại dụng cụ" mobileLabel="Loại" />
-          <CssdHorizTabButton active={s.tab === "HISTORY"} onClick={() => s.setTab("HISTORY")} icon={History} label="Lịch sử luân chuyển" mobileLabel="Lịch sử" />
-        </div>
+        <CssdQrLabelKindsNotice />
+
+        {extraOpen ? (
+          <div className={CSSD_UI_TAB_GROUP}>
+            <CssdHorizTabButton active={s.tab === "BO"} onClick={() => s.setTab("BO")} icon={Layers} label="Bộ dụng cụ" mobileLabel="Bộ" />
+            <CssdHorizTabButton active={s.tab === "CHI_TIET"} onClick={() => s.setTab("CHI_TIET")} icon={ListFilter} label="Dụng cụ chi tiết" mobileLabel="Chi tiết" />
+            <CssdHorizTabButton active={s.tab === "LOAI"} onClick={() => s.setTab("LOAI")} icon={AppWindow} label="Loại dụng cụ" mobileLabel="Loại" />
+            <CssdHorizTabButton active={s.tab === "HISTORY"} onClick={() => s.setTab("HISTORY")} icon={History} label="Lịch sử luân chuyển" mobileLabel="Lịch sử" />
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowMore(true)}
+            className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-slate-800"
+          >
+            <ChevronDown className="h-3.5 w-3.5" aria-hidden />
+            Xem thêm danh mục (loại, chi tiết, lịch sử)
+          </button>
+        )}
 
         <div className="animate-in fade-in duration-300">
           {isCatalogTab && (
-            <div className="mb-4 space-y-2">
-              <div className="relative min-w-0">
-                <input
-                  value={s.q}
-                  onChange={(e) => s.setQ(e.target.value)}
-                  placeholder="Lọc theo tên / mã…"
-                  className="bv103-control-h w-full rounded-[var(--radius-control)] border border-slate-200 pl-10 pr-3 text-sm font-medium outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-[var(--primary)]/20"
-                />
-                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                  <QrCode size={16} className="text-[var(--primary)]" />
-                </div>
-              </div>
+            <div className="mb-4">
               <QrScanInput
-                placeholder="Quét QR bộ / chu trình…"
-                cameraTitle="Quét QR danh mục dụng cụ"
-                onEnter={(code) => {
-                  s.setQ(code);
-                  void s.handleScan(code);
-                }}
-                onCameraScan={(code) => {
-                  s.setQ(code);
-                  void s.handleScan(code);
-                }}
+                value={s.q}
+                onChange={s.setQ}
+                placeholder="Tìm tên, mã hoặc quét QR…"
+                cameraTitle="Tìm hoặc quét QR danh mục"
+                onEnter={(code) => void s.handleScan(code)}
+                onCameraScan={(code) => void s.handleScan(code)}
               />
             </div>
           )}
@@ -81,16 +83,23 @@ export default function Page() {
               Đang tải danh mục...
             </div>
           ) : s.tab === "BO" ? (
-            <CSSDCatalogBoTab
-              boRows={s.boRows}
-              chiTietBySelectedBo={s.chiTietBySelectedBo}
-              selectedBoId={s.selectedBoId}
-              setSelectedBoId={s.setSelectedBoId}
-              selectedBo={s.selectedBo}
-              setSelectedChiTietId={s.setSelectedChiTietId}
-              setSelectedLoaiId={s.setSelectedLoaiId}
-              setTab={s.setTab}
-            />
+            <div className="space-y-4">
+              <CSSDCatalogBoTab
+                boRows={s.boRows}
+                chiTietBySelectedBo={s.chiTietBySelectedBo}
+                selectedBoId={s.selectedBoId}
+                setSelectedBoId={s.setSelectedBoId}
+                selectedBo={s.selectedBo}
+                setSelectedChiTietId={s.setSelectedChiTietId}
+                setSelectedLoaiId={s.setSelectedLoaiId}
+                setTab={s.setTab}
+              />
+              {s.selectedBoId ? (
+                <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 shadow-sm">
+                  <SetCompositionCard boDungCuId={s.selectedBoId} />
+                </section>
+              ) : null}
+            </div>
           ) : s.tab === "CHI_TIET" ? (
             <CSSDCatalogChiTietTab
               catalog={s.catalog}
@@ -114,14 +123,14 @@ export default function Page() {
             <InventoryHistoryTable />
           ) : null}
 
-          {isCatalogTab && (
+          {isCatalogTab && s.selectedBoId ? (
             <CSSDCatalogQuickActions
               selectedBoId={s.selectedBoId}
               selectedChiTiet={s.selectedChiTiet}
               selectedMaBo={s.selectedBo?.ma_bo || null}
               reload={s.reload}
             />
-          )}
+          ) : null}
         </div>
       </div>
     </CSSDPageShell>

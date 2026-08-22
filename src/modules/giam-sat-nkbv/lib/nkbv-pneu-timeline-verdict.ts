@@ -16,10 +16,12 @@ import {
   derivePneuLabTier,
   labFactsFromXnCell,
 } from "./nkbv-pneu-lab-tier";
+import { countPneuRespiratoryCdcGroupsFromKeys } from "./nkbv-clinical-symptom-catalog";
 import { deviceAssociationFromCanThiepDates } from "./nkbv-shared-timeline";
 import { ageYearsFromNgaySinh } from "./nkbv-uti-timeline-verdict";
+import type { PneuLabFacts } from "./nkbv-pneu-lab-tier";
 
-/** Triệu chứng hô hấp tại chỗ — đếm ≥2 cho PNU. */
+/** Criteria key hô hấp — map nhóm CDC qua catalog `pneu_resp_line`. */
 const RESPIRATORY_CRITERIA_KEYS = new Set([
   "cough",
   "dyspnea",
@@ -51,18 +53,18 @@ function anyKeyInIwp(
   return false;
 }
 
-function countDistinctKeysInIwp(
+function collectKeysInIwp(
   lamSang: BaGridSymptomByDate,
   iwpDates: Set<string>,
   keys: Set<string>,
-): number {
-  const found = new Set<string>();
+): string[] {
+  const found: string[] = [];
   for (const d of iwpDates) {
     for (const it of lamSang[d] || []) {
-      if (keys.has(it.key)) found.add(it.key);
+      if (keys.has(it.key)) found.push(it.key);
     }
   }
-  return found.size;
+  return found;
 }
 
 function imagingInIwp(cdha: BaGridCdhaCell[], iwpDates: Set<string>): BaGridCdhaCell[] {
@@ -129,6 +131,18 @@ export type BuildPneuTimelineVerdictInput = {
   deviceRemovedDate?: string | null;
   /** Lớp 2 — bệnh tim phổi nền → cần ≥2 phim. */
   hasCardiopulmonaryDisease?: boolean;
+  /** Footnote 10 — atom miễn dịch trên BA (A4). */
+  pneuIcAtoms?: Pick<
+    PneuLabFacts,
+    | "pneu_ic_neutropenia"
+    | "pneu_ic_leukemia_lymphoma"
+    | "pneu_ic_hiv_cd4_lt_200"
+    | "pneu_ic_splenectomy"
+    | "pneu_ic_solid_organ_or_hsct"
+    | "pneu_ic_chemotherapy"
+    | "pneu_ic_steroid_ge_14d"
+    | "pneu_is_immunocompromised"
+  >;
 };
 
 export type PneuTimelineGate = {
@@ -174,10 +188,8 @@ export function buildPneuTimelineVerdict(
   const hasFeverOrWbc = anyKeyInIwp(input.lamSang, input.iwpDates, SYSTEMIC_FEVER_KEYS);
   const hasAms = anyKeyInIwp(input.lamSang, input.iwpDates, [PNEU_AMS_CRITERIA_KEY]);
   const hasSystemic = hasFeverOrWbc || hasAms;
-  const respiratoryCount = countDistinctKeysInIwp(
-    input.lamSang,
-    input.iwpDates,
-    RESPIRATORY_CRITERIA_KEYS,
+  const respiratoryCount = countPneuRespiratoryCdcGroupsFromKeys(
+    collectKeysInIwp(input.lamSang, input.iwpDates, RESPIRATORY_CRITERIA_KEYS),
   );
   const hasLocalRespiratory = respiratoryCount >= 2;
 
@@ -273,6 +285,7 @@ export function buildPneuTimelineVerdict(
     calculated_doe: doe || undefined,
     respiratory_organism: input.indexXn?.vi_khuan || undefined,
     ...labPatch,
+    ...(input.pneuIcAtoms || {}),
   }) as VaeVerificationData;
 
   const labTier = derivePneuLabTier(data);
@@ -291,8 +304,12 @@ export function buildPneuTimelineVerdict(
   if (!hasImaging) warnings.push("Thiếu CĐHA ngực bất thường ∈ IWP");
   else if (needsTwo && imagingCount < 2) warnings.push("Tim phổi nền — cần ≥2 phim ∈ IWP");
   if (!hasSystemic) warnings.push("Thiếu triệu chứng toàn thân (sốt/WBC hoặc AMS ≥70)");
-  if (!hasLocalRespiratory) {
-    warnings.push(`Thiếu triệu chứng hô hấp tại chỗ (cần ≥2, hiện ${respiratoryCount})`);
+  if (microbiology === "NONE" && !hasLocalRespiratory) {
+    warnings.push(
+      `Thiếu triệu chứng hô hấp tại chỗ (cần ≥2 nhóm CDC, hiện ${respiratoryCount})`,
+    );
+  } else if (microbiology !== "NONE" && respiratoryCount < 1) {
+    warnings.push("PNU2/PNU3: cần ≥1 nhóm hô hấp CDC (hoặc triệu chứng list rộng PNU3)");
   }
   if (labTier.lab_excluded) {
     warnings.push(labTier.reasons.find((r) => /Loại khỏi/i.test(r)) || "Lab LRT bị loại khỏi PNU2/3");

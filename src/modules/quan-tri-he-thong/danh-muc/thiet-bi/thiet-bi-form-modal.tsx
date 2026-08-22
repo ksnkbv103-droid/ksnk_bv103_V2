@@ -100,10 +100,14 @@ export default function ThietBiFormModal({
             <label className="text-[11px] font-medium text-slate-400 ml-1">Trạng thái</label>
             <select value={form.trang_thai} onChange={(e) => setForm({ ...form, trang_thai: e.target.value })} className={C.controlInput}>
               <option value="READY">Sẵn sàng</option>
-              <option value="REPAIRING">Đang sửa chữa</option>
+              <option value="HOAT_DONG">Hoạt động</option>
+              <option value="HOLD_QC">Tạm giữ QC</option>
               <option value="BROKEN">Hỏng</option>
               <option value="RETIRED">Ngừng sử dụng</option>
             </select>
+            <p className="ml-1 text-[11px] text-slate-500">
+              Đang sửa chữa (REPAIRING) gán qua phiếu bảo trì. HOLD_QC = tạm giữ sau sự cố QC / BI+ — không nạp mẻ.
+            </p>
           </div>
           <BoDungCuTextField label="Hãng sản xuất" value={form.hang_san_xuat}
             onChange={(v) => setForm({ ...form, hang_san_xuat: v })} />

@@ -8,7 +8,7 @@
 | Đề xuất việc | `createDeXuat` | INSERT fact `is_active=false`, `trang_thai=MOI` + nhật ký | KSNK + CREATE |
 | Phê / từ chối đề xuất | `pheDuyetDeXuat` / `pheDuyetVaCapNhatDeXuat` | `fn_qlcv_transition` `PHE_DUYET_DEXUAT` / `TU_CHOI_DEXUAT` | APPROVE |
 | Sửa metadata / giao lại | `updateCongViec` | UPDATE fact; giao phụ trách `MOI`→`DANG_LAM` (canonical) | EDIT |
-| Tick checklist / % | `updateQlcvChecklist` / `reportQlcvManualProgress` | `fn_qlcv_update_checklist` (+ nhật ký) | KSNK |
+| Tick checklist / % | `updateQlcvChecklist` / `reportQlcvManualProgress` | `fn_qlcv_update_checklist` (+ nhật ký). Định kỳ 100% → `HOAN_THANH`; đột xuất/khẩn → `CHO_DUYET` | KSNK |
 | Nghiệm thu | `xacNhanHoanThanh` | `fn_qlcv_transition` `NGHIEM_THU` | APPROVE + `isEligibleForNghiemThu` |
 | Từ chối nghiệm thu | `tuChoiHoanThanhCongViec` | `fn_qlcv_transition` `TU_CHOI_NGHIEM_THU` | cùng cổng nghiệm thu |
 | Hủy phiếu | `huyKhiChoNghiemThuKhongDat` / transition | `fn_qlcv_transition` → `DA_HUY` | DELETE/admin |

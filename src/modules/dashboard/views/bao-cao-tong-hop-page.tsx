@@ -76,6 +76,7 @@ export function BaoCaoTongHopPage() {
   const d = useBaoCaoTongHopData();
   const [nhanXetDanhGia, setNhanXetDanhGia] = useState("");
   const [kienNghiDeXuat, setKienNghiDeXuat] = useState("");
+  const [moreSectionsOpen, setMoreSectionsOpen] = useState(false);
 
   const trendFilters = useMemo(() => {
     const fp = buildAnalyticsFilterPayload({
@@ -226,7 +227,7 @@ export function BaoCaoTongHopPage() {
 
       <div className={`space-y-5 transition-opacity ${d.loading ? "pointer-events-none opacity-50" : ""}`}>
         {d.khoaFilterLocked && d.lockedKhoaLabel ? <AnalyticsKhoaScopeBanner khoaLabel={d.lockedKhoaLabel} /> : null}
-        <ReportSectionNav />
+        <ReportSectionNav moreOpen={moreSectionsOpen} onMoreOpenChange={setMoreSectionsOpen} />
         <ReportSection id="bc-kpi" title="Chỉ số tổng hợp">
           <ComprehensiveKpiCards payload={d.payload} />
         </ReportSection>
@@ -258,24 +259,28 @@ export function BaoCaoTongHopPage() {
             module="gsc"
           />
         </ReportSection>
-        <ReportSection id="bc-gsc-bk" title="Bảng kiểm cần can thiệp">
-          <ComprehensiveGscBkIntervention payload={d.payload} />
-        </ReportSection>
-        <ReportSection id="bc-dimension" title="So sánh đa chiều">
-          <ComprehensiveDimensionCompare payload={d.payload} />
-        </ReportSection>
-        <ReportSection id="bc-thoi-diem" title="Thời điểm & hình thức">
-          <ComprehensiveThoiDiem payload={d.payload} />
-        </ReportSection>
         <ReportSection id="bc-nkbv" title="Kết quả NKBV">
           <ComprehensiveNkbvOutcome payload={d.payload} />
         </ReportSection>
-        <ReportSection id="bc-cssd" title="Phụ lục CSSD">
-          <ComprehensiveCssdAppendix payload={d.payload} />
-        </ReportSection>
-        <ReportSection id="bc-chuyen-de" title="Chuyên đề GSC">
-          <ComprehensiveTopicHybrid payload={d.payload} chuyenDe={d.chuyenDe} onChuyenDeChange={d.setChuyenDe} />
-        </ReportSection>
+        {moreSectionsOpen ? (
+          <>
+            <ReportSection id="bc-gsc-bk" title="Bảng kiểm cần can thiệp">
+              <ComprehensiveGscBkIntervention payload={d.payload} />
+            </ReportSection>
+            <ReportSection id="bc-dimension" title="So sánh đa chiều">
+              <ComprehensiveDimensionCompare payload={d.payload} />
+            </ReportSection>
+            <ReportSection id="bc-thoi-diem" title="Thời điểm và hình thức">
+              <ComprehensiveThoiDiem payload={d.payload} />
+            </ReportSection>
+            <ReportSection id="bc-cssd" title="Phụ lục CSSD">
+              <ComprehensiveCssdAppendix payload={d.payload} />
+            </ReportSection>
+            <ReportSection id="bc-chuyen-de" title="Chuyên đề GSC">
+              <ComprehensiveTopicHybrid payload={d.payload} chuyenDe={d.chuyenDe} onChuyenDeChange={d.setChuyenDe} />
+            </ReportSection>
+          </>
+        ) : null}
         <ReportSection id="bc-phan-iii" title="Phần III — Đánh giá và kiến nghị">
           <p className="mb-3 text-xs text-slate-500">
             Nội dung in vào mục III bản báo cáo gửi Ban Giám đốc / Hội đồng KSNK. Có thể tạo gợi ý từ số liệu rồi chỉnh tay trước khi ký.
