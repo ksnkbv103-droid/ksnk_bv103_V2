@@ -12,7 +12,7 @@ import {
   formatBaoCaoIsoDateVi,
   formatBaoCaoIssueDateVi,
   mergeKhoaRankWithSelected,
-  sortKhoaRankByCcs,
+  sortKhoaRankByComplianceAsc,
   computeTyLeVst,
   deltaFromPeriodPoints,
   deltaFromTrend,
@@ -83,7 +83,6 @@ describe("bao-cao-tong-hop-core", () => {
             min_date: "2026-06-01",
             ty_le_vst: 70,
             ty_le_gsc: null,
-            ty_le_ccs: null,
             vst_tong: 10,
             vst_dat: 7,
           },
@@ -100,7 +99,6 @@ describe("bao-cao-tong-hop-core", () => {
             min_date: "2026-06-01",
             ty_le_vst: 70,
             ty_le_gsc: null,
-            ty_le_ccs: null,
             vst_tong: 10,
             vst_dat: 7,
           },
@@ -109,7 +107,6 @@ describe("bao-cao-tong-hop-core", () => {
             min_date: "2026-06-15",
             ty_le_vst: 80,
             ty_le_gsc: null,
-            ty_le_ccs: null,
             vst_tong: 10,
             vst_dat: 8,
           },
@@ -128,7 +125,6 @@ describe("bao-cao-tong-hop-core", () => {
             min_date: "2026-06-01",
             ty_le_vst: 70,
             ty_le_gsc: null,
-            ty_le_ccs: null,
             vst_tong: 10,
             vst_dat: 7,
           },
@@ -137,7 +133,6 @@ describe("bao-cao-tong-hop-core", () => {
             min_date: "2026-06-08",
             ty_le_vst: 80,
             ty_le_gsc: null,
-            ty_le_ccs: null,
             vst_tong: 10,
             vst_dat: 8,
           },
@@ -154,7 +149,6 @@ describe("bao-cao-tong-hop-core", () => {
         min_date: "2026-01-05",
         ty_le_vst: 80,
         ty_le_gsc: 70,
-        ty_le_ccs: 75,
         vst_tong: 10,
         vst_dat: 8,
         gsc_tong: 10,
@@ -165,7 +159,6 @@ describe("bao-cao-tong-hop-core", () => {
         min_date: "2026-01-12",
         ty_le_vst: 50,
         ty_le_gsc: 90,
-        ty_le_ccs: 90,
         vst_tong: 2,
         vst_dat: 1,
         gsc_tong: 10,
@@ -184,7 +177,6 @@ describe("bao-cao-tong-hop-core", () => {
         min_date: "2026-01-05",
         ty_le_vst: 80,
         ty_le_gsc: 70,
-        ty_le_ccs: 75,
         vst_tong: 5,
         vst_dat: 4,
         gsc_tong: 5,
@@ -195,7 +187,6 @@ describe("bao-cao-tong-hop-core", () => {
         min_date: "2026-01-12",
         ty_le_vst: 90,
         ty_le_gsc: 90,
-        ty_le_ccs: 90,
         vst_tong: 5,
         vst_dat: 5,
         gsc_tong: 5,
@@ -205,7 +196,6 @@ describe("bao-cao-tong-hop-core", () => {
     expect(month).toHaveLength(1);
     expect(month[0]?.ty_le_vst).toBe(90);
     expect(month[0]?.ty_le_gsc).toBe(80);
-    expect(month[0]?.ty_le_ccs).toBe(85);
   });
 
   it("bucketTrendByQuarter aggregates by calendar quarter", () => {
@@ -215,7 +205,6 @@ describe("bao-cao-tong-hop-core", () => {
         min_date: "2026-01-05",
         ty_le_vst: 80,
         ty_le_gsc: 80,
-        ty_le_ccs: 80,
         vst_tong: 10,
         vst_dat: 8,
       },
@@ -224,7 +213,6 @@ describe("bao-cao-tong-hop-core", () => {
         min_date: "2026-02-12",
         ty_le_vst: 90,
         ty_le_gsc: 90,
-        ty_le_ccs: 90,
         vst_tong: 10,
         vst_dat: 9,
       },
@@ -233,7 +221,6 @@ describe("bao-cao-tong-hop-core", () => {
         min_date: "2026-04-01",
         ty_le_vst: 70,
         ty_le_gsc: 70,
-        ty_le_ccs: 70,
         vst_tong: 10,
         vst_dat: 7,
       },
@@ -246,8 +233,8 @@ describe("bao-cao-tong-hop-core", () => {
 
   it("bucketTrendByYear aggregates by calendar year", () => {
     const y = bucketTrendByYear([
-      { label: "T1", min_date: "2025-11-05", ty_le_vst: 60, ty_le_gsc: 60, ty_le_ccs: 60 },
-      { label: "T2", min_date: "2026-01-12", ty_le_vst: 80, ty_le_gsc: 80, ty_le_ccs: 80 },
+      { label: "T1", min_date: "2025-11-05", ty_le_vst: 60, ty_le_gsc: 60 },
+      { label: "T2", min_date: "2026-01-12", ty_le_vst: 80, ty_le_gsc: 80 },
     ]);
     expect(y).toHaveLength(2);
     expect(y[0]?.label).toBe("2025");
@@ -265,18 +252,16 @@ describe("bao-cao-tong-hop-core", () => {
     );
     expect(rows).toHaveLength(1);
     expect(rows[0].ty_le_avg).toBe(85);
-    expect(rows[0].ty_le_ccs).toBe(85);
     expect(rows[0].label).toBe("B01");
   });
 
-  it("sortKhoaRankByCcs ranks VST/GSC thấp→cao and puts no-data last", () => {
-    const sorted = sortKhoaRankByCcs([
+  it("sortKhoaRankByComplianceAsc ranks VST/GSC thấp→cao and puts no-data last", () => {
+    const sorted = sortKhoaRankByComplianceAsc([
       {
         id: "1",
         ten: "A",
         label: "A",
         ty_le_avg: 50,
-        ty_le_ccs: 50,
         ty_le_vst: 50,
         ty_le_gsc: null,
         tong_co_hoi_vst: 1,
@@ -288,7 +273,6 @@ describe("bao-cao-tong-hop-core", () => {
         ten: "B",
         label: "B",
         ty_le_avg: 90,
-        ty_le_ccs: 90,
         ty_le_vst: 90,
         ty_le_gsc: null,
         tong_co_hoi_vst: 1,
@@ -300,7 +284,6 @@ describe("bao-cao-tong-hop-core", () => {
         ten: "C",
         label: "C",
         ty_le_avg: null,
-        ty_le_ccs: null,
         ty_le_vst: null,
         ty_le_gsc: null,
         tong_co_hoi_vst: 0,
@@ -319,7 +302,6 @@ describe("bao-cao-tong-hop-core", () => {
           ten: "Khoa A",
           label: "Khoa A",
           ty_le_avg: 80,
-          ty_le_ccs: 80,
           ty_le_vst: 80,
           ty_le_gsc: null,
           tong_co_hoi_vst: 10,
@@ -336,7 +318,7 @@ describe("bao-cao-tong-hop-core", () => {
     );
     expect(merged).toHaveLength(2);
     expect(merged[0].ten).toBe("Khoa A");
-    expect(merged[1]).toMatchObject({ id: "k2", ten: "Khoa B", has_data: false, ty_le_ccs: null });
+    expect(merged[1]).toMatchObject({ id: "k2", ten: "Khoa B", has_data: false, ty_le_avg: null });
   });
 
   it("topBottomKhoa orders by avg", () => {
@@ -347,7 +329,6 @@ describe("bao-cao-tong-hop-core", () => {
           ten: "A",
           label: "A",
           ty_le_avg: 90,
-          ty_le_ccs: 90,
           ty_le_vst: 90,
           ty_le_gsc: null,
           tong_co_hoi_vst: 1,
@@ -358,7 +339,6 @@ describe("bao-cao-tong-hop-core", () => {
           ten: "B",
           label: "B",
           ty_le_avg: 50,
-          ty_le_ccs: 50,
           ty_le_vst: 50,
           ty_le_gsc: null,
           tong_co_hoi_vst: 1,

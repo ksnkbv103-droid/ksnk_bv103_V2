@@ -3,7 +3,7 @@ import {
   canShowDeleteTask,
   canShowEditTaskMetadata,
   canShowHoatDongProgressSection,
-  isQlcvTaskInQuaHanLane,
+  isQlcvTaskOverdue,
 } from "./qlcv-access";
 
 const baseFlags = {
@@ -15,9 +15,9 @@ const baseFlags = {
   actorStaffId: "actor-1",
 };
 
-describe("isQlcvTaskInQuaHanLane", () => {
-  it("mã QUA_HAN → lane quá hạn", () => {
-    expect(isQlcvTaskInQuaHanLane({ trang_thai: "QUA_HAN", phan_tram_hoan_thanh: 10 })).toBe(true);
+describe("isQlcvTaskOverdue", () => {
+  it("mã QUA_HAN → quá hạn (nhãn)", () => {
+    expect(isQlcvTaskOverdue({ trang_thai: "QUA_HAN", phan_tram_hoan_thanh: 10 })).toBe(true);
   });
 });
 

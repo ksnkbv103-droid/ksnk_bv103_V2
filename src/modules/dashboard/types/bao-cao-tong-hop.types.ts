@@ -25,7 +25,6 @@ export type BaoCaoTrendPoint = {
   min_date: string;
   ty_le_vst: number | null;
   ty_le_gsc: number | null;
-  ty_le_ccs: number | null;
   /** Khối lượng tuần (để gộp tháng/quý/năm = cộng mẫu số/mẫu tử, không trung bình %). */
   vst_tong?: number | null;
   vst_dat?: number | null;
@@ -40,10 +39,8 @@ export type BaoCaoKhoaRankRow = {
   label: string;
   ty_le_vst: number | null;
   ty_le_gsc: number | null;
-  /** Trung bình đơn giản VST% và GSC% — khác CCS khi chỉ có một nguồn. */
+  /** Trung bình đơn giản VST% và GSC% khi cả hai có giá trị. */
   ty_le_avg: number | null;
-  /** CCS = 50% VST + 50% GSC — dùng để xếp hạng. */
-  ty_le_ccs: number | null;
   tong_co_hoi_vst: number;
   tong_quan_sat_gsc: number;
   /** false khi khoa được lọc nhưng không có phiên trong kỳ. */
@@ -62,19 +59,16 @@ export type BaoCaoTongHopPayload = {
   vst: VstStrategicPayload | null;
   gsc: GscStrategicPayload | null;
   nkbv: NkbvDashboardPayload | null;
-  /** Phụ lục vận hành CSSD — ngoài CCS. */
+  /** Phụ lục vận hành CSSD — không gộp vào VST/GSC. */
   cssd: BaoCaoCssdAppendix | null;
   kpis: {
     ty_le_vst: number | null;
     ty_le_gsc: number | null;
-    ty_le_ccs: number | null;
-    ccs_formula_note: string | null;
     ti_le_xac_nhan_nkbv: number | null;
     tong_phieu_nkbv: number | null;
     /** Chênh 2 tuần ISO cuối trên trendline — không phải so kỳ lọc. */
     delta_vst: number | null;
     delta_gsc: number | null;
-    delta_ccs: number | null;
   };
   /**
    * So kỳ lãnh đạo: cùng độ dài kỳ lọc liền trước.
@@ -85,10 +79,8 @@ export type BaoCaoTongHopPayload = {
     den_ngay: string;
     ty_le_vst: number | null;
     ty_le_gsc: number | null;
-    ty_le_ccs: number | null;
     delta_vst: number | null;
     delta_gsc: number | null;
-    delta_ccs: number | null;
   } | null;
   trend_week: BaoCaoTrendPoint[];
   trend_month: BaoCaoTrendPoint[];
@@ -105,7 +97,7 @@ export type BaoCaoTongHopPayload = {
   };
 };
 
-/** Tóm tắt CSSD trên BCTH — không vào công thức CCS. */
+/** Tóm tắt CSSD trên BCTH — không gộp vào VST/GSC. */
 export type BaoCaoCssdAppendix = {
   san_luong_cap_phat: number;
   tong_hoan_thanh_tram: number;

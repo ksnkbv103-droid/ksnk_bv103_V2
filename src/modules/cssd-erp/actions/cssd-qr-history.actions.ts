@@ -32,7 +32,7 @@ export async function fetchCssdQrHistory(maQr: string) {
     // Lịch sử từ metadata.ngoai_le (hub quy_trinh)
     const { data: qtMeta, error: qtMetaErr } = await supabase
       .from("cssd_fact_quy_trinh")
-      .select("metadata, bom_kiem_dem_at")
+      .select("metadata")
       .eq("id", q.id)
       .maybeSingle();
 
@@ -57,18 +57,6 @@ export async function fetchCssdQrHistory(maQr: string) {
         hanh_dong: String(x.su_kien || ""),
         created_at: String(x.thoi_gian || ""),
         ghi_chu: `[Ngoại lệ] ${x.ly_do || ""}${x.nguoi_thao_tac ? ` (Người làm: ${x.nguoi_thao_tac})` : ""}`.trim(),
-      });
-    }
-
-    // Thêm mốc BOM checkpoint nếu có cột bom_kiem_dem_at
-    const bomAt = (qtMeta as { bom_kiem_dem_at?: string | null } | null)?.bom_kiem_dem_at;
-    if (bomAt && !combined.some((c) => c.hanh_dong === "KIEM_DEM_BOM")) {
-      combined.push({
-        id: `bom-${bomAt}`,
-        tram: "DONG_GOI",
-        hanh_dong: "KIEM_DEM_BOM",
-        created_at: bomAt,
-        ghi_chu: "Digital BOM checkpoint",
       });
     }
 

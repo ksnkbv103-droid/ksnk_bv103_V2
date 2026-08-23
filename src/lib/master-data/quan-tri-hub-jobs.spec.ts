@@ -12,14 +12,6 @@ function row(partial: Partial<DanhMucHubRow> & Pick<DanhMucHubRow, "id" | "name"
 }
 
 describe("visibleHubRows", () => {
-  const chiTiet = row({
-    id: "dung-cu-le",
-    name: "Thành phần / chi tiết bộ",
-    path: "/quan-tri-he-thong/danh-muc/dung-cu?tab=chi-tiet",
-    domain: "CSSD",
-    group: "cssd",
-    tier: "dedicated",
-  });
   const tram = row({
     id: "TRAM_CSSD",
     name: "Trạm workflow CSSD",
@@ -35,10 +27,9 @@ describe("visibleHubRows", () => {
     tier: "dedicated",
   });
 
-  it("ẩn thành phần bộ và danh mục máy khi không tìm", () => {
-    expect(isDefaultVisibleHubRow(chiTiet)).toBe(false);
+  it("ẩn danh mục máy khi không tìm", () => {
     expect(isDefaultVisibleHubRow(tram)).toBe(false);
-    expect(visibleHubRows([khoa, chiTiet, tram], "")).toEqual([khoa]);
+    expect(visibleHubRows([khoa, tram], "")).toEqual([khoa]);
   });
 
   it("tìm vẫn ra danh mục ẩn", () => {

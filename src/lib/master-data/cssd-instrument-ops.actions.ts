@@ -13,7 +13,6 @@ import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
 
 function revalidateReplenishPaths() {
   revalidatePath(quanTriDungCuHref("bo"));
-  revalidatePath(quanTriDungCuHref("chi-tiet"));
   revalidatePath(quanTriDungCuHref());
 }
 

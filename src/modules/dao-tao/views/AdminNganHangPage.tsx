@@ -46,7 +46,6 @@ type ListRow = {
   id: string;
   ma_cau: string;
   loai: string;
-  bloom_level: number;
   stem: string;
   is_active: boolean;
 };
@@ -108,7 +107,6 @@ export default function AdminNganHangPage() {
   const [stats, setStats] = useState<{
     total: number;
     byLoai: Record<string, number>;
-    byBloom: Record<string, number>;
   } | null>(null);
   const [rows, setRows] = useState<ListRow[]>([]);
   const [pending, startTransition] = useTransition();
@@ -127,7 +125,6 @@ export default function AdminNganHangPage() {
         id: r.id,
         ma_cau: (r as { ma_cau?: string }).ma_cau ?? "",
         loai: r.loai,
-        bloom_level: r.bloom_level,
         stem: r.stem,
         is_active: r.is_active,
       })),
@@ -138,7 +135,6 @@ export default function AdminNganHangPage() {
     void reload().catch((e) =>
       toast.error(e instanceof Error ? e.message : "Lỗi tải ngân hàng"),
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload when showInactive flips
   }, [showInactive]);
 
   const openEdit = (id: string) => {
@@ -194,32 +190,11 @@ export default function AdminNganHangPage() {
                 .map(([k, v]) => `${labelLoaiCau(k)}: ${v}`)
                 .join(" · ") || "—"}
             </p>
-            <p className="mt-1 text-sm text-slate-500">
-              {Object.entries(stats.byBloom)
-                .map(([k, v]) => `M${k}=${v}`)
-                .join(" · ") || "—"}
-            </p>
           </DaoTaoPanel>
         </div>
       ) : null}
 
-      <DaoTaoPanel className="space-y-3">
-        <p className={T.sectionTitle}>Nhập Excel — 3 bước</p>
-        <ol className="grid gap-2 text-sm text-slate-600 sm:grid-cols-3">
-          <li>
-            <span className="font-semibold text-slate-800">1. Tải mẫu</span>
-            <span className="block text-[11px] text-slate-500">Sửa offline, giữ mã câu khi cập nhật.</span>
-          </li>
-          <li>
-            <span className="font-semibold text-slate-800">2. Nạp file</span>
-            <span className="block text-[11px] text-slate-500">Chọn Excel đã sửa.</span>
-          </li>
-          <li>
-            <span className="font-semibold text-slate-800">3. Xác nhận</span>
-            <span className="block text-[11px] text-slate-500">An toàn hoặc đồng bộ đầy đủ.</span>
-          </li>
-        </ol>
-        <div className="flex flex-wrap items-center gap-2">
+      <DaoTaoPanel className="flex flex-wrap items-center gap-2">
         <input
           ref={fileRef}
           type="file"
@@ -256,7 +231,7 @@ export default function AdminNganHangPage() {
                   return;
                 }
                 const decision = await requestImportContract({
-                  displayName: "ngân hàng Đào tạo",
+                  displayName: "ngân hàng Thi KSNK",
                   total: validTotal,
                   insertCount: preview.audit.insertCount,
                   updateCount: preview.audit.updateCount,
@@ -366,7 +341,6 @@ export default function AdminNganHangPage() {
           />
           Hiện câu đã tắt
         </label>
-        </div>
       </DaoTaoPanel>
 
       <DaoTaoPanel className="!p-0 overflow-hidden">
@@ -376,7 +350,6 @@ export default function AdminNganHangPage() {
               <tr>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>Mã</th>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>Loại</th>
-                <th className={cn("px-3 py-2.5", T.tableHeader)}>Bloom</th>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>Nội dung</th>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>TT</th>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>Thao tác</th>
@@ -391,7 +364,6 @@ export default function AdminNganHangPage() {
                   <td className="whitespace-nowrap px-3 py-2.5 text-xs font-medium text-slate-600">
                     {labelLoaiCau(r.loai)}
                   </td>
-                  <td className="px-3 py-2.5 text-xs text-slate-500">{r.bloom_level}</td>
                   <td className={cn("max-w-xl truncate px-3 py-2.5", T.tableCellBody)}>
                     {r.stem}
                   </td>
@@ -435,7 +407,7 @@ export default function AdminNganHangPage() {
               ))}
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-sm text-slate-500">
+                  <td colSpan={5} className="px-3 py-8 text-center text-sm text-slate-500">
                     Chưa có câu hỏi — Tải file mẫu hoặc Nạp Excel.
                   </td>
                 </tr>
@@ -462,31 +434,14 @@ export default function AdminNganHangPage() {
                   onChange={(e) => setEdit({ ...edit, stem: e.target.value })}
                 />
               </DaoTaoField>
-              <div className="grid grid-cols-2 gap-3">
-                <DaoTaoField label="Bloom (1–5)">
-                  <input
-                    type="number"
-                    min={1}
-                    max={5}
-                    className={daoTaoInputClass}
-                    value={edit.bloomLevel}
-                    onChange={(e) =>
-                      setEdit({
-                        ...edit,
-                        bloomLevel: Number(e.target.value) as BloomLevel,
-                      })
-                    }
-                  />
-                </DaoTaoField>
-                <DaoTaoField label="Đáp án (đúng format loại)">
-                  <input
-                    className={daoTaoInputClass}
-                    value={edit.dapAnRaw}
-                    onChange={(e) => setEdit({ ...edit, dapAnRaw: e.target.value })}
-                    placeholder="C · A, B · A-Đúng, B-Sai · C -> B -> A"
-                  />
-                </DaoTaoField>
-              </div>
+              <DaoTaoField label="Đáp án (đúng format loại)">
+                <input
+                  className={daoTaoInputClass}
+                  value={edit.dapAnRaw}
+                  onChange={(e) => setEdit({ ...edit, dapAnRaw: e.target.value })}
+                  placeholder="C · A, B · A-Đúng, B-Sai · C -> B -> A"
+                />
+              </DaoTaoField>
               {(["A", "B", "C", "D"] as const).map((k) => (
                 <DaoTaoField key={k} label={`Phương án ${k}`}>
                   <input

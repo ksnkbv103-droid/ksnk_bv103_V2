@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, ClipboardList, ExternalLink } from "lucide-react";
 import { buildDecisionQueue, type DecisionQueueItem } from "@/lib/analytics/decision-queue";
-import { fetchCommandCenterFourPillarsBrief } from "../../actions/dashboard-four-pillars-brief.actions";
+import { fetchCommandCenterQueueSignals } from "../../actions/dashboard-decision-queue-signals.actions";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { QlcvQuaHanBrief } from "@/modules/quan-ly-cong-viec/actions/qlcv-brief.actions";
@@ -42,7 +42,7 @@ export function CommandCenterDecisionQueue({
   useEffect(() => {
     if (loading) return;
     let cancelled = false;
-    void fetchCommandCenterFourPillarsBrief({
+    void fetchCommandCenterQueueSignals({
       tu_ngay: tuNgay,
       den_ngay: denNgay,
       khoa_id: selectedKhoaIds.length === 1 ? selectedKhoaIds[0] : undefined,

@@ -90,6 +90,5 @@ export type TraLoi =
 export type ExamFormThongTin = {
   hoTen: string;
   khoaDonVi: string;
-  soDienThoai?: string;
   email?: string;
 };

@@ -47,18 +47,6 @@ export function parseBomLinesFromMetadata(metadata: unknown): QuyTrinhBomLine[] 
   return out;
 }
 
-export function mergeBomLineQuantities(
-  lines: QuyTrinhBomLine[],
-  updates: Array<{ line_key: string; so_luong_thuc_te: number }>,
-): QuyTrinhBomLine[] {
-  const map = new Map(updates.map((u) => [u.line_key, u.so_luong_thuc_te]));
-  return lines.map((line) => {
-    const qty = map.get(line.line_key);
-    if (qty == null) return line;
-    return { ...line, so_luong_thuc_te: qty };
-  });
-}
-
 /** SSOT Spaulding: dùng chung master loại dụng cụ (alias UI + mã chuẩn). */
 export function normalizeSpaulding(value: unknown): BomItem["phan_loai_spaulding"] {
   return normalizeSpauldingForMaster(value);

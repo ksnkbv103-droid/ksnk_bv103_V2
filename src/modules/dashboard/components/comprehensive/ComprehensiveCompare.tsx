@@ -5,6 +5,7 @@ import { ClipboardList, Stethoscope } from "lucide-react";
 import type { MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
 import { SupervisionKhoaAnalyticsBlock } from "@/lib/analytics/supervision-analytics-charts";
 import { buildGapKhoaRows } from "@/lib/analytics/supervision-matrix-mappers";
+import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import type { BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 
@@ -56,11 +57,11 @@ export function ComprehensiveCompare({
           icon={Stethoscope}
           iconClass="text-emerald-600"
           title="Giám sát vệ sinh tay (VST)"
-          lead="Tỷ lệ tuân thủ và khối lượng quan sát theo khoa — hai nguồn: giám sát KSNK và tự giám sát (WHO)."
+          lead="Tỷ lệ tuân thủ và khối lượng quan sát theo khoa — hai nguồn: chuyên trách và tự giám sát (WHO)."
           rows={vstGapRows}
           moduleLabel="VST"
-          ksnkVolumeLabel="Cơ hội KSNK"
-          tgsVolumeLabel="Cơ hội TGS"
+          ksnkVolumeLabel={SUPERVISION_SOURCE_UI.vstKsnkVol}
+          tgsVolumeLabel={SUPERVISION_SOURCE_UI.vstTgsVol}
           showHeader={module === "all"}
         />
       ) : null}
@@ -70,11 +71,11 @@ export function ComprehensiveCompare({
           icon={ClipboardList}
           iconClass="text-sky-600"
           title="Giám sát chung (GSC)"
-          lead="Tỷ lệ tuân thủ và khối lượng khảo sát theo khoa — hai nguồn: giám sát KSNK và tự giám sát (TGS)."
+          lead="Tỷ lệ tuân thủ và khối lượng khảo sát theo khoa — hai nguồn: chuyên trách và tự giám sát."
           rows={gscGapRows}
           moduleLabel="GSC"
-          ksnkVolumeLabel="Khảo sát KSNK"
-          tgsVolumeLabel="Khảo sát TGS"
+          ksnkVolumeLabel={SUPERVISION_SOURCE_UI.gscKsnkVol}
+          tgsVolumeLabel={SUPERVISION_SOURCE_UI.gscTgsVol}
           showHeader={module === "all"}
         />
       ) : null}

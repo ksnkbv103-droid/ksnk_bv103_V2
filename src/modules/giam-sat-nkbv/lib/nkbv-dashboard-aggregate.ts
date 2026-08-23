@@ -71,7 +71,10 @@ export type NkbvDashboardPayload = {
   epidemiologyError?: string | null;
 };
 
-const CHO_TAC = new Set(["DANG_GHI_NHAN", "CHO_XAC_NHAN", "CHO_XAC_MINH"]);
+/** Trạng thái còn đang ghi / chờ xác nhận — dùng KPI và hàng đợi Tổng quan. */
+export const NKBV_CHO_TAC_STATUS_MAS = ["DANG_GHI_NHAN", "CHO_XAC_NHAN", "CHO_XAC_MINH"] as const;
+
+const CHO_TAC = new Set<string>(NKBV_CHO_TAC_STATUS_MAS);
 
 /** Lọc theo tu/den (**yyyy-MM-dd**), tổng hợp dashboard. */
 export function aggregateNkbvDashboard(

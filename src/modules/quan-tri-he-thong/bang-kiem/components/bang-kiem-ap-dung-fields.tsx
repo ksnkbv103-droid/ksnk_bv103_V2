@@ -257,7 +257,7 @@ export default function BangKiemApDungFields({
             />
             <span>
               <span className="block text-sm font-bold text-slate-800">
-                Mạng lưới KSNK tại khoa (Tự giám sát — TGS)
+                Mạng lưới KSNK tại khoa (Tự giám sát)
               </span>
               <span className="block text-[11px] font-medium text-slate-500 mt-0.5">
                 Điều dưỡng/trưởng nhóm KSNK khoa tạo phiên TU_GIAM_SAT theo bảng kiểm này.

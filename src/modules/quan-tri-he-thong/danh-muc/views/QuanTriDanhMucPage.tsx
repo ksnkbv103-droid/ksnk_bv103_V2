@@ -2,60 +2,22 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Beaker, Building2, ClipboardList, Database, Layers, List, Settings, Users } from "lucide-react";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import RBACMatrixView from "@/modules/quan-tri-he-thong/phan-quyen/views/RBACMatrixView";
 import MdmGovernanceView from "../../views/MdmGovernanceView";
 import { usePermission } from "@/hooks/usePermission";
 import { mdmGetTrungTamDanhMucStats } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
 import type { TrungTamDanhMucStatsPayload } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.types";
-import {
-  DANH_MUC_DOMAIN_BADGE,
-  DANH_MUC_HUB_GROUP_LABELS,
-  filterDanhMucHubRows,
-  getAllDanhMucHubRows,
-  type DanhMucHubRow,
-} from "@/lib/master-data/danh-muc-hub-catalog";
+import { filterDanhMucHubRows, getAllDanhMucHubRows } from "@/lib/master-data/danh-muc-hub-catalog";
 import { visibleHubRows } from "@/lib/master-data/quan-tri-hub-jobs";
 import type { QuanTriHubJobId } from "@/lib/master-data/quan-tri-hub-jobs";
 import { quanTriHubHref, type QuanTriHubTab } from "@/lib/master-data/quan-tri-paths";
 import QuanTriDanhMucTabStrip, { type QuanTriHubUiTab } from "./QuanTriDanhMucTabStrip";
 import SearchBar from "@/components/shared/SearchBar";
-import { buildUnifiedHubColumns, type UnifiedHubRow } from "./quan-tri-danh-muc-table-columns";
+import { buildUnifiedHubColumns, toUnifiedHubRow } from "./quan-tri-danh-muc-table-columns";
 import QuanTriHubJobCards from "./QuanTriHubJobCards";
 import QuanTriHubWorkQueue from "./QuanTriHubWorkQueue";
 import { SystemHealthPanel } from "../../components/SystemHealthPanel";
-
-const HUB_ICONS: Record<string, React.ReactNode> = {
-  "dung-cu-loai": <Layers className="h-5 w-5 text-emerald-600" />,
-  "dung-cu-bo": <Database className="h-5 w-5 text-teal-700" />,
-  "dung-cu-le": <List className="h-5 w-5 text-indigo-600" />,
-  tb: <Settings className="h-5 w-5 text-slate-600" />,
-  hc: <Beaker className="h-5 w-5 text-amber-600" />,
-  khoa: <Building2 className="h-5 w-5 text-rose-600" />,
-  ns: <Users className="h-5 w-5 text-green-600" />,
-  bk: <ClipboardList className="h-5 w-5 text-orange-600" />,
-  tk: <Users className="h-5 w-5 text-teal-700" />,
-  "phan-quyen": <Settings className="h-5 w-5 text-slate-600" />,
-};
-
-function toUnifiedRow(row: DanhMucHubRow, showTechnical: boolean): UnifiedHubRow {
-  const badge = DANH_MUC_DOMAIN_BADGE[row.domain];
-  const count = row.stats?.count ?? 0;
-  return {
-    id: row.id,
-    name: row.name,
-    path: row.path,
-    stats: row.stats || { count: 0 },
-    icon: HUB_ICONS[row.id] ?? <Layers className="h-5 w-5 text-teal-600" />,
-    subtitle: showTechnical ? row.sourceTable : undefined,
-    domainLabel: badge.label,
-    domainClassName: badge.className,
-    groupLabel: DANH_MUC_HUB_GROUP_LABELS[row.group],
-    tierLabel: row.tier === "dedicated" ? "Trang riêng" : "Lookup",
-    statusKind: count > 0 ? "active" : "empty",
-  };
-}
 
 function uiTabFromQuery(tab: string | null): QuanTriHubUiTab {
   if (tab === "phan_quyen") return "PHAN_QUYEN";
@@ -70,11 +32,10 @@ export default function QuanTriDanhMucPage() {
   const [stats, setStats] = useState<Partial<TrungTamDanhMucStatsPayload>>({});
   const [loading, setLoading] = useState(true);
   const [hubSearch, setHubSearch] = useState("");
-  const { loading: permLoading, isAdmin, canView, canEdit } = usePermission();
+  const { loading: permLoading, isAdmin, canView } = usePermission();
   const canViewDanhMuc = canView("DANH_MUC");
   const canViewNhanSu = canView("NHAN_SU");
   const canViewRbac = isAdmin || canView("PHAN_QUYEN");
-  const canConfigureRbac = isAdmin || canEdit("PHAN_QUYEN");
   const canAccessJobs = canViewDanhMuc || canViewNhanSu || isAdmin;
   const canAccessIt = canViewDanhMuc || isAdmin;
 
@@ -120,7 +81,7 @@ export default function QuanTriDanhMucPage() {
     const matched = filterDanhMucHubRows(catalogRows, hubSearch);
     return visibleHubRows(matched, hubSearch);
   }, [catalogRows, hubSearch]);
-  const unifiedFlat = useMemo(() => filteredCatalog.map((r) => toUnifiedRow(r, false)), [filteredCatalog]);
+  const unifiedFlat = useMemo(() => filteredCatalog.map((r) => toUnifiedHubRow(r)), [filteredCatalog]);
   const go = useCallback((path: string) => router.push(path), [router]);
   const columns = useMemo(() => buildUnifiedHubColumns(go), [go]);
 

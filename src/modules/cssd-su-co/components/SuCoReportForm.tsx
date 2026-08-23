@@ -134,11 +134,6 @@ export default function SuCoReportForm({
   }, [enabled, initialMaQR, initialMaLo, initialLoTietKhuanId]);
 
   const activeGroupOptions = useMemo(() => INCIDENT_TYPE_PRESETS[incidentGroup], [incidentGroup]);
-  const showTypePicker =
-    incidentGroup === "PROCESS" ||
-    incidentGroup === "INSTRUMENT" ||
-    incidentGroup === "EQUIPMENT" ||
-    incidentGroup === "CHEMICAL";
   const imageRequired = incidentGroup === "INSTRUMENT" && isInstrumentIncidentImageRequired(typeId);
   const imageHidden = incidentGroup === "INSTRUMENT" && typeId === "INSTRUMENT_MISSING";
   const needsBoCatalog = incidentGroup === "PROCESS" || incidentGroup === "INSTRUMENT";
@@ -494,7 +489,10 @@ export default function SuCoReportForm({
           ) : (
             <>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs font-semibold text-slate-600">Bước 2/2 — Chi tiết sự cố</p>
+            <p className="text-xs font-semibold text-slate-600">
+              Bước 2/2 — {INCIDENT_GROUP_LABEL[incidentGroup]}
+              {typeTen ? ` · ${typeTen}` : ""}
+            </p>
             <button
               type="button"
               onClick={() => setWizardStep(1)}
@@ -523,29 +521,17 @@ export default function SuCoReportForm({
                     onSelectBo={(code) => void processQrCode(code)}
                     loading={loading || tracing}
                   />
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <label className={bv103LayoutChrome.labelBlock}>Khâu phát sinh lỗi</label>
-                      <select
-                        value={faultStation}
-                        onChange={(e) => setFaultStation(e.target.value as Station)}
-                        className={bv103LayoutChrome.controlSelectNative}
-                      >
-                        {INCIDENT_STATION_OPTIONS.map((s) => (
-                          <option key={s.value} value={s.value}>{s.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                    {showTypePicker ? (
-                      <TypePicker
-                        options={activeGroupOptions}
-                        typeId={typeId}
-                        onChange={(id, ten) => {
-                          setTypeId(id);
-                          setTypeTen(ten);
-                        }}
-                      />
-                    ) : null}
+                  <div className="space-y-1.5">
+                    <label className={bv103LayoutChrome.labelBlock}>Khâu phát sinh lỗi</label>
+                    <select
+                      value={faultStation}
+                      onChange={(e) => setFaultStation(e.target.value as Station)}
+                      className={bv103LayoutChrome.controlSelectNative}
+                    >
+                      {INCIDENT_STATION_OPTIONS.map((s) => (
+                        <option key={s.value} value={s.value}>{s.label}</option>
+                      ))}
+                    </select>
                   </div>
                   {renderStationOverride}
                 </div>
@@ -562,14 +548,6 @@ export default function SuCoReportForm({
                     onScanComplete={(code) => void processQrCode(code)}
                     onSelectBo={(code) => void processQrCode(code)}
                     loading={loading}
-                  />
-                  <TypePicker
-                    options={activeGroupOptions}
-                    typeId={typeId}
-                    onChange={(id, ten) => {
-                      setTypeId(id);
-                      setTypeTen(ten);
-                    }}
                   />
                   <InstrumentIncidentFields
                     maQR={maQR}
@@ -597,6 +575,7 @@ export default function SuCoReportForm({
                     setTypeId(id);
                     setTypeTen(ten);
                   }}
+                  hideType
                   renderStationOverride={renderStationOverride}
                 />
               ) : null}
@@ -617,6 +596,7 @@ export default function SuCoReportForm({
                     setTypeId(id);
                     setTypeTen(ten);
                   }}
+                  hideType
                   renderStationOverride={renderStationOverride}
                 />
               ) : null}

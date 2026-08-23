@@ -154,7 +154,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   },
   {
     code: "DAO_TAO",
-    displayName: "Đào tạo / Thi trắc nghiệm KSNK",
+    displayName: "Thi KSNK",
     actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
   },
 ];

@@ -137,18 +137,7 @@ export async function listKyThiThatAdmin() {
     .eq("loai_cau_hinh", "thi_that")
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((row) => {
-    const gan = (row.gan ?? {}) as { khoa_ids?: string[]; nhan_su_ids?: string[] };
-    const khoaIds = gan.khoa_ids ?? [];
-    return {
-      ...row,
-      /** Compat UI cũ */
-      dao_tao_ky_thi_gan: khoaIds.map((khoa_phong_id) => ({
-        id: khoa_phong_id,
-        khoa_phong_id,
-      })),
-    };
-  });
+  return data ?? [];
 }
 
 export async function setKyThiGan(input: {
@@ -193,8 +182,8 @@ export type KetQuaKyThiRow = {
 export async function listKetQuaKyThi(filters?: { kyThiId?: string; khoaId?: string }) {
   await verifyPermission("DAO_TAO", "view");
   const admin = createAdminSupabaseClient();
-  const kyThiId = typeof filters === "string" ? filters : filters?.kyThiId;
-  const khoaId = typeof filters === "string" ? undefined : filters?.khoaId;
+  const kyThiId = filters?.kyThiId;
+  const khoaId = filters?.khoaId;
   let q = admin
     .from("dao_tao_lan_thi")
     .select(

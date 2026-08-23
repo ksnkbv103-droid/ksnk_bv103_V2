@@ -634,7 +634,8 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                         searchPlaceholder="Tìm mã / tên khoa..."
                         className="text-xs"
                       />
-                    </td>                    <td className="px-3 py-3">
+                    </td>
+                    <td className="px-3 py-3">
                       <div className="font-bold text-blue-700">{r.loai_benh_pham}</div>
                       <div className="italic text-amber-700">{r.tac_nhan || "—"}</div>
                     </td>

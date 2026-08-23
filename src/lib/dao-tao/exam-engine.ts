@@ -33,7 +33,7 @@ function allocateCounts(total: number, quota: QuotaMap, keys: readonly string[])
   }
   const raw = keys.map((k) => ({ k, v: (weights[k] / sumW) * total }));
   const floors = raw.map((r) => ({ k: r.k, n: Math.floor(r.v), frac: r.v - Math.floor(r.v) }));
-  let used = floors.reduce((s, f) => s + f.n, 0);
+  const used = floors.reduce((s, f) => s + f.n, 0);
   const out: Record<string, number> = Object.fromEntries(floors.map((f) => [f.k, f.n]));
   const byFrac = [...floors].sort((a, b) => b.frac - a.frac);
   let rem = total - used;

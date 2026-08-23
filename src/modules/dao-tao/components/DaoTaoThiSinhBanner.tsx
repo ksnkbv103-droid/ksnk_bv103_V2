@@ -15,5 +15,5 @@ export function DaoTaoThiSinhBanner({ form, onChange, complete, banner }: Props)
   if (complete && banner) {
     return <p className="text-sm text-slate-600">Thi với tư cách: {banner}</p>;
   }
-  return <DaoTaoExamInfoForm value={form} onChange={onChange} requiredOnly />;
+  return <DaoTaoExamInfoForm value={form} onChange={onChange} />;
 }

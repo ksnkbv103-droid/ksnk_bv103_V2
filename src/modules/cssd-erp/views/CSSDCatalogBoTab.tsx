@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import type { CSSDBo, CSSDChiTiet } from "../types/catalog.types";
-import type { CatalogTab } from "./cssd-catalog-page-helpers";
+import type { CSSDBo } from "../types/catalog.types";
 import { Layers, Printer, Loader2 } from "lucide-react";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
@@ -10,22 +9,15 @@ import { usePrint } from "@/hooks/usePrint";
 import { registerPhysicalBoLabelFromDmAction } from "../contexts/instrument-catalog/entrypoint";
 import { toast } from "sonner";
 
-export function CSSDCatalogBoTab(props: {
+export function CSSDCatalogBoTab({
+  boRows,
+  selectedBoId,
+  setSelectedBoId,
+}: {
   boRows: CSSDBo[];
-  chiTietBySelectedBo: CSSDChiTiet[];
   selectedBoId: string | null;
   setSelectedBoId: (id: string) => void;
-  selectedBo: CSSDBo | null;
-  setSelectedChiTietId: (id: string) => void;
-  setSelectedLoaiId: (id: string) => void;
-  setTab: (t: CatalogTab) => void;
 }) {
-  const { boRows, selectedBoId, setSelectedBoId } = props;
-  void props.chiTietBySelectedBo;
-  void props.selectedBo;
-  void props.setSelectedChiTietId;
-  void props.setSelectedLoaiId;
-  void props.setTab;
 
   const { printBoLabel } = usePrint();
   const [printingId, setPrintingId] = useState<string | null>(null);

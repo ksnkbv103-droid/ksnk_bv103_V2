@@ -86,7 +86,7 @@ export default function BaoTriStartModal({
             <p className="mt-1 font-mono text-[11px] text-slate-500">Đã nhận: {maMayHoacQr}</p>
           ) : null}
         </div>
-        <label className="mt-4 block text-[11px] font-medium text-slate-500">Thiết bị</label>
+        <label className="mt-4 block text-[11px] font-medium text-slate-500">Hoặc chọn máy</label>
         <select className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={selTb} onChange={(e) => onSelTb(e.target.value)}>
           <option value="">— Chọn —</option>
           {machines.map((m) => (

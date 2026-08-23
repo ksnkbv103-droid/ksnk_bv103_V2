@@ -524,7 +524,8 @@ export default function NkbvViSinhStorePanel({
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">
                       {r.ngay_lay_mau ? formatDateVi(r.ngay_lay_mau) : "—"}
-                    </td>                    <td className="px-3 py-2 max-w-[10rem]">
+                    </td>
+                    <td className="px-3 py-2 max-w-[10rem]">
                       <span className="line-clamp-2" title={r.loai_benh_pham || ""}>
                         {r.loai_benh_pham || "—"}
                       </span>

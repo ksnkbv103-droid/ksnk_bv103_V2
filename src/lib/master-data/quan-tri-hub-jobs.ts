@@ -43,10 +43,7 @@ export const QUAN_TRI_HUB_JOBS: QuanTriHubJob[] = [
   },
 ];
 
-const HIDDEN_DEDICATED_IDS = new Set(["dung-cu-le"]);
-
 export function isDefaultVisibleHubRow(row: DanhMucHubRow): boolean {
-  if (HIDDEN_DEDICATED_IDS.has(row.id)) return false;
   if (row.loaiDanhMuc && isLockedSystemLookup(row.loaiDanhMuc)) return false;
   return true;
 }

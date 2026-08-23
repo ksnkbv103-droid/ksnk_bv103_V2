@@ -82,9 +82,9 @@ export const MUC_DO_LABELS: Record<BkMucDo, string> = {
 };
 
 export const MUC_DO_DESCRIPTIONS: Record<BkMucDo, string> = {
-  BAT_BUOC: "Tính vào KPI bao phủ — khoa trong phạm vi thiếu sẽ bị ghi nhận «Thiếu TGS».",
+  BAT_BUOC: "Tính vào KPI bao phủ — khoa trong phạm vi thiếu sẽ bị ghi nhận «Thiếu tự giám sát».",
   KHUYEN_NGH: "Khuyến nghị thực hiện — không phạt thiếu trên KPI bắt buộc.",
-  CHI_KSNK: "Chỉ áp dụng nội bộ Khoa KSNK — không đưa vào mẫu số TGS lâm sàng.",
+  CHI_KSNK: "Chỉ áp dụng nội bộ Khoa KSNK — không đưa vào mẫu số tự giám sát lâm sàng.",
 };
 
 export const TAN_SUAT_DON_VI_LABELS: Record<BkTanSuatDonVi, string> = {

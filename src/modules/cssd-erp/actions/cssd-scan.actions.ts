@@ -11,7 +11,7 @@ import { bootstrapCssdQuyTrinhFromMaBo } from "../shared/application/cssd-bo-boo
 import { verifyCssdWorkflowEdit } from "@/lib/cssd-server-gates";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
-// DOM-04: không auto-stamp bom_kiem_dem_at khi quét — chỉ qua rpc_cssd_persist_bom_checkpoint.
+// DOM-04: quét trạm không stamp bom_kiem_dem_at (RPC persist checkpoint giữ trong DB, app không gọi).
 
 async function cssdScanOperatorLabel(): Promise<string> {
   try {

@@ -2,10 +2,9 @@
 "use client";
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { Download, Printer, AlertTriangle } from "lucide-react";
+import { Download, Printer, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import {
@@ -20,7 +19,6 @@ import ReportFilters from "../components/report/ReportFilters";
 import ReportDashboard from "../components/report/ReportDashboard";
 import ReportAnalyticsPanels from "../components/report/ReportAnalyticsPanels";
 import CSSDPageShell from "../components/layout/cssd-page-shell";
-import { CSSD_ROUTES } from "@/lib/cssd-routes";
 import {
   CSSD_UI_ACTION_PRIMARY,
   CSSD_UI_ACTION_SECONDARY,
@@ -70,6 +68,8 @@ function CSSDReportPageInner() {
     onImport: async () => ({ success: true }),
   });
   const [tab, setTab] = useState<ReportTab>(() => parseReportTab(tabParam, highlightIncidentId));
+  const extraTab = tab !== "OVERVIEW" && tab !== "INCIDENT";
+  const [showMoreTabs, setShowMoreTabs] = useState(extraTab);
 
   useEffect(() => {
     setTab(parseReportTab(tabParam, highlightIncidentId));
@@ -186,13 +186,6 @@ function CSSDReportPageInner() {
       subtitle="BỆNH VIỆN QUÂN Y 103 — KHOA KSNK"
       actions={
         <>
-          <Link
-            href={CSSD_ROUTES.suCo}
-            className={`${CSSD_UI_ACTION_SECONDARY} h-10 inline-flex flex-1 items-center justify-center gap-2 sm:flex-none`}
-          >
-            <AlertTriangle size={18} aria-hidden />
-            Ghi nhận sự cố
-          </Link>
           <button type="button" onClick={() => window.print()} className={`${CSSD_UI_ACTION_SECONDARY} h-10 flex-1 sm:flex-none`}>
             <Printer size={20} /> In
           </button>
@@ -203,14 +196,29 @@ function CSSDReportPageInner() {
       }
     >
       <ReportFilters filters={filters} setFilters={setFilters} stations={[...STATIONS]} />
-      <div className={CSSD_UI_TAB_GROUP}>
-        <CssdHorizTabButton active={tab === "OVERVIEW"} onClick={() => setTab("OVERVIEW")} label="Tổng quan" />
-        <CssdHorizTabButton active={tab === "VOLUME"} onClick={() => setTab("VOLUME")} label="Sản lượng" />
-        <CssdHorizTabButton active={tab === "SETS"} onClick={() => setTab("SETS")} label="Bộ & tái sử dụng" mobileLabel="Bộ" />
-        <CssdHorizTabButton active={tab === "EQUIPMENT"} onClick={() => setTab("EQUIPMENT")} label="Máy & bảo trì" mobileLabel="Máy" />
-        <CssdHorizTabButton active={tab === "STAFF"} onClick={() => setTab("STAFF")} label="NV CSSD" />
-        <CssdHorizTabButton active={tab === "INCIDENT"} onClick={() => setTab("INCIDENT")} label="Sự cố theo nhóm" mobileLabel="Sự cố" />
-        <CssdHorizTabButton active={tab === "ACCOUNTABILITY"} onClick={() => setTab("ACCOUNTABILITY")} label="Khâu lỗi & người lỗi" mobileLabel="Trách nhiệm" />
+      <div className="space-y-2">
+        <div className={CSSD_UI_TAB_GROUP}>
+          <CssdHorizTabButton active={tab === "OVERVIEW"} onClick={() => setTab("OVERVIEW")} label="Tổng quan" />
+          <CssdHorizTabButton active={tab === "INCIDENT"} onClick={() => setTab("INCIDENT")} label="Sự cố theo nhóm" mobileLabel="Sự cố" />
+        </div>
+        {showMoreTabs || extraTab ? (
+          <div className={CSSD_UI_TAB_GROUP}>
+            <CssdHorizTabButton active={tab === "VOLUME"} onClick={() => setTab("VOLUME")} label="Sản lượng" />
+            <CssdHorizTabButton active={tab === "SETS"} onClick={() => setTab("SETS")} label="Bộ và tái sử dụng" mobileLabel="Bộ" />
+            <CssdHorizTabButton active={tab === "EQUIPMENT"} onClick={() => setTab("EQUIPMENT")} label="Máy và bảo trì" mobileLabel="Máy" />
+            <CssdHorizTabButton active={tab === "STAFF"} onClick={() => setTab("STAFF")} label="NV CSSD" />
+            <CssdHorizTabButton active={tab === "ACCOUNTABILITY"} onClick={() => setTab("ACCOUNTABILITY")} label="Khâu lỗi và người lỗi" mobileLabel="Trách nhiệm" />
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowMoreTabs(true)}
+            className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-slate-800"
+          >
+            <ChevronDown className="h-3.5 w-3.5" aria-hidden />
+            Xem thêm (sản lượng, máy, nhân sự)
+          </button>
+        )}
       </div>
 
       {tab === "OVERVIEW" && (

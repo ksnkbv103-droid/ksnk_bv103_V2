@@ -107,7 +107,7 @@
     "admin:rbac:parity": "node scripts/admin-rbac-parity.mjs",
     "admin:rbac:parity:local": "node scripts/admin-rbac-parity.mjs --local",
     "verify:admin": "npm run admin:health:check && npm run verify:engineering",
-    "test:admin": "vitest run src/modules/quan-tri-he-thong src/lib/auth/quan-tri-access.spec.ts src/lib/master-data/categories-by-type.ts src/lib/master-data/master-table-permission-map.ts src/lib/master-data/danh-muc-permission-map.ts src/lib/master-data/cssd-set-replenish-core.ts src/lib/master-data/cssd-instrument-ops.spec.ts src/lib/mdm-read-gateway.spec.ts",
+    "test:admin": "vitest run src/modules/quan-tri-he-thong src/lib/auth/quan-tri-access.spec.ts src/lib/master-data/categories-by-type.ts src/lib/master-data/master-table-permission-map.ts src/lib/master-data/danh-muc-permission-map.ts src/lib/master-data/cssd-set-replenish-core.ts src/lib/master-data/cssd-instrument-ops.spec.ts src/lib/master-data/quan-tri-hub-jobs.spec.ts src/lib/master-data/quan-tri-paths.spec.ts src/lib/master-data/locked-system-lookups.spec.ts src/lib/mdm-read-gateway.spec.ts",
     "test:pilot": "vitest run src/lib/bv103-feature-config.spec.ts src/lib/analytics/filter-helpers.spec.ts src/lib/analytics/gsc-analytics-data.spec.ts src/lib/analytics/gsc-checklist-intervention.spec.ts src/lib/rpc-contract-dashboard.spec.ts",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium",

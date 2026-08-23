@@ -21,7 +21,7 @@ Go-live 3 module: [`../../core/pilot-core-modules-go-live.md`](../../core/pilot-
 2. **Bảng kiểm:** Sửa mẫu tại `/quan-tri-he-thong/bang-kiem` → phiên GSC mới load đủ tiêu chí (qua `mdm-read-gateway`).
 3. **RBAC:** User không quyền module tương ứng (vd. `CONG_VIEC.edit` cho lookup QLCV) không sửa được generic DM; tab Phân quyền chỉ mở khi `PHAN_QUYEN.edit` hoặc admin (`/quan-tri-he-thong?tab=phan_quyen`).
 4. **Tài khoản:** `/quan-tri-he-thong/tai-khoan-nhan-su` link Auth ↔ `mdm_nhan_su` → đăng nhập staff thành công.
-5. **Dụng cụ ↔ CSSD:** Tab `/quan-tri-he-thong/danh-muc/dung-cu?tab=chi-tiet` → BOM checkpoint CSSD replenish (kho dự phòng).
+5. **Dụng cụ ↔ CSSD:** Tab `/quan-tri-he-thong/danh-muc/dung-cu?tab=bo` → thành phần bộ (BOM); vận hành CSSD đọc tại `/cssd-dung-cu`.
 
 ## Import dữ liệu
 

@@ -10,7 +10,6 @@ interface Props {
   tasks: CongViecView[];
   activeFilter?: QlcvBoardFilter | null;
   onFilterChange?: (filter: QlcvBoardFilter) => void;
-  showAllGatePills?: boolean;
   actorStaffId?: string | null;
 }
 

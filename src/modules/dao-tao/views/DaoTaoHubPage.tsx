@@ -76,7 +76,7 @@ export default function DaoTaoHubPage() {
             <div>
               <p className={T.sectionTitle}>Chưa có quyền thi KSNK</p>
               <p className="mt-1 text-sm text-slate-600">
-                Liên hệ quản trị viên để được cấp quyền module Đào tạo.
+                Liên hệ quản trị viên để được cấp quyền Thi KSNK.
               </p>
             </div>
           </div>

@@ -40,7 +40,7 @@ File gốc `MCQ to form_2.xlsx` (layout cũ) vẫn parse được; mã câu sinh
 | | Thi thử | Thi thật |
 |---|---|---|
 | Ai | User có `DAO_TAO` view | User/khoa/NV trong `gan` của cấu hình `thi_that` published |
-| Cấu hình | `thi_thu_muc_do`: số câu, phút (Bloom giữ mặc định máy) | `thi_that`: số câu, phút, điểm đạt, số lần, đảo câu/đáp án, chủ đề, gán khoa+NV |
+| Cấu hình | `thi_thu_muc_do`: số câu, phút (Bloom chỉ dùng khi máy rút đề — không hiện trên ngân hàng / làm bài) | `thi_that`: số câu, phút, điểm đạt, số lần, đảo câu/đáp án, chủ đề, gán khoa+NV |
 | Kết quả | Ôn tập + bài của tôi | Sổ quản trị: lọc kỳ/khoa, chưa nộp, xuất Excel |
 
 Mở kỳ thật **bắt buộc** đã gán ít nhất một khoa hoặc NV (UI + server).

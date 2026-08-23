@@ -6,6 +6,7 @@ import { format, parseISO } from "date-fns";
 import { bv103DefaultTuNgayFromDenIso } from "@/lib/bv103-analytics-default-range";
 import {
   aggregateNkbvDashboard,
+  NKBV_CHO_TAC_STATUS_MAS,
   type NkbvCasRowMinimal,
   type NkbvEpidemiologyRate,
 } from "../lib/nkbv-dashboard-aggregate";
@@ -88,4 +89,35 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
       epidemiologyError: rpcError ? rpcError.message : null,
     },
   };
+}
+
+/** Đếm phiếu đang / chờ xác nhận — không tải danh sách hay RPC dịch tễ. */
+export async function countGiamSatNkbvChoXn(filters: {
+  tu_ngay: string;
+  den_ngay: string;
+  khoa_ghi_nhan_id?: string;
+}): Promise<{ success: true; count: number } | { success: false; error: string }> {
+  const supabase = await createServerSupabaseUserClient();
+  await verifyPermission("GIAM_SAT_NKBV", "view");
+
+  const denStr = filters.den_ngay.trim();
+  let tuStr = filters.tu_ngay.trim();
+  if (parseISO(tuStr) > parseISO(denStr)) {
+    tuStr = bv103DefaultTuNgayFromDenIso(denStr);
+  }
+
+  let q = supabase
+    .from("v_nkbv_su_kien_full")
+    .select("ngay_phat_hien", { count: "exact", head: true })
+    .eq("is_active", true)
+    .in("trang_thai_ma", [...NKBV_CHO_TAC_STATUS_MAS])
+    .gte("ngay_phat_hien", tuStr)
+    .lte("ngay_phat_hien", denStr);
+  if (filters.khoa_ghi_nhan_id?.trim()) {
+    q = q.eq("khoa_ghi_nhan_id", filters.khoa_ghi_nhan_id.trim());
+  }
+
+  const { count, error } = await q;
+  if (error) return { success: false as const, error: error.message };
+  return { success: true as const, count: count ?? 0 };
 }

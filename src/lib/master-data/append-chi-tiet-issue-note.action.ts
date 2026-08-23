@@ -14,7 +14,6 @@ import { validateIssueQuantityAgainstThucTe } from "@/lib/domain/cssd-instrument
 
 function revalidateInstrumentIssuePaths() {
   revalidatePath(quanTriDungCuHref("bo"));
-  revalidatePath(quanTriDungCuHref("chi-tiet"));
   revalidatePath(quanTriDungCuHref());
   revalidatePath(CSSD_ROUTES.dungCu);
   revalidatePath(CSSD_ROUTES.quyTrinh);

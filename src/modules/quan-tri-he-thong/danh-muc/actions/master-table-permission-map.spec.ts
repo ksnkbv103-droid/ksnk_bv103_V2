@@ -20,4 +20,9 @@ describe("getRegistryModuleForMasterTable", () => {
   it("returns null for unknown table", () => {
     expect(getRegistryModuleForMasterTable("unknown_table")).toBeNull();
   });
+
+  it("không còn map tên bảng bảng kiểm legacy", () => {
+    expect(getRegistryModuleForMasterTable("danh_muc_bang_kiem")).toBeNull();
+    expect(getRegistryModuleForMasterTable("tieu_chi_bang_kiem")).toBeNull();
+  });
 });

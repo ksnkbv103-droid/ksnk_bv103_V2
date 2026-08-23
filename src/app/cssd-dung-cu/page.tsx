@@ -26,7 +26,7 @@ export default function Page() {
 
   const extraOpen = showMore || s.tab === "CHI_TIET" || s.tab === "LOAI" || s.tab === "HISTORY";
   const isCatalogTab = s.tab === "BO" || s.tab === "CHI_TIET" || s.tab === "LOAI";
-  const adminFocus = s.tab === "LOAI" ? "loai" : s.tab === "CHI_TIET" ? "chi-tiet" : "bo";
+  const adminFocus = s.tab === "LOAI" ? "loai" : "bo";
 
   return (
     <CSSDPageShell
@@ -86,19 +86,10 @@ export default function Page() {
             <div className="space-y-4">
               <CSSDCatalogBoTab
                 boRows={s.boRows}
-                chiTietBySelectedBo={s.chiTietBySelectedBo}
                 selectedBoId={s.selectedBoId}
                 setSelectedBoId={s.setSelectedBoId}
-                selectedBo={s.selectedBo}
-                setSelectedChiTietId={s.setSelectedChiTietId}
-                setSelectedLoaiId={s.setSelectedLoaiId}
-                setTab={s.setTab}
               />
-              {s.selectedBoId ? (
-                <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 shadow-sm">
-                  <SetCompositionCard boDungCuId={s.selectedBoId} />
-                </section>
-              ) : null}
+              {s.selectedBoId ? <SetCompositionCard boDungCuId={s.selectedBoId} /> : null}
             </div>
           ) : s.tab === "CHI_TIET" ? (
             <CSSDCatalogChiTietTab
@@ -125,10 +116,8 @@ export default function Page() {
 
           {isCatalogTab && s.selectedBoId ? (
             <CSSDCatalogQuickActions
-              selectedBoId={s.selectedBoId}
               selectedChiTiet={s.selectedChiTiet}
               selectedMaBo={s.selectedBo?.ma_bo || null}
-              reload={s.reload}
             />
           ) : null}
         </div>

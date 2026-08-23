@@ -253,7 +253,7 @@ export function SubmittedSuccessView({
       </div>
       <h3 className={UI.modalTitle}>Ghi nhận sự cố thành công!</h3>
       <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-slate-500">
-        Biên bản đã lưu. Hộp thoại in sẽ mở tự động.
+        Biên bản đã lưu — bấm In nếu cần.
       </p>
       <div className="mt-4 flex flex-col items-center justify-center gap-2 sm:flex-row">
         <button type="button" onClick={() => window.print()} className={`${T.btnPrimary} w-full justify-center sm:w-auto`}>
@@ -277,6 +277,7 @@ export function ChemicalContextFields({
   typeOptions,
   typeId,
   onTypeChange,
+  hideType,
   renderStationOverride,
 }: {
   machineId: string;
@@ -287,11 +288,12 @@ export function ChemicalContextFields({
   typeOptions: Array<{ code: string; label: string }>;
   typeId: string;
   onTypeChange: (id: string, ten: string) => void;
+  hideType?: boolean;
   renderStationOverride: React.ReactNode;
 }) {
   return (
     <div className={UI.sectionGap}>
-      <TypePicker options={typeOptions} typeId={typeId} onChange={onTypeChange} />
+      {hideType ? null : <TypePicker options={typeOptions} typeId={typeId} onChange={onTypeChange} />}
       <div className="space-y-1.5">
         <label className={bv103LayoutChrome.labelBlock}>Hóa chất / vật tư *</label>
         <select
@@ -332,6 +334,7 @@ export function EquipmentContextFields({
   typeOptions,
   typeId,
   onTypeChange,
+  hideType,
   renderStationOverride,
 }: {
   maQR: string;
@@ -345,6 +348,7 @@ export function EquipmentContextFields({
   typeOptions: Array<{ code: string; label: string }>;
   typeId: string;
   onTypeChange: (id: string, ten: string) => void;
+  hideType?: boolean;
   renderStationOverride: React.ReactNode;
 }) {
   return (
@@ -370,7 +374,7 @@ export function EquipmentContextFields({
           ))}
         </select>
       </div>
-      <TypePicker options={typeOptions} typeId={typeId} onChange={onTypeChange} />
+      {hideType ? null : <TypePicker options={typeOptions} typeId={typeId} onChange={onTypeChange} />}
       {renderStationOverride}
     </div>
   );

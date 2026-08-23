@@ -1,9 +1,14 @@
 "use client";
 
 import React from "react";
-import { ArrowRight, Clock } from "lucide-react";
+import { ArrowRight, Clock, Layers } from "lucide-react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
 import type { DanhMucStat } from "../actions/danh-muc-hybrid.types";
+import {
+  DANH_MUC_DOMAIN_BADGE,
+  DANH_MUC_HUB_GROUP_LABELS,
+  type DanhMucHubRow,
+} from "@/lib/master-data/danh-muc-hub-catalog";
 import { quanTriTableChrome as TC } from "../../lib/quan-tri-table-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { formatDateVi } from "@/lib/format-datetime-vi";
@@ -14,7 +19,6 @@ export type HubRegistryRow = {
   path: string;
   stats: DanhMucStat;
   icon: React.ReactNode;
-  subtitle?: string;
 };
 
 function StatusPill({ kind }: { kind: "active" | "empty" }) {
@@ -38,9 +42,24 @@ export type UnifiedHubRow = HubRegistryRow & {
   domainLabel: string;
   domainClassName: string;
   groupLabel: string;
-  tierLabel: string;
   statusKind: "active" | "empty";
 };
+
+export function toUnifiedHubRow(row: DanhMucHubRow, icon?: React.ReactNode): UnifiedHubRow {
+  const badge = DANH_MUC_DOMAIN_BADGE[row.domain];
+  const count = row.stats?.count ?? 0;
+  return {
+    id: row.id,
+    name: row.name,
+    path: row.path,
+    stats: row.stats || { count: 0 },
+    icon: icon ?? <Layers className="h-5 w-5 text-teal-600" />,
+    domainLabel: badge.label,
+    domainClassName: badge.className,
+    groupLabel: DANH_MUC_HUB_GROUP_LABELS[row.group],
+    statusKind: count > 0 ? "active" : "empty",
+  };
+}
 
 function DomainBadge({ label, className }: { label: string; className: string }) {
   return (
@@ -67,11 +86,7 @@ export function buildUnifiedHubColumns(onOpen: (path: string) => void): Column<U
             <div className="flex flex-wrap items-center gap-2">
               <span className={`truncate ${TC.cellTitle}`}>{r.name}</span>
               <DomainBadge label={r.domainLabel} className={r.domainClassName} />
-              <span className="text-[11px] font-medium text-slate-400">{r.tierLabel}</span>
             </div>
-            {r.subtitle ? (
-              <div className="truncate font-mono text-[11px] font-medium text-slate-500">{r.subtitle}</div>
-            ) : null}
             <div className="text-[11px] text-slate-400">{r.groupLabel}</div>
           </div>
         </div>

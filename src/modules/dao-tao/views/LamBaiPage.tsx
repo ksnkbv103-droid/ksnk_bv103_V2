@@ -23,7 +23,6 @@ type Q = {
   id: string;
   thuTu: number;
   loai: string;
-  bloomLevel: number;
   stem: string;
   options: Array<{ id: string; noiDung: string; displayIndex: number }>;
   traLoi: TraLoi | null;

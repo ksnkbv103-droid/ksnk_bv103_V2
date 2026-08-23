@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, BarChart2, ClipboardList, History, QrCode, Stethoscope } from "lucide-react";
+import { Activity, ClipboardList, History, QrCode, Stethoscope } from "lucide-react";
 import { KsnkSupervisionHero } from "@/components/shared/ksnk-supervision-chrome";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
@@ -98,8 +98,6 @@ export default function GiamSatHubPage() {
       icon: History,
       visible: seeNkbv,
     },
-    { href: "/thong-ke/vst", label: "Thống kê VST", hint: "Tỷ lệ tuân thủ", icon: BarChart2, visible: seeVst },
-    { href: "/thong-ke/gsc", label: "Thống kê GSC", hint: "Tỷ lệ checklist", icon: BarChart2, visible: seeGsc },
   ];
 
   const hasAny = writeLinks.some((l) => l.visible) || readLinks.some((l) => l.visible);
@@ -116,7 +114,7 @@ export default function GiamSatHubPage() {
         </p>
       ) : null}
       <HubSection title="Nhập liệu" links={writeLinks} />
-      <HubSection title="Xem kết quả" links={readLinks} />
+      <HubSection title="Mở lại phiếu" links={readLinks} />
     </div>
   );
 }

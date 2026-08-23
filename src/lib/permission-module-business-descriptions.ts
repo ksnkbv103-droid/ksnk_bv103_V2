@@ -15,7 +15,7 @@ const PERMISSION_MODULE_BUSINESS_DESCRIPTIONS: Record<string, string> = {
   BANG_KIEM: "Mẫu bảng kiểm giám sát tuân thủ.",
   BANG_KIEM_DETAIL: "Tiêu chí chi tiết trong từng mẫu bảng kiểm.",
   CONG_VIEC: "Quản lý công việc KSNK — Kanban, đề xuất, nghiệm thu.",
-  DAO_TAO: "Thi thử / thi thật KSNK — ngân hàng MCQ, rút đề cân Bloom, kết quả.",
+  DAO_TAO: "Thi ôn tập / thi chính thức KSNK — ngân hàng câu, kỳ thi, sổ kết quả.",
   LOAI_DC: "Danh mục loại dụng cụ phẫu thuật (master CSSD).",
   BO_DC: "Danh mục bộ dụng cụ và mã tem QR.",
   DC_LE: "Thành phần / chi tiết trong bộ dụng cụ.",

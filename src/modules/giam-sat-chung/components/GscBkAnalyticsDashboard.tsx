@@ -12,6 +12,7 @@ import {
 import { groupCriterionKhoaRows, sortCriterionMatrix } from "@/lib/analytics/gsc-checklist-analytics";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { complianceToneFromPercent } from "@/lib/analytics/supervision-thresholds";
 import type { GscChecklistDetailPayload, GscChecklistCriterionKhoaRow, GscCriterionMatrixRow } from "../types/gsc-strategic.types";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
@@ -124,8 +125,8 @@ export function GscBkAnalyticsDashboard({
           matrixKhoaRows={detail?.matrix_khoa}
           loading={loading}
           moduleLabel="GSC"
-          tgsVolumeLabel="Khảo sát TGS"
-          ksnkVolumeLabel="Khảo sát KSNK"
+          tgsVolumeLabel={SUPERVISION_SOURCE_UI.gscTgsVol}
+          ksnkVolumeLabel={SUPERVISION_SOURCE_UI.gscKsnkVol}
         />
 
         <GscCriterionTable

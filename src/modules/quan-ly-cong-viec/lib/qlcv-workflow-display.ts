@@ -9,7 +9,6 @@ export type CongViecLike = {
   is_active?: boolean | null;
   nguoi_phu_trach_id?: string | null;
   phan_tram_hoan_thanh?: number | null;
-  tien_do?: number | null;
   loai_cong_viec?: string | null;
 };
 
@@ -23,7 +22,7 @@ export function isChoNghiemThuHoanThanh(t: CongViecLike): boolean {
   if (t.loai_cong_viec === "DINH_KY") return false;
   const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
   if (st === "CHO_DUYET") return true;
-  const pct = Number(t.phan_tram_hoan_thanh ?? t.tien_do ?? 0);
+  const pct = Number(t.phan_tram_hoan_thanh ?? 0);
   return (st === "DANG_LAM" || st === "QUA_HAN") && pct >= 100;
 }
 
@@ -33,7 +32,6 @@ export type QlcvWorkflowGate =
   | "DANG_LAM"
   | "MOI"
   | "HOAN_THANH"
-  | "QUA_HAN"
   | "DA_HUY"
   | "TU_CHOI";
 
@@ -55,7 +53,6 @@ const GATE_LABELS: Record<QlcvWorkflowGate, string> = {
   DANG_LAM: "Đang thực hiện",
   MOI: "Mới",
   HOAN_THANH: "Hoàn thành",
-  QUA_HAN: "Quá hạn",
   DA_HUY: "Đã hủy",
   TU_CHOI: "Làm lại (từ chối NT)",
 };
@@ -70,7 +67,6 @@ const GATE_BADGE_CLASS: Record<QlcvWorkflowGate, string> = {
   DANG_LAM: "bg-amber-50 text-amber-800 border-amber-100",
   MOI: "bg-slate-50 text-slate-700 border-slate-200",
   HOAN_THANH: "bg-emerald-50 text-emerald-800 border-emerald-100",
-  QUA_HAN: "bg-red-50 text-red-800 border-red-100",
   DA_HUY: "bg-slate-100 text-slate-500 border-slate-200 line-through",
   TU_CHOI: "bg-rose-50 text-rose-800 border-rose-100",
 };

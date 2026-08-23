@@ -33,7 +33,7 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 - **Công thức (backend giữ field):** `0.5 × ty_le_vst + 0.5 × ty_le_gsc` khi **cả hai** có giá trị
 - **Một nguồn:** dùng nguồn duy nhất + ghi chú «Chỉ có dữ liệu VST/GSC»
 - **Spec change 2026-07-31:** **không** dùng CCS trên KPI / xu hướng / xếp hạng khoa / Command Center / bản in / draft nhận xét. Điều hành chỉ nhìn **`ty_le_vst`** và **`ty_le_gsc`** (và theo từng chuyên đề/BK khi lọc).
-- Field `ty_le_ccs` vẫn có thể được compose trong payload để tương thích contract — **cấm** hiển thị nhãn CCS cho người dùng.
+- **2026-08-23:** BCTH **không** còn compose `ty_le_ccs` / `delta_ccs` trong payload. Công thức `computeCcs` giữ trong `supervision-metrics` (PDCA đọc khóa cũ `ty_le_ccs`). **Cấm** hiển thị nhãn CCS cho người dùng.
 - **Không nhầm với:** `ty_le_avg` (trung bình đơn giản, không trọng số)
 
 ### `ty_le_avg`
@@ -47,11 +47,11 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 
 | Khái niệm | Định nghĩa |
 |-----------|------------|
-| **KSNK** | Giám sát do khoa KSNK thực hiện (`vol_ksnk`, `ty_le_ksnk`) |
-| **TGS** | Tự giám sát khoa lâm sàng (`vol_tgs`, `ty_le_tgs`) |
+| **KSNK** | Giám sát do khoa KSNK thực hiện (`vol_ksnk`, `ty_le_ksnk`) — **nhãn UI/in:** chuyên trách |
+| **TGS** | Tự giám sát khoa lâm sàng (`vol_tgs`, `ty_le_tgs`) — **nhãn UI/in:** tự giám sát |
 | **Comparable** | `vol_tgs > 0` **và** `vol_ksnk > 0` trong cùng kỳ/lọc |
-| **Loại trừ** | «Chưa TGS» / «Chưa KSNK» / «Chưa triển khai» (cả hai = 0) |
-| **`do_lech`** | Từ RPC `gap_analysis` — chênh % TGS vs KSNK |
+| **Loại trừ** | Mã RPC «Chưa TGS» / «Chưa KSNK» / «Chưa triển khai» — UI: «Chưa tự giám sát» / «Chưa chuyên trách» |
+| **`do_lech`** | Từ RPC `gap_analysis` — chênh % tự giám sát vs chuyên trách (mã `ty_le_tgs` / `ty_le_ksnk`) |
 
 ---
 
@@ -108,7 +108,7 @@ SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 | QLCV CC brief | Quá hạn trên «Việc hôm nay» (mẫu bật, đến hạn tuần, phiếu mở tuần) | `getQlcvQuaHanBrief` · `CommandCenterDecisionQueue` |
 | PDCA metadata | Khi tạo việc từ analytics: `analytics_meta` = `{ chi_so, khoa_id, ky_do_lai, gia_tri_luc_tao }` trên `qlcv_fact_cong_viec` | deep-link + `insertQlcvTaskRow` |
 | Can thiệp đang mở | Việc mở có `chi_so`; sau `ky_do_lai` hiện Δ = hiện tại − lúc tạo (cùng khóa chỉ số). UI dùng `labelAnalyticsChiSo` — **không** mono raw key | Không còn khối riêng trên `/` (2026-08-22) |
-| Định mức nguồn lực | `PHIEN_GS_PER_NV_PER_WEEK` (mặc định 5); cảnh báo dưới định mức trên bảng NV KSNK | `resource-norms.ts` |
+| Định mức nguồn lực | Đã gỡ khỏi Tổng quan (2026-08-23) — không còn bảng NV / cảnh báo phiên/NV | — |
 
 ### Nhãn cảnh báo CSSD (Management Control)
 
@@ -162,7 +162,7 @@ Gộp song song vào payload VST/GSC (và detail BK khi lọc 1 BK). Công thứ
 | Chỉ số | Công thức | Ghi chú |
 |--------|-----------|---------|
 | `ty_le_bao_phu_tgs` | `|BK bắt TGS đã có ≥1 phiên TGS| / |BK bắt TGS áp dụng cho khoa|` | Distinct BK, không cộng số phiên. Khoa không thuộc phạm vi `ap_dung_jsonb` → **Không áp dụng** (không tính thiếu). |
-| Ô khoa × BK | `Đã TGS` / `Thiếu TGS` / `Không áp dụng` | SSOT resolve: `resolveTgsBkCellStatus` · UI xếp hạng: `/thong-ke/gsc` |
+| Ô khoa × BK | `Đã tự giám sát` / `Thiếu tự giám sát` / `Không áp dụng` | SSOT resolve: `resolveTgsBkCellStatus` · UI xếp hạng: `/thong-ke/gsc` |
 
 ---
 

@@ -544,7 +544,6 @@ export default function QuanLyCongViecPage() {
             }}
             onRefreshAll={refreshAll}
             onBoardFilter={handleBoardFilter}
-            routerRefresh={() => router.refresh()}
             mauSacByMa={mauSacByMa}
             loaiFilter={loaiFilter}
             periodKindFilter={filterBoardByPeriod ? periodKind : null}

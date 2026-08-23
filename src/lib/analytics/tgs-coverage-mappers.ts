@@ -39,8 +39,8 @@ export type TgsBkCellStatus = "khong_ap_dung" | "thieu_tgs" | "da_tgs";
 
 export const TGS_BK_CELL_LABELS: Record<TgsBkCellStatus, string> = {
   khong_ap_dung: "Không áp dụng",
-  thieu_tgs: "Thiếu TGS",
-  da_tgs: "Đã TGS",
+  thieu_tgs: "Thiếu tự giám sát",
+  da_tgs: "Đã tự giám sát",
 };
 
 export function resolveTgsBkCellStatus(args: { appliesBatBuocTgs: boolean; hasHit: boolean }): TgsBkCellStatus {

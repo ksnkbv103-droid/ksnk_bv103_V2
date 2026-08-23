@@ -53,7 +53,7 @@ export default function GscTgsCoverageRankingPanel({ tuNgay, denNgay, selectedKh
         <div>
           <h2 className={`${UI.panelTitle} inline-flex items-center gap-2`}>
             <ClipboardCheck className="h-5 w-5 text-[var(--primary)]" aria-hidden />
-            Bao phủ TGS theo khoa
+            Bao phủ tự giám sát theo khoa
           </h2>
         </div>
         <button
@@ -73,7 +73,7 @@ export default function GscTgsCoverageRankingPanel({ tuNgay, denNgay, selectedKh
 
       {data ? (
         <p className="text-[11px] text-slate-500">
-          {data.rows.length} khoa có nghĩa vụ TGS · {data.so_khoa_khong_ap_dung} khoa{" "}
+          {data.rows.length} khoa có nghĩa vụ tự giám sát · {data.so_khoa_khong_ap_dung} khoa{" "}
           {TGS_BK_CELL_LABELS.khong_ap_dung.toLowerCase()} (không có BK bắt buộc trong phạm vi)
         </p>
       ) : null}
@@ -86,7 +86,7 @@ export default function GscTgsCoverageRankingPanel({ tuNgay, denNgay, selectedKh
               <th className="py-2 pr-3">Bao phủ %</th>
               <th className="py-2 pr-3">Đã / Bắt buộc</th>
               <th className="py-2 pr-3">BK thiếu</th>
-              <th className="py-2">Việc KSNK</th>
+              <th className="py-2">Tạo việc</th>
             </tr>
           </thead>
           <tbody>
@@ -99,7 +99,7 @@ export default function GscTgsCoverageRankingPanel({ tuNgay, denNgay, selectedKh
             ) : null}
             {data?.rows.map((row) => {
               const qlcvHref = buildQlcvAnalyticsDeepLink({
-                topic: `Bao phủ TGS · ${row.label}`,
+                topic: `Bao phủ tự giám sát · ${row.label}`,
                 gap: row.so_bk_thieu > 0 ? TGS_BK_CELL_LABELS.thieu_tgs : "Đủ bao phủ",
                 khoaLabel: row.label,
                 bkLabel: row.bk_thieu_labels.slice(0, 3).join(", ") || undefined,
@@ -149,7 +149,7 @@ export default function GscTgsCoverageRankingPanel({ tuNgay, denNgay, selectedKh
             {data && data.rows.length === 0 && !loading ? (
               <tr>
                 <td colSpan={5} className="py-6 text-center text-sm text-slate-500">
-                  Không có khoa nào có BK bắt buộc TGS trong phạm vi lọc (hoặc chưa cấu hình áp dụng trên danh mục).
+                  Không có khoa nào có bảng kiểm bắt buộc tự giám sát trong phạm vi lọc (hoặc chưa cấu hình áp dụng trên danh mục).
                 </td>
               </tr>
             ) : null}

@@ -9,7 +9,6 @@ import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet, type CongViecLike } from "./
 export type QlcvBoardLaneId =
   | "lane_da_huy"
   | "lane_hoan_thanh"
-  | "lane_qua_han"
   | "lane_cho_duyet"
   | "lane_dang_lam"
   | "lane_de_xuat";
@@ -23,7 +22,6 @@ export type CongViecBoardInput = CongViecLike & {
 export type KanbanColumnId =
   | "DE_XUAT"
   | "DANG_LAM"
-  | "QUA_HAN"
   | "CHO_DUYET"
   | "HOAN_THANH"
   | "DA_HUY";
@@ -48,7 +46,6 @@ export function getBoardLaneId(t: CongViecBoardInput): QlcvBoardLaneId {
   const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
   if (st === "DA_HUY") return "lane_da_huy";
   if (st === "HOAN_THANH") return "lane_hoan_thanh";
-  // Đề xuất chưa duyệt trước quá hạn — tránh nhảy cột Quá hạn khi có hạn cũ.
   if (isDeXuatChoDuyet(t)) return "lane_de_xuat";
   if (isChoNghiemThuHoanThanh(t)) return "lane_cho_duyet";
   return "lane_dang_lam";
@@ -59,8 +56,6 @@ export function boardLaneToKanbanColumn(lane: QlcvBoardLaneId, showProposalColum
   switch (lane) {
     case "lane_dang_lam":
       return "DANG_LAM";
-    case "lane_qua_han":
-      return "QUA_HAN";
     case "lane_cho_duyet":
       return "CHO_DUYET";
     case "lane_hoan_thanh":

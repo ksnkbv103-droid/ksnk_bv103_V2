@@ -10,6 +10,7 @@ import {
 } from "@/lib/analytics/supervision-analytics-charts";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import type { GscStrategicPayload } from "../types/gsc-strategic.types";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
 import { GscChecklistNavigator } from "./GscChecklistNavigator";
@@ -148,8 +149,8 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
           matrixKhoaRows={p.payload?.matrix_khoa}
           loading={p.loading}
           moduleLabel="GSC"
-          tgsVolumeLabel="Khảo sát TGS"
-          ksnkVolumeLabel="Khảo sát KSNK"
+          tgsVolumeLabel={SUPERVISION_SOURCE_UI.gscTgsVol}
+          ksnkVolumeLabel={SUPERVISION_SOURCE_UI.gscKsnkVol}
         />
       </section>
 
@@ -157,23 +158,15 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           Xem thêm
           <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
-            Mọi bảng kiểm · bao phủ tự giám sát · xu hướng · so sánh khối/nghề
+            Bao phủ tự giám sát · xu hướng · so sánh khối/nghề
           </span>
         </summary>
         <div className="space-y-4 border-t border-slate-100 px-4 pb-4 pt-3">
-      <GscChecklistNavigator
-        payload={p.payload}
-        loading={p.loading}
-        selectedMaBk={selectedMaBk}
-        onSelectMaBk={onSelectMaBk}
-        bkLabelRecord={p.bkLabelRecord}
-        limit={0}
-      />
-      <GscTgsCoverageRankingPanel
-        tuNgay={p.tuNgay}
-        denNgay={p.denNgay}
-        selectedKhoaIds={p.selectedKhoaIds}
-      />
+          <GscTgsCoverageRankingPanel
+            tuNgay={p.tuNgay}
+            denNgay={p.denNgay}
+            selectedKhoaIds={p.selectedKhoaIds}
+          />
           <SupervisionKpiRow
             loading={p.loading}
             items={[

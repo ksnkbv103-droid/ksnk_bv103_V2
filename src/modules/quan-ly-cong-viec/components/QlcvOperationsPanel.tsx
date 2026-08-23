@@ -51,12 +51,6 @@ function matchesPeriodHan(t: CongViecView, periodKind: QlcvPeriodKind | null): b
   return false;
 }
 
-function matchesNhiemVuFilter(t: CongViecView, nhiemVuId: string | null | undefined): boolean {
-  if (!nhiemVuId) return true;
-  if (nhiemVuId === "__NONE__") return !t.nhiem_vu_id;
-  return t.nhiem_vu_id === nhiemVuId;
-}
-
 export type QlcvOperationsPanelProps = {
   kanban: UseQlcvKanbanReturn;
   table: UseQlcvTableReturn;
@@ -72,13 +66,10 @@ export type QlcvOperationsPanelProps = {
   onEditTask: (row: CongViecView) => void;
   onRefreshAll: () => Promise<void>;
   onBoardFilter: (f: QlcvBoardFilter) => void;
-  routerRefresh: () => void;
   /** Lọc loại — client trên danh sách điều hành. */
   loaiFilter?: QlcvLoaiFilter;
   /** Khi set: chỉ phiếu có hạn trong kỳ (client). */
   periodKindFilter?: QlcvPeriodKind | null;
-  /** Lọc theo nhiệm vụ kế hoạch năm (`__NONE__` = chưa gắn). */
-  nhiemVuFilter?: string | null;
   summarySlot?: React.ReactNode;
 };
 
@@ -99,22 +90,14 @@ export function QlcvOperationsPanel({
   mauSacByMa,
   loaiFilter = "ALL",
   periodKindFilter = null,
-  nhiemVuFilter = null,
   summarySlot,
 }: QlcvOperationsPanelProps) {
   const [deleteTarget, setDeleteTarget] = useState<CongViecView | null>(null);
   const scopedTasks = useMemo(
-    () =>
-      mergedTasks.filter(
-        (t) =>
-          matchesLoaiFilter(t, loaiFilter) &&
-          matchesPeriodHan(t, periodKindFilter) &&
-          matchesNhiemVuFilter(t, nhiemVuFilter),
-      ),
-    [mergedTasks, loaiFilter, periodKindFilter, nhiemVuFilter],
+    () => mergedTasks.filter((t) => matchesLoaiFilter(t, loaiFilter) && matchesPeriodHan(t, periodKindFilter)),
+    [mergedTasks, loaiFilter, periodKindFilter],
   );
-  const useClientLoaiPeriod =
-    loaiFilter !== "ALL" || periodKindFilter != null || Boolean(nhiemVuFilter);
+  const useClientLoaiPeriod = loaiFilter !== "ALL" || periodKindFilter != null;
 
   const deleteDialogCopy = useMemo(() => {
     if (!deleteTarget) return { title: "", description: "" };

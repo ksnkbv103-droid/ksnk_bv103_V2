@@ -47,17 +47,6 @@ export const DANH_MUC_HUB_GROUP_LABELS: Record<DanhMucHubGroup, string> = {
   lookup: "Danh mục dùng chung",
 };
 
-/** Thứ tự hiển thị hub (SSOT). */
-const DANH_MUC_HUB_GROUP_ORDER: DanhMucHubGroup[] = [
-  "to-chuc",
-  "giam-sat",
-  "cssd",
-  "nkbv",
-  "cong-viec",
-  "lookup",
-  "he-thong",
-];
-
 export const DANH_MUC_DOMAIN_BADGE: Record<DanhMucDomain, { label: string; className: string }> = {
   MDM: { label: "Tổ chức", className: "bg-rose-50 text-rose-700 ring-rose-600/15" },
   CSSD: { label: "CSSD", className: "bg-emerald-50 text-emerald-800 ring-emerald-600/15" },
@@ -87,16 +76,6 @@ const DEDICATED_ROWS: Omit<DanhMucHubRow, "stats">[] = [
     tier: "dedicated",
     moduleKey: "BO_DC",
     sourceTable: "cssd_dm_bo_dung_cu",
-  },
-  {
-    id: "dung-cu-le",
-    name: "Thành phần bộ (trong bộ)",
-    path: quanTriDungCuHref("bo"),
-    domain: "CSSD",
-    group: "cssd",
-    tier: "dedicated",
-    moduleKey: "DC_LE",
-    sourceTable: "cssd_dm_bo_dung_cu_chi_tiet",
   },
   {
     id: "tb",
@@ -178,7 +157,6 @@ function statsKeyForDedicated(id: string): keyof TrungTamDanhMucStatsPayload | n
   const map: Record<string, keyof TrungTamDanhMucStatsPayload> = {
     "dung-cu-loai": "loai",
     "dung-cu-bo": "bo",
-    "dung-cu-le": "le",
     tb: "tb",
     hc: "hc",
     khoa: "khoa",
@@ -253,22 +231,4 @@ export function filterDanhMucHubRows(rows: DanhMucHubRow[], query: string): Danh
       (r.sourceTable != null && r.sourceTable.toLowerCase().includes(t)) ||
       (r.loaiDanhMuc != null && r.loaiDanhMuc.toLowerCase().includes(t)),
   );
-}
-
-export function groupDanhMucHubRows(rows: DanhMucHubRow[]): { group: DanhMucHubGroup; label: string; rows: DanhMucHubRow[] }[] {
-  return DANH_MUC_HUB_GROUP_ORDER
-    .map((group) => ({
-      group,
-      label: DANH_MUC_HUB_GROUP_LABELS[group],
-      rows: rows.filter((r) => r.group === group),
-    }))
-    .filter((g) => g.rows.length > 0);
-}
-
-/** Top N danh mục cập nhật gần nhất (Wave 4 — lịch sử nhẹ). */
-export function getRecentDanhMucHubChanges(rows: DanhMucHubRow[], limit = 5): DanhMucHubRow[] {
-  return [...rows]
-    .filter((r) => r.stats?.last)
-    .sort((a, b) => new Date(b.stats!.last!).getTime() - new Date(a.stats!.last!).getTime())
-    .slice(0, limit);
 }

@@ -62,10 +62,10 @@ export async function fetchSystemHealthBrief(): Promise<
     const chuaLink = nvRes.data.filter((r) => !r.auth_user_id).length;
     metrics.push({
       id: "auth-link",
-      label: "NV chưa liên kết tài khoản",
+      label: "Nhân sự chưa có tài khoản đăng nhập",
       count: chuaLink,
       total,
-      hint: "Hồ sơ nhân sự active chưa có auth_user_id — không đăng nhập được.",
+      hint: "Hồ sơ đang dùng chưa tạo đăng nhập — không vào được phần mềm.",
       href: "/quan-tri-he-thong/tai-khoan-nhan-su",
       severity: chuaLink > 0 ? "warn" : "ok",
     });
@@ -79,7 +79,7 @@ export async function fetchSystemHealthBrief(): Promise<
       label: "Khoa chưa gắn khối",
       count: noKhoi,
       total,
-      hint: "Khoa không khối làm lệch ma trận so sánh / lọc theo khối trên thống kê.",
+      hint: "Khoa chưa gắn khối — lọc/so sánh theo khối trên thống kê dễ lệch.",
       href: "/quan-tri-he-thong/danh-muc/khoa-phong",
       severity: noKhoi > 0 ? "warn" : "ok",
     });
@@ -90,10 +90,10 @@ export async function fetchSystemHealthBrief(): Promise<
     const invalid = boRes.data.filter((r) => !isCssdUnifiedBoMa(String(r.ma_bo || ""))).length;
     metrics.push({
       id: "bo-ma",
-      label: "Bộ thiếu mã chuẩn KHOA.SET.NN",
+      label: "Bộ thiếu mã chuẩn",
       count: invalid,
       total,
-      hint: "Bộ không đủ mã chuẩn không vào workflow CSSD.",
+      hint: "Bộ chưa đủ mã chuẩn thì không vào quy trình CSSD.",
       href: "/quan-tri-he-thong/danh-muc/dung-cu?tab=bo",
       severity: invalid > 0 ? "warn" : "ok",
     });
@@ -110,10 +110,10 @@ export async function fetchSystemHealthBrief(): Promise<
     }
     metrics.push({
       id: "bk-ap-dung",
-      label: "Bảng kiểm thiếu cấu hình áp dụng TGS",
+      label: "Bảng kiểm chưa chọn khoa áp dụng",
       count: thieuApDung,
       total,
-      hint: "Thiếu ap_dung → bao phủ TGS / KPI breadth dễ lệch.",
+      hint: "Chưa chọn khoa áp dụng — thống kê bao phủ dễ lệch.",
       href: "/quan-tri-he-thong/bang-kiem",
       severity: thieuApDung > 0 ? "warn" : "ok",
     });

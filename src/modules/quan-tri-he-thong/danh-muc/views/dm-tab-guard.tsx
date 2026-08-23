@@ -36,9 +36,7 @@ export function DmTabGuard({
           summary={<span className="text-sm font-semibold">Không có quyền xem {label}</span>}
           detail={
             <div className="space-y-2">
-              <p className="text-xs">
-                Cần quyền <span className="font-mono font-semibold">{moduleKey}</span> → View trên ma trận phân quyền.
-              </p>
+              <p className="text-xs">Cần quyền xem {label} trên ma trận phân quyền.</p>
               <Link
                 href={quanTriHubHref("PHAN_QUYEN")}
                 className="inline-block text-xs font-semibold text-[var(--primary)] underline"

@@ -14,7 +14,6 @@ export type DinhKyMauForPeriod = {
   gio_ket_thuc?: string | null;
   dia_diem_khoa_id?: string | null;
   nhiem_vu_id?: string | null;
-  moc_id?: string | null;
 };
 
 /** Các ngày trong kỳ mà mẫu sẽ (hoặc đã) đến hạn sinh phiếu. */

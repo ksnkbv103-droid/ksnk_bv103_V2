@@ -43,7 +43,7 @@ export function getKsnkAppHeaderBreadcrumb(pathname: string | null): KsnkHeaderB
   if (p.startsWith("/lich-su")) return { zone: "Tra cứu", page: "Lịch sử giám sát" };
   if (p.startsWith("/thong-ke")) return { zone: "Tra cứu", page: "Thống kê giám sát" };
   if (p.startsWith("/quan-ly-cong-viec")) return { zone: "Vận hành", page: "Công việc" };
-  if (p.startsWith("/dao-tao")) return { zone: "Vận hành", page: "Đào tạo" };
+  if (p.startsWith("/dao-tao")) return { zone: "Vận hành", page: "Thi KSNK" };
   if (CSSD_APP_SHELL_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`))) {
     return { zone: "CSSD", page: "Quản lý CSSD" };
   }

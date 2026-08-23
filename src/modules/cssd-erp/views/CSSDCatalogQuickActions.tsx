@@ -1,20 +1,17 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 import { cssdSuCoInstrumentHref } from "@/lib/cssd-routes";
 import type { CSSDChiTiet } from "../types/catalog.types";
 
-export function CSSDCatalogQuickActions(props: {
-  selectedBoId: string | null;
+export function CSSDCatalogQuickActions({
+  selectedChiTiet,
+  selectedMaBo,
+}: {
   selectedChiTiet: CSSDChiTiet | null;
   selectedMaBo?: string | null;
-  reload: () => Promise<void>;
 }) {
-  const { selectedChiTiet, selectedMaBo } = props;
-  void props.reload;
-  void props.selectedBoId;
   const suCoHref = cssdSuCoInstrumentHref({
     type: "INSTRUMENT_BROKEN",
     ma: selectedMaBo || null,

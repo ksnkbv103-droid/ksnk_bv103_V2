@@ -12,6 +12,7 @@ import {
   sortGapRowsByMetric,
 } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
+import { labelGapExclusion, SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { formatBaoCaoIssueDateVi } from "./bao-cao-tong-hop-core";
 import { escHtml, fmtIsoDate, fmtPct } from "./bao-cao-tong-hop-print-format";
 import { BAO_CAO_TONG_HOP_THRESHOLDS } from "./bao-cao-tong-hop-thresholds";
@@ -280,7 +281,7 @@ function gapPrintCompareLabel(row: ReturnType<typeof normalizeGapKhoaRow>): stri
     }
     return "Đủ đối soát";
   }
-  return gapExclusionReason(row) ?? "—";
+  return labelGapExclusion(gapExclusionReason(row));
 }
 
 function gapPrintPctClass(pct: number | null | undefined): string {
@@ -306,16 +307,16 @@ export function renderKhoaGapModulePrint(
   }
   return `
     <h4>${escHtml(title)}</h4>
-    <p class="muted">Sắp xếp KSNK % cao → thấp · cảnh báo &lt;${KHOA_COMPLIANCE_WARN_PCT}% · đối soát gộp trạng thái loại trừ.</p>
+    <p class="muted">Sắp xếp chuyên trách % cao → thấp · cảnh báo &lt;${KHOA_COMPLIANCE_WARN_PCT}% · đối soát gộp trạng thái loại trừ.</p>
     <table>
       <thead>
         <tr>
           <th>STT</th>
           <th class="text-left">Khoa</th>
-          <th>KSNK %</th>
-          <th>TGS %</th>
-          <th>KSNK vol</th>
-          <th>TGS vol</th>
+          <th>${SUPERVISION_SOURCE_UI.ksnkPct}</th>
+          <th>${SUPERVISION_SOURCE_UI.tgsPct}</th>
+          <th>${SUPERVISION_SOURCE_UI.ksnkVolShort}</th>
+          <th>${SUPERVISION_SOURCE_UI.tgsVolShort}</th>
           <th class="text-left">Đối soát</th>
         </tr>
       </thead>
@@ -351,7 +352,7 @@ export function renderComparableGapTable(
     .slice(0, limit);
 
   if (comparable.length === 0) {
-    return `<h3>${escHtml(title)}</h3><p class="muted">Không có khoa đủ hai nguồn TGS và KSNK trong kỳ.</p>`;
+    return `<h3>${escHtml(title)}</h3><p class="muted">Không có khoa đủ hai nguồn tự giám sát và chuyên trách trong kỳ.</p>`;
   }
 
   return `
@@ -361,8 +362,8 @@ export function renderComparableGapTable(
         <tr>
           <th>STT</th>
           <th class="text-left">Khoa</th>
-          <th>TGS %</th>
-          <th>KSNK %</th>
+          <th>${SUPERVISION_SOURCE_UI.tgsPct}</th>
+          <th>${SUPERVISION_SOURCE_UI.ksnkPct}</th>
           <th>Gap</th>
         </tr>
       </thead>

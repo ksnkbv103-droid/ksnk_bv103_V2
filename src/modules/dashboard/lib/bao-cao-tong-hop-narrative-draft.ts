@@ -98,7 +98,7 @@ export function buildPhanIiiDraft(payload: BaoCaoTongHopPayload | null): PhanIii
 
   const gaps = topGapLabels(payload);
   if (gaps.length > 0) {
-    lines.push(`Gap TGS–KSNK đáng chú ý: ${gaps.join("; ")}.`);
+    lines.push(`Gap tự giám sát–chuyên trách đáng chú ý: ${gaps.join("; ")}.`);
   }
 
   const bks = topBkRisk(payload);
@@ -130,11 +130,11 @@ export function buildPhanIiiDraft(payload: BaoCaoTongHopPayload | null): PhanIii
   const kn: string[] = [];
   if (bottom.length > 0 || gaps.length > 0) {
     kn.push(
-      "Đề nghị khoa lâm sàng tăng cường tự giám sát (TGS) và phối hợp KSNK đối soát các khoa/gap nêu trên trong tháng tới.",
+      "Đề nghị khoa lâm sàng tăng cường tự giám sát và phối hợp khoa KSNK đối soát các khoa/gap nêu trên trong tháng tới.",
     );
   } else {
     kn.push(
-      "Duy trì lịch giám sát định kỳ; bổ sung dữ liệu TGS–KSNK đủ cặp để đối soát khi triển khai thêm khoa.",
+      "Duy trì lịch giám sát định kỳ; bổ sung dữ liệu tự giám sát và chuyên trách đủ cặp để đối soát khi triển khai thêm khoa.",
     );
   }
   if (bks.length > 0) {
