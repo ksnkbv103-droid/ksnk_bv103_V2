@@ -5,7 +5,7 @@ export type IncidentGroup = (typeof INCIDENT_GROUPS)[number];
 
 export const INCIDENT_GROUP_LABEL: Record<IncidentGroup, string> = {
   PROCESS: "Quy trình (khâu trước không đạt)",
-  INSTRUMENT: "Dụng cụ (hỏng / thiếu…)",
+  INSTRUMENT: "Dụng cụ (hỏng / lệch chuẩn / chuyển chỗ)",
   CHEMICAL: "Hóa chất (không đạt)",
   EQUIPMENT: "Máy móc (hỏng / thông số)",
   OTHER: "Khác (tùy biến)",
@@ -22,7 +22,7 @@ const PROCESS_HINTS = [
   "tiet khuan",
   "cap phat",
 ];
-const INSTRUMENT_HINTS = ["dung cu", "instrument", "bo dung cu", "mat", "thieu", "hong", "bo sung", "dieu chuyen"];
+const INSTRUMENT_HINTS = ["dung cu", "instrument", "bo dung cu", "mat", "thieu", "hong", "bo sung", "dieu chuyen", "lay kho", "tra kho"];
 const CHEMICAL_HINTS = ["hoa chat", "chemical", "vet tu", "dung dich", "nong do", "han su dung"];
 const EQUIPMENT_HINTS = ["may", "thiet bi", "machine", "equipment", "autoclave", "rua"];
 
@@ -63,8 +63,9 @@ export const INCIDENT_TYPE_PRESETS: Record<IncidentGroup, IncidentPreset[]> = {
   INSTRUMENT: [
     { code: "INSTRUMENT_BROKEN", label: "Dụng cụ hỏng" },
     { code: "INSTRUMENT_MISSING", label: "Dụng cụ mất / thất lạc" },
-    { code: "INSTRUMENT_REPLENISH", label: "Bổ sung dụng cụ" },
-    { code: "INSTRUMENT_TRANSFER", label: "Điều chuyển dụng cụ" },
+    { code: "INSTRUMENT_REPLENISH", label: "Lấy từ kho cho đủ chuẩn" },
+    { code: "INSTRUMENT_RETURN", label: "Trả phần thừa về kho" },
+    { code: "INSTRUMENT_TRANSFER", label: "Điều chuyển bộ → bộ" },
   ],
   CHEMICAL: [
     { code: "CHEMICAL_STOCK_OUT", label: "Thiếu hóa chất / vật tư" },

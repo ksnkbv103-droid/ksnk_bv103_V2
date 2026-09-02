@@ -41,6 +41,7 @@ describe("cssd-incident-trace", () => {
   it("requires image for broken and replenish instrument incidents", () => {
     expect(isInstrumentIncidentImageRequired("INSTRUMENT_BROKEN")).toBe(true);
     expect(isInstrumentIncidentImageRequired("INSTRUMENT_REPLENISH")).toBe(true);
+    expect(isInstrumentIncidentImageRequired("INSTRUMENT_RETURN")).toBe(true);
     expect(isInstrumentIncidentImageRequired("INSTRUMENT_MISSING")).toBe(false);
     expect(isInstrumentIncidentImageRequired("INSTRUMENT_TRANSFER")).toBe(false);
   });

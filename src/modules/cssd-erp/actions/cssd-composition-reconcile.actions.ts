@@ -138,11 +138,11 @@ export async function loadBoCompositionReconcile(boDungCuId: string) {
     if (!item.isMissing) continue;
     if (item.reserveShortage) {
       replenishWarnings.push(
-        `${item.tenDungCuLe}: thiếu ${item.missingCount}, kho dự phòng chỉ còn ${item.soLuongKhoDuPhong} — cần bổ sung tại Quản trị danh mục dụng cụ.`,
+        `${item.tenDungCuLe}: thiếu ${item.missingCount}, kho dự phòng chỉ còn ${item.soLuongKhoDuPhong} — nhập kho tại Quản trị (thẻ Loại), không thêm dòng định mức.`,
       );
     } else if (item.soLuongKhoDuPhong > 0) {
       replenishWarnings.push(
-        `${item.tenDungCuLe}: có thể bù ${Math.min(item.missingCount, item.soLuongKhoDuPhong)} từ kho dự phòng (còn ${item.soLuongKhoDuPhong}).`,
+        `${item.tenDungCuLe}: có thể lấy ${Math.min(item.missingCount, item.soLuongKhoDuPhong)} từ kho cho đủ chuẩn (còn ${item.soLuongKhoDuPhong}).`,
       );
     } else {
       replenishWarnings.push(`${item.tenDungCuLe}: thiếu ${item.missingCount}, kho dự phòng = 0.`);

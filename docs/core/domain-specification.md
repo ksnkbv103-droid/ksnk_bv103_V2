@@ -53,7 +53,7 @@ flowchart LR
 | 1 `TIEP_NHAN` | Quét bộ bẩn / mở chu trình; sau cấp phát → vòng mới |
 | 2 `LAM_SACH` | Quét chuyển bước (chỉ +1) |
 | 3 `QC` | Kiểm trước đóng gói |
-| 4 `DONG_GOI` | Quét + đối chiếu cấu phần + báo Hỏng/Mất/Bổ sung; sinh Cycle QR; thiếu cấu phần = **cảnh báo** (không chặn) |
+| 4 `DONG_GOI` | Quét + đối chiếu cấu phần + Hỏng/Mất + lấy/trả kho theo chuẩn; sinh Cycle QR; thiếu cấu phần = **cảnh báo** (không chặn) |
 | 5 `TIET_KHUAN` | **Chỉ qua phiếu mẻ** (không quét trên shell 6 trạm); nạp từ Đóng gói → chốt → máy → QC mẻ |
 | 6 `CAP_PHAT` | Quét giao khoa / kho sạch; soft-warning thiếu cấu phần (Q2); bắt buộc mẻ ĐẠT |
 

@@ -246,7 +246,7 @@ export function BoDungCuChiTietPanel({
                     }}
                     className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-100 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-emerald-800 hover:opacity-90 transition-all active:scale-95"
                   >
-                    <PackagePlus className="h-3.5 w-3.5" /> Bổ sung dụng cụ vào bộ này
+                    <PackagePlus className="h-3.5 w-3.5" /> Thêm dòng định mức
                   </button>
                   <button
                     type="button"
@@ -258,7 +258,7 @@ export function BoDungCuChiTietPanel({
                     }}
                     className="inline-flex items-center gap-1.5 rounded-xl bg-sky-100 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-sky-800 disabled:opacity-50 hover:opacity-90 transition-all active:scale-95"
                   >
-                    <RefreshCcw className="h-3.5 w-3.5" /> Điều chuyển / chỉnh thông tin dụng cụ đã chọn
+                    <RefreshCcw className="h-3.5 w-3.5" /> Sửa dòng định mức đã chọn
                   </button>
                   <Link
                     href={cssdSuCoInstrumentHref({
@@ -374,7 +374,18 @@ export function BoDungCuChiTietPanel({
                         })}
                         className="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-[var(--primary)] text-[11px] font-semibold px-3 py-1.5 rounded-lg uppercase tracking-wide transition-colors"
                       >
-                        Bổ sung (sự cố)
+                        Lấy từ kho (sự cố)
+                      </Link>
+                      <Link
+                        href={cssdSuCoInstrumentHref({
+                          type: "INSTRUMENT_RETURN",
+                          ma: selectedMaBo,
+                          loai: selectedChiTiet.loai_dung_cu_id,
+                          chiTiet: selectedChiTiet.id,
+                        })}
+                        className="inline-flex items-center gap-1 bg-teal-50 hover:bg-teal-100 text-teal-800 text-[11px] font-semibold px-3 py-1.5 rounded-lg uppercase tracking-wide transition-colors"
+                      >
+                        Trả kho (sự cố)
                       </Link>
                       <Link
                         href={cssdSuCoInstrumentHref({
@@ -385,11 +396,11 @@ export function BoDungCuChiTietPanel({
                         })}
                         className="inline-flex items-center gap-1 bg-sky-50 hover:bg-sky-100 text-sky-800 text-[11px] font-semibold px-3 py-1.5 rounded-lg uppercase tracking-wide transition-colors"
                       >
-                        Điều chuyển (sự cố)
+                        Điều chuyển bộ → bộ (sự cố)
                       </Link>
                     </div>
                     <p className="text-[11px] text-slate-500">
-                      Hỏng / Mất / Bổ sung / Điều chuyển chỉ thực hiện tại trang Báo cáo sự cố CSSD (một cửa sổ giao dịch).
+                      Hỏng / Mất ghi khi đếm thấp hơn số trên bộ. Lấy/trả kho chỉ khi lệch chuẩn trên loại đã có dòng. Điều chuyển bộ → bộ tại Báo cáo sự cố. Định mức và mã loại: chỉ trên trang này.
                     </p>
 
                     <p className="text-[11px] text-slate-600 font-medium mt-2">

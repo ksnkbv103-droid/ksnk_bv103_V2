@@ -19,7 +19,7 @@ export function cssdQuyTrinhBatchTabHref(): string {
 
 /** Deep-link một cửa sự cố dụng cụ (`/cssd-su-co`). */
 export function cssdSuCoInstrumentHref(params?: {
-  type?: "INSTRUMENT_BROKEN" | "INSTRUMENT_MISSING" | "INSTRUMENT_REPLENISH" | "INSTRUMENT_TRANSFER";
+  type?: "INSTRUMENT_BROKEN" | "INSTRUMENT_MISSING" | "INSTRUMENT_REPLENISH" | "INSTRUMENT_RETURN" | "INSTRUMENT_TRANSFER";
   ma?: string | null;
   loai?: string | null;
   chiTiet?: string | null;

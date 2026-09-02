@@ -141,6 +141,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-09-02 | **CSSD dụng cụ — 3 sổ ≠ 2 cửa:** chuẩn (định mức, chỉ Quản trị) / hệ thống (số gắn bộ) / kho lẻ. Cửa rà soát: Hỏng/Mất + lệch chuẩn; cửa chuyển: lấy/trả kho theo chuẩn hoặc bộ→bộ. Cửa vận hành chặn THEM_DONG/XOA_DONG/DOI_CHUAN và đổi mã gốc loại (`validateInstrumentDoorLines`). Ledger trả kho `NHAP_KHO`. SSOT luồng: [`quan-ly-dung-cu-luong.md`](../modules/cssd/quan-ly-dung-cu-luong.md). |
 | 2026-08-10 | **NKBV audit UTI chuẩn vs runtime (PO):** [`uti-standard-vs-runtime-audit-20260810.md`](../modules/nkbv/investigation-forms/uti-standard-vs-runtime-audit-20260810.md) — SUTI/ABUTI/CAUTI·lab·Foley·SBSI; lệch UTI-AUDIT-A1–A5/B1–B5; thứ tự sửa A1→A2→A3→A5→A4. Không sửa engine trong slice. |
 | 2026-08-10 | **NKBV audit PNEU chuẩn vs runtime (PO):** [`pneu-standard-vs-runtime-audit-20260810.md`](../modules/nkbv/investigation-forms/pneu-standard-vs-runtime-audit-20260810.md) — điều kiện PNU1/2/3·VAP·SBSI·LOA; lệch A1–A5/B1–B5; quyết định A/B; backlog audit hội chứng tiếp [`syndrome-audit-backlog.md`](../modules/nkbv/investigation-forms/syndrome-audit-backlog.md). Không sửa engine trong slice. |
 | 2026-08-09 | **NKBV Tạo phiếu seed + Đã PT:** `nkbv-analysis-session-to-verification` đổ LS/ngày/Secondary/kết luận vào `verification_data` lúc «Tạo phiếu»; đánh dấu Index+RIT+máu SBAP `metadata.analysis_disposition=DA_PHAN_TICH`; kho VS cột «Đã PT?»; hub dispositions gồm attributed. |

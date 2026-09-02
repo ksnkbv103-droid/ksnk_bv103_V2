@@ -36,7 +36,7 @@ Ranh giới chi tiết: [`../../wiki/concepts.md`](../../wiki/concepts.md#cssd-v
 1. **Quy trình / chu trình bộ** — một vòng đời bộ qua các trạm (hub `cssd_fact_quy_trinh`).
 2. **Mẻ tiệt khuẩn** — phiếu hấp một lô trên một máy (`LOT-*`); nhiều bộ nạp vào một mẻ.
 3. **Sự cố** — báo cáo (quy trình / dụng cụ / hóa chất / thiết bị…).
-4. **Giao dịch kho dụng cụ lẻ** — Hỏng / Mất / Bổ sung / Điều chuyển.
+4. **Giao dịch kho dụng cụ lẻ** — Hỏng / Mất / Lấy kho / Trả kho / Điều chuyển bộ→bộ.
 5. **Phiếu bảo trì máy** — định kỳ hoặc sửa chữa.
 
 ### 2.3 Mã / tem QR
@@ -70,7 +70,7 @@ flowchart LR
 | 1. Tiếp nhận | `TIEP_NHAN` | Quét bộ bẩn / mở chu trình mới | Sau cấp phát, lần tiếp nhận = vòng mới |
 | 2. Làm sạch | `LAM_SACH` | Quét chuyển bước | Chỉ tiến đúng 1 bước |
 | 3. QC | `QC` | Kiểm trước đóng gói | |
-| 4. Đóng gói | `DONG_GOI` | Quét + đối chiếu cấu phần; báo Hỏng/Mất/Bổ sung; sinh Cycle QR | Thiếu cấu phần: **cảnh báo**, không chặn cứng |
+| 4. Đóng gói | `DONG_GOI` | Quét + đối chiếu cấu phần; Hỏng/Mất; lấy/trả kho theo chuẩn; sinh Cycle QR | Thiếu cấu phần: **cảnh báo**, không chặn cứng |
 | 5. Mẻ tiệt khuẩn | `TIET_KHUAN` | **Không quét trên bản đồ 6 trạm** — mở phiếu mẻ | Nạp bộ đang Đóng gói → chốt nạp → chạy máy → QC mẻ |
 | 6. Cấp phát | `CAP_PHAT` | Quét giao khoa / vào kho sạch | Soft-warning thiếu cấu phần; phải có mẻ ĐẠT |
 
@@ -127,12 +127,12 @@ flowchart TD
 | Nhóm sự cố | Hệ quả điển hình |
 |------------|------------------|
 | Quy trình (vd. mẻ fail) | Rollback / đóng băng |
-| Dụng cụ (Hỏng / Mất / Bổ sung / Điều chuyển) | Ghi sổ `cssd_fact_kho_giao_dich` |
+| Dụng cụ (Hỏng / Mất / Lấy-trả kho / Điều chuyển bộ→bộ) | Ghi sổ `cssd_fact_kho_giao_dich` |
 | Hóa chất | Xuất / điều chỉnh kho HC |
 | Thiết bị | Mở phiếu bảo trì; máy → đang sửa |
 
 **Công thức tồn thực tế (QLDCPT):**  
-Thực tế = tiêu chuẩn − (Hỏng + Mất) + Bổ sung ± Điều chuyển.
+Thực tế = tiêu chuẩn − (Hỏng + Mất) + Lấy kho − Trả kho ± Điều chuyển bộ→bộ.
 
 ---
 

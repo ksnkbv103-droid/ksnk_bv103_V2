@@ -9,7 +9,7 @@
 | Registry / routing | `@/lib/master-data/domain-registry`, `danh-muc-admin-routes` |
 | Mã loại DM nhân sự (FK) | `@/lib/master-data/nhan-su-dm-ma-loai` |
 | CRUD nội bộ DM | `danh-muc/actions/*` (không import `master-crud-core` từ module khác) |
-| Bổ sung dụng cụ CSSD (core) | `@/lib/master-data/cssd-set-replenish-core` |
+| Lấy/trả kho CSSD (core) | `@/lib/master-data/cssd-set-replenish-core` (`replenishSetInstrumentCore`, `returnSetInstrumentCore`) |
 | Bù kho lẻ / báo hỏng lẻ (facade) | `@/lib/master-data/cssd-instrument-ops.actions` |
 | Báo hỏng/mất chi tiết BOM | `@/lib/master-data/append-chi-tiet-issue-note.action` |
 | Đường dẫn revalidate | `@/lib/master-data/quan-tri-paths` |

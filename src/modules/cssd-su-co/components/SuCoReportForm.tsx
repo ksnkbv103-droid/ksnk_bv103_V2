@@ -28,6 +28,10 @@ import {
 import { isInstrumentIncidentImageRequired } from "../domain/cssd-incident-trace";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
+import {
+  validateLayKhoQty,
+  validateTraKhoQty,
+} from "@/lib/domain/cssd-instrument-incident";
 import InstrumentIncidentFields, { type InstrumentIncidentFormState } from "./InstrumentIncidentFields";
 import SuCoIncidentMetaFields, {
   defaultDetectionDateTimeLocal,
@@ -336,11 +340,22 @@ export default function SuCoReportForm({
       if (typeId === "INSTRUMENT_TRANSFER" && !instrumentState.maQrDen) {
         return toast.error("Điều chuyển cần chọn hoặc quét QR bộ đích.");
       }
-      if (
-        typeId !== "INSTRUMENT_REPLENISH" &&
-        typeId !== "INSTRUMENT_TRANSFER" &&
-        instrumentState.quantity > instrumentState.soLuongThucTe
-      ) {
+      if (typeId === "INSTRUMENT_REPLENISH") {
+        const layLoi = validateLayKhoQty(
+          instrumentState.quantity,
+          instrumentState.soLuongChuan,
+          instrumentState.soLuongThucTe,
+          instrumentState.soLuongKho,
+        );
+        if (layLoi) return toast.error(layLoi);
+      } else if (typeId === "INSTRUMENT_RETURN") {
+        const traLoi = validateTraKhoQty(
+          instrumentState.quantity,
+          instrumentState.soLuongChuan,
+          instrumentState.soLuongThucTe,
+        );
+        if (traLoi) return toast.error(traLoi);
+      } else if (instrumentState.quantity > instrumentState.soLuongThucTe) {
         return toast.error(`Số lượng không được vượt quá số thực tế (${instrumentState.soLuongThucTe}).`);
       }
     }

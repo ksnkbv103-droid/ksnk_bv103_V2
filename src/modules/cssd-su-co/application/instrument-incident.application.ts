@@ -1,14 +1,18 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  doorKindFromIncidentType,
   mapInstrumentPresetToLedgerType,
+  validateInstrumentDoorLines,
   validateIssueQuantityAgainstThucTe,
+  validateLayKhoQty,
+  validateTraKhoQty,
 } from "@/lib/domain/cssd-instrument-incident";
 import {
   appendChiTietIssueNoteCore,
   insertInstrumentIssueLedgerCore,
   type InstrumentIssueType,
 } from "@/lib/master-data/instrument-issue-core";
-import { replenishSetInstrumentCore } from "@/lib/master-data/cssd-set-replenish-core";
+import { replenishSetInstrumentCore, returnSetInstrumentCore } from "@/lib/master-data/cssd-set-replenish-core";
 import { transferBomLineBetweenQuyTrinh } from "@/modules/cssd-erp/shared/application/cssd-quy-trinh-bom";
 
 export type InstrumentIncidentPayload = {
@@ -41,6 +45,21 @@ async function readRealtimeQty(
     .maybeSingle();
   if (error) throw new Error(error.message);
   return Math.max(0, Number((data as { so_luong_thuc_te?: number } | null)?.so_luong_thuc_te ?? 0) || 0);
+}
+
+async function readChuanAndKho(
+  supabase: SupabaseClient,
+  chiTietId: string,
+  loaiDungCuId: string,
+): Promise<{ chuan: number; kho: number }> {
+  const [{ data: ct }, { data: loai }] = await Promise.all([
+    supabase.from("cssd_dm_bo_dung_cu_chi_tiet").select("so_luong").eq("id", chiTietId).maybeSingle(),
+    supabase.from("cssd_dm_loai_dung_cu").select("so_luong_kho_du_phong").eq("id", loaiDungCuId).maybeSingle(),
+  ]);
+  return {
+    chuan: Math.max(0, Number((ct as { so_luong?: number } | null)?.so_luong ?? 0) || 0),
+    kho: Math.max(0, Number((loai as { so_luong_kho_du_phong?: number } | null)?.so_luong_kho_du_phong ?? 0) || 0),
+  };
 }
 
 async function applyLedgerViaRpc(
@@ -78,6 +97,14 @@ export async function applyInstrumentIncidentLedger(
   suCoId: string,
   payload: InstrumentIncidentPayload,
 ): Promise<void> {
+  const doorErr = validateInstrumentDoorLines([
+    {
+      kind: doorKindFromIncidentType(payload.typeId),
+      hasBomLine: Boolean(String(payload.chiTietId || "").trim() && String(payload.loaiDungCuId || "").trim()),
+    },
+  ]);
+  if (doorErr) throw new Error(doorErr);
+
   const ledgerType = mapInstrumentPresetToLedgerType(payload.typeId);
   if (!ledgerType) return;
 
@@ -155,7 +182,28 @@ export async function applyInstrumentIncidentLedger(
   }
 
   if (ledgerType === "BO_SUNG") {
+    const thucTe = await readRealtimeQty(supabase, payload.boDungCuId, payload.loaiDungCuId);
+    const { chuan, kho } = await readChuanAndKho(supabase, payload.chiTietId, payload.loaiDungCuId);
+    const layErr = validateLayKhoQty(qty, chuan, thucTe, kho);
+    if (layErr) throw new Error(layErr);
     const res = await replenishSetInstrumentCore(supabase, {
+      loaiDungCuId: payload.loaiDungCuId,
+      boDungCuId: payload.boDungCuId,
+      quyTrinhId: payload.quyTrinhId,
+      quantity: qty,
+      note,
+      suCoId,
+    });
+    if (!res.success) throw new Error(res.error);
+    return;
+  }
+
+  if (ledgerType === "NHAP_KHO") {
+    const thucTe = await readRealtimeQty(supabase, payload.boDungCuId, payload.loaiDungCuId);
+    const { chuan } = await readChuanAndKho(supabase, payload.chiTietId, payload.loaiDungCuId);
+    const traErr = validateTraKhoQty(qty, chuan, thucTe);
+    if (traErr) throw new Error(traErr);
+    const res = await returnSetInstrumentCore(supabase, {
       loaiDungCuId: payload.loaiDungCuId,
       boDungCuId: payload.boDungCuId,
       quyTrinhId: payload.quyTrinhId,

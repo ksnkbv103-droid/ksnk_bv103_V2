@@ -41,7 +41,7 @@ export function CSSDCatalogQuickActions(props: {
         </Link>
       </div>
       <p className="mt-2 text-[11px] text-slate-500">
-        Báo Hỏng / Mất / Bổ sung / Điều chuyển thực hiện tại trang Báo cáo sự cố hoặc lối tắt tại trạm Đóng gói.
+        Báo Hỏng / Mất / Lấy-trả kho / Điều chuyển bộ → bộ tại trang Báo cáo sự cố hoặc lối tắt tại trạm Đóng gói. Thêm dòng định mức và sửa loại: Quản trị.
       </p>
     </section>
   );

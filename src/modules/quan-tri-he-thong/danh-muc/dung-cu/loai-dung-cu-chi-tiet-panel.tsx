@@ -64,11 +64,11 @@ export function LoaiDungCuChiTietPanel({
       DIEU_CHUYEN: "border-purple-100 bg-purple-50 text-purple-600",
     };
     const label: Record<string, string> = {
-      NHAP_KHO: "Nhập kho",
+      NHAP_KHO: "Nhập/trả kho",
       BAO_HONG: "Báo hỏng",
       BAO_MAT: "Báo mất",
-      BO_SUNG: "Bổ sung",
-      DIEU_CHUYEN: "Điều chuyển",
+      BO_SUNG: "Lấy kho",
+      DIEU_CHUYEN: "Điều chuyển bộ → bộ",
     };
     const t = tone[type] ?? "border-slate-100 bg-slate-50 text-slate-600";
     return <span className={`${UI.statusBadge} ${t}`}>{label[type] ?? type}</span>;

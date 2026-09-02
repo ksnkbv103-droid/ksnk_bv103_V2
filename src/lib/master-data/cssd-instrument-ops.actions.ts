@@ -5,6 +5,7 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import { verifyPermission } from "@/lib/server-permission";
 import { CSSD_ROUTES } from "@/lib/cssd-routes";
 import { replenishSetInstrumentCore } from "@/lib/master-data/cssd-set-replenish-core";
+import { validateLayKhoQty } from "@/lib/domain/cssd-instrument-incident";
 import {
   insertInstrumentIssueLedgerCore,
   type InstrumentIssueType,
@@ -64,12 +65,53 @@ export async function requestReplenishFromReserveAction(params: {
     };
   }
   const supabase = createAdminSupabaseClient();
+  const loaiId = String(params.loaiDungCuId || "").trim();
+  const boId = String(params.boDungCuId || "").trim();
+  const quantity = Math.max(1, Math.floor(Number(params.quantity ?? 1) || 1));
+  if (!loaiId || !boId) {
+    return { success: false as const, error: "Thiếu id loại dụng cụ hoặc bộ dụng cụ." };
+  }
+
+  const [{ data: ct }, { data: rt }, { data: loai }] = await Promise.all([
+    supabase
+      .from("cssd_dm_bo_dung_cu_chi_tiet")
+      .select("id, so_luong")
+      .eq("bo_dung_cu_id", boId)
+      .eq("loai_dung_cu_id", loaiId)
+      .eq("is_active", true)
+      .maybeSingle(),
+    supabase
+      .from("v_cssd_bo_dung_cu_chi_tiet_realtime")
+      .select("so_luong_thuc_te")
+      .eq("bo_dung_cu_id", boId)
+      .eq("loai_dung_cu_id", loaiId)
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle(),
+    supabase.from("cssd_dm_loai_dung_cu").select("so_luong_kho_du_phong").eq("id", loaiId).maybeSingle(),
+  ]);
+  const chiTietId = String((ct as { id?: string } | null)?.id || "").trim();
+  if (!chiTietId) {
+    return {
+      success: false as const,
+      error: "Lấy kho chỉ trên loại đã có dòng chuẩn trên bộ. Thêm dòng định mức ở Quản trị.",
+    };
+  }
+  const chuan = Math.max(0, Number((ct as { so_luong?: number } | null)?.so_luong ?? 0) || 0);
+  const thucTe = Math.max(0, Number((rt as { so_luong_thuc_te?: number } | null)?.so_luong_thuc_te ?? 0) || 0);
+  const kho = Math.max(
+    0,
+    Number((loai as { so_luong_kho_du_phong?: number | null } | null)?.so_luong_kho_du_phong ?? 0) || 0,
+  );
+  const layErr = validateLayKhoQty(quantity, chuan, thucTe, kho);
+  if (layErr) return { success: false as const, error: layErr };
+
   const result = await replenishSetInstrumentCore(supabase, {
-    loaiDungCuId: params.loaiDungCuId,
-    boDungCuId: params.boDungCuId,
+    loaiDungCuId: loaiId,
+    boDungCuId: boId,
     quyTrinhId: params.quyTrinhId,
-    quantity: params.quantity ?? 1,
-    note: params.note ?? "Bổ sung từ kho lẻ (facade CSSD workflow)",
+    quantity,
+    note: params.note ?? "Lấy từ kho cho đủ chuẩn (facade CSSD workflow)",
   });
   if (!result.success) return result;
 

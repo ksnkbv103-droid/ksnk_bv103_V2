@@ -11,7 +11,7 @@ import {
 import { CSSD_UI_SECTION_TITLE, CSSD_UI_TABLE_HEADER } from "../../shared/ui/cssd-ui-chrome";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
-import { requestReplenishFromReserveAction } from "@/lib/master-data/cssd-instrument-ops.actions";
+import { formatLechVsChuan, lechVsChuan, suggestedLayKhoQty, suggestedTraKhoQty } from "@/lib/domain/cssd-instrument-incident";
 
 type SuCoPrefill = {
   maBo: string;
@@ -35,7 +35,8 @@ type Props = {
 const KIND_TO_TYPE: Record<string, string> = {
   HONG: "INSTRUMENT_BROKEN",
   MAT: "INSTRUMENT_MISSING",
-  BO_SUNG: "INSTRUMENT_REPLENISH",
+  LAY_KHO: "INSTRUMENT_REPLENISH",
+  TRA_KHO: "INSTRUMENT_RETURN",
 };
 
 export default function CompositionReconcilePanel({
@@ -51,7 +52,6 @@ export default function CompositionReconcilePanel({
   const [data, setData] = useState<CompositionReconcilePayload | null>(null);
   const [suCoOpen, setSuCoOpen] = useState(false);
   const [suCoPrefill, setSuCoPrefill] = useState<SuCoPrefill | null>(null);
-  const [replenishingId, setReplenishingId] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     const id = String(boDungCuId || "").trim();
@@ -77,7 +77,7 @@ export default function CompositionReconcilePanel({
 
   if (!enabled || !boDungCuId) return null;
 
-  const openSuCo = (row: CompositionReconcileRow, kind: "HONG" | "MAT" | "BO_SUNG") => {
+  const openSuCo = (row: CompositionReconcileRow, kind: "HONG" | "MAT" | "LAY_KHO" | "TRA_KHO") => {
     if (!data) return;
     setSuCoPrefill({
       maBo: data.maBo,
@@ -86,28 +86,6 @@ export default function CompositionReconcilePanel({
       typeId: KIND_TO_TYPE[kind],
     });
     setSuCoOpen(true);
-  };
-
-  const quickReplenish = async (row: CompositionReconcileRow) => {
-    if (!data || row.reserveShortage || row.soLuongKhoDuPhong <= 0 || !row.isMissing) return;
-    const qty = Math.min(row.missingCount, row.soLuongKhoDuPhong);
-    setReplenishingId(row.chiTietId);
-    try {
-      const res = await requestReplenishFromReserveAction({
-        loaiDungCuId: row.loaiDungCuId,
-        boDungCuId: data.boDungCuId,
-        quyTrinhId: quyTrinhId || undefined,
-        quantity: qty,
-        note: `Bù nhanh từ đối chiếu đóng gói (${data.maBo})`,
-      });
-      if (!res.success) throw new Error(("error" in res && res.error) || "Không bù được kho");
-      toast.success(`Đã bù ${qty} × ${row.tenDungCuLe} từ kho dự phòng`);
-      await fetchData();
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Lỗi bù kho");
-    } finally {
-      setReplenishingId(null);
-    }
   };
 
   return (
@@ -124,7 +102,7 @@ export default function CompositionReconcilePanel({
             </p>
             {gateMode ? (
               <p className="mt-1 text-[11px] font-medium leading-relaxed text-amber-800">
-                Kiểm đếm từng dụng cụ; báo Hỏng / Mất / Bổ sung nếu cần. Sau đó bạn quyết định có chuyển chờ tiệt khuẩn hay không.
+                Đếm từng dụng cụ. Đếm thấp hơn số trên bộ → Hỏng/Mất. Thiếu so với chuẩn (loại đã có) → Lấy từ kho. Thừa so với chuẩn → Trả kho. Thêm dòng định mức / sửa loại: Quản trị.
               </p>
             ) : null}
           </div>
@@ -157,7 +135,7 @@ export default function CompositionReconcilePanel({
           <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-900">
             <AlertCircle className="mt-0.5 shrink-0" size={18} />
             <p className="text-[11px] font-medium">
-              Bộ đang thiếu cấu phần so với thiết kế. Bấm «Báo sự cố» trên dòng tương ứng để ghi Hỏng / Mất / Bổ sung.
+              Bộ lệch so với chuẩn trên loại đã có. Hỏng/Mất khi đếm thấp hơn số đang gắn bộ — không trả kho dòng đó.
             </p>
           </div>
         ) : null}
@@ -176,7 +154,9 @@ export default function CompositionReconcilePanel({
         ) : null}
 
         {!loading && data && data.items.length === 0 ? (
-          <p className="text-center text-xs text-slate-400 py-6">Chưa có cấu phần trong danh mục bộ.</p>
+          <p className="text-center text-xs text-slate-400 py-6">
+            Chưa có cấu phần trong danh mục bộ. Thêm dòng định mức ở Quản trị — không lấy kho.
+          </p>
         ) : null}
 
         {data && data.items.length > 0 ? (
@@ -185,13 +165,19 @@ export default function CompositionReconcilePanel({
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
                   <th className={`px-2 py-2 ${CSSD_UI_TABLE_HEADER}`}>Cấu phần</th>
-                  <th className={`px-2 py-2 text-center ${CSSD_UI_TABLE_HEADER} w-12`}>KH</th>
-                  <th className={`px-2 py-2 text-center ${CSSD_UI_TABLE_HEADER} w-12`}>TT</th>
-                  <th className={`px-2 py-2 text-center ${CSSD_UI_TABLE_HEADER} w-40`}>Thao tác</th>
+                  <th className={`px-2 py-2 text-center ${CSSD_UI_TABLE_HEADER} w-14`}>Chuẩn</th>
+                  <th className={`px-2 py-2 text-center ${CSSD_UI_TABLE_HEADER} w-12`}>Bộ</th>
+                  <th className={`px-2 py-2 text-center ${CSSD_UI_TABLE_HEADER} w-24`}>Lệch</th>
+                  <th className={`px-2 py-2 text-center ${CSSD_UI_TABLE_HEADER} w-44`}>Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {data.items.map((row) => (
+                {data.items.map((row) => {
+                  const lech = lechVsChuan(row.soLuongKeHoach, row.soLuongThucTe);
+                  const canLay =
+                    suggestedLayKhoQty(row.soLuongKeHoach, row.soLuongThucTe, row.soLuongKhoDuPhong) > 0;
+                  const canTra = suggestedTraKhoQty(row.soLuongKeHoach, row.soLuongThucTe) > 0;
+                  return (
                   <tr key={row.chiTietId} className={row.isMissing ? "bg-red-50/40" : ""}>
                     <td className="px-2 py-2 font-semibold text-slate-800">
                       {row.tenDungCuLe}
@@ -209,6 +195,9 @@ export default function CompositionReconcilePanel({
                         {row.soLuongThucTe}
                       </span>
                     </td>
+                    <td className="px-2 py-2 text-center text-[11px] font-semibold text-slate-600">
+                      {formatLechVsChuan(lech)}
+                    </td>
                     <td className="px-2 py-2">
                       <div className="flex flex-wrap justify-center gap-1">
                         <button
@@ -225,27 +214,29 @@ export default function CompositionReconcilePanel({
                         >
                           Mất
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => openSuCo(row, "BO_SUNG")}
-                          className="rounded-lg border border-emerald-200 bg-emerald-50 px-1.5 py-1 text-[11px] font-semibold uppercase text-emerald-800"
-                        >
-                          Bổ sung
-                        </button>
-                        {row.isMissing && row.soLuongKhoDuPhong > 0 && !row.reserveShortage ? (
+                        {canLay ? (
                           <button
                             type="button"
-                            disabled={replenishingId === row.chiTietId}
-                            onClick={() => void quickReplenish(row)}
-                            className="rounded-lg border border-sky-200 bg-sky-50 px-1.5 py-1 text-[11px] font-semibold uppercase text-sky-800 disabled:opacity-50"
+                            onClick={() => openSuCo(row, "LAY_KHO")}
+                            className="rounded-lg border border-emerald-200 bg-emerald-50 px-1.5 py-1 text-[11px] font-semibold uppercase text-emerald-800"
                           >
-                            {replenishingId === row.chiTietId ? "…" : "Bù kho"}
+                            Lấy từ kho cho đủ chuẩn
+                          </button>
+                        ) : null}
+                        {canTra ? (
+                          <button
+                            type="button"
+                            onClick={() => openSuCo(row, "TRA_KHO")}
+                            className="rounded-lg border border-sky-200 bg-sky-50 px-1.5 py-1 text-[11px] font-semibold uppercase text-sky-800"
+                          >
+                            Trả phần thừa về kho
                           </button>
                         ) : null}
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </ResponsiveTableShell>

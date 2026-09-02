@@ -6,6 +6,7 @@ describe("cssd-routes deep links", () => {
     expect(cssdSuCoInstrumentHref({ type: "INSTRUMENT_BROKEN", ma: "B01" })).toContain(
       `${CSSD_ROUTES.suCo}?`,
     );
+    expect(cssdSuCoInstrumentHref({ type: "INSTRUMENT_RETURN", ma: "B01" })).toContain("type=INSTRUMENT_RETURN");
     expect(cssdSuCoInstrumentHref({ ma: "B01" })).toContain("group=INSTRUMENT");
     expect(cssdSuCoInstrumentHref({ ma: "B01" })).toContain("ma=B01");
   });
