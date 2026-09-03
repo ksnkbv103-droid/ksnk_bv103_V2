@@ -5,7 +5,7 @@ import { Plus, Settings, Wrench, CheckCircle2, Zap } from "lucide-react";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
-import { ImportExportHint, ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
+import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { toast } from "sonner";
 import ThietBiFormModal from "./thiet-bi-form-modal";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
@@ -126,7 +126,7 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
   );
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-700">
+    <div className="space-y-3 animate-in fade-in duration-700">
       {!suppressHeader && (
         <KsnkListPageHeader
           icon={Settings}
@@ -142,7 +142,6 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
           }
         />
       )}
-      <ImportExportHint />
 
       {/* Nếu suppressHeader là true, ta cần render lại các nút hành động (Add, Import) để không bị mất chức năng */}
       {suppressHeader && (
@@ -159,7 +158,7 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
         <div className="bg-white p-5 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
           <div>
             <p className="text-[11px] font-medium text-slate-500">Tổng số máy móc</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-800">{totalThietBi}</p>
+            <p className="mt-1 bv103-type-kpi tabular-nums text-slate-800">{totalThietBi}</p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500">
             <Settings size={20} />
@@ -169,7 +168,7 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
         <div className="bg-white p-5 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
           <div>
             <p className="text-[11px] font-medium text-slate-500">Sẵn sàng vận hành</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-emerald-600">{readyCount}</p>
+            <p className="mt-1 bv103-type-kpi tabular-nums text-emerald-600">{readyCount}</p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
             <CheckCircle2 size={20} />
@@ -179,7 +178,7 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
         <div className="bg-white p-5 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
           <div>
             <p className="text-[11px] font-medium text-slate-500">Đang bảo trì / sửa chữa</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-rose-600">{repairingCount}</p>
+            <p className="mt-1 bv103-type-kpi tabular-nums text-rose-600">{repairingCount}</p>
           </div>
           <div className={`h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 ${repairingCount > 0 ? "animate-pulse" : ""}`}>
             <Wrench size={20} />
@@ -189,7 +188,7 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
         <div className="bg-white p-5 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
           <div>
             <p className="text-[11px] font-medium text-slate-500">Tổng mẻ tiệt khuẩn</p>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-amber-600">{totalMeTietKhuan}</p>
+            <p className="mt-1 bv103-type-kpi tabular-nums text-amber-600">{totalMeTietKhuan}</p>
           </div>
           <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
             <Zap size={20} />
@@ -197,7 +196,7 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
         </div>
       </div>
       
-      <div className="bg-white p-2 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm min-w-0 sm:min-h-[450px]">
+      <div className="min-w-0 sm:min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
           data={data}

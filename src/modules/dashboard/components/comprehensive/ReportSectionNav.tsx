@@ -17,27 +17,31 @@ export type ReportSectionId =
   | "bc-chuyen-de"
   | "bc-phan-iii";
 
-/** Mục chính — luôn hiện trên thanh điều hướng (giảm mật độ 11 tab). */
+/** Mục chính — in họp: số + xu hướng + khoa kém + nhận xét. */
 const PRIMARY_SECTIONS: { id: ReportSectionId; label: string; mobileLabel?: string }[] = [
   { id: "bc-kpi", label: "Tổng quan" },
   { id: "bc-trend", label: "Xu hướng" },
-  { id: "bc-vst", label: "VST" },
-  { id: "bc-gsc", label: "GSC" },
+  { id: "bc-vst", label: "Vệ sinh tay" },
+  { id: "bc-gsc", label: "Giám sát chung" },
   { id: "bc-nkbv", label: "NKBV" },
-  { id: "bc-cssd", label: "CSSD" },
   { id: "bc-phan-iii", label: "Phần III", mobileLabel: "P.III" },
 ];
 
-/** Mục phụ — gói trong «Thêm». */
-const MORE_SECTIONS: { id: ReportSectionId; label: string }[] = [
-  { id: "bc-gsc-bk", label: "BK cần can thiệp" },
+/** Mục phụ — chỉ render khi mở «Thêm». */
+export const BCTH_MORE_SECTIONS: { id: ReportSectionId; label: string }[] = [
+  { id: "bc-gsc-bk", label: "Bảng kiểm cần can thiệp" },
   { id: "bc-dimension", label: "Đa chiều" },
   { id: "bc-thoi-diem", label: "Thời điểm" },
   { id: "bc-chuyen-de", label: "Chuyên đề" },
+  { id: "bc-cssd", label: "Phụ lục CSSD" },
 ];
+
+const MORE_SECTIONS = BCTH_MORE_SECTIONS;
 
 type Props = {
   activeId?: ReportSectionId;
+  moreOpen?: boolean;
+  onMoreOpenChange?: (open: boolean) => void;
 };
 
 function sectionLinkClass(active: boolean) {
@@ -48,9 +52,15 @@ function sectionLinkClass(active: boolean) {
   }`;
 }
 
-export function ReportSectionNav({ activeId }: Props) {
+export function ReportSectionNav({ activeId, moreOpen: moreOpenProp, onMoreOpenChange }: Props) {
   const moreActive = MORE_SECTIONS.some((s) => s.id === activeId);
-  const [moreOpen, setMoreOpen] = useState(moreActive);
+  const [moreOpenInner, setMoreOpenInner] = useState(moreActive);
+  const moreOpen = moreOpenProp ?? moreOpenInner;
+  const setMoreOpen = (next: boolean | ((v: boolean) => boolean)) => {
+    const value = typeof next === "function" ? next(moreOpen) : next;
+    setMoreOpenInner(value);
+    onMoreOpenChange?.(value);
+  };
 
   return (
     <nav aria-label="Mục lục báo cáo" className="sticky top-[5.25rem] z-10 mb-3">
@@ -103,7 +113,7 @@ export function ReportSection({
 }) {
   return (
     <section id={id} className={`scroll-mt-24 ${className}`}>
-      <h2 className="mb-2 text-[11px] font-semibold tracking-wide text-slate-500">{title}</h2>
+      <h2 className="mb-[var(--bv103-space-2)] bv103-type-label font-semibold tracking-wide text-slate-500">{title}</h2>
       {children}
     </section>
   );

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, ExternalLink, Layers, Loader2, PackagePlus, RefreshCcw } from "lucide-react";
+import { AlertTriangle, Layers, Loader2, PackagePlus, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import DungCuChiTietFormModal from "./dung-cu-chi-tiet-form-modal";
@@ -168,22 +168,19 @@ export function BoDungCuChiTietPanel({
 
   return (
     <section
-      className="rounded-[var(--radius-shell)] border border-emerald-100/85 bg-gradient-to-br from-white to-emerald-50/10 p-8 shadow-xl"
+      className="bv103-layer-panel bv103-pad-panel"
       aria-label="Dụng cụ chi tiết trong bộ đã chọn"
     >
-      <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4">
+      <div className="mb-[var(--bv103-space-3)] flex flex-col gap-[var(--bv103-space-2)] border-b border-slate-100 pb-[var(--bv103-space-3)] sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-[var(--primary)]">
           <Layers className="h-5 w-5 shrink-0" aria-hidden />
           <h3 className={C.panelTitle}>
             Quản lý thành phần bộ{titleBit}
           </h3>
         </div>
-        <Link
-          href="/quan-tri-he-thong/danh-muc/dung-cu"
-          className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 underline-offset-2 hover:underline"
-        >
-          Mở trang quản trị chi tiết lẻ <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-        </Link>
+        <p className="text-[11px] font-medium text-emerald-800">
+          Thành phần của bộ đang chọn — không cần sang trang khác.
+        </p>
       </div>
 
       {!selectedBoId ? (
@@ -194,7 +191,7 @@ export function BoDungCuChiTietPanel({
           </p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-[var(--bv103-space-3)]">
           {/* Tab Selection */}
           {phan_loai_bo === "THU_THUAT" && (
             <div className="flex gap-1.5 bg-slate-100 p-1 rounded-xl w-fit">
@@ -284,7 +281,7 @@ export function BoDungCuChiTietPanel({
                   </Link>
                 </div>
 
-                <ResponsiveTableShell unboxed className="rounded-[var(--radius-shell)] border border-slate-100 bg-white" maxHeight="max-h-[min(360px,50dvh)]">
+                <ResponsiveTableShell unboxed maxHeight="max-h-[min(360px,50dvh)]">
                   <table className="w-full min-w-[640px] border-collapse text-left text-sm">
                     <thead>
                       <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-medium text-slate-500">
@@ -305,7 +302,7 @@ export function BoDungCuChiTietPanel({
                           onClick={() => setSelectedChiTietId((cur) => (cur === r.id ? null : r.id))}
                           className={`${r.is_active === false ? "opacity-60" : ""} ${selectedChiTietId === r.id ? "bg-emerald-50/70 ring-1 ring-inset ring-emerald-200" : "hover:bg-slate-50"} cursor-pointer`}
                         >
-                          <td className="p-3 font-mono text-xs font-bold text-indigo-700">{r.ma_chi_tiet || "—"}</td>
+                          <td className="p-3 font-mono bv103-type-label font-semibold text-indigo-700">{r.ma_chi_tiet || "—"}</td>
                           <td className="p-3 text-xs font-semibold text-slate-800">{clip(r.ten_chi_tiet || r.ten_dung_cu_le, 80)}</td>
                           <td className="p-3 text-xs text-slate-600">
                             {r.loai_dung_cu?.ma_danh_muc ? (
@@ -317,7 +314,7 @@ export function BoDungCuChiTietPanel({
                               "—"
                             )}
                           </td>
-                          <td className="p-3 text-center text-xs font-bold">{r.so_luong ?? "—"}</td>
+                          <td className="p-3 text-center bv103-type-label font-semibold">{r.so_luong ?? "—"}</td>
                           <td className="p-3 text-center text-xs">{r.max_suds_count ?? "—"}</td>
                           <td className="p-3 text-center text-xs">{r.trong_luong != null && r.trong_luong !== "" ? String(r.trong_luong) : "—"}</td>
                           <td className="p-3 text-xs text-slate-500">{clip(r.ghi_chu, 64)}</td>
@@ -331,7 +328,7 @@ export function BoDungCuChiTietPanel({
                 </ResponsiveTableShell>
 
                 {selectedChiTiet ? (
-                  <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/80 p-6 space-y-4">
+                  <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/80 p-6 space-y-[var(--bv103-space-3)]">
                     <p className={C.innerTableHead}>
                       Loại dụng cụ đang chọn:{" "}
                       <span className="text-[var(--primary)]">
@@ -483,7 +480,7 @@ export function BoDungCuChiTietPanel({
                   Chưa có phân bổ cơ số khoa phòng nào cho bộ này.
                 </p>
               ) : (
-                <ResponsiveTableShell unboxed className="rounded-[var(--radius-shell)] border border-slate-100 bg-white" maxHeight="max-h-[min(360px,50dvh)]">
+                <ResponsiveTableShell unboxed maxHeight="max-h-[min(360px,50dvh)]">
                   <table className="w-full min-w-[500px] border-collapse text-left text-sm">
                     <thead>
                       <tr className="border-b border-slate-200 bg-slate-50/90 text-[11px] font-medium text-slate-500">
@@ -499,15 +496,15 @@ export function BoDungCuChiTietPanel({
                         const gap = a.so_luong_hien_tai - a.so_luong_co_so;
                         return (
                         <tr key={a.id} className="hover:bg-slate-50/50">
-                          <td className="p-3 font-mono text-xs font-bold text-rose-700">
+                          <td className="p-3 font-mono bv103-type-label font-semibold text-rose-700">
                             {formatKhoaCompactLabel({
                               ma_khoa: a.khoa_phong?.ma_khoa,
                               ten_khoa: a.khoa_phong?.ten_khoa,
                             })}
                           </td>
                           <td className="p-3 text-center text-xs font-semibold text-slate-700">{a.so_luong_co_so}</td>
-                          <td className="p-3 text-center text-xs font-bold text-emerald-700">{a.so_luong_hien_tai}</td>
-                          <td className={`p-3 text-center text-xs font-bold ${gap < 0 ? "text-rose-600" : gap > 0 ? "text-amber-600" : "text-slate-500"}`}>
+                          <td className="p-3 text-center bv103-type-label font-semibold text-emerald-700">{a.so_luong_hien_tai}</td>
+                          <td className={`p-3 text-center bv103-type-label font-semibold ${gap < 0 ? "text-rose-600" : gap > 0 ? "text-amber-600" : "text-slate-500"}`}>
                             {gap > 0 ? `+${gap}` : gap}
                           </td>
                           <td className="p-3 text-right flex justify-end gap-1.5">

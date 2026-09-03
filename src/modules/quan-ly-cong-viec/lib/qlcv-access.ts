@@ -1,9 +1,9 @@
 import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
-import { getBoardLaneId, type CongViecBoardInput } from "./qlcv-board-lanes";
+import { isBoardLaneQuaHan, type CongViecBoardInput } from "./qlcv-board-lanes";
 import { isDeXuatChoDuyet, type CongViecLike } from "./qlcv-workflow-display";
 
-/** Dòng fact / view có đủ trường để kiểm tra quyền CRUD nhiệm vụ gốc + lane quá hạn. */
+/** Dòng fact / view có đủ trường để kiểm tra quyền CRUD nhiệm vụ gốc + nhãn quá hạn. */
 export type QlcvTaskAccessRow = CongViecLike & {
   nguoi_tao_id?: string | null;
   nguoi_giao_viec_id?: string | null;
@@ -16,9 +16,9 @@ function rowAsBoardInput(row: QlcvTaskAccessRow): CongViecBoardInput {
   return row as CongViecBoardInput;
 }
 
-/** Lane UX «Quá hạn» — khớp `getBoardLaneId` (mã QUA_HAN / cờ view / hạn qua). */
-export function isQlcvTaskInQuaHanLane(row: QlcvTaskAccessRow): boolean {
-  return getBoardLaneId(rowAsBoardInput(row)) === "lane_qua_han";
+/** Việc mở đã quá hạn — nhãn trên phiếu, không phải cột Kanban. */
+export function isQlcvTaskOverdue(row: QlcvTaskAccessRow): boolean {
+  return isBoardLaneQuaHan(rowAsBoardInput(row));
 }
 
 /** Phiếu active đã giao (không còn đề xuất chờ duyệt). */
@@ -49,10 +49,10 @@ export type QlcvUiAccessFlags = {
 
 /**
  * Xóa: quản trị / quyền `CONG_VIEC` delete luôn được.
- * Việc **quá hạn** (lane đỏ): không cho xóa “nháp” theo người tạo — cần quyền xóa hoặc quản trị (chỉ huy vận hành qua RBAC).
+ * Việc **quá hạn**: không cho xóa “nháp” theo người tạo — cần quyền xóa hoặc quản trị (chỉ huy vận hành qua RBAC).
  */
 export function canShowDeleteTask(row: QlcvTaskAccessRow, f: QlcvUiAccessFlags): boolean {
-  if (isQlcvTaskInQuaHanLane(row) && !f.isRBACAdmin && !f.hasDelete) return false;
+  if (isQlcvTaskOverdue(row) && !f.isRBACAdmin && !f.hasDelete) return false;
   return f.isRBACAdmin || f.hasDelete;
 }
 
@@ -69,7 +69,7 @@ export function canShowEditTaskMetadata(row: QlcvTaskAccessRow, f: QlcvUiAccessF
 
 /**
  * Form báo cáo % — ẩn khi đề xuất chưa kích hoạt, khi chờ nghiệm thu (trừ quản trị chỉnh tay), hoặc đã đóng.
- * Cổng nghiệm thu = `isEligibleForNghiemThu` (gồm QUA_HAN@100%).
+ * Cổng nghiệm thu = `isEligibleForNghiemThu` (đột xuất/khẩn; không gồm định kỳ).
  */
 export function canShowHoatDongProgressSection(row: QlcvTaskAccessRow, f: QlcvUiAccessFlags): boolean {
   const st = normalizeQlcvTrangThaiToCanonical(row.trang_thai);
@@ -91,4 +91,10 @@ export function canShowDirectCreateTask(f: QlcvUiAccessFlags): boolean {
 /** Phê duyệt đề xuất / Kanban duyệt — `approve` hoặc `edit` (tương thích role cũ). */
 export function canShowQlcvApproveActions(f: QlcvUiAccessFlags): boolean {
   return f.isRBACAdmin || f.hasApprove || f.hasEdit;
+}
+
+/** Hủy khi chờ nghiệm thu — cùng quyền với action `huyKhiChoNghiemThuKhongDat` (xóa). */
+export function canShowHuyKhiNghiemThuKhongDat(row: QlcvTaskAccessRow, f: QlcvUiAccessFlags): boolean {
+  if (!isEligibleForNghiemThu(row)) return false;
+  return f.isRBACAdmin || f.hasDelete;
 }

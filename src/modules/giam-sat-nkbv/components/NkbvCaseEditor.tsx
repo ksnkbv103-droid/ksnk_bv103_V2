@@ -163,8 +163,8 @@ export default function NkbvCaseEditor({
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[10050] flex items-center justify-center overflow-y-auto bg-slate-900/45 p-4 backdrop-blur-sm">
-      <div className="relative my-8 w-full max-w-3xl rounded-[28px] border border-slate-100 bg-white p-6 shadow-2xl">
+    <div className="fixed inset-0 z-[10050] flex items-center justify-center overflow-y-auto bg-slate-900/40 p-4">
+      <div className="relative my-8 w-full max-w-3xl rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-[var(--shadow-app-soft)]">
         <button
           type="button"
           onClick={onClose}
@@ -181,7 +181,7 @@ export default function NkbvCaseEditor({
           lưu trên phiếu này.
         </p>
         {row?.id ? <NkbvCaseQrPanel caseId={String(row.id)} /> : null}
-        <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-1">
+        <div className="max-h-[70vh] space-y-[var(--bv103-space-3)] overflow-y-auto pr-1">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className={C.formLabel}>Mã phiếu</label>

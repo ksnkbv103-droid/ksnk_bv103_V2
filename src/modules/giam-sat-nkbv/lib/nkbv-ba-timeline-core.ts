@@ -42,6 +42,9 @@ export type BaTimelineMilestone = {
   tac_nhan?: string | null;
   so_luong?: string | null;
   is_mdro?: boolean;
+  /** Nhãn bệnh phẩm LIS gốc (trước chuẩn hóa). */
+  lis_goc?: string | null;
+  ket_qua_duong_tinh?: boolean | null;
   /** Khóa tiêu chuẩn CDC khi mốc là yếu tố chẩn đoán (XQ, sốt…). */
   criteriaKey?: NkbvCriteriaKey | null;
   majorType: NkbvMajorType;
@@ -358,7 +361,7 @@ export function mergeBaTimelineMilestones(input: {
     so_luong?: string | null;
     is_mdro?: boolean;
     ma_xet_nghiem?: string | null;
-    /** Chỉ đưa lên timeline khi dương tính (hub đã lọc; vẫn chặn phòng thủ). */
+    /** Đưa mọi XN có ngày lấy mẫu lên lưới (dương / âm / nhiễm). */
     ket_qua_phan_loai?: string | null;
     ket_qua_duong_tinh?: boolean | null;
   }>;
@@ -389,7 +392,6 @@ export function mergeBaTimelineMilestones(input: {
       r.ket_qua_duong_tinh === true ||
       phanLoai === "DUONG_TINH" ||
       (r.ket_qua_duong_tinh == null && !phanLoai && Boolean(r.tac_nhan));
-    if (!isPos) continue;
     const specimenAlgo = effectiveSpecimenForAlgorithm({
       loai_benh_pham_chuan: r.loai_benh_pham_chuan,
       loai_benh_pham: r.loai_benh_pham,
@@ -410,7 +412,7 @@ export function mergeBaTimelineMilestones(input: {
       kind: "LIS",
       title: specimenDisplay || "Vi sinh",
       detail: [
-        r.tac_nhan,
+        isPos ? r.tac_nhan : "Âm tính",
         soLuong ? `SL ${soLuong}` : null,
         r.ma_xet_nghiem ? `XN ${r.ma_xet_nghiem}` : null,
         r.is_mdro ? "MDRO" : null,
@@ -424,6 +426,8 @@ export function mergeBaTimelineMilestones(input: {
       tac_nhan: r.tac_nhan,
       so_luong: soLuong || null,
       is_mdro: Boolean(r.is_mdro),
+      lis_goc: r.loai_benh_pham ? String(r.loai_benh_pham) : null,
+      ket_qua_duong_tinh: isPos,
       majorType,
       gate: mapSpecimenToGate({
         loai_benh_pham: specimenAlgo || r.loai_benh_pham,

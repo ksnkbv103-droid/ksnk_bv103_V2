@@ -1,8 +1,8 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type { Catalog, CSSDBo, CSSDChiTiet } from "../types/catalog.types";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
-import { ListFilter } from "lucide-react";
 
 export function CSSDCatalogChiTietTab(props: {
   catalog: Catalog;
@@ -12,40 +12,32 @@ export function CSSDCatalogChiTietTab(props: {
   setSelectedLoaiId: (id: string) => void;
   selectedChiTiet: CSSDChiTiet | null;
   boBySelectedChiTietLoai: CSSDBo[];
+  toolbar?: ReactNode;
 }) {
   const {
     chiTietRows,
     selectedChiTietId,
     setSelectedChiTietId,
     setSelectedLoaiId,
+    toolbar,
   } = props;
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ListFilter className="h-5 w-5 text-[var(--primary)]" />
-            <h3 className="text-sm font-bold text-slate-800">
-              Chi tiết Bộ dụng cụ / Dụng cụ thành phần ({chiTietRows.length})
-            </h3>
-          </div>
-          <span className="text-xs text-slate-500 font-medium">Danh sách toàn bộ các dòng dụng cụ lẻ trong hệ thống</span>
-        </div>
-
-        <ResponsiveTableShell unboxed className="relative rounded-xl border border-slate-100" maxHeight="max-h-[500px]">
+    <div className="space-y-[var(--bv103-space-3)]">
+      <section className="space-y-2">
+        <ResponsiveTableShell maxHeight="max-h-[500px]" toolbar={toolbar}>
           <table className="w-full min-w-[720px] border-collapse text-left text-sm text-slate-700">
             <thead>
-              <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">
-                <th className="px-4 py-3">Mã dụng cụ</th>
-                <th className="px-4 py-3">Tên dụng cụ thành phần</th>
-                <th className="px-4 py-3">Thuộc bộ dụng cụ</th>
-                <th className="px-4 py-3">Loại dụng cụ</th>
-                <th className="px-4 py-3 text-center">Số lượng trong bộ</th>
-                <th className="px-4 py-3 text-center">Mã khắc / QR mẫu</th>
-                <th className="px-4 py-3 text-center">Chu kỳ tối đa</th>
-                <th className="px-4 py-3 text-center">Trọng lượng (g)</th>
-                <th className="px-4 py-3">Ghi chú</th>
+              <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500">
+                <th className="px-2.5 py-1.5">Mã dụng cụ</th>
+                <th className="px-2.5 py-1.5">Tên dụng cụ thành phần</th>
+                <th className="px-2.5 py-1.5">Thuộc bộ dụng cụ</th>
+                <th className="px-2.5 py-1.5">Loại dụng cụ</th>
+                <th className="px-2.5 py-1.5 text-center">Số lượng trong bộ</th>
+                <th className="px-2.5 py-1.5 text-center">Mã khắc / QR mẫu</th>
+                <th className="px-2.5 py-1.5 text-center">Chu kỳ tối đa</th>
+                <th className="px-2.5 py-1.5 text-center">Trọng lượng (g)</th>
+                <th className="px-2.5 py-1.5">Ghi chú</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -62,32 +54,32 @@ export function CSSDCatalogChiTietTab(props: {
                       isSelected ? "bg-sky-50/70 font-medium text-slate-900" : ""
                     }`}
                   >
-                    <td className="px-4 py-3.5 font-bold text-indigo-600">{x.ma_chi_tiet || "—"}</td>
-                    <td className="px-4 py-3.5 font-semibold">{x.ten_chi_tiet || "—"}</td>
-                    <td className="px-4 py-3.5 text-xs font-bold text-[var(--primary)]">
+                    <td className="px-2.5 py-1.5 font-bold text-indigo-600">{x.ma_chi_tiet || "—"}</td>
+                    <td className="px-2.5 py-1.5 font-semibold">{x.ten_chi_tiet || "—"}</td>
+                    <td className="px-2.5 py-1.5 bv103-type-label font-semibold text-[var(--primary)]">
                       {x.ten_bo || "Dụng cụ lẻ (Chưa gán bộ)"}
                     </td>
-                    <td className="px-4 py-3.5 text-slate-600">{x.ten_loai || "Chưa gán loại"}</td>
-                    <td className="px-4 py-3.5 text-center font-bold text-slate-800">
+                    <td className="px-2.5 py-1.5 text-slate-600">{x.ten_loai || "Chưa gán loại"}</td>
+                    <td className="px-2.5 py-1.5 text-center font-bold text-slate-800">
                       {x.so_luong ?? 1}
                     </td>
-                    <td className="px-4 py-3.5 text-center font-mono text-xs text-slate-500">
+                    <td className="px-2.5 py-1.5 text-center font-mono text-xs text-slate-500">
                       {x.ma_qr_mau || "—"}
                     </td>
-                    <td className="px-4 py-3.5 text-center text-slate-500">
+                    <td className="px-2.5 py-1.5 text-center text-slate-500">
                       {x.max_suds_count ?? "Không giới hạn"}
                     </td>
-                    <td className="px-4 py-3.5 text-center text-slate-500">
+                    <td className="px-2.5 py-1.5 text-center text-slate-500">
                       {x.trong_luong ?? "—"}
                     </td>
-                    <td className="px-4 py-3.5 text-xs text-slate-400">{x.ghi_chu || "—"}</td>
+                    <td className="px-2.5 py-1.5 text-xs text-slate-400">{x.ghi_chu || "—"}</td>
                   </tr>
                 );
               })}
               {chiTietRows.length === 0 && (
                 <tr>
                   <td colSpan={9} className="py-6 text-center text-sm text-slate-500">
-                    Không tìm thấy dụng cụ thành phần nào khớp từ khóa.
+                    Gõ mã hoặc tên ở ô tìm phía trên (mỗi lần hiện tối đa 20 kết quả).
                   </td>
                 </tr>
               )}

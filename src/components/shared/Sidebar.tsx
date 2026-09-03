@@ -96,7 +96,7 @@ function SidebarNavLinks({ onClose }: { onClose: () => void }) {
     : [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-[var(--bv103-space-3)]">
       {loading ? (
         <div className="px-4 py-3 text-xs font-medium text-slate-400" aria-busy="true">
           Đang tải menu…

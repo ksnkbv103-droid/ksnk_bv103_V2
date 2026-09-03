@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { KsnkPageChrome } from "@/components/shared/KsnkPageChrome";
+import { bv103Layers } from "@/hooks/useBv103Chrome";
 
 export type SupervisionTabDef = {
   id: string;
@@ -34,6 +35,7 @@ export function KsnkSupervisionHero({
   actions,
   trailing,
   density: _density = "compact",
+  showTitle = true,
 }: {
   eyebrow?: string | null;
   title: React.ReactNode;
@@ -44,6 +46,8 @@ export function KsnkSupervisionHero({
   trailing?: React.ReactNode;
   /** @deprecated Luôn compact theo page-chrome-contract. */
   density?: "default" | "compact";
+  /** false = App Header đã có tên trang. */
+  showTitle?: boolean;
 }) {
   const actionRow =
     trailing || actions ? (
@@ -59,7 +63,7 @@ export function KsnkSupervisionHero({
       title={title}
       subtitle={description}
       actions={actionRow}
-      showTitle
+      showTitle={showTitle}
     />
   );
 }
@@ -141,5 +145,9 @@ export function KsnkSupervisionTabLinks({
 
 /** Vùng bọc nội dung tab (lịch sử, bảng). */
 export function KsnkSupervisionPanel({ className = "", children }: { className?: string; children: React.ReactNode }) {
-  return <div className={`animate-in fade-in slide-in-from-bottom-2 duration-300 ${className}`}>{children}</div>;
+  return (
+    <div className={`${bv103Layers.page} animate-in fade-in slide-in-from-bottom-2 duration-300 ${className}`}>
+      {children}
+    </div>
+  );
 }

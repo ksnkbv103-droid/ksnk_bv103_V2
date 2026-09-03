@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildQuyTrinhTramPatch } from "../lib/cssd-tram-persist";
-import { tableHasColumn } from "../shared/cssd-db-utils";
 import { appendQuyTrinhException } from "../actions/cssd-action-common";
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
-import { buildIncidentAttributes } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
+import { executeIncidentReportAndRollback } from "@/modules/cssd-su-co/application/su-co-report.application";
+import { revalidateCssdIncidentSurfaces } from "@/lib/cssd-server-common";
 
 export type PersistMeTietKhuanInput = {
   activeMeId: string;
@@ -60,7 +60,17 @@ function validateMeTietKhuanPassPayload(p: PersistMeTietKhuanInput): string | nu
 export async function persistMeTietKhuanFinishWithClient(
   client: SupabaseClient,
   p: PersistMeTietKhuanInput,
-): Promise<{ ok: true } | { ok: false; message: string }> {
+): Promise<
+  | {
+      ok: true;
+      incidentIds?: string[];
+      createdCount?: number;
+      skippedCount?: number;
+      recalledCount?: number;
+      machineHeld?: boolean;
+    }
+  | { ok: false; message: string }
+> {
   const { data: gateRow, error: gateErr } = await client
     .from("cssd_fact_lo_tiet_khuan")
     .select("tk_mo_form_qc_at, ket_qua_test, tk_qc_json")
@@ -70,7 +80,7 @@ export async function persistMeTietKhuanFinishWithClient(
   if (!gateRow) return { ok: false, message: "Không tìm thấy mẻ tiệt khuẩn." };
   const g = gateRow as { tk_mo_form_qc_at?: string | null; ket_qua_test?: boolean | null; tk_qc_json?: unknown };
   if (!g.tk_mo_form_qc_at) {
-    return { ok: false, message: "Chưa mở bước đánh giá QC — bấm «Kết thúc chu trình tiệt khuẩn» trước." };
+    return { ok: false, message: "Chưa mở bước đánh giá QC — bấm «Xong máy — mở đánh giá QC» trước." };
   }
   if (g.ket_qua_test === true || g.ket_qua_test === false) {
     return { ok: false, message: "Mẻ đã có kết quả QC — không ghi đè." };
@@ -106,6 +116,64 @@ export async function persistMeTietKhuanFinishWithClient(
 
   const ghiChu = `Nhiệt/Áp: ${p.nhietDo} | Người dỡ: ${p.nguoiUnload} | TX:${p.chiThiTiepXuc || "—"} ĐTS:${p.chiThiDaThongSo || "—"} | BI:${p.testBI} CI:${p.testCI} BD:${p.testBD} | SH:${p.testSinhHoc || "NA"}`;
   const now = new Date().toISOString();
+
+  let failIncidents: {
+    incidentIds: string[];
+    createdCount: number;
+    skippedCount: number;
+    recalledCount: number;
+    machineHeld: boolean;
+  } | null = null;
+  if (!p.isPass) {
+    let qrRow: {
+      id: string;
+      ma_qr_quy_trinh?: string | null;
+      tram_hien_tai_id?: string | null;
+      lo_tiet_khuan_id?: string | null;
+    } | null = null;
+    if (p.quyTrinhIds.length > 0) {
+      const { data: qrsData, error: qrReadErr } = await client
+        .from("cssd_fact_quy_trinh")
+        .select("id, ma_qr_quy_trinh, tram_hien_tai_id, lo_tiet_khuan_id")
+        .in("id", p.quyTrinhIds);
+      if (qrReadErr) return { ok: false, message: qrReadErr.message };
+      qrRow = (qrsData || [])[0] ?? null;
+    }
+
+    const bioFail = normTri(p.testSinhHoc) === "KHONG_DAT" || normTri(p.testBI) === "KHONG_DAT";
+    const saved = await executeIncidentReportAndRollback(
+      client,
+      {
+        maQR: String(qrRow?.ma_qr_quy_trinh || "").trim() || undefined,
+        station: "TIET_KHUAN",
+        incidentGroup: "PROCESS",
+        typeId: bioFail ? "PROCESS_BI_POSITIVE" : "PROCESS_STERILIZATION_FAIL",
+        typeTen: bioFail
+          ? "Chỉ thị sinh học (BI) dương tính"
+          : "Chất lượng tiệt khuẩn / mẻ không đạt",
+        causeClass: "SC_QUY_TRINH",
+        faultStation: "TIET_KHUAN",
+        faultOperator: p.nguoiUnload || "Hệ thống tự động",
+        desc: `Mẻ tiệt khuẩn ${p.maLo} không đạt QC. Chi tiết: ${ghiChu}. Người dỡ mẻ: ${p.nguoiUnload}`,
+        reporterEmail: p.operatorEmail,
+        reporterAuthUserId: p.operatorAuthUserId,
+        processPayload: {
+          loTietKhuanId: p.activeMeId,
+          maLo: p.maLo,
+          quyTrinhId: qrRow?.id,
+        },
+      },
+      qrRow,
+    );
+    failIncidents = {
+      incidentIds: [saved.incident_id],
+      createdCount: saved.deduped ? 0 : 1,
+      skippedCount: saved.deduped ? 1 : 0,
+      recalledCount: saved.recalledCount ?? 0,
+      machineHeld: Boolean(saved.machineHeld),
+    };
+  }
+
   const { error: loErr } = await client
     .from("cssd_fact_lo_tiet_khuan")
     .update({
@@ -187,53 +255,8 @@ export async function persistMeTietKhuanFinishWithClient(
 
   }
 
-  /** Không đạt sinh học/hóa học — domino batch: đưa bộ về ĐÓNG GÓI, gỡ khỏi mẻ, cấm cấp phát. */
-  if (!p.isPass && p.quyTrinhIds.length > 0) {
-    const dongGoiPatch = await buildQuyTrinhTramPatch(client, "DONG_GOI");
-    const failUpdate: Record<string, unknown> = {
-      ...dongGoiPatch,
-      lo_tiet_khuan_id: null,
-      updated_at: new Date().toISOString(),
-    };
-    if (await tableHasColumn(client, "cssd_fact_quy_trinh", "is_dong_bang")) {
-      failUpdate.is_dong_bang = true;
-    }
-    const { error: qtRoll } = await client.from("cssd_fact_quy_trinh").update(failUpdate).in("id", p.quyTrinhIds);
-    if (qtRoll) return { ok: false, message: qtRoll.message };
-
-    // Tự động tạo sự cố cho từng bộ dụng cụ khi mẻ không đạt
-    const { data: qrsData } = await client
-      .from("cssd_fact_quy_trinh")
-      .select("id, ma_qr_quy_trinh")
-      .in("id", p.quyTrinhIds);
-
-    if (qrsData && qrsData.length > 0) {
-      for (const qrRow of qrsData) {
-        const typeTen = "Chất lượng tiệt khuẩn / mẻ không đạt";
-        const attributes = buildIncidentAttributes({
-          incidentGroup: "PROCESS",
-          typeTen,
-          incidentKind: "PROCESS_STERILIZATION_FAIL",
-          rollbackTargetStation: "DONG_GOI",
-          faultOperator: p.nguoiUnload || "Hệ thống tự động",
-          errorQR: p.maLo,
-          loTietKhuanId: p.activeMeId,
-          maLo: p.maLo,
-        });
-
-        const suCoPayload: Record<string, unknown> = {
-          ma_qr_quy_trinh: qrRow.ma_qr_quy_trinh,
-          quy_trinh_id: qrRow.id,
-          ma_tram_phat_hien: "TIET_KHUAN",
-          mo_ta: `Mẻ tiệt khuẩn ${p.maLo} không đạt QC. Chi tiết: ${ghiChu}. Người dỡ mẻ: ${p.nguoiUnload}`,
-          is_red_alert: false,
-          ma_tram_gay_loi: "TIET_KHUAN",
-          attributes,
-        };
-        await client.from("cssd_fact_su_co").insert(suCoPayload);
-      }
-    }
-
+  if (failIncidents) {
+    revalidateCssdIncidentSurfaces();
     for (const id of p.quyTrinhIds) {
       await appendQuyTrinhException(client, id, {
         su_kien: "ME_TIET_KHUAN_KHONG_DAT",
@@ -243,7 +266,14 @@ export async function persistMeTietKhuanFinishWithClient(
         nguoi_thao_tac: p.nguoiUnload,
       });
     }
-
+    return {
+      ok: true,
+      incidentIds: failIncidents.incidentIds,
+      createdCount: failIncidents.createdCount,
+      skippedCount: failIncidents.skippedCount,
+      recalledCount: failIncidents.recalledCount,
+      machineHeld: failIncidents.machineHeld,
+    };
   }
 
   return { ok: true };

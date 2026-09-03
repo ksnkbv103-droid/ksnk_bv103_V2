@@ -95,7 +95,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto space-y-6 touch-manipulation pointer-events-auto">
+    <div className="w-full max-w-xl mx-auto space-y-[var(--bv103-space-3)] touch-manipulation pointer-events-auto">
       {/* 1. Thanh tìm kiếm / Quét mã — QrScanInput SSOT */}
       <div className="space-y-2 rounded-[var(--radius-shell)] border border-slate-200 bg-[var(--primary)] p-3 shadow-sm">
         <div className="flex items-center gap-2 px-2 text-white/80">
@@ -121,14 +121,14 @@ export default function QRHistoryViewer({ initialQr }: Props) {
 
       {/* 2. Hiển thị nội dung */}
       {loading ? (
-        <div className="py-24 text-center space-y-4 animate-pulse">
+        <div className="py-24 text-center space-y-[var(--bv103-space-3)] animate-pulse">
           <Clock className="mx-auto text-slate-200" size={48} />
           <p className="text-[11px] font-medium text-slate-400 tracking-wide">Đang truy xuất dữ liệu...</p>
         </div>
       ) : batchTrace ? (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="bg-white p-6 rounded-[var(--radius-shell)] shadow-sm border border-emerald-100">
-            <h3 className="text-xl font-semibold text-slate-900 mb-1">Mẻ tiệt khuẩn: {batchTrace.maLo}</h3>
+        <div className="bv103-layer-panel bv103-pad-panel bv103-stack-in animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div>
+            <h3 className="bv103-type-title text-slate-900 mb-1">Mẻ tiệt khuẩn: {batchTrace.maLo}</h3>
             <p className="text-sm text-emerald-700 font-medium">
               {batchTrace.ketQuaDat ? "Đạt QC — sẵn sàng cấp phát" : "Không đạt QC"}
             </p>
@@ -149,12 +149,12 @@ export default function QRHistoryViewer({ initialQr }: Props) {
               In phiếu mẻ A4
             </button>
           </div>
-          <div className="bg-white p-5 rounded-[var(--radius-shell)] border border-slate-100 space-y-3">
-            <h4 className="text-sm font-semibold text-slate-700">Bộ trong mẻ ({batchTrace.members.length})</h4>
+          <div className="border-t border-slate-100 pt-[var(--bv103-space-3)] space-y-2">
+            <h4 className="bv103-type-section">Bộ trong mẻ ({batchTrace.members.length})</h4>
             {batchTrace.members.map((m) => (
-              <div key={m.maQrBo} className="rounded-xl border border-slate-100 p-3 text-sm">
-                <p className="font-bold text-slate-800">{m.tenBo}</p>
-                <p className="font-mono text-[11px] text-slate-500">{m.maQrBo}</p>
+              <div key={m.maQrBo} className="border-b border-slate-100 py-2 last:border-b-0 text-sm">
+                <p className="font-semibold text-slate-800">{m.tenBo}</p>
+                <p className="font-mono bv103-type-label text-slate-500">{m.maQrBo}</p>
               </div>
             ))}
           </div>
@@ -162,21 +162,21 @@ export default function QRHistoryViewer({ initialQr }: Props) {
       ) : process ? (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Card thông tin tóm tắt */}
-          <div className="bg-white p-6 rounded-[var(--radius-shell)] shadow-sm border border-slate-100 flex items-center justify-between overflow-hidden relative">
+          <div className="bv103-layer-panel bv103-pad-panel flex items-center justify-between overflow-hidden relative">
             <div className="relative z-10 space-y-2">
-              <h3 className="text-xl font-semibold tracking-tight text-slate-900 md:text-2xl mb-1">{process.ma_vach_qr}</h3>
+              <h3 className="bv103-type-title mb-1 font-mono">{process.ma_vach_qr}</h3>
               <p className="text-[11px] font-medium text-[var(--primary)] flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" /> Trạng thái:{" "}
                 {String(process.trang_thai_hien_tai || "").replace(/_/g, " ")}
               </p>
               <div className="flex flex-wrap gap-2 pt-1">
                 {process.ma_qr_bo_vinh_vien ? (
-                  <span className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-[11px] font-bold text-slate-700">
+                  <span className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 font-mono bv103-type-label font-semibold text-slate-700">
                     Tem bộ (vĩnh viễn): {String(process.ma_qr_bo_vinh_vien)}
                   </span>
                 ) : null}
                 {process.ma_cycle_qr ? (
-                  <span className="rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 font-mono text-[11px] font-bold text-emerald-800">
+                  <span className="rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 font-mono bv103-type-label font-semibold text-emerald-800">
                     Tem chu trình (túi hấp): {String(process.ma_cycle_qr)}
                   </span>
                 ) : (
@@ -185,11 +185,11 @@ export default function QRHistoryViewer({ initialQr }: Props) {
                   </span>
                 )}
                 {process.qr_kind_matched === "CYCLE" ? (
-                  <span className="rounded-lg bg-emerald-700 px-2 py-1 text-[11px] font-bold uppercase text-white">
+                  <span className="rounded-lg bg-emerald-700 px-2 py-1 bv103-type-label text-white">
                     Bạn vừa quét tem chu trình
                   </span>
                 ) : process.qr_kind_matched === "PERMANENT" ? (
-                  <span className="rounded-lg bg-slate-700 px-2 py-1 text-[11px] font-bold uppercase text-white">
+                  <span className="rounded-lg bg-slate-700 px-2 py-1 bv103-type-label text-white">
                     Bạn vừa quét tem bộ vĩnh viễn
                   </span>
                 ) : null}
@@ -227,7 +227,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
           </div>
 
           {/* Timeline truy vết dọc */}
-          <div className="relative space-y-6 pl-10 before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
+          <div className="relative space-y-[var(--bv103-space-3)] pl-10 before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
             {history.map((log) => (
               <div key={log.id} className="relative">
                 {/* Marker Point */}
@@ -236,16 +236,16 @@ export default function QRHistoryViewer({ initialQr }: Props) {
                 </div>
                 
                 {/* Log Card */}
-                <div className={`p-5 rounded-[28px] border transition-all active:scale-[0.98] ${log.hanh_dong === 'REPORT_INCIDENT' ? 'bg-red-50/50 border-red-100 shadow-red-50' : 'bg-white border-slate-100 shadow-sm'}`}>
+                <div className={`p-4 rounded-[var(--radius-shell)] border transition-all active:scale-[0.98] ${log.hanh_dong === 'REPORT_INCIDENT' ? 'bg-red-50/50 border-red-100' : 'bg-white border-slate-200'}`}>
                   <div className="flex justify-between items-start mb-2">
                     <span className={`text-[11px] font-semibold uppercase tracking-wide ${log.hanh_dong === 'REPORT_INCIDENT' ? 'text-red-600' : 'text-[var(--primary)]'}`}>
                       TRẠM {String(log.tram || "").replace(/_/g, " ")}
                     </span>
-                    <span className="text-[11px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-full">
+                    <span className="bv103-type-label font-semibold text-slate-400 bg-slate-50 px-2 py-1 rounded-full">
                       {formatCssdPrintDateTime(log.created_at)}
                     </span>
                   </div>
-                  <p className="text-sm font-bold text-slate-700 leading-snug">
+                  <p className="bv103-type-section text-slate-700 leading-snug">
                     {log.hanh_dong === 'REPORT_INCIDENT' && <span className="text-red-600 uppercase font-semibold mr-2">[SỰ CỐ]</span>}
                     {log.ghi_chu || 'Xác nhận quy trình thành công'}
                   </p>
@@ -259,13 +259,13 @@ export default function QRHistoryViewer({ initialQr }: Props) {
           </div>
         </div>
       ) : (
-        <div className="py-32 text-center border-4 border-dashed border-slate-100 rounded-[48px] bg-white/50 space-y-4">
+        <div className="py-32 text-center border-4 border-dashed border-slate-100 rounded-[48px] bg-white/50 space-y-[var(--bv103-space-3)]">
           <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto opacity-50">
             <History className="text-slate-300" size={32} />
           </div>
           <div className="space-y-1">
             <p className="text-[11px] font-medium text-slate-400 tracking-wide">Chưa có dữ liệu</p>
-            <p className="text-[11px] font-bold text-slate-300 uppercase">Vui lòng nhập hoặc quét mã để truy vết</p>
+            <p className="bv103-type-label font-semibold text-slate-300 uppercase">Vui lòng nhập hoặc quét mã để truy vết</p>
           </div>
         </div>
       )}

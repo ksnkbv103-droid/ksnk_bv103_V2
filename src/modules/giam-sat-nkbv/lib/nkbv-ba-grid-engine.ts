@@ -28,9 +28,11 @@ import {
   UTI_INFANT_CRITERIA_KEYS_FROM_CATALOG,
   UTI_VOIDING_CRITERIA_KEYS_FROM_CATALOG,
   criteriaKeyToFormField,
+  displaySymptomLabel,
   type CriteriaMapContext,
 } from "./nkbv-clinical-symptom-catalog";
-import { displaySpecimenOnGrid } from "./nkbv-specimen-canonical";
+import { displaySpecimenOnGrid, isNkbvSpecimenCode } from "./nkbv-specimen-canonical";
+import { locationDaysToTreatmentHistory } from "./nkbv-ba-ngay";
 import {
   collectRitPathogens,
   detectSecondaryBsiFromSbap,
@@ -49,6 +51,12 @@ export type BaGridXnCell = {
   vi_khuan: string;
   so_luong?: string | null;
   source: "LIS" | "MANUAL";
+  /** Mã chuẩn CDC khi có. */
+  loai_benh_pham_chuan?: string | null;
+  /** Nhãn LIS gốc — phân biệt UR/USI với nước tiểu / vết mổ. */
+  lis_goc?: string | null;
+  /** false = âm tính — vẫn hiện trên lưới, không mở khung hội chứng. */
+  ket_qua_duong_tinh?: boolean | null;
 };
 
 export type BaGridCdhaCell = {
@@ -413,6 +421,18 @@ export function attributeWithinRit(input: {
   return { attributedXnIds, attributedCdhaIds };
 }
 
+function milestoneSymptomLabel(m: BaTimelineMilestone): string {
+  return (
+    displaySymptomLabel({
+      criteriaKey: m.criteriaKey,
+      storedTitle: m.title,
+      syndrome: m.gate || m.majorType,
+    }) ||
+    NKBV_CRITERIA_ADD_CATALOG.find((c) => c.criteriaKey === m.criteriaKey)?.title ||
+    m.title
+  );
+}
+
 export function splitMilestonesToGridRows(milestones: BaTimelineMilestone[]): {
   xn: BaGridXnCell[];
   cdha: BaGridCdhaCell[];
@@ -509,13 +529,20 @@ export function splitMilestonesToGridRows(milestones: BaTimelineMilestone[]): {
     }
 
     if (m.source === "LIS" || (isLisOrCulture && !isImaging)) {
+      const chuan = isNkbvSpecimenCode(m.loai_benh_pham) ? m.loai_benh_pham : null;
       xn.push({
         id: m.id,
         ngay: d,
         benh_pham: displaySpecimenOnGrid(m.loai_benh_pham) || m.kind || "—",
-        vi_khuan: m.tac_nhan || m.title || "—",
+        vi_khuan:
+          m.tac_nhan ||
+          (m.ket_qua_duong_tinh === false ? "Âm tính" : m.title) ||
+          "—",
         so_luong: m.so_luong || null,
         source: m.source === "LIS" ? "LIS" : "MANUAL",
+        loai_benh_pham_chuan: chuan,
+        lis_goc: m.lis_goc || null,
+        ket_qua_duong_tinh: m.ket_qua_duong_tinh ?? null,
       });
       continue;
     }
@@ -524,8 +551,7 @@ export function splitMilestonesToGridRows(milestones: BaTimelineMilestone[]): {
 
     // SSI diagnostic criteria → hàng TC chẩn đoán
     if (m.criteriaKey && SSI_DIAGNOSTIC_CRITERIA_KEYS.has(m.criteriaKey)) {
-      const label =
-        NKBV_CRITERIA_ADD_CATALOG.find((c) => c.criteriaKey === m.criteriaKey)?.title || m.title;
+      const label = milestoneSymptomLabel(m);
       if (!tieuChuanChuyenBietByDate[d]) tieuChuanChuyenBietByDate[d] = [];
       tieuChuanChuyenBietByDate[d].push({ key: m.criteriaKey, label, id: m.id });
       continue;
@@ -533,8 +559,7 @@ export function splitMilestonesToGridRows(milestones: BaTimelineMilestone[]): {
 
     // Có criteriaKey lâm sàng (không imaging / không SSI chẩn đoán)
     if (m.criteriaKey && m.criteriaKey !== "imaging_chest" && m.criteriaKey !== "abscess_imaging") {
-      const label =
-        NKBV_CRITERIA_ADD_CATALOG.find((c) => c.criteriaKey === m.criteriaKey)?.title || m.title;
+      const label = milestoneSymptomLabel(m);
       if (!trieuChungLamSangByDate[d]) trieuChungLamSangByDate[d] = [];
       trieuChungLamSangByDate[d].push({ key: m.criteriaKey, label, id: m.id });
       continue;
@@ -543,7 +568,11 @@ export function splitMilestonesToGridRows(milestones: BaTimelineMilestone[]): {
     // SYMPTOM / MANUAL không criteria → vẫn hiện hàng TC chẩn đoán (nhãn tự do)
     if (kind === "SYMPTOM" || m.source === "MANUAL") {
       if (!tieuChuanChuyenBietByDate[d]) tieuChuanChuyenBietByDate[d] = [];
-      tieuChuanChuyenBietByDate[d].push({ key: m.id, label: m.title, id: m.id });
+      tieuChuanChuyenBietByDate[d].push({
+        key: m.id,
+        label: milestoneSymptomLabel(m),
+        id: m.id,
+      });
     }
   }
 
@@ -729,7 +758,13 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
         : {}),
     },
     symptomDates,
-    treatmentHistory: [],
+    treatmentHistory: locationDaysToTreatmentHistory(
+      Object.entries(input.khoaByDate || {}).map(([ngay_lich, khoa_id]) => ({
+        ngay_lich,
+        khoa_id,
+      })),
+      (id) => ({ ten_khoa: id }),
+    ),
     indexDateOverride: indexDate,
   });
 
@@ -746,7 +781,10 @@ export function computeBaGridSession(input: BaGridSessionInput): BaGridEngineRes
     checklistType = assoc.associated ? "VAP" : "HAP";
   }
 
-  const iwpDates = dateSetInclusive(metrics.iwp_start, metrics.iwp_end);
+  const iwpDates =
+    input.nghiNgo === "SSI"
+      ? new Set<string>()
+      : dateSetInclusive(metrics.iwp_start, metrics.iwp_end);
   // DOE/NSK = min(yếu tố TC ∈ IWP); không có yếu tố lâm sàng sớm hơn → = Index
   const nsk = metrics.doe || indexDate;
 

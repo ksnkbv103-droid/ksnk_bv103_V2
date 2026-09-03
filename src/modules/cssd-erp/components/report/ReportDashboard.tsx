@@ -19,7 +19,7 @@ interface Props {
 
 export default function ReportDashboard({ stats, alerts }: Props) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-[var(--bv103-space-3)]">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Tổng quy trình" value={stats.total} icon={<Zap size={16} strokeWidth={2} />} color="bg-emerald-50" textColor="text-emerald-700" />
         <StatCard title="Số vụ sự cố" value={stats.incidents} icon={<ShieldAlert size={16} strokeWidth={2} />} color="bg-red-50" textColor="text-red-600" />
@@ -86,7 +86,7 @@ function StatCard({
         <div className={`rounded-lg bg-white p-1.5 shadow-sm ${textColor}`}>{icon}</div>
       </div>
       <div className="relative z-10 space-y-1">
-        <p className={`font-semibold tracking-tight ${isStation ? "text-sm uppercase" : "text-2xl"}`}>{value}</p>
+        <p className={isStation ? "bv103-type-label font-semibold uppercase" : "bv103-type-kpi"}>{value}</p>
         {hint ? <p className="text-[11px] font-medium leading-snug text-slate-500">{hint}</p> : null}
       </div>
     </div>

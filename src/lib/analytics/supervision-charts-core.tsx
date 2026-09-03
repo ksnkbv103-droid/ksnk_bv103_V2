@@ -63,12 +63,12 @@ export function SupervisionKpiRow({
   items: { label: string; value: string | number }[];
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+    <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-slate-100 pb-2">
       {items.map((k) => (
-        <div key={k.label} className="rounded-xl border border-slate-200 bg-white p-4">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{k.label}</p>
-          <p className="mt-1 text-2xl font-black text-slate-800">{loading ? "…" : k.value}</p>
-        </div>
+        <p key={k.label} className="text-sm text-slate-600">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{k.label}</span>{" "}
+          <span className="font-semibold tabular-nums text-slate-800">{loading ? "…" : k.value}</span>
+        </p>
       ))}
     </div>
   );

@@ -29,8 +29,3 @@ export function isModuleEnabled(moduleKey: "CSSD" | "QLCV" | "NKBV" | "HIS"): bo
   }
   return true;
 }
-
-/** @deprecated Digital BOM modal — thay bằng panel đối chiếu + báo sự cố dụng cụ. Chỉ bật khi BV103_FEATURE_BOM_CHECKLIST=1. */
-export function isBOMChecklistEnabled(): boolean {
-  return process.env.BV103_FEATURE_BOM_CHECKLIST === "1";
-}

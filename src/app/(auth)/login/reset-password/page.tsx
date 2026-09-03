@@ -70,7 +70,7 @@ export default function ResetPasswordPage() {
       <div className="flex flex-1 items-center justify-center px-4 py-10">
         <div className="w-full max-w-md rounded-[var(--radius-shell)] border border-slate-100 bg-white p-8 shadow-[var(--shadow-app-soft)]">
           <h1 className={`text-center ${T.authTitle}`}>Đặt mật khẩu mới</h1>
-          <form className="mt-8 space-y-4" onSubmit={onSubmit}>
+          <form className="mt-8 space-y-[var(--bv103-space-3)]" onSubmit={onSubmit}>
             <div>
               <label className={T.authLabel}>Mật khẩu mới</label>
               <input

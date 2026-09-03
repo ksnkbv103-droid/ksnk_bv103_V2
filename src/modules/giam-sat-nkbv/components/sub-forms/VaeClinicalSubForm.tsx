@@ -110,11 +110,11 @@ export default function VaeClinicalSubForm({
       embedded={embedded}
     >
       {showClinical && (
-        <div className="space-y-4 animate-in fade-in">
+        <div className="space-y-[var(--bv103-space-3)] animate-in fade-in">
           <NkbvFormSection title="Bậc 1 — Thiết bị & tuổi" hint="VAE ≥18 tuổi; thở máy ≥4 ngày liên tục.">
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="mb-1 block text-[11px] font-bold text-slate-700">Tuổi</label>
+                <label className="mb-1 block bv103-type-label font-semibold text-slate-700">Tuổi</label>
                 <input
                   type="number"
                   value={form.patient_age}
@@ -124,7 +124,7 @@ export default function VaeClinicalSubForm({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-bold text-slate-700">Bắt đầu thở máy</label>
+                <label className="mb-1 block bv103-type-label font-semibold text-slate-700">Bắt đầu thở máy</label>
                 <input
                   type="date"
                   value={form.device_placed_date || ""}
@@ -144,7 +144,7 @@ export default function VaeClinicalSubForm({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-bold text-slate-700">Dừng thở máy</label>
+                <label className="mb-1 block bv103-type-label font-semibold text-slate-700">Dừng thở máy</label>
                 <input
                   type="date"
                   value={form.device_removed_date || ""}
@@ -196,10 +196,10 @@ export default function VaeClinicalSubForm({
               </span>
               {allowedEdit ? (
                 <div className="flex gap-2">
-                  <button type="button" onClick={ensureDailyRows} className="text-[11px] font-bold text-sky-700">
+                  <button type="button" onClick={ensureDailyRows} className="bv103-type-label font-semibold text-sky-700">
                     Tạo 7 ngày
                   </button>
-                  <button type="button" onClick={addDailyRow} className="text-[11px] font-bold text-sky-700">
+                  <button type="button" onClick={addDailyRow} className="bv103-type-label font-semibold text-sky-700">
                     + Ngày
                   </button>
                 </div>
@@ -266,7 +266,7 @@ export default function VaeClinicalSubForm({
               <button
                 type="button"
                 onClick={applyVacHint}
-                className="rounded-full bg-sky-600 px-3 py-1 text-[11px] font-bold text-white"
+                className="rounded-full bg-sky-600 px-3 py-1 bv103-type-label font-semibold text-white"
               >
                 Áp dụng gợi ý VAC (DOE {vacHint.suggested_doe})
               </button>
@@ -376,7 +376,7 @@ export default function VaeClinicalSubForm({
             form.has_quantitative_culture_positive ||
             form.has_respiratory_viral_or_pathogen_test_positive) && (
             <div className="mt-2 space-y-2 rounded-xl border border-rose-100 bg-rose-50/70 p-3">
-              <p className="text-[11px] font-bold text-rose-900">Secondary BSI khi PVAP (Event Period)</p>
+              <p className="bv103-type-label font-semibold text-rose-900">Secondary BSI khi PVAP (Event Period)</p>
               <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
                 <input
                   type="checkbox"

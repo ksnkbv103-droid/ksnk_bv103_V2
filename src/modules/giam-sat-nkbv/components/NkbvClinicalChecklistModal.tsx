@@ -2,13 +2,14 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, FileText, Printer } from "lucide-react";
+import { X, FileText, Printer, CalendarRange } from "lucide-react";
 import NkbvCssdRcaPanel from "@/modules/giam-sat-nkbv/components/NkbvCssdRcaPanel";
 import NkbvDiagnosticCaseForm from "@/modules/giam-sat-nkbv/components/NkbvDiagnosticCaseForm";
 import NkbvCasePrintView from "@/modules/giam-sat-nkbv/components/NkbvCasePrintView";
 import NkbvAdjudicationPanel from "@/modules/giam-sat-nkbv/components/NkbvAdjudicationPanel";
 import { getDevicePrefillForStay } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-device-registry.actions";
 import { getNkbvBenhAnHub } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-read.actions";
+import { locationDaysToTreatmentHistory } from "@/modules/giam-sat-nkbv/lib/nkbv-ba-ngay";
 import { syncFormSymptomToBaTimeline } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv.actions";
 import type { DeviceRegistryType } from "@/modules/giam-sat-nkbv/lib/nkbv-shared-device-days";
 import type { BaTimelineMilestone } from "@/modules/giam-sat-nkbv/lib/nkbv-ba-timeline-core";
@@ -19,6 +20,8 @@ import {
 import { toast } from "sonner";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import { useNkbvChecklistModalState } from "./useNkbvChecklistModalState";
+import { patchSymptomReview } from "../lib/nkbv-symptom-review";
+import { NkbvSymptomReviewProvider } from "./sub-forms/NkbvSymptomReviewContext";
 import { formatNkbvChecklistTypeLabel } from "../lib/nkbv-loai-labels";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 
@@ -28,13 +31,15 @@ export type NkbvClinicalChecklistModalProps = {
   onSuccess: () => void;
   allowedEdit: boolean;
   khoas?: Array<{ id: string; ten_danh_muc: string }>;
+  /** Mở lưới bệnh án của cùng sự kiện (giảm trễ phiếu ↔ timeline). */
+  onOpenTimeline?: () => void;
 };
 
 function LisReadonlyBanner({ row }: { row: Record<string, any> }) {
   const notes = row.clinical_notes && typeof row.clinical_notes === "object" ? row.clinical_notes : {};
   const maXn = String((notes as { ma_xet_nghiem?: string }).ma_xet_nghiem || row.ma_benh_pham || "—");
   return (
-    <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50/90 p-4 text-sm">
+    <div className="mt-3 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/90 p-4 text-sm">
       <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
         Kết quả vi sinh đã import
       </p>
@@ -49,7 +54,7 @@ function LisReadonlyBanner({ row }: { row: Record<string, any> }) {
         </div>
         <div>
           <span className="block text-xs text-slate-400">Tác nhân</span>
-          <strong className="font-mono italic text-amber-800">
+          <strong className="font-mono text-amber-800">
             {String(row.tac_nhan_vi_khuan || "—")}
           </strong>
         </div>
@@ -68,17 +73,20 @@ export default function NkbvClinicalChecklistModal({
   onSuccess,
   allowedEdit,
   khoas = [],
+  onOpenTimeline,
 }: NkbvClinicalChecklistModalProps) {
   const {
     submitting,
     adjudicating,
     treatmentHistory,
+    setTreatmentHistory,
     symptomDates,
     setSymptomDates,
     ghiChuTuyBien,
     setGhiChuTuyBien,
     suggestedType,
     suggestedReason,
+    lockedType,
     suspectedType,
     setSuspectedType,
     checklistType,
@@ -93,6 +101,8 @@ export default function NkbvClinicalChecklistModal({
     setSsiForm,
     ch17Form,
     setCh17Form,
+    symptomReview,
+    setSymptomReview,
     handleAddStay,
     handleDeleteStay,
     liveCdcMetrics,
@@ -122,8 +132,22 @@ export default function NkbvClinicalChecklistModal({
     void (async () => {
       const res = await getNkbvBenhAnHub(ma);
       if (cancelled) return;
-      if (res.success && Array.isArray(res.data?.timeline)) {
-        setTimelineMilestones(res.data.timeline as BaTimelineMilestone[]);
+      if (res.success && res.data) {
+        if (Array.isArray(res.data.timeline)) {
+          setTimelineMilestones(res.data.timeline as BaTimelineMilestone[]);
+        }
+        const days = res.data.locationDays || [];
+        if (days.length) {
+          setTreatmentHistory(
+            locationDaysToTreatmentHistory(days, (id) => {
+              const k = khoas.find((x) => x.id === id);
+              return {
+                ma_khoa: (k as { ma_danh_muc?: string } | undefined)?.ma_danh_muc,
+                ten_khoa: k?.ten_danh_muc,
+              };
+            }),
+          );
+        }
       } else {
         setTimelineMilestones([]);
       }
@@ -296,7 +320,7 @@ export default function NkbvClinicalChecklistModal({
     }
     const pre = await getDevicePrefillForStay(String(row.ma_benh_an || ""), want);
     if (!pre.success || !pre.device_placed_date) {
-      toast.error("Chưa có dụng cụ phù hợp trên sổ đăng ký");
+      toast.error("Chưa tích dụng cụ trên lưới bệnh án");
       return;
     }
     if (checklistType === "BSI" && bsiForm) {
@@ -318,12 +342,12 @@ export default function NkbvClinicalChecklistModal({
         device_removed_date: pre.device_removed_date || undefined,
       });
     }
-    toast.success("Đã lấy ngày dụng cụ từ sổ đăng ký");
+    toast.success("Đã lấy ngày dụng cụ từ lưới bệnh án");
   };
 
   const onSave = () => {
     if (!clinicalConfirmed) {
-      toast.error("Cần tích «Lâm sàng xác nhận» trước khi lưu");
+      toast.error("Cần tích «Đã đối soát với khoa» trước khi lưu");
       return;
     }
     void handleSaveChecklist();
@@ -331,7 +355,7 @@ export default function NkbvClinicalChecklistModal({
 
   const onAdjudicateWrapped = async (decision: "APPROVE" | "EXCLUDE", reason?: string) => {
     if (decision === "APPROVE" && !ksnkConfirmed) {
-      toast.error("Cần tích «KSNK xác nhận chốt ca» trước khi xác nhận");
+      toast.error("Cần tích «KSNK thống nhất / chốt ca» trước khi xác nhận");
       return;
     }
     await handleAdjudicate(decision, reason);
@@ -360,8 +384,8 @@ export default function NkbvClinicalChecklistModal({
     <>
       {printPortal}
       {createPortal(
-    <div className="fixed inset-0 z-[10050] flex items-center justify-center overflow-y-auto bg-slate-900/45 p-3 backdrop-blur-sm sm:p-4 print:hidden">
-      <div className="relative my-4 flex max-h-[96vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl sm:my-6 sm:p-6">
+    <div className="fixed inset-0 z-[10050] flex items-center justify-center overflow-y-auto bg-slate-900/40 p-3 sm:p-4 print:hidden">
+      <div className="relative my-4 flex max-h-[96vh] w-full max-w-6xl flex-col overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 shadow-[var(--shadow-app-soft)] sm:my-6 sm:p-6">
         <button
           type="button"
           onClick={onClose}
@@ -388,9 +412,19 @@ export default function NkbvClinicalChecklistModal({
                 : {liveCdcMetrics.iwp_start} → {liveCdcMetrics.iwp_end}
               </span>
             ) : null}
+            {onOpenTimeline && String(row.ma_benh_an || "").trim() ? (
+              <button
+                type="button"
+                onClick={onOpenTimeline}
+                className={`${C.ctaSecondary} inline-flex min-h-9 items-center gap-1.5 px-3 text-xs`}
+              >
+                <CalendarRange className="h-3.5 w-3.5" />
+                Mở lưới bệnh án
+              </button>
+            ) : null}
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm md:grid-cols-4">
+          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50 p-4 text-sm md:grid-cols-4">
             <div>
               <span className="block text-xs text-slate-400">Mã ca / Mã BA</span>
               <strong className="text-slate-800">{String(row.ma_ca || "")}</strong>
@@ -448,7 +482,7 @@ export default function NkbvClinicalChecklistModal({
               return null;
             }
             return (
-              <div className="mt-3 space-y-1.5 rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-950">
+              <div className="mt-3 space-y-1.5 rounded-[var(--radius-shell)] border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-950">
                 <p className="font-bold text-amber-900">Cảnh báo khung thời gian</p>
                 <ul className="list-disc space-y-1 pl-4 text-xs">
                   {alerts.map((a, i) => (
@@ -475,6 +509,12 @@ export default function NkbvClinicalChecklistModal({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto py-5 pr-1">
+          <NkbvSymptomReviewProvider
+            review={symptomReview}
+            onReviewChange={(key, patch) =>
+              setSymptomReview((prev) => patchSymptomReview(prev, key, patch))
+            }
+          >
           <NkbvDiagnosticCaseForm
             row={row}
             suggestedType={suggestedType}
@@ -482,6 +522,7 @@ export default function NkbvClinicalChecklistModal({
             specimenLabel={String(row.loai_benh_pham || "")}
             suspectedType={suspectedType}
             setSuspectedType={setSuspectedType}
+            lockType={lockedType}
             checklistType={checklistType}
             clinicalPathway={clinicalPathway || "BSI"}
             allowedEdit={allowedEdit}
@@ -516,6 +557,7 @@ export default function NkbvClinicalChecklistModal({
             benhAnMissing={benhAnMissing}
             ngaySinhEffective={ngaySinhEffective}
           />
+          </NkbvSymptomReviewProvider>
 
           {allowedEdit ? (
             <div className="mt-5">

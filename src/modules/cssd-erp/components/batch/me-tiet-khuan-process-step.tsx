@@ -12,11 +12,10 @@ import {
   CheckCircle,
   AlertCircle,
   ChevronRight,
-  PlayCircle,
   Timer,
   Printer,
 } from "lucide-react";
-import CSSDPageShell, { CSSD_PAGE_OUTER } from "../layout/cssd-page-shell";
+import { CSSD_PAGE_OUTER } from "../layout/cssd-page-shell";
 import MeTietKhuanProcessScanPanel, { type MeTkItemRow } from "./me-tiet-khuan-process-scan-panel";
 import MeTietKhuanProcessQcPanel from "./me-tiet-khuan-process-qc-panel";
 import MeTietKhuanWaitingPanel, { type MeTkWaitingRow } from "./me-tiet-khuan-waiting-panel";
@@ -74,6 +73,7 @@ export default function MeTietKhuanProcessStep({
   onPrintBatch,
   isPrintBusy,
   onReportIncident,
+  suppressShell = false,
 }: {
   activeMe: MeRow | null;
   batchGate: MeRow | null;
@@ -113,6 +113,7 @@ export default function MeTietKhuanProcessStep({
   onPrintBatch?: () => void;
   isPrintBusy?: boolean;
   onReportIncident?: () => void;
+  suppressShell?: boolean;
 }) {
   const napLocked = Boolean(batchGate?.tk_chot_nap_at);
   const qcOpen = Boolean(batchGate?.tk_mo_form_qc_at);
@@ -142,32 +143,32 @@ export default function MeTietKhuanProcessStep({
       ? "FAILED"
       : "PENDING";
 
+  const toolbar = (
+    <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
+      {onReportIncident ? (
+        <button
+          type="button"
+          onClick={onReportIncident}
+          className={`${CSSD_UI_ACTION_SECONDARY} border-red-200 text-red-600 hover:bg-red-50`}
+        >
+          Báo sự cố
+        </button>
+      ) : null}
+      <button type="button" onClick={onBackToList} className={CSSD_UI_ACTION_SECONDARY}>
+        <History size={16} aria-hidden="true" />
+        Về danh sách
+      </button>
+    </div>
+  );
+
   return (
-    <CSSDPageShell
-      title={<span className="text-[var(--primary)]">Mẻ tiệt khuẩn: đang xử lý</span>}
-      actions={
-        <div className="flex flex-wrap items-center gap-2">
-          {onReportIncident ? (
-            <button
-              type="button"
-              onClick={onReportIncident}
-              className={`${CSSD_UI_ACTION_SECONDARY} border-red-200 text-red-600 hover:bg-red-50`}
-            >
-              Báo sự cố
-            </button>
-          ) : null}
-          <button type="button" onClick={onBackToList} className={CSSD_UI_ACTION_SECONDARY}>
-            <History size={16} aria-hidden="true" />
-            Về danh sách
-          </button>
-        </div>
-      }
-    >
-      <div className={`${CSSD_PAGE_OUTER} animate-in slide-in-from-right-6 duration-300`}>
+    <div className={suppressShell ? "space-y-3" : `${CSSD_PAGE_OUTER} space-y-3 animate-in slide-in-from-right-6 duration-300`}>
+      {toolbar}
+      <div className={suppressShell ? "space-y-3" : "space-y-3"}>
         {/* Header Thông Tin Mẻ + Nút theo giai đoạn */}
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-shell)] border border-emerald-800 bg-emerald-700 p-5 text-white shadow-sm">
           <div>
-            <h2 className="text-2xl font-semibold uppercase tracking-tight">{activeMe?.ma_lo_tiet_khuan}</h2>
+            <h2 className="bv103-type-title font-mono tracking-tight">{activeMe?.ma_lo_tiet_khuan}</h2>
             <p className="mt-1 text-[11px] font-medium uppercase tracking-wide opacity-90">
               {items.length} bộ trong phiếu ·{" "}
               {phase === "CHUAN_BI" && <span className="text-sky-200">Đang nạp bộ</span>}
@@ -204,7 +205,7 @@ export default function MeTietKhuanProcessStep({
                 className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-white/30 bg-white/15 px-4 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition-all hover:bg-white/25 active:scale-95"
               >
                 <StopCircle size={16} aria-hidden="true" />
-                Kết thúc chu trình tiệt khuẩn
+                Xong máy — mở đánh giá QC
               </button>
             )}
 
@@ -314,7 +315,7 @@ export default function MeTietKhuanProcessStep({
 
         {/* ===== GIAI ĐOẠN 1: Chuẩn bị nạp mẻ ===== */}
         {phase === "CHUAN_BI" && (
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="grid grid-cols-1 gap-[var(--bv103-space-3)] lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <MeTietKhuanWaitingPanel
               rows={waitingRows}
               napLocked={napLocked}
@@ -344,19 +345,9 @@ export default function MeTietKhuanProcessStep({
                   Đã chốt <strong>{items.length} bộ</strong> trong phiếu
                 </p>
                 <p className="max-w-md text-[11px] font-medium leading-relaxed text-blue-500">
-                  Chờ máy hoàn thành chu trình. Sau khi hoàn tất, bấm nút{" "}
-                  <strong className="text-blue-800">«Kết thúc chu trình tiệt khuẩn»</strong>{" "}
-                  ở thanh tiêu đề để mở form đánh giá QC.
+                  Chờ máy xong, rồi bấm «Xong máy — mở đánh giá QC» phía trên.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => void onConfirmKetThucChuTrinh()}
-                className="bv103-control-h mt-2 inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-blue-300 bg-white px-6 text-xs font-semibold uppercase tracking-wide text-blue-700 shadow-sm transition-all hover:bg-blue-50 active:scale-95"
-              >
-                <StopCircle size={18} />
-                Kết thúc chu trình tiệt khuẩn
-              </button>
             </div>
           </div>
         )}
@@ -399,14 +390,7 @@ export default function MeTietKhuanProcessStep({
           </div>
         )}
 
-        <p className="mt-4 flex items-start gap-2 text-[11px] font-medium text-slate-500">
-          <PlayCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary)]" aria-hidden="true" />
-          <span>
-            Chỉ khi <strong className="text-slate-700">kết luận ĐẠT</strong> hệ thống mới chuyển các bộ trong mẻ sang{" "}
-            <strong className="text-slate-700">Cấp phát</strong>. Nếu không đạt, bộ được đưa về Đóng gói theo chính sách hiện hành.
-          </span>
-        </p>
       </div>
-    </CSSDPageShell>
+    </div>
   );
 }

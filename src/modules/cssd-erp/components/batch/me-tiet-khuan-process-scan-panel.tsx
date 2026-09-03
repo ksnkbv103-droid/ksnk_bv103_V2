@@ -52,7 +52,7 @@ export default function MeTietKhuanProcessScanPanel({
   };
 
   return (
-    <div className="flex h-full min-h-[280px] flex-col rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <div className={`flex h-full min-h-[280px] flex-col bv103-pad-panel ${UI.shell}`}>
       <div className="mb-3 flex items-center gap-2">
         <Scan className="text-[var(--primary)]" />
         <h3 className={UI.panelTitle}>Đưa bộ vào phiếu TK</h3>

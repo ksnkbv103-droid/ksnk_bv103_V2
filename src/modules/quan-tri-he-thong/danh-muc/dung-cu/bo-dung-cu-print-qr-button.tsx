@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Loader2, Printer } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { usePrint } from "@/hooks/usePrint";
 import { registerPhysicalBoLabelFromDmAction } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
@@ -46,11 +46,11 @@ export default function BoDungCuPrintQrButton({
       type="button"
       disabled={printing || !boId}
       onClick={(e) => void handlePrint(e)}
-      className={`inline-flex items-center gap-1 rounded-lg border border-emerald-200/50 bg-emerald-50 px-2 py-1 font-mono text-[11px] font-semibold text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all disabled:opacity-50 touch-manipulation ${className}`}
+      className={`text-[11px] font-semibold text-[var(--primary)] hover:underline disabled:opacity-50 ${className}`}
       title="In tem QR bộ (tem vĩnh viễn — khác tem chu trình túi hấp)"
     >
-      {printing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Printer className="h-3 w-3" />}
-      In QR
+      {printing ? <Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> : null}
+      In
     </button>
   );
 }

@@ -180,6 +180,43 @@ export async function getBangKiemsForGiamSat() {
   }
 }
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
+ * BK-5: đọc 1 mẫu theo mã/UUID kể cả đã tắt — chỉ để mở/in phiếu cũ.
+ * Không dùng cho danh sách chọn phiếu mới (vẫn `getBangKiemsForGiamSat`).
+ */
+export async function getBangKiemByMaOrIdForGscLookup(maOrId: string) {
+  try {
+    await verifyPermission("GIAM_SAT_CHUNG", "view");
+    const q = String(maOrId ?? "").trim();
+    if (!q) return { success: false as const, error: "Thiếu mã bảng kiểm." };
+    const supabase = createAdminSupabaseClient();
+    const byId = UUID_RE.test(q);
+    const { data, error } = await supabase
+      .from("gstt_dm_bang_kiem")
+      .select("*")
+      .eq(byId ? "id" : "ma_bk", q)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data?.id && byId) {
+      const { data: byMa, error: maErr } = await supabase
+        .from("gstt_dm_bang_kiem")
+        .select("*")
+        .eq("ma_bk", q)
+        .maybeSingle();
+      if (maErr) throw maErr;
+      if (!byMa?.id) return { success: false as const, error: "Không tìm thấy mẫu bảng kiểm." };
+      return { success: true as const, data: normalizeBangKiemRows([byMa])[0] };
+    }
+    if (!data?.id) return { success: false as const, error: "Không tìm thấy mẫu bảng kiểm." };
+    return { success: true as const, data: normalizeBangKiemRows([data])[0] };
+  } catch (error: unknown) {
+    return { success: false as const, error: errMsg(error) };
+  }
+}
+
 /** Dropdown “Loại hình giám sát” — đồng bộ với hub `HINH_THUC_GIAM_SAT` / `gstt_dm_hinh_thuc_giam_sat`. */
 /** Khoa/khối cho form «Áp dụng & bắt buộc» — quyền BANG_KIEM. */
 export async function getBangKiemApDungFormOptionsAction() {

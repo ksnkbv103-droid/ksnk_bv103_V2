@@ -14,6 +14,8 @@ import {
   validateApDungForSave,
 } from "@/lib/domain/bang-kiem-ap-dung";
 import type { TieuChiBangKiem } from "../bang-kiem.types";
+import { resolveBangKiemGscPersistFields } from "../lib/bang-kiem-gsc-fields";
+import { resolveTieuChiGscPersistFields } from "../lib/bang-kiem-tieu-chi-gsc-fields";
 
 function errBk(e: unknown) {
   return e instanceof Error ? e.message : String(e);
@@ -73,7 +75,9 @@ export async function saveBangKiem(data: Record<string, unknown>) {
     const idEarly = typeof idRaw === "string" ? idRaw : "";
     await verifyPermission("BANG_KIEM", idEarly ? "edit" : "create");
     const phanLoai = (data.phan_loai_chuyen_mon as string | null | undefined) ?? null;
-    const loaiGs = (data.loai_giam_sat as string | null | undefined) ?? null;
+    const gscFields = resolveBangKiemGscPersistFields(data);
+    if (!gscFields.ok) throw new Error(gscFields.error);
+    const loaiGs = gscFields.loai_giam_sat;
     const apRaw = data.ap_dung_jsonb;
     const apDung = normalizeApDungForSave(
       parseApDungJsonb(apRaw, {
@@ -89,6 +93,8 @@ export async function saveBangKiem(data: Record<string, unknown>) {
       ten_bang_kiem: str(data, "ten_bang_kiem", "ten_bk"),
       mo_ta: (data.mo_ta as string | null | undefined) ?? null,
       phan_loai_chuyen_mon: phanLoai,
+      loai_giam_sat: loaiGs,
+      cach_tinh_diem: gscFields.cach_tinh_diem,
       loai_hinh_giam_sat: str(data, "loai_hinh_giam_sat") || "TRUC_TIEP",
       ap_dung_jsonb: apDung,
       is_active: typeof data.is_active === "boolean" ? data.is_active : true,
@@ -141,6 +147,8 @@ export async function saveTieuChi(data: Record<string, unknown>) {
         ? data.diem_toi_da
         : Number(data.diem_toi_da) || 1;
     const is_active = typeof data.is_active === "boolean" ? data.is_active : true;
+    const gscFields = resolveTieuChiGscPersistFields(data);
+    if (!gscFields.ok) throw new Error(gscFields.error);
     
     const supabase = createAdminSupabaseClient();
     const { data: bk, error: fetchErr } = await supabase
@@ -166,6 +174,7 @@ export async function saveTieuChi(data: Record<string, unknown>) {
           ghi_chu,
           diem_toi_da,
           is_active,
+          ...gscFields.fields,
           updated_at: new Date().toISOString(),
         };
       } else {
@@ -178,6 +187,7 @@ export async function saveTieuChi(data: Record<string, unknown>) {
           ghi_chu,
           diem_toi_da,
           is_active,
+          ...gscFields.fields,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
@@ -192,6 +202,7 @@ export async function saveTieuChi(data: Record<string, unknown>) {
         ghi_chu,
         diem_toi_da,
         is_active,
+        ...gscFields.fields,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });

@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
+    // Chỉ ảnh hưởng `npm run dev` local — không đụng production / Vercel.
+    // Next 16.2.x mặc định ghi cache Turbopack không giới hạn (có thể phình 10–20GB, CPU idle ~300%).
+    turbopackFileSystemCacheForDev: false,
     optimizePackageImports: [
       "lucide-react",
       "recharts",

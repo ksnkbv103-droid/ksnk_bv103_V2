@@ -26,10 +26,9 @@ export function DaoTaoAdminAccessGate({ children }: { children: React.ReactNode 
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-0.5 h-5 w-5 text-slate-400" aria-hidden />
             <div>
-              <p className={T.sectionTitle}>Chưa có quyền Đào tạo</p>
+              <p className={T.sectionTitle}>Chưa có quyền Thi KSNK</p>
               <p className="mt-1 text-sm text-slate-600">
-                Liên hệ quản trị viên để được cấp quyền module{" "}
-                <span className="font-mono text-xs">DAO_TAO</span>.
+                Liên hệ quản trị viên để được cấp quyền Thi KSNK.
               </p>
             </div>
           </div>
@@ -45,10 +44,9 @@ export function DaoTaoAdminAccessGate({ children }: { children: React.ReactNode 
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-0.5 h-5 w-5 text-amber-500" aria-hidden />
             <div>
-              <p className={T.sectionTitle}>Không có quyền quản trị Đào tạo</p>
+              <p className={T.sectionTitle}>Không có quyền quản trị Thi KSNK</p>
               <p className="mt-1 text-sm text-slate-600">
-                Cần quyền tạo/sửa/import module <span className="font-mono text-xs">DAO_TAO</span> để
-                vào ngân hàng câu hỏi và kỳ thi.
+                Cần quyền tạo, sửa hoặc nhập ngân hàng để vào trang quản trị thi.
               </p>
             </div>
           </div>

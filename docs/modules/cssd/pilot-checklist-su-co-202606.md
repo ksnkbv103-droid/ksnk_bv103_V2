@@ -21,5 +21,7 @@ npx vitest run src/modules/cssd-su-co/domain/
 | S5 | Nhật ký | `/cssd-erp/report?tab=incident` | Cột **Bản chất** + **Tình huống** đúng |
 | S6 | Accountability | Tab accountability | Chỉ lỗi **quy trình + chủ quan** (không có hệ thống) |
 | S7 | In lại | Nút **In** trên nhật ký | Biên bản đủ 3 lớp phân loại |
+| S8 | Xác nhận phiếu | Phiếu vừa báo → **Xác nhận phiếu** | Trạng thái **Đã xác nhận**; không bấm lại được; in hiện trạng thái |
+| S9 | BI+ / mẻ không đạt | QC mẻ **Không đạt** hoặc báo sự cố BI+ kèm mã lô | Một phiếu; mọi bộ cùng mẻ thu hồi (cấp phát → Tiếp nhận, còn lại → Đóng gói); máy tạm giữ QC nếu đang sẵn sàng; biên bản ghi thu hồi / HOLD_QC |
 
-**Pass pilot:** ≥6/7 ☐
+**Pass pilot:** ≥8/9 ☐

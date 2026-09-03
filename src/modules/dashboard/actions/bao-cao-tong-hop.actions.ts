@@ -9,7 +9,6 @@ import { describeCssdKhoaOwnershipProxy } from "@/lib/analytics/cssd-metrics/css
 import { verifyBaoCaoTongHopShell } from "../lib/dashboard-command-center-access";
 import {
   composeBaoCaoTongHopPayload,
-  computeCcs,
   computeTyLeGsc,
   computeTyLeVst,
   shouldFetchSource,
@@ -167,7 +166,6 @@ export async function getBaoCaoTongHopAnalytics(
         den_ngay: string;
         ty_le_vst: number | null;
         ty_le_gsc: number | null;
-        ty_le_ccs: number | null;
       }
     | null = null;
   const priorBounds = previousEqualLengthPeriod(f.tu_ngay, f.den_ngay);
@@ -197,7 +195,6 @@ export async function getBaoCaoTongHopAnalytics(
             den_ngay: priorBounds.den_ngay,
             ty_le_vst: priorVstPct,
             ty_le_gsc: priorGscPct,
-            ty_le_ccs: computeCcs(priorVstPct, priorGscPct).value,
           };
         }
       })(),

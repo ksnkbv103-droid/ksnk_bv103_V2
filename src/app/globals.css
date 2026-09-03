@@ -55,8 +55,28 @@
 
   /* Chuẩn touch / MIS: nút, ô nhập, thanh tìm (đồng bộ chiều cao) */
   --bv103-control-h: 2.5rem;
-  --bv103-page-title: 1.25rem;
-  --bv103-page-title-md: 1.5rem;
+  --bv103-page-title: 1.125rem;
+  --bv103-page-title-md: 1.125rem;
+
+  /* 5 vai trò chữ — đổi size/weight ở đây là đổi cả app */
+  --bv103-type-title-size: 1.125rem;
+  --bv103-type-section-size: 0.875rem;
+  --bv103-type-body-size: 0.875rem;
+  --bv103-type-label-size: 0.6875rem;
+  --bv103-type-kpi-size: 1.5rem;
+  --bv103-type-kpi-size-lg: 1.875rem;
+  --bv103-type-weight-title: 500;
+  --bv103-type-weight-body: 400;
+  --bv103-type-weight-label: 500;
+  --bv103-type-leading-title: 1.35;
+  --bv103-type-leading-body: 1.45;
+  --bv103-type-leading-label: 1.4;
+
+  /* Nhịp khoảng cách — 4 / 8 / 12 / 16 px. Đổi đây là đổi cả app. */
+  --bv103-space-1: 0.25rem;
+  --bv103-space-2: 0.5rem;
+  --bv103-space-3: 0.75rem;
+  --bv103-space-4: 1rem;
 
   color-scheme: light;
 }
@@ -98,7 +118,15 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: auto;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font-inter), Inter, system-ui, sans-serif;
+    font-size: var(--bv103-type-body-size);
+    font-weight: var(--bv103-type-weight-body);
+    line-height: var(--bv103-type-leading-body);
+    letter-spacing: -0.011em;
+    font-optical-sizing: auto;
+    font-feature-settings: "cv11" 1, "ss01" 1, "kern" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     background-color: var(--bg-body);
     color: var(--text-primary);
     @apply pointer-events-auto;
@@ -137,7 +165,7 @@
   h4,
   h5,
   h6 {
-    font-weight: 700;
+    font-weight: var(--bv103-type-weight-title);
     letter-spacing: -0.025em;
   }
 }
@@ -211,14 +239,139 @@
 
   /** @deprecated — dùng `bv103DesignTokens.labelBlock` / `bv103LayoutChrome.labelField` */
   .form-label {
-    @apply mb-1.5 block text-[11px] font-medium text-slate-500;
+    display: block;
+    margin-bottom: var(--bv103-space-1);
+    font-size: var(--bv103-type-label-size);
+    font-weight: var(--bv103-type-weight-label);
+    line-height: var(--bv103-type-leading-label);
+    color: var(--text-muted);
   }
 
-  /** Label field — đồng bộ `bv103LayoutChrome.labelField` */
+  /** Label field — đồng bộ `bv103-type-label` */
   .bv103-label {
-    font-size: 11px;
-    font-weight: 500;
+    font-size: var(--bv103-type-label-size);
+    font-weight: var(--bv103-type-weight-label);
+    line-height: var(--bv103-type-leading-label);
     color: var(--text-muted);
+  }
+
+  /** 5 vai trò chữ — SSOT. Token/chrome chỉ trỏ class này. */
+  .bv103-type-title {
+    font-size: var(--bv103-type-title-size);
+    font-weight: var(--bv103-type-weight-title);
+    line-height: var(--bv103-type-leading-title);
+    letter-spacing: -0.025em;
+    color: var(--text-title);
+  }
+
+  .bv103-type-section {
+    font-size: var(--bv103-type-section-size);
+    font-weight: var(--bv103-type-weight-title);
+    line-height: var(--bv103-type-leading-title);
+    color: #1e293b;
+  }
+
+  .bv103-type-body {
+    font-size: var(--bv103-type-body-size);
+    font-weight: var(--bv103-type-weight-body);
+    line-height: var(--bv103-type-leading-body);
+    color: var(--text-body);
+  }
+
+  .bv103-type-label {
+    font-size: var(--bv103-type-label-size);
+    font-weight: var(--bv103-type-weight-label);
+    line-height: var(--bv103-type-leading-label);
+    color: var(--text-muted);
+  }
+
+  .bv103-type-kpi {
+    font-size: var(--bv103-type-kpi-size);
+    font-weight: var(--bv103-type-weight-title);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    color: var(--text-title);
+  }
+
+  .bv103-type-kpi-lg {
+    font-size: var(--bv103-type-kpi-size-lg);
+    font-weight: var(--bv103-type-weight-title);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--text-title);
+  }
+
+  .bv103-type-note {
+    font-size: var(--bv103-type-label-size);
+    font-weight: 400;
+    font-style: italic;
+    line-height: var(--bv103-type-leading-body);
+    color: #94a3b8;
+  }
+
+  /** Tối đa 3 lớp: trang → giấy → nhóm trong. Hộp trắng lồng tự mất bóng. */
+  .bv103-layer-page {
+    min-width: 0;
+  }
+
+  .bv103-layer-panel {
+    border-radius: var(--radius-shell);
+    border: 1px solid rgb(226 232 240 / 0.9);
+    background: var(--bg-panel);
+    box-shadow: var(--shadow-app-soft);
+  }
+
+  .bv103-layer-inset {
+    border-radius: var(--radius-shell);
+    border: 1px solid rgb(226 232 240 / 0.9);
+    background: rgb(248 250 252 / 0.4);
+    box-shadow: none;
+  }
+
+  .bv103-layer-panel .bv103-layer-panel {
+    box-shadow: none;
+    background: rgb(248 250 252 / 0.45);
+  }
+
+  .bv103-layer-panel .bv103-layer-panel .bv103-layer-panel {
+    border-color: rgb(226 232 240 / 0.6);
+    background: transparent;
+  }
+
+  /** Cụm nút — một hàng, sát phải, khe 8px. */
+  .bv103-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--bv103-space-2);
+  }
+
+  /** Xếp dọc giữa các hộp / khối trang — 16px (thoáng hơn bên trong hộp). */
+  .bv103-stack-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bv103-space-4);
+    min-width: 0;
+  }
+
+  /** Xếp dọc trong form / panel — 12px. */
+  .bv103-stack-in {
+    display: flex;
+    flex-direction: column;
+    gap: var(--bv103-space-3);
+    min-width: 0;
+  }
+
+  /** Đệm trong giấy trắng: 12 dọc · 16 ngang — cân với chữ 14/18. */
+  .bv103-pad-panel {
+    padding: var(--bv103-space-3) var(--bv103-space-4);
+  }
+
+  .bv103-pad-inset {
+    padding: var(--bv103-space-2) var(--bv103-space-3);
   }
 }
 
@@ -226,13 +379,19 @@
    TYPOGRAPHY
    ============================================ */
 @layer utilities {
-  /** @deprecated — dùng `bv103DesignTokens.pageTitle` */
+  /** @deprecated — dùng `bv103-type-title` */
   .heading-module {
-    @apply text-xl font-semibold tracking-tight text-slate-900 md:text-2xl;
+    font-size: var(--bv103-type-title-size);
+    font-weight: var(--bv103-type-weight-title);
+    letter-spacing: -0.025em;
+    color: var(--text-title);
   }
 
   .stat-value {
-    @apply text-2xl font-semibold tabular-nums text-slate-900;
+    font-size: var(--bv103-type-kpi-size);
+    font-weight: var(--bv103-type-weight-title);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-title);
   }
 
   /** Nhóm sidebar / zone app — IN HOA chỉ ở lớp điều hướng */

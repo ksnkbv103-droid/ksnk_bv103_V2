@@ -45,13 +45,13 @@ export default function MeTietKhuanCreateStep({
       <button type="button" onClick={onCancel} className={`${CSSD_UI_STEP_HINT} hover:text-slate-700`}>
         ← Danh sách mẻ
       </button>
-      <div className="mx-auto max-w-xl space-y-6 pt-2">
+      <div className="mx-auto max-w-xl space-y-[var(--bv103-space-3)] pt-2">
         <div className={`space-y-8 p-8 ${CSSD_UI_PANEL}`}>
           <div className="text-center">
             <h2 className={CSSD_UI_PANEL_TITLE}>Tạo mẻ mới</h2>
             <p className={CSSD_UI_STEP_HINT}>Chọn thiết bị và người vận hành</p>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-[var(--bv103-space-3)]">
             <div className="space-y-2">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pl-4 pr-1">
                 <label className={CSSD_UI_FORM_LABEL}>Máy tiệt khuẩn</label>

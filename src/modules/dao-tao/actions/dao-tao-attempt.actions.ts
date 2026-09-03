@@ -11,6 +11,8 @@ import type {
   TraLoi,
 } from "@/lib/dao-tao/types";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
+import { parseGan } from "@/lib/dao-tao/labels";
+import { parseHanChungChiThang, resolveChungChi, type ChungChiStatus } from "@/lib/dao-tao/chung-chi";
 import { requireDaoTaoUser } from "@/modules/dao-tao/lib/dao-tao-auth";
 import { randomUUID } from "crypto";
 
@@ -113,20 +115,12 @@ function validateForm(form: ExamFormThongTin) {
   if (!form.khoaDonVi?.trim()) throw new Error("Vui lòng nhập khoa / đơn vị.");
 }
 
-function ganOf(row: { gan?: unknown }): { khoa_ids: string[]; nhan_su_ids: string[] } {
-  const g = (row.gan ?? {}) as { khoa_ids?: string[]; nhan_su_ids?: string[] };
-  return {
-    khoa_ids: g.khoa_ids ?? [],
-    nhan_su_ids: g.nhan_su_ids ?? [],
-  };
-}
-
 async function userAssignedToCauHinh(
   admin: ReturnType<typeof createAdminSupabaseClient>,
   userId: string,
   cauHinh: { gan?: unknown },
 ): Promise<boolean> {
-  const gan = ganOf(cauHinh);
+  const gan = parseGan(cauHinh.gan);
   if (!gan.khoa_ids.length && !gan.nhan_su_ids.length) return false;
 
   const { data: nhanSu } = await admin
@@ -248,6 +242,37 @@ export async function listKyThiThatCuaToi() {
   return out;
 }
 
+export async function listLanThiCuaToi() {
+  const { user } = await requireDaoTaoUser();
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin
+    .from("dao_tao_lan_thi")
+    .select(
+      "id, che_do, cau_hinh_id, diem_pct, dat, trang_thai, nop_luc, bat_dau_luc, so_cau",
+    )
+    .eq("auth_user_id", user.id)
+    .order("bat_dau_luc", { ascending: false })
+    .limit(20);
+  if (error) throw error;
+  const rows = data ?? [];
+  const kyIds = [...new Set(rows.map((r) => r.cau_hinh_id).filter(Boolean))] as string[];
+  const { data: kys } = kyIds.length
+    ? await admin.from("dao_tao_cau_hinh").select("id, ten").in("id", kyIds)
+    : { data: [] };
+  const kyMap = Object.fromEntries((kys ?? []).map((k) => [k.id, k.ten as string]));
+  return rows.map((r) => ({
+    id: r.id as string,
+    cheDo: r.che_do as string,
+    kyTen: (r.cau_hinh_id ? kyMap[r.cau_hinh_id] : null) ?? (r.che_do === "thi_thu" ? "Ôn tập" : "Kỳ thi"),
+    diemPct: r.diem_pct as number | null,
+    dat: r.dat as boolean | null,
+    trangThai: r.trang_thai as string,
+    nopLuc: r.nop_luc as string | null,
+    batDauLuc: r.bat_dau_luc as string,
+    soCau: r.so_cau as number,
+  }));
+}
+
 export async function startThiThatAttempt(input: {
   kyThiId: string;
   form: ExamFormThongTin;
@@ -358,7 +383,6 @@ export async function getLanThiForTake(lanThiId: string) {
       id: c.id,
       thuTu: c.thu_tu,
       loai: c.loai,
-      bloomLevel: c.bloom_level,
       stem: c.stem,
       options: c.options,
       traLoi: c.tra_loi,
@@ -380,8 +404,6 @@ export async function getLanThiForTake(lanThiId: string) {
       diemPct: lanThi.diem_pct,
       dat: lanThi.dat,
       soCau: lanThi.so_cau,
-      form: lanThi.form_thong_tin,
-      quotaReport: lanThi.quota_report,
     },
     questions,
     serverNow: new Date().toISOString(),
@@ -477,4 +499,46 @@ export async function submitLanThi(lanThiId: string) {
     dat,
     trangThai: hetGio || late ? "het_gio" : "da_nop",
   };
+}
+
+export async function getChungChiCuaToi(): Promise<ChungChiStatus> {
+  const { user } = await requireDaoTaoUser();
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin
+    .from("dao_tao_lan_thi")
+    .select("cau_hinh_id, nop_luc")
+    .eq("auth_user_id", user.id)
+    .eq("che_do", "thi_that")
+    .eq("dat", true)
+    .in("trang_thai", ["da_nop", "het_gio"])
+    .not("nop_luc", "is", null)
+    .order("nop_luc", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data?.nop_luc) {
+    return resolveChungChi({
+      lastPassNopLuc: null,
+      lastPassKyTen: null,
+      hanThang: 12,
+      nowIso: new Date().toISOString(),
+    });
+  }
+  let kyTen: string | null = null;
+  let gan: unknown = null;
+  if (data.cau_hinh_id) {
+    const { data: ky } = await admin
+      .from("dao_tao_cau_hinh")
+      .select("ten, gan")
+      .eq("id", data.cau_hinh_id)
+      .maybeSingle();
+    kyTen = (ky?.ten as string | undefined) ?? null;
+    gan = ky?.gan;
+  }
+  return resolveChungChi({
+    lastPassNopLuc: data.nop_luc as string,
+    lastPassKyTen: kyTen,
+    hanThang: parseHanChungChiThang(gan),
+    nowIso: new Date().toISOString(),
+  });
 }

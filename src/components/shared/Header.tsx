@@ -50,9 +50,9 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   };
 
   return (
-    <header className="sticky top-0 z-50 flex shrink-0 min-h-12 items-center justify-between gap-2 border-b border-slate-200/90 bg-[var(--bg-panel)] px-2 py-1.5 pt-[max(0.375rem,env(safe-area-inset-top))] shadow-[var(--shadow-app-header)] sm:min-h-[4.25rem] sm:gap-3 sm:px-4 sm:py-2 md:gap-6 md:px-8">
-      <div className="flex min-w-0 flex-1 flex-col gap-2 lg:flex-row lg:items-center lg:gap-4">
-        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 md:gap-4">
+    <header className="sticky top-0 z-50 flex shrink-0 min-h-11 items-center justify-between gap-2 border-b border-slate-200/90 bg-[var(--bg-panel)] px-2 py-1 pt-[max(0.25rem,env(safe-area-inset-top))] shadow-[var(--shadow-app-header)] sm:min-h-12 sm:gap-2 sm:px-3 sm:py-1.5 md:px-4">
+      <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={(e) => {
@@ -69,10 +69,10 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <nav aria-label="Ngữ cảnh trang" className="min-w-0 flex-1">
-            <p className={`${T.shellZone} hidden sm:block`}>{breadcrumb.zone}</p>
+          <nav aria-label="Ngữ cảnh trang" className="flex min-w-0 flex-1 items-baseline gap-2">
+            <p className={`${T.shellZone} hidden shrink-0 sm:block`}>{breadcrumb.zone}</p>
             {breadcrumb.page ? (
-              <p className={`${T.shellPage} ${breadcrumb.zone ? "sm:mt-0" : ""}`}>{breadcrumb.page}</p>
+              <p className={T.shellPage}>{breadcrumb.page}</p>
             ) : (
               <p className={`${T.shellPage} sm:hidden`}>{breadcrumb.zone}</p>
             )}
@@ -84,7 +84,7 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         */}
         <div
           id="bv103-header-toolbar-slot"
-          className="hidden min-h-[var(--bv103-control-h)] min-w-0 flex-1 basis-0 justify-end lg:flex lg:max-w-[min(100%,48rem)] lg:items-center"
+          className="hidden min-w-0 justify-end empty:hidden lg:flex lg:max-w-md lg:items-center"
           aria-live="polite"
         />
       </div>

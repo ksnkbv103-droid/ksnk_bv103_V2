@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import type {
   BaGridCdhaCell,
   BaGridColumn,
@@ -18,6 +18,7 @@ import NkbvBaDayGrid, {
   type BaDayGridColumnDef,
 } from "./NkbvBaDayGrid";
 import { isDeviceDateInStay } from "../lib/nkbv-ba-device-timeline";
+import { nkbvKhoaSelectOptions, type NkbvKhoaOpt } from "../lib/nkbv-khoa-options";
 
 type XnCell = BaGridXnCell;
 
@@ -30,6 +31,8 @@ type Props = {
   cdhaByDate: Record<string, BaGridCdhaCell[]>;
   ssiTcByDate: Record<string, TcItem[]>;
   surgeryByDate: Record<string, TcItem[]>;
+  /** Triệu chứng lâm sàng đã nhập trên BA — hiện mọi ngày, không chỉ IWP. */
+  lamSangByDate?: Record<string, TcItem[]>;
   foleyOnDate?: Record<string, boolean>;
   ventOnDate?: Record<string, boolean>;
   cvcOnDate?: Record<string, boolean>;
@@ -38,6 +41,9 @@ type Props = {
   cdhaCatalog: CdhaCatalogItem[];
   ssiTcCatalog: Array<{ criteriaKey: string; title: string }>;
   allowedEdit: boolean;
+  khoaByDate?: Record<string, string>;
+  khoas?: NkbvKhoaOpt[];
+  onChangeKhoa?: (date: string, khoaId: string) => void;
   defaultKhoa: string;
   /** Ràng buộc tick Foley/Vent/CVC trong đợt nằm viện. */
   ngayVaoVien?: string;
@@ -79,7 +85,7 @@ type Props = {
 
 /**
  * Bảng chung dọc (timeline trung tâm):
- * Date | HD | XN | CĐHA | TC SSI | [Index…SBAP] | Khoa | CVC | Vent | Foley | Kết luận | Ghi chú
+ * Date | HD | XN | CĐHA | LS | TC SSI | [Index…SBAP] | Khoa | CVC | Vent | Foley | Kết luận | Ghi chú
  */
 export default function NkbvBaCommonDayGrid({
   days,
@@ -87,6 +93,7 @@ export default function NkbvBaCommonDayGrid({
   cdhaByDate,
   ssiTcByDate,
   surgeryByDate,
+  lamSangByDate = {},
   foleyOnDate = {},
   ventOnDate = {},
   cvcOnDate = {},
@@ -95,7 +102,10 @@ export default function NkbvBaCommonDayGrid({
   cdhaCatalog,
   ssiTcCatalog,
   allowedEdit,
-  defaultKhoa,
+  khoaByDate = {},
+  khoas = [],
+  onChangeKhoa,
+  defaultKhoa: _defaultKhoa,
   ngayVaoVien = "",
   ngayRaVien = null,
   windowColumns = [],
@@ -106,14 +116,14 @@ export default function NkbvBaCommonDayGrid({
   onAddXn,
   onOpenCdha,
   onRemoveMilestone,
-  onEditCdhaDate,
+  onEditCdhaDate: _onEditCdhaDate,
   onToggleCdha,
   onOpenSurgeryOrSsi,
   onAddSurgery,
   onToggleSsiTc,
   onToggleDevice,
 }: Props) {
-  const [khoaMap, setKhoaMap] = useState<Record<string, string>>({});
+  const khoaOptions = nkbvKhoaSelectOptions(khoas);
   const cw = BA_DAY_COL_W_COMMON;
   const deviceToggleEnabled = (date: string, alreadyOn: boolean) => {
     if (!allowedEdit || !onToggleDevice) return false;
@@ -131,7 +141,7 @@ export default function NkbvBaCommonDayGrid({
     ...baDayIdentityColumns(),
     {
       id: "xn",
-      header: "XN",
+      header: "Xn",
       minWidth: cw,
       render: (day) => {
         const items = xnByDate[day.date] || [];
@@ -154,13 +164,13 @@ export default function NkbvBaCommonDayGrid({
                   onClick={() => onPickXn(x)}
                   className={`rounded px-0.5 py-0.5 text-left leading-tight hover:bg-amber-50 ${
                     activeXnId === x.id ? "ring-2 ring-rose-500 font-semibold" : ""
-                  }`}
+                  } ${x.ket_qua_duong_tinh === false ? "opacity-70" : ""}`}
                   title="Chọn từng bệnh phẩm để phân tích"
                 >
                   <span
-                    className={`mb-0.5 inline-block rounded px-0.5 text-[9px] font-bold ${badge}`}
+                    className={`mb-0.5 inline-block rounded px-0.5 bv103-type-label font-semibold ${badge}`}
                   >
-                    {statusBadgeLabel(st)}
+                    {x.ket_qua_duong_tinh === false ? "Âm" : statusBadgeLabel(st)}
                   </span>
                   <span className="block truncate font-semibold">{x.benh_pham}</span>
                   <span className="block truncate text-slate-700">{x.vi_khuan}</span>
@@ -173,7 +183,7 @@ export default function NkbvBaCommonDayGrid({
             {allowedEdit && onAddXn ? (
               <button
                 type="button"
-                className="text-left text-[10px] font-semibold text-amber-800 hover:underline"
+                className="text-left text-[11px] font-semibold text-amber-800 hover:underline"
                 onClick={() => onAddXn(day.date)}
                 title="Thêm XN vi sinh vào kho — ngày lấy mẫu = ngày hàng"
               >
@@ -189,7 +199,7 @@ export default function NkbvBaCommonDayGrid({
     },
     {
       id: "cdha",
-      header: "CĐHA",
+      header: "Cđha",
       minWidth: cw,
       render: (day) => {
         const items = cdhaByDate[day.date] || [];
@@ -211,7 +221,7 @@ export default function NkbvBaCommonDayGrid({
                   {allowedEdit && !x.id.startsWith("local-") ? (
                     <button
                       type="button"
-                      className="shrink-0 text-[10px] text-rose-500"
+                      className="shrink-0 text-[11px] text-rose-500"
                       title="Xóa"
                       onClick={() => void onRemoveMilestone(x.id)}
                     >
@@ -219,24 +229,12 @@ export default function NkbvBaCommonDayGrid({
                     </button>
                   ) : null}
                 </div>
-                {allowedEdit && !x.id.startsWith("local-") ? (
-                  <input
-                    type="date"
-                    className="w-full bg-emerald-50/50 text-[9px]"
-                    value={x.ngay.slice(0, 10)}
-                    title="Sửa ngày CĐHA"
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      if (v && v !== x.ngay.slice(0, 10)) void onEditCdhaDate(x.id, v);
-                    }}
-                  />
-                ) : null}
               </div>
             ))}
             {allowedEdit ? (
               <NkbvGridCriteriaAddPopover
                 triggerLabel="+ CĐHA"
-                triggerClassName="cursor-pointer text-[10px] font-semibold text-emerald-600"
+                triggerClassName="cursor-pointer text-[11px] font-semibold text-emerald-600"
                 maxHeight={160}
               >
                 {cdhaCatalog.map((cat) => (
@@ -271,8 +269,30 @@ export default function NkbvBaCommonDayGrid({
       },
     },
     {
+      id: "ls",
+      header: "Ls",
+      minWidth: cw,
+      render: (day) => {
+        const items = lamSangByDate[day.date] || [];
+        if (!items.length) return <span className="text-slate-300">—</span>;
+        return (
+          <div className="flex flex-col gap-0.5">
+            {items.map((it) => (
+              <span
+                key={it.id || `${it.key}-${it.label}`}
+                className="line-clamp-2 text-[11px] font-semibold text-sky-950"
+                title={it.label}
+              >
+                {it.label}
+              </span>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
       id: "ssi_tc",
-      header: "TC SSI",
+      header: "Tc ssi",
       minWidth: cw,
       render: (day) => {
         const items = ssiTcByDate[day.date] || [];
@@ -291,14 +311,14 @@ export default function NkbvBaCommonDayGrid({
                       s.key || "procedure_surgery",
                     )
                   }
-                  className="min-w-0 flex-1 truncate text-left text-[10px] font-semibold text-violet-800 hover:underline"
+                  className="min-w-0 flex-1 truncate text-left text-[11px] font-semibold text-violet-800 hover:underline"
                 >
                   {s.label}
                 </button>
                 {allowedEdit && s.id ? (
                   <button
                     type="button"
-                    className="shrink-0 text-[10px] text-rose-500"
+                    className="shrink-0 text-[11px] text-rose-500"
                     onClick={() => void onRemoveMilestone(s.id)}
                   >
                     ×
@@ -318,14 +338,14 @@ export default function NkbvBaCommonDayGrid({
                       it.key,
                     )
                   }
-                  className="min-w-0 flex-1 line-clamp-2 text-left text-[10px] font-semibold text-violet-950 hover:underline"
+                  className="min-w-0 flex-1 line-clamp-2 text-left text-[11px] font-semibold text-violet-950 hover:underline"
                 >
                   {it.label}
                 </button>
                 {allowedEdit && it.id ? (
                   <button
                     type="button"
-                    className="shrink-0 text-[10px] text-rose-500"
+                    className="shrink-0 text-[11px] text-rose-500"
                     onClick={() => void onRemoveMilestone(it.id)}
                   >
                     ×
@@ -336,7 +356,7 @@ export default function NkbvBaCommonDayGrid({
             {allowedEdit ? (
               <NkbvGridCriteriaAddPopover
                 triggerLabel="+ TC"
-                triggerClassName="cursor-pointer text-[10px] font-semibold text-violet-600"
+                triggerClassName="cursor-pointer text-[11px] font-semibold text-violet-600"
                 maxHeight={176}
               >
                 <li>
@@ -376,20 +396,32 @@ export default function NkbvBaCommonDayGrid({
       id: "khoa",
       header: "Khoa",
       minWidth: BA_DAY_COL_W_NARROW,
-      render: (day) => (
-        <input
-          className="w-full bg-transparent text-center text-[9px] outline-none"
-          value={khoaMap[day.date] ?? defaultKhoa}
-          disabled={!allowedEdit}
-          onChange={(e) => setKhoaMap((p) => ({ ...p, [day.date]: e.target.value }))}
-          placeholder="—"
-          title={khoaMap[day.date] ?? defaultKhoa}
-        />
-      ),
+      render: (day) => {
+        const khoaId = khoaByDate[day.date] || "";
+        const inStay = ngayVaoVien
+          ? isDeviceDateInStay(day.date, ngayVaoVien, ngayRaVien).ok
+          : false;
+        return (
+          <select
+            className="w-full max-w-full bg-transparent text-center text-[11px] outline-none"
+            value={khoaId}
+            disabled={!allowedEdit || !onChangeKhoa || !inStay}
+            onChange={(e) => onChangeKhoa?.(day.date, e.target.value)}
+            title={khoaOptions.find((o) => o.id === khoaId)?.label || "Chọn khoa theo mã"}
+          >
+            <option value="">—</option>
+            {khoaOptions.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        );
+      },
     },
     {
       id: "ct_cvc",
-      header: "CVC",
+      header: "Cvc",
       minWidth: BA_DAY_COL_W_NARROW,
       render: (day) => {
         const on = Boolean(cvcOnDate[day.date]);
@@ -399,7 +431,7 @@ export default function NkbvBaCommonDayGrid({
             type="button"
             disabled={!enabled}
             onClick={() => onToggleDevice?.(day.date, "device_central_line")}
-            className={`w-full rounded py-0.5 text-[9px] font-bold ${
+            className={`w-full rounded py-0.5 bv103-type-label font-semibold ${
               on ? "bg-amber-800 text-white" : "text-slate-400"
             } ${!enabled && !on ? "opacity-40" : ""}`}
             title={deviceTitle("Đường truyền trung tâm — lưu trên timeline BA", day.date, on)}
@@ -421,7 +453,7 @@ export default function NkbvBaCommonDayGrid({
             type="button"
             disabled={!enabled}
             onClick={() => onToggleDevice?.(day.date, "device_ventilator")}
-            className={`w-full rounded py-0.5 text-[9px] font-bold ${
+            className={`w-full rounded py-0.5 bv103-type-label font-semibold ${
               on ? "bg-violet-800 text-white" : "text-slate-400"
             } ${!enabled && !on ? "opacity-40" : ""}`}
             title={deviceTitle("Thở máy — lưu trên timeline BA", day.date, on)}
@@ -443,7 +475,7 @@ export default function NkbvBaCommonDayGrid({
             type="button"
             disabled={!enabled}
             onClick={() => onToggleDevice?.(day.date, "device_foley")}
-            className={`w-full rounded py-0.5 text-[9px] font-bold ${
+            className={`w-full rounded py-0.5 bv103-type-label font-semibold ${
               on ? "bg-sky-800 text-white" : "text-slate-400"
             } ${!enabled && !on ? "opacity-40" : ""}`}
             title={deviceTitle("Ống thông tiểu lưu — lưu trên timeline BA", day.date, on)}

@@ -130,7 +130,7 @@ export default function BsiClinicalSubForm({
       {showMicro && (
         <NkbvFormSection title="Vi sinh (từ LIS — chỉnh nếu sai)" hint="Recognized = 1 mẫu đủ; Commensal cần ≥2 lần lấy riêng + triệu chứng.">
           <div>
-            <label className="mb-1 block text-xs font-bold text-slate-700">Tên tác nhân</label>
+            <label className="mb-1 block bv103-type-label font-semibold text-slate-700">Tên tác nhân</label>
             <input
               value={form.pathogen_name}
               disabled={!allowedEdit}
@@ -141,7 +141,7 @@ export default function BsiClinicalSubForm({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-700">Loại tác nhân</label>
+              <label className="mb-1 block bv103-type-label font-semibold text-slate-700">Loại tác nhân</label>
               <select
                 value={form.pathogen_type}
                 disabled={!allowedEdit}
@@ -158,7 +158,7 @@ export default function BsiClinicalSubForm({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-700">Tác nhân đường ruột?</label>
+              <label className="mb-1 block bv103-type-label font-semibold text-slate-700">Tác nhân đường ruột?</label>
               <select
                 value={form.is_intestinal_pathogen ? "true" : "false"}
                 disabled={!allowedEdit}
@@ -174,7 +174,7 @@ export default function BsiClinicalSubForm({
             <div className="space-y-2 rounded-xl border border-amber-100 bg-amber-50 p-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-[11px] font-bold text-amber-700">Số lần cấy riêng biệt (+)</label>
+                  <label className="mb-1 block bv103-type-label font-semibold text-amber-700">Số lần cấy riêng biệt (+)</label>
                   <input
                     type="number"
                     value={form.commensal_culture_count}
@@ -185,7 +185,7 @@ export default function BsiClinicalSubForm({
                     className="w-full rounded-lg border-amber-200 bg-white px-2 py-1 text-xs"
                   />
                 </div>
-                <label className="flex items-center gap-2 pt-5 text-[11px] font-bold text-amber-800 cursor-pointer">
+                <label className="flex items-center gap-2 pt-5 bv103-type-label font-semibold text-amber-800 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={form.commensal_drawn_separate}
@@ -218,7 +218,7 @@ export default function BsiClinicalSubForm({
           >
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700">Ngày đặt CVC</label>
+                <label className="mb-1 block bv103-type-label font-semibold text-slate-700">Ngày đặt CVC</label>
                 <input
                   type="date"
                   value={form.device_placed_date || ""}
@@ -230,7 +230,7 @@ export default function BsiClinicalSubForm({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700">Ngày rút (trống nếu còn lưu)</label>
+                <label className="mb-1 block bv103-type-label font-semibold text-slate-700">Ngày rút (trống nếu còn lưu)</label>
                 <input
                   type="date"
                   value={form.device_removed_date || ""}

@@ -129,7 +129,7 @@ export default function QrCameraModal({
         ) : null}
         <div
           id={READER_ID}
-          className="h-[min(70vw,360px)] min-h-[240px] w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-black [&_video]:h-full [&_video]:w-full [&_video]:rounded-2xl [&_video]:object-cover"
+          className="h-[min(70vw,360px)] min-h-[240px] w-full max-w-md overflow-hidden rounded-[var(--radius-shell)] border border-white/10 bg-black [&_video]:h-full [&_video]:w-full [&_video]:rounded-[var(--radius-shell)] [&_video]:object-cover"
         />
         <p className="mt-4 max-w-sm text-center text-xs leading-relaxed text-white/70">
           Đưa mã QR vào khung. Trên điện thoại/máy tính bảng cần cho phép quyền camera (HTTPS hoặc localhost).

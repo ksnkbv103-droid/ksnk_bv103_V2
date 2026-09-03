@@ -22,14 +22,14 @@ type Props = {
 function StatusBadge({ status }: { status: "da_tgs" | "thieu_tgs" }) {
   if (status === "da_tgs") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
-        <CheckCircle2 className="w-3 h-3" /> Đã TGS
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 bv103-type-label font-semibold text-emerald-800">
+        <CheckCircle2 className="w-3 h-3" /> Đã tự giám sát
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-800">
-      <AlertCircle className="w-3 h-3" /> Thiếu TGS
+    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 bv103-type-label font-semibold text-amber-800">
+      <AlertCircle className="w-3 h-3" /> Thiếu tự giám sát
     </span>
   );
 }
@@ -57,13 +57,13 @@ function TanSuatBadge({ row }: { row: Row }) {
       : `${row.so_phien_thuc_te} phiên`;
   if (row.tan_suat_danh_gia === "dat") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-0.5 text-[11px] font-bold text-violet-800">
+      <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-0.5 bv103-type-label font-semibold text-violet-800">
         <CheckCircle2 className="w-3 h-3" /> {label}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-800">
+    <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 bv103-type-label font-semibold text-rose-800">
       <AlertCircle className="w-3 h-3" /> {label} (thiếu tần suất)
     </span>
   );
@@ -121,20 +121,20 @@ function BkTable({ rows, showStatus }: { rows: Row[]; showStatus: boolean }) {
                 <div className="flex flex-col gap-1.5">
                   <Link
                     href={row.gsc_form_href}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--primary)] hover:underline"
+                    className="inline-flex items-center gap-1 bv103-type-label font-semibold text-[var(--primary)] hover:underline"
                   >
                     Tạo phiên <ExternalLink className="w-3 h-3" />
                   </Link>
                   {row.trang_thai === "thieu_tgs" ? (
                     <Link
                       href={buildQlcvAnalyticsDeepLink({
-                        topic: `BK phải TGS · ${row.ma_bk}`,
-                        gap: "Thiếu TGS",
+                        topic: `BK phải tự giám sát · ${row.ma_bk}`,
+                        gap: "Thiếu tự giám sát",
                         bkLabel: `${row.ma_bk} ${row.ten_bang_kiem}`.trim(),
                       })}
                       className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 hover:underline"
                     >
-                      Việc KSNK <ExternalLink className="w-3 h-3" />
+                      Tạo việc <ExternalLink className="w-3 h-3" />
                     </Link>
                   ) : null}
                 </div>
@@ -177,20 +177,20 @@ export default function GscBangKiemToiPhaiTgsPanel({
   });
 
   return (
-    <div className="space-y-6 px-2 pb-8">
-      <div className={`p-4 sm:p-6 space-y-4 ${bv103LayoutChrome.panelSurface}`}>
+    <div className="space-y-[var(--bv103-space-3)] px-2 pb-8">
+      <div className={`space-y-[var(--bv103-space-3)] ${bv103LayoutChrome.panelShellPadded}`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className={`${UI.panelTitle} inline-flex items-center gap-2`}>
               <ClipboardList className="w-5 h-5 text-[var(--primary)]" />
-              BK tôi phải tự giám sát (TGS)
+              Bảng kiểm khoa phải tự giám sát
             </h2>
           </div>
           <button
             type="button"
             onClick={() => void reload()}
             disabled={loading || !todoKhoaId}
-            className="inline-flex items-center gap-2 rounded-[var(--radius-shell)] border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-[var(--radius-shell)] border border-slate-200 bg-white px-4 py-2 bv103-type-label font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
             Làm mới
@@ -222,7 +222,7 @@ export default function GscBangKiemToiPhaiTgsPanel({
               <select
                 value={todoKhoaId}
                 onChange={(e) => setTodoKhoaId(e.target.value)}
-                className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-800"
+                className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 bv103-type-label font-semibold text-slate-800"
               >
                 <option value="">— Chọn khoa —</option>
                 {khoaOptions.map((k) => (
@@ -243,7 +243,7 @@ export default function GscBangKiemToiPhaiTgsPanel({
 
         {!todoKhoaId ? (
           <p className="text-sm font-medium text-amber-700 bg-amber-50 rounded-[var(--radius-shell)] px-4 py-3">
-            Chọn khoa để xem danh sách bảng kiểm phải TGS.
+            Chọn khoa để xem danh sách bảng kiểm phải tự giám sát.
           </p>
         ) : null}
 
@@ -264,19 +264,19 @@ export default function GscBangKiemToiPhaiTgsPanel({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className={`${UI.inset} px-4 py-3`}>
                 <p className={UI.kpiLabel}>BK bắt buộc</p>
-                <p className="text-xl font-bold text-slate-800">{data.tom_tat.tong_bat_buoc}</p>
+                <p className="bv103-type-title text-slate-800">{data.tom_tat.tong_bat_buoc}</p>
               </div>
               <div className="rounded-[var(--radius-shell)] bg-emerald-50 px-4 py-3">
-                <p className={`${UI.kpiLabel} text-emerald-700`}>Đã TGS</p>
-                <p className="text-xl font-bold text-emerald-900">{data.tom_tat.da_tgs}</p>
+                <p className={`${UI.kpiLabel} text-emerald-700`}>Đã tự giám sát</p>
+                <p className="bv103-type-title text-emerald-900">{data.tom_tat.da_tgs}</p>
               </div>
               <div className="rounded-[var(--radius-shell)] bg-amber-50 px-4 py-3">
                 <p className={`${UI.kpiLabel} text-amber-700`}>Thiếu</p>
-                <p className="text-xl font-bold text-amber-900">{data.tom_tat.thieu}</p>
+                <p className="bv103-type-title text-amber-900">{data.tom_tat.thieu}</p>
               </div>
               <div className="rounded-[var(--radius-shell)] bg-[var(--primary)]/5 px-4 py-3">
                 <p className={`${UI.kpiLabel} text-[var(--primary)]`}>Bao phủ</p>
-                <p className="text-xl font-bold text-[var(--primary)]">{data.tom_tat.ty_le_bao_phu}%</p>
+                <p className="bv103-type-title text-[var(--primary)]">{data.tom_tat.ty_le_bao_phu}%</p>
               </div>
             </div>
 

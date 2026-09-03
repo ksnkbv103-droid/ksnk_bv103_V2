@@ -44,6 +44,7 @@ import NkbvBenhAnEditModal from "../components/NkbvBenhAnEditModal";
 import NkbvBenhAnHubPanel from "../components/NkbvBenhAnHubPanel";
 import NkbvMdroCensusPanel from "../components/NkbvMdroCensusPanel";
 import NkbvMauSoDailyPortal from "../components/NkbvMauSoDailyPortal";
+import NkbvCdcLocationBanner from "../components/NkbvCdcLocationBanner";
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
 import NkbvClinicalChecklistModal from "../components/NkbvClinicalChecklistModal";
 import { formatNkbvLoaiDisplay } from "../lib/nkbv-loai-labels";
@@ -75,7 +76,7 @@ export default function GiamSatNkbvPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const deepLinkApplied = useRef(false);
+  const lastCaseDeepLink = useRef("");
   const [filterLoaiId, setFilterLoaiId] = useState("");
   const [filterTrangThaiId, setFilterTrangThaiId] = useState("");
   const fetchNkbvPage = useCallback(
@@ -133,16 +134,18 @@ export default function GiamSatNkbvPage() {
   const [dashPayload, setDashPayload] = useState<NkbvDashboardPayload | null>(null);
   const [dashLoading, setDashLoading] = useState(false);
   const [hubBa, setHubBa] = useState<string | null>(null);
+  const [hubXn, setHubXn] = useState<string | null>(null);
   const [hubNonce, setHubNonce] = useState(0);
   const [editStay, setEditStay] = useState<Record<string, unknown> | null>(null);
 
   const setSelectedKhoa = header.setSelectedKhoa;
 
-  /** Deep link: ?case= | ?ba= | ?tab=dashboard&tu_ngay=&den_ngay=&khoa= (hoặc khoa_ids, tu, den). */
+  /** Deep link: ?case= | ?ba=&xn= | ?tab=… — đọc lại khi URL đổi (nút Phân tích từ kho vi sinh). */
   useEffect(() => {
-    if (deepLinkApplied.current || header.loading) return;
+    if (header.loading) return;
     const caseId = (searchParams.get("case") || "").trim();
     const ba = (searchParams.get("ba") || "").trim();
+    const xn = (searchParams.get("xn") || "").trim();
     const tab = parseMainTab(searchParams.get("tab"));
     const tu = (searchParams.get("tu_ngay") || searchParams.get("tu") || "").trim();
     const den = (searchParams.get("den_ngay") || searchParams.get("den") || "").trim();
@@ -150,22 +153,23 @@ export default function GiamSatNkbvPage() {
       (searchParams.get("khoa") || "").trim() ||
       (searchParams.get("khoa_ids") || "").split(",")[0]?.trim() ||
       "";
-    if (!caseId && !ba && !tab && !tu && !den && !khoa) {
-      deepLinkApplied.current = true;
-      return;
-    }
+
     if (tab) setMainTab(tab);
     if (tu) setDashTu(tu);
     if (den) setDashDen(den);
     if (khoa) setSelectedKhoa(khoa);
-    deepLinkApplied.current = true;
 
     if (ba) {
       setMainTab("records");
       setHubBa(ba);
+      setHubXn(xn || null);
+    } else {
+      setHubXn(null);
+      setHubBa(null);
     }
 
-    if (caseId) {
+    if (caseId && lastCaseDeepLink.current !== caseId) {
+      lastCaseDeepLink.current = caseId;
       void (async () => {
         const res = await getGiamSatNkbvCaById(caseId);
         if (!res.success || !res.data) {
@@ -181,14 +185,17 @@ export default function GiamSatNkbvPage() {
   }, [header.loading, searchParams, setSelectedKhoa]);
 
   const openHubBa = useCallback(
-    (ma: string) => {
+    (ma: string, xnId?: string) => {
       const next = String(ma || "").trim();
       if (!next) return;
       setHubBa(next);
+      setHubXn(xnId ? String(xnId).trim() : null);
       setMainTab("records");
       const q = new URLSearchParams(searchParams.toString());
       q.set("tab", "records");
       q.set("ba", next);
+      if (xnId) q.set("xn", String(xnId).trim());
+      else q.delete("xn");
       router.replace(`${pathname}?${q.toString()}`, { scroll: false });
     },
     [pathname, router, searchParams],
@@ -196,8 +203,10 @@ export default function GiamSatNkbvPage() {
 
   const closeHubBa = useCallback(() => {
     setHubBa(null);
+    setHubXn(null);
     const q = new URLSearchParams(searchParams.toString());
     q.delete("ba");
+    q.delete("xn");
     const qs = q.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }, [pathname, router, searchParams]);
@@ -345,7 +354,7 @@ export default function GiamSatNkbvPage() {
           <div className="text-xs text-slate-600 font-medium">
             <span>{formatDateVi(item.ngay_vao_vien)}</span>
             <span className="mx-1">→</span>
-            <span>{item.ngay_ra_vien ? formatDateVi(item.ngay_ra_vien) : <span className="text-emerald-600 font-bold italic">Đang nằm viện</span>}</span>
+            <span>{item.ngay_ra_vien ? formatDateVi(item.ngay_ra_vien) : <span className="text-emerald-600 font-medium">Đang nằm viện</span>}</span>
           </div>
         ),
       },
@@ -363,7 +372,7 @@ export default function GiamSatNkbvPage() {
           const text = labelMap[item.ket_cuc_dieu_tri] || item.ket_cuc_dieu_tri;
           const isDeath = item.ket_cuc_dieu_tri === "TU_VONG";
           return (
-            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+            <span className={`px-2.5 py-0.5 rounded-full bv103-type-label font-semibold ${
               isDeath ? "bg-red-50 text-red-700 border border-red-100 animate-pulse" : "bg-slate-100 text-slate-700"
             }`}>
               {text}
@@ -376,14 +385,14 @@ export default function GiamSatNkbvPage() {
         accessorKey: "lis_records",
         cell: (item: any) => (
           <div className="flex flex-wrap gap-2">
-            <span className="rounded-full bg-blue-50 text-blue-700 px-2.5 py-0.5 text-[11px] font-bold">
+            <span className="rounded-full bg-blue-50 text-blue-700 px-2.5 py-0.5 bv103-type-label font-semibold">
               LIS: {item.lis_records?.length || 0}
             </span>
-            <span className="rounded-full bg-[var(--primary)]/10 text-[var(--primary)] px-2.5 py-0.5 text-[11px] font-bold">
+            <span className="rounded-full bg-[var(--primary)]/10 text-[var(--primary)] px-2.5 py-0.5 bv103-type-label font-semibold">
               Ca NKBV: {item.nkbv_cases?.length || 0}
             </span>
             {Number(item.chua_phan_tich_count || 0) > 0 ? (
-              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold text-amber-900">
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 bv103-type-label font-semibold text-amber-900">
                 Chưa PT: {item.chua_phan_tich_count}
               </span>
             ) : null}
@@ -476,7 +485,7 @@ export default function GiamSatNkbvPage() {
         sortable: true,
         cell: (item: NkbvCaseLike) => (
           <div className="flex flex-col py-1">
-            <span className="text-xs font-black text-slate-800 font-mono">
+            <span className="bv103-type-label font-semibold text-slate-800 font-mono">
               {String((item as any).ma_benh_an || "—")}
             </span>
             <span className="text-[11px] text-[11px] font-medium text-slate-500">
@@ -510,7 +519,7 @@ export default function GiamSatNkbvPage() {
         header: "Tác nhân vi khuẩn",
         accessorKey: "tac_nhan_vi_khuan",
         cell: (item: NkbvCaseLike) => (
-          <span className="text-xs font-bold text-amber-800 font-mono italic">
+          <span className="bv103-type-label font-semibold text-amber-800 font-mono">
             {String((item as any).tac_nhan_vi_khuan || "Chưa mọc / Đang chờ")}
           </span>
         ),
@@ -661,7 +670,7 @@ export default function GiamSatNkbvPage() {
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 space-y-6 pb-16 duration-500">
+    <div className="animate-in fade-in slide-in-from-bottom-4 bv103-stack-page pb-16 duration-500">
       <KsnkSupervisionHero
         title="Giám sát Nhiễm khuẩn BV (NKBV)"
         trailing={
@@ -840,6 +849,7 @@ export default function GiamSatNkbvPage() {
             </div>
           }
         >
+          <NkbvCdcLocationBanner />
           <NkbvDashboardPanel
             payload={dashPayload}
             loading={dashLoading}
@@ -880,7 +890,7 @@ export default function GiamSatNkbvPage() {
       ) : null}
 
       {mainTab === "cases" ? (
-        <div className="app-data-shell mx-4 min-w-0 p-2 md:p-3">
+        <div className="mx-4 min-w-0">
           <AdvancedDataTable
             columns={tableColumns as Parameters<typeof AdvancedDataTable>[0]["columns"]}
             data={rows as Parameters<typeof AdvancedDataTable>[0]["data"]}
@@ -933,7 +943,7 @@ export default function GiamSatNkbvPage() {
               />
             </KsnkSupervisionPanel>
           ) : null}
-          <div className="app-data-shell min-w-0 space-y-3 p-2 md:p-3">
+          <div className="min-w-0 space-y-3">
             <div className="flex flex-wrap items-end gap-3">
               <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                 <input
@@ -1049,16 +1059,28 @@ export default function GiamSatNkbvPage() {
             setHubNonce((n) => n + 1);
           }}
           allowedEdit={allowed.edit}
+          onOpenTimeline={
+            String(checklistCase.ma_benh_an || "").trim()
+              ? () => {
+                  const ma = String(checklistCase.ma_benh_an || "").trim();
+                  setChecklistOpen(false);
+                  setChecklistCase(null);
+                  setHubNonce((n) => n + 1);
+                  openHubBa(ma);
+                }
+              : undefined
+          }
         />
       )}
 
       {hubBa ? (
         <NkbvBenhAnHubPanel
-          key={`${hubBa}-${hubNonce}`}
+          key={`${hubBa}-${hubXn || ""}-${hubNonce}`}
           maBenhAn={hubBa}
           khoas={header.khoas}
           allowedEdit={allowed.edit}
           allowedCreate={allowed.create}
+          focusXnId={hubXn}
           onClose={closeHubBa}
           onEditStay={(stay) => setEditStay(stay)}
           onOpenCase={(caseId) => {

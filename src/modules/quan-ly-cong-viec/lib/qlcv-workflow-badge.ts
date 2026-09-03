@@ -13,7 +13,6 @@ const GATE_MAU_SAC_MA: Record<QlcvWorkflowGate, string> = {
   DANG_LAM: "DANG_LAM",
   MOI: "MOI",
   HOAN_THANH: "HOAN_THANH",
-  QUA_HAN: "QUA_HAN",
   DA_HUY: "DA_HUY",
   TU_CHOI: "TU_CHOI",
 };

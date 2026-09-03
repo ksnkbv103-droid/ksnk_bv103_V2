@@ -15,12 +15,12 @@ import { BO_DUNG_CU_COLUMN_MAP } from "./bo-dung-cu-import";
 import type { BoDungCuTableRow } from "./bo-dung-cu-form-shared";
 import { BoDungCuPageHeader } from "./bo-dung-cu-page-header";
 import { BoDungCuChiTietPanel } from "./bo-dung-cu-chi-tiet-panel";
+import { SetReconcileApproveQueue } from "./SetReconcileApproveQueue";
 import { BoDungCuMaBoHealthBanner } from "./bo-dung-cu-ma-bo-health-banner";
 import { BoDungCuQuickSetupPanel } from "./bo-dung-cu-quick-setup-panel";
 import {
   getBoDungCuRowsAction,
   getKhoaPhongOptionsForBoAction,
-  getLoaiDungCuOptionsAction,
   softDeleteBoDungCuAction,
   softDeleteManyBoDungCuAction,
   toggleBoDungCuStatusAction,
@@ -42,18 +42,12 @@ export function BoDungCuPageContent() {
 
   useEffect(() => {
     async function loadOptions() {
-      setLoadingLoai(true);
       setLoadingKhoa(true);
-      const [loaiResult, khoaResult] = await Promise.all([
-        getLoaiDungCuOptionsAction(),
-        getKhoaPhongOptionsForBoAction(),
-      ]);
-      if (!loaiResult.success) toast.error("Không tải được loại dụng cụ: " + loaiResult.error);
+      const khoaResult = await getKhoaPhongOptionsForBoAction();
       if (!khoaResult.success) toast.error("Không tải được khoa sử dụng: " + khoaResult.error);
-      setLoaiOptions(loaiResult.success ? loaiResult.data ?? [] : []);
       setKhoaOptions(khoaResult.success ? khoaResult.data ?? [] : []);
-      setLoadingLoai(false);
       setLoadingKhoa(false);
+      setLoadingLoai(false);
     }
     loadOptions();
   }, []);
@@ -132,7 +126,7 @@ export function BoDungCuPageContent() {
   const selectedRow = selectedBoId ? data.find((r) => r.id === selectedBoId) : undefined;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-700">
+    <div className="bv103-stack-page animate-in fade-in duration-700">
       <BoDungCuMaBoHealthBanner />
       <BoDungCuQuickSetupPanel
         onStartCreateBo={openCreate}
@@ -147,7 +141,7 @@ export function BoDungCuPageContent() {
         onCreate={openCreate}
       />
 
-      <div className="bg-white p-2 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm min-w-0 sm:min-h-[450px]">
+      <div className="min-w-0 sm:min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
           data={data}
@@ -173,6 +167,8 @@ export function BoDungCuPageContent() {
           }}
         />
       </div>
+
+      <SetReconcileApproveQueue />
 
       <BoDungCuChiTietPanel
         selectedBoId={selectedBoId}

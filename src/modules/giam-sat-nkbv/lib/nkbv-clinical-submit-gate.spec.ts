@@ -47,4 +47,38 @@ describe("assertClinicalEvidenceForSubmit", () => {
     });
     expect(res.ok).toBe(true);
   });
+
+  it("VAE thiếu PEEP/FiO₂ → chặn", () => {
+    const res = assertClinicalEvidenceForSubmit("VAE", {
+      ngay_phat_hien: "2026-05-21",
+      had_ventilator: true,
+    });
+    expect(res.ok).toBe(false);
+  });
+
+  it("VAE có bảng PEEP → cho qua", () => {
+    const res = assertClinicalEvidenceForSubmit("VAE", {
+      ngay_phat_hien: "2026-05-21",
+      had_ventilator: true,
+      vent_daily_params: [{ date: "2026-05-18", peep_min: 5, fio2_min: 40 }],
+    });
+    expect(res.ok).toBe(true);
+  });
+
+  it("SSI thiếu PATOS → chặn", () => {
+    const res = assertClinicalEvidenceForSubmit("SSI", {
+      ngay_phat_hien: "2026-05-21",
+      ngay_phau_thuat: "2026-05-10",
+    });
+    expect(res.ok).toBe(false);
+  });
+
+  it("SSI đã trả lời PATOS không → cho qua", () => {
+    const res = assertClinicalEvidenceForSubmit("SSI", {
+      ngay_phat_hien: "2026-05-21",
+      ngay_phau_thuat: "2026-05-10",
+      is_patos: false,
+    });
+    expect(res.ok).toBe(true);
+  });
 });

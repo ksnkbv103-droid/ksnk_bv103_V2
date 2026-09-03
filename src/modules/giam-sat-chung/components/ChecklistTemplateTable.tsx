@@ -42,7 +42,7 @@ export default function ChecklistTemplateTable({
   loading,
 }: ChecklistTemplateTableProps) {
   return (
-    <div className="animate-in fade-in duration-300 space-y-5">
+    <div className="animate-in fade-in duration-300 space-y-[var(--bv103-space-3)]">
       <div className="flex items-center gap-2 border-b border-slate-100 pb-3 no-print">
         <h3 className="text-base font-semibold text-slate-900">Danh mục bảng kiểm</h3>
       </div>

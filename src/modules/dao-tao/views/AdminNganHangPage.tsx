@@ -21,6 +21,7 @@ import {
 } from "@/lib/dao-tao/parse-mcq-excel";
 import type { BloomLevel, DaoTaoQuestionLoai, DapAnDung } from "@/lib/dao-tao/types";
 import { requestImportContract } from "@/hooks/import-confirm-contract";
+import { DaoTaoAdminTabs } from "@/modules/dao-tao/components/DaoTaoAdminTabs";
 import {
   DaoTaoField,
   DaoTaoHeader,
@@ -30,6 +31,7 @@ import {
   daoTaoBtnSecondary,
   daoTaoInputClass,
 } from "@/modules/dao-tao/components/DaoTaoChrome";
+import { labelLoaiCau } from "@/lib/dao-tao/labels";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { cn } from "@/lib/utils";
 import {
@@ -44,7 +46,6 @@ type ListRow = {
   id: string;
   ma_cau: string;
   loai: string;
-  bloom_level: number;
   stem: string;
   is_active: boolean;
 };
@@ -106,7 +107,6 @@ export default function AdminNganHangPage() {
   const [stats, setStats] = useState<{
     total: number;
     byLoai: Record<string, number>;
-    byBloom: Record<string, number>;
   } | null>(null);
   const [rows, setRows] = useState<ListRow[]>([]);
   const [pending, startTransition] = useTransition();
@@ -125,7 +125,6 @@ export default function AdminNganHangPage() {
         id: r.id,
         ma_cau: (r as { ma_cau?: string }).ma_cau ?? "",
         loai: r.loai,
-        bloom_level: r.bloom_level,
         stem: r.stem,
         is_active: r.is_active,
       })),
@@ -136,7 +135,6 @@ export default function AdminNganHangPage() {
     void reload().catch((e) =>
       toast.error(e instanceof Error ? e.message : "Lỗi tải ngân hàng"),
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload when showInactive flips
   }, [showInactive]);
 
   const openEdit = (id: string) => {
@@ -177,10 +175,7 @@ export default function AdminNganHangPage() {
 
   return (
     <DaoTaoPage>
-      <DaoTaoHeader
-        title="Ngân hàng câu hỏi"
-        subtitle="Tải file mẫu / ngân hàng → sửa Excel → Nạp Excel (cập nhật theo mã câu). Có thể sửa nhanh từng câu."
-      />
+      <DaoTaoHeader title="Ngân hàng câu hỏi" tabs={<DaoTaoAdminTabs />} />
 
       {stats ? (
         <div className="grid gap-3 sm:grid-cols-3">
@@ -189,15 +184,10 @@ export default function AdminNganHangPage() {
             <p className={T.statValue}>{stats.total}</p>
           </DaoTaoPanel>
           <DaoTaoPanel className="!p-4 sm:col-span-2">
-            <p className={T.labelBlock}>Theo loại / Bloom</p>
+            <p className={T.labelBlock}>Theo loại câu</p>
             <p className="mt-1 text-sm text-slate-600">
               {Object.entries(stats.byLoai)
-                .map(([k, v]) => `${k}=${v}`)
-                .join(" · ") || "—"}
-            </p>
-            <p className="mt-1 text-sm text-slate-500">
-              {Object.entries(stats.byBloom)
-                .map(([k, v]) => `M${k}=${v}`)
+                .map(([k, v]) => `${labelLoaiCau(k)}: ${v}`)
                 .join(" · ") || "—"}
             </p>
           </DaoTaoPanel>
@@ -241,7 +231,7 @@ export default function AdminNganHangPage() {
                   return;
                 }
                 const decision = await requestImportContract({
-                  displayName: "ngân hàng Đào tạo",
+                  displayName: "ngân hàng Thi KSNK",
                   total: validTotal,
                   insertCount: preview.audit.insertCount,
                   updateCount: preview.audit.updateCount,
@@ -360,7 +350,6 @@ export default function AdminNganHangPage() {
               <tr>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>Mã</th>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>Loại</th>
-                <th className={cn("px-3 py-2.5", T.tableHeader)}>Bloom</th>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>Nội dung</th>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>TT</th>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>Thao tác</th>
@@ -373,9 +362,8 @@ export default function AdminNganHangPage() {
                     {r.ma_cau || "—"}
                   </td>
                   <td className="whitespace-nowrap px-3 py-2.5 text-xs font-medium text-slate-600">
-                    {r.loai}
+                    {labelLoaiCau(r.loai)}
                   </td>
-                  <td className="px-3 py-2.5 text-xs text-slate-500">{r.bloom_level}</td>
                   <td className={cn("max-w-xl truncate px-3 py-2.5", T.tableCellBody)}>
                     {r.stem}
                   </td>
@@ -401,7 +389,7 @@ export default function AdminNganHangPage() {
                         });
                       }}
                     >
-                      {r.is_active ? "ON" : "OFF"}
+                      {r.is_active ? "Đang dùng" : "Tạm ẩn"}
                     </button>
                   </td>
                   <td className="px-3 py-2.5">
@@ -419,7 +407,7 @@ export default function AdminNganHangPage() {
               ))}
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-sm text-slate-500">
+                  <td colSpan={5} className="px-3 py-8 text-center text-sm text-slate-500">
                     Chưa có câu hỏi — Tải file mẫu hoặc Nạp Excel.
                   </td>
                 </tr>
@@ -446,31 +434,14 @@ export default function AdminNganHangPage() {
                   onChange={(e) => setEdit({ ...edit, stem: e.target.value })}
                 />
               </DaoTaoField>
-              <div className="grid grid-cols-2 gap-3">
-                <DaoTaoField label="Bloom (1–5)">
-                  <input
-                    type="number"
-                    min={1}
-                    max={5}
-                    className={daoTaoInputClass}
-                    value={edit.bloomLevel}
-                    onChange={(e) =>
-                      setEdit({
-                        ...edit,
-                        bloomLevel: Number(e.target.value) as BloomLevel,
-                      })
-                    }
-                  />
-                </DaoTaoField>
-                <DaoTaoField label="Đáp án (đúng format loại)">
-                  <input
-                    className={daoTaoInputClass}
-                    value={edit.dapAnRaw}
-                    onChange={(e) => setEdit({ ...edit, dapAnRaw: e.target.value })}
-                    placeholder="C · A, B · A-Đúng, B-Sai · C -> B -> A"
-                  />
-                </DaoTaoField>
-              </div>
+              <DaoTaoField label="Đáp án (đúng format loại)">
+                <input
+                  className={daoTaoInputClass}
+                  value={edit.dapAnRaw}
+                  onChange={(e) => setEdit({ ...edit, dapAnRaw: e.target.value })}
+                  placeholder="C · A, B · A-Đúng, B-Sai · C -> B -> A"
+                />
+              </DaoTaoField>
               {(["A", "B", "C", "D"] as const).map((k) => (
                 <DaoTaoField key={k} label={`Phương án ${k}`}>
                   <input

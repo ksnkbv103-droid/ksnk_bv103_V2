@@ -10,7 +10,7 @@ import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable
 import { Plus } from "lucide-react";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
-import { ImportExportHint, ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
+import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { useImportExport } from "@/hooks/useImportExport";
 import { smartImportData } from "../../danh-muc/actions/smart-import.actions";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
@@ -194,7 +194,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
               : "---"}
           </span>
           {i.to?.ten_danh_muc && (
-            <span className="text-[11px] font-normal italic text-amber-600">
+            <span className="bv103-type-note text-amber-600">
               ↳ {i.to.ten_danh_muc}
             </span>
           )}
@@ -211,7 +211,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
             {i.chuc_danh || "Chưa gán"}
           </span>
           {i.chuc_vu && (
-            <span className="ml-0.5 text-[11px] font-normal italic text-slate-400">
+            <span className="ml-0.5 bv103-type-note">
               {i.chuc_vu}
             </span>
           )}
@@ -236,10 +236,9 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
     isFormOpen && ((editingItem != null && allowEdit) || (editingItem == null && allowCreate));
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-700">
+    <div className="space-y-[var(--bv103-space-3)] animate-in fade-in duration-700">
       {(allowImport || allowCreate) && (
         <div className="flex flex-col gap-2">
-          {allowImport ? <ImportExportHint /> : null}
           <div className="flex flex-wrap items-center justify-end gap-2">
             {allowImport ? (
               <ImportExportToolbar
@@ -268,7 +267,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
         </div>
       )}
 
-      <div className="bg-white p-2 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm min-h-[500px]">
+      <div className="min-h-[500px] min-w-0">
         <AdvancedDataTable
           columns={columns}
           data={data}

@@ -16,10 +16,16 @@ import { toast } from "sonner";
 import BangKiemApDungFields, { type BangKiemApDungFormState } from "./bang-kiem-ap-dung-fields";
 import BangKiemFormFields, { BangKiemFormState } from "./bang-kiem-form-fields";
 import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
+import {
+  DEFAULT_BANG_KIEM_CACH_TINH_DIEM,
+  DEFAULT_BANG_KIEM_LOAI_GIAM_SAT,
+  parseBangKiemCachTinhDiem,
+  parseBangKiemLoaiGiamSat,
+  resolveBangKiemGscPersistFields,
+} from "../lib/bang-kiem-gsc-fields";
 
 export type BangKiemFormSavePayload = BangKiemFormState & {
   ap_dung_jsonb: BangKiemApDungFormState;
-  loai_giam_sat?: string | null;
 };
 
 interface Props {
@@ -32,7 +38,7 @@ function mapInitial(initialData?: Record<string, unknown>): BangKiemFormSavePayl
   const d = initialData || {};
   const meta = {
     phan_loai_chuyen_mon: String(d.phan_loai_chuyen_mon ?? d.nhom_chuyen_de ?? "") || null,
-    loai_giam_sat: (d.loai_giam_sat as string | null) ?? null,
+    loai_giam_sat: parseBangKiemLoaiGiamSat(d.loai_giam_sat) ?? DEFAULT_BANG_KIEM_LOAI_GIAM_SAT,
   };
   return {
     id: (d.id as string) ?? null,
@@ -42,6 +48,8 @@ function mapInitial(initialData?: Record<string, unknown>): BangKiemFormSavePayl
     phan_loai_chuyen_mon: String(d.phan_loai_chuyen_mon ?? d.nhom_chuyen_de ?? ""),
     loai_hinh_giam_sat: String(d.loai_hinh_giam_sat ?? "TRUC_TIEP"),
     loai_giam_sat: meta.loai_giam_sat,
+    cach_tinh_diem:
+      parseBangKiemCachTinhDiem(d.cach_tinh_diem) ?? DEFAULT_BANG_KIEM_CACH_TINH_DIEM,
     is_active: (d.is_active as boolean) ?? true,
     is_system: Boolean(d.is_system),
     ap_dung_jsonb: parseApDungJsonb(d.ap_dung_jsonb, meta),
@@ -98,7 +106,7 @@ export default function BangKiemForm({ initialData, onClose, onSave }: Props) {
         loai_giam_sat: prev.loai_giam_sat,
       }),
     }));
-  }, [formData.id, formData.phan_loai_chuyen_mon]);
+  }, [formData.id, formData.phan_loai_chuyen_mon, formData.loai_giam_sat]);
 
   const isEditing = Boolean(formData.id);
 
@@ -150,6 +158,11 @@ export default function BangKiemForm({ initialData, onClose, onSave }: Props) {
           <button
             type="button"
             onClick={() => {
+              const gscErr = resolveBangKiemGscPersistFields(formData);
+              if (!gscErr.ok) {
+                toast.error(gscErr.error);
+                return;
+              }
               const apErr = validateApDungForSave(formData.ap_dung_jsonb);
               if (apErr) {
                 toast.error(apErr);

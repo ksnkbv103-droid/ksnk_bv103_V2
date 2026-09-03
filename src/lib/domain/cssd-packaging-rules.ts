@@ -23,13 +23,6 @@ export type HeatEvaluation = {
   methodLabelVi: string;
 };
 
-export type GapRow = {
-  loai_id: string;
-  ten: string;
-  thieu: number;
-  hong: number;
-};
-
 const SPAULDING_RANK: Record<SpauldingClass, number> = {
   NON_CRITICAL: 0,
   SEMI_CRITICAL: 1,
@@ -112,53 +105,5 @@ export function evaluateHeatCompatibility(items: BomItem[]): HeatEvaluation {
     spauldingMax,
     methodLabelVi: STERILIZATION_METHOD_LABEL_VI[recommendedMethod],
     reason: `Đồng nhất nhiệt lý tính. Spaulding cao nhất: ${SPAULDING_LABEL_VI[spauldingMax]}. Khuyến nghị ${STERILIZATION_METHOD_LABEL_VI[recommendedMethod]}.`,
-  };
-}
-
-/**
- * Tổng hợp độ lệch của số lượng thực tế so với thiết kế chuẩn (BOM).
- */
-export function summarizeBomGap(items: BomItem[]): GapRow[] {
-  if (!items) return [];
-
-  const gaps: GapRow[] = [];
-
-  for (const item of items) {
-    const thieu = Math.max(0, item.so_luong_ke_hoach - item.so_luong_thuc_te);
-    const hong = item.so_luong_hong ?? 0;
-
-    if (thieu > 0 || hong > 0) {
-      gaps.push({
-        loai_id: item.loai_id,
-        ten: item.ten,
-        thieu,
-        hong,
-      });
-    }
-  }
-
-  return gaps;
-}
-
-/**
- * Kiểm tra xem bộ dụng cụ đã đủ điều kiện để Đóng gói đạt hay chưa.
- * Theo quy tắc an toàn vật lý lý tính, nếu lẫn nhiệt bắt buộc phải tách SUB trước.
- * Thiếu hụt số lượng không chặn đóng gói (chỉ cảnh báo).
- */
-export function isReadyForPackaging(
-  items: BomItem[],
-  split: "NONE" | "DONE",
-): { ready: boolean; reason?: string } {
-  const heatEval = evaluateHeatCompatibility(items);
-
-  if (heatEval.requireSplit && split === "NONE") {
-    return {
-      ready: false,
-      reason: "Cần tách cấu phần nhạy cảm nhiệt sang túi hấp nhiệt độ thấp trước khi Đạt.",
-    };
-  }
-
-  return {
-    ready: true,
   };
 }

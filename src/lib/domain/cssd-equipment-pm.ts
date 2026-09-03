@@ -23,6 +23,7 @@ export function trangThaiMayLabel(st: string | null | undefined): string {
   const s = String(st || "").trim();
   if (s === "READY" || s === "HOAT_DONG") return "Sẵn sàng";
   if (s === "REPAIRING") return "Đang bảo dưỡng/sửa";
+  if (s === "HOLD_QC") return "Tạm giữ QC";
   if (s === "BROKEN") return "Hỏng";
   if (s === "RETIRED") return "Ngưng dùng";
   return s || "—";

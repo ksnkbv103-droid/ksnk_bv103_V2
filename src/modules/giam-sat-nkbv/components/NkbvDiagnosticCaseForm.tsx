@@ -9,7 +9,6 @@ import VaeClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/Vae
 import SsiClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/SsiClinicalSubForm";
 import Ch17ClinicalSubForm from "@/modules/giam-sat-nkbv/components/sub-forms/Ch17ClinicalSubForm";
 import NkbvStayHistoryTable from "@/modules/giam-sat-nkbv/components/NkbvStayHistoryTable";
-import NkbvDeviceRegistryPanel from "@/modules/giam-sat-nkbv/components/NkbvDeviceRegistryPanel";
 import NkbvDiagnosticRow from "@/modules/giam-sat-nkbv/components/NkbvDiagnosticRow";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import { addDays } from "@/modules/giam-sat-nkbv/lib/nkbv-timeline-math";
@@ -28,7 +27,7 @@ import {
   NKBV_CHECKLIST_TYPE_PICKER_LABELS,
   type NkbvChecklistTypeCode,
 } from "../lib/nkbv-loai-labels";
-import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import type { NkbvActiveChecklistType, NkbvSuspectedType } from "./useNkbvChecklistModalState";
 
 function fmtDate(d?: string | null) {
@@ -81,6 +80,8 @@ export type NkbvDiagnosticCaseFormProps = {
   specimenLabel?: string;
   suspectedType: NkbvSuspectedType | null;
   setSuspectedType: (t: NkbvChecklistTypeCode) => void;
+  /** Phiếu đã gắn loại (lưới) — ẩn chọn loại. */
+  lockType?: NkbvChecklistTypeCode | null;
   checklistType: NkbvActiveChecklistType;
   clinicalPathway: "BSI" | "UTI" | "VAE" | "PNEU" | "SSI" | "CH17";
   allowedEdit: boolean;
@@ -125,6 +126,7 @@ export default function NkbvDiagnosticCaseForm({
   specimenLabel = "",
   suspectedType,
   setSuspectedType,
+  lockType = null,
   checklistType,
   clinicalPathway,
   allowedEdit,
@@ -218,7 +220,7 @@ export default function NkbvDiagnosticCaseForm({
 
   if (suspectedType === "LOAI_TRU") {
     return (
-      <div className="space-y-6">
+      <div className="space-y-[var(--bv103-space-3)]">
         <TypePicker
           suggestedType={suggestedType}
           suggestedReason={suggestedReason}
@@ -226,8 +228,9 @@ export default function NkbvDiagnosticCaseForm({
           suspectedType={suspectedType}
           setSuspectedType={setSuspectedType}
           allowedEdit={allowedEdit}
+          lockType={lockType}
         />
-        <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center">
+        <div className="space-y-3 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50 p-8 text-center">
           <Ban className="mx-auto h-10 w-10 text-slate-400" />
           <h4 className="text-sm font-semibold text-slate-700">
             Đã chọn loại trừ — ghi rõ lý do ở phần xác nhận bên dưới rồi lưu
@@ -248,7 +251,7 @@ export default function NkbvDiagnosticCaseForm({
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-[var(--bv103-space-3)]">
       <TypePicker
         suggestedType={suggestedType}
         suggestedReason={suggestedReason}
@@ -256,6 +259,7 @@ export default function NkbvDiagnosticCaseForm({
         suspectedType={suspectedType}
         setSuspectedType={setSuspectedType}
         allowedEdit={allowedEdit}
+        lockType={lockType}
       />
 
       {/* 0 Index */}
@@ -279,12 +283,12 @@ export default function NkbvDiagnosticCaseForm({
             Bệnh phẩm: <strong>{String(row.loai_benh_pham || "—")}</strong>
             {" · "}
             Tác nhân:{" "}
-            <strong className="font-mono italic text-amber-900">
+            <strong className="font-mono text-amber-900">
               {String(row.tac_nhan_vi_khuan || "—")}
             </strong>
           </p>
           {(checklistType === "VAP" || checklistType === "HAP") && vaeForm ? (
-            <div className="flex flex-wrap gap-5 text-sm font-semibold">
+            <div className="flex flex-wrap gap-[var(--bv103-space-3)] text-sm font-semibold">
               <label className="inline-flex min-h-11 items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
@@ -310,7 +314,9 @@ export default function NkbvDiagnosticCaseForm({
             </div>
           ) : (
             <p className="text-xs text-slate-500">
-              Gợi ý loại theo bệnh phẩm — có thể đổi ở khung chọn loại phía trên.
+              {lockType && lockType !== "LOAI_TRU"
+                ? "Loại phiếu khớp nhóm phân tích trên lưới bệnh án."
+                : "Gợi ý loại theo bệnh phẩm — có thể đổi ở khung chọn loại phía trên."}
             </p>
           )}
         </div>
@@ -359,7 +365,7 @@ export default function NkbvDiagnosticCaseForm({
         hint="Tick triệu chứng / cận lâm sàng và gắn ngày đầu xuất hiện ∈ cửa sổ."
         tone="emerald"
       >
-        <div className="space-y-4 [&_label]:min-h-10 [&_input[type=date]]:min-h-11 [&_input[type=date]]:text-sm [&_select]:min-h-11 [&_select]:text-sm">
+        <div className="space-y-[var(--bv103-space-3)] [&_label]:min-h-10 [&_input[type=date]]:min-h-11 [&_input[type=date]]:text-sm [&_select]:min-h-11 [&_select]:text-sm">
           {checklistType === "BSI" && bsiForm ? (
             <BsiClinicalSubForm
               form={bsiForm}
@@ -412,7 +418,7 @@ export default function NkbvDiagnosticCaseForm({
         title="Ngày sự kiện (DOE)"
         hint="Ngày sớm nhất xuất hiện yếu tố cấu thành tiêu chuẩn trong cửa sổ."
         milestone={
-          <p className="font-mono text-base font-bold text-slate-900">{fmtDate(doe)}</p>
+          <p className="font-mono bv103-type-section text-slate-900">{fmtDate(doe)}</p>
         }
       >
         <p className="text-sm text-slate-600">
@@ -426,7 +432,7 @@ export default function NkbvDiagnosticCaseForm({
         title="POA / HAI"
         hint="So ngày sự kiện với ngày vào viện (HD1–2 = POA; từ HD3 = HAI)."
         milestone={
-          <p className="text-base font-bold">
+          <p className="bv103-type-section">
             {liveCdcMetrics?.haiStatus || "—"}
             {liveCdcMetrics?.dayOfHospitalization != null ? (
               <span className="ml-2 text-sm font-medium text-slate-500">
@@ -468,7 +474,7 @@ export default function NkbvDiagnosticCaseForm({
           <div className="space-y-1 text-sm">
             <p className="font-semibold text-amber-950">
               {liveCdcMetrics?.attributedStay
-                ? formatKhoaPickerLabel(liveCdcMetrics.attributedStay)
+                ? formatKhoaCompactLabel(liveCdcMetrics.attributedStay)
                 : "Chưa quy kết được khoa"}
             </p>
             {liveCdcMetrics?.attributionReason ? (
@@ -481,14 +487,14 @@ export default function NkbvDiagnosticCaseForm({
       >
         <div className={C.sectionGap}>
           <p className="text-sm text-slate-600">
-            Bổ sung lịch sử chuyển khoa quanh DOE (và ngày trước DOE) để quy kết đúng nơi xảy ra sự kiện.
+            Lịch chuyển khoa lấy từ lưới bệnh án (cột Khoa). Sửa trên lưới — phiếu theo.
           </p>
           <NkbvStayHistoryTable
             treatmentHistory={treatmentHistory}
             onAddStay={onAddStay}
             onDeleteStay={onDeleteStay}
             khoas={khoas}
-            allowedEdit={allowedEdit}
+            allowedEdit={false}
             ngayVaoVien={ngayVaoVien}
             ngayPhatHien={String(row.ngay_phat_hien || "")}
           />
@@ -507,7 +513,7 @@ export default function NkbvDiagnosticCaseForm({
             {checklistType === "VAP" || checklistType === "HAP" ? (
               <p>
                 <span
-                  className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                  className={`inline-block rounded-full px-2 py-0.5 bv103-type-label font-semibold ${
                     checklistType === "VAP"
                       ? "bg-fuchsia-100 text-fuchsia-900"
                       : "bg-sky-100 text-sky-900"
@@ -537,7 +543,7 @@ export default function NkbvDiagnosticCaseForm({
             checklistType === "HAP") && (
             <DeviceDateEditors
               checklistType={checklistType}
-              allowedEdit={allowedEdit}
+              allowedEdit={false}
               bsiForm={bsiForm}
               setBsiForm={setBsiForm}
               utiForm={utiForm}
@@ -548,19 +554,14 @@ export default function NkbvDiagnosticCaseForm({
               ngayPhatHien={String(row.ngay_phat_hien || "").slice(0, 10)}
             />
           )}
+          <p className="text-[11px] text-slate-500">
+            Khoa và Foley/máy/CVC lấy từ lưới bệnh án. Sửa trên lưới — không nhập lại trên phiếu.
+          </p>
           <div className="flex flex-wrap gap-3">
             <button type="button" className={`${C.ctaSecondary} min-h-11`} onClick={onPrefillDevice}>
-              Lấy ngày từ sổ đăng ký dụng cụ
+              Lấy ngày dụng cụ từ lưới bệnh án
             </button>
           </div>
-          <NkbvDeviceRegistryPanel
-            maBenhAn={String(row.ma_benh_an || "")}
-            maBenhNhan={row.ma_benh_nhan ? String(row.ma_benh_nhan) : null}
-            khoaId={treatmentHistory[treatmentHistory.length - 1]?.khoa_id || null}
-            ngayVaoVien={ngayVaoVien}
-            ngayRaVien={ngayRaVienCase}
-            allowedEdit={allowedEdit}
-          />
         </div>
       </NkbvDiagnosticRow>
 
@@ -584,7 +585,7 @@ export default function NkbvDiagnosticCaseForm({
         </p>
         {baRitLabs.length > 0 ? (
           <ul className="mt-2 space-y-1 rounded-lg border border-emerald-200 bg-emerald-50/60 px-2 py-1.5 text-[11px] text-emerald-950">
-            <li className="font-bold uppercase tracking-wide text-emerald-800">
+            <li className="font-medium text-emerald-800">
               Lab ∈ RIT (seed từ bảng BA)
             </li>
             {baRitLabs.map((l, i) => (
@@ -619,7 +620,7 @@ export default function NkbvDiagnosticCaseForm({
       >
         {baSbapLabs.length > 0 ? (
           <ul className="mb-2 space-y-1 rounded-lg border border-sky-200 bg-sky-50/70 px-2 py-1.5 text-[11px] text-sky-950">
-            <li className="font-bold uppercase tracking-wide text-sky-800">
+            <li className="font-medium text-sky-800">
               Cấy máu ∈ SBAP (seed từ bảng BA)
             </li>
             {baSbapLabs.map((l, i) => (
@@ -673,7 +674,7 @@ export default function NkbvDiagnosticCaseForm({
             ) : (
               <Ban className="h-5 w-5 text-slate-400" />
             )}
-            <span className="text-sm font-bold">
+            <span className="bv103-type-section">
               {liveEvaluation.is_positive ? "Dương tính" : "Âm tính / chưa đủ tiêu chuẩn"}
             </span>
           </div>
@@ -682,7 +683,7 @@ export default function NkbvDiagnosticCaseForm({
         <div className="space-y-2 text-sm">
           <p>
             Phân loại:{" "}
-            <span className="inline-flex rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold uppercase">
+            <span className="inline-flex rounded-lg bg-slate-100 px-2.5 py-1 bv103-type-label font-semibold uppercase">
               {liveEvaluation.classification || formatNkbvChecklistTypeLabel(checklistType)}
             </span>
           </p>
@@ -711,6 +712,7 @@ function TypePicker({
   suspectedType,
   setSuspectedType,
   allowedEdit,
+  lockType,
 }: {
   suggestedType: NkbvSuspectedType;
   suggestedReason: string;
@@ -718,12 +720,52 @@ function TypePicker({
   suspectedType: NkbvSuspectedType | null;
   setSuspectedType: (t: NkbvChecklistTypeCode) => void;
   allowedEdit: boolean;
+  lockType?: NkbvChecklistTypeCode | null;
 }) {
+  const locked = Boolean(lockType && lockType !== "LOAI_TRU");
+  if (locked && lockType) {
+    return (
+      <div className="space-y-3 rounded-[var(--radius-shell)] border-2 border-emerald-300 bg-emerald-50/70 p-4 sm:p-5">
+        <p className="text-base font-semibold text-emerald-950">Sự kiện nhiễm khuẩn trên phiếu</p>
+        <div className="rounded-xl border border-emerald-200 bg-white px-4 py-3 text-sm text-slate-800">
+          <p>
+            Loại:{" "}
+            <strong className="text-[var(--primary)]">{formatNkbvChecklistTypeLabel(lockType)}</strong>
+            {" — "}khớp nhóm phân tích trên lưới bệnh án. Không đổi loại trên phiếu này.
+          </p>
+          <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
+            Bệnh phẩm: <strong>{specimenLabel.trim() || "—"}</strong>
+            {suggestedType !== lockType ? ` · Gợi ý bệnh phẩm khác (${formatNkbvChecklistTypeLabel(suggestedType)}) — giữ loại phiếu.` : ""}
+          </p>
+        </div>
+        {allowedEdit ? (
+          suspectedType === "LOAI_TRU" ? (
+            <button
+              type="button"
+              onClick={() => setSuspectedType(lockType)}
+              className="min-h-11 rounded-xl border border-emerald-300 bg-white px-4 text-sm font-semibold text-emerald-900"
+            >
+              Quay lại xác định {formatNkbvChecklistTypeLabel(lockType)}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setSuspectedType("LOAI_TRU")}
+              className="min-h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700"
+            >
+              Loại trừ ca này
+            </button>
+          )
+        ) : null}
+      </div>
+    );
+  }
+
   const userOverrode =
     suspectedType != null && suspectedType !== "LOAI_TRU" && suspectedType !== suggestedType;
 
   return (
-    <div className="space-y-4 rounded-2xl border-2 border-emerald-300 bg-emerald-50/70 p-4 sm:p-5">
+    <div className="space-y-[var(--bv103-space-3)] rounded-[var(--radius-shell)] border-2 border-emerald-300 bg-emerald-50/70 p-4 sm:p-5">
       <div className="space-y-2">
         <p className="text-base font-semibold text-emerald-950">
           Chọn loại nhiễm khuẩn để nhập yếu tố chẩn đoán
@@ -779,14 +821,14 @@ function TypePicker({
                 type="button"
                 disabled={!allowedEdit}
                 onClick={() => setSuspectedType(item.id)}
-                className={`relative min-h-14 rounded-xl border px-2 py-3 text-center text-xs font-bold transition touch-manipulation ${
+                className={`relative min-h-14 rounded-xl border px-2 py-3 text-center bv103-type-label font-semibold transition touch-manipulation ${
                   isSelected
                     ? "border-[var(--primary)] bg-white text-[var(--primary)] shadow-sm ring-2 ring-emerald-500/20"
                     : `${item.color} hover:opacity-100`
                 }`}
               >
                 {isSuggested ? (
-                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+                  <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-medium text-white">
                     Gợi ý
                   </span>
                 ) : null}
@@ -820,8 +862,12 @@ function ConfirmBlock({
   allowedEdit: boolean;
 }) {
   return (
-    <section className="space-y-4 rounded-2xl border-2 border-slate-200 bg-white p-5 sm:p-6">
-      <h3 className="text-base font-semibold text-slate-900">Xác nhận ca</h3>
+    <section className="bv103-stack-in bv103-layer-panel bv103-pad-panel border-2">
+      <h3 className="bv103-type-section">Đối soát với khoa lâm sàng</h3>
+      <p className="bv103-type-body text-slate-600">
+        KSNK điền toàn bộ phiếu sau khi gọi hoặc gửi giấy khoa. Ý kiến khoa ghi vào ghi chú từng triệu
+        chứng hoặc ô ghi chú dưới đây — khoa không cần đăng nhập.
+      </p>
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <label className="inline-flex min-h-12 items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold cursor-pointer">
           <input
@@ -831,7 +877,7 @@ function ConfirmBlock({
             disabled={!allowedEdit}
             onChange={(e) => setClinicalConfirmed(e.target.checked)}
           />
-          Lâm sàng xác nhận dữ liệu phiếu
+          Đã đối soát với khoa (gọi / gửi giấy)
         </label>
         <label
           className={`inline-flex min-h-12 items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold ${
@@ -847,7 +893,7 @@ function ConfirmBlock({
             disabled={!allowedEdit || !canConfirmKsnk}
             onChange={(e) => setKsnkConfirmed(e.target.checked)}
           />
-          KSNK xác nhận chốt ca
+          KSNK thống nhất / chốt ca
         </label>
       </div>
       <div>

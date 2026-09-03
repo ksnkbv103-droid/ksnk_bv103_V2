@@ -11,6 +11,8 @@ import {
   type ImportWindowAlert,
 } from "../lib/nkbv-import-window-scan";
 import type { NkbvMdroPhenotype, NkbvMdroSource } from "../lib/nkbv-mdro";
+import { decideBenhAnImportRow } from "../lib/nkbv-benh-an-import-policy";
+import { nkbvVnDateStartIso } from "../lib/nkbv-ba-ngay";
 
 export type ViSinhRecordInput = {
   ma_benh_nhan: string;
@@ -102,8 +104,8 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
             ngay_sinh: r.ngay_sinh ? r.ngay_sinh.slice(0, 10) : null,
             gioi_tinh: r.gioi_tinh ?? null,
             ngay_vao_vien: r.ngay_vao_vien
-              ? new Date(r.ngay_vao_vien).toISOString()
-              : new Date().toISOString(),
+              ? nkbvVnDateStartIso(String(r.ngay_vao_vien).slice(0, 10))
+              : nkbvVnDateStartIso(new Date().toISOString().slice(0, 10)),
             khoa_dieu_tri_id: r.khoa_yeu_cau_id || null,
             is_active: true,
           },
@@ -122,6 +124,17 @@ export async function importViSinhExcel(records: ViSinhRecordInput[]) {
       if (!existingStay) {
         const { error: stayErr } = await supabase.from("nkbv_fact_benh_an").insert(stay);
         if (stayErr) throw stayErr;
+        if (stay.khoa_dieu_tri_id) {
+          await supabase.from("nkbv_fact_ba_ngay_khoa").upsert(
+            {
+              ma_benh_an: stay.ma_benh_an,
+              ngay_lich: String(stay.ngay_vao_vien).slice(0, 10),
+              khoa_id: stay.khoa_dieu_tri_id,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "ma_benh_an,ngay_lich" },
+          );
+        }
       }
     }
 
@@ -235,8 +248,7 @@ export type BenhAnRecordInput = {
 
 /**
  * Nạp hồ sơ bệnh án (ADT/HIS) vào nkbv_fact_benh_an.
- * Upsert theo ma_benh_an: cập nhật ra viện / khoa / tên khi BA đã tồn tại.
- * Conflict PID khác trên cùng BA → bỏ qua (skippedConflict).
+ * Đã có mã bệnh án → không đè hồ sơ (skippedExisting). Conflict PID → skippedConflict.
  * Không tạo phiếu HAI — chỉ stay pool.
  */
 export async function importBenhAnExcel(records: BenhAnRecordInput[]) {
@@ -276,7 +288,7 @@ export async function importBenhAnExcel(records: BenhAnRecordInput[]) {
     }
 
     let inserted = 0;
-    let updated = 0;
+    let skippedExisting = 0;
     let skippedDuplicate = 0;
     let skippedConflict = 0;
     const seenBa = new Set<string>();
@@ -298,8 +310,8 @@ export async function importBenhAnExcel(records: BenhAnRecordInput[]) {
         ho_ten_benh_nhan: r.ho_ten_benh_nhan.trim(),
         ngay_sinh: r.ngay_sinh ? r.ngay_sinh.slice(0, 10) : null,
         gioi_tinh: r.gioi_tinh?.trim() || null,
-        ngay_vao_vien: new Date(r.ngay_vao_vien).toISOString(),
-        ngay_ra_vien: r.ngay_ra_vien ? new Date(r.ngay_ra_vien).toISOString() : null,
+        ngay_vao_vien: nkbvVnDateStartIso(r.ngay_vao_vien.slice(0, 10)),
+        ngay_ra_vien: r.ngay_ra_vien ? nkbvVnDateStartIso(r.ngay_ra_vien.slice(0, 10)) : null,
         khoa_dieu_tri_id: r.khoa_dieu_tri_id || null,
         is_active: true,
         updated_at: nowIso,
@@ -307,39 +319,38 @@ export async function importBenhAnExcel(records: BenhAnRecordInput[]) {
 
       const prev = existingByBa.get(baKey);
       if (prev) {
-        if (prev.ma_benh_nhan.trim() && prev.ma_benh_nhan.trim().toUpperCase() !== bn.toUpperCase()) {
-          skippedConflict += 1;
-          continue;
-        }
-        const { error: upErr } = await supabase
-          .from("nkbv_fact_benh_an")
-          .update({
-            ho_ten_benh_nhan: payload.ho_ten_benh_nhan,
-            ngay_sinh: payload.ngay_sinh,
-            gioi_tinh: payload.gioi_tinh,
-            ngay_vao_vien: payload.ngay_vao_vien,
-            ngay_ra_vien: payload.ngay_ra_vien,
-            khoa_dieu_tri_id: payload.khoa_dieu_tri_id,
-            ma_benh_nhan: payload.ma_benh_nhan,
-            updated_at: nowIso,
-          })
-          .eq("id", prev.id);
-        if (upErr) throw upErr;
-        updated += 1;
+        const decision = decideBenhAnImportRow({
+          existingPid: prev.ma_benh_nhan,
+          incomingPid: bn,
+        });
+        if (decision === "skip_conflict") skippedConflict += 1;
+        else skippedExisting += 1;
         continue;
       }
 
       const { error: insertErr } = await supabase.from("nkbv_fact_benh_an").insert(payload);
       if (insertErr) throw insertErr;
+      if (payload.khoa_dieu_tri_id) {
+        await supabase.from("nkbv_fact_ba_ngay_khoa").upsert(
+          {
+            ma_benh_an: ba,
+            ngay_lich: String(r.ngay_vao_vien).slice(0, 10),
+            khoa_id: payload.khoa_dieu_tri_id,
+            updated_at: nowIso,
+          },
+          { onConflict: "ma_benh_an,ngay_lich" },
+        );
+      }
       inserted += 1;
     }
 
     revalidatePath("/giam-sat-nkbv");
     return {
       success: true as const,
-      count: inserted + updated,
+      count: inserted,
       inserted,
-      updated,
+      updated: 0,
+      skippedExisting,
       skippedDuplicate,
       skippedConflict,
     };

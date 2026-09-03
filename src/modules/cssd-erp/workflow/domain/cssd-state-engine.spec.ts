@@ -1,7 +1,7 @@
 /** Contract mirror — SSOT runtime: RPC `rpc_scan_workflow_station`. */
 import { describe, expect, it } from "vitest";
 import { validateStationAdvance } from "./cssd-state-engine";
-import { previousWorkflowStation } from "./cssd-stations";
+import { nextWorkflowStation, previousWorkflowStation } from "./cssd-stations";
 
 describe("cssd-state-engine", () => {
   it("blocks TIET_KHUAN as scan target", () => {
@@ -55,5 +55,11 @@ describe("cssd-state-engine", () => {
   it("previousWorkflowStation", () => {
     expect(previousWorkflowStation("QC")).toBe("LAM_SACH");
     expect(previousWorkflowStation("TIEP_NHAN")).toBeNull();
+  });
+
+  it("nextWorkflowStation", () => {
+    expect(nextWorkflowStation("QC")).toBe("DONG_GOI");
+    expect(nextWorkflowStation("DONG_GOI")).toBe("TIET_KHUAN");
+    expect(nextWorkflowStation("CAP_PHAT")).toBeNull();
   });
 });

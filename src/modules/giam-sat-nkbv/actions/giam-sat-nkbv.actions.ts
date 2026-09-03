@@ -6,6 +6,7 @@ export * from "./giam-sat-nkbv-mau-so.actions";
 export * from "./giam-sat-nkbv-device-registry.actions";
 export * from "./giam-sat-nkbv-mdro.actions";
 export * from "./giam-sat-nkbv-rca.actions";
+export * from "./giam-sat-nkbv-ba-ngay.actions";
 export * from "./giam-sat-nkbv-ba-timeline.actions";
 export * from "./giam-sat-nkbv-vi-sinh-store.actions";
 export * from "./giam-sat-nkbv-ba-analysis.actions";

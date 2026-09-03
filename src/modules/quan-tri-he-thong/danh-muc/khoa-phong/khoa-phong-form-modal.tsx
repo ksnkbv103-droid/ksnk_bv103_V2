@@ -24,6 +24,7 @@ function mapForm(row: KhoaPhongRow | null) {
     allowed_khu_vucs: Array.isArray(row?.specs?.allowed_khu_vucs)
       ? (row.specs.allowed_khu_vucs as string[])
       : ([] as string[]),
+    cdc_location_code: String(row?.cdc_location_code || row?.specs?.cdc_location_code || ""),
   };
 }
 
@@ -64,8 +65,11 @@ export default function KhoaPhongFormModal({
     const result = await saveKhoaPhongAction({
       ...form,
       specs: {
+        ...(initialRow?.specs || {}),
         allowed_khu_vucs: form.allowed_khu_vucs,
+        cdc_location_code: form.cdc_location_code.trim() || null,
       },
+      cdc_location_code: form.cdc_location_code,
     });
     setLoading(false);
     if (!result.success) return toast.error(result.error || "Không thể lưu khoa phòng.");
@@ -75,8 +79,8 @@ export default function KhoaPhongFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md touch-manipulation pointer-events-auto">
-      <form onSubmit={submit} className="bg-white w-full max-w-xl rounded-[var(--radius-shell)] p-8 space-y-4 shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)] max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 touch-manipulation pointer-events-auto">
+      <form onSubmit={submit} className="bg-white w-full max-w-xl rounded-[var(--radius-shell)] p-8 space-y-[var(--bv103-space-3)] shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)] max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-start gap-4">
           <h3 className={C.modalTitleLight}>
             {isEdit ? "Cập nhật khoa phòng" : "Thêm khoa phòng"}
@@ -102,6 +106,14 @@ export default function KhoaPhongFormModal({
             ))}
           </select>
         </div>
+        <BoDungCuTextField
+          label="Mã CDC Location (NHSN)"
+          value={form.cdc_location_code}
+          onChange={(v) => setForm({ ...form, cdc_location_code: v.toUpperCase() })}
+        />
+        <p className="-mt-2 text-[11px] text-slate-500">
+          Gắn khoa viện với mã CDC (ví dụ IN:ICU). Trống = chưa map. SIR trên NKBV vẫn là số thô cho đến khi map đủ.
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <BoDungCuTextField label="Số bác sĩ" type="number" value={String(form.so_bac_si)} onChange={(v) => setForm({ ...form, so_bac_si: Number(v || 0) })} />
           <BoDungCuTextField label="Số điều dưỡng" type="number" value={String(form.so_dieu_duong)} onChange={(v) => setForm({ ...form, so_dieu_duong: Number(v || 0) })} />
@@ -119,7 +131,7 @@ export default function KhoaPhongFormModal({
               <button
                 type="button"
                 onClick={() => setForm({ ...form, allowed_khu_vucs: khuVucOptions.map(o => o.ma) })}
-                className="text-[11px] font-bold text-[var(--primary)] hover:underline"
+                className="bv103-type-label font-semibold text-[var(--primary)] hover:underline"
               >
                 Chọn tất cả
               </button>
@@ -127,7 +139,7 @@ export default function KhoaPhongFormModal({
               <button
                 type="button"
                 onClick={() => setForm({ ...form, allowed_khu_vucs: [] })}
-                className="text-[11px] font-bold text-red-600 hover:underline"
+                className="bv103-type-label font-semibold text-red-600 hover:underline"
               >
                 Bỏ chọn tất cả
               </button>

@@ -6,6 +6,12 @@ import { Sparkles } from "lucide-react";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
 import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
+import {
+  BANG_KIEM_CACH_TINH_DIEM,
+  BANG_KIEM_CACH_TINH_DIEM_LABEL,
+  BANG_KIEM_LOAI_GIAM_SAT,
+  BANG_KIEM_LOAI_GIAM_SAT_LABEL,
+} from "../lib/bang-kiem-gsc-fields";
 
 export interface BangKiemFormState {
   id: string | null;
@@ -13,6 +19,8 @@ export interface BangKiemFormState {
   ten_bang_kiem: string;
   mo_ta: string;
   phan_loai_chuyen_mon: string;
+  loai_giam_sat: string;
+  cach_tinh_diem: string;
   loai_hinh_giam_sat: string;
   is_active: boolean;
   is_system: boolean;
@@ -41,7 +49,7 @@ export default function BangKiemFormFields({
   const orphan = Boolean(cur && !codes.has(cur));
 
   return (
-    <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-1">
+    <div className="space-y-[var(--bv103-space-3)] max-h-[60vh] overflow-y-auto pr-1">
       <div className="space-y-2">
         <label className={F.formLabel}>Mã bảng kiểm</label>
         <div className="relative">
@@ -49,7 +57,7 @@ export default function BangKiemFormFields({
             value={formData.ma_bk}
             onChange={(e) => setFormData((p) => ({ ...p, ma_bk: e.target.value }))}
             disabled={formData.is_system || isEditing}
-            className="w-full px-6 py-4 bg-slate-50 border-none rounded-[var(--radius-shell)] text-sm font-bold focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-all pr-12 disabled:opacity-60"
+            className="w-full px-6 py-4 bg-slate-50 border-none rounded-[var(--radius-shell)] bv103-type-section focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-all pr-12 disabled:opacity-60"
             placeholder="VD: BK001"
           />
           {!isEditing && maTuDong && (
@@ -71,7 +79,7 @@ export default function BangKiemFormFields({
           value={formData.ten_bang_kiem}
           onChange={(e) => setFormData((p) => ({ ...p, ten_bang_kiem: e.target.value }))}
           disabled={formData.is_system}
-          className="w-full px-6 py-4 bg-slate-50 border-none rounded-[var(--radius-shell)] text-sm font-bold focus:ring-2 focus:ring-[var(--primary)]/20 outline-none disabled:opacity-60"
+          className="w-full px-6 py-4 bg-slate-50 border-none rounded-[var(--radius-shell)] bv103-type-section focus:ring-2 focus:ring-[var(--primary)]/20 outline-none disabled:opacity-60"
           placeholder="Nhập tên bảng kiểm..."
         />
       </div>
@@ -82,7 +90,7 @@ export default function BangKiemFormFields({
           value={formData.phan_loai_chuyen_mon || "PHONG_NGUA_CHUAN"}
           onChange={(e) => setFormData((p) => ({ ...p, phan_loai_chuyen_mon: e.target.value }))}
           disabled={formData.is_system}
-          className="w-full px-6 py-4 bg-slate-50 border-none rounded-[var(--radius-shell)] text-sm font-bold focus:ring-2 focus:ring-[var(--primary)]/20 outline-none disabled:opacity-60"
+          className="w-full px-6 py-4 bg-slate-50 border-none rounded-[var(--radius-shell)] bv103-type-section focus:ring-2 focus:ring-[var(--primary)]/20 outline-none disabled:opacity-60"
         >
           <option value="PHONG_NGUA_CHUAN">Phòng ngừa chuẩn</option>
           <option value="GOI_CAN_THIEP">Gói can thiệp</option>
@@ -94,13 +102,51 @@ export default function BangKiemFormFields({
       </div>
 
       <div className="space-y-2">
+        <label className={F.formLabel}>Loại giám sát (phiếu GSC)</label>
+        <select
+          value={formData.loai_giam_sat}
+          onChange={(e) => setFormData((p) => ({ ...p, loai_giam_sat: e.target.value }))}
+          disabled={formData.is_system}
+          className="w-full px-6 py-4 bg-slate-50 border-none rounded-[var(--radius-shell)] bv103-type-section focus:ring-2 focus:ring-[var(--primary)]/20 outline-none disabled:opacity-60"
+        >
+          {BANG_KIEM_LOAI_GIAM_SAT.map((code) => (
+            <option key={code} value={code}>
+              {BANG_KIEM_LOAI_GIAM_SAT_LABEL[code]}
+            </option>
+          ))}
+        </select>
+        <p className="text-[11px] font-medium text-slate-500 ml-1">
+          Phiếu mới hiện ở cổng tương ứng (tuân thủ / nhật ký / đánh giá hệ thống).
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <label className={F.formLabel}>Cách tính điểm</label>
+        <select
+          value={formData.cach_tinh_diem}
+          onChange={(e) => setFormData((p) => ({ ...p, cach_tinh_diem: e.target.value }))}
+          disabled={formData.is_system}
+          className="w-full px-6 py-4 bg-slate-50 border-none rounded-[var(--radius-shell)] bv103-type-section focus:ring-2 focus:ring-[var(--primary)]/20 outline-none disabled:opacity-60"
+        >
+          {BANG_KIEM_CACH_TINH_DIEM.map((code) => (
+            <option key={code} value={code}>
+              {BANG_KIEM_CACH_TINH_DIEM_LABEL[code]}
+            </option>
+          ))}
+        </select>
+        <p className="text-[11px] font-medium text-slate-500 ml-1">
+          Nhật ký vận hành thường chọn «Nhật ký». Phiếu đã lưu giữ cách tính đã chốt.
+        </p>
+      </div>
+
+      <div className="space-y-2">
         <label className={F.formLabel}>Mô tả</label>
         <textarea
           value={formData.mo_ta}
           onChange={(e) => setFormData((p) => ({ ...p, mo_ta: e.target.value }))}
           rows={3}
           disabled={formData.is_system}
-          className="w-full px-6 py-4 bg-slate-50 border-none rounded-[var(--radius-shell)] text-sm font-bold focus:ring-2 focus:ring-[var(--primary)]/20 outline-none resize-none disabled:opacity-60"
+          className="w-full px-6 py-4 bg-slate-50 border-none rounded-[var(--radius-shell)] bv103-type-section focus:ring-2 focus:ring-[var(--primary)]/20 outline-none resize-none disabled:opacity-60"
           placeholder="Mô tả mục đích bảng kiểm..."
         />
       </div>
@@ -113,7 +159,7 @@ export default function BangKiemFormFields({
           value={cur}
           onChange={(e) => setFormData((p) => ({ ...p, loai_hinh_giam_sat: e.target.value }))}
           disabled={formData.is_system || hinhThucLoading}
-          className="w-full px-6 py-4 bg-slate-50 border-none rounded-[var(--radius-shell)] text-sm font-bold focus:ring-2 focus:ring-[var(--primary)]/20 outline-none appearance-none disabled:opacity-60"
+          className="w-full px-6 py-4 bg-slate-50 border-none rounded-[var(--radius-shell)] bv103-type-section focus:ring-2 focus:ring-[var(--primary)]/20 outline-none appearance-none disabled:opacity-60"
         >
           {hinhThucLoading ? (
             <option value={cur}>Đang tải danh mục…</option>

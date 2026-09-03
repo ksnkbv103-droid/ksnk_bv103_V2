@@ -349,16 +349,16 @@ export default function NkbvBaConcludeCell({
               key={`${row.kind}-${row.id}`}
               className="rounded border border-violet-200 bg-violet-50 px-1 py-0.5 text-violet-950"
             >
-              <span className="block text-[9px] font-semibold leading-snug text-violet-800">
+              <span className="block bv103-type-label font-semibold leading-snug text-violet-800">
                 {row.hint}
               </span>
               {local ? (
                 <div className="mt-0.5 flex flex-col gap-0.5">
-                  <span className="text-[10px] font-semibold leading-snug">{local.label}</span>
+                  <span className="bv103-type-label font-semibold leading-snug">{local.label}</span>
                   {allowedEdit ? (
                     <button
                       type="button"
-                      className="text-left text-[9px] font-semibold text-violet-700 underline"
+                      className="text-left bv103-type-label font-semibold text-violet-700 underline"
                       onClick={() => onManualSampleClear?.({ indexId: row.id })}
                     >
                       Xóa KL
@@ -372,7 +372,7 @@ export default function NkbvBaConcludeCell({
                     disabled={!allowedEdit}
                     value={draft}
                     placeholder="Gõ kết luận…"
-                    className="w-full rounded border border-violet-200 bg-white px-1 py-0.5 text-[10px]"
+                    className="w-full rounded border border-violet-200 bg-white px-1 py-0.5 bv103-type-label"
                     onChange={(e) =>
                       setDraftLabelById((prev) => ({
                         ...prev,
@@ -392,7 +392,7 @@ export default function NkbvBaConcludeCell({
                         key={disp}
                         type="button"
                         disabled={!allowedEdit || !String(draft).trim()}
-                        className="rounded border border-violet-300 bg-white px-1 py-0.5 text-[9px] font-semibold disabled:opacity-40"
+                        className="rounded border border-violet-300 bg-white px-1 py-0.5 bv103-type-label font-semibold disabled:opacity-40"
                         onClick={() => {
                           const label =
                             disp === "KHONG_DU_TC" && !String(draft).trim()
@@ -468,19 +468,19 @@ export default function NkbvBaConcludeCell({
             className="w-full text-left disabled:cursor-default"
           >
             {it.buttonLabel ? (
-              <span className="block text-[9px] font-bold uppercase tracking-wide">
+              <span className="block bv103-type-label font-semibold uppercase tracking-wide">
                 {it.buttonLabel}
               </span>
             ) : null}
             <span
-              className={`block text-[10px] leading-snug ${
+              className={`block bv103-type-label leading-snug ${
                 it.dispositionKind === "CLOSED_INSUFFICIENT" ? "font-semibold" : ""
               }`}
             >
               {it.detail}
             </span>
             {it.annotate ? (
-              <span className="mt-0.5 block text-[9px] font-semibold leading-snug text-emerald-800">
+              <span className="mt-0.5 block bv103-type-label font-semibold leading-snug text-emerald-800">
                 {it.annotate}
               </span>
             ) : null}
@@ -488,7 +488,7 @@ export default function NkbvBaConcludeCell({
         </div>
       ))}
       {progressiveLabel && !items.length ? (
-        <span className="text-[10px] leading-snug text-slate-600">{progressiveLabel}</span>
+        <span className="bv103-type-label leading-snug text-slate-600">{progressiveLabel}</span>
       ) : null}
     </div>
   );

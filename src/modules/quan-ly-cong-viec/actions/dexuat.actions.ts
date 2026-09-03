@@ -6,7 +6,14 @@ import { congViecSchema, type CongViecInput } from "@/lib/validations/quan-ly-co
 import { applyQlcvListScopeToQuery, resolveQlcvListScope } from "../lib/qlcv-list-scope";
 import { verifyQlcvApproveCapability } from "../lib/qlcv-rbac";
 import { normalizeQlcvDmFields } from "../lib/qlcv-persist-dm-fields";
-import { assertQlcvHanHoanThanhNotPast, assertQlcvHanHoanThanhChangeAllowed, insertQlcvTaskRow } from "../lib/qlcv-create-task";
+import {
+  assertQlcvDiaDiemKhoaValid,
+  assertQlcvHanHoanThanhNotPast,
+  assertQlcvHanHoanThanhChangeAllowed,
+  insertQlcvTaskRow,
+} from "../lib/qlcv-create-task";
+import { QLCV_FACT_WRITE_TABLE } from "../lib/qlcv-fact-write";
+import { throwQlcvDbError } from "../lib/qlcv-supabase-error";
 import { resolveQlcvTrangThaiMaForTask } from "../lib/qlcv-initial-trang-thai";
 import { isDeXuatChoDuyet, type CongViecLike } from "../lib/qlcv-workflow-display";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
@@ -20,6 +27,7 @@ interface CreateDeXuatInput {
   han_hoan_thanh?: string;
   loai_cong_viec?: "DINH_KY" | "DOT_XUAT" | "KHAN_CAP";
   muc_do_uu_tien?: "CAO" | "TRUNG_BINH" | "THAP";
+  dia_diem_khoa_id: string;
 }
 
 type DeXuatRow = CongViecLike & {
@@ -56,6 +64,7 @@ export async function createDeXuat(input: CreateDeXuatInput) {
     loai_cong_viec: loai,
     muc_do_uu_tien: input.muc_do_uu_tien,
     han_hoan_thanh: input.han_hoan_thanh || null,
+    dia_diem_khoa_id: input.dia_diem_khoa_id,
     ksnkKhoaId: ksnkKhoaId,
     is_active: false,
     nguoi_tao_id: actorNhanSuId,
@@ -133,6 +142,7 @@ export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput
 
   assertQlcvHanHoanThanhChangeAllowed(p.han_hoan_thanh, cur.han_hoan_thanh);
   await validateAssigneeForQlcv(supabase, p.nguoi_phu_trach_id, ksnkKhoaId);
+  await assertQlcvDiaDiemKhoaValid(supabase, p.dia_diem_khoa_id, true);
 
   const trangThai = resolveQlcvTrangThaiMaForTask({
     isActive: true,
@@ -161,6 +171,12 @@ export async function pheDuyetVaCapNhatDeXuat(id: string, payload: CongViecInput
       noi_dung_hoat_dong: "Phê duyệt đề xuất và giao nhiệm vụ KSNK",
     },
   });
+
+  const { error: locErr } = await supabase
+    .from(QLCV_FACT_WRITE_TABLE)
+    .update({ dia_diem_khoa_id: p.dia_diem_khoa_id })
+    .eq("id", id);
+  if (locErr) throwQlcvDbError(locErr, "Không ghi địa điểm khoa khi phê duyệt.");
 
   revalidatePath("/quan-ly-cong-viec");
 }

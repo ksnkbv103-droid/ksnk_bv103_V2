@@ -80,6 +80,14 @@ export async function saveThietBiAction(input: Record<string, unknown>) {
   if (!ma || !ten) {
     return { success: false as const, error: "Thiếu mã hoặc tên thiết bị." };
   }
+  const trangThai = String(input.trang_thai || "").trim().toUpperCase();
+  const lockedOps = trangThai === "REPAIRING" || trangThai === "BAO_TRI" || trangThai === "BROKEN";
+  if (lockedOps && !id) {
+    return {
+      success: false as const,
+      error: "Đang sửa / hỏng chỉ gán qua phiếu bảo trì trên màn Thiết bị CSSD.",
+    };
+  }
 
   const loaiMa = String(input.loai_thiet_bi || "").trim();
   let loai_may_id: string | null = null;
@@ -103,11 +111,9 @@ export async function saveThietBiAction(input: Record<string, unknown>) {
     ma_thiet_bi: ma,
     ten_thiet_bi: ten,
     loai_may_id,
-    trang_thai: String(input.trang_thai || "").trim() || "READY",
+    ...(lockedOps ? {} : { trang_thai: trangThai || "READY" }),
     ngay_dua_vao_su_dung: parseDateOnly(input.ngay_dua_vao_su_dung),
     chu_ky_bao_tri_ngay: cycle,
-    ngay_bao_tri_gan_nhat: parseDateOnly(input.ngay_bao_tri_gan_nhat),
-    ngay_bao_tri_tiep_theo: parseDateOnly(input.ngay_bao_tri_tiep_theo),
     specs,
     is_active: input.is_active !== false,
     updated_at: new Date().toISOString(),

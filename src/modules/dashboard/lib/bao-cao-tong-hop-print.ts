@@ -244,7 +244,7 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
           .join("")}
       </tbody>
     </table>
-    ${renderComparableGapTable("3. Đối soát Tự giám sát vs KSNK (khoa đủ hai nguồn)", p.vstPayload.gap_analysis ?? [], 10)}
+    ${renderComparableGapTable("3. Đối soát tự giám sát vs chuyên trách (khoa đủ hai nguồn)", p.vstPayload.gap_analysis ?? [], 10)}
   `
     : "";
 

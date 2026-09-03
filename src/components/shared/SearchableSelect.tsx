@@ -5,6 +5,11 @@ import { createPortal } from "react-dom";
 import { useMobilePickerSheet } from "@/hooks/use-mobile-picker-sheet";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import {
+  BV103_PICKER_PORTAL_ATTR,
+  resolveBv103PickerPortalRoot,
+  unlockBv103PickerPortalKeyboard,
+} from "@/lib/bv103-picker-portal";
 
 export type SearchableSelectOption = {
   id: string;
@@ -24,6 +29,11 @@ type Props = {
   className?: string;
   name?: string;
   required?: boolean;
+  /** Cho gõ mã mới (Enter hoặc nút “Nhập mã mới”) khi không có trong danh sách. */
+  allowCustom?: boolean;
+  /** Ô gõ ngay trên trigger — tìm / dán mã / súng QR, không cần ô riêng. */
+  inputTrigger?: boolean;
+  endSlot?: React.ReactNode;
 };
 
 const normalizeSearchText = (value: string) =>
@@ -53,6 +63,9 @@ export default function SearchableSelect({
   disabled = false,
   className = "",
   name,
+  allowCustom = false,
+  inputTrigger = false,
+  endSlot,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -86,6 +99,33 @@ export default function SearchableSelect({
     setOpen(false);
     setQuery("");
   };
+
+  const commitTypedQuery = () => {
+    const typed = query.trim();
+    if (!typed) {
+      if (filtered.length > 0) handleSelect(filtered[0].id);
+      return;
+    }
+    const normalized = typed.toUpperCase();
+    const exact =
+      filtered.find((o) => o.id.toUpperCase() === normalized) ||
+      options.find((o) => o.id.toUpperCase() === normalized);
+    if (exact) {
+      handleSelect(exact.id);
+      return;
+    }
+    if (allowCustom) {
+      handleSelect(normalized);
+      return;
+    }
+    if (filtered.length > 0) handleSelect(filtered[0].id);
+  };
+
+  const typedCustom = allowCustom ? query.trim().toUpperCase() : "";
+  const showCustomCreate =
+    Boolean(typedCustom) && !options.some((o) => o.id.toUpperCase() === typedCustom);
+
+  const displayText = selectedOption?.label || (allowCustom && value ? value : "");
 
   const renderOptionButtons = (list: SearchableSelectOption[], itemClassName: string) => {
     let lastGroup = "";
@@ -122,6 +162,21 @@ export default function SearchableSelect({
       return nodes;
     });
   };
+
+  const renderCustomCreate = (itemClassName: string) =>
+    showCustomCreate ? (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleSelect(typedCustom);
+        }}
+        className={`${itemClassName} font-semibold text-[var(--primary)]`}
+      >
+        Nhập mã mới: {typedCustom}
+      </button>
+    ) : null;
 
   useEffect(() => {
     if (!open || isMobileSheet) return;
@@ -184,6 +239,20 @@ export default function SearchableSelect({
   }, [open, isMobileSheet]);
 
   useEffect(() => {
+    if (!open) return;
+    let stop: () => void = () => {};
+    const id = window.requestAnimationFrame(() => {
+      const root =
+        panelRef.current?.closest(`[${BV103_PICKER_PORTAL_ATTR}]`) ?? panelRef.current;
+      stop = unlockBv103PickerPortalKeyboard(root instanceof HTMLElement ? root : null);
+    });
+    return () => {
+      window.cancelAnimationFrame(id);
+      stop();
+    };
+  }, [open]);
+
+  useEffect(() => {
     if (!open || !isMobileSheet) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
@@ -202,19 +271,48 @@ export default function SearchableSelect({
     };
   }, [open, isMobileSheet]);
 
+  const triggerInputValue = open || query ? query : displayText;
+
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="relative flex items-center gap-2">
       {!!name && <input type="hidden" name={name} value={value || ""} />}
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setOpen((v) => !v)}
-        className={`${bv103LayoutChrome.controlSelectTrigger} ${className}`}
-      >
-        <span className={selectedOption ? "text-slate-900" : "text-slate-500"}>
-          {selectedOption ? selectedOption.label : placeholder}
-        </span>
-      </button>
+      {inputTrigger ? (
+        <input
+          type="text"
+          disabled={disabled}
+          value={triggerInputValue}
+          autoComplete="off"
+          autoCapitalize="characters"
+          placeholder={placeholder}
+          onFocus={() => {
+            if (disabled) return;
+            setOpen(true);
+            setQuery("");
+          }}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          onKeyDown={(e) => {
+            if (e.key !== "Enter") return;
+            e.preventDefault();
+            commitTypedQuery();
+          }}
+          className={`${bv103LayoutChrome.controlInput} min-w-0 flex-1 font-mono uppercase tracking-wide ${className}`}
+        />
+      ) : (
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setOpen((v) => !v)}
+          className={`${bv103LayoutChrome.controlSelectTrigger} min-w-0 flex-1 ${className}`}
+        >
+          <span className={selectedOption || (allowCustom && value) ? "text-slate-900" : "text-slate-500"}>
+            {displayText || placeholder}
+          </span>
+        </button>
+      )}
+      {endSlot}
 
       {open && !disabled && canUseDOM
         ? createPortal(
@@ -259,9 +357,10 @@ export default function SearchableSelect({
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       onKeyDown={(e) => {
+                        e.stopPropagation();
                         if (e.key === "Enter") {
                           e.preventDefault();
-                          if (filtered.length > 0) handleSelect(filtered[0].id);
+                          commitTypedQuery();
                         }
                       }}
                       placeholder={searchPlaceholder}
@@ -282,7 +381,10 @@ export default function SearchableSelect({
                       filtered,
                       "mb-2 w-full rounded-xl px-3 py-3.5 text-left text-base leading-snug hover:bg-slate-50 active:bg-slate-100",
                     )}
-                    {filtered.length === 0 ? (
+                    {renderCustomCreate(
+                      "mb-2 w-full rounded-xl border border-[var(--primary)]/30 bg-[var(--primary)]/5 px-3 py-3.5 text-left text-base",
+                    )}
+                    {filtered.length === 0 && !showCustomCreate ? (
                       <p className="px-2 py-8 text-center text-base text-slate-400">Không có kết quả phù hợp</p>
                     ) : null}
                   </div>
@@ -296,19 +398,22 @@ export default function SearchableSelect({
                 className="pointer-events-auto rounded-[var(--radius-shell)] border border-slate-200 bg-white p-3 shadow-[var(--shadow-app-soft)] animate-in fade-in zoom-in-95 duration-200"
                 onPointerDown={(e) => e.stopPropagation()}
               >
-                <input
-                  ref={searchInputRef}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      if (filtered.length > 0) handleSelect(filtered[0].id);
-                    }
-                  }}
-                  placeholder={searchPlaceholder}
-                  className="mb-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-[var(--primary)]"
-                />
+                {inputTrigger ? null : (
+                  <input
+                    ref={searchInputRef}
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      e.stopPropagation();
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        commitTypedQuery();
+                      }
+                    }}
+                    placeholder={searchPlaceholder}
+                    className="mb-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-[var(--primary)]"
+                  />
+                )}
 
                 <div
                   className="custom-scrollbar overflow-y-auto overflow-x-hidden overscroll-contain pr-1"
@@ -325,13 +430,16 @@ export default function SearchableSelect({
                     filtered,
                     "mb-1 w-full rounded-lg px-2 py-1.5 text-left text-sm hover:bg-slate-50",
                   )}
-                  {filtered.length === 0 ? (
+                  {renderCustomCreate(
+                    "mb-1 w-full rounded-lg border border-[var(--primary)]/30 bg-[var(--primary)]/5 px-2 py-1.5 text-left text-sm",
+                  )}
+                  {filtered.length === 0 && !showCustomCreate ? (
                     <p className="px-2 py-2 text-sm text-slate-400">Không có kết quả phù hợp</p>
                   ) : null}
                 </div>
               </div>
             ),
-            document.body,
+            resolveBv103PickerPortalRoot(),
           )
         : null}
     </div>

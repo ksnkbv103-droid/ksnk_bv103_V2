@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef, type SetStateAction } from "react";
-import { previewGscFormProgress, type GscFormProgress } from "../lib/gsc-score-display";
+import {
+  gscCanSaveResults,
+  isGscNhatKyCach,
+  previewGscFormProgress,
+  type GscFormProgress,
+} from "../lib/gsc-score-display";
 import { useGscModuleLock } from "./use-gsc-module-lock";
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
 import type { ChecklistResult, ChecklistTemplate } from "@/types/giam-sat-chung";
@@ -327,9 +332,12 @@ export function useGiamSatChungForm(
       toast.error("Không xác định được người giám sát. Liên kết tài khoản với hồ sơ nhân sự tại Tài khoản của tôi.");
       return;
     }
-    const evaluatedCount = results.filter((r) => r.value !== "NA").length;
-    if (evaluatedCount === 0) {
-      toast.error("Vui lòng đánh giá ít nhất 1 tiêu chí");
+    if (!gscCanSaveResults(results, template.cach_tinh_diem, template.loai_giam_sat)) {
+      toast.error(
+        isGscNhatKyCach(template.cach_tinh_diem, template.loai_giam_sat)
+          ? "Nhật ký: nhập ít nhất 1 số liệu hoặc lựa chọn."
+          : "Vui lòng đánh giá ít nhất 1 tiêu chí",
+      );
       return;
     }
     if (isReplayCameraSupervisionCachThuc(session.cach_thuc_giam_sat)) {

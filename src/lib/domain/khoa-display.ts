@@ -1,7 +1,7 @@
 /**
  * SSOT hiển thị khoa toàn app.
- * - Picker / tìm kiếm: `Mã - Tên` (vd. A05 - Khoa truyền nhiễm)
- * - Bảng / chart / in / xuất: chỉ mã; thiếu mã → tên
+ * - Ô tìm / lọc: `Mã | Tên` (vd. A05 | Khoa truyền nhiễm)
+ * - Bảng / biểu đồ (trừ sổ danh mục khoa): chỉ mã; thiếu mã → tên
  */
 
 export type KhoaDisplayInput = {
@@ -22,11 +22,11 @@ function pickTen(row: KhoaDisplayInput): string {
   return String(row.ten_khoa ?? row.ten ?? row.ten_danh_muc ?? "").trim();
 }
 
-/** Ô chọn / tìm kiếm: `A05 - Khoa truyền nhiễm`. Không có mã → chỉ tên. */
+/** Ô chọn / tìm kiếm: `A05 | Khoa truyền nhiễm`. Không có mã → chỉ tên. */
 export function formatKhoaPickerLabel(row: KhoaDisplayInput): string {
   const ma = pickMa(row);
   const ten = pickTen(row);
-  if (ma && ten) return `${ma} - ${ten}`;
+  if (ma && ten) return `${ma} | ${ten}`;
   if (ma) return ma;
   return ten || "—";
 }
@@ -40,6 +40,7 @@ export function formatKhoaCompactLabel(row: KhoaDisplayInput): string {
 
 /**
  * Lấy mã từ label option cũ/mới:
+ * - `A05 | Khoa…`
  * - `A05 - Khoa…`
  * - `[A05] Khoa…`
  * - `Khoa… (A05)`
@@ -47,6 +48,8 @@ export function formatKhoaCompactLabel(row: KhoaDisplayInput): string {
 export function parseMaFromKhoaOptionLabel(label: string): string | null {
   const raw = String(label || "").trim();
   if (!raw) return null;
+  const pipe = raw.match(/^([A-Za-z0-9][A-Za-z0-9_-]*)\s+\|\s+/);
+  if (pipe) return pipe[1].toUpperCase();
   const dash = raw.match(/^([A-Za-z0-9][A-Za-z0-9_-]*)\s+-\s+/);
   if (dash) return dash[1].toUpperCase();
   const bracket = raw.match(/^\[([^\]]+)\]/);

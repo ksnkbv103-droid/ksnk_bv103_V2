@@ -3,6 +3,7 @@
 import React from "react";
 import type { ChecklistResult, ChecklistTemplate } from "@/types/giam-sat-chung";
 import { formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
+import { isGscNhatKyCach } from "../lib/gsc-score-display";
 
 const border = "1px solid #000";
 
@@ -17,10 +18,16 @@ export function GiamSatChungPrintCriteriaSection({
 }) {
   const validResults = results.filter((r) => r.value !== "NA");
   const resultByCriterionId = new Map(results.map((r) => [r.criterionId, r] as const));
-  const score = formatPercent2FromRatio(
-    validResults.filter((r) => r.value === "DAT").length,
-    validResults.length,
+  const hideComplianceRate = isGscNhatKyCach(
+    template.cach_tinh_diem ?? session.cach_tinh_diem,
+    template.loai_giam_sat ?? session.loai_giam_sat,
   );
+  const score = hideComplianceRate
+    ? null
+    : formatPercent2FromRatio(
+        validResults.filter((r) => r.value === "DAT").length,
+        validResults.length,
+      );
 
   return (
     <>
@@ -94,9 +101,15 @@ export function GiamSatChungPrintCriteriaSection({
       </p>
 
       <div style={{ marginTop: "12px", lineHeight: 1.35 }}>
-        <p style={{ fontSize: "13px", fontWeight: 700, margin: "0 0 6px 0" }}>
-          TỈ LỆ TUÂN THỦ (trên tiêu chí có áp dụng): {score}
-        </p>
+        {score != null ? (
+          <p style={{ fontSize: "13px", fontWeight: 700, margin: "0 0 6px 0" }}>
+            TỈ LỆ TUÂN THỦ (trên tiêu chí có áp dụng): {score}
+          </p>
+        ) : (
+          <p style={{ fontSize: "13px", fontWeight: 700, margin: "0 0 6px 0" }}>
+            Nhật ký vận hành — không tính tỉ lệ tuân thủ
+          </p>
+        )}
         <p style={{ fontSize: "13px", margin: 0, paddingTop: "6px", borderTop: border }}>
           <strong>Ghi chú / Kiến nghị chung:</strong> {String(session.ghi_chu_chung || "—")}
         </p>

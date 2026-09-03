@@ -85,7 +85,7 @@ export default function LogEntryForm({
           aria-invalid={isOOR}
         />
         {donVi ? (
-          <span className="rounded-md bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-700">
+          <span className="rounded-md bg-slate-100 px-2 py-1 bv103-type-label font-semibold text-slate-700">
             {donVi}
           </span>
         ) : null}

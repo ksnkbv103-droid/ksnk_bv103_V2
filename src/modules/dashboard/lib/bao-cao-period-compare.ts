@@ -32,8 +32,6 @@ export type KyTruocCompare = {
   den_ngay: string;
   ty_le_vst: number | null;
   ty_le_gsc: number | null;
-  ty_le_ccs: number | null;
   delta_vst: number | null;
   delta_gsc: number | null;
-  delta_ccs: number | null;
 };

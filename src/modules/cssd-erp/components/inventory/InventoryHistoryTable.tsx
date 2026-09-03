@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { History, ArrowUpRight, ArrowDownLeft, RefreshCw } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
 import { fetchCssdKhoGiaoDichHistory } from "../../actions/cssd-kho-history.actions";
@@ -41,7 +41,7 @@ export default function InventoryHistoryTable() {
       </span>
     )},
     { header: "Ghi chú", accessorKey: "ghi_chu", cell: (item: any) => (
-      <span className="text-slate-400 font-medium text-[11px] truncate max-w-[150px] block italic">
+      <span className="bv103-type-note truncate max-w-[150px] block">
         {item.ghi_chu || "---"}
       </span>
     )},
@@ -53,19 +53,14 @@ export default function InventoryHistoryTable() {
   ];
 
   return (
-    <div className="bg-white p-2 rounded-[var(--radius-shell)] border border-slate-200/90 shadow-[var(--shadow-app-soft)] overflow-hidden animate-in fade-in duration-500">
-      <div className="p-5 pb-3 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-slate-50 rounded-xl text-slate-400"><History size={20} /></div>
-          <h3 className="text-[11px] font-medium text-slate-400 tracking-wide">Lịch sử giao dịch kho</h3>
-        </div>
-        <button onClick={fetchHistory} className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:text-[var(--primary)] active:rotate-180 transition-all duration-500">
-          <RefreshCw size={18} />
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h3 className="text-[11px] font-medium text-slate-500">Lịch sử giao dịch kho</h3>
+        <button type="button" onClick={() => void fetchHistory()} className="p-1.5 text-slate-400 hover:text-[var(--primary)]" title="Tải lại">
+          <RefreshCw size={16} />
         </button>
       </div>
-      <div className="min-h-[400px]">
-        <AdvancedDataTable columns={columns} data={data} loading={loading} enableMultiSelect={false} searchPlaceholder="Tìm theo mã giao dịch..." />
-      </div>
+      <AdvancedDataTable columns={columns} data={data} loading={loading} enableMultiSelect={false} searchPlaceholder="Tìm theo mã giao dịch..." />
     </div>
   );
 }

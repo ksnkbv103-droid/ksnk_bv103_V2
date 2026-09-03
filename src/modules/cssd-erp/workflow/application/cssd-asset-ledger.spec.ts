@@ -60,7 +60,7 @@ describe("assertLedgerDuChoCapPhat", () => {
 
     const r = await assertLedgerDuChoCapPhat(client as never, "qt-1");
     expect(r.ok).toBe(true);
-    if (r.ok && "warning" in r) expect(r.warning).toMatch(/Thiếu cấu phần/i);
+    if (r.ok && "warning" in r) expect(r.warning).toMatch(/Thiếu 1 món — vẫn cấp/i);
   });
 
   it("passes when đủ cấu phần", async () => {

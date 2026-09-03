@@ -53,7 +53,7 @@ export default function BaoTriStartModal({
   return (
     <div className={`${UI.sectionGap} fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4`} role="dialog" aria-modal="true">
       <div className="w-full max-w-md rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-[var(--shadow-app-soft)]">
-        <h2 className="text-lg font-semibold text-slate-900">Mở phiếu bảo dưỡng / sửa chữa</h2>
+        <h2 className="bv103-type-title text-slate-900">Mở phiếu bảo dưỡng / sửa chữa</h2>
         <p className="mt-1 text-xs text-slate-500">Quét mã máy (nếu có) hoặc chọn tay. Chỉ máy sẵn sàng và không có mẻ TK mở.</p>
 
         <label className="mt-4 block text-[11px] font-medium text-slate-500">Loại phiếu</label>
@@ -86,7 +86,7 @@ export default function BaoTriStartModal({
             <p className="mt-1 font-mono text-[11px] text-slate-500">Đã nhận: {maMayHoacQr}</p>
           ) : null}
         </div>
-        <label className="mt-4 block text-[11px] font-medium text-slate-500">Thiết bị</label>
+        <label className="mt-4 block text-[11px] font-medium text-slate-500">Hoặc chọn máy</label>
         <select className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={selTb} onChange={(e) => onSelTb(e.target.value)}>
           <option value="">— Chọn —</option>
           {machines.map((m) => (

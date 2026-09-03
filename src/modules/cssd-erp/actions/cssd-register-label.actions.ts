@@ -16,7 +16,13 @@ async function verifyCanRegisterPhysicalLabel(): Promise<void> {
   } catch {
     /* fall through */
   }
-  await verifyPermission("CSSD_WORKFLOW", "create");
+  try {
+    await verifyPermission("CSSD_WORKFLOW", "create");
+    return;
+  } catch {
+    /* fall through */
+  }
+  await verifyPermission("CSSD_WORKFLOW", "edit");
 }
 
 async function verifyCanReadBoListForCssd(): Promise<void> {

@@ -240,7 +240,7 @@ export function NhiemVuPanel({ onCreateCongViec, onOpenCongViec }: NhiemVuPanelP
     "bv103-control-h w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm outline-none focus:border-[var(--primary)]/40 focus:ring-2 focus:ring-[var(--primary)]/15";
 
   return (
-    <div className={`${bv103LayoutChrome.panelSurface} space-y-4 p-4 sm:p-5`}>
+    <div className={`${bv103LayoutChrome.panelSurface} space-y-[var(--bv103-space-3)] p-4 sm:p-5`}>
       <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <h3 className="text-sm font-medium text-slate-800">Nhiệm vụ</h3>

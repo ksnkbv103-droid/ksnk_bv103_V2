@@ -104,8 +104,19 @@ export async function saveNhanSuAction(data: Partial<NhanSu>) {
     const result = await upsertMasterRow("mdm_nhan_su", id || "", payload as Record<string, unknown>);
     if (!result.success) throw new Error(formatHoSoNhanSuWriteError(result.error) || result.error);
 
+    const maNv = String(payload.ma_nv || "").trim();
+    let savedId = id || "";
+    if (!savedId && maNv) {
+      const { data: saved } = await supabase.from("mdm_nhan_su").select("id").eq("ma_nv", maNv).maybeSingle();
+      savedId = saved?.id ? String(saved.id) : "";
+    }
+
     revalidatePath("/quan-tri-he-thong");
-    return { success: true, message: id ? "Cập nhật thành công" : "Thêm nhân sự mới thành công" };
+    return {
+      success: true,
+      message: id ? "Cập nhật thành công" : "Thêm nhân sự mới thành công",
+      id: savedId || undefined,
+    };
   } catch (error: unknown) {
     const msg = errNhanSuWrite(error);
     console.error("LỖI saveNhanSuAction:", error);

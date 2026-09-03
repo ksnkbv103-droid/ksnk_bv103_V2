@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { resolveSortedChecklistOverview } from "@/lib/analytics/gsc-checklist-intervention";
@@ -15,6 +15,8 @@ type Props = {
   selectedMaBk: string | null;
   onSelectMaBk: (ma: string | null) => void;
   bkLabelRecord?: Record<string, string>;
+  /** Mặc định 5 biểu mẫu yếu nhất. */
+  limit?: number;
 };
 
 function complianceClass(tyLe: number): string {
@@ -25,14 +27,28 @@ function complianceClass(tyLe: number): string {
   return "text-slate-800";
 }
 
-export function GscChecklistNavigator({ payload, loading, selectedMaBk, onSelectMaBk, bkLabelRecord }: Props) {
+export function GscChecklistNavigator({
+  payload,
+  loading,
+  selectedMaBk,
+  onSelectMaBk,
+  bkLabelRecord,
+  limit = 5,
+}: Props) {
+  const [showAll, setShowAll] = useState(limit <= 0);
+  const effectiveLimit = showAll || limit <= 0 ? 0 : limit;
   const rows = useMemo(() => {
     const list = resolveSortedChecklistOverview(payload);
-    return list.map((r) => ({
+    const sliced = effectiveLimit > 0 ? list.slice(0, effectiveLimit) : list;
+    return sliced.map((r) => ({
       ...r,
       label: bkLabelRecord?.[r.ma_bk] ?? r.ten_bang_kiem ?? r.ma_bk,
     }));
-  }, [payload, bkLabelRecord]);
+  }, [payload, bkLabelRecord, effectiveLimit]);
+  const hiddenCount = useMemo(() => {
+    const total = resolveSortedChecklistOverview(payload).length;
+    return effectiveLimit > 0 ? Math.max(0, total - effectiveLimit) : 0;
+  }, [payload, effectiveLimit]);
 
   if (!loading && rows.length === 0) {
     return (
@@ -45,15 +61,26 @@ export function GscChecklistNavigator({ payload, loading, selectedMaBk, onSelect
   return (
     <div className={`${UI.shell} max-sm:overflow-visible sm:overflow-hidden`}>
       <div className="border-b border-slate-100 px-4 py-3">
-        <h3 className="text-sm font-bold text-slate-800">Bảng kiểm — trục phân tích chính</h3>
+        <h3 className="bv103-type-section text-slate-800">Bảng kiểm yếu nhất</h3>
         <p className="mt-0.5 text-[11px] text-slate-500">
-          Sắp xếp theo rủi ro (tuân thủ thấp · vi phạm nhiều). Chọn một dòng để xem lỗi chi tiết theo khoa và tiêu chí.
+          {effectiveLimit > 0
+            ? `Năm biểu mẫu tuân thủ thấp / vi phạm nhiều${hiddenCount > 0 ? ` (còn ${hiddenCount})` : ""}.`
+            : "Sắp xếp theo rủi ro. Chọn một dòng để xem lỗi theo khoa và tiêu chí."}
         </p>
+        {hiddenCount > 0 ? (
+          <button
+            type="button"
+            onClick={() => setShowAll(true)}
+            className="mt-1 text-[11px] font-semibold text-[var(--primary)] hover:underline"
+          >
+            Xem mọi bảng kiểm
+          </button>
+        ) : null}
       </div>
       <ResponsiveTableShell unboxed maxHeight="max-h-[min(52dvh,480px)]">
         <table className="w-full min-w-[720px] text-left text-xs">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+            <tr className="border-b border-slate-200 bg-slate-50/80 bv103-type-label font-semibold uppercase tracking-wide text-slate-500">
               <th className="px-3 py-2">Biểu mẫu</th>
               <th className="px-2 py-2 text-right">Phiên</th>
               <th className="px-2 py-2 text-right">Vi phạm</th>

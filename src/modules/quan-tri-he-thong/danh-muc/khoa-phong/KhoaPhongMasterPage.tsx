@@ -1,10 +1,10 @@
 // src/modules/quan-tri-he-thong/danh-muc/khoa-phong/KhoaPhongMasterPage.tsx
 "use client";
 import React, { useEffect, useState } from "react";
-import { Plus, Building2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useImportExport } from "@/hooks/useImportExport";
-import { ImportExportHint, ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
+import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
@@ -87,13 +87,13 @@ function KhoaPhongMasterPageContent() {
       setFormOpen(true);
     },
     onDelete: async (row) => {
-      if (!window.confirm(`Xóa cứng khoa phòng ${row.ma_danh_muc || row.id}?`)) return;
+      if (!window.confirm(`Tắt khoa phòng ${row.ma_danh_muc || row.id}? Khoa vẫn còn trong sổ, có thể bật lại.`)) return;
       const result = await softDeleteKhoaPhongAction(row.id);
       if (!result.success) {
-        toast.error(result.error || "Không thể xóa cứng.");
+        toast.error(result.error || "Không thể tắt khoa.");
         return;
       }
-      toast.success("Đã xóa cứng dữ liệu.");
+      toast.success("Đã tắt khoa (xóa mềm).");
       setRefreshKey((k) => k + 1);
     },
   });
@@ -130,13 +130,10 @@ function KhoaPhongMasterPageContent() {
   const modalKey = editing?.id ? `edit-${editing.id}` : "create";
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-700">
+    <div className="space-y-3 animate-in fade-in duration-700">
       <KsnkPageHeader
-        title={
-          <span className="inline-flex items-center gap-2 text-[var(--primary)]">
-            <Building2 size={22} aria-hidden /> Khoa phòng &amp; Đơn vị
-          </span>
-        }
+        showTitle={false}
+        title="Khoa phòng & Đơn vị"
         actions={
           <>
             <ImportExportToolbar
@@ -161,8 +158,7 @@ function KhoaPhongMasterPageContent() {
           </>
         }
       />
-      <ImportExportHint className="list-decimal list-inside space-y-0.5 px-1 text-[11px] leading-relaxed text-slate-500" />
-      <div className="bg-white p-2 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm min-w-0 sm:min-h-[450px]">
+      <div className="min-w-0 sm:min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
           data={data}
@@ -171,13 +167,13 @@ function KhoaPhongMasterPageContent() {
           enableMultiSelect={true}
           onDeleteSelected={async (rows) => {
             if (!rows.length) return;
-            if (!window.confirm(`Xóa cứng ${rows.length} khoa phòng?`)) return;
+            if (!window.confirm(`Tắt ${rows.length} khoa phòng? Khoa vẫn còn trong sổ, có thể bật lại.`)) return;
             const result = await softDeleteManyKhoaPhongAction(rows.map((r) => r.id));
             if (!result.success) {
-              toast.error(result.error || "Không thể xóa danh sách.");
+              toast.error(result.error || "Không thể tắt danh sách khoa.");
               return;
             }
-            toast.success("Đã xóa cứng dữ liệu đã chọn.");
+            toast.success("Đã tắt khoa đã chọn (xóa mềm).");
             setRefreshKey((k) => k + 1);
           }}
         />

@@ -3,6 +3,7 @@
  * GSC/VST/NKBV import from here instead of `quan-tri-he-thong/bang-kiem/actions` directly.
  */
 export {
+  getBangKiemByMaOrIdForGscLookup,
   getBangKiemsForGiamSat,
   getTieuChisForGiamSatChung,
 } from "@/modules/quan-tri-he-thong/bang-kiem/actions/bang-kiem-read.actions";

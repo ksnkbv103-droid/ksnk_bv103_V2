@@ -4,10 +4,10 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Clock3, Layers } from "lucide-react";
-import type { ExamFormThongTin } from "@/lib/dao-tao/types";
 import { listMucDoThiThu } from "@/modules/dao-tao/actions/dao-tao-admin.actions";
 import { startThiThuAttempt } from "@/modules/dao-tao/actions/dao-tao-attempt.actions";
-import { DaoTaoExamInfoForm } from "@/modules/dao-tao/components/DaoTaoExamInfoForm";
+import { DaoTaoThiSinhBanner } from "@/modules/dao-tao/components/DaoTaoThiSinhBanner";
+import { useDaoTaoThiSinhForm } from "@/modules/dao-tao/hooks/use-dao-tao-thi-sinh-form";
 import {
   DaoTaoHeader,
   DaoTaoPage,
@@ -30,12 +30,7 @@ export default function ThiThuPage() {
   const [mucDos, setMucDos] = useState<MucDo[]>([]);
   const [mucDoId, setMucDoId] = useState("");
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [form, setForm] = useState<ExamFormThongTin>({
-    hoTen: "",
-    khoaDonVi: "",
-    soDienThoai: "",
-    email: "",
-  });
+  const { form, setForm, complete, banner } = useDaoTaoThiSinhForm();
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -46,7 +41,7 @@ export default function ThiThuPage() {
         setLoadError(null);
       })
       .catch((e) => {
-        const msg = e instanceof Error ? e.message : "Lỗi tải mức độ";
+        const msg = e instanceof Error ? e.message : "Không tải được mức ôn tập";
         setLoadError(msg);
         toast.error(msg);
       });
@@ -56,23 +51,16 @@ export default function ThiThuPage() {
 
   return (
     <DaoTaoPage className="mx-auto max-w-2xl">
-      <DaoTaoHeader
-        title="Thi thử"
-        subtitle="Không tính chứng nhận."
-      />
+      <DaoTaoHeader title="Ôn tập" subtitle="Không tính chứng nhận." />
 
       {loadError ? (
         <DaoTaoPanel className="border-rose-200 bg-rose-50/50">
-          <p className="text-sm font-medium text-rose-800">Không tải được cấu hình thi thử</p>
-          <p className="mt-1 text-sm text-rose-700">{loadError}</p>
-          <p className="mt-2 text-xs text-rose-600">
-            Nếu báo thiếu bảng, cần chạy migration + đồng bộ quyền trên môi trường đang dùng.
-          </p>
+          <p className="text-sm font-medium text-rose-800">Hệ thống chưa sẵn sàng — liên hệ phòng KSNK.</p>
         </DaoTaoPanel>
       ) : null}
 
       <DaoTaoPanel className="space-y-3">
-        <p className={T.sectionTitle}>1. Chọn mức độ</p>
+        <p className={T.sectionTitle}>Chọn mức</p>
         <div className="grid gap-2">
           {mucDos.map((m) => {
             const active = mucDoId === m.id;
@@ -82,25 +70,13 @@ export default function ThiThuPage() {
                 type="button"
                 onClick={() => setMucDoId(m.id)}
                 className={cn(
-                  "flex w-full items-center justify-between rounded-[var(--radius-control)] border px-3 py-3 text-left transition",
+                  "flex w-full items-center justify-between rounded-[var(--radius-control)] border px-3 py-3 text-left transition touch-manipulation",
                   active
                     ? "border-[var(--primary)]/50 bg-[var(--primary)]/[0.04] ring-1 ring-[var(--primary)]/20"
                     : "border-slate-200 bg-white hover:border-slate-300",
                 )}
               >
-                <span className="flex items-center gap-2.5">
-                  <span
-                    className={cn(
-                      "flex h-4 w-4 items-center justify-center rounded-full border",
-                      active ? "border-[var(--primary)]" : "border-slate-300",
-                    )}
-                  >
-                    {active ? (
-                      <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
-                    ) : null}
-                  </span>
-                  <span className="text-sm font-semibold text-slate-800">{m.ten}</span>
-                </span>
+                <span className="text-sm font-semibold text-slate-800">{m.ten}</span>
                 <span className="flex items-center gap-3 text-[11px] font-medium text-slate-500">
                   <span className="inline-flex items-center gap-1">
                     <Layers className="h-3.5 w-3.5" />
@@ -115,19 +91,18 @@ export default function ThiThuPage() {
             );
           })}
           {!loadError && mucDos.length === 0 ? (
-            <p className="text-sm text-slate-500">Đang tải mức độ…</p>
+            <p className="text-sm text-slate-500">Đang tải…</p>
           ) : null}
         </div>
       </DaoTaoPanel>
 
-      <DaoTaoPanel className="space-y-3">
-        <p className={T.sectionTitle}>2. Thông tin thí sinh</p>
-        <DaoTaoExamInfoForm value={form} onChange={setForm} />
+      <DaoTaoPanel>
+        <DaoTaoThiSinhBanner form={form} onChange={setForm} complete={complete} banner={banner} />
       </DaoTaoPanel>
 
       <button
         type="button"
-        disabled={pending || !mucDoId || !!loadError}
+        disabled={pending || !mucDoId || !!loadError || !form.hoTen.trim() || !form.khoaDonVi.trim()}
         className={cn(daoTaoBtnPrimary, "h-11 w-full justify-center text-sm")}
         onClick={() => {
           startTransition(async () => {

@@ -136,7 +136,8 @@ export const NKBV_SPECIMEN_CANONICAL: readonly NkbvSpecimenCanonical[] = [
     code: "URT",
     group: "HO_HAP_KHAC",
     label: "Bệnh phẩm đường hô hấp trên (URT)",
-    majorType: "PNEU",
+    /** UR/EAR/SINU/ORAL — Chương 17, không phải PNEU/HAP/UTI. */
+    majorType: "OTHER",
   },
   {
     code: "URINE",
@@ -296,4 +297,29 @@ export function displaySpecimenOnGrid(benhPham: string | null | undefined): stri
     loai_benh_pham_chuan: isNkbvSpecimenCode(benhPham) ? benhPham : null,
     loai_benh_pham: benhPham,
   });
+}
+
+/**
+ * Bệnh phẩm chỉ thuộc Chương 17 — cấm tự mở khung UTI / HAP / SSI.
+ * UR (hô hấp trên), USI (mô/dịch thận), không phải nước tiểu.
+ */
+export function isNkbvCh17SpecimenOnly(input: {
+  loai_benh_pham?: string | null;
+  loai_benh_pham_chuan?: string | null;
+  lis_goc?: string | null;
+}): boolean {
+  const chuan = String(input.loai_benh_pham_chuan || "").trim().toUpperCase();
+  if (chuan === "URT") return true;
+  const blob = [chuan, input.loai_benh_pham, input.lis_goc]
+    .filter(Boolean)
+    .join(" ")
+    .toUpperCase();
+  if (!blob.trim()) return false;
+  if (/\bUSI\b|MÔ THẬN|MO THAN|DỊCH THẬN|DICH THAN|HỆ TIẾT NIỆU SÂU/.test(blob)) {
+    return true;
+  }
+  if (/HÔ HẤP TRÊN|HO HAP TREN|\bURT\b/.test(blob)) return true;
+  // «UR» đứng riêng (không phải URINE)
+  if (/\bUR\b/.test(blob) && !/\bURINE\b/.test(blob)) return true;
+  return false;
 }

@@ -34,9 +34,16 @@ import { calculateCdcMetrics, addDays } from "@/modules/giam-sat-nkbv/lib/nkbv-t
 import {
   nkbvClinicalFormPathway,
   suggestNkbvTypeFromSpecimen,
+  lockedCaseChecklistType,
+  initialSuspectedChecklistType,
   type NkbvChecklistTypeCode,
 } from "@/modules/giam-sat-nkbv/lib/nkbv-loai-labels";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
+import {
+  parseSymptomReviewMap,
+  mergeFormSymptomBooleans,
+  type NkbvSymptomReviewMap,
+} from "@/modules/giam-sat-nkbv/lib/nkbv-symptom-review";
 
 /** Legacy tab ids — form xác định ca dùng một màn; giữ type cho tương thích. */
 export type NkbvChecklistTab = "LAM_SANG" | "KSNK";
@@ -64,6 +71,7 @@ export function useNkbvChecklistModalState({
 
   const [treatmentHistory, setTreatmentHistory] = useState<DepartmentStay[]>([]);
   const [symptomDates, setSymptomDates] = useState<Record<string, string>>({});
+  const [symptomReview, setSymptomReview] = useState<NkbvSymptomReviewMap>({});
   const [ghiChuTuyBien, setGhiChuTuyBien] = useState("");
   /** Ngày vào viện ưu tiên từ hồ sơ bệnh án (HAI/POA). */
   const [ngayVaoVienEffective, setNgayVaoVienEffective] = useState(() =>
@@ -93,6 +101,14 @@ export function useNkbvChecklistModalState({
   );
   const suggestedType = specimenSuggestion.type;
   const suggestedReason = specimenSuggestion.reason;
+  const lockedType = useMemo(
+    () =>
+      lockedCaseChecklistType({
+        loai_ma: row.loai_ma,
+        loai_nkbv: row.loai_nkbv,
+      }),
+    [row.loai_ma, row.loai_nkbv],
+  );
 
   // Suspected infection type selected by user
   const [suspectedType, setSuspectedType] = useState<NkbvSuspectedType | null>(null);
@@ -117,11 +133,11 @@ export function useNkbvChecklistModalState({
 
   // Initialize suspectedType and prepopulate forms on mount
   useEffect(() => {
-    // Gợi ý theo bệnh phẩm (đã xử lý mâu thuẫn loai_ma) — không ưu tiên SSI từ MDM lệch.
-    setSuspectedType(suggestedType);
+    setSuspectedType(initialSuspectedChecklistType(lockedType, suggestedType));
 
     const existing = row.verification_data || {};
     setSymptomDates(existing.symptom_dates || {});
+    setSymptomReview(parseSymptomReviewMap(existing.symptom_review));
     const notes =
       row.clinical_notes && typeof row.clinical_notes === "object" ? row.clinical_notes : {};
     setGhiChuTuyBien(
@@ -169,6 +185,7 @@ export function useNkbvChecklistModalState({
   }, [
     String((row as { _draft_milestone_id?: string })._draft_milestone_id || row.id),
     suggestedType,
+    lockedType,
   ]);
 
   useEffect(() => {
@@ -197,6 +214,14 @@ export function useNkbvChecklistModalState({
       cancelled = true;
     };
   }, [row.ma_benh_an, row.id]);
+
+  useEffect(() => {
+    setBsiForm((p) => mergeFormSymptomBooleans(p, symptomDates));
+    setVaeForm((p) => mergeFormSymptomBooleans(p, symptomDates));
+    setUtiForm((p) => mergeFormSymptomBooleans(p, symptomDates));
+    setSsiForm((p) => mergeFormSymptomBooleans(p, symptomDates));
+    setCh17Form((p) => mergeFormSymptomBooleans(p, symptomDates));
+  }, [symptomDates]);
 
   // Stay history handlers
   const handleAddStay = (newStay: DepartmentStay) => {
@@ -476,6 +501,7 @@ export function useNkbvChecklistModalState({
         ...activePayload,
         treatment_history: treatmentHistory,
         symptom_dates: symptomDates,
+        symptom_review: symptomReview,
         ghi_chu_tuy_bien: ghiChuTuyBien.trim() || undefined,
         calculated_doe: liveCdcMetrics?.doe,
         calculated_iwp_start: liveCdcMetrics?.iwp_start,
@@ -549,12 +575,14 @@ export function useNkbvChecklistModalState({
     simulatedRole,
     handleTabChange,
     treatmentHistory,
+    setTreatmentHistory,
     symptomDates,
     setSymptomDates,
     ghiChuTuyBien,
     setGhiChuTuyBien,
     suggestedType,
     suggestedReason,
+    lockedType,
     suspectedType,
     setSuspectedType,
     checklistType,
@@ -569,6 +597,8 @@ export function useNkbvChecklistModalState({
     setSsiForm,
     ch17Form,
     setCh17Form,
+    symptomReview,
+    setSymptomReview,
     handleAddStay,
     handleDeleteStay,
     liveCdcMetrics,

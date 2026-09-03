@@ -12,6 +12,7 @@ import {
   mapChiTietRowToForm,
 } from "./dung-cu-chi-tiet-form-shared";
 import { saveDungCuChiTietAction } from "../actions/dung-cu-chi-tiet.actions";
+import { LoaiDungCuTypeahead } from "./loai-dung-cu-typeahead";
 
 type BoOpt = { id: string; ma_bo: string | null; ten_bo: string | null };
 type LoaiOpt = { id: string; ma_danh_muc: string | null; ten_danh_muc: string | null };
@@ -34,7 +35,7 @@ export default function DungCuChiTietFormModal({
   presetBoId,
   presetLoaiId,
   boOptions,
-  loaiOptions,
+  loaiOptions: _loaiOptions,
   loadingBo,
   loadingLoai,
   onClose,
@@ -83,10 +84,10 @@ export default function DungCuChiTietFormModal({
     onClose();
   };
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md touch-manipulation pointer-events-auto">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 touch-manipulation pointer-events-auto">
       <form
         onSubmit={submit}
-        className="bg-white w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-[var(--radius-shell)] p-8 space-y-4 shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)]"
+        className="bg-white w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-[var(--radius-shell)] p-8 space-y-[var(--bv103-space-3)] shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)]"
       >
         <div className="flex justify-between items-start gap-4">
           <div>
@@ -114,25 +115,18 @@ export default function DungCuChiTietFormModal({
             value={form.ten_chi_tiet}
             onChange={(v) => setForm({ ...form, ten_chi_tiet: v })}
           />
-          <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-400 ml-1">Loại dụng cụ liên kết</label>
-            <select
-              value={form.loai_dung_cu_id}
-              onChange={(e) => {
-                const loaiId = e.target.value; const found = loaiOptions.find((x) => x.id === loaiId);
-                setForm({ ...form, loai_dung_cu_id: loaiId, ten_chi_tiet: form.ten_chi_tiet.trim() || String(found?.ten_danh_muc || "") });
-              }}
-              disabled={loadingLoai}
-              className={C.controlInput}
-            >
-              <option value="">— Chọn loại (khuyến nghị) —</option>
-              {loaiOptions.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.ma_danh_muc} — {o.ten_danh_muc || "—"}
-                </option>
-              ))}
-            </select>
-          </div>
+          <LoaiDungCuTypeahead
+            label="Loại dụng cụ liên kết"
+            valueId={form.loai_dung_cu_id}
+            disabled={loadingLoai}
+            onChange={(loaiId, found) =>
+              setForm({
+                ...form,
+                loai_dung_cu_id: loaiId,
+                ten_chi_tiet: form.ten_chi_tiet.trim() || String(found?.ten_danh_muc || ""),
+              })
+            }
+          />
         </div>
         <div className="space-y-1">
           <label className="text-[11px] font-medium text-slate-400 ml-1">Bộ chủ quản</label>

@@ -11,6 +11,7 @@ import DataTableMobileCards from "./DataTableMobileCards";
 import { useDataTable } from "@/hooks/useDataTable";
 import { useMinWidth } from "@/hooks/use-min-width";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 
 /**
  * Định nghĩa cột cho bảng
@@ -132,149 +133,164 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
           : "flex min-w-0 w-full max-w-none flex-1 basis-0 items-center gap-1.5 sm:max-w-2xl"
       }
     >
-      <SearchBar
-        value={finalSearchTerm}
-        onChange={onSearchAction}
-        placeholder={searchPlaceholder}
-        className="min-w-0 w-full flex-1"
-      />
       {enableQrScan ? (
-        <div className="w-[min(100%,11rem)] shrink-0 sm:w-40">
-          <QrScanInput
-            placeholder="Quét QR…"
-            cameraTitle="Quét QR tìm kiếm"
-            onEnter={applyQrCode}
-            onCameraScan={applyQrCode}
-            inputClassName="bv103-control-h w-full touch-manipulation rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-xs font-semibold uppercase text-slate-800 outline-none placeholder:normal-case placeholder:text-slate-400 focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-[var(--primary)]/15"
-          />
-        </div>
-      ) : null}
+        <QrScanInput
+          value={String(finalSearchTerm ?? "")}
+          onChange={onSearchAction}
+          placeholder={searchPlaceholder}
+          cameraTitle="Tìm hoặc quét QR"
+          onEnter={applyQrCode}
+          onCameraScan={applyQrCode}
+          className="min-w-0 w-full flex-1"
+          inputClassName="bv103-control-h w-full touch-manipulation rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400 focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-[var(--primary)]/15"
+        />
+      ) : (
+        <SearchBar
+          value={finalSearchTerm}
+          onChange={onSearchAction}
+          placeholder={searchPlaceholder}
+          className="min-w-0 w-full flex-1"
+        />
+      )}
     </div>
   ) : null;
 
   const toolbarRowNeeded =
     showInlineSearch || (selectedIds.size > 0 && (enableMultiSelect || bulkActions));
 
-  return (
-    <div className="w-full min-w-0 space-y-2 animate-in fade-in duration-500">
-      {toolbarRowNeeded && (
-        <div
-          className={`flex w-full min-w-0 flex-row flex-wrap items-center gap-1.5 no-print transition-all duration-300 ${
-            !showInlineSearch && selectedIds.size > 0 ? "justify-end" : ""
-          }`}
-        >
-          {showInlineSearch ? searchBarNode : null}
-
-          {selectedIds.size > 0 && (enableMultiSelect || bulkActions) && (
-            <div
-              className={`flex flex-wrap items-center gap-1.5 rounded-lg border border-[var(--primary)]/15 bg-[var(--primary)]/5 px-1.5 py-0.5 animate-in slide-in-from-top-2 ${
-                showInlineSearch ? "ml-auto" : ""
-              }`}
-            >
-              <span className={`whitespace-nowrap px-2 ${T.labelBlock} text-[var(--primary)]`}>
-                Đã chọn {selectedIds.size}
-              </span>
-              {enableMultiSelect && onDeleteSelected && (
-                <button
-                  type="button"
-                  onClick={() => onDeleteSelected(selectedItems)}
-                  className="bv103-control-h inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-2.5 text-xs font-semibold text-red-700 transition-colors hover:bg-red-600 hover:text-white"
-                >
-                  <Trash2 size={14} aria-hidden /> Xóa
-                </button>
-              )}
-              {bulkActions && bulkActions(selectedItems)}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Bảng dữ liệu chính — mobile: thẻ; desktop: bảng */}
-      <div className="overflow-clip rounded-[var(--radius-table)] bg-white ring-1 ring-slate-200/90">
-        {!isSmUp ? (
-          <div>
-            <DataTableMobileCards
-              columns={columns}
-              data={displayData}
-              loading={loading}
-              emptyMessage={emptyMessage}
-              enableMultiSelect={enableMultiSelect}
-              selectedIds={selectedIds}
-              toggleSelectRow={toggleSelectRow}
-              onRowClick={onRowClick}
-              rowClassName={rowClassName}
-            />
-          </div>
-        ) : (
-        <div className="custom-scrollbar bv103-scroll-x overflow-x-auto">
-          <table
-            className={["w-full min-w-[640px] border-collapse text-left", tableClassName]
-              .filter(Boolean)
-              .join(" ")}
+  const bulkBar =
+    selectedIds.size > 0 && (enableMultiSelect || bulkActions) ? (
+      <div className="flex flex-wrap items-center gap-1.5 no-print">
+        <span className={`whitespace-nowrap ${T.labelBlock} text-[var(--primary)]`}>
+          Đã chọn {selectedIds.size}
+        </span>
+        {enableMultiSelect && onDeleteSelected ? (
+          <button
+            type="button"
+            onClick={() => onDeleteSelected(selectedItems)}
+            className="bv103-control-h inline-flex items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-red-700 hover:bg-red-50"
           >
-            <thead className="sticky top-0 z-20 bg-slate-50/95 shadow-[0_1px_0_rgb(226_232_240/0.95)]">
-              <tr className="border-b border-slate-200/90">
-                {enableMultiSelect && (
-                  <th className="p-4 w-12 text-center no-print">
-                    <input type="checkbox" className="w-5 h-5 rounded-lg border-2 border-slate-200 text-[var(--primary)] focus:ring-[var(--primary)] transition-all cursor-pointer"
-                      checked={data.length > 0 && selectedIds.size === data.length} onChange={toggleSelectAll} />
-                  </th>
-                )}
-                {columns.map((col, idx) => (
-                  <th key={`head-${idx}-${String(col.accessorKey)}`}
-                    className={`min-w-0 p-3 text-left ${T.tableHeader} transition-colors ${col.sortable ? "cursor-pointer select-none hover:bg-slate-100/70 hover:text-slate-700" : ""} ${col.headerClassName ?? ""}`}
-                    onClick={() => col.sortable && onSortAction(col.accessorKey as keyof T)}>
-                    <div className="flex items-center gap-2">
-                      {col.header}
-                      {col.sortable && (
-                        <div className="flex flex-col opacity-30">
-                          <ChevronUp size={10} className={sortConfig?.key === col.accessorKey && sortConfig.direction === 'asc' ? 'text-[var(--primary)] opacity-100' : ''} />
-                          <ChevronDown size={10} className={sortConfig?.key === col.accessorKey && sortConfig.direction === 'desc' ? 'text-[var(--primary)] opacity-100' : ''} />
-                        </div>
-                      )}
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50 bg-white">
-              <DataTableBody
-                columns={columns}
-                data={displayData}
-                loading={loading}
-                emptyMessage={emptyMessage}
-                enableMultiSelect={enableMultiSelect}
-                selectedIds={selectedIds}
-                onRowClick={onRowClick}
-                toggleSelectRow={toggleSelectRow}
-                rowClassName={rowClassName}
-              />
-            </tbody>
-          </table>
-        </div>
-        )}
+            <Trash2 size={14} aria-hidden /> Xóa
+          </button>
+        ) : null}
+        {bulkActions ? bulkActions(selectedItems) : null}
       </div>
-      
-      {/* Footer */}
-      {displayData.length > 0 && (
-        serverPagination ? (
-          <div className="no-print">
-            <ServerPaginationBar
-              page={serverPagination.page}
-              totalPages={serverPagination.totalPages}
-              totalCount={serverPagination.totalCount}
-              pageSize={serverPagination.pageSize}
-              onPageChange={serverPagination.onPageChange}
-              loading={loading}
-            />
+    ) : null;
+
+  return (
+    <div className="w-full min-w-0 animate-in fade-in duration-500">
+      <div className={L.frame}>
+        {toolbarRowNeeded ? (
+          <div
+            className={`flex w-full min-w-0 flex-wrap items-center gap-[var(--bv103-space-2)] border-b border-slate-200 bg-slate-50/80 px-[var(--bv103-space-3)] py-[var(--bv103-space-2)] no-print ${
+              !showInlineSearch && bulkBar ? "justify-end" : ""
+            }`}
+          >
+            {showInlineSearch ? searchBarNode : null}
+            {bulkBar ? <div className={showInlineSearch ? "ml-auto" : ""}>{bulkBar}</div> : null}
           </div>
+        ) : null}
+
+        {!isSmUp ? (
+          <DataTableMobileCards
+            columns={columns}
+            data={displayData}
+            loading={loading}
+            emptyMessage={emptyMessage}
+            enableMultiSelect={enableMultiSelect}
+            selectedIds={selectedIds}
+            toggleSelectRow={toggleSelectRow}
+            onRowClick={onRowClick}
+            rowClassName={rowClassName}
+          />
         ) : (
-          <div className={`flex items-center justify-between px-6 no-print ${T.metaMono}`}>
-            <p>Hiển thị {displayData.length} / {data.length} dòng dữ liệu</p>
-            <p>Bệnh viện Quân y 103 • {new Date().getFullYear()}</p>
+          <div className="custom-scrollbar bv103-scroll-x overflow-x-auto">
+            <table
+              className={["w-full min-w-[640px] border-collapse text-left", tableClassName]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              <thead className={L.theadRow}>
+                <tr>
+                  {enableMultiSelect && (
+                    <th className={`${L.th} w-12 text-center no-print`}>
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 cursor-pointer rounded border-slate-300 text-[var(--primary)] accent-[var(--primary)]"
+                        checked={data.length > 0 && selectedIds.size === data.length}
+                        onChange={toggleSelectAll}
+                      />
+                    </th>
+                  )}
+                  {columns.map((col, idx) => (
+                    <th
+                      key={`head-${idx}-${String(col.accessorKey)}`}
+                      className={`${L.th} ${T.tableHeader} ${col.sortable ? "cursor-pointer select-none hover:bg-slate-100/70 hover:text-slate-700" : ""} ${col.headerClassName ?? ""}`}
+                      onClick={() => col.sortable && onSortAction(col.accessorKey as keyof T)}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        {col.header}
+                        {col.sortable && (
+                          <div className="flex flex-col opacity-30">
+                            <ChevronUp
+                              size={10}
+                              className={
+                                sortConfig?.key === col.accessorKey && sortConfig.direction === "asc"
+                                  ? "text-[var(--primary)] opacity-100"
+                                  : ""
+                              }
+                            />
+                            <ChevronDown
+                              size={10}
+                              className={
+                                sortConfig?.key === col.accessorKey && sortConfig.direction === "desc"
+                                  ? "text-[var(--primary)] opacity-100"
+                                  : ""
+                              }
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className={L.tbody}>
+                <DataTableBody
+                  columns={columns}
+                  data={displayData}
+                  loading={loading}
+                  emptyMessage={emptyMessage}
+                  enableMultiSelect={enableMultiSelect}
+                  selectedIds={selectedIds}
+                  onRowClick={onRowClick}
+                  toggleSelectRow={toggleSelectRow}
+                  rowClassName={rowClassName}
+                />
+              </tbody>
+            </table>
           </div>
-        )
-      )}
+        )}
+
+        {displayData.length > 0 && !serverPagination ? (
+          <p className={`border-t border-slate-100 px-2.5 py-1 no-print ${T.metaMono}`}>
+            {displayData.length} / {data.length} dòng
+          </p>
+        ) : null}
+      </div>
+
+      {displayData.length > 0 && serverPagination ? (
+        <div className="no-print mt-1.5">
+          <ServerPaginationBar
+            page={serverPagination.page}
+            totalPages={serverPagination.totalPages}
+            totalCount={serverPagination.totalCount}
+            pageSize={serverPagination.pageSize}
+            onPageChange={serverPagination.onPageChange}
+            loading={loading}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -29,8 +29,8 @@ export default function GscAnalyticsScopeBanner({ loai }: { loai: GscLoaiGiamSat
           className={`inline-flex items-center gap-1.5 ${C.btnSecondary} h-auto min-h-9 border-sky-200 px-2.5 py-1.5 text-xs text-sky-800 hover:bg-sky-50 sm:min-h-0 sm:px-3 sm:text-sm`}
         >
           <BarChart2 className="h-3.5 w-3.5" aria-hidden />
-          <span className="max-sm:hidden">Tổng hợp mọi chuyên đề</span>
-          <span className="sm:hidden">Tổng hợp</span>
+          <span className="max-sm:hidden">Về thống kê tuân thủ (mặc định)</span>
+          <span className="sm:hidden">Tuân thủ</span>
         </Link>
         <Link
           href={chrome.href}

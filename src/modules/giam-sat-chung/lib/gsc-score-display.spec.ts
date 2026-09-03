@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatGscHistoryScore,
+  gscCanSaveResults,
   gscCompliancePercentFromCounts,
   previewGscFormProgress,
   resolveGscHistoryCompliancePercent,
@@ -110,6 +111,34 @@ describe("gscCompliancePercentFromCounts", () => {
 
   it("matches dashboard ratio", () => {
     expect(gscCompliancePercentFromCounts(8, 7)).toBe(87.5);
+  });
+
+  it("keeps two decimals for 2/3", () => {
+    expect(gscCompliancePercentFromCounts(3, 2)).toBe(66.67);
+  });
+});
+
+describe("gscCanSaveResults", () => {
+  it("blocks tuân thủ when every criterion is NA", () => {
+    expect(
+      gscCanSaveResults([{ criterionId: "a", value: "NA" }], "TY_LE"),
+    ).toBe(false);
+  });
+
+  it("allows nhật ký when a number is entered without Đạt", () => {
+    expect(
+      gscCanSaveResults(
+        [{ criterionId: "a", value: "NA", gia_tri_so: 36.5 }],
+        "NHAT_KY",
+        "NHAT_KY_VAN_HANH",
+      ),
+    ).toBe(true);
+  });
+
+  it("blocks nhật ký with empty log values", () => {
+    expect(
+      gscCanSaveResults([{ criterionId: "a", value: "NA" }], "NHAT_KY"),
+    ).toBe(false);
   });
 });
 

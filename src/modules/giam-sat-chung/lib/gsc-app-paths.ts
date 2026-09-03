@@ -48,11 +48,43 @@ export const GSC_ROUTE_CHROME: Record<GscLoaiGiamSatRoute | "ALL", GscRouteChrom
   },
 };
 
+const GSC_LOAI_VALUES = new Set<GscLoaiGiamSatRoute>([
+  "TUAN_THU",
+  "NHAT_KY_VAN_HANH",
+  "DANH_GIA_HE_THONG",
+]);
+
 /** Đường dẫn form GSC theo loại giám sát của bảng kiểm. */
 export function gscFormHrefForLoaiGiamSat(loai: string | null | undefined): string {
-  const key = String(loai ?? "").trim() as GscLoaiGiamSatRoute;
-  if (key === "TUAN_THU" || key === "NHAT_KY_VAN_HANH" || key === "DANH_GIA_HE_THONG") {
-    return GSC_ROUTE_CHROME[key].href;
-  }
+  const key = parseGscLoaiParam(loai);
+  if (key) return GSC_ROUTE_CHROME[key].href;
   return GSC_ROUTE_CHROME.TUAN_THU.href;
+}
+
+export function parseGscLoaiParam(raw: string | null | undefined): GscLoaiGiamSatRoute | undefined {
+  const key = String(raw ?? "").trim().toUpperCase();
+  return GSC_LOAI_VALUES.has(key as GscLoaiGiamSatRoute) ? (key as GscLoaiGiamSatRoute) : undefined;
+}
+
+/** Form nhật ký / hệ thống — loại không nằm trong KPI mặc định (tuân thủ). */
+export function resolveGscLoaiFromPathname(pathname: string): GscLoaiGiamSatRoute | undefined {
+  if (pathname.startsWith("/giam-sat-chung/tuan-thu")) return "TUAN_THU";
+  if (pathname.startsWith("/giam-sat-chung/nhat-ky")) return "NHAT_KY_VAN_HANH";
+  if (pathname.startsWith("/giam-sat-chung/he-thong")) return "DANH_GIA_HE_THONG";
+  return undefined;
+}
+
+/** Thống kê mặc định = tuân thủ; nhật ký / hệ thống phải mang `?loai=`. */
+export function gscThongKeHref(loai?: GscLoaiGiamSatRoute | null): string {
+  if (loai === "NHAT_KY_VAN_HANH" || loai === "DANH_GIA_HE_THONG") {
+    return `/thong-ke/gsc?loai=${loai}`;
+  }
+  return "/thong-ke/gsc";
+}
+
+export function gscLichSuHref(loai?: GscLoaiGiamSatRoute | null): string {
+  if (loai === "NHAT_KY_VAN_HANH" || loai === "DANH_GIA_HE_THONG") {
+    return `/lich-su/gsc?loai=${loai}`;
+  }
+  return "/lich-su/gsc";
 }

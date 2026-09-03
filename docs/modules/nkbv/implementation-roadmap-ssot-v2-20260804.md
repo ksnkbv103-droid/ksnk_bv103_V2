@@ -3,7 +3,7 @@
 > Neo: [`hai-surveillance-domain-ssot-20260804.md`](hai-surveillance-domain-ssot-20260804.md)  
 > ADR: [`adr-nkbv-domain-ssot-alignment-20260804.md`](../../reference/architecture/adr-nkbv-domain-ssot-alignment-20260804.md)  
 > Gap W2: [`gap-catalog-harden-w2-20260804.md`](gap-catalog-harden-w2-20260804.md)  
-> **Phạm vi khóa:** W0–W2. W3 backlog. **W4–W6 tạm dừng.**
+> **Phạm vi khóa:** W0–W2. W3 backlog. **W4–W6 tạm dừng** — trừ lát 1 NK-W46 (2026-08-26): mã CDC Location trên khoa; SIR vẫn thô.
 
 ## Ma trận SSOT → runtime
 

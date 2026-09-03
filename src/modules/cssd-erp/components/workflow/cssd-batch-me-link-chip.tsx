@@ -18,7 +18,7 @@ export default function CssdBatchMeLinkChip() {
       <span className="shrink-0 text-amber-600">
         <FlameKindling size={16} aria-hidden />
       </span>
-      <span className="truncate text-[11px] font-bold leading-tight text-amber-900">Phiếu mẻ</span>
+      <span className="truncate bv103-type-label font-semibold leading-tight text-amber-900">Phiếu mẻ</span>
     </Link>
   );
 }

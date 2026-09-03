@@ -14,7 +14,7 @@
 
 ## Luật cứng
 
-1. Tối đa **một** band L1 — một border / một padding / một radius (`pageChromeShell`).
+1. Tối đa **một** band L1 — hàng tên/nút (không hộp trắng); `pageChromeShell` chỉ gạch chân mỏng.
 2. Thứ tự slot: Title+Actions → Tabs → Filters/Search (ô trống = bỏ).
 3. Không lặp H1 lớn nếu App Header đã có tên trang — `showTitle={false}` + chỉ tabs/filters/actions (CSSD được eyebrow module ngắn).
 4. Không sticky kép tiêu đề: App Header **hoặc** L1 filter band — `/thong-ke` gộp tab module + filter trong **một** sticky chrome.

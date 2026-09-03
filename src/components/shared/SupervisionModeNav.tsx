@@ -13,6 +13,11 @@ import {
   SUPERVISION_HISTORY_PATHS,
   type SupervisionHistoryModule,
 } from "@/lib/supervision-form-nav";
+import {
+  gscLichSuHref,
+  gscThongKeHref,
+  resolveGscLoaiFromPathname,
+} from "@/modules/giam-sat-chung/lib/gsc-app-paths";
 
 type Props = {
   module: SupervisionHistoryModule;
@@ -27,8 +32,9 @@ export default function SupervisionModeNav({ module, formHref, ariaLabel }: Prop
   const tabs = useMemo((): SupervisionTabLinkDef[] => {
     const form =
       formHref ?? (module === "vst" ? "/giam-sat-vst" : resolveGscFormHref(pathname));
-    const history = SUPERVISION_HISTORY_PATHS[module];
-    const analytics = SUPERVISION_ANALYTICS_PATHS[module];
+    const gscLoai = module === "gsc" ? resolveGscLoaiFromPathname(pathname) : undefined;
+    const history = module === "gsc" ? gscLichSuHref(gscLoai) : SUPERVISION_HISTORY_PATHS[module];
+    const analytics = module === "gsc" ? gscThongKeHref(gscLoai) : SUPERVISION_ANALYTICS_PATHS[module];
     const FormIcon = module === "vst" ? Stethoscope : ClipboardList;
 
     return [

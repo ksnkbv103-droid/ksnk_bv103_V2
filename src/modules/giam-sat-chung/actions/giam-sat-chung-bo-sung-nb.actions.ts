@@ -29,10 +29,9 @@ export async function getGscBoSungPatientHints(maBenhAn: string) {
 
   const [devRes, tlRes, stayRes, mdroRes] = await Promise.all([
     supabase
-      .from("nkbv_fact_device_registry")
-      .select("device_type, removal_date")
-      .eq("ma_benh_an", ma)
-      .eq("is_active", true),
+      .from("nkbv_fact_ba_ngay_dung_cu")
+      .select("loai_dung_cu, ngay_lich")
+      .eq("ma_benh_an", ma),
     supabase
       .from("nkbv_fact_ba_timeline")
       .select("id")
@@ -68,10 +67,10 @@ export async function getGscBoSungPatientHints(maBenhAn: string) {
   }
 
   const activeDevices = (devRes.data || []).filter((d) => {
-    const rem = d.removal_date ? String(d.removal_date).slice(0, 10) : "";
-    return !rem || rem >= today;
+    const ngay = d.ngay_lich ? String(d.ngay_lich).slice(0, 10) : "";
+    return ngay >= today;
   });
-  const types = new Set(activeDevices.map((d) => String(d.device_type || "")));
+  const types = new Set(activeDevices.map((d) => String(d.loai_dung_cu || "")));
 
   const mdroRow = (mdroRes.data || [])[0];
   const phenotype = normalizeMdroPhenotype(mdroRow?.mdro_phenotype ?? null);
@@ -79,9 +78,9 @@ export async function getGscBoSungPatientHints(maBenhAn: string) {
 
   const data: GscBoSungNbFields = {
     ...EMPTY_GSC_BO_SUNG_NB,
-    bn_tho_may: types.has("VENTILATOR"),
+    bn_tho_may: types.has("VENT"),
     bn_phau_thuat: hasSurgery,
-    bn_cvc: types.has("CENTRAL_LINE"),
+    bn_cvc: types.has("CVC"),
     bn_foley: types.has("FOLEY"),
     bn_nhiem_mdro: isMdro,
     bn_mdro_phenotype: (phenotype || "") as NkbvMdroPhenotype | "",

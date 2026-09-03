@@ -1,5 +1,7 @@
 import GenericDmMasterPage from "@/modules/quan-tri-he-thong/danh-muc/views/GenericDmMasterPage";
+import { getDedicatedDanhMucAdminPath } from "@/lib/master-data/danh-muc-admin-routes";
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 export async function generateMetadata(props: {
   params: Promise<{ loai: string }>;
@@ -13,5 +15,8 @@ export async function generateMetadata(props: {
 
 export default async function Page(props: { params: Promise<{ loai: string }> }) {
   const { loai } = await props.params;
-  return <GenericDmMasterPage loaiDanhMuc={decodeURIComponent(loai)} />;
+  const decoded = decodeURIComponent(loai);
+  const dedicated = getDedicatedDanhMucAdminPath(decoded);
+  if (dedicated) redirect(dedicated);
+  return <GenericDmMasterPage loaiDanhMuc={decoded} />;
 }

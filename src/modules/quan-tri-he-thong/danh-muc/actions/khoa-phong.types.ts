@@ -11,7 +11,8 @@ export type KhoaPhongRow = {
   so_dieu_duong?: number;
   so_giuong_benh_thuong?: number;
   so_giuong_cap_cuu?: number;
+  cdc_location_code?: string | null;
   is_active: boolean;
-  specs?: { allowed_khu_vucs?: string[] } | null;
+  specs?: { allowed_khu_vucs?: string[]; cdc_location_code?: string | null } | null;
 };
 

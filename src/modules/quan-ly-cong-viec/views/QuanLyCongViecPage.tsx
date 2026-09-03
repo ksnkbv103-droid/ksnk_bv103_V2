@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Plus, LayoutGrid, CalendarClock, ArrowLeft, Send, Upload, ListTodo } from "lucide-react";
+import { Plus, LayoutGrid, CalendarClock, ArrowLeft, Send, Upload } from "lucide-react";
 import { toast } from "sonner";
 import {
   KsnkSupervisionHero,
@@ -12,7 +12,6 @@ import {
   type SupervisionTabDef,
 } from "@/components/shared/ksnk-supervision-chrome";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
-import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { QlcvOperationsPanel } from "@/modules/quan-ly-cong-viec/components/QlcvOperationsPanel";
@@ -81,9 +80,8 @@ export default function QuanLyCongViecPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [mauSacByMa, setMauSacByMa] = useState<Record<string, string>>({});
   const [loaiFilter, setLoaiFilter] = useState<QlcvLoaiFilter>("ALL");
-  const [nhiemVuFilter, setNhiemVuFilter] = useState("");
   const [periodKind, setPeriodKind] = useState<QlcvPeriodKind>("MONTH");
-  const [filterBoardByPeriod, setFilterBoardByPeriod] = useState(true);
+  const [filterBoardByPeriod, setFilterBoardByPeriod] = useState(false);
   const [highlightMauId, setHighlightMauId] = useState<string | null>(null);
   const [printMode, setPrintMode] = useState<"plan" | "exec" | null>(null);
   const [printPlanMaus, setPrintPlanMaus] = useState<
@@ -132,6 +130,10 @@ export default function QuanLyCongViecPage() {
   useEffect(() => {
     void kanban.fetchTasksInitial();
   }, [kanban.fetchTasksInitial]);
+
+  useEffect(() => {
+    if (userData?.id) kanban.setBoardFilter("MY_TASKS");
+  }, [userData?.id, kanban.setBoardFilter]);
 
   useEffect(() => {
     void getTrangThaiMauSacMap()
@@ -328,7 +330,6 @@ export default function QuanLyCongViecPage() {
       { id: "DIEN_HANH", label: "Điều hành", mobileLabel: "Điều hành", icon: LayoutGrid },
     ];
     if (canManageDinhKy) {
-      tabs.push({ id: "NHIEM_VU", label: "Nhiệm vụ", mobileLabel: "Nhiệm vụ", icon: ListTodo });
       tabs.push({ id: "DINH_KY", label: "Danh mục định kỳ", mobileLabel: "Định kỳ", icon: CalendarClock });
     }
     return tabs;
@@ -337,8 +338,8 @@ export default function QuanLyCongViecPage() {
   useBodyScrollLock(Boolean(selectedTaskId));
 
   return (
-    <div className="relative space-y-6 px-3 pb-12 pt-1 sm:px-0">
-      <div className={printMode ? "no-print space-y-6" : "space-y-6"}>
+    <div className="relative bv103-stack-page px-3 pb-12 pt-1 sm:px-0">
+      <div className={printMode ? "no-print bv103-stack-page" : "bv103-stack-page"}>
       {analyticsGapHint ? (
         <div className="rounded-xl border border-indigo-200 bg-indigo-50/80 px-4 py-3 text-sm text-indigo-900">
           {analyticsGapHint}
@@ -373,7 +374,7 @@ export default function QuanLyCongViecPage() {
         </div>
       ) : null}
 
-      <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
+      <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="w-full bv103-stack-page">
         <KsnkSupervisionHero
           eyebrow="KSNK · Điều hành nội bộ"
           title={
@@ -391,9 +392,7 @@ export default function QuanLyCongViecPage() {
           }
         />
 
-        <div
-          className={`no-print flex flex-col gap-2 ${bv103LayoutChrome.panelSurface} p-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3 sm:p-3.5`}
-        >
+        <div className="no-print bv103-action-row">
           {canShowDeXuatButton(qlcvUi) ? (
             <Dialog open={isSuggesting} onOpenChange={setIsSuggesting}>
               <DialogTrigger asChild>
@@ -406,7 +405,7 @@ export default function QuanLyCongViecPage() {
               </DialogTrigger>
               <DialogContent className="max-w-xl rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-6 shadow-[var(--shadow-app-soft)] sm:p-8">
                 <DialogHeader className="mb-4">
-                  <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">
+                  <DialogTitle className="bv103-type-title tracking-tight text-slate-900">
                     Gửi đề xuất công việc
                   </DialogTitle>
                 </DialogHeader>
@@ -420,16 +419,6 @@ export default function QuanLyCongViecPage() {
                 />
               </DialogContent>
             </Dialog>
-          ) : null}
-
-          {allowed.import ? (
-            <button
-              type="button"
-              onClick={() => setImportOpen(true)}
-              className="bv103-control-h inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200/90 bg-white px-4 py-2.5 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50 sm:w-auto"
-            >
-              <Upload size={15} aria-hidden /> Nạp Excel
-            </button>
           ) : null}
 
           {canShowDirectCreateTask(qlcvUi) ? (
@@ -455,7 +444,7 @@ export default function QuanLyCongViecPage() {
         >
           <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-6 shadow-[var(--shadow-app-soft)] sm:p-8">
             <DialogHeader className="mb-4">
-              <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">Tạo công việc</DialogTitle>
+              <DialogTitle className="bv103-type-title tracking-tight text-slate-900">Tạo công việc</DialogTitle>
             </DialogHeader>
             <CongViecForm
               key={
@@ -477,7 +466,7 @@ export default function QuanLyCongViecPage() {
         <Dialog open={!!editingTask} onOpenChange={(o) => !o && setEditingTask(null)}>
           <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-6 shadow-[var(--shadow-app-soft)] sm:p-8">
             <DialogHeader className="mb-4">
-              <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">Chỉnh sửa công việc</DialogTitle>
+              <DialogTitle className="bv103-type-title tracking-tight text-slate-900">Chỉnh sửa công việc</DialogTitle>
             </DialogHeader>
             {editingTask ? (
               <CongViecForm
@@ -492,7 +481,7 @@ export default function QuanLyCongViecPage() {
         <Dialog open={!!kanban.kanbanApproveRow} onOpenChange={(o) => !o && kanban.setKanbanApproveRow(null)}>
           <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-6 shadow-[var(--shadow-app-soft)]">
             <DialogHeader className="mb-4">
-              <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">Phê duyệt đề xuất</DialogTitle>
+              <DialogTitle className="bv103-type-title tracking-tight text-slate-900">Phê duyệt đề xuất</DialogTitle>
             </DialogHeader>
             {kanban.kanbanApproveRow ? (
               <DeXuatApproveForm
@@ -508,8 +497,30 @@ export default function QuanLyCongViecPage() {
           </DialogContent>
         </Dialog>
 
-        <Tabs.Content value="DIEN_HANH" className="outline-none space-y-4">
-          {isAdmin || allowed.edit ? <QlcvDmAdminLinks className="no-print" /> : null}
+        <Tabs.Content value="DIEN_HANH" className="outline-none space-y-[var(--bv103-space-3)]">
+          {isAdmin || allowed.edit || allowed.import || canManageDinhKy ? (
+            <div className="no-print flex flex-wrap items-center gap-2">
+              {isAdmin || allowed.edit ? <QlcvDmAdminLinks /> : null}
+              {allowed.import ? (
+                <button
+                  type="button"
+                  onClick={() => setImportOpen(true)}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:underline"
+                >
+                  <Upload size={12} aria-hidden /> Nạp Excel
+                </button>
+              ) : null}
+              {canManageDinhKy ? (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("NHIEM_VU")}
+                  className="text-xs font-semibold text-slate-600 hover:underline"
+                >
+                  Kế hoạch năm
+                </button>
+              ) : null}
+            </div>
+          ) : null}
           <QlcvOperationsPanel
             kanban={kanban}
             table={table}
@@ -530,11 +541,9 @@ export default function QuanLyCongViecPage() {
             }}
             onRefreshAll={refreshAll}
             onBoardFilter={handleBoardFilter}
-            routerRefresh={() => router.refresh()}
             mauSacByMa={mauSacByMa}
             loaiFilter={loaiFilter}
             periodKindFilter={filterBoardByPeriod ? periodKind : null}
-            nhiemVuFilter={nhiemVuFilter || null}
             summarySlot={
               <QlcvDinhKySummaryBar
                 tasks={mergedTasks}
@@ -544,8 +553,6 @@ export default function QuanLyCongViecPage() {
                 onPeriodKindChange={setPeriodKind}
                 filterBoardByPeriod={filterBoardByPeriod}
                 onFilterBoardByPeriodChange={setFilterBoardByPeriod}
-                nhiemVuFilter={nhiemVuFilter}
-                onNhiemVuFilterChange={setNhiemVuFilter}
                 onPrintExec={runPrintExec}
               />
             }

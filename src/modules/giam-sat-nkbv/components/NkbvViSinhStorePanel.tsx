@@ -5,7 +5,8 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Pencil, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Activity, Pencil, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 import SearchableSelect from "@/components/shared/SearchableSelect";
@@ -476,7 +477,7 @@ export default function NkbvViSinhStorePanel({
       >
         <table className="w-full min-w-[1280px] border-collapse text-left text-xs">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
+            <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-medium">
               <th className="px-3 py-2.5">Mã XN</th>
               <th className="px-3 py-2.5">BA / BN</th>
               <th className="px-3 py-2.5">Khoa chỉ định</th>
@@ -512,7 +513,17 @@ export default function NkbvViSinhStorePanel({
                   <tr className="align-top hover:bg-slate-50/60">
                     <td className="px-3 py-2 font-mono text-[var(--primary)]">{r.ma_xet_nghiem}</td>
                     <td className="px-3 py-2">
-                      <div className="font-semibold text-slate-800">{r.ma_benh_an}</div>
+                      {r.ma_benh_an ? (
+                        <Link
+                          href={`/giam-sat-nkbv?tab=records&ba=${encodeURIComponent(r.ma_benh_an)}&xn=${encodeURIComponent(r.id)}`}
+                          className="font-semibold text-[var(--primary)] hover:underline"
+                          title="Mở bệnh án và phân tích trên timeline"
+                        >
+                          {r.ma_benh_an}
+                        </Link>
+                      ) : (
+                        <div className="font-semibold text-slate-800">—</div>
+                      )}
                       <div className="text-[11px] text-slate-500">{r.ho_ten_benh_nhan || "—"}</div>
                     </td>
                     <td className="px-3 py-2 max-w-[10rem]">
@@ -524,7 +535,8 @@ export default function NkbvViSinhStorePanel({
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">
                       {r.ngay_lay_mau ? formatDateVi(r.ngay_lay_mau) : "—"}
-                    </td>                    <td className="px-3 py-2 max-w-[10rem]">
+                    </td>
+                    <td className="px-3 py-2 max-w-[10rem]">
                       <span className="line-clamp-2" title={r.loai_benh_pham || ""}>
                         {r.loai_benh_pham || "—"}
                       </span>
@@ -538,7 +550,7 @@ export default function NkbvViSinhStorePanel({
                         <span className="text-amber-700">Chưa chuẩn hóa</span>
                       )}
                     </td>
-                    <td className="px-3 py-2 italic text-amber-950 max-w-[9rem]">
+                    <td className="px-3 py-2 bv103-type-body text-amber-950 max-w-[9rem]">
                       <span className="line-clamp-2">{r.tac_nhan || "—"}</span>
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">{ketQuaLabel(r.ket_qua_phan_loai)}</td>
@@ -555,7 +567,7 @@ export default function NkbvViSinhStorePanel({
                         type="button"
                         disabled={busyId === r.id}
                         onClick={() => void onQuickMdro(r)}
-                        className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                        className={`rounded-full px-2.5 py-1 bv103-type-label font-semibold ${
                           r.is_mdro
                             ? "bg-rose-100 text-rose-800"
                             : "bg-slate-100 text-slate-600 hover:bg-rose-50"
@@ -573,6 +585,15 @@ export default function NkbvViSinhStorePanel({
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex justify-end gap-1">
+                        {r.ma_benh_an ? (
+                          <Link
+                            href={`/giam-sat-nkbv?tab=records&ba=${encodeURIComponent(r.ma_benh_an)}&xn=${encodeURIComponent(r.id)}`}
+                            className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-800"
+                            title="Mở timeline bệnh án với xét nghiệm này làm Index"
+                          >
+                            <Activity className="h-3 w-3" /> Phân tích
+                          </Link>
+                        ) : null}
                         {r.is_mdro ? (
                           <button
                             type="button"

@@ -4,13 +4,14 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import type { Station } from "../types/cssd.types";
 import { revalidateCssdWorkflowSurfaces } from "./cssd-action-common";
 import { executeWorkflowStationScan } from "../workflow/application/cssd-workflow-application";
+import { assertLedgerDuChoCapPhat } from "../workflow/application/cssd-asset-ledger";
 import { isRejectedLegacyHexBoQr, isCssdUnifiedBoMa } from "@/lib/domain/cssd-bo-ma";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
 import { bootstrapCssdQuyTrinhFromMaBo } from "../shared/application/cssd-bo-bootstrap";
 import { verifyCssdWorkflowEdit } from "@/lib/cssd-server-gates";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
-// DOM-04: không auto-stamp bom_kiem_dem_at khi quét — chỉ qua rpc_cssd_persist_bom_checkpoint.
+// DOM-04: quét trạm không stamp bom_kiem_dem_at (RPC persist checkpoint giữ trong DB, app không gọi).
 
 async function cssdScanOperatorLabel(): Promise<string> {
   try {
@@ -102,6 +103,7 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       maLoTietKhuan = String((me as { ma_lo_tiet_khuan?: string } | null)?.ma_lo_tiet_khuan || "");
     }
     revalidateCssdWorkflowSurfaces();
+    const ledger = await assertLedgerDuChoCapPhat(supabase, String(preRow.id));
     return {
       success: true as const,
       maQr: code,
@@ -109,11 +111,12 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       quyTrinhId: String(preRow.id),
       maLoTietKhuan,
       issuanceOnly: true as const,
+      ledgerWarning: ledger.ok && "warning" in ledger ? ledger.warning : undefined,
     };
   }
 
   // 1. Thực hiện nghiệp vụ qua RPC tập trung (Atomicity & Speed)
-  await executeWorkflowStationScan(supabase, {
+  const exec = await executeWorkflowStationScan(supabase, {
     maQR: code,
     station,
     quyTrinh: {} as any, // quyTrinh no longer needed for primary logic
@@ -180,5 +183,49 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
     boDungCuId: String(fullQt?.bo_dung_cu_id || ""),
     maCycleQr,
     maLoTietKhuan,
+    ledgerWarning: exec.ledgerWarning,
   };
+}
+
+/** Quét không chọn trạm: tiến đúng 1 bước theo trạng thái hiện tại của bộ. */
+export async function resolveNextScanStation(maQR: string): Promise<{
+  success: true;
+  station: Station;
+  needsDongGoiGate: boolean;
+  needsBatchTab: boolean;
+}> {
+  await verifyCssdWorkflowEdit();
+  const supabase = createAdminSupabaseClient();
+  const resolved = await resolveCssdCodeWithClient(supabase, maQR);
+  const code = resolved.code;
+  if (resolved.targetType === "MACHINE") {
+    throw new Error("Mã vừa quét là mã máy — dùng Thiết bị hoặc Mẻ tiệt khuẩn.");
+  }
+  if (resolved.targetType === "STERILIZATION_BATCH") {
+    throw new Error("Mã vừa quét là mã mẻ — dùng tab Mẻ tiệt khuẩn.");
+  }
+
+  const { nextWorkflowStation } = await import("../workflow/domain/cssd-stations");
+  const qt = await fetchActiveQuyTrinhByScanCode(supabase, code);
+  if (!qt && isCssdUnifiedBoMa(code)) {
+    return { success: true, station: "TIEP_NHAN", needsDongGoiGate: false, needsBatchTab: false };
+  }
+  const current = String((qt as { ma_trang_thai_hien_tai?: string } | null)?.ma_trang_thai_hien_tai || "").trim() as Station;
+  if (!current) {
+    return { success: true, station: "TIEP_NHAN", needsDongGoiGate: false, needsBatchTab: false };
+  }
+  if (current === "CAP_PHAT") {
+    return { success: true, station: "CAP_PHAT", needsDongGoiGate: false, needsBatchTab: false };
+  }
+  const next = nextWorkflowStation(current);
+  if (!next) {
+    return { success: true, station: "CAP_PHAT", needsDongGoiGate: false, needsBatchTab: false };
+  }
+  if (next === "TIET_KHUAN") {
+    return { success: true, station: "DONG_GOI", needsDongGoiGate: false, needsBatchTab: true };
+  }
+  if (next === "DONG_GOI") {
+    return { success: true, station: "DONG_GOI", needsDongGoiGate: true, needsBatchTab: false };
+  }
+  return { success: true, station: next, needsDongGoiGate: false, needsBatchTab: false };
 }

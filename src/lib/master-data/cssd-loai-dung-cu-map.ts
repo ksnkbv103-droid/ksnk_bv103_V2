@@ -154,6 +154,69 @@ export function suggestCssdStationFromMaster(input: {
   };
 }
 
+/** Gợi ý máy/PP → mã trạm quy trình đang có trên sổ `TRAM_CSSD` của viện. */
+export const TRAM_GOI_Y_TO_WORKFLOW_MA: Readonly<Record<string, string>> = {
+  TRAM_HOI_134: "TIET_KHUAN",
+  TRAM_HOI_121: "TIET_KHUAN",
+  TRAM_PLASMA: "TIET_KHUAN",
+  TRAM_EO: "TIET_KHUAN",
+};
+
+export type CssdTramCatalogRow = { id: string; ma: string; ten: string };
+
+export type ResolvedCssdTram = CssdTramCatalogRow & { matchedBy: "exact" | "alias" };
+
+export function candidateTramCodesForSuggestion(maTramGoiY: string): string[] {
+  const ma = maTramGoiY.trim().toUpperCase();
+  if (!ma) return [];
+  const alias = TRAM_GOI_Y_TO_WORKFLOW_MA[ma];
+  if (alias && alias !== ma) return [ma, alias];
+  return [ma];
+}
+
+/** Tra gợi ý với sổ trạm viện — exact mã gợi ý, không thì alias quy trình. */
+export function resolveSuggestedTramFromCatalog(
+  maTramGoiY: string,
+  trams: readonly CssdTramCatalogRow[],
+): ResolvedCssdTram | null {
+  const byMa = new Map(
+    trams.map((t) => [t.ma.trim().toUpperCase(), t] as const),
+  );
+  const candidates = candidateTramCodesForSuggestion(maTramGoiY);
+  for (let i = 0; i < candidates.length; i++) {
+    const hit = byMa.get(candidates[i]);
+    if (hit) {
+      return { ...hit, matchedBy: i === 0 ? "exact" : "alias" };
+    }
+  }
+  return null;
+}
+
+export function applyResolvedTramToLoaiSpecs(
+  specs: Record<string, unknown>,
+  resolved: ResolvedCssdTram | null,
+  maTramGoiY: string,
+): Record<string, unknown> {
+  const next = { ...specs };
+  const goiY = maTramGoiY.trim().toUpperCase();
+  if (goiY) next.ma_tram_goi_y = goiY;
+  else delete next.ma_tram_goi_y;
+  if (resolved) {
+    next.tram_cssd_id = resolved.id;
+    next.ma_tram_thuc_te = resolved.ma;
+    next.ten_tram_thuc_te = resolved.ten;
+  } else {
+    delete next.tram_cssd_id;
+    delete next.ma_tram_thuc_te;
+    delete next.ten_tram_thuc_te;
+  }
+  return next;
+}
+
+export function missingTramCssdSeedMessage(maTramGoiY: string): string {
+  return `Chưa gắn được trạm thật cho gợi ý ${maTramGoiY}. Kiểm tra danh mục «Trạm workflow CSSD». Loại dụng cụ đã lưu — chưa ghi id trạm.`;
+}
+
 /** Ghi bảng vật lý từ form MDM (alias UI → ma_loai/ten_loai + specs + cột domain). */
 export function buildLoaiPhysicalUpsertPayload(input: Record<string, unknown>): Record<string, unknown> {
   const ma = String(
@@ -218,6 +281,44 @@ export function buildLoaiPhysicalUpsertPayload(input: Record<string, unknown>): 
   };
 }
 
+/** Excel xuất: luôn alias UI, không lộ cột vật lý `ma_loai`/`ten_loai`. */
+export function mapLoaiDungCuExcelExportRow(r: Record<string, unknown>): Record<string, unknown> {
+  const alias = resolveLoaiAlias(r);
+  const specs =
+    r.specs && typeof r.specs === "object" && !Array.isArray(r.specs)
+      ? (r.specs as Record<string, unknown>)
+      : {};
+  const isChiuNhiet = r.is_chiu_nhiet !== false;
+  return {
+    ma_loai_dung_cu: alias.ma_loai_dung_cu || null,
+    ten_loai_dung_cu: alias.ten_loai_dung_cu || null,
+    hinh_dang: r.hinh_dang ?? specs.hinh_dang ?? null,
+    kich_thuoc: r.kich_thuoc ?? specs.kich_thuoc ?? null,
+    cong_dung: r.cong_dung ?? specs.cong_dung ?? null,
+    kha_nang_chiu_nhiet:
+      r.kha_nang_chiu_nhiet ?? specs.kha_nang_chiu_nhiet ?? mapIsChiuNhietToKhaNang(isChiuNhiet),
+    phuong_phap_tiet_khuan:
+      r.phuong_phap_tiet_khuan ??
+      r.phuong_phap_tiet_khuan_chi_dinh ??
+      specs.phuong_phap_tiet_khuan ??
+      null,
+    phan_loai_spaulding: r.phan_loai_spaulding ?? specs.phan_loai_spaulding ?? null,
+    phan_loai: r.phan_loai ?? "PHAU_THUAT",
+    so_luong_kho_du_phong: r.so_luong_kho_du_phong ?? 0,
+    is_active: r.is_active !== false,
+  };
+}
+
+/** Excel nạp: nhận cả tên cột UI và cột vật lý (file cũ). */
+export function normalizeLoaiDungCuExcelImportRow(row: Record<string, unknown>): Record<string, unknown> {
+  const out = { ...row };
+  const ma = String(out.ma_loai_dung_cu ?? out.ma_loai ?? "").trim().toUpperCase();
+  const ten = String(out.ten_loai_dung_cu ?? out.ten_loai ?? "").trim();
+  if (ma) out.ma_loai_dung_cu = ma;
+  if (ten) out.ten_loai_dung_cu = ten;
+  return out;
+}
+
 /** Smart import hybrid: đồng bộ cột vật lý sau khi gom mã vào specs. */
 export function syncLoaiPhysicalColumnsOnImportPayload(
   payload: Record<string, unknown>,
@@ -225,7 +326,7 @@ export function syncLoaiPhysicalColumnsOnImportPayload(
 ): void {
   payload.ma_loai = finalCode;
   const specs = (payload.specs as Record<string, unknown>) || {};
-  specs.ma_loai_dung_cu = finalCode;
+  specs.ma_loai_dung_cu = payload.ma_loai;
   const ten = String(payload.ten_loai_dung_cu ?? payload.ten_loai ?? specs.ten_loai_dung_cu ?? "").trim();
   if (ten) {
     payload.ten_loai = ten;

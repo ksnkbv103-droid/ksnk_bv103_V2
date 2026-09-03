@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Station, CSSDWaitingItem } from "../types/cssd.types";
-import { scanQR, getWaitingListByStation } from "../actions/cssd.actions";
+import { scanQR, getWaitingListByStation, resolveNextScanStation } from "../actions/cssd.actions";
 import { prepareDongGoiBomGateScan } from "../actions/cssd-bom-checkpoint.actions";
 import { usePermission } from "@/hooks/usePermission";
 import { toast } from "sonner";
@@ -22,6 +22,7 @@ type ScanResultPayload = {
   maCycleQr?: string | null;
   maLoTietKhuan?: string;
   issuanceOnly?: boolean;
+  ledgerWarning?: string;
 };
 
 export type DongGoiGateState = {
@@ -130,7 +131,9 @@ export function useCSSDWorkflow() {
       setLastScan(null);
       try {
         const scanRes = await scanQR(code, station, extraPayload);
-        applyScanSuccess(station, code, scanRes, opts);
+        applyScanSuccess(station, code, scanRes, {
+          ledgerWarning: opts?.ledgerWarning || scanRes.ledgerWarning,
+        });
         return scanRes;
       } catch (error: unknown) {
         const { isNetworkError, pushOfflineTask } = await import("@/lib/offline-sync");
@@ -160,12 +163,33 @@ export function useCSSDWorkflow() {
   );
 
   const handleQRScan = async (code: string, extraPayload?: Record<string, unknown>) => {
-    if (!currentStation) return toast.error("Vui lòng chọn trạm trước");
     if (currentStation === "TIET_KHUAN") {
       toast.error(
         `Không quét tiệt khuẩn tại đây. Mở tab Mẻ tiệt khuẩn (${cssdQuyTrinhBatchTabHref()}): tạo phiếu, rồi quét QR bộ trong màn hình mẻ.`,
         { duration: 9000 },
       );
+      return;
+    }
+
+    if (!currentStation) {
+      try {
+        const next = await resolveNextScanStation(code);
+        if (next.needsBatchTab) {
+          toast.message(`Bộ đã đóng gói — mở tab Mẻ tiệt khuẩn (${cssdQuyTrinhBatchTabHref()}).`, {
+            duration: 8000,
+          });
+          return;
+        }
+        setCurrentStation(next.station);
+        void fetchWaitingList(next.station);
+        if (next.needsDongGoiGate || next.station === "DONG_GOI") {
+          await openDongGoiGate(code);
+          return;
+        }
+        await runStationScan(next.station, code, extraPayload);
+      } catch (error: unknown) {
+        toast.error(error instanceof Error ? error.message : "Không xác định được bước tiếp theo.");
+      }
       return;
     }
 

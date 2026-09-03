@@ -26,7 +26,7 @@ export const DM_TABLE_BY_LOAI: Record<string, { table: string; ma: string; ten: 
   VAI_TRO_HE_THONG_KSNK: { table: "sys_roles", ma: "name", ten: "name" },
   KHU_VUC_GIAM_SAT: { table: "gstt_dm_khu_vuc_giam_sat", ma: "ma_khu_vuc", ten: "ten_khu_vuc" },
   NGHE_NGHIEP: { table: "mdm_dm_nghe_nghiep", ma: "ma_nghe_nghiep", ten: "ten_nghe_nghiep" },
-  LOAI_DUNG_CU: { table: "cssd_dm_loai_dung_cu", ma: "ma_loai_dung_cu", ten: "ten_loai_dung_cu" },
+  LOAI_DUNG_CU: { table: "cssd_dm_loai_dung_cu", ma: "ma_loai", ten: "ten_loai" },
   LOAI_SU_CO: { table: "cssd_dm_loai_su_co", ma: "ma_loai_su_co", ten: "ten_loai_su_co" },
   LOAI_MAY_TIET_KHUAN: { table: "cssd_dm_loai_may", ma: "ma_loai_may", ten: "ten_loai_may" },
 };

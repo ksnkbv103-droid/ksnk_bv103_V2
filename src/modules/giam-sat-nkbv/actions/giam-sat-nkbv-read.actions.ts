@@ -218,10 +218,8 @@ export async function listNkbvMedicalRecords(params: {
   }
   if (params.devicePriorityOnly) {
     const { data: devRows, error: devErr } = await supabase
-      .from("nkbv_fact_device_registry")
+      .from("nkbv_fact_ba_ngay_dung_cu")
       .select("ma_benh_an")
-      .eq("is_active", true)
-      .is("removal_date", null)
       .limit(3000);
     if (devErr) return { success: false as const, error: devErr.message, data: [], totalCount: 0 };
     const priorityBas = Array.from(
@@ -538,6 +536,8 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
   let casesRaw: HubRow[] = [];
   let devicesRaw: HubRow[] = [];
   let manualRaw: HubRow[] = [];
+  let locationDaysRaw: HubRow[] = [];
+  let deviceDaysRaw: HubRow[] = [];
 
   // 1 round-trip qua RPC; fallback đường 5-query khi RPC chưa migrate
   const rpc = await supabase.rpc("fn_nkbv_ba_hub", { p_ma_benh_an: ma });
@@ -548,6 +548,8 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
       cases: HubRow[];
       devices: HubRow[];
       manual: HubRow[];
+      location_days?: HubRow[];
+      device_days?: HubRow[];
     };
     if (!hub.stay) return { success: false as const, error: "Không tìm thấy hồ sơ bệnh án" };
     stay = hub.stay;
@@ -555,6 +557,8 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
     casesRaw = hub.cases || [];
     devicesRaw = hub.devices || [];
     manualRaw = hub.manual || [];
+    locationDaysRaw = hub.location_days || [];
+    deviceDaysRaw = hub.device_days || [];
   } else {
     const { data: stayRow, error: stayErr } = await supabase
       .from("nkbv_fact_benh_an")
@@ -568,7 +572,7 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
     if (!stayRow) return { success: false as const, error: "Không tìm thấy hồ sơ bệnh án" };
     stay = stayRow as HubRow;
 
-    const [lisRes, casesRes, devicesRes, manualRes] = await Promise.all([
+    const [lisRes, casesRes, deviceDaysRes, locationDaysRes, manualRes] = await Promise.all([
       supabase
         .from("nkbv_fact_vi_sinh")
         .select(
@@ -588,11 +592,15 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
         .order("ngay_phat_hien", { ascending: false })
         .limit(100),
       supabase
-        .from("nkbv_fact_device_registry")
-        .select("id, device_type, insertion_date, removal_date, is_active")
+        .from("nkbv_fact_ba_ngay_dung_cu")
+        .select("id, ngay_lich, loai_dung_cu")
         .eq("ma_benh_an", ma)
-        .eq("is_active", true)
-        .limit(50),
+        .limit(800),
+      supabase
+        .from("nkbv_fact_ba_ngay_khoa")
+        .select("ngay_lich, khoa_id")
+        .eq("ma_benh_an", ma)
+        .limit(400),
       supabase
         .from("nkbv_fact_ba_timeline")
         .select("id, milestone_kind, milestone_date, title, detail, specimen_hint, criteria_key")
@@ -604,12 +612,12 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
 
     if (lisRes.error) return { success: false as const, error: lisRes.error.message };
     if (casesRes.error) return { success: false as const, error: casesRes.error.message };
-    if (devicesRes.error) return { success: false as const, error: devicesRes.error.message };
-    // Bảng mốc thủ công có thể chưa migrate — bỏ qua, vẫn build timeline từ LIS/device
     lisRaw = (lisRes.data || []) as HubRow[];
     casesRaw = (casesRes.data || []) as HubRow[];
-    devicesRaw = (devicesRes.data || []) as HubRow[];
+    deviceDaysRaw = (deviceDaysRes.error ? [] : deviceDaysRes.data || []) as HubRow[];
+    locationDaysRaw = (locationDaysRes.error ? [] : locationDaysRes.data || []) as HubRow[];
     manualRaw = (manualRes.error ? [] : manualRes.data || []) as HubRow[];
+    devicesRaw = [];
   }
 
   const cases: NkbvBenhAnHubCase[] = (casesRaw || []).map((c) => {
@@ -679,25 +687,26 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
               : null,
     };
   });
-  // Timeline BA chỉ nạp XN dương tính (âm tính không lên lưới)
-  const lis = lisAll.filter((r) => {
-    const pl = String(r.ket_qua_phan_loai || "").toUpperCase();
-    if (pl === "AM_TINH") return false;
-    if (pl === "DUONG_TINH" || r.ket_qua_duong_tinh === true) return true;
-    // Legacy: có tác nhân mà chưa phân loại → coi là dương tính
-    return Boolean(r.tac_nhan) && pl !== "AM_TINH";
-  });
+  // Timeline BA nạp mọi XN có ngày lấy mẫu (dương + âm) để IP thấy đủ nuôi cấy
+  const lis = lisAll;
 
-  const devices = (devicesRaw || []).map((d) => ({
-    id: String(d.id),
-    device_type: String(d.device_type),
-    insertion_date: String(d.insertion_date).slice(0, 10),
-    removal_date: d.removal_date ? String(d.removal_date).slice(0, 10) : null,
-  }));
+  const locationDays = (locationDaysRaw || [])
+    .map((r) => ({
+      ngay_lich: String(r.ngay_lich || "").slice(0, 10),
+      khoa_id: String(r.khoa_id || ""),
+    }))
+    .filter((r) => r.ngay_lich && r.khoa_id);
 
-  const hasActiveVent = devices.some(
-    (d) => d.device_type === "VENTILATOR" && !d.removal_date,
-  );
+  const deviceDays = (deviceDaysRaw || [])
+    .map((r) => ({
+      id: r.id ? String(r.id) : undefined,
+      ngay_lich: String(r.ngay_lich || "").slice(0, 10),
+      loai_dung_cu: String(r.loai_dung_cu || "") as "CVC" | "VENT" | "FOLEY",
+    }))
+    .filter((r) => r.ngay_lich && (r.loai_dung_cu === "CVC" || r.loai_dung_cu === "VENT" || r.loai_dung_cu === "FOLEY"));
+
+  const today = new Date().toISOString().slice(0, 10);
+  const hasActiveVent = deviceDays.some((d) => d.loai_dung_cu === "VENT" && d.ngay_lich >= today);
 
   const timeline = mergeBaTimelineMilestones({
     lis,
@@ -712,7 +721,7 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
         ? String((m as { criteria_key?: string | null }).criteria_key)
         : null,
     })),
-    devices,
+    devices: [],
     hasActiveVent,
   });
 
@@ -787,7 +796,9 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
       stay,
       lis,
       cases,
-      devices,
+      devices: [],
+      locationDays,
+      deviceDays,
       timeline,
       hasActiveVent,
       windowAlerts,

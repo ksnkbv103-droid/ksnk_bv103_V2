@@ -1,11 +1,13 @@
 "use server";
 
-import { revalidateMasterDataRowCacheTag } from "@/lib/cache/revalidate-master-data-tags";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import { normalizeDanhMucNullableByLoai } from "@/lib/master-data/fk-normalize";
+import { normalizeCdcLocationCode } from "@/lib/domain/cdc-location-code";
 import {
+  softDeleteManyMasterRows,
+  softDeleteMasterRow,
   toggleMasterStatus,
   upsertMasterRow,
 } from "./master-crud-core";
@@ -57,6 +59,7 @@ export async function getKhoaPhongRowsAction() {
       so_giuong_cap_cuu: normalizeNonNegativeNumber(x.specs?.so_giuong_cap_cuu),
       is_active: x.is_active !== false,
       specs: x.specs || null,
+      cdc_location_code: normalizeCdcLocationCode(x.specs?.cdc_location_code),
     };
     }) as KhoaPhongRow[],
   };
@@ -112,7 +115,14 @@ export async function saveKhoaPhongAction(input: Record<string, unknown>) {
       error: "Khối khoa không hợp lệ: chọn trong danh mục KHOI_KHOA hoặc để trống.",
     };
   }
-  const existingSpecs = (input.specs as Record<string, any>) || {};
+  const existingSpecs = (input.specs as Record<string, unknown>) || {};
+  const typedCode = String(input.cdc_location_code ?? existingSpecs.cdc_location_code ?? "").trim();
+  if (typedCode && !normalizeCdcLocationCode(typedCode)) {
+    return {
+      success: false as const,
+      error: "Mã CDC Location không hợp lệ. Dùng chữ, số, dấu hai chấm hoặc gạch dưới (ví dụ IN:ICU).",
+    };
+  }
   const payload = {
     ma_khoa: String(input.ma_danh_muc || "").trim().toUpperCase(),
     ten_khoa: String(input.ten_danh_muc || "").trim(),
@@ -125,6 +135,7 @@ export async function saveKhoaPhongAction(input: Record<string, unknown>) {
       so_dieu_duong: normalizeNonNegativeNumber(input.so_dieu_duong),
       so_giuong_benh_thuong: normalizeNonNegativeNumber(input.so_giuong_benh_thuong),
       so_giuong_cap_cuu: normalizeNonNegativeNumber(input.so_giuong_cap_cuu),
+      cdc_location_code: normalizeCdcLocationCode(typedCode),
     },
     updated_at: new Date().toISOString(),
   };
@@ -141,23 +152,11 @@ export async function toggleKhoaPhongStatusAction(id: string, currentStatus: boo
 
 export async function softDeleteKhoaPhongAction(id: string) {
   await verifyPermission("KHOA_PHONG", "delete");
-  const supabase = createAdminSupabaseClient();
-  const { error } = await supabase.from("mdm_dm_khoa_phong").delete().eq("id", id);
-  if (!error) {
-    revalidateMasterDataRowCacheTag("mdm_dm_khoa_phong");
-    return { success: true as const };
-  }
-  if (typeof error === "object" && error && "code" in error && (error as { code?: string }).code === "23503") {
-    return { success: false as const, error: "Không thể xóa cứng vì khoa phòng đang được tham chiếu ở dữ liệu nghiệp vụ." };
-  }
-  return { success: false as const, error: error.message };
+  return softDeleteMasterRow("mdm_dm_khoa_phong", id);
 }
 
 export async function softDeleteManyKhoaPhongAction(ids: string[]) {
   await verifyPermission("KHOA_PHONG", "delete");
-  for (const id of ids) {
-    const result = await softDeleteKhoaPhongAction(id);
-    if (!result.success) return result;
-  }
-  return { success: true as const };
+  if (!ids.length) return { success: false as const, error: "Chưa chọn dòng." };
+  return softDeleteManyMasterRows("mdm_dm_khoa_phong", ids);
 }

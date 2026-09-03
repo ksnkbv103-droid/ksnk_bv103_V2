@@ -211,7 +211,7 @@ Khớp bảng lệch ID: ________
 
 ### Phương án A — Sửa từng lệch thuật toán PNEU (ưu tiên A1→A5, rồi B)
 
-- [ ] **Chọn A**
+- [x] **Chọn A** — PO duyệt 2026-08-18; A1–A5 đã ship. B1–B5 còn lại.
 - Thứ tự đề xuất: A1 (nhóm hô hấp) → A2 (gate PNU2) → A3 (PNU3 triệu chứng) → A4/A5 → B4 Ruled-out → B3 LOA trên BA.
 - Verify: vitest `nkbv-pneu-timeline-verdict` + `nkbv-rules-engine` + 3 case tay từ §5.
 
@@ -225,7 +225,7 @@ Khớp bảng lệch ID: ________
 
 - [ ] Cần thêm case §5 trước khi chọn A/B.
 
-**Ngày PO ký:** ________ **Người ký:** ________
+**Ngày PO ký:** 2026-08-18 **Người ký:** PO — chat implement A1–A5
 
 ---
 

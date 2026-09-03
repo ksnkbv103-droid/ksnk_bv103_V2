@@ -25,6 +25,21 @@ async function resolveKsnkNhanSuIdByMa(
   return String(data.id);
 }
 
+async function resolveKhoaIdByMa(
+  supabase: Awaited<ReturnType<typeof ensureQlcvKsnkAccess>>["supabase"],
+  maKhoa: string,
+): Promise<string> {
+  const { data, error } = await supabase
+    .from("mdm_dm_khoa_phong")
+    .select("id")
+    .eq("ma_khoa", maKhoa)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data?.id) throw new Error(`Không tìm thấy khoa địa điểm ma_khoa=${maKhoa}`);
+  return String(data.id);
+}
+
 async function resolveToIdByMa(
   supabase: Awaited<ReturnType<typeof ensureQlcvKsnkAccess>>["supabase"],
   maTo: string | null,
@@ -50,6 +65,7 @@ async function importOneRow(
   assertQlcvHanHoanThanhNotPast(row.han_hoan_thanh);
   const nguoi_phu_trach_id = await resolveKsnkNhanSuIdByMa(supabase, ksnkKhoaId, row.ma_nv);
   const to_cong_tac_id = await resolveToIdByMa(supabase, row.ma_to);
+  const dia_diem_khoa_id = await resolveKhoaIdByMa(supabase, row.ma_khoa);
 
   const data = await insertQlcvTaskRow(supabase, {
     tieu_de: row.tieu_de,
@@ -60,6 +76,7 @@ async function importOneRow(
     nguoi_phu_trach_id,
     ksnkKhoaId,
     to_cong_tac_id,
+    dia_diem_khoa_id,
     is_active: true,
     nguoi_tao_id: actor,
     nguoi_giao_viec_id: actor,

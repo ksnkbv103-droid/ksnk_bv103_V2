@@ -11,7 +11,6 @@ import KhoHoaChatOverview from "../components/kho-hoa-chat/kho-hoa-chat-overview
 import KhoHoaChatTables from "../components/kho-hoa-chat/kho-hoa-chat-tables";
 import KhoHoaChatSuCoPanel from "../components/kho-hoa-chat/kho-hoa-chat-su-co-panel";
 import {
-  capNhatNguongTonKhoAction,
   dieuChinhKhoHoaChatAction,
   listDmHoaChatChoKhoAction,
   listGiaoDichKhoHoaChatAction,
@@ -23,9 +22,7 @@ import {
   listSuCoChemicalChuaGhiKhoAction,
   type SuCoChemicalRow,
 } from "../actions/cssd-kho-hoa-chat.actions";
-import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY, CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_GROUP, CSSD_UI_TAB_IDLE } from "../shared/ui/cssd-ui-chrome";
-import { CssdHorizTabButton } from "../components/layout/CssdHorizTabButton";
-import { CSSDCatalogHoaChatTab } from "./CSSDCatalogHoaChatTab";
+import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY, CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_IDLE } from "../shared/ui/cssd-ui-chrome";
 import { lotRowToKey, pickFefoLotKey } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
 import { matchesLoaiFilter, type HoaChatLoaiFilter } from "@/lib/domain/cssd-hoa-chat-loai";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
@@ -57,7 +54,6 @@ export default function KhoHoaChatKsnkPage() {
     }>
   >([]);
   const [busy, setBusy] = useState(true);
-  const [activeTab, setActiveTab] = useState<"STOCK" | "CATALOG">("STOCK");
   const [loaiFilter, setLoaiFilter] = useState<HoaChatLoaiFilter>("ALL");
 
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -69,8 +65,6 @@ export default function KhoHoaChatKsnkPage() {
   const [maLoNhap, setMaLoNhap] = useState("");
   const [hanNhap, setHanNhap] = useState("");
 
-  const [thrDm, setThrDm] = useState("");
-  const [thrVal, setThrVal] = useState("");
   /** Một lần khi mount — ngưỡng “sắp hết hạn” 30 ngày; tránh Date.now trong thân render (react-hooks/purity). */
   const [expiryHorizonMs] = useState(() => Date.now() + 30 * 864e5);
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
@@ -269,14 +263,6 @@ export default function KhoHoaChatKsnkPage() {
     void reload();
   };
 
-  const saveThreshold = async () => {
-    if (!canEdit || !thrDm) return toast.error("Chọn mặt hàng.");
-    const r = await capNhatNguongTonKhoAction({ dm_hoa_chat_id: thrDm, nguong_ton_toi_thieu: thrVal === "" ? null : thrVal });
-    if (!r.success) return toast.error(r.error);
-    toast.success("Đã cập nhật ngưỡng.");
-    void reload();
-  };
-
   const qn = Number(qty);
   const canSubmitSheet =
     canEdit &&
@@ -306,15 +292,6 @@ export default function KhoHoaChatKsnkPage() {
     );
   }
 
-  const mappedDms = dms.map((d) => ({
-    id: d.id,
-    ma_hoa_chat: d.ma_hoa_chat,
-    ten_hoa_chat: d.ten_hoa_chat,
-    don_vi_tinh: d.don_vi_tinh,
-    loai_hoa_chat: d.loai_hoa_chat ?? "HOA_CHAT",
-    is_active: true,
-  }));
-
   return (
     <CSSDPageShell
       title={<span className="text-[var(--primary)]">Kho hóa chất &amp; vật tư KSNK</span>}
@@ -343,81 +320,63 @@ export default function KhoHoaChatKsnkPage() {
         </div>
       }
     >
-      <div className="space-y-6">
-        {/* Banner cảnh báo tồn kho hóa chất dưới ngưỡng an toàn */}
-        {duoiNguongItems.length > 0 && (
-          <div className="rounded-[var(--radius-shell)] border border-red-200 bg-red-50/70 p-4 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
-            <div className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-red-600 text-white shadow-sm font-bold">
-                <AlertTriangle className="h-4 w-4" />
-              </span>
-              <div className="flex-1 space-y-1">
-                <h4 className="text-xs font-bold text-red-900 uppercase tracking-wide">Cảnh báo: Hóa chất / Vật tư dưới ngưỡng tồn tối thiểu!</h4>
-                <p className="text-[11px] text-red-700 font-medium leading-relaxed">
-                  Có <span className="font-extrabold">{duoiNguongItems.length}</span> mặt hàng đang ở mức báo động đỏ. Vui lòng lập kế hoạch bổ sung vật tư ngay lập tức để tránh làm gián đoạn quy trình tiệt khuẩn CSSD.
-                </p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {duoiNguongItems.map((item) => {
-                    const currentStock = totalByDm.get(item.id) || 0;
-                    return (
-                      <span key={item.id} className="inline-flex items-center rounded-lg bg-red-100/80 px-2 py-0.5 text-[11px] font-bold text-red-800 border border-red-200/50">
-                        {item.ma_hoa_chat}: {currentStock} / {item.nguong_ton_toi_thieu} (ngưỡng)
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {sapHetHanItems.length > 0 && (
+      <div className="space-y-[var(--bv103-space-3)]">
+        {duoiNguongItems.length > 0 || sapHetHanItems.length > 0 ? (
           <KsnkContextBanner
-            tone="amber"
+            tone={duoiNguongItems.length > 0 ? "rose" : "amber"}
             dismissible={false}
-            icon={<CalendarClock className="h-4 w-4" aria-hidden />}
+            icon={
+              duoiNguongItems.length > 0 ? (
+                <AlertTriangle className="h-4 w-4" aria-hidden />
+              ) : (
+                <CalendarClock className="h-4 w-4" aria-hidden />
+              )
+            }
             summary={
               <span className="text-xs font-semibold">
-                {sapHetHanItems.length} lô hóa chất / vật tư sắp hết hạn (dưới 30 ngày)
+                {[
+                  duoiNguongItems.length > 0 ? `${duoiNguongItems.length} mặt hàng dưới ngưỡng` : null,
+                  sapHetHanItems.length > 0 ? `${sapHetHanItems.length} lô sắp hết hạn` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </span>
             }
             detail={
               <div className="space-y-2">
-                <p className="text-[11px] font-medium leading-relaxed">
-                  Ưu tiên xuất dùng trước hoặc liên hệ nhà cung cấp nếu cần đổi lô mới.
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {sapHetHanItems.map((item) => (
-                    <span
-                      key={item.id}
-                      className="inline-flex items-center rounded-lg border border-amber-200/50 bg-amber-100/80 px-2 py-0.5 text-[11px] font-semibold text-amber-800"
-                    >
-                      Lô {item.ma_lo || "Không mã"}: {item.ton_so_luong} ({formatDateVi(item.han_su_dung)})
-                    </span>
-                  ))}
-                </div>
+                {duoiNguongItems.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {duoiNguongItems.map((item) => {
+                      const currentStock = totalByDm.get(item.id) || 0;
+                      return (
+                        <span
+                          key={item.id}
+                          className="inline-flex items-center rounded-lg border border-red-200/50 bg-red-100/80 px-2 py-0.5 text-[11px] font-semibold text-red-800"
+                        >
+                          {item.ma_hoa_chat}: {currentStock}/{item.nguong_ton_toi_thieu}
+                        </span>
+                      );
+                    })}
+                  </div>
+                ) : null}
+                {sapHetHanItems.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {sapHetHanItems.map((item) => (
+                      <span
+                        key={item.id}
+                        className="inline-flex items-center rounded-lg border border-amber-200/50 bg-amber-100/80 px-2 py-0.5 text-[11px] font-semibold text-amber-800"
+                      >
+                        Lô {item.ma_lo || "Không mã"}: {item.ton_so_luong} ({formatDateVi(item.han_su_dung)})
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             }
           />
-        )}
+        ) : null}
 
-        <div className={CSSD_UI_TAB_GROUP}>
-          <CssdHorizTabButton
-            active={activeTab === "STOCK"}
-            onClick={() => setActiveTab("STOCK")}
-            label="Giám sát tồn kho & Giao dịch"
-            mobileLabel="Tồn kho"
-          />
-          <CssdHorizTabButton
-            active={activeTab === "CATALOG"}
-            onClick={() => setActiveTab("CATALOG")}
-            label={`Danh mục hóa chất & vật tư (${dms.length})`}
-            mobileLabel={`Danh mục (${dms.length})`}
-          />
-        </div>
-
-        {activeTab === "STOCK" ? (
-          <div className="space-y-6 animate-in fade-in duration-300">
+        <div className="space-y-[var(--bv103-space-3)] animate-in fade-in duration-300">
             <div className="flex flex-wrap gap-2">
               {(
                 [
@@ -444,22 +403,11 @@ export default function KhoHoaChatKsnkPage() {
             <KhoHoaChatOverview
               countSapHetHan={countSapHetHan}
               countDuoiNguong={countDuoiNguong}
-              dms={filteredDms}
-              canEdit={canEdit}
-              thrDm={thrDm}
-              thrVal={thrVal}
-              onThrDm={setThrDm}
-              onThrVal={setThrVal}
-              onSaveThr={saveThreshold}
+              dmCount={filteredDms.length}
             />
 
             <KhoHoaChatTables tons={filteredTons} movs={filteredMovs} loading={busy} />
           </div>
-        ) : (
-          <div className="animate-in fade-in duration-300">
-            <CSSDCatalogHoaChatTab hoaChatRows={mappedDms} />
-          </div>
-        )}
       </div>
 
       <KhoHoaChatMoveSheet

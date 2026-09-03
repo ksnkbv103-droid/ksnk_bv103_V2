@@ -75,6 +75,45 @@ describe("bang-kiem-write JSONB Actions", () => {
       expect(updateCall.tieu_chi_jsonb[0].id).toBe("tc-1");
       expect(updateCall.tieu_chi_jsonb[1].noi_dung).toBe("New Criterion");
       expect(updateCall.tieu_chi_jsonb[1].stt).toBe(2);
+      expect(updateCall.tieu_chi_jsonb[1].kieu_du_lieu).toBe("BOOLEAN");
+    });
+
+    it("persists GSC criterion fields used on the supervision form", async () => {
+      const mockBk = {
+        id: "bk-1",
+        tieu_chi_jsonb: [{ id: "tc-1", stt: 1, noi_dung: "Nhiệt độ", ma_csv_goc: "keep-me" }],
+      };
+      mocks.select.mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          single: mocks.single.mockResolvedValue({ data: mockBk, error: null }),
+        }),
+      });
+      mocks.update.mockReturnValue({
+        eq: mocks.eq.mockResolvedValue({ data: null, error: null }),
+      });
+
+      const result = await saveTieuChi({
+        id: "tc-1",
+        bangKiemId: "bk-1",
+        stt: 1,
+        noi_dung: "Nhiệt độ lò",
+        kieu_du_lieu: "SO_LIEU",
+        nguong_min: 121,
+        nguong_max: 135,
+        don_vi: "°C",
+        la_then_chot: true,
+        cho_phep_kpa: false,
+        weight_type: "CRITICAL",
+        is_red_flag: true,
+      });
+
+      expect(result.success).toBe(true);
+      const row = mocks.update.mock.calls[0][0].tieu_chi_jsonb[0];
+      expect(row.kieu_du_lieu).toBe("SO_LIEU");
+      expect(row.nguong_min).toBe(121);
+      expect(row.don_vi).toBe("°C");
+      expect(row.la_then_chot).toBe(true);
+      expect(row.ma_csv_goc).toBe("keep-me");
     });
 
     it("updates existing criterion when id matches", async () => {

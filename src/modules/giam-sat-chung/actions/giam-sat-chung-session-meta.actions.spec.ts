@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SUPERVISION_SESSION_MUTATION_EXPIRED_VI } from "@/lib/supervision-mutation-window";
 import { deleteGiamSatChungSessions } from "./giam-sat-chung-session-meta.actions";
 
 const mocks = vi.hoisted(() => ({
@@ -69,14 +68,28 @@ describe("deleteGiamSatChungSessions", () => {
     });
   });
 
-  it("rejects deletion when mutation window expired for non-admin", async () => {
+  it("allows owner to delete an old session when the report day is not locked", async () => {
     const result = await deleteGiamSatChungSessions(["s1"]);
 
-    expect(result).toEqual({ success: false, error: SUPERVISION_SESSION_MUTATION_EXPIRED_VI });
+    expect(result).toEqual({ success: true });
+    expect(mocks.sessionsDeleteIn).toHaveBeenCalledWith("id", ["s1"]);
+    expect(mocks.assertLock).toHaveBeenCalled();
+  });
+
+  it("rejects deletion when the report day is locked", async () => {
+    mocks.assertLock.mockRejectedValueOnce(
+      new Error("Dữ liệu giám sát đã bị khóa cứng để chốt báo cáo thi đua."),
+    );
+
+    const result = await deleteGiamSatChungSessions(["s1"]);
+
+    expect(result.success).toBe(false);
+    expect(result).toMatchObject({ success: false });
+    expect(String((result as { error?: string }).error ?? "")).toContain("khóa cứng");
     expect(mocks.sessionsDeleteIn).not.toHaveBeenCalled();
   });
 
-  it("allows admin bypass to delete expired sessions", async () => {
+  it("allows admin bypass to delete when they are not the session owner", async () => {
     mocks.hasBypass.mockResolvedValue(true);
 
     const result = await deleteGiamSatChungSessions(["s1"]);

@@ -17,6 +17,7 @@ import {
 import { assertClinicalEvidenceForSubmit } from "../lib/nkbv-clinical-submit-gate";
 import { resolveCssdQuyTrinhLinkFromMaQr } from "@/lib/cssd-nkbv-trace";
 import { extractSsiReportingSlice } from "../lib/nkbv-ssi-reporting-contract";
+import { stripCopiedStayFieldsFromVerification } from "../lib/nkbv-ba-ngay";
 import { clean, validateLoaiTrangAndLyDo, type Payload } from "./giam-sat-nkbv-write.helpers";
 
 export async function createGiamSatNkbvCa(payload: Payload) {
@@ -94,7 +95,11 @@ export async function createGiamSatNkbvCa(payload: Payload) {
         ly_do_loai_tru: raw.ly_do_loai_tru ?? (raw.clinical_notes as any)?.ly_do_loai_tru ?? null,
       },
       vi_sinh_record_id: raw.vi_sinh_record_id ?? null,
-      verification_data: raw.verification_data ?? {},
+      verification_data: stripCopiedStayFieldsFromVerification(
+        (raw.verification_data && typeof raw.verification_data === "object"
+          ? (raw.verification_data as Record<string, unknown>)
+          : {}) as Record<string, unknown>,
+      ),
       loai_nkbv_id: String(raw.loai_nkbv_id),
       trang_thai_id: String(raw.trang_thai_id),
       nguoi_ghi_id: raw.nguoi_ghi_id ?? null,
@@ -355,7 +360,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
         .then((r) => r.data);
     }
 
-    const verification_data = {
+    const verification_data = stripCopiedStayFieldsFromVerification({
       ...verificationInput,
       evaluation_result: result,
       classification: result.classification,
@@ -366,7 +371,7 @@ export async function submitClinicalVerification(id: string, viTriNhiemKhuan: st
       ...(viTriNhiemKhuan === "SSI"
         ? { ssi_reporting: extractSsiReportingSlice(verificationInput) }
         : {}),
-    };
+    });
 
     const prevNotes =
       caRow?.clinical_notes && typeof caRow.clinical_notes === "object"

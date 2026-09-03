@@ -3,6 +3,7 @@
 import React from "react";
 import type { Column } from "./AdvancedDataTable";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 
 type Props<T> = {
   columns: Column<T>[];
@@ -93,9 +94,9 @@ export default function DataTableMobileCards<T extends { id?: string | number }>
                     }
                   : undefined
               }
-              className={`space-y-2.5 px-3 py-3.5 transition-colors touch-manipulation ${
+              className={`space-y-2 px-3 py-3 transition-colors touch-manipulation ${
                 interactive ? "cursor-pointer active:bg-slate-50" : ""
-              } ${isSelected ? "bg-emerald-50/60 ring-1 ring-inset ring-[var(--primary)]/15" : ""} ${customClass}`}
+              } ${isSelected ? L.rowSelected : ""} ${customClass}`}
             >
               {enableMultiSelect && toggleSelectRow ? (
                 <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()} role="presentation">

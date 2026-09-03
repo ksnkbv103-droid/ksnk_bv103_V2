@@ -148,7 +148,7 @@ export default function InstrumentIncidentFields({
       </div>
 
       {!loading && data && data.items.length > 0 ? (
-        <>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           <div className="space-y-1.5">
             <label className={bv103LayoutChrome.labelBlock}>Loại dụng cụ trong bộ</label>
             <select
@@ -235,7 +235,7 @@ export default function InstrumentIncidentFields({
               </div>
             </>
           ) : null}
-        </>
+        </div>
       ) : null}
 
       {!loading && data && data.items.length === 0 ? (

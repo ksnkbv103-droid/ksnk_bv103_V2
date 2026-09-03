@@ -4,8 +4,6 @@
 
 const MASTER_TABLE_MODULE: Record<string, string> = {
   gstt_dm_bang_kiem: "BANG_KIEM",
-  danh_muc_bang_kiem: "BANG_KIEM",
-  tieu_chi_bang_kiem: "BANG_KIEM_DETAIL",
   cssd_dm_hoa_chat: "HOA_CHAT",
   cssd_dm_loai_dung_cu: "LOAI_DC",
   mdm_dm_khoa_phong: "KHOA_PHONG",

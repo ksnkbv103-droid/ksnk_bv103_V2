@@ -6,8 +6,7 @@ import { CssdQrLabelKindsNotice } from "@/modules/cssd-erp/components/catalog/Cs
 
 const STEPS = [
   { title: "Loại", tab: "loai" as const },
-  { title: "Bộ", tab: "bo" as const },
-  { title: "Thành phần", tab: "chi-tiet" as const },
+  { title: "Bộ và thành phần", tab: "bo" as const },
   { title: "CSSD", href: "/cssd-dung-cu" },
   { title: "Kho", href: "/cssd-erp" },
 ] as const;
@@ -25,15 +24,12 @@ export function DungCuWorkflowGuide() {
             {"tab" in s ? (
               <Link
                 href={quanTriDungCuHref(s.tab)}
-                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 font-semibold text-slate-700 hover:border-[var(--primary)]/40"
+                className="font-medium text-slate-600 hover:text-[var(--primary)]"
               >
                 {s.title}
               </Link>
             ) : (
-              <Link
-                href={s.href}
-                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 font-semibold text-slate-700 hover:border-[var(--primary)]/40"
-              >
+              <Link href={s.href} className="font-medium text-slate-600 hover:text-[var(--primary)]">
                 {s.title}
               </Link>
             )}

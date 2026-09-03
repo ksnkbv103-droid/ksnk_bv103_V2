@@ -179,7 +179,7 @@ export default function MdmGovernanceView() {
       accessorKey: "source_loai_danh_muc",
       cell: (r) => (
         <span className="font-mono font-bold text-teal-600 text-[11px]">
-          {r.source_loai_danh_muc || <span className="text-slate-300 italic">N/A</span>}
+          {r.source_loai_danh_muc || <span className="bv103-type-note">N/A</span>}
         </span>
       )
     },
@@ -187,7 +187,7 @@ export default function MdmGovernanceView() {
       header: "Bắt buộc?",
       accessorKey: "is_required",
       cell: (r) => (
-        <span className={`inline-flex px-1.5 py-0.5 rounded text-[11px] font-bold uppercase ${r.is_required ? "bg-amber-50 text-amber-600 border border-amber-200" : "bg-slate-50 text-slate-400"}`}>
+        <span className={`inline-flex px-1.5 py-0.5 rounded bv103-type-label ${r.is_required ? "bg-amber-50 text-amber-600 border border-amber-200" : "bg-slate-50 text-slate-400"}`}>
           {r.is_required ? "Required" : "Optional"}
         </span>
       )
@@ -255,7 +255,7 @@ export default function MdmGovernanceView() {
         <div className={`${bv103LayoutChrome.panelShellPadded} flex items-center justify-between`}>
           <div className="flex-1 space-y-1.5 pr-4">
             <p className={bv103DesignTokens.labelBlockMuted}>Tỷ lệ phủ bảo vệ</p>
-            <p className="text-3xl font-semibold text-slate-800">{stats.coverageScore}%</p>
+            <p className="bv103-type-kpi-lg text-slate-800">{stats.coverageScore}%</p>
             <div className="w-full bg-slate-100 rounded-full h-1.5">
               <div 
                 className="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" 
@@ -271,7 +271,7 @@ export default function MdmGovernanceView() {
         <div className={`${bv103LayoutChrome.panelShellPadded} flex items-center justify-between`}>
           <div>
             <p className={bv103DesignTokens.labelBlockMuted}>Trigger bảo vệ hoạt động</p>
-            <p className="mt-1 text-3xl font-semibold text-teal-600">
+            <p className="mt-1 bv103-type-kpi-lg text-teal-600">
               {stats.activeTriggers} / {stats.totalReg}
             </p>
             <p className="mt-1 text-xs text-slate-500">An toàn dữ liệu động</p>
@@ -284,7 +284,7 @@ export default function MdmGovernanceView() {
         <div className={`${bv103LayoutChrome.panelShellPadded} flex items-center justify-between`}>
           <div className="space-y-1.5">
             <p className={bv103DesignTokens.labelBlockMuted}>Gợi ý cần phê duyệt</p>
-            <p className="text-3xl font-semibold text-amber-500">{stats.pendingSug}</p>
+            <p className="bv103-type-kpi-lg text-amber-500">{stats.pendingSug}</p>
             <button
               type="button"
               onClick={handleRefreshSuggestions}
@@ -325,7 +325,7 @@ export default function MdmGovernanceView() {
               Gợi ý chuẩn hóa ({suggestions.length})
             </button>
           </div>
-          <div className="pr-2 text-[11px] font-medium italic text-slate-400">
+          <div className="pr-2 bv103-type-note">
             BV103 Metadata Control Center
           </div>
         </div>
@@ -333,7 +333,7 @@ export default function MdmGovernanceView() {
         {/* Tab contents */}
         <div className="flex-1 p-4">
           {subTab === "REGISTRY" ? (
-            <div className="space-y-4">
+            <div className="space-y-[var(--bv103-space-3)]">
               <div className="p-3.5 bg-emerald-50/20 border border-emerald-100 rounded-xl flex items-start gap-2.5">
                 <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <p className="text-slate-600 leading-relaxed text-[11px]">
@@ -349,7 +349,7 @@ export default function MdmGovernanceView() {
               />
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-[var(--bv103-space-3)]">
               <div className="p-3.5 bg-amber-50/20 border border-amber-100 rounded-xl flex items-start gap-2.5">
                 <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                 <p className="text-slate-600 leading-relaxed text-[11px]">
@@ -377,7 +377,7 @@ export default function MdmGovernanceView() {
                             <span className="block max-w-[200px] truncate font-mono text-xs font-semibold text-slate-700">{s.table_name}</span>
                             <span className="font-mono font-bold text-amber-600 text-[11px] block mt-0.5">↳ {s.column_name}</span>
                           </div>
-                          <span className={`inline-flex px-2 py-0.5 rounded text-[11px] font-extrabold uppercase ${s.suggestion_type === "REGISTER_FK" ? "bg-amber-100 text-amber-700 border border-amber-200" : "bg-cyan-50 text-cyan-600 border border-cyan-200"}`}>
+                          <span className={`inline-flex px-2 py-0.5 rounded text-[11px] font-semibold ${s.suggestion_type === "REGISTER_FK" ? "bg-amber-100 text-amber-700 border border-amber-200" : "bg-cyan-50 text-cyan-600 border border-cyan-200"}`}>
                             {s.suggestion_type}
                           </span>
                         </div>
@@ -388,9 +388,9 @@ export default function MdmGovernanceView() {
                         </p>
 
                         {/* Confidence score */}
-                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
+                        <div className="flex items-center gap-1.5 bv103-type-label font-semibold text-slate-400">
                           Độ tin cậy gợi ý: 
-                          <span className="text-emerald-600 font-extrabold bg-emerald-50 px-1.5 py-0.5 rounded">
+                          <span className="text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded">
                             {s.confidence}%
                           </span>
                         </div>

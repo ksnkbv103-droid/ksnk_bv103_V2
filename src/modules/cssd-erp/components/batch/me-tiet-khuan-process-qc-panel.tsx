@@ -71,7 +71,7 @@ function ChiThiBlock({
   showPhoto: boolean;
 }) {
   return (
-    <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-white p-4 space-y-3 shadow-sm">
+    <div className="bv103-layer-inset bv103-pad-inset space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-wide text-slate-700">{label}</span>
         {required ? (
@@ -206,7 +206,7 @@ export default function MeTietKhuanProcessQcPanel({
     return (
       <div className="flex min-h-[320px] flex-col items-center justify-center rounded-[var(--radius-shell)] border border-dashed border-slate-200 bg-slate-50/80 p-8 text-center shadow-inner">
         <Settings2 className="mb-3 h-10 w-10 text-slate-300 animate-pulse" aria-hidden />
-        <p className="text-xs font-medium text-slate-500">Chưa mở form — bấm «Kết thúc chu trình tiệt khuẩn».</p>
+        <p className="text-xs font-medium text-slate-500">Chưa mở form — bấm «Xong máy — mở đánh giá QC».</p>
       </div>
     );
   }
@@ -300,14 +300,14 @@ export default function MeTietKhuanProcessQcPanel({
     "bg-emerald-100 text-emerald-700 border-emerald-200";
 
   return (
-    <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-white shadow-sm">
+    <div className={UI.shell}>
       {/* QC Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
         <div className="flex items-center gap-3">
           <Settings2 className="text-[var(--primary)] h-5 w-5" />
           <div>
             <h3 className={UI.panelTitle}>Đánh giá chất lượng QC</h3>
-            <span className={`mt-1 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${machineBadge}`}>
+            <span className={`mt-1 inline-flex items-center rounded-full border px-2.5 py-0.5 bv103-type-label font-semibold ${machineBadge}`}>
               {machineLabel}
             </span>
           </div>
@@ -320,7 +320,7 @@ export default function MeTietKhuanProcessQcPanel({
         )}
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-[var(--bv103-space-3)]">
         {/* === NHÂN SỰ & ĐIỀU KIỆN CƠ BẢN === */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
@@ -329,7 +329,7 @@ export default function MeTietKhuanProcessQcPanel({
               Người dỡ mẻ <span className="text-red-500">*</span>
             </label>
             <input
-              className="h-11 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 text-sm font-bold outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-emerald-50 transition-all"
+              className="h-11 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 bv103-type-section outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-emerald-50 transition-all"
               placeholder="Nhập tên người dỡ..."
               value={nguoiUnload}
               onChange={(e) => setNguoiUnload(e.target.value)}
@@ -341,7 +341,7 @@ export default function MeTietKhuanProcessQcPanel({
               Nhiệt độ & Áp suất <span className="text-red-500">*</span>
             </label>
             <input
-              className="h-11 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 text-sm font-bold outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-emerald-50 transition-all"
+              className="h-11 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 bv103-type-section outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-emerald-50 transition-all"
               placeholder="Ví dụ: 134°C — 2,1 bar"
               value={nhietDo}
               onChange={(e) => setNhietDo(e.target.value)}
@@ -356,7 +356,7 @@ export default function MeTietKhuanProcessQcPanel({
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-[11px] font-semibold text-white">1</span>
               Thông số máy chu trình
             </h4>
-            <span className="text-[11px] font-bold text-red-500 uppercase">Bắt buộc</span>
+            <span className="bv103-type-label font-semibold text-red-500 uppercase">Bắt buộc</span>
           </div>
           <PassFailToggle value={thongSoMayResult} onChange={setThongSoMayResult} />
           {thongSoMayResult === "DAT" && (
@@ -370,7 +370,7 @@ export default function MeTietKhuanProcessQcPanel({
         </div>
 
         {/* === 2. CHỈ THỊ & TEST CHẤT LƯỢNG theo loại máy === */}
-        <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50/60 p-5 space-y-4">
+        <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50/60 p-5 space-y-[var(--bv103-space-3)]">
           <h4 className={`flex items-center gap-2 border-b border-slate-200/60 pb-2 ${UI.sectionTitle}`}>
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-[11px] font-semibold text-white">2</span>
             Chỉ thị & Test chất lượng
@@ -416,9 +416,14 @@ export default function MeTietKhuanProcessQcPanel({
                 showPhoto
               />
             )}
+          </div>
 
-            {/* Test sinh học — tùy chọn cả 3 loại máy */}
-            <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-white p-4 space-y-3 shadow-sm">
+          <details className="rounded-xl border border-slate-200 bg-white p-3">
+            <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-slate-600">
+              Chỉ thị thêm (BIM, Bowie–Dick) — không bắt buộc mỗi mẻ
+            </summary>
+            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="bv103-layer-inset bv103-pad-inset space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-wide text-slate-700">Test sinh học (BIM)</span>
                 <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[11px] font-semibold uppercase text-slate-400">
@@ -429,7 +434,7 @@ export default function MeTietKhuanProcessQcPanel({
                 <button
                   type="button"
                   onClick={() => setTestSinhHoc(testSinhHoc === "DAT" ? "NA" : "DAT")}
-                  className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-black text-xs uppercase tracking-wide transition-all ${
+                  className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-semibold text-xs uppercase tracking-wide transition-all ${
                     testSinhHoc === "DAT"
                       ? "border-emerald-500 bg-emerald-500 text-white shadow-md"
                       : "border-slate-200 bg-white text-slate-500 hover:border-emerald-300 hover:bg-emerald-50"
@@ -440,7 +445,7 @@ export default function MeTietKhuanProcessQcPanel({
                 <button
                   type="button"
                   onClick={() => setTestSinhHoc(testSinhHoc === "KHONG_DAT" ? "NA" : "KHONG_DAT")}
-                  className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-black text-xs uppercase tracking-wide transition-all ${
+                  className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-semibold text-xs uppercase tracking-wide transition-all ${
                     testSinhHoc === "KHONG_DAT"
                       ? "border-red-500 bg-red-500 text-white shadow-md"
                       : "border-slate-200 bg-white text-slate-500 hover:border-red-300 hover:bg-red-50"
@@ -451,7 +456,7 @@ export default function MeTietKhuanProcessQcPanel({
                 <button
                   type="button"
                   onClick={() => setTestSinhHoc("NA")}
-                  className={`px-3 flex items-center justify-center h-11 rounded-xl border-2 font-black text-[11px] uppercase tracking-wide transition-all ${
+                  className={`px-3 flex items-center justify-center h-11 rounded-xl border-2 font-semibold text-[11px] uppercase tracking-wide transition-all ${
                     testSinhHoc === "NA" || testSinhHoc === ""
                       ? "border-slate-300 bg-slate-100 text-slate-500"
                       : "border-slate-200 bg-white text-slate-400 hover:bg-slate-50"
@@ -467,7 +472,7 @@ export default function MeTietKhuanProcessQcPanel({
 
             {/* Bowie-Dick — Steam-only, tùy chọn */}
             {machineType === "STEAM" && showBowieDick && (
-              <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-white p-4 space-y-3 shadow-sm">
+              <div className="bv103-layer-inset bv103-pad-inset space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold uppercase tracking-wide text-slate-700">Bowie–Dick (Steam)</span>
                   <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[11px] font-semibold uppercase text-slate-400">
@@ -478,7 +483,7 @@ export default function MeTietKhuanProcessQcPanel({
                   <button
                     type="button"
                     onClick={() => setTestBD(testBD === "DAT" ? "NA" : "DAT")}
-                    className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-black text-xs uppercase tracking-wide transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-semibold text-xs uppercase tracking-wide transition-all ${
                       testBD === "DAT"
                         ? "border-emerald-500 bg-emerald-500 text-white shadow-md"
                         : "border-slate-200 bg-white text-slate-500 hover:border-emerald-300 hover:bg-emerald-50"
@@ -489,7 +494,7 @@ export default function MeTietKhuanProcessQcPanel({
                   <button
                     type="button"
                     onClick={() => setTestBD(testBD === "KHONG_DAT" ? "NA" : "KHONG_DAT")}
-                    className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-black text-xs uppercase tracking-wide transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-semibold text-xs uppercase tracking-wide transition-all ${
                       testBD === "KHONG_DAT"
                         ? "border-red-500 bg-red-500 text-white shadow-md"
                         : "border-slate-200 bg-white text-slate-500 hover:border-red-300 hover:bg-red-50"
@@ -500,7 +505,7 @@ export default function MeTietKhuanProcessQcPanel({
                   <button
                     type="button"
                     onClick={() => setTestBD("NA")}
-                    className={`px-3 flex items-center justify-center h-11 rounded-xl border-2 font-black text-[11px] uppercase tracking-wide transition-all ${
+                    className={`px-3 flex items-center justify-center h-11 rounded-xl border-2 font-semibold text-[11px] uppercase tracking-wide transition-all ${
                       testBD === "NA"
                         ? "border-slate-300 bg-slate-100 text-slate-500"
                         : "border-slate-200 bg-white text-slate-400 hover:bg-slate-50"
@@ -514,7 +519,8 @@ export default function MeTietKhuanProcessQcPanel({
                 )}
               </div>
             )}
-          </div>
+            </div>
+          </details>
         </div>
 
         {/* === AUTO-FAIL NOTICE === */}

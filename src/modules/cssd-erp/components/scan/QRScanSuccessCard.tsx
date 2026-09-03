@@ -79,9 +79,9 @@ export default function QRScanSuccessCard({
           <h2 className={T.sectionTitle}>Quét thành công</h2>
           <p className="mt-0.5 text-[11px] font-medium text-slate-500">Hệ thống đã ghi nhận bản ghi</p>
 
-          <div className="mt-4 w-full space-y-4 rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50/60 p-4">
+          <div className="mt-4 w-full space-y-[var(--bv103-space-3)] bv103-layer-inset bv103-pad-inset">
             <div className="flex flex-col items-center gap-2">
-              <div className="rounded-[var(--radius-control)] border border-slate-200 bg-white p-2 shadow-sm">
+              <div className="rounded-[var(--radius-control)] bg-white p-2">
                 {qrDataUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={qrDataUrl} alt="QR" className="h-28 w-28 object-contain" />
@@ -107,7 +107,7 @@ export default function QRScanSuccessCard({
                 <p className="text-sm font-semibold leading-snug text-slate-800">{tenBoDungCu}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 rounded-[var(--radius-control)] border border-slate-200 bg-white p-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-0.5">
                   <p className={`flex items-center gap-1 ${T.labelBlock}`}>
                     <User className="h-3 w-3" aria-hidden /> Người thực hiện
@@ -132,13 +132,13 @@ export default function QRScanSuccessCard({
 
             {ledgerWarning ? (
               <div className={`${C.noticeDanger} text-left`}>
-                <p className="text-[11px] font-semibold">Cảnh báo cấu phần (sổ cái)</p>
+                <p className="text-[11px] font-semibold">Thiếu dụng cụ — vẫn cấp</p>
                 <p className="mt-0.5 text-[11px] font-medium leading-relaxed">{ledgerWarning}</p>
               </div>
             ) : null}
           </div>
 
-          <div className="mt-4 flex w-full items-center justify-between gap-3 rounded-[var(--radius-shell)] border border-slate-200 bg-white px-4 py-3 text-left shadow-sm">
+          <div className="mt-4 flex w-full items-center justify-between gap-3 bv103-layer-inset bv103-pad-inset text-left">
             <div>
               <p className={T.labelBlock}>Bước tiếp theo</p>
               <p className="text-sm font-semibold text-slate-800">{buocTiepTheo}</p>

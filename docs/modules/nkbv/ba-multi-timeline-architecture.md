@@ -1,16 +1,17 @@
 # BA — Kiến trúc 3 khối (bảng chung → phân tích → tạo phiếu muộn)
 
-> Hợp đồng UI app pilot. Thuật toán IWP/RIT/SBAP: [`hai-surveillance-domain-ssot-20260804.md`](hai-surveillance-domain-ssot-20260804.md).  
+> Hợp đồng UI app pilot. Thuật toán: [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md). Quy trình ca: [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md). Tận dụng lưới + mẫu báo cáo: [`hai-timeline-and-diagnostic-report-20260827.md`](hai-timeline-and-diagnostic-report-20260827.md).  
 > Legacy lưới 17 hàng: [`ba-cdc-grid-timeline.md`](ba-cdc-grid-timeline.md) (tham chiếu).
 
 ## Luồng chuẩn
 
 ```
-Bảng chung (bằng chứng)
+Tạo BA (LIS nếu chưa có mã / copy HIS / gõ) → trên lưới: chọn khoa theo mã + tích Foley/máy/CVC
+  → copy LIS + CĐHA/TC SSI
   → chọn 1 bệnh phẩm / CĐHA / TC SSI
-  → Bảng phân tích (IWP·DOE·RIT·SBAP·can thiệp)
+  → Bảng phân tích (IWP hoặc SP hoặc Event Period)
   → Kết luận + Ghi chú
-  → nút Tạo phiếu phân tích → form sẵn có → nkbv_fact_su_kien
+  → nút Tạo phiếu phân tích → form sẵn có (khoa/dụng cụ lấy từ lưới) → nkbv_fact_su_kien
 ```
 
 **Cấm** tạo `nkbv_fact_su_kien` ngay khi chọn Index.
@@ -24,47 +25,53 @@ Bảng chung (bằng chứng)
 
 Đổi chế độ → đóng phiên đang mở. Nháp phiên localStorage tách key theo mode (`…:CDC` / `…:MANUAL`).
 
-## Khối 1 — Bảng chung (6 hàng)
+## Khối 1 — Bảng chung (lưới đang chạy)
 
-| # | Hàng | Hành vi |
-|---|------|---------|
-| 1 | Ngày lịch | Trục cột |
-| 2 | Ngày nằm viện (HD) | HD1 = ngày vào viện; trước VV = `—` |
-| 3 | XN vi sinh | Nhiều XN / ngày. Mỗi chip: bệnh phẩm · VK · số lượng. Click **từng bệnh phẩm** (không chọn cả ô). Badge `Chưa PT` / `Đã PT` / `Bỏ qua`. |
-| 4 | Chẩn đoán hình ảnh | User CRUD: CT / XQ / siêu âm (trong tiêu chuẩn). |
-| 5 | TC xác định DOE SSI | User nhập (chảy mủ / mở vết / cấy vết…). |
-| 6 | Khoa điều trị | Theo ngày (LOA) |
+Lưới **dọc**: **hàng = ngày lịch**, cột dính trái **Date** (ngày dương lịch) và **HD** (ngày nằm viện, HD1 = vào viện; trước vào viện = `—`). Khung mặc định: **2 ngày trước vào viện** → ra viện hoặc hôm nay.
 
-Không đưa lên bảng chung: triệu chứng LS hội chứng, can thiệp, ghi chú phân tích.
+| Cột | Việc |
+|-----|------|
+| Date | Trục ngày lịch |
+| HD | Số ngày nằm viện |
+| XN | Nhiều chip / ngày; bấm từng bệnh phẩm; badge chưa PT / đã PT / bỏ qua |
+| CĐHA | Tick XQ/CT phổi hoặc áp xe (SSI) |
+| TC SSI | Ngày mổ + tiêu chuẩn vết mổ |
+| *(khi đang phân tích)* | Index X · IWP·LS · RIT · SBAP — cùng hàng ngày |
+| Khoa | Chọn **danh sách khoa theo mã** (không gõ tự do); lưu bệnh án; đổi/xóa → phiếu theo |
+| CVC / Vent / Foley | Tick theo ngày (lưu mốc BA) |
+| Kết luận / Ghi chú | Sau khi chọn Index |
 
-Nguồn: VS ← `nkbv_fact_vi_sinh`; CĐHA + TC SSI ← `nkbv_fact_ba_timeline`; can thiệp chỉ ở khối 2 ← `nkbv_fact_device_registry`.
+Triệu chứng hội chứng (sốt, đau…) nhập ở cột **IWP · LS** khi đã chọn Ngày X — ghi vào bệnh án, không nằm cột bảng chung lúc chưa chọn.
 
-## Khối 2 — Bảng phân tích (8 hàng)
+Nguồn: XN ← kho vi sinh; CĐHA + TC SSI + tick dụng cụ ← bảng mốc BA; HD ← ngày vào viện trên hồ sơ.
 
-Mở khi chọn bệnh phẩm / CĐHA / TC SSI. Cùng trục cột ngày với bảng chung.
+## Khối 2 — Cột phân tích (cùng hàng ngày, không bảng khác)
 
-| # | Hàng | Hành vi |
-|---|------|---------|
-| 1–2 | Ngày lịch · HD | Đồng bộ bảng chung |
-| 3 | Ngày X | Index = ngày XN / CĐHA đã chọn |
-| 4 | CĐHA | Lôi CĐHA liên quan hội chứng từ bảng chung; highlight **IWP** |
-| 5 | Triệu chứng LS | Highlight IWP; user chọn TC; ngày TC sớm nhất = **DOE** (màu khác) |
-| 6 | RIT | Highlight DOE → DOE+13 **ngay khi mở phiên** (ứng viên, không chờ đủ TC). Lôi VS **cùng loại bệnh phẩm** + **CĐHA** ∈ RIT (Index = XQ vẫn gợi ý đờm/NT theo hội chứng). Mục đích: loại trừ không mở SK mới với mẫu đó. |
-| 7 | SBAP | Highlight cửa sổ SBAP **ngay khi mở phiên**. Lôi **cấy máu**; badge **trùng VK** khi khớp pack RIT (đờm/NT/vết mổ…). Mục đích: quy kết NKH thứ phát, không PT lại máu. |
-| 8 | Can thiệp | Foley / CVC / Vent theo hội chứng (Registry) |
+Mở khi chọn bệnh phẩm / CĐHA / TC SSI. **Cùng hàng Date/HD** với bảng chung.
 
-SSI: cửa sổ **SP 30/90** (không giả IWP±3). VAE: Event Period 14d.
+| Cột | Việc |
+|-----|------|
+| Index X | Ngày X = ngày XN / CĐHA / TC đã chọn |
+| IWP · LS | Tô ±3 ngày (hoặc SP SSI / 14 ngày VAE); nhập triệu chứng; ngày TC sớm nhất = ngày sự kiện (DOE) |
+| RIT | Tô từ ngày sự kiện → +13 ngày; gom XN cùng loại + CĐHA — không mở ca mới cùng loại |
+| SBAP | Tô khung cấy máu; badge trùng vi khuẩn → nhiễm khuẩn huyết thứ phát |
+
+Foley / CVC / Vent **đã nằm bảng chung** (không tách hàng riêng khối 2).
+
+SSI: cửa sổ **30/90 ngày từ ngày mổ** (không giả ±3). VAE: 14 ngày từ ngày xấu đi.
 
 ### Map bệnh phẩm → hội chứng
 
 | Chọn | Mở |
 |------|-----|
-| Đờm / ETA / BAL / hô hấp | PNEU (hoặc VAE nếu IP chọn) |
+| Đờm / ETA / BAL / hô hấp | VAE nếu người lớn + thở máy eligible; không thì PNEU — **không** mặc định VAP |
 | Nước tiểu | UTI |
+| Dịch/mô tiết niệu không phải nước tiểu | USI (Ch.17; app chưa) |
 | Dịch / mô vết mổ | SSI (SP) |
-| Máu | BSI sau cổng Secondary / site |
-| CĐHA phổi | PNEU |
+| Máu | Secondary **trước** BSI/CLABSI |
+| CĐHA phổi | PNEU (hoặc bổ sung VAE nếu đang vent) |
 | TC SSI | SSI |
+| Dịch/mô site khác | Ch.17 |
 
 ## Khối 3 — Kết luận + tạo phiếu muộn
 

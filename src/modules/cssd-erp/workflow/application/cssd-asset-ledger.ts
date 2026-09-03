@@ -52,8 +52,17 @@ export async function assertLedgerDuChoCapPhat(
     })
     .join(", ");
 
+  const totalThieu = missing.reduce((n, r) => {
+    const row = r as { missing_count?: number; so_luong_thuc_te?: number; so_luong_tieu_chuan?: number };
+    return (
+      n +
+      (Number(row.missing_count ?? 0) ||
+        Math.max(0, Number(row.so_luong_tieu_chuan ?? 0) - Number(row.so_luong_thuc_te ?? 0)))
+    );
+  }, 0);
+
   return {
     ok: true,
-    warning: `Thiếu cấu phần so với thiết kế: ${summary}.`,
+    warning: `Thiếu ${totalThieu} món — vẫn cấp, đã ghi nhận. ${summary}.`,
   };
 }

@@ -6,9 +6,9 @@ import {
 } from "./khoa-display";
 
 describe("formatKhoaPickerLabel", () => {
-  it("ghép Mã - Tên", () => {
+  it("ghép Mã | Tên", () => {
     expect(formatKhoaPickerLabel({ ma_khoa: "A05", ten_khoa: "Khoa truyền nhiễm" })).toBe(
-      "A05 - Khoa truyền nhiễm",
+      "A05 | Khoa truyền nhiễm",
     );
   });
 
@@ -21,7 +21,7 @@ describe("formatKhoaPickerLabel", () => {
   });
 
   it("nhận alias ma/ten_danh_muc", () => {
-    expect(formatKhoaPickerLabel({ ma: "C18", ten_danh_muc: "KSNK" })).toBe("C18 - KSNK");
+    expect(formatKhoaPickerLabel({ ma: "C18", ten_danh_muc: "KSNK" })).toBe("C18 | KSNK");
   });
 });
 
@@ -40,7 +40,11 @@ describe("formatKhoaCompactLabel", () => {
 });
 
 describe("parseMaFromKhoaOptionLabel", () => {
-  it("parse Mã - Tên", () => {
+  it("parse Mã | Tên", () => {
+    expect(parseMaFromKhoaOptionLabel("A05 | Khoa truyền nhiễm")).toBe("A05");
+  });
+
+  it("parse Mã - Tên (cũ)", () => {
     expect(parseMaFromKhoaOptionLabel("A05 - Khoa truyền nhiễm")).toBe("A05");
   });
 

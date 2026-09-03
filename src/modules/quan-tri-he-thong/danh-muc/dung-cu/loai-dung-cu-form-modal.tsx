@@ -1,19 +1,22 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { X, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
-import { saveLoaiDungCuAction } from "../actions/loai-dung-cu.actions";
+import { listActiveTramCssdForLoaiAction, saveLoaiDungCuAction } from "../actions/loai-dung-cu.actions";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import { getDanhMucAdminPath } from "@/lib/master-data/danh-muc-admin-routes";
 import {
   mapIsChiuNhietToKhaNang,
   mapKhaNangToIsChiuNhiet,
   normalizeSpauldingForMaster,
   normalizeSterileMethodForMaster,
+  resolveSuggestedTramFromCatalog,
   suggestCssdStationFromMaster,
   type CssdSpaulding,
   type CssdSterileMethod,
+  type CssdTramCatalogRow,
 } from "@/lib/master-data/cssd-loai-dung-cu-map";
 
 type FormData = {
@@ -83,6 +86,7 @@ export default function LoaiDungCuFormModal({
   const seed = useMemo(() => mapForm(initialData), [initialData]);
   const [form, setForm] = useState<FormData>(seed);
   const [loading, setLoading] = useState(false);
+  const [trams, setTrams] = useState<CssdTramCatalogRow[]>([]);
   const isEdit = Boolean(initialData?.id);
   const stationHint = useMemo(
     () =>
@@ -93,6 +97,22 @@ export default function LoaiDungCuFormModal({
       }),
     [form.phan_loai_spaulding, form.phuong_phap_tiet_khuan, form.kha_nang_chiu_nhiet],
   );
+  const resolvedTram = useMemo(
+    () => resolveSuggestedTramFromCatalog(stationHint.maTramGoiY, trams),
+    [stationHint.maTramGoiY, trams],
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    let live = true;
+    void listActiveTramCssdForLoaiAction().then((res) => {
+      if (!live) return;
+      if (res.success) setTrams(res.data);
+    });
+    return () => {
+      live = false;
+    };
+  }, [open]);
 
   if (!open) return null;
 
@@ -116,14 +136,15 @@ export default function LoaiDungCuFormModal({
     });
     setLoading(false);
     if (!result.success) return toast.error(result.error || "Không lưu được loại dụng cụ.");
+    if (result.warning) toast.warning(result.warning);
     toast.success(isEdit ? "Đã cập nhật loại dụng cụ." : "Đã thêm loại dụng cụ.");
     onSaved();
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-      <form onSubmit={save} className="bg-white w-full max-w-2xl rounded-[var(--radius-shell)] p-8 space-y-4 shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)] max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50">
+      <form onSubmit={save} className="bg-white w-full max-w-2xl rounded-[var(--radius-shell)] p-8 space-y-[var(--bv103-space-3)] shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)] max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <h3 className={C.modalTitleLight}>
             {isEdit ? "Cập nhật loại dụng cụ" : "Thêm loại dụng cụ"}
@@ -195,9 +216,20 @@ export default function LoaiDungCuFormModal({
         <p className="rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-xs text-emerald-950">
           <strong>Gợi ý trạm CSSD:</strong> {stationHint.maTramGoiY}
           <span className="mt-0.5 block text-[11px] font-normal text-emerald-800/90">{stationHint.lyDo}</span>
-          <span className="mt-0.5 block text-[11px] text-slate-500">
-            Đối chiếu mã với danh mục «Trạm workflow CSSD» tại Quản trị. Không tự ghi đè quy trình đang chạy.
-          </span>
+          {resolvedTram ? (
+            <span className="mt-0.5 block text-[11px] font-semibold text-emerald-900">
+              Trạm thật: {resolvedTram.ten} ({resolvedTram.ma})
+              {resolvedTram.matchedBy === "alias" ? ` — khớp từ ${stationHint.maTramGoiY}` : ""}
+            </span>
+          ) : (
+            <span className="mt-0.5 block text-[11px] font-medium text-amber-800">
+              Chưa có trạm tương ứng trên sổ viện. Khai tại{" "}
+              <a href={getDanhMucAdminPath("TRAM_CSSD")} className="underline">
+                Trạm workflow CSSD
+              </a>
+              . Lưu loại vẫn được — không ghi id trạm giả.
+            </span>
+          )}
         </p>
         <MdmFormActiveToggleRow active={form.is_active} onChange={(next) => setForm({ ...form, is_active: next })} />
         <button type="submit" disabled={loading} className={`w-full ${C.btnPrimaryBlock} disabled:opacity-60`}>

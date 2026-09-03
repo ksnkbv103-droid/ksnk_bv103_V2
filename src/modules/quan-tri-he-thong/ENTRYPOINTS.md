@@ -16,4 +16,4 @@
 
 **Không dùng:** `actions/read.actions.ts`, `actions/write.actions.ts` (đã gỡ).
 
-**Deep link:** `/quan-tri-he-thong/phan-quyen` → hub `?tab=phan_quyen`; `/danh-muc/dung-cu/{loai,bo,chi-tiet}` → `?tab=`.
+**Deep link:** `/quan-tri-he-thong/phan-quyen` → hub `?tab=phan_quyen`; `/danh-muc/dung-cu/{loai,bo}` → `?tab=`; `/dung-cu/chi-tiet` → tab bộ.

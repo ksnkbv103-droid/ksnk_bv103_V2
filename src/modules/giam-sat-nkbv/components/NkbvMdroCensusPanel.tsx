@@ -48,10 +48,10 @@ export default function NkbvMdroCensusPanel({ khoas }: { khoas: KhoaOpt[] }) {
   }, [load]);
 
   return (
-    <div className={`${C.sectionGap} space-y-4 rounded-2xl border border-rose-100 bg-rose-50/40 p-4`}>
+    <div className={`${C.sectionGap} space-y-[var(--bv103-space-3)] rounded-[var(--radius-shell)] border border-rose-100 bg-rose-50/40 p-4`}>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h3 className="text-sm font-bold text-rose-950">BN đa kháng đang nằm viện · RCA tuân thủ</h3>
+          <h3 className="bv103-type-section text-rose-950">BN đa kháng đang nằm viện · RCA tuân thủ</h3>
           <p className="text-xs text-rose-900/80">
             Nguồn từ vi sinh (is_mdro) + phiên GSC BM.31.03 / BM.14.01 + ca NKBV cùng BA.
           </p>
@@ -83,7 +83,7 @@ export default function NkbvMdroCensusPanel({ khoas }: { khoas: KhoaOpt[] }) {
         <>
           <div className="overflow-x-auto rounded-xl border border-white bg-white">
             <table className="w-full min-w-[720px] text-left text-xs">
-              <thead className="bg-slate-50 text-[11px] font-bold uppercase text-slate-500">
+              <thead className="bg-slate-50 bv103-type-label text-slate-500">
                 <tr>
                   <th className="px-3 py-2">BN</th>
                   <th className="px-3 py-2">Phenotype</th>
@@ -138,11 +138,11 @@ export default function NkbvMdroCensusPanel({ khoas }: { khoas: KhoaOpt[] }) {
 
           {rcaRows.length > 0 ? (
             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-              <p className="border-b border-slate-100 px-3 py-2 text-[11px] font-bold uppercase text-slate-500">
+              <p className="border-b border-slate-100 px-3 py-2 bv103-type-label text-slate-500">
                 RCA nhanh (BA × MDRO × GSC × ca NKBV)
               </p>
               <table className="w-full min-w-[640px] text-left text-xs">
-                <thead className="bg-slate-50 text-[11px] font-bold uppercase text-slate-500">
+                <thead className="bg-slate-50 bv103-type-label text-slate-500">
                   <tr>
                     <th className="px-3 py-2">BN</th>
                     <th className="px-3 py-2">MDRO</th>

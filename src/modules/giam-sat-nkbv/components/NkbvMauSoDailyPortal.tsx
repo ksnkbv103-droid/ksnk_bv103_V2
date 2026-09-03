@@ -278,7 +278,7 @@ export default function NkbvMauSoDailyPortal({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-[var(--bv103-space-3)]">
       <div className="flex justify-center">
         <div className="inline-flex rounded-full bg-slate-100 p-1">
           <button
@@ -307,7 +307,7 @@ export default function NkbvMauSoDailyPortal({
       </div>
 
       {subTab === "daily" ? (
-        <form onSubmit={handleDailySubmit} className={`${C.panelSurface} p-6 space-y-6`}>
+        <form onSubmit={handleDailySubmit} className={`${C.shell} p-5 space-y-[var(--bv103-space-3)]`}>
           <div className="border-b border-slate-100 pb-4">
             <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
               <Activity className="h-5 w-5 text-[var(--primary)]" />
@@ -456,7 +456,7 @@ export default function NkbvMauSoDailyPortal({
             </div>
           ) : null}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-[var(--bv103-space-3)] pt-2">
             <div className={`${C.panelInset} p-4 space-y-2`}>
               <div className="flex items-center justify-between">
                 <span className={C.labelField}>BN hiện diện (patient-days)</span>
@@ -468,7 +468,7 @@ export default function NkbvMauSoDailyPortal({
                 value={patientDays || ""}
                 onChange={(e) => setPatientDays(parseInt(e.target.value) || 0)}
                 placeholder="Số BN đúng ngày này"
-                className="w-full border-0 bg-transparent text-xl font-extrabold focus:ring-0 p-0 text-slate-800"
+                className="w-full border-0 bg-transparent text-xl font-semibold focus:ring-0 p-0 text-slate-800"
                 required
               />
               <p className="text-[11px] text-slate-400">
@@ -487,7 +487,7 @@ export default function NkbvMauSoDailyPortal({
                 value={cvcDays || ""}
                 onChange={(e) => setCvcDays(parseInt(e.target.value) || 0)}
                 placeholder="CVC-days đúng ngày"
-                className="w-full border-0 bg-transparent text-xl font-extrabold focus:ring-0 p-0 text-slate-800"
+                className="w-full border-0 bg-transparent text-xl font-semibold focus:ring-0 p-0 text-slate-800"
               />
               <p className="text-[11px] text-slate-400">
                 Số BN đang đặt catheter TMTT đúng ngày báo cáo.
@@ -505,7 +505,7 @@ export default function NkbvMauSoDailyPortal({
                 value={foleyDays || ""}
                 onChange={(e) => setFoleyDays(parseInt(e.target.value) || 0)}
                 placeholder="Foley-days đúng ngày"
-                className="w-full border-0 bg-transparent text-xl font-extrabold focus:ring-0 p-0 text-slate-800"
+                className="w-full border-0 bg-transparent text-xl font-semibold focus:ring-0 p-0 text-slate-800"
               />
               <p className="text-[11px] text-slate-400">
                 Số BN đang đặt ống thông tiểu Foley đúng ngày báo cáo.
@@ -523,7 +523,7 @@ export default function NkbvMauSoDailyPortal({
                 value={ventDays || ""}
                 onChange={(e) => setVentDays(parseInt(e.target.value) || 0)}
                 placeholder="Vent-days đúng ngày"
-                className="w-full border-0 bg-transparent text-xl font-extrabold focus:ring-0 p-0 text-slate-800"
+                className="w-full border-0 bg-transparent text-xl font-semibold focus:ring-0 p-0 text-slate-800"
               />
               <p className="text-[11px] text-slate-400">
                 Số BN đang thở máy xâm lấn đúng ngày báo cáo.
@@ -541,7 +541,7 @@ export default function NkbvMauSoDailyPortal({
                 value={emvEpisodes || ""}
                 onChange={(e) => setEmvEpisodes(parseInt(e.target.value) || 0)}
                 placeholder="Đợt bắt đầu đúng ngày"
-                className="w-full border-0 bg-transparent text-xl font-extrabold focus:ring-0 p-0 text-slate-800"
+                className="w-full border-0 bg-transparent text-xl font-semibold focus:ring-0 p-0 text-slate-800"
               />
               <p className="text-[11px] text-slate-400">
                 Số đợt bắt đầu thở máy mới đúng ngày báo cáo.
@@ -560,7 +560,7 @@ export default function NkbvMauSoDailyPortal({
           </div>
         </form>
       ) : (
-        <form onSubmit={handleSurgerySubmit} className={`${C.panelSurface} p-6 space-y-6`}>
+        <form onSubmit={handleSurgerySubmit} className={`${C.shell} p-5 space-y-[var(--bv103-space-3)]`}>
           <div className="border-b border-slate-100 pb-4">
             <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
               <Plus className="h-5 w-5 text-[var(--primary)]" />
@@ -714,7 +714,7 @@ export default function NkbvMauSoDailyPortal({
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-6 pt-2">
+          <div className="flex flex-wrap gap-[var(--bv103-space-3)] pt-2">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"

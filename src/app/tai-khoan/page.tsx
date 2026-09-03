@@ -98,7 +98,7 @@ export default function AccountPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Connection Status Card */}
-        <div className={`space-y-6 p-8 ${C.panelSurface}`}>
+        <div className={`space-y-[var(--bv103-space-3)] p-8 ${C.panelSurface}`}>
           <div className="flex items-center gap-4">
             <div className={`rounded-[var(--radius-shell)] p-3 ${isLinked ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
               {isLinked ? <CheckCircle size={24} /> : <AlertTriangle size={24} />}
@@ -107,7 +107,7 @@ export default function AccountPage() {
           </div>
 
           {isLinked ? (
-            <div className="space-y-4">
+            <div className="space-y-[var(--bv103-space-3)]">
               <div className={`space-y-2 p-4 ${C.noticeSuccess}`}>
                 <p className={T.labelBlock}>Hồ sơ đã kết nối</p>
                 <div className="flex items-center justify-between">
@@ -120,7 +120,7 @@ export default function AccountPage() {
               </p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-[var(--bv103-space-3)]">
               <p className={`${T.pageSubtitle} font-medium`}>
                 Tài khoản này chưa được liên kết với hồ sơ nhân sự. Vui lòng thực hiện liên kết để sử dụng đầy đủ các tính năng giám sát.
               </p>
@@ -134,7 +134,7 @@ export default function AccountPage() {
                   Bắt đầu liên kết hồ sơ
                 </button>
               ) : (
-                <form onSubmit={handleLink} className="space-y-4 animate-in zoom-in-95 duration-300">
+                <form onSubmit={handleLink} className="space-y-[var(--bv103-space-3)] animate-in zoom-in-95 duration-300">
                   <div className="relative">
                     <input 
                       type="text" 
@@ -169,7 +169,7 @@ export default function AccountPage() {
         </div>
 
         {/* Security Info Card */}
-        <div className={`space-y-6 bg-slate-900 p-8 text-white shadow-[var(--shadow-app-soft)] ${C.panelSurface}`}>
+        <div className={`space-y-[var(--bv103-space-3)] bg-slate-900 p-8 text-white shadow-[var(--shadow-app-soft)] ${C.panelSurface}`}>
           <div className="flex items-center gap-4">
             <div className="rounded-[var(--radius-shell)] bg-white/10 p-3 text-[var(--primary)]">
               <Shield size={24} />
@@ -177,7 +177,7 @@ export default function AccountPage() {
             <h3 className="text-sm font-semibold text-white">An toàn & Bảo mật</h3>
           </div>
 
-          <div className="space-y-4 pt-4">
+          <div className="space-y-[var(--bv103-space-3)] pt-4">
             <div className="flex items-start gap-3">
               <div className="mt-2 h-1 w-1 shrink-0 rounded-full bg-[var(--primary)]" />
               <p className={`${T.pageSubtitle} font-medium text-slate-300`}>

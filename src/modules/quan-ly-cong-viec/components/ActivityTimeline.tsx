@@ -136,7 +136,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
   }
 
   return (
-    <div className="relative space-y-6 before:absolute before:inset-0 before:ml-[21px] before:h-full before:w-0.5 before:-translate-x-px before:bg-slate-100">
+    <div className="relative space-y-[var(--bv103-space-3)] before:absolute before:inset-0 before:ml-[21px] before:h-full before:w-0.5 before:-translate-x-px before:bg-slate-100">
       {activities.map((activity, index) => {
         const config = getActivityConfig(activity.loai_hoat_dong);
         const hasNarrative = Boolean(activity.noi_dung?.trim());
@@ -145,7 +145,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
         return (
           <div
             key={activity.id}
-            className="group relative flex gap-4 animate-in slide-in-from-left-2 duration-300 sm:gap-5"
+            className="group relative flex gap-4 animate-in slide-in-from-left-2 duration-300 sm:gap-[var(--bv103-space-3)]"
             style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
           >
             <div className="z-10 flex flex-col items-center">
@@ -170,7 +170,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
                       {activity.nguoi?.ho_ten || "Hệ thống"}
                     </span>
                     <span
-                      className={`rounded-lg border px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider ${config.color}`}
+                      className={`rounded-lg border px-2 py-0.5 bv103-type-label font-semibold uppercase tracking-wider ${config.color}`}
                     >
                       {config.label}
                     </span>
@@ -192,7 +192,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
 
                 {activity.phan_tram_hoan_thanh !== null && activity.phan_tram_hoan_thanh > 0 ? (
                   <div className="mt-3 flex items-center gap-3 rounded-xl bg-white/70 p-2.5 ring-1 ring-slate-100">
-                    <span className="w-10 text-[11px] font-bold tabular-nums text-[var(--primary)]">
+                    <span className="w-10 bv103-type-label font-semibold tabular-nums text-[var(--primary)]">
                       {activity.phan_tram_hoan_thanh}%
                     </span>
                     <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200">

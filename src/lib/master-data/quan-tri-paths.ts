@@ -17,9 +17,10 @@ export function quanTriHubHref(tab?: QuanTriHubTab): string {
   return q ? `${QUAN_TRI_HUB_PATH}?tab=${q}` : QUAN_TRI_HUB_PATH;
 }
 
-export type DungCuTab = "loai" | "bo" | "chi-tiet";
+export type DungCuTab = "loai" | "bo";
 
-export function quanTriDungCuHref(tab?: DungCuTab): string {
+/** Bookmark cũ `chi-tiet` → tab bộ (thành phần sửa trong bộ). */
+export function quanTriDungCuHref(tab?: DungCuTab | "chi-tiet"): string {
   if (!tab || tab === "loai") return QUAN_TRI_DUNG_CU_PATH;
-  return `${QUAN_TRI_DUNG_CU_PATH}?tab=${tab}`;
+  return `${QUAN_TRI_DUNG_CU_PATH}?tab=bo`;
 }

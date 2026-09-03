@@ -1,7 +1,7 @@
 /**
  * SSOT layout / form surface toàn BV103 (mức 0 — chỉ chuỗi class).
  *
- * Chuỗi áp dụng (không dùng hook — class Tailwind là literal lúc build):
+ * Chuỗi áp dụng (hook `useBv103Chrome` chỉ trả class — font khóa trong CSS):
  * 1. Token màu/bo góc → `src/app/globals.css` (`:root`)
  * 2. Chuỗi class TSX → file này (`bv103LayoutChrome`)
  * 3. Alias module (tùy chọn) → `*-form-chrome.ts`, `cssd-ui-chrome.ts`
@@ -11,27 +11,26 @@
  * @see docs/modules/giam-sat/layout-primitives.md
  */
 
-const panelSurface =
-  "rounded-[var(--radius-shell)] border border-slate-200/90 bg-white shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]";
+const panelSurface = "bv103-layer-panel";
 
 /** SSOT ô nhập / dropdown trigger — `--radius-control` (globals.css). */
 const controlBase =
-  "bv103-control-h w-full rounded-[var(--radius-control)] border border-slate-200 bg-white text-sm font-medium text-slate-800 shadow-sm outline-none transition-colors focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-[var(--primary)]/15 disabled:cursor-not-allowed disabled:opacity-60";
+  "bv103-control-h w-full rounded-[var(--radius-control)] border border-slate-200 bg-white bv103-type-body text-slate-800 shadow-sm outline-none transition-colors focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-[var(--primary)]/15 disabled:cursor-not-allowed disabled:opacity-60";
 
 const choiceBtnBase =
-  "min-h-[2.75rem] w-full rounded-[var(--radius-control)] border px-2 py-2 text-center text-[11px] font-semibold uppercase tracking-wide transition-colors touch-manipulation";
+  "min-h-[2.75rem] w-full rounded-[var(--radius-control)] border px-2 py-2 text-center bv103-type-label font-semibold uppercase tracking-wide transition-colors touch-manipulation";
 
 /** Nút lựa chọn trên một hàng ngang (checklist GSC) — không `w-full`. */
 const choiceBtnInline =
-  "bv103-control-h inline-flex shrink-0 items-center justify-center rounded-[var(--radius-control)] border px-3 text-[11px] font-semibold uppercase tracking-wide transition-colors touch-manipulation";
+  "bv103-control-h inline-flex shrink-0 items-center justify-center rounded-[var(--radius-control)] border px-3 bv103-type-label font-semibold uppercase tracking-wide transition-colors touch-manipulation";
 
 export const bv103LayoutChrome = {
   controlInput: `${controlBase} px-3`,
   controlSelectTrigger: `flex items-center text-left px-3.5 ${controlBase} hover:border-slate-300 hover:bg-slate-50/90 focus-visible:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20`,
   controlSelectNative: `${controlBase} px-3.5 text-xs font-semibold hover:bg-slate-50/50`,
 
-  labelField: "text-[11px] font-medium text-slate-500",
-  sectionTitle: "text-sm font-semibold text-slate-800",
+  labelField: "bv103-type-label",
+  sectionTitle: "bv103-type-section",
 
   btnPrimary:
     "bv103-control-h inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-[var(--primary)] px-4 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-50",
@@ -49,19 +48,19 @@ export const bv103LayoutChrome = {
 
   segmentGroup: "inline-flex overflow-hidden rounded-[var(--radius-control)] border border-slate-200 shadow-sm",
   segmentBtn:
-    "min-w-[4.5rem] min-h-[2.75rem] flex items-center justify-center border-r border-slate-200 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide transition-colors last:border-r-0",
+    "min-w-[4.5rem] min-h-[2.75rem] flex items-center justify-center border-r border-slate-200 px-3 py-2 bv103-type-label font-semibold uppercase tracking-wide transition-colors last:border-r-0",
   segmentBtnIdle: "bg-white text-slate-600 hover:bg-slate-50",
   segmentBtnYes: "bg-[var(--primary)] text-white border-[var(--primary)]",
   segmentBtnNo: "bg-rose-600 text-white border-rose-600",
 
   chipBadge:
-    "inline-flex h-5 shrink-0 items-center justify-center rounded-full bg-[var(--primary)] px-1.5 text-[11px] font-semibold text-white",
+    "inline-flex h-5 shrink-0 items-center justify-center rounded-full bg-[var(--primary)] px-1.5 bv103-type-label font-semibold text-white",
 
   /** Thanh tab điều hướng — mobile: cuộn ngang, nút ≥44px; desktop: wrap bình thường. */
   navTabStrip:
     "flex gap-1 rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-100/90 p-1 shadow-inner max-sm:w-full max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:scrollbar-hide max-sm:snap-x max-sm:snap-mandatory sm:flex-wrap",
   navTabBtn:
-    "inline-flex min-h-9 shrink-0 snap-start items-center justify-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 touch-manipulation max-sm:max-w-[9.5rem] sm:min-h-[2.75rem] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm sm:shrink sm:min-w-0 sm:max-w-none sm:flex-initial",
+    "inline-flex min-h-9 shrink-0 snap-start items-center justify-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 touch-manipulation max-sm:max-w-[9.5rem] sm:min-h-9 sm:gap-1.5 sm:px-3 sm:text-xs sm:shrink sm:min-w-0 sm:max-w-none sm:flex-initial",
 
   /** Nút hành động trong bảng / lịch sử — cao hơn trên mobile */
   tableActionBtn:
@@ -72,34 +71,34 @@ export const bv103LayoutChrome = {
     "inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-all touch-manipulation sm:h-8 sm:w-8",
 
   panelSurface,
-  panelInset: "rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50/40",
-  panelShellPadded: `${panelSurface} p-5`,
+  panelInset: "bv103-layer-inset",
+  panelShellPadded: `${panelSurface} bv103-pad-panel`,
 
   textarea:
-    "min-h-[7.5rem] w-full resize-none rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 text-sm font-medium text-slate-800 shadow-sm outline-none transition-[box-shadow,border-color] focus:border-[var(--primary)]/40 focus:ring-2 focus:ring-[var(--primary)]/15",
+    "min-h-[7.5rem] w-full resize-none rounded-[var(--radius-shell)] border border-slate-200 bg-white bv103-pad-panel bv103-type-body text-slate-800 shadow-sm outline-none transition-[box-shadow,border-color] focus:border-[var(--primary)]/40 focus:ring-2 focus:ring-[var(--primary)]/15",
   textareaCompact:
-    "min-h-[5.5rem] w-full resize-none rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 text-sm font-medium text-slate-800 shadow-sm outline-none transition-[box-shadow,border-color] focus:border-[var(--primary)]/40 focus:ring-2 focus:ring-[var(--primary)]/15",
+    "min-h-[5.5rem] w-full resize-none rounded-[var(--radius-shell)] border border-slate-200 bg-white bv103-pad-inset bv103-type-body text-slate-800 shadow-sm outline-none transition-[box-shadow,border-color] focus:border-[var(--primary)]/40 focus:ring-2 focus:ring-[var(--primary)]/15",
 
-  labelBlock: "mb-1.5 block text-[11px] font-medium text-slate-500",
-  labelBlockInline: "text-[11px] font-medium text-slate-500",
-  labelBlockAccent: "text-[11px] font-medium text-[var(--primary)]",
+  labelBlock: "mb-[var(--bv103-space-1)] block bv103-type-label",
+  labelBlockInline: "bv103-type-label",
+  labelBlockAccent: "bv103-type-label text-[var(--primary)]",
   noticeSuccess:
-    "rounded-[var(--radius-shell)] border border-[var(--surface-success-border)] bg-[var(--surface-success-bg)] px-3 py-2 text-xs font-medium text-[var(--surface-success-text)]",
+    "rounded-[var(--radius-shell)] border border-[var(--surface-success-border)] bg-[var(--surface-success-bg)] bv103-pad-inset bv103-type-body text-[var(--surface-success-text)]",
   noticeWarning:
-    "rounded-[var(--radius-shell)] border border-[var(--surface-warning-border)] bg-[var(--surface-warning-bg)] px-3 py-2 text-xs font-medium text-[var(--surface-warning-text)]",
+    "rounded-[var(--radius-shell)] border border-[var(--surface-warning-border)] bg-[var(--surface-warning-bg)] bv103-pad-inset bv103-type-body text-[var(--surface-warning-text)]",
   noticeDanger:
-    "rounded-[var(--radius-shell)] border border-[var(--surface-danger-border)] bg-[var(--surface-danger-bg)] px-3 py-2 text-xs font-medium text-[var(--surface-danger-text)]",
+    "rounded-[var(--radius-shell)] border border-[var(--surface-danger-border)] bg-[var(--surface-danger-bg)] bv103-pad-inset bv103-type-body text-[var(--surface-danger-text)]",
   noticeInfo:
-    "rounded-[var(--radius-shell)] border border-[var(--surface-info-border)] bg-[var(--surface-info-bg)] px-3 py-2 text-xs font-medium text-[var(--surface-info-text)]",
+    "rounded-[var(--radius-shell)] border border-[var(--surface-info-border)] bg-[var(--surface-info-bg)] bv103-pad-inset bv103-type-body text-[var(--surface-info-text)]",
   /** @deprecated — alias `noticeWarning` */
   noticeAmber:
-    "rounded-[var(--radius-shell)] border border-[var(--surface-warning-border)] bg-[var(--surface-warning-bg)] px-3 py-2 text-xs font-medium text-[var(--surface-warning-text)]",
+    "rounded-[var(--radius-shell)] border border-[var(--surface-warning-border)] bg-[var(--surface-warning-bg)] bv103-pad-inset bv103-type-body text-[var(--surface-warning-text)]",
   /** @deprecated — alias `noticeInfo` */
   noticeSlate:
-    "rounded-[var(--radius-shell)] border border-[var(--surface-info-border)] bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700",
+    "rounded-[var(--radius-shell)] border border-[var(--surface-info-border)] bg-slate-50 bv103-pad-inset bv103-type-body text-slate-700",
   /** @deprecated Không dùng cho intro panel — copy vận hành = tên + nút (page-chrome §7). */
   noticeSlateRelaxed:
-    "rounded-[var(--radius-shell)] border border-[var(--surface-info-border)] bg-slate-50 px-3 py-2.5 text-xs font-medium leading-relaxed text-slate-700",
+    "rounded-[var(--radius-shell)] border border-[var(--surface-info-border)] bg-slate-50 bv103-pad-inset bv103-type-body leading-relaxed text-slate-700",
   noticeViolet:
-    "rounded-[var(--radius-shell)] border border-violet-100 bg-violet-50/90 px-4 py-3 text-xs font-medium text-violet-900",
+    "rounded-[var(--radius-shell)] border border-violet-100 bg-violet-50/90 bv103-pad-inset bv103-type-body text-violet-900",
 } as const;

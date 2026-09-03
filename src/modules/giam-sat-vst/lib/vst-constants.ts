@@ -16,6 +16,19 @@ export const ACTIONS = [
 
 export type ActionType = (typeof ACTIONS)[number];
 
+/** Bỏ sót = không tuân thủ. */
+export function isVstMissedAction(hanhDong: string | null | undefined): boolean {
+  return hanhDong === "Bỏ sót";
+}
+
+/**
+ * Số chỉ định WHO tối đa trên một cơ hội:
+ * tuân thủ (rửa tay / chà cồn) → 2; không tuân thủ (bỏ sót) → 1.
+ */
+export function vstMaxIndications(hanhDong: string | null | undefined): 1 | 2 {
+  return isVstMissedAction(hanhDong) ? 1 : 2;
+}
+
 export interface VSTOpportunity {
   thoi_diems: MomentType[];
   hanh_dong: ActionType | null;

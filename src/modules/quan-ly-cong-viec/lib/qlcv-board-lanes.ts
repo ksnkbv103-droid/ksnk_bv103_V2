@@ -1,8 +1,6 @@
 /**
- * Map phiếu → lane Kanban (một hàm, thứ tự ưu tiên).
- *
- * QUA_HAN (P0-3): khớp view `v_qlcv_cong_viec_full.is_qua_han` + cron `fn_sync_overdue_tasks`
- * (ghi `trang_thai=QUA_HAN`). FE còn soi hạn local để hiện quá hạn trước khi cron chạy.
+ * Map phiếu → lane Kanban (đời sống việc — không dùng quá hạn làm cột riêng).
+ * Quá hạn là nhãn (`isQlcvBoardOverdue`): mã DB / cờ view / hạn đã qua.
  */
 
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
@@ -11,7 +9,6 @@ import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet, type CongViecLike } from "./
 export type QlcvBoardLaneId =
   | "lane_da_huy"
   | "lane_hoan_thanh"
-  | "lane_qua_han"
   | "lane_cho_duyet"
   | "lane_dang_lam"
   | "lane_de_xuat";
@@ -25,7 +22,6 @@ export type CongViecBoardInput = CongViecLike & {
 export type KanbanColumnId =
   | "DE_XUAT"
   | "DANG_LAM"
-  | "QUA_HAN"
   | "CHO_DUYET"
   | "HOAN_THANH"
   | "DA_HUY";
@@ -50,13 +46,8 @@ export function getBoardLaneId(t: CongViecBoardInput): QlcvBoardLaneId {
   const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
   if (st === "DA_HUY") return "lane_da_huy";
   if (st === "HOAN_THANH") return "lane_hoan_thanh";
-  // Đề xuất chưa duyệt trước quá hạn — tránh nhảy cột Quá hạn khi có hạn cũ.
   if (isDeXuatChoDuyet(t)) return "lane_de_xuat";
-
-  if (isQlcvBoardOverdue(t)) return "lane_qua_han";
-
   if (isChoNghiemThuHoanThanh(t)) return "lane_cho_duyet";
-
   return "lane_dang_lam";
 }
 
@@ -65,8 +56,6 @@ export function boardLaneToKanbanColumn(lane: QlcvBoardLaneId, showProposalColum
   switch (lane) {
     case "lane_dang_lam":
       return "DANG_LAM";
-    case "lane_qua_han":
-      return "QUA_HAN";
     case "lane_cho_duyet":
       return "CHO_DUYET";
     case "lane_hoan_thanh":
@@ -81,7 +70,7 @@ export function getKanbanColumnIdForTask(t: CongViecBoardInput, showProposalColu
 }
 
 export function isBoardLaneQuaHan(t: CongViecBoardInput): boolean {
-  return getBoardLaneId(t) === "lane_qua_han";
+  return isQlcvBoardOverdue(t);
 }
 
 export function isBoardLaneDangLam(t: CongViecBoardInput): boolean {

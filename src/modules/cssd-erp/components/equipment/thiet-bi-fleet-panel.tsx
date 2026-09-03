@@ -13,18 +13,19 @@ import ThietBiPrintQrButton from "./thiet-bi-print-qr-button";
 import { matchesDeviceCode, normalizeCssdCode } from "../../shared/domain/cssd-qr-core";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 
-function pmBadgeClass(status: ThietBiFleetRow["pm_status"]) {
-  if (status === "QUA_HAN") return "bg-red-50 text-red-700 border-red-200";
-  if (status === "SAP_DEN") return "bg-amber-50 text-amber-800 border-amber-200";
-  if (status === "CHUA_CO_LICH") return "bg-slate-50 text-slate-600 border-slate-200";
-  return "bg-emerald-50 text-emerald-700 border-emerald-200";
+function pmStatusClass(status: ThietBiFleetRow["pm_status"]) {
+  if (status === "QUA_HAN") return bv103TableLayout.statusDanger;
+  if (status === "SAP_DEN") return bv103TableLayout.statusWarn;
+  if (status === "CHUA_CO_LICH") return bv103TableLayout.statusMuted;
+  return bv103TableLayout.statusOk;
 }
 
-function statusBadgeClass(st: string | null) {
-  if (st === "REPAIRING") return "bg-blue-50 text-blue-700 border-blue-200";
-  if (st === "BROKEN") return "bg-red-50 text-red-700 border-red-200";
-  if (st === "RETIRED") return "bg-slate-100 text-slate-500 border-slate-200";
-  return "bg-emerald-50 text-emerald-700 border-emerald-200";
+function mayStatusClass(st: string | null) {
+  if (st === "REPAIRING") return bv103TableLayout.statusInfo;
+  if (st === "HOLD_QC") return bv103TableLayout.statusWarn;
+  if (st === "BROKEN") return bv103TableLayout.statusDanger;
+  if (st === "RETIRED") return bv103TableLayout.statusMuted;
+  return bv103TableLayout.statusOk;
 }
 
 export default function ThietBiFleetPanel() {
@@ -65,12 +66,13 @@ export default function ThietBiFleetPanel() {
 
   const ready = rows.filter((x) => ["READY", "HOAT_DONG"].includes(String(x.trang_thai || ""))).length;
   const repairing = rows.filter((x) => x.trang_thai === "REPAIRING").length;
+  const holdQc = rows.filter((x) => x.trang_thai === "HOLD_QC").length;
   const overduePm = rows.filter((x) => x.pm_status === "QUA_HAN").length;
 
   const columns = useMemo<Column<ThietBiFleetRow>[]>(
     () => [
       {
-        header: "Mã / QR",
+        header: "Mã / Qr",
         accessorKey: "ma_thiet_bi",
         sortable: true,
         headerClassName: bv103TableLayout.colCodeQr,
@@ -115,17 +117,14 @@ export default function ThietBiFleetPanel() {
         cell: (m) => {
           const label = trangThaiMayLabel(m.trang_thai);
           return (
-            <span
-              className={`inline-flex max-w-full truncate rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase ${statusBadgeClass(m.trang_thai)}`}
-              title={label}
-            >
+            <span className={mayStatusClass(m.trang_thai)} title={label}>
               {label}
             </span>
           );
         },
       },
       {
-        header: "PM",
+        header: "Pm",
         accessorKey: "pm_status",
         sortable: true,
         headerClassName: bv103TableLayout.colStatus,
@@ -134,10 +133,7 @@ export default function ThietBiFleetPanel() {
           const label = pmDueLabel(m.pm_status);
           return (
             <div className="min-w-0 space-y-0.5">
-              <span
-                className={`inline-flex max-w-full truncate rounded-full border px-2 py-0.5 text-[11px] font-semibold uppercase ${pmBadgeClass(m.pm_status)}`}
-                title={label}
-              >
+              <span className={pmStatusClass(m.pm_status)} title={label}>
                 {label}
               </span>
               {m.ngay_bao_tri_tiep_theo ? (
@@ -165,7 +161,7 @@ export default function ThietBiFleetPanel() {
         },
       },
       {
-        header: "Mẻ TK",
+        header: "Mẻ tk",
         accessorKey: "so_me_tk",
         sortable: true,
         headerClassName: bv103TableLayout.colNarrow,
@@ -205,6 +201,7 @@ export default function ThietBiFleetPanel() {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-white px-3 py-2 text-[11px] shadow-sm">
         <StatInline label="Sẵn sàng" value={ready} icon={<CheckCircle2 size={14} />} tone="emerald" />
         <StatInline label="Đang BD" value={repairing} icon={<Wrench size={14} />} tone="blue" />
+        <StatInline label="Tạm giữ QC" value={holdQc} icon={<AlertTriangle size={14} />} tone="amber" />
         <StatInline label="Quá hạn PM" value={overduePm} icon={<AlertTriangle size={14} />} tone="red" />
       </div>
 
@@ -217,11 +214,11 @@ export default function ThietBiFleetPanel() {
           columns={columns}
           data={rows}
           loading={loading}
-          searchPlaceholder="Tìm mã, tên máy…"
+          searchPlaceholder="Tìm tên, mã máy hoặc quét QR…"
           enableQrScan
           onQrScan={applyScan}
           emptyMessage="Không có máy khớp tìm kiếm."
-          rowClassName={(m) => (highlightId === m.id ? "bg-[var(--primary)]/5 ring-1 ring-inset ring-[var(--primary)]/25" : "")}
+          rowClassName={(m) => (highlightId === m.id ? bv103TableLayout.rowSelected : "")}
           tableClassName={bv103TableLayout.tableFixed}
         />
       )}
@@ -238,10 +235,16 @@ function StatInline({
   label: string;
   value: number;
   icon: React.ReactNode;
-  tone: "emerald" | "blue" | "red";
+  tone: "emerald" | "blue" | "red" | "amber";
 }) {
   const toneClass =
-    tone === "red" ? "text-red-600" : tone === "blue" ? "text-blue-600" : "text-emerald-600";
+    tone === "red"
+      ? "text-red-600"
+      : tone === "blue"
+        ? "text-blue-600"
+        : tone === "amber"
+          ? "text-amber-700"
+          : "text-emerald-600";
   return (
     <span className={`inline-flex items-center gap-1.5 font-semibold ${toneClass}`}>
       {icon}

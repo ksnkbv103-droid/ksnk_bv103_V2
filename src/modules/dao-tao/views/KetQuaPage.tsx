@@ -15,12 +15,15 @@ import {
 } from "@/modules/dao-tao/components/DaoTaoChrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
+import { labelLoaiCau } from "@/lib/dao-tao/labels";
+import { cn } from "@/lib/utils";
 
 export default function KetQuaPage() {
   const params = useParams<{ lanThiId: string }>();
   const [data, setData] = useState<Awaited<ReturnType<typeof getLanThiForTake>> | null>(
     null,
   );
+  const [filter, setFilter] = useState<"all" | "sai" | "dung">("all");
 
   useEffect(() => {
     void getLanThiForTake(params.lanThiId)
@@ -37,6 +40,12 @@ export default function KetQuaPage() {
   }
 
   const { lanThi, questions } = data;
+  const visible = questions.filter((q) => {
+    const dung = (q as { dung?: boolean | null }).dung;
+    if (filter === "sai") return dung === false;
+    if (filter === "dung") return dung === true;
+    return true;
+  });
   const datLabel =
     lanThi.cheDo === "thi_that" && lanThi.dat != null
       ? lanThi.dat
@@ -51,7 +60,7 @@ export default function KetQuaPage() {
         subtitle={lanThi.cheDo === "thi_thu" ? "Không tính chứng nhận." : undefined}
         actions={
           <Link href="/dao-tao" className={daoTaoBtnSecondary}>
-            Về cổng Đào tạo
+            Về cổng thi
           </Link>
         }
       />
@@ -77,17 +86,38 @@ export default function KetQuaPage() {
         ) : null}
         <p className="mt-1 text-[11px] text-slate-500">
           {lanThi.trangThai === "het_gio" ? "Nộp khi hết giờ" : "Đã nộp"}
-          {lanThi.nopLuc
-            ? ` · ${formatDateTimeVi(lanThi.nopLuc)}`
-            : ""}
+          {lanThi.nopLuc ? ` · ${formatDateTimeVi(lanThi.nopLuc)}` : ""}
         </p>
+        <div className="mt-3 flex flex-wrap gap-1">
+          {(
+            [
+              ["all", "Tất cả"],
+              ["sai", "Câu sai"],
+              ["dung", "Câu đúng"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              className={cn(
+                "inline-flex h-9 items-center rounded-[var(--radius-control)] px-3 text-sm font-medium touch-manipulation",
+                filter === id
+                  ? "bg-[var(--primary)]/10 text-[var(--primary)]"
+                  : "text-slate-600 hover:bg-slate-50",
+              )}
+              onClick={() => setFilter(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </DaoTaoPanel>
 
-      <div className="space-y-4">
-        {questions.map((q) => (
+      <div className="space-y-[var(--bv103-space-3)]">
+        {visible.map((q) => (
           <div key={q.id} className="space-y-1.5">
             <p className={T.labelBlock}>
-              Câu {q.thuTu} · Bloom {q.bloomLevel} · {q.loai}
+              Câu {q.thuTu} · {labelLoaiCau(q.loai)}
             </p>
             <DaoTaoQuestionCard
               loai={q.loai}
@@ -102,6 +132,9 @@ export default function KetQuaPage() {
             />
           </div>
         ))}
+        {visible.length === 0 ? (
+          <p className="text-sm text-slate-500">Không có câu trong nhóm này.</p>
+        ) : null}
       </div>
     </DaoTaoPage>
   );

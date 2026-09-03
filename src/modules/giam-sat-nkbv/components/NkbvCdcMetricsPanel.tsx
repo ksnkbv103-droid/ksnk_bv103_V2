@@ -30,7 +30,7 @@ export default function NkbvCdcMetricsPanel({
 }: NkbvCdcMetricsPanelProps) {
   if (!metrics) {
     return (
-      <div className={`${C.sectionGap} ${C.panelInset} p-6 text-center text-xs text-slate-400 font-medium italic animate-in fade-in duration-200`}>
+      <div className={`${C.sectionGap} ${C.panelInset} p-6 text-center bv103-type-note animate-in fade-in duration-200`}>
         Điền Ngày phát hiện và Triệu chứng để mở bản đồ CDC.
       </div>
     );
@@ -57,7 +57,7 @@ export default function NkbvCdcMetricsPanel({
   const device = getDeviceLabels();
 
   return (
-    <div className={`${C.panelSurface} p-5 space-y-6 animate-in fade-in duration-300`}>
+    <div className={`${C.panelSurface} p-5 space-y-[var(--bv103-space-3)] animate-in fade-in duration-300`}>
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div className="flex items-center gap-2">
           <div className="bg-[var(--primary)]/10 p-1.5 rounded-xl text-[var(--primary)]">
@@ -74,7 +74,7 @@ export default function NkbvCdcMetricsPanel({
       </div>
 
       {/* Sequential 7 Steps Diagnostic Timeline */}
-      <div className="relative border-l-2 border-slate-100 pl-6 ml-3 space-y-5">
+      <div className="relative border-l-2 border-slate-100 pl-6 ml-3 space-y-[var(--bv103-space-3)]">
         
         {/* STEP 1: IWP */}
         <div className="relative group">
@@ -119,7 +119,7 @@ export default function NkbvCdcMetricsPanel({
             <span className={` text-slate-500`}>Bước 2: Điểm mốc Ngày Sự kiện (DOE)</span>
             <div className="flex items-center justify-between bg-indigo-50/50 border border-indigo-100/60 p-2.5 rounded-[var(--radius-shell)]">
               <div>
-                <span className="text-[11px] font-bold text-indigo-700 block">Ngày Sự kiện quyết định:</span>
+                <span className="bv103-type-label font-semibold text-indigo-700 block">Ngày Sự kiện quyết định:</span>
                 <strong className="text-xs font-semibold font-mono text-indigo-900 flex items-center gap-1">
                   <Calendar className="h-3.5 w-3.5" />
                   {formatDateVi(metrics.doe)}
@@ -141,12 +141,12 @@ export default function NkbvCdcMetricsPanel({
             <span className={` text-slate-500`}>Bước 3: Khung Lặp lại Nhiễm khuẩn (RIT)</span>
             <div className="bg-amber-50/40 border border-amber-100/60 p-2.5 rounded-[var(--radius-shell)] flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-bold text-amber-800 block">Khung lặp lại dự kiến (DOE + 13):</span>
+                <span className="bv103-type-label font-semibold text-amber-800 block">Khung lặp lại dự kiến (DOE + 13):</span>
                 <strong className="text-xs font-semibold font-mono text-amber-900">
                   {formatDateVi(metrics.doe)} — {formatDateVi(metrics.sbap_end)}
                 </strong>
               </div>
-              <span className="bg-amber-100 text-amber-800 text-[11px] font-bold px-2 py-0.5 rounded-md">
+              <span className="bg-amber-100 text-amber-800 bv103-type-label font-semibold px-2 py-0.5 rounded-md">
                 14 Ngày
               </span>
             </div>
@@ -175,7 +175,7 @@ export default function NkbvCdcMetricsPanel({
                 </strong>
               </div>
               <div className="text-right">
-                <span className="text-[11px] font-bold block text-slate-500">Toán học:</span>
+                <span className="bv103-type-label font-semibold block text-slate-500">Toán học:</span>
                 <strong className="font-mono text-xs block">Ngày thứ {metrics.dayOfHospitalization}</strong>
               </div>
             </div>
@@ -268,13 +268,13 @@ export default function NkbvCdcMetricsPanel({
                   : "bg-slate-50 border-slate-200 text-slate-700"
               }`}>
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px] font-bold block">Thời gian lưu thiết bị (đến ngày DOE):</span>
+                  <span className="bv103-type-label font-semibold block">Thời gian lưu thiết bị (đến ngày DOE):</span>
                   <strong className="font-mono text-xs bg-white px-2 py-0.5 rounded border border-slate-200 shadow-sm">
                     {metrics.device_placed_days} ngày lịch
                   </strong>
                 </div>
                 <div className="flex justify-between items-center border-t border-slate-200/50 pt-2">
-                  <span className="text-[11px] font-bold block">Sự hiện diện tại thời điểm sự kiện:</span>
+                  <span className="bv103-type-label font-semibold block">Sự hiện diện tại thời điểm sự kiện:</span>
                   <strong className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${
                     metrics.device_active_on_event 
                       ? "bg-emerald-100 text-emerald-800" 

@@ -65,6 +65,7 @@ next-env.d.ts
 
 # local dev scratch + generated script reports (regeneratable)
 /scratch/
+/.tmp-excel-lib/
 scripts/*-report.json
 scripts/*-extract-report.json
 scripts/*-parse-report.json

@@ -1,6 +1,6 @@
 "use server";
 
-import { verifyPermission } from "@/lib/server-permission";
+import { verifyAnyPermission, verifyPermission } from "@/lib/server-permission";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import {
   evaluateHeatCompatibility,
@@ -14,6 +14,7 @@ import {
 export type CompositionReconcileRow = {
   chiTietId: string;
   loaiDungCuId: string;
+  maLoai: string;
   tenDungCuLe: string;
   soLuongKeHoach: number;
   soLuongThucTe: number;
@@ -24,6 +25,7 @@ export type CompositionReconcileRow = {
   soLuongKhoDuPhong: number;
   /** Thiếu cấu phần và kho dự phòng không đủ để bù. */
   reserveShortage: boolean;
+  maKhac: string;
 };
 
 export type CompositionReconcilePayload = {
@@ -39,7 +41,10 @@ export type CompositionReconcilePayload = {
 
 /** Tải đối chiếu cấu phần theo mã QR bộ (tem). */
 export async function loadBoCompositionByMaBo(maBo: string) {
-  await verifyPermission("CSSD_WORKFLOW", "view");
+  await verifyAnyPermission([
+    { moduleKey: "CSSD_WORKFLOW", action: "view" },
+    { moduleKey: "BAO_SU_CO", action: "create" },
+  ]);
   const supabase = createAdminSupabaseClient();
   const code = String(maBo || "").trim().toUpperCase();
   if (!code) throw new Error("Thiếu mã QR bộ dụng cụ.");
@@ -54,20 +59,23 @@ export async function loadBoCompositionByMaBo(maBo: string) {
   const boId = String((bo as { id?: string } | null)?.id || "").trim();
   if (!boId) throw new Error("Không tìm thấy bộ dụng cụ theo mã QR.");
 
-  return loadBoCompositionReconcile(boId);
+  return fetchBoCompositionPayload(boId);
 }
 
 /** Tải danh sách đối chiếu cấu phần bộ từ view realtime (KH vs TT). */
 export async function loadBoCompositionReconcile(boDungCuId: string) {
   await verifyPermission("CSSD_WORKFLOW", "view");
-  const supabase = createAdminSupabaseClient();
   const boId = String(boDungCuId || "").trim();
   if (!boId) throw new Error("Thiếu mã bộ dụng cụ.");
+  return fetchBoCompositionPayload(boId);
+}
 
+async function fetchBoCompositionPayload(boId: string) {
+  const supabase = createAdminSupabaseClient();
   const { data: rows, error } = await supabase
     .from("v_cssd_bo_dung_cu_chi_tiet_realtime")
     .select(
-      "chi_tiet_id, bo_dung_cu_id, ma_bo, ten_bo, loai_dung_cu_id, ten_loai_dung_cu, so_luong_tieu_chuan, so_luong_thuc_te, is_missing, missing_count, is_chiu_nhiet, phan_loai_spaulding, phuong_phap_tiet_khuan",
+      "chi_tiet_id, bo_dung_cu_id, ma_bo, ten_bo, loai_dung_cu_id, ma_loai_dung_cu, ten_loai_dung_cu, so_luong_tieu_chuan, so_luong_thuc_te, is_missing, missing_count, is_chiu_nhiet, phan_loai_spaulding, phuong_phap_tiet_khuan",
     )
     .eq("bo_dung_cu_id", boId)
     .eq("is_active", true)
@@ -76,8 +84,17 @@ export async function loadBoCompositionReconcile(boDungCuId: string) {
   if (error) throw new Error(error.message);
 
   const list = rows || [];
-  const maBo = String((list[0] as { ma_bo?: string } | undefined)?.ma_bo || "").trim();
-  const tenBo = String((list[0] as { ten_bo?: string } | undefined)?.ten_bo || "").trim();
+  let maBo = String((list[0] as { ma_bo?: string } | undefined)?.ma_bo || "").trim();
+  let tenBo = String((list[0] as { ten_bo?: string } | undefined)?.ten_bo || "").trim();
+  if (!maBo || !tenBo) {
+    const { data: header } = await supabase
+      .from("cssd_dm_bo_dung_cu")
+      .select("ma_bo, ten_bo")
+      .eq("id", boId)
+      .maybeSingle();
+    maBo = maBo || String(header?.ma_bo || "").trim();
+    tenBo = tenBo || String(header?.ten_bo || "").trim();
+  }
 
   const loaiIds = [
     ...new Set(list.map((r) => String((r as { loai_dung_cu_id?: string }).loai_dung_cu_id || "").trim()).filter(Boolean)),
@@ -105,6 +122,7 @@ export async function loadBoCompositionReconcile(boDungCuId: string) {
     return {
       chiTietId: String(r.chi_tiet_id || ""),
       loaiDungCuId: loaiId,
+      maLoai: String(r.ma_loai_dung_cu || ""),
       tenDungCuLe: String(r.ten_loai_dung_cu || "—"),
       soLuongKeHoach: Number(r.so_luong_tieu_chuan ?? 0) || 0,
       soLuongThucTe: Number(r.so_luong_thuc_te ?? 0) || 0,
@@ -114,6 +132,7 @@ export async function loadBoCompositionReconcile(boDungCuId: string) {
       phanLoaiSpaulding: normalizeSpaulding(r.phan_loai_spaulding),
       soLuongKhoDuPhong: reserve,
       reserveShortage: isMissing && missingCount > reserve,
+      maKhac: "",
     };
   });
 
@@ -146,6 +165,25 @@ export async function loadBoCompositionReconcile(boDungCuId: string) {
       );
     } else {
       replenishWarnings.push(`${item.tenDungCuLe}: thiếu ${item.missingCount}, kho dự phòng = 0.`);
+    }
+  }
+
+  const chiTietIds = items.map((i) => i.chiTietId).filter(Boolean);
+  if (chiTietIds.length) {
+    const { data: ctRows } = await supabase
+      .from("cssd_dm_bo_dung_cu_chi_tiet")
+      .select("id, specs")
+      .in("id", chiTietIds);
+    const khacById = new Map<string, string>();
+    for (const row of ctRows || []) {
+      const specs =
+        row.specs && typeof row.specs === "object" && !Array.isArray(row.specs)
+          ? (row.specs as Record<string, unknown>)
+          : {};
+      khacById.set(String(row.id), String(specs.ma_khac || "").trim());
+    }
+    for (const item of items) {
+      item.maKhac = khacById.get(item.chiTietId) || "";
     }
   }
 

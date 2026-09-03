@@ -6,6 +6,7 @@
 
 | File | Vai trò |
 |------|---------|
+| [`ksnk-bv103-compendium-20260824.md`](./ksnk-bv103-compendium-20260824.md) | **Bản chụp tổng hợp toàn hệ** (24/08) — ý tưởng, 12 module, FE/BE/DB, đánh giá; không thay SSOT core |
 | [`../architecture/open-backlog-20260731.md`](../architecture/open-backlog-20260731.md) | **Backlog đang mở** sau Full System Audit 31/07 |
 | [`full-system-audit-po-20260805.md`](./full-system-audit-po-20260805.md) | **Tổng rà soát PO** (08/05) — 8 chiều + UX + in + lộ trình R0–R6 |
 | [`deep-system-review-ipc-eng-20260805.md`](./deep-system-review-ipc-eng-20260805.md) | **Rà soát chuyên sâu IPC + Engineering** (08/05) — liên thông domain, FE/BE/UI, linh hoạt codebase |

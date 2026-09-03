@@ -14,6 +14,7 @@ import { resolveCh17Hierarchy } from "./nkbv-ch17-hierarchy";
 import { normalizeCh17EvidenceFlags } from "./nkbv-ch17-legacy-flags";
 import { derivePneuLabTier } from "./nkbv-pneu-lab-tier";
 import { derivePneuSystemic } from "./nkbv-pneu-systemic";
+import { ADULT_VAE_IN_PLAN_REASON, isAdultVaeInPlan } from "./nkbv-pneu-vae-route";
 import { computeVacFromDailyVent } from "./nkbv-vae-vent-compute";
 import { evaluateSecondaryBsi } from "./nkbv-shared-secondary-bsi";
 import {
@@ -294,6 +295,15 @@ export function evaluateVaeVap(
   }
 
   // PNEU pathway
+  const age = Number(data.patient_age) || 0;
+  if (isAdultVaeInPlan(age, data.vent_days)) {
+    return {
+      is_positive: false,
+      classification: "NO_EVENT",
+      reason: ADULT_VAE_IN_PLAN_REASON,
+    };
+  }
+
   const needsTwoFilms = data.has_cardiopulmonary_disease_underlying;
   const hasValidImaging =
     data.has_chest_imaging_abnormal &&
@@ -307,7 +317,6 @@ export function evaluateVaeVap(
     };
   }
 
-  const age = Number(data.patient_age) || 0;
   const pediatricBranch = age > 0 && age <= 12;
   const infantBranch = age > 0 && age <= 1;
   const gas = !!data.has_worsening_gas_exchange;
@@ -315,25 +324,14 @@ export function evaluateVaeVap(
   const localCount = infantBranch
     ? data.respiratory_symptoms_count - (gas ? 1 : 0)
     : data.respiratory_symptoms_count;
-  const needLocal = pediatricBranch ? 3 : 2;
+  const needLocalPnu1 = pediatricBranch ? 3 : 2;
   const hasSystemic =
     infantBranch ||
     derivePneuSystemic(data) ||
     data.altered_mental_status_ge_70yo;
-  const hasLocal = localCount >= needLocal;
   const infantGasOk = !infantBranch || gas;
-
-  if (!hasSystemic || !hasLocal || !infantGasOk) {
-    return {
-      is_positive: false,
-      classification: "NO_EVENT",
-      reason: infantBranch
-        ? "Nhánh ≤1 tuổi: cần suy trao đổi khí + ≥3 triệu chứng lâm sàng (dòng riêng)."
-        : pediatricBranch
-          ? `Đạt hình ảnh nhưng thiếu triệu chứng (trẻ 1–12 tuổi cần ≥${needLocal} dấu hiệu).`
-          : "Đạt tiêu chuẩn hình ảnh học nhưng thiếu triệu chứng toàn thân hoặc tại chỗ của Viêm phổi.",
-    };
-  }
+  const wideListMet =
+    localCount >= 1 || !!data.has_hemoptysis || !!data.has_pleuritic_chest_pain;
 
   const ventAssoc = data.device_placed_date
     ? isDeviceAssociated({
@@ -353,12 +351,12 @@ export function evaluateVaeVap(
   const microTier = lab.tier;
 
   if (microTier === "PNU3") {
-    if (!data.has_hemoptysis && !data.has_pleuritic_chest_pain) {
+    if (!hasSystemic || !wideListMet || !infantGasOk) {
       return {
         is_positive: false,
-        classification: "INCOMPLETE",
+        classification: "NO_EVENT",
         reason:
-          "PNU3: cần thêm ho ra máu hoặc đau ngực kiểu màng phổi (triệu chứng bổ sung suy giảm miễn dịch).",
+          "PNU3: cần hình ảnh + toàn thân + ≥1 triệu chứng list rộng (hô hấp hoặc ho ra máu / đau màng phổi). Không bắt buộc ho ra máu.",
       };
     }
     return {
@@ -369,10 +367,30 @@ export function evaluateVaeVap(
   }
 
   if (microTier === "PNU2") {
+    if (!hasSystemic || localCount < 1 || !infantGasOk) {
+      return {
+        is_positive: false,
+        classification: "NO_EVENT",
+        reason:
+          "PNU2: đạt lab nhưng thiếu toàn thân hoặc ≥1 nhóm hô hấp CDC (không siết ≥2 như PNU1).",
+      };
+    }
     return {
       is_positive: true,
       classification: `PNU2_${ventLabel}`,
       reason: `Viêm phổi có bằng chứng vi khuẩn/virus đặc hiệu (PNU2) — ${ventLabel}. ${lab.reasons.join(" ")}`,
+    };
+  }
+
+  if (!hasSystemic || localCount < needLocalPnu1 || !infantGasOk) {
+    return {
+      is_positive: false,
+      classification: "NO_EVENT",
+      reason: infantBranch
+        ? "Nhánh ≤1 tuổi: cần suy trao đổi khí + ≥3 triệu chứng lâm sàng (dòng riêng)."
+        : pediatricBranch
+          ? `Đạt hình ảnh nhưng thiếu triệu chứng (trẻ 1–12 tuổi cần ≥${needLocalPnu1} dấu hiệu).`
+          : "Đạt tiêu chuẩn hình ảnh học nhưng thiếu triệu chứng toàn thân hoặc ≥2 nhóm hô hấp CDC.",
     };
   }
 

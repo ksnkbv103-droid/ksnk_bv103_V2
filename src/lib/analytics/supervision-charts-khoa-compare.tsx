@@ -39,6 +39,7 @@ import {
   TgsDashedBarShape,
 } from "@/lib/analytics/supervision-charts-shared";
 import { SupervisionKhoaMasterTable } from "@/lib/analytics/supervision-charts-khoa-tables";
+import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 
 function defaultVolumeTitle(moduleLabel?: string): string {
   if (moduleLabel === "VST") return "Số cơ hội giám sát theo khoa";
@@ -158,8 +159,8 @@ function SupervisionKhoaVolumeChart({
   loading,
   moduleLabel,
   chartTitle,
-  ksnkVolumeLabel = "KSNK",
-  tgsVolumeLabel = "TGS",
+  ksnkVolumeLabel = SUPERVISION_SOURCE_UI.ksnk,
+  tgsVolumeLabel = SUPERVISION_SOURCE_UI.tgs,
 }: {
   rows: GapKhoaRow[];
   loading?: boolean;
@@ -298,7 +299,7 @@ export function SupervisionKhoaAnalyticsBlock({
   const resolvedVolumeTitle = volumeChartTitle ?? defaultVolumeTitle(moduleLabel);
 
   return (
-    <div className={`w-full min-w-0 space-y-4 ${className ?? ""}`}>
+    <div className={`w-full min-w-0 space-y-[var(--bv103-space-3)] ${className ?? ""}`}>
       <SupervisionKhoaComplianceChart
         rows={rows}
         matrixKhoaRows={matrixKhoaRows}

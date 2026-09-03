@@ -1,7 +1,43 @@
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
+import { INSTRUMENT_MOVE_TYPE_ID, SET_RECONCILE_TYPE_ID } from "@/lib/domain/cssd-set-reconcile";
 
 export const INCIDENT_GROUPS = ["PROCESS", "INSTRUMENT", "CHEMICAL", "EQUIPMENT", "OTHER"] as const;
 export type IncidentGroup = (typeof INCIDENT_GROUPS)[number];
+
+/** Bản chất nguyên nhân — lookup `LOAI_SU_CO` (`sys_lookup_value`). Khác nhóm nghiệp vụ. */
+export const CAUSE_CLASSES = ["SC_QUY_TRINH", "SC_CHU_QUAN", "SC_HE_THONG"] as const;
+export type CauseClass = (typeof CAUSE_CLASSES)[number];
+
+export const CAUSE_CLASS_LABEL: Record<CauseClass, string> = {
+  SC_QUY_TRINH: "Lỗi quy trình kỹ thuật",
+  SC_CHU_QUAN: "Lỗi chủ quan cá nhân",
+  SC_HE_THONG: "Lỗi hệ thống / dữ liệu",
+};
+
+export const BATCH_QC_FAIL_TYPE_IDS = [
+  "PROCESS_STERILIZATION_FAIL",
+  "PROCESS_STERILE_QC_FAIL",
+  "PROCESS_BI_POSITIVE",
+] as const;
+
+export function isBatchQcFailTypeId(typeId?: string | null): boolean {
+  const code = String(typeId || "").trim().toUpperCase();
+  return (BATCH_QC_FAIL_TYPE_IDS as readonly string[]).includes(code);
+}
+
+/** Sự cố gắn mẻ: đủ mã lô thì không bắt buộc QR bộ. */
+export function isBatchLinkedTypeId(typeId?: string | null): boolean {
+  return isBatchQcFailTypeId(typeId);
+}
+
+export function defaultCauseClass(group: IncidentGroup): CauseClass {
+  if (group === "EQUIPMENT" || group === "CHEMICAL") return "SC_HE_THONG";
+  return "SC_QUY_TRINH";
+}
+
+export function isAccountabilityCause(code?: string | null): boolean {
+  return code === "SC_QUY_TRINH" || code === "SC_CHU_QUAN";
+}
 
 export const INCIDENT_GROUP_LABEL: Record<IncidentGroup, string> = {
   PROCESS: "Quy trình (khâu trước không đạt)",
@@ -59,12 +95,15 @@ export const INCIDENT_TYPE_PRESETS: Record<IncidentGroup, IncidentPreset[]> = {
     { code: "PROCESS_QC_FAIL", label: "Không đạt kiểm tra chất lượng tại khâu" },
     { code: "PROCESS_STERILIZATION_FAIL", label: "Chất lượng tiệt khuẩn / mẻ không đạt" },
     { code: "PROCESS_STERILE_QC_FAIL", label: "Nội kiểm mẻ TK hoặc Bowie-Dick không đạt" },
+    { code: "PROCESS_BI_POSITIVE", label: "Chỉ thị sinh học (BI) dương tính" },
   ],
   INSTRUMENT: [
+    { code: SET_RECONCILE_TYPE_ID, label: "Rà soát / hỏng / mất" },
+    { code: INSTRUMENT_MOVE_TYPE_ID, label: "Chuyển" },
+    { code: "INSTRUMENT_TRANSFER", label: "Điều chuyển bộ ↔ bộ" },
+    { code: "INSTRUMENT_REPLENISH", label: "Kho ↔ bộ" },
     { code: "INSTRUMENT_BROKEN", label: "Dụng cụ hỏng" },
     { code: "INSTRUMENT_MISSING", label: "Dụng cụ mất / thất lạc" },
-    { code: "INSTRUMENT_REPLENISH", label: "Bổ sung dụng cụ" },
-    { code: "INSTRUMENT_TRANSFER", label: "Điều chuyển dụng cụ" },
   ],
   CHEMICAL: [
     { code: "CHEMICAL_STOCK_OUT", label: "Thiếu hóa chất / vật tư" },
@@ -88,7 +127,25 @@ export const INCIDENT_STATION_OPTIONS: Array<{ value: Station; label: string }> 
   { value: "CAP_PHAT", label: "Cấp phát" },
 ];
 
-/** Mặc định loại sự cố khi đổi nhóm (OTHER = mô tả tự do). */
+/** Hai cửa dụng cụ trên form — rà soát riêng; chuyển (bộ/kho) một cửa. */
+export function instrumentFormTypeOptions(): IncidentPreset[] {
+  return INCIDENT_TYPE_PRESETS.INSTRUMENT.filter(
+    (x) => x.code === SET_RECONCILE_TYPE_ID || x.code === INSTRUMENT_MOVE_TYPE_ID,
+  );
+}
+
+export function coerceInstrumentFormTypeId(typeId?: string | null): string {
+  const code = String(typeId || "").trim();
+  if (
+    code === INSTRUMENT_MOVE_TYPE_ID ||
+    code === "INSTRUMENT_TRANSFER" ||
+    code === "INSTRUMENT_REPLENISH"
+  ) {
+    return INSTRUMENT_MOVE_TYPE_ID;
+  }
+  return SET_RECONCILE_TYPE_ID;
+}
+
 export function groupTypeDefaults(group: IncidentGroup): { typeId: string; typeTen: string } {
   if (group === "OTHER") {
     return { typeId: "OTHER_CUSTOM", typeTen: "Sự cố khác" };

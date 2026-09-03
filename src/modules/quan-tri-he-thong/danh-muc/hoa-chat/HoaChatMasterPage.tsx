@@ -6,7 +6,7 @@ import HoaChatStatsPanel from "./HoaChatStatsPanel";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
-import { ImportExportHint, ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
+import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { toast } from "sonner";
 import HoaChatFormModal from "./hoa-chat-form-modal";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
@@ -99,7 +99,7 @@ function HoaChatMasterPageContent() {
   const modalKey = editing?.id ? `edit-${editing.id}` : "create";
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-700">
+    <div className="space-y-3 animate-in fade-in duration-700">
       <KsnkListPageHeader
         icon={Beaker}
         title="Hóa chất & Vật tư"
@@ -126,12 +126,11 @@ function HoaChatMasterPageContent() {
           </>
         }
       />
-      <ImportExportHint />
 
       {/* Thống kê tóm tắt */}
       {showStats && !loading && <HoaChatStatsPanel data={data} />}
 
-      <div className="bg-white p-2 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm min-w-0 sm:min-h-[450px]">
+      <div className="min-w-0 sm:min-h-[450px]">
         <AdvancedDataTable
           columns={columns}
           data={data}

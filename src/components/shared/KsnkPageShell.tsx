@@ -3,6 +3,7 @@
 import React from "react";
 import type { LucideIcon } from "lucide-react";
 import { KsnkPageChrome } from "@/components/shared/KsnkPageChrome";
+import { bv103Layers } from "@/hooks/useBv103Chrome";
 
 type KsnkPageShellProps = {
   children: React.ReactNode;
@@ -18,7 +19,7 @@ export default function KsnkPageShell({ children, rolloutPhase = "phase-1" }: Ks
   return (
     <div
       data-ksnk-page-shell={rolloutPhase}
-      className="mx-auto w-full max-w-7xl min-h-[40vh]"
+      className={`mx-auto w-full max-w-7xl min-h-[40vh] ${bv103Layers.page}`}
     >
       {children}
     </div>
@@ -29,11 +30,13 @@ type KsnkPageHeaderProps = {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   actions?: React.ReactNode;
+  /** false = App Header đã có tên — chỉ còn hàng nút. */
+  showTitle?: boolean;
 };
 
 /** Khối tiêu đề trang Admin — cùng `KsnkPageChrome`. */
-export function KsnkPageHeader({ title, subtitle, actions }: KsnkPageHeaderProps) {
-  return <KsnkPageChrome title={title} subtitle={subtitle} actions={actions} showTitle />;
+export function KsnkPageHeader({ title, subtitle, actions, showTitle = true }: KsnkPageHeaderProps) {
+  return <KsnkPageChrome title={title} subtitle={subtitle} actions={actions} showTitle={showTitle} />;
 }
 
 type KsnkListPageHeaderProps = {
@@ -43,7 +46,7 @@ type KsnkListPageHeaderProps = {
   actions?: React.ReactNode;
 };
 
-/** Toolbar danh sách MDM / master — cùng mật độ chrome với hub. */
+/** Toolbar danh sách — App Header đã có tên trang, không lặp H1. */
 export function KsnkListPageHeader({ title, eyebrow, icon: Icon, actions }: KsnkListPageHeaderProps) {
   return (
     <KsnkPageChrome
@@ -55,7 +58,7 @@ export function KsnkListPageHeader({ title, eyebrow, icon: Icon, actions }: Ksnk
         </span>
       }
       actions={actions}
-      showTitle
+      showTitle={false}
     />
   );
 }

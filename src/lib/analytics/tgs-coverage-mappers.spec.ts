@@ -45,10 +45,12 @@ describe("tgs-coverage-mappers", () => {
     expect(computeTyLeBaoPhuTgs(0, 0)).toBe(100);
   });
 
-  it("ô Không áp dụng / Thiếu TGS / Đã TGS", () => {
+  it("ô Không áp dụng / Thiếu tự giám sát / Đã tự giám sát", () => {
     expect(resolveTgsBkCellStatus({ appliesBatBuocTgs: false, hasHit: false })).toBe("khong_ap_dung");
     expect(resolveTgsBkCellStatus({ appliesBatBuocTgs: true, hasHit: false })).toBe("thieu_tgs");
     expect(resolveTgsBkCellStatus({ appliesBatBuocTgs: true, hasHit: true })).toBe("da_tgs");
     expect(TGS_BK_CELL_LABELS.khong_ap_dung).toBe("Không áp dụng");
+    expect(TGS_BK_CELL_LABELS.thieu_tgs).toBe("Thiếu tự giám sát");
+    expect(TGS_BK_CELL_LABELS.da_tgs).toBe("Đã tự giám sát");
   });
 });

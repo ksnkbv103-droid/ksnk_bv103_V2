@@ -69,7 +69,7 @@ export const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
     label: "Vận hành nội bộ",
     items: [
       { name: "Công việc", href: "/quan-ly-cong-viec", icon: PanelsTopLeft, gate: NAV_GATE_CONG_VIEC },
-      { name: "Đào tạo", href: "/dao-tao", icon: GraduationCap, gate: NAV_GATE_DAO_TAO },
+      { name: "Thi KSNK", href: "/dao-tao", icon: GraduationCap, gate: NAV_GATE_DAO_TAO },
     ],
   },
   {

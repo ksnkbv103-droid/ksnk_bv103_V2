@@ -30,7 +30,7 @@ export default function EntityQrBlock({
         <p className="max-w-[10rem] break-all text-center font-mono text-[11px] font-bold tracking-wide text-slate-800">
           {displayCode}
         </p>
-        <p className="text-[11px] italic text-slate-500">{caption}</p>
+        <p className="bv103-type-note">{caption}</p>
       </div>
     );
   }

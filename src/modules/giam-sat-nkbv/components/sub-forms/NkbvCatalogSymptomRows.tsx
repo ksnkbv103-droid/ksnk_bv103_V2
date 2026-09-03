@@ -3,6 +3,7 @@
 import React from "react";
 import type { NkbvClinicalSymptomDef } from "../../lib/nkbv-clinical-symptom-catalog";
 import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
+import { useNkbvSymptomReview } from "./NkbvSymptomReviewContext";
 
 type Props = {
   rows: NkbvClinicalSymptomDef[];
@@ -16,7 +17,99 @@ type Props = {
   disabled?: boolean;
 };
 
-/** Checklist triệu chứng lấy từ SSOT catalog — checkbox + ngày ∈ cửa sổ. */
+function SymptomRow({
+  row,
+  form,
+  onToggle,
+  symptomDates,
+  onSymptomDateChange,
+  allowedEdit,
+  iwpStart,
+  iwpEnd,
+  disabled,
+}: {
+  row: NkbvClinicalSymptomDef;
+  form: Record<string, unknown>;
+  onToggle: (formField: string, checked: boolean) => void;
+  symptomDates: Record<string, string>;
+  onSymptomDateChange: (key: string, date: string) => void;
+  allowedEdit: boolean;
+  iwpStart?: string;
+  iwpEnd?: string;
+  disabled: boolean;
+}) {
+  const key = row.form_field!;
+  const date = symptomDates[key] || "";
+  const present = form[key] === true || Boolean(date);
+  const { entry, onChange: onReview } = useNkbvSymptomReview(key);
+  const canEdit = allowedEdit && !disabled;
+
+  const setDate = (next: string) => {
+    onSymptomDateChange(key, next);
+    onToggle(key, Boolean(next));
+  };
+
+  return (
+    <div className="rounded-xl border border-slate-100 bg-white/60 p-2 space-y-2">
+      <p className="text-xs font-semibold text-slate-800">
+        {row.name_vi}
+        {row.threshold_note ? (
+          <span className="mt-0.5 block text-[11px] font-normal text-slate-500">
+            {row.threshold_note}
+          </span>
+        ) : null}
+      </p>
+      <label className="block space-y-0.5">
+        <span className="text-[11px] font-medium text-slate-500">Ngày mốc (lưới bệnh án)</span>
+        <input
+          type="date"
+          value={date}
+          disabled={!canEdit}
+          min={iwpStart || undefined}
+          max={iwpEnd || undefined}
+          onChange={(e) => setDate(e.target.value)}
+          className={`${C.controlInput} max-w-[11rem] text-xs`}
+        />
+      </label>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <label className="block space-y-0.5">
+          <span className="text-[11px] font-medium text-slate-500">Xác nhận (KSNK)</span>
+          <select
+            className={`${C.controlInput} w-full text-xs`}
+            disabled={!canEdit}
+            value={entry.confirmed}
+            onChange={(e) => {
+              const confirmed = e.target.value as "chua" | "dung" | "sai";
+              onReview({ confirmed });
+              if (confirmed === "sai") {
+                setDate("");
+              } else if (confirmed === "dung" && !date && present) {
+                onToggle(key, true);
+              }
+            }}
+          >
+            <option value="chua">Chưa xác nhận</option>
+            <option value="dung">Đúng — dùng để chẩn đoán</option>
+            <option value="sai">Sai — bỏ khỏi lưới</option>
+          </select>
+        </label>
+        <label className="block space-y-0.5">
+          <span className="text-[11px] font-medium text-slate-500">Ghi chú KSNK</span>
+          <input
+            type="text"
+            className={`${C.controlInput} w-full text-xs`}
+            disabled={!canEdit}
+            value={entry.note}
+            placeholder="Ý kiến khoa / lý do sửa…"
+            onChange={(e) => onReview({ note: e.target.value })}
+          />
+        </label>
+      </div>
+    </div>
+  );
+}
+
+/** Triệu chứng = mốc ngày; KSNK ghi nhận xác nhận + ghi chú. Đổi ngày → đồng bộ lưới. */
 export default function NkbvCatalogSymptomRows({
   rows,
   form,
@@ -31,42 +124,20 @@ export default function NkbvCatalogSymptomRows({
   if (rows.length === 0) return null;
   return (
     <div className="space-y-2">
-      {rows.map((row) => {
-        const key = row.form_field!;
-        const checked = form[key] === true;
-        return (
-          <div key={row.id} className="rounded-xl border border-slate-100 bg-white/60 p-2 space-y-1">
-            <label className="flex items-start gap-2 text-xs font-semibold cursor-pointer">
-              <input
-                type="checkbox"
-                className="mt-0.5"
-                checked={checked}
-                disabled={!allowedEdit || disabled}
-                onChange={(e) => onToggle(key, e.target.checked)}
-              />
-              <span>
-                {row.name_vi}
-                {row.threshold_note ? (
-                  <span className="mt-0.5 block text-[11px] font-normal text-slate-500">
-                    {row.threshold_note}
-                  </span>
-                ) : null}
-              </span>
-            </label>
-            {checked ? (
-              <input
-                type="date"
-                value={symptomDates[key] || ""}
-                disabled={!allowedEdit || disabled}
-                min={iwpStart || undefined}
-                max={iwpEnd || undefined}
-                onChange={(e) => onSymptomDateChange(key, e.target.value)}
-                className={`ml-6 ${C.controlInput} max-w-[11rem] text-xs`}
-              />
-            ) : null}
-          </div>
-        );
-      })}
+      {rows.map((row) => (
+        <SymptomRow
+          key={row.id}
+          row={row}
+          form={form}
+          onToggle={onToggle}
+          symptomDates={symptomDates}
+          onSymptomDateChange={onSymptomDateChange}
+          allowedEdit={allowedEdit}
+          iwpStart={iwpStart}
+          iwpEnd={iwpEnd}
+          disabled={disabled}
+        />
+      ))}
     </div>
   );
 }

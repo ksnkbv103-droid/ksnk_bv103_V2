@@ -48,6 +48,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
   const [theoDoiIds, setTheoDoiIds] = useState<string[]>(() =>
     normalizeQlcvStaffIdList(initialData?.nguoi_theo_doi_ids),
   );
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     setSelectedNhanSu(String(initialData?.nguoi_phu_trach_id || ""));
@@ -172,9 +173,9 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
     : "";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className={`grid grid-cols-1 gap-6 p-5 sm:p-6 lg:grid-cols-2 lg:gap-0 ${bv103LayoutChrome.panelSurface}`}>
-        <div className="space-y-5 lg:pr-6">
+    <form onSubmit={handleSubmit} className="space-y-[var(--bv103-space-3)]">
+      <div className={`grid grid-cols-1 gap-[var(--bv103-space-3)] bv103-pad-panel lg:grid-cols-2 lg:gap-0 ${bv103LayoutChrome.panelSurface}`}>
+        <div className="space-y-[var(--bv103-space-3)] lg:pr-6">
           <div>
             <label className={labelStyles}>Tiêu đề công việc *</label>
             <input
@@ -183,17 +184,6 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
               className={inputStyles}
               placeholder="Nhập tiêu đề..."
               defaultValue={initialData?.tieu_de || ""}
-            />
-          </div>
-
-          <div>
-            <label className={labelStyles}>Mô tả chi tiết</label>
-            <textarea
-              name="mo_ta"
-              rows={4}
-              className={bv103LayoutChrome.textarea}
-              placeholder="Nội dung công việc..."
-              defaultValue={initialData?.mo_ta || ""}
             />
           </div>
 
@@ -210,6 +200,54 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
           </div>
 
           <div>
+            <label className={labelStyles}>Hạn hoàn thành</label>
+            <input type="date" name="han_hoan_thanh" className={inputStyles} defaultValue={defaultHanHoanThanh} />
+          </div>
+        </div>
+
+        <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+          <div>
+            <label className={labelStyles}>Người phụ trách{!initialData?.id ? " *" : ""}</label>
+            <SearchableSelect
+              options={assigneeOptions}
+              placeholder={optionsLoading ? "Đang tải..." : "Chọn nhân viên KSNK..."}
+              value={selectedNhanSu}
+              onChange={setSelectedNhanSu}
+              disabled={optionsLoading}
+            />
+            {assigneeListUsesFullRoster ? (
+              <p className={`mt-2 ${bv103LayoutChrome.noticeSlate}`}>
+                Không có nhân sự gắn tổ đã chọn; đang hiển thị toàn roster KSNK.
+              </p>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowDetails((v) => !v)}
+          className="text-xs font-semibold text-slate-600 underline-offset-2 hover:underline"
+        >
+          {showDetails ? "Ẩn chi tiết" : "Thêm chi tiết"}
+        </button>
+      </div>
+
+      {showDetails ? (
+      <div className={`grid grid-cols-1 gap-[var(--bv103-space-3)] bv103-pad-panel lg:grid-cols-2 lg:gap-0 ${bv103LayoutChrome.panelSurface}`}>
+        <div className="space-y-[var(--bv103-space-3)] lg:pr-6">
+          <div>
+            <label className={labelStyles}>Mô tả chi tiết</label>
+            <textarea
+              name="mo_ta"
+              rows={4}
+              className={bv103LayoutChrome.textarea}
+              placeholder="Nội dung công việc..."
+              defaultValue={initialData?.mo_ta || ""}
+            />
+          </div>
+          <div>
             <label className={labelStyles}>Vị trí chi tiết (tuỳ chọn)</label>
             <input
               className={inputStyles}
@@ -218,7 +256,6 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
               placeholder="VD: Phòng 302 · Kho thuốc · Hành lang tầng 2"
             />
           </div>
-
           <div>
             <label className={labelStyles}>Nhiệm vụ (tuỳ chọn)</label>
             <SearchableSelect
@@ -230,28 +267,20 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
               searchPlaceholder="Tìm nhiệm vụ…"
             />
           </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className={labelStyles}>Mức độ ưu tiên</label>
-              <select
-                name="muc_do_uu_tien"
-                defaultValue={initialData?.muc_do_uu_tien || "TRUNG_BINH"}
-                className={inputStyles}
-              >
-                <option value="CAO">Cao</option>
-                <option value="TRUNG_BINH">Trung bình</option>
-                <option value="THAP">Thấp</option>
-              </select>
-            </div>
-            <div>
-              <label className={labelStyles}>Hạn hoàn thành</label>
-              <input type="date" name="han_hoan_thanh" className={inputStyles} defaultValue={defaultHanHoanThanh} />
-            </div>
+          <div>
+            <label className={labelStyles}>Mức độ ưu tiên</label>
+            <select
+              name="muc_do_uu_tien"
+              defaultValue={initialData?.muc_do_uu_tien || "TRUNG_BINH"}
+              className={inputStyles}
+            >
+              <option value="CAO">Cao</option>
+              <option value="TRUNG_BINH">Trung bình</option>
+              <option value="THAP">Thấp</option>
+            </select>
           </div>
         </div>
-
-        <div className="space-y-5 border-t border-slate-100 pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+        <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
           <div>
             <label className={labelStyles}>Loại hình</label>
             {isSpawnedDinhKy ? (
@@ -289,22 +318,6 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
           </div>
 
           <div>
-            <label className={labelStyles}>Người phụ trách{!initialData?.id ? " *" : ""}</label>
-            <SearchableSelect
-              options={assigneeOptions}
-              placeholder={optionsLoading ? "Đang tải..." : "Chọn nhân viên KSNK..."}
-              value={selectedNhanSu}
-              onChange={setSelectedNhanSu}
-              disabled={optionsLoading}
-            />
-            {assigneeListUsesFullRoster ? (
-              <p className={`mt-2 ${bv103LayoutChrome.noticeSlate}`}>
-                Không có nhân sự gắn tổ đã chọn; đang hiển thị toàn roster KSNK.
-              </p>
-            ) : null}
-          </div>
-
-          <div>
             <SearchableMultiSelect
               label="Người phối hợp"
               options={nhanSuOptions.map((o) => ({ id: o.id, label: o.label }))}
@@ -327,6 +340,21 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
           </div>
         </div>
       </div>
+      ) : (
+        <>
+          <input type="hidden" name="mo_ta" defaultValue={initialData?.mo_ta || ""} />
+          <input type="hidden" name="muc_do_uu_tien" defaultValue={initialData?.muc_do_uu_tien || "TRUNG_BINH"} />
+          {isSpawnedDinhKy ? (
+            <input type="hidden" name="loai_cong_viec" value="DINH_KY" />
+          ) : (
+            <input
+              type="hidden"
+              name="loai_cong_viec"
+              value={initialData?.loai_cong_viec === "KHAN_CAP" ? "KHAN_CAP" : "DOT_XUAT"}
+            />
+          )}
+        </>
+      )}
 
       <div className="flex flex-col-reverse items-stretch justify-end gap-3 border-t border-slate-200/80 pt-5 sm:flex-row sm:flex-wrap sm:items-center">
         <button

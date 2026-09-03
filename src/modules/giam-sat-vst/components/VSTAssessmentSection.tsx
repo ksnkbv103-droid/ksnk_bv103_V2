@@ -90,7 +90,7 @@ export default function VSTAssessmentSection({ opp, pIdx, oIdx, updateAssessment
   }
 
   return (
-    <div className="flex h-14 items-center justify-center rounded-[var(--radius-shell)] border-2 border-dashed border-slate-200 text-[11px] font-medium italic text-slate-400 sm:h-16">
+    <div className="flex h-14 items-center justify-center rounded-[var(--radius-shell)] border-2 border-dashed border-slate-200 bv103-type-note sm:h-16">
       Hoàn thành bước 2
     </div>
   );

@@ -28,18 +28,18 @@ describe("getBoardLaneId (§4.3 QLCV)", () => {
     ).toBe("lane_hoan_thanh");
   });
 
-  it("mã QUA_HAN → lane quá hạn", () => {
-    expect(getBoardLaneId({ trang_thai: "QUA_HAN", phan_tram_hoan_thanh: 10 })).toBe("lane_qua_han");
+  it("mã QUA_HAN đang làm → lane đang làm (quá hạn là nhãn)", () => {
+    expect(getBoardLaneId({ trang_thai: "QUA_HAN", phan_tram_hoan_thanh: 10 })).toBe("lane_dang_lam");
   });
 
-  it("is_qua_han ưu tiên trước chờ nghiệm thu", () => {
+  it("is_qua_han không kéo ra khỏi chờ nghiệm thu", () => {
     expect(
       getBoardLaneId({
         trang_thai: "CHO_DUYET",
         is_qua_han: true,
         phan_tram_hoan_thanh: 100,
       }),
-    ).toBe("lane_qua_han");
+    ).toBe("lane_cho_duyet");
   });
 
   it("CHO_DUYET không cờ quá hạn → chờ duyệt", () => {
@@ -88,7 +88,7 @@ describe("getBoardLaneId (§4.3 QLCV)", () => {
     ).toBe("lane_dang_lam");
   });
 
-  it("hạn đã qua → quá hạn thay vì đang làm", () => {
+  it("hạn đã qua vẫn đang làm — quá hạn không đổi cột", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-06-10T12:00:00Z"));
     expect(
@@ -97,7 +97,7 @@ describe("getBoardLaneId (§4.3 QLCV)", () => {
         phan_tram_hoan_thanh: 50,
         han_hoan_thanh: "2026-06-01",
       }),
-    ).toBe("lane_qua_han");
+    ).toBe("lane_dang_lam");
   });
 
   it("đề xuất inactive MOI", () => {
@@ -121,13 +121,24 @@ describe("getBoardLaneId (§4.3 QLCV)", () => {
     ).toBe("lane_de_xuat");
   });
 
-  it("QUA_HAN @100% vẫn lane quá hạn (nghiệm thu từ chi tiết)", () => {
+  it("QUA_HAN @100% đột xuất → chờ nghiệm thu", () => {
     expect(
       getBoardLaneId({
         trang_thai: "QUA_HAN",
         phan_tram_hoan_thanh: 100,
+        loai_cong_viec: "DOT_XUAT",
       }),
-    ).toBe("lane_qua_han");
+    ).toBe("lane_cho_duyet");
+  });
+
+  it("định kỳ 100% không vào chờ nghiệm thu", () => {
+    expect(
+      getBoardLaneId({
+        trang_thai: "DANG_LAM",
+        phan_tram_hoan_thanh: 100,
+        loai_cong_viec: "DINH_KY",
+      }),
+    ).toBe("lane_dang_lam");
   });
 
   it("alias legacy DANG_THUC_HIEN map vào đang làm", () => {

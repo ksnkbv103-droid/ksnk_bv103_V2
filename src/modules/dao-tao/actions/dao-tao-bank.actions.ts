@@ -105,7 +105,6 @@ export async function listChuDeDaoTao() {
 export async function listCauHoiDaoTao(filters?: {
   chuDeMa?: string;
   loai?: string;
-  bloom?: number;
   limit?: number;
   includeInactive?: boolean;
 }) {
@@ -121,21 +120,9 @@ export async function listCauHoiDaoTao(filters?: {
   if (!filters?.includeInactive) q = q.eq("is_active", true);
   if (filters?.chuDeMa) q = q.eq("chu_de_ma", filters.chuDeMa);
   if (filters?.loai) q = q.eq("loai", filters.loai);
-  if (filters?.bloom) q = q.eq("bloom_level", filters.bloom);
   const { data, error } = await q;
   if (error) throw error;
   return data ?? [];
-}
-
-export async function countCauHoiDaoTao() {
-  await verifyPermission("DAO_TAO", "view");
-  const admin = createAdminSupabaseClient();
-  const { count, error } = await admin
-    .from("dao_tao_cau_hoi")
-    .select("id", { count: "exact", head: true })
-    .eq("is_active", true);
-  if (error) throw error;
-  return count ?? 0;
 }
 
 export async function getBankStats() {
@@ -143,16 +130,14 @@ export async function getBankStats() {
   const admin = createAdminSupabaseClient();
   const { data, error } = await admin
     .from("dao_tao_cau_hoi")
-    .select("loai, bloom_level")
+    .select("loai")
     .eq("is_active", true);
   if (error) throw error;
   const byLoai: Record<string, number> = {};
-  const byBloom: Record<string, number> = {};
   for (const row of data ?? []) {
     byLoai[row.loai] = (byLoai[row.loai] ?? 0) + 1;
-    byBloom[String(row.bloom_level)] = (byBloom[String(row.bloom_level)] ?? 0) + 1;
   }
-  return { total: data?.length ?? 0, byLoai, byBloom };
+  return { total: data?.length ?? 0, byLoai };
 }
 
 export async function getDaoTaoBankForExport(includeInactive = true): Promise<ExportBankRow[]> {

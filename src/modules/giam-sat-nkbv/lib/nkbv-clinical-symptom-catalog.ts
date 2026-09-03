@@ -56,12 +56,54 @@ export type NkbvClinicalSymptomDef = {
   ch17_site?: string;
 };
 
+/** Nhãn chuẩn NHSN — một hiện tượng sốt có ngưỡng (BSI / UTI / SSI / Ch.17 / atom PNEU). */
+export const NKBV_LABEL_FEVER_GT_38 = "Sốt > 38,0°C";
+/** IVAC: nhiệt độ (không phải gói «Sốt / WBC»). */
+export const NKBV_LABEL_IVAC_TEMP = "Sốt > 38,0°C hoặc hạ thân nhiệt < 36,0°C";
+/** Nhóm toàn thân PNEU trên lưới (OR) — phiếu mới tick từng atom. */
+export const NKBV_LABEL_PNEU_SYSTEMIC_OR =
+  "Sốt > 38,0°C / hạ thân nhiệt < 36,0°C / WBC bất thường";
+
+/** Mốc cũ ghi tắt «Sốt» / «Sốt >38» → hiện nhãn chuẩn. */
+export function isBareFeverDisplayAlias(raw: string | null | undefined): boolean {
+  const s = String(raw || "")
+    .trim()
+    .toLowerCase()
+    .replace(/,/g, ".")
+    .replace(/\s+/g, " ");
+  if (!s) return false;
+  if (s === "sốt" || s === "sot") return true;
+  if (s === "sốt (hỗ trợ)" || s === "sốt (ho tro)") return true;
+  if (/^sốt\s*>\s*38(\.0)?(\s*°?\s*c)?$/.test(s)) return true;
+  if (s === "sốt/wbc" || s === "sốt / wbc") return true;
+  return false;
+}
+
+/**
+ * Nhãn hiện phiếu / lưới / in. Không đổi criteria_key hay form_field.
+ * `fever_or_wbc` + VAE → IVAC nhiệt độ; còn lại → nhóm toàn thân PNEU.
+ */
+export function displaySymptomLabel(input: {
+  criteriaKey?: string | null;
+  storedTitle?: string | null;
+  syndrome?: string | null;
+}): string | null {
+  const key = String(input.criteriaKey || "").trim();
+  const syn = String(input.syndrome || "").trim().toUpperCase();
+  if (key === "fever") return NKBV_LABEL_FEVER_GT_38;
+  if (key === "fever_or_wbc") {
+    return syn === "VAE" ? NKBV_LABEL_IVAC_TEMP : NKBV_LABEL_PNEU_SYSTEMIC_OR;
+  }
+  if (isBareFeverDisplayAlias(input.storedTitle)) return NKBV_LABEL_FEVER_GT_38;
+  return null;
+}
+
 export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
   // ─── Shared systemic ───────────────────────────────────────────────────────
   {
     id: "sx.fever_gt_38",
     name_en: "Fever >38.0°C",
-    name_vi: "Sốt > 38,0°C",
+    name_vi: NKBV_LABEL_FEVER_GT_38,
     threshold_note: "> 38.0°C (hoặc > 100.4°F)",
     syndromes: ["BSI", "UTI", "SSI"],
     checklist_gates: ["BSI", "UTI", "SSI"],
@@ -76,7 +118,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
   {
     id: "sx.pneu_fever",
     name_en: "Fever >38.0°C (PNEU)",
-    name_vi: "Sốt > 38,0°C",
+    name_vi: NKBV_LABEL_FEVER_GT_38,
     threshold_note: "> 38.0°C (hoặc > 100.4°F)",
     syndromes: ["PNEU"],
     checklist_gates: ["HAP", "VAP"],
@@ -119,7 +161,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
   {
     id: "sx.fever_or_wbc_pneu_legacy",
     name_en: "Fever / hypothermia / abnormal WBC (legacy bundle)",
-    name_vi: "Sốt / hạ thân nhiệt / WBC (gộp — ca cũ)",
+    name_vi: "Sốt > 38,0°C / hạ thân nhiệt / WBC (gộp — ca cũ)",
     threshold_note: "Derived từ atom; giữ tương thích JSON cũ",
     syndromes: ["PNEU"],
     checklist_gates: ["HAP", "VAP"],
@@ -149,7 +191,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
   {
     id: "sx.vae_temp_fever_or_hypo",
     name_en: "Fever or hypothermia (IVAC)",
-    name_vi: "Sốt > 38,0°C hoặc hạ thân nhiệt < 36,0°C",
+    name_vi: NKBV_LABEL_IVAC_TEMP,
     syndromes: ["VAE"],
     checklist_gates: ["VAE"],
     age_gate: "any",
@@ -694,7 +736,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
   {
     id: "sx.ssi_deep_dehisced",
     name_en: "Deep dehiscence/opened + fever or localized pain",
-    name_vi: "Bục/mở sâu + sốt >38°C hoặc đau khu trú",
+    name_vi: "Bục/mở sâu + sốt > 38,0°C hoặc đau khu trú",
     syndromes: ["SSI"],
     checklist_gates: ["SSI"],
     age_gate: "any",
@@ -1424,7 +1466,12 @@ export function formFieldToTimelineMeta(
   return FORM_TO_TIMELINE[formField] ?? null;
 }
 
-export function catalogTitleForCriteriaKey(criteriaKey: string): string | null {
+export function catalogTitleForCriteriaKey(
+  criteriaKey: string,
+  opts?: { syndrome?: string | null },
+): string | null {
+  const canon = displaySymptomLabel({ criteriaKey, syndrome: opts?.syndrome });
+  if (canon) return canon;
   const hit = NKBV_CLINICAL_SYMPTOMS.find((s) => s.criteria_key === criteriaKey);
   return hit?.name_vi ?? null;
 }
@@ -1482,18 +1529,32 @@ export function formSymptomRowsFor(
   return out;
 }
 
-/** Đếm triệu chứng hô hấp PNEU theo dòng catalog (không tính PNU3/infant phụ). */
-export function countPneuRespiratoryLines(form: Record<string, unknown>): number {
-  const fields = new Set(
-    wiredSymptomsForSyndrome("PNEU")
-      .filter((s) => s.pneu_resp_line && s.form_field)
-      .map((s) => s.form_field as string),
-  );
-  let n = 0;
-  for (const f of fields) {
-    if (form[f] === true) n += 1;
+const PNEU_RESP_LINE_BY_CRITERIA_KEY: ReadonlyMap<string, 1 | 2 | 3 | 4> = (() => {
+  const m = new Map<string, 1 | 2 | 3 | 4>();
+  for (const s of NKBV_CLINICAL_SYMPTOMS) {
+    if (s.pneu_resp_line && s.criteria_key) m.set(s.criteria_key, s.pneu_resp_line);
   }
-  return n;
+  return m;
+})();
+
+/** Đếm nhóm CDC hô hấp PNEU (1–4) — khó thở+thở nhanh = 1 nhóm, không phải 2. */
+export function countPneuRespiratoryLines(form: Record<string, unknown>): number {
+  const lines = new Set<number>();
+  for (const s of wiredSymptomsForSyndrome("PNEU")) {
+    if (!s.pneu_resp_line || !s.form_field) continue;
+    if (form[s.form_field] === true) lines.add(s.pneu_resp_line);
+  }
+  return lines.size;
+}
+
+/** Đếm nhóm CDC từ criteria_key trên lưới BA (cùng 4 dòng catalog). */
+export function countPneuRespiratoryCdcGroupsFromKeys(keys: Iterable<string>): number {
+  const lines = new Set<number>();
+  for (const key of keys) {
+    const line = PNEU_RESP_LINE_BY_CRITERIA_KEY.get(key);
+    if (line) lines.add(line);
+  }
+  return lines.size;
 }
 
 export const UTI_VOIDING_CRITERIA_KEYS_FROM_CATALOG = new Set(

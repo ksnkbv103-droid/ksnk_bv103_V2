@@ -4,6 +4,11 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useMobilePickerSheet } from "@/hooks/use-mobile-picker-sheet";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
+import {
+  BV103_PICKER_PORTAL_ATTR,
+  resolveBv103PickerPortalRoot,
+  unlockBv103PickerPortalKeyboard,
+} from "@/lib/bv103-picker-portal";
 
 /** Vùng danh sách desktop: cao cố định mục tiêu, cuộn nội bộ. */
 const DESKTOP_PICKER_LIST_IDEAL_PX = 240;
@@ -125,6 +130,19 @@ export default function SearchableMultiSelect({
   }, [open, isMobileSheet]);
 
   useEffect(() => {
+    if (!open) return;
+    let stop: () => void = () => {};
+    const id = window.requestAnimationFrame(() => {
+      const root = panelRef.current?.closest(`[${BV103_PICKER_PORTAL_ATTR}]`) ?? panelRef.current;
+      stop = unlockBv103PickerPortalKeyboard(root instanceof HTMLElement ? root : null);
+    });
+    return () => {
+      window.cancelAnimationFrame(id);
+      stop();
+    };
+  }, [open]);
+
+  useEffect(() => {
     if (!open || !isMobileSheet) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
@@ -204,6 +222,7 @@ export default function SearchableMultiSelect({
                       ref={inputRef}
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={(e) => e.stopPropagation()}
                       placeholder={`Tìm ${label.toLowerCase()}...`}
                       className="h-12 w-full rounded-xl border-2 border-slate-200 px-3 text-base outline-none focus:border-[var(--primary)]"
                       autoComplete="off"
@@ -260,6 +279,7 @@ export default function SearchableMultiSelect({
                   ref={inputRef}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => e.stopPropagation()}
                   placeholder={`Tìm ${label.toLowerCase()}...`}
                   className="mb-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm"
                 />
@@ -309,7 +329,7 @@ export default function SearchableMultiSelect({
                 </div>
               </div>
             ),
-            document.body,
+            resolveBv103PickerPortalRoot(),
           )
         : null}
     </div>

@@ -13,11 +13,7 @@ const tonCols: Column<KhoHoaChatTonLo>[] = [
     cell: (i) => {
       const isChem = isHoaChatLoai(i.loai_hoa_chat);
       return (
-        <span
-          className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide ${
-            isChem ? "bg-sky-50 text-sky-700 border border-sky-100" : "bg-violet-50 text-violet-700 border border-violet-100"
-          }`}
-        >
+        <span className={isChem ? "text-[11px] font-medium text-sky-800" : "text-[11px] font-medium text-violet-800"}>
           {loaiHoaChatLabel(i.loai_hoa_chat)}
         </span>
       );
@@ -26,18 +22,18 @@ const tonCols: Column<KhoHoaChatTonLo>[] = [
   { 
     header: "Mã", 
     accessorKey: "ma_hoa_chat", 
-    cell: (i) => <span className="font-mono text-[11px] font-bold text-[var(--primary)]">{i.ma_hoa_chat}</span> 
+    cell: (i) => <span className="font-mono bv103-type-label font-semibold text-[var(--primary)]">{i.ma_hoa_chat}</span> 
   },
   { 
     header: "Tên mặt hàng", 
     accessorKey: "ten_hoa_chat", 
-    cell: (i) => <span className="text-[11px] font-bold uppercase text-slate-700">{i.ten_hoa_chat}</span> 
+    cell: (i) => <span className="bv103-type-label text-slate-700">{i.ten_hoa_chat}</span> 
   },
   { 
     header: "Mã lô", 
     accessorKey: "ma_lo", 
     cell: (i) => (
-      <span className="font-mono text-[11px] rounded bg-slate-50 border border-slate-100 px-1.5 py-0.5 text-slate-600 font-bold">
+      <span className="font-mono text-[11px] text-slate-600">
         {i.ma_lo || "Không mã"}
       </span>
     ) 
@@ -50,7 +46,7 @@ const tonCols: Column<KhoHoaChatTonLo>[] = [
       const h = new Date(`${i.han_su_dung}T12:00:00`).getTime();
       const isNear = !Number.isNaN(h) && (h - Date.now() <= 30 * 864e5);
       return (
-        <span className={`text-[11px] font-bold ${isNear ? "text-amber-600 animate-pulse bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100" : "text-slate-600"}`}>
+        <span className={`text-[11px] font-medium ${isNear ? "text-amber-800" : "text-slate-600"}`}>
           {formatDateVi(i.han_su_dung)}
         </span>
       );
@@ -62,20 +58,12 @@ const tonCols: Column<KhoHoaChatTonLo>[] = [
     cell: (i) => {
       const q = i.ton_so_luong;
       if (q <= 0) {
-        return <span className="inline-flex rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[11px] font-bold text-slate-400">Hết tồn</span>;
+        return <span className="text-[11px] font-medium text-slate-400">Hết tồn</span>;
       }
       if (q <= 10) {
-        return (
-          <span className="inline-flex rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[11px] font-semibold text-amber-700 tabular-nums">
-            {q} (Cảnh báo ít)
-          </span>
-        );
+        return <span className="text-[11px] font-medium tabular-nums text-amber-800">{q}</span>;
       }
-      return (
-        <span className="inline-flex rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 tabular-nums">
-          {q}
-        </span>
-      );
+      return <span className="text-[11px] font-medium tabular-nums text-emerald-800">{q}</span>;
     } 
   },
   { 
@@ -120,7 +108,7 @@ const movCols: Column<KhoHoaChatGiaoDichRow>[] = [
   { 
     header: "Mặt hàng / Vật tư", 
     accessorKey: "ten_hoa_chat", 
-    cell: (i) => <span className="text-[11px] font-bold text-slate-700 uppercase">{i.ten_hoa_chat || "—"}</span> 
+    cell: (i) => <span className="bv103-type-label font-semibold text-slate-700 uppercase">{i.ten_hoa_chat || "—"}</span> 
   },
   { 
     header: "Số lượng", 
@@ -150,9 +138,7 @@ const movCols: Column<KhoHoaChatGiaoDichRow>[] = [
     accessorKey: "su_co_id", 
     cell: (i) =>
       i.su_co_id ? (
-        <span className="inline-flex rounded-full bg-violet-50 border border-violet-200 px-2 py-0.5 text-[11px] font-bold text-violet-700">
-          Sự cố
-        </span>
+        <span className="text-[11px] font-medium text-violet-800">Sự cố</span>
       ) : (
         <span className="text-[11px] text-slate-400">—</span>
       ),
@@ -173,11 +159,11 @@ type Props = {
 export default function KhoHoaChatTables({ tons, movs, loading }: Props) {
   return (
     <>
-      <div className="mt-6 min-h-[300px] overflow-clip rounded-3xl border border-slate-100 bg-white p-2 shadow-sm">
+      <div className="mt-6 min-h-[300px]">
         <AdvancedDataTable columns={tonCols} data={tons} loading={loading} searchPlaceholder="Tìm trong tồn lô..." />
       </div>
       <p className="mt-6 text-[11px] font-medium text-slate-500">Phiếu gần đây</p>
-      <div className="mt-2 min-h-[260px] overflow-clip rounded-3xl border border-slate-100 bg-white p-2 shadow-sm">
+      <div className="mt-2 min-h-[260px]">
         <AdvancedDataTable columns={movCols} data={movs} loading={loading} searchPlaceholder="Tìm phiếu..." />
       </div>
     </>

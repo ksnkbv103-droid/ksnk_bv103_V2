@@ -88,7 +88,7 @@ export default function MdmSuggestionApproveModal({ isOpen, onClose, suggestion,
             </div>
             <div>
               <h3 className={UI.panelTitle}>Phê duyệt &amp; Thiết lập Bảo vệ</h3>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
+              <p className="bv103-type-label font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
                 Kích hoạt trigger kiểm soát toàn vẹn dữ liệu cứng
               </p>
             </div>
@@ -103,15 +103,15 @@ export default function MdmSuggestionApproveModal({ isOpen, onClose, suggestion,
         </header>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 p-6 space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="flex-1 p-6 space-y-[var(--bv103-space-3)] text-xs">
           {/* Readonly Table Info */}
           <div className="grid grid-cols-2 gap-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
             <div>
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Bảng dữ liệu</span>
+              <span className="bv103-type-label font-semibold text-slate-400 uppercase tracking-wider block">Bảng dữ liệu</span>
               <span className="font-mono font-bold text-slate-700 block mt-0.5">{suggestion.table_name}</span>
             </div>
             <div>
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Cột khóa ngoại</span>
+              <span className="bv103-type-label font-semibold text-slate-400 uppercase tracking-wider block">Cột khóa ngoại</span>
               <span className="font-mono font-bold text-emerald-600 block mt-0.5">{suggestion.column_name}</span>
             </div>
           </div>
@@ -168,7 +168,7 @@ export default function MdmSuggestionApproveModal({ isOpen, onClose, suggestion,
                       </option>
                     ))}
                   </select>
-                  <p className="text-[11px] text-slate-400 mt-1 italic leading-relaxed">
+                  <p className="bv103-type-note mt-1 leading-relaxed">
                     Trigger Postgres sẽ chặn đứng bất kỳ giao dịch ghi nào nếu bản ghi trỏ tới không đúng category_type này.
                   </p>
                 </div>

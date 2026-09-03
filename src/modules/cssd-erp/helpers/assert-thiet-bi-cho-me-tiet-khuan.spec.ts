@@ -34,6 +34,23 @@ describe("assertThietBiSanSangChoMeTietKhuan", () => {
     if (!r.ok) expect(r.message).toMatch(/bảo trì/i);
   });
 
+
+  it("blocks HOLD_QC", async () => {
+    const client = {
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: { id: "x", ten_thiet_bi: "Lò 3", trang_thai: "HOLD_QC" },
+          error: null,
+        }),
+      }),
+    };
+    const r = await assertThietBiSanSangChoMeTietKhuan(client as never, "x");
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.message).toMatch(/HOLD_QC|tạm giữ QC/i);
+  });
+
   it("blocks BROKEN", async () => {
     const client = {
       from: vi.fn().mockReturnValue({

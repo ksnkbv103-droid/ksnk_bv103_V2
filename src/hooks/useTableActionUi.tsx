@@ -2,8 +2,8 @@
 
 import React from "react";
 import { Edit2, Trash2 } from "lucide-react";
-import { MdmActiveToggle } from "@/components/shared/MdmActiveToggle";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 
 interface ActionUiConfig<T> {
   onToggleStatus: (item: T) => void | Promise<void>;
@@ -28,19 +28,25 @@ export function useTableActionUi<T>(config: ActionUiConfig<T>) {
     const isActive = getActive(item);
     if (!ct) {
       return (
-        <span className="text-[11px] font-medium text-slate-500">
-          {isActive ? "Hoạt động" : "Ngưng"}
+        <span className={isActive ? L.statusOk : L.statusMuted}>
+          {isActive ? "Đang dùng" : "Ngưng"}
         </span>
       );
     }
     return (
-      <div onClick={(e) => e.stopPropagation()} className="inline-flex" role="presentation">
-        <MdmActiveToggle
-          active={isActive}
-          onToggle={() => void config.onToggleStatus(item)}
-          size="sm"
-        />
-      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={isActive}
+        aria-label={isActive ? "Đang dùng — nhấn để ngưng" : "Ngưng — nhấn để bật lại"}
+        onClick={(e) => {
+          e.stopPropagation();
+          void config.onToggleStatus(item);
+        }}
+        className={`${isActive ? L.statusOk : L.statusMuted} underline-offset-2 hover:underline`}
+      >
+        {isActive ? "Đang dùng" : "Ngưng"}
+      </button>
     );
   };
 

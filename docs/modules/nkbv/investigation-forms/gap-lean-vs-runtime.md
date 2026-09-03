@@ -12,9 +12,9 @@
 | PNEU-P0-2 | PNEU | Lab ngưỡng BAL/ETA/PSB/PBAL tách dòng | **Đóng 2026-08-09** — `nkbv-pneu-lab-tier` + form L2 lab-first |
 | PNEU-P0-3 | PNEU | Khối Ruled-out (Phần V giấy) | L3 bắt buộc khi loại trừ |
 | PNEU-P0-4 | PNEU | Nhãn VAP/Non-VAP rõ trên hàng device | UI badge từ engine |
-| PNEU-AUDIT-A1 | PNEU | Đếm key hô hấp ≠ nhóm CDC (dyspnea+tachypnea=2) | Sửa đếm nhóm — xem [audit 2026-08-10](pneu-standard-vs-runtime-audit-20260810.md) |
-| PNEU-AUDIT-A2 | PNEU | PNU2 bị siết ≥2 hô hấp như PNU1 | Gate lab PNU2 chỉ cần ≥1 hô hấp |
-| PNEU-AUDIT-A3 | PNEU | PNU3 bắt buộc hemoptysis/đau màng phổi | SSOT: ≥1 triệu chứng list rộng |
+| PNEU-AUDIT-A1 | PNEU | Đếm key hô hấp ≠ nhóm CDC (dyspnea+tachypnea=2) | **Đóng 2026-08-18** — đếm `pneu_resp_line` |
+| PNEU-AUDIT-A2 | PNEU | PNU2 bị siết ≥2 hô hấp như PNU1 | **Đóng 2026-08-18** — PNU2 ≥1 nhóm |
+| PNEU-AUDIT-A3 | PNEU | PNU3 bắt buộc hemoptysis/đau màng phổi | **Đóng 2026-08-18** — list rộng, không bắt buộc |
 | BSI-P0-1 | BSI | MBI đầy (ANC ≥2d trong IWP) nếu chỉ tick neutropenia | L2 MBI block |
 | UTI-P0-1 | UTI | — Core đủ pilot | Boy scout copy Ruled-out ASB · **xem lại audit:** [UTI 2026-08-10](uti-standard-vs-runtime-audit-20260810.md) |
 | UTI-AUDIT-A1 | UTI | CFU thiếu/`null` coi đạt (seed 1e5) | Fail closed — [audit](uti-standard-vs-runtime-audit-20260810.md) |

@@ -82,7 +82,7 @@ export function SystemHealthPanel() {
             <p className={`mt-1 ${UI.kpiCaption}`}>{m.hint}</p>
             <Link
               href={m.href}
-              className="mt-2 inline-flex items-center gap-0.5 text-[11px] font-bold text-[var(--primary)]"
+              className="mt-2 inline-flex items-center gap-0.5 bv103-type-label font-semibold text-[var(--primary)]"
             >
               Mở sửa <ExternalLink size={11} aria-hidden />
             </Link>

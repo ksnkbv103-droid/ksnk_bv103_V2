@@ -12,7 +12,10 @@ import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 
 async function loadComplianceFilterOptionsData(supabase: SupabaseClient) {
   const [bkRes, khoiData, khoaData, ngheData, khuData] = await Promise.all([
-    supabase.from("gstt_dm_bang_kiem").select("id, ma_bk, ten_bang_kiem, is_active").order("ma_bk", { ascending: true }),
+    supabase
+      .from("gstt_dm_bang_kiem")
+      .select("id, ma_bk, ten_bang_kiem, is_active, loai_giam_sat")
+      .order("ma_bk", { ascending: true }),
     getCachedDmKhoiKhoa(),
     getCachedDmKhoaPhong(),
     getCachedDmNgheNghiep(),
@@ -28,7 +31,11 @@ async function loadComplianceFilterOptionsData(supabase: SupabaseClient) {
         const ma = String(x.ma_bk || "").trim();
         const ten = String(x.ten_bang_kiem || x.ma_bk || "").trim() || "Bảng kiểm";
         const activeTag = x.is_active === false ? " (ngưng dùng)" : "";
-        return { id: ma || `BK_ID:${String(x.id || "")}`, label: `${ten}${activeTag}` };
+        return {
+          id: ma || `BK_ID:${String(x.id || "")}`,
+          label: `${ten}${activeTag}`,
+          loai_giam_sat: (x as { loai_giam_sat?: string | null }).loai_giam_sat ?? null,
+        };
       }),
     ],
     khoi: khoiData.map((x) => ({ id: String(x.id), label: String(x.ten_khoi || "—") })),

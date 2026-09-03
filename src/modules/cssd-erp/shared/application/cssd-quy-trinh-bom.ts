@@ -1,7 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   bomLineKeyFromTemplate,
-  mergeBomLineQuantities,
   normalizeSpaulding,
   normalizeSteamMethod,
   parseBomLinesFromMetadata,
@@ -13,7 +12,6 @@ type QuyTrinhRow = {
   id?: string;
   bo_dung_cu_id?: string | null;
   metadata?: Record<string, unknown> | null;
-  bom_kiem_dem_at?: string | null;
 };
 
 export async function readQuyTrinhBomContext(
@@ -28,7 +26,7 @@ export async function readQuyTrinhBomContext(
 
   const { data, error } = await supabase
     .from("cssd_fact_quy_trinh")
-    .select("id, bo_dung_cu_id, metadata, bom_kiem_dem_at")
+    .select("id, bo_dung_cu_id, metadata")
     .eq("id", id)
     .maybeSingle();
   if (error) return { ok: false, message: error.message };
@@ -112,7 +110,7 @@ export async function loadBomLinesWithLoaiSpec(
   supabase: SupabaseClient,
   quyTrinhId: string,
 ): Promise<
-  | { ok: true; bomLines: BomLineWithSpec[]; bomKiemDemAt: string | null }
+  | { ok: true; bomLines: BomLineWithSpec[] }
   | { ok: false; message: string }
 > {
   const ctx = await readQuyTrinhBomContext(supabase, quyTrinhId);
@@ -164,26 +162,7 @@ export async function loadBomLinesWithLoaiSpec(
   return {
     ok: true,
     bomLines,
-    bomKiemDemAt: ctx.row.bom_kiem_dem_at ?? null,
   };
-}
-
-export async function applyBomCheckpointLines(
-  supabase: SupabaseClient,
-  quyTrinhId: string,
-  updates: Array<{ line_key: string; so_luong_thuc_te: number }>,
-): Promise<{ ok: true; bomLines: QuyTrinhBomLine[] } | { ok: false; message: string }> {
-  const ctx = await readQuyTrinhBomContext(supabase, quyTrinhId);
-  if (!ctx.ok) return ctx;
-
-  const boId = String(ctx.row.bo_dung_cu_id || "").trim();
-  const sync = await syncBomLinesFromTemplate(supabase, quyTrinhId, boId || null);
-  if (!sync.ok) return sync;
-
-  const merged = mergeBomLineQuantities(sync.bomLines, updates);
-  const saved = await saveBomLinesOnQuyTrinh(supabase, quyTrinhId, merged, ctx.row.metadata || {});
-  if (!saved.ok) return saved;
-  return { ok: true, bomLines: merged };
 }
 
 /** Điều chuyển số lượng một dòng BOM giữa hai quy trình (metadata.bom_lines). */

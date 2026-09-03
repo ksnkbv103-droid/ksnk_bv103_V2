@@ -8,6 +8,8 @@ import { buildEntityQrCode } from "@/lib/entity-qr/entity-qr-core";
 import { useEntityQrImage } from "@/hooks/useEntityQr";
 import { buildPrintFileTitle, pickSuCoPrintMa } from "@/lib/print/print-file-title";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
+import { parseSetReconcileSnapshot } from "../domain/cssd-set-reconcile-attrs";
+import { SET_RECONCILE_KIND_LABEL, formatLoaiDungCuLabel, type SetReconcileLineKind } from "@/lib/domain/cssd-set-reconcile";
 
 export interface IncidentDetailRow {
   id: string;
@@ -27,6 +29,7 @@ export interface IncidentPrintViewProps {
     created_at?: string | null;
     incident_group?: string | null;
     incident_type_label?: string | null;
+    ten_loai_su_co?: string | null;
     ten_bo?: string | null;
     ma_bo?: string | null;
   };
@@ -95,6 +98,7 @@ export default function IncidentPrintView({
   }, [details]);
 
   const errorQr = detailsMap["ERROR_QR"];
+  const maLo = detailsMap["MA_LO"] || (incident.incident_group === "PROCESS" ? errorQr : "");
   const machineId = detailsMap["MACHINE_ID"];
   const faultOperator = detailsMap["FAULT_OPERATOR"];
   const nguoiPhatHien = detailsMap["NGUOI_PHAT_HIEN"];
@@ -102,6 +106,11 @@ export default function IncidentPrintView({
   const rollbackTarget = detailsMap["ROLLBACK_TARGET_STATION"];
   const reporterEmail = detailsMap["REPORTER_EMAIL"];
   const imageEvidence = detailsMap["ANH_MINH_CHUNG"];
+  const batchRecallCount = detailsMap["BATCH_RECALL_COUNT"];
+  const batchRecalled = detailsMap["BATCH_RECALL"] === "1";
+  const machineHoldQc = detailsMap["MACHINE_HOLD_QC"] === "1";
+  const setSnap = parseSetReconcileSnapshot(detailsMap["SET_RECONCILE_SNAPSHOT"]);
+  const setStatus = detailsMap["SET_RECONCILE_STATUS"] || "";
 
   const directImageLink = useMemo(() => {
     return imageEvidence ? getGoogleDriveDirectLink(imageEvidence) : "";
@@ -118,6 +127,11 @@ export default function IncidentPrintView({
       return "Đóng băng bộ dụng cụ tại trạm hiện tại. Cấm sử dụng hoặc chuyển tiếp, chờ bổ sung/sửa chữa thiết bị.";
     }
     if (incident.incident_group === "PROCESS") {
+      if (batchRecalled) {
+        const n = batchRecallCount ? ` (${batchRecallCount} bộ)` : "";
+        const hold = machineHoldQc ? " Máy mẻ tạm giữ QC (HOLD_QC)." : "";
+        return `Thu hồi cả mẻ${n}: bộ đã cấp phát về Tiếp nhận; bộ còn trong chu trình về Đóng gói và khóa.${hold}`;
+      }
       const target = rollbackTarget ? STATION_LABEL_MAP[rollbackTarget] || rollbackTarget : "Làm sạch";
       return `Rollback domino: Tự động chuyển bộ dụng cụ về trạm [${target}] để xử lý lại từ đầu.`;
     }
@@ -128,7 +142,7 @@ export default function IncidentPrintView({
       return "Niêm phong và loại bỏ lô hóa chất/vật tư kém chất lượng. Thay thế lô mới đạt chuẩn.";
     }
     return "Tự động ghi nhận thông tin sự cố chung phục vụ đánh giá KPI & quy trình.";
-  }, [incident.incident_group, rollbackTarget]);
+  }, [incident.incident_group, rollbackTarget, batchRecalled, batchRecallCount, machineHoldQc]);
 
   return (
     <PrintLayout
@@ -187,6 +201,12 @@ export default function IncidentPrintView({
           <div>
             <strong>Người lập biên bản:</strong> {reporterEmail || "Nhân viên KSNK"}
           </div>
+          <div>
+            <strong>Trạng thái phiếu:</strong>{" "}
+            {detailsMap["INCIDENT_STATUS"] === "DA_XAC_NHAN"
+              ? `Đã xác nhận${detailsMap["INCIDENT_CONFIRMED_BY_NAME"] ? ` — ${detailsMap["INCIDENT_CONFIRMED_BY_NAME"]}` : ""}${detailsMap["INCIDENT_CONFIRMED_AT"] ? ` (${formatDateTimeVi(detailsMap["INCIDENT_CONFIRMED_AT"])})` : ""}`
+              : "Chưa xác nhận"}
+          </div>
           {nguoiPhatHien ? (
             <div>
               <strong>Người phát hiện:</strong> {nguoiPhatHien}
@@ -204,7 +224,7 @@ export default function IncidentPrintView({
             </span>
           </p>
           <p style={{ margin: "0 0 6px" }}>
-            <strong>Loại sự cố:</strong> {incident.incident_type_label || "Không xác định"}
+            <strong>Tình huống:</strong> {incident.incident_type_label || "Không xác định"}
           </p>
           <p style={{ margin: 0, textAlign: "justify" }}>
             <strong>Mô tả chi tiết sự việc:</strong>
@@ -213,6 +233,50 @@ export default function IncidentPrintView({
             {incident.mo_ta || "Không có mô tả chi tiết."}
           </p>
         </div>
+
+        {setSnap?.lines?.length ? (
+          <div style={{ marginBottom: "14px" }}>
+            <p style={{ margin: "0 0 6px", fontSize: "12px", fontWeight: 800, textTransform: "uppercase" }}>
+              Bảng thành phần bộ {setStatus ? `(${setStatus})` : ""}
+            </p>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
+              <thead>
+                <tr>
+                  <th style={{ borderBottom: "1px solid #000", textAlign: "left", padding: "4px" }}>Dụng cụ</th>
+                  <th style={{ borderBottom: "1px solid #000", textAlign: "left", padding: "4px" }}>Mã khắc</th>
+                  <th style={{ borderBottom: "1px solid #000", padding: "4px" }}>Chuẩn</th>
+                  <th style={{ borderBottom: "1px solid #000", padding: "4px" }}>Hệ thống</th>
+                  <th style={{ borderBottom: "1px solid #000", padding: "4px" }}>Đếm</th>
+                  <th style={{ borderBottom: "1px solid #000", textAlign: "left", padding: "4px" }}>Lệch</th>
+                  <th style={{ borderBottom: "1px solid #000", textAlign: "left", padding: "4px" }}>Bộ đích / ghi chú</th>
+                </tr>
+              </thead>
+              <tbody>
+                {setSnap.lines.map((line, i) => (
+                  <tr key={`${line.chiTietId || "n"}-${i}`}>
+                    <td style={{ padding: "3px 4px" }}>
+                      {line.kind === "DOI_LOAI"
+                        ? `${formatLoaiDungCuLabel(line.maLoai, line.tenDungCuLe)} → ${formatLoaiDungCuLabel(line.maLoaiDeXuat, line.tenDungCuLeDeXuat || line.tenDungCuLe)}`
+                        : formatLoaiDungCuLabel(line.maLoai, line.tenDungCuLe)}
+                    </td>
+                    <td style={{ padding: "3px 4px", fontFamily: "monospace" }}>{line.maKhac || "—"}</td>
+                    <td style={{ padding: "3px 4px", textAlign: "center" }}>
+                      {line.kind === "DOI_CHUAN" ? `${line.soLuongChuan}→${line.soLuongChuanDeXuat}` : line.soLuongChuan}
+                    </td>
+                    <td style={{ padding: "3px 4px", textAlign: "center" }}>{line.soLuongThucTe}</td>
+                    <td style={{ padding: "3px 4px", textAlign: "center" }}>{line.soLuongDem}</td>
+                    <td style={{ padding: "3px 4px" }}>
+                      {SET_RECONCILE_KIND_LABEL[line.kind as SetReconcileLineKind] || line.kind}
+                    </td>
+                    <td style={{ padding: "3px 4px" }}>
+                      {[line.kind === "DIEU_CHUYEN" ? line.maQrDen : "", line.note].filter(Boolean).join(" — ") || "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
 
         <div
           style={{
@@ -262,6 +326,31 @@ export default function IncidentPrintView({
               <div>
                 <strong>Mã lô hóa chất/vật tư:</strong>{" "}
                 <span style={{ fontFamily: "monospace" }}>{errorQr}</span>
+              </div>
+            ) : null}
+
+            {maLo && incident.incident_group === "PROCESS" ? (
+              <div>
+                <strong>Mã lô mẻ tiệt khuẩn:</strong>{" "}
+                <span style={{ fontFamily: "monospace" }}>{maLo}</span>
+              </div>
+            ) : null}
+
+            {batchRecalled && incident.incident_group === "PROCESS" ? (
+              <div>
+                <strong>Thu hồi cả mẻ:</strong> {batchRecallCount || "có"} bộ cùng mã lô
+              </div>
+            ) : null}
+
+            {machineHoldQc && incident.incident_group === "PROCESS" ? (
+              <div>
+                <strong>Máy:</strong> tạm giữ QC (HOLD_QC)
+                {machineId ? (
+                  <>
+                    {" "}
+                    — <span style={{ fontFamily: "monospace" }}>{machineId}</span>
+                  </>
+                ) : null}
               </div>
             ) : null}
 

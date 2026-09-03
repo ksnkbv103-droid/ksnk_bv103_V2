@@ -15,6 +15,7 @@ import {
   momentToneClass,
   useSortedGapRows,
 } from "@/lib/analytics/supervision-charts-shared";
+import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 
 /** Bảng master khoa: khối lượng · % · trạng thái đối soát · VST/GSC (không CCS). */
 export function SupervisionKhoaMasterTable({
@@ -43,7 +44,7 @@ export function SupervisionKhoaMasterTable({
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <h3 className="mb-2 text-sm font-bold text-slate-800">{title}</h3>
       <p className="mb-3 text-[11px] text-slate-500">
-        Chỉ khoa có dữ liệu · sắp KSNK % thấp → cao · tô cảnh báo &lt;{KHOA_COMPLIANCE_WARN_PCT}%.
+        Chỉ khoa có dữ liệu · sắp chuyên trách % thấp → cao · tô cảnh báo &lt;{KHOA_COMPLIANCE_WARN_PCT}%.
       </p>
       <ResponsiveTableShell unboxed maxHeight="max-h-[min(420px,55dvh)]">
         <table className="w-full min-w-[720px] text-left text-xs">
@@ -51,10 +52,10 @@ export function SupervisionKhoaMasterTable({
             <tr className="border-b border-slate-200 text-[11px] font-bold uppercase tracking-wide text-slate-500">
               <th className="px-2 py-2">#</th>
               <th className="px-2 py-2">Khoa</th>
-              <th className="px-2 py-2 text-center">TGS vol</th>
-              <th className="px-2 py-2 text-center">KSNK vol</th>
-              <th className="px-2 py-2 text-center">TGS %</th>
-              <th className="px-2 py-2 text-center">KSNK %</th>
+              <th className="px-2 py-2 text-center">{SUPERVISION_SOURCE_UI.tgsVolShort}</th>
+              <th className="px-2 py-2 text-center">{SUPERVISION_SOURCE_UI.ksnkVolShort}</th>
+              <th className="px-2 py-2 text-center">{SUPERVISION_SOURCE_UI.tgsPct}</th>
+              <th className="px-2 py-2 text-center">{SUPERVISION_SOURCE_UI.ksnkPct}</th>
               <th className="px-2 py-2 text-center">Đối soát</th>
               {rankRows ? <th className="px-2 py-2 text-center">VST %</th> : null}
               {rankRows ? <th className="px-2 py-2 text-center">GSC %</th> : null}

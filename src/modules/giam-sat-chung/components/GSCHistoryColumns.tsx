@@ -129,7 +129,7 @@ export function getGSCHistoryColumns(
       cell: (s: GscHistoryRow) => {
         const { label, className, title } = formatGscHistoryScore(s as Record<string, unknown>);
         return (
-          <span className={`text-xs font-bold ${className}`} title={title}>
+          <span className={`bv103-type-label font-semibold ${className}`} title={title}>
             {label}
           </span>
         );

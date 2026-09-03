@@ -1,9 +1,7 @@
 "use client";
 
 import React from "react";
-import { Users } from "lucide-react";
 import NhanSuTable from "../components/NhanSuTable";
-import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import { useModulePermission } from "@/hooks/useModulePermission";
 
 const MODULE_KEY = "NHAN_SU";
@@ -29,14 +27,7 @@ export default function QuanLyNhanSuPage() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <KsnkPageHeader
-        title={
-          <span className="inline-flex items-center gap-2 text-[var(--primary)]">
-            <Users size={22} aria-hidden /> Hồ sơ Nhân sự
-          </span>
-        }
-      />
+    <div className="bv103-stack-page animate-in fade-in slide-in-from-bottom-4 duration-700">
 
       <NhanSuTable
         permission={{

@@ -9,6 +9,7 @@
 | 0 | [`00-lean-cdc-methodology.md`](00-lean-cdc-methodology.md) | L1/L2/L3, rubric, bề mặt A/B |
 | 1 | [`01-shared-spine.md`](01-shared-spine.md) | Hàng 0–9 Shared vs Delta; VAE≠PNEU |
 | 2 | [`02-clinical-symptom-catalog.md`](02-clinical-symptom-catalog.md) | SSOT triệu chứng lâm sàng + ánh xạ form/criteria |
+| 2c | [`../hai-criteria-element-dictionary-20260827.md`](../hai-criteria-element-dictionary-20260827.md) | BOM SX + XN + CĐHA theo hội chứng (căn cứ ID) |
 | 2b | [`symptom-catalog-uat-20260809.md`](symptom-catalog-uat-20260809.md) | UAT tay 3–4 case + lệnh verify unit |
 | 3 | [`trees/`](trees/) | Cây + bảng phân lớp từng hội chứng |
 | 4 | `*-2026.md` | Phần A vận hành + Phần B phụ lục |
@@ -45,4 +46,5 @@
 - [ ] UAT BA-centric (pilot checklist #1 + BA-1…BA-4) PASS → mở route `/giam-sat-nkbv` khỏi pilot block  
 
 Hợp đồng UI: [`../clinical-forms.md`](../clinical-forms.md) v3.2+.  
+Mẫu báo cáo gửi khoa (cùng schema, lời khác người đọc): [`../hai-timeline-and-diagnostic-report-20260827.md`](../hai-timeline-and-diagnostic-report-20260827.md).  
 UAT tay: [`../pilot-clinical-checklist-20260603.md`](../pilot-clinical-checklist-20260603.md).

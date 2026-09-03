@@ -11,22 +11,22 @@ export const bv103PanelChrome = {
   shell: C.panelSurface,
   shellPadded: C.panelShellPadded,
   inset: C.panelInset,
-  sectionGap: "space-y-4",
+  sectionGap: "bv103-stack-in",
   sectionGapLg: T.pageSectionGap,
 
   /** Typography panel */
   panelTitle: T.sectionTitle,
   panelSubtitle: T.pageEyebrow,
   sectionTitle: T.sectionTitle,
-  emptyTitle: "text-sm font-semibold text-slate-500",
-  emptyBody: "text-sm font-normal leading-relaxed text-slate-400",
+  emptyTitle: `${T.sectionTitle} text-slate-500`,
+  emptyBody: `${T.tableCellBody} font-normal text-slate-400`,
 
   /** Form */
   formLabel: C.labelField,
   formLabelBlock: C.labelBlock,
-  formSection: "space-y-4",
-  formRow: "grid gap-4 sm:grid-cols-2",
-  modalTitle: "text-lg font-semibold tracking-tight text-slate-900 md:text-xl",
+  formSection: "bv103-stack-in",
+  formRow: "grid gap-[var(--bv103-space-3)] sm:grid-cols-2",
+  modalTitle: T.pageTitle,
   modalSubtitle: T.pageSubtitle,
 
   /** KPI trong panel (không font-black) */
@@ -44,10 +44,10 @@ export const bv103PanelChrome = {
   btnPrimary: T.btnPrimary,
   btnSecondary: T.btnSecondary,
   /** Nút touch ngắn trong panel (giữ IN HOA) */
-  btnTouch: "text-[11px] font-semibold uppercase tracking-wide",
+  btnTouch: `${T.labelBlock} font-semibold uppercase tracking-wide`,
   /** Badge trạng thái — title case, không IN HOA */
   statusBadge:
-    "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+    `inline-flex items-center rounded-full border px-2 py-0.5 ${T.labelBlock} font-semibold`,
 
   noticeSuccess: C.noticeSuccess,
   noticeWarning: C.noticeWarning,

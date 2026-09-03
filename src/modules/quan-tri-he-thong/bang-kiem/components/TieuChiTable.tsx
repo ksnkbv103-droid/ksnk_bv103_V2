@@ -11,7 +11,6 @@ import TieuChiForm from "./TieuChiForm";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import type { DanhMucBangKiem, TieuChiBangKiem } from "../bang-kiem.types";
-import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { getTieuChiTableColumns } from "./tieu-chi-table-columns";
 import TieuChiTableToolbar from "./tieu-chi-table-toolbar";
 
@@ -132,7 +131,7 @@ export default function TieuChiTable({
     isFormOpen && ((editingTC != null && allowEdit) || (editingTC == null && allowCreate));
 
   return (
-    <div className={`relative h-auto overflow-hidden p-0 ${bv103LayoutChrome.panelSurface}`}>
+    <div className="relative h-auto space-y-2">
       <TieuChiTableToolbar
         fileInputRef={fileInputRef}
         isImporting={isImporting}
@@ -145,15 +144,13 @@ export default function TieuChiTable({
         }}
         onFileSelected={(file) => void onFileSelected(file)}
       />
-      <div className="px-4 pb-2 sm:px-6">
-        <AdvancedDataTable
+      <AdvancedDataTable
           columns={columns}
           data={data}
           loading={loading}
           enableMultiSelect={allowDelete}
           onDeleteSelected={allowDelete ? handleBulkDelete : undefined}
         />
-      </div>
       {showForm ? (
         <TieuChiForm
           initialData={editingTC}

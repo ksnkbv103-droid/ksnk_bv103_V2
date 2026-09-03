@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Loader2, QrCode } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { buildLocationQrCode } from "@/lib/entity-qr/entity-qr-core";
 import { generateEntityQrDataUrl } from "@/lib/entity-qr/generate-entity-qr";
@@ -77,13 +77,13 @@ export default function LocationQrPrintButton({ kind, ma, ten, className }: Prop
         disabled={busy || !ma}
         className={
           className ||
-          "inline-flex h-9 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          "text-[11px] font-semibold text-[var(--primary)] hover:underline disabled:opacity-50"
         }
         aria-label="In tem QR vị trí"
         title="In tem QR vị trí"
       >
-        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <QrCode className="h-3.5 w-3.5" />}
-        QR
+        {busy ? <Loader2 className="mr-1 inline h-3.5 w-3.5 animate-spin" /> : null}
+        In
       </button>
       {print ? (
         <div id="print-area" className="print-area hidden print:block">

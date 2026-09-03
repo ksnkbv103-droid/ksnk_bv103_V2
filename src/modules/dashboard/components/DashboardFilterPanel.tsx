@@ -107,6 +107,7 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
         </div>
 
         <div className="flex items-center justify-start gap-1.5 sm:justify-end">
+          {!isBrief ? (
           <button
             type="button"
             onClick={() => setShowAdvanced((v) => !v)}
@@ -116,9 +117,10 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
             {showAdvanced ? <ChevronUp className="h-3.5 w-3.5" aria-hidden /> : <ChevronDown className="h-3.5 w-3.5" aria-hidden />}
             Bộ lọc
             {advancedActive ? (
-              <span className="rounded bg-emerald-100 px-1 py-0.5 text-[11px] font-bold text-emerald-800">•</span>
+              <span className="rounded bg-emerald-100 px-1 py-0.5 bv103-type-label font-semibold text-emerald-800">•</span>
             ) : null}
           </button>
+          ) : null}
           {p.onRefresh ? (
             <button
               type="button"
@@ -157,7 +159,7 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
         </div>
       ) : null}
 
-      {showAdvanced ? (
+      {!isBrief && showAdvanced ? (
         <div className="grid grid-cols-1 gap-2 rounded-lg border border-slate-100 bg-slate-50/80 p-3 sm:grid-cols-2 lg:grid-cols-4">
           {!hideBangKiem && isCompact && p.bangKiemOptions && p.setSelectedBangKiemMas ? (
             <SearchableMultiSelect

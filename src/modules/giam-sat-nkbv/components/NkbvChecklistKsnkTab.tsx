@@ -36,9 +36,9 @@ export default function NkbvChecklistKsnkTab({
   onAdjudicate,
 }: NkbvChecklistKsnkTabProps) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in duration-200">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-[var(--bv103-space-3)] animate-in fade-in duration-200">
       {/* Left Column: Expert analysis checks & Adjudication action (7 cols) */}
-      <div className="lg:col-span-7 space-y-4">
+      <div className="lg:col-span-7 space-y-[var(--bv103-space-3)]">
         
         {/* Proposed CDC Diagnosis Card */}
         <div className="space-y-3">
@@ -77,7 +77,7 @@ export default function NkbvChecklistKsnkTab({
               </div>
 
               <div className="mt-3 border-t border-slate-200/40 pt-3">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Mã phân loại</span>
+                <span className="bv103-type-label font-semibold text-slate-400 uppercase tracking-wider block">Mã phân loại</span>
                 <span className={`inline-block mt-1 px-2.5 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wide ${
                   liveEvaluation.is_positive 
                     ? "bg-emerald-100 text-emerald-800"
@@ -93,7 +93,7 @@ export default function NkbvChecklistKsnkTab({
               </div>
 
               <div className="mt-3 text-xs font-semibold leading-relaxed">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Căn cứ y tế</span>
+                <span className="bv103-type-label font-semibold text-slate-400 uppercase tracking-wider block mb-1">Căn cứ y tế</span>
                 {liveEvaluation.reason}
               </div>
             </div>
@@ -135,7 +135,7 @@ export default function NkbvChecklistKsnkTab({
       </div>
 
       {/* Right Column: CDC Live Timeline (5 cols) */}
-      <div className={`lg:col-span-5 flex flex-col h-full space-y-4 ${C.panelInset} p-4 overflow-y-auto`}>
+      <div className={`lg:col-span-5 flex flex-col h-full space-y-[var(--bv103-space-3)] ${C.panelInset} p-4 overflow-y-auto`}>
         <span className={`${C.blockSection} block border-b border-slate-200 pb-2 text-slate-500`}>
           🗓️ CDC LIVE TIMELINE & ATTRIBUTION
         </span>

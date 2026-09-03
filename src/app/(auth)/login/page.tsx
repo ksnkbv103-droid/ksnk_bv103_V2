@@ -121,7 +121,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form id="ksnk-login-form" onSubmit={handleLogin} className="space-y-6">
+          <form id="ksnk-login-form" onSubmit={handleLogin} className="space-y-[var(--bv103-space-3)]">
             <div>
               <label className={T.authLabel}>Mã nhân viên hoặc email</label>
               <input

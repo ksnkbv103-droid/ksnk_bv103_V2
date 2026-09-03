@@ -60,7 +60,7 @@ function isGuestStatsPerm(p: PermRow): boolean {
   return a === "view" && (m === "GIAM_SAT_VST" || m === "GIAM_SAT_CHUNG");
 }
 
-/** Nhân viên khoa KSNK — vận hành lõi + MDM nhân sự/bảng kiểm; PHAN_QUYEN chỉ xem. */
+/** Nhân viên khoa KSNK — vận hành + hồ sơ/bảng kiểm; master CSSD chỉ xem; PHAN_QUYEN chỉ xem. */
 function isKsnkStaffPerm(p: PermRow): boolean {
   const m = mod(p);
   const a = act(p);
@@ -111,9 +111,6 @@ function isKsnkStaffPerm(p: PermRow): boolean {
     "BANG_KIEM_DETAIL",
   ];
   if (dmDetail.includes(m)) {
-    if (["LOAI_DC", "BO_DC", "DC_LE", "THIET_BI", "HOA_CHAT"].includes(m)) {
-      return ["view", "create", "edit", "delete", "import"].includes(a);
-    }
     return a === "view";
   }
 
@@ -126,6 +123,11 @@ const matchers: Record<(typeof KSNK_RBAC_ROLE_NAMES)[number], (p: PermRow) => bo
   MANG_LUOI_KSNK: isNetworkOperatorPerm,
   KHACH_THONG_KE_GSTT: isGuestStatsPerm,
 };
+
+/** Kiểm preset nhân viên KSNK (không đọc DB) — dùng test + review quyền. */
+export function ksnkStaffAllows(moduleName: string, action: string): boolean {
+  return isKsnkStaffPerm({ id: "t", module_name: moduleName, action });
+}
 
 /**
  * Áp dụng lại ma trận quyền mặc định cho các vai trò KSNK active (ghi đè mapping).

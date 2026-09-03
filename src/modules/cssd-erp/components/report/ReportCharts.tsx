@@ -15,7 +15,7 @@ interface Props { pieData: any[]; barData: any[]; }
  */
 export default function ReportCharts({ pieData, barData }: Props) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-[var(--bv103-space-3)]">
       {/* 1. Biểu đồ tròn: Tỷ lệ sự cố theo loại */}
       <div className="bg-white p-8 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm space-y-8 flex flex-col">
         <h3 className="text-[11px] font-medium text-slate-400 tracking-wide">Tỷ lệ sự cố theo danh mục</h3>

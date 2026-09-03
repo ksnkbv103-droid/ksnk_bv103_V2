@@ -10,6 +10,7 @@ import {
 } from "@/lib/analytics/supervision-analytics-charts";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import type { GscStrategicPayload } from "../types/gsc-strategic.types";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
 import { GscChecklistNavigator } from "./GscChecklistNavigator";
@@ -107,7 +108,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
   );
 
   return (
-    <div className="space-y-6 pb-8">
+    <div className="space-y-[var(--bv103-space-3)] pb-8">
       {p.loadError ? (
         <div className={`${UI.inset} border-red-200 bg-red-50 p-4 text-sm text-red-800`}>{p.loadError}</div>
       ) : null}
@@ -118,6 +119,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         selectedMaBk={selectedMaBk}
         onSelectMaBk={onSelectMaBk}
         bkLabelRecord={p.bkLabelRecord}
+        limit={5}
       />
 
       {selectedMaBk ? (
@@ -134,9 +136,9 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         />
       ) : null}
 
-      <section className={`${UI.shell} w-full min-w-0 p-4`}>
+      <section className="w-full min-w-0">
         <header className="mb-4">
-          <h2 className="text-sm font-bold text-slate-800">Thống kê theo khoa</h2>
+          <h2 className="bv103-type-section text-slate-800">Thống kê theo khoa</h2>
           <p className="mt-1 text-[11px] text-slate-500">
             Tỷ lệ tuân thủ và khối lượng khảo sát — đủ mã khoa trong phạm vi lọc; khoa dưới 80% được tô cảnh báo.
             {p.khoaFilterLocked ? " Phạm vi khoa đang khóa." : ""}
@@ -147,23 +149,24 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
           matrixKhoaRows={p.payload?.matrix_khoa}
           loading={p.loading}
           moduleLabel="GSC"
-          tgsVolumeLabel="Khảo sát TGS"
-          ksnkVolumeLabel="Khảo sát KSNK"
+          tgsVolumeLabel={SUPERVISION_SOURCE_UI.gscTgsVol}
+          ksnkVolumeLabel={SUPERVISION_SOURCE_UI.gscKsnkVol}
         />
       </section>
 
-      <GscTgsCoverageRankingPanel
-        tuNgay={p.tuNgay}
-        denNgay={p.denNgay}
-        selectedKhoaIds={p.selectedKhoaIds}
-      />
-
       <details className={`${UI.shell} group`}>
-        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
-          Tổng hợp chung (mọi BK trong kỳ)
-          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">KPI · xu hướng · top vi phạm</span>
+        <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+          Xem thêm
+          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
+            Bao phủ tự giám sát · xu hướng · so sánh khối/nghề
+          </span>
         </summary>
-        <div className="space-y-4 border-t border-slate-100 px-4 pb-4 pt-3">
+        <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
+          <GscTgsCoverageRankingPanel
+            tuNgay={p.tuNgay}
+            denNgay={p.denNgay}
+            selectedKhoaIds={p.selectedKhoaIds}
+          />
           <SupervisionKpiRow
             loading={p.loading}
             items={[
@@ -181,7 +184,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
           />
           {(p.payload?.top_violations?.length ?? 0) > 0 ? (
             <div className={`${UI.inset} p-3`}>
-              <h4 className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
+              <h4 className="mb-2 flex items-center gap-2 bv103-type-section text-slate-800">
                 <AlertTriangle size={16} className="text-red-500" /> Top vi phạm (mọi BK)
               </h4>
               <div className="max-h-[200px] space-y-2 overflow-y-auto">

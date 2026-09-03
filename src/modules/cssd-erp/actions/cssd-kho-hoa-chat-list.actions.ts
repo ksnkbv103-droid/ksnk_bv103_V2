@@ -179,26 +179,3 @@ export async function listDmHoaChatChoKhoAction(search?: string): Promise<
   }
 }
 
-export async function capNhatNguongTonKhoAction(input: { dm_hoa_chat_id: string; nguong_ton_toi_thieu: string | number | null }) {
-  try {
-    await verifyPermission("KSNK_KHO_HOACHAT", "edit");
-    const supabase = createAdminSupabaseClient();
-    const id = String(input.dm_hoa_chat_id || "").trim();
-    if (!id) return { success: false as const, error: "Thiếu mặt hàng." };
-    const raw = input.nguong_ton_toi_thieu;
-    let nguong: number | null = null;
-    if (raw !== "" && raw != null) {
-      const n = Number(raw);
-      if (!Number.isFinite(n) || n < 0) return { success: false as const, error: "Ngưỡng không hợp lệ." };
-      nguong = n;
-    }
-    const { error } = await supabase
-      .from("cssd_dm_hoa_chat")
-      .update({ nguong_ton_toi_thieu: nguong, updated_at: new Date().toISOString() })
-      .eq("id", id);
-    if (error) return { success: false as const, error: mapFkError(error.message) };
-    return { success: true as const };
-  } catch (e: unknown) {
-    return { success: false as const, error: getErrorMessage(e) };
-  }
-}

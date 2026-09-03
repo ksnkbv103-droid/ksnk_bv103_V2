@@ -11,31 +11,40 @@ type Props = {
   className?: string;
   inputClassName?: string;
   cameraTitle?: string;
+  cameraClassName?: string;
   onEnter?: (code: string) => void;
   onCameraScan?: (code: string) => void;
+  /** Lọc khi gõ (tên/mã) — không ép IN HOA. */
+  value?: string;
+  onChange?: (value: string) => void;
 };
 
-/** Ô nhập mã QR kèm nút camera — dùng chung CSSD và báo sự cố. */
+/** Một ô: gõ tên/mã hoặc quét QR (camera + Enter). */
 export default function QrScanInput({
   disabled,
-  placeholder = "Quét hoặc gõ mã QR…",
+  placeholder = "Tìm tên, mã hoặc quét QR…",
   autoFocus,
   inputRef: externalRef,
   className = "",
   inputClassName = "",
   cameraTitle,
+  cameraClassName,
   onEnter,
   onCameraScan,
+  value,
+  onChange,
 }: Props) {
   const internalRef = useRef<HTMLInputElement>(null);
   const inputRef = externalRef ?? internalRef;
+  const controlled = value !== undefined;
 
-  const applyCode = (raw: string) => {
-    const code = raw.trim().toUpperCase();
+  const commit = (raw: string, source: "enter" | "camera") => {
+    const code = raw.trim();
     if (!code || disabled) return;
-    if (inputRef.current) inputRef.current.value = code;
-    onCameraScan?.(code);
-    onEnter?.(code);
+    if (controlled) onChange?.(code);
+    else if (inputRef.current) inputRef.current.value = code.toUpperCase();
+    if (source === "camera") (onCameraScan ?? onEnter)?.(code);
+    else onEnter?.(code);
   };
 
   return (
@@ -46,19 +55,27 @@ export default function QrScanInput({
         disabled={disabled}
         autoFocus={autoFocus}
         placeholder={placeholder}
-        autoCapitalize="characters"
+        autoComplete="off"
+        autoCapitalize={controlled ? "none" : "characters"}
+        value={controlled ? value : undefined}
+        onChange={controlled ? (e) => onChange?.(e.target.value) : undefined}
         onKeyDown={(e) => {
-          if (e.key === "Enter") applyCode(e.currentTarget.value);
+          if (e.key !== "Enter") return;
+          e.preventDefault();
+          commit(e.currentTarget.value, "enter");
         }}
         className={
           inputClassName ||
-          "h-12 w-full touch-manipulation rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold uppercase text-slate-800 outline-none transition-all placeholder:normal-case placeholder:text-slate-400 focus:border-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+          `h-12 w-full touch-manipulation rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-800 outline-none transition-all placeholder:font-normal placeholder:normal-case placeholder:text-slate-400 focus:border-emerald-300 disabled:cursor-not-allowed disabled:opacity-60 ${
+            controlled ? "" : "uppercase"
+          }`
         }
       />
       <QrCameraButton
         disabled={disabled}
         title={cameraTitle}
-        onScan={applyCode}
+        className={cameraClassName}
+        onScan={(code) => commit(code, "camera")}
       />
     </div>
   );

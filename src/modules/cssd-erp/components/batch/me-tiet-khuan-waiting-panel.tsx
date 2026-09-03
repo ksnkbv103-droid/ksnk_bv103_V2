@@ -34,7 +34,7 @@ export default function MeTietKhuanWaitingPanel({
   const [detailSet, setDetailSet] = useState<{ bo_dung_cu_id: string; ten_bo: string } | null>(null);
 
   return (
-    <div className="flex h-full min-h-[280px] flex-col rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <div className={`flex h-full min-h-[280px] flex-col bv103-pad-panel ${UI.shell}`}>
       <div className="mb-3 flex items-center gap-2">
         <List className="h-5 w-5 text-[var(--primary)]" aria-hidden />
         <h3 className={UI.panelTitle}>Chờ tiệt khuẩn (Đóng gói)</h3>

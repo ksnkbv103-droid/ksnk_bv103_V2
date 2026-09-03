@@ -2,8 +2,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   evaluateHeatCompatibility,
-  summarizeBomGap,
-  isReadyForPackaging,
   type BomItem,
 } from './cssd-packaging-rules';
 
@@ -112,105 +110,4 @@ describe('CSSD Packaging Rules', () => {
     expect(result.requireSplit).toBe(true);
   });
 
-  // Scenario 5: summarizeBomGap: đủ -> []
-  it('should return empty list when there are no gaps or damaged items', () => {
-    const items: BomItem[] = [
-      {
-        loai_id: '1',
-        ten: 'Panh',
-        so_luong_ke_hoach: 5,
-        so_luong_thuc_te: 5,
-        so_luong_hong: 0,
-        is_chiu_nhiet: true,
-        phan_loai_spaulding: 'CRITICAL',
-        phuong_phap_tiet_khuan_chi_dinh: 'STEAM_134',
-      },
-    ];
-
-    const gaps = summarizeBomGap(items);
-    expect(gaps).toEqual([]);
-  });
-
-  // Scenario 6: summarizeBomGap: thiếu 2 panh + hỏng 1 kéo -> 2 rows
-  it('should return correct gaps and damaged counts', () => {
-    const items: BomItem[] = [
-      {
-        loai_id: '1',
-        ten: 'Panh',
-        so_luong_ke_hoach: 5,
-        so_luong_thuc_te: 3, // Thiếu 2
-        so_luong_hong: 0,
-        is_chiu_nhiet: true,
-        phan_loai_spaulding: 'CRITICAL',
-        phuong_phap_tiet_khuan_chi_dinh: 'STEAM_134',
-      },
-      {
-        loai_id: '2',
-        ten: 'Kéo',
-        so_luong_ke_hoach: 2,
-        so_luong_thuc_te: 2,
-        so_luong_hong: 1, // Hỏng 1
-        is_chiu_nhiet: true,
-        phan_loai_spaulding: 'CRITICAL',
-        phuong_phap_tiet_khuan_chi_dinh: 'STEAM_134',
-      },
-    ];
-
-    const gaps = summarizeBomGap(items);
-    expect(gaps).toHaveLength(2);
-    
-    const panhGap = gaps.find(g => g.loai_id === '1');
-    expect(panhGap?.thieu).toBe(2);
-    expect(panhGap?.hong).toBe(0);
-
-    const keoGap = gaps.find(g => g.loai_id === '2');
-    expect(keoGap?.thieu).toBe(0);
-    expect(keoGap?.hong).toBe(1);
-  });
-
-  // Scenario 7: isReadyForPackaging: requireSplit + split=NONE -> ready=false
-  it('should not be ready for packaging when heat split is required but split is NONE', () => {
-    const items: BomItem[] = [
-      {
-        loai_id: '1',
-        ten: 'Camera',
-        so_luong_ke_hoach: 1,
-        so_luong_thuc_te: 1,
-        is_chiu_nhiet: false,
-        phan_loai_spaulding: 'SEMI_CRITICAL',
-        phuong_phap_tiet_khuan_chi_dinh: 'PLASMA',
-      },
-    ];
-
-    const check = isReadyForPackaging(items, 'NONE');
-    expect(check.ready).toBe(false);
-    expect(check.reason).toContain('Cần tách cấu phần nhạy cảm nhiệt');
-  });
-
-  // Scenario 8: isReadyForPackaging: requireSplit + split=DONE + gap > 0 -> ready=true
-  it('should be ready for packaging when heat split is done, even if there are items missing', () => {
-    const items: BomItem[] = [
-      {
-        loai_id: '1',
-        ten: 'Camera nhạy nhiệt',
-        so_luong_ke_hoach: 1,
-        so_luong_thuc_te: 1,
-        is_chiu_nhiet: false,
-        phan_loai_spaulding: 'SEMI_CRITICAL',
-        phuong_phap_tiet_khuan_chi_dinh: 'PLASMA',
-      },
-      {
-        loai_id: '2',
-        ten: 'Kéo Mayo',
-        so_luong_ke_hoach: 2,
-        so_luong_thuc_te: 1, // Thiếu 1
-        is_chiu_nhiet: true,
-        phan_loai_spaulding: 'CRITICAL',
-        phuong_phap_tiet_khuan_chi_dinh: 'STEAM_134',
-      },
-    ];
-
-    const check = isReadyForPackaging(items, 'DONE');
-    expect(check.ready).toBe(true);
-  });
 });

@@ -12,7 +12,7 @@ import { parseApDungJsonb, validateApDungForSave } from "@/lib/domain/bang-kiem-
 import BangKiemApDungFields, { type BangKiemApDungFormState } from "./bang-kiem-ap-dung-fields";
 import BangKiemApDungPreview from "./bang-kiem-ap-dung-preview";
 import { usePermission } from "@/hooks/usePermission";
-import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
 
 type Props = {
@@ -24,8 +24,8 @@ type Props = {
 export default function BangKiemApDungPanel({ bangKiem, canEdit, onSaved }: Props) {
   const { userData } = usePermission();
   const actorKhoaId = userData?.khoa_id ?? null;
-  const actorKhoaLabel = userData?.khoa?.ten_khoa
-    ? formatKhoaPickerLabel({
+  const actorKhoaLabel = userData?.khoa
+    ? formatKhoaCompactLabel({
         ma_khoa: userData.khoa.ma_khoa,
         ten_khoa: userData.khoa.ten_khoa,
       })

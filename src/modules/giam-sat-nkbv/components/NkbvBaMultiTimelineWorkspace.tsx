@@ -34,6 +34,7 @@ import {
   type SessionIndexSuggestion,
   type SyndromePanelId,
 } from "../lib/nkbv-specimen-syndrome";
+import { isNkbvCh17SpecimenOnly } from "../lib/nkbv-specimen-canonical";
 import {
   formatSessionChipLabel,
   loadBaAnalysisSessions,
@@ -67,11 +68,15 @@ import {
 } from "../lib/nkbv-ba-master-columns";
 import type { DeviceCriteriaKey } from "../lib/nkbv-criteria-matrix";
 import {
-  softDeleteNkbvBaTimelineByKey,
   softDeleteNkbvBaTimelineMilestone,
+  toggleNkbvBaNgayDungCu,
+  upsertNkbvBaNgayKhoa,
   upsertNkbvBaTimelineMilestone,
 } from "../actions/giam-sat-nkbv.actions";
+import { countDungCuCalendarDays, deviceDaysToByDate, khoaIdByDateMap } from "../lib/nkbv-ba-ngay";
 import { clinicalRitEnd } from "../lib/nkbv-shared-timeline";
+import { isAdultVaeInPlan } from "../lib/nkbv-pneu-vae-route";
+import { ageYearsFromNgaySinh } from "../lib/nkbv-age-ui";
 import {
   bareViSinhIdFromMilestoneId,
   resolveViSinhAnalysisStatus,
@@ -106,7 +111,7 @@ import {
 } from "../lib/nkbv-ba-analysis-mode";
 import { toast } from "sonner";
 
-type KhoaOpt = { id: string; ma: string; ten: string };
+type KhoaOpt = { id: string; ma?: string; ten?: string; ma_danh_muc?: string; ten_danh_muc?: string };
 
 const COL_W = 132;
 const LABEL_W = 128;
@@ -134,6 +139,8 @@ type Props = {
   hoTen?: string | null;
   khoaTen?: string | null;
   khoas?: KhoaOpt[];
+  locationDays?: Array<{ ngay_lich: string; khoa_id: string }>;
+  deviceDays?: Array<{ id?: string; ngay_lich: string; loai_dung_cu: "CVC" | "VENT" | "FOLEY" }>;
   timeline: BaTimelineMilestone[];
   devices: Array<{
     id: string;
@@ -143,6 +150,8 @@ type Props = {
   }>;
   /** Hàng đợi XN (+) — từ hub cases + skip metadata */
   analysisDispositions?: ViSinhAnalysisDispositionRow[];
+  /** Deep link từ kho vi sinh: UUID XN → mở phiên Index. */
+  focusXnId?: string | null;
   allowedEdit: boolean;
   /** Chọn Index — chỉ đánh dấu mốc, không tạo phiếu */
   onIndexChange?: (input: { milestoneId: string }) => void;
@@ -197,9 +206,12 @@ export default function NkbvBaMultiTimelineWorkspace({
   maBenhNhan,
   hoTen,
   khoas = [],
+  locationDays = [],
+  deviceDays = [],
   timeline,
   devices: _registryDevices,
   analysisDispositions = [],
+  focusXnId = null,
   allowedEdit,
   onIndexChange,
   onCreatePhieu,
@@ -211,9 +223,30 @@ export default function NkbvBaMultiTimelineWorkspace({
   onTimelineRemoveLocal,
   priorEvents = [],
 }: Props) {
-  void _registryDevices; // Hub vẫn truyền registry — association lưới chỉ dùng timeline
   const [addXnDate, setAddXnDate] = useState<string | null>(null);
-  const split = useMemo(() => splitMilestonesToGridRows(timeline), [timeline]);
+  const split = useMemo(() => {
+    const base = splitMilestonesToGridRows(timeline);
+    const fromBa = deviceDaysToByDate(deviceDays);
+    const mergeBucket = (a: BaDeviceByDate["foley"], b: BaDeviceByDate["foley"]) => {
+      const out = { ...a };
+      for (const [d, cells] of Object.entries(b)) {
+        out[d] = [...(out[d] || []), ...cells];
+      }
+      return out;
+    };
+    return {
+      ...base,
+      deviceByDate: {
+        foley: mergeBucket(base.deviceByDate.foley, fromBa.foley),
+        vent: mergeBucket(base.deviceByDate.vent, fromBa.vent),
+        cvc: mergeBucket(base.deviceByDate.cvc, fromBa.cvc),
+      },
+    };
+  }, [timeline, deviceDays]);
+  const [khoaByDate, setKhoaByDate] = useState<Record<string, string>>({});
+  useEffect(() => {
+    setKhoaByDate(khoaIdByDateMap(locationDays));
+  }, [locationDays]);
   const ssiTcCatalog = useMemo(() => ssiTcCatalogWithoutSurgery(), []);
   const cdhaCatalog = useMemo(() => {
     const pneu = imagingCatalogForNghiNgo("PNEU");
@@ -235,6 +268,19 @@ export default function NkbvBaMultiTimelineWorkspace({
   );
   const [preferVae, setPreferVae] = useState(false);
   const isManual = isManualAnalysisMode(analysisMode);
+  const stayAgeYears = ageYearsFromNgaySinh(ngaySinh, ngayVaoVien);
+  const ventStayDays = useMemo(
+    () =>
+      countDungCuCalendarDays(
+        deviceDays,
+        "VENT",
+        ngayVaoVien,
+        ngayRaVien || new Date().toISOString(),
+      ),
+    [deviceDays, ngayVaoVien, ngayRaVien],
+  );
+  const autoPreferVae = isAdultVaeInPlan(stayAgeYears, ventStayDays);
+  const effectivePreferVae = preferVae || autoPreferVae;
 
   useEffect(() => {
     setAnalysisMode(loadBaAnalysisModePref(maBenhAn));
@@ -459,11 +505,11 @@ export default function NkbvBaMultiTimelineWorkspace({
         cdha: cdhaList,
         surgeryByDate: split.surgeryByDate,
         ssiTcByDate,
-        preferVae,
+        preferVae: effectivePreferVae,
         xnStatusById,
         onlyPendingXn: true,
       }),
-    [split.xn, cdhaList, split.surgeryByDate, ssiTcByDate, preferVae, xnStatusById],
+    [split.xn, cdhaList, split.surgeryByDate, ssiTcByDate, effectivePreferVae, xnStatusById],
   );
 
   const patchDraft = useCallback(
@@ -686,7 +732,6 @@ export default function NkbvBaMultiTimelineWorkspace({
     const existing = (bucket[date] || [])[0];
     const flightKey = `ct|${date}|${key}`;
     if (inFlightRef.current.has(flightKey)) return;
-    // Thêm mới: chỉ trong [VV…RV|hôm nay]; tick sai cũ vẫn cho tắt
     if (!existing) {
       const bound = isDeviceDateInStay(date, ngayVaoVien, ngayRaVien);
       if (!bound.ok) {
@@ -694,46 +739,64 @@ export default function NkbvBaMultiTimelineWorkspace({
         return;
       }
     }
-    if (existing) {
-      inFlightRef.current.add(flightKey);
-      if (existing.id) onTimelineRemoveLocal?.(existing.id);
-      const res = await softDeleteNkbvBaTimelineByKey({
-        ma_benh_an: maBenhAn,
-        milestone_date: date,
-        criteria_key: key,
-      });
-      inFlightRef.current.delete(flightKey);
-      if (!res.success) {
-        toast.error(res.error || "Không xóa được can thiệp");
-        onReload();
-      }
-      return;
-    }
     inFlightRef.current.add(flightKey);
-    const res = await upsertNkbvBaTimelineMilestone({
+    const res = await toggleNkbvBaNgayDungCu({
       ma_benh_an: maBenhAn,
-      milestone_kind: "SYMPTOM",
-      milestone_date: date,
-      title: meta.label,
-      criteria_key: key as never,
+      ngay_lich: date,
+      criteria_key: key,
+      on: !existing,
     });
     inFlightRef.current.delete(flightKey);
     if (!res.success) {
       toast.error(res.error || "Chưa lưu can thiệp");
+      onReload();
       return;
     }
-    applyUpsertRow(res.data as Record<string, unknown> | undefined);
+    onReload();
+  };
+
+  const changeKhoa = async (date: string, nextKhoaId: string) => {
+    if (!allowedEdit) return;
+    setKhoaByDate((p) => {
+      const n = { ...p };
+      if (nextKhoaId) n[date] = nextKhoaId;
+      else delete n[date];
+      return n;
+    });
+    const res = await upsertNkbvBaNgayKhoa({
+      ma_benh_an: maBenhAn,
+      ngay_lich: date,
+      khoa_id: nextKhoaId || null,
+    });
+    if (!res.success) {
+      toast.error(res.error || "Chưa lưu khoa");
+      onReload();
+    }
   };
 
   const openFromXn = (x: (typeof split.xn)[0]) => {
     const panel = specimenToSyndromePanel({
       loai_benh_pham: x.benh_pham,
-      preferVae,
+      loai_benh_pham_chuan: x.loai_benh_pham_chuan,
+      lis_goc: x.lis_goc,
+      preferVae: effectivePreferVae,
     });
     const nextIndex: BaGridActiveIndex = { kind: "XN", id: x.id, date: x.ngay };
     const label = [x.benh_pham, x.vi_khuan].filter(Boolean).join(" · ");
 
     if (!panel) {
+      if (
+        isNkbvCh17SpecimenOnly({
+          loai_benh_pham: x.benh_pham,
+          loai_benh_pham_chuan: x.loai_benh_pham_chuan,
+          lis_goc: x.lis_goc,
+        })
+      ) {
+        toast.message(
+          "Bệnh phẩm Chương 17 (UR / USI / hô hấp trên) — không mở khung UTI hay HAP. Xem trên lưới; tạo phiếu Ch.17 khi đủ bằng chứng.",
+        );
+        return;
+      }
       toast.message(
         "Chưa map được hội chứng từ bệnh phẩm chuẩn — chuẩn hóa loại bệnh phẩm ở kho vi sinh trước.",
       );
@@ -823,7 +886,7 @@ export default function NkbvBaMultiTimelineWorkspace({
   const openFromCdha = (c: BaGridCdhaCell) => {
     const panel = cdhaToSyndromePanel({
       tieu_chuan_key: c.tieu_chuan_key,
-      preferVae,
+      preferVae: effectivePreferVae,
     });
     if (!panel) {
       toast.message("CĐHA này không phải Index (chỉ phổi → PNEU/VAE hoặc áp xe → SSI).");
@@ -1154,6 +1217,19 @@ export default function NkbvBaMultiTimelineWorkspace({
   const stableToggleSsiTc = useStableCallback(toggleSsiTc);
   const stableOpenFromSurgeryOrSsi = useStableCallback(openFromSurgeryOrSsi);
 
+  const focusXnConsumed = React.useRef(false);
+  useEffect(() => {
+    if (focusXnConsumed.current || !focusXnId) return;
+    const raw = String(focusXnId).trim();
+    const hit = split.xn.find((x) => {
+      const bare = bareViSinhIdFromMilestoneId(x.id);
+      return x.id === raw || x.id === `lis:${raw}` || bare === raw;
+    });
+    if (!hit) return;
+    focusXnConsumed.current = true;
+    stableOpenFromXn(hit);
+  }, [focusXnId, split.xn, stableOpenFromXn]);
+
   /** Mở phiên từ gợi ý Index đúng domain (không neo XN đầu bất kỳ). */
   const openFromSuggestion = (s: SessionIndexSuggestion) => {
     if (isManual) {
@@ -1339,11 +1415,17 @@ export default function NkbvBaMultiTimelineWorkspace({
         <label className="ml-auto flex items-center gap-1 text-slate-600">
           <input
             type="checkbox"
-            checked={preferVae}
+            checked={effectivePreferVae}
+            disabled={autoPreferVae}
             onChange={(e) => setPreferVae(e.target.checked)}
           />
           Hô hấp → ưu tiên VAE
         </label>
+        {autoPreferVae ? (
+          <span className="rounded bg-purple-50 px-2 py-0.5 font-semibold text-purple-900">
+            Người lớn thở máy ≥4 ngày — mở VAE, không cây PNEU/VAP
+          </span>
+        ) : null}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
@@ -1456,6 +1538,7 @@ export default function NkbvBaMultiTimelineWorkspace({
               openSession.panel,
             )}
             defaultKhoa={defaultKhoa}
+            baKhoaByDate={khoaByDate}
             allowedEdit={allowedEdit}
             draft={openSession.draft}
             baLamSangByDate={baClinicalLamSang}
@@ -1545,6 +1628,7 @@ export default function NkbvBaMultiTimelineWorkspace({
                 cdhaByDate={cdhaByDate}
                 ssiTcByDate={ssiTcByDate}
                 surgeryByDate={split.surgeryByDate}
+                lamSangByDate={baClinicalLamSang}
                 foleyOnDate={foleyOnDate}
                 ventOnDate={ventOnDate}
                 cvcOnDate={cvcOnDate}
@@ -1562,6 +1646,13 @@ export default function NkbvBaMultiTimelineWorkspace({
                 tailColumns={slots.tailColumns}
                 onPickXn={stableOpenFromXn}
                 onToggleDevice={allowedEdit ? (d, k) => void toggleDevice(d, k) : undefined}
+                khoaByDate={khoaByDate}
+                khoas={khoas.map((k) => ({
+                  id: k.id,
+                  ma_danh_muc: k.ma_danh_muc || k.ma,
+                  ten_danh_muc: k.ten_danh_muc || k.ten,
+                }))}
+                onChangeKhoa={allowedEdit ? (d, id) => void changeKhoa(d, id) : undefined}
                 onAddXn={allowedEdit ? setAddXnDate : undefined}
                 onOpenCdha={stableOpenFromCdha}
                 onRemoveMilestone={stableRemoveMilestone}
@@ -1668,6 +1759,7 @@ export default function NkbvBaMultiTimelineWorkspace({
                 cdhaByDate={cdhaByDate}
                 ssiTcByDate={ssiTcByDate}
                 surgeryByDate={split.surgeryByDate}
+                lamSangByDate={baClinicalLamSang}
                 foleyOnDate={foleyOnDate}
                 ventOnDate={ventOnDate}
                 cvcOnDate={cvcOnDate}
@@ -1683,6 +1775,13 @@ export default function NkbvBaMultiTimelineWorkspace({
                 tailColumns={slots.tailColumns}
                 onPickXn={stableOpenFromXn}
                 onToggleDevice={allowedEdit ? (d, k) => void toggleDevice(d, k) : undefined}
+                khoaByDate={khoaByDate}
+                khoas={khoas.map((k) => ({
+                  id: k.id,
+                  ma_danh_muc: k.ma_danh_muc || k.ma,
+                  ten_danh_muc: k.ten_danh_muc || k.ten,
+                }))}
+                onChangeKhoa={allowedEdit ? (d, id) => void changeKhoa(d, id) : undefined}
                 onAddXn={allowedEdit ? setAddXnDate : undefined}
                 onOpenCdha={stableOpenFromCdha}
                 onRemoveMilestone={stableRemoveMilestone}
@@ -1724,6 +1823,7 @@ export default function NkbvBaMultiTimelineWorkspace({
                 cdhaByDate={cdhaByDate}
                 ssiTcByDate={ssiTcByDate}
                 surgeryByDate={split.surgeryByDate}
+                lamSangByDate={baClinicalLamSang}
                 foleyOnDate={foleyOnDate}
                 ventOnDate={ventOnDate}
                 cvcOnDate={cvcOnDate}
@@ -1741,6 +1841,13 @@ export default function NkbvBaMultiTimelineWorkspace({
                 tailColumns={slots.tailColumns}
                 onPickXn={stableOpenFromXn}
                 onToggleDevice={allowedEdit ? (d, k) => void toggleDevice(d, k) : undefined}
+                khoaByDate={khoaByDate}
+                khoas={khoas.map((k) => ({
+                  id: k.id,
+                  ma_danh_muc: k.ma_danh_muc || k.ma,
+                  ten_danh_muc: k.ten_danh_muc || k.ten,
+                }))}
+                onChangeKhoa={allowedEdit ? (d, id) => void changeKhoa(d, id) : undefined}
                 onAddXn={allowedEdit ? setAddXnDate : undefined}
                 onOpenCdha={stableOpenFromCdha}
                 onRemoveMilestone={stableRemoveMilestone}
@@ -1760,6 +1867,7 @@ export default function NkbvBaMultiTimelineWorkspace({
             cdhaByDate={cdhaByDate}
             ssiTcByDate={ssiTcByDate}
             surgeryByDate={split.surgeryByDate}
+            lamSangByDate={baClinicalLamSang}
             foleyOnDate={foleyOnDate}
             ventOnDate={ventOnDate}
             cvcOnDate={cvcOnDate}
@@ -1774,6 +1882,13 @@ export default function NkbvBaMultiTimelineWorkspace({
             windowColumns={[]}
             tailColumns={closedGridConcludeColumns}
             onToggleDevice={allowedEdit ? (d, k) => void toggleDevice(d, k) : undefined}
+            khoaByDate={khoaByDate}
+            khoas={khoas.map((k) => ({
+              id: k.id,
+              ma_danh_muc: k.ma_danh_muc || k.ma,
+              ten_danh_muc: k.ten_danh_muc || k.ten,
+            }))}
+            onChangeKhoa={allowedEdit ? (d, id) => void changeKhoa(d, id) : undefined}
             onPickXn={stableOpenFromXn}
             onAddXn={allowedEdit ? setAddXnDate : undefined}
             onOpenCdha={stableOpenFromCdha}

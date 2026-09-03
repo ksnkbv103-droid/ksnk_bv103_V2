@@ -8,6 +8,7 @@
  */
 
 import { resolveNkbvMajorType, type NkbvMajorType } from "./nkbv-major-type";
+import { isNkbvCh17SpecimenOnly } from "./nkbv-specimen-canonical";
 import type {
   BaGridActiveIndex,
   BaGridCdhaCell,
@@ -39,9 +40,15 @@ export type SessionIndexSuggestion = {
 
 export function specimenToSyndromePanel(input: {
   loai_benh_pham?: string | null;
+  loai_benh_pham_chuan?: string | null;
+  lis_goc?: string | null;
   preferVae?: boolean;
 }): SyndromePanelId | null {
-  const major = resolveNkbvMajorType({ loai_benh_pham: input.loai_benh_pham });
+  if (isNkbvCh17SpecimenOnly(input)) return null;
+  const major = resolveNkbvMajorType({
+    loai_benh_pham: input.loai_benh_pham,
+    loai_benh_pham_chuan: input.loai_benh_pham_chuan,
+  });
   if (major === "UTI") return "UTI";
   if (major === "SSI") return "SSI";
   if (major === "VAE") return "VAE";
@@ -116,6 +123,8 @@ export function buildSessionIndexSuggestions(input: {
     }
     const panel = specimenToSyndromePanel({
       loai_benh_pham: x.benh_pham,
+      loai_benh_pham_chuan: x.loai_benh_pham_chuan,
+      lis_goc: x.lis_goc,
       preferVae: input.preferVae,
     });
     if (!panel) continue;

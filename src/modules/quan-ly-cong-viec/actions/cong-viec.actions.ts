@@ -32,6 +32,7 @@ import { qlcvWorkflowMaFromViewRow } from "../lib/qlcv-workflow-read";
 import { QLCV_BOARD_FETCH_MAX_PAGES, QLCV_BOARD_FETCH_PAGE_SIZE } from "../lib/qlcv-query-limits";
 import { QLCV_ROOT_TASK_VIEW_SELECT } from "../lib/qlcv-root-list-select";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
+import { isQlcvLoaiDinhKy } from "@/lib/domain/qlcv/dinh-ky-auto-complete";
 import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { invokeQlcvTransition } from "../lib/qlcv-transition-rpc";
@@ -316,7 +317,7 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
     .select(
-      "id, trang_thai, is_active, nguoi_phu_trach_id, to_cong_tac_id, han_hoan_thanh, phan_tram_hoan_thanh, nguoi_phu_trach_ten, nguoi_tao_id, nguoi_giao_viec_id, nhiem_vu_id",
+      "id, trang_thai, is_active, nguoi_phu_trach_id, to_cong_tac_id, han_hoan_thanh, is_qua_han, phan_tram_hoan_thanh, nguoi_phu_trach_ten, nguoi_tao_id, nguoi_giao_viec_id, nhiem_vu_id, loai_cong_viec",
     )
     .eq("id", id)
     .maybeSingle();
@@ -341,6 +342,9 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
       is_active: cur.is_active,
       nguoi_phu_trach_id: cur.nguoi_phu_trach_id,
       phan_tram_hoan_thanh: cur.phan_tram_hoan_thanh,
+      loai_cong_viec: curMa.loai_cong_viec,
+      han_hoan_thanh: cur.han_hoan_thanh,
+      is_qua_han: cur.is_qua_han,
     };
     if (isEligibleForNghiemThu(curForGate)) {
       const blockedAtNghiemThu = ["trang_thai", "phan_tram_hoan_thanh"] as const;
@@ -568,7 +572,9 @@ export async function xacNhanHoanThanh(id: string) {
 
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
-    .select("id, trang_thai, phan_tram_hoan_thanh, nguoi_phu_trach_id, nguoi_tao_id")
+    .select(
+      "id, trang_thai, phan_tram_hoan_thanh, nguoi_phu_trach_id, nguoi_tao_id, loai_cong_viec, han_hoan_thanh, is_qua_han",
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -582,11 +588,14 @@ export async function xacNhanHoanThanh(id: string) {
     scope,
   );
 
-  const st = qlcvWorkflowMaFromViewRow(cur).trang_thai;
-  if (st === "HOAN_THANH" || st === "DA_HUY") {
+  const wf = qlcvWorkflowMaFromViewRow(cur);
+  if (isQlcvLoaiDinhKy(wf.loai_cong_viec)) {
+    throw new Error("Việc định kỳ đóng khi tick đủ — không nghiệm thu.");
+  }
+  if (wf.trang_thai === "HOAN_THANH" || wf.trang_thai === "DA_HUY") {
     throw new Error("Công việc đã hoàn thành hoặc đã hủy.");
   }
-  if (!isEligibleForNghiemThu(cur)) {
+  if (!isEligibleForNghiemThu({ ...cur, ...wf })) {
     throw new Error("Chỉ nghiệm thu khi việc đã báo 100% (cổng chờ nghiệm thu).");
   }
 
@@ -609,7 +618,9 @@ export async function tuChoiHoanThanhCongViec(id: string, lyDo: string) {
 
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
-    .select("id, trang_thai, phan_tram_hoan_thanh, nguoi_phu_trach_id, nguoi_tao_id")
+    .select(
+      "id, trang_thai, phan_tram_hoan_thanh, nguoi_phu_trach_id, nguoi_tao_id, loai_cong_viec, han_hoan_thanh, is_qua_han",
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -623,8 +634,12 @@ export async function tuChoiHoanThanhCongViec(id: string, lyDo: string) {
     scope,
   );
 
+  const wf = qlcvWorkflowMaFromViewRow(cur);
+  if (isQlcvLoaiDinhKy(wf.loai_cong_viec)) {
+    throw new Error("Việc định kỳ đóng khi tick đủ — không nghiệm thu.");
+  }
   const pct = Number(cur.phan_tram_hoan_thanh ?? 0);
-  if (!isEligibleForNghiemThu(cur)) {
+  if (!isEligibleForNghiemThu({ ...cur, ...wf })) {
     throw new Error("Công việc không ở trạng thái chờ nghiệm thu.");
   }
 

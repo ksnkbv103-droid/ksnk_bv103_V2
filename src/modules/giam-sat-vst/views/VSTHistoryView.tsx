@@ -15,7 +15,7 @@ export default function VSTHistoryView() {
   return (
     <VstModuleAccessGate>
       <KsnkSupervisionPanel className="min-h-[50vh]">
-        <div className="app-data-shell space-y-2 p-2">
+        <div className="space-y-2">
           <div className="flex justify-end print:hidden">
             <SupervisionExcelExportButton
               label="Xuất Excel (90 ngày)"

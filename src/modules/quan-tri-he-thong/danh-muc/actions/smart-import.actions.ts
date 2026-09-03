@@ -11,7 +11,10 @@ import { resolveSmartImportScopeForTable, withResolvedLoaiValues } from "./smart
 import { normalizeImportedRowTypedValues, sanitizeSmartImportRowPayload } from "../lib/smart-import/row-typed-values";
 import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
 import { randomUUID } from "crypto";
-import { syncLoaiPhysicalColumnsOnImportPayload } from "@/lib/master-data/cssd-loai-dung-cu-map";
+import {
+  normalizeLoaiDungCuExcelImportRow,
+  syncLoaiPhysicalColumnsOnImportPayload,
+} from "@/lib/master-data/cssd-loai-dung-cu-map";
 import {
   isSmartImportTable,
   SMART_IMPORT_TABLE_UNIQUE_KEY,
@@ -80,8 +83,12 @@ export async function smartImportData(
       cssd_dm_loai_dung_cu: "v_cssd_loai_dung_cu_summary",
     };
     const readTable = VIEW_MAP_FOR_READ[config.tableName] || config.tableName;
+    const isLoaiDungCu = config.tableName === "cssd_dm_loai_dung_cu";
+    const existingReadTable = isLoaiDungCu ? config.tableName : readTable;
+    const existingSelect = isLoaiDungCu ? "id, ma_loai" : `id, ${config.uniqueKey}`;
+    const existingCodeField = isLoaiDungCu ? "ma_loai" : config.uniqueKey;
 
-    let query = supabase.from(readTable).select(`id, ${config.uniqueKey}`);
+    let query = supabase.from(existingReadTable).select(existingSelect);
     if (config.fixedValues) {
       Object.entries(config.fixedValues).forEach(([k, v]) => {
         query = query.eq(k, v);
@@ -96,10 +103,9 @@ export async function smartImportData(
     const existingCodeToId = new Map<string, string>();
     const existingCodes = new Set<string>();
     existingRecords.forEach((r) => {
-      const val = r[config.uniqueKey];
+      const val = r[existingCodeField];
       if (val != null && val !== "") {
-        const cStr = String(val);
-        existingCodes.add(cStr);
+        const cStr = isLoaiDungCu ? String(val).trim().toUpperCase() : String(val);
         if (r.id) {
           existingCodeToId.set(cStr, String(r.id));
         }
@@ -117,12 +123,12 @@ export async function smartImportData(
     let counter = 1;
     if (config.codePrefix) {
       const { data: lastItem } = await supabase
-        .from(readTable)
-        .select(config.uniqueKey)
-        .order(config.uniqueKey, { ascending: false })
+        .from(existingReadTable)
+        .select(existingCodeField)
+        .order(existingCodeField, { ascending: false })
         .limit(1);
       if (lastItem && lastItem[0]) {
-        const val = (lastItem[0] as unknown as Record<string, unknown>)[config.uniqueKey];
+        const val = (lastItem[0] as unknown as Record<string, unknown>)[existingCodeField];
         if (val) {
           const match = String(val).match(/\d+/);
           if (match) counter = parseInt(match[0]) + 1;
@@ -133,7 +139,8 @@ export async function smartImportData(
     const rowErrors: string[] = [];
     const dbErrors: string[] = [];
     const rowWarnings: string[] = [];
-    for (const item of data) {
+    for (const rawItem of data) {
+      const item = isLoaiDungCu ? normalizeLoaiDungCuExcelImportRow(rawItem) : rawItem;
       const rowNumber = Number(item.__excel_row__ ?? 0);
       const { [config.uniqueKey]: code, id, created_at, updated_at, __excel_row__, ...rest } = item;
       const codeStr =

@@ -46,10 +46,12 @@ export async function saveVSTSession(
     if (!parsed.success) {
       return { success: false, error: "Dữ liệu không hợp lệ: " + parsed.error.issues.map((e) => e.message).join(", ") };
     }
+    const lockedSession = parsed.data.session;
+    const lockedKhuVucId = lockedSession.khu_vuc_id;
     const actorScope = await getActorKsnkScope();
     const khoaScoped = resolveVstScopedKhoaId(
       { isMangLuoiKsnk: actorScope.isMangLuoiKsnk, actorKhoaId: actorScope.actorKhoaId ?? null },
-      sessionData.khoa_id || null,
+      lockedSession.khoa_id || null,
     );
     if (!khoaScoped.ok) {
       return { success: false, error: khoaScoped.error };
@@ -61,7 +63,7 @@ export async function saveVSTSession(
     });
     await validateDanhMucIdByType({
       supabase,
-      id: sessionData.khu_vuc_id || null,
+      id: lockedKhuVucId,
       maLoai: "KHU_VUC_GIAM_SAT",
       fieldLabel: "Khu vực giám sát",
     });
@@ -120,7 +122,7 @@ export async function saveVSTSession(
 
     const sessionRowPayload = {
       khoa_id: khoaSessionNorm,
-      khu_vuc_id: sessionData.khu_vuc_id,
+      khu_vuc_id: lockedKhuVucId,
       vi_tri_cu_the: sessionData.vi_tri,
       hinh_thuc_id: effectiveHinhThucId,
       cach_thuc_id: cach_id,
@@ -185,33 +187,38 @@ export async function saveVSTSession(
 
     logVstSaveDebug("Đã có session id", { sessionId });
 
-    const allKhoaIds = Array.from(new Set(observations.map(o => o.khoa_id).filter(Boolean)));
+    const allKhoaIds = Array.from(new Set(observations.map((o) => o.khoa_id).filter(Boolean)));
     const khoaMap = new Map<string, string>();
     if (allKhoaIds.length > 0) {
       const { data: khoas } = await supabase.from("mdm_dm_khoa_phong").select("id").in("id", allKhoaIds);
-      (khoas || []).forEach(k => khoaMap.set(k.id, k.id));
+      (khoas || []).forEach((k) => khoaMap.set(k.id, k.id));
     }
 
-    const normalizedObservations = observations.map(obs => {
+    const normalizedObservations = observations.map((obs) => {
       const kId = obs.khoa_id ? khoaMap.get(obs.khoa_id) : null;
-      if (obs.khoa_id && !kId) {
-        // Có thể throw hoặc fallback, ở đây ta fallback về khoa của phiên nếu cần
+      if (!kId) {
+        throw new Error(
+          "Khoa trên dòng cơ hội không tồn tại trong danh mục khoa phòng. Vui lòng chọn lại khoa từ danh mục.",
+        );
       }
-      return { ...obs, khoa_id: kId || khoaSessionNorm };
+      if (String(kId) !== String(khoaSessionNorm)) {
+        throw new Error("Dữ liệu lệch: khoa_id trong cơ hội giám sát không khớp khoa của phiên.");
+      }
+      return { ...obs, khoa_id: kId };
     });
 
     const recordsToInsert = normalizedObservations.flatMap((obs) =>
       obs.opportunities.map((opp) => {
         const isMissed = opp.hanh_dong === "Bỏ sót";
-        const khoaDetailId =
-          (obs.khoa_id && String(obs.khoa_id).trim()) || khoaSessionNorm || null;
+        const khoaDetailId = obs.khoa_id;
+        const khuVucDetailId = lockedKhuVucId;
         // Slice 8 (giam-sat-tuan-thu reform v4 / JCI 8.0): chỉ ghi nguyên nhân
         // khi cơ hội không tuân thủ — bỏ qua mọi giá trị thừa do form sót lại.
         return {
           session_id: sessionId,
           nhan_vien_id: obs.nhan_vien_id || null,
           khoa_id: khoaDetailId,
-          khu_vuc_id: obs.khu_vuc_id ?? null,
+          khu_vuc_id: khuVucDetailId,
           vi_tri: obs.vi_tri,
           nghe_nghiep_id: obs.nghe_nghiep_id ?? null,
           ngay_giam_sat: obs.ngay_giam_sat,

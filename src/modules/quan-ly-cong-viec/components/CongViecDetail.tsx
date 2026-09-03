@@ -35,6 +35,7 @@ import {
   canShowDeleteTask,
   canShowEditTaskMetadata,
   canShowHoatDongProgressSection,
+  canShowHuyKhiNghiemThuKhongDat,
   canShowQlcvApproveActions,
 } from "../lib/qlcv-access";
 import { useModulePermission } from "@/hooks/useModulePermission";
@@ -43,6 +44,7 @@ import { resolveQlcvWorkflowBadgeAppearance } from "../lib/qlcv-workflow-badge";
 import { getTrangThaiMauSacMap } from "../actions/cong-viec-read.actions";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
+import { isQlcvBoardOverdue } from "../lib/qlcv-board-lanes";
 import { labelsForStaffIds, normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
 import type { CongViecView } from "../types";
 import type { QlcvSelectOption } from "../lib/qlcv-form-options";
@@ -203,6 +205,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const checklistReadOnly =
     isDeXuatChoDuyet(data) || st === "HOAN_THANH" || st === "DA_HUY" || atNghiemThuGate;
   const showNghiemThuToolbar = atNghiemThuGate && canNghiemThu;
+  const showHuyKhiNghiemThuKhongDat = canShowHuyKhiNghiemThuKhongDat(data, accessFlags);
   const showHuyButton =
     (accessFlags.isRBACAdmin || accessFlags.hasDelete) &&
     st !== "HOAN_THANH" &&
@@ -221,8 +224,8 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   };
 
   return (
-    <div className="space-y-6 pb-16 animate-in slide-in-from-right-4 duration-300">
-      <div className="no-print space-y-6">
+    <div className="space-y-[var(--bv103-space-3)] pb-16 animate-in slide-in-from-right-4 duration-300">
+      <div className="no-print space-y-[var(--bv103-space-3)]">
       {assigneeInactiveOpen && (
         <div
           role="status"
@@ -232,17 +235,22 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           việc mở bị bỏ quên.
         </div>
       )}
-      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+      <div className="flex flex-col gap-[var(--bv103-space-3)] md:flex-row md:items-start md:justify-between">
         <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <span className={statusBadge.className} style={statusBadge.style}>
               {statusDisplay}
             </span>
+            {isQlcvBoardOverdue(data) ? (
+              <span className="rounded-md border border-red-200 bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-800">
+                Quá hạn
+              </span>
+            ) : null}
             <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
               #{data.id?.slice(0, 8)}
             </span>
           </div>
-          <h2 className="text-xl font-semibold tracking-tight text-slate-900 md:text-2xl">{data.tieu_de}</h2>
+          <h2 className="bv103-type-title">{data.tieu_de}</h2>
           {data.loai_cong_viec === "DINH_KY" || data.dinh_ky_mau_id ? (
             <p className="text-xs">
               <a
@@ -292,14 +300,16 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
                 Yêu cầu làm lại
               </button>
 
-              <button
-                type="button"
-                className={`${qlcvDetailChrome.btnOutline} inline-flex items-center border-red-200/90 text-red-800 hover:bg-red-50`}
-                onClick={() => setReasonHuyOpen(true)}
-              >
-                <Ban className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />
-                Hủy (không đạt)
-              </button>
+              {showHuyKhiNghiemThuKhongDat ? (
+                <button
+                  type="button"
+                  className={`${qlcvDetailChrome.btnOutline} inline-flex items-center border-red-200/90 text-red-800 hover:bg-red-50`}
+                  onClick={() => setReasonHuyOpen(true)}
+                >
+                  <Ban className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />
+                  Hủy (không đạt)
+                </button>
+              ) : null}
 
               <button type="button" className={qlcvDetailChrome.btnPrimary} onClick={() => setConfirmNghiemThuOpen(true)}>
                 Nghiệm thu & Đóng
@@ -335,7 +345,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
               <DialogTrigger asChild>
                 <button type="button" className={qlcvDetailChrome.btnOutline}>
-                  Sửa nhiệm vụ
+                  Sửa việc
                 </button>
               </DialogTrigger>
               <DialogContent className={qlcvDetailChrome.dialogContent}>
@@ -446,7 +456,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
         </div>
 
         {showHoatDong ? (
-          <div className="space-y-4 border-t border-slate-100 p-4 sm:p-5">
+          <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 p-4 sm:p-5">
             <div className="flex items-center gap-2">
               <CheckCircle2 size={18} className="shrink-0 text-[var(--primary)]" aria-hidden />
               <h3 className={qlcvDetailChrome.sectionHeading}>Ghi chú tiến độ</h3>
@@ -464,8 +474,8 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
         ) : null}
       </div>
 
-      <div className={`p-5 sm:p-6 ${qlcvDetailChrome.panel}`}>
-        <div className="mb-4 flex items-center gap-2">
+      <div className={`bv103-pad-panel ${qlcvDetailChrome.panel}`}>
+        <div className="mb-[var(--bv103-space-3)] flex items-center gap-2">
           <MessageSquare size={18} className="shrink-0 text-[var(--primary)]" aria-hidden />
           <h3 className={qlcvDetailChrome.sectionHeading}>Lịch sử hoạt động</h3>
         </div>

@@ -2,11 +2,11 @@ import { addWeeks, format, parseISO, startOfMonth, startOfQuarter, startOfWeek, 
 import { vi } from "date-fns/locale";
 import { khoaChartLabel } from "@/lib/analytics/supervision-matrix-mappers";
 import {
-  computeCcs,
   computeTyLeGsc,
   computeTyLeVst,
   rateFromTotals,
 } from "@/lib/analytics/supervision-metrics";
+import { gscCompliancePercentFromCounts } from "@/modules/giam-sat-chung/lib/gsc-score-display";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import type { NkbvDashboardPayload } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
@@ -37,14 +37,12 @@ function finalizeTrendPoint(row: {
   gsc_dat: number;
 }): BaoCaoTrendPoint {
   const ty_le_vst = rateFromTotals(row.vst_dat, row.vst_tong);
-  const ty_le_gsc = rateFromTotals(row.gsc_dat, row.gsc_tong);
-  const { value: ty_le_ccs } = computeCcs(ty_le_vst, ty_le_gsc);
+  const ty_le_gsc = gscCompliancePercentFromCounts(row.gsc_tong, row.gsc_dat);
   return {
     label: row.label,
     min_date: row.min_date,
     ty_le_vst,
     ty_le_gsc,
-    ty_le_ccs,
     vst_tong: row.vst_tong > 0 ? row.vst_tong : null,
     vst_dat: row.vst_tong > 0 ? row.vst_dat : null,
     gsc_tong: row.gsc_tong > 0 ? row.gsc_tong : null,
@@ -66,16 +64,15 @@ function isoWeekBucketKey(minDate: string): string {
   return format(start, "yyyy-MM-dd");
 }
 
-function pointHasMetricVolume(p: BaoCaoTrendPoint, metric: "ty_le_vst" | "ty_le_gsc" | "ty_le_ccs"): boolean {
+function pointHasMetricVolume(p: BaoCaoTrendPoint, metric: "ty_le_vst" | "ty_le_gsc"): boolean {
   if (metric === "ty_le_vst") return (p.vst_tong ?? 0) > 0 && p.ty_le_vst != null;
-  if (metric === "ty_le_gsc") return (p.gsc_tong ?? 0) > 0 && p.ty_le_gsc != null;
-  return ((p.vst_tong ?? 0) > 0 || (p.gsc_tong ?? 0) > 0) && p.ty_le_ccs != null;
+  return (p.gsc_tong ?? 0) > 0 && p.ty_le_gsc != null;
 }
 
 /** So sánh tuần cuối vs tuần liền trước — chỉ khi đủ 2 tuần ISO liên tiếp có dữ liệu. */
 export function deltaFromPeriodPoints(
   points: BaoCaoTrendPoint[],
-  metric: "ty_le_vst" | "ty_le_gsc" | "ty_le_ccs",
+  metric: "ty_le_vst" | "ty_le_gsc",
 ): number | null {
   const eligible = points
     .filter((p) => pointHasMetricVolume(p, metric))
@@ -239,11 +236,10 @@ export function pickTrend(points: BaoCaoTrendPoint[], granularity: BaoCaoTrendGr
   }
 }
 
-function finalizeKhoaRankRow(row: Omit<BaoCaoKhoaRankRow, "ty_le_ccs" | "has_data">): BaoCaoKhoaRankRow {
+function finalizeKhoaRankRow(row: Omit<BaoCaoKhoaRankRow, "has_data">): BaoCaoKhoaRankRow {
   const parts = [row.ty_le_vst, row.ty_le_gsc].filter((x): x is number => x != null);
   const ty_le_avg = parts.length ? Math.round((parts.reduce((a, b) => a + b, 0) / parts.length) * 10) / 10 : null;
-  const { value: ty_le_ccs } = computeCcs(row.ty_le_vst, row.ty_le_gsc);
-  return { ...row, ty_le_avg, ty_le_ccs, has_data: true };
+  return { ...row, ty_le_avg, has_data: true };
 }
 
 export function buildKhoaRank(vst: VstStrategicPayload | null, gsc: GscStrategicPayload | null): BaoCaoKhoaRankRow[] {
@@ -270,7 +266,6 @@ export function buildKhoaRank(vst: VstStrategicPayload | null, gsc: GscStrategic
       cur.tong_quan_sat_gsc = row.tong_quan_sat;
       const finalized = finalizeKhoaRankRow(cur);
       cur.ty_le_avg = finalized.ty_le_avg;
-      cur.ty_le_ccs = finalized.ty_le_ccs;
     } else {
       byId.set(
         row.id,
@@ -298,10 +293,9 @@ function khoaRankHasVolume(row: BaoCaoKhoaRankRow): boolean {
 
 /**
  * Xếp hạng can thiệp: ưu tiên khoa có dữ liệu, sắp **GSC tăng dần** (thấp → cao),
- * rồi VST tăng dần. Không dùng CCS (deprecated trên surface).
- * `sortKhoaRankByCcs` giữ alias tương thích test/call cũ.
+ * rồi VST tăng dần. Không xếp theo CCS.
  */
-function sortKhoaRankByComplianceAsc(rows: BaoCaoKhoaRankRow[]): BaoCaoKhoaRankRow[] {
+export function sortKhoaRankByComplianceAsc(rows: BaoCaoKhoaRankRow[]): BaoCaoKhoaRankRow[] {
   return [...rows].sort((a, b) => {
     const aVol = khoaRankHasVolume(a);
     const bVol = khoaRankHasVolume(b);
@@ -316,11 +310,6 @@ function sortKhoaRankByComplianceAsc(rows: BaoCaoKhoaRankRow[]): BaoCaoKhoaRankR
     const bVst = b.ty_le_vst ?? 999;
     return aVst - bVst;
   });
-}
-
-/** @deprecated Dùng sortKhoaRankByComplianceAsc — không xếp theo CCS. */
-export function sortKhoaRankByCcs(rows: BaoCaoKhoaRankRow[]): BaoCaoKhoaRankRow[] {
-  return sortKhoaRankByComplianceAsc(rows);
 }
 
 /** Gộp khoa đã chọn (lọc) với dữ liệu RPC — khoa 0 phiên vẫn hiện «Chưa GS». */
@@ -354,7 +343,6 @@ export function mergeKhoaRankWithSelected(
       ty_le_vst: null,
       ty_le_gsc: null,
       ty_le_avg: null,
-      ty_le_ccs: null,
       tong_co_hoi_vst: 0,
       tong_quan_sat_gsc: 0,
       has_data: false,
@@ -449,12 +437,10 @@ export function composeBaoCaoTongHopPayload(args: {
     den_ngay: string;
     ty_le_vst: number | null;
     ty_le_gsc: number | null;
-    ty_le_ccs: number | null;
   } | null;
 }): BaoCaoTongHopPayload {
   const tyLeVst = computeTyLeVst(args.vst?.kpis);
   const tyLeGsc = computeTyLeGsc(args.gsc?.kpis);
-  const { value: tyLeCcs, note: ccsNote } = computeCcs(tyLeVst, tyLeGsc);
   const trendWeek = buildMergedTrend(args.vst, args.gsc);
   const trendMonth = bucketTrendByMonth(trendWeek);
   const khoaRank = buildKhoaRank(args.vst, args.gsc);
@@ -471,10 +457,6 @@ export function composeBaoCaoTongHopPayload(args: {
         delta_gsc:
           tyLeGsc != null && kyTruocBase.ty_le_gsc != null
             ? Math.round((tyLeGsc - kyTruocBase.ty_le_gsc) * 10) / 10
-            : null,
-        delta_ccs:
-          tyLeCcs != null && kyTruocBase.ty_le_ccs != null
-            ? Math.round((tyLeCcs - kyTruocBase.ty_le_ccs) * 10) / 10
             : null,
       }
     : null;
@@ -495,13 +477,10 @@ export function composeBaoCaoTongHopPayload(args: {
     kpis: {
       ty_le_vst: tyLeVst,
       ty_le_gsc: tyLeGsc,
-      ty_le_ccs: tyLeCcs,
-      ccs_formula_note: ccsNote,
       ti_le_xac_nhan_nkbv: args.nkbv?.kpis.ti_le_xac_nhan_so_voi_pa ?? null,
       tong_phieu_nkbv: args.nkbv?.kpis.tong_phieu ?? null,
       delta_vst: deltaFromPeriodPoints(trendWeek, "ty_le_vst"),
       delta_gsc: deltaFromPeriodPoints(trendWeek, "ty_le_gsc"),
-      delta_ccs: deltaFromPeriodPoints(trendWeek, "ty_le_ccs"),
     },
     ky_truoc,
     trend_week: trendWeek,

@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, ClipboardList, ExternalLink } from "lucide-react";
 import { buildDecisionQueue, type DecisionQueueItem } from "@/lib/analytics/decision-queue";
-import { fetchCommandCenterFourPillarsBrief } from "../../actions/dashboard-four-pillars-brief.actions";
+import { fetchCommandCenterQueueSignals } from "../../actions/dashboard-decision-queue-signals.actions";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { QlcvQuaHanBrief } from "@/modules/quan-ly-cong-viec/actions/qlcv-brief.actions";
@@ -42,7 +42,7 @@ export function CommandCenterDecisionQueue({
   useEffect(() => {
     if (loading) return;
     let cancelled = false;
-    void fetchCommandCenterFourPillarsBrief({
+    void fetchCommandCenterQueueSignals({
       tu_ngay: tuNgay,
       den_ngay: denNgay,
       khoa_id: selectedKhoaIds.length === 1 ? selectedKhoaIds[0] : undefined,
@@ -99,7 +99,7 @@ export function CommandCenterDecisionQueue({
     <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4">
       <div className="mb-4 flex items-center gap-2">
         <ClipboardList size={18} className="text-[var(--primary)]" aria-hidden />
-        <h2 className={D.sectionHeadingSm}>Cần quyết định hôm nay</h2>
+        <h2 className={D.sectionHeadingSm}>Việc hôm nay</h2>
       </div>
       {loading && items.length === 0 ? (
         <div className="h-24 animate-pulse rounded-xl bg-slate-100" />
@@ -112,8 +112,17 @@ export function CommandCenterDecisionQueue({
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wide">
-                    {item.severity === "red" ? "Đỏ" : "Vàng"} · {item.domain}
+                  <span className="bv103-type-label font-semibold uppercase tracking-wide">
+                    {item.severity === "red" ? "Đỏ" : "Vàng"} ·{" "}
+                    {item.domain === "VST"
+                      ? "Vệ sinh tay"
+                      : item.domain === "GSC"
+                        ? "Giám sát chung"
+                        : item.domain === "NKBV"
+                          ? "Nhiễm khuẩn"
+                          : item.domain === "QLCV"
+                            ? "Công việc"
+                            : "CSSD"}
                   </span>
                   <span className="rounded-md bg-white/70 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums">
                     {item.metricLabel}

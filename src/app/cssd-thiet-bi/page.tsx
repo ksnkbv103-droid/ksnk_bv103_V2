@@ -1,9 +1,9 @@
 "use client";
 
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Activity, ExternalLink, List, Wrench } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ExternalLink, List, Wrench } from "lucide-react";
 import { CSSDMaintenancePage } from "@/modules/cssd-erp/contexts/maintenance/entrypoint";
 import ThietBiFleetPanel from "@/modules/cssd-erp/components/equipment/thiet-bi-fleet-panel";
 import ThietBiVanHanhPanel from "@/modules/cssd-erp/components/equipment/thiet-bi-van-hanh-panel";
@@ -20,7 +20,14 @@ function resolveTab(tabParam: string | null): ThietBiTab {
   return "FLEET";
 }
 
+function tabParamOf(tab: ThietBiTab): string {
+  if (tab === "MAINTENANCE") return "maintenance";
+  if (tab === "VAN_HANH") return "van-hanh";
+  return "";
+}
+
 function CssdThietBiPageInner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState<ThietBiTab>(resolveTab(tabParam));
@@ -28,6 +35,15 @@ function CssdThietBiPageInner() {
   useEffect(() => {
     setActiveTab(resolveTab(tabParam));
   }, [tabParam]);
+
+  const goTab = useCallback(
+    (tab: ThietBiTab) => {
+      setActiveTab(tab);
+      const p = tabParamOf(tab);
+      router.replace(p ? `/cssd-thiet-bi?tab=${p}` : "/cssd-thiet-bi");
+    },
+    [router],
+  );
 
   return (
     <CSSDPageShell
@@ -42,30 +58,30 @@ function CssdThietBiPageInner() {
         </Link>
       }
     >
-      <div className="space-y-4 sm:space-y-6">
+      <div className="bv103-stack-page">
         <div className={CSSD_UI_TAB_GROUP}>
           <CssdHorizTabButton
             active={activeTab === "FLEET"}
-            onClick={() => setActiveTab("FLEET")}
+            onClick={() => goTab("FLEET")}
             icon={List}
             label="Danh sách máy"
             mobileLabel="Danh sách"
           />
           <CssdHorizTabButton
             active={activeTab === "MAINTENANCE"}
-            onClick={() => setActiveTab("MAINTENANCE")}
+            onClick={() => goTab("MAINTENANCE")}
             icon={Wrench}
             label="Bảo dưỡng & sửa chữa"
             mobileLabel="Bảo dưỡng"
           />
-          <CssdHorizTabButton
-            active={activeTab === "VAN_HANH"}
-            onClick={() => setActiveTab("VAN_HANH")}
-            icon={Activity}
-            label="Lịch sử vận hành"
-            mobileLabel="Vận hành"
-          />
         </div>
+        <button
+          type="button"
+          onClick={() => goTab(activeTab === "VAN_HANH" ? "FLEET" : "VAN_HANH")}
+          className="text-[11px] font-semibold text-slate-500 hover:text-slate-800"
+        >
+          {activeTab === "VAN_HANH" ? "← Về danh sách máy" : "Xem thêm: lịch sử mẻ theo máy"}
+        </button>
 
         <div className="animate-in fade-in duration-300">
           {activeTab === "FLEET" ? (

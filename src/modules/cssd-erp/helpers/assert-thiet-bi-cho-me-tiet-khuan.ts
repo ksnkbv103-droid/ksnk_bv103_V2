@@ -19,11 +19,13 @@ export async function assertThietBiSanSangChoMeTietKhuan(
     const human =
       st === "REPAIRING"
         ? "đang bảo trì"
-        : st === "BROKEN"
-          ? "hỏng / ngưng dùng"
-          : st === "RETIRED"
-            ? "đã thải"
-            : "không sẵn sàng";
+        : st === "HOLD_QC"
+          ? "tạm giữ QC (HOLD_QC)"
+          : st === "BROKEN"
+            ? "hỏng / ngưng dùng"
+            : st === "RETIRED"
+              ? "đã thải"
+              : "không sẵn sàng";
     return {
       ok: false,
       message: `Thiết bị ${human}. Không thể thao tác mẻ tiệt khuẩn trên máy này (${st || "—"}).`,

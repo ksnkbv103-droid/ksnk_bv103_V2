@@ -16,13 +16,3 @@ export async function resolveQlcvNhiemVuId(
   if (!nv || !nv.is_active) throw new Error("Nhiệm vụ không hợp lệ hoặc đã ngưng.");
   return String(nv.id);
 }
-
-/** @deprecated Dùng resolveQlcvNhiemVuId — giữ tên cũ cho chỗ gọi còn sót. */
-async function resolveQlcvNhiemVuMocChain(
-  supabase: SupabaseClient,
-  nhiemVuId: string | null | undefined,
-  _mocId?: string | null | undefined,
-): Promise<{ nhiem_vu_id: string | null; moc_id: null; chuong_trinh_id: null }> {
-  const id = await resolveQlcvNhiemVuId(supabase, nhiemVuId);
-  return { nhiem_vu_id: id, moc_id: null, chuong_trinh_id: null };
-}

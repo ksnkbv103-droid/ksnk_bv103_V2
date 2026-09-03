@@ -30,25 +30,6 @@ export function DaoTaoExamInfoForm({ value, onChange, disabled }: Props) {
           onChange={(e) => onChange({ ...value, khoaDonVi: e.target.value })}
         />
       </DaoTaoField>
-      <DaoTaoField label="Số điện thoại">
-        <input
-          className={C.controlInput}
-          value={value.soDienThoai ?? ""}
-          disabled={disabled}
-          inputMode="tel"
-          onChange={(e) => onChange({ ...value, soDienThoai: e.target.value })}
-        />
-      </DaoTaoField>
-      <DaoTaoField label="Email nội bộ">
-        <input
-          className={C.controlInput}
-          value={value.email ?? ""}
-          disabled={disabled}
-          type="email"
-          autoComplete="email"
-          onChange={(e) => onChange({ ...value, email: e.target.value })}
-        />
-      </DaoTaoField>
     </div>
   );
 }

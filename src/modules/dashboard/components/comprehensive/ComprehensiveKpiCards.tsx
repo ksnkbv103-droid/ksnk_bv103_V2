@@ -35,12 +35,12 @@ function DeltaLine({
   prevRate?: number | null;
 }) {
   if (delta == null && prevRate == null) {
-    return <span className="text-[11px] text-slate-400">{label}: —</span>;
+    return <span className="bv103-type-label text-slate-400">{label}: —</span>;
   }
   const up = (delta ?? 0) >= 0;
   const Icon = up ? TrendingUp : TrendingDown;
   return (
-    <span className="text-[11px] text-slate-500">
+    <span className="bv103-type-label text-slate-500">
       <span className="mr-1">{label}:</span>
       {prevRate != null ? <span className="mr-1 tabular-nums">{prevRate}% · </span> : null}
       {delta != null ? (
@@ -91,14 +91,14 @@ function KpiCard({
       ? Math.round((pct - targetPct) * 10) / 10
       : null;
   return (
-    <div className={`rounded-[var(--radius-shell)] border p-5 shadow-sm ${D.kpiCardTone[tone]}`}>
+    <div className={`min-w-0 flex-1 sm:px-4 sm:first:pl-0 ${D.trafficText[tone]}`}>
       <p className={D.kpiLabel}>{label}</p>
-      <p className={`mt-2 ${D.kpiValue}`}>
+      <p className={`mt-[var(--bv103-space-1)] ${D.kpiValue}`}>
         {value}
-        {suffix ? <span className="ml-1 text-sm font-medium opacity-70">{suffix}</span> : null}
+        {suffix ? <span className="ml-1 bv103-type-body font-medium opacity-70">{suffix}</span> : null}
       </p>
       {targetPct != null ? (
-        <p className="mt-1 text-[11px] font-medium tabular-nums opacity-90">
+        <p className="mt-[var(--bv103-space-2)] bv103-type-label font-medium tabular-nums opacity-90">
           Mục tiêu viện {targetPct}%
           {vsTarget != null ? (
             <span
@@ -112,14 +112,13 @@ function KpiCard({
           ) : null}
         </p>
       ) : null}
-      {volumeNote ? <p className="mt-1 text-xs font-medium tabular-nums opacity-80">{volumeNote}</p> : null}
-      <div className="mt-2 flex flex-col gap-0.5">
-        <DeltaLine label="Δ 2 tuần ISO" delta={weekDelta ?? null} prevRate={weekPrev} />
-        {periodLabel ? (
-          <DeltaLine label={periodLabel} delta={periodDelta ?? null} prevRate={periodPrev} />
-        ) : null}
-      </div>
-      {note ? <p className="mt-2 text-[11px] leading-snug opacity-80">{note}</p> : null}
+      {volumeNote ? <p className="mt-[var(--bv103-space-1)] bv103-type-label font-medium tabular-nums opacity-80">{volumeNote}</p> : null}
+      {vsTarget == null && (weekDelta != null || periodDelta != null) ? (
+        <div className="mt-[var(--bv103-space-1)]">
+          <DeltaLine label="So kỳ gần" delta={periodDelta ?? weekDelta ?? null} prevRate={periodPrev ?? weekPrev} />
+        </div>
+      ) : null}
+      {note ? <p className="mt-[var(--bv103-space-1)] bv103-type-label leading-snug opacity-80">{note}</p> : null}
     </div>
   );
 }
@@ -155,10 +154,10 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
       : null;
 
   return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="space-y-[var(--bv103-space-2)]">
+      <div className="flex flex-col gap-[var(--bv103-space-3)] sm:flex-row sm:items-start sm:divide-x sm:divide-slate-200 sm:gap-0">
         <KpiCard
-          label="Vệ sinh tay (VST)"
+          label="Vệ sinh tay"
           value={k?.ty_le_vst != null ? `${k.ty_le_vst}%` : "N/A"}
           weekDelta={k?.delta_vst}
           weekPrev={prevWeekRate(trend, "ty_le_vst")}
@@ -169,7 +168,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
           volumeNote={vstVol ? `Cơ hội: ${vstVol}` : null}
         />
         <KpiCard
-          label="Giám sát chung (GSC)"
+          label="Giám sát chung"
           value={k?.ty_le_gsc != null ? `${k.ty_le_gsc}%` : "N/A"}
           weekDelta={k?.delta_gsc}
           weekPrev={prevWeekRate(trend, "ty_le_gsc")}
@@ -180,15 +179,14 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
           volumeNote={gscVol ? `Khảo sát: ${gscVol}` : null}
         />
         <KpiCard
-          label="NKBV — tỷ lệ xác nhận/PA"
+          label="NKBV — tỷ lệ xác nhận"
           value={k?.ti_le_xac_nhan_nkbv != null ? `${k.ti_le_xac_nhan_nkbv}%` : "N/A"}
           suffix={k?.tong_phieu_nkbv != null ? `(${k.tong_phieu_nkbv} phiếu)` : undefined}
-          note="Chỉ số kết quả lâm sàng — tách khỏi tuân thủ process VST/GSC"
+          note="Kết quả nhiễm khuẩn — tách khỏi tỷ lệ vệ sinh tay / giám sát chung"
         />
       </div>
-      <p className="text-[11px] text-slate-500">
-        «Mục tiêu viện» từ cấu hình `ksnk_dm_muc_tieu_kpi` (toàn viện). «Δ 2 tuần ISO» = chênh hai tuần cuối trên xu
-        hướng tuần. «vs kỳ trước» = cùng độ dài kỳ lọc liền trước — không phải QoQ lịch cố định.
+      <p className="bv103-type-label text-slate-500">
+        Mũi tên = chênh so với mục tiêu viện. Xu hướng theo tuần nằm ở mục bên dưới.
       </p>
       {(payload.sources.vst === "denied" ||
         payload.sources.gsc === "denied" ||

@@ -40,8 +40,20 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
     const ket = row.ket_qua_test as boolean | null | undefined;
     const tkMo = row.tk_mo_form_qc_at as string | null | undefined;
     const tkChot = row.tk_chot_nap_at as string | null | undefined;
+    const qcJson =
+      row.tk_qc_json && typeof row.tk_qc_json === "object" && !Array.isArray(row.tk_qc_json)
+        ? (row.tk_qc_json as Record<string, unknown>)
+        : {};
+    // UI-ready: if write path / metadata already stamped quarantine in jsonb — show CHO_BI (no DB enum).
+    const qRaw = String(qcJson.quarantineStatus || qcJson.choBiStatus || qcJson.status || "").trim();
+    const quarantineBi =
+      qRaw === "CHO_BI" ||
+      qRaw === "Quarantine_BI" ||
+      qcJson.quarantineBi === true ||
+      qcJson.choBi === true;
     let trang_thai = "DANG_CHUAN_NAP";
-    if (ket === true) trang_thai = "HOAN_THANH";
+    if (quarantineBi && ket !== false) trang_thai = "CHO_BI";
+    else if (ket === true) trang_thai = "HOAN_THANH";
     else if (ket === false) trang_thai = "QC_KHONG_DAT";
     else if (tkMo) trang_thai = "CHO_DANH_GIA_QC";
     else if (tkChot) trang_thai = "DANG_TIET_KHUAN";

@@ -85,20 +85,20 @@ const LAYOUT_PATTERNS = [
 
 const TYPO_PATTERNS = [
   {
-    re: /text-(2xl|3xl|4xl)[^"'`\n]{0,96}font-black[^"'`\n]{0,96}uppercase/g,
-    hint: "H1 poster — pageTitle / authTitle",
+    re: /["'`][^"'`\n]*\bfont-black\b/g,
+    hint: "font-black — bv103-type-kpi / font-semibold",
   },
   {
-    re: /text-(2xl|3xl|4xl)[^"'`\n]{0,96}font-black[^"'`\n]{0,96}text-\[var\(--primary\)\]/g,
-    hint: "Tiêu đề primary+black — pageTitle slate",
+    re: /["'`][^"'`\n]*\bfont-extrabold\b/g,
+    hint: "font-extrabold — bv103-type-title",
   },
   {
-    re: /<h[12][^>]*className="[^"]*font-black[^"]*uppercase/g,
-    hint: "Heading IN HOA — sectionTitle / pageTitle",
+    re: /text-\[(8|9|10)px\]/g,
+    hint: "label tối thiểu bv103-type-label",
   },
   {
-    re: /text-\[11px\][^"'`\n]{0,72}font-black[^"'`\n]{0,72}uppercase/g,
-    hint: "Label IN HOA — labelBlock",
+    re: /<h[12][^>]*className="[^"]*uppercase/g,
+    hint: "Heading IN HOA — bv103-type-title",
   },
 ];
 
@@ -171,7 +171,7 @@ for (const base of SCAN_DIRS) {
       }
     }
 
-    if (!SKIP_TYPOGRAPHY.has(rel) && !isChromeDef(rel)) {
+    if (!SKIP_TYPOGRAPHY.has(rel) && !isChromeDef(rel) && !/print|PrintView|PrintLayout|usePrint\.ts|bao-cao-tong-hop-print/i.test(rel)) {
       for (const { re, hint } of TYPO_PATTERNS) {
         const m = text.match(re);
         if (m) {
@@ -243,6 +243,28 @@ for (const file of walkColumns(join(ROOT, "src"))) {
   if (!CHROME_NEEDLE.test(text)) {
     hits++;
     console.warn(`[adoption-drift] ${rel}: thiếu import *-table-chrome / *-ui-chrome`);
+  }
+}
+
+/** Giấy trắng ad-hoc (không phải ô nhập / modal / in) — nên dùng bv103-layer-panel. */
+const ADHOC_PAPER_RE =
+  /className="(?![^"]*(?:outline-none|focus:|placeholder:))[^"]*rounded-\[var\(--radius-shell\)\][^"]*bg-white[^"]*shadow-sm/;
+const USES_LAYER_PANEL_RE =
+  /bv103-layer-panel|panelSurface|panelShellPadded|CSSD_UI_PANEL|\.shell\b/;
+
+for (const base of SCAN_DIRS) {
+  for (const file of walk(join(ROOT, base))) {
+    const rel = file.replace(ROOT + "/", "");
+    if (rel.endsWith(".spec.ts") || rel.endsWith(".spec.tsx")) continue;
+    if (/print|PrintView|PrintLayout|DialogContent|Modal/i.test(rel)) continue;
+    const text = readFileSync(file, "utf8");
+    if (!USES_LAYER_PANEL_RE.test(text)) continue;
+    const nested = text.match(ADHOC_PAPER_RE);
+    if (nested) {
+      console.warn(
+        `[layer-warn] ${rel}: hộp trắng ad-hoc trong file đã có panel — dùng inset / bỏ vỏ lồng (${nested.length})`,
+      );
+    }
   }
 }
 

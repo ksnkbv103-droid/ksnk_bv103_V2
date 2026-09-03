@@ -2,10 +2,9 @@
 "use client";
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { Download, Printer, AlertTriangle } from "lucide-react";
+import { Download, Printer, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import {
@@ -20,18 +19,18 @@ import ReportFilters from "../components/report/ReportFilters";
 import ReportDashboard from "../components/report/ReportDashboard";
 import ReportAnalyticsPanels from "../components/report/ReportAnalyticsPanels";
 import CSSDPageShell from "../components/layout/cssd-page-shell";
-import { CSSD_ROUTES } from "@/lib/cssd-routes";
 import {
   CSSD_UI_ACTION_PRIMARY,
   CSSD_UI_ACTION_SECONDARY,
-  CSSD_UI_DATA_SURFACE,
   CSSD_UI_STAT_LABEL,
   CSSD_UI_STAT_VALUE,
   CSSD_UI_TAB_GROUP,
 } from "../shared/ui/cssd-ui-chrome";
 import { CssdHorizTabButton } from "../components/layout/CssdHorizTabButton";
-import { INCIDENT_GROUP_LABEL, INCIDENT_GROUPS } from "@/modules/cssd-su-co/domain/cssd-incident-taxonomy";
+import { INCIDENT_GROUP_LABEL, INCIDENT_GROUPS, isAccountabilityCause } from "@/modules/cssd-su-co/domain/cssd-incident-taxonomy";
 import IncidentJournalPrintButton from "@/modules/cssd-su-co/components/IncidentJournalPrintButton";
+import IncidentConfirmButton from "@/modules/cssd-su-co/components/IncidentConfirmButton";
+import { INCIDENT_STATUS_CONFIRMED } from "@/modules/cssd-su-co/domain/cssd-incident-status";
 
 const ReportCharts = dynamic(() => import("../components/report/ReportCharts"), {
   ssr: false,
@@ -56,6 +55,7 @@ function CSSDReportPageInner() {
   const tabParam = searchParams.get("tab");
   const highlightIncidentId = String(searchParams.get("id") || "").trim();
   const { allowed } = useModulePermission("CSSD_REPORT");
+  const { allowed: incidentAllowed } = useModulePermission("BAO_SU_CO");
   const { exportTemplate } = useImportExport({
     moduleKey: "CSSD_REPORT",
     tableName: "bao_cao_cssd",
@@ -70,6 +70,8 @@ function CSSDReportPageInner() {
     onImport: async () => ({ success: true }),
   });
   const [tab, setTab] = useState<ReportTab>(() => parseReportTab(tabParam, highlightIncidentId));
+  const extraTab = tab !== "OVERVIEW" && tab !== "INCIDENT";
+  const [showMoreTabs, setShowMoreTabs] = useState(extraTab);
 
   useEffect(() => {
     setTab(parseReportTab(tabParam, highlightIncidentId));
@@ -156,7 +158,7 @@ function CSSDReportPageInner() {
         count: raw.suCo.filter((x) => x.incident_group === g).length,
       })),
       processAccountabilityRows: raw.suCo
-        .filter((x) => x.fault_operator || x.tram_gay_loi)
+        .filter((x) => isAccountabilityCause(String(x.cause_class || "")))
         .map((x) => ({ ...x, fault_operator: x.fault_operator || x.reporter_email || "Chưa ghi nhận" })),
     };
   }, [raw]);
@@ -186,13 +188,6 @@ function CSSDReportPageInner() {
       subtitle="BỆNH VIỆN QUÂN Y 103 — KHOA KSNK"
       actions={
         <>
-          <Link
-            href={CSSD_ROUTES.suCo}
-            className={`${CSSD_UI_ACTION_SECONDARY} h-10 inline-flex flex-1 items-center justify-center gap-2 sm:flex-none`}
-          >
-            <AlertTriangle size={18} aria-hidden />
-            Ghi nhận sự cố
-          </Link>
           <button type="button" onClick={() => window.print()} className={`${CSSD_UI_ACTION_SECONDARY} h-10 flex-1 sm:flex-none`}>
             <Printer size={20} /> In
           </button>
@@ -203,14 +198,29 @@ function CSSDReportPageInner() {
       }
     >
       <ReportFilters filters={filters} setFilters={setFilters} stations={[...STATIONS]} />
-      <div className={CSSD_UI_TAB_GROUP}>
-        <CssdHorizTabButton active={tab === "OVERVIEW"} onClick={() => setTab("OVERVIEW")} label="Tổng quan" />
-        <CssdHorizTabButton active={tab === "VOLUME"} onClick={() => setTab("VOLUME")} label="Sản lượng" />
-        <CssdHorizTabButton active={tab === "SETS"} onClick={() => setTab("SETS")} label="Bộ & tái sử dụng" mobileLabel="Bộ" />
-        <CssdHorizTabButton active={tab === "EQUIPMENT"} onClick={() => setTab("EQUIPMENT")} label="Máy & bảo trì" mobileLabel="Máy" />
-        <CssdHorizTabButton active={tab === "STAFF"} onClick={() => setTab("STAFF")} label="NV CSSD" />
-        <CssdHorizTabButton active={tab === "INCIDENT"} onClick={() => setTab("INCIDENT")} label="Sự cố theo nhóm" mobileLabel="Sự cố" />
-        <CssdHorizTabButton active={tab === "ACCOUNTABILITY"} onClick={() => setTab("ACCOUNTABILITY")} label="Khâu lỗi & người lỗi" mobileLabel="Trách nhiệm" />
+      <div className="space-y-2">
+        <div className={CSSD_UI_TAB_GROUP}>
+          <CssdHorizTabButton active={tab === "OVERVIEW"} onClick={() => setTab("OVERVIEW")} label="Tổng quan" />
+          <CssdHorizTabButton active={tab === "INCIDENT"} onClick={() => setTab("INCIDENT")} label="Sự cố theo nhóm" mobileLabel="Sự cố" />
+        </div>
+        {showMoreTabs || extraTab ? (
+          <div className={CSSD_UI_TAB_GROUP}>
+            <CssdHorizTabButton active={tab === "VOLUME"} onClick={() => setTab("VOLUME")} label="Sản lượng" />
+            <CssdHorizTabButton active={tab === "SETS"} onClick={() => setTab("SETS")} label="Bộ và tái sử dụng" mobileLabel="Bộ" />
+            <CssdHorizTabButton active={tab === "EQUIPMENT"} onClick={() => setTab("EQUIPMENT")} label="Máy và bảo trì" mobileLabel="Máy" />
+            <CssdHorizTabButton active={tab === "STAFF"} onClick={() => setTab("STAFF")} label="NV CSSD" />
+            <CssdHorizTabButton active={tab === "ACCOUNTABILITY"} onClick={() => setTab("ACCOUNTABILITY")} label="Khâu lỗi và người lỗi" mobileLabel="Trách nhiệm" />
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowMoreTabs(true)}
+            className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-slate-800"
+          >
+            <ChevronDown className="h-3.5 w-3.5" aria-hidden />
+            Xem thêm (sản lượng, máy, nhân sự)
+          </button>
+        )}
       </div>
 
       {tab === "OVERVIEW" && (
@@ -257,22 +267,20 @@ function CSSDReportPageInner() {
             Biểu đồ cột trạm phía trên = <strong>tồn hiện tại</strong> (trạng thái cuối). Tab «Sản lượng» = hoàn thành
             trong kỳ theo timestamp quét.
           </p>
-          <div className={`${CSSD_UI_DATA_SURFACE} print:hidden`}>
-            <div className="flex items-center justify-between px-6 pb-2 pt-6 sm:px-8">
-              <h3 className="text-[11px] font-medium text-slate-500">Nhật ký quy trình (kỳ lọc)</h3>
-            </div>
+          <div className="space-y-2 print:hidden">
+            <h3 className="text-[11px] font-medium text-slate-500">Nhật ký quy trình (kỳ lọc)</h3>
             <AdvancedDataTable
               columns={[
                 { header: "Mã qr", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-mono text-[11px] font-medium text-[var(--primary)]">{v.ma_vach_qr}</span> },
                 {
                   header: "Trạm cuối",
                   accessorKey: "trang_thai_hien_tai",
-                  cell: (v: any) => <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-medium text-slate-500">{v.trang_thai_hien_tai?.replace(/_/g, " ")}</span>,
+                  cell: (v: any) => <span className="text-[11px] font-medium text-slate-600">{v.trang_thai_hien_tai?.replace(/_/g, " ")}</span>,
                 },
                 {
                   header: "Cảnh báo",
                   accessorKey: "is_red_alert",
-                  cell: (v: any) => (v.is_red_alert ? <span className="font-mono text-[11px] font-medium text-red-600">Cảnh báo đỏ</span> : <span className="text-[11px] font-bold uppercase text-emerald-600">Bình thường</span>),
+                  cell: (v: any) => (v.is_red_alert ? <span className="font-mono text-[11px] font-medium text-red-600">Cảnh báo đỏ</span> : <span className="bv103-type-label text-emerald-600">Bình thường</span>),
                 },
                 {
                   header: "Ngày tạo",
@@ -313,26 +321,55 @@ function CSSDReportPageInner() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {incidentGroupStats.map((x) => (
               <div key={x.group} className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{x.label}</p>
+                <p className="text-[11px] font-medium text-slate-500">{x.label}</p>
                 <p className={`mt-2 ${CSSD_UI_STAT_VALUE}`}>{x.count}</p>
               </div>
             ))}
           </div>
-          <div className={`${CSSD_UI_DATA_SURFACE} print:hidden`}>
-            <div className="flex items-center justify-between px-6 pb-2 pt-6 sm:px-8">
-              <h3 className="text-[11px] font-medium text-slate-500">Nhật ký sự cố theo nhóm nghiệp vụ</h3>
-            </div>
+          <div className="space-y-2 print:hidden">
+            <h3 className="text-[11px] font-medium text-slate-500">Nhật ký sự cố theo nhóm nghiệp vụ</h3>
             <AdvancedDataTable
               columns={[
                 { header: "Mã qr", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-mono text-[11px] font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
-                { header: "Nhóm", accessorKey: "incident_group_label", cell: (v: any) => <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium">{v.incident_group_label}</span> },
+                { header: "Nhóm", accessorKey: "incident_group_label", cell: (v: any) => <span className="text-[11px] font-medium text-slate-700">{v.incident_group_label}</span> },
+                { header: "Bản chất", accessorKey: "cause_label", cell: (v: any) => <span className="text-[11px] font-medium text-slate-700">{v.cause_label || "Chưa phân loại"}</span> },
                 { header: "Tình huống", accessorKey: "loai_su_co", cell: (v: any) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
+                { header: "Mã lô", accessorKey: "ma_lo", cell: (v: any) => <span className="font-mono text-[11px]">{v.ma_lo || "—"}</span> },
+                { header: "Mô tả", accessorKey: "mo_ta_ngan", cell: (v: any) => <span className="line-clamp-2 text-[11px] text-slate-600">{v.mo_ta_ngan || "—"}</span> },
+                { header: "Người", accessorKey: "fault_operator", cell: (v: any) => <span className="text-[11px]">{v.fault_operator || v.reporter_email || "—"}</span> },
+                { header: "Thời điểm", accessorKey: "created_at", cell: (v: any) => <span className="text-[11px] text-slate-500">{formatDateTimeVi(v.created_at)}</span> },
+                {
+                  header: "Trạng thái",
+                  accessorKey: "incident_status_label",
+                  cell: (v: any) => (
+                    <span
+                      className={
+                        v.incident_status === INCIDENT_STATUS_CONFIRMED
+                          ? "text-[11px] font-semibold text-emerald-700"
+                          : "text-[11px] font-semibold text-amber-800"
+                      }
+                    >
+                      {v.incident_status_label || "Chưa xác nhận"}
+                    </span>
+                  ),
+                },
                 { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{String(v.tram_phat_hien || "Không áp dụng").replace(/_/g, " ")}</span> },
                 { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{String(v.tram_gay_loi || "Không áp dụng").replace(/_/g, " ")}</span> },
                 {
                   header: "In",
                   accessorKey: "id",
-                  cell: (v: any) => (v.id ? <IncidentJournalPrintButton incidentId={String(v.id)} /> : null),
+                  cell: (v: any) =>
+                    v.id ? (
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {incidentAllowed.create && v.incident_status !== INCIDENT_STATUS_CONFIRMED ? (
+                          <IncidentConfirmButton
+                            incidentId={String(v.id)}
+                            onConfirmed={() => setFilters((f) => ({ ...f }))}
+                          />
+                        ) : null}
+                        <IncidentJournalPrintButton incidentId={String(v.id)} />
+                      </div>
+                    ) : null,
                 },
               ]}
               data={
@@ -355,13 +392,12 @@ function CSSDReportPageInner() {
       )}
 
       {tab === "ACCOUNTABILITY" && (
-        <div className={`${CSSD_UI_DATA_SURFACE} print:hidden`}>
-          <div className="flex items-center justify-between px-6 pb-2 pt-6 sm:px-8">
-            <h3 className="text-[11px] font-medium text-slate-500">Khâu gây lỗi &amp; người thao tác</h3>
-          </div>
+        <div className="space-y-2 print:hidden">
+          <h3 className="text-[11px] font-medium text-slate-500">Khâu gây lỗi và người thao tác</h3>
           <AdvancedDataTable
             columns={[
               { header: "Mã qr", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-mono text-[11px] font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
+              { header: "Bản chất", accessorKey: "cause_label", cell: (v: any) => <span className="text-[11px] font-medium">{v.cause_label || "Chưa phân loại"}</span> },
               { header: "Tình huống", accessorKey: "loai_su_co", cell: (v: any) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
               { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{String(v.tram_phat_hien || "Không áp dụng").replace(/_/g, " ")}</span> },
               { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{String(v.tram_gay_loi || "Không áp dụng").replace(/_/g, " ")}</span> },

@@ -7,18 +7,18 @@
 ### Case 1 — UTI + Foley
 1. Mở BA nghi UTI, tick Foley hiện diện DOE/DOE−1.  
 2. Trên lưới / phiếu: **không** nhập tiểu buốt/gấp/rắt (ẩn hoặc không tính).  
-3. Tick sốt + ngày ∈ IWP → đủ triệu chứng; chốt CAUTI khi đủ CFU/Foley.  
+3. Tick **Sốt > 38,0°C** + ngày ∈ IWP → đủ triệu chứng; chốt CAUTI khi đủ CFU/Foley.  
 **Pass khi:** voiding không góp tiêu chuẩn khi đang Foley.
 
 ### Case 2 — BSI commensal
 1. Cấy máu CoNS / commensal, ≥2 lần lấy riêng.  
-2. Tick sốt **hoặc** rét run + ngày ∈ IWP → LCBI2 / CLABSI (nếu CVC đủ).  
+2. Tick **Sốt > 38,0°C** **hoặc** rét run + ngày ∈ IWP → LCBI2 / CLABSI (nếu CVC đủ).  
 3. Bỏ ngày triệu chứng → cổng submit từ chối.  
 4. (MBI) Candida đường ruột + tick tiêu chảy nặng → **MBI_LCBI**, không CLABSI.  
 **Pass khi:** ngày IWP bắt buộc; MBI nhận tiêu chảy nặng.
 
 ### Case 3 — PNEU người lớn
-1. XQ (+) + tick **sốt** (atom) + ≥2 dòng hô hấp khác nhau → PNU1.  
+1. XQ (+) + tick **Sốt > 38,0°C** (atom) + ≥2 dòng hô hấp khác nhau → PNU1.  
 2. Chỉ 1 dòng hô hấp → không đạt.  
 3. Chọn PNU3 vi sinh **không** tick ho ra máu / đau màng phổi → **INCOMPLETE**.  
 4. Thêm ho ra máu → PNU3_*.  
@@ -43,4 +43,4 @@ npx vitest run \
 
 - [ ] Case 1–3 tay PASS trên môi trường pilot  
 - [ ] Case 4 (IAB) PASS nếu dùng Organ/Space  
-- [ ] Không còn lệch nhãn sốt giữa phiếu / BA / in  
+- [ ] Không còn lệch nhãn sốt: lưới / phiếu / in cùng **Sốt > 38,0°C** (IVAC: sốt hoặc hạ thân nhiệt)  

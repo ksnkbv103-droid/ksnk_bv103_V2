@@ -12,6 +12,7 @@ import {
 } from "@/lib/analytics/supervision-analytics-charts";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import type { VstStrategicPayload } from "../types/vst-strategic.types";
 
 type Props = {
@@ -49,14 +50,14 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
   );
 
   return (
-    <div className={`${UI.sectionGap} space-y-6 pb-8`}>
+    <div className={`${UI.sectionGap} space-y-[var(--bv103-space-3)] pb-8`}>
       {p.loadError ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{p.loadError}</div>
       ) : null}
 
       <section className={`${UI.shell} w-full min-w-0 p-4`}>
         <header className="mb-4">
-          <h2 className="text-sm font-bold text-slate-800">Thống kê theo khoa</h2>
+          <h2 className="bv103-type-section text-slate-800">Thống kê theo khoa</h2>
           <p className="mt-1 text-[11px] text-slate-500">
             Tỷ lệ tuân thủ và số cơ hội giám sát — đủ mã khoa trong phạm vi lọc; khoa dưới 80% được tô cảnh báo.
             {p.khoaFilterLocked ? " Phạm vi khoa đang khóa." : ""} Kỳ {p.tuNgay} → {p.denNgay}.
@@ -67,17 +68,21 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
           matrixKhoaRows={p.payload?.matrix_khoa}
           loading={p.loading}
           moduleLabel="VST"
-          tgsVolumeLabel="Cơ hội TGS"
-          ksnkVolumeLabel="Cơ hội KSNK"
+          tgsVolumeLabel={SUPERVISION_SOURCE_UI.vstTgsVol}
+          ksnkVolumeLabel={SUPERVISION_SOURCE_UI.vstKsnkVol}
         />
       </section>
 
-      <details className={`${UI.shell} open:shadow-sm`} open>
-        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
-          Tổng hợp chung
-          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">KPI và xu hướng tuân thủ</span>
+      <SupervisionMomentsPanel moments={p.payload?.moments ?? []} loading={p.loading} stroke="#10b981" />
+
+      <details className={`${UI.shell}`}>
+        <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+          Xem thêm
+          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
+            KPI · xu hướng · so sánh khối / nghề / hình thức
+          </span>
         </summary>
-        <div className="space-y-4 border-t border-slate-100 px-4 pb-4 pt-3">
+        <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
           <SupervisionKpiRow
             loading={p.loading}
             items={[
@@ -87,7 +92,6 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
               { label: "Đúng kỹ thuật", value: formatPercent2(p.payload?.kpis?.ty_le_dung_ky_thuat ?? 0) },
             ]}
           />
-
           <SupervisionTrendChart
             title="Xu hướng tuân thủ"
             data={p.payload?.trendline ?? []}
@@ -95,17 +99,6 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
             source="vst"
             stroke="#10b981"
           />
-        </div>
-      </details>
-
-      <SupervisionMomentsPanel moments={p.payload?.moments ?? []} loading={p.loading} stroke="#10b981" />
-
-      <details className={`${UI.shell}`}>
-        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
-          Ma trận phân tích (chức năng phòng, đối tượng, hình thức…)
-          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">Mở để xem chi tiết</span>
-        </summary>
-        <div className="border-t border-slate-100 px-4 pb-4 pt-2">
           <SupervisionCompareAccordion sections={compareSections} loading={p.loading} />
         </div>
       </details>

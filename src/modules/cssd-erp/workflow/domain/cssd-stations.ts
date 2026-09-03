@@ -24,6 +24,12 @@ export function previousWorkflowStation(station: Station): Station | null {
   return WORKFLOW_STEPS[i - 1] ?? null;
 }
 
+export function nextWorkflowStation(current: Station): Station | null {
+  const i = stepIndex(current);
+  if (i < 0) return null;
+  return WORKFLOW_STEPS[i + 1] ?? null;
+}
+
 export function nextStationLabel(current: Station): string {
   const i = stepIndex(current);
   if (i < 0) return "—";

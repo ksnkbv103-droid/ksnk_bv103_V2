@@ -6,7 +6,7 @@ import { useEntityQrImage } from "@/hooks/useEntityQr";
 /** QR nhỏ cùng dòng mã — danh sách / bảng. */
 export default function InlineEntityQrThumb({
   code,
-  size = 36,
+  size = 20,
   className = "",
 }: {
   code: string;

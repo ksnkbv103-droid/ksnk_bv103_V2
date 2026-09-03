@@ -5,7 +5,7 @@ import { Clock, ChevronRight } from "lucide-react";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isChoNghiemThuHoanThanh, isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
 import { formatMucDoUuTienLabel, getCongViecTrangThaiLabel } from "../lib/qlcv-labels";
-import { getKanbanColumnIdForTask, type KanbanColumnId } from "../lib/qlcv-board-lanes";
+import { getKanbanColumnIdForTask, isQlcvBoardOverdue, type KanbanColumnId } from "../lib/qlcv-board-lanes";
 import { qlcvKanbanCardAttentionClass } from "../lib/qlcv-ux-chrome";
 import type { CongViecView } from "../types";
 import { QlcvDinhKyMauChip } from "./QlcvDinhKyMauChip";
@@ -30,7 +30,7 @@ function showKanbanCardSubtitle(colId: KanbanColId, t: CongViecView, showProposa
   if (colId === "CHO_DUYET" && isChoNghiemThuHoanThanh(t)) return false;
   const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
   if (colId === "DANG_LAM" && (st === "DANG_LAM" || st === "TU_CHOI")) return false;
-  if (colId === "HOAN_THANH" || colId === "DA_HUY" || colId === "QUA_HAN") return false;
+  if (colId === "HOAN_THANH" || colId === "DA_HUY") return false;
   return true;
 }
 
@@ -59,7 +59,6 @@ export default function CongViecKanban({
       ? [{ id: "DE_XUAT" as const, title: "Đề xuất chờ duyệt", dot: "bg-violet-500" }]
       : []),
     { id: "DANG_LAM", title: "Đang thực hiện", dot: "bg-blue-500" },
-    { id: "QUA_HAN", title: "Quá hạn", dot: "bg-red-500" },
     { id: "CHO_DUYET", title: "Chờ nghiệm thu", dot: "bg-amber-500" },
     { id: "HOAN_THANH", title: "Hoàn thành", dot: "bg-emerald-500" },
     { id: "DA_HUY", title: "Đã hủy", dot: "bg-slate-500" },
@@ -97,7 +96,7 @@ export default function CongViecKanban({
                   {col.title}
                 </h3>
               </div>
-              <span className="shrink-0 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-black text-slate-500">
+              <span className="shrink-0 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-500">
                 {colTasks.length}
               </span>
             </div>
@@ -137,7 +136,10 @@ export default function CongViecKanban({
                       </p>
                     ) : null}
 
-                    <h4 className="mb-1 line-clamp-2 text-sm font-black leading-tight text-slate-800">{task.tieu_de}</h4>
+                    {isQlcvBoardOverdue(task) ? (
+                      <p className="mb-1 text-[11px] font-semibold text-red-700">Quá hạn</p>
+                    ) : null}
+                    <h4 className="mb-1 line-clamp-2 text-sm font-semibold leading-tight text-slate-800">{task.tieu_de}</h4>
                     <div className="mb-2">
                       <QlcvDinhKyMauChip loaiCongViec={task.loai_cong_viec} dinhKyMauId={task.dinh_ky_mau_id} />
                     </div>
@@ -145,7 +147,7 @@ export default function CongViecKanban({
                     <div className="flex flex-col gap-2 border-t border-slate-100 pt-2.5 sm:flex-row sm:items-center sm:justify-between">
                       <div className="min-w-0 flex-1">
                         <span className="text-[11px] font-medium text-slate-400">Phụ trách / Tổ</span>
-                        <p className="truncate text-[11px] font-black text-slate-600">
+                        <p className="truncate text-[11px] font-semibold text-slate-600">
                           {task.nguoi_phu_trach_ten || "Chưa phân công"}
                           {task.to_cong_tac_ten ? ` · ${task.to_cong_tac_ten}` : ""}
                         </p>

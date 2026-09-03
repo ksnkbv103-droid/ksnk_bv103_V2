@@ -1,6 +1,7 @@
 # Domain overview — Quy trình xử lý dụng cụ (CSSD)
 
 > **Chốt:** 2026-07-28 (PO duyệt tổng hợp domain).  
+> **Bổ sung domain:** 2026-08-22 từ PCI.03.00 (QT.18–25) — chỉ lấp domain đang có; HLD ngoài phạm vi.  
 > **SSOT hành trình ngắn:** [`../../core/domain-specification.md`](../../core/domain-specification.md) §2.2.  
 > **Ánh xạ bảng/route:** [`../../core/implementation-mapping.md`](../../core/implementation-mapping.md) § CSSD.  
 > Tài liệu này là bản **nghiệp vụ đầy đủ** (PO đọc được) — không thay mapping kỹ thuật.
@@ -19,6 +20,8 @@
 
 Ranh giới chi tiết: [`../../wiki/concepts.md`](../../wiki/concepts.md#cssd-vs-mdm). Luồng master → vận hành: [`quan-ly-dung-cu-luong.md`](quan-ly-dung-cu-luong.md).
 
+**Ngoài phạm vi (không mở module/station mới):** HLD/AER (nội soi), Environmental toàn viện, IUSS station riêng, hard-block thiếu cấu phần (đã khóa Q2).
+
 ---
 
 ## 2. Đối tượng nghiệp vụ
@@ -28,7 +31,7 @@ Ranh giới chi tiết: [`../../wiki/concepts.md`](../../wiki/concepts.md#cssd-v
 1. **Loại dụng cụ** — Spaulding (Thiết yếu / Bán thiết yếu / Không thiết yếu), chịu nhiệt hay không, phương pháp TK chỉ định (`STEAM_134` / `STEAM_121` / `PLASMA` / `EO`).
 2. **Bộ dụng cụ** — bộ vật lý có tem QR cố định `KHOA.SET.NN` (vd. `B01.SET.01`).
 3. **Thành phần bộ (cấu phần)** — từng món trong bộ (`DC-*`); **không** quét workflow.
-4. **Máy / thiết bị** — máy hấp gắn mẻ; `READY` / `REPAIRING`.
+4. **Máy / thiết bị** — máy hấp gắn mẻ; `READY` / `REPAIRING` / `HOLD_QC`.
 5. **Hóa chất** — kho theo lô, `NHAP` / `XUAT` / `DIEU_CHINH`, FEFO, ngưỡng tồn tối thiểu.
 
 ### 2.2 Vận hành (fact)
@@ -49,7 +52,18 @@ Ranh giới chi tiết: [`../../wiki/concepts.md`](../../wiki/concepts.md#cssd-v
 | Mã mẻ | `LOT-…` | Có (màn mẻ) |
 | Máy | `TB-…` / `MAY-…` | Có (mẻ / bảo trì) |
 
-**QR Hub:** mọi màn quét vận hành CSSD nhận diện qua `resolveCssdCodeWithClient`.
+**Dual-coding (alias bắt buộc — cùng một bộ vật lý):**
+
+| Họ mã | Ví dụ | Vai trò |
+|-------|-------|---------|
+| `B01.SET.*` | `B01.SET.01` | **Tem QR quét** trên workflow (chuẩn vận hành app) |
+| `B01.CD*` | `B01.CD1` | Mã kiểm kê / vận hành QLDCPT |
+| `BO-01-*` | `BO-01-…` | Mã loại chuẩn hóa (catalog ~40 loại) |
+
+- Ba họ mã **cùng tồn tại**; resolve qua **QR Hub** (`resolveCssdCodeWithClient`) — alias map về tem quét `*.SET.*`.
+- Không mở catalog TSCĐ/BHYT mới; chỉ ghi alias trên master bộ / resolve Hub.
+
+**Nhãn gói / Cycle QR (QT.20):** đủ trường tên bộ, ngày đóng gói, hạn dùng, người đóng gói, **số mẻ** (`lo_tiet_khuan` / batch id). Thiếu số mẻ = chưa đủ nhãn QT.20.
 
 ---
 
@@ -69,16 +83,41 @@ flowchart LR
 |------|-----|----------|-----------------|
 | 1. Tiếp nhận | `TIEP_NHAN` | Quét bộ bẩn / mở chu trình mới | Sau cấp phát, lần tiếp nhận = vòng mới |
 | 2. Làm sạch | `LAM_SACH` | Quét chuyển bước | Chỉ tiến đúng 1 bước |
-| 3. QC | `QC` | Kiểm trước đóng gói | |
-| 4. Đóng gói | `DONG_GOI` | Quét + đối chiếu cấu phần; báo Hỏng/Mất/Bổ sung; sinh Cycle QR | Thiếu cấu phần: **cảnh báo**, không chặn cứng |
+| 3. QC | `QC` | Kiểm trước đóng gói | **QC trạm** (QT.19) — không thay QC mẻ |
+| 4. Đóng gói | `DONG_GOI` | Quét + đối chiếu cấu phần; **một phiếu biến động cả bộ**; sinh Cycle QR | Thiếu cấu phần: **cảnh báo**, không chặn cứng |
 | 5. Mẻ tiệt khuẩn | `TIET_KHUAN` | **Không quét trên bản đồ 6 trạm** — mở phiếu mẻ | Nạp bộ đang Đóng gói → chốt nạp → chạy máy → QC mẻ |
 | 6. Cấp phát | `CAP_PHAT` | Quét giao khoa / vào kho sạch | Soft-warning thiếu cấu phần; phải có mẻ ĐẠT |
+
+### Map 6 mã trạm ↔ PCI QT.18–22
+
+| Mã trạm app | QT PCI | Ghi chú map |
+|-------------|--------|-------------|
+| `TIEP_NHAN` | QT.18 (đầu chuỗi bẩn) | Pre-clean tại khoa = RACI ngoài shell, không station mới |
+| `LAM_SACH` | QT.18 | Làm sạch / enzyme (chi tiết process → backlog P1) |
+| `QC` | QT.19 | **QC trạm** — kiểm trước đóng gói |
+| `DONG_GOI` | QT.20 | Đóng gói + nhãn (gồm số mẻ) |
+| `TIET_KHUAN` | QT.21 (+ QC giải phóng QT.23 trên phiếu mẻ) | Chỉ qua phiếu mẻ; không quét trên shell |
+| `CAP_PHAT` | QT.22 | Cấp phát / kho vô khuẩn; kiểm trước dùng tại khoa = ngoài shell |
+
+**Tách QC:**
+
+- **QC trạm (`QC` / QT.19):** kiểm bộ trước đóng gói trên shell 6 bước.
+- **QC mẻ 3 cấp (QT.23):** trên phiếu mẻ — Physical / CI(+BD steam) / BI(+control); **không** thay bằng trạm `QC`.
+
+**Transitions đặc biệt (không thêm trạm UI):**
+
+| Transition nghiệp vụ | Map vào hiện có |
+|----------------------|-----------------|
+| Rewash / làm lại làm sạch | Status về `LAM_SACH` (hoặc `TIEP_NHAN` nếu cần vòng bẩn) trên `cssd_fact_quy_trinh` |
+| `Quarantine_BI` | Metadata / trạng thái mẻ (implant chờ BI−) — **không** trạm mới; chặn `HOAN_THANH` / cấp phát |
+| Reprocess_from_start | Quay `TIEP_NHAN` (hoặc `DONG_GOI` khi rollback QC mẻ fail) + sự cố nếu cần |
+| Wet pack (= bẩn) | Về `LAM_SACH` — làm lại từ làm sạch |
 
 **Không phải trạm quét**
 
 - **Tab Kho** (`?tab=kho`) — xem tồn / hạn dùng (FEFO).
 - **Tab Truy vết** (`?tab=trace`) — timeline chu trình / liên kết SSI.
-- **Thu hồi / Recall** — phản ứng an toàn (QC mẻ fail / sự cố), **không** phải trạm thứ 7. Quay lại CSSD = `Cấp phát → Tiếp nhận`. QC mẻ không đạt → rollback về Đóng gói + có thể **đóng băng** bộ.
+- **Thu hồi / Recall** — phản ứng an toàn (QC mẻ fail / sự cố / BI+), **không** phải trạm thứ 7. Quay lại CSSD = `Cấp phát → Tiếp nhận`. QC mẻ không đạt → rollback về Đóng gói + có thể **đóng băng** bộ.
 
 ---
 
@@ -99,14 +138,59 @@ flowchart TD
 | `DANG_CHUAN_NAP` | Chưa chốt nạp |
 | `DANG_TIET_KHUAN` | Đã chốt nạp, chưa mở form QC |
 | `CHO_DANH_GIA_QC` | Đã mở form QC, chưa có kết quả |
-| `HOAN_THANH` | QC đạt |
+| `CHO_BI` / `Quarantine_BI` | Implant chờ BI (−); **chưa** `HOAN_THANH` / cấp phát |
+| `HOAN_THANH` | QC đạt (và BI (−) nếu bắt buộc) |
 | `QC_KHONG_DAT` | QC không đạt |
 
-**Chỉ thị QC:** Đạt / Không đạt / Không áp dụng (tiếp xúc, đa thông số, BI, CI, Bowie–Dick).
+**Checklist QC mẻ 3 cấp (QT.23)** — ghi trên form / `tk_qc_json` (không tách module):
+
+| Cấp | Nội dung | Ghi chú |
+|-----|----------|---------|
+| Physical | Bản in / thông số chu trình | Bắt buộc trước giải phóng |
+| CI (+ BD steam) | Chỉ thị hóa học ngoài/trong; BD loại 2 nếu steam | BD **đầu ngày máy** ≠ BD trên form mẻ (xem § máy) |
+| BI (+ control) | Biological indicator + control | Implant: chờ BI (−) |
+
+**Implant (`implantFlag`):**
+
+- `implantFlag = true` → mẻ / bộ vào state `CHO_BI` / `Quarantine_BI` **trước** `HOAN_THANH`.
+- Chỉ giải phóng khi BI (−); cấm cấp phát khi còn quarantine.
+- **IUSS cấm implant** (QT.21) — không giải phóng implant qua chu trình IUSS.
+
+**BI (+):**
+
+- Mở **sự cố** (`cssd_fact_su_co`, vd. `PROCESS_STERILIZATION_FAIL` / BI+).
+- **Recall toàn mẻ** theo `lo_tiet_khuan_id` (mọi bộ cùng mẻ): đã **Cấp phát** → **Tiếp nhận**; còn trong chu trình → **Đóng gói** + đóng băng.
+- Máy mẻ `READY` / `HOAT_DONG` → `HOLD_QC` (không đè `REPAIRING` / đã `HOLD_QC`). **Chưa** tự đếm 3× BI (−) để mở máy.
+
+**Chỉ thị QC (UI):** Đạt / Không đạt / Không áp dụng (tiếp xúc, đa thông số, BI, CI, Bowie–Dick).
 
 **Rủi ro nhiệt (Spaulding):** OK / Cảnh báo / Chặn — bộ lẫn chịu nhiệt / không chịu nhiệt phải **tách gói phụ (SUB)** trước khi hấp steam 134.
 
-**Máy:** `REPAIRING` → không tạo mẻ mới; còn mẻ chưa có `ket_qua_test` ↔ ràng buộc ngược với bảo trì.
+### Máy / thiết bị
+
+| Trạng thái | Ý nghĩa |
+|------------|---------|
+| `READY` | Được phép nạp mẻ (và steam ⇒ BD đầu ngày đạt) |
+| `REPAIRING` | Đang sửa / bảo trì — **không** tạo mẻ mới |
+| `HOLD_QC` | Tạm giữ sau sự cố QC / BI+ — không nạp mẻ đến khi đủ điều kiện |
+
+- **BD đầu ngày (steam):** bắt buộc đạt trước khi nạp mẻ steam trong ngày; BD fail → **không nạp**.
+- `REPAIRING` → không tạo mẻ mới; còn mẻ chưa có `ket_qua_test` ↔ ràng buộc ngược với bảo trì.
+- BI+ → máy `HOLD_QC` (nếu đang sẵn sàng). Chưa tự mở máy sau 3× BI (−).
+
+### SUB + đóng gói (pack) ↔ phương pháp TK
+
+- **Giữ** luật tách nhiệt: bộ lẫn chịu nhiệt / không → bắt tách SUB trước steam 134.
+- Tương thích **vật liệu pack ↔ PP**:
+
+| Phương pháp TK (PP) | Vật liệu pack | Rule |
+|---------------------|---------------|------|
+| `STEAM_134` / `STEAM_121` | Giấy / wrap steam-compatible | Cho phép theo IFU |
+| `PLASMA` | Tyvek / non-cellulose | **Cấm cellulose** |
+| `EO` | Theo IFU EO | Không dùng pack không tương thích EO |
+
+- Fail path: tách SUB / đổi PP / báo sự cố — không “ép” hỗn hợp.
+- **Wet pack = bẩn** → làm lại từ `LAM_SACH` (không cấp phát).
 
 ---
 
@@ -119,6 +203,13 @@ flowchart TD
 5. Master CRUD ≠ vận hành quét.
 6. Cấp phát khi chưa có mẻ / mẻ chưa QC → **lỗi** (chặn).
 7. Sau cấp phát, quét tiếp nhận = **chu kỳ mới** (giữ tem bộ vĩnh viễn; Cycle QR reset).
+8. Dual-coding: tem quét `B01.SET.*` ↔ alias `B01.CD*` ↔ `BO-01-*`; resolve qua QR Hub.
+9. Nhãn / Cycle QR đủ trường QT.20 gồm **số mẻ**.
+10. QC trạm (QT.19) ≠ QC mẻ 3 cấp (QT.23); implant → `Quarantine_BI` / `CHO_BI` trước `HOAN_THANH`.
+11. BI+ → sự cố + recall theo `lo_tiet_khuan_id` + máy `HOLD_QC`; IUSS cấm implant. Chưa đếm 3× BI (−) để mở máy.
+12. Máy: `READY` | `REPAIRING` | `HOLD_QC`; steam ⇒ BD đầu ngày đạt mới nạp; BD fail / không READY / HOLD_QC → không nạp mẻ.
+13. Plasma **cấm cellulose**; wet pack = bẩn → `LAM_SACH`.
+14. Rewash / Quarantine_BI / Reprocess_from_start map status/metadata hiện có — **không** thêm trạm UI.
 
 ---
 
@@ -126,10 +217,10 @@ flowchart TD
 
 | Nhóm sự cố | Hệ quả điển hình |
 |------------|------------------|
-| Quy trình (vd. mẻ fail) | Rollback / đóng băng |
+| Quy trình (vd. mẻ fail / BI+) | Rollback / đóng băng / recall theo mẻ / hold máy |
 | Dụng cụ (Hỏng / Mất / Bổ sung / Điều chuyển) | Ghi sổ `cssd_fact_kho_giao_dich` |
 | Hóa chất | Xuất / điều chỉnh kho HC |
-| Thiết bị | Mở phiếu bảo trì; máy → đang sửa |
+| Thiết bị | Mở phiếu bảo trì; máy → `REPAIRING` / `HOLD_QC` |
 
 **Công thức tồn thực tế (QLDCPT):**  
 Thực tế = tiêu chuẩn − (Hỏng + Mất) + Bổ sung ± Điều chuyển.
@@ -143,9 +234,17 @@ Thực tế = tiêu chuẩn − (Hỏng + Mất) + Bổ sung ± Điều chuyển
 | `/cssd-quy-trinh` | 6 trạm + tab Mẻ / Kho / Truy vết |
 | `/cssd-erp/batch` | Deep link mẻ tiệt khuẩn |
 | `/cssd-dung-cu` | Xem danh mục + in tem (không CRUD) |
-| `/cssd-su-co` | Báo sự cố |
+| `/cssd-su-co` | Báo sự cố; xác nhận phiếu (mở → đã xác nhận) |
 | `/cssd-thiet-bi` | Bảo trì máy |
 | `/cssd-hoa-chat` | Kho hóa chất |
 | Quản trị → Danh mục dụng cụ | CRUD Loại / Bộ / Thành phần |
 
 Pilot: [`pilot-test-checklist.md`](pilot-test-checklist.md) · Cycle QR: [`pilot-checklist-cycle-qr-202606.md`](pilot-checklist-cycle-qr-202606.md).
+
+---
+
+## 8. Backlog P1 (ghi nhận — không implement trong đợt này)
+
+- Enzyme / máy rửa tracing trên bước `LAM_SACH` (nồng độ, nhiệt độ, thời gian, optional `washer_machine_id`).
+- `DilutionLot`: GA≤28 ngày / OPA≤14 ngày / MEC (fail thắng); nhãn phụ ngày pha / hạn / người pha.
+- Cấp phát theo khoa: FIFO/FEFO issue + phiếu lĩnh (BM.03) + trả nonconforming (ướt/rách/CI fail/quá hạn) trên entity cấp phát hiện có.

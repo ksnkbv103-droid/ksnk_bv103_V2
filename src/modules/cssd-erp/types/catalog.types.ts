@@ -13,6 +13,8 @@ export interface CSSDBo {
   tong_so_luong_dung_cu?: number | null;
   khoa_su_dung_id?: string | null;
   ten_khoa?: string | null;
+  /** Cơ số loại đang xem (tab Loại → các bộ chứa). */
+  co_so_loai_dang_xem?: number | null;
 }
 
 export interface CSSDChiTiet {
@@ -38,6 +40,7 @@ export interface CSSDLoai {
   is_active: boolean;
   phan_loai?: string | null;
   so_luong_kho_du_phong?: number | null;
+  so_luong_trong_bo?: number | null;
   so_luong_tong?: number | null;
   hinh_dang?: string | null;
   kich_thuoc?: string | null;

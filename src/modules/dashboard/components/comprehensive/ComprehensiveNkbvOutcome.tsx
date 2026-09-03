@@ -36,8 +36,8 @@ export function ComprehensiveNkbvOutcome({ payload }: { payload: BaoCaoTongHopPa
     isPilotCoreModulesScopeEnabled() && isPathBlockedUnderPilotCoreModules("/giam-sat-nkbv");
 
   return (
-    <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
+    <section className={`${D.shellPadded}`}>
+      <div className="mb-[var(--bv103-space-3)] flex flex-wrap items-start justify-between gap-[var(--bv103-space-2)]">
         <h2 className={`flex items-center gap-2 ${D.sectionHeading}`}>
           <Activity size={18} className="text-[var(--primary)]" aria-hidden />
           Xu hướng NKBV (outcome)

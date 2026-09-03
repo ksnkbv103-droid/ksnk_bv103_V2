@@ -3,6 +3,8 @@ import {
   inferChecklistTypeFromSpecimen,
   resolveMdmLoaiId,
   suggestNkbvTypeFromSpecimen,
+  lockedCaseChecklistType,
+  initialSuspectedChecklistType,
 } from "./nkbv-loai-labels";
 
 describe("inferChecklistTypeFromSpecimen", () => {
@@ -26,6 +28,22 @@ describe("inferChecklistTypeFromSpecimen", () => {
 
   it("does not treat bare pus as SSI", () => {
     expect(inferChecklistTypeFromSpecimen({ loai_benh_pham: "Mủ" })).toBe("BSI");
+  });
+
+  it("UR / URT / USI → Chương 17, không UTI hay HAP", () => {
+    expect(
+      inferChecklistTypeFromSpecimen({
+        loai_benh_pham: "Dịch hầu họng (UR, không phải nước tiểu)",
+        loai_benh_pham_chuan: "URT",
+      }),
+    ).toBe("CH17");
+    expect(
+      inferChecklistTypeFromSpecimen({
+        loai_benh_pham: "Dịch / mô thận (không phải nước tiểu)",
+        loai_benh_pham_chuan: "SURGICAL_SITE_FLUID",
+        lis_goc: "Dịch / mô thận (không phải nước tiểu)",
+      }),
+    ).toBe("CH17");
   });
 });
 
@@ -81,5 +99,17 @@ describe("resolveMdmLoaiId", () => {
 
   it("returns null when no categories and no KHAC", () => {
     expect(resolveMdmLoaiId("BSI", [{ id: "1", ma_loai: "SSI" }], false)).toBe(null);
+  });
+});
+
+describe("lockedCaseChecklistType / initialSuspectedChecklistType", () => {
+  it("khóa loại phiếu, không đổi theo bệnh phẩm lệch", () => {
+    expect(lockedCaseChecklistType({ loai_ma: "UTI" })).toBe("UTI");
+    expect(initialSuspectedChecklistType("UTI", "HAP")).toBe("UTI");
+  });
+
+  it("chưa gắn loại → theo gợi ý", () => {
+    expect(lockedCaseChecklistType({ loai_ma: null })).toBe(null);
+    expect(initialSuspectedChecklistType(null, "BSI")).toBe("BSI");
   });
 });

@@ -50,8 +50,6 @@ export default function ThietBiFormModal({
       nam_san_xuat: form.nam_san_xuat.trim(),
       ngay_dua_vao_su_dung: form.ngay_dua_vao_su_dung,
       chu_ky_bao_tri_ngay: form.chu_ky_bao_tri_ngay.trim(),
-      ngay_bao_tri_gan_nhat: form.ngay_bao_tri_gan_nhat,
-      ngay_bao_tri_tiep_theo: form.ngay_bao_tri_tiep_theo,
       serial_number: form.serial_number.trim(),
       model: form.model.trim(),
       vi_tri: form.vi_tri.trim(),
@@ -69,10 +67,10 @@ export default function ThietBiFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md touch-manipulation pointer-events-auto">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 touch-manipulation pointer-events-auto">
       <form
         onSubmit={submit}
-        className="bg-white w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-[var(--radius-shell)] p-8 space-y-4 shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)]"
+        className="bg-white w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-[var(--radius-shell)] p-8 space-y-[var(--bv103-space-3)] shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)]"
       >
         <div className="flex justify-between items-start gap-4">
           <h3 className={C.modalTitleLight}>
@@ -98,12 +96,24 @@ export default function ThietBiFormModal({
           <ThietBiLoaiMayField value={form.loai_thiet_bi} onChange={(v) => setForm({ ...form, loai_thiet_bi: v })} />
           <div className="space-y-1">
             <label className="text-[11px] font-medium text-slate-400 ml-1">Trạng thái</label>
-            <select value={form.trang_thai} onChange={(e) => setForm({ ...form, trang_thai: e.target.value })} className={C.controlInput}>
+            <select
+              value={form.trang_thai}
+              disabled={form.trang_thai === "REPAIRING" || form.trang_thai === "BAO_TRI" || form.trang_thai === "BROKEN"}
+              onChange={(e) => setForm({ ...form, trang_thai: e.target.value })}
+              className={C.controlInput}
+            >
               <option value="READY">Sẵn sàng</option>
-              <option value="REPAIRING">Đang sửa chữa</option>
-              <option value="BROKEN">Hỏng</option>
+              <option value="HOAT_DONG">Hoạt động</option>
+              <option value="HOLD_QC">Tạm giữ QC</option>
               <option value="RETIRED">Ngừng sử dụng</option>
+              {form.trang_thai === "REPAIRING" || form.trang_thai === "BAO_TRI" ? (
+                <option value={form.trang_thai}>Đang sửa (phiếu bảo trì)</option>
+              ) : null}
+              {form.trang_thai === "BROKEN" ? <option value="BROKEN">Hỏng (phiếu bảo trì)</option> : null}
             </select>
+            <p className="ml-1 text-[11px] text-slate-500">
+              Đang sửa / hỏng: chỉ qua phiếu bảo trì. HOLD_QC = tạm giữ sau sự cố QC — không nạp mẻ.
+            </p>
           </div>
           <BoDungCuTextField label="Hãng sản xuất" value={form.hang_san_xuat}
             onChange={(v) => setForm({ ...form, hang_san_xuat: v })} />
@@ -121,8 +131,8 @@ export default function ThietBiFormModal({
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <DateField label="Ngày đưa vào sử dụng" value={form.ngay_dua_vao_su_dung} onChange={(v) => setForm({ ...form, ngay_dua_vao_su_dung: v })} />
-          <DateField label="Bảo trì gần nhất" value={form.ngay_bao_tri_gan_nhat} onChange={(v) => setForm({ ...form, ngay_bao_tri_gan_nhat: v })} />
-          <DateField label="Bảo trì tiếp theo" value={form.ngay_bao_tri_tiep_theo} onChange={(v) => setForm({ ...form, ngay_bao_tri_tiep_theo: v })} />
+          <DateField label="Bảo trì gần nhất (từ phiếu)" value={form.ngay_bao_tri_gan_nhat} readOnly />
+          <DateField label="Bảo trì tiếp theo (từ phiếu)" value={form.ngay_bao_tri_tiep_theo} readOnly />
         </div>
 
         <div className="space-y-1">
@@ -165,15 +175,27 @@ export default function ThietBiFormModal({
   );
 }
 
-function DateField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function DateField({
+  label,
+  value,
+  onChange,
+  readOnly,
+}: {
+  label: string;
+  value: string;
+  onChange?: (v: string) => void;
+  readOnly?: boolean;
+}) {
   return (
     <div className="space-y-1">
       <label className="text-[11px] font-medium text-slate-400 ml-1">{label}</label>
       <input
         type="date"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={C.controlInput}
+        readOnly={readOnly}
+        disabled={readOnly}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+        className={`${C.controlInput} ${readOnly ? "bg-slate-50 text-slate-500" : ""}`}
       />
     </div>
   );

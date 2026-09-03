@@ -1,108 +1,69 @@
-// src/modules/quan-tri-he-thong/danh-muc/views/QuanTriDanhMucPage.tsx
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Beaker, Building2, ClipboardList, Database, Layers, List, Settings, Users } from "lucide-react";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import RBACMatrixView from "@/modules/quan-tri-he-thong/phan-quyen/views/RBACMatrixView";
 import MdmGovernanceView from "../../views/MdmGovernanceView";
 import { usePermission } from "@/hooks/usePermission";
 import { mdmGetTrungTamDanhMucStats } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.actions";
 import type { TrungTamDanhMucStatsPayload } from "@/modules/quan-tri-he-thong/actions/mdm-gateway.types";
-import {
-  DANH_MUC_DOMAIN_BADGE,
-  DANH_MUC_HUB_GROUP_LABELS,
-  filterDanhMucHubRows,
-  getAllDanhMucHubRows,
-  getRecentDanhMucHubChanges,
-  groupDanhMucHubRows,
-  type DanhMucHubRow,
-} from "@/lib/master-data/danh-muc-hub-catalog";
+import { filterDanhMucHubRows, getAllDanhMucHubRows } from "@/lib/master-data/danh-muc-hub-catalog";
+import { visibleHubRows } from "@/lib/master-data/quan-tri-hub-jobs";
+import type { QuanTriHubJobId } from "@/lib/master-data/quan-tri-hub-jobs";
 import { quanTriHubHref, type QuanTriHubTab } from "@/lib/master-data/quan-tri-paths";
-import QuanTriDanhMucTabStrip from "./QuanTriDanhMucTabStrip";
+import QuanTriDanhMucTabStrip, { type QuanTriHubUiTab } from "./QuanTriDanhMucTabStrip";
 import SearchBar from "@/components/shared/SearchBar";
-import { buildUnifiedHubColumns, type UnifiedHubRow } from "./quan-tri-danh-muc-table-columns";
-import OrgStructurePanel, { DanhMucRecentChangesPanel } from "./QuanTriDanhMucHubPanels";
+import { buildUnifiedHubColumns, toUnifiedHubRow } from "./quan-tri-danh-muc-table-columns";
+import QuanTriHubJobCards from "./QuanTriHubJobCards";
+import QuanTriHubWorkQueue from "./QuanTriHubWorkQueue";
 import { SystemHealthPanel } from "../../components/SystemHealthPanel";
-import { getPermissionModuleBusinessDescription } from "@/lib/permission-module-business-descriptions";
 
-const HUB_ICONS: Record<string, React.ReactNode> = {
-  "dung-cu-loai": <Layers className="h-5 w-5 text-emerald-600" />,
-  "dung-cu-bo": <Database className="h-5 w-5 text-teal-700" />,
-  "dung-cu-le": <List className="h-5 w-5 text-indigo-600" />,
-  tb: <Settings className="h-5 w-5 text-slate-600" />,
-  hc: <Beaker className="h-5 w-5 text-amber-600" />,
-  khoa: <Building2 className="h-5 w-5 text-rose-600" />,
-  ns: <Users className="h-5 w-5 text-green-600" />,
-  bk: <ClipboardList className="h-5 w-5 text-orange-600" />,
-  tk: <Users className="h-5 w-5 text-teal-700" />,
-  "phan-quyen": <Settings className="h-5 w-5 text-slate-600" />,
-};
-
-function toUnifiedRow(row: DanhMucHubRow, showTechnical: boolean): UnifiedHubRow {
-  const badge = DANH_MUC_DOMAIN_BADGE[row.domain];
-  const count = row.stats?.count ?? 0;
-  return {
-    id: row.id,
-    name: row.name,
-    path: row.path,
-    stats: row.stats || { count: 0 },
-    icon: HUB_ICONS[row.id] ?? <Layers className="h-5 w-5 text-teal-600" />,
-    subtitle: showTechnical ? row.sourceTable : undefined,
-    domainLabel: badge.label,
-    domainClassName: badge.className,
-    groupLabel: DANH_MUC_HUB_GROUP_LABELS[row.group],
-    tierLabel: row.tier === "dedicated" ? "Trang riêng" : "Lookup",
-    statusKind: count > 0 ? "active" : "empty",
-  };
+function uiTabFromQuery(tab: string | null): QuanTriHubUiTab {
+  if (tab === "phan_quyen") return "PHAN_QUYEN";
+  if (tab === "mdm_governance" || tab === "suc_khoe") return "IT";
+  return "DANH_MUC";
 }
 
 export default function QuanTriDanhMucPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<"DANH_MUC" | "PHAN_QUYEN" | "MDM_GOVERNANCE" | "SUC_KHOE">(
-    "DANH_MUC",
-  );
+  const [uiTab, setUiTab] = useState<QuanTriHubUiTab>("DANH_MUC");
   const [stats, setStats] = useState<Partial<TrungTamDanhMucStatsPayload>>({});
   const [loading, setLoading] = useState(true);
-  const [registryLoaded, setRegistryLoaded] = useState(false);
-  const [registryLoading, setRegistryLoading] = useState(false);
   const [hubSearch, setHubSearch] = useState("");
-  const [showTechnical, setShowTechnical] = useState(false);
-  const { loading: permLoading, isAdmin, canView, canEdit } = usePermission();
+  const { loading: permLoading, isAdmin, canView } = usePermission();
   const canViewDanhMuc = canView("DANH_MUC");
-  const phanQuyenAllowed = { view: canView("PHAN_QUYEN"), edit: canEdit("PHAN_QUYEN") };
-  const canConfigureRbac = isAdmin || phanQuyenAllowed.edit;
+  const canViewNhanSu = canView("NHAN_SU");
+  const canViewRbac = isAdmin || canView("PHAN_QUYEN");
+  const canAccessJobs = canViewDanhMuc || canViewNhanSu || isAdmin;
+  const canAccessIt = canViewDanhMuc || isAdmin;
 
   const setHubTab = useCallback(
     (tab: QuanTriHubTab) => {
-      setActiveTab(tab);
+      setUiTab(tab === "PHAN_QUYEN" ? "PHAN_QUYEN" : tab === "DANH_MUC" ? "DANH_MUC" : "IT");
       router.replace(quanTriHubHref(tab), { scroll: false });
     },
     [router],
   );
 
   useEffect(() => {
-    if (!canViewDanhMuc && canConfigureRbac && activeTab !== "PHAN_QUYEN") setHubTab("PHAN_QUYEN");
-  }, [canViewDanhMuc, canConfigureRbac, activeTab, setHubTab]);
+    if (!canAccessJobs && canViewRbac && uiTab !== "PHAN_QUYEN") setHubTab("PHAN_QUYEN");
+  }, [canAccessJobs, canViewRbac, uiTab, setHubTab]);
 
   useEffect(() => {
-    const tab = searchParams.get("tab");
-    if (tab === "dm_registry") {
-      setActiveTab("DANH_MUC");
+    const raw = searchParams.get("tab");
+    setUiTab(uiTabFromQuery(raw));
+    if (raw === "dm_registry") {
       requestAnimationFrame(() => {
         document.getElementById("dm-unified-catalog")?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
-    } else if (tab === "phan_quyen") setActiveTab("PHAN_QUYEN");
-    else if (tab === "mdm_governance") setActiveTab("MDM_GOVERNANCE");
-    else if (tab === "suc_khoe") setActiveTab("SUC_KHOE");
-    else if (!tab) setActiveTab("DANH_MUC");
+    }
   }, [searchParams]);
 
   useEffect(() => {
     let cancelled = false;
-    void mdmGetTrungTamDanhMucStats({ includeRegistry: false }).then((result) => {
+    void mdmGetTrungTamDanhMucStats({ includeRegistry: true }).then((result) => {
       if (cancelled) return;
       if (result.success) setStats((result.data || {}) as Partial<TrungTamDanhMucStatsPayload>);
       setLoading(false);
@@ -112,180 +73,92 @@ export default function QuanTriDanhMucPage() {
     };
   }, []);
 
-  useEffect(() => {
-    if (activeTab !== "DANH_MUC" || registryLoaded || loading) return;
-    let cancelled = false;
-    setRegistryLoading(true);
-    void mdmGetTrungTamDanhMucStats({ includeRegistry: true }).then((result) => {
-      if (cancelled) return;
-      if (result.success) {
-        setStats((prev) => ({
-          ...prev,
-          ...(result.data || {}),
-          registryByLoai: result.data?.registryByLoai || prev.registryByLoai,
-        }));
-        setRegistryLoaded(true);
-      }
-      setRegistryLoading(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [activeTab, registryLoaded, loading]);
-
   const catalogRows = useMemo(
-    () => getAllDanhMucHubRows({ stats, includeTaiKhoan: canConfigureRbac }),
-    [stats, canConfigureRbac],
+    () => getAllDanhMucHubRows({ stats, includeTaiKhoan: canViewRbac }),
+    [stats, canViewRbac],
   );
-  const filteredCatalog = useMemo(() => filterDanhMucHubRows(catalogRows, hubSearch), [catalogRows, hubSearch]);
-  const grouped = useMemo(() => groupDanhMucHubRows(filteredCatalog), [filteredCatalog]);
-  const recentChanges = useMemo(() => getRecentDanhMucHubChanges(catalogRows), [catalogRows]);
-  const unifiedFlat = useMemo(
-    () => filteredCatalog.map((r) => toUnifiedRow(r, showTechnical)),
-    [filteredCatalog, showTechnical],
-  );
-
+  const filteredCatalog = useMemo(() => {
+    const matched = filterDanhMucHubRows(catalogRows, hubSearch);
+    return visibleHubRows(matched, hubSearch);
+  }, [catalogRows, hubSearch]);
+  const unifiedFlat = useMemo(() => filteredCatalog.map((r) => toUnifiedHubRow(r)), [filteredCatalog]);
   const go = useCallback((path: string) => router.push(path), [router]);
   const columns = useMemo(() => buildUnifiedHubColumns(go), [go]);
 
-  const khoiCount = stats.registryByLoai?.KHOI_KHOA?.count;
-  const danhMucDesc = getPermissionModuleBusinessDescription("DANH_MUC") ?? "Danh mục gốc toàn viện";
-  const phanQuyenDesc = getPermissionModuleBusinessDescription("PHAN_QUYEN") ?? "Ma trận phân quyền";
+  const allowedJobs = useMemo((): QuanTriHubJobId[] => {
+    const jobs: QuanTriHubJobId[] = [];
+    if (canViewDanhMuc || canViewNhanSu || isAdmin) jobs.push("to-chuc");
+    if (canViewDanhMuc || isAdmin) {
+      jobs.push("bang-kiem", "cssd");
+    }
+    if (canViewRbac) jobs.push("nguoi-dung");
+    return jobs;
+  }, [canViewDanhMuc, canViewNhanSu, canViewRbac, isAdmin]);
 
   if (permLoading) {
     return (
-      <div className="flex h-[50vh] items-center justify-center" aria-busy="true" aria-live="polite">
+      <div className="flex h-[50vh] items-center justify-center" aria-busy="true">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[var(--primary)]" />
       </div>
     );
   }
 
-  if (!(canViewDanhMuc || phanQuyenAllowed.view || isAdmin)) {
+  if (!(canAccessJobs || canViewRbac)) {
     return (
       <div className="app-empty-state rounded-[var(--radius-shell)] border border-slate-200 bg-[var(--bg-panel)] px-8 py-12 text-center shadow-sm">
-        <p className="text-sm font-medium text-slate-600">Không đủ quyền truy cập khu danh mục hoặc phân quyền.</p>
-        <p className="mt-2 text-xs text-slate-500">
-          Cần quyền xem «{danhMucDesc}» hoặc «{phanQuyenDesc}», hoặc vai trò quản trị. Liên hệ quản trị viên để được cấp.
-        </p>
-      </div>
-    );
-  }
-
-  if (!canViewDanhMuc && !canConfigureRbac && (phanQuyenAllowed.view || isAdmin)) {
-    return (
-      <div className="app-empty-state rounded-[var(--radius-shell)] border border-amber-200 bg-amber-50/40 px-8 py-12 text-center shadow-sm">
-        <p className="text-sm font-medium text-slate-800">
-          Tài khoản xem được khu Phân quyền nhưng chưa có quyền <strong>Sửa</strong> ma trận, và cũng chưa có quyền Danh mục.
-        </p>
-        <p className="mt-2 text-xs text-slate-600">
-          Cần quyền sửa «{phanQuyenDesc}» hoặc xem/chỉnh «{danhMucDesc}» để làm việc tại đây.
-        </p>
+        <p className="text-sm font-medium text-slate-600">Không đủ quyền khu Quản trị.</p>
+        <p className="mt-2 text-xs text-slate-500">Cần quyền Danh mục, Nhân sự, Phân quyền, hoặc vai trò quản trị.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 pb-12 animate-in fade-in duration-500 sm:space-y-8 sm:pb-16">
+    <div className="bv103-stack-page pb-12 animate-in fade-in duration-500">
       <QuanTriDanhMucTabStrip
-        active={activeTab}
-        onChange={setHubTab}
-        canAccessDmTabs={canViewDanhMuc}
-        canConfigureRbac={canConfigureRbac}
+        active={uiTab}
+        onChange={(t) => {
+          if (t === "DANH_MUC") setHubTab("DANH_MUC");
+          else if (t === "PHAN_QUYEN") setHubTab("PHAN_QUYEN");
+          else setHubTab("MDM_GOVERNANCE");
+        }}
+        canAccessJobs={canAccessJobs}
+        canViewRbac={canViewRbac}
+        canAccessIt={canAccessIt}
       />
 
-      {activeTab === "DANH_MUC" && canViewDanhMuc ? (
-        <div className="space-y-6" id="dm-unified-catalog">
-          <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs text-slate-600">
-            <p className="font-medium text-slate-700">Ai làm gì ở đây?</p>
-            <ul className="mt-1 list-inside list-disc space-y-0.5">
-              <li>
-                <strong>Trung tâm danh mục</strong> — định nghĩa khoa, nhân sự, Master CSSD, bảng kiểm… ({danhMucDesc})
-              </li>
-              <li>
-                <strong>Phân quyền</strong> — chỉ mở khi có quyền sửa «{phanQuyenDesc}» (hoặc quản trị)
-              </li>
-              <li>
-                <strong>Bảo vệ liên kết / Sức khỏe</strong> — công cụ IT kiểm tra FK và trạng thái hệ thống
-              </li>
-            </ul>
+      {uiTab === "DANH_MUC" && canAccessJobs ? (
+        <div className="space-y-[var(--bv103-space-3)]" id="dm-unified-catalog">
+          {(canViewDanhMuc || isAdmin) && <QuanTriHubWorkQueue onOpen={go} />}
+          <QuanTriHubJobCards rows={catalogRows} allowedJobs={allowedJobs} onOpen={go} />
+          <div className="min-w-0 space-y-2">
+            <SearchBar
+              value={hubSearch}
+              onChange={setHubSearch}
+              placeholder="Tìm: loại dụng cụ, chức danh, bảng kiểm…"
+            />
+            {hubSearch.trim() ? (
+              <AdvancedDataTable
+                columns={columns}
+                data={unifiedFlat}
+                loading={loading}
+                onRowClick={(r) => go(r.path)}
+                hideSearch
+                tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
+              />
+            ) : (
+              <p className="px-2 py-3 text-xs text-slate-500">
+                Gõ để tìm mọi danh mục, kể cả mục hệ thống (trạm, trạng thái, vai trò).
+              </p>
+            )}
           </div>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <OrgStructurePanel khoiCount={khoiCount} khoaCount={stats.khoa?.count} />
-            <DanhMucRecentChangesPanel rows={recentChanges} onOpen={go} />
-          </div>
-
-          <section className="space-y-4" aria-labelledby="tab-danhmuc-unified">
-            <div className="flex flex-wrap items-end justify-between gap-2">
-              <div>
-                <h2 id="tab-danhmuc-unified" className="text-sm font-semibold text-slate-800">
-                  Trung tâm danh mục
-                </h2>
-                <p className="text-xs text-slate-500">
-                  Nhóm: Tổ chức &amp; nhân sự · Giám sát &amp; bảng kiểm · Master CSSD · NKBV · Công việc · Dùng chung · Hệ
-                  thống &amp; quyền. Tìm theo tên hoặc mã danh mục.
-                </p>
-              </div>
-              {(isAdmin || canConfigureRbac) && (
-                <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-slate-600">
-                  <input
-                    type="checkbox"
-                    className="rounded border-slate-300"
-                    checked={showTechnical}
-                    onChange={(e) => setShowTechnical(e.target.checked)}
-                  />
-                  Chi tiết IT (tên bảng)
-                </label>
-              )}
-            </div>
-            <div className="app-data-shell min-w-0 p-2">
-              {hubSearch.trim() ? (
-                <AdvancedDataTable
-                  columns={columns}
-                  data={unifiedFlat}
-                  loading={loading || registryLoading}
-                  onRowClick={(r) => go(r.path)}
-                  searchPlaceholder="Tìm: loại dụng cụ, chức danh, bảng kiểm…"
-                  searchValue={hubSearch}
-                  onSearch={setHubSearch}
-                  tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
-                />
-              ) : (
-                <div className="space-y-8 px-1 pb-2">
-                  <div className="min-w-0 px-1">
-                    <SearchBar
-                      value={hubSearch}
-                      onChange={setHubSearch}
-                      placeholder="Tìm: loại dụng cụ, chức danh, bảng kiểm…"
-                    />
-                  </div>
-                  {grouped.map((section) => (
-                    <div key={section.group} className="space-y-2">
-                      <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{section.label}</h3>
-                      <AdvancedDataTable
-                        columns={columns}
-                        data={section.rows.map((r) => toUnifiedRow(r, showTechnical))}
-                        loading={loading || registryLoading}
-                        onRowClick={(r) => go(r.path)}
-                        hideSearch
-                        tableClassName="w-full min-w-0 table-fixed border-collapse text-left text-sm"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
         </div>
-      ) : activeTab === "PHAN_QUYEN" && canConfigureRbac ? (
+      ) : uiTab === "PHAN_QUYEN" && canViewRbac ? (
         <section aria-labelledby="tab-phan-quyen">
           <RBACMatrixView />
         </section>
-      ) : activeTab === "MDM_GOVERNANCE" && canViewDanhMuc ? (
-        <section aria-labelledby="tab-mdm-governance">
-          <MdmGovernanceView />
-        </section>
-      ) : activeTab === "SUC_KHOE" && (canViewDanhMuc || canConfigureRbac) ? (
-        <section aria-labelledby="tab-suc-khoe">
+      ) : uiTab === "IT" && canAccessIt ? (
+        <section className="space-y-8" aria-labelledby="tab-danh-cho-it">
+          {canViewDanhMuc ? <MdmGovernanceView /> : null}
           <SystemHealthPanel />
         </section>
       ) : null}

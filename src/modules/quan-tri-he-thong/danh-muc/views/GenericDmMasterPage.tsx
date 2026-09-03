@@ -6,7 +6,7 @@ import { DM_HUB_LABELS } from "@/lib/master-data/domain-registry";
 import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
 import { useImportExport } from "@/hooks/useImportExport";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
-import { ImportExportHint, ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
+import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import GenericDmEditModal from "./GenericDmEditModal";
 import GenericDmHubRedirectBanner from "./GenericDmHubRedirectBanner";
 import GenericDmMasterDataTable from "./GenericDmMasterDataTable";
@@ -17,14 +17,16 @@ import {
   exportGenericDmExcelAction,
   importGenericDmExcelAction,
 } from "../actions/generic-dm-import.actions";
+import { isLockedSystemLookup } from "@/lib/master-data/locked-system-lookups";
 
 export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: string }) {
   const router = useRouter();
   const permissionModule = resolveDanhMucViewModuleByType(loaiDanhMuc);
   const { loading: permLoading, allowed } = useModulePermission(permissionModule);
-  const canMutate = allowed.create || allowed.edit;
-  const canDelete = allowed.delete;
-  const canImport = allowed.import || allowed.edit;
+  const locked = isLockedSystemLookup(loaiDanhMuc);
+  const canMutate = !locked && (allowed.create || allowed.edit);
+  const canDelete = !locked && allowed.delete;
+  const canImport = !locked && (allowed.import || allowed.edit);
   const m = useGenericDmMasterPageModel(loaiDanhMuc, canMutate, canDelete);
   const title = DM_HUB_LABELS[m.key] || loaiDanhMuc;
   const maCol = m.reg?.maColumn ?? "ma";
@@ -76,27 +78,33 @@ export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: stri
   }
 
   return (
-    <div className="space-y-6 pb-16 animate-in fade-in duration-500">
+    <div className="bv103-stack-page pb-16 animate-in fade-in duration-500">
       <GenericDmHubRedirectBanner registryKey={m.key} />
+      {locked ? (
+        <p className="rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2 text-xs text-amber-900">
+          Đây là danh mục hệ thống (mã máy). Chỉ xem — không thêm, sửa, xóa hay nạp Excel.
+        </p>
+      ) : null}
       <GenericDmMasterHeader
         title={title}
         onBack={() => router.push("/quan-tri-he-thong")}
         onCreate={() => void m.openCreate()}
         canCreate={canMutate}
         importExportSlot={
-          <ImportExportToolbar
-            fileInputRef={fileInputRef}
-            isImporting={isImporting}
-            onExport={() => void exportTemplate()}
-            onImportClick={triggerImport}
-            onFileChange={(file) => void handleFileUpload(file)}
-            showImport={canImport}
-            exportClassName={T.btnSecondary}
-            importClassName={T.btnSecondary}
-          />
+          locked ? undefined : (
+            <ImportExportToolbar
+              fileInputRef={fileInputRef}
+              isImporting={isImporting}
+              onExport={() => void exportTemplate()}
+              onImportClick={triggerImport}
+              onFileChange={(file) => void handleFileUpload(file)}
+              showImport={canImport}
+              exportClassName={T.btnSecondary}
+              importClassName={T.btnSecondary}
+            />
+          )
         }
       />
-      <ImportExportHint />
       <GenericDmMasterDataTable
         columns={m.columns}
         rows={filteredRows}

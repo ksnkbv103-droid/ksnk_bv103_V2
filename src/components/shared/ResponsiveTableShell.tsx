@@ -4,11 +4,14 @@ import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMinWidth } from "@/hooks/use-min-width";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { bv103TableLayout } from "@/lib/bv103-table-layout";
 
 type Props = {
   children: React.ReactNode;
   /** Nội dung thay thế bảng trên viewport &lt;640px (thẻ dọc). */
   mobileCards?: React.ReactNode;
+  /** Hàng trên cùng trong khung sổ (ô tìm / quét QR). */
+  toolbar?: React.ReactNode;
   scrollHint?: string;
   className?: string;
   viewportClassName?: string;
@@ -17,12 +20,12 @@ type Props = {
   unboxed?: boolean;
 };
 
-const shellFrame =
-  "rounded-[var(--radius-table)] bg-white ring-1 ring-slate-200/90 overflow-clip";
+const shellFrame = bv103TableLayout.frame;
 
 export default function ResponsiveTableShell({
   children,
   mobileCards,
+  toolbar,
   scrollHint = "Vuốt ngang để xem thêm cột",
   className = "",
   viewportClassName = "",
@@ -31,15 +34,24 @@ export default function ResponsiveTableShell({
 }: Props) {
   const isSmUp = useMinWidth(640, false);
   const frame = unboxed ? className : `${shellFrame} ${className}`.trim();
+  const toolbarBar = toolbar ? (
+    <div className="border-b border-slate-200 bg-slate-50/80 px-[var(--bv103-space-3)] py-[var(--bv103-space-2)] no-print">{toolbar}</div>
+  ) : null;
 
   if (!isSmUp && mobileCards) {
     /* Không tạo scroll container giả — để [data-bv103-app-scroll] cuộn trang (Android). */
-    return <div className={frame}>{mobileCards}</div>;
+    return (
+      <div className={frame}>
+        {toolbarBar}
+        {mobileCards}
+      </div>
+    );
   }
 
   if (!isSmUp) {
     return (
       <div className={frame}>
+        {toolbarBar}
         <p
           className={`border-b border-slate-100 px-3 py-2 ${bv103LayoutChrome.labelBlockInline} text-slate-500`}
           aria-live="polite"
@@ -59,6 +71,7 @@ export default function ResponsiveTableShell({
 
   return (
     <div className={frame}>
+      {toolbarBar}
       <div
         className={`custom-scrollbar bv103-scroll-y ${maxHeight} ${viewportClassName}`}
       >

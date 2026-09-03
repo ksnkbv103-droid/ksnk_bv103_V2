@@ -87,7 +87,7 @@ export function ComprehensiveDimensionCompare({ payload }: { payload: BaoCaoTong
               key={d.id}
               type="button"
               onClick={() => setDim(d.id)}
-              className={`rounded-md px-3 py-1.5 text-xs font-bold ${
+              className={`rounded-md px-3 py-1.5 bv103-type-label font-semibold ${
                 active === d.id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -123,7 +123,7 @@ function DimensionTable({ title, rows }: { title: string; rows: CompareRow[] }) 
 
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200">
-      <div className="border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700">
+      <div className="border-b border-slate-100 bg-slate-50 px-3 py-2 bv103-type-label font-semibold text-slate-700">
         {title} · thấp → cao
       </div>
       <table className="w-full text-sm">

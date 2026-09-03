@@ -5,13 +5,13 @@ import React, { useState } from "react";
 import { Clock, User, Phone, ArrowRight, List } from "lucide-react";
 import { CSSDWaitingItem } from "../../types/cssd.types";
 import SetMembersModal from "../inventory/SetMembersModal";
-import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY } from "../../shared/ui/cssd-ui-chrome";
+import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY, CSSD_UI_PANEL } from "../../shared/ui/cssd-ui-chrome";
 import { formatDateTimeVi, formatTimeVi } from "@/lib/format-datetime-vi";
 
 const ACTION_VERBS: Record<string, string> = {
   TIEP_NHAN: "Tiếp nhận bởi",
   LAM_SACH: "Làm sạch bởi",
-  QC: "Kiểm chuẩn bởi",
+  QC: "QC bởi",
   DONG_GOI: "Đóng gói bởi",
   TIET_KHUAN: "Tiệt khuẩn bởi",
   CAP_PHAT: "Cấp phát bởi",
@@ -26,11 +26,11 @@ export default function WaitingList({ items, onAction }: Props) {
   const [detailSet, setDetailSet] = useState<{ bo_dung_cu_id: string; ten_bo?: string | null } | null>(null);
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 flex items-center gap-2 px-1">
+    <div className="space-y-[var(--bv103-space-3)]">
+      <h2 className="bv103-type-label flex items-center gap-2 px-1">
         <Clock size={14} className="text-[var(--primary)]" /> Đang chờ xử lý ({items.length})
       </h2>
-      <div className="bg-white rounded-[var(--radius-shell)] border border-slate-200 overflow-hidden shadow-sm divide-y divide-slate-100 max-h-[440px] overflow-y-auto custom-scrollbar">
+      <div className={`${CSSD_UI_PANEL} overflow-hidden divide-y divide-slate-100 max-h-[440px] overflow-y-auto custom-scrollbar`}>
         {items.length > 0 ? items.map((item) => (
           <div key={item.id} className="p-4 hover:bg-slate-50/80 transition-colors">
             <div className="flex items-start justify-between gap-3">
@@ -40,7 +40,7 @@ export default function WaitingList({ items, onAction }: Props) {
                 </p>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-[11px] font-extrabold text-slate-700 shadow-sm">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-[11px] font-semibold text-slate-700 shadow-sm">
                     Mã bộ: {item.ma_vach_qr}
                   </span>
                   <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1">
@@ -55,7 +55,7 @@ export default function WaitingList({ items, onAction }: Props) {
                       <span className="flex items-center gap-1.5 font-bold">
                         <User size={12} className="shrink-0 text-blue-600" />
                         {ACTION_VERBS[item.tram_truoc || ""] || "Được xử lý bởi"}:{" "}
-                        <span className="font-extrabold text-blue-900">{item.nguoi_tram_truoc}</span>
+                        <span className="font-semibold text-blue-900">{item.nguoi_tram_truoc}</span>
                       </span>
 
                       {item.sdt_tram_truoc && (
@@ -114,7 +114,7 @@ export default function WaitingList({ items, onAction }: Props) {
         )) : (
           <div className="py-16 text-center text-slate-400">
             <Clock size={36} className="mx-auto mb-2 opacity-20" />
-            <p className="text-[11px] font-semibold uppercase tracking-wide italic">Không có bộ chờ xử lý</p>
+            <p className="bv103-type-note">Không có bộ chờ xử lý</p>
           </div>
         )}
       </div>

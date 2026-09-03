@@ -8,7 +8,19 @@ import {
   INCIDENT_GROUPS,
   type IncidentGroup,
 } from "@/modules/cssd-su-co/domain/cssd-incident-taxonomy";
-import { readIncidentGroup } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
+import {
+  readCauseClass,
+  readCauseLabel,
+  readIncidentGroup,
+  readMaLo,
+} from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
+import {
+  INCIDENT_STATUS_LABEL,
+  readIncidentConfirmedAt,
+  readIncidentConfirmedByName,
+  readIncidentPhieuStatus,
+} from "@/modules/cssd-su-co/domain/cssd-incident-status";
+import { isSetReconcileDraftAttr } from "@/modules/cssd-su-co/domain/cssd-set-reconcile-attrs";
 import { getErrorMessage, tableHasColumn } from "../shared/cssd-db-utils";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import {
@@ -119,7 +131,11 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
 
     const redIds = new Set<string>();
     const redQrs = new Set<string>();
-    for (const sc of resS.data || []) {
+    const suCoSource = (resS.data || []).filter((x) => {
+      const attrs = (x.attributes as Record<string, unknown>) || {};
+      return !isSetReconcileDraftAttr(attrs);
+    });
+    for (const sc of suCoSource) {
       if ((sc as { is_red_alert?: boolean }).is_red_alert !== true) continue;
       const qid = String((sc as { quy_trinh_id?: string | null }).quy_trinh_id || "").trim();
       const qr = String((sc as { ma_qr_quy_trinh?: string | null }).ma_qr_quy_trinh || "")
@@ -141,7 +157,7 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
       };
     });
 
-    const suCoRows = (resS.data || []).map((x: Record<string, unknown>) => {
+    const suCoRows = suCoSource.map((x: Record<string, unknown>) => {
       const attrs = (x.attributes as Record<string, unknown>) || {};
       const parsed = parseIncidentType(String(x.ma_loai_su_co || ""));
       const viewGroup = String(x.incident_group || "").trim();
@@ -152,6 +168,14 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
           ? (attrGroup as IncidentGroup)
           : parsed.group;
       const typeLabel = String(x.incident_type_label || parsed.typeName || "").trim();
+      const causeClass = readCauseClass(attrs);
+      const causeLabel =
+        readCauseLabel(attrs) ||
+        (causeClass && causeClass in CAUSE_CLASS_LABEL
+          ? CAUSE_CLASS_LABEL[causeClass as CauseClass]
+          : "") ||
+        String(x.ten_loai_su_co || "").trim();
+      const incidentStatus = readIncidentPhieuStatus(attrs);
       return {
         ...x,
         ma_vach_qr: x.ma_qr_quy_trinh,
@@ -160,8 +184,16 @@ export async function fetchCssdReportBundle(filters: CssdReportFilters) {
         loai_su_co: typeLabel || parsed.typeName,
         incident_group: group,
         incident_group_label: INCIDENT_GROUP_LABEL[group],
-        fault_operator: String(attrs.FAULT_OPERATOR || ""),
+        fault_operator: String(attrs.FAULT_OPERATOR || attrs.NGUOI_PHAT_HIEN || ""),
         reporter_email: String(attrs.REPORTER_EMAIL || ""),
+        cause_class: causeClass || "",
+        cause_label: causeLabel || "Chưa phân loại",
+        ma_lo: readMaLo(attrs) || String(attrs.ERROR_QR || "").trim(),
+        mo_ta_ngan: String(x.mo_ta || "").trim(),
+        incident_status: incidentStatus,
+        incident_status_label: INCIDENT_STATUS_LABEL[incidentStatus],
+        incident_confirmed_at: readIncidentConfirmedAt(attrs),
+        incident_confirmed_by_name: readIncidentConfirmedByName(attrs),
       };
     });
 
@@ -277,7 +309,7 @@ export async function fetchCssdAnalyticsBundle(filters: {
         .limit(MAX_REPORT_ROWS),
       supabase
         .from("v_cssd_su_co_full")
-        .select("id")
+        .select("id, attributes")
         .gte("created_at", from)
         .lte("created_at", toEnd)
         .limit(MAX_REPORT_ROWS),
@@ -324,7 +356,10 @@ export async function fetchCssdAnalyticsBundle(filters: {
       if (compactSoHuu) next.ten_khoa = compactSoHuu;
       return next;
     });
-    const suCoKyCount = (resS.data || []).length;
+    const suCoKyCount = (resS.data || []).filter((x) => {
+      const attrs = (x.attributes as Record<string, unknown>) || {};
+      return !isSetReconcileDraftAttr(attrs);
+    }).length;
     const quyTrinhKyCount = quyTrinh.filter((r) => {
       const day =
         String(r.thoi_gian_tiep_nhan || "").slice(0, 10) || String(r.created_at || "").slice(0, 10);

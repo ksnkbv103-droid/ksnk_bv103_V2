@@ -16,6 +16,7 @@ import {
   type ComplianceTone,
 } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
 import { formatPercent2, roundPercent2 } from "@/lib/analytics/supervision-percent";
+import { labelGapExclusion, SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
 import type { CSSProperties, ReactElement } from "react";
 
@@ -118,7 +119,7 @@ function gapCompareStatus(row: GapKhoaRow): { label: string; tone: ComplianceTon
   }
   const reason = gapExclusionReason(row);
   return {
-    label: reason ?? "—",
+    label: labelGapExclusion(reason),
     tone: reason === "Chưa triển khai" ? "neutral" : "yellow",
   };
 }
@@ -160,10 +161,10 @@ function GapSortToolbar({
 }) {
   const metricLabels: Partial<Record<GapKhoaSortMetric, string>> = {
     label: "Mã khoa",
-    ty_le_ksnk: "% KSNK",
-    ty_le_tgs: "% TGS",
-    vol_ksnk: "Vol KSNK",
-    vol_tgs: "Vol TGS",
+    ty_le_ksnk: SUPERVISION_SOURCE_UI.ksnkPct,
+    ty_le_tgs: SUPERVISION_SOURCE_UI.tgsPct,
+    vol_ksnk: SUPERVISION_SOURCE_UI.ksnkVolShort,
+    vol_tgs: SUPERVISION_SOURCE_UI.tgsVolShort,
   };
 
   return (
@@ -245,7 +246,7 @@ function KsnkSolidBarShape({ x = 0, y = 0, width = 0, height = 0, fill = "#38bdf
   return <rect x={x} y={y} width={width} height={height} fill={fill} rx={2} ry={2} />;
 }
 
-/** Cột nét đứt — tự giám sát TGS. */
+/** Cột nét đứt — tự giám sát. */
 function TgsDashedBarShape({ x = 0, y = 0, width = 0, height = 0, fill = "#fbbf24" }: KhoaBarShapeProps) {
   if (height <= 0) return null;
   return (
@@ -385,7 +386,7 @@ function KhoaComplianceBarLabel(rawProps: unknown) {
   );
 }
 
-/** Nhãn khối lượng trên cột KSNK/TGS — đạt/tổng cơ hội. */
+/** Nhãn khối lượng trên cột chuyên trách / tự giám sát — đạt/tổng cơ hội. */
 function KhoaVolumeBarLabel(props: KhoaBarLabelProps & { variant: "ksnk" | "tgs" }) {
   const x = labelCoord(props.x);
   const y = labelCoord(props.y);

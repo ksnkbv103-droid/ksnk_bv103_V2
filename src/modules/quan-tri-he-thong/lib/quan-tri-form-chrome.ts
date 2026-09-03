@@ -15,11 +15,10 @@ export const quanTriFormChrome = {
   /** Label form MDM — chữ thường, không primary */
   formLabel: `block ml-1 ${bv103LayoutChrome.labelBlock}`,
   formLabelInset: `block ml-4 ${bv103LayoutChrome.labelBlock}`,
-  modalTitle: "text-lg font-semibold tracking-tight text-white md:text-xl",
-  modalTitleLight: "text-lg font-semibold tracking-tight text-slate-900 md:text-xl",
-  modalSubtitle: "mt-1 text-sm font-normal text-white/80",
+  modalTitle: `${P.modalTitle} text-white`,
+  modalTitleLight: P.modalTitle,
+  modalSubtitle: "mt-1 bv103-type-body font-normal text-white/80",
   modalFooterBtn: "bv103-control-h px-6",
-  /** Toolbar bảng MDM — đồng bộ padding/bo góc */
-  pageToolbar:
-    "flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 bg-white p-6",
+  /** Toolbar bảng MDM — cùng mật độ L1, không hộp. */
+  pageToolbar: "flex flex-wrap items-center justify-between gap-2 pb-2.5",
 } as const;
