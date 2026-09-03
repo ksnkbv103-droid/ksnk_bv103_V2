@@ -9,10 +9,11 @@ import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tr
 type Props = {
   onStartCreateBo: () => void;
   lastCreatedMaBo?: string | null;
+  canWriteMaster?: boolean;
 };
 
 /** Hướng dẫn wizard 3 bước — mở form bộ có sẵn ở bước 1. */
-export function BoDungCuQuickSetupPanel({ onStartCreateBo, lastCreatedMaBo }: Props) {
+export function BoDungCuQuickSetupPanel({ onStartCreateBo, lastCreatedMaBo, canWriteMaster = true }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -38,13 +39,17 @@ export function BoDungCuQuickSetupPanel({ onStartCreateBo, lastCreatedMaBo }: Pr
           <li className="rounded-xl border border-white bg-white/90 p-3">
             <span className="bv103-type-label font-semibold text-emerald-700">1 · Bộ</span>
             <p className="text-xs font-semibold text-slate-800">Chọn khoa, nhập tên bộ</p>
-            <button
-              type="button"
-              onClick={onStartCreateBo}
-              className="mt-2 inline-flex items-center gap-1 bv103-type-label font-semibold text-[var(--primary)] underline"
-            >
-              Mở form thêm bộ <ChevronRight size={12} />
-            </button>
+            {canWriteMaster ? (
+              <button
+                type="button"
+                onClick={onStartCreateBo}
+                className="mt-2 inline-flex items-center gap-1 bv103-type-label font-semibold text-[var(--primary)] underline"
+              >
+                Mở form thêm bộ <ChevronRight size={12} />
+              </button>
+            ) : (
+              <p className="mt-2 text-[11px] text-slate-500">Chỉ quản trị thêm bộ mới. Nhân viên dùng phiếu rà soát.</p>
+            )}
           </li>
           <li className="rounded-xl border border-white bg-white/90 p-3">
             <span className="bv103-type-label font-semibold text-emerald-700">2 · Thành phần</span>

@@ -14,6 +14,7 @@ import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
 import { LoaiDungCuChiTietPanel } from "./loai-dung-cu-chi-tiet-panel";
 import { useServerPaginatedTable, type ServerPaginationParams } from "@/hooks/use-server-paginated-table";
+import { useModulePermission } from "@/hooks/useModulePermission";
 import {
   getLoaiDungCuRowsAction,
   softDeleteLoaiDungCuAction,
@@ -49,6 +50,8 @@ type LoaiDungCuRow = {
 
 export function LoaiDungCuPageContent() {
   const router = useRouter();
+  const { isAdmin } = useModulePermission("LOAI_DC");
+  const canWriteMaster = isAdmin;
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
   const [selectedLoaiId, setSelectedLoaiId] = useState<string | null>(null);
@@ -73,6 +76,7 @@ export function LoaiDungCuPageContent() {
   }, [data, selectedLoaiId]);
 
   const actionUi = useTableActionUi<LoaiDungCuRow>({
+    capabilities: { edit: canWriteMaster, delete: canWriteMaster, toggleActive: canWriteMaster },
     onToggleStatus: async (item) => {
       const result = await toggleLoaiDungCuStatusAction(item.id, Boolean(item.is_active));
       if (!result.success) {
@@ -186,10 +190,13 @@ export function LoaiDungCuPageContent() {
               onExport={() => void exportTemplate()}
               onImportClick={triggerImport}
               onFileChange={(file) => void handleFileUpload(file)}
+              showImport={canWriteMaster}
               exportClassName={C.ctaMuted}
               importClassName={C.ctaAmber}
             />
-            <button type="button" onClick={() => { setEditing(null); setIsFormOpen(true); }} className={C.ctaPrimary}><Plus size={18} /> Thêm mới</button>
+            {canWriteMaster ? (
+              <button type="button" onClick={() => { setEditing(null); setIsFormOpen(true); }} className={C.ctaPrimary}><Plus size={18} /> Thêm mới</button>
+            ) : null}
           </>
         }
       />
@@ -198,7 +205,7 @@ export function LoaiDungCuPageContent() {
           columns={columns}
           data={data}
           loading={loading}
-          enableMultiSelect={true}
+          enableMultiSelect={canWriteMaster}
           searchValue={table.searchTerm}
           onSearch={table.handleSearch}
           onSort={table.handleSort}
@@ -235,6 +242,7 @@ export function LoaiDungCuPageContent() {
         selectedMaLoai={selectedRow?.ma_danh_muc}
         boDungCuChua={[]}
       />
+      {canWriteMaster ? (
       <LoaiDungCuFormModal
         key={modalKey}
         open={isFormOpen}
@@ -245,6 +253,7 @@ export function LoaiDungCuPageContent() {
         }}
         onSaved={() => table.refresh()}
       />
+      ) : null}
     </div>
   );
 }

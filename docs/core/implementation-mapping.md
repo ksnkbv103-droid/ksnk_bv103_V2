@@ -141,6 +141,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-09-03 | **Danh mục dụng cụ — form MDM chỉ ADMIN:** thêm/sửa/xóa loại/bộ/thành phần (`LOAI_DC`/`BO_DC`/`DC_LE`) trên form Quản trị bị chặn với non-ADMIN (UI + server). Quyền `BO_DC.edit` vẫn duyệt phiếu rà soát → `applyApprovedBomLines`. Không đổi schema. |
 | 2026-08-26 | **Quản trị QT-E — gói quyền danh mục:** ma trận RBAC có gói Tổ chức / Bảng kiểm / Master CSSD / Chỉ xem mọi danh mục (13 ô lookup). Chỉ đổi ô ma trận; không đụng RLS; ADMIN không áp gói. |
 | 2026-08-26 | **CSSD phiếu bộ — đổi mã loại + mã gốc:** dòng `DOI_LOAI`: NV nhập mã gốc mới (và tên nếu đổi), chờ admin duyệt. Duyệt ghi `cssd_dm_loai_dung_cu.ma_loai` (+ `specs.ma_loai_dung_cu`) — mọi bộ dùng loại đó đổi theo. Nếu mã mới đã thuộc loại khác thì gắn dòng sang loại đó, không trùng mã. |
 | 2026-08-31 | **CSSD rà soát → cân kho:** lệch vs số chuẩn; chọn dòng Lấy kho / Trả kho nhảy cửa Chuyển (kho↔bộ, số điền sẵn). Cửa Chuyển: lọc lệch + điền thiếu/thừa. Không gộp phiếu hỏng/mất. |

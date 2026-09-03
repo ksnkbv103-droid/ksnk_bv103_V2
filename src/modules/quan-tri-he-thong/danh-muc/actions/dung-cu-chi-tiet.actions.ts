@@ -2,6 +2,7 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
+import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
 import { isCssdUnifiedBoMa, normalizeBoMa } from "@/lib/domain/cssd-bo-ma";
 import { upsertMasterRow } from "./master-crud-core";
 
@@ -9,6 +10,7 @@ import { upsertMasterRow } from "./master-crud-core";
 export async function saveDungCuChiTietAction(input: Record<string, unknown>) {
   const id = String(input.id || "").trim();
   await verifyPermission("DC_LE", id ? "edit" : "create");
+  await requireCssdCatalogMasterWrite();
   const supabase = createAdminSupabaseClient();
   const ma = String(input.ma_chi_tiet || "").trim().toUpperCase();
   const ten = String(input.ten_chi_tiet || "").trim();

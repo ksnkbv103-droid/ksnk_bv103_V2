@@ -10,6 +10,8 @@ import { buildImportErrorMessage } from "../lib/smart-import/dm-row-normalizers"
 import { resolveSmartImportScopeForTable, withResolvedLoaiValues } from "./smart-import-per-table";
 import { normalizeImportedRowTypedValues, sanitizeSmartImportRowPayload } from "../lib/smart-import/row-typed-values";
 import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
+import { isCssdCatalogMasterTable } from "@/lib/domain/cssd-catalog-master-write";
+import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
 import { randomUUID } from "crypto";
 import {
   normalizeLoaiDungCuExcelImportRow,
@@ -73,6 +75,9 @@ export async function smartImportData(
       return { success: false, error: `Chưa map quyền import cho bảng: ${config.tableName}` };
     }
     await verifyDanhMucLookupPermission(importModule, "import");
+    if (isCssdCatalogMasterTable(config.tableName)) {
+      await requireCssdCatalogMasterWrite();
+    }
     const supabase = createAdminSupabaseClient();
     const nhanSuDmSessionCache =
       config.tableName === "mdm_nhan_su" ? createDmImportSessionCache(supabase) : undefined;

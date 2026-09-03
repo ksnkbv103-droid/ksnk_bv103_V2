@@ -5,6 +5,7 @@ import { verifyPermission } from "@/lib/server-permission";
 import { revalidateCssdIncidentSurfaces, revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
 import { applyApprovedBomLines } from "@/lib/master-data/cssd-set-bom-apply-core";
 import { catalogLinesOf } from "../application/set-reconcile-incident.application";
+import { formatCatalogApprovalDiff } from "@/lib/domain/cssd-catalog-master-write";
 import {
   parseSetReconcileSnapshot,
   readSetReconcileBoId,
@@ -43,13 +44,15 @@ export async function listPendingBomApprovalsAction() {
       .map((r) => {
         const attrs = (r.attributes as Record<string, unknown>) || {};
         const snap = parseSetReconcileSnapshot(attrs.SET_RECONCILE_SNAPSHOT);
+        const catalogLines = snap ? catalogLinesOf(snap.lines) : [];
         return {
           id: String(r.id),
           maBo: String(r.ma_qr_quy_trinh || snap?.maBo || ""),
           tenBo: snap?.tenBo || "",
           moTa: String(r.mo_ta || ""),
           createdAt: r.created_at ? String(r.created_at) : null,
-          catalogLineCount: snap ? catalogLinesOf(snap.lines).length : 0,
+          catalogLineCount: catalogLines.length,
+          catalogDiffs: catalogLines.map(formatCatalogApprovalDiff),
         };
       });
     return { success: true as const, data: rows };
