@@ -70,17 +70,17 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   {
     code: "LOAI_DC",
     displayName: "Danh mục Loại dụng cụ",
-    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "APPROVE"]
   },
   {
     code: "BO_DC",
     displayName: "Danh mục Bộ dụng cụ",
-    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "APPROVE"]
   },
   {
     code: "DC_LE",
     displayName: "Danh mục Dụng cụ chi tiết",
-    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT"]
+    actions: ["VIEW", "CREATE", "EDIT", "DELETE", "IMPORT", "APPROVE"]
   },
   {
     code: "THIET_BI",

@@ -70,4 +70,6 @@ export type CssdCapPhatPrintData = {
   testBowieDick: string;
   thoiGianKetThucMe: string | null;
   instruments: CssdPrintInstrumentRow[];
+  /** Q2: thiếu cấu phần — cảnh báo + tem, không chặn cấp phát. */
+  ledgerWarning?: string | null;
 };

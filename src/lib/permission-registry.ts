@@ -81,7 +81,8 @@ export function getFlatPermissions() {
                          action === "EXPORT" ? "Xuất dữ liệu" :
                          action === "ASSIGN" ? "Phân công xử lý" :
                          action === "CLOSE" ? "Đóng / hoàn tất" :
-                         action === "SYSTEM_OVERRIDE" ? "Ghi đè bản ghi hệ thống" : action;
+                         action === "SYSTEM_OVERRIDE" ? "Ghi đè bản ghi hệ thống" :
+                         action === "APPROVE" ? "Duyệt" : action;
       
       perms.push({
         name: `${mod.code}_${action}`,

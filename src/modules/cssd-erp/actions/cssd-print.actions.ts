@@ -18,6 +18,7 @@ import type {
 } from "../types/cssd-print.types";
 
 import { parseBomLinesFromMetadata } from "../shared/domain/cssd-quy-trinh-bom";
+import { assertLedgerDuChoCapPhat } from "../workflow/application/cssd-asset-ledger";
 
 async function loadInstrumentsForQuyTrinh(
   supabase: ReturnType<typeof createAdminSupabaseClient>,
@@ -192,6 +193,8 @@ export async function fetchCssdCapPhatPrintData(quyTrinhId: string) {
 
     const qc = parseBatchQcJson(batch.tk_qc_json);
     const instruments = await loadInstrumentsForQuyTrinh(supabase, id);
+    const ledger = await assertLedgerDuChoCapPhat(supabase, id);
+    const ledgerWarning = ledger.ok && "warning" in ledger ? ledger.warning : null;
     const maLo = String(batch.ma_lo_tiet_khuan || "");
     const nguoiCapPhat =
       (await loadNhanSuHoTen(supabase, row.nguoi_cap_phat_id as string | null)) ||
@@ -221,6 +224,7 @@ export async function fetchCssdCapPhatPrintData(quyTrinhId: string) {
       testBowieDick: qc.testBowieDick || "NA",
       thoiGianKetThucMe: (batch.thoi_gian_ket_thuc as string | null) ?? null,
       instruments,
+      ledgerWarning,
     };
 
     return { success: true as const, data };

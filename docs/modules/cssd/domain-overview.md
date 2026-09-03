@@ -146,6 +146,6 @@ Thực tế = tiêu chuẩn − (Hỏng + Mất) + Bổ sung ± Điều chuyển
 | `/cssd-su-co` | Báo sự cố |
 | `/cssd-thiet-bi` | Bảo trì máy |
 | `/cssd-hoa-chat` | Kho hóa chất |
-| Quản trị → Danh mục dụng cụ | CRUD Loại / Bộ / Thành phần |
+| Quản trị → Danh mục dụng cụ | CRUD Loại / Bộ / Thành phần; tab Đề xuất (KTV gửi, tổ trưởng/chủ nhiệm/ADMIN duyệt rồi mới ghi master) |
 
 Pilot: [`pilot-test-checklist.md`](pilot-test-checklist.md) · Cycle QR: [`pilot-checklist-cycle-qr-202606.md`](pilot-checklist-cycle-qr-202606.md).

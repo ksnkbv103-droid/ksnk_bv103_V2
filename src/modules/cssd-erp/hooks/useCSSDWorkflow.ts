@@ -22,6 +22,7 @@ type ScanResultPayload = {
   maCycleQr?: string | null;
   maLoTietKhuan?: string;
   issuanceOnly?: boolean;
+  ledgerWarning?: string;
 };
 
 export type DongGoiGateState = {
@@ -130,7 +131,9 @@ export function useCSSDWorkflow() {
       setLastScan(null);
       try {
         const scanRes = await scanQR(code, station, extraPayload);
-        applyScanSuccess(station, code, scanRes, opts);
+        applyScanSuccess(station, code, scanRes, {
+          ledgerWarning: opts?.ledgerWarning || scanRes.ledgerWarning,
+        });
         return scanRes;
       } catch (error: unknown) {
         const { isNetworkError, pushOfflineTask } = await import("@/lib/offline-sync");

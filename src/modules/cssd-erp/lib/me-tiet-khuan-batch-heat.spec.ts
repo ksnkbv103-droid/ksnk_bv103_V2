@@ -43,6 +43,7 @@ describe("evaluateBatchSterilizationHeatRisk", () => {
   it("BLOCK mixed heat on steam sterilizer", () => {
     const r = evaluateBatchSterilizationHeatRisk(mixedHeat, steamMachine);
     expect(r.level).toBe("BLOCK");
+    expect(r.messages.join(" ")).toMatch(/nhiệt|tách/i);
     expect(r.messages.some((m) => /nhạy cảm nhiệt/i.test(m))).toBe(true);
   });
 });

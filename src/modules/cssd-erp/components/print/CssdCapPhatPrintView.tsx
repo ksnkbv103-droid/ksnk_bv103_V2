@@ -90,6 +90,22 @@ export default function CssdCapPhatPrintView({
         <span><strong>Bowie–Dick:</strong> {formatCssdTriLabel(data.testBowieDick)}</span>
       </div>
 
+      {data.ledgerWarning ? (
+        <p
+          style={{
+            margin: "12px 0",
+            padding: "8px 10px",
+            border: "1px solid #b45309",
+            background: "#fffbeb",
+            color: "#92400e",
+            fontSize: 12,
+            fontWeight: 700,
+          }}
+        >
+          Tem cảnh báo cấu phần: {data.ledgerWarning}
+        </p>
+      ) : null}
+
       <p style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", margin: "20px 0 6px" }}>
         Danh mục dụng cụ trong bộ cấp phát
       </p>

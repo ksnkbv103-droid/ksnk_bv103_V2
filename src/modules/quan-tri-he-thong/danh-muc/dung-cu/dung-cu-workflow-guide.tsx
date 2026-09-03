@@ -8,6 +8,7 @@ const STEPS = [
   { title: "Loại", tab: "loai" as const },
   { title: "Bộ", tab: "bo" as const },
   { title: "Thành phần", tab: "chi-tiet" as const },
+  { title: "Đề xuất", tab: "de-xuat" as const },
   { title: "CSSD", href: "/cssd-dung-cu" },
   { title: "Kho", href: "/cssd-erp" },
 ] as const;

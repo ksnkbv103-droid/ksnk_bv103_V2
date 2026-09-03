@@ -29,13 +29,22 @@ export default function Page() {
       title="Dụng cụ CSSD"
       actions={
         isCatalogTab ? (
-          <Link
-            href={quanTriDungCuHref(adminFocus)}
-            className="bv103-control-h inline-flex items-center gap-1.5 rounded-[var(--radius-control)] border border-[var(--primary)]/30 bg-white px-2.5 text-xs font-semibold text-[var(--primary)] hover:bg-emerald-50"
-          >
-            Sửa tại Quản trị
-            <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-          </Link>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Link
+              href={quanTriDungCuHref("de-xuat")}
+              className="bv103-control-h inline-flex items-center gap-1.5 rounded-[var(--radius-control)] border border-amber-200 bg-amber-50 px-2.5 text-xs font-semibold text-amber-900 hover:bg-amber-100"
+            >
+              Đề xuất / duyệt
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+            </Link>
+            <Link
+              href={quanTriDungCuHref(adminFocus)}
+              className="bv103-control-h inline-flex items-center gap-1.5 rounded-[var(--radius-control)] border border-[var(--primary)]/30 bg-white px-2.5 text-xs font-semibold text-[var(--primary)] hover:bg-emerald-50"
+            >
+              Sửa tại Quản trị
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+            </Link>
+          </div>
         ) : null
       }
     >

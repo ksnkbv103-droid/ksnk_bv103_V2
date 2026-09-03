@@ -8,8 +8,6 @@ import { persistMeTietKhuanFinishWithClient, type PersistMeTietKhuanInput } from
 import { getErrorMessage, mapFkError, revalidateCssdBatchSurfaces, revalidateCssdWorkflowSurfaces } from "./cssd-action-common";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
-import { loadBomLinesWithLoaiSpec } from "../shared/application/cssd-quy-trinh-bom";
-import { normalizeSpaulding, normalizeSteamMethod } from "../shared/domain/cssd-quy-trinh-bom";
 import {
   createSterilizationBatchSchema,
   addQuyTrinhToBatchSchema,
@@ -17,8 +15,7 @@ import {
 } from "@/lib/validations/cssd-erp.validations";
 import { verifyCssdBatchEdit, verifyCssdBatchView } from "@/lib/cssd-server-gates";
 import { buildQuyTrinhTramPatch, resolveCssdTramId } from "../lib/cssd-tram-persist";
-import type { BomItem } from "@/lib/domain/cssd-packaging-rules";
-import { evaluateBatchSterilizationHeatRisk } from "../lib/me-tiet-khuan-batch-heat";
+import { evaluateBatchHeatWithClient, batchHeatBlockMessage } from "../helpers/evaluate-batch-heat-with-client";
 
 export async function fetchCssdMeListData() {
   try {
@@ -119,6 +116,10 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
     if ((me as { ket_qua_test?: boolean | null }).ket_qua_test != null) {
       return { success: false as const, error: "Mẻ đã kết thúc đánh giá — không thể bắt đầu lại." };
     }
+    const heat = await evaluateBatchHeatWithClient(supabase, id);
+    if (!heat.ok) return { success: false as const, error: heat.message };
+    const heatBlock = batchHeatBlockMessage(heat.risk);
+    if (heatBlock) return { success: false as const, error: heatBlock };
     const { data: members, error: memErr } = await supabase
       .from("cssd_fact_quy_trinh")
       .select("id")
@@ -211,51 +212,9 @@ export async function fetchCssdBatchHeatRisk(batchId: string) {
     const id = String(batchId || "").trim();
     if (!id) return { success: false as const, error: "Thiếu mã mẻ." };
 
-    const { data: me, error: meErr } = await supabase
-      .from("cssd_fact_lo_tiet_khuan")
-      .select(
-        "id, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi, loai_may_id, loai_may:cssd_dm_loai_may(ma_loai_may, ten_loai_may))",
-      )
-      .eq("id", id)
-      .maybeSingle();
-    if (meErr) return { success: false as const, error: meErr.message };
-
-    const { data: rows, error: qErr } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("id")
-      .eq("lo_tiet_khuan_id", id)
-      .eq("is_active", true);
-    if (qErr) return { success: false as const, error: qErr.message };
-
-    const qtIds = (rows || []).map((r: { id: string }) => String(r.id));
-    const bomItems: BomItem[] = [];
-
-    for (const qtId of qtIds) {
-      const loaded = await loadBomLinesWithLoaiSpec(supabase, qtId);
-      if (!loaded.ok) return { success: false as const, error: loaded.message };
-
-      for (const row of loaded.bomLines) {
-        bomItems.push({
-          loai_id: row.loai_id,
-          ten: row.ten_dung_cu_le,
-          so_luong_ke_hoach: row.so_luong_ke_hoach,
-          so_luong_thuc_te: row.so_luong_thuc_te,
-          is_chiu_nhiet: row.is_chiu_nhiet,
-          phan_loai_spaulding: normalizeSpaulding(row.phan_loai_spaulding),
-          phuong_phap_tiet_khuan_chi_dinh: normalizeSteamMethod(row.phuong_phap_tiet_khuan_chi_dinh),
-        });
-      }
-    }
-
-    const tb = (me as { thiet_bi?: { ten_thiet_bi?: string; loai_may?: { ten_loai_may?: string; ma_loai_may?: string } } } | null)
-      ?.thiet_bi;
-    const machine = {
-      loai_thiet_bi: tb?.ten_thiet_bi || tb?.loai_may?.ma_loai_may || null,
-      loai_ten_hien_thi: tb?.loai_may?.ten_loai_may || null,
-    };
-
-    const risk = evaluateBatchSterilizationHeatRisk(bomItems, machine);
-    return { success: true as const, risk, setCount: qtIds.length, lineCount: bomItems.length };
+    const heat = await evaluateBatchHeatWithClient(supabase, id);
+    if (!heat.ok) return { success: false as const, error: heat.message };
+    return { success: true as const, risk: heat.risk };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
   }

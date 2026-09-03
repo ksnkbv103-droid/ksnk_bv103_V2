@@ -10,6 +10,7 @@ import { useCSSDWorkflow } from "../hooks/useCSSDWorkflow";
 import WaitingList from "../components/waiting-list/WaitingList";
 import QRScanSuccessCard from "../components/scan/QRScanSuccessCard";
 import WorkflowStationQrEntry from "../components/scan/WorkflowStationQrEntry";
+import { CapPhatKhoaNhanPicker } from "../components/scan/CapPhatKhoaNhanPicker";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
 import { useModulePermission } from "@/hooks/useModulePermission";
@@ -46,6 +47,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     refresh,
   } = useCSSDWorkflow();
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
+  const [khoaNhanId, setKhoaNhanId] = useState("");
   const { printState, onPrintCapPhat, isPrinting: isCssdPrinting } = useCssdPrint();
   const { printCycleLabel } = usePrint();
   const lastCapPhatPrintKey = React.useRef<string | null>(null);
@@ -118,7 +120,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
       return;
     }
 
-    void handleQRScan(code);
+    void handleQRScan(code, currentStation === "CAP_PHAT" && khoaNhanId ? { khoa_nhan_id: khoaNhanId } : undefined);
   };
 
   const showDongGoiGate = currentStation === "DONG_GOI" && !!dongGoiGate;
@@ -139,6 +141,9 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
         <div className="space-y-4 lg:col-span-6 lg:sticky lg:top-8">
           <h3 className={`px-1 ${CSSD_UI_SECTION_TITLE}`}>Quét & kết quả</h3>
           <div className="space-y-4 rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 shadow-sm">
+            {currentStation === "CAP_PHAT" ? (
+              <CapPhatKhoaNhanPicker value={khoaNhanId} onChange={setKhoaNhanId} />
+            ) : null}
             <WorkflowStationQrEntry
               waitingItems={waitingList}
               disabled={!currentStation || workflowLoading}

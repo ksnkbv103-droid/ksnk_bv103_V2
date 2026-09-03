@@ -17,7 +17,7 @@ export function quanTriHubHref(tab?: QuanTriHubTab): string {
   return q ? `${QUAN_TRI_HUB_PATH}?tab=${q}` : QUAN_TRI_HUB_PATH;
 }
 
-export type DungCuTab = "loai" | "bo" | "chi-tiet";
+export type DungCuTab = "loai" | "bo" | "chi-tiet" | "de-xuat";
 
 export function quanTriDungCuHref(tab?: DungCuTab): string {
   if (!tab || tab === "loai") return QUAN_TRI_DUNG_CU_PATH;

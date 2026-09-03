@@ -53,6 +53,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 | RBAC | `quan-tri-he-thong/phan-quyen/` | **TABLE `sys_roles`**, **`sys_permissions`**, **`sys_role_permissions`**, **`sys_user_roles`**; view tổng hợp **`v_sys_user_permissions`** | View compat (DROP Phase 1): `v_auth_user_permissions`. Matrix: `v_sys_role_permissions_matrix`. |
 | Module locks | `gstt_*` (VST/GSC) | **`sys_module_locks`** (`module_name` IN ('VST','GSC')) | Khóa cứng ngày báo cáo; trigger `fn_assert_vst_gsc_not_locked` (`20260525000003`). |
 | Ledger dụng cụ (CSSD vận hành) | `cssd-erp` + `danh-muc/actions/kho-dung-cu-giao-dich` | **`cssd_fact_kho_giao_dich`**, **`cssd_dm_bo_phan_bo`**, **`cssd_fact_kho_chi_tiet`** | SSOT định nghĩa: **Master CSSD** (`cssd_dm_*`); giao dịch tồn/kho: fact; RLS `000014`. |
+| Đề xuất danh mục dụng cụ | `danh-muc/dung-cu?tab=de-xuat` (+ deep-link `/cssd-dung-cu`) | **`cssd_fact_de_xuat_danh_muc`** | KTV đề xuất; duyệt (`LOAI_DC`/`BO_DC`/`DC_LE` APPROVE hoặc ADMIN) mới ghi `cssd_dm_*` + ledger điều chuyển. |
 
 ---
 
@@ -147,6 +148,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 | 2026-08-09 | **NKBV phân tích thông minh RIT/SBAP:** `nkbv-ket-luan-smart` gộp tác nhân trong RIT + tự Secondary BSI từ máu∈SBAP; kết luận 5 ý (HAI/POA · loại[+Secondary] · NSK · tác nhân · nơi); banner RIT trên bảng UTI/PNEU/BSI; tinh gọn hàng (Ngày X / IPW+DOE / RIT / SBAP) + legend màu trên workspace. |
 | 2026-08-09 | **NKBV Chương 17 (cây tiêu chuẩn):** engine `nkbv-ch17-criteria` + 16 loại Phần II; SSI Organ/Space + ca độc lập `CH17`; seed `LOAI_NKBV` migration `20260809180000_nkbv_loai_ch17_seed.sql` (local trước). |
 | 2026-08-09 | **NKBV Ch.17 REPR gap-close:** EMET/OREP/VCUF cây tiêu chuẩn + seed `20260809181000_nkbv_loai_ch17_repr_seed.sql`; bridge tick OB/GYN → evidence. |
+| 2026-09-03 | **CSSD đề xuất danh mục:** KTV gửi THEM/SUA/XOA/DIEU_CHUYEN → hàng đợi `cssd_fact_de_xuat_danh_muc`; duyệt (ADMIN / `LOAI_DC|BO_DC|DC_LE` APPROVE) mới ghi `cssd_dm_*` + sổ `cssd_fact_kho_giao_dich`. Tab `/quan-tri-he-thong/danh-muc/dung-cu?tab=de-xuat`. Heat BLOCK server lúc chốt nạp/QC đạt; picker `khoa_nhan_id`; tem Q2 `ledgerWarning`. Migration `20260903120000`. |
 | 2026-08-09 | **NKBV lưới BA cải tổ:** unique index `ux_nkbv_ba_timeline_ba_date_criteria` (chống lặp XQ/TC active theo BA+ngày+criteria) + RPC `fn_nkbv_ba_hub` gộp 5 query hub thành 1 round-trip (SECURITY INVOKER); action timeline insert-first bắt 23505, `verifyAnyPermission` 1 lần. Migration `20260809120000`. |
 | 2026-08-02 | **QLCV A+2 tinh gọn:** DROP `qlcv_fact_ke_hoach_tuan`/`_dong`, `qlcv_fact_chuong_trinh`, `qlcv_fact_nhiem_vu_moc`; `nhiem_vu` bỏ `ke_hoach_id`; phiếu bỏ `chuong_trinh_id`/`moc_id`/`ke_hoach_tuan_dong_id`; wipe trial; UI tabs Điều hành · Nhiệm vụ · Định kỳ. Migration `20260802140000`. |
 | 2026-07-31 | **QLCV Kế hoạch năm → Nhiệm vụ → Mốc → Việc:** *(lịch sử — đã gỡ A+2)* `20260731160000`. |

@@ -10,6 +10,7 @@ import { bootstrapCssdQuyTrinhFromMaBo } from "../shared/application/cssd-bo-boo
 import { verifyCssdWorkflowEdit } from "@/lib/cssd-server-gates";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
+import { assertLedgerDuChoCapPhat } from "../workflow/application/cssd-asset-ledger";
 // DOM-04: không auto-stamp bom_kiem_dem_at khi quét — chỉ qua rpc_cssd_persist_bom_checkpoint.
 
 async function cssdScanOperatorLabel(): Promise<string> {
@@ -91,6 +92,8 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       if (kid) capUpdate.khoa_nhan_id = kid;
     }
     await supabase.from("cssd_fact_quy_trinh").update(capUpdate).eq("id", preRow.id);
+    const ledger = await assertLedgerDuChoCapPhat(supabase, String(preRow.id));
+    const issuanceWarning = ledger.ok && "warning" in ledger ? ledger.warning : undefined;
     let maLoTietKhuan = "";
     const loId = String(preRow.lo_tiet_khuan_id || "").trim();
     if (loId) {
@@ -109,11 +112,12 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       quyTrinhId: String(preRow.id),
       maLoTietKhuan,
       issuanceOnly: true as const,
+      ledgerWarning: issuanceWarning,
     };
   }
 
   // 1. Thực hiện nghiệp vụ qua RPC tập trung (Atomicity & Speed)
-  await executeWorkflowStationScan(supabase, {
+  const scanExec = await executeWorkflowStationScan(supabase, {
     maQR: code,
     station,
     quyTrinh: {} as any, // quyTrinh no longer needed for primary logic
@@ -180,5 +184,6 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
     boDungCuId: String(fullQt?.bo_dung_cu_id || ""),
     maCycleQr,
     maLoTietKhuan,
+    ledgerWarning: scanExec.ledgerWarning,
   };
 }

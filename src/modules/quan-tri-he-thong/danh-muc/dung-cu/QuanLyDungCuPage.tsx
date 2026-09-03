@@ -2,14 +2,16 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Database, LayoutGrid, List } from "lucide-react";
+import { ClipboardCheck, Database, LayoutGrid, List } from "lucide-react";
 import { LoaiDungCuPageContent } from "./LoaiDungCuPage";
 import { BoDungCuPageContent } from "./BoDungCuPage";
 import { DungCuChiTietPageContent } from "./dung-cu-chi-tiet-page-content";
 import { DmTabGuard } from "../views/dm-tab-guard";
 import { DungCuWorkflowGuide } from "./dung-cu-workflow-guide";
+import { CatalogChangeQueuePanel } from "./catalog-change-queue-panel";
 import { quanTriDungCuHref, type DungCuTab } from "@/lib/master-data/quan-tri-paths";
 import { useModulePermission } from "@/hooks/useModulePermission";
+import { usePermission } from "@/hooks/usePermission";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 
 const dungCuTabBtn = (active: boolean) =>
@@ -18,7 +20,7 @@ const dungCuTabBtn = (active: boolean) =>
   }`;
 
 function parseDungCuTab(raw: string | null): DungCuTab {
-  if (raw === "bo" || raw === "chi-tiet") return raw;
+  if (raw === "bo" || raw === "chi-tiet" || raw === "de-xuat") return raw;
   return "loai";
 }
 
@@ -39,6 +41,10 @@ export default function QuanLyDungCuPage() {
   const { loading: permLoading, allowed: loaiAllowed } = useModulePermission("LOAI_DC");
   const { allowed: boAllowed } = useModulePermission("BO_DC");
   const { allowed: leAllowed } = useModulePermission("DC_LE");
+  const { isAdmin, canApprove, canEdit } = usePermission();
+  const canPropose = isAdmin || canEdit("CSSD_WORKFLOW") || canEdit("CSSD_KHO_DUNGCU");
+  const canApproveQueue =
+    isAdmin || canApprove("LOAI_DC") || canApprove("BO_DC") || canApprove("DC_LE");
 
   if (permLoading) {
     return (
@@ -99,6 +105,15 @@ export default function QuanLyDungCuPage() {
             >
               <List size={14} aria-hidden /> Thành phần
             </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "de-xuat"}
+              onClick={() => selectTab("de-xuat")}
+              className={dungCuTabBtn(activeTab === "de-xuat")}
+            >
+              <ClipboardCheck size={14} aria-hidden /> Đề xuất
+            </button>
           </div>
         </div>
 
@@ -119,6 +134,9 @@ export default function QuanLyDungCuPage() {
             <DmTabGuard moduleKey="DC_LE" label="Danh mục Dụng cụ chi tiết">
               <DungCuChiTietPageContent />
             </DmTabGuard>
+          )}
+          {activeTab === "de-xuat" && (
+            <CatalogChangeQueuePanel canPropose={canPropose} canApprove={canApproveQueue} />
           )}
         </div>
       </div>

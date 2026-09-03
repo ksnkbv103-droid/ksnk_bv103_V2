@@ -4,6 +4,7 @@ import { tableHasColumn } from "../shared/cssd-db-utils";
 import { appendQuyTrinhException } from "../actions/cssd-action-common";
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
 import { buildIncidentAttributes } from "@/modules/cssd-su-co/domain/cssd-incident-attributes";
+import { batchHeatBlockMessage, evaluateBatchHeatWithClient } from "./evaluate-batch-heat-with-client";
 
 export type PersistMeTietKhuanInput = {
   activeMeId: string;
@@ -79,6 +80,10 @@ export async function persistMeTietKhuanFinishWithClient(
   if (p.isPass) {
     const passErr = validateMeTietKhuanPassPayload(p);
     if (passErr) return { ok: false, message: passErr };
+    const heat = await evaluateBatchHeatWithClient(client, p.activeMeId);
+    if (!heat.ok) return { ok: false, message: heat.message };
+    const heatBlock = batchHeatBlockMessage(heat.risk);
+    if (heatBlock) return { ok: false, message: heatBlock };
   } else if (!String(p.nguoiUnload || "").trim()) {
     return { ok: false, message: "Thiếu người dỡ mẻ." };
   }
