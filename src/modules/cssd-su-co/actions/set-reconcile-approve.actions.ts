@@ -61,6 +61,38 @@ export async function listPendingBomApprovalsAction() {
   }
 }
 
+export async function listSetReconcileHistoryAction() {
+  try {
+    await requireCatalogRead();
+    const supabase = createAdminSupabaseClient();
+    const { data, error } = await supabase
+      .from("v_cssd_su_co_full")
+      .select("id, mo_ta, created_at, ma_qr_quy_trinh, attributes")
+      .eq("incident_group", "INSTRUMENT")
+      .order("created_at", { ascending: false })
+      .limit(80);
+    if (error) throw new Error(error.message);
+    const rows = (data || [])
+      .map((r) => {
+        const attrs = (r.attributes as Record<string, unknown>) || {};
+        const status = readSetReconcileStatus(attrs);
+        const snap = parseSetReconcileSnapshot(attrs.SET_RECONCILE_SNAPSHOT);
+        return {
+          id: String(r.id),
+          maBo: String(r.ma_qr_quy_trinh || snap?.maBo || ""),
+          tenBo: snap?.tenBo || "",
+          moTa: String(r.mo_ta || ""),
+          createdAt: r.created_at ? String(r.created_at) : null,
+          status: status || "",
+        };
+      })
+      .filter((r) => r.status === "BOM_APPROVED" || r.status === "BOM_REJECTED" || r.status === "NONE");
+    return { success: true as const, data: rows };
+  } catch (e: unknown) {
+    return { success: false as const, error: e instanceof Error ? e.message : "Không tải lịch sử phiếu." };
+  }
+}
+
 export async function approveSetReconcileBomAction(incidentId: string) {
   try {
     await requireCatalogApprove();

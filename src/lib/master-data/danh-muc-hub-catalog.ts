@@ -58,6 +58,16 @@ export const DANH_MUC_DOMAIN_BADGE: Record<DanhMucDomain, { label: string; class
 
 const DEDICATED_ROWS: Omit<DanhMucHubRow, "stats">[] = [
   {
+    id: "dung-cu-bo",
+    name: "Quản lý dụng cụ",
+    path: quanTriDungCuHref("bo"),
+    domain: "CSSD",
+    group: "cssd",
+    tier: "dedicated",
+    moduleKey: "BO_DC",
+    sourceTable: "cssd_dm_bo_dung_cu",
+  },
+  {
     id: "dung-cu-loai",
     name: "Loại dụng cụ",
     path: quanTriDungCuHref("loai"),
@@ -66,16 +76,6 @@ const DEDICATED_ROWS: Omit<DanhMucHubRow, "stats">[] = [
     tier: "dedicated",
     moduleKey: "LOAI_DC",
     sourceTable: "cssd_dm_loai_dung_cu",
-  },
-  {
-    id: "dung-cu-bo",
-    name: "Bộ dụng cụ",
-    path: quanTriDungCuHref("bo"),
-    domain: "CSSD",
-    group: "cssd",
-    tier: "dedicated",
-    moduleKey: "BO_DC",
-    sourceTable: "cssd_dm_bo_dung_cu",
   },
   {
     id: "tb",

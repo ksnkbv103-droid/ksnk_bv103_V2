@@ -15,7 +15,6 @@ import { BO_DUNG_CU_COLUMN_MAP } from "./bo-dung-cu-import";
 import type { BoDungCuTableRow } from "./bo-dung-cu-form-shared";
 import { BoDungCuPageHeader } from "./bo-dung-cu-page-header";
 import { BoDungCuChiTietPanel } from "./bo-dung-cu-chi-tiet-panel";
-import { SetReconcileApproveQueue } from "./SetReconcileApproveQueue";
 import { BoDungCuMaBoHealthBanner } from "./bo-dung-cu-ma-bo-health-banner";
 import { BoDungCuQuickSetupPanel } from "./bo-dung-cu-quick-setup-panel";
 import { useModulePermission } from "@/hooks/useModulePermission";
@@ -27,7 +26,7 @@ import {
   toggleBoDungCuStatusAction,
 } from "../actions/bo-dung-cu.actions";
 
-export function BoDungCuPageContent() {
+export function BoDungCuPageContent({ onOpenLoaiSheet }: { onOpenLoaiSheet?: () => void }) {
   const router = useRouter();
   const { isAdmin } = useModulePermission("BO_DC");
   const canWriteMaster = isAdmin;
@@ -42,6 +41,7 @@ export function BoDungCuPageContent() {
   const [loadingKhoa, setLoadingKhoa] = useState(true);
   const [selectedBoId, setSelectedBoId] = useState<string | null>(null);
   const [lastCreatedMaBo, setLastCreatedMaBo] = useState<string | null>(null);
+  const [loaiFilter, setLoaiFilter] = useState("");
 
   useEffect(() => {
     async function loadOptions() {
@@ -127,7 +127,13 @@ export function BoDungCuPageContent() {
 
   const columns = getBoDungCuColumns(actionUi);
   const modalKey = editing?.id ? `edit-${editing.id}` : "create";
-  const selectedRow = selectedBoId ? data.find((r) => r.id === selectedBoId) : undefined;
+  const loaiFilterOptions = Array.from(
+    new Set(data.map((r) => String(r.loai_dung_cu?.ten_danh_muc || "").trim()).filter(Boolean)),
+  ).sort((a, b) => a.localeCompare(b, "vi"));
+  const visibleData = loaiFilter
+    ? data.filter((r) => String(r.loai_dung_cu?.ten_danh_muc || "").trim() === loaiFilter)
+    : data;
+  const selectedRow = selectedBoId ? visibleData.find((r) => r.id === selectedBoId) : undefined;
 
   return (
     <div className="bv103-stack-page animate-in fade-in duration-700">
@@ -145,12 +151,16 @@ export function BoDungCuPageContent() {
         onExportTemplate={() => void exportTemplate()}
         onCreate={openCreate}
         canWriteMaster={canWriteMaster}
+        onOpenLoaiSheet={onOpenLoaiSheet}
+        loaiFilter={loaiFilter}
+        loaiFilterOptions={loaiFilterOptions}
+        onLoaiFilterChange={setLoaiFilter}
       />
 
-      <div className="min-w-0 sm:min-h-[450px]">
+      <div className="min-w-0">
         <AdvancedDataTable
           columns={columns}
-          data={data}
+          data={visibleData}
           loading={loading}
           enableMultiSelect={canWriteMaster}
           searchPlaceholder="Tìm theo mã, tên bộ, loại, khoa, ghi chú…"
@@ -173,8 +183,6 @@ export function BoDungCuPageContent() {
           }}
         />
       </div>
-
-      <SetReconcileApproveQueue />
 
       <BoDungCuChiTietPanel
         selectedBoId={selectedBoId}

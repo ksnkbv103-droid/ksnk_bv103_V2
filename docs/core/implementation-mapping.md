@@ -36,7 +36,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 2. **App code**: `.from('{module}_fact_*'|'{module}_dm_*')` — không dùng `dm_*`/`fact_*` compat (guard `legacy:guard`). Lookup phẳng ghi `sys_lookup_value` qua `master-crud-core`.
 3. **View phẳng `v_*_full`**: nên JOIN từ table physical (`sys_lookup_value`, `mdm_dm_khoa_phong`, …) thay vì view trung gian — giảm chuỗi view lồng.
 4. **WRITE cho lookup phẳng** (TO_CONG_TAC/CHUC_DANH/CHUC_VU/NGHE_NGHIEP/KHOI_KHOA/KHU_VUC_GIAM_SAT/HINH_THUC_GIAM_SAT/CACH_THUC_GIAM_SAT/LOAI_CONG_VIEC/TRANG_THAI_CONG_VIEC/LOAI_NKBV/TRANG_THAI_NKBV_CA/LOAI_MAY_TIET_KHUAN/TRAM_CSSD/LOAI_SU_CO, …): luôn ghi vào `sys_lookup_value`. App `master-crud-core.ts` đã làm đúng (CONSOLIDATED_MAPS).
-5. **`LOAI_DUNG_CU` / InstrumentType ≠ lookup:** SSOT là **TABLE `cssd_dm_loai_dung_cu`** (CRUD dedicated tại `/quan-tri-he-thong/danh-muc/dung-cu?tab=loai`). **Không** ghi loại dụng cụ vào `sys_lookup_value`. Cột nghiệp vụ: Spaulding / chịu nhiệt / phương pháp tiệt khuẩn — xem lộ trình Lớp 1.1 [`../modules/mdm/improvement-roadmap-20260717.md`](../modules/mdm/improvement-roadmap-20260717.md).
+5. **`LOAI_DUNG_CU` / InstrumentType ≠ lookup:** SSOT là **TABLE `cssd_dm_loai_dung_cu`** (CRUD dedicated tại `/quan-tri-he-thong/danh-muc/dung-cu?sheet=loai`, sheet phụ ADMIN — không còn tab ngang hàng). **Không** ghi loại dụng cụ vào `sys_lookup_value`. Cột nghiệp vụ: Spaulding / chịu nhiệt / phương pháp tiệt khuẩn — xem lộ trình Lớp 1.1 [`../modules/mdm/improvement-roadmap-20260717.md`](../modules/mdm/improvement-roadmap-20260717.md).
 6. **RBAC**: SSOT là `sys_roles`/`sys_permissions`/`sys_role_permissions`/`sys_user_roles` (TABLES); đọc quyền qua `v_sys_user_permissions`. **Audit DB/UI:** đã DROP (`20260602193500`) — không còn `sys_audit_log` / `fn_sys_audit_row`.
 
 ---
@@ -141,6 +141,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-09-03 | **Quản lý dụng cụ — 3 lớp IA:** mặt trước `/quan-tri-he-thong/danh-muc/dung-cu` = Bộ (mặc định) / Phiếu chờ (`?tab=phieu`) / Lịch sử (`?tab=lich-su`). Loại là sheet `?sheet=loai` (ADMIN), không tab peer. Bookmark `?tab=loai`/`?tab=bo`/`chi-tiet` vẫn về Bộ hoặc sheet. Không đổi schema. |
 | 2026-09-03 | **Danh mục dụng cụ — form MDM chỉ ADMIN:** thêm/sửa/xóa loại/bộ/thành phần (`LOAI_DC`/`BO_DC`/`DC_LE`) trên form Quản trị bị chặn với non-ADMIN (UI + server). Quyền `BO_DC.edit` vẫn duyệt phiếu rà soát → `applyApprovedBomLines`. Không đổi schema. |
 | 2026-08-26 | **Quản trị QT-E — gói quyền danh mục:** ma trận RBAC có gói Tổ chức / Bảng kiểm / Master CSSD / Chỉ xem mọi danh mục (13 ô lookup). Chỉ đổi ô ma trận; không đụng RLS; ADMIN không áp gói. |
 | 2026-08-26 | **CSSD phiếu bộ — đổi mã loại + mã gốc:** dòng `DOI_LOAI`: NV nhập mã gốc mới (và tên nếu đổi), chờ admin duyệt. Duyệt ghi `cssd_dm_loai_dung_cu.ma_loai` (+ `specs.ma_loai_dung_cu`) — mọi bộ dùng loại đó đổi theo. Nếu mã mới đã thuộc loại khác thì gắn dòng sang loại đó, không trùng mã. |

@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import { ChevronRight, Sparkles, X } from "lucide-react";
+import React from "react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
-import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 
 type Props = {
   onStartCreateBo: () => void;
@@ -12,76 +11,44 @@ type Props = {
   canWriteMaster?: boolean;
 };
 
-/** Hướng dẫn wizard 3 bước — mở form bộ có sẵn ở bước 1. */
+/** Hướng dẫn 3 bước — mặc định thu gọn như import Excel SXH. */
 export function BoDungCuQuickSetupPanel({ onStartCreateBo, lastCreatedMaBo, canWriteMaster = true }: Props) {
-  const [open, setOpen] = useState(false);
-
   return (
-    <div className={`${UI.sectionGap} ${UI.panelInset} border-[var(--primary)]/20 bg-gradient-to-br from-emerald-50/80 to-white p-4`}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="flex items-center gap-2 text-xs font-semibold tracking-tight text-[var(--primary)]">
-            <Sparkles size={14} aria-hidden /> Tạo bộ nhanh
-          </p>
-          <p className="mt-1 text-sm text-slate-600">Khoa → mã bộ → thành phần → in tem CSSD</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className={`${UI.btnSecondary} px-4 text-xs font-semibold text-[var(--primary)]`}
-        >
-          {open ? "Thu gọn" : "Bắt đầu"}
-        </button>
-      </div>
-
-      {open ? (
-        <ol className="mt-4 grid gap-2 md:grid-cols-3">
-          <li className="rounded-xl border border-white bg-white/90 p-3">
-            <span className="bv103-type-label font-semibold text-emerald-700">1 · Bộ</span>
-            <p className="text-xs font-semibold text-slate-800">Chọn khoa, nhập tên bộ</p>
+    <div className="space-y-2">
+      <details className="rounded-[var(--radius-control)] border border-slate-200 bg-slate-50/70 px-3 py-2">
+        <summary className="cursor-pointer text-[11px] font-semibold text-slate-500">Tạo bộ nhanh</summary>
+        <ol className="mt-2 grid gap-2 text-[11px] text-slate-600 md:grid-cols-3">
+          <li>
+            <span className="font-semibold text-slate-800">1 · Bộ</span>
             {canWriteMaster ? (
-              <button
-                type="button"
-                onClick={onStartCreateBo}
-                className="mt-2 inline-flex items-center gap-1 bv103-type-label font-semibold text-[var(--primary)] underline"
-              >
+              <button type="button" onClick={onStartCreateBo} className="mt-1 flex items-center gap-1 font-semibold text-[var(--primary)]">
                 Mở form thêm bộ <ChevronRight size={12} />
               </button>
             ) : (
-              <p className="mt-2 text-[11px] text-slate-500">Chỉ quản trị thêm bộ mới. Nhân viên dùng phiếu rà soát.</p>
+              <p className="mt-1">Chỉ quản trị thêm bộ. Nhân viên dùng phiếu rà soát.</p>
             )}
           </li>
-          <li className="rounded-xl border border-white bg-white/90 p-3">
-            <span className="bv103-type-label font-semibold text-emerald-700">2 · Thành phần</span>
-            <p className="text-xs font-semibold text-slate-800">Chọn bộ ở bảng dưới → thêm thành phần</p>
-            <Link href={quanTriDungCuHref("bo")} className="mt-2 inline-flex items-center gap-1 bv103-type-label font-semibold text-[var(--primary)] underline">
-              Mở tab bộ <ChevronRight size={12} />
-            </Link>
+          <li>
+            <span className="font-semibold text-slate-800">2 · Thành phần</span>
+            <p className="mt-1">Chọn dòng bộ bên dưới.</p>
           </li>
-          <li className="rounded-xl border border-white bg-white/90 p-3">
-            <span className="bv103-type-label font-semibold text-emerald-700">3 · In tem</span>
-            <p className="text-xs font-semibold text-slate-800">QR = ma_bo (vd. B01.SET.01)</p>
-            <Link href="/cssd-dung-cu" className="mt-2 inline-flex items-center gap-1 bv103-type-label font-semibold text-[var(--primary)] underline">
-              Catalog CSSD · in tem <ChevronRight size={12} />
+          <li>
+            <span className="font-semibold text-slate-800">3 · In tem</span>
+            <Link href="/cssd-dung-cu" className="mt-1 flex items-center gap-1 font-semibold text-[var(--primary)]">
+              Catalog CSSD <ChevronRight size={12} />
             </Link>
           </li>
         </ol>
-      ) : null}
-
+      </details>
       {lastCreatedMaBo ? (
-        <p className="mt-3 rounded-lg bg-emerald-100/60 px-3 py-2 text-xs font-medium text-emerald-900">
-          Bộ vừa tạo: <span className="font-mono font-bold">{lastCreatedMaBo}</span> — chọn dòng bộ bên dưới để thêm thành phần.
+        <p className="text-[11px] font-medium text-emerald-800">
+          Bộ vừa tạo: <span className="font-mono font-bold">{lastCreatedMaBo}</span>
+          {" — "}
+          <Link href={quanTriDungCuHref("bo")} className="font-semibold underline">
+            chọn dòng để thêm thành phần
+          </Link>
+          .
         </p>
-      ) : null}
-
-      {open ? (
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          className="mt-2 inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-600"
-        >
-          <X size={12} /> Đóng hướng dẫn
-        </button>
       ) : null}
     </div>
   );

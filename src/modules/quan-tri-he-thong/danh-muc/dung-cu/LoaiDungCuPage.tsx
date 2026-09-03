@@ -184,18 +184,25 @@ export function LoaiDungCuPageContent() {
         eyebrow="Danh mục master · Phân loại dụng cụ"
         actions={
           <>
-            <ImportExportToolbar
-              fileInputRef={fileInputRef}
-              isImporting={isImporting}
-              onExport={() => void exportTemplate()}
-              onImportClick={triggerImport}
-              onFileChange={(file) => void handleFileUpload(file)}
-              showImport={canWriteMaster}
-              exportClassName={C.ctaMuted}
-              importClassName={C.ctaAmber}
-            />
             {canWriteMaster ? (
-              <button type="button" onClick={() => { setEditing(null); setIsFormOpen(true); }} className={C.ctaPrimary}><Plus size={18} /> Thêm mới</button>
+              <details className="rounded-[var(--radius-control)] border border-slate-200 bg-white px-2 py-1">
+                <summary className="cursor-pointer text-[11px] font-semibold text-slate-500">Excel</summary>
+                <div className="pt-2">
+                  <ImportExportToolbar
+                    fileInputRef={fileInputRef}
+                    isImporting={isImporting}
+                    onExport={() => void exportTemplate()}
+                    onImportClick={triggerImport}
+                    onFileChange={(file) => void handleFileUpload(file)}
+                    showImport
+                    exportClassName={C.ctaMuted}
+                    importClassName={C.ctaAmber}
+                  />
+                </div>
+              </details>
+            ) : null}
+            {canWriteMaster ? (
+              <button type="button" onClick={() => { setEditing(null); setIsFormOpen(true); }} className={C.ctaPrimary}><Plus size={16} /> Thêm loại</button>
             ) : null}
           </>
         }

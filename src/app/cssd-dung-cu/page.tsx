@@ -2,7 +2,7 @@
 
 /** CSSD vận hành catalog (read-only); CRUD: `/quan-tri-he-thong/danh-muc/dung-cu`. */
 import Link from "next/link";
-import { History, Layers, AppWindow } from "lucide-react";
+import { History, Layers } from "lucide-react";
 import {
   useCssdCatalogPage,
   CSSDCatalogBoTab,
@@ -56,8 +56,7 @@ export default function Page() {
     <CSSDPageShell title="Dụng cụ CSSD">
       <div className="space-y-3">
         <div className={CSSD_UI_TAB_GROUP}>
-          <CssdHorizTabButton active={s.tab === "BO"} onClick={() => s.setTab("BO")} icon={Layers} label="Bộ dụng cụ" mobileLabel="Bộ" />
-          <CssdHorizTabButton active={s.tab === "LOAI"} onClick={() => s.setTab("LOAI")} icon={AppWindow} label="Loại dụng cụ" mobileLabel="Loại" />
+          <CssdHorizTabButton active={s.tab === "BO" || s.tab === "LOAI"} onClick={() => s.setTab("BO")} icon={Layers} label="Bộ dụng cụ" mobileLabel="Bộ" />
           <CssdHorizTabButton active={s.tab === "HISTORY"} onClick={() => s.setTab("HISTORY")} icon={History} label="Lịch sử luân chuyển" mobileLabel="Lịch sử" />
         </div>
 
@@ -78,15 +77,20 @@ export default function Page() {
             )}
           </div>
         ) : s.tab === "LOAI" ? (
-          <CSSDCatalogLoaiTab
-            catalog={s.catalog}
-            loaiRows={s.loaiRows}
-            selectedLoaiId={s.selectedLoaiId}
-            setSelectedLoaiId={s.setSelectedLoaiId}
-            selectedLoai={s.selectedLoai}
-            boBySelectedLoai={s.boBySelectedLoai}
-            toolbar={catalogToolbar}
-          />
+          <div className="space-y-2">
+            <button type="button" onClick={() => s.setTab("BO")} className="text-[11px] font-semibold text-slate-500">
+              ← Về danh sách bộ
+            </button>
+            <CSSDCatalogLoaiTab
+              catalog={s.catalog}
+              loaiRows={s.loaiRows}
+              selectedLoaiId={s.selectedLoaiId}
+              setSelectedLoaiId={s.setSelectedLoaiId}
+              selectedLoai={s.selectedLoai}
+              boBySelectedLoai={s.boBySelectedLoai}
+              toolbar={catalogToolbar}
+            />
+          </div>
         ) : (
           <InventoryHistoryTable />
         )}
