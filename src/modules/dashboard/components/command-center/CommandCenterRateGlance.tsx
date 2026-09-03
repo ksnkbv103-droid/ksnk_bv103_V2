@@ -11,6 +11,7 @@ import {
   isPathBlockedUnderPilotCoreModules,
   isPilotCoreModulesScopeEnabled,
 } from "@/lib/ksnk-pilot-core-modules-scope";
+import { computeTyLeGsc, computeTyLeVst } from "@/lib/analytics/supervision-metrics";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 
 type Props = {
@@ -48,13 +49,13 @@ export function CommandCenterRateGlance({
         <TrafficLightCard
           title="Vệ sinh tay"
           icon={ShieldCheck}
-          percent={vstPayload?.kpis?.ty_le_tuan_thu ?? null}
+          percent={computeTyLeVst(vstPayload?.kpis)}
           detailHref={thongKeVstHref}
         />
         <TrafficLightCard
           title="Giám sát chung"
           icon={ClipboardList}
-          percent={gscPayload?.kpis?.ty_le_tuan_thu ?? null}
+          percent={computeTyLeGsc(gscPayload?.kpis)}
           detailHref={thongKeGscHref}
         />
       </div>

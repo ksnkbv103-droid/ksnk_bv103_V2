@@ -11,7 +11,7 @@ import {
 } from "@/lib/analytics/supervision-analytics-charts";
 import { groupCriterionKhoaRows, sortCriterionMatrix } from "@/lib/analytics/gsc-checklist-analytics";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
-import { formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { formatPercent2, formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { complianceToneFromPercent } from "@/lib/analytics/supervision-thresholds";
 import type { GscChecklistDetailPayload, GscChecklistCriterionKhoaRow, GscCriterionMatrixRow } from "../types/gsc-strategic.types";
@@ -105,7 +105,7 @@ export function GscBkAnalyticsDashboard({
             { label: "Phiên giám sát", value: detail?.kpis?.tong_phien ?? 0 },
             { label: "Tiêu chí áp dụng", value: detail?.kpis?.tong_quan_sat ?? 0 },
             { label: "Vi phạm", value: detail?.kpis?.tong_vi_pham ?? 0 },
-            { label: "Tỷ lệ tuân thủ", value: formatPercent2(detail?.kpis?.ty_le_tuan_thu ?? 0) },
+            { label: "Tỷ lệ tuân thủ", value: formatPercent2FromRatio(detail?.kpis?.tong_dat ?? 0, detail?.kpis?.tong_quan_sat ?? 0) },
           ]}
         />
 

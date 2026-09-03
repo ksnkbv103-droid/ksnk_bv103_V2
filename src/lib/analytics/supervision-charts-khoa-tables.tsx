@@ -6,7 +6,7 @@ import type { GapKhoaRow } from "@/lib/analytics/supervision-matrix-mappers";
 import { KHOA_COMPLIANCE_WARN_PCT } from "@/lib/analytics/supervision-matrix-mappers";
 import type { BaoCaoKhoaRankRow } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
 import { complianceToneFromPercent } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
-import { formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
 import {
   formatGapPctWithDatTong,
   gapCompareStatus,
@@ -105,7 +105,7 @@ export function SupervisionKhoaMasterTable({
                     </td>
                     {rankRows ? (
                       <td className={`px-2 py-2 text-center font-semibold tabular-nums ${momentToneClass[vstTone]}`}>
-                        {rank?.ty_le_vst != null ? formatPercent2(rank.ty_le_vst) : "—"}
+                        {rank?.ty_le_vst != null ? formatPercent1(rank.ty_le_vst) : "—"}
                       </td>
                     ) : null}
                     {rankRows ? (

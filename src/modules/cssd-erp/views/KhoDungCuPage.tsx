@@ -141,6 +141,29 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
     return filtered;
   }, [data, filterStatus, filterFEFO, lookup]);
 
+  const dashboardScope = useMemo(() => {
+    let scoped = data;
+    if (filterFEFO) {
+      scoped = scoped.filter((d) => {
+        if (!d.han_su_dung || d.trang_thai_hien_tai !== "CAP_PHAT") return false;
+        const daysLeft = (new Date(d.han_su_dung).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
+        return daysLeft <= 7 && daysLeft >= 0;
+      });
+    }
+    if (lookup) {
+      const q = lookup.trim().toLowerCase();
+      const code = normalizeCssdCode(lookup);
+      scoped = scoped.filter((d) => {
+        const ten = String(d.cssd_dm_bo_dung_cu?.ten_bo || "").toLowerCase();
+        const qr = normalizeCssdCode(d.ma_vach_qr);
+        const maBo = normalizeCssdCode(d.cssd_dm_bo_dung_cu?.ma_bo);
+        const cycle = normalizeCssdCode(d.ma_cycle_qr);
+        return ten.includes(q) || qr.includes(code) || maBo.includes(code) || cycle.includes(code);
+      });
+    }
+    return scoped;
+  }, [data, filterFEFO, lookup]);
+
   const handleExport = () => {
     const exportData = filteredData.map((d: any) => ({
       ma_vach_qr: d.ma_vach_qr,
@@ -299,7 +322,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
   const mainContent = (
     <div className="bv103-stack-page">
       <div className="space-y-8 animate-in slide-in-from-left-4 duration-500">
-        <InventoryDashboard data={data} activeStatus={filterStatus} onSelectStatus={setFilterStatus} />
+        <InventoryDashboard data={dashboardScope} activeStatus={filterStatus} onSelectStatus={setFilterStatus} />
         
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-[11px] font-medium text-slate-500">

@@ -126,32 +126,40 @@ function CSSDReportPageInner() {
   }, [filters]);
 
   const { stats, alerts, pieData, barData, incidentGroupStats, processAccountabilityRows } = useMemo(() => {
+    const volumeByStation = new Map((analytics?.stationVolume ?? []).map((r) => [r.station, r.completed]));
     const bData = STATIONS.map((s) => {
-      const qCount = raw.quyTrinh.filter((q) => q.trang_thai_hien_tai === s).length;
+      const qCount = volumeByStation.get(s) ?? 0;
       const sCount = raw.suCo.filter((sc) => sc.tram_phat_hien === s).length;
-      return { name: s, batches: qCount, incidents: sCount, rate: qCount ? (sCount / qCount) * 100 : 0 };
+      const rate = qCount > 0 ? (sCount / qCount) * 100 : null;
+      return { name: s, batches: qCount, incidents: sCount, rate };
     });
-    const sorted = [...bData].sort((a, b) => a.rate - b.rate);
+    const ranked = bData.filter((b) => b.rate != null).sort((a, b) => (a.rate ?? 0) - (b.rate ?? 0));
     const pMap = new Map<string, number>();
     raw.suCo.forEach((s) => {
       const key = s.incident_group_label || "Khác";
       pMap.set(key, (pMap.get(key) || 0) + 1);
     });
+    const tyLe =
+      analytics?.tyLeQuyTrinhKhongSuCo != null
+        ? analytics.tyLeQuyTrinhKhongSuCo.toFixed(1)
+        : raw.quyTrinh.length
+          ? (100 - (raw.suCo.length / raw.quyTrinh.length) * 100).toFixed(1)
+          : "—";
 
     return {
       stats: {
         total: raw.quyTrinh.length,
         incidents: raw.suCo.length,
         /** Chỉ số CSSD riêng — không gộp CCS. */
-        tyLeQuyTrinhKhongSuCo: raw.quyTrinh.length
-          ? (100 - (raw.suCo.length / raw.quyTrinh.length) * 100).toFixed(1)
-          : "100",
-        bestStation: sorted[0]?.name.replace(/_/g, " ") || "Không áp dụng",
-        worstStation: sorted[sorted.length - 1]?.name.replace(/_/g, " ") || "Không áp dụng",
+        tyLeQuyTrinhKhongSuCo: tyLe,
+        bestStation: ranked[0]?.name.replace(/_/g, " ") || "Không áp dụng",
+        worstStation: ranked[ranked.length - 1]?.name.replace(/_/g, " ") || "Không áp dụng",
       },
-      alerts: bData.filter((b) => b.rate > 5).map((b) => ({ name: b.name, rate: b.rate.toFixed(1) })),
+      alerts: bData
+        .filter((b) => b.rate != null && b.rate > 5)
+        .map((b) => ({ name: b.name, rate: (b.rate as number).toFixed(1) })),
       pieData: Array.from(pMap).map(([name, value]) => ({ name, value })),
-      barData: bData.map((b) => ({ ...b, name: b.name.replace(/_/g, " ") })),
+      barData: bData.map((b) => ({ ...b, rate: b.rate ?? 0, name: b.name.replace(/_/g, " ") })),
       incidentGroupStats: INCIDENT_GROUPS.map((g) => ({
         group: g,
         label: INCIDENT_GROUP_LABEL[g],
@@ -161,7 +169,7 @@ function CSSDReportPageInner() {
         .filter((x) => isAccountabilityCause(String(x.cause_class || "")))
         .map((x) => ({ ...x, fault_operator: x.fault_operator || x.reporter_email || "Chưa ghi nhận" })),
     };
-  }, [raw]);
+  }, [raw, analytics]);
 
   const handleExport = () => exportTemplate(raw.quyTrinh);
 

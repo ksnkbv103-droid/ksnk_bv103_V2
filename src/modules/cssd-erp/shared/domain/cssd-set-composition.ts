@@ -7,7 +7,7 @@ export function summarizeSetComposition(items: CompositionReconcileRow[]) {
   for (const row of items) {
     can += row.soLuongKeHoach;
     thuc += row.soLuongThucTe;
-    thieu += row.missingCount;
+    thieu += Math.max(0, row.soLuongKeHoach - row.soLuongThucTe);
   }
   return { can, thuc, thieu, hasGap: thieu > 0 };
 }

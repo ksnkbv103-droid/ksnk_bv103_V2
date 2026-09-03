@@ -9,7 +9,7 @@ import {
   SupervisionTrendChart,
 } from "@/lib/analytics/supervision-analytics-charts";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
-import { formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import type { GscStrategicPayload } from "../types/gsc-strategic.types";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
@@ -173,7 +173,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
               { label: "Phiên giám sát", value: p.payload?.kpis?.tong_phien ?? 0 },
               { label: "Tiêu chí áp dụng", value: p.payload?.kpis?.tong_quan_sat ?? 0 },
               { label: "Vi phạm", value: p.payload?.kpis?.tong_vi_pham ?? 0 },
-              { label: "Tỷ lệ tuân thủ", value: formatPercent2(p.payload?.kpis?.ty_le_tuan_thu ?? 0) },
+              { label: "Tỷ lệ tuân thủ", value: formatPercent2FromRatio(p.payload?.kpis?.tong_dat ?? 0, p.payload?.kpis?.tong_quan_sat ?? 0) },
             ]}
           />
           <SupervisionTrendChart

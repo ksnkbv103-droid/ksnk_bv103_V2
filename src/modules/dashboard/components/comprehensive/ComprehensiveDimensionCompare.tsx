@@ -111,7 +111,7 @@ function DimensionTable({ title, rows }: { title: string; rows: CompareRow[] }) 
   /** Chỉ hiện nhóm có mẫu số > 0; sắp tuân thủ thấp → cao. */
   const sorted = [...rows]
     .filter((r) => (r.tong ?? 0) > 0)
-    .sort((a, b) => a.ty_le_tuan_thu - b.ty_le_tuan_thu);
+    .sort((a, b) => (a.ty_le_tuan_thu ?? 101) - (b.ty_le_tuan_thu ?? 101));
 
   if (sorted.length === 0) {
     return (
@@ -141,7 +141,7 @@ function DimensionTable({ title, rows }: { title: string; rows: CompareRow[] }) 
                 {r.ten}
               </td>
               <td className="px-3 py-1.5 text-right font-bold tabular-nums text-slate-900">
-                {r.ty_le_tuan_thu}%
+                {r.ty_le_tuan_thu == null ? "—" : `${r.ty_le_tuan_thu}%`}
               </td>
               <td className="px-3 py-1.5 text-right tabular-nums text-slate-500">
                 {r.dat != null && r.tong != null ? `${r.dat}/${r.tong}` : "—"}

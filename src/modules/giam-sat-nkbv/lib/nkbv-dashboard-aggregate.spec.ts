@@ -6,7 +6,7 @@ describe("aggregateNkbvDashboard", () => {
     const out = aggregateNkbvDashboard([], "2026-01-01", "2026-01-31");
     expect(out.kpis.tong_phieu).toBe(0);
     expect(out.kpis.da_xac_nhan).toBe(0);
-    expect(out.kpis.ti_le_xac_nhan_so_voi_pa).toBe(0);
+    expect(out.kpis.ti_le_xac_nhan_so_voi_pa).toBeNull();
     expect(out.monthly.length).toBeGreaterThanOrEqual(1);
   });
 

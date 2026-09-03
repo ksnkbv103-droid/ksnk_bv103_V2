@@ -174,7 +174,7 @@ export default function NkbvDashboardPanel({
             sub:
               loading || !k
                 ? ""
-                : `Tỷ lệ/XN vs (PA−Loại trừ): ${k.ti_le_xac_nhan_so_voi_pa ?? 0}%`,
+                : `Tỷ lệ/XN vs (PA−Loại trừ): ${k.ti_le_xac_nhan_so_voi_pa == null ? "—" : `${k.ti_le_xac_nhan_so_voi_pa}%`}`,
           },
           {
             label: "Đang ghi / Chờ XN",
@@ -350,14 +350,14 @@ export default function NkbvDashboardPanel({
                 const totVap = rates.reduce((acc, r) => acc + Number(r.obs_vap_cases || 0), 0);
                 const totSsi = rates.reduce((acc, r) => acc + Number(r.obs_ssi_cases || 0), 0);
 
-                const clabsiRate = totCvcDays > 0 ? ((totClabsi / totCvcDays) * 1000).toFixed(2) : "0.00";
-                const cautiRate = totFoleyDays > 0 ? ((totCauti / totFoleyDays) * 1000).toFixed(2) : "0.00";
-                const vapRate = totVentDays > 0 ? ((totVap / totVentDays) * 1000).toFixed(2) : "0.00";
-                const ssiRate = totSurgeries > 0 ? ((totSsi / totSurgeries) * 100).toFixed(2) : "0.00";
+                const clabsiRate = totCvcDays > 0 ? ((totClabsi / totCvcDays) * 1000).toFixed(2) : "—";
+                const cautiRate = totFoleyDays > 0 ? ((totCauti / totFoleyDays) * 1000).toFixed(2) : "—";
+                const vapRate = totVentDays > 0 ? ((totVap / totVentDays) * 1000).toFixed(2) : "—";
+                const ssiRate = totSurgeries > 0 ? ((totSsi / totSurgeries) * 100).toFixed(2) : "—";
 
-                const cvcDur = totPatientDays > 0 ? (totCvcDays / totPatientDays).toFixed(4) : "0.0000";
-                const foleyDur = totPatientDays > 0 ? (totFoleyDays / totPatientDays).toFixed(4) : "0.0000";
-                const ventDur = totPatientDays > 0 ? (totVentDays / totPatientDays).toFixed(4) : "0.0000";
+                const cvcDur = totPatientDays > 0 ? (totCvcDays / totPatientDays).toFixed(4) : "—";
+                const foleyDur = totPatientDays > 0 ? (totFoleyDays / totPatientDays).toFixed(4) : "—";
+                const ventDur = totVentDays > 0 ? (totVentDays / totPatientDays).toFixed(4) : "—";
 
                 return (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -417,7 +417,7 @@ export default function NkbvDashboardPanel({
                       </div>
                       <div className="flex justify-between items-baseline">
                         <span className="bv103-type-kpi tabular-nums text-slate-800">{totSsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
-                        <span className="bv103-type-label font-semibold text-blue-600">{ssiRate}% <span className="text-[11px] font-normal text-slate-400">tỷ lệ mổ</span></span>
+                        <span className="bv103-type-label font-semibold text-blue-600">{ssiRate === "—" ? "—" : `${ssiRate}%`} <span className="text-[11px] font-normal text-slate-400">tỷ lệ mổ</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-semibold">
                         <div>Số ca mổ: <strong className="text-slate-700">{totSurgeries}</strong></div>

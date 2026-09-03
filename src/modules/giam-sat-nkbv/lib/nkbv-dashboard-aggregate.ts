@@ -59,8 +59,8 @@ export type NkbvDashboardPayload = {
     dang_va_cho_xn: number;
     loai_tru: number;
     da_dong: number;
-    /** 0–100, làm tròn */
-    ti_le_xac_nhan_so_voi_pa: number;
+    /** 0–100, làm tròn số nguyên; null khi mẫu số = 0 */
+    ti_le_xac_nhan_so_voi_pa: number | null;
   };
   monthly: { ky: string; label: string; so_phieu: number }[];
   by_loai: { ma: string; ten: string; so_phieu: number }[];
@@ -164,7 +164,7 @@ export function aggregateNkbvDashboard(
   const tong_phieu = inRange.length;
   const pa_denominator = tong_phieu - loai_tru;
   const ti_le_xac_nhan_so_voi_pa =
-    pa_denominator > 0 ? Math.round((da_xac_nhan / pa_denominator) * 1000) / 10 : 0;
+    pa_denominator > 0 ? Math.round((da_xac_nhan / pa_denominator) * 100) : null;
 
   return {
     tu_ngay: tuNgayISO,

@@ -19,7 +19,11 @@ import { QlcvChecklistPanel } from "./QlcvChecklistPanel";
 import { QlcvManualProgressPanel } from "./QlcvManualProgressPanel";
 import { DeXuatApproveForm } from "./DeXuatApproveForm";
 import { QlcvTaskPrintView } from "./print/QlcvTaskPrintView";
-import { taskUsesQlcvChecklistForProgress } from "@/lib/domain/qlcv-checklist";
+import {
+  normalizeQlcvChecklist,
+  percentFromQlcvChecklist,
+  taskUsesQlcvChecklistForProgress,
+} from "@/lib/domain/qlcv-checklist";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 import {
@@ -194,6 +198,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const showEditMetadata = canShowEditTaskMetadata(data, accessFlags);
   const showApproveDeXuat = isDeXuatChoDuyet(data) && canShowQlcvApproveActions(accessFlags);
   const usesChecklist = taskUsesQlcvChecklistForProgress(data.checklist);
+  const checklistPct = percentFromQlcvChecklist(normalizeQlcvChecklist(data.checklist));
   const st = normalizeQlcvTrangThaiToCanonical(data.trang_thai);
   const assigneeInactiveOpen =
     Boolean(data.nguoi_phu_trach_id) &&
@@ -382,13 +387,13 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
               <div className="mb-2 flex items-center justify-between gap-3">
                 <span className={qlcvDetailChrome.sectionLabel}>Tiến độ thực hiện</span>
                 <span className="text-sm font-semibold text-[var(--primary)]">
-                  {Number(data.phan_tram_hoan_thanh ?? 0)}%
+                  {checklistPct}%
                 </span>
               </div>
               <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
                 <div
                   className="h-full rounded-full bg-[var(--primary)] transition-all"
-                  style={{ width: `${Math.min(100, Math.max(0, Number(data.phan_tram_hoan_thanh ?? 0)))}%` }}
+                  style={{ width: `${Math.min(100, Math.max(0, checklistPct))}%` }}
                 />
               </div>
             </div>
