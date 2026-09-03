@@ -11,13 +11,21 @@ import {
 import { cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
 import { useModulePermission } from "@/hooks/useModulePermission";
 
+type QueueRow = {
+  id: string;
+  maBo: string;
+  tenBo: string;
+  moTa: string;
+  createdAt: string | null;
+  catalogLineCount: number;
+  catalogDiffs?: Array<{ kindLabel: string; before: string; after: string }>;
+};
+
 export function SetReconcileApproveQueue() {
-  const { allowed: leAllowed } = useModulePermission("DC_LE");
+  const { isAdmin, allowed: leAllowed } = useModulePermission("DC_LE");
   const { allowed: boAllowed } = useModulePermission("BO_DC");
-  const canApprove = Boolean(leAllowed.edit || boAllowed.edit);
-  const [rows, setRows] = useState<
-    Array<{ id: string; maBo: string; tenBo: string; moTa: string; createdAt: string | null; catalogLineCount: number }>
-  >([]);
+  const canApprove = Boolean(isAdmin || leAllowed.edit || boAllowed.edit);
+  const [rows, setRows] = useState<QueueRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const reload = async () => {
@@ -44,10 +52,23 @@ export function SetReconcileApproveQueue() {
       <h3 className="text-sm font-semibold text-amber-950">Phiếu chờ duyệt đổi thành phần chuẩn</h3>
       <ul className="mt-2 space-y-2">
         {rows.map((r) => (
-          <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-200 bg-white px-3 py-2 text-[12px]">
-            <div>
+          <li key={r.id} className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-amber-200 bg-white px-3 py-2 text-[12px]">
+            <div className="min-w-0">
               <p className="font-semibold text-slate-800">{r.maBo} {r.tenBo ? `— ${r.tenBo}` : ""}</p>
               <p className="text-slate-500">{r.catalogLineCount} dòng đề nghị · {r.moTa}</p>
+              {r.catalogDiffs?.length ? (
+                <ul className="mt-1 space-y-0.5 text-[11px] text-slate-600">
+                  {r.catalogDiffs.slice(0, 6).map((d, i) => (
+                    <li key={`${r.id}-${i}`}>
+                      <span className="font-semibold text-amber-900">{d.kindLabel}:</span>{" "}
+                      {d.before} → {d.after}
+                    </li>
+                  ))}
+                  {r.catalogDiffs.length > 6 ? (
+                    <li className="text-slate-400">… và {r.catalogDiffs.length - 6} dòng nữa</li>
+                  ) : null}
+                </ul>
+              ) : null}
             </div>
             <div className="flex flex-wrap gap-2">
               <Link href={cssdSuCoIncidentJournalHref(r.id)} className="text-[11px] font-semibold text-[var(--primary)]">

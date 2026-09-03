@@ -2,6 +2,7 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyAnyPermission, verifyPermission } from "@/lib/server-permission";
+import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import {
   applyResolvedTramToLoaiSpecs,
@@ -114,6 +115,7 @@ export async function listActiveTramCssdForLoaiAction() {
 export async function saveLoaiDungCuAction(input: LoaiDungCuPayload) {
   const id = String(input.id || "").trim();
   await verifyPermission("LOAI_DC", id ? "edit" : "create");
+  await requireCssdCatalogMasterWrite();
   const payload = buildLoaiPhysicalUpsertPayload(input);
   const ma = String(payload.ma_loai || "");
   const ten = String(payload.ten_loai || "");
@@ -147,15 +149,18 @@ export async function saveLoaiDungCuAction(input: LoaiDungCuPayload) {
 
 export async function toggleLoaiDungCuStatusAction(id: string, currentStatus: boolean) {
   await verifyPermission("LOAI_DC", "edit");
+  await requireCssdCatalogMasterWrite();
   return toggleMasterStatus("cssd_dm_loai_dung_cu", id, currentStatus);
 }
 
 export async function softDeleteLoaiDungCuAction(id: string) {
   await verifyPermission("LOAI_DC", "delete");
+  await requireCssdCatalogMasterWrite();
   return softDeleteMasterRow("cssd_dm_loai_dung_cu", id);
 }
 
 export async function softDeleteManyLoaiDungCuAction(ids: string[]) {
   await verifyPermission("LOAI_DC", "delete");
+  await requireCssdCatalogMasterWrite();
   return softDeleteManyMasterRows("cssd_dm_loai_dung_cu", ids);
 }

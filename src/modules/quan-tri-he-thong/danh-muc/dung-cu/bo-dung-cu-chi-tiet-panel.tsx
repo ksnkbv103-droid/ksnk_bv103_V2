@@ -10,6 +10,7 @@ import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import type { DungCuChiTietTableRow } from "./dung-cu-chi-tiet-form-shared";
 import { cssdSuCoInstrumentHref } from "@/lib/cssd-routes";
 import { formatKhoaCompactLabel, formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
+import { useModulePermission } from "@/hooks/useModulePermission";
 import {
   getBoRefsByLoaiAction,
   getBoDungCuChiTietPreviewAction,
@@ -87,6 +88,8 @@ export function BoDungCuChiTietPanel({
   loaiOptions,
   onChanged,
 }: Props) {
+  const { isAdmin } = useModulePermission("DC_LE");
+  const canWriteMaster = isAdmin;
   const [activeTab, setActiveTab] = useState<"components" | "allocations">("components");
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<BoDungCuChiTietPreviewRow[]>([]);
@@ -228,23 +231,32 @@ export function BoDungCuChiTietPanel({
               <div className="flex justify-center py-12 text-slate-500">
                 <Loader2 className="h-8 w-8 animate-spin" aria-label="Đang tải" />
               </div>
-            ) : rows.length === 0 ? (
-              <p className="text-center text-sm text-slate-500">
-                Bộ này chưa có dòng chi tiết trong <code className="rounded bg-slate-100 px-1 text-xs">cssd_dm_bo_dung_cu_chi_tiet</code>.
-              </p>
             ) : (
               <div className={C.sectionGap}>
                 <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditing(null);
-                      setModalOpen(true);
-                    }}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-100 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-emerald-800 hover:opacity-90 transition-all active:scale-95"
-                  >
-                    <PackagePlus className="h-3.5 w-3.5" /> Bổ sung dụng cụ vào bộ này
-                  </button>
+                  {canWriteMaster ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditing(null);
+                        setModalOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-100 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-emerald-800 hover:opacity-90 transition-all active:scale-95"
+                    >
+                      <PackagePlus className="h-3.5 w-3.5" /> Bổ sung dụng cụ vào bộ này
+                    </button>
+                  ) : (
+                    <Link
+                      href={cssdSuCoInstrumentHref({
+                        type: "INSTRUMENT_SET_RECONCILE",
+                        ma: selectedMaBo,
+                      })}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-amber-100 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-wide text-amber-900 hover:opacity-90 transition-all active:scale-95"
+                    >
+                      <RefreshCcw className="h-3.5 w-3.5" /> Lập phiếu rà soát
+                    </Link>
+                  )}
+                  {canWriteMaster ? (
                   <button
                     type="button"
                     disabled={!selectedChiTiet}
@@ -257,6 +269,7 @@ export function BoDungCuChiTietPanel({
                   >
                     <RefreshCcw className="h-3.5 w-3.5" /> Điều chuyển / chỉnh thông tin dụng cụ đã chọn
                   </button>
+                  ) : null}
                   <Link
                     href={cssdSuCoInstrumentHref({
                       type: "INSTRUMENT_BROKEN",
@@ -281,6 +294,11 @@ export function BoDungCuChiTietPanel({
                   </Link>
                 </div>
 
+                {rows.length === 0 ? (
+                  <p className="text-center text-sm text-slate-500">
+                    Bộ này chưa có dòng chi tiết trong <code className="rounded bg-slate-100 px-1 text-xs">cssd_dm_bo_dung_cu_chi_tiet</code>.
+                  </p>
+                ) : (
                 <ResponsiveTableShell unboxed maxHeight="max-h-[min(360px,50dvh)]">
                   <table className="w-full min-w-[640px] border-collapse text-left text-sm">
                     <thead>
@@ -326,6 +344,7 @@ export function BoDungCuChiTietPanel({
                     </tbody>
                   </table>
                 </ResponsiveTableShell>
+                )}
 
                 {selectedChiTiet ? (
                   <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/80 p-6 space-y-[var(--bv103-space-3)]">
@@ -567,6 +586,7 @@ export function BoDungCuChiTietPanel({
         </div>
       )}
 
+      {canWriteMaster ? (
       <DungCuChiTietFormModal
         key={editing?.id || "create-by-bo"}
         open={modalOpen}
@@ -586,6 +606,7 @@ export function BoDungCuChiTietPanel({
           setEditing(null);
         }}
       />
+      ) : null}
     </section>
   );
 }

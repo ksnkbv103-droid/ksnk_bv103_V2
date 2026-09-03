@@ -13,6 +13,7 @@ type Props = {
   onTriggerImport: () => void;
   onExportTemplate: () => void;
   onCreate: () => void;
+  canWriteMaster?: boolean;
 };
 
 export function BoDungCuPageHeader({
@@ -22,6 +23,7 @@ export function BoDungCuPageHeader({
   onTriggerImport,
   onExportTemplate,
   onCreate,
+  canWriteMaster = true,
 }: Props) {
   return (
     <>
@@ -37,12 +39,15 @@ export function BoDungCuPageHeader({
               onExport={onExportTemplate}
               onImportClick={onTriggerImport}
               onFileChange={onFileSelected}
+              showImport={canWriteMaster}
               exportClassName={C.ctaMuted}
               importClassName={C.ctaAmber}
             />
-            <button type="button" onClick={onCreate} className={C.ctaPrimary}>
-              <Plus size={18} /> Thêm mới
-            </button>
+            {canWriteMaster ? (
+              <button type="button" onClick={onCreate} className={C.ctaPrimary}>
+                <Plus size={18} /> Thêm mới
+              </button>
+            ) : null}
           </>
         }
       />

@@ -40,7 +40,7 @@ export default function QuanLyDungCuPage() {
     router.replace(quanTriDungCuHref(tab), { scroll: false });
   };
 
-  const { loading: permLoading, allowed: loaiAllowed } = useModulePermission("LOAI_DC");
+  const { loading: permLoading, isAdmin, allowed: loaiAllowed } = useModulePermission("LOAI_DC");
   const { allowed: boAllowed } = useModulePermission("BO_DC");
   const { allowed: leAllowed } = useModulePermission("DC_LE");
 
@@ -93,6 +93,11 @@ export default function QuanLyDungCuPage() {
       />
 
       <DungCuWorkflowGuide />
+      {!isAdmin ? (
+        <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600">
+          Form thêm/sửa/xóa danh mục loại–bộ–thành phần chỉ dành cho quản trị. Nhân viên đề nghị đổi chuẩn qua phiếu rà soát tại sự cố CSSD; tổ trưởng hoặc admin duyệt trên hàng chờ tab Bộ.
+        </p>
+      ) : null}
 
       <div className="transition-all duration-300">
         {activeTab === "loai" && (

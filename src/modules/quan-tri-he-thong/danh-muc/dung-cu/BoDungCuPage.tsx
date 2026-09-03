@@ -18,6 +18,7 @@ import { BoDungCuChiTietPanel } from "./bo-dung-cu-chi-tiet-panel";
 import { SetReconcileApproveQueue } from "./SetReconcileApproveQueue";
 import { BoDungCuMaBoHealthBanner } from "./bo-dung-cu-ma-bo-health-banner";
 import { BoDungCuQuickSetupPanel } from "./bo-dung-cu-quick-setup-panel";
+import { useModulePermission } from "@/hooks/useModulePermission";
 import {
   getBoDungCuRowsAction,
   getKhoaPhongOptionsForBoAction,
@@ -28,6 +29,8 @@ import {
 
 export function BoDungCuPageContent() {
   const router = useRouter();
+  const { isAdmin } = useModulePermission("BO_DC");
+  const canWriteMaster = isAdmin;
   const [data, setData] = useState<BoDungCuTableRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -82,6 +85,7 @@ export function BoDungCuPageContent() {
   };
 
   const actionUi = useTableActionUi<BoDungCuTableRow>({
+    capabilities: { edit: canWriteMaster, delete: canWriteMaster, toggleActive: canWriteMaster },
     onToggleStatus: async (row) => {
       const result = await toggleBoDungCuStatusAction(row.id, Boolean(row.is_active));
       if (!result.success) {
@@ -131,6 +135,7 @@ export function BoDungCuPageContent() {
       <BoDungCuQuickSetupPanel
         onStartCreateBo={openCreate}
         lastCreatedMaBo={lastCreatedMaBo}
+        canWriteMaster={canWriteMaster}
       />
       <BoDungCuPageHeader
         fileInputRef={fileInputRef}
@@ -139,6 +144,7 @@ export function BoDungCuPageContent() {
         onTriggerImport={triggerImport}
         onExportTemplate={() => void exportTemplate()}
         onCreate={openCreate}
+        canWriteMaster={canWriteMaster}
       />
 
       <div className="min-w-0 sm:min-h-[450px]">
@@ -146,7 +152,7 @@ export function BoDungCuPageContent() {
           columns={columns}
           data={data}
           loading={loading}
-          enableMultiSelect={true}
+          enableMultiSelect={canWriteMaster}
           searchPlaceholder="Tìm theo mã, tên bộ, loại, khoa, ghi chú…"
           rowClassName={(r) =>
             r.id === selectedBoId ? "bg-emerald-50/90 ring-1 ring-inset ring-[var(--primary)]/20" : ""
@@ -180,6 +186,7 @@ export function BoDungCuPageContent() {
         onChanged={() => setRefreshKey((k) => k + 1)}
       />
 
+      {canWriteMaster ? (
       <BoDungCuFormModal
         key={modalKey}
         open={formOpen}
@@ -195,6 +202,7 @@ export function BoDungCuPageContent() {
         onSaved={() => setRefreshKey((k) => k + 1)}
         onSavedMaBo={(ma) => setLastCreatedMaBo(ma)}
       />
+      ) : null}
     </div>
   );
 }
