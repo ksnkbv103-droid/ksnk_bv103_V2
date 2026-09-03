@@ -67,7 +67,10 @@ export function SetReconcileHistoryList() {
             <Link href={cssdSuCoIncidentJournalHref(r.id)} className="text-[11px] font-semibold text-[var(--primary)]">
               Xem
             </Link>
-            <IncidentJournalPrintButton incidentId={r.id} />
+            <IncidentJournalPrintButton
+              incidentId={r.id}
+              className="inline-flex h-8 min-w-[44px] items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700"
+            />
           </div>
         </li>
       ))}
