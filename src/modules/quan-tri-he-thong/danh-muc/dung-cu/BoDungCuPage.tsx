@@ -35,7 +35,7 @@ export function BoDungCuPageContent({ onOpenLoaiSheet }: { onOpenLoaiSheet?: () 
   const [refreshKey, setRefreshKey] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<BoDungCuTableRow | null>(null);
-  const [loaiOptions, setLoaiOptions] = useState<{ id: string; ten_danh_muc: string }[]>([]);
+  const [loaiOptions] = useState<{ id: string; ten_danh_muc: string }[]>([]);
   const [khoaOptions, setKhoaOptions] = useState<{ id: string; ten_khoa: string }[]>([]);
   const [loadingLoai, setLoadingLoai] = useState(true);
   const [loadingKhoa, setLoadingKhoa] = useState(true);

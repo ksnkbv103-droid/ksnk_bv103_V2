@@ -4,6 +4,7 @@ import React from "react";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
+import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 
 type Props = {
   onStartCreateBo: () => void;
@@ -15,7 +16,7 @@ type Props = {
 export function BoDungCuQuickSetupPanel({ onStartCreateBo, lastCreatedMaBo, canWriteMaster = true }: Props) {
   return (
     <div className="space-y-2">
-      <details className="rounded-[var(--radius-control)] border border-slate-200 bg-slate-50/70 px-3 py-2">
+      <details className={`${UI.panelInset} rounded-[var(--radius-control)] border border-slate-200 bg-slate-50/70 px-3 py-2`}>
         <summary className="cursor-pointer text-[11px] font-semibold text-slate-500">Tạo bộ nhanh</summary>
         <ol className="mt-2 grid gap-2 text-[11px] text-slate-600 md:grid-cols-3">
           <li>
