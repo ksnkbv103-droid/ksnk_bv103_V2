@@ -2,10 +2,10 @@
 
 Ngôn ngữ giao diện thống nhất — MIS bệnh viện: trang trọng, đọc được, ít “poster UI”.
 
-## Chuỗi áp dụng (không dùng React hook)
+## Chuỗi áp dụng (hook chỉ đọc class — không set font runtime)
 
-1. **Màu / font-size CSS** → `src/app/globals.css` (`:root`, `.bv103-label`)
-2. **Typography + nhịp trang** → `src/lib/bv103-design-tokens.ts` (`bv103DesignTokens`)
+1. **Màu / 5 vai trò chữ CSS** → `src/app/globals.css` (`:root` `--bv103-type-*`, `.bv103-type-title|section|body|label|kpi|note`)
+2. **Typography + nhịp trang** → `src/lib/bv103-design-tokens.ts` (`bv103DesignTokens` chỉ alias class CSS)
 3. **Control / panel / nút** → `src/lib/bv103-layout-chrome.ts`
 4. **Panel + form surface (L3 chung)** → `src/lib/bv103-panel-chrome.ts` (`bv103PanelChrome`)
 5. **Alias module (bắt buộc khi sửa UI module)** → `*-form-chrome.ts`, `*-table-chrome.ts`
@@ -44,16 +44,16 @@ Mọi `*-columns.tsx` **bắt buộc** import một trong các chrome trên (`np
 
 Mọi `*Panel*`, `*Form*`, `*Modal*` **bắt buộc** import chrome (`npm run panel:chrome-check`). Dùng token `UI.*` / `C.*` qua `npm run panel:wire`.
 
-## Thang typography (6 cấp)
+## Thang typography (5 vai trò + ghi chú)
 
 | Token | Case | Weight | Màu | Dùng cho |
 |-------|------|--------|-----|----------|
-| `pageTitle` | Title case | semibold | slate-900 | H1 trang |
-| `pageEyebrow` | Thường | medium | slate-500 | Dòng phụ dưới H1 |
-| `navGroupLabel` | IN HOA | semibold | slate-400 | Nhóm sidebar |
-| `sectionTitle` / `panelTitle` | Thường | semibold | slate-800 | Tiêu đề khối / panel |
-| `labelBlock` / `tableHeader` | Thường | medium | slate-500 | Label, header cột |
-| `tableCellBody` | Thường | medium | slate-700 | Nội dung bảng |
+| `bv103-type-title` (`pageTitle`) | Title case | 600 | `--text-title` | Tên khối / trang |
+| `bv103-type-section` | Thường | 600 | slate-800 | Tiêu đề nhóm form |
+| `bv103-type-body` | Thường | 500 | `--text-body` | Nội dung, ô bảng |
+| `bv103-type-label` | Thường | 500 | `--text-muted` | Nhãn, header cột |
+| `bv103-type-kpi` | Tabular | 600 | `--text-title` | Số liệu |
+| `bv103-type-note` | Nghiêng | 400 | slate-400 | Ghi chú phụ — **italic duy nhất** |
 
 ## Màu semantic
 

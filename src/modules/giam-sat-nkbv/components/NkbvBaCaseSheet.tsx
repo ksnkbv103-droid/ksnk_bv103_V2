@@ -24,6 +24,8 @@ import { isNkbvBaAnalysisDraftId } from "@/modules/giam-sat-nkbv/lib/nkbv-ba-ana
 import { toast } from "sonner";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import { useNkbvChecklistModalState } from "./useNkbvChecklistModalState";
+import { patchSymptomReview } from "../lib/nkbv-symptom-review";
+import { NkbvSymptomReviewProvider } from "./sub-forms/NkbvSymptomReviewContext";
 import { formatNkbvChecklistTypeLabel } from "../lib/nkbv-loai-labels";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 
@@ -72,6 +74,7 @@ export default function NkbvBaCaseSheet({
     setGhiChuTuyBien,
     suggestedType,
     suggestedReason,
+    lockedType,
     suspectedType,
     setSuspectedType,
     checklistType,
@@ -86,6 +89,8 @@ export default function NkbvBaCaseSheet({
     setSsiForm,
     ch17Form,
     setCh17Form,
+    symptomReview,
+    setSymptomReview,
     handleAddStay,
     handleDeleteStay,
     liveCdcMetrics,
@@ -299,7 +304,7 @@ export default function NkbvBaCaseSheet({
     }
     const pre = await getDevicePrefillForStay(String(row.ma_benh_an || ""), want);
     if (!pre.success || !pre.device_placed_date) {
-      toast.error("Chưa có dụng cụ phù hợp trên sổ đăng ký");
+      toast.error("Chưa tích dụng cụ trên lưới bệnh án");
       return;
     }
     if (checklistType === "BSI" && bsiForm) {
@@ -321,7 +326,7 @@ export default function NkbvBaCaseSheet({
         device_removed_date: pre.device_removed_date || undefined,
       });
     }
-    toast.success("Đã lấy ngày dụng cụ từ sổ đăng ký");
+    toast.success("Đã lấy ngày dụng cụ từ lưới bệnh án");
   };
 
   const ensurePersistedRow = async (): Promise<boolean> => {
@@ -343,7 +348,7 @@ export default function NkbvBaCaseSheet({
 
   const onSave = () => {
     if (!clinicalConfirmed) {
-      toast.error("Cần tích «Lâm sàng xác nhận» trước khi lưu");
+      toast.error("Cần tích «Đã đối soát với khoa» trước khi lưu");
       return;
     }
     void (async () => {
@@ -355,7 +360,7 @@ export default function NkbvBaCaseSheet({
 
   const onAdjudicateWrapped = async (decision: "APPROVE" | "EXCLUDE", reason?: string) => {
     if (decision === "APPROVE" && !ksnkConfirmed) {
-      toast.error("Cần tích «KSNK xác nhận chốt ca» trước khi xác nhận");
+      toast.error("Cần tích «KSNK thống nhất / chốt ca» trước khi xác nhận");
       return;
     }
     const ok = await ensurePersistedRow();
@@ -436,6 +441,12 @@ export default function NkbvBaCaseSheet({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto py-3 pr-1">
+          <NkbvSymptomReviewProvider
+            review={symptomReview}
+            onReviewChange={(key, patch) =>
+              setSymptomReview((prev) => patchSymptomReview(prev, key, patch))
+            }
+          >
           <NkbvDiagnosticCaseForm
             row={row}
             suggestedType={suggestedType}
@@ -443,6 +454,7 @@ export default function NkbvBaCaseSheet({
             specimenLabel={String(row.loai_benh_pham || "")}
             suspectedType={suspectedType}
             setSuspectedType={setSuspectedType}
+            lockType={lockedType}
             checklistType={checklistType}
             clinicalPathway={clinicalPathway || "BSI"}
             allowedEdit={allowedEdit}
@@ -476,6 +488,7 @@ export default function NkbvBaCaseSheet({
             onAdmissionDateChange={(d) => void handleSyncAdmissionDate(d)}
             benhAnMissing={benhAnMissing}
           />
+          </NkbvSymptomReviewProvider>
 
           {allowedEdit ? (
             <div className="mt-4">

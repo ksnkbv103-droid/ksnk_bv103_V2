@@ -98,7 +98,7 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
         <Header onMenuClick={toggleSidebar} />
         <main
           data-bv103-app-scroll
-          className="relative z-0 flex-1 min-h-0 px-2 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-4 md:p-8 pointer-events-auto max-md:overflow-y-auto max-md:overscroll-y-contain max-md:bv103-scroll-y"
+          className="relative z-0 flex-1 min-h-0 px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-3 sm:py-2.5 md:px-4 md:py-3 pointer-events-auto max-md:overflow-y-auto max-md:overscroll-y-contain max-md:bv103-scroll-y"
         >
           {pathnameUsesPhase1KsnkUnifiedContentShell(pathname) ? (
             <KsnkPageShell rolloutPhase="phase-1">{children}</KsnkPageShell>

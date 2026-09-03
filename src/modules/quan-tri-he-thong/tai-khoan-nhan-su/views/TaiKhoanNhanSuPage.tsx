@@ -103,8 +103,9 @@ export default function TaiKhoanNhanSuPage() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="bv103-stack-page animate-in fade-in duration-500">
       <KsnkPageHeader
+        showTitle={false}
         title="Tài khoản và vai trò KSNK"
         actions={
           <button

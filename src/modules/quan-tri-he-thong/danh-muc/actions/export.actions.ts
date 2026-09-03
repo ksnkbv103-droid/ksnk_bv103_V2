@@ -1,7 +1,7 @@
 // src/modules/quan-tri-he-thong/danh-muc/actions/export.actions.ts
 "use server";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { CSSD_LOAI_DM_VIEW, resolveLoaiAlias } from "@/lib/master-data/cssd-loai-dung-cu-map";
+import { mapLoaiDungCuExcelExportRow, resolveLoaiAlias } from "@/lib/master-data/cssd-loai-dung-cu-map";
 import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
 import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
 /** Xuất đầy đủ để có ma_khoi/ma_* — anon client có thể bị RLS chặn, dùng service (cùng cơ chế action master khác). */
@@ -20,6 +20,17 @@ export async function getMasterDataExport(
   await verifyDanhMucLookupPermission(exportModule, "view");
   const supabase = createAdminSupabaseClient();
   try {
+    if (tableName === "cssd_dm_loai_dung_cu") {
+      const { data: physical, error: loaiErr } = await supabase
+        .from("cssd_dm_loai_dung_cu")
+        .select("*")
+        .order("ma_loai", { ascending: true });
+      if (loaiErr) throw loaiErr;
+      return {
+        success: true,
+        data: (physical || []).map((r) => mapLoaiDungCuExcelExportRow(r as Record<string, unknown>)),
+      };
+    }
     let query = supabase.from(tableName).select("*");
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
@@ -112,28 +123,6 @@ export async function getMasterDataExport(
             const ma = String(k.ma_khoa || "").trim();
             return ma || String(k.ten_khoa || "").trim() || null;
           })(),
-        })),
-      };
-    }
-    if (tableName === "cssd_dm_loai_dung_cu") {
-      const { data: viewRows, error: viewErr } = await supabase
-        .from(CSSD_LOAI_DM_VIEW)
-        .select("*")
-        .order("ma_loai_dung_cu", { ascending: true });
-      if (viewErr) throw viewErr;
-      return {
-        success: true,
-        data: (viewRows || []).map((r: Record<string, unknown>) => ({
-          ma_loai_dung_cu: r.ma_loai_dung_cu || r.ma_loai || null,
-          ten_loai_dung_cu: r.ten_loai_dung_cu || r.ten_loai || null,
-          hinh_dang: r.hinh_dang ?? null,
-          kich_thuoc: r.kich_thuoc ?? null,
-          cong_dung: r.cong_dung ?? null,
-          kha_nang_chiu_nhiet: r.kha_nang_chiu_nhiet ?? null,
-          phuong_phap_tiet_khuan: r.phuong_phap_tiet_khuan ?? null,
-          phan_loai: r.phan_loai ?? "PHAU_THUAT",
-          so_luong_kho_du_phong: r.so_luong_kho_du_phong ?? 0,
-          is_active: r.is_active !== false,
         })),
       };
     }

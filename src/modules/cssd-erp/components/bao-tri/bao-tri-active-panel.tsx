@@ -30,7 +30,7 @@ export default function BaoTriActivePanel({
 }: Props) {
   const active = rows.filter((x) => x.trang_thai === "DANG_THUC_HIEN");
   return (
-    <div className={`${UI.sectionGap} space-y-4 rounded-[var(--radius-shell)] border border-amber-100 bg-amber-50/40 p-4 text-sm text-slate-700`}>
+    <div className={`${UI.sectionGap} space-y-[var(--bv103-space-3)] rounded-[var(--radius-shell)] border border-amber-100 bg-amber-50/40 p-4 text-sm text-slate-700`}>
       <p className="font-semibold text-slate-800">Phiếu đang thực hiện — checklist + biên bản</p>
       <div className="grid gap-3 md:grid-cols-1">
         {active.map((x) => {

@@ -1,5 +1,6 @@
 "use server";
 
+import { genericDmMustUseDedicatedPageError } from "@/lib/master-data/danh-muc-admin-routes";
 import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
 import { getRegistryEntryOrNull } from "@/lib/master-data/domain-registry";
 import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
@@ -17,6 +18,12 @@ function getPermissionModuleForLoai(loaiDanhMuc: string): string {
   const key = loaiDanhMuc.trim();
   if (key === "VAI_TRO_HE_THONG_KSNK") return "PHAN_QUYEN";
   return resolveDanhMucViewModuleByType(key);
+}
+
+function rejectDedicatedGenericWrite(loaiDanhMuc: string) {
+  const error = genericDmMustUseDedicatedPageError(loaiDanhMuc);
+  if (!error) return null;
+  return { success: false as const, error };
 }
 
 export async function listGenericDmAction(loaiDanhMuc: string) {
@@ -49,6 +56,8 @@ export async function upsertGenericDmAction(
   isActive: boolean
 ) {
   await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), id ? "edit" : "create");
+  const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
+  if (dedicated) return dedicated;
   const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
   if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
   const payload = buildMigratedUpsertPayload(reg, {
@@ -61,6 +70,8 @@ export async function upsertGenericDmAction(
 
 export async function toggleGenericDmAction(loaiDanhMuc: string, id: string, currentActive: boolean) {
   await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), "edit");
+  const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
+  if (dedicated) return dedicated;
   const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
   if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
   return toggleMasterStatus(reg.sourceTable, id, currentActive);
@@ -68,6 +79,8 @@ export async function toggleGenericDmAction(loaiDanhMuc: string, id: string, cur
 
 export async function softDeleteGenericDmAction(loaiDanhMuc: string, id: string) {
   await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), "delete");
+  const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
+  if (dedicated) return dedicated;
   const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
   if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
   return softDeleteMasterRow(reg.sourceTable, id);
@@ -75,6 +88,8 @@ export async function softDeleteGenericDmAction(loaiDanhMuc: string, id: string)
 
 export async function softDeleteManyGenericDmAction(loaiDanhMuc: string, ids: string[]) {
   await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), "delete");
+  const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
+  if (dedicated) return dedicated;
   const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
   if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
   if (!ids.length) return { success: false as const, error: "Chưa chọn dòng." };

@@ -1,12 +1,32 @@
 import type { MasterOption } from "@/lib/master-data/gateway";
-import type { ChecklistResult, ChecklistTemplate } from "@/types/giam-sat-chung";
-import { getTieuChisForGiamSatChung } from "@/lib/mdm-read-gateway";
+import type {
+  BangKiemCachTinhDiem,
+  BangKiemLoaiGiamSat,
+  ChecklistResult,
+  ChecklistTemplate,
+} from "@/types/giam-sat-chung";
+import { getBangKiemByMaOrIdForGscLookup, getTieuChisForGiamSatChung } from "@/lib/mdm-read-gateway";
 import {
   getGiamSatChungSessionForViewBundle,
   getGscHeaderDmDropdowns,
   getGscSessionPrintLabels,
 } from "../actions/giam-sat-chung.actions";
-import { findBangKiemForSessionLoai } from "./resolve-gsc-bang-kiem";
+import {
+  gscViewBangKiemLookupKeys,
+  pickBangKiemForGscView,
+} from "./resolve-gsc-bang-kiem";
+import {
+  checklistTemplateFromGscBangKiemSnapshot,
+  parseGscBangKiemSnapshot,
+} from "./gsc-bang-kiem-snapshot";
+import {
+  pickTieuChiJsonbForGscSession,
+  scoredCriterionIdsFromGscResults,
+} from "./gsc-session-criteria-hydrate";
+import {
+  mapTieuChiJsonbToCriterion,
+  type TieuChiJsonbRaw,
+} from "./gsc-form-template-sync";
 import { mergeGscSessionWithDbPrintLabels, snapshotGscSessionForPrint } from "./gsc-session-labels";
 
 export type GscViewBundle = {
@@ -22,6 +42,26 @@ export type GscViewBundle = {
 const normVal = (v: unknown): ChecklistResult["value"] =>
   v === "DAT" || v === "KHONG_DAT" || v === "NA" ? v : "NA";
 
+function templateFromLiveBangKiem(
+  bk: Record<string, unknown>,
+  tieuChi: TieuChiJsonbRaw[],
+): ChecklistTemplate {
+  const bkId = String(bk.id ?? "");
+  const maBk = String(bk.ma_bk ?? "").trim();
+  const tenBk = String(bk.ten_bang_kiem ?? bk.ten_bk ?? "").trim() || "Bảng kiểm";
+  const lg = String(bk.loai_giam_sat ?? "").trim().toUpperCase() || null;
+  const cach = String(bk.cach_tinh_diem ?? "").trim().toUpperCase() || null;
+  return {
+    id: maBk || bkId,
+    dbId: bkId,
+    title: tenBk,
+    category: "Giám sát chung",
+    criteria: tieuChi.map(mapTieuChiJsonbToCriterion),
+    loai_giam_sat: lg as BangKiemLoaiGiamSat | null,
+    cach_tinh_diem: cach as BangKiemCachTinhDiem | null,
+  };
+}
+
 /** Chuẩn bị template + kết quả + dropdown khoa/khu để xem/in phiên lịch sử. */
 export async function loadGscViewBundle(
   dbTemplates: Record<string, unknown>[],
@@ -32,30 +72,62 @@ export async function loadGscViewBundle(
   if (sid) {
     const fresh = await getGiamSatChungSessionForViewBundle(sid);
     if (fresh.success) {
-      const incomingResults = sessionRow.results;
-      const hasIncoming = Array.isArray(incomingResults) && incomingResults.length > 0;
-      sessionRow = {
-        ...fresh.data,
-        results: hasIncoming ? incomingResults : fresh.data.results,
-      } as Record<string, unknown>;
+      sessionRow = fresh.data as Record<string, unknown>;
     }
   }
 
-  const bk = findBangKiemForSessionLoai(dbTemplates, sessionRow.loai_bang_kiem);
-  if (!bk) {
+  const frozen = parseGscBangKiemSnapshot(
+    sessionRow.bang_kiem_snapshot ?? sessionRow.metadata,
+  );
+  const lookupKeys = gscViewBangKiemLookupKeys({
+    loaiBangKiem: sessionRow.loai_bang_kiem,
+    frozenBangKiemId: frozen?.bang_kiem_id,
+    sessionBangKiemId: sessionRow.bang_kiem_id,
+  });
+  let lookupRow: Record<string, unknown> | null = null;
+  const pickerHit = pickBangKiemForGscView({
+    dbTemplates,
+    loaiBangKiem: sessionRow.loai_bang_kiem,
+    frozenBangKiemId: frozen?.bang_kiem_id,
+    sessionBangKiemId: String(sessionRow.bang_kiem_id ?? ""),
+  });
+  if (!frozen && !pickerHit) {
+    for (const key of lookupKeys) {
+      const found = await getBangKiemByMaOrIdForGscLookup(key);
+      if (found.success && found.data) {
+        lookupRow = found.data as Record<string, unknown>;
+        break;
+      }
+    }
+  }
+  const bk = pickBangKiemForGscView({
+    dbTemplates,
+    loaiBangKiem: sessionRow.loai_bang_kiem,
+    frozenBangKiemId: frozen?.bang_kiem_id,
+    sessionBangKiemId: String(sessionRow.bang_kiem_id ?? ""),
+    lookup: lookupRow,
+  });
+  const br = bk as
+    | {
+        id?: string;
+        ma_bk?: string | null;
+        ten_bang_kiem?: string | null;
+        ten_bk?: string | null;
+        loai_giam_sat?: string | null;
+        cach_tinh_diem?: string | null;
+      }
+    | undefined;
+  const bkId = String(br?.id ?? frozen?.bang_kiem_id ?? "");
+
+  if (!frozen && !bk) {
     return {
       ok: false,
       error: "Không tìm thấy mẫu bảng kiểm (mã hoặc UUID không khớp danh mục).",
     };
   }
 
-  const br = bk as { id?: string; ma_bk?: string | null; ten_bang_kiem?: string | null; ten_bk?: string | null };
-  const bkId = String(br.id ?? "");
-  const maBk = String(br.ma_bk ?? "").trim();
-  const tenBk = String(br.ten_bang_kiem ?? br.ten_bk ?? "").trim() || "Bảng kiểm";
-
   const [tcRes, dropdownRes, labelsRes] = await Promise.all([
-    getTieuChisForGiamSatChung(bkId),
+    frozen || !bkId ? Promise.resolve(null) : getTieuChisForGiamSatChung(bkId, false),
     getGscHeaderDmDropdowns(),
     getGscSessionPrintLabels({
       khoa_id: sessionRow.khoa_id,
@@ -66,7 +138,7 @@ export async function loadGscViewBundle(
     }),
   ]);
 
-  if (!tcRes.success) {
+  if (!frozen && tcRes && !tcRes.success) {
     return { ok: false, error: "Không thể tải tiêu chí: " + tcRes.error };
   }
 
@@ -75,47 +147,43 @@ export async function loadGscViewBundle(
   const nnRows = dropdownRes.success && dropdownRes.data ? dropdownRes.data.ngheNghieps || [] : [];
   const nsRows = dropdownRes.success && dropdownRes.data ? dropdownRes.data.nhanSus || [] : [];
 
-  const criteria = tcRes.data || [];
-  const template: ChecklistTemplate = {
-    id: maBk || bkId,
-    dbId: bkId,
-    title: tenBk,
-    category: "Giám sát chung",
-    criteria: criteria.map((c: {
-      id: string;
-      noi_dung?: string | null;
-      stt: number;
-      diem_toi_da?: number;
-      weight_type?: 'CRITICAL' | 'MAJOR' | 'MINOR';
-      weightType?: 'CRITICAL' | 'MAJOR' | 'MINOR';
-      is_red_flag?: boolean;
-      isRedFlag?: boolean;
-    }) => ({
-      id: c.id,
-      label: String(c.noi_dung ?? "").trim() || "Tiêu chí",
-      maxScore: c.diem_toi_da || 1,
-      weightType: c.weightType || c.weight_type || 'MAJOR',
-      isRedFlag: c.isRedFlag !== undefined ? c.isRedFlag : (c.is_red_flag || false),
-    })),
-  };
+  const liveTieuChi = (tcRes && tcRes.success ? tcRes.data : []) as TieuChiJsonbRaw[];
+  const scoredIds = scoredCriterionIdsFromGscResults(sessionRow.results);
+
+  const template: ChecklistTemplate = frozen
+    ? checklistTemplateFromGscBangKiemSnapshot(frozen)
+    : templateFromLiveBangKiem(
+        (br ?? {}) as Record<string, unknown>,
+        pickTieuChiJsonbForGscSession({
+          frozen: null,
+          live: liveTieuChi,
+          scoredCriterionIds: scoredIds,
+        }),
+      );
 
   const rawResults = (sessionRow.results as {
     criterion_id?: string;
     value?: string;
     note?: string | null;
-    weight_type?: 'CRITICAL' | 'MAJOR' | 'MINOR';
-    weightType?: 'CRITICAL' | 'MAJOR' | 'MINOR';
+    weight_type?: "CRITICAL" | "MAJOR" | "MINOR";
+    weightType?: "CRITICAL" | "MAJOR" | "MINOR";
     is_red_flag?: boolean;
     isRedFlag?: boolean;
     image_url?: string | null;
+    gia_tri_so?: number | null;
+    gia_tri_lua_chon?: string | null;
+    thoi_diem_ghi?: string | null;
   }[]) || [];
   const results: ChecklistResult[] = rawResults.map((r) => ({
-    criterionId: String(r.criterion_id),
+    criterionId: String(r.criterion_id ?? (r as { criterionId?: string }).criterionId ?? ""),
     value: normVal(r.value),
     note: r.note,
-    weightType: r.weightType || r.weight_type || 'MAJOR',
+    weightType: r.weightType || r.weight_type || "MAJOR",
     isRedFlag: r.isRedFlag !== undefined ? r.isRedFlag : (r.is_red_flag || false),
     image_url: r.image_url ?? null,
+    gia_tri_so: r.gia_tri_so ?? null,
+    gia_tri_lua_chon: r.gia_tri_lua_chon ?? null,
+    thoi_diem_ghi: r.thoi_diem_ghi ?? null,
   }));
 
   let sessionObj = sessionRow;

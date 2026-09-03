@@ -18,6 +18,7 @@ import { selectRolesForRbacMatrixColumns } from "../rbac.types";
 import { RBAC_ACTION_FALLBACK_META, RBAC_ACTION_META } from "./rbac-matrix-action-meta";
 import { RBACMatrixDataGrid } from "./rbac-matrix-data-grid";
 import RbacMenuPreviewPanel from "./RbacMenuPreviewPanel";
+import RbacCatalogPackPanel from "./RbacCatalogPackPanel";
 
 export default function RBACMatrixView() {
   const { isAdmin, loading: permLoading, allowed } = useModulePermission("PHAN_QUYEN");
@@ -179,7 +180,7 @@ export default function RBACMatrixView() {
 
   if (permLoading || loading)
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center space-y-4">
+      <div className="flex min-h-[400px] flex-col items-center justify-center space-y-[var(--bv103-space-3)]">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent" />
         <p className={bv103DesignTokens.labelBlockMuted}>Đang tải ma trận bảo mật…</p>
       </div>
@@ -261,13 +262,25 @@ export default function RBACMatrixView() {
       />
 
       {previewRoleId && data?.permissions?.length ? (
-        <RbacMenuPreviewPanel
-          roles={roles}
-          matrix={matrix}
-          permissions={data.permissions}
-          previewRoleId={previewRoleId}
-          onPreviewRoleChange={setPreviewRoleId}
-        />
+        <div className="space-y-3">
+          <RbacMenuPreviewPanel
+            roles={roles}
+            matrix={matrix}
+            permissions={data.permissions}
+            previewRoleId={previewRoleId}
+            onPreviewRoleChange={setPreviewRoleId}
+          />
+          <RbacCatalogPackPanel
+            roles={roles}
+            permissions={data.permissions}
+            matrix={matrix}
+            previewRoleId={previewRoleId}
+            onPreviewRoleChange={setPreviewRoleId}
+            onApplyPack={(roleId, next) => {
+              setMatrix((prev) => ({ ...prev, [roleId]: next }));
+            }}
+          />
+        </div>
       ) : null}
 
       <RBACMatrixDataGrid

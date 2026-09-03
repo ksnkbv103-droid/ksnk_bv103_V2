@@ -96,7 +96,7 @@ export default function CongViecKanban({
                   {col.title}
                 </h3>
               </div>
-              <span className="shrink-0 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-black text-slate-500">
+              <span className="shrink-0 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-500">
                 {colTasks.length}
               </span>
             </div>
@@ -139,7 +139,7 @@ export default function CongViecKanban({
                     {isQlcvBoardOverdue(task) ? (
                       <p className="mb-1 text-[11px] font-semibold text-red-700">Quá hạn</p>
                     ) : null}
-                    <h4 className="mb-1 line-clamp-2 text-sm font-black leading-tight text-slate-800">{task.tieu_de}</h4>
+                    <h4 className="mb-1 line-clamp-2 text-sm font-semibold leading-tight text-slate-800">{task.tieu_de}</h4>
                     <div className="mb-2">
                       <QlcvDinhKyMauChip loaiCongViec={task.loai_cong_viec} dinhKyMauId={task.dinh_ky_mau_id} />
                     </div>
@@ -147,7 +147,7 @@ export default function CongViecKanban({
                     <div className="flex flex-col gap-2 border-t border-slate-100 pt-2.5 sm:flex-row sm:items-center sm:justify-between">
                       <div className="min-w-0 flex-1">
                         <span className="text-[11px] font-medium text-slate-400">Phụ trách / Tổ</span>
-                        <p className="truncate text-[11px] font-black text-slate-600">
+                        <p className="truncate text-[11px] font-semibold text-slate-600">
                           {task.nguoi_phu_trach_ten || "Chưa phân công"}
                           {task.to_cong_tac_ten ? ` · ${task.to_cong_tac_ten}` : ""}
                         </p>

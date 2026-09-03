@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ageYearsFromNgaySinh,
   buildUtiTimelineVerdict,
+  countUrineSpecies,
   gateUtiIndexLab,
   parseUrineCfu,
   stripUtiVoidingFromLamSang,
@@ -37,6 +38,14 @@ describe("nkbv-uti-timeline-verdict", () => {
       urine({ id: "u2", ngay: "2026-07-20", so_luong: "1000" }),
     );
     expect(low.cfuOk).toBe(false);
+  });
+
+  it("đếm loài từ LIS: + / và / «3 loài»", () => {
+    expect(countUrineSpecies("E. coli")).toBe(1);
+    expect(countUrineSpecies("E. coli + K. pneumoniae")).toBe(2);
+    expect(countUrineSpecies("E. coli, K. pneumoniae và P. aeruginosa")).toBe(3);
+    expect(countUrineSpecies("E. coli", "3 loài")).toBe(3);
+    expect(gateUtiIndexLab(urine({ id: "u3", ngay: "2026-07-20", vi_khuan: "E. coli + Klebsiella" })).pathogenCount).toBe(2);
   });
 
   it("strip voiding khi Foley ngày đó", () => {

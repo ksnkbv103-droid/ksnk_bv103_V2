@@ -163,35 +163,67 @@ function mapScoringToSessionFields(
   };
 }
 
+type GscScoringTemplateSlice = {
+  cach_tinh_diem?: unknown;
+  tieu_chi_jsonb?: unknown;
+};
+
+function scoringMetaFromTemplateSlice(row: GscScoringTemplateSlice | null | undefined): {
+  cachTinhDiem: GsttCachTinhDiem;
+  thenChotMap: Map<string, boolean> | null;
+} {
+  let cachTinhDiem: GsttCachTinhDiem = DEFAULT_CACH_TINH_DIEM;
+  const raw = String(row?.cach_tinh_diem ?? "").trim().toUpperCase();
+  if (VALID_CACH_TINH_DIEM.has(raw as GsttCachTinhDiem)) {
+    cachTinhDiem = raw as GsttCachTinhDiem;
+  }
+  return {
+    cachTinhDiem,
+    thenChotMap: buildThenChotMap(row?.tieu_chi_jsonb),
+  };
+}
+
 /**
  * Engine `computeScore` — % + cờ phụ. Thiếu `cach_tinh_diem` → TY_LE.
+ * BK-1: nếu có ảnh chụp mẫu trên phiên thì chấm theo ảnh chụp, không theo mẫu đang sửa ở Quản trị.
  */
 export async function resolveScoringSummary(
   supabase: SupabaseClient,
   bangKiemId: string,
   results: readonly ChecklistResult[],
   meta?: GsttScoringSessionMeta,
-): Promise<{ tong_diem: number | null; dat_tron_goi: boolean | null; du_lieu_nghi_van: boolean }> {
+  frozenTemplate?: GscScoringTemplateSlice | null,
+): Promise<{
+  tong_diem: number | null;
+  dat_tron_goi: boolean | null;
+  du_lieu_nghi_van: boolean;
+  cach_tinh_diem: GsttCachTinhDiem;
+}> {
   let cachTinhDiem: GsttCachTinhDiem = DEFAULT_CACH_TINH_DIEM;
   let thenChotMap: Map<string, boolean> | null = null;
 
-  if (bangKiemId) {
+  if (frozenTemplate) {
+    const fromFrozen = scoringMetaFromTemplateSlice(frozenTemplate);
+    cachTinhDiem = fromFrozen.cachTinhDiem;
+    thenChotMap = fromFrozen.thenChotMap;
+  } else if (bangKiemId) {
     try {
       const { data } = await supabase
         .from("gstt_dm_bang_kiem")
         .select("cach_tinh_diem,tieu_chi_jsonb")
         .eq("id", bangKiemId)
         .maybeSingle();
-      const raw = String(data?.cach_tinh_diem ?? "").trim().toUpperCase();
-      if (VALID_CACH_TINH_DIEM.has(raw as GsttCachTinhDiem)) {
-        cachTinhDiem = raw as GsttCachTinhDiem;
-      }
-      thenChotMap = buildThenChotMap(data?.tieu_chi_jsonb);
+      const fromLive = scoringMetaFromTemplateSlice(data);
+      cachTinhDiem = fromLive.cachTinhDiem;
+      thenChotMap = fromLive.thenChotMap;
     } catch {
       // Non-fatal: giữ DEFAULT_CACH_TINH_DIEM.
     }
   }
 
   const items = mapResultsToScoringItems(results, thenChotMap);
-  return mapScoringToSessionFields(cachTinhDiem, items, meta);
+  return {
+    ...mapScoringToSessionFields(cachTinhDiem, items, meta),
+    cach_tinh_diem: cachTinhDiem,
+  };
 }

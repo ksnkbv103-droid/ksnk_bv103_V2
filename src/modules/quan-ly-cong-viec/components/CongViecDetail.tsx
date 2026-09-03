@@ -35,6 +35,7 @@ import {
   canShowDeleteTask,
   canShowEditTaskMetadata,
   canShowHoatDongProgressSection,
+  canShowHuyKhiNghiemThuKhongDat,
   canShowQlcvApproveActions,
 } from "../lib/qlcv-access";
 import { useModulePermission } from "@/hooks/useModulePermission";
@@ -204,6 +205,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const checklistReadOnly =
     isDeXuatChoDuyet(data) || st === "HOAN_THANH" || st === "DA_HUY" || atNghiemThuGate;
   const showNghiemThuToolbar = atNghiemThuGate && canNghiemThu;
+  const showHuyKhiNghiemThuKhongDat = canShowHuyKhiNghiemThuKhongDat(data, accessFlags);
   const showHuyButton =
     (accessFlags.isRBACAdmin || accessFlags.hasDelete) &&
     st !== "HOAN_THANH" &&
@@ -222,8 +224,8 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   };
 
   return (
-    <div className="space-y-6 pb-16 animate-in slide-in-from-right-4 duration-300">
-      <div className="no-print space-y-6">
+    <div className="space-y-[var(--bv103-space-3)] pb-16 animate-in slide-in-from-right-4 duration-300">
+      <div className="no-print space-y-[var(--bv103-space-3)]">
       {assigneeInactiveOpen && (
         <div
           role="status"
@@ -233,7 +235,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           việc mở bị bỏ quên.
         </div>
       )}
-      <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+      <div className="flex flex-col gap-[var(--bv103-space-3)] md:flex-row md:items-start md:justify-between">
         <div className="min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <span className={statusBadge.className} style={statusBadge.style}>
@@ -248,7 +250,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
               #{data.id?.slice(0, 8)}
             </span>
           </div>
-          <h2 className="text-xl font-semibold tracking-tight text-slate-900 md:text-2xl">{data.tieu_de}</h2>
+          <h2 className="bv103-type-title">{data.tieu_de}</h2>
           {data.loai_cong_viec === "DINH_KY" || data.dinh_ky_mau_id ? (
             <p className="text-xs">
               <a
@@ -298,14 +300,16 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
                 Yêu cầu làm lại
               </button>
 
-              <button
-                type="button"
-                className={`${qlcvDetailChrome.btnOutline} inline-flex items-center border-red-200/90 text-red-800 hover:bg-red-50`}
-                onClick={() => setReasonHuyOpen(true)}
-              >
-                <Ban className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />
-                Hủy (không đạt)
-              </button>
+              {showHuyKhiNghiemThuKhongDat ? (
+                <button
+                  type="button"
+                  className={`${qlcvDetailChrome.btnOutline} inline-flex items-center border-red-200/90 text-red-800 hover:bg-red-50`}
+                  onClick={() => setReasonHuyOpen(true)}
+                >
+                  <Ban className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />
+                  Hủy (không đạt)
+                </button>
+              ) : null}
 
               <button type="button" className={qlcvDetailChrome.btnPrimary} onClick={() => setConfirmNghiemThuOpen(true)}>
                 Nghiệm thu & Đóng
@@ -452,7 +456,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
         </div>
 
         {showHoatDong ? (
-          <div className="space-y-4 border-t border-slate-100 p-4 sm:p-5">
+          <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 p-4 sm:p-5">
             <div className="flex items-center gap-2">
               <CheckCircle2 size={18} className="shrink-0 text-[var(--primary)]" aria-hidden />
               <h3 className={qlcvDetailChrome.sectionHeading}>Ghi chú tiến độ</h3>
@@ -470,8 +474,8 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
         ) : null}
       </div>
 
-      <div className={`p-5 sm:p-6 ${qlcvDetailChrome.panel}`}>
-        <div className="mb-4 flex items-center gap-2">
+      <div className={`bv103-pad-panel ${qlcvDetailChrome.panel}`}>
+        <div className="mb-[var(--bv103-space-3)] flex items-center gap-2">
           <MessageSquare size={18} className="shrink-0 text-[var(--primary)]" aria-hidden />
           <h3 className={qlcvDetailChrome.sectionHeading}>Lịch sử hoạt động</h3>
         </div>

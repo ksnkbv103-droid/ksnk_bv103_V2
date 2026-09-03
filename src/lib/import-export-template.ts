@@ -8,6 +8,7 @@ const EXCLUDED_EXPORT_FIELDS_BY_TABLE: Record<string, Set<string>> = {
   mdm_dm_khoa_phong: new Set(["khoi_id"]),
   sys_roles: new Set<string>(),
   cssd_dm_bo_dung_cu: new Set(["loai_dung_cu_id", "khoa_su_dung_id"]),
+  cssd_dm_loai_dung_cu: new Set(["ma_loai", "ten_loai", "specs"]),
   cssd_dm_bo_dung_cu_chi_tiet: new Set(["bo_dung_cu_id", "loai_dung_cu_id"]),
   mdm_nhan_su: new Set([
     "khoa_id",
@@ -108,7 +109,19 @@ const TEMPLATE_PRESETS: Record<string, TemplatePreset> = {
     orderedFields: ["ma_nghe_nghiep", "ten_nghe_nghiep", "is_active"],
   },
   cssd_dm_loai_dung_cu: {
-    orderedFields: ["ma_loai_dung_cu", "ten_loai_dung_cu", "is_active"],
+    orderedFields: [
+      "ma_loai_dung_cu",
+      "ten_loai_dung_cu",
+      "hinh_dang",
+      "kich_thuoc",
+      "cong_dung",
+      "kha_nang_chiu_nhiet",
+      "phan_loai_spaulding",
+      "phuong_phap_tiet_khuan",
+      "phan_loai",
+      "so_luong_kho_du_phong",
+      "is_active",
+    ],
   },
   cssd_dm_hoa_chat: {
     orderedFields: [

@@ -80,7 +80,7 @@ export function resolveNkbvMajorType(input: {
   if (/SSI|VẾT MỔ|VET MO|SURGICAL|WOUND|PROCEDURE_SURGERY/.test(blob)) return "SSI";
   if (/\bVAE\b/.test(blob)) return "VAE";
   if (
-    /PNEU|PNU|\bVAP\b|\bHAP\b|ĐỜM|DORM|SPUTUM|ETA|BAL|PBAL|PSB|PLEURAL|URT|IMAGING_CHEST|PHỔI|PHOI|PHẾ|PHE QUAN|BRONCHIAL|X-?QUANG|LUNG/.test(
+    /PNEU|PNU|\bVAP\b|\bHAP\b|ĐỜM|DORM|SPUTUM|ETA|BAL|PBAL|PSB|PLEURAL|IMAGING_CHEST|PHỔI|PHOI|PHẾ|PHE QUAN|BRONCHIAL|X-?QUANG|LUNG/.test(
       blob,
     )
   ) {

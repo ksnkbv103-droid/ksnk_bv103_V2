@@ -32,11 +32,11 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
     : null;
 
   return (
-    <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <section className={`${D.shellPadded}`}>
+      <div className="mb-[var(--bv103-space-3)] flex flex-wrap items-center justify-between gap-[var(--bv103-space-2)]">
         <div>
           <h2 className={D.sectionHeading}>Chuyên đề — tóm tắt điều hành</h2>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-[var(--bv103-space-2)] bv103-type-label text-slate-500">
             Không nhân bản biểu đồ module. Phân tích đầy đủ tại tab Thống kê từng mảng.
           </p>
         </div>
@@ -46,7 +46,7 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
               key={t.id}
               type="button"
               onClick={() => onChuyenDeChange(t.id)}
-              className={`rounded-md px-3 py-1.5 text-xs font-bold ${
+              className={`rounded-md px-3 py-1.5 bv103-type-label font-semibold ${
                 chuyenDe === t.id ? "bg-[var(--primary)] text-white" : "text-slate-600 hover:bg-slate-50"
               }`}
             >
@@ -102,8 +102,8 @@ function TopicSummary({
   return (
     <div className="mb-5 border-b border-slate-100 pb-5 last:mb-0 last:border-0 last:pb-0">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <h3 className="text-sm font-bold text-slate-700">{title}</h3>
-        <Link href={deepHref} className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:underline">
+        <h3 className="bv103-type-section text-slate-700">{title}</h3>
+        <Link href={deepHref} className="inline-flex items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline">
           Phân tích đầy đủ <ExternalLink size={10} aria-hidden />
         </Link>
       </div>

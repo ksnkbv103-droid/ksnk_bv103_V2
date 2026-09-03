@@ -19,6 +19,7 @@ import {
   type BaCdcWindowSeed,
   type BaSeedLabRow,
 } from "../lib/nkbv-analysis-session-to-verification";
+import { syncNkbvPhieuFromBaNgay } from "./giam-sat-nkbv-ba-ngay.actions";
 
 async function assertCanWriteNkbvAnalysis() {
   try {
@@ -373,7 +374,6 @@ export async function ensureNkbvBaAnalysisCase(input: {
   }
 
   if (seed) {
-    // Ghi lại VD đầy đủ (windows/labs) + đánh dấu XN đã PT
     await applyAnalysisSeedToCase(
       supabase,
       created.id,
@@ -385,6 +385,8 @@ export async function ensureNkbvBaAnalysisCase(input: {
   } else if (vsId) {
     await markViSinhAnalyzedForCase(supabase, created.id, [vsId]);
   }
+
+  await syncNkbvPhieuFromBaNgay(maBa);
 
   const full = await reloadCase(created.id);
   if (!full) {

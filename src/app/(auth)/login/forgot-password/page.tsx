@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
           <p className={`mt-2 text-center ${T.authSubtitle}`}>
             Nhập email đã đăng ký trong hệ thống để nhận liên kết đặt lại mật khẩu.
           </p>
-          <form className="mt-8 space-y-4" onSubmit={onSubmit}>
+          <form className="mt-8 space-y-[var(--bv103-space-3)]" onSubmit={onSubmit}>
             <div>
               <label className={T.authLabel}>Email</label>
               <input

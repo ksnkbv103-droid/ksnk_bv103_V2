@@ -3,7 +3,7 @@
 import React from "react";
 import { Plus, Database } from "lucide-react";
 import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
-import { ImportExportHint, ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
+import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 
 type Props = {
@@ -46,7 +46,6 @@ export function BoDungCuPageHeader({
           </>
         }
       />
-      <ImportExportHint />
     </>
   );
 }

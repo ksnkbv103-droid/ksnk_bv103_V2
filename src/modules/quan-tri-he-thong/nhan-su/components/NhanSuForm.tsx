@@ -167,7 +167,7 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
           <p className={F.modalSubtitle}>Mã nhân viên là định danh duy nhất của từng cá nhân.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="p-8 space-y-[var(--bv103-space-3)]">
           <NhanSuFormFields
             formData={formData}
             setFormData={setFormData}

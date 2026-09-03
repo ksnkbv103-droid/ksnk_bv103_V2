@@ -41,7 +41,7 @@ export default function GiamSatHeaderPersonalFields({
     <div className="min-w-0">
       <div className={`${C.panelInset} p-4`}>
         <p className={`mb-3 ${C.sectionTitle}`}>Đối tượng được giám sát (nhân viên)</p>
-        <div className="space-y-4">
+        <div className="space-y-[var(--bv103-space-3)]">
           <div className="min-w-0 space-y-1">
             <label className={`block ${C.labelField}`}>5. Nghề nghiệp nhân viên</label>
             <RegistrySelect

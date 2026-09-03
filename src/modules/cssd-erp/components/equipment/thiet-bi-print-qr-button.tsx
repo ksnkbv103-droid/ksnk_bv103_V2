@@ -46,11 +46,11 @@ export default function ThietBiPrintQrButton({
         type="button"
         disabled={printing || !qrCode}
         onClick={(e) => void handlePrint(e)}
-        className={`bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-[11px] font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 touch-manipulation ${className}`}
+        className={`text-[11px] font-semibold text-slate-700 hover:underline disabled:opacity-50 ${className}`}
         title="In tem QR máy"
       >
-        {printing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Printer className="h-3 w-3" />}
-        In QR
+        {printing ? <Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> : null}
+        In
       </button>
     );
   }

@@ -168,7 +168,7 @@ export default function MeTietKhuanProcessStep({
         {/* Header Thông Tin Mẻ + Nút theo giai đoạn */}
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-shell)] border border-emerald-800 bg-emerald-700 p-5 text-white shadow-sm">
           <div>
-            <h2 className="text-2xl font-semibold uppercase tracking-tight">{activeMe?.ma_lo_tiet_khuan}</h2>
+            <h2 className="bv103-type-title font-mono tracking-tight">{activeMe?.ma_lo_tiet_khuan}</h2>
             <p className="mt-1 text-[11px] font-medium uppercase tracking-wide opacity-90">
               {items.length} bộ trong phiếu ·{" "}
               {phase === "CHUAN_BI" && <span className="text-sky-200">Đang nạp bộ</span>}
@@ -315,7 +315,7 @@ export default function MeTietKhuanProcessStep({
 
         {/* ===== GIAI ĐOẠN 1: Chuẩn bị nạp mẻ ===== */}
         {phase === "CHUAN_BI" && (
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="grid grid-cols-1 gap-[var(--bv103-space-3)] lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <MeTietKhuanWaitingPanel
               rows={waitingRows}
               napLocked={napLocked}

@@ -8,7 +8,7 @@ import {
   insertInstrumentIssueLedgerCore,
   type InstrumentIssueType,
 } from "@/lib/master-data/instrument-issue-core";
-import { replenishSetInstrumentCore } from "@/lib/master-data/cssd-set-replenish-core";
+import { replenishSetInstrumentCore, returnSetInstrumentToKhoCore } from "@/lib/master-data/cssd-set-replenish-core";
 import { transferBomLineBetweenQuyTrinh } from "@/modules/cssd-erp/shared/application/cssd-quy-trinh-bom";
 
 export type InstrumentIncidentPayload = {
@@ -150,11 +150,10 @@ export async function applyInstrumentIncidentLedger(
     return;
   }
 
-  if (!payload.chiTietId || !payload.loaiDungCuId || !payload.boDungCuId) {
-    throw new Error("Thiếu dòng chi tiết / loại dụng cụ / bộ dụng cụ.");
-  }
-
   if (ledgerType === "BO_SUNG") {
+    if (!payload.loaiDungCuId || !payload.boDungCuId) {
+      throw new Error("Thiếu loại dụng cụ / bộ dụng cụ.");
+    }
     const res = await replenishSetInstrumentCore(supabase, {
       loaiDungCuId: payload.loaiDungCuId,
       boDungCuId: payload.boDungCuId,
@@ -165,6 +164,26 @@ export async function applyInstrumentIncidentLedger(
     });
     if (!res.success) throw new Error(res.error);
     return;
+  }
+
+  if (ledgerType === "NHAP_KHO") {
+    if (!payload.loaiDungCuId || !payload.boDungCuId) {
+      throw new Error("Thiếu loại dụng cụ / bộ dụng cụ.");
+    }
+    const res = await returnSetInstrumentToKhoCore(supabase, {
+      loaiDungCuId: payload.loaiDungCuId,
+      boDungCuId: payload.boDungCuId,
+      quyTrinhId: payload.quyTrinhId,
+      quantity: qty,
+      note,
+      suCoId,
+    });
+    if (!res.success) throw new Error(res.error);
+    return;
+  }
+
+  if (!payload.chiTietId || !payload.loaiDungCuId || !payload.boDungCuId) {
+    throw new Error("Thiếu dòng chi tiết / loại dụng cụ / bộ dụng cụ.");
   }
 
   const thucTe = await readRealtimeQty(supabase, payload.boDungCuId, payload.loaiDungCuId);

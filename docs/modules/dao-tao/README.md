@@ -40,8 +40,10 @@ File gốc `MCQ to form_2.xlsx` (layout cũ) vẫn parse được; mã câu sinh
 | | Thi thử | Thi thật |
 |---|---|---|
 | Ai | User có `DAO_TAO` view | User/khoa/NV trong `gan` của cấu hình `thi_that` published |
-| Cấu hình | `thi_thu_muc_do`: số câu, phút (Bloom chỉ dùng khi máy rút đề — không hiện trên ngân hàng / làm bài) | `thi_that`: số câu, phút, điểm đạt, số lần, đảo câu/đáp án, chủ đề, gán khoa+NV |
-| Kết quả | Ôn tập + bài của tôi | Sổ quản trị: lọc kỳ/khoa, chưa nộp, xuất Excel |
+| Cấu hình | `thi_thu_muc_do`: số câu, phút (Bloom chỉ dùng khi máy rút đề — không hiện trên ngân hàng / làm bài) | `thi_that`: số câu, phút, điểm đạt, số lần, đảo câu/đáp án, chủ đề, gán khoa+NV, hạn chứng chỉ (tháng) |
+| Kết quả | Ôn tập + bài của tôi | Sổ quản trị: lọc kỳ/khoa, chưa nộp, xuất Excel, cột chứng chỉ |
+
+**Chứng chỉ (DT-LMS, lát 1):** lần thi thật **đạt** → còn hạn `han_chung_chi_thang` tháng (mặc định 12). Hub `/dao-tao` nhắc sắp hết (30 ngày) / hết hạn. **Chưa có:** lớp học, điểm danh, chứng chỉ giấy PDF.
 
 Mở kỳ thật **bắt buộc** đã gán ít nhất một khoa hoặc NV (UI + server).
 

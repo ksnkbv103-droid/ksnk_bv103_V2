@@ -70,7 +70,7 @@ export function CommandCenterDashboardPage() {
         </div>
       ) : null}
 
-      <div className={`space-y-3 sm:space-y-4 transition-opacity ${d.loading ? "pointer-events-none opacity-50" : ""}`}>
+      <div className={`bv103-stack-page transition-opacity ${d.loading ? "pointer-events-none opacity-50" : ""}`}>
         {d.khoaFilterLocked && d.lockedKhoaLabel ? <AnalyticsKhoaScopeBanner khoaLabel={d.lockedKhoaLabel} /> : null}
         <CommandCenterRateGlance
           vstPayload={d.vstPayload}

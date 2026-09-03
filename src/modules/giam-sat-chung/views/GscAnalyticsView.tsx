@@ -10,24 +10,16 @@ import {
   Bv103AnalyticsPageSkeleton,
 } from "@/components/shared/Bv103AnalyticsPageFrame";
 import { AnalyticsFilterBar } from "@/components/shared/AnalyticsFilterBar";
-import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
+import { parseGscLoaiParam, type GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
 import { AnalyticsThongKeScopeBanner } from "@/modules/dashboard/components/AnalyticsThongKeScopeBanner";
 import GscAnalyticsScopeBanner from "../components/GscAnalyticsScopeBanner";
 import { usePermission } from "@/hooks/usePermission";
-
-const LOAI_FROM_SEARCH: Record<string, GscLoaiGiamSatRoute> = {
-  TUAN_THU: "TUAN_THU",
-  NHAT_KY_VAN_HANH: "NHAT_KY_VAN_HANH",
-  DANH_GIA_HE_THONG: "DANH_GIA_HE_THONG",
-};
 
 function resolveLoaiFromSearchParams(
   initialLoaiGiamSat: GscLoaiGiamSatRoute | undefined,
   loaiParam: string | null,
 ): GscLoaiGiamSatRoute | undefined {
-  if (initialLoaiGiamSat) return initialLoaiGiamSat;
-  if (!loaiParam) return undefined;
-  return LOAI_FROM_SEARCH[loaiParam.trim().toUpperCase()];
+  return initialLoaiGiamSat ?? parseGscLoaiParam(loaiParam);
 }
 
 const GscStrategicAnalyticsPanel = dynamic(() => import("../components/GscStrategicAnalyticsPanel"), {
@@ -112,9 +104,7 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
 
   return (
     <Bv103AnalyticsPageFrame title="Thống kê giám sát chung" filterBar={filterBar}>
-      {resolvedLoai && !onThongKeRoute ? (
-        <GscAnalyticsScopeBanner loai={resolvedLoai} />
-      ) : null}
+      {resolvedLoai ? <GscAnalyticsScopeBanner loai={resolvedLoai} /> : null}
       {onThongKeRoute ? (
         <AnalyticsThongKeScopeBanner
           khoaFilterLocked={d.khoaFilterLocked}
@@ -148,7 +138,7 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
           />
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="bv103-stack-page">
           <GscStrategicAnalyticsPanel
             khoaFilterLocked={d.khoaFilterLocked}
             tuNgay={d.tuNgay}

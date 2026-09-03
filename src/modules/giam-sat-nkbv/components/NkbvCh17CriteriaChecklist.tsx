@@ -105,7 +105,7 @@ export default function NkbvCh17CriteriaChecklist({
           </div>
         );
       })}
-      <p className="text-[10px] text-slate-500">
+      <p className="bv103-type-label text-slate-500">
         Đạt khi thỏa <strong>ít nhất một</strong> tiêu chuẩn (OR). Trong mỗi tiêu chuẩn: AND / ≥N
         theo NHSN.
       </p>

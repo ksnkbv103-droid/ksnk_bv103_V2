@@ -5,6 +5,7 @@ import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { resolveAnalyticsRpcFilters } from "@/lib/analytics/resolve-analytics-rpc-scope";
+import { normalizeGscStrategicPercents } from "@/lib/analytics/gsc-analytics-data";
 import type { GscStrategicFilters, GscStrategicPayload } from "../types/gsc-strategic.types";
 
 const gscStrategicFiltersSchema = z.object({
@@ -66,5 +67,5 @@ export async function getGscStrategicAnalytics(filters: GscStrategicFilters) {
     ...(matrices as Record<string, unknown>),
   } as GscStrategicPayload;
 
-  return { success: true as const, data: merged };
+  return { success: true as const, data: normalizeGscStrategicPercents(merged) };
 }

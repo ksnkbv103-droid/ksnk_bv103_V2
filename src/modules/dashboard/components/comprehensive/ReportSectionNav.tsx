@@ -113,7 +113,7 @@ export function ReportSection({
 }) {
   return (
     <section id={id} className={`scroll-mt-24 ${className}`}>
-      <h2 className="mb-2 text-[11px] font-semibold tracking-wide text-slate-500">{title}</h2>
+      <h2 className="mb-[var(--bv103-space-2)] bv103-type-label font-semibold tracking-wide text-slate-500">{title}</h2>
       {children}
     </section>
   );

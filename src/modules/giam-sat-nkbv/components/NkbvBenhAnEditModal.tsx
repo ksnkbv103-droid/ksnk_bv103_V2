@@ -112,8 +112,8 @@ export default function NkbvBenhAnEditModal({ stay, khoas, onClose, onSaved }: P
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[10055] flex items-center justify-center overflow-y-auto bg-slate-900/45 p-3 backdrop-blur-sm sm:p-4">
-      <div className="relative my-4 w-full max-w-2xl rounded-2xl border border-slate-100 bg-white p-5 shadow-2xl sm:p-6">
+    <div className="fixed inset-0 z-[10055] flex items-center justify-center overflow-y-auto bg-slate-900/40 p-3 sm:p-4">
+      <div className="relative my-4 w-full max-w-2xl rounded-[var(--radius-shell)] border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] sm:p-6">
         <button
           type="button"
           onClick={onClose}
@@ -231,7 +231,7 @@ export default function NkbvBenhAnEditModal({ stay, khoas, onClose, onSaved }: P
                   className="w-full rounded-[var(--radius-shell)] border-0 bg-white px-4 py-3 text-sm"
                 />
               </div>
-              <label className="flex items-center gap-2 text-xs font-bold text-red-800">
+              <label className="flex items-center gap-2 bv103-type-label font-semibold text-red-800">
                 <input
                   type="checkbox"
                   checked={form.tu_vong_lien_quan_nkbv}

@@ -12,7 +12,7 @@ import MeTietKhuanProcessStep from "../components/batch/me-tiet-khuan-process-st
 import { buildMeTietKhuanBatchColumns } from "../components/batch/me-tiet-khuan-columns";
 import CssdPrintPortal from "../components/print/CssdPrintPortal";
 import { useMeTietKhuanWorkflow } from "../hooks/use-me-tiet-khuan-workflow";
-import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_DATA_SURFACE } from "../shared/ui/cssd-ui-chrome";
+import { CSSD_UI_ACTION_PRIMARY } from "../shared/ui/cssd-ui-chrome";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 
 export default function MeTietKhuanPage({ suppressShell = false }: { suppressShell?: boolean } = {}) {
@@ -122,7 +122,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
     );
 
   const listContent = (
-    <div className="space-y-4">
+    <div className="bv103-stack-page">
       {suppressShell && (
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-slate-700">Danh sách mẻ tiệt khuẩn</h3>
@@ -135,7 +135,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
           </button>
         </div>
       )}
-      <div className={CSSD_UI_DATA_SURFACE}>
+      <div className="min-w-0">
         <AdvancedDataTable
           columns={batchColumns}
           data={filteredBatches}

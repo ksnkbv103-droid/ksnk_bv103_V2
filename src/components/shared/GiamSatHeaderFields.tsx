@@ -211,7 +211,7 @@ export default function GiamSatHeaderFields({
   }, [session.khoa_id, session.khu_vuc_id, filteredKhuVucs, khuVucs.length, loading, setSession]);
 
   return (
-    <div className="min-w-0 space-y-4">
+    <div className="min-w-0 space-y-[var(--bv103-space-3)]">
       {!essentialsOnly && !locked && headerIdentityReady && !suppressStaffIdentityBanner && (
         <div
           className={`rounded-lg border px-3 py-3 sm:px-4 ${

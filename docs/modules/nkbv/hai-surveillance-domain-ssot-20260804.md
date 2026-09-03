@@ -1,5 +1,7 @@
 # Domain SSOT — Giám sát nhiễm khuẩn bệnh viện (NKBV / HAI) bán tự động
 
+> **Đã thay:** thuật toán canonical từ 2026-08-27 là [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md) (v3.2, HAI lâm sàng người lớn + Phụ lục E). File này giữ **lịch sử v2.0**.
+
 > **Phiên bản:** 2.0 · **Ngày:** 2026-08-04  
 > **Chuẩn tham chiếu:** Sổ tay Giám sát An toàn Người bệnh NHSN/CDC 2025  
 > **Loại tài liệu:** Đặc tả logic domain độc lập (Single Source of Truth cho thuật toán & thực thể)  

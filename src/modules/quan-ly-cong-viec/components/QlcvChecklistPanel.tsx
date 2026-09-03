@@ -65,7 +65,7 @@ export function QlcvChecklistPanel({ congViecId, initialChecklist, readOnly, onU
   };
 
   return (
-    <div className="space-y-4 rounded-[var(--radius-shell)] border border-slate-200/90 bg-white p-4 shadow-sm ring-1 ring-slate-900/[0.02] sm:p-5">
+    <div className="space-y-[var(--bv103-space-3)] rounded-[var(--radius-shell)] border border-slate-200/90 bg-white p-4 shadow-sm ring-1 ring-slate-900/[0.02] sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className={UI.panelTitle}>Checklist thực hiện</h3>
         <span className="text-sm font-semibold tabular-nums text-[var(--primary)]">{pct}%</span>

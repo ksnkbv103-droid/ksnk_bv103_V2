@@ -68,7 +68,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 | `LifecycleAuditLog` | `cssd-erp` | **`cssd_fact_quy_trinh.metadata`** (ngoại lệ, audit QR) | DROP `cssd_fact_lifecycle_event`, `cssd_fact_nhat_ky_quet` (`20260622120000`). Không còn bảng `cssd_fact_nhat_ky_quet`. |
 | `ComponentSplit` / rẽ nhánh tiệt khuẩn | `cssd-erp` | **`registerSplitSubQrFromMainMaAction`**, batch actions, **`cssd-merge-gate`** | Persist mẻ: [`persist-me-tiet-khuan.ts`](../../src/modules/cssd-erp/helpers/persist-me-tiet-khuan.ts). |
 | Runtime cấu phần (ledger) | `cssd-erp` | **`cssd_fact_quy_trinh.metadata.bom_lines`** + **`bom_kiem_dem_at`** | DROP `cssd_fact_quy_trinh_thanh_phan`; cấp phát: **soft-warning** thiếu cấu phần (Q2) — `bom_kiem_dem_at` là audit đóng gói, **không** hard gate. |
-| Sự cố CSSD | **`cssd-su-co`** (UI `/cssd-su-co`) | **`cssd_fact_su_co.attributes`** + `loai_su_co_id` → `LOAI_SU_CO` (SC_QUY_TRINH/SC_CHU_QUAN/SC_HE_THONG); generated `incident_group` | 3 lớp: nhóm nghiệp vụ · bản chất nguyên nhân · tình huống cụ thể; domino **`cssd-incident-policy`**. |
+| Sự cố CSSD | **`cssd-su-co`** (UI `/cssd-su-co`) | **`cssd_fact_su_co.attributes`** + `loai_su_co_id` (máy tự ghi mặc định, không hỏi trên form) · generated `incident_group` | Form: nhóm + tình huống. Dụng cụ **2 cửa:** rà soát/hỏng/mất · **Chuyển**. Sổ `cssd_fact_kho_giao_dich`. **SC-10:** BI+ / QC mẻ không đạt → thu hồi mọi bộ cùng `lo_tiet_khuan_id` + máy `HOLD_QC`. |
 | NKBV ↔ CSSD trace | `giam-sat-nkbv` + `/cssd-quy-trinh?tab=trace` | **`nkbv_fact_su_kien.quy_trinh_id`**, **`ma_cycle_qr_lien_quan`** | Ca SSI nhập QR bộ → deep link timeline (`20260602150000`). |
 | Phiếu bảo trì thiết bị / khóa máy | `cssd-erp` | **`cssd_fact_bao_tri`**, `cssd_dm_thiet_bi.trang_thai` (`REPAIRING` ↔ `READY`) | UI **`/cssd-erp/equipment-maintenance`**; chặn mẻ TK khi máy không sẵn sàng (`assert-thiet-bi-cho-me-tiet-khuan`). |
 | Kho hóa chất — vật tư KSNK (tồn theo lô) | `cssd-erp` | **`cssd_fact_kho_hoa_chat_giao_dich`**; cột `cssd_dm_hoa_chat.nguong_ton_toi_thieu` | UI **`/cssd-erp/kho-hoa-chat`**, quyền **`KSNK_KHO_HOACHAT`**. |
@@ -82,7 +82,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 | `HandHygieneSession` | `giam-sat-vst` | **`gstt_fact_vst_sessions`** (view compat `fact_giam_sat_vst_sessions`), chi tiết **`gstt_fact_vst`**; đọc **`v_gstt_giam_sat_vst_sessions_full`**, **`v_gstt_giam_sat_vst_full`**; analytics RPC **`rpc_dashboard_vst_strategic_analytics`** (đọc `gstt_fact_vst_opportunities_summary`) | Phiên: FK `khoa_id`, `khu_vuc_id`, `hinh_thuc_id`, `cach_thuc_id`. Dòng quan sát: thêm `khu_vuc_id`, `nghe_nghiep_id`. Ghi compat `fact_giam_sat_vst_*`. |
 | `HandHygieneOpportunity` | `giam-sat-vst` | Cột trong `gstt_fact_vst` (WHO T1–T5) | — |
 | `ChecklistTemplate` | `quan-tri-he-thong/bang-kiem/` | **`gstt_dm_bang_kiem`**, **`gstt_dm_tieu_chi_bang_kiem`** (view compat `dm_bang_kiem`, `dm_tieu_chi_bang_kiem`) | GSC đọc qua [`@/lib/mdm-read-gateway`](../../src/lib/mdm-read-gateway.ts). |
-| Giám sát chung (phiên + checklist động) | `giam-sat-chung` | **`gstt_fact_chung_sessions`** (view compat `fact_giam_sat_chung_sessions`); `results_jsonb` JSONB inline (consolidate từ `20260521000001`) | FK: `bang_kiem_id` → `gstt_dm_bang_kiem`; view phẳng `v_fact_giam_sat_chung_sessions_full` + `v_gsc_dashboard_rows`. |
+| Giám sát chung (phiên + checklist động) | `giam-sat-chung` | **`gstt_fact_chung_sessions`** (view compat `fact_giam_sat_chung_sessions`); `results_jsonb` JSONB inline (consolidate từ `20260521000001`); **`metadata.bang_kiem_snapshot`** = ảnh chụp mẫu lúc lưu (BK-1) | FK: `bang_kiem_id` → `gstt_dm_bang_kiem`; view phẳng `v_fact_giam_sat_chung_sessions_full` + `v_gsc_dashboard_rows`. Mở phiếu: bản chốt nếu có; chưa chốt thì chỉ câu đã ghi trên phiếu (BK-4). Mẫu tắt không tạo mới; phiếu cũ vẫn đọc (BK-5). |
 | `Dim_Failure_Reason` (Ishikawa) | `giam-sat-chung` | **`gstt_dm_failure_reason`** | **`[DROPPED]`** (Loại bỏ hoàn toàn trong Simplicity Reform Phase 2 ngày 28/05/2026 để tinh giản quy trình). |
 | `Auto-RCA Ticket` (JCI QPS) | `giam-sat-chung` | **`gstt_fact_rca_ticket`** | **`[DROPPED]`** (Loại bỏ hoàn toàn trong Simplicity Reform Phase 2 ngày 28/05/2026. Giữ can thiệp `da_can_thiep_ngay` + URL ảnh bằng chứng trực tiếp trên phiên). |
 | `Compliance Dashboard v4` (IPAC 4 vùng + Top 10 Vi phạm) | `dashboard` | **`[DROPPED]`** RPC `rpc_get_compliance_dashboard_v4` | Migration `20260701100000` — thay bằng strategic RPC + checklist analytics (`gsc-checklist-intervention.ts`). |
@@ -108,7 +108,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Spec term | Module | Bảng / thực thể thật | Ghi chú |
 |-----------|--------|---------------------|---------|
-| Ngân hàng MCQ + thi thử/thật | `dao-tao` | **Lean 3 bảng** + `ma_cau` upsert; export/import P4; `dao_tao_cau_hinh` / `dao_tao_lan_thi` | Route `/dao-tao`; quyền `DAO_TAO`; engine `src/lib/dao-tao/`. Migrations `…150000` + lean `…160000` + `ma_cau` `20260802120000`. |
+| Ngân hàng MCQ + thi thử/thật | `dao-tao` | **Lean 3 bảng** + `ma_cau` upsert; export/import P4; `dao_tao_cau_hinh` / `dao_tao_lan_thi` | Route `/dao-tao`; quyền `DAO_TAO`; engine `src/lib/dao-tao/`. Migrations `…150000` + lean `…160000` + `ma_cau` `20260802120000`. **DT-LMS:** chứng chỉ từ thi thật đạt — `gan.han_chung_chi_thang`; không bảng mới; không lớp học. |
 
 ---
 
@@ -116,7 +116,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Spec term | Module | Bảng / thực thể thật | Ghi chú |
 |-----------|--------|---------------------|---------|
-| `HAI` / ca NKBV (ghi nhận BV103) | `giam-sat-nkbv` | **`nkbv_fact_benh_an`**, **`nkbv_fact_vi_sinh`**, **`nkbv_fact_su_kien`**, **`nkbv_fact_mau_so_daily`**, **`nkbv_fact_mau_so_phau_thuat`**, **`nkbv_fact_device_registry`**; DM **`nkbv_dm_loai`**, **`nkbv_dm_trang_thai_ca`**, **`nkbv_dm_cdc_baseline`** | Route **`/giam-sat-nkbv`**, quyền **`GIAM_SAT_NKBV`**. Schema chuẩn hóa từ `20260524000000_nkbv_normalized_stay_centric`. Device Registry W1: `20260804190000_nkbv_device_registry`. View compat: `dm_loai_nkbv`, `dm_trang_thai_nkbv_ca`, `fact_nkbv_*`. |
+| `HAI` / ca NKBV (ghi nhận BV103) | `giam-sat-nkbv` | **`nkbv_fact_benh_an`**, **`nkbv_fact_ba_ngay_khoa`**, **`nkbv_fact_ba_ngay_dung_cu`**, **`nkbv_v_ba_dung_cu_dat_rut`**, **`nkbv_fact_vi_sinh`**, **`nkbv_fact_su_kien`**, **`nkbv_fact_mau_so_daily`**, **`nkbv_fact_mau_so_phau_thuat`**; DM **`nkbv_dm_loai`**, **`nkbv_dm_trang_thai_ca`**, **`nkbv_dm_cdc_baseline`** | Route **`/giam-sat-nkbv`**, quyền **`GIAM_SAT_NKBV`**. Lưới ngày = SSOT khoa + Foley/máy/CVC. Đã DROP `nkbv_fact_device_registry`, `nkbv_fact_labid_event` (`20260827120000`). View compat: `dm_loai_nkbv`, `dm_trang_thai_nkbv_ca`, `fact_nkbv_*`. |
 | Loại NKBV / HAI | `giam-sat-nkbv` + hub danh mục | `nkbv_dm_loai` | Registry hub `LOAI_NKBV`. |
 | Trạng thái phiếu NKBV | `giam-sat-nkbv` + hub | `nkbv_dm_trang_thai_ca` | Registry hub `TRANG_THAI_NKBV_CA`. |
 
@@ -141,9 +141,39 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-08-26 | **Quản trị QT-E — gói quyền danh mục:** ma trận RBAC có gói Tổ chức / Bảng kiểm / Master CSSD / Chỉ xem mọi danh mục (13 ô lookup). Chỉ đổi ô ma trận; không đụng RLS; ADMIN không áp gói. |
+| 2026-08-26 | **CSSD phiếu bộ — đổi mã loại + mã gốc:** dòng `DOI_LOAI`: NV nhập mã gốc mới (và tên nếu đổi), chờ admin duyệt. Duyệt ghi `cssd_dm_loai_dung_cu.ma_loai` (+ `specs.ma_loai_dung_cu`) — mọi bộ dùng loại đó đổi theo. Nếu mã mới đã thuộc loại khác thì gắn dòng sang loại đó, không trùng mã. |
+| 2026-08-31 | **CSSD rà soát → cân kho:** lệch vs số chuẩn; chọn dòng Lấy kho / Trả kho nhảy cửa Chuyển (kho↔bộ, số điền sẵn). Cửa Chuyển: lọc lệch + điền thiếu/thừa. Không gộp phiếu hỏng/mất. |
+| 2026-08-31 | **CSSD danh mục dụng cụ:** tab Bộ → thành phần (mã loại / tên loại / chuẩn / thực tế) rồi mới rà soát; ẩn tab chi tiết phẳng; tab Loại hiện Tổng / Trong bộ / Trong kho (`v_cssd_bo_dung_cu_chi_tiet_realtime` + `so_luong_kho_du_phong`). Nút rà soát deep-link `/cssd-su-co`. |
+| 2026-08-30 | **CSSD sự cố — bỏ hỏi bản chất lỗi trên form/in.** Máy vẫn ghi `loai_su_co_id` mặc định theo nhóm (cột lookup cũ). |
+| 2026-08-30 | **CSSD sự cố dụng cụ 2 cửa:** Rà soát/hỏng/mất · **Chuyển** (mỗi khung kho hoặc bộ; kho một bên thì bên kia là bộ). Phiếu vẫn ghi `INSTRUMENT_TRANSFER` / `INSTRUMENT_REPLENISH`. |
+| 2026-08-29 | **CSSD sự cố dụng cụ 3 cửa:** tab Rà soát/hỏng/mất · Điều chuyển bộ↔bộ (hai bảng) · Kho↔bộ (→ xuất kho / ← trả kho, sổ `BO_SUNG` + `NHAP_KHO`). Form một lớp. |
+| 2026-08-27 | **CSSD kiểm kê bộ (cùng phiếu):** bảng thành phần mở rộng; cột mã loại + **mã khắc** + ghi chú; tự gán sai mã / bổ sung / Hỏng-Mất; điều chuyển sang bộ đích **trên cùng phiếu** (ghi sổ DIEU_CHUYEN nguồn–đích). Đổi chốt 26/08 «hai bộ hai phiếu». |
+| 2026-08-27 | **CSSD hoàn tác bỏ gạch đầu mã:** trả `ma_loai` / `ma_khac` về mã gốc (có `-` đầu). Không đổi UUID bộ–loại–chi tiết. Không dùng hậu tố `{mã}-2`. |
+| 2026-08-26 | **CSSD SC-8 xác nhận phiếu:** phiếu sự cố mở → **Đã xác nhận** (`attributes.INCIDENT_STATUS`). Nút trên phiếu gần đây và nhật ký; in hiện trạng thái. Không thu hồi mẻ / giữ máy (SC-10). Không thêm cột. |
+| 2026-08-27 | **NKBV CSDL ngày–khoa + ngày–dụng cụ:** lưới chọn khoa theo mã; Foley/máy/CVC một nguồn; phiếu đọc BA; HIS không đè BA đã có; xóa demo + bỏ LabID/sổ đặt–rút nhập. Migration `20260827120000`. |
+| 2026-08-27 | **NKBV thống nhất lưới → BA → phiếu (PO, chỉ tài liệu):** khoa chọn theo mã; Foley/máy/CVC chỉ tích lưới; bỏ tích/đổi khoa sửa bệnh án và phiếu. [`hai-database-plan-20260827.md`](../modules/nkbv/hai-database-plan-20260827.md). Không sửa `src/`. |
+| 2026-08-27 | **NKBV timeline + mẫu báo cáo (PO, chỉ tài liệu):** [`hai-timeline-and-diagnostic-report-20260827.md`](../modules/nkbv/hai-timeline-and-diagnostic-report-20260827.md) — lưới ngày = nguồn bằng chứng; phiếu chụp khi Tạo phiếu; mẫu C gửi khoa. Không sửa `src/`. |
+| 2026-08-27 | **NKBV luồng xác định ca (PO, chỉ tài liệu):** tách [`hai-identification-data-flow-20260827.md`](../modules/nkbv/hai-identification-data-flow-20260827.md). LIS đối chiếu `ma_benh_an`: đã có thì không đè BA, chưa có thì tạo từ LIS. Copy HIS/gõ tay cùng cổng BA (không API). Triệu chứng timeline = BA. SSOT Phụ lục F chỉ tóm tắt. Không sửa `src/`. |
+| 2026-08-27 | **NKBV domain SSOT v3.3 (PO, chỉ tài liệu):** thuật toán + từ điển E trong [`hai-surveillance-domain-ssot-20260827.md`](../modules/nkbv/hai-surveillance-domain-ssot-20260827.md). Sửa giấy Day-3 ≠ HAI; đờm ≠ mặc định VAP. Không sửa `src/`. |
+| 2026-08-27 | **NKBV domain SSOT v3.2 (PO, chỉ tài liệu):** Phụ lục E từ điển NHSN/KSNK. Không sửa `src/`. |
+| 2026-08-27 | **NKBV domain SSOT v3.1 (PO, chỉ tài liệu):** cùng file — HAI lâm sàng người lớn; rút CLIP/LabID/AUR/Location; Ch.17 đủ tiêu chí từng mã. v2.0 giữ lịch sử. |
+| 2026-08-26 | **GSC BK-5 mẫu tắt / mạng lưới:** mẫu `is_active=false` (và mẫu không còn áp dụng khoa với mạng lưới) không dùng cho phiếu mới hoặc khi đổi mẫu. Phiếu cũ vẫn mở/sửa/in: ảnh chốt BK-1 hoặc lookup mẫu kể cả đã tắt. Không ẩn mẫu hệ thống đang bật. |
+| 2026-08-26 | **GSC BK-4 hydrate cùng bộ câu:** mở sửa/in/xem dùng ảnh chốt BK-1; phiếu cũ chưa chốt chỉ hiện câu đã ghi trên phiếu (kể cả câu đã tắt), không thêm câu mới trên mẫu sống. In và sửa cùng nguồn máy chủ. |
+| 2026-08-26 | **GSC BK-3 field tiêu chí:** form soạn tiêu chí đủ field phiếu GSC (`kieu_du_lieu`, lựa chọn, ngưỡng, then chốt, KPA, mức/red flag) ghi `tieu_chi_jsonb`. Không đụng lọc phiếu cũ (BK-4) / mẫu tắt (BK-5). |
+| 2026-08-25 | **GSC BK-2 field mẫu:** form Quản trị bảng kiểm đặt và lưu `loai_giam_sat` + `cach_tinh_diem` (cột sẵn có). GSC đọc từ mẫu / ảnh chốt BK-1. Không thêm cột; không soạn tiêu chí (BK-3). |
+| 2026-08-25 | **GSC BK-1 chốt mẫu trên phiên:** khi Lưu, ghi ảnh chụp mẫu (mã, tên, cách tính, tiêu chí đang hiệu lực) vào `gstt_fact_chung_sessions.metadata.bang_kiem_snapshot`. Mở/sửa/in dùng ảnh chụp; sửa mẫu ở Quản trị không đổi phiếu đã chốt. Không thêm cột DB. Phiếu cũ chưa snapshot: theo mẫu live đến khi lưu lại. |
+| 2026-08-27 | **NKBV lưới = bệnh án:** `nkbv_fact_ba_ngay_khoa` + `nkbv_fact_ba_ngay_dung_cu`; view đặt–rút; DROP LabID + sổ registry; wipe demo; phiếu đọc khoa/dụng cụ từ lưới (không đổi loại nhiễm). Migration `20260827120000`. |
+| 2026-08-24 | **VST cổng ghi:** Zod khóa tối đa 3 đối tượng, khu vực bắt buộc, 5 nhãn WHO, luật 2/1 chỉ định, hành động 3 giá trị; lưu không còn gán khoa ngầm. Lịch sử phiên = `/lich-su/vst`. |
+| 2026-08-24 | **GSC-1+2+3:** một % tuân thủ = Đạt/áp dụng, 2 chữ số (form/lịch sử/in/thống kê/BCTH); nhật ký không in % và lưu được khi đã nhập số liệu (không bắt Đạt). Không đổi khóa 30 phút, không đổi RPC VST. |
+| 2026-08-24 | **GSC-5:** tab Thống kê / Lịch sử từ form nhật ký hoặc đánh giá hệ thống mang `?loai=`; banner trên `/thong-ke/gsc` báo đúng chuyên đề. KPI mặc định vẫn chỉ tuân thủ. |
+| 2026-08-24 | **GSC-6:** Excel lịch sử một cột `%` (Đạt ÷ áp dụng, 2 chữ số); nhật ký để trống + chú thích. Không còn cột điểm lúc lưu cạnh đếm live. |
+| 2026-08-25 | **GSC-4:** sửa/xóa phiên GSC không còn chặn 30 phút; vẫn chỉ chủ phiên; vẫn chặn khi ngày đã khóa sổ. Cửa sổ 30 phút VST giữ nguyên. |
+| 2026-08-25 | **DM-2:** CRUD khu vực giám sát ghi `sys_lookup_value` loại `KHU_VUC_GIAM_SAT` (map `gstt_dm_khu_vuc_giam_sat`). Không migration. |
 | 2026-08-23 | **Dọn sót sau cải tổ:** gỡ `summarizeBomGap` / lịch sử QR Digital BOM; nhãn TGS còn sót → tự giám sát; BCTH thôi compose `ty_le_ccs`; QLCV đổi tên helper quá hạn. RPC `rpc_cssd_persist_bom_checkpoint` vẫn trong DB. |
 | 2026-08-23 | **QTHT dọn nợ cải tổ:** bỏ trang danh sách thành phần phẳng (`?tab=chi-tiet` / `/dung-cu/chi-tiet` → tab bộ); thành phần chỉ sửa trong bộ. Không gộp module quyền (lát E). |
 | 2026-08-23 | **CSSD lean — gỡ caller chết:** app chỉ còn `prepareDongGoiBomGateScan`; bỏ `persistBomCheckpoint` / `loadBomCheckpoint` / `checkSetCompositionAndIssues` / `capNhatNguongTonKhoAction` / cờ `BV103_FEATURE_BOM_CHECKLIST`. RPC `rpc_cssd_persist_bom_checkpoint` giữ trong DB. |
+| 2026-08-26 | **CSSD danh mục lớn:** `v_cssd_loai_dung_cu_summary` bỏ JOIN/jsonb_agg 6705 chi tiết; list loại phân trang 20; catalog CSSD không tải hết loại/chi tiết. Migration `20260826120000`. |
 | 2026-08-23 | **Đào tạo dọn nợ đợt giản hóa:** gỡ compat `dao_tao_ky_thi_gan`, ẩn Bloom/SĐT trên UI, bỏ payload `quotaReport` ra client, sidebar **Thi KSNK**. Engine/Excel vẫn giữ Bloom để rút đề. |
 | 2026-08-22 | **Đào tạo giản hóa UX + sổ họp khoa:** hồ sơ thi lấy từ MDM; ẩn Bloom với NV; tab admin; gán kỳ từng dialog; sổ lọc kỳ/khoa + chưa nộp + xuất Excel. Không đổi 3 bảng lean / cách chấm. |
 | 2026-08-10 | **NKBV audit UTI chuẩn vs runtime (PO):** [`uti-standard-vs-runtime-audit-20260810.md`](../modules/nkbv/investigation-forms/uti-standard-vs-runtime-audit-20260810.md) — SUTI/ABUTI/CAUTI·lab·Foley·SBSI; lệch UTI-AUDIT-A1–A5/B1–B5; thứ tự sửa A1→A2→A3→A5→A4. Không sửa engine trong slice. |

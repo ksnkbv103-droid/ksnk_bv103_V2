@@ -6,6 +6,7 @@ import {
   computeTyLeVst,
   rateFromTotals,
 } from "@/lib/analytics/supervision-metrics";
+import { gscCompliancePercentFromCounts } from "@/modules/giam-sat-chung/lib/gsc-score-display";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import type { NkbvDashboardPayload } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
@@ -36,7 +37,7 @@ function finalizeTrendPoint(row: {
   gsc_dat: number;
 }): BaoCaoTrendPoint {
   const ty_le_vst = rateFromTotals(row.vst_dat, row.vst_tong);
-  const ty_le_gsc = rateFromTotals(row.gsc_dat, row.gsc_tong);
+  const ty_le_gsc = gscCompliancePercentFromCounts(row.gsc_tong, row.gsc_dat);
   return {
     label: row.label,
     min_date: row.min_date,

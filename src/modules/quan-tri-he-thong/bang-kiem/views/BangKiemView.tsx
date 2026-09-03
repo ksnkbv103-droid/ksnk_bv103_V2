@@ -2,13 +2,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { ClipboardList } from "lucide-react";
 import BangKiemTable from "../components/BangKiemTable";
 import BangKiemApDungPanel from "../components/BangKiemApDungPanel";
 import TieuChiTable from "../components/TieuChiTable";
 import type { DanhMucBangKiem } from "../bang-kiem.types";
 import { usePermission } from "@/hooks/usePermission";
-import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
@@ -49,17 +47,10 @@ export default function BangKiemView() {
   }
 
   return (
-    <div className="space-y-6 pb-10 animate-in fade-in duration-500">
-      <KsnkPageHeader
-        title={
-          <span className="inline-flex items-center gap-2 text-[var(--primary)]">
-            <ClipboardList size={22} aria-hidden /> Danh mục Bảng kiểm
-          </span>
-        }
-      />
+    <div className="bv103-stack-page pb-10 animate-in fade-in duration-500">
 
       <div className="flex flex-col md:flex-row gap-8 items-start relative w-full">
-        <div className="w-full space-y-6 md:sticky md:top-24 md:flex md:w-[55%] md:max-h-[calc(100vh-140px)] md:flex-col">
+        <div className="w-full space-y-[var(--bv103-space-3)] md:sticky md:top-24 md:flex md:w-[55%] md:max-h-[calc(100vh-140px)] md:flex-col">
           <h2 className={`shrink-0 px-2 ${T.sectionTitle}`}>Mẫu bảng kiểm</h2>
           <div className="pb-10 animate-in fade-in duration-500 md:flex-1 md:overflow-y-auto md:pr-2 md:custom-scrollbar">
             <BangKiemTable
@@ -81,14 +72,14 @@ export default function BangKiemView() {
           </div>
         </div>
 
-        <div className="w-full space-y-4 md:sticky md:top-24 md:flex md:w-[45%] md:max-h-[calc(100vh-140px)] md:flex-col">
+        <div className="w-full space-y-[var(--bv103-space-3)] md:sticky md:top-24 md:flex md:w-[45%] md:max-h-[calc(100vh-140px)] md:flex-col">
           <h2 className={`truncate shrink-0 px-2 ${T.sectionTitle} text-[var(--primary)]`}>
             {selectedBK
               ? `${selectedBK.ma_bk} — ${selectedBK.ten_bang_kiem || selectedBK.ten_bk}`
               : "Chọn bảng kiểm bên trái"}
           </h2>
 
-          <div className="space-y-4 pb-10 animate-in fade-in slide-in-from-right-6 duration-500 md:flex-1 md:overflow-y-auto md:pr-2 md:custom-scrollbar">
+          <div className="space-y-[var(--bv103-space-3)] pb-10 animate-in fade-in slide-in-from-right-6 duration-500 md:flex-1 md:overflow-y-auto md:pr-2 md:custom-scrollbar">
             {selectedBK ? (
               <>
                 <BangKiemApDungPanel
@@ -127,7 +118,7 @@ export default function BangKiemView() {
               </>
             ) : (
               <div
-                className={`flex h-full min-h-[400px] flex-col items-center justify-center gap-6 border-2 border-dashed border-slate-200/80 text-slate-300 ${bv103LayoutChrome.panelSurface}`}
+                className={`flex h-full min-h-[400px] flex-col items-center justify-center gap-[var(--bv103-space-3)] border-2 border-dashed border-slate-200/80 text-slate-300 ${bv103LayoutChrome.panelSurface}`}
               >
                 <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center text-5xl">📋</div>
                 <div className="text-center space-y-2 px-10">

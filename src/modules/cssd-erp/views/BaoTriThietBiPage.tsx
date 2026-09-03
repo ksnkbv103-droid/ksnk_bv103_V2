@@ -131,7 +131,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   };
 
   const columns: Column<FactBaoTriRow>[] = [
-    { header: "Mã phiếu", accessorKey: "ma_phieu", cell: (i) => <span className="font-mono text-[11px] font-bold text-[var(--primary)]">{i.ma_phieu}</span> },
+    { header: "Mã phiếu", accessorKey: "ma_phieu", cell: (i) => <span className="font-mono bv103-type-label font-semibold text-[var(--primary)]">{i.ma_phieu}</span> },
     { header: "Thiết bị", accessorKey: "ten_thiet_bi", cell: (i) => <span className="text-[11px] font-semibold">{i.ten_thiet_bi || "—"}</span> },
     {
       header: "Loại",
@@ -165,13 +165,13 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         }
         if (val === "HUY") {
           return (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-500">
               Đã hủy
             </span>
           );
         }
         return (
-          <span className="inline-flex items-center rounded-full bg-slate-50 border border-slate-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+          <span className="inline-flex items-center rounded-full bg-slate-50 border border-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
             {trangThaiLabel(val)}
           </span>
         );
@@ -225,7 +225,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   const canceledBaoTri = rows.filter((r) => r.trang_thai === "HUY").length;
 
   const contentNode = (
-    <div className="space-y-6">
+    <div className="bv103-stack-page">
       {suppressShell && actionsNode && (
         <div className="flex justify-end">
           {actionsNode}

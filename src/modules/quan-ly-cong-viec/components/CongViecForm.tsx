@@ -173,9 +173,9 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
     : "";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className={`grid grid-cols-1 gap-6 p-5 sm:p-6 lg:grid-cols-2 lg:gap-0 ${bv103LayoutChrome.panelSurface}`}>
-        <div className="space-y-5 lg:pr-6">
+    <form onSubmit={handleSubmit} className="space-y-[var(--bv103-space-3)]">
+      <div className={`grid grid-cols-1 gap-[var(--bv103-space-3)] bv103-pad-panel lg:grid-cols-2 lg:gap-0 ${bv103LayoutChrome.panelSurface}`}>
+        <div className="space-y-[var(--bv103-space-3)] lg:pr-6">
           <div>
             <label className={labelStyles}>Tiêu đề công việc *</label>
             <input
@@ -205,7 +205,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
           </div>
         </div>
 
-        <div className="space-y-5 border-t border-slate-100 pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+        <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
           <div>
             <label className={labelStyles}>Người phụ trách{!initialData?.id ? " *" : ""}</label>
             <SearchableSelect
@@ -235,8 +235,8 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
       </div>
 
       {showDetails ? (
-      <div className={`grid grid-cols-1 gap-6 p-5 sm:p-6 lg:grid-cols-2 lg:gap-0 ${bv103LayoutChrome.panelSurface}`}>
-        <div className="space-y-5 lg:pr-6">
+      <div className={`grid grid-cols-1 gap-[var(--bv103-space-3)] bv103-pad-panel lg:grid-cols-2 lg:gap-0 ${bv103LayoutChrome.panelSurface}`}>
+        <div className="space-y-[var(--bv103-space-3)] lg:pr-6">
           <div>
             <label className={labelStyles}>Mô tả chi tiết</label>
             <textarea
@@ -280,7 +280,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
             </select>
           </div>
         </div>
-        <div className="space-y-5 border-t border-slate-100 pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+        <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
           <div>
             <label className={labelStyles}>Loại hình</label>
             {isSpawnedDinhKy ? (

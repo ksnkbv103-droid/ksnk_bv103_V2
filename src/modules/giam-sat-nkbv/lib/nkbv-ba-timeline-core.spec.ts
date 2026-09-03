@@ -19,7 +19,7 @@ describe("mapSpecimenToGate", () => {
 });
 
 describe("mergeBaTimelineMilestones", () => {
-  it("bỏ XN âm tính; giữ dương tính + so_luong", () => {
+  it("bỏ không còn: giữ XN âm tính + dương tính + so_luong", () => {
     const rows = mergeBaTimelineMilestones({
       lis: [
         {
@@ -44,9 +44,11 @@ describe("mergeBaTimelineMilestones", () => {
       devices: [],
       hasActiveVent: false,
     });
-    expect(rows.filter((r) => r.source === "LIS")).toHaveLength(1);
-    expect(rows[0].so_luong).toBe("10^5");
-    expect(rows[0].detail).toContain("SL 10^5");
+    const lis = rows.filter((r) => r.source === "LIS");
+    expect(lis).toHaveLength(2);
+    expect(lis.find((r) => r.id === "lis:neg")?.ket_qua_duong_tinh).toBe(false);
+    expect(lis.find((r) => r.id === "lis:pos")?.so_luong).toBe("10^5");
+    expect(lis.find((r) => r.id === "lis:pos")?.detail).toContain("SL 10^5");
   });
 
   it("sắp xếp đầu → cuối theo ngày", () => {

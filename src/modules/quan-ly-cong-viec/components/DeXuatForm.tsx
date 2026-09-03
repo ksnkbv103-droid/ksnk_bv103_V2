@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Send, Clock, BarChart } from "lucide-react";
 import { createDeXuat } from "../actions/dexuat.actions";
+import { getQlcvFormCatalog } from "../actions/cong-viec-read.actions";
+import SearchableSelect from "@/components/shared/SearchableSelect";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import type { QlcvSelectOption } from "../lib/qlcv-form-options";
 
 interface Props {
   onSuccess?: () => void;
@@ -13,9 +16,31 @@ interface Props {
 
 export function DeXuatForm({ onSuccess, onCancel }: Props) {
   const [loading, setLoading] = useState(false);
+  const [optionsLoading, setOptionsLoading] = useState(true);
+  const [khoaPhongOptions, setKhoaPhongOptions] = useState<QlcvSelectOption[]>([]);
+  const [selectedKhoa, setSelectedKhoa] = useState("");
+
+  useEffect(() => {
+    const load = async () => {
+      setOptionsLoading(true);
+      try {
+        const catalog = await getQlcvFormCatalog();
+        setKhoaPhongOptions(catalog.khoaPhong);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Không tải được danh mục khoa.");
+      } finally {
+        setOptionsLoading(false);
+      }
+    };
+    void load();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!selectedKhoa) {
+      toast.error("Chọn khoa/đơn vị địa điểm thực hiện.");
+      return;
+    }
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
@@ -25,6 +50,7 @@ export function DeXuatForm({ onSuccess, onCancel }: Props) {
       han_hoan_thanh: formData.get("han_hoan_thanh") as string,
       loai_cong_viec: formData.get("loai_cong_viec") as "DINH_KY" | "DOT_XUAT" | "KHAN_CAP" | undefined,
       muc_do_uu_tien: formData.get("muc_do_uu_tien") as "CAO" | "TRUNG_BINH" | "THAP" | undefined,
+      dia_diem_khoa_id: selectedKhoa,
     };
 
     try {
@@ -45,8 +71,8 @@ export function DeXuatForm({ onSuccess, onCancel }: Props) {
   const labelStyles = bv103LayoutChrome.labelBlock;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className={`space-y-5 p-5 sm:p-6 ${bv103LayoutChrome.panelSurface}`}>
+    <form onSubmit={handleSubmit} className="space-y-[var(--bv103-space-3)]">
+      <div className={`space-y-[var(--bv103-space-3)] ${bv103LayoutChrome.panelShellPadded}`}>
         <div>
           <label className={labelStyles}>Tên công việc đề xuất *</label>
           <input
@@ -54,6 +80,18 @@ export function DeXuatForm({ onSuccess, onCancel }: Props) {
             required
             className={inputPlainStyles}
             placeholder="Ví dụ: Kiểm tra vệ sinh khoa Nội định kỳ…"
+          />
+        </div>
+
+        <div>
+          <label className={labelStyles}>Khoa / đơn vị địa điểm *</label>
+          <SearchableSelect
+            options={khoaPhongOptions}
+            placeholder={optionsLoading ? "Đang tải..." : "Chọn khoa từ danh mục MDM…"}
+            value={selectedKhoa}
+            onChange={setSelectedKhoa}
+            disabled={optionsLoading}
+            searchPlaceholder="Tìm khoa theo tên hoặc mã…"
           />
         </div>
 

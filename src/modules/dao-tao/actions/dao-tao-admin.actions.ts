@@ -1,10 +1,17 @@
 "use server";
 
 import { splitCoverage, type AssignedStaff } from "@/lib/dao-tao/coverage";
+import {
+  labelChungChiKind,
+  parseHanChungChiThang,
+  resolveChungChi,
+  type ChungChiKind,
+} from "@/lib/dao-tao/chung-chi";
 import { parseGan } from "@/lib/dao-tao/labels";
 import { verifyPermission } from "@/lib/server-permission";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { requireDaoTaoUser } from "@/modules/dao-tao/lib/dao-tao-auth";
+import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 
 export async function listMucDoThiThu() {
   await requireDaoTaoUser();
@@ -56,6 +63,7 @@ export type KyThiInput = {
   so_lan_cho_phep?: number;
   shuffle_cau?: boolean;
   shuffle_dap_an?: boolean;
+  han_chung_chi_thang?: number;
 };
 
 export async function createKyThiThat(input: KyThiInput) {
@@ -85,7 +93,13 @@ export async function createKyThiThat(input: KyThiInput) {
         order: 0.15,
       },
       chu_de_mas: input.chu_de_mas ?? [],
-      gan: { khoa_ids: [], nhan_su_ids: [] },
+      gan: {
+        khoa_ids: [],
+        nhan_su_ids: [],
+        han_chung_chi_thang: parseHanChungChiThang({
+          han_chung_chi_thang: input.han_chung_chi_thang,
+        }),
+      },
       so_lan_cho_phep: input.so_lan_cho_phep ?? 1,
       shuffle_cau: input.shuffle_cau ?? true,
       shuffle_dap_an: input.shuffle_dap_an ?? true,
@@ -144,15 +158,28 @@ export async function setKyThiGan(input: {
   kyThiId: string;
   khoaPhongIds?: string[];
   nhanSuIds?: string[];
+  hanChungChiThang?: number;
 }) {
   await verifyPermission("DAO_TAO", "edit");
   const admin = createAdminSupabaseClient();
+  const { data: current, error: readErr } = await admin
+    .from("dao_tao_cau_hinh")
+    .select("gan")
+    .eq("id", input.kyThiId)
+    .eq("loai_cau_hinh", "thi_that")
+    .maybeSingle();
+  if (readErr) throw readErr;
+  const prev = current?.gan;
   const { error } = await admin
     .from("dao_tao_cau_hinh")
     .update({
       gan: {
         khoa_ids: input.khoaPhongIds ?? [],
         nhan_su_ids: input.nhanSuIds ?? [],
+        han_chung_chi_thang:
+          input.hanChungChiThang != null
+            ? parseHanChungChiThang({ han_chung_chi_thang: input.hanChungChiThang })
+            : parseHanChungChiThang(prev),
       },
       updated_at: new Date().toISOString(),
     })
@@ -177,6 +204,9 @@ export type KetQuaKyThiRow = {
   trang_thai: string;
   nop_luc: string | null;
   so_cau: number;
+  chungChiKind: ChungChiKind;
+  chungChiLabel: string;
+  hetHanLuc: string | null;
 };
 
 export async function listKetQuaKyThi(filters?: { kyThiId?: string; khoaId?: string }) {
@@ -201,8 +231,8 @@ export async function listKetQuaKyThi(filters?: { kyThiId?: string; khoaId?: str
   const authIds = [...new Set(rows.map((r) => r.auth_user_id).filter(Boolean))] as string[];
   const [{ data: kys }, { data: nss }] = await Promise.all([
     kyIds.length
-      ? admin.from("dao_tao_cau_hinh").select("id, ten").in("id", kyIds)
-      : Promise.resolve({ data: [] as Array<{ id: string; ten: string }> }),
+      ? admin.from("dao_tao_cau_hinh").select("id, ten, gan").in("id", kyIds)
+      : Promise.resolve({ data: [] as Array<{ id: string; ten: string; gan?: unknown }> }),
     authIds.length
       ? admin
           .from("mdm_nhan_su")
@@ -217,27 +247,44 @@ export async function listKetQuaKyThi(filters?: { kyThiId?: string; khoaId?: str
     ? await admin.from("mdm_dm_khoa_phong").select("id, ten_khoa, ma_khoa").in("id", khoaIds)
     : { data: [] as Array<{ id: string; ten_khoa: string; ma_khoa: string }> };
   const kyMap = Object.fromEntries((kys ?? []).map((k) => [k.id, k.ten]));
+  const kyGanMap = Object.fromEntries((kys ?? []).map((k) => [k.id, k.gan]));
+  const nowIso = new Date().toISOString();
   const nsByAuth = Object.fromEntries((nss ?? []).map((n) => [n.auth_user_id ?? "", n]));
   const khoaMap = Object.fromEntries((khoas ?? []).map((k) => [k.id, k]));
   const out: KetQuaKyThiRow[] = rows.map((r) => {
     const ns = nsByAuth[r.auth_user_id as string];
     const khoa = ns?.khoa_id ? khoaMap[ns.khoa_id] : null;
     const form = r.form_thong_tin as { hoTen?: string; khoaDonVi?: string } | null;
+    const kyTen = (r.cau_hinh_id ? kyMap[r.cau_hinh_id as string] : null) ?? "—";
+    const dat = r.dat as boolean | null;
+    const nopLuc = r.nop_luc as string | null;
+    const chungChi = resolveChungChi({
+      lastPassNopLuc: dat === true ? nopLuc : null,
+      lastPassKyTen: kyTen,
+      hanThang: parseHanChungChiThang(r.cau_hinh_id ? kyGanMap[r.cau_hinh_id as string] : null),
+      nowIso,
+    });
     return {
       id: r.id as string,
       cau_hinh_id: (r.cau_hinh_id as string | null) ?? null,
-      kyTen: (r.cau_hinh_id ? kyMap[r.cau_hinh_id as string] : null) ?? "—",
+      kyTen,
       hoTen: ns?.ho_ten || form?.hoTen || "—",
       khoaId: ns?.khoa_id ?? null,
-      khoaTen: khoa?.ten_khoa ?? form?.khoaDonVi ?? "—",
+      khoaTen: formatKhoaCompactLabel({
+        ma_khoa: khoa?.ma_khoa,
+        ten_khoa: khoa?.ten_khoa ?? form?.khoaDonVi,
+      }),
       khoaMa: khoa?.ma_khoa ?? null,
       diem_so: r.diem_so as number | null,
       diem_toi_da: r.diem_toi_da as number | null,
       diem_pct: r.diem_pct as number | null,
-      dat: r.dat as boolean | null,
+      dat,
       trang_thai: r.trang_thai as string,
-      nop_luc: r.nop_luc as string | null,
+      nop_luc: nopLuc,
       so_cau: r.so_cau as number,
+      chungChiKind: chungChi.kind,
+      chungChiLabel: labelChungChiKind(chungChi.kind),
+      hetHanLuc: chungChi.hetHanLuc,
     };
   });
   return khoaId ? out.filter((r) => r.khoaId === khoaId) : out;
@@ -271,15 +318,20 @@ export async function listChuaNopKyThi(kyThiId: string) {
   const raw = [...map.values()];
   const khoaIds = [...new Set(raw.map((s) => s.khoa_id).filter(Boolean))] as string[];
   const { data: khoas } = khoaIds.length
-    ? await admin.from("mdm_dm_khoa_phong").select("id, ten_khoa").in("id", khoaIds)
-    : { data: [] as Array<{ id: string; ten_khoa: string }> };
-  const khoaTen = Object.fromEntries((khoas ?? []).map((k) => [k.id, k.ten_khoa]));
+    ? await admin.from("mdm_dm_khoa_phong").select("id, ten_khoa, ma_khoa").in("id", khoaIds)
+    : { data: [] as Array<{ id: string; ten_khoa: string; ma_khoa?: string }> };
+  const khoaLabel = Object.fromEntries(
+    (khoas ?? []).map((k) => [
+      k.id,
+      formatKhoaCompactLabel({ ma_khoa: k.ma_khoa, ten_khoa: k.ten_khoa }),
+    ]),
+  );
   const staff: AssignedStaff[] = raw.map((s) => ({
     id: s.id,
     hoTen: s.ho_ten ?? s.ma_nv ?? s.id.slice(0, 8),
     maNv: s.ma_nv,
     khoaId: s.khoa_id,
-    khoaTen: (s.khoa_id && khoaTen[s.khoa_id]) || "—",
+    khoaTen: (s.khoa_id && khoaLabel[s.khoa_id]) || "—",
     authUserId: s.auth_user_id,
   }));
   const { data: attempts, error: aErr } = await admin

@@ -113,7 +113,7 @@ export default function KetQuaPage() {
         </div>
       </DaoTaoPanel>
 
-      <div className="space-y-4">
+      <div className="space-y-[var(--bv103-space-3)]">
         {visible.map((q) => (
           <div key={q.id} className="space-y-1.5">
             <p className={T.labelBlock}>

@@ -2,7 +2,7 @@
 
 > **Hợp đồng UI pilot** (không thay Domain SSOT)  
 > **Phiên bản:** 3.2 (2026-08-05) — lớp L1/L2/L3 tinh gọn CDC + investigation-forms  
-> Neo domain: [`hai-surveillance-domain-ssot-20260804.md`](./hai-surveillance-domain-ssot-20260804.md)  
+> Neo domain: [`hai-surveillance-domain-ssot-20260827.md`](./hai-surveillance-domain-ssot-20260827.md) (v3.3, Phụ lục E) · luồng ca: [`hai-identification-data-flow-20260827.md`](./hai-identification-data-flow-20260827.md)  
 > Phân tích phiếu: [`investigation-forms/README.md`](./investigation-forms/README.md)  
 > **SSOT triệu chứng:** [`investigation-forms/02-clinical-symptom-catalog.md`](./investigation-forms/02-clinical-symptom-catalog.md) · code `nkbv-clinical-symptom-catalog.ts` · Ch.17 SSI `nkbv-chapter17-clinical.ts` · UAT [`investigation-forms/symptom-catalog-uat-20260809.md`](./investigation-forms/symptom-catalog-uat-20260809.md)
 
@@ -26,24 +26,26 @@ Runtime: `NkbvDiagnosticCaseForm` + `NkbvDiagnosticRow` trong modal phán quyế
 
 ## I. CHUỖI CHẨN ĐOÁN TRÊN FORM
 
+Thứ tự **máy** (bắt buộc, [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md) §5): Secondary BSI **trước** nhãn CLABSI; hô hấp + máy → VAE không mặc định VAP. Hàng UI 0–9 giữ để đọc — không được gắn CLABSI trước bước Secondary.
+
 ```mermaid
 flowchart TB
-  top[Chon_loai_NKBV_goi_y_benh_pham]
+  top[Goi_y_benh_pham_IP_chot]
   r0[0_Index]
   r1[1_Cua_so]
   r2[2_Tieu_chuan]
   r3[3_DOE]
   r4[4_POA_HAI]
   r5[5_LOA]
-  r6[6_Dung_cu]
+  r8s[Secondary_BSI_neu_mau]
+  r6[6_Dung_cu_CLABSI_sau_Secondary]
   r7[7_RIT]
-  r8[8_SBAP_Secondary]
   r9[9_Ket_luan]
   confirm[Xac_nhan_kep]
-  top --> r0 --> r1 --> r2 --> r3 --> r4 --> r5 --> r6 --> r7 --> r8 --> r9 --> confirm
+  top --> r0 --> r1 --> r2 --> r3 --> r4 --> r5 --> r8s --> r6 --> r7 --> r9 --> confirm
 ```
 
-Domain §2.6: Criteria → DOE → POA/HAI → Device → RIT → Secondary BSI (+ LOA §1.6 / Transfer Rule).
+Cửa sổ: IWP ±3 (BSI/UTI/PNEU/Ch.17 trừ ENDO) · SP 30/90 (SSI) · Event Period 14d (VAE) · IWP 21 ngày (ENDO).
 
 ### Wireframe
 
@@ -60,9 +62,9 @@ Domain §2.6: Criteria → DOE → POA/HAI → Device → RIT → Secondary BSI 
 | 3 | Ngày sự kiện (DOE) | Tự tính |
 | 4 | POA / HAI | Từ vào viện + DOE |
 | 5 | LOA — Quy kết khoa | Lịch sử khoa; Transfer Rule; lý do quy kết |
-| 6 | Dụng cụ xâm lấn | Loại · đặt/rút · ≥2 ngày · hiện diện DOE/DOE−1 |
-| 7 | RIT | [DOE → DOE+13] |
-| 8 | Secondary BSI (nếu có) | SBAP; máu ∈ SBAP; khớp loài |
+| 6 | Dụng cụ xâm lấn | Loại · đặt/rút · >2 ngày lịch · hiện diện DOE/DOE−1. **CLABSI chỉ sau Secondary** |
+| 7 | RIT | [DOE → DOE+13] (không SSI/VAE) |
+| 8 | Secondary BSI | SBAP; máu ∈ SBAP; khớp loài — **chạy trước nhãn CLABSI** |
 | 9 | Kết luận tiêu chuẩn | Badge engine |
 
 ---

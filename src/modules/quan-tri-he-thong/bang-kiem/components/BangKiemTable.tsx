@@ -7,12 +7,16 @@ import { getBangKiems, deleteBangKiem, saveBangKiem, getExportData, toggleIsActi
 import { importFullBangKiemData } from "../actions/bang-kiem-import.actions";
 import { toast } from "sonner";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
-import { ImportExportHint, ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
+import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import BangKiemForm from "./BangKiemForm";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import type { DanhMucBangKiem } from "../bang-kiem.types";
 import { summarizeApDungForTable } from "@/lib/domain/bang-kiem-ap-dung";
+import {
+  labelBangKiemCachTinhDiem,
+  labelBangKiemLoaiGiamSat,
+} from "../lib/bang-kiem-gsc-fields";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
 
@@ -117,6 +121,17 @@ export default function BangKiemTable({
       ),
     },
     {
+      header: "Loại / Tính điểm",
+      accessorKey: "loai_giam_sat",
+      sortable: true,
+      cell: (bk) => (
+        <div className="py-1">
+          <div className={TC.cellTitle}>{labelBangKiemLoaiGiamSat(bk.loai_giam_sat)}</div>
+          <div className={`${TC.cellMeta} mt-1`}>{labelBangKiemCachTinhDiem(bk.cach_tinh_diem)}</div>
+        </div>
+      ),
+    },
+    {
       header: "Phạm vi",
       accessorKey: "ap_dung_jsonb",
       sortable: false,
@@ -148,10 +163,9 @@ export default function BangKiemTable({
     isFormOpen && ((editingBK != null && allowEdit) || (editingBK == null && allowCreate));
 
   return (
-    <div className={`min-h-[400px] p-0 animate-in fade-in ${C.panelSurface}`}>
+    <div className="min-h-[400px] space-y-2 animate-in fade-in">
       <div className={C.pageToolbar}>
         <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <ImportExportHint />
           <ImportExportToolbar
             fileInputRef={fileInputRef}
             isImporting={isImporting}
@@ -170,15 +184,14 @@ export default function BangKiemTable({
           </button>
         ) : null}
       </div>
-      <div className="px-4 pb-2 sm:px-6">
-        <AdvancedDataTable
+      <AdvancedDataTable
           columns={columns}
           data={data}
           loading={loading}
           enableMultiSelect={allowDelete}
           onRowClick={(row) => onSelectBK(row)}
           rowClassName={(row) =>
-            row.id === selectedBKId ? "bg-[var(--primary)]/5 border-l-4 border-l-[var(--primary)]" : ""
+            row.id === selectedBKId ? "bg-[var(--primary)]/8" : ""
           }
           onDeleteSelected={
             allowDelete
@@ -192,7 +205,6 @@ export default function BangKiemTable({
               : undefined
           }
         />
-      </div>
       {showForm ? (
         <BangKiemForm
           initialData={editingBK ?? undefined}

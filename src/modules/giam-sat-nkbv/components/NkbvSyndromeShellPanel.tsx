@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
+import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import type {
   BaGridActiveIndex,
   BaGridCdhaCell,
@@ -107,7 +108,7 @@ export default function NkbvSyndromeShellPanel({
         baCellToneClass(indexDate === day.date ? "index" : "none"),
       render: (day) =>
         indexDate === day.date ? (
-          <span className="line-clamp-3 text-center text-[10px] font-semibold">
+          <span className="line-clamp-3 text-center bv103-type-label font-semibold">
             {indexLabel || "Index"}
           </span>
         ) : (
@@ -116,7 +117,7 @@ export default function NkbvSyndromeShellPanel({
     },
     {
       id: "vae_ep",
-      header: "Event Period",
+      header: "Event period",
       minWidth: aw,
       cellClassName: (day) => {
         if (!ep) return baCellToneClass("none");
@@ -127,10 +128,10 @@ export default function NkbvSyndromeShellPanel({
       render: (day) => {
         if (!ep) return <span className="text-slate-300">·</span>;
         if (doe === day.date) {
-          return <span className="text-[10px] font-semibold">DOE</span>;
+          return <span className="bv103-type-label font-semibold">DOE</span>;
         }
         if (day.date >= ep.start && day.date <= ep.end) {
-          return <span className="text-[9px] text-violet-800">EP</span>;
+          return <span className="bv103-type-label text-violet-800">EP</span>;
         }
         return <span className="text-slate-300">·</span>;
       },
@@ -173,7 +174,7 @@ export default function NkbvSyndromeShellPanel({
             />
             {isIx ? (
               <input
-                className="w-full border-t border-amber-200/60 bg-transparent pt-0.5 text-[9px] font-semibold outline-none"
+                className="w-full border-t border-amber-200/60 bg-transparent pt-0.5 bv103-type-label font-semibold outline-none"
                 value={draft.ketLuan}
                 disabled={
                   !allowedEdit ||
@@ -208,7 +209,7 @@ export default function NkbvSyndromeShellPanel({
       minWidth: 72,
       render: (day) => (
         <input
-          className="w-full bg-transparent text-[10px] outline-none"
+          className="w-full bg-transparent bv103-type-label outline-none"
           value={draft.notesByDate[day.date] || ""}
           disabled={!allowedEdit}
           onChange={(e) =>
@@ -222,17 +223,17 @@ export default function NkbvSyndromeShellPanel({
   ];
 
   return (
-    <section className="mt-3 rounded-xl border border-violet-200 bg-violet-50/40 p-3">
+    <section className={`mt-3 ${C.inset} border-violet-200 bg-violet-50/40 p-3`}>
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h3 className="text-sm font-bold text-violet-950">{title}</h3>
+          <h3 className={`${C.sectionTitle} text-violet-950`}>{title}</h3>
           <p className="mt-0.5 text-[11px] text-violet-800">
             Index {indexDate || "—"}
             {indexLabel ? ` · ${indexLabel}` : ""}
             {doe ? ` · DOE ${doe}` : ""}
             {ep ? ` · EP ${ep.start} → ${ep.end}` : ""}
           </p>
-          <p className="mt-1 text-[10px] text-violet-700/90">
+          <p className="mt-1 bv103-type-label text-violet-700/90">
             Ghi VAC / IVAC / PVAP ở kết luận Index để mở «Tạo phiếu» (bảng vent đầy đủ trên form).
           </p>
         </div>

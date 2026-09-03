@@ -22,7 +22,8 @@ export type KsnkPageChromeProps = {
 
 /**
  * Band L1 duy nhất dưới App Header — page-chrome-contract-20260731.
- * Thứ tự: Title+Actions → Tabs → Filters.
+ * Một hàng công cụ: Tab trái · Nút phải. Title chỉ khi App Header chưa có tên.
+ * Filters xuống hàng riêng khi có.
  */
 export function KsnkPageChrome({
   eyebrow,
@@ -46,43 +47,40 @@ export function KsnkPageChrome({
   if (!hasTitleBlock && !hasActions && !hasTabs && !hasFilters) return null;
 
   const shell = sticky ? T.pageChromeShellSticky : T.pageChromeShell;
-  const showTitleRow = hasTitleBlock || (hasActions && showTitle);
-  /** Actions cạnh title, hoặc hàng riêng khi không có title (vd. /thong-ke). */
-  const actionsBesideTitle = hasActions && (hasTitleBlock || showTitle);
-  const actionsAlone = hasActions && !actionsBesideTitle;
+  const actionCluster = hasActions ? (
+    <div className="bv103-action-row shrink-0">{actions}</div>
+  ) : null;
 
   return (
     <header className={cn(shell, className)}>
-      {showTitleRow || actionsAlone ? (
-        <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-          {hasTitleBlock ? (
-            <div className="min-w-0 flex-1">
-              {eye ? <p className={`${T.pageEyebrow} max-sm:hidden`}>{eye}</p> : null}
-              {title != null ? (
-                <div className={cn(T.pageTitle, eye ? "mt-0.5" : null)}>{title}</div>
-              ) : null}
-              {desc ? (
-                typeof desc === "string" ? (
-                  <p className={`${T.pageSubtitle} max-sm:hidden`}>{desc}</p>
-                ) : (
-                  <div className={`${T.pageSubtitle} max-sm:hidden`}>{desc}</div>
-                )
-              ) : null}
-            </div>
-          ) : (
-            <div className="min-w-0 flex-1" />
-          )}
-          {hasActions ? (
-            <div className="flex w-full min-w-0 shrink-0 flex-wrap items-center justify-end gap-2 sm:w-auto">
-              {actions}
-            </div>
-          ) : null}
+      {hasTitleBlock ? (
+        <div className="flex w-full items-center justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            {eye ? <p className={`${T.pageEyebrow} max-sm:hidden`}>{eye}</p> : null}
+            {title != null ? (
+              <div className={cn(T.pageTitle, eye ? "mt-0.5" : null)}>{title}</div>
+            ) : null}
+            {desc ? (
+              typeof desc === "string" ? (
+                <p className={`${T.pageSubtitle} max-sm:hidden`}>{desc}</p>
+              ) : (
+                <div className={`${T.pageSubtitle} max-sm:hidden`}>{desc}</div>
+              )
+            ) : null}
+          </div>
+          {!hasTabs ? actionCluster : null}
         </div>
       ) : null}
 
-      {hasTabs ? (
-        <div className={cn(showTitleRow || actionsAlone ? "mt-2 border-t border-slate-100 pt-2" : null)}>
-          {tabs}
+      {hasTabs || (hasActions && (!hasTitleBlock || hasTabs)) ? (
+        <div
+          className={cn(
+            "flex w-full items-center gap-2",
+            hasTitleBlock ? "mt-[var(--bv103-space-2)]" : null,
+          )}
+        >
+          {hasTabs ? <div className="min-w-0 flex-1">{tabs}</div> : null}
+          {actionCluster && (hasTabs || !hasTitleBlock) ? actionCluster : null}
         </div>
       ) : null}
 
@@ -90,7 +88,7 @@ export function KsnkPageChrome({
         <div
           className={cn(
             "[&:has(>.chrome-slot:empty)]:hidden",
-            showTitleRow || actionsAlone || hasTabs ? "mt-2 border-t border-slate-100 pt-2" : null,
+            hasTitleBlock || hasTabs || hasActions ? "mt-[var(--bv103-space-2)]" : null,
           )}
         >
           {filters}

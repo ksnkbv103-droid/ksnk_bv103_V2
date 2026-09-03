@@ -29,7 +29,7 @@ export default function GiamSatChungFormActions({
           title="In mẫu bảng kiểm trống"
           className="app-shell-focus flex h-12 w-12 shrink-0 items-center justify-center self-end rounded-[var(--radius-control)] border border-slate-200 bg-white text-slate-700 shadow-[var(--shadow-app-soft)] transition-colors hover:bg-slate-50"
         >
-          <span className="text-[11px] font-bold leading-tight">Mẫu</span>
+          <span className="bv103-type-label font-semibold leading-tight">Mẫu</span>
         </button>
       ) : null}
       <button
@@ -53,7 +53,7 @@ export default function GiamSatChungFormActions({
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
         ) : (
           <>
-            <span className="text-2xl">💾</span>
+            <span className="bv103-type-title" aria-hidden>💾</span>
             <span>Lưu kết quả</span>
           </>
         )}

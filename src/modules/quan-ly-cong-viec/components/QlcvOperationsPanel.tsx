@@ -246,7 +246,7 @@ export function QlcvOperationsPanel({
             }}
           />
         ) : (
-          <div className="min-w-0 overflow-x-auto rounded-xl border border-slate-100/90 bg-white">
+          <div className="min-w-0">
             <AdvancedDataTable
               columns={columns}
               data={tableData}

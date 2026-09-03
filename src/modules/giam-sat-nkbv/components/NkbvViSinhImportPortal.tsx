@@ -356,8 +356,8 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
   const incompleteCount = records.filter((r) => r.needs_stay_fields).length;
 
   return (
-    <div className="space-y-3 py-2 sm:space-y-4 sm:py-3">
-      <div className={`${C.panelSurface} p-6 space-y-4`}>
+    <div className="space-y-3 py-2 sm:space-y-[var(--bv103-space-3)] sm:py-3">
+      <div className={`${C.panelShellPadded} space-y-[var(--bv103-space-3)]`}>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
           <div>
             <h3 className={`${C.panelTitle} flex items-center gap-2`}>
@@ -376,7 +376,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                 await downloadLisExcelTemplate();
                 toast.success("Đã tải file mẫu Excel LIS (.xlsx)");
               }}
-              className="flex items-center gap-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 px-4 py-2 text-xs font-bold text-emerald-800 transition"
+              className="flex items-center gap-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 px-4 py-2 bv103-type-label font-semibold text-emerald-800 transition"
             >
               <Download className="h-4 w-4" />
               Tải file mẫu
@@ -393,7 +393,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                 URL.revokeObjectURL(url);
                 toast.success("Đã tải mẫu nội bộ (.tsv)");
               }}
-              className="flex items-center gap-1.5 rounded-full bg-slate-100 hover:bg-slate-200 px-4 py-2 text-xs font-bold text-slate-600 transition"
+              className="flex items-center gap-1.5 rounded-full bg-slate-100 hover:bg-slate-200 px-4 py-2 bv103-type-label font-semibold text-slate-600 transition"
             >
               <Download className="h-4 w-4" />
               TSV nội bộ
@@ -401,7 +401,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
             <button
               type="button"
               onClick={() => setShowGuide(!showGuide)}
-              className="flex items-center gap-1.5 rounded-full bg-slate-100 hover:bg-slate-200 px-4 py-2 text-xs font-bold text-slate-600 transition"
+              className="flex items-center gap-1.5 rounded-full bg-slate-100 hover:bg-slate-200 px-4 py-2 bv103-type-label font-semibold text-slate-600 transition"
             >
               <HelpCircle className="h-4 w-4" />
               Hướng dẫn
@@ -443,10 +443,9 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
             />
           </div>
         )}
-      </div>
 
-      {records.length === 0 ? (
-        <div className={`${C.panelSurface} p-6 space-y-4`}>
+        {records.length === 0 ? (
+          <div className="space-y-[var(--bv103-space-3)]">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className={C.statLabel}>Nạp xét nghiệm vi sinh</span>
             <div className="flex flex-wrap items-center gap-2">
@@ -464,7 +463,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={isLoading}
-                className="flex items-center gap-1.5 rounded-full bg-blue-50 hover:bg-blue-100 px-4 py-2 text-xs font-bold text-blue-800 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-full bg-blue-50 hover:bg-blue-100 px-4 py-2 bv103-type-label font-semibold text-blue-800 disabled:opacity-50"
               >
                 <UploadCloud className="h-4 w-4" />
                 Upload Excel
@@ -474,7 +473,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                 onClick={() => setShowPastePanel((v) => !v)}
                 disabled={isLoading}
                 aria-expanded={showPastePanel}
-                className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold disabled:opacity-50 ${
+                className={`flex items-center gap-1.5 rounded-full px-4 py-2 bv103-type-label font-semibold disabled:opacity-50 ${
                   showPastePanel
                     ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
                     : "bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/15"
@@ -483,7 +482,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                 <ClipboardPaste className="h-4 w-4" />
                 {showPastePanel ? "Ẩn khung dán" : "Dán bảng"}
                 {pasteData.trim() && !showPastePanel ? (
-                  <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[11px] font-bold text-amber-800">
+                  <span className="rounded-full bg-amber-100 px-1.5 py-0.5 bv103-type-label font-semibold text-amber-800">
                     có nội dung
                   </span>
                 ) : null}
@@ -491,7 +490,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
             </div>
           </div>
           {showPastePanel ? (
-            <div className="space-y-3 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/40 p-4">
+            <div className="space-y-3 bv103-layer-inset bv103-pad-inset">
               <span className="text-[11px] font-medium text-slate-500">
                 Dán bảng LIS / mẫu nội bộ (TSV)
               </span>
@@ -519,8 +518,8 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
             </p>
           )}
         </div>
-      ) : (
-        <div className={`${C.panelSurface} p-6 space-y-6`}>
+        ) : (
+          <div className="space-y-[var(--bv103-space-3)]">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
             <div>
               <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
@@ -531,7 +530,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                 Bổ sung mã BA / ngày vào viện nếu thiếu. Kiểm tra khoa, cảnh báo RIT/SBAP trước khi lưu.
               </p>
               {incompleteCount > 0 && (
-                <p className="text-xs font-bold text-amber-700 mt-1">
+                <p className="bv103-type-label font-semibold text-amber-700 mt-1">
                   Còn {incompleteCount} dòng thiếu BA hoặc ngày vào viện — chưa lưu được.
                 </p>
               )}
@@ -540,7 +539,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
               <button
                 type="button"
                 onClick={() => setRecords([])}
-                className="rounded-full bg-slate-100 hover:bg-slate-200 px-5 py-2.5 text-xs font-bold text-slate-600"
+                className="rounded-full bg-slate-100 hover:bg-slate-200 px-5 py-2.5 bv103-type-label font-semibold text-slate-600"
               >
                 Hủy / Dán lại
               </button>
@@ -557,7 +556,6 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
 
           <ResponsiveTableShell
             unboxed
-            className="border border-slate-100 rounded-[var(--radius-shell)]"
             maxHeight="max-h-[min(52dvh,520px)]"
           >
             <table className="w-full min-w-[1400px] border-collapse text-left text-xs">
@@ -610,7 +608,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                     </td>
                     <td className="px-3 py-3">
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                        className={`rounded-full px-2 py-0.5 bv103-type-label font-semibold ${
                           r.ket_qua === "DUONG_TINH"
                             ? "bg-amber-100 text-amber-800"
                             : r.ket_qua === "NHIEU"
@@ -637,7 +635,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                     </td>
                     <td className="px-3 py-3">
                       <div className="font-bold text-blue-700">{r.loai_benh_pham}</div>
-                      <div className="italic text-amber-700">{r.tac_nhan || "—"}</div>
+                      <div className="bv103-type-body text-amber-700">{r.tac_nhan || "—"}</div>
                     </td>
                     <td className="px-3 py-3">
                       <label className="flex items-center gap-1.5 text-[11px] font-semibold">
@@ -670,11 +668,11 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                     </td>
                     <td className="px-3 py-3">
                       {r.needs_stay_fields ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-black text-amber-800">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-800">
                           <AlertTriangle className="h-3 w-3" /> Thiếu BA/VV
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[11px] font-black text-emerald-800">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[11px] font-semibold text-emerald-800">
                           <CheckCircle className="h-3 w-3" /> Lưu kho
                         </span>
                       )}
@@ -724,7 +722,8 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
             <span className="text-slate-400">Không tạo phiếu điều tra từ kho này</span>
           </div>
         </div>
-      )}
+        )}
+      </div>
 
       <NkbvViSinhStorePanel khoas={khoas} />
     </div>

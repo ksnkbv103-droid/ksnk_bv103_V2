@@ -1,3 +1,4 @@
+import { gscCompliancePercentFromCounts } from "@/modules/giam-sat-chung/lib/gsc-score-display";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 
@@ -16,7 +17,9 @@ export function computeTyLeVst(kpis: VstStrategicPayload["kpis"] | undefined): n
 
 export function computeTyLeGsc(kpis: GscStrategicPayload["kpis"] | undefined): number | null {
   if (!kpis || kpis.tong_quan_sat <= 0) return null;
-  return kpis.ty_le_tuan_thu;
+  return (
+    gscCompliancePercentFromCounts(kpis.tong_quan_sat, kpis.tong_dat) ?? kpis.ty_le_tuan_thu
+  );
 }
 
 /** CCS chỉ từ VST+GSC (process); NKBV là outcome riêng. */

@@ -30,7 +30,7 @@ export default function KhoHoaChatSuCoPanel({ rows, canEdit, onXuatTuSuCo }: Pro
             className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-violet-100 bg-white px-3 py-2"
           >
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-bold text-slate-800">
+              <p className="bv103-type-label font-semibold text-slate-800">
                 {r.ma_hoa_chat} — {r.ten_hoa_chat}
                 {r.ma_lo ? <span className="ml-1 font-mono text-violet-700">· Lô {r.ma_lo}</span> : null}
               </p>

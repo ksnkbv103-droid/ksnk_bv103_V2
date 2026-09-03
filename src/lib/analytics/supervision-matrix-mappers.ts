@@ -62,6 +62,7 @@ export function gapRowVolTotal(row: GapKhoaRow): number {
 function stripPickerPrefix(label: string): string {
   return label
     .replace(/^\[[^\]]+\]\s*/, "")
+    .replace(/^[A-Za-z0-9][A-Za-z0-9_-]*\s+\|\s+/, "")
     .replace(/^[A-Za-z0-9][A-Za-z0-9_-]*\s+-\s+/, "")
     .trim();
 }

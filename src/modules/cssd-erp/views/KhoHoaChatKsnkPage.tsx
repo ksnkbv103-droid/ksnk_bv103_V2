@@ -320,7 +320,7 @@ export default function KhoHoaChatKsnkPage() {
         </div>
       }
     >
-      <div className="space-y-6">
+      <div className="space-y-[var(--bv103-space-3)]">
         {duoiNguongItems.length > 0 || sapHetHanItems.length > 0 ? (
           <KsnkContextBanner
             tone={duoiNguongItems.length > 0 ? "rose" : "amber"}
@@ -376,7 +376,7 @@ export default function KhoHoaChatKsnkPage() {
           />
         ) : null}
 
-        <div className="space-y-6 animate-in fade-in duration-300">
+        <div className="space-y-[var(--bv103-space-3)] animate-in fade-in duration-300">
             <div className="flex flex-wrap gap-2">
               {(
                 [

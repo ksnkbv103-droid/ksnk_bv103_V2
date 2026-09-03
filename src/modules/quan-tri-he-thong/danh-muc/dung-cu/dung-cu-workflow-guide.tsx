@@ -24,15 +24,12 @@ export function DungCuWorkflowGuide() {
             {"tab" in s ? (
               <Link
                 href={quanTriDungCuHref(s.tab)}
-                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 font-semibold text-slate-700 hover:border-[var(--primary)]/40"
+                className="font-medium text-slate-600 hover:text-[var(--primary)]"
               >
                 {s.title}
               </Link>
             ) : (
-              <Link
-                href={s.href}
-                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 font-semibold text-slate-700 hover:border-[var(--primary)]/40"
-              >
+              <Link href={s.href} className="font-medium text-slate-600 hover:text-[var(--primary)]">
                 {s.title}
               </Link>
             )}

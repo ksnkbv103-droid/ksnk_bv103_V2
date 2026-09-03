@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo } from "react";
+import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import {
   ssiTcCatalogWithoutSurgery,
   type BaGridActiveIndex,
@@ -314,10 +315,10 @@ export default function NkbvSyndromeSsiPanel({
   const doe = verdict.gate.doe;
 
   return (
-    <section className="mt-3 rounded-xl border border-violet-200 bg-violet-50/40 p-3">
+    <section className={`mt-3 ${C.inset} border-violet-200 bg-violet-50/40 p-3`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h3 className="text-sm font-bold text-violet-950">
+          <h3 className={`${C.sectionTitle} text-violet-950`}>
             Bảng SSI — SP 30/90 · DOE · SBAP 17d (không IWP)
           </h3>
           <p className="mt-0.5 text-[11px] text-violet-800">
@@ -431,7 +432,7 @@ export default function NkbvSyndromeSsiPanel({
               Đã phân tích xong
             </button>
           ) : (
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-900">
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 bv103-type-label font-semibold text-emerald-900">
               Đủ TC sự kiện
             </span>
           )}
@@ -550,13 +551,13 @@ export default function NkbvSyndromeSsiPanel({
               const isSurg = Boolean(surgeryByDate[day.date]?.length);
               if (isIx) {
                 return (
-                  <span className="line-clamp-3 text-[10px] font-semibold">
+                  <span className="line-clamp-3 bv103-type-label font-semibold">
                     {indexLabel || "Index"}
                   </span>
                 );
               }
               if (isSurg) {
-                return <span className="text-[10px] font-semibold text-violet-800">Mổ</span>;
+                return <span className="bv103-type-label font-semibold text-violet-800">Mổ</span>;
               }
               return <span className="text-slate-300">—</span>;
             },
@@ -577,7 +578,7 @@ export default function NkbvSyndromeSsiPanel({
           {
             /** Khác id `ssi_tc` của bảng chung (NkbvBaCommonDayGrid) — tránh key trùng khi merge extraColumns. */
             id: "ssi_panel_tc",
-            header: "TC",
+            header: "Tc",
             minWidth: aw,
             cellClassName: (day) =>
               baCellToneClass(verdict.gate.spDates.has(day.date) ? "iwp" : "none"),
@@ -589,14 +590,14 @@ export default function NkbvSyndromeSsiPanel({
                   {items.map((it) => (
                     <span
                       key={it.key}
-                      className="line-clamp-2 text-[10px] font-semibold text-violet-950"
+                      className="line-clamp-2 bv103-type-label font-semibold text-violet-950"
                     >
                       {it.label}
                     </span>
                   ))}
                   {allowedEdit && inSp ? (
                     <details className="mt-auto">
-                      <summary className="cursor-pointer text-[10px] font-semibold text-violet-600">
+                      <summary className="cursor-pointer bv103-type-label font-semibold text-violet-600">
                         + TC
                       </summary>
                       <ul className="absolute z-30 mt-0.5 max-h-40 w-56 overflow-auto rounded border bg-white p-1 shadow-lg">
@@ -626,7 +627,7 @@ export default function NkbvSyndromeSsiPanel({
           },
           {
             id: "ssi_sbap",
-            header: "SBAP · ứng viên",
+            header: "Sbap · ứng viên",
             minWidth: aw,
             cellClassName: (day) =>
               baCellToneClass(verdict.gate.sbapDates.has(day.date) ? "sbap" : "none"),
@@ -634,7 +635,7 @@ export default function NkbvSyndromeSsiPanel({
               const chips = sbapRitChips.sbapByDate[day.date] || [];
               if (!chips.length) {
                 return verdict.gate.sbapDates.has(day.date) ? (
-                  <span className="text-center text-[9px]">·</span>
+                  <span className="text-center bv103-type-label">·</span>
                 ) : (
                   <span className="text-slate-300">—</span>
                 );
@@ -647,7 +648,7 @@ export default function NkbvSyndromeSsiPanel({
                       type="button"
                       disabled={!onOpenPrimaryBsi}
                       onClick={() => onOpenPrimaryBsi?.(b.id)}
-                      className={`truncate rounded px-0.5 text-left text-[9px] font-semibold ${
+                      className={`truncate rounded px-0.5 text-left bv103-type-label font-semibold ${
                         b.organismMatched
                           ? "bg-sky-400/90 text-sky-950 ring-1 ring-sky-600"
                           : "bg-sky-200/80 text-sky-950"
@@ -719,7 +720,7 @@ export default function NkbvSyndromeSsiPanel({
                   />
                   {isIx ? (
                     <input
-                      className="w-full border-t border-amber-200/60 bg-transparent pt-0.5 text-[9px] font-semibold outline-none"
+                      className="w-full border-t border-amber-200/60 bg-transparent pt-0.5 bv103-type-label font-semibold outline-none"
                       value={ketLuanDisplay}
                       disabled={!allowedEdit || ketLuanLocked}
                       placeholder={
@@ -740,7 +741,7 @@ export default function NkbvSyndromeSsiPanel({
             minWidth: 72,
             render: (day) => (
               <input
-                className="w-full bg-transparent text-[10px] outline-none"
+                className="w-full bg-transparent bv103-type-label outline-none"
                 value={draft.notesByDate[day.date] || ""}
                 disabled={!allowedEdit}
                 onChange={(e) =>

@@ -43,7 +43,7 @@ export default function HistoryTable({
   } = useGscHistoryTable(onEditBundle, loaiGiamSat);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-[var(--bv103-space-3)]">
       {printingBundle && (
         <GiamSatChungPrintView
           session={printingBundle.session}

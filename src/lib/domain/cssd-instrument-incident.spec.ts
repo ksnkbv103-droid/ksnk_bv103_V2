@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  INSTRUMENT_CHANGE_REQUIRES_INCIDENT,
+  instrumentChangeRequiresIncidentResult,
   mapInstrumentPresetToLedgerType,
   shouldDetachChiTietFromSet,
   validateIssueQuantityAgainstThucTe,
@@ -9,6 +11,7 @@ describe("cssd-instrument-incident", () => {
   it("maps preset codes to ledger types", () => {
     expect(mapInstrumentPresetToLedgerType("INSTRUMENT_BROKEN")).toBe("BAO_HONG");
     expect(mapInstrumentPresetToLedgerType("INSTRUMENT_TRANSFER")).toBe("DIEU_CHUYEN");
+    expect(mapInstrumentPresetToLedgerType("INSTRUMENT_RETURN_KHO")).toBe("NHAP_KHO");
     expect(mapInstrumentPresetToLedgerType("PROCESS_QC_FAIL")).toBeNull();
   });
 
@@ -20,5 +23,12 @@ describe("cssd-instrument-incident", () => {
   it("rejects quantity above thực tế", () => {
     expect(validateIssueQuantityAgainstThucTe(2, 1)).toMatch(/không được vượt/);
     expect(validateIssueQuantityAgainstThucTe(1, 2)).toBeNull();
+  });
+
+  it("requires incident for operational instrument changes", () => {
+    const res = instrumentChangeRequiresIncidentResult();
+    expect(res.success).toBe(false);
+    expect(res.error).toBe(INSTRUMENT_CHANGE_REQUIRES_INCIDENT);
+    expect(res.error).toMatch(/báo cáo sự cố/);
   });
 });

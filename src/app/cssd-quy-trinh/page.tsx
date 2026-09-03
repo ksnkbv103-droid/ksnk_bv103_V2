@@ -100,7 +100,7 @@ function CssdQuyTrinhPageInner() {
         </>
       }
     >
-      <div className="space-y-4 sm:space-y-6">
+      <div className="bv103-stack-page">
         <div className={CSSD_UI_TAB_GROUP}>
           {TAB_CONFIG.map(({ key, label, mobileLabel, icon }) => (
             <CssdHorizTabButton

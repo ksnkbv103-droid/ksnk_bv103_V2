@@ -12,6 +12,7 @@ import type {
 } from "@/lib/dao-tao/types";
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { parseGan } from "@/lib/dao-tao/labels";
+import { parseHanChungChiThang, resolveChungChi, type ChungChiStatus } from "@/lib/dao-tao/chung-chi";
 import { requireDaoTaoUser } from "@/modules/dao-tao/lib/dao-tao-auth";
 import { randomUUID } from "crypto";
 
@@ -498,4 +499,46 @@ export async function submitLanThi(lanThiId: string) {
     dat,
     trangThai: hetGio || late ? "het_gio" : "da_nop",
   };
+}
+
+export async function getChungChiCuaToi(): Promise<ChungChiStatus> {
+  const { user } = await requireDaoTaoUser();
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin
+    .from("dao_tao_lan_thi")
+    .select("cau_hinh_id, nop_luc")
+    .eq("auth_user_id", user.id)
+    .eq("che_do", "thi_that")
+    .eq("dat", true)
+    .in("trang_thai", ["da_nop", "het_gio"])
+    .not("nop_luc", "is", null)
+    .order("nop_luc", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data?.nop_luc) {
+    return resolveChungChi({
+      lastPassNopLuc: null,
+      lastPassKyTen: null,
+      hanThang: 12,
+      nowIso: new Date().toISOString(),
+    });
+  }
+  let kyTen: string | null = null;
+  let gan: unknown = null;
+  if (data.cau_hinh_id) {
+    const { data: ky } = await admin
+      .from("dao_tao_cau_hinh")
+      .select("ten, gan")
+      .eq("id", data.cau_hinh_id)
+      .maybeSingle();
+    kyTen = (ky?.ten as string | undefined) ?? null;
+    gan = ky?.gan;
+  }
+  return resolveChungChi({
+    lastPassNopLuc: data.nop_luc as string,
+    lastPassKyTen: kyTen,
+    hanThang: parseHanChungChiThang(gan),
+    nowIso: new Date().toISOString(),
+  });
 }

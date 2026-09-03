@@ -16,7 +16,7 @@ import SetMembersModal from "../components/inventory/SetMembersModal";
 import InventoryIssueModal from "../components/inventory/InventoryIssueModal";
 import { importCSSDData } from "../actions/cssd.actions";
 import CSSDPageShell from "../components/layout/cssd-page-shell";
-import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_DATA_SURFACE } from "../shared/ui/cssd-ui-chrome";
+import { CSSD_UI_ACTION_PRIMARY } from "../shared/ui/cssd-ui-chrome";
 import { normalizeCssdCode } from "../shared/domain/cssd-qr-core";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 
@@ -201,7 +201,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       header: "Hạn sử dụng",
       accessorKey: "han_su_dung",
       cell: (i: any) => {
-        if (!i.han_su_dung) return <span className="text-[11px] text-slate-300 italic">Chưa TK</span>;
+        if (!i.han_su_dung) return <span className="bv103-type-note">Chưa TK</span>;
         const daysLeft = (new Date(i.han_su_dung).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
         const dateStr = formatDateVi(i.han_su_dung);
         if (daysLeft <= 0)
@@ -222,7 +222,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
               <CalendarClock size={12} /> {dateStr} ({Math.ceil(daysLeft)}d)
             </span>
           );
-        return <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">{dateStr}</span>;
+        return <span className="bv103-type-label font-semibold text-emerald-600 flex items-center gap-1">{dateStr}</span>;
       },
     },
     {
@@ -297,7 +297,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
   ];
 
   const mainContent = (
-    <div className="space-y-6">
+    <div className="bv103-stack-page">
       <div className="space-y-8 animate-in slide-in-from-left-4 duration-500">
         <InventoryDashboard data={data} activeStatus={filterStatus} onSelectStatus={setFilterStatus} />
         
@@ -326,8 +326,8 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
           </button>
         </div>
 
-        <div className={CSSD_UI_DATA_SURFACE}>
-          <div className="mb-3 max-w-xl">
+        <div className="space-y-2">
+          <div className="max-w-xl">
             <QrScanInput
               value={lookup}
               onChange={setLookup}

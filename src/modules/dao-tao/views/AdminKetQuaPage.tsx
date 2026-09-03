@@ -33,7 +33,7 @@ async function downloadKetQuaXlsx(
   const { default: ExcelJS } = await import("exceljs");
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Da_nop");
-  ws.addRow(["Kỳ thi", "Họ tên", "Khoa", "Điểm", "%", "Đạt", "Nộp"]);
+  ws.addRow(["Kỳ thi", "Họ tên", "Khoa", "Điểm", "%", "Đạt", "Nộp", "Chứng chỉ", "Hạn đến"]);
   for (const r of rows) {
     ws.addRow([
       r.kyTen,
@@ -43,6 +43,8 @@ async function downloadKetQuaXlsx(
       r.diem_pct ?? 0,
       r.dat == null ? "" : r.dat ? "Đạt" : "Chưa đạt",
       r.nop_luc ?? "",
+      r.chungChiLabel,
+      r.hetHanLuc ?? "",
     ]);
   }
   ws.getRow(1).font = { bold: true };
@@ -217,6 +219,7 @@ export default function AdminKetQuaPage() {
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>Khoa</th>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>Điểm</th>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>Đạt</th>
+                <th className={cn("px-3 py-2.5", T.tableHeader)}>Chứng chỉ</th>
                 <th className={cn("px-3 py-2.5", T.tableHeader)}>Nộp</th>
                 <th className={cn("px-3 py-2.5", T.tableHeader)} />
               </tr>
@@ -246,6 +249,7 @@ export default function AdminKetQuaPage() {
                       </span>
                     )}
                   </td>
+                  <td className="px-3 py-2.5 text-[11px] text-slate-600">{r.chungChiLabel}</td>
                   <td className="whitespace-nowrap px-3 py-2.5 text-[11px] text-slate-500">
                     {formatDateTimeVi(r.nop_luc)}
                   </td>
@@ -261,7 +265,7 @@ export default function AdminKetQuaPage() {
               ))}
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-sm text-slate-500">
+                  <td colSpan={8} className="px-3 py-8 text-center text-sm text-slate-500">
                     Chưa có bài thi chính thức nào được nộp.
                   </td>
                 </tr>

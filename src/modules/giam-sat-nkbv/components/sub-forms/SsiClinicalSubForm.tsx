@@ -149,7 +149,7 @@ export default function SsiClinicalSubForm({
         <NkbvFormSection title="Phẫu thuật & PATOS" hint="Mã PT NHSN quyết định SP Deep/Organ; ngày mổ + DOE tự tính.">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="mb-1 block text-xs font-bold">Mã phẫu thuật NHSN</label>
+              <label className="mb-1 block bv103-type-label font-semibold">Mã phẫu thuật NHSN</label>
               <select
                 value={form.loai_phau_thuat_nhsn || ""}
                 disabled={!allowedEdit}
@@ -181,7 +181,7 @@ export default function SsiClinicalSubForm({
               ) : null}
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold">Ngày phẫu thuật</label>
+              <label className="mb-1 block bv103-type-label font-semibold">Ngày phẫu thuật</label>
               <input
                 type="date"
                 value={form.surgery_date || ""}
@@ -191,7 +191,7 @@ export default function SsiClinicalSubForm({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold">DOE (ngày sự kiện)</label>
+              <label className="mb-1 block bv103-type-label font-semibold">DOE (ngày sự kiện)</label>
               <input
                 type="date"
                 value={form.doe_date || ""}
@@ -201,7 +201,7 @@ export default function SsiClinicalSubForm({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold">Số ngày sau mổ</label>
+              <label className="mb-1 block bv103-type-label font-semibold">Số ngày sau mổ</label>
               <input
                 type="number"
                 value={form.days_since_surgery}
@@ -213,7 +213,7 @@ export default function SsiClinicalSubForm({
               />
             </div>
           </div>
-          <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
+          <label className="flex items-center gap-2 bv103-type-label font-semibold cursor-pointer">
             <input
               type="checkbox"
               checked={form.has_implant}
@@ -222,14 +222,28 @@ export default function SsiClinicalSubForm({
             />
             Có implant (thuộc tính ca — không quyết định SP khi đã có mã PT)
           </label>
-          <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
-            <input
-              type="checkbox"
-              checked={!!form.is_patos}
-              disabled={!allowedEdit}
-              onChange={(e) => onChange({ ...form, is_patos: e.target.checked })}
-            />
+          <label className="flex flex-col gap-1 text-xs font-semibold">
             PATOS — nhiễm đã có tại thời điểm mổ
+            <select
+              className={C.controlInput}
+              disabled={!allowedEdit}
+              value={
+                form.is_patos === true ? "yes" : form.is_patos === false ? "no" : ""
+              }
+              onChange={(e) =>
+                onChange({
+                  ...form,
+                  is_patos:
+                    e.target.value === ""
+                      ? undefined
+                      : e.target.value === "yes",
+                })
+              }
+            >
+              <option value="">— Chưa chọn —</option>
+              <option value="yes">Có (PATOS)</option>
+              <option value="no">Không</option>
+            </select>
           </label>
           <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
             <input
@@ -268,7 +282,7 @@ export default function SsiClinicalSubForm({
             />
             Cấy organ/space (+)
           </label>
-          <label className="flex items-center gap-2 text-xs font-bold cursor-pointer">
+          <label className="flex items-center gap-2 bv103-type-label font-semibold cursor-pointer">
             <input
               type="checkbox"
               checked={form.has_blood_culture_positive}
@@ -279,7 +293,7 @@ export default function SsiClinicalSubForm({
           </label>
           {form.has_blood_culture_positive ? (
             <div className="space-y-2 pl-6">
-              <span className="text-[11px] font-bold text-slate-400">Ngày cấy máu ∈ cửa sổ theo dõi:</span>
+              <span className="bv103-type-label font-semibold text-slate-400">Ngày cấy máu ∈ cửa sổ theo dõi:</span>
               <input
                 type="date"
                 value={symptomDates.has_blood_culture_positive || ""}
@@ -305,7 +319,7 @@ export default function SsiClinicalSubForm({
 
       {showClinical && (
         <NkbvFormSection title="Loại sự kiện & tiêu chí" hint="SIP/SIS/DIP/DIS hoặc Organ/Space + mã vị trí Ch.17.">
-          <label className="mb-1 block text-xs font-bold">
+          <label className="mb-1 block bv103-type-label font-semibold">
             Mã loại sự kiện SSI (bắt buộc khi chốt)
           </label>
           <select
@@ -328,7 +342,7 @@ export default function SsiClinicalSubForm({
           ) : null}
           {depth === "ORGAN_SPACE" ? (
             <div className="mt-2 space-y-2">
-              <label className="mb-1 block text-xs font-bold">
+              <label className="mb-1 block bv103-type-label font-semibold">
                 Mã vị trí Organ/Space (bắt buộc)
               </label>
               <select

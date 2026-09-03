@@ -4,6 +4,10 @@
 
 ## Tôi là…
 
+### PO / lãnh đạo / onboard toàn hệ
+
+1. Bản chụp 24/08/2026 (ý tưởng, 12 module, FE/BE/DB, đánh giá): [`reference/reports/ksnk-bv103-compendium-20260824.md`](reference/reports/ksnk-bv103-compendium-20260824.md) — **không** thay SSOT core khi sửa code.
+
 ### Dev / AI agent (sửa code)
 
 1. [`AGENTS.md`](../AGENTS.md)
@@ -15,6 +19,7 @@
 
 1. [`core/domain-specification.md`](core/domain-specification.md)
 2. Module: [`modules/cssd/`](modules/cssd/) · [`modules/giam-sat/`](modules/giam-sat/) · [`modules/nkbv/`](modules/nkbv/)
+3. Bản chụp toàn hệ (24/08/2026, không thay SSOT): [`reference/reports/ksnk-bv103-compendium-20260824.md`](reference/reports/ksnk-bv103-compendium-20260824.md)
 
 ### DBA / DevOps
 

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { Column } from "@/components/shared/AdvancedDataTable";
 import type { TieuChiBangKiem } from "../bang-kiem.types";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
+import { labelTieuChiKieuDuLieu } from "../lib/bang-kiem-tieu-chi-gsc-fields";
 
 type ActionUi = {
   renderStatusCell: (tc: TieuChiBangKiem) => ReactNode;
@@ -28,6 +29,17 @@ export function getTieuChiTableColumns(actionUi: ActionUi): Column<TieuChiBangKi
           {tc.ghi_chu ? (
             <div className={`${TC.cellNote} mt-1`}>Lưu ý: {String(tc.ghi_chu)}</div>
           ) : null}
+        </div>
+      ),
+    },
+    {
+      header: "Kiểu phiếu",
+      accessorKey: "kieu_du_lieu",
+      sortable: true,
+      cell: (tc) => (
+        <div className="py-1">
+          <div className={TC.cellMeta}>{labelTieuChiKieuDuLieu(tc.kieu_du_lieu)}</div>
+          {tc.la_then_chot ? <div className={`${TC.cellMeta} text-amber-700`}>Then chốt</div> : null}
         </div>
       ),
     },

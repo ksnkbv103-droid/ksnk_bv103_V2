@@ -62,7 +62,7 @@ export default function NkbvBaDayGrid({
     <div
       ref={scrollRef}
       onScroll={onScrollSync}
-      className={`overflow-auto overscroll-contain border border-slate-200 text-[10px] ${maxHeightClass} ${className}`}
+      className={`overflow-auto overscroll-contain border border-slate-200 text-[11px] ${maxHeightClass} ${className}`}
     >
       <table className="w-max min-w-full border-collapse">
         <thead className="sticky top-0 z-20">
@@ -72,7 +72,7 @@ export default function NkbvBaDayGrid({
               return (
                 <th
                   key={c.id}
-                  className={`border-b border-r border-slate-200 px-1 py-1 text-left text-[10px] font-bold leading-tight text-slate-700 ${
+                  className={`border-b border-r border-slate-200 px-1 py-1 text-left text-[11px] font-medium leading-tight text-slate-700 ${
                     c.sticky ? "sticky z-30 bg-slate-100" : "bg-slate-100"
                   }`}
                   style={{
@@ -138,19 +138,19 @@ export function baDayIdentityColumns(): BaDayGridColumnDef[] {
       stickyLeft: 0,
       minWidth: BA_DAY_COL_W_ID,
       render: (day) => (
-        <span className="text-[9px] font-semibold leading-tight text-slate-800">
+        <span className="text-[11px] font-semibold leading-tight text-slate-800">
           {day.label}
         </span>
       ),
     },
     {
       id: "hos_day",
-      header: "HD",
+      header: "Hd",
       sticky: true,
       stickyLeft: BA_DAY_COL_W_ID,
       minWidth: BA_DAY_COL_W_ID,
       render: (day) => (
-        <span className="tabular-nums text-[9px] text-slate-700">
+        <span className="tabular-nums text-[11px] text-slate-700">
           {day.hd == null ? "—" : day.hd}
         </span>
       ),

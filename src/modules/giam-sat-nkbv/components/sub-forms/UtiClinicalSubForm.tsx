@@ -121,7 +121,7 @@ export default function UtiClinicalSubForm({
         <NkbvFormSection title="Vi sinh nước tiểu" hint=">2 chủng hoặc nấm → loại trừ CAUTI/UTI.">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-700">CFU/ml</label>
+              <label className="mb-1 block bv103-type-label font-semibold text-slate-700">CFU/ml</label>
               <input
                 type="number"
                 value={form.urine_cfu_count}
@@ -131,7 +131,7 @@ export default function UtiClinicalSubForm({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-700">Số chủng</label>
+              <label className="mb-1 block bv103-type-label font-semibold text-slate-700">Số chủng</label>
               <input
                 type="number"
                 value={form.pathogen_count}
@@ -146,7 +146,7 @@ export default function UtiClinicalSubForm({
               Tạp nhiễm (&gt;2 chủng) — CDC không chẩn đoán UTI/CAUTI.
             </p>
           ) : null}
-          <label className="flex items-center gap-2 text-xs font-bold text-amber-800 cursor-pointer">
+          <label className="flex items-center gap-2 bv103-type-label font-semibold text-amber-800 cursor-pointer">
             <input
               type="checkbox"
               checked={form.has_fungi_yeast_parasite}
@@ -167,7 +167,7 @@ export default function UtiClinicalSubForm({
           >
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700">Ngày đặt Foley</label>
+                <label className="mb-1 block bv103-type-label font-semibold text-slate-700">Ngày đặt Foley</label>
                 <input
                   type="date"
                   value={form.device_placed_date || ""}
@@ -179,7 +179,7 @@ export default function UtiClinicalSubForm({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700">Ngày rút</label>
+                <label className="mb-1 block bv103-type-label font-semibold text-slate-700">Ngày rút</label>
                 <input
                   type="date"
                   value={form.device_removed_date || ""}

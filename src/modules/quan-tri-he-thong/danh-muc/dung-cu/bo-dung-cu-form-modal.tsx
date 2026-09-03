@@ -8,6 +8,7 @@ import BoDungCuTextField from "./bo-dung-cu-form-field";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { BoDungCuFormValues, BoDungCuTableRow, mapBoDungCuRowToForm } from "./bo-dung-cu-form-shared";
 import { saveBoDungCuAction, suggestNextBoMaAction } from "../actions/bo-dung-cu.actions";
+import { LoaiDungCuTypeahead } from "./loai-dung-cu-typeahead";
 
 interface Props {
   open: boolean;
@@ -21,7 +22,7 @@ interface Props {
   onSavedMaBo?: (maBo: string) => void;
 }
 
-export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaOptions, loadingLoai, loadingKhoa, onClose, onSaved, onSavedMaBo }: Props) {
+export default function BoDungCuFormModal({ open, initialRow, loaiOptions: _loaiOptions, khoaOptions, loadingLoai, loadingKhoa, onClose, onSaved, onSavedMaBo }: Props) {
   const formSeed = useMemo(() => mapBoDungCuRowToForm(initialRow), [initialRow]);
   const [form, setForm] = useState<BoDungCuFormValues>(formSeed);
   const [loading, setLoading] = useState(false);
@@ -95,10 +96,10 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md touch-manipulation pointer-events-auto">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 touch-manipulation pointer-events-auto">
       <form
         onSubmit={handleSubmit}
-        className="bg-white w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-[var(--radius-shell)] p-8 space-y-4 shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)]"
+        className="bg-white w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-[var(--radius-shell)] p-8 space-y-[var(--bv103-space-3)] shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)]"
       >
         <div className="flex justify-between items-start gap-4">
           <div>
@@ -128,20 +129,12 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions, khoaO
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-[11px] font-medium text-slate-400 ml-1">Loại dụng cụ</label>
-            <select
-              value={form.loai_dung_cu_id}
-              onChange={(e) => setForm({ ...form, loai_dung_cu_id: e.target.value })}
-              disabled={loadingLoai}
-              className={C.controlInput}
-            >
-              <option value="">— Chọn loại và hình thức —</option>
-              {loaiOptions.map((o) => (
-                <option key={o.id} value={o.id}>{o.ten_danh_muc}</option>
-              ))}
-            </select>
-          </div>
+          <LoaiDungCuTypeahead
+            label="Loại dụng cụ (tùy chọn)"
+            valueId={form.loai_dung_cu_id}
+            disabled={loadingLoai}
+            onChange={(id) => setForm({ ...form, loai_dung_cu_id: id })}
+          />
           <div className="space-y-1">
             <label className="text-[11px] font-medium text-slate-400 ml-1">Khoa sử dụng chính</label>
             <select

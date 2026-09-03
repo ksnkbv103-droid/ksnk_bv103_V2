@@ -17,6 +17,7 @@ import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { labelCheDoThi } from "@/lib/dao-tao/labels";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 import { listLanThiCuaToi } from "@/modules/dao-tao/actions/dao-tao-attempt.actions";
+import DaoTaoChungChiBanner from "@/modules/dao-tao/components/DaoTaoChungChiBanner";
 import {
   DaoTaoHeader,
   DaoTaoPage,
@@ -96,6 +97,8 @@ export default function DaoTaoHubPage() {
           </span>
         }
       />
+
+      <DaoTaoChungChiBanner />
 
       <div className="grid gap-2 sm:grid-cols-2">
         {TILES.map((tile) => {

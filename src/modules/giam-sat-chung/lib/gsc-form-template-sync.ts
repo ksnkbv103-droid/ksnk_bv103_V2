@@ -22,6 +22,7 @@ export type TieuChiJsonbRaw = {
   id: string;
   noi_dung?: string | null;
   stt?: number | null;
+  is_active?: boolean | null;
   diem_toi_da?: number | null;
   phan_muc?: string | null;
   kieu_du_lieu?: string | null;

@@ -4,6 +4,7 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { X, PackageOpen } from "lucide-react";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
+import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import SetCompositionCard from "./SetCompositionCard";
 
 interface Props {
@@ -37,10 +38,10 @@ export default function SetMembersModal({ isOpen, onClose, set }: Props) {
               <PackageOpen size={22} />
             </div>
             <div className="min-w-0">
-              <h4 id="cssd-set-members-title" className="text-[11px] font-medium tracking-wide text-slate-400">
+              <h4 id="cssd-set-members-title" className={UI.panelSubtitle}>
                 Thẻ bộ — cần / thực tế
               </h4>
-              <p className="truncate text-sm font-semibold uppercase text-slate-700">{tenBo}</p>
+              <p className={`truncate ${UI.panelTitle}`}>{tenBo}</p>
             </div>
           </div>
           <button

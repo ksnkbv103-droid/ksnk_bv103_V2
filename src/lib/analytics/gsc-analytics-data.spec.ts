@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { gscAnalyticsPayloadHasData } from "./gsc-analytics-data";
+import { gscAnalyticsPayloadHasData, normalizeGscStrategicPercents } from "./gsc-analytics-data";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 
 const emptyPayload = (): GscStrategicPayload => ({
@@ -23,6 +23,25 @@ const emptyPayload = (): GscStrategicPayload => ({
     ksnk_so_phien: 0,
     co_cau_giam_sat: [],
   },
+});
+
+describe("normalizeGscStrategicPercents", () => {
+  it("recomputes 2/3 as 66.67 instead of RPC 1-decimal 66.7", () => {
+    const p = emptyPayload();
+    p.kpis = {
+      tong_phien: 1,
+      tong_quan_sat: 3,
+      tong_dat: 2,
+      tong_vi_pham: 1,
+      ty_le_tuan_thu: 66.7,
+    };
+    p.trendline = [
+      { label: "T1", min_date: "2026-01-01", tong_quan_sat: 3, tong_dat: 2, ty_le_tuan_thu: 66.7 },
+    ];
+    const out = normalizeGscStrategicPercents(p);
+    expect(out.kpis.ty_le_tuan_thu).toBe(66.67);
+    expect(out.trendline[0]?.ty_le_tuan_thu).toBe(66.67);
+  });
 });
 
 describe("gscAnalyticsPayloadHasData", () => {

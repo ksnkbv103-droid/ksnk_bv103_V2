@@ -5,5 +5,6 @@ describe("bang-kiem-read (MDM SSOT)", () => {
     const mod = await import("./bang-kiem-read.actions");
     expect(mod.getBangKiemsForGiamSat).toBeDefined();
     expect(mod.getTieuChisForGiamSatChung).toBeDefined();
+    expect(mod.getBangKiemByMaOrIdForGscLookup).toBeDefined();
   });
 });

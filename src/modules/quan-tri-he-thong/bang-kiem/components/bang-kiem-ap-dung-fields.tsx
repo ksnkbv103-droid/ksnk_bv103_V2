@@ -69,7 +69,7 @@ export default function BangKiemApDungFields({
       : khoaClinical;
 
   return (
-    <div className={`space-y-6 ${showSectionTitle ? "border-t border-slate-100 pt-4" : ""}`}>
+    <div className={`space-y-[var(--bv103-space-3)] ${showSectionTitle ? "border-t border-slate-100 pt-4" : ""}`}>
       {showSectionTitle ? (
         <h3 className={F.panelTitle}>Quy định áp dụng bảng kiểm</h3>
       ) : null}
@@ -82,7 +82,7 @@ export default function BangKiemApDungFields({
 
       {needsKhoaConfig ? (
         <div className="rounded-[var(--radius-shell)] border border-amber-200 bg-amber-50 px-4 py-3 space-y-2">
-          <p className="text-[11px] font-bold text-amber-900">
+          <p className="bv103-type-label font-semibold text-amber-900">
             Mẫu «{PHAM_VI_LABELS[apDung.pham_vi]}» — chưa chọn{" "}
             {apDung.pham_vi === "THEO_KHOI" ? "khối" : "khoa"} áp dụng. Không khoa nào thuộc phạm vi cho đến khi
             hoàn thiện.
@@ -90,7 +90,7 @@ export default function BangKiemApDungFields({
           {!disabled ? (
             <button
               type="button"
-              className="text-[11px] font-bold text-[var(--primary)] hover:underline"
+              className="bv103-type-label font-semibold text-[var(--primary)] hover:underline"
               onClick={() =>
                 setApDung((p) => ({
                   ...p,
@@ -145,7 +145,7 @@ export default function BangKiemApDungFields({
                 className="mt-1"
               />
               <span>
-                <span className="block text-sm font-bold text-slate-800">{MUC_DO_LABELS[k]}</span>
+                <span className="block bv103-type-section text-slate-800">{MUC_DO_LABELS[k]}</span>
                 <span className="block text-[11px] font-medium text-slate-500 mt-0.5">
                   {MUC_DO_DESCRIPTIONS[k]}
                 </span>
@@ -256,7 +256,7 @@ export default function BangKiemApDungFields({
               className="mt-1"
             />
             <span>
-              <span className="block text-sm font-bold text-slate-800">
+              <span className="block bv103-type-section text-slate-800">
                 Mạng lưới KSNK tại khoa (Tự giám sát)
               </span>
               <span className="block text-[11px] font-medium text-slate-500 mt-0.5">
@@ -283,7 +283,7 @@ export default function BangKiemApDungFields({
               className="mt-1"
             />
             <span>
-              <span className="block text-sm font-bold text-slate-800">Khoa KSNK (Giám sát chéo / đối soát)</span>
+              <span className="block bv103-type-section text-slate-800">Khoa KSNK (Giám sát chéo / đối soát)</span>
               <span className="block text-[11px] font-medium text-slate-500 mt-0.5">
                 Khoa Kiểm soát nhiễm khuẩn thực hiện hoặc đối soát phiên giám sát của các khoa.
               </span>
@@ -322,7 +322,7 @@ export default function BangKiemApDungFields({
                     };
                   });
                 }}
-                className="w-full px-4 py-3 bg-white border border-slate-100 rounded-[var(--radius-shell)] text-sm font-bold focus:ring-2 focus:ring-[var(--primary)]/20 outline-none disabled:opacity-60"
+                className="w-full px-4 py-3 bg-white border border-slate-100 rounded-[var(--radius-shell)] bv103-type-section focus:ring-2 focus:ring-[var(--primary)]/20 outline-none disabled:opacity-60"
               >
                 <option value="">— Chưa quy định —</option>
                 {(Object.keys(TAN_SUAT_DON_VI_LABELS) as BkTanSuatDonVi[]).map((k) => (
@@ -349,7 +349,7 @@ export default function BangKiemApDungFields({
                     tan_suat_toi_thieu: { don_vi: tanSuatDonVi as BkTanSuatDonVi, so_lan },
                   }));
                 }}
-                className="w-full px-4 py-3 bg-white border border-slate-100 rounded-[var(--radius-shell)] text-sm font-bold focus:ring-2 focus:ring-[var(--primary)]/20 outline-none disabled:opacity-60"
+                className="w-full px-4 py-3 bg-white border border-slate-100 rounded-[var(--radius-shell)] bv103-type-section focus:ring-2 focus:ring-[var(--primary)]/20 outline-none disabled:opacity-60"
                 placeholder="VD: 1"
               />
             </div>
@@ -364,7 +364,7 @@ export default function BangKiemApDungFields({
           disabled={disabled}
           onChange={(e) => setApDung((p) => ({ ...p, ghi_chu: e.target.value }))}
           rows={2}
-          className="w-full px-6 py-4 bg-slate-50 border-none rounded-[var(--radius-shell)] text-sm font-bold focus:ring-2 focus:ring-[var(--primary)]/20 outline-none resize-none disabled:opacity-60"
+          className="w-full px-6 py-4 bg-slate-50 border-none rounded-[var(--radius-shell)] bv103-type-section focus:ring-2 focus:ring-[var(--primary)]/20 outline-none resize-none disabled:opacity-60"
           placeholder="Ghi chú cho admin KSNK…"
         />
       </div>

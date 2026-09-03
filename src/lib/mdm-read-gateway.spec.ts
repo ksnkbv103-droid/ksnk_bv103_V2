@@ -5,5 +5,6 @@ describe("mdm-read-gateway", () => {
   it("exports GSC read helpers", () => {
     expect(typeof gateway.getBangKiemsForGiamSat).toBe("function");
     expect(typeof gateway.getTieuChisForGiamSatChung).toBe("function");
+    expect(typeof gateway.getBangKiemByMaOrIdForGscLookup).toBe("function");
   });
 });

@@ -41,7 +41,7 @@ export function HoatDongForm({ congViecId, usesChecklist, onSuccess, onCancel }:
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className={`${UI.sectionGapLg} animate-in fade-in duration-500`}>
-      <div className={`${UI.shellPadded} space-y-4 shadow-sm`}>
+      <div className={`${UI.shellPadded} space-y-[var(--bv103-space-3)] shadow-sm`}>
         <div>
           <label className={`mb-1.5 block ${UI.formLabel}`}>Nội dung ghi chú *</label>
           <textarea

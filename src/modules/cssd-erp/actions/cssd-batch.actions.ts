@@ -385,7 +385,14 @@ export async function finishCssdSterilizationBatch(input: PersistMeTietKhuanInpu
     if (!saved.ok) return { success: false as const, error: saved.message };
     revalidateCssdBatchSurfaces();
     revalidateCssdWorkflowSurfaces();
-    return { success: true as const };
+    return {
+      success: true as const,
+      incidentIds: saved.incidentIds || [],
+      createdCount: saved.createdCount || 0,
+      skippedCount: saved.skippedCount || 0,
+      recalledCount: saved.recalledCount || 0,
+      machineHeld: Boolean(saved.machineHeld),
+    };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
   }

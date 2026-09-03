@@ -201,7 +201,7 @@ export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
       toast.success(
         `Đã xử lý ${res.count} hồ sơ` +
           (res.inserted != null ? ` · mới ${res.inserted}` : "") +
-          (res.updated != null ? ` · cập nhật ${res.updated}` : "") +
+          (res.skippedExisting ? ` · đã có mã, không đè ${res.skippedExisting}` : "") +
           (res.skippedDuplicate ? ` · bỏ trùng lô ${res.skippedDuplicate}` : "") +
           (res.skippedConflict ? ` · xung đột BA/BN ${res.skippedConflict}` : ""),
       );
@@ -217,8 +217,8 @@ export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
   };
 
   return (
-    <div className="space-y-3 py-2 sm:space-y-4">
-      <div className={`${C.panelSurface} space-y-4 p-4 sm:p-6`}>
+    <div className="space-y-3 py-2 sm:space-y-[var(--bv103-space-3)]">
+      <div className={`${C.panelShellPadded} space-y-[var(--bv103-space-3)]`}>
         <div className="flex flex-col items-start justify-between gap-3 border-b border-slate-100 pb-3 md:flex-row md:items-center">
           <div>
             <h3 className={`${C.panelTitle} flex items-center gap-2`}>
@@ -234,7 +234,7 @@ export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
             <button
               type="button"
               onClick={() => void downloadExcelTemplate().then(() => toast.success("Đã tải mẫu Excel"))}
-              className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-100"
+              className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 bv103-type-label font-semibold text-emerald-800 hover:bg-emerald-100"
             >
               <Download className="h-3.5 w-3.5" /> Tải mẫu
             </button>
@@ -249,14 +249,14 @@ export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
                 a.click();
                 URL.revokeObjectURL(url);
               }}
-              className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-200"
+              className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 bv103-type-label font-semibold text-slate-600 hover:bg-slate-200"
             >
               <Download className="h-3.5 w-3.5" /> TSV
             </button>
             <button
               type="button"
               onClick={() => setShowGuide((v) => !v)}
-              className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-200"
+              className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 bv103-type-label font-semibold text-slate-600 hover:bg-slate-200"
             >
               <HelpCircle className="h-3.5 w-3.5" /> Hướng dẫn
             </button>
@@ -298,7 +298,7 @@ export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
                 <ClipboardPaste className="h-4 w-4" />
                 {showPastePanel ? "Ẩn khung dán" : "Dán bảng"}
                 {paste.trim() && !showPastePanel ? (
-                  <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[11px] font-bold text-amber-800">
+                  <span className="rounded-full bg-amber-100 px-1.5 py-0.5 bv103-type-label font-semibold text-amber-800">
                     có nội dung
                   </span>
                 ) : null}

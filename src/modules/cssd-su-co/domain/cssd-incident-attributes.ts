@@ -1,8 +1,12 @@
-import type { IncidentGroup } from "./cssd-incident-taxonomy";
+import type { CauseClass, IncidentGroup } from "./cssd-incident-taxonomy";
+import { CAUSE_CLASS_LABEL } from "./cssd-incident-taxonomy";
 
 export type IncidentAttributeInput = {
   incidentGroup: IncidentGroup;
   typeTen: string;
+  typeId?: string;
+  causeClass?: CauseClass;
+  causeLabel?: string;
   incidentKind: string;
   rollbackTargetStation: string;
   errorQR?: string;
@@ -29,6 +33,11 @@ export function buildIncidentAttributes(data: IncidentAttributeInput): Record<st
     INCIDENT_KIND: data.incidentKind,
     ROLLBACK_TARGET_STATION: data.rollbackTargetStation,
   };
+  if (data.typeId) attributes.INCIDENT_TYPE_CODE = data.typeId;
+  if (data.causeClass) {
+    attributes.CAUSE_CLASS = data.causeClass;
+    attributes.CAUSE_LABEL = data.causeLabel || CAUSE_CLASS_LABEL[data.causeClass];
+  }
   if (data.errorQR) attributes.ERROR_QR = data.errorQR;
   if (data.machineId) attributes.MACHINE_ID = data.machineId;
   if (data.faultOperator) attributes.FAULT_OPERATOR = data.faultOperator;
@@ -64,4 +73,40 @@ export function readIncidentGroup(attrs: Record<string, unknown>): string | null
   const raw = attrs.INCIDENT_GROUP ?? attrs.incident_group ?? null;
   const text = raw != null ? String(raw).trim() : "";
   return text || null;
+}
+
+export function readIncidentTypeCode(attrs: Record<string, unknown>): string | null {
+  const raw = attrs.INCIDENT_TYPE_CODE ?? attrs.incident_type_code ?? null;
+  const text = raw != null ? String(raw).trim() : "";
+  return text || null;
+}
+
+export function readCauseClass(attrs: Record<string, unknown>): string | null {
+  const raw = attrs.CAUSE_CLASS ?? attrs.cause_class ?? null;
+  const text = raw != null ? String(raw).trim() : "";
+  return text || null;
+}
+
+export function readCauseLabel(attrs: Record<string, unknown>): string | null {
+  const raw = attrs.CAUSE_LABEL ?? attrs.cause_label ?? null;
+  const text = raw != null ? String(raw).trim() : "";
+  return text || null;
+}
+
+export function readMaLo(attrs: Record<string, unknown>): string | null {
+  const raw = attrs.MA_LO ?? attrs.ma_lo ?? null;
+  const text = raw != null ? String(raw).trim() : "";
+  return text || null;
+}
+
+/** Ưu tiên payload form; thiếu thì lấy từ quy trình đang gắn mẻ. */
+export function resolveProcessBatchLink(
+  payload?: { loTietKhuanId?: string; maLo?: string } | null,
+  quyTrinh?: { lo_tiet_khuan_id?: string | null } | null,
+): { loTietKhuanId?: string; maLo?: string } {
+  const fromPayloadId = String(payload?.loTietKhuanId || "").trim();
+  const fromQuyTrinhId = String(quyTrinh?.lo_tiet_khuan_id || "").trim();
+  const loTietKhuanId = fromPayloadId || fromQuyTrinhId || undefined;
+  const maLo = String(payload?.maLo || "").trim() || undefined;
+  return { loTietKhuanId, maLo };
 }

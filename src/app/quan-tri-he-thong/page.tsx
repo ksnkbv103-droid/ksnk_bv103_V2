@@ -22,7 +22,7 @@ export default function QuanTriHeThongPage() {
   
   if (!mayEnterHub) {
     return (
-      <div className="p-20 text-center premium-card glass-panel max-w-2xl mx-auto mt-20 space-y-4">
+      <div className="p-20 text-center premium-card glass-panel max-w-2xl mx-auto mt-20 space-y-[var(--bv103-space-3)]">
         <div className="text-5xl">🔒</div>
         <h2 className={`${T.pageTitle} text-red-700`}>Truy cập bị từ chối</h2>
         <p className="text-sm font-normal leading-relaxed text-slate-600">
@@ -34,13 +34,13 @@ export default function QuanTriHeThongPage() {
           <p className={T.labelBlock}>Tài khoản hiện tại</p>
           <p className="text-sm font-medium text-slate-800">{userEmail || "Chưa đăng nhập"}</p>
         </div>
-        <p className="text-[11px] text-slate-400 italic">Đồng bộ với menu cạnh: khoá điều hướng Quản trị khi không đủ quyền Xem các module trên.</p>
+        <p className="bv103-type-note">Đồng bộ với menu cạnh: khoá điều hướng Quản trị khi không đủ quyền Xem các module trên.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 pb-12 animate-in fade-in duration-500 sm:space-y-8 sm:pb-20">
+    <div className="bv103-stack-page pb-12 animate-in fade-in duration-500">
       <KsnkPageHeader
         title={
           <span className="inline-flex items-center gap-2">

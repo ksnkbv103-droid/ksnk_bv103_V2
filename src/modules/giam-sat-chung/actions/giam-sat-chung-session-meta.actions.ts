@@ -5,10 +5,6 @@ import { assertSupervisionNotLockedForDate } from "@/lib/supervision-module-lock
 import { revalidateGscPaths } from "../lib/revalidate-gsc-paths";
 import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-permission";
 import { getActorNhanSuId } from "@/lib/actor-auth-server";
-import {
-  isSupervisionSessionMutationExpired,
-  SUPERVISION_SESSION_MUTATION_EXPIRED_VI,
-} from "@/lib/supervision-mutation-window";
 
 function getErrorMessage(error: unknown): string {
   if (error && typeof error === "object") {
@@ -24,7 +20,6 @@ type GscSessionMutRow = {
   id: string;
   nguoi_giam_sat_id?: string | null;
   is_active?: boolean | null;
-  created_at?: string | null;
   ngay_giam_sat?: string | null;
 };
 
@@ -44,7 +39,7 @@ export async function deleteGiamSatChungSessions(sessionIds: string[]) {
 
     const { data: rows, error: qErr } = await supabase
       .from("gstt_fact_chung_sessions")
-      .select("id,nguoi_giam_sat_id,is_active,created_at,ngay_giam_sat")
+      .select("id,nguoi_giam_sat_id,is_active,ngay_giam_sat")
       .in("id", ids);
     if (qErr) throw qErr;
 
@@ -61,13 +56,6 @@ export async function deleteGiamSatChungSessions(sessionIds: string[]) {
       });
       if (notOwner.length) {
         return { success: false as const, error: GSC_OWNER_ONLY_VI };
-      }
-      const expired = ids.filter((id) => {
-        const r = rowById.get(String(id));
-        return isSupervisionSessionMutationExpired(r?.created_at ?? null);
-      });
-      if (expired.length) {
-        return { success: false as const, error: SUPERVISION_SESSION_MUTATION_EXPIRED_VI };
       }
     }
 
@@ -97,7 +85,7 @@ export async function deleteGiamSatChungSessions(sessionIds: string[]) {
 
 /**
  * Kiểm tra phiên có được phép mở form sửa hay không.
- * Chỉ chủ phiên; trong 30 phút sau `created_at`; phiên còn active.
+ * Chỉ chủ phiên; phiên còn active; chặn khi ngày đã khóa sổ.
  */
 export async function assertCanEditGiamSatChungSession(sessionId: string) {
   const supabase = createAdminSupabaseClient();
@@ -113,7 +101,7 @@ export async function assertCanEditGiamSatChungSession(sessionId: string) {
 
     const { data: row, error: qErr } = await supabase
       .from("gstt_fact_chung_sessions")
-      .select("id,nguoi_giam_sat_id,is_active,created_at")
+      .select("id,nguoi_giam_sat_id,is_active,ngay_giam_sat")
       .eq("id", id)
       .maybeSingle();
 
@@ -128,11 +116,13 @@ export async function assertCanEditGiamSatChungSession(sessionId: string) {
       if (String(row.nguoi_giam_sat_id || "") !== String(actorNhanSuId)) {
         return { success: false as const, error: GSC_OWNER_ONLY_VI };
       }
-
-      if (isSupervisionSessionMutationExpired(row.created_at)) {
-        return { success: false as const, error: SUPERVISION_SESSION_MUTATION_EXPIRED_VI };
-      }
     }
+
+    await assertSupervisionNotLockedForDate(
+      supabase,
+      "GSC",
+      row.ngay_giam_sat ? String(row.ngay_giam_sat).slice(0, 10) : null,
+    );
 
     return { success: true as const };
   } catch (error: unknown) {

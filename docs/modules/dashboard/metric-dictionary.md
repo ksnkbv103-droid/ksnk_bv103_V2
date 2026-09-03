@@ -22,9 +22,10 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 
 ### `ty_le_vst` / `ty_le_gsc`
 
-- **Công thức:** `round((đạt / tổng) × 100, 1 chữ số thập phân)`
+- **Công thức:** `round((đạt / tổng) × 100, 1 chữ số thập phân)` — **VST**
 - **VST mẫu số:** `tong_co_hoi`
-- **GSC mẫu số:** `tong_quan_sat`
+- **GSC mẫu số:** `tong_quan_sat` — **2 chữ số thập phân** (`Đạt ÷ tiêu chí có áp dụng`, loại NA). Nhật ký không hiện %.
+- **Spec change 2026-08-24:** `ty_le_gsc` trên form / lịch sử / in / thống kê GSC / BCTH thống nhất 2 chữ số từ counts; `ty_le_vst` giữ 1 chữ số.
 - **Spec change 2026-08-22:** `ty_le_gsc` trên điều hành / BCTH / thống kê mặc định **chỉ** bảng kiểm loại tuân thủ (`TUAN_THU` hoặc `loai_giam_sat` trống). Nhật ký vận hành và đánh giá hệ thống không vào mẫu số trừ khi người dùng chọn đúng chuyên đề / `?loai=`.
 - **Null khi:** mẫu số = 0
 

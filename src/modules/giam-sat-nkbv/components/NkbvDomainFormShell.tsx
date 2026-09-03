@@ -42,7 +42,7 @@ export default function NkbvDomainFormShell({
   const factorHint = indexFactorHint || triggerHint || "";
 
   return (
-    <div className={`${C.sectionGap} space-y-4`}>
+    <div className={`${C.sectionGap} space-y-[var(--bv103-space-3)]`}>
       {!embedded ? (
         <div className="rounded-[var(--radius-shell)] border border-[var(--primary)]/20 bg-[var(--primary)]/5 p-3 space-y-1.5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -67,7 +67,7 @@ export default function NkbvDomainFormShell({
             </p>
           )}
           {classificationBadge ? (
-            <p className="inline-flex rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-900">
+            <p className="inline-flex rounded-full bg-emerald-100 px-2.5 py-0.5 bv103-type-label font-semibold text-emerald-900">
               Phân loại: {classificationBadge}
             </p>
           ) : null}

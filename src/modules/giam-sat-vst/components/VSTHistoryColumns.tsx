@@ -123,7 +123,7 @@ export function getVSTHistoryColumns(
         const rateLabel = formatPercent2FromRatio(compliant, total);
         const rateNum = total > 0 ? (compliant / total) * 100 : 0;
         return (
-          <span className={`text-xs font-bold ${rateNum >= 80 ? "text-emerald-700" : rateNum >= 50 ? "text-amber-600" : "text-red-600"}`}>
+          <span className={`bv103-type-label font-semibold ${rateNum >= 80 ? "text-emerald-700" : rateNum >= 50 ? "text-amber-600" : "text-red-600"}`}>
             {rateLabel}
           </span>
         );

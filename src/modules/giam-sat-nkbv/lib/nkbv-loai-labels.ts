@@ -6,6 +6,8 @@
  * Không gộp VAE với VAP/HAP.
  */
 
+import { isNkbvCh17SpecimenOnly } from "./nkbv-specimen-canonical";
+
 export type NkbvChecklistTypeCode =
   | "BSI"
   | "UTI"
@@ -124,10 +126,14 @@ export const NKBV_MDM_CODE_CANDIDATES: Record<
 /** Suy loại từ bệnh phẩm / vị trí — không đọc loai_ma. */
 export function inferChecklistTypeFromSpecimen(input: {
   loai_benh_pham?: string | null;
+  loai_benh_pham_chuan?: string | null;
   vi_tri_nhiem_khuan?: string | null;
+  lis_goc?: string | null;
 }): NkbvChecklistTypeCode {
   const specimenLc = String(input.loai_benh_pham || "").toLowerCase();
   const viTri = String(input.vi_tri_nhiem_khuan || "").toLowerCase();
+
+  if (isNkbvCh17SpecimenOnly(input)) return "CH17";
 
   if (viTri.includes("vae")) return "VAE";
   if (viTri.includes("vap")) return "VAP";
@@ -136,12 +142,15 @@ export function inferChecklistTypeFromSpecimen(input: {
   if (viTri.includes("tiết niệu") || (viTri.includes("niệu") && !viTri.includes("phế"))) return "UTI";
   if (viTri.includes("vết mổ") || viTri.includes("vết thương")) return "SSI";
 
+  const notUrine =
+    specimenLc.includes("không phải nước tiểu") || specimenLc.includes("khong phai nuoc tieu");
   if (
-    specimenLc.includes("nước tiểu") ||
-    specimenLc.includes("urine") ||
-    specimenLc.includes("niệu đạo") ||
-    specimenLc.includes("catheter tiểu") ||
-    (specimenLc.includes("tiểu") && !specimenLc.includes("máu"))
+    !notUrine &&
+    (specimenLc.includes("nước tiểu") ||
+      specimenLc.includes("urine") ||
+      specimenLc.includes("niệu đạo") ||
+      specimenLc.includes("catheter tiểu") ||
+      (specimenLc.includes("tiểu") && !specimenLc.includes("máu")))
   ) {
     return "UTI";
   }
@@ -209,8 +218,10 @@ export function resolveMdmLoaiId(
  */
 export function suggestNkbvTypeFromSpecimen(input: {
   loai_benh_pham?: string | null;
+  loai_benh_pham_chuan?: string | null;
   vi_tri_nhiem_khuan?: string | null;
   loai_ma?: string | null;
+  lis_goc?: string | null;
 }): { type: NkbvChecklistTypeCode; reason: string } {
   const specimen = String(input.loai_benh_pham || "").trim();
   const fromSpecimen = inferChecklistTypeFromSpecimen(input);
@@ -315,4 +326,21 @@ export function nkbvPersistLoaiCode(checklistType: string): string {
   if (n === "UTI") return "UTI";
   if (n === "SSI") return "SSI";
   return String(checklistType || "").trim().toUpperCase();
+}
+
+/** Loại đã gắn trên phiếu (khớp nhóm phân tích lưới) — không suy từ bệnh phẩm. */
+export function lockedCaseChecklistType(row: {
+  loai_ma?: string | null;
+  loai_nkbv?: { ma_loai?: string | null } | null;
+}): NkbvChecklistTypeCode | null {
+  return normalizeNkbvLoaiCode(row.loai_ma || row.loai_nkbv?.ma_loai);
+}
+
+/** Phiếu đã có loại → khóa; chưa có → theo gợi ý bệnh phẩm. */
+export function initialSuspectedChecklistType(
+  locked: NkbvChecklistTypeCode | null,
+  suggested: NkbvChecklistTypeCode,
+): NkbvChecklistTypeCode {
+  if (locked && locked !== "LOAI_TRU") return locked;
+  return suggested;
 }

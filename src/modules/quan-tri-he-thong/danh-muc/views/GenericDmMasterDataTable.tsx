@@ -31,7 +31,7 @@ export default function GenericDmMasterDataTable({
   onListSearchChange,
 }: Props) {
   return (
-    <div className="min-h-[400px] rounded-[var(--radius-shell)] border border-slate-200 bg-white p-2 shadow-sm">
+    <div className="min-h-[400px] min-w-0">
       <AdvancedDataTable
         columns={columns}
         data={rows}

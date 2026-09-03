@@ -27,7 +27,7 @@ export function buildGenericDmColumns(
       headerClassName: "w-[18%] min-w-[5.5rem]",
       cellClassName: "align-middle",
       cell: (row) => (
-        <span className={`${TC.cellCode} rounded-lg border border-slate-200/50 bg-slate-50 px-2 py-1`}>
+        <span className={TC.cellCode}>
           {String(row[maCol] || "---")}
         </span>
       )
@@ -49,12 +49,9 @@ export function buildGenericDmColumns(
       headerClassName: "w-[15%] min-w-[7rem]",
       cellClassName: "align-middle",
       cell: (row) => (
-        <div className="flex items-center gap-1.5">
-          <div className={`w-1.5 h-1.5 rounded-full ${row.is_active ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" : "bg-slate-300"}`} />
-          <span className={`text-[11px] font-medium ${row.is_active ? "text-emerald-600" : "text-slate-400"}`}>
-            {row.is_active ? "Đang dùng" : "Tạm ngưng"}
-          </span>
-        </div>
+        <span className={row.is_active ? TC.statusOk : TC.statusMuted}>
+          {row.is_active ? "Đang dùng" : "Tạm ngưng"}
+        </span>
       ),
     },
     {
@@ -64,7 +61,7 @@ export function buildGenericDmColumns(
       headerClassName: "w-[14%] whitespace-nowrap",
       cellClassName: "whitespace-nowrap align-middle",
       cell: (row) => (
-        <span className="text-[11px] font-normal text-slate-400 italic">
+        <span className="bv103-type-note">
           {formatDateVi(row.updated_at ? String(row.updated_at) : null, "---")}
         </span>
       )

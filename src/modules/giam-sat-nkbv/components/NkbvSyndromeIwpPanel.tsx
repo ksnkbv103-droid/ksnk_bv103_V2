@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef } from "react";
+import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import {
   clinicalCatalogForNghiNgo,
   computeBaGridSession,
@@ -94,6 +95,8 @@ type Props = {
   /** Ngày can thiệp từ timeline BA (SSOT) — không dùng sổ đăng ký. */
   baCanThiepDates?: string[];
   defaultKhoa?: string | null;
+  /** Ngày–khoa trên lưới BA (UUID) — quy kết chuyển khoa. */
+  baKhoaByDate?: Record<string, string>;
   allowedEdit: boolean;
   draft: BaAnalysisSessionDraft;
   /** LS đã lưu trên bảng chung BA — merge với draft phiên. */
@@ -189,6 +192,7 @@ export default function NkbvSyndromeIwpPanel({
   devices = [],
   baCanThiepDates = [],
   defaultKhoa,
+  baKhoaByDate = {},
   allowedEdit,
   draft,
   baLamSangByDate = {},
@@ -268,8 +272,9 @@ export default function NkbvSyndromeIwpPanel({
         }
       }
     }
-    const khoaByDate: Record<string, string> = {};
-    if (defaultKhoa) khoaByDate[index.date.slice(0, 10)] = defaultKhoa;
+    const khoaByDate: Record<string, string> = { ...baKhoaByDate };
+    const ix = index.date.slice(0, 10);
+    if (defaultKhoa && !khoaByDate[ix]) khoaByDate[ix] = defaultKhoa;
     return { lamSang, tieuChuan, khoaByDate };
   }, [
     baLamSangByDate,
@@ -279,6 +284,7 @@ export default function NkbvSyndromeIwpPanel({
     panel,
     canThiepDates,
     defaultKhoa,
+    baKhoaByDate,
     index.date,
   ]);
 
@@ -1027,10 +1033,10 @@ export default function NkbvSyndromeIwpPanel({
   ]);
 
   return (
-    <section className="mt-3 rounded-xl border border-rose-200 bg-rose-50/30 p-3">
+    <section className={`mt-3 ${C.inset} border-rose-200 bg-rose-50/30 p-3`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h3 className="text-sm font-bold text-rose-950">
+          <h3 className={`${C.sectionTitle} text-rose-950`}>
             {panel === "UTI"
               ? "Bảng UTI/CAUTI — Ngày X · IPW · DOE · RIT · SBAP · Foley"
               : panel === "PNEU"
@@ -1112,7 +1118,7 @@ export default function NkbvSyndromeIwpPanel({
             </button>
           ) : null}
           {criteriaMetForKetLuan ? (
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-900">
+            <span className="rounded-full bg-emerald-100 px-2 py-0.5 bv103-type-label font-semibold text-emerald-900">
               Đủ TC sự kiện
             </span>
           ) : null}
@@ -1321,7 +1327,7 @@ export default function NkbvSyndromeIwpPanel({
         const analysisColumns: BaDayGridColumnDef[] = [
           {
             id: "ax_index",
-            header: "Index X",
+            header: "Index x",
             minWidth: aw,
             cellClassName: (day) =>
               baCellToneClass(
@@ -1330,14 +1336,29 @@ export default function NkbvSyndromeIwpPanel({
             render: (day) => {
               const isIx = index.date.slice(0, 10) === day.date;
               if (!isIx) return <span className="text-slate-300">—</span>;
-              if (indexXn) {
+              const dayXn = xn.filter((x) => x.ngay.slice(0, 10) === day.date);
+              if (indexXn || dayXn.length) {
                 return (
-                  <div className="leading-snug">
-                    <span className="font-bold">X · {indexXn.benh_pham}</span>
-                    <span className="block">{indexXn.vi_khuan}</span>
-                    {panel === "UTI" && utiVerdict && !utiVerdict.lab.cfuOk ? (
-                      <span className="font-semibold">Gate!</span>
-                    ) : null}
+                  <div className="flex flex-col gap-0.5 leading-snug">
+                    {indexXn ? (
+                      <div>
+                        <span className="font-bold">X · {indexXn.benh_pham}</span>
+                        <span className="block">{indexXn.vi_khuan}</span>
+                        {panel === "UTI" && utiVerdict && !utiVerdict.lab.cfuOk ? (
+                          <span className="font-semibold">Gate!</span>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <span className="font-bold">X</span>
+                    )}
+                    {dayXn
+                      .filter((x) => x.id !== indexXn?.id)
+                      .map((x) => (
+                        <span key={x.id} className="block bv103-type-label text-slate-700">
+                          {x.benh_pham}
+                          {x.vi_khuan ? ` · ${x.vi_khuan}` : ""}
+                        </span>
+                      ))}
                   </div>
                 );
               }
@@ -1353,7 +1374,7 @@ export default function NkbvSyndromeIwpPanel({
           },
           {
             id: "ax_ls",
-            header: "IWP · LS",
+            header: "Iwp · ls",
             minWidth: aw,
             cellClassName: (day) => {
               const isDoe = Boolean(session.nsk && session.nsk === day.date);
@@ -1378,16 +1399,16 @@ export default function NkbvSyndromeIwpPanel({
               return (
                 <div className="relative flex flex-col gap-0.5">
                   {isDoe ? (
-                    <span className="text-center text-[9px] font-bold tracking-wide">DOE</span>
+                    <span className="text-center bv103-type-label font-semibold tracking-wide">DOE</span>
                   ) : null}
                   {items.map((it) => (
-                    <span key={it.key} className="line-clamp-2 text-[10px] font-semibold">
+                    <span key={it.key} className="line-clamp-2 bv103-type-label font-semibold">
                       {it.label}
                     </span>
                   ))}
                   {allowedEdit && inIwp ? (
                     <details className="mt-auto">
-                      <summary className="cursor-pointer text-[10px] font-semibold text-sky-700">
+                      <summary className="cursor-pointer bv103-type-label font-semibold text-sky-700">
                         + LS
                       </summary>
                       <ul className="absolute z-30 mt-0.5 max-h-40 w-56 overflow-auto rounded border bg-white p-1 shadow-lg">
@@ -1428,7 +1449,7 @@ export default function NkbvSyndromeIwpPanel({
               const cdhaChips = sbapRitChips.ritCdhaByDate[day.date] || [];
               if (!chips.length && !cdhaChips.length) {
                 return session.ritDates.has(day.date) ? (
-                  <span className="text-center text-[9px]">·</span>
+                  <span className="text-center bv103-type-label">·</span>
                 ) : (
                   <span className="text-slate-300">—</span>
                 );
@@ -1438,7 +1459,7 @@ export default function NkbvSyndromeIwpPanel({
                   {chips.map((x) => (
                     <span
                       key={x.id}
-                      className="truncate rounded bg-emerald-200/80 px-0.5 text-[9px] font-semibold text-emerald-950"
+                      className="truncate rounded bg-emerald-200/80 px-0.5 bv103-type-label font-semibold text-emerald-950"
                       title={`${x.benh_pham} · ${x.vi_khuan} — RIT (cùng bệnh phẩm)`}
                     >
                       +{x.vi_khuan || x.benh_pham}
@@ -1447,7 +1468,7 @@ export default function NkbvSyndromeIwpPanel({
                   {cdhaChips.map((c) => (
                     <span
                       key={c.id}
-                      className="truncate rounded bg-emerald-100 px-0.5 text-[9px] font-semibold text-emerald-900"
+                      className="truncate rounded bg-emerald-100 px-0.5 bv103-type-label font-semibold text-emerald-900"
                       title={`${c.mo_ta_benh_ly || "CĐHA"} — RIT`}
                     >
                       XQ · {c.mo_ta_benh_ly || c.loai || "CĐHA"}
@@ -1469,7 +1490,7 @@ export default function NkbvSyndromeIwpPanel({
               const chips = sbapRitChips.sbapByDate[day.date] || [];
               if (!chips.length) {
                 return session.sbapDates.has(day.date) ? (
-                  <span className="text-center text-[9px]">·</span>
+                  <span className="text-center bv103-type-label">·</span>
                 ) : (
                   <span className="text-slate-300">—</span>
                 );
@@ -1482,7 +1503,7 @@ export default function NkbvSyndromeIwpPanel({
                       type="button"
                       disabled={!onOpenPrimaryBsi}
                       onClick={() => onOpenPrimaryBsi?.(b.id)}
-                      className={`truncate rounded px-0.5 text-left text-[9px] font-semibold hover:opacity-90 ${
+                      className={`truncate rounded px-0.5 text-left bv103-type-label font-semibold hover:opacity-90 ${
                         b.organismMatched
                           ? "bg-sky-400/90 text-sky-950 ring-1 ring-sky-600"
                           : "bg-sky-200/80 text-sky-950"
@@ -1556,7 +1577,7 @@ export default function NkbvSyndromeIwpPanel({
                   />
                   {isIx ? (
                     <input
-                      className="w-full border-t border-amber-200/60 bg-transparent pt-0.5 text-[9px] font-semibold outline-none"
+                      className="w-full border-t border-amber-200/60 bg-transparent pt-0.5 bv103-type-label font-semibold outline-none"
                       value={ketLuanDisplay}
                       disabled={!allowedEdit || ketLuanLocked}
                       placeholder={
@@ -1583,7 +1604,7 @@ export default function NkbvSyndromeIwpPanel({
             minWidth: BA_DAY_COL_W_NARROW,
             render: (day) => (
               <input
-                className="w-full bg-transparent text-[9px] outline-none"
+                className="w-full bg-transparent bv103-type-label outline-none"
                 value={draft.notesByDate[day.date] || ""}
                 disabled={!allowedEdit}
                 title={draft.notesByDate[day.date] || "Ghi chú"}

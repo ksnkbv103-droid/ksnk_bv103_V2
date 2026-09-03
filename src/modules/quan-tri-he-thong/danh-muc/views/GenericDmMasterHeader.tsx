@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ArrowLeft, Layers, Plus } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 
@@ -21,13 +21,10 @@ export default function GenericDmMasterHeader({
   importExportSlot,
 }: Props) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <KsnkPageHeader
-        title={
-          <span className="inline-flex items-center gap-2.5">
-            <Layers className="h-6 w-6 shrink-0 text-[var(--primary)]" aria-hidden /> {title}
-          </span>
-        }
+        showTitle={false}
+        title={title}
         actions={
           <>
             <button

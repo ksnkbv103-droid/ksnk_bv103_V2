@@ -15,7 +15,7 @@ import {
 } from "recharts";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
-import { Activity, AlertTriangle, Layers, PieChart, ShieldCheck, Warehouse } from "lucide-react";
+import { Activity, AlertTriangle } from "lucide-react";
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
 import { formatKhoaCompactLabel, formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
@@ -98,7 +98,7 @@ export default function NkbvDashboardPanel({
     : "Tất cả khoa";
 
   return (
-    <div className="space-y-6 px-4 pb-10 animate-in fade-in duration-400">
+    <div className="space-y-[var(--bv103-space-3)] px-4 pb-10 animate-in fade-in duration-400">
       {!filtersInChrome ? (
       <div className="flex flex-wrap items-end gap-3 rounded-[var(--radius-shell)] border border-slate-200/90 bg-white/90 p-4 shadow-sm">
         <label className={C.formLabelFlex}>
@@ -161,58 +161,42 @@ export default function NkbvDashboardPanel({
         </p>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-slate-100 pb-2">
         {[
           {
-            icon: Layers,
             label: "Phiếu trong khoảng",
             value: loading ? "…" : String(k?.tong_phieu ?? 0),
             sub: `${payload?.tu_ngay} → ${payload?.den_ngay}`,
-            tint: "border-l-[var(--primary)]",
           },
           {
-            icon: ShieldCheck,
             label: "Đã xác nhận NKBV",
             value: loading ? "…" : String(k?.da_xac_nhan ?? 0),
             sub:
               loading || !k
                 ? ""
                 : `Tỷ lệ/XN vs (PA−Loại trừ): ${k.ti_le_xac_nhan_so_voi_pa ?? 0}%`,
-            tint: "border-l-emerald-600",
           },
           {
-            icon: Activity,
             label: "Đang ghi / Chờ XN",
             value: loading ? "…" : String(k?.dang_va_cho_xn ?? 0),
             sub: "",
-            tint: "border-l-amber-500",
           },
           {
-            icon: PieChart,
             label: "Loại trừ",
             value: loading ? "…" : String(k?.loai_tru ?? 0),
             sub: "",
-            tint: "border-l-slate-500",
           },
           {
-            icon: Warehouse,
             label: "Đã đóng",
             value: loading ? "…" : String(k?.da_dong ?? 0),
             sub: "",
-            tint: "border-l-blue-600",
           },
         ].map((c) => (
-          <div
-            key={c.label}
-            className={`${C.panelSurface} p-5 border-l-4 ${c.tint}`}
-          >
-            <div className="flex items-start justify-between gap-2">
-              <p className={C.statLabel}>{c.label}</p>
-              <c.icon className="h-5 w-5 shrink-0 text-slate-300" aria-hidden />
-            </div>
-            <p className={`mt-2 ${C.statValue}`}>{c.value}</p>
-            {c.sub ? <p className="mt-1 text-[11px] font-medium leading-relaxed text-slate-400">{c.sub}</p> : null}
-          </div>
+          <p key={c.label} className="text-sm text-slate-600">
+            <span className="text-[11px] font-medium text-slate-400">{c.label}</span>{" "}
+            <span className="font-semibold tabular-nums text-slate-800">{c.value}</span>
+            {c.sub ? <span className="ml-1 text-[11px] text-slate-400">{c.sub}</span> : null}
+          </p>
         ))}
       </div>
 
@@ -222,8 +206,8 @@ export default function NkbvDashboardPanel({
         </div>
       ) : payload ? (
         <>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className={`${C.panelSurface} p-6`}>
+          <div className="grid grid-cols-1 gap-[var(--bv103-space-3)] lg:grid-cols-2">
+            <div className={`${C.inset} bg-white p-5`}>
               <h3 className={`mb-4 ${C.blockSection}`}>Xu hướng phiếu theo tháng</h3>
               <Bv103ResponsiveChart className="h-[280px] w-full min-h-[260px] min-w-0">
                   <LineChart data={payload.monthly} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
@@ -246,7 +230,7 @@ export default function NkbvDashboardPanel({
               </Bv103ResponsiveChart>
             </div>
 
-            <div className={`${C.panelSurface} p-6`}>
+            <div className={`${C.inset} bg-white p-5`}>
               <h3 className={`mb-4 ${C.blockSection}`}>
                 Phân bố theo loại HAI/NKBV
               </h3>
@@ -265,7 +249,7 @@ export default function NkbvDashboardPanel({
               </Bv103ResponsiveChart>
             </div>
 
-            <div className={`${C.panelSurface} p-6`}>
+            <div className={`${C.inset} bg-white p-5`}>
               <h3 className={`mb-4 ${C.blockSection}`}>
                 Theo trạng thái xử lý
               </h3>
@@ -280,7 +264,7 @@ export default function NkbvDashboardPanel({
               </Bv103ResponsiveChart>
             </div>
 
-            <div className={`${C.panelSurface} p-6`}>
+            <div className={`${C.inset} bg-white p-5`}>
               <h3 className={`mb-4 ${C.blockSection}`}>
                 Khoa có nhiều phiếu (top trong khoảng)
               </h3>
@@ -314,11 +298,11 @@ export default function NkbvDashboardPanel({
           )}
 
           {!payload.epidemiologyError && payload.epidemiologyRates && payload.epidemiologyRates.length > 0 && (
-            <details className={`${C.panelSurface} p-6 space-y-6`}>
+            <details className={`${C.inset} bg-white p-5 space-y-[var(--bv103-space-3)]`}>
             <summary className="cursor-pointer list-none text-sm font-semibold text-slate-700">
               Xem thêm chỉ số dịch tễ (SIR / ngày thiết bị)
             </summary>
-            <div className="space-y-6 pt-4">
+            <div className="space-y-[var(--bv103-space-3)] pt-4">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
                 <div>
                   <h3 className={`${C.sectionTitle} flex items-center gap-2`}>
@@ -381,11 +365,11 @@ export default function NkbvDashboardPanel({
                     <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
                         <span className="text-[11px] font-semibold uppercase tracking-wide text-red-500 tracking-wider">Nhiễm khuẩn huyết (CLABSI)</span>
-                        <span className="rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
+                        <span className="rounded-full bg-red-100 text-red-700 px-2 py-0.5 bv103-type-label font-semibold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
-                        <span className="text-2xl font-semibold tabular-nums text-slate-800">{totClabsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
-                        <span className="text-xs font-bold text-red-600">{clabsiRate} <span className="text-[11px] font-normal text-slate-400">/1000 CVC-days</span></span>
+                        <span className="bv103-type-kpi tabular-nums text-slate-800">{totClabsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
+                        <span className="bv103-type-label font-semibold text-red-600">{clabsiRate} <span className="text-[11px] font-normal text-slate-400">/1000 CVC-days</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-semibold">
                         <div>CVC Days: <strong className="text-slate-700">{totCvcDays}</strong></div>
@@ -397,11 +381,11 @@ export default function NkbvDashboardPanel({
                     <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
                         <span className="text-[11px] font-semibold uppercase tracking-wide text-amber-500 tracking-wider">Tiết niệu (CAUTI)</span>
-                        <span className="rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
+                        <span className="rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 bv103-type-label font-semibold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
-                        <span className="text-2xl font-semibold tabular-nums text-slate-800">{totCauti} <span className="text-xs font-normal text-slate-400">ca</span></span>
-                        <span className="text-xs font-bold text-amber-600">{cautiRate} <span className="text-[11px] font-normal text-slate-400">/1000 F-days</span></span>
+                        <span className="bv103-type-kpi tabular-nums text-slate-800">{totCauti} <span className="text-xs font-normal text-slate-400">ca</span></span>
+                        <span className="bv103-type-label font-semibold text-amber-600">{cautiRate} <span className="text-[11px] font-normal text-slate-400">/1000 F-days</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-semibold">
                         <div>Foley Days: <strong className="text-slate-700">{totFoleyDays}</strong></div>
@@ -413,11 +397,11 @@ export default function NkbvDashboardPanel({
                     <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
                         <span className="text-[11px] font-medium text-teal-600 tracking-wider">VAP (viêm phổi liên quan thở máy)</span>
-                        <span className="rounded-full bg-teal-100 text-teal-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
+                        <span className="rounded-full bg-teal-100 text-teal-700 px-2 py-0.5 bv103-type-label font-semibold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
-                        <span className="text-2xl font-semibold tabular-nums text-slate-800">{totVap} <span className="text-xs font-normal text-slate-400">ca</span></span>
-                        <span className="text-xs font-bold text-teal-600">{vapRate} <span className="text-[11px] font-normal text-slate-400">/1000 V-days</span></span>
+                        <span className="bv103-type-kpi tabular-nums text-slate-800">{totVap} <span className="text-xs font-normal text-slate-400">ca</span></span>
+                        <span className="bv103-type-label font-semibold text-teal-600">{vapRate} <span className="text-[11px] font-normal text-slate-400">/1000 V-days</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-semibold">
                         <div>Vent Days: <strong className="text-slate-700">{totVentDays}</strong></div>
@@ -429,11 +413,11 @@ export default function NkbvDashboardPanel({
                     <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
                         <span className="text-[11px] font-medium text-blue-600 tracking-wider">Vết mổ (SSI)</span>
-                        <span className="rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 text-[11px] font-bold">JCI Site</span>
+                        <span className="rounded-full bg-blue-100 text-blue-700 px-2 py-0.5 bv103-type-label font-semibold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
-                        <span className="text-2xl font-semibold tabular-nums text-slate-800">{totSsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
-                        <span className="text-xs font-bold text-blue-600">{ssiRate}% <span className="text-[11px] font-normal text-slate-400">tỷ lệ mổ</span></span>
+                        <span className="bv103-type-kpi tabular-nums text-slate-800">{totSsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
+                        <span className="bv103-type-label font-semibold text-blue-600">{ssiRate}% <span className="text-[11px] font-normal text-slate-400">tỷ lệ mổ</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-semibold">
                         <div>Số ca mổ: <strong className="text-slate-700">{totSurgeries}</strong></div>
@@ -446,8 +430,6 @@ export default function NkbvDashboardPanel({
 
               {/* JCI Detailed Table */}
               <ResponsiveTableShell
-                unboxed
-                className="border border-slate-100 rounded-[var(--radius-shell)]"
                 maxHeight="max-h-[min(480px,60dvh)]"
                 scrollHint="Vuốt ngang để xem chỉ số JCI đầy đủ"
                 mobileCards={
@@ -562,7 +544,7 @@ export default function NkbvDashboardPanel({
             </details>
           )}
 
-          <p className="text-center text-[11px] font-medium italic text-slate-400">
+          <p className="text-center bv103-type-note">
             * Mật độ JCI tính theo ngày nằm viện thu thập từ tab Mẫu số. SIR/SUR chuẩn hoá theo baseline CDC/NHSN
             cấu hình trong danh mục; ô &laquo;—&raquo; nghĩa là chưa đủ dữ liệu chuẩn hoá, không phải bằng 0.
           </p>

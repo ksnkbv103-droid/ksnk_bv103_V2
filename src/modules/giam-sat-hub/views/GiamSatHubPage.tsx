@@ -27,7 +27,7 @@ function HubSection({ title, links }: { title: string; links: HubLink[] }) {
 
   return (
     <section className="space-y-2">
-      <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{title}</h2>
+      <h2 className="bv103-type-label">{title}</h2>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {visible.map((link) => {
           const Icon = link.icon;

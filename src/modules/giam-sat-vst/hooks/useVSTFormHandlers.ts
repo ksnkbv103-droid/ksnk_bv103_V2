@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { GiamSatSession } from "@/components/shared/giam-sat-header.types";
 import type { MasterOption } from "@/lib/master-data/gateway";
 import type { SessionInput } from "../actions/vst-write.helpers";
-import { ActionType, MomentType, VSTObservation } from "../lib/vst-constants";
+import { ActionType, MomentType, VSTObservation, vstMaxIndications } from "../lib/vst-constants";
 import { saveVSTSession } from "../actions/vst-write-save-session.actions";
 import { toast } from "sonner";
 import {
@@ -53,7 +53,7 @@ export function useVSTFormHandlers(
   const toggleMoment = (pIdx: number, oIdx: number, moment: MomentType) => {
     mutatePersons((next) => {
       const opp = next[pIdx].opportunities[oIdx];
-      const limit = opp.hanh_dong === "Bỏ sót" ? 1 : 2;
+      const limit = vstMaxIndications(opp.hanh_dong);
       if (opp.thoi_diems.includes(moment)) {
         opp.thoi_diems = opp.thoi_diems.filter((m: MomentType) => m !== moment);
         return;
@@ -71,9 +71,9 @@ export function useVSTFormHandlers(
       if (action === "Bỏ sót") {
         opp.dung_ky_thuat = null;
         opp.du_thoi_gian = null;
-        if (opp.thoi_diems.length > 1) {
-          const last = opp.thoi_diems[opp.thoi_diems.length - 1];
-          if (last !== undefined) opp.thoi_diems = [last];
+        const max = vstMaxIndications(action);
+        if (opp.thoi_diems.length > max) {
+          opp.thoi_diems = opp.thoi_diems.slice(-max);
         }
         return;
       }

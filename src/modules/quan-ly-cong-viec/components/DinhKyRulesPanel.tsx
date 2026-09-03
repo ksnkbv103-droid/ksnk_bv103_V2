@@ -277,7 +277,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan }: Props) 
 
       <form onSubmit={submit} className="grid grid-cols-1 gap-4 border-b border-slate-100 py-5 md:grid-cols-2">
         <div className="md:col-span-2 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-semibold text-slate-800">
+          <p className={bv103LayoutChrome.panelTitle}>
             {editingId ? "Sửa mẫu định kỳ" : "Thêm mẫu định kỳ"}
           </p>
           {editingId ? (
@@ -342,6 +342,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan }: Props) 
               placeholder="Chọn khoa từ danh mục MDM…"
               value={diaDiemKhoaId}
               onChange={setDiaDiemKhoaId}
+              searchPlaceholder="Tìm khoa theo tên hoặc mã…"
             />
           </div>
         </div>
@@ -468,7 +469,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan }: Props) 
                 <th className="p-3 whitespace-nowrap">Mốc</th>
                 <th className="p-3">Ưu tiên</th>
                 <th className="p-3">Thao tác</th>
-                <th className="min-w-[12rem] p-3 text-[11px] font-bold normal-case text-slate-500">
+                <th className="min-w-[12rem] p-3 bv103-type-label font-semibold normal-case text-slate-500">
                   Kỳ tới (ước lượng)
                 </th>
               </tr>

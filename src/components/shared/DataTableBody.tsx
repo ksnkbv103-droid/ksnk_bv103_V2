@@ -2,7 +2,8 @@
 "use client";
 
 import React from "react";
-import { Column } from "./AdvancedDataTable";
+import type { Column } from "./AdvancedDataTable";
+import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 
 interface DataTableBodyProps<T> {
   columns: Column<T>[];
@@ -89,14 +90,14 @@ export default function DataTableBody<T extends { id?: string | number }>({
                 ? { contentVisibility: "auto", containIntrinsicSize: "auto 48px" }
                 : undefined
             }
-            className={`group cursor-pointer transition-colors hover:bg-slate-50 ${isSelected ? "bg-emerald-50/60 ring-1 ring-inset ring-[var(--primary)]/15" : ""} ${customClass}`}
+            className={`${L.row} ${onRowClick ? "cursor-pointer" : ""} ${isSelected ? L.rowSelected : ""} ${customClass}`}
           >
             {/* Cột chọn nhiều */}
             {enableMultiSelect && (
-              <td className="p-4 text-center no-print" onClick={(e) => e.stopPropagation()}>
+              <td className={`${L.td} text-center no-print`} onClick={(e) => e.stopPropagation()}>
                 <input
                   type="checkbox"
-                  className="h-5 w-5 cursor-pointer rounded-md border border-slate-300 text-[var(--primary)] accent-[var(--primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2"
+                  className="h-4 w-4 cursor-pointer rounded border border-slate-300 text-[var(--primary)] accent-[var(--primary)]"
                   checked={isSelected}
                   onChange={() => toggleSelectRow(rowKey)}
                 />
@@ -105,7 +106,7 @@ export default function DataTableBody<T extends { id?: string | number }>({
 
             {/* Các cột dữ liệu */}
             {columns.map((col, colIdx) => (
-              <td key={`cell-${rowKey}-${colIdx}-${String(col.accessorKey)}`} className={`min-w-0 border-b border-slate-50 p-3 text-sm text-slate-800 align-top ${col.cellClassName ?? ""}`}>
+              <td key={`cell-${rowKey}-${colIdx}-${String(col.accessorKey)}`} className={`${L.td} text-sm text-slate-800 ${col.cellClassName ?? ""}`}>
                 {col.cell ? col.cell(item) : String(
                   (item as Record<string, unknown>)[String(col.accessorKey)] ?? "",
                 )}

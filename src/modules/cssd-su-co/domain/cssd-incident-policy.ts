@@ -1,6 +1,7 @@
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { WORKFLOW_STEPS, stepIndex } from "@/modules/cssd-erp/workflow/domain/cssd-stations";
-import type { IncidentGroup } from "./cssd-incident-taxonomy";
+import { recallTargetStationForLotMember } from "./cssd-batch-recall";
+import { isBatchQcFailTypeId, type IncidentGroup } from "./cssd-incident-taxonomy";
 
 /** Mã nội bộ (chi tiết sự cố / tích hợp sau này). */
 export type IncidentKind =
@@ -16,6 +17,10 @@ export type IncidentPolicyOutcome = {
   clearSterilizationBatchLink: boolean;
   /** Khóa an toàn tại chỗ — thiết bị/nguy cơ không cho chuyển tiếp. */
   freezeSafetyLock: boolean;
+  /** SC-10: thu hồi mọi bộ cùng mẻ. */
+  recallEntireBatch: boolean;
+  /** SC-10: chuyển máy mẻ sang HOLD_QC nếu đang sẵn sàng. */
+  holdMachineQc: boolean;
   kind: IncidentKind;
 };
 
@@ -58,13 +63,32 @@ export function resolveIncidentPolicy(args: {
   incidentTypeTen: string;
   incidentGroup: IncidentGroup;
   faultStation?: Station;
+  typeId?: string;
+  /** Trạm hiện tại của bộ đang báo — SC-10: bộ đã cấp phát về Tiếp nhận. */
+  currentStation?: string | null;
 }): IncidentPolicyOutcome {
   const det = args.detectionStation;
   const detIdx = stepIndex(det);
 
+  /** QC mẻ (QT.23) — không áp cho QC trạm (`PROCESS_QC_FAIL`). */
+  if (args.incidentGroup === "PROCESS" && isBatchQcFailTypeId(args.typeId)) {
+    const target = recallTargetStationForLotMember(args.currentStation || det);
+    return {
+      targetStation: target,
+      faultStation: args.faultStation || "TIET_KHUAN",
+      clearSterilizationBatchLink: true,
+      freezeSafetyLock: target === "DONG_GOI",
+      recallEntireBatch: true,
+      holdMachineQc: true,
+      kind: "process_failure",
+    };
+  }
+
   const previousStep = (): Station => {
     return WORKFLOW_STEPS[Math.max(0, detIdx - 1)] ?? "TIEP_NHAN";
   };
+
+  const noLotRecall = { recallEntireBatch: false as const, holdMachineQc: false as const };
 
   /** Nhóm Khác: ưu tiên trạm rollback do người chọn; không chọn thì về bước trước trạm phát hiện. */
   if (args.incidentGroup === "OTHER") {
@@ -74,6 +98,7 @@ export function resolveIncidentPolicy(args: {
       faultStation: args.faultStation ?? det,
       clearSterilizationBatchLink: target === "TIET_KHUAN" || target === "CAP_PHAT",
       freezeSafetyLock: false,
+      ...noLotRecall,
       kind: "generic",
     };
   }
@@ -88,6 +113,7 @@ export function resolveIncidentPolicy(args: {
         faultStation: fault,
         clearSterilizationBatchLink: fault === "TIET_KHUAN" || fault === "CAP_PHAT",
         freezeSafetyLock: false,
+        ...noLotRecall,
         kind,
       };
     }
@@ -97,6 +123,7 @@ export function resolveIncidentPolicy(args: {
         faultStation: det,
         clearSterilizationBatchLink: det === "TIET_KHUAN" || det === "CAP_PHAT",
         freezeSafetyLock: true,
+        ...noLotRecall,
         kind,
       };
     case "missing_component":
@@ -106,6 +133,7 @@ export function resolveIncidentPolicy(args: {
           faultStation: det,
           clearSterilizationBatchLink: false,
           freezeSafetyLock: false,
+          ...noLotRecall,
           kind,
         };
       }
@@ -114,6 +142,7 @@ export function resolveIncidentPolicy(args: {
         faultStation: det,
         clearSterilizationBatchLink: false,
         freezeSafetyLock: true,
+        ...noLotRecall,
         kind,
       };
     case "equipment_block":
@@ -122,6 +151,7 @@ export function resolveIncidentPolicy(args: {
         faultStation: det,
         clearSterilizationBatchLink: false,
         freezeSafetyLock: true,
+        ...noLotRecall,
         kind,
       };
     default:
@@ -130,6 +160,7 @@ export function resolveIncidentPolicy(args: {
         faultStation: previousStep(),
         clearSterilizationBatchLink: det === "TIET_KHUAN" || det === "CAP_PHAT",
         freezeSafetyLock: false,
+        ...noLotRecall,
         kind: "generic",
       };
   }

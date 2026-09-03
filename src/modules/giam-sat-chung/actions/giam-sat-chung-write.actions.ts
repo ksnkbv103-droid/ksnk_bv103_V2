@@ -12,6 +12,7 @@ import { hasRBACAdminSupervisionBypass, verifyPermission } from "@/lib/server-pe
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { formatUnknownError } from "@/lib/supabase-error-message";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
+import { resolveBkApDungChoKhoa } from "@/lib/domain/bang-kiem-ap-dung";
 import {
   GscSessionInput,
   normalizeGscModeFields,
@@ -21,21 +22,29 @@ import {
   validateGscModeFields,
 } from "./giam-sat-chung-write-helpers";
 import { resolveBangKiemPersistFields } from "../lib/resolve-loai-bang-kiem-persist";
+import {
+  assertGscBangKiemForNewOrSwitch,
+  gscIsBangKiemSwitch,
+} from "../lib/gsc-bang-kiem-save-guard";
 import { gscSaveSessionSchema } from "@/lib/validations";
 import {
   parseGscBoSungNbFromUnknown,
   serializeGscBoSungNbForMetadata,
 } from "../lib/gsc-bo-sung-nguoi-benh";
-
 import {
-  isSupervisionSessionMutationExpired,
-  SUPERVISION_SESSION_MUTATION_EXPIRED_VI,
-} from "@/lib/supervision-mutation-window";
+  loadLiveGscBangKiemSnapshot,
+  parseGscBangKiemSnapshot,
+  pickGscBangKiemSnapshotForSave,
+  serializeGscBangKiemSnapshotForMetadata,
+  type GscBangKiemSnapshot,
+} from "../lib/gsc-bang-kiem-snapshot";
+
 import { resolveGscScopedKhoaId } from "../lib/gsc-khoa-scope";
+import { gscCanSaveResults, isGscNhatKyCach } from "../lib/gsc-score-display";
 
 type SaveGiamSatChungOpts = { existingSessionId?: string | null };
 
-/** Lưu phiên mới hoặc cập nhật tại chỗ (cùng UUID) nếu `existingSessionId` — chỉ chủ phiên, trong 30 phút. */
+/** Lưu phiên mới hoặc cập nhật tại chỗ (cùng UUID) nếu `existingSessionId` — chỉ chủ phiên; chặn khi ngày đã khóa sổ. */
 export async function saveGiamSatChung(
   sessionData: GscSessionInput,
   results: ChecklistResult[],
@@ -129,6 +138,86 @@ export async function saveGiamSatChung(
       ? String(sessionData.thoi_gian_ket_thuc ?? "").trim() || new Date().toISOString()
       : new Date().toISOString();
 
+    let existingFrozenSnap: GscBangKiemSnapshot | null = null;
+    let previousBangKiemId: string | null = null;
+    if (existingSessionId) {
+      const adminBypass = await hasRBACAdminSupervisionBypass();
+      if (!adminBypass && !actorNhanSuId) throw new Error("Không xác định được người giám sát của bạn.");
+
+      const { data: existing, error: exErr } = await supabase
+        .from("gstt_fact_chung_sessions")
+        .select("id,nguoi_giam_sat_id,is_active,metadata,bang_kiem_id")
+        .eq("id", existingSessionId)
+        .maybeSingle();
+      if (exErr) throw exErr;
+      if (!existing) throw new Error("Phiên không còn tồn tại.");
+      if (existing.is_active === false) throw new Error("Phiên đã bị vô hiệu, không sửa được.");
+      if (!adminBypass) {
+        if (String(existing.nguoi_giam_sat_id || "") !== String(actorNhanSuId)) {
+          throw new Error("Chỉ người giám sát đã ghi nhận phiên này mới được sửa.");
+        }
+      }
+      existingFrozenSnap = parseGscBangKiemSnapshot(existing.metadata);
+      previousBangKiemId =
+        String(existing.bang_kiem_id || "").trim() ||
+        existingFrozenSnap?.bang_kiem_id ||
+        null;
+    }
+
+    const usesNewOrSwitch =
+      !existingSessionId || gscIsBangKiemSwitch(previousBangKiemId, bangKiem.bang_kiem_id);
+    if (usesNewOrSwitch) {
+      const mangLuoiRestricted =
+        Boolean(scope.isMangLuoiKsnk) && !scope.isAdmin && !scope.isNhanVienKsnk;
+      let apDungChoKhoa = true;
+      if (mangLuoiRestricted) {
+        const { data: khoaRow } = await supabase
+          .from("mdm_dm_khoa_phong")
+          .select("id, khoi_id, ma_khoa, ten_khoa, is_active")
+          .eq("id", khoaNorm)
+          .maybeSingle();
+        apDungChoKhoa = Boolean(
+          khoaRow &&
+            resolveBkApDungChoKhoa(
+              {
+                id: bangKiem.bang_kiem_id,
+                is_active: bangKiem.is_active,
+                ap_dung_jsonb: bangKiem.ap_dung_jsonb,
+              },
+              {
+                id: String(khoaRow.id),
+                khoi_id: khoaRow.khoi_id ? String(khoaRow.khoi_id) : null,
+                ma_khoa: khoaRow.ma_khoa ? String(khoaRow.ma_khoa) : null,
+                ten_khoa: khoaRow.ten_khoa ? String(khoaRow.ten_khoa) : null,
+                is_active: khoaRow.is_active !== false,
+              },
+            ),
+        );
+      }
+      const guard = assertGscBangKiemForNewOrSwitch({
+        isActive: bangKiem.is_active,
+        mangLuoiRestricted,
+        apDungChoKhoa,
+      });
+      if (!guard.ok) throw new Error(guard.error);
+    }
+
+    const keepFrozen =
+      existingFrozenSnap && existingFrozenSnap.bang_kiem_id === bangKiem.bang_kiem_id
+        ? existingFrozenSnap
+        : null;
+    const liveSnap = keepFrozen
+      ? null
+      : await loadLiveGscBangKiemSnapshot(supabase, bangKiem.bang_kiem_id);
+    const bangKiemSnapshot = pickGscBangKiemSnapshotForSave({
+      bangKiemId: bangKiem.bang_kiem_id,
+      existing: existingFrozenSnap,
+      live: liveSnap,
+    });
+    if (!bangKiemSnapshot) {
+      throw new Error("Không chốt được nội dung bảng kiểm. Vui lòng thử lại.");
+    }
+
     const boSungRaw = Boolean(sessionData.is_bo_sung_nguoi_benh);
     const maBa = String((sessionData as { ma_benh_an?: string }).ma_benh_an ?? "").trim() || null;
     const maNb = String(sessionData.ma_nguoi_benh ?? "").trim() || null;
@@ -141,12 +230,21 @@ export async function saveGiamSatChung(
     const thoiGianKetThucNorm = String(sessionData.thoi_gian_ket_thuc ?? "").trim() || null;
 
     // P5: một engine theo cach_tinh_diem (mặc định TY_LE nếu thiếu metadata).
+    // BK-1: chấm theo ảnh chụp mẫu đã chốt trên phiên.
     const scoring = await resolveScoringSummary(
       supabase,
       bangKiem.bang_kiem_id,
       results,
       { thoi_gian_bat_dau: thoiGianBatDauNorm, thoi_gian_ket_thuc: thoiGianKetThucNorm },
+      bangKiemSnapshot,
     );
+    if (!gscCanSaveResults(results, scoring.cach_tinh_diem, bangKiem.loai_giam_sat)) {
+      throw new Error(
+        isGscNhatKyCach(scoring.cach_tinh_diem, bangKiem.loai_giam_sat)
+          ? "Nhật ký: nhập ít nhất 1 số liệu hoặc lựa chọn."
+          : "Vui lòng đánh giá ít nhất 1 tiêu chí Đạt hoặc Không đạt.",
+      );
+    }
 
     const sessionPayload = {
       bang_kiem_id: bangKiem.bang_kiem_id,
@@ -190,32 +288,13 @@ export async function saveGiamSatChung(
         ten_nguoi_benh: boSungEffective ? tenNb : null,
         so_giuong_nguoi_benh: boSungEffective ? giuongNb : null,
         ...serializeGscBoSungNbForMetadata(boSungNbSnap, boSungEffective),
+        ...serializeGscBangKiemSnapshotForMetadata(bangKiemSnapshot),
       },
     };
 
     let sessionId: string;
 
     if (existingSessionId) {
-      const adminBypass = await hasRBACAdminSupervisionBypass();
-      if (!adminBypass && !actorNhanSuId) throw new Error("Không xác định được người giám sát của bạn.");
-
-      const { data: existing, error: exErr } = await supabase
-        .from("gstt_fact_chung_sessions")
-        .select("id,nguoi_giam_sat_id,is_active,created_at")
-        .eq("id", existingSessionId)
-        .maybeSingle();
-      if (exErr) throw exErr;
-      if (!existing) throw new Error("Phiên không còn tồn tại.");
-      if (existing.is_active === false) throw new Error("Phiên đã bị vô hiệu, không sửa được.");
-      if (!adminBypass) {
-        if (String(existing.nguoi_giam_sat_id || "") !== String(actorNhanSuId)) {
-          throw new Error("Chỉ người giám sát đã ghi nhận phiên này mới được sửa.");
-        }
-        if (isSupervisionSessionMutationExpired(existing.created_at)) {
-          throw new Error(SUPERVISION_SESSION_MUTATION_EXPIRED_VI);
-        }
-      }
-
       const { error: upErr } = await supabase
         .from("gstt_fact_chung_sessions")
         .update({

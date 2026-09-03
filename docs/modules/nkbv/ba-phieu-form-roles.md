@@ -1,16 +1,16 @@
 # Vai trò BA / Phiếu / Form mẫu (NKBV)
 
 Workspace 3 khối: [`ba-multi-timeline-architecture.md`](ba-multi-timeline-architecture.md).  
-Domain thuật toán: [`hai-surveillance-domain-ssot-20260804.md`](hai-surveillance-domain-ssot-20260804.md).
+Domain: [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md) (Phụ lục E). Quy trình ca: [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md).
 
 ## 1. Hồ sơ bệnh án = đợt nằm viện — trung tâm bằng chứng
 
 | | |
 |--|--|
 | **Là gì** | Một lần nhập viện (`ma_benh_an` ≈ AdmissionID) |
-| **Bảng** | `nkbv_fact_benh_an` + `nkbv_fact_vi_sinh` + `nkbv_fact_ba_timeline` + device registry |
-| **UI** | Hub BA = **Bảng chung** (6 hàng) |
-| **Không phải** | Một nhiễm khuẩn; không tick LCBI/CAUTI trên form ADT |
+| **Bảng** | `nkbv_fact_benh_an` + `nkbv_fact_vi_sinh` + `nkbv_fact_ba_timeline` + `nkbv_fact_ba_ngay_khoa` + `nkbv_fact_ba_ngay_dung_cu` |
+| **UI** | Hub BA = lưới ngày (Date, HD, XN, CĐHA, TC SSI, Khoa chọn theo mã, CVC/Vent/Foley) |
+| **Không phải** | Một nhiễm khuẩn; không tick LCBI/CAUTI trên form ADT; **không** nhập lại khoa/dụng cụ trên phiếu nếu đã có trên lưới |
 
 ## 2. Kho vi sinh = dữ liệu thô (không điều tra)
 
@@ -38,19 +38,21 @@ Domain thuật toán: [`hai-surveillance-domain-ssot-20260804.md`](hai-surveilla
 
 ## 5. Form mẫu
 
-Form tiêu chuẩn (BSI/UTI/VAE/PNEU/SSI) mở khi IP bấm **Tạo phiếu** — prefill từ phiên + timeline. Không thay bảng chung làm nơi nhập bằng chứng chính.
+Form tiêu chuẩn (BSI/UTI/VAE/PNEU/SSI) mở khi IP bấm **Tạo phiếu** — khoa và Foley/máy/CVC **lấy từ lưới bệnh án**. Không nhập lại trên form. Sửa trên lưới → phiếu theo.
 
-## 6. In phiếu
+## 6. In phiếu / báo cáo gửi khoa
 
-`NkbvCasePrintView` — snapshot sau khi có phiếu.
+Hai bản in hiện có: `NkbvCasePrintView` (mục) · `NkbvBaGridCasePrintView` (văn bản).  
+Mẫu gửi khoa (dải ngày + lời tiếng Việt): [`hai-timeline-and-diagnostic-report-20260827.md`](hai-timeline-and-diagnostic-report-20260827.md) §3–§5.
 
 ## Luồng chuẩn
 
 ```
-ADT / Device → nạp LIS + CĐHA/TC SSI trên bảng chung
+Tạo BA (LIS nếu chưa có mã / copy HIS / gõ) → trên lưới: khoa theo mã + tích Foley/máy/CVC + CĐHA/TC SSI
   → chọn 1 bệnh phẩm (hoặc CĐHA / TC SSI)
   → bảng phân tích → kết luận
-  → Tạo phiếu (hoặc Bỏ qua) → thẩm định / in
+  → Tạo phiếu (hoặc Bỏ qua) — phiếu đọc khoa/dụng cụ từ bệnh án; sửa lưới thì phiếu theo
+  → thẩm định / in
 ```
 
 ## Nhãn UI

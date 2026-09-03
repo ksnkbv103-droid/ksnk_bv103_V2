@@ -158,7 +158,7 @@ export default function ChecklistItem({
       >
         <div className="flex-1 space-y-1.5">
           <div className="flex items-start gap-2">
-            <span className="mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-slate-100 px-1 text-xs font-bold text-slate-700">
+            <span className="mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-slate-100 px-1 bv103-type-label font-semibold text-slate-700">
               {order || "#"}
             </span>
             <div className="min-w-0 space-y-1">
@@ -182,7 +182,7 @@ export default function ChecklistItem({
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="text-[11px] font-bold text-blue-600 hover:underline uppercase"
+                className="bv103-type-label font-semibold text-blue-600 hover:underline uppercase"
               >
                 Xem bằng chứng ảnh
               </button>
@@ -208,7 +208,7 @@ export default function ChecklistItem({
 
         {previewOpen && result.image_url && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 transition-opacity animate-fade-in pointer-events-auto">
-            <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl bg-white p-2 shadow-2xl">
+            <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-[var(--radius-shell)] bg-white p-2 shadow-[var(--shadow-app-soft)]">
               <img
                 src={result.image_url}
                 alt="Bằng chứng phóng to"
@@ -218,7 +218,7 @@ export default function ChecklistItem({
                 <button
                   type="button"
                   onClick={() => setPreviewOpen(false)}
-                  className="rounded-lg bg-slate-800 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-slate-700 transition-colors"
+                  className="rounded-lg bg-slate-800 px-4 py-1.5 bv103-type-label font-semibold uppercase tracking-wider text-white hover:bg-slate-700 transition-colors"
                 >
                   Đóng
                 </button>
@@ -244,7 +244,7 @@ export default function ChecklistItem({
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div className="flex-1 space-y-1.5">
           <div className="flex items-start gap-2">
-            <span className="mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-slate-100 px-1 text-xs font-bold text-slate-700">
+            <span className="mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-slate-100 px-1 bv103-type-label font-semibold text-slate-700">
               {order || "#"}
             </span>
             <div className="min-w-0 space-y-1">
@@ -340,7 +340,7 @@ export default function ChecklistItem({
             />
           </div>
           <div className="flex flex-col gap-0.5">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ảnh bằng chứng</span>
+            <span className="bv103-type-label font-semibold text-slate-400 uppercase tracking-wider">Ảnh bằng chứng</span>
             <div className="flex gap-3">
               <button
                 type="button"
@@ -397,7 +397,7 @@ export default function ChecklistItem({
 
       {previewOpen && result.image_url && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 transition-opacity animate-fade-in">
-          <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-xl bg-white p-2 shadow-2xl">
+          <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-[var(--radius-shell)] bg-white p-2 shadow-[var(--shadow-app-soft)]">
             <img
               src={result.image_url}
               alt="Bằng chứng phóng to"
@@ -407,7 +407,7 @@ export default function ChecklistItem({
               <button
                 type="button"
                 onClick={() => setPreviewOpen(false)}
-                className="rounded-lg bg-slate-800 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-slate-700 transition-colors"
+                className="rounded-lg bg-slate-800 px-4 py-1.5 bv103-type-label font-semibold uppercase tracking-wider text-white hover:bg-slate-700 transition-colors"
               >
                 Đóng
               </button>

@@ -69,7 +69,7 @@ export default function CssdStationFlowMap({ activeStation, onSelectStation, gat
           {STATION_ICON[station as Exclude<Station, "TIET_KHUAN">]}
         </span>
         <span
-          className={`truncate text-[11px] font-bold leading-tight ${isActive ? "text-white" : "text-slate-700"}`}
+          className={`truncate bv103-type-label font-semibold leading-tight ${isActive ? "text-white" : "text-slate-700"}`}
         >
           {STATION_LABEL[station]}
         </span>

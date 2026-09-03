@@ -74,7 +74,7 @@ export default function VSTFormView({ editSessionId }: { editSessionId?: string 
     return (
       <VstModuleAccessGate requireCreate>
         <KsnkSupervisionPanel className={`min-h-[50vh] ${UI.sectionGap}`}>
-        <div className="flex min-h-[400px] flex-col items-center justify-center space-y-4">
+        <div className="flex min-h-[400px] flex-col items-center justify-center space-y-[var(--bv103-space-3)]">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent" />
           <p className={`animate-pulse ${UI.emptyBody}`}>Đang tải phiên giám sát…</p>
         </div>

@@ -42,6 +42,26 @@ export function isYeastOrganism(org: string | null | undefined): boolean {
   return YEAST_RE.test(String(org || ""));
 }
 
+/** Đếm loài từ LIS: «3 loài» trong SL, hoặc tách tên bằng + / , / và. */
+export function countUrineSpecies(
+  tacNhan: string | null | undefined,
+  soLuong?: string | null,
+): number {
+  const sl = String(soLuong || "");
+  const fromSl = sl.match(/(\d+)\s*loài/i);
+  if (fromSl) {
+    const n = Number(fromSl[1]);
+    if (Number.isFinite(n) && n > 0) return n;
+  }
+  const name = String(tacNhan || "").trim();
+  if (!name || name === "—") return 0;
+  const parts = name
+    .split(/\s*[+,;/]\s*|\s+và\s+|\s+\+\s+/i)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return Math.max(1, parts.length);
+}
+
 export type UtiIndexLabGate = {
   cfu: number | null;
   cfuOk: boolean;
@@ -57,7 +77,7 @@ export function gateUtiIndexLab(indexXn: BaGridXnCell | null): UtiIndexLabGate {
   }
   const cfu = parseUrineCfu(indexXn.so_luong);
   const yeast = isYeastOrganism(indexXn.vi_khuan);
-  const pathogenCount = indexXn.vi_khuan && indexXn.vi_khuan !== "—" ? 1 : 0;
+  const pathogenCount = countUrineSpecies(indexXn.vi_khuan, indexXn.so_luong);
   if (yeast) warnings.push("Nấm/Candida — cấm Index UTI");
   if (cfu != null && cfu < 100000) warnings.push("CFU < 10⁵");
   if (cfu == null) warnings.push("Chưa có SL/CFU — tạm coi đủ ngưỡng nếu không nấm");

@@ -1,13 +1,14 @@
--- NKBV fact wipe + seed 30 BA demo.
--- Confirmed: NKBV fact tables only + ksnk-bv103-prod + rollback acknowledged.
--- Keeps nkbv_dm_* and all non-NKBV modules.
+-- KHÔNG CHẠY trên DB đã migrate 20260827120000.
+-- LabID + nkbv_fact_device_registry đã DROP.
+-- Dụng cụ = tích lưới → nkbv_fact_ba_ngay_dung_cu. Khoa ngày = nkbv_fact_ba_ngay_khoa.
+-- Script này giữ để tra cứu demo cũ; chạy sẽ lỗi.
 
 BEGIN;
 
-DELETE FROM public.nkbv_fact_labid_event;
 DELETE FROM public.nkbv_fact_su_kien;
 DELETE FROM public.nkbv_fact_ba_timeline;
-DELETE FROM public.nkbv_fact_device_registry;
+DELETE FROM public.nkbv_fact_ba_ngay_dung_cu;
+DELETE FROM public.nkbv_fact_ba_ngay_khoa;
 DELETE FROM public.nkbv_fact_vi_sinh;
 DELETE FROM public.nkbv_fact_mau_so_daily;
 DELETE FROM public.nkbv_fact_mau_so_phau_thuat;
@@ -49,37 +50,8 @@ INSERT INTO public.nkbv_fact_benh_an (
 ('BA-DEMO-29','PID-D29','Khang Văn Lộc','1967-07-31','Nam','2026-07-18 05:00:00+00',NULL,'b5a17d6b-4ad1-4a17-a0d1-5073fefbbb8c',true),
 ('BA-DEMO-30','PID-D30','Liễu Thị My','1981-01-09','Nữ','2026-07-20 07:00:00+00',NULL,'fb63bd8f-d0ab-4001-a7d2-ab5a6e8043bb',true);
 
--- ===== Device registry =====
-INSERT INTO public.nkbv_fact_device_registry (
-  ma_benh_an, ma_benh_nhan, device_type, insertion_date, removal_date, khoa_id, is_active, metadata
-) VALUES
-('BA-DEMO-01','PID-D01','FOLEY','2026-07-20',NULL,'13f9a000-fa4d-4a47-95f5-ac0a2c436aa6',true,'{}'),
-('BA-DEMO-02','PID-D02','FOLEY','2026-07-22',NULL,'fb63bd8f-d0ab-4001-a7d2-ab5a6e8043bb',true,'{}'),
-('BA-DEMO-03','PID-D03','FOLEY','2026-07-18',NULL,'8cd1a9bc-7c88-4d68-b70a-ddb6f1381122',true,'{}'),
-('BA-DEMO-03','PID-D03','CENTRAL_LINE','2026-07-18',NULL,'8cd1a9bc-7c88-4d68-b70a-ddb6f1381122',true,'{}'),
-('BA-DEMO-05','PID-D05','CENTRAL_LINE','2026-07-15',NULL,'8cd1a9bc-7c88-4d68-b70a-ddb6f1381122',true,'{}'),
-('BA-DEMO-06','PID-D06','CENTRAL_LINE','2026-07-16',NULL,'4c4f101c-e714-4f72-9910-db46becae2bc',true,'{}'),
-('BA-DEMO-07','PID-D07','FOLEY','2026-07-10',NULL,'8cd1a9bc-7c88-4d68-b70a-ddb6f1381122',true,'{}'),
-('BA-DEMO-07','PID-D07','CENTRAL_LINE','2026-07-10',NULL,'8cd1a9bc-7c88-4d68-b70a-ddb6f1381122',true,'{}'),
-('BA-DEMO-08','PID-D08','VENTILATOR','2026-07-12',NULL,'8cd1a9bc-7c88-4d68-b70a-ddb6f1381122',true,'{}'),
-('BA-DEMO-09','PID-D09','VENTILATOR','2026-07-11','2026-07-20','c895038b-e242-43bc-a868-e17865308dac',true,'{}'),
-('BA-DEMO-11','PID-D11','VENTILATOR','2026-07-08',NULL,'4c4f101c-e714-4f72-9910-db46becae2bc',true,'{}'),
-('BA-DEMO-12','PID-D12','VENTILATOR','2026-07-09',NULL,'8cd1a9bc-7c88-4d68-b70a-ddb6f1381122',true,'{}'),
-('BA-DEMO-12','PID-D12','CENTRAL_LINE','2026-07-09',NULL,'8cd1a9bc-7c88-4d68-b70a-ddb6f1381122',true,'{}'),
-('BA-DEMO-16','PID-D16','FOLEY','2026-07-14',NULL,'8cd1a9bc-7c88-4d68-b70a-ddb6f1381122',true,'{}'),
-('BA-DEMO-16','PID-D16','VENTILATOR','2026-07-14',NULL,'8cd1a9bc-7c88-4d68-b70a-ddb6f1381122',true,'{}'),
-('BA-DEMO-16','PID-D16','CENTRAL_LINE','2026-07-14',NULL,'8cd1a9bc-7c88-4d68-b70a-ddb6f1381122',true,'{}'),
-('BA-DEMO-17','PID-D17','FOLEY','2026-07-19',NULL,'13f9a000-fa4d-4a47-95f5-ac0a2c436aa6',true,'{}'),
-('BA-DEMO-19','PID-D19','CENTRAL_LINE','2026-07-13',NULL,'423d75da-99cf-41b0-9c48-26e630b369b4',true,'{}'),
-('BA-DEMO-19','PID-D19','FOLEY','2026-07-13',NULL,'423d75da-99cf-41b0-9c48-26e630b369b4',true,'{}'),
-('BA-DEMO-21','PID-D21','FOLEY','2026-07-07',NULL,'fb63bd8f-d0ab-4001-a7d2-ab5a6e8043bb',true,'{}'),
-('BA-DEMO-23','PID-D23','VENTILATOR','2026-07-12',NULL,'4c4f101c-e714-4f72-9910-db46becae2bc',true,'{}'),
-('BA-DEMO-26','PID-D26','VENTILATOR','2026-07-10',NULL,'8cd1a9bc-7c88-4d68-b70a-ddb6f1381122',true,'{}'),
-('BA-DEMO-27','PID-D27','VENTILATOR','2026-07-01',NULL,'4c4f101c-e714-4f72-9910-db46becae2bc',true,'{}'),
-('BA-DEMO-27','PID-D27','FOLEY','2026-07-01',NULL,'4c4f101c-e714-4f72-9910-db46becae2bc',true,'{}'),
-('BA-DEMO-27','PID-D27','CENTRAL_LINE','2026-07-01',NULL,'4c4f101c-e714-4f72-9910-db46becae2bc',true,'{}'),
-('BA-DEMO-28','PID-D28','FOLEY','2026-07-02','2026-07-26','13f9a000-fa4d-4a47-95f5-ac0a2c436aa6',true,'{}'),
-('BA-DEMO-30','PID-D30','FOLEY','2026-07-20',NULL,'fb63bd8f-d0ab-4001-a7d2-ab5a6e8043bb',true,'{}');
+-- ===== Device registry (ĐÃ DROP — không seed) =====
+-- Foley/máy/CVC: tích lưới → nkbv_fact_ba_ngay_dung_cu. Không INSERT registry.
 
 -- ===== Vi sinh (+) đa dạng =====
 INSERT INTO public.nkbv_fact_vi_sinh (

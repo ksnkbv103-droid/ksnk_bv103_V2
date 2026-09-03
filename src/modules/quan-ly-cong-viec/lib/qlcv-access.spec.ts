@@ -3,6 +3,7 @@ import {
   canShowDeleteTask,
   canShowEditTaskMetadata,
   canShowHoatDongProgressSection,
+  canShowHuyKhiNghiemThuKhongDat,
   isQlcvTaskOverdue,
 } from "./qlcv-access";
 
@@ -89,6 +90,50 @@ describe("canShowEditTaskMetadata", () => {
         baseFlags,
       ),
     ).toBe(false);
+  });
+});
+
+describe("canShowHuyKhiNghiemThuKhongDat", () => {
+  const choDuyet = { trang_thai: "CHO_DUYET", phan_tram_hoan_thanh: 100, is_active: true };
+
+  it("ẩn khi có quyền duyệt nhưng không có quyền xóa", () => {
+    expect(canShowHuyKhiNghiemThuKhongDat(choDuyet, { ...baseFlags, hasApprove: true })).toBe(false);
+  });
+
+  it("hiện khi có quyền xóa và đang chờ nghiệm thu", () => {
+    expect(canShowHuyKhiNghiemThuKhongDat(choDuyet, { ...baseFlags, hasDelete: true })).toBe(true);
+  });
+
+  it("ẩn khi chưa vào cổng nghiệm thu", () => {
+    expect(
+      canShowHuyKhiNghiemThuKhongDat(
+        { trang_thai: "DANG_LAM", phan_tram_hoan_thanh: 40, is_active: true },
+        { ...baseFlags, hasDelete: true },
+      ),
+    ).toBe(false);
+  });
+
+  it("ẩn khi chỉ duyệt — việc 100% quá hạn", () => {
+    expect(
+      canShowHuyKhiNghiemThuKhongDat(
+        {
+          trang_thai: "DANG_LAM",
+          phan_tram_hoan_thanh: 100,
+          han_hoan_thanh: "2020-01-01",
+          is_active: true,
+        },
+        { ...baseFlags, hasApprove: true },
+      ),
+    ).toBe(false);
+  });
+
+  it("hiện khi có quyền xóa — từ chối + quá hạn 100%", () => {
+    expect(
+      canShowHuyKhiNghiemThuKhongDat(
+        { trang_thai: "TU_CHOI", phan_tram_hoan_thanh: 100, is_qua_han: true, is_active: true },
+        { ...baseFlags, hasDelete: true },
+      ),
+    ).toBe(true);
   });
 });
 

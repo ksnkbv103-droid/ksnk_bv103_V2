@@ -161,6 +161,25 @@ export function assertClinicalEvidenceForSubmit(
         }
       }
     }
+    if (type === "VAE") {
+      const daily = Array.isArray(verificationInput?.vent_daily_params)
+        ? verificationInput.vent_daily_params
+        : [];
+      const hasPeepFio2 = daily.some(
+        (d: { peep_min?: unknown; fio2_min?: unknown; peep?: unknown; fio2?: unknown }) =>
+          d?.peep_min != null || d?.fio2_min != null || d?.peep != null || d?.fio2 != null,
+      );
+      const hasVac =
+        verificationInput?.has_vac === true ||
+        Boolean(verificationInput?.calculated_vac_doe) ||
+        verificationInput?.on_ecmo === true;
+      if (!hasPeepFio2 && !hasVac) {
+        return {
+          ok: false,
+          error: "VAE: chưa nhập bảng PEEP/FiO₂ theo ngày (hoặc chưa xác nhận VAC / ECMO).",
+        };
+      }
+    }
     return { ok: true };
   }
 
@@ -177,6 +196,12 @@ export function assertClinicalEvidenceForSubmit(
       return {
         ok: false,
         error: "Chưa khai báo ngày phẫu thuật hoặc dấu hiệu lâm sàng vết mổ.",
+      };
+    }
+    if (!hasAnsweredBoolean(verificationInput?.is_patos)) {
+      return {
+        ok: false,
+        error: "SSI: chưa khai báo PATOS (có / không nhiễm khuẩn tại thời điểm mổ).",
       };
     }
     return { ok: true };

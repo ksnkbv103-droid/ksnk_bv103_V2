@@ -35,13 +35,13 @@ export default function NkbvDiagnosticRow({
 }: NkbvDiagnosticRowProps) {
   return (
     <section
-      className={`rounded-2xl border ${toneClass[tone]} shadow-sm`}
+      className={`rounded-[var(--radius-shell)] border ${toneClass[tone]}`}
       data-diagnostic-step={step}
     >
       <div className="grid grid-cols-1 gap-0 lg:grid-cols-12">
         <div className="space-y-2 border-b border-inherit px-4 py-5 sm:px-5 lg:col-span-4 lg:border-b-0 lg:border-r">
           <div className="flex items-start gap-3">
-            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold text-white">
+            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 bv103-type-section text-white">
               {step}
             </span>
             <div className="min-w-0 space-y-1">
@@ -55,7 +55,7 @@ export default function NkbvDiagnosticRow({
             </div>
           ) : null}
         </div>
-        <div className="space-y-4 px-4 py-5 sm:px-5 lg:col-span-8">{children}</div>
+        <div className="space-y-[var(--bv103-space-3)] px-4 py-5 sm:px-5 lg:col-span-8">{children}</div>
       </div>
     </section>
   );

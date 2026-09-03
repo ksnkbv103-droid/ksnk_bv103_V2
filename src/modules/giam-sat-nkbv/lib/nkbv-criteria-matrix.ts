@@ -80,7 +80,7 @@ export const NKBV_CRITERIA_ADD_CATALOG: Array<{
   {
     criteriaKey: "fever_or_wbc",
     milestoneKind: "SYMPTOM",
-    title: "Sốt / hạ thân nhiệt / WBC bất thường",
+    title: "Sốt > 38,0°C / hạ thân nhiệt < 36,0°C / WBC bất thường",
     gates: ["HAP", "VAP", "VAE"],
   },
   {
@@ -329,7 +329,7 @@ function matrixForGate(gate: NkbvChecklistTypeCode): CriteriaRowDef[] {
     return [
       { key: "index_specimen", label: "Index: cấy hô hấp hoặc ngày phim", group: "Index", requiredHint: true },
       { key: "imaging_chest", label: "XQ/CT thâm nhiễm mới / đông đặc / hang ∈ IWP", group: "Hình ảnh (bắt buộc)", requiredHint: true },
-      { key: "fever_or_wbc", label: "Sốt / hạ thân nhiệt / WBC bất thường", group: "Toàn thân ∈ IWP", requiredHint: true },
+      { key: "fever_or_wbc", label: "Sốt > 38,0°C / hạ thân nhiệt < 36,0°C / WBC bất thường", group: "Toàn thân ∈ IWP", requiredHint: true },
       { key: "altered_mental_ge70", label: "Lú lẫn (≥70 tuổi) — nếu áp dụng", group: "Toàn thân ∈ IWP", requiredHint: false },
       { key: "cough", label: "Ho mới / tăng", group: "Hô hấp tại chỗ (≥2)", requiredHint: false },
       { key: "dyspnea", label: "Khó thở", group: "Hô hấp tại chỗ (≥2)", requiredHint: false },
@@ -365,14 +365,14 @@ function matrixForGate(gate: NkbvChecklistTypeCode): CriteriaRowDef[] {
       { key: "abscess_imaging", label: "Áp xe / CĐHA / GPB", group: "Tiêu chuẩn độ sâu", requiredHint: false },
       { key: "physician_diagnosis", label: "BS chẩn đoán SSI nông", group: "Tiêu chuẩn độ sâu", requiredHint: false },
       { key: "obgyn_abdominal_pain", label: "Đau bụng sau mổ (CSEC/HYST/VHYS)", group: "Organ/Space OB/GYN", requiredHint: false },
-      { key: "fever", label: "Sốt (hỗ trợ)", group: "Triệu chứng", requiredHint: false },
+      { key: "fever", label: "Sốt > 38,0°C", group: "Triệu chứng", requiredHint: false },
     ];
   }
   if (gate === "VAE") {
     return [
       { key: "device_ventilator", label: "Thở máy xâm lấn (≥4 ngày / Event Period)", group: "Device", requiredHint: true },
       { key: "worsening_gas", label: "Worsening PEEP/FiO₂ (chuỗi VAC)", group: "VAE Window", requiredHint: true },
-      { key: "fever_or_wbc", label: "Sốt / WBC (IVAC)", group: "IVAC / PVAP", requiredHint: false },
+      { key: "fever_or_wbc", label: "Sốt > 38,0°C hoặc hạ thân nhiệt < 36,0°C (IVAC)", group: "IVAC / PVAP", requiredHint: false },
       { key: "purulent_sputum", label: "Đờm mủ / cấy hô hấp (PVAP)", group: "IVAC / PVAP", requiredHint: false },
       { key: "resp_culture", label: "Cấy ETA/BAL (PVAP)", group: "IVAC / PVAP", requiredHint: false },
       { key: "blood_culture", label: "Cấy máu trong Event Period (Secondary PVAP)", group: "Secondary", requiredHint: false },

@@ -59,7 +59,7 @@ export default function TaiKhoanNhanSuStaffRow({
                 }
                 onProvision(r, pw);
               }}
-              className="rounded-lg bg-slate-800 px-2 py-1.5 text-xs font-bold uppercase text-white disabled:opacity-40"
+              className="rounded-lg bg-slate-800 px-2 py-1.5 bv103-type-label font-semibold uppercase text-white disabled:opacity-40"
             >
               Tạo TK
             </button>
@@ -111,7 +111,7 @@ export default function TaiKhoanNhanSuStaffRow({
                     setNewPw("");
                     setShowReset(false);
                   }}
-                  className="rounded-lg bg-rose-600 hover:bg-rose-700 px-2.5 py-1 text-xs font-bold text-white transition-colors"
+                  className="rounded-lg bg-rose-600 hover:bg-rose-700 px-2.5 py-1 bv103-type-label font-semibold text-white transition-colors"
                 >
                   Lưu
                 </button>

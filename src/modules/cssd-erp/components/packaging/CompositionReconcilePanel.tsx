@@ -6,21 +6,12 @@ import { toast } from "sonner";
 import {
   loadBoCompositionReconcile,
   type CompositionReconcilePayload,
-  type CompositionReconcileRow,
 } from "../../actions/cssd-composition-reconcile.actions";
-import { CSSD_UI_SECTION_TITLE, CSSD_UI_TABLE_HEADER } from "../../shared/ui/cssd-ui-chrome";
+import { CSSD_UI_PANEL, CSSD_UI_SECTION_TITLE, CSSD_UI_TABLE_HEADER } from "../../shared/ui/cssd-ui-chrome";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
-import { requestReplenishFromReserveAction } from "@/lib/master-data/cssd-instrument-ops.actions";
 import { registerSplitSubQrFromMainMaAction } from "../../actions/cssd-register-label.actions";
 import { formatSetQtyLine, summarizeSetComposition } from "../../shared/domain/cssd-set-composition";
-
-type SuCoPrefill = {
-  maBo: string;
-  chiTietId: string;
-  loaiDungCuId: string;
-  typeId: string;
-};
 
 type Props = {
   boDungCuId: string | null | undefined;
@@ -32,12 +23,6 @@ type Props = {
   onConfirmAdvance?: () => void;
   onCancelGate?: () => void;
   advancing?: boolean;
-};
-
-const KIND_TO_TYPE: Record<string, string> = {
-  HONG: "INSTRUMENT_BROKEN",
-  MAT: "INSTRUMENT_MISSING",
-  BO_SUNG: "INSTRUMENT_REPLENISH",
 };
 
 export default function CompositionReconcilePanel({
@@ -52,8 +37,6 @@ export default function CompositionReconcilePanel({
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<CompositionReconcilePayload | null>(null);
   const [suCoOpen, setSuCoOpen] = useState(false);
-  const [suCoPrefill, setSuCoPrefill] = useState<SuCoPrefill | null>(null);
-  const [replenishingId, setReplenishingId] = useState<string | null>(null);
   const [splitting, setSplitting] = useState(false);
 
   const fetchData = useCallback(async () => {
@@ -80,42 +63,14 @@ export default function CompositionReconcilePanel({
 
   if (!enabled || !boDungCuId) return null;
 
-  const openSuCo = (row: CompositionReconcileRow, kind: "HONG" | "MAT" | "BO_SUNG") => {
+  const openSuCo = () => {
     if (!data) return;
-    setSuCoPrefill({
-      maBo: data.maBo,
-      chiTietId: row.chiTietId,
-      loaiDungCuId: row.loaiDungCuId,
-      typeId: KIND_TO_TYPE[kind],
-    });
     setSuCoOpen(true);
-  };
-
-  const quickReplenish = async (row: CompositionReconcileRow) => {
-    if (!data || row.reserveShortage || row.soLuongKhoDuPhong <= 0 || !row.isMissing) return;
-    const qty = Math.min(row.missingCount, row.soLuongKhoDuPhong);
-    setReplenishingId(row.chiTietId);
-    try {
-      const res = await requestReplenishFromReserveAction({
-        loaiDungCuId: row.loaiDungCuId,
-        boDungCuId: data.boDungCuId,
-        quyTrinhId: quyTrinhId || undefined,
-        quantity: qty,
-        note: `Bù nhanh từ đối chiếu đóng gói (${data.maBo})`,
-      });
-      if (!res.success) throw new Error(("error" in res && res.error) || "Không bù được kho");
-      toast.success(`Đã bù ${qty} × ${row.tenDungCuLe} từ kho dự phòng`);
-      await fetchData();
-    } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : "Lỗi bù kho");
-    } finally {
-      setReplenishingId(null);
-    }
   };
 
   return (
     <>
-      <section className="space-y-3 rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 shadow-sm">
+      <section className={`bv103-stack-in bv103-pad-panel ${CSSD_UI_PANEL}`}>
         <div className="flex items-start justify-between gap-2">
           <div>
             <h4 className={CSSD_UI_SECTION_TITLE}>
@@ -134,9 +89,9 @@ export default function CompositionReconcilePanel({
                 )}
               </p>
             ) : null}
-            {gateMode ? (
+              {gateMode ? (
               <p className="mt-1 text-[11px] font-medium leading-relaxed text-amber-800">
-                Kiểm đếm từng dụng cụ; báo Hỏng / Mất / Bổ sung nếu cần. Sau đó bạn quyết định có chuyển chờ tiệt khuẩn hay không.
+                Kiểm đếm trên phiếu bộ; báo Hỏng / Mất / Bổ sung nhiều món một lần. Sau đó quyết định có chuyển chờ tiệt khuẩn.
               </p>
             ) : null}
           </div>
@@ -150,7 +105,7 @@ export default function CompositionReconcilePanel({
               <p className="text-[11px] font-semibold uppercase tracking-wide">Cần tách gói nhạy nhiệt</p>
               <p className="text-[11px] font-medium leading-relaxed">{data.heat.reason}</p>
               {data.heat.methodLabelVi ? (
-                <p className="text-[11px] font-bold text-rose-800">Gợi ý: {data.heat.methodLabelVi}</p>
+                <p className="bv103-type-label font-semibold text-rose-800">Gợi ý: {data.heat.methodLabelVi}</p>
               ) : null}
               <button
                 type="button"
@@ -179,7 +134,7 @@ export default function CompositionReconcilePanel({
           <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-900">
             <AlertCircle className="mt-0.5 shrink-0" size={18} />
             <p className="text-[11px] font-medium">
-              Bộ đang thiếu cấu phần so với thiết kế. Bấm «Báo sự cố» trên dòng tương ứng để ghi Hỏng / Mất / Bổ sung.
+              Bộ đang thiếu cấu phần so với thiết kế. Mở phiếu biến động bộ — một lần gửi cho mọi món lệch.
             </p>
           </div>
         ) : null}
@@ -202,14 +157,13 @@ export default function CompositionReconcilePanel({
         ) : null}
 
         {data && data.items.length > 0 ? (
-          <ResponsiveTableShell unboxed className="rounded-xl border border-slate-100" maxHeight="max-h-[min(360px,50dvh)]">
+          <ResponsiveTableShell unboxed maxHeight="max-h-[min(360px,50dvh)]">
             <table className="w-full min-w-[420px] text-left text-xs">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
                   <th className={`px-2 py-2 ${CSSD_UI_TABLE_HEADER}`}>Cấu phần</th>
                   <th className={`px-2 py-2 text-center ${CSSD_UI_TABLE_HEADER} w-14`}>Cần</th>
                   <th className={`px-2 py-2 text-center ${CSSD_UI_TABLE_HEADER} w-16`}>Thực tế</th>
-                  <th className={`px-2 py-2 text-center ${CSSD_UI_TABLE_HEADER} w-40`}>Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -217,11 +171,14 @@ export default function CompositionReconcilePanel({
                   <tr key={row.chiTietId} className={row.isMissing ? "bg-red-50/40" : ""}>
                     <td className="px-2 py-2 font-semibold text-slate-800">
                       {row.tenDungCuLe}
+                      {row.maLoai ? (
+                        <span className="ml-1 font-mono font-normal text-slate-500">({row.maLoai})</span>
+                      ) : null}
                       {!row.isChiuNhiet ? (
-                        <span className="ml-1 text-[11px] font-bold text-rose-600">· nhạy nhiệt</span>
+                        <span className="ml-1 bv103-type-label font-semibold text-rose-600">· nhạy nhiệt</span>
                       ) : null}
                     </td>
-                    <td className="px-2 py-2 text-center font-bold text-slate-500">{row.soLuongKeHoach}</td>
+                    <td className="px-2 py-2 text-center bv103-type-label">{row.soLuongKeHoach}</td>
                     <td className="px-2 py-2 text-center">
                       <span
                         className={`rounded-full px-2 py-0.5 font-bold tabular-nums ${
@@ -231,46 +188,21 @@ export default function CompositionReconcilePanel({
                         {row.soLuongThucTe}
                       </span>
                     </td>
-                    <td className="px-2 py-2">
-                      <div className="flex flex-wrap justify-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => openSuCo(row, "HONG")}
-                          className="rounded-lg border border-amber-200 bg-amber-50 px-1.5 py-1 text-[11px] font-semibold uppercase text-amber-800"
-                        >
-                          Hỏng
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => openSuCo(row, "MAT")}
-                          className="rounded-lg border border-rose-200 bg-rose-50 px-1.5 py-1 text-[11px] font-semibold uppercase text-rose-800"
-                        >
-                          Mất
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => openSuCo(row, "BO_SUNG")}
-                          className="rounded-lg border border-emerald-200 bg-emerald-50 px-1.5 py-1 text-[11px] font-semibold uppercase text-emerald-800"
-                        >
-                          Bổ sung
-                        </button>
-                        {row.isMissing && row.soLuongKhoDuPhong > 0 && !row.reserveShortage ? (
-                          <button
-                            type="button"
-                            disabled={replenishingId === row.chiTietId}
-                            onClick={() => void quickReplenish(row)}
-                            className="rounded-lg border border-sky-200 bg-sky-50 px-1.5 py-1 text-[11px] font-semibold uppercase text-sky-800 disabled:opacity-50"
-                          >
-                            {replenishingId === row.chiTietId ? "…" : "Bù kho"}
-                          </button>
-                        ) : null}
-                      </div>
-                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </ResponsiveTableShell>
+        ) : null}
+
+        {data && data.items.length > 0 ? (
+          <button
+            type="button"
+            onClick={openSuCo}
+            className="h-11 w-full touch-manipulation rounded-xl border border-amber-200 bg-amber-50 text-xs font-semibold uppercase tracking-wide text-amber-900 hover:bg-amber-100"
+          >
+            Báo biến động bộ này
+          </button>
         ) : null}
 
         {gateMode ? (
@@ -297,16 +229,11 @@ export default function CompositionReconcilePanel({
 
       <IncidentReportModal
         isOpen={suCoOpen}
-        onClose={() => {
-          setSuCoOpen(false);
-          setSuCoPrefill(null);
-        }}
+        onClose={() => setSuCoOpen(false)}
         station="DONG_GOI"
         defaultGroup="INSTRUMENT"
-        initialMaQR={suCoPrefill?.maBo}
-        initialChiTietId={suCoPrefill?.chiTietId}
-        initialLoaiDungCuId={suCoPrefill?.loaiDungCuId}
-        initialTypeId={suCoPrefill?.typeId}
+        initialMaQR={data?.maBo}
+        initialTypeId="INSTRUMENT_SET_RECONCILE"
         quyTrinhId={quyTrinhId}
         onSuccess={() => void fetchData()}
       />

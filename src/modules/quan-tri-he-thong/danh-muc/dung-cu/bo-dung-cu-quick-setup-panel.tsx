@@ -36,27 +36,27 @@ export function BoDungCuQuickSetupPanel({ onStartCreateBo, lastCreatedMaBo }: Pr
       {open ? (
         <ol className="mt-4 grid gap-2 md:grid-cols-3">
           <li className="rounded-xl border border-white bg-white/90 p-3">
-            <span className="text-[11px] font-bold text-emerald-700">1 · Bộ</span>
+            <span className="bv103-type-label font-semibold text-emerald-700">1 · Bộ</span>
             <p className="text-xs font-semibold text-slate-800">Chọn khoa, nhập tên bộ</p>
             <button
               type="button"
               onClick={onStartCreateBo}
-              className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-[var(--primary)] underline"
+              className="mt-2 inline-flex items-center gap-1 bv103-type-label font-semibold text-[var(--primary)] underline"
             >
               Mở form thêm bộ <ChevronRight size={12} />
             </button>
           </li>
           <li className="rounded-xl border border-white bg-white/90 p-3">
-            <span className="text-[11px] font-bold text-emerald-700">2 · Thành phần</span>
+            <span className="bv103-type-label font-semibold text-emerald-700">2 · Thành phần</span>
             <p className="text-xs font-semibold text-slate-800">Chọn bộ ở bảng dưới → thêm thành phần</p>
-            <Link href={quanTriDungCuHref("bo")} className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-[var(--primary)] underline">
+            <Link href={quanTriDungCuHref("bo")} className="mt-2 inline-flex items-center gap-1 bv103-type-label font-semibold text-[var(--primary)] underline">
               Mở tab bộ <ChevronRight size={12} />
             </Link>
           </li>
           <li className="rounded-xl border border-white bg-white/90 p-3">
-            <span className="text-[11px] font-bold text-emerald-700">3 · In tem</span>
+            <span className="bv103-type-label font-semibold text-emerald-700">3 · In tem</span>
             <p className="text-xs font-semibold text-slate-800">QR = ma_bo (vd. B01.SET.01)</p>
-            <Link href="/cssd-dung-cu" className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-[var(--primary)] underline">
+            <Link href="/cssd-dung-cu" className="mt-2 inline-flex items-center gap-1 bv103-type-label font-semibold text-[var(--primary)] underline">
               Catalog CSSD · in tem <ChevronRight size={12} />
             </Link>
           </li>

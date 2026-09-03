@@ -21,26 +21,17 @@ export type HubRegistryRow = {
   icon: React.ReactNode;
 };
 
-function StatusPill({ kind }: { kind: "active" | "empty" }) {
+function StatusText({ kind }: { kind: "active" | "empty" }) {
   if (kind === "empty") {
-    return (
-      <span className="inline-flex items-center rounded-lg bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 ring-1 ring-inset ring-slate-400/20">
-        Trống
-      </span>
-    );
+    return <span className={TC.statusMuted}>Trống</span>;
   }
-  return (
-    <span className="inline-flex items-center rounded-lg bg-[var(--surface-success-bg)] px-2 py-0.5 text-[11px] font-medium text-[var(--surface-success-text)] ring-1 ring-inset ring-emerald-600/15">
-      Có dữ liệu
-    </span>
-  );
+  return <span className={TC.statusOk}>Có dữ liệu</span>;
 }
 
 const openBtnClass = T.btnPrimary;
 
 export type UnifiedHubRow = HubRegistryRow & {
   domainLabel: string;
-  domainClassName: string;
   groupLabel: string;
   statusKind: "active" | "empty";
 };
@@ -55,18 +46,13 @@ export function toUnifiedHubRow(row: DanhMucHubRow, icon?: React.ReactNode): Uni
     stats: row.stats || { count: 0 },
     icon: icon ?? <Layers className="h-5 w-5 text-teal-600" />,
     domainLabel: badge.label,
-    domainClassName: badge.className,
     groupLabel: DANH_MUC_HUB_GROUP_LABELS[row.group],
     statusKind: count > 0 ? "active" : "empty",
   };
 }
 
-function DomainBadge({ label, className }: { label: string; className: string }) {
-  return (
-    <span className={`inline-flex rounded-md px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ring-1 ring-inset ${className}`}>
-      {label}
-    </span>
-  );
+function DomainText({ label }: { label: string }) {
+  return <span className={TC.statusMuted}>{label}</span>;
 }
 
 export function buildUnifiedHubColumns(onOpen: (path: string) => void): Column<UnifiedHubRow>[] {
@@ -78,17 +64,12 @@ export function buildUnifiedHubColumns(onOpen: (path: string) => void): Column<U
       headerClassName: "min-w-[12rem] w-[40%]",
       cellClassName: "min-w-0",
       cell: (r) => (
-        <div className="flex items-center gap-3 py-1.5">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-50 ring-1 ring-slate-200/80">
-            {r.icon}
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`truncate ${TC.cellTitle}`}>{r.name}</span>
+            <DomainText label={r.domainLabel} />
           </div>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`truncate ${TC.cellTitle}`}>{r.name}</span>
-              <DomainBadge label={r.domainLabel} className={r.domainClassName} />
-            </div>
-            <div className="text-[11px] text-slate-400">{r.groupLabel}</div>
-          </div>
+          <div className="text-[11px] text-slate-400">{r.groupLabel}</div>
         </div>
       ),
     },
@@ -120,7 +101,7 @@ export function buildUnifiedHubColumns(onOpen: (path: string) => void): Column<U
       accessorKey: "status",
       headerClassName: "w-28",
       cellClassName: "align-middle",
-      cell: (r) => <StatusPill kind={r.statusKind} />,
+      cell: (r) => <StatusText kind={r.statusKind} />,
     },
     {
       header: "",

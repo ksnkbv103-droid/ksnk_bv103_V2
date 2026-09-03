@@ -112,7 +112,7 @@ export function CommandCenterDecisionQueue({
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wide">
+                  <span className="bv103-type-label font-semibold uppercase tracking-wide">
                     {item.severity === "red" ? "Đỏ" : "Vàng"} ·{" "}
                     {item.domain === "VST"
                       ? "Vệ sinh tay"

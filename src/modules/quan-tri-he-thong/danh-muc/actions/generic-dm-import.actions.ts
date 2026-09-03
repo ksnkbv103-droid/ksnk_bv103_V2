@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { genericDmMustUseDedicatedPageError } from "@/lib/master-data/danh-muc-admin-routes";
 import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
 import { getRegistryEntryOrNull } from "@/lib/master-data/domain-registry";
 import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
@@ -46,6 +47,8 @@ export async function importGenericDmExcelAction(
   const dryRun = options?.dryRun === true;
   try {
     await verifyDanhMucLookupPermission(permModule(loaiDanhMuc), "import");
+    const dedicatedError = genericDmMustUseDedicatedPageError(loaiDanhMuc);
+    if (dedicatedError) return { success: false as const, error: dedicatedError };
     const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
     if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
     if (!Array.isArray(data) || data.length === 0) {

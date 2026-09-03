@@ -135,7 +135,7 @@ export default function GscTgsCoverageRankingPanel({ tuNgay, denNgay, selectedKh
                     {row.so_bk_thieu > 0 ? (
                       <Link
                         href={qlcvHref}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--primary)] hover:underline"
+                        className="inline-flex items-center gap-1 bv103-type-label font-semibold text-[var(--primary)] hover:underline"
                       >
                         Tạo việc <ExternalLink className="h-3 w-3" aria-hidden />
                       </Link>

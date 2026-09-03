@@ -22,7 +22,7 @@ function clip(s: string | null | undefined, n: number) {
 export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableRow>[] {
   return [
     {
-      header: "Mã bộ / QR",
+      header: "Mã bộ / Qr",
       accessorKey: "ma_bo",
       sortable: true,
       cell: (i) => {
@@ -46,11 +46,9 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       accessorKey: "phan_loai_bo",
       sortable: true,
       cell: (i) => (
-        i.phan_loai_bo === "THU_THUAT" ? (
-          <span className="bg-[var(--surface-warning-bg)] text-[var(--surface-warning-text)] border border-[var(--surface-warning-border)] text-[11px] font-semibold px-2 py-0.5 rounded-lg uppercase tracking-wide">Thủ thuật</span>
-        ) : (
-          <span className="bg-[var(--surface-success-bg)] text-[var(--surface-success-text)] border border-[var(--surface-success-border)] text-[11px] font-semibold px-2 py-0.5 rounded-lg uppercase tracking-wide">Phẫu thuật</span>
-        )
+        <span className={i.phan_loai_bo === "THU_THUAT" ? TC.statusWarn : TC.statusInfo}>
+          {i.phan_loai_bo === "THU_THUAT" ? "Thủ thuật" : "Phẫu thuật"}
+        </span>
       ),
     },
     {
@@ -58,11 +56,9 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       accessorKey: "co_ma_dinh_danh_rieng",
       sortable: true,
       cell: (i) => (
-        i.co_ma_dinh_danh_rieng ? (
-          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-lg uppercase tracking-wide text-blue-700 border border-blue-100 bg-blue-50">Mã QR riêng</span>
-        ) : (
-          <span className="text-[11px] font-semibold px-2 py-0.5 rounded-lg uppercase tracking-wide text-slate-600 border border-slate-100 bg-slate-50">Đồ dùng chung</span>
-        )
+        <span className={i.co_ma_dinh_danh_rieng ? TC.statusInfo : TC.statusMuted}>
+          {i.co_ma_dinh_danh_rieng ? "Mã QR riêng" : "Đồ dùng chung"}
+        </span>
       ),
     },
     {
@@ -106,9 +102,7 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       accessorKey: "trang_thai",
       sortable: true,
       cell: (i) => (
-        <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-500">
-          {i.trang_thai || "—"}
-        </span>
+        <span className={TC.statusMuted}>{i.trang_thai || "—"}</span>
       ),
     },
     {
@@ -127,7 +121,7 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
       cell: (i) => <span className="text-[11px] text-slate-500">{clip(i.ghi_chu, 56)}</span>,
     },
     {
-      header: "Tem QR",
+      header: "Tem qr",
       accessorKey: "id",
       cell: (i) =>
         i.ma_bo ? (

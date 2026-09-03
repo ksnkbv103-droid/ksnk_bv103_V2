@@ -15,6 +15,13 @@ describe("nkbv-specimen-syndrome", () => {
     expect(specimenToSyndromePanel({ loai_benh_pham: "Máu" })).toBe("BSI");
     expect(specimenToSyndromePanel({ loai_benh_pham: "Dịch vết mổ" })).toBe("SSI");
     expect(specimenToSyndromePanel({ loai_benh_pham: "Đờm", preferVae: true })).toBe("VAE");
+    expect(specimenToSyndromePanel({ loai_benh_pham_chuan: "URT" })).toBeNull();
+    expect(
+      specimenToSyndromePanel({
+        lis_goc: "Dịch / mô thận (USI, không phải nước tiểu)",
+        loai_benh_pham_chuan: "SURGICAL_SITE_FLUID",
+      }),
+    ).toBeNull();
   });
 
   it("maps CĐHA Index đúng domain", () => {

@@ -16,17 +16,20 @@ const SCAN_MODULES = [
   "src/modules/giam-sat-nkbv",
   "src/modules/dashboard",
   "src/modules/quan-ly-cong-viec",
+  "src/modules/cssd-su-co",
+  "src/modules/dao-tao",
 ];
 const SKIP = new Set([
   "src/modules/dashboard/lib/bao-cao-tong-hop-print.ts",
+  "src/modules/dashboard/lib/bao-cao-tong-hop-print-styles.ts",
   "src/modules/quan-tri-he-thong/lib/excel-io.helpers.ts",
   "src/modules/cssd-erp/components/scan/QRScanSuccessCard.tsx",
 ]);
 
-const CELL_CODE = "font-mono text-[11px] font-medium text-[var(--primary)]";
-const CELL_BODY = "text-sm font-medium leading-relaxed text-slate-700";
-const CELL_META = "text-[11px] font-medium text-slate-500";
-const CELL_INDEX = "text-[11px] font-medium text-slate-400";
+const CELL_CODE = "font-mono bv103-type-label text-[var(--primary)]";
+const CELL_BODY = "bv103-type-body leading-relaxed text-slate-700";
+const CELL_META = "bv103-type-label";
+const CELL_INDEX = "bv103-type-label text-slate-400";
 
 const REPLACEMENTS = [
   ["text-xs font-black text-slate-700 leading-relaxed uppercase tracking-tight whitespace-normal", `${CELL_BODY} whitespace-normal`],
@@ -45,7 +48,12 @@ const REPLACEMENTS = [
   ["text-[11px] font-bold text-slate-400 uppercase italic", "text-[11px] font-normal text-slate-400 italic"],
   ["text-[11px] font-bold uppercase text-slate-300", CELL_INDEX],
   ["text-[11px] font-semibold uppercase tracking-wide text-slate-600", CELL_META],
-  ["rounded-full bg-slate-100 px-2 py-1 text-[11px] font-bold", "rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium"],
+  ["rounded-full bg-slate-100 px-2 py-1 text-[11px] font-bold", `rounded-full bg-slate-100 px-2 py-1 ${CELL_META}`],
+  ["text-sm font-bold", "bv103-type-section"],
+  ["text-[11px] font-bold", "bv103-type-label font-semibold"],
+  ["text-xs font-bold", "bv103-type-label font-semibold"],
+  ["font-extrabold", "font-semibold"],
+  ["font-black", "font-semibold"],
 ];
 
 /** Header cột BV103: chữ thường, chỉ chữ cái đầu (và sau `/`) viết hoa. */
@@ -92,7 +100,7 @@ let reps = 0;
 for (const base of SCAN_MODULES) {
   for (const file of walk(join(ROOT, base))) {
     const rel = file.replace(ROOT + "/", "");
-    if (SKIP.has(rel)) continue;
+    if (SKIP.has(rel) || /print|PrintView|PrintLayout/i.test(rel)) continue;
 
     let text = readFileSync(file, "utf8");
     const before = text;

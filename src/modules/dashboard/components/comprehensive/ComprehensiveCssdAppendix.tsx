@@ -32,8 +32,8 @@ export function ComprehensiveCssdAppendix({ payload }: { payload: BaoCaoTongHopP
   }
 
   return (
-    <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-2 flex flex-wrap items-start justify-between gap-3">
+    <section className={`${D.shellPadded}`}>
+      <div className="mb-[var(--bv103-space-3)] flex flex-wrap items-start justify-between gap-[var(--bv103-space-2)]">
         <h2 className={`flex items-center gap-2 ${D.sectionHeading}`}>
           <Package size={18} className="text-[var(--primary)]" aria-hidden />
           Phụ lục CSSD (vận hành)
@@ -110,7 +110,7 @@ export function ComprehensiveCssdAppendix({ payload }: { payload: BaoCaoTongHopP
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3">
-      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="bv103-type-label font-semibold uppercase tracking-wide text-slate-500">{label}</p>
       <p className="mt-1 text-lg font-semibold tabular-nums text-slate-900">{value}</p>
     </div>
   );

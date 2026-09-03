@@ -2,10 +2,10 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import HistoryTable from "../components/HistoryTable";
 import { KsnkSupervisionPanel } from "@/components/shared/ksnk-supervision-chrome";
-import type { GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
+import { parseGscLoaiParam, type GscLoaiGiamSatRoute } from "../lib/gsc-app-paths";
 import { SupervisionExcelExportButton } from "@/components/shared/SupervisionExcelExportButton";
 import { exportGscSessionsRaw } from "../actions/gsc-export.actions";
 
@@ -30,11 +30,13 @@ interface GscHistoryViewProps {
  */
 export default function GscHistoryView({ loaiGiamSat }: GscHistoryViewProps) {
   const router = useRouter();
-  const basePath = resolveBasePath(loaiGiamSat);
+  const searchParams = useSearchParams();
+  const resolvedLoai = loaiGiamSat ?? parseGscLoaiParam(searchParams.get("loai"));
+  const basePath = resolveBasePath(resolvedLoai);
 
   return (
     <KsnkSupervisionPanel className="min-h-[50vh]">
-      <div className="app-data-shell space-y-2 p-2">
+      <div className="space-y-2">
         <div className="flex justify-end print:hidden">
           <SupervisionExcelExportButton
             label="Xuất Excel (90 ngày)"
@@ -48,7 +50,7 @@ export default function GscHistoryView({ loaiGiamSat }: GscHistoryViewProps) {
           />
         </div>
         <HistoryTable
-          loaiGiamSat={loaiGiamSat}
+          loaiGiamSat={resolvedLoai}
           onEditBundle={(bundle, row) => {
             // Encode edit context into URL params and redirect to form
             const sessionId = String(row.id || "").trim();

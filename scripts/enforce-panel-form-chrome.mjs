@@ -35,6 +35,10 @@ for (const file of walk(join(ROOT, "src"))) {
     misses++;
     console.warn(`[panel-form-chrome] ${rel}: thiếu import chrome`);
   }
+  if (NEEDLE.test(text) && /["'`][^"'`\n]*\b(font-black|font-extrabold)\b/.test(text)) {
+    misses++;
+    console.warn(`[panel-form-chrome] ${rel}: còn font-black/extrabold — dùng UI.* / bv103-type-*`);
+  }
 }
 
 if (misses === 0) {

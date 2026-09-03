@@ -60,13 +60,13 @@ export function ComprehensiveTrend({
   if (!payload || data.length === 0) return null;
 
   return (
-    <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <section className={`${D.shellPadded}`}>
+      <div className="mb-[var(--bv103-space-3)] flex flex-wrap items-center justify-between gap-[var(--bv103-space-2)]">
         <h2 className={`flex items-center gap-2 ${D.sectionHeading}`}>
           <TrendingUp size={18} className="text-[var(--primary)]" aria-hidden />
           Xu hướng tuân thủ
         </h2>
-        <div className="flex flex-wrap rounded-lg border border-slate-200 p-0.5 text-xs font-bold">
+        <div className="flex flex-wrap rounded-lg border border-slate-200 p-0.5 bv103-type-label font-semibold">
           {GRANULARITY_OPTIONS.map(({ id, label }) => (
             <button
               key={id}

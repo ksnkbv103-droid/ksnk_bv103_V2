@@ -54,7 +54,7 @@ describe("nkbv-symptom-timeline-bridge", () => {
     const patch = timelineMilestoneToSymptomPatch(
       m({ id: "f", date: "2026-08-02", title: "Sốt", criteriaKey: "fever" }),
     );
-    expect(patch).toEqual({ key: "has_fever", date: "2026-08-02", label: "Sốt" });
+    expect(patch).toEqual({ key: "has_fever", date: "2026-08-02", label: "Sốt > 38,0°C" });
   });
 
   it("prefill không ghi đè ngày đã có; tôn trọng IWP", () => {

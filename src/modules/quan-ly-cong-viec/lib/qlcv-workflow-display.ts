@@ -2,6 +2,7 @@
  * Cổng nghiệp vụ QLCV (Track B lean): đề xuất | đang làm | chờ nghiệm thu | đóng.
  */
 
+import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 
 export type CongViecLike = {
@@ -10,6 +11,8 @@ export type CongViecLike = {
   nguoi_phu_trach_id?: string | null;
   phan_tram_hoan_thanh?: number | null;
   loai_cong_viec?: string | null;
+  han_hoan_thanh?: string | null;
+  is_qua_han?: boolean | null;
 };
 
 export function isDeXuatChoDuyet(t: CongViecLike): boolean {
@@ -19,11 +22,7 @@ export function isDeXuatChoDuyet(t: CongViecLike): boolean {
 }
 
 export function isChoNghiemThuHoanThanh(t: CongViecLike): boolean {
-  if (t.loai_cong_viec === "DINH_KY") return false;
-  const st = normalizeQlcvTrangThaiToCanonical(t.trang_thai);
-  if (st === "CHO_DUYET") return true;
-  const pct = Number(t.phan_tram_hoan_thanh ?? 0);
-  return (st === "DANG_LAM" || st === "QUA_HAN") && pct >= 100;
+  return isEligibleForNghiemThu(t);
 }
 
 export type QlcvWorkflowGate =

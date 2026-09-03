@@ -225,7 +225,7 @@ export function BaoCaoTongHopPage() {
         </div>
       ) : null}
 
-      <div className={`space-y-5 transition-opacity ${d.loading ? "pointer-events-none opacity-50" : ""}`}>
+      <div className={`bv103-stack-page transition-opacity ${d.loading ? "pointer-events-none opacity-50" : ""}`}>
         {d.khoaFilterLocked && d.lockedKhoaLabel ? <AnalyticsKhoaScopeBanner khoaLabel={d.lockedKhoaLabel} /> : null}
         <ReportSectionNav moreOpen={moreSectionsOpen} onMoreOpenChange={setMoreSectionsOpen} />
         <ReportSection id="bc-kpi" title="Chỉ số tổng hợp">

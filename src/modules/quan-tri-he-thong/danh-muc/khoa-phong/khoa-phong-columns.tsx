@@ -14,7 +14,7 @@ interface ActionCells {
 export function getKhoaPhongColumns(actionUi: ActionCells): Column<KhoaPhongRow>[] {
   return [
     {
-      header: "Mã khoa / QR",
+      header: "Mã khoa / Qr",
       accessorKey: "ma_danh_muc",
       sortable: true,
       headerClassName: "w-[10rem] min-w-[10rem]",
@@ -23,8 +23,8 @@ export function getKhoaPhongColumns(actionUi: ActionCells): Column<KhoaPhongRow>
         const locCode = buildLocationQrCode("LOC_KHOA", String(i.ma_danh_muc || ""));
         return (
           <span className="inline-flex items-center gap-2">
-            {locCode ? <InlineEntityQrThumb code={locCode} size={32} /> : null}
-            <span className={`${TC.cellCode} rounded-md border border-slate-100 bg-slate-50 px-2 py-1 text-slate-500`}>
+            {locCode ? <InlineEntityQrThumb code={locCode} size={20} /> : null}
+            <span className={`${TC.cellCode} text-slate-600`}>
               {i.ma_danh_muc}
             </span>
           </span>
@@ -49,11 +49,12 @@ export function getKhoaPhongColumns(actionUi: ActionCells): Column<KhoaPhongRow>
       headerClassName: "w-[18rem] min-w-[18rem]",
       cellClassName: "w-[18rem] min-w-[18rem]",
       cell: (i) => (
-        <div className="py-1 text-[11px]">
-          <div className="font-semibold text-slate-700">{i.ten_khoi || "Chưa gán khối"}</div>
-          <div className="text-slate-500">
-            BS {i.so_bac_si || 0} và ĐD {i.so_dieu_duong || 0} - Giường {i.so_giuong_benh_thuong || 0}/{i.so_giuong_cap_cuu || 0}
-          </div>
+        <div className="text-[11px] leading-snug">
+          <span className="font-semibold text-slate-700">{i.ten_khoi || "Chưa gán khối"}</span>
+          <span className="text-slate-500">
+            {" · "}BS {i.so_bac_si || 0} / ĐD {i.so_dieu_duong || 0} · Giường {i.so_giuong_benh_thuong || 0}/{i.so_giuong_cap_cuu || 0}
+            {i.cdc_location_code ? ` · CDC ${i.cdc_location_code}` : " · CDC chưa map"}
+          </span>
         </div>
       ),
     },

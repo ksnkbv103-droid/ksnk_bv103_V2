@@ -1,9 +1,10 @@
 # Danh mục triệu chứng lâm sàng NKBV (SSOT)
 
 > **Identity contract** — CDC NHSN 2025 · runtime: `nkbv-clinical-symptom-catalog.ts`  
-> Thuật toán: [`../hai-surveillance-domain-ssot-20260804.md`](../hai-surveillance-domain-ssot-20260804.md)  
+> Thuật toán: [`../hai-surveillance-domain-ssot-20260827.md`](../hai-surveillance-domain-ssot-20260827.md)  
+> **BOM đầy đủ SX + LAB + IMG + DEV + EXCL:** [`../hai-criteria-element-dictionary-20260827.md`](../hai-criteria-element-dictionary-20260827.md)  
 > UAT: [`symptom-catalog-uat-20260809.md`](symptom-catalog-uat-20260809.md)  
-> Ch.17 vận hành SSI: `nkbv-chapter17-clinical.ts`
+> Ch.17 vận hành: `nkbv-chapter17-clinical.ts` · nguyên tử `nkbv-ch17-evidence-catalog.ts`
 
 ## Nguyên tắc
 
@@ -14,6 +15,18 @@
 | 3 | UTI voiding chỉ khi **không** Foley |
 | 4 | Giữ tên `form_field` đã lưu — atom mới + derived legacy |
 | 5 | Ch.17: catalog prose đầy đủ + checklist vận hành cho site Organ/Space hay gặp |
+| 6 | **Nhãn sốt:** không ghi tắt «Sốt». Nguyên tử = **Sốt > 38,0°C**. IVAC = **Sốt > 38,0°C hoặc hạ thân nhiệt < 36,0°C**. PNEU lưới (gói OR) ghi đủ ngưỡng; phiếu mới tick từng atom |
+
+### Nhãn sốt (phiếu / lưới / in)
+
+| `criteria_key` | Nhãn |
+|----------------|------|
+| `fever` | Sốt > 38,0°C |
+| `fever_or_wbc` (HAP/VAP) | Sốt > 38,0°C / hạ thân nhiệt < 36,0°C / WBC bất thường |
+| `fever_or_wbc` (VAE) | Sốt > 38,0°C hoặc hạ thân nhiệt < 36,0°C |
+| Mốc cũ title «Sốt» | Hiện như `fever` |
+
+Runtime: `NKBV_LABEL_FEVER_GT_38` / `displaySymptomLabel` trong `nkbv-clinical-symptom-catalog.ts`.
 
 ## Pilot — trạng thái đóng nợ (2026-08-09)
 

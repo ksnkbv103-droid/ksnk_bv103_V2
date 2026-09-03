@@ -2,7 +2,7 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
-import type { Catalog, CSSDBo, CSSDChiTiet, CSSDLoai, CSSDHoaChat } from "../types/catalog.types";
+import type { Catalog, CSSDBo, CSSDHoaChat } from "../types/catalog.types";
 
 import { CSSD_KHO_CATALOG_PERMISSION_CANDIDATES } from "../lib/cssd-catalog-permission-candidates";
 import { getErrorMessage } from "../shared/cssd-db-utils";
@@ -29,7 +29,7 @@ export async function getKhoCatalogPayloadAction(): Promise<
     const supabase = createAdminSupabaseClient();
 
     // Lấy trực tiếp từ bảng DM để không phụ thuộc category của RPC registry.
-    const [boRes, boMetaRes, loaiRes, chiTietRes, hoaChatRes, khoaRes] = await Promise.all([
+    const [boRes, boMetaRes, hoaChatRes, khoaRes] = await Promise.all([
       supabase
         .from("v_cssd_bo_dung_cu_summary")
         .select(
@@ -42,18 +42,6 @@ export async function getKhoCatalogPayloadAction(): Promise<
         .select("id, phan_loai_bo, co_ma_dinh_danh_rieng")
         .eq("is_active", true),
       supabase
-        .from("v_cssd_loai_dung_cu_summary")
-        .select(
-          "id, ma_loai_dung_cu, ma_loai, ten_loai_dung_cu, ten_loai, is_active, phan_loai, so_luong_kho_du_phong, so_luong_tong, hinh_dang, kich_thuoc, cong_dung, is_chiu_nhiet, phuong_phap_tiet_khuan",
-        )
-        .eq("is_active", true)
-        .order("ma_loai_dung_cu"),
-      supabase
-        .from("v_cssd_bo_dung_cu_chi_tiet_full")
-        .select("id, ma_chi_tiet, ten_chi_tiet, so_luong, bo_dung_cu_id, loai_dung_cu_id, is_active, specs, ghi_chu")
-        .eq("is_active", true)
-        .order("ma_chi_tiet"),
-      supabase
         .from("cssd_dm_hoa_chat")
         .select("id, ma_hoa_chat, ten_hoa_chat, loai_hoa_chat, don_vi_tinh, is_active")
         .eq("is_active", true)
@@ -63,8 +51,6 @@ export async function getKhoCatalogPayloadAction(): Promise<
 
     if (boRes.error) throw boRes.error;
     if (boMetaRes.error) throw boMetaRes.error;
-    if (loaiRes.error) throw loaiRes.error;
-    if (chiTietRes.error) throw chiTietRes.error;
     if (hoaChatRes.error) throw hoaChatRes.error;
     if (khoaRes.error) throw khoaRes.error;
 
@@ -103,46 +89,8 @@ export async function getKhoCatalogPayloadAction(): Promise<
     };
     });
 
-    const loai: CSSDLoai[] = (loaiRes.data || []).map((x) => ({
-      id: String(x.id || ""),
-      ma_loai_dung_cu: String(x.ma_loai_dung_cu || x.ma_loai || ""),
-      ten_loai_dung_cu: String(x.ten_loai_dung_cu || x.ten_loai || ""),
-      is_active: x.is_active !== false,
-      phan_loai: x.phan_loai ? String(x.phan_loai) : null,
-      so_luong_kho_du_phong: x.so_luong_kho_du_phong != null ? Number(x.so_luong_kho_du_phong) : null,
-      so_luong_tong: x.so_luong_tong != null ? Number(x.so_luong_tong) : null,
-      hinh_dang: x.hinh_dang ? String(x.hinh_dang) : null,
-      kich_thuoc: x.kich_thuoc ? String(x.kich_thuoc) : null,
-      cong_dung: x.cong_dung ? String(x.cong_dung) : null,
-      kha_nang_chiu_nhiet:
-        x.is_chiu_nhiet === true ? "Có" : x.is_chiu_nhiet === false ? "Không" : null,
-      phuong_phap_tiet_khuan: x.phuong_phap_tiet_khuan ? String(x.phuong_phap_tiet_khuan) : null,
-    }));
-
-    const boMap = new Map<string, string>(bo.map((x) => [x.id, x.ten_bo] as const));
-    const loaiMap = new Map<string, string>(loai.map((x) => [x.id, x.ten_loai_dung_cu] as const));
-
-    const chi_tiet: CSSDChiTiet[] = (chiTietRes.data || []).map((x) => {
-      const specs = x.specs || {};
-      const max_suds_count = specs.max_suds_count !== undefined && specs.max_suds_count !== null ? Number(specs.max_suds_count) : null;
-      const trong_luong = specs.trong_luong !== undefined && specs.trong_luong !== null ? Number(specs.trong_luong) : null;
-      const ma_qr_mau = specs.ma_qr_mau !== undefined && specs.ma_qr_mau !== null ? String(specs.ma_qr_mau) : null;
-      return {
-        id: String(x.id),
-        ma_chi_tiet: String(x.ma_chi_tiet || ""),
-        ten_chi_tiet: String(x.ten_chi_tiet || ""),
-        so_luong: x.so_luong != null ? Number(x.so_luong) : null,
-        bo_dung_cu_id: x.bo_dung_cu_id ? String(x.bo_dung_cu_id) : null,
-        ten_bo: x.bo_dung_cu_id ? boMap.get(String(x.bo_dung_cu_id)) || null : null,
-        loai_dung_cu_id: x.loai_dung_cu_id ? String(x.loai_dung_cu_id) : null,
-        ten_loai: x.loai_dung_cu_id ? loaiMap.get(String(x.loai_dung_cu_id)) || null : null,
-        is_active: x.is_active !== false,
-        max_suds_count,
-        trong_luong,
-        ghi_chu: x.ghi_chu ? String(x.ghi_chu) : null,
-        ma_qr_mau,
-      };
-    });
+    const loai: Catalog["loai"] = [];
+    const chi_tiet: Catalog["chi_tiet"] = [];
 
     const hoa_chat: CSSDHoaChat[] = (hoaChatRes.data || []).map((x) => ({
       id: String(x.id),

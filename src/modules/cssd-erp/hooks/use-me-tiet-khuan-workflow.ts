@@ -17,6 +17,7 @@ import {
 } from "../actions/cssd.actions";
 
 import { usePermission } from "@/hooks/usePermission";
+import { cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
 import { isSteamSterilizerProfile } from "../helpers/me-tiet-khuan-machine-kind";
 
 export function useMeTietKhuanWorkflow() {
@@ -219,7 +220,33 @@ export function useMeTietKhuanWorkflow() {
     if (isPass) {
       void onPrintBatch({ batchId: activeMe.id });
       toast.success("Mẻ ĐẠT! Đã chuyển dụng cụ sang Cấp phát — mở in phiếu mẻ A4.");
-    } else toast.error("Mẻ KHÔNG ĐẠT — đã ghi nhận theo chính sách.");
+    } else {
+      const created = saved.createdCount ?? 0;
+      const skipped = saved.skippedCount ?? 0;
+      const recalled = saved.recalledCount ?? 0;
+      const held = saved.machineHeld;
+      const firstId = saved.incidentIds?.[0];
+      const extra =
+        recalled || held
+          ? ` Thu hồi ${recalled} bộ cùng mẻ${held ? "; máy tạm giữ QC (HOLD_QC)" : ""}.`
+          : "";
+      toast.error(
+        skipped > 0
+          ? `Mẻ không đạt — đã có phiếu sự cố (không lập trùng).${extra}`
+          : `Mẻ không đạt — đã lập ${created} phiếu sự cố.${extra}`,
+        {
+          duration: 8000,
+          action: firstId
+            ? {
+                label: "Xem nhật ký",
+                onClick: () => {
+                  window.location.href = cssdSuCoIncidentJournalHref(firstId);
+                },
+              }
+            : undefined,
+        },
+      );
+    }
     setStep("LIST");
     void fetchData();
   };

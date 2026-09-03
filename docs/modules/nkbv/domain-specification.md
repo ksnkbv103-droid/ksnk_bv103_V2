@@ -1,59 +1,59 @@
 # ĐẶC TẢ NGHIỆP VỤ GIÁM SÁT NHIỄM KHUẨN BỆNH VIỆN (NKBV) — CDC/NHSN STANDARD
 
-> **Phiên bản:** 1.1 (2026-08-06)  
+> **Phiên bản:** 1.2 (2026-08-27)  
 > **Trạng thái:** Hợp đồng vận hành pilot (RBAC / state / cổng nạp LIS).  
-> **Thuật toán cửa sổ / hội chứng:** xem [`hai-surveillance-domain-ssot-20260804.md`](hai-surveillance-domain-ssot-20260804.md) + [`clinical-forms.md`](clinical-forms.md).  
+> **Quy trình ca + dữ liệu:** [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md) (LIS tạo BA nếu chưa có mã; copy HIS/gõ tay; triệu chứng timeline = BA).  
+> **Thuật toán + từ điển:** [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md) (v3.3).  
 > **Workspace phân tích:** [`ba-centric-timeline.md`](ba-centric-timeline.md) — **Bệnh án trung tâm**; cổng vi sinh chỉ nạp timeline.  
-> §3 form “VAP + 48h” bên dưới là **legacy pilot** — runtime dùng split VAE/PNEU và device **>2 ngày lịch** (SSOT §3.5).  
+> §3 form “48 giờ” bên dưới là **legacy field list** — runtime dùng device **>2 ngày lịch** và split VAE/PNEU (SSOT Ch.2 §2.8).  
+> **Không API HIS/LIS.** Vi sinh = copy LIS (tạo BA nếu chưa có mã). Bệnh án cũng copy HIS hoặc gõ tay.  
 > **Chiến lược sản phẩm:** [`adr-nkbv-unified-module-20260715.md`](../../reference/architecture/adr-nkbv-unified-module-20260715.md).
 
 ---
 
-## 1. Tổng quan Nghiệp vụ Giám sát NKBV (Hospital-Acquired Infection - HAI)
+## 1. Tổng quan Nghiệp vụ Giám sát NKBV (HAI)
 
-Giám sát nhiễm khuẩn bệnh viện (NKBV) là một trong những nhiệm vụ cốt lõi của Khoa Kiểm soát Nhiễm khuẩn (KSNK). Mục tiêu là chủ động phát hiện sớm các ca bệnh nhiễm khuẩn phát sinh trong quá trình điều trị nội trú, đưa ra chẩn đoán chính xác dựa trên tiêu chí cận lâm sàng (vi sinh) kết hợp lâm sàng, từ đó triển khai kịp thời các biện pháp phòng ngừa lan truyền và báo cáo số liệu thống kê dịch tễ.
+Giám sát HAI tại BV103: phát hiện và phân loại sự kiện nhiễm khuẩn liên quan chăm sóc y tế **người lớn** theo CDC NHSN 2025, trên **một** module `/giam-sat-nkbv`. Tên module = **NKBV**; tử số = sự kiện **HAI** (Phụ lục E).
 
-**Luồng chuẩn (BA-centric — CDC order):**
+**Không kết nối API HIS/LIS.** Bệnh án: (1) lấy từ LIS khi copy vi sinh — **đã có mã thì không bổ sung**; (2) copy HIS / gõ tay. **Vi sinh:** copy bảng/Excel từ LIS. Chi tiết: [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md).
+
+**Luồng chuẩn — chi tiết [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md):**
 
 ```mermaid
 flowchart TD
-    A[ADT_Device_BA_trong_diem] --> B[Cong_nap_LIS_va_XQ]
-    B --> C[Timeline_tren_BA]
-    C --> D[Cong_tieu_chuan_theo_moc]
-    D -->|Du| E[Su_kien_DOE]
-    D -->|Thieu| C
-    E --> F[POA_HAI_RIT_SBSI_LOA_Device]
-    F --> G[KSNK_tham_dinh]
+  A[Tao_BA_LIS_HIS_copy_hoac_tay] --> B[Go_khoa_va_dung_cu]
+  B --> C[Copy_LIS]
+  C --> D[Go_CDHA_TC_SSI]
+  D --> E[Chon_Index_bang_phan_tich]
+  E --> F[Thu_tu_CDC_Secondary_truoc_CLABSI]
+  F --> G[IP_Tao_phieu]
 ```
 
-Cổng LIS Day-3 (§2) chỉ **gợi ý / nạp mốc** — **không spawn phiếu**. XN (+) chưa phân tích vào **hàng đợi cảnh báo** (badge `Chưa PT`). POA/HAI theo **DOE** sau bảng phân tích; phiếu chỉ tạo khi IP bấm **Tạo phiếu** ([`ba-multi-timeline-architecture.md`](ba-multi-timeline-architecture.md)).
+Cổng LIS **không** tạo phiếu. “XN (+) ngày lịch 3” chỉ **hàng đợi chưa phân tích** — **không** = HAI. HAI/POA theo **DOE** sau khi đủ tiêu chí trong cửa sổ.
 
 ---
 
-## 2. Tiêu chuẩn Lọc & Cảnh báo Sơ bộ (Tự động từ Vi sinh LIS)
+## 2. Sàng lọc từ LIS (gợi ý việc làm — không chẩn đoán)
 
-### 2.1 Quy tắc "Ngày lịch thứ 3" (Calendar Day 3 Rule)
-Theo định nghĩa chuẩn của CDC/NHSN, một nhiễm khuẩn được coi là nhiễm khuẩn bệnh viện (Healthcare-Associated Infection - HAI) nếu **Ngày phát hiện** (date of event - thường lấy theo ngày lấy mẫu bệnh phẩm vi sinh dương tính) xảy ra từ **Ngày lịch thứ 3 trở đi** của đợt nhập viện (với Ngày vào viện là Ngày 1).
+### 2.1 Ngày lịch thứ 3 — chỉ hàng đợi
 
-* **Công thức toán học áp dụng:**
-  $$\text{Ngay cấy vi sinh} \ge \text{Ngay vào viện} + 2 \text{ ngày}$$
-* **Ví dụ cụ thể:**
-  - Bệnh nhân nhập viện lúc 14:00 ngày 20/05/2026 (Ngày 1).
-  - Ngày 21/05/2026 là Ngày 2.
-  - Ngày 22/05/2026 là Ngày 3.
-  - Nếu cấy máu dương tính lấy mẫu lúc 08:00 ngày 22/05/2026 $\to$ Đủ điều kiện nghi ngờ NKBV (Day 3).
-  - Nếu cấy máu dương tính lấy mẫu ngày 21/05/2026 $\to$ Coi là Nhiễm khuẩn có sẵn lúc vào viện (Present on Admission - POA).
+Ngày **lấy mẫu** ≥ ngày vào viện + 2 ngày lịch → badge **Chưa PT** (cần mở bảng phân tích).
 
-### 2.2 Phân loại Nghi ngờ theo Loại bệnh phẩm (Microbiology Specimen Mapping)
-Khi phát hiện kết quả vi sinh dương tính đạt quy tắc "Ngày lịch thứ 3", hệ thống **gợi ý** loại nhiễm khuẩn theo loại bệnh phẩm. Pilot BV103: **phán quyết tay** trên UI (không hard auto-map) — LIS chỉ gợi ý. Gợi ý mặc định:
+**Không** dùng công thức này để gắn HAI hay POA. DOE có thể khác ngày cấy (triệu chứng/ảnh sớm hơn trong IWP).
 
-| Nhóm bệnh phẩm cấy | Loại bệnh phẩm chi tiết | Loại NKBV Nghi ngờ | Tên chuyên môn y tế |
-| :--- | :--- | :--- | :--- |
-| **Bệnh phẩm hô hấp** | Đờm, Dịch hút nội khí quản, Dịch phế quản (BAL)... | **VAP** | Viêm phổi liên quan thở máy (Ventilator-Associated Pneumonia) |
-| **Bệnh phẩm máu** | Máu, cấy đầu catheter tĩnh mạch trung tâm... | **BSI** | Nhiễm khuẩn huyết liên quan đường truyền trung tâm (CLABSI/LCBI) |
-| **Bệnh phẩm nước tiểu** | Nước tiểu (giữa dòng, qua sonde), dịch chọc bàng quang... | **UTI** | Nhiễm khuẩn tiết niệu liên quan đặt ống thông (CAUTI) |
-| **Bệnh phẩm vết mổ** | Dịch vết mổ, mủ vết mổ, mảnh sinh thiết vết mổ... | **SSI** | Nhiễm khuẩn vết mổ (Surgical Site Infection) |
-| **Bệnh phẩm khác** | Dịch não tủy, dịch màng bụng, dịch khớp... | **OTHER** | Nhiễm khuẩn vị trí khác |
+### 2.2 Gợi ý protocol theo bệnh phẩm (IP được đổi)
+
+Pilot: **không** hard auto-map. Máy gợi ý; IP chốt trên bảng phân tích.
+
+| Bệnh phẩm LIS | Gợi ý mở | Không |
+| :--- | :--- | :--- |
+| Máu | Secondary BSI **trước** → LCBI → CLABSI nếu CVC | Không mở CLABSI trước |
+| Nước tiểu | UTI (SUTI/ABUTI) | Không = USI; yeast không thỏa UTI |
+| Dịch/mô tiết niệu **không** nước tiểu | USI (Ch.17) | Không = CAUTI |
+| Đờm / ETA / BAL | Người lớn + thở máy eligible → **VAE**; không → **PNEU** | Không mặc định VAP |
+| Dịch/mủ vết mổ | SSI (SP 30/90) | Không IWP ±3 |
+| Dịch/mô vị trí khác | Site Ch.17 (nhiễm khuẩn ổ bụng, màng não, …) | Không nhét sai 4 hội chứng |
+| Phân không khuôn + độc tố CD | GI-CDI Ch.17 | Không LabID |
 
 ---
 
@@ -127,33 +127,21 @@ Hệ thống sử dụng cơ chế bảo mật cấp dòng (Row Level Security -
 
 ---
 
-## 6. Quy trình báo cáo & Đẩy dữ liệu của Khoa Vi sinh (LIS Lab Pipeline)
+## 6. Cổng vi sinh — copy từ LIS
 
-Để đảm bảo dữ liệu đầu vào cho Rules Engine sàng lọc nhiễm khuẩn luôn nhất quán, Khoa Vi sinh được thiết lập một cổng báo cáo dữ liệu cấy dương tính (Microbiology Upload Portal). Cổng này hỗ trợ hai hình thức báo cáo:
+Khoa Vi sinh (hoặc KSNK) **copy bảng** từ LIS hoặc tải Excel. Adapter: `NkbvViSinhImportPortal` / `nkbv-lis-adapter.ts`. Chi tiết: [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md) §2.1.
 
-### 6.1 Nhập tay kết quả cấy dương tính đơn lẻ (Single Positive Entry)
-Giao diện nhập tay dành cho các kết quả cấy lẻ tẻ hoặc khẩn cấp, bao gồm các thông tin:
-* Mã bệnh nhân, Họ tên, Giới tính, Ngày sinh.
-* Ngày nhập viện (Encounter Admission Time).
-* Ngày lấy mẫu cấy (Specimen Collection Time).
-* Khoa lâm sàng yêu cầu cấy.
-* Loại bệnh phẩm (Lựa chọn từ danh sách chuẩn bệnh phẩm CDC).
-* Tên tác nhân vi khuẩn cấy dương tính (gõ tự động gợi ý danh mục vi sinh).
+Nếu LIS thiếu mã BA / ngày vào viện: điền trên màn xem trước (gõ, hoặc lấy từ bản copy HIS đã có trên BA). **Đã có mã BA trên module → không đè hồ sơ.**
 
-### 6.2 Báo cáo hàng loạt bằng Import Excel (Batch Excel Upload)
-Khoa Vi sinh xuất danh sách cấy dương tính từ hệ thống LIS nội bộ và tải lên hệ thống qua file Excel mẫu. 
+### 6.1 Nhập tay kết quả cấy dương tính đơn lẻ
 
-**Cấu trúc bảng Excel tiêu chuẩn (.xlsx / .csv):**
-1. `ma_benh_nhan` (Mã bệnh nhân - Bắt buộc)
-2. `ho_ten_benh_nhan` (Họ tên - Bắt buộc)
-3. `ngay_sinh` (Định dạng YYYY-MM-DD - Tùy chọn)
-4. `gioi_tinh` (Nam/Nữ/Khác - Tùy chọn)
-5. `ngay_vao_vien` (Định dạng YYYY-MM-DD HH:mm:ss - Bắt buộc)
-6. `ngay_lay_mau` (Định dạng YYYY-MM-DD HH:mm:ss - Bắt buộc)
-7. `ma_khoa_yeu_cau` (Mã khoa phòng thực tế trong HIS - Bắt buộc)
-8. `loai_benh_pham` (Chuẩn hóa: Đờm, Máu, Nước tiểu, Dịch vết mổ... - Bắt buộc)
-9. `tac_nhan` (Tác nhân phân lập được, phân tách bằng dấu phẩy nếu cấy đa tác nhân - Bắt buộc)
-10. `so_luong_khuan_lac` (Mật độ khuẩn lạc nếu có, ví dụ: 10^5 CFU/ml - Tùy chọn)
+Dành cho kết quả lẻ / khẩn: mã BN, họ tên, ngày lấy mẫu, loại bệnh phẩm, tác nhân, CFU nếu có; **mã BA + ngày vào viện** bắt buộc trước khi lưu.
+
+### 6.2 Copy bảng / Excel từ LIS
+
+Xuất hoặc bôi đen bảng LIS → dán / tải file. Khóa dòng = số phiếu hoặc barcode.
+
+Cột tối thiểu: mã BN, họ tên, ngày lấy mẫu, loại bệnh phẩm, kết quả, tác nhân; CFU nếu UTI/PNEU. Mã BA và ngày vào viện: có trên file **hoặc** điền khi xem trước.
 
 **Quy tắc xử lý trùng lặp dữ liệu (Idempotency Rule):**
 Khóa idempotency import: **`ma_xet_nghiem`** (duy nhất khi `is_active`); mẫu cột cố định (`nkbv-vi-sinh-template.ts`). Lưu cả `DUONG_TINH` / `AM_TINH` / `NHIEU`. Dương tính **không** spawn phiếu — vào hàng đợi `Chưa PT` đến khi tạo phiếu (`verification_data.index_vi_sinh_id`) hoặc Bỏ qua. UI: `NkbvViSinhImportPortal` + badge trên bảng chung.

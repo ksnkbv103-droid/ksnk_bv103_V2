@@ -17,7 +17,6 @@ import {
 } from "../actions/giam-sat-nkbv.actions";
 import type { ViSinhAnalysisDispositionRow } from "../lib/nkbv-vi-sinh-analysis-status";
 import type { SyndromePanelId } from "../lib/nkbv-specimen-syndrome";
-import NkbvDeviceRegistryPanel from "./NkbvDeviceRegistryPanel";
 import NkbvBaCaseSheet from "./NkbvBaCaseSheet";
 import NkbvBaMultiTimelineWorkspace from "./NkbvBaMultiTimelineWorkspace";
 import type { ImportWindowAlert } from "../lib/nkbv-import-window-scan";
@@ -66,6 +65,8 @@ type Props = {
     existingCaseId?: string | null;
     analysisSeed?: import("../actions/giam-sat-nkbv-ba-analysis.actions").NkbvBaAnalysisSeedInput | null;
   }) => Promise<NkbvEnsureAnalysisCaseResult>;
+  /** Deep link kho vi sinh → mở phiên đúng XN. */
+  focusXnId?: string | null;
 };
 
 export default function NkbvBenhAnHubPanel({
@@ -79,6 +80,7 @@ export default function NkbvBenhAnHubPanel({
   onCreateCase,
   onCaseMutated,
   onEnsureAnalysisCase,
+  focusXnId = null,
 }: Props) {
   const [loading, setLoading] = useState(true);
   const [stay, setStay] = useState<Record<string, unknown> | null>(null);
@@ -86,6 +88,10 @@ export default function NkbvBenhAnHubPanel({
   const [timeline, setTimeline] = useState<BaTimelineMilestone[]>([]);
   const [devices, setDevices] = useState<
     Array<{ id: string; device_type: string; insertion_date: string; removal_date: string | null }>
+  >([]);
+  const [locationDays, setLocationDays] = useState<Array<{ ngay_lich: string; khoa_id: string }>>([]);
+  const [deviceDays, setDeviceDays] = useState<
+    Array<{ id?: string; ngay_lich: string; loai_dung_cu: "CVC" | "VENT" | "FOLEY" }>
   >([]);
   const [alerts, setAlerts] = useState<ImportWindowAlert[]>([]);
   const [mdroCount, setMdroCount] = useState(0);
@@ -135,6 +141,8 @@ export default function NkbvBenhAnHubPanel({
     const tlSorted = sortTimeline(res.data.timeline || []);
     setTimeline(tlSorted);
     setDevices(res.data.devices || []);
+    setLocationDays(res.data.locationDays || []);
+    setDeviceDays(res.data.deviceDays || []);
     setAlerts(res.data.windowAlerts);
     setMdroCount(res.data.mdroCount);
     setHasActiveVent(Boolean(res.data.hasActiveVent));
@@ -532,7 +540,7 @@ export default function NkbvBenhAnHubPanel({
   return createPortal(
     <div className="fixed inset-0 z-[10040] flex items-stretch justify-end bg-slate-900/50 print:hidden">
       <div
-        className="relative flex h-full w-full max-w-[min(100vw,96rem)] flex-col overflow-hidden bg-white shadow-2xl sm:rounded-l-2xl"
+        className="relative flex h-full w-full max-w-[min(100vw,96rem)] flex-col overflow-hidden bg-white shadow-[var(--shadow-app-soft)] sm:rounded-l-[var(--radius-shell)]"
         role="dialog"
         aria-modal="true"
         aria-label="Bệnh án lưới CDC"
@@ -547,7 +555,7 @@ export default function NkbvBenhAnHubPanel({
                 </span>
               ) : null}
             </p>
-            <h2 className="mt-0.5 truncate text-lg font-semibold text-slate-900">
+            <h2 className="mt-0.5 truncate bv103-type-title text-slate-900">
               {String(stay?.ho_ten_benh_nhan || "…")}{" "}
               <span className="font-mono text-sm text-[var(--primary)]">{maBenhAn}</span>
             </h2>
@@ -639,10 +647,15 @@ export default function NkbvBenhAnHubPanel({
                 id: k.id,
                 ma: k.ma_danh_muc || "",
                 ten: k.ten_danh_muc || k.ma_danh_muc || k.id,
+                ma_danh_muc: k.ma_danh_muc,
+                ten_danh_muc: k.ten_danh_muc,
               }))}
               timeline={timeline}
               devices={devices}
+              locationDays={locationDays}
+              deviceDays={deviceDays}
               analysisDispositions={analysisDispositions}
+              focusXnId={focusXnId}
               allowedEdit={allowedEdit || allowedCreate}
               priorEvents={cases.map((c) => ({
                 id: c.id,
@@ -758,18 +771,12 @@ export default function NkbvBenhAnHubPanel({
 
               <details className="text-xs">
                 <summary className="cursor-pointer font-semibold text-slate-600">
-                  Device registry · phiếu đã chốt
+                  Phiếu đã chốt trên bệnh án
                 </summary>
                 <div className="mt-2 space-y-2">
-                  <NkbvDeviceRegistryPanel
-                    maBenhAn={maBenhAn}
-                    maBenhNhan={stay ? String(stay.ma_benh_nhan || "") : null}
-                    khoaId={stay?.khoa_dieu_tri_id ? String(stay.khoa_dieu_tri_id) : null}
-                    ngayVaoVien={stay?.ngay_vao_vien ? String(stay.ngay_vao_vien) : null}
-                    ngayRaVien={stay?.ngay_ra_vien ? String(stay.ngay_ra_vien) : null}
-                    allowedEdit={allowedEdit}
-                    onChanged={() => void reload({ silent: true })}
-                  />
+                  <p className="text-[11px] text-slate-500">
+                    Foley / máy / CVC và khoa: sửa trên lưới ngày. Phiếu đọc theo bệnh án.
+                  </p>
                   <ul className="divide-y divide-slate-100">
                     {cases.map((c) => (
                       <li key={c.id} className="flex justify-between gap-2 py-1.5">

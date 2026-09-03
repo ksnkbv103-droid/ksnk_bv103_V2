@@ -1,10 +1,15 @@
 /**
  * Zod Validation Schemas — Giám sát Vệ sinh tay (VST)
  *
- * Sử dụng trong Server Actions trước khi ghi dữ liệu vào DB.
- * Tham chiếu: AGENTS.md 5d (Zod Validation)
+ * Cổng ghi trước khi lưu `gstt_fact_vst_sessions` / `gstt_fact_vst`.
  */
 import { z } from "zod";
+import {
+  ACTIONS,
+  MOMENTS,
+  isVstMissedAction,
+  vstMaxIndications,
+} from "@/modules/giam-sat-vst/lib/vst-constants";
 
 /** UUID bắt buộc — chuỗi rỗng "" coi như thiếu (form thường set "" khi chưa chọn). */
 const requiredUuid = (msgMissing: string, msgInvalid: string) =>
@@ -20,18 +25,55 @@ const optionalUuid = (msg: string) =>
     z.string().uuid(msg).nullable().optional(),
   );
 
-// ============================================================
-// Quan sát VST (một hành động rửa tay)
-// ============================================================
+const vstMomentSchema = z.enum(MOMENTS, { error: "Thời điểm WHO không hợp lệ" });
+const vstActionSchema = z.enum(ACTIONS, { error: "Hành động vệ sinh tay không hợp lệ" });
 
-const vstOpportunitySchema = z.object({
-  thoi_diems: z.array(z.string()).min(1, "Phải có ít nhất 1 thời điểm"),
-  hanh_dong: z.string().min(1, "Hành động không được trống"),
-  dung_ky_thuat: z.boolean().nullable().optional(),
-  du_thoi_gian: z.boolean().nullable().optional(),
-  co_deo_gang: z.boolean().nullable().optional(),
-  thoi_gian_ghi_nhan: z.string().optional(),
-});
+const vstOpportunitySchema = z
+  .object({
+    thoi_diems: z.array(vstMomentSchema).min(1, "Phải có ít nhất 1 thời điểm"),
+    hanh_dong: vstActionSchema,
+    dung_ky_thuat: z.boolean().nullable().optional(),
+    du_thoi_gian: z.boolean().nullable().optional(),
+    co_deo_gang: z.boolean().nullable().optional(),
+    thoi_gian_ghi_nhan: z.string().optional(),
+  })
+  .superRefine((opp, ctx) => {
+    const unique = new Set(opp.thoi_diems);
+    if (unique.size !== opp.thoi_diems.length) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["thoi_diems"],
+        message: "Không được chọn trùng thời điểm WHO trên một cơ hội",
+      });
+    }
+    const max = vstMaxIndications(opp.hanh_dong);
+    if (opp.thoi_diems.length > max) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["thoi_diems"],
+        message: isVstMissedAction(opp.hanh_dong)
+          ? "Cơ hội bỏ sót chỉ được 1 chỉ định WHO"
+          : "Cơ hội tuân thủ tối đa 2 chỉ định WHO",
+      });
+    }
+    if (isVstMissedAction(opp.hanh_dong)) {
+      if (opp.co_deo_gang == null) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["co_deo_gang"],
+          message: "Bỏ sót: bắt buộc đánh giá lạm dụng găng",
+        });
+      }
+      return;
+    }
+    if (opp.dung_ky_thuat == null || opp.du_thoi_gian == null) {
+      ctx.addIssue({
+        code: "custom",
+        path: opp.dung_ky_thuat == null ? ["dung_ky_thuat"] : ["du_thoi_gian"],
+        message: "Tuân thủ: bắt buộc đánh giá đúng kỹ thuật và đủ thời gian",
+      });
+    }
+  });
 
 const vstObservationSchema = z.object({
   khoa_id: z.string().uuid("Khoa không hợp lệ"),
@@ -40,20 +82,15 @@ const vstObservationSchema = z.object({
   khu_vuc_id: optionalUuid("Khu vực không hợp lệ"),
   khu_vuc: z.string().optional(),
   vi_tri: z.string().optional(),
-  /** Nghề nghiệp đối tượng giám sát — bắt buộc để thống kê «Theo đối tượng (nghề)» không còn «Không rõ». */
   nghe_nghiep_id: requiredUuid("Nghề nghiệp là bắt buộc", "Nghề nghiệp không hợp lệ"),
   nghe_nghiep: z.string().optional(),
   ngay_giam_sat: z.string().optional(),
   opportunities: z.array(vstOpportunitySchema).min(1, "Phải có ít nhất 1 cơ hội"),
 });
 
-// ============================================================
-// Phiên giám sát VST (Session)
-// ============================================================
-
 const vstSessionSchema = z.object({
   khoa_id: z.string().uuid("Khoa không hợp lệ"),
-  khu_vuc_id: z.string().uuid("Khu vực không hợp lệ").nullable().optional(),
+  khu_vuc_id: requiredUuid("Khu vực giám sát là bắt buộc", "Khu vực không hợp lệ"),
   nguoi_giam_sat_id: z.string().uuid("Người giám sát không hợp lệ").nullable().optional(),
   ngay_giam_sat: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Định dạng ngày YYYY-MM-DD"),
   vi_tri: z.string().optional(),
@@ -65,11 +102,32 @@ const vstSessionSchema = z.object({
   is_active: z.boolean().default(true),
 });
 
-// ============================================================
-// Batch: session + observations
-// ============================================================
-
-export const vstSaveSessionSchema = z.object({
-  session: vstSessionSchema,
-  observations: z.array(vstObservationSchema).min(1, "Phải có ít nhất 1 quan sát"),
-});
+export const vstSaveSessionSchema = z
+  .object({
+    session: vstSessionSchema,
+    observations: z
+      .array(vstObservationSchema)
+      .min(1, "Phải có ít nhất 1 quan sát")
+      .max(3, "Một phiên tối đa 3 đối tượng giám sát"),
+  })
+  .superRefine((payload, ctx) => {
+    const sessionKhoa = String(payload.session.khoa_id);
+    const sessionKhuVuc = String(payload.session.khu_vuc_id);
+    payload.observations.forEach((obs, index) => {
+      if (String(obs.khoa_id) !== sessionKhoa) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["observations", index, "khoa_id"],
+          message: "Khoa trên dòng quan sát phải khớp khoa của phiên",
+        });
+      }
+      const obsKhuVuc = String(obs.khu_vuc_id || "").trim();
+      if (obsKhuVuc && obsKhuVuc !== sessionKhuVuc) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["observations", index, "khu_vuc_id"],
+          message: "Khu vực trên dòng quan sát phải khớp khu vực của phiên",
+        });
+      }
+    });
+  });

@@ -4,7 +4,6 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import { verifyAnyPermission, verifyPermission } from "@/lib/server-permission";
 import { normalizeBaTimelineDbId } from "../lib/nkbv-ba-timeline-id";
 import { isDeviceCriteriaKey } from "../lib/nkbv-criteria-matrix";
-import { isDeviceDateInStay } from "../lib/nkbv-ba-device-timeline";
 
 /** Client hub đã patch/reload — không revalidatePath mỗi tick (gây lag RSC). */
 
@@ -62,23 +61,14 @@ export async function upsertNkbvBaTimelineMilestone(payload: {
     };
   }
 
-  const supabase = createAdminSupabaseClient();
-
-  // Foley / Vent / CVC: chỉ trong đợt nằm viện (không trước VV / sau RV)
   if (criteriaKey && isDeviceCriteriaKey(criteriaKey)) {
-    const { data: ba, error: baErr } = await supabase
-      .from("nkbv_fact_benh_an")
-      .select("ngay_vao_vien, ngay_ra_vien")
-      .eq("ma_benh_an", ma)
-      .maybeSingle();
-    if (baErr) return { success: false as const, error: baErr.message };
-    const vv = ba?.ngay_vao_vien ? String(ba.ngay_vao_vien).slice(0, 10) : "";
-    const rv = ba?.ngay_ra_vien ? String(ba.ngay_ra_vien).slice(0, 10) : null;
-    const bound = isDeviceDateInStay(date, vv, rv);
-    if (!bound.ok) {
-      return { success: false as const, error: bound.reason || "Ngày can thiệp ngoài đợt nằm viện" };
-    }
+    return {
+      success: false as const,
+      error: "Foley / máy / CVC chỉ tích trên lưới ngày — không ghi vào mốc triệu chứng",
+    };
   }
+
+  const supabase = createAdminSupabaseClient();
 
   const row = {
     ma_benh_an: ma,

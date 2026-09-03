@@ -6,6 +6,7 @@ function row(partial: Partial<CompositionReconcileRow>): CompositionReconcileRow
   return {
     chiTietId: "1",
     loaiDungCuId: "l",
+    maLoai: "DC-KEO",
     tenDungCuLe: "Kéo",
     soLuongKeHoach: 2,
     soLuongThucTe: 2,
@@ -15,6 +16,7 @@ function row(partial: Partial<CompositionReconcileRow>): CompositionReconcileRow
     phanLoaiSpaulding: "CRITICAL",
     soLuongKhoDuPhong: 0,
     reserveShortage: false,
+    maKhac: "",
     ...partial,
   };
 }

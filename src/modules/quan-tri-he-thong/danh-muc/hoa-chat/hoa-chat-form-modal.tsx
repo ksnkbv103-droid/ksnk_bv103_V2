@@ -55,8 +55,8 @@ export default function HoaChatFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md touch-manipulation pointer-events-auto">
-      <form onSubmit={submit} className="bg-white w-full max-w-xl rounded-[var(--radius-shell)] p-8 space-y-4 shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)] max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 touch-manipulation pointer-events-auto">
+      <form onSubmit={submit} className="bg-white w-full max-w-xl rounded-[var(--radius-shell)] p-8 space-y-[var(--bv103-space-3)] shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)] max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-start gap-4">
           <h3 className={C.modalTitleLight}>
             {isEdit ? "Cập nhật hóa chất" : "Thêm hóa chất"}

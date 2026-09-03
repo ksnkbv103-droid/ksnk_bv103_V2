@@ -150,7 +150,7 @@ export default function PneuClinicalSubForm({
           </label>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-bold text-slate-700">Tuổi bệnh nhân</label>
+          <label className="mb-1 block bv103-type-label font-semibold text-slate-700">Tuổi bệnh nhân</label>
           <input
             type="number"
             value={form.patient_age}
@@ -196,7 +196,7 @@ export default function PneuClinicalSubForm({
           hint="PNU1/2/3 suy từ loại mẫu + CFU/bán định lượng + Table 3 — không chọn tay bậc chẩn đoán. Vi khuẩn thường trên đờm không đủ nâng PNU2."
         >
           <div>
-            <label className="mb-1 block text-xs font-bold">Loại mẫu</label>
+            <label className="mb-1 block bv103-type-label font-semibold">Loại mẫu</label>
             <select
               value={form.pneu_lab_specimen || "NONE"}
               disabled={!allowedEdit}
@@ -222,7 +222,7 @@ export default function PneuClinicalSubForm({
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-bold">Tác nhân</label>
+            <label className="mb-1 block bv103-type-label font-semibold">Tác nhân</label>
             <input
               type="text"
               value={form.pneu_lab_organism || ""}
@@ -236,7 +236,7 @@ export default function PneuClinicalSubForm({
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="mb-1 block text-xs font-bold">CFU/ml</label>
+              <label className="mb-1 block bv103-type-label font-semibold">CFU/ml</label>
               <input
                 type="number"
                 value={form.pneu_lab_cfu_per_ml ?? ""}
@@ -255,7 +255,7 @@ export default function PneuClinicalSubForm({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold">Bán định lượng</label>
+              <label className="mb-1 block bv103-type-label font-semibold">Bán định lượng</label>
               <select
                 value={form.pneu_lab_semi_quant || "NONE"}
                 disabled={!allowedEdit}
@@ -280,7 +280,7 @@ export default function PneuClinicalSubForm({
             </div>
           </div>
           <div className="space-y-1 rounded-lg border border-slate-100 bg-white/60 px-2 py-2">
-            <p className="text-[11px] font-bold uppercase text-slate-400">
+            <p className="bv103-type-label text-slate-400">
               Table 3 — virus / nội bào không điển hình
             </p>
             {TABLE3_ROWS.map((r) => (
@@ -342,7 +342,7 @@ export default function PneuClinicalSubForm({
             Flora bình thường / hỗn hợp đường hô hấp (loại khỏi PNU2/3)
           </label>
           <div className="space-y-1 rounded-lg border border-amber-100 bg-amber-50/40 px-2 py-2">
-            <p className="text-[11px] font-bold uppercase text-amber-600">
+            <p className="bv103-type-label text-amber-600">
               Suy giảm miễn dịch (cửa PNU3)
             </p>
             {IC_ROWS.map((r) => (
@@ -419,7 +419,7 @@ export default function PneuClinicalSubForm({
             </label>
             {form.has_chest_imaging_abnormal ? (
               <div className="ml-6 space-y-1">
-                <span className="text-[11px] font-bold text-slate-400">
+                <span className="bv103-type-label font-semibold text-slate-400">
                   {trigger === "IMAGING" ? "Ngày phim (mốc Index):" : "Ngày phim ∈ IWP:"}
                 </span>
                 <input
@@ -446,7 +446,7 @@ export default function PneuClinicalSubForm({
               Bệnh nền tim phổi (cần ≥2 phim)
             </label>
             <div>
-              <label className="mb-1 block text-xs font-bold">Số phim bất thường</label>
+              <label className="mb-1 block bv103-type-label font-semibold">Số phim bất thường</label>
               <input
                 type="number"
                 value={form.imaging_films_count}
@@ -463,7 +463,7 @@ export default function PneuClinicalSubForm({
             title="Triệu chứng trong IWP"
             hint="SSOT catalog · toàn thân ≥1 + hô hấp ≥2 dòng. Mỗi dấu hiệu dương tính gắn ngày ∈ IWP."
           >
-            <p className="text-[11px] font-bold uppercase text-slate-400">
+            <p className="bv103-type-label text-slate-400">
               Toàn thân (tách sốt / hạ thân nhiệt / WBC)
             </p>
             <NkbvCatalogSymptomRows
@@ -486,7 +486,7 @@ export default function PneuClinicalSubForm({
               iwpStart={iwpStart}
               iwpEnd={iwpEnd}
             />
-            <p className="text-[11px] font-bold uppercase text-slate-400">Hô hấp tại chỗ</p>
+            <p className="bv103-type-label text-slate-400">Hô hấp tại chỗ</p>
             <NkbvCatalogSymptomRows
               rows={formSymptomRowsFor("PNEU").filter((r) => {
                 if (!r.pneu_resp_line) return false;
@@ -513,7 +513,7 @@ export default function PneuClinicalSubForm({
             />
             {ageBranch === "INFANT_LE1" ? (
               <>
-                <p className="text-[11px] font-bold uppercase text-violet-500">Bổ sung ≤1 tuổi</p>
+                <p className="bv103-type-label text-violet-500">Bổ sung ≤1 tuổi</p>
                 <NkbvCatalogSymptomRows
                   rows={formSymptomRowsFor("PNEU").filter((r) => r.age_gate === "le1")}
                   form={form as unknown as Record<string, unknown>}
@@ -530,7 +530,7 @@ export default function PneuClinicalSubForm({
             ) : null}
             {showPnu3Sx ? (
               <>
-                <p className="text-[11px] font-bold uppercase text-amber-600">PNU3 bổ sung</p>
+                <p className="bv103-type-label text-amber-600">PNU3 bổ sung</p>
                 <NkbvCatalogSymptomRows
                   rows={formSymptomRowsFor("PNEU").filter(
                     (r) =>

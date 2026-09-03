@@ -11,6 +11,7 @@ type Props = {
   className?: string;
   inputClassName?: string;
   cameraTitle?: string;
+  cameraClassName?: string;
   onEnter?: (code: string) => void;
   onCameraScan?: (code: string) => void;
   /** Lọc khi gõ (tên/mã) — không ép IN HOA. */
@@ -27,6 +28,7 @@ export default function QrScanInput({
   className = "",
   inputClassName = "",
   cameraTitle,
+  cameraClassName,
   onEnter,
   onCameraScan,
   value,
@@ -72,6 +74,7 @@ export default function QrScanInput({
       <QrCameraButton
         disabled={disabled}
         title={cameraTitle}
+        className={cameraClassName}
         onScan={(code) => commit(code, "camera")}
       />
     </div>

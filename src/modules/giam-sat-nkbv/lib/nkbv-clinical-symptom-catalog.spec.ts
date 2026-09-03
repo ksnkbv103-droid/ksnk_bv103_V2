@@ -6,12 +6,17 @@ import {
   NKBV_CLINICAL_SYMPTOMS,
   PILOT_SYNDROMES,
   buildCriteriaKeyToFormFieldMap,
+  catalogTitleForCriteriaKey,
   criteriaKeyToFormField,
+  displaySymptomLabel,
   doeFormFieldsForChecklist,
   doeFormFieldsForSsiDepth,
   formSymptomRowsFor,
   isVoidingCriteriaKey,
   labelOfFormField,
+  NKBV_LABEL_FEVER_GT_38,
+  NKBV_LABEL_IVAC_TEMP,
+  NKBV_LABEL_PNEU_SYSTEMIC_OR,
   symptomsForSyndrome,
   wiredSymptomsForSyndrome,
 } from "./nkbv-clinical-symptom-catalog";
@@ -105,7 +110,27 @@ describe("nkbv-clinical-symptom-catalog", () => {
   });
 
   it("labelOfFormField returns Vietnamese", () => {
-    expect(labelOfFormField("has_fever")).toMatch(/Sốt/);
+    expect(labelOfFormField("has_fever")).toBe(NKBV_LABEL_FEVER_GT_38);
+    expect(labelOfFormField("has_pneu_fever")).toBe(NKBV_LABEL_FEVER_GT_38);
+    expect(labelOfFormField("temp_fever_or_hypothermia")).toBe(NKBV_LABEL_IVAC_TEMP);
+  });
+
+  it("nhãn sốt thống nhất — không còn «Sốt» trần / «Sốt / WBC»", () => {
+    expect(displaySymptomLabel({ criteriaKey: "fever", storedTitle: "Sốt" })).toBe(
+      NKBV_LABEL_FEVER_GT_38,
+    );
+    expect(displaySymptomLabel({ storedTitle: "Sốt >38" })).toBe(NKBV_LABEL_FEVER_GT_38);
+    expect(displaySymptomLabel({ storedTitle: "Sốt (hỗ trợ)" })).toBe(NKBV_LABEL_FEVER_GT_38);
+    expect(displaySymptomLabel({ criteriaKey: "fever_or_wbc", syndrome: "VAE" })).toBe(
+      NKBV_LABEL_IVAC_TEMP,
+    );
+    expect(displaySymptomLabel({ criteriaKey: "fever_or_wbc", syndrome: "HAP" })).toBe(
+      NKBV_LABEL_PNEU_SYSTEMIC_OR,
+    );
+    expect(catalogTitleForCriteriaKey("fever")).toBe(NKBV_LABEL_FEVER_GT_38);
+    expect(catalogTitleForCriteriaKey("fever_or_wbc", { syndrome: "VAE" })).toBe(
+      NKBV_LABEL_IVAC_TEMP,
+    );
   });
 
   it("criteria→form map is non-empty and stable for imaging", () => {

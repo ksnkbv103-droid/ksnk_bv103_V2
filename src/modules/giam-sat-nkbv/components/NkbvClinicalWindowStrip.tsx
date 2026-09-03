@@ -31,7 +31,7 @@ export default function NkbvClinicalWindowStrip({
         </span>
         {doe ? <span>DOE: {doe}</span> : null}
         {classification ? (
-          <span className="rounded-full bg-white/80 px-2 py-0.5 font-mono text-[11px] font-bold text-emerald-800">
+          <span className="rounded-full bg-white/80 px-2 py-0.5 font-mono bv103-type-label font-semibold text-emerald-800">
             {classification}
           </span>
         ) : null}

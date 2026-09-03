@@ -37,7 +37,7 @@ export default function NhanSuFormFields({
   isNew,
 }: NhanSuFormFieldsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-[var(--bv103-space-3)]">
       <div className="space-y-2">
         <label className={F.formLabelInset}>Mã Nhân viên (Tự động gợi ý)</label>
         <div className="relative">

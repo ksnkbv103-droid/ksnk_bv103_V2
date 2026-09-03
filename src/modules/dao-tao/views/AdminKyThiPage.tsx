@@ -24,6 +24,7 @@ import {
 } from "@/modules/dao-tao/components/DaoTaoChrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
+import { parseHanChungChiThang } from "@/lib/dao-tao/chung-chi";
 import { labelTrangThaiKy } from "@/lib/dao-tao/labels";
 import {
   Dialog,
@@ -44,7 +45,7 @@ type Ky = {
   shuffle_dap_an?: boolean;
   chu_de_mas?: string[];
   trang_thai: string;
-  gan?: { khoa_ids?: string[]; nhan_su_ids?: string[] };
+  gan?: { khoa_ids?: string[]; nhan_su_ids?: string[]; han_chung_chi_thang?: number };
 };
 
 export default function AdminKyThiPage() {
@@ -66,6 +67,7 @@ export default function AdminKyThiPage() {
   const [selectedChuDe, setSelectedChuDe] = useState<string[]>([]);
   const [selectedKhoa, setSelectedKhoa] = useState<string[]>([]);
   const [selectedNv, setSelectedNv] = useState<string[]>([]);
+  const [hanThang, setHanThang] = useState(12);
   const [ganKy, setGanKy] = useState<Ky | null>(null);
   const [ganKhoa, setGanKhoa] = useState<string[]>([]);
   const [ganNv, setGanNv] = useState<string[]>([]);
@@ -175,6 +177,19 @@ export default function AdminKyThiPage() {
             />
           </DaoTaoField>
         </div>
+        <DaoTaoField label="Hạn chứng chỉ (tháng)">
+          <input
+            type="number"
+            min={1}
+            max={60}
+            className={daoTaoInputClass}
+            value={hanThang}
+            onChange={(e) => setHanThang(Math.min(60, Math.max(1, Number(e.target.value) || 12)))}
+          />
+          <p className="mt-1 text-[11px] text-slate-500">
+            Đạt thi chính thức thì chứng chỉ còn hạn bấy nhiêu tháng; sắp hết / hết hạn hiện nhắc học lại trên trang Thi KSNK.
+          </p>
+        </DaoTaoField>
         <div className="flex flex-wrap gap-4 text-sm text-slate-700">
           <label className="flex items-center gap-2">
             <input
@@ -235,11 +250,13 @@ export default function AdminKyThiPage() {
                   shuffle_cau: shuffleCau,
                   shuffle_dap_an: shuffleDapAn,
                   chu_de_mas: selectedChuDe,
+                  han_chung_chi_thang: hanThang,
                 });
                 await setKyThiGan({
                   kyThiId: ky.id,
                   khoaPhongIds: selectedKhoa,
                   nhanSuIds: selectedNv,
+                  hanChungChiThang: hanThang,
                 });
                 toast.success("Đã tạo kỳ (nháp)");
                 setTen("");
@@ -258,6 +275,7 @@ export default function AdminKyThiPage() {
         {list.map((ky) => {
           const nKhoa = ky.gan?.khoa_ids?.length ?? 0;
           const nNv = ky.gan?.nhan_su_ids?.length ?? 0;
+          const han = parseHanChungChiThang(ky.gan);
           return (
             <DaoTaoPanel key={ky.id} className="!p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
@@ -265,7 +283,7 @@ export default function AdminKyThiPage() {
                   <p className="text-sm font-semibold text-slate-800">{ky.ten}</p>
                   <p className="mt-1 text-[11px] font-medium text-slate-500">
                     {ky.so_cau} câu · {ky.thoi_gian_phut} phút · đạt {ky.diem_dat_pct}% ·{" "}
-                    {ky.so_lan_cho_phep ?? 1} lần · {labelTrangThaiKy(ky.trang_thai)}
+                    {ky.so_lan_cho_phep ?? 1} lần · chứng chỉ {han} tháng · {labelTrangThaiKy(ky.trang_thai)}
                   </p>
                   <p className="mt-0.5 text-[11px] text-slate-500">
                     Gán {nKhoa} khoa · {nNv} NV

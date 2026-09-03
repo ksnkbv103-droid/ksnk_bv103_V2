@@ -1,11 +1,9 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { Beaker } from "lucide-react";
 import AdvancedDataTable, { type Column } from "@/components/shared/AdvancedDataTable";
 import { bv103TableLayout } from "@/lib/bv103-table-layout";
-import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
-import { CSSD_UI_CELL_CODE, CSSD_UI_DATA_SURFACE } from "../shared/ui/cssd-ui-chrome";
+import { CSSD_UI_CELL_CODE } from "../shared/ui/cssd-ui-chrome";
 import type { CSSDHoaChat } from "../types/catalog.types";
 
 export function CSSDCatalogHoaChatTab({ hoaChatRows }: { hoaChatRows: CSSDHoaChat[] }) {
@@ -42,7 +40,7 @@ export function CSSDCatalogHoaChatTab({ hoaChatRows }: { hoaChatRows: CSSDHoaCha
         ),
       },
       {
-        header: "ĐVT",
+        header: "Đvt",
         accessorKey: "don_vi_tinh",
         sortable: true,
         headerClassName: bv103TableLayout.colNarrow,
@@ -56,18 +54,12 @@ export function CSSDCatalogHoaChatTab({ hoaChatRows }: { hoaChatRows: CSSDHoaCha
   );
 
   return (
-    <div className={`${CSSD_UI_DATA_SURFACE} space-y-3 p-4 animate-in fade-in duration-300`}>
-      <h3 className={`${bv103LayoutChrome.labelBlockAccent} flex items-center gap-1.5`}>
-        <Beaker size={14} aria-hidden />
-        Danh mục hóa chất &amp; vật tư ({hoaChatRows.length})
-      </h3>
-      <AdvancedDataTable
-        columns={columns}
-        data={hoaChatRows}
-        searchPlaceholder="Tìm mã, tên hóa chất…"
-        emptyMessage="Không có dữ liệu hóa chất vật tư."
-        tableClassName={bv103TableLayout.tableFixed}
-      />
-    </div>
+    <AdvancedDataTable
+      columns={columns}
+      data={hoaChatRows}
+      searchPlaceholder="Tìm mã, tên hóa chất…"
+      emptyMessage="Không có dữ liệu hóa chất vật tư."
+      tableClassName={bv103TableLayout.tableFixed}
+    />
   );
 }

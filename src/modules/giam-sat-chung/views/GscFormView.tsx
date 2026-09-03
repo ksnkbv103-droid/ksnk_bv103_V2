@@ -134,7 +134,6 @@ export default function GscFormView({
       setEditHydrating(false);
       return;
     }
-    if (dbTemplates.length === 0) return;
 
     let cancelled = false;
     setEditHydrating(true);
@@ -159,7 +158,9 @@ export default function GscFormView({
     return () => {
       cancelled = true;
     };
-  }, [editSessionId, dbTemplates]);
+    // Chỉ theo phiên: không đợi danh sách mẫu đang bật (BK-5 mẫu tắt / mạng lưới).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editSessionId]);
 
   /** Prefill BK + BN từ deep-link MDRO (không có edit session). */
   useEffect(() => {

@@ -37,7 +37,9 @@ export async function createHoatDong(input: CreateHoatDongInput) {
 
   const { data: task, error: te } = await supabase
     .from("v_qlcv_cong_viec_full")
-    .select("id, nguoi_phu_trach_id, trang_thai, is_active, phan_tram_hoan_thanh, nguoi_tao_id")
+    .select(
+      "id, nguoi_phu_trach_id, trang_thai, is_active, phan_tram_hoan_thanh, nguoi_tao_id, loai_cong_viec, han_hoan_thanh, is_qua_han",
+    )
     .eq("id", input.id_cong_viec)
     .maybeSingle();
 
@@ -55,7 +57,7 @@ export async function createHoatDong(input: CreateHoatDongInput) {
 
   if (input.loai_hoat_dong === "BAO_CAO_TIEN_DO") {
     if (isDeXuatChoDuyet(wf)) throw new Error("Đề xuất chưa được phê duyệt.");
-    if (isEligibleForNghiemThu(wf)) {
+    if (isEligibleForNghiemThu({ ...task, ...wf })) {
       throw new Error("Việc đang chờ nghiệm thu — không ghi chú tiến độ tại đây.");
     }
     const stClosed = normalizeQlcvTrangThaiToCanonical(wf.trang_thai);

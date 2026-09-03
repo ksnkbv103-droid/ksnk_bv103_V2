@@ -56,7 +56,7 @@ export default function GuestStatsAccountCard({ onUpdated }: { onUpdated?: () =>
     <section className="rounded-xl border border-violet-200 bg-violet-50/50 p-4 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-bold text-violet-950">Tài khoản khách xem Thống kê</h2>
+          <h2 className="bv103-type-section text-violet-950">Tài khoản khách xem Thống kê</h2>
         </div>
         {loading ? (
           <span className="text-xs text-violet-700">Đang kiểm tra…</span>

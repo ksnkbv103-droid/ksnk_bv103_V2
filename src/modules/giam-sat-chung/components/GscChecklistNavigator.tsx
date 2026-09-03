@@ -61,7 +61,7 @@ export function GscChecklistNavigator({
   return (
     <div className={`${UI.shell} max-sm:overflow-visible sm:overflow-hidden`}>
       <div className="border-b border-slate-100 px-4 py-3">
-        <h3 className="text-sm font-bold text-slate-800">Bảng kiểm yếu nhất</h3>
+        <h3 className="bv103-type-section text-slate-800">Bảng kiểm yếu nhất</h3>
         <p className="mt-0.5 text-[11px] text-slate-500">
           {effectiveLimit > 0
             ? `Năm biểu mẫu tuân thủ thấp / vi phạm nhiều${hiddenCount > 0 ? ` (còn ${hiddenCount})` : ""}.`
@@ -80,7 +80,7 @@ export function GscChecklistNavigator({
       <ResponsiveTableShell unboxed maxHeight="max-h-[min(52dvh,480px)]">
         <table className="w-full min-w-[720px] text-left text-xs">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wide text-slate-500">
+            <tr className="border-b border-slate-200 bg-slate-50/80 bv103-type-label font-semibold uppercase tracking-wide text-slate-500">
               <th className="px-3 py-2">Biểu mẫu</th>
               <th className="px-2 py-2 text-right">Phiên</th>
               <th className="px-2 py-2 text-right">Vi phạm</th>

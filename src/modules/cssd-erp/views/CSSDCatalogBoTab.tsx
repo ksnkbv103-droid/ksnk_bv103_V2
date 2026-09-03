@@ -2,21 +2,24 @@
 
 import React, { useState } from "react";
 import type { CSSDBo } from "../types/catalog.types";
-import { Layers, Printer, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 import { usePrint } from "@/hooks/usePrint";
 import { registerPhysicalBoLabelFromDmAction } from "../contexts/instrument-catalog/entrypoint";
 import { toast } from "sonner";
+import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 
 export function CSSDCatalogBoTab({
   boRows,
   selectedBoId,
   setSelectedBoId,
+  toolbar,
 }: {
   boRows: CSSDBo[];
   selectedBoId: string | null;
   setSelectedBoId: (id: string) => void;
+  toolbar?: React.ReactNode;
 }) {
 
   const { printBoLabel } = usePrint();
@@ -45,23 +48,9 @@ export function CSSDCatalogBoTab({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Bảng Danh mục Bộ dụng cụ */}
-      <section className="rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Layers className="h-5 w-5 text-[var(--primary)]" />
-            <h3 className="text-sm font-bold text-slate-800">
-              Danh mục Bộ dụng cụ ({boRows.length})
-            </h3>
-          </div>
-          <span className="text-xs text-slate-500 font-medium">Click chọn một dòng để xem dụng cụ thành phần</span>
-        </div>
-
         <ResponsiveTableShell
-          unboxed
-          className="relative rounded-xl border border-slate-100"
           maxHeight="max-h-[350px]"
+          toolbar={toolbar}
           mobileCards={
             boRows.length === 0 ? (
               <p className="py-6 text-center text-sm text-slate-500">Không tìm thấy bộ dụng cụ nào khớp từ khóa.</p>
@@ -87,23 +76,23 @@ export function CSSDCatalogBoTab({
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex min-w-0 items-start gap-2">
-                            {x.ma_bo ? <InlineEntityQrThumb code={x.ma_bo} size={40} /> : null}
+                            {x.ma_bo ? <InlineEntityQrThumb code={x.ma_bo} size={20} /> : null}
                             <div className="min-w-0">
                               <p className="font-bold text-[var(--primary)]">{x.ma_bo || "—"}</p>
                               <p className="font-semibold text-slate-800">{x.ten_bo || "—"}</p>
                             </div>
                           </div>
-                          <span className="text-[11px] font-bold text-slate-600">{x.tong_so_luong_dung_cu ?? 0} DC</span>
+                          <span className="bv103-type-label font-semibold text-slate-600">{x.tong_so_luong_dung_cu ?? 0} DC</span>
                         </div>
                         <p className="text-xs text-slate-500">{x.ten_khoa || "Chưa phân bổ"}</p>
                         <button
                           type="button"
                           disabled={printingId === x.id}
                           onClick={(e) => void handlePrintQr(e, x.id)}
-                          className="inline-flex min-h-[2.75rem] items-center gap-1.5 rounded-lg border border-emerald-200/50 bg-emerald-50 px-3 py-1.5 font-mono text-[11px] font-medium text-[var(--primary)] touch-manipulation hover:bg-[var(--primary)] hover:text-white disabled:opacity-50"
+                          className="text-[11px] font-semibold text-[var(--primary)] hover:underline disabled:opacity-50"
                         >
-                          {printingId === x.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Printer className="h-3 w-3" />}
-                          In QR
+                          {printingId === x.id ? <Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> : null}
+                          In
                         </button>
                       </div>
                     </li>
@@ -114,79 +103,55 @@ export function CSSDCatalogBoTab({
           }
         >
           <table className="w-full border-collapse text-left text-sm text-slate-700">
-            <thead>
-              <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-sm">
-                <th className="px-4 py-3">Mã bộ</th>
-                <th className="px-4 py-3">Tên bộ</th>
-                <th className="px-4 py-3 text-center">Phân loại bộ</th>
-                <th className="px-4 py-3 text-center">Số khoản</th>
-                <th className="px-4 py-3 text-center">Tổng số dụng cụ</th>
-                <th className="px-4 py-3">Khoa sử dụng</th>
-                <th className="px-4 py-3 text-center">Trạng thái</th>
-                <th className="px-4 py-3 text-center w-[120px]">Thao tác</th>
+            <thead className={L.theadRow}>
+              <tr>
+                <th className={L.th}>Mã bộ</th>
+                <th className={L.th}>Tên bộ</th>
+                <th className={`${L.th} text-center`}>Phân loại</th>
+                <th className={`${L.th} text-center`}>Số khoản</th>
+                <th className={`${L.th} text-center`}>Tổng số</th>
+                <th className={L.th}>Khoa</th>
+                <th className={`${L.th} text-center`}>Trạng thái</th>
+                <th className={`${L.th} ${L.colActions}`}> </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className={L.tbody}>
               {boRows.map((x) => {
                 const isSelected = selectedBoId === x.id;
                 return (
                   <tr
                     key={x.id}
                     onClick={() => setSelectedBoId(x.id)}
-                    className={`cursor-pointer transition-colors hover:bg-slate-50/70 ${
-                      isSelected ? "bg-emerald-50/70 font-medium text-slate-900" : ""
-                    }`}
+                    className={`cursor-pointer ${isSelected ? L.rowSelected : L.row}`}
                   >
-                    <td className="px-4 py-3.5">
+                    <td className={L.td}>
                       <span className="inline-flex items-center gap-2">
-                        {x.ma_bo ? <InlineEntityQrThumb code={x.ma_bo} size={36} /> : null}
-                        <span className="font-bold text-[var(--primary)]">{x.ma_bo || "—"}</span>
+                        {x.ma_bo ? <InlineEntityQrThumb code={x.ma_bo} size={20} /> : null}
+                        <span className="font-semibold text-[var(--primary)]">{x.ma_bo || "—"}</span>
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 font-semibold">{x.ten_bo || "—"}</td>
-                    <td className="px-4 py-3.5 text-center">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                          x.phan_loai_bo === "THU_THUAT"
-                            ? "bg-amber-50 text-amber-700 border border-amber-200"
-                            : "bg-blue-50 text-blue-700 border border-blue-200"
-                        }`}
-                      >
+                    <td className={L.td}>{x.ten_bo || "—"}</td>
+                    <td className={`${L.td} text-center`}>
+                      <span className={x.phan_loai_bo === "THU_THUAT" ? L.statusWarn : L.statusInfo}>
                         {x.phan_loai_bo === "THU_THUAT" ? "Thủ thuật" : "Phẫu thuật"}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 text-center text-slate-600">{x.so_khoan ?? 0}</td>
-                    <td className="px-4 py-3.5 text-center font-bold text-slate-800">
-                      {x.tong_so_luong_dung_cu ?? 0}
+                    <td className={`${L.td} text-center tabular-nums`}>{x.so_khoan ?? 0}</td>
+                    <td className={`${L.td} text-center tabular-nums`}>{x.tong_so_luong_dung_cu ?? 0}</td>
+                    <td className={L.td}>{x.ten_khoa || "Chưa phân bổ"}</td>
+                    <td className={`${L.td} text-center`}>
+                      <span className={x.is_active ? L.statusOk : L.statusMuted}>{x.is_active ? "Hoạt động" : "Khóa"}</span>
                     </td>
-                    <td className="px-4 py-3.5 text-xs text-slate-500 font-medium">
-                      {x.ten_khoa || "Chưa phân bổ"}
-                    </td>
-                    <td className="px-4 py-3.5 text-center">
-                      <span
-                        className={`inline-flex rounded-full px-1.5 py-0.5 text-[11px] font-bold ${
-                          x.is_active
-                            ? "bg-emerald-50 text-emerald-700"
-                            : "bg-slate-100 text-slate-500"
-                        }`}
-                      >
-                        {x.is_active ? "Hoạt động" : "Khóa"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                    <td className={`${L.td} ${L.colActions}`} onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
                         disabled={printingId === x.id}
                         onClick={(e) => void handlePrintQr(e, x.id)}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 font-mono text-[11px] font-medium text-[var(--primary)] border border-emerald-200/50 hover:bg-[var(--primary)] hover:text-white transition-all disabled:opacity-50 touch-manipulation"
+                        className="text-[11px] font-semibold text-[var(--primary)] hover:underline disabled:opacity-50"
                         title="Tạo mã QR và in nhãn dán"
                       >
-                        {printingId === x.id ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <Printer className="h-3 w-3" />
-                        )}
-                        In QR
+                        {printingId === x.id ? <Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> : null}
+                        In
                       </button>
                     </td>
                   </tr>
@@ -194,7 +159,7 @@ export function CSSDCatalogBoTab({
               })}
               {boRows.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="py-6 text-center text-sm text-slate-500">
+                  <td colSpan={8} className={`${L.td} text-center text-slate-500`}>
                     Không tìm thấy bộ dụng cụ nào khớp từ khóa.
                   </td>
                 </tr>
@@ -202,7 +167,5 @@ export function CSSDCatalogBoTab({
             </tbody>
           </table>
         </ResponsiveTableShell>
-      </section>
-    </div>
   );
 }

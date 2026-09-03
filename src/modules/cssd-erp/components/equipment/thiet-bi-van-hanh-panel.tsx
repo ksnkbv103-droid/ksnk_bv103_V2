@@ -59,12 +59,12 @@ export default function ThietBiVanHanhPanel() {
   }, [selId, loadMe]);
 
   const columns: Column<MeTietKhuanTheoMayRow>[] = [
-    { header: "Mã mẻ", accessorKey: "ma_lo_tiet_khuan", cell: (i) => <span className="font-mono text-[11px] font-bold text-[var(--primary)]">{i.ma_lo_tiet_khuan}</span> },
+    { header: "Mã mẻ", accessorKey: "ma_lo_tiet_khuan", cell: (i) => <span className="font-mono bv103-type-label font-semibold text-[var(--primary)]">{i.ma_lo_tiet_khuan}</span> },
     { header: "Bắt đầu", accessorKey: "thoi_gian_bat_dau", cell: (i) => <span className="text-[11px]">{fmtDt(i.thoi_gian_bat_dau)}</span> },
     { header: "Kết thúc", accessorKey: "thoi_gian_ket_thuc", cell: (i) => <span className="text-[11px]">{fmtDt(i.thoi_gian_ket_thuc)}</span> },
-    { header: "QC mẻ", accessorKey: "ket_qua_test", cell: (i) => <span className="text-[11px]">{triLabel(i.ket_qua_test)}</span> },
-    { header: "BI", accessorKey: "ket_qua_bi", cell: (i) => <span className="text-[11px]">{triLabel(i.ket_qua_bi)}</span> },
-    { header: "CI", accessorKey: "ket_qua_ci", cell: (i) => <span className="text-[11px]">{triLabel(i.ket_qua_ci)}</span> },
+    { header: "Qc mẻ", accessorKey: "ket_qua_test", cell: (i) => <span className="text-[11px]">{triLabel(i.ket_qua_test)}</span> },
+    { header: "Bi", accessorKey: "ket_qua_bi", cell: (i) => <span className="text-[11px]">{triLabel(i.ket_qua_bi)}</span> },
+    { header: "Ci", accessorKey: "ket_qua_ci", cell: (i) => <span className="text-[11px]">{triLabel(i.ket_qua_ci)}</span> },
     {
       header: "Nhiệt / Áp",
       accessorKey: "nhiet_do",
@@ -85,7 +85,7 @@ export default function ThietBiVanHanhPanel() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-[var(--bv103-space-3)]">
       <p className="text-sm text-slate-600">
         Xem lịch sử mẻ tiệt khuẩn đã chạy trên từng máy — dữ liệu đọc từ module Mẻ TK, không nhập lại.
       </p>

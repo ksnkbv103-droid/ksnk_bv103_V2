@@ -1,20 +1,39 @@
 /**
  * SSOT typography + page rhythm BV103.
+ * Cỡ / độ đậm = class `.bv103-type-*` trong globals.css (đổi :root một lần).
  * @see docs/reference/guides/bv103-visual-language.md
  */
 const PAGE_OUTER =
-  "w-full min-h-[40vh] space-y-3 pb-6 [-webkit-tap-highlight-color:transparent] sm:space-y-4 sm:pb-8";
+  "bv103-stack-page w-full min-h-[40vh] pb-[var(--bv103-space-4)] [-webkit-tap-highlight-color:transparent]";
 
-/** Band L1 duy nhất — page-chrome-contract-20260731 */
-const PAGE_CHROME_SHELL =
-  "no-print rounded-[var(--radius-shell)] border border-slate-200 bg-white p-2.5 shadow-sm sm:p-3";
-const PAGE_CHROME_SHELL_STICKY = `${PAGE_CHROME_SHELL} sticky top-0 z-40 backdrop-blur-md sm:top-4`;
+/** Band L1 — hàng tên/nút, không hộp trắng. Sticky: nền trang mờ, không thẻ nổi. */
+const PAGE_CHROME_SHELL = "no-print border-b border-slate-200/80 pb-[var(--bv103-space-2)]";
+const PAGE_CHROME_SHELL_STICKY = `${PAGE_CHROME_SHELL} sticky top-0 z-40 bg-[var(--bg-body)]/95 backdrop-blur-sm`;
+
+/** 5 vai trò chữ — không lặp text-sm / font-semibold ở token. */
+const TYPE_TITLE = "bv103-type-title";
+const TYPE_SECTION = "bv103-type-section";
+const TYPE_BODY = "bv103-type-body";
+const TYPE_LABEL = "bv103-type-label";
+const TYPE_KPI = "bv103-type-kpi";
+const TYPE_KPI_LG = "bv103-type-kpi-lg";
+const TYPE_NOTE = "bv103-type-note";
+
+export const bv103TypeRole = {
+  title: TYPE_TITLE,
+  section: TYPE_SECTION,
+  body: TYPE_BODY,
+  label: TYPE_LABEL,
+  kpi: TYPE_KPI,
+  kpiLg: TYPE_KPI_LG,
+  note: TYPE_NOTE,
+} as const;
 
 export const bv103DesignTokens = {
   pageOuter: PAGE_OUTER,
   /** Alias — cùng nhịp `pageOuter` (không nhảy gap khi đổi Analytics). */
   pageOuterAnalytics: PAGE_OUTER,
-  pageSectionGap: "space-y-3 sm:space-y-4",
+  pageSectionGap: "bv103-stack-page",
 
   pageChromeShell: PAGE_CHROME_SHELL,
   pageChromeShellSticky: PAGE_CHROME_SHELL_STICKY,
@@ -27,44 +46,44 @@ export const bv103DesignTokens = {
   analyticsToolbarShellStatic: PAGE_CHROME_SHELL,
 
   /** H1 trong chrome — compact (App Header đã có tên trang) */
-  pageTitle: "text-base font-semibold tracking-tight text-slate-900 sm:text-lg",
-  pageSubtitle: "mt-0.5 max-w-2xl text-[11px] font-normal leading-snug text-slate-500 sm:text-sm",
+  pageTitle: TYPE_TITLE,
+  pageSubtitle: `mt-[var(--bv103-space-2)] max-w-2xl ${TYPE_LABEL} font-normal`,
   /** Dòng phụ list/toolbar (danh mục, breadcrumb nội dung) */
-  pageEyebrow: "text-[11px] font-medium text-slate-500",
+  pageEyebrow: TYPE_LABEL,
   /** @deprecated Dùng `pageChromeShell` + KsnkPageChrome */
   pageToolbar: PAGE_CHROME_SHELL,
 
   /** App chrome: sidebar group + zone trên Header — IN HOA duy nhất ở lớp điều hướng */
-  navGroupLabel: "text-[11px] font-semibold uppercase tracking-wider text-slate-400",
-  shellZone: "text-[11px] font-semibold uppercase tracking-wider text-slate-400",
-  shellPage: "truncate text-sm font-semibold leading-snug text-slate-800 sm:text-base",
+  navGroupLabel: `${TYPE_LABEL} font-semibold uppercase tracking-wider text-slate-400`,
+  shellZone: `${TYPE_LABEL} font-semibold uppercase tracking-wider text-slate-400`,
+  shellPage: `truncate ${TYPE_SECTION} leading-snug`,
 
-  sectionTitle: "text-sm font-semibold text-slate-800",
-  labelBlock: "text-[11px] font-medium text-slate-500",
-  labelBlockMuted: "text-[11px] font-medium text-slate-400",
-  tableHeader: "text-[11px] font-medium text-slate-500",
+  sectionTitle: TYPE_SECTION,
+  labelBlock: TYPE_LABEL,
+  labelBlockMuted: `${TYPE_LABEL} text-slate-400`,
+  tableHeader: TYPE_LABEL,
   /** Ô bảng — dùng qua *-table-chrome / *-ui-chrome, không inline */
-  tableCellCode: "font-mono text-[11px] font-medium text-[var(--primary)]",
-  tableCellTitle: "text-sm font-semibold leading-snug text-slate-800",
-  tableCellBody: "text-sm font-medium leading-relaxed text-slate-700",
-  tableCellNote: "text-[11px] font-normal italic leading-relaxed text-slate-400",
-  tableCellIndex: "text-[11px] font-medium text-slate-400",
-  tableCellMeta: "text-[11px] font-medium text-slate-500",
-  metaMono: "text-[11px] font-mono font-medium text-slate-400",
-  statValue: "text-2xl font-semibold tabular-nums text-slate-900",
-  statValueLg: "text-3xl font-semibold tabular-nums text-slate-900",
-  statValueXl: "text-4xl font-semibold tabular-nums",
+  tableCellCode: `font-mono ${TYPE_LABEL} text-[var(--primary)]`,
+  tableCellTitle: `${TYPE_SECTION} leading-snug`,
+  tableCellBody: `${TYPE_BODY} leading-relaxed text-slate-700`,
+  tableCellNote: TYPE_NOTE,
+  tableCellIndex: `${TYPE_LABEL} text-slate-400`,
+  tableCellMeta: TYPE_LABEL,
+  metaMono: `font-mono ${TYPE_LABEL} text-slate-400`,
+  statValue: TYPE_KPI,
+  statValueLg: TYPE_KPI_LG,
+  statValueXl: TYPE_KPI_LG,
 
   /** Auth / tài khoản — title case slate */
-  authBrand: "text-xl font-semibold tracking-tight text-slate-900",
-  authTitle: "text-2xl font-semibold tracking-tight text-slate-900 md:text-3xl",
-  authSubtitle: "text-sm font-normal text-slate-600",
-  authLabel: "mb-2 block text-sm font-medium text-slate-700",
+  authBrand: TYPE_TITLE,
+  authTitle: TYPE_TITLE,
+  authSubtitle: `${TYPE_BODY} font-normal text-slate-600`,
+  authLabel: `mb-2 block ${TYPE_BODY} text-slate-700`,
   authInput:
-    "w-full rounded-[var(--radius-control)] border border-slate-200 px-4 py-3 text-sm font-medium text-slate-800 outline-none transition-[box-shadow,border-color] focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-[var(--primary)]/15",
+    "w-full rounded-[var(--radius-control)] border border-slate-200 px-4 py-3 bv103-type-body text-slate-800 outline-none transition-[box-shadow,border-color] focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-[var(--primary)]/15",
 
   /** @deprecated Dùng `navGroupLabel` — alias tương thích */
-  eyebrow: "text-[11px] font-semibold uppercase tracking-wider text-slate-400",
+  eyebrow: `${TYPE_LABEL} font-semibold uppercase tracking-wider text-slate-400`,
 
   btnPrimary:
     "bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] bg-[var(--primary)] px-4 text-xs font-semibold text-white transition-colors hover:bg-[var(--primary-hover)] disabled:opacity-50",
@@ -80,4 +99,4 @@ export const bv103DesignTokens = {
   skeletonBlock: "animate-pulse rounded-[var(--radius-shell)] border border-slate-200 bg-slate-100/80",
 } as const;
 
-export const BV103_MIN_LABEL_CLASS = "text-[11px]" as const;
+export const BV103_MIN_LABEL_CLASS = "bv103-type-label" as const;

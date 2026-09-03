@@ -22,7 +22,8 @@ const TEMPLATE_HEADERS = [
   { header: "Loại (dinh_ky|dot_xuat|khan_cap)", key: "loai_cong_viec" },
   { header: "Ưu tiên (thap|trung_binh|cao)", key: "muc_do_uu_tien" },
   { header: "Hạn (yyyy-mm-dd)", key: "han_hoan_thanh" },
-  { header: "Mã NV KSNK phụ trách*", key: "ma_nv" },
+  { header: "Mã nv ksnk phụ trách*", key: "ma_nv" },
+  { header: "Mã khoa địa điểm*", key: "ma_khoa" },
   { header: "Mã tổ", key: "ma_to" },
 ];
 
@@ -57,6 +58,7 @@ export function QlcvImportDialog({ isOpen, onClose, onImported }: Props) {
       muc_do_uu_tien: "TRUNG_BINH",
       han_hoan_thanh: "2026-12-31",
       ma_nv: "ADMIN01",
+      ma_khoa: "KSNK",
       ma_to: "",
     });
     const guide = wb.addWorksheet("Huong dan");
@@ -65,7 +67,7 @@ export function QlcvImportDialog({ isOpen, onClose, onImported }: Props) {
     [
       ["Mục đích", "Tạo mới công việc hàng loạt (chỉ thêm — không sửa/xóa việc cũ)."],
       ["Bước 1", "Tải file mẫu — giữ nguyên dòng tiêu đề."],
-      ["Bước 2", "Điền từng dòng: bắt buộc Tiêu đề* và Mã NV KSNK phụ trách*."],
+      ["Bước 2", "Điền từng dòng: bắt buộc Tiêu đề*, Mã NV KSNK phụ trách* và Mã khoa địa điểm*."],
       ["Bước 3", "Chọn file → xem số dòng hợp lệ → xác nhận nạp."],
       ["Định dạng", "Chỉ .xlsx / .xls (không dùng CSV)."],
       ["Cột", TEMPLATE_HEADERS.map((h) => h.header).join(" · ")],

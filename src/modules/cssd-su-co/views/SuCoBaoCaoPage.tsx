@@ -1,18 +1,23 @@
 // src/modules/cssd-su-co/views/SuCoBaoCaoPage.tsx
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FileBarChart, ExternalLink, Zap } from "lucide-react";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
-import { CSSD_UI_DATA_SURFACE } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import { CSSD_ROUTES, cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
-import type { IncidentGroup } from "../domain/cssd-incident-taxonomy";
+import { formatDateTimeVi } from "@/lib/format-datetime-vi";
+import { INCIDENT_TYPE_PRESETS, type IncidentGroup } from "../domain/cssd-incident-taxonomy";
+import { listRecentSuCoForReporter } from "../actions/su-co-report.actions";
+import IncidentJournalPrintButton from "../components/IncidentJournalPrintButton";
+import IncidentConfirmButton from "../components/IncidentConfirmButton";
 import SuCoReportForm from "../components/SuCoReportForm";
+import { INCIDENT_STATUS_CONFIRMED, type IncidentPhieuStatus } from "../domain/cssd-incident-status";
 
 const INSTRUMENT_TYPES = new Set([
+  "INSTRUMENT_SET_RECONCILE",
   "INSTRUMENT_BROKEN",
   "INSTRUMENT_MISSING",
   "INSTRUMENT_REPLENISH",
@@ -34,15 +39,45 @@ export default function SuCoBaoCaoPage() {
             groupRaw === "OTHER"
           ? (groupRaw as IncidentGroup)
           : undefined;
-    const typeId = INSTRUMENT_TYPES.has(typeRaw) ? typeRaw : undefined;
+    const allTypeCodes = Object.values(INCIDENT_TYPE_PRESETS).flatMap((rows) => rows.map((x) => x.code));
+    const typeId = allTypeCodes.includes(typeRaw) ? typeRaw : undefined;
     return {
       group,
       typeId,
       ma: String(searchParams.get("ma") || "").trim().toUpperCase() || undefined,
       loai: String(searchParams.get("loai") || "").trim() || undefined,
       chiTiet: String(searchParams.get("chiTiet") || "").trim() || undefined,
+      maLo: String(searchParams.get("maLo") || searchParams.get("lo") || "").trim().toUpperCase() || undefined,
+      loTietKhuanId: String(searchParams.get("loTietKhuanId") || "").trim() || undefined,
     };
   }, [searchParams]);
+
+  const [recent, setRecent] = useState<
+    Array<{
+      id: string;
+      mo_ta: string;
+      created_at: string | null;
+      incident_type_label: string | null;
+      ma_qr: string | null;
+      incident_status: IncidentPhieuStatus;
+      incident_status_label: string;
+    }>
+  >([]);
+
+  const reloadRecent = () => {
+    void listRecentSuCoForReporter()
+      .then((res) => {
+        if (res.success) setRecent(res.data);
+      })
+      .catch(() => {
+        /* quyền in/xem có thể hẹp hơn — form vẫn dùng được */
+      });
+  };
+
+  useEffect(() => {
+    if (loading || (!allowed.create && !allowed.view)) return;
+    reloadRecent();
+  }, [loading, allowed.create, allowed.view]);
 
   if (loading) {
     return (
@@ -88,11 +123,11 @@ export default function SuCoBaoCaoPage() {
         </div>
       }
     >
-      <div className={`${CSSD_UI_DATA_SURFACE} p-3 sm:p-4`}>
+      <div className="bv103-stack-page">
         {!allowed.create ? (
-          <div className="rounded-xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-600">
+          <p className="text-sm text-slate-600">
             Tài khoản chỉ có quyền <strong>xem</strong> — liên hệ quản trị để được cấp quyền ghi nhận.
-          </div>
+          </p>
         ) : (
           <SuCoReportForm
             initialStation="TIEP_NHAN"
@@ -103,8 +138,45 @@ export default function SuCoBaoCaoPage() {
             initialMaQR={prefill.ma}
             initialLoaiDungCuId={prefill.loai}
             initialChiTietId={prefill.chiTiet}
+            initialMaLo={prefill.maLo}
+            initialLoTietKhuanId={prefill.loTietKhuanId}
           />
         )}
+        {recent.length > 0 ? (
+          <div className="border-t border-slate-200 pt-3">
+            <p className="mb-1 text-[11px] font-semibold text-slate-500">Phiếu gần đây của tôi</p>
+            <ul>
+              {recent.map((row) => (
+                <li
+                  key={row.id}
+                  className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 py-1.5"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-semibold text-slate-800">
+                      {row.incident_type_label || "Sự cố"} {row.ma_qr ? `· ${row.ma_qr}` : ""}
+                    </p>
+                    <p className="truncate text-[11px] text-slate-500">
+                      {row.incident_status_label} · {formatDateTimeVi(row.created_at)}{" "}
+                      {row.mo_ta ? `— ${row.mo_ta}` : ""}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {allowed.create && row.incident_status !== INCIDENT_STATUS_CONFIRMED ? (
+                      <IncidentConfirmButton incidentId={row.id} onConfirmed={reloadRecent} />
+                    ) : null}
+                    <IncidentJournalPrintButton incidentId={row.id} />
+                    <Link
+                      href={cssdSuCoIncidentJournalHref(row.id)}
+                      className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
+                    >
+                      Nhật ký
+                    </Link>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </div>
     </CSSDPageShell>
   );

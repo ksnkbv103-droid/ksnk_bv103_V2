@@ -120,56 +120,54 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
   };
 
   const mainContent = (
-    <div className="space-y-4 animate-in fade-in duration-500 sm:space-y-6">
+    <div className="bv103-stack-page animate-in fade-in duration-500">
       <CssdStationFlowMap
         activeStation={currentStation}
         onSelectStation={requestSelectStation}
         gateLocked={showDongGoiGate}
       />
 
-      <main className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-        <div className="space-y-4 lg:col-span-6">
+      <main className="grid grid-cols-1 items-start gap-[var(--bv103-space-3)] lg:grid-cols-12">
+        <div className="bv103-stack-in lg:col-span-6">
           {currentStation ? <WaitingList items={waitingList} onAction={submitWorkflowQr} /> : (
-            <div className="rounded-[var(--radius-shell)] border border-dashed border-slate-300 bg-white py-16 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+            <div className="bv103-layer-inset py-16 text-center bv103-type-label font-semibold uppercase tracking-wide text-slate-400">
               Chọn trạm để xem hàng chờ.
             </div>
           )}
         </div>
 
-        <div className="space-y-4 lg:col-span-6 lg:sticky lg:top-8">
-          <div className="space-y-4 rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 shadow-sm">
-            <WorkflowStationQrEntry
-              disabled={workflowLoading}
-              onConfirm={submitWorkflowQr}
+        <div className="bv103-stack-in lg:col-span-6 lg:sticky lg:top-8">
+          <WorkflowStationQrEntry
+            disabled={workflowLoading}
+            onConfirm={submitWorkflowQr}
+          />
+          {showDongGoiGate && dongGoiGate ? (
+            <CompositionReconcilePanel
+              boDungCuId={dongGoiGate.boDungCuId}
+              quyTrinhId={dongGoiGate.quyTrinhId}
+              enabled
+              gateMode
+              advancing={workflowLoading}
+              onConfirmAdvance={() => void confirmDongGoiAdvance()}
+              onCancelGate={cancelDongGoiGate}
             />
-            {showDongGoiGate && dongGoiGate ? (
-              <CompositionReconcilePanel
-                boDungCuId={dongGoiGate.boDungCuId}
-                quyTrinhId={dongGoiGate.quyTrinhId}
-                enabled
-                gateMode
-                advancing={workflowLoading}
-                onConfirmAdvance={() => void confirmDongGoiAdvance()}
-                onCancelGate={cancelDongGoiGate}
-              />
-            ) : showScanSuccess ? (
-              <QRScanSuccessCard
-                {...lastScan}
-                tramDisplay={currentStation?.replace(/_/g, " ") || "CSSD"}
-                ledgerWarning={lastScan?.ledgerWarning}
-                onPrintCapPhat={
-                  lastScan?.quyTrinhId
-                    ? () =>
-                        void onPrintCapPhat({
-                          quyTrinhId: String(lastScan.quyTrinhId),
-                          nguoiCapPhat: String(lastScan.nguoiThucHien || "CSSD"),
-                        })
-                    : undefined
-                }
-                isPrintBusy={isCssdPrinting}
-              />
-            ) : null}
-          </div>
+          ) : showScanSuccess ? (
+            <QRScanSuccessCard
+              {...lastScan}
+              tramDisplay={currentStation?.replace(/_/g, " ") || "CSSD"}
+              ledgerWarning={lastScan?.ledgerWarning}
+              onPrintCapPhat={
+                lastScan?.quyTrinhId
+                  ? () =>
+                      void onPrintCapPhat({
+                        quyTrinhId: String(lastScan.quyTrinhId),
+                        nguoiCapPhat: String(lastScan.nguoiThucHien || "CSSD"),
+                      })
+                  : undefined
+              }
+              isPrintBusy={isCssdPrinting}
+            />
+          ) : null}
         </div>
       </main>
       <IncidentReportModal

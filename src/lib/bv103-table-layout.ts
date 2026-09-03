@@ -8,6 +8,21 @@
  * Quy ước: cột thao tác luôn cuối; mã/QR hẹp cố định; tên (`colTitle`) hút chiều ngang thừa.
  */
 export const bv103TableLayout = {
+  /** Một viền quanh sổ — không bọc thêm khối trắng bên ngoài. */
+  frame: "bv103-layer-panel overflow-clip",
+  th: "min-w-0 px-[var(--bv103-space-3)] py-[var(--bv103-space-2)] text-left",
+  td: "min-w-0 px-[var(--bv103-space-3)] py-[var(--bv103-space-2)] align-top",
+  theadRow: "sticky top-0 z-10 border-b border-slate-200 bg-slate-50",
+  tbody: "divide-y divide-slate-100 bg-white",
+  row: "hover:bg-slate-50 even:bg-slate-50/40",
+  rowSelected: "bg-[var(--primary)]/8",
+  /** Trạng thái trong ô sổ — chữ màu, không viên thuốc. */
+  statusOk: "bv103-type-label text-emerald-800",
+  statusWarn: "bv103-type-label text-amber-800",
+  statusDanger: "bv103-type-label text-red-700",
+  statusMuted: "bv103-type-label text-slate-500",
+  statusInfo: "bv103-type-label text-slate-700",
+
   /** Class bảng cố định tỉ lệ — tràn khung (w-full đã có trong AdvancedDataTable; giữ đủ cho call site cũ). */
   tableFixed: "w-full min-w-[640px] table-fixed border-collapse text-left",
 

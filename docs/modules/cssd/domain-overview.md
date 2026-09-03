@@ -84,7 +84,7 @@ flowchart LR
 | 1. Tiếp nhận | `TIEP_NHAN` | Quét bộ bẩn / mở chu trình mới | Sau cấp phát, lần tiếp nhận = vòng mới |
 | 2. Làm sạch | `LAM_SACH` | Quét chuyển bước | Chỉ tiến đúng 1 bước |
 | 3. QC | `QC` | Kiểm trước đóng gói | **QC trạm** (QT.19) — không thay QC mẻ |
-| 4. Đóng gói | `DONG_GOI` | Quét + đối chiếu cấu phần; báo Hỏng/Mất/Bổ sung; sinh Cycle QR | Thiếu cấu phần: **cảnh báo**, không chặn cứng |
+| 4. Đóng gói | `DONG_GOI` | Quét + đối chiếu cấu phần; **một phiếu biến động cả bộ**; sinh Cycle QR | Thiếu cấu phần: **cảnh báo**, không chặn cứng |
 | 5. Mẻ tiệt khuẩn | `TIET_KHUAN` | **Không quét trên bản đồ 6 trạm** — mở phiếu mẻ | Nạp bộ đang Đóng gói → chốt nạp → chạy máy → QC mẻ |
 | 6. Cấp phát | `CAP_PHAT` | Quét giao khoa / vào kho sạch | Soft-warning thiếu cấu phần; phải có mẻ ĐẠT |
 
@@ -159,8 +159,8 @@ flowchart TD
 **BI (+):**
 
 - Mở **sự cố** (`cssd_fact_su_co`, vd. `PROCESS_STERILIZATION_FAIL` / BI+).
-- **Recall toàn mẻ** theo `lo_tiet_khuan_id` (mọi bộ cùng mẻ).
-- Hold máy đến khi có **3× BI (−)** liên tiếp; đề xuất chuyển máy `HOLD_QC` hoặc `REPAIRING`.
+- **Recall toàn mẻ** theo `lo_tiet_khuan_id` (mọi bộ cùng mẻ): đã **Cấp phát** → **Tiếp nhận**; còn trong chu trình → **Đóng gói** + đóng băng.
+- Máy mẻ `READY` / `HOAT_DONG` → `HOLD_QC` (không đè `REPAIRING` / đã `HOLD_QC`). **Chưa** tự đếm 3× BI (−) để mở máy.
 
 **Chỉ thị QC (UI):** Đạt / Không đạt / Không áp dụng (tiếp xúc, đa thông số, BI, CI, Bowie–Dick).
 
@@ -176,7 +176,7 @@ flowchart TD
 
 - **BD đầu ngày (steam):** bắt buộc đạt trước khi nạp mẻ steam trong ngày; BD fail → **không nạp**.
 - `REPAIRING` → không tạo mẻ mới; còn mẻ chưa có `ket_qua_test` ↔ ràng buộc ngược với bảo trì.
-- BI+ → đề xuất `HOLD_QC` / `REPAIRING` đến 3× BI (−).
+- BI+ → máy `HOLD_QC` (nếu đang sẵn sàng). Chưa tự mở máy sau 3× BI (−).
 
 ### SUB + đóng gói (pack) ↔ phương pháp TK
 
@@ -206,7 +206,7 @@ flowchart TD
 8. Dual-coding: tem quét `B01.SET.*` ↔ alias `B01.CD*` ↔ `BO-01-*`; resolve qua QR Hub.
 9. Nhãn / Cycle QR đủ trường QT.20 gồm **số mẻ**.
 10. QC trạm (QT.19) ≠ QC mẻ 3 cấp (QT.23); implant → `Quarantine_BI` / `CHO_BI` trước `HOAN_THANH`.
-11. BI+ → sự cố + recall theo `lo_tiet_khuan_id` + hold máy đến 3× BI (−); IUSS cấm implant.
+11. BI+ → sự cố + recall theo `lo_tiet_khuan_id` + máy `HOLD_QC`; IUSS cấm implant. Chưa đếm 3× BI (−) để mở máy.
 12. Máy: `READY` | `REPAIRING` | `HOLD_QC`; steam ⇒ BD đầu ngày đạt mới nạp; BD fail / không READY / HOLD_QC → không nạp mẻ.
 13. Plasma **cấm cellulose**; wet pack = bẩn → `LAM_SACH`.
 14. Rewash / Quarantine_BI / Reprocess_from_start map status/metadata hiện có — **không** thêm trạm UI.
@@ -234,7 +234,7 @@ Thực tế = tiêu chuẩn − (Hỏng + Mất) + Bổ sung ± Điều chuyển
 | `/cssd-quy-trinh` | 6 trạm + tab Mẻ / Kho / Truy vết |
 | `/cssd-erp/batch` | Deep link mẻ tiệt khuẩn |
 | `/cssd-dung-cu` | Xem danh mục + in tem (không CRUD) |
-| `/cssd-su-co` | Báo sự cố |
+| `/cssd-su-co` | Báo sự cố; xác nhận phiếu (mở → đã xác nhận) |
 | `/cssd-thiet-bi` | Bảo trì máy |
 | `/cssd-hoa-chat` | Kho hóa chất |
 | Quản trị → Danh mục dụng cụ | CRUD Loại / Bộ / Thành phần |

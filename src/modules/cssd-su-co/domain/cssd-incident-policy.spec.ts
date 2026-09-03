@@ -65,6 +65,60 @@ describe("cssd-incident-policy", () => {
     expect(p.kind).toBe("generic");
   });
 
+  it("PROCESS sterilization fail rolls back to DONG_GOI and freezes", () => {
+    const p = resolveIncidentPolicy({
+      detectionStation: "TIET_KHUAN",
+      incidentTypeTen: "Chất lượng tiệt khuẩn / mẻ không đạt",
+      incidentGroup: "PROCESS",
+      typeId: "PROCESS_STERILIZATION_FAIL",
+    });
+    expect(p.targetStation).toBe("DONG_GOI");
+    expect(p.freezeSafetyLock).toBe(true);
+    expect(p.clearSterilizationBatchLink).toBe(true);
+    expect(p.recallEntireBatch).toBe(true);
+    expect(p.holdMachineQc).toBe(true);
+  });
+
+  it("PROCESS BI+ uses same batch rollback as mẻ không đạt", () => {
+    const p = resolveIncidentPolicy({
+      detectionStation: "TIET_KHUAN",
+      incidentTypeTen: "Chỉ thị sinh học (BI) dương tính",
+      incidentGroup: "PROCESS",
+      typeId: "PROCESS_BI_POSITIVE",
+    });
+    expect(p.targetStation).toBe("DONG_GOI");
+    expect(p.freezeSafetyLock).toBe(true);
+    expect(p.clearSterilizationBatchLink).toBe(true);
+    expect(p.recallEntireBatch).toBe(true);
+    expect(p.holdMachineQc).toBe(true);
+  });
+
+  it("PROCESS BI+ on issued set returns to Tiếp nhận without freeze", () => {
+    const p = resolveIncidentPolicy({
+      detectionStation: "TIET_KHUAN",
+      currentStation: "CAP_PHAT",
+      incidentTypeTen: "Chỉ thị sinh học (BI) dương tính",
+      incidentGroup: "PROCESS",
+      typeId: "PROCESS_BI_POSITIVE",
+    });
+    expect(p.targetStation).toBe("TIEP_NHAN");
+    expect(p.freezeSafetyLock).toBe(false);
+    expect(p.recallEntireBatch).toBe(true);
+  });
+
+  it("PROCESS station QC fail does not use batch rollback", () => {
+    const p = resolveIncidentPolicy({
+      detectionStation: "QC",
+      incidentTypeTen: "Không đạt kiểm tra chất lượng tại khâu",
+      incidentGroup: "PROCESS",
+      typeId: "PROCESS_QC_FAIL",
+    });
+    expect(p.targetStation).toBe("QC");
+    expect(p.freezeSafetyLock).toBe(false);
+    expect(p.recallEntireBatch).toBe(false);
+    expect(p.holdMachineQc).toBe(false);
+  });
+
   it("OTHER respects explicit fault station", () => {
     const p = resolveIncidentPolicy({
       detectionStation: "CAP_PHAT",

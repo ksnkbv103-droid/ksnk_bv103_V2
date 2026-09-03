@@ -211,4 +211,32 @@ export function formatGscHistoryScore(row: Record<string, unknown>): GscHistoryS
   };
 }
 
+/** Nhật ký: đủ số liệu / lựa chọn (không bắt Đạt–Không đạt). */
+export function gscResultHasLogValue(row: Pick<ChecklistResult, "gia_tri_so" | "gia_tri_lua_chon">): boolean {
+  if (typeof row.gia_tri_so === "number" && Number.isFinite(row.gia_tri_so)) return true;
+  return String(row.gia_tri_lua_chon ?? "").trim().length > 0;
+}
+
+export function isGscNhatKyCach(cachTinhDiem: unknown, loaiGiamSat?: unknown): boolean {
+  return (
+    normalizeCachTinhDiem(cachTinhDiem) === "NHAT_KY" ||
+    inferCachFromLoaiGiamSat(loaiGiamSat) === "NHAT_KY"
+  );
+}
+
+/** Cổng lưu: tuân thủ cần ≥1 Đạt/Không đạt; nhật ký cần ≥1 số liệu hoặc lựa chọn. */
+export function gscCanSaveResults(
+  results: readonly ChecklistResult[],
+  cachTinhDiem: unknown,
+  loaiGiamSat?: unknown,
+): boolean {
+  const rows = results ?? [];
+  if (isGscNhatKyCach(cachTinhDiem, loaiGiamSat)) {
+    return rows.some(
+      (r) => gscResultHasLogValue(r) || r.value === "DAT" || r.value === "KHONG_DAT",
+    );
+  }
+  return rows.some((r) => r.value === "DAT" || r.value === "KHONG_DAT");
+}
+
 export type { BangKiemCachTinhDiem, BangKiemLoaiGiamSat };

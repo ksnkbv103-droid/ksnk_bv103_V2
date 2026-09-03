@@ -29,7 +29,9 @@ export async function updateQlcvChecklist(id: string, items: QlcvChecklistItem[]
 
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
-    .select("id, trang_thai, is_active, nguoi_phu_trach_id, phan_tram_hoan_thanh, nguoi_tao_id, loai_cong_viec")
+    .select(
+      "id, trang_thai, is_active, nguoi_phu_trach_id, phan_tram_hoan_thanh, nguoi_tao_id, loai_cong_viec, han_hoan_thanh, is_qua_han",
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -45,7 +47,7 @@ export async function updateQlcvChecklist(id: string, items: QlcvChecklistItem[]
 
   const wf = qlcvWorkflowMaFromViewRow(cur);
   if (isDeXuatChoDuyet(wf)) throw new Error("Đề xuất chưa được phê duyệt.");
-  if (isEligibleForNghiemThu({ ...wf, phan_tram_hoan_thanh: cur.phan_tram_hoan_thanh })) {
+  if (isEligibleForNghiemThu({ ...cur, ...wf })) {
     throw new Error("Việc đang chờ nghiệm thu — không cập nhật checklist tại đây.");
   }
   const stClosed = normalizeQlcvTrangThaiToCanonical(wf.trang_thai);
@@ -118,7 +120,9 @@ export async function reportQlcvManualProgress(congViecId: string, phanTram: num
 
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
-    .select("id, trang_thai, is_active, nguoi_phu_trach_id, phan_tram_hoan_thanh, nguoi_tao_id, checklist, loai_cong_viec")
+    .select(
+      "id, trang_thai, is_active, nguoi_phu_trach_id, phan_tram_hoan_thanh, nguoi_tao_id, checklist, loai_cong_viec, han_hoan_thanh, is_qua_han",
+    )
     .eq("id", congViecId)
     .maybeSingle();
 
@@ -138,7 +142,7 @@ export async function reportQlcvManualProgress(congViecId: string, phanTram: num
 
   const wf = qlcvWorkflowMaFromViewRow(cur);
   if (isDeXuatChoDuyet(wf)) throw new Error("Đề xuất chưa được phê duyệt.");
-  if (isEligibleForNghiemThu({ ...wf, phan_tram_hoan_thanh: cur.phan_tram_hoan_thanh })) {
+  if (isEligibleForNghiemThu({ ...cur, ...wf })) {
     throw new Error("Việc đang chờ nghiệm thu — không cập nhật tiến độ tại đây.");
   }
   const stClosedManual = normalizeQlcvTrangThaiToCanonical(wf.trang_thai);

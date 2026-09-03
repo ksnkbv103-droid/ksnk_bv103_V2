@@ -299,7 +299,7 @@ export function SupervisionKhoaAnalyticsBlock({
   const resolvedVolumeTitle = volumeChartTitle ?? defaultVolumeTitle(moduleLabel);
 
   return (
-    <div className={`w-full min-w-0 space-y-4 ${className ?? ""}`}>
+    <div className={`w-full min-w-0 space-y-[var(--bv103-space-3)] ${className ?? ""}`}>
       <SupervisionKhoaComplianceChart
         rows={rows}
         matrixKhoaRows={matrixKhoaRows}

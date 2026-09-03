@@ -36,7 +36,7 @@ export default function HistoryTable() {
   } = useVstHistoryTable();
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-[var(--bv103-space-3)]">
       {printData && <VSTPrintView {...printData} />}
       <VstSessionViewer
         open={Boolean(viewData)}

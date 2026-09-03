@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react";
 import { Layers, Loader2, RefreshCcw, History, Box } from "lucide-react";
 import { toast } from "sonner";
 import { getDungCuGiaoDichLogsAction, type DungCuGiaoDichRow } from "../actions/kho-dung-cu-giao-dich.actions";
+import { getLoaiDungCuContainingBosAction } from "../actions/loai-dung-cu.actions";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 
 type Props = {
@@ -25,6 +26,25 @@ export function LoaiDungCuChiTietPanel({
   const [activeTab, setActiveTab] = useState<"sets" | "logs">("sets");
   const [logs, setLogs] = useState<DungCuGiaoDichRow[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [sets, setSets] = useState(boDungCuChua);
+  const [loadingSets, setLoadingSets] = useState(false);
+
+  useEffect(() => {
+    if (!selectedLoaiId) {
+      setSets([]);
+      return;
+    }
+    let active = true;
+    setLoadingSets(true);
+    void getLoaiDungCuContainingBosAction(selectedLoaiId).then((r) => {
+      if (!active) return;
+      setSets(r.success ? r.data : []);
+      setLoadingSets(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [selectedLoaiId]);
 
   const fetchLogs = async () => {
     if (!selectedLoaiId) return;
@@ -75,7 +95,7 @@ export function LoaiDungCuChiTietPanel({
   };
 
   return (
-    <div className={`${UI.shell} shadow-xl animate-in fade-in duration-500 overflow-hidden`}>
+    <div className={`${UI.shell} animate-in fade-in duration-500 overflow-hidden`}>
       <div className="bg-slate-50/50 px-8 py-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
@@ -100,7 +120,7 @@ export function LoaiDungCuChiTietPanel({
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            <Box size={13} /> Bộ dụng cụ chứa ({boDungCuChua.length})
+            <Box size={13} /> Bộ dụng cụ chứa ({sets.length})
           </button>
           <button
             onClick={() => setActiveTab("logs")}
@@ -115,10 +135,14 @@ export function LoaiDungCuChiTietPanel({
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="bv103-pad-panel">
         {activeTab === "sets" ? (
           <div>
-            {boDungCuChua.length === 0 ? (
+            {loadingSets ? (
+              <div className="p-12 text-center text-slate-400 font-bold text-[11px] uppercase tracking-widest">
+                Đang tải bộ chứa…
+              </div>
+            ) : sets.length === 0 ? (
               <div className="p-12 text-center text-slate-400 font-bold text-[11px] uppercase tracking-widest">
                 Chưa có bộ dụng cụ nào chứa loại dụng cụ này
               </div>
@@ -133,7 +157,7 @@ export function LoaiDungCuChiTietPanel({
                     </tr>
                   </thead>
                   <tbody>
-                    {boDungCuChua.map((b) => (
+                    {sets.map((b) => (
                       <tr key={b.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                         <td className="py-3 font-mono text-[11px] text-[11px] font-medium text-slate-500 uppercase">{b.ma_bo || "—"}</td>
                         <td className="py-3 text-[11px] font-medium text-[var(--primary)]">{b.ten_bo || "—"}</td>
@@ -195,13 +219,13 @@ export function LoaiDungCuChiTietPanel({
                         }`}>
                           {log.so_luong_thay_doi > 0 ? `+${log.so_luong_thay_doi}` : log.so_luong_thay_doi}
                         </td>
-                        <td className="py-3 text-[11px] font-bold text-slate-600 uppercase">
+                        <td className="py-3 bv103-type-label font-semibold text-slate-600 uppercase">
                           {log.bo_dung_cu ? log.bo_dung_cu.ten_bo : "—"}
                         </td>
                         <td className="py-3 font-mono text-[11px] text-slate-400">
                           {log.quy_trinh ? log.quy_trinh.ma_qr_quy_trinh : "—"}
                         </td>
-                        <td className="py-3 text-[11px] text-slate-500 italic">
+                        <td className="py-3 bv103-type-note">
                           {log.ghi_chu || "—"}
                         </td>
                       </tr>

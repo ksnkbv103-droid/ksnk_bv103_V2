@@ -40,7 +40,7 @@ export default function EntityQrScanPage() {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="bv103-stack-page">
       <KsnkSupervisionHero
         eyebrow="Giám sát · Truy vết"
         title={
@@ -50,7 +50,7 @@ export default function EntityQrScanPage() {
           </span>
         }
       />
-      <KsnkSupervisionPanel className="space-y-4 p-4 sm:p-6">
+      <KsnkSupervisionPanel className="space-y-[var(--bv103-space-3)] p-4 sm:p-6">
         <QrScanInput
           disabled={busy}
           autoFocus

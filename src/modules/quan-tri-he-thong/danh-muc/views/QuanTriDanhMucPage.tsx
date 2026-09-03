@@ -113,7 +113,7 @@ export default function QuanTriDanhMucPage() {
   }
 
   return (
-    <div className="space-y-4 pb-12 animate-in fade-in duration-500 sm:space-y-8 sm:pb-16">
+    <div className="bv103-stack-page pb-12 animate-in fade-in duration-500">
       <QuanTriDanhMucTabStrip
         active={uiTab}
         onChange={(t) => {
@@ -127,10 +127,10 @@ export default function QuanTriDanhMucPage() {
       />
 
       {uiTab === "DANH_MUC" && canAccessJobs ? (
-        <div className="space-y-6" id="dm-unified-catalog">
+        <div className="space-y-[var(--bv103-space-3)]" id="dm-unified-catalog">
           {(canViewDanhMuc || isAdmin) && <QuanTriHubWorkQueue onOpen={go} />}
           <QuanTriHubJobCards rows={catalogRows} allowedJobs={allowedJobs} onOpen={go} />
-          <div className="app-data-shell min-w-0 p-2">
+          <div className="min-w-0 space-y-2">
             <SearchBar
               value={hubSearch}
               onChange={setHubSearch}

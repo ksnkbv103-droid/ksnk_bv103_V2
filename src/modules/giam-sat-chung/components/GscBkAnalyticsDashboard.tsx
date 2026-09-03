@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, X } from "lucide-react";
+import { X } from "lucide-react";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import {
   SupervisionCompareAccordion,
@@ -15,7 +15,6 @@ import { formatPercent2 } from "@/lib/analytics/supervision-percent";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { complianceToneFromPercent } from "@/lib/analytics/supervision-thresholds";
 import type { GscChecklistDetailPayload, GscChecklistCriterionKhoaRow, GscCriterionMatrixRow } from "../types/gsc-strategic.types";
-import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
 
 type Props = {
   maBk: string;
@@ -80,29 +79,26 @@ export function GscBkAnalyticsDashboard({
   };
 
   return (
-    <div className={`${UI.shell} border-sky-200 ring-1 ring-sky-100`}>
-      <div className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 px-4 py-3">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-wide text-sky-700">Dashboard bảng kiểm</p>
-          <h3 className="text-base font-bold text-slate-900">
-            {maBk} · {label}
-          </h3>
-        </div>
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
+        <h3 className="text-sm font-semibold text-slate-800">
+          {maBk} · {label}
+        </h3>
         <button
           type="button"
-          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+          className="text-xs font-semibold text-slate-500 hover:text-slate-800"
           onClick={onClose}
           aria-label="Đóng dashboard"
         >
-          <X size={16} /> Đóng
+          <X size={14} className="mr-1 inline" /> Đóng
         </button>
       </div>
 
       {error ? (
-        <div className="mx-4 my-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</div>
+        <p className="text-sm text-red-700">{error}</p>
       ) : null}
 
-      <div className="space-y-4 p-4">
+      <div className="space-y-3">
         <SupervisionKpiRow
           loading={loading}
           items={[
@@ -138,7 +134,7 @@ export function GscBkAnalyticsDashboard({
         />
 
         <details className="rounded-xl border border-slate-200 bg-white">
-          <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+          <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
             Ma trận phân tích (chức năng phòng, đối tượng, hình thức…)
             <span className="mt-0.5 block text-[11px] font-normal text-slate-400">Mở để xem chi tiết</span>
           </summary>
@@ -166,94 +162,91 @@ function GscCriterionTable({
 }) {
   if (!loading && criteria.length === 0) return null;
 
+  const selected = criteria.find((c) => c.criterion_id === expandedCriterionId) ?? null;
+  const khoaRows = selected ? (khoaByCriterion.get(selected.criterion_id) ?? []) : [];
+
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <h3 className="mb-1 text-sm font-bold text-slate-800">Tiêu chí trong bảng kiểm</h3>
-      <p className="mb-3 text-[11px] text-slate-500">
-        Sắp xếp tiêu chí yếu trước. Nhấn dòng để xem vi phạm theo từng khoa.
+    <div className="space-y-2">
+      <h3 className="text-sm font-semibold text-slate-800">Tiêu chí trong bảng kiểm</h3>
+      <p className="text-[11px] text-slate-500">
+        Tiêu chí yếu trước. Bấm một dòng để xem số theo khoa bên phải.
       </p>
-      <ResponsiveTableShell unboxed className="rounded-lg border border-slate-200" maxHeight="max-h-[min(360px,50dvh)]">
-        <table className="w-full min-w-[560px] text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold uppercase tracking-wide text-slate-500">
-              <th className="w-8 px-2 py-2" />
-              <th className="px-3 py-2 text-left">Tiêu chí</th>
-              <th className="px-3 py-2 text-right">Quan sát</th>
-              <th className="px-3 py-2 text-right">Vi phạm</th>
-              <th className="px-3 py-2 text-right">Tuân thủ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="px-3 py-6 text-center text-slate-400">
-                  Đang tải…
-                </td>
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <ResponsiveTableShell maxHeight="max-h-[min(360px,50dvh)]">
+          <table className="w-full min-w-[480px] border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500">
+                <th className="px-2.5 py-1.5 text-left">Tiêu chí</th>
+                <th className="px-2.5 py-1.5 text-right">Quan sát</th>
+                <th className="px-2.5 py-1.5 text-right">Vi phạm</th>
+                <th className="px-2.5 py-1.5 text-right">Tuân thủ</th>
               </tr>
-            ) : (
-              criteria.map((c) => {
-                const expanded = expandedCriterionId === c.criterion_id;
-                const khoaRows = khoaByCriterion.get(c.criterion_id) ?? [];
-                return (
-                  <React.Fragment key={c.criterion_id}>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="px-2.5 py-6 text-center text-slate-400">
+                    Đang tải…
+                  </td>
+                </tr>
+              ) : (
+                criteria.map((c) => {
+                  const active = expandedCriterionId === c.criterion_id;
+                  return (
                     <tr
-                      className="cursor-pointer border-b border-slate-100 hover:bg-slate-50"
+                      key={c.criterion_id}
+                      className={`cursor-pointer border-b border-slate-100 hover:bg-slate-50 ${active ? "bg-[var(--primary)]/8" : ""}`}
                       onClick={() => onToggle(c.criterion_id)}
                     >
-                      <td className="px-2 py-2 text-slate-400">
-                        {khoaRows.length > 0 ? (
-                          expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />
-                        ) : null}
-                      </td>
-                      <td className="px-3 py-2 text-left text-xs font-medium text-slate-800">
+                      <td className="px-2.5 py-1.5 text-left text-xs font-medium text-slate-800">
                         {c.stt != null ? `${c.stt}. ` : ""}
                         {c.ten_tieu_chi}
                       </td>
-                      <td className="px-3 py-2 text-right tabular-nums text-slate-700">{c.tong_quan_sat}</td>
-                      <td className="px-3 py-2 text-right tabular-nums font-medium text-red-700">{c.tong_vi_pham}</td>
-                      <td
-                        className={`px-3 py-2 text-right font-bold tabular-nums ${criterionToneClass(c.ty_le_tuan_thu)}`}
-                      >
+                      <td className="px-2.5 py-1.5 text-right tabular-nums text-slate-700">{c.tong_quan_sat}</td>
+                      <td className="px-2.5 py-1.5 text-right tabular-nums font-medium text-red-700">{c.tong_vi_pham}</td>
+                      <td className={`px-2.5 py-1.5 text-right font-semibold tabular-nums ${criterionToneClass(c.ty_le_tuan_thu)}`}>
                         {c.ty_le_tuan_thu != null ? formatPercent2(c.ty_le_tuan_thu) : "—"}
                       </td>
                     </tr>
-                    {expanded && khoaRows.length > 0 ? (
-                      <tr className="bg-slate-50/80">
-                        <td colSpan={5} className="px-3 py-2">
-                          <ResponsiveTableShell unboxed className="ml-6 rounded-lg border border-slate-200 bg-white" maxHeight="max-h-[240px]">
-                            <table className="w-full min-w-[400px] text-xs">
-                              <thead>
-                                <tr className="border-b border-slate-100 bg-slate-50 text-[11px] font-bold uppercase text-slate-500">
-                                  <th className="px-3 py-1.5 text-left">Khoa</th>
-                                  <th className="px-2 py-1.5 text-right">Quan sát</th>
-                                  <th className="px-2 py-1.5 text-right">Vi phạm</th>
-                                  <th className="px-2 py-1.5 text-right">Tỷ lệ VP</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {khoaRows.map((k) => (
-                                  <tr key={k.khoa_id} className="border-b border-slate-50 last:border-0">
-                                    <td className="px-3 py-1.5 font-medium text-slate-700">{k.ten}</td>
-                                    <td className="px-2 py-1.5 text-right tabular-nums">{k.tong_quan_sat}</td>
-                                    <td className="px-2 py-1.5 text-right tabular-nums text-red-700">{k.tong_vi_pham}</td>
-                                    <td className="px-2 py-1.5 text-right font-bold tabular-nums text-red-700">
-                                      {formatPercent2(k.ty_le_vi_pham)}
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </ResponsiveTableShell>
-                        </td>
-                      </tr>
-                    ) : null}
-                  </React.Fragment>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </ResponsiveTableShell>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </ResponsiveTableShell>
+        {khoaRows.length > 0 ? (
+          <ResponsiveTableShell maxHeight="max-h-[min(360px,50dvh)]">
+            <table className="w-full min-w-[320px] border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500">
+                  <th className="px-2.5 py-1.5 text-left">
+                    Khoa{selected ? ` · ${selected.ten_tieu_chi}` : ""}
+                  </th>
+                  <th className="px-2.5 py-1.5 text-right">Quan sát</th>
+                  <th className="px-2.5 py-1.5 text-right">Vi phạm</th>
+                  <th className="px-2.5 py-1.5 text-right">Tỷ lệ VP</th>
+                </tr>
+              </thead>
+              <tbody>
+                {khoaRows.map((k) => (
+                  <tr key={k.khoa_id} className="border-b border-slate-100">
+                    <td className="px-2.5 py-1.5 font-medium text-slate-700">{k.ten}</td>
+                    <td className="px-2.5 py-1.5 text-right tabular-nums">{k.tong_quan_sat}</td>
+                    <td className="px-2.5 py-1.5 text-right tabular-nums text-red-700">{k.tong_vi_pham}</td>
+                    <td className="px-2.5 py-1.5 text-right font-semibold tabular-nums text-red-700">
+                      {formatPercent2(k.ty_le_vi_pham)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </ResponsiveTableShell>
+        ) : (
+          <p className="self-center text-[11px] text-slate-400">
+            {selected ? "Không có số theo khoa cho tiêu chí này." : "Bấm một tiêu chí để xem khoa."}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

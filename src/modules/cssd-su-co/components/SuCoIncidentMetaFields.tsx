@@ -24,6 +24,7 @@ type Props = {
   detectorOptions: SearchableSelectOption[];
   relatedOptions: SearchableSelectOption[];
   relatedHint?: string;
+  wide?: boolean;
   onChange: (key: keyof SuCoIncidentMetaState, value: string) => void;
   onSelectDetector: (id: string, label: string) => void;
   onSelectRelated: (id: string, label: string) => void;
@@ -43,13 +44,18 @@ export default function SuCoIncidentMetaFields({
   detectorOptions,
   relatedOptions,
   relatedHint,
+  wide = false,
   onChange,
   onSelectDetector,
   onSelectRelated,
 }: Props) {
+  const peopleGrid = `grid grid-cols-1 gap-4 sm:grid-cols-2 ${wide ? "lg:grid-cols-4" : ""}`;
+  const detailGrid = wide
+    ? `grid grid-cols-1 gap-4 ${imageHidden ? "" : "lg:grid-cols-2"}`
+    : "space-y-[var(--bv103-space-3)]";
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className="space-y-[var(--bv103-space-3)]">
+      <div className={peopleGrid}>
         <div className="space-y-1.5">
           <label className={bv103LayoutChrome.labelBlock}>Thời gian phát hiện</label>
           <input
@@ -67,9 +73,6 @@ export default function SuCoIncidentMetaFields({
             className={`${bv103LayoutChrome.controlInput} cursor-not-allowed border-slate-100 bg-slate-100 text-slate-600`}
           />
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <label className={bv103LayoutChrome.labelBlock}>Người phát hiện (tùy chọn)</label>
           <SearchableSelect
@@ -101,49 +104,50 @@ export default function SuCoIncidentMetaFields({
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <label className={bv103LayoutChrome.labelBlock}>
-          Mô tả chi tiết sự cố <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          value={values.moTa}
-          onChange={(e) => onChange("moTa", e.target.value)}
-          rows={4}
-          className="w-full resize-none rounded-[var(--radius-control)] border border-slate-200 bg-slate-50 p-3 text-sm font-medium text-slate-800 shadow-sm outline-none transition-colors focus:border-[var(--primary)]/50 focus:bg-white focus:ring-2 focus:ring-[var(--primary)]/15"
-          placeholder="Mô tả cụ thể sự việc..."
-        />
-      </div>
-
-      {!imageHidden ? (
-        <div className="space-y-1.5 border-t border-slate-100 pt-2">
+      <div className={detailGrid}>
+        <div className="space-y-1.5">
           <label className={bv103LayoutChrome.labelBlock}>
-            Ảnh minh chứng{imageRequired ? " *" : " (tùy chọn)"}
+            Mô tả chi tiết sự cố <span className="text-red-500">*</span>
           </label>
-          <div className="relative">
-            <input
-              value={values.anhMinhChung}
-              onChange={(e) => onChange("anhMinhChung", e.target.value)}
-              className={`${bv103LayoutChrome.controlInput} bg-slate-50 pr-10`}
-              placeholder="Dán link ảnh hoặc link Google Drive..."
-            />
-            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-              <Camera size={16} />
-            </div>
-          </div>
-          {values.anhMinhChung ? (
-            <div className="mt-3 flex max-h-48 flex-col items-center justify-center overflow-hidden rounded-[var(--radius-control)] border border-slate-200 bg-slate-50 p-3">
-              <img
-                src={getGoogleDriveDirectLink(values.anhMinhChung)}
-                alt="Preview ảnh minh chứng"
-                className="max-h-40 rounded-lg border border-slate-100 bg-white object-contain shadow-sm"
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = "none";
-                }}
-              />
-            </div>
-          ) : null}
+          <textarea
+            value={values.moTa}
+            onChange={(e) => onChange("moTa", e.target.value)}
+            rows={wide ? 3 : 4}
+            className="w-full resize-none rounded-[var(--radius-control)] border border-slate-200 bg-slate-50 p-3 text-sm font-medium text-slate-800 shadow-sm outline-none transition-colors focus:border-[var(--primary)]/50 focus:bg-white focus:ring-2 focus:ring-[var(--primary)]/15"
+            placeholder="Mô tả cụ thể sự việc..."
+          />
         </div>
-      ) : null}
+        {!imageHidden ? (
+          <div className={`space-y-1.5 ${wide ? "" : "border-t border-slate-100 pt-2"}`}>
+            <label className={bv103LayoutChrome.labelBlock}>
+              Ảnh minh chứng{imageRequired ? " *" : " (tùy chọn)"}
+            </label>
+            <div className="relative">
+              <input
+                value={values.anhMinhChung}
+                onChange={(e) => onChange("anhMinhChung", e.target.value)}
+                className={`${bv103LayoutChrome.controlInput} bg-slate-50 pr-10`}
+                placeholder="Dán link ảnh hoặc link Google Drive..."
+              />
+              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                <Camera size={16} />
+              </div>
+            </div>
+            {values.anhMinhChung ? (
+              <div className="mt-3 flex max-h-48 flex-col items-center justify-center overflow-hidden rounded-[var(--radius-control)] border border-slate-200 bg-slate-50 p-3">
+                <img
+                  src={getGoogleDriveDirectLink(values.anhMinhChung)}
+                  alt="Preview ảnh minh chứng"
+                  className="max-h-40 rounded-lg border border-slate-100 bg-white object-contain shadow-sm"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = "none";
+                  }}
+                />
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

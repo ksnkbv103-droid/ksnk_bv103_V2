@@ -11,7 +11,7 @@
 | G2 | Sửa phiên GSC (chưa khóa) | Mở phiên vừa tạo → sửa 1 tiêu chí → Lưu | Reload giữ dữ liệu |
 | G3 | Khóa GSC | Admin bật khóa module GSC (nếu dùng) → thử sửa/xóa | Bị chặn đúng thông báo |
 | G4 | Lịch sử GSC | Tab lịch sử → lọc khoa + kỳ | Danh sách đúng ngày/khoa |
-| V1 | Tạo phiên VST | `/giam-sat-vst` → phiên mới → ghi ≥1 cơ hội WHO → Lưu | Hiện trên tab history |
+| V1 | Tạo phiên VST | `/giam-sat-vst` → phiên mới → ghi ≥1 cơ hội WHO → Lưu | Hiện trên `/lich-su/vst` (nút «Xong — xem lịch sử»). `/thong-ke/vst` là tỷ lệ/biểu đồ, không phải danh sách phiên |
 | V2 | Header VST | Chọn khoa/khu vực từ danh mục admin | Dropdown khớp MDM |
 | V3 | Không import cũ | Không dùng luồng import VST đã gỡ | Chỉ session UI |
 | G5 | Không Excel phiên GSC | Không tìm nút Import Excel trên `/giam-sat-chung` | Chỉ form phiên; action server đã deprecate |

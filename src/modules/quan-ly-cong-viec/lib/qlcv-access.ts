@@ -92,3 +92,9 @@ export function canShowDirectCreateTask(f: QlcvUiAccessFlags): boolean {
 export function canShowQlcvApproveActions(f: QlcvUiAccessFlags): boolean {
   return f.isRBACAdmin || f.hasApprove || f.hasEdit;
 }
+
+/** Hủy khi chờ nghiệm thu — cùng quyền với action `huyKhiChoNghiemThuKhongDat` (xóa). */
+export function canShowHuyKhiNghiemThuKhongDat(row: QlcvTaskAccessRow, f: QlcvUiAccessFlags): boolean {
+  if (!isEligibleForNghiemThu(row)) return false;
+  return f.isRBACAdmin || f.hasDelete;
+}

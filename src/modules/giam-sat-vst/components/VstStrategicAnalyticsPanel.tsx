@@ -50,14 +50,14 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
   );
 
   return (
-    <div className={`${UI.sectionGap} space-y-6 pb-8`}>
+    <div className={`${UI.sectionGap} space-y-[var(--bv103-space-3)] pb-8`}>
       {p.loadError ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{p.loadError}</div>
       ) : null}
 
       <section className={`${UI.shell} w-full min-w-0 p-4`}>
         <header className="mb-4">
-          <h2 className="text-sm font-bold text-slate-800">Thống kê theo khoa</h2>
+          <h2 className="bv103-type-section text-slate-800">Thống kê theo khoa</h2>
           <p className="mt-1 text-[11px] text-slate-500">
             Tỷ lệ tuân thủ và số cơ hội giám sát — đủ mã khoa trong phạm vi lọc; khoa dưới 80% được tô cảnh báo.
             {p.khoaFilterLocked ? " Phạm vi khoa đang khóa." : ""} Kỳ {p.tuNgay} → {p.denNgay}.
@@ -76,13 +76,13 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
       <SupervisionMomentsPanel moments={p.payload?.moments ?? []} loading={p.loading} stroke="#10b981" />
 
       <details className={`${UI.shell}`}>
-        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+        <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
           Xem thêm
           <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
             KPI · xu hướng · so sánh khối / nghề / hình thức
           </span>
         </summary>
-        <div className="space-y-4 border-t border-slate-100 px-4 pb-4 pt-3">
+        <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
           <SupervisionKpiRow
             loading={p.loading}
             items={[

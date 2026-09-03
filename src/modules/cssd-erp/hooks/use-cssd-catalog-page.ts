@@ -3,18 +3,28 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { getKhoCatalogPayloadAction, lookupBoDungCuIdByQrAction } from "../actions/cssd-catalog.actions";
-import type { Catalog } from "../types/catalog.types";
+import {
+  getBosContainingLoaiAction,
+  searchKhoCatalogChiTietAction,
+  searchKhoCatalogLoaiAction,
+} from "../actions/cssd-catalog-search.actions";
+import type { Catalog, CSSDBo, CSSDChiTiet, CSSDLoai } from "../types/catalog.types";
 import { normalizeCssdCode } from "../shared/domain/cssd-qr-core";
-import { boIdsForLoai, filterCatalogRows, type CatalogTab } from "../views/cssd-catalog-page-helpers";
+import { filterCatalogRows, type CatalogTab } from "../views/cssd-catalog-page-helpers";
 
 export function useCssdCatalogPage() {
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<CatalogTab>("BO");
+  const [tab, setTabState] = useState<CatalogTab>("BO");
+  const setTab = useCallback((next: CatalogTab) => {
+    setTabState(next === "CHI_TIET" ? "BO" : next);
+  }, []);
   const [catalog, setCatalog] = useState<Catalog>({ bo: [], chi_tiet: [], loai: [], hoa_chat: [] });
   const [q, setQ] = useState("");
   const [selectedBoId, setSelectedBoId] = useState<string | null>(null);
   const [selectedChiTietId, setSelectedChiTietId] = useState<string | null>(null);
   const [selectedLoaiId, setSelectedLoaiId] = useState<string | null>(null);
+  const [boBySelectedLoai, setBoBySelectedLoai] = useState<CSSDBo[]>([]);
+
   const reload = useCallback(async () => {
     setLoading(true);
     const res = await getKhoCatalogPayloadAction();
@@ -31,14 +41,34 @@ export function useCssdCatalogPage() {
     void reload();
   }, [reload]);
 
+  useEffect(() => {
+    if (tab !== "LOAI") return;
+    const t = window.setTimeout(async () => {
+      const res = await searchKhoCatalogLoaiAction(q);
+      if (res.success) setCatalog((c) => ({ ...c, loai: res.data }));
+    }, 300);
+    return () => window.clearTimeout(t);
+  }, [tab, q]);
+
+  useEffect(() => {
+    if (!selectedLoaiId) {
+      setBoBySelectedLoai([]);
+      return;
+    }
+    let active = true;
+    void getBosContainingLoaiAction(selectedLoaiId).then((res) => {
+      if (active && res.success) setBoBySelectedLoai(res.data);
+    });
+    return () => {
+      active = false;
+    };
+  }, [selectedLoaiId]);
+
   const handleScan = useCallback(async (val: string) => {
     const code = normalizeCssdCode(val);
     if (!code) return;
 
-    // 1. Tìm chính xác mã bộ (ma_bo) trong danh mục
-    const matchedBo = catalog.bo.find(
-      (x) => normalizeCssdCode(x.ma_bo) === code
-    );
+    const matchedBo = catalog.bo.find((x) => normalizeCssdCode(x.ma_bo) === code);
     if (matchedBo) {
       setTab("BO");
       setSelectedBoId(matchedBo.id);
@@ -47,23 +77,30 @@ export function useCssdCatalogPage() {
       return;
     }
 
-    // 2. Tìm chính xác mã chi tiết (ma_chi_tiet) trong danh mục
-    const matchedChiTiet = catalog.chi_tiet.find(
-      (x) => normalizeCssdCode(x.ma_chi_tiet) === code
-    );
+    const ctRes = await searchKhoCatalogChiTietAction(code);
+    const matchedChiTiet = ctRes.success
+      ? ctRes.data.find((x: CSSDChiTiet) => normalizeCssdCode(x.ma_chi_tiet) === code)
+      : undefined;
     if (matchedChiTiet) {
-      setTab("CHI_TIET");
-      setSelectedChiTietId(matchedChiTiet.id);
-      setQ(code);
-      toast.success(`Đã tìm thấy dụng cụ chi tiết: ${matchedChiTiet.ten_chi_tiet}`);
+      const boId = matchedChiTiet.bo_dung_cu_id;
+      const foundBo = boId ? catalog.bo.find((x) => x.id === boId) : undefined;
+      if (foundBo) {
+        setTab("BO");
+        setSelectedBoId(foundBo.id);
+        setQ(foundBo.ma_bo || code);
+        toast.success(`Đã tìm thấy trong bộ: ${foundBo.ten_bo}`);
+        return;
+      }
+      toast.message("Mã này không gắn bộ đang hoạt động — mở tab Loại để xem tồn.");
       return;
     }
 
-    // 3. Tìm chính xác mã loại (ma_loai_dung_cu) trong danh mục
-    const matchedLoai = catalog.loai.find(
-      (x) => normalizeCssdCode(x.ma_loai_dung_cu) === code
-    );
+    const loaiRes = await searchKhoCatalogLoaiAction(code);
+    const matchedLoai = loaiRes.success
+      ? loaiRes.data.find((x: CSSDLoai) => normalizeCssdCode(x.ma_loai_dung_cu) === code)
+      : undefined;
     if (matchedLoai) {
+      setCatalog((c) => ({ ...c, loai: loaiRes.success ? loaiRes.data : c.loai }));
       setTab("LOAI");
       setSelectedLoaiId(matchedLoai.id);
       setQ(code);
@@ -71,7 +108,6 @@ export function useCssdCatalogPage() {
       return;
     }
 
-    // 4. Nếu không khớp trực tiếp mã danh mục, kiểm tra xem có phải là mã QR quy trình (mã QR dán trên bộ) không
     const toastId = toast.loading("Đang tìm kiếm mã QR quy trình...");
     try {
       const res = await lookupBoDungCuIdByQrAction(code);
@@ -89,27 +125,13 @@ export function useCssdCatalogPage() {
     } catch {
       toast.error("Đã xảy ra lỗi khi tìm kiếm mã QR.", { id: toastId });
     }
-  }, [catalog]);
+  }, [catalog.bo]);
 
-  const { boRows, chiTietRows, loaiRows, hoaChatRows } = useMemo(() => filterCatalogRows(catalog, q), [catalog, q]);
+  const { boRows, hoaChatRows } = useMemo(() => filterCatalogRows(catalog, q), [catalog, q]);
 
   const selectedBo = selectedBoId ? catalog.bo.find((x) => x.id === selectedBoId) || null : null;
   const selectedChiTiet = selectedChiTietId ? catalog.chi_tiet.find((x) => x.id === selectedChiTietId) || null : null;
   const selectedLoai = selectedLoaiId ? catalog.loai.find((x) => x.id === selectedLoaiId) || null : null;
-
-  const chiTietBySelectedBo = selectedBoId ? catalog.chi_tiet.filter((x) => x.bo_dung_cu_id === selectedBoId) : [];
-
-  const boBySelectedLoai = useMemo(() => {
-    const boIds = boIdsForLoai(catalog, selectedLoaiId);
-    return catalog.bo.filter((x) => boIds.includes(x.id));
-  }, [catalog, selectedLoaiId]);
-
-  const boBySelectedChiTietLoai = useMemo(() => {
-    const lid = selectedChiTiet?.loai_dung_cu_id;
-    if (!lid) return [];
-    const boIds = boIdsForLoai(catalog, lid);
-    return catalog.bo.filter((x) => boIds.includes(x.id));
-  }, [catalog, selectedChiTiet?.loai_dung_cu_id]);
 
   return {
     loading,
@@ -126,15 +148,15 @@ export function useCssdCatalogPage() {
     setSelectedLoaiId,
     reload,
     boRows,
-    chiTietRows,
-    loaiRows,
+    chiTietRows: catalog.chi_tiet,
+    loaiRows: catalog.loai,
     hoaChatRows,
     selectedBo,
     selectedChiTiet,
     selectedLoai,
-    chiTietBySelectedBo,
+    chiTietBySelectedBo: [] as CSSDChiTiet[],
     boBySelectedLoai,
-    boBySelectedChiTietLoai,
+    boBySelectedChiTietLoai: boBySelectedLoai,
     handleScan,
   };
 }

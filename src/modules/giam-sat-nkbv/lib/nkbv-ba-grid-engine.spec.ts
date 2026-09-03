@@ -689,4 +689,47 @@ describe("nkbv-ba-grid-engine shift timeline", () => {
     });
     expect(session.nsk).toBe("2026-07-22");
   });
+
+  it("SSI không tô IWP ±3 trên lưới", () => {
+    const session = computeBaGridSession({
+      ngayVaoVien: "2026-07-01",
+      xn: [],
+      cdha: [],
+      activeIndex: { kind: "TIEU_CHUAN", id: "surg-1", date: "2026-07-10" },
+      nghiNgo: "SSI",
+      symptomDates: {},
+      tieuChuanByDate: {},
+      khoaByDate: {},
+      canThiepDates: [],
+    });
+    expect(session.iwpDates.size).toBe(0);
+  });
+
+  it("quy kết khoa chuyển trên lưới từ khoaByDate (DOE = ngày sau chuyển)", () => {
+    const session = computeBaGridSession({
+      ngayVaoVien: "2026-05-10",
+      xn: [
+        {
+          id: "u1",
+          ngay: "2026-05-13",
+          benh_pham: "Nước tiểu",
+          vi_khuan: "E. coli",
+          source: "LIS",
+        },
+      ],
+      cdha: [],
+      activeIndex: { kind: "XN", id: "u1", date: "2026-05-13" },
+      nghiNgo: "UTI",
+      symptomDates: {},
+      tieuChuanByDate: {},
+      khoaByDate: {
+        "2026-05-10": "CC",
+        "2026-05-11": "CC",
+        "2026-05-12": "ICU",
+        "2026-05-13": "ICU",
+      },
+      canThiepDates: [],
+    });
+    expect(session.metrics?.attributedStay?.khoa_id).toBe("CC");
+  });
 });

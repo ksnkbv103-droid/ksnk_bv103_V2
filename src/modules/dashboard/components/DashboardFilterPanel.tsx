@@ -117,7 +117,7 @@ export const DashboardFilterPanel: React.FC<DashboardFilterPanelProps> = (p) => 
             {showAdvanced ? <ChevronUp className="h-3.5 w-3.5" aria-hidden /> : <ChevronDown className="h-3.5 w-3.5" aria-hidden />}
             Bộ lọc
             {advancedActive ? (
-              <span className="rounded bg-emerald-100 px-1 py-0.5 text-[11px] font-bold text-emerald-800">•</span>
+              <span className="rounded bg-emerald-100 px-1 py-0.5 bv103-type-label font-semibold text-emerald-800">•</span>
             ) : null}
           </button>
           ) : null}

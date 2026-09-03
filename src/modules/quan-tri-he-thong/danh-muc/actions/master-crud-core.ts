@@ -76,6 +76,12 @@ const CONSOLIDATED_MAPS: Record<
   }
 > = {
   gstt_dm_cach_thuc_giam_sat: { categoryType: "CACH_THUC_GIAM_SAT", maColumn: "ma_cach_thuc", tenColumn: "ten_cach_thuc" },
+  gstt_dm_khu_vuc_giam_sat: {
+    categoryType: "KHU_VUC_GIAM_SAT",
+    maColumn: "ma_khu_vuc",
+    tenColumn: "ten_khu_vuc",
+    metadataColumns: ["thu_tu"],
+  },
   mdm_dm_chuc_danh: { categoryType: "CHUC_DANH", maColumn: "ma_chuc_danh", tenColumn: "ten_chuc_danh" },
   mdm_dm_chuc_vu: { categoryType: "CHUC_VU", maColumn: "ma_chuc_vu", tenColumn: "ten_chuc_vu" },
   gstt_dm_hinh_thuc_giam_sat: { categoryType: "HINH_THUC_GIAM_SAT", maColumn: "ma_hinh_thuc", tenColumn: "ten_hinh_thuc" },
@@ -113,7 +119,8 @@ function convertToLookupPayload(tableName: string, payload: Record<string, unkno
     payload["ma_nghe_nghiep"] ??
     payload["ma_to"] ??
     payload["ma_trang_thai"] ??
-    payload["ma"] ?? 
+    payload["ma"] ??
+    payload["ma_khu_vuc"] ??
     ""
   ).trim();
 
@@ -126,7 +133,8 @@ function convertToLookupPayload(tableName: string, payload: Record<string, unkno
     payload["ten_nghe_nghiep"] ??
     payload["ten_to"] ??
     payload["ten_trang_thai"] ??
-    payload["ten"] ?? 
+    payload["ten"] ??
+    payload["ten_khu_vuc"] ??
     ""
   ).trim();
 

@@ -7,6 +7,7 @@ import { parseGscResultsJsonb } from "../lib/gsc-results-jsonb";
 import { GSC_SESSIONS_FULL_DETAIL_SELECT } from "../lib/gsc-read-view-select";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { parseGscBoSungNbFromUnknown } from "../lib/gsc-bo-sung-nguoi-benh";
+import { parseGscBangKiemSnapshot } from "../lib/gsc-bang-kiem-snapshot";
 
 function getErrorMessage(error: unknown): string {
   if (error && typeof error === "object") {
@@ -56,13 +57,19 @@ export async function getGiamSatChungSessionForViewBundle(sessionId: string) {
       .maybeSingle();
     const meta = (metaRow?.metadata || {}) as Record<string, unknown>;
     const boSungSnap = parseGscBoSungNbFromUnknown(meta);
+    const bangKiemSnapshot = parseGscBangKiemSnapshot(meta);
 
     // 2. Map Results from JSONB column
     const rs = parseGscResultsJsonb(ses.results_jsonb);
 
     // 3. Enrich and Map back to expected format
     const enriched = enrichGscHistoryRows([ses as Record<string, unknown>])[0];
-    const row = { ...enriched, ...boSungSnap, results: rs };
+    const row = {
+      ...enriched,
+      ...boSungSnap,
+      results: rs,
+      bang_kiem_snapshot: bangKiemSnapshot,
+    };
     
     return { success: true as const, data: row };
   } catch (error: unknown) {

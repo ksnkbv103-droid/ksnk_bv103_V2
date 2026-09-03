@@ -42,6 +42,8 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
   const [hanHoanThanh, setHanHoanThanh] = useState(
     proposal.han_hoan_thanh ? String(proposal.han_hoan_thanh).split("T")[0] : "",
   );
+  const [khoaPhongOptions, setKhoaPhongOptions] = useState<QlcvSelectOption[]>([]);
+  const [selectedKhoa, setSelectedKhoa] = useState(() => String(proposal.dia_diem_khoa_id || ""));
 
   useEffect(() => {
     setTieuDe(proposal.tieu_de);
@@ -49,6 +51,7 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
     setLoaiCongViec(proposal.loai_cong_viec === "KHAN_CAP" ? "KHAN_CAP" : "DOT_XUAT");
     setMucDoUuTien((proposal.muc_do_uu_tien as QlcvMucDoUuTien) || "TRUNG_BINH");
     setHanHoanThanh(proposal.han_hoan_thanh ? String(proposal.han_hoan_thanh).split("T")[0] : "");
+    setSelectedKhoa(String(proposal.dia_diem_khoa_id || ""));
     setSelectedNhanSu("");
     setSelectedTo("");
   }, [proposal]);
@@ -60,6 +63,7 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
         const catalog = await getQlcvFormCatalog();
         setNhanSuOptions(catalog.nhanSu);
         setToCongTacOptions(catalog.toCongTac);
+        setKhoaPhongOptions(catalog.khoaPhong);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Không tải được danh mục.");
       } finally {
@@ -97,6 +101,10 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
       toast.error("Chọn người phụ trách trước khi phê duyệt.");
       return;
     }
+    if (!String(selectedKhoa || "").trim()) {
+      toast.error("Chọn khoa/đơn vị địa điểm thực hiện.");
+      return;
+    }
 
     const payload = {
       tieu_de: tieuDe.trim(),
@@ -106,6 +114,7 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
       han_hoan_thanh: hanHoanThanh || null,
       nguoi_phu_trach_id: selectedNhanSu,
       to_cong_tac_id: selectedTo,
+      dia_diem_khoa_id: selectedKhoa,
     };
 
     const validation = congViecSchema.safeParse(payload);
@@ -133,8 +142,8 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
     "rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-2.5 text-sm text-slate-800";
 
   return (
-    <form onSubmit={handleApprove} className="space-y-6">
-      <div className={`space-y-4 p-5 sm:p-6 ${bv103LayoutChrome.panelSurface}`}>
+    <form onSubmit={handleApprove} className="space-y-[var(--bv103-space-3)]">
+      <div className={`space-y-[var(--bv103-space-3)] ${bv103LayoutChrome.panelShellPadded}`}>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <label className={labelStyles}>Tiêu đề *</label>
@@ -185,7 +194,18 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
           </div>
         </div>
 
-        <div className="border-t border-slate-100 pt-4 space-y-4">
+        <div className="border-t border-slate-100 pt-4 space-y-[var(--bv103-space-3)]">
+          <div>
+            <label className={labelStyles}>Khoa / đơn vị địa điểm *</label>
+            <SearchableSelect
+              options={khoaPhongOptions}
+              placeholder={optionsLoading ? "Đang tải..." : "Chọn khoa từ danh mục MDM…"}
+              value={selectedKhoa}
+              onChange={setSelectedKhoa}
+              disabled={optionsLoading}
+              searchPlaceholder="Tìm khoa theo tên hoặc mã…"
+            />
+          </div>
           <div>
             <label className={labelStyles}>Tổ công tác chuyên trách *</label>
             <SearchableSelect

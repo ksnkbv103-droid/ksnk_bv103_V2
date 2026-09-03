@@ -10,7 +10,7 @@ import VSTPrintView from "./VSTPrintView";
 import { useVSTForm } from "../hooks/useVSTForm";
 import { useVstModuleLock } from "../hooks/use-vst-module-lock";
 import VstModuleLockBanner from "./VstModuleLockBanner";
-import { MOMENTS, ACTIONS, type MomentType, type ActionType } from "../lib/vst-constants";
+import { MOMENTS, ACTIONS, isVstMissedAction, vstMaxIndications, type MomentType, type ActionType } from "../lib/vst-constants";
 import { createDefaultVSTFormPersons, createNewOpp } from "../lib/vst-form-model";
 import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-time";
 import { resolveCanonicalHinhThucLabel } from "@/lib/supervision-hinh-thuc-legacy";
@@ -159,7 +159,6 @@ export default function VSTForm({
         return v ? v : undefined;
       };
 
-      const isMissedAction = (hanhDong: ActionType | null) => String(hanhDong ?? "") === "Bỏ sót";
       const parseAction = (hanhDong: unknown): ActionType | null => {
         const v = String(hanhDong ?? "").trim();
         if (!v) return null;
@@ -204,10 +203,8 @@ export default function VSTForm({
         const nextOpps = group.opps.map((o, oIdx) => {
           const row = o as VstObservationInput;
           const action = parseAction(row.hanh_dong);
-          const missed = isMissedAction(action);
-          let thoi_diems = splitMoments(row.thoi_diem);
-          if (missed) thoi_diems = thoi_diems.slice(-1);
-          else thoi_diems = thoi_diems.slice(0, 2);
+          const missed = isVstMissedAction(action);
+          const thoi_diems = splitMoments(row.thoi_diem).slice(missed ? -1 : 0, missed ? undefined : vstMaxIndications(action));
 
           const thoi_gian_ghi_nhan = isReplayCamera ? undefined : parseRecordedAt(row.thoi_gian_ghi_nhan);
 
@@ -275,7 +272,7 @@ export default function VSTForm({
 
   if (initialLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-[var(--bv103-space-3)]">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent" />
         <p className={`animate-pulse ${UI.emptyBody}`}>Đang tải dữ liệu danh mục & nhân sự...</p>
       </div>
@@ -284,7 +281,7 @@ export default function VSTForm({
 
   return (
     <div className={`relative ${UI.sectionGapLg} pb-32 max-sm:pb-44`}>
-      <div className="print:hidden space-y-6">
+      <div className="print:hidden space-y-[var(--bv103-space-3)]">
         <VstModuleLockBanner
           lockedUntilDate={lockedUntilDate}
           lockMessage={isLockedForSelectedDate ? lockMessage : null}
@@ -362,7 +359,7 @@ export default function VSTForm({
           })}
         </div>
 
-        <div className="grid min-h-0 grid-cols-1 gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3 xl:items-stretch [&>_*]:min-w-0">
+        <div className="grid min-h-0 grid-cols-1 gap-4 md:grid-cols-2 md:gap-[var(--bv103-space-3)] xl:grid-cols-3 xl:items-stretch [&>_*]:min-w-0">
           {persons.map((p, idx) => {
             const isTabActive = activePersonTab === idx;
             return (

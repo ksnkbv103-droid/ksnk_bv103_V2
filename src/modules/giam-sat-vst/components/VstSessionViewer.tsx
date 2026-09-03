@@ -42,7 +42,7 @@ export default function VstSessionViewer({
       aria-modal="true"
       aria-labelledby="vst-viewer-title"
     >
-      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-xl">
+      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-[var(--shadow-app-soft)]">
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
           <div className="min-w-0">
             <h2 id="vst-viewer-title" className="text-sm font-semibold text-[var(--primary)]">
@@ -60,7 +60,7 @@ export default function VstSessionViewer({
             Đóng
           </button>
         </div>
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+        <div className="min-h-0 flex-1 space-y-[var(--bv103-space-3)] overflow-y-auto p-4">
           {data.persons.map((person, pIdx) => {
             const name =
               person.is_manual

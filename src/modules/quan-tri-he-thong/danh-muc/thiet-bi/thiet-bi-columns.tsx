@@ -21,7 +21,7 @@ function clip(s: string | null | undefined, n: number) {
 export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
   return [
     {
-      header: "Mã / QR",
+      header: "Mã / Qr",
       accessorKey: "ma_thiet_bi",
       sortable: true,
       headerClassName: bv103TableLayout.colCodeQr,
@@ -49,7 +49,7 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       accessorKey: "loai_thiet_bi",
       sortable: true,
       cell: (i) => (
-        <span className="rounded-full bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-500">
+        <span className={TC.statusMuted}>
           {i.loai_thiet_bi || "—"}
         </span>
       ),
@@ -61,35 +61,15 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       cell: (i) => {
         const val = (i.trang_thai || "READY").toUpperCase();
         if (val === "REPAIRING" || val === "BAO_TRI") {
-          return (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-rose-600 border border-rose-100 shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
-              Đang bảo trì
-            </span>
-          );
+          return <span className={TC.statusDanger}>Đang bảo trì</span>;
         }
         if (val === "READY" || val === "SAN_SANG") {
-          return (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 border border-emerald-100 shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Sẵn sàng
-            </span>
-          );
+          return <span className={TC.statusOk}>Sẵn sàng</span>;
         }
         if (val === "HOLD_QC") {
-          return (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800 border border-amber-200 shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-              Tạm giữ QC
-            </span>
-          );
+          return <span className={TC.statusWarn}>Tạm giữ QC</span>;
         }
-        return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-blue-700 border border-blue-100 shadow-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-            {clip(i.trang_thai, 20)}
-          </span>
-        );
+        return <span className={TC.statusInfo}>{clip(i.trang_thai, 20)}</span>;
       },
     },
     {
@@ -98,16 +78,9 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       sortable: true,
       cell: (i) => {
         const count = i.so_lan_su_dung || 0;
-        if (count > 0) {
-          return (
-            <span className="inline-flex items-center gap-1 rounded-full border border-amber-100 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-amber-700 shadow-sm">
-              🔥 {count} mẻ
-            </span>
-          );
-        }
         return (
-          <span className="inline-flex items-center rounded-full bg-slate-50 border border-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-400">
-            0 mẻ
+          <span className={count > 0 ? TC.statusWarn : TC.statusMuted}>
+            {count} mẻ
           </span>
         );
       },
@@ -135,7 +108,7 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       header: "Bk (ngày)",
       accessorKey: "chu_ky_bao_tri_ngay",
       sortable: true,
-      cell: (i) => <span className="text-[11px] font-bold">{i.chu_ky_bao_tri_ngay ?? "—"}</span>,
+      cell: (i) => <span className="bv103-type-label font-semibold">{i.chu_ky_bao_tri_ngay ?? "—"}</span>,
     },
     {
       header: "Bk gần / Tiếp",
@@ -152,7 +125,7 @@ export function getThietBiColumns(actionUi: ActionCells): Column<ThietBiRow>[] {
       cell: (i) => <span className="text-[11px] text-slate-500">{clip(i.ghi_chu, 40)}</span>,
     },
     {
-      header: "Tem QR",
+      header: "Tem qr",
       accessorKey: "id",
       headerClassName: bv103TableLayout.colActions,
       cellClassName: bv103TableLayout.colActions,

@@ -142,6 +142,20 @@ describe("bao-cao-tong-hop-core", () => {
     ).toBe(10);
   });
 
+  it("bucketTrendByMonth keeps GSC at two decimals for 2/3", () => {
+    const month = bucketTrendByMonth([
+      {
+        label: "T1",
+        min_date: "2026-01-05",
+        ty_le_vst: null,
+        ty_le_gsc: 66.7,
+        gsc_tong: 3,
+        gsc_dat: 2,
+      },
+    ]);
+    expect(month[0]?.ty_le_gsc).toBe(66.67);
+  });
+
   it("bucketTrendByMonth sums volumes not averages percentages", () => {
     const month = bucketTrendByMonth([
       {

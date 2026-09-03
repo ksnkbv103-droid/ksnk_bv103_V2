@@ -40,9 +40,9 @@ export default function DoiMatKhauPage() {
   };
 
   return (
-    <div className="mx-auto max-w-md space-y-6 p-4">
+    <div className="mx-auto max-w-md space-y-[var(--bv103-space-3)] p-4">
       <h1 className={T.pageTitle}>Đổi mật khẩu</h1>
-      <form onSubmit={onSubmit} className={`space-y-4 p-6 ${C.panelSurface}`}>
+      <form onSubmit={onSubmit} className={`space-y-[var(--bv103-space-3)] ${C.panelShellPadded}`}>
         <div>
           <label className={T.labelBlock}>Email đăng nhập</label>
           <input

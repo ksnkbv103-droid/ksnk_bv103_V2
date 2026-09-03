@@ -10,9 +10,10 @@ import { DungCuWorkflowGuide } from "./dung-cu-workflow-guide";
 import { quanTriDungCuHref, type DungCuTab } from "@/lib/master-data/quan-tri-paths";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import { KsnkPageChrome } from "@/components/shared/KsnkPageChrome";
 
 const dungCuTabBtn = (active: boolean) =>
-  `${C.navTabBtn} px-5 text-[11px] font-bold uppercase tracking-wider ${
+  `${C.navTabBtn} px-5 text-[11px] font-medium ${
     active ? "bg-white text-[var(--primary)] shadow-sm ring-1 ring-slate-200/80" : "text-slate-500 hover:bg-white/70 hover:text-slate-800"
   }`;
 
@@ -63,38 +64,33 @@ export default function QuanLyDungCuPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-[var(--radius-shell)] border border-slate-200/90 bg-white p-6 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-[var(--primary)] flex items-center gap-3">
-            <LayoutGrid size={24} aria-hidden /> Quản lý dụng cụ
-          </h1>
-          <p className="mt-1 text-[11px] font-medium text-slate-500">
-            Định nghĩa loại và bộ — thành phần sửa trong từng bộ
-          </p>
-        </div>
-
-        <div className={`${C.navTabStrip} w-full max-sm:rounded-xl sm:w-fit`} role="tablist" aria-label="Phân hệ dụng cụ">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "loai"}
-            onClick={() => selectTab("loai")}
-            className={dungCuTabBtn(activeTab === "loai")}
-          >
-            <LayoutGrid size={14} aria-hidden /> Loại dụng cụ
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "bo"}
-            onClick={() => selectTab("bo")}
-            className={dungCuTabBtn(activeTab === "bo")}
-          >
-            <Database size={14} aria-hidden /> Bộ dụng cụ
-          </button>
-        </div>
-      </div>
+    <div className="space-y-3">
+      <KsnkPageChrome
+        showTitle={false}
+        title="Quản lý dụng cụ"
+        tabs={
+          <div className={`${C.navTabStrip} w-full max-sm:rounded-xl sm:w-fit`} role="tablist" aria-label="Phân hệ dụng cụ">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "loai"}
+              onClick={() => selectTab("loai")}
+              className={dungCuTabBtn(activeTab === "loai")}
+            >
+              <LayoutGrid size={14} aria-hidden /> Loại dụng cụ
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "bo"}
+              onClick={() => selectTab("bo")}
+              className={dungCuTabBtn(activeTab === "bo")}
+            >
+              <Database size={14} aria-hidden /> Bộ dụng cụ
+            </button>
+          </div>
+        }
+      />
 
       <DungCuWorkflowGuide />
 

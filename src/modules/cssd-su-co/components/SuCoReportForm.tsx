@@ -1,8 +1,8 @@
 // src/modules/cssd-su-co/components/SuCoReportForm.tsx
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { CheckCircle2, Loader2, AlertCircle, FileText } from "lucide-react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { usePermission } from "@/hooks/usePermission";
 import {
@@ -17,7 +17,10 @@ import {
   INCIDENT_GROUP_LABEL,
   INCIDENT_TYPE_PRESETS,
   INCIDENT_STATION_OPTIONS,
+  coerceInstrumentFormTypeId,
   groupTypeDefaults,
+  instrumentFormTypeOptions,
+  isBatchLinkedTypeId,
   type IncidentGroup,
 } from "../domain/cssd-incident-taxonomy";
 import {
@@ -27,8 +30,9 @@ import {
 } from "../domain/cssd-incident-staff-options";
 import { isInstrumentIncidentImageRequired } from "../domain/cssd-incident-trace";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
-import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
-import InstrumentIncidentFields, { type InstrumentIncidentFormState } from "./InstrumentIncidentFields";
+import InstrumentSetReconcileTable, { type SetReconcileFormState } from "./InstrumentSetReconcileTable";
+import { INSTRUMENT_MOVE_TYPE_ID, resolveInstrumentMoveSubmitTypeId, validateInstrumentDoorLines, type CanKhoPrefill } from "@/lib/domain/cssd-set-reconcile";
+import InstrumentMoveDualTable from "./InstrumentMoveDualTable";
 import SuCoIncidentMetaFields, {
   defaultDetectionDateTimeLocal,
   type SuCoIncidentMetaState,
@@ -38,7 +42,9 @@ import {
   ChemicalContextFields,
   EquipmentContextFields,
   IncidentGroupPicker,
+  InstrumentDoorTabs,
   OtherContextFields,
+  ProcessMaLoField,
   StationOverrideSelect,
   SubmittedSuccessView,
   TypePicker,
@@ -57,7 +63,8 @@ export type SuCoReportFormProps = {
   initialLoTietKhuanId?: string;
   allowStationOverride?: boolean;
   enabled: boolean;
-  onSubmitted?: () => void;
+  onSubmitted?: (incidentId?: string) => void;
+  onDismiss?: () => void;
   layout?: "page" | "modal";
 };
 
@@ -84,6 +91,7 @@ export default function SuCoReportForm({
   allowStationOverride = false,
   enabled,
   onSubmitted,
+  onDismiss,
   layout = "page",
 }: SuCoReportFormProps) {
   const isModal = layout === "modal";
@@ -97,13 +105,27 @@ export default function SuCoReportForm({
   const [fError, setFError] = useState<string | null>(null);
   const [detectionStation, setDetectionStation] = useState<Station>(initialStation);
   const [incidentGroup, setIncidentGroup] = useState<IncidentGroup>(initialGroup || "PROCESS");
-  const [instrumentState, setInstrumentState] = useState<InstrumentIncidentFormState | null>(null);
-  const [typeId, setTypeId] = useState(initialTypeId || INCIDENT_TYPE_PRESETS.PROCESS[0]?.code || "");
-  const [typeTen, setTypeTen] = useState(
-    INCIDENT_TYPE_PRESETS.PROCESS.find((x) => x.code === initialTypeId)?.label ||
-      INCIDENT_TYPE_PRESETS.PROCESS[0]?.label ||
-      "",
+  const [setReconcileState, setSetReconcileState] = useState<SetReconcileFormState | null>(null);
+  const [destMa, setDestMa] = useState("");
+  const [moveUsesKho, setMoveUsesKho] = useState(true);
+  const [canKhoPrefill, setCanKhoPrefill] = useState<CanKhoPrefill | null>(null);
+  const consumeCanKhoPrefill = useCallback(() => setCanKhoPrefill(null), []);
+  const [typeId, setTypeId] = useState(
+    initialGroup === "INSTRUMENT"
+      ? coerceInstrumentFormTypeId(initialTypeId)
+      : initialTypeId || INCIDENT_TYPE_PRESETS.PROCESS[0]?.code || "",
   );
+  const [typeTen, setTypeTen] = useState(() => {
+    if (initialGroup === "INSTRUMENT") {
+      const coerced = coerceInstrumentFormTypeId(initialTypeId);
+      return INCIDENT_TYPE_PRESETS.INSTRUMENT.find((x) => x.code === coerced)?.label || "Rà soát / hỏng / mất";
+    }
+    return (
+      INCIDENT_TYPE_PRESETS.PROCESS.find((x) => x.code === initialTypeId)?.label ||
+      INCIDENT_TYPE_PRESETS.PROCESS[0]?.label ||
+      ""
+    );
+  });
   const [maQR, setMaQR] = useState(initialMaQR || "");
   const [faultStation, setFaultStation] = useState<Station>(initialStation);
   const [machineId, setMachineId] = useState("");
@@ -111,9 +133,6 @@ export default function SuCoReportForm({
   const [loTietKhuanId, setLoTietKhuanId] = useState(initialLoTietKhuanId || "");
   const [viTriPhatHien, setViTriPhatHien] = useState("");
   const [meta, setMeta] = useState<SuCoIncidentMetaState>(emptyMeta);
-  const [wizardStep, setWizardStep] = useState<1 | 2>(
-    initialTypeId || initialChiTietId || initialMaQR ? 2 : 1,
-  );
   const [machines, setMachines] = useState<{ id: string; ten: string }[]>([]);
   const [chemicals, setChemicals] = useState<{ id: string; ten: string; ma: string }[]>([]);
   const [boOptions, setBoOptions] = useState<BoCatalogOption[]>([]);
@@ -121,6 +140,7 @@ export default function SuCoReportForm({
   const [nhanSu, setNhanSu] = useState<SuCoNhanSuRow[]>([]);
   const [cyclePerformers, setCyclePerformers] = useState<SuCoCyclePerformerOption[]>([]);
   const [submittedIncident, setSubmittedIncident] = useState<{ incident: unknown; details: unknown[] } | null>(null);
+  const confirmDuplicateRef = useRef(false);
 
   useEffect(() => {
     if (!allowStationOverride) setDetectionStation(initialStation);
@@ -133,9 +153,19 @@ export default function SuCoReportForm({
     if (initialLoTietKhuanId) setLoTietKhuanId(initialLoTietKhuanId);
   }, [enabled, initialMaQR, initialMaLo, initialLoTietKhuanId]);
 
-  const activeGroupOptions = useMemo(() => INCIDENT_TYPE_PRESETS[incidentGroup], [incidentGroup]);
-  const imageRequired = incidentGroup === "INSTRUMENT" && isInstrumentIncidentImageRequired(typeId);
-  const imageHidden = incidentGroup === "INSTRUMENT" && typeId === "INSTRUMENT_MISSING";
+  const activeGroupOptions = useMemo(
+    () => (incidentGroup === "INSTRUMENT" ? instrumentFormTypeOptions() : INCIDENT_TYPE_PRESETS[incidentGroup]),
+    [incidentGroup],
+  );
+  const isInstrument = incidentGroup === "INSTRUMENT";
+  const isMoveDoor = isInstrument && typeId === INSTRUMENT_MOVE_TYPE_ID;
+  const isReconcileDoor = isInstrument && !isMoveDoor;
+  const imageRequired =
+    (isInstrument && isInstrumentIncidentImageRequired(typeId)) ||
+    (isMoveDoor && moveUsesKho) ||
+    (isReconcileDoor &&
+      (setReconcileState?.lines.some((l) => l.kind === "HONG" || l.kind === "BO_SUNG") ?? false));
+  const imageHidden = (isMoveDoor && !moveUsesKho) || (isInstrument && typeId === "INSTRUMENT_MISSING");
   const needsBoCatalog = incidentGroup === "PROCESS" || incidentGroup === "INSTRUMENT";
 
   const { detectorOptions, relatedOptions } = useMemo(
@@ -200,13 +230,20 @@ export default function SuCoReportForm({
 
   useEffect(() => {
     const defaults = groupTypeDefaults(incidentGroup);
-    const presetMatch = INCIDENT_TYPE_PRESETS[incidentGroup].find((x) => x.code === initialTypeId);
-    if (presetMatch) {
-      setTypeId(presetMatch.code);
-      setTypeTen(presetMatch.label);
+    if (incidentGroup === "INSTRUMENT") {
+      const coerced = coerceInstrumentFormTypeId(initialTypeId);
+      const preset = INCIDENT_TYPE_PRESETS.INSTRUMENT.find((x) => x.code === coerced);
+      setTypeId(preset?.code || defaults.typeId);
+      setTypeTen(preset?.label || defaults.typeTen);
     } else {
-      setTypeId(defaults.typeId);
-      setTypeTen(defaults.typeTen);
+      const presetMatch = INCIDENT_TYPE_PRESETS[incidentGroup].find((x) => x.code === initialTypeId);
+      if (presetMatch) {
+        setTypeId(presetMatch.code);
+        setTypeTen(presetMatch.label);
+      } else {
+        setTypeId(defaults.typeId);
+        setTypeTen(defaults.typeTen);
+      }
     }
     setFaultStation(detectionStation);
     if (incidentGroup === "OTHER" || incidentGroup === "CHEMICAL") {
@@ -315,10 +352,31 @@ export default function SuCoReportForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if ((incidentGroup === "PROCESS" || incidentGroup === "INSTRUMENT") && !maQR.trim()) {
-      return toast.error(`Nhóm "${INCIDENT_GROUP_LABEL[incidentGroup]}" cần chọn hoặc quét mã bộ dụng cụ.`);
+    const hasBatchContext = Boolean(maLo.trim() || loTietKhuanId.trim());
+    const batchLinked = incidentGroup === "PROCESS" && isBatchLinkedTypeId(typeId);
+    if (incidentGroup === "INSTRUMENT" && !maQR.trim()) {
+      return toast.error(
+        isMoveDoor
+          ? "Cửa Chuyển cần chọn bộ dụng cụ (ít nhất một bên là bộ)."
+          : `Nhóm "${INCIDENT_GROUP_LABEL.INSTRUMENT}" cần chọn hoặc quét mã bộ dụng cụ.`,
+      );
     }
-    if (!meta.moTa.trim()) return toast.error("Vui lòng điền mô tả chi tiết sự cố.");
+    if (incidentGroup === "PROCESS" && !maQR.trim() && !(batchLinked && hasBatchContext)) {
+      return toast.error("Nhóm Quy trình cần mã bộ dụng cụ — hoặc mã lô nếu là sự cố mẻ / BI+.");
+    }
+    if (typeId === "PROCESS_BI_POSITIVE" && !hasBatchContext) {
+      return toast.error("Sự cố BI dương tính cần mã lô mẻ tiệt khuẩn.");
+    }
+    const descText =
+      meta.moTa.trim() ||
+      (isMoveDoor
+        ? moveUsesKho
+          ? "Điều chuyển dụng cụ giữa kho lẻ và bộ."
+          : "Điều chuyển dụng cụ giữa hai bộ."
+        : isReconcileDoor
+          ? "Rà soát thành phần bộ dụng cụ."
+          : "");
+    if (!descText) return toast.error("Vui lòng điền mô tả chi tiết sự cố.");
     if (incidentGroup === "EQUIPMENT" && !machineId.trim()) {
       return toast.error("Vui lòng chọn hoặc quét máy gặp sự cố.");
     }
@@ -330,17 +388,9 @@ export default function SuCoReportForm({
     }
 
     if (incidentGroup === "INSTRUMENT") {
-      if (!instrumentState) return toast.error("Vui lòng chọn dụng cụ trong bộ.");
-      if (typeId === "INSTRUMENT_TRANSFER" && !instrumentState.maQrDen) {
-        return toast.error("Điều chuyển cần chọn hoặc quét QR bộ đích.");
-      }
-      if (
-        typeId !== "INSTRUMENT_REPLENISH" &&
-        typeId !== "INSTRUMENT_TRANSFER" &&
-        instrumentState.quantity > instrumentState.soLuongThucTe
-      ) {
-        return toast.error(`Số lượng không được vượt quá số thực tế (${instrumentState.soLuongThucTe}).`);
-      }
+      if (!setReconcileState) return toast.error("Chưa tải được bảng thành phần / kho.");
+      const lineErr = validateInstrumentDoorLines(typeId, setReconcileState.lines);
+      if (lineErr) return toast.error(lineErr);
     }
 
     setLoading(true);
@@ -352,11 +402,22 @@ export default function SuCoReportForm({
             ? (viTriPhatHien as Station)
             : undefined;
 
+      const submitTypeId =
+        isMoveDoor && setReconcileState
+          ? resolveInstrumentMoveSubmitTypeId(setReconcileState.lines) || typeId
+          : typeId;
+      const submitTypeTen =
+        submitTypeId === "INSTRUMENT_TRANSFER"
+          ? "Điều chuyển bộ ↔ bộ"
+          : submitTypeId === "INSTRUMENT_REPLENISH"
+            ? "Kho ↔ bộ"
+            : typeTen;
+
       const payload = {
         maQR: maQR.trim() || undefined,
-        typeId,
-        typeTen,
-        desc: meta.moTa,
+        typeId: submitTypeId,
+        typeTen: submitTypeTen,
+        desc: descText,
         errorQR: maLo.trim() || undefined,
         machineId: machineId.trim() || undefined,
         faultOperator: meta.nguoiLienQuan.trim() || undefined,
@@ -368,17 +429,15 @@ export default function SuCoReportForm({
         station: detectionStation,
         incidentGroup,
         faultStation: faultStationPayload,
-        instrumentPayload:
-          incidentGroup === "INSTRUMENT" && instrumentState
+        setReconcilePayload:
+          incidentGroup === "INSTRUMENT" && setReconcileState
             ? {
-                chiTietId: instrumentState.chiTietId,
-                loaiDungCuId: instrumentState.loaiDungCuId,
-                boDungCuId: instrumentState.boDungCuId,
+                boDungCuId: setReconcileState.boDungCuId,
+                draftIncidentId: setReconcileState.draftIncidentId,
                 quyTrinhId: quyTrinhId || undefined,
-                maQrNguon: maQR.trim() || undefined,
-                maQrDen: instrumentState.maQrDen || undefined,
-                tenDungCuLe: instrumentState.tenDungCuLe,
-                quantity: instrumentState.quantity,
+                maBo: setReconcileState.maBo,
+                tenBo: setReconcileState.tenBo,
+                lines: setReconcileState.lines,
               }
             : undefined,
         processPayload:
@@ -389,14 +448,32 @@ export default function SuCoReportForm({
                 quyTrinhId: quyTrinhId || undefined,
               }
             : undefined,
+        confirmDuplicate: confirmDuplicateRef.current,
       };
 
       try {
         const res = await createIncidentReport(payload);
-        if (res.isRedAlert) {
+        confirmDuplicateRef.current = false;
+        if (res.deduped) {
+          toast.message("Phiếu cùng mẻ và bộ đã có. Lập thêm nếu cần bổ sung mô tả.", {
+            action: {
+              label: "Lập phiếu mới",
+              onClick: () => {
+                confirmDuplicateRef.current = true;
+                const form = document.querySelector<HTMLFormElement>("form");
+                form?.requestSubmit();
+              },
+            },
+          });
+        } else if (res.isRedAlert) {
           toast.error("⚠️ CẢNH BÁO ĐỎ: Bộ dụng cụ đã sự cố từ 2 lần trở lên.", { duration: 8000 });
         } else {
           toast.success("Đã ghi nhận báo cáo sự cố!");
+        }
+        if (res.recalledCount || res.machineHeld) {
+          const recallBit = res.recalledCount ? `đã thu hồi ${res.recalledCount} bộ cùng mẻ` : "";
+          const holdBit = res.machineHeld ? "máy tạm giữ QC (HOLD_QC)" : "";
+          toast.message([recallBit, holdBit].filter(Boolean).join(" — ") + ".");
         }
         if (res.incident_id) {
           const printData = await getIncidentForPrint(res.incident_id);
@@ -405,7 +482,7 @@ export default function SuCoReportForm({
             toast.message("Đã lưu sự cố — bấm In biên bản nếu cần.");
           }
         }
-        onSubmitted?.();
+        onSubmitted?.(res.incident_id);
       } catch (err: unknown) {
         const { isNetworkError, pushOfflineTask } = await import("@/lib/offline-sync");
         if (isNetworkError(err)) {
@@ -442,34 +519,57 @@ export default function SuCoReportForm({
         incident={submittedIncident.incident}
         details={submittedIncident.details}
         onReset={resetAfterSubmit}
+        onClose={onDismiss}
       />
     );
   }
 
   const renderStationOverride = allowStationOverride ? (
-    <StationOverrideSelect value={detectionStation} onChange={setDetectionStation} />
+    <StationOverrideSelect value={detectionStation} onChange={setDetectionStation} embedded={!isModal} />
   ) : null;
 
+  const setInstrumentDoor = (id: string, ten: string) => {
+    setTypeId(id);
+    setTypeTen(ten);
+    setSetReconcileState(null);
+    setDestMa("");
+    setMoveUsesKho(id === INSTRUMENT_MOVE_TYPE_ID);
+    setCanKhoPrefill(null);
+  };
+
+  const jumpCanKho = (prefill: CanKhoPrefill) => {
+    setTypeId(INSTRUMENT_MOVE_TYPE_ID);
+    setTypeTen("Chuyển");
+    setSetReconcileState(null);
+    setDestMa("");
+    setMoveUsesKho(true);
+    setCanKhoPrefill(prefill);
+    toast.success(
+      prefill.direction === "LAY_KHO"
+        ? "Đã điền số lấy từ kho — kiểm tra rồi lưu phiếu Chuyển."
+        : "Đã điền số trả kho — kiểm tra rồi lưu phiếu Chuyển.",
+    );
+  };
+
   return (
-    <form onSubmit={handleSubmit} className={isModal ? "space-y-4" : "space-y-6"}>
+    <form onSubmit={handleSubmit} className={bv103LayoutChrome.sectionGap}>
       {fError ? (
-        <div className="flex gap-3 rounded-xl border border-red-100 bg-red-50 p-4 text-red-600">
-          <AlertCircle className="shrink-0" size={20} />
-          <div className="text-xs font-bold leading-tight">Không tải được danh mục: {fError}</div>
+        <div className="flex gap-2 text-[12px] text-red-600">
+          <AlertCircle className="shrink-0" size={16} />
+          Không tải được danh mục: {fError}
         </div>
       ) : null}
 
       {fLoading ? (
-        <div className="flex flex-col items-center justify-center gap-4 py-16 text-[var(--primary)]">
-          <Loader2 className="animate-spin" size={32} />
-          <p className="text-[11px] font-semibold uppercase tracking-wide opacity-40">Đang tải danh mục…</p>
+        <div className="flex items-center gap-2 py-10 text-[var(--primary)]">
+          <Loader2 className="animate-spin" size={20} />
+          <p className="text-[11px] font-semibold">Đang tải danh mục…</p>
         </div>
       ) : (
-        <div className={isModal ? "space-y-4" : "space-y-6"}>
-          {wizardStep === 1 ? (
-            <div className="space-y-4">
-              <p className="text-xs font-semibold text-slate-600">Bước 1/2 — Chọn việc xảy ra</p>
-              <IncidentGroupPicker incidentGroup={incidentGroup} onSelect={setIncidentGroup} compact={isModal} />
+        <div className={bv103LayoutChrome.sectionGap}>
+          <IncidentGroupPicker incidentGroup={incidentGroup} onSelect={setIncidentGroup} />
+          <div className="flex flex-wrap items-end gap-3">
+            {incidentGroup !== "INSTRUMENT" ? (
               <TypePicker
                 options={activeGroupOptions}
                 typeId={typeId}
@@ -478,172 +578,185 @@ export default function SuCoReportForm({
                   setTypeTen(ten);
                 }}
               />
-              <button
-                type="button"
-                onClick={() => setWizardStep(2)}
-                className={`${bv103LayoutChrome.btnPrimary} w-full sm:w-auto`}
-              >
-                Tiếp — điền chi tiết
-              </button>
-            </div>
-          ) : (
-            <>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs font-semibold text-slate-600">
-              Bước 2/2 — {INCIDENT_GROUP_LABEL[incidentGroup]}
-              {typeTen ? ` · ${typeTen}` : ""}
-            </p>
-            <button
-              type="button"
-              onClick={() => setWizardStep(1)}
-              className="text-[11px] font-semibold text-slate-500 hover:text-slate-800"
-            >
-              ← Đổi nhóm / loại
-            </button>
+            ) : null}
+            {renderStationOverride}
           </div>
 
-          <div className={`grid grid-cols-1 gap-4 ${isModal ? "" : "gap-6 lg:grid-cols-2"}`}>
-            <div className={`space-y-4 rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-sm ${isModal ? "p-3.5" : "p-4"}`}>
-              <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-2.5 ${UI.sectionTitle}`}>
-                <FileText size={16} className="text-[var(--primary)]" />
-                Ngữ cảnh sự cố
-              </h4>
+          {incidentGroup === "INSTRUMENT" ? (
+            <InstrumentDoorTabs
+              typeId={typeId}
+              options={activeGroupOptions}
+              onChange={setInstrumentDoor}
+            />
+          ) : null}
 
-              {incidentGroup === "PROCESS" ? (
-                <div className={UI.sectionGap}>
-                  <BoSourceFields
-                    maQR={maQR}
-                    setMaQR={setMaQR}
-                    boOptions={boOptions}
-                    boLoading={boLoading}
-                    onKeyDown={(e) => void handleQrKeyDown(e)}
-                    onScanComplete={(code) => void processQrCode(code)}
-                    onSelectBo={(code) => void processQrCode(code)}
-                    loading={loading || tracing}
-                  />
-                  <div className="space-y-1.5">
-                    <label className={bv103LayoutChrome.labelBlock}>Khâu phát sinh lỗi</label>
-                    <select
-                      value={faultStation}
-                      onChange={(e) => setFaultStation(e.target.value as Station)}
-                      className={bv103LayoutChrome.controlSelectNative}
-                    >
-                      {INCIDENT_STATION_OPTIONS.map((s) => (
-                        <option key={s.value} value={s.value}>{s.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  {renderStationOverride}
-                </div>
-              ) : null}
-
-              {incidentGroup === "INSTRUMENT" ? (
-                <div className={UI.sectionGap}>
-                  <BoSourceFields
-                    maQR={maQR}
-                    setMaQR={setMaQR}
-                    boOptions={boOptions}
-                    boLoading={boLoading}
-                    onKeyDown={(e) => void handleQrKeyDown(e)}
-                    onScanComplete={(code) => void processQrCode(code)}
-                    onSelectBo={(code) => void processQrCode(code)}
-                    loading={loading}
-                  />
-                  <InstrumentIncidentFields
-                    maQR={maQR}
-                    typeId={typeId}
-                    enabled={enabled}
-                    quyTrinhId={quyTrinhId}
-                    initialChiTietId={initialChiTietId}
-                    initialLoaiDungCuId={initialLoaiDungCuId}
-                    onChange={setInstrumentState}
-                  />
-                  {renderStationOverride}
-                </div>
-              ) : null}
-
-              {incidentGroup === "CHEMICAL" ? (
-                <ChemicalContextFields
-                  machineId={machineId}
-                  setMachineId={setMachineId}
+          {incidentGroup === "PROCESS" ? (
+            <div className="space-y-3">
+              <BoSourceFields
+                maQR={maQR}
+                setMaQR={setMaQR}
+                boOptions={boOptions}
+                boLoading={boLoading}
+                onKeyDown={(e) => void handleQrKeyDown(e)}
+                onScanComplete={(code) => void processQrCode(code)}
+                onSelectBo={(code) => void processQrCode(code)}
+                loading={loading || tracing}
+                maLoHint={maLo.trim() || undefined}
+                qrRequired={!(isBatchLinkedTypeId(typeId) && Boolean(maLo.trim() || loTietKhuanId.trim()))}
+                layout={isModal ? "stack" : "row"}
+              />
+              <div className={isModal ? "space-y-3" : "grid gap-3 md:grid-cols-2 xl:grid-cols-3"}>
+                <ProcessMaLoField
                   maLo={maLo}
                   setMaLo={setMaLo}
-                  chemicals={chemicals}
-                  typeOptions={activeGroupOptions}
-                  typeId={typeId}
-                  onTypeChange={(id, ten) => {
-                    setTypeId(id);
-                    setTypeTen(ten);
-                  }}
-                  hideType
-                  renderStationOverride={renderStationOverride}
+                  readOnly={Boolean(initialMaLo || initialLoTietKhuanId)}
                 />
-              ) : null}
+                <div className="space-y-1.5">
+                  <label className={bv103LayoutChrome.labelBlock}>Khâu phát sinh lỗi</label>
+                  <select
+                    value={faultStation}
+                    onChange={(e) => setFaultStation(e.target.value as Station)}
+                    className={bv103LayoutChrome.controlSelectNative}
+                  >
+                    {INCIDENT_STATION_OPTIONS.map((s) => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
-              {incidentGroup === "EQUIPMENT" ? (
-                <EquipmentContextFields
+          {isReconcileDoor ? (
+            <InstrumentSetReconcileTable
+              maQR={maQR}
+              enabled={enabled}
+              station={detectionStation}
+              initialChiTietId={initialChiTietId}
+              initialKindHint={
+                initialTypeId === "INSTRUMENT_BROKEN"
+                  ? "HONG"
+                  : initialTypeId === "INSTRUMENT_MISSING"
+                    ? "MAT"
+                    : null
+              }
+              toolbar={
+                <BoSourceFields
                   maQR={maQR}
                   setMaQR={setMaQR}
-                  onQrKeyDown={(e) => void handleQrKeyDown(e, "MACHINE")}
-                  onScanComplete={(code) => void processQrCode(code, "MACHINE")}
+                  boOptions={boOptions}
+                  boLoading={boLoading}
+                  onKeyDown={(e) => void handleQrKeyDown(e)}
+                  onScanComplete={(code) => void processQrCode(code)}
+                  onSelectBo={(code) => void processQrCode(code)}
                   loading={loading}
-                  machineId={machineId}
-                  setMachineId={setMachineId}
-                  machines={machines}
-                  typeOptions={activeGroupOptions}
-                  typeId={typeId}
-                  onTypeChange={(id, ten) => {
-                    setTypeId(id);
-                    setTypeTen(ten);
-                  }}
-                  hideType
-                  renderStationOverride={renderStationOverride}
+                  layout="stack"
+                  compact
                 />
-              ) : null}
+              }
+              onChange={setSetReconcileState}
+              onCanKho={jumpCanKho}
+            />
+          ) : null}
 
-              {incidentGroup === "OTHER" ? (
-                <OtherContextFields
-                  viTriPhatHien={viTriPhatHien}
-                  setViTriPhatHien={setViTriPhatHien}
-                  renderStationOverride={renderStationOverride}
-                />
-              ) : null}
-            </div>
+          {isMoveDoor ? (
+            <InstrumentMoveDualTable
+              enabled={enabled}
+              station={detectionStation}
+              sourceMa={maQR}
+              destMa={destMa}
+              boOptions={boOptions}
+              boLoading={boLoading}
+              loadingScan={loading}
+              onSourceMa={setMaQR}
+              onDestMa={setDestMa}
+              onScanSource={(code) => void processQrCode(code)}
+              onScanDest={(code) => setDestMa(code.trim().toUpperCase())}
+              onChange={setSetReconcileState}
+              onUsesKho={setMoveUsesKho}
+              prefill={canKhoPrefill}
+              onPrefillConsumed={consumeCanKhoPrefill}
+            />
+          ) : null}
 
-            <div className={`space-y-4 rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-sm ${isModal ? "p-3.5" : "p-4"}`}>
-              <h4 className={`flex items-center gap-2 border-b border-slate-100 pb-2.5 ${UI.sectionTitle}`}>
-                <FileText size={16} className="text-[var(--primary)]" />
-                Thông tin sự cố
-              </h4>
-              <SuCoIncidentMetaFields
-                values={meta}
-                nguoiLapLabel={nguoiLapLabel}
-                imageRequired={imageRequired}
-                imageHidden={imageHidden}
-                detectorOptions={detectorOptions}
-                relatedOptions={relatedOptions}
-                relatedHint={relatedHint}
-                onChange={handleMetaChange}
-                onSelectDetector={(id, label) => {
-                  const row = nhanSu.find((n) => n.id === id);
-                  setMeta((m) => ({
-                    ...m,
-                    nguoiPhatHienId: id,
-                    nguoiPhatHien: row?.ho_ten || label,
-                  }));
-                }}
-                onSelectRelated={(id, label) => {
-                  const fromCycle = cyclePerformers.find((p) => p.operatorId === id);
-                  const row = nhanSu.find((n) => n.id === id);
-                  setMeta((m) => ({
-                    ...m,
-                    nguoiLienQuanId: id,
-                    nguoiLienQuan: fromCycle?.operatorName || row?.ho_ten || label,
-                  }));
-                }}
-              />
-            </div>
-          </div>
+          {incidentGroup === "CHEMICAL" ? (
+            <ChemicalContextFields
+              machineId={machineId}
+              setMachineId={setMachineId}
+              maLo={maLo}
+              setMaLo={setMaLo}
+              chemicals={chemicals}
+              typeOptions={activeGroupOptions}
+              typeId={typeId}
+              onTypeChange={(id, ten) => {
+                setTypeId(id);
+                setTypeTen(ten);
+              }}
+              hideType
+              wide={!isModal}
+              renderStationOverride={null}
+            />
+          ) : null}
+
+          {incidentGroup === "EQUIPMENT" ? (
+            <EquipmentContextFields
+              maQR={maQR}
+              setMaQR={setMaQR}
+              onQrKeyDown={(e) => void handleQrKeyDown(e, "MACHINE")}
+              onScanComplete={(code) => void processQrCode(code, "MACHINE")}
+              loading={loading}
+              machineId={machineId}
+              setMachineId={setMachineId}
+              machines={machines}
+              typeOptions={activeGroupOptions}
+              typeId={typeId}
+              onTypeChange={(id, ten) => {
+                setTypeId(id);
+                setTypeTen(ten);
+              }}
+              hideType
+              wide={!isModal}
+              renderStationOverride={null}
+            />
+          ) : null}
+
+          {incidentGroup === "OTHER" ? (
+            <OtherContextFields
+              viTriPhatHien={viTriPhatHien}
+              setViTriPhatHien={setViTriPhatHien}
+              renderStationOverride={null}
+              wide={!isModal}
+            />
+          ) : null}
+
+          <SuCoIncidentMetaFields
+            values={meta}
+            nguoiLapLabel={nguoiLapLabel}
+            imageRequired={imageRequired}
+            imageHidden={imageHidden}
+            detectorOptions={detectorOptions}
+            relatedOptions={relatedOptions}
+            relatedHint={relatedHint}
+            wide={!isModal}
+            onChange={handleMetaChange}
+            onSelectDetector={(id, label) => {
+              const row = nhanSu.find((n) => n.id === id);
+              setMeta((m) => ({
+                ...m,
+                nguoiPhatHienId: id,
+                nguoiPhatHien: row?.ho_ten || label,
+              }));
+            }}
+            onSelectRelated={(id, label) => {
+              const fromCycle = cyclePerformers.find((p) => p.operatorId === id);
+              const row = nhanSu.find((n) => n.id === id);
+              setMeta((m) => ({
+                ...m,
+                nguoiLienQuanId: id,
+                nguoiLienQuan: fromCycle?.operatorName || row?.ho_ten || label,
+              }));
+            }}
+          />
 
           <div
             className={
@@ -657,11 +770,9 @@ export default function SuCoReportForm({
               disabled={loading || tracing || !!fError || fLoading}
               className={`${bv103LayoutChrome.btnPrimaryBlock} normal-case tracking-normal touch-manipulation`}
             >
-              {loading ? <Loader2 className="animate-spin" size={16} /> : <><CheckCircle2 size={16} /> Gửi báo cáo</>}
+              {loading ? <Loader2 className="animate-spin" size={16} /> : <><CheckCircle2 size={16} /> Gửi</>}
             </button>
           </div>
-            </>
-          )}
         </div>
       )}
     </form>

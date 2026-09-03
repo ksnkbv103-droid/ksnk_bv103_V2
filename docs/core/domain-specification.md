@@ -11,14 +11,14 @@
 | Thuật ngữ Spec | Ý nghĩa Nghiệp vụ Y tế | Bảng vật lý (SSOT) | Tên legacy (đã DROP khỏi DB 2026-06-02 — chỉ để tra cứu tài liệu cũ) |
 | :--- | :--- | :--- | :--- |
 | **VST (Vệ sinh tay)** | Giám sát tuân thủ 5 thời điểm vệ sinh tay WHO. | `gstt_fact_vst_sessions`, `gstt_fact_vst` | `fact_giam_sat_vst_*` |
-| **GSC (Giám sát chung)** | Giám sát checklist động; kết quả inline `results_jsonb`. | `gstt_fact_chung_sessions`, `gstt_dm_bang_kiem` | `fact_giam_sat_chung_sessions`, `dm_bang_kiem` |
-| **NKBV (Nhiễm khuẩn BV)** | HAI surveillance stay-centric; **1 module** cho mọi hội chứng (không tách 4 app — ADR 2026-07-15). | `nkbv_fact_su_kien`, `nkbv_fact_benh_an`, `nkbv_fact_vi_sinh` | `fact_nkbv_*`, `dm_loai_nkbv` |
+| **GSC (Giám sát chung)** | Giám sát checklist động; kết quả inline `results_jsonb`. Khi **Lưu** phiên, chốt nội dung mẫu vào `metadata.bang_kiem_snapshot` — sửa mẫu sau đó không đổi câu hỏi phiếu đã lưu. | `gstt_fact_chung_sessions`, `gstt_dm_bang_kiem` | `fact_giam_sat_chung_sessions`, `dm_bang_kiem` |
+| **NKBV (Nhiễm khuẩn BV)** | HAI surveillance stay-centric; **1 module** cho mọi hội chứng (không tách 4 app — ADR 2026-07-15). Lưới ngày trên BA = khoa + Foley/máy/CVC. | `nkbv_fact_su_kien`, `nkbv_fact_benh_an`, `nkbv_fact_ba_ngay_khoa`, `nkbv_fact_ba_ngay_dung_cu`, `nkbv_fact_vi_sinh` | `fact_nkbv_*`, `dm_loai_nkbv` |
 | **CSSD (Tái xử lý dụng cụ)** | 6 trạm QR workflow tiệt khuẩn. | `cssd_fact_quy_trinh`, `cssd_fact_lo_tiet_khuan`, `cssd_fact_quy_trinh_thanh_phan` | `fact_quy_trinh`, `fact_lo_tiet_khuan` |
 | **Mẻ Tiệt Khuẩn** | Chu trình hấp sấy + QC chỉ thị. | `cssd_fact_lo_tiet_khuan` | `fact_lo_tiet_khuan` |
 | **QLCV (Quản lý công việc)** | Task nội bộ KSNK Track B (7 trạng thái). | `qlcv_fact_cong_viec`, `qlcv_fact_cong_viec_dinh_ky` | `fact_cong_viec` |
 | **MDM Nhân sự / Khoa** | Master data dùng chung. | `mdm_nhan_su`, `mdm_dm_khoa_phong` | `dm_khoa_phong` |
 | **RBAC** | Phân quyền module×action. | `sys_roles`, `sys_permissions`, `sys_role_permissions`, `sys_user_roles` | `dm_roles`, `dm_permissions` |
-| **Đào tạo / Thi KSNK** | Thi thử + thi thật MCQ (Bloom, đa loại câu). | `dao_tao_cau_hoi`, `dao_tao_cau_hinh`, `dao_tao_lan_thi` (lean) | — |
+| **Đào tạo / Thi KSNK** | Thi thử + thi thật MCQ. **Chứng chỉ** = lần thi thật **đạt**, hạn theo `gan.han_chung_chi_thang` (mặc định 12 tháng); nhắc học lại trên hub. Không phải LMS lớp học. | `dao_tao_cau_hoi`, `dao_tao_cau_hinh`, `dao_tao_lan_thi` (lean) | — |
 
 ### Entities đã loại bỏ (không mô tả workflow mới)
 
@@ -31,8 +31,9 @@
 ## 2. Các Hành trình Nghiệp vụ (Clinical Journeys)
 
 ### 2.1 Giám sát Vệ sinh tay (VST - WHO 5 Moments)
-* **Đối tượng giám sát:** Nhân viên y tế tại các khoa lâm sàng.
-* **Thời điểm giám sát (WHO 5 Moments):** T1–T5 theo chuẩn WHO.
+* **Đối tượng giám sát:** Nhân viên y tế tại các khoa lâm sàng — tối đa **3 đối tượng / phiên**.
+* **Thời điểm giám sát (WHO 5 Moments):** T1–T5 theo chuẩn WHO (nhãn tiếng Việt trên phiếu). Một cơ hội tuân thủ (rửa tay / chà cồn) tối đa **2 chỉ định**; không tuân thủ (bỏ sót) tối đa **1 chỉ định** — không bắt ghi đủ 5 mốc trên một cơ hội.
+* **Khoa / khu vực:** Khoa từ `mdm_dm_khoa_phong`; khu vực từ danh mục `KHU_VUC_GIAM_SAT` — bắt buộc khi lưu, không gõ tự do.
 * **Luồng dữ liệu:** Phiên → `gstt_fact_vst_sessions` + quan sát `gstt_fact_vst` → KPI qua RPC **`rpc_dashboard_vst_strategic_analytics`** (Command Center + `/thong-ke/vst`). Bảng `gstt_fact_*_summary` đã DROP (2026-06-04); thay bằng **VIEW live** phục vụ RPC — app không đọc summary trực tiếp trừ ngoại lệ TGS coverage (xem metric-dictionary). Đọc lịch sử/chi tiết: **`v_gstt_giam_sat_vst_*_full`**. Bookmark cũ `?tab=analytics|history` redirect sang `/thong-ke/vst` / `/lich-su/vst`.
 
 ### 2.2 Quy trình Tái xử lý Dụng cụ y tế (CSSD Workflow)
@@ -53,14 +54,14 @@ flowchart LR
 | 1 `TIEP_NHAN` | Quét bộ bẩn / mở chu trình; sau cấp phát → vòng mới |
 | 2 `LAM_SACH` | Quét chuyển bước (chỉ +1) |
 | 3 `QC` | Kiểm trước đóng gói (**QC trạm** QT.19 — ≠ QC mẻ QT.23) |
-| 4 `DONG_GOI` | Quét + đối chiếu cấu phần + báo Hỏng/Mất/Bổ sung; sinh Cycle QR; thiếu cấu phần = **cảnh báo** (không chặn) |
+| 4 `DONG_GOI` | Quét + đối chiếu cấu phần + **một phiếu biến động cả bộ** (nhiều dòng); sinh Cycle QR; thiếu cấu phần = **cảnh báo** (không chặn) |
 | 5 `TIET_KHUAN` | **Chỉ qua phiếu mẻ** (không quét trên shell 6 trạm); nạp từ Đóng gói → chốt → máy → QC mẻ 3 cấp |
 | 6 `CAP_PHAT` | Quét giao khoa / kho sạch; soft-warning thiếu cấu phần (Q2); bắt buộc mẻ ĐẠT |
 
 * **Tab Kho** (`/cssd-quy-trinh?tab=kho`): giám sát FEFO/tồn — **không** phải trạm quét.
 * **Tab Trace** (`?tab=trace`): timeline + liên kết SSI — không phải trạm.
-* **Thu hồi / Recall:** phản ứng an toàn (không phải trạm 7); quay lại = `CAP_PHAT` → `TIEP_NHAN`. BI+ → recall theo `lo_tiet_khuan_id`.
-* **Trạm 4:** panel đối chiếu cấu phần (read-only realtime). Không còn modal BOM / cờ `BV103_FEATURE_BOM_CHECKLIST`.
+* **Thu hồi / Recall:** phản ứng an toàn (không phải trạm 7); quay lại = `CAP_PHAT` → `TIEP_NHAN`. BI+ / QC mẻ không đạt → recall theo `lo_tiet_khuan_id` + máy `HOLD_QC` (chưa tự mở máy sau 3× BI (−)).
+* **Trạm 4:** panel đối chiếu cấu phần (read-only realtime) + nút «Báo biến động bộ này» → phiếu sự cố header–dòng. Hỏng/Mất/Bổ sung ghi sổ ngay; đổi chuẩn chờ admin duyệt. Kiểm kê: nhập mã loại / mã khắc / số đếm trên cùng phiếu; điều chuyển sang bộ khác cũng trên phiếu đó (sổ nguồn–đích). Không phiếu từng món. Không còn modal BOM / cờ `BV103_FEATURE_BOM_CHECKLIST`.
 * **Trạm 5:** `cssd_fact_lo_tiet_khuan`; QC mẻ không đạt → rollback về `DONG_GOI` + sự cố (+ đóng băng nếu cần). Implant → `Quarantine_BI` / `CHO_BI` trước `HOAN_THANH`.
 * **Trạm 6:** Ledger soft-warning nếu thiếu cấu phần (QLDCPT Q2) — **không** hard-block.
 * **Dual-coding:** tem quét `B01.SET.*` ↔ alias `B01.CD*` ↔ `BO-01-*` (resolve QR Hub); nhãn/Cycle QR đủ QT.20 gồm số mẻ.

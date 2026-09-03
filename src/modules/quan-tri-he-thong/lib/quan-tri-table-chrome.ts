@@ -4,6 +4,7 @@
  * @see docs/reference/guides/bv103-visual-language.md
  */
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 import { quanTriFormChrome as C } from "./quan-tri-form-chrome";
 
 export const quanTriTableChrome = {
@@ -22,6 +23,11 @@ export const quanTriTableChrome = {
   cellNote: T.tableCellNote,
   cellIndex: T.tableCellIndex,
   cellMeta: T.tableCellMeta,
+  statusOk: L.statusOk,
+  statusWarn: L.statusWarn,
+  statusDanger: L.statusDanger,
+  statusMuted: L.statusMuted,
+  statusInfo: L.statusInfo,
 
   /** Nút toolbar — dùng chung quanTriFormChrome (title case, không uppercase CSS) */
   ctaPrimary: C.ctaPrimary,

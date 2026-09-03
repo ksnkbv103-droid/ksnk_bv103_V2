@@ -127,7 +127,7 @@ export default function NkbvBaAddViSinhModal({
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-3">
       <div
-        className={`${C.panelSurface} max-h-[90vh] w-full max-w-md overflow-auto p-4 shadow-xl`}
+        className={`${C.panelSurface} max-h-[90vh] w-full max-w-md overflow-auto p-4`}
         role="dialog"
         aria-labelledby="ba-add-xn-title"
       >

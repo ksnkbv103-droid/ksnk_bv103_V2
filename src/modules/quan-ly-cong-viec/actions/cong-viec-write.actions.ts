@@ -23,7 +23,7 @@ export async function huyKhiChoNghiemThuKhongDat(id: string, lyDo: string) {
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
     .select(
-      "id, trang_thai, phan_tram_hoan_thanh, han_hoan_thanh, is_qua_han, is_active, nguoi_phu_trach_id, nguoi_tao_id",
+      "id, trang_thai, phan_tram_hoan_thanh, han_hoan_thanh, is_qua_han, is_active, nguoi_phu_trach_id, nguoi_tao_id, loai_cong_viec",
     )
     .eq("id", id)
     .maybeSingle();
@@ -53,6 +53,7 @@ export async function huyKhiChoNghiemThuKhongDat(id: string, lyDo: string) {
     phan_tram_hoan_thanh: cur.phan_tram_hoan_thanh,
     han_hoan_thanh: cur.han_hoan_thanh,
     is_qua_han: cur.is_qua_han,
+    loai_cong_viec: cur.loai_cong_viec,
   };
   const inGate = isEligibleForNghiemThu(rowSnapshot);
 
