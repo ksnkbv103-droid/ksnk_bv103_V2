@@ -1,3 +1,4 @@
+import { boIdsFromChua, normalizeBoDungCuChua } from "@/lib/domain/cssd-loai-set-links";
 import type { Catalog } from "../types/catalog.types";
 
 export type CatalogTab = "BO" | "CHI_TIET" | "LOAI" | "HOA_CHAT" | "HISTORY";
@@ -27,6 +28,8 @@ export function filterCatalogRows(catalog: Catalog, q: string) {
 
 export function boIdsForLoai(catalog: Catalog, loaiId: string | null) {
   if (!loaiId) return [];
+  const fromView = boIdsFromChua(normalizeBoDungCuChua(catalog.loai.find((l) => l.id === loaiId)?.bo_dung_cu_chua));
+  if (fromView.length) return fromView;
   return [
     ...new Set(
       catalog.chi_tiet

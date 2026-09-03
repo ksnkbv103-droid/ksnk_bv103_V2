@@ -39,6 +39,8 @@ export interface CSSDLoai {
   phan_loai?: string | null;
   so_luong_kho_du_phong?: number | null;
   so_luong_tong?: number | null;
+  /** Bộ đang gắn loại này — từ view SQL, không cắt theo trang chi tiết. */
+  bo_dung_cu_chua?: { id: string; ma_bo: string | null; ten_bo: string | null; so_luong?: number | null }[];
   hinh_dang?: string | null;
   kich_thuoc?: string | null;
   cong_dung?: string | null;

@@ -1,5 +1,6 @@
 "use client";
 
+import { soLuongTrongBo } from "@/lib/domain/cssd-loai-set-links";
 import type { Catalog, CSSDBo, CSSDLoai } from "../types/catalog.types";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { AppWindow, Layers } from "lucide-react";
@@ -35,8 +36,9 @@ export function CSSDCatalogLoaiTab(props: {
                 <th className="px-4 py-3">Mã loại</th>
                 <th className="px-4 py-3">Tên loại dụng cụ</th>
                 <th className="px-4 py-3 text-center">Phân loại</th>
-                <th className="px-4 py-3 text-center">Tổng tồn (Kho + Bộ)</th>
-                <th className="px-4 py-3 text-center">Dự phòng lẻ</th>
+                <th className="px-4 py-3 text-center">Tổng</th>
+                <th className="px-4 py-3 text-center">Trong bộ</th>
+                <th className="px-4 py-3 text-center">Trong kho</th>
                 <th className="px-4 py-3">Hình dáng</th>
                 <th className="px-4 py-3">Kích thước</th>
                 <th className="px-4 py-3">Tính năng / Công dụng</th>
@@ -71,6 +73,9 @@ export function CSSDCatalogLoaiTab(props: {
                     <td className="px-4 py-3.5 text-center font-bold text-slate-800">
                       {x.so_luong_tong ?? 0}
                     </td>
+                    <td className="px-4 py-3.5 text-center font-bold text-violet-700">
+                      {soLuongTrongBo(x.so_luong_tong ?? 0, x.so_luong_kho_du_phong ?? 0)}
+                    </td>
                     <td className="px-4 py-3.5 text-center text-slate-600 font-semibold">
                       {x.so_luong_kho_du_phong ?? 0}
                     </td>
@@ -90,7 +95,7 @@ export function CSSDCatalogLoaiTab(props: {
               })}
               {loaiRows.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="py-6 text-center text-sm text-slate-500">
+                  <td colSpan={11} className="py-6 text-center text-sm text-slate-500">
                     Không tìm thấy loại dụng cụ nào khớp từ khóa.
                   </td>
                 </tr>
@@ -106,13 +111,13 @@ export function CSSDCatalogLoaiTab(props: {
           <div className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-violet-600" />
             <h3 className="text-sm font-bold text-slate-800">
-              Danh sách bộ chứa loại dụng cụ{" "}
+              Bộ chứa{" "}
               {selectedLoai ? (
                 <span className="text-violet-700 font-semibold">
-                  — {selectedLoai.ten_loai_dung_cu} ({selectedLoai.ma_loai_dung_cu})
+                  {selectedLoai.ten_loai_dung_cu} ({selectedLoai.ma_loai_dung_cu}) — {boBySelectedLoai.length} bộ
                 </span>
               ) : (
-                ""
+                "loại dụng cụ đã chọn"
               )}
             </h3>
           </div>
@@ -144,10 +149,11 @@ export function CSSDCatalogLoaiTab(props: {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {boBySelectedLoai.map((b) => {
-                  const chiTietItem = catalog.chi_tiet.find(
-                    (c) => c.bo_dung_cu_id === b.id && c.loai_dung_cu_id === selectedLoai.id
-                  );
-                  const qtyInSet = chiTietItem ? (chiTietItem.so_luong ?? 1) : 0;
+                  const chiTietQty = catalog.chi_tiet
+                    .filter((c) => c.bo_dung_cu_id === b.id && c.loai_dung_cu_id === selectedLoai.id)
+                    .reduce((sum, c) => sum + (c.so_luong ?? 0), 0);
+                  const fromChua = selectedLoai.bo_dung_cu_chua?.find((r) => r.id === b.id);
+                  const qtyInSet = chiTietQty || fromChua?.so_luong || 0;
 
                   return (
                     <tr key={b.id} className="transition-colors hover:bg-slate-50/50">
@@ -176,7 +182,7 @@ export function CSSDCatalogLoaiTab(props: {
                 {boBySelectedLoai.length === 0 && (
                   <tr>
                     <td colSpan={5} className="py-6 text-center text-sm text-slate-500">
-                      Loại dụng cụ này chưa được gán vào bất kỳ bộ dụng cụ nào.
+                      Loại này chưa gắn vào bộ nào.
                     </td>
                   </tr>
                 )}

@@ -7,6 +7,8 @@ import React, { useEffect, useState } from "react";
 import { Layers, Loader2, RefreshCcw, History, Box } from "lucide-react";
 import { toast } from "sonner";
 import { getDungCuGiaoDichLogsAction, type DungCuGiaoDichRow } from "../actions/kho-dung-cu-giao-dich.actions";
+import { getBoRefsByLoaiAction } from "../actions/bo-dung-cu-chi-tiet-read.actions";
+import type { BoRefByLoai } from "../actions/bo-dung-cu-chi-tiet.types";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 
 type Props = {
@@ -25,6 +27,8 @@ export function LoaiDungCuChiTietPanel({
   const [activeTab, setActiveTab] = useState<"sets" | "logs">("sets");
   const [logs, setLogs] = useState<DungCuGiaoDichRow[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [liveBos, setLiveBos] = useState<BoRefByLoai[] | null>(null);
+  const [loadingBos, setLoadingBos] = useState(false);
 
   const fetchLogs = async () => {
     if (!selectedLoaiId) return;
@@ -43,6 +47,24 @@ export function LoaiDungCuChiTietPanel({
       fetchLogs();
     }
   }, [selectedLoaiId, activeTab]);
+
+  useEffect(() => {
+    if (!selectedLoaiId) {
+      setLiveBos(null);
+      return;
+    }
+    let alive = true;
+    setLoadingBos(true);
+    void getBoRefsByLoaiAction(selectedLoaiId).then((res) => {
+      if (!alive) return;
+      setLoadingBos(false);
+      setLiveBos(res.success ? res.data : []);
+      if (!res.success) toast.error(res.error || "Không tải được danh sách bộ chứa loại này.");
+    });
+    return () => {
+      alive = false;
+    };
+  }, [selectedLoaiId]);
 
   if (!selectedLoaiId) {
     return (
@@ -100,7 +122,7 @@ export function LoaiDungCuChiTietPanel({
                 : "text-slate-500 hover:text-slate-800"
             }`}
           >
-            <Box size={13} /> Bộ dụng cụ chứa ({boDungCuChua.length})
+            <Box size={13} /> Bộ chứa ({(liveBos ?? boDungCuChua).length})
           </button>
           <button
             onClick={() => setActiveTab("logs")}
@@ -118,9 +140,17 @@ export function LoaiDungCuChiTietPanel({
       <div className="p-6">
         {activeTab === "sets" ? (
           <div>
-            {boDungCuChua.length === 0 ? (
+            <p className="mb-3 text-xs font-semibold text-slate-700">
+              Bộ chứa {selectedTenLoai || "loại đã chọn"}
+              {selectedMaLoai ? ` (${selectedMaLoai})` : ""} — {(liveBos ?? boDungCuChua).length} bộ
+            </p>
+            {loadingBos ? (
+              <div className="flex items-center justify-center p-12 text-slate-500 font-bold text-[11px] uppercase gap-2">
+                <Loader2 size={16} className="animate-spin" /> Đang tải bộ chứa...
+              </div>
+            ) : (liveBos ?? boDungCuChua).length === 0 ? (
               <div className="p-12 text-center text-slate-400 font-bold text-[11px] uppercase tracking-widest">
-                Chưa có bộ dụng cụ nào chứa loại dụng cụ này
+                Loại này chưa gắn vào bộ nào
               </div>
             ) : (
               <ResponsiveTableShell unboxed maxHeight="max-h-[min(320px,45dvh)]">
@@ -133,7 +163,7 @@ export function LoaiDungCuChiTietPanel({
                     </tr>
                   </thead>
                   <tbody>
-                    {boDungCuChua.map((b) => (
+                    {(liveBos ?? boDungCuChua).map((b) => (
                       <tr key={b.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                         <td className="py-3 font-mono text-[11px] text-[11px] font-medium text-slate-500 uppercase">{b.ma_bo || "—"}</td>
                         <td className="py-3 text-[11px] font-medium text-[var(--primary)]">{b.ten_bo || "—"}</td>

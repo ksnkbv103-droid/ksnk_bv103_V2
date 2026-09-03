@@ -13,6 +13,7 @@ import LoaiDungCuFormModal from "./loai-dung-cu-form-modal";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
 import { LoaiDungCuChiTietPanel } from "./loai-dung-cu-chi-tiet-panel";
+import { soLuongTrongBo } from "@/lib/domain/cssd-loai-set-links";
 import {
   getLoaiDungCuRowsAction,
   softDeleteLoaiDungCuAction,
@@ -148,11 +149,18 @@ export function LoaiDungCuPageContent() {
     { header: "Tính năng / Công dụng", accessorKey: "cong_dung", sortable: true, cell: (i) => (
       <span className="text-[11px] text-slate-500 font-medium">{clip(i.cong_dung, 40)}</span>
     )},
-    { header: "Số lượng kho lẻ / Tổng", accessorKey: "so_luong_tong", sortable: true, cell: (i) => (
-      <div className="text-[11px] font-bold text-slate-600">
-        Dự phòng: <span className="text-amber-600 font-black">{i.so_luong_kho_du_phong || 0}</span> / Tổng: <span className="text-emerald-700 font-black">{i.so_luong_tong || 0}</span>
-      </div>
-    )},
+    { header: "Tổng / Trong bộ / Kho", accessorKey: "so_luong_tong", sortable: true, cell: (i) => {
+      const tong = i.so_luong_tong || 0;
+      const kho = i.so_luong_kho_du_phong || 0;
+      const trongBo = soLuongTrongBo(tong, kho);
+      return (
+        <div className="text-[11px] font-bold text-slate-600 space-y-0.5">
+          <div>Tổng: <span className="text-emerald-700 font-black tabular-nums">{tong}</span></div>
+          <div>Trong bộ: <span className="text-violet-700 font-black tabular-nums">{trongBo}</span></div>
+          <div>Trong kho: <span className="text-amber-600 font-black tabular-nums">{kho}</span></div>
+        </div>
+      );
+    }},
     {
       header: "Spaulding / Nhiệt / TK",
       accessorKey: "phan_loai_spaulding",

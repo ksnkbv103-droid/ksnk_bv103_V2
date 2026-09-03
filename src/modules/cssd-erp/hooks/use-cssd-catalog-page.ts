@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { getKhoCatalogPayloadAction, lookupBoDungCuIdByQrAction } from "../actions/cssd-catalog.actions";
 import type { Catalog } from "../types/catalog.types";
 import { normalizeCssdCode } from "../shared/domain/cssd-qr-core";
+import { normalizeBoDungCuChua } from "@/lib/domain/cssd-loai-set-links";
 import { boIdsForLoai, filterCatalogRows, type CatalogTab } from "../views/cssd-catalog-page-helpers";
 
 export function useCssdCatalogPage() {
@@ -101,7 +102,20 @@ export function useCssdCatalogPage() {
 
   const boBySelectedLoai = useMemo(() => {
     const boIds = boIdsForLoai(catalog, selectedLoaiId);
-    return catalog.bo.filter((x) => boIds.includes(x.id));
+    const found = catalog.bo.filter((x) => boIds.includes(x.id));
+    if (found.length >= boIds.length) return found;
+    const foundIds = new Set(found.map((b) => b.id));
+    const loai = catalog.loai.find((l) => l.id === selectedLoaiId);
+    const extras = normalizeBoDungCuChua(loai?.bo_dung_cu_chua)
+      .filter((r) => !foundIds.has(r.id))
+      .map((r) => ({
+        id: r.id,
+        ma_bo: r.ma_bo || "",
+        ten_bo: r.ten_bo || "",
+        loai_dung_cu_id: selectedLoaiId,
+        is_active: true,
+      }));
+    return [...found, ...extras];
   }, [catalog, selectedLoaiId]);
 
   const boBySelectedChiTietLoai = useMemo(() => {

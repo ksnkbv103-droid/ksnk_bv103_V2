@@ -36,6 +36,8 @@
 
 **Đếm** trên rà soát không phải sổ thứ 4: chỉ để xác nhận hỏng/mất khi đếm < hệ thống.
 
+Trên thẻ Loại: **Tổng** = kho lẻ + số chuẩn đang gắn bộ; **Trong bộ** và danh sách «Bộ chứa» cùng nguồn dòng thành phần active — không cắt trang chi tiết.
+
 ## Hai cửa vận hành (không trùng việc)
 
 Trên `/cssd-su-co` nhóm Dụng cụ và lối tắt trạm Đóng gói:

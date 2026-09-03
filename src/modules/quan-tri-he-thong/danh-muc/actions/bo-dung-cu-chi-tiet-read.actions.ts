@@ -52,7 +52,11 @@ export async function getBoDungCuChiTietPreviewAction(boDungCuId: string) {
 
 /** Tìm các bộ khác cũng đang dùng cùng `loai_dung_cu_id` của chi tiết đã chọn. */
 export async function getBoRefsByLoaiAction(loaiDungCuId: string, excludeBoId?: string | null) {
-  await verifyPermission("BO_DC", "view");
+  try {
+    await verifyPermission("LOAI_DC", "view");
+  } catch {
+    await verifyPermission("BO_DC", "view");
+  }
   const loaiId = String(loaiDungCuId || "").trim();
   if (!loaiId) return { success: true as const, data: [] as BoRefByLoai[] };
   const supabase = await createServerSupabaseUserClient();
@@ -75,6 +79,7 @@ export async function getBoRefsByLoaiAction(loaiDungCuId: string, excludeBoId?: 
     .from("cssd_dm_bo_dung_cu")
     .select("id, ma_bo, ten_bo")
     .in("id", boIds)
+    .eq("is_active", true)
     .order("ma_bo", { ascending: true });
   if (be) return { success: false as const, error: be.message };
   return { success: true as const, data: (bos || []) as BoRefByLoai[] };

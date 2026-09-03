@@ -10,6 +10,7 @@ import {
   spauldingLabel,
   sterileMethodLabel,
 } from "@/lib/master-data/cssd-loai-dung-cu-map";
+import { normalizeBoDungCuChua } from "@/lib/domain/cssd-loai-set-links";
 import {
   softDeleteManyMasterRows,
   softDeleteMasterRow,
@@ -48,7 +49,7 @@ export async function getLoaiDungCuRowsAction() {
       phan_loai: String(r.phan_loai || "PHAU_THUAT"),
       so_luong_kho_du_phong: Number(r.so_luong_kho_du_phong || 0),
       so_luong_tong: Number(r.so_luong_tong || 0),
-      bo_dung_cu_chua: (r.bo_dung_cu_chua as { id: string; ma_bo: string | null; ten_bo: string | null }[]) || [],
+      bo_dung_cu_chua: normalizeBoDungCuChua(r.bo_dung_cu_chua),
       is_active: r.is_active !== false,
     };
   });
