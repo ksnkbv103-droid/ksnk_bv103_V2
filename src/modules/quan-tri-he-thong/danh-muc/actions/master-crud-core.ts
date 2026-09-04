@@ -24,6 +24,8 @@
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { revalidateMasterDataRowCacheTag } from "@/lib/cache/revalidate-master-data-tags";
+import { isCssdCatalogMasterTable } from "@/lib/domain/cssd-catalog-master-write";
+import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
 
 /** Tên bảng vật lý (pilot) — ghi/đọc trực tiếp khi caller dùng prefix module. */
 const PHYSICAL_TABLE_NAMES = [
@@ -104,6 +106,13 @@ function assertAllowedTable(tableName: string) {
   }
 }
 
+/** D5: hard-write form MDM loại/bộ/BOM chỉ ADMIN — chặn bypass qua upsert/toggle/softDelete. */
+async function gateCssdCatalogMasterWrite(tableName: string) {
+  if (!isCssdCatalogMasterTable(tableName)) return;
+  await requireCssdCatalogMasterWrite();
+}
+
+
 function convertToLookupPayload(tableName: string, payload: Record<string, unknown>, categoryType: string) {
   const config = CONSOLIDATED_MAPS[tableName];
   if (!config) return payload;
@@ -176,6 +185,7 @@ export async function listMasterRows(tableName: string, orderBy: string) {
 
 export async function upsertMasterRow(tableName: string, id: string, payload: Record<string, unknown>) {
   assertAllowedTable(tableName);
+  await gateCssdCatalogMasterWrite(tableName);
   const supabase = createAdminSupabaseClient();
   const config = CONSOLIDATED_MAPS[tableName];
 
@@ -202,6 +212,7 @@ export async function upsertMasterRow(tableName: string, id: string, payload: Re
 
 export async function toggleMasterStatus(tableName: string, id: string, currentStatus: boolean) {
   assertAllowedTable(tableName);
+  await gateCssdCatalogMasterWrite(tableName);
   const supabase = createAdminSupabaseClient();
   const targetTable = CONSOLIDATED_MAPS[tableName] ? "sys_lookup_value" : tableName;
 
@@ -217,6 +228,7 @@ export async function toggleMasterStatus(tableName: string, id: string, currentS
 
 export async function softDeleteMasterRow(tableName: string, id: string) {
   assertAllowedTable(tableName);
+  await gateCssdCatalogMasterWrite(tableName);
   const supabase = createAdminSupabaseClient();
   const targetTable = CONSOLIDATED_MAPS[tableName] ? "sys_lookup_value" : tableName;
 
@@ -232,6 +244,7 @@ export async function softDeleteMasterRow(tableName: string, id: string) {
 
 export async function softDeleteManyMasterRows(tableName: string, ids: string[]) {
   assertAllowedTable(tableName);
+  await gateCssdCatalogMasterWrite(tableName);
   const supabase = createAdminSupabaseClient();
   const targetTable = CONSOLIDATED_MAPS[tableName] ? "sys_lookup_value" : tableName;
 

@@ -11,7 +11,7 @@ import {
   SupervisionTrendChart,
 } from "@/lib/analytics/supervision-analytics-charts";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
-import { formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { formatPercent1FromRatio } from "@/lib/analytics/supervision-percent";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import type { VstStrategicPayload } from "../types/vst-strategic.types";
 
@@ -86,10 +86,10 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
           <SupervisionKpiRow
             loading={p.loading}
             items={[
-              { label: "Tỷ lệ tuân thủ", value: formatPercent2(p.payload?.kpis?.ty_le_tuan_thu ?? 0) },
+              { label: "Tỷ lệ tuân thủ", value: formatPercent1FromRatio(p.payload?.kpis?.da_tuan_thu ?? 0, p.payload?.kpis?.tong_co_hoi ?? 0) },
               { label: "Cơ hội quan sát", value: p.payload?.kpis?.tong_co_hoi ?? 0 },
               { label: "Đã tuân thủ", value: p.payload?.kpis?.da_tuan_thu ?? 0 },
-              { label: "Đúng kỹ thuật", value: formatPercent2(p.payload?.kpis?.ty_le_dung_ky_thuat ?? 0) },
+              { label: "Đúng kỹ thuật", value: formatPercent1FromRatio(p.payload?.kpis?.dung_ky_thuat ?? 0, p.payload?.kpis?.tong_co_hoi ?? 0) },
             ]}
           />
           <SupervisionTrendChart

@@ -22,7 +22,6 @@ import type {
 } from "../types/bao-cao-tong-hop.types";
 
 export {
-  computeCcs,
   computeTyLeVst,
   computeTyLeGsc,
   deltaFromTrend,

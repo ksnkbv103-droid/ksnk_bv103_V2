@@ -12,6 +12,15 @@ import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 import { registerSplitSubQrFromMainMaAction } from "../../actions/cssd-register-label.actions";
 import { formatSetQtyLine, summarizeSetComposition } from "../../shared/domain/cssd-set-composition";
+import {
+  assertPlasmaPackMaterialAllowed,
+  type PackMaterial,
+} from "@/lib/domain/cssd-packaging-rules";
+
+export type DongGoiPackAdvancePayload = {
+  packMaterial?: PackMaterial | string;
+  method?: string;
+};
 
 type Props = {
   boDungCuId: string | null | undefined;
@@ -20,7 +29,7 @@ type Props = {
   enabled?: boolean;
   /** Trạm đóng gói: kiểm cấu phần trước khi chuyển trạm. */
   gateMode?: boolean;
-  onConfirmAdvance?: () => void;
+  onConfirmAdvance?: (payload?: DongGoiPackAdvancePayload) => void;
   onCancelGate?: () => void;
   advancing?: boolean;
 };
@@ -38,6 +47,7 @@ export default function CompositionReconcilePanel({
   const [data, setData] = useState<CompositionReconcilePayload | null>(null);
   const [suCoOpen, setSuCoOpen] = useState(false);
   const [splitting, setSplitting] = useState(false);
+  const [packMaterial, setPackMaterial] = useState<PackMaterial>("UNKNOWN");
 
   const fetchData = useCallback(async () => {
     const id = String(boDungCuId || "").trim();
@@ -91,7 +101,7 @@ export default function CompositionReconcilePanel({
             ) : null}
               {gateMode ? (
               <p className="mt-1 text-[11px] font-medium leading-relaxed text-amber-800">
-                Kiểm đếm trên phiếu bộ; báo Hỏng / Mất / Bổ sung nhiều món một lần. Sau đó quyết định có chuyển chờ tiệt khuẩn.
+                Kiểm đếm trên phiếu bộ; báo biến động qua 3 cửa (Đổi danh mục · Hỏng/Mất · Chuyển) nhiều món một lần. Sau đó quyết định có chuyển chờ tiệt khuẩn.
               </p>
             ) : null}
           </div>
@@ -102,7 +112,7 @@ export default function CompositionReconcilePanel({
           <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-rose-900">
             <ShieldAlert className="mt-0.5 shrink-0" size={18} />
             <div className="space-y-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wide">Cần tách gói nhạy nhiệt</p>
+              <p className="text-[11px] font-semibold">Cần tách gói nhạy nhiệt</p>
               <p className="text-[11px] font-medium leading-relaxed">{data.heat.reason}</p>
               {data.heat.methodLabelVi ? (
                 <p className="bv103-type-label font-semibold text-rose-800">Gợi ý: {data.heat.methodLabelVi}</p>
@@ -122,7 +132,7 @@ export default function CompositionReconcilePanel({
                     })
                     .finally(() => setSplitting(false));
                 }}
-                className="rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-[11px] font-semibold uppercase text-rose-800 disabled:opacity-50"
+                className="rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-[11px] font-semibold text-rose-800 disabled:opacity-50"
               >
                 {splitting ? "Đang tách…" : "Tách gói nhạy nhiệt"}
               </button>
@@ -141,7 +151,7 @@ export default function CompositionReconcilePanel({
 
         {data?.replenishWarnings && data.replenishWarnings.length > 0 ? (
           <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 text-sky-950 space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wide">
+            <p className="text-[11px] font-semibold">
               Cảnh báo kho dự phòng (danh mục dụng cụ)
             </p>
             <ul className="list-disc pl-4 text-[11px] font-medium space-y-0.5">
@@ -199,10 +209,43 @@ export default function CompositionReconcilePanel({
           <button
             type="button"
             onClick={openSuCo}
-            className="h-11 w-full touch-manipulation rounded-xl border border-amber-200 bg-amber-50 text-xs font-semibold uppercase tracking-wide text-amber-900 hover:bg-amber-100"
+            className="h-11 w-full touch-manipulation rounded-xl border border-amber-200 bg-amber-50 text-xs font-semibold text-amber-900 hover:bg-amber-100"
           >
             Báo biến động bộ này
           </button>
+        ) : null}
+
+
+        {gateMode && data?.heat.recommendedMethod === "PLASMA" ? (
+          <div className="space-y-2 rounded-xl border border-violet-200 bg-violet-50 p-3 text-violet-950">
+            <p className="text-[11px] font-semibold">Plasma — chọn vật liệu đóng gói</p>
+            <p className="text-[11px] font-medium leading-relaxed text-violet-900">
+              Plasma cấm cellulose (giấy/vải). Dùng Tyvek / túi không cellulose.
+            </p>
+            <label className="block text-[11px] font-semibold">
+              Vật liệu đóng gói
+              <select
+                className="mt-1 h-10 w-full rounded-lg border border-violet-200 bg-white px-2 text-xs font-medium text-slate-800"
+                value={packMaterial}
+                onChange={(e) => setPackMaterial(e.target.value as PackMaterial)}
+              >
+                <option value="UNKNOWN">— Chọn —</option>
+                <option value="NON_CELLULOSE">Tyvek / không cellulose</option>
+                <option value="CELLULOSE">Cellulose / giấy / vải</option>
+              </select>
+            </label>
+            {(() => {
+              const plasmaCheck = assertPlasmaPackMaterialAllowed({
+                method: data.heat.recommendedMethod,
+                packMaterial,
+              });
+              return !plasmaCheck.ok ? (
+                <p className="rounded-lg border border-rose-200 bg-rose-50 px-2 py-1.5 text-[11px] font-semibold text-rose-800">
+                  {plasmaCheck.message}
+                </p>
+              ) : null;
+            })()}
+          </div>
         ) : null}
 
         {gateMode ? (
@@ -211,15 +254,28 @@ export default function CompositionReconcilePanel({
               type="button"
               onClick={onCancelGate}
               disabled={advancing}
-              className="h-11 touch-manipulation rounded-xl border border-slate-200 bg-white px-4 text-xs font-semibold uppercase tracking-wide text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              className="h-11 touch-manipulation rounded-xl border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
             >
               Đóng (chưa chuyển)
             </button>
             <button
               type="button"
-              onClick={onConfirmAdvance}
-              disabled={advancing || loading}
-              className="h-11 touch-manipulation rounded-xl bg-emerald-600 px-5 text-xs font-semibold uppercase tracking-wide text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() =>
+                onConfirmAdvance?.({
+                  packMaterial,
+                  method: data?.heat.recommendedMethod,
+                })
+              }
+              disabled={
+                advancing ||
+                loading ||
+                (data?.heat.recommendedMethod === "PLASMA" &&
+                  !assertPlasmaPackMaterialAllowed({
+                    method: data.heat.recommendedMethod,
+                    packMaterial,
+                  }).ok)
+              }
+              className="h-11 touch-manipulation rounded-xl bg-emerald-600 px-5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {advancing ? "Đang chuyển…" : "Xác nhận chuyển chờ tiệt khuẩn"}
             </button>

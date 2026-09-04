@@ -1,7 +1,7 @@
 // src/app/cssd-erp/batch/page.tsx
-// Refactored: Moved to top-level navigation, but keeping this route for backward compatibility.
-import { CSSDSterilizationBatchPage } from "@/modules/cssd-erp/contexts/sterilization-batch/entrypoint";
-
+// Backward-compat deep link — canonical UI is /cssd-quy-trinh?tab=batch.
+import { redirect } from "next/navigation";
+import { cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
 
 export const metadata = {
   title: "Quản lý Mẻ tiệt khuẩn | KSNK 103",
@@ -9,5 +9,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <CSSDSterilizationBatchPage />;
+  redirect(cssdQuyTrinhBatchTabHref());
 }

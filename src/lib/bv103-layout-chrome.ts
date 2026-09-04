@@ -18,11 +18,11 @@ const controlBase =
   "bv103-control-h w-full rounded-[var(--radius-control)] border border-slate-200 bg-white bv103-type-body text-slate-800 shadow-sm outline-none transition-colors focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-[var(--primary)]/15 disabled:cursor-not-allowed disabled:opacity-60";
 
 const choiceBtnBase =
-  "min-h-[2.75rem] w-full rounded-[var(--radius-control)] border px-2 py-2 text-center bv103-type-label font-semibold uppercase tracking-wide transition-colors touch-manipulation";
+  "min-h-[2.75rem] w-full rounded-[var(--radius-control)] border px-2 py-2 text-center bv103-type-label font-semibold transition-colors touch-manipulation";
 
 /** Nút lựa chọn trên một hàng ngang (checklist GSC) — không `w-full`. */
 const choiceBtnInline =
-  "bv103-control-h inline-flex shrink-0 items-center justify-center rounded-[var(--radius-control)] border px-3 bv103-type-label font-semibold uppercase tracking-wide transition-colors touch-manipulation";
+  "bv103-control-h inline-flex shrink-0 items-center justify-center rounded-[var(--radius-control)] border px-3 bv103-type-label font-semibold transition-colors touch-manipulation";
 
 export const bv103LayoutChrome = {
   controlInput: `${controlBase} px-3`,
@@ -35,7 +35,7 @@ export const bv103LayoutChrome = {
   btnPrimary:
     "bv103-control-h inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-[var(--primary)] px-4 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-50",
   btnPrimaryBlock:
-    "bv103-control-h flex w-full items-center justify-center gap-2 rounded-[var(--radius-control)] bg-[var(--primary)] text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-50",
+    "bv103-control-h flex w-full items-center justify-center gap-2 rounded-[var(--radius-control)] bg-[var(--primary)] text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-50",
   btnSecondary:
     "bv103-control-h inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 disabled:opacity-50",
 
@@ -48,7 +48,7 @@ export const bv103LayoutChrome = {
 
   segmentGroup: "inline-flex overflow-hidden rounded-[var(--radius-control)] border border-slate-200 shadow-sm",
   segmentBtn:
-    "min-w-[4.5rem] min-h-[2.75rem] flex items-center justify-center border-r border-slate-200 px-3 py-2 bv103-type-label font-semibold uppercase tracking-wide transition-colors last:border-r-0",
+    "min-w-[4.5rem] min-h-[2.75rem] flex items-center justify-center border-r border-slate-200 px-3 py-2 bv103-type-label font-semibold transition-colors last:border-r-0",
   segmentBtnIdle: "bg-white text-slate-600 hover:bg-slate-50",
   segmentBtnYes: "bg-[var(--primary)] text-white border-[var(--primary)]",
   segmentBtnNo: "bg-rose-600 text-white border-rose-600",

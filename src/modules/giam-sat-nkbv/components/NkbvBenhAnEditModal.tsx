@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { X } from "lucide-react";
 import { toast } from "sonner";
 import SearchableSelect from "@/components/shared/SearchableSelect";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import { updateNkbvBenhAnStay } from "../actions/giam-sat-nkbv.actions";
@@ -37,7 +37,6 @@ const toDate = (v: unknown) => (v ? String(v).slice(0, 10) : "");
 
 export default function NkbvBenhAnEditModal({ stay, khoas, onClose, onSaved }: Props) {
   const todayStr = new Date().toISOString().slice(0, 10);
-  const [mounted, setMounted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     ma_benh_nhan: "",
@@ -51,8 +50,6 @@ export default function NkbvBenhAnEditModal({ stay, khoas, onClose, onSaved }: P
     ly_do_tu_vong: "",
     tu_vong_lien_quan_nkbv: false,
   });
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     setForm({
@@ -109,26 +106,28 @@ export default function NkbvBenhAnEditModal({ stay, khoas, onClose, onSaved }: P
     onClose();
   };
 
-  if (!mounted) return null;
+  return (
+    <Dialog
+      open
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+    >
+      <DialogContent
+        className={`flex max-h-[min(90dvh,880px)] max-w-2xl flex-col gap-0 overflow-hidden p-0 ${BV103_DIALOG_STACK.nestedContent} sm:max-w-2xl`}
+        overlayClassName={`${BV103_DIALOG_STACK.nestedOverlay}`}
+      >
+        <DialogTitle className="sr-only">Sửa hồ sơ đợt nằm viện</DialogTitle>
+        <div className="shrink-0 border-b border-slate-100 px-5 py-4 pr-14 sm:px-6">
+          <h2 className={C.modalTitle}>Sửa hồ sơ đợt nằm viện</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Mã BA <span className="font-mono font-semibold text-slate-800">{stay.ma_benh_an}</span> — không
+            phải phiếu xác định ca NKBV.
+          </p>
+        </div>
 
-  return createPortal(
-    <div className="fixed inset-0 z-[10055] flex items-center justify-center overflow-y-auto bg-slate-900/40 p-3 sm:p-4">
-      <div className="relative my-4 w-full max-w-2xl rounded-[var(--radius-shell)] border border-slate-200 bg-white p-5 shadow-[var(--shadow-app-soft)] sm:p-6">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 rounded-full p-2 text-slate-400 hover:bg-slate-50"
-          aria-label="Đóng"
-        >
-          <X className="h-5 w-5" />
-        </button>
-        <h2 className={C.modalTitle}>Sửa hồ sơ đợt nằm viện</h2>
-        <p className="mt-1 text-xs text-slate-500">
-          Mã BA <span className="font-mono font-semibold text-slate-800">{stay.ma_benh_an}</span> — không
-          phải phiếu xác định ca NKBV.
-        </p>
-
-        <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label className={C.formLabel}>Mã bệnh nhân</label>
             <input
@@ -242,8 +241,9 @@ export default function NkbvBenhAnEditModal({ stay, khoas, onClose, onSaved }: P
             </div>
           ) : null}
         </div>
+        </div>
 
-        <div className="mt-6 flex flex-wrap justify-end gap-3">
+        <div className="flex shrink-0 flex-wrap justify-end gap-3 border-t border-slate-100 bg-white px-5 py-4 sm:px-6">
           <button type="button" onClick={onClose} className={`${C.ctaSecondary} min-h-11`}>
             Hủy
           </button>
@@ -256,8 +256,7 @@ export default function NkbvBenhAnEditModal({ stay, khoas, onClose, onSaved }: P
             {saving ? "Đang lưu…" : "Lưu hồ sơ BA"}
           </button>
         </div>
-      </div>
-    </div>,
-    document.body,
+      </DialogContent>
+    </Dialog>
   );
 }

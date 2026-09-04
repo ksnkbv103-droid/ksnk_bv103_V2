@@ -39,4 +39,25 @@ describe("mapGscSessionToExportRow", () => {
     });
     expect(row.ty_le_tuan_thu).toBe(87.5);
   });
+
+  it("prefers snapshot NHAT_KY over live TY_LE", () => {
+    const row = mapGscSessionToExportRow({
+      id: "s4",
+      tong_quan_sat: 2,
+      tong_dat: 1,
+      cach_tinh_diem: "TY_LE",
+      bang_kiem_snapshot: {
+        bang_kiem_id: "bk-1",
+        ma_bk: "BM.X",
+        ten_bang_kiem: "X",
+        loai_giam_sat: "NHAT_KY_VAN_HANH",
+        cach_tinh_diem: "NHAT_KY",
+        phien_ban: "1",
+        tieu_chi_jsonb: [],
+        chot_luc: "2026-01-01T00:00:00.000Z",
+      },
+    });
+    expect(row.ty_le_tuan_thu).toBeNull();
+    expect(row.ghi_chu_ty_le).toContain("Nhật ký");
+  });
 });

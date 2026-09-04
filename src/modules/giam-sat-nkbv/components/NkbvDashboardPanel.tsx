@@ -19,6 +19,13 @@ import { Activity, AlertTriangle } from "lucide-react";
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
 import { formatKhoaCompactLabel, formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
+import {
+  formatDurRatio,
+  formatNullableFixed,
+  formatNullablePercentRatio,
+  formatRatePer1000,
+  formatSsiPercent,
+} from "../lib/nkbv-rate-display";
 
 type KhoaOption = { id: string; ten_danh_muc: string; ma_danh_muc?: string };
 
@@ -42,11 +49,11 @@ const COL_LOAI = ["var(--primary)", "#0d9488", "#2563eb", "#d97706", "#7c3aed", 
 
 /** SIR/SUR/DUR `null` nghĩa là chưa tính được — không được hiển thị thành 0. */
 function formatRatio(value: number | null | undefined, digits = 2): string {
-  return value == null ? "—" : Number(value).toFixed(digits);
+  return formatNullableFixed(value, digits);
 }
 
 function formatPercentRatio(value: number | null | undefined): string {
-  return value == null ? "—" : `${(Number(value) * 100).toFixed(2)}%`;
+  return formatNullablePercentRatio(value);
 }
 
 /** SIR `null` = chưa đủ dữ liệu để chuẩn hoá; SIR = 0 là kết quả hợp lệ (không có ca). */
@@ -174,7 +181,7 @@ export default function NkbvDashboardPanel({
             sub:
               loading || !k
                 ? ""
-                : `Tỷ lệ/XN vs (PA−Loại trừ): ${k.ti_le_xac_nhan_so_voi_pa ?? 0}%`,
+                : `Tỷ lệ/XN vs (PA−Loại trừ): ${k.ti_le_xac_nhan_so_voi_pa == null ? "—" : `${k.ti_le_xac_nhan_so_voi_pa}%`}`,
           },
           {
             label: "Đang ghi / Chờ XN",
@@ -350,14 +357,14 @@ export default function NkbvDashboardPanel({
                 const totVap = rates.reduce((acc, r) => acc + Number(r.obs_vap_cases || 0), 0);
                 const totSsi = rates.reduce((acc, r) => acc + Number(r.obs_ssi_cases || 0), 0);
 
-                const clabsiRate = totCvcDays > 0 ? ((totClabsi / totCvcDays) * 1000).toFixed(2) : "0.00";
-                const cautiRate = totFoleyDays > 0 ? ((totCauti / totFoleyDays) * 1000).toFixed(2) : "0.00";
-                const vapRate = totVentDays > 0 ? ((totVap / totVentDays) * 1000).toFixed(2) : "0.00";
-                const ssiRate = totSurgeries > 0 ? ((totSsi / totSurgeries) * 100).toFixed(2) : "0.00";
+                const clabsiRate = formatRatePer1000(totClabsi, totCvcDays);
+                const cautiRate = formatRatePer1000(totCauti, totFoleyDays);
+                const vapRate = formatRatePer1000(totVap, totVentDays);
+                const ssiRate = formatSsiPercent(totSsi, totSurgeries);
 
-                const cvcDur = totPatientDays > 0 ? (totCvcDays / totPatientDays).toFixed(4) : "0.0000";
-                const foleyDur = totPatientDays > 0 ? (totFoleyDays / totPatientDays).toFixed(4) : "0.0000";
-                const ventDur = totPatientDays > 0 ? (totVentDays / totPatientDays).toFixed(4) : "0.0000";
+                const cvcDur = formatDurRatio(totCvcDays, totPatientDays);
+                const foleyDur = formatDurRatio(totFoleyDays, totPatientDays);
+                const ventDur = formatDurRatio(totVentDays, totPatientDays);
 
                 return (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -417,7 +424,7 @@ export default function NkbvDashboardPanel({
                       </div>
                       <div className="flex justify-between items-baseline">
                         <span className="bv103-type-kpi tabular-nums text-slate-800">{totSsi} <span className="text-xs font-normal text-slate-400">ca</span></span>
-                        <span className="bv103-type-label font-semibold text-blue-600">{ssiRate}% <span className="text-[11px] font-normal text-slate-400">tỷ lệ mổ</span></span>
+                        <span className="bv103-type-label font-semibold text-blue-600">{ssiRate === "—" ? "—" : `${ssiRate}%`} <span className="text-[11px] font-normal text-slate-400">tỷ lệ mổ</span></span>
                       </div>
                       <div className="border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-1 text-[11px] text-slate-500 font-semibold">
                         <div>Số ca mổ: <strong className="text-slate-700">{totSurgeries}</strong></div>

@@ -12,6 +12,7 @@ import { afterSaveNhanSuLogin } from "../lib/nhan-su-after-save-login";
 import { useGenerateMa } from "@/hooks/useGenerateMa";
 import { usePermission } from "@/hooks/usePermission";
 import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 interface Props {
   initialData?: Partial<NhanSu> | null;
@@ -31,7 +32,7 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
   const [chucVus, setChucVus] = useState<{ id: string; ten_danh_muc: string }[]>([]);
   const [ngheNghieps, setNgheNghieps] = useState<{ id: string; ten_danh_muc: string }[]>([]);
   const [loginPassword, setLoginPassword] = useState("");
-  const [createLogin, setCreateLogin] = useState(false);
+  const [createLogin, setCreateLogin] = useState(() => !initialData?.id);
   const { isAdmin, canEdit } = usePermission();
   const canProvision = isAdmin || canEdit("PHAN_QUYEN");
   const hasAuth = Boolean(initialData?.auth_user_id);
@@ -157,53 +158,66 @@ export default function NhanSuForm({ initialData, onSuccess, onCancel }: Props) 
     onSuccess();
   };
 
+  const title = initialData?.id ? "Cập nhật hồ sơ nhân sự" : "Thêm người";
+
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-      <div className="bg-white rounded-[var(--radius-shell)] w-full max-w-2xl overflow-hidden shadow-[var(--shadow-app-soft)] animate-in zoom-in-95 duration-300">
-        <div className="bg-[var(--primary)] p-8 text-white">
-          <h3 className={F.modalTitle}>
-            {initialData?.id ? "Cập nhật hồ sơ nhân sự" : "Thêm nhân sự mới"}
-          </h3>
-          <p className={F.modalSubtitle}>Mã nhân viên là định danh duy nhất của từng cá nhân.</p>
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onCancel();
+      }}
+    >
+      <DialogContent className="flex max-h-[min(90dvh,880px)] max-w-2xl flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
+        <DialogTitle className="sr-only">{title}</DialogTitle>
+        <div className="shrink-0 bg-[var(--primary)] px-6 py-5 pr-14 text-white sm:px-8 sm:py-6">
+          <h3 className={F.modalTitle}>{title}</h3>
+          <p className={F.modalSubtitle}>
+            {initialData?.id
+              ? "Mã nhân viên là định danh duy nhất."
+              : "Họ tên, khoa, email, vai trò — tạo TK nếu có quyền."}
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-[var(--bv103-space-3)]">
-          <NhanSuFormFields
-            formData={formData}
-            setFormData={setFormData}
-            loading={loading}
-            khoas={khoas}
-            chucDanhs={chucDanhs}
-            chucVus={chucVus}
-            tos={tos}
-            vaiTros={vaiTros}
-            ngheNghieps={ngheNghieps}
-            maTuDong={maTuDong}
-            isNew={!initialData?.id}
-          />
-
-          {canProvision ? (
-            <NhanSuLoginFields
-              hasAuth={hasAuth}
-              email={String(formData.email || "")}
-              password={loginPassword}
-              onPassword={setLoginPassword}
-              createLogin={createLogin}
-              onCreateLogin={setCreateLogin}
-              disabled={loading}
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 space-y-[var(--bv103-space-3)] overflow-y-auto overscroll-contain px-6 py-5 sm:px-8">
+            <NhanSuFormFields
+              formData={formData}
+              setFormData={setFormData}
+              loading={loading}
+              khoas={khoas}
+              chucDanhs={chucDanhs}
+              chucVus={chucVus}
+              tos={tos}
+              vaiTros={vaiTros}
+              ngheNghieps={ngheNghieps}
+              maTuDong={maTuDong}
+              isNew={!initialData?.id}
+              compactCreate={!initialData?.id}
             />
-          ) : null}
 
-          <div className="flex gap-4 pt-4">
+            {canProvision ? (
+              <NhanSuLoginFields
+                hasAuth={hasAuth}
+                email={String(formData.email || "")}
+                password={loginPassword}
+                onPassword={setLoginPassword}
+                createLogin={createLogin}
+                onCreateLogin={setCreateLogin}
+                disabled={loading}
+              />
+            ) : null}
+          </div>
+
+          <div className="flex shrink-0 gap-3 border-t border-slate-100 bg-white px-6 py-4 sm:px-8">
             <button type="button" onClick={onCancel} className={`${F.ctaSecondary} flex-1 ${F.modalFooterBtn}`} disabled={loading}>
-              Hủy bỏ
+              Hủy
             </button>
             <button type="submit" className={`${F.ctaPrimary} flex-[2] ${F.modalFooterBtn}`} disabled={loading}>
-              {loading ? "Đang xử lý…" : "Lưu hồ sơ"}
+              {loading ? "Đang lưu…" : "Lưu hồ sơ"}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

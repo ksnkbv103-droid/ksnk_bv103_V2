@@ -25,6 +25,11 @@ import {
   type IncidentGroup,
 } from "../domain/cssd-incident-taxonomy";
 import { cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
+import {
+  BATCH_RECALL_ENTRY_COPY,
+  BATCH_RECALL_REASON_OPTIONS,
+  type BatchRecallReasonCode,
+} from "../domain/cssd-batch-recall";
 import Link from "next/link";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
@@ -182,15 +187,20 @@ export function ProcessMaLoField({
   maLo,
   setMaLo,
   readOnly,
+  batchRecall,
 }: {
   maLo: string;
   setMaLo: (v: string) => void;
   readOnly?: boolean;
+  /** QT.24 entry: bắt buộc mã lô / id mẻ. */
+  batchRecall?: boolean;
 }) {
   return (
     <div className="space-y-1.5">
       <label className={bv103LayoutChrome.labelBlock}>
-        Mã lô mẻ tiệt khuẩn{readOnly ? "" : " (nếu sự cố gắn mẻ)"}
+        {batchRecall
+          ? "Mã lô mẻ cần thu hồi"
+          : `Mã lô mẻ tiệt khuẩn${readOnly ? "" : " (nếu sự cố gắn mẻ)"}`}
       </label>
       <input
         value={maLo}
@@ -199,6 +209,55 @@ export function ProcessMaLoField({
         className={`${bv103LayoutChrome.controlInput} ${readOnly ? "cursor-not-allowed border-slate-100 bg-slate-100 text-slate-600" : "bg-slate-50"} uppercase`}
         placeholder="VD. LOT-2026-01"
       />
+    </div>
+  );
+}
+
+export function BatchRecallEntryBanner() {
+  return (
+    <div
+      className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2.5 text-left"
+      role="note"
+      data-testid="batch-recall-entry-banner"
+    >
+      <p className="text-xs font-semibold text-amber-950">{BATCH_RECALL_ENTRY_COPY.title}</p>
+      <p className="mt-0.5 text-[11px] leading-relaxed text-amber-900">{BATCH_RECALL_ENTRY_COPY.subtitle}</p>
+      <p className="mt-1 text-[11px] leading-relaxed text-amber-800">{BATCH_RECALL_ENTRY_COPY.effect}</p>
+    </div>
+  );
+}
+
+export function BatchRecallReasonPicker({
+  reason,
+  onChange,
+}: {
+  reason: BatchRecallReasonCode;
+  onChange: (code: BatchRecallReasonCode, typeId: string, typeTen: string) => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className={bv103LayoutChrome.labelBlock}>Lý do thu hồi theo mẻ</label>
+      <div className="grid gap-1.5 sm:grid-cols-3">
+        {BATCH_RECALL_REASON_OPTIONS.map((opt) => {
+          const selected = reason === opt.code;
+          return (
+            <button
+              key={opt.code}
+              type="button"
+              onClick={() => onChange(opt.code, opt.typeId, opt.typeTen)}
+              className={`rounded-lg border px-2.5 py-2 text-left transition-colors ${
+                selected
+                  ? "border-amber-500 bg-amber-50 ring-1 ring-amber-400"
+                  : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+              }`}
+              data-testid={`batch-recall-reason-${opt.code}`}
+            >
+              <span className="block text-[12px] font-semibold text-slate-800">{opt.label}</span>
+              <span className="mt-0.5 block text-[10px] leading-snug text-slate-500">{opt.hint}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -214,7 +273,7 @@ export function TypePicker({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className={bv103LayoutChrome.labelBlock}>Loại sự cố</label>
+      <label className={bv103LayoutChrome.labelBlock}>Loại sự cố an toàn</label>
       <div className="relative">
         <select
           value={typeId}
@@ -344,7 +403,7 @@ export function SubmittedSuccessView({
       <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
         <CheckCircle2 size={28} />
       </div>
-      <h3 className={UI.modalTitle}>Ghi nhận sự cố thành công!</h3>
+      <h3 className={UI.modalTitle}>Ghi nhận thành công!</h3>
       <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-slate-500">
         Biên bản đã lưu — in hoặc mở nhật ký để xem lại.
       </p>

@@ -15,9 +15,9 @@ import { BO_DUNG_CU_COLUMN_MAP } from "./bo-dung-cu-import";
 import type { BoDungCuTableRow } from "./bo-dung-cu-form-shared";
 import { BoDungCuPageHeader } from "./bo-dung-cu-page-header";
 import { BoDungCuChiTietPanel } from "./bo-dung-cu-chi-tiet-panel";
-import { SetReconcileApproveQueue } from "./SetReconcileApproveQueue";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { BoDungCuMaBoHealthBanner } from "./bo-dung-cu-ma-bo-health-banner";
-import { BoDungCuQuickSetupPanel } from "./bo-dung-cu-quick-setup-panel";
+import { useModulePermission } from "@/hooks/useModulePermission";
 import {
   getBoDungCuRowsAction,
   getKhoaPhongOptionsForBoAction,
@@ -26,19 +26,21 @@ import {
   toggleBoDungCuStatusAction,
 } from "../actions/bo-dung-cu.actions";
 
-export function BoDungCuPageContent() {
+export function BoDungCuPageContent({ onOpenLoaiSheet }: { onOpenLoaiSheet?: () => void }) {
   const router = useRouter();
+  const { isAdmin } = useModulePermission("BO_DC");
+  const canWriteMaster = isAdmin;
   const [data, setData] = useState<BoDungCuTableRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<BoDungCuTableRow | null>(null);
-  const [loaiOptions, setLoaiOptions] = useState<{ id: string; ten_danh_muc: string }[]>([]);
+  const [loaiOptions] = useState<{ id: string; ten_danh_muc: string }[]>([]);
   const [khoaOptions, setKhoaOptions] = useState<{ id: string; ten_khoa: string }[]>([]);
   const [loadingLoai, setLoadingLoai] = useState(true);
   const [loadingKhoa, setLoadingKhoa] = useState(true);
   const [selectedBoId, setSelectedBoId] = useState<string | null>(null);
-  const [lastCreatedMaBo, setLastCreatedMaBo] = useState<string | null>(null);
+  const [loaiFilter, setLoaiFilter] = useState("");
 
   useEffect(() => {
     async function loadOptions() {
@@ -82,6 +84,7 @@ export function BoDungCuPageContent() {
   };
 
   const actionUi = useTableActionUi<BoDungCuTableRow>({
+    capabilities: { edit: canWriteMaster, delete: canWriteMaster, toggleActive: canWriteMaster },
     onToggleStatus: async (row) => {
       const result = await toggleBoDungCuStatusAction(row.id, Boolean(row.is_active));
       if (!result.success) {
@@ -123,15 +126,17 @@ export function BoDungCuPageContent() {
 
   const columns = getBoDungCuColumns(actionUi);
   const modalKey = editing?.id ? `edit-${editing.id}` : "create";
-  const selectedRow = selectedBoId ? data.find((r) => r.id === selectedBoId) : undefined;
+  const loaiFilterOptions = Array.from(
+    new Set(data.map((r) => String(r.loai_dung_cu?.ten_danh_muc || "").trim()).filter(Boolean)),
+  ).sort((a, b) => a.localeCompare(b, "vi"));
+  const visibleData = loaiFilter
+    ? data.filter((r) => String(r.loai_dung_cu?.ten_danh_muc || "").trim() === loaiFilter)
+    : data;
+  const selectedRow = selectedBoId ? visibleData.find((r) => r.id === selectedBoId) : undefined;
 
   return (
     <div className="bv103-stack-page animate-in fade-in duration-700">
       <BoDungCuMaBoHealthBanner />
-      <BoDungCuQuickSetupPanel
-        onStartCreateBo={openCreate}
-        lastCreatedMaBo={lastCreatedMaBo}
-      />
       <BoDungCuPageHeader
         fileInputRef={fileInputRef}
         onFileSelected={(file) => void handleFileUpload(file)}
@@ -139,14 +144,20 @@ export function BoDungCuPageContent() {
         onTriggerImport={triggerImport}
         onExportTemplate={() => void exportTemplate()}
         onCreate={openCreate}
+        canWriteMaster={canWriteMaster}
+        onOpenLoaiSheet={onOpenLoaiSheet}
+        loaiFilter={loaiFilter}
+        loaiFilterOptions={loaiFilterOptions}
+        onLoaiFilterChange={setLoaiFilter}
       />
 
-      <div className="min-w-0 sm:min-h-[450px]">
+      <div className="min-w-0">
         <AdvancedDataTable
           columns={columns}
-          data={data}
+          data={visibleData}
           loading={loading}
-          enableMultiSelect={true}
+          enableMultiSelect={canWriteMaster}
+          bodyMaxHeight="max-h-[min(58dvh,560px)]"
           searchPlaceholder="Tìm theo mã, tên bộ, loại, khoa, ghi chú…"
           rowClassName={(r) =>
             r.id === selectedBoId ? "bg-emerald-50/90 ring-1 ring-inset ring-[var(--primary)]/20" : ""
@@ -168,18 +179,34 @@ export function BoDungCuPageContent() {
         />
       </div>
 
-      <SetReconcileApproveQueue />
+      <Dialog
+        open={Boolean(selectedBoId)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedBoId(null);
+        }}
+      >
+        <DialogContent className="flex max-h-[min(90dvh,880px)] max-w-4xl flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl">
+          <DialogTitle className="sr-only">
+            Quản lý thành phần bộ
+            {selectedRow?.ma_bo || selectedRow?.ten_bo
+              ? ` (${selectedRow?.ma_bo || ""}${selectedRow?.ma_bo && selectedRow?.ten_bo ? " — " : ""}${selectedRow?.ten_bo || ""})`
+              : ""}
+          </DialogTitle>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 pr-12 sm:px-6 sm:pr-14">
+            <BoDungCuChiTietPanel
+              selectedBoId={selectedBoId}
+              selectedMaBo={selectedRow?.ma_bo}
+              selectedTenBo={selectedRow?.ten_bo}
+              phan_loai_bo={selectedRow?.phan_loai_bo}
+              boOptions={data.map((x) => ({ id: x.id, ma_bo: x.ma_bo || null, ten_bo: x.ten_bo || null }))}
+              loaiOptions={loaiOptions.map((x) => ({ id: x.id, ma_danh_muc: null, ten_danh_muc: x.ten_danh_muc || null }))}
+              onChanged={() => setRefreshKey((k) => k + 1)}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
 
-      <BoDungCuChiTietPanel
-        selectedBoId={selectedBoId}
-        selectedMaBo={selectedRow?.ma_bo}
-        selectedTenBo={selectedRow?.ten_bo}
-        phan_loai_bo={selectedRow?.phan_loai_bo}
-        boOptions={data.map((x) => ({ id: x.id, ma_bo: x.ma_bo || null, ten_bo: x.ten_bo || null }))}
-        loaiOptions={loaiOptions.map((x) => ({ id: x.id, ma_danh_muc: null, ten_danh_muc: x.ten_danh_muc || null }))}
-        onChanged={() => setRefreshKey((k) => k + 1)}
-      />
-
+      {canWriteMaster ? (
       <BoDungCuFormModal
         key={modalKey}
         open={formOpen}
@@ -193,8 +220,8 @@ export function BoDungCuPageContent() {
           setEditing(null);
         }}
         onSaved={() => setRefreshKey((k) => k + 1)}
-        onSavedMaBo={(ma) => setLastCreatedMaBo(ma)}
       />
+      ) : null}
     </div>
   );
 }

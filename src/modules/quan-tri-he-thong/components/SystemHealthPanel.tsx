@@ -41,7 +41,7 @@ export function SystemHealthPanel() {
           </h2>
           <p className="mt-1 max-w-2xl text-xs text-slate-500">
             Thống kê mô tả cho quản trị viên: tài khoản, khoa–khối, mã bộ CSSD, cấu hình bảng kiểm.
-            Không liên quan chỉ số tuân thủ CCS.
+            Không liên quan chỉ số tuân thủ VST–GSC.
           </p>
         </div>
         <button

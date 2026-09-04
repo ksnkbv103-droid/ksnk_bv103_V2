@@ -6,6 +6,12 @@ import { insertCssdLifecycleEvent } from "../../shared/application/cssd-lifecycl
 import { assertLedgerDuChoCapPhat } from "./cssd-asset-ledger";
 import { assertMergeGateForCapPhat } from "./cssd-merge-gate";
 import { fetchActiveQuyTrinhByScanCode } from "../../shared/application/cssd-workflow-resolve";
+import { assertPackIssuable } from "@/lib/domain/cssd-pack-issuance";
+import { assertPlasmaPackMaterialAllowed } from "@/lib/domain/cssd-packaging-rules";
+import {
+  assertLamSachLotSoftGate,
+  pickLamSachLotFromPayload,
+} from "@/lib/domain/cssd-lam-sach-lot-gate";
 
 export type WorkflowQuyTrinhInput = {
   id: string;
@@ -59,6 +65,39 @@ export async function executeWorkflowStationScan(
   });
   if (!advance.ok) throw new Error(advance.message);
 
+  // 0. DONG_GOI / pack scan gate — Plasma cấm cellulose (QT.21)
+  if (targetStation === "DONG_GOI") {
+    const method =
+      opts.extraPayload?.phuong_phap_tiet_khuan ??
+      opts.extraPayload?.method ??
+      opts.extraPayload?.recommendedMethod;
+    const packMaterial =
+      opts.extraPayload?.packMaterial ??
+      opts.extraPayload?.vat_lieu_dong_goi ??
+      opts.extraPayload?.vatLieuDongGoi;
+    const plasmaGate = assertPlasmaPackMaterialAllowed({ method, packMaterial });
+    if (!plasmaGate.ok) throw new Error(plasmaGate.message || "Plasma cấm vật liệu đóng gói cellulose.");
+  }
+
+  // 0b. LAM_SACH (QT.18) — soft-warn lot enzyme / washer (không hard-block)
+  if (targetStation === "LAM_SACH") {
+    const lotGate = assertLamSachLotSoftGate(pickLamSachLotFromPayload(opts.extraPayload));
+    if ("warning" in lotGate && lotGate.warning) {
+      ledgerWarning = ledgerWarning
+        ? `${ledgerWarning} | ${lotGate.warning}`
+        : lotGate.warning;
+      if (quyTrinh.id) {
+        await insertCssdLifecycleEvent(supabase, {
+          quy_trinh_id: quyTrinh.id,
+          ma_su_kien: "LAM_SACH_LOT_SOFT_WARNING",
+          ma_tram: "LAM_SACH",
+          ghi_chu: lotGate.warning,
+          payload: { soft_gate: true, ...pickLamSachLotFromPayload(opts.extraPayload) },
+        });
+      }
+    }
+  }
+
   // 1. Kiểm tra an toàn trước khi quét (Safety Lock cho Cấp phát)
   if (targetStation === "CAP_PHAT" && quyTrinh.id) {
     const mergeGate = await assertMergeGateForCapPhat(supabase, quyTrinh);
@@ -67,12 +106,28 @@ export async function executeWorkflowStationScan(
 
   if (targetStation === "CAP_PHAT") {
     const qtRow = await fetchActiveQuyTrinhByScanCode(supabase, qr);
-    const qt = qtRow as { id?: string; lo_tiet_khuan_id?: string | null; is_dong_bang?: boolean | null } | null;
+    const qt = qtRow as {
+      id?: string;
+      lo_tiet_khuan_id?: string | null;
+      is_dong_bang?: boolean | null;
+      han_su_dung?: string | null;
+      ngay_het_han?: string | null;
+      tinh_trang?: string | null;
+      is_red_alert?: boolean | null;
+    } | null;
 
     if (qt?.id) {
       if (qt.is_dong_bang) {
         throw new Error("Bộ dụng cụ này đang bị KHÓA AN TOÀN do sự cố cấu phần hoặc quy trình.");
       }
+      const packGate = assertPackIssuable({
+        han_su_dung: qt.han_su_dung,
+        ngay_het_han: qt.ngay_het_han,
+        tinh_trang: qt.tinh_trang,
+        is_red_alert: qt.is_red_alert,
+        is_dong_bang: qt.is_dong_bang,
+      });
+      if (!packGate.ok) throw new Error(packGate.message);
       if (!qt.lo_tiet_khuan_id) {
         throw new Error("Bộ dụng cụ này CHƯA VÀO MẺ TIỆT KHUẨN. Không thể cấp phát.");
       }

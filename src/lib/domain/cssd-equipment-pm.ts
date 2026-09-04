@@ -1,3 +1,5 @@
+import { addDaysYmd, todayYmdInVn } from "@/lib/format-datetime-vi";
+
 /** Pure helpers — PM due status & machine display for CSSD equipment. */
 
 export type PmDueStatus = "OK" | "SAP_DEN" | "QUA_HAN" | "CHUA_CO_LICH";
@@ -5,9 +7,9 @@ export type PmDueStatus = "OK" | "SAP_DEN" | "QUA_HAN" | "CHUA_CO_LICH";
 export function pmDueStatus(ngayBaoTriTiepTheo: string | null | undefined, todayYmd?: string): PmDueStatus {
   const raw = String(ngayBaoTriTiepTheo || "").trim().slice(0, 10);
   if (!raw) return "CHUA_CO_LICH";
-  const today = todayYmd || new Date().toISOString().slice(0, 10);
+  const today = todayYmd || todayYmdInVn();
   if (raw < today) return "QUA_HAN";
-  const warn = addDaysIso(today, 7);
+  const warn = addDaysYmd(today, 7);
   if (raw <= warn) return "SAP_DEN";
   return "OK";
 }
@@ -29,8 +31,3 @@ export function trangThaiMayLabel(st: string | null | undefined): string {
   return s || "—";
 }
 
-function addDaysIso(dateYmd: string, days: number): string {
-  const d = new Date(`${dateYmd}T12:00:00.000Z`);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
-}

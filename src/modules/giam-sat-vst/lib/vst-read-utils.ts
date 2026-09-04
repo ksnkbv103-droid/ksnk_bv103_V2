@@ -2,6 +2,7 @@
 import { classifyVstAction } from "./vst-action-classifier";
 import { vstSessionDisplayRef } from "./vst-display-ref";
 import { formatDateVi } from "@/lib/format-datetime-vi";
+import { roundPercent1 } from "@/lib/analytics/supervision-percent";
 
 export type VstSessionRow = { id?: string; khoa_id?: string; nguoi_giam_sat_id?: string; [key: string]: unknown };
 export type VstObservationLite = { session_id?: string; hanh_dong?: string; [key: string]: unknown };
@@ -47,7 +48,7 @@ export function enrichVstSessionRows(rows: Record<string, unknown>[]): VstHistor
       Number.isFinite(compliantFromView) && compliantFromView >= 0
         ? compliantFromView
         : obs.filter((o) => classifyVstAction(o.hanh_dong).isCompliant).length;
-    const compliance = total_opps > 0 ? Math.round((compliant / total_opps) * 100) : 0;
+    const compliance = total_opps > 0 ? roundPercent1((compliant / total_opps) * 100) : 0;
     
     const ngayt = s.ngay_giam_sat as string | undefined;
     const dateSrc = ngayt?.trim() ? ngayt.slice(0, 10) : s.created_at ? String(s.created_at).slice(0, 10) : null;

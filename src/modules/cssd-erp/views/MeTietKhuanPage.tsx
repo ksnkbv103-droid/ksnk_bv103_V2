@@ -2,8 +2,8 @@
 // Refactored modular view
 "use client";
 
-
 import React from "react";
+import Link from "next/link";
 import { Plus } from "lucide-react";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
@@ -14,10 +14,12 @@ import CssdPrintPortal from "../components/print/CssdPrintPortal";
 import { useMeTietKhuanWorkflow } from "../hooks/use-me-tiet-khuan-workflow";
 import { CSSD_UI_ACTION_PRIMARY } from "../shared/ui/cssd-ui-chrome";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
+import { cssdSuCoBatchRecallHref } from "@/lib/cssd-routes";
 
 export default function MeTietKhuanPage({ suppressShell = false }: { suppressShell?: boolean } = {}) {
   const w = useMeTietKhuanWorkflow();
   const [isIncidentOpen, setIsIncidentOpen] = React.useState(false);
+  const [isBatchRecallOpen, setIsBatchRecallOpen] = React.useState(false);
 
   const batchColumns = React.useMemo(
     () =>
@@ -105,10 +107,20 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         onFinishQc={(isPass, overrideThongSoMay) => void w.finishQc(isPass, overrideThongSoMay)}
         onPrintBatch={() => w.activeMe?.id && void w.onPrintBatch({ batchId: w.activeMe.id })}
         isPrintBusy={w.isCssdPrinting}
-        onReportIncident={() => setIsIncidentOpen(true)}
+        onReportIncident={() => setIsBatchRecallOpen(true)}
         suppressShell={suppressShell}
       />
       {printPortal}
+      <IncidentReportModal
+        isOpen={isBatchRecallOpen}
+        onClose={() => setIsBatchRecallOpen(false)}
+        station="TIET_KHUAN"
+        defaultGroup="PROCESS"
+        initialTypeId="PROCESS_BI_POSITIVE"
+        initialMaLo={w.activeMe?.ma_lo_tiet_khuan}
+        initialLoTietKhuanId={w.activeMe?.id}
+        batchRecallEntry
+      />
       <IncidentReportModal
         isOpen={isIncidentOpen}
         onClose={() => setIsIncidentOpen(false)}
@@ -124,15 +136,23 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
   const listContent = (
     <div className="bv103-stack-page">
       {suppressShell && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-semibold text-slate-700">Danh sách mẻ tiệt khuẩn</h3>
-          <button
-            type="button"
-            onClick={() => w.setStep("CREATE")}
-            className={CSSD_UI_ACTION_PRIMARY}
-          >
-            <Plus size={18} /> Mở mẻ mới
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={cssdSuCoBatchRecallHref()}
+              className="inline-flex items-center gap-1 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-900 hover:bg-amber-100"
+            >
+              Thu hồi theo mẻ
+            </Link>
+            <button
+              type="button"
+              onClick={() => w.setStep("CREATE")}
+              className={CSSD_UI_ACTION_PRIMARY}
+            >
+              <Plus size={18} /> Mở mẻ mới
+            </button>
+          </div>
         </div>
       )}
       <div className="min-w-0">
@@ -173,9 +193,16 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
           >
             <Plus size={18} /> Mở mẻ mới
           </button>
+          <Link
+            href={cssdSuCoBatchRecallHref()}
+            className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-5 text-[11px] font-semibold text-amber-900 shadow-sm hover:bg-amber-100 active:scale-[0.98] transition-all"
+            title="Thu hồi theo mẻ — sự cố an toàn QT.24"
+          >
+            Thu hồi theo mẻ
+          </Link>
           <button
             type="button"
-            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 text-[11px] font-semibold uppercase tracking-wide text-red-600 shadow-sm hover:bg-red-100 active:scale-[0.98] transition-all cursor-pointer"
+            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 text-[11px] font-semibold text-red-600 shadow-sm hover:bg-red-100 active:scale-[0.98] transition-all cursor-pointer"
             onClick={() => setIsIncidentOpen(true)}
           >
             ⚠️ Báo sự cố
@@ -193,6 +220,16 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         initialTypeId="PROCESS_STERILIZATION_FAIL"
         initialMaLo={w.activeMe?.ma_lo_tiet_khuan}
         initialLoTietKhuanId={w.activeMe?.id}
+      />
+      <IncidentReportModal
+        isOpen={isBatchRecallOpen}
+        onClose={() => setIsBatchRecallOpen(false)}
+        station="TIET_KHUAN"
+        defaultGroup="PROCESS"
+        initialTypeId="PROCESS_BI_POSITIVE"
+        initialMaLo={w.activeMe?.ma_lo_tiet_khuan}
+        initialLoTietKhuanId={w.activeMe?.id}
+        batchRecallEntry
       />
     </CSSDPageShell>
   );

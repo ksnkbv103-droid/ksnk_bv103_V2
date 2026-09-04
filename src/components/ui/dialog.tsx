@@ -39,12 +39,21 @@ function preventDismissForPickerPortal(event: {
   }
 }
 
+/** Hủy bottom-sheet `max-sm:*` của DialogContent — hub lớn giữ centered trên mobile. */
+export const dialogContentKeepCentered =
+  "max-sm:!inset-x-auto max-sm:!left-[50%] max-sm:!right-auto max-sm:!bottom-auto max-sm:!top-[50%] max-sm:!translate-x-[-50%] max-sm:!translate-y-[-50%] max-sm:!rounded-b-[var(--radius-shell)] max-sm:!rounded-t-[var(--radius-shell)] max-sm:max-h-[min(92dvh,880px)] max-sm:!p-0 max-sm:!pb-0"
+
+type DialogContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+  /** Override overlay z-index when stacking above other portals (e.g. NKBV hub z-10040). */
+  overlayClassName?: string
+}
+
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, onPointerDownOutside, onFocusOutside, onInteractOutside, ...props }, ref) => (
+  DialogContentProps
+>(({ className, children, overlayClassName, onPointerDownOutside, onFocusOutside, onInteractOutside, ...props }, ref) => (
   <DialogPortal>
-    <DialogOverlay />
+    <DialogOverlay className={overlayClassName} />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
@@ -140,5 +149,5 @@ export {
   DialogHeader,
   DialogFooter,
   DialogTitle,
-  DialogDescription,
+  DialogDescription
 }

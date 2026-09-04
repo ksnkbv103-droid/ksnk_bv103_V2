@@ -7,7 +7,6 @@ import {
   type DeviceRegistryRecord,
 } from "../actions/giam-sat-nkbv-device-registry.actions";
 import type { DeviceRegistryType } from "../lib/nkbv-shared-device-days";
-import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 
 const TYPE_LABEL: Record<DeviceRegistryType, string> = {
@@ -39,7 +38,7 @@ export default function NkbvDeviceRegistryPanel({ maBenhAn }: Props) {
   }, [reload]);
 
   if (!rows.length) {
-    return <p className={C.hint}>Chưa tích Foley / máy / CVC trên lưới.</p>;
+    return <p className="text-xs text-slate-500">Chưa tích Foley / máy / CVC trên lưới.</p>;
   }
   return (
     <ul className="space-y-1 text-xs text-slate-700">

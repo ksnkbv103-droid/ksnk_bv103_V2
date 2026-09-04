@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { X, Loader2, Save } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import { listActiveTramCssdForLoaiAction, saveLoaiDungCuAction } from "../actions/loai-dung-cu.actions";
@@ -18,6 +18,7 @@ import {
   type CssdSterileMethod,
   type CssdTramCatalogRow,
 } from "@/lib/master-data/cssd-loai-dung-cu-map";
+import QuanTriFormDialogShell from "../../components/QuanTriFormDialogShell";
 
 type FormData = {
   id?: string;
@@ -114,7 +115,9 @@ export default function LoaiDungCuFormModal({
     };
   }, [open]);
 
-  if (!open) return null;
+  useEffect(() => {
+    setForm(seed);
+  }, [seed]);
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,107 +139,112 @@ export default function LoaiDungCuFormModal({
     });
     setLoading(false);
     if (!result.success) return toast.error(result.error || "Không lưu được loại dụng cụ.");
-    if (result.warning) toast.warning(result.warning);
+    if ("warning" in result && result.warning) toast.warning(result.warning);
     toast.success(isEdit ? "Đã cập nhật loại dụng cụ." : "Đã thêm loại dụng cụ.");
     onSaved();
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50">
-      <form onSubmit={save} className="bg-white w-full max-w-2xl rounded-[var(--radius-shell)] p-8 space-y-[var(--bv103-space-3)] shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)] max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between">
-          <h3 className={C.modalTitleLight}>
-            {isEdit ? "Cập nhật loại dụng cụ" : "Thêm loại dụng cụ"}
-          </h3>
-          <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-red-500">
-            <X size={20} />
+    <QuanTriFormDialogShell
+      open={open}
+      onClose={onClose}
+      title={isEdit ? "Cập nhật loại dụng cụ" : "Thêm loại dụng cụ"}
+      subtitle="Spaulding, chịu nhiệt và phương pháp tiệt khuẩn chỉ định."
+      size="lg"
+      onSubmit={save}
+      footer={
+        <>
+          <button type="button" onClick={onClose} className={`${C.ctaSecondary} flex-1 ${C.modalFooterBtn}`} disabled={loading}>
+            Hủy
           </button>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <F l="Mã loại" v={form.ma_danh_muc} o={(v) => setForm({ ...form, ma_danh_muc: v.toUpperCase() })} required />
-          <F l="Tên loại" v={form.ten_danh_muc} o={(v) => setForm({ ...form, ten_danh_muc: v })} required />
-          <F l="Hình dáng" v={form.hinh_dang} o={(v) => setForm({ ...form, hinh_dang: v })} />
-          <F l="Kích thước" v={form.kich_thuoc} o={(v) => setForm({ ...form, kich_thuoc: v })} />
-        </div>
-        <F l="Công dụng" v={form.cong_dung} o={(v) => setForm({ ...form, cong_dung: v })} />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <S
-            l="Phân loại Spaulding"
-            v={form.phan_loai_spaulding}
-            o={(v) => setForm({ ...form, phan_loai_spaulding: normalizeSpauldingForMaster(v) })}
-            options={[
-              { v: "CRITICAL", l: "Thiết yếu (Critical)" },
-              { v: "SEMI_CRITICAL", l: "Bán thiết yếu (Semi-critical)" },
-              { v: "NON_CRITICAL", l: "Không thiết yếu (Non-critical)" },
-            ]}
-          />
-          <S
-            l="Khả năng chịu nhiệt"
-            v={form.kha_nang_chiu_nhiet}
-            o={(v) => setForm({ ...form, kha_nang_chiu_nhiet: v === "Thấp" ? "Thấp" : "Cao" })}
-            options={[
-              { v: "Cao", l: "Chịu nhiệt cao (hấp hơi được)" },
-              { v: "Thấp", l: "Nhạy nhiệt (Plasma/EO)" },
-            ]}
-          />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <S
-            l="Phương pháp tiệt khuẩn chỉ định"
-            v={form.phuong_phap_tiet_khuan}
-            o={(v) => setForm({ ...form, phuong_phap_tiet_khuan: normalizeSterileMethodForMaster(v) })}
-            options={[
-              { v: "STEAM_134", l: "Hơi nước 134°C" },
-              { v: "STEAM_121", l: "Hơi nước 121°C" },
-              { v: "PLASMA", l: "Plasma" },
-              { v: "EO", l: "Khí EO" },
-            ]}
-          />
-          <S
-            l="Phân loại dụng cụ"
-            v={form.phan_loai}
-            o={(v) => setForm({ ...form, phan_loai: v })}
-            options={[
-              { v: "PHAU_THUAT", l: "Dụng cụ Phẫu thuật" },
-              { v: "THU_THUAT", l: "Dụng cụ Thủ thuật" },
-            ]}
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="text-[11px] font-medium text-slate-400 ml-1">Số lượng dự phòng kho lẻ</label>
-          <input
-            type="number"
-            min="0"
-            value={form.so_luong_kho_du_phong}
-            onChange={(e) => setForm({ ...form, so_luong_kho_du_phong: parseInt(e.target.value) || 0 })}
-            className={C.controlInput}
-          />
-        </div>
-        <p className="rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-xs text-emerald-950">
-          <strong>Gợi ý trạm CSSD:</strong> {stationHint.maTramGoiY}
-          <span className="mt-0.5 block text-[11px] font-normal text-emerald-800/90">{stationHint.lyDo}</span>
-          {resolvedTram ? (
-            <span className="mt-0.5 block text-[11px] font-semibold text-emerald-900">
-              Trạm thật: {resolvedTram.ten} ({resolvedTram.ma})
-              {resolvedTram.matchedBy === "alias" ? ` — khớp từ ${stationHint.maTramGoiY}` : ""}
-            </span>
-          ) : (
-            <span className="mt-0.5 block text-[11px] font-medium text-amber-800">
-              Chưa có trạm tương ứng trên sổ viện. Khai tại{" "}
-              <a href={getDanhMucAdminPath("TRAM_CSSD")} className="underline">
-                Trạm workflow CSSD
-              </a>
-              . Lưu loại vẫn được — không ghi id trạm giả.
-            </span>
-          )}
-        </p>
-        <MdmFormActiveToggleRow active={form.is_active} onChange={(next) => setForm({ ...form, is_active: next })} />
-        <button type="submit" disabled={loading} className={`w-full ${C.btnPrimaryBlock} disabled:opacity-60`}>
-          {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Lưu
-        </button>
-      </form>
-    </div>
+          <button type="submit" disabled={loading} className={`${C.ctaPrimary} flex-[2] ${C.modalFooterBtn}`}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {loading ? "Đang lưu…" : "Lưu"}
+          </button>
+        </>
+      }
+    >
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <F l="Mã loại" v={form.ma_danh_muc} o={(v) => setForm({ ...form, ma_danh_muc: v.toUpperCase() })} required />
+        <F l="Tên loại" v={form.ten_danh_muc} o={(v) => setForm({ ...form, ten_danh_muc: v })} required />
+        <F l="Hình dáng" v={form.hinh_dang} o={(v) => setForm({ ...form, hinh_dang: v })} />
+        <F l="Kích thước" v={form.kich_thuoc} o={(v) => setForm({ ...form, kich_thuoc: v })} />
+      </div>
+      <F l="Công dụng" v={form.cong_dung} o={(v) => setForm({ ...form, cong_dung: v })} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <S
+          l="Phân loại Spaulding"
+          v={form.phan_loai_spaulding}
+          o={(v) => setForm({ ...form, phan_loai_spaulding: normalizeSpauldingForMaster(v) })}
+          options={[
+            { v: "CRITICAL", l: "Thiết yếu (Critical)" },
+            { v: "SEMI_CRITICAL", l: "Bán thiết yếu (Semi-critical)" },
+            { v: "NON_CRITICAL", l: "Không thiết yếu (Non-critical)" },
+          ]}
+        />
+        <S
+          l="Khả năng chịu nhiệt"
+          v={form.kha_nang_chiu_nhiet}
+          o={(v) => setForm({ ...form, kha_nang_chiu_nhiet: v === "Thấp" ? "Thấp" : "Cao" })}
+          options={[
+            { v: "Cao", l: "Chịu nhiệt cao (hấp hơi được)" },
+            { v: "Thấp", l: "Nhạy nhiệt (Plasma/EO)" },
+          ]}
+        />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <S
+          l="Phương pháp tiệt khuẩn chỉ định"
+          v={form.phuong_phap_tiet_khuan}
+          o={(v) => setForm({ ...form, phuong_phap_tiet_khuan: normalizeSterileMethodForMaster(v) })}
+          options={[
+            { v: "STEAM_134", l: "Hơi nước 134°C" },
+            { v: "STEAM_121", l: "Hơi nước 121°C" },
+            { v: "PLASMA", l: "Plasma" },
+            { v: "EO", l: "Khí EO" },
+          ]}
+        />
+        <S
+          l="Phân loại dụng cụ"
+          v={form.phan_loai}
+          o={(v) => setForm({ ...form, phan_loai: v })}
+          options={[
+            { v: "PHAU_THUAT", l: "Dụng cụ Phẫu thuật" },
+            { v: "THU_THUAT", l: "Dụng cụ Thủ thuật" },
+          ]}
+        />
+      </div>
+      <div className="space-y-1">
+        <label className="text-[11px] font-medium text-slate-400 ml-1">Số lượng dự phòng kho lẻ</label>
+        <input
+          type="number"
+          min="0"
+          value={form.so_luong_kho_du_phong}
+          onChange={(e) => setForm({ ...form, so_luong_kho_du_phong: parseInt(e.target.value) || 0 })}
+          className={C.controlInput}
+        />
+      </div>
+      <p className="rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2 text-xs text-emerald-950">
+        <strong>Gợi ý trạm CSSD:</strong> {stationHint.maTramGoiY}
+        <span className="mt-0.5 block text-[11px] font-normal text-emerald-800/90">{stationHint.lyDo}</span>
+        {resolvedTram ? (
+          <span className="mt-0.5 block text-[11px] font-semibold text-emerald-900">
+            Trạm thật: {resolvedTram.ten} ({resolvedTram.ma})
+            {resolvedTram.matchedBy === "alias" ? ` — khớp từ ${stationHint.maTramGoiY}` : ""}
+          </span>
+        ) : (
+          <span className="mt-0.5 block text-[11px] font-medium text-amber-800">
+            Chưa có trạm tương ứng trên sổ viện. Khai tại{" "}
+            <a href={getDanhMucAdminPath("TRAM_CSSD")} className="underline">
+              Trạm workflow CSSD
+            </a>
+            . Lưu loại vẫn được — không ghi id trạm giả.
+          </span>
+        )}
+      </p>
+      <MdmFormActiveToggleRow active={form.is_active} onChange={(next) => setForm({ ...form, is_active: next })} />
+    </QuanTriFormDialogShell>
   );
 }
 

@@ -15,6 +15,10 @@ import {
   appendQuyTrinhException,
 } from "./cssd-action-common";
 import { cssdImportRowSchema } from "@/lib/validations/cssd-erp.validations";
+import {
+  PACK_RECORDABLE_TINH_TRANG,
+  normalizePackTinhTrang,
+} from "@/lib/domain/cssd-pack-issuance";
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
 
 type ExistingQrRow = { id?: string; ma_qr_quy_trinh?: string };
@@ -63,6 +67,58 @@ export async function reportInventoryIssue(input: {
 
   revalidateCssdWorkflowSurfaces();
   return { success: true as const };
+}
+
+/** Ghi tình trạng gói trước CAP_PHAT (QT.22) — BINH_THUONG / ướt / rách / hỏng / mất. */
+export async function recordPackCondition(input: {
+  quy_trinh_id: string;
+  tinh_trang: string;
+  note?: string | null;
+}) {
+  await verifyPermission("CSSD_KHO_DUNGCU", "edit");
+  const supabase = createAdminSupabaseClient();
+  const quyTrinhId = String(input.quy_trinh_id || "").trim();
+  if (!quyTrinhId) throw new Error("Thiếu quy_trinh_id.");
+
+  const tinh = normalizePackTinhTrang(input.tinh_trang);
+  if (!(PACK_RECORDABLE_TINH_TRANG as readonly string[]).includes(tinh)) {
+    throw new Error(
+      `Tình trạng gói không hợp lệ (${input.tinh_trang || "—"}). Chọn BINH_THUONG / UOT / RACH / HONG / MAT.`,
+    );
+  }
+  const note = String(input.note || "").trim();
+
+  const { error: updateErr } = await supabase
+    .from("cssd_fact_quy_trinh")
+    .update({
+      tinh_trang: tinh,
+      is_active: tinh !== "MAT",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", quyTrinhId);
+  if (updateErr) throw new Error(mapFkError(updateErr.message));
+
+  let operator = "CSSD";
+  try {
+    const uc = await createServerSupabaseUserClient();
+    const { data: userData } = await uc.auth.getUser();
+    if (userData.user?.email) {
+      operator = userData.user.email.trim();
+    }
+  } catch {
+    // Fail-soft
+  }
+
+  await appendQuyTrinhException(supabase, quyTrinhId, {
+    su_kien: "GHI_TINH_TRANG_GOI",
+    tu_tram: "CAP_PHAT",
+    ly_do: `Tình trạng gói: ${tinh}.${note ? ` ${note}` : ""}`.trim(),
+    nguoi_thao_tac: operator,
+  });
+
+  revalidateCssdWorkflowSurfaces();
+  revalidateCssdInventorySurfaces();
+  return { success: true as const, tinh_trang: tinh };
 }
 
 export async function importCSSDData(

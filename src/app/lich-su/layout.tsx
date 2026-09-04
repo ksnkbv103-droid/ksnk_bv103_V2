@@ -2,12 +2,14 @@
 "use client";
 
 import React, { Suspense } from "react";
+import { usePathname } from "next/navigation";
 import { Stethoscope, ClipboardList } from "lucide-react";
 import {
   KsnkSupervisionHero,
   KsnkSupervisionTabLinks,
   type SupervisionTabLinkDef,
 } from "@/components/shared/ksnk-supervision-chrome";
+import SupervisionModeNav from "@/components/shared/SupervisionModeNav";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 
 const historyTabs: SupervisionTabLinkDef[] = [
@@ -16,6 +18,9 @@ const historyTabs: SupervisionTabLinkDef[] = [
 ];
 
 export default function LichSuLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const module = pathname?.includes("/lich-su/gsc") ? "gsc" : "vst";
+
   return (
     <div className={bv103DesignTokens.pageOuter}>
       <Suspense fallback={null}>
@@ -27,8 +32,15 @@ export default function LichSuLayout({ children }: { children: React.ReactNode }
               <span className="text-[var(--primary)]">KSNK</span>
             </>
           }
+          showTitle={false}
           trailing={
-            <KsnkSupervisionTabLinks tabs={historyTabs} ariaLabel="Lịch sử giám sát" />
+            <div className="flex flex-col items-stretch gap-2 sm:items-end">
+              <SupervisionModeNav
+                module={module}
+                ariaLabel={module === "vst" ? "Giám sát vệ sinh tay" : "Giám sát tuân thủ KSNK"}
+              />
+              <KsnkSupervisionTabLinks tabs={historyTabs} ariaLabel="Lịch sử giám sát" />
+            </div>
           }
         />
       </Suspense>

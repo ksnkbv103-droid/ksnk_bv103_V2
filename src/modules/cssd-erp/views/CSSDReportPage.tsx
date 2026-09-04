@@ -2,9 +2,10 @@
 "use client";
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import { Download, Printer, ChevronDown } from "lucide-react";
+import { Download, Printer, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import {
@@ -31,6 +32,7 @@ import { INCIDENT_GROUP_LABEL, INCIDENT_GROUPS, isAccountabilityCause } from "@/
 import IncidentJournalPrintButton from "@/modules/cssd-su-co/components/IncidentJournalPrintButton";
 import IncidentConfirmButton from "@/modules/cssd-su-co/components/IncidentConfirmButton";
 import { INCIDENT_STATUS_CONFIRMED } from "@/modules/cssd-su-co/domain/cssd-incident-status";
+import { cssdSuCoBatchRecallHref } from "@/lib/cssd-routes";
 
 const ReportCharts = dynamic(() => import("../components/report/ReportCharts"), {
   ssr: false,
@@ -41,13 +43,19 @@ const STATIONS = ["TIEP_NHAN", "LAM_SACH", "QC", "DONG_GOI", "TIET_KHUAN", "CAP_
 type ReportTab = "OVERVIEW" | "VOLUME" | "SETS" | "EQUIPMENT" | "STAFF" | "INCIDENT" | "ACCOUNTABILITY";
 
 function parseReportTab(tabParam: string | null, highlightIncidentId: string): ReportTab {
-  if (tabParam === "incident" || highlightIncidentId) return "INCIDENT";
+  if (tabParam === "incident" || tabParam === "su-co" || highlightIncidentId) return "INCIDENT";
   if (tabParam === "accountability") return "ACCOUNTABILITY";
-  if (tabParam === "volume" || tabParam === "san-luong") return "VOLUME";
+  if (tabParam === "volume" || tabParam === "san-luong" || tabParam === "phan-tich") return "VOLUME";
   if (tabParam === "sets" || tabParam === "bo") return "SETS";
   if (tabParam === "equipment" || tabParam === "may") return "EQUIPMENT";
   if (tabParam === "staff" || tabParam === "nhan-su") return "STAFF";
+  if (tabParam === "van-hanh") return "OVERVIEW";
   return "OVERVIEW";
+}
+
+const ANALYTICS_TABS: ReportTab[] = ["VOLUME", "SETS", "EQUIPMENT", "STAFF", "ACCOUNTABILITY"];
+function isAnalyticsTab(tab: ReportTab): boolean {
+  return ANALYTICS_TABS.includes(tab);
 }
 
 function CSSDReportPageInner() {
@@ -70,8 +78,6 @@ function CSSDReportPageInner() {
     onImport: async () => ({ success: true }),
   });
   const [tab, setTab] = useState<ReportTab>(() => parseReportTab(tabParam, highlightIncidentId));
-  const extraTab = tab !== "OVERVIEW" && tab !== "INCIDENT";
-  const [showMoreTabs, setShowMoreTabs] = useState(extraTab);
 
   useEffect(() => {
     setTab(parseReportTab(tabParam, highlightIncidentId));
@@ -126,32 +132,40 @@ function CSSDReportPageInner() {
   }, [filters]);
 
   const { stats, alerts, pieData, barData, incidentGroupStats, processAccountabilityRows } = useMemo(() => {
+    const volumeByStation = new Map((analytics?.stationVolume ?? []).map((r) => [r.station, r.completed]));
     const bData = STATIONS.map((s) => {
-      const qCount = raw.quyTrinh.filter((q) => q.trang_thai_hien_tai === s).length;
+      const qCount = volumeByStation.get(s) ?? 0;
       const sCount = raw.suCo.filter((sc) => sc.tram_phat_hien === s).length;
-      return { name: s, batches: qCount, incidents: sCount, rate: qCount ? (sCount / qCount) * 100 : 0 };
+      const rate = qCount > 0 ? (sCount / qCount) * 100 : null;
+      return { name: s, batches: qCount, incidents: sCount, rate };
     });
-    const sorted = [...bData].sort((a, b) => a.rate - b.rate);
+    const ranked = bData.filter((b) => b.rate != null).sort((a, b) => (a.rate ?? 0) - (b.rate ?? 0));
     const pMap = new Map<string, number>();
     raw.suCo.forEach((s) => {
       const key = s.incident_group_label || "Khác";
       pMap.set(key, (pMap.get(key) || 0) + 1);
     });
+    const tyLe =
+      analytics?.tyLeQuyTrinhKhongSuCo != null
+        ? analytics.tyLeQuyTrinhKhongSuCo.toFixed(1)
+        : raw.quyTrinh.length
+          ? (100 - (raw.suCo.length / raw.quyTrinh.length) * 100).toFixed(1)
+          : "—";
 
     return {
       stats: {
         total: raw.quyTrinh.length,
         incidents: raw.suCo.length,
-        /** Chỉ số CSSD riêng — không gộp CCS. */
-        tyLeQuyTrinhKhongSuCo: raw.quyTrinh.length
-          ? (100 - (raw.suCo.length / raw.quyTrinh.length) * 100).toFixed(1)
-          : "100",
-        bestStation: sorted[0]?.name.replace(/_/g, " ") || "Không áp dụng",
-        worstStation: sorted[sorted.length - 1]?.name.replace(/_/g, " ") || "Không áp dụng",
+        /** Chỉ số CSSD riêng — không gộp tuân thủ VST–GSC. */
+        tyLeQuyTrinhKhongSuCo: tyLe,
+        bestStation: ranked[0]?.name.replace(/_/g, " ") || "Không áp dụng",
+        worstStation: ranked[ranked.length - 1]?.name.replace(/_/g, " ") || "Không áp dụng",
       },
-      alerts: bData.filter((b) => b.rate > 5).map((b) => ({ name: b.name, rate: b.rate.toFixed(1) })),
+      alerts: bData
+        .filter((b) => b.rate != null && b.rate > 5)
+        .map((b) => ({ name: b.name, rate: (b.rate as number).toFixed(1) })),
       pieData: Array.from(pMap).map(([name, value]) => ({ name, value })),
-      barData: bData.map((b) => ({ ...b, name: b.name.replace(/_/g, " ") })),
+      barData: bData.map((b) => ({ ...b, rate: b.rate ?? 0, name: b.name.replace(/_/g, " ") })),
       incidentGroupStats: INCIDENT_GROUPS.map((g) => ({
         group: g,
         label: INCIDENT_GROUP_LABEL[g],
@@ -161,7 +175,7 @@ function CSSDReportPageInner() {
         .filter((x) => isAccountabilityCause(String(x.cause_class || "")))
         .map((x) => ({ ...x, fault_operator: x.fault_operator || x.reporter_email || "Chưa ghi nhận" })),
     };
-  }, [raw]);
+  }, [raw, analytics]);
 
   const handleExport = () => exportTemplate(raw.quyTrinh);
 
@@ -200,10 +214,17 @@ function CSSDReportPageInner() {
       <ReportFilters filters={filters} setFilters={setFilters} stations={[...STATIONS]} />
       <div className="space-y-2">
         <div className={CSSD_UI_TAB_GROUP}>
-          <CssdHorizTabButton active={tab === "OVERVIEW"} onClick={() => setTab("OVERVIEW")} label="Tổng quan" />
-          <CssdHorizTabButton active={tab === "INCIDENT"} onClick={() => setTab("INCIDENT")} label="Sự cố theo nhóm" mobileLabel="Sự cố" />
+          <CssdHorizTabButton active={tab === "OVERVIEW"} onClick={() => setTab("OVERVIEW")} label="Vận hành" />
+          <CssdHorizTabButton active={tab === "INCIDENT"} onClick={() => setTab("INCIDENT")} label="Sự cố" />
+          <CssdHorizTabButton
+            active={isAnalyticsTab(tab)}
+            onClick={() => {
+              if (!isAnalyticsTab(tab)) setTab("VOLUME");
+            }}
+            label="Phân tích"
+          />
         </div>
-        {showMoreTabs || extraTab ? (
+        {isAnalyticsTab(tab) ? (
           <div className={CSSD_UI_TAB_GROUP}>
             <CssdHorizTabButton active={tab === "VOLUME"} onClick={() => setTab("VOLUME")} label="Sản lượng" />
             <CssdHorizTabButton active={tab === "SETS"} onClick={() => setTab("SETS")} label="Bộ và tái sử dụng" mobileLabel="Bộ" />
@@ -211,16 +232,7 @@ function CSSDReportPageInner() {
             <CssdHorizTabButton active={tab === "STAFF"} onClick={() => setTab("STAFF")} label="NV CSSD" />
             <CssdHorizTabButton active={tab === "ACCOUNTABILITY"} onClick={() => setTab("ACCOUNTABILITY")} label="Khâu lỗi và người lỗi" mobileLabel="Trách nhiệm" />
           </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowMoreTabs(true)}
-            className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-slate-800"
-          >
-            <ChevronDown className="h-3.5 w-3.5" aria-hidden />
-            Xem thêm (sản lượng, máy, nhân sự)
-          </button>
-        )}
+        ) : null}
       </div>
 
       {tab === "OVERVIEW" && (
@@ -302,6 +314,20 @@ function CSSDReportPageInner() {
 
       {tab === "INCIDENT" && (
         <>
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 print:hidden">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-amber-950">Thu hồi theo mẻ (QT.24)</p>
+              <p className="text-[11px] text-amber-900">
+                Sự cố an toàn BI+/ướt/lỗi máy — không lẫn 3 cửa biến động dụng cụ.
+              </p>
+            </div>
+            <Link
+              href={cssdSuCoBatchRecallHref()}
+              className={`${CSSD_UI_ACTION_SECONDARY} border-amber-300 bg-white text-amber-900 hover:bg-amber-100`}
+            >
+              <Undo2 size={16} aria-hidden /> Thu hồi theo mẻ
+            </Link>
+          </div>
           {highlightIncidentId ? (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-950">
               {raw.suCo.some((x) => String(x.id) === highlightIncidentId) ? (

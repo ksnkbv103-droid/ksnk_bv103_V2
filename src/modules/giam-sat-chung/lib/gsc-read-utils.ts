@@ -1,6 +1,7 @@
 // src/modules/giam-sat-chung/lib/gsc-read-utils.ts
 import { gscSessionDisplayRef } from "./gsc-display-ref";
 import { formatDateVi } from "@/lib/format-datetime-vi";
+import { parseGscBangKiemSnapshot } from "./gsc-bang-kiem-snapshot";
 
 export type GscHistoryRow = Record<string, unknown> & {
   id: string;
@@ -18,6 +19,22 @@ export type GscHistoryRow = Record<string, unknown> & {
   date_str: string;
 };
 
+/**
+ * Gắn metadata/snapshot fact lên hàng view (view không lộ metadata).
+ * Dùng trước enrich để `cach_tinh_diem` lịch sử ưu tiên snapshot.
+ */
+export function mergeGscHistoryRowsWithSessionMetadata(
+  rows: Record<string, unknown>[],
+  metaById: Map<string, unknown>,
+): Record<string, unknown>[] {
+  if (!metaById.size) return rows;
+  return rows.map((row) => {
+    const id = String(row.id ?? "").trim();
+    if (!id || !metaById.has(id)) return row;
+    return { ...row, metadata: metaById.get(id) };
+  });
+}
+
 export function enrichGscHistoryRows(rows: Record<string, unknown>[]): GscHistoryRow[] {
   return rows.map((row) => {
     const id = String(row.id);
@@ -33,9 +50,15 @@ export function enrichGscHistoryRows(rows: Record<string, unknown>[]): GscHistor
     const tenBkDm = String(row.ten_bang_kiem_hien_thi || "").trim();
     const loaiRaw = String(row.loai_bang_kiem || "").trim();
     const bangKiemLabel = tenBkDm || loaiRaw || "—";
+    // Snapshot persist lúc ghi — ưu tiên hơn live JOIN (đổi mẫu BK không lệch nhãn lịch sử).
+    const snap = parseGscBangKiemSnapshot(row.bang_kiem_snapshot ?? row.metadata);
+    const snapCach = String(snap?.cach_tinh_diem ?? "").trim().toUpperCase();
     return {
       ...row,
       id,
+      ...(snap ? { bang_kiem_snapshot: snap } : {}),
+      // Fallback live chỉ khi thiếu snapshot (comment khớp formatGscHistoryScore).
+      ...(snapCach ? { cach_tinh_diem: snapCach } : {}),
       bang_kiem_label: bangKiemLabel,
       ma_khoa: maKhoaFlat,
       khoa_name:

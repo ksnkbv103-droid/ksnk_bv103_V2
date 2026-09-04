@@ -1,6 +1,6 @@
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import {
-  isGscNhatKyCach,
+  resolveGscHistoryCachTinhDiem,
   resolveGscHistoryCompliancePercent,
 } from "./gsc-score-display";
 
@@ -35,7 +35,8 @@ function strOrNull(v: unknown): string | null {
 
 /** GSC-6: một cột %; không xuất điểm lúc lưu cạnh đếm live. */
 export function mapGscSessionToExportRow(r: Record<string, unknown>): GscExportRow {
-  const nhatKy = isGscNhatKyCach(r.cach_tinh_diem, r.loai_giam_sat);
+  // Snapshot phiên trước live JOIN — khớp cột lịch sử.
+  const nhatKy = resolveGscHistoryCachTinhDiem(r) === "NHAT_KY";
   const khoaLabel = formatKhoaCompactLabel({
     ma_khoa: strOrNull(r.ma_khoa_phong),
     ten_khoa: strOrNull(r.ten_khoa_phong),

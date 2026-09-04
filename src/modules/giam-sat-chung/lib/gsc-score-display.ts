@@ -12,6 +12,7 @@ import {
 import { formatPercent2, roundPercent2 } from "@/lib/analytics/supervision-percent";
 import type { BangKiemCachTinhDiem, BangKiemLoaiGiamSat } from "../types";
 import type { ChecklistCriterion, ChecklistResult } from "@/types/giam-sat-chung";
+import { parseGscBangKiemSnapshot } from "./gsc-bang-kiem-snapshot";
 
 const VALID_CACH = new Set<GsttCachTinhDiem>(["TY_LE", "TRON_GOI", "DAT_KHONG_DAT", "NHAT_KY"]);
 
@@ -22,9 +23,9 @@ function normalizeCachTinhDiem(raw: unknown): GsttCachTinhDiem | null {
 
 function inferCachFromLoaiGiamSat(loai: unknown): GsttCachTinhDiem | null {
   const lg = String(loai ?? "").trim().toUpperCase();
+  // Chỉ suy nhật ký từ loai — DAT_KHONG_DAT/TRON_GOI/TY_LE phải lấy từ cach_tinh_diem
+  // (BM.03.03 DANH_GIA_HE_THONG = TY_LE; nhiều TUAN_THU = DAT_KHONG_DAT/TRON_GOI).
   if (lg === "NHAT_KY_VAN_HANH") return "NHAT_KY";
-  if (lg === "DANH_GIA_HE_THONG") return "DAT_KHONG_DAT";
-  if (lg === "TUAN_THU" || !lg) return "TY_LE";
   return null;
 }
 
@@ -181,11 +182,22 @@ export function resolveGscHistoryCompliancePercent(
   return null;
 }
 
+/**
+ * Cách tính điểm cho nhãn lịch sử GSC.
+ * Ưu tiên snapshot phiên (`metadata.bang_kiem_snapshot.cach_tinh_diem`, persist lúc ghi).
+ * Fallback live `row.cach_tinh_diem` (view JOIN dm) chỉ khi thiếu snapshot — tránh lệch nhãn khi đổi mẫu BK.
+ */
+export function resolveGscHistoryCachTinhDiem(row: Record<string, unknown>): GsttCachTinhDiem | null {
+  const snap = parseGscBangKiemSnapshot(row.bang_kiem_snapshot ?? row.metadata);
+  const fromSnap = normalizeCachTinhDiem(snap?.cach_tinh_diem);
+  if (fromSnap) return fromSnap;
+  // Live BK JOIN — phiên cũ chưa chốt snapshot.
+  return normalizeCachTinhDiem(row.cach_tinh_diem) ?? inferCachFromLoaiGiamSat(row.loai_giam_sat);
+}
+
 /** Cột lịch sử GSC: chỉ tỷ lệ %. */
 export function formatGscHistoryScore(row: Record<string, unknown>): GscHistoryScoreDisplay {
-  const cach =
-    normalizeCachTinhDiem(row.cach_tinh_diem) ??
-    inferCachFromLoaiGiamSat(row.loai_giam_sat);
+  const cach = resolveGscHistoryCachTinhDiem(row);
   const nghiVan = Boolean(row.du_lieu_nghi_van);
   const suffix = nghiVan ? " · Nghi ngờ" : "";
 

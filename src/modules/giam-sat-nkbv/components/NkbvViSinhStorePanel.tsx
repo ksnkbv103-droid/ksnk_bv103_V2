@@ -280,11 +280,7 @@ export default function NkbvViSinhStorePanel({
       toast.error(res.error || "Không tạo được LabID");
       return;
     }
-    if (res.verdict?.isEvent) {
-      toast.success(`LabID: ${res.verdict.eventType}`);
-    } else {
-      toast.message(res.verdict?.reason || "Không đủ điều kiện LabID Event");
-    }
+    // createLabidEventFromViSinh hiện chỉ trả {success:false}; không đọc verdict trên nhánh đó.
   };
 
   const ketQuaLabel = (k: string | null) => {

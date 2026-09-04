@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import type { Catalog, CSSDBo, CSSDChiTiet } from "../types/catalog.types";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
+import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 
 export function CSSDCatalogChiTietTab(props: {
   catalog: Catalog;
@@ -27,17 +28,17 @@ export function CSSDCatalogChiTietTab(props: {
       <section className="space-y-2">
         <ResponsiveTableShell maxHeight="max-h-[500px]" toolbar={toolbar}>
           <table className="w-full min-w-[720px] border-collapse text-left text-sm text-slate-700">
-            <thead>
-              <tr className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500">
-                <th className="px-2.5 py-1.5">Mã dụng cụ</th>
-                <th className="px-2.5 py-1.5">Tên dụng cụ thành phần</th>
-                <th className="px-2.5 py-1.5">Thuộc bộ dụng cụ</th>
-                <th className="px-2.5 py-1.5">Loại dụng cụ</th>
-                <th className="px-2.5 py-1.5 text-center">Số lượng trong bộ</th>
-                <th className="px-2.5 py-1.5 text-center">Mã khắc / QR mẫu</th>
-                <th className="px-2.5 py-1.5 text-center">Chu kỳ tối đa</th>
-                <th className="px-2.5 py-1.5 text-center">Trọng lượng (g)</th>
-                <th className="px-2.5 py-1.5">Ghi chú</th>
+            <thead className={L.theadRow}>
+              <tr>
+                <th className={L.th}>Mã dụng cụ</th>
+                <th className={L.th}>Tên dụng cụ thành phần</th>
+                <th className={L.th}>Thuộc bộ dụng cụ</th>
+                <th className={L.th}>Loại dụng cụ</th>
+                <th className={`${L.th} text-center`}>Số lượng trong bộ</th>
+                <th className={`${L.th} text-center`}>Mã khắc / QR mẫu</th>
+                <th className={`${L.th} text-center`}>Chu kỳ tối đa</th>
+                <th className={`${L.th} text-center`}>Trọng lượng (g)</th>
+                <th className={L.th}>Ghi chú</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -79,7 +80,7 @@ export function CSSDCatalogChiTietTab(props: {
               {chiTietRows.length === 0 && (
                 <tr>
                   <td colSpan={9} className="py-6 text-center text-sm text-slate-500">
-                    Gõ mã hoặc tên ở ô tìm phía trên (mỗi lần hiện tối đa 20 kết quả).
+                    Chưa có thành phần khớp — gõ mã hoặc tên ở ô tìm phía trên.
                   </td>
                 </tr>
               )}

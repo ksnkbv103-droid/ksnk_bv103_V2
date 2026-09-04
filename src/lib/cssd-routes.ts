@@ -1,3 +1,9 @@
+import { coerceInstrumentFormTypeId } from "@/modules/cssd-su-co/domain/cssd-incident-taxonomy";
+import {
+  resolveBatchRecallReason,
+  type BatchRecallReasonCode,
+} from "@/modules/cssd-su-co/domain/cssd-batch-recall";
+
 /**
  * SSOT đường dẫn App Router — module CSSD BV103 (pilot).
  */
@@ -17,10 +23,16 @@ export function cssdQuyTrinhBatchTabHref(): string {
   return `${CSSD_ROUTES.quyTrinh}?tab=batch`;
 }
 
-/** Deep-link một cửa sự cố dụng cụ (`/cssd-su-co`). */
+/**
+ * Deep-link một cửa sự cố dụng cụ (`/cssd-su-co`).
+ * D4 SSOT: legacy TRANSFER/REPLENISH/BROKEN/MISSING chỉ coerce → 3 cửa (SET_RECONCILE / PHYSICAL / MOVE).
+ * URL mới không emit legacy; mã lịch sử sổ vẫn qua submit bridge.
+ */
 export function cssdSuCoInstrumentHref(params?: {
   type?:
     | "INSTRUMENT_SET_RECONCILE"
+    | "INSTRUMENT_PHYSICAL"
+    | "INSTRUMENT_MOVE"
     | "INSTRUMENT_BROKEN"
     | "INSTRUMENT_MISSING"
     | "INSTRUMENT_REPLENISH"
@@ -31,13 +43,35 @@ export function cssdSuCoInstrumentHref(params?: {
 }): string {
   const q = new URLSearchParams();
   q.set("group", "INSTRUMENT");
-  if (params?.type) q.set("type", params.type);
+  if (params?.type) q.set("type", coerceInstrumentFormTypeId(params.type));
   const ma = String(params?.ma || "").trim();
   if (ma) q.set("ma", ma);
   const loai = String(params?.loai || "").trim();
   if (loai) q.set("loai", loai);
   const chiTiet = String(params?.chiTiet || "").trim();
   if (chiTiet) q.set("chiTiet", chiTiet);
+  return `${CSSD_ROUTES.suCo}?${q.toString()}`;
+}
+
+/**
+ * Deep-link thu hồi theo mẻ (QT.24) — sự cố an toàn PROCESS + lo_tiet_khuan_id.
+ * D1: không dùng group INSTRUMENT / 3 cửa biến động dụng cụ.
+ */
+export function cssdSuCoBatchRecallHref(params?: {
+  loTietKhuanId?: string | null;
+  maLo?: string | null;
+  reason?: BatchRecallReasonCode | string | null;
+}): string {
+  const q = new URLSearchParams();
+  q.set("group", "PROCESS");
+  q.set("entry", "batch-recall");
+  const reason = resolveBatchRecallReason(params?.reason);
+  q.set("type", reason.typeId);
+  q.set("reason", reason.code);
+  const loId = String(params?.loTietKhuanId || "").trim();
+  if (loId) q.set("loTietKhuanId", loId);
+  const maLo = String(params?.maLo || "").trim().toUpperCase();
+  if (maLo) q.set("maLo", maLo);
   return `${CSSD_ROUTES.suCo}?${q.toString()}`;
 }
 

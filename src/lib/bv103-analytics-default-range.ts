@@ -1,4 +1,5 @@
 import { format, parseISO, startOfMonth, subMonths } from "date-fns";
+import { todayYmdInVn } from "@/lib/format-datetime-vi";
 
 /**
  * Số **tháng lịch** (đầu tháng → đến ngày) mặc định cho dashboard / báo cáo tổng hợp.
@@ -17,5 +18,5 @@ export function bv103DefaultTuNgayFromDenIso(denIso: string): string {
 
 /** Hôm nay làm `đến ngày` ngầm định → `tu` đầu tháng theo cùng quy tắc. */
 export function bv103DefaultTuNgayFromToday(): string {
-  return format(startOfMonth(subMonths(new Date(), monthSpanMinusOne)), "yyyy-MM-dd");
+  return bv103DefaultTuNgayFromDenIso(todayYmdInVn());
 }

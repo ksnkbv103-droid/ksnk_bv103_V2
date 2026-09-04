@@ -1,13 +1,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  isMoveOnlyKind,
   isPhysicalKind,
   physicalQuantity,
   physicalTypeIdForKind,
+  rejectMoveOnlyKindsOnReconcile,
   type SetReconcileLineInput,
 } from "@/lib/domain/cssd-set-reconcile";
 import { applyInstrumentIncidentLedger } from "./instrument-incident.application";
 
-/** Ghi sổ thực tế cho các dòng Hỏng/Mất/Bổ sung — cùng một phiếu. */
+/** Ghi sổ thực tế. Cửa rà soát: chỉ Hỏng/Mất. Cửa Chuyển: lấy kho / trả kho / điều chuyển. */
 export async function applySetReconcilePhysicalLines(
   supabase: SupabaseClient,
   suCoId: string,
@@ -17,10 +19,18 @@ export async function applySetReconcilePhysicalLines(
     maQr?: string;
     headerNote: string;
     lines: SetReconcileLineInput[];
+    door?: "reconcile" | "move";
   },
 ): Promise<void> {
+  const door = args.door || "reconcile";
+  if (door === "reconcile") {
+    const moveErr = rejectMoveOnlyKindsOnReconcile(args.lines);
+    if (moveErr) throw new Error(moveErr);
+  }
   for (const line of args.lines) {
-    if (!isPhysicalKind(line.kind)) continue;
+    const apply =
+      door === "reconcile" ? isPhysicalKind(line.kind) : isMoveOnlyKind(line.kind) || isPhysicalKind(line.kind);
+    if (!apply) continue;
     const typeId = physicalTypeIdForKind(line.kind);
     if (!typeId) continue;
     const qty = physicalQuantity(line);

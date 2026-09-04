@@ -1,5 +1,7 @@
 import type { CompareRow } from "@/lib/analytics/supervision-analytics.types";
+import { rateFromTotals } from "@/lib/analytics/supervision-metrics/formulas";
 import { roundPercent2 } from "@/lib/analytics/supervision-percent";
+import { gscCompliancePercentFromCounts } from "@/modules/giam-sat-chung/lib/gsc-score-display";
 import {
   formatKhoaCompactLabel,
   parseMaFromKhoaOptionLabel,
@@ -311,12 +313,18 @@ export function toCompareRows(
   rows: MatrixRow[] | null | undefined,
   options?: { khoaMa?: boolean },
 ): CompareRow[] {
-  return (rows ?? []).map((r) => ({
-    ten: options?.khoaMa ? khoaChartLabel(r) : String(r.ten ?? "").trim() || "—",
-    ty_le_tuan_thu: roundPercent2(r.ty_le_tuan_thu ?? 0),
-    tong: Number(r.tong_quan_sat ?? r.tong_co_hoi ?? 0),
-    dat: Number(r.tong_dat ?? r.da_tuan_thu ?? 0),
-  }));
+  return (rows ?? []).map((r) => {
+    const isGsc = r.tong_quan_sat != null;
+    const tong = Number(isGsc ? r.tong_quan_sat : r.tong_co_hoi ?? 0);
+    const dat = Number(isGsc ? r.tong_dat : r.da_tuan_thu ?? 0);
+    const pct = isGsc ? gscCompliancePercentFromCounts(tong, dat) : rateFromTotals(dat, tong);
+    return {
+      ten: options?.khoaMa ? khoaChartLabel(r) : String(r.ten ?? "").trim() || "—",
+      ty_le_tuan_thu: pct,
+      tong,
+      dat,
+    };
+  });
 }
 
 export type GscCompareMatrices = {

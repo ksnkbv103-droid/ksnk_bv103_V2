@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loaiListSortColumn, mapLoaiPhysicalToListRow, splitLoaiStock } from "./cssd-loai-list-map";
+import { loaiListSortColumn, mapLoaiPhysicalToListRow, mergeLoaiListTrongBo, splitLoaiStock } from "./cssd-loai-list-map";
 
 describe("cssd-loai-list-map", () => {
   it("maps physical columns + specs to list row", () => {
@@ -18,12 +18,26 @@ describe("cssd-loai-list-map", () => {
     expect(row.ma_danh_muc).toBe("DC.KEO.0001");
     expect(row.ten_danh_muc).toBe("Kéo cắt chỉ");
     expect(row.kich_thuoc).toBe("150 mm");
+    expect(row.so_luong_kho_du_phong).toBe(2);
+    expect(row.so_luong_trong_bo).toBe(0);
     expect(row.so_luong_tong).toBe(2);
   });
 
   it("maps UI sort keys to physical columns", () => {
     expect(loaiListSortColumn("ma_danh_muc")).toBe("ma_loai");
     expect(loaiListSortColumn("unknown")).toBe("ma_loai");
+  });
+
+  it("maps tổng = kho + trong bộ when so_luong_trong_bo present", () => {
+    const row = mapLoaiPhysicalToListRow({
+      id: "b",
+      ma_loai: "DC.KEO.0002",
+      ten_loai: "Kéo",
+      so_luong_kho_du_phong: 2,
+      so_luong_trong_bo: 5,
+    });
+    expect(row.so_luong_tong).toBe(7);
+    expect(row.so_luong_trong_bo).toBe(5);
   });
 
   it("splits type stock: total = in sets + warehouse", () => {
@@ -37,5 +51,22 @@ describe("cssd-loai-list-map", () => {
       so_luong_trong_bo: 0,
       so_luong_tong: 0,
     });
+  });
+
+  it("merges trong bộ from map into list rows (Tổng = kho + trong bộ)", () => {
+    const base = mapLoaiPhysicalToListRow({
+      id: "c",
+      ma_loai: "DC.KEO.0003",
+      ten_loai: "Kéo merge",
+      so_luong_kho_du_phong: 3,
+      so_luong_trong_bo: 0,
+    });
+    const merged = mergeLoaiListTrongBo([base], new Map([["c", 4]]));
+    expect(merged[0].so_luong_kho_du_phong).toBe(3);
+    expect(merged[0].so_luong_trong_bo).toBe(4);
+    expect(merged[0].so_luong_tong).toBe(7);
+    const missing = mergeLoaiListTrongBo([base], new Map());
+    expect(missing[0].so_luong_trong_bo).toBe(0);
+    expect(missing[0].so_luong_tong).toBe(3);
   });
 });

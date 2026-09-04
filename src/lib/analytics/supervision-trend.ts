@@ -3,7 +3,8 @@ import { vi } from "date-fns/locale";
 import type { BaoCaoTrendGranularity } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
-import { roundPercent2 } from "@/lib/analytics/supervision-percent";
+import { rateFromTotals } from "@/lib/analytics/supervision-metrics/formulas";
+import { gscCompliancePercentFromCounts } from "@/modules/giam-sat-chung/lib/gsc-score-display";
 
 export type SupervisionTrendPoint = {
   label: string;
@@ -22,43 +23,48 @@ export const SUPERVISION_TREND_GRANULARITY_OPTIONS: { id: BaoCaoTrendGranularity
 
 type VstTrendRow = VstStrategicPayload["trendline"][number];
 type GscTrendRow = GscStrategicPayload["trendline"][number];
+export type SupervisionTrendKind = "vst" | "gsc";
 
-function rateFromTotals(dat: number, tong: number): number {
-  if (tong <= 0) return 0;
-  return roundPercent2((dat * 100) / tong);
+function rateForKind(kind: SupervisionTrendKind, dat: number, tong: number): number {
+  if (kind === "gsc") return gscCompliancePercentFromCounts(tong, dat) ?? 0;
+  return rateFromTotals(dat, tong) ?? 0;
 }
 
-function finalizeSupervisionTrendPoint(row: {
-  label: string;
-  min_date: string;
-  tong: number;
-  dat: number;
-}): SupervisionTrendPoint {
+function finalizeSupervisionTrendPoint(
+  row: { label: string; min_date: string; tong: number; dat: number },
+  kind: SupervisionTrendKind,
+): SupervisionTrendPoint {
   return {
     ...row,
-    ty_le_tuan_thu: rateFromTotals(row.dat, row.tong),
+    ty_le_tuan_thu: rateForKind(kind, row.dat, row.tong),
   };
 }
 
 export function normalizeVstTrendline(rows: VstTrendRow[]): SupervisionTrendPoint[] {
   return (rows ?? []).map((r) =>
-    finalizeSupervisionTrendPoint({
-      label: r.label,
-      min_date: r.min_date,
-      tong: Number(r.tong_co_hoi ?? 0),
-      dat: Number(r.da_tuan_thu ?? 0),
-    }),
+    finalizeSupervisionTrendPoint(
+      {
+        label: r.label,
+        min_date: r.min_date,
+        tong: Number(r.tong_co_hoi ?? 0),
+        dat: Number(r.da_tuan_thu ?? 0),
+      },
+      "vst",
+    ),
   );
 }
 
 export function normalizeGscTrendline(rows: GscTrendRow[]): SupervisionTrendPoint[] {
   return (rows ?? []).map((r) =>
-    finalizeSupervisionTrendPoint({
-      label: r.label,
-      min_date: r.min_date,
-      tong: Number(r.tong_quan_sat ?? 0),
-      dat: Number(r.tong_dat ?? 0),
-    }),
+    finalizeSupervisionTrendPoint(
+      {
+        label: r.label,
+        min_date: r.min_date,
+        tong: Number(r.tong_quan_sat ?? 0),
+        dat: Number(r.tong_dat ?? 0),
+      },
+      "gsc",
+    ),
   );
 }
 
@@ -68,6 +74,7 @@ function bucketSupervisionTrendBy(
   bucketStart: (d: Date) => Date,
   bucketKey: (d: Date) => string,
   bucketLabel: (d: Date) => string,
+  kind: SupervisionTrendKind,
 ): SupervisionTrendPoint[] {
   const buckets = new Map<string, { label: string; min_date: string; tong: number; dat: number }>();
   for (const p of points) {
@@ -85,47 +92,60 @@ function bucketSupervisionTrendBy(
   }
   return [...buckets.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([, row]) => finalizeSupervisionTrendPoint(row));
+    .map(([, row]) => finalizeSupervisionTrendPoint(row, kind));
 }
 
-export function bucketSupervisionTrendByMonth(points: SupervisionTrendPoint[]): SupervisionTrendPoint[] {
+export function bucketSupervisionTrendByMonth(
+  points: SupervisionTrendPoint[],
+  kind: SupervisionTrendKind = "vst",
+): SupervisionTrendPoint[] {
   return bucketSupervisionTrendBy(
     points,
     startOfMonth,
     (d) => format(d, "yyyy-MM"),
     (d) => format(d, "MM/yyyy", { locale: vi }),
+    kind,
   );
 }
 
-export function bucketSupervisionTrendByQuarter(points: SupervisionTrendPoint[]): SupervisionTrendPoint[] {
+export function bucketSupervisionTrendByQuarter(
+  points: SupervisionTrendPoint[],
+  kind: SupervisionTrendKind = "vst",
+): SupervisionTrendPoint[] {
   return bucketSupervisionTrendBy(
     points,
     startOfQuarter,
     (d) => `${d.getFullYear()}-Q${Math.floor(d.getMonth() / 3) + 1}`,
     (d) => `Q${Math.floor(d.getMonth() / 3) + 1}/${d.getFullYear()}`,
+    kind,
   );
 }
 
-export function bucketSupervisionTrendByYear(points: SupervisionTrendPoint[]): SupervisionTrendPoint[] {
+export function bucketSupervisionTrendByYear(
+  points: SupervisionTrendPoint[],
+  kind: SupervisionTrendKind = "vst",
+): SupervisionTrendPoint[] {
   return bucketSupervisionTrendBy(
     points,
     startOfYear,
     (d) => String(d.getFullYear()),
     (d) => String(d.getFullYear()),
+    kind,
   );
 }
 
 export function pickSupervisionTrend(
   points: SupervisionTrendPoint[],
   granularity: BaoCaoTrendGranularity,
+  kind: SupervisionTrendKind = "vst",
 ): SupervisionTrendPoint[] {
   switch (granularity) {
     case "month":
-      return bucketSupervisionTrendByMonth(points);
+      return bucketSupervisionTrendByMonth(points, kind);
     case "quarter":
-      return bucketSupervisionTrendByQuarter(points);
+      return bucketSupervisionTrendByQuarter(points, kind);
     case "year":
-      return bucketSupervisionTrendByYear(points);
+      return bucketSupervisionTrendByYear(points, kind);
     default:
       return points;
   }

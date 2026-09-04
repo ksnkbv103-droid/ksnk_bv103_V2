@@ -3,6 +3,7 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { resolveLoaiAlias, CSSD_LOAI_PHYSICAL_SELECT } from "@/lib/master-data/cssd-loai-dung-cu-map";
 import { verifyPermission } from "@/lib/server-permission";
+import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import { normalizeNullableFk } from "@/lib/master-data/fk-normalize";
 import {
@@ -157,6 +158,7 @@ async function suggestNextBoMaForKhoa(
 /** Gợi ý mã bộ tiếp theo theo khoa (form thêm bộ). */
 export async function suggestNextBoMaAction(khoaSuDungId: string) {
   await verifyPermission("BO_DC", "create");
+  await requireCssdCatalogMasterWrite();
   const supabase = createAdminSupabaseClient();
   const khoaId = String(khoaSuDungId || "").trim();
   if (!khoaId) return { success: false as const, error: "Chọn khoa sử dụng trước." };
@@ -168,6 +170,7 @@ export async function suggestNextBoMaAction(khoaSuDungId: string) {
 export async function saveBoDungCuAction(input: Record<string, unknown>) {
   const id = String(input.id || "").trim();
   await verifyPermission("BO_DC", id ? "edit" : "create");
+  await requireCssdCatalogMasterWrite();
   const supabase = createAdminSupabaseClient();
   let khoaSuDungNorm: string | null = null;
   try {
@@ -265,16 +268,19 @@ export async function getBoDungCuMaBoHealthAction() {
 
 export async function toggleBoDungCuStatusAction(id: string, currentStatus: boolean) {
   await verifyPermission("BO_DC", "edit");
+  await requireCssdCatalogMasterWrite();
   return toggleMasterStatus("cssd_dm_bo_dung_cu", id, currentStatus);
 }
 
 export async function softDeleteBoDungCuAction(id: string) {
   await verifyPermission("BO_DC", "delete");
+  await requireCssdCatalogMasterWrite();
   return softDeleteMasterRow("cssd_dm_bo_dung_cu", id);
 }
 
 export async function softDeleteManyBoDungCuAction(ids: string[]) {
   await verifyPermission("BO_DC", "delete");
+  await requireCssdCatalogMasterWrite();
   return softDeleteManyMasterRows("cssd_dm_bo_dung_cu", ids);
 }
 

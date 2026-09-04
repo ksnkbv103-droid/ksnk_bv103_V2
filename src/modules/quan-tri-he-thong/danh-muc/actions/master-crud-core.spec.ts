@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   insert: vi.fn(),
   updateEq: vi.fn(),
   from: vi.fn(),
+  requireCssdCatalogMasterWrite: vi.fn(async () => undefined),
 }));
 
 vi.mock("@/lib/supabase-server", () => ({
@@ -16,9 +17,14 @@ vi.mock("@/lib/cache/revalidate-master-data-tags", () => ({
   revalidateMasterDataRowCacheTag: vi.fn(),
 }));
 
+vi.mock("@/lib/master-data/require-cssd-catalog-master-write", () => ({
+  requireCssdCatalogMasterWrite: mocks.requireCssdCatalogMasterWrite,
+}));
+
 describe("master-crud-core allowlist", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.requireCssdCatalogMasterWrite.mockResolvedValue(undefined);
     mocks.insert.mockResolvedValue({ error: null });
     mocks.updateEq.mockResolvedValue({ error: null });
     mocks.from.mockImplementation((_table: string) => ({
@@ -82,5 +88,23 @@ describe("master-crud-core allowlist", () => {
     expect(mocks.from).toHaveBeenCalledWith("mdm_dm_khoa_phong");
     expect(update).toHaveBeenCalledWith(expect.objectContaining({ is_active: false }));
     expect(del).not.toHaveBeenCalled();
+  });
+
+  it("D5: hard-write cssd catalog master goes through requireCssdCatalogMasterWrite", async () => {
+    const { upsertMasterRow } = await import("./master-crud-core");
+    const res = await upsertMasterRow("cssd_dm_loai_dung_cu", "", {
+      ma_loai: "DC-TEST",
+      ten_loai: "Test",
+      is_active: true,
+    });
+    expect(res).toEqual({ success: true });
+    expect(mocks.requireCssdCatalogMasterWrite).toHaveBeenCalled();
+    expect(mocks.from).toHaveBeenCalledWith("cssd_dm_loai_dung_cu");
+  });
+
+  it("D5: non-catalog tables skip requireCssdCatalogMasterWrite", async () => {
+    const { softDeleteMasterRow } = await import("./master-crud-core");
+    await softDeleteMasterRow("mdm_dm_khoa_phong", "khoa-2");
+    expect(mocks.requireCssdCatalogMasterWrite).not.toHaveBeenCalled();
   });
 });

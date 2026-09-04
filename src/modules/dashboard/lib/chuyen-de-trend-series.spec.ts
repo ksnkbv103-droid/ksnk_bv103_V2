@@ -23,4 +23,12 @@ describe("chuyen-de-trend-series", () => {
     expect(rows[0]![s1.dataKey]).toBe(80);
     expect(rows[0]![s2.dataKey]).toBe(50);
   });
+
+  it("uses GSC 2-decimal rate from counts (2/3 → 66.67)", () => {
+    const s = toChuyenDeTrendSeries("BK03", "Gói", [
+      { label: "T1", min_date: "2026-01-05", tong_quan_sat: 3, tong_dat: 2, ty_le_tuan_thu: 66.7 },
+    ]);
+    const rows = mergeMultiChuyenDeTrendRows([s], "week");
+    expect(rows[0]![s.dataKey]).toBe(66.67);
+  });
 });

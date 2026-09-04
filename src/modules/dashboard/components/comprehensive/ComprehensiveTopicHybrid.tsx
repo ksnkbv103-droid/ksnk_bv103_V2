@@ -150,7 +150,7 @@ function buildNkbvLines(payload: BaoCaoTongHopPayload | null): string[] {
   const k = payload?.nkbv?.kpis;
   if (!k) return [];
   const lines = [
-    `Phiếu trong khoảng: ${k.tong_phieu} · Xác nhận/PA: ${k.ti_le_xac_nhan_so_voi_pa}%`,
+    `Phiếu trong khoảng: ${k.tong_phieu} · Xác nhận/PA: ${k.ti_le_xac_nhan_so_voi_pa == null ? "—" : `${k.ti_le_xac_nhan_so_voi_pa}%`}`,
     `Đang ghi/ chờ XN: ${k.dang_va_cho_xn} · Loại trừ: ${k.loai_tru}`,
   ];
   const topLoai = payload?.nkbv?.by_loai?.[0];

@@ -5,6 +5,7 @@ import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { getActorKsnkScope } from "@/lib/actor-ksnk-scope-server";
 import { resolveAnalyticsRpcFilters } from "@/lib/analytics/resolve-analytics-rpc-scope";
+import { normalizeVstStrategicPercents } from "@/lib/analytics/vst-analytics-data";
 import type { VstStrategicFilters, VstStrategicPayload } from "../types/vst-strategic.types";
 
 const vstStrategicFiltersSchema = z.object({
@@ -52,5 +53,5 @@ export async function getVstStrategicAnalytics(filters: VstStrategicFilters) {
     ...(matrices as Record<string, unknown>),
   } as VstStrategicPayload;
 
-  return { success: true as const, data: merged };
+  return { success: true as const, data: normalizeVstStrategicPercents(merged) };
 }

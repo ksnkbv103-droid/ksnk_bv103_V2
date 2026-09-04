@@ -30,4 +30,11 @@ describe("summarizeSetComposition", () => {
     expect(s).toEqual({ can: 12, thuc: 11, thieu: 1, hasGap: true });
     expect(formatSetQtyLine(s.can, s.thuc, s.thieu)).toBe("11/12 món — thiếu 1");
   });
+
+  it("derives thiếu from kế hoạch − thực tế, ignores stale missingCount", () => {
+    const s = summarizeSetComposition([
+      row({ soLuongKeHoach: 5, soLuongThucTe: 2, missingCount: 99 }),
+    ]);
+    expect(s.thieu).toBe(3);
+  });
 });

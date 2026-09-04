@@ -149,9 +149,10 @@ export default function MeTietKhuanProcessStep({
         <button
           type="button"
           onClick={onReportIncident}
-          className={`${CSSD_UI_ACTION_SECONDARY} border-red-200 text-red-600 hover:bg-red-50`}
+          className={`${CSSD_UI_ACTION_SECONDARY} border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100`}
+          title="Thu hồi theo mẻ — sự cố an toàn QT.24 (BI+/ướt/lỗi máy)"
         >
-          Báo sự cố
+          Thu hồi theo mẻ
         </button>
       ) : null}
       <button type="button" onClick={onBackToList} className={CSSD_UI_ACTION_SECONDARY}>
@@ -169,7 +170,7 @@ export default function MeTietKhuanProcessStep({
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-shell)] border border-emerald-800 bg-emerald-700 p-5 text-white shadow-sm">
           <div>
             <h2 className="bv103-type-title font-mono tracking-tight">{activeMe?.ma_lo_tiet_khuan}</h2>
-            <p className="mt-1 text-[11px] font-medium uppercase tracking-wide opacity-90">
+            <p className="mt-1 text-[11px] font-medium opacity-90">
               {items.length} bộ trong phiếu ·{" "}
               {phase === "CHUAN_BI" && <span className="text-sky-200">Đang nạp bộ</span>}
               {phase === "DANG_TK" && <span className="text-amber-200">Đang tiệt khuẩn</span>}
@@ -190,7 +191,7 @@ export default function MeTietKhuanProcessStep({
                 type="button"
                 disabled={!items.length}
                 onClick={() => void onConfirmBatDau()}
-                className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-amber-300 bg-amber-400 px-4 text-xs font-semibold uppercase tracking-wide text-slate-900 shadow-sm transition-all hover:bg-amber-300 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-amber-300 bg-amber-400 px-4 text-xs font-semibold text-slate-900 shadow-sm transition-all hover:bg-amber-300 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Lock size={16} aria-hidden="true" />
                 Xác nhận bắt đầu tiệt khuẩn
@@ -202,7 +203,7 @@ export default function MeTietKhuanProcessStep({
               <button
                 type="button"
                 onClick={() => void onConfirmKetThucChuTrinh()}
-                className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-white/30 bg-white/15 px-4 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition-all hover:bg-white/25 active:scale-95"
+                className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-white/30 bg-white/15 px-4 text-xs font-semibold text-white shadow-sm transition-all hover:bg-white/25 active:scale-95"
               >
                 <StopCircle size={16} aria-hidden="true" />
                 Xong máy — mở đánh giá QC
@@ -214,7 +215,7 @@ export default function MeTietKhuanProcessStep({
                 type="button"
                 disabled={isPrintBusy}
                 onClick={onPrintBatch}
-                className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-amber-300 bg-amber-400 px-4 text-xs font-semibold uppercase tracking-wide text-slate-900 shadow-sm transition-all hover:bg-amber-300 active:scale-95 disabled:opacity-50"
+                className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-amber-300 bg-amber-400 px-4 text-xs font-semibold text-slate-900 shadow-sm transition-all hover:bg-amber-300 active:scale-95 disabled:opacity-50"
               >
                 <Printer size={16} aria-hidden="true" />
                 In phiếu mẻ A4
@@ -316,19 +317,23 @@ export default function MeTietKhuanProcessStep({
         {/* ===== GIAI ĐOẠN 1: Chuẩn bị nạp mẻ ===== */}
         {phase === "CHUAN_BI" && (
           <div className="grid grid-cols-1 gap-[var(--bv103-space-3)] lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <MeTietKhuanWaitingPanel
-              rows={waitingRows}
-              napLocked={napLocked}
-              onProcess={(code) => {
-                if (!code || napLocked) return;
-                onAddItemByCode(code);
-              }}
-            />
-            <MeTietKhuanProcessScanPanel
-              items={items}
-              napLocked={napLocked}
-              onAddItemByCode={onAddItemByCode}
-            />
+            <div className="order-1 lg:order-2">
+              <MeTietKhuanProcessScanPanel
+                items={items}
+                napLocked={napLocked}
+                onAddItemByCode={onAddItemByCode}
+              />
+            </div>
+            <div className="order-2 lg:order-1">
+              <MeTietKhuanWaitingPanel
+                rows={waitingRows}
+                napLocked={napLocked}
+                onProcess={(code) => {
+                  if (!code || napLocked) return;
+                  onAddItemByCode(code);
+                }}
+              />
+            </div>
           </div>
         )}
 
@@ -340,7 +345,7 @@ export default function MeTietKhuanProcessStep({
                 <Timer className="h-8 w-8 text-blue-600 animate-pulse" />
               </div>
               <div className="space-y-2">
-                <p className="text-sm font-semibold uppercase tracking-wide text-blue-800">Đang tiệt khuẩn</p>
+                <p className="text-sm font-semibold text-blue-800">Đang tiệt khuẩn</p>
                 <p className="text-sm font-semibold text-blue-600">
                   Đã chốt <strong>{items.length} bộ</strong> trong phiếu
                 </p>

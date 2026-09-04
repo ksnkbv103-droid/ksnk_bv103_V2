@@ -2,11 +2,11 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { RefreshCw, SlidersHorizontal, X } from "lucide-react";
+import { RefreshCw, SlidersHorizontal } from "lucide-react";
 import { useMinWidth } from "@/hooks/use-min-width";
-import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 interface Props {
   filters: { from: string; to: string; station: string };
@@ -42,8 +42,6 @@ export default function ReportFilters({
 }: Props) {
   const isDesktop = useMinWidth(640, false);
   const [open, setOpen] = useState(false);
-
-  useBodyScrollLock(!isDesktop && open);
 
   const stationOptions = useMemo(
     () => [
@@ -101,8 +99,12 @@ export default function ReportFilters({
     </div>
   );
 
-  if (!isDesktop && !open) {
-    return (
+  if (isDesktop) {
+    return <div className="space-y-2">{body}</div>;
+  }
+
+  return (
+    <>
       <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2 shadow-sm">
         <button
           type="button"
@@ -121,26 +123,18 @@ export default function ReportFilters({
           Lọc
         </button>
       </div>
-    );
-  }
 
-  if (!isDesktop && open) {
-    return (
-      <div className="fixed inset-0 z-[200] flex flex-col bg-slate-900/40 p-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
-        <div className="flex max-h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[var(--shadow-app-soft)]">
-          <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2.5">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="flex max-h-[min(90dvh,880px)] max-w-lg flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
+          <DialogTitle className="sr-only">Bộ lọc báo cáo</DialogTitle>
+
+          <div className="shrink-0 border-b border-slate-100 px-4 py-3 pr-14">
             <p className="text-sm font-semibold text-slate-900">Bộ lọc báo cáo</p>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"
-              aria-label="Đóng"
-            >
-              <X className="h-4 w-4" aria-hidden />
-            </button>
           </div>
-          <div className="overflow-y-auto p-3 custom-scrollbar">{body}</div>
-          <div className="border-t border-slate-100 p-3">
+
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 custom-scrollbar">{body}</div>
+
+          <div className="shrink-0 border-t border-slate-100 bg-white p-3">
             <button
               type="button"
               onClick={() => setOpen(false)}
@@ -149,10 +143,8 @@ export default function ReportFilters({
               Áp dụng
             </button>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  return <div className="space-y-2">{body}</div>;
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }

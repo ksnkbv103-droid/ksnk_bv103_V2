@@ -33,6 +33,7 @@ import { QLCV_BOARD_FETCH_MAX_PAGES, QLCV_BOARD_FETCH_PAGE_SIZE } from "../lib/q
 import { QLCV_ROOT_TASK_VIEW_SELECT } from "../lib/qlcv-root-list-select";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import { isQlcvLoaiDinhKy } from "@/lib/domain/qlcv/dinh-ky-auto-complete";
+import { taskUsesQlcvChecklistForProgress } from "@/lib/domain/qlcv-checklist";
 import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { invokeQlcvTransition } from "../lib/qlcv-transition-rpc";
@@ -317,7 +318,7 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
   const { data: cur, error: fetchErr } = await supabase
     .from("v_qlcv_cong_viec_full")
     .select(
-      "id, trang_thai, is_active, nguoi_phu_trach_id, to_cong_tac_id, han_hoan_thanh, is_qua_han, phan_tram_hoan_thanh, nguoi_phu_trach_ten, nguoi_tao_id, nguoi_giao_viec_id, nhiem_vu_id, loai_cong_viec",
+      "id, trang_thai, is_active, nguoi_phu_trach_id, to_cong_tac_id, han_hoan_thanh, is_qua_han, phan_tram_hoan_thanh, nguoi_phu_trach_ten, nguoi_tao_id, nguoi_giao_viec_id, nhiem_vu_id, loai_cong_viec, checklist",
     )
     .eq("id", id)
     .maybeSingle();
@@ -498,7 +499,12 @@ export async function updateCongViec(id: string, updates: CongViecUpdateInput) {
     const tt = normalizeQlcvDmFields({ trang_thai: updates.trang_thai });
     dbUpdates.trang_thai = tt.trang_thai;
   }
-  if (updates.phan_tram_hoan_thanh !== undefined) dbUpdates.phan_tram_hoan_thanh = updates.phan_tram_hoan_thanh;
+  if (
+    updates.phan_tram_hoan_thanh !== undefined &&
+    !taskUsesQlcvChecklistForProgress(cur.checklist)
+  ) {
+    dbUpdates.phan_tram_hoan_thanh = updates.phan_tram_hoan_thanh;
+  }
 
   const { data, error } = await supabase
     .from("qlcv_fact_cong_viec")

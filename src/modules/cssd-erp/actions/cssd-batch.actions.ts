@@ -3,6 +3,12 @@
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { fetchBatchesAndMachines } from "../helpers/me-tiet-khuan-list-data";
 import { assertThietBiSanSangChoMeTietKhuan } from "../helpers/assert-thiet-bi-cho-me-tiet-khuan";
+import { isSteamSterilizerProfile } from "../helpers/me-tiet-khuan-machine-kind";
+import {
+  assertSteamDailyBdForLoad,
+  buildSteamDailyBdSpecsPatch,
+} from "@/lib/domain/cssd-steam-daily-bd";
+import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import { getBatchAddRejectionReason, logQuyTrinhVaoMeTietKhuan } from "../helpers/me-tiet-khuan-batch-trace";
 import { persistMeTietKhuanFinishWithClient, type PersistMeTietKhuanInput } from "../helpers/persist-me-tiet-khuan";
 import { getErrorMessage, mapFkError, revalidateCssdBatchSurfaces, revalidateCssdWorkflowSurfaces } from "./cssd-action-common";
@@ -108,13 +114,36 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
     if (!id) return { success: false as const, error: "Thiếu mã mẻ." };
     const { data: me, error: meErr } = await supabase
       .from("cssd_fact_lo_tiet_khuan")
-      .select("id, tk_chot_nap_at, ket_qua_test")
+      .select("id, tk_chot_nap_at, ket_qua_test, thiet_bi_id, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi, specs, loai_may:cssd_dm_loai_may(ma_loai_may, ten_loai_may))")
       .eq("id", id)
       .maybeSingle();
     if (meErr) return { success: false as const, error: mapFkError(meErr.message) };
     if (!me) return { success: false as const, error: "Không tìm thấy mẻ." };
     if ((me as { tk_chot_nap_at?: string | null }).tk_chot_nap_at) {
       return { success: false as const, error: "Mẻ đã bắt đầu tiệt khuẩn trước đó." };
+    }
+    {
+      const tbRaw = (me as { thiet_bi?: unknown }).thiet_bi;
+      const tb = (tbRaw && Array.isArray(tbRaw) ? tbRaw[0] : tbRaw) as {
+        ten_thiet_bi?: string;
+        specs?: Record<string, unknown> | null;
+        loai_may?: { ma_loai_may?: string; ten_loai_may?: string } | { ma_loai_may?: string; ten_loai_may?: string }[] | null;
+      } | null;
+      const loaiMayRaw = tb?.loai_may;
+      const loaiMay = (
+        loaiMayRaw && Array.isArray(loaiMayRaw) ? loaiMayRaw[0] : loaiMayRaw
+      ) as { ma_loai_may?: string; ten_loai_may?: string } | null | undefined;
+      const steam = isSteamSterilizerProfile({
+        loai_thiet_bi: tb?.ten_thiet_bi || loaiMay?.ma_loai_may || null,
+        loai_ten_hien_thi: loaiMay?.ten_loai_may || null,
+      });
+      const bdGate = assertSteamDailyBdForLoad({
+        isSteam: steam,
+        specs: tb?.specs || null,
+        requireRecorded: true,
+        todayYmd: todayYmdInVn(),
+      });
+      if (!bdGate.ok) return { success: false as const, error: bdGate.message };
     }
     if ((me as { ket_qua_test?: boolean | null }).ket_qua_test != null) {
       return { success: false as const, error: "Mẻ đã kết thúc đánh giá — không thể bắt đầu lại." };
@@ -261,6 +290,47 @@ export async function fetchCssdBatchHeatRisk(batchId: string) {
   }
 }
 
+
+/** QT.21 — ghi BD đầu ngày lên `cssd_dm_thiet_bi.specs` (ngày lịch VN). */
+export async function recordSteamDailyBdAction(input: {
+  thietBiId: string;
+  ketQua: "DAT" | "KHONG_DAT";
+  ymd?: string;
+}) {
+  try {
+    await verifyCssdBatchEdit();
+    const supabase = createAdminSupabaseClient();
+    const id = String(input.thietBiId || "").trim();
+    if (!id) return { success: false as const, error: "Thiếu máy." };
+    const ketQua = input.ketQua === "KHONG_DAT" ? "KHONG_DAT" : "DAT";
+    const ymd = String(input.ymd || todayYmdInVn()).slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
+      return { success: false as const, error: "Ngày BD không hợp lệ." };
+    }
+    const { data: tb, error: tbErr } = await supabase
+      .from("cssd_dm_thiet_bi")
+      .select("id, specs")
+      .eq("id", id)
+      .maybeSingle();
+    if (tbErr) return { success: false as const, error: mapFkError(tbErr.message) };
+    if (!tb) return { success: false as const, error: "Không tìm thấy máy." };
+    const existing = ((tb as { specs?: Record<string, unknown> | null }).specs || null) as Record<
+      string,
+      unknown
+    > | null;
+    const specs = buildSteamDailyBdSpecsPatch({ ymd, ketQua, existing });
+    const { error: upErr } = await supabase
+      .from("cssd_dm_thiet_bi")
+      .update({ specs, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    if (upErr) return { success: false as const, error: mapFkError(upErr.message) };
+    revalidateCssdBatchSurfaces();
+    return { success: true as const, ymd, ketQua };
+  } catch (e: unknown) {
+    return { success: false as const, error: getErrorMessage(e) };
+  }
+}
+
 export async function createCssdSterilizationBatch(machineId: string, nguoiLoad: string) {
   try {
     await verifyCssdBatchEdit();
@@ -270,6 +340,31 @@ export async function createCssdSterilizationBatch(machineId: string, nguoiLoad:
     const nguoi = validated.nguoiLoad;
     const mayOk = await assertThietBiSanSangChoMeTietKhuan(supabase, mid);
     if (!mayOk.ok) return { success: false as const, error: mayOk.message };
+    const { data: tbRow } = await supabase
+      .from("cssd_dm_thiet_bi")
+      .select("ten_thiet_bi, specs, loai_may:cssd_dm_loai_may(ma_loai_may, ten_loai_may)")
+      .eq("id", mid)
+      .maybeSingle();
+    const tb = tbRow as {
+      ten_thiet_bi?: string;
+      specs?: Record<string, unknown> | null;
+      loai_may?: { ma_loai_may?: string; ten_loai_may?: string } | { ma_loai_may?: string; ten_loai_may?: string }[] | null;
+    } | null;
+    const loaiMayRaw = tb?.loai_may;
+    const loaiMay = (
+      loaiMayRaw && Array.isArray(loaiMayRaw) ? loaiMayRaw[0] : loaiMayRaw
+    ) as { ma_loai_may?: string; ten_loai_may?: string } | null | undefined;
+    const steam = isSteamSterilizerProfile({
+      loai_thiet_bi: tb?.ten_thiet_bi || loaiMay?.ma_loai_may || null,
+      loai_ten_hien_thi: loaiMay?.ten_loai_may || null,
+    });
+    const bdGate = assertSteamDailyBdForLoad({
+        isSteam: steam,
+        specs: tb?.specs || null,
+        requireRecorded: true,
+        todayYmd: todayYmdInVn(),
+      });
+    if (!bdGate.ok) return { success: false as const, error: bdGate.message };
     const ma = `LOT-${Date.now().toString().slice(-6)}`;
     const { data: me, error } = await supabase
       .from("cssd_fact_lo_tiet_khuan")

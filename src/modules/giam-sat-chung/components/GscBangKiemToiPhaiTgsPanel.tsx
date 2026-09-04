@@ -7,6 +7,7 @@ import { useBangKiemToiPhaiTgs } from "@/lib/analytics/use-bang-kiem-toi-phai-tg
 import { buildQlcvAnalyticsDeepLink } from "@/lib/analytics/qlcv-analytics-deep-link";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { formatPercent1 } from "@/lib/analytics/supervision-percent";
 
 type Props = {
   tuNgay: string;
@@ -276,7 +277,7 @@ export default function GscBangKiemToiPhaiTgsPanel({
               </div>
               <div className="rounded-[var(--radius-shell)] bg-[var(--primary)]/5 px-4 py-3">
                 <p className={`${UI.kpiLabel} text-[var(--primary)]`}>Bao phủ</p>
-                <p className="bv103-type-title text-[var(--primary)]">{data.tom_tat.ty_le_bao_phu}%</p>
+                <p className="bv103-type-title text-[var(--primary)]">{formatPercent1(data.tom_tat.ty_le_bao_phu)}</p>
               </div>
             </div>
 

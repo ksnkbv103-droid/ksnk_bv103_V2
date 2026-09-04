@@ -84,7 +84,7 @@ export default function InventoryDashboard({ data, activeStatus, onSelectStatus 
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 animate-in slide-in-from-top-4 duration-500">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-white px-3 py-2 text-[11px] shadow-sm animate-in slide-in-from-top-2 duration-300">
       {cards.map(({ key, title, value, icon: Icon, idle, active, text }) => {
         const isActive = activeStatus === key;
         return (
@@ -92,23 +92,13 @@ export default function InventoryDashboard({ data, activeStatus, onSelectStatus 
             key={key}
             type="button"
             onClick={() => onSelectStatus(isActive ? "ALL" : key)}
-            className={`group flex flex-col justify-between p-4 rounded-[var(--radius-shell)] border text-left transition-all duration-300 active:scale-[0.96] shadow-sm ${
-              isActive ? active : idle
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-semibold transition-all active:scale-[0.98] ${
+              isActive ? `${active} shadow-sm` : `${idle} ${text}`
             }`}
           >
-            <div
-              className={`p-2 rounded-xl w-fit ${isActive ? "bg-white/20 text-white" : `${idle} ${text}`}`}
-            >
-              <Icon size={16} strokeWidth={2.5} />
-            </div>
-            <div className="mt-4 space-y-0.5">
-              <p className={`text-[11px] font-semibold uppercase tracking-wide ${isActive ? "text-white/80" : "text-slate-500"}`}>
-                {title}
-              </p>
-              <p className={`text-xl font-semibold tabular-nums ${isActive ? "text-white" : "text-slate-900"}`}>
-                {value}
-              </p>
-            </div>
+            <Icon size={13} strokeWidth={2.5} aria-hidden />
+            <span>{title}</span>
+            <span className={`tabular-nums ${isActive ? "text-white" : "text-slate-800"}`}>{value}</span>
           </button>
         );
       })}

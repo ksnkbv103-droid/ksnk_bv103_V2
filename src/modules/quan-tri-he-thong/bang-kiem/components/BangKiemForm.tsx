@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { useGenerateMa } from "@/hooks/useGenerateMa";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
 import {
@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import BangKiemApDungFields, { type BangKiemApDungFormState } from "./bang-kiem-ap-dung-fields";
 import BangKiemFormFields, { BangKiemFormState } from "./bang-kiem-form-fields";
 import { quanTriFormChrome as F } from "../../lib/quan-tri-form-chrome";
+import QuanTriFormDialogShell from "../../components/QuanTriFormDialogShell";
 import {
   DEFAULT_BANG_KIEM_CACH_TINH_DIEM,
   DEFAULT_BANG_KIEM_LOAI_GIAM_SAT,
@@ -26,6 +27,7 @@ import {
 
 export type BangKiemFormSavePayload = BangKiemFormState & {
   ap_dung_jsonb: BangKiemApDungFormState;
+  [key: string]: unknown;
 };
 
 interface Props {
@@ -110,72 +112,64 @@ export default function BangKiemForm({ initialData, onClose, onSave }: Props) {
 
   const isEditing = Boolean(formData.id);
 
+  const handleSave = () => {
+    const gscErr = resolveBangKiemGscPersistFields(formData);
+    if (!gscErr.ok) {
+      toast.error(gscErr.error);
+      return;
+    }
+    const apErr = validateApDungForSave(formData.ap_dung_jsonb);
+    if (apErr) {
+      toast.error(apErr);
+      return;
+    }
+    onSave(formData);
+  };
+
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-2xl max-h-[92vh] rounded-[var(--radius-shell)] shadow-[var(--shadow-app-soft)] border border-slate-100 flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
-        <header className="px-10 py-8 bg-slate-50/50 flex items-center justify-between">
-          <h2 className={F.modalTitleLight}>
-            {formData.id ? "Cập nhật mẫu bảng kiểm" : "Thêm mới mẫu bảng kiểm"}
-          </h2>
-          <button type="button" onClick={onClose} className="p-3 hover:bg-white rounded-[var(--radius-shell)] text-slate-400 transition-all shadow-sm">
-            <X className="w-5 h-5" />
-          </button>
-        </header>
-
-        <div className="flex-1 overflow-y-auto px-10 pt-4 pb-4 custom-scrollbar">
-          <BangKiemFormFields
-            formData={formData}
-            setFormData={(updater) =>
-              setFormData((prev) => ({
-                ...prev,
-                ...(typeof updater === "function" ? updater(prev) : updater),
-              }))
-            }
-            maTuDong={maTuDong}
-            isEditing={isEditing}
-            hinhThucRows={hinhThucRows}
-            hinhThucLoading={hinhThucLoading}
-          />
-          <BangKiemApDungFields
-            apDung={formData.ap_dung_jsonb}
-            setApDung={(next) =>
-              setFormData((p) => ({
-                ...p,
-                ap_dung_jsonb: typeof next === "function" ? next(p.ap_dung_jsonb) : next,
-              }))
-            }
-            khoiOptions={khoiOptions}
-            khoaOptions={khoaOptions}
-            disabled={false}
-            isSystemBk={formData.is_system}
-          />
-        </div>
-
-        <footer className="px-10 py-8 bg-slate-50/50 flex items-center justify-end gap-4">
-          <button type="button" onClick={onClose} className={`${F.ctaSecondary} ${F.modalFooterBtn}`}>
+    <QuanTriFormDialogShell
+      open
+      onClose={onClose}
+      title={formData.id ? "Cập nhật mẫu bảng kiểm" : "Thêm mới mẫu bảng kiểm"}
+      subtitle="Mã mẫu, hình thức giám sát và phạm vi áp dụng."
+      size="lg"
+      footer={
+        <>
+          <button type="button" onClick={onClose} className={`${F.ctaSecondary} flex-1 ${F.modalFooterBtn}`}>
             Hủy bỏ
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              const gscErr = resolveBangKiemGscPersistFields(formData);
-              if (!gscErr.ok) {
-                toast.error(gscErr.error);
-                return;
-              }
-              const apErr = validateApDungForSave(formData.ap_dung_jsonb);
-              if (apErr) {
-                toast.error(apErr);
-                return;
-              }
-              onSave(formData);
-            }}
-            className={`${F.ctaPrimary} gap-2 ${F.modalFooterBtn}`}
-          >
+          <button type="button" onClick={handleSave} className={`${F.ctaPrimary} flex-[2] gap-2 ${F.modalFooterBtn}`}>
             <Save className="w-4 h-4" /> Lưu lại
           </button>
-        </footer>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <BangKiemFormFields
+        formData={formData}
+        setFormData={(updater) =>
+          setFormData((prev) => ({
+            ...prev,
+            ...(typeof updater === "function" ? updater(prev) : updater),
+          }))
+        }
+        maTuDong={maTuDong}
+        isEditing={isEditing}
+        hinhThucRows={hinhThucRows}
+        hinhThucLoading={hinhThucLoading}
+      />
+      <BangKiemApDungFields
+        apDung={formData.ap_dung_jsonb}
+        setApDung={(next) =>
+          setFormData((p) => ({
+            ...p,
+            ap_dung_jsonb: typeof next === "function" ? next(p.ap_dung_jsonb) : next,
+          }))
+        }
+        khoiOptions={khoiOptions}
+        khoaOptions={khoaOptions}
+        disabled={false}
+        isSystemBk={formData.is_system}
+      />
+    </QuanTriFormDialogShell>
   );
 }

@@ -2,7 +2,9 @@
 "use client";
 
 import type { Column } from "@/components/shared/AdvancedDataTable";
-import { Printer } from "lucide-react";
+import Link from "next/link";
+import { Printer, Undo2 } from "lucide-react";
+import { cssdSuCoBatchRecallHref } from "@/lib/cssd-routes";
 import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 import {
   CSSD_UI_CELL_CODE,
@@ -47,11 +49,11 @@ export function buildMeTietKhuanBatchColumns(opts?: {
     accessorKey: "ket_qua_test",
     cell: (i: any) => (
       <span
-        className={`rounded-md px-2 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+        className={`rounded-md px-2 py-1 text-[11px] font-semibold ${
           i.ket_qua_test === true ? "bg-emerald-50 text-emerald-600" : i.ket_qua_test === false ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-500"
         }`}
       >
-        {i.ket_qua_test === true ? "ĐẠT QC" : i.ket_qua_test === false ? "LỖI" : "CHƯA QC"}
+        {i.ket_qua_test === true ? "Đạt QC" : i.ket_qua_test === false ? "Lỗi" : "Chưa QC"}
       </span>
     ),
   },
@@ -79,6 +81,26 @@ export function buildMeTietKhuanBatchColumns(opts?: {
     accessorKey: "ghi_chu",
     cell: (i: any) => <span className={`block max-w-[150px] truncate ${CSSD_UI_CELL_META}`}>{i.ghi_chu || "---"}</span>,
   },
+  {
+    header: "Thu hồi",
+    accessorKey: "id",
+    cell: (i: any) => {
+      const id = String(i.id || "").trim();
+      const maLo = String(i.ma_lo_tiet_khuan || "").trim();
+      if (!id) return <span className={CSSD_UI_CELL_META}>—</span>;
+      const href = cssdSuCoBatchRecallHref({ loTietKhuanId: id, maLo: maLo || undefined });
+      return (
+        <Link
+          href={href}
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1.5 bv103-type-label font-semibold text-amber-900 hover:bg-amber-100"
+          title="Thu hồi theo mẻ — sự cố an toàn QT.24"
+        >
+          <Undo2 size={14} /> Thu hồi
+        </Link>
+      );
+    },
+  },
   ];
 
   if (opts?.onPrintBatch) {
@@ -96,7 +118,7 @@ export function buildMeTietKhuanBatchColumns(opts?: {
               e.stopPropagation();
               opts.onPrintBatch?.(String(i.id));
             }}
-            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 bv103-type-label font-semibold uppercase tracking-wide text-[var(--primary)] hover:bg-emerald-50 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 bv103-type-label font-semibold text-[var(--primary)] hover:bg-emerald-50 disabled:opacity-50"
             title="In phiếu mẻ A4"
           >
             <Printer size={14} /> Phiếu mẻ

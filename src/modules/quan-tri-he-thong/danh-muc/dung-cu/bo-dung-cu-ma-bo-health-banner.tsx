@@ -52,7 +52,7 @@ export function BoDungCuMaBoHealthBanner() {
           <span className="block">
             Sửa tại đây (chọn khoa → lưu để tự sinh mã) hoặc{" "}
             <Link href={quanTriDungCuHref("bo")} className="font-semibold underline">
-              mở tab Bộ dụng cụ
+              mở danh sách bộ
             </Link>
             .
           </span>

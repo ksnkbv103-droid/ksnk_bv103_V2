@@ -22,6 +22,7 @@ export type LoaiDungCuListRow = {
   phuong_phap_tiet_khuan_label: string;
   phan_loai: string;
   so_luong_kho_du_phong: number;
+  so_luong_trong_bo: number;
   so_luong_tong: number;
   is_active: boolean;
 };
@@ -52,6 +53,7 @@ export function mapLoaiPhysicalToListRow(r: Record<string, unknown>): LoaiDungCu
   const spaulding = normalizeSpauldingForMaster(r.phan_loai_spaulding);
   const strOrNull = (v: unknown) => (v == null || v === "" ? null : String(v));
   const duPhong = Number(r.so_luong_kho_du_phong || 0);
+  const stock = splitLoaiStock(duPhong, Number(r.so_luong_trong_bo || 0));
   return {
     id: String(r.id || ""),
     ma_danh_muc: alias.ma_loai_dung_cu || String(r.ma_loai || ""),
@@ -66,10 +68,18 @@ export function mapLoaiPhysicalToListRow(r: Record<string, unknown>): LoaiDungCu
     phuong_phap_tiet_khuan: sterile,
     phuong_phap_tiet_khuan_label: sterileMethodLabel(sterile),
     phan_loai: String(r.phan_loai || "PHAU_THUAT"),
-    so_luong_kho_du_phong: duPhong,
-    so_luong_tong: duPhong,
+    so_luong_kho_du_phong: stock.so_luong_kho_du_phong,
+    so_luong_trong_bo: stock.so_luong_trong_bo,
+    so_luong_tong: stock.so_luong_tong,
     is_active: r.is_active !== false,
   };
+}
+
+export function mergeLoaiListTrongBo(
+  rows: LoaiDungCuListRow[],
+  trongBoByLoaiId: Map<string, number>,
+): LoaiDungCuListRow[] {
+  return rows.map((r) => ({ ...r, ...splitLoaiStock(r.so_luong_kho_du_phong, trongBoByLoaiId.get(r.id) || 0) }));
 }
 
 /** Tồn loại trên màn xem: Tổng = trong bộ + kho lẻ. Không đẻ bảng tổng hợp. */

@@ -78,3 +78,10 @@ Số lượng thực tế (tại thời điểm T) \= Số lượng tiêu chuẩ
 2. **Khóa chức năng chéo an toàn (Poka-yoke):** Nếu nhân viên báo "Thiếu" hoặc "Hỏng" mà chưa thao tác "Bổ sung", phần mềm vẫn có thể cho  in tem nhãn có mã vạch (Barcode) cho bước tiệt khuẩn, tuy nhiên phải có cảnh báo rõ việc thiếu của dụng cụ..  
 3. **Quản lý truy xuất nguồn gốc (Traceability):** Dữ liệu điều chuyển hoặc mất/hỏng được tự động gán với Tên người kiểm tra, Ngày giờ, và Mẻ tiệt khuẩn. Khi có sự cố nhiễm khuẩn vết mổ (SSI), chuyên gia dịch tễ chỉ cần click vào "Mã Bộ" là sẽ truy xuất ngược lại được toàn bộ lịch sử biến động và tình trạng vô khuẩn của bộ dụng cụ đó 34-37.
 
+---
+
+## SSOT runtime tồn (app note 2026-09-05)
+
+- **Đọc tồn thực tế:** view `v_cssd_bo_dung_cu_chi_tiet_realtime` (không gọi helper thay view).
+- **Công thức thuần (test/doc):** `computeSoLuongThucTeQldcpt` trong `src/lib/domain/cssd-instrument-incident.ts` — mirror QLDCPT, deprecate dùng làm nguồn ghi.
+- **Ghi sổ Hỏng/Mất/Điều chuyển:** `rpc_cssd_apply_instrument_ledger` (một write path).

@@ -2,9 +2,8 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { format } from "date-fns";
 import { Activity, Calendar, ShieldCheck, Heart, Users, Plus, Zap } from "lucide-react";
-import { formatDateVi } from "@/lib/format-datetime-vi";
+import { formatDateVi, todayYmdInVn } from "@/lib/format-datetime-vi";
 import {
   getNkbvMauSoMonthCoverage,
   saveNkbvMauSoDaily,
@@ -43,7 +42,7 @@ export default function NkbvMauSoDailyPortal({
 }: NkbvMauSoDailyPortalProps) {
   const [subTab, setSubTab] = useState<"daily" | "surgery">("daily");
 
-  const [ngayGhiNhan, setNgayGhiNhan] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [ngayGhiNhan, setNgayGhiNhan] = useState(() => todayYmdInVn());
   const [foleyDays, setFoleyDays] = useState<number>(0);
   const [cvcDays, setCvcDays] = useState<number>(0);
   const [ventDays, setVentDays] = useState<number>(0);
@@ -139,7 +138,7 @@ export default function NkbvMauSoDailyPortal({
     toast.message("Xem trước từ sổ đăng ký dụng cụ (không ghi đè form)");
   };
 
-  const [ngayPhauThuat, setNgayPhauThuat] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [ngayPhauThuat, setNgayPhauThuat] = useState(() => todayYmdInVn());
   const [maBenhNhan, setMaBenhNhan] = useState("");
   const [hoTenBenhNhan, setHoTenBenhNhan] = useState("");
   const [tenPhauThuat, setTenPhauThuat] = useState("");
@@ -394,7 +393,7 @@ export default function NkbvMauSoDailyPortal({
                   const isSubmitted = submittedSet.has(day);
                   const isMissing = missingSet.has(day);
                   const isSelected = day === ngayGhiNhan;
-                  const isFuture = !isSubmitted && !isMissing && day > format(new Date(), "yyyy-MM-dd");
+                  const isFuture = !isSubmitted && !isMissing && day > todayYmdInVn();
                   let tone =
                     "bg-slate-50 text-slate-400 border-slate-100";
                   if (isSubmitted) tone = "bg-emerald-50 text-emerald-800 border-emerald-200";

@@ -11,6 +11,7 @@ import { buildQlcvAnalyticsDeepLink } from "@/lib/analytics/qlcv-analytics-deep-
 import { TGS_BK_CELL_LABELS } from "@/lib/analytics/tgs-coverage-mappers";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { formatPercent1 } from "@/lib/analytics/supervision-percent";
 
 type Props = {
   tuNgay: string;
@@ -115,7 +116,7 @@ export default function GscTgsCoverageRankingPanel({ tuNgay, denNgay, selectedKh
                         row.ty_le_bao_phu_tgs < 80 ? "text-amber-800" : "text-emerald-800"
                       }`}
                     >
-                      {row.ty_le_bao_phu_tgs}%
+                      {formatPercent1(row.ty_le_bao_phu_tgs)}
                     </span>
                   </td>
                   <td className="py-3 pr-3 text-slate-600 tabular-nums">

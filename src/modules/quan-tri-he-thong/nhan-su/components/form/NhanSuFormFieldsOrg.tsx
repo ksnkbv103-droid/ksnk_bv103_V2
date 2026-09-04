@@ -13,6 +13,8 @@ type Props = {
   tos: Opt[];
   vaiTros: Opt[];
   chucVus: Opt[];
+  /** Chỉ hiện chọn vai trò KSNK (+ active) — form Thêm người ngắn. */
+  compactRoleOnly?: boolean;
 };
 
 /** Khối Tổ / vai trò KSNK / chức vụ + cờ hoạt động — tách khỏi NhanSuFormFields (AGENTS §8). */
@@ -23,7 +25,44 @@ export default function NhanSuFormFieldsOrg({
   tos,
   vaiTros,
   chucVus,
+  compactRoleOnly = false,
 }: Props) {
+  const roleBlock = (
+    <div className="space-y-2">
+      <label className={F.formLabelInset}>Vai trò trong hệ thống KSNK</label>
+      <SearchableSelect
+        value={String(formData.vai_tro_he_thong_id ?? "")}
+        onChange={(id) => {
+          const row = vaiTros.find((v) => v.id === id);
+          setFormData({
+            ...formData,
+            vai_tro_he_thong_id: id,
+            vai_tro_he_thong_ksnk: row?.ten_danh_muc ?? "",
+          });
+        }}
+        options={vaiTros.map((v) => ({ id: v.id, label: v.ten_danh_muc }))}
+        placeholder="-- Chọn vai trò --"
+        disabled={loading}
+      />
+    </div>
+  );
+
+  if (compactRoleOnly) {
+    return (
+      <>
+        {roleBlock}
+        <div className="md:col-span-2">
+          <MdmFormActiveToggleRow
+            active={formData.is_active !== false}
+            onChange={(next) => setFormData({ ...formData, is_active: next })}
+            disabled={loading}
+            footnote="Tắt để vô hiệu hóa hồ sơ trong lựa chọn mặc định — không xóa dữ liệu."
+          />
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <div className="space-y-2">
@@ -37,23 +76,7 @@ export default function NhanSuFormFieldsOrg({
         />
       </div>
 
-      <div className="space-y-2">
-        <label className={F.formLabelInset}>Vai trò trong hệ thống KSNK</label>
-        <SearchableSelect
-          value={String(formData.vai_tro_he_thong_id ?? "")}
-          onChange={(id) => {
-            const row = vaiTros.find((v) => v.id === id);
-            setFormData({
-              ...formData,
-              vai_tro_he_thong_id: id,
-              vai_tro_he_thong_ksnk: row?.ten_danh_muc ?? "",
-            });
-          }}
-          options={vaiTros.map((v) => ({ id: v.id, label: v.ten_danh_muc }))}
-          placeholder="-- Chọn vai trò --"
-          disabled={loading}
-        />
-      </div>
+      {roleBlock}
 
       <div className="space-y-2 md:col-span-2">
         <label className={F.formLabelInset}>Chức vụ (danh mục tùy biến)</label>

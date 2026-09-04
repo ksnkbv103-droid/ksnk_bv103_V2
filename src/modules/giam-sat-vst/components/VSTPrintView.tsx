@@ -8,7 +8,7 @@ import { isReplayCameraSupervisionCachThuc } from "@/lib/supervision-session-tim
 import { formatDateVi, formatDtVi } from "./vst-print-helpers";
 import { VSTPrintPersonBlocks } from "./VSTPrintPersonBlocks";
 import { classifyVstAction } from "../lib/vst-action-classifier";
-import { formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
+import { formatPercent1FromRatio } from "@/lib/analytics/supervision-percent";
 import EntityQrBlock from "@/components/shared/EntityQrBlock";
 import { buildPrintFileTitle } from "@/lib/print/print-file-title";
 import { vstSessionDisplayRef } from "../lib/vst-display-ref";
@@ -77,7 +77,7 @@ export default function VSTPrintView({
       if (classifyVstAction(o.hanh_dong).isCompliant) compliant += 1;
     }
   }
-  const pctLabel = totalOpp > 0 ? formatPercent2FromRatio(compliant, totalOpp) : null;
+  const pctLabel = totalOpp > 0 ? formatPercent1FromRatio(compliant, totalOpp) : null;
   const cachThuc = String(session.cach_thuc_giam_sat || "");
   const isReplayCamera = isReplayCameraSupervisionCachThuc(cachThuc);
   const tBat = session.thoi_gian_bat_dau as string | undefined;

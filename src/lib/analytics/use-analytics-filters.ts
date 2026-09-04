@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
+import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import { bv103DefaultTuNgayFromToday } from "@/lib/bv103-analytics-default-range";
 import { supabase } from "@/lib/supabase";
 import { getAnalyticsViewerScope, type AnalyticsViewerScope } from "@/modules/dashboard/actions/analytics-viewer-scope.actions";
@@ -41,7 +42,7 @@ export function useAnalyticsFilters(shell: AnalyticsShellContext = "command-cent
   const [selectedKhuVucIds, setSelectedKhuVucIds] = useState<string[]>([]);
   const [selectedHinhThucIds, setSelectedHinhThucIds] = useState<string[]>([]);
   const [tuNgay, setTuNgay] = useState(() => bv103DefaultTuNgayFromToday());
-  const [denNgay, setDenNgay] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [denNgay, setDenNgay] = useState(() => todayYmdInVn());
   const [filterOptions, setFilterOptions] = useState<DashboardFilterOptions | null>(null);
   const [viewerScope, setViewerScope] = useState<AnalyticsViewerScope | null>(null);
   const [initDone, setInitDone] = useState(false);

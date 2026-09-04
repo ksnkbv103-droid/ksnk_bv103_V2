@@ -58,7 +58,8 @@ export function CSSDCatalogHoaChatTab({ hoaChatRows }: { hoaChatRows: CSSDHoaCha
       columns={columns}
       data={hoaChatRows}
       searchPlaceholder="Tìm mã, tên hóa chất…"
-      emptyMessage="Không có dữ liệu hóa chất vật tư."
+      emptyMessage="Chưa có hóa chất vật tư trong danh mục."
+      bodyMaxHeight="max-h-[min(58dvh,560px)]"
       tableClassName={bv103TableLayout.tableFixed}
     />
   );

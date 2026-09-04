@@ -30,7 +30,7 @@ function HoaChatMasterPageContent() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<HoaChatRow | null>(null);
-  const [showStats, setShowStats] = useState(true);
+  const [showStats, setShowStats] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -111,15 +111,20 @@ function HoaChatMasterPageContent() {
               Thống kê
               {showStats ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
             </button>
-            <ImportExportToolbar
-              fileInputRef={fileInputRef}
-              isImporting={isImporting}
-              onExport={() => void exportTemplate()}
-              onImportClick={triggerImport}
-              onFileChange={(file) => void handleFileUpload(file)}
-              exportClassName={T.btnSecondary}
-              importClassName={C.ctaEmerald}
-            />
+            <details className="rounded-[var(--radius-control)] border border-slate-200 bg-white px-2 py-1">
+              <summary className="cursor-pointer text-[11px] font-semibold text-slate-500">Excel</summary>
+              <div className="pt-2">
+                <ImportExportToolbar
+                  fileInputRef={fileInputRef}
+                  isImporting={isImporting}
+                  onExport={() => void exportTemplate()}
+                  onImportClick={triggerImport}
+                  onFileChange={(file) => void handleFileUpload(file)}
+                  exportClassName={T.btnSecondary}
+                  importClassName={T.btnSecondary}
+                />
+              </div>
+            </details>
             <button type="button" onClick={() => { setEditing(null); setFormOpen(true); }} className={C.ctaPrimary}>
               <Plus size={16} /> Thêm mới
             </button>
@@ -136,6 +141,7 @@ function HoaChatMasterPageContent() {
           data={data}
           loading={loading}
           enableMultiSelect={true}
+          bodyMaxHeight="max-h-[min(58dvh,560px)]"
           onDeleteSelected={async (rows) => {
             if (!rows.length) return;
             if (!window.confirm(`Xóa mềm ${rows.length} hóa chất?`)) return;

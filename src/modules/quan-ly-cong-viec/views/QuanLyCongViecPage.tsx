@@ -4,16 +4,16 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Plus, LayoutGrid, CalendarClock, ArrowLeft, Send, Upload } from "lucide-react";
+import { Plus, LayoutGrid, CalendarClock, Send, Upload } from "lucide-react";
 import { toast } from "sonner";
 import {
   KsnkSupervisionHero,
   KsnkSupervisionTabList,
   type SupervisionTabDef,
 } from "@/components/shared/ksnk-supervision-chrome";
-import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { useModulePermission } from "@/hooks/useModulePermission";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, dialogContentKeepCentered } from "@/components/ui/dialog";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import { QlcvOperationsPanel } from "@/modules/quan-ly-cong-viec/components/QlcvOperationsPanel";
 import { QlcvDinhKyPanel } from "@/modules/quan-ly-cong-viec/components/QlcvDinhKyPanel";
 import { NhiemVuPanel } from "@/modules/quan-ly-cong-viec/components/NhiemVuPanel";
@@ -335,8 +335,6 @@ export default function QuanLyCongViecPage() {
     return tabs;
   }, [canManageDinhKy]);
 
-  useBodyScrollLock(Boolean(selectedTaskId));
-
   return (
     <div className="relative bv103-stack-page px-3 pb-12 pt-1 sm:px-0">
       <div className={printMode ? "no-print bv103-stack-page" : "bv103-stack-page"}>
@@ -345,34 +343,46 @@ export default function QuanLyCongViecPage() {
           {analyticsGapHint}
         </div>
       ) : null}
-      {selectedTaskId ? (
-        <div className="fixed inset-0 z-[300] flex justify-end animate-in fade-in duration-300">
-          <div
-            className="absolute inset-0 bg-slate-900/50 bv103-panel-backdrop-in"
-            onClick={closeTaskDetail}
-          />
-          <div className="relative flex h-[100dvh] w-full max-w-xl flex-col overflow-hidden border-l border-slate-200/90 bg-slate-50 shadow-[var(--shadow-app-soft)] animate-in slide-in-from-right duration-500 sm:max-w-2xl sm:rounded-l-[var(--radius-shell)] lg:max-w-3xl">
-            <div className="bv103-scroll-y min-h-0 flex-1 p-4 sm:p-6 md:p-8">
+      {/* Dialog portal: hub z-10040 dưới nested Approve/Edit/Confirm 10054/10055 */}
+      <Dialog
+        open={Boolean(selectedTaskId)}
+        onOpenChange={(open) => {
+          if (!open) closeTaskDetail();
+        }}
+      >
+        <DialogContent
+          className={`flex max-h-[min(90dvh,960px)] max-w-3xl flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl lg:max-w-4xl ${BV103_DIALOG_STACK.hubContent} ${dialogContentKeepCentered}`}
+          overlayClassName={`${BV103_DIALOG_STACK.hubOverlay} bg-slate-900/50`}
+        >
+          <DialogTitle className="sr-only">Chi tiết công việc</DialogTitle>
+          <div className="shrink-0 border-b border-slate-100 bg-white px-6 py-4 pr-14 sm:px-8">
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900">Chi tiết công việc</h2>
+            <p className="mt-0.5 text-sm text-slate-500">Xem thông tin và thao tác trên phiếu đã chọn</p>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-slate-50 px-4 py-4 sm:px-6 sm:py-5">
+            {selectedTaskId ? (
+              <CongViecDetail
+                key={selectedTaskId}
+                id={selectedTaskId}
+                onClose={closeTaskDetail}
+                onRefreshList={() => {
+                  void refreshAll();
+                  router.refresh();
+                }}
+              />
+            ) : null}
+          </div>
+          <div className="flex shrink-0 justify-end gap-2 border-t border-slate-100 bg-white px-6 py-4 sm:px-8">
             <button
               type="button"
               onClick={closeTaskDetail}
-              className="app-shell-focus mb-4 flex min-h-11 items-center gap-2 rounded-xl px-2 text-[11px] font-semibold uppercase tracking-widest text-slate-500 hover:bg-slate-100 hover:text-slate-800 touch-manipulation sm:mb-6"
+              className="bv103-control-h inline-flex items-center justify-center rounded-[var(--radius-control)] border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
             >
-              <ArrowLeft size={16} aria-hidden /> Quay lại danh sách
+              Đóng
             </button>
-            <CongViecDetail
-              key={selectedTaskId}
-              id={selectedTaskId}
-              onClose={closeTaskDetail}
-              onRefreshList={() => {
-                void refreshAll();
-                router.refresh();
-              }}
-            />
-            </div>
           </div>
-        </div>
-      ) : null}
+        </DialogContent>
+      </Dialog>
 
       <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="w-full bv103-stack-page">
         <KsnkSupervisionHero

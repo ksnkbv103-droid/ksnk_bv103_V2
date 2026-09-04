@@ -4,6 +4,11 @@ import {
   normalizeMaLoaiDeXuat,
   type SetReconcileLineInput,
 } from "@/lib/domain/cssd-set-reconcile";
+import { planAddOntoExistingQty } from "@/lib/master-data/cssd-bom-line-merge";
+import {
+  coalesceActiveBomLinesForLoai,
+  findActiveBomLineByBoLoai,
+} from "@/lib/master-data/cssd-bom-line-merge.application";
 
 function newChiTietMa(): string {
   return `DC-R${Date.now().toString(36).slice(-6).toUpperCase()}`;
@@ -58,7 +63,9 @@ async function applyDoiLoaiLine(
 
   const targetMa = normalizeMaLoaiDeXuat(String(target.ma_loai || ""));
   const tenSau = nextTen || String(target.ten_loai || line.tenDungCuLe);
-  const shouldRename = nextMa !== targetMa && String(target.id) === currentLoaiId && !doiLoaiIsRelink(line);
+  const tenChanged = Boolean(nextTen) && nextTen !== String(target.ten_loai || "").trim();
+  const shouldRename =
+    (nextMa !== targetMa || tenChanged) && String(target.id) === currentLoaiId && !doiLoaiIsRelink(line);
 
   if (shouldRename) {
     if (existingByMa && String(existingByMa.id) !== String(target.id)) {
@@ -93,6 +100,11 @@ async function applyDoiLoaiLine(
     .eq("id", chiTietId)
     .eq("bo_dung_cu_id", boDungCuId);
   if (error) throw new Error(error.message);
+
+  // Relink onto a loai that already has an active row → SUM qty, soft-delete duplicate.
+  if (String(targetLoaiId) !== String(currentLoaiId)) {
+    await coalesceActiveBomLinesForLoai(supabase, boDungCuId, String(targetLoaiId));
+  }
 }
 
 /** Áp đề nghị đổi sổ chuẩn sau khi admin duyệt phiếu. */
@@ -135,17 +147,30 @@ export async function applyApprovedBomLines(
       const ten = String(line.tenDungCuLe || "").trim();
       const soLuong = Math.max(1, Math.floor(Number(line.soLuongChuan) || 1));
       if (!loaiId || !ten) throw new Error("Thêm dòng cần loại và tên dụng cụ.");
-      const { error } = await supabase.from("cssd_dm_bo_dung_cu_chi_tiet").insert({
-        bo_dung_cu_id: boDungCuId,
-        loai_dung_cu_id: loaiId,
-        ten_dung_cu_le: ten,
-        ten_chi_tiet: ten,
-        so_luong: soLuong,
-        is_active: true,
-        updated_at: now,
-        specs: { ma_chi_tiet: newChiTietMa() },
-      });
-      if (error) throw new Error(error.message);
+      const existing = await findActiveBomLineByBoLoai(supabase, boDungCuId, loaiId);
+      if (existing) {
+        const nextQty = planAddOntoExistingQty(existing.so_luong, soLuong);
+        const { error } = await supabase
+          .from("cssd_dm_bo_dung_cu_chi_tiet")
+          .update({ so_luong: nextQty, updated_at: now })
+          .eq("id", existing.id)
+          .eq("bo_dung_cu_id", boDungCuId);
+        if (error) throw new Error(error.message);
+        // In case >1 active slipped in, coalesce to one SUM row.
+        await coalesceActiveBomLinesForLoai(supabase, boDungCuId, loaiId);
+      } else {
+        const { error } = await supabase.from("cssd_dm_bo_dung_cu_chi_tiet").insert({
+          bo_dung_cu_id: boDungCuId,
+          loai_dung_cu_id: loaiId,
+          ten_dung_cu_le: ten,
+          ten_chi_tiet: ten,
+          so_luong: soLuong,
+          is_active: true,
+          updated_at: now,
+          specs: { ma_chi_tiet: newChiTietMa() },
+        });
+        if (error) throw new Error(error.message);
+      }
     }
   }
 }

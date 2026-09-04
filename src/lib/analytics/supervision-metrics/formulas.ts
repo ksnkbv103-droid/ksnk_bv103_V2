@@ -6,13 +6,13 @@ const CCS_WEIGHT_VST = 0.5;
 const CCS_WEIGHT_GSC = 0.5;
 
 export function rateFromTotals(dat: number, tong: number): number | null {
-  if (tong <= 0) return null;
+  if (tong <= 0 || !Number.isFinite(dat)) return null;
   return Math.round((dat / tong) * 1000) / 10;
 }
 
 export function computeTyLeVst(kpis: VstStrategicPayload["kpis"] | undefined): number | null {
   if (!kpis || kpis.tong_co_hoi <= 0) return null;
-  return kpis.ty_le_tuan_thu;
+  return rateFromTotals(kpis.da_tuan_thu, kpis.tong_co_hoi) ?? kpis.ty_le_tuan_thu;
 }
 
 export function computeTyLeGsc(kpis: GscStrategicPayload["kpis"] | undefined): number | null {
@@ -22,7 +22,11 @@ export function computeTyLeGsc(kpis: GscStrategicPayload["kpis"] | undefined): n
   );
 }
 
-/** CCS chỉ từ VST+GSC (process); NKBV là outcome riêng. */
+/**
+ * @deprecated D10 quarantine — CCS bỏ khỏi UI user / surface điều hành.
+ * Pure fn nội bộ only (PDCA/compat đọc cũ nếu cần). **Cấm** nhãn/KPI/export/in.
+ * CCS chỉ từ VST+GSC (process); NKBV là outcome riêng.
+ */
 export function computeCcs(
   tyLeVst: number | null,
   tyLeGsc: number | null,

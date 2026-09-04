@@ -123,26 +123,51 @@ const VALID_CACH_TINH_DIEM = new Set<GsttCachTinhDiem>([
 /** Local pilot 2026-07-26: mọi BK active đã có cach_tinh_diem — thiếu → TY_LE. */
 const DEFAULT_CACH_TINH_DIEM: GsttCachTinhDiem = "TY_LE";
 
-function buildThenChotMap(tieuChiJsonb: unknown): Map<string, boolean> | null {
+type CriterionScoringMeta = {
+  la_then_chot: boolean;
+  nguong_min: number | null;
+  nguong_max: number | null;
+};
+
+function asFiniteOrNull(raw: unknown): number | null {
+  if (raw == null || raw === "") return null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Then-chốt + ngưỡng SO_LIEU — khớp preview UI (gsc-score-display). */
+function buildCriterionScoringMetaMap(
+  tieuChiJsonb: unknown,
+): Map<string, CriterionScoringMeta> | null {
   if (!Array.isArray(tieuChiJsonb)) return null;
-  const map = new Map<string, boolean>();
+  const map = new Map<string, CriterionScoringMeta>();
   for (const tc of tieuChiJsonb as Array<Record<string, unknown>>) {
     const id = String(tc?.id ?? "");
-    if (id) map.set(id, Boolean(tc?.la_then_chot));
+    if (!id) continue;
+    map.set(id, {
+      la_then_chot: Boolean(tc?.la_then_chot),
+      nguong_min: asFiniteOrNull(tc?.nguong_min),
+      nguong_max: asFiniteOrNull(tc?.nguong_max),
+    });
   }
   return map;
 }
 
 function mapResultsToScoringItems(
   results: readonly ChecklistResult[],
-  thenChotMap?: Map<string, boolean> | null,
+  criterionMeta?: Map<string, CriterionScoringMeta> | null,
 ): GsttScoringInputItem[] {
-  return (results || []).map((r) => ({
-    criterionId: r.criterionId,
-    value: r.value,
-    la_then_chot: thenChotMap?.get(r.criterionId) ?? false,
-    gia_tri_so: r.gia_tri_so ?? null,
-  }));
+  return (results || []).map((r) => {
+    const meta = criterionMeta?.get(r.criterionId);
+    return {
+      criterionId: r.criterionId,
+      value: r.value,
+      la_then_chot: meta?.la_then_chot ?? false,
+      gia_tri_so: r.gia_tri_so ?? null,
+      nguong_min: meta?.nguong_min ?? null,
+      nguong_max: meta?.nguong_max ?? null,
+    };
+  });
 }
 
 /**
@@ -170,7 +195,7 @@ type GscScoringTemplateSlice = {
 
 function scoringMetaFromTemplateSlice(row: GscScoringTemplateSlice | null | undefined): {
   cachTinhDiem: GsttCachTinhDiem;
-  thenChotMap: Map<string, boolean> | null;
+  criterionMeta: Map<string, CriterionScoringMeta> | null;
 } {
   let cachTinhDiem: GsttCachTinhDiem = DEFAULT_CACH_TINH_DIEM;
   const raw = String(row?.cach_tinh_diem ?? "").trim().toUpperCase();
@@ -179,7 +204,7 @@ function scoringMetaFromTemplateSlice(row: GscScoringTemplateSlice | null | unde
   }
   return {
     cachTinhDiem,
-    thenChotMap: buildThenChotMap(row?.tieu_chi_jsonb),
+    criterionMeta: buildCriterionScoringMetaMap(row?.tieu_chi_jsonb),
   };
 }
 
@@ -200,12 +225,12 @@ export async function resolveScoringSummary(
   cach_tinh_diem: GsttCachTinhDiem;
 }> {
   let cachTinhDiem: GsttCachTinhDiem = DEFAULT_CACH_TINH_DIEM;
-  let thenChotMap: Map<string, boolean> | null = null;
+  let criterionMeta: Map<string, CriterionScoringMeta> | null = null;
 
   if (frozenTemplate) {
     const fromFrozen = scoringMetaFromTemplateSlice(frozenTemplate);
     cachTinhDiem = fromFrozen.cachTinhDiem;
-    thenChotMap = fromFrozen.thenChotMap;
+    criterionMeta = fromFrozen.criterionMeta;
   } else if (bangKiemId) {
     try {
       const { data } = await supabase
@@ -215,13 +240,13 @@ export async function resolveScoringSummary(
         .maybeSingle();
       const fromLive = scoringMetaFromTemplateSlice(data);
       cachTinhDiem = fromLive.cachTinhDiem;
-      thenChotMap = fromLive.thenChotMap;
+      criterionMeta = fromLive.criterionMeta;
     } catch {
       // Non-fatal: giữ DEFAULT_CACH_TINH_DIEM.
     }
   }
 
-  const items = mapResultsToScoringItems(results, thenChotMap);
+  const items = mapResultsToScoringItems(results, criterionMeta);
   return {
     ...mapScoringToSessionFields(cachTinhDiem, items, meta),
     cach_tinh_diem: cachTinhDiem,

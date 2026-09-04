@@ -67,7 +67,7 @@ export function CSSDCatalogLoaiTab(props: {
               {loaiRows.length === 0 && (
                 <tr>
                   <td colSpan={11} className={`${L.td} text-center text-slate-500`}>
-                    Không tìm thấy loại. Gõ mã hoặc tên ở ô tìm phía trên (mỗi lần hiện tối đa 20 dòng).
+                    Chưa có loại khớp — gõ mã hoặc tên ở ô tìm phía trên.
                   </td>
                 </tr>
               )}

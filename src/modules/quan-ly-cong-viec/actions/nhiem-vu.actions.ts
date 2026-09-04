@@ -7,6 +7,11 @@ import { validateAssigneeForQlcv } from "../lib/qlcv-ksnk-server";
 import { normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
 import { formatQlcvDbError, throwQlcvDbError } from "../lib/qlcv-supabase-error";
 import { resolveQlcvNhiemVuId } from "../lib/qlcv-nhiem-vu-chain";
+import {
+  normalizeQlcvChecklist,
+  percentFromQlcvChecklist,
+  taskUsesQlcvChecklistForProgress,
+} from "@/lib/domain/qlcv-checklist";
 
 const NV_TABLE = "qlcv_fact_nhiem_vu";
 
@@ -86,7 +91,7 @@ async function attachTaskRollup(
   if (rows.length === 0) return rows;
   const { data, error } = await supabase
     .from("v_qlcv_cong_viec_full")
-    .select("id,nhiem_vu_id,trang_thai,phan_tram_hoan_thanh,is_active")
+    .select("id,nhiem_vu_id,trang_thai,phan_tram_hoan_thanh,is_active,checklist")
     .in(
       "nhiem_vu_id",
       rows.map((r) => r.id),
@@ -104,7 +109,9 @@ async function attachTaskRollup(
     const list = byNv.get(nvId) || [];
     const tt = String(t.trang_thai ?? "");
     list.push({
-      pct: Number(t.phan_tram_hoan_thanh ?? 0),
+      pct: taskUsesQlcvChecklistForProgress(t.checklist)
+        ? percentFromQlcvChecklist(normalizeQlcvChecklist(t.checklist))
+        : Number(t.phan_tram_hoan_thanh ?? 0),
       done: tt === "HOAN_THANH",
     });
     byNv.set(nvId, list);

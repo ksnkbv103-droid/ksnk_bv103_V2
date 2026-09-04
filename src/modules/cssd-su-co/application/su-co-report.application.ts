@@ -23,7 +23,11 @@ import { resolveCssdOperatorNhanSuId } from "@/modules/cssd-erp/shared/applicati
 import { appendQuyTrinhException } from "@/modules/cssd-erp/shared/application/cssd-quy-trinh-exceptions";
 import { applyInstrumentIncidentLedger } from "./instrument-incident.application";
 import type { InstrumentIncidentPayload } from "./instrument-incident.application";
-import { validateSetReconcileLines, type SetReconcileLineInput } from "@/lib/domain/cssd-set-reconcile";
+import {
+  SET_RECONCILE_TYPE_ID,
+  validateInstrumentDoorLines,
+  type SetReconcileLineInput,
+} from "@/lib/domain/cssd-set-reconcile";
 import { buildSetReconcileAttributePatch } from "../domain/cssd-set-reconcile-attrs";
 import { applySubmittedSetReconcile } from "./set-reconcile-incident.application";
 
@@ -31,6 +35,7 @@ type QuyRow = Record<string, unknown> & {
   id: string;
   ma_trang_thai_hien_tai?: string | null;
   is_red_alert?: boolean | null;
+  lo_tiet_khuan_id?: string | null;
 };
 
 export async function executeIncidentReportAndRollback(
@@ -171,7 +176,7 @@ export async function executeIncidentReportAndRollback(
   });
   const setReconcile = data.setReconcilePayload;
   if (setReconcile) {
-    const lineErr = validateSetReconcileLines(setReconcile.lines);
+    const lineErr = validateInstrumentDoorLines(typeId || SET_RECONCILE_TYPE_ID, setReconcile.lines);
     if (lineErr) throw new Error(lineErr);
     Object.assign(
       attributes,
@@ -236,6 +241,7 @@ export async function executeIncidentReportAndRollback(
         quyTrinhId: setReconcile.quyTrinhId || (q?.id as string | undefined) || null,
         maQr: data.maQR,
         headerNote: data.desc,
+        typeId,
         snapshot: {
           boDungCuId: setReconcile.boDungCuId,
           maBo: setReconcile.maBo,

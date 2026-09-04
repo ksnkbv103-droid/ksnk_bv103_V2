@@ -1,14 +1,22 @@
 "use server";
 
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
-import { verifyPermission } from "@/lib/server-permission";
+import { verifyPermission, hasRBACAdminSupervisionBypass } from "@/lib/server-permission";
+import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
 import { isCssdUnifiedBoMa, normalizeBoMa } from "@/lib/domain/cssd-bo-ma";
+import { planAddOntoExistingQty } from "@/lib/master-data/cssd-bom-line-merge";
+import {
+  findActiveBomLineByBoLoai,
+  mergeDuplicateBomLinesForBo,
+} from "@/lib/master-data/cssd-bom-line-merge.application";
+import { revalidateMasterDataRowCacheTag } from "@/lib/cache/revalidate-master-data-tags";
 import { upsertMasterRow } from "./master-crud-core";
 
 /** Lưu một dòng thành phần bộ — gọi từ panel trong tab Bộ. */
 export async function saveDungCuChiTietAction(input: Record<string, unknown>) {
   const id = String(input.id || "").trim();
   await verifyPermission("DC_LE", id ? "edit" : "create");
+  await requireCssdCatalogMasterWrite();
   const supabase = createAdminSupabaseClient();
   const ma = String(input.ma_chi_tiet || "").trim().toUpperCase();
   const ten = String(input.ten_chi_tiet || "").trim();
@@ -93,5 +101,90 @@ export async function saveDungCuChiTietAction(input: Record<string, unknown>) {
     },
   };
 
+  // Create without id: nếu đã có active cùng (bo, loai) → ADD so_luong, giữ dòng cũ.
+  if (!id && boRaw && loaiRaw) {
+    const existing = await findActiveBomLineByBoLoai(supabase, boRaw, loaiRaw);
+    if (existing) {
+      const nextQty = planAddOntoExistingQty(existing.so_luong, soLuong);
+      const { error } = await supabase
+        .from("cssd_dm_bo_dung_cu_chi_tiet")
+        .update({
+          so_luong: nextQty,
+          updated_at: payload.updated_at,
+        })
+        .eq("id", existing.id);
+      if (error) return { success: false as const, error: error.message };
+      revalidateMasterDataRowCacheTag("cssd_dm_bo_dung_cu_chi_tiet");
+      return { success: true as const, id: existing.id, mergedIntoExisting: true as const };
+    }
+  }
+
   return upsertMasterRow("cssd_dm_bo_dung_cu_chi_tiet", id, payload);
+}
+
+/**
+ * ADMIN: gộp dòng trùng loại trên một bộ, hoặc mọi bộ đang có trùng.
+ * Null loai bị bỏ qua (không gộp theo tên).
+ */
+export async function mergeDuplicateBomLinesAction(boId?: string) {
+  await verifyPermission("DC_LE", "edit");
+  await requireCssdCatalogMasterWrite();
+  if (!(await hasRBACAdminSupervisionBypass())) {
+    return { success: false as const, error: "Chỉ ADMIN được gộp dòng trùng loại." };
+  }
+
+  const supabase = createAdminSupabaseClient();
+  const oneBo = String(boId || "").trim();
+
+  try {
+    if (oneBo) {
+      const r = await mergeDuplicateBomLinesForBo(supabase, oneBo);
+      revalidateMasterDataRowCacheTag("cssd_dm_bo_dung_cu_chi_tiet");
+      return { success: true as const, ...r };
+    }
+
+    const { data: activeRows, error } = await supabase
+      .from("cssd_dm_bo_dung_cu_chi_tiet")
+      .select("bo_dung_cu_id, loai_dung_cu_id")
+      .eq("is_active", true)
+      .not("loai_dung_cu_id", "is", null)
+      .not("bo_dung_cu_id", "is", null);
+    if (error) return { success: false as const, error: error.message };
+
+    const counts = new Map<string, number>();
+    for (const row of activeRows || []) {
+      const bo = String((row as { bo_dung_cu_id?: string }).bo_dung_cu_id || "").trim();
+      const loai = String((row as { loai_dung_cu_id?: string }).loai_dung_cu_id || "").trim();
+      if (!bo || !loai) continue;
+      const key = `${bo}|${loai}`;
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+    const boIds = new Set<string>();
+    for (const [key, n] of counts) {
+      if (n > 1) boIds.add(key.split("|")[0]!);
+    }
+
+    let mergedGroups = 0;
+    let rowsSoftDeleted = 0;
+    let skippedNullLoai = 0;
+    const notes: string[] = [];
+    for (const id of boIds) {
+      const r = await mergeDuplicateBomLinesForBo(supabase, id);
+      mergedGroups += r.mergedGroups;
+      rowsSoftDeleted += r.rowsSoftDeleted;
+      skippedNullLoai += r.skippedNullLoai;
+      if (r.note) notes.push(r.note);
+    }
+    revalidateMasterDataRowCacheTag("cssd_dm_bo_dung_cu_chi_tiet");
+    return {
+      success: true as const,
+      mergedGroups,
+      rowsSoftDeleted,
+      skippedNullLoai,
+      bosTouched: boIds.size,
+      note: notes[0],
+    };
+  } catch (e: unknown) {
+    return { success: false as const, error: e instanceof Error ? e.message : String(e) };
+  }
 }

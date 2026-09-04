@@ -5,6 +5,8 @@ import { verifyPermission } from "@/lib/server-permission";
 import { revalidateCssdIncidentSurfaces, revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
 import { applyApprovedBomLines } from "@/lib/master-data/cssd-set-bom-apply-core";
 import { catalogLinesOf } from "../application/set-reconcile-incident.application";
+import { rejectMoveOnlyKindsOnReconcile } from "@/lib/domain/cssd-set-reconcile";
+import { formatCatalogApprovalDiff } from "@/lib/domain/cssd-catalog-master-write";
 import {
   parseSetReconcileSnapshot,
   readSetReconcileBoId,
@@ -43,18 +45,52 @@ export async function listPendingBomApprovalsAction() {
       .map((r) => {
         const attrs = (r.attributes as Record<string, unknown>) || {};
         const snap = parseSetReconcileSnapshot(attrs.SET_RECONCILE_SNAPSHOT);
+        const catalogLines = snap ? catalogLinesOf(snap.lines) : [];
         return {
           id: String(r.id),
           maBo: String(r.ma_qr_quy_trinh || snap?.maBo || ""),
           tenBo: snap?.tenBo || "",
           moTa: String(r.mo_ta || ""),
           createdAt: r.created_at ? String(r.created_at) : null,
-          catalogLineCount: snap ? catalogLinesOf(snap.lines).length : 0,
+          catalogLineCount: catalogLines.length,
+          catalogDiffs: catalogLines.map(formatCatalogApprovalDiff),
         };
       });
     return { success: true as const, data: rows };
   } catch (e: unknown) {
     return { success: false as const, error: e instanceof Error ? e.message : "Không tải hàng chờ duyệt." };
+  }
+}
+
+export async function listSetReconcileHistoryAction() {
+  try {
+    await requireCatalogRead();
+    const supabase = createAdminSupabaseClient();
+    const { data, error } = await supabase
+      .from("v_cssd_su_co_full")
+      .select("id, mo_ta, created_at, ma_qr_quy_trinh, attributes")
+      .eq("incident_group", "INSTRUMENT")
+      .order("created_at", { ascending: false })
+      .limit(80);
+    if (error) throw new Error(error.message);
+    const rows = (data || [])
+      .map((r) => {
+        const attrs = (r.attributes as Record<string, unknown>) || {};
+        const status = readSetReconcileStatus(attrs);
+        const snap = parseSetReconcileSnapshot(attrs.SET_RECONCILE_SNAPSHOT);
+        return {
+          id: String(r.id),
+          maBo: String(r.ma_qr_quy_trinh || snap?.maBo || ""),
+          tenBo: snap?.tenBo || "",
+          moTa: String(r.mo_ta || ""),
+          createdAt: r.created_at ? String(r.created_at) : null,
+          status: status || "",
+        };
+      })
+      .filter((r) => r.status === "BOM_APPROVED" || r.status === "BOM_REJECTED" || r.status === "NONE");
+    return { success: true as const, data: rows };
+  } catch (e: unknown) {
+    return { success: false as const, error: e instanceof Error ? e.message : "Không tải lịch sử phiếu." };
   }
 }
 
@@ -68,11 +104,13 @@ export async function approveSetReconcileBomAction(incidentId: string) {
     if (error || !data) return { success: false as const, error: error?.message || "Không thấy phiếu." };
     const attrs = (data.attributes as Record<string, unknown>) || {};
     if (readSetReconcileStatus(attrs) !== "BOM_PENDING") {
-      return { success: false as const, error: "Phiếu không còn chờ duyệt chuẩn." };
+      return { success: false as const, error: "Phiếu không còn chờ duyệt đổi mã · tên · số lượng." };
     }
     const snap = parseSetReconcileSnapshot(attrs.SET_RECONCILE_SNAPSHOT);
     const boId = readSetReconcileBoId(attrs) || snap?.boDungCuId;
     if (!snap || !boId) return { success: false as const, error: "Thiếu ảnh bảng thành phần." };
+    const moveErr = rejectMoveOnlyKindsOnReconcile(snap.lines);
+    if (moveErr) return { success: false as const, error: moveErr };
     await applyApprovedBomLines(supabase, boId, catalogLinesOf(snap.lines));
     let nguoiXacNhanId: string | null = null;
     try {
@@ -110,7 +148,7 @@ export async function rejectSetReconcileBomAction(incidentId: string) {
     if (error || !data) return { success: false as const, error: error?.message || "Không thấy phiếu." };
     const attrs = (data.attributes as Record<string, unknown>) || {};
     if (readSetReconcileStatus(attrs) !== "BOM_PENDING") {
-      return { success: false as const, error: "Phiếu không còn chờ duyệt chuẩn." };
+      return { success: false as const, error: "Phiếu không còn chờ duyệt đổi mã · tên · số lượng." };
     }
     const { error: updErr } = await supabase
       .from("cssd_fact_su_co")

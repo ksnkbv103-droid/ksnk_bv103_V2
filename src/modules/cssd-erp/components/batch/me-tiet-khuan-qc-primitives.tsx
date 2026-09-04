@@ -18,7 +18,7 @@ export function PassFailToggle({
         type="button"
         disabled={disabled}
         onClick={() => onChange(value === "DAT" ? "" : "DAT")}
-        className={`flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border-2 text-xs font-semibold uppercase tracking-wide transition-all ${
+        className={`flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border-2 text-xs font-semibold transition-all ${
           value === "DAT"
             ? "border-emerald-500 bg-emerald-500 text-white shadow-md shadow-emerald-100"
             : "border-slate-200 bg-white text-slate-500 hover:border-emerald-300 hover:bg-emerald-50"
@@ -31,7 +31,7 @@ export function PassFailToggle({
         type="button"
         disabled={disabled}
         onClick={() => onChange(value === "KHONG_DAT" ? "" : "KHONG_DAT")}
-        className={`flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border-2 text-xs font-semibold uppercase tracking-wide transition-all ${
+        className={`flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border-2 text-xs font-semibold transition-all ${
           value === "KHONG_DAT"
             ? "border-red-500 bg-red-500 text-white shadow-md shadow-red-100"
             : "border-slate-200 bg-white text-slate-500 hover:border-red-300 hover:bg-red-50"

@@ -63,7 +63,14 @@ export async function getGiamSatChungSessionForViewBundle(sessionId: string) {
     const rs = parseGscResultsJsonb(ses.results_jsonb);
 
     // 3. Enrich and Map back to expected format
-    const enriched = enrichGscHistoryRows([ses as Record<string, unknown>])[0];
+    // Đưa snapshot vào trước enrich — cach_tinh_diem lịch sử ưu tiên snapshot, không live JOIN.
+    const enriched = enrichGscHistoryRows([
+      {
+        ...(ses as Record<string, unknown>),
+        metadata: meta,
+        bang_kiem_snapshot: bangKiemSnapshot,
+      },
+    ])[0];
     const row = {
       ...enriched,
       ...boSungSnap,

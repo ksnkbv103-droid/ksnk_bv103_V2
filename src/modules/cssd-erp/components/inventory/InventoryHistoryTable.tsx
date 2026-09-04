@@ -27,14 +27,25 @@ export default function InventoryHistoryTable() {
   useEffect(() => { fetchHistory(); }, []);
 
   const columns: Column<any>[] = [
-    { header: "Loại giao dịch", accessorKey: "loai_giao_dich", cell: (item: any) => (
+    { header: "Loại giao dịch", accessorKey: "loai_giao_dich", cell: (item: any) => {
+      const type = String(item.loai_giao_dich || "");
+      const TYPE_LABEL: Record<string, string> = {
+        NHAP_KHO: "Nhập kho",
+        XUAT_KHO: "Xuất kho",
+        DIEU_CHINH: "Điều chỉnh",
+        BAO_HONG: "Báo hỏng",
+        BAO_MAT: "Báo mất",
+        BO_SUNG: "Bổ sung",
+      };
+      return (
       <div className="flex items-center gap-2">
-        <div className={`p-2 rounded-lg ${item.loai_giao_dich === 'NHAP_KHO' ? 'bg-emerald-50 text-emerald-500' : 'bg-amber-50 text-amber-600'}`}>
-          {item.loai_giao_dich === 'NHAP_KHO' ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
+        <div className={`p-2 rounded-lg ${type === 'NHAP_KHO' ? 'bg-emerald-50 text-emerald-500' : 'bg-amber-50 text-amber-600'}`}>
+          {type === 'NHAP_KHO' ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
         </div>
-        <span className="text-[11px] font-semibold uppercase tracking-wide">{item.loai_giao_dich.replace('_', ' ')}</span>
+        <span className="text-[11px] font-semibold text-slate-700">{TYPE_LABEL[type] || type.replace(/_/g, " ")}</span>
       </div>
-    )},
+      );
+    }},
     { header: "Bộ / Loại", accessorKey: "cssd_dm_bo_dung_cu.ma_bo", cell: (item: any) => (
       <span className="font-bold text-slate-700 text-[11px] uppercase truncate max-w-[120px] block">
         {item.cssd_dm_bo_dung_cu?.ma_bo || item.cssd_dm_loai_dung_cu?.ma_loai_dung_cu || "---"}
@@ -60,7 +71,7 @@ export default function InventoryHistoryTable() {
           <RefreshCw size={16} />
         </button>
       </div>
-      <AdvancedDataTable columns={columns} data={data} loading={loading} enableMultiSelect={false} searchPlaceholder="Tìm theo mã giao dịch..." />
+      <AdvancedDataTable columns={columns} data={data} loading={loading} enableMultiSelect={false} searchPlaceholder="Tìm theo mã giao dịch…" emptyMessage="Chưa có giao dịch kho — phát sinh khi nhập/xuất hoặc điều chỉnh." bodyMaxHeight="max-h-[min(48dvh,420px)]" />
     </div>
   );
 }

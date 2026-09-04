@@ -5,7 +5,6 @@ import {
 } from "@/lib/domain/cssd-instrument-incident";
 import {
   appendChiTietIssueNoteCore,
-  insertInstrumentIssueLedgerCore,
   type InstrumentIssueType,
 } from "@/lib/master-data/instrument-issue-core";
 import { replenishSetInstrumentCore, returnSetInstrumentToKhoCore } from "@/lib/master-data/cssd-set-replenish-core";
@@ -190,6 +189,8 @@ export async function applyInstrumentIncidentLedger(
   const qtyErr = validateIssueQuantityAgainstThucTe(qty, thucTe);
   if (qtyErr) throw new Error(qtyErr);
 
+  // BAO_HONG / BAO_MAT — cùng RPC SSOT với DIEU_CHUYEN (rpc_cssd_apply_instrument_ledger).
+  // RPC đã check tồn thực tế; app vẫn validate trước + ghi chú chi tiết (không detach BOM).
   const issueType: InstrumentIssueType = ledgerType === "BAO_HONG" ? "HONG" : "MAT";
   const noteResult = await appendChiTietIssueNoteCore(supabase, {
     chiTietId: payload.chiTietId,
@@ -199,14 +200,13 @@ export async function applyInstrumentIncidentLedger(
   });
   if (!noteResult.success) throw new Error(noteResult.error);
 
-  const ledgerResult = await insertInstrumentIssueLedgerCore(supabase, {
+  await applyLedgerViaRpc(supabase, {
+    suCoId,
     loaiDungCuId: payload.loaiDungCuId,
-    issueType,
-    quantity: qty,
     boDungCuId: payload.boDungCuId,
     quyTrinhId: payload.quyTrinhId,
-    note,
-    suCoId,
+    loaiGiaoDich: ledgerType, // BAO_HONG | BAO_MAT
+    soLuongThayDoi: -qty,
+    ghiChu: note,
   });
-  if (!ledgerResult.success) throw new Error(ledgerResult.error);
 }

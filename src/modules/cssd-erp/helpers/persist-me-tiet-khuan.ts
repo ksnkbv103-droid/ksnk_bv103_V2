@@ -234,6 +234,8 @@ export async function persistMeTietKhuanFinishWithClient(
         thoi_gian_cap_phat: nowPass,
         ngay_het_han: expiry.toISOString(),
         han_su_dung: expiry.toISOString(),
+        // QT.22: mẻ ĐẠT → gói sạch kho vô khuẩn (tránh CAP_PHAT fail im lặng khi tinh_trang null).
+        tinh_trang: "BINH_THUONG",
         updated_at: nowPass,
       };
       if (operatorId) {

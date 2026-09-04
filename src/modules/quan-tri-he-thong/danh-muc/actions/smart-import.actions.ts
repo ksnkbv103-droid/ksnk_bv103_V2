@@ -10,6 +10,8 @@ import { buildImportErrorMessage } from "../lib/smart-import/dm-row-normalizers"
 import { resolveSmartImportScopeForTable, withResolvedLoaiValues } from "./smart-import-per-table";
 import { normalizeImportedRowTypedValues, sanitizeSmartImportRowPayload } from "../lib/smart-import/row-typed-values";
 import { getRegistryModuleForMasterTable } from "./master-table-permission-map";
+import { isCssdCatalogMasterTable } from "@/lib/domain/cssd-catalog-master-write";
+import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
 import { randomUUID } from "crypto";
 import {
   normalizeLoaiDungCuExcelImportRow,
@@ -73,6 +75,9 @@ export async function smartImportData(
       return { success: false, error: `Chưa map quyền import cho bảng: ${config.tableName}` };
     }
     await verifyDanhMucLookupPermission(importModule, "import");
+    if (isCssdCatalogMasterTable(config.tableName)) {
+      await requireCssdCatalogMasterWrite();
+    }
     const supabase = createAdminSupabaseClient();
     const nhanSuDmSessionCache =
       config.tableName === "mdm_nhan_su" ? createDmImportSessionCache(supabase) : undefined;
@@ -85,7 +90,12 @@ export async function smartImportData(
     const readTable = VIEW_MAP_FOR_READ[config.tableName] || config.tableName;
     const isLoaiDungCu = config.tableName === "cssd_dm_loai_dung_cu";
     const existingReadTable = isLoaiDungCu ? config.tableName : readTable;
-    const existingSelect = isLoaiDungCu ? "id, ma_loai" : `id, ${config.uniqueKey}`;
+    const isChiTietBom = config.tableName === "cssd_dm_bo_dung_cu_chi_tiet";
+    const existingSelect = isLoaiDungCu
+      ? "id, ma_loai"
+      : isChiTietBom
+        ? `id, ${config.uniqueKey}, bo_dung_cu_id, loai_dung_cu_id, so_luong, is_active`
+        : `id, ${config.uniqueKey}`;
     const existingCodeField = isLoaiDungCu ? "ma_loai" : config.uniqueKey;
 
     let query = supabase.from(existingReadTable).select(existingSelect);
@@ -102,12 +112,26 @@ export async function smartImportData(
 
     const existingCodeToId = new Map<string, string>();
     const existingCodes = new Set<string>();
+    /** Active (bo|loai) → { id, so_luong } — BOM: 1 loại / bộ. */
+    const existingBoLoai = new Map<string, { id: string; so_luong: number }>();
     existingRecords.forEach((r) => {
       const val = r[existingCodeField];
       if (val != null && val !== "") {
         const cStr = isLoaiDungCu ? String(val).trim().toUpperCase() : String(val);
         if (r.id) {
           existingCodeToId.set(cStr, String(r.id));
+        }
+      }
+      if (isChiTietBom && r.id && r.is_active !== false) {
+        const bo = String(r.bo_dung_cu_id || "").trim();
+        const loai = String(r.loai_dung_cu_id || "").trim();
+        if (bo && loai) {
+          const key = `${bo}|${loai}`;
+          const prev = existingBoLoai.get(key);
+          const qty = Math.max(0, Math.floor(Number(r.so_luong) || 0));
+          if (!prev || qty > prev.so_luong) {
+            existingBoLoai.set(key, { id: String(r.id), so_luong: qty });
+          }
         }
       }
     });
@@ -119,6 +143,8 @@ export async function smartImportData(
       payload: Record<string, unknown>;
     }> = [];
     const preparedIndexByCode = new Map<string, number>();
+    const preparedIndexByBoLoai = new Map<string, number>();
+
 
     let counter = 1;
     if (config.codePrefix) {
@@ -201,8 +227,31 @@ export async function smartImportData(
       }
 
       // Resolve existing ID or assign a new random UUID so upserts match on conflict ID
-      const existingId = existingCodeToId.get(finalCode);
-      const payloadId = existingId || randomUUID();
+      let existingId = existingCodeToId.get(finalCode);
+      let payloadId = existingId || randomUUID();
+      let chiTietAddOntoQty: number | null = null;
+
+      // BOM: upsert by (bo, loai) when active row already exists (Excel often varies ma_chi_tiet).
+      if (isChiTietBom) {
+        const bo = String((scopeSafeRest as Record<string, unknown>).bo_dung_cu_id || "").trim();
+        const loai = String((scopeSafeRest as Record<string, unknown>).loai_dung_cu_id || "").trim();
+        if (bo && loai) {
+          const hit = existingBoLoai.get(`${bo}|${loai}`);
+          if (hit) {
+            existingId = hit.id;
+            payloadId = hit.id;
+            const incoming = Math.max(
+              1,
+              Math.floor(Number((scopeSafeRest as Record<string, unknown>).so_luong) || 1),
+            );
+            chiTietAddOntoQty = hit.so_luong + incoming;
+            existingBoLoai.set(`${bo}|${loai}`, { id: hit.id, so_luong: chiTietAddOntoQty });
+            rowWarnings.push(
+              `Dòng ${rowNumber || "?"}: trùng (bộ+loại) với dòng đã có — cộng SL (${hit.so_luong}+${incoming}=${chiTietAddOntoQty}).`,
+            );
+          }
+        }
+      }
 
       const payload: Record<string, unknown> = {
         id: payloadId,
@@ -211,6 +260,9 @@ export async function smartImportData(
         is_active: normalizedIsActive,
         updated_at: new Date().toISOString(),
       };
+      if (chiTietAddOntoQty != null) {
+        payload.so_luong = chiTietAddOntoQty;
+      }
 
       // If hybrid JSONB table, pack the unique key into specs and delete the flat key
       const isHybrid = config.tableName in VIEW_MAP_FOR_READ;
@@ -232,6 +284,28 @@ export async function smartImportData(
         );
         continue;
       }
+
+      if (isChiTietBom) {
+        const bo = String(payload.bo_dung_cu_id || "").trim();
+        const loai = String(payload.loai_dung_cu_id || "").trim();
+        if (bo && loai) {
+          const boLoaiKey = `${bo}|${loai}`;
+          const prevIdx = preparedIndexByBoLoai.get(boLoaiKey);
+          if (prevIdx !== undefined) {
+            const prev = preparedRows[prevIdx]!;
+            const prevQty = Math.max(0, Math.floor(Number(prev.payload.so_luong) || 0));
+            const addQty = Math.max(1, Math.floor(Number(payload.so_luong) || 1));
+            prev.payload.so_luong = prevQty + addQty;
+            prev.rowNumber = rowNumber;
+            rowWarnings.push(
+              `Dòng ${rowNumber || "?"}: trùng (bộ+loại) trong file với dòng trước — cộng SL thành ${prev.payload.so_luong}.`,
+            );
+            continue;
+          }
+          preparedIndexByBoLoai.set(boLoaiKey, preparedRows.length);
+        }
+      }
+
       preparedIndexByCode.set(finalCode, preparedRows.length);
       preparedRows.push({ rowNumber, code: finalCode, payload });
     }

@@ -136,15 +136,20 @@ function KhoaPhongMasterPageContent() {
         title="Khoa phòng & Đơn vị"
         actions={
           <>
-            <ImportExportToolbar
-              fileInputRef={fileInputRef}
-              isImporting={isImporting}
-              onExport={() => void exportTemplate()}
-              onImportClick={triggerImport}
-              onFileChange={(file) => void handleFileUpload(file)}
-              exportClassName={bv103DesignTokens.btnSecondary}
-              importClassName={bv103DesignTokens.btnSecondary}
-            />
+            <details className="rounded-[var(--radius-control)] border border-slate-200 bg-white px-2 py-1">
+              <summary className="cursor-pointer text-[11px] font-semibold text-slate-500">Excel</summary>
+              <div className="pt-2">
+                <ImportExportToolbar
+                  fileInputRef={fileInputRef}
+                  isImporting={isImporting}
+                  onExport={() => void exportTemplate()}
+                  onImportClick={triggerImport}
+                  onFileChange={(file) => void handleFileUpload(file)}
+                  exportClassName={bv103DesignTokens.btnSecondary}
+                  importClassName={bv103DesignTokens.btnSecondary}
+                />
+              </div>
+            </details>
             <button
               type="button"
               onClick={() => {
@@ -165,6 +170,7 @@ function KhoaPhongMasterPageContent() {
           loading={loading}
           tableClassName="w-full table-fixed min-w-[900px] border-collapse text-left"
           enableMultiSelect={true}
+          bodyMaxHeight="max-h-[min(58dvh,560px)]"
           onDeleteSelected={async (rows) => {
             if (!rows.length) return;
             if (!window.confirm(`Tắt ${rows.length} khoa phòng? Khoa vẫn còn trong sổ, có thể bật lại.`)) return;

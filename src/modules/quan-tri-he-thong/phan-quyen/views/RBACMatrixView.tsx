@@ -3,13 +3,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
   getRBACData,
-  resetKsnkRolePermissionPresets,
   saveFullRBACMatrix,
-  syncPermissionRegistry,
 } from "../actions/rbac.actions";
 import { toast } from "sonner";
 import { useModulePermission } from "@/hooks/useModulePermission";
-import { Shield, Lock, RefreshCw, RotateCcw } from "lucide-react";
+import { Shield, Lock } from "lucide-react";
 import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
@@ -27,8 +25,6 @@ export default function RBACMatrixView() {
   const [loading, setLoading] = useState(true);
   const [matrix, setMatrix] = useState<Record<string, Set<string>>>({});
   const [isSaving, setIsSaving] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [isResettingPresets, setIsResettingPresets] = useState(false);
   const [previewRoleId, setPreviewRoleId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
@@ -63,55 +59,6 @@ export default function RBACMatrixView() {
       setLoading(false);
     }
   }, []);
-
-  const handleSync = useCallback(async () => {
-    const ok = window.confirm(
-      "Đồng bộ Registry quyền?\n\n" +
-        "• Thêm/cập nhật danh sách module × hành động từ mã nguồn\n" +
-        "• Gán đủ quyền cho Quản trị (ADMIN)\n" +
-        "• KHÔNG ghi đè ô đã chỉnh trên Hội đồng / NV KSNK / Mạng lưới / Khách\n\n" +
-        "Muốn đưa các vai trò về preset mặc định → dùng «Áp dụng preset vai trò».",
-    );
-    if (!ok) return;
-    setIsSyncing(true);
-    try {
-      const res = await syncPermissionRegistry();
-      if (res.success) {
-        toast.success("Đã đồng bộ Registry (không ghi đè vai trò KSNK).");
-        await loadData();
-      } else {
-        toast.error("Lỗi đồng bộ Registry: " + (res.error || ""));
-      }
-    } catch {
-      toast.error("Lỗi đồng bộ Registry.");
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [loadData]);
-
-  const handleResetPresets = useCallback(async () => {
-    const ok = window.confirm(
-      "Áp dụng preset vai trò KSNK?\n\n" +
-        "Sẽ GHI ĐÈ toàn bộ quyền của: Hội đồng, Nhân viên KSNK, Mạng lưới KSNK, Khách theo cấu hình mặc định.\n" +
-        "Các chỉnh tay trên 4 vai trò này sẽ mất.\n\n" +
-        "Quản trị (ADMIN) không bị ảnh hưởng.",
-    );
-    if (!ok) return;
-    setIsResettingPresets(true);
-    try {
-      const res = await resetKsnkRolePermissionPresets();
-      if (res.success) {
-        toast.success("Đã áp dụng lại preset vai trò KSNK.");
-        await loadData();
-      } else {
-        toast.error("Lỗi áp dụng preset: " + (res.error || ""));
-      }
-    } catch {
-      toast.error("Lỗi áp dụng preset vai trò.");
-    } finally {
-      setIsResettingPresets(false);
-    }
-  }, [loadData]);
 
   useEffect(() => {
     if (permLoading || !canConfigureRbac) return;
@@ -232,44 +179,15 @@ export default function RBACMatrixView() {
       <KsnkPageHeader
         title="Ma trận phân quyền"
         actions={
-          <>
-            <button
-              type="button"
-              onClick={() => void handleSync()}
-              disabled={isSyncing || isResettingPresets}
-              className={bv103DesignTokens.btnSecondary}
-              title="Thêm quyền mới từ mã nguồn; không ghi đè vai trò KSNK"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? "animate-spin" : ""}`} />
-              {isSyncing ? "Đang đồng bộ…" : "Đồng bộ Registry"}
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleResetPresets()}
-              disabled={isSyncing || isResettingPresets}
-              className={bv103DesignTokens.btnSecondary}
-              title="Ghi đè quyền Hội đồng / NV / Mạng lưới / Khách về preset mặc định"
-            >
-              <RotateCcw className={`h-3.5 w-3.5 ${isResettingPresets ? "animate-spin" : ""}`} />
-              {isResettingPresets ? "Đang áp dụng…" : "Áp dụng preset vai trò"}
-            </button>
-            <button type="button" onClick={() => void handleSaveAll()} disabled={isSaving} className={bv103DesignTokens.btnPrimary}>
-              <Shield className="h-3.5 w-3.5" />
-              {isSaving ? "Đang lưu…" : "Lưu ma trận"}
-            </button>
-          </>
+          <button type="button" onClick={() => void handleSaveAll()} disabled={isSaving} className={bv103DesignTokens.btnPrimary}>
+            <Shield className="h-3.5 w-3.5" />
+            {isSaving ? "Đang lưu…" : "Lưu ma trận"}
+          </button>
         }
       />
 
       {previewRoleId && data?.permissions?.length ? (
         <div className="space-y-3">
-          <RbacMenuPreviewPanel
-            roles={roles}
-            matrix={matrix}
-            permissions={data.permissions}
-            previewRoleId={previewRoleId}
-            onPreviewRoleChange={setPreviewRoleId}
-          />
           <RbacCatalogPackPanel
             roles={roles}
             permissions={data.permissions}
@@ -280,19 +198,31 @@ export default function RBACMatrixView() {
               setMatrix((prev) => ({ ...prev, [roleId]: next }));
             }}
           />
+          <RbacMenuPreviewPanel
+            roles={roles}
+            matrix={matrix}
+            permissions={data.permissions}
+            previewRoleId={previewRoleId}
+            onPreviewRoleChange={setPreviewRoleId}
+          />
         </div>
       ) : null}
 
-      <RBACMatrixDataGrid
-        roles={roles}
-        moduleNames={moduleNames}
-        actions={actions}
-        permissions={data!.permissions}
-        matrix={matrix}
-        onTogglePermission={togglePermission}
-        onBulkSetActionForRole={bulkSetActionForRole}
-        onBulkSetAllForRole={bulkSetAllForRole}
-      />
+      <details className="rounded-[var(--radius-shell)] border border-slate-200 bg-white">
+        <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-slate-700">Tinh chỉnh</summary>
+        <div className="px-2 pb-4">
+          <RBACMatrixDataGrid
+            roles={roles}
+            moduleNames={moduleNames}
+            actions={actions}
+            permissions={data!.permissions}
+            matrix={matrix}
+            onTogglePermission={togglePermission}
+            onBulkSetActionForRole={bulkSetActionForRole}
+            onBulkSetAllForRole={bulkSetAllForRole}
+          />
+        </div>
+      </details>
     </div>
   );
 }

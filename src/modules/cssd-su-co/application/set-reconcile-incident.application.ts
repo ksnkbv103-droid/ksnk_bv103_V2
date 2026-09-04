@@ -1,8 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  isCatalogChangeKind,
+  isInstrumentMoveTypeId,
   isSetReconcileDraftExpired,
+  isSetReconcileDoorTypeId,
   needsBomApproval,
-  validateSetReconcileLines,
+  rejectMoveOnlyKindsOnReconcile,
+  SET_RECONCILE_TYPE_ID,
+  validateInstrumentDoorLines,
   type SetReconcileLineInput,
 } from "@/lib/domain/cssd-set-reconcile";
 import {
@@ -68,14 +73,20 @@ export async function applySubmittedSetReconcile(
     headerNote: string;
     snapshot: SetReconcileSnapshot;
     existingAttrs: Record<string, string>;
+    typeId?: string;
   },
 ): Promise<{ bomPending: boolean }> {
-  const err = validateSetReconcileLines(args.snapshot.lines);
-  if (err) throw new Error(err);
+  const typeId = String(args.typeId || "").trim() || SET_RECONCILE_TYPE_ID;
+  const doorErr = validateInstrumentDoorLines(typeId, args.snapshot.lines);
+  if (doorErr) throw new Error(doorErr);
+  if (isSetReconcileDoorTypeId(typeId)) {
+    const moveErr = rejectMoveOnlyKindsOnReconcile(args.snapshot.lines);
+    if (moveErr) throw new Error(moveErr);
+  }
   const rows = await loadSetReconcileIncidentsForBo(supabase, args.boDungCuId);
   const pending = findPendingBom(rows.filter((r) => r.id !== suCoId), args.boDungCuId);
   if (pending && needsBomApproval(args.snapshot.lines)) {
-    throw new Error("Bộ này đang có phiếu chờ duyệt đổi chuẩn. Duyệt hoặc từ chối phiếu đó trước khi gửi đề nghị mới.");
+    throw new Error("Bộ này đang có phiếu chờ duyệt đổi mã · tên · số lượng. Duyệt hoặc từ chối phiếu đó trước khi gửi đề nghị mới.");
   }
   await applySetReconcilePhysicalLines(supabase, suCoId, {
     boDungCuId: args.boDungCuId,
@@ -83,6 +94,7 @@ export async function applySubmittedSetReconcile(
     maQr: args.maQr,
     headerNote: args.headerNote,
     lines: args.snapshot.lines,
+    door: isInstrumentMoveTypeId(typeId) ? "move" : "reconcile",
   });
   await applySetReconcileEngravedCodes(supabase, args.snapshot.lines);
   const patch = buildSetReconcileAttributePatch({
@@ -103,7 +115,5 @@ export async function applySubmittedSetReconcile(
 }
 
 export function catalogLinesOf(lines: SetReconcileLineInput[]): SetReconcileLineInput[] {
-  return lines.filter(
-    (l) => l.kind === "DOI_CHUAN" || l.kind === "DOI_LOAI" || l.kind === "THEM_DONG" || l.kind === "XOA_DONG",
-  );
+  return lines.filter((l) => isCatalogChangeKind(l.kind));
 }

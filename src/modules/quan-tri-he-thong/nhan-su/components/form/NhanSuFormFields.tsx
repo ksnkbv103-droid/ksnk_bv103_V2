@@ -21,6 +21,8 @@ interface NhanSuFormFieldsProps {
   ngheNghieps: { id: string; ten_danh_muc: string }[];
   maTuDong?: string;
   isNew?: boolean;
+  /** Thêm người: chỉ name, khoa, email, role (+ password ngoài form). */
+  compactCreate?: boolean;
 }
 
 export default function NhanSuFormFields({
@@ -35,7 +37,55 @@ export default function NhanSuFormFields({
   ngheNghieps,
   maTuDong,
   isNew,
+  compactCreate = false,
 }: NhanSuFormFieldsProps) {
+  if (compactCreate) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-[var(--bv103-space-3)]">
+        <div className="space-y-2 md:col-span-2">
+          <label className={F.formLabelInset}>Họ và tên</label>
+          <input className="input w-full bg-slate-50 border-slate-100 focus:bg-white font-bold" placeholder="VD: Nguyễn Văn A"
+            value={formData.ho_ten ?? ""} onChange={(e) => setFormData({ ...formData, ho_ten: e.target.value })} disabled={loading} required />
+        </div>
+        <div className="space-y-2">
+          <label className={F.formLabelInset}>Khoa / Phòng</label>
+          <SearchableSelect
+            value={formData.khoa_id ?? ""}
+            onChange={(val) => setFormData({ ...formData, khoa_id: val })}
+            options={khoas.map((k) => ({
+              id: k.id,
+              label: formatKhoaPickerLabel({
+                ma_danh_muc: k.ma_danh_muc,
+                ten_danh_muc: k.ten_danh_muc,
+              }),
+            }))}
+            placeholder="-- Chọn Khoa / Phòng --"
+            disabled={loading}
+          />
+        </div>
+        <div className="space-y-2">
+          <label className={F.formLabelInset}>Email</label>
+          <input className="input w-full bg-slate-50 border-slate-100 focus:bg-white" placeholder="email@hospital.com"
+            value={formData.email ?? ""} onChange={(e) => setFormData({ ...formData, email: e.target.value })} disabled={loading} />
+        </div>
+        <div className="space-y-2 md:col-span-2">
+          <NhanSuFormFieldsOrg
+            formData={formData as Record<string, unknown>}
+            setFormData={setFormData as (data: Record<string, unknown>) => void}
+            loading={loading}
+            tos={tos}
+            vaiTros={vaiTros}
+            chucVus={chucVus}
+            compactRoleOnly
+          />
+        </div>
+        {isNew && maTuDong ? (
+          <input type="hidden" value={formData.ma_nv ?? maTuDong} readOnly />
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-[var(--bv103-space-3)]">
       <div className="space-y-2">

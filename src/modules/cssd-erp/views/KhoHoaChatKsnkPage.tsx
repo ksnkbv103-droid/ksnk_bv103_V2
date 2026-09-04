@@ -23,11 +23,17 @@ import {
   type SuCoChemicalRow,
 } from "../actions/cssd-kho-hoa-chat.actions";
 import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY, CSSD_UI_TAB_ACTIVE, CSSD_UI_TAB_IDLE } from "../shared/ui/cssd-ui-chrome";
-import { lotRowToKey, pickFefoLotKey } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
+import {
+  fefoSortLots,
+  isLotNearExpiry,
+  lotRowToKey,
+  NEAR_EXPIRY_DAYS,
+  pickFefoLotKey,
+} from "@/lib/domain/cssd-kho-hoa-chat-fefo";
 import { matchesLoaiFilter, type HoaChatLoaiFilter } from "@/lib/domain/cssd-hoa-chat-loai";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 import { KsnkContextBanner } from "@/components/shared/KsnkContextBanner";
-import { formatDateVi } from "@/lib/format-datetime-vi";
+import { formatDateVi, todayYmdInVn } from "@/lib/format-datetime-vi";
 
 const MODULE_KEY = "KSNK_KHO_HOACHAT";
 
@@ -65,8 +71,8 @@ export default function KhoHoaChatKsnkPage() {
   const [maLoNhap, setMaLoNhap] = useState("");
   const [hanNhap, setHanNhap] = useState("");
 
-  /** Một lần khi mount — ngưỡng “sắp hết hạn” 30 ngày; tránh Date.now trong thân render (react-hooks/purity). */
-  const [expiryHorizonMs] = useState(() => Date.now() + 30 * 864e5);
+  /** Một lần khi mount — mốc ngày cho cận-date FEFO (tránh Date.now trong thân render). */
+  const [todayYmd] = useState(() => todayYmdInVn());
   const [isIncidentOpen, setIsIncidentOpen] = useState(false);
   const [suCoRows, setSuCoRows] = useState<SuCoChemicalRow[]>([]);
   const [linkedSuCoId, setLinkedSuCoId] = useState<string | null>(null);
@@ -138,7 +144,10 @@ export default function KhoHoaChatKsnkPage() {
   );
 
   const filteredTons = useMemo(
-    () => tons.filter((t) => matchesLoaiFilter(dmLoaiMap.get(t.dm_hoa_chat_id), loaiFilter)),
+    () =>
+      fefoSortLots(
+        tons.filter((t) => matchesLoaiFilter(dmLoaiMap.get(t.dm_hoa_chat_id), loaiFilter)),
+      ),
     [tons, dmLoaiMap, loaiFilter],
   );
 
@@ -157,12 +166,11 @@ export default function KhoHoaChatKsnkPage() {
     let n = 0;
     for (const t of filteredTons) {
       if (!t.han_su_dung || t.ton_so_luong <= 0) continue;
-      const h = new Date(`${t.han_su_dung}T12:00:00`).getTime();
-      if (Number.isNaN(h) || h > expiryHorizonMs) continue;
+      if (!isLotNearExpiry(t.han_su_dung, todayYmd)) continue;
       n++;
     }
     return n;
-  }, [filteredTons, expiryHorizonMs]);
+  }, [filteredTons, todayYmd]);
 
   const countDuoiNguong = useMemo(() => {
     let n = 0;
@@ -175,12 +183,10 @@ export default function KhoHoaChatKsnkPage() {
   }, [filteredDms, totalByDm]);
 
   const sapHetHanItems = useMemo(() => {
-    return filteredTons.filter((t) => {
-      if (!t.han_su_dung || t.ton_so_luong <= 0) return false;
-      const h = new Date(`${t.han_su_dung}T12:00:00`).getTime();
-      return !Number.isNaN(h) && h <= expiryHorizonMs;
-    });
-  }, [filteredTons, expiryHorizonMs]);
+    return filteredTons.filter(
+      (t) => t.ton_so_luong > 0 && isLotNearExpiry(t.han_su_dung, todayYmd),
+    );
+  }, [filteredTons, todayYmd]);
 
   const duoiNguongItems = useMemo(() => {
     return filteredDms.filter((dm) => {
@@ -312,7 +318,7 @@ export default function KhoHoaChatKsnkPage() {
           )}
           <button
             type="button"
-            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-red-600 shadow-sm hover:bg-red-100 active:scale-[0.98] transition-all cursor-pointer"
+            className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 py-2 text-[11px] font-semibold text-red-600 shadow-sm transition-all hover:bg-red-100 active:scale-[0.98]"
             onClick={() => setIsIncidentOpen(true)}
           >
             ⚠️ Báo sự cố
@@ -336,7 +342,9 @@ export default function KhoHoaChatKsnkPage() {
               <span className="text-xs font-semibold">
                 {[
                   duoiNguongItems.length > 0 ? `${duoiNguongItems.length} mặt hàng dưới ngưỡng` : null,
-                  sapHetHanItems.length > 0 ? `${sapHetHanItems.length} lô sắp hết hạn` : null,
+                  sapHetHanItems.length > 0
+                    ? `${sapHetHanItems.length} lô cận hạn / quá hạn (≤${NEAR_EXPIRY_DAYS} ngày — FEFO)`
+                    : null,
                 ]
                   .filter(Boolean)
                   .join(" · ")}
@@ -406,7 +414,7 @@ export default function KhoHoaChatKsnkPage() {
               dmCount={filteredDms.length}
             />
 
-            <KhoHoaChatTables tons={filteredTons} movs={filteredMovs} loading={busy} />
+            <KhoHoaChatTables tons={filteredTons} movs={filteredMovs} loading={busy} todayYmd={todayYmd} />
           </div>
       </div>
 

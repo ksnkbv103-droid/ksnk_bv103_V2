@@ -5,6 +5,7 @@ import {
   mapInstrumentPresetToLedgerType,
   shouldDetachChiTietFromSet,
   validateIssueQuantityAgainstThucTe,
+  computeSoLuongThucTeQldcpt,
 } from "./cssd-instrument-incident";
 
 describe("cssd-instrument-incident", () => {
@@ -15,9 +16,9 @@ describe("cssd-instrument-incident", () => {
     expect(mapInstrumentPresetToLedgerType("PROCESS_QC_FAIL")).toBeNull();
   });
 
-  it("detaches only when quantity covers entire chi tiết row", () => {
+  it("never detaches BOM on Hỏng/Mất (catalog change slip only)", () => {
     expect(shouldDetachChiTietFromSet(1, 3)).toBe(false);
-    expect(shouldDetachChiTietFromSet(3, 3)).toBe(true);
+    expect(shouldDetachChiTietFromSet(3, 3)).toBe(false);
   });
 
   it("rejects quantity above thực tế", () => {
@@ -25,10 +26,24 @@ describe("cssd-instrument-incident", () => {
     expect(validateIssueQuantityAgainstThucTe(1, 2)).toBeNull();
   });
 
-  it("requires incident for operational instrument changes", () => {
+  it("requires 3-door variance slip for operational instrument changes (D1)", () => {
     const res = instrumentChangeRequiresIncidentResult();
     expect(res.success).toBe(false);
     expect(res.error).toBe(INSTRUMENT_CHANGE_REQUIRES_INCIDENT);
-    expect(res.error).toMatch(/báo cáo sự cố/);
+    expect(res.error).toMatch(/3 cửa/);
+  });
+
+  it("QLDCPT thucTe = chuan - hong - mat + boSung ± DC (D1/D6 SSOT)", () => {
+    expect(
+      computeSoLuongThucTeQldcpt({
+        soLuongChuan: 12,
+        soLuongHong: 1,
+        soLuongMat: 2,
+        soLuongBoSung: 3,
+        soLuongDieuChuyenNet: -1,
+      }),
+    ).toBe(11);
+    expect(computeSoLuongThucTeQldcpt({ soLuongChuan: 5, soLuongHong: 9 })).toBe(0);
+    expect(computeSoLuongThucTeQldcpt({ soLuongChuan: 4, soLuongDieuChuyenNet: 2 })).toBe(6);
   });
 });

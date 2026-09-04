@@ -25,7 +25,7 @@ import type { CompareRow } from "@/lib/analytics/supervision-analytics.types";
 import type { BaoCaoTrendGranularity } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
-import { roundPercent2, formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { formatPercent1, formatPercent2, roundPercent1, roundPercent2 } from "@/lib/analytics/supervision-percent";
 import { complianceToneFromPercent } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
 import {
   momentRowBg,
@@ -96,13 +96,13 @@ export function SupervisionTrendChart({
       source === "vst"
         ? normalizeVstTrendline(data as VstStrategicPayload["trendline"])
         : normalizeGscTrendline(data as GscStrategicPayload["trendline"]);
-    const picked = pickSupervisionTrend(weekly, granularity);
+    const picked = pickSupervisionTrend(weekly, granularity, source);
     return picked.map((row) => ({
       label: row.label,
       min_date: row.min_date,
       tong: row.tong,
       dat: row.dat,
-      ty_le_tuan_thu: roundPercent2(row.ty_le_tuan_thu),
+      ty_le_tuan_thu: source === "vst" ? roundPercent1(row.ty_le_tuan_thu) : roundPercent2(row.ty_le_tuan_thu),
     }));
   }, [data, source, granularity]);
 
@@ -304,7 +304,7 @@ export function SupervisionMomentsPanel({
                           {m.da_tuan_thu.toLocaleString()}
                         </td>
                         <td className={`px-3 py-2 text-right font-bold tabular-nums ${momentToneClass[tone]}`}>
-                          {formatPercent2(m.ty_le_tuan_thu)}
+                          {formatPercent1(m.ty_le_tuan_thu)}
                         </td>
                       </tr>
                     );

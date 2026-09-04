@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PassFailToggle } from "./me-tiet-khuan-qc-primitives";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 /** Ô upload / nhập URL ảnh minh chứng */
 function PhotoProof({
@@ -31,13 +32,13 @@ function PhotoProof({
   required?: boolean;
 }) {
   return (
-    <div className="mt-2 space-y-1.5">
-      <label className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+    <details className="mt-2 rounded-xl border border-slate-200 bg-white px-3 py-2" open={Boolean(value?.trim())}>
+      <summary className="flex cursor-pointer list-none items-center gap-1.5 text-[11px] font-medium text-slate-500">
         <Camera size={12} className={required ? "text-amber-500" : "text-slate-400"} />
-        Ảnh minh chứng — {label}
+        Ảnh / URL minh chứng — {label}
         {required && <span className="text-red-500">*</span>}
-      </label>
-      <div className="relative">
+      </summary>
+      <div className="relative mt-2">
         <ImageIcon size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           className="h-10 w-full rounded-xl border-2 border-slate-100 bg-slate-50 pl-8 pr-3 text-xs font-medium outline-none transition-all focus:border-[var(--primary)] focus:ring-2 focus:ring-emerald-50"
@@ -46,7 +47,7 @@ function PhotoProof({
           onChange={(e) => onChange(e.target.value)}
         />
       </div>
-    </div>
+    </details>
   );
 }
 
@@ -73,13 +74,13 @@ function ChiThiBlock({
   return (
     <div className="bv103-layer-inset bv103-pad-inset space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wide text-slate-700">{label}</span>
+        <span className="text-xs font-semibold text-slate-700">{label}</span>
         {required ? (
-          <span className="rounded-full bg-red-50 border border-red-200 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-red-600">
+          <span className="rounded-full bg-red-50 border border-red-200 px-2 py-0.5 text-[11px] font-semibold text-red-600">
             Bắt buộc
           </span>
         ) : (
-          <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[11px] font-semibold uppercase text-slate-400">
+          <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-400">
             Tuỳ chọn
           </span>
         )}
@@ -300,27 +301,44 @@ export default function MeTietKhuanProcessQcPanel({
     "bg-emerald-100 text-emerald-700 border-emerald-200";
 
   return (
-    <div className={UI.shell}>
-      {/* QC Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
-        <div className="flex items-center gap-3">
-          <Settings2 className="text-[var(--primary)] h-5 w-5" />
-          <div>
-            <h3 className={UI.panelTitle}>Đánh giá chất lượng QC</h3>
-            <span className={`mt-1 inline-flex items-center rounded-full border px-2.5 py-0.5 bv103-type-label font-semibold ${machineBadge}`}>
-              {machineLabel}
-            </span>
-          </div>
-        </div>
-        {hasAnyFailure && (
-          <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 px-3 py-2">
-            <ShieldAlert size={16} className="text-red-600 animate-bounce" />
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-red-700">Tự động kết luận KHÔNG ĐẠT</span>
-          </div>
-        )}
+    <>
+      <div className="flex min-h-[120px] flex-col items-center justify-center rounded-[var(--radius-shell)] border border-dashed border-emerald-200 bg-emerald-50/50 p-6 text-center">
+        <Settings2 className="mb-2 h-8 w-8 text-[var(--primary)]" aria-hidden />
+        <p className="text-xs font-semibold text-slate-700">Đánh giá QC đang mở</p>
+        <p className="mt-1 max-w-sm text-[11px] font-medium leading-relaxed text-slate-500">
+          Điền chỉ thị trong hộp thoại — một nút kết luận khi xong.
+        </p>
       </div>
 
-      <div className="p-6 space-y-[var(--bv103-space-3)]">
+      <Dialog open={showForm} onOpenChange={() => { /* giữ mở đến khi kết luận */ }}>
+        <DialogContent
+          className="flex max-h-[min(90dvh,880px)] max-w-3xl flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl [&>button]:hidden"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogTitle className="sr-only">Đánh giá chất lượng QC — {machineLabel}</DialogTitle>
+
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 pr-6 sm:px-6">
+            <div className="flex items-center gap-3">
+              <Settings2 className="h-5 w-5 text-[var(--primary)]" />
+              <div>
+                <h3 className={UI.panelTitle}>Đánh giá QC</h3>
+                <span className={`mt-1 inline-flex items-center rounded-full border px-2.5 py-0.5 bv103-type-label font-semibold ${machineBadge}`}>
+                  {machineLabel}
+                </span>
+              </div>
+            </div>
+            {hasAnyFailure && (
+              <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2">
+                <ShieldAlert size={16} className="text-red-600" />
+                <span className="text-[11px] font-semibold text-red-700">Tự động: không đạt</span>
+              </div>
+            )}
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">
+            <div className="space-y-[var(--bv103-space-3)]">
+
         {/* === NHÂN SỰ & ĐIỀU KIỆN CƠ BẢN === */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
@@ -356,7 +374,7 @@ export default function MeTietKhuanProcessQcPanel({
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-[11px] font-semibold text-white">1</span>
               Thông số máy chu trình
             </h4>
-            <span className="bv103-type-label font-semibold text-red-500 uppercase">Bắt buộc</span>
+            <span className="bv103-type-label font-semibold text-red-500">Bắt buộc</span>
           </div>
           <PassFailToggle value={thongSoMayResult} onChange={setThongSoMayResult} />
           {thongSoMayResult === "DAT" && (
@@ -419,14 +437,14 @@ export default function MeTietKhuanProcessQcPanel({
           </div>
 
           <details className="rounded-xl border border-slate-200 bg-white p-3">
-            <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-slate-600">
+            <summary className="cursor-pointer text-xs font-semibold text-slate-600">
               Chỉ thị thêm (BIM, Bowie–Dick) — không bắt buộc mỗi mẻ
             </summary>
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="bv103-layer-inset bv103-pad-inset space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-700">Test sinh học (BIM)</span>
-                <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[11px] font-semibold uppercase text-slate-400">
+                <span className="text-xs font-semibold text-slate-700">Test sinh học (BIM)</span>
+                <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-400">
                   Tuỳ chọn
                 </span>
               </div>
@@ -434,7 +452,7 @@ export default function MeTietKhuanProcessQcPanel({
                 <button
                   type="button"
                   onClick={() => setTestSinhHoc(testSinhHoc === "DAT" ? "NA" : "DAT")}
-                  className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-semibold text-xs uppercase tracking-wide transition-all ${
+                  className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-semibold text-xs transition-all ${
                     testSinhHoc === "DAT"
                       ? "border-emerald-500 bg-emerald-500 text-white shadow-md"
                       : "border-slate-200 bg-white text-slate-500 hover:border-emerald-300 hover:bg-emerald-50"
@@ -445,7 +463,7 @@ export default function MeTietKhuanProcessQcPanel({
                 <button
                   type="button"
                   onClick={() => setTestSinhHoc(testSinhHoc === "KHONG_DAT" ? "NA" : "KHONG_DAT")}
-                  className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-semibold text-xs uppercase tracking-wide transition-all ${
+                  className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-semibold text-xs transition-all ${
                     testSinhHoc === "KHONG_DAT"
                       ? "border-red-500 bg-red-500 text-white shadow-md"
                       : "border-slate-200 bg-white text-slate-500 hover:border-red-300 hover:bg-red-50"
@@ -456,7 +474,7 @@ export default function MeTietKhuanProcessQcPanel({
                 <button
                   type="button"
                   onClick={() => setTestSinhHoc("NA")}
-                  className={`px-3 flex items-center justify-center h-11 rounded-xl border-2 font-semibold text-[11px] uppercase tracking-wide transition-all ${
+                  className={`px-3 flex items-center justify-center h-11 rounded-xl border-2 font-semibold text-[11px] transition-all ${
                     testSinhHoc === "NA" || testSinhHoc === ""
                       ? "border-slate-300 bg-slate-100 text-slate-500"
                       : "border-slate-200 bg-white text-slate-400 hover:bg-slate-50"
@@ -474,8 +492,8 @@ export default function MeTietKhuanProcessQcPanel({
             {machineType === "STEAM" && showBowieDick && (
               <div className="bv103-layer-inset bv103-pad-inset space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-700">Bowie–Dick (Steam)</span>
-                  <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[11px] font-semibold uppercase text-slate-400">
+                  <span className="text-xs font-semibold text-slate-700">Bowie–Dick (Steam)</span>
+                  <span className="rounded-full bg-slate-50 border border-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-400">
                     Tuỳ chọn
                   </span>
                 </div>
@@ -483,7 +501,7 @@ export default function MeTietKhuanProcessQcPanel({
                   <button
                     type="button"
                     onClick={() => setTestBD(testBD === "DAT" ? "NA" : "DAT")}
-                    className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-semibold text-xs uppercase tracking-wide transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-semibold text-xs transition-all ${
                       testBD === "DAT"
                         ? "border-emerald-500 bg-emerald-500 text-white shadow-md"
                         : "border-slate-200 bg-white text-slate-500 hover:border-emerald-300 hover:bg-emerald-50"
@@ -494,7 +512,7 @@ export default function MeTietKhuanProcessQcPanel({
                   <button
                     type="button"
                     onClick={() => setTestBD(testBD === "KHONG_DAT" ? "NA" : "KHONG_DAT")}
-                    className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-semibold text-xs uppercase tracking-wide transition-all ${
+                    className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl border-2 font-semibold text-xs transition-all ${
                       testBD === "KHONG_DAT"
                         ? "border-red-500 bg-red-500 text-white shadow-md"
                         : "border-slate-200 bg-white text-slate-500 hover:border-red-300 hover:bg-red-50"
@@ -505,7 +523,7 @@ export default function MeTietKhuanProcessQcPanel({
                   <button
                     type="button"
                     onClick={() => setTestBD("NA")}
-                    className={`px-3 flex items-center justify-center h-11 rounded-xl border-2 font-semibold text-[11px] uppercase tracking-wide transition-all ${
+                    className={`px-3 flex items-center justify-center h-11 rounded-xl border-2 font-semibold text-[11px] transition-all ${
                       testBD === "NA"
                         ? "border-slate-300 bg-slate-100 text-slate-500"
                         : "border-slate-200 bg-white text-slate-400 hover:bg-slate-50"
@@ -537,29 +555,35 @@ export default function MeTietKhuanProcessQcPanel({
           </div>
         )}
 
-        {/* === KẾT LUẬN === */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            disabled={hasAnyFailure}
-            onClick={() => handleFinish(true)}
-            className={`bv103-control-h inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-control)] text-xs font-semibold uppercase tracking-wide transition-all active:scale-[0.99] sm:h-12 ${
-              hasAnyFailure
-                ? "cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400"
-                : "bg-[var(--primary)] text-white shadow-sm hover:bg-[var(--primary-hover)]"
-            }`}
-          >
-            <CheckCircle className="h-5 w-5" aria-hidden /> Kết luận ĐẠT → Cấp phát
-          </button>
-          <button
-            type="button"
-            onClick={() => handleFinish(false)}
-            className="bv103-control-h inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-control)] border border-red-200 bg-red-50 text-xs font-semibold uppercase tracking-wide text-red-700 transition-all hover:bg-red-100 active:scale-[0.99] sm:h-12"
-          >
-            <AlertCircle className="h-5 w-5" aria-hidden /> Kết luận KHÔNG ĐẠT
-          </button>
-        </div>
-      </div>
-    </div>
+            </div>
+          </div>
+
+          <div className="shrink-0 border-t border-slate-100 bg-white px-5 py-4 sm:px-6">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                disabled={hasAnyFailure}
+                onClick={() => handleFinish(true)}
+                className={`bv103-control-h inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-control)] text-xs font-semibold transition-all active:scale-[0.99] sm:h-12 ${
+                  hasAnyFailure
+                    ? "cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400"
+                    : "bg-[var(--primary)] text-white shadow-sm hover:bg-[var(--primary-hover)]"
+                }`}
+              >
+                <CheckCircle className="h-5 w-5" aria-hidden /> Kết luận đạt — cấp phát
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFinish(false)}
+                className="bv103-control-h inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-control)] border border-red-200 bg-red-50 text-xs font-semibold text-red-700 transition-all hover:bg-red-100 active:scale-[0.99] sm:h-12"
+              >
+                <AlertCircle className="h-5 w-5" aria-hidden /> Kết luận không đạt
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
+
 }

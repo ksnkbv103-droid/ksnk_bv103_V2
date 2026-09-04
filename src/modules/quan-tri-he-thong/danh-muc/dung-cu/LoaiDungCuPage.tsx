@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Plus, LayoutGrid } from "lucide-react";
+import { Plus, LayoutGrid, ChevronLeft } from "lucide-react";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
@@ -13,7 +13,9 @@ import LoaiDungCuFormModal from "./loai-dung-cu-form-modal";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
 import { LoaiDungCuChiTietPanel } from "./loai-dung-cu-chi-tiet-panel";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useServerPaginatedTable, type ServerPaginationParams } from "@/hooks/use-server-paginated-table";
+import { useModulePermission } from "@/hooks/useModulePermission";
 import {
   getLoaiDungCuRowsAction,
   softDeleteLoaiDungCuAction,
@@ -47,8 +49,10 @@ type LoaiDungCuRow = {
   is_active?: boolean;
 };
 
-export function LoaiDungCuPageContent() {
+export function LoaiDungCuPageContent({ compact = false }: { compact?: boolean } = {}) {
   const router = useRouter();
+  const { isAdmin } = useModulePermission("LOAI_DC");
+  const canWriteMaster = isAdmin;
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
   const [selectedLoaiId, setSelectedLoaiId] = useState<string | null>(null);
@@ -73,6 +77,7 @@ export function LoaiDungCuPageContent() {
   }, [data, selectedLoaiId]);
 
   const actionUi = useTableActionUi<LoaiDungCuRow>({
+    capabilities: { edit: canWriteMaster, delete: canWriteMaster, toggleActive: canWriteMaster },
     onToggleStatus: async (item) => {
       const result = await toggleLoaiDungCuStatusAction(item.id, Boolean(item.is_active));
       if (!result.success) {
@@ -118,9 +123,9 @@ export function LoaiDungCuPageContent() {
     onSuccess: () => { table.refresh(); router.refresh(); }
   });
 
-  const columns: Column<LoaiDungCuRow>[] = [
+  const allColumns: Column<LoaiDungCuRow>[] = [
     { header: "Mã loại", accessorKey: "ma_danh_muc", sortable: true, cell: (i) => (
-      <span className="font-mono text-[11px] text-[11px] font-medium text-slate-500 uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+      <span className="rounded-md border border-slate-100 bg-slate-50 px-2 py-1 font-mono text-[11px] font-medium text-slate-500">
         {i.ma_danh_muc}
       </span>
     )},
@@ -131,9 +136,9 @@ export function LoaiDungCuPageContent() {
     )},
     { header: "Phân loại", accessorKey: "phan_loai", sortable: true, cell: (i) => (
       i.phan_loai === "THU_THUAT" ? (
-        <span className="bg-[var(--surface-warning-bg)] text-[var(--surface-warning-text)] border border-[var(--surface-warning-border)] text-[11px] font-semibold px-2 py-1 rounded-lg uppercase tracking-wide">Thủ thuật</span>
+        <span className="rounded-lg border border-[var(--surface-warning-border)] bg-[var(--surface-warning-bg)] px-2 py-1 text-[11px] font-semibold text-[var(--surface-warning-text)]">Thủ thuật</span>
       ) : (
-        <span className="bg-[var(--surface-success-bg)] text-[var(--surface-success-text)] border border-[var(--surface-success-border)] text-[11px] font-semibold px-2 py-1 rounded-lg uppercase tracking-wide">Phẫu thuật</span>
+        <span className="rounded-lg border border-[var(--surface-success-border)] bg-[var(--surface-success-bg)] px-2 py-1 text-[11px] font-semibold text-[var(--surface-success-text)]">Phẫu thuật</span>
       )
     )},
     { header: "Hình dáng", accessorKey: "hinh_dang", sortable: true, cell: (i) => (
@@ -169,72 +174,135 @@ export function LoaiDungCuPageContent() {
     { header: "Trạng thái", accessorKey: "is_active", sortable: true, cell: (i) => actionUi.renderStatusCell(i) },
     { header: "Quản lý", accessorKey: "id", cell: (i) => actionUi.renderManagementCell(i) }
   ];
+  const columns = compact
+    ? allColumns.filter((c) =>
+        ["ma_danh_muc", "ten_danh_muc", "phan_loai_spaulding", "id"].includes(String(c.accessorKey)),
+      )
+    : allColumns;
 
   const selectedRow = selectedLoaiId ? data.find((r) => r.id === selectedLoaiId) : undefined;
+  /** Trong sheet (compact): chi tiết = step inline — không Dialog lồng Dialog. */
+  const compactDetailStep = Boolean(compact && selectedLoaiId);
+
+  const detailPanel = (
+    <LoaiDungCuChiTietPanel
+      selectedLoaiId={selectedLoaiId}
+      selectedTenLoai={selectedRow?.ten_danh_muc}
+      selectedMaLoai={selectedRow?.ma_danh_muc}
+      boDungCuChua={[]}
+    />
+  );
 
   return (
     <div className="space-y-3 animate-in fade-in duration-700">
-      <KsnkListPageHeader
-        icon={LayoutGrid}
-        title="Loại dụng cụ"
-        eyebrow="Danh mục master · Phân loại dụng cụ"
-        actions={
-          <>
-            <ImportExportToolbar
-              fileInputRef={fileInputRef}
-              isImporting={isImporting}
-              onExport={() => void exportTemplate()}
-              onImportClick={triggerImport}
-              onFileChange={(file) => void handleFileUpload(file)}
-              exportClassName={C.ctaMuted}
-              importClassName={C.ctaAmber}
-            />
-            <button type="button" onClick={() => { setEditing(null); setIsFormOpen(true); }} className={C.ctaPrimary}><Plus size={18} /> Thêm mới</button>
-          </>
-        }
-      />
-      <div className="min-w-0 sm:min-h-[450px]">
-        <AdvancedDataTable
-          columns={columns}
-          data={data}
-          loading={loading}
-          enableMultiSelect={true}
-          searchValue={table.searchTerm}
-          onSearch={table.handleSearch}
-          onSort={table.handleSort}
-          serverPagination={{
-            page: table.page,
-            totalPages: table.totalPages,
-            totalCount: table.totalCount,
-            pageSize: table.pageSize,
-            onPageChange: table.setPage,
-          }}
-          rowClassName={(r) =>
-            r.id === selectedLoaiId ? "bg-emerald-50/90 ring-1 ring-inset ring-[var(--primary)]/20" : ""
-          }
-          onRowClick={(r) =>
-            setSelectedLoaiId((cur) => (cur === r.id ? null : r.id))
-          }
-          onDeleteSelected={async (items) => {
-            if (!items.length) return;
-            if (!window.confirm(`Xóa mềm ${items.length} loại dụng cụ?`)) return;
-            const result = await softDeleteManyLoaiDungCuAction(items.map((x) => x.id));
-            if (!result.success) {
-              toast.error(result.error || "Không thể xóa danh sách.");
-              return;
+      {compactDetailStep ? (
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={() => setSelectedLoaiId(null)}
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          >
+            <ChevronLeft size={14} aria-hidden /> Danh sách loại
+          </button>
+          {detailPanel}
+        </div>
+      ) : (
+        <>
+          {compact ? (
+            canWriteMaster ? (
+              <div className="mb-1 flex justify-end">
+                <button type="button" onClick={() => { setEditing(null); setIsFormOpen(true); }} className={C.ctaPrimary}>
+                  <Plus size={16} /> Thêm loại
+                </button>
+              </div>
+            ) : null
+          ) : (
+          <KsnkListPageHeader
+            icon={LayoutGrid}
+            title="Loại dụng cụ"
+            eyebrow="Danh mục master · Phân loại dụng cụ"
+            actions={
+              <>
+                {canWriteMaster ? (
+                  <details className="rounded-[var(--radius-control)] border border-slate-200 bg-white px-2 py-1">
+                    <summary className="cursor-pointer text-[11px] font-semibold text-slate-500">Excel</summary>
+                    <div className="pt-2">
+                      <ImportExportToolbar
+                        fileInputRef={fileInputRef}
+                        isImporting={isImporting}
+                        onExport={() => void exportTemplate()}
+                        onImportClick={triggerImport}
+                        onFileChange={(file) => void handleFileUpload(file)}
+                        showImport
+                        exportClassName={C.ctaMuted}
+                        importClassName={C.ctaAmber}
+                      />
+                    </div>
+                  </details>
+                ) : null}
+                {canWriteMaster ? (
+                  <button type="button" onClick={() => { setEditing(null); setIsFormOpen(true); }} className={C.ctaPrimary}><Plus size={16} /> Thêm loại</button>
+                ) : null}
+              </>
             }
-            toast.success("Đã xóa mềm dữ liệu đã chọn.");
-            table.refresh();
-          }}
-        />
-      </div>
+          />
+          )}
+          <div className={compact ? "min-w-0" : "min-w-0 sm:min-h-[450px]"}>
+            <AdvancedDataTable
+              columns={columns}
+              data={data}
+              loading={loading}
+              enableMultiSelect={canWriteMaster}
+              bodyMaxHeight="max-h-[min(58dvh,560px)]"
+              searchValue={table.searchTerm}
+              onSearch={table.handleSearch}
+              onSort={table.handleSort}
+              serverPagination={{
+                page: table.page,
+                totalPages: table.totalPages,
+                totalCount: table.totalCount,
+                pageSize: table.pageSize,
+                onPageChange: table.setPage,
+              }}
+              rowClassName={(r) =>
+                r.id === selectedLoaiId ? "bg-emerald-50/90 ring-1 ring-inset ring-[var(--primary)]/20" : ""
+              }
+              onRowClick={(r) => setSelectedLoaiId((cur) => (cur === r.id ? null : r.id))}
+              onDeleteSelected={async (items) => {
+                if (!items.length) return;
+                if (!window.confirm(`Xóa mềm ${items.length} loại dụng cụ?`)) return;
+                const result = await softDeleteManyLoaiDungCuAction(items.map((x) => x.id));
+                if (!result.success) {
+                  toast.error(result.error || "Không thể xóa danh sách.");
+                  return;
+                }
+                toast.success("Đã xóa mềm dữ liệu đã chọn.");
+                table.refresh();
+              }}
+            />
+          </div>
 
-      <LoaiDungCuChiTietPanel
-        selectedLoaiId={selectedLoaiId}
-        selectedTenLoai={selectedRow?.ten_danh_muc}
-        selectedMaLoai={selectedRow?.ma_danh_muc}
-        boDungCuChua={[]}
-      />
+          {!compact ? (
+            <Dialog
+              open={Boolean(selectedLoaiId)}
+              onOpenChange={(open) => {
+                if (!open) setSelectedLoaiId(null);
+              }}
+            >
+              <DialogContent className="max-w-4xl sm:max-w-5xl max-h-[min(90dvh,880px)] overflow-y-auto">
+                <DialogTitle className="sr-only">
+                  Chi tiết loại dụng cụ
+                  {selectedRow?.ma_danh_muc || selectedRow?.ten_danh_muc
+                    ? ` (${selectedRow?.ma_danh_muc || ""}${selectedRow?.ma_danh_muc && selectedRow?.ten_danh_muc ? " — " : ""}${selectedRow?.ten_danh_muc || ""})`
+                    : ""}
+                </DialogTitle>
+                {detailPanel}
+              </DialogContent>
+            </Dialog>
+          ) : null}
+        </>
+      )}
+      {canWriteMaster ? (
       <LoaiDungCuFormModal
         key={modalKey}
         open={isFormOpen}
@@ -245,6 +313,7 @@ export function LoaiDungCuPageContent() {
         }}
         onSaved={() => table.refresh()}
       />
+      ) : null}
     </div>
   );
 }

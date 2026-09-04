@@ -3,6 +3,7 @@
 import React, { useMemo } from "react";
 import type { ChecklistResult, ChecklistTemplate } from "@/types/giam-sat-chung";
 import type { MasterOption } from "@/lib/master-data/gateway";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { NhanSuLike } from "../lib/gsc-session-labels";
 import {
   resolveGscDoiTuongTen,
@@ -42,18 +43,18 @@ export default function GiamSatChungSessionViewer({
     () => new Map(results.map((r) => [r.criterionId, r] as const)),
     [results],
   );
-  if (!open) return null;
   const ngayRaw = session.ngay_giam_sat as string | undefined;
   const ngayStr = formatDateVi(ngayRaw?.slice(0, 10), String(ngayRaw || "—"));
   return (
-    <div
-      className="fixed inset-0 z-[60] flex touch-manipulation items-center justify-center bg-black/45 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="gsc-viewer-title"
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
     >
-      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white shadow-[var(--shadow-app-soft)]">
-        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
+      <DialogContent className="flex max-h-[min(90dvh,880px)] max-w-3xl flex-col gap-0 overflow-hidden p-0 touch-manipulation sm:max-w-3xl">
+        <DialogTitle className="sr-only">{template.title}</DialogTitle>
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3 pr-14">
           <div className="min-w-0">
             <h2 id="gsc-viewer-title" className="text-sm font-semibold text-[var(--primary)]">
               {template.title}
@@ -66,15 +67,8 @@ export default function GiamSatChungSessionViewer({
               {resolveGscNgheTen(session, ngheNghieps)}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className={`app-shell-focus shrink-0 ${C.btnSecondary} h-auto min-h-0 px-3 py-1.5`}
-          >
-            Đóng
-          </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4">
           {template.criteria.map((c, idx) => {
             const result = resultByCriterionId.get(c.id);
             if (!result) return null;
@@ -103,7 +97,7 @@ export default function GiamSatChungSessionViewer({
             In A4
           </button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

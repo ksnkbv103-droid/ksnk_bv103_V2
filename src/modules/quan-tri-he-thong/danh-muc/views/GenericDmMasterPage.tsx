@@ -63,8 +63,15 @@ export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: stri
 
   if (!m.reg) {
     return (
-      <div className="p-10 text-center text-red-600 font-bold">
-        Loại danh mục không hợp lệ: {loaiDanhMuc}
+      <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-white px-6 py-10 text-center">
+        <p className="text-sm font-medium text-slate-700">Không mở được danh mục này.</p>
+        <button
+          type="button"
+          onClick={() => router.push("/quan-tri-he-thong")}
+          className="mt-3 text-xs font-semibold text-[var(--primary)] hover:underline"
+        >
+          Về trung tâm quản trị
+        </button>
       </div>
     );
   }
@@ -92,16 +99,21 @@ export default function GenericDmMasterPage({ loaiDanhMuc }: { loaiDanhMuc: stri
         canCreate={canMutate}
         importExportSlot={
           locked ? undefined : (
-            <ImportExportToolbar
-              fileInputRef={fileInputRef}
-              isImporting={isImporting}
-              onExport={() => void exportTemplate()}
-              onImportClick={triggerImport}
-              onFileChange={(file) => void handleFileUpload(file)}
-              showImport={canImport}
-              exportClassName={T.btnSecondary}
-              importClassName={T.btnSecondary}
-            />
+            <details className="rounded-[var(--radius-control)] border border-slate-200 bg-white px-2 py-1">
+              <summary className="cursor-pointer text-[11px] font-semibold text-slate-500">Excel</summary>
+              <div className="pt-2">
+                <ImportExportToolbar
+                  fileInputRef={fileInputRef}
+                  isImporting={isImporting}
+                  onExport={() => void exportTemplate()}
+                  onImportClick={triggerImport}
+                  onFileChange={(file) => void handleFileUpload(file)}
+                  showImport={canImport}
+                  exportClassName={T.btnSecondary}
+                  importClassName={T.btnSecondary}
+                />
+              </div>
+            </details>
           )
         }
       />

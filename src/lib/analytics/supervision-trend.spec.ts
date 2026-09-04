@@ -109,4 +109,15 @@ describe("supervision-trend", () => {
     expect(pickSupervisionTrend(vstWeeks, "month")).toHaveLength(1);
     expect(pickSupervisionTrend(vstWeeks, "year")).toHaveLength(1);
   });
+
+  it("VST 2/3 is 66.7; GSC 2/3 is 66.67", () => {
+    const vst = normalizeVstTrendline([
+      { label: "T", min_date: "2026-01-06", tong_co_hoi: 3, da_tuan_thu: 2, ty_le_tuan_thu: 0 },
+    ]);
+    const gsc = normalizeGscTrendline([
+      { label: "T", min_date: "2026-01-06", tong_quan_sat: 3, tong_dat: 2, ty_le_tuan_thu: 0 },
+    ]);
+    expect(vst[0]?.ty_le_tuan_thu).toBe(66.7);
+    expect(gsc[0]?.ty_le_tuan_thu).toBe(66.67);
+  });
 });

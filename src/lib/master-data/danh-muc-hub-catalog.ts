@@ -58,18 +58,8 @@ export const DANH_MUC_DOMAIN_BADGE: Record<DanhMucDomain, { label: string; class
 
 const DEDICATED_ROWS: Omit<DanhMucHubRow, "stats">[] = [
   {
-    id: "dung-cu-loai",
-    name: "Loại dụng cụ",
-    path: quanTriDungCuHref("loai"),
-    domain: "CSSD",
-    group: "cssd",
-    tier: "dedicated",
-    moduleKey: "LOAI_DC",
-    sourceTable: "cssd_dm_loai_dung_cu",
-  },
-  {
     id: "dung-cu-bo",
-    name: "Bộ dụng cụ",
+    name: "Quản lý dụng cụ",
     path: quanTriDungCuHref("bo"),
     domain: "CSSD",
     group: "cssd",
@@ -155,7 +145,6 @@ function groupForRegistryEntry(entry: RegistryEntry): DanhMucHubGroup {
 
 function statsKeyForDedicated(id: string): keyof TrungTamDanhMucStatsPayload | null {
   const map: Record<string, keyof TrungTamDanhMucStatsPayload> = {
-    "dung-cu-loai": "loai",
     "dung-cu-bo": "bo",
     tb: "tb",
     hc: "hc",
@@ -198,7 +187,7 @@ export function getAllDanhMucHubRows(options: {
         {
           id: "tk",
           name: "Tài khoản và vai trò KSNK",
-          path: "/quan-tri-he-thong/tai-khoan-nhan-su",
+          path: "/quan-tri-he-thong/nhan-su",
           domain: "RBAC",
           group: "he-thong",
           tier: "dedicated",

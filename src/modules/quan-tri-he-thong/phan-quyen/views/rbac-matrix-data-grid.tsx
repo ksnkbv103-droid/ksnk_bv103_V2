@@ -102,7 +102,7 @@ export function RBACMatrixDataGrid({
                 const headerLabel = RBAC_MATRIX_ROLE_HEADER_LABEL[key] ?? role.name;
                 return (
                 <th key={role.id} className="p-3 text-center min-w-[200px] border-r border-slate-200 last:border-r-0 align-top">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider leading-snug text-slate-700">{headerLabel}</p>
+                  <p className="text-[11px] font-semibold leading-snug text-slate-700">{headerLabel}</p>
                   <p className={`mt-0.5 ${bv103DesignTokens.metaMono}`}>{role.name}</p>
                   <div className="mt-2 flex justify-center gap-2.5">
                     {actions.map((a) => (

@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { X, Loader2, Save } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import BoDungCuTextField from "../dung-cu/bo-dung-cu-form-field";
 import type { KhoaPhongRow } from "../actions/khoa-phong.types";
 import { saveKhoaPhongAction } from "../actions/khoa-phong.actions";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
+import QuanTriFormDialogShell from "../../components/QuanTriFormDialogShell";
 
 function mapForm(row: KhoaPhongRow | null) {
   return {
@@ -53,11 +54,9 @@ export default function KhoaPhongFormModal({
     if (!searchTerm.trim()) return khuVucOptions;
     const s = searchTerm.toLowerCase();
     return khuVucOptions.filter(
-      (o) => o.ten.toLowerCase().includes(s) || o.ma.toLowerCase().includes(s)
+      (o) => o.ten.toLowerCase().includes(s) || o.ma.toLowerCase().includes(s),
     );
   }, [khuVucOptions, searchTerm]);
-
-  if (!open) return null;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,132 +78,171 @@ export default function KhoaPhongFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 touch-manipulation pointer-events-auto">
-      <form onSubmit={submit} className="bg-white w-full max-w-xl rounded-[var(--radius-shell)] p-8 space-y-[var(--bv103-space-3)] shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)] max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-start gap-4">
-          <h3 className={C.modalTitleLight}>
-            {isEdit ? "Cập nhật khoa phòng" : "Thêm khoa phòng"}
-          </h3>
-          <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-red-600 rounded-xl -mr-2">
-            <X size={22} />
+    <QuanTriFormDialogShell
+      open={open}
+      onClose={onClose}
+      title={isEdit ? "Cập nhật khoa phòng" : "Thêm khoa phòng"}
+      subtitle="Mã khoa, khối, CDC location và khu vực đặc thù."
+      size="md"
+      onSubmit={submit}
+      footer={
+        <>
+          <button type="button" onClick={onClose} className={`${C.ctaSecondary} flex-1 ${C.modalFooterBtn}`} disabled={loading}>
+            Hủy
           </button>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <BoDungCuTextField label="Mã khoa" required disabled={isEdit} value={form.ma_danh_muc} onChange={(v) => setForm({ ...form, ma_danh_muc: v.toUpperCase() })} />
-          <BoDungCuTextField label="Tên khoa phòng" required value={form.ten_danh_muc} onChange={(v) => setForm({ ...form, ten_danh_muc: v })} />
-        </div>
-        <div className="space-y-1">
-          <label className="text-[11px] font-medium text-slate-400 ml-1">Khối khoa</label>
-          <select
-            value={form.khoi_id}
-            onChange={(e) => setForm({ ...form, khoi_id: e.target.value })}
-            className={C.controlInput}
-          >
-            <option value="">— Chọn khối —</option>
-            {khoiOptions.map((o) => (
-              <option key={o.id} value={o.id}>{o.ten_danh_muc}</option>
-            ))}
-          </select>
-        </div>
+          <button type="submit" disabled={loading} className={`${C.ctaPrimary} flex-[2] ${C.modalFooterBtn}`}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {loading ? "Đang lưu…" : "Lưu"}
+          </button>
+        </>
+      }
+    >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <BoDungCuTextField
-          label="Mã CDC Location (NHSN)"
-          value={form.cdc_location_code}
-          onChange={(v) => setForm({ ...form, cdc_location_code: v.toUpperCase() })}
+          label="Mã khoa"
+          required
+          disabled={isEdit}
+          value={form.ma_danh_muc}
+          onChange={(v) => setForm({ ...form, ma_danh_muc: v.toUpperCase() })}
         />
-        <p className="-mt-2 text-[11px] text-slate-500">
-          Gắn khoa viện với mã CDC (ví dụ IN:ICU). Trống = chưa map. SIR trên NKBV vẫn là số thô cho đến khi map đủ.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <BoDungCuTextField label="Số bác sĩ" type="number" value={String(form.so_bac_si)} onChange={(v) => setForm({ ...form, so_bac_si: Number(v || 0) })} />
-          <BoDungCuTextField label="Số điều dưỡng" type="number" value={String(form.so_dieu_duong)} onChange={(v) => setForm({ ...form, so_dieu_duong: Number(v || 0) })} />
-          <BoDungCuTextField label="Số giường bệnh thường" type="number" value={String(form.so_giuong_benh_thuong)} onChange={(v) => setForm({ ...form, so_giuong_benh_thuong: Number(v || 0) })} />
-          <BoDungCuTextField label="Số giường cấp cứu" type="number" value={String(form.so_giuong_cap_cuu)} onChange={(v) => setForm({ ...form, so_giuong_cap_cuu: Number(v || 0) })} />
-        </div>
-        
-        {/* Khu vực đặc thù (Chức năng phòng) */}
-        <div className="space-y-2 border-2 border-slate-100 rounded-xl p-4 bg-slate-50/50">
-          <div className="flex justify-between items-center">
-            <label className="text-[11px] font-medium text-slate-500 ml-1">
-              Khu vực đặc thù (Chức năng phòng)
-            </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setForm({ ...form, allowed_khu_vucs: khuVucOptions.map(o => o.ma) })}
-                className="bv103-type-label font-semibold text-[var(--primary)] hover:underline"
-              >
-                Chọn tất cả
-              </button>
-              <span className="text-slate-300 text-[11px]">|</span>
-              <button
-                type="button"
-                onClick={() => setForm({ ...form, allowed_khu_vucs: [] })}
-                className="bv103-type-label font-semibold text-red-600 hover:underline"
-              >
-                Bỏ chọn tất cả
-              </button>
-            </div>
-          </div>
-          
-          <input
-            type="text"
-            placeholder="Tìm nhanh khu vực..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full h-9 bg-white border border-slate-200 rounded-lg px-3 text-xs font-medium focus:outline-none focus:border-[var(--primary)] mb-2"
-          />
+        <BoDungCuTextField
+          label="Tên khoa phòng"
+          required
+          value={form.ten_danh_muc}
+          onChange={(v) => setForm({ ...form, ten_danh_muc: v })}
+        />
+      </div>
+      <div className="space-y-1">
+        <label className="ml-1 text-[11px] font-medium text-slate-400">Khối khoa</label>
+        <select
+          value={form.khoi_id}
+          onChange={(e) => setForm({ ...form, khoi_id: e.target.value })}
+          className={C.controlInput}
+        >
+          <option value="">— Chọn khối —</option>
+          {khoiOptions.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.ten_danh_muc}
+            </option>
+          ))}
+        </select>
+      </div>
+      <BoDungCuTextField
+        label="Mã CDC Location (NHSN)"
+        value={form.cdc_location_code}
+        onChange={(v) => setForm({ ...form, cdc_location_code: v.toUpperCase() })}
+      />
+      <p className="-mt-2 text-[11px] text-slate-500">
+        Gắn khoa viện với mã CDC (ví dụ IN:ICU). Trống = chưa map. SIR trên NKBV vẫn là số thô cho đến khi map đủ.
+      </p>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <BoDungCuTextField
+          label="Số bác sĩ"
+          type="number"
+          value={String(form.so_bac_si)}
+          onChange={(v) => setForm({ ...form, so_bac_si: Number(v || 0) })}
+        />
+        <BoDungCuTextField
+          label="Số điều dưỡng"
+          type="number"
+          value={String(form.so_dieu_duong)}
+          onChange={(v) => setForm({ ...form, so_dieu_duong: Number(v || 0) })}
+        />
+        <BoDungCuTextField
+          label="Số giường bệnh thường"
+          type="number"
+          value={String(form.so_giuong_benh_thuong)}
+          onChange={(v) => setForm({ ...form, so_giuong_benh_thuong: Number(v || 0) })}
+        />
+        <BoDungCuTextField
+          label="Số giường cấp cứu"
+          type="number"
+          value={String(form.so_giuong_cap_cuu)}
+          onChange={(v) => setForm({ ...form, so_giuong_cap_cuu: Number(v || 0) })}
+        />
+      </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1 border border-slate-100 rounded-lg p-2 bg-white">
-            {filteredKhuVucOptions.length === 0 ? (
-              <span className="text-xs text-slate-400 p-2 col-span-2 text-center">Không tìm thấy khu vực</span>
-            ) : (
-              filteredKhuVucOptions.map((o) => {
-                const checked = form.allowed_khu_vucs.includes(o.ma);
-                return (
-                  <label
-                    key={o.id}
-                    className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs font-semibold cursor-pointer transition-all duration-200 ${
-                      checked
-                        ? "border-[var(--primary)]/30 bg-[var(--primary)]/5 text-[var(--primary)]"
-                        : "border-slate-100 bg-slate-50 hover:bg-slate-100 text-slate-700"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(e) => {
-                        const next = e.target.checked
-                          ? [...form.allowed_khu_vucs, o.ma]
-                          : form.allowed_khu_vucs.filter((x) => x !== o.ma);
-                        setForm({ ...form, allowed_khu_vucs: next });
-                      }}
-                      className="rounded text-[var(--primary)] focus:ring-[var(--primary)] border-slate-300 h-4.5 w-4.5"
-                    />
-                    <div className="flex flex-col min-w-0">
-                      <span className="truncate">{o.ten}</span>
-                      <span className="text-[11px] text-slate-400 font-mono font-normal">{o.ma}</span>
-                    </div>
-                  </label>
-                );
-              })
-            )}
+      <div className="space-y-2 rounded-xl border-2 border-slate-100 bg-slate-50/50 p-4">
+        <div className="flex items-center justify-between">
+          <label className="ml-1 text-[11px] font-medium text-slate-500">Khu vực đặc thù (Chức năng phòng)</label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, allowed_khu_vucs: khuVucOptions.map((o) => o.ma) })}
+              className="bv103-type-label font-semibold text-[var(--primary)] hover:underline"
+            >
+              Chọn tất cả
+            </button>
+            <span className="text-[11px] text-slate-300">|</span>
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, allowed_khu_vucs: [] })}
+              className="bv103-type-label font-semibold text-red-600 hover:underline"
+            >
+              Bỏ chọn tất cả
+            </button>
           </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-[11px] font-medium text-slate-400 ml-1">Mô tả chức năng khoa</label>
-          <textarea
-            value={form.mo_ta_chuc_nang}
-            onChange={(e) => setForm({ ...form, mo_ta_chuc_nang: e.target.value })}
-            rows={2}
-            className={C.textareaCompact}
-          />
+        <input
+          type="text"
+          placeholder="Tìm nhanh khu vực..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="mb-2 h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs font-medium focus:border-[var(--primary)] focus:outline-none"
+        />
+
+        <div className="grid max-h-40 grid-cols-1 gap-2 overflow-y-auto rounded-lg border border-slate-100 bg-white p-2 pr-1 sm:grid-cols-2">
+          {filteredKhuVucOptions.length === 0 ? (
+            <span className="col-span-2 p-2 text-center text-xs text-slate-400">Không tìm thấy khu vực</span>
+          ) : (
+            filteredKhuVucOptions.map((o) => {
+              const checked = form.allowed_khu_vucs.includes(o.ma);
+              return (
+                <label
+                  key={o.id}
+                  className={`flex cursor-pointer items-center gap-2.5 rounded-lg border p-2 text-xs font-semibold transition-all duration-200 ${
+                    checked
+                      ? "border-[var(--primary)]/30 bg-[var(--primary)]/5 text-[var(--primary)]"
+                      : "border-slate-100 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={(e) => {
+                      const next = e.target.checked
+                        ? [...form.allowed_khu_vucs, o.ma]
+                        : form.allowed_khu_vucs.filter((x) => x !== o.ma);
+                      setForm({ ...form, allowed_khu_vucs: next });
+                    }}
+                    className="h-4.5 w-4.5 rounded border-slate-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+                  />
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate">{o.ten}</span>
+                    <span className="font-mono text-[11px] font-normal text-slate-400">{o.ma}</span>
+                  </div>
+                </label>
+              );
+            })
+          )}
         </div>
-        <MdmFormActiveToggleRow active={form.is_active} onChange={(next) => setForm({ ...form, is_active: next })} footnote="Khi Tắt, khoa/phòng thường không còn trong lựa chọn mặc định và báo cáo tổng hợp." />
-        <button type="submit" disabled={loading} className={`w-full ${C.btnPrimaryBlock} disabled:opacity-60`}>
-          {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Lưu
-        </button>
-      </form>
-    </div>
+      </div>
+
+      <div className="space-y-1">
+        <label className="ml-1 text-[11px] font-medium text-slate-400">Mô tả chức năng khoa</label>
+        <textarea
+          value={form.mo_ta_chuc_nang}
+          onChange={(e) => setForm({ ...form, mo_ta_chuc_nang: e.target.value })}
+          rows={2}
+          className={C.textareaCompact}
+        />
+      </div>
+      <MdmFormActiveToggleRow
+        active={form.is_active}
+        onChange={(next) => setForm({ ...form, is_active: next })}
+        footnote="Khi Tắt, khoa/phòng thường không còn trong lựa chọn mặc định và báo cáo tổng hợp."
+      />
+    </QuanTriFormDialogShell>
   );
 }
