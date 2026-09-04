@@ -110,7 +110,7 @@ export default function MeTietKhuanProcessScanPanel({
         })}
         {items.length === 0 && (
           <div className="flex h-full items-center justify-center opacity-50">
-            <p className="text-xs font-semibold uppercase tracking-wide">Chưa có dụng cụ trong phiếu</p>
+            <p className="text-xs font-semibold">Chưa có dụng cụ trong phiếu</p>
           </div>
         )}
       </div>

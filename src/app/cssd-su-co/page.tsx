@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import { CssdSuCoPage } from "@/modules/cssd-su-co/contexts/su-co/entrypoint";
 
 export const metadata = {
-  title: "Ghi nhận sự cố CSSD | KSNK 103",
-  description: "Báo cáo sự cố quy trình vô khuẩn — rollback theo chính sách BV103.",
+  title: "Sự cố an toàn & biến động dụng cụ | KSNK 103",
+  description: "Sự cố an toàn (QT/HC/máy) và 3 cửa biến động dụng cụ — Đổi danh mục · Hỏng/Mất · Chuyển.",
 };
 
 export default function Page() {
@@ -11,7 +11,7 @@ export default function Page() {
     <Suspense
       fallback={
         <div className="flex min-h-[40vh] items-center justify-center text-sm text-slate-500">
-          Đang tải form sự cố…
+          Đang tải form…
         </div>
       }
     >

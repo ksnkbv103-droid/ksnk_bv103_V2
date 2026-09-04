@@ -8,7 +8,7 @@
 | UI layout / shell | [`wiki/concepts.md`](../wiki/concepts.md#layout-primitives) · [`page-chrome-contract-20260731.md`](../reference/architecture/page-chrome-contract-20260731.md) khi đụng shell/chrome | [`engineering-guidelines.md`](engineering-guidelines.md) §2 |
 | Server Action / `fact_*` | [`operations-sop.md`](operations-sop.md) § Auth/RLS | `verify:engineering` |
 | Migration / RPC / view | [`operations-sop.md`](operations-sop.md) § DB + [`governance-pipeline.md`](governance-pipeline.md) | `51-database-migration-rules.mdc` |
-| CSSD workflow / QR / mẻ | [`domain-specification.md`](domain-specification.md) §2.2 + [`modules/cssd/domain-overview.md`](../modules/cssd/domain-overview.md) + mapping § CSSD | [`modules/cssd/README.md`](../modules/cssd/README.md) · `12-cssd-erp-spec-context.mdc` |
+| CSSD workflow / QR / mẻ / dụng cụ | [`domain-specification.md`](domain-specification.md) §2.2 + [`modules/cssd/domain-overview.md`](../modules/cssd/domain-overview.md) + mapping § CSSD · quyết định Phase 0 [`domain-decisions-cssd-instrument.md`](domain-decisions-cssd-instrument.md) | [`modules/cssd/README.md`](../modules/cssd/README.md) · `12-cssd-erp-spec-context.mdc` |
 | MDM / danh mục / import | [`domain-specification.md`](domain-specification.md) (MDM) + `20-master-data-placement.mdc` | [`modules/mdm/README.md`](../modules/mdm/README.md) · [`reference/guides/json-import-export.md`](../reference/guides/json-import-export.md) |
 | Giám sát VST/GSC | [`domain-specification.md`](domain-specification.md) (Giám sát) | [`modules/giam-sat/README.md`](../modules/giam-sat/README.md) · `13-giam-sat-spec-context.mdc` |
 | NKBV | [`modules/nkbv/README.md`](../modules/nkbv/README.md) | `17-nkbv-spec-context.mdc` |

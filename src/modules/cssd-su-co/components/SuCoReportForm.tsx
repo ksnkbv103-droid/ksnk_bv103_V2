@@ -21,6 +21,7 @@ import {
   groupTypeDefaults,
   instrumentFormTypeOptions,
   isBatchLinkedTypeId,
+  resolveInstrumentFormSubmitTypeId,
   type IncidentGroup,
 } from "../domain/cssd-incident-taxonomy";
 import {
@@ -31,13 +32,21 @@ import {
 import { isInstrumentIncidentImageRequired } from "../domain/cssd-incident-trace";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import InstrumentSetReconcileTable, { type SetReconcileFormState } from "./InstrumentSetReconcileTable";
-import { INSTRUMENT_MOVE_TYPE_ID, resolveInstrumentMoveSubmitTypeId, validateInstrumentDoorLines, type CanKhoPrefill } from "@/lib/domain/cssd-set-reconcile";
+import {
+  INSTRUMENT_MOVE_TYPE_ID,
+  INSTRUMENT_PHYSICAL_DOOR_ID,
+  SET_RECONCILE_TYPE_ID,
+  resolveInstrumentMoveSubmitTypeId,
+  validateInstrumentDoorLines,
+} from "@/lib/domain/cssd-set-reconcile";
 import InstrumentMoveDualTable from "./InstrumentMoveDualTable";
 import SuCoIncidentMetaFields, {
   defaultDetectionDateTimeLocal,
   type SuCoIncidentMetaState,
 } from "./SuCoIncidentMetaFields";
 import {
+  BatchRecallEntryBanner,
+  BatchRecallReasonPicker,
   BoSourceFields,
   ChemicalContextFields,
   EquipmentContextFields,
@@ -50,6 +59,11 @@ import {
   TypePicker,
   type BoCatalogOption,
 } from "./SuCoReportFormFields";
+import {
+  batchRecallReasonFromTypeId,
+  resolveBatchRecallReason,
+  type BatchRecallReasonCode,
+} from "../domain/cssd-batch-recall";
 
 export type SuCoReportFormProps = {
   initialStation: Station;
@@ -61,6 +75,8 @@ export type SuCoReportFormProps = {
   quyTrinhId?: string | null;
   initialMaLo?: string;
   initialLoTietKhuanId?: string;
+  /** QT.24 entry rõ: thu hồi theo mẻ (không lẫn 3 cửa dụng cụ). */
+  batchRecallEntry?: boolean;
   allowStationOverride?: boolean;
   enabled: boolean;
   onSubmitted?: (incidentId?: string) => void;
@@ -88,6 +104,7 @@ export default function SuCoReportForm({
   quyTrinhId,
   initialMaLo,
   initialLoTietKhuanId,
+  batchRecallEntry = false,
   allowStationOverride = false,
   enabled,
   onSubmitted,
@@ -108,8 +125,6 @@ export default function SuCoReportForm({
   const [setReconcileState, setSetReconcileState] = useState<SetReconcileFormState | null>(null);
   const [destMa, setDestMa] = useState("");
   const [moveUsesKho, setMoveUsesKho] = useState(true);
-  const [canKhoPrefill, setCanKhoPrefill] = useState<CanKhoPrefill | null>(null);
-  const consumeCanKhoPrefill = useCallback(() => setCanKhoPrefill(null), []);
   const [typeId, setTypeId] = useState(
     initialGroup === "INSTRUMENT"
       ? coerceInstrumentFormTypeId(initialTypeId)
@@ -118,7 +133,7 @@ export default function SuCoReportForm({
   const [typeTen, setTypeTen] = useState(() => {
     if (initialGroup === "INSTRUMENT") {
       const coerced = coerceInstrumentFormTypeId(initialTypeId);
-      return INCIDENT_TYPE_PRESETS.INSTRUMENT.find((x) => x.code === coerced)?.label || "Rà soát / hỏng / mất";
+      return INCIDENT_TYPE_PRESETS.INSTRUMENT.find((x) => x.code === coerced)?.label || "Đổi danh mục";
     }
     return (
       INCIDENT_TYPE_PRESETS.PROCESS.find((x) => x.code === initialTypeId)?.label ||
@@ -131,6 +146,9 @@ export default function SuCoReportForm({
   const [machineId, setMachineId] = useState("");
   const [maLo, setMaLo] = useState(initialMaLo || "");
   const [loTietKhuanId, setLoTietKhuanId] = useState(initialLoTietKhuanId || "");
+  const [batchRecallReason, setBatchRecallReason] = useState<BatchRecallReasonCode>(() => {
+    return batchRecallReasonFromTypeId(initialTypeId) || "BI_POSITIVE";
+  });
   const [viTriPhatHien, setViTriPhatHien] = useState("");
   const [meta, setMeta] = useState<SuCoIncidentMetaState>(emptyMeta);
   const [machines, setMachines] = useState<{ id: string; ten: string }[]>([]);
@@ -153,20 +171,38 @@ export default function SuCoReportForm({
     if (initialLoTietKhuanId) setLoTietKhuanId(initialLoTietKhuanId);
   }, [enabled, initialMaQR, initialMaLo, initialLoTietKhuanId]);
 
+  useEffect(() => {
+    if (!enabled || !batchRecallEntry) return;
+    setIncidentGroup("PROCESS");
+    const reason = resolveBatchRecallReason(batchRecallReasonFromTypeId(initialTypeId) || "BI_POSITIVE");
+    setBatchRecallReason(reason.code);
+    setTypeId(reason.typeId);
+    setTypeTen(reason.typeTen);
+    if (allowStationOverride) setDetectionStation("TIET_KHUAN");
+    setFaultStation("TIET_KHUAN");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- entry lock once when opening batch-recall
+  }, [enabled, batchRecallEntry]);
+
   const activeGroupOptions = useMemo(
     () => (incidentGroup === "INSTRUMENT" ? instrumentFormTypeOptions() : INCIDENT_TYPE_PRESETS[incidentGroup]),
     [incidentGroup],
   );
   const isInstrument = incidentGroup === "INSTRUMENT";
   const isMoveDoor = isInstrument && typeId === INSTRUMENT_MOVE_TYPE_ID;
+  const isPhysicalDoor = isInstrument && typeId === INSTRUMENT_PHYSICAL_DOOR_ID;
   const isReconcileDoor = isInstrument && !isMoveDoor;
   const imageRequired =
     (isInstrument && isInstrumentIncidentImageRequired(typeId)) ||
     (isMoveDoor && moveUsesKho) ||
-    (isReconcileDoor &&
-      (setReconcileState?.lines.some((l) => l.kind === "HONG" || l.kind === "BO_SUNG") ?? false));
-  const imageHidden = (isMoveDoor && !moveUsesKho) || (isInstrument && typeId === "INSTRUMENT_MISSING");
+    (isReconcileDoor && (setReconcileState?.lines.some((l) => l.kind === "HONG") ?? false));
+  const imageHidden =
+    (isMoveDoor && !moveUsesKho) ||
+    (isPhysicalDoor && (setReconcileState?.lines.every((l) => l.kind !== "HONG") ?? true));
   const needsBoCatalog = incidentGroup === "PROCESS" || incidentGroup === "INSTRUMENT";
+  const isBatchRecallEntry =
+    batchRecallEntry ||
+    Boolean(initialLoTietKhuanId && isBatchLinkedTypeId(initialTypeId)) ||
+    (isBatchLinkedTypeId(typeId) && Boolean(initialLoTietKhuanId || initialMaLo));
 
   const { detectorOptions, relatedOptions } = useMemo(
     () =>
@@ -367,16 +403,27 @@ export default function SuCoReportForm({
     if (typeId === "PROCESS_BI_POSITIVE" && !hasBatchContext) {
       return toast.error("Sự cố BI dương tính cần mã lô mẻ tiệt khuẩn.");
     }
+    if (isBatchRecallEntry && !hasBatchContext) {
+      return toast.error("Thu hồi theo mẻ cần mã lô hoặc id mẻ tiệt khuẩn.");
+    }
     const descText =
       meta.moTa.trim() ||
       (isMoveDoor
         ? moveUsesKho
           ? "Điều chuyển dụng cụ giữa kho lẻ và bộ."
           : "Điều chuyển dụng cụ giữa hai bộ."
-        : isReconcileDoor
-          ? "Rà soát thành phần bộ dụng cụ."
-          : "");
-    if (!descText) return toast.error("Vui lòng điền mô tả chi tiết sự cố.");
+        : isPhysicalDoor
+          ? "Ghi nhận dụng cụ hỏng hoặc mất trên bộ (ghi sổ ngay)."
+          : isReconcileDoor
+            ? "Đề nghị đổi mã, tên hoặc số lượng chuẩn bộ dụng cụ."
+            : "");
+    if (!descText) {
+      return toast.error(
+        isInstrument
+          ? "Vui lòng điền mô tả chi tiết phiếu biến động."
+          : "Vui lòng điền mô tả chi tiết sự cố an toàn.",
+      );
+    }
     if (incidentGroup === "EQUIPMENT" && !machineId.trim()) {
       return toast.error("Vui lòng chọn hoặc quét máy gặp sự cố.");
     }
@@ -388,8 +435,11 @@ export default function SuCoReportForm({
     }
 
     if (incidentGroup === "INSTRUMENT") {
-      if (!setReconcileState) return toast.error("Chưa tải được bảng thành phần / kho.");
-      const lineErr = validateInstrumentDoorLines(typeId, setReconcileState.lines);
+      if (!setReconcileState) return toast.error("Chưa tải được bảng thành phần bộ.");
+      const lineErr = validateInstrumentDoorLines(
+        resolveInstrumentFormSubmitTypeId(typeId),
+        setReconcileState.lines,
+      );
       if (lineErr) return toast.error(lineErr);
     }
 
@@ -405,13 +455,17 @@ export default function SuCoReportForm({
       const submitTypeId =
         isMoveDoor && setReconcileState
           ? resolveInstrumentMoveSubmitTypeId(setReconcileState.lines) || typeId
-          : typeId;
+          : isInstrument
+            ? resolveInstrumentFormSubmitTypeId(typeId)
+            : typeId;
       const submitTypeTen =
         submitTypeId === "INSTRUMENT_TRANSFER"
           ? "Điều chuyển bộ ↔ bộ"
           : submitTypeId === "INSTRUMENT_REPLENISH"
             ? "Kho ↔ bộ"
-            : typeTen;
+            : submitTypeId === SET_RECONCILE_TYPE_ID
+              ? typeTen || (isPhysicalDoor ? "Hỏng/Mất" : "Đổi danh mục")
+              : typeTen;
 
       const payload = {
         maQR: maQR.trim() || undefined,
@@ -534,25 +588,10 @@ export default function SuCoReportForm({
     setSetReconcileState(null);
     setDestMa("");
     setMoveUsesKho(id === INSTRUMENT_MOVE_TYPE_ID);
-    setCanKhoPrefill(null);
-  };
-
-  const jumpCanKho = (prefill: CanKhoPrefill) => {
-    setTypeId(INSTRUMENT_MOVE_TYPE_ID);
-    setTypeTen("Chuyển");
-    setSetReconcileState(null);
-    setDestMa("");
-    setMoveUsesKho(true);
-    setCanKhoPrefill(prefill);
-    toast.success(
-      prefill.direction === "LAY_KHO"
-        ? "Đã điền số lấy từ kho — kiểm tra rồi lưu phiếu Chuyển."
-        : "Đã điền số trả kho — kiểm tra rồi lưu phiếu Chuyển.",
-    );
   };
 
   return (
-    <form onSubmit={handleSubmit} className={bv103LayoutChrome.sectionGap}>
+    <form onSubmit={handleSubmit} className={"bv103-stack-in"}>
       {fError ? (
         <div className="flex gap-2 text-[12px] text-red-600">
           <AlertCircle className="shrink-0" size={16} />
@@ -566,10 +605,17 @@ export default function SuCoReportForm({
           <p className="text-[11px] font-semibold">Đang tải danh mục…</p>
         </div>
       ) : (
-        <div className={bv103LayoutChrome.sectionGap}>
-          <IncidentGroupPicker incidentGroup={incidentGroup} onSelect={setIncidentGroup} />
+        <div className={"bv103-stack-in"}>
+          {isBatchRecallEntry ? (
+            <div className="flex flex-wrap items-center gap-2 border-b border-amber-200 pb-2" data-testid="batch-recall-group-lock">
+              <span className="text-[12px] font-semibold text-amber-900">An toàn QT · Thu hồi theo mẻ</span>
+              <span className="text-[11px] text-slate-500">(không mở 3 cửa biến động dụng cụ)</span>
+            </div>
+          ) : (
+            <IncidentGroupPicker incidentGroup={incidentGroup} onSelect={setIncidentGroup} />
+          )}
           <div className="flex flex-wrap items-end gap-3">
-            {incidentGroup !== "INSTRUMENT" ? (
+            {incidentGroup !== "INSTRUMENT" && !isBatchRecallEntry ? (
               <TypePicker
                 options={activeGroupOptions}
                 typeId={typeId}
@@ -590,8 +636,20 @@ export default function SuCoReportForm({
             />
           ) : null}
 
+          {incidentGroup === "PROCESS" && isBatchRecallEntry ? <BatchRecallEntryBanner /> : null}
+
           {incidentGroup === "PROCESS" ? (
             <div className="space-y-3">
+              {isBatchRecallEntry ? (
+                <BatchRecallReasonPicker
+                  reason={batchRecallReason}
+                  onChange={(code, id, ten) => {
+                    setBatchRecallReason(code);
+                    setTypeId(id);
+                    setTypeTen(ten);
+                  }}
+                />
+              ) : null}
               <BoSourceFields
                 maQR={maQR}
                 setMaQR={setMaQR}
@@ -610,6 +668,7 @@ export default function SuCoReportForm({
                   maLo={maLo}
                   setMaLo={setMaLo}
                   readOnly={Boolean(initialMaLo || initialLoTietKhuanId)}
+                  batchRecall={isBatchRecallEntry}
                 />
                 <div className="space-y-1.5">
                   <label className={bv103LayoutChrome.labelBlock}>Khâu phát sinh lỗi</label>
@@ -655,7 +714,6 @@ export default function SuCoReportForm({
                 />
               }
               onChange={setSetReconcileState}
-              onCanKho={jumpCanKho}
             />
           ) : null}
 
@@ -674,8 +732,6 @@ export default function SuCoReportForm({
               onScanDest={(code) => setDestMa(code.trim().toUpperCase())}
               onChange={setSetReconcileState}
               onUsesKho={setMoveUsesKho}
-              prefill={canKhoPrefill}
-              onPrefillConsumed={consumeCanKhoPrefill}
             />
           ) : null}
 

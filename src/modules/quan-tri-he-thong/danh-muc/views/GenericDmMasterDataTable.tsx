@@ -36,6 +36,8 @@ export default function GenericDmMasterDataTable({
         columns={columns}
         data={rows}
         loading={loading}
+        bodyMaxHeight="max-h-[min(58dvh,560px)]"
+        emptyMessage="Chưa có dòng trong danh mục."
         onRowClick={onRowClick}
         searchPlaceholder="Tìm mã hoặc tên…"
         searchValue={listSearch}

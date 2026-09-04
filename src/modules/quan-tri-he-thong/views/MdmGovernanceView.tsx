@@ -24,6 +24,7 @@ import {
 } from "../danh-muc/actions/mdm-governance.actions";
 import type { MdmFieldRegistryRow, MdmSuggestionRow, MdmCoverageRow } from "@/lib/master-data/governance";
 import MdmSuggestionApproveModal from "../components/MdmSuggestionApproveModal";
+import RbacItDangerActions from "../phan-quyen/views/RbacItDangerActions";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
 import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
@@ -169,7 +170,7 @@ export default function MdmGovernanceView() {
       header: "Vai trò trường",
       accessorKey: "field_role",
       cell: (r) => (
-        <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wide bg-slate-100 text-slate-600">
+        <span className="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600">
           {r.field_role}
         </span>
       )
@@ -203,7 +204,7 @@ export default function MdmGovernanceView() {
           title={r.is_active ? "Trigger đang BẬT. Click để TẮT" : "Trigger đang TẮT. Click để BẬT"}
         >
           {r.is_active ? (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-600">
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
               <ToggleRight className="w-6 h-6" /> ACTIVE
             </span>
           ) : (
@@ -244,6 +245,8 @@ export default function MdmGovernanceView() {
   return (
     <div className={`${bv103DesignTokens.pageOuter} text-sm`}>
       <KsnkPageHeader title="Bảo vệ liên kết dữ liệu" />
+
+      <RbacItDangerActions />
 
       <p className={`${bv103LayoutChrome.noticeAmber} mb-4`} role="note">
         IT — sau duyệt mapping: <code className="rounded bg-white/80 px-1 text-[11px]">npm run mdm:refresh</code>

@@ -5,6 +5,7 @@ import type { Station } from "../types/cssd.types";
 import { revalidateCssdWorkflowSurfaces } from "./cssd-action-common";
 import { executeWorkflowStationScan } from "../workflow/application/cssd-workflow-application";
 import { assertLedgerDuChoCapPhat } from "../workflow/application/cssd-asset-ledger";
+import { assertPackIssuable } from "@/lib/domain/cssd-pack-issuance";
 import { isRejectedLegacyHexBoQr, isCssdUnifiedBoMa } from "@/lib/domain/cssd-bo-ma";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
 import { bootstrapCssdQuyTrinhFromMaBo } from "../shared/application/cssd-bo-bootstrap";
@@ -63,6 +64,16 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
 
   /** Bộ đã ở kho sạch (CAP_PHAT): quét lại = xác nhận cấp phát + in phiếu, ghi audit người/giờ cấp phát. */
   if (station === "CAP_PHAT" && preRow?.id && String(preRow.ma_trang_thai_hien_tai || "") === "CAP_PHAT") {
+    const packGate = assertPackIssuable({
+      han_su_dung: preRow.han_su_dung as string | null | undefined,
+      ngay_het_han: preRow.ngay_het_han as string | null | undefined,
+      tinh_trang: preRow.tinh_trang as string | null | undefined,
+      is_red_alert: Boolean(preRow.is_red_alert),
+      is_dong_bang: Boolean(preRow.is_dong_bang),
+    });
+    if (!packGate.ok) {
+      throw new Error(packGate.message);
+    }
     const uc = await createServerSupabaseUserClient();
     const { data: authData } = await uc.auth.getUser();
     const operatorId = await resolveCssdOperatorNhanSuId(supabase, {

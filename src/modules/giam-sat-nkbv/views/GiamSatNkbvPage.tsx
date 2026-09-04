@@ -4,9 +4,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BarChart3, LayoutList, Plus, Trash2, FileSpreadsheet, Activity, HeartPulse } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
 import { bv103DefaultTuNgayFromToday } from "@/lib/bv103-analytics-default-range";
-import { formatDateVi } from "@/lib/format-datetime-vi";
+import { formatDateVi, todayYmdInVn } from "@/lib/format-datetime-vi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import {
   KsnkSupervisionHero,
@@ -130,7 +129,7 @@ export default function GiamSatNkbvPage() {
   const [checklistCase, setChecklistCase] = useState<NkbvTableRow | null>(null);
   const [mainTab, setMainTab] = useState<NkbvMainTab>("cases");
   const [dashTu, setDashTu] = useState(() => bv103DefaultTuNgayFromToday());
-  const [dashDen, setDashDen] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [dashDen, setDashDen] = useState(() => todayYmdInVn());
   const [dashPayload, setDashPayload] = useState<NkbvDashboardPayload | null>(null);
   const [dashLoading, setDashLoading] = useState(false);
   const [hubBa, setHubBa] = useState<string | null>(null);

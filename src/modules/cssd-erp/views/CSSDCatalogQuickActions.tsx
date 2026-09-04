@@ -19,9 +19,9 @@ export function CSSDCatalogQuickActions({
         href={suCoHref}
         className="text-[11px] font-semibold text-amber-800 hover:underline"
       >
-        Báo sự cố bộ này
+        Đề nghị đổi danh mục
       </Link>
-      <p className="text-[11px] text-slate-500">Một phiếu cho cả bộ — điền bảng thành phần, gửi một lần.</p>
+      <p className="text-[11px] text-slate-500">Cửa Đổi danh mục — đề nghị chờ duyệt (không CRUD tại RO).</p>
     </div>
   );
 }

@@ -113,13 +113,15 @@ export default function LoginPage() {
             <p className={T.authSubtitle}>Đăng nhập hệ thống</p>
           </div>
 
-          <div className="rounded-xl border border-violet-100 bg-violet-50/60 px-4 py-3 text-xs leading-relaxed text-violet-900">
-            <p className="font-semibold">Xem thống kê (khách)</p>
-            <p className="mt-1 text-violet-800/90">
-              Email: <span className="font-mono">chuyennghiephieuqua@bv103</span> — chỉ xem Thống kê VST/GSC, không
-              chỉnh sửa dữ liệu.
-            </p>
-          </div>
+          {process.env.NODE_ENV !== "production" ? (
+            <div className="mb-4 rounded-xl border border-violet-100 bg-violet-50/60 px-4 py-3 text-xs leading-relaxed text-violet-900">
+              <p className="font-semibold">Xem thống kê (khách) — staging</p>
+              <p className="mt-1 text-violet-800/90">
+                Email: <span className="font-mono">chuyennghiephieuqua@bv103</span> — chỉ xem Thống kê VST/GSC, không
+                chỉnh sửa dữ liệu.
+              </p>
+            </div>
+          ) : null}
 
           <form id="ksnk-login-form" onSubmit={handleLogin} className="space-y-[var(--bv103-space-3)]">
             <div>

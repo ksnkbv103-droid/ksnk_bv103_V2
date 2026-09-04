@@ -1,6 +1,7 @@
 "use server";
 
 import { createServerSupabaseUserClient, createAdminSupabaseClient } from "@/lib/supabase-server";
+import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import { verifyAnyPermission, verifyPermission } from "@/lib/server-permission";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
@@ -705,7 +706,7 @@ export async function getNkbvBenhAnHub(maBenhAn: string) {
     }))
     .filter((r) => r.ngay_lich && (r.loai_dung_cu === "CVC" || r.loai_dung_cu === "VENT" || r.loai_dung_cu === "FOLEY"));
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayYmdInVn();
   const hasActiveVent = deviceDays.some((d) => d.loai_dung_cu === "VENT" && d.ngay_lich >= today);
 
   const timeline = mergeBaTimelineMilestones({

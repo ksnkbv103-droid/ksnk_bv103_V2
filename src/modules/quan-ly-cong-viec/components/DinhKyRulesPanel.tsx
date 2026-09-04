@@ -277,7 +277,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan }: Props) 
 
       <form onSubmit={submit} className="grid grid-cols-1 gap-4 border-b border-slate-100 py-5 md:grid-cols-2">
         <div className="md:col-span-2 flex flex-wrap items-center justify-between gap-2">
-          <p className={bv103LayoutChrome.panelTitle}>
+          <p className={bv103LayoutChrome.sectionTitle}>
             {editingId ? "Sửa mẫu định kỳ" : "Thêm mẫu định kỳ"}
           </p>
           {editingId ? (

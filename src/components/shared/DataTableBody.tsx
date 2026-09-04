@@ -15,6 +15,8 @@ interface DataTableBodyProps<T> {
   onRowClick?: (item: T) => void;
   toggleSelectRow: (id: string | number) => void;
   rowClassName?: (item: T) => string;
+  /** Opt-in CSS content-visibility windowing-lite (see AdvancedDataTable). */
+  contentVisibilityRows?: boolean;
 }
 
 /**
@@ -30,7 +32,8 @@ export default function DataTableBody<T extends { id?: string | number }>({
   selectedIds, 
   onRowClick, 
   toggleSelectRow, 
-  rowClassName
+  rowClassName,
+  contentVisibilityRows = false,
 }: DataTableBodyProps<T>) {
   
   // Hàm tìm key an toàn: Ưu tiên id, sau đó là bất kỳ thuộc tính nào bắt đầu bằng 'ma_', cuối cùng là index
@@ -72,7 +75,7 @@ export default function DataTableBody<T extends { id?: string | number }>({
     );
   }
 
-  const cvLarge = data.length > 72;
+  const cvLarge = contentVisibilityRows ? data.length > 0 : data.length > 72;
 
   return (
     <>

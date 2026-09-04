@@ -2,7 +2,7 @@
 
 /** CSSD vận hành catalog (read-only); CRUD: `/quan-tri-he-thong/danh-muc/dung-cu`. */
 import Link from "next/link";
-import { History, Layers, AppWindow } from "lucide-react";
+import { History, Layers } from "lucide-react";
 import {
   useCssdCatalogPage,
   CSSDCatalogBoTab,
@@ -16,7 +16,8 @@ import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
 import QrScanInput from "@/components/shared/QrScanInput";
 import { CssdQrLabelKindsNotice } from "@/modules/cssd-erp/components/catalog/CssdQrLabelKindsNotice";
-import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
+import { cssdSuCoInstrumentHref } from "@/lib/cssd-routes";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 const TEXT_ACTION = "text-[11px] font-semibold text-[var(--primary)] hover:underline";
 const SEARCH_INPUT =
@@ -27,7 +28,6 @@ const SEARCH_CAMERA =
 export default function Page() {
   const s = useCssdCatalogPage();
   const isCatalogTab = s.tab === "BO" || s.tab === "LOAI";
-  const adminFocus = s.tab === "LOAI" ? "loai" : "bo";
 
   const catalogToolbar = (
     <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
@@ -43,8 +43,11 @@ export default function Page() {
         cameraClassName={SEARCH_CAMERA}
       />
       <div className="flex shrink-0 flex-wrap items-center gap-x-3">
-        <Link href={quanTriDungCuHref(adminFocus)} className={TEXT_ACTION}>
-          Sửa danh mục
+        <Link
+          href={cssdSuCoInstrumentHref({ type: "INSTRUMENT_SET_RECONCILE" })}
+          className={TEXT_ACTION}
+        >
+          Đề nghị đổi danh mục
         </Link>
         {s.tab === "BO" ? <SetReconcileCampaignPanel /> : null}
         <CssdQrLabelKindsNotice />
@@ -56,37 +59,52 @@ export default function Page() {
     <CSSDPageShell title="Dụng cụ CSSD">
       <div className="space-y-3">
         <div className={CSSD_UI_TAB_GROUP}>
-          <CssdHorizTabButton active={s.tab === "BO"} onClick={() => s.setTab("BO")} icon={Layers} label="Bộ dụng cụ" mobileLabel="Bộ" />
-          <CssdHorizTabButton active={s.tab === "LOAI"} onClick={() => s.setTab("LOAI")} icon={AppWindow} label="Loại dụng cụ" mobileLabel="Loại" />
+          <CssdHorizTabButton active={s.tab === "BO" || s.tab === "LOAI"} onClick={() => s.setTab("BO")} icon={Layers} label="Bộ dụng cụ" mobileLabel="Bộ" />
           <CssdHorizTabButton active={s.tab === "HISTORY"} onClick={() => s.setTab("HISTORY")} icon={History} label="Lịch sử luân chuyển" mobileLabel="Lịch sử" />
         </div>
 
         {s.loading && isCatalogTab ? (
           <p className="px-2.5 py-3 text-[11px] text-slate-500">Đang tải danh mục…</p>
         ) : s.tab === "BO" ? (
-          <div className="space-y-3">
+          <div className="space-y-2">
             <CSSDCatalogBoTab
               boRows={s.boRows}
               selectedBoId={s.selectedBoId}
               setSelectedBoId={s.setSelectedBoId}
               toolbar={catalogToolbar}
             />
-            {s.selectedBoId ? (
-              <SetCompositionCard boDungCuId={s.selectedBoId} />
-            ) : (
+            {!s.selectedBoId ? (
               <p className="px-2.5 text-[11px] text-slate-500">Chọn một bộ để xem thành phần.</p>
-            )}
+            ) : null}
+            <Dialog
+              open={Boolean(s.selectedBoId)}
+              onOpenChange={(open) => {
+                if (!open) s.setSelectedBoId(null);
+              }}
+            >
+              <DialogContent className="max-w-3xl sm:max-w-4xl max-h-[min(90dvh,880px)] overflow-y-auto">
+                <DialogTitle className="sr-only">Thành phần bộ dụng cụ</DialogTitle>
+                {s.selectedBoId ? (
+                  <SetCompositionCard boDungCuId={s.selectedBoId} />
+                ) : null}
+              </DialogContent>
+            </Dialog>
           </div>
         ) : s.tab === "LOAI" ? (
-          <CSSDCatalogLoaiTab
-            catalog={s.catalog}
-            loaiRows={s.loaiRows}
-            selectedLoaiId={s.selectedLoaiId}
-            setSelectedLoaiId={s.setSelectedLoaiId}
-            selectedLoai={s.selectedLoai}
-            boBySelectedLoai={s.boBySelectedLoai}
-            toolbar={catalogToolbar}
-          />
+          <div className="space-y-2">
+            <button type="button" onClick={() => s.setTab("BO")} className="text-[11px] font-semibold text-slate-500">
+              ← Về danh sách bộ
+            </button>
+            <CSSDCatalogLoaiTab
+              catalog={s.catalog}
+              loaiRows={s.loaiRows}
+              selectedLoaiId={s.selectedLoaiId}
+              setSelectedLoaiId={s.setSelectedLoaiId}
+              selectedLoai={s.selectedLoai}
+              boBySelectedLoai={s.boBySelectedLoai}
+              toolbar={catalogToolbar}
+            />
+          </div>
         ) : (
           <InventoryHistoryTable />
         )}

@@ -4,12 +4,18 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { FileBarChart, ExternalLink, Zap } from "lucide-react";
+import { FileBarChart, ExternalLink, Zap, Undo2 } from "lucide-react";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
-import { CSSD_ROUTES, cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
+import { CSSD_ROUTES, cssdSuCoBatchRecallHref, cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
-import { INCIDENT_TYPE_PRESETS, type IncidentGroup } from "../domain/cssd-incident-taxonomy";
+import {
+  coerceInstrumentFormTypeId,
+  INCIDENT_TYPE_PRESETS,
+  LEGACY_INSTRUMENT_TYPE_IDS,
+  type IncidentGroup,
+} from "../domain/cssd-incident-taxonomy";
+import { resolveBatchRecallReason } from "../domain/cssd-batch-recall";
 import { listRecentSuCoForReporter } from "../actions/su-co-report.actions";
 import IncidentJournalPrintButton from "../components/IncidentJournalPrintButton";
 import IncidentConfirmButton from "../components/IncidentConfirmButton";
@@ -18,10 +24,9 @@ import { INCIDENT_STATUS_CONFIRMED, type IncidentPhieuStatus } from "../domain/c
 
 const INSTRUMENT_TYPES = new Set([
   "INSTRUMENT_SET_RECONCILE",
-  "INSTRUMENT_BROKEN",
-  "INSTRUMENT_MISSING",
-  "INSTRUMENT_REPLENISH",
-  "INSTRUMENT_TRANSFER",
+  "INSTRUMENT_PHYSICAL",
+  "INSTRUMENT_MOVE",
+  ...LEGACY_INSTRUMENT_TYPE_IDS,
 ]);
 
 export default function SuCoBaoCaoPage() {
@@ -40,15 +45,26 @@ export default function SuCoBaoCaoPage() {
           ? (groupRaw as IncidentGroup)
           : undefined;
     const allTypeCodes = Object.values(INCIDENT_TYPE_PRESETS).flatMap((rows) => rows.map((x) => x.code));
-    const typeId = allTypeCodes.includes(typeRaw) ? typeRaw : undefined;
+    // D4: bookmark/deep-link legacy → coerce 3 cửa; không phá mã lịch sử sổ.
+    const typeId = INSTRUMENT_TYPES.has(typeRaw)
+      ? coerceInstrumentFormTypeId(typeRaw)
+      : allTypeCodes.includes(typeRaw)
+        ? typeRaw
+        : undefined;
+    const entryRaw = String(searchParams.get("entry") || "").trim().toLowerCase();
+    const batchRecallEntry = entryRaw === "batch-recall" || entryRaw === "thu-hoi-me";
+    const recallReason = batchRecallEntry
+      ? resolveBatchRecallReason(searchParams.get("reason") || typeId)
+      : null;
     return {
-      group,
-      typeId,
+      group: batchRecallEntry ? ("PROCESS" as IncidentGroup) : group,
+      typeId: batchRecallEntry ? recallReason?.typeId || typeId : typeId,
       ma: String(searchParams.get("ma") || "").trim().toUpperCase() || undefined,
       loai: String(searchParams.get("loai") || "").trim() || undefined,
       chiTiet: String(searchParams.get("chiTiet") || "").trim() || undefined,
       maLo: String(searchParams.get("maLo") || searchParams.get("lo") || "").trim().toUpperCase() || undefined,
       loTietKhuanId: String(searchParams.get("loTietKhuanId") || "").trim() || undefined,
+      batchRecallEntry,
     };
   }, [searchParams]);
 
@@ -81,7 +97,7 @@ export default function SuCoBaoCaoPage() {
 
   if (loading) {
     return (
-      <CSSDPageShell title="Ghi nhận sự cố CSSD">
+      <CSSDPageShell title="Sự cố an toàn & biến động dụng cụ">
         <div className="flex h-[40vh] items-center justify-center text-sm text-slate-500">Đang tải…</div>
       </CSSDPageShell>
     );
@@ -89,7 +105,7 @@ export default function SuCoBaoCaoPage() {
 
   if (!allowed.view && !allowed.create) {
     return (
-      <CSSDPageShell title="Ghi nhận sự cố CSSD">
+      <CSSDPageShell title="Sự cố an toàn & biến động dụng cụ">
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-8 text-center text-sm text-amber-900">
           Bạn không có quyền module <strong>BAO_SU_CO</strong>. Liên hệ quản trị KSNK.
         </div>
@@ -101,9 +117,17 @@ export default function SuCoBaoCaoPage() {
 
   return (
     <CSSDPageShell
-      title="Ghi nhận sự cố CSSD"
+      title="Sự cố an toàn & biến động dụng cụ"
       actions={
         <div className="flex flex-wrap items-center justify-end gap-1.5">
+          <Link
+            href={cssdSuCoBatchRecallHref()}
+            className="bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-amber-300 bg-amber-50 px-2.5 text-xs font-semibold text-amber-900 hover:bg-amber-100"
+            title="Thu hồi theo mẻ — sự cố an toàn QT.24"
+          >
+            <Undo2 size={14} aria-hidden />
+            Thu hồi theo mẻ
+          </Link>
           <Link
             href={CSSD_ROUTES.quyTrinh}
             className="bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
@@ -140,6 +164,7 @@ export default function SuCoBaoCaoPage() {
             initialChiTietId={prefill.chiTiet}
             initialMaLo={prefill.maLo}
             initialLoTietKhuanId={prefill.loTietKhuanId}
+            batchRecallEntry={prefill.batchRecallEntry}
           />
         )}
         {recent.length > 0 ? (

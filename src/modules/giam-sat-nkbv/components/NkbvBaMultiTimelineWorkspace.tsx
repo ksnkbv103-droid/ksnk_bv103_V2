@@ -68,6 +68,7 @@ import {
 } from "../lib/nkbv-ba-master-columns";
 import type { DeviceCriteriaKey } from "../lib/nkbv-criteria-matrix";
 import {
+  softDeleteNkbvBaTimelineByKey,
   softDeleteNkbvBaTimelineMilestone,
   toggleNkbvBaNgayDungCu,
   upsertNkbvBaNgayKhoa,
@@ -1912,7 +1913,11 @@ export default function NkbvBaMultiTimelineWorkspace({
             hoTen={hoTen}
             ngayVaoVien={ngayVaoVien}
             defaultKhoaId={khoaId}
-            khoas={khoas}
+            khoas={khoas.map((k) => ({
+              id: k.id,
+              ma: k.ma ?? k.ma_danh_muc,
+              ten: k.ten ?? k.ten_danh_muc ?? "",
+            }))}
             onCreated={() => onReload()}
           />
         ) : null}

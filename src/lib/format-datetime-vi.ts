@@ -121,3 +121,21 @@ export const formatNgayGioVi = formatDateTimeVi;
 export function formatDatePartsVi(y: number, m: number, d: number): string {
   return `${pad2(d)}/${pad2(m)}/${y}`;
 }
+
+/** YYYY-MM-DD theo lịch vận hành BV103 (Asia/Ho_Chi_Minh) — cổng BD/FEFO/HSD. */
+export function todayYmdInVn(d = new Date()): string {
+  const p = partsInVn(d);
+  if (!p) return d.toISOString().slice(0, 10);
+  return `${p.year}-${p.month}-${p.day}`;
+}
+
+/** Cộng/trừ ngày trên YYYY-MM-DD — UTC noon, tránh lệch lịch local↔ISO. */
+export function addDaysYmd(ymd: string, days: number): string {
+  const raw = String(ymd || "").trim().slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const t = Date.parse(`${raw}T12:00:00Z`);
+  if (!Number.isFinite(t)) return raw;
+  return new Date(t + days * 86400000).toISOString().slice(0, 10);
+}
+
+

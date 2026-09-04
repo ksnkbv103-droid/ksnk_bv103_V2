@@ -4,8 +4,10 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyCssdReportView } from "@/lib/cssd-server-gates";
 import {
   classifyIncidentGroupByTypeName,
+  CAUSE_CLASS_LABEL,
   INCIDENT_GROUP_LABEL,
   INCIDENT_GROUPS,
+  type CauseClass,
   type IncidentGroup,
 } from "@/modules/cssd-su-co/domain/cssd-incident-taxonomy";
 import {

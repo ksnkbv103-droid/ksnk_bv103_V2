@@ -41,7 +41,7 @@ export default function BaoTriActivePanel({
                 <div className="min-w-0 flex-1">
                   <div className="text-[11px] font-medium text-slate-400">{x.ma_phieu}</div>
                   <div className="truncate text-sm font-semibold">{x.ten_thiet_bi || x.thiet_bi_id}</div>
-                  <span className="mt-1 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold uppercase text-slate-600">
+                  <span className="mt-1 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
                     {loaiPhieuLabel(x.loai_phieu)}
                   </span>
                 </div>
@@ -49,7 +49,7 @@ export default function BaoTriActivePanel({
 
               {checklist.length > 0 ? (
                 <div className="space-y-2 rounded-lg border border-slate-100 bg-slate-50/80 p-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Checklist</p>
+                  <p className="text-[11px] font-semibold text-slate-500">Checklist</p>
                   {checklist.map((item) => (
                     <label key={item.id} className="flex cursor-pointer items-start gap-2 text-xs text-slate-700">
                       <input
@@ -76,7 +76,7 @@ export default function BaoTriActivePanel({
               <div className="flex shrink-0 gap-2">
                 <button
                   type="button"
-                  className="rounded-lg bg-[var(--primary)] px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-white"
+                  className="rounded-lg bg-[var(--primary)] px-4 py-2 text-[11px] font-semibold text-white"
                   onClick={() => void onKetThuc(x.id)}
                 >
                   Hoàn thành

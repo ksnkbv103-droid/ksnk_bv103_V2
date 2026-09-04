@@ -66,9 +66,9 @@ export default function GiamSatHubPage() {
       visible: seeVst,
     },
     {
-      href: "/giam-sat-chung",
+      href: "/giam-sat-chung/tuan-thu",
       label: "Giám sát tuân thủ KSNK",
-      hint: "Nhập bảng kiểm",
+      hint: "Nhập bảng kiểm tuân thủ",
       icon: ClipboardList,
       visible: seeGsc,
     },

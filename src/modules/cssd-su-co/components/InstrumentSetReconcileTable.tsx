@@ -8,12 +8,7 @@ import {
   type CompositionReconcilePayload,
 } from "@/modules/cssd-erp/contexts/inventory-instrument/entrypoint";
 import {
-  applySetReconcileLineInference,
-  buildCanKhoPrefill,
-  canKhoLineKeys,
-  reconcileLineKey,
-  type CanKhoDirection,
-  type CanKhoPrefill,
+  applyReconcileDoorInference,
   type SetReconcileLineInput,
   type SetReconcileLineKind,
 } from "@/lib/domain/cssd-set-reconcile";
@@ -41,7 +36,6 @@ type Props = {
   initialChiTietId?: string;
   toolbar?: React.ReactNode;
   onChange: (state: SetReconcileFormState | null) => void;
-  onCanKho?: (prefill: CanKhoPrefill) => void;
 };
 
 function fromPayload(data: CompositionReconcilePayload): SetReconcileLineInput[] {
@@ -67,12 +61,10 @@ export default function InstrumentSetReconcileTable({
   initialChiTietId,
   toolbar,
   onChange,
-  onCanKho,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [gateError, setGateError] = useState<string | null>(null);
   const [state, setState] = useState<SetReconcileFormState | null>(null);
-  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [loaiOptions, setLoaiOptions] = useState<LoaiReconcileOption[]>([]);
   const [khacIndex, setKhacIndex] = useState<KhacReconcileOption[]>([]);
   const onChangeRef = useRef(onChange);
@@ -119,7 +111,6 @@ export default function InstrumentSetReconcileTable({
         const hit = lines.find((l) => l.chiTietId === initialChiTietId);
         if (hit) hit.kind = initialKindHint;
       }
-      setSelectedKeys([]);
       setState({
         boDungCuId: res.data.boDungCuId,
         draftIncidentId: claimed.draftId,
@@ -154,21 +145,21 @@ export default function InstrumentSetReconcileTable({
     });
   };
 
-  const toggleSelect = (key: string) => {
-    setSelectedKeys((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
-  };
-
-  const runCanKho = (direction: CanKhoDirection) => {
-    if (!state || !onCanKho) return;
-    const { prefill, error } = buildCanKhoPrefill({
-      maBo: state.maBo,
-      direction,
-      lines: state.lines,
-      selectedKeys,
-      khoStock: loaiOptions,
+  const removeLine = (idx: number) => {
+    setState((prev) => {
+      if (!prev) return prev;
+      const target = prev.lines[idx];
+      if (!target) return prev;
+      if (target.kind === "THEM_DONG" || !target.chiTietId) {
+        return { ...prev, lines: prev.lines.filter((_, i) => i !== idx) };
+      }
+      const lines = prev.lines.map((l, i) => {
+        if (i !== idx) return l;
+        if (l.kind === "XOA_DONG") return applyReconcileDoorInference({ ...l, kind: "KHOP" });
+        return { ...l, kind: "XOA_DONG" as const };
+      });
+      return { ...prev, lines };
     });
-    if (error || !prefill) return toast.error(error || "Không cân kho được.");
-    onCanKho(prefill);
   };
 
   const addLine = () => {
@@ -176,7 +167,7 @@ export default function InstrumentSetReconcileTable({
     if (!loai) return toast.error("Chưa có loại dụng cụ trong danh mục.");
     setState((prev) => {
       if (!prev) return prev;
-      const added: SetReconcileLineInput = applySetReconcileLineInference({
+      const added: SetReconcileLineInput = applyReconcileDoorInference({
         loaiDungCuId: loai.id,
         maLoai: loai.ma,
         tenDungCuLe: loai.ten,
@@ -207,7 +198,6 @@ export default function InstrumentSetReconcileTable({
             <table className="w-full min-w-[48rem] text-left text-[11px]">
               <thead className={bv103TableLayout.theadRow}>
                 <tr>
-                  {onCanKho ? <th className={`${bv103TableLayout.th} w-8`} /> : null}
                   <th className={bv103TableLayout.th}>Mã loại</th>
                   <th className={bv103TableLayout.th}>Mã khắc</th>
                   <th className={bv103TableLayout.th}>Tên / đặc điểm</th>
@@ -219,49 +209,28 @@ export default function InstrumentSetReconcileTable({
                 </tr>
               </thead>
               <tbody className={bv103TableLayout.tbody}>
-                {(state?.lines || []).map((line, idx) => {
-                  const key = reconcileLineKey(line, idx);
-                  return (
-                    <InstrumentSetReconcileRow
-                      key={key}
-                      line={line}
-                      loaiOptions={loaiOptions}
-                      khacIndex={khacIndex}
-                      selected={selectedKeys.includes(key)}
-                      onToggleSelect={onCanKho ? () => toggleSelect(key) : undefined}
-                      onPatch={(patch) => patchLine(idx, patch)}
-                    />
-                  );
-                })}
+                {(state?.lines || []).map((line, idx) => (
+                  <InstrumentSetReconcileRow
+                    key={line.chiTietId || `new-${idx}`}
+                    line={line}
+                    loaiOptions={loaiOptions}
+                    khacIndex={khacIndex}
+                    onPatch={(patch) => patchLine(idx, patch)}
+                    onRemove={() => removeLine(idx)}
+                  />
+                ))}
+                {!loading && state && state.lines.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className={`${bv103TableLayout.td} py-6 text-center text-slate-500`}>
+                      Bộ chưa có thành phần — bấm «Thêm dòng vào bộ» bên dưới.
+                    </td>
+                  </tr>
+                ) : null}
               </tbody>
             </table>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-200 px-2.5 py-1.5">
-            {onCanKho ? (
-              <>
-                <button
-                  type="button"
-                  className="text-[11px] font-semibold text-[var(--primary)]"
-                  onClick={() => setSelectedKeys(canKhoLineKeys(state?.lines || []))}
-                >
-                  Chọn dòng lệch
-                </button>
-                <button
-                  type="button"
-                  className="text-[11px] font-semibold text-[var(--primary)]"
-                  onClick={() => runCanKho("LAY_KHO")}
-                >
-                  Lấy từ kho
-                </button>
-                <button
-                  type="button"
-                  className="text-[11px] font-semibold text-[var(--primary)]"
-                  onClick={() => runCanKho("TRA_KHO")}
-                >
-                  Trả kho
-                </button>
-              </>
-            ) : null}
+            <p className="text-[11px] text-slate-500">Đổi mã · tên · số lượng chuẩn chờ duyệt. Lấy/trả kho và điều chuyển ở tab Chuyển.</p>
             <button
               type="button"
               className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--primary)]"

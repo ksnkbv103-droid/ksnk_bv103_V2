@@ -24,7 +24,7 @@ export default function InventoryIssueModal({ isOpen, onClose, tool, onSuccess }
       onClose={onClose}
       onSuccess={onSuccess}
       defaultGroup="INSTRUMENT"
-      initialTypeId="INSTRUMENT_BROKEN"
+      initialTypeId="INSTRUMENT_PHYSICAL"
       initialMaQR={ma}
       quyTrinhId={tool?.id || null}
       station="CAP_PHAT"

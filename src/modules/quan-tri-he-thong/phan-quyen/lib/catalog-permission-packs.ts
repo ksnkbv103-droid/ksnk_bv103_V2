@@ -15,7 +15,9 @@ export const CATALOG_PERMISSION_PACKS = {
   },
   CSSD: {
     label: "Master CSSD",
-    hint: "Loại, bộ, chi tiết, máy, hóa chất, lookup CSSD",
+    hint: "Loại, bộ, chi tiết, máy, hóa chất, lookup CSSD. Hard-write master loại/bộ/BOM chỉ ADMIN; BO_DC.edit = duyệt phiếu (D5).",
+    description:
+      "Hard-write master loại/bộ/BOM chỉ ADMIN; BO_DC.edit = duyệt phiếu (D5). Gói đầy đủ bật ô ma trận danh mục — không mở form MDM cho non-ADMIN.",
     modules: ["LOAI_DC", "BO_DC", "DC_LE", "THIET_BI", "HOA_CHAT", "DANH_MUC_CSSD_LOOKUP", "DANH_MUC"],
   },
 } as const;

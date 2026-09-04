@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 import Link from "next/link";
-import { Pencil, Plus, RefreshCw, X } from "lucide-react";
+import { Pencil, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogTitle, dialogContentKeepCentered } from "@/components/ui/dialog";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import {
@@ -113,8 +114,6 @@ export default function NkbvBenhAnHubPanel({
     [],
   );
   const [chuaPhanTichCount, setChuaPhanTichCount] = useState(0);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
   const ensureSeqRef = React.useRef(0);
   const ensureCaseRef = React.useRef(onEnsureAnalysisCase);
   ensureCaseRef.current = onEnsureAnalysisCase;
@@ -534,18 +533,22 @@ export default function NkbvBenhAnHubPanel({
     setIndexMilestoneId(input.milestoneId);
   };
 
-  if (!mounted) return null;
-
-  // Portal ra body: thoát stacking context của <main z-0> — không bị Sidebar z-10000 che
-  return createPortal(
-    <div className="fixed inset-0 z-[10040] flex items-stretch justify-end bg-slate-900/50 print:hidden">
-      <div
-        className="relative flex h-full w-full max-w-[min(100vw,96rem)] flex-col overflow-hidden bg-white shadow-[var(--shadow-app-soft)] sm:rounded-l-[var(--radius-shell)]"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Bệnh án lưới CDC"
+  // Dialog portal (Radix): thoát stacking context <main z-0>; hub z-10040 dưới nested modal 10054/10055
+  return (
+    <Dialog
+      open
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+    >
+      <DialogContent
+        className={`flex h-[96dvh] max-h-[96dvh] w-full max-w-[min(100vw,96rem)] flex-col gap-0 overflow-hidden bg-white p-0 shadow-[var(--shadow-app-soft)] ${BV103_DIALOG_STACK.hubContent} print:hidden sm:max-w-[min(100vw,96rem)] sm:rounded-[var(--radius-shell)] ${dialogContentKeepCentered} max-sm:!max-h-[96dvh]`}
+        overlayClassName={`${BV103_DIALOG_STACK.hubOverlay} bg-slate-900/50 print:hidden`}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
       >
-        <header className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-5">
+        <DialogTitle className="sr-only">Bệnh án lưới CDC · {maBenhAn}</DialogTitle>
+        <header className="sticky top-0 z-10 flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 bg-white px-4 py-3 pr-14 sm:px-5">
           <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
               Bệnh án · 3 khối (bảng chung → phân tích → tạo phiếu)
@@ -604,14 +607,6 @@ export default function NkbvBenhAnHubPanel({
                 <Pencil className="h-3.5 w-3.5" /> ADT
               </button>
             ) : null}
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-full p-2 text-slate-400 hover:bg-slate-50"
-              aria-label="Đóng"
-            >
-              <X className="h-5 w-5" />
-            </button>
           </div>
         </header>
 
@@ -625,7 +620,8 @@ export default function NkbvBenhAnHubPanel({
           </div>
         ) : null}
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {loading && !timeline.length ? (
             <p className="px-4 py-6 text-sm text-slate-500">Đang tải lưới bệnh án…</p>
           ) : !stay?.ngay_vao_vien ? (
@@ -677,6 +673,7 @@ export default function NkbvBenhAnHubPanel({
               onTimelineRemoveLocal={removeTimelineLocal}
             />
           )}
+          </div>
 
           <details
             className="relative z-0 max-h-[28vh] shrink-0 overflow-hidden border-t border-slate-200 bg-slate-50/90 open:max-h-[36vh]"
@@ -798,8 +795,7 @@ export default function NkbvBenhAnHubPanel({
             </div>
           </details>
         </div>
-      </div>
-    </div>,
-    document.body,
+      </DialogContent>
+    </Dialog>
   );
 }

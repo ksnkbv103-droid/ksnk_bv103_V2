@@ -4,6 +4,7 @@ import {
   formatDateVi,
   formatTimeVi,
   parseDateTimeInput,
+  todayYmdInVn,
 } from "./format-datetime-vi";
 
 describe("format-datetime-vi", () => {
@@ -31,5 +32,10 @@ describe("format-datetime-vi", () => {
   it("Date object hợp lệ", () => {
     const d = new Date("2026-12-31T17:00:00.000Z"); // 00:00:00 01/01/2027 VN
     expect(formatDateTimeVi(d)).toBe("00:00:00, 01/01/2027");
+  });
+
+  it("todayYmdInVn follows Asia/Ho_Chi_Minh calendar", () => {
+    expect(todayYmdInVn(new Date("2026-09-03T17:00:00.000Z"))).toBe("2026-09-04");
+    expect(todayYmdInVn(new Date("2026-09-03T16:59:00.000Z"))).toBe("2026-09-03");
   });
 });

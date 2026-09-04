@@ -6,6 +6,8 @@
 
 import React, { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import { createNkbvViSinhStoreRecord } from "../actions/giam-sat-nkbv-vi-sinh-store.actions";
 import type { NkbvViSinhKetQua } from "../lib/nkbv-vi-sinh-template";
 import { specimenSelectGroups } from "../lib/nkbv-specimen-canonical";
@@ -78,8 +80,6 @@ export default function NkbvBaAddViSinhModal({
     setKetQua("DUONG_TINH");
   }, [open, maBenhAn, ngayLayMau, defaultKhoaId]);
 
-  if (!open) return null;
-
   const onSubmit = async () => {
     const chuanCode = chuan.trim();
     const bp = loaiLis.trim() || chuanCode;
@@ -125,21 +125,28 @@ export default function NkbvBaAddViSinhModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-3">
-      <div
-        className={`${C.panelSurface} max-h-[90vh] w-full max-w-md overflow-auto p-4`}
-        role="dialog"
-        aria-labelledby="ba-add-xn-title"
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+    >
+      <DialogContent
+        className={`flex max-h-[min(90dvh,880px)] max-w-md flex-col gap-0 overflow-hidden p-0 ${BV103_DIALOG_STACK.nestedContent} sm:max-w-md`}
+        overlayClassName={`${BV103_DIALOG_STACK.nestedOverlay}`}
       >
-        <h3 id="ba-add-xn-title" className={`${C.panelTitle} text-sm`}>
-          Thêm xét nghiệm vi sinh
-        </h3>
-        <p className="mt-1 text-[11px] text-slate-500">
-          Từ ngày lưới · BA <span className="font-semibold">{maBenhAn}</span> · lấy mẫu{" "}
-          <span className="font-semibold">{ngayLayMau}</span>
-        </p>
+        <DialogTitle className="sr-only">Thêm xét nghiệm vi sinh</DialogTitle>
+        <div className="shrink-0 border-b border-slate-100 px-4 py-3 pr-14">
+          <h3 id="ba-add-xn-title" className={`${C.panelTitle} text-sm`}>
+            Thêm xét nghiệm vi sinh
+          </h3>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Từ ngày lưới · BA <span className="font-semibold">{maBenhAn}</span> · lấy mẫu{" "}
+            <span className="font-semibold">{ngayLayMau}</span>
+          </p>
+        </div>
 
-        <div className="mt-3 space-y-2 text-[11px]">
+        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-4 py-3 text-[11px]">
           <label className="block">
             <span className="font-semibold text-slate-600">Mã XN</span>
             <input
@@ -225,7 +232,7 @@ export default function NkbvBaAddViSinhModal({
           </label>
         </div>
 
-        <div className="mt-4 flex justify-end gap-2">
+        <div className="flex shrink-0 justify-end gap-2 border-t border-slate-100 bg-white px-4 py-3">
           <button
             type="button"
             className="rounded-full border border-slate-300 px-3 py-1.5 text-[11px] font-semibold"
@@ -243,7 +250,7 @@ export default function NkbvBaAddViSinhModal({
             {busy ? "Đang lưu…" : "Lưu vào kho"}
           </button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

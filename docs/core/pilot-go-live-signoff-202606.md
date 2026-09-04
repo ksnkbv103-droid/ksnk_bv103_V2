@@ -69,3 +69,16 @@ Chi tiết: [`pilot-core-modules-go-live.md`](./pilot-core-modules-go-live.md), 
 | Đại diện BV103 | | | |
 
 **Go-live W1** khi: §A pass + MDM + GSC/VST + QLCV §B ≥5/6 + auth = 0.
+
+## F. Ops checklist bổ sung (2026-09-04) — CSSD UAT / cloud
+
+SSOT chi tiết: [`../reference/guides/ops-go-live.md`](../reference/guides/ops-go-live.md) · quyết định [`domain-decisions-cssd-instrument.md`](domain-decisions-cssd-instrument.md).
+
+| Hạng mục | Pass | ☐ |
+|----------|------|---|
+| vercel deploymentEnabled = false | Không auto-deploy | ☐ |
+| Mở cloud sau Phase 0-2 + golden verify + user approve commit | Không migrate/deploy sớm | ☐ |
+| Tắt KSNK_PILOT_CORE_MODULES trước UAT CSSD | Route cssd mở | ☐ |
+| trial:auth:precheck auth link NV | mdm_email_no_auth = 0 blocker | ☐ |
+| BOM unique ADMIN gộp trùng rồi apply 20260904120000_cssd_bom_chi_tiet_unique_bo_loai_active | D6 khi PO duyệt | ☐ |
+| npm run pilot:go-live:gate + wave env | Exit 0 + ký §B | ☐ |

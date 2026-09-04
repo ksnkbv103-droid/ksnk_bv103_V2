@@ -43,6 +43,8 @@ Local: Docker + `npx supabase start` → `mdm:migrate:local` → `*:local` scrip
 
 **Go-live tổng (Phase 6):** [`pilot-go-live-signoff-202606.md`](pilot-go-live-signoff-202606.md) · `npm run pilot:go-live:gate`
 
+**Ops runbook tay (2026-09-04):** [`../reference/guides/ops-go-live.md`](../reference/guides/ops-go-live.md) — env/wave, tắt pilot trước UAT CSSD, auth blocker, BOM unique `20260904120000`, mở cloud chỉ sau Phase 0–2 + golden + approve commit. Quyết định dụng cụ: [`domain-decisions-cssd-instrument.md`](domain-decisions-cssd-instrument.md).
+
 **Định nghĩa “dùng luôn”:** mỗi module ≥5/6 kịch bản PASS trên staging; `trial:db:precheck` và `trial:auth:precheck` không có blocker (auth: `mdm_email_no_auth` = 0 cho user pilot).
 
 ## Mở rộng CSSD sau pilot 3 module (Phase 4.5)

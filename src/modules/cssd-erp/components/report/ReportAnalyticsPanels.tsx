@@ -36,7 +36,7 @@ function VolumePanel({ data, loading }: { data: CssdAnalyticsBundle | null; load
   }, [data, bucket]);
 
   return (
-    <div className={bv103LayoutChrome.sectionGap}>
+    <div className={"space-y-3"}>
       <p className="text-xs text-slate-500">
         Sản lượng = số bộ <strong>hoàn thành</strong> từng trạm theo thời gian quét trong kỳ — không phải tồn trạm hiện tại.
       </p>
@@ -92,7 +92,7 @@ function VolumePanel({ data, loading }: { data: CssdAnalyticsBundle | null; load
 
 function SetsPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loading: boolean }) {
   return (
-    <div className={bv103LayoutChrome.sectionGap}>
+    <div className={"space-y-3"}>
       <p className="text-xs text-slate-500">
         Tách hai chiều: <strong>sở hữu danh mục</strong> (số bộ) vs <strong>khoa nhận cấp phát</strong>{" "}
         (<code className="rounded bg-slate-100 px-1">khoa_nhan_id</code>). Tái sử dụng lấy{" "}
@@ -100,7 +100,7 @@ function SetsPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadin
       </p>
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <div className="space-y-2">
-          <h3 className={bv103LayoutChrome.innerTableHead}>Số bộ theo khoa sở hữu danh mục</h3>
+          <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Số bộ theo khoa sở hữu danh mục</h3>
           <AdvancedDataTable
             columns={[
               { header: "Khoa", accessorKey: "ten_khoa", cell: (v: any) => formatKhoaCompactLabel({ ten_khoa: v.ten_khoa }) },
@@ -116,7 +116,7 @@ function SetsPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadin
           />
         </div>
         <div className="space-y-2">
-          <h3 className={bv103LayoutChrome.innerTableHead}>Cấp phát theo khoa nhận (SSOT)</h3>
+          <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Cấp phát theo khoa nhận (SSOT)</h3>
           <AdvancedDataTable
             columns={[
               { header: "Khoa nhận", accessorKey: "ten_khoa", cell: (v: any) => formatKhoaCompactLabel({ ten_khoa: v.ten_khoa }) },
@@ -134,7 +134,7 @@ function SetsPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadin
           />
         </div>
         <div className="space-y-2">
-          <h3 className={bv103LayoutChrome.innerTableHead}>Tái sử dụng &amp; tần suất (top)</h3>
+          <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Tái sử dụng &amp; tần suất (top)</h3>
           <AdvancedDataTable
             columns={[
               {
@@ -175,7 +175,7 @@ function SetsPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadin
 
 function EquipmentPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loading: boolean }) {
   return (
-    <div className={bv103LayoutChrome.sectionGap}>
+    <div className={"space-y-3"}>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <MetricCard title="Mẻ trong kỳ" value={loading ? "…" : (data?.meQc.so_me_ky ?? 0).toLocaleString()} />
         <MetricCard
@@ -201,7 +201,7 @@ function EquipmentPanel({ data, loading }: { data: CssdAnalyticsBundle | null; l
         />
       </div>
       <div className="space-y-2">
-        <h3 className={bv103LayoutChrome.innerTableHead}>Số lần dùng máy (mẻ trong kỳ)</h3>
+        <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Số lần dùng máy (mẻ trong kỳ)</h3>
         <AdvancedDataTable
           columns={[
             {
@@ -251,13 +251,13 @@ function StaffPanel({ data, loading }: { data: CssdAnalyticsBundle | null; loadi
   }, [data]);
 
   return (
-    <div className={bv103LayoutChrome.sectionGap}>
+    <div className={"space-y-3"}>
       <p className="text-xs text-slate-500">
         Năng suất KTV CSSD = số lần quét gắn người theo từng trạm trong kỳ. Tách khỏi bảng cơ hội/phiên giám sát
         VST–GSC trên Trung tâm điều hành.
       </p>
       <div className="space-y-2">
-        <h3 className={bv103LayoutChrome.innerTableHead}>Quét theo nhân viên</h3>
+        <h3 className={"mb-2 text-[11px] font-medium text-slate-500"}>Quét theo nhân viên</h3>
         <AdvancedDataTable
           columns={[
             {

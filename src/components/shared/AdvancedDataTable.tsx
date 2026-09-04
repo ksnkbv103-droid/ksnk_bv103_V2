@@ -79,6 +79,18 @@ interface AdvancedDataTableProps<T> {
    * Không truyền → đưa mã vào ô tìm (`onSearch` / filter nội bộ).
    */
   onQrScan?: (code: string) => void;
+  /**
+   * Optional max-height Tailwind class for the table/card body viewport
+   * (e.g. `max-h-[min(58dvh,560px)]`). When set, wraps desktop table + mobile
+   * cards with that max-h + overflow-y-auto (desktop keeps overflow-x-auto).
+   */
+  bodyMaxHeight?: string;
+  /**
+   * Opt-in windowing-lite (no @tanstack/react-virtual): CSS `content-visibility`
+   * on desktop rows. When omitted, auto-enables if `bodyMaxHeight` is set.
+   * Safe — does not change layout; only skips offscreen paint work.
+   */
+  contentVisibilityRows?: boolean;
 }
 
 export default function AdvancedDataTable<T extends { id: string | number }>({
@@ -92,6 +104,8 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
   searchStretchToContainer = true,
   enableQrScan = false,
   onQrScan,
+  bodyMaxHeight,
+  contentVisibilityRows,
 }: AdvancedDataTableProps<T>) {
   /** FLT-SEARCH-01: `searchPlacement="header"` deprecated — luôn inline. */
   void searchPlacement;
@@ -110,6 +124,8 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
   });
 
   const displayData = (onSearch || onSort) ? data : internalProcessedData;
+  /** Windowing-lite: explicit opt-in, or auto when bodyMaxHeight scroll viewport is used. */
+  const useContentVisibilityRows = contentVisibilityRows ?? Boolean(bodyMaxHeight);
   const onSearchAction = onSearch || internalHandleSearch;
   const onSortAction = (key: keyof T) => { if (onSort) onSort(String(key)); else internalHandleSort(key); };
   const finalSearchTerm = searchValue !== undefined ? searchValue : searchTerm;
@@ -192,19 +208,34 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
         ) : null}
 
         {!isSmUp ? (
-          <DataTableMobileCards
-            columns={columns}
-            data={displayData}
-            loading={loading}
-            emptyMessage={emptyMessage}
-            enableMultiSelect={enableMultiSelect}
-            selectedIds={selectedIds}
-            toggleSelectRow={toggleSelectRow}
-            onRowClick={onRowClick}
-            rowClassName={rowClassName}
-          />
+          <div
+            className={
+              bodyMaxHeight
+                ? `custom-scrollbar overflow-y-auto ${bodyMaxHeight}`
+                : undefined
+            }
+          >
+            <DataTableMobileCards
+              columns={columns}
+              data={displayData}
+              loading={loading}
+              emptyMessage={emptyMessage}
+              enableMultiSelect={enableMultiSelect}
+              selectedIds={selectedIds}
+              toggleSelectRow={toggleSelectRow}
+              onRowClick={onRowClick}
+              rowClassName={rowClassName}
+            />
+          </div>
         ) : (
-          <div className="custom-scrollbar bv103-scroll-x overflow-x-auto">
+          <div
+            className={[
+              "custom-scrollbar bv103-scroll-x overflow-x-auto",
+              bodyMaxHeight ? `overflow-y-auto ${bodyMaxHeight}` : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
             <table
               className={["w-full min-w-[640px] border-collapse text-left", tableClassName]
                 .filter(Boolean)
@@ -266,6 +297,7 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
                   onRowClick={onRowClick}
                   toggleSelectRow={toggleSelectRow}
                   rowClassName={rowClassName}
+                  contentVisibilityRows={useContentVisibilityRows}
                 />
               </tbody>
             </table>

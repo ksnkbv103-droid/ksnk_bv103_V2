@@ -9,6 +9,9 @@ import { toast } from "sonner";
 import { getDungCuGiaoDichLogsAction, type DungCuGiaoDichRow } from "../actions/kho-dung-cu-giao-dich.actions";
 import { getLoaiDungCuContainingBosAction } from "../actions/loai-dung-cu.actions";
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
+import Link from "next/link";
+import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
+import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 
 type Props = {
   selectedLoaiId: string | null;
@@ -114,7 +117,7 @@ export function LoaiDungCuChiTietPanel({
         <div className="flex gap-1.5 bg-slate-100 p-1 rounded-xl">
           <button
             onClick={() => setActiveTab("sets")}
-            className={`px-4 py-2 text-[11px] font-semibold uppercase tracking-wide rounded-lg transition-all flex items-center gap-1.5 ${
+            className={`px-4 py-2 text-[11px] font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
               activeTab === "sets"
                 ? "bg-white text-[var(--primary)] shadow-sm"
                 : "text-slate-500 hover:text-slate-800"
@@ -124,7 +127,7 @@ export function LoaiDungCuChiTietPanel({
           </button>
           <button
             onClick={() => setActiveTab("logs")}
-            className={`px-4 py-2 text-[11px] font-semibold uppercase tracking-wide rounded-lg transition-all flex items-center gap-1.5 ${
+            className={`px-4 py-2 text-[11px] font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
               activeTab === "logs"
                 ? "bg-white text-[var(--primary)] shadow-sm"
                 : "text-slate-500 hover:text-slate-800"
@@ -139,21 +142,24 @@ export function LoaiDungCuChiTietPanel({
         {activeTab === "sets" ? (
           <div>
             {loadingSets ? (
-              <div className="p-12 text-center text-slate-400 font-bold text-[11px] uppercase tracking-widest">
+              <div className="p-12 text-center text-slate-400 text-[11px] font-medium">
                 Đang tải bộ chứa…
               </div>
             ) : sets.length === 0 ? (
-              <div className="p-12 text-center text-slate-400 font-bold text-[11px] uppercase tracking-widest">
-                Chưa có bộ dụng cụ nào chứa loại dụng cụ này
+              <div className="space-y-2 py-8 text-center">
+                <p className="text-[11px] font-medium text-slate-500">Chưa có bộ nào chứa loại này.</p>
+                <Link href={quanTriDungCuHref("bo")} className="text-[11px] font-semibold text-[var(--primary)] hover:underline">
+                  Mở danh mục bộ
+                </Link>
               </div>
             ) : (
               <ResponsiveTableShell unboxed maxHeight="max-h-[min(320px,45dvh)]">
                 <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-100">
-                      <th className="pb-3 text-[11px] font-medium text-slate-400 tracking-wider">Mã bộ</th>
-                      <th className="pb-3 text-[11px] font-medium text-slate-400 tracking-wider">Tên bộ dụng cụ</th>
-                      <th className="pb-3 text-[11px] font-medium text-slate-400 tracking-wider text-right">Thao tác</th>
+                  <thead className={L.theadRow}>
+                    <tr>
+                      <th className={L.th}>Mã bộ</th>
+                      <th className={L.th}>Tên bộ dụng cụ</th>
+                      <th className={`${L.th} text-right`}>Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -181,12 +187,12 @@ export function LoaiDungCuChiTietPanel({
         ) : (
           <div>
             {loadingLogs ? (
-              <div className="flex items-center justify-center p-12 text-slate-500 font-bold text-[11px] uppercase gap-2">
+              <div className="flex items-center justify-center gap-2 p-12 text-[11px] font-medium text-slate-500">
                 <Loader2 size={16} className="animate-spin" /> Đang tải lịch sử...
               </div>
             ) : logs.length === 0 ? (
-              <div className="p-12 text-center text-slate-400 font-bold text-[11px] uppercase tracking-widest flex flex-col items-center gap-3">
-                <span>Chưa có giao dịch biến động nào được ghi nhận</span>
+              <div className="flex flex-col items-center gap-3 p-12 text-center text-[11px] font-medium text-slate-400">
+                <span>Chưa có giao dịch biến động.</span>
                 <button
                   onClick={fetchLogs}
                   className="px-3 py-1.5 bg-slate-50 text-slate-600 border border-slate-100 rounded-lg hover:bg-slate-100 flex items-center gap-1.5"
@@ -197,14 +203,14 @@ export function LoaiDungCuChiTietPanel({
             ) : (
               <ResponsiveTableShell unboxed maxHeight="max-h-[min(320px,45dvh)]">
                 <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-100">
-                      <th className="pb-3 text-[11px] font-medium text-slate-400 tracking-wider">Thời gian</th>
-                      <th className="pb-3 text-[11px] font-medium text-slate-400 tracking-wider">Loại giao dịch</th>
-                      <th className="pb-3 text-[11px] font-medium text-slate-400 tracking-wider">Biến động</th>
-                      <th className="pb-3 text-[11px] font-medium text-slate-400 tracking-wider">Bộ liên đới</th>
-                      <th className="pb-3 text-[11px] font-medium text-slate-400 tracking-wider">Mã vạch bộ QR</th>
-                      <th className="pb-3 text-[11px] font-medium text-slate-400 tracking-wider">Ghi chú</th>
+                  <thead className={L.theadRow}>
+                    <tr>
+                      <th className={L.th}>Thời gian</th>
+                      <th className={L.th}>Loại giao dịch</th>
+                      <th className={L.th}>Biến động</th>
+                      <th className={L.th}>Bộ liên đới</th>
+                      <th className={L.th}>Mã vạch bộ QR</th>
+                      <th className={L.th}>Ghi chú</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -219,7 +225,7 @@ export function LoaiDungCuChiTietPanel({
                         }`}>
                           {log.so_luong_thay_doi > 0 ? `+${log.so_luong_thay_doi}` : log.so_luong_thay_doi}
                         </td>
-                        <td className="py-3 bv103-type-label font-semibold text-slate-600 uppercase">
+                        <td className="py-3 bv103-type-label font-semibold text-slate-600">
                           {log.bo_dung_cu ? log.bo_dung_cu.ten_bo : "—"}
                         </td>
                         <td className="py-3 font-mono text-[11px] text-slate-400">

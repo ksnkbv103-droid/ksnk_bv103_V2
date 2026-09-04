@@ -3,11 +3,13 @@
 import React from "react";
 import {
   fefoSortLots,
+  pickFefoLotKey,
   isFefoLotKey,
   isLotExpired,
   lotRowToKey,
 } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
 import { formatDateVi } from "@/lib/format-datetime-vi";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { KhoHoaChatTonLo } from "../../actions/cssd-kho-hoa-chat.actions";
 
 type DmOpt = {
@@ -45,11 +47,13 @@ type Props = {
 
 function lotOptsForDm(dmId: string, tons: KhoHoaChatTonLo[]): { key: string; label: string; ton: number; disabled: boolean }[] {
   const rows = tons.filter((t) => t.dm_hoa_chat_id === dmId && t.ton_so_luong > 0);
-  return fefoSortLots(rows).map((t, idx) => {
+  const fefoKey = pickFefoLotKey(rows);
+  return fefoSortLots(rows).map((t) => {
     const expired = isLotExpired(t.han_su_dung);
-    const fefoHint = idx === 0 && !expired ? " ★ FEFO" : "";
+    const key = lotRowToKey(t);
+    const fefoHint = fefoKey && key === fefoKey ? " ★ FEFO" : "";
     return {
-      key: lotRowToKey(t),
+      key,
       label: `${t.ma_lo?.length ? `Lô ${t.ma_lo}` : "Không lô"}${t.han_su_dung ? ` — HSD ${formatDateVi(t.han_su_dung)}` : ""} — Tồn ${t.ton_so_luong}${fefoHint}${expired ? " (HẾT HẠN)" : ""}`,
       ton: t.ton_so_luong,
       disabled: expired,
@@ -87,21 +91,28 @@ export default function KhoHoaChatMoveSheet({
 
   const title =
     mode === "NHAP" ? "Nhập kho" : mode === "XUAT" ? "Xuất kho (theo lô)" : "Điều chỉnh tồn (kiểm kê)";
+  const subtitle = linkedSuCoId
+    ? "Phiếu này sẽ liên kết với báo cáo sự cố CHEMICAL đã chọn."
+    : mode === "XUAT"
+      ? "Lô được sắp theo FEFO (hết hạn trước). Không xuất lô quá hạn."
+      : "Đơn vị theo danh mục (chai, lọ, kg…).";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-0 sm:items-center sm:p-4" role="dialog" aria-modal="true">
-      <div className="flex max-h-[90vh] w-full max-w-lg flex-col rounded-t-2xl border border-slate-200 bg-white shadow-[var(--shadow-app-soft)] sm:rounded-[var(--radius-shell)]">
-        <div className="border-b border-slate-100 px-5 py-4">
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+    >
+      <DialogContent className="flex max-h-[min(90dvh,880px)] max-w-lg flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
+        <DialogTitle className="sr-only">{title}</DialogTitle>
+
+        <div className="shrink-0 border-b border-slate-100 px-5 py-4 pr-14">
           <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-          <p className="text-xs text-slate-500">
-            {linkedSuCoId
-              ? "Phiếu này sẽ liên kết với báo cáo sự cố CHEMICAL đã chọn."
-              : mode === "XUAT"
-                ? "Lô được sắp theo FEFO (hết hạn trước). Không xuất lô quá hạn."
-                : "Đơn vị theo danh mục (chai, lọ, kg…)."}
-          </p>
+          <p className="text-xs text-slate-500">{subtitle}</p>
         </div>
-        <div className="space-y-3 overflow-y-auto px-5 py-4">
+
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-5 py-4">
           <div>
             <label className="text-[11px] font-medium text-slate-500">Mặt hàng</label>
             <select className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={dmId} onChange={(e) => onDmId(e.target.value)}>
@@ -164,7 +175,8 @@ export default function KhoHoaChatMoveSheet({
             <textarea className="mt-1 min-h-[64px] w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={note} onChange={(e) => onNote(e.target.value)} />
           </div>
         </div>
-        <div className="flex justify-end gap-2 border-t border-slate-100 px-5 py-3">
+
+        <div className="flex shrink-0 justify-end gap-2 border-t border-slate-100 bg-white px-5 py-3">
           <button type="button" className="rounded-lg px-4 py-2 text-sm text-slate-600" onClick={onClose}>
             Đóng
           </button>
@@ -177,7 +189,7 @@ export default function KhoHoaChatMoveSheet({
             Ghi nhận
           </button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

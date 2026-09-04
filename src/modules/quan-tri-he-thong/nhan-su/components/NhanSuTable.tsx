@@ -7,7 +7,10 @@ import NhanSuForm from "./NhanSuForm";
 import { useMasterDataCrud } from "@/hooks/useMasterDataCrud";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
-import { Plus } from "lucide-react";
+import { Plus, KeyRound } from "lucide-react";
+import { toast } from "sonner";
+import { usePermission } from "@/hooks/usePermission";
+import { provisionStaffAuthAccount } from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/tai-khoan-nhan-su.actions";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
 import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
@@ -73,6 +76,36 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
   const allowCreate = permission?.create !== false;
   const allowEdit = permission?.edit !== false;
   const allowDelete = permission?.delete !== false;
+
+  const { isAdmin, canEdit } = usePermission();
+  const canProvisionTk = isAdmin || canEdit("PHAN_QUYEN");
+  const [provisioningId, setProvisioningId] = useState<string | null>(null);
+
+  const handleCreateTk = async (row: NhanSu) => {
+    if (!row.email?.trim()) {
+      toast.error("Nhân sự chưa có email — cập nhật hồ sơ trước khi tạo TK.");
+      return;
+    }
+    const pw = window.prompt(`Mật khẩu ban đầu cho ${row.ho_ten} (≥8 ký tự):`);
+    if (pw == null) return;
+    if (pw.length < 8) {
+      toast.error("Mật khẩu tối thiểu 8 ký tự.");
+      return;
+    }
+    setProvisioningId(row.id);
+    try {
+      const res = await provisionStaffAuthAccount({ staffId: row.id, password: pw });
+      if (!res.success) {
+        toast.error(res.error || "Không tạo được tài khoản.");
+        return;
+      }
+      toast.success("Đã tạo tài khoản và liên kết hồ sơ.");
+      setRefreshKey((k) => k + 1);
+    } finally {
+      setProvisioningId(null);
+    }
+  };
+
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -218,15 +251,35 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
         </div>
       ) 
     },
-    { 
-      header: "Nghề nghiệp",
-      accessorKey: "nghe_nghiep_id", 
-      sortable: true, 
+    {
+      header: "Tài khoản",
+      accessorKey: "auth_user_id",
+      sortable: false,
       cell: (i) => (
-        <span className={TC.cellMeta}>
-          {i.nghe_nghiep?.ten_nghe_nghiep || "---"}
-        </span>
-      )
+        <div className="flex flex-col gap-1">
+          <span className={`w-fit rounded-md px-2 py-0.5 text-[11px] font-semibold ${
+            i.auth_user_id
+              ? "bg-emerald-50 text-emerald-800 border border-emerald-100"
+              : "bg-slate-100 text-slate-500"
+          }`}>
+            {i.auth_user_id ? "Đã có TK" : "Chưa TK"}
+          </span>
+          <span className="text-[11px] font-medium text-slate-600">
+            {i.vai_tro_he_thong_ksnk || "— vai trò —"}
+          </span>
+          {canProvisionTk && !i.auth_user_id ? (
+            <button
+              type="button"
+              disabled={i.is_active === false || provisioningId === i.id}
+              onClick={() => void handleCreateTk(i)}
+              className="mt-0.5 inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+            >
+              <KeyRound size={12} aria-hidden />
+              {provisioningId === i.id ? "Đang tạo…" : "Tạo TK"}
+            </button>
+          ) : null}
+        </div>
+      ),
     },
     { header: TH.status, accessorKey: "is_active", sortable: true, cell: (i) => actionUi.renderStatusCell(i) },
     { header: TH.manage, accessorKey: "id", cell: (i) => actionUi.renderManagementCell(i) },
@@ -260,7 +313,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
                 }}
                 className={bv103DesignTokens.btnPrimary}
               >
-                <Plus size={16} aria-hidden /> Thêm nhân sự
+                <Plus size={16} aria-hidden /> Thêm người
               </button>
             ) : null}
           </div>

@@ -6,7 +6,10 @@ export function normalizeMaLo(raw?: string | null): string | null {
 
 export function normalizeHanIso(raw?: string | null): string | null {
   if (raw == null || raw === "") return null;
-  const d = new Date(String(raw));
+  const s = String(raw).trim();
+  // Date-only: giữ YYYY-MM-DD — tránh lệch ngày khi parse local/UTC.
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  const d = new Date(s);
   if (Number.isNaN(d.getTime())) return null;
   return d.toISOString().slice(0, 10);
 }

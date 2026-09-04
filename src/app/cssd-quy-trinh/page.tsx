@@ -3,7 +3,7 @@
 import React, { Suspense, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { WashingMachine, Flame, Package, History, type LucideIcon } from "lucide-react";
+import { WashingMachine, Flame, Package, History, Search, type LucideIcon } from "lucide-react";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
 import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
@@ -47,17 +47,21 @@ const QRHistoryViewer = dynamic(
   { ssr: false, loading: () => <TabPanelSkeleton /> },
 );
 
-const TAB_CONFIG: {
-  key: QuyTrinhTab;
+const WORK_TABS: {
+  key: Exclude<QuyTrinhTab, "TRACE">;
   label: string;
   mobileLabel: string;
   icon: LucideIcon;
   param: string;
 }[] = [
-  { key: "WORKFLOW", label: "Chu trình xử lý", mobileLabel: "Chu trình", icon: WashingMachine, param: "" },
-  { key: "BATCH", label: "Mẻ tiệt khuẩn", mobileLabel: "Mẻ TK", icon: Flame, param: "batch" },
-  { key: "KHO", label: "Tình trạng bộ", mobileLabel: "Tình trạng", icon: Package, param: "kho" },
-  { key: "TRACE", label: "Truy vết", mobileLabel: "Truy vết", icon: History, param: "trace" },
+  { key: "WORKFLOW", label: "Chu trình", mobileLabel: "Chu trình", icon: WashingMachine, param: "" },
+  { key: "BATCH", label: "Mẻ", mobileLabel: "Mẻ", icon: Flame, param: "batch" },
+  { key: "KHO", label: "Kho", mobileLabel: "Kho", icon: Package, param: "kho" },
+];
+
+const TAB_CONFIG = [
+  ...WORK_TABS,
+  { key: "TRACE" as const, label: "Truy vết", mobileLabel: "Truy vết", icon: History, param: "trace" },
 ];
 
 function resolveTab(param: string | null): QuyTrinhTab {
@@ -101,17 +105,33 @@ function CssdQuyTrinhPageInner() {
       }
     >
       <div className="bv103-stack-page">
-        <div className={CSSD_UI_TAB_GROUP}>
-          {TAB_CONFIG.map(({ key, label, mobileLabel, icon }) => (
-            <CssdHorizTabButton
-              key={key}
-              active={activeTab === key}
-              onClick={() => setTab(key)}
-              label={label}
-              mobileLabel={mobileLabel}
-              icon={icon}
-            />
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className={CSSD_UI_TAB_GROUP}>
+            {WORK_TABS.map(({ key, label, mobileLabel, icon }) => (
+              <CssdHorizTabButton
+                key={key}
+                active={activeTab === key}
+                onClick={() => setTab(key)}
+                label={label}
+                mobileLabel={mobileLabel}
+                icon={icon}
+              />
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setTab("TRACE")}
+            title="Truy vết QR"
+            aria-label="Truy vết"
+            aria-pressed={activeTab === "TRACE"}
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-control)] border transition-colors ${
+              activeTab === "TRACE"
+                ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-sm"
+                : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+            }`}
+          >
+            <Search className="h-4 w-4" aria-hidden />
+          </button>
         </div>
 
         <div className="animate-in fade-in duration-300">

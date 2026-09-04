@@ -7,6 +7,7 @@ import { Stethoscope, ClipboardList } from "lucide-react";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { ThongKeChromeProvider } from "@/components/shared/ThongKeChromeContext";
+import SupervisionModeNav from "@/components/shared/SupervisionModeNav";
 
 const analyticsTabs = [
   { id: "vst", label: "Vệ sinh tay", href: "/thong-ke/vst", icon: Stethoscope },
@@ -40,11 +41,28 @@ function ThongKeModuleTabs() {
   );
 }
 
+function ThongKeModeAndModuleTabs() {
+  const pathname = usePathname();
+  const isGsc = Boolean(pathname?.includes("/thong-ke/gsc"));
+  const isVst = Boolean(pathname?.includes("/thong-ke/vst"));
+  return (
+    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+      {isVst || isGsc ? (
+        <SupervisionModeNav
+          module={isGsc ? "gsc" : "vst"}
+          ariaLabel={isGsc ? "Giám sát tuân thủ KSNK" : "Giám sát vệ sinh tay"}
+        />
+      ) : null}
+      <ThongKeModuleTabs />
+    </div>
+  );
+}
+
 export default function ThongKeLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={bv103DesignTokens.pageOuter}>
       <Suspense fallback={null}>
-        <ThongKeChromeProvider tabs={<ThongKeModuleTabs />}>
+        <ThongKeChromeProvider tabs={<ThongKeModeAndModuleTabs />}>
           <div className={bv103DesignTokens.pageSectionGap}>{children}</div>
         </ThongKeChromeProvider>
       </Suspense>

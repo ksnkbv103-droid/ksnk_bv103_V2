@@ -47,7 +47,7 @@ export default function ReportCharts({ pieData, barData }: Props) {
               <XAxis dataKey="name" fontSize={9} fontStyle="bold" axisLine={false} tickLine={false} />
               <YAxis axisLine={false} tickLine={false} fontSize={9} />
               <Tooltip cursor={{fill: '#f1f5f9'}} contentStyle={{borderRadius: '24px', border: 'none'}} />
-              <Legend verticalAlign="top" align="right" height={36} iconType="circle" wrapperStyle={{fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase'}} />
+              <Legend verticalAlign="top" align="right" height={36} iconType="circle" wrapperStyle={{fontSize: '9px', fontWeight: 'bold'}} />
               <Bar dataKey="batches" name="Tổng mẻ" fill="var(--primary)" radius={[8, 8, 0, 0]} barSize={24} />
               <Bar dataKey="incidents" name="Sự cố" fill="#dc2626" radius={[8, 8, 0, 0]} barSize={24} />
             </BarChart>

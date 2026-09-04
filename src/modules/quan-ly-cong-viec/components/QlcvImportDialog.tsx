@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useMemo, useRef, useState } from "react";
-import { Download, Loader2, Upload, X } from "lucide-react";
+import { Download, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { saveAs } from "file-saver";
 import { excelCellToPlain } from "@/hooks/importExport.utils";
 import { requestImportContract } from "@/hooks/import-confirm-contract";
 import { IMPORT_EXPORT_LABELS } from "@/components/shared/ImportExportToolbar";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { importCongViecRows } from "../actions/qlcv-import.actions";
 import { parseQlcvImportRows } from "../lib/qlcv-import-parse";
 
@@ -43,8 +44,6 @@ export function QlcvImportDialog({ isOpen, onClose, onImported }: Props) {
     .filter((v): v is Extract<typeof v, { ok: false }> => !v.ok)
     .slice(0, 20)
     .map((v) => `Dòng ${v.rowIdx}: ${v.errors.join("; ")}`);
-
-  if (!isOpen) return null;
 
   async function downloadTemplate() {
     const { default: ExcelJS } = await import("exceljs");
@@ -158,60 +157,60 @@ export function QlcvImportDialog({ isOpen, onClose, onImported }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-[400] flex items-center justify-center bg-slate-900/50 p-4">
-      <div className="w-full max-w-lg rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-[var(--shadow-app-soft)]">
-        <div className="mb-4 flex items-start justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900">Nạp công việc từ Excel</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Một dòng = một phiếu mới (chỉ thêm). Bắt buộc tiêu đề và mã NV thuộc Khoa KSNK.
-            </p>
-            <ol className="mt-2 list-decimal list-inside space-y-0.5 text-[11px] leading-relaxed text-slate-500">
-              <li>
-                Bấm <strong className="font-semibold text-slate-700">{IMPORT_EXPORT_LABELS.downloadTemplate}</strong>.
-              </li>
-              <li>Điền Excel — giữ nguyên tiêu đề cột.</li>
-              <li>
-                Chọn file → xác nhận trước khi ghi (giống các màn danh mục).
-              </li>
-            </ol>
-          </div>
-          <button type="button" onClick={onClose} className="rounded-lg p-1 text-slate-500 hover:bg-slate-100">
-            <X size={18} />
-          </button>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => void downloadTemplate()}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            <Download size={14} /> {IMPORT_EXPORT_LABELS.downloadTemplate}
-          </button>
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            <Upload size={14} /> Chọn file Excel
-          </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".xlsx,.xls"
-            className="hidden"
-            onChange={(e) => void onFileChange(e.target.files?.[0] ?? null)}
-          />
-        </div>
-
-        {rows.length > 0 ? (
-          <p className="mt-4 text-sm text-slate-700">
-            {validCount} dòng hợp lệ · {invalidCount} lỗi / {rows.length} dòng
+    <Dialog
+      open={isOpen}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+    >
+      <DialogContent className="flex max-h-[min(90dvh,880px)] max-w-lg flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
+        <DialogTitle className="sr-only">Nạp công việc từ Excel</DialogTitle>
+        <div className="shrink-0 border-b border-slate-100 px-6 py-5 pr-14">
+          <h2 className="text-lg font-semibold text-slate-900">Nạp công việc từ Excel</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Một dòng = một phiếu mới (chỉ thêm). Bắt buộc tiêu đề và mã NV thuộc Khoa KSNK.
           </p>
-        ) : null}
+          <ol className="mt-2 list-decimal list-inside space-y-0.5 text-[11px] leading-relaxed text-slate-500">
+            <li>
+              Bấm <strong className="font-semibold text-slate-700">{IMPORT_EXPORT_LABELS.downloadTemplate}</strong>.
+            </li>
+            <li>Điền Excel — giữ nguyên tiêu đề cột.</li>
+            <li>Chọn file → xác nhận trước khi ghi (giống các màn danh mục).</li>
+          </ol>
+        </div>
 
-        <div className="mt-6 flex justify-end gap-2">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-6 py-5">
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void downloadTemplate()}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              <Download size={14} /> {IMPORT_EXPORT_LABELS.downloadTemplate}
+            </button>
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              <Upload size={14} /> Chọn file Excel
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={(e) => void onFileChange(e.target.files?.[0] ?? null)}
+            />
+          </div>
+          {rows.length > 0 ? (
+            <p className="text-sm text-slate-700">
+              {validCount} dòng hợp lệ · {invalidCount} lỗi / {rows.length} dòng
+            </p>
+          ) : null}
+        </div>
+
+        <div className="flex shrink-0 justify-end gap-2 border-t border-slate-100 bg-white px-6 py-4">
           <button type="button" onClick={onClose} className="rounded-xl px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
             Hủy
           </button>
@@ -226,7 +225,7 @@ export function QlcvImportDialog({ isOpen, onClose, onImported }: Props) {
             {validCount > 0 ? ` (${validCount})` : ""}
           </button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

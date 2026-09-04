@@ -47,22 +47,26 @@ export async function getLoaiDungCuRowsAction(params?: Partial<FactListPaginatio
   if (error) return { success: false as const, error: error.message, data: [], totalCount: 0 };
   const mapped = (data || []).map((r) => mapLoaiPhysicalToListRow(r as Record<string, unknown>));
   const ids = mapped.map((r) => r.id).filter(Boolean);
-  const trongBo = new Map<string, number>();
+  const trongBoByLoaiId = new Map<string, number>();
   if (ids.length) {
-    const { data: setRows } = await supabase
+    const { data: setRows, error: setErr } = await supabase
       .from("v_cssd_bo_dung_cu_chi_tiet_realtime")
       .select("loai_dung_cu_id, so_luong_thuc_te")
       .in("loai_dung_cu_id", ids)
       .eq("is_active", true);
+    if (setErr) return { success: false as const, error: setErr.message, data: [], totalCount: 0 };
     for (const row of setRows || []) {
       const id = String((row as { loai_dung_cu_id?: string }).loai_dung_cu_id || "");
       if (!id) continue;
-      trongBo.set(id, (trongBo.get(id) || 0) + Number((row as { so_luong_thuc_te?: number }).so_luong_thuc_te || 0));
+      trongBoByLoaiId.set(
+        id,
+        (trongBoByLoaiId.get(id) || 0) + Number((row as { so_luong_thuc_te?: number }).so_luong_thuc_te || 0),
+      );
     }
   }
   return {
     success: true as const,
-    data: mergeLoaiListTrongBo(mapped, trongBo),
+    data: mergeLoaiListTrongBo(mapped, trongBoByLoaiId),
     totalCount: count ?? 0,
   };
 }

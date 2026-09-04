@@ -82,7 +82,7 @@ export default function CssdStationFlowMap({ activeStation, onSelectStation, gat
       <div className="flex flex-wrap items-center justify-between gap-2 px-0.5">
         <h2 className={`${CSSD_UI_SECTION_TITLE} max-sm:text-sm`}>Xem hàng chờ</h2>
         {activeStation ? (
-          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
             {STATION_LABEL[activeStation]}
           </span>
         ) : null}

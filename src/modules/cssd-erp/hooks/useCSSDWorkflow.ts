@@ -201,11 +201,19 @@ export function useCSSDWorkflow() {
     await runStationScan(currentStation, code, extraPayload);
   };
 
-  const confirmDongGoiAdvance = useCallback(async () => {
-    if (!dongGoiGate) return;
-    await runStationScan("DONG_GOI", dongGoiGate.code);
-    setDongGoiGate(null);
-  }, [dongGoiGate, runStationScan]);
+  const confirmDongGoiAdvance = useCallback(
+    async (payload?: { packMaterial?: string; method?: string }) => {
+      if (!dongGoiGate) return;
+      await runStationScan("DONG_GOI", dongGoiGate.code, {
+        packMaterial: payload?.packMaterial,
+        method: payload?.method,
+        phuong_phap_tiet_khuan: payload?.method,
+        vat_lieu_dong_goi: payload?.packMaterial,
+      });
+      setDongGoiGate(null);
+    },
+    [dongGoiGate, runStationScan],
+  );
 
   const cancelDongGoiGate = useCallback(() => {
     setDongGoiGate(null);

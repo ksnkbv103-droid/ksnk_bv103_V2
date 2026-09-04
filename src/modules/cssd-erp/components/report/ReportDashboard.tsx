@@ -2,14 +2,14 @@
 "use client";
 
 import React from "react";
-import { AlertCircle, Target, Zap, Trophy, ShieldAlert } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 
 interface Props {
   stats: {
     total: number;
     incidents: number;
-    /** % quy trình không gắn sự cố — không phải CCS / tuân thủ VST–GSC */
+    /** % quy trình không gắn sự cố — chỉ số CSSD riêng, không phải tuân thủ VST–GSC */
     tyLeQuyTrinhKhongSuCo: string;
     bestStation: string;
     worstStation: string;
@@ -19,76 +19,68 @@ interface Props {
 
 export default function ReportDashboard({ stats, alerts }: Props) {
   return (
-    <div className="space-y-[var(--bv103-space-3)]">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Tổng quy trình" value={stats.total} icon={<Zap size={16} strokeWidth={2} />} color="bg-emerald-50" textColor="text-emerald-700" />
-        <StatCard title="Số vụ sự cố" value={stats.incidents} icon={<ShieldAlert size={16} strokeWidth={2} />} color="bg-red-50" textColor="text-red-600" />
-        <StatCard
-          title="Tỷ lệ quy trình không sự cố"
-          value={`${stats.tyLeQuyTrinhKhongSuCo}%`}
-          icon={<Target size={16} strokeWidth={2} />}
-          color="bg-blue-50"
-          textColor="text-blue-700"
-          hint="100 − (sự cố ÷ quy trình) × 100 trong kỳ lọc. Không phải CCS / tuân thủ giám sát VST–GSC."
-        />
-        <StatCard title="Trạm tốt nhất" value={stats.bestStation} icon={<Trophy size={16} strokeWidth={2} />} color="bg-amber-50" textColor="text-amber-700" isStation />
+    <div className="space-y-2">
+      {/* Compact KPI strip — not 4-col StatCard wall */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/80 px-3 py-2 text-[11px]">
+        <span className="font-semibold text-slate-800">
+          Quy trình <span className="tabular-nums text-emerald-700">{stats.total}</span>
+        </span>
+        <span className="text-slate-300" aria-hidden>
+          ·
+        </span>
+        <span className="font-semibold text-red-700">
+          Sự cố <span className="tabular-nums">{stats.incidents}</span>
+        </span>
+        <span className="text-slate-300" aria-hidden>
+          ·
+        </span>
+        <span
+          className="text-blue-800"
+          title="100 − (sự cố ÷ quy trình) × 100 trong kỳ lọc. Chỉ số CSSD riêng — không phải tuân thủ giám sát VST–GSC."
+        >
+          Không sự cố{" "}
+          <span className="font-semibold tabular-nums">{stats.tyLeQuyTrinhKhongSuCo}%</span>
+        </span>
+        <span className="text-slate-300" aria-hidden>
+          ·
+        </span>
+        <span className="text-amber-800">
+          Trạm tốt <span className="font-semibold">{stats.bestStation || "—"}</span>
+        </span>
+        {stats.worstStation ? (
+          <>
+            <span className="text-slate-300" aria-hidden>
+              ·
+            </span>
+            <span className="text-slate-600">
+              Cần xem <span className="font-semibold">{stats.worstStation}</span>
+            </span>
+          </>
+        ) : null}
       </div>
 
       {alerts.length > 0 ? (
-        <div className="space-y-3 rounded-[var(--radius-shell)] border border-red-200 bg-red-50 p-4 text-red-900">
-          <div className="flex items-center gap-3">
-            <div className="rounded-[var(--radius-control)] bg-white p-2 text-red-600 shadow-sm">
-              <AlertCircle size={18} strokeWidth={2.5} />
-            </div>
-            <div>
-              <h4 className={bv103DesignTokens.sectionTitle}>Cảnh báo đỏ hệ thống</h4>
-              <p className="text-[11px] font-medium text-red-700/80">Trạm có tỷ lệ sai sót vượt ngưỡng an toàn (&gt;5%)</p>
-            </div>
+        <div className="space-y-1.5 rounded-[var(--radius-shell)] border border-red-200 bg-red-50/80 px-3 py-2 text-red-900">
+          <div className="flex items-center gap-2">
+            <AlertCircle size={14} strokeWidth={2.5} className="shrink-0 text-red-600" />
+            <h4 className={`${bv103DesignTokens.sectionTitle} text-sm`}>Cảnh báo đỏ</h4>
+            <span className="text-[11px] font-medium text-red-700/80">
+              Trạm sai sót &gt;5%
+            </span>
           </div>
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+          <div className="flex flex-wrap gap-1.5">
             {alerts.map((a, i) => (
-              <div key={i} className="rounded-[var(--radius-control)] border border-red-100 bg-white px-3 py-2.5">
-                <p className="text-sm font-semibold text-slate-800">Trạm {a.name.replace("_", " ")}</p>
-                <p className="mt-0.5 text-xs font-medium text-red-700">Tỷ lệ lỗi: {a.rate}% (&gt;5%)</p>
-                <p className="mt-1.5 text-[11px] leading-snug text-slate-500">
-                  Gợi ý: Rà soát quy trình và đào tạo lại nhân sự tại khu vực này.
-                </p>
-              </div>
+              <span
+                key={i}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-red-100 bg-white px-2 py-1 text-[11px]"
+              >
+                <span className="font-semibold text-slate-800">{a.name.replace("_", " ")}</span>
+                <span className="font-medium text-red-700">{a.rate}%</span>
+              </span>
             ))}
           </div>
         </div>
       ) : null}
-    </div>
-  );
-}
-
-function StatCard({
-  title,
-  value,
-  icon,
-  color,
-  textColor,
-  isStation,
-  hint,
-}: {
-  title: string;
-  value: React.ReactNode;
-  icon: React.ReactNode;
-  color: string;
-  textColor: string;
-  isStation?: boolean;
-  hint?: string;
-}) {
-  return (
-    <div className={`${color} relative flex flex-col gap-2 overflow-hidden rounded-[var(--radius-shell)] border border-white px-4 py-3 shadow-sm`}>
-      <div className="relative z-10 flex items-start justify-between gap-2">
-        <p className={bv103DesignTokens.labelBlockMuted}>{title}</p>
-        <div className={`rounded-lg bg-white p-1.5 shadow-sm ${textColor}`}>{icon}</div>
-      </div>
-      <div className="relative z-10 space-y-1">
-        <p className={isStation ? "bv103-type-label font-semibold uppercase" : "bv103-type-kpi"}>{value}</p>
-        {hint ? <p className="text-[11px] font-medium leading-snug text-slate-500">{hint}</p> : null}
-      </div>
     </div>
   );
 }

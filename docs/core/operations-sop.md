@@ -67,13 +67,13 @@ SSOT mã quyền: [`permission-registry-data.ts`](../../src/lib/permission-regis
 2. **KHÔNG merge Pull Request đụng DB** khi chưa chạy thành công precheck kiểm tra tính toàn vẹn dữ liệu.
 3. **KHÔNG dùng tài liệu tĩnh làm SSOT**. Lịch sử file migration trong git (`supabase/migrations/`) và database thực tế mới là Single Source of Truth duy nhất.
 
-### 2.1.1 Ma trận môi trường (migration parity) — cập nhật 2026-06-09
+### 2.1.1 Ma trận môi trường (migration parity) — cập nhật 2026-09-04
 
 | Môi trường | Lệnh kiểm tra head | Ghi chú |
 |------------|-------------------|---------|
-| **Local** | `npx supabase migration list --local` | Docker + `npm run mdm:migrate:local`. Head repo = **87** file (`20260702100000`). Golden verify: `npm run local:golden:verify` (SOP §2.1.2). |
+| **Local** | `npx supabase migration list --local` | Docker + `npm run mdm:migrate:local`. Head repo = **129** file (xem `ls supabase/migrations/*.sql | wc -l`; snapshot 2026-09-04; head `20260904120000`). Golden verify: `npm run local:golden:verify` (SOP §2.1.2). |
 | **Linked staging** | `npm run mdm:migrate` | `npm run trial:db:precheck`, `npm run smoke:gsc-vst`, `npm run gstt:db:audit`, `npm run ssot:db:guard`. |
-| **Repo SSOT** | `ls supabase/migrations/*.sql` | Tên file = nguồn sự thật; không apply SQL tay trên remote. |
+| **Repo SSOT** | `ls supabase/migrations/*.sql` | Tên file = nguồn sự thật; không apply SQL tay trên remote. Đếm + ngày: xem ghi chú Local (đừng tin số cũ ~87). |
 
 **Local không chạy được:** Nếu `connection refused` port 54322 → bật Docker Desktop, chạy `npx supabase start`. Không audit EXPLAIN/size trên local khi DB down — dùng linked staging tạm thời.
 

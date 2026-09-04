@@ -1,10 +1,17 @@
-/** Pure FEFO / expiry rules — kho hóa chất CSSD. */
+import { addDaysYmd, todayYmdInVn } from "@/lib/format-datetime-vi";
+
+export { addDaysYmd } from "@/lib/format-datetime-vi";
+
+/** Pure FEFO / expiry rules — kho hóa chất CSSD (QT.38 BM.02). */
 
 export type FefoLotRow = {
   ma_lo?: string | null;
   han_su_dung?: string | null;
   ton_so_luong?: number;
 };
+
+/** Ngưỡng cận-date mặc định (ngày) — banner + highlight HSD. */
+export const NEAR_EXPIRY_DAYS = 30;
 
 export function lotRowToKey(row: { ma_lo?: string | null; han_su_dung?: string | null }): string {
   return `${row.ma_lo ?? ""}|${row.han_su_dung ?? ""}`;
@@ -13,8 +20,21 @@ export function lotRowToKey(row: { ma_lo?: string | null; han_su_dung?: string |
 export function isLotExpired(han_su_dung: string | null | undefined, todayYmd?: string): boolean {
   const raw = String(han_su_dung || "").trim().slice(0, 10);
   if (!raw) return false;
-  const today = todayYmd || new Date().toISOString().slice(0, 10);
+  const today = todayYmd || todayYmdInVn();
   return raw < today;
+}
+
+export function isLotNearExpiry(
+  han_su_dung: string | null | undefined,
+  todayYmd?: string,
+  withinDays: number = NEAR_EXPIRY_DAYS,
+): boolean {
+  const raw = String(han_su_dung || "").trim().slice(0, 10);
+  if (!raw) return false;
+  const today = todayYmd || todayYmdInVn();
+  if (raw < today) return true;
+  const horizon = addDaysYmd(today, Math.max(0, withinDays));
+  return raw <= horizon;
 }
 
 function expirySortKey(han_su_dung: string | null | undefined): number {

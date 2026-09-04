@@ -4,7 +4,10 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
 import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import { mapDanhMucOptions } from "@/lib/master-data/gateway";
-import { enrichGscHistoryRows } from "../lib/gsc-read-utils";
+import {
+  enrichGscHistoryRows,
+  mergeGscHistoryRowsWithSessionMetadata,
+} from "../lib/gsc-read-utils";
 import {
   GSC_SESSIONS_FULL_LIST_SELECT,
 } from "../lib/gsc-read-view-select";
@@ -112,8 +115,25 @@ export async function getGiamSatChungHistoryPaginated(params: {
     const { data: sessions, error } = await dataQ;
     if (error) throw error;
 
+    // Metadata fact (bang_kiem_snapshot) — view không lộ; cần để nhãn lịch sử ưu tiên snapshot.
+    const listRows = (sessions ?? []) as Record<string, unknown>[];
+    const ids = listRows.map((r) => String(r.id ?? "").trim()).filter(Boolean);
+    const metaById = new Map<string, unknown>();
+    if (ids.length) {
+      const { data: metaRows } = await supabase
+        .from("gstt_fact_chung_sessions")
+        .select("id,metadata")
+        .in("id", ids);
+      for (const m of metaRows ?? []) {
+        const mid = String((m as { id?: unknown }).id ?? "").trim();
+        if (mid) metaById.set(mid, (m as { metadata?: unknown }).metadata);
+      }
+    }
+
     // Enrich nhẹ — KHÔNG fetch results (lazy load khi xem chi tiết)
-    const enriched = enrichGscHistoryRows((sessions ?? []) as Record<string, unknown>[]).map((x) => ({
+    const enriched = enrichGscHistoryRows(
+      mergeGscHistoryRowsWithSessionMetadata(listRows, metaById),
+    ).map((x) => ({
       ...x,
       is_seen: Boolean(x.is_seen),
     }));

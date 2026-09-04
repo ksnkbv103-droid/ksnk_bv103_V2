@@ -1,10 +1,9 @@
 "use client";
 
 import React from "react";
-import { createPortal } from "react-dom";
-import { X, PackageOpen } from "lucide-react";
-import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
+import { PackageOpen } from "lucide-react";
 import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import SetCompositionCard from "./SetCompositionCard";
 
 interface Props {
@@ -21,48 +20,41 @@ export default function SetMembersModal({ isOpen, onClose, set }: Props) {
   const boId = String(set?.bo_dung_cu_id || "").trim();
   const tenBo = set?.cssd_dm_bo_dung_cu?.ten_bo || set?.ten_bo || "Bộ dụng cụ";
 
-  useBodyScrollLock(isOpen);
   if (!isOpen) return null;
 
-  const modal = (
-    <div
-      className="fixed inset-0 z-[150] flex items-end justify-center bg-slate-900/60 p-0 sm:items-center sm:p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="cssd-set-members-title"
+  return (
+    <Dialog
+      open={isOpen}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
     >
-      <div className="flex max-h-[85vh] min-h-0 w-full max-w-xl flex-col rounded-t-[var(--radius-shell)] bg-white p-6 shadow-[var(--shadow-app-soft)] sm:rounded-[var(--radius-shell)] sm:p-8">
-        <div className="flex shrink-0 items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="shrink-0 rounded-[var(--radius-shell)] bg-emerald-50 p-3 text-[var(--primary)]">
-              <PackageOpen size={22} />
-            </div>
-            <div className="min-w-0">
-              <h4 id="cssd-set-members-title" className={UI.panelSubtitle}>
-                Thẻ bộ — cần / thực tế
-              </h4>
-              <p className={`truncate ${UI.panelTitle}`}>{tenBo}</p>
-            </div>
+      <DialogContent
+        className="flex max-h-[min(90dvh,880px)] max-w-xl flex-col gap-0 overflow-hidden p-0 sm:max-w-xl"
+        aria-labelledby="cssd-set-members-title"
+      >
+        <DialogTitle className="sr-only">Thẻ bộ — {tenBo}</DialogTitle>
+
+        <div className="flex shrink-0 items-center gap-3 border-b border-slate-100 px-6 py-5 pr-14 sm:px-8 sm:py-6">
+          <div className="shrink-0 rounded-[var(--radius-shell)] bg-emerald-50 p-3 text-[var(--primary)]">
+            <PackageOpen size={22} />
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-100 bg-slate-50 text-slate-400"
-            aria-label="Đóng"
-          >
-            <X size={22} />
-          </button>
+          <div className="min-w-0">
+            <h4 id="cssd-set-members-title" className={UI.panelSubtitle}>
+              Thẻ bộ — cần / thực tế
+            </h4>
+            <p className={`truncate ${UI.panelTitle}`}>{tenBo}</p>
+          </div>
         </div>
-        <div className="custom-scrollbar mt-4 min-h-0 flex-1 overflow-y-auto overscroll-contain">
+
+        <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-4 sm:px-8">
           {boId ? (
             <SetCompositionCard boDungCuId={boId} compact />
           ) : (
             <p className="py-12 text-center text-xs text-slate-400">Bộ này chưa gắn danh mục.</p>
           )}
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
-
-  return createPortal(modal, document.body);
 }

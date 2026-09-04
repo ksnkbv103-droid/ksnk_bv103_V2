@@ -119,8 +119,22 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     selectStation(station);
   };
 
+  const incidentActions = (
+    <button
+      type="button"
+      onClick={() => setIsIncidentOpen(true)}
+      disabled={!canCreateIncident}
+      className="bv103-control-h inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-control)] bg-red-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      <AlertTriangle size={16} aria-hidden /> Báo sự cố
+    </button>
+  );
+
   const mainContent = (
     <div className="bv103-stack-page animate-in fade-in duration-500">
+      {suppressShell ? (
+        <div className="flex justify-end">{incidentActions}</div>
+      ) : null}
       <CssdStationFlowMap
         activeStation={currentStation}
         onSelectStation={requestSelectStation}
@@ -130,7 +144,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
       <main className="grid grid-cols-1 items-start gap-[var(--bv103-space-3)] lg:grid-cols-12">
         <div className="bv103-stack-in lg:col-span-6">
           {currentStation ? <WaitingList items={waitingList} onAction={submitWorkflowQr} /> : (
-            <div className="bv103-layer-inset py-16 text-center bv103-type-label font-semibold uppercase tracking-wide text-slate-400">
+            <div className="bv103-layer-inset py-16 text-center bv103-type-label font-semibold text-slate-400">
               Chọn trạm để xem hàng chờ.
             </div>
           )}
@@ -148,7 +162,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
               enabled
               gateMode
               advancing={workflowLoading}
-              onConfirmAdvance={() => void confirmDongGoiAdvance()}
+              onConfirmAdvance={(payload) => void confirmDongGoiAdvance(payload)}
               onCancelGate={cancelDongGoiGate}
             />
           ) : showScanSuccess ? (
@@ -198,16 +212,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
           Quản lý <span className="text-[var(--primary)]">CSSD</span>
         </>
       }
-      actions={
-        <button
-          type="button"
-          onClick={() => setIsIncidentOpen(true)}
-          disabled={!canCreateIncident}
-          className="bv103-control-h inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-control)] bg-red-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <AlertTriangle size={16} aria-hidden /> Báo sự cố
-        </button>
-      }
+      actions={incidentActions}
     >
       {mainContent}
       <CssdPrintPortal printState={printState} />

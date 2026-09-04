@@ -5,6 +5,7 @@
 | **Domain nghiệp vụ (PO / tổng hợp)** | [`domain-overview.md`](domain-overview.md) |
 | Sửa workflow / QR | [`../../core/domain-specification.md`](../../core/domain-specification.md) §2.2 + [`../../wiki/entities.md`](../../wiki/entities.md#cssd) |
 | Master → vận hành / mã QR | [`quan-ly-dung-cu-luong.md`](quan-ly-dung-cu-luong.md) |
+| **Phase 0 quyết định dụng cụ (D1–D10)** | [`../../core/domain-decisions-cssd-instrument.md`](../../core/domain-decisions-cssd-instrument.md) |
 | Mapping bảng | [`../../core/implementation-mapping.md`](../../core/implementation-mapping.md) § CSSD |
 | Reform QLDCPT | [`reform-plan.md`](reform-plan.md) |
 | Ranh giới MDM | [`../../wiki/concepts.md`](../../wiki/concepts.md#cssd-vs-mdm) |
@@ -19,7 +20,7 @@ Rule: `12-cssd-erp-spec-context.mdc`
 | `/cssd-quy-trinh` | Workflow 6 trạm + tab mẻ/kho/truy vết (`?tab=batch\|kho\|trace`) |
 | Pilot QA | [`pilot-test-checklist.md`](pilot-test-checklist.md) |
 | `/cssd-dung-cu` | Catalog dụng cụ (read-only) |
-| `/cssd-su-co` | Báo cáo sự cố |
+| `/cssd-su-co` | Sự cố an toàn + 3 cửa biến động dụng cụ |
 | `/cssd-thiet-bi` | Bảo trì thiết bị |
 | `/cssd-hoa-chat` | Kho hóa chất |
 | `/cssd-erp/batch` | Mẻ tiệt khuẩn (deep link) |

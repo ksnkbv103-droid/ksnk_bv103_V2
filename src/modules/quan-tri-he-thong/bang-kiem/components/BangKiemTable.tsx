@@ -65,12 +65,6 @@ export default function BangKiemTable({
   };
   useEffect(() => { loadData(); }, [refreshKey, refreshToken]);
 
-  useEffect(() => {
-    if (!selectedBKId && data.length > 0) {
-      onSelectBK(data[0]);
-    }
-  }, [data, selectedBKId, onSelectBK]);
-
   const { exportTemplate, handleFileUpload, isImporting, triggerImport, fileInputRef } = useImportExport({
     moduleKey: "BANG_KIEM", tableName: "gstt_dm_bang_kiem", displayName: "Danh mục Bảng kiểm", uniqueKey: "ma_bk",
     isHierarchical: true, childUniqueKey: "ma_tc", childArrayKey: "tieu_chi_bang_kiem",
@@ -189,6 +183,7 @@ export default function BangKiemTable({
           data={data}
           loading={loading}
           enableMultiSelect={allowDelete}
+          bodyMaxHeight="max-h-[min(58dvh,560px)]"
           onRowClick={(row) => onSelectBK(row)}
           rowClassName={(row) =>
             row.id === selectedBKId ? "bg-[var(--primary)]/8" : ""

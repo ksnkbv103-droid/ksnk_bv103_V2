@@ -1,6 +1,6 @@
 # ĐẶC TẢ NGHIỆP VỤ Y TẾ THỐNG NHẤT — KSNK BV103
 
-> **Phiên bản:** 1.3 (28/07/2026)  
+> **Phiên bản:** 1.4 (04/09/2026) — Phase 0 dụng cụ D1–D10  
 > **Trạng thái:** Hoạt động (SSOT Nghiệp vụ Bounded Context)  
 > **Ánh xạ runtime:** [implementation-mapping.md](./implementation-mapping.md) (prefix `sys_`/`mdm_`/`cssd_`/`gstt_`/`qlcv_`/`nkbv_`).
 
@@ -38,7 +38,8 @@
 
 ### 2.2 Quy trình Tái xử lý Dụng cụ y tế (CSSD Workflow)
 
-> Bản nghiệp vụ đầy đủ (entity, QR, mẻ, luật đóng băng, màn hình): [`../modules/cssd/domain-overview.md`](../modules/cssd/domain-overview.md) — **chốt PO 2026-07-28**; **bổ sung domain 2026-08-22** từ PCI.03.00 (QT.18–25) — chỉ lấp domain đang có; HLD ngoài phạm vi.
+> Bản nghiệp vụ đầy đủ (entity, QR, mẻ, luật đóng băng, màn hình): [`../modules/cssd/domain-overview.md`](../modules/cssd/domain-overview.md) — **chốt PO 2026-07-28**; **bổ sung domain 2026-08-22** từ PCI.03.00 (QT.18–25) — chỉ lấp domain đang có; HLD ngoài phạm vi.  
+> **Phase 0 dụng cụ (D1–D10, 2026-09-04):** [`domain-decisions-cssd-instrument.md`](domain-decisions-cssd-instrument.md).
 
 ```mermaid
 flowchart LR
@@ -61,11 +62,13 @@ flowchart LR
 * **Tab Kho** (`/cssd-quy-trinh?tab=kho`): giám sát FEFO/tồn — **không** phải trạm quét.
 * **Tab Trace** (`?tab=trace`): timeline + liên kết SSI — không phải trạm.
 * **Thu hồi / Recall:** phản ứng an toàn (không phải trạm 7); quay lại = `CAP_PHAT` → `TIEP_NHAN`. BI+ / QC mẻ không đạt → recall theo `lo_tiet_khuan_id` + máy `HOLD_QC` (chưa tự mở máy sau 3× BI (−)).
-* **Trạm 4:** panel đối chiếu cấu phần (read-only realtime) + nút «Báo biến động bộ này» → phiếu sự cố header–dòng. Hỏng/Mất/Bổ sung ghi sổ ngay; đổi chuẩn chờ admin duyệt. Kiểm kê: nhập mã loại / mã khắc / số đếm trên cùng phiếu; điều chuyển sang bộ khác cũng trên phiếu đó (sổ nguồn–đích). Không phiếu từng món. Không còn modal BOM / cờ `BV103_FEATURE_BOM_CHECKLIST`.
+* **Trạm 4:** panel đối chiếu cấu phần (read-only realtime) + nút «Báo biến động bộ này» → phiếu header–dòng (**không** gọi mọi biến động là «sự cố» — D1). **3 cửa (D2):** **Đổi danh mục** (`SET_RECONCILE`, chờ ADMIN — không ghi sổ) · **Hỏng/Mất** (ghi sổ ngay) · **Chuyển** (`MOVE` / `InstrumentMoveDualTable`; chỉ cửa này có `BO_SUNG`/`TRA_KHO`/`DIEU_CHUYEN` — D3). Không phiếu từng món. Không còn modal BOM / cờ `BV103_FEATURE_BOM_CHECKLIST`.
 * **Trạm 5:** `cssd_fact_lo_tiet_khuan`; QC mẻ không đạt → rollback về `DONG_GOI` + sự cố (+ đóng băng nếu cần). Implant → `Quarantine_BI` / `CHO_BI` trước `HOAN_THANH`.
 * **Trạm 6:** Ledger soft-warning nếu thiếu cấu phần (QLDCPT Q2) — **không** hard-block.
 * **Dual-coding:** tem quét `B01.SET.*` ↔ alias `B01.CD*` ↔ `BO-01-*` (resolve QR Hub); nhãn/Cycle QR đủ QT.20 gồm số mẻ.
 * **Máy:** `READY` | `REPAIRING` | `HOLD_QC`; steam ⇒ BD đầu ngày đạt mới nạp.
+* **Cổng cấp phát (2026-09-04):** bắt buộc `tinh_trang` + HSD; gói quá hạn / ướt·rách·hỏng·bẩn / red-alert → **chặn** `CAP_PHAT` có message (`cssd-pack-issuance`); soft-warning thiếu cấu phần giữ Q2.
+* **BD đầu ngày steam (2026-09-04):** đọc `cssd_dm_thiet_bi.specs.bd_dau_ngay_*` — `KHONG_DAT` **hoặc thiếu BD ĐẠT hôm nay** → **chặn** tạo/chốt nạp mẻ steam (`requireRecorded` mặc định true, QT.21).
 * **Luật đóng băng (tóm tắt):** tách SUB khi lẫn nhiệt; Plasma cấm cellulose; master CRUD ≠ quét vận hành; Cycle QR reset khi vòng mới (giữ tem bộ vĩnh viễn). Chi tiết: domain-overview §5.
 
 ### 2.3 Quản lý Công việc Nội bộ KSNK (Track B Workflow)
@@ -88,6 +91,6 @@ MVP NKBV nhập liệu lâm sàng; kiến trúc hướng FHIR (`Patient`, `Encou
 * Nhân sự: **`mdm_nhan_su`** + `auth_user_id` → `auth.users`
 * Lookup phẳng: **`sys_lookup_value`** (14+ category_type)
 
-**Master CSSD** (định nghĩa dụng cụ/máy/hóa chất — CRUD tại Quản trị, không phải phiên QR): TABLE **`cssd_dm_loai_dung_cu`**, **`cssd_dm_bo_dung_cu`**, **`cssd_dm_bo_dung_cu_chi_tiet`**, **`cssd_dm_thiet_bi`**, **`cssd_dm_hoa_chat`**. Ranh giới: [`../wiki/concepts.md`](../wiki/concepts.md#cssd-vs-mdm). Lộ trình: [`../modules/mdm/improvement-roadmap-20260717.md`](../modules/mdm/improvement-roadmap-20260717.md).
+**Master CSSD** (định nghĩa dụng cụ/máy/hóa chất — CRUD tại Quản trị, không phải phiên QR): TABLE **`cssd_dm_loai_dung_cu`**, **`cssd_dm_bo_dung_cu`**, **`cssd_dm_bo_dung_cu_chi_tiet`**, **`cssd_dm_thiet_bi`**, **`cssd_dm_hoa_chat`**. IA dụng cụ: tab **Bộ · Phiếu · Lịch sử** + sheet **Loại** ADMIN. Hard-write loại/bộ/BOM chỉ **ADMIN**; `BO_DC.edit` = duyệt phiếu (D5). BOM **1 bộ×1 loại** unique active (D6). Ranh giới: [`../wiki/concepts.md`](../wiki/concepts.md#cssd-vs-mdm). Lộ trình: [`../modules/mdm/improvement-roadmap-20260717.md`](../modules/mdm/improvement-roadmap-20260717.md). Quyết định: [`domain-decisions-cssd-instrument.md`](domain-decisions-cssd-instrument.md).
 
 * Audit hệ thống: **không còn** (DROP 2026-06-02; xem `implementation-mapping.md` changelog)

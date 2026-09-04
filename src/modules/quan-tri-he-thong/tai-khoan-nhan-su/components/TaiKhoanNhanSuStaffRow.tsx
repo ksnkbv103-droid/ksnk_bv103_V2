@@ -59,7 +59,7 @@ export default function TaiKhoanNhanSuStaffRow({
                 }
                 onProvision(r, pw);
               }}
-              className="rounded-lg bg-slate-800 px-2 py-1.5 bv103-type-label font-semibold uppercase text-white disabled:opacity-40"
+              className="rounded-lg bg-slate-800 px-2 py-1.5 bv103-type-label font-semibold text-white disabled:opacity-40"
             >
               Tạo TK
             </button>

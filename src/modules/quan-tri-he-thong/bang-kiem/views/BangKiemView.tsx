@@ -9,6 +9,7 @@ import type { DanhMucBangKiem } from "../bang-kiem.types";
 import { usePermission } from "@/hooks/usePermission";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 export default function BangKiemView() {
   const { loading, canView, canCreate, canEdit, canDelete, canImport } = usePermission();
@@ -46,92 +47,85 @@ export default function BangKiemView() {
     );
   }
 
+  const detailTitle = selectedBK
+    ? `${selectedBK.ma_bk} — ${selectedBK.ten_bang_kiem || selectedBK.ten_bk}`
+    : "Chi tiết bảng kiểm";
+
   return (
-    <div className="bv103-stack-page pb-10 animate-in fade-in duration-500">
+    <div className="bv103-stack-page space-y-3 pb-10 animate-in fade-in duration-500">
+      <h2 className={`px-2 ${T.sectionTitle}`}>Mẫu bảng kiểm</h2>
 
-      <div className="flex flex-col md:flex-row gap-8 items-start relative w-full">
-        <div className="w-full space-y-[var(--bv103-space-3)] md:sticky md:top-24 md:flex md:w-[55%] md:max-h-[calc(100vh-140px)] md:flex-col">
-          <h2 className={`shrink-0 px-2 ${T.sectionTitle}`}>Mẫu bảng kiểm</h2>
-          <div className="pb-10 animate-in fade-in duration-500 md:flex-1 md:overflow-y-auto md:pr-2 md:custom-scrollbar">
-            <BangKiemTable
-              onSelectBK={setSelectedBK}
-              onDataLoaded={(rows) => {
-                if (!selectedBK?.id) return;
-                const fresh = rows.find((r) => r.id === selectedBK.id);
-                if (fresh) setSelectedBK(fresh);
-              }}
-              refreshToken={tableRefreshKey}
-              selectedBKId={selectedBK?.id}
-              permission={{
-                import: bk.import,
-                create: bk.create,
-                edit: bk.edit,
-                delete: bk.delete,
-              }}
-            />
-          </div>
-        </div>
+      <BangKiemTable
+        onSelectBK={setSelectedBK}
+        onDataLoaded={(rows) => {
+          if (!selectedBK?.id) return;
+          const fresh = rows.find((r) => r.id === selectedBK.id);
+          if (fresh) setSelectedBK(fresh);
+        }}
+        refreshToken={tableRefreshKey}
+        selectedBKId={selectedBK?.id}
+        permission={{
+          import: bk.import,
+          create: bk.create,
+          edit: bk.edit,
+          delete: bk.delete,
+        }}
+      />
 
-        <div className="w-full space-y-[var(--bv103-space-3)] md:sticky md:top-24 md:flex md:w-[45%] md:max-h-[calc(100vh-140px)] md:flex-col">
-          <h2 className={`truncate shrink-0 px-2 ${T.sectionTitle} text-[var(--primary)]`}>
-            {selectedBK
-              ? `${selectedBK.ma_bk} — ${selectedBK.ten_bang_kiem || selectedBK.ten_bk}`
-              : "Chọn bảng kiểm bên trái"}
-          </h2>
+      {!selectedBK ? (
+        <p className="px-2 text-[11px] text-slate-500">
+          Chọn một dòng để xem phạm vi áp dụng và tiêu chí.
+        </p>
+      ) : null}
 
-          <div className="space-y-[var(--bv103-space-3)] pb-10 animate-in fade-in slide-in-from-right-6 duration-500 md:flex-1 md:overflow-y-auto md:pr-2 md:custom-scrollbar">
-            {selectedBK ? (
-              <>
-                <BangKiemApDungPanel
-                  bangKiem={selectedBK}
-                  canEdit={bk.edit}
-                  onSaved={(apDung) => {
-                    setSelectedBK((prev) => (prev ? { ...prev, ap_dung_jsonb: apDung } : prev));
-                    setTableRefreshKey((k) => k + 1);
-                  }}
-                />
-                {tc.view ? (
-                  <div className="space-y-2">
-                    <h3 className={`px-2 ${T.sectionTitle}`}>
-                      Tiêu chí bảng kiểm
-                    </h3>
-                    <TieuChiTable
-                      bangKiem={selectedBK}
-                      permission={{
-                        import: bk.import && tc.import,
-                        create: tc.create,
-                        edit: tc.edit,
-                        delete: tc.delete,
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div
-                    className={`flex min-h-[200px] flex-col items-center justify-center gap-4 border border-amber-100/90 px-8 text-center text-slate-500 ${bv103LayoutChrome.panelSurface}`}
-                  >
-                    <p className="text-sm font-semibold text-amber-700">Không có quyền xem tiêu chí</p>
-                    <p className="text-sm font-normal text-slate-500 max-w-sm leading-relaxed">
-                      Bạn vẫn chỉnh phạm vi áp dụng ở trên. Xem tiêu chí cần quyền BANG_KIEM_DETAIL.
-                    </p>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div
-                className={`flex h-full min-h-[400px] flex-col items-center justify-center gap-[var(--bv103-space-3)] border-2 border-dashed border-slate-200/80 text-slate-300 ${bv103LayoutChrome.panelSurface}`}
-              >
-                <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center text-5xl">📋</div>
-                <div className="text-center space-y-2 px-10">
-                  <p className="text-sm font-semibold text-slate-500">Chi tiết bảng kiểm</p>
-                  <p className="text-sm font-normal text-slate-400 leading-relaxed">
-                    Chọn bảng kiểm bên trái để quy định phạm vi áp dụng và xem tiêu chí
+      <Dialog
+        open={Boolean(selectedBK)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedBK(null);
+        }}
+      >
+        <DialogContent className="max-w-4xl sm:max-w-5xl max-h-[min(90dvh,880px)] overflow-y-auto">
+          <DialogTitle className="sr-only">{detailTitle}</DialogTitle>
+          {selectedBK ? (
+            <div className="space-y-[var(--bv103-space-3)]">
+              <h2 className={`truncate px-1 ${T.sectionTitle} text-[var(--primary)]`}>
+                {detailTitle}
+              </h2>
+              <BangKiemApDungPanel
+                bangKiem={selectedBK}
+                canEdit={bk.edit}
+                onSaved={(apDung) => {
+                  setSelectedBK((prev) => (prev ? { ...prev, ap_dung_jsonb: apDung } : prev));
+                  setTableRefreshKey((k) => k + 1);
+                }}
+              />
+              {tc.view ? (
+                <div className="space-y-2">
+                  <h3 className={`px-1 ${T.sectionTitle}`}>Tiêu chí bảng kiểm</h3>
+                  <TieuChiTable
+                    bangKiem={selectedBK}
+                    permission={{
+                      import: bk.import && tc.import,
+                      create: tc.create,
+                      edit: tc.edit,
+                      delete: tc.delete,
+                    }}
+                  />
+                </div>
+              ) : (
+                <div
+                  className={`flex min-h-[160px] flex-col items-center justify-center gap-3 border border-amber-100/90 px-6 text-center text-slate-500 ${bv103LayoutChrome.panelSurface}`}
+                >
+                  <p className="text-sm font-semibold text-amber-700">Không có quyền xem tiêu chí</p>
+                  <p className="max-w-sm text-sm font-normal leading-relaxed text-slate-500">
+                    Bạn vẫn chỉnh phạm vi áp dụng ở trên. Xem tiêu chí cần quyền BANG_KIEM_DETAIL.
                   </p>
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+              )}
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

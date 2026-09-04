@@ -82,7 +82,7 @@ export async function loadGscViewBundle(
   const lookupKeys = gscViewBangKiemLookupKeys({
     loaiBangKiem: sessionRow.loai_bang_kiem,
     frozenBangKiemId: frozen?.bang_kiem_id,
-    sessionBangKiemId: sessionRow.bang_kiem_id,
+    sessionBangKiemId: sessionRow.bang_kiem_id as string | null | undefined,
   });
   let lookupRow: Record<string, unknown> | null = null;
   const pickerHit = pickBangKiemForGscView({

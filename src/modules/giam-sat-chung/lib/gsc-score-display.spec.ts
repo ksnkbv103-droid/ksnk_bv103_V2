@@ -102,6 +102,35 @@ describe("formatGscHistoryScore", () => {
     });
     expect(d.label).toContain("Nhật ký");
   });
+
+  it("prefers snapshot cach_tinh_diem over live BK JOIN", () => {
+    const d = formatGscHistoryScore({
+      cach_tinh_diem: "TY_LE", // live JOIN đã đổi mẫu
+      tong_quan_sat: 2,
+      tong_dat: 1,
+      bang_kiem_snapshot: {
+        bang_kiem_id: "bk-1",
+        ma_bk: "BM.X",
+        ten_bang_kiem: "X",
+        loai_giam_sat: "NHAT_KY_VAN_HANH",
+        cach_tinh_diem: "NHAT_KY",
+        phien_ban: "1",
+        tieu_chi_jsonb: [],
+        chot_luc: "2026-01-01T00:00:00.000Z",
+      },
+    });
+    expect(d.label).toContain("Nhật ký");
+    expect(d.label).not.toMatch(/%/);
+  });
+
+  it("falls back to live cach_tinh_diem when snapshot missing", () => {
+    const d = formatGscHistoryScore({
+      cach_tinh_diem: "TY_LE",
+      tong_quan_sat: 4,
+      tong_dat: 2,
+    });
+    expect(d.label).toContain("50.00%");
+  });
 });
 
 describe("gscCompliancePercentFromCounts", () => {

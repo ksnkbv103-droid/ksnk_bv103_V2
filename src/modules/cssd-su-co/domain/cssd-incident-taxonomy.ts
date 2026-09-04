@@ -1,5 +1,9 @@
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
-import { INSTRUMENT_MOVE_TYPE_ID, SET_RECONCILE_TYPE_ID } from "@/lib/domain/cssd-set-reconcile";
+import {
+  INSTRUMENT_MOVE_TYPE_ID,
+  INSTRUMENT_PHYSICAL_DOOR_ID,
+  SET_RECONCILE_TYPE_ID,
+} from "@/lib/domain/cssd-set-reconcile";
 
 export const INCIDENT_GROUPS = ["PROCESS", "INSTRUMENT", "CHEMICAL", "EQUIPMENT", "OTHER"] as const;
 export type IncidentGroup = (typeof INCIDENT_GROUPS)[number];
@@ -40,11 +44,11 @@ export function isAccountabilityCause(code?: string | null): boolean {
 }
 
 export const INCIDENT_GROUP_LABEL: Record<IncidentGroup, string> = {
-  PROCESS: "Quy trình (khâu trước không đạt)",
-  INSTRUMENT: "Dụng cụ (hỏng / thiếu…)",
-  CHEMICAL: "Hóa chất (không đạt)",
-  EQUIPMENT: "Máy móc (hỏng / thông số)",
-  OTHER: "Khác (tùy biến)",
+  PROCESS: "An toàn QT (sự cố quy trình)",
+  INSTRUMENT: "Dụng cụ (biến động)",
+  CHEMICAL: "An toàn HC (sự cố hóa chất)",
+  EQUIPMENT: "An toàn máy (sự cố thiết bị)",
+  OTHER: "An toàn khác (sự cố khác)",
 };
 
 const PROCESS_HINTS = [
@@ -97,13 +101,11 @@ export const INCIDENT_TYPE_PRESETS: Record<IncidentGroup, IncidentPreset[]> = {
     { code: "PROCESS_STERILE_QC_FAIL", label: "Nội kiểm mẻ TK hoặc Bowie-Dick không đạt" },
     { code: "PROCESS_BI_POSITIVE", label: "Chỉ thị sinh học (BI) dương tính" },
   ],
+  /** D2: chỉ 3 cửa UI. D4: legacy TRANSFER/REPLENISH/BROKEN/MISSING không đưa vào picker — giữ mã sổ qua coerce + submit bridge. */
   INSTRUMENT: [
-    { code: SET_RECONCILE_TYPE_ID, label: "Rà soát / hỏng / mất" },
-    { code: INSTRUMENT_MOVE_TYPE_ID, label: "Chuyển" },
-    { code: "INSTRUMENT_TRANSFER", label: "Điều chuyển bộ ↔ bộ" },
-    { code: "INSTRUMENT_REPLENISH", label: "Kho ↔ bộ" },
-    { code: "INSTRUMENT_BROKEN", label: "Dụng cụ hỏng" },
-    { code: "INSTRUMENT_MISSING", label: "Dụng cụ mất / thất lạc" },
+    { code: SET_RECONCILE_TYPE_ID, label: "Đổi danh mục" },
+    { code: INSTRUMENT_PHYSICAL_DOOR_ID, label: "Hỏng/Mất" },
+    { code: INSTRUMENT_MOVE_TYPE_ID, label: "Chuyển kho·bộ" },
   ],
   CHEMICAL: [
     { code: "CHEMICAL_STOCK_OUT", label: "Thiếu hóa chất / vật tư" },
@@ -127,23 +129,38 @@ export const INCIDENT_STATION_OPTIONS: Array<{ value: Station; label: string }> 
   { value: "CAP_PHAT", label: "Cấp phát" },
 ];
 
-/** Hai cửa dụng cụ trên form — rà soát riêng; chuyển (bộ/kho) một cửa. */
+/** Three instrument doors on form (D2); D4 legacy not exposed in picker. */
 export function instrumentFormTypeOptions(): IncidentPreset[] {
-  return INCIDENT_TYPE_PRESETS.INSTRUMENT.filter(
-    (x) => x.code === SET_RECONCILE_TYPE_ID || x.code === INSTRUMENT_MOVE_TYPE_ID,
-  );
+  return INCIDENT_TYPE_PRESETS.INSTRUMENT;
 }
 
+/** Deep-link / bookmark legacy type ids — coerce → 3 cửa; không xóa mã lịch sử sổ. */
+export const LEGACY_INSTRUMENT_TYPE_IDS = [
+  "INSTRUMENT_BROKEN",
+  "INSTRUMENT_MISSING",
+  "INSTRUMENT_REPLENISH",
+  "INSTRUMENT_TRANSFER",
+] as const;
+
+/** SSOT D4: deep-link legacy → 3 cửa form (PHYSICAL / MOVE / SET_RECONCILE). */
 export function coerceInstrumentFormTypeId(typeId?: string | null): string {
   const code = String(typeId || "").trim();
-  if (
-    code === INSTRUMENT_MOVE_TYPE_ID ||
-    code === "INSTRUMENT_TRANSFER" ||
-    code === "INSTRUMENT_REPLENISH"
-  ) {
+  if (code === INSTRUMENT_MOVE_TYPE_ID || code === "INSTRUMENT_TRANSFER" || code === "INSTRUMENT_REPLENISH") {
     return INSTRUMENT_MOVE_TYPE_ID;
   }
+  if (code === INSTRUMENT_PHYSICAL_DOOR_ID || code === "INSTRUMENT_BROKEN" || code === "INSTRUMENT_MISSING") {
+    return INSTRUMENT_PHYSICAL_DOOR_ID;
+  }
+  if (code === SET_RECONCILE_TYPE_ID) return SET_RECONCILE_TYPE_ID;
   return SET_RECONCILE_TYPE_ID;
+}
+
+export function resolveInstrumentFormSubmitTypeId(typeId?: string | null): string {
+  const code = String(typeId || "").trim();
+  if (code === INSTRUMENT_PHYSICAL_DOOR_ID || code === "INSTRUMENT_BROKEN" || code === "INSTRUMENT_MISSING") {
+    return SET_RECONCILE_TYPE_ID;
+  }
+  return code || SET_RECONCILE_TYPE_ID;
 }
 
 export function groupTypeDefaults(group: IncidentGroup): { typeId: string; typeTen: string } {

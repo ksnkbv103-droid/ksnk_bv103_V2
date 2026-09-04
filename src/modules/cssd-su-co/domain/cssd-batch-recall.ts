@@ -30,3 +30,66 @@ export function buildBatchRecallAttributePatch(args: {
   if (machineId) out.MACHINE_ID = machineId;
   return out;
 }
+
+/** Lý do thu hồi theo mẻ (QT.24) — map sang typeId PROCESS hiện có, không invent schema. */
+export const BATCH_RECALL_REASON_CODES = ["BI_POSITIVE", "WET_PACK", "MACHINE_FAULT"] as const;
+export type BatchRecallReasonCode = (typeof BATCH_RECALL_REASON_CODES)[number];
+
+export type BatchRecallReasonOption = {
+  code: BatchRecallReasonCode;
+  label: string;
+  typeId: string;
+  typeTen: string;
+  hint: string;
+};
+
+export const BATCH_RECALL_REASON_OPTIONS: readonly BatchRecallReasonOption[] = [
+  {
+    code: "BI_POSITIVE",
+    label: "BI dương tính (BI+)",
+    typeId: "PROCESS_BI_POSITIVE",
+    typeTen: "Chỉ thị sinh học (BI) dương tính",
+    hint: "Thu hồi mọi bộ cùng mẻ; máy sẵn sàng → HOLD_QC.",
+  },
+  {
+    code: "WET_PACK",
+    label: "Gói ướt / bao bì không đạt",
+    typeId: "PROCESS_STERILIZATION_FAIL",
+    typeTen: "Chất lượng tiệt khuẩn / mẻ không đạt",
+    hint: "Gói ướt = bẩn (PCI) — thu hồi theo mẻ, không cấp phát.",
+  },
+  {
+    code: "MACHINE_FAULT",
+    label: "Lỗi máy / thông số bất thường",
+    typeId: "PROCESS_STERILE_QC_FAIL",
+    typeTen: "Nội kiểm mẻ TK hoặc Bowie-Dick không đạt",
+    hint: "QC mẻ / máy không đạt — thu hồi + tạm giữ QC.",
+  },
+] as const;
+
+/** Copy D1: thu hồi = sự cố an toàn, không lẫn 3 cửa biến động dụng cụ. */
+export const BATCH_RECALL_ENTRY_COPY = {
+  title: "Thu hồi theo mẻ",
+  subtitle:
+    "Sự cố an toàn (QT.24) — không phải biến động dụng cụ (Đổi danh mục · Hỏng/Mất · Chuyển).",
+  effect:
+    "Mọi bộ cùng mã lô: đã cấp phát → Tiếp nhận; còn trong chu trình → Đóng gói (+ đóng băng). Máy sẵn sàng → HOLD_QC.",
+} as const;
+
+export function resolveBatchRecallReason(codeOrTypeId?: string | null): BatchRecallReasonOption {
+  const raw = String(codeOrTypeId || "").trim().toUpperCase();
+  const byCode = BATCH_RECALL_REASON_OPTIONS.find((x) => x.code === raw);
+  if (byCode) return byCode;
+  const byType = BATCH_RECALL_REASON_OPTIONS.find((x) => x.typeId === raw);
+  if (byType) return byType;
+  return BATCH_RECALL_REASON_OPTIONS[0];
+}
+
+/** Map typeId PROCESS → lý do thu hồi (deep-link / prefill). */
+export function batchRecallReasonFromTypeId(typeId?: string | null): BatchRecallReasonCode | null {
+  const code = String(typeId || "").trim().toUpperCase();
+  if (code === "PROCESS_BI_POSITIVE") return "BI_POSITIVE";
+  if (code === "PROCESS_STERILE_QC_FAIL") return "MACHINE_FAULT";
+  if (code === "PROCESS_STERILIZATION_FAIL") return "WET_PACK";
+  return null;
+}

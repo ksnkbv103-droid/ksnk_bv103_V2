@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { X, Loader2, Save } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MdmFormActiveToggleRow } from "@/components/shared/MdmActiveToggle";
 import BoDungCuTextField from "./bo-dung-cu-form-field";
@@ -13,6 +13,7 @@ import {
 } from "./dung-cu-chi-tiet-form-shared";
 import { saveDungCuChiTietAction } from "../actions/dung-cu-chi-tiet.actions";
 import { LoaiDungCuTypeahead } from "./loai-dung-cu-typeahead";
+import QuanTriFormDialogShell from "../../components/QuanTriFormDialogShell";
 
 type BoOpt = { id: string; ma_bo: string | null; ten_bo: string | null };
 type LoaiOpt = { id: string; ma_danh_muc: string | null; ten_danh_muc: string | null };
@@ -50,7 +51,11 @@ export default function DungCuChiTietFormModal({
   const [form, setForm] = useState<DungCuChiTietFormValues>(seed);
   const [loading, setLoading] = useState(false);
   const isEdit = Boolean(initialRow?.id);
-  if (!open) return null;
+
+  useEffect(() => {
+    setForm(seed);
+  }, [seed]);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const ma = form.ma_chi_tiet.trim();
@@ -83,95 +88,93 @@ export default function DungCuChiTietFormModal({
     onSaved();
     onClose();
   };
+
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 touch-manipulation pointer-events-auto">
-      <form
-        onSubmit={submit}
-        className="bg-white w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-[var(--radius-shell)] p-8 space-y-[var(--bv103-space-3)] shadow-[var(--shadow-app-soft)] border-t-4 border-[var(--primary)]"
-      >
-        <div className="flex justify-between items-start gap-4">
-          <div>
-            <h3 className={C.modalTitleLight}>
-              {isEdit ? "Cập nhật dụng cụ chi tiết" : "Thêm dụng cụ chi tiết"}
-            </h3>
-            <p className="text-[11px] text-slate-400 font-semibold mt-1">
-              Gán vào bộ hoặc để trống bộ nếu là dụng cụ lẻ.
-            </p>
-          </div>
-          <button type="button" onClick={onClose} className="p-2 text-slate-400 hover:text-red-600 rounded-xl -mr-2">
-            <X size={22} />
+    <QuanTriFormDialogShell
+      open={open}
+      onClose={onClose}
+      title={isEdit ? "Cập nhật dụng cụ chi tiết" : "Thêm dụng cụ chi tiết"}
+      subtitle="Gán vào bộ hoặc để trống bộ nếu là dụng cụ lẻ."
+      size="md"
+      onSubmit={submit}
+      footer={
+        <>
+          <button type="button" onClick={onClose} className={`${C.ctaSecondary} flex-1 ${C.modalFooterBtn}`} disabled={loading}>
+            Hủy
           </button>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <BoDungCuTextField
-            label="Mã chi tiết"
-            required
-            disabled={isEdit}
-            value={form.ma_chi_tiet}
-            onChange={(v) => setForm({ ...form, ma_chi_tiet: v.toUpperCase() })}
-          />
-          <BoDungCuTextField
-            label="Tên chi tiết"
-            value={form.ten_chi_tiet}
-            onChange={(v) => setForm({ ...form, ten_chi_tiet: v })}
-          />
-          <LoaiDungCuTypeahead
-            label="Loại dụng cụ liên kết"
-            valueId={form.loai_dung_cu_id}
-            disabled={loadingLoai}
-            onChange={(loaiId, found) =>
-              setForm({
-                ...form,
-                loai_dung_cu_id: loaiId,
-                ten_chi_tiet: form.ten_chi_tiet.trim() || String(found?.ten_danh_muc || ""),
-              })
-            }
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="text-[11px] font-medium text-slate-400 ml-1">Bộ chủ quản</label>
-          <select
-            value={form.bo_dung_cu_id}
-            onChange={(e) => setForm({ ...form, bo_dung_cu_id: e.target.value })}
-            disabled={loadingBo}
-            className={C.controlInput}
-          >
-            <option value="">— Dụng cụ lẻ (không thuộc bộ) —</option>
-            {boOptions.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.ma_bo} — {o.ten_bo || "—"}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <BoDungCuTextField
-            label="Số lượng trong bộ"
-            value={form.so_luong}
-            onChange={(v) => setForm({ ...form, so_luong: v })}
-          />
-          <BoDungCuTextField
-            label="Giới hạn SUD"
-            value={form.max_suds_count}
-            onChange={(v) => setForm({ ...form, max_suds_count: v })}
-          />
-          <BoDungCuTextField label="Trọng lượng" value={form.trong_luong} onChange={(v) => setForm({ ...form, trong_luong: v })} />
-        </div>
-        <BoDungCuTextField label="Mã QR mẫu (tùy chọn)" value={form.ma_qr_mau} onChange={(v) => setForm({ ...form, ma_qr_mau: v })} />
-        <div className="space-y-1">
-          <label className="text-[11px] font-medium text-slate-400 ml-1">Ghi chú</label>
-          <textarea
-            value={form.ghi_chu}
-            rows={3}
-            onChange={(e) => setForm({ ...form, ghi_chu: e.target.value })}
-            className={C.textareaCompact}
-          />
-        </div>
-        <MdmFormActiveToggleRow active={form.is_active} onChange={(next) => setForm({ ...form, is_active: next })} />
-        <button type="submit" disabled={loading} className={`w-full ${C.btnPrimaryBlock} disabled:opacity-60 touch-manipulation`}>
-          {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} Lưu
-        </button>
-      </form>
-    </div>
+          <button type="submit" disabled={loading} className={`${C.ctaPrimary} flex-[2] ${C.modalFooterBtn}`}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {loading ? "Đang lưu…" : "Lưu"}
+          </button>
+        </>
+      }
+    >
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <BoDungCuTextField
+          label="Mã chi tiết"
+          required
+          disabled={isEdit}
+          value={form.ma_chi_tiet}
+          onChange={(v) => setForm({ ...form, ma_chi_tiet: v.toUpperCase() })}
+        />
+        <BoDungCuTextField
+          label="Tên chi tiết"
+          value={form.ten_chi_tiet}
+          onChange={(v) => setForm({ ...form, ten_chi_tiet: v })}
+        />
+        <LoaiDungCuTypeahead
+          label="Loại dụng cụ liên kết"
+          valueId={form.loai_dung_cu_id}
+          disabled={loadingLoai}
+          onChange={(loaiId, found) =>
+            setForm({
+              ...form,
+              loai_dung_cu_id: loaiId,
+              ten_chi_tiet: form.ten_chi_tiet.trim() || String(found?.ten_danh_muc || ""),
+            })
+          }
+        />
+      </div>
+      <div className="space-y-1">
+        <label className="text-[11px] font-medium text-slate-400 ml-1">Bộ chủ quản</label>
+        <select
+          value={form.bo_dung_cu_id}
+          onChange={(e) => setForm({ ...form, bo_dung_cu_id: e.target.value })}
+          disabled={loadingBo}
+          className={C.controlInput}
+        >
+          <option value="">— Dụng cụ lẻ (không thuộc bộ) —</option>
+          {boOptions.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.ma_bo} — {o.ten_bo || "—"}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <BoDungCuTextField
+          label="Số lượng trong bộ"
+          value={form.so_luong}
+          onChange={(v) => setForm({ ...form, so_luong: v })}
+        />
+        <BoDungCuTextField
+          label="Giới hạn SUD"
+          value={form.max_suds_count}
+          onChange={(v) => setForm({ ...form, max_suds_count: v })}
+        />
+        <BoDungCuTextField label="Trọng lượng" value={form.trong_luong} onChange={(v) => setForm({ ...form, trong_luong: v })} />
+      </div>
+      <BoDungCuTextField label="Mã QR mẫu (tùy chọn)" value={form.ma_qr_mau} onChange={(v) => setForm({ ...form, ma_qr_mau: v })} />
+      <div className="space-y-1">
+        <label className="text-[11px] font-medium text-slate-400 ml-1">Ghi chú</label>
+        <textarea
+          value={form.ghi_chu}
+          rows={3}
+          onChange={(e) => setForm({ ...form, ghi_chu: e.target.value })}
+          className={C.textareaCompact}
+        />
+      </div>
+      <MdmFormActiveToggleRow active={form.is_active} onChange={(next) => setForm({ ...form, is_active: next })} />
+    </QuanTriFormDialogShell>
   );
 }

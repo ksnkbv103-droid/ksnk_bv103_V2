@@ -100,7 +100,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
       <div className="space-y-2 rounded-[var(--radius-shell)] border border-slate-200 bg-[var(--primary)] p-3 shadow-sm">
         <div className="flex items-center gap-2 px-2 text-white/80">
           <QrCode className="h-4 w-4" aria-hidden />
-          <span className="text-[11px] font-semibold uppercase tracking-wide">Truy vết QR</span>
+          <span className="text-[11px] font-semibold">Truy vết QR</span>
         </div>
         <QrScanInput
           inputRef={scanInputRef}
@@ -144,7 +144,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
               type="button"
               disabled={isPrinting || !batchTrace.ketQuaDat}
               onClick={() => void onPrintBatch({ batchId: batchTrace.batchId })}
-              className="bv103-control-h mt-4 w-full rounded-[var(--radius-control)] bg-[var(--primary)] text-xs font-semibold uppercase tracking-wide text-white disabled:opacity-50"
+              className="bv103-control-h mt-4 w-full rounded-[var(--radius-control)] bg-[var(--primary)] text-xs font-semibold text-white disabled:opacity-50"
             >
               In phiếu mẻ A4
             </button>
@@ -220,7 +220,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
               type="button"
               disabled={assigningCaMo || !caMoInput.trim()}
               onClick={() => void saveCaMoTrace()}
-              className="bv103-control-h w-full rounded-[var(--radius-control)] bg-[var(--primary)] text-xs font-semibold uppercase tracking-wide text-white disabled:opacity-50"
+              className="bv103-control-h w-full rounded-[var(--radius-control)] bg-[var(--primary)] text-xs font-semibold text-white disabled:opacity-50"
             >
               {assigningCaMo ? "Đang lưu…" : "Lưu truy vết ca mổ"}
             </button>
@@ -238,15 +238,15 @@ export default function QRHistoryViewer({ initialQr }: Props) {
                 {/* Log Card */}
                 <div className={`p-4 rounded-[var(--radius-shell)] border transition-all active:scale-[0.98] ${log.hanh_dong === 'REPORT_INCIDENT' ? 'bg-red-50/50 border-red-100' : 'bg-white border-slate-200'}`}>
                   <div className="flex justify-between items-start mb-2">
-                    <span className={`text-[11px] font-semibold uppercase tracking-wide ${log.hanh_dong === 'REPORT_INCIDENT' ? 'text-red-600' : 'text-[var(--primary)]'}`}>
-                      TRẠM {String(log.tram || "").replace(/_/g, " ")}
+                    <span className={`text-[11px] font-semibold ${log.hanh_dong === 'REPORT_INCIDENT' ? 'text-red-600' : 'text-[var(--primary)]'}`}>
+                      Trạm {String(log.tram || "").replace(/_/g, " ")}
                     </span>
                     <span className="bv103-type-label font-semibold text-slate-400 bg-slate-50 px-2 py-1 rounded-full">
                       {formatCssdPrintDateTime(log.created_at)}
                     </span>
                   </div>
                   <p className="bv103-type-section text-slate-700 leading-snug">
-                    {log.hanh_dong === 'REPORT_INCIDENT' && <span className="text-red-600 uppercase font-semibold mr-2">[SỰ CỐ]</span>}
+                    {log.hanh_dong === 'REPORT_INCIDENT' && <span className="text-red-600 font-semibold mr-2">[Sự cố]</span>}
                     {log.ghi_chu || 'Xác nhận quy trình thành công'}
                   </p>
                   <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-50">
@@ -265,7 +265,7 @@ export default function QRHistoryViewer({ initialQr }: Props) {
           </div>
           <div className="space-y-1">
             <p className="text-[11px] font-medium text-slate-400 tracking-wide">Chưa có dữ liệu</p>
-            <p className="bv103-type-label font-semibold text-slate-300 uppercase">Vui lòng nhập hoặc quét mã để truy vết</p>
+            <p className="bv103-type-label font-semibold text-slate-300">Vui lòng nhập hoặc quét mã để truy vết</p>
           </div>
         </div>
       )}

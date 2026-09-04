@@ -14,11 +14,13 @@ import QrScanInput from "@/components/shared/QrScanInput";
 import InventoryDashboard, { FilterStatusType } from "../components/inventory/InventoryDashboard";
 import SetMembersModal from "../components/inventory/SetMembersModal";
 import InventoryIssueModal from "../components/inventory/InventoryIssueModal";
+import PackConditionSelect from "../components/inventory/PackConditionSelect";
 import { importCSSDData } from "../actions/cssd.actions";
 import CSSDPageShell from "../components/layout/cssd-page-shell";
 import { CSSD_UI_ACTION_PRIMARY } from "../shared/ui/cssd-ui-chrome";
 import { normalizeCssdCode } from "../shared/domain/cssd-qr-core";
-import { formatDateVi } from "@/lib/format-datetime-vi";
+import { addDaysYmd, formatDateVi, todayYmdInVn } from "@/lib/format-datetime-vi";
+import { isLotExpired } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
 
 /**
  * Trang Giám sát Kho Dụng cụ CSSD - BV103
@@ -118,12 +120,15 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       filtered = filtered.filter(d => d.is_red_alert || d.tinh_trang === "HONG" || d.tinh_trang === "MAT");
     }
 
-    // Lọc FEFO (sắp hết hạn trong 7 ngày)
+    // Lọc FEFO (≤7 ngày theo lịch VN — gồm đã quá hạn)
     if (filterFEFO) {
-      filtered = filtered.filter(d => {
+      const today = todayYmdInVn();
+      const horizon = addDaysYmd(today, 7);
+      filtered = filtered.filter((d) => {
         if (!d.han_su_dung || d.trang_thai_hien_tai !== "CAP_PHAT") return false;
-        const daysLeft = (new Date(d.han_su_dung).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
-        return daysLeft <= 7 && daysLeft >= 0;
+        const han = String(d.han_su_dung).slice(0, 10);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(han)) return false;
+        return isLotExpired(han, today) || han <= horizon;
       });
     }
 
@@ -144,10 +149,13 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
   const dashboardScope = useMemo(() => {
     let scoped = data;
     if (filterFEFO) {
+      const today = todayYmdInVn();
+      const horizon = addDaysYmd(today, 7);
       scoped = scoped.filter((d) => {
         if (!d.han_su_dung || d.trang_thai_hien_tai !== "CAP_PHAT") return false;
-        const daysLeft = (new Date(d.han_su_dung).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
-        return daysLeft <= 7 && daysLeft >= 0;
+        const han = String(d.han_su_dung).slice(0, 10);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(han)) return false;
+        return isLotExpired(han, today) || han <= horizon;
       });
     }
     if (lookup) {
@@ -198,8 +206,8 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       header: "Mã khoa",
       accessorKey: "cssd_dm_bo_dung_cu.khoa.ma_khoa",
       cell: (i: any) => (
-        <span className="text-[11px] text-[11px] font-medium text-slate-500 uppercase">
-          {i.cssd_dm_bo_dung_cu?.khoa?.ma_khoa || "DÙNG CHUNG"}
+        <span className="text-[11px] font-medium text-slate-500 font-mono">
+          {i.cssd_dm_bo_dung_cu?.khoa?.ma_khoa || "Dùng chung"}
         </span>
       ),
     },
@@ -230,7 +238,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
         if (daysLeft <= 0)
           return (
             <span className="text-[11px] font-mono text-[11px] font-medium text-red-600 flex items-center gap-1 bg-red-50 px-2 py-1 rounded-lg">
-              <CalendarClock size={12} /> HẾT HẠN
+              <CalendarClock size={12} /> Hết hạn
             </span>
           );
         if (daysLeft <= 3)
@@ -254,7 +262,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       cell: (i: any) => {
         if (i.is_red_alert)
           return (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide bg-red-50 text-red-600 border border-red-100">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-red-50 text-red-600 border border-red-100">
               ⚠️ Sự cố
             </span>
           );
@@ -278,12 +286,23 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
         };
         return (
           <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wide border ${badge.cls}`}
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold border ${badge.cls}`}
           >
             {badge.icon} {badge.label}
           </span>
         );
       },
+    },
+    {
+      header: "Tình trạng gói",
+      accessorKey: "tinh_trang",
+      cell: (i: any) => (
+        <PackConditionSelect
+          quyTrinhId={String(i.id || "")}
+          tinhTrang={i.tinh_trang}
+          onSaved={fetchData}
+        />
+      ),
     },
     {
       header: "Thao tác",
@@ -319,8 +338,24 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
     },
   ];
 
+  const importExportActions = (
+    <ImportExportToolbar
+      fileInputRef={fileInputRef}
+      isImporting={isImporting}
+      onExport={handleExport}
+      onImportClick={triggerImport}
+      onFileChange={(file) => void handleFileUpload(file)}
+      disableSyncFull
+      exportClassName={CSSD_UI_ACTION_PRIMARY}
+      importClassName="inline-flex h-10 items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-100 disabled:opacity-50"
+    />
+  );
+
   const mainContent = (
     <div className="bv103-stack-page">
+      {suppressShell ? (
+        <div className="flex justify-end">{importExportActions}</div>
+      ) : null}
       <div className="space-y-8 animate-in slide-in-from-left-4 duration-500">
         <InventoryDashboard data={dashboardScope} activeStatus={filterStatus} onSelectStatus={setFilterStatus} />
         
@@ -339,7 +374,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
           </p>
           <button
             onClick={() => setFilterFEFO(!filterFEFO)}
-            className={`px-6 py-3 rounded-[var(--radius-shell)] font-semibold text-[11px] uppercase transition-all flex items-center gap-2 border-2 ${
+            className={`px-6 py-3 rounded-[var(--radius-shell)] font-semibold text-[11px] transition-all flex items-center gap-2 border-2 ${
               filterFEFO
                 ? "border-orange-500 bg-orange-50 text-orange-600"
                 : "border-slate-100 bg-slate-50 text-slate-400 hover:bg-slate-100/50"
@@ -391,20 +426,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
           Giám sát kho <span className="text-[var(--primary)]">FEFO</span>
         </>
       }
-      actions={
-        <>
-          <ImportExportToolbar
-            fileInputRef={fileInputRef}
-            isImporting={isImporting}
-            onExport={handleExport}
-            onImportClick={triggerImport}
-            onFileChange={(file) => void handleFileUpload(file)}
-            disableSyncFull
-            exportClassName={CSSD_UI_ACTION_PRIMARY}
-            importClassName="inline-flex h-10 items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-100 disabled:opacity-50"
-          />
-        </>
-      }
+      actions={importExportActions}
     >
       {mainContent}
       <CssdPrintPortal printState={printState} />

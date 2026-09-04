@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { X } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import type { MasterOption } from "@/lib/master-data/gateway";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
 import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
@@ -41,7 +41,6 @@ export default function NkbvCaseEditor({
   maTuDong,
   onSubmit,
 }: NkbvCaseEditorProps) {
-  const [mounted, setMounted] = useState(false);
   const [form, setForm] = useState({
     ma_ca: "",
     khoa_ghi_nhan_id: "",
@@ -66,7 +65,6 @@ export default function NkbvCaseEditor({
   });
 
   const todayStr = new Date().toISOString().slice(0, 10);
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (row?.id) {
@@ -160,28 +158,29 @@ export default function NkbvCaseEditor({
     onSubmit({ ...form });
   };
 
-  if (!mounted) return null;
+  const title = row?.id ? "Sửa phiếu xác định ca NKBV" : "Ghi nhận phiếu xác định ca NKBV / HAI";
 
-  return createPortal(
-    <div className="fixed inset-0 z-[10050] flex items-center justify-center overflow-y-auto bg-slate-900/40 p-4">
-      <div className="relative my-8 w-full max-w-3xl rounded-[var(--radius-shell)] border border-slate-200 bg-white p-6 shadow-[var(--shadow-app-soft)]">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-5 top-5 rounded-full p-2 text-slate-400 hover:bg-slate-50"
-          aria-label="Đóng"
-        >
-          <X className="h-5 w-5" />
-        </button>
-        <h2 className={`mb-6 ${C.modalTitle}`}>
-          {row?.id ? "Sửa phiếu xác định ca NKBV" : "Ghi nhận phiếu xác định ca NKBV / HAI"}
-        </h2>
-        <p className="mb-4 -mt-4 text-xs text-slate-500">
-          Kết cục / ra viện thuộc <strong>hồ sơ đợt nằm viện</strong> — sửa ở tab Hồ sơ Bệnh án (hub BA), không
-          lưu trên phiếu này.
-        </p>
-        {row?.id ? <NkbvCaseQrPanel caseId={String(row.id)} /> : null}
-        <div className="max-h-[70vh] space-y-[var(--bv103-space-3)] overflow-y-auto pr-1">
+  return (
+    <Dialog
+      open
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+    >
+      <DialogContent
+        className={`flex max-h-[min(90dvh,880px)] max-w-3xl flex-col gap-0 overflow-hidden p-0 ${BV103_DIALOG_STACK.nestedContent} sm:max-w-3xl`}
+        overlayClassName={`${BV103_DIALOG_STACK.nestedOverlay}`}
+      >
+        <DialogTitle className="sr-only">{title}</DialogTitle>
+        <div className="shrink-0 border-b border-slate-100 px-6 py-5 pr-14">
+          <h2 className={C.modalTitle}>{title}</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Kết cục / ra viện thuộc <strong>hồ sơ đợt nằm viện</strong> — sửa ở tab Hồ sơ Bệnh án (hub BA), không
+            lưu trên phiếu này.
+          </p>
+          {row?.id ? <div className="mt-3"><NkbvCaseQrPanel caseId={String(row.id)} /></div> : null}
+        </div>
+        <div className="min-h-0 flex-1 space-y-[var(--bv103-space-3)] overflow-y-auto overscroll-contain px-6 py-5 pr-6">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className={C.formLabel}>Mã phiếu</label>
@@ -394,7 +393,7 @@ export default function NkbvCaseEditor({
           </div>
 
         </div>
-        <div className="mt-6 flex justify-end gap-3 border-t border-slate-100 pt-4">
+        <div className="flex shrink-0 justify-end gap-3 border-t border-slate-100 bg-white px-6 py-4">
           <button type="button" onClick={onClose} className={C.ctaSecondary}>
             Huỷ
           </button>
@@ -402,9 +401,8 @@ export default function NkbvCaseEditor({
             Lưu phiếu
           </button>
         </div>
-      </div>
-    </div>,
-    document.body,
+      </DialogContent>
+    </Dialog>
   );
 }
 

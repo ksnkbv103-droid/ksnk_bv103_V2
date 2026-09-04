@@ -76,6 +76,11 @@ export default function CongViecKanban({
   };
 
   return (
+    <div className="space-y-2">
+    <p className="px-0.5 text-[11px] leading-snug text-slate-500">
+      Kanban: <span className="font-semibold text-slate-600">7 mã trạng thái → 5 cột</span>
+      {" "}(QUÁ_HẠN là nhãn trên thẻ, không cột riêng; đề xuất tách cột khi bật).
+    </p>
     <div className="flex min-w-0 gap-3 overflow-x-auto pb-4 min-h-[min(520px,72dvh)] snap-x snap-mandatory touch-manipulation sm:gap-4 sm:min-h-[520px]">
       {columns.map((col) => {
         const colTasks = tasks.filter((t) => getKanbanColumnIdForTask(t, showProposalColumn) === col.id);
@@ -171,6 +176,7 @@ export default function CongViecKanban({
           </div>
         );
       })}
+    </div>
     </div>
   );
 }

@@ -2,8 +2,9 @@
 
 import { createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { verifyPermission } from "@/lib/server-permission";
-import { format, parseISO } from "date-fns";
+import { parseISO } from "date-fns";
 import { bv103DefaultTuNgayFromDenIso } from "@/lib/bv103-analytics-default-range";
+import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import {
   aggregateNkbvDashboard,
   NKBV_CHO_TAC_STATUS_MAS,
@@ -24,7 +25,7 @@ export async function getGiamSatNkbvDashboardPayload(filters: GiamSatNkbvDashboa
   const supabase = await createServerSupabaseUserClient();
   await verifyPermission("GIAM_SAT_NKBV", "view");
 
-  const denStr = filters.den_ngay?.trim() || format(new Date(), "yyyy-MM-dd");
+  const denStr = filters.den_ngay?.trim() || todayYmdInVn();
   let tuStr = filters.tu_ngay?.trim() || bv103DefaultTuNgayFromDenIso(denStr);
 
   let tuD = parseISO(tuStr);

@@ -17,6 +17,10 @@ import {
 import type { StaffAuthRow } from "@/types/nhan-su";
 
 
+/**
+ * ORPHAN (slice 6): `/quan-tri-he-thong/tai-khoan-nhan-su` redirects to `/quan-tri-he-thong/nhan-su`.
+ * Account/role UX lives on QuanLyNhanSuPage. Kept for reference; hub links to `/nhan-su`.
+ */
 export default function TaiKhoanNhanSuPage() {
   const { loading: permLoading, isAdmin, canView, canEdit } = usePermission();
   const canUse = !permLoading && (isAdmin || (canView("PHAN_QUYEN") && canEdit("PHAN_QUYEN")));

@@ -9,10 +9,10 @@
  */
 export const bv103TableLayout = {
   /** Một viền quanh sổ — không bọc thêm khối trắng bên ngoài. */
-  frame: "bv103-layer-panel overflow-clip",
+  frame: "bv103-layer-panel",
   th: "min-w-0 px-[var(--bv103-space-3)] py-[var(--bv103-space-2)] text-left",
   td: "min-w-0 px-[var(--bv103-space-3)] py-[var(--bv103-space-2)] align-top",
-  theadRow: "sticky top-0 z-10 border-b border-slate-200 bg-slate-50",
+  theadRow: "sticky top-0 z-10 border-b border-slate-200 bg-slate-50 shadow-[0_1px_0_rgb(226_232_240)]",
   tbody: "divide-y divide-slate-100 bg-white",
   row: "hover:bg-slate-50 even:bg-slate-50/40",
   rowSelected: "bg-[var(--primary)]/8",

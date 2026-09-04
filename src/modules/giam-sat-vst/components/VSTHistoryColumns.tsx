@@ -4,7 +4,7 @@
 import React from "react";
 import { Column } from "@/components/shared/AdvancedDataTable";
 import { vstSessionDisplayRef } from "../lib/vst-display-ref";
-import { formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
+import { formatPercent1FromRatio } from "@/lib/analytics/supervision-percent";
 import { classifyVstAction } from "../lib/vst-action-classifier";
 import type { VstHistoryRow } from "../lib/vst-read-utils";
 import { gscTableChrome as G } from "@/modules/giam-sat-chung/lib/gsc-table-chrome";
@@ -120,7 +120,7 @@ export function getVSTHistoryColumns(
             ? compliantFromView
             : (s.observations || []).filter((o: { hanh_dong?: string }) => classifyVstAction(o.hanh_dong).isCompliant).length;
         if (total <= 0) return <span className="text-xs text-slate-400">—</span>;
-        const rateLabel = formatPercent2FromRatio(compliant, total);
+        const rateLabel = formatPercent1FromRatio(compliant, total);
         const rateNum = total > 0 ? (compliant / total) * 100 : 0;
         return (
           <span className={`bv103-type-label font-semibold ${rateNum >= 80 ? "text-emerald-700" : rateNum >= 50 ? "text-amber-600" : "text-red-600"}`}>

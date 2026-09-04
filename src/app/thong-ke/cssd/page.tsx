@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { cssdReportAnalyticsHref } from "@/lib/cssd-routes";
 
 /**
- * Mirror thống kê CSSD — một SSOT UI tại `/cssd-erp/report` (tránh hai báo cáo lệch).
+ * Mirror `/thong-ke/cssd` → SSOT **Báo cáo CSSD** tại `/cssd-erp/report` (tránh hai báo cáo lệch nhãn).
  * Query `from`/`to`/`tab`/`station` được giữ khi redirect.
  */
 export default async function ThongKeCssdPage({

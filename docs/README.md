@@ -26,6 +26,7 @@
 1. [`core/operations-sop.md`](core/operations-sop.md)
 2. [`core/governance-pipeline.md`](core/governance-pipeline.md)
 3. [`reference/guides/migration-squash-runbook.md`](reference/guides/migration-squash-runbook.md)
+4. [`reference/guides/ops-go-live.md`](reference/guides/ops-go-live.md) — go-live tay (env/wave/gate, UAT CSSD, auth blocker, BOM unique)
 
 ---
 

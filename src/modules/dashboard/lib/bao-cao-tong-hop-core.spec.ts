@@ -8,7 +8,6 @@ import {
   buildKhoaRank,
   buildMergedTrend,
   composeBaoCaoTongHopPayload,
-  computeCcs,
   formatBaoCaoIsoDateVi,
   formatBaoCaoIssueDateVi,
   mergeKhoaRankWithSelected,
@@ -26,17 +25,7 @@ describe("bao-cao-tong-hop-core", () => {
     expect(computeTyLeVst({ tong_co_hoi: 10, ty_le_tuan_thu: 88 } as never)).toBe(88);
   });
 
-  it("computeCcs weighted average when both present", () => {
-    const { value, note } = computeCcs(80, 90);
-    expect(value).toBe(85);
-    expect(note).toContain("50%");
-  });
 
-  it("computeCcs single source fallback", () => {
-    const { value, note } = computeCcs(75, null);
-    expect(value).toBe(75);
-    expect(note).toContain("VST");
-  });
 
   it("deltaFromTrend uses last two points", () => {
     expect(deltaFromTrend([70, 80, 85])).toBe(5);

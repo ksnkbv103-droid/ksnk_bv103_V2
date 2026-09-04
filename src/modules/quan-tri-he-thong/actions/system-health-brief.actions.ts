@@ -94,7 +94,7 @@ export async function fetchSystemHealthBrief(): Promise<
       count: invalid,
       total,
       hint: "Bộ chưa đủ mã chuẩn thì không vào quy trình CSSD.",
-      href: "/quan-tri-he-thong/danh-muc/dung-cu?tab=bo",
+      href: "/quan-tri-he-thong/danh-muc/dung-cu",
       severity: invalid > 0 ? "warn" : "ok",
     });
   }

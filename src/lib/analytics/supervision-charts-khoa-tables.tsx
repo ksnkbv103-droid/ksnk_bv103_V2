@@ -17,7 +17,7 @@ import {
 } from "@/lib/analytics/supervision-charts-shared";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 
-/** Bảng master khoa: khối lượng · % · trạng thái đối soát · VST/GSC (không CCS). */
+/** Bảng master khoa: khối lượng · % · trạng thái đối soát · VST/GSC. */
 export function SupervisionKhoaMasterTable({
   gapRows,
   rankRows,

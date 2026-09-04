@@ -70,38 +70,48 @@ export default function RbacCatalogPackPanel({
       {isAdmin ? (
         <p className="mt-2 text-[11px] text-amber-800">Vai trò Quản trị không áp gói — luôn đủ quyền.</p>
       ) : (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {(Object.keys(CATALOG_PERMISSION_PACKS) as CatalogPackId[]).map((id) => {
-            const pack = CATALOG_PERMISSION_PACKS[id];
-            return (
-              <button
-                key={id}
-                type="button"
-                title={pack.hint}
-                disabled={!previewRoleId}
-                onClick={() => apply(pack.modules, "full")}
-                className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-white"
-              >
-                {pack.label} (đầy đủ)
-              </button>
-            );
-          })}
-          <button
-            type="button"
-            disabled={!previewRoleId}
-            onClick={() => apply(ALL_CATALOG_MODULES, "view")}
-            className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100"
-          >
-            Chỉ xem mọi danh mục
-          </button>
-          <button
-            type="button"
-            disabled={!previewRoleId}
-            onClick={() => apply(ALL_CATALOG_MODULES, "off")}
-            className="rounded-lg border border-red-100 bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-100"
-          >
-            Tắt mọi danh mục
-          </button>
+        <div className="mt-3 space-y-2">
+          <div className="flex flex-wrap gap-1.5">
+            {(Object.keys(CATALOG_PERMISSION_PACKS) as CatalogPackId[]).map((id) => {
+              const pack = CATALOG_PERMISSION_PACKS[id];
+              const tip =
+                "description" in pack && pack.description ? pack.description : pack.hint;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  title={tip}
+                  disabled={!previewRoleId}
+                  onClick={() => apply(pack.modules, "full")}
+                  className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-white"
+                >
+                  {pack.label} (đầy đủ)
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              disabled={!previewRoleId}
+              onClick={() => apply(ALL_CATALOG_MODULES, "view")}
+              className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100"
+            >
+              Chỉ xem mọi danh mục
+            </button>
+            <button
+              type="button"
+              disabled={!previewRoleId}
+              onClick={() => apply(ALL_CATALOG_MODULES, "off")}
+              className="rounded-lg border border-red-100 bg-red-50 px-2.5 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-100"
+            >
+              Tắt mọi danh mục
+            </button>
+          </div>
+          {"description" in CATALOG_PERMISSION_PACKS.CSSD && CATALOG_PERMISSION_PACKS.CSSD.description ? (
+            <p className="text-[11px] leading-snug text-slate-500">
+              <span className="font-semibold text-slate-600">Master CSSD:</span>{" "}
+              {CATALOG_PERMISSION_PACKS.CSSD.description}
+            </p>
+          ) : null}
         </div>
       )}
     </div>

@@ -115,8 +115,8 @@ export default function NkbvStayHistoryTable({
         }
       >
         <table className="min-w-full border-collapse text-left text-xs">
-          <thead>
-            <tr className="border-b border-slate-200 bg-slate-50">
+          <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 shadow-[0_1px_0_rgb(226_232_240)]">
+            <tr>
               <th className={`px-2.5 py-1.5 ${C.tableHeader}`}>Khoa điều trị</th>
               <th className={`px-2.5 py-1.5 ${C.tableHeader}`}>Từ ngày</th>
               <th className={`px-2.5 py-1.5 ${C.tableHeader}`}>Đến ngày</th>

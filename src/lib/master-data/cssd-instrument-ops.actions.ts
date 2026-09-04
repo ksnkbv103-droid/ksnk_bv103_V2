@@ -4,7 +4,7 @@ import { verifyPermission } from "@/lib/server-permission";
 import { instrumentChangeRequiresIncidentResult } from "@/lib/domain/cssd-instrument-incident";
 import { type InstrumentIssueType } from "@/lib/master-data/instrument-issue-core";
 
-/** Đã đóng: biến động thành phần chỉ qua phiếu sự cố. */
+/** Đã đóng: biến động thành phần chỉ qua 3 cửa /cssd-su-co (D1/D2). */
 export async function replenishSetInstrumentAction(_params: {
   loaiDungCuId: string;
   boDungCuId: string;
@@ -17,7 +17,7 @@ export async function replenishSetInstrumentAction(_params: {
 }
 
 /**
- * Đã đóng facade bù kho không phiếu — biến động chỉ qua báo cáo sự cố.
+ * Đã đóng facade bù kho không phiếu — biến động chỉ qua 3 cửa /cssd-su-co (D1/D2).
  * Vẫn kiểm `CSSD_WORKFLOW.edit` để trả lời rõ khi thiếu quyền vận hành.
  */
 export async function requestReplenishFromReserveAction(_params: {
@@ -42,7 +42,7 @@ export async function requestReplenishFromReserveAction(_params: {
   return instrumentChangeRequiresIncidentResult();
 }
 
-/** Đã đóng: báo hỏng/mất không phiếu — dùng form sự cố. */
+/** Đã đóng: báo hỏng/mất không phiếu — dùng cửa Hỏng/Mất tại /cssd-su-co. */
 export async function reportIndividualInstrumentIssueAction(_params: {
   loaiDungCuId: string;
   boDungCuId?: string | null;

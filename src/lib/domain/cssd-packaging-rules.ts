@@ -107,3 +107,32 @@ export function evaluateHeatCompatibility(items: BomItem[]): HeatEvaluation {
     reason: `Đồng nhất nhiệt lý tính. Spaulding cao nhất: ${SPAULDING_LABEL_VI[spauldingMax]}. Khuyến nghị ${STERILIZATION_METHOD_LABEL_VI[recommendedMethod]}.`,
   };
 }
+
+export type PackMaterial = "CELLULOSE" | "NON_CELLULOSE" | "UNKNOWN";
+
+export type PlasmaCelluloseCheck = {
+  ok: boolean;
+  message?: string;
+};
+
+/**
+ * QT.21 / domain-overview: Plasma cấm gói cellulose.
+ * Pure domain — caller truyền vật liệu đóng gói đã chọn.
+ */
+export function assertPlasmaPackMaterialAllowed(args: {
+  method: SterilizationMethod | string | null | undefined;
+  packMaterial?: PackMaterial | string | null;
+}): PlasmaCelluloseCheck {
+  const method = String(args.method || "").trim().toUpperCase();
+  if (method !== "PLASMA") return { ok: true };
+  const mat = String(args.packMaterial || "UNKNOWN")
+    .trim()
+    .toUpperCase();
+  if (mat === "CELLULOSE") {
+    return {
+      ok: false,
+      message: "Plasma cấm vật liệu đóng gói cellulose — đổi túi/khay không cellulose hoặc đổi PP tiệt khuẩn.",
+    };
+  }
+  return { ok: true };
+}

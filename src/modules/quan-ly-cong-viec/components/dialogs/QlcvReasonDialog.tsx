@@ -10,6 +10,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 
 interface QlcvReasonDialogProps {
   open: boolean;
@@ -71,7 +72,10 @@ export function QlcvReasonDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!busy) { onOpenChange(v); } }}>
-      <DialogContent className="max-w-md rounded-[var(--radius-shell)] border border-slate-200/90 bg-white p-6 shadow-[var(--shadow-app-soft)]">
+      <DialogContent
+        className={`max-w-md rounded-[var(--radius-shell)] border border-slate-200/90 bg-white p-6 shadow-[var(--shadow-app-soft)] ${BV103_DIALOG_STACK.nestedContent}`}
+        overlayClassName={BV103_DIALOG_STACK.nestedOverlay}
+      >
         <DialogHeader>
           <DialogTitle className="text-base font-semibold tracking-tight text-slate-900">
             {title}

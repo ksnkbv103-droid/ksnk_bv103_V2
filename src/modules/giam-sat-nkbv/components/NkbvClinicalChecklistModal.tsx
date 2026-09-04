@@ -2,7 +2,9 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, FileText, Printer, CalendarRange } from "lucide-react";
+import { FileText, Printer, CalendarRange } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import NkbvCssdRcaPanel from "@/modules/giam-sat-nkbv/components/NkbvCssdRcaPanel";
 import NkbvDiagnosticCaseForm from "@/modules/giam-sat-nkbv/components/NkbvDiagnosticCaseForm";
 import NkbvCasePrintView from "@/modules/giam-sat-nkbv/components/NkbvCasePrintView";
@@ -383,19 +385,19 @@ export default function NkbvClinicalChecklistModal({
   return (
     <>
       {printPortal}
-      {createPortal(
-    <div className="fixed inset-0 z-[10050] flex items-center justify-center overflow-y-auto bg-slate-900/40 p-3 sm:p-4 print:hidden">
-      <div className="relative my-4 flex max-h-[96vh] w-full max-w-6xl flex-col overflow-hidden rounded-[var(--radius-shell)] border border-slate-200 bg-white p-4 shadow-[var(--shadow-app-soft)] sm:my-6 sm:p-6">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 z-10 rounded-full p-2.5 text-slate-400 transition hover:bg-slate-50"
-          aria-label="Đóng"
+      <Dialog
+        open
+        onOpenChange={(next) => {
+          if (!next) onClose();
+        }}
+      >
+        <DialogContent
+          className={`flex max-h-[min(94dvh,960px)] max-w-6xl flex-col gap-0 overflow-hidden p-0 ${BV103_DIALOG_STACK.nestedContent} print:hidden sm:max-w-6xl`}
+          overlayClassName={`${BV103_DIALOG_STACK.nestedOverlay} print:hidden`}
         >
-          <X className="h-5 w-5" />
-        </button>
+          <DialogTitle className="sr-only">Xác định ca NKBV</DialogTitle>
 
-        <div className="shrink-0 border-b border-slate-100 pb-4 pr-12">
+        <div className="shrink-0 border-b border-slate-100 px-4 pb-4 pt-4 pr-14 sm:px-6 sm:pt-5">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className={`${C.modalTitle} flex items-center gap-2`}>
               <FileText className="h-6 w-6 text-[var(--primary)]" />
@@ -508,7 +510,7 @@ export default function NkbvClinicalChecklistModal({
           ) : null}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto py-5 pr-1">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
           <NkbvSymptomReviewProvider
             review={symptomReview}
             onReviewChange={(key, patch) =>
@@ -571,7 +573,7 @@ export default function NkbvClinicalChecklistModal({
           ) : null}
         </div>
 
-        <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex shrink-0 flex-col gap-3 border-t border-slate-100 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <span className="text-xs text-slate-400">
             Index → cửa sổ → tiêu chuẩn → DOE → POA/HAI → LOA → dụng cụ → RIT → SBAP → xác nhận.
           </span>
@@ -599,10 +601,8 @@ export default function NkbvClinicalChecklistModal({
             </button>
           </div>
         </div>
-      </div>
-    </div>,
-    document.body,
-      )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

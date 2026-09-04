@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   evaluateHeatCompatibility,
+  assertPlasmaPackMaterialAllowed,
   type BomItem,
 } from './cssd-packaging-rules';
 
@@ -110,4 +111,22 @@ describe('CSSD Packaging Rules', () => {
     expect(result.requireSplit).toBe(true);
   });
 
+});
+
+
+describe('assertPlasmaPackMaterialAllowed', () => {
+  it('blocks cellulose on PLASMA with clear message', () => {
+    const r = assertPlasmaPackMaterialAllowed({ method: 'PLASMA', packMaterial: 'CELLULOSE' });
+    expect(r.ok).toBe(false);
+    expect(r.message).toMatch(/cellulose/i);
+    expect(r.message).toMatch(/Plasma cấm|không cellulose|đổi PP/i);
+  });
+
+  it('allows non-cellulose on PLASMA', () => {
+    expect(assertPlasmaPackMaterialAllowed({ method: 'PLASMA', packMaterial: 'NON_CELLULOSE' }).ok).toBe(true);
+  });
+
+  it('skips non-plasma', () => {
+    expect(assertPlasmaPackMaterialAllowed({ method: 'STEAM_134', packMaterial: 'CELLULOSE' }).ok).toBe(true);
+  });
 });

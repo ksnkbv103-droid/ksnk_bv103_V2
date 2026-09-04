@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Plus, Settings, Wrench, CheckCircle2, Zap } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import { useImportExport } from "@/hooks/useImportExport";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
@@ -102,27 +102,21 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
   const columns = getThietBiColumns(actionUi);
   const modalKey = editing?.id ? `edit-${editing.id}` : "create";
 
-  const totalThietBi = data.length;
-  const readyCount = data.filter((x) => {
-    const s = (x.trang_thai || "READY").toUpperCase();
-    return s === "READY" || s === "SAN_SANG";
-  }).length;
-  const repairingCount = data.filter((x) => {
-    const s = (x.trang_thai || "").toUpperCase();
-    return s === "REPAIRING" || s === "BAO_TRI";
-  }).length;
-  const totalMeTietKhuan = data.reduce((acc, x) => acc + (x.so_lan_su_dung || 0), 0);
-
   const importButtons = (
-    <ImportExportToolbar
-      fileInputRef={fileInputRef}
-      isImporting={isImporting}
-      onExport={() => void exportTemplate()}
-      onImportClick={triggerImport}
-      onFileChange={(file) => void handleFileUpload(file)}
-      exportClassName={T.btnSecondary}
-      importClassName={C.ctaEmerald}
-    />
+    <details className="rounded-[var(--radius-control)] border border-slate-200 bg-white px-2 py-1">
+      <summary className="cursor-pointer text-[11px] font-semibold text-slate-500">Excel</summary>
+      <div className="pt-2">
+        <ImportExportToolbar
+          fileInputRef={fileInputRef}
+          isImporting={isImporting}
+          onExport={() => void exportTemplate()}
+          onImportClick={triggerImport}
+          onFileChange={(file) => void handleFileUpload(file)}
+          exportClassName={T.btnSecondary}
+          importClassName={T.btnSecondary}
+        />
+      </div>
+    </details>
   );
 
   return (
@@ -153,48 +147,7 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
         </div>
       )}
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
-          <div>
-            <p className="text-[11px] font-medium text-slate-500">Tổng số máy móc</p>
-            <p className="mt-1 bv103-type-kpi tabular-nums text-slate-800">{totalThietBi}</p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500">
-            <Settings size={20} />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
-          <div>
-            <p className="text-[11px] font-medium text-slate-500">Sẵn sàng vận hành</p>
-            <p className="mt-1 bv103-type-kpi tabular-nums text-emerald-600">{readyCount}</p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-            <CheckCircle2 size={20} />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
-          <div>
-            <p className="text-[11px] font-medium text-slate-500">Đang bảo trì / sửa chữa</p>
-            <p className="mt-1 bv103-type-kpi tabular-nums text-rose-600">{repairingCount}</p>
-          </div>
-          <div className={`h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 ${repairingCount > 0 ? "animate-pulse" : ""}`}>
-            <Wrench size={20} />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-[var(--radius-shell)] border border-slate-100 shadow-sm flex items-center justify-between hover:shadow-md transition-all">
-          <div>
-            <p className="text-[11px] font-medium text-slate-500">Tổng mẻ tiệt khuẩn</p>
-            <p className="mt-1 bv103-type-kpi tabular-nums text-amber-600">{totalMeTietKhuan}</p>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
-            <Zap size={20} />
-          </div>
-        </div>
-      </div>
+      
       
       <div className="min-w-0 sm:min-h-[450px]">
         <AdvancedDataTable
@@ -202,6 +155,7 @@ function ThietBiMasterPageContent({ suppressHeader = false }: { suppressHeader?:
           data={data}
           loading={loading}
           enableMultiSelect={true}
+          bodyMaxHeight="max-h-[min(58dvh,560px)]"
           onDeleteSelected={async (rows) => {
             if (!rows.length) return;
             if (!window.confirm(`Xóa mềm ${rows.length} thiết bị?`)) return;

@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import { ActivityTimeline, type Activity } from "./ActivityTimeline";
 import { CongViecForm } from "./CongViecForm";
 import { HoatDongForm } from "./HoatDongForm";
@@ -95,7 +96,8 @@ const qlcvDetailChrome = {
     "bv103-control-h shrink-0 rounded-[var(--radius-control)] bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700",
   btnGhost:
     "bv103-control-h shrink-0 rounded-[var(--radius-control)] border border-transparent px-3 text-xs font-semibold text-red-600 hover:border-red-100 hover:bg-red-50",
-  dialogContent: "max-w-4xl rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-6 shadow-[var(--shadow-app-soft)] sm:p-8",
+  dialogContent: `max-w-4xl rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-6 shadow-[var(--shadow-app-soft)] sm:p-8 ${BV103_DIALOG_STACK.nestedContent}`,
+  dialogOverlay: BV103_DIALOG_STACK.nestedOverlay,
 } as const;
 
 export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
@@ -229,7 +231,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   };
 
   return (
-    <div className="space-y-[var(--bv103-space-3)] pb-16 animate-in slide-in-from-right-4 duration-300">
+    <div className="space-y-[var(--bv103-space-3)]">
       <div className="no-print space-y-[var(--bv103-space-3)]">
       {assigneeInactiveOpen && (
         <div
@@ -327,7 +329,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
               <DialogTrigger asChild>
                 <button type="button" className={qlcvDetailChrome.btnPrimary}>Phê duyệt & giao</button>
               </DialogTrigger>
-              <DialogContent className={qlcvDetailChrome.dialogContent}>
+              <DialogContent className={qlcvDetailChrome.dialogContent} overlayClassName={qlcvDetailChrome.dialogOverlay}>
                 <DialogHeader className="mb-6">
                   <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">
                     Phê duyệt đề xuất
@@ -353,7 +355,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
                   Sửa việc
                 </button>
               </DialogTrigger>
-              <DialogContent className={qlcvDetailChrome.dialogContent}>
+              <DialogContent className={qlcvDetailChrome.dialogContent} overlayClassName={qlcvDetailChrome.dialogOverlay}>
                 <DialogHeader className="mb-6">
                   <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">
                     Chỉnh sửa nhiệm vụ

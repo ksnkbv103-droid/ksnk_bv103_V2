@@ -75,7 +75,7 @@ export default function SetCompositionCard({ boDungCuId, enabled = true, compact
                 href={cssdSuCoInstrumentHref({ type: "INSTRUMENT_SET_RECONCILE", ma: data.maBo })}
                 className="shrink-0 text-[11px] font-semibold text-[var(--primary)] hover:underline"
               >
-                Rà soát
+                Đề nghị đổi danh mục
               </Link>
             ) : null}
           </div>

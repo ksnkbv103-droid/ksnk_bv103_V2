@@ -22,7 +22,11 @@ export function computeTyLeGsc(kpis: GscStrategicPayload["kpis"] | undefined): n
   );
 }
 
-/** CCS chỉ từ VST+GSC (process); NKBV là outcome riêng. */
+/**
+ * @deprecated D10 quarantine — CCS bỏ khỏi UI user / surface điều hành.
+ * Pure fn nội bộ only (PDCA/compat đọc cũ nếu cần). **Cấm** nhãn/KPI/export/in.
+ * CCS chỉ từ VST+GSC (process); NKBV là outcome riêng.
+ */
 export function computeCcs(
   tyLeVst: number | null,
   tyLeGsc: number | null,
