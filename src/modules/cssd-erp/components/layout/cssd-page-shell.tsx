@@ -23,7 +23,7 @@ export default function CSSDPageShell({
 }: Props) {
   return (
     <div className={CSSD_PAGE_OUTER}>
-      <KsnkSupervisionHero eyebrow="CSSD" title={title} actions={actions} showTitle={false} />
+      <KsnkSupervisionHero title={title} actions={actions} />
       {children}
     </div>
   );

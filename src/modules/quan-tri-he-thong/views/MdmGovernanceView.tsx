@@ -26,7 +26,6 @@ import type { MdmFieldRegistryRow, MdmSuggestionRow, MdmCoverageRow } from "@/li
 import MdmSuggestionApproveModal from "../components/MdmSuggestionApproveModal";
 import RbacItDangerActions from "../phan-quyen/views/RbacItDangerActions";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
-import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
@@ -244,7 +243,7 @@ export default function MdmGovernanceView() {
 
   return (
     <div className={`${bv103DesignTokens.pageOuter} text-sm`}>
-      <KsnkPageHeader title="Bảo vệ liên kết dữ liệu" />
+      <h2 className={bv103DesignTokens.sectionTitle}>Bảo vệ liên kết dữ liệu</h2>
 
       <RbacItDangerActions />
 

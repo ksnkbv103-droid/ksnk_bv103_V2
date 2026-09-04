@@ -7,7 +7,6 @@ import {
   ClipboardCheck,
   FileSpreadsheet,
   Gauge,
-  GraduationCap,
   ListChecks,
   PenLine,
   ShieldCheck,
@@ -19,7 +18,6 @@ import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 import { listLanThiCuaToi } from "@/modules/dao-tao/actions/dao-tao-attempt.actions";
 import DaoTaoChungChiBanner from "@/modules/dao-tao/components/DaoTaoChungChiBanner";
 import {
-  DaoTaoHeader,
   DaoTaoPage,
   DaoTaoPanel,
 } from "@/modules/dao-tao/components/DaoTaoChrome";
@@ -88,16 +86,6 @@ export default function DaoTaoHubPage() {
 
   return (
     <DaoTaoPage>
-      <DaoTaoHeader
-        backHref={null}
-        title={
-          <span className="inline-flex items-center gap-2">
-            <GraduationCap className="h-6 w-6 text-[var(--primary)]" aria-hidden />
-            Thi KSNK
-          </span>
-        }
-      />
-
       <DaoTaoChungChiBanner />
 
       <div className="grid gap-2 sm:grid-cols-2">

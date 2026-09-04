@@ -2,11 +2,11 @@
 
 import React, { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { QrCode, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import QrScanInput from "@/components/shared/QrScanInput";
 import { resolveEntityQrAction } from "@/lib/entity-qr/resolve-entity-qr.action";
-import { KsnkSupervisionHero, KsnkSupervisionPanel } from "@/components/shared/ksnk-supervision-chrome";
+import { KsnkSupervisionPanel } from "@/components/shared/ksnk-supervision-chrome";
 
 /**
  * Cổng quét QR toàn viện — mở lại đúng phiếu / truy vết CSSD.
@@ -41,15 +41,6 @@ export default function EntityQrScanPage() {
 
   return (
     <div className="bv103-stack-page">
-      <KsnkSupervisionHero
-        eyebrow="Giám sát · Truy vết"
-        title={
-          <span className="inline-flex items-center gap-2">
-            <QrCode className="h-5 w-5 opacity-80" aria-hidden />
-            Quét QR truy vết
-          </span>
-        }
-      />
       <KsnkSupervisionPanel className="space-y-[var(--bv103-space-3)] p-4 sm:p-6">
         <QrScanInput
           disabled={busy}

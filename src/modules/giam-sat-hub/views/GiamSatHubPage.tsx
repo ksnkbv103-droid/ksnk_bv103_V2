@@ -4,7 +4,6 @@ import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Activity, ClipboardList, History, QrCode, Stethoscope, ChevronRight } from "lucide-react";
-import { KsnkSupervisionHero } from "@/components/shared/ksnk-supervision-chrome";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { usePermission } from "@/hooks/usePermission";
@@ -165,15 +164,6 @@ export default function GiamSatHubPage() {
 
   return (
     <div className={`${T.pageOuter}`}>
-      <KsnkSupervisionHero
-        eyebrow="Giám sát"
-        title="Giám sát"
-        description={
-          soleWrite
-            ? "Một phân hệ — chạm để nhập liệu."
-            : "Chọn phân hệ để nhập liệu. Deep-link VST / GSC / NKBV vẫn mở form trực tiếp."
-        }
-      />
       {!loading && !hasAny ? (
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
           Tài khoản chưa có quyền giám sát. Liên hệ khoa KSNK.
