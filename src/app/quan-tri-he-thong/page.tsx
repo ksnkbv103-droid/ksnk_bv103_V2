@@ -2,9 +2,7 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { Settings } from "lucide-react";
 import QuanTriDanhMucPage from "@/modules/quan-tri-he-thong/danh-muc/views/QuanTriDanhMucPage";
-import { KsnkPageHeader } from "@/components/shared/KsnkPageShell";
 import { usePermission } from "@/hooks/usePermission";
 import { canSeeQuanTriSection } from "@/lib/nav/ksnk-nav-gates";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
@@ -40,16 +38,6 @@ export default function QuanTriHeThongPage() {
 
   return (
     <div className="bv103-stack-page pb-12 animate-in fade-in duration-500">
-      <KsnkPageHeader
-        title={
-          <span className="inline-flex items-center gap-2">
-            <Settings className="h-6 w-6 text-[var(--primary)]" aria-hidden />
-            Quản trị hệ thống
-          </span>
-        }
-        subtitle="Tổ chức, bảng kiểm, CSSD, tài khoản."
-      />
-
       <Suspense
         fallback={
           <div className="flex min-h-[160px] items-center justify-center" aria-busy="true">

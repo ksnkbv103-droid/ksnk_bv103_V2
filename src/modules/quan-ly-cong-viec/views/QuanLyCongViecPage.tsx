@@ -386,12 +386,7 @@ export default function QuanLyCongViecPage() {
 
       <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="w-full bv103-stack-page">
         <KsnkSupervisionHero
-          eyebrow="KSNK · Điều hành nội bộ"
-          title={
-            <>
-              Quản lý <span className="text-[var(--primary)]">công việc</span>
-            </>
-          }
+          title="Quản lý công việc"
           trailing={
             <KsnkSupervisionTabList
               tabs={mainTabs}
@@ -400,47 +395,47 @@ export default function QuanLyCongViecPage() {
               ariaLabel="Quản lý công việc"
             />
           }
-        />
-
-        <div className="no-print bv103-action-row">
-          {canShowDeXuatButton(qlcvUi) ? (
-            <Dialog open={isSuggesting} onOpenChange={setIsSuggesting}>
-              <DialogTrigger asChild>
+          actions={
+            <>
+              {canShowDeXuatButton(qlcvUi) ? (
+                <Dialog open={isSuggesting} onOpenChange={setIsSuggesting}>
+                  <DialogTrigger asChild>
+                    <button
+                      type="button"
+                      className="bv103-control-h inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+                    >
+                      <Send size={15} aria-hidden /> Đề xuất việc mới
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-xl rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-6 shadow-[var(--shadow-app-soft)] sm:p-8">
+                    <DialogHeader className="mb-4">
+                      <DialogTitle className="bv103-type-title tracking-tight text-slate-900">
+                        Gửi đề xuất công việc
+                      </DialogTitle>
+                    </DialogHeader>
+                    <DeXuatForm
+                      onSuccess={() => {
+                        setIsSuggesting(false);
+                        void refreshAll();
+                        router.refresh();
+                      }}
+                      onCancel={() => setIsSuggesting(false)}
+                    />
+                  </DialogContent>
+                </Dialog>
+              ) : null}
+              {canShowDirectCreateTask(qlcvUi) ? (
                 <button
                   type="button"
-                  className="bv103-control-h inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200/90 bg-white px-4 py-2.5 text-xs font-semibold text-slate-800 shadow-sm hover:bg-slate-50 sm:w-auto"
+                  onClick={() => openCreateCongViec(undefined, activeTab)}
+                  className="bv103-control-h inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-[var(--primary)] px-3 text-xs font-semibold text-white shadow-sm hover:bg-[var(--primary-hover)]"
                 >
-                  <Send size={15} aria-hidden /> Đề xuất việc mới
+                  <Plus size={15} aria-hidden /> Tạo công việc
                 </button>
-              </DialogTrigger>
-              <DialogContent className="max-w-xl rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-6 shadow-[var(--shadow-app-soft)] sm:p-8">
-                <DialogHeader className="mb-4">
-                  <DialogTitle className="bv103-type-title tracking-tight text-slate-900">
-                    Gửi đề xuất công việc
-                  </DialogTitle>
-                </DialogHeader>
-                <DeXuatForm
-                  onSuccess={() => {
-                    setIsSuggesting(false);
-                    void refreshAll();
-                    router.refresh();
-                  }}
-                  onCancel={() => setIsSuggesting(false)}
-                />
-              </DialogContent>
-            </Dialog>
-          ) : null}
-
-          {canShowDirectCreateTask(qlcvUi) ? (
-            <button
-              type="button"
-              onClick={() => openCreateCongViec(undefined, activeTab)}
-              className="bv103-control-h inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[var(--primary-hover)] sm:w-auto"
-            >
-              <Plus size={15} aria-hidden /> Tạo công việc
-            </button>
-          ) : null}
-        </div>
+              ) : null}
+            </>
+          }
+        />
 
         <Dialog
           open={isAdding}

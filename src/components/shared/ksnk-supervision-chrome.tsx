@@ -35,34 +35,27 @@ export function KsnkSupervisionHero({
   actions,
   trailing,
   density: _density = "compact",
-  showTitle = true,
+  showTitle = false,
 }: {
   eyebrow?: string | null;
   title: React.ReactNode;
   /** Bỏ trống/undefined để không hiển thị dòng mô tả. */
   description?: string | null;
   actions?: React.ReactNode;
-  /** Ví dụ: `KsnkSupervisionTabList` — đặt cùng hàng tiêu đề (desktop). */
+  /** Ví dụ: `KsnkSupervisionTabList` — slot tabs (trái); CTAs qua `actions` (phải). */
   trailing?: React.ReactNode;
   /** @deprecated Luôn compact theo page-chrome-contract. */
   density?: "default" | "compact";
-  /** false = App Header đã có tên trang. */
+  /** false (mặc định) = App Header đã có tên trang. */
   showTitle?: boolean;
 }) {
-  const actionRow =
-    trailing || actions ? (
-      <>
-        {trailing}
-        {actions}
-      </>
-    ) : undefined;
-
   return (
     <KsnkPageChrome
       eyebrow={eyebrow}
       title={title}
       subtitle={description}
-      actions={actionRow}
+      tabs={trailing}
+      actions={actions}
       showTitle={showTitle}
     />
   );

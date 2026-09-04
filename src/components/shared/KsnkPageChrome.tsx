@@ -14,7 +14,7 @@ export type KsnkPageChromeProps = {
   tabs?: React.ReactNode;
   /** Slot 3 — AnalyticsFilterBar / search. */
   filters?: React.ReactNode;
-  /** Mặc định true khi có title. false = chỉ tabs/filters/actions (App Header đã có tên trang). */
+  /** Mặc định false — App Header là SSOT tên trang; chỉ bật khi nested detail thiếu ngữ cảnh sidebar. */
   showTitle?: boolean;
   sticky?: boolean;
   className?: string;
@@ -22,7 +22,7 @@ export type KsnkPageChromeProps = {
 
 /**
  * Band L1 duy nhất dưới App Header — page-chrome-contract-20260731.
- * Một hàng công cụ: Tab trái · Nút phải. Title chỉ khi App Header chưa có tên.
+ * Một hàng công cụ: Tab trái · Nút phải. Không lặp H1 module (App Header SSOT).
  * Filters xuống hàng riêng khi có.
  */
 export function KsnkPageChrome({
@@ -32,7 +32,7 @@ export function KsnkPageChrome({
   actions,
   tabs,
   filters,
-  showTitle = true,
+  showTitle = false,
   sticky = false,
   className,
 }: KsnkPageChromeProps) {

@@ -16,7 +16,7 @@
 
 1. Tối đa **một** band L1 — hàng tên/nút (không hộp trắng); `pageChromeShell` chỉ gạch chân mỏng.
 2. Thứ tự slot: Title+Actions → Tabs → Filters/Search (ô trống = bỏ).
-3. Không lặp H1 lớn nếu App Header đã có tên trang — `showTitle={false}` + chỉ tabs/filters/actions (CSSD được eyebrow module ngắn).
+3. Không lặp H1 lớn nếu App Header đã có tên trang — `showTitle` mặc định `false` + chỉ tabs/filters/actions. Không crumb zone «KSNK · …» / nhóm nav trên L0 hay L1.
 4. Không sticky kép tiêu đề: App Header **hoặc** L1 filter band — `/thong-ke` gộp tab module + filter trong **một** sticky chrome.
 5. Nút: `btnPrimary` / `btnSecondary` / ghost — `bv103-control-h`.
 6. Nhịp dọc: `pageOuter` duy nhất (`pageOuterAnalytics` = alias cùng giá trị).
@@ -49,8 +49,8 @@ Chi tiết: [`../reports/supervision-analytics-filter-scorecard-20260803.md`](..
 | Route / shell | `showTitle` | tabs | filters |
 |---------------|-------------|------|---------|
 | VST/GSC layout | false | ModeNav | — |
-| CSSDPageShell | true (eyebrow CSSD) | — | ReportFilters (adapter analytics + trạm) |
-| `/` · BCTH | true | — | AnalyticsFilterBar |
+| CSSDPageShell | false | — | ReportFilters (adapter analytics + trạm) |
+| `/` · BCTH | false | — | AnalyticsFilterBar (+ actions) |
 | `/thong-ke/*` | false | VST/GSC | filter từ view (cùng band) |
-| NKBV `tab=dashboard` | true | — | filterBar slot (kỳ + khoa SearchableSelect) |
-| Admin hub / list / Đào tạo | true | — | ADT inline search |
+| NKBV | false | Mode tabs | filterBar khi dashboard |
+| QLCV / Admin list / Đào tạo | false | tabs khi có | ADT inline search |

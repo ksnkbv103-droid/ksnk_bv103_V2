@@ -25,14 +25,7 @@ export default function LichSuLayout({ children }: { children: React.ReactNode }
     <div className={bv103DesignTokens.pageOuter}>
       <Suspense fallback={null}>
         <KsnkSupervisionHero
-          eyebrow="Tra cứu"
-          title={
-            <>
-              Lịch sử giám sát{" "}
-              <span className="text-[var(--primary)]">KSNK</span>
-            </>
-          }
-          showTitle={false}
+          title="Lịch sử giám sát"
           trailing={
             <div className="flex flex-col items-stretch gap-2 sm:items-end">
               <SupervisionModeNav
