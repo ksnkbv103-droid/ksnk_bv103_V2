@@ -11,6 +11,7 @@ import { usePermission } from "@/hooks/usePermission";
 import { SIDEBAR_ADMIN_GROUPS } from "@/lib/nav/sidebar-admin-nav-groups";
 import { SIDEBAR_NAV_GROUPS, type SidebarNavItem } from "@/lib/nav/sidebar-nav-groups";
 import { canSeeCommandCenterNav, canSeeNavGate, canSeeQuanTriSection } from "@/lib/nav/ksnk-nav-gates";
+import { isGiamSatNavPath, resolveGiamSatSidebarHref } from "@/lib/nav/giam-sat-write-dest";
 import {
   isNavHiddenUnderPilotCoreModules,
   isPilotCoreModulesScopeEnabled,
@@ -23,8 +24,14 @@ function menuItemIsActive(pathname: string, href: string, urlTab: string | null)
   if (path === "/quan-tri-he-thong" && (pathname === "/quan-tri-he-thong" || pathname.startsWith("/quan-tri-he-thong/"))) {
     return true;
   }
-  if (path === "/giam-sat-chung" && pathname.startsWith("/giam-sat-chung")) {
-    return !query;
+  // «Giám sát» — hub hoặc deep-link VST/GSC/NKBV đều active trong vùng giám sát.
+  if (
+    path === "/giam-sat" ||
+    path.startsWith("/giam-sat-vst") ||
+    path.startsWith("/giam-sat-chung") ||
+    path.startsWith("/giam-sat-nkbv")
+  ) {
+    return isGiamSatNavPath(pathname);
   }
   if (pathname !== path) return false;
   if (!query) return urlTab !== "dm_registry";
@@ -111,12 +118,17 @@ function SidebarNavLinks({ onClose }: { onClose: () => void }) {
           <div key={group.id} className="space-y-1">
             <p className="section-label mb-2 px-4">{group.label}</p>
             {group.items.map((row) => {
-              const { gate: _g, ...item } = row;
+              const { gate: _g, requireCommandCenterShell: _cc, ...item } = row;
+              const href =
+                row.href === "/giam-sat"
+                  ? resolveGiamSatSidebarHref(isAdmin, canView)
+                  : row.href;
+              const navItem = { ...item, href };
               return (
                 <NavLinkRow
                   key={row.href}
-                  item={item}
-                  isActive={menuItemIsActive(pathname, row.href, urlTab)}
+                  item={navItem}
+                  isActive={menuItemIsActive(pathname, href, urlTab)}
                   onClose={onClose}
                 />
               );

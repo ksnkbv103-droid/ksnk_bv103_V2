@@ -548,12 +548,12 @@ export default function NkbvBenhAnHubPanel({
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogTitle className="sr-only">Bệnh án lưới CDC · {maBenhAn}</DialogTitle>
-        <header className="sticky top-0 z-10 flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 bg-white px-4 py-3 pr-14 sm:px-5">
+        <header className="flex shrink-0 items-start justify-between gap-2 border-b border-slate-100 bg-white px-3 py-2 pr-12 sm:px-4">
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-              Bệnh án · 3 khối (bảng chung → phân tích → tạo phiếu)
+            <p className="text-[11px] font-medium text-slate-500">
+              Bệnh án · 3 khối
               {chuaPhanTichCount > 0 ? (
-                <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 font-bold normal-case text-amber-900">
+                <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 font-semibold text-amber-900">
                   {chuaPhanTichCount} XN chưa phân tích
                 </span>
               ) : null}
@@ -584,10 +584,6 @@ export default function NkbvBenhAnHubPanel({
                 </>
               ) : null}
             </p>
-            <p className="mt-1 text-[11px] text-slate-400">
-              Chọn từng bệnh phẩm → bảng phân tích → kết luận → nút Tạo phiếu. Không tạo phiếu lúc chọn
-              Index.
-            </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -604,14 +600,14 @@ export default function NkbvBenhAnHubPanel({
                 onClick={() => onEditStay(stay)}
                 className={`${C.ctaSecondary} inline-flex min-h-10 items-center gap-1.5 px-3 text-xs`}
               >
-                <Pencil className="h-3.5 w-3.5" /> ADT
+                <Pencil className="h-3.5 w-3.5" /> Sửa ADT
               </button>
             ) : null}
           </div>
         </header>
 
         {alerts.length > 0 ? (
-          <div className="border-b border-amber-100 bg-amber-50/80 px-4 py-2 text-[11px] text-amber-950 sm:px-5">
+          <div className="border-b border-amber-100 bg-amber-50/80 px-3 py-1.5 text-[11px] text-amber-950 sm:px-4">
             {alerts.slice(0, 3).map((a, i) => (
               <span key={`${a.code}-${i}`} className="mr-3">
                 <strong>{a.code}</strong> {a.message}
@@ -679,7 +675,7 @@ export default function NkbvBenhAnHubPanel({
             className="relative z-0 max-h-[28vh] shrink-0 overflow-hidden border-t border-slate-200 bg-slate-50/90 open:max-h-[36vh]"
             open={phieuSheetOpen}
           >
-            <summary className="cursor-pointer px-4 py-2 text-xs font-semibold text-slate-600">
+            <summary className="cursor-pointer px-3 py-1.5 text-xs font-medium text-slate-600">
               Kho phiếu / form sau khi tạo phiếu
               {gatePreview
                 ? ` · ${NKBV_CHECKLIST_TYPE_LABELS[gatePreview.gate]} · Index ${formatDateVi(gatePreview.indexDate)}`
@@ -687,7 +683,7 @@ export default function NkbvBenhAnHubPanel({
               {cases.length ? ` · ${cases.length} sự kiện` : ""}
               {chuaPhanTichCount ? ` · ${chuaPhanTichCount} XN chưa PT` : ""}
             </summary>
-            <div className="max-h-[40vh] space-y-3 overflow-y-auto border-t border-slate-50 px-4 py-3">
+            <div className="max-h-[40vh] space-y-2 overflow-y-auto border-t border-slate-50 px-3 py-2">
               {allowedCreate ? (
                 <div className="flex flex-wrap items-end gap-2 text-xs">
                   <button

@@ -4,6 +4,7 @@
 import React from "react";
 import type { Column } from "./AdvancedDataTable";
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
+import { getByPath } from "@/lib/get-by-path";
 
 interface DataTableBodyProps<T> {
   columns: Column<T>[];
@@ -54,9 +55,9 @@ export default function DataTableBody<T extends { id?: string | number }>({
   if (loading && data.length === 0) {
     return (
       <tr key="loading-row">
-        <td colSpan={columns.length + (enableMultiSelect ? 1 : 0)} className="p-20 text-center">
-          <div className="flex flex-col items-center gap-4">
-            <div className="h-9 w-9 animate-spin rounded-full border-2 border-slate-200 border-t-[var(--primary)]" />
+        <td colSpan={columns.length + (enableMultiSelect ? 1 : 0)} className="px-4 py-10 text-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[var(--primary)]" />
             <p className="text-xs font-medium text-slate-500">Đang tải dữ liệu…</p>
           </div>
         </td>
@@ -68,7 +69,7 @@ export default function DataTableBody<T extends { id?: string | number }>({
   if (data.length === 0) {
     return (
       <tr key="empty-row">
-        <td colSpan={columns.length + (enableMultiSelect ? 1 : 0)} className="p-16 text-center text-sm font-medium text-slate-500">
+        <td colSpan={columns.length + (enableMultiSelect ? 1 : 0)} className="px-4 py-8 text-center text-sm font-medium text-slate-500">
           {emptyMessage}
         </td>
       </tr>
@@ -111,7 +112,7 @@ export default function DataTableBody<T extends { id?: string | number }>({
             {columns.map((col, colIdx) => (
               <td key={`cell-${rowKey}-${colIdx}-${String(col.accessorKey)}`} className={`${L.td} text-sm text-slate-800 ${col.cellClassName ?? ""}`}>
                 {col.cell ? col.cell(item) : String(
-                  (item as Record<string, unknown>)[String(col.accessorKey)] ?? "",
+                  getByPath(item, String(col.accessorKey)) ?? "",
                 )}
               </td>
             ))}

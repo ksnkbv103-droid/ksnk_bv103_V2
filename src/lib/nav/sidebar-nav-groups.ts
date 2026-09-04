@@ -1,7 +1,7 @@
 /**
  * SSOT menu sidebar — module-first (IA lớp 2).
  * Sidebar = cổng vào module/workspace. CSSD: chuyển màn chỉ qua sidebar (không ModeNav trùng).
- * Giám sát: cổng chính duy nhất `/giam-sat` (deep-link VST/GSC/NKBV + QR trên hub).
+ * Giám sát: mục sidebar «Giám sát» → hub `/giam-sat`; nếu user chỉ 1 đích ghi (VST|GSC|NKBV) thì deep-link form (SXHD).
  * Lịch sử/Thống kê VST·GSC: ModeNav trong module giám sát hoặc `/lich-su/*` `/thong-ke/*`.
  * @see docs/wiki/concepts.md#layout-primitives
  * @see docs/reference/architecture/simplification-program-20260726.md

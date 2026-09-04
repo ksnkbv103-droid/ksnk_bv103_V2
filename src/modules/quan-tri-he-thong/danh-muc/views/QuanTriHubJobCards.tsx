@@ -22,29 +22,28 @@ type Props = {
 export default function QuanTriHubJobCards({ rows, allowedJobs, onOpen }: Props) {
   const jobs = QUAN_TRI_HUB_JOBS.filter((j) => allowedJobs.includes(j.id));
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid gap-2 sm:grid-cols-2">
       {jobs.map((job) => {
         const links = rowsForHubJob(rows, job.id).slice(0, 5);
         return (
-          <article key={job.id} className={`${UI.inset} p-4`}>
+          <article key={job.id} className={`${UI.inset} p-3 sm:p-3.5`}>
             <button
               type="button"
               onClick={() => onOpen(job.href)}
               className="flex w-full items-start justify-between gap-3 text-left"
             >
               <div className="flex items-start gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-50 ring-1 ring-slate-200/80">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-50 ring-1 ring-slate-200/80">
                   {JOB_ICON[job.id]}
                 </span>
                 <div>
                   <h3 className="text-sm font-semibold text-slate-800">{job.title}</h3>
-                  <p className="mt-0.5 text-xs text-slate-500">{job.blurb}</p>
                 </div>
               </div>
               <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-slate-400" aria-hidden />
             </button>
             {links.length > 0 ? (
-              <ul className="mt-3 flex flex-wrap gap-1.5">
+              <ul className="mt-2 flex flex-wrap gap-1.5">
                 {links.map((r) => (
                   <li key={r.id}>
                     <button

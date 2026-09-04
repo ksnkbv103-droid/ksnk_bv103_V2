@@ -29,7 +29,7 @@ export default function ContinueSupervisionBar({
 
   return (
     <div
-      className="sticky bottom-0 z-40 -mx-1 border border-emerald-200/90 bg-emerald-50/95 p-3 shadow-lg backdrop-blur sm:rounded-xl sm:p-4"
+      className="-mx-1 border border-emerald-200/90 bg-emerald-50/95 p-3 shadow-lg backdrop-blur sm:rounded-xl sm:p-4"
       role="region"
       aria-label="Tiếp tục giám sát"
     >

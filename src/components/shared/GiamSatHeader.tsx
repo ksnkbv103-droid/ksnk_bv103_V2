@@ -169,7 +169,7 @@ export default function GiamSatHeader({
   return (
     <div
       id="vst-session-header"
-      className={`overflow-visible rounded-[var(--radius-shell)] border border-slate-200/90 bg-white shadow-sm transition-[padding] duration-200 ${isCollapsed ? "sticky top-4 z-30 space-y-3 p-3 max-md:static max-md:z-auto" : "space-y-[var(--bv103-space-3)] p-4 sm:p-5"}`}
+      className={`overflow-visible rounded-[var(--radius-shell)] border border-slate-200/90 bg-white shadow-sm transition-[padding] duration-200 ${isCollapsed ? "sticky top-4 z-10 space-y-3 p-3 max-md:static max-md:z-auto" : "space-y-[var(--bv103-space-3)] p-4 sm:p-5"}`}
     >
       <div className={`flex items-center justify-between gap-3 ${!isCollapsed ? "border-b border-slate-100 pb-3" : ""}`}>
         <div className="flex min-w-0 flex-1 items-center gap-3">

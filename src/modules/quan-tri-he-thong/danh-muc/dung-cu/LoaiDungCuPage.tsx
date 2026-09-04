@@ -14,6 +14,7 @@ import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import { KsnkListPageHeader } from "@/components/shared/KsnkPageShell";
 import { LoaiDungCuChiTietPanel } from "./loai-dung-cu-chi-tiet-panel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import { useServerPaginatedTable, type ServerPaginationParams } from "@/hooks/use-server-paginated-table";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import {
@@ -289,14 +290,19 @@ export function LoaiDungCuPageContent({ compact = false }: { compact?: boolean }
                 if (!open) setSelectedLoaiId(null);
               }}
             >
-              <DialogContent className="max-w-4xl sm:max-w-5xl max-h-[min(90dvh,880px)] overflow-y-auto">
+              <DialogContent
+                className={`flex max-h-[min(90dvh,880px)] max-w-4xl flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl ${BV103_DIALOG_STACK.hubContent}`}
+                overlayClassName={`${BV103_DIALOG_STACK.hubOverlay} bg-slate-900/50`}
+              >
                 <DialogTitle className="sr-only">
                   Chi tiết loại dụng cụ
                   {selectedRow?.ma_danh_muc || selectedRow?.ten_danh_muc
                     ? ` (${selectedRow?.ma_danh_muc || ""}${selectedRow?.ma_danh_muc && selectedRow?.ten_danh_muc ? " — " : ""}${selectedRow?.ten_danh_muc || ""})`
                     : ""}
                 </DialogTitle>
-                {detailPanel}
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 pr-12 sm:px-6 sm:pr-14">
+                  {detailPanel}
+                </div>
               </DialogContent>
             </Dialog>
           ) : null}

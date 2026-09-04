@@ -21,7 +21,7 @@ export default function GiamSatChungFormActions({
   onSave,
 }: GiamSatChungFormActionsProps) {
   return (
-    <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-3 animate-in slide-in-from-bottom-8 duration-500 no-print">
+    <div className="fixed bottom-8 right-8 z-20 flex flex-col gap-3 animate-in slide-in-from-bottom-8 duration-500 no-print">
       {onPrintBlank ? (
         <button
           type="button"
@@ -47,7 +47,7 @@ export default function GiamSatChungFormActions({
         type="button"
         disabled={loading || headerLoading}
         onClick={onSave}
-        className={`app-shell-focus ${C.btnPrimary} min-h-12 px-6 py-3 uppercase tracking-wide ring-1 ring-[var(--primary)]/20`}
+        className={`app-shell-focus ${C.btnPrimary} min-h-12 px-6 py-3 ring-1 ring-[var(--primary)]/20`}
       >
         {loading ? (
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />

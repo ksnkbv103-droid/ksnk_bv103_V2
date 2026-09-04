@@ -49,7 +49,10 @@ export function formatNullableFixed(
     : Number(value).toFixed(digits);
 }
 
-/** Ratio 0..1 → phần trăm hiển thị (DUR đã lưu dạng tỷ lệ). */
+/**
+ * Ratio 0..1 → phần trăm hiển thị.
+ * KHÔNG dùng cho DUR trên dashboard — DUR SSOT là `formatDurRatio` (0.2500, không phải 25%).
+ */
 export function formatNullablePercentRatio(
   value: number | null | undefined,
   digits = 2,

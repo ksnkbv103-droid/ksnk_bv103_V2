@@ -4,6 +4,7 @@ import React from "react";
 import { Dialog, DialogContent, DialogTitle, dialogContentKeepCentered } from "@/components/ui/dialog";
 import { quanTriFormChrome as F } from "../lib/quan-tri-form-chrome";
 import { cn } from "@/lib/utils";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 
 const SIZE_CLASS = {
   sm: "max-w-md sm:max-w-md",
@@ -73,7 +74,9 @@ export default function QuanTriFormDialogShell({
           "flex max-h-[min(90dvh,880px)] flex-col gap-0 overflow-hidden p-0",
           SIZE_CLASS[size],
           (size === "lg" || size === "xl") && dialogContentKeepCentered,
+          BV103_DIALOG_STACK.nestedContent,
         )}
+        overlayClassName={BV103_DIALOG_STACK.nestedOverlay}
       >
         <DialogTitle className="sr-only">{title}</DialogTitle>
         <div className="shrink-0 bg-[var(--primary)] px-6 py-5 pr-14 text-white sm:px-8 sm:py-6">

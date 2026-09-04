@@ -105,7 +105,7 @@ export default function QuanTriDanhMucPage() {
 
   if (!(canAccessJobs || canViewRbac)) {
     return (
-      <div className="app-empty-state rounded-[var(--radius-shell)] border border-slate-200 bg-[var(--bg-panel)] px-8 py-12 text-center shadow-sm">
+      <div className="app-empty-state rounded-[var(--radius-shell)] border border-slate-200 bg-[var(--bg-panel)] px-5 py-8 text-center shadow-sm">
         <p className="text-sm font-medium text-slate-600">Không đủ quyền khu Quản trị.</p>
         <p className="mt-2 text-xs text-slate-500">Cần quyền Danh mục, Nhân sự, Phân quyền, hoặc vai trò quản trị.</p>
       </div>
@@ -113,7 +113,7 @@ export default function QuanTriDanhMucPage() {
   }
 
   return (
-    <div className="bv103-stack-page pb-12 animate-in fade-in duration-500">
+    <div className="bv103-stack-page pb-8">
       <QuanTriDanhMucTabStrip
         active={uiTab}
         onChange={(t) => {
@@ -157,7 +157,7 @@ export default function QuanTriDanhMucPage() {
           <RBACMatrixView />
         </section>
       ) : uiTab === "IT" && canAccessIt ? (
-        <section className="space-y-8" aria-labelledby="tab-danh-cho-it">
+        <section className="space-y-[var(--bv103-space-3)]" aria-labelledby="tab-danh-cho-it">
           {canViewDanhMuc ? <MdmGovernanceView /> : null}
           <SystemHealthPanel />
         </section>

@@ -386,7 +386,7 @@ export default function VSTForm({
           })}
         </div>
 
-        <div className="fixed bottom-6 right-6 z-40 flex max-sm:bottom-[5.5rem] flex-col gap-3">
+        <div className="fixed bottom-6 right-6 z-20 flex max-sm:bottom-[5.5rem] flex-col gap-3">
           <button
             onClick={() => {
               if (hasUnsavedSession) {
@@ -419,7 +419,7 @@ export default function VSTForm({
         </div>
 
         {showContinuePrompt ? (
-          <div className="print:hidden fixed inset-x-0 bottom-0 z-50 px-3 pb-3 sm:px-6 sm:pb-6">
+          <div className="print:hidden fixed inset-x-0 bottom-0 z-20 px-3 pb-3 sm:px-6 sm:pb-6">
             <ContinueSupervisionBar
               summaryLine={continueSummary}
               onContinueHere={continueHere}

@@ -76,12 +76,12 @@ export default function CongViecKanban({
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
     <p className="px-0.5 text-[11px] leading-snug text-slate-500">
       Kanban: <span className="font-semibold text-slate-600">7 mã trạng thái → 5 cột</span>
-      {" "}(QUÁ_HẠN là nhãn trên thẻ, không cột riêng; đề xuất tách cột khi bật).
+      {" "}(quá hạn là nhãn trên thẻ, không cột riêng; đề xuất tách cột khi bật).
     </p>
-    <div className="flex min-w-0 gap-3 overflow-x-auto pb-4 min-h-[min(520px,72dvh)] snap-x snap-mandatory touch-manipulation sm:gap-4 sm:min-h-[520px]">
+    <div className="flex min-h-[min(480px,68dvh)] min-w-0 snap-x snap-mandatory gap-2.5 overflow-x-auto pb-3 touch-manipulation sm:min-h-[480px] sm:gap-3">
       {columns.map((col) => {
         const colTasks = tasks.filter((t) => getKanbanColumnIdForTask(t, showProposalColumn) === col.id);
 
@@ -92,9 +92,9 @@ export default function CongViecKanban({
               if (node) columnEls.current[col.id] = node;
               else delete columnEls.current[col.id];
             }}
-            className="flex min-w-0 flex-col w-[min(88vw,300px)] shrink-0 rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50/90 p-3 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] snap-center sm:w-[280px] md:p-4 lg:w-[300px]"
+            className="flex w-[min(88vw,280px)] shrink-0 snap-center flex-col rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50/90 p-2.5 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03] sm:w-[260px] sm:p-3 lg:w-[280px]"
           >
-            <div className="mb-3 flex items-center justify-between gap-2 px-1">
+            <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
               <div className="flex min-w-0 items-center gap-2">
                 <span className={`h-2 w-2 shrink-0 rounded-full ${col.dot}`} />
                 <h3 className="truncate text-[11px] font-medium text-slate-500">
@@ -106,7 +106,7 @@ export default function CongViecKanban({
               </span>
             </div>
 
-            <div className="scrollbar-hide flex max-h-[min(68vh,640px)] flex-1 flex-col gap-2.5 overflow-y-auto pr-0.5">
+            <div className="scrollbar-hide flex max-h-[min(64vh,600px)] flex-1 flex-col gap-2 overflow-y-auto pr-0.5">
               {colTasks.map((task) => {
                 const showSubtitle = showKanbanCardSubtitle(col.id, task, showProposalColumn);
 
@@ -122,7 +122,7 @@ export default function CongViecKanban({
                         onTaskClick?.(task);
                       }
                     }}
-                    className={`cursor-pointer rounded-[var(--radius-shell)] border border-slate-200/90 bg-white p-3.5 shadow-sm outline-none transition-all hover:border-[var(--primary)]/30 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 touch-manipulation active:scale-[0.99] sm:p-4 ${qlcvKanbanCardAttentionClass(task)}`}
+                    className={`cursor-pointer rounded-[var(--radius-shell)] border border-slate-200/90 bg-white p-2.5 shadow-sm outline-none transition-all hover:border-[var(--primary)]/30 hover:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-2 touch-manipulation active:scale-[0.99] sm:p-3 ${qlcvKanbanCardAttentionClass(task)}`}
                   >
                     <div className="mb-2 flex items-start justify-between gap-2">
                       <span
@@ -149,7 +149,7 @@ export default function CongViecKanban({
                       <QlcvDinhKyMauChip loaiCongViec={task.loai_cong_viec} dinhKyMauId={task.dinh_ky_mau_id} />
                     </div>
 
-                    <div className="flex flex-col gap-2 border-t border-slate-100 pt-2.5 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-1.5 border-t border-slate-100 pt-2 sm:flex-row sm:items-center sm:justify-between">
                       <div className="min-w-0 flex-1">
                         <span className="text-[11px] font-medium text-slate-400">Phụ trách / Tổ</span>
                         <p className="truncate text-[11px] font-semibold text-slate-600">
@@ -168,7 +168,7 @@ export default function CongViecKanban({
                 );
               })}
               {colTasks.length === 0 && (
-                <div className="rounded-[var(--radius-shell)] border-2 border-dashed border-slate-200 py-8 text-center text-[11px] font-medium text-slate-400">
+                <div className="rounded-[var(--radius-shell)] border border-dashed border-slate-200 py-6 text-center text-[11px] font-medium text-slate-400">
                   Trống
                 </div>
               )}

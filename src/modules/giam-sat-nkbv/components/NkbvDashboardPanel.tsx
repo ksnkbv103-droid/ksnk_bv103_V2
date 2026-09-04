@@ -22,7 +22,6 @@ import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import {
   formatDurRatio,
   formatNullableFixed,
-  formatNullablePercentRatio,
   formatRatePer1000,
   formatSsiPercent,
 } from "../lib/nkbv-rate-display";
@@ -50,10 +49,6 @@ const COL_LOAI = ["var(--primary)", "#0d9488", "#2563eb", "#d97706", "#7c3aed", 
 /** SIR/SUR/DUR `null` nghĩa là chưa tính được — không được hiển thị thành 0. */
 function formatRatio(value: number | null | undefined, digits = 2): string {
   return formatNullableFixed(value, digits);
-}
-
-function formatPercentRatio(value: number | null | undefined): string {
-  return formatNullablePercentRatio(value);
 }
 
 /** SIR `null` = chưa đủ dữ liệu để chuẩn hoá; SIR = 0 là kết quả hợp lệ (không có ca). */
@@ -343,7 +338,7 @@ export default function NkbvDashboardPanel({
                 </div>
               </div>
 
-              {/* JCI Hospital Aggregates Summary Cards */}
+              {/* JCI Hospital Aggregates: pool = sum(cases)/sum(days). Never average khoa SIRs. */}
               {(() => {
                 const rates = payload.epidemiologyRates || [];
                 const totPatientDays = rates.reduce((acc, r) => acc + Number(r.obs_patient_days || 0), 0);
@@ -461,9 +456,13 @@ export default function NkbvDashboardPanel({
                               </p>
                             </div>
                             <div className="rounded-lg bg-teal-50/50 p-2">
-                              <p className="font-medium text-teal-700">VAP</p>
+                              <p className="font-medium text-teal-700">VAP rate</p>
                               <p className="tabular-nums text-slate-800">
-                                {r.obs_vap_cases || 0}/{r.obs_vent_days || 0} · SIR {formatRatio(r.vae_sir)}
+                                {r.obs_vap_cases || 0}/{r.obs_vent_days || 0}
+                              </p>
+                              <p className="mt-1 font-medium text-teal-700">VAE SIR</p>
+                              <p className="tabular-nums text-slate-800">
+                                {r.obs_vae_cases || 0} ca · SIR {formatRatio(r.vae_sir)}
                               </p>
                             </div>
                             <div className="rounded-lg bg-blue-50/50 p-2">
@@ -491,7 +490,7 @@ export default function NkbvDashboardPanel({
                       <th className="px-4 py-3 text-center bg-amber-50/30 text-amber-700">CAUTI SIR</th>
                       <th className="px-4 py-3 text-center bg-teal-50/30 text-teal-700">VAP / Vent Days</th>
                       <th className="px-4 py-3 text-center bg-teal-50/30 text-teal-700">Vent DUR</th>
-                      <th className="px-4 py-3 text-center bg-teal-50/30 text-teal-700">VAP SIR</th>
+                      <th className="px-4 py-3 text-center bg-teal-50/30 text-teal-700">VAE SIR</th>
                       <th className="px-4 py-3 text-center bg-blue-50/30 text-blue-700">SSI / Mổ</th>
                       <th className="px-4 py-3 text-center bg-blue-50/30 text-blue-700">SSI SIR</th>
                     </tr>
@@ -512,7 +511,7 @@ export default function NkbvDashboardPanel({
                           <span className="text-slate-400"> / {r.obs_cvc_days || 0}</span>
                         </td>
                         <td className="px-4 py-3 text-center bg-red-50/10 font-mono">
-                          {formatPercentRatio(r.cvc_dur)}
+                          {formatDurRatio(Number(r.obs_cvc_days || 0), Number(r.obs_patient_days || 0))}
                         </td>
                         <SirCell value={r.clabsi_sir} className="bg-red-50/10" />
 
@@ -522,7 +521,7 @@ export default function NkbvDashboardPanel({
                           <span className="text-slate-400"> / {r.obs_foley_days || 0}</span>
                         </td>
                         <td className="px-4 py-3 text-center bg-amber-50/10 font-mono">
-                          {formatPercentRatio(r.foley_dur)}
+                          {formatDurRatio(Number(r.obs_foley_days || 0), Number(r.obs_patient_days || 0))}
                         </td>
                         <SirCell value={r.cauti_sir} className="bg-amber-50/10" />
 
@@ -532,9 +531,33 @@ export default function NkbvDashboardPanel({
                           <span className="text-slate-400"> / {r.obs_vent_days || 0}</span>
                         </td>
                         <td className="px-4 py-3 text-center bg-teal-50/10 font-mono">
-                          {formatPercentRatio(r.vent_dur)}
+                          {formatDurRatio(Number(r.obs_vent_days || 0), Number(r.obs_patient_days || 0))}
                         </td>
-                        <SirCell value={r.vae_sir} className="bg-teal-50/10" />
+                        <td className="px-4 py-3 text-center bg-teal-50/10">
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className="text-[10px] font-semibold text-slate-500">
+                              VAE ca: {r.obs_vae_cases || 0}
+                            </span>
+                            {r.vae_sir == null ? (
+                              <span
+                                className="text-slate-300"
+                                title="Chưa đủ dữ liệu chuẩn hoá (thiếu baseline CDC hoặc số ca kỳ vọng < 1)"
+                              >
+                                —
+                              </span>
+                            ) : (
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                                  r.vae_sir > 1.0
+                                    ? "bg-red-100 text-red-800"
+                                    : "bg-emerald-100 text-emerald-800"
+                                }`}
+                              >
+                                {formatRatio(r.vae_sir)}
+                              </span>
+                            )}
+                          </div>
+                        </td>
 
                         {/* SSI columns */}
                         <td className="px-4 py-3 text-center bg-blue-50/10">

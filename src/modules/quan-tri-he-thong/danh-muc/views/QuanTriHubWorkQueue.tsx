@@ -27,7 +27,7 @@ export default function QuanTriHubWorkQueue({ onOpen }: Props) {
   if (warns.length === 0) return null;
 
   return (
-    <section className={`${UI.inset} border-amber-200 bg-amber-50/50 p-4`} aria-labelledby="hub-can-xu-ly">
+    <section className={`${UI.inset} border-amber-200 bg-amber-50/50 p-3`} aria-labelledby="hub-can-xu-ly">
       <h2 id="hub-can-xu-ly" className="flex items-center gap-2 text-sm font-semibold text-amber-900">
         <AlertTriangle className="h-4 w-4" aria-hidden />
         Cần xử lý

@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { getByPath } from "@/lib/get-by-path";
 
 export type UseDataTableOptions = {
   /** > 0: lọc client theo từ khóa sau debounce (ms); 0 = lọc ngay mỗi lần gõ. */
@@ -17,7 +18,7 @@ export type UseDataTableOptions = {
  */
 export function useDataTable<T extends { id: string | number }>(
   initialData: T[],
-  searchableKeys: (keyof T)[] = [],
+  searchableKeys: (keyof T | string)[] = [],
   options?: UseDataTableOptions
 ) {
   const searchDebounceMs = options?.searchDebounceMs ?? 0;
@@ -36,7 +37,7 @@ export function useDataTable<T extends { id: string | number }>(
   // --- State ---
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const [sortConfig, setSortConfig] = useState<{ key: keyof T; direction: 'asc' | 'desc' } | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: keyof T | string; direction: 'asc' | 'desc' } | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string | number>>(new Set());
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export function useDataTable<T extends { id: string | number }>(
   };
 
   // 2. Sắp xếp
-  const handleSort = (key: keyof T) => {
+  const handleSort = (key: keyof T | string) => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
       direction = 'desc';
@@ -101,7 +102,7 @@ export function useDataTable<T extends { id: string | number }>(
       
       result = result.filter(item => {
         const haystack = searchableKeys
-          .map((key) => normalizeSearchText(item[key]))
+          .map((key) => normalizeSearchText(getByPath(item, String(key))))
           .join(" ");
         return keywords.every((kw) => haystack.includes(kw));
       });
@@ -110,8 +111,8 @@ export function useDataTable<T extends { id: string | number }>(
     // Sắp xếp
     if (sortConfig) {
       result.sort((a, b) => {
-        const aVal = a[sortConfig.key];
-        const bVal = b[sortConfig.key];
+        const aVal = getByPath(a, String(sortConfig.key)) as any;
+        const bVal = getByPath(b, String(sortConfig.key)) as any;
         
         if (aVal === bVal) return 0;
         if (aVal === null || aVal === undefined) return 1;

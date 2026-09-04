@@ -127,7 +127,7 @@ export function BoDungCuChiTietAllocSection({
       ) : (
         <ResponsiveTableShell unboxed maxHeight="max-h-[min(360px,50dvh)]">
           <table className="w-full min-w-[500px] border-collapse text-left text-sm">
-            <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-[0_1px_0_rgb(226_232_240)]">
+            <thead className="sticky top-0 z-[1] border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-[0_1px_0_rgb(226_232_240)]">
               <tr>
                 <th className="p-3">Khoa</th>
                 <th className="w-28 p-3 text-center">Cơ số</th>

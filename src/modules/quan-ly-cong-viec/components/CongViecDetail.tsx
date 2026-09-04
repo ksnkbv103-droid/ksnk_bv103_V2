@@ -85,9 +85,9 @@ const qlcvDetailChrome = {
     "rounded-[var(--radius-shell)] border border-slate-200/90 bg-white/95 p-2 shadow-[var(--shadow-app-soft)] ring-1 ring-slate-900/[0.03]",
   metaTile:
     "rounded-[var(--radius-shell)] border border-slate-200/80 bg-white p-4 shadow-sm ring-1 ring-slate-900/[0.02] sm:p-5",
-  dashedEmpty: "rounded-[var(--radius-shell)] border-2 border-dashed border-slate-200/90 bg-slate-50/50 py-10 text-center",
-  sectionLabel: "text-[11px] font-semibold uppercase tracking-wider text-slate-500",
-  sectionHeading: "text-sm font-semibold uppercase tracking-wider text-slate-800",
+  dashedEmpty: "rounded-[var(--radius-shell)] border border-dashed border-slate-200/90 bg-slate-50/50 px-3 py-6 text-center",
+  sectionLabel: "text-[11px] font-semibold tracking-wide text-slate-500",
+  sectionHeading: "text-sm font-semibold tracking-wide text-slate-800",
   btnOutline:
     "bv103-control-h shrink-0 rounded-[var(--radius-control)] border border-slate-200/90 bg-white px-4 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50",
   btnPrimary:
@@ -96,7 +96,7 @@ const qlcvDetailChrome = {
     "bv103-control-h shrink-0 rounded-[var(--radius-control)] bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700",
   btnGhost:
     "bv103-control-h shrink-0 rounded-[var(--radius-control)] border border-transparent px-3 text-xs font-semibold text-red-600 hover:border-red-100 hover:bg-red-50",
-  dialogContent: `max-w-4xl rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-6 shadow-[var(--shadow-app-soft)] sm:p-8 ${BV103_DIALOG_STACK.nestedContent}`,
+  dialogContent: `flex max-h-[min(90dvh,880px)] max-w-4xl flex-col gap-0 overflow-hidden rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-0 shadow-[var(--shadow-app-soft)] sm:max-w-4xl ${BV103_DIALOG_STACK.nestedContent}`,
   dialogOverlay: BV103_DIALOG_STACK.nestedOverlay,
 } as const;
 
@@ -253,7 +253,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
                 Quá hạn
               </span>
             ) : null}
-            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-medium tracking-wide text-slate-400">
               #{data.id?.slice(0, 8)}
             </span>
           </div>
@@ -330,20 +330,22 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
                 <button type="button" className={qlcvDetailChrome.btnPrimary}>Phê duyệt & giao</button>
               </DialogTrigger>
               <DialogContent className={qlcvDetailChrome.dialogContent} overlayClassName={qlcvDetailChrome.dialogOverlay}>
-                <DialogHeader className="mb-6">
+                <DialogHeader className="shrink-0 px-6 pt-6 sm:px-8">
                   <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">
                     Phê duyệt đề xuất
                   </DialogTitle>
                 </DialogHeader>
-                <DeXuatApproveForm
-                  proposal={data}
-                  onSuccess={() => {
-                    setIsApproveOpen(false);
-                    fetchDetail();
-                    onRefreshList?.();
-                  }}
-                  onCancel={() => setIsApproveOpen(false)}
-                />
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5 sm:px-8">
+                  <DeXuatApproveForm
+                    proposal={data}
+                    onSuccess={() => {
+                      setIsApproveOpen(false);
+                      fetchDetail();
+                      onRefreshList?.();
+                    }}
+                    onCancel={() => setIsApproveOpen(false)}
+                  />
+                </div>
               </DialogContent>
             </Dialog>
           )}
@@ -356,20 +358,22 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
                 </button>
               </DialogTrigger>
               <DialogContent className={qlcvDetailChrome.dialogContent} overlayClassName={qlcvDetailChrome.dialogOverlay}>
-                <DialogHeader className="mb-6">
+                <DialogHeader className="shrink-0 px-6 pt-6 sm:px-8">
                   <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">
                     Chỉnh sửa nhiệm vụ
                   </DialogTitle>
                 </DialogHeader>
-                <CongViecForm
-                  initialData={data}
-                  onSuccess={() => {
-                    setIsEditOpen(false);
-                    fetchDetail();
-                    onRefreshList?.();
-                  }}
-                  onCancel={() => setIsEditOpen(false)}
-                />
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5 sm:px-8">
+                  <CongViecForm
+                    initialData={data}
+                    onSuccess={() => {
+                      setIsEditOpen(false);
+                      fetchDetail();
+                      onRefreshList?.();
+                    }}
+                    onCancel={() => setIsEditOpen(false)}
+                  />
+                </div>
               </DialogContent>
             </Dialog>
           )}

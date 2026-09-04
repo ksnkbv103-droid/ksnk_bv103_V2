@@ -131,11 +131,12 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   };
 
   const columns: Column<FactBaoTriRow>[] = [
-    { header: "Mã phiếu", accessorKey: "ma_phieu", cell: (i) => <span className="font-mono bv103-type-label font-semibold text-[var(--primary)]">{i.ma_phieu}</span> },
-    { header: "Thiết bị", accessorKey: "ten_thiet_bi", cell: (i) => <span className="text-[11px] font-semibold">{i.ten_thiet_bi || "—"}</span> },
+    { header: "Mã phiếu", accessorKey: "ma_phieu", sortable: true, cell: (i) => <span className="font-mono bv103-type-label font-semibold text-[var(--primary)]">{i.ma_phieu}</span> },
+    { header: "Thiết bị", accessorKey: "ten_thiet_bi", sortable: true, cell: (i) => <span className="text-[11px] font-semibold">{i.ten_thiet_bi || "—"}</span> },
     {
       header: "Loại",
       accessorKey: "loai_phieu",
+      sortable: true,
       cell: (i) => (
         <span className={`text-[11px] font-semibold ${i.loai_phieu === "SUA_CHUA" ? "text-red-600" : "text-[var(--primary)]"}`}>
           {i.loai_phieu === "SUA_CHUA" ? "Sửa chữa" : "Định kỳ"}
@@ -145,6 +146,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
     {
       header: "Trạng thái",
       accessorKey: "trang_thai",
+      sortable: true,
       cell: (i) => {
         const val = i.trang_thai;
         if (val === "DANG_THUC_HIEN") {
@@ -177,7 +179,7 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
         );
       },
     },
-    { header: "Lý do / Kết quả", accessorKey: "ly_do", cell: (i) => <span className="max-w-[200px] truncate text-[11px] text-slate-600">{i.ly_do || i.ket_qua_ghi_nhan || "—"}</span> },
+    { header: "Lý do / Kết quả", accessorKey: "ly_do", sortable: true, cell: (i) => <span className="max-w-[200px] truncate text-[11px] text-slate-600">{i.ly_do || i.ket_qua_ghi_nhan || "—"}</span> },
   ];
 
   if (permLoading) {
