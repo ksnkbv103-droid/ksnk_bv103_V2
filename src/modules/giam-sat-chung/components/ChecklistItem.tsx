@@ -5,6 +5,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { ChecklistCriterion, ChecklistResult } from "@/types/giam-sat-chung";
 import { gscFormChrome } from "../lib/gsc-form-chrome";
 import LogEntryForm from "./LogEntryForm";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 
 interface ChecklistItemProps {
   criterion: ChecklistCriterion;
@@ -16,6 +18,42 @@ interface ChecklistItemProps {
   index?: number;
   // Slice 6 (session-level RCA v5): KHÔNG còn dropdown per-criterion — chuyển sang
   // SessionRcaAnalysisPanel ở cuối form. Loại bỏ props failureReasons & contextTags.
+}
+
+
+function EvidencePreviewDialog({
+  open,
+  onOpenChange,
+  imageUrl,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  imageUrl: string;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className={`max-h-[min(90dvh,880px)] max-w-[min(90vw,56rem)] overflow-hidden p-2 sm:max-w-[min(90vw,56rem)] ${BV103_DIALOG_STACK.nestedContent}`}
+        overlayClassName={`${BV103_DIALOG_STACK.nestedOverlay} bg-black/70`}
+      >
+        <DialogTitle className="sr-only">Bằng chứng phóng to</DialogTitle>
+        <img
+          src={imageUrl}
+          alt="Bằng chứng phóng to"
+          className="max-h-[80vh] w-full rounded-lg object-contain"
+        />
+        <div className="mt-2 flex justify-end gap-2 px-1 pb-1">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="rounded-lg bg-slate-800 px-4 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-700 transition-colors"
+          >
+            Đóng
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 const valueLabel = (v: ChecklistResult["value"]) =>
@@ -35,27 +73,27 @@ function isTypingTarget(el: EventTarget | null) {
 const renderWeightBadge = (weightType?: string, isRedFlag?: boolean) => {
   if (isRedFlag) {
     return (
-      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-red-700 animate-pulse border border-red-200 shadow-sm">
+      <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-[11px] font-semibold text-red-700 animate-pulse border border-red-200 shadow-sm">
         🚨 Chí mạng (Red Flag)
       </span>
     );
   }
   if (weightType === "CRITICAL") {
     return (
-      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-red-600 border border-red-100">
+      <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600 border border-red-100">
         Chí mạng
       </span>
     );
   }
   if (weightType === "MINOR") {
     return (
-      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-blue-600 border border-blue-100">
+      <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-600 border border-blue-100">
         Hành chính
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-600 border border-amber-100">
+    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-600 border border-amber-100">
       Nghiêm trọng
     </span>
   );
@@ -182,7 +220,7 @@ export default function ChecklistItem({
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="bv103-type-label font-semibold text-blue-600 hover:underline uppercase"
+                className="bv103-type-label font-semibold text-blue-600 hover:underline"
               >
                 Xem bằng chứng ảnh
               </button>
@@ -192,7 +230,7 @@ export default function ChecklistItem({
         <div className="flex flex-col items-end gap-1 shrink-0">
           <div className="flex items-center gap-1.5">
             <span
-              className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+              className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
                 result.value === "DAT"
                   ? "bg-[var(--primary)]/15 text-[var(--primary)]"
                   : result.value === "KHONG_DAT"
@@ -206,26 +244,13 @@ export default function ChecklistItem({
           {result.note ? <p className="max-w-xs text-right text-[11px] text-slate-700">Ghi chú: {result.note}</p> : null}
         </div>
 
-        {previewOpen && result.image_url && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 transition-opacity animate-fade-in pointer-events-auto">
-            <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-[var(--radius-shell)] bg-white p-2 shadow-[var(--shadow-app-soft)]">
-              <img
-                src={result.image_url}
-                alt="Bằng chứng phóng to"
-                className="max-h-[80vh] object-contain rounded-lg"
-              />
-              <div className="mt-2 flex justify-end gap-2 px-1 pb-1">
-                <button
-                  type="button"
-                  onClick={() => setPreviewOpen(false)}
-                  className="rounded-lg bg-slate-800 px-4 py-1.5 bv103-type-label font-semibold uppercase tracking-wider text-white hover:bg-slate-700 transition-colors"
-                >
-                  Đóng
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {result.image_url ? (
+          <EvidencePreviewDialog
+            open={previewOpen}
+            onOpenChange={setPreviewOpen}
+            imageUrl={result.image_url}
+          />
+        ) : null}
       </div>
     );
   }
@@ -340,19 +365,19 @@ export default function ChecklistItem({
             />
           </div>
           <div className="flex flex-col gap-0.5">
-            <span className="bv103-type-label font-semibold text-slate-400 uppercase tracking-wider">Ảnh bằng chứng</span>
+            <span className="bv103-type-label font-semibold text-slate-500 tracking-wide">Ảnh bằng chứng</span>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="text-[11px] font-semibold text-blue-600 hover:underline uppercase tracking-wide"
+                className="text-[11px] font-semibold text-blue-600 hover:underline"
               >
                 Xem to
               </button>
               <button
                 type="button"
                 onClick={handleRemoveImage}
-                className="text-[11px] font-semibold text-rose-600 hover:underline uppercase tracking-wide"
+                className="text-[11px] font-semibold text-rose-600 hover:underline"
               >
                 Xóa bỏ
               </button>
@@ -395,26 +420,13 @@ export default function ChecklistItem({
         </div>
       ) : null}
 
-      {previewOpen && result.image_url && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 transition-opacity animate-fade-in">
-          <div className="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-[var(--radius-shell)] bg-white p-2 shadow-[var(--shadow-app-soft)]">
-            <img
-              src={result.image_url}
-              alt="Bằng chứng phóng to"
-              className="max-h-[80vh] object-contain rounded-lg"
-            />
-            <div className="mt-2 flex justify-end gap-2 px-1 pb-1">
-              <button
-                type="button"
-                onClick={() => setPreviewOpen(false)}
-                className="rounded-lg bg-slate-800 px-4 py-1.5 bv103-type-label font-semibold uppercase tracking-wider text-white hover:bg-slate-700 transition-colors"
-              >
-                Đóng
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {result.image_url ? (
+          <EvidencePreviewDialog
+            open={previewOpen}
+            onOpenChange={setPreviewOpen}
+            imageUrl={result.image_url}
+          />
+        ) : null}
     </div>
   );
 }

@@ -84,10 +84,10 @@ export default function BangKiemView() {
           if (!open) setSelectedBK(null);
         }}
       >
-        <DialogContent className="max-w-4xl sm:max-w-5xl max-h-[min(90dvh,880px)] overflow-y-auto">
+        <DialogContent className="flex max-h-[min(90dvh,880px)] max-w-4xl flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl">
           <DialogTitle className="sr-only">{detailTitle}</DialogTitle>
           {selectedBK ? (
-            <div className="space-y-[var(--bv103-space-3)]">
+            <div className="min-h-0 flex-1 space-y-[var(--bv103-space-3)] overflow-y-auto overscroll-contain px-5 py-5 pr-12 sm:px-6 sm:pr-14">
               <h2 className={`truncate px-1 ${T.sectionTitle} text-[var(--primary)]`}>
                 {detailTitle}
               </h2>

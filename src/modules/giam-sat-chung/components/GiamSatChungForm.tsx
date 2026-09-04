@@ -186,7 +186,7 @@ export default function GiamSatChungForm({
         </div>
 
         {showContinuePrompt ? (
-          <div className="print:hidden fixed inset-x-0 bottom-0 z-50 px-3 pb-3 sm:px-6 sm:pb-6">
+          <div className="print:hidden fixed inset-x-0 bottom-0 z-20 px-3 pb-3 sm:px-6 sm:pb-6">
             <ContinueSupervisionBar
               summaryLine={continueSummary}
               onContinueHere={continueHere}

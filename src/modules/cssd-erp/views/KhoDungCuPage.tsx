@@ -189,10 +189,11 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
     {
       header: "Bộ dụng cụ",
       accessorKey: "cssd_dm_bo_dung_cu.ten_bo",
+      sortable: true,
       cell: (i: any) => (
         <div className="space-y-1">
           <span className="font-bold text-slate-800 text-xs truncate max-w-[220px] block">
-            {i.cssd_dm_bo_dung_cu?.ten_bo || "CHƯA ĐẶT TÊN"}
+            {i.cssd_dm_bo_dung_cu?.ten_bo || "Chưa đặt tên"}
           </span>
           <span className="font-mono text-[11px] text-slate-400 block">
             {i.ma_vach_qr?.length > 16
@@ -205,6 +206,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
     {
       header: "Mã khoa",
       accessorKey: "cssd_dm_bo_dung_cu.khoa.ma_khoa",
+      sortable: true,
       cell: (i: any) => (
         <span className="text-[11px] font-medium text-slate-500 font-mono">
           {i.cssd_dm_bo_dung_cu?.khoa?.ma_khoa || "Dùng chung"}
@@ -214,6 +216,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
     {
       header: "Số món",
       accessorKey: "so_luong_thuc_te",
+      sortable: true,
       cell: (i: any) => {
         const can = Number(i.so_luong_can);
         const thuc = Number(i.so_luong_thuc_te);
@@ -231,6 +234,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
     {
       header: "Hạn sử dụng",
       accessorKey: "han_su_dung",
+      sortable: true,
       cell: (i: any) => {
         if (!i.han_su_dung) return <span className="bv103-type-note">Chưa TK</span>;
         const daysLeft = (new Date(i.han_su_dung).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
@@ -259,6 +263,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
     {
       header: "Đang ở trạm",
       accessorKey: "trang_thai_hien_tai",
+      sortable: true,
       cell: (i: any) => {
         if (i.is_red_alert)
           return (
@@ -296,6 +301,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
     {
       header: "Tình trạng gói",
       accessorKey: "tinh_trang",
+      sortable: true,
       cell: (i: any) => (
         <PackConditionSelect
           quyTrinhId={String(i.id || "")}
@@ -356,7 +362,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
       {suppressShell ? (
         <div className="flex justify-end">{importExportActions}</div>
       ) : null}
-      <div className="space-y-8 animate-in slide-in-from-left-4 duration-500">
+      <div className="space-y-[var(--bv103-space-3)]">
         <InventoryDashboard data={dashboardScope} activeStatus={filterStatus} onSelectStatus={setFilterStatus} />
         
         <div className="flex flex-wrap items-center justify-between gap-3">

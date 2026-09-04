@@ -52,7 +52,8 @@ export function getBoDungCuColumns(actionUi: ActionCells): Column<BoDungCuTableR
     },
     {
       header: "Khoa",
-      accessorKey: "khoa_su_dung",
+      accessorKey: "khoa_su_dung.ten_khoa",
+      sortable: true,
       cell: (i) => (
         <span className={TC.cellMeta}>
           {formatKhoaCompactLabel({

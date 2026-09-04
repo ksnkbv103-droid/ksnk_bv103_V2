@@ -53,10 +53,11 @@ const WORK_TABS: {
   mobileLabel: string;
   icon: LucideIcon;
   param: string;
+  emphasis: "primary" | "secondary";
 }[] = [
-  { key: "WORKFLOW", label: "Chu trình", mobileLabel: "Chu trình", icon: WashingMachine, param: "" },
-  { key: "BATCH", label: "Mẻ", mobileLabel: "Mẻ", icon: Flame, param: "batch" },
-  { key: "KHO", label: "Kho", mobileLabel: "Kho", icon: Package, param: "kho" },
+  { key: "WORKFLOW", label: "Chu trình", mobileLabel: "Chu trình", icon: WashingMachine, param: "", emphasis: "primary" },
+  { key: "BATCH", label: "Mẻ", mobileLabel: "Mẻ", icon: Flame, param: "batch", emphasis: "secondary" },
+  { key: "KHO", label: "Kho", mobileLabel: "Kho", icon: Package, param: "kho", emphasis: "secondary" },
 ];
 
 const TAB_CONFIG = [
@@ -98,16 +99,12 @@ function CssdQuyTrinhPageInner() {
 
   return (
     <CSSDPageShell
-      title={
-        <>
-          Chu trình xử lý <span className="text-[var(--primary)]">dụng cụ</span>
-        </>
-      }
+      title="Chu trình xử lý dụng cụ"
     >
       <div className="bv103-stack-page">
         <div className="flex flex-wrap items-center gap-2">
           <div className={CSSD_UI_TAB_GROUP}>
-            {WORK_TABS.map(({ key, label, mobileLabel, icon }) => (
+            {WORK_TABS.map(({ key, label, mobileLabel, icon, emphasis }) => (
               <CssdHorizTabButton
                 key={key}
                 active={activeTab === key}
@@ -115,6 +112,7 @@ function CssdQuyTrinhPageInner() {
                 label={label}
                 mobileLabel={mobileLabel}
                 icon={icon}
+                emphasis={emphasis}
               />
             ))}
           </div>

@@ -16,6 +16,7 @@ import type { BoDungCuTableRow } from "./bo-dung-cu-form-shared";
 import { BoDungCuPageHeader } from "./bo-dung-cu-page-header";
 import { BoDungCuChiTietPanel } from "./bo-dung-cu-chi-tiet-panel";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import { BoDungCuMaBoHealthBanner } from "./bo-dung-cu-ma-bo-health-banner";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import {
@@ -159,6 +160,16 @@ export function BoDungCuPageContent({ onOpenLoaiSheet }: { onOpenLoaiSheet?: () 
           enableMultiSelect={canWriteMaster}
           bodyMaxHeight="max-h-[min(58dvh,560px)]"
           searchPlaceholder="Tìm theo mã, tên bộ, loại, khoa, ghi chú…"
+          searchKeys={[
+            "ma_bo",
+            "ten_bo",
+            "phan_loai_bo",
+            "ghi_chu",
+            "loai_dung_cu.ma_danh_muc",
+            "loai_dung_cu.ten_danh_muc",
+            "khoa_su_dung.ma_khoa",
+            "khoa_su_dung.ten_khoa",
+          ]}
           rowClassName={(r) =>
             r.id === selectedBoId ? "bg-emerald-50/90 ring-1 ring-inset ring-[var(--primary)]/20" : ""
           }
@@ -185,7 +196,10 @@ export function BoDungCuPageContent({ onOpenLoaiSheet }: { onOpenLoaiSheet?: () 
           if (!open) setSelectedBoId(null);
         }}
       >
-        <DialogContent className="flex max-h-[min(90dvh,880px)] max-w-4xl flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl">
+        <DialogContent
+          className={`flex max-h-[min(90dvh,880px)] max-w-4xl flex-col gap-0 overflow-hidden p-0 sm:max-w-5xl ${BV103_DIALOG_STACK.hubContent}`}
+          overlayClassName={`${BV103_DIALOG_STACK.hubOverlay} bg-slate-900/50`}
+        >
           <DialogTitle className="sr-only">
             Quản lý thành phần bộ
             {selectedRow?.ma_bo || selectedRow?.ten_bo

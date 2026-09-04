@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   AlertTriangle,
   ChevronDown,
+  ChevronUp,
   Combine,
   Layers,
   Loader2,
@@ -14,6 +15,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
+import SearchBar from "@/components/shared/SearchBar";
+import { useDataTable } from "@/hooks/useDataTable";
+import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 import DungCuChiTietFormModal from "./dung-cu-chi-tiet-form-modal";
 import {
   BoDungCuChiTietAllocSection,
@@ -101,6 +105,24 @@ export function BoDungCuChiTietPanel({
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState<BoDungCuChiTietPreviewRow[]>([]);
   const [selectedChiTietId, setSelectedChiTietId] = useState<string | null>(null);
+  const chiTietSearchKeys = [
+    "ma_chi_tiet",
+    "ten_chi_tiet",
+    "ten_dung_cu_le",
+    "loai_dung_cu.ma_danh_muc",
+    "loai_dung_cu.ten_danh_muc",
+    "ghi_chu",
+    "so_luong",
+    "max_suds_count",
+    "trong_luong",
+  ] as const;
+  const {
+    processedData: visibleRows,
+    searchTerm: chiTietSearch,
+    handleSearch: handleChiTietSearch,
+    handleSort: handleChiTietSort,
+    sortConfig: chiTietSort,
+  } = useDataTable(rows, [...chiTietSearchKeys]);
   const [relatedBos, setRelatedBos] = useState<BoRefByLoai[]>([]);
   const [relLoading, setRelLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -376,7 +398,7 @@ export function BoDungCuChiTietPanel({
                     ) : null}
 
                     <div className="my-1 border-t border-slate-100" role="separator" />
-                    <p className="px-2.5 py-1 bv103-type-label font-medium uppercase tracking-wide text-slate-400">
+                    <p className="px-2.5 py-1 text-[10px] font-medium tracking-wide text-slate-400">
                       Biến động dụng cụ (3 cửa)
                     </p>
                     <Link
@@ -422,22 +444,124 @@ export function BoDungCuChiTietPanel({
                   : "Chưa có thành phần trong bộ."}
               </p>
             ) : (
+              <div className="space-y-2">
+                <SearchBar
+                  value={chiTietSearch}
+                  onChange={handleChiTietSearch}
+                  placeholder="Tìm mã, tên, loại, ghi chú…"
+                  className="max-w-xl"
+                />
               <ResponsiveTableShell unboxed maxHeight="max-h-[min(360px,50dvh)]">
                 <table className="w-full min-w-[640px] border-collapse text-left text-sm">
-                  <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-[0_1px_0_rgb(226_232_240)]">
+                  <thead className="sticky top-0 z-[1] border-b border-slate-200 bg-slate-50 text-[11px] font-medium text-slate-500 shadow-[0_1px_0_rgb(226_232_240)]">
                     <tr>
-                      <th className="p-3">Mã chi tiết</th>
-                      <th className="p-3">Tên</th>
-                      <th className="p-3">Loại DC</th>
-                      <th className="w-16 p-3 text-center">SL</th>
-                      <th className="w-20 p-3 text-center">Chu kỳ tối đa</th>
-                      <th className="w-24 p-3 text-center">Trọng lượng</th>
-                      <th className="p-3">Ghi chú</th>
-                      <th className="w-24 p-3">Hoạt động</th>
+                      <th
+                        className={`${L.th} cursor-pointer select-none hover:bg-slate-100/70`}
+                        onClick={() => handleChiTietSort("ma_chi_tiet")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Mã chi tiết
+                          <span className="flex flex-col opacity-30">
+                            <ChevronUp size={10} className={(chiTietSort?.key === "ma_chi_tiet" && chiTietSort.direction === "asc") ? "text-[var(--primary)] opacity-100" : ""} />
+                            <ChevronDown size={10} className={(chiTietSort?.key === "ma_chi_tiet" && chiTietSort.direction === "desc") ? "text-[var(--primary)] opacity-100" : ""} />
+                          </span>
+                        </div>
+                      </th>
+                      <th
+                        className={`${L.th} cursor-pointer select-none hover:bg-slate-100/70`}
+                        onClick={() => handleChiTietSort("ten_chi_tiet")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Tên
+                          <span className="flex flex-col opacity-30">
+                            <ChevronUp size={10} className={(chiTietSort?.key === "ten_chi_tiet" && chiTietSort.direction === "asc") ? "text-[var(--primary)] opacity-100" : ""} />
+                            <ChevronDown size={10} className={(chiTietSort?.key === "ten_chi_tiet" && chiTietSort.direction === "desc") ? "text-[var(--primary)] opacity-100" : ""} />
+                          </span>
+                        </div>
+                      </th>
+                      <th
+                        className={`${L.th} cursor-pointer select-none hover:bg-slate-100/70`}
+                        onClick={() => handleChiTietSort("loai_dung_cu.ten_danh_muc")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Loại DC
+                          <span className="flex flex-col opacity-30">
+                            <ChevronUp size={10} className={(chiTietSort?.key === "loai_dung_cu.ten_danh_muc" && chiTietSort.direction === "asc") ? "text-[var(--primary)] opacity-100" : ""} />
+                            <ChevronDown size={10} className={(chiTietSort?.key === "loai_dung_cu.ten_danh_muc" && chiTietSort.direction === "desc") ? "text-[var(--primary)] opacity-100" : ""} />
+                          </span>
+                        </div>
+                      </th>
+                      <th
+                        className={`${L.th} cursor-pointer select-none hover:bg-slate-100/70`}
+                        onClick={() => handleChiTietSort("so_luong")}
+                      >
+                        <div className="flex items-center gap-1 justify-center">
+                          SL
+                          <span className="flex flex-col opacity-30">
+                            <ChevronUp size={10} className={(chiTietSort?.key === "so_luong" && chiTietSort.direction === "asc") ? "text-[var(--primary)] opacity-100" : ""} />
+                            <ChevronDown size={10} className={(chiTietSort?.key === "so_luong" && chiTietSort.direction === "desc") ? "text-[var(--primary)] opacity-100" : ""} />
+                          </span>
+                        </div>
+                      </th>
+                      <th
+                        className={`${L.th} cursor-pointer select-none hover:bg-slate-100/70`}
+                        onClick={() => handleChiTietSort("max_suds_count")}
+                      >
+                        <div className="flex items-center gap-1 justify-center">
+                          Chu kỳ tối đa
+                          <span className="flex flex-col opacity-30">
+                            <ChevronUp size={10} className={(chiTietSort?.key === "max_suds_count" && chiTietSort.direction === "asc") ? "text-[var(--primary)] opacity-100" : ""} />
+                            <ChevronDown size={10} className={(chiTietSort?.key === "max_suds_count" && chiTietSort.direction === "desc") ? "text-[var(--primary)] opacity-100" : ""} />
+                          </span>
+                        </div>
+                      </th>
+                      <th
+                        className={`${L.th} cursor-pointer select-none hover:bg-slate-100/70`}
+                        onClick={() => handleChiTietSort("trong_luong")}
+                      >
+                        <div className="flex items-center gap-1 justify-center">
+                          Trọng lượng
+                          <span className="flex flex-col opacity-30">
+                            <ChevronUp size={10} className={(chiTietSort?.key === "trong_luong" && chiTietSort.direction === "asc") ? "text-[var(--primary)] opacity-100" : ""} />
+                            <ChevronDown size={10} className={(chiTietSort?.key === "trong_luong" && chiTietSort.direction === "desc") ? "text-[var(--primary)] opacity-100" : ""} />
+                          </span>
+                        </div>
+                      </th>
+                      <th
+                        className={`${L.th} cursor-pointer select-none hover:bg-slate-100/70`}
+                        onClick={() => handleChiTietSort("ghi_chu")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Ghi chú
+                          <span className="flex flex-col opacity-30">
+                            <ChevronUp size={10} className={(chiTietSort?.key === "ghi_chu" && chiTietSort.direction === "asc") ? "text-[var(--primary)] opacity-100" : ""} />
+                            <ChevronDown size={10} className={(chiTietSort?.key === "ghi_chu" && chiTietSort.direction === "desc") ? "text-[var(--primary)] opacity-100" : ""} />
+                          </span>
+                        </div>
+                      </th>
+                      <th
+                        className={`${L.th} cursor-pointer select-none hover:bg-slate-100/70`}
+                        onClick={() => handleChiTietSort("is_active")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Hoạt động
+                          <span className="flex flex-col opacity-30">
+                            <ChevronUp size={10} className={(chiTietSort?.key === "is_active" && chiTietSort.direction === "asc") ? "text-[var(--primary)] opacity-100" : ""} />
+                            <ChevronDown size={10} className={(chiTietSort?.key === "is_active" && chiTietSort.direction === "desc") ? "text-[var(--primary)] opacity-100" : ""} />
+                          </span>
+                        </div>
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {rows.map((r) => (
+                    {visibleRows.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="px-3 py-8 text-center text-sm text-slate-500">
+                          Không khớp «{chiTietSearch}».
+                        </td>
+                      </tr>
+                    ) : null}
+                    {visibleRows.map((r) => (
                       <tr
                         key={r.id}
                         onClick={() =>
@@ -485,6 +609,10 @@ export function BoDungCuChiTietPanel({
                   </tbody>
                 </table>
               </ResponsiveTableShell>
+              {visibleRows.length > 0 ? (
+                <p className="text-[11px] text-slate-500">{visibleRows.length}/{rows.length} dòng</p>
+              ) : null}
+              </div>
             )}
 
             {/* —— Section: chọn dòng → liên kết loại (không nhân CTA nguy hiểm) —— */}

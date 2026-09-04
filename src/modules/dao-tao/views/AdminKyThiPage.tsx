@@ -352,11 +352,11 @@ export default function AdminKyThiPage() {
       </div>
 
       <Dialog open={!!ganKy} onOpenChange={(o) => !o && setGanKy(null)}>
-        <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="flex max-h-[min(90dvh,880px)] max-w-lg flex-col gap-0 overflow-hidden p-0 max-sm:overflow-hidden sm:max-w-lg">
+          <DialogHeader className="shrink-0 px-6 py-4 pr-14">
             <DialogTitle>Gán khoa / nhân viên{ganKy ? ` — ${ganKy.ten}` : ""}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-6 py-4">
             <DaoTaoMultiCheckList
               label="Khoa"
               items={khoaItems}
@@ -372,7 +372,7 @@ export default function AdminKyThiPage() {
               emptyText="Không có nhân sự."
             />
           </div>
-          <DialogFooter>
+          <DialogFooter className="shrink-0 gap-2 border-t border-slate-100 px-6 py-3">
             <button type="button" className={daoTaoBtnSecondary} onClick={() => setGanKy(null)}>
               Hủy
             </button>

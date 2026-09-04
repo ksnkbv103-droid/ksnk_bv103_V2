@@ -23,7 +23,7 @@ export const CSSD_UI_CELL_META = T.tableCellMeta;
 export const CSSD_UI_CONTROL = bv103LayoutChrome.controlInput;
 export const CSSD_UI_CONTROL_NATIVE = bv103LayoutChrome.controlSelectNative;
 export const CSSD_UI_DATA_SURFACE =
-  "min-h-[280px] overflow-hidden bv103-layer-panel bv103-pad-inset sm:min-h-[420px]";
+  "min-h-[220px] overflow-hidden bv103-layer-panel bv103-pad-inset sm:min-h-[360px]";
 /** Alias strip chung — khớp `bv103LayoutChrome.navTabStrip` (Ops dialect). */
 export const CSSD_UI_TAB_GROUP = `${bv103LayoutChrome.navTabStrip} sm:w-fit`;
 export const CSSD_UI_TAB_BTN = bv103LayoutChrome.navTabBtn;

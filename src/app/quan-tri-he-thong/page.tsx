@@ -22,19 +22,18 @@ export default function QuanTriHeThongPage() {
   
   if (!mayEnterHub) {
     return (
-      <div className="p-20 text-center premium-card glass-panel max-w-2xl mx-auto mt-20 space-y-[var(--bv103-space-3)]">
-        <div className="text-5xl">🔒</div>
-        <h2 className={`${T.pageTitle} text-red-700`}>Truy cập bị từ chối</h2>
-        <p className="text-sm font-normal leading-relaxed text-slate-600">
+      <div className="mx-auto mt-8 max-w-lg space-y-[var(--bv103-space-3)] rounded-[var(--radius-shell)] border border-slate-200 bg-white px-5 py-6 text-center shadow-sm">
+        <h2 className={`${T.pageTitle} text-slate-800`}>Truy cập bị từ chối</h2>
+        <p className="text-sm leading-relaxed text-slate-600">
           Cần quyền xem ít nhất một trong: <strong className="font-semibold text-slate-700">Danh mục gốc</strong>,{" "}
           <strong className="font-semibold text-slate-700">Phân quyền</strong>,{" "}
           <strong className="font-semibold text-slate-700">Nhân sự</strong>, hoặc vai trò quản trị.
         </p>
-        <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50 p-4">
+        <div className="rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50 px-3 py-2.5 text-left">
           <p className={T.labelBlock}>Tài khoản hiện tại</p>
           <p className="text-sm font-medium text-slate-800">{userEmail || "Chưa đăng nhập"}</p>
         </div>
-        <p className="bv103-type-note">Đồng bộ với menu cạnh: khoá điều hướng Quản trị khi không đủ quyền Xem các module trên.</p>
+        <p className="bv103-type-note">Menu Quản trị ẩn khi chưa đủ quyền xem các module trên.</p>
       </div>
     );
   }
@@ -48,20 +47,18 @@ export default function QuanTriHeThongPage() {
             Quản trị hệ thống
           </span>
         }
-        subtitle="Tổ chức, bảng kiểm, Master CSSD, tài khoản — IT ở tab riêng."
+        subtitle="Tổ chức, bảng kiểm, CSSD, tài khoản."
       />
 
-      <div className="animate-in slide-in-from-bottom-4 duration-500">
-        <Suspense
-          fallback={
-            <div className="flex min-h-[200px] items-center justify-center">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-[var(--primary)] border-t-transparent" />
-            </div>
-          }
-        >
-          <QuanTriDanhMucPage />
-        </Suspense>
-      </div>
+      <Suspense
+        fallback={
+          <div className="flex min-h-[160px] items-center justify-center" aria-busy="true">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[var(--primary)]" />
+          </div>
+        }
+      >
+        <QuanTriDanhMucPage />
+      </Suspense>
     </div>
   );
 }

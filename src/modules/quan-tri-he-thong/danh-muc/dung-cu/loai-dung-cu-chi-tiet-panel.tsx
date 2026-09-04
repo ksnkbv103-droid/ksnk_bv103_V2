@@ -3,8 +3,10 @@
 import { quanTriFormChrome as UI } from "@/modules/quan-tri-he-thong/lib/quan-tri-form-chrome";
 
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
+import SearchBar from "@/components/shared/SearchBar";
 import React, { useEffect, useState } from "react";
-import { Layers, Loader2, RefreshCcw, History, Box } from "lucide-react";
+import { Layers, Loader2, RefreshCcw, History, Box, ChevronUp, ChevronDown } from "lucide-react";
+import { useDataTable } from "@/hooks/useDataTable";
 import { toast } from "sonner";
 import { getDungCuGiaoDichLogsAction, type DungCuGiaoDichRow } from "../actions/kho-dung-cu-giao-dich.actions";
 import { getLoaiDungCuContainingBosAction } from "../actions/loai-dung-cu.actions";
@@ -31,6 +33,28 @@ export function LoaiDungCuChiTietPanel({
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [sets, setSets] = useState(boDungCuChua);
   const [loadingSets, setLoadingSets] = useState(false);
+  const {
+    processedData: visibleSets,
+    searchTerm: setsSearch,
+    handleSearch: handleSetsSearch,
+    handleSort: handleSetsSort,
+    sortConfig: setsSort,
+  } = useDataTable(sets, ["ma_bo", "ten_bo"]);
+  const {
+    processedData: visibleLogs,
+    searchTerm: logsSearch,
+    handleSearch: handleLogsSearch,
+    handleSort: handleLogsSort,
+    sortConfig: logsSort,
+  } = useDataTable(logs, [
+    "loai_giao_dich",
+    "so_luong_thay_doi",
+    "ghi_chu",
+    "bo_dung_cu.ten_bo",
+    "bo_dung_cu.ma_bo",
+    "quy_trinh.ma_qr_quy_trinh",
+    "created_at",
+  ]);
 
   useEffect(() => {
     if (!selectedLoaiId) {
@@ -99,7 +123,7 @@ export function LoaiDungCuChiTietPanel({
 
   return (
     <div className={`${UI.shell} animate-in fade-in duration-500 overflow-hidden`}>
-      <div className="bg-slate-50/50 px-8 py-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col justify-between gap-3 border-b border-slate-100 bg-slate-50/50 px-5 py-3 md:flex-row md:items-center sm:px-6">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-medium bg-[var(--primary)]/10 text-[var(--primary)] px-2.5 py-1 rounded-lg">
@@ -138,7 +162,7 @@ export function LoaiDungCuChiTietPanel({
         </div>
       </div>
 
-      <div className="bv103-pad-panel">
+      <div className="bv103-pad-panel !py-3">
         {activeTab === "sets" ? (
           <div>
             {loadingSets ? (
@@ -153,19 +177,43 @@ export function LoaiDungCuChiTietPanel({
                 </Link>
               </div>
             ) : (
+              <div className="space-y-2">
+                <SearchBar
+                  value={setsSearch}
+                  onChange={handleSetsSearch}
+                  placeholder="Tìm mã / tên bộ…"
+                  className="max-w-md"
+                />
               <ResponsiveTableShell unboxed maxHeight="max-h-[min(320px,45dvh)]">
                 <table className="w-full text-left border-collapse">
                   <thead className={L.theadRow}>
                     <tr>
-                      <th className={L.th}>Mã bộ</th>
-                      <th className={L.th}>Tên bộ dụng cụ</th>
+                      <th className={`${L.th} cursor-pointer select-none hover:bg-slate-100/70`} onClick={() => handleSetsSort("ma_bo")}>
+                        <div className="flex items-center gap-1">Mã bộ
+                          <span className="flex flex-col opacity-30">
+                            <ChevronUp size={10} className={(setsSort?.key === "ma_bo" && setsSort.direction === "asc") ? "text-[var(--primary)] opacity-100" : ""} />
+                            <ChevronDown size={10} className={(setsSort?.key === "ma_bo" && setsSort.direction === "desc") ? "text-[var(--primary)] opacity-100" : ""} />
+                          </span>
+                        </div>
+                      </th>
+                      <th className={`${L.th} cursor-pointer select-none hover:bg-slate-100/70`} onClick={() => handleSetsSort("ten_bo")}>
+                        <div className="flex items-center gap-1">Tên bộ dụng cụ
+                          <span className="flex flex-col opacity-30">
+                            <ChevronUp size={10} className={(setsSort?.key === "ten_bo" && setsSort.direction === "asc") ? "text-[var(--primary)] opacity-100" : ""} />
+                            <ChevronDown size={10} className={(setsSort?.key === "ten_bo" && setsSort.direction === "desc") ? "text-[var(--primary)] opacity-100" : ""} />
+                          </span>
+                        </div>
+                      </th>
                       <th className={`${L.th} text-right`}>Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {sets.map((b) => (
+                    {visibleSets.length === 0 ? (
+                      <tr><td colSpan={3} className="py-8 text-center text-[11px] text-slate-500">Không khớp tìm kiếm.</td></tr>
+                    ) : null}
+                    {visibleSets.map((b) => (
                       <tr key={b.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                        <td className="py-3 font-mono text-[11px] text-[11px] font-medium text-slate-500 uppercase">{b.ma_bo || "—"}</td>
+                        <td className="py-3 font-mono text-[11px] font-medium text-slate-500">{b.ma_bo || "—"}</td>
                         <td className="py-3 text-[11px] font-medium text-[var(--primary)]">{b.ten_bo || "—"}</td>
                         <td className="py-3 text-right">
                           <button
@@ -182,6 +230,7 @@ export function LoaiDungCuChiTietPanel({
                   </tbody>
                 </table>
               </ResponsiveTableShell>
+              </div>
             )}
           </div>
         ) : (
@@ -201,20 +250,58 @@ export function LoaiDungCuChiTietPanel({
                 </button>
               </div>
             ) : (
+              <div className="space-y-2">
+                <SearchBar
+                  value={logsSearch}
+                  onChange={handleLogsSearch}
+                  placeholder="Tìm giao dịch, bộ, QR, ghi chú…"
+                  className="max-w-md"
+                />
               <ResponsiveTableShell unboxed maxHeight="max-h-[min(320px,45dvh)]">
                 <table className="w-full text-left border-collapse">
                   <thead className={L.theadRow}>
                     <tr>
-                      <th className={L.th}>Thời gian</th>
-                      <th className={L.th}>Loại giao dịch</th>
-                      <th className={L.th}>Biến động</th>
-                      <th className={L.th}>Bộ liên đới</th>
+                      <th className={`${L.th} cursor-pointer select-none hover:bg-slate-100/70`} onClick={() => handleLogsSort("created_at")}>
+                        <div className="flex items-center gap-1">Thời gian
+                          <span className="flex flex-col opacity-30">
+                            <ChevronUp size={10} className={(logsSort?.key === "created_at" && logsSort.direction === "asc") ? "text-[var(--primary)] opacity-100" : ""} />
+                            <ChevronDown size={10} className={(logsSort?.key === "created_at" && logsSort.direction === "desc") ? "text-[var(--primary)] opacity-100" : ""} />
+                          </span>
+                        </div>
+                      </th>
+                      <th className={`${L.th} cursor-pointer select-none hover:bg-slate-100/70`} onClick={() => handleLogsSort("loai_giao_dich")}>
+                        <div className="flex items-center gap-1">Loại giao dịch
+                          <span className="flex flex-col opacity-30">
+                            <ChevronUp size={10} className={(logsSort?.key === "loai_giao_dich" && logsSort.direction === "asc") ? "text-[var(--primary)] opacity-100" : ""} />
+                            <ChevronDown size={10} className={(logsSort?.key === "loai_giao_dich" && logsSort.direction === "desc") ? "text-[var(--primary)] opacity-100" : ""} />
+                          </span>
+                        </div>
+                      </th>
+                      <th className={`${L.th} cursor-pointer select-none hover:bg-slate-100/70`} onClick={() => handleLogsSort("so_luong_thay_doi")}>
+                        <div className="flex items-center gap-1">Biến động
+                          <span className="flex flex-col opacity-30">
+                            <ChevronUp size={10} className={(logsSort?.key === "so_luong_thay_doi" && logsSort.direction === "asc") ? "text-[var(--primary)] opacity-100" : ""} />
+                            <ChevronDown size={10} className={(logsSort?.key === "so_luong_thay_doi" && logsSort.direction === "desc") ? "text-[var(--primary)] opacity-100" : ""} />
+                          </span>
+                        </div>
+                      </th>
+                      <th className={`${L.th} cursor-pointer select-none hover:bg-slate-100/70`} onClick={() => handleLogsSort("bo_dung_cu.ten_bo")}>
+                        <div className="flex items-center gap-1">Bộ liên đới
+                          <span className="flex flex-col opacity-30">
+                            <ChevronUp size={10} className={(logsSort?.key === "bo_dung_cu.ten_bo" && logsSort.direction === "asc") ? "text-[var(--primary)] opacity-100" : ""} />
+                            <ChevronDown size={10} className={(logsSort?.key === "bo_dung_cu.ten_bo" && logsSort.direction === "desc") ? "text-[var(--primary)] opacity-100" : ""} />
+                          </span>
+                        </div>
+                      </th>
                       <th className={L.th}>Mã vạch bộ QR</th>
                       <th className={L.th}>Ghi chú</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {logs.map((log) => (
+                    {visibleLogs.length === 0 ? (
+                      <tr><td colSpan={6} className="py-8 text-center text-[11px] text-slate-500">Không khớp tìm kiếm.</td></tr>
+                    ) : null}
+                    {visibleLogs.map((log) => (
                       <tr key={log.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                         <td className="py-3 text-[11px] text-[11px] font-medium text-slate-500">
                           {formatDateTimeVi(log.created_at)}
@@ -239,6 +326,7 @@ export function LoaiDungCuChiTietPanel({
                   </tbody>
                 </table>
               </ResponsiveTableShell>
+              </div>
             )}
           </div>
         )}

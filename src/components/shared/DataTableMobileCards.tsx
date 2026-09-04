@@ -4,6 +4,7 @@ import React from "react";
 import type { Column } from "./AdvancedDataTable";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
+import { getByPath } from "@/lib/get-by-path";
 
 type Props<T> = {
   columns: Column<T>[];
@@ -41,7 +42,7 @@ function splitColumns<T>(columns: Column<T>[]) {
 
 function cellValue<T>(col: Column<T>, item: T) {
   if (col.cell) return col.cell(item);
-  return String((item as Record<string, unknown>)[String(col.accessorKey)] ?? "");
+  return String(getByPath(item, String(col.accessorKey)) ?? "");
 }
 
 export default function DataTableMobileCards<T extends { id?: string | number }>({
@@ -67,7 +68,7 @@ export default function DataTableMobileCards<T extends { id?: string | number }>
   }
 
   if (data.length === 0) {
-    return <p className="p-10 text-center text-sm font-medium text-slate-500">{emptyMessage}</p>;
+    return <p className="px-4 py-8 text-center text-sm font-medium text-slate-500">{emptyMessage}</p>;
   }
 
   return (

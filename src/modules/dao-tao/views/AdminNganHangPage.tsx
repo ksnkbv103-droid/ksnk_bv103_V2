@@ -418,12 +418,12 @@ export default function AdminNganHangPage() {
       </DaoTaoPanel>
 
       <Dialog open={!!edit} onOpenChange={(o) => !o && setEdit(null)}>
-        <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="flex max-h-[min(90dvh,880px)] max-w-lg flex-col gap-0 overflow-hidden p-0 max-sm:overflow-hidden sm:max-w-lg">
+          <DialogHeader className="shrink-0 px-6 py-4 pr-14">
             <DialogTitle>Sửa nhanh — {edit?.maCau}</DialogTitle>
           </DialogHeader>
           {edit ? (
-            <div className="space-y-3">
+            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-6 py-4">
               <DaoTaoField label="Loại (không đổi)">
                 <input className={daoTaoInputClass} value={edit.loai} disabled readOnly />
               </DaoTaoField>
@@ -462,7 +462,7 @@ export default function AdminNganHangPage() {
               </DaoTaoField>
             </div>
           ) : null}
-          <DialogFooter className="gap-2">
+          <DialogFooter className="shrink-0 gap-2 border-t border-slate-100 px-6 py-3">
             <button type="button" className={daoTaoBtnSecondary} onClick={() => setEdit(null)}>
               Hủy
             </button>

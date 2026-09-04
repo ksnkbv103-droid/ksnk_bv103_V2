@@ -20,6 +20,7 @@ export function buildMeTietKhuanBatchColumns(opts?: {
   {
     header: "Mã lô",
     accessorKey: "ma_lo_tiet_khuan",
+    sortable: true,
     cell: (i: any) => {
       const code = String(i.ma_lo_tiet_khuan || "").trim();
       return (
@@ -33,6 +34,7 @@ export function buildMeTietKhuanBatchColumns(opts?: {
   {
     header: "Số bộ trong mẻ",
     accessorKey: "so_bo_trong_me",
+    sortable: true,
     cell: (i: any) => (
       <span className={`${CSSD_UI_CELL_INDEX} tabular-nums text-slate-700`}>
         {typeof i.so_bo_trong_me === "number" ? i.so_bo_trong_me : 0}
@@ -42,11 +44,13 @@ export function buildMeTietKhuanBatchColumns(opts?: {
   {
     header: "Thiết bị",
     accessorKey: "thiet_bi.ten_thiet_bi",
+    sortable: true,
     cell: (i: any) => <span className={CSSD_UI_CELL_META}>{i.thiet_bi?.ten_thiet_bi || "N/A"}</span>,
   },
   {
     header: "Qc test",
     accessorKey: "ket_qua_test",
+    sortable: true,
     cell: (i: any) => (
       <span
         className={`rounded-md px-2 py-1 text-[11px] font-semibold ${
@@ -60,6 +64,7 @@ export function buildMeTietKhuanBatchColumns(opts?: {
   {
     header: "Trạng thái",
     accessorKey: "trang_thai",
+    sortable: true,
     cell: (i: any) => {
       const state = String(i.trang_thai || "");
       // Domain: CHO_BI / Quarantine_BI = implant chờ BI (−); UI-ready map (derive full gate = P1/write path).
@@ -79,6 +84,7 @@ export function buildMeTietKhuanBatchColumns(opts?: {
   {
     header: "Ghi chú",
     accessorKey: "ghi_chu",
+    sortable: true,
     cell: (i: any) => <span className={`block max-w-[150px] truncate ${CSSD_UI_CELL_META}`}>{i.ghi_chu || "---"}</span>,
   },
   {

@@ -91,6 +91,11 @@ interface AdvancedDataTableProps<T> {
    * Safe — does not change layout; only skips offscreen paint work.
    */
   contentVisibilityRows?: boolean;
+  /**
+   * Keys/paths for client search (supports dotted paths via getByPath).
+   * Defaults to column accessorKeys when omitted.
+   */
+  searchKeys?: (keyof T | string)[];
 }
 
 export default function AdvancedDataTable<T extends { id: string | number }>({
@@ -106,11 +111,18 @@ export default function AdvancedDataTable<T extends { id: string | number }>({
   onQrScan,
   bodyMaxHeight,
   contentVisibilityRows,
+  searchKeys,
 }: AdvancedDataTableProps<T>) {
   /** FLT-SEARCH-01: `searchPlacement="header"` deprecated — luôn inline. */
   void searchPlacement;
   const isSmUp = useMinWidth(640, false);
-  const searchableKeys = useMemo(() => columns.map(col => col.accessorKey as keyof T), [columns]);
+  const searchableKeys = useMemo(
+    () =>
+      searchKeys?.length
+        ? searchKeys
+        : columns.map((col) => col.accessorKey as keyof T | string),
+    [searchKeys, columns],
+  );
 
   const {
     processedData: internalProcessedData,
