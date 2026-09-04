@@ -10,6 +10,7 @@ Inventory runner/gate: [`../README.md`](../README.md).
 |------|----------|----------|
 | `trial-four-modules-precheck.sql` | `trial:db:precheck` / `:local` | Bảng/RPC tối thiểu pilot 4 module |
 | `auth-pilot-precheck.sql` | `trial:auth:precheck` / `:local` | Auth + RBAC view |
+| `rbac-five-roles-precheck.sql` | `trial:rbac:roles` / `:local` | Probe ma trận 5 vai trò KSNK |
 | `pilot-app-views-precheck.sql` | `repo:hygiene` (kiểm tra view) | View đọc app (`v_qlcv_*`, `v_gstt_*`, `v_cssd_*`, …) |
 | `master-data-cutover-postcheck.sql` | `mdm:postcheck:sql` | (ở `scripts/`) Post-cutover MDM |
 
@@ -29,6 +30,7 @@ Inventory runner/gate: [`../README.md`](../README.md).
 | `admin-slice-pre-apply-probe.sql` | Probe SSOT admin/RBAC sau migrate (thay Slice 7 cũ) |
 | `rbac-registry-parity-probe.sql` | So sánh count permission registry vs DB (manual / hygiene) |
 | `rbac-v-auth-compat-probe.sql` | Sau migration RBAC 03/06 — `v_auth_permissions` / orphan views |
+| `vst-residual-null-nghe-nghiep.sql` | Chạy tay — residual VST thiếu `nghe_nghiep_id` |
 
 ## CSSD / FK gate
 

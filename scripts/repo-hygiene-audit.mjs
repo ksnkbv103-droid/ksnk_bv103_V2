@@ -39,7 +39,9 @@ const SQL_ACTIVE = new Set([
   "mdm-governance-audit-probe.sql",
   "mdm-governance-fk-export.sql",
   "rbac-registry-parity-probe.sql",
+  "rbac-five-roles-precheck.sql",
   "fact-orphan-fk-sweep.sql",
+  "vst-residual-null-nghe-nghiep.sql",
 ]);
 
 const LEGACY_TABLE_RE =

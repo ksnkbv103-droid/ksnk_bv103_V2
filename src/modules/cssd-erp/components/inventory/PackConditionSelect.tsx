@@ -62,7 +62,7 @@ export default function PackConditionSelect({
       disabled={disabled || pending || !quyTrinhId}
       value={value || ""}
       onChange={(e) => save(e.target.value)}
-      className="h-8 max-w-[7.5rem] rounded-lg border border-slate-200 bg-white px-1.5 text-[10px] font-semibold text-slate-700 outline-none focus:border-emerald-300 disabled:opacity-50"
+      className="h-8 max-w-[7.5rem] rounded-lg border border-slate-200 bg-white px-1.5 bv103-type-label font-semibold text-slate-700 outline-none focus:border-emerald-300 disabled:opacity-50"
     >
       {!current ? (
         <option value="" disabled>

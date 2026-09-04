@@ -8,6 +8,7 @@ import {
 } from "../actions/giam-sat-nkbv-device-registry.actions";
 import type { DeviceRegistryType } from "../lib/nkbv-shared-device-days";
 import { formatDateVi } from "@/lib/format-datetime-vi";
+import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 
 const TYPE_LABEL: Record<DeviceRegistryType, string> = {
   CENTRAL_LINE: "Catheter TMTT (CVC)",
@@ -38,10 +39,10 @@ export default function NkbvDeviceRegistryPanel({ maBenhAn }: Props) {
   }, [reload]);
 
   if (!rows.length) {
-    return <p className="text-xs text-slate-500">Chưa tích Foley / máy / CVC trên lưới.</p>;
+    return <p className={`${C.labelBlockInline} text-slate-500`}>Chưa tích Foley / máy / CVC trên lưới.</p>;
   }
   return (
-    <ul className="space-y-1 text-xs text-slate-700">
+    <ul className={`space-y-1 ${C.labelBlockInline} text-slate-700`}>
       {rows.map((r) => (
         <li key={r.id}>
           {TYPE_LABEL[r.device_type]} · {formatDateVi(r.insertion_date)}
