@@ -31,7 +31,7 @@ import {
 import { isInstrumentIncidentImageRequired } from "../domain/cssd-incident-trace";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import InstrumentSetReconcileTable, { type SetReconcileFormState } from "./InstrumentSetReconcileTable";
-import { INSTRUMENT_MOVE_TYPE_ID, resolveInstrumentMoveSubmitTypeId, validateInstrumentDoorLines, type CanKhoPrefill } from "@/lib/domain/cssd-set-reconcile";
+import { INSTRUMENT_MOVE_TYPE_ID, resolveInstrumentMoveSubmitTypeId, validateInstrumentDoorLines } from "@/lib/domain/cssd-set-reconcile";
 import InstrumentMoveDualTable from "./InstrumentMoveDualTable";
 import SuCoIncidentMetaFields, {
   defaultDetectionDateTimeLocal,
@@ -108,8 +108,6 @@ export default function SuCoReportForm({
   const [setReconcileState, setSetReconcileState] = useState<SetReconcileFormState | null>(null);
   const [destMa, setDestMa] = useState("");
   const [moveUsesKho, setMoveUsesKho] = useState(true);
-  const [canKhoPrefill, setCanKhoPrefill] = useState<CanKhoPrefill | null>(null);
-  const consumeCanKhoPrefill = useCallback(() => setCanKhoPrefill(null), []);
   const [typeId, setTypeId] = useState(
     initialGroup === "INSTRUMENT"
       ? coerceInstrumentFormTypeId(initialTypeId)
@@ -118,7 +116,7 @@ export default function SuCoReportForm({
   const [typeTen, setTypeTen] = useState(() => {
     if (initialGroup === "INSTRUMENT") {
       const coerced = coerceInstrumentFormTypeId(initialTypeId);
-      return INCIDENT_TYPE_PRESETS.INSTRUMENT.find((x) => x.code === coerced)?.label || "Rà soát / hỏng / mất";
+      return INCIDENT_TYPE_PRESETS.INSTRUMENT.find((x) => x.code === coerced)?.label || "Đổi danh mục / hỏng / mất";
     }
     return (
       INCIDENT_TYPE_PRESETS.PROCESS.find((x) => x.code === initialTypeId)?.label ||
@@ -163,8 +161,7 @@ export default function SuCoReportForm({
   const imageRequired =
     (isInstrument && isInstrumentIncidentImageRequired(typeId)) ||
     (isMoveDoor && moveUsesKho) ||
-    (isReconcileDoor &&
-      (setReconcileState?.lines.some((l) => l.kind === "HONG" || l.kind === "BO_SUNG") ?? false));
+    (isReconcileDoor && (setReconcileState?.lines.some((l) => l.kind === "HONG") ?? false));
   const imageHidden = (isMoveDoor && !moveUsesKho) || (isInstrument && typeId === "INSTRUMENT_MISSING");
   const needsBoCatalog = incidentGroup === "PROCESS" || incidentGroup === "INSTRUMENT";
 
@@ -374,7 +371,7 @@ export default function SuCoReportForm({
           ? "Điều chuyển dụng cụ giữa kho lẻ và bộ."
           : "Điều chuyển dụng cụ giữa hai bộ."
         : isReconcileDoor
-          ? "Rà soát thành phần bộ dụng cụ."
+          ? "Đề nghị đổi mã, tên hoặc số lượng chuẩn bộ dụng cụ."
           : "");
     if (!descText) return toast.error("Vui lòng điền mô tả chi tiết sự cố.");
     if (incidentGroup === "EQUIPMENT" && !machineId.trim()) {
@@ -388,7 +385,7 @@ export default function SuCoReportForm({
     }
 
     if (incidentGroup === "INSTRUMENT") {
-      if (!setReconcileState) return toast.error("Chưa tải được bảng thành phần / kho.");
+      if (!setReconcileState) return toast.error("Chưa tải được bảng thành phần bộ.");
       const lineErr = validateInstrumentDoorLines(typeId, setReconcileState.lines);
       if (lineErr) return toast.error(lineErr);
     }
@@ -534,21 +531,6 @@ export default function SuCoReportForm({
     setSetReconcileState(null);
     setDestMa("");
     setMoveUsesKho(id === INSTRUMENT_MOVE_TYPE_ID);
-    setCanKhoPrefill(null);
-  };
-
-  const jumpCanKho = (prefill: CanKhoPrefill) => {
-    setTypeId(INSTRUMENT_MOVE_TYPE_ID);
-    setTypeTen("Chuyển");
-    setSetReconcileState(null);
-    setDestMa("");
-    setMoveUsesKho(true);
-    setCanKhoPrefill(prefill);
-    toast.success(
-      prefill.direction === "LAY_KHO"
-        ? "Đã điền số lấy từ kho — kiểm tra rồi lưu phiếu Chuyển."
-        : "Đã điền số trả kho — kiểm tra rồi lưu phiếu Chuyển.",
-    );
   };
 
   return (
@@ -655,7 +637,6 @@ export default function SuCoReportForm({
                 />
               }
               onChange={setSetReconcileState}
-              onCanKho={jumpCanKho}
             />
           ) : null}
 
@@ -674,8 +655,6 @@ export default function SuCoReportForm({
               onScanDest={(code) => setDestMa(code.trim().toUpperCase())}
               onChange={setSetReconcileState}
               onUsesKho={setMoveUsesKho}
-              prefill={canKhoPrefill}
-              onPrefillConsumed={consumeCanKhoPrefill}
             />
           ) : null}
 

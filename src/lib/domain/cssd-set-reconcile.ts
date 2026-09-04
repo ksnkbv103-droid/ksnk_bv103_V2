@@ -26,12 +26,19 @@ export const SET_RECONCILE_KIND_LABEL: Record<SetReconcileLineKind, string> = {
   MAT: "Mất",
   BO_SUNG: "Bổ sung",
   TRA_KHO: "Trả kho",
-  DOI_CHUAN: "Đổi số chuẩn",
-  DOI_LOAI: "Sai mã loại",
+  DOI_CHUAN: "Đổi số lượng chuẩn",
+  DOI_LOAI: "Đổi mã / tên loại",
   DIEU_CHUYEN: "Điều chuyển",
   THEM_DONG: "Thêm vào bộ",
   XOA_DONG: "Xóa khỏi bộ",
 };
+
+/** Lấy kho / trả kho / điều chuyển — chỉ cửa Chuyển, không gửi trên phiếu rà soát. */
+export const SET_RECONCILE_MOVE_ONLY_KINDS = ["BO_SUNG", "TRA_KHO", "DIEU_CHUYEN"] as const;
+export type SetReconcileMoveOnlyKind = (typeof SET_RECONCILE_MOVE_ONLY_KINDS)[number];
+
+export const SET_RECONCILE_MOVE_ONLY_MESSAGE =
+  "Lấy kho, trả kho và điều chuyển không dùng cửa Rà soát — mở tab Chuyển.";
 
 export type SetReconcileLineInput = {
   chiTietId?: string;
@@ -76,14 +83,49 @@ export function doiLoaiIsCatalogRename(line: SetReconcileLineInput): boolean {
   return Boolean(next) && next !== cur && !doiLoaiIsRelink(line);
 }
 
+/** Đổi tên loại trên cùng mã (cửa Đổi danh mục). */
+export function doiLoaiIsTenChange(line: SetReconcileLineInput): boolean {
+  const next = String(line.tenDungCuLeDeXuat || "").trim();
+  const cur = String(line.tenDungCuLe || "").trim();
+  return Boolean(next) && next !== cur && !doiLoaiIsRelink(line);
+}
+
+export function doiLoaiHasCatalogEdit(line: SetReconcileLineInput): boolean {
+  return doiLoaiIsRelink(line) || doiLoaiIsCatalogRename(line) || doiLoaiIsTenChange(line);
+}
+
 export type SetReconcileStatus = "DRAFT" | "NONE" | "BOM_PENDING" | "BOM_APPROVED" | "BOM_REJECTED";
 
+/** Sự cố vật lý trên phiếu rà soát — chỉ Hỏng/Mất; không gồm lấy kho / trả kho / điều chuyển. */
 export function isPhysicalKind(kind: SetReconcileLineKind): boolean {
-  return kind === "HONG" || kind === "MAT" || kind === "BO_SUNG" || kind === "TRA_KHO" || kind === "DIEU_CHUYEN";
+  return kind === "HONG" || kind === "MAT";
+}
+
+export function isMoveOnlyKind(kind: SetReconcileLineKind): boolean {
+  return kind === "BO_SUNG" || kind === "TRA_KHO" || kind === "DIEU_CHUYEN";
 }
 
 export function isCatalogChangeKind(kind: SetReconcileLineKind): boolean {
   return kind === "DOI_CHUAN" || kind === "DOI_LOAI" || kind === "THEM_DONG" || kind === "XOA_DONG";
+}
+
+export function rejectMoveOnlyKindsOnReconcile(lines: SetReconcileLineInput[]): string | null {
+  if (lines.some((l) => isMoveOnlyKind(l.kind))) return SET_RECONCILE_MOVE_ONLY_MESSAGE;
+  return null;
+}
+
+export function isInstrumentMoveTypeId(typeId?: string | null): boolean {
+  const id = String(typeId || "").trim();
+  return (
+    id === INSTRUMENT_MOVE_TYPE_ID ||
+    id === "INSTRUMENT_TRANSFER" ||
+    id === "INSTRUMENT_REPLENISH"
+  );
+}
+
+export function isSetReconcileDoorTypeId(typeId?: string | null): boolean {
+  const id = String(typeId || "").trim();
+  return !id || id === SET_RECONCILE_TYPE_ID || id === "INSTRUMENT_BROKEN" || id === "INSTRUMENT_MISSING";
 }
 
 export function physicalTypeIdForKind(kind: SetReconcileLineKind): string | null {
@@ -590,13 +632,30 @@ export function buildReplenishReconcileLines(
   return buildKhoBoMoveLines(destItems, adds);
 }
 
-/** Rà soát một bộ: không suy ra điều chuyển / lấy kho. */
+/** Rà soát một bộ: chỉ đổi danh mục hoặc Hỏng/Mất — không suy ra lấy kho / trả kho / điều chuyển. */
 export function applyReconcileDoorInference(line: SetReconcileLineInput): SetReconcileLineInput {
-  const next = applySetReconcileLineInference({ ...line, maQrDen: undefined });
-  if (next.kind === "DIEU_CHUYEN" || next.kind === "BO_SUNG") {
-    const keepHongMat = line.kind === "HONG" || line.kind === "MAT";
-    return { ...next, kind: keepHongMat ? line.kind : "KHOP", maQrDen: undefined };
+  const next: SetReconcileLineInput = { ...line, maQrDen: undefined };
+  if (next.kind === "THEM_DONG" || next.kind === "XOA_DONG" || next.kind === "HONG" || next.kind === "MAT") {
+    return next;
   }
+  if (isMaLoaiChanged(next)) {
+    next.maLoaiDeXuat = typedMaLoai(next);
+  }
+  if (doiLoaiHasCatalogEdit(next) || isMaLoaiChanged(next)) {
+    next.kind = "DOI_LOAI";
+    if (!normalizeMaLoaiDeXuat(next.maLoaiDeXuat) && next.maLoai) {
+      next.maLoaiDeXuat = normalizeMaLoaiDeXuat(next.maLoai);
+    }
+    return next;
+  }
+  const proposed = Math.floor(Number(next.soLuongChuanDeXuat ?? next.soLuongChuan) || 0);
+  const current = Math.floor(Number(next.soLuongChuan) || 0);
+  if (proposed >= 1 && proposed !== current) {
+    next.kind = "DOI_CHUAN";
+    next.soLuongChuanDeXuat = proposed;
+    return next;
+  }
+  next.kind = "KHOP";
   return next;
 }
 
@@ -605,20 +664,17 @@ export function validateInstrumentDoorLines(
   lines: SetReconcileLineInput[],
 ): string | null {
   if (typeId === SET_RECONCILE_TYPE_ID) {
-    if (lines.some((l) => l.kind === "DIEU_CHUYEN")) {
-      return "Điều chuyển dụng cụ dùng cửa Chuyển (hai bộ).";
-    }
+    const moveErr = rejectMoveOnlyKindsOnReconcile(lines);
+    if (moveErr) return moveErr;
     if (
       lines.some(
         (l) =>
-          l.kind === "BO_SUNG" ||
-          l.kind === "TRA_KHO" ||
-          (l.kind !== "THEM_DONG" &&
-            l.kind !== "DOI_CHUAN" &&
-            Math.floor(l.soLuongDem) > Math.floor(l.soLuongThucTe)),
+          l.kind !== "THEM_DONG" &&
+          l.kind !== "DOI_CHUAN" &&
+          Math.floor(l.soLuongDem) > Math.floor(l.soLuongThucTe),
       )
     ) {
-      return "Lấy/trả kho dùng cửa Chuyển (một bên là kho).";
+      return SET_RECONCILE_MOVE_ONLY_MESSAGE;
     }
   }
   const base = validateSetReconcileLines(lines);
@@ -658,7 +714,7 @@ export function validateSetReconcileLines(lines: SetReconcileLineInput[]): strin
       line.kind !== "DIEU_CHUYEN" &&
       line.kind !== "TRA_KHO"
     ) {
-      return `${label}: số đếm thấp hơn thực tế — chọn Hỏng hoặc Mất, hoặc điều chuyển sang bộ khác.`;
+      return `${label}: số đếm thấp hơn thực tế — chọn Hỏng hoặc Mất, hoặc mở tab Chuyển nếu cần điều chuyển.`;
     }
     if (line.kind === "KHOP" && dem !== thuc) {
       return `${label}: dòng khớp thì số đếm phải bằng số thực tế hệ thống.`;
@@ -689,10 +745,10 @@ export function validateSetReconcileLines(lines: SetReconcileLineInput[]): strin
     }
     if (line.kind === "DOI_LOAI") {
       if (!String(line.chiTietId || "").trim()) return `${label}: thiếu dòng thành phần để đổi mã loại.`;
-      const nextMa = normalizeMaLoaiDeXuat(line.maLoaiDeXuat);
-      if (!nextMa) return `${label}: đổi mã loại cần nhập mã gốc danh mục đúng.`;
-      if (!doiLoaiIsRelink(line) && !doiLoaiIsCatalogRename(line)) {
-        return `${label}: mã loại đề nghị trùng mã đang dùng — sửa mã gốc hoặc chọn loại khác.`;
+      const nextMa = normalizeMaLoaiDeXuat(line.maLoaiDeXuat || line.maLoai);
+      if (!nextMa && !doiLoaiIsTenChange(line)) return `${label}: đổi mã / tên loại cần nhập mã gốc danh mục đúng.`;
+      if (!doiLoaiHasCatalogEdit(line)) {
+        return `${label}: đổi mã / tên loại cần mã gốc mới, loại khác, hoặc tên mới.`;
       }
     }
     if (line.kind === "XOA_DONG" && !String(line.chiTietId || "").trim()) {

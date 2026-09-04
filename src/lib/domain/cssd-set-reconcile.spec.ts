@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   applyMoveSideChoice,
+  applyReconcileDoorInference,
   applySetReconcileLineInference,
   buildKhoBoMoveLines,
   buildReplenishReconcileLines,
@@ -11,12 +12,15 @@ import {
   fillLechVsChuanDelta,
   formatLechVsChuan,
   isCanKhoEligibleLine,
+  isMoveOnlyKind,
+  isPhysicalKind,
   lechVsChuan,
   INSTRUMENT_MOVE_TYPE_ID,
   resolveInstrumentMoveSubmitTypeId,
   isSetReconcileDraftExpired,
   isReconcileCatalogMatched,
   lookupLoaiByMa,
+  SET_RECONCILE_MOVE_ONLY_MESSAGE,
   SET_RECONCILE_TYPE_ID,
   validateInstrumentDoorLines,
   lookupLoaiByMaKhac,
@@ -25,6 +29,7 @@ import {
   buildKhacPickerOptions,
   needsBomApproval,
   physicalQuantity,
+  rejectMoveOnlyKindsOnReconcile,
   summarizeSetReconcile,
   validateSetReconcileLines,
   type SetReconcileLineInput,
@@ -68,10 +73,13 @@ describe("cssd-set-reconcile", () => {
   });
 
   it("requires a new catalog code or a different type for DOI_LOAI", () => {
-    expect(validateSetReconcileLines([base({ kind: "DOI_LOAI" })])).toMatch(/mã gốc/);
+    expect(validateSetReconcileLines([base({ kind: "DOI_LOAI" })])).toMatch(/mã gốc|tên mới/);
     expect(validateSetReconcileLines([base({ kind: "DOI_LOAI", maLoai: "DC-KEP", maLoaiDeXuat: "DC-KEP" })])).toMatch(
-      /trùng mã/,
+      /tên mới|mã gốc/,
     );
+    expect(
+      validateSetReconcileLines([base({ kind: "DOI_LOAI", maLoai: "DC-KEP", tenDungCuLeDeXuat: "Kẹp mới" })]),
+    ).toBeNull();
     const rename = base({ kind: "DOI_LOAI", maLoai: "DC-KEP", maLoaiDeXuat: "DC-KEO", tenDungCuLeDeXuat: "Kéo" });
     expect(validateSetReconcileLines([rename])).toBeNull();
     expect(needsBomApproval([rename])).toBe(true);
@@ -205,10 +213,31 @@ describe("cssd-set-reconcile", () => {
   });
 
   it("keeps rà soát off kho / điều chuyển", () => {
-    expect(validateInstrumentDoorLines(SET_RECONCILE_TYPE_ID, [base({ soLuongDem: 14 })])).toMatch(/cửa Chuyển/);
-    expect(validateInstrumentDoorLines(SET_RECONCILE_TYPE_ID, [base({ kind: "DIEU_CHUYEN", soLuongDem: 10, maQrDen: "B01.SET.02" })])).toMatch(
-      /Điều chuyển/,
+    expect(isPhysicalKind("HONG")).toBe(true);
+    expect(isPhysicalKind("BO_SUNG")).toBe(false);
+    expect(isMoveOnlyKind("TRA_KHO")).toBe(true);
+    expect(isMoveOnlyKind("HONG")).toBe(false);
+    expect(validateInstrumentDoorLines(SET_RECONCILE_TYPE_ID, [base({ soLuongDem: 14 })])).toBe(
+      SET_RECONCILE_MOVE_ONLY_MESSAGE,
     );
+    expect(
+      validateInstrumentDoorLines(SET_RECONCILE_TYPE_ID, [
+        base({ kind: "DIEU_CHUYEN", soLuongDem: 10, maQrDen: "B01.SET.02" }),
+      ]),
+    ).toBe(SET_RECONCILE_MOVE_ONLY_MESSAGE);
+    expect(validateInstrumentDoorLines(SET_RECONCILE_TYPE_ID, [base({ kind: "BO_SUNG", soLuongDem: 14 })])).toBe(
+      SET_RECONCILE_MOVE_ONLY_MESSAGE,
+    );
+    expect(validateInstrumentDoorLines(SET_RECONCILE_TYPE_ID, [base({ kind: "TRA_KHO", soLuongDem: 10 })])).toBe(
+      SET_RECONCILE_MOVE_ONLY_MESSAGE,
+    );
+    expect(rejectMoveOnlyKindsOnReconcile([base({ kind: "HONG", soLuongDem: 10 })])).toBeNull();
+    expect(applyReconcileDoorInference(base({ soLuongDem: 14 })).kind).toBe("KHOP");
+    expect(applyReconcileDoorInference(base({ soLuongDem: 10, maQrDen: "B01.SET.02" })).kind).toBe("KHOP");
+    expect(applyReconcileDoorInference(base({ soLuongChuanDeXuat: 14 })).kind).toBe("DOI_CHUAN");
+    expect(applyReconcileDoorInference(base({ maLoai: "DC-KEP", maLoaiDeXuat: "DC-KEO" })).kind).toBe("DOI_LOAI");
+    expect(applyReconcileDoorInference(base({ tenDungCuLeDeXuat: "Kẹp mới" })).kind).toBe("DOI_LOAI");
+    expect(applyReconcileDoorInference(base({ soLuongDem: 10, kind: "HONG" })).kind).toBe("HONG");
   });
 
   it("computes lệch vs chuẩn and prefills cân kho for selected lines", () => {

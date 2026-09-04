@@ -58,7 +58,9 @@ async function applyDoiLoaiLine(
 
   const targetMa = normalizeMaLoaiDeXuat(String(target.ma_loai || ""));
   const tenSau = nextTen || String(target.ten_loai || line.tenDungCuLe);
-  const shouldRename = nextMa !== targetMa && String(target.id) === currentLoaiId && !doiLoaiIsRelink(line);
+  const tenChanged = Boolean(nextTen) && nextTen !== String(target.ten_loai || "").trim();
+  const shouldRename =
+    (nextMa !== targetMa || tenChanged) && String(target.id) === currentLoaiId && !doiLoaiIsRelink(line);
 
   if (shouldRename) {
     if (existingByMa && String(existingByMa.id) !== String(target.id)) {

@@ -9,9 +9,9 @@ import IncidentJournalPrintButton from "@/modules/cssd-su-co/components/Incident
 import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 
 const STATUS_LABEL: Record<string, string> = {
-  BOM_APPROVED: "Đã duyệt chuẩn",
-  BOM_REJECTED: "Từ chối chuẩn",
-  NONE: "Đã ghi sổ",
+  BOM_APPROVED: "Đã duyệt đổi mã · tên · số lượng",
+  BOM_REJECTED: "Từ chối đổi mã · tên · số lượng",
+  NONE: "Đã ghi sổ sự cố / khớp",
 };
 
 type HistoryRow = {

@@ -44,14 +44,14 @@ export function SetReconcileApproveQueue() {
     void reload();
   }, []);
 
-  if (loading) return <p className="text-[11px] text-slate-500">Đang tải phiếu chờ duyệt chuẩn…</p>;
+  if (loading) return <p className="text-[11px] text-slate-500">Đang tải phiếu chờ duyệt đổi mã · tên · số lượng…</p>;
   if (!rows.length) {
     return <p className="px-1 py-6 text-center text-[11px] text-slate-500">Không có phiếu chờ duyệt.</p>;
   }
 
   return (
     <section className="rounded-[var(--radius-shell)] border border-amber-200 bg-amber-50/60 p-3">
-      <h3 className="text-[12px] font-semibold text-amber-950">Phiếu chờ duyệt đổi thành phần chuẩn</h3>
+      <h3 className="text-[12px] font-semibold text-amber-950">Phiếu chờ duyệt đổi mã · tên · số lượng</h3>
       <ul className="mt-2 space-y-2">
         {rows.map((r) => (
           <li key={r.id} className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-amber-200 bg-white px-3 py-2 text-[12px]">
@@ -84,7 +84,7 @@ export function SetReconcileApproveQueue() {
                     onClick={async () => {
                       const res = await approveSetReconcileBomAction(r.id);
                       if (!res.success) return toast.error(res.error);
-                      toast.success("Đã ghi sổ chuẩn.");
+                      toast.success("Đã ghi sổ mã · tên · số lượng chuẩn.");
                       void reload();
                     }}
                   >
@@ -96,7 +96,7 @@ export function SetReconcileApproveQueue() {
                     onClick={async () => {
                       const res = await rejectSetReconcileBomAction(r.id);
                       if (!res.success) return toast.error(res.error);
-                      toast.message("Đã từ chối đổi chuẩn. Phần hỏng/mất đã ghi sổ vẫn giữ.");
+                      toast.message("Đã từ chối đổi mã · tên · số lượng. Phần hỏng/mất đã ghi sổ vẫn giữ.");
                       void reload();
                     }}
                   >

@@ -61,7 +61,7 @@ flowchart LR
 * **Tab Kho** (`/cssd-quy-trinh?tab=kho`): giám sát FEFO/tồn — **không** phải trạm quét.
 * **Tab Trace** (`?tab=trace`): timeline + liên kết SSI — không phải trạm.
 * **Thu hồi / Recall:** phản ứng an toàn (không phải trạm 7); quay lại = `CAP_PHAT` → `TIEP_NHAN`. BI+ / QC mẻ không đạt → recall theo `lo_tiet_khuan_id` + máy `HOLD_QC` (chưa tự mở máy sau 3× BI (−)).
-* **Trạm 4:** panel đối chiếu cấu phần (read-only realtime) + nút «Báo biến động bộ này» → phiếu sự cố header–dòng. Hỏng/Mất/Bổ sung ghi sổ ngay; đổi chuẩn chờ admin duyệt. Kiểm kê: nhập mã loại / mã khắc / số đếm trên cùng phiếu; điều chuyển sang bộ khác cũng trên phiếu đó (sổ nguồn–đích). Không phiếu từng món. Không còn modal BOM / cờ `BV103_FEATURE_BOM_CHECKLIST`.
+* **Trạm 4:** panel đối chiếu cấu phần (read-only realtime) + nút «Báo biến động bộ này» → phiếu sự cố header–dòng. **Đổi danh mục** (mã / tên / số lượng chuẩn) chờ ADMIN duyệt — không ghi sổ kho. **Hỏng/Mất** ghi sổ ngay. **Lấy kho / trả kho / điều chuyển** chỉ cửa Chuyển (`InstrumentMoveDualTable`). Không phiếu từng món. Không còn modal BOM / cờ `BV103_FEATURE_BOM_CHECKLIST`.
 * **Trạm 5:** `cssd_fact_lo_tiet_khuan`; QC mẻ không đạt → rollback về `DONG_GOI` + sự cố (+ đóng băng nếu cần). Implant → `Quarantine_BI` / `CHO_BI` trước `HOAN_THANH`.
 * **Trạm 6:** Ledger soft-warning nếu thiếu cấu phần (QLDCPT Q2) — **không** hard-block.
 * **Dual-coding:** tem quét `B01.SET.*` ↔ alias `B01.CD*` ↔ `BO-01-*` (resolve QR Hub); nhãn/Cycle QR đủ QT.20 gồm số mẻ.

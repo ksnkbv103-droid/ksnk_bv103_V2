@@ -62,7 +62,7 @@ export default function IncidentReportModal({
             </div>
             <p className={`mt-0.5 truncate ${UI.panelSubtitle}`}>
               {defaultGroup === "INSTRUMENT"
-                ? "Rà soát một bộ · điều chuyển hai bộ · bổ sung từ kho"
+                ? "Đổi mã · tên · số lượng (chờ duyệt) · Hỏng/Mất · tab Chuyển cho kho↔bộ / bộ↔bộ"
                 : "Ghi nhận sự việc tại trạm"}
             </p>
           </div>

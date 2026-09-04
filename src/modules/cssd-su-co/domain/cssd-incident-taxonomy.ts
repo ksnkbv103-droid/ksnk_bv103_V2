@@ -98,7 +98,7 @@ export const INCIDENT_TYPE_PRESETS: Record<IncidentGroup, IncidentPreset[]> = {
     { code: "PROCESS_BI_POSITIVE", label: "Chỉ thị sinh học (BI) dương tính" },
   ],
   INSTRUMENT: [
-    { code: SET_RECONCILE_TYPE_ID, label: "Rà soát / hỏng / mất" },
+    { code: SET_RECONCILE_TYPE_ID, label: "Đổi danh mục / hỏng / mất" },
     { code: INSTRUMENT_MOVE_TYPE_ID, label: "Chuyển" },
     { code: "INSTRUMENT_TRANSFER", label: "Điều chuyển bộ ↔ bộ" },
     { code: "INSTRUMENT_REPLENISH", label: "Kho ↔ bộ" },
@@ -127,7 +127,7 @@ export const INCIDENT_STATION_OPTIONS: Array<{ value: Station; label: string }> 
   { value: "CAP_PHAT", label: "Cấp phát" },
 ];
 
-/** Hai cửa dụng cụ trên form — rà soát riêng; chuyển (bộ/kho) một cửa. */
+/** Hai cửa dụng cụ trên form — đổi danh mục/hỏng/mất riêng; chuyển (bộ/kho) một cửa. */
 export function instrumentFormTypeOptions(): IncidentPreset[] {
   return INCIDENT_TYPE_PRESETS.INSTRUMENT.filter(
     (x) => x.code === SET_RECONCILE_TYPE_ID || x.code === INSTRUMENT_MOVE_TYPE_ID,

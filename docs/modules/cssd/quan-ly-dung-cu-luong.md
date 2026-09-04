@@ -11,7 +11,7 @@
 | 2 | **Bộ dụng cụ** | BO_DC | `ma_bo` = `KHOA.SET.NN` (tem QR) |
 | 3 | **Thành phần bộ** | DC_LE | `ma_chi_tiet` (DC-*) |
 | 4 | In tem / workflow | CSSD_* | Quét `ma_bo` |
-| 5 | Kho / sự cố | `/cssd-su-co` (nhóm Dụng cụ) | **2 cửa:** rà soát/hỏng/mất · **Chuyển** (khung Kho hoặc Bộ). Rà soát: lệch vs **số chuẩn**; chọn dòng → Lấy kho / Trả kho **nhảy cửa Chuyển** (số điền sẵn). Chuyển: lọc lệch + điền thiếu/thừa. Mỗi cửa một phiếu → sổ `DIEU_CHUYEN` / `BO_SUNG` / `NHAP_KHO`. |
+| 5 | Kho / sự cố | `/cssd-su-co` (nhóm Dụng cụ) | **3 cửa:** **Đổi danh mục** (mã / tên / số lượng chuẩn → chờ ADMIN duyệt, không ghi sổ kho) · **Hỏng/Mất** (sự cố, ghi sổ ngay) · **Chuyển** (`InstrumentMoveDualTable`: kho↔bộ / bộ↔bộ). Rà soát **không** lấy kho / trả kho / điều chuyển. |
 | 6 | Xem danh mục | `/cssd-dung-cu` | Read-only: tab **Bộ / Loại / Lịch sử**; thành phần dưới bộ đã chọn; rà soát khi lệch (trên thanh bảng). Xuất phiếu kiểm kê trên thanh tìm — không bảng đợt trùng danh sách bộ. |
 
 ## Vào app

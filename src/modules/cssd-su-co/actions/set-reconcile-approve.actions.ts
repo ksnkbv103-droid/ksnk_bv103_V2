@@ -5,6 +5,7 @@ import { verifyPermission } from "@/lib/server-permission";
 import { revalidateCssdIncidentSurfaces, revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
 import { applyApprovedBomLines } from "@/lib/master-data/cssd-set-bom-apply-core";
 import { catalogLinesOf } from "../application/set-reconcile-incident.application";
+import { rejectMoveOnlyKindsOnReconcile } from "@/lib/domain/cssd-set-reconcile";
 import { formatCatalogApprovalDiff } from "@/lib/domain/cssd-catalog-master-write";
 import {
   parseSetReconcileSnapshot,
@@ -103,11 +104,13 @@ export async function approveSetReconcileBomAction(incidentId: string) {
     if (error || !data) return { success: false as const, error: error?.message || "Không thấy phiếu." };
     const attrs = (data.attributes as Record<string, unknown>) || {};
     if (readSetReconcileStatus(attrs) !== "BOM_PENDING") {
-      return { success: false as const, error: "Phiếu không còn chờ duyệt chuẩn." };
+      return { success: false as const, error: "Phiếu không còn chờ duyệt đổi mã · tên · số lượng." };
     }
     const snap = parseSetReconcileSnapshot(attrs.SET_RECONCILE_SNAPSHOT);
     const boId = readSetReconcileBoId(attrs) || snap?.boDungCuId;
     if (!snap || !boId) return { success: false as const, error: "Thiếu ảnh bảng thành phần." };
+    const moveErr = rejectMoveOnlyKindsOnReconcile(snap.lines);
+    if (moveErr) return { success: false as const, error: moveErr };
     await applyApprovedBomLines(supabase, boId, catalogLinesOf(snap.lines));
     let nguoiXacNhanId: string | null = null;
     try {
@@ -145,7 +148,7 @@ export async function rejectSetReconcileBomAction(incidentId: string) {
     if (error || !data) return { success: false as const, error: error?.message || "Không thấy phiếu." };
     const attrs = (data.attributes as Record<string, unknown>) || {};
     if (readSetReconcileStatus(attrs) !== "BOM_PENDING") {
-      return { success: false as const, error: "Phiếu không còn chờ duyệt chuẩn." };
+      return { success: false as const, error: "Phiếu không còn chờ duyệt đổi mã · tên · số lượng." };
     }
     const { error: updErr } = await supabase
       .from("cssd_fact_su_co")

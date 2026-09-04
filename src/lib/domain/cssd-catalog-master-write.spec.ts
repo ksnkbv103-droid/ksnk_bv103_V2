@@ -47,7 +47,7 @@ describe("formatCatalogApprovalDiff — trước/sau hàng chờ", () => {
         line({ kind: "DOI_CHUAN", maLoai: "B01.CD01", soLuongChuan: 8, soLuongChuanDeXuat: 10 }),
       ),
     ).toEqual({
-      kindLabel: "Đổi số chuẩn",
+      kindLabel: "Đổi số lượng chuẩn",
       before: "B01.CD01 — Kéo × 8",
       after: "10",
     });
@@ -65,7 +65,7 @@ describe("formatCatalogApprovalDiff — trước/sau hàng chờ", () => {
         }),
       ),
     ).toEqual({
-      kindLabel: "Sai mã loại",
+      kindLabel: "Đổi mã / tên loại",
       before: "B01.CD01 — Kéo cũ",
       after: "B01.CD02 — Kéo mới",
     });
