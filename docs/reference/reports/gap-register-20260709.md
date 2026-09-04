@@ -120,10 +120,11 @@
 |----|-------|------------|
 | DOM-01 | Spec §2.1 VST | **Done** — domain-spec 1.2 |
 | DOM-02 | TGS đọc summary VIEW | **Done** — metric-dictionary ghi ngoại lệ |
-| DOM-05 | CAP_PHAT hard vs soft | **Done** — mapping + interaction-matrix soft-warning |
+| DOM-05 | CAP_PHAT hard vs soft | **Done** — soft-warning SSOT + quyết định W2 [`cap-phat-soft-warning-decision-20260722.md`](../../modules/cssd/cap-phat-soft-warning-decision-20260722.md) |
 | DOM-10 | QLCV CHECK legacy mã | **Done** — `20260709140000` backfill + CHECK 7 mã |
 | DB-01 | G-11 backlog 0703 | **Done** — gap-register-0703 cập nhật |
 | DB-02 | RLS summary | **Done/N/A** — VIEW live; DROP policy legacy; underlying fact RLS |
+| DB-02b | `gstt_dm_bang_kiem` USING(true) | **Done (2026-07-22)** — `20260722100000` + `trial:rbac:roles` |
 | DB-03 | CSSD bao_tri/kho RLS | **Done** — `20260709130000` |
 | DB-04 | = BE-RPC-02 | **Done** (P1) |
 | DB-08 | NKBV fact RLS | **Done** — `20260709130000` |
@@ -179,8 +180,8 @@
 | ID cũ | Trạng thái mới |
 |-------|----------------|
 | G-12 unused-var | **Done** — residual 5 (dialog + scripts env) by design |
-| G-11 / S-RLS-01 | **Engineering Done** (migration 0703) — residual DB-02 summary; cập nhật doc |
-| G-10 NKBV UAT | Vẫn mở → gộp DOM-08 |
+| G-11 / S-RLS-01 | **Done (2026-07-22)** — bang_kiem drop USING(true) `20260722100000`; summary VIEW invoker |
+| G-10 NKBV UAT | Vẫn mở → gộp DOM-08 · gói W3 [`w3-nkbv-dashboard-enablement-20260722.md`](../guides/w3-nkbv-dashboard-enablement-20260722.md) |
 
 ---
 

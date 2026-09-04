@@ -58,7 +58,7 @@
 | [`core/handover-roadmap.md`](core/handover-roadmap.md) | Lộ trình, cấu trúc app |
 | [`core/cursor-operating-playbook.md`](core/cursor-operating-playbook.md) | Cursor: intake, verify, tiết kiệm quota |
 
-Runbook demo / auth / kiến trúc one-pager: [`reference/guides/`](reference/guides/) (`architecture-one-pager`, `demo-governance-gates`, `auth-pilot-link-sop`).
+Runbook demo / auth / kiến trúc one-pager: [`reference/guides/`](reference/guides/) (`architecture-one-pager`, `demo-governance-gates`, `auth-pilot-link-sop`, `w1-go-live-execution-pack-20260722`, `incident-backup-playbook`).
 
 ## Lớp 2 — Module docs
 

@@ -8,7 +8,7 @@
 |------|-----------|
 | UI | Next.js 16 App Router, React 19, TypeScript, Tailwind v4, Radix UI |
 | Server | Server Actions, `src/proxy.ts` (auth trước RSC) |
-| Data client | Supabase JS + TanStack Query v5 |
+| Data client | Supabase JS (`@supabase/ssr` + `@supabase/supabase-js`); form/state React 19 |
 | DB | PostgreSQL (Supabase), migration SSOT trong `supabase/migrations/` |
 | Validation | Zod (form + action contract) |
 | CI / gates | ESLint, layout drift, `verify:engineering`, `pilot:go-live:gate` |
@@ -55,13 +55,15 @@ Prefix map: [`implementation-mapping.md`](../../core/implementation-mapping.md) 
 | App gate | `verifyPermission(moduleKey, action)` trên Server Actions |
 | DB gate | RLS trên bảng nhạy cảm (CSSD ledger, MDM, …) |
 
-**Pilot gaps (thành thật):**
+**Security posture (cập nhật 2026-07-22):**
 
-- Một số bảng `gstt_fact_*` dùng RLS permissive `USING (true)` — **cửa app** (`verifyPermission`) là lớp chính cho GSC/VST; hardening RLS là hạng mục Phase 1, không chặn W1.
-- QLCV: scope list server (`qlcv-list-scope`) + RBAC; RLS chưa thắt đủ như CSSD.
-- Không hứa pentest-ready — có precheck `trial:auth:precheck` (`mdm_email_no_auth = 0`).
+- Fact phiên GSC/VST: RLS permission-scoped (`20260703100000`, `20260704110000`); summary là **VIEW** `security_invoker` — kế thừa fact RLS + đọc analytics qua RPC.
+- `gstt_dm_bang_kiem`: bỏ policy `USING (true)` residual (`20260722100000`) — chỉ `BANG_KIEM.*` / admin.
+- QLCV: SELECT qua `fn_qlcv_can_read_fact()`; ghi qua Server Action / `service_role` (khác CSSD authenticated CRUD — intentional).
+- Probe 5 vai trò: `npm run trial:rbac:roles(:local)`.
+- Chưa hứa pentest-ready — precheck `trial:auth:precheck` (`mdm_email_no_auth = 0`).
 
-Chi tiết: [`operations-sop.md`](../../core/operations-sop.md) § Auth & RBAC.
+Chi tiết: [`operations-sop.md`](../../core/operations-sop.md) § Auth & RBAC · sự cố: [`incident-backup-playbook.md`](./incident-backup-playbook.md).
 
 ## 5. UI governance
 

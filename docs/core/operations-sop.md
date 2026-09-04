@@ -104,6 +104,10 @@ npm run local:golden:verify
 
 **Đăng nhập pilot:** tài khoản trong `supabase/seeds/01-pilot-nhan-su.sql` (sau reset). `trial:auth:precheck:local` phải báo `mdm_email_no_auth` = **0**.
 
+**Sự cố / backup / restore drill:** [`../reference/guides/incident-backup-playbook.md`](../reference/guides/incident-backup-playbook.md).
+
+**5 vai trò KSNK (probe):** `npm run trial:rbac:roles:local` (hoặc `:linked` khi có token).
+
 ### 2.2 Quy trình 4 bước Đồng bộ Database
 1. **Tạo Migration local:** Sử dụng lệnh `npx supabase migration new <ten_nghiep_vu>` để khởi tạo file SQL mới.
 2. **Migrate cục bộ:** Sử dụng lệnh `npm run mdm:migrate:local` để apply thay đổi lên môi trường local và chạy unit test kiểm chứng logic.

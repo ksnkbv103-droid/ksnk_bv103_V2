@@ -85,7 +85,6 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
-    continue-on-error: true
     needs: verify
     env:
       E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
@@ -100,4 +99,5 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install chromium --with-deps
-      - run: npm run test:e2e
+      # Skip exit 0 nếu thiếu secrets; fail cứng khi có secrets và test fail
+      - run: npm run test:e2e:ci
