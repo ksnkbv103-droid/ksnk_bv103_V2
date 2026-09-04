@@ -6,6 +6,11 @@ import type { BaoTriMachineOption } from "../../actions/cssd-bao-tri-list.action
 import { matchesDeviceCode, normalizeCssdCode } from "../../shared/domain/cssd-qr-core";
 import QrScanInput from "@/components/shared/QrScanInput";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  CSSD_UI_ACTION_PRIMARY,
+  CSSD_UI_ACTION_SECONDARY,
+  CSSD_UI_FORM_LABEL,
+} from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 
 type Props = {
   open: boolean;
@@ -67,7 +72,7 @@ export default function BaoTriStartModal({
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-6 py-4">
           <div>
-            <label className="block text-[11px] font-medium text-slate-500">Loại phiếu</label>
+            <label className={`${CSSD_UI_FORM_LABEL} text-slate-500`}>Loại phiếu</label>
             <div className="mt-1 flex gap-2">
               <button
                 type="button"
@@ -87,7 +92,7 @@ export default function BaoTriStartModal({
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-500">Mã máy / QR máy</label>
+            <label className={`${CSSD_UI_FORM_LABEL} text-slate-500`}>Mã máy / QR máy</label>
             <div className="mt-1">
               <QrScanInput
                 placeholder="Ví dụ: MAY-01 hoặc mã QR tương đương"
@@ -102,7 +107,7 @@ export default function BaoTriStartModal({
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-500">Hoặc chọn máy</label>
+            <label className={`${CSSD_UI_FORM_LABEL} text-slate-500`}>Hoặc chọn máy</label>
             <select className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={selTb} onChange={(e) => onSelTb(e.target.value)}>
               <option value="">— Chọn —</option>
               {machines.map((m) => (
@@ -114,18 +119,18 @@ export default function BaoTriStartModal({
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-slate-500">Lý do / nội dung</label>
+            <label className={`${CSSD_UI_FORM_LABEL} text-slate-500`}>Lý do / nội dung</label>
             <textarea className="mt-1 min-h-[88px] w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" value={lyDo} onChange={(e) => onLyDo(e.target.value)} />
           </div>
         </div>
 
         <div className="flex shrink-0 justify-end gap-2 border-t border-slate-100 bg-white px-6 py-4">
-          <button type="button" className="rounded-lg px-4 py-2 text-sm text-slate-600" onClick={onClose}>
+          <button type="button" className={CSSD_UI_ACTION_SECONDARY} onClick={onClose}>
             Đóng
           </button>
           <button
             type="button"
-            className="rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white"
+            className={CSSD_UI_ACTION_PRIMARY}
             onClick={() => void onSubmit()}
             disabled={!selTb.trim() || !lyDo.trim()}
           >

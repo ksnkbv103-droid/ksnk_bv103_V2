@@ -376,7 +376,7 @@ export function BoDungCuChiTietPanel({
                     ) : null}
 
                     <div className="my-1 border-t border-slate-100" role="separator" />
-                    <p className="px-2.5 py-1 text-[10px] font-medium uppercase tracking-wide text-slate-400">
+                    <p className="px-2.5 py-1 bv103-type-label font-medium uppercase tracking-wide text-slate-400">
                       Biến động dụng cụ (3 cửa)
                     </p>
                     <Link

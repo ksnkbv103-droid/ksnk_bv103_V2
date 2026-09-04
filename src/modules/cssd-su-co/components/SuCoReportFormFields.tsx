@@ -253,7 +253,7 @@ export function BatchRecallReasonPicker({
               data-testid={`batch-recall-reason-${opt.code}`}
             >
               <span className="block text-[12px] font-semibold text-slate-800">{opt.label}</span>
-              <span className="mt-0.5 block text-[10px] leading-snug text-slate-500">{opt.hint}</span>
+              <span className="mt-0.5 block bv103-type-label leading-snug text-slate-500">{opt.hint}</span>
             </button>
           );
         })}
