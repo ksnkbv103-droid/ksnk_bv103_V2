@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Go-live signoff §B split into W1 / W2 / W3 tables.
 
 ### Fixed
+- Pin TypeScript to 5.9.x (`~5.9.3`). Dependabot had raised it to `^7`; `typescript-eslint` (via `eslint-config-next`) does not support TS 7 yet ([typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940)). Stay on 5.x until that support lands.
 - Doc drift: G-11 residual / QLCV “RLS yếu hơn CSSD” outdated wording.
 
 ## [0.1.0] - 2026-05 — Documentation baseline

@@ -5,6 +5,11 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
+    # typescript-eslint (eslint-config-next) does not support TS 7 yet:
+    # https://github.com/typescript-eslint/typescript-eslint/issues/10940
+    ignore:
+      - dependency-name: "typescript"
+        versions: [">=6"]
     labels:
       - "dependencies"
       - "security"
