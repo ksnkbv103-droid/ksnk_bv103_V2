@@ -115,7 +115,9 @@
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium",
     "smoke:cssd-station-map": "node scripts/smoke-cssd-station-map-query.mjs",
-    "guard:cssd-red-alert-view": "node scripts/guard-cssd-red-alert-view.mjs"
+    "guard:cssd-red-alert-view": "node scripts/guard-cssd-red-alert-view.mjs",
+    "sql:object-refs": "node scripts/check-sql-object-refs.mjs",
+    "dao-tao:import-mcq": "tsx scripts/dao-tao-import-mcq.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.23",
