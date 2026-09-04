@@ -69,13 +69,8 @@ export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <nav aria-label="Ngữ cảnh trang" className="flex min-w-0 flex-1 items-baseline gap-2">
-            <p className={`${T.shellZone} hidden shrink-0 sm:block`}>{breadcrumb.zone}</p>
-            {breadcrumb.page ? (
-              <p className={T.shellPage}>{breadcrumb.page}</p>
-            ) : (
-              <p className={`${T.shellPage} sm:hidden`}>{breadcrumb.zone}</p>
-            )}
+          <nav aria-label="Ngữ cảnh trang" className="flex min-w-0 flex-1 items-center">
+            <h1 className={T.shellPage}>{breadcrumb.page ?? breadcrumb.zone}</h1>
           </nav>
         </div>
         {/*

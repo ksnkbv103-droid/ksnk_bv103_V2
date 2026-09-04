@@ -48,25 +48,17 @@ export function Bv103AnalyticsPageFrame({
 
   return (
     <div className={bv103DesignTokens.pageOuterAnalytics}>
-      {filterBar || title ? (
+      {filterBar || actions ? (
         <KsnkPageChrome
           eyebrow={eyebrow}
           title={title}
           subtitle={description}
           actions={actions}
           filters={filterBar}
-          showTitle={Boolean(title)}
+          showTitle={false}
           sticky={sticky && Boolean(filterBar)}
         />
-      ) : (
-        <KsnkPageChrome
-          eyebrow={eyebrow}
-          title={title}
-          subtitle={description}
-          actions={actions}
-          showTitle
-        />
-      )}
+      ) : null}
       <div className={bv103DesignTokens.pageSectionGap}>{children}</div>
     </div>
   );

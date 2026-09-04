@@ -48,7 +48,7 @@ export function DaoTaoHeader({
         subtitle={subtitle}
         actions={actions}
         tabs={tabs}
-        showTitle
+        showTitle={false}
       />
     </div>
   );
