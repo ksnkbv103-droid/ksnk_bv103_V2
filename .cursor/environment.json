@@ -1,0 +1,12 @@
+{
+  "name": "KSNK BV103",
+  "install": "bash .cursor/cloud/install.sh",
+  "start": "bash .cursor/cloud/start.sh",
+  "terminals": [
+    {
+      "name": "dev",
+      "command": "npm run dev"
+    }
+  ],
+  "ports": [3000, 54321, 54324]
+}
