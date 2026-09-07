@@ -8,7 +8,11 @@ export DEBIAN_FRONTEND=noninteractive
 if ! command -v dockerd >/dev/null 2>&1; then
   echo "[cloud] installing Docker + fuse-overlayfs..."
   sudo apt-get update
-  sudo apt-get install -y --no-install-recommends docker.io fuse-overlayfs uidmap
+  # --force-conf* answers dpkg conffile prompts (e.g. /etc/fuse.conf) non-interactively.
+  sudo apt-get install -y --no-install-recommends \
+    -o Dpkg::Options::=--force-confold \
+    -o Dpkg::Options::=--force-confdef \
+    docker.io fuse-overlayfs uidmap
 fi
 
 npm ci
