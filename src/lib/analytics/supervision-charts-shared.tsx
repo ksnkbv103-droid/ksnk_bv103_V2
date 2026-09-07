@@ -10,11 +10,12 @@ import {
   sortGapRowsByMetric,
 } from "@/lib/analytics/supervision-matrix-mappers";
 import type { BaoCaoKhoaRankRow } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
+import type { ComplianceTone } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
 import {
-  BAO_CAO_TONG_HOP_THRESHOLDS,
-  complianceToneFromPercent,
-  type ComplianceTone,
-} from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
+  DEFAULT_KHOA_CHART_THRESHOLDS,
+  khoaChartTone,
+  type KhoaChartThresholds,
+} from "@/lib/analytics/supervision-thresholds";
 import { formatPercent2, roundPercent2 } from "@/lib/analytics/supervision-percent";
 import { labelGapExclusion, SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
@@ -95,10 +96,11 @@ const momentRowBg: Record<ComplianceTone, string> = {
   neutral: "",
 };
 
-function gapPctTone(pct: number | null | undefined): ComplianceTone {
-  if (pct == null || Number.isNaN(pct)) return "neutral";
-  if (pct >= KHOA_COMPLIANCE_WARN_PCT) return "green";
-  return complianceToneFromPercent(pct);
+function gapPctTone(
+  pct: number | null | undefined,
+  thresholds: KhoaChartThresholds = DEFAULT_KHOA_CHART_THRESHOLDS,
+): ComplianceTone {
+  return khoaChartTone(pct, thresholds);
 }
 
 function formatGapPctWithDatTong(pct: number | null, dat: number, tong: number): string {
@@ -225,11 +227,16 @@ function highlightBarFill(base: string, highlight: boolean): string {
   return highlight ? "#ef4444" : base;
 }
 
-/** Tô cột % dưới ngưỡng cảnh báo (mặc định 80%). */
-function complianceBarColor(base: string, pct: number | null | undefined): string {
-  if (pct == null || !Number.isFinite(pct)) return base;
-  if (pct >= KHOA_COMPLIANCE_WARN_PCT) return base;
-  return pct >= BAO_CAO_TONG_HOP_THRESHOLDS.YELLOW_MIN ? "#f59e0b" : "#ef4444";
+/** Tô cột % dưới ngưỡng cảnh báo (mặc định vàng <80%, đỏ <70%). */
+function complianceBarColor(
+  base: string,
+  pct: number | null | undefined,
+  thresholds: KhoaChartThresholds = DEFAULT_KHOA_CHART_THRESHOLDS,
+): string {
+  const tone = khoaChartTone(pct, thresholds);
+  if (tone === "yellow") return "#f59e0b";
+  if (tone === "red") return "#ef4444";
+  return base;
 }
 
 type KhoaBarShapeProps = {
@@ -293,6 +300,7 @@ type KhoaBarLabelProps = {
   height?: number | string;
   value?: number | string | null;
   payload?: KhoaBarLabelPayload | Record<string, unknown>;
+  thresholds?: KhoaChartThresholds;
 };
 
 function labelCoord(value: number | string | undefined): number {
@@ -323,6 +331,7 @@ function KhoaComplianceBarLabel(rawProps: unknown) {
   const dat = Number(payload?.dat ?? 0);
   const tong = Number(payload?.tong ?? 0);
   const centerY = y + height / 2;
+  const thresholds = props.thresholds ?? DEFAULT_KHOA_CHART_THRESHOLDS;
 
   if (pct == null && tong === 0) {
     return (
@@ -334,7 +343,7 @@ function KhoaComplianceBarLabel(rawProps: unknown) {
 
   const pctText = pct != null ? formatPercent2(pct) : "—";
   const ratioText = formatDatTongLabel(dat, tong);
-  const tone = gapPctTone(pct);
+  const tone = gapPctTone(pct, thresholds);
   const outsideFill = complianceLabelToneFill[tone];
   const inside = width >= 68;
 
@@ -450,6 +459,12 @@ function khoaVolumeBarLabelContent(variant: "ksnk" | "tgs") {
 }
 
 
+function khoaComplianceBarLabelContent(thresholds: KhoaChartThresholds = DEFAULT_KHOA_CHART_THRESHOLDS) {
+  return function KhoaComplianceBarLabelBound(rawProps: unknown) {
+    return <KhoaComplianceBarLabel {...(rawProps as KhoaBarLabelProps)} thresholds={thresholds} />;
+  };
+}
+
 export { percentTooltipFormatter, KhoaChartViewport, khoaCategoryYAxis, KsnkSolidBarShape, TgsDashedBarShape };
 export {
   gapPctTone,
@@ -458,6 +473,7 @@ export {
   useSortedGapRows,
   KHOA_BAR_CHART_MARGIN,
   KhoaComplianceBarLabel,
+  khoaComplianceBarLabelContent,
   khoaVolumeBarLabelContent,
 };
 export { momentToneClass, momentRowBg };

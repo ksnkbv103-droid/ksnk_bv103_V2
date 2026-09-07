@@ -13,6 +13,7 @@ import {
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatPercent1FromRatio } from "@/lib/analytics/supervision-percent";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
+import { VST_KHOA_CHART_THRESHOLDS } from "@/lib/analytics/supervision-thresholds";
 import type { VstStrategicPayload } from "../types/vst-strategic.types";
 
 type Props = {
@@ -59,7 +60,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
         <header className="mb-4">
           <h2 className="bv103-type-section text-slate-800">Thống kê theo khoa</h2>
           <p className="mt-1 text-[11px] text-slate-500">
-            Tỷ lệ tuân thủ và số cơ hội giám sát — đủ mã khoa trong phạm vi lọc; khoa dưới 80% được tô cảnh báo.
+            Tỷ lệ tuân thủ và số cơ hội giám sát — đủ mã khoa trong phạm vi lọc; dưới {VST_KHOA_CHART_THRESHOLDS.warnPct}% cảnh báo vàng, dưới {VST_KHOA_CHART_THRESHOLDS.redPct}% cảnh báo đỏ.
             {p.khoaFilterLocked ? " Phạm vi khoa đang khóa." : ""} Kỳ {p.tuNgay} → {p.denNgay}.
           </p>
         </header>
@@ -68,6 +69,7 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
           matrixKhoaRows={p.payload?.matrix_khoa}
           loading={p.loading}
           moduleLabel="VST"
+          khoaChartThresholds={VST_KHOA_CHART_THRESHOLDS}
           tgsVolumeLabel={SUPERVISION_SOURCE_UI.vstTgsVol}
           ksnkVolumeLabel={SUPERVISION_SOURCE_UI.vstKsnkVol}
         />

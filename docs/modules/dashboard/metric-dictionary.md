@@ -82,7 +82,8 @@ App **không** đọc trực tiếp `gstt_fact_*_summary` từ TypeScript cho KP
 |--------|---------|------------|
 | `GREEN_MIN` | 85% | Đạt mục tiêu (fallback) |
 | `YELLOW_MIN` | 70% | Cần theo dõi |
-| `KHOA_WARN_PCT` | 80% | Tô cảnh báo cột/bảng khoa |
+| `KHOA_WARN_PCT` | 80% | Tô cảnh báo cột/bảng khoa (GSC / BCTH) |
+| `VST_KHOA_CHART` | vàng &lt;90% · đỏ &lt;85% | Chỉ biểu đồ khoa thống kê VST — không đổi mục tiêu viện / CCS |
 
 SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 

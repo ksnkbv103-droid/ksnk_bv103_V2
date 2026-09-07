@@ -31,7 +31,7 @@ import {
   gapCompareStatus,
   KHOA_BAR_CHART_MARGIN,
   KhoaChartViewport,
-  KhoaComplianceBarLabel,
+  khoaComplianceBarLabelContent,
   khoaCategoryYAxis,
   khoaVolumeBarLabelContent,
   KsnkSolidBarShape,
@@ -40,6 +40,10 @@ import {
 } from "@/lib/analytics/supervision-charts-shared";
 import { SupervisionKhoaMasterTable } from "@/lib/analytics/supervision-charts-khoa-tables";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
+import {
+  DEFAULT_KHOA_CHART_THRESHOLDS,
+  type KhoaChartThresholds,
+} from "@/lib/analytics/supervision-thresholds";
 
 function defaultVolumeTitle(moduleLabel?: string): string {
   if (moduleLabel === "VST") return "Số cơ hội giám sát theo khoa";
@@ -55,17 +59,19 @@ type MatrixKhoaRow = GapKhoaSourceRow & {
   tong_dat?: number;
 };
 
-/** Biểu đồ % tuân thủ theo khoa — full width, sắp xếp cao → thấp, cảnh báo &lt;80%. */
+/** Biểu đồ % tuân thủ theo khoa — full width, sắp xếp cao → thấp, tô vàng/đỏ theo ngưỡng. */
 function SupervisionKhoaComplianceChart({
   rows,
   matrixKhoaRows,
   loading,
   moduleLabel,
+  thresholds = DEFAULT_KHOA_CHART_THRESHOLDS,
 }: {
   rows: GapKhoaRow[];
   matrixKhoaRows?: MatrixKhoaRow[] | null;
   loading?: boolean;
   moduleLabel?: string;
+  thresholds?: KhoaChartThresholds;
 }) {
   const sorted = React.useMemo(
     () => sortGapRowsByAggregateTyLe(rows, matrixKhoaRows, "desc"),
@@ -100,6 +106,7 @@ function SupervisionKhoaComplianceChart({
     const row = payload?.[0]?.payload;
     return String(row?.fullName ?? _label);
   };
+  const barLabelContent = React.useMemo(() => khoaComplianceBarLabelContent(thresholds), [thresholds]);
 
   return (
     <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-4">
@@ -117,25 +124,52 @@ function SupervisionKhoaComplianceChart({
               <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 10 }} />
               <YAxis {...khoaCategoryYAxis} />
               <Tooltip formatter={percentTooltipFormatter} labelFormatter={labelTooltip} />
-              <ReferenceLine
-                x={KHOA_COMPLIANCE_WARN_PCT}
-                stroke="#94a3b8"
-                strokeDasharray="4 4"
-                label={{
-                  value: `${KHOA_COMPLIANCE_WARN_PCT}%`,
-                  position: "insideTopRight",
-                  fontSize: 9,
-                  fill: "#64748b",
-                }}
-              />
+              {thresholds.warnPct === DEFAULT_KHOA_CHART_THRESHOLDS.warnPct ? (
+                <ReferenceLine
+                  x={KHOA_COMPLIANCE_WARN_PCT}
+                  stroke="#94a3b8"
+                  strokeDasharray="4 4"
+                  label={{
+                    value: `${KHOA_COMPLIANCE_WARN_PCT}%`,
+                    position: "insideTopRight",
+                    fontSize: 9,
+                    fill: "#64748b",
+                  }}
+                />
+              ) : (
+                <ReferenceLine
+                  x={thresholds.warnPct}
+                  stroke="#f59e0b"
+                  strokeDasharray="4 4"
+                  label={{
+                    value: `${thresholds.warnPct}%`,
+                    position: "insideTopRight",
+                    fontSize: 9,
+                    fill: "#b45309",
+                  }}
+                />
+              )}
+              {thresholds.warnPct !== DEFAULT_KHOA_CHART_THRESHOLDS.warnPct ? (
+                <ReferenceLine
+                  x={thresholds.redPct}
+                  stroke="#ef4444"
+                  strokeDasharray="3 3"
+                  label={{
+                    value: `${thresholds.redPct}%`,
+                    position: "insideTop",
+                    fontSize: 9,
+                    fill: "#dc2626",
+                  }}
+                />
+              ) : null}
               <Bar dataKey="ty_le_tuan_thu" name="Tuân thủ %" fill="#38bdf8" maxBarSize={18} radius={[0, 4, 4, 0]}>
                 {chartData.map((entry) => (
                   <Cell
                     key={`agg-${entry.ten}`}
-                    fill={complianceBarColor("#38bdf8", entry.ty_le_tuan_thu)}
+                    fill={complianceBarColor("#38bdf8", entry.ty_le_tuan_thu, thresholds)}
                   />
                 ))}
-                <LabelList dataKey="ty_le_tuan_thu" content={KhoaComplianceBarLabel} />
+                <LabelList dataKey="ty_le_tuan_thu" content={barLabelContent} />
               </Bar>
             </BarChart>
           </Bv103ResponsiveChart>
@@ -146,7 +180,7 @@ function SupervisionKhoaComplianceChart({
         )}
       </KhoaChartViewport>
       <p className="mt-2 text-[11px] text-slate-400">
-        Số trên cột: % tuân thủ · đạt/tổng cơ hội. Màu vàng/đỏ khi tuân thủ &lt;{KHOA_COMPLIANCE_WARN_PCT}%.
+        Số trên cột: % tuân thủ · đạt/tổng cơ hội. Màu vàng khi tuân thủ &lt;{thresholds.warnPct}%; đỏ khi &lt;{thresholds.redPct}%.
         {moduleLabel ? ` · ${moduleLabel}` : ""}
       </p>
     </div>
@@ -268,7 +302,7 @@ function SupervisionKhoaVolumeChart({
   );
 }
 
-/** Dashboard khoa: biểu đồ gộp % + khối lượng — full width, đủ mã khoa, cảnh báo &lt;80%. */
+/** Dashboard khoa: biểu đồ gộp % + khối lượng — full width, đủ mã khoa, tô vàng/đỏ theo ngưỡng. */
 export function SupervisionKhoaAnalyticsBlock({
   rows,
   matrixKhoaRows,
@@ -280,6 +314,7 @@ export function SupervisionKhoaAnalyticsBlock({
   rankRows,
   showMasterTable,
   className,
+  khoaChartThresholds = DEFAULT_KHOA_CHART_THRESHOLDS,
 }: {
   rows: GapKhoaRow[];
   matrixKhoaRows?: MatrixKhoaRow[] | null;
@@ -293,6 +328,7 @@ export function SupervisionKhoaAnalyticsBlock({
   rankRows?: BaoCaoKhoaRankRow[];
   showMasterTable?: boolean;
   className?: string;
+  khoaChartThresholds?: KhoaChartThresholds;
 }) {
   if (!loading && rows.length === 0) return null;
 
@@ -305,6 +341,7 @@ export function SupervisionKhoaAnalyticsBlock({
         matrixKhoaRows={matrixKhoaRows}
         loading={loading}
         moduleLabel={moduleLabel}
+        thresholds={khoaChartThresholds}
       />
       <SupervisionKhoaVolumeChart
         rows={rows}

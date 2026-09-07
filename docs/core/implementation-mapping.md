@@ -143,6 +143,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-09-07 | **VST biểu đồ khoa — ngưỡng 90/85:** thống kê vệ sinh tay tô vàng khi tuân thủ &lt;90%, đỏ khi &lt;85%; vạch tham chiếu 90% và 85%. GSC/BCTH giữ 80/70. Không đổi công thức KPI / mục tiêu viện. |
 | 2026-09-04 | **Phase 0 quyết định D1–D10 (dụng cụ):** chốt ngôn ngữ + 3 cửa + Move-only codes + legacy mã + ADMIN hard-write + BOM unique — SSOT [`domain-decisions-cssd-instrument.md`](domain-decisions-cssd-instrument.md). Không nhét bảng quyết định vào changelog này. |
 | 2026-09-04 | **CSSD rà soát catalog-only:** cửa Đổi danh mục chỉ `DOI_CHUAN` / `DOI_LOAI` / `THEM_DONG` / `XOA_DONG` (BOM_PENDING → ADMIN). `BO_SUNG` / `TRA_KHO` / `DIEU_CHUYEN` là move-only — server từ chối trên phiếu rà soát, UI bỏ Lấy kho / Trả kho / Điều chuyển. Hỏng/Mất vẫn ghi sổ ngay, không qua duyệt BOM. Cửa Chuyển (`InstrumentMoveDualTable`) giữ kho↔bộ / bộ↔bộ. Không đổi schema. |
 | 2026-09-03 | **Quản lý dụng cụ — 3 lớp IA:** mặt trước `/quan-tri-he-thong/danh-muc/dung-cu` = Bộ (mặc định) / Phiếu chờ (`?tab=phieu`) / Lịch sử (`?tab=lich-su`). Loại là sheet `?sheet=loai` (ADMIN), không tab peer. Bookmark `?tab=loai`/`?tab=bo`/`chi-tiet` vẫn về Bộ hoặc sheet. Không đổi schema. |
