@@ -461,7 +461,7 @@ function khoaVolumeBarLabelContent(variant: "ksnk" | "tgs") {
 
 function khoaComplianceBarLabelContent(thresholds: KhoaChartThresholds = DEFAULT_KHOA_CHART_THRESHOLDS) {
   return function KhoaComplianceBarLabelBound(rawProps: unknown) {
-    return <KhoaComplianceBarLabel {...(rawProps as KhoaBarLabelProps)} thresholds={thresholds} />;
+    return KhoaComplianceBarLabel({ ...(rawProps as KhoaBarLabelProps), thresholds });
   };
 }
 
