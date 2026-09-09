@@ -69,14 +69,13 @@ function getSuggestedDays(ngay_vao_vien?: string, ngay_phat_hien?: string): numb
 export function prepopulateBsiData(row: Record<string, any>, existing: Record<string, any> = {}): BsiVerificationData {
   const pathogen = String(row.tac_nhan_vi_khuan || "").trim();
   const cls = classifyPathogen(pathogen);
-  const suggestedDays = getSuggestedDays(row.ngay_vao_vien, row.ngay_phat_hien);
 
   return {
     is_fungi_respiratory: existing.is_fungi_respiratory ?? cls.isFungiRespiratory,
     pathogen_name: existing.pathogen_name || pathogen,
     pathogen_type: existing.pathogen_type || cls.suggestedType,
-    commensal_culture_count: existing.commensal_culture_count ?? (cls.isCommensal ? 2 : 0),
-    commensal_drawn_separate: existing.commensal_drawn_separate ?? (cls.isCommensal ? true : false),
+    commensal_culture_count: existing.commensal_culture_count ?? 0,
+    commensal_drawn_separate: existing.commensal_drawn_separate ?? false,
     symptoms_window_7days: existing.symptoms_window_7days ?? false,
     has_fever: existing.has_fever ?? false,
     has_chills: existing.has_chills ?? false,
@@ -85,8 +84,8 @@ export function prepopulateBsiData(row: Record<string, any>, existing: Record<st
     has_hypothermia: existing.has_hypothermia ?? false,
     has_apnea: existing.has_apnea ?? false,
     has_bradycardia: existing.has_bradycardia ?? false,
-    cvc_placed_days: existing.cvc_placed_days ?? (suggestedDays >= 3 ? suggestedDays : 0),
-    cvc_active_on_event: existing.cvc_active_on_event ?? (suggestedDays >= 3 ? true : false),
+    cvc_placed_days: existing.cvc_placed_days ?? 0,
+    cvc_active_on_event: existing.cvc_active_on_event ?? false,
     device_placed_date: existing.device_placed_date,
     device_removed_date: existing.device_removed_date,
     is_neutropenia: existing.is_neutropenia ?? false,
@@ -200,14 +199,13 @@ export function prepopulateVaeData(row: Record<string, any>, existing: Record<st
 export function prepopulateUtiData(row: Record<string, any>, existing: Record<string, any> = {}): UtiVerificationData {
   const pathogen = String(row.tac_nhan_vi_khuan || "").trim();
   const cls = classifyPathogen(pathogen);
-  const suggestedDays = getSuggestedDays(row.ngay_vao_vien, row.ngay_phat_hien);
 
   return {
-    urine_cfu_count: existing.urine_cfu_count ?? 100000,
-    pathogen_count: existing.pathogen_count ?? 1,
+    urine_cfu_count: existing.urine_cfu_count ?? 0,
+    pathogen_count: existing.pathogen_count ?? 0,
     has_fungi_yeast_parasite: existing.has_fungi_yeast_parasite ?? cls.isCandidaOrParasite,
-    foley_placed_days: existing.foley_placed_days ?? (suggestedDays >= 3 ? suggestedDays : 0),
-    foley_active_on_event: existing.foley_active_on_event ?? (suggestedDays >= 3 ? true : false),
+    foley_placed_days: existing.foley_placed_days ?? 0,
+    foley_active_on_event: existing.foley_active_on_event ?? false,
     foley_present_doe_or_prior: existing.foley_present_doe_or_prior,
     device_placed_date: existing.device_placed_date,
     device_removed_date: existing.device_removed_date,

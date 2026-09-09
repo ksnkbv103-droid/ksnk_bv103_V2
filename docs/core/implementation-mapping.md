@@ -143,6 +143,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-09-09 | **NKBV rà soát P0 sau phương án B:** MBI không còn tick neutropenia đơn (Hub có ANC/HSCT/tiêu chảy). Prefill phiếu không thổi CFU/ống/ngày dụng cụ. ABUTI UI chỉ máu ∈ IWP. Hàng đợi «chưa PT» fallback khi RPC chưa migrate. Nháp máy chủ báo lỗi. SUTI + máu SBAP gắn Secondary khi chốt phiếu. |
 | 2026-09-09 | **NKBV phương án B — 3 lớp + một đường kết luận:** phiếu mới chỉ từ Hub (`createGiamSatNkbvCa` từ chối phiếu trống). Nháp phiên Hub lưu `nkbv_fact_ba_phan_tich` (`20260909093000`). Vá UTI A1–A5; CoNS cùng ngày không đủ LCBI-2; SSI ngày mổ = ngày 1. Tỷ lệ dashboard đọc sổ mẫu số khoa. Seed USI + engine Ch.17 người lớn (`20260909094500`). Ẩn nút LabID. |
 | 2026-09-07 | **VST biểu đồ khoa — ngưỡng 90/85:** thống kê vệ sinh tay tô vàng khi tuân thủ &lt;90%, đỏ khi &lt;85%; vạch tham chiếu 90% và 85%. GSC/BCTH giữ 80/70. Không đổi công thức KPI / mục tiêu viện. |
 | 2026-09-04 | **Phase 0 quyết định D1–D10 (dụng cụ):** chốt ngôn ngữ + 3 cửa + Move-only codes + legacy mã + ADMIN hard-write + BOM unique — SSOT [`domain-decisions-cssd-instrument.md`](domain-decisions-cssd-instrument.md). Không nhét bảng quyết định vào changelog này. |

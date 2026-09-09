@@ -9,7 +9,7 @@ import type {
   BaGridXnCell,
 } from "../lib/nkbv-ba-grid-engine";
 import type { BaAnalysisSessionDraft } from "../lib/nkbv-ba-analysis-session";
-import type { SyndromePanelId } from "../lib/nkbv-specimen-syndrome";
+import { isVaeClassLabel } from "../lib/nkbv-syndrome-shell-helpers";
 import type { ViSinhAnalysisDispositionRow } from "../lib/nkbv-vi-sinh-analysis-status";
 import type {
   OpenSiteSessionForSbap,
@@ -53,11 +53,6 @@ type Props = {
   labelW?: number;
   children?: (api: { analysisColumns: BaDayGridColumnDef[] }) => React.ReactNode;
 };
-
-function isVaeClassLabel(label: string): boolean {
-  const t = label.trim().toUpperCase();
-  return t === "VAC" || t === "IVAC" || t === "PVAP" || /\b(VAC|IVAC|PVAP)\b/.test(t);
-}
 
 export default function NkbvSyndromeShellPanel({
   panel,
@@ -255,11 +250,4 @@ export default function NkbvSyndromeShellPanel({
   );
 }
 
-export function isShellPanel(panel: SyndromePanelId): panel is "VAE" {
-  return panel === "VAE";
-}
-
-/** Tạo phiếu VAE chỉ khi đã chọn lớp VAC/IVAC/PVAP trên lưới. */
-export function vaeBaReadyToCreatePhieu(draft: BaAnalysisSessionDraft): boolean {
-  return Boolean(draft.eventEstablished) || isVaeClassLabel(draft.ketLuan || "");
-}
+export { isShellPanel, vaeBaReadyToCreatePhieu } from "../lib/nkbv-syndrome-shell-helpers";

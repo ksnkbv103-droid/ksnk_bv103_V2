@@ -202,4 +202,34 @@ describe("nkbv-bsi-timeline-verdict", () => {
     });
     expect(v.result.classification).toBe("CONTAMINATION");
   });
+
+  it("MBI: ANC ≥2 ngày + tác nhân đường ruột → MBI_LCBI (không CLABSI)", () => {
+    const ix = "2026-07-20";
+    const v = buildBsiTimelineVerdict({
+      indexXn: blood({ id: "b1", ngay: ix, vi_khuan: "Enterococcus faecalis" }),
+      bloodXn: [blood({ id: "b1", ngay: ix, vi_khuan: "Enterococcus faecalis" })],
+      lamSang: {},
+      canThiepDates: ["2026-07-17", "2026-07-18", "2026-07-19", "2026-07-20"],
+      iwpDates: iwpAround(ix),
+      nsk: ix,
+      devicePlacedDate: "2026-07-17",
+      ancWbcLt500Ge2d: true,
+    });
+    expect(v.result.classification).toBe("MBI_LCBI");
+  });
+
+  it("tick neutropenia đơn trên Hub không đủ MBI", () => {
+    const ix = "2026-07-20";
+    const v = buildBsiTimelineVerdict({
+      indexXn: blood({ id: "b1", ngay: ix, vi_khuan: "Enterococcus faecalis" }),
+      bloodXn: [blood({ id: "b1", ngay: ix, vi_khuan: "Enterococcus faecalis" })],
+      lamSang: {},
+      canThiepDates: ["2026-07-17", "2026-07-18", "2026-07-19", "2026-07-20"],
+      iwpDates: iwpAround(ix),
+      nsk: ix,
+      devicePlacedDate: "2026-07-17",
+      isNeutropenia: true,
+    });
+    expect(v.result.classification).toBe("CLABSI");
+  });
 });

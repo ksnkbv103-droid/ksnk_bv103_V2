@@ -110,8 +110,11 @@ export type BuildBsiTimelineVerdictInput = {
   devicePlacedDate?: string | null;
   deviceRemovedDate?: string | null;
   localizedSite?: BsiLocalizedSiteContext | null;
-  /** MBI stub — chỉ khi draft tick. */
+  /** @deprecated Không đủ MBI — giữ tương thích chỗ gọi cũ. */
   isNeutropenia?: boolean;
+  ancWbcLt500Ge2d?: boolean;
+  hasHsctOrGvhd?: boolean;
+  hasSevereDiarrheaMbi?: boolean;
 };
 
 export type BsiTimelineGate = {
@@ -252,6 +255,9 @@ export function buildBsiTimelineVerdict(
     device_placed_date: placed || undefined,
     device_removed_date: removed || undefined,
     is_neutropenia: Boolean(input.isNeutropenia),
+    anc_wbc_lt_500_ge_2d: Boolean(input.ancWbcLt500Ge2d),
+    has_hsct_or_gvhd: Boolean(input.hasHsctOrGvhd),
+    has_severe_diarrhea_mbi: Boolean(input.hasSevereDiarrheaMbi),
     is_intestinal_pathogen: cls.isIntestinal,
     has_localized_infection: hasLocalized,
     localized_pathogen_matches: bloodMatchesSite,

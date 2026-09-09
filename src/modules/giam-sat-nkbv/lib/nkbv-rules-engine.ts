@@ -172,20 +172,20 @@ export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResu
     };
   }
 
-  // MBI-LCBI NHSN: tác nhân đường ruột + (ANC/WBC <500 ≥2d | HSCT/GVHD | neutropenia | tiêu chảy nặng MBI).
+  // MBI-LCBI: tác nhân đường ruột + bằng chứng hàng rào (ANC ≥2d | HSCT/GVHD | tiêu chảy nặng).
+  // Tick «giảm bạch cầu» đơn không đủ — tránh CLABSI âm tính giả (BSI-P0-1).
   const mbiMucosalBarrier =
     Boolean(data.anc_wbc_lt_500_ge_2d) ||
     Boolean(data.has_hsct_or_gvhd) ||
-    Boolean(data.is_neutropenia) ||
     Boolean(data.has_severe_diarrhea_mbi);
   if (data.is_intestinal_pathogen && mbiMucosalBarrier) {
     return {
       is_positive: true,
       classification: "MBI_LCBI",
       lcbi_type: lcbiType,
-      reason: data.has_severe_diarrhea_mbi && !data.anc_wbc_lt_500_ge_2d && !data.has_hsct_or_gvhd && !data.is_neutropenia
+      reason: data.has_severe_diarrhea_mbi && !data.anc_wbc_lt_500_ge_2d && !data.has_hsct_or_gvhd
         ? "MBI-LCBI: tác nhân đường ruột + tiêu chảy nặng (≥1 L/24h hoặc ≥20 mL/kg/24h) trong 7 ngày trước cấy máu (+). Không tính lỗi CLABSI."
-        : "Ngoại lệ Tổn thương hàng rào niêm mạc (MBI-LCBI): tác nhân đường ruột + ANC/WBC <500 ≥2 ngày lịch hoặc HSCT/GVHD/neutropenia/tiêu chảy nặng. Không tính lỗi CLABSI.",
+        : "Ngoại lệ Tổn thương hàng rào niêm mạc (MBI-LCBI): tác nhân đường ruột + ANC/WBC <500 ≥2 ngày lịch hoặc HSCT/GVHD hoặc tiêu chảy nặng. Không tính lỗi CLABSI.",
     };
   }
 
@@ -407,6 +407,40 @@ export function evaluateVaeVap(
   };
 }
 
+function attachUtiSecondaryBsi(
+  data: UtiVerificationData,
+  result: RuleEvaluationResult,
+): RuleEvaluationResult {
+  if (!result.is_positive || result.is_secondary_bsi) return result;
+  if (!/SUTI/.test(result.classification)) return result;
+  if (!data.blood_urine_pathogen_matches) return result;
+  const bloodDate = (data.blood_collection_date || "").slice(0, 10);
+  if (!bloodDate && !data.has_blood_culture_positive_in_window) return result;
+  if (/candida|yeast|nấm men|nam men/i.test(data.blood_organism || "")) return result;
+  if (bloodDate) {
+    const doe = (data.calculated_doe || bloodDate).slice(0, 10);
+    const sbap = resolveClinicalSbap({
+      sbapStart: data.calculated_sbap_start,
+      sbapEnd: data.calculated_sbap_end,
+      iwpStart: data.calculated_iwp_start,
+      doe,
+    });
+    if (sbap.start && sbap.end) {
+      const sec = evaluateSecondaryBsi({
+        primarySite: "UTI",
+        bloodCollectionDate: bloodDate,
+        sbapStart: sbap.start,
+        sbapEnd: sbap.end,
+        bloodOrganism: data.blood_organism || "",
+        primaryOrganism: data.urine_organism,
+        organismsMatch: data.blood_urine_pathogen_matches,
+      });
+      return sec.isSecondary ? { ...result, is_secondary_bsi: true } : result;
+    }
+  }
+  return { ...result, is_secondary_bsi: true };
+}
+
 export function evaluateUtiCauti(data: UtiVerificationData): RuleEvaluationResult {
   if (data.pathogen_count > 2) {
     return {
@@ -476,21 +510,21 @@ export function evaluateUtiCauti(data: UtiVerificationData): RuleEvaluationResul
   if (hasAnySymptom) {
     // SUTI 1 (người lớn) giữ nhãn SUTI/CAUTI_SUTI; SUTI 2 (≤1 tuổi) tách nhánh riêng.
     if (data.is_infant_le1) {
-      return {
+      return attachUtiSecondaryBsi(data, {
         is_positive: true,
         classification: isCauti ? "CAUTI_SUTI_2" : "SUTI_2",
         reason: isCauti
           ? "CAUTI — SUTI 2 (≤1 tuổi) liên quan sonde tiểu."
           : "SUTI 2 (≤1 tuổi) — nhiễm khuẩn tiết niệu có triệu chứng không liên quan sonde tiểu.",
-      };
+      });
     }
-    return {
+    return attachUtiSecondaryBsi(data, {
       is_positive: true,
       classification: isCauti ? "CAUTI_SUTI" : "SUTI",
       reason: isCauti
         ? "Nhiễm khuẩn tiết niệu có triệu chứng liên quan sonde tiểu (CAUTI SUTI 1)."
         : "SUTI 1 — nhiễm khuẩn tiết niệu có triệu chứng không liên quan sonde tiểu.",
-    };
+    });
   }
 
   if (data.has_blood_culture_positive_in_window && data.blood_urine_pathogen_matches) {

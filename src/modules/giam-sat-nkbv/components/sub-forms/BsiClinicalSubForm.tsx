@@ -286,7 +286,7 @@ export default function BsiClinicalSubForm({
             ) : null}
           </NkbvFormSection>
 
-          <NkbvFormSection title="MBI-LCBI" hint="Ghép tế bào gốc / giảm bạch cầu hạt nặng · tiêu chảy nặng (catalog).">
+          <NkbvFormSection title="MBI-LCBI" hint="Chỉ khi có ANC/WBC <500 ≥2 ngày trong IWP, hoặc HSCT/GVHD, hoặc tiêu chảy nặng. Tick giảm bạch cầu đơn không đủ.">
             <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
               <input
                 type="checkbox"
@@ -294,7 +294,7 @@ export default function BsiClinicalSubForm({
                 disabled={!allowedEdit}
                 onChange={(e) => onChange({ ...form, is_neutropenia: e.target.checked })}
               />
-              ANC &lt; 500 hoặc suy giảm miễn dịch nặng
+              Ghi nhận giảm bạch cầu (chưa đủ MBI nếu thiếu ô dưới)
             </label>
             <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
               <input

@@ -15,7 +15,7 @@
 | PNEU-AUDIT-A1 | PNEU | Đếm key hô hấp ≠ nhóm CDC (dyspnea+tachypnea=2) | **Đóng 2026-08-18** — đếm `pneu_resp_line` |
 | PNEU-AUDIT-A2 | PNEU | PNU2 bị siết ≥2 hô hấp như PNU1 | **Đóng 2026-08-18** — PNU2 ≥1 nhóm |
 | PNEU-AUDIT-A3 | PNEU | PNU3 bắt buộc hemoptysis/đau màng phổi | **Đóng 2026-08-18** — list rộng, không bắt buộc |
-| BSI-P0-1 | BSI | MBI đầy (ANC ≥2d trong IWP) nếu chỉ tick neutropenia | L2 MBI block |
+| BSI-P0-1 | BSI | MBI đầy (ANC ≥2d trong IWP) nếu chỉ tick neutropenia | **Đóng 2026-09-09** — MBI chỉ ANC≥2d / HSCT-GVHD / tiêu chảy nặng; Hub có ô tick |
 | UTI-P0-1 | UTI | — Core đủ pilot | Boy scout copy Ruled-out ASB · **xem lại audit:** [UTI 2026-08-10](uti-standard-vs-runtime-audit-20260810.md) |
 | UTI-AUDIT-A1 | UTI | CFU thiếu/`null` coi đạt (seed 1e5) | **Đóng 2026-09-09** — thiếu CFU không đạt |
 | UTI-AUDIT-A2 | UTI | ABUTI máu UI ∈ SBAP; chuẩn ∈ IWP | **Đóng 2026-09-09** — ABUTI chỉ máu ∈ IWP |
@@ -42,14 +42,13 @@
 | Hội chứng | Ghi chú |
 |-----------|---------|
 | BSI | Triệu chứng tách + CVC + secondary flags |
-| UTI | CFU/≤2/nấm + sx + Foley gate + ẩn voiding · **audit 2026-08-10:** còn A1–A5 (CFU null, ABUTI IWP, yeast-mix…) |
+| UTI | CFU/≤2/nấm + sx + Foley gate + ẩn voiding · A1–A5 đóng 2026-09-09 (engine + UI ABUTI ∈ IWP) |
 | VAE | Bảng vent + VAC/IVAC/PVAP + secondary PVAP |
 | PNEU | Imaging + toàn thân + hô hấp + lab-first PNU1/2/3 (Table 2/3 L2) |
 | SSI | Surgery/DOE/PATOS/depth/CSSD |
 
 ## Quy tắc ưu tiên ship UI
 
-1. PNEU-P0-1…4 (mẫu giấy PO đã đưa)  
-2. BSI-P0-1  
-3. L3 Ruled-out chung pattern cho 5 loại  
-4. P1 theo nhu cầu đào tạo / in
+1. PNEU-P0-3 (Ruled-out)  
+2. L3 Ruled-out chung pattern cho 5 loại  
+3. P1 theo nhu cầu đào tạo / in

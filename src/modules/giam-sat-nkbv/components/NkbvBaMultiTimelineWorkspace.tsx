@@ -289,6 +289,13 @@ export default function NkbvBaMultiTimelineWorkspace({
         ma_benh_an: maBenhAn,
         mode,
         sessions: list,
+      }).then((res) => {
+        if (!res.success) {
+          toast.error(
+            res.error || "Không lưu được nháp lên máy chủ. Nháp vẫn còn trên máy này.",
+            { id: "nkbv-ba-phan-tich-persist" },
+          );
+        }
       });
     },
     [maBenhAn],

@@ -174,7 +174,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.classification).toBe("PRIMARY_BSI_NON_CLABSI");
     });
 
-    it("applies mucosal barrier injury (MBI_LCBI) exception under chemotherapy", () => {
+    it("tick giảm bạch cầu đơn không đủ MBI → vẫn CLABSI nếu đủ CVC", () => {
       const data: BsiVerificationData = {
         is_fungi_respiratory: false,
         pathogen_name: "Candida albicans",
@@ -193,7 +193,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       };
       const res = evaluateBsiClabsi(data);
       expect(res.is_positive).toBe(true);
-      expect(res.classification).toBe("MBI_LCBI");
+      expect(res.classification).toBe("CLABSI");
     });
 
     it("applies MBI_LCBI when ANC/WBC <500 ≥2 ngày lịch (không cần tick neutropenia)", () => {
@@ -734,6 +734,32 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       const res = evaluateUtiCauti(data);
       expect(res.is_positive).toBe(true);
       expect(res.classification).toBe("CAUTI_ABUTI");
+      expect(res.is_secondary_bsi).toBe(true);
+    });
+
+    it("SUTI + máu khớp ∈ SBAP → gắn Secondary (không đổi thành ABUTI)", () => {
+      const data: UtiVerificationData = {
+        urine_cfu_count: 150000,
+        pathogen_count: 1,
+        has_fungi_yeast_parasite: false,
+        foley_placed_days: 5,
+        foley_active_on_event: true,
+        has_fever: true,
+        has_suprapubic_tenderness: false,
+        has_costovertebral_pain: false,
+        has_dysuria: false,
+        has_blood_culture_positive_in_window: true,
+        blood_urine_pathogen_matches: true,
+        blood_collection_date: "2026-07-25",
+        urine_organism: "E. coli",
+        blood_organism: "E. coli",
+        calculated_doe: "2026-07-19",
+        calculated_iwp_start: "2026-07-16",
+        calculated_sbap_start: "2026-07-16",
+        calculated_sbap_end: "2026-08-01",
+      };
+      const res = evaluateUtiCauti(data);
+      expect(res.classification).toBe("CAUTI_SUTI");
       expect(res.is_secondary_bsi).toBe(true);
     });
 

@@ -268,7 +268,7 @@ export default function UtiClinicalSubForm({
           </NkbvFormSection>
 
           {showSecondary ? (
-          <NkbvFormSection title="ABUTI / Secondary BSI" hint="Không triệu chứng UTI nhưng máu khớp nước tiểu trong cửa sổ.">
+          <NkbvFormSection title="ABUTI / Secondary BSI" hint="ABUTI: máu khớp ∈ IWP khi không có triệu chứng UTI. Secondary: máu khớp ∈ SBAP sau khi đã có SUTI — không dùng ô này để biến SUTI thành ABUTI.">
             <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
               <input
                 type="checkbox"

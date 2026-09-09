@@ -285,7 +285,7 @@ export function mapAnalysisSessionToVerificationSeed(input: {
     }
   }
 
-  if (input.panel === "UTI" && secondary) {
+  if (input.panel === "UTI" && (input.draft.bloodCriterionIds?.length || 0) > 0) {
     verification_data.has_blood_culture_positive_in_window = true;
     verification_data.blood_urine_pathogen_matches = true;
   }
@@ -296,6 +296,18 @@ export function mapAnalysisSessionToVerificationSeed(input: {
   if (input.panel === "SSI" && secondary) {
     verification_data.has_blood_culture_positive = true;
     verification_data.blood_ssi_pathogen_matches = true;
+  }
+
+  if (input.panel === "BSI") {
+    if (input.draft.bsiMbi?.anc_wbc_lt_500_ge_2d) {
+      verification_data.anc_wbc_lt_500_ge_2d = true;
+    }
+    if (input.draft.bsiMbi?.has_hsct_or_gvhd) {
+      verification_data.has_hsct_or_gvhd = true;
+    }
+    if (input.draft.bsiMbi?.has_severe_diarrhea_mbi) {
+      verification_data.has_severe_diarrhea_mbi = true;
+    }
   }
 
   if (input.panel === "BSI" && input.draft.bsiLocalizedSite?.criteriaMet) {

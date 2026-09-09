@@ -45,6 +45,12 @@ export type BaAnalysisSessionDraft = {
   loaiPhauThuatNhsn?: string;
   ssiEventType?: string;
   organSpaceSite?: string;
+  /** BSI — bằng chứng MBI-LCBI (không dùng tick giảm bạch cầu đơn). */
+  bsiMbi?: {
+    anc_wbc_lt_500_ge_2d?: boolean;
+    has_hsct_or_gvhd?: boolean;
+    has_severe_diarrhea_mbi?: boolean;
+  };
   /** BSI — ngữ cảnh site khu trú khi mở Primary (Secondary-before-CLABSI). */
   bsiLocalizedSite?: {
     majorType: "UTI" | "PNEU" | "SSI" | "VAE" | "OTHER";

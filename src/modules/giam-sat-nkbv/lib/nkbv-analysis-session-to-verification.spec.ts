@@ -68,6 +68,29 @@ describe("nkbv-analysis-session-to-verification", () => {
     expect(seed.clinical_notes_patch.ghi_chu_tuy_bien).toMatch(/Secondary BSI/);
   });
 
+  it("UTI SUTI + Secondary SBAP không gắn cờ ABUTI", () => {
+    const seed = mapAnalysisSessionToVerificationSeed({
+      panel: "UTI",
+      indexMilestoneId: "lis:aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      indexKind: "XN",
+      nsk: "2026-07-19",
+      isSecondaryBsi: true,
+      secondaryBloodIds: ["cccccccc-cccc-cccc-cccc-cccccccccccc"],
+      draft: {
+        lamSang: {
+          "2026-07-19": [{ key: "fever", label: "Sốt" }],
+        },
+        bloodCriterionIds: [],
+        ketLuan: "",
+        notesByDate: {},
+        readyToChot: true,
+        canThiepDates: [],
+      },
+    });
+    expect(seed.verification_data.is_secondary_bsi).toBe(true);
+    expect(seed.verification_data.has_blood_culture_positive_in_window).toBeUndefined();
+  });
+
   it("PNEU Index CĐHA bật imaging", () => {
     const seed = mapAnalysisSessionToVerificationSeed({
       panel: "PNEU",

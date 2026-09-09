@@ -12,6 +12,13 @@ import { scanStayCrossCaseAlerts } from "../lib/nkbv-import-window-scan";
 import { mergeBaTimelineMilestones } from "../lib/nkbv-ba-timeline-core";
 import { resolveNkbvMajorType } from "../lib/nkbv-major-type";
 import { countChuaPhanTich } from "../lib/nkbv-vi-sinh-analysis-status";
+import {
+  CHUA_PT_BA_CHUNK,
+  CHUA_PT_VI_SINH_SCAN_CAP,
+  chunkStrings,
+  collectChuaPhanTichBaKeysFromScan,
+  normalizeChuaPhanTichBaKeys,
+} from "../lib/nkbv-chua-phan-tich-scan";
 
 type GiamSatNkbvFilters = {
   khoa_ghi_nhan_id?: string;
@@ -169,7 +176,8 @@ export async function listAllMaNkbvCas() {
     const { data, error } = await supabase
       .from("nkbv_fact_su_kien")
       .select("ma_ca")
-      .eq("is_active", true);
+      .eq("is_active", true)
+      .limit(500);
     if (error) throw error;
     return { success: true as const, data: data || [] };
   } catch (e: unknown) {
@@ -194,7 +202,8 @@ export async function listNkbvMedicalRecords(params: {
   await verifyPermission("GIAM_SAT_NKBV", "view");
 
   const page = params.page || 1;
-  const pageSize = params.pageSize || 15;
+  const rawPs = Math.floor(Number(params.pageSize) || 20);
+  const pageSize = Math.min(50, Math.max(1, rawPs));
   const search = (params.search || "").trim().toLowerCase();
   const khoaId = params.khoaId ? String(params.khoaId).trim() : "";
 
@@ -207,9 +216,11 @@ export async function listNkbvMedicalRecords(params: {
     .from("nkbv_fact_benh_an")
     .select("id", { count: "exact", head: true })
     .eq("is_active", true);
+  const BA_LIST_SELECT =
+    "id, ma_benh_an, ma_benh_nhan, ho_ten_benh_nhan, ngay_sinh, gioi_tinh, ngay_vao_vien, ngay_ra_vien, khoa_dieu_tri_id, ket_cuc_dieu_tri, ly_do_tu_vong, tu_vong_lien_quan_nkbv, is_active";
   let dataQ = supabase
     .from("nkbv_fact_benh_an")
-    .select("*")
+    .select(BA_LIST_SELECT)
     .eq("is_active", true)
     .order("ngay_vao_vien", { ascending: false })
     .range(from, to);
@@ -221,7 +232,7 @@ export async function listNkbvMedicalRecords(params: {
     const { data: devRows, error: devErr } = await supabase
       .from("nkbv_fact_ba_ngay_dung_cu")
       .select("ma_benh_an")
-      .limit(3000);
+      .limit(1500);
     if (devErr) return { success: false as const, error: devErr.message, data: [], totalCount: 0 };
     const priorityBas = Array.from(
       new Set((devRows || []).map((r) => String(r.ma_benh_an || "").trim()).filter(Boolean)),
@@ -233,67 +244,39 @@ export async function listNkbvMedicalRecords(params: {
     dataQ = dataQ.in("ma_benh_an", priorityBas);
   }
   if (params.chuaPhanTichOnly) {
-    const { data: posRows, error: posErr } = await supabase
-      .from("nkbv_fact_vi_sinh")
-      .select("id, ma_benh_an, ket_qua_phan_loai, ket_qua_duong_tinh, tac_nhan, metadata")
-      .eq("is_active", true)
-      .limit(8000);
-    if (posErr) return { success: false as const, error: posErr.message, data: [], totalCount: 0 };
-    const positives = (posRows || []).filter((r) => {
-      const pl = String(r.ket_qua_phan_loai || "").toUpperCase();
-      if (pl === "AM_TINH") return false;
-      if (pl === "DUONG_TINH" || r.ket_qua_duong_tinh === true) return true;
-      return Boolean(r.tac_nhan) && pl !== "AM_TINH";
-    });
-    const { data: caseRows } = await supabase
-      .from("nkbv_fact_su_kien")
-      .select("verification_data, is_active")
-      .eq("is_active", true)
-      .limit(8000);
-    const dispositions = [
-      ...(caseRows || []).map((c) => {
-        const vd =
-          c.verification_data && typeof c.verification_data === "object"
-            ? (c.verification_data as Record<string, unknown>)
-            : {};
-        return {
-          index_vi_sinh_id: vd.index_vi_sinh_id ? String(vd.index_vi_sinh_id) : null,
-          analysis_disposition: vd.analysis_disposition === "BO_QUA" ? ("BO_QUA" as const) : null,
-          is_active: true as boolean | null,
-        };
-      }),
-      ...positives
-        .filter((r) => {
-          const meta =
-            r.metadata && typeof r.metadata === "object"
-              ? (r.metadata as Record<string, unknown>)
-              : {};
-          return meta.analysis_disposition === "BO_QUA";
-        })
-        .map((r) => ({
-          index_vi_sinh_id: String(r.id),
-          analysis_disposition: "BO_QUA" as const,
-          is_active: true as boolean | null,
-        })),
-    ];
-    const byBa = new Map<string, string[]>();
-    for (const r of positives) {
-      const ba = String(r.ma_benh_an || "").trim();
-      if (!ba) continue;
-      const arr = byBa.get(ba) || [];
-      arr.push(String(r.id));
-      byBa.set(ba, arr);
-    }
-    const chuaBas: string[] = [];
-    for (const [ba, ids] of byBa) {
-      if (countChuaPhanTich(ids, dispositions) > 0) chuaBas.push(ba);
+    const { data: rpcKeys, error: chuaErr } = await supabase.rpc("fn_nkbv_ba_keys_chua_phan_tich");
+    let chuaBas = !chuaErr ? normalizeChuaPhanTichBaKeys(rpcKeys) : [];
+    if (chuaErr) {
+      const { data: posRows, error: posErr } = await supabase
+        .from("nkbv_fact_vi_sinh")
+        .select("id, ma_benh_an, ket_qua_phan_loai, ket_qua_duong_tinh, tac_nhan, metadata")
+        .eq("is_active", true)
+        .limit(CHUA_PT_VI_SINH_SCAN_CAP);
+      if (posErr) return { success: false as const, error: posErr.message, data: [], totalCount: 0 };
+      const { data: caseRows } = await supabase
+        .from("nkbv_fact_su_kien")
+        .select("verification_data, is_active")
+        .eq("is_active", true)
+        .limit(CHUA_PT_VI_SINH_SCAN_CAP);
+      chuaBas = collectChuaPhanTichBaKeysFromScan({
+        viSinhRows: posRows || [],
+        caseRows: caseRows || [],
+      });
     }
     if (!chuaBas.length) {
       return { success: true as const, data: [], totalCount: 0 };
     }
-    countQ = countQ.in("ma_benh_an", chuaBas);
-    dataQ = dataQ.in("ma_benh_an", chuaBas);
+    if (chuaBas.length <= CHUA_PT_BA_CHUNK) {
+      countQ = countQ.in("ma_benh_an", chuaBas);
+      dataQ = dataQ.in("ma_benh_an", chuaBas);
+    } else {
+      const chunks = chunkStrings(chuaBas, CHUA_PT_BA_CHUNK);
+      const orFilter = chunks.map((c) => `ma_benh_an.in.(${c.join(",")})`).join(",");
+      countQ = countQ.or(orFilter);
+      dataQ = dataQ.or(orFilter);
+    }
   }
+
   if (khoaId) {
     countQ = countQ.eq("khoa_dieu_tri_id", khoaId);
     dataQ = dataQ.eq("khoa_dieu_tri_id", khoaId);

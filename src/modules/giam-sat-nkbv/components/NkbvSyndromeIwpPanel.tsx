@@ -412,6 +412,9 @@ export default function NkbvSyndromeIwpPanel({
       devicePlacedDate: devicePlacedFromBa,
       deviceRemovedDate: null,
       localizedSite: draft.bsiLocalizedSite,
+      ancWbcLt500Ge2d: Boolean(draft.bsiMbi?.anc_wbc_lt_500_ge_2d),
+      hasHsctOrGvhd: Boolean(draft.bsiMbi?.has_hsct_or_gvhd),
+      hasSevereDiarrheaMbi: Boolean(draft.bsiMbi?.has_severe_diarrhea_mbi),
     });
   }, [
     panel,
@@ -423,6 +426,7 @@ export default function NkbvSyndromeIwpPanel({
     doeProbeNsk,
     isInfant,
     draft.bsiLocalizedSite,
+    draft.bsiMbi,
     ngayVaoVien,
     ngayRaVien,
   ]);
@@ -564,6 +568,9 @@ export default function NkbvSyndromeIwpPanel({
       devicePlacedDate: devicePlacedFromBa,
       deviceRemovedDate: null,
       localizedSite: draft.bsiLocalizedSite,
+      ancWbcLt500Ge2d: Boolean(draft.bsiMbi?.anc_wbc_lt_500_ge_2d),
+      hasHsctOrGvhd: Boolean(draft.bsiMbi?.has_hsct_or_gvhd),
+      hasSevereDiarrheaMbi: Boolean(draft.bsiMbi?.has_severe_diarrhea_mbi),
     });
   }, [
     panel,
@@ -575,6 +582,7 @@ export default function NkbvSyndromeIwpPanel({
     session.nsk,
     isInfant,
     draft.bsiLocalizedSite,
+    draft.bsiMbi,
     ngayVaoVien,
     ngayRaVien,
   ]);
@@ -839,7 +847,13 @@ export default function NkbvSyndromeIwpPanel({
 
   const toggleAbutiBlood = (id: string) => {
     if (!allowedEdit || panel !== "UTI") return;
-    const ids = draft.bloodCriterionIds.includes(id)
+    const wasOn = draft.bloodCriterionIds.includes(id);
+    if (!wasOn) {
+      const row = bloodXn.find((b) => b.id === id);
+      const inIwp = Boolean(row && session.iwpDates.has(row.ngay.slice(0, 10)));
+      if (!inIwp) return;
+    }
+    const ids = wasOn
       ? draft.bloodCriterionIds.filter((x) => x !== id)
       : [...draft.bloodCriterionIds, id];
     onDraftChange({ bloodCriterionIds: ids });
@@ -1104,6 +1118,59 @@ export default function NkbvSyndromeIwpPanel({
               ))}
             </div>
           ) : null}
+          {panel === "BSI" ? (
+            <div className="flex max-w-[28rem] flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-700">
+              <span className="font-semibold text-rose-900">MBI:</span>
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={Boolean(draft.bsiMbi?.anc_wbc_lt_500_ge_2d)}
+                  disabled={!allowedEdit}
+                  onChange={(e) =>
+                    onDraftChange({
+                      bsiMbi: {
+                        ...(draft.bsiMbi || {}),
+                        anc_wbc_lt_500_ge_2d: e.target.checked,
+                      },
+                    })
+                  }
+                />
+                ANC/WBC &lt;500 ≥2 ngày
+              </label>
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={Boolean(draft.bsiMbi?.has_hsct_or_gvhd)}
+                  disabled={!allowedEdit}
+                  onChange={(e) =>
+                    onDraftChange({
+                      bsiMbi: {
+                        ...(draft.bsiMbi || {}),
+                        has_hsct_or_gvhd: e.target.checked,
+                      },
+                    })
+                  }
+                />
+                HSCT / GVHD
+              </label>
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={Boolean(draft.bsiMbi?.has_severe_diarrhea_mbi)}
+                  disabled={!allowedEdit}
+                  onChange={(e) =>
+                    onDraftChange({
+                      bsiMbi: {
+                        ...(draft.bsiMbi || {}),
+                        has_severe_diarrhea_mbi: e.target.checked,
+                      },
+                    })
+                  }
+                />
+                Tiêu chảy nặng
+              </label>
+            </div>
+          ) : null}
           {!criteriaMetForKetLuan &&
           draft.eventDisposition?.kind !== "BELONGS_PRIOR_EVENT" &&
           draft.eventDisposition?.kind !== "SECONDARY_BSI" ? (
@@ -1248,11 +1315,16 @@ export default function NkbvSyndromeIwpPanel({
         </div>
       ) : null}
 
-      {panel === "UTI" && bloodInSbap.length > 0 ? (
+      {panel === "UTI" && (bloodInIwp.length > 0 || bloodInSbap.length > 0) ? (
         <div className="mt-2 rounded-lg border border-sky-200 bg-sky-50 px-2 py-1.5 text-[11px] text-sky-950">
-          <strong>Cấy máu ∈ SBAP — ABUTI / Secondary (không nấm):</strong>
+          {bloodInIwp.length > 0 ? (
+            <strong>Cấy máu ∈ IWP — ABUTI (không nấm):</strong>
+          ) : (
+            <strong>Cấy máu ∈ SBAP ngoài IWP — chỉ xét Secondary sau SUTI, không đủ ABUTI:</strong>
+          )}
           <ul className="mt-1 space-y-1">
-            {bloodInSbap.map((b) => {
+            {(bloodInIwp.length > 0 ? bloodInIwp : bloodInSbap).map((b) => {
+              const inIwp = session.iwpDates.has(b.ngay.slice(0, 10));
               const on = draft.bloodCriterionIds.includes(b.id);
               const v = sbsiVerdicts.find((x) => x.bloodId === b.id);
               return (
@@ -1261,12 +1333,13 @@ export default function NkbvSyndromeIwpPanel({
                     <input
                       type="checkbox"
                       checked={on}
-                      disabled={!allowedEdit}
+                      disabled={!allowedEdit || !inIwp}
                       onChange={() => toggleAbutiBlood(b.id)}
                     />
                     <span>
                       {b.ngay} · {b.vi_khuan}
                       {b.so_luong ? ` · SL ${b.so_luong}` : ""}
+                      {!inIwp ? " · ngoài IWP" : ""}
                     </span>
                   </label>
                   {v ? (
@@ -1293,6 +1366,12 @@ export default function NkbvSyndromeIwpPanel({
               );
             })}
           </ul>
+          {bloodInIwp.length > 0 &&
+          bloodInSbap.some((b) => !session.iwpDates.has(b.ngay.slice(0, 10))) ? (
+            <p className="mt-1 text-[11px] text-sky-900">
+              Máu ∈ SBAP ngoài IWP chỉ xét Secondary sau SUTI — không tick ABUTI.
+            </p>
+          ) : null}
         </div>
       ) : null}
 
