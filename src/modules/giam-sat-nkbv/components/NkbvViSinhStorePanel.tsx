@@ -20,7 +20,6 @@ import {
   updateNkbvViSinhStoreRecord,
   type NkbvViSinhStoreRow,
 } from "../actions/giam-sat-nkbv-vi-sinh-store.actions";
-import { createLabidEventFromViSinh } from "../actions/giam-sat-nkbv-labid.actions";
 import type { NkbvViSinhKetQua } from "../lib/nkbv-vi-sinh-template";
 import {
   NKBV_MDRO_PHENOTYPE_LABELS,
@@ -266,21 +265,6 @@ export default function NkbvViSinhStorePanel({
     }
     toast.success(next ? "Đã đánh dấu đa kháng" : "Đã bỏ đánh dấu đa kháng");
     void reload();
-  };
-
-  const onCreateLabid = async (r: NkbvViSinhStoreRow) => {
-    if (!r.is_mdro && !r.mdro_phenotype) {
-      toast.message("Đánh dấu MDRO/phenotype trước khi tạo LabID Event");
-      return;
-    }
-    setBusyId(r.id);
-    const res = await createLabidEventFromViSinh(r.id);
-    setBusyId(null);
-    if (!res.success) {
-      toast.error(res.error || "Không tạo được LabID");
-      return;
-    }
-    // createLabidEventFromViSinh hiện chỉ trả {success:false}; không đọc verdict trên nhánh đó.
   };
 
   const ketQuaLabel = (k: string | null) => {
@@ -589,17 +573,6 @@ export default function NkbvViSinhStorePanel({
                           >
                             <Activity className="h-3 w-3" /> Phân tích
                           </Link>
-                        ) : null}
-                        {r.is_mdro ? (
-                          <button
-                            type="button"
-                            disabled={busyId === r.id}
-                            onClick={() => void onCreateLabid(r)}
-                            className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-800"
-                            title="Tạo LabID Event NHSN từ XN này"
-                          >
-                            LabID
-                          </button>
                         ) : null}
                         <button
                           type="button"

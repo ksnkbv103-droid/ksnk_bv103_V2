@@ -163,6 +163,11 @@ export default function NkbvDashboardPanel({
         </p>
       )}
 
+      <p className="rounded-[var(--radius-shell)] border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-950">
+        Tỷ lệ CAUTI / CLABSI / VAE trên bảng này lấy từ sổ mẫu số khoa (ngày nằm viện / ngày dụng cụ đã nộp),
+        không đếm từ lưới bệnh án từng ca. SIR chuẩn hoá CDC chưa mở — số SIR nếu có là thô.
+      </p>
+
       <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-b border-slate-100 pb-2">
         {[
           {

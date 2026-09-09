@@ -10,4 +10,5 @@ export * from "./giam-sat-nkbv-ba-ngay.actions";
 export * from "./giam-sat-nkbv-ba-timeline.actions";
 export * from "./giam-sat-nkbv-vi-sinh-store.actions";
 export * from "./giam-sat-nkbv-ba-analysis.actions";
+export * from "./giam-sat-nkbv-ba-phan-tich.actions";
 export * from "./giam-sat-nkbv-labid.actions";

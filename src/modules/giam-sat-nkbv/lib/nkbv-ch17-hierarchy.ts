@@ -129,6 +129,7 @@ export function resolveCh17Hierarchy(ctx: Ch17HierarchyContext): Ch17HierarchyRe
     "VASC",
     "DISC",
     "JNT",
+    "USI",
   ];
   for (const p of priority) {
     if (set.has(p)) {

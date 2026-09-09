@@ -23,7 +23,6 @@ import { useModulePermission } from "@/hooks/useModulePermission";
 import { useGenerateMa } from "@/hooks/useGenerateMa";
 import { useServerPaginatedTable, type ServerPaginationParams } from "@/hooks/use-server-paginated-table";
 import {
-  createGiamSatNkbvCa,
   ensureNkbvBaAnalysisCase,
   getNkbvFormDmBundle,
   getGiamSatNkbvCaById,
@@ -36,22 +35,49 @@ import {
 } from "../actions/giam-sat-nkbv.actions";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
 import dynamic from "next/dynamic";
-import NkbvCaseEditor, { type NkbvCaseLike } from "../components/NkbvCaseEditor";
-import NkbvViSinhImportPortal from "../components/NkbvViSinhImportPortal";
-import NkbvBenhAnImportPortal from "../components/NkbvBenhAnImportPortal";
-import NkbvBenhAnEditModal from "../components/NkbvBenhAnEditModal";
-import NkbvBenhAnHubPanel from "../components/NkbvBenhAnHubPanel";
-import NkbvMdroCensusPanel from "../components/NkbvMdroCensusPanel";
-import NkbvMauSoDailyPortal from "../components/NkbvMauSoDailyPortal";
+import type { NkbvCaseLike } from "../components/NkbvCaseEditor";
 import NkbvCdcLocationBanner from "../components/NkbvCdcLocationBanner";
 import type { NkbvDashboardPayload } from "../lib/nkbv-dashboard-aggregate";
-import NkbvClinicalChecklistModal from "../components/NkbvClinicalChecklistModal";
 import { formatNkbvLoaiDisplay } from "../lib/nkbv-loai-labels";
 import { classifyEntityQr } from "@/lib/entity-qr/entity-qr-core";
 
+const tabPulse = () => (
+  <div className="h-56 animate-pulse rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/90" />
+);
+const modalPulse = () => (
+  <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/10">
+    <div className="h-24 w-48 animate-pulse rounded-xl border border-slate-200 bg-white" />
+  </div>
+);
+
+/** Secondary tabs / modals / Hub — off default «cases» first-paint chunk. */
 const NkbvDashboardPanel = dynamic(() => import("../components/NkbvDashboardPanel"), {
-  ssr: false,
-  loading: () => <div className="h-56 animate-pulse rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/90" />,
+  loading: tabPulse,
+});
+const NkbvViSinhImportPortal = dynamic(() => import("../components/NkbvViSinhImportPortal"), {
+  loading: tabPulse,
+});
+const NkbvMauSoDailyPortal = dynamic(() => import("../components/NkbvMauSoDailyPortal"), {
+  loading: tabPulse,
+});
+const NkbvMdroCensusPanel = dynamic(() => import("../components/NkbvMdroCensusPanel"), {
+  loading: tabPulse,
+});
+const NkbvBenhAnImportPortal = dynamic(() => import("../components/NkbvBenhAnImportPortal"), {
+  loading: tabPulse,
+});
+const NkbvCaseEditor = dynamic(() => import("../components/NkbvCaseEditor"), {
+  loading: modalPulse,
+});
+const NkbvClinicalChecklistModal = dynamic(
+  () => import("../components/NkbvClinicalChecklistModal"),
+  { loading: modalPulse },
+);
+const NkbvBenhAnHubPanel = dynamic(() => import("../components/NkbvBenhAnHubPanel"), {
+  loading: modalPulse,
+});
+const NkbvBenhAnEditModal = dynamic(() => import("../components/NkbvBenhAnEditModal"), {
+  loading: modalPulse,
 });
 
 const MODULE_KEY = "GIAM_SAT_NKBV";
@@ -127,7 +153,7 @@ export default function GiamSatNkbvPage() {
   const [draft, setDraft] = useState<NkbvCaseLike | null>(null);
   const [checklistOpen, setChecklistOpen] = useState(false);
   const [checklistCase, setChecklistCase] = useState<NkbvTableRow | null>(null);
-  const [mainTab, setMainTab] = useState<NkbvMainTab>("cases");
+  const [mainTab, setMainTab] = useState<NkbvMainTab>("records");
   const [dashTu, setDashTu] = useState(() => bv103DefaultTuNgayFromToday());
   const [dashDen, setDashDen] = useState(() => todayYmdInVn());
   const [dashPayload, setDashPayload] = useState<NkbvDashboardPayload | null>(null);
@@ -214,7 +240,7 @@ export default function GiamSatNkbvPage() {
     (next: { tab?: NkbvMainTab; tu?: string; den?: string; khoa?: string }) => {
       const q = new URLSearchParams(searchParams.toString());
       const tab = next.tab ?? mainTab;
-      if (tab === "cases") q.delete("tab");
+      if (tab === "records") q.delete("tab");
       else q.set("tab", tab);
       if (tab === "dashboard") {
         const tu = next.tu ?? dashTu;
@@ -240,8 +266,8 @@ export default function GiamSatNkbvPage() {
 
   const supervisionTabs = useMemo(
     () => [
+      { id: "records", label: "Hàng đợi bệnh án", icon: HeartPulse },
       { id: "cases", label: "Danh sách phiếu", icon: LayoutList },
-      { id: "records", label: "Hồ sơ Bệnh án", icon: HeartPulse },
       { id: "vi-sinh", label: "Cổng Vi sinh LIS", icon: FileSpreadsheet },
       { id: "mau-so", label: "Nộp Mẫu số", icon: Activity },
       { id: "dashboard", label: "Thống kê", icon: BarChart3 },
@@ -275,7 +301,7 @@ export default function GiamSatNkbvPage() {
   const [recordsSearch, setRecordsSearch] = useState("");
   const [recordsInpatientOnly, setRecordsInpatientOnly] = useState(false);
   const [recordsDevicePriority, setRecordsDevicePriority] = useState(false);
-  const [recordsChuaPtOnly, setRecordsChuaPtOnly] = useState(false);
+  const [recordsChuaPtOnly, setRecordsChuaPtOnly] = useState(true);
   const [recordsKhoaId, setRecordsKhoaId] = useState("");
 
   const fetchRecords = useCallback(async () => {
@@ -746,35 +772,18 @@ export default function GiamSatNkbvPage() {
             </>
           ) : null}
         </div>
-        {mainTab === "cases" && allowed.create ? (
-          <button
-            type="button"
-            disabled={!loaiRows.length || !ttRows.length}
-            title={!loaiRows.length || !ttRows.length ? "Đang tải danh mục…" : undefined}
-            onClick={() => {
-              setDraft(null);
-              setEditorOpen(true);
-            }}
-            className={`${C.ctaPrimary} disabled:opacity-50`}
-          >
-            <Plus className="h-4 w-4" /> Phiếu mới
-          </button>
-        ) : null}
         {mainTab === "records" && allowed.create ? (
           <button
             type="button"
-            disabled={!loaiRows.length || !ttRows.length}
             onClick={() => {
-              setDraft({
+              setEditStay({
                 ma_benh_an: "",
                 ma_benh_nhan: "",
                 ho_ten_benh_nhan: "",
-                ngay_sinh: "",
-                gioi_tinh: "",
                 ngay_vao_vien: new Date().toISOString().slice(0, 10),
-                khoa_ghi_nhan_id: header.selectedKhoa || "",
+                khoa_dieu_tri_id: header.selectedKhoa || "",
+                __createStay: true,
               });
-              setEditorOpen(true);
             }}
             className={C.ctaPrimary}
           >
@@ -943,6 +952,10 @@ export default function GiamSatNkbvPage() {
             </KsnkSupervisionPanel>
           ) : null}
           <div className="min-w-0 space-y-3">
+            <p className="rounded-[var(--radius-shell)] border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+              Vào đây là hàng đợi bệnh án. Mặc định chỉ hiện bệnh án còn xét nghiệm dương chưa phân tích.
+              Mở Hub → chọn xét nghiệm → Tạo phiếu hoặc Bỏ qua. Tab danh sách phiếu chỉ tra cứu phiếu đã chốt.
+            </p>
             <div className="flex flex-wrap items-end gap-3">
               <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
                 <input
@@ -1021,7 +1034,7 @@ export default function GiamSatNkbvPage() {
         </div>
       ) : null}
 
-      {editorOpen && loaiRows.length > 0 && ttRows.length > 0 && (draft?.id ? allowed.edit : allowed.create) ? (
+      {editorOpen && draft?.id && loaiRows.length > 0 && ttRows.length > 0 && allowed.edit ? (
         <NkbvCaseEditor
           row={draft}
           onClose={() => setEditorOpen(false)}
@@ -1031,9 +1044,7 @@ export default function GiamSatNkbvPage() {
           defaultTrangThaiId={defaultTrangThaiId}
           maTuDong={maTuDong}
           onSubmit={async (payload) => {
-            const res = draft?.id
-              ? await updateGiamSatNkbvCa(String(draft.id), payload)
-              : await createGiamSatNkbvCa(payload);
+            const res = await updateGiamSatNkbvCa(String(draft.id), payload);
             if (res.success) {
               toast.success("Đã lưu");
               setEditorOpen(false);
@@ -1093,18 +1104,6 @@ export default function GiamSatNkbvPage() {
               setChecklistOpen(true);
             })();
           }}
-          onCreateCase={(stay) => {
-            setDraft({
-              ma_benh_an: String(stay.ma_benh_an || ""),
-              ma_benh_nhan: String(stay.ma_benh_nhan || ""),
-              ho_ten_benh_nhan: String(stay.ho_ten_benh_nhan || ""),
-              ngay_sinh: stay.ngay_sinh ? String(stay.ngay_sinh).slice(0, 10) : "",
-              gioi_tinh: String(stay.gioi_tinh || ""),
-              ngay_vao_vien: stay.ngay_vao_vien ? String(stay.ngay_vao_vien).slice(0, 10) : "",
-              khoa_ghi_nhan_id: String(stay.khoa_dieu_tri_id || header.selectedKhoa || ""),
-            });
-            setEditorOpen(true);
-          }}
           onCaseMutated={() => {
             void refresh();
             void fetchRecords();
@@ -1145,7 +1144,7 @@ export default function GiamSatNkbvPage() {
         />
       ) : null}
 
-      {editStay && allowed.edit ? (
+      {editStay && (allowed.edit || (allowed.create && !String(editStay.ma_benh_an || "").trim())) ? (
         <NkbvBenhAnEditModal
           stay={{
             ma_benh_an: String(editStay.ma_benh_an || ""),

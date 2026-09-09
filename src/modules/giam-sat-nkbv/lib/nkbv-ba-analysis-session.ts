@@ -1,5 +1,6 @@
 /**
- * Phiên phân tích BA — nháp localStorage (không bảng summary DB).
+ * Phiên phân tích BA — nháp.
+ * Cache trình duyệt + bảng `nkbv_fact_ba_phan_tich` (máy chủ).
  * Key tách theo chế độ CDC | MANUAL để không lẫn draft KL.
  */
 
@@ -234,6 +235,80 @@ export function pruneBaAnalysisSessions(
   );
   saveBaAnalysisSessions(maBenhAn, list, mode);
   return list;
+}
+
+function sessionUpdatedMs(s: BaAnalysisSession): number {
+  const t = Date.parse(s.updatedAt || s.createdAt || "");
+  return Number.isFinite(t) ? t : 0;
+}
+
+/** Máy chủ thắng khi cùng id và updatedAt mới hơn hoặc bằng. */
+export function mergeBaAnalysisSessions(
+  server: BaAnalysisSession[],
+  local: BaAnalysisSession[],
+): BaAnalysisSession[] {
+  const byId = new Map<string, BaAnalysisSession>();
+  for (const s of local) {
+    if (s?.id) byId.set(s.id, s);
+  }
+  for (const s of server) {
+    if (!s?.id) continue;
+    const prev = byId.get(s.id);
+    if (!prev || sessionUpdatedMs(s) >= sessionUpdatedMs(prev)) {
+      byId.set(s.id, s);
+    }
+  }
+  return [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
+}
+
+export function sessionsFromDbRows(
+  rows: Array<{
+    session_id?: string;
+    panel?: string;
+    index_payload?: unknown;
+    index_label?: string;
+    draft?: unknown;
+    created_at?: string;
+    updated_at?: string;
+  }>,
+): BaAnalysisSession[] {
+  const out: BaAnalysisSession[] = [];
+  for (const r of rows) {
+    const id = String(r.session_id || "").trim();
+    const index = r.index_payload && typeof r.index_payload === "object"
+      ? (r.index_payload as BaAnalysisSession["index"])
+      : null;
+    if (!id || !index?.id || !index.date) continue;
+    out.push({
+      id,
+      panel: String(r.panel || "UTI") as BaAnalysisSession["panel"],
+      index,
+      indexLabel: String(r.index_label || ""),
+      createdAt: String(r.created_at || new Date().toISOString()),
+      updatedAt: String(r.updated_at || new Date().toISOString()),
+      draft: {
+        ...emptyDraft(),
+        ...(r.draft && typeof r.draft === "object" ? (r.draft as Partial<BaAnalysisSessionDraft>) : {}),
+      },
+    });
+  }
+  return out;
+}
+
+export function sessionToDbRow(
+  s: BaAnalysisSession,
+  maBenhAn: string,
+  mode: BaAnalysisMode,
+) {
+  return {
+    ma_benh_an: maBenhAn,
+    session_id: s.id,
+    analysis_mode: mode,
+    panel: s.panel,
+    index_payload: s.index,
+    index_label: s.indexLabel,
+    draft: s.draft,
+  };
 }
 
 export function formatSessionChipLabel(s: BaAnalysisSession): string {

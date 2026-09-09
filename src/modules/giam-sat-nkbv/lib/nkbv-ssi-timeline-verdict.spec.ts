@@ -21,7 +21,36 @@ describe("nkbv-ssi-timeline-verdict", () => {
       ssiSurveillancePeriodDays("DEEP", { procedureCode: "KPRO" }),
     ).toBe(90);
     expect(ssiSurveillancePeriodDays("ORGAN_SPACE", true)).toBe(90);
-    expect(ssiSpEndDate("2026-07-01", "SUPERFICIAL", false)).toBe("2026-07-31");
+    expect(ssiSpEndDate("2026-07-01", "SUPERFICIAL", false)).toBe("2026-07-30");
+  });
+
+  it("Ngày mổ = ngày 1: mủ ngày 30 còn trong SP; ngày 31 hết hạn", () => {
+    const surgery = "2026-07-01";
+    const lastIn = buildSsiTimelineVerdict({
+      surgeryDate: surgery,
+      tieuChuanByDate: {
+        "2026-07-30": [{ key: "purulent_drainage", label: "Chảy mủ" }],
+      },
+      cdha: [],
+      bloodXn: [],
+      ssiDepth: "SUPERFICIAL",
+      ssiEventType: "SIP",
+    });
+    expect(lastIn.result.classification).toBe("SIP");
+    expect(lastIn.criteriaMet).toBe(true);
+
+    const day31 = buildSsiTimelineVerdict({
+      surgeryDate: surgery,
+      tieuChuanByDate: {
+        "2026-07-31": [{ key: "purulent_drainage", label: "Chảy mủ" }],
+      },
+      cdha: [],
+      bloodXn: [],
+      ssiDepth: "SUPERFICIAL",
+      ssiEventType: "SIP",
+    });
+    expect(day31.result.classification).toBe("EXPIRED");
+    expect(day31.criteriaMet).toBe(false);
   });
 
   it("DOE = sớm nhất phần tử chẩn đoán ∈ SP; không lấy ngày mổ đơn thuần", () => {

@@ -17,7 +17,7 @@ export type Ch17Criterion = {
   node: Ch17Node;
 };
 
-export type Ch17Group = "BJ" | "CNS" | "CVS" | "GI" | "LRI" | "REPR" | "EENT" | "SST";
+export type Ch17Group = "BJ" | "CNS" | "CVS" | "GI" | "LRI" | "REPR" | "EENT" | "SST" | "USI";
 
 export type Ch17TypeDef = {
   code: string;

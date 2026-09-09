@@ -20,103 +20,13 @@ import { extractSsiReportingSlice } from "../lib/nkbv-ssi-reporting-contract";
 import { stripCopiedStayFieldsFromVerification } from "../lib/nkbv-ba-ngay";
 import { clean, validateLoaiTrangAndLyDo, type Payload } from "./giam-sat-nkbv-write.helpers";
 
-export async function createGiamSatNkbvCa(payload: Payload) {
+export async function createGiamSatNkbvCa(_payload: Payload) {
   await verifyPermission("GIAM_SAT_NKBV", "create");
-
-  const cleaned = clean(payload);
-  const parsed = giamSatNkbvCaSchema.safeParse(cleaned);
-  if (!parsed.success) {
-    return { success: false as const, error: "Dữ liệu không hợp lệ: " + parsed.error.issues.map((e) => e.message).join(", ") };
-  }
-
-  const supabase = createAdminSupabaseClient();
-  const raw = cleaned;
-  if (!String(raw.ma_ca ?? "").trim()) return { success: false as const, error: "Mã phiếu không được để trống" };
-  if (!String(raw.ho_ten_benh_nhan ?? "").trim()) return { success: false as const, error: "Họ tên bệnh nhân không được để trống" };
-
-  raw.khoa_ghi_nhan_id = await normalizeAndValidateDmKhoaPhong({
-    supabase,
-    idRaw: raw.khoa_ghi_nhan_id,
-    fieldLabel: "Khoa ghi nhận",
-    activeOnly: true,
-  });
-  if (!raw.loai_nkbv_id || !raw.trang_thai_id) return { success: false as const, error: "Vui lòng chọn loại NKBV và trạng thái phiếu" };
-
-  try {
-    await validateLoaiTrangAndLyDo(supabase, String(raw.loai_nkbv_id), String(raw.trang_thai_id), raw.ly_do_loai_tru);
-    
-    const actorNhanSuId = await getActorNhanSuId();
-    const finalNguoiGhiId = raw.nguoi_ghi_id || actorNhanSuId;
-    
-    if (finalNguoiGhiId != null && String(finalNguoiGhiId).trim() !== "") {
-      raw.nguoi_ghi_id = await normalizeHoSoNhanVienOptionalOrThrow(supabase, finalNguoiGhiId, "Người ghi");
-    } else raw.nguoi_ghi_id = null;
-
-    // 1. Ensure stay exists in nkbv_fact_benh_an first
-    const cleanMaBenhAn = String(raw.ma_benh_an || `BA-TEMP-${raw.ma_benh_nhan || 'UNKNOWN'}`).trim();
-    const { data: existingStay } = await supabase
-      .from("nkbv_fact_benh_an")
-      .select("id")
-      .eq("ma_benh_an", cleanMaBenhAn)
-      .eq("is_active", true)
-      .maybeSingle();
-
-    if (!existingStay) {
-      const stayRow = {
-        ma_benh_an: cleanMaBenhAn,
-        ma_benh_nhan: String(raw.ma_benh_nhan || "PID-UNKNOWN").trim(),
-        ho_ten_benh_nhan: String(raw.ho_ten_benh_nhan).trim(),
-        ngay_sinh: raw.ngay_sinh ?? null,
-        gioi_tinh: raw.gioi_tinh ?? null,
-        ngay_vao_vien: raw.ngay_vao_vien ? new Date(String(raw.ngay_vao_vien)).toISOString() : new Date().toISOString(),
-        khoa_dieu_tri_id: raw.khoa_ghi_nhan_id || null,
-        is_active: true,
-      };
-      const { error: stayErr } = await supabase
-        .from("nkbv_fact_benh_an")
-        .insert(stayRow);
-      if (stayErr) throw stayErr;
-    }
-
-    const insertRow = {
-      ma_ca: String(raw.ma_ca).trim(),
-      khoa_ghi_nhan_id: raw.khoa_ghi_nhan_id,
-      ma_benh_nhan: String(raw.ma_benh_nhan || "PID-UNKNOWN").trim(),
-      ho_ten_benh_nhan: String(raw.ho_ten_benh_nhan).trim(),
-      ngay_sinh: raw.ngay_sinh ?? null,
-      gioi_tinh: raw.gioi_tinh ?? null,
-      ngay_vao_vien: raw.ngay_vao_vien ?? null,
-      ngay_phat_hien: raw.ngay_phat_hien || new Date().toISOString().slice(0, 10),
-      vi_tri_nhiem_khuan: raw.vi_tri_nhiem_khuan ?? null,
-      tac_nhan_vi_khuan: raw.tac_nhan_vi_khuan ?? null,
-      clinical_notes: {
-        tom_tat_dien_bien: raw.tom_tat_dien_bien ?? (raw.clinical_notes as any)?.tom_tat_dien_bien ?? null,
-        bien_phap_phong_ngua: raw.bien_phap_phong_ngua ?? (raw.clinical_notes as any)?.bien_phap_phong_ngua ?? null,
-        ly_do_loai_tru: raw.ly_do_loai_tru ?? (raw.clinical_notes as any)?.ly_do_loai_tru ?? null,
-      },
-      vi_sinh_record_id: raw.vi_sinh_record_id ?? null,
-      verification_data: stripCopiedStayFieldsFromVerification(
-        (raw.verification_data && typeof raw.verification_data === "object"
-          ? (raw.verification_data as Record<string, unknown>)
-          : {}) as Record<string, unknown>,
-      ),
-      loai_nkbv_id: String(raw.loai_nkbv_id),
-      trang_thai_id: String(raw.trang_thai_id),
-      nguoi_ghi_id: raw.nguoi_ghi_id ?? null,
-      ma_benh_an: cleanMaBenhAn,
-      ma_benh_pham: raw.ma_benh_pham ?? null,
-      loai_benh_pham: raw.loai_benh_pham ?? null,
-      so_luong: raw.so_luong ?? null,
-      is_active: true,
-    };
-
-    const { data, error } = await supabase.from("nkbv_fact_su_kien").insert(insertRow).select().single();
-    if (error) return { success: false as const, error: error.message };
-    revalidatePath("/giam-sat-nkbv");
-    return { success: true as const, data };
-  } catch (e: unknown) {
-    return { success: false as const, error: e instanceof Error ? e.message : "Lỗi lưu" };
-  }
+  return {
+    success: false as const,
+    error:
+      "Phiếu mới chỉ tạo từ Hub bệnh án sau khi phân tích (nút Tạo phiếu). Không tạo phiếu trống từ danh sách.",
+  };
 }
 
 /** Cập nhật phiếu sự kiện nhiễm khuẩn (ghi nhận / đổi trạng thái…). */
@@ -587,6 +497,78 @@ export async function updateNkbvBenhAnStay(input: {
     return { success: true as const, data };
   } catch (e: unknown) {
     return { success: false as const, error: e instanceof Error ? e.message : "Lỗi cập nhật hồ sơ bệnh án" };
+  }
+}
+
+/** Tạo đợt nằm viện — không tạo phiếu HAI. */
+export async function createNkbvBenhAnStay(input: {
+  ma_benh_an: string;
+  ma_benh_nhan: string;
+  ho_ten_benh_nhan: string;
+  ngay_sinh?: string | null;
+  gioi_tinh?: string | null;
+  ngay_vao_vien: string;
+  khoa_dieu_tri_id?: string | null;
+}) {
+  await verifyPermission("GIAM_SAT_NKBV", "create");
+  const ma = String(input.ma_benh_an || "").trim();
+  const bn = String(input.ma_benh_nhan || "").trim();
+  const ten = String(input.ho_ten_benh_nhan || "").trim();
+  const vv = String(input.ngay_vao_vien || "").slice(0, 10);
+  if (!ma) return { success: false as const, error: "Thiếu mã bệnh án" };
+  if (!bn) return { success: false as const, error: "Thiếu mã bệnh nhân" };
+  if (!ten) return { success: false as const, error: "Thiếu họ tên" };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(vv)) {
+    return { success: false as const, error: "Ngày vào viện không hợp lệ" };
+  }
+
+  const supabase = createAdminSupabaseClient();
+  try {
+    const { data: existing } = await supabase
+      .from("nkbv_fact_benh_an")
+      .select("id")
+      .eq("ma_benh_an", ma)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (existing) {
+      return { success: false as const, error: "Mã bệnh án đã có — không tạo trùng, không đè hồ sơ." };
+    }
+
+    let khoaId: string | null = null;
+    if (input.khoa_dieu_tri_id) {
+      khoaId = await normalizeAndValidateDmKhoaPhong({
+        supabase,
+        idRaw: input.khoa_dieu_tri_id,
+        fieldLabel: "Khoa điều trị",
+        activeOnly: true,
+      });
+    }
+
+    const { data, error } = await supabase
+      .from("nkbv_fact_benh_an")
+      .insert({
+        ma_benh_an: ma,
+        ma_benh_nhan: bn,
+        ho_ten_benh_nhan: ten,
+        ngay_sinh: input.ngay_sinh ? String(input.ngay_sinh).slice(0, 10) : null,
+        gioi_tinh: input.gioi_tinh ? String(input.gioi_tinh).trim() : null,
+        ngay_vao_vien: new Date(`${vv}T12:00:00`).toISOString(),
+        khoa_dieu_tri_id: khoaId,
+        is_active: true,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    if (khoaId) {
+      await supabase.from("nkbv_fact_ba_ngay_khoa").upsert(
+        { ma_benh_an: ma, ngay_lich: vv, khoa_id: khoaId, updated_at: new Date().toISOString() },
+        { onConflict: "ma_benh_an,ngay_lich" },
+      );
+    }
+    revalidatePath("/giam-sat-nkbv");
+    return { success: true as const, data };
+  } catch (e: unknown) {
+    return { success: false as const, error: e instanceof Error ? e.message : "Lỗi tạo hồ sơ bệnh án" };
   }
 }
 

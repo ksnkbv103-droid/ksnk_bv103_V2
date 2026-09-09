@@ -17,11 +17,11 @@
 | PNEU-AUDIT-A3 | PNEU | PNU3 bắt buộc hemoptysis/đau màng phổi | **Đóng 2026-08-18** — list rộng, không bắt buộc |
 | BSI-P0-1 | BSI | MBI đầy (ANC ≥2d trong IWP) nếu chỉ tick neutropenia | L2 MBI block |
 | UTI-P0-1 | UTI | — Core đủ pilot | Boy scout copy Ruled-out ASB · **xem lại audit:** [UTI 2026-08-10](uti-standard-vs-runtime-audit-20260810.md) |
-| UTI-AUDIT-A1 | UTI | CFU thiếu/`null` coi đạt (seed 1e5) | Fail closed — [audit](uti-standard-vs-runtime-audit-20260810.md) |
-| UTI-AUDIT-A2 | UTI | ABUTI máu UI ∈ SBAP; chuẩn ∈ IWP | Siết cửa sổ ABUTI = IWP |
-| UTI-AUDIT-A3 | UTI | Mọi yeast → CANDIDA_EXCLUSION; chuẩn bỏ yeast nếu còn 1 bacterium ≥1e5 | Tách yeast+bacterium |
-| UTI-AUDIT-A4 | UTI | pathogen_count BA chết (1 chuỗi VK) | Wire đa loài / mixed flora |
-| UTI-AUDIT-A5 | UTI | Secondary engine chủ yếu nhánh ABUTI | Set Secondary trên SUTI+máu SBAP |
+| UTI-AUDIT-A1 | UTI | CFU thiếu/`null` coi đạt (seed 1e5) | **Đóng 2026-09-09** — thiếu CFU không đạt |
+| UTI-AUDIT-A2 | UTI | ABUTI máu UI ∈ SBAP; chuẩn ∈ IWP | **Đóng 2026-09-09** — ABUTI chỉ máu ∈ IWP |
+| UTI-AUDIT-A3 | UTI | Mọi yeast → CANDIDA_EXCLUSION; chuẩn bỏ yeast nếu còn 1 bacterium ≥1e5 | **Đóng 2026-09-09** — bỏ nấm, xét vi khuẩn |
+| UTI-AUDIT-A4 | UTI | pathogen_count BA chết (1 chuỗi VK) | **Đóng 2026-09-09** — đếm loài / mixed flora |
+| UTI-AUDIT-A5 | UTI | Secondary engine chủ yếu nhánh ABUTI | **Đóng 2026-09-09** — SUTI + máu SBAP → Secondary |
 | VAE-P0-1 | VAE | — Core VAC/IVAC/PVAP đủ | Giữ Event Period copy |
 | SSI-P0-1 | SSI | — Core ngày mổ/PATOS/depth đủ | — |
 

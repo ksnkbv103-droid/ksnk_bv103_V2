@@ -568,7 +568,7 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
         ? "fallback implant 90 ngày (chưa chọn mã PT NHSN)"
         : "30 ngày (chưa chọn mã PT NHSN hoặc nông)";
 
-  if (days > limitDays) {
+  if (days >= limitDays) {
     return {
       is_positive: false,
       classification: "EXPIRED",

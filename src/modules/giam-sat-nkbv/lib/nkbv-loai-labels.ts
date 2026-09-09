@@ -85,6 +85,7 @@ const CODE_ALIASES: Record<string, NkbvChecklistTypeCode> = {
   EMET: "CH17",
   OREP: "CH17",
   VCUF: "CH17",
+  USI: "CH17",
   LOAI_TRU: "LOAI_TRU",
 };
 
@@ -120,6 +121,7 @@ export const NKBV_MDM_CODE_CANDIDATES: Record<
     "EMET",
     "OREP",
     "VCUF",
+    "USI",
   ],
 };
 

@@ -118,7 +118,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Spec term | Module | Bảng / thực thể thật | Ghi chú |
 |-----------|--------|---------------------|---------|
-| `HAI` / ca NKBV (ghi nhận BV103) | `giam-sat-nkbv` | **`nkbv_fact_benh_an`**, **`nkbv_fact_ba_ngay_khoa`**, **`nkbv_fact_ba_ngay_dung_cu`**, **`nkbv_v_ba_dung_cu_dat_rut`**, **`nkbv_fact_vi_sinh`**, **`nkbv_fact_su_kien`**, **`nkbv_fact_mau_so_daily`**, **`nkbv_fact_mau_so_phau_thuat`**; DM **`nkbv_dm_loai`**, **`nkbv_dm_trang_thai_ca`**, **`nkbv_dm_cdc_baseline`** | Route **`/giam-sat-nkbv`**, quyền **`GIAM_SAT_NKBV`**. Lưới ngày = SSOT khoa + Foley/máy/CVC. Đã DROP `nkbv_fact_device_registry`, `nkbv_fact_labid_event` (`20260827120000`). View compat: `dm_loai_nkbv`, `dm_trang_thai_nkbv_ca`, `fact_nkbv_*`. |
+| `HAI` / ca NKBV (ghi nhận BV103) | `giam-sat-nkbv` | **`nkbv_fact_benh_an`**, **`nkbv_fact_ba_ngay_khoa`**, **`nkbv_fact_ba_ngay_dung_cu`**, **`nkbv_v_ba_dung_cu_dat_rut`**, **`nkbv_fact_vi_sinh`**, **`nkbv_fact_ba_phan_tich`**, **`nkbv_fact_su_kien`**, **`nkbv_fact_mau_so_daily`**, **`nkbv_fact_mau_so_phau_thuat`**; DM **`nkbv_dm_loai`**, **`nkbv_dm_trang_thai_ca`**, **`nkbv_dm_cdc_baseline`** | Route **`/giam-sat-nkbv`**, quyền **`GIAM_SAT_NKBV`**. Lưới ngày = SSOT khoa + Foley/máy/CVC. Nháp Hub = `nkbv_fact_ba_phan_tich` (`20260909093000`). Đã DROP `nkbv_fact_device_registry`, `nkbv_fact_labid_event` (`20260827120000`). View compat: `dm_loai_nkbv`, `dm_trang_thai_nkbv_ca`, `fact_nkbv_*`. |
 | Loại NKBV / HAI | `giam-sat-nkbv` + hub danh mục | `nkbv_dm_loai` | Registry hub `LOAI_NKBV`. |
 | Trạng thái phiếu NKBV | `giam-sat-nkbv` + hub | `nkbv_dm_trang_thai_ca` | Registry hub `TRANG_THAI_NKBV_CA`. |
 
@@ -143,6 +143,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-09-09 | **NKBV phương án B — 3 lớp + một đường kết luận:** phiếu mới chỉ từ Hub (`createGiamSatNkbvCa` từ chối phiếu trống). Nháp phiên Hub lưu `nkbv_fact_ba_phan_tich` (`20260909093000`). Vá UTI A1–A5; CoNS cùng ngày không đủ LCBI-2; SSI ngày mổ = ngày 1. Tỷ lệ dashboard đọc sổ mẫu số khoa. Seed USI + engine Ch.17 người lớn (`20260909094500`). Ẩn nút LabID. |
 | 2026-09-07 | **VST biểu đồ khoa — ngưỡng 90/85:** thống kê vệ sinh tay tô vàng khi tuân thủ &lt;90%, đỏ khi &lt;85%; vạch tham chiếu 90% và 85%. GSC/BCTH giữ 80/70. Không đổi công thức KPI / mục tiêu viện. |
 | 2026-09-04 | **Phase 0 quyết định D1–D10 (dụng cụ):** chốt ngôn ngữ + 3 cửa + Move-only codes + legacy mã + ADMIN hard-write + BOM unique — SSOT [`domain-decisions-cssd-instrument.md`](domain-decisions-cssd-instrument.md). Không nhét bảng quyết định vào changelog này. |
 | 2026-09-04 | **CSSD rà soát catalog-only:** cửa Đổi danh mục chỉ `DOI_CHUAN` / `DOI_LOAI` / `THEM_DONG` / `XOA_DONG` (BOM_PENDING → ADMIN). `BO_SUNG` / `TRA_KHO` / `DIEU_CHUYEN` là move-only — server từ chối trên phiếu rà soát, UI bỏ Lấy kho / Trả kho / Điều chuyển. Hỏng/Mất vẫn ghi sổ ngay, không qua duyệt BOM. Cửa Chuyển (`InstrumentMoveDualTable`) giữ kho↔bộ / bộ↔bộ. Không đổi schema. |

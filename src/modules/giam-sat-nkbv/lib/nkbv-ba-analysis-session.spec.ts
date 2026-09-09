@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatSessionChipLabel,
+  mergeBaAnalysisSessions,
   sessionIdForIndex,
   type BaAnalysisSession,
 } from "./nkbv-ba-analysis-session";
@@ -29,5 +30,33 @@ describe("nkbv-ba-analysis-session", () => {
       },
     };
     expect(formatSessionChipLabel(s)).toBe("PNEU 20/7 · đờm");
+  });
+
+  it("merge: máy chủ thắng khi cùng id và mới hơn", () => {
+    const local: BaAnalysisSession = {
+      id: "UTI:a",
+      panel: "UTI",
+      index: { kind: "XN", id: "a", date: "2026-07-20" },
+      indexLabel: "cũ",
+      createdAt: "2026-07-20T00:00:00.000Z",
+      updatedAt: "2026-07-20T01:00:00.000Z",
+      draft: {
+        lamSang: {},
+        bloodCriterionIds: [],
+        ketLuan: "local",
+        notesByDate: {},
+        readyToChot: false,
+        canThiepDates: [],
+      },
+    };
+    const server: BaAnalysisSession = {
+      ...local,
+      indexLabel: "mới",
+      updatedAt: "2026-07-20T03:00:00.000Z",
+      draft: { ...local.draft, ketLuan: "server" },
+    };
+    const merged = mergeBaAnalysisSessions([server], [local]);
+    expect(merged).toHaveLength(1);
+    expect(merged[0]?.draft.ketLuan).toBe("server");
   });
 });

@@ -31,7 +31,8 @@ export default function NkbvCdcLocationBanner() {
       <p className="inline-flex items-start gap-2">
         <MapPin className="mt-0.5 h-4 w-4 shrink-0 opacity-70" aria-hidden />
         <span>
-          <strong>SIR trên màn này là số thô</strong> (mẫu số nhập tay) — chưa phải SIR chuẩn CDC.
+          <strong>Tỷ lệ đọc sổ mẫu số khoa</strong>, không suy từ lưới bệnh án.
+          SIR trên màn này là số thô — chưa phải SIR chuẩn CDC.
           {cov
             ? ` Đã gắn mã CDC Location: ${mapped}/${total} khoa đang dùng.`
             : " Đang tải mức map khoa…"}{" "}

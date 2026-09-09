@@ -11,6 +11,7 @@ describe("nkbv-chapter17-clinical", () => {
     expect(ch17OperationalSites()).toContain("MEN");
     expect(ch17OperationalSites()).toContain("EMET");
     expect(ch17OperationalSites()).toContain("VCUF");
+    expect(ch17OperationalSites()).toContain("USI");
   });
 
   it("IAB đạt khi có vi sinh dịch ổ bụng (IAB1)", () => {

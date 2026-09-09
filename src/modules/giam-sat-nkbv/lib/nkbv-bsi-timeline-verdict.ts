@@ -78,8 +78,8 @@ export function countCommensalBloodInIwp(
   );
   const dates = new Set(matches.map((b) => b.ngay.slice(0, 10)));
   return {
-    count: Math.max(matches.length, 1),
-    drawnSeparate: dates.size >= 2 || matches.length >= 2,
+    count: matches.length,
+    drawnSeparate: dates.size >= 2,
   };
 }
 

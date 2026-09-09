@@ -818,6 +818,43 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
   });
 
   describe("evaluateSsi", () => {
+    it("NHSN ngày mổ = ngày 1: elapsed 29 còn trong SP 30; elapsed 30 hết hạn", () => {
+      const base: SsiVerificationData = {
+        has_implant: false,
+        ssi_depth: "SUPERFICIAL",
+        ssi_event_type: "SIP",
+        superficial_purulent_drainage: true,
+        superficial_culture_positive: false,
+        superficial_opened_with_inflammation: false,
+        superficial_physician_diagnosis: false,
+        deep_purulent_drainage: false,
+        deep_dehisced_or_opened_with_symptoms: false,
+        deep_abscess_imaging_pathology: false,
+        organ_space_purulent_drainage: false,
+        organ_space_culture_positive: false,
+        organ_space_abscess_imaging_pathology: false,
+        has_blood_culture_positive: false,
+        blood_ssi_pathogen_matches: false,
+        loai_phau_thuat_nhsn: "COLO",
+      };
+      expect(
+        evaluateSsi({
+          ...base,
+          surgery_date: "2026-07-01",
+          doe_date: "2026-07-30",
+          days_since_surgery: 29,
+        }).classification,
+      ).toBe("SIP");
+      expect(
+        evaluateSsi({
+          ...base,
+          surgery_date: "2026-07-01",
+          doe_date: "2026-07-31",
+          days_since_surgery: 30,
+        }).classification,
+      ).toBe("EXPIRED");
+    });
+
     it("flags expired surveillance beyond 30 days for standard surgeries", () => {
       const data: SsiVerificationData = {
         days_since_surgery: 35,

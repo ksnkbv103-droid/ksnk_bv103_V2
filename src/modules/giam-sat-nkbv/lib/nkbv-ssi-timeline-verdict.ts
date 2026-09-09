@@ -53,8 +53,8 @@ export function ssiSurveillancePeriodDays(
 }
 
 /**
- * Surgery = Day 1 SP. Khớp evaluateSsi: còn trong khung khi daysBetween ≤ N
- * (days > N → EXPIRED) → ngày cuối SP = surgery + N.
+ * Surgery = Day 1 SP. Khớp evaluateSsi: còn trong khung khi daysBetween < N
+ * (days ≥ N → EXPIRED) → ngày cuối SP = surgery + (N − 1).
  */
 export function ssiSpEndDate(
   surgeryDate: string,
@@ -62,7 +62,7 @@ export function ssiSpEndDate(
   hasImplantOrOpts: boolean | SsiSurveillanceOpts = false,
 ): string {
   const n = ssiSurveillancePeriodDays(depth, hasImplantOrOpts);
-  return addDays(surgeryDate.slice(0, 10), n);
+  return addDays(surgeryDate.slice(0, 10), Math.max(0, n - 1));
 }
 
 export function ssiSpDateSet(

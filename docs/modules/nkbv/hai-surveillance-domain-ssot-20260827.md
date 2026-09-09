@@ -25,9 +25,9 @@ v3.1: rút CLIP/LabID/AUR/Location; Ch.17 đủ tiêu chí người lớn. v3.2:
 | [`hai-criteria-element-dictionary-20260827.md`](hai-criteria-element-dictionary-20260827.md) | Từ điển yếu tố tiêu chí (SX/LAB/IMG) — căn cứ ID |
 | [`hai-database-plan-20260827.md`](hai-database-plan-20260827.md) | Tổ chức CSDL + chi tiết bảng timeline (cửa sổ tính, không pre-agg) |
 | [`hai-database-rebuild-plan-20260827.md`](hai-database-rebuild-plan-20260827.md) | Đập demo / xây lại bảng NKBV (kế hoạch, chưa code) |
-| v2.0 (2026-08-04) | Lịch sử; không còn neo thuật toán |
+| v2.0 (2026-08-04) | Lịch sử — [`../../archive/nkbv-sources/`](../../archive/nkbv-sources/); không còn neo thuật toán |
 | `domain-specification.md` + `clinical-forms.md` | Hợp đồng app pilot — **không ghi đè** |
-| `All domain_NKBV` + `Domain *` | Archive nguồn thô |
+| `All domain_NKBV` + `Domain *` | [`../../archive/nkbv-sources/`](../../archive/nkbv-sources/) — nguồn thô |
 | `investigation-forms/*` | Phân tích phiếu tinh gọn — không thay SSOT |
 
 ### 0.3. Mục lục sổ tay CDC 2025 (khóa 1:1)
@@ -1009,7 +1009,7 @@ flowchart TD
 
 **v3.1:** đủ nhánh tiêu chí người lớn. **v3.2:** từ điển = [Phụ lục E](#phụ-lục-e--từ-điển-nhsn-2025--ksnk-bv103).
 
-App hiện: evaluate một phần BJ/CNS/CVS/GI/LRI/REPR; **chưa** EENT/SST/USI — lệch **phần mềm**, không phải thiếu domain.
+App hiện: evaluate BJ/CNS/CVS/GI/LRI/REPR + **USI người lớn**; **chưa** EENT/SST — lệch **phần mềm**, không phải thiếu domain.
 
 ---
 
@@ -1054,7 +1054,7 @@ Quy tắc khi **có** SIR chuẩn (tương lai): `numPred < 1` → không in SIR
 | 4 BSI/CLABSI | LCBI 1–2; LCBI-3 không dùng | `evaluateBsiClabsi`; MBI rút gọn | Đạt pilot; MBI P1 |
 | 5 CLIP | **Ngoài domain** | `nkbv-clip` còn (lát cũ) | Không neo SSOT |
 | 6 PNEU | Người lớn PNU1-A/2/3; không PedVAP | `evaluateVaeVap(..., PNEU)` | Đạt pilot |
-| 7 UTI | SUTI 1a/1b, ABUTI; không SUTI-2 | `evaluateUtiCauti`; yeast: xem audit UTI | Đạt pilot; USI **chưa** |
+| 7 UTI | SUTI 1a/1b, ABUTI; không SUTI-2 | `evaluateUtiCauti`; yeast: A1–A5 đã vá 2026-09-09 | Đạt pilot |
 | 8 Retired | — | — | — |
 | 9 SSI | Đủ người lớn | `evaluateSsi`; PATOS P1 | Đạt pilot |
 | 10 VAE | Đủ người lớn | `evaluateVaeVap(..., VAE)` | Đạt pilot; APRV/ECMO P1 |
@@ -1064,10 +1064,10 @@ Quy tắc khi **có** SIR chuẩn (tương lai): `numPred < 1` → không in SIR
 | 14 AUR | **Ngoài domain** | **Chưa** | Không neo SSOT |
 | 15 Location | **Ngoài domain** | Mã trên khoa (lát dashboard) | Không neo SSOT |
 | 16 Key terms | Đủ HAI lâm sàng | Nằm rải comment/lib | Đạt tài liệu |
-| 17 Sites | **Đủ tiêu chí người lớn** | 22 loại (BJ/CNS/CVS/GI/LRI/REPR); **thiếu EENT/SST/USI engine** | Domain đủ; app một phần |
+| 17 Sites | **Đủ tiêu chí người lớn** | BJ/CNS/CVS/GI/LRI/REPR + USI người lớn; **thiếu EENT/SST engine** | Domain đủ; app một phần |
 
-**Đủ vận hành pilot:** Ch.2 (phần), 4, 6 người lớn, 7 (chưa USI), 9, 10.  
-**Domain đủ, app chưa:** USI, EENT, SST.  
+**Đủ vận hành pilot:** Ch.2 (phần), 4, 6 người lớn, 7, 9, 10, USI người lớn.  
+**Domain đủ, app chưa:** EENT, SST.  
 **Ngoài domain:** 5, 12, 14, 15. **Chưa app MRP:** 3.
 
 Sửa engine/form = **chat riêng** sau khi PO duyệt [Phụ lục E §E.9](#e9-ba-câu-khóa-duyệt-po-trước-khi-sửa-phần-mềm). UI/engine phải dùng **cùng mã** Phụ lục E.

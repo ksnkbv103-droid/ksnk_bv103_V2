@@ -14,6 +14,7 @@ import { CH17_CVS_DEFS } from "./nkbv-ch17-def-cvs";
 import { CH17_GI_DEFS } from "./nkbv-ch17-def-gi";
 import { CH17_LRI_DEFS } from "./nkbv-ch17-def-lri";
 import { CH17_REPR_DEFS } from "./nkbv-ch17-def-repr";
+import { CH17_USI_DEFS } from "./nkbv-ch17-def-usi";
 
 export const CH17_TYPE_DEFS: readonly Ch17TypeDef[] = [
   ...CH17_BJ_DEFS,
@@ -22,6 +23,7 @@ export const CH17_TYPE_DEFS: readonly Ch17TypeDef[] = [
   ...CH17_GI_DEFS,
   ...CH17_LRI_DEFS,
   ...CH17_REPR_DEFS,
+  ...CH17_USI_DEFS,
 ];
 
 const BY_CODE = new Map(CH17_TYPE_DEFS.map((d) => [d.code.toUpperCase(), d]));

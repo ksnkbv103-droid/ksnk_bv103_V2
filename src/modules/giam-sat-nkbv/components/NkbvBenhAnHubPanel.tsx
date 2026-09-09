@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Pencil, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle, dialogContentKeepCentered } from "@/components/ui/dialog";
@@ -18,8 +19,6 @@ import {
 } from "../actions/giam-sat-nkbv.actions";
 import type { ViSinhAnalysisDispositionRow } from "../lib/nkbv-vi-sinh-analysis-status";
 import type { SyndromePanelId } from "../lib/nkbv-specimen-syndrome";
-import NkbvBaCaseSheet from "./NkbvBaCaseSheet";
-import NkbvBaMultiTimelineWorkspace from "./NkbvBaMultiTimelineWorkspace";
 import type { ImportWindowAlert } from "../lib/nkbv-import-window-scan";
 import { GSC_BK_ISOLATION, GSC_BK_MDRO, buildGscMdroDeepLink } from "../lib/nkbv-mdro";
 import {
@@ -35,6 +34,21 @@ import { NKBV_CRITERIA_ADD_CATALOG } from "../lib/nkbv-criteria-matrix";
 import { isBaIndexMilestone } from "../lib/nkbv-symptom-timeline-bridge";
 import { buildNkbvBaAnalysisDraftRow } from "../lib/nkbv-ba-analysis-draft";
 import { nkbvKhoaDisplayName } from "../lib/nkbv-khoa-options";
+
+const hubIslandLoading = () => (
+  <p className="px-4 py-6 text-sm text-slate-500">Đang tải khung phân tích…</p>
+);
+
+/** Mega workspace (~2180) — not on list first paint; loads when Hub BA opens. */
+const NkbvBaMultiTimelineWorkspace = dynamic(
+  () => import("./NkbvBaMultiTimelineWorkspace"),
+  { loading: hubIslandLoading },
+);
+
+/** Case sheet + diagnostic form — only when «Tạo phiếu» sheet is open. */
+const NkbvBaCaseSheet = dynamic(() => import("./NkbvBaCaseSheet"), {
+  loading: () => <p className="text-xs text-slate-500">Đang tải form phiếu…</p>,
+});
 
 type KhoaOpt = { id: string; ma_danh_muc?: string; ten_danh_muc?: string };
 
@@ -52,7 +66,6 @@ type Props = {
   onClose: () => void;
   onEditStay: (stay: Record<string, unknown>) => void;
   onOpenCase: (caseId: string) => void;
-  onCreateCase: (stay: Record<string, unknown>) => void;
   /** Sau lưu/chốt phiếu trên tờ BA — refresh danh sách ngoài Hub. */
   onCaseMutated?: () => void;
   /**
@@ -78,7 +91,6 @@ export default function NkbvBenhAnHubPanel({
   onClose,
   onEditStay,
   onOpenCase,
-  onCreateCase,
   onCaseMutated,
   onEnsureAnalysisCase,
   focusXnId = null,

@@ -38,20 +38,25 @@ import { isNkbvCh17SpecimenOnly } from "../lib/nkbv-specimen-canonical";
 import {
   formatSessionChipLabel,
   loadBaAnalysisSessions,
+  mergeBaAnalysisSessions,
   pruneBaAnalysisSessions,
   removeBaAnalysisSession,
+  saveBaAnalysisSessions,
   sessionIdForIndex,
   updateSessionDraft,
   upsertBaAnalysisSession,
   type BaAnalysisSession,
   type BaAnalysisSessionDraft,
 } from "../lib/nkbv-ba-analysis-session";
-import NkbvSyndromeIwpPanel from "./NkbvSyndromeIwpPanel";
-import NkbvSyndromeShellPanel, {
+import {
+  loadNkbvBaPhanTichSessions,
+  replaceNkbvBaPhanTichSessions,
+} from "../actions/giam-sat-nkbv.actions";
+import dynamic from "next/dynamic";
+import {
   isShellPanel,
   vaeBaReadyToCreatePhieu,
-} from "./NkbvSyndromeShellPanel";
-import NkbvSyndromeSsiPanel from "./NkbvSyndromeSsiPanel";
+} from "../lib/nkbv-syndrome-shell-helpers";
 import NkbvBaCommonDayGrid from "./NkbvBaCommonDayGrid";
 import NkbvBaAddViSinhModal from "./NkbvBaAddViSinhModal";
 import NkbvBaConcludeCell from "./NkbvBaConcludeCell";
@@ -118,6 +123,23 @@ const COL_W = 132;
 const LABEL_W = 128;
 
 type XnCell = ReturnType<typeof splitMilestonesToGridRows>["xn"][number];
+
+const panelLoading = () => (
+  <div className="h-40 animate-pulse rounded-lg border border-slate-200 bg-slate-50/90" aria-hidden />
+);
+
+/** UTI/PNEU/BSI IWP (~1635) — load only when that syndrome session is open. */
+const NkbvSyndromeIwpPanel = dynamic(() => import("./NkbvSyndromeIwpPanel"), {
+  loading: panelLoading,
+});
+/** SSI panel (~769) — same deferred boundary. */
+const NkbvSyndromeSsiPanel = dynamic(() => import("./NkbvSyndromeSsiPanel"), {
+  loading: panelLoading,
+});
+/** VAE shell (~265) — helpers live in nkbv-syndrome-shell-helpers (eager, tiny). */
+const NkbvSyndromeShellPanel = dynamic(() => import("./NkbvSyndromeShellPanel"), {
+  loading: panelLoading,
+});
 
 /** Handler ổn định tham chiếu — hàng memo không re-render vì closure mới. */
 function useStableCallback<A extends unknown[], R>(fn: (...args: A) => R): (...args: A) => R {
@@ -260,8 +282,21 @@ export default function NkbvBaMultiTimelineWorkspace({
     });
   }, []);
 
+  const persistSessions = useCallback(
+    (list: BaAnalysisSession[], mode: BaAnalysisMode) => {
+      saveBaAnalysisSessions(maBenhAn, list, mode);
+      void replaceNkbvBaPhanTichSessions({
+        ma_benh_an: maBenhAn,
+        mode,
+        sessions: list,
+      });
+    },
+    [maBenhAn],
+  );
+
   const [analysisMode, setAnalysisMode] = useState<BaAnalysisMode>("CDC");
   const [sessions, setSessions] = useState<BaAnalysisSession[]>([]);
+  const hydratedKeyRef = React.useRef("");
   const [openSessionId, setOpenSessionId] = useState<string | null>(null);
   /** Kết luận đã chốt theo mẫu — luôn hiện khi PT Index khác. */
   const [sampleConclusions, setSampleConclusions] = useState<BaSampleConclusion[]>(
@@ -298,6 +333,33 @@ export default function NkbvBaMultiTimelineWorkspace({
     },
     [analysisMode, maBenhAn],
   );
+
+  useEffect(() => {
+    let cancelled = false;
+    hydratedKeyRef.current = "";
+    void (async () => {
+      const res = await loadNkbvBaPhanTichSessions({
+        ma_benh_an: maBenhAn,
+        mode: analysisMode,
+      });
+      if (cancelled) return;
+      const local = loadBaAnalysisSessions(maBenhAn, analysisMode);
+      const merged = mergeBaAnalysisSessions(res.success ? res.sessions : [], local);
+      saveBaAnalysisSessions(maBenhAn, merged, analysisMode);
+      hydratedKeyRef.current = `${maBenhAn}:${analysisMode}`;
+      setSessions(merged);
+      if (res.success && merged.length) {
+        void replaceNkbvBaPhanTichSessions({
+          ma_benh_an: maBenhAn,
+          mode: analysisMode,
+          sessions: merged,
+        });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [maBenhAn, analysisMode]);
   const [localCdha, setLocalCdha] = useState<BaGridCdhaCell[]>([]);
   /** Optimistic tick SSI TC — giảm lag chờ Server Action. */
   const [localSsiTc, setLocalSsiTc] = useState<
@@ -406,11 +468,13 @@ export default function NkbvBaMultiTimelineWorkspace({
     for (const items of Object.values(ssiTcByDate)) {
       for (const t of items) if (t.id && !t.id.startsWith("local-")) validIds.add(t.id);
     }
+    if (hydratedKeyRef.current !== `${maBenhAn}:${analysisMode}`) return;
     const next = pruneBaAnalysisSessions(maBenhAn, validIds, analysisMode);
     setSessions(next);
+    persistSessions(next, analysisMode);
     setOpenSessionId((cur) => (cur && next.some((s) => s.id === cur) ? cur : null));
     setSampleConclusions(loadBaSampleConclusions(maBenhAn));
-  }, [maBenhAn, analysisMode, split.xn, cdhaList, split.surgeryByDate, ssiTcByDate]);
+  }, [maBenhAn, analysisMode, split.xn, cdhaList, split.surgeryByDate, ssiTcByDate, persistSessions]);
 
   const openSession = useMemo(
     () => sessions.find((s) => s.id === openSessionId) || null,
@@ -517,8 +581,9 @@ export default function NkbvBaMultiTimelineWorkspace({
     (sessionId: string, patch: Partial<BaAnalysisSessionDraft>) => {
       const next = updateSessionDraft(maBenhAn, sessionId, patch, analysisMode);
       setSessions(next);
+      persistSessions(next, analysisMode);
     },
-    [maBenhAn, analysisMode],
+    [maBenhAn, analysisMode, persistSessions],
   );
 
   const persistManualSampleConclusion = useCallback(
@@ -614,10 +679,11 @@ export default function NkbvBaMultiTimelineWorkspace({
         draft: Object.keys(draftSeed).length ? draftSeed : undefined,
       });
       setSessions(next);
+      persistSessions(next, analysisMode);
       setOpenSessionId(sessionIdForIndex(panel, index.id));
       onIndexChange?.({ milestoneId: index.id });
     },
-    [maBenhAn, analysisMode, onIndexChange, baClinicalLamSang, split.deviceByDate],
+    [maBenhAn, analysisMode, onIndexChange, baClinicalLamSang, split.deviceByDate, persistSessions],
   );
 
   /**
@@ -1335,6 +1401,7 @@ export default function NkbvBaMultiTimelineWorkspace({
     }
     const next = removeBaAnalysisSession(maBenhAn, sessionId, analysisMode);
     setSessions(next);
+    persistSessions(next, analysisMode);
     if (openSessionId === sessionId) setOpenSessionId(null);
   };
 

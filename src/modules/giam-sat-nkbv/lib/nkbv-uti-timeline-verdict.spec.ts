@@ -27,7 +27,7 @@ describe("nkbv-uti-timeline-verdict", () => {
     expect(parseUrineCfu(null)).toBeNull();
   });
 
-  it("gate Index: nấm → không ok; CFU thấp → cảnh báo", () => {
+  it("gate Index: nấm → không ok; CFU thấp / thiếu CFU → không đạt", () => {
     const yeast = gateUtiIndexLab(
       urine({ id: "u1", ngay: "2026-07-20", vi_khuan: "Candida albicans" }),
     );
@@ -38,6 +38,25 @@ describe("nkbv-uti-timeline-verdict", () => {
       urine({ id: "u2", ngay: "2026-07-20", so_luong: "1000" }),
     );
     expect(low.cfuOk).toBe(false);
+
+    const missing = gateUtiIndexLab(
+      urine({ id: "u0", ngay: "2026-07-20", so_luong: "" }),
+    );
+    expect(missing.cfuOk).toBe(false);
+  });
+
+  it("yeast + E. coli ≥10⁵ → xét E. coli, không loại cả mẫu", () => {
+    const g = gateUtiIndexLab(
+      urine({
+        id: "u4",
+        ngay: "2026-07-20",
+        vi_khuan: "Candida albicans + E. coli",
+        so_luong: "10^5",
+      }),
+    );
+    expect(g.yeast).toBe(false);
+    expect(g.cfuOk).toBe(true);
+    expect(g.pathogenCount).toBe(1);
   });
 
   it("đếm loài từ LIS: + / và / «3 loài»", () => {
@@ -46,6 +65,11 @@ describe("nkbv-uti-timeline-verdict", () => {
     expect(countUrineSpecies("E. coli, K. pneumoniae và P. aeruginosa")).toBe(3);
     expect(countUrineSpecies("E. coli", "3 loài")).toBe(3);
     expect(gateUtiIndexLab(urine({ id: "u3", ngay: "2026-07-20", vi_khuan: "E. coli + Klebsiella" })).pathogenCount).toBe(2);
+    const mixed = gateUtiIndexLab(
+      urine({ id: "u-mix", ngay: "2026-07-20", so_luong: "mixed flora 10^5" }),
+    );
+    expect(mixed.pathogenCount).toBeGreaterThanOrEqual(3);
+    expect(mixed.cfuOk).toBe(false);
   });
 
   it("strip voiding khi Foley ngày đó", () => {
@@ -153,6 +177,49 @@ describe("nkbv-uti-timeline-verdict", () => {
       devicePlacedDate: "2026-07-17",
     });
     expect(v.result.classification).toBe("CAUTI_ABUTI");
+    expect(v.result.is_secondary_bsi).toBe(true);
+  });
+
+  it("ABUTI: máu ngoài IWP không tính", () => {
+    const iwp = new Set(["2026-07-18", "2026-07-19", "2026-07-20", "2026-07-21"]);
+    const blood: BaGridXnCell = {
+      id: "b-out",
+      ngay: "2026-08-01",
+      benh_pham: "Máu",
+      vi_khuan: "E. coli",
+      source: "LIS",
+    };
+    const v = buildUtiTimelineVerdict({
+      indexXn: urine({ id: "u", ngay: "2026-07-20" }),
+      lamSang: {},
+      canThiepDates: [],
+      iwpDates: iwp,
+      nsk: "2026-07-20",
+      bloodXn: [blood],
+      abutiBloodIds: ["b-out"],
+    });
+    expect(v.result.classification).toBe("ASB");
+  });
+
+  it("SUTI + máu khớp ∈ SBAP → Secondary", () => {
+    const iwp = new Set(["2026-07-18", "2026-07-19", "2026-07-20", "2026-07-21"]);
+    const blood: BaGridXnCell = {
+      id: "b2",
+      ngay: "2026-07-25",
+      benh_pham: "Máu",
+      vi_khuan: "E. coli",
+      source: "LIS",
+    };
+    const v = buildUtiTimelineVerdict({
+      indexXn: urine({ id: "u", ngay: "2026-07-20" }),
+      lamSang: { "2026-07-20": [{ key: "fever", label: "Sốt" }] },
+      canThiepDates: [],
+      iwpDates: iwp,
+      nsk: "2026-07-20",
+      bloodXn: [blood],
+      abutiBloodIds: [],
+    });
+    expect(v.result.classification).toBe("SUTI");
     expect(v.result.is_secondary_bsi).toBe(true);
   });
 

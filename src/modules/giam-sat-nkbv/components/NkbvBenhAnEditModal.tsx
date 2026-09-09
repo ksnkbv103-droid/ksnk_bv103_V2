@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
-import { updateNkbvBenhAnStay } from "../actions/giam-sat-nkbv.actions";
+import { createNkbvBenhAnStay, updateNkbvBenhAnStay } from "../actions/giam-sat-nkbv.actions";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 
 type KhoaOpt = { id: string; ma_danh_muc?: string; ten_danh_muc?: string };
@@ -37,7 +37,9 @@ const toDate = (v: unknown) => (v ? String(v).slice(0, 10) : "");
 
 export default function NkbvBenhAnEditModal({ stay, khoas, onClose, onSaved }: Props) {
   const todayStr = new Date().toISOString().slice(0, 10);
+  const isCreate = !String(stay.ma_benh_an || "").trim();
   const [saving, setSaving] = useState(false);
+  const [maBenhAn, setMaBenhAn] = useState("");
   const [form, setForm] = useState({
     ma_benh_nhan: "",
     ho_ten_benh_nhan: "",
@@ -67,12 +69,20 @@ export default function NkbvBenhAnEditModal({ stay, khoas, onClose, onSaved }: P
   }, [stay]);
 
   const onSave = async () => {
+    if (isCreate && !maBenhAn.trim()) {
+      toast.error("Mã bệnh án không được để trống");
+      return;
+    }
     if (!form.ho_ten_benh_nhan.trim()) {
       toast.error("Họ tên không được để trống");
       return;
     }
     if (!form.ma_benh_nhan.trim()) {
       toast.error("Mã bệnh nhân không được để trống");
+      return;
+    }
+    if (isCreate && !form.ngay_vao_vien) {
+      toast.error("Ngày vào viện không được để trống");
       return;
     }
     if (form.ngay_ra_vien && form.ngay_vao_vien && form.ngay_ra_vien < form.ngay_vao_vien) {
@@ -82,6 +92,26 @@ export default function NkbvBenhAnEditModal({ stay, khoas, onClose, onSaved }: P
       return;
     }
     setSaving(true);
+    if (isCreate) {
+      const created = await createNkbvBenhAnStay({
+        ma_benh_an: maBenhAn.trim(),
+        ma_benh_nhan: form.ma_benh_nhan,
+        ho_ten_benh_nhan: form.ho_ten_benh_nhan,
+        ngay_sinh: form.ngay_sinh || null,
+        gioi_tinh: form.gioi_tinh || null,
+        ngay_vao_vien: form.ngay_vao_vien,
+        khoa_dieu_tri_id: form.khoa_dieu_tri_id || null,
+      });
+      setSaving(false);
+      if (!created.success) {
+        toast.error(created.error || "Không tạo được hồ sơ bệnh án");
+        return;
+      }
+      toast.success("Đã tạo đợt nằm viện — chưa có phiếu nhiễm khuẩn");
+      onSaved();
+      onClose();
+      return;
+    }
     const res = await updateNkbvBenhAnStay({
       ma_benh_an: stay.ma_benh_an,
       ma_benh_nhan: form.ma_benh_nhan,
@@ -119,15 +149,31 @@ export default function NkbvBenhAnEditModal({ stay, khoas, onClose, onSaved }: P
       >
         <DialogTitle className="sr-only">Sửa hồ sơ đợt nằm viện</DialogTitle>
         <div className="shrink-0 border-b border-slate-100 px-5 py-4 pr-14 sm:px-6">
-          <h2 className={C.modalTitle}>Sửa hồ sơ đợt nằm viện</h2>
+          <h2 className={C.modalTitle}>{isCreate ? "Tạo đợt nằm viện" : "Sửa hồ sơ đợt nằm viện"}</h2>
           <p className="mt-1 text-xs text-slate-500">
-            Mã BA <span className="font-mono font-semibold text-slate-800">{stay.ma_benh_an}</span> — không
-            phải phiếu xác định ca NKBV.
+            {isCreate ? (
+              "Chỉ tạo bệnh án. Phiếu nhiễm khuẩn chỉ sinh sau khi phân tích trên Hub."
+            ) : (
+              <>
+                Mã BA <span className="font-mono font-semibold text-slate-800">{stay.ma_benh_an}</span> — không
+                phải phiếu xác định ca NKBV.
+              </>
+            )}
           </p>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {isCreate ? (
+            <div className="md:col-span-2">
+              <label className={C.formLabel}>Mã bệnh án</label>
+              <input
+                value={maBenhAn}
+                onChange={(e) => setMaBenhAn(e.target.value)}
+                className="w-full rounded-[var(--radius-shell)] border-0 bg-slate-50 px-4 py-3 font-mono text-sm"
+              />
+            </div>
+          ) : null}
           <div>
             <label className={C.formLabel}>Mã bệnh nhân</label>
             <input

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildBsiTimelineVerdict,
+  countCommensalBloodInIwp,
   resolveBsiDoe,
 } from "./nkbv-bsi-timeline-verdict";
 import type { BaGridXnCell } from "./nkbv-ba-grid-engine";
@@ -171,5 +172,34 @@ describe("nkbv-bsi-timeline-verdict", () => {
         pathogenType: "COMMON_COMMENSAL",
       }),
     ).toBe("2026-07-18");
+  });
+
+  it("CoNS cùng ngày 2 ống → không coi là lấy riêng ngày", () => {
+    const ix = "2026-07-20";
+    const iwp = iwpAround(ix);
+    const a = blood({
+      id: "c1",
+      ngay: ix,
+      vi_khuan: "Staphylococcus epidermidis",
+    });
+    const b = blood({
+      id: "c2",
+      ngay: ix,
+      vi_khuan: "Staphylococcus epidermidis",
+    });
+    const counted = countCommensalBloodInIwp(a, [a, b], iwp);
+    expect(counted.count).toBe(2);
+    expect(counted.drawnSeparate).toBe(false);
+
+    const v = buildBsiTimelineVerdict({
+      indexXn: a,
+      bloodXn: [a, b],
+      lamSang: { [ix]: [{ key: "fever", label: "Sốt" }] },
+      canThiepDates: ["2026-07-17", "2026-07-18", "2026-07-19", ix],
+      iwpDates: iwp,
+      nsk: ix,
+      devicePlacedDate: "2026-07-17",
+    });
+    expect(v.result.classification).toBe("CONTAMINATION");
   });
 });

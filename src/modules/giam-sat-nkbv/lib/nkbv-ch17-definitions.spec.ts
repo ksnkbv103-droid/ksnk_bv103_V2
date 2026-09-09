@@ -9,8 +9,8 @@ import {
   endoRitSbapToDischarge,
 } from "./nkbv-shared-timeline";
 
-describe("nkbv-ch17-definitions (16 types)", () => {
-  it("registry có đủ Phần II + REPR (EMET/OREP/VCUF)", () => {
+describe("nkbv-ch17-definitions (Phần II + REPR + USI)", () => {
+  it("registry có đủ Phần II + REPR + USI người lớn", () => {
     const codes = ch17OperationalTypeCodes().sort();
     expect(codes).toEqual(
       [
@@ -31,10 +31,32 @@ describe("nkbv-ch17-definitions (16 types)", () => {
         "OREP",
         "PJI",
         "SA",
+        "USI",
         "VASC",
         "VCUF",
       ].sort(),
     );
+  });
+
+  it("USI1 NCT mô/dịch không phải nước tiểu; USI3 sốt + mủ", () => {
+    expect(
+      evaluateCh17Type({
+        typeCode: "USI",
+        evidence: { micro_usi_fluid_or_tissue: true },
+      }).metCriterion,
+    ).toBe("USI1");
+    const usi3 = evaluateCh17Type({
+      typeCode: "USI",
+      evidence: { sx_fever_gt38: true, sx_usi_purulent: true },
+    });
+    expect(usi3.met).toBe(true);
+    expect(usi3.metCriterion).toBe("USI3");
+    expect(
+      evaluateCh17Type({
+        typeCode: "USI",
+        evidence: { sx_fever_gt38: true },
+      }).met,
+    ).toBe(false);
   });
 
   it("BONE3a: ≥2 triệu chứng + máu + MRI definitive", () => {

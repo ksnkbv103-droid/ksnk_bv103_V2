@@ -185,6 +185,13 @@ export const CH17_EVIDENCE_CATALOG: readonly Ch17EvidenceDef[] = [
   E("micro_vcuf_fluid", "Phân lập VSV từ dịch mỏm cắt âm đạo", "micro"),
   E("sx_vcuf_purulent", "Chảy mủ từ mỏm cắt âm đạo", "symptom"),
   E("path_vcuf_abscess", "Áp xe mỏm cắt (lâm sàng / GPB / CĐHA)", "pathology"),
+
+  // USI — hệ tiết niệu sâu (không phải nước tiểu)
+  E("micro_usi_fluid_or_tissue", "NCT dịch (không phải nước tiểu) hoặc mô vị trí USI", "micro"),
+  E("path_usi_abscess_or_infection", "Áp xe / đại thể / thủ thuật / GPB tại vị trí USI", "pathology"),
+  E("sx_usi_local_pain", "Đau / tức tại chỗ hệ tiết niệu (thận, hông, quanh bàng quang)", "symptom"),
+  E("sx_usi_purulent", "Mủ tại chỗ hệ tiết niệu sâu", "symptom"),
+  E("img_usi_definitive", "CĐHA chắc chắn USI (siêu âm / CT / MRI / xạ hình)", "imaging"),
 ] as const;
 
 const BY_KEY = new Map(CH17_EVIDENCE_CATALOG.map((e) => [e.key, e]));

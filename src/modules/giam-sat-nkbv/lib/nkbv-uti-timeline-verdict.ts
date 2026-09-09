@@ -70,19 +70,42 @@ export type UtiIndexLabGate = {
   warnings: string[];
 };
 
+function splitUrineOrganisms(tacNhan: string | null | undefined): string[] {
+  const name = String(tacNhan || "").trim();
+  if (!name || name === "—") return [];
+  return name
+    .split(/\s*[+,;/]\s*|\s+và\s+|\s+\+\s+/i)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/** Bỏ nấm; giữ vi khuẩn — yeast + 1 bacterium ≥10⁵ vẫn xét bacterium. */
+export function urineBacterialSpecies(tacNhan: string | null | undefined): string[] {
+  return splitUrineOrganisms(tacNhan).filter((p) => !isYeastOrganism(p));
+}
+
 export function gateUtiIndexLab(indexXn: BaGridXnCell | null): UtiIndexLabGate {
   const warnings: string[] = [];
   if (!indexXn) {
     return { cfu: null, cfuOk: false, yeast: false, pathogenCount: 0, warnings: ["Thiếu Index nước tiểu"] };
   }
   const cfu = parseUrineCfu(indexXn.so_luong);
-  const yeast = isYeastOrganism(indexXn.vi_khuan);
-  const pathogenCount = countUrineSpecies(indexXn.vi_khuan, indexXn.so_luong);
-  if (yeast) warnings.push("Nấm/Candida — cấm Index UTI");
+  const parts = splitUrineOrganisms(indexXn.vi_khuan);
+  const bacteria = parts.filter((p) => !isYeastOrganism(p));
+  const yeastOnly = parts.length > 0 && bacteria.length === 0;
+  const mixed = /tạp nhiễm|mixed\s*flora|≥\s*3|>=\s*3/i.test(
+    `${indexXn.so_luong || ""} ${indexXn.vi_khuan || ""}`,
+  );
+  const pathogenCount = mixed ? 3 : countUrineSpecies(indexXn.vi_khuan, indexXn.so_luong);
+  const bacterialCount = mixed ? pathogenCount : bacteria.length || (yeastOnly ? 0 : pathogenCount);
+  if (yeastOnly) warnings.push("Nấm/Candida — không đủ làm Index UTI");
+  if (parts.some((p) => isYeastOrganism(p)) && bacteria.length > 0) {
+    warnings.push("Bỏ nấm, xét vi khuẩn còn lại");
+  }
   if (cfu != null && cfu < 100000) warnings.push("CFU < 10⁵");
-  if (cfu == null) warnings.push("Chưa có SL/CFU — tạm coi đủ ngưỡng nếu không nấm");
-  const cfuOk = !yeast && (cfu == null || cfu >= 100000) && pathogenCount > 0;
-  return { cfu, cfuOk, yeast, pathogenCount, warnings };
+  if (cfu == null) warnings.push("Thiếu số khuẩn lạc — không đạt lab");
+  const cfuOk = !yeastOnly && cfu != null && cfu >= 100000 && bacterialCount > 0 && bacterialCount <= 2;
+  return { cfu, cfuOk, yeast: yeastOnly, pathogenCount: bacterialCount || pathogenCount, warnings };
 }
 
 export function stripUtiVoidingFromLamSang(
@@ -173,8 +196,13 @@ export function buildUtiTimelineVerdict(
   const hasInfantLeth = anyKeyInIwp(lamSang, input.iwpDates, ["infant_lethargy"]);
   const hasInfantVom = anyKeyInIwp(lamSang, input.iwpDates, ["infant_vomiting"]);
 
-  const abutiBloods = input.bloodXn.filter((b) => input.abutiBloodIds.includes(b.id));
-  const urineOrg = input.indexXn?.vi_khuan || "";
+  const abutiBloods = input.bloodXn.filter(
+    (b) =>
+      input.abutiBloodIds.includes(b.id) && input.iwpDates.has(b.ngay.slice(0, 10)),
+  );
+  const urineOrg = urineBacterialSpecies(input.indexXn?.vi_khuan).join(" + ")
+    || input.indexXn?.vi_khuan
+    || "";
   let bloodMatch = false;
   let bloodDate: string | undefined;
   let bloodOrg: string | undefined;
@@ -187,8 +215,8 @@ export function buildUtiTimelineVerdict(
     }
   }
   const data: UtiVerificationData = {
-    urine_cfu_count: lab.cfu ?? 100000,
-    pathogen_count: lab.pathogenCount > 2 ? lab.pathogenCount : Math.max(lab.pathogenCount, 1),
+    urine_cfu_count: lab.cfu ?? 0,
+    pathogen_count: lab.pathogenCount,
     has_fungi_yeast_parasite: lab.yeast,
     foley_placed_days: foleyPlacedDays,
     foley_active_on_event: foleyActive,
@@ -214,15 +242,32 @@ export function buildUtiTimelineVerdict(
     blood_organism: bloodOrg,
     urine_organism: urineOrg || undefined,
     calculated_doe: doe || undefined,
+    calculated_iwp_start: [...input.iwpDates].sort()[0],
+    calculated_iwp_end: [...input.iwpDates].sort().at(-1),
   };
 
-  // pathogen_count: yeast-only already excluded; if yeast flag, engine returns CANDIDA
-  if (lab.yeast) {
-    data.pathogen_count = 1;
-    data.has_fungi_yeast_parasite = true;
+  let result = evaluateUtiCauti(data);
+  if (
+    result.is_positive &&
+    /SUTI/.test(result.classification) &&
+    !result.is_secondary_bsi
+  ) {
+    const sbapStart = input.indexXn?.ngay
+      ? addDay(input.indexXn.ngay, -3)
+      : doe
+        ? addDay(doe, -3)
+        : "";
+    const sbapEnd = doe ? addDay(doe, 13) : "";
+    const secBlood = input.bloodXn.some((b) => {
+      const d = b.ngay.slice(0, 10);
+      if (!sbapStart || !sbapEnd || d < sbapStart || d > sbapEnd) return false;
+      if (isYeastOrganism(b.vi_khuan)) return false;
+      return organismsMatch(b.vi_khuan, urineOrg);
+    });
+    if (secBlood) {
+      result = { ...result, is_secondary_bsi: true };
+    }
   }
-
-  const result = evaluateUtiCauti(data);
   const criteriaMet = result.is_positive && result.classification !== "ASB";
   const ketLuanLabel = [
     result.classification,
