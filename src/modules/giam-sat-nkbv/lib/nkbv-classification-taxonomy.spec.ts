@@ -11,7 +11,11 @@ import {
   nkbvMajorTypeFromClassification,
 } from "./nkbv-classification-taxonomy";
 
-const MIGRATION = join(
+const FN_MIGRATION = join(
+  process.cwd(),
+  "supabase/migrations/20260910123000_nkbv_fn_major_type_ch17.sql",
+);
+const RATES_MIGRATION = join(
   process.cwd(),
   "supabase/migrations/20260809170000_nkbv_p0_rates_rpc_rls_index.sql",
 );
@@ -38,6 +42,18 @@ describe("nkbvMajorTypeFromClassification", () => {
   it("Organ/Space kèm mã vị trí vẫn là SSI", () => {
     expect(nkbvMajorTypeFromClassification("ORGAN_SPACE")).toBe("SSI");
     expect(nkbvMajorTypeFromClassification("ORGAN_SPACE:PJI")).toBe("SSI");
+  });
+
+  it("CH17:* vào tử số CH17, không OTHER", () => {
+    expect(nkbvMajorTypeFromClassification("CH17:IAB")).toBe("CH17");
+    expect(nkbvMajorTypeFromClassification("CH17:USI")).toBe("CH17");
+    expect(nkbvMajorTypeFromClassification("CH17:MEN")).toBe("CH17");
+  });
+
+  it("SSI:* từ hierarchy Ch.17 vào tử số SSI, không nuốt OTHER/CH17", () => {
+    expect(nkbvMajorTypeFromClassification("SSI:MEN")).toBe("SSI");
+    expect(nkbvMajorTypeFromClassification("SSI:PJI")).toBe("SSI");
+    expect(nkbvMajorTypeFromClassification("SSI:IAB")).toBe("SSI");
   });
 
   it("kết luận âm tính không vào tử số hội chứng nào", () => {
@@ -79,7 +95,8 @@ describe("nkbvMajorTypeFromClassification", () => {
 });
 
 describe("đồng bộ với fn_nkbv_major_type_from_classification (SQL)", () => {
-  const sql = readFileSync(MIGRATION, "utf8");
+  const sql = readFileSync(FN_MIGRATION, "utf8");
+  const ratesSql = readFileSync(RATES_MIGRATION, "utf8");
 
   it("SQL liệt kê đúng danh sách classification của TS", () => {
     for (const cls of [
@@ -96,8 +113,13 @@ describe("đồng bộ với fn_nkbv_major_type_from_classification (SQL)", () =
     expect(sql).toContain("^PNU[123]_(VAP|HAP)$");
   });
 
+  it("SQL nhận CH17:* và SSI:* từ hierarchy Ch.17", () => {
+    expect(sql).toContain("LIKE 'CH17:%'");
+    expect(sql).toContain("LIKE 'SSI:%'");
+  });
+
   it("RPC không còn đọc bảng đã bị xoá", () => {
-    expect(sql).not.toMatch(/FROM\s+public\.fact_giam_sat_nkbv_ca/i);
-    expect(sql).toContain("FROM public.nkbv_fact_su_kien");
+    expect(ratesSql).not.toMatch(/FROM\s+public\.fact_giam_sat_nkbv_ca/i);
+    expect(ratesSql).toContain("FROM public.nkbv_fact_su_kien");
   });
 });
