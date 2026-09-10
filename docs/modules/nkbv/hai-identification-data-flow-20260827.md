@@ -51,9 +51,13 @@ Cùng thao tác copy/Excel/gõ như LIS, tab **Hồ sơ bệnh án** (`NkbvBenhA
 
 Dùng khi: LIS không có đủ ADT, hoặc cần ngày ra viện / khoa lúc nhập trước khi có cấy.
 
-Quy tắc mong muốn (khớp 2.1): **đã có `ma_benh_an` → không tạo bản thứ hai, không bổ sung đè lên hồ sơ đã có.** Chưa có → tạo mới.
+Khi lưu copy HIS (`importBenhAnExcel` + `decideBenhAnImportRow`):
 
-*Lệch app:* `importBenhAnExcel` hiện **cập nhật** BA đã có (tên, ngày vào/ra, khoa). Khi sửa code: đổi thành bỏ qua nếu đã có mã — trừ khi PO cho phép chỉ **điền ô đang trống** (vd. ngày ra viện), không đè ngày vào viện.
+1. Đối chiếu `ma_benh_an` với `nkbv_fact_benh_an`.  
+2. **Đã có mã** → **skip / không đè** hồ sơ (giữ tên, ngày vào/ra, khoa đã nhập). Cùng PID → `skip_exists`; PID khác → `skip_conflict`. Không tạo bản thứ hai.  
+3. **Chưa có mã** → **tạo bệnh án mới**.
+
+App hiện: đúng bước 2–3. Đã có `ma_benh_an` trên sổ → `decideBenhAnImportRow` cho `skip_exists` / `skip_conflict` rồi bỏ qua — **không UPDATE**. Chưa có mã → `insert`.
 
 ### 2.3. Thứ tự nên làm
 
@@ -66,7 +70,7 @@ flowchart TD
   Q -- Co --> S[Chi_luu_vi_sinh_khong_sua_BA]
   Q -- Chua --> N[Tao_BA_tu_LIS_roi_luu_vi_sinh]
   H[Copy_HIS_hoac_go_tay] --> Q2{BA_da_co?}
-  Q2 -- Co --> K[Khong_tao_trung]
+  Q2 -- Co --> K[Skip_khong_de]
   Q2 -- Chua --> N2[Tao_BA]
 ```
 
@@ -183,7 +187,7 @@ chọn Index
 | Đúng theo file này | App hiện |
 |--------------------|----------|
 | LIS: đã có BA → không đè hồ sơ | Đúng (`importViSinhExcel`) |
-| HIS copy: đã có mã → không tạo trùng / không đè ngày vào viện | `importBenhAnExcel` **update** BA đã có |
+| HIS copy: đã có mã → skip / không đè hồ sơ | Đúng (`importBenhAnExcel` + `decideBenhAnImportRow`: `skip_exists` / `skip_conflict`, không UPDATE) |
 | Triệu chứng timeline = BA | Đúng (`SYMPTOM` → `nkbv_fact_ba_timeline` + hydrate phiên) |
 | Ngày cấy ≠ DOE ≠ HAI | `isHaiSuspectByDay3Rule` chỉ hàng đợi — không gắn HAI |
 | Đờm + máy → VAE | Cần `preferVae`; không mặc định VAP |
