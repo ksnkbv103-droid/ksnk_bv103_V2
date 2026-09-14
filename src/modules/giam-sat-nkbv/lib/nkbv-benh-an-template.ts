@@ -35,6 +35,17 @@ export type NkbvBenhAnTemplateRow = {
 /** Alias HIS VN / biến thể → field nội bộ. */
 const HEADER_ALIASES: Record<string, keyof NkbvBenhAnTemplateRow | "skip"> = {
   "mã bệnh án": "ma_benh_an",
+  "mã hsba": "ma_benh_an",
+  "ma hsba": "ma_benh_an",
+  "mã hồ sơ bệnh án": "ma_benh_an",
+  "ma ho so benh an": "ma_benh_an",
+  "hsba": "ma_benh_an",
+  "tên bệnh nhân": "ho_ten_benh_nhan",
+  "ten benh nhan": "ho_ten_benh_nhan",
+  "ngày vào": "ngay_vao_vien",
+  "ngay vao": "ngay_vao_vien",
+  "khoa phòng": "khoa_dieu_tri",
+  "khoa phong": "khoa_dieu_tri",
   "ma benh an": "ma_benh_an",
   "số bệnh án": "ma_benh_an",
   "so benh an": "ma_benh_an",
@@ -91,11 +102,12 @@ export function normalizeBenhAnDate(raw: string | null | undefined): string {
   if (!t) return "";
   const iso = t.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
-  const dmy = t.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})/);
-  if (dmy) {
-    const dd = dmy[1].padStart(2, "0");
-    const mm = dmy[2].padStart(2, "0");
-    return `${dmy[3]}-${mm}-${dd}`;
+  // HIS: "11:23 13/09/2026" hoặc text lẫn giờ
+  const dmyAnywhere = t.match(/(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})/);
+  if (dmyAnywhere) {
+    const dd = dmyAnywhere[1].padStart(2, "0");
+    const mm = dmyAnywhere[2].padStart(2, "0");
+    return `${dmyAnywhere[3]}-${mm}-${dd}`;
   }
   const parsed = Date.parse(t);
   if (!Number.isNaN(parsed)) return new Date(parsed).toISOString().slice(0, 10);

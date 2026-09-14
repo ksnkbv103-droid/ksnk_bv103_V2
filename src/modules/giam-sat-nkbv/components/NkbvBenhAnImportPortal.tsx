@@ -11,6 +11,9 @@ import {
   HelpCircle,
   Trash2,
   UploadCloud,
+  Camera,
+  ImageIcon,
+  Loader2,
 } from "lucide-react";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
@@ -21,6 +24,11 @@ import {
   type NkbvBenhAnTemplateRow,
 } from "../lib/nkbv-benh-an-template";
 import { importBenhAnExcel } from "../actions/giam-sat-nkbv-import.actions";
+import { parseHisPatientScreenText } from "../lib/nkbv-his-patient-screen-parse";
+import {
+  isHisPatientScreenImage,
+  ocrHisPatientScreenImage,
+} from "../lib/nkbv-his-patient-screen-ocr";
 import { nkbvKhoaSelectOptions } from "../lib/nkbv-khoa-options";
 
 type KhoaOpt = { id: string; ten_danh_muc: string; ma_danh_muc?: string };
@@ -82,12 +90,16 @@ async function downloadExcelTemplate() {
 export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
   const khoaOptions = useMemo(() => nkbvKhoaSelectOptions(khoas), [khoas]);
   const fileRef = useRef<HTMLInputElement>(null);
+  const imageRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const [paste, setPaste] = useState("");
   const [showPastePanel, setShowPastePanel] = useState(false);
   const [rows, setRows] = useState<DraftRow[]>([]);
   const [batchDupHint, setBatchDupHint] = useState(0);
   const [showGuide, setShowGuide] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [ocrBusy, setOcrBusy] = useState(false);
+  const [ocrPct, setOcrPct] = useState(0);
   const sampleTsv = useMemo(() => buildBenhAnTemplateTsv(), []);
 
   const applyParsed = (parsed: NkbvBenhAnTemplateRow[], skippedBatchDup: number) => {
@@ -114,9 +126,63 @@ export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
     applyParsed(res.rows, res.skippedBatchDup);
   };
 
+  const applyHisOcr = async (file: File) => {
+    setOcrBusy(true);
+    setOcrPct(0);
+    const toastId = toast.loading("OCR màn HIS… 0%");
+    try {
+      const text = await ocrHisPatientScreenImage(file, (pct) => {
+        setOcrPct(pct);
+        toast.loading(`OCR màn HIS… ${pct}%`, { id: toastId });
+      });
+      if (!text) {
+        toast.error("OCR không đọc được chữ — chụp rõ hơn / dùng JPEG", { id: toastId });
+        return;
+      }
+      const res = parseHisPatientScreenText(text);
+      if (!res.ok) {
+        const partial = res.partial;
+        if (partial && (partial.ma_benh_an || partial.ma_benh_nhan || partial.ho_ten_benh_nhan)) {
+          applyParsed(
+            [
+              {
+                ma_benh_an: partial.ma_benh_an || "",
+                ma_benh_nhan: partial.ma_benh_nhan || "",
+                ho_ten_benh_nhan: partial.ho_ten_benh_nhan || "",
+                ngay_vao_vien: partial.ngay_vao_vien || "",
+                khoa_dieu_tri: partial.khoa_dieu_tri,
+                ngay_sinh: partial.ngay_sinh,
+                gioi_tinh: partial.gioi_tinh,
+              },
+            ],
+            0,
+          );
+          toast.warning(res.error, { id: toastId });
+          return;
+        }
+        toast.error(res.error, { id: toastId });
+        return;
+      }
+      if (res.warnings.length) {
+        res.warnings.forEach((w) => toast.message(w));
+      }
+      applyParsed([res.row], 0);
+      toast.success("Đã OCR màn HIS → xem trước (kiểm tra rồi lưu)", { id: toastId });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "OCR lỗi", { id: toastId });
+    } finally {
+      setOcrBusy(false);
+      setOcrPct(0);
+    }
+  };
+
   const onPickFile = async (file: File | null) => {
     if (!file) return;
     try {
+      if (isHisPatientScreenImage(file)) {
+        await applyHisOcr(file);
+        return;
+      }
       const name = file.name.toLowerCase();
       if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
         const { default: ExcelJS } = await import("exceljs");
@@ -226,7 +292,7 @@ export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
               Cổng hồ sơ bệnh án (HIS / Excel)
             </h3>
             <p className="mt-1 text-xs text-slate-500">
-              1) Tải mẫu → 2) điền/dán từ HIS → 3) xem trước → lưu. Trùng mã BA + mã BN (hoặc mã BA đã có) sẽ bỏ
+              1) Tải mẫu / dán / ảnh màn HIS → 2) xem trước → lưu. Trùng mã BA + mã BN (hoặc mã BA đã có) sẽ bỏ
               qua — không tạo phiếu NKBV.
             </p>
           </div>
@@ -266,6 +332,7 @@ export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
         {showGuide ? (
           <ol className="list-decimal space-y-1 pl-5 text-xs text-slate-600">
             <li>Cột bắt buộc: Mã bệnh án, Mã bệnh nhân, Họ tên, Ngày vào viện.</li>
+            <li>Hoặc tải/chụp ảnh màn «Thông tin bệnh nhân» HIS (Mã HSBA, Mã BN, Ngày vào…).</li>
             <li>Nhận header tiếng Việt (HIS) hoặc snake_case nội bộ.</li>
             <li>Trong một file: dòng trùng BA+BN hoặc trùng mã BA → giữ dòng đầu.</li>
             <li>Khi lưu: hồ sơ đã có cùng mã BA → cập nhật ngày ra viện / khoa / tên (upsert).</li>
@@ -280,10 +347,35 @@ export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
                 type="file"
                 accept=".xlsx,.xls,.tsv,.csv,.txt"
                 className="hidden"
-                onChange={(e) => void onPickFile(e.target.files?.[0] || null)}
+                onChange={(e) => {
+                  void onPickFile(e.target.files?.[0] || null);
+                  e.target.value = "";
+                }}
+              />
+              <input
+                ref={imageRef}
+                type="file"
+                accept="image/*,.heic,.heif"
+                className="hidden"
+                onChange={(e) => {
+                  void onPickFile(e.target.files?.[0] || null);
+                  e.target.value = "";
+                }}
+              />
+              <input
+                ref={cameraRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={(e) => {
+                  void onPickFile(e.target.files?.[0] || null);
+                  e.target.value = "";
+                }}
               />
               <button
                 type="button"
+                disabled={ocrBusy}
                 onClick={() => fileRef.current?.click()}
                 className={`${C.btnPrimary} gap-1.5`}
               >
@@ -291,6 +383,28 @@ export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
               </button>
               <button
                 type="button"
+                disabled={ocrBusy}
+                onClick={() => imageRef.current?.click()}
+                className={`${C.btnSecondary} gap-1.5`}
+              >
+                {ocrBusy ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ImageIcon className="h-4 w-4" />
+                )}
+                {ocrBusy ? `OCR ${ocrPct}%` : "Ảnh màn HIS"}
+              </button>
+              <button
+                type="button"
+                disabled={ocrBusy}
+                onClick={() => cameraRef.current?.click()}
+                className={`${C.btnSecondary} gap-1.5`}
+              >
+                <Camera className="h-4 w-4" /> Chụp HIS
+              </button>
+              <button
+                type="button"
+                disabled={ocrBusy}
                 onClick={() => setShowPastePanel((v) => !v)}
                 aria-expanded={showPastePanel}
                 className={`${C.btnSecondary} gap-1.5`}
@@ -304,6 +418,9 @@ export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
                 ) : null}
               </button>
             </div>
+            <p className="text-[11px] text-slate-500">
+              Ảnh / chụp: màn «Thông tin bệnh nhân» HIS → OCR → xem trước. Ưu tiên JPEG/PNG; HEIC có thể cần đổi JPEG trên iPhone.
+            </p>
             {showPastePanel ? (
               <div className="space-y-2 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/40 p-3">
                 <label className="block space-y-1">
@@ -353,7 +470,7 @@ export default function NkbvBenhAnImportPortal({ khoas, onImported }: Props) {
 
             <ResponsiveTableShell>
               <table className="min-w-full text-left text-xs">
-                <thead className="bg-slate-50 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                <thead className="bg-slate-50 text-[11px] font-semibold text-slate-500">
                   <tr>
                     <th className="px-2 py-2">Mã BA</th>
                     <th className="px-2 py-2">Mã BN</th>
