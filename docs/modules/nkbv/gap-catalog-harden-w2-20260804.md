@@ -1,6 +1,6 @@
 # Gap catalog harden W2 — SSOT v2 vs runtime NKBV (2026-08-04)
 
-> Đối chiếu [`hai-surveillance-domain-ssot-20260804.md`](hai-surveillance-domain-ssot-20260804.md) §4, §6–§8, §10–§11  
+> Đối chiếu [`hai-surveillance-domain-ssot-20260804.md`](../../archive/nkbv-sources/hai-surveillance-domain-ssot-20260804.md) §4, §6–§8, §10–§11  
 > với `nkbv-rules-engine.ts`, `nkbv-timeline-math.ts`, sub-forms.  
 > **P0** = phải đóng trong W2 (sau W1 Shared). **P1** ghi nhận. **P2** ngoài đợt (W3+/W5).
 

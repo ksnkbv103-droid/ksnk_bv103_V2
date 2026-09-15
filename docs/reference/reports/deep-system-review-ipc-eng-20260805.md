@@ -271,7 +271,7 @@ Prefix SSOT: [`../../core/implementation-mapping.md`](../../core/implementation-
 | [`uat-coordination-pack-20260805.md`](./uat-coordination-pack-20260805.md) | Gói điều phối UAT |
 | [`comprehensive-review-20260709.md`](./comprehensive-review-20260709.md) | Audit Domain→DB→BE→UI trước đó |
 | [`../../core/domain-specification.md`](../../core/domain-specification.md) | SSOT nghiệp vụ |
-| [`../../modules/nkbv/hai-surveillance-domain-ssot-20260804.md`](../../modules/nkbv/hai-surveillance-domain-ssot-20260804.md) | SSOT NHSN (doc) vs pilot runtime |
+| [`../../archive/nkbv-sources/hai-surveillance-domain-ssot-20260804.md`](../../archive/nkbv-sources/hai-surveillance-domain-ssot-20260804.md) | SSOT NHSN v2.0 (lịch sử) vs pilot runtime |
 | [`../../modules/cssd/domain-overview.md`](../../modules/cssd/domain-overview.md) | Domain CSSD chốt PO |
 
 ---
