@@ -1,3 +1,5 @@
+> **LƯU TRỮ** — không dùng khi sửa hệ thống. Bản hiện hành: [`modules/cssd/README.md`](../../../modules/cssd/README.md). Tra cứu lịch sử được.
+
 # BV103 — Standardization / consistency review (READ-MOSTLY)
 
 > **Date:** 2026-09-04 (Asia/Saigon)  

@@ -20,7 +20,7 @@ Email SSOT trên nhân sự: `mdm_nhan_su.extra_data->>'email'` (không cột v�
 
 ## Các bước link (Quản trị)
 
-1. `/quan-tri-he-thong/tai-khoan-nhan-su` — tab tài khoản.
+1. `/quan-tri-he-thong/tai-khoan` (hub) hoặc `/quan-tri-he-thong/nhan-su` — cột Tài khoản.
 2. Với từng nhân sự pilot có email nhưng chưa Auth:
    - **Tạo / mời** user Supabase Auth (cùng email).
    - **Gán** `auth_user_id` hoặc dùng luồng link tự động trên UI (nếu có).

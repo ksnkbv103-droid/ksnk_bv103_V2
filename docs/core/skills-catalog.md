@@ -34,6 +34,7 @@ Khóa phiên bản: `npm run skills:lock` → `skills-lock.json`.
 | `explore-module` | Khám phá 1 module, map route/action/RPC | readonly |
 | `review-bv103` | Review diff trước merge | readonly |
 | `db-verify` | Đối chiếu migration ↔ mapping | readonly |
+| `slice-supervise` | Giám sát diff lát vs DoD | readonly |
 
 ## User-level (optional, không lock)
 
@@ -52,9 +53,16 @@ npm run skills:lock
 
 Cập nhật `scripts/skills-lock.mjs` nếu thư mục skill mới chưa map nguồn (`bv103Local`).
 
+## RACI Grok ↔ Cursor (2026-09-10)
+
+- Always-on rules: `00-core`, `01-agent-discipline` (token hygiene + cấm Cursor đọc CDC).
+- `04-po-workflow` chỉ `/intake-nv` (không always-on).
+- Lệnh chính từ Grok: `/grok-handoff`. UAT: `/uat-cases`. Go-live: `/go-live-check`. Giám sát: `@slice-supervise`.
+- `.cursorignore` — giảm nhiễu `@codebase`.
+
 ## Cursor rules
 
-- Lõi: `00-core`, `01-agent-discipline`, **`04-po-workflow`** (PO — always on)
+- Lõi always-on: `00-core`, `01-agent-discipline` (gồm token hygiene). `04-po-workflow` chỉ `/intake-nv` (không always-on).
 - Edit `src/`: `03-src-editing-compact` (+ module `12–19`)
 - Workflow PO: `/intake-nv` → `02-task-intake-freeze` (manual)
 - Playbook: [`cursor-operating-playbook.md`](cursor-operating-playbook.md) · PO: [`po-cursor-guide.md`](po-cursor-guide.md)
@@ -66,5 +74,12 @@ Cập nhật `scripts/skills-lock.mjs` nếu thư mục skill mới chưa map ng
 | `/intake-nv` | PO — ngôn ngữ nghiệp vụ |
 | `/intake` | Dev — scope kỹ thuật |
 | `/implement` | Sau duyệt intake |
+| `/grok-handoff` | Task dán từ Grok Lead (DoD + whitelist) |
+| `/go-live-check` | Cổng sẵn sàng pilot (không deploy) |
+| `/uat-cases` | Sinh checklist UAT tay từ DoD |
 | `/ship-slice` | Verify + review sau test tay |
 | `/review`, `/explain`, `/commit`, `/pr-create` | Theo tên |
+
+## Index
+
+- `.cursorignore` — loại node_modules/.next/docs/data/archive/_agent dumps khỏi @codebase.

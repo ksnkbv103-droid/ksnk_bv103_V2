@@ -10,9 +10,9 @@ tiers:
     description: Raw immutable layer pointer
     glob: "docs/sources/**"
   core:
-    description: SSOT vận hành — dev/agent đọc thường xuyên
+    description: SSOT vận hành — 11 đọc thường + 6 ký/ADR (xem docs/README Lớp 1)
     glob: "docs/core/*.md"
-    max_files: 15
+    max_files: 17
   modules:
     description: Tài liệu theo module
     glob: "docs/modules/**"
@@ -24,12 +24,17 @@ tiers:
     glob: "docs/data/**"
     human_readable: false
   archive:
-    description: Baseline/plan đã Done
+    description: Baseline/plan đã Done + ghi chú AI + nguồn NKBV đã thay
     glob: "docs/archive/**"
     index: false
+    subfolders:
+      reports: "docs/archive/reports/**"
+      agent_notes: "docs/archive/agent-notes/**"
+      nkbv_sources: "docs/archive/nkbv-sources/**"
 
 entrypoints:
   human: docs/README.md
+  ssot_map: docs/ssot-map.md
   agent: AGENTS.md
   read_minimum: docs/core/read-minimum.md
   wiki_schema: docs/wiki/WIKI_SCHEMA.md

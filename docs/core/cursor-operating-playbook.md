@@ -43,6 +43,8 @@ If any frozen item changes, issue a short "spec change" note and re-plan.
 - Prefer specific files and symbols over broad folder-level context.
 - Keep open context focused on active files.
 - Avoid broad "scan everything" requests for narrow tasks.
+- Subject → current file: `docs/ssot-map.md`. Do not open `_agent-*.md` when editing.
+- Agent working notes go only in `docs/archive/agent-notes/` (never `docs/modules/` or `docs/reference/`).
 
 ## 5) Execution loop
 

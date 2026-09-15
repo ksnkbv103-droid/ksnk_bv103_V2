@@ -1,3 +1,5 @@
+> **LƯU TRỮ** — không dùng khi sửa hệ thống. Bản hiện hành: [`modules/cssd/README.md`](../../../modules/cssd/README.md). Tra cứu lịch sử được.
+
 # Task cho Cursor Agent IDE (local only) — CSSD P0 tiếp theo
 
 > Dán task này vào Cursor Agent trong IDE. Chỉ sửa local. Không commit/push/PR. Không supabase migrate / demo:reset / restore-to-prod.

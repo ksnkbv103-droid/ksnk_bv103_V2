@@ -1,6 +1,6 @@
 # Wiki index
 
-> **Đọc trước:** [`entities.md`](entities.md) · [`concepts.md`](concepts.md) · Schema: [`WIKI_SCHEMA.md`](WIKI_SCHEMA.md)
+> **Đọc trước:** [`entities.md`](entities.md) · [`concepts.md`](concepts.md) · Bản đồ SSOT: [`../ssot-map.md`](../ssot-map.md) · Schema: [`WIKI_SCHEMA.md`](WIKI_SCHEMA.md)
 
 ## Wiki (gộp)
 
@@ -29,7 +29,7 @@
 |--------|----------|------|
 | CSSD | [`reform-plan.md`](../modules/cssd/reform-plan.md) | [entities#cssd](entities.md#cssd) |
 | Giám sát | [`bang-kiem-overview.md`](../modules/giam-sat/bang-kiem-overview.md) | [entities#gsc](entities.md#giám-sát-vst--gsc) |
-| NKBV | [`domain-specification.md`](../modules/nkbv/domain-specification.md) | [entities#nkbv](entities.md#nkbv-hai) |
+| NKBV | [`hai-surveillance-domain-ssot-20260827.md`](../modules/nkbv/hai-surveillance-domain-ssot-20260827.md) | [entities#nkbv](entities.md#nkbv-hai) |
 | QLCV | [`README.md`](../modules/qlcv/README.md) (migrate) | [entities#qlcv](entities.md#qlcv) |
 
 ## Reference

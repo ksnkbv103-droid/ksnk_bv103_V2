@@ -1,6 +1,8 @@
 # Archive — báo cáo audit & gap register (lịch sử)
 
-> **Không cập nhật.** SSOT vận hành → [`../../reference/reports/README.md`](../../reference/reports/README.md).
+> **Không cập nhật.** SSOT vận hành → [`../../reference/reports/README.md`](../../reference/reports/README.md). Bản đồ: [`../../ssot-map.md`](../../ssot-map.md).
+
+Kho khác: [`../agent-notes/`](../agent-notes/) (ghi chú AI) · [`../nkbv-sources/`](../nkbv-sources/) (NKBV v2.0).
 
 ## Wave 1 (07/2026) — gap register & domain audit
 
