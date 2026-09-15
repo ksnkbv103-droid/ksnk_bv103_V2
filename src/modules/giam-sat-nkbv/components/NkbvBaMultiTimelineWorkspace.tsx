@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import type { BaTimelineMilestone } from "../lib/nkbv-ba-timeline-core";
+import { useStableCallback } from "../hooks/use-stable-callback";
+import type { NkbvBaMultiTimelineWorkspaceProps } from "./nkbv-ba-workspace.types";
+import NkbvBaWorkspaceToolbar from "./NkbvBaWorkspaceToolbar";
+import NkbvBaWorkspaceSessionChips from "./NkbvBaWorkspaceSessionChips";
+import NkbvBaWorkspaceBoundDayGrid from "./NkbvBaWorkspaceBoundDayGrid";
 import {
   attributeWithinRit,
   buildGridColumns,
@@ -28,7 +32,6 @@ import {
   buildSessionIndexSuggestions,
   cdhaToSyndromePanel,
   isSsiIndexCriteriaKey,
-  shouldDeferPrimaryBsi,
   siteSbapWindowsFromSites,
   specimenToSyndromePanel,
   type SessionIndexSuggestion,
@@ -36,7 +39,6 @@ import {
 } from "../lib/nkbv-specimen-syndrome";
 import { isNkbvCh17SpecimenOnly } from "../lib/nkbv-specimen-canonical";
 import {
-  formatSessionChipLabel,
   loadBaAnalysisSessions,
   mergeBaAnalysisSessions,
   pruneBaAnalysisSessions,
@@ -57,7 +59,6 @@ import {
   isShellPanel,
   vaeBaReadyToCreatePhieu,
 } from "../lib/nkbv-syndrome-shell-helpers";
-import NkbvBaCommonDayGrid from "./NkbvBaCommonDayGrid";
 import NkbvBaAddViSinhModal from "./NkbvBaAddViSinhModal";
 import NkbvBaConcludeCell from "./NkbvBaConcludeCell";
 import { BA_DAY_COL_W_ANALYSIS, type BaDayGridColumnDef } from "./NkbvBaDayGrid";
@@ -117,11 +118,6 @@ import {
 } from "../lib/nkbv-ba-analysis-mode";
 import { toast } from "sonner";
 
-type KhoaOpt = { id: string; ma?: string; ten?: string; ma_danh_muc?: string; ten_danh_muc?: string };
-
-const COL_W = 132;
-const LABEL_W = 128;
-
 type XnCell = ReturnType<typeof splitMilestonesToGridRows>["xn"][number];
 
 const panelLoading = () => (
@@ -140,81 +136,6 @@ const NkbvSyndromeSsiPanel = dynamic(() => import("./NkbvSyndromeSsiPanel"), {
 const NkbvSyndromeShellPanel = dynamic(() => import("./NkbvSyndromeShellPanel"), {
   loading: panelLoading,
 });
-
-/** Handler ổn định tham chiếu — hàng memo không re-render vì closure mới. */
-function useStableCallback<A extends unknown[], R>(fn: (...args: A) => R): (...args: A) => R {
-  const ref = React.useRef(fn);
-  React.useInsertionEffect(() => {
-    ref.current = fn;
-  });
-  return useCallback((...args: A) => ref.current(...args), []);
-}
-
-type Props = {
-  maBenhAn: string;
-  ngayVaoVien: string;
-  ngayRaVien?: string | null;
-  ngaySinh?: string | null;
-  defaultKhoa?: string | null;
-  /** UUID khoa điều trị — prefill khi thêm XN từ lưới */
-  khoaId?: string | null;
-  maBenhNhan?: string | null;
-  hoTen?: string | null;
-  khoaTen?: string | null;
-  khoas?: KhoaOpt[];
-  locationDays?: Array<{ ngay_lich: string; khoa_id: string }>;
-  deviceDays?: Array<{ id?: string; ngay_lich: string; loai_dung_cu: "CVC" | "VENT" | "FOLEY" }>;
-  timeline: BaTimelineMilestone[];
-  devices: Array<{
-    id: string;
-    device_type: string;
-    insertion_date: string;
-    removal_date: string | null;
-  }>;
-  /** Hàng đợi XN (+) — từ hub cases + skip metadata */
-  analysisDispositions?: ViSinhAnalysisDispositionRow[];
-  /** Deep link từ kho vi sinh: UUID XN → mở phiên Index. */
-  focusXnId?: string | null;
-  allowedEdit: boolean;
-  /** Chọn Index — chỉ đánh dấu mốc, không tạo phiếu */
-  onIndexChange?: (input: { milestoneId: string }) => void;
-  /** Sau kết luận — tạo phiếu phân tích (late create) */
-  onCreatePhieu?: (input: {
-    milestoneId: string;
-    panel: SyndromePanelId;
-    analysisSeed?: NkbvBaAnalysisSeedInput | null;
-  }) => void;
-  /** Bỏ qua XN (+) có lý do */
-  onSkipViSinh?: (input: { viSinhId: string; reason: string }) => void;
-  /** Chốt Index không đủ TC (KHONG_DU_TC) */
-  onMarkKhongDuTc?: (input: { viSinhId: string; indexDate: string }) => void;
-  /** Xóa phiên → mở lại XN đã gắn KHONG_DU_TC trên DB */
-  onClearViSinhDisposition?: (input: { viSinhId: string }) => void | Promise<void>;
-  /** Soft reload hub (silent) — dùng khi cần đồng bộ LIS/case, không mỗi tick TC */
-  onReload: () => void;
-  /** Patch timeline local sau upsert DB — tránh reload cả hub */
-  onTimelineUpsertLocal?: (row: {
-    id: string;
-    milestone_kind: string;
-    milestone_date: string;
-    title: string;
-    detail?: string | null;
-    specimen_hint?: string | null;
-    criteria_key?: string | null;
-  }) => void;
-  onTimelineRemoveLocal?: (milestoneId: string) => void;
-  /** Phiếu đã có trên BA — cảnh báo RIT khi mở Index mới. */
-  priorEvents?: Array<{
-    id: string;
-    ngay_phat_hien: string | null;
-    loai_ma?: string | null;
-    loai_ten?: string | null;
-    vi_tri_nhiem_khuan?: string | null;
-    index_vi_sinh_id?: string | null;
-    tac_nhan_vi_khuan?: string | null;
-    attributed_vi_sinh_ids?: string[] | null;
-  }>;
-};
 
 /**
  * Multi-timeline: bảng chung bằng chứng đầy đủ + phiên hội chứng độc lập.
@@ -245,7 +166,7 @@ export default function NkbvBaMultiTimelineWorkspace({
   onTimelineUpsertLocal,
   onTimelineRemoveLocal,
   priorEvents = [],
-}: Props) {
+}: NkbvBaMultiTimelineWorkspaceProps) {
   const [addXnDate, setAddXnDate] = useState<string | null>(null);
   const split = useMemo(() => {
     const base = splitMilestonesToGridRows(timeline);
@@ -1291,6 +1212,46 @@ export default function NkbvBaMultiTimelineWorkspace({
   const stableToggleSsiTc = useStableCallback(toggleSsiTc);
   const stableOpenFromSurgeryOrSsi = useStableCallback(openFromSurgeryOrSsi);
 
+  const dayGridBind = {
+    days: commonColumns,
+    xnByDate,
+    cdhaByDate,
+    ssiTcByDate,
+    surgeryByDate: split.surgeryByDate,
+    lamSangByDate: baClinicalLamSang,
+    foleyOnDate,
+    ventOnDate,
+    cvcOnDate,
+    ngayVaoVien,
+    ngayRaVien,
+    statusById: xnStatusById,
+    cdhaCatalog,
+    ssiTcCatalog,
+    allowedEdit,
+    defaultKhoa: defaultKhoa || "",
+    khoaByDate,
+    khoas: khoas.map((k) => ({
+      id: k.id,
+      ma_danh_muc: k.ma_danh_muc || k.ma,
+      ten_danh_muc: k.ten_danh_muc || k.ten,
+    })),
+    onChangeKhoa: allowedEdit ? (d: string, id: string) => void changeKhoa(d, id) : undefined,
+    onAddXn: allowedEdit ? setAddXnDate : undefined,
+    onPickXn: stableOpenFromXn,
+    onToggleDevice: allowedEdit
+      ? (d: string, k: "device_foley" | "device_ventilator" | "device_central_line") =>
+          void toggleDevice(d, k)
+      : undefined,
+    onOpenCdha: stableOpenFromCdha,
+    onRemoveMilestone: stableRemoveMilestone,
+    onEditCdhaDate: stableEditCdhaDate,
+    onToggleCdha: stableToggleCdha,
+    onOpenSurgeryOrSsi: stableOpenFromSurgeryOrSsi,
+    onAddSurgery: stableAddSurgery,
+    onToggleSsiTc: stableToggleSsiTc,
+  };
+
+
   const focusXnConsumed = React.useRef(false);
   useEffect(() => {
     if (focusXnConsumed.current || !focusXnId) return;
@@ -1443,65 +1404,14 @@ export default function NkbvBaMultiTimelineWorkspace({
 
   return (
     <div className="relative z-[1] flex min-h-0 flex-1 flex-col gap-2 bg-white">
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 px-3 py-2 text-[11px]">
-        <span className="font-semibold text-slate-800">Bảng BA dọc (hàng = ngày)</span>
-        <span className="text-slate-500">
-          Cột chung gọn + cột phân tích cùng hàng (trượt ngang). Highlight theo cột: IPW / RIT / SBAP
-        </span>
-        <span className="inline-flex flex-wrap items-center gap-1.5 text-slate-600" title="Chú thích màu mốc thời gian">
-          <span className="rounded bg-amber-200 px-1.5 py-0.5 font-semibold text-amber-950">Ngày X</span>
-          <span className="rounded bg-rose-100 px-1.5 py-0.5 font-semibold text-rose-800">IPW</span>
-          <span className="rounded bg-red-300 px-1.5 py-0.5 font-bold text-red-950">DOE</span>
-          <span className="rounded bg-emerald-100 px-1.5 py-0.5 font-semibold text-emerald-900">RIT</span>
-          <span className="rounded bg-sky-100 px-1.5 py-0.5 font-semibold text-sky-900">SBAP</span>
-        </span>
-        <div
-          className="inline-flex items-center gap-0.5 rounded-full border border-slate-200 bg-slate-50 p-0.5"
-          title="Theo CDC: máy gợi ý kết luận. Tự phân tích: bạn tự viết kết luận."
-        >
-          <button
-            type="button"
-            className={`rounded-full px-2.5 py-1 font-semibold ${
-              !isManual
-                ? "bg-[var(--primary)] text-white"
-                : "text-slate-600 hover:bg-white"
-            }`}
-            onClick={() => switchAnalysisMode("CDC")}
-          >
-            Theo CDC
-          </button>
-          <button
-            type="button"
-            className={`rounded-full px-2.5 py-1 font-semibold ${
-              isManual
-                ? "bg-violet-700 text-white"
-                : "text-slate-600 hover:bg-white"
-            }`}
-            onClick={() => switchAnalysisMode("MANUAL")}
-          >
-            Tự phân tích
-          </button>
-        </div>
-        {isManual ? (
-          <span className="rounded bg-violet-50 px-2 py-0.5 font-semibold text-violet-900">
-            Tự phân tích — kết luận do bạn nhập
-          </span>
-        ) : null}
-        <label className="ml-auto flex items-center gap-1 text-slate-600">
-          <input
-            type="checkbox"
-            checked={effectivePreferVae}
-            disabled={autoPreferVae}
-            onChange={(e) => setPreferVae(e.target.checked)}
-          />
-          Hô hấp → ưu tiên VAE
-        </label>
-        {autoPreferVae ? (
-          <span className="rounded bg-purple-50 px-2 py-0.5 font-semibold text-purple-900">
-            Người lớn thở máy ≥4 ngày — mở VAE, không cây PNEU/VAP
-          </span>
-        ) : null}
-      </div>
+      <NkbvBaWorkspaceToolbar
+        analysisMode={analysisMode}
+        isManual={isManual}
+        preferVae={preferVae}
+        autoPreferVae={autoPreferVae}
+        onSwitchMode={switchAnalysisMode}
+        onPreferVaeChange={setPreferVae}
+      />
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
         {!sessionSuggestions.length ? (
@@ -1511,88 +1421,15 @@ export default function NkbvBaMultiTimelineWorkspace({
           </p>
         ) : null}
 
-        <div className="mt-2 space-y-1.5 border-t border-slate-100 pt-2 text-[11px]">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="shrink-0 font-semibold text-slate-600">Gợi ý phiên (theo Index):</span>
-            {!sessionSuggestions.length ? (
-              <span className="text-slate-400">—</span>
-            ) : (
-              sessionSuggestions.map((s) => {
-                const opened = sessions.some((x) => x.id === s.id);
-                const active = s.id === openSessionId;
-                const bloodInSiteSbap =
-                  s.panel === "BSI" &&
-                  shouldDeferPrimaryBsi({
-                    selectedSpecimenPanel: "BSI",
-                    bloodDate: s.index.date,
-                    establishedSiteSbaps,
-                  });
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => openFromSuggestion(s)}
-                    className={`rounded-full border px-2.5 py-1 font-semibold ${
-                      bloodInSiteSbap
-                        ? "border-amber-200 bg-amber-50/70 text-amber-900/80"
-                        : active
-                          ? "border-rose-400 bg-rose-50 text-rose-900"
-                          : opened
-                            ? "border-emerald-300 bg-emerald-50/80 text-emerald-900"
-                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"
-                    }`}
-                    title={
-                      bloodInSiteSbap
-                        ? "Máu ∈ SBAP ổ tại chỗ — bấm để rà Secondary trước; chỉ Primary khi không khớp/loại trừ"
-                        : `${s.source} → ${s.panel}`
-                    }
-                  >
-                    {s.panel} · {s.label}
-                    {bloodInSiteSbap ? " · rà SBAP" : ""}
-                    {opened && !active && !bloodInSiteSbap ? " · đã mở" : ""}
-                  </button>
-                );
-              })
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="shrink-0 font-semibold text-slate-600">Đang phân tích:</span>
-            {!sessions.length ? (
-              <span className="text-slate-400">Chưa mở phiên</span>
-            ) : (
-              sessions.map((s) => {
-                const active = s.id === openSessionId;
-                return (
-                  <span
-                    key={s.id}
-                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-semibold ${
-                      active
-                        ? "border-rose-400 bg-rose-50 text-rose-900"
-                        : "border-slate-200 bg-white text-slate-700"
-                    }`}
-                  >
-                    <button type="button" onClick={() => setOpenSessionId(s.id)} title="Mở lại phiên">
-                      {formatSessionChipLabel(s)}
-                    </button>
-                    <button
-                      type="button"
-                      className="text-slate-400 hover:text-rose-600"
-                      title="Xóa phiên nháp"
-                      onClick={() => removeSession(s.id)}
-                    >
-                      ×
-                    </button>
-                  </span>
-                );
-              })
-            )}
-            <span className="ml-auto text-[11px] text-slate-400">
-              Chỉ từ XN / CĐHA / TC DOE SSI — phiếu khi bấm «Tạo phiếu»
-            </span>
-          </div>
-        </div>
-
+        <NkbvBaWorkspaceSessionChips
+          sessionSuggestions={sessionSuggestions}
+          sessions={sessions}
+          openSessionId={openSessionId}
+          establishedSiteSbaps={establishedSiteSbaps}
+          onOpenSuggestion={openFromSuggestion}
+          onSelectSession={setOpenSessionId}
+          onRemoveSession={removeSession}
+        />
 
         {openSession &&
         (openSession.panel === "UTI" ||
@@ -1697,45 +1534,13 @@ export default function NkbvBaMultiTimelineWorkspace({
             {({ analysisColumns }) => {
               const slots = analysisSlotsForPanel(analysisColumns, openSession.panel);
               return (
-              <NkbvBaCommonDayGrid
-                days={commonColumns}
-                xnByDate={xnByDate}
-                cdhaByDate={cdhaByDate}
-                ssiTcByDate={ssiTcByDate}
-                surgeryByDate={split.surgeryByDate}
-                lamSangByDate={baClinicalLamSang}
-                foleyOnDate={foleyOnDate}
-                ventOnDate={ventOnDate}
-                cvcOnDate={cvcOnDate}
-                ngayVaoVien={ngayVaoVien}
-                ngayRaVien={ngayRaVien}
-                statusById={xnStatusById}
+              <NkbvBaWorkspaceBoundDayGrid
+                {...dayGridBind}
                 activeXnId={
                   openSession.index.kind === "XN" ? openSession.index.id : null
                 }
-                cdhaCatalog={cdhaCatalog}
-                ssiTcCatalog={ssiTcCatalog}
-                allowedEdit={allowedEdit}
-                defaultKhoa={defaultKhoa || ""}
                 windowColumns={slots.windowColumns}
                 tailColumns={slots.tailColumns}
-                onPickXn={stableOpenFromXn}
-                onToggleDevice={allowedEdit ? (d, k) => void toggleDevice(d, k) : undefined}
-                khoaByDate={khoaByDate}
-                khoas={khoas.map((k) => ({
-                  id: k.id,
-                  ma_danh_muc: k.ma_danh_muc || k.ma,
-                  ten_danh_muc: k.ten_danh_muc || k.ten,
-                }))}
-                onChangeKhoa={allowedEdit ? (d, id) => void changeKhoa(d, id) : undefined}
-                onAddXn={allowedEdit ? setAddXnDate : undefined}
-                onOpenCdha={stableOpenFromCdha}
-                onRemoveMilestone={stableRemoveMilestone}
-                onEditCdhaDate={stableEditCdhaDate}
-                onToggleCdha={stableToggleCdha}
-                onOpenSurgeryOrSsi={stableOpenFromSurgeryOrSsi}
-                onAddSurgery={stableAddSurgery}
-                onToggleSsiTc={stableToggleSsiTc}
               />
               );
             }}
@@ -1828,43 +1633,11 @@ export default function NkbvBaMultiTimelineWorkspace({
             {({ analysisColumns }) => {
               const slots = analysisSlotsForPanel(analysisColumns, openSession.panel);
               return (
-              <NkbvBaCommonDayGrid
-                days={commonColumns}
-                xnByDate={xnByDate}
-                cdhaByDate={cdhaByDate}
-                ssiTcByDate={ssiTcByDate}
-                surgeryByDate={split.surgeryByDate}
-                lamSangByDate={baClinicalLamSang}
-                foleyOnDate={foleyOnDate}
-                ventOnDate={ventOnDate}
-                cvcOnDate={cvcOnDate}
-                ngayVaoVien={ngayVaoVien}
-                ngayRaVien={ngayRaVien}
-                statusById={xnStatusById}
+              <NkbvBaWorkspaceBoundDayGrid
+                {...dayGridBind}
                 activeXnId={null}
-                cdhaCatalog={cdhaCatalog}
-                ssiTcCatalog={ssiTcCatalog}
-                allowedEdit={allowedEdit}
-                defaultKhoa={defaultKhoa || ""}
                 windowColumns={slots.windowColumns}
                 tailColumns={slots.tailColumns}
-                onPickXn={stableOpenFromXn}
-                onToggleDevice={allowedEdit ? (d, k) => void toggleDevice(d, k) : undefined}
-                khoaByDate={khoaByDate}
-                khoas={khoas.map((k) => ({
-                  id: k.id,
-                  ma_danh_muc: k.ma_danh_muc || k.ma,
-                  ten_danh_muc: k.ten_danh_muc || k.ten,
-                }))}
-                onChangeKhoa={allowedEdit ? (d, id) => void changeKhoa(d, id) : undefined}
-                onAddXn={allowedEdit ? setAddXnDate : undefined}
-                onOpenCdha={stableOpenFromCdha}
-                onRemoveMilestone={stableRemoveMilestone}
-                onEditCdhaDate={stableEditCdhaDate}
-                onToggleCdha={stableToggleCdha}
-                onOpenSurgeryOrSsi={stableOpenFromSurgeryOrSsi}
-                onAddSurgery={stableAddSurgery}
-                onToggleSsiTc={stableToggleSsiTc}
               />
               );
             }}
@@ -1892,87 +1665,23 @@ export default function NkbvBaMultiTimelineWorkspace({
             {({ analysisColumns }) => {
               const slots = analysisSlotsForPanel(analysisColumns, openSession.panel);
               return (
-              <NkbvBaCommonDayGrid
-                days={commonColumns}
-                xnByDate={xnByDate}
-                cdhaByDate={cdhaByDate}
-                ssiTcByDate={ssiTcByDate}
-                surgeryByDate={split.surgeryByDate}
-                lamSangByDate={baClinicalLamSang}
-                foleyOnDate={foleyOnDate}
-                ventOnDate={ventOnDate}
-                cvcOnDate={cvcOnDate}
-                ngayVaoVien={ngayVaoVien}
-                ngayRaVien={ngayRaVien}
-                statusById={xnStatusById}
+              <NkbvBaWorkspaceBoundDayGrid
+                {...dayGridBind}
                 activeXnId={
                   openSession.index.kind === "XN" ? openSession.index.id : null
                 }
-                cdhaCatalog={cdhaCatalog}
-                ssiTcCatalog={ssiTcCatalog}
-                allowedEdit={allowedEdit}
-                defaultKhoa={defaultKhoa || ""}
                 windowColumns={slots.windowColumns}
                 tailColumns={slots.tailColumns}
-                onPickXn={stableOpenFromXn}
-                onToggleDevice={allowedEdit ? (d, k) => void toggleDevice(d, k) : undefined}
-                khoaByDate={khoaByDate}
-                khoas={khoas.map((k) => ({
-                  id: k.id,
-                  ma_danh_muc: k.ma_danh_muc || k.ma,
-                  ten_danh_muc: k.ten_danh_muc || k.ten,
-                }))}
-                onChangeKhoa={allowedEdit ? (d, id) => void changeKhoa(d, id) : undefined}
-                onAddXn={allowedEdit ? setAddXnDate : undefined}
-                onOpenCdha={stableOpenFromCdha}
-                onRemoveMilestone={stableRemoveMilestone}
-                onEditCdhaDate={stableEditCdhaDate}
-                onToggleCdha={stableToggleCdha}
-                onOpenSurgeryOrSsi={stableOpenFromSurgeryOrSsi}
-                onAddSurgery={stableAddSurgery}
-                onToggleSsiTc={stableToggleSsiTc}
               />
               );
             }}
           </NkbvSyndromeShellPanel>
         ) : (
-          <NkbvBaCommonDayGrid
-            days={commonColumns}
-            xnByDate={xnByDate}
-            cdhaByDate={cdhaByDate}
-            ssiTcByDate={ssiTcByDate}
-            surgeryByDate={split.surgeryByDate}
-            lamSangByDate={baClinicalLamSang}
-            foleyOnDate={foleyOnDate}
-            ventOnDate={ventOnDate}
-            cvcOnDate={cvcOnDate}
-            ngayVaoVien={ngayVaoVien}
-            ngayRaVien={ngayRaVien}
-            statusById={xnStatusById}
+          <NkbvBaWorkspaceBoundDayGrid
+            {...dayGridBind}
             activeXnId={null}
-            cdhaCatalog={cdhaCatalog}
-            ssiTcCatalog={ssiTcCatalog}
-            allowedEdit={allowedEdit}
-            defaultKhoa={defaultKhoa || ""}
             windowColumns={[]}
             tailColumns={closedGridConcludeColumns}
-            onToggleDevice={allowedEdit ? (d, k) => void toggleDevice(d, k) : undefined}
-            khoaByDate={khoaByDate}
-            khoas={khoas.map((k) => ({
-              id: k.id,
-              ma_danh_muc: k.ma_danh_muc || k.ma,
-              ten_danh_muc: k.ten_danh_muc || k.ten,
-            }))}
-            onChangeKhoa={allowedEdit ? (d, id) => void changeKhoa(d, id) : undefined}
-            onPickXn={stableOpenFromXn}
-            onAddXn={allowedEdit ? setAddXnDate : undefined}
-            onOpenCdha={stableOpenFromCdha}
-            onRemoveMilestone={stableRemoveMilestone}
-            onEditCdhaDate={stableEditCdhaDate}
-            onToggleCdha={stableToggleCdha}
-            onOpenSurgeryOrSsi={stableOpenFromSurgeryOrSsi}
-            onAddSurgery={stableAddSurgery}
-            onToggleSsiTc={stableToggleSsiTc}
           />
         )}
 
