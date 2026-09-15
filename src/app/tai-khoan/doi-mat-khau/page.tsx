@@ -41,7 +41,6 @@ export default function DoiMatKhauPage() {
 
   return (
     <div className="mx-auto max-w-md space-y-[var(--bv103-space-3)] p-4">
-      <h1 className={T.pageTitle}>Đổi mật khẩu</h1>
       <form onSubmit={onSubmit} className={`space-y-[var(--bv103-space-3)] ${C.panelShellPadded}`}>
         <div>
           <label className={T.labelBlock}>Email đăng nhập</label>

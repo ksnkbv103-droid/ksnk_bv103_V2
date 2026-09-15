@@ -56,7 +56,8 @@ export const bv103DesignTokens = {
   /** App chrome: sidebar group + zone trên Header — IN HOA duy nhất ở lớp điều hướng */
   navGroupLabel: `${TYPE_LABEL} font-semibold uppercase tracking-wider text-slate-400`,
   shellZone: `${TYPE_LABEL} font-semibold uppercase tracking-wider text-slate-400`,
-  shellPage: `truncate ${TYPE_SECTION} leading-snug`,
+  /** Tên module duy nhất trên App Header — primary green */
+  shellPage: `truncate ${TYPE_SECTION} leading-snug text-[var(--primary)]`,
 
   sectionTitle: TYPE_SECTION,
   labelBlock: TYPE_LABEL,

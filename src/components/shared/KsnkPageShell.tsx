@@ -30,12 +30,12 @@ type KsnkPageHeaderProps = {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   actions?: React.ReactNode;
-  /** false = App Header đã có tên — chỉ còn hàng nút. */
+  /** false (mặc định) = App Header đã có tên — chỉ còn hàng nút. */
   showTitle?: boolean;
 };
 
-/** Khối tiêu đề trang Admin — cùng `KsnkPageChrome`. */
-export function KsnkPageHeader({ title, subtitle, actions, showTitle = true }: KsnkPageHeaderProps) {
+/** Khối tiêu đề trang Admin — cùng `KsnkPageChrome` (mặc định không lặp H1). */
+export function KsnkPageHeader({ title, subtitle, actions, showTitle = false }: KsnkPageHeaderProps) {
   return <KsnkPageChrome title={title} subtitle={subtitle} actions={actions} showTitle={showTitle} />;
 }
 
