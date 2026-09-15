@@ -191,7 +191,7 @@ export default function VaeClinicalSubForm({
 
           <div className="space-y-3 rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50/75 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <span className="text-xs font-semibold text-slate-500">
                 Bảng PEEP / FiO₂ tối thiểu (yếu tố xác định VAC)
               </span>
               {allowedEdit ? (
@@ -211,7 +211,7 @@ export default function VaeClinicalSubForm({
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[420px] border-collapse text-xs">
                   <thead>
-                    <tr className="font-bold uppercase text-slate-400">
+                    <tr className="font-bold text-slate-400">
                       <th className="px-2 py-1.5 text-left">Ngày</th>
                       <th className="px-2 py-1.5 text-left">PEEP min</th>
                       <th className="px-2 py-1.5 text-left">FiO₂ min %</th>

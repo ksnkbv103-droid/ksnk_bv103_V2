@@ -39,7 +39,7 @@ export function QlcvManualProgressPanel({ congViecId, initialPercent, readOnly, 
   return (
     <div className={`${UI.sectionGap} space-y-3`}>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Tiến độ thực hiện</span>
+        <span className="text-[11px] font-semibold text-slate-500">Tiến độ thực hiện</span>
         <span className="text-sm font-semibold tabular-nums text-[var(--primary)]">{pct}%</span>
       </div>
       <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
@@ -73,10 +73,10 @@ export function QlcvManualProgressPanel({ congViecId, initialPercent, readOnly, 
                   disabled={saving}
                   onClick={() => setPct(v)}
                   className={`rounded-lg px-2 py-1 text-[11px] font-medium tabular-nums ${
-                    pct === v
-                      ? "bg-[var(--primary)] text-white"
-                      : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                  }`}
+ pct === v
+ ? "bg-[var(--primary)] text-white"
+ : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+ }`}
                 >
                   {v}%
                 </button>

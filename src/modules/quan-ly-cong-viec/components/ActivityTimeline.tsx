@@ -130,7 +130,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-sm">
           <Clock className="h-8 w-8 text-slate-300" />
         </div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Chưa có hoạt động nào được ghi nhận</p>
+        <p className="text-xs font-semibold text-slate-400">Chưa có hoạt động nào được ghi nhận</p>
       </div>
     );
   }
@@ -159,10 +159,10 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
             <div className="min-w-0 flex-1 pb-2">
               <div
                 className={`rounded-[var(--radius-shell)] border p-4 transition-shadow group-hover:shadow-md sm:p-5 ${
-                  showCommentStyle
-                    ? "border-violet-100/90 bg-violet-50/35"
-                    : "border-slate-100 bg-white shadow-sm"
-                }`}
+ showCommentStyle
+ ? "border-violet-100/90 bg-violet-50/35"
+ : "border-slate-100 bg-white shadow-sm"
+ }`}
               >
                 <div className="mb-2 flex flex-col gap-2 sm:mb-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -170,12 +170,12 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
                       {activity.nguoi?.ho_ten || "Hệ thống"}
                     </span>
                     <span
-                      className={`rounded-lg border px-2 py-0.5 bv103-type-label font-semibold uppercase tracking-wider ${config.color}`}
+                      className={`rounded-lg border px-2 py-0.5 bv103-type-label font-semibold ${config.color}`}
                     >
                       {config.label}
                     </span>
                   </div>
-                  <span className="shrink-0 text-[11px] font-medium uppercase tracking-wide text-slate-400 tabular-nums">
+                  <span className="shrink-0 text-[11px] font-medium text-slate-400 tabular-nums">
                     {formatDateTimeVi(activity.created_at)}
                   </span>
                 </div>
@@ -183,8 +183,8 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
                 {hasNarrative ? (
                   <p
                     className={`text-sm leading-relaxed ${
-                      showCommentStyle ? "font-medium text-violet-950/90" : "font-medium text-slate-600"
-                    }`}
+ showCommentStyle ? "font-medium text-violet-950/90" : "font-medium text-slate-600"
+ }`}
                   >
                     {activity.noi_dung}
                   </p>

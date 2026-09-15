@@ -140,7 +140,7 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
             <button
               type="button"
               title="Sửa"
-              className="bv103-control-h inline-flex items-center gap-1 rounded-lg border border-slate-200/90 bg-white px-2 text-[11px] font-semibold uppercase tracking-wide text-slate-700 hover:bg-slate-50"
+              className="bv103-control-h inline-flex items-center gap-1 rounded-lg border border-slate-200/90 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
               onClick={() => h.onEdit(row)}
             >
               <Pencil size={12} aria-hidden /> Sửa
@@ -150,7 +150,7 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
             <button
               type="button"
               title="Xóa"
-              className="bv103-control-h inline-flex items-center gap-1 rounded-lg border border-red-100 bg-red-50/90 px-2 text-[11px] font-semibold uppercase tracking-wide text-red-700 hover:bg-red-100"
+              className="bv103-control-h inline-flex items-center gap-1 rounded-lg border border-red-100 bg-red-50/90 px-2 text-[11px] font-semibold text-red-700 hover:bg-red-100"
               onClick={() => void h.onDelete(row)}
             >
               <Trash2 size={12} aria-hidden />

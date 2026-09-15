@@ -88,8 +88,8 @@ export function ComprehensiveDimensionCompare({ payload }: { payload: BaoCaoTong
               type="button"
               onClick={() => setDim(d.id)}
               className={`rounded-md px-3 py-1.5 bv103-type-label font-semibold ${
-                active === d.id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"
-              }`}
+ active === d.id ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-50"
+ }`}
             >
               {d.label}
             </button>
@@ -127,7 +127,7 @@ function DimensionTable({ title, rows }: { title: string; rows: CompareRow[] }) 
         {title} · thấp → cao
       </div>
       <table className="w-full text-sm">
-        <thead className="text-[11px] uppercase text-slate-400">
+        <thead className="text-[11px] text-slate-400">
           <tr>
             <th className="px-3 py-2 text-left font-semibold">Nhóm</th>
             <th className="px-3 py-2 text-right font-semibold">%</th>

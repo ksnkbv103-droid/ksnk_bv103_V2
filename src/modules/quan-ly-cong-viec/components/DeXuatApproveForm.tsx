@@ -239,7 +239,7 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
         <button
           type="button"
           onClick={onCancel}
-          className="bv103-control-h rounded-xl border border-slate-200/90 bg-white px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-slate-700 shadow-sm hover:bg-slate-50 sm:min-w-[7rem]"
+          className={`${bv103LayoutChrome.btnSecondary} sm:min-w-[7rem]`}
         >
           Đóng
         </button>
@@ -247,14 +247,14 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
           type="button"
           disabled={loading}
           onClick={() => setRejectOpen(true)}
-          className="bv103-control-h rounded-xl border border-red-200 bg-red-50 px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-red-800 shadow-sm hover:bg-red-100 disabled:opacity-50 sm:min-w-[9rem]"
+          className={`${bv103LayoutChrome.btnSecondary} border-red-200 bg-red-50 text-red-800 hover:bg-red-100 sm:min-w-[9rem]`}
         >
           Từ chối
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="bv103-control-h rounded-xl bg-[var(--primary)] px-8 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:opacity-90 disabled:opacity-50 sm:min-w-[10rem]"
+          className={`${bv103LayoutChrome.btnPrimary} sm:min-w-[10rem]`}
         >
           {loading ? "Đang xử lý…" : "Phê duyệt & giao"}
         </button>

@@ -44,7 +44,7 @@ export function ComprehensiveGscBkIntervention({ payload }: Props) {
       <ResponsiveTableShell unboxed className="rounded-xl border border-slate-200" maxHeight="max-h-[min(360px,50dvh)]">
         <table className="w-full min-w-[560px] text-left text-xs">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 bv103-type-label font-semibold uppercase tracking-wide text-slate-500">
+            <tr className="border-b border-slate-200 bg-slate-50 bv103-type-label font-semibold text-slate-500">
               <th className="px-3 py-2">BK</th>
               <th className="px-2 py-2 text-right">Tuân thủ</th>
               <th className="px-2 py-2 text-right">Vi phạm</th>
