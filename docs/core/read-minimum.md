@@ -1,6 +1,6 @@
 # Đọc tối thiểu theo loại thay đổi
 
-> Tránh đọc cả `docs/`. Luôn bắt đầu: [`AGENTS.md`](../../AGENTS.md) + [`lean-execution.md`](lean-execution.md).
+> Tránh đọc cả `docs/`. Luôn bắt đầu: [`AGENTS.md`](../../AGENTS.md) + [`lean-execution.md`](lean-execution.md). Chủ đề → file đang dùng: [`../ssot-map.md`](../ssot-map.md).
 
 | Loại diff | Đọc bắt buộc | Tra cứu thêm |
 |-----------|--------------|--------------|
@@ -19,6 +19,6 @@
 | RBAC / tài khoản | [`operations-sop.md`](operations-sop.md) | `permission-registry.ts` |
 | Chỉ refactor thuần (lib) | mapping cột liên quan | module README nếu đổi hành vi |
 
-**Không** mở [`data/`](../data/) trừ khi chạy script seed. **Không** mở [`archive/pilot_chain_*.tar.gz`](../archive/) trừ khi tra lịch sử migration.
+**Không** mở [`data/`](../data/) trừ khi chạy script seed. **Không** mở [`archive/pilot_chain_*.tar.gz`](../archive/) trừ khi tra lịch sử migration. **Không** mở `_agent-*.md` hay [`archive/agent-notes/`](../archive/agent-notes/) khi sửa code (chỉ khi tra nhật ký phiên). **Không** mở [`archive/nkbv-sources/`](../archive/nkbv-sources/) khi sửa NKBV — dùng bản 27/08.
 
 **Khám phá / câu hỏi tổng hợp:** [`../wiki/entities.md`](../wiki/entities.md) — không thay read-minimum khi sửa code.

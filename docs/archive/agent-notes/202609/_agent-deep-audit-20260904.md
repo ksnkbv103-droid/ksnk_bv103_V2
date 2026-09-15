@@ -1,3 +1,5 @@
+> **LƯU TRỮ** — không dùng khi sửa hệ thống. Bản hiện hành: [`modules/cssd/README.md`](../../../modules/cssd/README.md). Tra cứu lịch sử được.
+
 # BV103 CSSD — Deep domain audit vs PCI / QT BM / HĐ 31/07
 
 > Draft 2026-09-04 · Nguồn: domain-specification §2.2, reform-plan, `/workspace/ipc-iso/source/QT-{18,21,24,38}`, HĐKSNK 31/07, trạng thái local WIP (trước khi Mac offline).  
