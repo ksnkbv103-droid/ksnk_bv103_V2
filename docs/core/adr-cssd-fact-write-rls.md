@@ -47,7 +47,7 @@ SELECT giữ nguyên. Runtime admin write **không đổi** (service role bypass
 ### Ngoài phạm vi / follow-up
 
 - `cssd_fact_quy_trinh_thanh_phan` — **đã DROP** trong lean hub (`20260622120000`); runtime BOM = `metadata.bom_lines[]`.
-  - DRAFT defense-in-depth (IF EXISTS): `supabase/migrations/20260905120000_cssd_fact_quy_trinh_thanh_phan_write_rls_DRAFT.sql` — **không** apply linked/prod; no-op khi bảng không còn.
+  - DRAFT defense-in-depth (IF EXISTS): `supabase/migrations/archive_legacy/drafts/20260905120000_cssd_fact_quy_trinh_thanh_phan_write_rls_DRAFT.sql` — **không** trên chuỗi apply; no-op khi bảng không còn.
 - Đổi app từ admin → user client — **không** trong ADR này.
 
 ## Hậu quả
