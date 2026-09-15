@@ -23,7 +23,14 @@ vi.mock("@/lib/server-permission", () => ({
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-const hasIntegrationDb = Boolean(url && serviceKey);
+/** CI verify sets placeholder URL/key — treat as no DB so suite skips instead of hanging. */
+const hasIntegrationDb = Boolean(
+  url &&
+    serviceKey &&
+    !/placeholder/i.test(url) &&
+    !/placeholder/i.test(serviceKey) &&
+    !/^ci-/i.test(serviceKey),
+);
 
 describe.skipIf(!hasIntegrationDb)("importViSinhExcel and automatic case creation tests", () => {
   let sb: ReturnType<typeof createClient>;

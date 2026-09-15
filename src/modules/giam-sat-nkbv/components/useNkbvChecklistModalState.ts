@@ -62,7 +62,9 @@ export function useNkbvChecklistModalState({
   allowedEdit: boolean;
 }) {
   const rowRef = useRef(row);
-  rowRef.current = row;
+  useEffect(() => {
+    rowRef.current = row;
+  }, [row]);
   const [submitting, setSubmitting] = useState(false);
   const [adjudicating, setAdjudicating] = useState(false);
   
