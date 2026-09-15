@@ -1,7 +1,7 @@
 "use server";
 
 import { countGiamSatNkbvChoXn } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-dashboard.actions";
-import { getCssdStationFlowMap } from "@/modules/cssd-erp/actions/cssd-read.actions";
+import { getCssdStationFlowMap } from "@/modules/cssd-erp/contexts/processing-lifecycle/station-flow";
 import { verifyCommandCenterShell } from "../lib/dashboard-command-center-access";
 
 export type CommandCenterQueueSignals = {

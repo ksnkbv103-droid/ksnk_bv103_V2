@@ -32,7 +32,9 @@ export default function NkbvGridCriteriaAddPopover({
   const panelRef = useRef<HTMLUListElement | null>(null);
   const listId = useId();
   const maxHeightRef = useRef(maxHeight);
-  maxHeightRef.current = maxHeight;
+  useEffect(() => {
+    maxHeightRef.current = maxHeight;
+  }, [maxHeight]);
 
   const computeStyle = (rect: DOMRect): React.CSSProperties => {
     const vh = window.innerHeight;

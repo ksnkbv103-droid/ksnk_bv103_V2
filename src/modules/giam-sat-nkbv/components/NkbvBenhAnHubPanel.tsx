@@ -128,7 +128,9 @@ export default function NkbvBenhAnHubPanel({
   const [chuaPhanTichCount, setChuaPhanTichCount] = useState(0);
   const ensureSeqRef = React.useRef(0);
   const ensureCaseRef = React.useRef(onEnsureAnalysisCase);
-  ensureCaseRef.current = onEnsureAnalysisCase;
+  useEffect(() => {
+    ensureCaseRef.current = onEnsureAnalysisCase;
+  }, [onEnsureAnalysisCase]);
   const attachSymptomRef = React.useRef<
     ((input: { key: string; date: string; label?: string }) => boolean) | null
   >(null);

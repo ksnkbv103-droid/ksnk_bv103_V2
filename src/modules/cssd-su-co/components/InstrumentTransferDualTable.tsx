@@ -64,7 +64,9 @@ export default function InstrumentTransferDualTable({
   const [loading, setLoading] = useState(false);
   const [gateError, setGateError] = useState<string | null>(null);
   const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   const destOptions = useMemo(
     () => boOptions.filter((b) => b.ma_bo.toUpperCase() !== sourceMa.trim().toUpperCase()),

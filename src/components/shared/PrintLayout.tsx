@@ -46,7 +46,9 @@ const PrintLayout: React.FC<PrintLayoutProps> = ({
   const footerMt = compact ? 14 : 32;
   const signBoxH = compact ? 56 : 80;
   const fileTitleRef = useRef(fileTitle);
-  fileTitleRef.current = fileTitle;
+  useEffect(() => {
+    fileTitleRef.current = fileTitle;
+  }, [fileTitle]);
 
   /** Đặt document.title = tên file lưu trữ; khôi phục sau in. */
   useEffect(() => {
