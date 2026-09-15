@@ -846,6 +846,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
   describe("evaluateSsi", () => {
     it("NHSN ngày mổ = ngày 1: elapsed 29 còn trong SP 30; elapsed 30 hết hạn", () => {
       const base: SsiVerificationData = {
+        days_since_surgery: 0,
         has_implant: false,
         ssi_depth: "SUPERFICIAL",
         ssi_event_type: "SIP",
