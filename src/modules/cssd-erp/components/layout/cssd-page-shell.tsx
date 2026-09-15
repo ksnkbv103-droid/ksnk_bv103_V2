@@ -9,18 +9,12 @@ export const CSSD_PAGE_OUTER = `${T.pageOuter} animate-in fade-in duration-500 t
 
 type Props = {
   title: React.ReactNode;
-  subtitle?: React.ReactNode;
   actions?: React.ReactNode;
   children: React.ReactNode;
 };
 
 /** Khung trang CSSD: hero (title/actions) + nội dung. Chuyển màn = sidebar (SSOT). */
-export default function CSSDPageShell({
-  title,
-  subtitle: _subtitle,
-  actions,
-  children,
-}: Props) {
+export default function CSSDPageShell({ title, actions, children }: Props) {
   return (
     <div className={CSSD_PAGE_OUTER}>
       <KsnkSupervisionHero title={title} actions={actions} />

@@ -199,7 +199,6 @@ function CSSDReportPageInner() {
           Báo cáo <span className="text-[var(--primary)]">CSSD</span>
         </>
       }
-      subtitle="BỆNH VIỆN QUÂN Y 103 — KHOA KSNK"
       actions={
         <>
           <button type="button" onClick={() => window.print()} className={`${CSSD_UI_ACTION_SECONDARY} h-10 flex-1 sm:flex-none`}>

@@ -36,6 +36,7 @@ export function KsnkSupervisionHero({
   trailing,
   density: _density = "compact",
   showTitle = false,
+  sticky = false,
 }: {
   eyebrow?: string | null;
   title: React.ReactNode;
@@ -48,6 +49,8 @@ export function KsnkSupervisionHero({
   density?: "default" | "compact";
   /** false (mặc định) = App Header đã có tên trang. */
   showTitle?: boolean;
+  /** Đồng bộ sticky L1 với `/thong-ke` (ModeNav / tab không cuộn mất). */
+  sticky?: boolean;
 }) {
   return (
     <KsnkPageChrome
@@ -57,6 +60,7 @@ export function KsnkSupervisionHero({
       tabs={trailing}
       actions={actions}
       showTitle={showTitle}
+      sticky={sticky}
     />
   );
 }

@@ -183,21 +183,19 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   ];
 
   if (permLoading) {
-    return (
-      <div className={CSSD_PAGE_OUTER}>
-        <div className="flex h-[40vh] items-center justify-center" aria-busy="true">
-          <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
-        </div>
+    const loadingInner = (
+      <div className="flex h-[40vh] items-center justify-center" aria-busy="true">
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
       </div>
     );
+    return suppressShell ? loadingInner : <div className={CSSD_PAGE_OUTER}>{loadingInner}</div>;
   }
 
   if (!allowed.view) {
-    return (
-      <div className={CSSD_PAGE_OUTER}>
-        <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-600">Bạn không có quyền xem mục này.</div>
-      </div>
+    const deniedInner = (
+      <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-600">Bạn không có quyền xem mục này.</div>
     );
+    return suppressShell ? deniedInner : <div className={CSSD_PAGE_OUTER}>{deniedInner}</div>;
   }
 
   const actionsNode = (
@@ -322,7 +320,6 @@ export default function BaoTriThietBiPage({ suppressShell = false }: { suppressS
   return (
     <CSSDPageShell
       title={<span className="text-[var(--primary)]">Bảo trì thiết bị</span>}
-      subtitle="Đang bảo trì — khóa mở mẻ / nạp bộ."
       actions={actionsNode}
     >
       {contentNode}

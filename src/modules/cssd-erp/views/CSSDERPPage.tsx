@@ -77,24 +77,22 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
   const canCreateIncident = incidentAllowed.create;
 
   if (permLoading) {
-    return (
-      <div className={CSSD_PAGE_OUTER}>
-        <div className="flex h-[50vh] items-center justify-center" aria-busy="true">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[var(--primary)]" />
-        </div>
+    const loadingInner = (
+      <div className="flex h-[50vh] items-center justify-center" aria-busy="true">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[var(--primary)]" />
       </div>
     );
+    return suppressShell ? loadingInner : <div className={CSSD_PAGE_OUTER}>{loadingInner}</div>;
   }
 
   if (!canViewWorkflow) {
-    return (
-      <div className={CSSD_PAGE_OUTER}>
-        <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-[var(--bg-panel)] px-8 py-12 text-center shadow-[var(--shadow-app-soft)]">
-          <p className="text-sm font-medium text-slate-600">Bạn không có quyền truy cập luồng quy trình CSSD.</p>
-          <p className="mt-2 text-xs text-slate-500">Liên hệ quản trị nếu cần cấp quyền module workflow.</p>
-        </div>
+    const deniedInner = (
+      <div className="rounded-[var(--radius-shell)] border border-slate-200 bg-[var(--bg-panel)] px-8 py-12 text-center shadow-[var(--shadow-app-soft)]">
+        <p className="text-sm font-medium text-slate-600">Bạn không có quyền truy cập luồng quy trình CSSD.</p>
+        <p className="mt-2 text-xs text-slate-500">Liên hệ quản trị nếu cần cấp quyền module workflow.</p>
       </div>
     );
+    return suppressShell ? deniedInner : <div className={CSSD_PAGE_OUTER}>{deniedInner}</div>;
   }
 
   const submitWorkflowQr = async (raw: string) => {
@@ -131,7 +129,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
   );
 
   const mainContent = (
-    <div className="bv103-stack-page animate-in fade-in duration-500">
+    <div className="space-y-[var(--bv103-space-3)] animate-in fade-in duration-500">
       {suppressShell ? (
         <div className="flex justify-end">{incidentActions}</div>
       ) : null}

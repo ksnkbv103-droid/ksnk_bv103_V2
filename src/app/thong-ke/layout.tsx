@@ -63,7 +63,7 @@ export default function ThongKeLayout({ children }: { children: React.ReactNode 
     <div className={bv103DesignTokens.pageOuter}>
       <Suspense fallback={null}>
         <ThongKeChromeProvider tabs={<ThongKeModeAndModuleTabs />}>
-          <div className={bv103DesignTokens.pageSectionGap}>{children}</div>
+          {children}
         </ThongKeChromeProvider>
       </Suspense>
     </div>

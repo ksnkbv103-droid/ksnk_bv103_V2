@@ -242,7 +242,7 @@ export default function MdmGovernanceView() {
   }
 
   return (
-    <div className={`${bv103DesignTokens.pageOuter} text-sm`}>
+    <div className="space-y-[var(--bv103-space-3)] text-sm">
       <h2 className={bv103DesignTokens.sectionTitle}>Bảo vệ liên kết dữ liệu</h2>
 
       <RbacItDangerActions />
