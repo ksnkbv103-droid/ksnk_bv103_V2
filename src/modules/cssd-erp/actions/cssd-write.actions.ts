@@ -20,6 +20,10 @@ import {
   normalizePackTinhTrang,
 } from "@/lib/domain/cssd-pack-issuance";
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
+import {
+  countCssdKhoImportDeactivations,
+  rejectCssdKhoImportSoftDelete,
+} from "../lib/cssd-kho-import-policy";
 
 type ExistingQrRow = { id?: string; ma_qr_quy_trinh?: string };
 
@@ -125,10 +129,16 @@ export async function importCSSDData(
   rows: Record<string, unknown>[],
   options?: { softDeleteMissing?: boolean; dryRun?: boolean },
 ) {
-  const softDeleteMissing = options?.softDeleteMissing === true;
+  const softDeleteRequested = options?.softDeleteMissing === true;
+  /** Fact vận hành: luôn safe — không soft-delete tem thiếu trong file. */
+  const softDeleteMissing = false;
   const dryRun = options?.dryRun === true;
   try {
     await verifyPermission("CSSD_KHO_DUNGCU", "import");
+    const softDeleteBlock = rejectCssdKhoImportSoftDelete(softDeleteRequested);
+    if (softDeleteBlock) {
+      return { success: false as const, error: softDeleteBlock };
+    }
     const supabase = createAdminSupabaseClient();
     const { data: existing, error: exErr } = await supabase.from("cssd_fact_quy_trinh").select("id, ma_qr_quy_trinh");
     if (exErr) throw exErr;
@@ -209,9 +219,11 @@ export async function importCSSDData(
       importedCodes.add(code);
     }
 
-    const deactivateCount = softDeleteMissing
-      ? Array.from(existingMap.keys()).filter((code) => !importedCodes.has(code)).length
-      : 0;
+    const deactivateCount = countCssdKhoImportDeactivations(
+      existingMap.keys(),
+      importedCodes,
+      softDeleteMissing,
+    );
 
     if (dryRun) {
       return {
@@ -227,16 +239,6 @@ export async function importCSSDData(
       };
     }
 
-    if (softDeleteMissing) {
-      const toDisable = Array.from(existingMap.keys()).filter((code) => !importedCodes.has(code));
-      if (toDisable.length) {
-        const { error: disErr } = await supabase
-          .from("cssd_fact_quy_trinh")
-          .update({ is_active: false, updated_at: new Date().toISOString() })
-          .in("ma_qr_quy_trinh", toDisable);
-        if (disErr) dbErrors.push(`Ẩn tem thiếu trong file: ${disErr.message}`);
-      }
-    }
     if (rowErrors.length || dbErrors.length) {
       return {
         success: false,
