@@ -164,6 +164,28 @@ for (const sub of ["core", "wiki", "modules", "reference", "data", "archive", "s
   if (fs.existsSync(p)) console.log(`  docs/${sub}: ${countMd(p)} md`);
 }
 
+function findAgentNotesOutsideArchive(dir, acc = []) {
+  if (!fs.existsSync(dir)) return acc;
+  for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, ent.name);
+    if (ent.isDirectory()) {
+      if (ent.name === "archive") continue;
+      findAgentNotesOutsideArchive(full, acc);
+    } else if (ent.name.startsWith("_agent-") && ent.name.endsWith(".md")) {
+      acc.push(path.relative(ROOT, full));
+    }
+  }
+  return acc;
+}
+const strayAgentNotes = findAgentNotesOutsideArchive(docsRoot);
+if (strayAgentNotes.length) {
+  exitCode = 1;
+  console.log("  ! _agent-*.md outside docs/archive/ (move to docs/archive/agent-notes/):");
+  for (const f of strayAgentNotes) console.log(`    ${f}`);
+} else {
+  console.log("  _agent-*.md outside archive: 0");
+}
+
 section("Migrations (pilot chain only)");
 const migDir = path.join(ROOT, "supabase/migrations");
 const migs = fs.readdirSync(migDir).filter((f) => f.endsWith(".sql"));

@@ -1,5 +1,7 @@
 # Giám sát (VST / GSC)
 
+> Ghi chú phiên AI (`_agent-*`) chỉ trong [`../../archive/agent-notes/`](../../archive/agent-notes/) — không đọc khi sửa hệ thống. Bản đồ: [`../../ssot-map.md`](../../ssot-map.md).
+
 | Đọc khi | File |
 |---------|------|
 | Nghiệp vụ | [`../../core/domain-specification.md`](../../core/domain-specification.md) + [`../../wiki/entities.md`](../../wiki/entities.md#giám-sát-vst--gsc) |
@@ -20,10 +22,13 @@ Sau tái cấu trúc, **Form / Thống kê / Lịch sử** tách route — khôn
 | **Thống kê** | `/thong-ke/vst` | `/thong-ke/gsc` | Deep link `/thong-ke/gsc?loai=` (redirect từ URL cũ) |
 | **Lịch sử** | `/lich-su/vst` | `/lich-su/gsc` | edit quay về `basePath?edit=id` |
 
-**GSC analytics — một shell canonical:**
+**GSC analytics / lịch sử — `?loai=` SSOT:**
 
-- `/thong-ke/gsc` — tổng hợp mọi `loai_giam_sat`; query `?loai=tuan-thu|nhat-ky|he-thong` khi vào từ form chuyên đề.
-- Bookmark cũ `/giam-sat-chung/{loai}/thong-ke` → **redirect** `next.config.ts` sang `/thong-ke/gsc?loai=…` (không còn page shadow).
+- `/thong-ke/gsc` **mặc định = tuân thủ** (`TUAN_THU`) khi không có `?loai=` — không phải «mọi loại».
+- Query chấp nhận **kebab** `tuan-thu|nhat-ky|he-thong` **và** enum `TUAN_THU|NHAT_KY_VAN_HANH|DANH_GIA_HE_THONG` (`parseGscLoaiParam`).
+- Nhật ký / hệ thống: `/thong-ke/gsc?loai=NHAT_KY_VAN_HANH` (hoặc `nhat-ky`) · `?loai=DANH_GIA_HE_THONG` (hoặc `he-thong`).
+- Lịch sử chuyên đề: `/lich-su/gsc?loai=TUAN_THU|…` (helpers `gscLichSuHref` luôn gắn loai khi biết loại). `/lich-su/gsc` không query = mọi loại.
+- Bookmark cũ `/giam-sat-chung/{loai}/thong-ke|lich-su` → redirect `next.config.ts` (kèm `?loai=`).
 
 **Khóa module:** [`module-lock.md`](module-lock.md)
 

@@ -1,3 +1,5 @@
+> **LƯU TRỮ** — không dùng khi sửa hệ thống. Bản hiện hành: [`debt-register.md`](../../../reference/architecture/debt-register.md). Tra cứu lịch sử được.
+
 # Lộ trình tối ưu & nợ kỹ thuật (delta) — KSNK BV103
 
 > **Ngày:** 2026-09-09 (Asia/Saigon) · **Máy:** Mac `Desktop/ksnk_bv103` · machineId `6bad1c57-…0f88`  
@@ -227,7 +229,7 @@ Ký hiệu: **OPEN** · **PARTIAL** · **FIXED** (local gần đây) · **DONE-H
 - `docs/modules/cssd/_agent-bom-merge-unique-20260909.md` (+ JSON/txt kèm)
 
 ### Roadmap / debt / backlog
-- `docs/reference/reports/_agent-full-project-expert-audit-roadmap-20260909.md`
+- `docs/archive/agent-notes/202609/_agent-full-project-expert-audit-roadmap-20260909.md`
 - `docs/reference/architecture/debt-register.md` (§ Perf Batches 1–12)
 - `docs/reference/architecture/open-backlog-20260731.md`
 - `docs/ssot-map.md`
@@ -251,5 +253,5 @@ Ký hiệu: **OPEN** · **PARTIAL** · **FIXED** (local gần đây) · **DONE-H
 
 ## Nhật ký delta
 
-- **2026-09-09 chiều (Đợt A+B):** Implant CHO_BI write+gate+release+vitest; CTA dual surface + FSM 3 trục. Báo cáo: [`../../modules/cssd/_agent-opt-dotA-implant-dotB-cta-20260909.md`](../../modules/cssd/_agent-opt-dotA-implant-dotB-cta-20260909.md).
+- **2026-09-09 chiều (Đợt A+B):** Implant CHO_BI write+gate+release+vitest; CTA dual surface + FSM 3 trục. Báo cáo: [`_agent-opt-dotA-implant-dotB-cta-20260909.md`](./_agent-opt-dotA-implant-dotB-cta-20260909.md).
 - **2026-09-09 tối (Wave 2):** In lại tem Kho/Trace; SuCo defer catalog + cắt remount; dynamic offline GS; NKBV defer cases list. Báo cáo: [`_agent-opt-wave2-debt-fixes-20260909.md`](./_agent-opt-wave2-debt-fixes-20260909.md).

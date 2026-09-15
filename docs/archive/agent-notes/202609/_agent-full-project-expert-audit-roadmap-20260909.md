@@ -1,3 +1,5 @@
+> **LƯU TRỮ** — không dùng khi sửa hệ thống. Bản hiện hành: [`debt-register.md`](../../../reference/architecture/debt-register.md). Tra cứu lịch sử được.
+
 # Rà soát toàn dự án + lộ trình khắc phục — KSNK BV103
 
 > **Ngày:** 2026-09-09 (Asia/Saigon) · **Máy:** Mac `Desktop/ksnk_bv103` · machineId `6bad1c57-…0f88`  

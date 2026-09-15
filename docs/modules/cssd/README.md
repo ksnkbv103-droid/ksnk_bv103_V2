@@ -1,5 +1,7 @@
 # CSSD
 
+> Ghi chú phiên AI (`_agent-*`) chỉ trong [`../../archive/agent-notes/`](../../archive/agent-notes/) — không đọc khi sửa hệ thống. Bản đồ: [`../../ssot-map.md`](../../ssot-map.md).
+
 | Đọc khi | File |
 |---------|------|
 | **Domain nghiệp vụ (PO / tổng hợp)** | [`domain-overview.md`](domain-overview.md) |

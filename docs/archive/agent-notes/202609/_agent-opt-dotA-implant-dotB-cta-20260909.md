@@ -1,3 +1,5 @@
+> **LƯU TRỮ** — không dùng khi sửa hệ thống. Bản hiện hành: [`modules/cssd/README.md`](../../../modules/cssd/README.md). Tra cứu lịch sử được.
+
 # Đợt A — Implant CHO_BI + Đợt B — CTA/FSM copy (09/09/2026)
 
 > **Máy:** Mac `Desktop/ksnk_bv103` · machineId `6bad1c57-…0f88`  
@@ -87,7 +89,7 @@ Giảm nhầm cửa: **xem / đề xuất / duyệt** và phân biệt **xác nh
 | DC-DUAL | PARTIAL | **PARTIAL→improved** (CTA/copy) |
 | SC-FSM | OPEN | **PARTIAL** (copy 3 trục; form vẫn dày) |
 
-Chi tiết delta: `docs/reference/reports/_agent-project-optimization-debt-roadmap-20260909.md`.
+Chi tiết delta: [`_agent-project-optimization-debt-roadmap-20260909.md`](./_agent-project-optimization-debt-roadmap-20260909.md).
 
 ---
 
