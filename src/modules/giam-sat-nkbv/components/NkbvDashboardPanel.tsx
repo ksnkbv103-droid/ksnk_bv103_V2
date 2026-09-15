@@ -540,7 +540,7 @@ export default function NkbvDashboardPanel({
                         </td>
                         <td className="px-4 py-3 text-center bg-teal-50/10">
                           <div className="flex flex-col items-center gap-0.5">
-                            <span className="text-[10px] font-semibold text-slate-500">
+                            <span className="bv103-type-label font-semibold text-slate-500">
                               VAE ca: {r.obs_vae_cases || 0}
                             </span>
                             {r.vae_sir == null ? (
