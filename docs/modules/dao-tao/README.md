@@ -1,5 +1,7 @@
 # Đào tạo / Thi trắc nghiệm KSNK
 
+> **Nghiệp vụ đầy đủ (domain):** [`domain-overview.md`](domain-overview.md) — ranh giới, từ điển, luật chấm / rút đề / chứng chỉ, đã đối chiếu DB 2026-09-07.
+
 ## Schema lean (3 bảng)
 
 | Bảng | Nội dung |
