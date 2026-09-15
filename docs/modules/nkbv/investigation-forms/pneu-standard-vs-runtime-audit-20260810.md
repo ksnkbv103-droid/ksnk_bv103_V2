@@ -2,7 +2,7 @@
 
 > **Ngày:** 2026-08-10 · **Loại:** audit nghiệp vụ (không ship sửa engine trong slice này)  
 > **Đối tượng:** Product Owner / IP KSNK — đối chiếu case thật với bảng lệch  
-> **SSOT:** [`hai-surveillance-domain-ssot-20260804.md`](../hai-surveillance-domain-ssot-20260804.md) §10 · [`trees/PNEU.md`](trees/PNEU.md) · [`PNEU-2026.md`](PNEU-2026.md)  
+> **SSOT:** [`hai-surveillance-domain-ssot-20260804.md`](../../../archive/nkbv-sources/hai-surveillance-domain-ssot-20260804.md) §10 · [`trees/PNEU.md`](trees/PNEU.md) · [`PNEU-2026.md`](PNEU-2026.md)  
 > **Runtime:** `nkbv-pneu-timeline-verdict.ts` → `evaluateVaeVap(..., "PNEU")` · `nkbv-pneu-lab-tier.ts` · `nkbv-secondary-bsi-gate.ts` · `nkbv-timeline-math.ts` (LOA)
 
 ---
@@ -252,4 +252,4 @@ Mẫu mục bắt buộc mỗi audit: (1) luồng chuẩn, (2) điều kiện, (
 | [`gap-lean-vs-runtime.md`](gap-lean-vs-runtime.md) | Catalog P0/P1 — đã bổ sung ID audit A1–A3 |
 | [`trees/PNEU.md`](trees/PNEU.md) | Cây quyết định form |
 | [`ba-multi-timeline-architecture.md`](../ba-multi-timeline-architecture.md) | BA progressive |
-| [`../hai-surveillance-domain-ssot-20260804.md`](../hai-surveillance-domain-ssot-20260804.md) §10 | Thuật toán chuẩn |
+| [`../../../archive/nkbv-sources/hai-surveillance-domain-ssot-20260804.md`](../../../archive/nkbv-sources/hai-surveillance-domain-ssot-20260804.md) §10 | Thuật toán chuẩn |
