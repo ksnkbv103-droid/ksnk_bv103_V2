@@ -2,6 +2,13 @@
 
 > Prefix chuẩn: `## [YYYY-MM-DD] ingest|query|lint | mô tả`
 
+## [2026-09-09] lint | Vệ sinh SSOT — chuyển kho `_agent-*` + NKBV v2.0
+
+- Bản đồ: [`../ssot-map.md`](../ssot-map.md).
+- Ghi chú AI → [`../archive/agent-notes/`](../archive/agent-notes/).
+- NKBV v2.0 + `Domain *` → [`../archive/nkbv-sources/`](../archive/nkbv-sources/).
+- Chi tiết: [`lint.md`](lint.md).
+
 ## [2026-05-31] ingest | Khởi tạo lớp wiki BV103
 
 - Áp dụng LLM Wiki pattern: `sources/`, `wiki/WIKI_SCHEMA.md`, `overview.md`, 5 entity pages, 2 concept pages.

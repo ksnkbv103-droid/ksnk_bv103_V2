@@ -243,3 +243,45 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 | D-15 | **Partial** — gộp bản đồ + chọn trạm một lưới 6 bước |
 | DOM-08 / D-14 | **Eng ready** — chờ khoa ký UAT |
 | D-16…D-20 | **Giữ** roadmap |
+
+
+---
+
+## Perf / complexity residual — Batches 1–12 (cập nhật 2026-09-09)
+
+> Nguồn (kho lưu): [`../../archive/agent-notes/202609/_agent-perf-fix-progress-20260907.md`](../../archive/agent-notes/202609/_agent-perf-fix-progress-20260907.md) · Batch 12: `rpc_qlcv_nhiem_vu_rollup`, `rpc_qlcv_board_counts`; toast in khi board chưa tải hết.
+
+| ID | Mức | Mục | Ghi chú |
+|----|-----|-----|--------|
+| **PERF-01** | Done | NV rollup % aggregate RPC | Batch 12 — `rpc_qlcv_nhiem_vu_rollup`; fallback cap 500 |
+| **PERF-02** | Done | Kanban gate/print counts | Batch 12 — `rpc_qlcv_board_counts` cho badge/chip; toast in khi còn «Tải thêm» |
+| **PERF-03** | Done | Pending đề xuất `select("*")` | Batch 11 — `QLCV_ROOT_TASK_VIEW_SELECT` + lọc trạng thái + limit 100 |
+| **PERF-04** | P3 | Nav-only RBAC slice | Batch 8: hydrate mỏng + session cache; slice server theo menu chỉ nếu matrix phình |
+| **PERF-05** | P3 | SSR shell `/` / báo cáo | Batch 8 spike SKIP — giữ `ssr: false` (auth + Recharts); hub `/dao-tao` bỏ `ssr:false` (Batch 11) |
+| **PERF-06** | P3 | Bank export hard 20k | Batch 7: toast truncated; view/RPC nếu bank >20k cần full dump |
+| **PERF-07** | P3 | Generic DM one-shot ≤200 | Batch 2 residual — OK lookup; master vật lý lớn cần search riêng |
+| **PERF-08** | Done | Waiting Tiếp nhận + station flow dump | Batch 10 — RPC; **10b** tìm + «Tải thêm» (offset) |
+| **PERF-09** | Done | VST full 1000 NV on open | Batch 10 — theo khoa; **10b** gõ ≥2 ký tự tìm thêm server |
+| **PERF-10** | Done | Fleet / QT đếm mẻ dump fact | Batch 10 — `rpc_cssd_thiet_bi_me_counts`; tồn HC `.gt(0).limit(500)` |
+| **PERF-11** | Done | Catalog chỉ 20 dòng không mở rộng | Batch 10b — `/cssd-dung-cu` «Tải thêm» Bộ/Loại + tìm |
+| **PERF-12** | Done | CSSD/QLCV tab remount + fat barrel | Batch 11 — dynamic từng view; giữ tab đã mở; QLCV panel lazy |
+
+**IA (Batch 9):** khóa copy Vận hành / Tra cứu / Sửa danh mục; hub dụng cụ mặc định `?tab=loai`; legacy `cssd-erp*` + `tai-khoan-nhan-su` → `tai-khoan` đã align.
+
+
+## Delta tối ưu / catalog 2026-09-09
+
+> Pointer (không thay open-backlog lịch sử). Báo cáo đầy đủ: [`../reports/_agent-project-optimization-debt-roadmap-20260909.md`](../reports/_agent-project-optimization-debt-roadmap-20260909.md) · nền audit: [`../reports/_agent-full-project-expert-audit-roadmap-20260909.md`](../reports/_agent-full-project-expert-audit-roadmap-20260909.md).
+
+| ID | Mức | Mục | Trạng thái |
+|----|-----|-----|------------|
+| **CAT-HYBRID-01** | Done (local) | Hybrid C 2-tier: NV L1 peer → Admin L2 publish Loại/Bộ/BOM | Shipped local — doc `_agent-catalog-hybrid-c-full-2tier-20260909.md` |
+| **CAT-RENAME-01** | Done | Cấm rename master loại từ phiếu một bộ | Gate `wouldGlobalRenameLoaiMaster…` |
+| **CAT-QTY-01** | Done | Qty SSOT «Trong bộ» chỉ bộ active | `cssd-loai-trong-bo` |
+| **CAT-BOM-DUP-01** | Done (prod) | Gộp 135 BOM dup + unique index live | `_agent-bom-merge-unique-20260909.md` |
+| **OPT-NKBV-01** | P0 rối | NKBV mega-surface / lazy workspace | OPEN — Đợt B roadmap tối ưu |
+| **OPT-IMPLANT-01** | P1 | Implant quarantine write + gate CP | OPEN — Đợt A |
+| **OPT-SUCO-FORM-01** | P1 | SuCo form islands + copy FSM L1/L2 | OPEN — Đợt C |
+| **OPT-DUAL-CTA-01** | P1 UX | Dual surface dụng cụ CTA/copy | OPEN — Đợt A |
+| **OPT-SHELL-01** | P2–P3 | Shell RBAC / offline hydrate mỏng | OPEN residual (PERF-04) |
+| **UAT-NKBV / UAT-REFORM** | P1 SP | Chữ ký khoa | OPEN — giữ open-backlog |

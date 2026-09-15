@@ -1,6 +1,7 @@
 # Cổng tài liệu — KSNK BV103
 
-> **Một cổng duy nhất.** Bắt đầu tại đây; không duyệt ngẫu nhiên `docs/data/`.
+> **Một cổng duy nhất.** Bắt đầu tại đây; không duyệt ngẫu nhiên `docs/data/`.  
+> **Chủ đề → file đang dùng:** [`ssot-map.md`](ssot-map.md).
 
 ## Tôi là…
 
@@ -42,7 +43,9 @@
 | [`wiki/WIKI_SCHEMA.md`](wiki/WIKI_SCHEMA.md) | Ingest / query / lint |
 | [`sources/README.md`](sources/README.md) | Raw `data/`, `archive/` — immutable |
 
-## Lớp 1 — Core SSOT (≤15 file, đọc thường xuyên)
+## Lớp 1 — Core SSOT (17 file)
+
+**Đọc thường xuyên**
 
 | File | Vai trò |
 |------|---------|
@@ -58,6 +61,17 @@
 | [`core/handover-roadmap.md`](core/handover-roadmap.md) | Lộ trình, cấu trúc app |
 | [`core/cursor-operating-playbook.md`](core/cursor-operating-playbook.md) | Cursor: intake, verify, tiết kiệm quota |
 
+**Ký / ADR / catalog** (không đọc mỗi diff)
+
+| File | Vai trò |
+|------|---------|
+| [`core/po-cursor-guide.md`](core/po-cursor-guide.md) | Cheat sheet PO |
+| [`core/domain-decisions-cssd-instrument.md`](core/domain-decisions-cssd-instrument.md) | Quyết định dụng cụ D1–D10 |
+| [`core/adr-cssd-fact-write-rls.md`](core/adr-cssd-fact-write-rls.md) | ADR ghi fact CSSD / RLS |
+| [`core/database-view-catalog.md`](core/database-view-catalog.md) | Catalog view DB |
+| [`core/pilot-go-live-signoff-202606.md`](core/pilot-go-live-signoff-202606.md) | Bảng ký go-live |
+| [`core/po-uat-signoff-202607.md`](core/po-uat-signoff-202607.md) | Hướng dẫn PO ký UAT |
+
 Runbook demo / auth / kiến trúc one-pager: [`reference/guides/`](reference/guides/) (`architecture-one-pager`, `demo-governance-gates`, `auth-pilot-link-sop`, `w1-go-live-execution-pack-20260722`, `incident-backup-playbook`).
 
 ## Lớp 2 — Module docs
@@ -67,13 +81,15 @@ Runbook demo / auth / kiến trúc one-pager: [`reference/guides/`](reference/gu
 | CSSD | [`modules/cssd/README.md`](modules/cssd/README.md) |
 | Giám sát | [`modules/giam-sat/README.md`](modules/giam-sat/README.md) |
 | NKBV | [`modules/nkbv/README.md`](modules/nkbv/README.md) |
-| MDM | [`modules/mdm/README.md`](modules/mdm/README.md) |
+| MDM / Quản trị | [`modules/mdm/README.md`](modules/mdm/README.md) · pointer [`modules/quan-tri-he-thong/README.md`](modules/quan-tri-he-thong/README.md) |
 | QLCV | [`modules/qlcv/README.md`](modules/qlcv/README.md) |
+| Dashboard | [`modules/dashboard/README.md`](modules/dashboard/README.md) |
+| Đào tạo | [`modules/dao-tao/README.md`](modules/dao-tao/README.md) |
 
 ## Lớp 3 — Reference (audit / kiến trúc)
 
-- [`reference/architecture/`](reference/architecture/) — overview, debt, roadmap, [remediation sync](reference/architecture/remediation-plan-2026h2-sync.md)
-- [`reference/reports/`](reference/reports/) — **SSOT:** [gap-register-20260703](reference/reports/gap-register-20260703.md) · [db-hygiene-20260703](reference/reports/db-hygiene-20260703.md) · [index](reference/reports/README.md)
+- [`reference/architecture/`](reference/architecture/) — overview, [backlog đang mở](reference/architecture/open-backlog-20260731.md), [remediation sync](reference/architecture/remediation-plan-2026h2-sync.md), [lookup vs enum](reference/architecture/lookup-vs-enum-guidance.md)
+- [`reference/reports/`](reference/reports/) — **gap đang mở:** [gap-register-20260709](reference/reports/gap-register-20260709.md) · **mốc:** [gap-register-20260703](reference/reports/gap-register-20260703.md) · [db-hygiene-20260703](reference/reports/db-hygiene-20260703.md) · [index](reference/reports/README.md)
 - Audit lịch sử (06/2026 trở về trước): [`archive/reports/`](archive/reports/) only
 - [`reference/guides/`](reference/guides/) — import JSON, migration runbook, [Cursor prompt templates](reference/guides/cursor-command-intake-template.md)
 
@@ -83,7 +99,13 @@ Runbook demo / auth / kiến trúc one-pager: [`reference/guides/`](reference/gu
 
 ## Lớp 5 — Archive
 
-[`archive/`](archive/) — baseline, plan đã Done — không link từ read-minimum.
+[`archive/`](archive/) — baseline, plan đã Done, ghi chú AI — **không** link từ read-minimum khi sửa code.
+
+| Thư mục | Nội dung |
+|---------|----------|
+| [`archive/reports/`](archive/reports/) | Audit / gap tháng 6/2026 |
+| [`archive/agent-notes/`](archive/agent-notes/) | Ghi chú phiên AI (`_agent-*`) |
+| [`archive/nkbv-sources/`](archive/nkbv-sources/) | NKBV v2.0 + `Domain *` thô |
 
 ---
 
