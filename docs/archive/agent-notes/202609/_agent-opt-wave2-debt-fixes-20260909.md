@@ -1,3 +1,5 @@
+> **LƯU TRỮ** — không dùng khi sửa hệ thống. Bản hiện hành: [`debt-register.md`](../../../reference/architecture/debt-register.md). Tra cứu lịch sử được.
+
 # Wave 2 — vá nợ tối ưu (tem in lại · SuCo · shell · NKBV lazy)
 
 > **Ngày:** 2026-09-09 (Asia/Saigon) · **Máy:** Mac `Desktop/ksnk_bv103` · machineId `6bad1c57-…0f88`  

@@ -271,7 +271,7 @@ Remediation đồng bộ: [remediation-plan-2026h2-sync.md](./remediation-plan-2
 
 ## Delta tối ưu / catalog 2026-09-09
 
-> Pointer (không thay open-backlog lịch sử). Báo cáo đầy đủ: [`../reports/_agent-project-optimization-debt-roadmap-20260909.md`](../reports/_agent-project-optimization-debt-roadmap-20260909.md) · nền audit: [`../reports/_agent-full-project-expert-audit-roadmap-20260909.md`](../reports/_agent-full-project-expert-audit-roadmap-20260909.md).
+> Pointer (không thay open-backlog lịch sử). Báo cáo đầy đủ: [`../../archive/agent-notes/202609/_agent-project-optimization-debt-roadmap-20260909.md`](../../archive/agent-notes/202609/_agent-project-optimization-debt-roadmap-20260909.md) · nền audit: [`../../archive/agent-notes/202609/_agent-full-project-expert-audit-roadmap-20260909.md`](../../archive/agent-notes/202609/_agent-full-project-expert-audit-roadmap-20260909.md).
 
 | ID | Mức | Mục | Trạng thái |
 |----|-----|-----|------------|
