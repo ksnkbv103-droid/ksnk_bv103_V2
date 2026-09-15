@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getGscStrategicAnalytics } from "@/modules/giam-sat-chung/actions/gsc-strategic-analytics.actions";
 import { getVstStrategicAnalytics } from "@/modules/giam-sat-vst/actions/vst-strategic-analytics.actions";
 import { getGiamSatNkbvDashboardPayload } from "@/modules/giam-sat-nkbv/actions/giam-sat-nkbv-dashboard.actions";
-import { fetchCssdAnalyticsBundle } from "@/modules/cssd-erp/actions/cssd-report-read.actions";
+import { fetchCssdAnalyticsBundle } from "@/modules/cssd-erp/contexts/reporting/analytics";
 import { describeCssdKhoaOwnershipProxy } from "@/lib/analytics/cssd-metrics/cssd-analytics-core";
 import { verifyBaoCaoTongHopShell } from "../lib/dashboard-command-center-access";
 import {

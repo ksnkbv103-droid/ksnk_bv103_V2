@@ -19,7 +19,7 @@ const historyTabs: SupervisionTabLinkDef[] = [
 
 export default function LichSuLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const module = pathname?.includes("/lich-su/gsc") ? "gsc" : "vst";
+  const supervisionModule = pathname?.includes("/lich-su/gsc") ? "gsc" : "vst";
 
   return (
     <div className={bv103DesignTokens.pageOuter}>
@@ -36,8 +36,12 @@ export default function LichSuLayout({ children }: { children: React.ReactNode }
           trailing={
             <div className="flex flex-col items-stretch gap-2 sm:items-end">
               <SupervisionModeNav
-                module={module}
-                ariaLabel={module === "vst" ? "Giám sát vệ sinh tay" : "Giám sát tuân thủ KSNK"}
+                module={supervisionModule}
+                ariaLabel={
+                  supervisionModule === "vst"
+                    ? "Giám sát vệ sinh tay"
+                    : "Giám sát tuân thủ KSNK"
+                }
               />
               <KsnkSupervisionTabLinks tabs={historyTabs} ariaLabel="Lịch sử giám sát" />
             </div>

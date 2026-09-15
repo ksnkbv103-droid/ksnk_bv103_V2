@@ -85,6 +85,7 @@ function SupervisionKhoaComplianceChart({
     }
     return map;
   }, [matrixKhoaRows]);
+  const barLabelContent = React.useMemo(() => khoaComplianceBarLabelContent(thresholds), [thresholds]);
   if (!loading && sorted.length === 0) return null;
 
   const title = "Tỷ lệ tuân thủ theo khoa";
@@ -106,7 +107,6 @@ function SupervisionKhoaComplianceChart({
     const row = payload?.[0]?.payload;
     return String(row?.fullName ?? _label);
   };
-  const barLabelContent = React.useMemo(() => khoaComplianceBarLabelContent(thresholds), [thresholds]);
 
   return (
     <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-4">
