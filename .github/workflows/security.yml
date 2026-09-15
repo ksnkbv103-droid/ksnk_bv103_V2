@@ -18,8 +18,7 @@ jobs:
       security-events: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -29,14 +28,21 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
-  npm-audit:
-    name: NPM Audit
+  # ENG-CI-01: full tree, moderate level, advisory soft — Step Summary states findings.
+  # Does not silently continue-on-error on a step named like a hard gate.
+  npm-audit-advisory:
+    name: "NPM Audit full-tree (advisory soft)"
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "22"
+          cache: npm
       - run: npm ci
-      - run: npm audit --audit-level=moderate
-        continue-on-error: true
+      - name: NPM Audit advisory (full tree, level=moderate)
+        env:
+          NPM_AUDIT_MODE: advisory
+          NPM_AUDIT_LEVEL: moderate
+        run: node scripts/ci-npm-audit.mjs

@@ -32,13 +32,14 @@ export default defineConfig({
     passWithNoTests: true,
     coverage: {
       provider: "v8",
-      reporter: ["text", "json", "html", "lcov"],
+      // json-summary → scripts/ci-coverage-honesty.mjs (ENG-CI-01 honest banner)
+      reporter: ["text", "json", "json-summary", "html", "lcov"],
       reportsDirectory: "./coverage",
       include: ["src/**/*.ts", "src/**/*.tsx"],
       exclude: ["**/*.spec.ts", "**/*.test.ts", "src/**/*.d.ts", "**/node_modules/**", "**/*.config.*"],
-      // Không gate % toàn repo ở đây: include `src/**` ~20% lines — ngưỡng 80% làm fail
-      // verify ngay khi ESLint xanh. Báo cáo coverage vẫn chạy trên CI; gate % theo module
-      // pilot sẽ neo riêng (verify:cssd / engineering) khi thu hẹp include.
+      // ENG-CI-01: KHÔNG đặt thresholds toàn repo. include `src/**` ~20% lines —
+      // claim ≥80% trên CI là giả xanh. Report-only; gate % theo module pilot
+      // (verify:cssd / engineering) khi thu hẹp include.
     },
   },
 });

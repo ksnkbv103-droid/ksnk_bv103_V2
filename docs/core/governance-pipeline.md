@@ -21,8 +21,10 @@
 
 ## PR / CI
 
-- CI: `lint` + `lint:cssd-architecture` + `test:coverage` + `verify:engineering` + `build`
+- CI hard (`verify`): `lint` + `lint:cssd-architecture` + `test:coverage` (report-only, **không** gate % toàn repo) + `verify:engineering` + `build`
+- CI soft (không chặn merge): `npm-audit-advisory` (Step Summary ghi ADVISORY khi còn CVE), `dead-code:scan` warn-only, E2E SKIP nếu thiếu secrets
 - Local khuyến nghị: `npm run verify` (= `verify:full`)
+- Honesty: không đặt tên bước CI kiểu «Coverage ≥80%» khi `vitest` không có `thresholds` (ENG-CI-01)
 
 ## Doc governance
 
