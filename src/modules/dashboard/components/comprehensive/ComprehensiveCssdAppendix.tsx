@@ -72,7 +72,7 @@ export function ComprehensiveCssdAppendix({ payload }: { payload: BaoCaoTongHopP
       {cssd.station_volume.length > 0 ? (
         <div className="mt-4 overflow-x-auto">
           <table className="w-full min-w-[420px] text-sm">
-            <thead className="text-[11px] uppercase text-slate-500">
+            <thead className="text-[11px] text-slate-500">
               <tr>
                 <th className="py-2 text-left">Trạm</th>
                 <th className="py-2 text-right">Hoàn thành kỳ</th>
@@ -110,7 +110,7 @@ export function ComprehensiveCssdAppendix({ payload }: { payload: BaoCaoTongHopP
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3">
-      <p className="bv103-type-label font-semibold uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="bv103-type-label font-semibold text-slate-500">{label}</p>
       <p className="mt-1 text-lg font-semibold tabular-nums text-slate-900">{value}</p>
     </div>
   );

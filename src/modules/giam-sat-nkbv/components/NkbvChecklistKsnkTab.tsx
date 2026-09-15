@@ -58,10 +58,10 @@ export default function NkbvChecklistKsnkTab({
             </div>
           ) : (
             <div className={`p-4 rounded-[var(--radius-shell)] border transition-all duration-300 ${
-              liveEvaluation.is_positive 
-                ? "bg-emerald-50 border-emerald-200/60 text-emerald-900 shadow-md shadow-emerald-500/5"
-                : "bg-slate-100 border-slate-200 text-slate-700"
-            }`}>
+ liveEvaluation.is_positive 
+ ? "bg-emerald-50 border-emerald-200/60 text-emerald-900 shadow-md shadow-emerald-500/5"
+ : "bg-slate-100 border-slate-200 text-slate-700"
+ }`}>
               <div className="flex items-center gap-2">
                 {liveEvaluation.is_positive ? (
                   <CheckCircle className="h-6 w-6 text-emerald-600 flex-shrink-0" />
@@ -77,23 +77,23 @@ export default function NkbvChecklistKsnkTab({
               </div>
 
               <div className="mt-3 border-t border-slate-200/40 pt-3">
-                <span className="bv103-type-label font-semibold text-slate-400 uppercase tracking-wider block">Mã phân loại</span>
-                <span className={`inline-block mt-1 px-2.5 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wide ${
-                  liveEvaluation.is_positive 
-                    ? "bg-emerald-100 text-emerald-800"
-                    : "bg-slate-200 text-slate-700"
-                }`}>
+                <span className="bv103-type-label font-semibold text-slate-400 block">Mã phân loại</span>
+                <span className={`inline-block mt-1 px-2.5 py-1 rounded-md text-[11px] font-semibold ${
+ liveEvaluation.is_positive 
+ ? "bg-emerald-100 text-emerald-800"
+ : "bg-slate-200 text-slate-700"
+ }`}>
                   {liveEvaluation.classification}
                 </span>
                 {liveEvaluation.is_secondary_bsi && (
-                  <span className="ml-1.5 inline-block mt-1 px-2.5 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wide bg-blue-100 text-blue-800">
+                  <span className="ml-1.5 inline-block mt-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-blue-100 text-blue-800">
                     SECONDARY BSI
                   </span>
                 )}
               </div>
 
               <div className="mt-3 text-xs font-semibold leading-relaxed">
-                <span className="bv103-type-label font-semibold text-slate-400 uppercase tracking-wider block mb-1">Căn cứ y tế</span>
+                <span className="bv103-type-label font-semibold text-slate-400 block mb-1">Căn cứ y tế</span>
                 {liveEvaluation.reason}
               </div>
             </div>

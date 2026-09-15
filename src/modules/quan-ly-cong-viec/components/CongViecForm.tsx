@@ -360,14 +360,14 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
         <button
           type="button"
           onClick={() => onCancel?.()}
-          className="bv103-control-h rounded-xl border border-slate-200/90 bg-white px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-slate-700 shadow-sm hover:bg-slate-50 sm:min-w-[7rem]"
+          className={`${bv103LayoutChrome.btnSecondary} sm:min-w-[7rem]`}
         >
           Đóng
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="bv103-control-h rounded-xl bg-[var(--primary)] px-8 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:opacity-90 disabled:opacity-50 sm:min-w-[10rem]"
+          className={`${bv103LayoutChrome.btnPrimary} sm:min-w-[10rem]`}
         >
           {loading ? "Đang xử lý..." : initialData?.id ? "Lưu thay đổi" : "Tạo công việc"}
         </button>

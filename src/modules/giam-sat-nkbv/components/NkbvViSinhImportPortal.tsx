@@ -474,10 +474,10 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                 disabled={isLoading}
                 aria-expanded={showPastePanel}
                 className={`flex items-center gap-1.5 rounded-full px-4 py-2 bv103-type-label font-semibold disabled:opacity-50 ${
-                  showPastePanel
-                    ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    : "bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/15"
-                }`}
+ showPastePanel
+ ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
+ : "bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/15"
+ }`}
               >
                 <ClipboardPaste className="h-4 w-4" />
                 {showPastePanel ? "Ẩn khung dán" : "Dán bảng"}
@@ -547,7 +547,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                 type="button"
                 onClick={() => void handleImportSubmit()}
                 disabled={isLoading || incompleteCount > 0}
-                className="rounded-full bg-[var(--primary)] px-6 py-2.5 text-xs font-semibold uppercase tracking-wide text-white shadow-lg disabled:opacity-50"
+                className="rounded-full bg-[var(--primary)] px-6 py-2.5 text-xs font-semibold text-white shadow-lg disabled:opacity-50"
               >
                 {isLoading ? "Đang lưu..." : "Lưu vào kho vi sinh"}
               </button>
@@ -560,7 +560,7 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
           >
             <table className="w-full min-w-[1400px] border-collapse text-left text-xs">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
+                <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 font-bold ">
                   <th className="px-3 py-3">#</th>
                   <th className="px-3 py-3">Mã BA *</th>
                   <th className="px-3 py-3">Ngày VV *</th>
@@ -609,12 +609,12 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                     <td className="px-3 py-3">
                       <span
                         className={`rounded-full px-2 py-0.5 bv103-type-label font-semibold ${
-                          r.ket_qua === "DUONG_TINH"
-                            ? "bg-amber-100 text-amber-800"
-                            : r.ket_qua === "NHIEU"
-                              ? "bg-orange-100 text-orange-800"
-                              : "bg-slate-100 text-slate-600"
-                        }`}
+ r.ket_qua === "DUONG_TINH"
+ ? "bg-amber-100 text-amber-800"
+ : r.ket_qua === "NHIEU"
+ ? "bg-orange-100 text-orange-800"
+ : "bg-slate-100 text-slate-600"
+ }`}
                       >
                         {KET_QUA_LABEL[r.ket_qua]}
                       </span>
@@ -686,10 +686,10 @@ export default function NkbvViSinhImportPortal({ khoas }: NkbvViSinhImportPortal
                             <li
                               key={`${a.code}-${a.related_event_id}`}
                               className={`rounded-lg px-2 py-1 text-[11px] font-semibold ${
-                                a.code === "SBAP"
-                                  ? "bg-violet-50 text-violet-800"
-                                  : "bg-amber-50 text-amber-900"
-                              }`}
+ a.code === "SBAP"
+ ? "bg-violet-50 text-violet-800"
+ : "bg-amber-50 text-amber-900"
+ }`}
                             >
                               {a.code}: {a.message}
                             </li>

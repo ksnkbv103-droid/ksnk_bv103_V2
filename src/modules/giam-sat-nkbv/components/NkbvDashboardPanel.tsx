@@ -66,8 +66,8 @@ function SirCell({ value, className }: { value: number | null | undefined; class
     <td className={`px-4 py-3 text-center ${className}`}>
       <span
         className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-          value > 1.0 ? "bg-red-100 text-red-800" : "bg-emerald-100 text-emerald-800"
-        }`}
+ value > 1.0 ? "bg-red-100 text-red-800" : "bg-emerald-100 text-emerald-800"
+ }`}
       >
         {formatRatio(value)}
       </span>
@@ -371,7 +371,7 @@ export default function NkbvDashboardPanel({
                     {/* CLABSI Card */}
                     <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
-                        <span className="text-[11px] font-semibold uppercase tracking-wide text-red-500 tracking-wider">Nhiễm khuẩn huyết (CLABSI)</span>
+                        <span className="text-[11px] font-semibold text-red-500 tracking-wider">Nhiễm khuẩn huyết (CLABSI)</span>
                         <span className="rounded-full bg-red-100 text-red-700 px-2 py-0.5 bv103-type-label font-semibold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
@@ -387,7 +387,7 @@ export default function NkbvDashboardPanel({
                     {/* CAUTI Card */}
                     <div className={`${C.panelInset} p-4 space-y-2 transition-colors hover:bg-slate-50`}>
                       <div className="flex justify-between items-center">
-                        <span className="text-[11px] font-semibold uppercase tracking-wide text-amber-500 tracking-wider">Tiết niệu (CAUTI)</span>
+                        <span className="text-[11px] font-semibold text-amber-500 tracking-wider">Tiết niệu (CAUTI)</span>
                         <span className="rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 bv103-type-label font-semibold">JCI Site</span>
                       </div>
                       <div className="flex justify-between items-baseline">
@@ -553,10 +553,10 @@ export default function NkbvDashboardPanel({
                             ) : (
                               <span
                                 className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                                  r.vae_sir > 1.0
-                                    ? "bg-red-100 text-red-800"
-                                    : "bg-emerald-100 text-emerald-800"
-                                }`}
+ r.vae_sir > 1.0
+ ? "bg-red-100 text-red-800"
+ : "bg-emerald-100 text-emerald-800"
+ }`}
                               >
                                 {formatRatio(r.vae_sir)}
                               </span>
