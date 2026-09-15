@@ -358,7 +358,7 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
   );
 
   const mainContent = (
-    <div className="bv103-stack-page">
+    <div className="space-y-[var(--bv103-space-3)]">
       {suppressShell ? (
         <div className="flex justify-end">{importExportActions}</div>
       ) : null}

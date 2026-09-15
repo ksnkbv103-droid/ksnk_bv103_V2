@@ -39,10 +39,10 @@ export function Bv103AnalyticsPageFrame({
 
   if (embedded || thongKe) {
     return (
-      <div className={bv103DesignTokens.pageSectionGap}>
+      <>
         <ThongKeChromeSlot filters={filterBar} actions={actions} />
         {children}
-      </div>
+      </>
     );
   }
 
@@ -65,14 +65,23 @@ export function Bv103AnalyticsPageFrame({
 }
 
 export function Bv103AnalyticsPageSkeleton({ kpiCount = 4 }: { kpiCount?: number }) {
-  return (
-    <div className={`${bv103DesignTokens.pageOuterAnalytics} animate-pulse`}>
+  const thongKe = useThongKeChrome();
+  const pulse = (
+    <>
       <div className="h-16 rounded-[var(--radius-shell)] border border-slate-100 bg-slate-50" />
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {Array.from({ length: kpiCount }, (_, i) => (
           <div key={i} className="h-20 rounded-[var(--radius-shell)] bg-slate-50" />
         ))}
       </div>
-    </div>
+    </>
+  );
+
+  if (thongKe) {
+    return <div className="animate-pulse space-y-[var(--bv103-space-3)]">{pulse}</div>;
+  }
+
+  return (
+    <div className={`${bv103DesignTokens.pageOuterAnalytics} animate-pulse`}>{pulse}</div>
   );
 }

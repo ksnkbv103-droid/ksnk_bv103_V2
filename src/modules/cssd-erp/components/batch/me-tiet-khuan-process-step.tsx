@@ -165,7 +165,7 @@ export default function MeTietKhuanProcessStep({
   return (
     <div className={suppressShell ? "space-y-3" : `${CSSD_PAGE_OUTER} space-y-3 animate-in slide-in-from-right-6 duration-300`}>
       {toolbar}
-      <div className={suppressShell ? "space-y-3" : "space-y-3"}>
+      <div className="space-y-3">
         {/* Header Thông Tin Mẻ + Nút theo giai đoạn */}
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-shell)] border border-emerald-800 bg-emerald-700 p-5 text-white shadow-sm">
           <div>

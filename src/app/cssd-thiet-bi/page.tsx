@@ -58,7 +58,7 @@ function CssdThietBiPageInner() {
         </Link>
       }
     >
-      <div className="bv103-stack-page">
+      <div className="space-y-[var(--bv103-space-3)]">
         <div className={CSSD_UI_TAB_GROUP}>
           <CssdHorizTabButton
             active={activeTab === "FLEET"}

@@ -101,7 +101,7 @@ function CssdQuyTrinhPageInner() {
     <CSSDPageShell
       title="Chu trình xử lý dụng cụ"
     >
-      <div className="bv103-stack-page">
+      <div className="space-y-[var(--bv103-space-3)]">
         <div className="flex flex-wrap items-center gap-2">
           <div className={CSSD_UI_TAB_GROUP}>
             {WORK_TABS.map(({ key, label, mobileLabel, icon, emphasis }) => (
@@ -125,7 +125,7 @@ function CssdQuyTrinhPageInner() {
             className={`inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-control)] border transition-colors ${
               activeTab === "TRACE"
                 ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-sm"
-                : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                : "border-slate-200 bg-white text-slate-500 hover:bg-white/70 hover:text-slate-800"
             }`}
           >
             <Search className="h-4 w-4" aria-hidden />

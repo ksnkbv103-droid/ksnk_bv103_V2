@@ -6,7 +6,7 @@ import React from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
-import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
+import CSSDPageShell from "../components/layout/cssd-page-shell";
 import MeTietKhuanCreateStep from "../components/batch/me-tiet-khuan-create-step";
 import MeTietKhuanProcessStep from "../components/batch/me-tiet-khuan-process-step";
 import { buildMeTietKhuanBatchColumns } from "../components/batch/me-tiet-khuan-columns";
@@ -45,7 +45,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
 
   if (w.step === "CREATE") {
     const createContent = (
-      <div className={`${CSSD_PAGE_OUTER} animate-in slide-in-from-bottom-6 duration-300`}>
+      <div className="animate-in slide-in-from-bottom-6 duration-300">
         <MeTietKhuanCreateStep
           machines={w.machines}
           machineId={w.machineId}
@@ -134,7 +134,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
     );
 
   const listContent = (
-    <div className="bv103-stack-page">
+    <div className="space-y-[var(--bv103-space-3)]">
       {suppressShell && (
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-semibold text-slate-700">Danh sách mẻ tiệt khuẩn</h3>

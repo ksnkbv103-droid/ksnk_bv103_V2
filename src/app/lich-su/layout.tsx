@@ -26,6 +26,7 @@ export default function LichSuLayout({ children }: { children: React.ReactNode }
       <Suspense fallback={null}>
         <KsnkSupervisionHero
           title="Lịch sử giám sát"
+          sticky
           trailing={
             <div className="flex flex-col items-stretch gap-2 sm:items-end">
               <SupervisionModeNav

@@ -175,7 +175,7 @@ export default function RBACMatrixView() {
     );
 
   return (
-    <div className={`${bv103DesignTokens.pageOuter} pb-24`}>
+    <div className="space-y-[var(--bv103-space-3)] pb-24">
       <KsnkPageHeader
         title="Ma trận phân quyền"
         actions={

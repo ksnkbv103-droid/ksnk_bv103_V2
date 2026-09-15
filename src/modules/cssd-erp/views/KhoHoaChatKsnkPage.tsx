@@ -279,13 +279,12 @@ export default function KhoHoaChatKsnkPage() {
     (moveMode === "DIEU" ? true : qn > 0);
 
   if (permLoading) {
-    return (
-      <div className={CSSD_PAGE_OUTER}>
-        <div className="flex h-[40vh] items-center justify-center" aria-busy="true">
-          <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
-        </div>
+    const loadingInner = (
+      <div className="flex h-[40vh] items-center justify-center" aria-busy="true">
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--primary)]" />
       </div>
     );
+    return <div className={CSSD_PAGE_OUTER}>{loadingInner}</div>;
   }
 
   if (!allowed.view) {
