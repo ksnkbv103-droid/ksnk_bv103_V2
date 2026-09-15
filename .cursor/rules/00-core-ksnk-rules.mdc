@@ -1,5 +1,5 @@
 ---
-description: BV103 — lõi (tối giản token)
+description: BV103 — lõi (tối giản token) + RACI Grok/Cursor/PO
 alwaysApply: true
 ---
 
@@ -8,7 +8,10 @@ alwaysApply: true
 - SSOT: [`AGENTS.md`](../../AGENTS.md) — đọc trước; chi tiết trong `docs/core/`.
 - Kỷ luật: [`01-agent-discipline.mdc`](01-agent-discipline.mdc); edit `src/`: [`03-src-editing-compact.mdc`](03-src-editing-compact.mdc).
 - Đọc tối thiểu: [`read-minimum.md`](../../docs/core/read-minimum.md); skills: [`skills-catalog.md`](../../docs/core/skills-catalog.md).
-- Một module / nhịp — không audit cả repo; verify theo [`lean-execution.md`](../../docs/core/lean-execution.md).
-- Đụng action/`fact_*` → `npm run verify:engineering`; schema → migration + `governance-pipeline.md`.
+- **Một lát / một chat** — whitelist path; working tree bẩn ≠ sửa rộng.
+- **RACI:** Grok = CDC/domain + sửa local mặc định (≤~5 file). Cursor = chỉ khi PO dán `/grok-handoff` (cấm đọc CDC/NHSN thô). PO = chốt lát, UAT localhost, commit/Vercel khi ra lệnh.
+- Neo nghiệp vụ trong task Cursor: chỉ bullet **Neo Grok** + path SSOT ngắn — không @ SSOT dài / không đọc sổ CDC.
+- Verify theo [`lean-execution.md`](../../docs/core/lean-execution.md). Action/`fact_*` → `verify:engineering`; schema → migration **local** — không migrate remote/prod trừ PO.
 - Ranh giới CSSD vs MDM; mapping: [`implementation-mapping.md`](../../docs/core/implementation-mapping.md).
+- Luồng Cursor: `/grok-handoff` (ưu tiên) hoặc `/intake`→`/implement`→`/ship-slice`; UAT `/uat-cases`; giám sát `@slice-supervise`.
 - UI shell: [`concepts.md`](../../docs/wiki/concepts.md#layout-primitives).

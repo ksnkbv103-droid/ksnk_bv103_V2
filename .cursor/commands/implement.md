@@ -33,3 +33,12 @@ Nếu user đổi KPI/công thức/acceptance giữa chừng: ghi `Spec change`,
 Chạy lệnh đã chốt trong intake. Mặc định khi đụng action/DB: `npm run verify:engineering`.
 
 Tham chiếu: `docs/core/lean-execution.md`, `AGENTS.md` Pilot DoD.
+
+## Nếu task đến từ Grok
+
+Ưu tiên `/grok-handoff`. Output phải đủ để Grok review diff (Files / Verify / DoD / Residual).
+Không mở rộng ngoài whitelist path trong task Grok.
+
+## RACI
+
+Ưu tiên task từ Grok qua `/grok-handoff`. Cấm đọc CDC thô. PO UAT localhost; Grok review sau `LÁT … xong`.
