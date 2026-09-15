@@ -109,7 +109,7 @@ Không spawn phiếu Day-3 tự động.
 
 | Việc | Path |
 |------|------|
-| Workspace | `NkbvBaMultiTimelineWorkspace.tsx` |
+| Workspace | `NkbvBaMultiTimelineWorkspace.tsx` (+ chrome tách: `NkbvBaWorkspaceToolbar` / `SessionChips` / `BoundDayGrid`; types `nkbv-ba-workspace.types.ts`) |
 | Grid / HD / split | `nkbv-ba-grid-engine.ts` |
 | Trạng thái XN | `nkbv-vi-sinh-analysis-status.ts` + verification_data |
 | Map bệnh phẩm | `nkbv-specimen-syndrome.ts` |

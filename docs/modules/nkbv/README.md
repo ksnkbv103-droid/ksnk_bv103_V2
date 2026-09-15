@@ -21,7 +21,7 @@
 | Cổng vi sinh LIS | Copy bảng/Excel → XN; **nếu chưa có mã BA thì tạo BA từ LIS**, đã có thì không đè — `NkbvViSinhImportPortal` |
 | Cổng hồ sơ bệnh án | Copy HIS / Excel / gõ tay — `NkbvBenhAnImportPortal` |
 | Coverage audit P5 | [`clinical-forms-coverage-audit-20260610.md`](clinical-forms-coverage-audit-20260610.md) |
-| UAT sign-off | [`pilot-clinical-checklist-20260603.md`](pilot-clinical-checklist-20260603.md) |
+| UAT sign-off | [`pilot-clinical-checklist-20260603.md`](pilot-clinical-checklist-20260603.md) · checklist ngắn D-14 [`uat-chu-ky-khoa-d14-20260915.md`](uat-chu-ky-khoa-d14-20260915.md) |
 | Tổng hợp | [`../../wiki/entities.md`](../../wiki/entities.md#nkbv-hai) |
 | Thuật toán gốc | [`../../data/nkbv/algorithms/`](../../data/nkbv/algorithms/) — runtime: `nkbv-rules-engine.ts` + `nkbv-shared-*.ts` |
 
