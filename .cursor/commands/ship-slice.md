@@ -17,3 +17,15 @@ Dùng **sau khi** user test tay pass (hoặc muốn agent tự verify trước k
 4. Gợi ý: `/commit` hoặc tiếp `/implement` nếu No-go
 
 Tham chiếu: `lean-execution.md` Pilot DoD, `acceptance-ui` agent cho checklist tay.
+
+## Báo cáo Grok / PO (copy)
+
+```markdown
+## Báo cáo LÁT
+- Kết quả: PASS | PASS có nợ | FAIL
+- Verify: …
+- Review: Critical/Major/Minor (hoặc không)
+- UAT tay: ok | blocker | chưa
+- Đề xuất: /commit (chỉ khi PO bảo) | rework | lát tiếp
+```
+
