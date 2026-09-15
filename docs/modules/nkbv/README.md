@@ -12,7 +12,7 @@
 | **Tổ chức lại CSDL NKBV** (đập demo, 6 ngăn, từng phần triển khai) | [`hai-database-rebuild-plan-20260827.md`](hai-database-rebuild-plan-20260827.md) |
 | **Timeline BA + mẫu báo cáo chẩn đoán** (tận dụng lưới ngày; mẫu gửi khoa) | [`hai-timeline-and-diagnostic-report-20260827.md`](hai-timeline-and-diagnostic-report-20260827.md) |
 | **Domain SSOT NHSN/CDC 2025 v3.3** (thuật toán + từ điển E; Phụ lục F trỏ file trên) | [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md) |
-| Domain SSOT v2.0 (lịch sử, 2026-08-04) | [`hai-surveillance-domain-ssot-20260804.md`](hai-surveillance-domain-ssot-20260804.md) |
+| Domain SSOT v2.0 (lịch sử, 2026-08-04) | [`hai-surveillance-domain-ssot-20260804.md`](../../archive/nkbv-sources/hai-surveillance-domain-ssot-20260804.md) |
 | CDC / luồng xác minh **app pilot** | [`domain-specification.md`](domain-specification.md) |
 | **Vai trò BA / Phiếu / Form** (Admission vs HAI vs checklist) | [`ba-phieu-form-roles.md`](ba-phieu-form-roles.md) |
 | **BA 3 khối** (bảng chung → phân tích → tạo phiếu muộn + hàng đợi XN) | [`ba-multi-timeline-architecture.md`](ba-multi-timeline-architecture.md) · [`ba-centric-timeline.md`](ba-centric-timeline.md) |

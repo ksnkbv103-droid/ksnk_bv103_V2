@@ -1,6 +1,6 @@
 ---
-description: PO BV103 — intake-nv, tiếng Việt nghiệp vụ, 1 chat 1 tính năng
-alwaysApply: true
+description: PO BV103 — chỉ invoke qua /intake-nv hoặc @04-po-workflow (không always-on)
+alwaysApply: false
 ---
 
 # PO workflow (BV103)

@@ -5,6 +5,8 @@ alwaysApply: false
 
 # Agent efficiency (BV103)
 
+> Bullet cốt lõi **đã gộp vào** `01-agent-discipline` (always-on). File này giữ để `@agent-efficiency` khi cần nhắc chi tiết.
+
 Cherry-pick từ Minimize-Cursor-Cost — áp dụng khi agent mode burn token.
 
 ## Search & read

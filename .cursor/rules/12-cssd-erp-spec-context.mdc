@@ -4,6 +4,9 @@ globs: src/modules/cssd-erp/**/*.{ts,tsx},src/modules/cssd-su-co/**/*.{ts,tsx},s
 alwaysApply: false
 ---
 
+**Nguồn domain (ưu tiên):** CDC → WHO → BYT/Cục Quân y → QT/QĐ chính thức BV103 → `docs/modules/cssd/domain-overview.md` + `domain-decisions-cssd-instrument.md` + mapping.
+Chỉ lấp domain đã có; HLD/out-of-scope không mở station mới. Soft-warn thiếu BOM (Q2) giữ trừ khi PO đổi.
+
 # CSSD ERP — ngữ cảnh spec
 
 Trước khi chốt thiết kế / sửa lớn server action hoặc schema CSSD:

@@ -682,11 +682,11 @@ export default function NkbvSyndromeIwpPanel({
     index.id,
     index.date,
     utiVerdict?.criteriaMet,
-    utiVerdict?.result.classification,
+    utiVerdict?.result,
     pneuVerdict?.criteriaMet,
-    pneuVerdict?.result.classification,
+    pneuVerdict?.result,
     bsiVerdict?.criteriaMet,
-    bsiVerdict?.result.classification,
+    bsiVerdict?.result,
   ]);
 
   /** Đồng bộ draft.eventEstablished + nsk cho footer / RIT phiên khác. */
