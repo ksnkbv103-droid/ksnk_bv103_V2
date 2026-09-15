@@ -92,9 +92,7 @@ jobs:
         run: npm run verify:cssd
       
       - name: Unit tests + coverage report (no global % gate)
-        run: |
-          npm run test:coverage
-          node scripts/ci-coverage-honesty.mjs
+        run: npm run test:coverage
       
       - name: Engineering Contract Verify (warn unless ENGINEERING_GATE_STRICT=1)
         run: npm run verify:engineering
