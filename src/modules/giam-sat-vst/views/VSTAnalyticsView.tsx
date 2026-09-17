@@ -86,6 +86,10 @@ export default function VSTAnalyticsView() {
         loading={d.loading}
         loadError={d.loadError}
       />
+      <p className="px-1 text-[11px] text-slate-500">
+        Chỉ thống kê khoa. Nhập / lịch sử phiên qua ModeNav. Không tạo việc từ trang này —
+        Báo cáo chính thức dùng để in/điều hành, không thay trang thống kê.
+      </p>
     </Bv103AnalyticsPageFrame>
   );
 }

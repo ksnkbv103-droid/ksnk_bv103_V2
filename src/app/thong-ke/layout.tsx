@@ -46,14 +46,21 @@ function ThongKeModeAndModuleTabs() {
   const isGsc = Boolean(pathname?.includes("/thong-ke/gsc"));
   const isVst = Boolean(pathname?.includes("/thong-ke/vst"));
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-      {isVst || isGsc ? (
-        <SupervisionModeNav
-          module={isGsc ? "gsc" : "vst"}
-          ariaLabel={isGsc ? "Giám sát tuân thủ KSNK" : "Giám sát vệ sinh tay"}
-        />
-      ) : null}
-      <ThongKeModuleTabs />
+    <div className="flex flex-col gap-2">
+      <p className="no-print px-0.5 text-[11px] leading-snug text-slate-500">
+        Trang này chỉ <span className="font-medium text-slate-600">thống kê khoa</span>. Đổi
+        nhập / lịch sử / thống kê bằng ModeNav — Báo cáo chính thức là báo cáo in, không phải
+        trang thống kê.
+      </p>
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        {isVst || isGsc ? (
+          <SupervisionModeNav
+            module={isGsc ? "gsc" : "vst"}
+            ariaLabel={isGsc ? "Giám sát tuân thủ KSNK" : "Giám sát vệ sinh tay"}
+          />
+        ) : null}
+        <ThongKeModuleTabs />
+      </div>
     </div>
   );
 }

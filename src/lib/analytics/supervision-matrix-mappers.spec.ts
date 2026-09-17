@@ -13,6 +13,7 @@ import {
   normalizeGapKhoaRow,
   partitionGapKhoaRows,
   resolveKhoaAggregateTyLe,
+  gscTyLeFromMatrixCounts,
   sortGapRowsByAggregateTyLe,
   sortGapRowsByMetric,
 } from "./supervision-matrix-mappers";
@@ -264,3 +265,12 @@ describe("supervision-matrix-mappers", () => {
     expect(merged[0].ty_le_tgs).toBe(80);
   });
 });
+
+describe("gscTyLeFromMatrixCounts", () => {
+  it("prefers tong_dat/tong_quan_sat over RPC ty_le rounded to 1 decimal", () => {
+    expect(
+      gscTyLeFromMatrixCounts({ tong_dat: 2, tong_quan_sat: 3, ty_le_tuan_thu: 66.7 }),
+    ).toBe(66.67);
+  });
+});
+

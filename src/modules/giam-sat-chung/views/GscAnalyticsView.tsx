@@ -1,9 +1,9 @@
 // src/modules/giam-sat-chung/views/GscAnalyticsView.tsx
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useGscAnalyticsData } from "../hooks/use-gsc-analytics-data";
 import {
   Bv103AnalyticsPageFrame,
@@ -32,22 +32,14 @@ const GscBangKiemToiPhaiTgsPanel = dynamic(() => import("../components/GscBangKi
   loading: () => <div className="h-48 animate-pulse rounded-[var(--radius-shell)] bg-slate-50 mx-2" />,
 });
 
-type AnalyticsTab = "thong-ke" | "bk-toi";
-
 interface GscAnalyticsViewProps {
   initialLoaiGiamSat?: GscLoaiGiamSatRoute;
 }
 
-function buildTabHref(tab: AnalyticsTab, current: URLSearchParams): string {
-  const next = new URLSearchParams(current.toString());
-  if (tab === "bk-toi") next.set("view", "bk-toi");
-  else next.delete("view");
-  const q = next.toString();
-  return q ? `?${q}` : "?";
-}
-
 /**
- * View dashboard thống kê GSC + tab «BK tôi phải TGS» — cùng khung analytics KSNK.
+ * P.A (2026-09-17): Tầng 3 — chỉ phân tích khoa.
+ * ModeNav (Nhập / Lịch sử / Thống kê) là công tắc duy nhất sang form/history.
+ * TGS / BK tôi phải nằm trong «Nâng cao» (thu gọn), không phải tab đồng cấp.
  */
 export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsViewProps) {
   const searchParams = useSearchParams();
@@ -57,22 +49,19 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
   );
   const d = useGscAnalyticsData(resolvedLoai);
   const pathname = usePathname();
-  const router = useRouter();
   const { isGuestStatsOnly } = usePermission(undefined, "view");
   const onThongKeRoute = pathname.startsWith("/thong-ke/gsc");
-  const activeTab: AnalyticsTab = searchParams.get("view") === "bk-toi" ? "bk-toi" : "thong-ke";
+  const deepAdvanced =
+    searchParams.get("view") === "bk-toi" || searchParams.get("view") === "nang-cao";
+  const [advancedOpen, setAdvancedOpen] = useState(deepAdvanced);
 
-  const setTab = useCallback(
-    (tab: AnalyticsTab) => {
-      router.replace(`${pathname}${buildTabHref(tab, searchParams)}`, { scroll: false });
-    },
-    [router, searchParams, pathname],
-  );
+  useEffect(() => {
+    if (deepAdvanced) setAdvancedOpen(true);
+  }, [deepAdvanced]);
 
   if (!d.initDone) return <Bv103AnalyticsPageSkeleton />;
 
-  const showThongKeFilters = isGuestStatsOnly || activeTab === "thong-ke";
-  const filterBar = showThongKeFilters ? (
+  const filterBar = (
     <AnalyticsFilterBar
       variant="compact"
       khoaFilterLocked={d.khoaFilterLocked}
@@ -100,7 +89,7 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
       selectedHinhThucIds={d.selectedHinhThucIds}
       setSelectedHinhThucIds={d.setSelectedHinhThucIds}
     />
-  ) : undefined;
+  );
 
   return (
     <Bv103AnalyticsPageFrame title="Thống kê giám sát chung" filterBar={filterBar}>
@@ -117,60 +106,56 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
         />
       ) : null}
 
-      {activeTab === "bk-toi" && !isGuestStatsOnly ? (
-        <div className="space-y-3">
-          <button
-            type="button"
-            onClick={() => setTab("thong-ke")}
-            className="text-xs font-semibold text-[var(--primary)] hover:underline"
+      <div className="bv103-stack-page">
+        <GscStrategicAnalyticsPanel
+          khoaFilterLocked={d.khoaFilterLocked}
+          tuNgay={d.tuNgay}
+          denNgay={d.denNgay}
+          khoiOptions={d.khoiOptions}
+          selectedKhoiIds={d.selectedKhoiIds}
+          khoaOptions={d.khoaOptions}
+          selectedKhoaIds={d.selectedKhoaIds}
+          ngheOptions={d.ngheOptions}
+          selectedNgheIds={d.selectedNgheIds}
+          khuVucOptions={d.khuVucOptions}
+          selectedKhuVucIds={d.selectedKhuVucIds}
+          selectedHinhThucIds={d.selectedHinhThucIds}
+          payload={d.payload}
+          loading={d.loading}
+          loadError={d.loadError}
+          bkLabelRecord={d.bkLabelRecord}
+        />
+        {!isGuestStatsOnly ? (
+          <details
+            className="rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2"
+            open={advancedOpen}
+            onToggle={(e) => setAdvancedOpen((e.target as HTMLDetailsElement).open)}
           >
-            ← Về thống kê khoa và bảng kiểm yếu
-          </button>
-          <GscBangKiemToiPhaiTgsPanel
-            tuNgay={d.tuNgay}
-            setTuNgay={d.setTuNgay}
-            denNgay={d.denNgay}
-            setDenNgay={d.setDenNgay}
-            khoaOptions={d.khoaOptions}
-            selectedKhoaIds={d.selectedKhoaIds}
-            khoaFilterLocked={d.khoaFilterLocked}
-            lockedKhoaLabel={d.lockedKhoaLabel}
-          />
-        </div>
-      ) : (
-        <div className="bv103-stack-page">
-          <GscStrategicAnalyticsPanel
-            khoaFilterLocked={d.khoaFilterLocked}
-            tuNgay={d.tuNgay}
-            denNgay={d.denNgay}
-            khoiOptions={d.khoiOptions}
-            selectedKhoiIds={d.selectedKhoiIds}
-            khoaOptions={d.khoaOptions}
-            selectedKhoaIds={d.selectedKhoaIds}
-            ngheOptions={d.ngheOptions}
-            selectedNgheIds={d.selectedNgheIds}
-            khuVucOptions={d.khuVucOptions}
-            selectedKhuVucIds={d.selectedKhuVucIds}
-            selectedHinhThucIds={d.selectedHinhThucIds}
-            payload={d.payload}
-            loading={d.loading}
-            loadError={d.loadError}
-            bkLabelRecord={d.bkLabelRecord}
-          />
-          {!isGuestStatsOnly ? (
-            <p className="px-1 text-xs text-slate-500">
-              Việc tự giám sát khoa:{" "}
-              <button
-                type="button"
-                onClick={() => setTab("bk-toi")}
-                className="font-semibold text-[var(--primary)] hover:underline"
-              >
-                Bảng kiểm tôi phải tự giám sát
-              </button>
+            <summary className="cursor-pointer text-xs font-semibold text-slate-700">
+              Nâng cao — bao phủ TGS / bảng kiểm tôi phải
+            </summary>
+            <p className="mt-2 text-xs text-slate-500">
+              Chỉ xem bao phủ và BK phải TGS. Không tạo việc từ đây — vào menu{" "}
+              <span className="font-medium">Công việc</span> nếu cần giao việc. Nhập / lịch sử
+              phiên dùng ModeNav phía trên (không đổi từ trang thống kê).
             </p>
-          ) : null}
-        </div>
-      )}
+            {advancedOpen ? (
+              <div className="mt-3">
+                <GscBangKiemToiPhaiTgsPanel
+                  tuNgay={d.tuNgay}
+                  setTuNgay={d.setTuNgay}
+                  denNgay={d.denNgay}
+                  setDenNgay={d.setDenNgay}
+                  khoaOptions={d.khoaOptions}
+                  selectedKhoaIds={d.selectedKhoaIds}
+                  khoaFilterLocked={d.khoaFilterLocked}
+                  lockedKhoaLabel={d.lockedKhoaLabel}
+                />
+              </div>
+            ) : null}
+          </details>
+        ) : null}
+      </div>
     </Bv103AnalyticsPageFrame>
   );
 }

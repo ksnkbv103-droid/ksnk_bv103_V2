@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
 import React from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
@@ -37,7 +38,7 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
         <div>
           <h2 className={D.sectionHeading}>Chuyên đề — tóm tắt điều hành</h2>
           <p className="mt-[var(--bv103-space-2)] bv103-type-label text-slate-500">
-            Không nhân bản biểu đồ module. Phân tích đầy đủ tại tab Thống kê từng mảng.
+            Không nhân bản biểu đồ module. Chi tiết thống kê tại tab Thống kê từng mảng.
           </p>
         </div>
         <div className="flex flex-wrap gap-1 rounded-lg border border-slate-200 p-0.5">
@@ -104,7 +105,7 @@ function TopicSummary({
       <div className="mb-2 flex items-center justify-between gap-2">
         <h3 className="bv103-type-section text-slate-700">{title}</h3>
         <Link href={deepHref} className="inline-flex items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline">
-          Phân tích đầy đủ <ExternalLink size={10} aria-hidden />
+          Chi tiết thống kê <ExternalLink size={10} aria-hidden />
         </Link>
       </div>
       {!available ? (
@@ -124,11 +125,11 @@ function buildVstLines(payload: BaoCaoTongHopPayload | null): string[] {
   const k = payload?.vst?.kpis;
   if (!k) return [];
   const lines = [
-    `Tuân thủ: ${k.ty_le_tuan_thu}% (${k.da_tuan_thu}/${k.tong_co_hoi} cơ hội)`,
+    `Tuân thủ: ${formatPercent1(k.ty_le_tuan_thu)} (${k.da_tuan_thu}/${k.tong_co_hoi} cơ hội)`,
     `Đúng kỹ thuật: ${k.ty_le_dung_ky_thuat}% · Lạm dụng găng: ${k.ty_le_lam_dung_gang}%`,
   ];
   const worstMoment = [...(payload?.vst?.moments ?? [])].sort((a, b) => a.ty_le_tuan_thu - b.ty_le_tuan_thu)[0];
-  if (worstMoment) lines.push(`Thời điểm thấp nhất: ${worstMoment.ten} (${worstMoment.ty_le_tuan_thu}%)`);
+  if (worstMoment) lines.push(`Thời điểm thấp nhất: ${worstMoment.ten} (${formatPercent1(worstMoment.ty_le_tuan_thu)})`);
   return lines;
 }
 
@@ -136,13 +137,13 @@ function buildGscLines(payload: BaoCaoTongHopPayload | null): string[] {
   const k = payload?.gsc?.kpis;
   if (!k) return [];
   const lines = [
-    `Tuân thủ: ${k.ty_le_tuan_thu}% (${k.tong_dat}/${k.tong_quan_sat} lượt quan sát, ${k.tong_phien} phiên)`,
+    `Tuân thủ: ${formatPercent2(k.ty_le_tuan_thu)} (${k.tong_dat}/${k.tong_quan_sat} lượt quan sát, ${k.tong_phien} phiên)`,
     `Vi phạm ghi nhận: ${k.tong_vi_pham} lượt`,
   ];
   const topVp = payload?.gsc?.top_violations?.[0];
   if (topVp) lines.push(`Vi phạm nổi bật: ${topVp.ten_tieu_chi} (${topVp.so_vi_pham} lần, ${topVp.ten_bang_kiem})`);
   const bkLow = resolveSortedChecklistOverview(payload?.gsc ?? null)[0];
-  if (bkLow) lines.push(`BK rủi ro nhất: ${bkLow.ma_bk} (${bkLow.ty_le_tuan_thu}% · ${bkLow.tong_vi_pham} vi phạm)`);
+  if (bkLow) lines.push(`BK rủi ro nhất: ${bkLow.ma_bk} (${formatPercent2(bkLow.ty_le_tuan_thu)} · ${bkLow.tong_vi_pham} vi phạm)`);
   return lines;
 }
 

@@ -1,6 +1,7 @@
 /**
  * SSOT menu sidebar — module-first (IA lớp 2).
  * Sidebar = cổng vào module/workspace. CSSD: chuyển màn chỉ qua sidebar (không ModeNav trùng).
+ * IA khóa CSSD: «Vận hành» (Quy trình / Sự cố & biến động) · «Tra cứu» (Dụng cụ/TB/HC) · «Sửa danh mục» = sidebar admin → Quản trị.
  * Giám sát: mục sidebar «Giám sát» → hub `/giam-sat`; nếu user chỉ 1 đích ghi (VST|GSC|NKBV) thì deep-link form (SXHD).
  * Lịch sử/Thống kê VST·GSC: ModeNav trong module giám sát hoặc `/lich-su/*` `/thong-ke/*`.
  * @see docs/wiki/concepts.md#layout-primitives
@@ -14,7 +15,6 @@ import {
   Droplets,
   FileBarChart,
   GraduationCap,
-  LayoutDashboard,
   PanelsTopLeft,
   ShieldCheck,
   Wrench,
@@ -53,7 +53,6 @@ export const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
     id: "command",
     label: "Điều hành KSNK",
     items: [
-      { name: "Tổng quan KSNK", href: "/", icon: LayoutDashboard, gate: NAV_GATE_DASHBOARD, requireCommandCenterShell: true },
       { name: "Báo cáo chính thức", href: "/bao-cao-tong-hop", icon: FileBarChart, gate: NAV_GATE_DASHBOARD, requireCommandCenterShell: true },
     ],
   },
@@ -77,7 +76,7 @@ export const SIDEBAR_NAV_GROUPS: SidebarNavGroup[] = [
     label: "CSSD · Vận hành",
     items: [
       { name: "Quy trình", href: "/cssd-quy-trinh", icon: Clock, gate: NAV_GATE_CSSD_QUY_TRINH },
-      { name: "Sự cố", href: "/cssd-su-co", icon: AlertTriangle, gate: NAV_GATE_CSSD_SU_CO },
+      { name: "Sự cố & biến động", href: "/cssd-su-co", icon: AlertTriangle, gate: NAV_GATE_CSSD_SU_CO },
     ],
   },
   {

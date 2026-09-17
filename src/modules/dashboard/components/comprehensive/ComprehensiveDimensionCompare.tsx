@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { formatPercent2 } from "@/lib/analytics/supervision-percent";
 import { Layers } from "lucide-react";
 import { toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
 import type { CompareRow } from "@/lib/analytics/supervision-analytics.types";
@@ -141,7 +142,7 @@ function DimensionTable({ title, rows }: { title: string; rows: CompareRow[] }) 
                 {r.ten}
               </td>
               <td className="px-3 py-1.5 text-right font-bold tabular-nums text-slate-900">
-                {r.ty_le_tuan_thu == null ? "—" : `${r.ty_le_tuan_thu}%`}
+                {r.ty_le_tuan_thu == null ? "—" : formatPercent2(r.ty_le_tuan_thu)}
               </td>
               <td className="px-3 py-1.5 text-right tabular-nums text-slate-500">
                 {r.dat != null && r.tong != null ? `${r.dat}/${r.tong}` : "—"}

@@ -5,6 +5,7 @@ import { AlertTriangle } from "lucide-react";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { resolveSortedChecklistOverview } from "@/lib/analytics/gsc-checklist-intervention";
 import { formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { gscTyLeFromMatrixCounts } from "@/lib/analytics/supervision-matrix-mappers";
 import { complianceToneFromPercent } from "@/lib/analytics/supervision-thresholds";
 import type { GscChecklistOverviewRow, GscStrategicPayload } from "../types/gsc-strategic.types";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
@@ -141,7 +142,7 @@ function ChecklistRow({
       <td className="px-2 py-2 text-right tabular-nums">{row.tong_phien}</td>
       <td className="px-2 py-2 text-right tabular-nums font-medium text-red-700">{row.tong_vi_pham}</td>
       <td className={`px-2 py-2 text-right tabular-nums font-bold ${complianceClass(row.ty_le_tuan_thu)}`}>
-        {formatPercent2(row.ty_le_tuan_thu)}
+        {formatPercent2(gscTyLeFromMatrixCounts(row) ?? row.ty_le_tuan_thu)}
       </td>
       <td className="px-2 py-2 text-[11px] text-slate-600">
         {row.top_violation_ten ? (

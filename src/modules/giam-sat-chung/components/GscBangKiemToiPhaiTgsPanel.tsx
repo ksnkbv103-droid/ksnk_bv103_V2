@@ -4,10 +4,9 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { AlertCircle, CheckCircle2, ClipboardList, ExternalLink, Loader2, RefreshCw } from "lucide-react";
 import { useBangKiemToiPhaiTgs } from "@/lib/analytics/use-bang-kiem-toi-phai-tgs";
-import { buildQlcvAnalyticsDeepLink } from "@/lib/analytics/qlcv-analytics-deep-link";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
-import { formatPercent1 } from "@/lib/analytics/supervision-percent";
+import { formatPercent2 } from "@/lib/analytics/supervision-percent";
 
 type Props = {
   tuNgay: string;
@@ -126,18 +125,7 @@ function BkTable({ rows, showStatus }: { rows: Row[]; showStatus: boolean }) {
                   >
                     Tạo phiên <ExternalLink className="w-3 h-3" />
                   </Link>
-                  {row.trang_thai === "thieu_tgs" ? (
-                    <Link
-                      href={buildQlcvAnalyticsDeepLink({
-                        topic: `BK phải tự giám sát · ${row.ma_bk}`,
-                        gap: "Thiếu tự giám sát",
-                        bkLabel: `${row.ma_bk} ${row.ten_bang_kiem}`.trim(),
-                      })}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 hover:underline"
-                    >
-                      Tạo việc <ExternalLink className="w-3 h-3" />
-                    </Link>
-                  ) : null}
+
                 </div>
               </td>
             </tr>
@@ -277,7 +265,7 @@ export default function GscBangKiemToiPhaiTgsPanel({
               </div>
               <div className="rounded-[var(--radius-shell)] bg-[var(--primary)]/5 px-4 py-3">
                 <p className={`${UI.kpiLabel} text-[var(--primary)]`}>Bao phủ</p>
-                <p className="bv103-type-title text-[var(--primary)]">{formatPercent1(data.tom_tat.ty_le_bao_phu)}</p>
+                <p className="bv103-type-title text-[var(--primary)]">{formatPercent2(data.tom_tat.ty_le_bao_phu)}</p>
               </div>
             </div>
 

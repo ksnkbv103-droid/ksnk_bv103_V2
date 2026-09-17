@@ -1,17 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
-import { ClipboardCheck, ExternalLink, Loader2, RefreshCw } from "lucide-react";
+import { ClipboardCheck, Loader2, RefreshCw } from "lucide-react";
 import {
   getTgsCoverageRankingAction,
   type TgsCoverageRankingPayload,
 } from "@/lib/analytics/tgs-coverage-ranking.actions";
-import { buildQlcvAnalyticsDeepLink } from "@/lib/analytics/qlcv-analytics-deep-link";
 import { TGS_BK_CELL_LABELS } from "@/lib/analytics/tgs-coverage-mappers";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
-import { formatPercent1 } from "@/lib/analytics/supervision-percent";
+import { formatPercent2 } from "@/lib/analytics/supervision-percent";
 
 type Props = {
   tuNgay: string;
@@ -87,24 +85,17 @@ export default function GscTgsCoverageRankingPanel({ tuNgay, denNgay, selectedKh
               <th className="py-2 pr-3">Bao phủ %</th>
               <th className="py-2 pr-3">Đã / Bắt buộc</th>
               <th className="py-2 pr-3">BK thiếu</th>
-              <th className="py-2">Tạo việc</th>
-            </tr>
+                          </tr>
           </thead>
           <tbody>
             {loading && !data ? (
               <tr>
-                <td colSpan={5} className="py-6 text-center text-sm text-slate-400">
+                <td colSpan={4} className="py-6 text-center text-sm text-slate-400">
                   Đang tính bao phủ…
                 </td>
               </tr>
             ) : null}
             {data?.rows.map((row) => {
-              const qlcvHref = buildQlcvAnalyticsDeepLink({
-                topic: `Bao phủ tự giám sát · ${row.label}`,
-                gap: row.so_bk_thieu > 0 ? TGS_BK_CELL_LABELS.thieu_tgs : "Đủ bao phủ",
-                khoaLabel: row.label,
-                bkLabel: row.bk_thieu_labels.slice(0, 3).join(", ") || undefined,
-              });
               return (
                 <tr key={row.id} className="border-b border-slate-50 align-top">
                   <td className="py-3 pr-3 font-semibold text-slate-800" title={row.ten}>
@@ -116,7 +107,7 @@ export default function GscTgsCoverageRankingPanel({ tuNgay, denNgay, selectedKh
                         row.ty_le_bao_phu_tgs < 80 ? "text-amber-800" : "text-emerald-800"
                       }`}
                     >
-                      {formatPercent1(row.ty_le_bao_phu_tgs)}
+                      {formatPercent2(row.ty_le_bao_phu_tgs)}
                     </span>
                   </td>
                   <td className="py-3 pr-3 text-slate-600 tabular-nums">
@@ -132,24 +123,12 @@ export default function GscTgsCoverageRankingPanel({ tuNgay, denNgay, selectedKh
                       <span className="text-emerald-700 font-medium">{TGS_BK_CELL_LABELS.da_tgs}</span>
                     )}
                   </td>
-                  <td className="py-3">
-                    {row.so_bk_thieu > 0 ? (
-                      <Link
-                        href={qlcvHref}
-                        className="inline-flex items-center gap-1 bv103-type-label font-semibold text-[var(--primary)] hover:underline"
-                      >
-                        Tạo việc <ExternalLink className="h-3 w-3" aria-hidden />
-                      </Link>
-                    ) : (
-                      <span className="text-[11px] text-slate-400">—</span>
-                    )}
-                  </td>
                 </tr>
               );
             })}
             {data && data.rows.length === 0 && !loading ? (
               <tr>
-                <td colSpan={5} className="py-6 text-center text-sm text-slate-500">
+                <td colSpan={4} className="py-6 text-center text-sm text-slate-500">
                   Không có khoa nào có bảng kiểm bắt buộc tự giám sát trong phạm vi lọc (hoặc chưa cấu hình áp dụng trên danh mục).
                 </td>
               </tr>

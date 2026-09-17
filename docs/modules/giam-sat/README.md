@@ -4,6 +4,9 @@
 
 | Đọc khi | File |
 |---------|------|
+| **Kế hoạch chỉnh VST/GSC (2026-09-17)** | [`../../reference/reports/BV103-GSC-KE-HOACH-CHINH-20260917.md`](../../reference/reports/BV103-GSC-KE-HOACH-CHINH-20260917.md) |
+| **Chẩn đoán «đơn giản mà mãi chưa xong» (2026-09-17)** | [`../../reference/reports/BV103-GSC-CHAN-DOAN-DON-GIAN-20260917.md`](../../reference/reports/BV103-GSC-CHAN-DOAN-DON-GIAN-20260917.md) |
+| **Đề cương vận hành + biện pháp (2026-09-17)** | [`../../reference/reports/BV103-GSC-DE-CUONG-20260917.md`](../../reference/reports/BV103-GSC-DE-CUONG-20260917.md) |
 | Nghiệp vụ | [`../../core/domain-specification.md`](../../core/domain-specification.md) + [`../../wiki/entities.md`](../../wiki/entities.md#giám-sát-vst--gsc) |
 | Bảng kiểm 36 mẫu | [`bang-kiem-overview.md`](bang-kiem-overview.md) — **không** mở `data/bang-kiem/canonical-36.md` |
 | Điểm nguy cơ P×I×S (khả thi) | [`bang-kiem-rui-ro-pis-feasibility-20260731.md`](bang-kiem-rui-ro-pis-feasibility-20260731.md) — phân tích; chưa implement |
@@ -11,6 +14,20 @@
 | Banner khóa → `KsnkContextBanner` (B+3 S4) | [`../../reference/architecture/ui-consistency-program-20260802.md`](../../reference/architecture/ui-consistency-program-20260802.md) § S4 |
 
 Rule: `13-giam-sat-spec-context.mdc`, `16-bang-kiem-spec-context.mdc`
+
+
+
+## IA P.A (2026-09-17)
+
+Bốn tầng, một chiều: Ghi nhận → Lịch sử → Thống kê khoa (`/thong-ke`) → Báo cáo chính thức (in). ModeNav là công tắc duy nhất trong module. BCTH chỉ điều hành/in; «Chi tiết thống kê» là link 1 chiều.
+
+
+## IA điều hành (H2 — 2026-09-17)
+
+- **Báo cáo chính thức** (`/bao-cao-tong-hop`) là cửa nhìn số + in; `/` redirect vào đây (đã bỏ Tổng quan KSNK / «Việc hôm nay»).
+- **Công việc** (`/quan-ly-cong-viec`) tách riêng — không link tạo việc từ Tổng quan / Thống kê GSC (TGS).
+- Chi tiết: [`../../reference/reports/BV103-GSC-KE-HOACH-CHINH-20260917.md`](../../reference/reports/BV103-GSC-KE-HOACH-CHINH-20260917.md) §11.
+
 
 ## Route structure (function-based, 2026-06)
 

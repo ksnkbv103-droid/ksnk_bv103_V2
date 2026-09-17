@@ -187,3 +187,47 @@ describe("resolveGscHistoryCompliancePercent", () => {
     ).toBe(87.5);
   });
 });
+
+describe("Phase C — form preview = print = history counts", () => {
+  it("2 DAT / 3 evaluable → 66.67% on all three surfaces", () => {
+    const criteriaLocal: ChecklistCriterion[] = [
+      { id: "a", label: "A" },
+      { id: "b", label: "B" },
+      { id: "c", label: "C" },
+    ];
+    const results: ChecklistResult[] = [
+      { criterionId: "a", value: "DAT" },
+      { criterionId: "b", value: "DAT" },
+      { criterionId: "c", value: "KHONG_DAT" },
+    ];
+    const preview = previewGscFormProgress(results, criteriaLocal, "TY_LE");
+    expect(preview.scoreLabel).toContain("66.67%");
+
+    const fromCounts = gscCompliancePercentFromCounts(3, 2);
+    expect(fromCounts).toBe(66.67);
+
+    const history = formatGscHistoryScore({
+      cach_tinh_diem: "TY_LE",
+      tong_quan_sat: 3,
+      tong_dat: 2,
+    });
+    expect(history.label).toContain("66.67%");
+  });
+
+  it("NA excluded from denominator (form + counts)", () => {
+    const criteriaLocal: ChecklistCriterion[] = [
+      { id: "a", label: "A" },
+      { id: "b", label: "B" },
+      { id: "c", label: "C" },
+    ];
+    const results: ChecklistResult[] = [
+      { criterionId: "a", value: "DAT" },
+      { criterionId: "b", value: "NA" },
+      { criterionId: "c", value: "KHONG_DAT" },
+    ];
+    const preview = previewGscFormProgress(results, criteriaLocal, "TY_LE");
+    expect(preview.scoreLabel).toContain("50.00%");
+    expect(gscCompliancePercentFromCounts(2, 1)).toBe(50);
+  });
+});
+

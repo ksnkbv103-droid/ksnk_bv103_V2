@@ -258,13 +258,34 @@ export function buildCoverageMatrix(
 }
 
 
+
+/** GSC % từ counts — bỏ qua ty_le RPC làm tròn 1 chữ số (debt SQL). */
+export function gscTyLeFromMatrixCounts(row: {
+  tong_dat?: unknown;
+  tong_quan_sat?: unknown;
+  ty_le_tuan_thu?: unknown;
+}): number | null {
+  const tong = Number(row.tong_quan_sat ?? NaN);
+  const dat = Number(row.tong_dat ?? NaN);
+  if (Number.isFinite(tong) && tong > 0 && Number.isFinite(dat)) {
+    return roundPercent2((dat / tong) * 100);
+  }
+  if (row.ty_le_tuan_thu == null || !Number.isFinite(Number(row.ty_le_tuan_thu))) return null;
+  return roundPercent2(Number(row.ty_le_tuan_thu));
+}
+
 /** % tuân thủ gộp hiển thị trên biểu đồ khoa — ưu tiên KSNK, rồi TGS, rồi matrix_khoa. */
 export function resolveKhoaAggregateTyLe(
   gap: GapKhoaRow,
   matrixTyLe: number | null | undefined,
+  matrixCounts?: { tong_dat?: unknown; tong_quan_sat?: unknown },
 ): number | null {
+  // 1) Gap đã có % (RPC / normalize) — ưu tiên, đã round 2 chữ số
   if (gap.ty_le_ksnk != null) return gap.ty_le_ksnk;
   if (gap.ty_le_tgs != null) return gap.ty_le_tgs;
+  // 2) Tính lại từ counts matrix — tránh ROUND(...,1) của SQL GSC
+  const fromCounts = matrixCounts ? gscTyLeFromMatrixCounts(matrixCounts) : null;
+  if (fromCounts != null) return fromCounts;
   if (matrixTyLe == null || Number.isNaN(matrixTyLe)) return null;
   return roundPercent2(matrixTyLe);
 }
@@ -297,8 +318,10 @@ export function sortGapRowsByAggregateTyLe(
   }
   const dir = order === "asc" ? 1 : -1;
   return [...rows].sort((a, b) => {
-    const av = resolveKhoaAggregateTyLe(a, matrixById.get(a.id)?.ty_le_tuan_thu);
-    const bv = resolveKhoaAggregateTyLe(b, matrixById.get(b.id)?.ty_le_tuan_thu);
+    const ma = matrixById.get(a.id);
+    const mb = matrixById.get(b.id);
+    const av = resolveKhoaAggregateTyLe(a, ma?.ty_le_tuan_thu, ma);
+    const bv = resolveKhoaAggregateTyLe(b, mb?.ty_le_tuan_thu, mb);
     const aNull = av == null;
     const bNull = bv == null;
     if (aNull && bNull) return a.label.localeCompare(b.label, "vi");

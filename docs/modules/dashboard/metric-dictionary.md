@@ -141,7 +141,6 @@ SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 | `/thong-ke/vst`, `/thong-ke/gsc` | Chuyên viên KSNK; **mạng lưới khoa** (so sánh toàn viện); **khách** (chỉ xem) | **BK-first GSC** · drill tiêu chí × khoa · **so sánh theo khối** (accordion) |
 | `/thong-ke/cssd` | Redirect → `/cssd-erp/report` | Cùng SSOT báo cáo vận hành CSSD (tránh hai báo cáo lệch) |
 | `/cssd-erp/report` | Trưởng ca CSSD / Chủ nhiệm | Sản lượng · bộ/SUDs · máy · NV CSSD · sự cố |
-| `/bao-cao-tong-hop` | BGĐ / HĐ KSNK | Compose + in A4 + phụ lục CSSD + Phần III narrative |
 
 ---
 
@@ -211,7 +210,6 @@ Mỗi trụ trên `/` hiển thị theo mẫu cố định (không đổi công 
 Trụ C tách nhãn: **NV KSNK / phiên giám sát** vs **máy CSSD / NV CSSD** (không gộp một link mơ hồ).  
 Chương trình: [`descriptive-analytics-roadmap-20260729.md`](descriptive-analytics-roadmap-20260729.md).
 
-Phụ lục CSSD trên `/bao-cao-tong-hop` (mục `bc-cssd`) — **sau NKBV, trước Phần III** — chỉ tóm tắt vận hành, không đổi CCS.
 
 ---
 

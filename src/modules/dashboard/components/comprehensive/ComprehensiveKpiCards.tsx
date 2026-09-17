@@ -6,6 +6,7 @@ import type { BaoCaoTrendPoint, BaoCaoTongHopPayload } from "../../types/bao-cao
 import { complianceToneFromPercent } from "../../lib/bao-cao-tong-hop-thresholds";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
 import {
   fetchMucTieuKpiVien,
   type MucTieuKpiMap,
@@ -158,7 +159,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
       <div className="flex flex-col gap-[var(--bv103-space-3)] sm:flex-row sm:items-start sm:divide-x sm:divide-slate-200 sm:gap-0">
         <KpiCard
           label="Vệ sinh tay"
-          value={k?.ty_le_vst != null ? `${k.ty_le_vst}%` : "N/A"}
+          value={k?.ty_le_vst != null ? formatPercent1(k.ty_le_vst) : "N/A"}
           weekDelta={k?.delta_vst}
           weekPrev={prevWeekRate(trend, "ty_le_vst")}
           periodDelta={ky?.delta_vst}
@@ -169,7 +170,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
         />
         <KpiCard
           label="Giám sát chung"
-          value={k?.ty_le_gsc != null ? `${k.ty_le_gsc}%` : "N/A"}
+          value={k?.ty_le_gsc != null ? formatPercent2(k.ty_le_gsc) : "N/A"}
           weekDelta={k?.delta_gsc}
           weekPrev={prevWeekRate(trend, "ty_le_gsc")}
           periodDelta={ky?.delta_gsc}

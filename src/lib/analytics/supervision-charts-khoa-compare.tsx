@@ -92,7 +92,7 @@ function SupervisionKhoaComplianceChart({
 
   const chartData = sorted.map((r) => {
     const matrix = matrixById.get(r.id);
-    const ty_le = resolveKhoaAggregateTyLe(r, matrix?.ty_le_tuan_thu);
+    const ty_le = resolveKhoaAggregateTyLe(r, matrix?.ty_le_tuan_thu, matrix);
     const vol = resolveKhoaAggregateVol(r, matrix);
     return {
       ten: r.label,
