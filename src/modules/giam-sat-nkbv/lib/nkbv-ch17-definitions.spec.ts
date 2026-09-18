@@ -9,17 +9,22 @@ import {
   endoRitSbapToDischarge,
 } from "./nkbv-shared-timeline";
 
-describe("nkbv-ch17-definitions (Phần II + REPR + USI)", () => {
-  it("registry có đủ Phần II + REPR + USI người lớn", () => {
+describe("nkbv-ch17-definitions (Phần II + REPR + USI + EENT + SST)", () => {
+  it("registry có đủ Phần II + REPR + USI + EENT + SST người lớn", () => {
     const codes = ch17OperationalTypeCodes().sort();
     expect(codes).toEqual(
       [
         "BONE",
+        "BURN",
         "CARD",
         "CDI",
+        "CONJ",
+        "DECU",
         "DISC",
+        "EAR",
         "EMET",
         "ENDO",
+        "EYE",
         "GE",
         "GIT",
         "IAB",
@@ -28,9 +33,14 @@ describe("nkbv-ch17-definitions (Phần II + REPR + USI)", () => {
         "LUNG",
         "MED",
         "MEN",
+        "ORAL",
         "OREP",
         "PJI",
         "SA",
+        "SINU",
+        "SKIN",
+        "ST",
+        "UR",
         "USI",
         "VASC",
         "VCUF",
@@ -271,3 +281,24 @@ describe("ENDO timeline windows", () => {
     expect(r.ritEnd).toBe("2026-09-01");
   });
 });
+
+  it("EENT CONJ / SST SKIN smoke", () => {
+    expect(
+      evaluateCh17Type({
+        typeCode: "CONJ",
+        evidence: { sx_conj_pain_red_swelling: true, micro_conj_scraping_or_pus: true },
+      }).metCriterion,
+    ).toBe("CONJ1");
+    expect(
+      evaluateCh17Type({
+        typeCode: "SKIN",
+        evidence: { sx_skin_pustule_vesicle_boil: true },
+      }).metCriterion,
+    ).toBe("SKIN1");
+    expect(
+      evaluateCh17Type({
+        typeCode: "BURN",
+        evidence: { sx_burn_necrotic_change: true, micro_blood_positive: true },
+      }).metCriterion,
+    ).toBe("BURN1");
+  });

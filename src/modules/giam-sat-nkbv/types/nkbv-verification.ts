@@ -14,6 +14,10 @@ export type NkbvAnalysisIndexFields = {
   /** Bỏ qua có chủ đích — XN ra khỏi hàng đợi, không tạo HAI */
   analysis_disposition?: "BO_QUA" | null;
   analysis_skip_reason?: string | null;
+  /** L3 Ruled-out — IP tick loại trừ; không vào tử số. */
+  ruled_out?: boolean;
+  ruled_out_reasons?: string[];
+  ruled_out_note?: string;
 };
 
 export interface BsiVerificationData extends NkbvAnalysisIndexFields {

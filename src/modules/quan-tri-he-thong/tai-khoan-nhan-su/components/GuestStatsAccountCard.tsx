@@ -44,7 +44,7 @@ export default function GuestStatsAccountCard({ onUpdated }: { onUpdated?: () =>
       toast.error(res.error || "Không thiết lập được tài khoản khách.");
       return;
     }
-    toast.success(`Đã thiết lập tài khoản khách (${res.email}). Khách có thể đăng nhập trên Vercel.`);
+    toast.success(`Đã thiết lập tài khoản khách (${res.email}). Khách có thể đăng nhập ứng dụng.`);
     setPassword("");
     void loadStatus();
     onUpdated?.();

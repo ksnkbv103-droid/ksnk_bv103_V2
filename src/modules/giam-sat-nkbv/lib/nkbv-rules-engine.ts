@@ -35,6 +35,7 @@ import {
   resolveSsiSurveillanceDays,
   secondaryIncisionMismatchWarning,
 } from "./nkbv-ssi-nhsn-catalog";
+import { evaluateRuledOut } from "./nkbv-ruled-out";
 
 export interface RuleEvaluationResult {
   is_positive: boolean;
@@ -44,19 +45,16 @@ export interface RuleEvaluationResult {
   reason: string;
 }
 
-/** Triệu chứng lâm sàng LCBI — tách field SSOT hoặc legacy OR. */
+/** Triệu chứng lâm sàng LCBI — người lớn (Phụ lục C: không dùng nhánh ≤1 tuổi tại BV103). */
 export function bsiHasClinicalSymptoms(data: BsiVerificationData): boolean {
   if (data.has_fever || data.has_chills || data.has_hypotension) return true;
-  if (
-    data.is_infant_le1 &&
-    (data.has_fever || data.has_hypothermia || data.has_apnea || data.has_bradycardia)
-  ) {
-    return true;
-  }
   return Boolean(data.symptoms_window_7days);
 }
 
 export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResult {
+  const ruledOut = evaluateRuledOut(data, "BSI");
+  if (ruledOut) return ruledOut;
+
   if (data.is_fungi_respiratory) {
     return {
       is_positive: false,
@@ -71,11 +69,12 @@ export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResu
 
   if (data.pathogen_type === "RECOGNIZED") {
     isLcbi = true;
-    lcbiType = data.is_infant_le1 && hasSx ? "LCBI_1" : "LCBI_1";
+    lcbiType = "LCBI_1";
   } else if (data.pathogen_type === "COMMON_COMMENSAL") {
     if (data.commensal_culture_count >= 2 && data.commensal_drawn_separate && hasSx) {
       isLcbi = true;
-      lcbiType = data.is_infant_le1 ? "LCBI_3" : "LCBI_2";
+      // Phụ lục C: nhánh ≤1 tuổi (LCBI-3) không dùng tại BV103 — luôn LCBI_2.
+      lcbiType = "LCBI_2";
     }
   }
 
@@ -201,6 +200,9 @@ export function evaluateVaeVap(
   data: VaeVerificationData,
   pathway: "VAE" | "PNEU" = "VAE",
 ): RuleEvaluationResult {
+  const ruledOut = evaluateRuledOut(data, pathway === "PNEU" ? "PNEU" : "VAE");
+  if (ruledOut) return ruledOut;
+
   const useVaePathway = pathway === "VAE" && data.patient_age >= 18 && data.vent_days >= 4;
 
   if (pathway === "VAE" && !useVaePathway) {
@@ -442,6 +444,9 @@ function attachUtiSecondaryBsi(
 }
 
 export function evaluateUtiCauti(data: UtiVerificationData): RuleEvaluationResult {
+  const ruledOut = evaluateRuledOut(data, "UTI");
+  if (ruledOut) return ruledOut;
+
   if (data.pathogen_count > 2) {
     return {
       is_positive: false,
@@ -492,32 +497,14 @@ export function evaluateUtiCauti(data: UtiVerificationData): RuleEvaluationResul
   const hasVoidingSymptom =
     !foleyBlockingVoiding &&
     (data.has_dysuria || Boolean(data.has_urgency) || Boolean(data.has_frequency));
-  const hasInfantSymptom =
-    Boolean(data.is_infant_le1) &&
-    (data.has_fever ||
-      Boolean(data.has_infant_hypothermia) ||
-      Boolean(data.has_infant_apnea) ||
-      Boolean(data.has_infant_bradycardia) ||
-      Boolean(data.has_infant_lethargy) ||
-      Boolean(data.has_infant_vomiting));
+  // Phụ lục C: nhánh SUTI-2 / triệu chứng nhi ≤1 tuổi không dùng tại BV103.
   const hasAnySymptom =
     data.has_fever ||
     data.has_suprapubic_tenderness ||
     data.has_costovertebral_pain ||
-    hasVoidingSymptom ||
-    hasInfantSymptom;
+    hasVoidingSymptom;
 
   if (hasAnySymptom) {
-    // SUTI 1 (người lớn) giữ nhãn SUTI/CAUTI_SUTI; SUTI 2 (≤1 tuổi) tách nhánh riêng.
-    if (data.is_infant_le1) {
-      return attachUtiSecondaryBsi(data, {
-        is_positive: true,
-        classification: isCauti ? "CAUTI_SUTI_2" : "SUTI_2",
-        reason: isCauti
-          ? "CAUTI — SUTI 2 (≤1 tuổi) liên quan sonde tiểu."
-          : "SUTI 2 (≤1 tuổi) — nhiễm khuẩn tiết niệu có triệu chứng không liên quan sonde tiểu.",
-      });
-    }
     return attachUtiSecondaryBsi(data, {
       is_positive: true,
       classification: isCauti ? "CAUTI_SUTI" : "SUTI",
@@ -576,6 +563,9 @@ export function evaluateUtiCauti(data: UtiVerificationData): RuleEvaluationResul
 }
 
 export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
+  const ruledOut = evaluateRuledOut(data, "SSI");
+  if (ruledOut) return ruledOut;
+
   let days = data.days_since_surgery;
   if (data.surgery_date && data.doe_date) {
     const a = Date.parse(data.surgery_date.slice(0, 10));

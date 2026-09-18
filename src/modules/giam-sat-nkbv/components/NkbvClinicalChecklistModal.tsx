@@ -42,7 +42,7 @@ function LisReadonlyBanner({ row }: { row: Record<string, any> }) {
   const maXn = String((notes as { ma_xet_nghiem?: string }).ma_xet_nghiem || row.ma_benh_pham || "—");
   return (
     <div className="mt-3 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50/90 p-4 text-sm">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <p className="mb-3 text-xs font-semibold text-slate-500">
         Kết quả vi sinh đã import
       </p>
       <div className="grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4">
@@ -409,8 +409,8 @@ export default function NkbvClinicalChecklistModal({
             {liveCdcMetrics?.iwp_start && liveCdcMetrics?.iwp_end ? (
               <span className="rounded-full bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-800">
                 {liveCdcMetrics.uses_clinical_iwp === false && checklistType === "VAE"
-                  ? "Event Period"
-                  : "IWP"}
+                  ? "Cửa sổ thở máy"
+                  : "Cửa sổ nhiễm khuẩn"}
                 : {liveCdcMetrics.iwp_start} → {liveCdcMetrics.iwp_end}
               </span>
             ) : null}

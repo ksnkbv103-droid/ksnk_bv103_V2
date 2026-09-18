@@ -5,6 +5,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { isBv103PickerPortalTarget } from "@/lib/bv103-picker-portal"
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack"
 
 const Dialog = DialogPrimitive.Root
 const DialogTrigger = DialogPrimitive.Trigger
@@ -18,7 +19,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      `fixed inset-0 ${BV103_DIALOG_STACK.hubOverlay} bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0`,
       className
     )}
     {...props}
@@ -46,18 +47,21 @@ export const dialogContentKeepCentered =
 type DialogContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
   /** Override overlay z-index when stacking above other portals (e.g. NKBV hub z-10040). */
   overlayClassName?: string
+  /** Ẩn nút Đóng — chỉ khi luồng bắt buộc kết luận (hiếm). */
+  hideCloseButton?: boolean
+  closeButtonClassName?: string
 }
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   DialogContentProps
->(({ className, children, overlayClassName, onPointerDownOutside, onFocusOutside, onInteractOutside, ...props }, ref) => (
+>(({ className, children, overlayClassName, hideCloseButton = false, closeButtonClassName, onPointerDownOutside, onFocusOutside, onInteractOutside, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay className={overlayClassName} />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 max-sm:inset-x-0 max-sm:bottom-0 max-sm:top-auto max-sm:max-h-[min(92dvh,720px)] max-sm:translate-x-0 max-sm:translate-y-0 max-sm:overflow-y-auto max-sm:rounded-b-none max-sm:rounded-t-2xl max-sm:p-4 max-sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:rounded-[2rem]",
+        `fixed left-[50%] top-[50%] ${BV103_DIALOG_STACK.hubContent} grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-slate-200/90 bg-white p-6 shadow-[var(--shadow-app-soft)] duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 max-sm:inset-x-0 max-sm:bottom-0 max-sm:top-auto max-sm:max-h-[min(92dvh,720px)] max-sm:translate-x-0 max-sm:translate-y-0 max-sm:overflow-y-auto max-sm:rounded-b-none max-sm:rounded-t-2xl max-sm:p-4 max-sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:rounded-[2rem]`,
         className
       )}
       onPointerDownOutside={(event) => {
@@ -75,10 +79,18 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="app-shell-focus absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-xl opacity-80 ring-offset-background transition-opacity hover:bg-slate-100 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none sm:right-4 sm:top-4 sm:h-auto sm:w-auto sm:rounded-sm sm:p-0 sm:hover:bg-transparent">
-        <X className="h-5 w-5 sm:h-4 sm:w-4" />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
+      {hideCloseButton ? null : (
+        <DialogPrimitive.Close
+          aria-label="Đóng"
+          className={cn(
+            "app-shell-focus absolute right-3 top-3 z-20 flex h-11 w-11 items-center justify-center rounded-xl bg-white text-slate-700 shadow-sm ring-1 ring-slate-200/80 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none sm:right-4 sm:top-4",
+            closeButtonClassName
+          )}
+        >
+          <X className="h-5 w-5" aria-hidden />
+          <span className="sr-only">Đóng</span>
+        </DialogPrimitive.Close>
+      )}
     </DialogPrimitive.Content>
   </DialogPortal>
 ))

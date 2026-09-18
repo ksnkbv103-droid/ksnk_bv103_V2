@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { RefreshCw, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { flushPendingSupervisionSaves, getPendingSupervisionCount } from "@/lib/offline-pending-supervision-save";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 
 const RETRY_MS = 60_000;
 
@@ -74,7 +75,7 @@ export default function SupervisionOfflineSyncListener() {
   if (pendingCount === 0) return null;
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-[9998] mx-auto flex max-w-lg items-center gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-lg md:left-auto md:right-6">
+    <div className={`fixed bottom-20 left-4 right-4 ${BV103_DIALOG_STACK.toast} mx-auto flex max-w-lg items-center gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950 shadow-lg md:left-auto md:right-6`}>
       <WifiOff className="h-5 w-5 shrink-0 text-amber-600" aria-hidden />
       <div className="min-w-0 flex-1">
         <p className="font-semibold">Có {pendingCount} phiên giám sát chưa lên máy chủ</p>

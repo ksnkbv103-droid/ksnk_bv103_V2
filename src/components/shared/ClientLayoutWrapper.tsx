@@ -8,8 +8,8 @@ import Header from "./Header";
 import KsnkPageShell from "./KsnkPageShell";
 import { pathnameUsesPhase1KsnkUnifiedContentShell } from "@/lib/app-shell-scope";
 import { supabase } from "@/lib/supabase";
+import dynamic from "next/dynamic";
 import StaffSessionGate from "@/components/auth/StaffSessionGate";
-import SupervisionOfflineSyncListener from "@/components/shared/SupervisionOfflineSyncListener";
 import RbacRefreshListener from "@/components/shared/RbacRefreshListener";
 import { GuestStatsShell } from "@/components/auth/GuestStatsShell";
 import { GuestStatsRouteGuard } from "@/components/auth/GuestStatsRouteGuard";
@@ -17,6 +17,20 @@ import { forceReleaseScrollLock, useBodyScrollLock } from "@/hooks/use-body-scro
 import { usePermission } from "@/hooks/usePermission";
 import { canSeeCommandCenterNav } from "@/lib/nav/ksnk-nav-gates";
 import { resolvePostLoginPath } from "@/lib/auth/guest-stats-access";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
+import {
+  pathnameNeedsCssdOfflineSync,
+  pathnameNeedsSupervisionOfflineSync,
+} from "@/lib/offline-sync-scope";
+
+const OfflineSyncManager = dynamic(() => import("@/components/shared/OfflineSyncManager"), {
+  ssr: false,
+});
+/** Batch 8 residual — chỉ hydrate offline GS khi vào route giám sát / QR. */
+const SupervisionOfflineSyncListener = dynamic(
+  () => import("@/components/shared/SupervisionOfflineSyncListener"),
+  { ssr: false },
+);
 
 export default function ClientLayoutWrapper({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -91,7 +105,8 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
       <GuestStatsRouteGuard />
       <StaffSessionGate />
       <RbacRefreshListener />
-      <SupervisionOfflineSyncListener />
+      {pathnameNeedsSupervisionOfflineSync(pathname) ? <SupervisionOfflineSyncListener /> : null}
+      {pathnameNeedsCssdOfflineSync(pathname) ? <OfflineSyncManager /> : null}
       <Sidebar isOpen={isOpen} onClose={closeSidebar} />
 
       <div className="flex min-h-0 flex-1 flex-col min-w-0 max-md:overflow-hidden md:min-h-screen">
@@ -111,7 +126,7 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
       {isOpen && (
         <div
           onClick={closeSidebar}
-          className="md:hidden fixed inset-0 z-[9999] cursor-pointer bg-black/50 touch-none pointer-events-auto"
+          className={`md:hidden fixed inset-0 ${BV103_DIALOG_STACK.sidebarBackdrop} cursor-pointer bg-black/50 touch-none pointer-events-auto`}
         />
       )}
     </div>

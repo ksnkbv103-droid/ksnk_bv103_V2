@@ -81,11 +81,7 @@ export function QlcvConfirmDialog({
           <button
             type="button"
             id="qlcv-confirm-dialog-confirm"
-            className={
-              variant === "danger"
-                ? "bv103-control-h inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-red-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-red-700 disabled:opacity-50"
-                : C.btnPrimary
-            }
+            className={variant === "danger" ? C.btnDanger : C.btnPrimary}
             onClick={() => void handleConfirm()}
             disabled={isLoading}
           >

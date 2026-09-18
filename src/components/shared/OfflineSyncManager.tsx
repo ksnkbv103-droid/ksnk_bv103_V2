@@ -4,8 +4,7 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import { WifiOff, Wifi, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { getOfflineTasks, removeOfflineTask, type OfflineTask } from "@/lib/offline-sync";
-import { cssdCommandAdvanceStation } from "@/modules/cssd-erp/contexts/processing-lifecycle/entrypoint";
-import { createIncidentReport } from "@/modules/cssd-su-co/actions/su-co-report.actions";
+import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 
 /** Trình duyệt hay nháy offline/online giả — chỉ báo khi vẫn offline sau debounce. */
 const OFFLINE_TOAST_DEBOUNCE_MS = 2500;
@@ -43,6 +42,9 @@ export default function OfflineSyncManager() {
       for (const task of tasks) {
         try {
           if (task.type === "SCAN_QR") {
+            const { cssdCommandAdvanceStation } = await import(
+              "@/modules/cssd-erp/contexts/processing-lifecycle/entrypoint"
+            );
             const { maQR, station, extraPayload } = task.payload as {
               maQR: string;
               station: Parameters<typeof cssdCommandAdvanceStation>[1];
@@ -50,6 +52,9 @@ export default function OfflineSyncManager() {
             };
             await cssdCommandAdvanceStation(maQR, station, extraPayload);
           } else if (task.type === "REPORT_INCIDENT") {
+            const { createIncidentReport } = await import(
+              "@/modules/cssd-su-co/actions/su-co-report.actions"
+            );
             await createIncidentReport(task.payload);
           }
 
@@ -149,7 +154,7 @@ export default function OfflineSyncManager() {
 
   return (
     <div
-      className={`fixed bottom-4 right-4 z-[9999] flex items-center gap-3 rounded-2xl px-4 py-3 text-xs font-bold shadow-xl transition-all ${
+      className={`fixed bottom-4 right-4 ${BV103_DIALOG_STACK.toast} flex items-center gap-3 rounded-2xl px-4 py-3 text-xs font-bold shadow-xl transition-all ${
         !isOnline ? "bg-red-600 text-white" : "bg-emerald-600 text-white"
       }`}
     >

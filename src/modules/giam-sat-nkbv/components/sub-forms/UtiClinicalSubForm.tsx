@@ -12,6 +12,7 @@ import type { UtiVerificationData } from "../../types/nkbv-verification";
 import NkbvDomainFormShell from "../NkbvDomainFormShell";
 import NkbvFormSection from "../NkbvFormSection";
 import NkbvCatalogSymptomRows from "./NkbvCatalogSymptomRows";
+import NkbvRuledOutSection from "../NkbvRuledOutSection";
 
 interface UtiClinicalSubFormProps {
   form: UtiVerificationData;
@@ -110,8 +111,8 @@ export default function UtiClinicalSubForm({
     <NkbvDomainFormShell
       title="Phiếu UTI / CAUTI"
       subtypeLabel="Nhiễm khuẩn tiết niệu"
-      indexFactorHint="Cấy nước tiểu ≥10⁵ CFU/ml (≤2 chủng, không nấm). CAUTI khi Foley ≥2 ngày và hiện diện ngày sự kiện hoặc ngày trước."
-      windowLabel="IWP (cửa sổ nhiễm khuẩn ±3 ngày)"
+      indexFactorHint="Cấy nước tiểu ≥10⁵ CFU/ml (≤2 chủng, không nấm). CAUTI khi sonde ≥2 ngày và hiện diện ngày sự kiện hoặc ngày trước."
+      windowLabel="Cửa sổ nhiễm khuẩn (±3 ngày)"
       windowStart={iwpStart}
       windowEnd={iwpEnd}
       classificationBadge={classificationBadge}
@@ -162,12 +163,12 @@ export default function UtiClinicalSubForm({
         <>
           {showDevice ? (
           <NkbvFormSection
-            title="Ống thông tiểu Foley (CAUTI)"
+            title="Ống thông tiểu (Foley / CAUTI)"
             hint="Ưu tiên lấy từ sổ đăng ký dụng cụ. Xác nhận hiện diện ngày sự kiện hoặc ngày trước."
           >
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block bv103-type-label font-semibold text-slate-700">Ngày đặt Foley</label>
+                <label className="mb-1 block bv103-type-label font-semibold text-slate-700">Ngày đặt sonde</label>
                 <input
                   type="date"
                   value={form.device_placed_date || ""}
@@ -208,11 +209,11 @@ export default function UtiClinicalSubForm({
                   })
                 }
               />
-              Foley hiện diện đúng DOE hoặc ngày trước (DOE−1)
+              Sonde hiện diện đúng ngày sự kiện hoặc ngày trước (DOE−1)
             </label>
             {form.device_placed_date ? (
               <p className="text-[11px] text-emerald-800">
-                Foley {liveDeviceDays ?? form.foley_placed_days} ngày ·{" "}
+                Sonde {liveDeviceDays ?? form.foley_placed_days} ngày ·{" "}
                 {foleyActive ? "Đủ điều kiện gắn CAUTI (nếu ≥2 ngày)" : "Không gắn CAUTI"}
               </p>
             ) : null}
@@ -220,8 +221,8 @@ export default function UtiClinicalSubForm({
           ) : null}
 
           <NkbvFormSection
-            title="Triệu chứng trong IWP"
-            hint="SSOT catalog · tiểu buốt/gấp/rắt chỉ khi KHÔNG đặt Foley tại chỗ."
+            title="Triệu chứng trong cửa sổ nhiễm khuẩn"
+            hint="SSOT catalog · tiểu buốt/gấp/rắt chỉ khi KHÔNG đặt sonde tại chỗ."
           >
             <NkbvCatalogSymptomRows
               rows={formSymptomRowsFor("UTI", { foleyActive: !!foleyActive }).filter(
@@ -240,7 +241,7 @@ export default function UtiClinicalSubForm({
             />
             {foleyActive ? (
               <p className="text-[11px] text-amber-800">
-                Đang Foley → không nhập tiểu buốt/gấp/rắt (tiêu chuẩn loại trừ).
+                Đang đặt sonde → không nhập tiểu buốt/gấp/rắt (tiêu chuẩn loại trừ).
               </p>
             ) : null}
             {showInfantUi ? (
@@ -268,7 +269,7 @@ export default function UtiClinicalSubForm({
           </NkbvFormSection>
 
           {showSecondary ? (
-          <NkbvFormSection title="ABUTI / Secondary BSI" hint="ABUTI: máu khớp ∈ IWP khi không có triệu chứng UTI. Secondary: máu khớp ∈ SBAP sau khi đã có SUTI — không dùng ô này để biến SUTI thành ABUTI.">
+          <NkbvFormSection title="ABUTI / nhiễm khuẩn huyết thứ phát" hint="ABUTI: máu khớp ∈ cửa sổ nhiễm khuẩn khi không có triệu chứng UTI. Thứ phát: máu khớp ∈ SBAP sau khi đã có SUTI — không dùng ô này để biến SUTI thành ABUTI.">
             <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
               <input
                 type="checkbox"
@@ -310,6 +311,15 @@ export default function UtiClinicalSubForm({
           ) : null}
         </>
       )}
+      {activeTab === "LAM_SANG" || activeTab === "KSNK" ? (
+        <NkbvRuledOutSection
+          syndrome="UTI"
+          reasons={form.ruled_out_reasons}
+          note={form.ruled_out_note}
+          allowedEdit={allowedEdit}
+          onChange={(next) => onChange({ ...form, ...next })}
+        />
+      ) : null}
     </NkbvDomainFormShell>
   );
 }

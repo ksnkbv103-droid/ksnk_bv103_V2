@@ -74,9 +74,10 @@ export default function QuanTriFormDialogShell({
           "flex max-h-[min(90dvh,880px)] flex-col gap-0 overflow-hidden p-0",
           SIZE_CLASS[size],
           (size === "lg" || size === "xl") && dialogContentKeepCentered,
+          BV103_DIALOG_STACK.surface,
           BV103_DIALOG_STACK.nestedContent,
         )}
-        overlayClassName={BV103_DIALOG_STACK.nestedOverlay}
+        overlayClassName={`${BV103_DIALOG_STACK.nestedOverlay} ${BV103_DIALOG_STACK.overlayDim}`}
       >
         <DialogTitle className="sr-only">{title}</DialogTitle>
         <div className="shrink-0 bg-[var(--primary)] px-6 py-5 pr-14 text-white sm:px-8 sm:py-6">

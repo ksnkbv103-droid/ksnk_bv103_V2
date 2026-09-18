@@ -9,10 +9,6 @@ import { normalizeEmail } from "@/lib/auth/normalize-login-identifier";
 import { ensureStaffAuthEmailMatchesProfile } from "@/lib/auth/staff-auth-email";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 
-function err(e: unknown) {
-  return e instanceof Error ? e.message : String(e);
-}
-
 import type { StaffAuthRow } from "@/types/nhan-su";
 import {
   GUEST_STATS_PILOT_EMAIL,
@@ -24,6 +20,64 @@ import {
   RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER,
   selectRolesForStaffKsnkAssignment,
 } from "@/modules/quan-tri-he-thong/phan-quyen/rbac.types";
+import { verifyCurrentActorPassword } from "../lib/admin-reauth";
+
+function err(e: unknown) {
+  return e instanceof Error ? e.message : String(e);
+}
+
+
+const AUTH_AUDIT_MAX = 40;
+
+type AuthAuditAction = "provision" | "admin_reset" | "self_change" | "reject_request";
+
+type AuthAuditEntry = {
+  actor_id: string | null;
+  actor_email: string | null;
+  action: AuthAuditAction;
+  staff_id: string;
+  ts: string;
+  second_actor_email?: string | null;
+  confirm_mode?: string | null;
+};
+
+/** Append lean auth event onto mdm_nhan_su.extra_data.auth_audit (capped). */
+async function appendStaffAuthAudit(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  staffId: string,
+  entry: Omit<AuthAuditEntry, "staff_id" | "ts"> & { staff_id?: string },
+) {
+  try {
+    const { data: row } = await supabase
+      .from("mdm_nhan_su")
+      .select("extra_data")
+      .eq("id", staffId)
+      .maybeSingle();
+    const extra =
+      row?.extra_data && typeof row.extra_data === "object" && !Array.isArray(row.extra_data)
+        ? { ...(row.extra_data as Record<string, unknown>) }
+        : {};
+    const prev = Array.isArray(extra.auth_audit) ? (extra.auth_audit as AuthAuditEntry[]) : [];
+    const nextEntry: AuthAuditEntry = {
+      actor_id: entry.actor_id ?? null,
+      actor_email: entry.actor_email ?? null,
+      action: entry.action,
+      staff_id: entry.staff_id ?? staffId,
+      ts: new Date().toISOString(),
+      ...(entry.second_actor_email != null
+        ? { second_actor_email: entry.second_actor_email }
+        : {}),
+      ...(entry.confirm_mode != null ? { confirm_mode: entry.confirm_mode } : {}),
+    };
+    extra.auth_audit = [...prev, nextEntry].slice(-AUTH_AUDIT_MAX);
+    await supabase.from("mdm_nhan_su").update({ extra_data: extra }).eq("id", staffId);
+  } catch (e) {
+    console.error("[auth_audit] append failed:", e);
+  }
+}
+
+
 
 /** Danh sách nhân sự + trạng thái liên kết Auth + vai trò RBAC (chỉ quản trị). */
 export async function listStaffAuthOverview(params: {
@@ -128,7 +182,8 @@ export async function setStaffKsnkRbacRole(params: {
     if (!data?.success) return { success: false as const, error: data?.error || "Lỗi khi gán quyền." };
 
     await invalidateUserPermissionsCache();
-    revalidatePath("/quan-tri-he-thong/tai-khoan-nhan-su");
+    revalidatePath("/quan-tri-he-thong/tai-khoan");
+    revalidatePath("/quan-tri-he-thong/nhan-su");
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: err(e) };
@@ -145,7 +200,7 @@ export async function provisionStaffAuthAccount(params: {
   password: string;
 }) {
   try {
-    await ensureRbacAdmin();
+    const actor = await ensureRbacAdmin();
     const supabase = createAdminSupabaseClient();
 
     const pw = params.password;
@@ -174,7 +229,7 @@ export async function provisionStaffAuthAccount(params: {
       email,
       password: pw,
       email_confirm: true,
-      user_metadata: { ma_nv: staff.ma_nv },
+      user_metadata: { ma_nv: staff.ma_nv, must_change_password: true },
     });
 
     if (createErr || !created.user?.id) {
@@ -194,7 +249,14 @@ export async function provisionStaffAuthAccount(params: {
       throw upErr;
     }
 
-    revalidatePath("/quan-tri-he-thong/tai-khoan-nhan-su");
+    await appendStaffAuthAudit(supabase, staff.id, {
+      actor_id: actor.id,
+      actor_email: actor.email ?? null,
+      action: "provision",
+    });
+
+    revalidatePath("/quan-tri-he-thong/tai-khoan");
+    revalidatePath("/quan-tri-he-thong/nhan-su");
     return { success: true as const, userId: created.user.id };
   } catch (e: unknown) {
     return { success: false as const, error: err(e) };
@@ -203,14 +265,21 @@ export async function provisionStaffAuthAccount(params: {
 
 /**
  * Admin thay đổi/đặt lại mật khẩu đăng nhập cho nhân viên.
- * Không cần xác nhận qua email, cập nhật trực tiếp qua Auth Admin API.
+ * Bắt buộc re-auth mật khẩu admin hiện tại. Không khuyến nghị tự reset TK của chính mình
+ * (nên dùng Đổi mật khẩu); nếu vẫn làm thì ghi nhận email quản trị khác — chưa có duyệt 2 admin live.
  */
 export async function adminResetStaffPasswordAction(params: {
   staffId: string;
   password: string;
+  confirmActorPassword: string;
+  /** Email quản trị khác — bắt buộc khi reset chính tài khoản đang đăng nhập (ghi nhận, không phải dual-control live). */
+  secondApproverEmail?: string;
 }) {
   try {
-    await ensureRbacAdmin();
+    const actor = await ensureRbacAdmin();
+    const reauth = await verifyCurrentActorPassword(params.confirmActorPassword);
+    if (!reauth.ok) return { success: false as const, error: reauth.error };
+
     const supabase = createAdminSupabaseClient();
 
     const pw = params.password;
@@ -220,13 +289,33 @@ export async function adminResetStaffPasswordAction(params: {
 
     const { data: staff, error: sErr } = await supabase
       .from("v_mdm_nhan_su_full")
-      .select("id, auth_user_id, email")
+      .select("id, auth_user_id, email, is_active")
       .eq("id", params.staffId)
       .maybeSingle();
 
     if (sErr || !staff) return { success: false as const, error: "Không tìm thấy nhân viên." };
+    if (staff.is_active === false) {
+      return { success: false as const, error: "Hồ sơ nhân sự không còn hoạt động — không đặt lại mật khẩu." };
+    }
     if (!staff.auth_user_id) {
       return { success: false as const, error: "Nhân viên chưa có tài khoản hệ thống." };
+    }
+
+    const isSelf = staff.auth_user_id === actor.id;
+    const secondEmail = normalizeEmail(String(params.secondApproverEmail || ""));
+    if (isSelf) {
+      if (!secondEmail || !secondEmail.includes("@")) {
+        return {
+          success: false as const,
+          error: "Không khuyến nghị tự đặt lại MK của chính mình — dùng Đổi mật khẩu, hoặc nhập email quản trị khác để ghi nhận.",
+        };
+      }
+      if (secondEmail === normalizeEmail(actor.email || "")) {
+        return {
+          success: false as const,
+          error: "Email quản trị khác phải khác tài khoản đang đăng nhập.",
+        };
+      }
     }
 
     const emailSync = await ensureStaffAuthEmailMatchesProfile(
@@ -238,13 +327,33 @@ export async function adminResetStaffPasswordAction(params: {
       return { success: false as const, error: emailSync.error };
     }
 
+    const { data: got } = await supabase.auth.admin.getUserById(staff.auth_user_id);
+    const prevMeta =
+      got?.user?.user_metadata && typeof got.user.user_metadata === "object"
+        ? { ...(got.user.user_metadata as Record<string, unknown>) }
+        : {};
+
     const { error: updateErr } = await supabase.auth.admin.updateUserById(
       staff.auth_user_id,
-      { password: pw, email_confirm: true },
+      {
+        password: pw,
+        email_confirm: true,
+        user_metadata: { ...prevMeta, must_change_password: true },
+      },
     );
 
     if (updateErr) throw updateErr;
 
+    await appendStaffAuthAudit(supabase, staff.id, {
+      actor_id: actor.id,
+      actor_email: actor.email ?? null,
+      action: "admin_reset",
+      second_actor_email: secondEmail || null,
+      confirm_mode: isSelf ? "reauth+second_email" : "reauth",
+    });
+
+    revalidatePath("/quan-tri-he-thong/tai-khoan");
+    revalidatePath("/quan-tri-he-thong/nhan-su");
     return { success: true as const };
   } catch (e: unknown) {
     return { success: false as const, error: err(e) };
@@ -436,7 +545,8 @@ export async function setupGuestStatsPilotAccountAction(params: {
     }
 
     await invalidateUserPermissionsCache();
-    revalidatePath("/quan-tri-he-thong/tai-khoan-nhan-su");
+    revalidatePath("/quan-tri-he-thong/tai-khoan");
+    revalidatePath("/quan-tri-he-thong/nhan-su");
     return { success: true as const, email, staffId };
   } catch (e: unknown) {
     return { success: false as const, error: err(e) };

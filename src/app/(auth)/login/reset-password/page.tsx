@@ -38,7 +38,15 @@ export default function ResetPasswordPage() {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      const { data: before } = await supabase.auth.getUser();
+      const prevMeta =
+        before.user?.user_metadata && typeof before.user.user_metadata === "object"
+          ? { ...(before.user.user_metadata as Record<string, unknown>) }
+          : {};
+      const { error } = await supabase.auth.updateUser({
+        password,
+        data: { ...prevMeta, must_change_password: false },
+      });
       if (error) {
         toast.error(error.message);
         return;

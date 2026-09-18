@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { clearStaleSupabaseAuthCookies } from "@/lib/auth/clear-stale-supabase-cookies";
 import { loginWithStaffIdentifier } from "@/modules/auth/actions/staff-login.actions";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import PasswordField from "@/components/auth/PasswordField";
 
 const AUTH_NETWORK_TOAST =
   "Không kết nối được máy chủ đăng nhập. Kiểm tra mạng rồi thử lại.";
@@ -32,6 +33,11 @@ function isAuthNetworkError(err: unknown): boolean {
   );
 }
 
+function postLoginPath(userMetadata: Record<string, unknown> | undefined): string {
+  if (userMetadata?.must_change_password === true) return "/tai-khoan/doi-mat-khau";
+  return "/";
+}
+
 export default function LoginPage() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -40,6 +46,9 @@ export default function LoginPage() {
   // Chỉ dọn cookie project khác — không gọi getSession (proxy đã redirect user có phiên).
   useEffect(() => {
     clearStaleSupabaseAuthCookies(process.env.NEXT_PUBLIC_SUPABASE_URL);
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("inactive") === "1") {
+      toast.error("Hồ sơ nhân sự không còn hoạt động. Liên hệ quản trị.");
+    }
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -51,7 +60,7 @@ export default function LoginPage() {
         toast.error(res.error);
         return;
       }
-      const { error: browserErr } = await supabase.auth.signInWithPassword({
+      const { data: browserData, error: browserErr } = await supabase.auth.signInWithPassword({
         email: res.authEmail,
         password,
       });
@@ -67,8 +76,14 @@ export default function LoginPage() {
         }
         return;
       }
-      toast.success("Đăng nhập thành công!");
-      window.location.assign("/");
+      const meta = (browserData.user?.user_metadata ?? {}) as Record<string, unknown>;
+      const dest = postLoginPath(meta);
+      toast.success(
+        dest === "/tai-khoan/doi-mat-khau"
+          ? "Đăng nhập thành công — vui lòng đổi mật khẩu tạm."
+          : "Đăng nhập thành công!",
+      );
+      window.location.assign(dest);
     } catch (err: unknown) {
       toast.error(isAuthNetworkError(err) ? AUTH_NETWORK_TOAST : err instanceof Error ? err.message : "Đăng nhập thất bại.");
     } finally {
@@ -139,8 +154,7 @@ export default function LoginPage() {
 
             <div>
               <label className={T.authLabel}>Mật khẩu</label>
-              <input
-                type="password"
+              <PasswordField
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={T.authInput}
@@ -150,10 +164,20 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="text-right">
-              <Link href="/login/forgot-password" className="text-sm font-medium text-[var(--primary)] hover:underline">
-                Quên mật khẩu?
-              </Link>
+            <div className="flex flex-col gap-2 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <Link href="/login/xin-cap-tai-khoan" className="font-medium text-[var(--primary)] hover:underline">
+                  Xin cấp tài khoản
+                </Link>
+                <Link href="/login/forgot-password" className="font-medium text-[var(--primary)] hover:underline">
+                  Quên mật khẩu?
+                </Link>
+              </div>
+              <div className="text-center">
+                <Link href="/login/tra-cuu-yeu-cau" className="font-medium text-slate-600 hover:underline">
+                  Tra cứu yêu cầu cấp TK / đặt lại MK
+                </Link>
+              </div>
             </div>
 
             <button type="submit" disabled={loading} className={`w-full ${T.btnPrimary}`}>

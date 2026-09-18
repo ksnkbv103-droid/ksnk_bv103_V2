@@ -12,6 +12,7 @@ import type { BsiVerificationData } from "../../types/nkbv-verification";
 import NkbvDomainFormShell from "../NkbvDomainFormShell";
 import NkbvFormSection from "../NkbvFormSection";
 import NkbvCatalogSymptomRows from "./NkbvCatalogSymptomRows";
+import NkbvRuledOutSection from "../NkbvRuledOutSection";
 
 interface BsiClinicalSubFormProps {
   form: BsiVerificationData;
@@ -121,7 +122,7 @@ export default function BsiClinicalSubForm({
       title="Phiếu BSI / CLABSI"
       subtypeLabel="Nhiễm khuẩn máu"
       indexFactorHint="Cấy máu dương tính. Kiểm tra nhiễm khuẩn máu thứ phát (ổ tại chỗ + cửa sổ SBAP) trước khi gán CLABSI."
-      windowLabel="IWP (cửa sổ nhiễm khuẩn ±3 ngày)"
+      windowLabel="Cửa sổ nhiễm khuẩn (±3 ngày)"
       windowStart={iwpStart}
       windowEnd={iwpEnd}
       classificationBadge={classificationBadge}
@@ -252,8 +253,8 @@ export default function BsiClinicalSubForm({
           ) : null}
 
           <NkbvFormSection
-            title="Triệu chứng trong IWP"
-            hint="SSOT catalog · bắt buộc cho LCBI 2 (commensal). Mỗi tick gắn ngày thuộc IWP."
+            title="Triệu chứng trong cửa sổ nhiễm khuẩn"
+            hint="SSOT catalog · bắt buộc cho LCBI 2 (commensal). Mỗi tick gắn ngày thuộc cửa sổ nhiễm khuẩn."
           >
             <NkbvCatalogSymptomRows
               rows={lcbi2Rows}
@@ -286,7 +287,7 @@ export default function BsiClinicalSubForm({
             ) : null}
           </NkbvFormSection>
 
-          <NkbvFormSection title="MBI-LCBI" hint="Chỉ khi có ANC/WBC <500 ≥2 ngày trong IWP, hoặc HSCT/GVHD, hoặc tiêu chảy nặng. Tick giảm bạch cầu đơn không đủ.">
+          <NkbvFormSection title="MBI-LCBI" hint="Chỉ khi có ANC/WBC <500 ≥2 ngày trong cửa sổ nhiễm khuẩn, hoặc HSCT/GVHD, hoặc tiêu chảy nặng. Tick giảm bạch cầu đơn không đủ.">
             <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
               <input
                 type="checkbox"
@@ -312,7 +313,7 @@ export default function BsiClinicalSubForm({
                 disabled={!allowedEdit}
                 onChange={(e) => onChange({ ...form, anc_wbc_lt_500_ge_2d: e.target.checked })}
               />
-              ANC/WBC &lt; 500 ≥ 2 ngày trong IWP
+              ANC/WBC &lt; 500 ≥ 2 ngày trong cửa sổ nhiễm khuẩn
             </label>
             <NkbvCatalogSymptomRows
               rows={mbiDiarrheaRows}
@@ -377,6 +378,15 @@ export default function BsiClinicalSubForm({
           ) : null}
         </>
       )}
+      {activeTab === "LAM_SANG" || activeTab === "KSNK" ? (
+        <NkbvRuledOutSection
+          syndrome="BSI"
+          reasons={form.ruled_out_reasons}
+          note={form.ruled_out_note}
+          allowedEdit={allowedEdit}
+          onChange={(next) => onChange({ ...form, ...next })}
+        />
+      ) : null}
     </NkbvDomainFormShell>
   );
 }

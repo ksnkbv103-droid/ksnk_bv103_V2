@@ -87,6 +87,7 @@ const CODE_ALIASES: Record<string, NkbvChecklistTypeCode> = {
   VCUF: "CH17",
   USI: "CH17",
   LOAI_TRU: "LOAI_TRU",
+  RULED_OUT: "LOAI_TRU",
 };
 
 /** Mã MDM có thể map về từng loại checklist (thứ tự ưu tiên khi tìm id). */

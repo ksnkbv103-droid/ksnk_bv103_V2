@@ -23,6 +23,7 @@ import NkbvCh17CriteriaChecklist from "../NkbvCh17CriteriaChecklist";
 import NkbvDomainFormShell from "../NkbvDomainFormShell";
 import NkbvFormSection from "../NkbvFormSection";
 import NkbvCatalogSymptomRows from "./NkbvCatalogSymptomRows";
+import NkbvRuledOutSection from "../NkbvRuledOutSection";
 
 interface SsiClinicalSubFormProps {
   form: SsiVerificationData;
@@ -397,6 +398,15 @@ export default function SsiClinicalSubForm({
           ) : null}
         </NkbvFormSection>
       )}
+      {activeTab === "LAM_SANG" || activeTab === "KSNK" ? (
+        <NkbvRuledOutSection
+          syndrome="SSI"
+          reasons={form.ruled_out_reasons}
+          note={form.ruled_out_note}
+          allowedEdit={allowedEdit}
+          onChange={(next) => onChange({ ...form, ...next })}
+        />
+      ) : null}
     </NkbvDomainFormShell>
   );
 }

@@ -65,7 +65,7 @@ export async function canAccessPhanQuyenRoute(): Promise<boolean> {
   return snap.isAdmin || snap.canView("PHAN_QUYEN");
 }
 
-/** Tài khoản nhân sự — khớp UI: PHAN_QUYEN edit hoặc ADMIN. */
+/** Tài khoản & truy cập (hub + legacy redirect) — khớp UI: PHAN_QUYEN edit hoặc ADMIN. */
 export async function canAccessTaiKhoanNhanSuRoute(): Promise<boolean> {
   const snap = await getServerAccessSnapshot();
   if (!snap) return false;

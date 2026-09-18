@@ -11,13 +11,17 @@ import {
   nkbvMajorTypeFromClassification,
 } from "./nkbv-classification-taxonomy";
 
-const FN_MIGRATION = join(
-  process.cwd(),
-  "supabase/migrations/20260910123000_nkbv_fn_major_type_ch17.sql",
-);
-const RATES_MIGRATION = join(
+const MIGRATION = join(
   process.cwd(),
   "supabase/migrations/20260809170000_nkbv_p0_rates_rpc_rls_index.sql",
+);
+const PNEU_NON_VAP_PATCH = join(
+  process.cwd(),
+  "supabase/migrations/20260909120000_nkbv_pneu_non_vap_major_type.sql",
+);
+const CH17_SSI_PREFIX_PATCH = join(
+  process.cwd(),
+  "supabase/migrations/20260910070000_nkbv_ch17_ssi_prefix_major_type.sql",
 );
 
 describe("nkbvMajorTypeFromClassification", () => {
@@ -34,7 +38,7 @@ describe("nkbvMajorTypeFromClassification", () => {
     for (const cls of NKBV_SSI_EVENT_CODES) {
       expect(nkbvMajorTypeFromClassification(cls)).toBe("SSI");
     }
-    for (const cls of ["PNU1_VAP", "PNU2_HAP", "PNU3_VAP"]) {
+    for (const cls of ["PNU1_VAP", "PNU2_HAP", "PNU3_VAP", "PNU1_NON_VAP"]) {
       expect(nkbvMajorTypeFromClassification(cls)).toBe("PNEU");
     }
   });
@@ -44,17 +48,15 @@ describe("nkbvMajorTypeFromClassification", () => {
     expect(nkbvMajorTypeFromClassification("ORGAN_SPACE:PJI")).toBe("SSI");
   });
 
-  it("CH17:* vào tử số CH17, không OTHER", () => {
+  it("CH17:* và SSI:* từ evaluateCh17 vào đúng major", () => {
     expect(nkbvMajorTypeFromClassification("CH17:IAB")).toBe("CH17");
     expect(nkbvMajorTypeFromClassification("CH17:USI")).toBe("CH17");
     expect(nkbvMajorTypeFromClassification("CH17:MEN")).toBe("CH17");
+    expect(nkbvMajorTypeFromClassification("SSI:PJI")).toBe("SSI");
+    expect(nkbvMajorTypeFromClassification("ssi:bone")).toBe("SSI");
   });
 
-  it("SSI:* từ hierarchy Ch.17 vào tử số SSI, không nuốt OTHER/CH17", () => {
-    expect(nkbvMajorTypeFromClassification("SSI:MEN")).toBe("SSI");
-    expect(nkbvMajorTypeFromClassification("SSI:PJI")).toBe("SSI");
-    expect(nkbvMajorTypeFromClassification("SSI:IAB")).toBe("SSI");
-  });
+
 
   it("kết luận âm tính không vào tử số hội chứng nào", () => {
     const negatives = [
@@ -69,6 +71,7 @@ describe("nkbvMajorTypeFromClassification", () => {
       "CANDIDA_EXCLUSION",
       "LOW_CFU",
       "COMMUNITY_INFECTION",
+      "RULED_OUT",
       "",
       null,
       undefined,
@@ -95,8 +98,7 @@ describe("nkbvMajorTypeFromClassification", () => {
 });
 
 describe("đồng bộ với fn_nkbv_major_type_from_classification (SQL)", () => {
-  const sql = readFileSync(FN_MIGRATION, "utf8");
-  const ratesSql = readFileSync(RATES_MIGRATION, "utf8");
+  const sql = readFileSync(MIGRATION, "utf8");
 
   it("SQL liệt kê đúng danh sách classification của TS", () => {
     for (const cls of [
@@ -109,17 +111,20 @@ describe("đồng bộ với fn_nkbv_major_type_from_classification (SQL)", () =
     }
   });
 
+  it("SQL latest nhận CH17:* và SSI:*", () => {
+    const patch = readFileSync(CH17_SSI_PREFIX_PATCH, "utf8");
+    expect(patch).toContain("LIKE 'CH17:%'");
+    expect(patch).toContain("LIKE 'SSI:%'");
+  });
+
   it("SQL dùng cùng regex PNU cho nhánh viêm phổi", () => {
+    const patch = readFileSync(PNEU_NON_VAP_PATCH, "utf8");
+    expect(patch).toContain("^PNU[123]_(VAP|HAP|NON_VAP)$");
     expect(sql).toContain("^PNU[123]_(VAP|HAP)$");
   });
 
-  it("SQL nhận CH17:* và SSI:* từ hierarchy Ch.17", () => {
-    expect(sql).toContain("LIKE 'CH17:%'");
-    expect(sql).toContain("LIKE 'SSI:%'");
-  });
-
   it("RPC không còn đọc bảng đã bị xoá", () => {
-    expect(ratesSql).not.toMatch(/FROM\s+public\.fact_giam_sat_nkbv_ca/i);
-    expect(ratesSql).toContain("FROM public.nkbv_fact_su_kien");
+    expect(sql).not.toMatch(/FROM\s+public\.fact_giam_sat_nkbv_ca/i);
+    expect(sql).toContain("FROM public.nkbv_fact_su_kien");
   });
 });

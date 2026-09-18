@@ -23,6 +23,7 @@ import type { VaeVerificationData } from "../../types/nkbv-verification";
 import NkbvDomainFormShell from "../NkbvDomainFormShell";
 import NkbvFormSection from "../NkbvFormSection";
 import NkbvCatalogSymptomRows from "./NkbvCatalogSymptomRows";
+import NkbvRuledOutSection from "../NkbvRuledOutSection";
 
 const TABLE3_ROWS: Array<{ field: keyof VaeVerificationData; label: string }> = [
   { field: "pneu_t3_influenza", label: "Influenza (PCR/Ag)" },
@@ -117,7 +118,7 @@ export default function PneuClinicalSubForm({
       title="Phiếu viêm phổi (PNEU / VAP / HAP)"
       subtypeLabel="Viêm phổi bệnh viện"
       indexFactorHint="Chọn cấy đờm hoặc X-quang/CT — cái dùng để chẩn đoán (nếu cả hai có ngày thì lấy ngày sớm hơn làm mốc). Không dùng phiếu này cho VAE người lớn thở máy."
-      windowLabel="IWP (cửa sổ nhiễm khuẩn ±3 ngày)"
+      windowLabel="Cửa sổ nhiễm khuẩn (±3 ngày)"
       windowStart={iwpStart}
       windowEnd={iwpEnd}
       classificationBadge={classificationBadge}
@@ -559,6 +560,15 @@ export default function PneuClinicalSubForm({
           </NkbvFormSection>
         </>
       )}
+      {activeTab === "LAM_SANG" || activeTab === "KSNK" ? (
+        <NkbvRuledOutSection
+          syndrome="PNEU"
+          reasons={form.ruled_out_reasons}
+          note={form.ruled_out_note}
+          allowedEdit={allowedEdit}
+          onChange={(next) => onChange({ ...form, ...next })}
+        />
+      ) : null}
     </NkbvDomainFormShell>
   );
 }

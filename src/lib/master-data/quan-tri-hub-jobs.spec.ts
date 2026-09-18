@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { isDefaultVisibleHubRow, visibleHubRows } from "./quan-tri-hub-jobs";
+import { isDefaultVisibleHubRow, visibleHubRows, QUAN_TRI_HUB_JOBS } from "./quan-tri-hub-jobs";
 import type { DanhMucHubRow } from "./danh-muc-hub-catalog";
+import { quanTriDungCuHref } from "./quan-tri-paths";
 
 function row(partial: Partial<DanhMucHubRow> & Pick<DanhMucHubRow, "id" | "name" | "path">): DanhMucHubRow {
   return {
@@ -35,5 +36,13 @@ describe("visibleHubRows", () => {
   it("tìm vẫn ra danh mục ẩn", () => {
     const found = visibleHubRows([khoa, tram], "trạm");
     expect(found.map((r) => r.id)).toContain("TRAM_CSSD");
+  });
+});
+
+describe("QUAN_TRI_HUB_JOBS CSSD", () => {
+  it("Sửa danh mục CSSD mặc định vào tab Loại", () => {
+    const cssd = QUAN_TRI_HUB_JOBS.find((j) => j.id === "cssd");
+    expect(cssd?.title).toContain("Sửa danh mục");
+    expect(cssd?.href).toBe(quanTriDungCuHref("loai"));
   });
 });

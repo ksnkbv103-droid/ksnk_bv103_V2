@@ -801,7 +801,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.classification).toBe("SUTI");
     });
 
-    it("classifies SUTI_2 for infant ≤1 tuổi with infant symptoms", () => {
+    it("Phụ lục C: chỉ triệu chứng nhi → không phát SUTI_2", () => {
       const data: UtiVerificationData = {
         urine_cfu_count: 150000,
         pathogen_count: 1,
@@ -818,8 +818,28 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         blood_urine_pathogen_matches: false,
       };
       const res = evaluateUtiCauti(data);
+      expect(res.classification).not.toBe("SUTI_2");
+      expect(res.classification).not.toBe("CAUTI_SUTI_2");
+    });
+
+    it("Phụ lục C: infant + sốt người lớn → SUTI (không SUTI_2)", () => {
+      const data: UtiVerificationData = {
+        urine_cfu_count: 150000,
+        pathogen_count: 1,
+        has_fungi_yeast_parasite: false,
+        foley_placed_days: 0,
+        foley_active_on_event: false,
+        has_fever: true,
+        has_suprapubic_tenderness: false,
+        has_costovertebral_pain: false,
+        has_dysuria: false,
+        is_infant_le1: true,
+        has_blood_culture_positive_in_window: false,
+        blood_urine_pathogen_matches: false,
+      };
+      const res = evaluateUtiCauti(data);
       expect(res.is_positive).toBe(true);
-      expect(res.classification).toBe("SUTI_2");
+      expect(res.classification).toBe("SUTI");
     });
 
     it("counts urgency/frequency separately when Foley inactive", () => {
@@ -846,8 +866,8 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
   describe("evaluateSsi", () => {
     it("NHSN ngày mổ = ngày 1: elapsed 29 còn trong SP 30; elapsed 30 hết hạn", () => {
       const base: SsiVerificationData = {
-        days_since_surgery: 0,
         has_implant: false,
+        days_since_surgery: 10,
         ssi_depth: "SUPERFICIAL",
         ssi_event_type: "SIP",
         superficial_purulent_drainage: true,
@@ -1145,6 +1165,56 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         days_since_shunt: 45,
       });
       expect(res.classification).toBe("SSI:MEN");
+    });
+  });
+
+  describe("Ruled-out L3", () => {
+    it("PNEU tick xẹp phổi → RULED_OUT dù đủ imaging + triệu chứng", () => {
+      const data: VaeVerificationData = {
+        patient_age: 45,
+        vent_days: 0,
+        has_stable_baseline_peep_fio2: false,
+        peep_increase_ge_3: false,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: false,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: false,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: true,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 1,
+        fever_or_wbc_abnormal: true,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 2,
+        microbiology_evidence: "NONE",
+        ruled_out_reasons: ["atelectasis"],
+      };
+      const res = evaluateVaeVap(data, "PNEU");
+      expect(res.is_positive).toBe(false);
+      expect(res.classification).toBe("RULED_OUT");
+      expect(res.reason).toMatch(/Xẹp phổi/);
+    });
+
+    it("UTI tick ASB → RULED_OUT không thành CAUTI", () => {
+      const data: UtiVerificationData = {
+        urine_cfu_count: 100000,
+        pathogen_count: 1,
+        has_fungi_yeast_parasite: false,
+        foley_placed_days: 5,
+        foley_active_on_event: true,
+        has_fever: false,
+        has_suprapubic_tenderness: false,
+        has_costovertebral_pain: false,
+        has_dysuria: false,
+        has_blood_culture_positive_in_window: false,
+        blood_urine_pathogen_matches: false,
+        ruled_out_reasons: ["asb_no_blood"],
+      };
+      const res = evaluateUtiCauti(data);
+      expect(res.is_positive).toBe(false);
+      expect(res.classification).toBe("RULED_OUT");
     });
   });
 });

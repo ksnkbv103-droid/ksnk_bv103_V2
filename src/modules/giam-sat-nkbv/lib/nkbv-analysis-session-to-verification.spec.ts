@@ -107,12 +107,16 @@ describe("nkbv-analysis-session-to-verification", () => {
         readyToChot: true,
         canThiepDates: [],
         hasCardiopulmonaryDisease: true,
+        ruledOutReasons: ["atelectasis"],
+        ruledOutNote: "XQ xẹp thùy",
       },
     });
     expect(seed.verification_data.has_chest_imaging_abnormal).toBe(true);
     expect(seed.verification_data.has_rales_or_wheeze).toBe(true);
     expect(seed.verification_data.pneu_trigger).toBe("IMAGING");
     expect(seed.verification_data.has_cardiopulmonary_disease_underlying).toBe(true);
+    expect(seed.verification_data.ruled_out).toBe(true);
+    expect(seed.verification_data.ruled_out_reasons).toEqual(["atelectasis"]);
   });
 
   it("seed cửa sổ IWP/SBAP/RIT + rit_labs + sbap_labs + device", () => {

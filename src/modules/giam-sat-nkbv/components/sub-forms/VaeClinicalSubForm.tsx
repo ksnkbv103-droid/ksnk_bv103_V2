@@ -11,6 +11,7 @@ import {
 import NkbvDomainFormShell from "../NkbvDomainFormShell";
 import NkbvFormSection from "../NkbvFormSection";
 import NkbvCatalogSymptomRows from "./NkbvCatalogSymptomRows";
+import NkbvRuledOutSection from "../NkbvRuledOutSection";
 
 interface VaeClinicalSubFormProps {
   form: VaeVerificationData;
@@ -101,8 +102,8 @@ export default function VaeClinicalSubForm({
     <NkbvDomainFormShell
       title="Phiếu VAE (VAC → IVAC → PVAP)"
       subtypeLabel="Sự cố liên quan thở máy"
-      indexFactorHint="Xấu đi thông số máy thở (PEEP / FiO₂) — không dùng X-quang. Cửa sổ = Event Period (không phải IWP ±3 ngày)."
-      windowLabel="Event Period"
+      indexFactorHint="Xấu đi thông số máy thở (PEEP / FiO₂) — không dùng X-quang. Cửa sổ = cửa sổ thở máy 14 ngày (không phải cửa sổ nhiễm khuẩn ±3 ngày)."
+      windowLabel="Cửa sổ thở máy"
       windowStart={iwpStart}
       windowEnd={iwpEnd}
       windowExtra="Ngày sự kiện = ngày bắt đầu xấu đi PEEP/FiO₂"
@@ -211,7 +212,7 @@ export default function VaeClinicalSubForm({
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[420px] border-collapse text-xs">
                   <thead>
-                    <tr className="font-bold text-slate-400">
+                    <tr className="font-bold uppercase text-slate-400">
                       <th className="px-2 py-1.5 text-left">Ngày</th>
                       <th className="px-2 py-1.5 text-left">PEEP min</th>
                       <th className="px-2 py-1.5 text-left">FiO₂ min %</th>
@@ -305,7 +306,7 @@ export default function VaeClinicalSubForm({
 
           <NkbvFormSection
             title="Bậc 2 — IVAC"
-            hint="SSOT catalog · Event Period (DOE ±2 ngày) — không dùng checklist PNEU/XQ."
+            hint="Danh mục chuẩn · cửa sổ thở máy (ngày sự kiện ±2 ngày) — không dùng checklist PNEU/XQ."
           >
             <NkbvCatalogSymptomRows
               rows={formSymptomRowsFor("VAE")}
@@ -376,7 +377,7 @@ export default function VaeClinicalSubForm({
             form.has_quantitative_culture_positive ||
             form.has_respiratory_viral_or_pathogen_test_positive) && (
             <div className="mt-2 space-y-2 rounded-xl border border-rose-100 bg-rose-50/70 p-3">
-              <p className="bv103-type-label font-semibold text-rose-900">Secondary BSI khi PVAP (Event Period)</p>
+              <p className="bv103-type-label font-semibold text-rose-900">Nhiễm khuẩn huyết thứ phát khi PVAP (cửa sổ thở máy)</p>
               <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
                 <input
                   type="checkbox"
@@ -386,7 +387,7 @@ export default function VaeClinicalSubForm({
                     onChange({ ...form, has_blood_culture_in_event_period: e.target.checked })
                   }
                 />
-                Cấy máu (+) trong Event Period
+                Cấy máu (+) trong cửa sổ thở máy
               </label>
               {form.has_blood_culture_in_event_period ? (
                 <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
@@ -405,6 +406,15 @@ export default function VaeClinicalSubForm({
           )}
         </NkbvFormSection>
       )}
+      {activeTab === "LAM_SANG" || activeTab === "KSNK" ? (
+        <NkbvRuledOutSection
+          syndrome="VAE"
+          reasons={form.ruled_out_reasons}
+          note={form.ruled_out_note}
+          allowedEdit={allowedEdit}
+          onChange={(next) => onChange({ ...form, ...next })}
+        />
+      ) : null}
     </NkbvDomainFormShell>
   );
 }

@@ -370,12 +370,12 @@ function matrixForGate(gate: NkbvChecklistTypeCode): CriteriaRowDef[] {
   }
   if (gate === "VAE") {
     return [
-      { key: "device_ventilator", label: "Thở máy xâm lấn (≥4 ngày / Event Period)", group: "Device", requiredHint: true },
+      { key: "device_ventilator", label: "Thở máy xâm lấn (≥4 ngày / cửa sổ thở máy)", group: "Device", requiredHint: true },
       { key: "worsening_gas", label: "Worsening PEEP/FiO₂ (chuỗi VAC)", group: "VAE Window", requiredHint: true },
       { key: "fever_or_wbc", label: "Sốt > 38,0°C hoặc hạ thân nhiệt < 36,0°C (IVAC)", group: "IVAC / PVAP", requiredHint: false },
       { key: "purulent_sputum", label: "Đờm mủ / cấy hô hấp (PVAP)", group: "IVAC / PVAP", requiredHint: false },
       { key: "resp_culture", label: "Cấy ETA/BAL (PVAP)", group: "IVAC / PVAP", requiredHint: false },
-      { key: "blood_culture", label: "Cấy máu trong Event Period (Secondary PVAP)", group: "Secondary", requiredHint: false },
+      { key: "blood_culture", label: "Cấy máu trong cửa sổ thở máy (NKH thứ phát PVAP)", group: "Secondary", requiredHint: false },
     ];
   }
   return [];

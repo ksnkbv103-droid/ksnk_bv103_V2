@@ -298,6 +298,14 @@ export function mapAnalysisSessionToVerificationSeed(input: {
     verification_data.blood_ssi_pathogen_matches = true;
   }
 
+  if (input.draft.ruledOutReasons?.length) {
+    verification_data.ruled_out = true;
+    verification_data.ruled_out_reasons = input.draft.ruledOutReasons;
+  }
+  if (input.draft.ruledOutNote) {
+    verification_data.ruled_out_note = input.draft.ruledOutNote;
+  }
+
   if (input.panel === "BSI") {
     if (input.draft.bsiMbi?.anc_wbc_lt_500_ge_2d) {
       verification_data.anc_wbc_lt_500_ge_2d = true;

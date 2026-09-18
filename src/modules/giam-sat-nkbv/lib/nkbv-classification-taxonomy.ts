@@ -6,11 +6,8 @@
  * dựng tử số báo cáo. Không dùng `vi_tri_nhiem_khuan` (text tự do) cho việc này.
  *
  * Mirror SQL: `fn_nkbv_major_type_from_classification`
- * (20260809170000, replace 20260910123000). Spec
- * `nkbv-classification-taxonomy.spec.ts` chặn hai bên lệch nhau.
- *
- * Engine Ch.17: site độc lập → `CH17:SITE` (tử số CH17);
- * hierarchy as SSI → `SSI:SITE` (tử số SSI, không nuốt OTHER).
+ * (migration 20260809170000). Spec `nkbv-classification-taxonomy.spec.ts`
+ * chặn hai bên lệch nhau.
  */
 
 import type { NkbvMajorType } from "./nkbv-major-type";
@@ -39,8 +36,8 @@ export const NKBV_VAE_CLASSIFICATIONS = ["VAC", "IVAC", "PVAP"] as const;
 /** Mã sự kiện NHSN của SSI (Organ/Space có thể kèm `:SITE`). */
 export const NKBV_SSI_EVENT_CODES = ["SIP", "SIS", "DIP", "DIS"] as const;
 
-/** PNU1/2/3 × VAP|HAP — nhánh viêm phổi, tách khỏi VAE. */
-export const NKBV_PNEU_CLASSIFICATION_PATTERN = /^PNU[123]_(VAP|HAP)$/;
+/** PNU1/2/3 × VAP|HAP — engine cũng ghi NON_VAP (= HAP không máy). */
+export const NKBV_PNEU_CLASSIFICATION_PATTERN = /^PNU[123]_(VAP|HAP|NON_VAP)$/;
 
 const BSI = new Set<string>(NKBV_BSI_CLASSIFICATIONS);
 const UTI = new Set<string>(NKBV_UTI_CLASSIFICATIONS);
@@ -57,10 +54,8 @@ export function nkbvMajorTypeFromClassification(
   if (UTI.has(cls)) return "UTI";
   if (VAE.has(cls)) return "VAE";
   if (NKBV_PNEU_CLASSIFICATION_PATTERN.test(cls)) return "PNEU";
-  if (SSI.has(cls) || cls.startsWith("ORGAN_SPACE") || cls.startsWith("SSI:")) {
-    return "SSI";
-  }
-  if (cls === "CH17" || cls.startsWith("CH17:")) return "CH17";
+  if (SSI.has(cls) || cls.startsWith("ORGAN_SPACE") || cls.startsWith("SSI:")) return "SSI";
+  if (cls.startsWith("CH17:")) return "CH17";
   return "OTHER";
 }
 

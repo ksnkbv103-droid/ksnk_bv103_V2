@@ -1,5 +1,6 @@
 /**
- * Menu Quản trị trên sidebar — một cổng hub (module-first).
+ * Menu Sửa danh mục trên sidebar — một cổng hub (module-first).
+ * IA khóa: Vận hành / Tra cứu (ops CSSD) · Sửa danh mục (Quản trị → Master).
  * Chi tiết (Tổ chức, Master CSSD, Bảng kiểm, Phân quyền, Tài khoản) chọn trong `/quan-tri-he-thong`.
  */
 import { Settings, type LucideIcon } from "lucide-react";
@@ -21,7 +22,7 @@ export type SidebarAdminGroup = {
 export const SIDEBAR_ADMIN_GROUPS: SidebarAdminGroup[] = [
   {
     id: "qt-hub",
-    label: "Quản trị",
+    label: "Sửa danh mục",
     items: [
       {
         name: "Quản trị hệ thống",

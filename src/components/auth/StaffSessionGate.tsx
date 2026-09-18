@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 const STAFF_GATE_AUTH_CHECK_TTL_MS = 60_000;
 const STAFF_GATE_LINK_SYNC_TTL_MS = 5 * 60_000;
+const CHANGE_PASSWORD_PATH = "/tai-khoan/doi-mat-khau";
 
 function isPublicAuthPath(pathname: string | null) {
   if (!pathname) return false;
@@ -34,6 +35,10 @@ function scheduleNonUrgent(fn: () => void) {
   setTimeout(fn, 300);
 }
 
+function mustChangePassword(meta: Record<string, unknown> | undefined): boolean {
+  return meta?.must_change_password === true;
+}
+
 /** Đăng xuất nếu hồ sơ nhân sự bị vô hiệu hóa; Tự động liên kết tài khoản nếu cần. */
 export default function StaffSessionGate() {
   const pathname = usePathname();
@@ -46,6 +51,12 @@ export default function StaffSessionGate() {
     const run = async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session || cancelled) return;
+
+      const meta = (data.session.user?.user_metadata ?? {}) as Record<string, unknown>;
+      if (mustChangePassword(meta) && pathname !== CHANGE_PASSWORD_PATH) {
+        router.replace(CHANGE_PASSWORD_PATH);
+        return;
+      }
 
       // 1. Kiểm tra trạng thái hoạt động (bắt buộc)
       const shouldCheck = shouldRunGateTask("staff_gate_auth_check_at", STAFF_GATE_AUTH_CHECK_TTL_MS);
@@ -83,6 +94,11 @@ export default function StaffSessionGate() {
     const { data: sub } = supabase.auth.onAuthStateChange((_ev, session) => {
       if (!session || isPublicAuthPath(pathname)) return;
       void (async () => {
+        const meta = (session.user?.user_metadata ?? {}) as Record<string, unknown>;
+        if (mustChangePassword(meta) && pathname !== CHANGE_PASSWORD_PATH) {
+          router.replace(CHANGE_PASSWORD_PATH);
+          return;
+        }
         const res = await checkStaffSessionAllowed();
         if (!res.ok && "reason" in res && res.reason === "inactive") {
           await supabase.auth.signOut({ scope: "local" });

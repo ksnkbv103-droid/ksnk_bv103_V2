@@ -45,6 +45,9 @@ export type BaAnalysisSessionDraft = {
   loaiPhauThuatNhsn?: string;
   ssiEventType?: string;
   organSpaceSite?: string;
+  /** L3 Ruled-out — lý do loại trừ trên Hub (theo phiên hội chứng). */
+  ruledOutReasons?: string[];
+  ruledOutNote?: string;
   /** BSI — bằng chứng MBI-LCBI (không dùng tick giảm bạch cầu đơn). */
   bsiMbi?: {
     anc_wbc_lt_500_ge_2d?: boolean;
