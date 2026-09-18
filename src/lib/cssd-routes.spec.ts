@@ -25,9 +25,8 @@ describe("cssd-routes deep links", () => {
     const missing = cssdSuCoInstrumentHref({ type: "INSTRUMENT_MISSING" });
     expect(missing).toContain(`type=${INSTRUMENT_PHYSICAL_DOOR_ID}`);
 
-    expect(cssdSuCoInstrumentHref({ type: SET_RECONCILE_TYPE_ID })).toContain(
-      `type=${SET_RECONCILE_TYPE_ID}`,
-    );
+    expect(cssdSuCoInstrumentHref({ type: SET_RECONCILE_TYPE_ID })).toContain("/cssd-dung-cu");
+    expect(cssdSuCoInstrumentHref({ type: SET_RECONCILE_TYPE_ID })).toContain("tab=DE_NGHI");
     expect(cssdSuCoInstrumentHref({ ma: "B01" })).toContain("group=INSTRUMENT");
     expect(cssdSuCoInstrumentHref({ ma: "B01" })).toContain("ma=B01");
   });

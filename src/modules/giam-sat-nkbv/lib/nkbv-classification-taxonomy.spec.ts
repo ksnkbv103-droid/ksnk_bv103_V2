@@ -25,6 +25,12 @@ const CH17_SSI_PREFIX_PATCH = join(
 );
 
 describe("nkbvMajorTypeFromClassification", () => {
+  it("nhãn lịch sử SUTI_2/LCBI_3 vẫn map major nếu gặp trong DB cũ", () => {
+    expect(nkbvMajorTypeFromClassification("SUTI_2")).toBe("UTI");
+    expect(nkbvMajorTypeFromClassification("CAUTI_SUTI_2")).toBe("UTI");
+    expect(nkbvMajorTypeFromClassification("LCBI_3")).toBe("BSI");
+  });
+
   it("ánh xạ đúng từng nhóm hội chứng", () => {
     for (const cls of NKBV_BSI_CLASSIFICATIONS) {
       expect(nkbvMajorTypeFromClassification(cls)).toBe("BSI");

@@ -22,9 +22,7 @@ export type NkbvSymptomWindow = "IWP" | "EVENT_PERIOD" | "SSI_SURVEILLANCE" | "N
 
 export type NkbvSymptomAgeGate =
   | "any"
-  | "le1"
   | "gt1"
-  | "gt1_le12"
   | "ge70"
   | "adult_or_child";
 
@@ -99,8 +97,7 @@ export function displaySymptomLabel(input: {
 }
 
 export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
-  // ─── Shared systemic ───────────────────────────────────────────────────────
-  {
+{
     id: "sx.fever_gt_38",
     name_en: "Fever >38.0°C",
     name_vi: NKBV_LABEL_FEVER_GT_38,
@@ -115,7 +112,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "Toàn thân",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.pneu_fever",
     name_en: "Fever >38.0°C (PNEU)",
     name_vi: NKBV_LABEL_FEVER_GT_38,
@@ -130,7 +127,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "Toàn thân PNEU",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.pneu_hypothermia",
     name_en: "Hypothermia <36.0°C (PNEU)",
     name_vi: "Hạ thân nhiệt < 36,0°C",
@@ -144,7 +141,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "Toàn thân PNEU",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.pneu_wbc_abnormal",
     name_en: "Abnormal WBC (PNEU)",
     name_vi: "Bạch cầu ≤ 4.000 hoặc ≥ 12.000/mm³",
@@ -158,7 +155,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "Toàn thân PNEU",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.fever_or_wbc_pneu_legacy",
     name_en: "Fever / hypothermia / abnormal WBC (legacy bundle)",
     name_vi: "Sốt > 38,0°C / hạ thân nhiệt / WBC (gộp — ca cũ)",
@@ -173,7 +170,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "Toàn thân PNEU",
     runtime_status: "bundled_view",
   },
-  {
+{
     id: "sx.altered_mental_ge70",
     name_en: "Altered mental status (≥70y)",
     name_vi: "Thay đổi trạng thái tâm thần (≥70 tuổi)",
@@ -188,7 +185,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "Toàn thân PNEU",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.vae_temp_fever_or_hypo",
     name_en: "Fever or hypothermia (IVAC)",
     name_vi: NKBV_LABEL_IVAC_TEMP,
@@ -203,7 +200,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "IVAC",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.vae_wbc_abnormal",
     name_en: "Abnormal WBC (IVAC)",
     name_vi: "Bạch cầu ≤ 4.000 hoặc ≥ 12.000/mm³",
@@ -217,9 +214,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "IVAC",
     runtime_status: "wired",
   },
-
-  // ─── BSI LCBI 2 / 3 / MBI ──────────────────────────────────────────────────
-  {
+{
     id: "sx.bsi_chills",
     name_en: "Chills",
     name_vi: "Rét run (chills)",
@@ -233,7 +228,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "LCBI 2",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.bsi_hypotension",
     name_en: "Hypotension",
     name_vi: "Tụt huyết áp",
@@ -247,49 +242,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "LCBI 2",
     runtime_status: "wired",
   },
-  {
-    id: "sx.bsi_hypothermia",
-    name_en: "Hypothermia (≤1y LCBI 3)",
-    name_vi: "Hạ thân nhiệt (< 36,0°C)",
-    syndromes: ["BSI"],
-    checklist_gates: ["BSI"],
-    age_gate: "le1",
-    window: "IWP",
-    doe_eligible: true,
-    form_field: "has_hypothermia",
-    criteria_key: "bsi_hypothermia",
-    group: "LCBI 3",
-    runtime_status: "wired",
-  },
-  {
-    id: "sx.bsi_apnea",
-    name_en: "Apnea (≤1y LCBI 3)",
-    name_vi: "Cơn ngưng thở (apnea)",
-    syndromes: ["BSI"],
-    checklist_gates: ["BSI"],
-    age_gate: "le1",
-    window: "IWP",
-    doe_eligible: true,
-    form_field: "has_apnea",
-    criteria_key: "bsi_apnea",
-    group: "LCBI 3",
-    runtime_status: "wired",
-  },
-  {
-    id: "sx.bsi_bradycardia",
-    name_en: "Bradycardia (≤1y LCBI 3)",
-    name_vi: "Nhịp tim chậm (bradycardia)",
-    syndromes: ["BSI"],
-    checklist_gates: ["BSI"],
-    age_gate: "le1",
-    window: "IWP",
-    doe_eligible: true,
-    form_field: "has_bradycardia",
-    criteria_key: "bsi_bradycardia",
-    group: "LCBI 3",
-    runtime_status: "wired",
-  },
-  {
+{
     id: "sx.bsi_mbi_severe_diarrhea",
     name_en: "Severe diarrhea (MBI-LCBI)",
     name_vi: "Tiêu chảy nặng (≥1 L/24h hoặc ≥20 mL/kg/24h)",
@@ -304,7 +257,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "MBI-LCBI",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.bsi_legacy_or",
     name_en: "Legacy symptoms OR window",
     name_vi: "Triệu chứng cửa sổ (legacy)",
@@ -318,9 +271,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "Legacy",
     runtime_status: "wired",
   },
-
-  // ─── UTI ───────────────────────────────────────────────────────────────────
-  {
+{
     id: "sx.uti_suprapubic",
     name_en: "Suprapubic tenderness",
     name_vi: "Đau hoặc căng tức vùng trên xương mu",
@@ -334,7 +285,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "SUTI",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.uti_cva",
     name_en: "Costovertebral angle pain",
     name_vi: "Đau hoặc tăng nhạy cảm đau góc sườn lưng",
@@ -348,7 +299,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "SUTI",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.uti_dysuria",
     name_en: "Dysuria",
     name_vi: "Tiểu buốt",
@@ -363,7 +314,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "Voiding",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.uti_urgency",
     name_en: "Urgency",
     name_vi: "Tiểu gấp",
@@ -378,7 +329,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "Voiding",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.uti_frequency",
     name_en: "Frequency",
     name_vi: "Tiểu rắt",
@@ -393,79 +344,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "Voiding",
     runtime_status: "wired",
   },
-  {
-    id: "sx.uti_infant_hypothermia",
-    name_en: "Hypothermia ≤1y (SUTI 2)",
-    name_vi: "Hạ thân nhiệt (< 36,0°C) — ≤1 tuổi",
-    syndromes: ["UTI"],
-    checklist_gates: ["UTI"],
-    age_gate: "le1",
-    window: "IWP",
-    doe_eligible: true,
-    form_field: "has_infant_hypothermia",
-    criteria_key: "infant_hypothermia",
-    group: "SUTI 2",
-    runtime_status: "wired",
-  },
-  {
-    id: "sx.uti_infant_apnea",
-    name_en: "Apnea ≤1y",
-    name_vi: "Cơn ngưng thở — ≤1 tuổi",
-    syndromes: ["UTI"],
-    checklist_gates: ["UTI"],
-    age_gate: "le1",
-    window: "IWP",
-    doe_eligible: true,
-    form_field: "has_infant_apnea",
-    criteria_key: "infant_apnea",
-    group: "SUTI 2",
-    runtime_status: "wired",
-  },
-  {
-    id: "sx.uti_infant_bradycardia",
-    name_en: "Bradycardia ≤1y",
-    name_vi: "Nhịp tim chậm — ≤1 tuổi",
-    syndromes: ["UTI"],
-    checklist_gates: ["UTI"],
-    age_gate: "le1",
-    window: "IWP",
-    doe_eligible: true,
-    form_field: "has_infant_bradycardia",
-    criteria_key: "infant_bradycardia",
-    group: "SUTI 2",
-    runtime_status: "wired",
-  },
-  {
-    id: "sx.uti_infant_lethargy",
-    name_en: "Lethargy ≤1y",
-    name_vi: "Lờ đờ, ngủ lịm — ≤1 tuổi",
-    syndromes: ["UTI"],
-    checklist_gates: ["UTI"],
-    age_gate: "le1",
-    window: "IWP",
-    doe_eligible: true,
-    form_field: "has_infant_lethargy",
-    criteria_key: "infant_lethargy",
-    group: "SUTI 2",
-    runtime_status: "wired",
-  },
-  {
-    id: "sx.uti_infant_vomiting",
-    name_en: "Vomiting ≤1y",
-    name_vi: "Nôn — ≤1 tuổi",
-    syndromes: ["UTI"],
-    checklist_gates: ["UTI"],
-    age_gate: "le1",
-    window: "IWP",
-    doe_eligible: true,
-    form_field: "has_infant_vomiting",
-    criteria_key: "infant_vomiting",
-    group: "SUTI 2",
-    runtime_status: "wired",
-  },
-
-  // ─── PNEU respiratory lines + imaging ──────────────────────────────────────
-  {
+{
     id: "sx.pneu_imaging",
     name_en: "Chest imaging abnormal",
     name_vi: "XQ/CT phổi thâm nhiễm / đông đặc / hang",
@@ -479,7 +358,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "Hình ảnh",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.pneu_purulent_sputum",
     name_en: "New purulent sputum / change in character",
     name_vi: "Đờm mủ mới / thay đổi tính chất đờm / tăng tiết / hút nhiều hơn",
@@ -494,7 +373,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "wired",
     pneu_resp_line: 1,
   },
-  {
+{
     id: "sx.pneu_new_purulent_alias",
     name_en: "Change in sputum character (alias)",
     name_vi: "Thay đổi tính chất đờm (mủ)",
@@ -509,7 +388,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "wired",
     pneu_resp_line: 1,
   },
-  {
+{
     id: "sx.pneu_increased_secretions",
     name_en: "Increased secretions / suctioning",
     name_vi: "Tăng tiết đờm / cần hút nhiều hơn",
@@ -524,7 +403,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "wired",
     pneu_resp_line: 1,
   },
-  {
+{
     id: "sx.pneu_cough",
     name_en: "New or worsening cough",
     name_vi: "Ho mới / ho tiến triển nặng lên",
@@ -539,7 +418,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "wired",
     pneu_resp_line: 2,
   },
-  {
+{
     id: "sx.pneu_dyspnea",
     name_en: "Dyspnea",
     name_vi: "Khó thở",
@@ -554,7 +433,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "wired",
     pneu_resp_line: 2,
   },
-  {
+{
     id: "sx.pneu_tachypnea",
     name_en: "Tachypnea",
     name_vi: "Thở nhanh",
@@ -570,7 +449,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "wired",
     pneu_resp_line: 2,
   },
-  {
+{
     id: "sx.pneu_rales",
     name_en: "Rales / bronchial breath sounds",
     name_vi: "Ran ẩm, ran nổ hoặc tiếng thở phế quản",
@@ -585,7 +464,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "wired",
     pneu_resp_line: 3,
   },
-  {
+{
     id: "sx.pneu_worsening_gas",
     name_en: "Worsening gas exchange",
     name_vi: "Suy giảm trao đổi khí (PaO₂/FiO₂ ≤240 / tăng O₂ / máy thở)",
@@ -600,7 +479,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "wired",
     pneu_resp_line: 4,
   },
-  {
+{
     id: "sx.pneu_hemoptysis",
     name_en: "Hemoptysis (PNU3 immunocompromised)",
     name_vi: "Ho ra máu (PNU3)",
@@ -614,7 +493,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "PNU3 bổ sung",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.pneu_pleuritic_pain",
     name_en: "Pleuritic chest pain (PNU3)",
     name_vi: "Đau ngực kiểu màng phổi (PNU3)",
@@ -628,37 +507,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "PNU3 bổ sung",
     runtime_status: "wired",
   },
-  {
-    id: "sx.pneu_infant_apnea_grunting",
-    name_en: "Apnea / nasal flaring / grunting (≤1y)",
-    name_vi: "Ngưng thở / phập phồng cánh mũi / thở rên (≤1 tuổi)",
-    syndromes: ["PNEU"],
-    checklist_gates: ["HAP", "VAP"],
-    age_gate: "le1",
-    window: "IWP",
-    doe_eligible: true,
-    form_field: "has_infant_respiratory_distress",
-    criteria_key: null,
-    group: "PNEU ≤1 tuổi",
-    runtime_status: "wired",
-  },
-  {
-    id: "sx.pneu_infant_bradycardia_tachycardia",
-    name_en: "Bradycardia or tachycardia (≤1y)",
-    name_vi: "Nhịp chậm (<100) hoặc nhanh (>170) — ≤1 tuổi",
-    syndromes: ["PNEU"],
-    checklist_gates: ["HAP", "VAP"],
-    age_gate: "le1",
-    window: "IWP",
-    doe_eligible: true,
-    form_field: "has_infant_hr_abnormal",
-    criteria_key: null,
-    group: "PNEU ≤1 tuổi",
-    runtime_status: "wired",
-  },
-
-  // ─── SSI depth ─────────────────────────────────────────────────────────────
-  {
+{
     id: "sx.ssi_superficial_purulent",
     name_en: "Superficial purulent drainage",
     name_vi: "Chảy mủ từ đường mổ nông",
@@ -673,7 +522,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "SSI nông",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.ssi_superficial_opened",
     name_en: "Superficial opened with local inflammation",
     name_vi: "Mở vết mổ nông + đau/sưng/đỏ/nóng tại chỗ",
@@ -688,7 +537,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "SSI nông",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.ssi_superficial_md",
     name_en: "Physician diagnosis superficial SSI",
     name_vi: "BS chẩn đoán SSI nông",
@@ -703,7 +552,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "SSI nông",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.ssi_superficial_culture",
     name_en: "Superficial culture positive",
     name_vi: "Cấy vết mổ nông (+)",
@@ -718,7 +567,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "SSI nông",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.ssi_deep_purulent",
     name_en: "Deep soft tissue purulent drainage",
     name_vi: "Chảy mủ từ lớp mô mềm sâu",
@@ -733,7 +582,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "SSI sâu",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.ssi_deep_dehisced",
     name_en: "Deep dehiscence/opened + fever or localized pain",
     name_vi: "Bục/mở sâu + sốt > 38,0°C hoặc đau khu trú",
@@ -748,7 +597,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "SSI sâu",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.ssi_deep_abscess",
     name_en: "Deep abscess imaging/pathology",
     name_vi: "Áp xe mô sâu (CĐHA / GPB / mổ lại)",
@@ -763,7 +612,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "SSI sâu",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.ssi_organ_purulent",
     name_en: "Organ/space drain purulent",
     name_vi: "Chảy mủ từ ống dẫn lưu organ/space",
@@ -778,7 +627,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "SSI organ/space",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.ssi_organ_culture",
     name_en: "Organ/space culture positive",
     name_vi: "Cấy organ/space (+)",
@@ -793,7 +642,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "SSI organ/space",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.ssi_organ_abscess",
     name_en: "Organ/space abscess",
     name_vi: "Áp xe organ/space (CĐHA / GPB)",
@@ -808,7 +657,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "SSI organ/space",
     runtime_status: "wired",
   },
-  {
+{
     id: "sx.ssi_obgyn_abdominal_pain",
     name_en: "Post-op abdominal pain (CSEC/HYST/VHYS Organ/Space)",
     name_vi: "Đau bụng / tăng nhạy cảm đau bụng sau mổ (CSEC/HYST/VHYS)",
@@ -823,9 +672,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "SSI organ/space OB/GYN",
     runtime_status: "wired",
   },
-
-  // ─── Chapter 17 (catalog_only — W5 forms) ──────────────────────────────────
-  {
+{
     id: "sx.ch17_bone_local",
     name_en: "BONE local signs (≥2)",
     name_vi: "BONE: ≥2 triệu chứng tại chỗ (sốt/sưng/đau/nóng/chảy dịch)",
@@ -840,7 +687,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "BONE",
   },
-  {
+{
     id: "sx.ch17_disc",
     name_en: "DISC fever or localized pain",
     name_vi: "DISC: sốt hoặc đau khu trú khoang đĩa đệm",
@@ -855,7 +702,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "DISC",
   },
-  {
+{
     id: "sx.ch17_jnt",
     name_en: "JNT ≥2 joint signs",
     name_vi: "JNT: ≥2 (sưng/đau/nóng/tràn dịch/hạn chế vận động)",
@@ -870,7 +717,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "JNT",
   },
-  {
+{
     id: "sx.ch17_pji",
     name_en: "PJI sinus tract or lab criteria",
     name_vi: "PJI: đường rò hoặc CRP/ESR + WBC dịch khớp",
@@ -885,7 +732,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "PJI",
   },
-  {
+{
     id: "sx.ch17_ic",
     name_en: "IC intracranial ≥2 signs",
     name_vi: "IC: ≥2 (đau đầu/chóng mặt/sốt/dấu thần kinh/ý thức)",
@@ -900,7 +747,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "IC",
   },
-  {
+{
     id: "sx.ch17_men",
     name_en: "MEN meningitis signs",
     name_vi: "MEN: sốt/đau đầu + dấu màng não / dây thần kinh sọ",
@@ -915,7 +762,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "MEN",
   },
-  {
+{
     id: "sx.ch17_sa",
     name_en: "SA spinal abscess local sign",
     name_vi: "SA: ≥1 (sốt/đau lưng/radiculitis/paraparesis)",
@@ -930,7 +777,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "SA",
   },
-  {
+{
     id: "sx.ch17_card",
     name_en: "CARD myocarditis/pericarditis",
     name_vi: "CARD: ≥2 (sốt/đau ngực/mạch nghịch/bóng tim to)",
@@ -945,7 +792,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "CARD",
   },
-  {
+{
     id: "sx.ch17_med",
     name_en: "MED mediastinitis",
     name_vi: "MED: sốt / đau ngực / mất vững xương ức",
@@ -960,7 +807,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "MED",
   },
-  {
+{
     id: "sx.ch17_vasc",
     name_en: "VASC arterial/venous infection",
     name_vi: "VASC: sốt / đau / đỏ / nóng tại mạch",
@@ -975,7 +822,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "VASC",
   },
-  {
+{
     id: "sx.ch17_endo",
     name_en: "ENDO endocarditis criteria",
     name_vi: "ENDO: tiếng thổi mới hoặc biến cố mạch/miễn dịch",
@@ -990,7 +837,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "ENDO",
   },
-  {
+{
     id: "sx.ch17_conj",
     name_en: "CONJ conjunctivitis",
     name_vi: "CONJ: đau / đỏ / sưng kết mạc hoặc quanh mắt",
@@ -1005,7 +852,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "CONJ",
   },
-  {
+{
     id: "sx.ch17_ear",
     name_en: "EAR otitis/mastoiditis",
     name_vi: "EAR: đau tai / chảy mủ / viêm xương chũm",
@@ -1020,7 +867,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "EAR",
   },
-  {
+{
     id: "sx.ch17_eye",
     name_en: "EYE deep eye infection",
     name_vi: "EYE: ≥2 (đau mắt / rối loạn thị giác / hypopyon)",
@@ -1035,7 +882,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "EYE",
   },
-  {
+{
     id: "sx.ch17_oral",
     name_en: "ORAL cavity",
     name_vi: "ORAL: loét / mảng trắng / mảng bám niêm mạc",
@@ -1050,7 +897,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "ORAL",
   },
-  {
+{
     id: "sx.ch17_sinu",
     name_en: "SINU sinusitis",
     name_vi: "SINU: sốt / đau xoang / đau đầu / chảy mủ / nghẹt mũi",
@@ -1065,7 +912,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "SINU",
   },
-  {
+{
     id: "sx.ch17_ur",
     name_en: "UR upper respiratory",
     name_vi: "UR: ≥2 triệu chứng hô hấp trên",
@@ -1080,7 +927,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "UR",
   },
-  {
+{
     id: "sx.ch17_cdi",
     name_en: "CDI unformed stool",
     name_vi: "CDI: tiêu chảy phân không hình thành khuôn",
@@ -1095,7 +942,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "CDI",
   },
-  {
+{
     id: "sx.ch17_ge",
     name_en: "GE gastroenteritis",
     name_vi: "GE: tiêu chảy cấp >12h hoặc ≥2 (nôn/đau bụng/sốt…)",
@@ -1110,7 +957,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "GE",
   },
-  {
+{
     id: "sx.ch17_git",
     name_en: "GIT GI tract",
     name_vi: "GIT: ≥2 triệu chứng tương thích vị trí tổn thương",
@@ -1125,7 +972,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "GIT",
   },
-  {
+{
     id: "sx.ch17_iab",
     name_en: "IAB intraabdominal",
     name_vi: "IAB: ≥2 (sốt/tụt HA/nôn/đau bụng/vàng da)",
@@ -1140,22 +987,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "IAB",
   },
-  {
-    id: "sx.ch17_nec",
-    name_en: "NEC necrotizing enterocolitis ≤1y",
-    name_vi: "NEC: dịch mật hút dạ dày / nôn / chướng bụng / phân máu",
-    syndromes: ["CH17_GI"],
-    checklist_gates: [],
-    age_gate: "le1",
-    window: "NONE",
-    doe_eligible: false,
-    form_field: null,
-    criteria_key: null,
-    group: "Ch.17 GI",
-    runtime_status: "catalog_only",
-    ch17_site: "NEC",
-  },
-  {
+{
     id: "sx.ch17_emet",
     name_en: "EMET endometritis",
     name_vi: "EMET: ≥2 (sốt/đau tử cung/chảy dịch mủ)",
@@ -1170,7 +1002,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "EMET",
   },
-  {
+{
     id: "sx.ch17_orep",
     name_en: "OREP deep reproductive",
     name_vi: "OREP: ≥2 (sốt/nôn/đau hố chậu/tiểu buốt)",
@@ -1185,7 +1017,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "OREP",
   },
-  {
+{
     id: "sx.ch17_brst",
     name_en: "BRST breast",
     name_vi: "BRST: sốt + viêm đỏ sưng nóng tuyến vú",
@@ -1200,22 +1032,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "BRST",
   },
-  {
-    id: "sx.ch17_circ",
-    name_en: "CIRC circumcision ≤30d",
-    name_vi: "CIRC: chảy mủ / sưng đỏ đau quy đầu (≤30 ngày)",
-    syndromes: ["CH17_SST"],
-    checklist_gates: [],
-    age_gate: "le1",
-    window: "NONE",
-    doe_eligible: false,
-    form_field: null,
-    criteria_key: null,
-    group: "Ch.17 SST",
-    runtime_status: "catalog_only",
-    ch17_site: "CIRC",
-  },
-  {
+{
     id: "sx.ch17_decu",
     name_en: "DECU pressure ulcer",
     name_vi: "DECU: ≥2 tại rìa loét (đỏ/sưng/đau)",
@@ -1230,7 +1047,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "DECU",
   },
-  {
+{
     id: "sx.ch17_skin",
     name_en: "SKIN soft tissue",
     name_vi: "SKIN: mụn mủ/nước/bọc hoặc ≥2 (đau/sưng/đỏ/nóng)",
@@ -1245,22 +1062,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     runtime_status: "catalog_only",
     ch17_site: "SKIN",
   },
-  {
-    id: "sx.ch17_umb",
-    name_en: "UMB umbilicus ≤30d",
-    name_vi: "UMB: đỏ rốn hoặc chảy mủ (≤30 ngày)",
-    syndromes: ["CH17_SST"],
-    checklist_gates: [],
-    age_gate: "le1",
-    window: "NONE",
-    doe_eligible: false,
-    form_field: null,
-    criteria_key: null,
-    group: "Ch.17 SST",
-    runtime_status: "catalog_only",
-    ch17_site: "UMB",
-  },
-  {
+{
     id: "sx.ch17_usi",
     name_en: "USI deep urinary / renal abscess",
     name_vi: "USI: sốt hoặc đau hông lưng + chảy mủ đường tiểu",
@@ -1274,7 +1076,7 @@ export const NKBV_CLINICAL_SYMPTOMS: readonly NkbvClinicalSymptomDef[] = [
     group: "Ch.17 SST",
     runtime_status: "catalog_only",
     ch17_site: "USI",
-  },
+  }
 ] as const;
 
 const BY_ID = new Map(NKBV_CLINICAL_SYMPTOMS.map((s) => [s.id, s]));
@@ -1350,14 +1152,6 @@ export function isVoidingCriteriaKey(criteriaKey: string): boolean {
   );
 }
 
-export function isUtiInfantCriteriaKey(criteriaKey: string): boolean {
-  return NKBV_CLINICAL_SYMPTOMS.some(
-    (s) =>
-      s.criteria_key === criteriaKey &&
-      s.syndromes.includes("UTI") &&
-      s.age_gate === "le1",
-  );
-}
 
 export type SymptomTimelineMapEntry = {
   criteriaKey: string;
@@ -1517,10 +1311,7 @@ export function formSymptomRowsFor(
     ) {
       continue;
     }
-    if (allowAges && !allowAges.has(s.age_gate)) {
-      // adult_or_child hiện khi không lọc le1-only
-      if (!(s.age_gate === "adult_or_child" && !allowAges.has("le1"))) continue;
-    }
+    if (allowAges && !allowAges.has(s.age_gate)) continue;
     if (opts?.groups && !opts.groups.includes(s.group)) continue;
     if (seen.has(s.form_field)) continue;
     seen.add(s.form_field);
@@ -1559,19 +1350,6 @@ export function countPneuRespiratoryCdcGroupsFromKeys(keys: Iterable<string>): n
 
 export const UTI_VOIDING_CRITERIA_KEYS_FROM_CATALOG = new Set(
   NKBV_CLINICAL_SYMPTOMS.filter((s) => s.device_gate === "no_foley" && s.criteria_key).map(
-    (s) => s.criteria_key as string,
-  ),
-);
-
-export const UTI_INFANT_CRITERIA_KEYS_FROM_CATALOG = new Set(
-  NKBV_CLINICAL_SYMPTOMS.filter(
-    (s) => s.syndromes.includes("UTI") && s.age_gate === "le1" && s.criteria_key,
-  ).map((s) => s.criteria_key as string),
-);
-
-/** Mọi criteria_key age_gate le1 (BSI LCBI3 / UTI SUTI2 / PNEU infant) — ẩn trên UI người lớn. */
-export const INFANT_LE1_CRITERIA_KEYS_FROM_CATALOG = new Set(
-  NKBV_CLINICAL_SYMPTOMS.filter((s) => s.age_gate === "le1" && s.criteria_key).map(
     (s) => s.criteria_key as string,
   ),
 );

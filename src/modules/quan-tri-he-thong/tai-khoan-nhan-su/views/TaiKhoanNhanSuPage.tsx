@@ -80,8 +80,8 @@ export default function TaiKhoanNhanSuPage() {
     void load();
   };
 
-  const onResetPassword = async (r: StaffAuthRow, password: string) => {
-    const res = await adminResetStaffPasswordAction({ staffId: r.id, password });
+  const onResetPassword = async (r: StaffAuthRow, password: string, confirmActorPassword: string) => {
+    const res = await adminResetStaffPasswordAction({ staffId: r.id, password, confirmActorPassword });
     if (!res.success) {
       toast.error(res.error || "Không đặt lại được mật khẩu.");
       return;

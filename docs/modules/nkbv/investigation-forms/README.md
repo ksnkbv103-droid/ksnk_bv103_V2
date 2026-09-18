@@ -29,7 +29,6 @@
 | VAE-2026 | VAC→IVAC→PVAP | [trees/VAE.md](trees/VAE.md) | [VAE-2026.md](VAE-2026.md) |
 | SSI-2026 | SSI depths | [trees/SSI.md](trees/SSI.md) | [SSI-2026.md](SSI-2026.md) |
 
-**Out (W4–W6 tạm dừng):** PedVAE, ENDO, IAB, AU, Location/SIR đầy đủ.  
 **W3 đã mở slice:** LabID Event (engine + `nkbv_fact_labid_event`) · CLIP trên Device Registry.
 
 ## PO sign-off

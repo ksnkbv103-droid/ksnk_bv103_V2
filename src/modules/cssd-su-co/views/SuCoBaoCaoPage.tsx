@@ -97,7 +97,7 @@ export default function SuCoBaoCaoPage() {
 
   if (loading) {
     return (
-      <CSSDPageShell title="Sự cố an toàn & biến động dụng cụ">
+      <CSSDPageShell title="Sự cố an toàn / Biến động dụng cụ">
         <div className="flex h-[40vh] items-center justify-center text-sm text-slate-500">Đang tải…</div>
       </CSSDPageShell>
     );
@@ -105,7 +105,7 @@ export default function SuCoBaoCaoPage() {
 
   if (!allowed.view && !allowed.create) {
     return (
-      <CSSDPageShell title="Sự cố an toàn & biến động dụng cụ">
+      <CSSDPageShell title="Sự cố an toàn / Biến động dụng cụ">
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-8 text-center text-sm text-amber-900">
           Bạn không có quyền module <strong>BAO_SU_CO</strong>. Liên hệ quản trị KSNK.
         </div>
@@ -117,7 +117,7 @@ export default function SuCoBaoCaoPage() {
 
   return (
     <CSSDPageShell
-      title="Sự cố an toàn & biến động dụng cụ"
+      title="Sự cố an toàn / Biến động dụng cụ"
       actions={
         <div className="flex flex-wrap items-center justify-end gap-1.5">
           <Link

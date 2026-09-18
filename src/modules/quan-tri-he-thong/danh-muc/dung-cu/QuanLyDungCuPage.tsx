@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ClipboardList, Database, History } from "lucide-react";
 import { BoDungCuPageContent } from "./BoDungCuPage";
 import { SetReconcileApproveQueue } from "./SetReconcileApproveQueue";
+import { CatalogDeNghiApproveQueue } from "./CatalogDeNghiApproveQueue";
 import { SetReconcileHistoryList } from "./SetReconcileHistoryList";
 import { DungCuLoaiSheet } from "./dung-cu-loai-sheet";
 import { DmTabGuard } from "../views/dm-tab-guard";
@@ -15,7 +16,7 @@ import {
   quanTriDungCuHref,
   type DungCuLayer,
 } from "@/lib/master-data/quan-tri-paths";
-import { cssdSuCoInstrumentHref } from "@/lib/cssd-routes";
+import { cssdCatalogEditProposalHref } from "@/lib/cssd-routes";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { KsnkPageChrome } from "@/components/shared/KsnkPageChrome";
@@ -104,7 +105,7 @@ export default function QuanLyDungCuPage() {
         }
         actions={
           layer === "phieu" ? (
-            <Link href={cssdSuCoInstrumentHref({ type: "INSTRUMENT_SET_RECONCILE" })} className={C.btnPrimary}>
+            <Link href={cssdCatalogEditProposalHref({ kind: "BOM" })} className={C.btnPrimary}>
               Lập phiếu rà soát
             </Link>
           ) : null
@@ -118,7 +119,7 @@ export default function QuanLyDungCuPage() {
         </p>
       ) : (
         <p className="text-[11px] text-slate-500">
-          Chỉ quản trị sửa danh mục. Nhân viên lập phiếu rà soát tại sự cố CSSD (cửa Rà soát).
+          Chỉ quản trị sửa danh mục. Nhân viên lập đề nghị tại /cssd-dung-cu → tab Đề nghị danh mục; admin duyệt tại đây.
         </p>
       )}
 
@@ -131,7 +132,10 @@ export default function QuanLyDungCuPage() {
           </DmTabGuard>
         )
       ) : layer === "phieu" && isAdmin ? (
-        <SetReconcileApproveQueue />
+        <div className="space-y-4">
+          <CatalogDeNghiApproveQueue />
+          <SetReconcileApproveQueue />
+        </div>
       ) : layer === "phieu" ? (
         <p className="px-1 py-6 text-center text-[11px] text-slate-500">Chỉ quản trị duyệt phiếu rà soát danh mục.</p>
       ) : (

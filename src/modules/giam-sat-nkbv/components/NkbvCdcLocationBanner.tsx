@@ -40,7 +40,7 @@ export default function NkbvCdcLocationBanner() {
           <Link href="/quan-tri-he-thong/danh-muc/khoa-phong" className="font-semibold underline">
             Quản trị → Khoa phòng
           </Link>
-          . Chưa có PedVAE, nội soi, kháng sinh (AU).
+          . Ngoài phạm vi: nhi khoa, nội soi, kháng sinh (AU).
         </span>
       </p>
     </div>

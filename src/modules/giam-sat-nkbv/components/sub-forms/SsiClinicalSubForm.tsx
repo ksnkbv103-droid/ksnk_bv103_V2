@@ -2,10 +2,6 @@
 
 import React, { useEffect, useMemo } from "react";
 import QrCameraButton from "@/components/shared/QrCameraButton";
-import {
-  ageYearsFromNgaySinh,
-  resolveIsInfantLe1Flag,
-} from "../../lib/nkbv-age-ui";
 import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
 import {
   depthFromSsiEventType,
@@ -67,14 +63,6 @@ export default function SsiClinicalSubForm({
   classificationBadge,
   embedded = false,
 }: SsiClinicalSubFormProps) {
-  const ageYears = ageYearsFromNgaySinh(ngaySinh, ngayPhatHien);
-  const infantFlag = resolveIsInfantLe1Flag(ageYears);
-
-  useEffect(() => {
-    if (form.is_infant_le1 === infantFlag) return;
-    onChange({ ...form, is_infant_le1: infantFlag });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional sync on age gate
-  }, [infantFlag]);
 
   const eventDepth = depthFromSsiEventType(form.ssi_event_type);
   const depth = eventDepth || form.ssi_depth;
@@ -369,7 +357,7 @@ export default function SsiClinicalSubForm({
                 typeCode={form.organ_space_site}
                 flags={form.chapter17_flags || {}}
                 procedureCode={form.loai_phau_thuat_nhsn}
-                isInfantLe1={infantFlag}
+                isInfantLe1={false}
                 allowedEdit={allowedEdit && !isTimeframeExpired}
                 onFlagsChange={(chapter17_flags) => onChange({ ...form, chapter17_flags })}
               />

@@ -57,13 +57,6 @@ const ComprehensiveTopicHybrid = dynamic(
     })),
   { loading: () => <ChartSectionSkeleton /> },
 );
-const ComprehensiveDimensionCompare = dynamic(
-  () =>
-    import("../components/comprehensive/ComprehensiveDimensionCompare").then((m) => ({
-      default: m.ComprehensiveDimensionCompare,
-    })),
-  { loading: () => <ChartSectionSkeleton /> },
-);
 const ComprehensiveThoiDiem = dynamic(
   () =>
     import("../components/comprehensive/ComprehensiveThoiDiem").then((m) => ({
@@ -231,18 +224,6 @@ export function BaoCaoTongHopPage() {
         <ReportSection id="bc-kpi" title="Chỉ số tổng hợp">
           <ComprehensiveKpiCards payload={d.payload} />
         </ReportSection>
-        <ReportSection id="bc-trend" title="Xu hướng tuân thủ">
-          {chuyenDeTruncated > 0 ? (
-            <p className="mb-2 text-xs text-amber-800">
-              Đang hiển thị tối đa 12 chuyên đề trên biểu đồ (còn {chuyenDeTruncated} chuyên đề chưa vẽ — thu hẹp lọc).
-            </p>
-          ) : null}
-          <ComprehensiveTrend
-            payload={d.payload}
-            chuyenDeSeries={chuyenDeSeries}
-            selectedBangKiemMas={d.selectedBangKiemMas}
-          />
-        </ReportSection>
         <ReportSection id="bc-vst" title="Giám sát vệ sinh tay">
           <ComprehensiveCompare
             payload={d.payload}
@@ -259,16 +240,25 @@ export function BaoCaoTongHopPage() {
             module="gsc"
           />
         </ReportSection>
-        <ReportSection id="bc-nkbv" title="Kết quả NKBV">
-          <ComprehensiveNkbvOutcome payload={d.payload} />
-        </ReportSection>
         {moreSectionsOpen ? (
           <>
+            <ReportSection id="bc-trend" title="Xu hướng tuân thủ">
+              {chuyenDeTruncated > 0 ? (
+                <p className="mb-2 text-xs text-amber-800">
+                  Đang hiển thị tối đa 12 chuyên đề trên biểu đồ (còn {chuyenDeTruncated} chuyên đề chưa vẽ — thu hẹp lọc).
+                </p>
+              ) : null}
+              <ComprehensiveTrend
+                payload={d.payload}
+                chuyenDeSeries={chuyenDeSeries}
+                selectedBangKiemMas={d.selectedBangKiemMas}
+              />
+            </ReportSection>
+            <ReportSection id="bc-nkbv" title="Kết quả NKBV">
+              <ComprehensiveNkbvOutcome payload={d.payload} />
+            </ReportSection>
             <ReportSection id="bc-gsc-bk" title="Bảng kiểm cần can thiệp">
               <ComprehensiveGscBkIntervention payload={d.payload} />
-            </ReportSection>
-            <ReportSection id="bc-dimension" title="So sánh đa chiều">
-              <ComprehensiveDimensionCompare payload={d.payload} />
             </ReportSection>
             <ReportSection id="bc-thoi-diem" title="Thời điểm và hình thức">
               <ComprehensiveThoiDiem payload={d.payload} />

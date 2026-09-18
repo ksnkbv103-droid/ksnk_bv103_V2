@@ -21,7 +21,6 @@
 |----|-----|-----|------|
 | BSI-P0-1 | Prefill / đồng bộ CVC days từ Device Registry thay vì chỉ tick tay | **P0** | Bsi form + write path |
 | BSI-P0-2 | Gọi shared Secondary BSI (match + SBAP) thay vì chỉ tin 3 boolean rời khi có đủ dữ liệu path | **P0** | `evaluateBsiClabsi` |
-| BSI-P1-1 | LCBI 3 (≤1 tuổi) chưa tách khỏi LCBI 2 | P1 | |
 | BSI-P1-2 | MBI đầy đủ tiêu chí NHSN (ANC window, GI) — hiện neutropenia + intestinal | P1 | |
 | BSI-P2-1 | CLIP link trên Registry | P2/W3 | |
 
@@ -33,7 +32,6 @@
 |----|-----|-----|------|
 | UTI-P0-1 | Prefill Foley từ Registry | **P0** | Uti form |
 | UTI-P0-2 | Máu yeast trong SBAP của UTI **không** được Secondary — enforce trong shared SBSI khi site=UTI | **P0** | shared + evaluate |
-| UTI-P1-1 | SUTI 2 (≤1 tuổi) nhánh riêng | P1 | |
 | UTI-P1-2 | urgency/frequency đã optional trên type; audit UI coverage | P1 (N-G1 gần xong) | |
 
 ---
@@ -46,18 +44,15 @@
 | VAE-P0-2 | Prefill vent days / intubation từ Registry | **P0** | Vae form |
 | VAE-P0-3 | Secondary BSI chỉ khi **PVAP** + máu trong Event Period — hiện PVAP không set `is_secondary_bsi` | **P0** | `evaluateVaeVap` + form optional blood flags |
 | VAE-P1-1 | APRV chỉ FiO2; HFV/ECMO full-day exclude | P1 | partial vent compute |
-| VAE-P2-1 | PedVAE | P2/W5 | |
 
 ---
 
-## §10 PNEU / PedVAP / Non-VAP
 
 | ID | Gap | Mức | File |
 |----|-----|-----|------|
 | PNEU-P0-1 | Sau PNU*: nhãn **VAP** nếu vent eligible (≥3 calendar days + active) else **Non-VAP / HAP** trong `classification` | **P0** | `evaluateVaeVap` PNEU path |
 | PNEU-P0-2 | Candida/CoNS/Enterococcus từ máu **cấm** Secondary sau PNEU trừ mô phổi/dịch màng phổi — shared ban | **P0** | shared SBSI |
 | PNEU-P1-1 | Nhánh tuổi PNU1 B/C chi tiết trên form | P1 | |
-| PNEU-P2-1 | PedVAE ≠ PedVAP | P2 | |
 
 ---
 

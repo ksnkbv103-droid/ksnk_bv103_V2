@@ -8,6 +8,11 @@ import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 import { usePrint } from "@/hooks/usePrint";
 import { registerPhysicalBoLabelFromDmAction } from "../contexts/instrument-catalog/entrypoint";
 import { toast } from "sonner";
+import {
+  CatalogDeNghiDialog,
+  type CatalogDeNghiDialogTarget,
+} from "@/modules/cssd-erp/components/catalog/CatalogDeNghiDialog";
+import { CatalogDeNghiCreateDialog } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiCreateDialog";
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 
 export function CSSDCatalogBoTab({
@@ -24,6 +29,8 @@ export function CSSDCatalogBoTab({
 
   const { printBoLabel } = usePrint();
   const [printingId, setPrintingId] = useState<string | null>(null);
+  const [deNghi, setDeNghi] = useState<CatalogDeNghiDialogTarget | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   async function handlePrintQr(e: React.MouseEvent, boId: string) {
     e.stopPropagation();
@@ -48,6 +55,16 @@ export function CSSDCatalogBoTab({
   }
 
   return (
+    <>
+        <div className="mb-2 flex justify-end px-1">
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
+          >
+            + Đề nghị bổ sung bộ
+          </button>
+        </div>
         <ResponsiveTableShell
           maxHeight="max-h-[350px]"
           toolbar={toolbar}
@@ -143,6 +160,24 @@ export function CSSDCatalogBoTab({
                       <span className={x.is_active ? L.statusOk : L.statusMuted}>{x.is_active ? "Hoạt động" : "Khóa"}</span>
                     </td>
                     <td className={`${L.td} ${L.colActions}`} onClick={(e) => e.stopPropagation()}>
+                      <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeNghi({
+                            kind: "BO",
+                            targetId: x.id,
+                            targetMa: x.ma_bo,
+                            targetTen: x.ten_bo,
+                            ma: x.ma_bo,
+                            ten: x.ten_bo,
+                          });
+                        }}
+                      >
+                        Đề nghị sửa
+                      </button>
                       <button
                         type="button"
                         disabled={printingId === x.id}
@@ -153,6 +188,7 @@ export function CSSDCatalogBoTab({
                         {printingId === x.id ? <Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> : null}
                         In
                       </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -167,5 +203,18 @@ export function CSSDCatalogBoTab({
             </tbody>
           </table>
         </ResponsiveTableShell>
+      <CatalogDeNghiDialog
+        open={Boolean(deNghi)}
+        onOpenChange={(open) => {
+          if (!open) setDeNghi(null);
+        }}
+        target={deNghi}
+      />
+      <CatalogDeNghiCreateDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        kind="BO"
+      />
+    </>
   );
 }

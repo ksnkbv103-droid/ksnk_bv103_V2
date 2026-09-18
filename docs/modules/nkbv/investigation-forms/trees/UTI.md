@@ -38,7 +38,6 @@ flowchart TD
 | `has_fever` / suprapubic / CVA + ngày | L1 | Có | |
 | `has_dysuria` / urgency / frequency | L2 | Có | **Ẩn khi Foley** |
 | `foley_present_doe_or_prior` + dates | L1/L2 | Có | CAUTI gate |
-| `is_infant_le1` + sx infant | L2 | Có | SUTI 2 |
 | ABUTI blood + match | L2 | Có | |
 | Yeast blood ban secondary | Computed | Engine | Shared SBSI |
 | Ruled-out ASB / tạp nhiễm giải trình | L3 | Partial | |

@@ -71,7 +71,6 @@ flowchart TD
 
 | Điều kiện | Chuẩn |
 |-----------|--------|
-| Phim bất thường ∈ IWP | Thâm nhiễm mới/tiến triển, đông đặc, hang; ≤1 tuổi có thể thêm pneumatocele |
 | Không bệnh nền tim phổi | ≥ **1** phim |
 | Có bệnh nền tim phổi | ≥ **2** phim serial (7 ngày) dai dẳng/tiến triển |
 | Không imaging đạt | **Không** cấu thành PNEU (ruled-out) |
@@ -89,7 +88,6 @@ flowchart TD
   4. Ran / tiếng thở phế quản
   5. Suy trao đổi khí xấu hơn
 
-**Nhánh B — ≤1 tuổi:** Imaging + suy trao đổi khí + ≥3 nhóm lâm sàng riêng.
 
 **Nhánh C — >1 đến ≤12 tuổi:** Imaging + ≥3 nhóm lâm sàng nhi.
 

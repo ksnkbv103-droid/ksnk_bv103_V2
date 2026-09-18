@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { cssdCatalogEditProposalHref } from "@/lib/cssd-routes";
 import { AlertCircle, Loader2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -9,7 +11,6 @@ import {
 } from "../../actions/cssd-composition-reconcile.actions";
 import { CSSD_UI_PANEL, CSSD_UI_SECTION_TITLE, CSSD_UI_TABLE_HEADER } from "../../shared/ui/cssd-ui-chrome";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
-import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 import { registerSplitSubQrFromMainMaAction } from "../../actions/cssd-register-label.actions";
 import { formatSetQtyLine, summarizeSetComposition } from "../../shared/domain/cssd-set-composition";
 import {
@@ -45,7 +46,6 @@ export default function CompositionReconcilePanel({
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<CompositionReconcilePayload | null>(null);
-  const [suCoOpen, setSuCoOpen] = useState(false);
   const [splitting, setSplitting] = useState(false);
   const [packMaterial, setPackMaterial] = useState<PackMaterial>("UNKNOWN");
 
@@ -73,11 +73,6 @@ export default function CompositionReconcilePanel({
 
   if (!enabled || !boDungCuId) return null;
 
-  const openSuCo = () => {
-    if (!data) return;
-    setSuCoOpen(true);
-  };
-
   return (
     <>
       <section className={`bv103-stack-in bv103-pad-panel ${CSSD_UI_PANEL}`}>
@@ -101,7 +96,7 @@ export default function CompositionReconcilePanel({
             ) : null}
               {gateMode ? (
               <p className="mt-1 text-[11px] font-medium leading-relaxed text-amber-800">
-                Kiểm đếm trên phiếu bộ; báo biến động qua 3 cửa (Đổi danh mục · Hỏng/Mất · Chuyển) nhiều món một lần. Sau đó quyết định có chuyển chờ tiệt khuẩn.
+                Kiểm đếm trên phiếu bộ. Biến động (đổi danh mục / hỏng-mất / chuyển) làm tại Sự cố & biến động — không ghi trên trạm đóng gói.
               </p>
             ) : null}
           </div>
@@ -144,7 +139,7 @@ export default function CompositionReconcilePanel({
           <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-900">
             <AlertCircle className="mt-0.5 shrink-0" size={18} />
             <p className="text-[11px] font-medium">
-              Bộ đang thiếu cấu phần so với thiết kế. Mở phiếu biến động bộ — một lần gửi cho mọi món lệch.
+              Bộ đang thiếu cấu phần so với thiết kế. Ghi biến động tại Sự cố & biến động (không trên trạm đóng gói).
             </p>
           </div>
         ) : null}
@@ -206,13 +201,17 @@ export default function CompositionReconcilePanel({
         ) : null}
 
         {data && data.items.length > 0 ? (
-          <button
-            type="button"
-            onClick={openSuCo}
-            className="h-11 w-full touch-manipulation rounded-xl border border-amber-200 bg-amber-50 text-xs font-semibold text-amber-900 hover:bg-amber-100"
+          <Link
+            href={cssdCatalogEditProposalHref({
+              kind: "BOM",
+              ma: data.maBo,
+              ten: data.tenBo,
+              targetId: boDungCuId,
+            })}
+            className="inline-flex h-11 w-full touch-manipulation items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-xs font-semibold text-amber-900 hover:bg-amber-100"
           >
-            Báo biến động bộ này
-          </button>
+            Đề nghị sửa thành phần danh mục
+          </Link>
         ) : null}
 
 
@@ -282,17 +281,6 @@ export default function CompositionReconcilePanel({
           </div>
         ) : null}
       </section>
-
-      <IncidentReportModal
-        isOpen={suCoOpen}
-        onClose={() => setSuCoOpen(false)}
-        station="DONG_GOI"
-        defaultGroup="INSTRUMENT"
-        initialMaQR={data?.maBo}
-        initialTypeId="INSTRUMENT_SET_RECONCILE"
-        quyTrinhId={quyTrinhId}
-        onSuccess={() => void fetchData()}
-      />
     </>
   );
 }

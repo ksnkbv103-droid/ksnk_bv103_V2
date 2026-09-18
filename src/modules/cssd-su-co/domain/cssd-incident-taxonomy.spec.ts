@@ -35,17 +35,15 @@ describe("cssd-incident-taxonomy", () => {
     expect(coerceInstrumentFormTypeId("INSTRUMENT_TRANSFER")).toBe(INSTRUMENT_MOVE_TYPE_ID);
     expect(coerceInstrumentFormTypeId("INSTRUMENT_REPLENISH")).toBe(INSTRUMENT_MOVE_TYPE_ID);
     expect(coerceInstrumentFormTypeId("INSTRUMENT_MOVE")).toBe(INSTRUMENT_MOVE_TYPE_ID);
-    expect(coerceInstrumentFormTypeId(SET_RECONCILE_TYPE_ID)).toBe(SET_RECONCILE_TYPE_ID);
+    expect(coerceInstrumentFormTypeId(SET_RECONCILE_TYPE_ID)).toBe(INSTRUMENT_PHYSICAL_DOOR_ID);
   });
 
   it("form options expose only 3 doors", () => {
     expect(instrumentFormTypeOptions().map((x) => x.code)).toEqual([
-      SET_RECONCILE_TYPE_ID,
       INSTRUMENT_PHYSICAL_DOOR_ID,
       INSTRUMENT_MOVE_TYPE_ID,
     ]);
     expect(INCIDENT_TYPE_PRESETS.INSTRUMENT.map((x) => x.code)).toEqual([
-      SET_RECONCILE_TYPE_ID,
       INSTRUMENT_PHYSICAL_DOOR_ID,
       INSTRUMENT_MOVE_TYPE_ID,
     ]);

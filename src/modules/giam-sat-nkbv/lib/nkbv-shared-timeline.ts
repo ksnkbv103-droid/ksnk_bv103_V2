@@ -38,7 +38,7 @@ export function daysBetween(d1Str: string, d2Str: string): number {
   }
 }
 
-/** Clinical IWP ±3 around index date — NOT for VAE / SSI / LabID / PedVAE / ENDO / AU. */
+/** Clinical IWP ±3 around index date — NOT for VAE / SSI / LabID / ENDO / AU. */
 export function clinicalIwp(indexDate: string): { start: string; end: string } {
   const idx = indexDate.slice(0, 10);
   return { start: subDays(idx, 3), end: addDays(idx, 3) };
@@ -127,7 +127,7 @@ export function clinicalRitEnd(doe: string): string {
   return addDays(doe.slice(0, 10), 13);
 }
 
-/** VAE / PedVAE 14-day Event Period from DOE (DOE = day 1). */
+/** VAE 14-day Event Period from DOE (DOE = day 1). */
 export function vaeEventPeriod(doe: string): { start: string; end: string } {
   const d = doe.slice(0, 10);
   return { start: d, end: addDays(d, 13) };

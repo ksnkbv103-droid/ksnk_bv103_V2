@@ -25,17 +25,6 @@ describe("nkbv-shared-secondary-bsi", () => {
     ).toBe(false);
   });
 
-  it("bans PedVAE secondary", () => {
-    const r = evaluateSecondaryBsi({
-      primarySite: "PEDVAE",
-      bloodCollectionDate: "2026-08-10",
-      sbapStart: "2026-08-01",
-      sbapEnd: "2026-08-20",
-      bloodOrganism: "E. coli",
-      organismsMatch: true,
-    });
-    expect(r.isSecondary).toBe(false);
-  });
 
   it("bans yeast blood secondary to UTI", () => {
     const r = evaluateSecondaryBsi({

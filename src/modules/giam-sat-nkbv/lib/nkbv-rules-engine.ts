@@ -45,7 +45,7 @@ export interface RuleEvaluationResult {
   reason: string;
 }
 
-/** Triệu chứng lâm sàng LCBI — người lớn (Phụ lục C: không dùng nhánh ≤1 tuổi tại BV103). */
+/** Triệu chứng lâm sàng LCBI (người lớn). */
 export function bsiHasClinicalSymptoms(data: BsiVerificationData): boolean {
   if (data.has_fever || data.has_chills || data.has_hypotension) return true;
   return Boolean(data.symptoms_window_7days);
@@ -73,7 +73,6 @@ export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResu
   } else if (data.pathogen_type === "COMMON_COMMENSAL") {
     if (data.commensal_culture_count >= 2 && data.commensal_drawn_separate && hasSx) {
       isLcbi = true;
-      // Phụ lục C: nhánh ≤1 tuổi (LCBI-3) không dùng tại BV103 — luôn LCBI_2.
       lcbiType = "LCBI_2";
     }
   }
@@ -319,19 +318,11 @@ export function evaluateVaeVap(
     };
   }
 
-  const pediatricBranch = age > 0 && age <= 12;
-  const infantBranch = age > 0 && age <= 1;
-  const gas = !!data.has_worsening_gas_exchange;
-  // ≤1 tuổi: suy trao đổi khí bắt buộc + ≥3 triệu chứng khác (gas không tính vào 3)
-  const localCount = infantBranch
-    ? data.respiratory_symptoms_count - (gas ? 1 : 0)
-    : data.respiratory_symptoms_count;
-  const needLocalPnu1 = pediatricBranch ? 3 : 2;
-  const hasSystemic =
-    infantBranch ||
-    derivePneuSystemic(data) ||
-    data.altered_mental_status_ge_70yo;
-  const infantGasOk = !infantBranch || gas;
+  // BV103: thuật toán người lớn.
+  const localCount = data.respiratory_symptoms_count;
+  const needLocalPnu1 = 2;
+  const hasSystemic = derivePneuSystemic(data) || data.altered_mental_status_ge_70yo;
+  const infantGasOk = true;
   const wideListMet =
     localCount >= 1 || !!data.has_hemoptysis || !!data.has_pleuritic_chest_pain;
 
@@ -388,11 +379,8 @@ export function evaluateVaeVap(
     return {
       is_positive: false,
       classification: "NO_EVENT",
-      reason: infantBranch
-        ? "Nhánh ≤1 tuổi: cần suy trao đổi khí + ≥3 triệu chứng lâm sàng (dòng riêng)."
-        : pediatricBranch
-          ? `Đạt hình ảnh nhưng thiếu triệu chứng (trẻ 1–12 tuổi cần ≥${needLocalPnu1} dấu hiệu).`
-          : "Đạt tiêu chuẩn hình ảnh học nhưng thiếu triệu chứng toàn thân hoặc ≥2 nhóm hô hấp CDC.",
+      reason:
+        "Đạt tiêu chuẩn hình ảnh học nhưng thiếu triệu chứng toàn thân hoặc ≥2 nhóm hô hấp CDC.",
     };
   }
 
@@ -497,7 +485,6 @@ export function evaluateUtiCauti(data: UtiVerificationData): RuleEvaluationResul
   const hasVoidingSymptom =
     !foleyBlockingVoiding &&
     (data.has_dysuria || Boolean(data.has_urgency) || Boolean(data.has_frequency));
-  // Phụ lục C: nhánh SUTI-2 / triệu chứng nhi ≤1 tuổi không dùng tại BV103.
   const hasAnySymptom =
     data.has_fever ||
     data.has_suprapubic_tenderness ||
@@ -625,7 +612,6 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
           : {}),
       }),
       procedureCode: data.loai_phau_thuat_nhsn,
-      isInfantLe1: data.is_infant_le1,
     });
     const genericOrgan =
       data.organ_space_purulent_drainage ||
@@ -782,7 +768,6 @@ export function evaluateCh17(data: Ch17VerificationData): RuleEvaluationResult {
     typeCode: code,
     evidence: normalizeCh17EvidenceFlags(data.chapter17_flags),
     procedureCode: data.procedure_code,
-    isInfantLe1: data.is_infant_le1,
   });
 
   if (!evalResult.met) {

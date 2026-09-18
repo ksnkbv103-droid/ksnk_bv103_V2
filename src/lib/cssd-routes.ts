@@ -28,6 +28,28 @@ export function cssdQuyTrinhBatchTabHref(): string {
  * D4 SSOT: legacy TRANSFER/REPLENISH/BROKEN/MISSING chỉ coerce → 3 cửa (SET_RECONCILE / PHYSICAL / MOVE).
  * URL mới không emit legacy; mã lịch sử sổ vẫn qua submit bridge.
  */
+export function cssdCatalogEditProposalHref(params: {
+  kind: "LOAI" | "BO" | "BOM";
+  ma?: string | null;
+  loai?: string | null;
+  ten?: string | null;
+  targetId?: string | null;
+  hint?: string | null;
+}): string {
+  const q = new URLSearchParams();
+  q.set("tab", "DE_NGHI");
+  q.set("kind", params.kind);
+  const ma = String(params.ma || params.loai || "").trim();
+  if (ma) q.set("ma", ma);
+  const ten = String(params.ten || "").trim();
+  if (ten) q.set("ten", ten);
+  const targetId = String(params.targetId || "").trim();
+  if (targetId) q.set("targetId", targetId);
+  const hint = String(params.hint || "").trim();
+  if (hint) q.set("note", hint);
+  return `${CSSD_ROUTES.dungCu}?${q.toString()}`;
+}
+
 export function cssdSuCoInstrumentHref(params?: {
   type?:
     | "INSTRUMENT_SET_RECONCILE"
@@ -41,6 +63,16 @@ export function cssdSuCoInstrumentHref(params?: {
   loai?: string | null;
   chiTiet?: string | null;
 }): string {
+  const rawType = String(params?.type || "").trim();
+  // A 2026-09-18: «Đổi danh mục» không còn cửa sự cố → đề nghị catalog.
+  if (rawType === "INSTRUMENT_SET_RECONCILE") {
+    return cssdCatalogEditProposalHref({
+      kind: "BOM",
+      ma: params?.ma,
+      loai: params?.loai,
+      hint: params?.chiTiet,
+    });
+  }
   const q = new URLSearchParams();
   q.set("group", "INSTRUMENT");
   if (params?.type) q.set("type", coerceInstrumentFormTypeId(params.type));

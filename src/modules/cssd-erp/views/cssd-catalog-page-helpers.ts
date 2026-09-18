@@ -1,6 +1,6 @@
 import type { Catalog } from "../types/catalog.types";
 
-export type CatalogTab = "BO" | "CHI_TIET" | "LOAI" | "HOA_CHAT" | "HISTORY";
+export type CatalogTab = "BO" | "CHI_TIET" | "LOAI" | "HOA_CHAT" | "HISTORY" | "DE_NGHI";
 
 export function filterCatalogRows(catalog: Catalog, q: string) {
   const lowerQ = q.trim().toLowerCase();

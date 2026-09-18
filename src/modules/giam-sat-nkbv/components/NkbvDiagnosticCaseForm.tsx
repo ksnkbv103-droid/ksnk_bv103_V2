@@ -655,7 +655,7 @@ export default function NkbvDiagnosticCaseForm({
           />
         ) : (
           <p className="text-sm text-slate-600">
-            Với VAE: Secondary chỉ xét khi đạt PVAP (cấy máu trong Event Period). PedVAE cấm
+            Với VAE: Secondary chỉ xét khi đạt PVAP (cấy máu trong Event Period). Nhi khoa ngoài phạm vi BV103
             Secondary BSI.
           </p>
         )}

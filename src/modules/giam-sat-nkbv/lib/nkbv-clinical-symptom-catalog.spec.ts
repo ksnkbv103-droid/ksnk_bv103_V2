@@ -48,7 +48,7 @@ describe("nkbv-clinical-symptom-catalog", () => {
     expect(criteriaKeyToFormField("chills")).toBe("has_chills");
     expect(criteriaKeyToFormField("hypotension")).toBe("has_hypotension");
     expect(criteriaKeyToFormField("dysuria")).toBe("has_dysuria");
-    expect(criteriaKeyToFormField("infant_apnea")).toBe("has_infant_apnea");
+    expect(criteriaKeyToFormField("infant_apnea")).toBeNull();
     expect(isVoidingCriteriaKey("dysuria")).toBe(true);
     expect(isVoidingCriteriaKey("fever")).toBe(false);
   });
@@ -81,7 +81,7 @@ describe("nkbv-clinical-symptom-catalog", () => {
     expect(bsi).toContain("has_chills");
     expect(bsi).toContain("has_hypotension");
     const uti = doeFormFieldsForChecklist("UTI");
-    expect(uti).toContain("has_infant_lethargy");
+    expect(uti).not.toContain("has_infant_lethargy");
     expect(doeFormFieldsForSsiDepth("SUPERFICIAL")).toContain("superficial_purulent_drainage");
   });
 

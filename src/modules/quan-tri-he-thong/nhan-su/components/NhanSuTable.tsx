@@ -7,10 +7,17 @@ import NhanSuForm from "./NhanSuForm";
 import { useMasterDataCrud } from "@/hooks/useMasterDataCrud";
 import { useTableActionUi } from "@/hooks/useTableActionUi";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
-import { Plus, KeyRound } from "lucide-react";
+import { Plus, KeyRound, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
 import { usePermission } from "@/hooks/usePermission";
 import { provisionStaffAuthAccount } from "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/tai-khoan-nhan-su.actions";
+import {
+  approveAccountAccessRequest,
+  listPendingAccountRequests,
+  rejectAccountAccessRequest,
+} from "../actions/account-access-request.actions";
+import { isPendingAccountRequest, readAccountRequest } from "../lib/account-access-request";
+import StaffAuthPasswordDialog from "./StaffAuthPasswordDialog";
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { quanTriTableChrome as TC, quanTriTableHeaders as TH } from "../../lib/quan-tri-table-chrome";
 import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
@@ -51,6 +58,22 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
   const [refreshKey, setRefreshKey] = useState(0);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [pendingOnly, setPendingOnly] = useState(false);
+  const [authDialog, setAuthDialog] = useState<{
+    mode: "approve_request" | "approve_reset";
+    staff: NhanSu;
+  } | null>(null);
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (new URLSearchParams(window.location.search).get("pending") === "1") {
+        setPendingOnly(true);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const filterKey = useMemo(
     () =>
@@ -62,8 +85,9 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
         chucDanhFilter,
         vaiTroFilter,
         ngheNghiepFilter,
+        pendingOnly ? "1" : "0",
       ].join("\0"),
-    [search, khoaFilter, toFilter, chucVuFilter, chucDanhFilter, vaiTroFilter, ngheNghiepFilter],
+    [search, khoaFilter, toFilter, chucVuFilter, chucDanhFilter, vaiTroFilter, ngheNghiepFilter, pendingOnly],
   );
 
   const [syncedFilterKey, setSyncedFilterKey] = useState(filterKey);
@@ -106,25 +130,99 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
     }
   };
 
+  const openEditPrefill = (row: NhanSu) => {
+    setEditingItem(row);
+    setIsFormOpen(true);
+  };
+
+  const handleApproveSubmit = async (payload: {
+    password: string;
+    confirmActorPassword?: string;
+  }) => {
+    if (!authDialog) return;
+    const staffId = authDialog.staff.id;
+    const kind = readAccountRequest(authDialog.staff.extra_data)?.kind || "REQUEST";
+    setAuthSubmitting(true);
+    try {
+      if (kind === "RESET" || authDialog.mode === "approve_reset") {
+        toast.error("Dùng đặt lại MK trên hồ sơ cho yêu cầu RESET.");
+        return;
+      }
+      const actorPw = String(payload.confirmActorPassword || "").trim();
+      if (!actorPw) {
+        toast.error("Nhập mật khẩu đăng nhập hiện tại của bạn để xác nhận.");
+        return;
+      }
+      const res = await approveAccountAccessRequest({
+        staffId,
+        password: payload.password,
+        confirmActorPassword: actorPw,
+      });
+      if (!res.success) {
+        toast.error(res.error || "Duyệt thất bại.");
+        return;
+      }
+      toast.success("Đã duyệt và tạo tài khoản.");
+      setAuthDialog(null);
+      setRefreshKey((k) => k + 1);
+    } finally {
+      setAuthSubmitting(false);
+    }
+  };
+
+  const handleRejectPending = async (row: NhanSu) => {
+    const reason = window.prompt(`Lý do từ chối phiếu của ${row.ho_ten}:`);
+    if (reason == null) return;
+    const res = await rejectAccountAccessRequest({ staffId: row.id, reason });
+    if (!res.success) {
+      toast.error(res.error || "Từ chối thất bại.");
+      return;
+    }
+    toast.success("Đã từ chối phiếu.");
+    setRefreshKey((k) => k + 1);
+  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const res = await getNhanSus({
-      search,
-      khoaId: khoaFilter,
-      toId: toFilter,
-      chucVuId: chucVuFilter,
-      chucDanhId: chucDanhFilter,
-      vaiTroId: vaiTroFilter,
-      ngheNghiepId: ngheNghiepFilter,
-      page,
-      pageSize: NHAN_SU_PAGE_SIZE,
-    });
-    if (res.success) {
-      setData(res.data || []);
-      setTotalCount(res.totalCount ?? res.total ?? 0);
+    try {
+      if (pendingOnly) {
+        const res = await listPendingAccountRequests({ page, pageSize: NHAN_SU_PAGE_SIZE });
+        if (res.success) {
+          const rows = (res.rows || []) as NhanSu[];
+          const q = search.trim().toLowerCase();
+          const filtered = q
+            ? rows.filter((r) => {
+                const blob = `${r.ma_nv || ""} ${r.ho_ten || ""} ${r.email || ""}`.toLowerCase();
+                return blob.includes(q);
+              })
+            : rows;
+          setData(filtered);
+          setTotalCount(q ? filtered.length : res.total ?? filtered.length);
+        } else {
+          toast.error(res.error || "Không tải được phiếu chờ duyệt.");
+          setData([]);
+          setTotalCount(0);
+        }
+        return;
+      }
+      const res = await getNhanSus({
+        search,
+        khoaId: khoaFilter,
+        toId: toFilter,
+        chucVuId: chucVuFilter,
+        chucDanhId: chucDanhFilter,
+        vaiTroId: vaiTroFilter,
+        ngheNghiepId: ngheNghiepFilter,
+        page,
+        pageSize: NHAN_SU_PAGE_SIZE,
+      });
+      if (res.success) {
+        setData(res.data || []);
+        setTotalCount(res.totalCount ?? res.total ?? 0);
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [
     search,
     khoaFilter,
@@ -134,6 +232,7 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
     vaiTroFilter,
     ngheNghiepFilter,
     page,
+    pendingOnly,
   ]);
 
   useEffect(() => {
@@ -267,7 +366,47 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
           <span className="text-[11px] font-medium text-slate-600">
             {i.vai_tro_he_thong_ksnk || "— vai trò —"}
           </span>
-          {canProvisionTk && !i.auth_user_id ? (
+          {isPendingAccountRequest(i.extra_data) ? (
+            <div className="mt-0.5 flex flex-col gap-1">
+              <span className="w-fit rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
+                Chờ duyệt
+              </span>
+              {allowEdit ? (
+                <button
+                  type="button"
+                  onClick={() => openEditPrefill(i)}
+                  className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Sửa hồ sơ
+                </button>
+              ) : null}
+              {canProvisionTk ? (
+                <>
+                  {(readAccountRequest(i.extra_data)?.kind || "REQUEST") === "REQUEST" ? (
+                    <button
+                      type="button"
+                      onClick={() => setAuthDialog({ mode: "approve_request", staff: i })}
+                      className="inline-flex h-8 items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2 text-[11px] font-semibold text-emerald-900 hover:bg-emerald-100"
+                    >
+                      <KeyRound size={12} aria-hidden />
+                      Duyệt cấp TK
+                    </button>
+                  ) : (
+                    <span className="text-[10px] font-medium text-slate-500">
+                      RESET — dùng Đặt lại MK trên hồ sơ Tài khoản
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => void handleRejectPending(i)}
+                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-rose-200 bg-white px-2 text-[11px] font-semibold text-rose-700 hover:bg-rose-50"
+                  >
+                    Từ chối
+                  </button>
+                </>
+              ) : null}
+            </div>
+          ) : canProvisionTk && !i.auth_user_id ? (
             <button
               type="button"
               disabled={i.is_active === false || provisioningId === i.id}
@@ -290,8 +429,23 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
 
   return (
     <div className="space-y-[var(--bv103-space-3)] animate-in fade-in duration-700">
-      {(allowImport || allowCreate) && (
-        <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            setPendingOnly((v) => !v);
+            setPage(1);
+          }}
+          className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold ${
+            pendingOnly
+              ? "border-amber-300 bg-amber-50 text-amber-950"
+              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+          }`}
+        >
+          <ClipboardList size={14} aria-hidden />
+          {pendingOnly ? "Đang lọc: Chỉ chờ duyệt" : "Chỉ chờ duyệt"}
+        </button>
+        {(allowImport || allowCreate) ? (
           <div className="flex flex-wrap items-center justify-end gap-2">
             {allowImport ? (
               <ImportExportToolbar
@@ -317,8 +471,8 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
               </button>
             ) : null}
           </div>
-        </div>
-      )}
+        ) : <span />}
+      </div>
 
       <div className="min-h-[500px] min-w-0">
         <AdvancedDataTable
@@ -344,6 +498,19 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
           initialData={editingItem}
           onSuccess={() => { setIsFormOpen(false); setRefreshKey((k) => k + 1); }}
           onCancel={() => setIsFormOpen(false)}
+        />
+      ) : null}
+      {authDialog ? (
+        <StaffAuthPasswordDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setAuthDialog(null);
+          }}
+          mode={authDialog.mode}
+          staffName={authDialog.staff.ho_ten || authDialog.staff.ma_nv || "nhân sự"}
+          submitting={authSubmitting}
+          requireReauth
+          onSubmit={(payload) => void handleApproveSubmit(payload)}
         />
       ) : null}
     </div>

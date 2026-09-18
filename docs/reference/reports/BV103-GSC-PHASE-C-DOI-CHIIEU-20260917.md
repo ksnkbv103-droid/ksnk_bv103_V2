@@ -1,3 +1,7 @@
+> ⚠️ **SUPERSEDED (2026-09-17)** — Không dùng làm plan đang hiệu lực.  
+> **Plan hiệu lực:** [`BV103-GIAM-SAT-CHIEN-LUOC-TONG-THE-20260917.md`](./BV103-GIAM-SAT-CHIEN-LUOC-TONG-THE-20260917.md) (+ rà rối [`BV103-RA-SOAT-DO-ROI-UI-DOCS-20260917.md`](./BV103-RA-SOAT-DO-ROI-UI-DOCS-20260917.md)).  
+> File này giữ lịch sử.
+
 # Phase C — Đối chiếu % form · lịch sử · in · thống kê
 
 **Ngày:** 2026-09-17 · **PO:** Nghĩa · **LÁT:** C (code verify)  

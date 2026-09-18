@@ -38,9 +38,9 @@ export default function SupervisionModeNav({ module, formHref, ariaLabel }: Prop
     const FormIcon = module === "vst" ? Stethoscope : ClipboardList;
 
     return [
-      { id: "form", label: "Nhập phiên", mobileLabel: "Nhập", icon: FormIcon, href: form },
+      { id: "form", label: "Nhập", mobileLabel: "Nhập", icon: FormIcon, href: form },
       { id: "history", label: "Lịch sử", mobileLabel: "Lịch sử", icon: History, href: history },
-      { id: "analytics", label: "Thống kê", mobileLabel: "TK", icon: BarChart2, href: analytics },
+      { id: "analytics", label: "Thống kê", mobileLabel: "Thống kê", icon: BarChart2, href: analytics },
     ];
   }, [module, formHref, pathname]);
 

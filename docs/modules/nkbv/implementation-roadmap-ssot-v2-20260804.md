@@ -19,7 +19,6 @@
 | §6 CLABSI | `evaluateBsiClabsi` + `BsiClinicalSubForm` | Xem gap catalog P0 | **W2** |
 | §7 CAUTI | `evaluateUtiCauti` + UTI form | Gap catalog | **W2** |
 | §8 VAE | `evaluateVaeVap` + vent compute | Gap catalog | **W2** |
-| §9 PedVAE | — | Deferred W5 | Dừng |
 | §10 PNEU | pathway PNEU | Gap catalog | **W2** |
 | §11 SSI | `evaluateSsi` | Gap catalog | **W2** |
 | §12–13 IAB/ENDO | — | Deferred W5 | Dừng |

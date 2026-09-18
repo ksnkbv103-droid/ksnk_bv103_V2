@@ -80,10 +80,6 @@ export function prepopulateBsiData(row: Record<string, any>, existing: Record<st
     has_fever: existing.has_fever ?? false,
     has_chills: existing.has_chills ?? false,
     has_hypotension: existing.has_hypotension ?? false,
-    is_infant_le1: existing.is_infant_le1 ?? false,
-    has_hypothermia: existing.has_hypothermia ?? false,
-    has_apnea: existing.has_apnea ?? false,
-    has_bradycardia: existing.has_bradycardia ?? false,
     cvc_placed_days: existing.cvc_placed_days ?? 0,
     cvc_active_on_event: existing.cvc_active_on_event ?? false,
     device_placed_date: existing.device_placed_date,
@@ -152,8 +148,6 @@ export function prepopulateVaeData(row: Record<string, any>, existing: Record<st
     has_tachypnea: existing.has_tachypnea ?? false,
     has_hemoptysis: existing.has_hemoptysis ?? false,
     has_pleuritic_chest_pain: existing.has_pleuritic_chest_pain ?? false,
-    has_infant_respiratory_distress: existing.has_infant_respiratory_distress ?? false,
-    has_infant_hr_abnormal: existing.has_infant_hr_abnormal ?? false,
     microbiology_evidence: existing.microbiology_evidence || "NONE",
     pneu_lab_specimen:
       existing.pneu_lab_specimen ??
@@ -215,12 +209,6 @@ export function prepopulateUtiData(row: Record<string, any>, existing: Record<st
     has_dysuria: existing.has_dysuria ?? false,
     has_urgency: existing.has_urgency ?? false,
     has_frequency: existing.has_frequency ?? false,
-    is_infant_le1: existing.is_infant_le1 ?? false,
-    has_infant_hypothermia: existing.has_infant_hypothermia ?? false,
-    has_infant_apnea: existing.has_infant_apnea ?? false,
-    has_infant_bradycardia: existing.has_infant_bradycardia ?? false,
-    has_infant_lethargy: existing.has_infant_lethargy ?? false,
-    has_infant_vomiting: existing.has_infant_vomiting ?? false,
     has_blood_culture_positive_in_window: existing.has_blood_culture_positive_in_window ?? false,
     blood_urine_pathogen_matches: existing.blood_urine_pathogen_matches ?? false,
   };

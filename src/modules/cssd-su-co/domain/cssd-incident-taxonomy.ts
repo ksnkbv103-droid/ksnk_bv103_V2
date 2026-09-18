@@ -44,11 +44,11 @@ export function isAccountabilityCause(code?: string | null): boolean {
 }
 
 export const INCIDENT_GROUP_LABEL: Record<IncidentGroup, string> = {
-  PROCESS: "An toàn QT (sự cố quy trình)",
-  INSTRUMENT: "Dụng cụ (biến động)",
-  CHEMICAL: "An toàn HC (sự cố hóa chất)",
-  EQUIPMENT: "An toàn máy (sự cố thiết bị)",
-  OTHER: "An toàn khác (sự cố khác)",
+  PROCESS: "Quy trình (an toàn QT)",
+  INSTRUMENT: "Biến động dụng cụ",
+  CHEMICAL: "Hóa chất (an toàn HC)",
+  EQUIPMENT: "Máy (an toàn thiết bị)",
+  OTHER: "Khác",
 };
 
 const PROCESS_HINTS = [
@@ -102,8 +102,8 @@ export const INCIDENT_TYPE_PRESETS: Record<IncidentGroup, IncidentPreset[]> = {
     { code: "PROCESS_BI_POSITIVE", label: "Chỉ thị sinh học (BI) dương tính" },
   ],
   /** D2: chỉ 3 cửa UI. D4: legacy TRANSFER/REPLENISH/BROKEN/MISSING không đưa vào picker — giữ mã sổ qua coerce + submit bridge. */
+  /** A 2026-09-18: chỉ Hỏng/Mất + Chuyển. Đổi danh mục master → /cssd-dung-cu DE_NGHI. */
   INSTRUMENT: [
-    { code: SET_RECONCILE_TYPE_ID, label: "Đổi danh mục" },
     { code: INSTRUMENT_PHYSICAL_DOOR_ID, label: "Hỏng/Mất" },
     { code: INSTRUMENT_MOVE_TYPE_ID, label: "Chuyển kho·bộ" },
   ],
@@ -129,9 +129,21 @@ export const INCIDENT_STATION_OPTIONS: Array<{ value: Station; label: string }> 
   { value: "CAP_PHAT", label: "Cấp phát" },
 ];
 
-/** Three instrument doors on form (D2); D4 legacy not exposed in picker. */
+/** Biến động: 2 cửa (A 2026-09-18). Legacy SET_RECONCILE không còn picker. */
 export function instrumentFormTypeOptions(): IncidentPreset[] {
   return INCIDENT_TYPE_PRESETS.INSTRUMENT;
+}
+
+export const SAFETY_INCIDENT_GROUPS: IncidentGroup[] = ["PROCESS", "CHEMICAL", "EQUIPMENT", "OTHER"];
+
+export type SuCoHub = "SAFETY" | "INSTRUMENT";
+
+export function hubOfIncidentGroup(group: IncidentGroup): SuCoHub {
+  return group === "INSTRUMENT" ? "INSTRUMENT" : "SAFETY";
+}
+
+export function defaultGroupForHub(hub: SuCoHub): IncidentGroup {
+  return hub === "INSTRUMENT" ? "INSTRUMENT" : "PROCESS";
 }
 
 /** Deep-link / bookmark legacy type ids — coerce → 3 cửa; không xóa mã lịch sử sổ. */
@@ -148,11 +160,16 @@ export function coerceInstrumentFormTypeId(typeId?: string | null): string {
   if (code === INSTRUMENT_MOVE_TYPE_ID || code === "INSTRUMENT_TRANSFER" || code === "INSTRUMENT_REPLENISH") {
     return INSTRUMENT_MOVE_TYPE_ID;
   }
-  if (code === INSTRUMENT_PHYSICAL_DOOR_ID || code === "INSTRUMENT_BROKEN" || code === "INSTRUMENT_MISSING") {
+  if (
+    code === INSTRUMENT_PHYSICAL_DOOR_ID ||
+    code === "INSTRUMENT_BROKEN" ||
+    code === "INSTRUMENT_MISSING" ||
+    code === SET_RECONCILE_TYPE_ID
+  ) {
+    // A: SET_RECONCILE không còn cửa form — bookmark cũ mở Hỏng/Mất; catalog → cssdCatalogEditProposalHref.
     return INSTRUMENT_PHYSICAL_DOOR_ID;
   }
-  if (code === SET_RECONCILE_TYPE_ID) return SET_RECONCILE_TYPE_ID;
-  return SET_RECONCILE_TYPE_ID;
+  return INSTRUMENT_PHYSICAL_DOOR_ID;
 }
 
 export function resolveInstrumentFormSubmitTypeId(typeId?: string | null): string {

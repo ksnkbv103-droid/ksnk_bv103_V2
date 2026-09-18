@@ -1,3 +1,7 @@
+> **⚠️ LEGACY PRE-CUTOVER (2026-09-17)** — master tiêu chí thời 51 mẫu.  
+> **Không seed từ file này.** SSOT triển khai: `canonical-36.md` + `docs/modules/giam-sat/bang-kiem-overview.md`.  
+> Mã chỉ có ở đây (vd BM.07.01) **không** thuộc bộ 36 đang chạy.
+
 Item\_ID,Template\_Code,Section\_Name,Item\_Text,Data\_Type,Is\_Critical,Allow\_NA,Display\_Order
 
 1001,BM.07.01,Chỉ định,"Cơ hội 1: TRƯỚC KHI tiếp xúc người bệnh",BOOLEAN,FALSE,FALSE,1

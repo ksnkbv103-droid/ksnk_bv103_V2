@@ -5,7 +5,6 @@
 > **Tên sự kiện / cửa sổ:** Phụ lục E (file trên) — **không** lẫn với file này  
 > **Runtime triệu chứng 4 hội chứng:** `nkbv-clinical-symptom-catalog.ts` · doc [`investigation-forms/02-clinical-symptom-catalog.md`](investigation-forms/02-clinical-symptom-catalog.md)  
 > **Runtime Ch.17:** `nkbv-ch17-evidence-catalog.ts` (nhóm: symptom / micro / lab / imaging / pathology / serology / clinical_note)  
-> **Không sửa `src/` trong đợt giấy này.** Người lớn. Không PedVAE / LCBI-3 / SUTI-2.
 
 **Câu PO:** thiếu từ điển yếu tố thì engine, timeline và phiếu sẽ mỗi nơi một tên — **đúng**. File này khóa **các nguyên tử** (triệu chứng, xét nghiệm, CĐHA, dụng cụ, loại trừ) cho từng loại nhiễm khuẩn.
 
@@ -46,7 +45,6 @@ Gõ trên timeline → ghi BA bằng `criteria_key`. Tạo phiếu → map sang 
 
 ## 2. BSI / LCBI / CLABSI (Ch.4)
 
-Cửa sổ: **IWP**. Secondary **trước** CLABSI. LCBI-3: không dùng.
 
 | id | Loại | name_vi | Ngưỡng / ghi chú | Lớp | DOE | App | Map |
 |----|------|---------|------------------|------|-----|-----|-----|
@@ -89,7 +87,6 @@ Cửa sổ: **IWP**. Yeast không thỏa. USI ≠ bảng này.
 | `dev.iuc_foley` | DEV | Foley niệu đạo–bàng quang | >2 ngày + DOE/DOE−1 → CAUTI | L1 | — | wired | Registry |
 | `lab.blood_match_urine` | LAB | Máu cùng khuẩn (không yeast) | ABUTI nếu không có SX SUTI | L2 | — | wired | SBAP match |
 | `img.*` | IMG | — | **Không** tiêu chí UTI nước tiểu | — | — | Drop | — |
-| `sx.uti_infant_*` | SX | Nhánh ≤1 tuổi | CDC có | — | — | **không dùng** | — |
 
 CĐHA thận/khoang quanh thận → **USI** (Ch.17), không CAUTI.
 
@@ -200,7 +197,6 @@ Không nhét vào 4 hội chứng. Mỗi **mã site** có bộ nguyên tử tron
 
 `img_equivocal` + `abx_note_site_specific` = clinical correlation (Ch.16) — dùng chung nhiều site.
 
-Nhánh ≤1 tuổi trong catalog code: **không dùng** tại BV103 — ẩn UI, không xóa id.
 
 Site chưa `wired` trên lưới BA: nhập lúc Organ/Space hoặc form Ch.17; **id vẫn khóa** trước khi vẽ ô.
 

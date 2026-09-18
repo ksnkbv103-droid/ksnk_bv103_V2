@@ -3,6 +3,10 @@
 import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyAnyPermission, verifyPermission } from "@/lib/server-permission";
 import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
+import {
+  applyHeatSplitAfterLoaiDowngrade,
+  formatHeatSplitToast,
+} from "@/lib/master-data/cssd-heat-split-apply";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
 import {
   applyResolvedTramToLoaiSpecs,
@@ -161,9 +165,39 @@ export async function saveLoaiDungCuAction(input: LoaiDungCuPayload) {
     const msg = e instanceof Error ? e.message : String(e);
     return { success: false, error: `Không đọc được danh mục trạm CSSD: ${msg}` };
   }
+  let prevIsChiuNhiet: boolean | null = null;
+  if (id) {
+    const { data: prev, error: prevErr } = await supabase
+      .from("cssd_dm_loai_dung_cu")
+      .select("is_chiu_nhiet")
+      .eq("id", id)
+      .maybeSingle();
+    if (prevErr) return { success: false, error: prevErr.message };
+    if (prev && typeof (prev as { is_chiu_nhiet?: boolean }).is_chiu_nhiet === "boolean") {
+      prevIsChiuNhiet = Boolean((prev as { is_chiu_nhiet?: boolean }).is_chiu_nhiet);
+    }
+  }
+
   const saved = await upsertMasterRow("cssd_dm_loai_dung_cu", id, payload);
   if (!saved.success) return saved;
-  return { ...saved, warning: tramWarning };
+
+  let heatSplitNote: string | undefined;
+  if (id) {
+    try {
+      const splitRes = await applyHeatSplitAfterLoaiDowngrade(
+        supabase,
+        id,
+        prevIsChiuNhiet,
+        Boolean(payload.is_chiu_nhiet),
+      );
+      heatSplitNote = formatHeatSplitToast(splitRes) || undefined;
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      heatSplitNote = `Đã lưu loại nhưng tách bộ tự động lỗi: ${msg}`;
+    }
+  }
+
+  return { ...saved, warning: tramWarning, heatSplitNote };
 }
 
 export async function toggleLoaiDungCuStatusAction(id: string, currentStatus: boolean) {

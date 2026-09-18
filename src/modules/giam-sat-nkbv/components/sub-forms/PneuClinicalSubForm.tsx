@@ -158,7 +158,7 @@ export default function PneuClinicalSubForm({
             disabled={!allowedEdit || ageFromDob != null}
             onChange={(e) => {
               const raw = parseInt(e.target.value) || 0;
-              // Thiếu DOB: không cho nhập tuổi nhi mở nhánh PNEU trẻ
+              // BV103: chỉ giám sát người lớn
               onChange({
                 ...form,
                 patient_age: coerceAdultPatientAge(null, raw),
@@ -172,22 +172,10 @@ export default function PneuClinicalSubForm({
             </p>
           ) : (
             <p className="mt-1 text-[11px] text-slate-500">
-              Chưa có ngày sinh → mặc định nhánh người lớn (tuổi &lt; 13 bị ép ≥ 45).
+              BV103 chỉ giám sát người lớn (tuổi &lt; 13 bị ép ≥ 45).
             </p>
           )}
-          {ageBranch === "INFANT_LE1" ? (
-            <p className="mt-1 text-[11px] text-violet-800">
-              Nhánh ≤1 tuổi: ưu tiên thở nhanh / thở khó / suy trao đổi khí + toàn thân trong IWP (checklist tối thiểu).
-            </p>
-          ) : ageBranch === "CHILD_1_12" ? (
-            <p className="mt-1 text-[11px] text-violet-800">
-              Nhánh 1–12 tuổi: hình ảnh + toàn thân + ≥2 triệu chứng hô hấp tại chỗ (gồm thở khó/thở nhanh) trong IWP.
-            </p>
-          ) : (
-            <p className="mt-1 text-[11px] text-slate-600">
-              Nhánh người lớn: hình ảnh + toàn thân (≥1) + hô hấp tại chỗ (≥2) trong IWP. Lú lẫn chỉ khi ≥70 tuổi.
-            </p>
-          )}
+          
         </div>
       </NkbvFormSection>
 
@@ -491,15 +479,6 @@ export default function PneuClinicalSubForm({
             <NkbvCatalogSymptomRows
               rows={formSymptomRowsFor("PNEU").filter((r) => {
                 if (!r.pneu_resp_line) return false;
-                if (ageBranch === "INFANT_LE1") {
-                  return (
-                    r.form_field === "has_dyspnea" ||
-                    r.form_field === "has_tachypnea" ||
-                    r.form_field === "has_worsening_gas_exchange" ||
-                    r.form_field === "has_rales_or_wheeze" ||
-                    r.form_field === "has_purulent_sputum_symptom"
-                  );
-                }
                 return true;
               })}
               form={form as unknown as Record<string, unknown>}
@@ -512,23 +491,7 @@ export default function PneuClinicalSubForm({
               iwpStart={iwpStart}
               iwpEnd={iwpEnd}
             />
-            {ageBranch === "INFANT_LE1" ? (
-              <>
-                <p className="bv103-type-label text-violet-500">Bổ sung ≤1 tuổi</p>
-                <NkbvCatalogSymptomRows
-                  rows={formSymptomRowsFor("PNEU").filter((r) => r.age_gate === "le1")}
-                  form={form as unknown as Record<string, unknown>}
-                  onToggle={(field, checked) =>
-                    onChange(syncRespCount(form, { [field]: checked } as Partial<VaeVerificationData>))
-                  }
-                  symptomDates={symptomDates}
-                  onSymptomDateChange={onSymptomDateChange}
-                  allowedEdit={allowedEdit}
-                  iwpStart={iwpStart}
-                  iwpEnd={iwpEnd}
-                />
-              </>
-            ) : null}
+            
             {showPnu3Sx ? (
               <>
                 <p className="bv103-type-label text-amber-600">PNU3 bổ sung</p>
@@ -552,8 +515,8 @@ export default function PneuClinicalSubForm({
             ) : null}
             <p className="text-[11px] text-slate-500">
               Đếm nhóm hô hấp CDC: <strong>{form.respiratory_symptoms_count}</strong> / cần ≥
-              {ageBranch === "INFANT_LE1" || ageBranch === "CHILD_1_12" ? "3 (nhánh trẻ)" : "2"}
-              {ageBranch === "INFANT_LE1" ? " · kèm suy trao đổi khí" : ""}
+              
+              
               {" "}
               (khó thở + thở nhanh = 1 nhóm)
             </p>

@@ -11,7 +11,9 @@ export type AccountRequestMeta = {
   /** REQUEST = xin cấp TK; RESET = xin admin đặt lại MK. Default REQUEST for legacy. */
   kind?: AccountRequestKind;
   ly_do?: string;
+  /** Legacy free-text; prefer chuc_danh_id. */
   chuc_danh?: string;
+  chuc_danh_id?: string;
   submitted_at?: string;
   reject_reason?: string;
   rejected_at?: string;

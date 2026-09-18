@@ -10,7 +10,6 @@ flowchart TD
   fungi{Nấm hô hấp cộng đồng?}
   class{Recognized hay Commensal?}
   l2{≥2 lần riêng + triệu chứng IWP?}
-  infant{≤1 tuổi?}
   sec{Ổ tại chỗ + SBAP + match?}
   cvc{CVC ≥2d + DOE/DOE-1?}
   mbi{MBI criteria?}
@@ -24,8 +23,6 @@ flowchart TD
   class -->|Recognized| sec
   class -->|Commensal| l2
   l2 -->|Không| contam
-  l2 -->|Có| infant
-  infant --> sec
   sec -->|Có| secondary
   sec -->|Không| cvc
   cvc -->|Có| mbi
@@ -42,7 +39,6 @@ flowchart TD
 | `is_fungi_respiratory` | L1 | Có | Gate loại trừ |
 | `commensal_culture_count` + `commensal_drawn_separate` | L2 | Có | Gate Commensal |
 | `has_fever` / `has_chills` / `has_hypotension` + ngày | L2 | Có | LCBI 2 |
-| `is_infant_le1` + hypothermia/apnea/bradycardia | L2 | Có | LCBI 3 tối thiểu |
 | CVC dates / days / active | L1/Computed | Có | Prefill Registry |
 | `is_neutropenia` / HSCT / ANC≥2d | L2 | Partial | MBI |
 | `is_intestinal_pathogen` | L2 | Có | MBI path |

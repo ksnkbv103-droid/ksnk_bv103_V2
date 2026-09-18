@@ -8,7 +8,7 @@ export type Ch17Node =
   | { kind: "all"; of: readonly Ch17Node[] }
   | { kind: "any"; of: readonly Ch17Node[] }
   | { kind: "atLeast"; n: number; of: readonly Ch17Node[] }
-  | { kind: "ageGate"; age: "INFANT_LE1" | "OVER_1Y"; of: Ch17Node }
+  | { kind: "ageGate"; age: "OVER_1Y"; of: Ch17Node }
   | { kind: "procedureGate"; procedures: readonly string[]; of: Ch17Node };
 
 export type Ch17Criterion = {
@@ -80,7 +80,7 @@ export function evalCh17Node(node: Ch17Node, ctx: Ch17EvalContext): NodeEval {
     case "ageGate": {
       const infant = !!ctx.isInfantLe1;
       const pass =
-        (node.age === "INFANT_LE1" && infant) || (node.age === "OVER_1Y" && !infant);
+        (node.age === "OVER_1Y" && !infant);
       if (!pass) return { ok: false, missing: [] };
       return evalCh17Node(node.of, ctx);
     }

@@ -54,7 +54,6 @@ flowchart TD
 3. **IWP** = Index ± 3 ngày lịch.
 4. **Lab gate** trên Index: ≤2 loài; ≥1 vi khuẩn ≥10⁵ CFU/ml; không chỉ nấm/ký sinh; xử lý yeast+bacterium theo §2.1.
 5. Có ≥1 triệu chứng SUTI hợp lệ ∈ IWP?
-   - **Có** → Foley Eligible? → **CAUTI_SUTI** hoặc **SUTI** (Non-CAUTI); nhánh ≤1 tuổi = SUTI 2.
    - **Không** → máu khớp ∈ **IWP**? → **ABUTI** (+ CAUTI nếu Foley Eligible); không thì ASB.
 6. **DOE** = ngày sớm nhất của yếu tố tiêu chuẩn ∈ IWP (sx hoặc cấy đạt).
 7. **SBAP** = `[Index−3 … DOE+13]`; sau khi UTI đạt, máu ∈ SBAP + match → Secondary BSI (Candida máu sau UTI **không** Secondary).
@@ -86,7 +85,6 @@ flowchart TD
 
 **Có Foley trên người:** cấm dùng urgency / frequency / dysuria làm tiêu chuẩn.
 
-### 2.3 SUTI 2 (≤1 tuổi)
 
 ≥1: sốt >38 hoặc hạ thân nhiệt <36; ngưng thở; chậm tim; lì bì; nôn; ấn đau trên xương mu (không nguyên nhân khác).
 

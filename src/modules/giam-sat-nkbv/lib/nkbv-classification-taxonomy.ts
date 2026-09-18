@@ -21,14 +21,14 @@ export const NKBV_BSI_CLASSIFICATIONS = [
 ] as const;
 
 /** Classification dương tính nhóm UTI. */
+/** Classification UTI đang dùng (người lớn). */
 export const NKBV_UTI_CLASSIFICATIONS = [
   "CAUTI_SUTI",
-  "CAUTI_SUTI_2",
   "CAUTI_ABUTI",
   "SUTI",
-  "SUTI_2",
   "ABUTI",
 ] as const;
+
 
 /** Classification dương tính nhóm VAE (Event Period 14 ngày, không IWP). */
 export const NKBV_VAE_CLASSIFICATIONS = ["VAC", "IVAC", "PVAP"] as const;
@@ -52,6 +52,9 @@ export function nkbvMajorTypeFromClassification(
   if (!cls) return "OTHER";
   if (BSI.has(cls)) return "BSI";
   if (UTI.has(cls)) return "UTI";
+  // Legacy ped UTI labels (không còn emit)
+  if (cls === "SUTI_2" || cls === "CAUTI_SUTI_2") return "UTI";
+  if (cls === "LCBI_3") return "BSI";
   if (VAE.has(cls)) return "VAE";
   if (NKBV_PNEU_CLASSIFICATION_PATTERN.test(cls)) return "PNEU";
   if (SSI.has(cls) || cls.startsWith("ORGAN_SPACE") || cls.startsWith("SSI:")) return "SSI";

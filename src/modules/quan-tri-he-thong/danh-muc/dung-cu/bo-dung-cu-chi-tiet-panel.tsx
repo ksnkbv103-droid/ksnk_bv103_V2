@@ -25,7 +25,7 @@ import {
 } from "./bo-dung-cu-chi-tiet-alloc-section";
 import { quanTriFormChrome as C } from "../../lib/quan-tri-form-chrome";
 import type { DungCuChiTietTableRow } from "./dung-cu-chi-tiet-form-shared";
-import { cssdSuCoInstrumentHref } from "@/lib/cssd-routes";
+import { cssdCatalogEditProposalHref, cssdSuCoInstrumentHref } from "@/lib/cssd-routes";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import {
   getBoRefsByLoaiAction,
@@ -628,7 +628,7 @@ export function BoDungCuChiTietPanel({
                   </span>
                 </p>
                 <p className="text-[11px] text-slate-500">
-                  Hỏng/Mất · Chuyển chỉ lập tại /cssd-su-co (nhóm Dụng cụ). Đổi danh mục chờ duyệt ở tab
+                  Hỏng/Mất · Chuyển chỉ lập tại /cssd-su-co (hub Biến động). Đề nghị sửa danh mục chờ duyệt ở tab
                   Phiếu (quản trị).
                 </p>
                 <p className="text-[11px] font-medium text-slate-600">

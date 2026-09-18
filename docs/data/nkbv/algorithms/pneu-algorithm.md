@@ -60,7 +60,6 @@ $\\Rightarrow$ **\[ NÚT BẤM: GỬI KẾT QUẢ / KÍCH HOẠT CẢNH BÁO CHO
 **D. KHAI BÁO THIẾT BỊ XÂM LẤN (Để trừ lỗi VAE):**
 
 * NB có đang/đã đặt Nội khí quản thở máy xâm nhập $\\ge 2$ ngày lịch tính đến Ngày X không?  
-  * `[ ] KHÔNG` (Hoặc NB Nhi khoa) $\\rightarrow$ *Tiếp tục quy trình PNEU.*  
   * `[ ] CÓ` $\\rightarrow$ *(Backend chặn luồng PNEU, tự động chuyển ca này sang thuật toán VAE dành cho người lớn thở máy).*
 
 **E. TIÊU CHUẨN LÂM SÀNG TRONG GIAI ĐOẠN CỬA SỔ (IWP):** *(Bác sĩ chỉ được chọn ngày xuất hiện triệu chứng lọt trong khung 7 ngày IWP)*.
@@ -154,7 +153,6 @@ $\\Rightarrow$ **\[ NÚT BẤM: DUYỆT \- KHÓA RIT 14 NGÀY VÀ LƯU KPI \]**
 
 Để đảm bảo bộ quy chuẩn giám sát Viêm phổi (PNEU) đạt độ hoàn thiện tuyệt đối, khoa học về nội dung và logic về cách thức triển khai trên phần mềm độc lập, việc thiết lập thuật toán tính toán các chỉ số (Rates/Ratios) là bước không thể thiếu.
 
-Theo chuẩn CDC/NHSN, do Viêm phổi (PNEU) được áp dụng bao trùm cho cả người bệnh không thở máy (HAP) ở mọi lứa tuổi và viêm phổi thở máy (VAP/PedVAP) đặc thù cho trẻ em/sơ sinh, hệ thống phần mềm phải tách bạch rõ ràng các nhóm mẫu số để đánh giá đúng nguyên nhân gốc rễ,,.
 
 Dưới đây là phần bổ sung chi tiết **Đặc tả thuật toán tính toán các chỉ số Viêm phổi (PNEU/HAP/VAP)** để bàn giao cho bộ phận IT lập trình:
 
@@ -167,7 +165,6 @@ Phần mềm sẽ tự động trích xuất dữ liệu Tử số (từ giao di
 #### **1\. QUY ĐỊNH VỀ TRÍCH XUẤT DỮ LIỆU LÕI (INPUT DATA)**
 
 * **Tử số (Numerator):** Là tổng số ca Viêm phổi (PNEU) đã được Giám sát viên KSNK thẩm định và phê duyệt trên hệ thống (bao gồm các nhãn PNU1, PNU2, PNU3),,. Phần mềm phải tự động phân tách Tử số thành 2 nhóm:  
-  * *Nhóm 1:* Ca PNEU trên người bệnh có thở máy (VAP/PedVAP).  
   * *Nhóm 2:* Ca PNEU trên người bệnh không thở máy (Non-ventilator HAP).  
 * **Mẫu số (Denominator):** Là số liệu do điều dưỡng/mạng lưới KSNK nhập vào hệ thống vào một giờ cố định hàng ngày,. Bao gồm:  
   * *Tổng số ngày nằm viện (Patient Days):* Dùng làm mẫu số cho PNEU không thở máy,.  
@@ -180,7 +177,6 @@ IT cần lập trình các phép tính toán học sau và thiết lập hiển 
 **Công thức 1: Tỷ suất Viêm phổi liên quan đến thở máy (VAP Rate)**
 
 * *Công thức:* `(Tổng số ca VAP / Tổng số ngày thở máy) x 1000`,,,.  
-* *Ý nghĩa & Ứng dụng:* Chỉ số này đo lường số ca VAP trên mỗi 1000 ngày phơi nhiễm với máy thở,. Nó được áp dụng chính thức cho các khoa Nhi/Sơ sinh (PedVAP) hoặc các khoa người lớn nếu bệnh viện vẫn muốn theo dõi VAP độc lập (giám sát ngoại lệ \- off-plan),. Chỉ số này phản ánh trực tiếp chất lượng thực hành vô khuẩn khi hút đờm, quản lý bẫy nước và vệ sinh ống nội khí quản.
 
 **Công thức 2: Tỷ suất Viêm phổi bệnh viện không do thở máy (Non-ventilator HAP Rate)**
 

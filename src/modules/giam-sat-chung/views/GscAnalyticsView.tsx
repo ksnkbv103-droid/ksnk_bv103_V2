@@ -132,7 +132,7 @@ export default function GscAnalyticsView({ initialLoaiGiamSat }: GscAnalyticsVie
             onToggle={(e) => setAdvancedOpen((e.target as HTMLDetailsElement).open)}
           >
             <summary className="cursor-pointer text-xs font-semibold text-slate-700">
-              Nâng cao — bao phủ TGS / bảng kiểm tôi phải
+              Nâng cao — đối soát · bao phủ TGS · BK tôi phải
             </summary>
             <p className="mt-2 text-xs text-slate-500">
               Chỉ xem bao phủ và BK phải TGS. Không tạo việc từ đây — vào menu{" "}

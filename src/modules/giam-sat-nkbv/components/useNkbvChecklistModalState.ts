@@ -170,7 +170,6 @@ export function useNkbvChecklistModalState({
     setCh17Form({
       ch17_type_code: String(existing.ch17_type_code || "").toUpperCase(),
       chapter17_flags: existing.chapter17_flags || {},
-      is_infant_le1: existing.is_infant_le1 ?? false,
       procedure_code: existing.procedure_code ?? null,
       treatment_history: existing.treatment_history,
       symptom_dates: existing.symptom_dates,

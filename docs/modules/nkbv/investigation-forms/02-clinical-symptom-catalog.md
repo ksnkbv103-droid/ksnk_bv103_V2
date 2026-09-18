@@ -33,7 +33,6 @@ Runtime: `NKBV_LABEL_FEVER_GT_38` / `displaySymptomLabel` trong `nkbv-clinical-s
 | Hội chứng | Trạng thái |
 |-----------|------------|
 | **BSI** | LCBI2/3 tách; submit bắt ngày IWP; **MBI** nhận tiêu chảy nặng ≥1L/24h |
-| **UTI** | >1 / ≤1 tuổi; Foley ẩn voiding |
 | **PNEU** | **Atom** sốt / hạ thân nhiệt / WBC (+ derived `fever_or_wbc_abnormal`); nhánh tuổi; **PNU3** bắt buộc ho ra máu hoặc đau màng phổi |
 | **VAE** | IVAC map BA `fever_or_wbc`; không DOE triệu chứng |
 | **SSI** | Tầng nông/sâu/organ; OB/GYN CSEC/HYST/VHYS; **Ch.17 checklist** IAB/EMET/OREP/VCUF/BONE/PJI/MEN/GIT |
@@ -59,4 +58,3 @@ Runtime: `NKBV_LABEL_FEVER_GT_38` / `displaySymptomLabel` trong `nkbv-clinical-s
 
 | Đã đóng | Còn cố ý (ngoài slice) |
 |---------|-------------------------|
-| Atom PNEU, MBI tiêu chảy, PNU3 siết, map ngữ cảnh, UAT doc + unit | PedVAE; form Ch.17 độc lập ngoài SSI; lab ngưỡng PNU2 chi tiết (gap PNEU-P0-2) |

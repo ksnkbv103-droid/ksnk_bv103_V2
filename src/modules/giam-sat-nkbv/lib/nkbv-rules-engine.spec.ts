@@ -511,7 +511,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.reason).toMatch(/VAE/);
     });
 
-    it("trẻ em thở máy ≥4 ngày vẫn đi cây PNEU/VAP (không PedVAE)", () => {
+    it("tuổi <18 thở máy ≥4 ngày vẫn đi cây PNEU/VAP (không VAE người lớn)", () => {
       const data: VaeVerificationData = {
         patient_age: 10,
         vent_days: 4,
@@ -801,28 +801,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.classification).toBe("SUTI");
     });
 
-    it("Phụ lục C: chỉ triệu chứng nhi → không phát SUTI_2", () => {
-      const data: UtiVerificationData = {
-        urine_cfu_count: 150000,
-        pathogen_count: 1,
-        has_fungi_yeast_parasite: false,
-        foley_placed_days: 0,
-        foley_active_on_event: false,
-        has_fever: false,
-        has_suprapubic_tenderness: false,
-        has_costovertebral_pain: false,
-        has_dysuria: false,
-        is_infant_le1: true,
-        has_infant_apnea: true,
-        has_blood_culture_positive_in_window: false,
-        blood_urine_pathogen_matches: false,
-      };
-      const res = evaluateUtiCauti(data);
-      expect(res.classification).not.toBe("SUTI_2");
-      expect(res.classification).not.toBe("CAUTI_SUTI_2");
-    });
-
-    it("Phụ lục C: infant + sốt người lớn → SUTI (không SUTI_2)", () => {
+    it("sốt + CFU → SUTI", () => {
       const data: UtiVerificationData = {
         urine_cfu_count: 150000,
         pathogen_count: 1,
@@ -833,7 +812,6 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         has_suprapubic_tenderness: false,
         has_costovertebral_pain: false,
         has_dysuria: false,
-        is_infant_le1: true,
         has_blood_culture_positive_in_window: false,
         blood_urine_pathogen_matches: false,
       };

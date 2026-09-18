@@ -40,7 +40,7 @@ export const SET_RECONCILE_MOVE_ONLY_KINDS = ["BO_SUNG", "TRA_KHO", "DIEU_CHUYEN
 export type SetReconcileMoveOnlyKind = (typeof SET_RECONCILE_MOVE_ONLY_KINDS)[number];
 
 export const SET_RECONCILE_MOVE_ONLY_MESSAGE =
-  "Lấy kho, trả kho và điều chuyển không dùng cửa Đổi danh mục / Hỏng-Mất — mở tab Chuyển kho·bộ.";
+  "Lấy kho, trả kho và điều chuyển chỉ dùng cửa Chuyển kho·bộ — không dùng Hỏng/Mất.";
 
 export type SetReconcileLineInput = {
   chiTietId?: string;
@@ -85,7 +85,7 @@ export function doiLoaiIsCatalogRename(line: SetReconcileLineInput): boolean {
   return Boolean(next) && next !== cur && !doiLoaiIsRelink(line);
 }
 
-/** Đổi tên loại trên cùng mã (cửa Đổi danh mục). */
+/** Đổi tên loại trên cùng mã (phiếu đề nghị danh mục / legacy snapshot). */
 export function doiLoaiIsTenChange(line: SetReconcileLineInput): boolean {
   const next = String(line.tenDungCuLeDeXuat || "").trim();
   const cur = String(line.tenDungCuLe || "").trim();

@@ -32,11 +32,6 @@ export interface BsiVerificationData extends NkbvAnalysisIndexFields {
   has_fever?: boolean;
   has_chills?: boolean;
   has_hypotension?: boolean;
-  /** LCBI 3 ≤1 tuổi (tối thiểu) */
-  is_infant_le1?: boolean;
-  has_hypothermia?: boolean;
-  has_apnea?: boolean;
-  has_bradycardia?: boolean;
   cvc_placed_days: number; // Số ngày đặt CVC
   cvc_active_on_event: boolean; // CVC còn lưu trong ngày DOE hoặc ngày ngay trước đó
   device_placed_date?: string; // Ngày đặt CVC (Mới)
@@ -130,10 +125,6 @@ export interface VaeVerificationData extends NkbvAnalysisIndexFields {
   has_hemoptysis?: boolean;
   /** PNU3 — đau ngực kiểu màng phổi */
   has_pleuritic_chest_pain?: boolean;
-  /** PNEU ≤1 tuổi — ngưng thở / phập phồng cánh mũi / thở rên */
-  has_infant_respiratory_distress?: boolean;
-  /** PNEU ≤1 tuổi — nhịp chậm (<100) hoặc nhanh (>170) */
-  has_infant_hr_abnormal?: boolean;
   /**
    * Tier vi sinh PNU (đồng bộ từ lab-first hoặc legacy chọn tay).
    * Lab-first: ưu tiên fact `pneu_lab_*` qua `derivePneuLabTier`.
@@ -227,13 +218,6 @@ export interface UtiVerificationData extends NkbvAnalysisIndexFields {
   has_urgency?: boolean;
   /** Tiểu rắt / frequency — tách khỏi dysuria (N-G1). */
   has_frequency?: boolean;
-  /** SUTI 2 ≤1 tuổi (tối thiểu) */
-  is_infant_le1?: boolean;
-  has_infant_hypothermia?: boolean;
-  has_infant_apnea?: boolean;
-  has_infant_bradycardia?: boolean;
-  has_infant_lethargy?: boolean;
-  has_infant_vomiting?: boolean;
   
   // ABUTI criteria (Asymptomatic Bacteriuria with secondary BSI)
   has_blood_culture_positive_in_window: boolean; // Có cấy máu dương tính trong khung 7 ngày
@@ -262,8 +246,6 @@ export interface SsiVerificationData extends NkbvAnalysisIndexFields {
   /** Present at time of surgery */
   is_patos?: boolean;
   return_to_or_within_24h?: boolean;
-  /** ≤1 tuổi — nhánh Ch.17 infant */
-  is_infant_le1?: boolean;
   /** Fallback khi chưa chọn mã PT NHSN — không còn nguồn chính cho SP 30/90. */
   has_implant: boolean;
   ssi_depth: 'SUPERFICIAL' | 'DEEP' | 'ORGAN_SPACE' | 'NONE';
@@ -327,7 +309,6 @@ export interface Ch17VerificationData extends NkbvAnalysisIndexFields {
   /** Mã Specific Type: BONE, MEN, IAB, … */
   ch17_type_code: string;
   chapter17_flags?: Record<string, boolean>;
-  is_infant_le1?: boolean;
   procedure_code?: string | null;
   /** Hierarchy / shunt context (optional) */
   days_since_shunt?: number | null;

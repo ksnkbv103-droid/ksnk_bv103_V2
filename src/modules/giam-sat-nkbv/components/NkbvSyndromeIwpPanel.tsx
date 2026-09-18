@@ -5,7 +5,6 @@ import { nkbvFormChrome as C } from "../lib/nkbv-form-chrome";
 import {
   clinicalCatalogForNghiNgo,
   computeBaGridSession,
-  INFANT_LE1_CRITERIA_KEYS,
   UTI_VOIDING_CRITERIA_KEYS,
   type BaGridActiveIndex,
   type BaGridCdhaCell,
@@ -24,7 +23,6 @@ import type { SyndromePanelId } from "../lib/nkbv-specimen-syndrome";
 import {
   ageYearsFromNgaySinh,
   buildUtiTimelineVerdict,
-  isInfantLe1FromAge,
   stripUtiVoidingFromLamSang,
 } from "../lib/nkbv-uti-timeline-verdict";
 import {
@@ -226,7 +224,6 @@ export default function NkbvSyndromeIwpPanel({
     () => ageYearsFromNgaySinh(ngaySinh, index.date),
     [ngaySinh, index.date],
   );
-  const isInfant = isInfantLe1FromAge(ageYears);
 
   const showCdha = panel !== "UTI";
 
@@ -337,7 +334,6 @@ export default function NkbvSyndromeIwpPanel({
       nsk: doeProbeNsk,
       bloodXn,
       abutiBloodIds: draft.bloodCriterionIds,
-      isInfantLe1: isInfant,
       admissionDate: ngayVaoVien,
       dischargeDate: ngayRaVien,
       devicePlacedDate: devicePlacedFromBa,
@@ -352,7 +348,6 @@ export default function NkbvSyndromeIwpPanel({
     doeProbeNsk,
     bloodXn,
     draft.bloodCriterionIds,
-    isInfant,
     ngayVaoVien,
     ngayRaVien,
   ]);
@@ -406,7 +401,6 @@ export default function NkbvSyndromeIwpPanel({
       canThiepDates,
       iwpDates: provisionalIwp,
       nsk: doeProbeNsk,
-      isInfantLe1: isInfant,
       admissionDate: ngayVaoVien,
       dischargeDate: ngayRaVien,
       devicePlacedDate: devicePlacedFromBa,
@@ -424,7 +418,6 @@ export default function NkbvSyndromeIwpPanel({
     canThiepDates,
     provisionalIwp,
     doeProbeNsk,
-    isInfant,
     draft.bsiLocalizedSite,
     draft.bsiMbi,
     ngayVaoVien,
@@ -493,7 +486,6 @@ export default function NkbvSyndromeIwpPanel({
       nsk: session.nsk,
       bloodXn,
       abutiBloodIds: draft.bloodCriterionIds,
-      isInfantLe1: isInfant,
       admissionDate: ngayVaoVien,
       dischargeDate: ngayRaVien,
       devicePlacedDate: devicePlacedFromBa,
@@ -508,7 +500,6 @@ export default function NkbvSyndromeIwpPanel({
     session.nsk,
     bloodXn,
     draft.bloodCriterionIds,
-    isInfant,
     ngayVaoVien,
     ngayRaVien,
   ]);
@@ -562,7 +553,6 @@ export default function NkbvSyndromeIwpPanel({
       canThiepDates,
       iwpDates: session.iwpDates,
       nsk: session.nsk,
-      isInfantLe1: isInfant,
       admissionDate: ngayVaoVien,
       dischargeDate: ngayRaVien,
       devicePlacedDate: devicePlacedFromBa,
@@ -580,7 +570,6 @@ export default function NkbvSyndromeIwpPanel({
     canThiepDates,
     session.iwpDates,
     session.nsk,
-    isInfant,
     draft.bsiLocalizedSite,
     draft.bsiMbi,
     ngayVaoVien,
@@ -796,9 +785,6 @@ export default function NkbvSyndromeIwpPanel({
     const foleyOn = canThiepDates.some((d) => d.slice(0, 10) === date);
     return base.filter((cat) => {
       if (panel === "UTI" && foleyOn && UTI_VOIDING_CRITERIA_KEYS.has(cat.criteriaKey)) {
-        return false;
-      }
-      if (INFANT_LE1_CRITERIA_KEYS.has(cat.criteriaKey) && !isInfant) {
         return false;
       }
       if (
@@ -1075,7 +1061,7 @@ export default function NkbvSyndromeIwpPanel({
             {panel === "UTI" && ageYears == null
               ? " · Nhánh người lớn (chưa có ngày sinh)"
               : null}
-            {panel === "UTI" && isInfant ? " · SUTI 2 (≤1 tuổi)" : null}
+            
             {panel === "PNEU" && ageYears != null && ageYears >= 70
               ? " · AMS ≥70 khả dụng"
               : null}

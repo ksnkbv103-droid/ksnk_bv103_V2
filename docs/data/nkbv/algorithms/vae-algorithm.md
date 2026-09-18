@@ -158,7 +158,6 @@ Các chỉ số này giúp Ban Giám đốc nhìn nhận nguyên nhân gốc r�
   * **IVAC Plus SIR:** `[ (Tổng số ca IVAC + PVAP thực tế) / Số ca VAE dự đoán ]`. *(Hành động quản trị: Nếu SIR \< 1.0 nghĩa là Bệnh viện làm tốt hơn mức trung bình. Nếu SIR \> 1.0, Bệnh viện đang có vấn đề bất thường cần can thiệp).*  
 * **3\. Tỷ số sử dụng máy thở chuẩn hóa (SUR \- Standardized Utilization Ratio):** `[ Tổng số ngày thở máy quan sát được / Tổng số ngày thở máy dự đoán ]`.
 
-**LƯU Ý DÀNH CHO TRẺ EM/SƠ SINH (PedVAE):** Nếu Bệnh viện có giám sát biến cố thở máy ở trẻ em (PedVAE), hệ thống áp dụng bộ công thức y hệt như trên, bao gồm: **Tỷ suất PedVAE / 1000 ngày thở máy** \= `(Tổng số ca PedVAE / Tổng số ngày thở máy) x 1000` và **Tỷ suất PedVAE / 100 EMV** \= `(Tổng số ca PedVAE / Tổng số đợt EMV) x 100`.
 
 ---
 

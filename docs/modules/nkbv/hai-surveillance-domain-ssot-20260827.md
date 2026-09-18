@@ -1,12 +1,11 @@
 # Domain SSOT v3.3 — Giám sát nhiễm khuẩn bệnh viện (NKBV / HAI)
 
 > **Phiên bản:** 3.3 · **Ngày:** 2026-08-27  
-> **Phạm vi HAI lâm sàng BV103:** Ch.1–4, 6–7, 9–11 (PedVAE: không dùng), 16–17. **Ngoài domain này:** CLIP (Ch.5), LabID/MDRO module (Ch.12), AUR (Ch.14), CDC Location mapping (Ch.15).  
 > **Chuẩn:** *National Healthcare Safety Network (NHSN) Patient Safety Component Manual*, **January 2025** (CDC)  
 > **Nguồn PDF:** Google Drive `ksnkbv103@gmail.com` — [CDC · 2025 NHSN Patient Safety Component Manual](https://drive.google.com/file/d/1srXXSWNWpXJzuiVK0PNxbXxHtNXW4qgv/view) (458 trang; file id `1srXXSWNWpXJzuiVK0PNxbXxHtNXW4qgv`)  
 > **Loại:** Đặc tả logic domain (thuật toán & thực thể). **Không** thay hợp đồng UI/state BV103.  
 > **Đối tượng:** PO / bác sĩ KSNK / người viết rule engine  
-> **Phạm vi tuổi:** **Người lớn.** Protocol nhi / NICU không viết thuật toán (xem [Ch.11](#11-pedvae-chương-11--không-dùng-tại-bv103) và [Phụ lục C](#phụ-lục-c--nhi-khoa-không-dùng-tại-bv103)).
+> **Phạm vi tuổi:** **Người lớn** (xem Phụ lục C).
 
 ---
 
@@ -46,7 +45,6 @@ Sổ tay ghi rõ: chương **8** và **13** đã rút, **không** dồn số.
 | 8 | *Retired* | [§8](#8-chương-8--đã-rút) |
 | 9 | Surgical Site Infection | [§9](#9-nhiễm-khuẩn-vết-mổ-ssi) |
 | 10 | VAE (adult locations only) | [§10](#10-vae-người-lớn) |
-| 11 | PedVAE | [§11](#11-pedvae-chương-11--không-dùng-tại-bv103) |
 | 12 | MDRO / CDI LabID | [§12](#12-labid-mdro--ngoài-phạm-vi-domain-này) — **không thuộc domain** |
 | 13 | *Retired* | [§13](#13-chương-13--đã-rút) |
 | 14 | AUR | [§14](#14-aur--ngoài-phạm-vi-domain-này) — **không thuộc domain** |
@@ -66,7 +64,7 @@ Lớp sản phẩm → [Phụ lục A](#phụ-lục-a--lớp-sản-phẩm-bv103)
 | **HAI** | DOE ≥ **ngày lịch thứ 3** (ngày nhập = ngày 1) | Như trên |
 | **RIT 14 ngày** | Từ DOE = ngày 1; không báo ca cùng loại trong RIT | Như trên |
 | **SBAP lâm sàng** | IWP ∪ RIT (thường 14–17 ngày) | Ch.4 nhận Secondary từ site Ch.6/7/17 |
-| **Không dùng IWP/POA/RIT/SBAP Ch.2** | SSI, VAE, PedVAE | Ch.9, 10, 11 |
+| **Không dùng IWP/POA/RIT/SBAP Ch.2** | SSI, VAE | Ch.9, 10, 11 |
 | **SSI Surveillance Period** | 30 hoặc 90 ngày từ ngày mổ | Ch.9 |
 | **SSI-SBAP** | Cố định `[DOE−3, DOE+13]` = 17 ngày | Ch.9 Secondary BSI |
 | **VAE Event Period** | 14 ngày từ DOE (ngày đầu worsening) | Ch.10 |
@@ -78,7 +76,6 @@ Lớp sản phẩm → [Phụ lục A](#phụ-lục-a--lớp-sản-phẩm-bv103)
 
 1. Không cải tiến thuật toán CDC; nếu PDF mâu thuẫn nội bộ → ghi `[PO cần xác nhận]`.
 2. Mỗi khái niệm định nghĩa **một lần**; hội chứng chỉ giữ delta.
-3. Nhánh ≤1 tuổi / PedVAP / NICU / UMB / NEC sơ sinh: **một dòng** “CDC có — không dùng tại BV103” — không cây thuật toán.
 
 ---
 
@@ -89,12 +86,10 @@ NHSN (CDC DHQP) là hệ thống giám sát nhiễm khuẩn liên quan chăm só
 - **Gắn dụng cụ (trong domain):** CLABSI, CAUTI, VAE (**chỉ khoa người lớn**), PNEU/VAP ngoài khoa thở máy in-plan
 - **Gắn thủ thuật:** SSI
 - **Site cụ thể / Secondary BSI:** Ch.17
-- **Ngoài domain này (CDC vẫn có, BV103 không đưa vào SSOT HAI):** CLIP (Ch.5), PedVAE (Ch.11 — không dùng), LabID MDRO/CDI (Ch.12), AUR (Ch.14), CDC Location mapping (Ch.15), COVID viện
 
 **In-plan:** viện cam kết làm **đúng và đủ** protocol NHSN cho sự kiện đã khai trên kế hoạch tháng (Ch.3). Chỉ dữ liệu in-plan vào benchmark / CMS.  
 **Off-plan:** theo dõi nội bộ; không cam kết đủ protocol; không CDA upload.
 
-**BV103 chọn (domain):** giám sát **người lớn**, một module phần mềm HAI lâm sàng. PedVAE / PedVAP in-plan / NICU **không** thuộc kế hoạch. PNEU ở khoa người lớn thở máy in-plan → **bắt buộc VAE (Ch.10)**, không dùng PNEU thay VAE.
 
 Các component NHSN khác (Long-term care, Dialysis, Healthcare Personnel Safety, Neonatal Component, Outpatient Procedure) **ngoài** PSC này — không đưa vào SSOT BV103.
 
@@ -102,7 +97,6 @@ Các component NHSN khác (Long-term care, Dialysis, Healthcare Personnel Safety
 
 ## 2. Xác định HAI (cửa sổ thời gian)
 
-> Nguồn: CDC 2025 Ch.2. **Không** áp dụng cho SSI, VAE, PedVAE (bảng ngoại lệ Ch.2). LabID/AUR ngoài domain này.
 
 ### 2.1. Loại trừ chung (mọi định nghĩa NHSN)
 
@@ -156,7 +150,6 @@ SBAP = IWP ∪ RIT (độ dài **14–17 ngày** tùy DOE so với Index). Máu 
 
 **Cấm Secondary** (canonical, Ch.2 + protocol hội chứng):
 
-- PedVAE: **cấm tuyệt đối** (BV103 không dùng PedVAE).
 - Yeast/Candida từ máu **không** Secondary cho UTI.
 - Candida / CoNS / Enterococcus từ đờm/ETA/BAL/PSB **không** Secondary cho PNEU trừ mô phổi / dịch màng phổi.
 - VAE: Secondary **chỉ PVAP** (không VAC/IVAC); máu trong Event Period 14 ngày.
@@ -199,7 +192,6 @@ Mỗi tháng viện khai **module + khoa/thủ thuật in-plan**. In-plan = làm
 
 ## 4. Nhiễm khuẩn huyết (CLABSI / LCBI)
 
-> CDC 2025 Ch.4. Dùng cửa sổ Ch.2. LCBI-3 (≤1 tuổi): **CDC có — không dùng tại BV103.**
 
 ### 4.1. Định nghĩa
 
@@ -227,10 +219,6 @@ Nếu vừa LCBI 1 vừa LCBI 2: báo **LCBI 1**; pathogen #1 = recognized, #2 =
 ≥ 1: sốt >38°C, rét run, hạ HA  
 **và** cùng commensal từ **≥ 2 mẫu máu** lấy **separate occasions**  
 **và** không Secondary.
-
-### 4.4. LCBI 3
-
-CDC: nhánh ≤1 tuổi. **Không dùng tại BV103.**
 
 ### 4.5. MBI-LCBI
 
@@ -269,8 +257,6 @@ CDC 2025 Ch.5 (form 57.125) là **process** tuân thủ đặt CVC — không ph
 
 > CDC 2025 Ch.6. Dùng IWP/DOE/POA/RIT Ch.2.  
 > **Adult vent in-plan → bắt buộc VAE Ch.10**, không dùng PNEU cho người lớn thở máy in-plan.  
-> PedVAP in-plan (khoa nhi): **không dùng tại BV103.** PNU1 nhánh B (≤1 tuổi) và C (>1–≤12 tuổi): **CDC có — không dùng tại BV103.**  
-> Pneumatocele ≤1 tuổi: không dùng.
 
 ### 6.1. Imaging (mọi PNU — người lớn)
 
@@ -325,8 +311,6 @@ flowchart TD
 
 ## 7. Nhiễm khuẩn tiết niệu (CAUTI / UTI)
 
-> CDC 2025 Ch.7. Dùng Ch.2. SUTI 2 (≤1 tuổi): **CDC có — không dùng tại BV103.**  
-> NICU chỉ CAUTI **off-plan** — BV103 không giám sát NICU.  
 > **USI** (thận/niệu quản/khoang quanh thận, **không** phải UTI nước tiểu) → [Ch.17 USI](#1710-usi).
 
 UTI **luôn là site nguyên phát** — không Secondary từ site khác.
@@ -485,14 +469,6 @@ flowchart TD
 
 ---
 
-## 11. PedVAE (Chương 11) — không dùng tại BV103
-
-CDC 2025 Ch.11: *Pediatric Ventilator-Associated Event — for use in neonatal and pediatric locations only.* Một bậc (không VAC/IVAC/PVAP); MAP/FiO₂; **cấm** Secondary BSI.
-
-**Quyết định BV103:** không giám sát PedVAE, không viết cây MAP/FiO₂, không form, không engine. Người lớn thở máy → [Ch.10](#10-vae-người-lớn).
-
----
-
 ## 12. LabID MDRO — ngoài phạm vi domain này
 
 CDC 2025 Ch.12 (LabID MDRO/CDI, Infection Surveillance MDRO, process cách ly) **không** thuộc SSOT HAI lâm sàng. **GI-CDI** khi dùng như site HAI/SSI → [Ch.17 CDI](#cdi). App `nkbv_fact_labid_event` nếu còn là lát phần mềm, không neo file này.
@@ -562,7 +538,6 @@ Nấm *Blastomyces, Histoplasma, Coccidioides, Paracoccidioides, Cryptococcus, P
 
 Khi nhiều site cùng lúc: chọn **sâu nhất** theo hướng dẫn báo cáo từng mã (vd. BONE thắng JNT/PJI nếu đủ xương).
 
-Nhánh ≤1 tuổi / sơ sinh (UMB, NEC neonate, CIRC, USI 4, IC/MEN/CARD/MED/VASC/UR nhánh trẻ): **CDC có — không dùng tại BV103** — ghi dưới từng mã, không viết cây.
 
 ### 17.1. Catalog người lớn
 
@@ -654,7 +629,6 @@ Thỏa **ít nhất một**:
    - (b) imaging chắc chắn (siêu âm/CT/MRI/xạ hình/chụp mạch; mơ hồ → clinical correlation điều trị IC)  
    - (c) IgM đơn độc chẩn đoán **hoặc** IgG tăng 4 lần huyết thanh cặp
 
-**Nhánh 4 (≤1 tuổi):** CDC có — **không dùng tại BV103.**
 
 **Báo cáo:** MEN + viêm não (IC) cùng lúc → **MEN**. MEN + áp xe não (IC) sau mổ → **IC**. MEN + SA cùng lúc → **SA**.
 
@@ -669,7 +643,6 @@ Thỏa **ít nhất một**:
    - (iii) dấu dây thần kinh sọ*  
    **và** một trong: (a) CSF: bạch cầu tăng + protein tăng + glucose giảm (theo lab); (b) Gram CSF thấy vi sinh; (c) NCT máu; (d) IgM / IgG tăng 4 lần.
 
-**Nhánh 3 (≤1 tuổi):** CDC có — **không dùng tại BV103.**
 
 **Báo cáo:** co giật **không** thỏa “dấu dây thần kinh sọ”. Nhiễm shunt CSF trong 90 ngày đặt → SSI-MEN; sau đó hoặc sau thao tác/chọc → CNS-MEN, **không** SSI. Cùng quy tắc IC/SA như trên.
 
@@ -696,7 +669,6 @@ Thỏa **ít nhất một**:
 1. NCT từ mô/dịch màng ngoài tim.  
 2. ≥2: sốt >38,0°C, đau ngực*, mạch nghịch*, tim to* **và** một trong: (a) ECG phù hợp; (b) GPB cơ tim; (c) IgG tăng 4 lần; (d) tràn dịch màng ngoài tim trên echo/CT/MRI/chụp mạch.
 
-**Nhánh 3 (≤1 tuổi):** CDC có — **không dùng tại BV103.**
 
 #### ENDO — Endocarditis (cửa sổ đặc biệt)
 
@@ -745,7 +717,6 @@ Thỏa **ít nhất một**:
 2. Đại thể/GPB viêm trung thất.  
 3. ≥1: sốt >38,0°C, đau ngực*, xương ức không vững* **và** (a) mủ dẫn lưu trung thất **hoặc** (b) trung thất giãn trên imaging.
 
-**Nhánh 4 (≤1 tuổi):** CDC có — **không dùng tại BV103.**
 
 Khoang trung thất: dưới xương ức, trước cột sống (tim, mạch lớn, khí quản, thực quản, tuyến ức, hạch…).
 
@@ -760,7 +731,6 @@ Thỏa **ít nhất một**:
 3. ≥1: sốt >38,0°C, đau*, đỏ*, nóng* tại chỗ mạch* **và** >15 khuẩn lạc đầu cannula (cấy bán định lượng).  
 4. Mủ tại chỗ mạch.
 
-**Nhánh 5 (≤1 tuổi):** CDC có — **không dùng tại BV103.**
 
 **Báo cáo:** graft/shunt/fistula/cannula **không** có vi sinh máu → CVS-VASC. Organ/Space VASC là SSI (kể cả khi có Secondary BSI) — không LCBI. Nhiễm nội mạch có máu thỏa LCBI → BSI-LCBI.
 
@@ -825,7 +795,6 @@ Thỏa **ít nhất một**:
 1. ≥2: sốt >38,0°C, đỏ họng*, đau họng*, ho*, khàn*, thở nhanh*, chảy mũi*, mủ họng* **và** một trong: (a) NCT từ thanh quản / tỵ hầu / họng / nắp thanh môn — **loại đờm và hút khí quản**; (b) IgM / IgG tăng 4 lần; (c) physician chẩn đoán nhiễm đường hô hấp trên.  
 2. Áp xe trên đại thể/GPB hoặc imaging.
 
-**Nhánh 3 (≤1 tuổi):** CDC có — **không dùng tại BV103.**
 
 ---
 
@@ -1051,14 +1020,13 @@ Quy tắc khi **có** SIR chuẩn (tương lai): `numPred < 1` → không in SIR
 | 1 Overview | Đủ (HAI lâm sàng) | Một module `/giam-sat-nkbv` | Đạt vận hành |
 | 2 HAI windows | Đủ | `nkbv-shared-timeline` + Secondary BSI | Đạt pilot; Transfer/LOA còn P1 |
 | 3 MRP | Đủ trên giấy | **Chưa** form kế hoạch tháng | Thiếu |
-| 4 BSI/CLABSI | LCBI 1–2; LCBI-3 không dùng | `evaluateBsiClabsi`; MBI rút gọn | Đạt pilot; MBI P1 |
+| 4 BSI/CLABSI | LCBI 1–2 | `evaluateBsiClabsi`; MBI rút gọn | Đạt pilot; MBI P1 |
 | 5 CLIP | **Ngoài domain** | `nkbv-clip` còn (lát cũ) | Không neo SSOT |
-| 6 PNEU | Người lớn PNU1-A/2/3; không PedVAP | `evaluateVaeVap(..., PNEU)` | Đạt pilot |
-| 7 UTI | SUTI 1a/1b, ABUTI; không SUTI-2 | `evaluateUtiCauti`; yeast: A1–A5 đã vá 2026-09-09 | Đạt pilot |
+| 6 PNEU | Người lớn PNU1-A/2/3 | `evaluateVaeVap(..., PNEU)` | Đạt pilot |
+| 7 UTI | SUTI 1a/1b, ABUTI | `evaluateUtiCauti`; yeast: A1–A5 đã vá 2026-09-09 | Đạt pilot |
 | 8 Retired | — | — | — |
 | 9 SSI | Đủ người lớn | `evaluateSsi`; PATOS P1 | Đạt pilot |
 | 10 VAE | Đủ người lớn | `evaluateVaeVap(..., VAE)` | Đạt pilot; APRV/ECMO P1 |
-| 11 PedVAE | **Không dùng** | Không engine (đúng) | Đúng phạm vi |
 | 12 LabID | **Ngoài domain** | `nkbv-labid-engine` còn (lát cũ) | Không neo SSOT |
 | 13 Retired | — | — | — |
 | 14 AUR | **Ngoài domain** | **Chưa** | Không neo SSOT |
@@ -1074,19 +1042,9 @@ Sửa engine/form = **chat riêng** sau khi PO duyệt [Phụ lục E §E.9](#e9
 
 ---
 
-## Phụ lục C — Nhi khoa không dùng tại BV103
+## Phụ lục C — Nhi khoa ngoài phạm vi BV103
 
-Không viết thuật toán cho:
-
-- Ch.11 PedVAE (MAP/FiO₂, NICU/Pediatric location)
-- PedVAP in-plan (Ch.6 khoa nhi)
-- PNU1 nhánh B (≤1 tuổi) và C (>1–≤12)
-- LCBI-3, SUTI-2, USI criterion 4 (<1 tuổi)
-- UMB, NEC sơ sinh, CIRC newborn, bảng birthweight Ch.16
-
-CDC **vẫn có** các mục trên trong sổ 2025 — BV103 **không triển khai**.
-
----
+> **BV103 chỉ giám sát người lớn.** Không triển khai PedVAE / NICU / LCBI-3 / SUTI-2 / PNU nhánh trẻ / Ch.17 nhánh ≤1 tuổi. Runtime và form không còn field nhi.
 
 ## Phụ lục D — Crosswalk v2.0 → v3.1
 
@@ -1100,8 +1058,7 @@ CDC **vẫn có** các mục trên trong sổ 2025 — BV103 **không triển kh
 | §6 CLABSI | **Ch.4** |
 | §7 CAUTI | **Ch.7** |
 | §8 VAE | **Ch.10** |
-| §9 PedVAE đầy đủ | **Ch.11 stub** (không dùng) |
-| §10 PNEU/PedVAP | **Ch.6** (bỏ PedVAP) |
+| §10 PNEU | **Ch.6** |
 | §11 SSI | **Ch.9** |
 | §12 IAB/BONE/PJI | **Ch.17** (đủ nhánh) |
 | §13 ENDO | **Ch.17.4** |
@@ -1183,10 +1140,9 @@ HAI, IWP, DOE, POA, RIT, SBAP, LOA, CLABSI, LCBI, MBI-LCBI, CAUTI, SUTI, ABUTI, 
 | Mã CDC | KSNK BV103 | Định nghĩa giám sát | Ch. | Cấm nhầm | BV103 |
 |--------|------------|---------------------|-----|----------|-------|
 | **BSI** | BSI | Nhiễm khuẩn huyết giám sát (LCBI ± Secondary). | 4 | Không = “nhiễm trùng huyết” lâm sàng Sepsis-3. | Dùng |
-| **LCBI** | LCBI | Laboratory-Confirmed BSI. Primary khi **không** Secondary. | 4 | LCBI-3 nhi: không dùng. | Dùng (1–2) |
+| **LCBI** | LCBI | Laboratory-Confirmed BSI. Primary khi **không** Secondary. | 4 | — | Dùng (1–2) |
 | **LCBI 1** | LCBI 1 | Recognized pathogen từ ≥1 máu (cấy hoặc NCT theo rule) + không Secondary. | 4 | Ưu tiên cấy nếu có trong NCT±1 ngày. | Dùng |
 | **LCBI 2** | LCBI 2 | Sốt / rét run / hạ HA + cùng commensal ≥2 máu separate occasions. | 4 | Không đủ 1 máu commensal. | Dùng |
-| **LCBI 3** | — | Nhánh ≤1 tuổi. | 4 | Không viết cây. | **Không dùng** |
 | **MBI-LCBI** | MBI-LCBI | Sau LCBI: giảm bạch cầu/ANC + MBI-eligible + tổn thương hàng rào niêm mạc theo Ch.4. | 4 | Không tự gắn vì “BN ung thư”. | Dùng (app P1) |
 | **Primary BSI** | Primary LCBI | LCBI không Secondary. | 4 | Có CVC eligible → nhãn **CLABSI**. | Dùng |
 | **CLABSI** | CLABSI | LCBI + CVC gắn dụng cụ tại DOE. | 4 | Luôn Secondary **trước** khi gắn CLABSI. Secondary ≠ CLABSI. | Dùng |
@@ -1194,14 +1150,12 @@ HAI, IWP, DOE, POA, RIT, SBAP, LOA, CLABSI, LCBI, MBI-LCBI, CAUTI, SUTI, ABUTI, 
 | **UTI** | UTI | Nhiễm khuẩn tiết niệu **nước tiểu** (SUTI hoặc ABUTI). Luôn site nguyên phát. | 7 | **Không** = USI. **Không** = UR (hô hấp trên). | Dùng |
 | **SUTI 1a** | SUTI 1a / CAUTI | IUC eligible >2 ngày + triệu chứng SUTI (không dùng rắt/buốt khi ống còn) + cấy ≤2 loài, ≥1 vi khuẩn ≥10⁵ CFU/ml. | 7 | Yeast/nấm **không** thỏa UTI. | Dùng |
 | **SUTI 1b** | SUTI 1b / non-CAUTI | Không đủ IUC >2 ngày; triệu chứng + ≥10⁵; rắt/buốt **được** dùng. | 7 | Không gọi CAUTI. | Dùng |
-| **SUTI 2** | — | Nhánh ≤1 tuổi. | 7 | — | **Không dùng** |
 | **ABUTI** | ABUTI | Không triệu chứng SUTI + nước tiểu ≥10⁵ + **máu cùng khuẩn** (không yeast). | 7 | Máu phải ∈ IWP. | Dùng |
 | **CAUTI** | CAUTI | = SUTI 1a (gắn IUC). | 7 | Không = mọi UTI có Foley cảm tính. | Dùng |
 | **IUC / Foley** | IUC / Foley lưu | Ống thông **lưu** niệu đạo–bàng quang. | 7 | Không: condom, in-out, nephrostomy, trên xương mu đơn thuần. | Dùng |
 | **USI** | USI | **Nhiễm khuẩn hệ tiết niệu** (thận, niệu quản, bàng quang, niệu đạo, quanh thận) — bệnh phẩm **không phải nước tiểu**. | 17 | **Không** = UTI/SUTI/ABUTI/CAUTI. Đủ UTI thì không chuyển USI. | Dùng (app chưa) |
 | **PNEU** | PNEU | Viêm phổi giám sát PNU1/2/3. | 6 | Người lớn thở máy **in-plan** → **VAE**, không dùng PNEU thay. | Dùng |
-| **PNU1 / PNU2 / PNU3** | PNU1-A / PNU2 / PNU3 | Nhánh lâm sàng / lab / suy giảm miễn dịch. BV103: PNU1 **nhánh A**. | 6 | PNU1 B (≤1 tuổi), C (>1–≤12): không dùng. | Dùng (A/2/3) |
-| **VAP** | VAP | PNEU + thở máy xâm lấn eligible tại DOE. | 6 | **Không** = VAE. PedVAP in-plan: không dùng. | Dùng |
+| **PNU1 / PNU2 / PNU3** | PNU1-A / PNU2 / PNU3 | Nhánh lâm sàng / lab / suy giảm miễn dịch. BV103: PNU1 nhánh người lớn. | 6 | — | Dùng |
 | **Non-ventilator PNEU (HAP)** | Non-VAP PNEU | PNEU không đủ vent eligible. | 6 | HAP lâm sàng ≠ tự chốt PNEU. | Dùng |
 | **VAE** | VAE | Sự kiện gắn thở máy người lớn: VAC → IVAC → PVAP. Không IWP Ch.2. | 10 | Chỉ khoa người lớn. ≥4 vent days. | Dùng |
 | **VAC** | VAC | Baseline 2 ngày + worsening 2 ngày PEEP/FiO₂. DOE = ngày đầu worsening. | 10 | Không = VAP. | Dùng |
@@ -1310,14 +1264,6 @@ Ba sổ **không gộp:** phiếu HAI ≠ LabID Event ≠ cờ MDRO cách ly.
 | **CSSD** | Dụng cụ / mẻ tiệt khuẩn | Chỉ **liên kết** QR bộ với SSI khi có mã quy trình |
 | **QLCV** | Công việc / kanban | Không ca HAI |
 | **Dashboard** | Đọc số đã chốt | Không tự suy SIR CDC |
-
----
-
-### E.8. Nhi khoa / sơ sinh — không dùng tại BV103
-
-PedVAE; PedVAP in-plan; LCBI-3; SUTI-2; PNU1 B/C; USI criterion 4; IC/MEN/CARD/MED/VASC/UR nhánh ≤1 tuổi; UMB; NEC sơ sinh; CIRC; birthweight NHSN; apnea sơ sinh Ch.16.
-
-CDC **vẫn có** — BV103 **không triển khai**. Chi tiết: [Phụ lục C](#phụ-lục-c--nhi-khoa-không-dùng-tại-bv103).
 
 ---
 

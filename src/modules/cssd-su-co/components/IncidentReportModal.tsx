@@ -74,7 +74,7 @@ export default function IncidentReportModal({
               {batchRecallEntry
                 ? "Sự cố an toàn QT.24 — không phải biến động dụng cụ"
                 : defaultGroup === "INSTRUMENT"
-                  ? "3 cửa: Đổi danh mục · Hỏng/Mất · Chuyển kho·bộ"
+                  ? "Biến động: Hỏng/Mất · Chuyển kho·bộ"
                   : "Ghi nhận sự cố an toàn tại trạm (quy trình / HC / máy)"}
             </p>
           </div>

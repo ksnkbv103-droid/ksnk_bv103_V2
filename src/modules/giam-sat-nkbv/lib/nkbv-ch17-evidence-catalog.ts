@@ -80,7 +80,6 @@ export const CH17_EVIDENCE_CATALOG: readonly Ch17EvidenceDef[] = [
   E("sx_focal_neuro", "Dấu thần kinh định vị khu trú", "symptom"),
   E("sx_altered_consciousness", "Thay đổi mức độ ý thức", "symptom"),
   E("sx_confusion", "Lú lẫn", "symptom"),
-  E("sx_infant_irritability", "Kích thích / bú kém / ngủ lịm (≤1 tuổi)", "symptom"),
   E("micro_brain_direct_smear", "Soi trực tiếp mô não / dịch hút áp xe thấy VSV", "micro"),
   E("img_ic_definitive", "CĐHA khẳng định nhiễm trùng nội sọ", "imaging"),
   E("sero_igm_or_igg4x", "IgM đặc hiệu hoặc tăng 4 lần IgG huyết thanh kép", "serology"),
@@ -124,7 +123,6 @@ export const CH17_EVIDENCE_CATALOG: readonly Ch17EvidenceDef[] = [
   E("sx_vascular_pain", "Đau tại chỗ mạch tổn thương", "symptom"),
   E("sx_vascular_erythema", "Viêm đỏ tại chỗ mạch", "symptom"),
   E("sx_vascular_warmth", "Nóng tại chỗ mạch", "symptom"),
-  E("sx_vascular_lethargy", "Lờ đờ (≤1 tuổi)", "symptom"),
   E("micro_catheter_tip_gt15", "Cấy đầu catheter >15 khóm (bán định lượng)", "micro"),
   E("sx_vascular_purulent", "Chảy mủ thực sự tại vị trí mạch", "symptom"),
 

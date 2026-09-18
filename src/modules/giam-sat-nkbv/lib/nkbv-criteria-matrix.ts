@@ -17,19 +17,11 @@ export type NkbvCriteriaKey =
   | "fever"
   | "chills"
   | "hypotension"
-  | "bsi_hypothermia"
-  | "bsi_apnea"
-  | "bsi_bradycardia"
   | "suprapubic_pain"
   | "cva_pain"
   | "dysuria"
   | "urgency"
   | "frequency"
-  | "infant_hypothermia"
-  | "infant_apnea"
-  | "infant_bradycardia"
-  | "infant_lethargy"
-  | "infant_vomiting"
   | "purulent_sputum"
   | "new_purulent_sputum"
   | "increased_secretions"
@@ -71,222 +63,174 @@ export const NKBV_CRITERIA_ADD_CATALOG: Array<{
   title: string;
   gates: NkbvChecklistTypeCode[];
 }> = [
-  {
+{
     criteriaKey: "imaging_chest",
     milestoneKind: "IMAGING_CHEST",
     title: "XQ/CT phổi thâm nhiễm / đông đặc / hang",
     gates: ["HAP", "VAP"],
   },
-  {
+{
     criteriaKey: "fever_or_wbc",
     milestoneKind: "SYMPTOM",
     title: "Sốt > 38,0°C / hạ thân nhiệt < 36,0°C / WBC bất thường",
     gates: ["HAP", "VAP", "VAE"],
   },
-  {
+{
     criteriaKey: "fever",
     milestoneKind: "SYMPTOM",
     title: "Sốt > 38,0°C",
     gates: ["UTI", "BSI", "SSI"],
   },
-  {
+{
     criteriaKey: "chills",
     milestoneKind: "SYMPTOM",
     title: "Rét run (chills)",
     gates: ["BSI"],
   },
-  {
+{
     criteriaKey: "hypotension",
     milestoneKind: "SYMPTOM",
     title: "Tụt huyết áp",
     gates: ["BSI"],
   },
-  {
-    criteriaKey: "bsi_hypothermia",
-    milestoneKind: "SYMPTOM",
-    title: "Hạ thân nhiệt — ≤1 tuổi (LCBI 3)",
-    gates: ["BSI"],
-  },
-  {
-    criteriaKey: "bsi_apnea",
-    milestoneKind: "SYMPTOM",
-    title: "Ngưng thở — ≤1 tuổi (LCBI 3)",
-    gates: ["BSI"],
-  },
-  {
-    criteriaKey: "bsi_bradycardia",
-    milestoneKind: "SYMPTOM",
-    title: "Nhịp chậm — ≤1 tuổi (LCBI 3)",
-    gates: ["BSI"],
-  },
-  {
+{
     criteriaKey: "suprapubic_pain",
     milestoneKind: "SYMPTOM",
     title: "Đau hạ vị / trên xương mu",
     gates: ["UTI"],
   },
-  {
+{
     criteriaKey: "cva_pain",
     milestoneKind: "SYMPTOM",
     title: "Đau góc sườn — thắt lưng (CVA)",
     gates: ["UTI"],
   },
-  {
+{
     criteriaKey: "dysuria",
     milestoneKind: "SYMPTOM",
     title: "Tiểu buốt (không dùng khi Foley tại chỗ)",
     gates: ["UTI"],
   },
-  {
+{
     criteriaKey: "urgency",
     milestoneKind: "SYMPTOM",
     title: "Tiểu gấp (không dùng khi Foley tại chỗ)",
     gates: ["UTI"],
   },
-  {
+{
     criteriaKey: "frequency",
     milestoneKind: "SYMPTOM",
     title: "Tiểu rắt (không dùng khi Foley tại chỗ)",
     gates: ["UTI"],
   },
-  {
-    criteriaKey: "infant_hypothermia",
-    milestoneKind: "SYMPTOM",
-    title: "Hạ thân nhiệt (<36°C) — ≤1 tuổi",
-    gates: ["UTI"],
-  },
-  {
-    criteriaKey: "infant_apnea",
-    milestoneKind: "SYMPTOM",
-    title: "Ngưng thở (apnea) — ≤1 tuổi",
-    gates: ["UTI"],
-  },
-  {
-    criteriaKey: "infant_bradycardia",
-    milestoneKind: "SYMPTOM",
-    title: "Nhịp chậm (bradycardia) — ≤1 tuổi",
-    gates: ["UTI"],
-  },
-  {
-    criteriaKey: "infant_lethargy",
-    milestoneKind: "SYMPTOM",
-    title: "Lethargy — ≤1 tuổi",
-    gates: ["UTI"],
-  },
-  {
-    criteriaKey: "infant_vomiting",
-    milestoneKind: "SYMPTOM",
-    title: "Nôn — ≤1 tuổi",
-    gates: ["UTI"],
-  },
-  {
+{
     criteriaKey: "purulent_sputum",
     milestoneKind: "SYMPTOM",
     title: "Đờm mủ / đờm đục mới",
     gates: ["HAP", "VAP"],
   },
-  {
+{
     criteriaKey: "new_purulent_sputum",
     milestoneKind: "SYMPTOM",
     title: "Thay đổi tính chất đờm (mủ)",
     gates: ["HAP", "VAP"],
   },
-  {
+{
     criteriaKey: "increased_secretions",
     milestoneKind: "SYMPTOM",
     title: "Tăng tiết đờm / cần hút nhiều hơn",
     gates: ["HAP", "VAP"],
   },
-  {
+{
     criteriaKey: "cough",
     milestoneKind: "SYMPTOM",
     title: "Ho mới / tăng",
     gates: ["HAP", "VAP"],
   },
-  {
+{
     criteriaKey: "dyspnea",
     milestoneKind: "SYMPTOM",
     title: "Khó thở",
     gates: ["HAP", "VAP"],
   },
-  {
+{
     criteriaKey: "tachypnea",
     milestoneKind: "SYMPTOM",
     title: "Thở nhanh",
     gates: ["HAP", "VAP"],
   },
-  {
+{
     criteriaKey: "rales",
     milestoneKind: "SYMPTOM",
     title: "Ran phổi / tiếng thở bất thường",
     gates: ["HAP", "VAP"],
   },
-  {
+{
     criteriaKey: "worsening_gas",
     milestoneKind: "SYMPTOM",
     title: "Giảm oxy hóa / tăng nhu cầu O₂",
     gates: ["HAP", "VAP", "VAE"],
   },
-  {
+{
     criteriaKey: "altered_mental_ge70",
     milestoneKind: "SYMPTOM",
     title: "Lú lẫn (≥70 tuổi)",
     gates: ["HAP", "VAP"],
   },
-  {
+{
     criteriaKey: "procedure_surgery",
     milestoneKind: "PROCEDURE_SURGERY",
     title: "Ngày phẫu thuật (Day 1 SSI)",
     gates: ["SSI"],
   },
-  {
+{
     criteriaKey: "purulent_drainage",
     milestoneKind: "SYMPTOM",
     title: "Vết mổ chảy mủ",
     gates: ["SSI"],
   },
-  {
+{
     criteriaKey: "wound_opened",
     milestoneKind: "SYMPTOM",
     title: "Mở vết mổ chủ động + cấy (+)",
     gates: ["SSI"],
   },
-  {
+{
     criteriaKey: "abscess_imaging",
     milestoneKind: "IMAGING_CHEST",
     title: "Áp xe / CĐHA ổ nhiễm (SSI organ)",
     gates: ["SSI"],
   },
-  {
+{
     criteriaKey: "physician_diagnosis",
     milestoneKind: "SYMPTOM",
     title: "BS chẩn đoán SSI nông",
     gates: ["SSI"],
   },
-  {
+{
     criteriaKey: "obgyn_abdominal_pain",
     milestoneKind: "SYMPTOM",
     title: "Đau bụng sau mổ (CSEC/HYST/VHYS)",
     gates: ["SSI"],
   },
-  {
+{
     criteriaKey: "device_foley",
     milestoneKind: "SYMPTOM",
     title: "Ống thông tiểu lưu (Foley)",
     gates: ["UTI"],
   },
-  {
+{
     criteriaKey: "device_ventilator",
     milestoneKind: "SYMPTOM",
     title: "Thở máy xâm lấn",
     gates: ["HAP", "VAP", "VAE"],
   },
-  {
+{
     criteriaKey: "device_central_line",
     milestoneKind: "SYMPTOM",
     title: "Đường truyền trung tâm (CVC)",
     gates: ["BSI"],
-  },
+  }
 ];
 
 /** Can thiệp xâm lấn — lưu từng ngày trên timeline BA (không dùng sổ đăng ký cho lưới). */
@@ -316,11 +260,6 @@ function matrixForGate(gate: NkbvChecklistTypeCode): CriteriaRowDef[] {
       { key: "dysuria", label: "Tiểu buốt (không Foley)", group: "Voiding", requiredHint: false },
       { key: "urgency", label: "Tiểu gấp (không Foley)", group: "Voiding", requiredHint: false },
       { key: "frequency", label: "Tiểu rắt (không Foley)", group: "Voiding", requiredHint: false },
-      { key: "infant_hypothermia", label: "Hạ thân nhiệt — ≤1 tuổi", group: "SUTI 2", requiredHint: false },
-      { key: "infant_apnea", label: "Ngưng thở — ≤1 tuổi", group: "SUTI 2", requiredHint: false },
-      { key: "infant_bradycardia", label: "Nhịp chậm — ≤1 tuổi", group: "SUTI 2", requiredHint: false },
-      { key: "infant_lethargy", label: "Lethargy — ≤1 tuổi", group: "SUTI 2", requiredHint: false },
-      { key: "infant_vomiting", label: "Nôn — ≤1 tuổi", group: "SUTI 2", requiredHint: false },
       { key: "device_foley", label: "Foley >2 ngày lịch + hiện diện DOE/DOE−1 → CAUTI", group: "Device", requiredHint: false },
       { key: "blood_culture", label: "Cấy máu khớp (ABUTI / Secondary) nếu có", group: "Liên quan máu", requiredHint: false },
     ];
@@ -350,9 +289,6 @@ function matrixForGate(gate: NkbvChecklistTypeCode): CriteriaRowDef[] {
       { key: "fever", label: "Sốt > 38,0°C", group: "LCBI 2", requiredHint: false },
       { key: "chills", label: "Rét run (chills)", group: "LCBI 2", requiredHint: false },
       { key: "hypotension", label: "Tụt huyết áp", group: "LCBI 2", requiredHint: false },
-      { key: "bsi_hypothermia", label: "Hạ thân nhiệt — ≤1 tuổi", group: "LCBI 3", requiredHint: false },
-      { key: "bsi_apnea", label: "Ngưng thở — ≤1 tuổi", group: "LCBI 3", requiredHint: false },
-      { key: "bsi_bradycardia", label: "Nhịp chậm — ≤1 tuổi", group: "LCBI 3", requiredHint: false },
       { key: "device_central_line", label: "Central line >2 ngày + DOE/DOE−1 → CLABSI", group: "Device", requiredHint: false },
     ];
   }
@@ -419,10 +355,6 @@ function criteriaKeysFromMilestone(m: BaTimelineMilestone): NkbvCriteriaKey[] {
   if (/TIỂU BUỐT|DYSURIA/.test(blob)) keys.push("dysuria");
   if (/TIỂU GẤP|URGENCY/.test(blob)) keys.push("urgency");
   if (/TIỂU RẮT|FREQUENCY/.test(blob)) keys.push("frequency");
-  if (/NGƯNG THỞ|NGUNG THO|APNEA/.test(blob)) keys.push("bsi_apnea", "infant_apnea");
-  if (/NHỊP CHẬM|BRADYCARDIA/.test(blob)) keys.push("bsi_bradycardia", "infant_bradycardia");
-  if (/LETHARGY|LỜ ĐỜ|NGỦ LỊM/.test(blob)) keys.push("infant_lethargy");
-  if (/NÔN|VOMIT/.test(blob) && !/BUỒN NÔN/.test(blob)) keys.push("infant_vomiting");
   if (/ĐỜM MỦ|DORM MU|PURULENT/.test(blob)) keys.push("purulent_sputum", "new_purulent_sputum");
   if (/HO\b|COUGH/.test(blob)) keys.push("cough");
   if (/KHÓ THỞ|DYSPNEA/.test(blob)) keys.push("dyspnea");

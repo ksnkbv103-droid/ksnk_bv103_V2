@@ -16,11 +16,12 @@ export default function TaiKhoanNhanSuStaffRow({
   availableRoles: { id: string; name: string }[];
   onProvision: (row: StaffAuthRow, password: string) => void;
   onSetRole: (row: StaffAuthRow, roleName: string) => void;
-  onResetPassword: (row: StaffAuthRow, password: string) => void;
+  onResetPassword: (row: StaffAuthRow, password: string, confirmActorPassword: string) => void;
 }) {
   const [pw, setPw] = useState("");
   const [showReset, setShowReset] = useState(false);
   const [newPw, setNewPw] = useState("");
+  const [actorPw, setActorPw] = useState("");
   const ksnkRole = (r.role_names || [])[0]; // Lấy vai trò đầu tiên (thường là vai trò KSNK chính)
 
   return (
@@ -92,14 +93,22 @@ export default function TaiKhoanNhanSuStaffRow({
             </div>
 
             {showReset && (
-              <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+              <div className="flex flex-col gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
                 <input
                   type="password"
                   value={newPw}
                   onChange={(e) => setNewPw(e.target.value)}
                   placeholder="Mật khẩu mới (≥8 ký tự)"
-                  className="bv103-control-h min-w-[110px] flex-1 rounded-lg border border-slate-200 px-2 text-xs"
+                  className="bv103-control-h min-w-[110px] w-full rounded-lg border border-slate-200 px-2 text-xs"
                 />
+                <input
+                  type="password"
+                  value={actorPw}
+                  onChange={(e) => setActorPw(e.target.value)}
+                  placeholder="MK admin hiện tại (xác nhận)"
+                  className="bv103-control-h min-w-[110px] w-full rounded-lg border border-slate-200 px-2 text-xs"
+                />
+                <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => {
@@ -107,8 +116,13 @@ export default function TaiKhoanNhanSuStaffRow({
                       toast.error("Mật khẩu tối thiểu 8 ký tự.");
                       return;
                     }
-                    onResetPassword(r, newPw);
+                    if (!actorPw) {
+                      toast.error("Nhập mật khẩu admin hiện tại để xác nhận.");
+                      return;
+                    }
+                    onResetPassword(r, newPw, actorPw);
                     setNewPw("");
+                    setActorPw("");
                     setShowReset(false);
                   }}
                   className="rounded-lg bg-rose-600 hover:bg-rose-700 px-2.5 py-1 bv103-type-label font-semibold text-white transition-colors"
@@ -120,11 +134,13 @@ export default function TaiKhoanNhanSuStaffRow({
                   onClick={() => {
                     setShowReset(false);
                     setNewPw("");
+                    setActorPw("");
                   }}
                   className="rounded-lg border border-slate-200 hover:bg-slate-50 px-1.5 py-1 text-xs text-slate-500 transition-colors"
                 >
                   Hủy
                 </button>
+                </div>
               </div>
             )}
           </div>

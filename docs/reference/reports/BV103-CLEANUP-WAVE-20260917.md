@@ -1,3 +1,7 @@
+> ⚠️ **SUPERSEDED (2026-09-17)** — Không dùng làm plan đang hiệu lực.  
+> **Plan hiệu lực:** [`BV103-GIAM-SAT-CHIEN-LUOC-TONG-THE-20260917.md`](./BV103-GIAM-SAT-CHIEN-LUOC-TONG-THE-20260917.md) (+ rà rối [`BV103-RA-SOAT-DO-ROI-UI-DOCS-20260917.md`](./BV103-RA-SOAT-DO-ROI-UI-DOCS-20260917.md)).  
+> File này giữ lịch sử.
+
 # Cleanup wave 2026-09-17 — chồng chéo / nợ / dead code
 
 **Phạm vi:** app local (không migrate prod, không commit).  

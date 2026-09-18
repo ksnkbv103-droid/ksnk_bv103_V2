@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, CheckCircle2, ClipboardList, ExternalLink, Loader2, RefreshCw } from "lucide-react";
+import { ClipboardList, ExternalLink, Loader2, RefreshCw } from "lucide-react";
 import { useBangKiemToiPhaiTgs } from "@/lib/analytics/use-bang-kiem-toi-phai-tgs";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
@@ -19,19 +19,11 @@ type Props = {
   lockedKhoaLabel?: string | null;
 };
 
-function StatusBadge({ status }: { status: "da_tgs" | "thieu_tgs" }) {
+function StatusLabel({ status }: { status: "da_tgs" | "thieu_tgs" }) {
   if (status === "da_tgs") {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 bv103-type-label font-semibold text-emerald-800">
-        <CheckCircle2 className="w-3 h-3" /> Đã tự giám sát
-      </span>
-    );
+    return <span className="bv103-type-label font-medium text-emerald-800">Đã tự giám sát</span>;
   }
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 bv103-type-label font-semibold text-amber-800">
-      <AlertCircle className="w-3 h-3" /> Thiếu tự giám sát
-    </span>
-  );
+  return <span className="bv103-type-label font-medium text-amber-800">Thiếu tự giám sát</span>;
 }
 
 type Row = {
@@ -47,24 +39,20 @@ type Row = {
   gsc_form_href: string;
 };
 
-function TanSuatBadge({ row }: { row: Row }) {
+function TanSuatLabel({ row }: { row: Row }) {
   if (row.tan_suat_danh_gia === "chua_quy_dinh") {
-    return <span className="text-[11px] font-medium text-slate-400">Tần suất: chưa quy định</span>;
+    return <span className="bv103-type-label font-medium text-slate-400">Chưa quy định</span>;
   }
   const label =
     row.so_phien_toi_thieu != null
       ? `${row.so_phien_thuc_te}/${row.so_phien_toi_thieu} phiên`
       : `${row.so_phien_thuc_te} phiên`;
   if (row.tan_suat_danh_gia === "dat") {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-0.5 bv103-type-label font-semibold text-violet-800">
-        <CheckCircle2 className="w-3 h-3" /> {label}
-      </span>
-    );
+    return <span className="bv103-type-label font-medium text-violet-800">{label}</span>;
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 bv103-type-label font-semibold text-rose-800">
-      <AlertCircle className="w-3 h-3" /> {label} (thiếu tần suất)
+    <span className="bv103-type-label font-medium text-rose-800">
+      {label} (thiếu tần suất)
     </span>
   );
 }
@@ -100,10 +88,10 @@ function BkTable({ rows, showStatus }: { rows: Row[]; showStatus: boolean }) {
               {showStatus ? (
                 <>
                   <td className="py-3 pr-3">
-                    <StatusBadge status={row.trang_thai} />
+                    <StatusLabel status={row.trang_thai} />
                   </td>
                   <td className="py-3 pr-3">
-                    <TanSuatBadge row={row} />
+                    <TanSuatLabel row={row} />
                     {row.tan_suat_label ? (
                       <p className="mt-1 text-[11px] font-medium text-slate-500">{row.tan_suat_label}</p>
                     ) : null}

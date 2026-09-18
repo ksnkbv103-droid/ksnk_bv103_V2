@@ -458,7 +458,6 @@ Không import Excel phiên VST (đã gỡ cố ý).
 | **Chức năng** | Hồ sơ nằm viện (stay-centric); import ADT/LIS (Excel/dán); luật Ngày 3 → ca nghi; checklist L1/L2/L3; xác nhận / loại trừ; mẫu số; MDRO census; in phiếu; truy vết CSSD với SSI |
 | **Luồng** | Tạo/mở ca → gắn BA + loại → form lâm sàng → engine phân loại → lưu timeline → nhập XN → (SSI) gắn QR bộ / mẻ → thống kê / in |
 | **Dữ liệu** | `nkbv_fact_benh_an`, `nkbv_fact_vi_sinh`, `nkbv_fact_su_kien`, `nkbv_fact_mau_so_*`, `nkbv_fact_device_registry`, `nkbv_dm_*` |
-| **Không có** | API HIS/LIS sống; LabID / CLIP / PedVAE / ENDO / AU / SIR Location đầy đủ (tạm dừng W4–W6) |
 
 **Ưu (trích):** ADR một module đúng; không tự phân loại mù — có xác nhận kép; harden kỹ thuật W2 xong; cầu CSSD–SSI mạnh nhất hệ.
 
@@ -922,7 +921,6 @@ Phần mềm là **hệ kiểm soát nhiễm khuẩn chuyên khoa**, không ph�
 | P×I×S trên GSC | Tài liệu khả thi — chưa ship |
 | Hard-block cấp phát thiếu BOM | **Cố ý không** (Q2) |
 | Rewrite Auth / Quản trị | **Cấm** (F-04) |
-| NKBV W4–W6 (PedVAE, ENDO, AU, SIR Location) | Tạm dừng ADR 04/08 |
 
 Backlog sống: [`../architecture/open-backlog-20260731.md`](../architecture/open-backlog-20260731.md). Sổ nợ lịch sử nhiều mục Done: [`../architecture/debt-register.md`](../architecture/debt-register.md) — **đừng** lấy § cũ làm việc đang mở.
 

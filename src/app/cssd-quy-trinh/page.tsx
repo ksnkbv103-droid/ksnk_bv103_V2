@@ -1,14 +1,14 @@
 "use client";
 
-import React, { Suspense, useCallback, useMemo } from "react";
+import React, { Suspense, useCallback, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { WashingMachine, Flame, Package, History, Search, type LucideIcon } from "lucide-react";
+import { WashingMachine, Flame, History, Search, type LucideIcon } from "lucide-react";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
 import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 
-type QuyTrinhTab = "WORKFLOW" | "BATCH" | "KHO" | "TRACE";
+type QuyTrinhTab = "WORKFLOW" | "BATCH" | "TRACE";
 
 function TabPanelSkeleton() {
   return (
@@ -34,14 +34,6 @@ const CSSDSterilizationBatchPage = dynamic(
   { ssr: false, loading: () => <TabPanelSkeleton /> },
 );
 
-const CSSDInstrumentInventoryEmbeddedPage = dynamic(
-  () =>
-    import("@/modules/cssd-erp/contexts/processing-lifecycle/entrypoint").then((m) => ({
-      default: m.CSSDInstrumentInventoryEmbeddedPage,
-    })),
-  { ssr: false, loading: () => <TabPanelSkeleton /> },
-);
-
 const QRHistoryViewer = dynamic(
   () => import("@/modules/cssd-erp/components/history/QRHistoryViewer"),
   { ssr: false, loading: () => <TabPanelSkeleton /> },
@@ -57,7 +49,6 @@ const WORK_TABS: {
 }[] = [
   { key: "WORKFLOW", label: "Chu trình", mobileLabel: "Chu trình", icon: WashingMachine, param: "", emphasis: "primary" },
   { key: "BATCH", label: "Mẻ", mobileLabel: "Mẻ", icon: Flame, param: "batch", emphasis: "secondary" },
-  { key: "KHO", label: "Kho", mobileLabel: "Kho", icon: Package, param: "kho", emphasis: "secondary" },
 ];
 
 const TAB_CONFIG = [
@@ -67,7 +58,7 @@ const TAB_CONFIG = [
 
 function resolveTab(param: string | null): QuyTrinhTab {
   if (param === "batch") return "BATCH";
-  if (param === "kho") return "KHO";
+  if (param === "kho") return "WORKFLOW"; // legacy tab Kho → bỏ khỏi shell A
   if (param === "trace") return "TRACE";
   return "WORKFLOW";
 }
@@ -78,6 +69,12 @@ function CssdQuyTrinhPageInner() {
   const tabParam = searchParams.get("tab");
   const qrParam = searchParams.get("qr");
   const activeTab = useMemo(() => resolveTab(tabParam), [tabParam]);
+
+  useEffect(() => {
+    if (tabParam === "kho") {
+      router.replace("/cssd-dung-cu", { scroll: false });
+    }
+  }, [tabParam, router]);
 
   const setTab = useCallback(
     (key: QuyTrinhTab) => {
@@ -137,8 +134,6 @@ function CssdQuyTrinhPageInner() {
             <CSSDProcessingLifecyclePage suppressShell />
           ) : activeTab === "BATCH" ? (
             <CSSDSterilizationBatchPage suppressShell />
-          ) : activeTab === "KHO" ? (
-            <CSSDInstrumentInventoryEmbeddedPage suppressShell />
           ) : (
             <QRHistoryViewer initialQr={traceQr || undefined} />
           )}

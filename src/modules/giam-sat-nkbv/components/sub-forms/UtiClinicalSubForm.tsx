@@ -1,11 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
-import {
-  ageYearsFromNgaySinh,
-  resolveIsInfantLe1Flag,
-  showInfantCriteriaUi,
-} from "../../lib/nkbv-age-ui";
+import React from "react";
 import { formSymptomRowsFor } from "../../lib/nkbv-clinical-symptom-catalog";
 import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
 import type { UtiVerificationData } from "../../types/nkbv-verification";
@@ -56,47 +51,6 @@ export default function UtiClinicalSubForm({
   const isMicrobiologyBlocked = form.pathogen_count > 2 || form.has_fungi_yeast_parasite;
   const cleanNgayVaoVien = ngayVaoVien ? ngayVaoVien.slice(0, 10) : "";
   const cleanNgayPhatHien = ngayPhatHien ? ngayPhatHien.slice(0, 10) : "";
-  const ageYears = ageYearsFromNgaySinh(ngaySinh, cleanNgayPhatHien || undefined);
-  const showInfantUi = showInfantCriteriaUi(ageYears);
-  const infantFlag = resolveIsInfantLe1Flag(ageYears);
-
-  useEffect(() => {
-    if (form.is_infant_le1 === infantFlag) {
-      if (
-        !infantFlag &&
-        (form.has_infant_hypothermia ||
-          form.has_infant_apnea ||
-          form.has_infant_bradycardia ||
-          form.has_infant_lethargy ||
-          form.has_infant_vomiting)
-      ) {
-        onChange({
-          ...form,
-          is_infant_le1: false,
-          has_infant_hypothermia: false,
-          has_infant_apnea: false,
-          has_infant_bradycardia: false,
-          has_infant_lethargy: false,
-          has_infant_vomiting: false,
-        });
-      }
-      return;
-    }
-    if (!infantFlag) {
-      onChange({
-        ...form,
-        is_infant_le1: false,
-        has_infant_hypothermia: false,
-        has_infant_apnea: false,
-        has_infant_bradycardia: false,
-        has_infant_lethargy: false,
-        has_infant_vomiting: false,
-      });
-      return;
-    }
-    onChange({ ...form, is_infant_le1: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional sync on age gate
-  }, [infantFlag]);
   const todayStr = new Date().toISOString().slice(0, 10);
   const showMicro = activeTab === "LAM_SANG" || activeTab === "VI_SINH";
   const showClinical = activeTab === "LAM_SANG";
@@ -225,9 +179,7 @@ export default function UtiClinicalSubForm({
             hint="SSOT catalog · tiểu buốt/gấp/rắt chỉ khi KHÔNG đặt sonde tại chỗ."
           >
             <NkbvCatalogSymptomRows
-              rows={formSymptomRowsFor("UTI", { foleyActive: !!foleyActive }).filter(
-                (r) => r.age_gate !== "le1",
-              )}
+              rows={formSymptomRowsFor("UTI", { foleyActive: !!foleyActive })}
               form={form as unknown as Record<string, unknown>}
               onToggle={(field, checked) =>
                 onChange({ ...form, [field]: checked } as UtiVerificationData)
@@ -244,28 +196,7 @@ export default function UtiClinicalSubForm({
                 Đang đặt sonde → không nhập tiểu buốt/gấp/rắt (tiêu chuẩn loại trừ).
               </p>
             ) : null}
-            {showInfantUi ? (
-              <>
-                <p className="border-t border-slate-100 pt-3 text-[11px] font-semibold text-violet-800">
-                  Bệnh nhi ≤ 1 tuổi (theo ngày sinh) — SUTI 2
-                </p>
-                <div className="rounded-lg border border-violet-100 bg-violet-50/70 p-3">
-                  <NkbvCatalogSymptomRows
-                    rows={formSymptomRowsFor("UTI").filter((r) => r.age_gate === "le1")}
-                    form={form as unknown as Record<string, unknown>}
-                    onToggle={(field, checked) =>
-                      onChange({ ...form, [field]: checked } as UtiVerificationData)
-                    }
-                    symptomDates={symptomDates}
-                    onSymptomDateChange={onSymptomDateChange}
-                    allowedEdit={allowedEdit}
-                    iwpStart={iwpStart}
-                    iwpEnd={iwpEnd}
-                    disabled={isMicrobiologyBlocked}
-                  />
-                </div>
-              </>
-            ) : null}
+            
           </NkbvFormSection>
 
           {showSecondary ? (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { getKhoCatalogPayloadAction, lookupBoDungCuIdByQrAction } from "../actions/cssd-catalog.actions";
 import {
@@ -13,8 +14,13 @@ import { normalizeCssdCode } from "../shared/domain/cssd-qr-core";
 import { filterCatalogRows, type CatalogTab } from "../views/cssd-catalog-page-helpers";
 
 export function useCssdCatalogPage() {
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
-  const [tab, setTabState] = useState<CatalogTab>("BO");
+  const [tab, setTabState] = useState<CatalogTab>(() => {
+    const t = String(searchParams.get("tab") || "").toUpperCase();
+    if (t === "DE_NGHI" || t === "LOAI" || t === "HISTORY" || t === "BO") return t as CatalogTab;
+    return "BO";
+  });
   const setTab = useCallback((next: CatalogTab) => {
     setTabState(next === "CHI_TIET" ? "BO" : next);
   }, []);

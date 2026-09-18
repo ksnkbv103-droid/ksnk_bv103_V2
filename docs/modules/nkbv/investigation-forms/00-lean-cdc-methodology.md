@@ -17,7 +17,6 @@ Mục tiêu: **đủ CDC trên dữ liệu**, **tinh gọn trên màn hình**.
 | Lớp | Tên | Định nghĩa | UI |
 |-----|-----|------------|-----|
 | **L1 Core** | Bắt buộc phân loại | Thiếu → không ra đúng classification (PNU/LCBI/CAUTI/VAC/SSI…) hoặc POA/HAI/device-association | Luôn hiện trên màn vận hành |
-| **L2 Branch** | Nhánh có điều kiện | Chỉ khi gate mở (commensal, ≤1 tuổi, PNU3, PVAP, organ-space…) | Hiện khi điều kiện đúng |
 | **L3 Audit** | Ruled-out / giải trình / đào tạo | Không đổi tử số nếu L1 đã “không đạt”; phục vụ kiểm toán | Thu gọn; bắt buộc khi Loại trừ / Ruled-out |
 
 **Đủ chuẩn CDC** = đã thu thập L1 + mọi L2 đã kích hoạt, trong đúng cửa sổ thời gian (IWP / Event Period / Surveillance).  

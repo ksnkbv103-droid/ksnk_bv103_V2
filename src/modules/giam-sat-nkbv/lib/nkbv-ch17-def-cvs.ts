@@ -39,27 +39,7 @@ export const CH17_DEF_CARD: Ch17TypeDef = {
           cardLabAny,
         ),
       },
-    },
-    {
-      code: "CARD3",
-      label_vi: "≤1 tuổi: ≥2 triệu chứng + cận lâm sàng",
-      node: {
-        kind: "ageGate",
-        age: "INFANT_LE1",
-        of: all(
-          atLeast(
-            2,
-            ev("sx_fever_gt38"),
-            ev("sx_hypothermia_lt36"),
-            ev("sx_apnea"),
-            ev("sx_bradycardia"),
-            ev("sx_paradoxical_pulse"),
-            ev("sx_enlarged_cardiac_silhouette"),
-          ),
-          cardLabAny,
-        ),
-      },
-    },
+    }
   ],
 };
 
@@ -83,25 +63,7 @@ export const CH17_DEF_MED: Ch17TypeDef = {
           medSupport,
         ),
       },
-    },
-    {
-      code: "MED4",
-      label_vi: "≤1 tuổi: ≥1 triệu chứng + hỗ trợ",
-      node: {
-        kind: "ageGate",
-        age: "INFANT_LE1",
-        of: all(
-          any(
-            ev("sx_fever_gt38"),
-            ev("sx_hypothermia_lt36"),
-            ev("sx_apnea"),
-            ev("sx_bradycardia"),
-            ev("sx_sternal_instability"),
-          ),
-          medSupport,
-        ),
-      },
-    },
+    }
   ],
 };
 
@@ -129,28 +91,7 @@ export const CH17_DEF_VASC: Ch17TypeDef = {
         ),
       },
     },
-    { code: "VASC4", label_vi: "Chảy mủ tại chỗ mạch", node: ev("sx_vascular_purulent") },
-    {
-      code: "VASC5",
-      label_vi: "≤1 tuổi: triệu chứng + tip catheter >15",
-      node: {
-        kind: "ageGate",
-        age: "INFANT_LE1",
-        of: all(
-          any(
-            ev("sx_fever_gt38"),
-            ev("sx_hypothermia_lt36"),
-            ev("sx_apnea"),
-            ev("sx_bradycardia"),
-            ev("sx_vascular_lethargy"),
-            ev("sx_vascular_pain"),
-            ev("sx_vascular_erythema"),
-            ev("sx_vascular_warmth"),
-          ),
-          ev("micro_catheter_tip_gt15"),
-        ),
-      },
-    },
+    { code: "VASC4", label_vi: "Chảy mủ tại chỗ mạch", node: ev("sx_vascular_purulent") }
   ],
 };
 
@@ -166,7 +107,7 @@ const endoMinor5 = [
   ev("sx_fever_gt38"),
   ev("sx_endo_new_murmur"),
   ev("sx_endo_vascular_phenomenon"),
-  ev("sx_endo_immunologic_phenomenon"),
+  ev("sx_endo_immunologic_phenomenon")
 ] as const;
 
 export const CH17_DEF_ENDO: Ch17TypeDef = {
@@ -211,7 +152,7 @@ export const CH17_DEF_ENDO: Ch17TypeDef = {
       code: "ENDO7",
       label_vi: "Đủ 5 yếu tố lâm sàng phụ + cấy máu thông thường",
       node: all(atLeast(5, ...endoMinor5), ev("micro_blood_ordinary_positive")),
-    },
+    }
   ],
 };
 
@@ -219,5 +160,5 @@ export const CH17_CVS_DEFS: readonly Ch17TypeDef[] = [
   CH17_DEF_CARD,
   CH17_DEF_MED,
   CH17_DEF_VASC,
-  CH17_DEF_ENDO,
+  CH17_DEF_ENDO
 ];

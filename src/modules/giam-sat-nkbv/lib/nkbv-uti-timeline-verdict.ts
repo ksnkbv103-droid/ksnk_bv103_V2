@@ -6,7 +6,6 @@ import type { UtiVerificationData } from "../types/nkbv-verification";
 import { evaluateUtiCauti, type RuleEvaluationResult } from "./nkbv-rules-engine";
 import type { BaGridSymptomByDate, BaGridXnCell } from "./nkbv-ba-grid-engine";
 import {
-  UTI_INFANT_CRITERIA_KEYS,
   UTI_VOIDING_CRITERIA_KEYS,
 } from "./nkbv-ba-grid-engine";
 import { organismsMatch } from "./nkbv-secondary-bsi-gate";
@@ -145,7 +144,6 @@ export type BuildUtiTimelineVerdictInput = {
   bloodXn: BaGridXnCell[];
   /** Máu gắn ABUTI (ids). */
   abutiBloodIds: string[];
-  isInfantLe1?: boolean;
   admissionDate?: string | null;
   dischargeDate?: string | null;
   devicePlacedDate?: string | null;
@@ -190,11 +188,6 @@ export function buildUtiTimelineVerdict(
   const hasDysuria = anyKeyInIwp(lamSang, input.iwpDates, ["dysuria"]);
   const hasUrgency = anyKeyInIwp(lamSang, input.iwpDates, ["urgency"]);
   const hasFrequency = anyKeyInIwp(lamSang, input.iwpDates, ["frequency"]);
-  const hasInfantHypo = anyKeyInIwp(lamSang, input.iwpDates, ["infant_hypothermia"]);
-  const hasInfantApnea = anyKeyInIwp(lamSang, input.iwpDates, ["infant_apnea"]);
-  const hasInfantBrady = anyKeyInIwp(lamSang, input.iwpDates, ["infant_bradycardia"]);
-  const hasInfantLeth = anyKeyInIwp(lamSang, input.iwpDates, ["infant_lethargy"]);
-  const hasInfantVom = anyKeyInIwp(lamSang, input.iwpDates, ["infant_vomiting"]);
 
   const abutiBloods = input.bloodXn.filter(
     (b) =>
@@ -230,12 +223,6 @@ export function buildUtiTimelineVerdict(
     has_dysuria: hasDysuria,
     has_urgency: hasUrgency,
     has_frequency: hasFrequency,
-    is_infant_le1: Boolean(input.isInfantLe1),
-    has_infant_hypothermia: hasInfantHypo,
-    has_infant_apnea: hasInfantApnea,
-    has_infant_bradycardia: hasInfantBrady,
-    has_infant_lethargy: hasInfantLeth,
-    has_infant_vomiting: hasInfantVom,
     has_blood_culture_positive_in_window: abutiBloods.length > 0,
     blood_urine_pathogen_matches: bloodMatch,
     blood_collection_date: bloodDate,
@@ -299,8 +286,9 @@ export function ageYearsFromNgaySinh(
   return age >= 0 ? age : null;
 }
 
-export function isInfantLe1FromAge(ageYears: number | null): boolean {
-  return ageYears != null && ageYears <= 1;
+/** @deprecated BV103 người lớn — luôn false. */
+export function isInfantLe1FromAge(_ageYears: number | null): boolean {
+  return false;
 }
 
-export { UTI_VOIDING_CRITERIA_KEYS, UTI_INFANT_CRITERIA_KEYS };
+export { UTI_VOIDING_CRITERIA_KEYS };

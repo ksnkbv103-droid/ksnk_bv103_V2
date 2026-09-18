@@ -24,9 +24,7 @@ import {
   type NkbvCriteriaKey,
 } from "./nkbv-criteria-matrix";
 import {
-  INFANT_LE1_CRITERIA_KEYS_FROM_CATALOG,
-  UTI_INFANT_CRITERIA_KEYS_FROM_CATALOG,
-  UTI_VOIDING_CRITERIA_KEYS_FROM_CATALOG,
+    UTI_VOIDING_CRITERIA_KEYS_FROM_CATALOG,
   criteriaKeyToFormField,
   displaySymptomLabel,
   type CriteriaMapContext,
@@ -371,11 +369,7 @@ export function criteriaKeyToSymptomDateKey(
 /** Triệu chứng tiểu — cấm khi Foley tại chỗ (SSOT §7). */
 export const UTI_VOIDING_CRITERIA_KEYS = UTI_VOIDING_CRITERIA_KEYS_FROM_CATALOG;
 
-/** Triệu chứng SUTI 2 — chỉ hiện khi ≤1 tuổi. */
-export const UTI_INFANT_CRITERIA_KEYS = UTI_INFANT_CRITERIA_KEYS_FROM_CATALOG;
 
-/** Mọi chip lâm sàng ≤1 tuổi — ẩn khi không phải infant. */
-export const INFANT_LE1_CRITERIA_KEYS = INFANT_LE1_CRITERIA_KEYS_FROM_CATALOG;
 
 export function dateSetInclusive(start: string, end: string): Set<string> {
   const out = new Set<string>();

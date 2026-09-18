@@ -347,21 +347,26 @@ function SupervisionCompareGrid({
 export function SupervisionCompareAccordion({
   sections,
   loading,
-  summaryLabel = "Chi tiết: chức năng phòng · nghề · hình thức",
+  summaryLabel = "So sánh theo khối · khu vực · đối tượng · hình thức",
+  defaultOpen = false,
 }: {
   loading?: boolean;
   sections: { title: string; rows: CompareRow[] }[];
   summaryLabel?: string;
+  defaultOpen?: boolean;
 }) {
   const visible = sections.filter((s) => loading || s.rows.length > 0);
   if (!loading && visible.length === 0) return null;
 
   return (
-    <details className="group rounded-xl border border-slate-200 bg-slate-50/50 open:bg-white">
+    <details
+      open={defaultOpen || undefined}
+      className="group rounded-xl border border-slate-200 bg-slate-50/50 open:bg-white"
+    >
       <summary className="cursor-pointer list-none px-4 py-3 text-sm font-bold text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
         <span className="inline-flex items-center gap-2">
           {summaryLabel}
-          <span className="text-[11px] font-normal text-slate-500">({visible.length} nhóm)</span>
+          <span className="text-[11px] font-normal text-slate-500">({visible.length} nhóm) · bấm để mở/đóng</span>
         </span>
       </summary>
       <div className="border-t border-slate-200 p-4">

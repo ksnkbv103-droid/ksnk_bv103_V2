@@ -1,3 +1,7 @@
+> **⚠️ LEGACY PRE-CUTOVER (2026-09-17)** — master bảng kiểm thời 51 mẫu.  
+> **Không seed từ file này.** SSOT triển khai: `canonical-36.md` + `docs/modules/giam-sat/bang-kiem-overview.md`.  
+> Mã chỉ có ở đây (vd BM.07.01) **không** thuộc bộ 36 đang chạy.
+
 Template\_ID,Template\_Code,Template\_Name,Super\_Category,Category\_Code,Target\_Type,Scoring\_Logic,Is\_Active
 
 1,BM.07.01,"Bảng kiểm giám sát tuân thủ VST (5 thời điểm)",COMPLIANCE\_AUDIT,STANDARD\_PRECAUTION,STAFF,PERCENTAGE,TRUE

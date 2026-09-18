@@ -15,15 +15,11 @@ import {
 } from "./nkbv-shared-timeline";
 import {
   ageYearsFromNgaySinh,
-  isInfantLe1FromAge,
 } from "./nkbv-uti-timeline-verdict";
 
 const FEVER_KEYS = ["fever", "fever_or_wbc"];
 const CHILLS_KEYS = ["chills", "rigor"];
 const HYPO_KEYS = ["hypotension", "shock"];
-const INFANT_HYPO_KEYS = ["bsi_hypothermia", "infant_hypothermia", "hypothermia"];
-const INFANT_APNEA_KEYS = ["bsi_apnea", "infant_apnea", "apnea"];
-const INFANT_BRADY_KEYS = ["bsi_bradycardia", "infant_bradycardia", "bradycardia"];
 
 function anyKeyInIwp(
   lamSang: BaGridSymptomByDate,
@@ -51,9 +47,6 @@ export function resolveBsiDoe(input: {
     ...FEVER_KEYS,
     ...CHILLS_KEYS,
     ...HYPO_KEYS,
-    ...INFANT_HYPO_KEYS,
-    ...INFANT_APNEA_KEYS,
-    ...INFANT_BRADY_KEYS,
   ];
   const dates: string[] = [];
   for (const d of input.iwpDates) {
@@ -103,7 +96,6 @@ export type BuildBsiTimelineVerdictInput = {
   canThiepDates: string[];
   iwpDates: Set<string>;
   nsk: string | null;
-  isInfantLe1?: boolean;
   /** Ngày vào viện — Day 1 CVC không trước VV. */
   admissionDate?: string | null;
   dischargeDate?: string | null;
@@ -158,9 +150,6 @@ export function buildBsiTimelineVerdict(
   const hasFever = anyKeyInIwp(input.lamSang, input.iwpDates, FEVER_KEYS);
   const hasChills = anyKeyInIwp(input.lamSang, input.iwpDates, CHILLS_KEYS);
   const hasHypotension = anyKeyInIwp(input.lamSang, input.iwpDates, HYPO_KEYS);
-  const hasInfantHypo = anyKeyInIwp(input.lamSang, input.iwpDates, INFANT_HYPO_KEYS);
-  const hasInfantApnea = anyKeyInIwp(input.lamSang, input.iwpDates, INFANT_APNEA_KEYS);
-  const hasInfantBrady = anyKeyInIwp(input.lamSang, input.iwpDates, INFANT_BRADY_KEYS);
 
   const doe =
     input.nsk ||
@@ -245,10 +234,6 @@ export function buildBsiTimelineVerdict(
     has_fever: hasFever,
     has_chills: hasChills,
     has_hypotension: hasHypotension,
-    is_infant_le1: Boolean(input.isInfantLe1),
-    has_hypothermia: hasInfantHypo,
-    has_apnea: hasInfantApnea,
-    has_bradycardia: hasInfantBrady,
     cvc_placed_days: cvcPlacedDays,
     // Chỉ true khi đủ eligibility gắn CLABSI (≥3d + DOE/DOE−1) — không dùng «có CVC 1 ngày»
     cvc_active_on_event: cvcAssociated,
@@ -308,4 +293,4 @@ function addDay(iso: string, n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-export { ageYearsFromNgaySinh, isInfantLe1FromAge };
+export { ageYearsFromNgaySinh };

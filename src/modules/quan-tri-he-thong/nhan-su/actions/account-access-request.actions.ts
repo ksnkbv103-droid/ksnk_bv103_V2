@@ -52,6 +52,30 @@ function genPendingMaNv(): string {
   return `YCTK-${stamp}-${rnd}`;
 }
 
+
+/** Public: chức danh active cho form xin cấp TK (id + tên — khớp admin). */
+export async function listPublicChucDanhOptionsForAccountRequestAction() {
+  try {
+    const supabase = createAdminSupabaseClient();
+    const { data, error } = await supabase
+      .from("mdm_dm_chuc_danh")
+      .select("id, ten_chuc_danh, ma_chuc_danh")
+      .eq("is_active", true)
+      .order("ten_chuc_danh", { ascending: true });
+    if (error) throw error;
+    return {
+      success: true as const,
+      data: (data || []).map((r) => ({
+        id: String(r.id),
+        ten_chuc_danh: String(r.ten_chuc_danh || ""),
+        ma_chuc_danh: String(r.ma_chuc_danh || ""),
+      })),
+    };
+  } catch (e: unknown) {
+    return { success: false as const, error: errMsg(e) };
+  }
+}
+
 /** Public: danh sách khoa/phòng cho form xin cấp TK (chỉ id + tên). */
 export async function listPublicKhoaOptionsForAccountRequestAction() {
   try {
@@ -72,10 +96,12 @@ export async function listPublicKhoaOptionsForAccountRequestAction() {
 export type SubmitAccountAccessRequestInput = {
   ho_ten: string;
   email: string;
+  /** Bắt buộc — danh mục khoa. */
+  khoa_id: string;
+  /** Bắt buộc — danh mục chức danh (không chữ tự do). */
+  chuc_danh_id: string;
   ma_nv?: string;
   so_dien_thoai?: string;
-  khoa_id?: string;
-  chuc_danh?: string;
   ly_do: string;
 };
 
@@ -91,8 +117,8 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
     const email = normalizeEmail(String(input.email || ""));
     const maNv = String(input.ma_nv || "").trim();
     const sdt = String(input.so_dien_thoai || "").trim();
-    const khoaId = String(input.khoa_id || "").trim() || null;
-    const chucDanh = String(input.chuc_danh || "").trim();
+    const khoaId = String(input.khoa_id || "").trim();
+    const chucDanhId = String(input.chuc_danh_id || "").trim();
     const lyDo = String(input.ly_do || "").trim();
 
     if (!hoTen || hoTen.length < 2) {
@@ -100,6 +126,12 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
     }
     if (!email || !email.includes("@")) {
       return { success: false as const, error: "Email không hợp lệ." };
+    }
+    if (!khoaId) {
+      return { success: false as const, error: "Chọn khoa / phòng từ danh mục." };
+    }
+    if (!chucDanhId) {
+      return { success: false as const, error: "Chọn chức danh từ danh mục." };
     }
     if (!lyDo || lyDo.length < 5) {
       return { success: false as const, error: "Lý do xin cấp tài khoản tối thiểu 5 ký tự." };
@@ -109,6 +141,22 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
     if (coolErr) return { success: false as const, error: coolErr };
 
     const supabase = createAdminSupabaseClient();
+
+    const khoas = await getCachedDmKhoaPhong();
+    if (!(khoas || []).some((k) => String(k.id) === khoaId)) {
+      return { success: false as const, error: "Khoa / phòng không hợp lệ — chọn lại từ danh sách." };
+    }
+
+    const { data: cdRow, error: cdErr } = await supabase
+      .from("mdm_dm_chuc_danh")
+      .select("id, ten_chuc_danh, is_active")
+      .eq("id", chucDanhId)
+      .maybeSingle();
+    if (cdErr) throw cdErr;
+    if (!cdRow?.id || cdRow.is_active === false) {
+      return { success: false as const, error: "Chức danh không hợp lệ — chọn lại từ danh mục." };
+    }
+    const chucDanhTen = String(cdRow.ten_chuc_danh || "").trim();
 
     type ExistingStaffRow = {
       id: string;
@@ -161,7 +209,8 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
       ma_nv: maNv || existing?.ma_nv || null,
       so_dien_thoai: sdt || null,
       khoa_id: khoaId,
-      chuc_danh: chucDanh || null,
+      chuc_danh_id: chucDanhId,
+      chuc_danh: chucDanhTen || null,
       ly_do: lyDo,
     };
 
@@ -176,7 +225,8 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
       status: "CHO_DUYET",
       kind: "REQUEST",
       ly_do: lyDo,
-      ...(chucDanh ? { chuc_danh: chucDanh } : {}),
+      chuc_danh_id: chucDanhId,
+      ...(chucDanhTen ? { chuc_danh: chucDanhTen } : {}),
       submitted_at: nowIso,
       ...(ticketId ? { ticket_id: ticketId } : {}),
     };
@@ -194,8 +244,9 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
         extra_data: extra,
         updated_at: nowIso,
         ho_ten: hoTen || existing.ho_ten,
+        khoa_id: khoaId,
+        chuc_danh_id: chucDanhId,
       };
-      if (khoaId) patch.khoa_id = khoaId;
       if (existing.is_active !== true) {
         patch.is_active = false;
       }
@@ -232,6 +283,7 @@ export async function submitAccountAccessRequestAction(input: SubmitAccountAcces
         ho_ten: hoTen,
         ma_nv: finalMa,
         khoa_id: khoaId,
+        chuc_danh_id: chucDanhId,
         is_active: false,
         extra_data: extra,
       })
@@ -478,7 +530,7 @@ export async function listPendingAccountRequests(params?: { page?: number; pageS
     const { data, error, count } = await supabase
       .from("v_mdm_nhan_su_full")
       .select(
-        "id, ma_nv, ho_ten, email, so_dien_thoai, khoa_id, ten_khoa, auth_user_id, is_active, extra_data, created_at",
+        "id, ma_nv, ho_ten, email, so_dien_thoai, khoa_id, ten_khoa, chuc_danh_id, ten_chuc_danh, auth_user_id, is_active, extra_data, created_at",
         { count: "exact" },
       )
       .contains("extra_data", { account_request: { status: "CHO_DUYET" } })

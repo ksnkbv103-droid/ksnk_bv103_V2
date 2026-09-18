@@ -41,7 +41,6 @@ Dưới đây là bộ **Tiêu chuẩn loại trừ cốt lõi và Thuật toán
 *Mục tiêu: Rạch ròi độ tuổi và loại trừ hoàn toàn sự cảm tính trong việc đọc phim X-quang.*
 
 * **Loại trừ 1: Độ tuổi và chế độ thở máy:**  
-  * **Luật:** Tiêu chuẩn VAE **LOẠI TRỪ** trẻ em và sơ sinh (khoa NICU/PICU có tiêu chuẩn PedVAE riêng). Bệnh nhân thở máy tần số cao (HFOV) hoặc đang chạy ECMO cũng bị loại trừ.  
 * **Loại trừ 2: Hình ảnh học (X-quang):**  
   * **Luật:** X-quang phổi **TUYỆT ĐỐI BỊ LOẠI TRỪ** khỏi mọi thuật toán chẩn đoán VAC, IVAC, và PVAP của người lớn. Không dùng phim X-quang để chứng minh hay bác bỏ VAE.  
 * **Loại trừ 3: Tác nhân vi sinh bị cấm (Bảo vệ PVAP):**  
@@ -49,7 +48,6 @@ Dưới đây là bộ **Tiêu chuẩn loại trừ cốt lõi và Thuật toán
 
 ---
 
-### **4\. VIÊM PHỔI BỆNH VIỆN / TRẺ EM (PNEU / HAP / PedVAP)**
 
 *Mục tiêu: Tránh việc chẩn đoán nhầm suy tim ứ huyết thành viêm phổi bệnh viện.*
 

@@ -46,28 +46,7 @@ export const CH17_DEF_IC: Ch17TypeDef = {
           icLabAny,
         ),
       },
-    },
-    {
-      code: "IC4",
-      label_vi: "≤1 tuổi: ≥2 dấu hiệu + cận lâm sàng",
-      node: {
-        kind: "ageGate",
-        age: "INFANT_LE1",
-        of: all(
-          atLeast(
-            2,
-            ev("sx_fever_gt38"),
-            ev("sx_hypothermia_lt36"),
-            ev("sx_apnea"),
-            ev("sx_bradycardia"),
-            ev("sx_focal_neuro"),
-            ev("sx_altered_consciousness"),
-            ev("sx_infant_irritability"),
-          ),
-          icLabAny,
-        ),
-      },
-    },
+    }
   ],
 };
 
@@ -94,7 +73,6 @@ const menInfantSigns: Ch17Node = any(
       ev("sx_hypothermia_lt36"),
       ev("sx_apnea"),
       ev("sx_bradycardia"),
-      ev("sx_infant_irritability"),
     ),
   ),
   all(
@@ -104,7 +82,6 @@ const menInfantSigns: Ch17Node = any(
       ev("sx_hypothermia_lt36"),
       ev("sx_apnea"),
       ev("sx_bradycardia"),
-      ev("sx_infant_irritability"),
     ),
   ),
 );
@@ -123,16 +100,7 @@ export const CH17_DEF_MEN: Ch17TypeDef = {
         age: "OVER_1Y",
         of: all(ev("sx_meningitis_suspect"), menAdultSigns, menLabAny),
       },
-    },
-    {
-      code: "MEN3",
-      label_vi: "≤1 tuổi: nghi ngờ + ≥2 biểu hiện + cận lâm sàng",
-      node: {
-        kind: "ageGate",
-        age: "INFANT_LE1",
-        of: all(ev("sx_meningitis_suspect"), menInfantSigns, menLabAny),
-      },
-    },
+    }
   ],
 };
 
@@ -159,12 +127,12 @@ export const CH17_DEF_SA: Ch17TypeDef = {
           imagingOrEquivocalAbx("img_sa_definitive"),
         ),
       ),
-    },
+    }
   ],
 };
 
 export const CH17_CNS_DEFS: readonly Ch17TypeDef[] = [
   CH17_DEF_IC,
   CH17_DEF_MEN,
-  CH17_DEF_SA,
+  CH17_DEF_SA
 ];

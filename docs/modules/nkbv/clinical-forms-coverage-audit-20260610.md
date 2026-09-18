@@ -20,12 +20,9 @@
 | Hợp đồng UI `clinical-forms.md` v2.0 | ✓ wireframe 5 loại + ma trận field |
 | `NkbvDomainFormShell` + `NkbvFormSection` + window strip | ✓ |
 | Auto-prefill Registry khi mở/đổi loại | ✓ (không ghi đè ngày đã có) |
-| BSI: sốt/rét run/tụt HA tách + LCBI3/MBI tối thiểu | ✓ |
-| UTI: Foley DOE tick + SUTI2 infant + cấm voiding | ✓ |
 | VAE: Event Period + PVAP secondary UI + APRV/ECMO stub | ✓ |
 | PNEU: checklist hô hấp + badge VAP/Non-VAP | ✓ |
 | SSI: ngày mổ/DOE + PATOS + surveillance copy | ✓ |
-| Out of scope | PedVAE, ENDO, CLIP, bảng NHSN đầy |
 
 ---
 

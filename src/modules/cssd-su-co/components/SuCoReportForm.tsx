@@ -133,7 +133,7 @@ export default function SuCoReportForm({
   const [typeTen, setTypeTen] = useState(() => {
     if (initialGroup === "INSTRUMENT") {
       const coerced = coerceInstrumentFormTypeId(initialTypeId);
-      return INCIDENT_TYPE_PRESETS.INSTRUMENT.find((x) => x.code === coerced)?.label || "Đổi danh mục";
+      return INCIDENT_TYPE_PRESETS.INSTRUMENT.find((x) => x.code === coerced)?.label || "Hỏng/Mất";
     }
     return (
       INCIDENT_TYPE_PRESETS.PROCESS.find((x) => x.code === initialTypeId)?.label ||
@@ -464,7 +464,7 @@ export default function SuCoReportForm({
           : submitTypeId === "INSTRUMENT_REPLENISH"
             ? "Kho ↔ bộ"
             : submitTypeId === SET_RECONCILE_TYPE_ID
-              ? typeTen || (isPhysicalDoor ? "Hỏng/Mất" : "Đổi danh mục")
+              ? typeTen || (isPhysicalDoor ? "Hỏng/Mất" : isMoveDoor ? "Chuyển kho·bộ" : "Biến động dụng cụ")
               : typeTen;
 
       const payload = {

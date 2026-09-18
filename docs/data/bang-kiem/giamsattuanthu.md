@@ -1,3 +1,7 @@
+> **⚠️ ARCHIVE / KHÔNG DÙNG LÀM SSOT TRIỂN KHAI (2026-09-17)**  
+> Đây là bài thiết kế kiến trúc cũ (EAV, Phần 3–4 RCA, ticket). Domain hiện tại: `results_jsonb` + snapshot BK-1; Phần 3–4 form đã DROP — xem `docs/core/domain-specification.md` và `docs/modules/giam-sat/bang-kiem-overview.md`.  
+> SSOT mẫu: `canonical-36.md`. Đề cương vận hành: `docs/reference/reports/BV103-GSC-DE-CUONG-20260917.md`.
+
 Chào bạn, dưới góc độ của một **Kiến trúc sư phần mềm (Software Architect)**, bài toán số hóa "Giám sát tuân thủ thực hành KSNK" (Process Surveillance) là một trong những module cốt lõi và phức tạp nhất. Nó đòi hỏi hệ thống không chỉ là một công cụ ghi chép điện tử, mà phải là một hệ sinh thái dữ liệu (Data Ecosystem) hỗ trợ đánh giá thời gian thực (Real-time), phân tích nguyên nhân gốc rễ (Root Cause), và thay đổi hành vi nhân viên y tế (NVYT) ngay tại điểm chăm sóc (Point-of-Care).
 
 Dựa trên Bộ quy chuẩn KSNK Ver 1.0 (đặc biệt là QT.KSNK.28), tiêu chuẩn JCI (Chương QPS, PCI) và tài liệu thực hành giám sát (bp-ipac-hc-settings), tôi xin trình bày bản thiết kế chi tiết Module Giám sát Tuân thủ Thực hành.

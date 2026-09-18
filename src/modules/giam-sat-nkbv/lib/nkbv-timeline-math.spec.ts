@@ -152,8 +152,8 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
       ngay_phat_hien: "2026-05-15",
       ngay_vao_vien: "2026-05-10",
       checklistType: "UTI",
-      activeForm: { is_infant_le1: true, has_infant_hypothermia: true },
-      symptomDates: { has_infant_hypothermia: "2026-05-13" },
+      activeForm: { has_fever: true },
+      symptomDates: { has_fever: "2026-05-13" },
       treatmentHistory: [],
     });
     expect(metrics.doe).toBe("2026-05-13");

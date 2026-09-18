@@ -1,21 +1,19 @@
 // src/modules/cssd-erp/views/CSSDERPPage.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { AlertTriangle } from "lucide-react";
 import { useCSSDWorkflow } from "../hooks/useCSSDWorkflow";
 import WaitingList from "../components/waiting-list/WaitingList";
 import QRScanSuccessCard from "../components/scan/QRScanSuccessCard";
 import WorkflowStationQrEntry from "../components/scan/WorkflowStationQrEntry";
-import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 import CSSDPageShell, { CSSD_PAGE_OUTER } from "../components/layout/cssd-page-shell";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import type { Station } from "../types/cssd.types";
 import { SCAN_STATIONS } from "../workflow/domain/cssd-stations";
 import { isValidStation } from "../workflow/domain/cssd-state-engine";
-import { cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
+import { CSSD_ROUTES, cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
 import { useCssdPrint } from "../hooks/use-cssd-print";
 import CssdPrintPortal from "../components/print/CssdPrintPortal";
 import CompositionReconcilePanel from "../components/packaging/CompositionReconcilePanel";
@@ -41,9 +39,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     handleQRScan,
     confirmDongGoiAdvance,
     cancelDongGoiGate,
-    refresh,
   } = useCSSDWorkflow();
-  const [isIncidentOpen, setIsIncidentOpen] = useState(false);
   const { printState, onPrintCapPhat, isPrinting: isCssdPrinting } = useCssdPrint();
   const { printCycleLabel } = usePrint();
   const lastDongGoiCyclePrintKey = React.useRef<string | null>(null);
@@ -71,11 +67,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
   }, [currentStation, lastScan, printCycleLabel]);
 
   const { loading: permLoading, allowed } = useModulePermission(MODULE_KEY);
-  const { allowed: incidentAllowed } = useModulePermission("BAO_SU_CO");
   const canViewWorkflow = allowed.view;
-  // Quyền báo sự cố phải theo module BAO_SU_CO (không phụ thuộc workflow edit/delete).
-  const canCreateIncident = incidentAllowed.create;
-
   if (permLoading) {
     const loadingInner = (
       <div className="flex h-[50vh] items-center justify-center" aria-busy="true">
@@ -117,22 +109,8 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     selectStation(station);
   };
 
-  const incidentActions = (
-    <button
-      type="button"
-      onClick={() => setIsIncidentOpen(true)}
-      disabled={!canCreateIncident}
-      className="bv103-control-h inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-control)] bg-red-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-    >
-      <AlertTriangle size={16} aria-hidden /> Báo sự cố
-    </button>
-  );
-
   const mainContent = (
     <div className="space-y-[var(--bv103-space-3)] animate-in fade-in duration-500">
-      {suppressShell ? (
-        <div className="flex justify-end">{incidentActions}</div>
-      ) : null}
       <CssdStationFlowMap
         activeStation={currentStation}
         onSelectStation={requestSelectStation}
@@ -182,15 +160,6 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
           ) : null}
         </div>
       </main>
-      <IncidentReportModal
-        isOpen={isIncidentOpen && canCreateIncident}
-        onClose={() => setIsIncidentOpen(false)}
-        station={currentStation || "TIEP_NHAN"}
-        onSuccess={refresh}
-        defaultGroup="PROCESS"
-        initialMaQR={lastScan?.qrCode ? String(lastScan.qrCode) : undefined}
-        quyTrinhId={lastScan?.quyTrinhId ? String(lastScan.quyTrinhId) : undefined}
-      />
     </div>
   );
 
@@ -210,7 +179,14 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
           Quản lý <span className="text-[var(--primary)]">CSSD</span>
         </>
       }
-      actions={incidentActions}
+      actions={
+        <a
+          href={CSSD_ROUTES.suCo}
+          className="bv103-control-h inline-flex items-center text-xs font-semibold text-[var(--primary)] hover:underline"
+        >
+          Sự cố & biến động
+        </a>
+      }
     >
       {mainContent}
       <CssdPrintPortal printState={printState} />

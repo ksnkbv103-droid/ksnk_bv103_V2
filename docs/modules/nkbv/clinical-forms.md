@@ -18,7 +18,6 @@
 
 **UI copy:** không hiện “cò súng” / “SSOT §…” — dùng “Yếu tố xác định khung”, “Quy kết khoa (LOA)”, “Cửa sổ Secondary BSI (SBAP)”.
 
-**Out of scope:** PedVAE, ENDO, IAB/BONE/PJI, LabID/CLIP, AU.
 
 Runtime: `NkbvDiagnosticCaseForm` + `NkbvDiagnosticRow` trong modal phán quyết (một màn, không tab lâm sàng/KSNK).
 
@@ -87,8 +86,6 @@ Gap P0/P1: [`investigation-forms/gap-lean-vs-runtime.md`](./investigation-forms/
 
 | Hội chứng | L1 (tóm tắt) | L2 hay gặp | L3 |
 |-----------|--------------|------------|-----|
-| BSI | Pathogen class + CVC association | Commensal sx, LCBI3, MBI, Secondary | Contamination / CLIP (out) |
-| UTI | CFU/≤2/no nấm + ≥1 sx | Foley CAUTI, voiding, SUTI2, ABUTI | ASB giải trình |
 | VAE | Age≥18, vent≥4d, VAC | IVAC, PVAP, Secondary PVAP | APRV/ECMO stub |
 | PNEU | Imaging + toàn thân + ≥2 hô hấp | Bệnh nền/phim, AMS≥70, PNU2/3, VAP device | Ruled-out Phần V |
 | SSI | Cửa sổ 30/90 + depth + ≥1 tiêu chí | Implant, PATOS, CSSD QR, Secondary | Hết cửa sổ |
@@ -126,7 +123,6 @@ Gap P0/P1: [`investigation-forms/gap-lean-vs-runtime.md`](./investigation-forms/
 | Hội chứng | Key `symptom_dates` đóng góp DOE |
 |-----------|----------------------------------|
 | BSI | `has_fever`, `has_chills`, `has_hypotension`, infant (`has_hypothermia`…) + legacy `symptoms_window_7days` |
-| UTI | sốt / đau mu / CVA / tiểu buốt·gấp·rắt + infant SUTI2 có ngày |
 | PNEU | toàn thân + hình ảnh + hô hấp tại chỗ (`has_dyspnea`, `has_tachypnea`, ho, đờm, rale, PaO₂…) |
 | VAE / SSI | Event Period / Surveillance — không ép IWP ±3 cho DOE kiểu lâm sàng |
 

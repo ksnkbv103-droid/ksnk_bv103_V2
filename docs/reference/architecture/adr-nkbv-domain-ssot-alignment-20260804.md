@@ -4,7 +4,6 @@
 
 **Accepted (2026-08-04)** — Product Owner khóa phạm vi **W0–W2**; **tạm dừng W4–W6**; W3 (LabID/CLIP) để backlog.
 
-**Bổ sung 2026-08-26 (NK-W46 lát 1):** mở **map CDC Location trên khoa** (`mdm_dm_khoa_phong.specs.cdc_location_code`). SIR trên dashboard **vẫn số thô** — không FacWide SIR chuẩn. **Vẫn dừng:** thuật toán 80% acuity, PedVAE/ENDO, AU.
 
 **Addendum 2026-08-27 (SSOT v3.0):** canonical thuật toán NHSN đổi sang [`hai-surveillance-domain-ssot-20260827.md`](../../modules/nkbv/hai-surveillance-domain-ssot-20260827.md) — mục lục = sổ tay CDC PSC January 2025, **chỉ người lớn**.
 
@@ -46,17 +45,14 @@ Implement code **neo SSOT** cho thuật toán Shared + delta hội chứng; **kh
 | **W1** | In-scope | Shared libs + Device Registry + wire engine + mau_so song song |
 | **W2** | In-scope | Harden CLABSI / CAUTI / VAE / PNEU / SSI theo P0 gap catalog |
 | **W3** | Backlog | LabID MDRO/CDI + CLIP |
-| **W4–W6** | **Tạm dừng** | Location/SIR-SUR UI; PedVAE/ENDO/IAB; AU |
 
 ### 4. Vì sao dừng W4–W6
 
 - **W4:** SIR/SUR “chuẩn” cần CDC Location Mapping + baseline model — hiện khoa nội bộ + RPC thô; UI full dễ tạo ảo tưởng độ tin.
-- **W5:** PedVAE/ENDO thiếu flowsheet MAP/FiO₂ NICU và imaging/echo pipeline.
 - **W6:** SSOT **cấm** AU nhập tay; chưa có eMAR/BCMA.
 
 ### 5. Non-goals (đợt W0–W2)
 
-- AU manual; FacWide SIR dashboard đầy đủ; PedVAE; ENDO / IAB/BONE/PJI đầy Chương 17.
 - Rewrite schema không qua migration; tắt mau_so nhập tay trong W1.
 - Merge VST/GSC vào NKBV.
 

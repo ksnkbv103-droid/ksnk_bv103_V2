@@ -6,6 +6,9 @@ import { isDeviceDateInStay } from "../lib/nkbv-ba-device-timeline";
 import { criteriaKeyToDungCuLoai } from "../lib/nkbv-ba-ngay";
 import { syncNkbvPhieuFromBaNgay } from "../lib/nkbv-ba-ngay-sync";
 
+/** Re-export cho ba-analysis (cùng entry server). */
+export { syncNkbvPhieuFromBaNgay };
+
 async function stayBounds(ma: string): Promise<
   { ok: true; vv: string; rv: string | null } | { ok: false; error: string }
 > {

@@ -1,3 +1,7 @@
+> ⚠️ **SUPERSEDED (2026-09-17)** — Không dùng làm plan đang hiệu lực.  
+> **Plan hiệu lực:** [`BV103-GIAM-SAT-CHIEN-LUOC-TONG-THE-20260917.md`](./BV103-GIAM-SAT-CHIEN-LUOC-TONG-THE-20260917.md) (+ rà rối [`BV103-RA-SOAT-DO-ROI-UI-DOCS-20260917.md`](./BV103-RA-SOAT-DO-ROI-UI-DOCS-20260917.md)).  
+> File này giữ lịch sử.
+
 # Chẩn đoán: Giám sát tuân thủ — vì sao «đơn giản» mà mãi chưa xong?
 
 > 2026-09-17 · Bổ sung cho `BV103-GSC-DE-CUONG-20260917.md` · Không commit trong lát này.

@@ -1,16 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import type { BaoCaoTrendPoint, BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 import { complianceToneFromPercent } from "../../lib/bao-cao-tong-hop-thresholds";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
-import {
-  fetchMucTieuKpiVien,
-  type MucTieuKpiMap,
-} from "../../actions/dashboard-muc-tieu-kpi.actions";
 
 function prevWeekRate(
   points: BaoCaoTrendPoint[] | undefined,
@@ -67,8 +63,6 @@ function KpiCard({
   weekPrev,
   periodDelta,
   periodPrev,
-  periodLabel,
-  targetPct,
   note,
   volumeNote,
 }: {
@@ -79,18 +73,11 @@ function KpiCard({
   weekPrev?: number | null;
   periodDelta?: number | null;
   periodPrev?: number | null;
-  periodLabel?: string;
-  /** Mục tiêu chuẩn viện (%). */
-  targetPct?: number | null;
   note?: string | null;
   volumeNote?: string | null;
 }) {
   const pct = value.endsWith("%") ? Number.parseFloat(value) : null;
   const tone = complianceToneFromPercent(pct);
-  const vsTarget =
-    pct != null && targetPct != null && Number.isFinite(targetPct)
-      ? Math.round((pct - targetPct) * 10) / 10
-      : null;
   return (
     <div className={`min-w-0 flex-1 sm:px-4 sm:first:pl-0 ${D.trafficText[tone]}`}>
       <p className={D.kpiLabel}>{label}</p>
@@ -98,23 +85,8 @@ function KpiCard({
         {value}
         {suffix ? <span className="ml-1 bv103-type-body font-medium opacity-70">{suffix}</span> : null}
       </p>
-      {targetPct != null ? (
-        <p className="mt-[var(--bv103-space-2)] bv103-type-label font-medium tabular-nums opacity-90">
-          Mục tiêu viện {targetPct}%
-          {vsTarget != null ? (
-            <span
-              className={`ml-1 ${
-                vsTarget >= 0 ? "text-[var(--surface-success-text)]" : "text-[var(--surface-danger-text)]"
-              }`}
-            >
-              (Δ {vsTarget >= 0 ? "+" : ""}
-              {vsTarget})
-            </span>
-          ) : null}
-        </p>
-      ) : null}
       {volumeNote ? <p className="mt-[var(--bv103-space-1)] bv103-type-label font-medium tabular-nums opacity-80">{volumeNote}</p> : null}
-      {vsTarget == null && (weekDelta != null || periodDelta != null) ? (
+      {weekDelta != null || periodDelta != null ? (
         <div className="mt-[var(--bv103-space-1)]">
           <DeltaLine label="So kỳ gần" delta={periodDelta ?? weekDelta ?? null} prevRate={periodPrev ?? weekPrev} />
         </div>
@@ -125,25 +97,11 @@ function KpiCard({
 }
 
 export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPayload | null }) {
-  const [targets, setTargets] = useState<MucTieuKpiMap | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    void fetchMucTieuKpiVien().then((t) => {
-      if (!cancelled) setTargets(t);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const k = payload?.kpis;
   const trend = payload?.trend_week;
   const ky = payload?.ky_truoc;
   if (!payload) return null;
-
-  const periodLabel = ky
-    ? `vs kỳ trước (${ky.tu_ngay.slice(5)}→${ky.den_ngay.slice(5)})`
-    : undefined;
 
   const vstVol =
     payload.vst?.kpis != null
@@ -164,8 +122,6 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
           weekPrev={prevWeekRate(trend, "ty_le_vst")}
           periodDelta={ky?.delta_vst}
           periodPrev={ky?.ty_le_vst}
-          periodLabel={periodLabel}
-          targetPct={targets?.ty_le_vst ?? null}
           volumeNote={vstVol ? `Cơ hội: ${vstVol}` : null}
         />
         <KpiCard
@@ -175,8 +131,6 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
           weekPrev={prevWeekRate(trend, "ty_le_gsc")}
           periodDelta={ky?.delta_gsc}
           periodPrev={ky?.ty_le_gsc}
-          periodLabel={periodLabel}
-          targetPct={targets?.ty_le_gsc ?? null}
           volumeNote={gscVol ? `Khảo sát: ${gscVol}` : null}
         />
         <KpiCard
@@ -187,7 +141,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
         />
       </div>
       <p className="bv103-type-label text-slate-500">
-        Mũi tên = chênh so với mục tiêu viện. Xu hướng theo tuần nằm ở mục bên dưới.
+        Mũi tên = chênh so với kỳ gần. Xu hướng theo tuần nằm ở mục bên dưới.
       </p>
       {(payload.sources.vst === "denied" ||
         payload.sources.gsc === "denied" ||

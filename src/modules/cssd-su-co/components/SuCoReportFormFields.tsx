@@ -302,26 +302,41 @@ export function IncidentGroupPicker({
   compact?: boolean;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1 border-b border-slate-200 pb-2">
-      {INCIDENT_GROUPS.map((g) => {
-        const IconComp = GROUP_ICONS[g];
-        const isSelected = incidentGroup === g;
-        return (
-          <button
-            key={g}
-            type="button"
-            onClick={() => onSelect(g)}
-            className={`inline-flex h-8 touch-manipulation items-center gap-1.5 px-2 text-[12px] font-semibold ${
-              isSelected
-                ? "border-b-2 border-[var(--primary)] text-[var(--primary)]"
-                : "text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            <IconComp size={14} className="shrink-0 opacity-80" />
-            <span className="whitespace-nowrap">{INCIDENT_GROUP_LABEL[g].split(" (")[0]}</span>
-          </button>
-        );
-      })}
+    <div className="space-y-1 border-b border-slate-200 pb-2">
+      <div className="flex flex-wrap items-center gap-1">
+        {INCIDENT_GROUPS.map((g) => {
+          const IconComp = GROUP_ICONS[g];
+          const isSelected = incidentGroup === g;
+          return (
+            <button
+              key={g}
+              type="button"
+              onClick={() => onSelect(g)}
+              className={`inline-flex h-8 touch-manipulation items-center gap-1.5 px-2 text-[12px] font-semibold ${
+                isSelected
+                  ? "border-b-2 border-[var(--primary)] text-[var(--primary)]"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              <IconComp size={14} className="shrink-0 opacity-80" />
+              <span className="whitespace-nowrap">
+                {g === "INSTRUMENT"
+                  ? "Biến động dụng cụ"
+                  : INCIDENT_GROUP_LABEL[g].split(" (")[0]}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      {incidentGroup === "INSTRUMENT" ? (
+        <p className="px-1 text-[11px] text-slate-500">
+          Cửa Hỏng/Mất hoặc Chuyển. Sửa danh mục Loại/Bộ/Thành phần tại{" "}
+          <Link href="/cssd-dung-cu?tab=DE_NGHI" className="font-semibold text-[var(--primary)] hover:underline">
+            Đề nghị danh mục
+          </Link>
+          .
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -7,3 +7,4 @@ export { CSSDCatalogBoTab } from "../../views/CSSDCatalogBoTab";
 export { CSSDCatalogLoaiTab } from "../../views/CSSDCatalogLoaiTab";
 export { CSSDCatalogChiTietTab } from "../../views/CSSDCatalogChiTietTab";
 export { CSSDCatalogQuickActions } from "../../views/CSSDCatalogQuickActions";
+export { CSSDCatalogDeNghiTab } from "../../views/CSSDCatalogDeNghiTab";

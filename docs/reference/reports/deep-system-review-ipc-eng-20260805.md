@@ -135,7 +135,6 @@ So với [`full-system-audit-po-20260805.md`](./full-system-audit-po-20260805.md
 
 **Khiếm khuyết**
 
-- LabID, CLIP, PedVAE, ENDO, AU, Location-mapped SIR/SUR = **SSOT/doc hoặc W3+/paused** — đúng pause, nhưng UI còn ô “SIR thô” dễ over-read.
 - MDRO flag ≠ LabID (code thừa nhận) — cần kỷ luật đào tạo IP.
 - God components (~1000 dòng form/page) = nút thắt mở rộng hội chứng.
 - UAT lâm sàng #2–#5 chưa ký khoa (P1 vận hành).

@@ -3,6 +3,12 @@
 import type { ReactNode } from "react";
 import type { Catalog, CSSDBo, CSSDLoai } from "../types/catalog.types";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
+import { useState } from "react";
+import {
+  CatalogDeNghiDialog,
+  type CatalogDeNghiDialogTarget,
+} from "@/modules/cssd-erp/components/catalog/CatalogDeNghiDialog";
+import { CatalogDeNghiCreateDialog } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiCreateDialog";
 import { bv103TableLayout as L } from "@/lib/bv103-table-layout";
 
 export function CSSDCatalogLoaiTab(props: {
@@ -15,9 +21,20 @@ export function CSSDCatalogLoaiTab(props: {
   toolbar?: ReactNode;
 }) {
   const { loaiRows, selectedLoaiId, setSelectedLoaiId, selectedLoai, boBySelectedLoai, toolbar } = props;
+  const [deNghi, setDeNghi] = useState<CatalogDeNghiDialogTarget | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   return (
     <div className="space-y-3">
+        <div className="flex justify-end px-1">
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
+          >
+            + Đề nghị bổ sung loại
+          </button>
+        </div>
         <ResponsiveTableShell maxHeight="max-h-[350px]" toolbar={toolbar}>
           <table className="w-full min-w-[720px] border-collapse text-left text-sm text-slate-700">
             <thead className={L.theadRow}>
@@ -33,6 +50,7 @@ export function CSSDCatalogLoaiTab(props: {
                 <th className={L.th}>Công dụng</th>
                 <th className={`${L.th} text-center`}>Chịu nhiệt</th>
                 <th className={L.th}>Tiệt khuẩn</th>
+                <th className={`${L.th} ${L.colActions || ""}`}> </th>
               </tr>
             </thead>
             <tbody className={L.tbody}>
@@ -61,12 +79,38 @@ export function CSSDCatalogLoaiTab(props: {
                     </td>
                     <td className={`${L.td} text-center`}>{x.kha_nang_chiu_nhiet || "—"}</td>
                     <td className={L.td}>{x.phuong_phap_tiet_khuan || "—"}</td>
+                    <td className={`${L.td} ${L.colActions || ""}`} onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        className="text-[11px] font-semibold text-[var(--primary)] hover:underline"
+                        onClick={() =>
+                          setDeNghi({
+                            kind: "LOAI",
+                            targetId: x.id,
+                            targetMa: x.ma_loai_dung_cu,
+                            targetTen: x.ten_loai_dung_cu,
+                            ma: x.ma_loai_dung_cu,
+                            ten: x.ten_loai_dung_cu,
+                            isChiuNhiet:
+                              x.kha_nang_chiu_nhiet === "Cao" ||
+                              String(x.kha_nang_chiu_nhiet || "").toLowerCase().includes("chịu")
+                                ? true
+                                : x.kha_nang_chiu_nhiet === "Thấp" ||
+                                    String(x.kha_nang_chiu_nhiet || "").toLowerCase().includes("nhạy")
+                                  ? false
+                                  : null,
+                          })
+                        }
+                      >
+                        Đề nghị sửa
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
               {loaiRows.length === 0 && (
                 <tr>
-                  <td colSpan={11} className={`${L.td} text-center text-slate-500`}>
+                  <td colSpan={12} className={`${L.td} text-center text-slate-500`}>
                     Chưa có loại khớp — gõ mã hoặc tên ở ô tìm phía trên.
                   </td>
                 </tr>
@@ -121,6 +165,18 @@ export function CSSDCatalogLoaiTab(props: {
             </table>
           </ResponsiveTableShell>
         )}
+      <CatalogDeNghiDialog
+        open={Boolean(deNghi)}
+        onOpenChange={(open) => {
+          if (!open) setDeNghi(null);
+        }}
+        target={deNghi}
+      />
+      <CatalogDeNghiCreateDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        kind="LOAI"
+      />
     </div>
   );
 }

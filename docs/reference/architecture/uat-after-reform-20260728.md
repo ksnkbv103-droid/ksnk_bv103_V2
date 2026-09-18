@@ -41,7 +41,6 @@ Chạy đúng bảng trong [`pilot-clinical-checklist-20260603.md`](../../module
 | # | Làm gì | Kỳ vọng |
 |---|--------|---------|
 | F1 | Mở `/` (Tổng quan) — lọc kỳ có dữ liệu | 4 trụ: mỗi trụ có số + câu mô tả + CTA chuyên sâu |
-| F2 | Mở `/bao-cao-tong-hop` — In A4 | KPI/CCS + phụ lục CSSD; Phần III có draft gợi ý (sau Pha 2) hoặc ô nhận xét |
 | F3 | `/thong-ke/gsc` — xếp hạng bao phủ TGS | Ô Đã / Thiếu / Không áp dụng; từ Thiếu có đường sang QLCV (sau Pha 3) |
 | F4 | `/cssd-erp/report` | Sản lượng / sự cố; nhãn «Tỷ lệ quy trình không sự cố» — không gọi CCS |
 | F5 | `/quan-tri-he-thong` — tab/panel sức khỏe (sau Pha 5) | Đếm Auth chưa link / master lệch + deep-link sửa |

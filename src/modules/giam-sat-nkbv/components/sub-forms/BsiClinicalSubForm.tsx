@@ -1,10 +1,8 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import {
   ageYearsFromNgaySinh,
-  resolveIsInfantLe1Flag,
-  showInfantCriteriaUi,
 } from "../../lib/nkbv-age-ui";
 import { formSymptomRowsFor } from "../../lib/nkbv-clinical-symptom-catalog";
 import { nkbvFormChrome as C } from "../../lib/nkbv-form-chrome";
@@ -24,7 +22,7 @@ interface BsiClinicalSubFormProps {
   liveDeviceActive?: boolean;
   ngayVaoVien?: string;
   ngayPhatHien?: string;
-  /** Ngày sinh — thiếu/DOB người lớn → ẩn LCBI 3 */
+  /** Ngày sinh (tham chiếu; BV103 không mở nhánh nhi) */
   ngaySinh?: string | null;
   iwpStart?: string;
   iwpEnd?: string;
@@ -40,18 +38,10 @@ function patchSymptoms(
   patch: Partial<BsiVerificationData>,
 ): BsiVerificationData {
   const next = { ...form, ...patch };
-  const or =
-    !!next.has_fever ||
-    !!next.has_chills ||
-    !!next.has_hypotension ||
-    (!!next.is_infant_le1 &&
-      (!!next.has_hypothermia || !!next.has_apnea || !!next.has_bradycardia));
+  const or = !!next.has_fever || !!next.has_chills || !!next.has_hypotension;
   next.symptoms_window_7days = or || !!next.symptoms_window_7days;
   if (patch.has_fever !== undefined || patch.has_chills !== undefined || patch.has_hypotension !== undefined) {
-    next.symptoms_window_7days =
-      !!next.has_fever || !!next.has_chills || !!next.has_hypotension ||
-      (!!next.is_infant_le1 &&
-        (!!next.has_hypothermia || !!next.has_apnea || !!next.has_bradycardia));
+    next.symptoms_window_7days = !!next.has_fever || !!next.has_chills || !!next.has_hypotension;
   }
   return next;
 }
@@ -77,27 +67,6 @@ export default function BsiClinicalSubForm({
   const cleanNgayVaoVien = ngayVaoVien ? ngayVaoVien.slice(0, 10) : "";
   const cleanNgayPhatHien = ngayPhatHien ? ngayPhatHien.slice(0, 10) : "";
   const todayStr = new Date().toISOString().slice(0, 10);
-  const ageYears = ageYearsFromNgaySinh(ngaySinh, cleanNgayPhatHien || undefined);
-  const showInfantUi = showInfantCriteriaUi(ageYears);
-  const infantFlag = resolveIsInfantLe1Flag(ageYears);
-
-  useEffect(() => {
-    if (form.is_infant_le1 === infantFlag) return;
-    if (!infantFlag) {
-      onChange(
-        patchSymptoms(form, {
-          is_infant_le1: false,
-          has_hypothermia: false,
-          has_apnea: false,
-          has_bradycardia: false,
-        }),
-      );
-      return;
-    }
-    onChange(patchSymptoms(form, { is_infant_le1: true }));
-    // Chỉ đồng bộ khi tuổi / cờ lệch — không phụ thuộc toàn form
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional sync on age gate
-  }, [infantFlag]);
 
   const showMicro = activeTab === "LAM_SANG" || activeTab === "VI_SINH";
   const showClinical = activeTab === "LAM_SANG";
@@ -109,7 +78,6 @@ export default function BsiClinicalSubForm({
       r.form_field === "has_chills" ||
       r.form_field === "has_hypotension",
   );
-  const lcbi3Rows = formSymptomRowsFor("BSI").filter((r) => r.age_gate === "le1");
   const mbiDiarrheaRows = formSymptomRowsFor("BSI").filter(
     (r) => r.form_field === "has_severe_diarrhea_mbi",
   );
@@ -266,25 +234,7 @@ export default function BsiClinicalSubForm({
               iwpStart={iwpStart}
               iwpEnd={iwpEnd}
             />
-            {showInfantUi ? (
-              <>
-                <p className="border-t border-slate-100 pt-3 text-[11px] font-semibold text-violet-800">
-                  Bệnh nhi ≤ 1 tuổi (theo ngày sinh) — LCBI 3
-                </p>
-                <div className="rounded-lg border border-violet-100 bg-violet-50/80 p-3">
-                  <NkbvCatalogSymptomRows
-                    rows={lcbi3Rows}
-                    form={form as unknown as Record<string, unknown>}
-                    onToggle={toggleSymptom}
-                    symptomDates={symptomDates}
-                    onSymptomDateChange={onSymptomDateChange}
-                    allowedEdit={allowedEdit}
-                    iwpStart={iwpStart}
-                    iwpEnd={iwpEnd}
-                  />
-                </div>
-              </>
-            ) : null}
+            
           </NkbvFormSection>
 
           <NkbvFormSection title="MBI-LCBI" hint="Chỉ khi có ANC/WBC <500 ≥2 ngày trong cửa sổ nhiễm khuẩn, hoặc HSCT/GVHD, hoặc tiêu chảy nặng. Tick giảm bạch cầu đơn không đủ.">

@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Activity, ClipboardList, History, QrCode, Stethoscope, ChevronRight } from "lucide-react";
+import { Activity, ClipboardList, Stethoscope, ChevronRight } from "lucide-react";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { usePermission } from "@/hooks/usePermission";
@@ -66,22 +66,15 @@ function WriteCta({ link, emphasize }: { link: HubLink; emphasize: boolean }) {
   );
 }
 
-function ReadLinkRow({ link }: { link: HubLink }) {
-  const Icon = link.icon;
+function QuietLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
-      href={link.href}
+      href={href}
       prefetch={false}
-      className="group flex min-h-11 touch-manipulation items-center gap-2.5 rounded-[var(--radius-control)] border border-transparent px-2 py-2 transition-colors hover:border-slate-200 hover:bg-white active:scale-[0.99]"
+      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:bg-white hover:text-[var(--primary)]"
     >
-      <Icon className="h-4 w-4 shrink-0 text-slate-400 group-hover:text-[var(--primary)]" aria-hidden />
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-semibold text-slate-800 group-hover:text-[var(--primary)]">
-          {link.label}
-        </span>
-        <span className="block text-[11px] text-slate-500 line-clamp-1">{link.hint}</span>
-      </span>
-      <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" aria-hidden />
+      {label}
+      <ChevronRight className="h-3.5 w-3.5 opacity-60" aria-hidden />
     </Link>
   );
 }
@@ -94,68 +87,63 @@ export default function GiamSatHubPage() {
   const seeGsc = !loading && canSeeNavGate(isAdmin, canView, NAV_GATE_GSC);
   const seeNkbv = !loading && canSeeNavGate(isAdmin, canView, NAV_GATE_NKBV);
 
-  const writeLinks: HubLink[] = useMemo(
+  /** P0 giản hóa: 2 CTA chính VST · GSC; NKBV tách «Khác». */
+  const primaryWrites: HubLink[] = useMemo(
     () => [
       {
         href: "/giam-sat-vst",
-        label: "Vệ sinh tay (WHO)",
-        hint: "Nhập phiên quan sát",
+        label: "Vệ sinh tay",
+        hint: "Nhập phiên WHO",
         icon: Stethoscope,
         visible: seeVst,
       },
       {
         href: "/giam-sat-chung/tuan-thu",
-        label: "Giám sát tuân thủ KSNK",
-        hint: "Nhập bảng kiểm tuân thủ",
+        label: "Giám sát tuân thủ",
+        hint: "Nhập bảng kiểm",
         icon: ClipboardList,
         visible: seeGsc,
       },
+    ],
+    [seeVst, seeGsc],
+  );
+
+  const otherWrites: HubLink[] = useMemo(
+    () => [
       {
         href: "/giam-sat-nkbv",
-        label: "Giám sát NKBV",
-        hint: "Nhập sự kiện / vi sinh",
+        label: "NKBV (nhiễm khuẩn bệnh viện)",
+        hint: "Nhập ca / vi sinh",
         icon: Activity,
         visible: seeNkbv,
       },
     ],
-    [seeVst, seeGsc, seeNkbv],
+    [seeNkbv],
   );
 
-  const readLinks: HubLink[] = useMemo(
-    () => [
-      {
-        href: "/qr",
-        label: "Quét QR truy vết",
-        hint: "Mở lại phiếu / tem",
-        icon: QrCode,
-        visible: seeVst || seeGsc || seeNkbv,
-      },
-      { href: "/lich-su/vst", label: "Lịch sử VST", hint: "Phiên đã lưu", icon: History, visible: seeVst },
-      { href: "/lich-su/gsc", label: "Lịch sử GSC", hint: "Phiên đã lưu", icon: History, visible: seeGsc },
-      {
-        href: "/giam-sat-nkbv?tab=cases",
-        label: "Danh sách NKBV",
-        hint: "Ca đã lưu",
-        icon: History,
-        visible: seeNkbv,
-      },
-    ],
-    [seeVst, seeGsc, seeNkbv],
-  );
+  const quietLinks = useMemo(() => {
+    const out: { href: string; label: string; show: boolean }[] = [
+      { href: "/lich-su/vst", label: "Lịch sử VST", show: seeVst },
+      { href: "/thong-ke/vst", label: "Thống kê VST", show: seeVst },
+      { href: "/lich-su/gsc", label: "Lịch sử GSC", show: seeGsc },
+      { href: "/thong-ke/gsc", label: "Thống kê GSC", show: seeGsc },
+      { href: "/qr", label: "Quét QR", show: seeVst || seeGsc || seeNkbv },
+      { href: "/giam-sat-nkbv?tab=cases", label: "Danh sách NKBV", show: seeNkbv },
+    ];
+    return out.filter((l) => l.show);
+  }, [seeVst, seeGsc, seeNkbv]);
 
-  const visibleWrites = writeLinks.filter((l) => l.visible);
-  const visibleReads = readLinks.filter((l) => l.visible);
-  const hasAny = visibleWrites.length > 0 || visibleReads.length > 0;
-  const soleWrite = visibleWrites.length === 1;
+  const visiblePrimary = primaryWrites.filter((l) => l.visible);
+  const visibleOther = otherWrites.filter((l) => l.visible);
+  const hasAny = visiblePrimary.length > 0 || visibleOther.length > 0 || quietLinks.length > 0;
+  const soleWrite = visiblePrimary.length === 1 && visibleOther.length === 0;
   const visibleWriteHrefs = useMemo(
-    () => visibleWrites.map((l) => l.href),
-    // seeVst/Gsc/Nkbv already gate writeLinks
+    () => [...visiblePrimary, ...visibleOther].map((l) => l.href),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- href list from permission flags
     [seeVst, seeGsc, seeNkbv],
   );
   const modeParam = searchParams.get("mode");
 
-  // mode=write + đúng 1 đích ghi → bỏ click hub thừa (SXHD).
   useEffect(() => {
     if (loading) return;
     const target = pickSoleWriteHrefForMode(modeParam, visibleWriteHrefs);
@@ -163,30 +151,44 @@ export default function GiamSatHubPage() {
   }, [loading, router, modeParam, visibleWriteHrefs]);
 
   return (
-    <div className={`${T.pageOuter}`}>
+    <div className={`${T.pageOuter} space-y-[var(--bv103-space-3)]`}>
       {!loading && !hasAny ? (
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
           Tài khoản chưa có quyền giám sát. Liên hệ khoa KSNK.
         </p>
       ) : null}
 
-      {visibleWrites.length > 0 ? (
+      {visiblePrimary.length > 0 ? (
         <section className="space-y-2">
-          <h2 className="bv103-type-label">Nhập liệu</h2>
-          <div className={`grid gap-2 ${soleWrite ? "max-w-xl" : "sm:grid-cols-1 lg:grid-cols-3"}`}>
-            {visibleWrites.map((link) => (
+          <h2 className="bv103-type-label">Nhập giám sát</h2>
+          <p className="text-[11px] text-slate-500">Chọn một loại — VST hoặc bảng kiểm tuân thủ.</p>
+          <div className={`grid gap-2 ${soleWrite ? "max-w-xl" : "sm:grid-cols-2"}`}>
+            {visiblePrimary.map((link) => (
               <WriteCta key={link.href} link={link} emphasize={soleWrite} />
             ))}
           </div>
         </section>
       ) : null}
 
-      {visibleReads.length > 0 ? (
-        <section className="mt-[var(--bv103-space-3)] space-y-1.5">
-          <h2 className="bv103-type-label">Mở lại phiếu</h2>
-          <div className={`${bv103LayoutChrome.panelInset} divide-y divide-slate-100 px-2 py-1`}>
-            {visibleReads.map((link) => (
-              <ReadLinkRow key={link.href} link={link} />
+      {visibleOther.length > 0 ? (
+        <section className="space-y-2">
+          <h2 className="bv103-type-label">Khác</h2>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {visibleOther.map((link) => (
+              <WriteCta key={link.href} link={link} emphasize={false} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {quietLinks.length > 0 ? (
+        <section className={`${bv103LayoutChrome.panelInset} px-3 py-2`}>
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+            Lịch sử · Thống kê · QR
+          </p>
+          <div className="flex flex-wrap gap-0.5">
+            {quietLinks.map((l) => (
+              <QuietLink key={l.href + l.label} href={l.href} label={l.label} />
             ))}
           </div>
         </section>

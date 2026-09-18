@@ -10,7 +10,7 @@ export type SecondaryBsiPrimarySite =
   | "SSI"
   | "IAB"
   | "OTHER"
-  | "PEDVAE";
+;
 
 export type SecondaryBsiInput = {
   primarySite: SecondaryBsiPrimarySite;
@@ -103,15 +103,8 @@ export function dateInInclusiveRange(date: string, start: string, end: string): 
 
 /**
  * Canonical Secondary BSI gate.
- * PedVAE: absolute ban (SSOT §9).
  */
 export function evaluateSecondaryBsi(input: SecondaryBsiInput): SecondaryBsiResult {
-  if (input.primarySite === "PEDVAE") {
-    return {
-      isSecondary: false,
-      reason: "PedVAE: CẤM quy kết Secondary BSI dưới mọi hình thức.",
-    };
-  }
 
   if (!dateInInclusiveRange(input.bloodCollectionDate, input.sbapStart, input.sbapEnd)) {
     return {

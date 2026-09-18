@@ -44,6 +44,7 @@ import {
   DEFAULT_KHOA_CHART_THRESHOLDS,
   type KhoaChartThresholds,
 } from "@/lib/analytics/supervision-thresholds";
+import { tyLeForLens, type SupervisionSourceLens } from "@/lib/analytics/supervision-source-lens";
 
 function defaultVolumeTitle(moduleLabel?: string): string {
   if (moduleLabel === "VST") return "Số cơ hội giám sát theo khoa";
@@ -66,12 +67,14 @@ function SupervisionKhoaComplianceChart({
   loading,
   moduleLabel,
   thresholds = DEFAULT_KHOA_CHART_THRESHOLDS,
+  sourceLens,
 }: {
   rows: GapKhoaRow[];
   matrixKhoaRows?: MatrixKhoaRow[] | null;
   loading?: boolean;
   moduleLabel?: string;
   thresholds?: KhoaChartThresholds;
+  sourceLens?: SupervisionSourceLens;
 }) {
   const sorted = React.useMemo(
     () => sortGapRowsByAggregateTyLe(rows, matrixKhoaRows, "desc"),
@@ -92,8 +95,15 @@ function SupervisionKhoaComplianceChart({
 
   const chartData = sorted.map((r) => {
     const matrix = matrixById.get(r.id);
-    const ty_le = resolveKhoaAggregateTyLe(r, matrix?.ty_le_tuan_thu, matrix);
-    const vol = resolveKhoaAggregateVol(r, matrix);
+    const ty_le = sourceLens
+      ? tyLeForLens(r, sourceLens)
+      : resolveKhoaAggregateTyLe(r, matrix?.ty_le_tuan_thu, matrix);
+    const vol = sourceLens
+      ? {
+          dat: sourceLens === "ksnk" ? r.dat_ksnk : r.dat_tgs,
+          tong: sourceLens === "ksnk" ? r.vol_ksnk : r.vol_tgs,
+        }
+      : resolveKhoaAggregateVol(r, matrix);
     return {
       ten: r.label,
       fullName: r.ten,
@@ -111,7 +121,10 @@ function SupervisionKhoaComplianceChart({
   return (
     <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-4">
       <h3 className="mb-1 text-sm font-bold text-slate-800">{title}</h3>
-      <p className="mb-2 text-[11px] font-medium text-slate-500">Sắp xếp: cao → thấp (tuân thủ %)</p>
+      <p className="mb-2 text-[11px] font-medium text-slate-500">
+        Sắp xếp: cao → thấp (tuân thủ %)
+        {sourceLens ? ` · nguồn ${sourceLens === "ksnk" ? "chuyên trách" : "tự giám sát"}` : ""}
+      </p>
       <KhoaChartViewport rowCount={chartData.length}>
         {!loading && chartData.length > 0 ? (
           <Bv103ResponsiveChart className="h-full w-full min-w-0">
@@ -302,7 +315,9 @@ function SupervisionKhoaVolumeChart({
   );
 }
 
-/** Dashboard khoa: biểu đồ gộp % + khối lượng — full width, đủ mã khoa, tô vàng/đỏ theo ngưỡng. */
+type KhoaChartTab = "ty_le" | "volume";
+
+/** Dashboard khoa: tab Tỷ lệ tuân thủ | Khối lượng — tránh cuộn hai biểu đồ cùng lúc. */
 export function SupervisionKhoaAnalyticsBlock({
   rows,
   matrixKhoaRows,
@@ -315,6 +330,7 @@ export function SupervisionKhoaAnalyticsBlock({
   showMasterTable,
   className,
   khoaChartThresholds = DEFAULT_KHOA_CHART_THRESHOLDS,
+  sourceLens,
 }: {
   rows: GapKhoaRow[];
   matrixKhoaRows?: MatrixKhoaRow[] | null;
@@ -329,28 +345,61 @@ export function SupervisionKhoaAnalyticsBlock({
   showMasterTable?: boolean;
   className?: string;
   khoaChartThresholds?: KhoaChartThresholds;
+  sourceLens?: SupervisionSourceLens;
 }) {
+  const [tab, setTab] = React.useState<KhoaChartTab>("ty_le");
   if (!loading && rows.length === 0) return null;
 
   const resolvedVolumeTitle = volumeChartTitle ?? defaultVolumeTitle(moduleLabel);
+  const volNoun = moduleLabel === "VST" ? "cơ hội" : "quan sát";
 
   return (
-    <div className={`w-full min-w-0 space-y-[var(--bv103-space-3)] ${className ?? ""}`}>
-      <SupervisionKhoaComplianceChart
-        rows={rows}
-        matrixKhoaRows={matrixKhoaRows}
-        loading={loading}
-        moduleLabel={moduleLabel}
-        thresholds={khoaChartThresholds}
-      />
-      <SupervisionKhoaVolumeChart
-        rows={rows}
-        loading={loading}
-        moduleLabel={moduleLabel}
-        chartTitle={resolvedVolumeTitle}
-        tgsVolumeLabel={tgsVolumeLabel}
-        ksnkVolumeLabel={ksnkVolumeLabel}
-      />
+    <div className={`w-full min-w-0 space-y-3 ${className ?? ""}`}>
+      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5" role="tablist" aria-label="Chế độ biểu đồ khoa">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "ty_le"}
+          onClick={() => setTab("ty_le")}
+          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+            tab === "ty_le" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-white"
+          }`}
+        >
+          Tỷ lệ tuân thủ
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "volume"}
+          onClick={() => setTab("volume")}
+          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+            tab === "volume" ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-white"
+          }`}
+        >
+          Khối lượng ({volNoun})
+        </button>
+      </div>
+
+      {tab === "ty_le" ? (
+        <SupervisionKhoaComplianceChart
+          rows={rows}
+          matrixKhoaRows={matrixKhoaRows}
+          loading={loading}
+          moduleLabel={moduleLabel}
+          thresholds={khoaChartThresholds}
+          sourceLens={sourceLens}
+        />
+      ) : (
+        <SupervisionKhoaVolumeChart
+          rows={rows}
+          loading={loading}
+          moduleLabel={moduleLabel}
+          chartTitle={resolvedVolumeTitle}
+          tgsVolumeLabel={tgsVolumeLabel}
+          ksnkVolumeLabel={ksnkVolumeLabel}
+        />
+      )}
+
       {showMasterTable ? (
         <SupervisionKhoaMasterTable
           gapRows={rows}

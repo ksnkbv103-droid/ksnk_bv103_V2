@@ -9,7 +9,7 @@ import {
   SupervisionTrendChart,
 } from "@/lib/analytics/supervision-analytics-charts";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
-import { formatPercent2, formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
+import { formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import type { GscStrategicPayload } from "../types/gsc-strategic.types";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
@@ -17,7 +17,13 @@ import { GscChecklistNavigator } from "./GscChecklistNavigator";
 import { GscBkAnalyticsDashboard } from "./GscBkAnalyticsDashboard";
 import GscTgsCoverageRankingPanel from "./GscTgsCoverageRankingPanel";
 import { useGscChecklistDetail } from "../hooks/use-gsc-checklist-detail";
-import { AlertTriangle } from "lucide-react";
+import { SupervisionSourceLensToggle } from "@/lib/analytics/SupervisionSourceLensToggle";
+import { SupervisionDoiSoatPanel } from "@/lib/analytics/SupervisionDoiSoatPanel";
+import {
+  gapRowsWithLensData,
+  maskGapRowsForLens,
+  type SupervisionSourceLens,
+} from "@/lib/analytics/supervision-source-lens";
 
 type Props = {
   tuNgay: string;
@@ -46,6 +52,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const [selectedMaBk, setSelectedMaBk] = useState<string | null>(() => searchParams.get("bk"));
+  const [sourceLens, setSourceLens] = useState<SupervisionSourceLens>("ksnk");
 
   useEffect(() => {
     const fromUrl = searchParams.get("bk");
@@ -96,6 +103,12 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
     [p.payload?.gap_analysis, p.selectedKhoaIds, p.khoaOptions],
   );
 
+
+  const chartRows = useMemo(
+    () => maskGapRowsForLens(gapRowsWithLensData(gapKhoaRows, sourceLens), sourceLens),
+    [gapKhoaRows, sourceLens],
+  );
+
   const compareSections = useMemo(
     () => [
       { title: "Theo khối", rows: toCompareRows(p.payload?.matrix_khoi) },
@@ -112,6 +125,13 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
       {p.loadError ? (
         <div className={`${UI.inset} border-red-200 bg-red-50 p-4 text-sm text-red-800`}>{p.loadError}</div>
       ) : null}
+
+      <div id="so-sanh" className="scroll-mt-24 flex flex-wrap items-center justify-between gap-2">
+        <SupervisionSourceLensToggle value={sourceLens} onChange={setSourceLens} disabled={p.loading} />
+        <p className="text-[11px] text-slate-500">
+          Kỳ {p.tuNgay} → {p.denNgay} · nguồn {sourceLens === "ksnk" ? "chuyên trách" : "tự giám sát"}
+        </p>
+      </div>
 
       <GscChecklistNavigator
         payload={p.payload}
@@ -136,32 +156,57 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         />
       ) : null}
 
-      <section className="w-full min-w-0">
+      <section className={`${UI.shell} w-full min-w-0 p-4`}>
         <header className="mb-4">
           <h2 className="bv103-type-section text-slate-800">Thống kê theo khoa</h2>
           <p className="mt-1 text-[11px] text-slate-500">
-            Tỷ lệ tuân thủ và khối lượng khảo sát — đủ mã khoa trong phạm vi lọc; khoa dưới 80% được tô cảnh báo.
+            Tab tỷ lệ hoặc khối lượng — khoa dưới 80% tô cảnh báo.
             {p.khoaFilterLocked ? " Phạm vi khoa đang khóa." : ""}
           </p>
         </header>
         <SupervisionKhoaAnalyticsBlock
-          rows={gapKhoaRows}
+          rows={chartRows}
           matrixKhoaRows={p.payload?.matrix_khoa}
           loading={p.loading}
           moduleLabel="GSC"
           tgsVolumeLabel={SUPERVISION_SOURCE_UI.gscTgsVol}
           ksnkVolumeLabel={SUPERVISION_SOURCE_UI.gscKsnkVol}
+          sourceLens={sourceLens}
         />
       </section>
 
-      <details className={`${UI.shell} group`}>
+      <details className={`${UI.shell}`} open>
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
-          Xem thêm
+          So sánh & xu hướng
           <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
-            Bao phủ tự giám sát · xu hướng · so sánh khối/nghề
+            Xu hướng · khối · khu vực · đối tượng — bấm để thu gọn
           </span>
         </summary>
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
+          <SupervisionTrendChart
+            title="Xu hướng tuân thủ (gộp)"
+            data={p.payload?.trendline ?? []}
+            loading={p.loading}
+            source="gsc"
+          />
+          <SupervisionCompareAccordion
+            sections={compareSections}
+            loading={p.loading}
+            defaultOpen={false}
+            summaryLabel="So sánh theo khối · khu vực · đối tượng · hình thức"
+          />
+        </div>
+      </details>
+
+      <details className={`${UI.shell} group`}>
+        <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+          Nâng cao
+          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
+            Đối soát · bao phủ TGS · KPI thô
+          </span>
+        </summary>
+        <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
+          <SupervisionDoiSoatPanel rows={gapKhoaRows} source="gsc" loading={p.loading} />
           <GscTgsCoverageRankingPanel
             tuNgay={p.tuNgay}
             denNgay={p.denNgay}
@@ -176,30 +221,6 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
               { label: "Tỷ lệ tuân thủ", value: formatPercent2FromRatio(p.payload?.kpis?.tong_dat ?? 0, p.payload?.kpis?.tong_quan_sat ?? 0) },
             ]}
           />
-          <SupervisionTrendChart
-            title="Xu hướng tuân thủ (gộp)"
-            data={p.payload?.trendline ?? []}
-            loading={p.loading}
-            source="gsc"
-          />
-          {(p.payload?.top_violations?.length ?? 0) > 0 ? (
-            <div className={`${UI.inset} p-3`}>
-              <h4 className="mb-2 flex items-center gap-2 bv103-type-section text-slate-800">
-                <AlertTriangle size={16} className="text-red-500" /> Top vi phạm (mọi BK)
-              </h4>
-              <div className="max-h-[200px] space-y-2 overflow-y-auto">
-                {p.payload?.top_violations?.map((v, i) => (
-                  <div key={v.criterion_id || i} className="rounded-lg border border-slate-100 p-2 text-sm">
-                    <p className="font-semibold text-slate-800">{v.ten_tieu_chi}</p>
-                    <p className="text-xs text-slate-500">
-                      {v.ma_bk ?? v.ten_bang_kiem} · {formatPercent2(v.ty_le_vi_pham)} không đạt
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
-          <SupervisionCompareAccordion sections={compareSections} loading={p.loading} />
         </div>
       </details>
     </div>

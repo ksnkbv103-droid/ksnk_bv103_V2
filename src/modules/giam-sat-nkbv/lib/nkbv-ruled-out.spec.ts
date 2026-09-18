@@ -36,7 +36,7 @@ describe("nkbv-ruled-out", () => {
   });
 
   it("applyRuledOutFields chỉ gắn khi có lý do", () => {
-    const base = { has_fever: true };
+    const base = { ruled_out: false as boolean | undefined };
     expect(applyRuledOutFields(base, { reasons: [] })).toEqual(base);
     expect(applyRuledOutFields(base, { reasons: ["asb_no_blood"] }).ruled_out).toBe(true);
   });

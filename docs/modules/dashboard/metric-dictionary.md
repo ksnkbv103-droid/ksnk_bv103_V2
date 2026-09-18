@@ -137,12 +137,36 @@ SSOT code: `src/lib/analytics/supervision-thresholds.ts`.
 
 | Route | Đối tượng | Số liệu |
 |-------|-----------|---------|
-| `/` | Điều hành ngày (KSNK / ADMIN / HĐ) | Brief VST+GSC, top gap comparable, tóm tắt 4 trụ |
+| `/` | Redirect → `/bao-cao-tong-hop` (H2) | BCTH = báo cáo chính thức |
 | `/thong-ke/vst`, `/thong-ke/gsc` | Chuyên viên KSNK; **mạng lưới khoa** (so sánh toàn viện); **khách** (chỉ xem) | **BK-first GSC** · drill tiêu chí × khoa · **so sánh theo khối** (accordion) |
 | `/thong-ke/cssd` | Redirect → `/cssd-erp/report` | Cùng SSOT báo cáo vận hành CSSD (tránh hai báo cáo lệch) |
 | `/cssd-erp/report` | Trưởng ca CSSD / Chủ nhiệm | Sản lượng · bộ/SUDs · máy · NV CSSD · sự cố |
 
 ---
+
+## Hai lens · không trộn % (2026-09-17)
+
+- Fold thống kê VST/GSC: toggle **Chuyên trách** | **Tự giám sát** (mặc định Chuyên trách).
+- Action board + chart chỉ bind **một** nguồn theo toggle.
+- **Bao phủ TGS** và **Đối soát** (comparable: cả hai `vol > 0`) nằm trong Nâng cao / Xem thêm — không nhập vào % tuân thủ.
+- Cấm `%` trộn TGS+KSNK và CCS trên điều hành.
+
+## Fold thống kê (2026-09-17 P0 giản hóa)
+
+Surface: `/thong-ke/vst`, `/thong-ke/gsc`, BCTH mục VST/GSC.
+
+| Thành phần | Vai trò |
+|------------|---------|
+| Hub | 2 CTA VST · Giám sát tuân thủ + dòng Lịch sử/Thống kê/QR |
+| ModeNav | Nhập · Lịch sử · Thống kê |
+| Toggle Chuyên trách \| Tự giám sát | Một nguồn % mỗi lần |
+| Chart khoa **tab** «Tỷ lệ tuân thủ» / «Khối lượng» | Thấp·cao trên chart |
+| So sánh & xu hướng | Accordion (mở được, không bắt cuộn Nâng cao) |
+| Nâng cao | Đối soát · bao phủ TGS · KPI (đóng mặc định) |
+| BCTH fold chính | Tổng quan · VST · GSC · Phần III; Thêm = xu hướng/NKBV/chi tiết |
+
+- **Không** badge Action board trên fold 0.
+- Plan hiệu lực: `BV103-GIAM-SAT-CHIEN-LUOC-TONG-THE-20260917.md`; plan cũ = SUPERSEDED.
 
 ## Ma trận so sánh (`rpc_*_compare_matrices`)
 

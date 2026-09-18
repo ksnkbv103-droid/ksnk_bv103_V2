@@ -1,12 +1,13 @@
 "use client";
 
-/** CSSD vận hành catalog (read-only); CRUD: `/quan-tri-he-thong/danh-muc/dung-cu`. */
+/** CSSD vận hành catalog; đề nghị sửa qua tab DE_NGHI (không sự cố). */
 import Link from "next/link";
-import { History, Layers } from "lucide-react";
+import { ClipboardList, History, Layers, Tag } from "lucide-react";
 import {
   useCssdCatalogPage,
   CSSDCatalogBoTab,
   CSSDCatalogLoaiTab,
+  CSSDCatalogDeNghiTab,
 } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
 import InventoryHistoryTable from "@/modules/cssd-erp/components/inventory/InventoryHistoryTable";
 import SetCompositionCard from "@/modules/cssd-erp/components/inventory/SetCompositionCard";
@@ -16,8 +17,11 @@ import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
 import QrScanInput from "@/components/shared/QrScanInput";
 import { CssdQrLabelKindsNotice } from "@/modules/cssd-erp/components/catalog/CssdQrLabelKindsNotice";
-import { cssdSuCoInstrumentHref } from "@/lib/cssd-routes";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  CatalogDeNghiCartProvider,
+  CatalogDeNghiCartBar,
+} from "@/modules/cssd-erp/components/catalog/CatalogDeNghiCart";
 
 const TEXT_ACTION = "text-[11px] font-semibold text-[var(--primary)] hover:underline";
 const SEARCH_INPUT =
@@ -44,10 +48,10 @@ export default function Page() {
       />
       <div className="flex shrink-0 flex-wrap items-center gap-x-3">
         <Link
-          href={cssdSuCoInstrumentHref({ type: "INSTRUMENT_SET_RECONCILE" })}
+          href="/cssd-dung-cu?tab=DE_NGHI"
           className={TEXT_ACTION}
         >
-          Đề nghị đổi danh mục
+          Xem phiếu đề nghị
         </Link>
         {s.tab === "BO" ? <SetReconcileCampaignPanel /> : null}
         <CssdQrLabelKindsNotice />
@@ -56,11 +60,38 @@ export default function Page() {
   );
 
   return (
+    <CatalogDeNghiCartProvider>
     <CSSDPageShell title="Dụng cụ CSSD">
       <div className="space-y-3">
         <div className={CSSD_UI_TAB_GROUP}>
-          <CssdHorizTabButton active={s.tab === "BO" || s.tab === "LOAI"} onClick={() => s.setTab("BO")} icon={Layers} label="Bộ dụng cụ" mobileLabel="Bộ" />
-          <CssdHorizTabButton active={s.tab === "HISTORY"} onClick={() => s.setTab("HISTORY")} icon={History} label="Lịch sử luân chuyển" mobileLabel="Lịch sử" />
+          <CssdHorizTabButton
+            active={s.tab === "BO"}
+            onClick={() => s.setTab("BO")}
+            icon={Layers}
+            label="Bộ dụng cụ"
+            mobileLabel="Bộ"
+          />
+          <CssdHorizTabButton
+            active={s.tab === "LOAI"}
+            onClick={() => s.setTab("LOAI")}
+            icon={Tag}
+            label="Loại dụng cụ"
+            mobileLabel="Loại"
+          />
+          <CssdHorizTabButton
+            active={s.tab === "DE_NGHI"}
+            onClick={() => s.setTab("DE_NGHI")}
+            icon={ClipboardList}
+            label="Đề nghị danh mục"
+            mobileLabel="Đề nghị"
+          />
+          <CssdHorizTabButton
+            active={s.tab === "HISTORY"}
+            onClick={() => s.setTab("HISTORY")}
+            icon={History}
+            label="Lịch sử luân chuyển"
+            mobileLabel="Lịch sử"
+          />
         </div>
 
         {s.loading && isCatalogTab ? (
@@ -92,9 +123,6 @@ export default function Page() {
           </div>
         ) : s.tab === "LOAI" ? (
           <div className="space-y-2">
-            <button type="button" onClick={() => s.setTab("BO")} className="text-[11px] font-semibold text-slate-500">
-              ← Về danh sách bộ
-            </button>
             <CSSDCatalogLoaiTab
               catalog={s.catalog}
               loaiRows={s.loaiRows}
@@ -105,10 +133,14 @@ export default function Page() {
               toolbar={catalogToolbar}
             />
           </div>
+        ) : s.tab === "DE_NGHI" ? (
+          <CSSDCatalogDeNghiTab />
         ) : (
           <InventoryHistoryTable />
         )}
+        <CatalogDeNghiCartBar />
       </div>
     </CSSDPageShell>
+    </CatalogDeNghiCartProvider>
   );
 }

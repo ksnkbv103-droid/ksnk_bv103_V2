@@ -71,7 +71,7 @@ export const BATCH_RECALL_REASON_OPTIONS: readonly BatchRecallReasonOption[] = [
 export const BATCH_RECALL_ENTRY_COPY = {
   title: "Thu hồi theo mẻ",
   subtitle:
-    "Sự cố an toàn (QT.24) — không phải biến động dụng cụ (Đổi danh mục · Hỏng/Mất · Chuyển).",
+    "Sự cố an toàn (QT.24) — không phải biến động dụng cụ (Hỏng/Mất · Chuyển).",
   effect:
     "Mọi bộ cùng mã lô: đã cấp phát → Tiếp nhận; còn trong chu trình → Đóng gói (+ đóng băng). Máy sẵn sàng → HOLD_QC.",
 } as const;
