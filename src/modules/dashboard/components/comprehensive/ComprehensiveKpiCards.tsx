@@ -135,7 +135,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
         />
         <KpiCard
           label="NKBV — tỷ lệ xác nhận"
-          value={k?.ti_le_xac_nhan_nkbv != null ? `${k.ti_le_xac_nhan_nkbv}%` : "N/A"}
+          value={k?.ti_le_xac_nhan_nkbv != null ? formatPercent1(k.ti_le_xac_nhan_nkbv) : "N/A"}
           suffix={k?.tong_phieu_nkbv != null ? `(${k.tong_phieu_nkbv} phiếu)` : undefined}
           note="Kết quả nhiễm khuẩn — tách khỏi tỷ lệ vệ sinh tay / giám sát chung"
         />

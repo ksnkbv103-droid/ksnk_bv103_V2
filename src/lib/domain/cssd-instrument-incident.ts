@@ -2,7 +2,7 @@
 
 /** Biến động số lượng / loại / thành phần khi vận hành — chỉ qua 3 cửa (D1/D2), không lẫn «sự cố an toàn». */
 export const INSTRUMENT_CHANGE_REQUIRES_INCIDENT =
-  "Biến động vận hành dụng cụ chỉ ghi qua Hỏng/Mất hoặc Chuyển (/cssd-su-co → Biến động). Sửa danh mục Loại/Bộ/Thành phần qua Đề nghị danh mục (/cssd-dung-cu).";
+  "Hỏng/Mất → /cssd-su-co. Luân chuyển kho↔bộ / bộ↔bộ → /cssd-dung-cu?tab=LUAN_CHUYEN (lấy từ danh mục đang có). Thêm mới hoặc sửa thuộc tính Loại/Bộ → Đề nghị danh mục; thành phần bộ lấy từ kho hoặc bộ khác — không invent ngoài danh mục.";
 
 export function instrumentChangeRequiresIncidentResult() {
   return { success: false as const, error: INSTRUMENT_CHANGE_REQUIRES_INCIDENT };

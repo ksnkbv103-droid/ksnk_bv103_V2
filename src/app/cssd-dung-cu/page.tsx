@@ -2,12 +2,14 @@
 
 /** CSSD vận hành catalog; đề nghị sửa qua tab DE_NGHI (không sự cố). */
 import Link from "next/link";
-import { ClipboardList, History, Layers, Tag } from "lucide-react";
+import { ArrowLeftRight, ClipboardCheck, ClipboardList, History, Layers, Package } from "lucide-react";
 import {
   useCssdCatalogPage,
   CSSDCatalogBoTab,
   CSSDCatalogLoaiTab,
   CSSDCatalogDeNghiTab,
+  CSSDCatalogLuanChuyenTab,
+  CSSDCatalogKiemKeTab,
 } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
 import InventoryHistoryTable from "@/modules/cssd-erp/components/inventory/InventoryHistoryTable";
 import SetCompositionCard from "@/modules/cssd-erp/components/inventory/SetCompositionCard";
@@ -74,9 +76,23 @@ export default function Page() {
           <CssdHorizTabButton
             active={s.tab === "LOAI"}
             onClick={() => s.setTab("LOAI")}
-            icon={Tag}
-            label="Loại dụng cụ"
-            mobileLabel="Loại"
+            icon={Package}
+            label="Kho dự phòng"
+            mobileLabel="Kho"
+          />
+          <CssdHorizTabButton
+            active={s.tab === "KIEM_KE"}
+            onClick={() => s.setTab("KIEM_KE")}
+            icon={ClipboardCheck}
+            label="Kiểm kê"
+            mobileLabel="Kiểm kê"
+          />
+          <CssdHorizTabButton
+            active={s.tab === "LUAN_CHUYEN"}
+            onClick={() => s.setTab("LUAN_CHUYEN")}
+            icon={ArrowLeftRight}
+            label="Luân chuyển"
+            mobileLabel="Chuyển"
           />
           <CssdHorizTabButton
             active={s.tab === "DE_NGHI"}
@@ -131,8 +147,18 @@ export default function Page() {
               selectedLoai={s.selectedLoai}
               boBySelectedLoai={s.boBySelectedLoai}
               toolbar={catalogToolbar}
+              loaiPage={s.loaiPage}
+              loaiTotalPages={s.loaiTotalPages}
+              loaiTotalCount={s.loaiTotalCount}
+              loaiPageSize={s.loaiPageSize}
+              setLoaiPage={s.setLoaiPage}
+              loaiStockFilter={s.loaiStockFilter}
+              setLoaiStockFilter={s.setLoaiStockFilter}
+              loaiLoading={s.loaiLoading}
             />
           </div>
+        ) : s.tab === "LUAN_CHUYEN" ? (
+          <CSSDCatalogLuanChuyenTab />
         ) : s.tab === "DE_NGHI" ? (
           <CSSDCatalogDeNghiTab />
         ) : (

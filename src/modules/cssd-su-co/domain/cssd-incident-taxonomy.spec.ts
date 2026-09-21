@@ -38,14 +38,12 @@ describe("cssd-incident-taxonomy", () => {
     expect(coerceInstrumentFormTypeId(SET_RECONCILE_TYPE_ID)).toBe(INSTRUMENT_PHYSICAL_DOOR_ID);
   });
 
-  it("form options expose only 3 doors", () => {
+  it("form options on su-co expose only Hỏng/Mất (luân chuyển ở /cssd-dung-cu)", () => {
     expect(instrumentFormTypeOptions().map((x) => x.code)).toEqual([
       INSTRUMENT_PHYSICAL_DOOR_ID,
-      INSTRUMENT_MOVE_TYPE_ID,
     ]);
     expect(INCIDENT_TYPE_PRESETS.INSTRUMENT.map((x) => x.code)).toEqual([
       INSTRUMENT_PHYSICAL_DOOR_ID,
-      INSTRUMENT_MOVE_TYPE_ID,
     ]);
   });
 

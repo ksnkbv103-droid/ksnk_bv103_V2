@@ -36,6 +36,9 @@ export default function InventoryHistoryTable() {
         BAO_HONG: "Báo hỏng",
         BAO_MAT: "Báo mất",
         BO_SUNG: "Bổ sung",
+        DIEU_CHUYEN: "Điều chuyển",
+        TRA_KHO: "Trả kho",
+        KIEM_KE: "Kiểm kê",
       };
       return (
       <div className="flex items-center gap-2">

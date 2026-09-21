@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  isEmptyDeNghiBeforeSnapshot,
   normalizeDeNghiItems,
   type CssdCatalogDeNghiBomLine,
   type CssdCatalogDeNghiKind,
@@ -179,6 +180,33 @@ async function applyBo(
   if (data.length > 1) throw new Error("Mã bộ trùng hơn một dòng — không ghi đè.");
 }
 
+/**
+ * Snapshot `payload_before.lines` lưu trạng thái dòng (không có `op`).
+ * Phiếu `payload_after.lines` có op UPSERT|DELETE.
+ * Khi hoàn tác / apply snapshot → thiếu op coi như UPSERT.
+ */
+function normalizeBomLinesForApply(raw: unknown[]): CssdCatalogDeNghiBomLine[] {
+  const out: CssdCatalogDeNghiBomLine[] = [];
+  for (const row of raw) {
+    const line = (row || {}) as CssdCatalogDeNghiBomLine & Record<string, unknown>;
+    const opRaw = String(line.op || "").trim().toUpperCase();
+    let op: "UPSERT" | "DELETE" | "";
+    if (opRaw === "DELETE") op = "DELETE";
+    else if (opRaw === "UPSERT") op = "UPSERT";
+    else if (
+      String(line.chiTietId || "").trim() ||
+      String(line.loaiDungCuId || "").trim() ||
+      String(line.maLoai || "").trim()
+    ) {
+      op = "UPSERT";
+    } else {
+      throw new Error("op dòng BOM không hợp lệ.");
+    }
+    out.push({ ...line, op });
+  }
+  return out;
+}
+
 async function applyBom(
   supabase: SupabaseClient,
   targetId: string | null,
@@ -188,7 +216,7 @@ async function applyBom(
   const boId = String(targetId || "").trim();
   if (!boId) throw new Error("Thiếu bộ đích cho thành phần.");
   const lines = Array.isArray(payloadAfter.lines)
-    ? (payloadAfter.lines as CssdCatalogDeNghiBomLine[])
+    ? normalizeBomLinesForApply(payloadAfter.lines as unknown[])
     : [];
   if (!lines.length) throw new Error("Thiếu dòng thành phần.");
 
@@ -311,5 +339,238 @@ export async function applyCatalogDeNghiOverwrite(
       // BOM CREATE = UPSERT lines trên bộ đích (đã có); bổ sung dòng mới không có chiTietId.
       await applyBom(supabase, it.targetId || null, it.after, now);
     }
+  }
+}
+
+async function softDeleteLoai(
+  supabase: SupabaseClient,
+  targetId: string | null,
+  after: Record<string, unknown>,
+  now: string,
+): Promise<void> {
+  const id = String(targetId || "").trim();
+  const ma = String(after.ma_loai || "").trim().toUpperCase();
+  if (!id && !ma) throw new Error("Không xác định loại đã tạo để hoàn tác (thiếu id/mã).");
+  const patch = {
+    is_active: false,
+    updated_at: now,
+  };
+  let uq = supabase.from("cssd_dm_loai_dung_cu").update(patch);
+  if (id) uq = uq.eq("id", id);
+  else uq = uq.eq("ma_loai", ma);
+  const { error, data } = await uq.select("id").limit(2);
+  if (error) throw new Error(error.message);
+  if (!data?.length) throw new Error(`Không tìm thấy loại đã tạo để soft-delete (${ma || id}).`);
+}
+
+async function softDeleteBo(
+  supabase: SupabaseClient,
+  targetId: string | null,
+  after: Record<string, unknown>,
+  now: string,
+): Promise<void> {
+  const id = String(targetId || "").trim();
+  const ma = String(after.ma_bo || "").trim().toUpperCase();
+  if (!id && !ma) throw new Error("Không xác định bộ đã tạo để hoàn tác (thiếu id/mã).");
+  const patch: Record<string, unknown> = {
+    is_active: false,
+    updated_at: now,
+  };
+  // Ghi chú audit nhẹ nếu cột có sẵn
+  const note = `[Hoàn tác phiếu đề nghị ${now.slice(0, 10)}]`;
+  if (id) {
+    const { data: cur } = await supabase
+      .from("cssd_dm_bo_dung_cu")
+      .select("ghi_chu")
+      .eq("id", id)
+      .maybeSingle();
+    const prev = String(cur?.ghi_chu || "").trim();
+    patch.ghi_chu = prev.includes("Hoàn tác phiếu đề nghị") ? prev : [prev, note].filter(Boolean).join(" ");
+  }
+  let uq = supabase.from("cssd_dm_bo_dung_cu").update(patch);
+  if (id) uq = uq.eq("id", id);
+  else uq = uq.eq("ma_bo", ma);
+  const { error, data } = await uq.select("id").limit(2);
+  if (error) throw new Error(error.message);
+  if (!data?.length) throw new Error(`Không tìm thấy bộ đã tạo để soft-delete (${ma || id}).`);
+}
+
+/**
+ * Hoàn tác BOM CREATE:
+ * - Ưu tiên re-apply `before.lines` (snapshot trước duyệt).
+ * - Không có before: soft-delete chi_tiet mới (UPSERT không chiTietId) theo ma_chi_tiet / loai+bộ.
+ * - Không cố gắng restore dòng DELETE trong after khi thiếu before (quá rủi ro).
+ */
+async function revertBomCreate(
+  supabase: SupabaseClient,
+  targetId: string | null,
+  before: Record<string, unknown>,
+  after: Record<string, unknown>,
+  now: string,
+): Promise<void> {
+  const beforeLines = Array.isArray(before.lines) ? (before.lines as CssdCatalogDeNghiBomLine[]) : [];
+  if (beforeLines.length) {
+    await applyBom(supabase, targetId, { lines: beforeLines }, now);
+    return;
+  }
+  const boId = String(targetId || "").trim();
+  if (!boId) throw new Error("Thiếu bộ đích để hoàn tác thành phần đã tạo.");
+  const afterLines = Array.isArray(after.lines) ? (after.lines as CssdCatalogDeNghiBomLine[]) : [];
+  for (const line of afterLines) {
+    if (line.op !== "UPSERT") continue;
+    const chiTietId = String(line.chiTietId || "").trim();
+    if (chiTietId) {
+      // UPSERT lên dòng sẵn có — không soft-delete khi thiếu snapshot before
+      continue;
+    }
+    const maChiTiet = String(line.maChiTiet || "").trim().toUpperCase();
+    let resolvedLoaiId = String(line.loaiDungCuId || "").trim();
+    const maLoai = String(line.maLoai || "").trim().toUpperCase();
+    if (!resolvedLoaiId && maLoai) {
+      const { data: loai } = await supabase
+        .from("cssd_dm_loai_dung_cu")
+        .select("id")
+        .ilike("ma_loai", maLoai)
+        .limit(1)
+        .maybeSingle();
+      resolvedLoaiId = loai?.id ? String(loai.id) : "";
+    }
+    let q = supabase
+      .from("cssd_dm_bo_dung_cu_chi_tiet")
+      .update({ is_active: false, updated_at: now })
+      .eq("bo_dung_cu_id", boId)
+      .eq("is_active", true);
+    if (maChiTiet) q = q.eq("ma_chi_tiet", maChiTiet);
+    else if (resolvedLoaiId) q = q.eq("loai_dung_cu_id", resolvedLoaiId);
+    else continue;
+    const { error } = await q;
+    if (error) throw new Error(error.message);
+  }
+}
+
+/**
+ * Đảo ghi đè master sau khi admin xóa phiếu APPROVED.
+ * CREATE → soft-delete master (hoặc đảo BOM); UPDATE → apply lại payload_before.
+ */
+export async function revertCatalogDeNghiOverwrite(
+  supabase: SupabaseClient,
+  args: {
+    kind: CssdCatalogDeNghiKind;
+    targetId: string | null;
+    targetMa: string;
+    payloadBefore?: Record<string, unknown>;
+    payloadAfter: Record<string, unknown>;
+  },
+): Promise<void> {
+  const now = new Date().toISOString();
+  const items = normalizeDeNghiItems({
+    targetKind: args.kind,
+    targetId: args.targetId,
+    targetMa: args.targetMa,
+    payloadBefore: args.payloadBefore,
+    payloadAfter: args.payloadAfter,
+  });
+  if (!items.length) throw new Error("Phiếu không có dòng để hoàn tác.");
+
+  for (const it of items) {
+    const isCreate =
+      it.op === "CREATE" ||
+      asRecord(it.before).__op === "CREATE" ||
+      asRecord(it.after).__op === "CREATE";
+    const before = asRecord(it.before);
+    const after = asRecord(it.after);
+    const tid = it.targetId || args.targetId || null;
+
+    if (isCreate) {
+      if (it.kind === "LOAI") {
+        await softDeleteLoai(supabase, tid, after, now);
+      } else if (it.kind === "BO") {
+        await softDeleteBo(supabase, tid, after, now);
+      } else {
+        await revertBomCreate(supabase, tid, before, after, now);
+      }
+      continue;
+    }
+
+    if (isEmptyDeNghiBeforeSnapshot(before)) {
+      throw new Error("Không có snapshot trước duyệt — không hoàn tác được");
+    }
+
+    if (it.kind === "LOAI") {
+      await applyLoai(supabase, tid, String(it.targetMa || args.targetMa || ""), before, now);
+    } else if (it.kind === "BO") {
+      await applyBo(supabase, tid, String(it.targetMa || args.targetMa || ""), before, now);
+    } else {
+      await revertBomUpdate(supabase, tid, before, after, now);
+    }
+  }
+}
+
+/**
+ * Hoàn tác BOM UPDATE:
+ * 1) Soft-delete dòng do phiếu thêm (UPSERT mới / chiTietId không có trong before).
+ * 2) Apply lại snapshot before (thiếu op → UPSERT).
+ */
+async function revertBomUpdate(
+  supabase: SupabaseClient,
+  targetId: string | null,
+  before: Record<string, unknown>,
+  after: Record<string, unknown>,
+  now: string,
+): Promise<void> {
+  const boId = String(targetId || "").trim();
+  if (!boId) throw new Error("Thiếu bộ đích để hoàn tác thành phần.");
+
+  const beforeRaw = Array.isArray(before.lines) ? (before.lines as unknown[]) : [];
+  const afterRaw = Array.isArray(after.lines) ? (after.lines as unknown[]) : [];
+  const beforeLines = beforeRaw.length ? normalizeBomLinesForApply(beforeRaw) : [];
+  const afterLines = afterRaw.length ? normalizeBomLinesForApply(afterRaw) : [];
+
+  const beforeIds = new Set(
+    beforeLines.map((l) => String(l.chiTietId || "").trim()).filter(Boolean),
+  );
+
+  for (const line of afterLines) {
+    if (line.op === "DELETE") continue;
+    const chiTietId = String(line.chiTietId || "").trim();
+    const wasPreexisting = Boolean(chiTietId && beforeIds.has(chiTietId));
+    if (wasPreexisting) continue;
+
+    if (chiTietId) {
+      const { error } = await supabase
+        .from("cssd_dm_bo_dung_cu_chi_tiet")
+        .update({ is_active: false, updated_at: now })
+        .eq("id", chiTietId)
+        .eq("bo_dung_cu_id", boId);
+      if (error) throw new Error(error.message);
+      continue;
+    }
+
+    const maChiTiet = String(line.maChiTiet || "").trim().toUpperCase();
+    let resolvedLoaiId = String(line.loaiDungCuId || "").trim();
+    const maLoai = String(line.maLoai || "").trim().toUpperCase();
+    if (!resolvedLoaiId && maLoai) {
+      const { data: loai } = await supabase
+        .from("cssd_dm_loai_dung_cu")
+        .select("id")
+        .ilike("ma_loai", maLoai)
+        .limit(1)
+        .maybeSingle();
+      resolvedLoaiId = loai?.id ? String(loai.id) : "";
+    }
+    let q = supabase
+      .from("cssd_dm_bo_dung_cu_chi_tiet")
+      .update({ is_active: false, updated_at: now })
+      .eq("bo_dung_cu_id", boId)
+      .eq("is_active", true);
+    if (maChiTiet) q = q.eq("ma_chi_tiet", maChiTiet);
+    else if (resolvedLoaiId) q = q.eq("loai_dung_cu_id", resolvedLoaiId);
+    else continue;
+    const { error } = await q;
+    if (error) throw new Error(error.message);
+  }
+
+  if (beforeLines.length) {
+    await applyBom(supabase, boId, { lines: beforeLines }, now);
   }
 }

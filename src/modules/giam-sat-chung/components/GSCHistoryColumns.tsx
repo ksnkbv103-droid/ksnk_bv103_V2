@@ -98,12 +98,48 @@ export function getGSCHistoryColumns(
       headerClassName: "w-[11rem] min-w-[11rem]",
       cellClassName: "w-[11rem] min-w-[11rem]",
       cell: (s: GscHistoryRow) => {
-        const name = typeof s.ten_nhan_vien_display === "string" && s.ten_nhan_vien_display.trim() ? s.ten_nhan_vien_display : "—";
-        const job = typeof s.nghe_nghiep_name === "string" && s.nghe_nghiep_name.trim() ? s.nghe_nghiep_name : "—";
+        const bn =
+          typeof s.ten_nguoi_benh_display === "string" && s.ten_nguoi_benh_display.trim()
+            ? s.ten_nguoi_benh_display.trim()
+            : "";
+        const maBa =
+          typeof s.ma_benh_an_display === "string" && s.ma_benh_an_display.trim()
+            ? s.ma_benh_an_display.trim()
+            : "";
+        const nv =
+          typeof s.ten_nhan_vien_display === "string" && s.ten_nhan_vien_display.trim()
+            ? s.ten_nhan_vien_display.trim()
+            : "";
+        const job =
+          typeof s.nghe_nghiep_name === "string" && s.nghe_nghiep_name.trim()
+            ? s.nghe_nghiep_name.trim()
+            : "";
+        const primaryBn = s.doi_tuong_primary === "BENH_NHAN" || Boolean(bn);
+        if (primaryBn && bn) {
+          return (
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-700">Bệnh nhân</p>
+              <p className="text-xs font-medium text-slate-700 leading-snug line-clamp-2" title={bn}>
+                {bn}
+              </p>
+              {maBa ? (
+                <p className="text-[11px] font-mono text-slate-400 mt-0.5 line-clamp-1" title={maBa}>
+                  BA {maBa}
+                </p>
+              ) : null}
+              {nv ? (
+                <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1" title={nv}>
+                  NV: {nv}
+                </p>
+              ) : null}
+            </div>
+          );
+        }
+        const name = nv || "—";
         return (
           <div className="min-w-0">
             <p className="text-xs font-medium text-slate-700 leading-snug line-clamp-2">{name}</p>
-            <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">{job}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">{job || "—"}</p>
           </div>
         );
       },

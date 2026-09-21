@@ -7,6 +7,7 @@ import type { BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 import { cssdReportAnalyticsHref } from "@/lib/cssd-routes";
 import { formatKhoaCompactLabel } from "@/lib/domain/khoa-display";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
+import { formatPercent1 } from "@/lib/analytics/supervision-percent";
 
 export function ComprehensiveCssdAppendix({ payload }: { payload: BaoCaoTongHopPayload | null }) {
   const cssd = payload?.cssd;
@@ -54,7 +55,7 @@ export function ComprehensiveCssdAppendix({ payload }: { payload: BaoCaoTongHopP
         <Kpi
           label="Tỷ lệ quy trình không sự cố"
           value={
-            cssd.ty_le_quy_trinh_khong_su_co != null ? `${cssd.ty_le_quy_trinh_khong_su_co}%` : "—"
+            cssd.ty_le_quy_trinh_khong_su_co != null ? formatPercent1(cssd.ty_le_quy_trinh_khong_su_co) : "—"
           }
         />
         <Kpi label="Số bộ danh mục" value={cssd.so_bo_danh_muc.toLocaleString()} />
@@ -62,7 +63,7 @@ export function ComprehensiveCssdAppendix({ payload }: { payload: BaoCaoTongHopP
           label="Mẻ / QC đạt"
           value={
             cssd.ty_le_qc_dat_me != null
-              ? `${cssd.so_me_ky} · ${cssd.ty_le_qc_dat_me}%`
+              ? `${cssd.so_me_ky} · ${formatPercent1(cssd.ty_le_qc_dat_me)}`
               : String(cssd.so_me_ky)
           }
         />

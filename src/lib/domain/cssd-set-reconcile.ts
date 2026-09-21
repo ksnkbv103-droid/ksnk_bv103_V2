@@ -40,7 +40,7 @@ export const SET_RECONCILE_MOVE_ONLY_KINDS = ["BO_SUNG", "TRA_KHO", "DIEU_CHUYEN
 export type SetReconcileMoveOnlyKind = (typeof SET_RECONCILE_MOVE_ONLY_KINDS)[number];
 
 export const SET_RECONCILE_MOVE_ONLY_MESSAGE =
-  "Lấy kho, trả kho và điều chuyển chỉ dùng cửa Chuyển kho·bộ — không dùng Hỏng/Mất.";
+  "Lấy kho, trả kho và điều chuyển chỉ trên /cssd-dung-cu → Luân chuyển — không ghi ở Sự cố Hỏng/Mất.";
 
 export type SetReconcileLineInput = {
   chiTietId?: string;
@@ -723,7 +723,7 @@ export function validateSetReconcileLines(lines: SetReconcileLineInput[]): strin
       line.kind !== "DIEU_CHUYEN" &&
       line.kind !== "TRA_KHO"
     ) {
-      return `${label}: số đếm thấp hơn thực tế — chọn Hỏng hoặc Mất, hoặc mở tab Chuyển nếu cần điều chuyển.`;
+      return `${label}: số đếm thấp hơn thực tế — chọn Hỏng hoặc Mất, hoặc mở /cssd-dung-cu → Luân chuyển nếu cần điều chuyển.`;
     }
     if (line.kind === "KHOP" && dem !== thuc) {
       return `${label}: dòng khớp thì số đếm phải bằng số thực tế hệ thống.`;

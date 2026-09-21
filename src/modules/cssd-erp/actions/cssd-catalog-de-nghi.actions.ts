@@ -5,6 +5,8 @@ import { verifyPermission } from "@/lib/server-permission";
 import { revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
 import {
   buildBatchPayload,
+  formatMaLoaiTrungMessage,
+  normalizeDeNghiItems,
   parseCssdCatalogDeNghiKind,
   validateDeNghiPayload,
   type CssdCatalogDeNghiItem,
@@ -75,6 +77,69 @@ function mapRow(r: Record<string, unknown>): CssdCatalogDeNghiRow {
   };
 }
 
+
+/** Rà mã loại trong danh mục — dùng khi bổ sung loại mới (duy nhất). */
+export async function lookupLoaiByMaForDeNghiAction(maLoai: string) {
+  try {
+    await requireCatalogRead();
+    const ma = String(maLoai || "").trim().toUpperCase();
+    if (!ma) return { success: true as const, found: false as const };
+    const supabase = createAdminSupabaseClient();
+    const { data, error } = await supabase
+      .from("cssd_dm_loai_dung_cu")
+      .select("id, ma_loai, ten_loai, is_active")
+      .eq("ma_loai", ma)
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data?.id) return { success: true as const, found: false as const };
+    return {
+      success: true as const,
+      found: true as const,
+      id: String(data.id),
+      ma: String(data.ma_loai || ma),
+      ten: String(data.ten_loai || "").trim(),
+      isActive: data.is_active !== false,
+      message: formatMaLoaiTrungMessage(ma, data.ten_loai),
+    };
+  } catch (e: unknown) {
+    return {
+      success: false as const,
+      found: false as const,
+      error: e instanceof Error ? e.message : "Không tra được mã loại.",
+    };
+  }
+}
+
+async function assertCreateLoaiMaUnique(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  kind: CssdCatalogDeNghiKind,
+  payloadAfter: Record<string, unknown>,
+  payloadBefore?: Record<string, unknown>,
+): Promise<string | null> {
+  const items = normalizeDeNghiItems({
+    targetKind: kind,
+    payloadAfter,
+    payloadBefore,
+  });
+  for (const it of items) {
+    if (it.kind !== "LOAI") continue;
+    const op = it.op || (it.after.__op === "CREATE" || it.before.__op === "CREATE" ? "CREATE" : "UPDATE");
+    if (op !== "CREATE") continue;
+    const ma = String(it.after.ma_loai || "").trim().toUpperCase();
+    if (!ma) continue;
+    const { data: dup } = await supabase
+      .from("cssd_dm_loai_dung_cu")
+      .select("id, ten_loai")
+      .eq("ma_loai", ma)
+      .limit(1)
+      .maybeSingle();
+    if (dup?.id) return formatMaLoaiTrungMessage(ma, (dup as { ten_loai?: string }).ten_loai);
+  }
+  // MIXED batch may use targetKind MIXED
+  return null;
+}
+
 export async function createCatalogDeNghiAction(input: {
   targetKind: string;
   targetId?: string | null;
@@ -92,6 +157,15 @@ export async function createCatalogDeNghiAction(input: {
     if (err) return { success: false as const, error: err };
 
     const supabase = createAdminSupabaseClient();
+    if (kind === "LOAI" || kind === "MIXED") {
+      const dupErr = await assertCreateLoaiMaUnique(
+        supabase,
+        kind,
+        input.payloadAfter || {},
+        input.payloadBefore,
+      );
+      if (dupErr) return { success: false as const, error: dupErr };
+    }
     const nguoiId = await currentNhanSuId(supabase);
     const now = new Date().toISOString();
     const { data, error } = await supabase

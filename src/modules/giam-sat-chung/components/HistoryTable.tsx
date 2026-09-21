@@ -87,7 +87,7 @@ export default function HistoryTable({
           onSearch={handleSearch}
           onSort={handleSort}
           searchValue={searchTerm}
-          searchPlaceholder="Tìm kiếm phiên giám sát..."
+          searchPlaceholder="Tìm tên BN, mã BA, NV, khoa, bảng kiểm…"
           enableQrScan
           onQrScan={(code) => {
             const resolved = classifyEntityQr(code);

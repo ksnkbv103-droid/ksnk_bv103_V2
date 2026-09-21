@@ -17,6 +17,12 @@ export type GscHistoryRow = Record<string, unknown> & {
   gs_ho_ten: string;
   ma_hien_thi: string;
   date_str: string;
+  /** Nhân viên / nhập tay — đối tượng NV */
+  ten_nhan_vien_display?: string;
+  /** Bệnh nhân (khi is_bo_sung_nguoi_benh hoặc có ten_nguoi_benh) */
+  ten_nguoi_benh_display?: string;
+  ma_benh_an_display?: string;
+  doi_tuong_primary?: "BENH_NHAN" | "NHAN_VIEN" | "NONE";
 };
 
 /**
@@ -73,6 +79,19 @@ export function enrichGscHistoryRows(rows: Record<string, unknown>[]): GscHistor
         nhanVienFlat ||
         String((row.nhan_vien as { ho_ten?: string } | undefined)?.ho_ten || "").trim() ||
         String(row.ten_manual_nhan_vien || "").trim(),
+      ten_nguoi_benh_display: String(row.ten_nguoi_benh || "").trim(),
+      ma_benh_an_display: String(row.ma_benh_an || "").trim(),
+      doi_tuong_primary: (() => {
+        const bn = String(row.ten_nguoi_benh || "").trim();
+        const boSung = row.is_bo_sung_nguoi_benh === true || Boolean(bn);
+        if (boSung && bn) return "BENH_NHAN" as const;
+        const nv =
+          nhanVienFlat ||
+          String((row.nhan_vien as { ho_ten?: string } | undefined)?.ho_ten || "").trim() ||
+          String(row.ten_manual_nhan_vien || "").trim();
+        if (nv) return "NHAN_VIEN" as const;
+        return "NONE" as const;
+      })(),
       nghe_nghiep_name:
         ngheFlat ||
         String((row.danh_muc_nghe_nghiep as { ten_danh_muc?: string } | undefined)?.ten_danh_muc || "").trim(),

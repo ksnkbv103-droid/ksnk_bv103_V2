@@ -272,3 +272,180 @@ function validateOne(kind: "LOAI" | "BO" | "BOM", after: Record<string, unknown>
   }
   return null;
 }
+
+/** Nhãn tiếng Việt cho trường thường gặp trên phiếu đề nghị. */
+export const CSSD_CATALOG_DE_NGHI_FIELD_LABELS: Record<string, string> = {
+  ma_loai: "Mã loại",
+  ten_loai: "Tên loại",
+  mo_ta: "Mô tả",
+  hinh_dang: "Hình dáng",
+  kich_thuoc: "Kích thước",
+  cong_dung: "Công dụng",
+  is_chiu_nhiet: "Chịu nhiệt",
+  phuong_phap_tiet_khuan_chi_dinh: "Phương pháp TK",
+  phan_loai_spaulding: "Spaulding",
+  phan_loai: "Phân loại",
+  so_luong_kho_du_phong: "Kho dự phòng",
+  is_active: "Đang hoạt động",
+  ma_bo: "Mã bộ",
+  ten_bo: "Tên bộ",
+  loai_dung_cu_id: "Loại dụng cụ (id)",
+  khoa_su_dung_id: "Khoa sử dụng (id)",
+  quy_cach: "Quy cách",
+  ghi_chu: "Ghi chú",
+  trang_thai: "Trạng thái",
+  phan_loai_bo: "Phân loại bộ",
+  co_ma_dinh_danh_rieng: "Mã định danh riêng",
+  lines: "Thành phần (BOM)",
+};
+
+export type CssdCatalogDeNghiFieldDiff = {
+  key: string;
+  label: string;
+  beforeText: string;
+  afterText: string;
+};
+
+function isPlainObject(v: unknown): v is Record<string, unknown> {
+  return v != null && typeof v === "object" && !Array.isArray(v);
+}
+
+function formatDeNghiScalar(key: string, v: unknown): string {
+  if (v === null || v === undefined) return "—";
+  if (typeof v === "string") {
+    const t = v.trim();
+    return t || "—";
+  }
+  if (typeof v === "boolean") {
+    if (key === "is_chiu_nhiet") return v ? "Chịu nhiệt cao" : "Nhạy nhiệt";
+    return v ? "Có" : "Không";
+  }
+  if (typeof v === "number") return Number.isFinite(v) ? String(v) : "—";
+  return "—";
+}
+
+function summarizeBomLineOp(line: unknown): string {
+  if (!isPlainObject(line)) return "—";
+  const op = String(line.op || "").toUpperCase();
+  const ma = String(line.maLoai || line.maChiTiet || "").trim();
+  const ten = String(line.tenDungCuLe || line.tenChiTiet || "").trim();
+  const head = [ma, ten].filter(Boolean).join(" · ") || "—";
+  if (op === "DELETE") return `Xóa: ${head}`;
+  const qtyRaw = line.soLuong;
+  const qty =
+    qtyRaw != null && String(qtyRaw).trim() !== "" ? ` × ${qtyRaw}` : "";
+  return `UPSERT: ${head}${qty}`;
+}
+
+function summarizeBomLines(value: unknown): string {
+  if (!Array.isArray(value) || value.length === 0) return "—";
+  return value.map(summarizeBomLineOp).join("; ");
+}
+
+/**
+ * So sánh before/after của một mục đề nghị → danh sách trường đổi.
+ * Bỏ `__op` và object lồng; `lines` (BOM) hiển thị dạng op gọn.
+ */
+export function listDeNghiFieldDiffs(
+  before: Record<string, unknown> | null | undefined,
+  after: Record<string, unknown> | null | undefined,
+): CssdCatalogDeNghiFieldDiff[] {
+  const b = before || {};
+  const a = after || {};
+  const keys = new Set([...Object.keys(b), ...Object.keys(a)]);
+  const out: CssdCatalogDeNghiFieldDiff[] = [];
+  for (const key of Array.from(keys).sort()) {
+    if (key === "__op" || key === "items") continue;
+    const bv = b[key];
+    const av = a[key];
+    if (key === "lines") {
+      const beforeText = summarizeBomLines(bv);
+      const afterText = summarizeBomLines(av);
+      if (beforeText === afterText) continue;
+      out.push({
+        key,
+        label: CSSD_CATALOG_DE_NGHI_FIELD_LABELS[key] || key,
+        beforeText,
+        afterText,
+      });
+      continue;
+    }
+    if (isPlainObject(bv) || isPlainObject(av) || Array.isArray(bv) || Array.isArray(av)) {
+      continue;
+    }
+    const beforeText = formatDeNghiScalar(key, bv);
+    const afterText = formatDeNghiScalar(key, av);
+    if (beforeText === afterText) continue;
+    out.push({
+      key,
+      label: CSSD_CATALOG_DE_NGHI_FIELD_LABELS[key] || key,
+      beforeText,
+      afterText,
+    });
+  }
+  return out;
+}
+
+/** Khóa đích để phát hiện phiếu APPROVED sau chồng mục (hoàn tác). */
+export function collectCatalogDeNghiTargetKeys(args: {
+  targetKind: CssdCatalogDeNghiKind;
+  targetId?: string | null;
+  targetMa?: string | null;
+  payloadBefore?: Record<string, unknown>;
+  payloadAfter?: Record<string, unknown>;
+}): string[] {
+  const items = normalizeDeNghiItems({
+    targetKind: args.targetKind,
+    targetId: args.targetId,
+    targetMa: args.targetMa,
+    payloadBefore: args.payloadBefore,
+    payloadAfter: args.payloadAfter || {},
+  });
+  const keys = new Set<string>();
+  const add = (kind: string, id?: string | null, ma?: string | null) => {
+    const tid = String(id || "").trim();
+    const tma = String(ma || "").trim().toUpperCase();
+    if (tid) keys.add(`${kind}:id:${tid}`);
+    if (tma) keys.add(`${kind}:ma:${tma}`);
+  };
+  // Header-level (non-MIXED / single)
+  if (args.targetKind !== "MIXED") {
+    add(args.targetKind, args.targetId, args.targetMa);
+  }
+  for (const it of items) {
+    add(it.kind, it.targetId, it.targetMa);
+    if (it.kind === "LOAI") {
+      add("LOAI", null, String(it.after?.ma_loai || it.before?.ma_loai || ""));
+    } else if (it.kind === "BO") {
+      add("BO", null, String(it.after?.ma_bo || it.before?.ma_bo || ""));
+    }
+  }
+  return Array.from(keys);
+}
+
+export function catalogDeNghiTargetsOverlap(a: string[], b: string[]): boolean {
+  if (!a.length || !b.length) return false;
+  const setB = new Set(b);
+  return a.some((k) => setB.has(k));
+}
+
+/** Snapshot trước duyệt rỗng / chỉ __op → không hoàn tác UPDATE được. */
+export function isEmptyDeNghiBeforeSnapshot(before: Record<string, unknown> | null | undefined): boolean {
+  const b = before || {};
+  const keys = Object.keys(b).filter((k) => k !== "__op");
+  if (keys.length === 0) return true;
+  if (keys.length === 1 && keys[0] === "lines") {
+    const lines = b.lines;
+    return !Array.isArray(lines) || lines.length === 0;
+  }
+  return false;
+}
+
+/** Thông báo mã loại trùng — luôn kèm tên loại đã có để rà soát. */
+export function formatMaLoaiTrungMessage(ma: string, tenDaCo: string | null | undefined): string {
+  const code = String(ma || "").trim().toUpperCase();
+  const ten = String(tenDaCo || "").trim();
+  if (!code) return "Thiếu mã loại.";
+  if (ten) return `Mã loại ${code} đã có trong danh mục: «${ten}». Đổi mã khác hoặc dùng Đề nghị sửa loại đó.`;
+  return `Mã loại ${code} đã tồn tại trong danh mục. Đổi mã khác hoặc rà soát loại đã có.`;
+}

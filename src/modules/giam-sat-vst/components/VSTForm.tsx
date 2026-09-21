@@ -1,7 +1,7 @@
 // src/modules/giam-sat-vst/components/VSTForm.tsx
 "use client";
 
-import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";
+import { vstFormChrome as UI } from "@/modules/giam-sat-vst/lib/vst-form-chrome";
 import React, { useEffect, useRef } from "react";
 import GiamSatHeader from "@/components/shared/GiamSatHeader";
 import ContinueSupervisionBar from "@/components/shared/ContinueSupervisionBar";

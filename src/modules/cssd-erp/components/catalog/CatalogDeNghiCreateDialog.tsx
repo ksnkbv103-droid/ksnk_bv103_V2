@@ -5,16 +5,21 @@ import { toast } from "sonner";
 import {
   createCatalogDeNghiAction,
   listKhoaOptionsForDeNghiAction,
+  lookupLoaiByMaForDeNghiAction,
   suggestNextBoMaForDeNghiAction,
   suggestNextChiTietMaForDeNghiAction,
 } from "@/modules/cssd-erp/actions/cssd-catalog-de-nghi.actions";
-import { CSSD_CATALOG_DE_NGHI_KIND_LABEL } from "@/lib/domain/cssd-catalog-de-nghi";
+import {
+  CSSD_CATALOG_DE_NGHI_KIND_LABEL,
+  type CssdCatalogDeNghiItem,
+} from "@/lib/domain/cssd-catalog-de-nghi";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { CatalogDeNghiPhieuDialog } from "./CatalogDeNghiPhieuPreview";
 import { useCatalogDeNghiCart } from "./CatalogDeNghiCart";
 import { LoaiDungCuTypeahead } from "@/modules/quan-tri-he-thong/danh-muc/dung-cu/loai-dung-cu-typeahead";
 
@@ -46,10 +51,14 @@ export function CatalogDeNghiCreateDialog({
   const cart = useCatalogDeNghiCart();
   const [saving, setSaving] = useState(false);
   const [note, setNote] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewItem, setPreviewItem] = useState<CssdCatalogDeNghiItem | null>(null);
   const [khoaOptions, setKhoaOptions] = useState<Array<{ id: string; label: string }>>([]);
 
   // LOAI
   const [maLoai, setMaLoai] = useState("");
+  const [maLoaiDupHint, setMaLoaiDupHint] = useState<string | null>(null);
+  const [maLoaiChecking, setMaLoaiChecking] = useState(false);
   const [tenLoai, setTenLoai] = useState("");
   const [hinhDang, setHinhDang] = useState("");
   const [kichThuoc, setKichThuoc] = useState("");
@@ -80,6 +89,7 @@ export function CatalogDeNghiCreateDialog({
     if (!open) return;
     setNote("");
     setMaLoai("");
+    setMaLoaiDupHint(null);
     setTenLoai("");
     setHinhDang("");
     setKichThuoc("");
@@ -191,33 +201,87 @@ export function CatalogDeNghiCreateDialog({
     };
   };
 
-  const submit = async (toBatch: boolean) => {
+  const buildItem = (): CssdCatalogDeNghiItem | null => {
     const after = buildAfter();
-    if (!after) return;
+    if (!after) return null;
     const targetMa =
       kind === "LOAI" ? maLoai.trim().toUpperCase() : kind === "BO" ? maBo.trim().toUpperCase() : boMa || "";
     const targetTen =
       kind === "LOAI" ? tenLoai.trim() : kind === "BO" ? tenBo.trim() : boTen || "Thành phần";
-    const item = {
+    return {
       kind,
-      op: "CREATE" as const,
+      op: "CREATE",
       targetId: kind === "BOM" ? boDungCuId : null,
       targetMa,
       targetTen,
       before: { __op: "CREATE" },
       after: { ...after, __op: "CREATE" },
     };
+  };
+
+
+  useEffect(() => {
+    if (kind !== "LOAI" || !open) {
+      setMaLoaiDupHint(null);
+      return;
+    }
+    const ma = maLoai.trim().toUpperCase();
+    if (ma.length < 2) {
+      setMaLoaiDupHint(null);
+      return;
+    }
+    let alive = true;
+    setMaLoaiChecking(true);
+    const tmr = window.setTimeout(() => {
+      void lookupLoaiByMaForDeNghiAction(ma).then((res) => {
+        if (!alive) return;
+        setMaLoaiChecking(false);
+        if (!res.success) {
+          setMaLoaiDupHint(null);
+          return;
+        }
+        if (res.found) {
+          const inactive = res.isActive === false ? " (đang ngưng dùng)" : "";
+          setMaLoaiDupHint(
+            (res.message || `Mã ${res.ma} đã có: «${res.ten}»`) + inactive,
+          );
+        } else {
+          setMaLoaiDupHint(null);
+        }
+      });
+    }, 350);
+    return () => {
+      alive = false;
+      window.clearTimeout(tmr);
+    };
+  }, [kind, open, maLoai]);
+
+  const submit = async (toBatch: boolean) => {
+    if (kind === "LOAI" && maLoaiDupHint) {
+      toast.error(maLoaiDupHint);
+      return;
+    }
+
+    const item = buildItem();
+    if (!item) return;
     if (toBatch) {
       cart.addItem(item);
       onOpenChange(false);
       return;
     }
+    setPreviewItem(item);
+    setPreviewOpen(true);
+  };
+
+  const confirmSendCreate = async () => {
+    const item = previewItem || buildItem();
+    if (!item) return;
     setSaving(true);
     const res = await createCatalogDeNghiAction({
       targetKind: kind,
       targetId: item.targetId,
-      targetMa,
-      targetTen,
+      targetMa: item.targetMa,
+      targetTen: item.targetTen,
       payloadBefore: item.before,
       payloadAfter: item.after,
       note,
@@ -228,25 +292,44 @@ export function CatalogDeNghiCreateDialog({
       return;
     }
     toast.success("Đã gửi đề nghị bổ sung — chờ admin duyệt.");
+    setPreviewOpen(false);
+    setPreviewItem(null);
     onOpenChange(false);
     onSubmitted?.();
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[min(92dvh,800px)] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Đề nghị bổ sung — {CSSD_CATALOG_DE_NGHI_KIND_LABEL[kind]}</DialogTitle>
         </DialogHeader>
         <p className="text-[12px] text-slate-600">
+          Bổ sung mới loại/bộ (hoặc thành phần gắn loại đã có). Không dùng để điều chuyển —
+          dùng tab Luân chuyển. Gửi chỉ sau khi xem phiếu; admin duyệt mới vào master.
+        </p>
+        <p className="text-[12px] text-slate-600">
           Nhân viên nhập liệu. Admin duyệt mới đưa vào danh mục chính thức.
         </p>
 
         {kind === "LOAI" ? (
           <div className="grid gap-2 sm:grid-cols-2">
-            <label className={labelCls}>
+            <label className={`${labelCls} sm:col-span-2`}>
               Mã loại (tự nhập) *
-              <input className={inputCls} value={maLoai} onChange={(e) => setMaLoai(e.target.value.toUpperCase())} />
+              <input
+                className={`${inputCls} ${maLoaiDupHint ? "border-red-400 focus:border-red-500" : ""}`}
+                value={maLoai}
+                onChange={(e) => setMaLoai(e.target.value.toUpperCase())}
+                autoComplete="off"
+              />
+              {maLoaiChecking ? (
+                <span className="mt-1 block text-[11px] text-slate-400">Đang rà danh mục…</span>
+              ) : maLoaiDupHint ? (
+                <span className="mt-1 block text-[11px] font-medium text-red-700">{maLoaiDupHint}</span>
+              ) : maLoai.trim().length >= 2 ? (
+                <span className="mt-1 block text-[11px] text-emerald-700">Mã chưa trùng trong danh mục.</span>
+              ) : null}
             </label>
             <label className={labelCls}>
               Tên loại *
@@ -381,14 +464,28 @@ export function CatalogDeNghiCreateDialog({
           <button type="button" onClick={() => onOpenChange(false)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-[12px] font-semibold text-slate-600">
             Hủy
           </button>
-          <button type="button" disabled={saving} onClick={() => void submit(true)} className="rounded-lg border border-violet-300 bg-violet-50 px-3 py-1.5 text-[12px] font-semibold text-violet-900 disabled:opacity-50">
+          <button type="button" disabled={saving || Boolean(kind === "LOAI" && (maLoaiDupHint || maLoaiChecking))} onClick={() => void submit(true)} className="rounded-lg border border-violet-300 bg-violet-50 px-3 py-1.5 text-[12px] font-semibold text-violet-900 disabled:opacity-50">
             Thêm vào phiếu lô
           </button>
-          <button type="button" disabled={saving} onClick={() => void submit(false)} className="rounded-lg bg-[var(--primary)] px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-50">
-            {saving ? "Đang gửi…" : "Gửi đề nghị bổ sung"}
+          <button type="button" disabled={saving || Boolean(maLoaiDupHint) || maLoaiChecking} onClick={() => void submit(false)} className="rounded-lg bg-[var(--primary)] px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-50">
+            Xem trước & gửi
           </button>
         </div>
       </DialogContent>
     </Dialog>
+    <CatalogDeNghiPhieuDialog
+      open={previewOpen}
+      onOpenChange={(v) => {
+        setPreviewOpen(v);
+        if (!v) setPreviewItem(null);
+      }}
+      title="Xem trước phiếu đề nghị bổ sung"
+      items={previewItem ? [previewItem] : []}
+      note={note}
+      mode="send"
+      busy={saving}
+      onConfirmSend={() => void confirmSendCreate()}
+    />
+    </>
   );
 }

@@ -33,6 +33,8 @@ type Props = {
   enabled: boolean;
   station?: string;
   initialKindHint?: SetReconcileLineKind | null;
+  /** P0A: chỉ Hỏng/Mất — ẩn thêm/xóa dòng catalog. */
+  physicalOnly?: boolean;
   initialChiTietId?: string;
   toolbar?: React.ReactNode;
   onChange: (state: SetReconcileFormState | null) => void;
@@ -58,6 +60,7 @@ export default function InstrumentSetReconcileTable({
   enabled,
   station,
   initialKindHint,
+  physicalOnly = false,
   initialChiTietId,
   toolbar,
   onChange,
@@ -215,14 +218,17 @@ export default function InstrumentSetReconcileTable({
                     line={line}
                     loaiOptions={loaiOptions}
                     khacIndex={khacIndex}
+                    physicalOnly={physicalOnly}
                     onPatch={(patch) => patchLine(idx, patch)}
-                    onRemove={() => removeLine(idx)}
+                    onRemove={physicalOnly ? undefined : () => removeLine(idx)}
                   />
                 ))}
                 {!loading && state && state.lines.length === 0 ? (
                   <tr>
                     <td colSpan={8} className={`${bv103TableLayout.td} py-6 text-center text-slate-500`}>
-                      Bộ chưa có thành phần — bấm «Thêm dòng vào bộ» bên dưới.
+                      {physicalOnly
+                        ? "Bộ chưa có thành phần — không thể ghi Hỏng/Mất trên bộ trống."
+                        : "Bộ chưa có thành phần — bấm «Thêm dòng vào bộ» bên dưới."}
                     </td>
                   </tr>
                 ) : null}
@@ -230,14 +236,20 @@ export default function InstrumentSetReconcileTable({
             </table>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-200 px-2.5 py-1.5">
-            <p className="text-[11px] text-slate-500">Đổi mã · tên · số lượng chuẩn chờ duyệt. Lấy/trả kho và điều chuyển ở tab Chuyển.</p>
-            <button
+            <p className="text-[11px] text-slate-500">
+              {physicalOnly
+                ? "Chỉ ghi Hỏng/Mất (giảm tồn). Đổi danh mục → tab Đề nghị; luân chuyển → /cssd-dung-cu?tab=LUAN_CHUYEN."
+                : "Đổi mã · tên · số lượng chuẩn chờ duyệt. Lấy/trả kho và điều chuyển ở /cssd-dung-cu → Luân chuyển."}
+            </p>
+            {!physicalOnly ? (
+<button
               type="button"
               className="inline-flex items-center gap-1 text-[11px] font-semibold text-[var(--primary)]"
               onClick={addLine}
             >
               <Plus size={14} /> Thêm dòng vào bộ (chờ duyệt)
             </button>
+) : null}
           </div>
         </>
       )}

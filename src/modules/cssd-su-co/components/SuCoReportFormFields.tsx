@@ -321,7 +321,7 @@ export function IncidentGroupPicker({
               <IconComp size={14} className="shrink-0 opacity-80" />
               <span className="whitespace-nowrap">
                 {g === "INSTRUMENT"
-                  ? "Biến động dụng cụ"
+                  ? "Hỏng / mất"
                   : INCIDENT_GROUP_LABEL[g].split(" (")[0]}
               </span>
             </button>
@@ -330,7 +330,11 @@ export function IncidentGroupPicker({
       </div>
       {incidentGroup === "INSTRUMENT" ? (
         <p className="px-1 text-[11px] text-slate-500">
-          Cửa Hỏng/Mất hoặc Chuyển. Sửa danh mục Loại/Bộ/Thành phần tại{" "}
+          Chỉ báo <span className="font-medium">hỏng / mất</span>. Luân chuyển kho·bộ tại{" "}
+          <Link href="/cssd-dung-cu?tab=LUAN_CHUYEN" className="font-semibold text-[var(--primary)] hover:underline">
+            Dụng cụ → Luân chuyển
+          </Link>
+          ; thêm/sửa loại·bộ tại{" "}
           <Link href="/cssd-dung-cu?tab=DE_NGHI" className="font-semibold text-[var(--primary)] hover:underline">
             Đề nghị danh mục
           </Link>

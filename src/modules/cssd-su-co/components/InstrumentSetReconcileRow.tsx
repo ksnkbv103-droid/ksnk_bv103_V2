@@ -34,6 +34,8 @@ type Props = {
   khacIndex: KhacReconcileOption[];
   onPatch: (patch: Partial<SetReconcileLineInput>) => void;
   onRemove?: () => void;
+  /** P0A: chỉ Hỏng/Mất — không xóa dòng catalog. */
+  physicalOnly?: boolean;
 };
 
 function dacDiem(opt?: LoaiReconcileOption): string {
@@ -49,6 +51,7 @@ export default function InstrumentSetReconcileRow({
   khacIndex,
   onPatch,
   onRemove,
+  physicalOnly = false,
 }: Props) {
   const loaiHit =
     lookupLoaiByMa(typedMaLoai(line), loaiOptions) ||
@@ -186,7 +189,7 @@ export default function InstrumentSetReconcileRow({
             </button>
           </p>
         ) : null}
-        {onRemove ? (
+        {onRemove && !physicalOnly ? (
           <button
             type="button"
             className="mt-0.5 text-[11px] font-medium text-slate-500"

@@ -82,6 +82,10 @@ export type SuCoReportFormProps = {
   onSubmitted?: (incidentId?: string) => void;
   onDismiss?: () => void;
   layout?: "page" | "modal";
+  /** Ẩn hàng nhóm sự cố (dùng khi nhúng trên /cssd-dung-cu). */
+  hideGroupPicker?: boolean;
+  /** Khóa cửa dụng cụ (vd. chỉ Luân chuyển) — không cho đổi Hỏng/Mất. */
+  lockInstrumentDoor?: boolean;
 };
 
 const emptyMeta = (): SuCoIncidentMetaState => ({
@@ -110,6 +114,8 @@ export default function SuCoReportForm({
   onSubmitted,
   onDismiss,
   layout = "page",
+  hideGroupPicker = false,
+  lockInstrumentDoor = false,
 }: SuCoReportFormProps) {
   const isModal = layout === "modal";
   const { userData } = usePermission();
@@ -133,6 +139,7 @@ export default function SuCoReportForm({
   const [typeTen, setTypeTen] = useState(() => {
     if (initialGroup === "INSTRUMENT") {
       const coerced = coerceInstrumentFormTypeId(initialTypeId);
+      if (coerced === INSTRUMENT_MOVE_TYPE_ID) return "Luân chuyển kho·bộ";
       return INCIDENT_TYPE_PRESETS.INSTRUMENT.find((x) => x.code === coerced)?.label || "Hỏng/Mất";
     }
     return (
@@ -189,12 +196,17 @@ export default function SuCoReportForm({
   );
   const isInstrument = incidentGroup === "INSTRUMENT";
   const isMoveDoor = isInstrument && typeId === INSTRUMENT_MOVE_TYPE_ID;
-  const isPhysicalDoor = isInstrument && typeId === INSTRUMENT_PHYSICAL_DOOR_ID;
-  const isReconcileDoor = isInstrument && !isMoveDoor;
+  const isPhysicalDoor =
+    isInstrument &&
+    (typeId === INSTRUMENT_PHYSICAL_DOOR_ID ||
+      typeId === "INSTRUMENT_BROKEN" ||
+      typeId === "INSTRUMENT_MISSING");
+  // P0A 2026-09-21: SET_RECONCILE chỉ legacy deep-link — không còn cửa form catalog trên su-co
+  const isReconcileDoor = isInstrument && typeId === SET_RECONCILE_TYPE_ID;
   const imageRequired =
     (isInstrument && isInstrumentIncidentImageRequired(typeId)) ||
     (isMoveDoor && moveUsesKho) ||
-    (isReconcileDoor && (setReconcileState?.lines.some((l) => l.kind === "HONG") ?? false));
+    (isPhysicalDoor && (setReconcileState?.lines.some((l) => l.kind === "HONG") ?? false));
   const imageHidden =
     (isMoveDoor && !moveUsesKho) ||
     (isPhysicalDoor && (setReconcileState?.lines.every((l) => l.kind !== "HONG") ?? true));
@@ -268,9 +280,15 @@ export default function SuCoReportForm({
     const defaults = groupTypeDefaults(incidentGroup);
     if (incidentGroup === "INSTRUMENT") {
       const coerced = coerceInstrumentFormTypeId(initialTypeId);
-      const preset = INCIDENT_TYPE_PRESETS.INSTRUMENT.find((x) => x.code === coerced);
-      setTypeId(preset?.code || defaults.typeId);
-      setTypeTen(preset?.label || defaults.typeTen);
+      // B: MOVE không còn trong preset su-co; tab Luân chuyển khóa cửa nên giữ MOVE.
+      if (lockInstrumentDoor && coerced === INSTRUMENT_MOVE_TYPE_ID) {
+        setTypeId(INSTRUMENT_MOVE_TYPE_ID);
+        setTypeTen("Luân chuyển kho·bộ");
+      } else {
+        const preset = INCIDENT_TYPE_PRESETS.INSTRUMENT.find((x) => x.code === coerced);
+        setTypeId(preset?.code || defaults.typeId);
+        setTypeTen(preset?.label || defaults.typeTen);
+      }
     } else {
       const presetMatch = INCIDENT_TYPE_PRESETS[incidentGroup].find((x) => x.code === initialTypeId);
       if (presetMatch) {
@@ -291,7 +309,7 @@ export default function SuCoReportForm({
       setMaQR("");
     }
     if (incidentGroup !== "PROCESS") setCyclePerformers([]);
-  }, [incidentGroup, detectionStation, initialTypeId, initialMaQR]);
+  }, [incidentGroup, detectionStation, initialTypeId, initialMaQR, lockInstrumentDoor]);
 
   const applyFaultTraceResult = useCallback(
     (
@@ -611,6 +629,13 @@ export default function SuCoReportForm({
               <span className="text-[12px] font-semibold text-amber-900">An toàn QT · Thu hồi theo mẻ</span>
               <span className="text-[11px] text-slate-500">(không mở 3 cửa biến động dụng cụ)</span>
             </div>
+          ) : hideGroupPicker ? (
+            <div className="flex flex-wrap items-center gap-2 border-b border-emerald-200 pb-2" data-testid="dung-cu-luan-chuyen-lock">
+              <span className="text-[12px] font-semibold text-emerald-900">Luân chuyển kho · bộ</span>
+              <span className="text-[11px] text-slate-500">
+                (trên Dụng cụ — Hỏng/Mất ở Sự cố)
+              </span>
+            </div>
           ) : (
             <IncidentGroupPicker incidentGroup={incidentGroup} onSelect={setIncidentGroup} />
           )}
@@ -628,7 +653,7 @@ export default function SuCoReportForm({
             {renderStationOverride}
           </div>
 
-          {incidentGroup === "INSTRUMENT" ? (
+          {incidentGroup === "INSTRUMENT" && !lockInstrumentDoor ? (
             <InstrumentDoorTabs
               typeId={typeId}
               options={activeGroupOptions}
@@ -686,12 +711,13 @@ export default function SuCoReportForm({
             </div>
           ) : null}
 
-          {isReconcileDoor ? (
+          {isPhysicalDoor ? (
             <InstrumentSetReconcileTable
               maQR={maQR}
               enabled={enabled}
               station={detectionStation}
               initialChiTietId={initialChiTietId}
+              physicalOnly
               initialKindHint={
                 initialTypeId === "INSTRUMENT_BROKEN"
                   ? "HONG"
@@ -715,6 +741,20 @@ export default function SuCoReportForm({
               }
               onChange={setSetReconcileState}
             />
+          ) : null}
+
+          {isReconcileDoor ? (
+            <div className="rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2.5 text-[12px] text-amber-950">
+              <p className="font-semibold">Cửa khớp BOM (SET_RECONCILE) đã sunset (P0A 2026-09-21)</p>
+              <p className="mt-1 text-amber-900/90">
+                Đổi mã / tên / số lượng chuẩn: dùng{" "}
+                <a className="font-semibold underline" href="/cssd-dung-cu?tab=DE_NGHI">
+                  /cssd-dung-cu?tab=DE_NGHI
+                </a>
+                . Hỏng/Mất: chọn loại «Hỏng/Mất» trên form này. Phiếu cũ còn treo: Quản trị → Rà soát (khối
+                Legacy).
+              </p>
+            </div>
           ) : null}
 
           {isMoveDoor ? (

@@ -67,6 +67,10 @@ export async function getGiamSatChungHistoryPaginated(params: {
       "ma_khoa_phong",
       "ten_khoa_phong",
       "ten_nhan_vien",
+      "ten_manual_nhan_vien",
+      "ten_nguoi_benh",
+      "ma_benh_an",
+      "ma_nguoi_benh",
       "loai_bang_kiem",
       "ten_bang_kiem_hien_thi",
     ]);

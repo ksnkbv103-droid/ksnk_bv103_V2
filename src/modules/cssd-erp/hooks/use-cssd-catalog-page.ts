@@ -8,6 +8,7 @@ import {
   getBosContainingLoaiAction,
   searchKhoCatalogChiTietAction,
   searchKhoCatalogLoaiAction,
+  type KhoLoaiStockFilter,
 } from "../actions/cssd-catalog-search.actions";
 import type { Catalog, CSSDBo, CSSDChiTiet, CSSDLoai } from "../types/catalog.types";
 import { normalizeCssdCode } from "../shared/domain/cssd-qr-core";
@@ -18,7 +19,7 @@ export function useCssdCatalogPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTabState] = useState<CatalogTab>(() => {
     const t = String(searchParams.get("tab") || "").toUpperCase();
-    if (t === "DE_NGHI" || t === "LOAI" || t === "HISTORY" || t === "BO") return t as CatalogTab;
+    if (t === "DE_NGHI" || t === "LOAI" || t === "HISTORY" || t === "BO" || t === "LUAN_CHUYEN" || t === "KIEM_KE") return t as CatalogTab;
     return "BO";
   });
   const setTab = useCallback((next: CatalogTab) => {
@@ -26,6 +27,11 @@ export function useCssdCatalogPage() {
   }, []);
   const [catalog, setCatalog] = useState<Catalog>({ bo: [], chi_tiet: [], loai: [], hoa_chat: [] });
   const [q, setQ] = useState("");
+  const [loaiPage, setLoaiPage] = useState(1);
+  const [loaiTotalCount, setLoaiTotalCount] = useState(0);
+  const [loaiPageSize, setLoaiPageSize] = useState(20);
+  const [loaiStockFilter, setLoaiStockFilter] = useState<KhoLoaiStockFilter>("ALL");
+  const [loaiLoading, setLoaiLoading] = useState(false);
   const [selectedBoId, setSelectedBoId] = useState<string | null>(null);
   const [selectedChiTietId, setSelectedChiTietId] = useState<string | null>(null);
   const [selectedLoaiId, setSelectedLoaiId] = useState<string | null>(null);
@@ -48,13 +54,26 @@ export function useCssdCatalogPage() {
   }, [reload]);
 
   useEffect(() => {
+    setLoaiPage(1);
+  }, [q, loaiStockFilter]);
+
+  useEffect(() => {
     if (tab !== "LOAI") return;
     const t = window.setTimeout(async () => {
-      const res = await searchKhoCatalogLoaiAction(q);
-      if (res.success) setCatalog((c) => ({ ...c, loai: res.data }));
+      setLoaiLoading(true);
+      const res = await searchKhoCatalogLoaiAction(q, {
+        page: loaiPage,
+        stockFilter: loaiStockFilter,
+      });
+      if (res.success) {
+        setCatalog((c) => ({ ...c, loai: res.data }));
+        setLoaiTotalCount(res.totalCount);
+        setLoaiPageSize(res.pageSize);
+      }
+      setLoaiLoading(false);
     }, 300);
     return () => window.clearTimeout(t);
-  }, [tab, q]);
+  }, [tab, q, loaiPage, loaiStockFilter]);
 
   useEffect(() => {
     if (!selectedLoaiId) {
@@ -97,7 +116,7 @@ export function useCssdCatalogPage() {
         toast.success(`Đã tìm thấy trong bộ: ${foundBo.ten_bo}`);
         return;
       }
-      toast.message("Mã này không gắn bộ đang hoạt động — mở tab Loại để xem tồn.");
+      toast.message("Mã này không gắn bộ đang hoạt động — mở tab Kho dự phòng để xem tồn.");
       return;
     }
 
@@ -139,6 +158,8 @@ export function useCssdCatalogPage() {
   const selectedChiTiet = selectedChiTietId ? catalog.chi_tiet.find((x) => x.id === selectedChiTietId) || null : null;
   const selectedLoai = selectedLoaiId ? catalog.loai.find((x) => x.id === selectedLoaiId) || null : null;
 
+  const loaiTotalPages = Math.max(1, Math.ceil(loaiTotalCount / Math.max(loaiPageSize, 1)));
+
   return {
     loading,
     tab,
@@ -164,5 +185,13 @@ export function useCssdCatalogPage() {
     boBySelectedLoai,
     boBySelectedChiTietLoai: boBySelectedLoai,
     handleScan,
+    loaiPage,
+    setLoaiPage,
+    loaiTotalCount,
+    loaiTotalPages,
+    loaiPageSize,
+    loaiStockFilter,
+    setLoaiStockFilter,
+    loaiLoading,
   };
 }

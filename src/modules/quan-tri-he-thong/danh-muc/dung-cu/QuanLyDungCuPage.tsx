@@ -56,14 +56,16 @@ export default function QuanLyDungCuPage() {
   const { loading: permLoading, isAdmin, allowed: loaiAllowed } = useModulePermission("LOAI_DC");
   const { allowed: boAllowed } = useModulePermission("BO_DC");
   const { allowed: leAllowed } = useModulePermission("DC_LE");
+  // P0A 2026-09-21: duyệt đề nghị = ADMIN hoặc DC_LE/BO_DC edit (không chỉ isAdmin)
+  const canReviewPhieu = Boolean(isAdmin || leAllowed.edit || boAllowed.edit);
 
   useEffect(() => {
     if (permLoading) return;
-    if (!isAdmin && layer === "phieu") {
+    if (!canReviewPhieu && layer === "phieu") {
       setLayer("bo");
       router.replace(quanTriDungCuHref("bo"), { scroll: false });
     }
-  }, [permLoading, isAdmin, layer, router]);
+  }, [permLoading, canReviewPhieu, layer, router]);
 
   if (permLoading) {
     return (
@@ -89,7 +91,7 @@ export default function QuanLyDungCuPage() {
         title="Quản lý dụng cụ"
         tabs={
           <div className={`${C.navTabStrip} w-full max-sm:rounded-xl sm:w-fit`} role="tablist" aria-label="Quản lý dụng cụ">
-            {(isAdmin ? LAYERS : LAYERS.filter((t) => t.id !== "phieu")).map((t) => (
+            {(canReviewPhieu ? LAYERS : LAYERS.filter((t) => t.id !== "phieu")).map((t) => (
               <button
                 key={t.id}
                 type="button"
@@ -112,14 +114,15 @@ export default function QuanLyDungCuPage() {
         }
       />
 
-      {isAdmin ? (
+      {canReviewPhieu ? (
         <p className="text-[11px] text-slate-500">
-          Duyệt đổi danh mục tại tab <span className="font-semibold text-slate-700">Rà soát</span>
-          {" "}(phiếu chờ). Điều chuyển / lấy kho / trả kho ở sự cố CSSD — cửa <span className="font-semibold text-slate-700">Chuyển</span>.
+          Duyệt đề nghị danh mục tại tab <span className="font-semibold text-slate-700">Rà soát</span>.
+          Luân chuyển kho↔bộ tại <span className="font-semibold text-slate-700">/cssd-dung-cu?tab=LUAN_CHUYEN</span>.
+          Hỏng/Mất tại <span className="font-semibold text-slate-700">/cssd-su-co</span>.
         </p>
       ) : (
         <p className="text-[11px] text-slate-500">
-          Chỉ quản trị sửa danh mục. Nhân viên lập đề nghị tại /cssd-dung-cu → tab Đề nghị danh mục; admin duyệt tại đây.
+          Chỉ quản trị sửa danh mục trực tiếp. Nhân viên lập đề nghị tại /cssd-dung-cu → tab Đề nghị danh mục; duyệt tại Rà soát.
         </p>
       )}
 
@@ -131,15 +134,29 @@ export default function QuanLyDungCuPage() {
             <BoDungCuPageContent />
           </DmTabGuard>
         )
-      ) : layer === "phieu" && isAdmin ? (
+      ) : layer === "phieu" && canReviewPhieu ? (
         <div className="space-y-4">
           <CatalogDeNghiApproveQueue />
-          <SetReconcileApproveQueue />
+          <div className="rounded-xl border border-amber-200/80 bg-amber-50/50 p-3 space-y-2">
+            <p className="text-[11px] font-semibold text-amber-950">
+              Legacy — khớp BOM / SET_RECONCILE (chỉ phiếu cũ)
+            </p>
+            <p className="text-[11px] text-amber-900/80">
+              Đổi danh mục mới dùng Đề nghị danh mục (khối phía trên). Khối này giữ để xử lý phiếu
+              SET_RECONCILE còn treo trước P0A (2026-09-21).
+            </p>
+            <SetReconcileApproveQueue />
+          </div>
         </div>
       ) : layer === "phieu" ? (
-        <p className="px-1 py-6 text-center text-[11px] text-slate-500">Chỉ quản trị duyệt phiếu rà soát danh mục.</p>
+        <p className="px-1 py-6 text-center text-[11px] text-slate-500">Cần quyền duyệt (ADMIN hoặc sửa DC_LE / BO_DC).</p>
       ) : (
-        <SetReconcileHistoryList />
+        <div className="space-y-2">
+          <p className="text-[11px] text-slate-500">
+            Lịch sử khớp BOM (legacy SET_RECONCILE). Lịch sử đề nghị danh mục: /cssd-dung-cu?tab=DE_NGHI.
+          </p>
+          <SetReconcileHistoryList />
+        </div>
       )}
 
       {loaiSheet && isAdmin ? (

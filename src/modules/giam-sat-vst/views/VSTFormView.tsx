@@ -1,7 +1,7 @@
 // src/modules/giam-sat-vst/views/VSTFormView.tsx
 "use client";
 
-import { gscFormChrome as UI } from "@/modules/giam-sat-chung/lib/gsc-form-chrome";
+import { vstFormChrome as UI } from "@/modules/giam-sat-vst/lib/vst-form-chrome";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";

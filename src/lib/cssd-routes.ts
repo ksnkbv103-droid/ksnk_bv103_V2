@@ -50,6 +50,23 @@ export function cssdCatalogEditProposalHref(params: {
   return `${CSSD_ROUTES.dungCu}?${q.toString()}`;
 }
 
+/** Luân chuyển kho↔bộ / bộ↔bộ — trên Dụng cụ (không phải sự cố). */
+export function cssdLuanChuyenHref(params?: {
+  ma?: string | null;
+  loai?: string | null;
+  chiTiet?: string | null;
+}): string {
+  const q = new URLSearchParams();
+  q.set("tab", "LUAN_CHUYEN");
+  const ma = String(params?.ma || "").trim();
+  if (ma) q.set("ma", ma);
+  const loai = String(params?.loai || "").trim();
+  if (loai) q.set("loai", loai);
+  const chiTiet = String(params?.chiTiet || "").trim();
+  if (chiTiet) q.set("chiTiet", chiTiet);
+  return `${CSSD_ROUTES.dungCu}?${q.toString()}`;
+}
+
 export function cssdSuCoInstrumentHref(params?: {
   type?:
     | "INSTRUMENT_SET_RECONCILE"
@@ -64,13 +81,24 @@ export function cssdSuCoInstrumentHref(params?: {
   chiTiet?: string | null;
 }): string {
   const rawType = String(params?.type || "").trim();
-  // A 2026-09-18: «Đổi danh mục» không còn cửa sự cố → đề nghị catalog.
+  // B 2026-09-18: «Đổi danh mục» → đề nghị; MOVE/TRANSFER/REPLENISH → Luân chuyển trên Dụng cụ.
   if (rawType === "INSTRUMENT_SET_RECONCILE") {
     return cssdCatalogEditProposalHref({
       kind: "BOM",
       ma: params?.ma,
       loai: params?.loai,
       hint: params?.chiTiet,
+    });
+  }
+  if (
+    rawType === "INSTRUMENT_MOVE" ||
+    rawType === "INSTRUMENT_TRANSFER" ||
+    rawType === "INSTRUMENT_REPLENISH"
+  ) {
+    return cssdLuanChuyenHref({
+      ma: params?.ma,
+      loai: params?.loai,
+      chiTiet: params?.chiTiet,
     });
   }
   const q = new URLSearchParams();

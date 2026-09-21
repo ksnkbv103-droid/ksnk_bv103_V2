@@ -16,8 +16,10 @@ import {
   suggestCssdStationFromMaster,
 } from "@/lib/master-data/cssd-loai-dung-cu-map";
 import { loaiListSortColumn, mapLoaiPhysicalToListRow, mergeLoaiListTrongBo } from "@/lib/master-data/cssd-loai-list-map";
+import { sumTrongBoByLoaiIds } from "@/lib/master-data/cssd-loai-trong-bo";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import type { FactListPaginationInput } from "@/lib/validations/fact-list-pagination";
+import { formatMaLoaiTrungMessage } from "@/lib/domain/cssd-catalog-de-nghi";
 import {
   softDeleteManyMasterRows,
   softDeleteMasterRow,
@@ -51,21 +53,13 @@ export async function getLoaiDungCuRowsAction(params?: Partial<FactListPaginatio
   if (error) return { success: false as const, error: error.message, data: [], totalCount: 0 };
   const mapped = (data || []).map((r) => mapLoaiPhysicalToListRow(r as Record<string, unknown>));
   const ids = mapped.map((r) => r.id).filter(Boolean);
-  const trongBoByLoaiId = new Map<string, number>();
+  let trongBoByLoaiId = new Map<string, number>();
   if (ids.length) {
-    const { data: setRows, error: setErr } = await supabase
-      .from("v_cssd_bo_dung_cu_chi_tiet_realtime")
-      .select("loai_dung_cu_id, so_luong_thuc_te")
-      .in("loai_dung_cu_id", ids)
-      .eq("is_active", true);
-    if (setErr) return { success: false as const, error: setErr.message, data: [], totalCount: 0 };
-    for (const row of setRows || []) {
-      const id = String((row as { loai_dung_cu_id?: string }).loai_dung_cu_id || "");
-      if (!id) continue;
-      trongBoByLoaiId.set(
-        id,
-        (trongBoByLoaiId.get(id) || 0) + Number((row as { so_luong_thuc_te?: number }).so_luong_thuc_te || 0),
-      );
+    try {
+      trongBoByLoaiId = await sumTrongBoByLoaiIds(supabase, ids);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return { success: false as const, error: msg, data: [], totalCount: 0 };
     }
   }
   return {
@@ -144,6 +138,22 @@ export async function saveLoaiDungCuAction(input: LoaiDungCuPayload) {
   const ten = String(payload.ten_loai || "");
   if (!ma || !ten) {
     return { success: false, error: "Thiếu mã hoặc tên loại dụng cụ." };
+  }
+  {
+    const supabaseDup = createAdminSupabaseClient();
+    let dupQ = supabaseDup
+      .from("cssd_dm_loai_dung_cu")
+      .select("id, ten_loai")
+      .eq("ma_loai", ma)
+      .limit(1);
+    if (id) dupQ = dupQ.neq("id", id);
+    const { data: dupRow } = await dupQ.maybeSingle();
+    if (dupRow?.id) {
+      return {
+        success: false,
+        error: formatMaLoaiTrungMessage(ma, (dupRow as { ten_loai?: string }).ten_loai),
+      };
+    }
   }
   const suggestion = suggestCssdStationFromMaster({
     spaulding: payload.phan_loai_spaulding,

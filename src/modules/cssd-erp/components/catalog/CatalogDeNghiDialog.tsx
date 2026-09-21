@@ -19,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { CatalogDeNghiPhieuDialog } from "./CatalogDeNghiPhieuPreview";
 import { useCatalogDeNghiCart } from "./CatalogDeNghiCart";
 
 export type CatalogDeNghiDialogTarget = {
@@ -74,6 +75,8 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
   const [targetTen, setTargetTen] = useState("");
   const [before, setBefore] = useState<Record<string, unknown>>({});
   const [note, setNote] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewItem, setPreviewItem] = useState<CssdCatalogDeNghiItem | null>(null);
   const [saving, setSaving] = useState(false);
 
   // LOAI
@@ -297,8 +300,15 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
     };
   };
 
-  const onSubmitSingle = async () => {
+  const onSubmitSingle = () => {
     const item = buildItem();
+    if (!item) return;
+    setPreviewItem(item);
+    setPreviewOpen(true);
+  };
+
+  const confirmSendSingle = async () => {
+    const item = previewItem || buildItem();
     if (!item) return;
     setSaving(true);
     const res = await createCatalogDeNghiAction({
@@ -316,6 +326,8 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
       return;
     }
     toast.success("Đã gửi đề nghị — chờ admin duyệt.");
+    setPreviewOpen(false);
+    setPreviewItem(null);
     onOpenChange(false);
     onSubmitted?.();
   };
@@ -328,11 +340,16 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[min(92dvh,860px)] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Đề nghị sửa — {CSSD_CATALOG_DE_NGHI_KIND_LABEL[kind]}</DialogTitle>
         </DialogHeader>
+        <p className="text-[12px] text-slate-600">
+          Chỉ sửa thuộc tính loại/bộ (hoặc BOM gắn loại đã có). Không dùng để điều chuyển số lượng —
+          dùng tab Luân chuyển. Master chỉ đổi sau khi admin xem phiếu và duyệt.
+        </p>
         <p className="text-[12px] text-slate-600">
           Sửa đủ trường rồi gửi phiếu riêng, hoặc thêm vào phiếu lô để gửi nhiều mục một lần. Master chỉ
           đổi sau khi admin duyệt.
@@ -522,11 +539,25 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
           <button type="button" disabled={saving || loadingPrefill} onClick={onAddToBatch} className="rounded-lg border border-violet-300 bg-violet-50 px-3 py-1.5 text-[12px] font-semibold text-violet-900 disabled:opacity-50">
             Thêm vào phiếu lô
           </button>
-          <button type="button" disabled={saving || loadingPrefill} onClick={() => void onSubmitSingle()} className="rounded-lg bg-[var(--primary)] px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-50">
-            {saving ? "Đang gửi…" : "Gửi đề nghị riêng"}
+          <button type="button" disabled={saving || loadingPrefill} onClick={() => onSubmitSingle()} className="rounded-lg bg-[var(--primary)] px-3 py-1.5 text-[12px] font-semibold text-white disabled:opacity-50">
+            Xem trước & gửi
           </button>
         </div>
       </DialogContent>
     </Dialog>
+    <CatalogDeNghiPhieuDialog
+      open={previewOpen}
+      onOpenChange={(v) => {
+        setPreviewOpen(v);
+        if (!v) setPreviewItem(null);
+      }}
+      title="Xem trước phiếu đề nghị sửa"
+      items={previewItem ? [previewItem] : []}
+      note={note}
+      mode="send"
+      busy={saving}
+      onConfirmSend={() => void confirmSendSingle()}
+    />
+    </>
   );
 }
