@@ -5,9 +5,12 @@ import React from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { resolveSortedChecklistOverview } from "@/lib/analytics/gsc-checklist-intervention";
+import { pickVeSinhTayChecklistRates, VE_SINH_TAY_WHO } from "@/lib/domain/ve-sinh-tay-catalog";
+import { buildGscAnalyticsDeepLink } from "@/lib/analytics/supervision-deep-link";
 import type { BaoCaoChuyenDe, BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 import { buildAnalyticsDeepLink } from "../../lib/bao-cao-tong-hop-core";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
+import { complianceToneFromPercent } from "../../lib/bao-cao-tong-hop-thresholds";
 
 type Props = {
   payload: BaoCaoTongHopPayload | null;
@@ -58,12 +61,7 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
       </div>
 
       {(chuyenDe === "ALL" || chuyenDe === "VST") && (
-        <TopicSummary
-          title="Vệ sinh tay"
-          available={payload?.capabilities.topic_vst}
-          deepHref={deep ? buildAnalyticsDeepLink("/thong-ke/vst", deep) : "/thong-ke/vst"}
-          lines={buildVstLines(payload)}
-        />
+        <VeSinhTayTripleMetrics payload={payload} deep={deep} />
       )}
 
       {(chuyenDe === "ALL" || chuyenDe === "GSC") && (
@@ -86,6 +84,91 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
         />
       )}
     </section>
+  );
+}
+
+/** Ba chỉ số cạnh nhau — WHO · BM.02 · BM.03; không average. */
+function VeSinhTayTripleMetrics({
+  payload,
+  deep,
+}: {
+  payload: BaoCaoTongHopPayload | null;
+  deep: { tu_ngay: string; den_ngay: string; khoa_ids?: string[] } | null;
+}) {
+  const vstK = payload?.vst?.kpis;
+  const whoRate = vstK?.ty_le_tuan_thu ?? null;
+  const whoVol =
+    vstK != null ? `${vstK.da_tuan_thu}/${vstK.tong_co_hoi} cơ hội` : null;
+  const checklistRows =
+    payload?.gsc?.checklist_overview ?? payload?.gsc?.dynamic_checklists ?? [];
+  const bkRates = pickVeSinhTayChecklistRates(checklistRows);
+
+  const whoHref = deep ? buildAnalyticsDeepLink("/thong-ke/vst", deep) : "/thong-ke/vst";
+  const cards = [
+    {
+      key: "who",
+      label: VE_SINH_TAY_WHO.label,
+      code: "QT.07 BM.01 · WHO",
+      rate: whoRate,
+      volume: whoVol,
+      href: whoHref,
+      available: Boolean(payload?.capabilities.topic_vst && vstK),
+      format: "vst" as const,
+    },
+    ...bkRates.map((r) => ({
+      key: r.ma_bk,
+      label: r.label,
+      code: r.ma_bk,
+      rate: r.ty_le_tuan_thu,
+      volume: r.found ? `${r.tong_dat}/${r.tong_quan_sat} quan sát` : "Chưa có phiên trong kỳ",
+      href: deep ? buildGscAnalyticsDeepLink(deep, r.ma_bk) : `/thong-ke/gsc?bk=${r.ma_bk}`,
+      available: Boolean(payload?.capabilities.topic_gsc),
+      format: "gsc" as const,
+    })),
+  ];
+
+  return (
+    <div className="mb-5 border-b border-slate-100 pb-5 last:mb-0 last:border-0 last:pb-0">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div>
+          <h3 className="bv103-type-section text-slate-700">Vệ sinh tay</h3>
+          <p className="mt-0.5 text-[11px] text-slate-500">
+            Ba khối cạnh nhau · cùng kỳ/khoa/lens — không gộp thành một %.
+          </p>
+        </div>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {cards.map((c) => {
+          const pct = c.rate;
+          const tone = complianceToneFromPercent(pct);
+          const value =
+            !c.available || pct == null
+              ? "N/A"
+              : c.format === "vst"
+                ? formatPercent1(pct)
+                : formatPercent2(pct);
+          return (
+            <div
+              key={c.key}
+              className={`rounded-xl border border-slate-200 bg-white px-3 py-3 ${D.trafficText[tone]}`}
+            >
+              <p className="bv103-type-label font-semibold text-slate-700">{c.label}</p>
+              <p className="mt-0.5 font-mono text-[10px] text-slate-400">{c.code}</p>
+              <p className={`mt-2 ${D.kpiValue}`}>{value}</p>
+              {c.volume ? (
+                <p className="mt-1 bv103-type-label tabular-nums opacity-80">{c.volume}</p>
+              ) : null}
+              <Link
+                href={c.href}
+                className="mt-2 inline-flex items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline"
+              >
+                Chi tiết <ExternalLink size={10} aria-hidden />
+              </Link>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -119,18 +202,6 @@ function TopicSummary({
       )}
     </div>
   );
-}
-
-function buildVstLines(payload: BaoCaoTongHopPayload | null): string[] {
-  const k = payload?.vst?.kpis;
-  if (!k) return [];
-  const lines = [
-    `Tuân thủ: ${formatPercent1(k.ty_le_tuan_thu)} (${k.da_tuan_thu}/${k.tong_co_hoi} cơ hội)`,
-    `Đúng kỹ thuật: ${k.ty_le_dung_ky_thuat}% · Lạm dụng găng: ${k.ty_le_lam_dung_gang}%`,
-  ];
-  const worstMoment = [...(payload?.vst?.moments ?? [])].sort((a, b) => a.ty_le_tuan_thu - b.ty_le_tuan_thu)[0];
-  if (worstMoment) lines.push(`Thời điểm thấp nhất: ${worstMoment.ten} (${formatPercent1(worstMoment.ty_le_tuan_thu)})`);
-  return lines;
 }
 
 function buildGscLines(payload: BaoCaoTongHopPayload | null): string[] {

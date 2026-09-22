@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Activity, ClipboardList, Stethoscope, ChevronRight } from "lucide-react";
+import { Activity, ClipboardList, Droplets, Stethoscope, ChevronRight } from "lucide-react";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { usePermission } from "@/hooks/usePermission";
@@ -13,7 +13,14 @@ import {
   NAV_GATE_VST,
   canSeeNavGate,
 } from "@/lib/nav/ksnk-nav-gates";
-import { pickSoleWriteHrefForMode } from "@/lib/nav/giam-sat-write-dest";
+import {
+  listVisibleGiamSatWriteDests,
+  pickSoleWriteHrefForMode,
+} from "@/lib/nav/giam-sat-write-dest";
+import {
+  VE_SINH_TAY_BK_MAP,
+  VE_SINH_TAY_WHO,
+} from "@/lib/domain/ve-sinh-tay-catalog";
 
 type HubLink = {
   href: string;
@@ -87,29 +94,38 @@ export default function GiamSatHubPage() {
   const seeGsc = !loading && canSeeNavGate(isAdmin, canView, NAV_GATE_GSC);
   const seeNkbv = !loading && canSeeNavGate(isAdmin, canView, NAV_GATE_NKBV);
 
-  /** P0 giản hóa: 2 CTA chính VST · GSC; NKBV tách «Khác». */
-  const primaryWrites: HubLink[] = useMemo(
-    () => [
+  /** Khối chuyên đề Vệ sinh tay — 3 mẫu (WHO + BM.02 + BM.03), không gộp form. */
+  const veSinhTayLinks: HubLink[] = useMemo(() => {
+    const links: HubLink[] = [
       {
-        href: "/giam-sat-vst",
-        label: "Vệ sinh tay",
-        hint: "Nhập phiên WHO",
-        icon: Stethoscope,
+        href: VE_SINH_TAY_WHO.formHref,
+        label: VE_SINH_TAY_WHO.label,
+        hint: "Form WHO · QT.07 BM.01",
+        icon: Droplets,
         visible: seeVst,
       },
-      {
-        href: "/giam-sat-chung/tuan-thu",
-        label: "Giám sát tuân thủ",
-        hint: "Nhập bảng kiểm",
-        icon: ClipboardList,
+    ];
+    for (const m of VE_SINH_TAY_BK_MAP) {
+      links.push({
+        href: m.formHref,
+        label: m.label,
+        hint: `${m.ma_qt} → ${m.ma_bk}`,
+        icon: m.slot === "BM03_NGOAI_KHOA" ? Stethoscope : ClipboardList,
         visible: seeGsc,
-      },
-    ],
-    [seeVst, seeGsc],
-  );
+      });
+    }
+    return links;
+  }, [seeVst, seeGsc]);
 
   const otherWrites: HubLink[] = useMemo(
     () => [
+      {
+        href: "/giam-sat-chung/tuan-thu",
+        label: "Giám sát tuân thủ khác",
+        hint: "Bảng kiểm chuyên đề (PTPH, môi trường, …)",
+        icon: ClipboardList,
+        visible: seeGsc,
+      },
       {
         href: "/giam-sat-nkbv",
         label: "NKBV (nhiễm khuẩn bệnh viện)",
@@ -118,7 +134,7 @@ export default function GiamSatHubPage() {
         visible: seeNkbv,
       },
     ],
-    [seeNkbv],
+    [seeGsc, seeNkbv],
   );
 
   const quietLinks = useMemo(() => {
@@ -127,28 +143,36 @@ export default function GiamSatHubPage() {
       { href: "/thong-ke/vst", label: "Thống kê VST", show: seeVst },
       { href: "/lich-su/gsc", label: "Lịch sử GSC", show: seeGsc },
       { href: "/thong-ke/gsc", label: "Thống kê GSC", show: seeGsc },
+      {
+        href: "/bao-cao-tong-hop",
+        label: "BCTH · Vệ sinh tay (3 chỉ số)",
+        show: seeVst || seeGsc,
+      },
       { href: "/qr", label: "Quét QR", show: seeVst || seeGsc || seeNkbv },
       { href: "/giam-sat-nkbv?tab=cases", label: "Danh sách NKBV", show: seeNkbv },
     ];
     return out.filter((l) => l.show);
   }, [seeVst, seeGsc, seeNkbv]);
 
-  const visiblePrimary = primaryWrites.filter((l) => l.visible);
+  const visibleVeSinhTay = veSinhTayLinks.filter((l) => l.visible);
   const visibleOther = otherWrites.filter((l) => l.visible);
-  const hasAny = visiblePrimary.length > 0 || visibleOther.length > 0 || quietLinks.length > 0;
-  const soleWrite = visiblePrimary.length === 1 && visibleOther.length === 0;
-  const visibleWriteHrefs = useMemo(
-    () => [...visiblePrimary, ...visibleOther].map((l) => l.href),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- href list from permission flags
-    [seeVst, seeGsc, seeNkbv],
+  const hasAny = visibleVeSinhTay.length > 0 || visibleOther.length > 0 || quietLinks.length > 0;
+  const soleVeSinhTay = visibleVeSinhTay.length === 1 && visibleOther.length === 0;
+
+  const writeDests = useMemo(
+    () => listVisibleGiamSatWriteDests(isAdmin, canView),
+    [isAdmin, canView],
   );
   const modeParam = searchParams.get("mode");
 
   useEffect(() => {
     if (loading) return;
-    const target = pickSoleWriteHrefForMode(modeParam, visibleWriteHrefs);
+    const target = pickSoleWriteHrefForMode(
+      modeParam,
+      writeDests.map((d) => d.href),
+    );
     if (target) router.replace(target);
-  }, [loading, router, modeParam, visibleWriteHrefs]);
+  }, [loading, router, modeParam, writeDests]);
 
   return (
     <div className={`${T.pageOuter} space-y-[var(--bv103-space-3)]`}>
@@ -158,13 +182,19 @@ export default function GiamSatHubPage() {
         </p>
       ) : null}
 
-      {visiblePrimary.length > 0 ? (
+      {visibleVeSinhTay.length > 0 ? (
         <section className="space-y-2">
-          <h2 className="bv103-type-label">Nhập giám sát</h2>
-          <p className="text-[11px] text-slate-500">Chọn một loại — VST hoặc bảng kiểm tuân thủ.</p>
-          <div className={`grid gap-2 ${soleWrite ? "max-w-xl" : "sm:grid-cols-2"}`}>
-            {visiblePrimary.map((link) => (
-              <WriteCta key={link.href} link={link} emphasize={soleWrite} />
+          <h2 className="bv103-type-label">Vệ sinh tay</h2>
+          <p className="text-[11px] text-slate-500">
+            Ba mẫu riêng — WHO 5 thời điểm · kỹ thuật TQ · ngoại khoa. Không gộp thành một %.
+          </p>
+          <div
+            className={`grid gap-2 ${
+              soleVeSinhTay ? "max-w-xl" : "sm:grid-cols-2 lg:grid-cols-3"
+            }`}
+          >
+            {visibleVeSinhTay.map((link) => (
+              <WriteCta key={link.href} link={link} emphasize={soleVeSinhTay} />
             ))}
           </div>
         </section>
