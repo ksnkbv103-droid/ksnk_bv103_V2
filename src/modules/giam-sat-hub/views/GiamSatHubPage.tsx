@@ -3,9 +3,10 @@
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Activity, ClipboardList, Stethoscope, ChevronRight } from "lucide-react";
+import { Activity, ClipboardList, Hand, Stethoscope, ChevronRight } from "lucide-react";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
+import { VE_SINH_TAY_ENTRIES } from "@/lib/domain/ve-sinh-tay-catalog";
 import { usePermission } from "@/hooks/usePermission";
 import {
   NAV_GATE_GSC,
@@ -87,25 +88,31 @@ export default function GiamSatHubPage() {
   const seeGsc = !loading && canSeeNavGate(isAdmin, canView, NAV_GATE_GSC);
   const seeNkbv = !loading && canSeeNavGate(isAdmin, canView, NAV_GATE_NKBV);
 
-  /** P0 giản hóa: 2 CTA chính VST · GSC; NKBV tách «Khác». */
+  /** Khối Vệ sinh tay = 3 mẫu riêng (WHO + BM.07.02 + BM.07.03). */
+  const veSinhTayLinks: HubLink[] = useMemo(
+    () =>
+      VE_SINH_TAY_ENTRIES.map((e) => ({
+        href: e.href,
+        label: e.label,
+        hint: e.hint,
+        icon: e.kind === "who" ? Hand : Stethoscope,
+        visible: e.kind === "who" ? seeVst : seeGsc,
+      })),
+    [seeVst, seeGsc],
+  );
+
+  /** GSC chung — chuyên đề khác (PPE, bundle, …); không thay khối Vệ sinh tay. */
   const primaryWrites: HubLink[] = useMemo(
     () => [
       {
-        href: "/giam-sat-vst",
-        label: "Vệ sinh tay",
-        hint: "Nhập phiên WHO",
-        icon: Stethoscope,
-        visible: seeVst,
-      },
-      {
         href: "/giam-sat-chung/tuan-thu",
         label: "Giám sát tuân thủ",
-        hint: "Nhập bảng kiểm",
+        hint: "Bảng kiểm chuyên đề khác",
         icon: ClipboardList,
         visible: seeGsc,
       },
     ],
-    [seeVst, seeGsc],
+    [seeGsc],
   );
 
   const otherWrites: HubLink[] = useMemo(
@@ -133,15 +140,23 @@ export default function GiamSatHubPage() {
     return out.filter((l) => l.show);
   }, [seeVst, seeGsc, seeNkbv]);
 
+  const visibleVeSinhTay = veSinhTayLinks.filter((l) => l.visible);
   const visiblePrimary = primaryWrites.filter((l) => l.visible);
   const visibleOther = otherWrites.filter((l) => l.visible);
-  const hasAny = visiblePrimary.length > 0 || visibleOther.length > 0 || quietLinks.length > 0;
-  const soleWrite = visiblePrimary.length === 1 && visibleOther.length === 0;
-  const visibleWriteHrefs = useMemo(
-    () => [...visiblePrimary, ...visibleOther].map((l) => l.href),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- href list from permission flags
-    [seeVst, seeGsc, seeNkbv],
-  );
+  const hasAny =
+    visibleVeSinhTay.length > 0 ||
+    visiblePrimary.length > 0 ||
+    visibleOther.length > 0 ||
+    quietLinks.length > 0;
+
+  /** Sole-write: chỉ WHO hoặc chỉ GSC chung hoặc chỉ NKBV — khớp write-dest registry. */
+  const visibleWriteHrefs = useMemo(() => {
+    const hrefs: string[] = [];
+    if (seeVst) hrefs.push("/giam-sat-vst");
+    if (seeGsc) hrefs.push("/giam-sat-chung/tuan-thu");
+    if (seeNkbv) hrefs.push("/giam-sat-nkbv");
+    return hrefs;
+  }, [seeVst, seeGsc, seeNkbv]);
   const modeParam = searchParams.get("mode");
 
   useEffect(() => {
@@ -158,13 +173,27 @@ export default function GiamSatHubPage() {
         </p>
       ) : null}
 
+      {visibleVeSinhTay.length > 0 ? (
+        <section className="space-y-2">
+          <h2 className="bv103-type-label">Vệ sinh tay</h2>
+          <p className="text-[11px] text-slate-500">
+            Ba mẫu riêng — WHO 5 thời điểm · kỹ thuật thường quy · ngoại khoa. Không gộp một form.
+          </p>
+          <div className="grid gap-2 sm:grid-cols-3">
+            {visibleVeSinhTay.map((link) => (
+              <WriteCta key={link.href} link={link} emphasize={false} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {visiblePrimary.length > 0 ? (
         <section className="space-y-2">
-          <h2 className="bv103-type-label">Nhập giám sát</h2>
-          <p className="text-[11px] text-slate-500">Chọn một loại — VST hoặc bảng kiểm tuân thủ.</p>
-          <div className={`grid gap-2 ${soleWrite ? "max-w-xl" : "sm:grid-cols-2"}`}>
+          <h2 className="bv103-type-label">Nhập giám sát khác</h2>
+          <p className="text-[11px] text-slate-500">Bảng kiểm tuân thủ ngoài khối vệ sinh tay.</p>
+          <div className="grid gap-2 sm:grid-cols-2">
             {visiblePrimary.map((link) => (
-              <WriteCta key={link.href} link={link} emphasize={soleWrite} />
+              <WriteCta key={link.href} link={link} emphasize={false} />
             ))}
           </div>
         </section>
