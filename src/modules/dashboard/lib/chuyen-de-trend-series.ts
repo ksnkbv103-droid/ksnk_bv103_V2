@@ -4,7 +4,7 @@
 
 import { format, parseISO, startOfMonth, startOfQuarter, startOfYear, startOfWeek } from "date-fns";
 import { vi } from "date-fns/locale";
-import { gscCompliancePercentFromCounts } from "@/modules/giam-sat-chung/lib/gsc-score-display";
+import { tyLeBkFromCounts } from "@/lib/domain/bao-cao-pct";
 import type { BaoCaoTrendGranularity } from "../types/bao-cao-tong-hop.types";
 
 export const CHUYEN_DE_LINE_COLORS = [
@@ -95,7 +95,7 @@ export function mergeMultiChuyenDeTrendRows(
       };
       for (const s of series) {
         const cell = acc.byKey.get(s.dataKey);
-        row[s.dataKey] = cell && cell.tong > 0 ? gscCompliancePercentFromCounts(cell.tong, cell.dat) : null;
+        row[s.dataKey] = cell && cell.tong > 0 ? tyLeBkFromCounts(cell.dat, cell.tong).ty_le_bm : null;
       }
       return row;
     });

@@ -235,7 +235,7 @@ describe("supervision-matrix-mappers", () => {
         { ...row, ty_le_ksnk: null, ty_le_tgs: null },
         65.555,
       ),
-    ).toBe(65.56);
+    ).toBe(65.6);
   });
 
   it("mergeMasterGapRows combines VST and GSC volumes per khoa", () => {
@@ -267,10 +267,10 @@ describe("supervision-matrix-mappers", () => {
 });
 
 describe("gscTyLeFromMatrixCounts", () => {
-  it("prefers tong_dat/tong_quan_sat over RPC ty_le rounded to 1 decimal", () => {
+  it("recomputes 2/3 from counts as 66.7", () => {
     expect(
-      gscTyLeFromMatrixCounts({ tong_dat: 2, tong_quan_sat: 3, ty_le_tuan_thu: 66.7 }),
-    ).toBe(66.67);
+      gscTyLeFromMatrixCounts({ tong_dat: 2, tong_quan_sat: 3, ty_le_tuan_thu: 66.67 }),
+    ).toBe(66.7);
   });
 });
 

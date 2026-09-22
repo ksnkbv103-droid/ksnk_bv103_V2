@@ -1,12 +1,8 @@
 import { addWeeks, format, parseISO, startOfMonth, startOfQuarter, startOfWeek, startOfYear } from "date-fns";
 import { vi } from "date-fns/locale";
 import { khoaChartLabel } from "@/lib/analytics/supervision-matrix-mappers";
-import {
-  computeTyLeGsc,
-  computeTyLeVst,
-  rateFromTotals,
-} from "@/lib/analytics/supervision-metrics";
-import { gscCompliancePercentFromCounts } from "@/modules/giam-sat-chung/lib/gsc-score-display";
+import { computeTyLeGsc, computeTyLeVst } from "@/lib/analytics/supervision-metrics";
+import { tyLeBkFromCounts, tyLeVst } from "@/lib/domain/bao-cao-pct";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 import type { NkbvDashboardPayload } from "@/modules/giam-sat-nkbv/lib/nkbv-dashboard-aggregate";
@@ -35,8 +31,8 @@ function finalizeTrendPoint(row: {
   gsc_tong: number;
   gsc_dat: number;
 }): BaoCaoTrendPoint {
-  const ty_le_vst = rateFromTotals(row.vst_dat, row.vst_tong);
-  const ty_le_gsc = gscCompliancePercentFromCounts(row.gsc_tong, row.gsc_dat);
+  const ty_le_vst = tyLeVst(row.vst_dat, row.vst_tong).ty_le_vst;
+  const ty_le_gsc = tyLeBkFromCounts(row.gsc_dat, row.gsc_tong).ty_le_gsc;
   return {
     label: row.label,
     min_date: row.min_date,
@@ -236,9 +232,7 @@ export function pickTrend(points: BaoCaoTrendPoint[], granularity: BaoCaoTrendGr
 }
 
 function finalizeKhoaRankRow(row: Omit<BaoCaoKhoaRankRow, "has_data">): BaoCaoKhoaRankRow {
-  const parts = [row.ty_le_vst, row.ty_le_gsc].filter((x): x is number => x != null);
-  const ty_le_avg = parts.length ? Math.round((parts.reduce((a, b) => a + b, 0) / parts.length) * 10) / 10 : null;
-  return { ...row, ty_le_avg, has_data: true };
+  return { ...row, ty_le_avg: null, has_data: true };
 }
 
 export function buildKhoaRank(vst: VstStrategicPayload | null, gsc: GscStrategicPayload | null): BaoCaoKhoaRankRow[] {
@@ -250,9 +244,9 @@ export function buildKhoaRank(vst: VstStrategicPayload | null, gsc: GscStrategic
         id: row.id,
         ten: row.ten,
         label: khoaChartLabel(row),
-        ty_le_vst: row.ty_le_tuan_thu,
+        ty_le_vst: tyLeVst(row.da_tuan_thu, row.tong_co_hoi).ty_le_vst,
         ty_le_gsc: null,
-        ty_le_avg: row.ty_le_tuan_thu,
+        ty_le_avg: null,
         tong_co_hoi_vst: row.tong_co_hoi,
         tong_quan_sat_gsc: 0,
       }),
@@ -261,7 +255,7 @@ export function buildKhoaRank(vst: VstStrategicPayload | null, gsc: GscStrategic
   for (const row of gsc?.matrix_khoa ?? []) {
     const cur = byId.get(row.id);
     if (cur) {
-      cur.ty_le_gsc = row.ty_le_tuan_thu;
+      cur.ty_le_gsc = tyLeBkFromCounts(row.tong_dat, row.tong_quan_sat).ty_le_gsc;
       cur.tong_quan_sat_gsc = row.tong_quan_sat;
       const finalized = finalizeKhoaRankRow(cur);
       cur.ty_le_avg = finalized.ty_le_avg;
@@ -273,8 +267,8 @@ export function buildKhoaRank(vst: VstStrategicPayload | null, gsc: GscStrategic
           ten: row.ten,
           label: khoaChartLabel(row),
           ty_le_vst: null,
-          ty_le_gsc: row.ty_le_tuan_thu,
-          ty_le_avg: row.ty_le_tuan_thu,
+          ty_le_gsc: tyLeBkFromCounts(row.tong_dat, row.tong_quan_sat).ty_le_gsc,
+          ty_le_avg: null,
           tong_co_hoi_vst: 0,
           tong_quan_sat_gsc: row.tong_quan_sat,
         }),
@@ -350,9 +344,15 @@ export function mergeKhoaRankWithSelected(
   return sortKhoaRankByComplianceAsc(merged);
 }
 
+function khoaEngineRate(row: BaoCaoKhoaRankRow): number | null {
+  if (row.ty_le_gsc != null && row.tong_quan_sat_gsc > 0) return row.ty_le_gsc;
+  if (row.ty_le_vst != null && row.tong_co_hoi_vst > 0) return row.ty_le_vst;
+  return null;
+}
+
 export function topBottomKhoa(rows: BaoCaoKhoaRankRow[], n = 5): { top: BaoCaoKhoaRankRow[]; bottom: BaoCaoKhoaRankRow[] } {
-  const sorted = [...rows].sort((a, b) => (b.ty_le_avg ?? -1) - (a.ty_le_avg ?? -1));
-  const withScore = sorted.filter((r) => r.ty_le_avg != null);
+  const sorted = [...rows].sort((a, b) => (khoaEngineRate(b) ?? -1) - (khoaEngineRate(a) ?? -1));
+  const withScore = sorted.filter((r) => khoaEngineRate(r) != null);
   return {
     top: withScore.slice(0, n),
     bottom: [...withScore].reverse().slice(0, n),

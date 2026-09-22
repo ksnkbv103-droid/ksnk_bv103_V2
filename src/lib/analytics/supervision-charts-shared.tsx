@@ -16,7 +16,7 @@ import {
   khoaChartTone,
   type KhoaChartThresholds,
 } from "@/lib/analytics/supervision-thresholds";
-import { formatPercent2, roundPercent2 } from "@/lib/analytics/supervision-percent";
+import { formatPercent1, roundPercent1 } from "@/lib/analytics/supervision-percent";
 import { labelGapExclusion, SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { Bv103ResponsiveChart } from "@/components/charts/Bv103ResponsiveChart";
 import type { CSSProperties, ReactElement } from "react";
@@ -105,17 +105,17 @@ function gapPctTone(
 
 function formatGapPctWithDatTong(pct: number | null, dat: number, tong: number): string {
   if (pct == null || tong === 0) return "—";
-  return `${formatPercent2(pct)} (${dat.toLocaleString()}/${tong.toLocaleString()})`;
+  return `${formatPercent1(pct)} (${dat.toLocaleString()}/${tong.toLocaleString()})`;
 }
 
 function gapCompareStatus(row: GapKhoaRow): { label: string; tone: ComplianceTone } {
   if (isGapComparable(row)) {
     const delta =
       row.ty_le_ksnk != null && row.ty_le_tgs != null
-        ? Math.abs(roundPercent2(row.ty_le_ksnk - row.ty_le_tgs))
+        ? Math.abs(roundPercent1(row.ty_le_tgs - row.ty_le_ksnk))
         : null;
     return {
-      label: delta != null ? `Δ ${formatPercent2(delta)}` : COVERAGE_STATUS_LABELS.comparable,
+      label: delta != null ? `Δ ${formatPercent1(delta)}` : COVERAGE_STATUS_LABELS.comparable,
       tone: delta != null && delta >= 20 ? "yellow" : "green",
     };
   }
@@ -207,7 +207,7 @@ function percentTooltipFormatter(value: unknown, name: unknown, item?: { payload
   const payload = item?.payload;
   const dat = payload?.dat ?? payload?.ksnk_dat ?? payload?.tgs_dat;
   const tong = payload?.tong ?? payload?.vol_ksnk ?? payload?.vol_tgs;
-  const pct = formatPercent2(value);
+  const pct = formatPercent1(value);
   if (dat != null && tong != null && Number(tong) > 0) {
     return [`${Number(dat).toLocaleString()}/${Number(tong).toLocaleString()} (${pct})`, String(name ?? "Tuân thủ")];
   }
@@ -341,7 +341,7 @@ function KhoaComplianceBarLabel(rawProps: unknown) {
     );
   }
 
-  const pctText = pct != null ? formatPercent2(pct) : "—";
+  const pctText = pct != null ? formatPercent1(pct) : "—";
   const ratioText = formatDatTongLabel(dat, tong);
   const tone = gapPctTone(pct, thresholds);
   const outsideFill = complianceLabelToneFill[tone];

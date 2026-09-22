@@ -5,7 +5,7 @@ import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { resolveTopInterventionChecklists } from "@/lib/analytics/gsc-checklist-intervention";
-import { formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { formatPercent1 } from "@/lib/analytics/supervision-percent";
 import { gscTyLeFromMatrixCounts } from "@/lib/analytics/supervision-matrix-mappers";
 import { buildGscAnalyticsDeepLink } from "@/lib/analytics/supervision-deep-link";
 import type { BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
@@ -63,7 +63,7 @@ export function ComprehensiveGscBkIntervention({ payload }: Props) {
                   <p className="max-w-[200px] truncate text-[11px] text-slate-500">{r.ten_bang_kiem}</p>
                 </td>
                 <td className="px-2 py-2 text-right font-bold tabular-nums text-red-700">
-                  {formatPercent2(gscTyLeFromMatrixCounts(r) ?? r.ty_le_tuan_thu)}
+                  {formatPercent1(gscTyLeFromMatrixCounts(r) ?? r.ty_le_tuan_thu)}
                 </td>
                 <td className="px-2 py-2 text-right tabular-nums">{r.tong_vi_pham}</td>
                 <td className="px-2 py-2 text-[11px] text-slate-600">{r.top_violation_ten ?? "—"}</td>

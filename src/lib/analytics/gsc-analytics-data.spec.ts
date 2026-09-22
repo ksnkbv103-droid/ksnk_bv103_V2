@@ -26,7 +26,7 @@ const emptyPayload = (): GscStrategicPayload => ({
 });
 
 describe("normalizeGscStrategicPercents", () => {
-  it("recomputes 2/3 as 66.67 instead of RPC 1-decimal 66.7", () => {
+  it("recomputes 2/3 as 66.7 from counts", () => {
     const p = emptyPayload();
     p.kpis = {
       tong_phien: 1,
@@ -39,8 +39,8 @@ describe("normalizeGscStrategicPercents", () => {
       { label: "T1", min_date: "2026-01-01", tong_quan_sat: 3, tong_dat: 2, ty_le_tuan_thu: 66.7 },
     ];
     const out = normalizeGscStrategicPercents(p);
-    expect(out.kpis.ty_le_tuan_thu).toBe(66.67);
-    expect(out.trendline[0]?.ty_le_tuan_thu).toBe(66.67);
+    expect(out.kpis.ty_le_tuan_thu).toBe(66.7);
+    expect(out.trendline[0]?.ty_le_tuan_thu).toBe(66.7);
   });
 });
 

@@ -1,30 +1,48 @@
-import { gscCompliancePercentFromCounts } from "@/modules/giam-sat-chung/lib/gsc-score-display";
+import { doLechLens, tyLeBkFromCounts, tyLeLoi } from "@/lib/domain/bao-cao-pct";
 import type {
   GscChecklistDetailPayload,
   GscChecklistOverviewRow,
   GscStrategicPayload,
 } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 
-function withCountsPercent<T extends { tong_quan_sat?: number; tong_dat?: number; ty_le_tuan_thu?: number | null }>(
-  row: T,
-): T {
-  const pct = gscCompliancePercentFromCounts(row.tong_quan_sat, row.tong_dat);
+function withCountsPercent<
+  T extends {
+    tong_quan_sat?: number;
+    tong_dat?: number;
+    tong_vi_pham?: number | null;
+    ty_le_tuan_thu?: number | null;
+  },
+>(row: T): T {
+  const pct = tyLeBkFromCounts(row.tong_dat ?? 0, row.tong_quan_sat ?? 0, row.tong_vi_pham).ty_le_bk;
   return pct == null ? row : { ...row, ty_le_tuan_thu: pct };
 }
 
 function remapGscGapRows(rows: GscStrategicPayload["gap_analysis"] | undefined) {
+  return (rows ?? []).map((row) => {
+    const tgs = tyLeBkFromCounts(row.tgs_dat, row.tgs_quan_sat);
+    const ksnk = tyLeBkFromCounts(row.ksnk_dat, row.ksnk_quan_sat);
+    return {
+      ...row,
+      ty_le_tgs: tgs.ty_le_bk,
+      ty_le_ksnk: ksnk.ty_le_bk,
+      do_lech: doLechLens(tgs.ty_le_bk, ksnk.ty_le_bk, tgs.n_ap_dung, ksnk.n_ap_dung),
+    };
+  });
+}
+
+function remapTopLoi(rows: GscStrategicPayload["top_violations"]) {
   return (rows ?? []).map((row) => ({
     ...row,
-    ty_le_tgs: gscCompliancePercentFromCounts(row.tgs_quan_sat, row.tgs_dat) ?? row.ty_le_tgs,
-    ty_le_ksnk: gscCompliancePercentFromCounts(row.ksnk_quan_sat, row.ksnk_dat) ?? row.ty_le_ksnk,
+    ty_le_vi_pham: tyLeLoi(row.so_vi_pham, row.tong_quan_sat) ?? row.ty_le_vi_pham,
   }));
 }
 
-/** GSC-2: % thống kê = Đạt/áp dụng, 2 chữ số — không dùng ROUND 1 số từ RPC. */
+/** % BK báo cáo = n_dat/(n_dat+n_kd), 1 chữ số. NA đã loại ở view. */
 export function normalizeGscStrategicPercents(payload: GscStrategicPayload): GscStrategicPayload {
   return {
     ...payload,
     kpis: withCountsPercent(payload.kpis),
+    top_violations: remapTopLoi(payload.top_violations),
     trendline: (payload.trendline ?? []).map(withCountsPercent),
     matrix_khoa: (payload.matrix_khoa ?? []).map(withCountsPercent),
     matrix_khoi: payload.matrix_khoi?.map(withCountsPercent),

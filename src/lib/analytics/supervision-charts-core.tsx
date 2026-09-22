@@ -25,7 +25,7 @@ import type { CompareRow } from "@/lib/analytics/supervision-analytics.types";
 import type { BaoCaoTrendGranularity } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
-import { formatPercent1, formatPercent2, roundPercent1, roundPercent2 } from "@/lib/analytics/supervision-percent";
+import { formatPercent1, roundPercent1 } from "@/lib/analytics/supervision-percent";
 import { complianceToneFromPercent } from "@/modules/dashboard/lib/bao-cao-tong-hop-thresholds";
 import {
   momentRowBg,
@@ -102,7 +102,7 @@ export function SupervisionTrendChart({
       min_date: row.min_date,
       tong: row.tong,
       dat: row.dat,
-      ty_le_tuan_thu: source === "vst" ? roundPercent1(row.ty_le_tuan_thu) : roundPercent2(row.ty_le_tuan_thu),
+      ty_le_tuan_thu: roundPercent1(row.ty_le_tuan_thu),
     }));
   }, [data, source, granularity]);
 
@@ -246,7 +246,7 @@ export function SupervisionMomentsPanel({
 }) {
   const rows = moments.map((m) => ({
     ...m,
-    ty_le_tuan_thu: roundPercent2(m.ty_le_tuan_thu),
+    ty_le_tuan_thu: roundPercent1(m.ty_le_tuan_thu),
   }));
 
   if (!loading && rows.length === 0) return null;

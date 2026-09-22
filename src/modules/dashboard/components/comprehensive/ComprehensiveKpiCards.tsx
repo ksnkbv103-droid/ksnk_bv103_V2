@@ -6,7 +6,7 @@ import type { BaoCaoTrendPoint, BaoCaoTongHopPayload } from "../../types/bao-cao
 import { complianceToneFromPercent } from "../../lib/bao-cao-tong-hop-thresholds";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
-import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { formatPercent1 } from "@/lib/analytics/supervision-percent";
 
 function prevWeekRate(
   points: BaoCaoTrendPoint[] | undefined,
@@ -116,8 +116,8 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
     <div className="space-y-[var(--bv103-space-2)]">
       <div className="flex flex-col gap-[var(--bv103-space-3)] sm:flex-row sm:items-start sm:divide-x sm:divide-slate-200 sm:gap-0">
         <KpiCard
-          label="Vệ sinh tay"
-          value={k?.ty_le_vst != null ? formatPercent1(k.ty_le_vst) : "N/A"}
+          label="WHO 5 thời điểm"
+          value={k?.ty_le_vst != null ? formatPercent1(k.ty_le_vst) : "—"}
           weekDelta={k?.delta_vst}
           weekPrev={prevWeekRate(trend, "ty_le_vst")}
           periodDelta={ky?.delta_vst}
@@ -125,8 +125,8 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
           volumeNote={vstVol ? `Cơ hội: ${vstVol}` : null}
         />
         <KpiCard
-          label="Giám sát chung"
-          value={k?.ty_le_gsc != null ? formatPercent2(k.ty_le_gsc) : "N/A"}
+          label="Bảng kiểm (GSC)"
+          value={k?.ty_le_gsc != null ? formatPercent1(k.ty_le_gsc) : "—"}
           weekDelta={k?.delta_gsc}
           weekPrev={prevWeekRate(trend, "ty_le_gsc")}
           periodDelta={ky?.delta_gsc}

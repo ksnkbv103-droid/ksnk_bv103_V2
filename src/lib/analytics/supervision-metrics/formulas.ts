@@ -1,4 +1,4 @@
-import { gscCompliancePercentFromCounts } from "@/modules/giam-sat-chung/lib/gsc-score-display";
+import { tyLeBkFromCounts, tyLeVst } from "@/lib/domain/bao-cao-pct";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 
@@ -11,15 +11,14 @@ export function rateFromTotals(dat: number, tong: number): number | null {
 }
 
 export function computeTyLeVst(kpis: VstStrategicPayload["kpis"] | undefined): number | null {
-  if (!kpis || kpis.tong_co_hoi <= 0) return null;
-  return rateFromTotals(kpis.da_tuan_thu, kpis.tong_co_hoi) ?? kpis.ty_le_tuan_thu;
+  if (!kpis || !(kpis.tong_co_hoi > 0)) return null;
+  if (!Number.isFinite(Number(kpis.da_tuan_thu))) return kpis.ty_le_tuan_thu ?? null;
+  return tyLeVst(kpis.da_tuan_thu, kpis.tong_co_hoi).ty_le_vst;
 }
 
 export function computeTyLeGsc(kpis: GscStrategicPayload["kpis"] | undefined): number | null {
-  if (!kpis || kpis.tong_quan_sat <= 0) return null;
-  return (
-    gscCompliancePercentFromCounts(kpis.tong_quan_sat, kpis.tong_dat) ?? kpis.ty_le_tuan_thu
-  );
+  if (!kpis) return null;
+  return tyLeBkFromCounts(kpis.tong_dat, kpis.tong_quan_sat, kpis.tong_vi_pham).ty_le_gsc;
 }
 
 /**

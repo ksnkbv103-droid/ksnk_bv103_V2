@@ -131,7 +131,7 @@ describe("bao-cao-tong-hop-core", () => {
     ).toBe(10);
   });
 
-  it("bucketTrendByMonth keeps GSC at two decimals for 2/3", () => {
+  it("bucketTrendByMonth rounds GSC 2/3 to 1 decimal", () => {
     const month = bucketTrendByMonth([
       {
         label: "T1",
@@ -142,7 +142,7 @@ describe("bao-cao-tong-hop-core", () => {
         gsc_dat: 2,
       },
     ]);
-    expect(month[0]?.ty_le_gsc).toBe(66.67);
+    expect(month[0]?.ty_le_gsc).toBe(66.7);
   });
 
   it("bucketTrendByMonth sums volumes not averages percentages", () => {
@@ -254,7 +254,9 @@ describe("bao-cao-tong-hop-core", () => {
       } as never,
     );
     expect(rows).toHaveLength(1);
-    expect(rows[0].ty_le_avg).toBe(85);
+    expect(rows[0].ty_le_vst).toBe(80);
+    expect(rows[0].ty_le_gsc).toBe(90);
+    expect(rows[0].ty_le_avg).toBeNull();
     expect(rows[0].label).toBe("B01");
   });
 
@@ -324,7 +326,7 @@ describe("bao-cao-tong-hop-core", () => {
     expect(merged[1]).toMatchObject({ id: "k2", ten: "Khoa B", has_data: false, ty_le_avg: null });
   });
 
-  it("topBottomKhoa orders by avg", () => {
+  it("topBottomKhoa orders by one engine rate", () => {
     const { top, bottom } = topBottomKhoa(
       [
         {

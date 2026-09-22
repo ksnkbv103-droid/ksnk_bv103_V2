@@ -3,7 +3,8 @@
 import React, { useMemo } from "react";
 import type { GapKhoaRow } from "@/lib/analytics/supervision-matrix-mappers";
 import { comparableGapRows } from "@/lib/analytics/supervision-source-lens";
-import { formatPercent1, formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { doLechLens } from "@/lib/domain/bao-cao-pct";
+import { formatPercent1 } from "@/lib/analytics/supervision-percent";
 
 type Props = {
   rows: GapKhoaRow[];
@@ -11,9 +12,9 @@ type Props = {
   loading?: boolean;
 };
 
-function fmt(source: "vst" | "gsc", n: number | null): string {
+function fmt(_source: "vst" | "gsc", n: number | null): string {
   if (n == null) return "—";
-  return source === "vst" ? formatPercent1(n) : formatPercent2(n);
+  return formatPercent1(n);
 }
 
 /**
@@ -24,7 +25,7 @@ export function SupervisionDoiSoatPanel({ rows, source, loading }: Props) {
     return comparableGapRows(rows)
       .map((r) => ({
         ...r,
-        delta: (r.ty_le_tgs ?? 0) - (r.ty_le_ksnk ?? 0),
+        delta: doLechLens(r.ty_le_tgs, r.ty_le_ksnk, r.vol_tgs, r.vol_ksnk) ?? 0,
       }))
       .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
   }, [rows]);

@@ -1,3 +1,5 @@
+import { tyLeBkFromCounts } from "@/lib/domain/bao-cao-pct";
+
 /**
  * Khối chuyên đề Vệ sinh tay (PO 2026-09-22) — map mã QT.07 ↔ catalog project.
  * Domain: WHO lưới = Module A; BM.02/03 = bảng kiểm GSC (không gộp form / %).
@@ -99,7 +101,14 @@ export function isVeSinhTayGscBangKiem(maBk: string | null | undefined): boolean
 export type VeSinhTayChecklistRate = {
   ma_bk: string;
   label: string;
+  slot: VeSinhTayBkSlot;
   ty_le_tuan_thu: number | null;
+  ty_le_bm: number | null;
+  ty_le_vst_ky_thuat: number | null;
+  ty_le_vst_ngoai_khoa: number | null;
+  n_dat: number;
+  n_kd: number;
+  n_ap_dung: number;
   tong_quan_sat: number;
   tong_dat: number;
   found: boolean;
@@ -110,6 +119,7 @@ type ChecklistRateRow = {
   ty_le_tuan_thu?: number | null;
   tong_quan_sat?: number | null;
   tong_dat?: number | null;
+  tong_vi_pham?: number | null;
 };
 
 /** Lấy % theo từng BK — không average giữa các khối. */
@@ -119,10 +129,21 @@ export function pickVeSinhTayChecklistRates(
   const list = rows ?? [];
   return VE_SINH_TAY_BK_MAP.map((m) => {
     const hit = list.find((r) => normalizeBangKiemMa(r.ma_bk) === normalizeBangKiemMa(m.ma_bk));
+    const bk = hit
+      ? tyLeBkFromCounts(hit.tong_dat ?? 0, hit.tong_quan_sat ?? 0, hit.tong_vi_pham)
+      : null;
+    const ty = bk?.ty_le_bm ?? null;
     return {
       ma_bk: m.ma_bk,
       label: m.label,
-      ty_le_tuan_thu: hit?.ty_le_tuan_thu ?? null,
+      slot: m.slot,
+      ty_le_tuan_thu: ty,
+      ty_le_bm: ty,
+      ty_le_vst_ky_thuat: m.slot === "BM02_KY_THUAT_TQ" ? ty : null,
+      ty_le_vst_ngoai_khoa: m.slot === "BM03_NGOAI_KHOA" ? ty : null,
+      n_dat: bk?.n_dat ?? 0,
+      n_kd: bk?.n_kd ?? 0,
+      n_ap_dung: bk?.n_ap_dung ?? 0,
       tong_quan_sat: hit?.tong_quan_sat ?? 0,
       tong_dat: hit?.tong_dat ?? 0,
       found: Boolean(hit),

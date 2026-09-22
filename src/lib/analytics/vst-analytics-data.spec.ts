@@ -71,5 +71,6 @@ describe("normalizeVstStrategicPercents", () => {
     const out = normalizeVstStrategicPercents(p);
     expect(out.gap_analysis[0]?.ty_le_tgs).toBe(66.7);
     expect(out.gap_analysis[0]?.ty_le_ksnk).toBe(33.3);
+    expect(out.gap_analysis[0]?.do_lech).toBe(33.4);
   });
 });

@@ -27,11 +27,13 @@ Chuyên đề khác (PTPH, môi trường, …) → «Giám sát tuân thủ kh�
 
 Trên **Báo cáo tổng hợp** (`/bao-cao-tong-hop`) tab **Vệ sinh tay** (và Tổng hợp):
 
-| Khối | Engine | Nguồn % |
-|------|--------|---------|
-| WHO 5 thời điểm | VST strategic | `vst.kpis.ty_le_tuan_thu` |
-| Kỹ thuật TQ | GSC · `BM.07.02` | `checklist_overview` / `dynamic_checklists` |
-| Ngoại khoa | GSC · `BM.07.03` | cùng |
+| Khối | Engine | Field |
+|------|--------|-------|
+| WHO 5 thời điểm | VST | `ty_le_vst` (`so_tuan_thu` / `tong_co_hoi`) |
+| Kỹ thuật TQ | BK · `BM.07.02` | `ty_le_vst_ky_thuat` |
+| Ngoại khoa | BK · `BM.07.03` | `ty_le_vst_ngoai_khoa` |
+
+Công thức và top lỗi: [`13-BAO-CAO-PCT-SSOT.md`](./13-BAO-CAO-PCT-SSOT.md). `n_ap_dung = 0` → «—».
 
 - **Không** average ba khối thành một %.
 - Cùng filter kỳ / khoa / lens TGS|KSNK của BCTH.
@@ -44,4 +46,4 @@ Deep-link thống kê từng khối: `/thong-ke/vst` · `/thong-ke/gsc?bk=BM.07.
 1. `/giam-sat` → mở đủ 3 lối (cần quyền VST + GSC).
 2. BM.02/03 mở form GSC đúng mẫu preselected.
 3. Picker GSC không có BM.07.01 / WHO.
-4. BCTH → tab Vệ sinh tay → 3 card cạnh nhau (N/A nếu chưa có phiên).
+4. BCTH → tab Vệ sinh tay → 3 card cạnh nhau («—» nếu chưa có phiên). % theo BM; top lỗi trong BM và toàn kỳ; lens TGS / chuyên trách / chéo tách, không chồng % WHO với BK.

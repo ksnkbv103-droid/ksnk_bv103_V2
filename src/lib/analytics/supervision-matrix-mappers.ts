@@ -1,7 +1,6 @@
 import type { CompareRow } from "@/lib/analytics/supervision-analytics.types";
-import { rateFromTotals } from "@/lib/analytics/supervision-metrics/formulas";
-import { roundPercent2 } from "@/lib/analytics/supervision-percent";
-import { gscCompliancePercentFromCounts } from "@/modules/giam-sat-chung/lib/gsc-score-display";
+import { tyLeBkFromCounts, tyLeVst } from "@/lib/domain/bao-cao-pct";
+import { roundPercent1 } from "@/lib/analytics/supervision-percent";
 import {
   formatKhoaCompactLabel,
   parseMaFromKhoaOptionLabel,
@@ -92,8 +91,8 @@ export function normalizeGapKhoaRow(r: GapKhoaSourceRow): GapKhoaRow {
     id: String(r.id ?? r.ma_khoa ?? ten),
     ten,
     label: khoaChartLabel(r),
-    ty_le_tgs: r.ty_le_tgs == null ? null : roundPercent2(r.ty_le_tgs),
-    ty_le_ksnk: r.ty_le_ksnk == null ? null : roundPercent2(r.ty_le_ksnk),
+    ty_le_tgs: r.ty_le_tgs == null ? null : roundPercent1(r.ty_le_tgs),
+    ty_le_ksnk: r.ty_le_ksnk == null ? null : roundPercent1(r.ty_le_ksnk),
     vol_tgs: Number(r.tgs_co_hoi ?? r.tgs_quan_sat ?? 0),
     vol_ksnk: Number(r.ksnk_co_hoi ?? r.ksnk_quan_sat ?? 0),
     dat_tgs: Number(r.tgs_dat ?? 0),
@@ -259,19 +258,21 @@ export function buildCoverageMatrix(
 
 
 
-/** GSC % từ counts — bỏ qua ty_le RPC làm tròn 1 chữ số (debt SQL). */
+/** GSC % từ counts — n_dat / áp dụng, 1 chữ số. */
 export function gscTyLeFromMatrixCounts(row: {
   tong_dat?: unknown;
   tong_quan_sat?: unknown;
+  tong_vi_pham?: unknown;
   ty_le_tuan_thu?: unknown;
 }): number | null {
   const tong = Number(row.tong_quan_sat ?? NaN);
   const dat = Number(row.tong_dat ?? NaN);
   if (Number.isFinite(tong) && tong > 0 && Number.isFinite(dat)) {
-    return roundPercent2((dat / tong) * 100);
+    const viPham = row.tong_vi_pham == null ? undefined : Number(row.tong_vi_pham);
+    return tyLeBkFromCounts(dat, tong, Number.isFinite(viPham) ? viPham : undefined).ty_le_bk;
   }
   if (row.ty_le_tuan_thu == null || !Number.isFinite(Number(row.ty_le_tuan_thu))) return null;
-  return roundPercent2(Number(row.ty_le_tuan_thu));
+  return roundPercent1(Number(row.ty_le_tuan_thu));
 }
 
 /** % tuân thủ gộp hiển thị trên biểu đồ khoa — ưu tiên KSNK, rồi TGS, rồi matrix_khoa. */
@@ -280,14 +281,12 @@ export function resolveKhoaAggregateTyLe(
   matrixTyLe: number | null | undefined,
   matrixCounts?: { tong_dat?: unknown; tong_quan_sat?: unknown },
 ): number | null {
-  // 1) Gap đã có % (RPC / normalize) — ưu tiên, đã round 2 chữ số
   if (gap.ty_le_ksnk != null) return gap.ty_le_ksnk;
   if (gap.ty_le_tgs != null) return gap.ty_le_tgs;
-  // 2) Tính lại từ counts matrix — tránh ROUND(...,1) của SQL GSC
   const fromCounts = matrixCounts ? gscTyLeFromMatrixCounts(matrixCounts) : null;
   if (fromCounts != null) return fromCounts;
   if (matrixTyLe == null || Number.isNaN(matrixTyLe)) return null;
-  return roundPercent2(matrixTyLe);
+  return roundPercent1(matrixTyLe);
 }
 
 export function resolveKhoaAggregateVol(
@@ -340,7 +339,7 @@ export function toCompareRows(
     const isGsc = r.tong_quan_sat != null;
     const tong = Number(isGsc ? r.tong_quan_sat : r.tong_co_hoi ?? 0);
     const dat = Number(isGsc ? r.tong_dat : r.da_tuan_thu ?? 0);
-    const pct = isGsc ? gscCompliancePercentFromCounts(tong, dat) : rateFromTotals(dat, tong);
+    const pct = isGsc ? tyLeBkFromCounts(dat, tong).ty_le_bk : tyLeVst(dat, tong).ty_le_vst;
     return {
       ten: options?.khoaMa ? khoaChartLabel(r) : String(r.ten ?? "").trim() || "—",
       ty_le_tuan_thu: pct,

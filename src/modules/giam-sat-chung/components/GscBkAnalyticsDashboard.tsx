@@ -11,7 +11,7 @@ import {
 } from "@/lib/analytics/supervision-analytics-charts";
 import { groupCriterionKhoaRows, sortCriterionMatrix } from "@/lib/analytics/gsc-checklist-analytics";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
-import { formatPercent2, formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
+import { formatPctOrDash, rankTopLoi, tyLeBkFromCounts, tyLeLoi } from "@/lib/domain/bao-cao-pct";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { complianceToneFromPercent } from "@/lib/analytics/supervision-thresholds";
 import type { GscChecklistDetailPayload, GscChecklistCriterionKhoaRow, GscCriterionMatrixRow } from "../types/gsc-strategic.types";
@@ -57,6 +57,22 @@ export function GscBkAnalyticsDashboard({
     () => sortCriterionMatrix(detail?.matrix_criterion ?? []),
     [detail?.matrix_criterion],
   );
+
+  const topLoi = useMemo(
+    () =>
+      rankTopLoi(
+        (detail?.matrix_criterion ?? []).map((c) => ({
+          id: c.criterion_id,
+          ten: c.ten_tieu_chi,
+          n_loi: c.tong_vi_pham,
+          n_ap_dung: c.tong_quan_sat,
+          ket_qua: "KHONG_DAT" as const,
+        })),
+      ).slice(0, 8),
+    [detail?.matrix_criterion],
+  );
+
+  const kpiBk = tyLeBkFromCounts(detail?.kpis?.tong_dat ?? 0, detail?.kpis?.tong_quan_sat ?? 0, detail?.kpis?.tong_vi_pham);
 
   const khoaByCriterion = useMemo(
     () => groupCriterionKhoaRows(detail?.criterion_khoa ?? []),
@@ -105,7 +121,7 @@ export function GscBkAnalyticsDashboard({
             { label: "Phiên giám sát", value: detail?.kpis?.tong_phien ?? 0 },
             { label: "Tiêu chí áp dụng", value: detail?.kpis?.tong_quan_sat ?? 0 },
             { label: "Vi phạm", value: detail?.kpis?.tong_vi_pham ?? 0 },
-            { label: "Tỷ lệ tuân thủ", value: formatPercent2FromRatio(detail?.kpis?.tong_dat ?? 0, detail?.kpis?.tong_quan_sat ?? 0) },
+            { label: "ty_le_bm", value: formatPctOrDash(kpiBk.ty_le_bm, kpiBk.n_ap_dung) },
           ]}
         />
 
@@ -124,6 +140,19 @@ export function GscBkAnalyticsDashboard({
           tgsVolumeLabel={SUPERVISION_SOURCE_UI.gscTgsVol}
           ksnkVolumeLabel={SUPERVISION_SOURCE_UI.gscKsnkVol}
         />
+
+        {topLoi.length > 0 ? (
+          <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+            <p className="text-[11px] font-semibold text-slate-600">Top lỗi trong BM (Không đạt, áp dụng ≥ 5)</p>
+            <ol className="mt-1 list-decimal pl-4 text-xs text-slate-700">
+              {topLoi.map((t) => (
+                <li key={t.id}>
+                  {t.ten} — {t.n_loi} lỗi, {t.ty_le_loi.toFixed(1)}%
+                </li>
+              ))}
+            </ol>
+          </div>
+        ) : null}
 
         <GscCriterionTable
           criteria={criteria}
@@ -205,7 +234,7 @@ function GscCriterionTable({
                       <td className="px-2.5 py-1.5 text-right tabular-nums text-slate-700">{c.tong_quan_sat}</td>
                       <td className="px-2.5 py-1.5 text-right tabular-nums font-medium text-red-700">{c.tong_vi_pham}</td>
                       <td className={`px-2.5 py-1.5 text-right font-semibold tabular-nums ${criterionToneClass(c.ty_le_tuan_thu)}`}>
-                        {c.ty_le_tuan_thu != null ? formatPercent2(c.ty_le_tuan_thu) : "—"}
+                        {formatPctOrDash(tyLeBkFromCounts(c.tong_dat, c.tong_quan_sat, c.tong_vi_pham).ty_le_bm, c.tong_quan_sat)}
                       </td>
                     </tr>
                   );
@@ -234,7 +263,7 @@ function GscCriterionTable({
                     <td className="px-2.5 py-1.5 text-right tabular-nums">{k.tong_quan_sat}</td>
                     <td className="px-2.5 py-1.5 text-right tabular-nums text-red-700">{k.tong_vi_pham}</td>
                     <td className="px-2.5 py-1.5 text-right font-semibold tabular-nums text-red-700">
-                      {formatPercent2(k.ty_le_vi_pham)}
+                      {formatPctOrDash(tyLeLoi(k.tong_vi_pham, k.tong_quan_sat), k.tong_quan_sat)}
                     </td>
                   </tr>
                 ))}

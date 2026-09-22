@@ -3,8 +3,7 @@ import { vi } from "date-fns/locale";
 import type { BaoCaoTrendGranularity } from "@/modules/dashboard/types/bao-cao-tong-hop.types";
 import type { GscStrategicPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
-import { rateFromTotals } from "@/lib/analytics/supervision-metrics/formulas";
-import { gscCompliancePercentFromCounts } from "@/modules/giam-sat-chung/lib/gsc-score-display";
+import { tyLeBkFromCounts, tyLeVst } from "@/lib/domain/bao-cao-pct";
 
 export type SupervisionTrendPoint = {
   label: string;
@@ -26,8 +25,8 @@ type GscTrendRow = GscStrategicPayload["trendline"][number];
 export type SupervisionTrendKind = "vst" | "gsc";
 
 function rateForKind(kind: SupervisionTrendKind, dat: number, tong: number): number {
-  if (kind === "gsc") return gscCompliancePercentFromCounts(tong, dat) ?? 0;
-  return rateFromTotals(dat, tong) ?? 0;
+  if (kind === "gsc") return tyLeBkFromCounts(dat, tong).ty_le_bk ?? 0;
+  return tyLeVst(dat, tong).ty_le_vst ?? 0;
 }
 
 function finalizeSupervisionTrendPoint(

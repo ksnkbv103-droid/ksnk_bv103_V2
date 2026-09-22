@@ -1,3 +1,4 @@
+import { doLechLens, tyLeVst } from "@/lib/domain/bao-cao-pct";
 import { rateFromTotals } from "@/lib/analytics/supervision-metrics/formulas";
 import type { VstStrategicPayload } from "@/modules/giam-sat-vst/types/vst-strategic.types";
 
@@ -9,11 +10,16 @@ function withCountsPercent<T extends { tong_co_hoi?: number; da_tuan_thu?: numbe
 }
 
 function remapVstGapRows(rows: VstStrategicPayload["gap_analysis"] | undefined) {
-  return (rows ?? []).map((row) => ({
-    ...row,
-    ty_le_tgs: rateFromTotals(row.tgs_dat, row.tgs_co_hoi) ?? row.ty_le_tgs,
-    ty_le_ksnk: rateFromTotals(row.ksnk_dat, row.ksnk_co_hoi) ?? row.ty_le_ksnk,
-  }));
+  return (rows ?? []).map((row) => {
+    const tgs = tyLeVst(row.tgs_dat, row.tgs_co_hoi);
+    const ksnk = tyLeVst(row.ksnk_dat, row.ksnk_co_hoi);
+    return {
+      ...row,
+      ty_le_tgs: tgs.ty_le_vst,
+      ty_le_ksnk: ksnk.ty_le_vst,
+      do_lech: doLechLens(tgs.ty_le_vst, ksnk.ty_le_vst, tgs.tong_co_hoi, ksnk.tong_co_hoi),
+    };
+  });
 }
 
 /** VST: % = đạt / tong_co_hoi, 1 chữ số — không tin ROUND RPC. */
