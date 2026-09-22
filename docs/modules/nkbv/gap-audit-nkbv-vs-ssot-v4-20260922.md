@@ -12,11 +12,34 @@ Giả định đã kiểm: câu “48 giờ” còn trong mô tả form cũ củ
 
 ---
 
+## Kết luận lần rà 2 — phần xác định ca **chưa chuẩn**
+
+Đã lần đường thật: Hub bệnh án → nút **Tạo phiếu** → `submitClinicalVerification` chạy rules engine → KSNK bấm **Phê duyệt (Xác nhận NKBV)** → RPC tỷ suất chỉ đếm phiếu `XAC_NHAN` và `verification_data.is_positive = true`.
+
+**Chưa chuẩn** nghĩa là: một ca có thể vào tử số NKBV khi chưa đúng định nghĩa HAI của v4.0, hoặc đúng tiêu chí trên màn hình phân tích nhưng phiếu lại lưu một ngày sự kiện khác.
+
+| Việc đã đúng | Việc chưa khóa được ca |
+|--------------|------------------------|
+| LIS ngày lấy mẫu ≥ ngày vào + 2 chỉ là hàng đợi «Chưa PT», không tự tạo phiếu | Đủ tiêu chí LCBI / UTI / PNEU / Ch.17 thì `is_positive = true` **kể cả DOE ngày 1–2 (POA)**. Engine không đọc POA/HAI |
+| Phiếu trống từ danh sách bị chặn | Nút phê duyệt **không** hỏi `is_positive` và **không** hỏi POA hay HAI. Ca POA vẫn bấm được «Xác nhận NKBV» |
+| Tử số dashboard lọc `is_positive` | Vì POA vẫn `is_positive`, ca POA đã duyệt **vào tỷ suất CLABSI/CAUTI/VAP** |
+| Dụng cụ gắn ca khi >2 ngày lịch | `ngay_phat_hien` trên phiếu = **ngày Index** (cấy / mốc mở phiên), không phải DOE. RPC tỷ suất lọc theo cột này |
+| Panel SSI tự tính DOE trong SP 30/90 | Lúc bấm Tạo phiếu, seed lấy DOE từ `calculateCdcMetrics` (cửa sổ ±3 quanh Index) và nhãn HAI/POA day-3 — **khác** DOE panel SSI đang hiện |
+| Secondary chạy trước nhãn CLABSI trong `evaluateBsiClabsi` | Chế độ tự gõ kết luận tạo phiếu bằng chữ tự do, không qua engine |
+
+Ba lỗ này đủ để **không** coi phần xác định ca là chuẩn, dù đã bỏ công thức 48 giờ.
+
+1. **P0 — POA vẫn thành NKBV.** `evaluateBsiClabsi` / `evaluateUtiCauti` / `evaluateVaeVap` (nhánh PNEU) không gọi `poaOrHai`. `approveOrExcludeNkbvCase` chỉ đổi trạng thái `XAC_NHAN`. RPC `20260809170000_nkbv_p0_rates_rpc_rls_index.sql` đếm mọi classification dương tính, không cột `poa_hai`.
+2. **P0 — Hai DOE cho SSI.** Panel `NkbvSyndromeSsiPanel` dùng `buildSsiTimelineVerdict` (DOE = phần tử đầu trong SP). Nút Tạo phiếu gọi `computeBaGridSession` → `calculateCdcMetrics`, nhánh SSI vẫn dựng IWP ±3 rồi gán `haiStatus`. Seed ghi `windows.doe = session.nsk`.
+3. **P0 — Ngày trên phiếu không phải DOE.** `ensure`/`insert` trong `giam-sat-nkbv-ba-analysis.actions.ts` ghi `ngay_phat_hien: indexDate`. Báo cáo tháng theo cột này, không theo DOE trong JSON.
+
+---
+
 ## Tóm tắt cho PO — 10 lệch đáng xử lý trước
 
 | # | Mức | Lệch | Vì sao quan trọng | Việc | Loại thay đổi |
 |---|-----|------|-------------------|------|----------------|
-| 1 | **P0** | SSI vẫn chọn DOE trong cửa sổ ±3 ngày quanh ngày phát hiện, và mọi hội chứng (kể SSI, VAE) đều nhận nhãn POA/HAI “ngày thứ ≥3” | SSI phải dùng Surveillance Period 30/90, không IWP/POA Ch.2. VAE dùng ngày đầu worsening, không POA day-3. Nhãn in phiếu / KPI có thể sai loại ca | Tách `calculateCdcMetrics`: SSI DOE trong SP; ẩn POA/HAI day-3 với SSI và VAE | code |
+| 1 | **P0** | Đủ tiêu chí site thì `is_positive`, kể cả POA (ngày viện 1–2). Nút «Xác nhận NKBV» không chặn. Tỷ suất đếm ca đó | v4.0: HAI chỉ khi DOE ≥ ngày lịch thứ 3 (LCBI/UTI/PNEU/Ch.17). POA không vào tử số NKBV | Engine trả `poa_hai`. Duyệt và RPC chỉ nhận HAI. SSI/VAE không dùng day-3 | code |
 | 2 | **P0** | Organ/Space SSI có thể “đạt” chỉ bằng mủ / cấy / áp xe, kể cả khi site Ch.17 đã có định nghĩa nhưng chưa đủ tiêu chí | v4.0 C.5 bước 5: Organ/Space **phải** có ≥1 tiêu chí Ch.17 | Khi `ch17.applicable`, chỉ `ch17.met` mới dương tính | code |
 | 3 | **P0** | Regex “tác nhân đường ruột” gồm `pseudomon` | MBI-LCBI chỉ khi đủ list MBI. Pseudomonas không thuộc list đó → CLABSI bị gọi nhầm MBI, tụt tử số CLABSI | Danh sách MBI organism theo Ch.4, không regex rộng | code |
 | 4 | **P0** | IVAC = một ô tick “kháng sinh mới ≥4 ngày”, không đếm Qualifying Antimicrobial Days | Ca VAC có thể lên IVAC (hoặc bị giữ VAC) theo khai báo, không theo lịch dùng thuốc | Tính QAD từ lưới ngày kháng sinh trong VAE Window | code + UX |
@@ -53,7 +76,7 @@ Kết luận: engine và form đang chạy **không** chẩn đoán HAI bằng 4
 
 | Hạng mục v4.0 | Trạng thái | Bằng chứng | Đề xuất | Mức | Loại |
 |---------------|------------|------------|---------|-----|------|
-| HAI = DOE ≥ Hospital Day 3 (ngày vào = ngày 1) | **Khớp** (LCBI/UTI/PNEU/Ch.17) | `poaOrHai` trong `src/modules/giam-sat-nkbv/lib/nkbv-shared-timeline.ts`: `dayOfHospitalization >= 3` | Giữ. Không áp nhãn này cho SSI/VAE (mục 2) | — | — |
+| HAI = DOE ≥ Hospital Day 3 (ngày vào = ngày 1) | **Lệch** (có hàm, không khóa ca) | `poaOrHai` tính đúng ngày ≥3, nhưng `evaluateBsiClabsi` / `evaluateUtiCauti` / PNEU không đọc kết quả. `is_positive` không phụ thuộc POA. Duyệt `approveOrExcludeNkbvCase` không kiểm tra. RPC tỷ suất không có `poa_hai` | Gắn `poa_hai` vào verification; tử số chỉ HAI. Không áp day-3 cho SSI/VAE | P0 | code |
 | Cấm `hours >= 48` → HAI | **Khớp** trong code | Không có công thức giờ trong `src/modules/giam-sat-nkbv` | Sửa chữ legacy §3 domain-spec | P1 | docs |
 | POA gồm 2 ngày **trước** nhập, và nếu DOE rơi trước nhập thì ghi DOE = ngày 1 cho RIT | **Thiếu** | `poaOrHai` chỉ so DOE với ngày vào; không kéo DOE về HD1 | Khi DOE ∈ {admission−2, admission−1}: ghi DOE = HD1 trước khi mở RIT | P1 | code |
 | IWP = Index ±3; sốt không đặt Index | **Khớp** một phần | `clinicalIwp`; PNEU có `pneu_trigger` CULTURE vs IMAGING trong `nkbv-timeline-math.ts` | Giữ; SSI không được mượn IWP này | P0 | code |
@@ -128,7 +151,7 @@ Các file vẫn mở đầu bằng “thuật toán = v3.3” (chưa sửa trong
 | Hạng mục | Trạng thái | Bằng chứng | Đề xuất | Mức | Loại |
 |----------|------------|------------|---------|-----|------|
 | SP 30/90 theo độ sâu và mã PT; đường mổ phụ ≤30 | **Khớp** | `resolveSsiSurveillanceDays` + `nkbv-ssi-nhsn-catalog.ts` | Giữ | — | — |
-| Không IWP / POA / RIT Ch.2 | **Lệch** | `calculateCdcMetrics` nhánh SSI vẫn `clinicalIwp` để chọn DOE; sau đó `poaOrHai` gán HAI/POA. Panel `NkbvCdcMetricsPanel.tsx` bước 4 luôn hiện POA/HAI | DOE = yếu tố đầu **trong SP**; không hiện day-3 | P0 | code + UX |
+| Không IWP / POA / RIT Ch.2 | **Lệch** (hai đường) | Panel SSI: `buildSsiTimelineVerdict` lấy DOE trong SP — **khớp**. Tạo phiếu: `computeBaGridSession` → `calculateCdcMetrics` vẫn IWP ±3 + `poaOrHai`. `NkbvCdcMetricsPanel` bước 4 luôn hiện day-3 | Một DOE: phần tử đầu trong SP. Không ghi nhãn day-3 lên phiếu SSI/VAE | P0 | code + UX |
 | SBAP SSI cố định [DOE−3, DOE+13] | **Khớp** | `ssiSbapWindow` | Giữ | — | — |
 | Organ/Space kèm Ch.17 | **Lệch** | `evaluateSsi`: `ch17.met \|\| genericOrgan` vẫn dương tính | Bỏ nhánh generic khi đã có định nghĩa site | P0 | code |
 | PATOS | **Lệch** mức báo cáo | `is_patos` → `is_positive: false`, classification `PATOS`, lý do “không báo cáo SSI mới” | NHSN vẫn nhận diện SSI và loại khỏi SIR. Tách cờ PATOS khỏi “không phải SSI” | P1 | code + UX |
@@ -166,7 +189,7 @@ Các file vẫn mở đầu bằng “thuật toán = v3.3” (chưa sửa trong
 
 | Hạng mục | Trạng thái | Bằng chứng | Đề xuất | Mức | Loại |
 |----------|------------|------------|---------|-----|------|
-| Ca = `nkbv_fact_su_kien` | **Khớp** hướng | `20260530000000_init_pilot_baseline.sql`: `ngay_vao_vien`, `ngay_phat_hien`, `verification_data jsonb` | Giữ bảng. Kết luận CDC nằm JSON, không có cột `doe` / `poa_hai` / `rit_end` | P1 | migration (khi PO chốt) |
+| Ca = `nkbv_fact_su_kien` | **Lệch** ngày ca | Cột `ngay_phat_hien` lúc Tạo phiếu = ngày Index, không phải DOE (`giam-sat-nkbv-ba-analysis.actions.ts`). Kết luận CDC nằm `verification_data` jsonb, không cột `doe` / `poa_hai` | Khi chốt ca: ghi DOE vào ngày sự kiện nếu protocol dùng DOE; thêm `poa_hai` hoặc không đếm POA | P0 | code, sau đó migration |
 | Vi sinh = `nkbv_fact_vi_sinh` | **Khớp** hướng | Cùng baseline: ngày lấy mẫu, tác nhân, số lượng | LIS vẫn là gợi ý; không cột “là HAI” | — | — |
 | Lưới ngày–khoa / ngày–dụng cụ | **Khớp** hướng | `20260827120000_nkbv_ba_ngay_khoa_dung_cu.sql` | Nguồn đúng để đếm >2 ngày lịch | — | — |
 | Phiên phân tích | **Khớp** hướng | `nkbv_fact_ba_phan_tich` (`20260909093000`) | Giữ | — | — |
