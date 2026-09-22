@@ -16,12 +16,10 @@ import { VST_KHOA_CHART_THRESHOLDS } from "@/lib/analytics/supervision-threshold
 import { SupervisionSourceLensToggle } from "@/lib/analytics/SupervisionSourceLensToggle";
 import { SupervisionDoiSoatPanel } from "@/lib/analytics/SupervisionDoiSoatPanel";
 import {
-  buildActionBoardFromGap,
   gapRowsWithLensData,
   maskGapRowsForLens,
   type SupervisionSourceLens,
 } from "@/lib/analytics/supervision-source-lens";
-import { SupervisionActionBoard } from "@/lib/analytics/SupervisionActionBoard";
 import type { VstStrategicPayload } from "../types/vst-strategic.types";
 
 type Props = {
@@ -36,8 +34,8 @@ type Props = {
 };
 
 /**
- * Thống kê VST — fold 0: toggle nguồn · Action board 1-lens · chart khoa · so sánh.
- * Nâng cao: đối soát · KPI. Cấm dual % TGS+KSNK (Action board A).
+ * Thống kê VST — fold 0: toggle nguồn · chart khoa (tab % | khối lượng) · so sánh mở.
+ * Nâng cao: đối soát · KPI · (lỗi/moment nằm phân tích sâu / drill).
  */
 export default function VstStrategicAnalyticsPanel(p: Props) {
   const [sourceLens, setSourceLens] = useState<SupervisionSourceLens>("ksnk");
@@ -50,20 +48,6 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
   const chartRows = useMemo(
     () => maskGapRowsForLens(gapRowsWithLensData(gapKhoaRows, sourceLens), sourceLens),
     [gapKhoaRows, sourceLens],
-  );
-
-  // Action board A: fold-0 một lens — cấm dual % TGS+KSNK
-  const actionBoard = useMemo(
-    () =>
-      buildActionBoardFromGap({
-        source: "vst",
-        lens: sourceLens,
-        gapRows: gapKhoaRows,
-        moments: p.payload?.moments ?? [],
-        topViolations: [],
-        vstKpis: p.payload?.kpis ?? null,
-      }),
-    [gapKhoaRows, sourceLens, p.payload?.moments, p.payload?.kpis],
   );
 
   const compareSections = useMemo(
@@ -91,8 +75,6 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
           Kỳ {p.tuNgay} → {p.denNgay} · nguồn {sourceLens === "ksnk" ? "chuyên trách" : "tự giám sát"}
         </p>
       </div>
-
-      <SupervisionActionBoard model={actionBoard} loading={p.loading} />
 
       <section className={`${UI.shell} w-full min-w-0 p-4`}>
         <header className="mb-4">

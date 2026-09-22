@@ -20,12 +20,10 @@ import { useGscChecklistDetail } from "../hooks/use-gsc-checklist-detail";
 import { SupervisionSourceLensToggle } from "@/lib/analytics/SupervisionSourceLensToggle";
 import { SupervisionDoiSoatPanel } from "@/lib/analytics/SupervisionDoiSoatPanel";
 import {
-  buildActionBoardFromGap,
   gapRowsWithLensData,
   maskGapRowsForLens,
   type SupervisionSourceLens,
 } from "@/lib/analytics/supervision-source-lens";
-import { SupervisionActionBoard } from "@/lib/analytics/SupervisionActionBoard";
 
 type Props = {
   tuNgay: string;
@@ -111,19 +109,6 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
     [gapKhoaRows, sourceLens],
   );
 
-  // Action board A: fold-0 một lens — cấm dual % TGS+KSNK
-  const actionBoard = useMemo(
-    () =>
-      buildActionBoardFromGap({
-        source: "gsc",
-        lens: sourceLens,
-        gapRows: gapKhoaRows,
-        moments: [],
-        topViolations: p.payload?.top_violations ?? [],
-      }),
-    [gapKhoaRows, sourceLens, p.payload?.top_violations],
-  );
-
   const compareSections = useMemo(
     () => [
       { title: "Theo khối", rows: toCompareRows(p.payload?.matrix_khoi) },
@@ -147,8 +132,6 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
           Kỳ {p.tuNgay} → {p.denNgay} · nguồn {sourceLens === "ksnk" ? "chuyên trách" : "tự giám sát"}
         </p>
       </div>
-
-      <SupervisionActionBoard model={actionBoard} loading={p.loading} />
 
       <GscChecklistNavigator
         payload={p.payload}
