@@ -8,7 +8,7 @@
 | Ánh xạ bảng / RPC | [`core/implementation-mapping.md`](core/implementation-mapping.md) | — |
 | CSSD nghiệp vụ | [`modules/cssd/domain-overview.md`](modules/cssd/domain-overview.md) + domain-spec §2.2 | Quyết định dụng cụ: [`core/domain-decisions-cssd-instrument.md`](core/domain-decisions-cssd-instrument.md) |
 | CSSD cổng | [`modules/cssd/README.md`](modules/cssd/README.md) | Ghi chú AI: [`archive/agent-notes/`](archive/agent-notes/) |
-| NKBV thuật toán | [`modules/nkbv/hai-surveillance-domain-ssot-20260827.md`](modules/nkbv/hai-surveillance-domain-ssot-20260827.md) | v2.0 + `Domain *`: [`archive/nkbv-sources/`](archive/nkbv-sources/) |
+| NKBV case definition | [`modules/nkbv/10-NKBV-diagnosis-domain-ssot-adult.md`](modules/nkbv/10-NKBV-diagnosis-domain-ssot-adult.md) (v4.0) | v3.3 refine: [`modules/nkbv/hai-surveillance-domain-ssot-20260827.md`](modules/nkbv/hai-surveillance-domain-ssot-20260827.md); v2.0: [`archive/nkbv-sources/`](archive/nkbv-sources/) |
 | NKBV UI / state | [`modules/nkbv/domain-specification.md`](modules/nkbv/domain-specification.md) + [`clinical-forms.md`](modules/nkbv/clinical-forms.md) | — |
 | Giám sát VST/GSC | [`modules/giam-sat/README.md`](modules/giam-sat/README.md) · [`bang-kiem-overview.md`](modules/giam-sat/bang-kiem-overview.md) | Ghi chú AI: [`archive/agent-notes/`](archive/agent-notes/) |
 | MDM / Quản trị | [`modules/mdm/README.md`](modules/mdm/README.md) | [`modules/quan-tri-he-thong/README.md`](modules/quan-tri-he-thong/README.md) chỉ pointer |

@@ -1,11 +1,12 @@
 # ĐẶC TẢ NGHIỆP VỤ GIÁM SÁT NHIỄM KHUẨN BỆNH VIỆN (NKBV) — CDC/NHSN STANDARD
 
-> **Phiên bản:** 1.2 (2026-08-27)  
-> **Trạng thái:** Hợp đồng vận hành pilot (RBAC / state / cổng nạp LIS).  
+> **Phiên bản:** 1.2 (2026-08-27) · pointer case definition 2026-09-22  
+> **Trạng thái:** Hợp đồng vận hành pilot (RBAC / state / cổng nạp LIS). **Không** phải định nghĩa ca.  
+> **Case definition đang dùng:** [`10-NKBV-diagnosis-domain-ssot-adult.md`](10-NKBV-diagnosis-domain-ssot-adult.md) (v4.0, người lớn, HAI = DOE ngày lịch ≥3). Cách đọc: [`10-NKBV-README.md`](10-NKBV-README.md).  
+> **v3.3 (lịch sử / refine):** [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md) — giữ, không xóa.  
 > **Quy trình ca + dữ liệu:** [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md) (LIS tạo BA nếu chưa có mã; copy HIS/gõ tay; triệu chứng timeline = BA).  
-> **Thuật toán + từ điển:** [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md) (v3.3).  
 > **Workspace phân tích:** [`ba-centric-timeline.md`](ba-centric-timeline.md) — **Bệnh án trung tâm**; cổng vi sinh chỉ nạp timeline.  
-> §3 form “48 giờ” bên dưới là **legacy field list** — runtime dùng device **>2 ngày lịch** và split VAE/PNEU (SSOT Ch.2 §2.8).  
+> §3 form “48 giờ” bên dưới là **legacy field list** — **không** phải định nghĩa HAI. HAI = DOE ngày lịch ≥3 (v4.0 §0.2). Device association = **>2 ngày lịch**.  
 > **Không API HIS/LIS.** Vi sinh = copy LIS (tạo BA nếu chưa có mã). Bệnh án cũng copy HIS hoặc gõ tay.  
 > **Chiến lược sản phẩm:** [`adr-nkbv-unified-module-20260715.md`](../../reference/architecture/adr-nkbv-unified-module-20260715.md).
 

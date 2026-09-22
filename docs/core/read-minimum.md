@@ -19,6 +19,6 @@
 | RBAC / tài khoản | [`operations-sop.md`](operations-sop.md) | `permission-registry.ts` |
 | Chỉ refactor thuần (lib) | mapping cột liên quan | module README nếu đổi hành vi |
 
-**Không** mở [`data/`](../data/) trừ khi chạy script seed. **Không** mở [`archive/pilot_chain_*.tar.gz`](../archive/) trừ khi tra lịch sử migration. **Không** mở `_agent-*.md` hay [`archive/agent-notes/`](../archive/agent-notes/) khi sửa code (chỉ khi tra nhật ký phiên). **Không** mở [`archive/nkbv-sources/`](../archive/nkbv-sources/) khi sửa NKBV — dùng bản 27/08.
+**Không** mở [`data/`](../data/) trừ khi chạy script seed. **Không** mở [`archive/pilot_chain_*.tar.gz`](../archive/) trừ khi tra lịch sử migration. **Không** mở `_agent-*.md` hay [`archive/agent-notes/`](../archive/agent-notes/) khi sửa code (chỉ khi tra nhật ký phiên). **Không** mở [`archive/nkbv-sources/`](../archive/nkbv-sources/) khi sửa NKBV — case definition đang dùng: [`modules/nkbv/10-NKBV-diagnosis-domain-ssot-adult.md`](../modules/nkbv/10-NKBV-diagnosis-domain-ssot-adult.md) (v4.0). v3.3 (27/08) chỉ refine.
 
 **Khám phá / câu hỏi tổng hợp:** [`../wiki/entities.md`](../wiki/entities.md) — không thay read-minimum khi sửa code.

@@ -11,7 +11,8 @@
 | **Kế hoạch CSDL + bảng timeline** (lưới = BA; khoa mã; Foley/máy/CVC tích lưới → phiếu theo) | [`hai-database-plan-20260827.md`](hai-database-plan-20260827.md) |
 | **Tổ chức lại CSDL NKBV** (đập demo, 6 ngăn, từng phần triển khai) | [`hai-database-rebuild-plan-20260827.md`](hai-database-rebuild-plan-20260827.md) |
 | **Timeline BA + mẫu báo cáo chẩn đoán** (tận dụng lưới ngày; mẫu gửi khoa) | [`hai-timeline-and-diagnostic-report-20260827.md`](hai-timeline-and-diagnostic-report-20260827.md) |
-| **Domain SSOT NHSN/CDC 2025 v3.3** (thuật toán + từ điển E; Phụ lục F trỏ file trên) | [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md) |
+| **Case definition SSOT v4.0 (đang dùng)** — người lớn, NHSN day-3, cấm HAI = 48 giờ | [`10-NKBV-diagnosis-domain-ssot-adult.md`](10-NKBV-diagnosis-domain-ssot-adult.md) · cách đọc [`10-NKBV-README.md`](10-NKBV-README.md) |
+| Domain SSOT v3.3 (lịch sử / refine, 2026-08-27) | [`hai-surveillance-domain-ssot-20260827.md`](hai-surveillance-domain-ssot-20260827.md) — không xóa; lệch chữ với v4.0 thì ưu tiên v4.0 / PDF CDC |
 | Domain SSOT v2.0 (lịch sử, 2026-08-04) | [`hai-surveillance-domain-ssot-20260804.md`](../../archive/nkbv-sources/hai-surveillance-domain-ssot-20260804.md) |
 | CDC / luồng xác minh **app pilot** | [`domain-specification.md`](domain-specification.md) |
 | **Vai trò BA / Phiếu / Form** (Admission vs HAI vs checklist) | [`ba-phieu-form-roles.md`](ba-phieu-form-roles.md) |
@@ -23,8 +24,9 @@
 | Coverage audit P5 | [`clinical-forms-coverage-audit-20260610.md`](clinical-forms-coverage-audit-20260610.md) |
 | UAT sign-off | [`pilot-clinical-checklist-20260603.md`](pilot-clinical-checklist-20260603.md) · checklist ngắn D-14 [`uat-chu-ky-khoa-d14-20260915.md`](uat-chu-ky-khoa-d14-20260915.md) |
 | Tổng hợp | [`../../wiki/entities.md`](../../wiki/entities.md#nkbv-hai) |
-| Thuật toán gốc | [`../../data/nkbv/algorithms/`](../../data/nkbv/algorithms/) — runtime: `nkbv-rules-engine.ts` + `nkbv-shared-*.ts` |
+| Audit lệch runtime vs v4.0 (2026-09-22) | [`gap-audit-nkbv-vs-ssot-v4-20260922.md`](gap-audit-nkbv-vs-ssot-v4-20260922.md) |
+| Runtime thuật toán | `src/modules/giam-sat-nkbv/lib/nkbv-rules-engine.ts` + `nkbv-shared-*.ts` |
 
-**Phân lớp tài liệu:** SSOT thuật toán + Phụ lục E = v3.3. **Yếu tố tiêu chí** = [`hai-criteria-element-dictionary-20260827.md`](hai-criteria-element-dictionary-20260827.md). **CSDL / timeline** = [`hai-database-plan-20260827.md`](hai-database-plan-20260827.md). Quy trình ca = [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md). Timeline UI + mẫu báo cáo = [`hai-timeline-and-diagnostic-report-20260827.md`](hai-timeline-and-diagnostic-report-20260827.md). `domain-specification` + `clinical-forms` = hợp đồng UI/state.
+**Phân lớp tài liệu:** **Case definition đang dùng = v4.0** ([`10-NKBV-diagnosis-domain-ssot-adult.md`](10-NKBV-diagnosis-domain-ssot-adult.md)). v3.3 giữ để refine từ điển / phụ lục, không ghi đè timing day-3. **Yếu tố tiêu chí** = [`hai-criteria-element-dictionary-20260827.md`](hai-criteria-element-dictionary-20260827.md). **CSDL / timeline** = [`hai-database-plan-20260827.md`](hai-database-plan-20260827.md). Quy trình ca = [`hai-identification-data-flow-20260827.md`](hai-identification-data-flow-20260827.md). Timeline UI + mẫu báo cáo = [`hai-timeline-and-diagnostic-report-20260827.md`](hai-timeline-and-diagnostic-report-20260827.md). `domain-specification` + `clinical-forms` = hợp đồng UI/state — **không** phải định nghĩa ca.
 
 Rule: `17-nkbv-spec-context.mdc`

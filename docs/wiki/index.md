@@ -29,7 +29,7 @@
 |--------|----------|------|
 | CSSD | [`reform-plan.md`](../modules/cssd/reform-plan.md) | [entities#cssd](entities.md#cssd) |
 | Giám sát | [`bang-kiem-overview.md`](../modules/giam-sat/bang-kiem-overview.md) | [entities#gsc](entities.md#giám-sát-vst--gsc) |
-| NKBV | [`hai-surveillance-domain-ssot-20260827.md`](../modules/nkbv/hai-surveillance-domain-ssot-20260827.md) | [entities#nkbv](entities.md#nkbv-hai) |
+| NKBV | [`10-NKBV-diagnosis-domain-ssot-adult.md`](../modules/nkbv/10-NKBV-diagnosis-domain-ssot-adult.md) (v4.0; v3.3 lịch sử) | [entities#nkbv](entities.md#nkbv-hai) |
 | QLCV | [`README.md`](../modules/qlcv/README.md) (migrate) | [entities#qlcv](entities.md#qlcv) |
 
 ## Reference
