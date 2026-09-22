@@ -202,7 +202,7 @@ export function getBaoCaoTongHopPrintHtml(p: BaoCaoTongHopPrintParams): string {
           <th>Tổng cơ hội</th>
           <th>Đã tuân thủ</th>
           <th>Tỷ lệ tuân thủ</th>
-          <th>Đúng kỹ thuật</th>
+          <th>WHO phụ · ty_le_dung_ky_thuat</th>
           <th>Đủ thời gian</th>
           <th>Lạm dụng găng</th>
         </tr>

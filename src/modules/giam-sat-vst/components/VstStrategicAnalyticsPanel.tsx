@@ -10,8 +10,8 @@ import {
   SupervisionTrendChart,
 } from "@/lib/analytics/supervision-analytics-charts";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
-import { formatPercent1FromRatio } from "@/lib/analytics/supervision-percent";
-import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
+import { formatPercent1, formatPercent1FromRatio } from "@/lib/analytics/supervision-percent";
+import { PCT_SURFACE_LABEL, SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { VST_KHOA_CHART_THRESHOLDS } from "@/lib/analytics/supervision-thresholds";
 import { SupervisionSourceLensToggle } from "@/lib/analytics/SupervisionSourceLensToggle";
 import { SupervisionDoiSoatPanel } from "@/lib/analytics/SupervisionDoiSoatPanel";
@@ -136,7 +136,13 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
               { label: "Tỷ lệ tuân thủ", value: formatPercent1FromRatio(p.payload?.kpis?.da_tuan_thu ?? 0, p.payload?.kpis?.tong_co_hoi ?? 0) },
               { label: "Cơ hội quan sát", value: p.payload?.kpis?.tong_co_hoi ?? 0 },
               { label: "Đã tuân thủ", value: p.payload?.kpis?.da_tuan_thu ?? 0 },
-              { label: "Đúng kỹ thuật", value: formatPercent1FromRatio(p.payload?.kpis?.dung_ky_thuat ?? 0, p.payload?.kpis?.tong_co_hoi ?? 0) },
+              {
+                label: PCT_SURFACE_LABEL.whoPhuDungKyThuat,
+                value:
+                  (p.payload?.kpis?.da_tuan_thu ?? 0) > 0
+                    ? formatPercent1(p.payload?.kpis?.ty_le_dung_ky_thuat ?? 0)
+                    : "—",
+              },
             ]}
           />
         </div>

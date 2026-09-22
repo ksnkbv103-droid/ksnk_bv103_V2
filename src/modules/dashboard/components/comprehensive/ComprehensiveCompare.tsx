@@ -4,8 +4,8 @@ import React, { useMemo, useState } from "react";
 import { ClipboardList, Stethoscope } from "lucide-react";
 import type { MultiSelectOption } from "@/components/shared/SearchableMultiSelect";
 import { SupervisionKhoaAnalyticsBlock } from "@/lib/analytics/supervision-analytics-charts";
-import { buildGapKhoaRows } from "@/lib/analytics/supervision-matrix-mappers";
-import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
+import { buildGapKhoaRows, type GapKhoaSourceRow } from "@/lib/analytics/supervision-matrix-mappers";
+import { PCT_SURFACE_LABEL, SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { SupervisionSourceLensToggle } from "@/lib/analytics/SupervisionSourceLensToggle";
 import { SupervisionActionDeepLink } from "@/lib/analytics/SupervisionActionDeepLink";
 import {
@@ -22,6 +22,13 @@ type ComprehensiveCompareProps = {
   khoaOptions: MultiSelectOption[];
   /** Hiển thị một module — dùng khi tách section VST/GSC trên báo cáo. */
   module?: "vst" | "gsc" | "all";
+  /** Gap của một BM (BM.02/03). Không truyền → gap module trên payload. */
+  gapOverride?: GapKhoaSourceRow[] | null;
+  blockTitle?: string;
+  subjectHref?: string;
+  subjectLinkLabel?: string;
+  /** Khối GSC chung: pool mọi BK, không đứng cạnh 3 KPI VST. */
+  poolCaption?: boolean;
 };
 
 export function ComprehensiveCompare({
@@ -29,18 +36,25 @@ export function ComprehensiveCompare({
   selectedKhoaIds,
   khoaOptions,
   module = "all",
+  gapOverride,
+  blockTitle,
+  subjectHref,
+  subjectLinkLabel = "Đối tượng và khu vực",
+  poolCaption = false,
 }: ComprehensiveCompareProps) {
   const [vstLens, setVstLens] = useState<SupervisionSourceLens>("ksnk");
   const [gscLens, setGscLens] = useState<SupervisionSourceLens>("ksnk");
 
   const vstChartRows = useMemo(() => {
-    const rows = buildGapKhoaRows(payload?.vst?.gap_analysis, selectedKhoaIds, khoaOptions, khoaOptions.length);
+    const source = module === "vst" && gapOverride ? gapOverride : payload?.vst?.gap_analysis;
+    const rows = buildGapKhoaRows(source, selectedKhoaIds, khoaOptions, khoaOptions.length);
     return maskGapRowsForLens(gapRowsWithLensData(rows, vstLens), vstLens);
-  }, [payload?.vst?.gap_analysis, selectedKhoaIds, khoaOptions, vstLens]);
+  }, [gapOverride, module, payload?.vst?.gap_analysis, selectedKhoaIds, khoaOptions, vstLens]);
   const gscChartRows = useMemo(() => {
-    const rows = buildGapKhoaRows(payload?.gsc?.gap_analysis, selectedKhoaIds, khoaOptions, khoaOptions.length);
+    const source = module === "gsc" && gapOverride ? gapOverride : payload?.gsc?.gap_analysis;
+    const rows = buildGapKhoaRows(source, selectedKhoaIds, khoaOptions, khoaOptions.length);
     return maskGapRowsForLens(gapRowsWithLensData(rows, gscLens), gscLens);
-  }, [payload?.gsc?.gap_analysis, selectedKhoaIds, khoaOptions, gscLens]);
+  }, [gapOverride, module, payload?.gsc?.gap_analysis, selectedKhoaIds, khoaOptions, gscLens]);
 
   const showVst = (module === "all" || module === "vst") && payload?.sources.vst === "ok";
   const showGsc = (module === "all" || module === "gsc") && payload?.sources.gsc === "ok";
@@ -61,11 +75,26 @@ export function ComprehensiveCompare({
 
   return (
     <div className="space-y-8">
+      {blockTitle || subjectHref ? (
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          {blockTitle ? <h3 className="bv103-type-section text-slate-800">{blockTitle}</h3> : <span />}
+          {subjectHref ? (
+            <a href={subjectHref} className="text-xs font-semibold text-emerald-700 hover:underline">
+              {subjectLinkLabel}
+            </a>
+          ) : null}
+        </div>
+      ) : null}
+      {poolCaption ? (
+        <p className="text-[11px] text-slate-500">
+          So sánh khoa · {PCT_SURFACE_LABEL.gscPool}. Tách khỏi 3 KPI vệ sinh tay.
+        </p>
+      ) : null}
       {showVst ? (
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <SupervisionSourceLensToggle value={vstLens} onChange={setVstLens} />
-            <SupervisionActionDeepLink source="vst" />
+            {subjectHref ? null : <SupervisionActionDeepLink source="vst" />}
           </div>
           {hasVstChart ? (
             <ModuleKhoaDashboard
@@ -90,7 +119,7 @@ export function ComprehensiveCompare({
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <SupervisionSourceLensToggle value={gscLens} onChange={setGscLens} />
-            <SupervisionActionDeepLink source="gsc" />
+            {subjectHref ? null : <SupervisionActionDeepLink source="gsc" />}
           </div>
           {hasGscChart ? (
             <ModuleKhoaDashboard

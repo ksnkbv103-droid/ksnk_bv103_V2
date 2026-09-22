@@ -10,7 +10,7 @@ import {
 } from "@/lib/analytics/supervision-analytics-charts";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { formatPctOrDash, rankTopLoi, tyLeBkFromCounts } from "@/lib/domain/bao-cao-pct";
-import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
+import { PCT_SURFACE_LABEL, SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import type { GscStrategicPayload } from "../types/gsc-strategic.types";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
 import { GscChecklistNavigator } from "./GscChecklistNavigator";
@@ -197,47 +197,56 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         />
       ) : null}
 
-      <section className={`${UI.shell} w-full min-w-0 p-4`}>
-        <header className="mb-4">
-          <h2 className="bv103-type-section text-slate-800">Thống kê theo khoa</h2>
-          <p className="mt-1 text-[11px] text-slate-500">
-            Tab tỷ lệ hoặc khối lượng — khoa dưới 80% tô cảnh báo.
-            {p.khoaFilterLocked ? " Phạm vi khoa đang khóa." : ""}
-          </p>
-        </header>
-        <SupervisionKhoaAnalyticsBlock
-          rows={chartRows}
-          matrixKhoaRows={p.payload?.matrix_khoa}
-          loading={p.loading}
-          moduleLabel="GSC"
-          tgsVolumeLabel={SUPERVISION_SOURCE_UI.gscTgsVol}
-          ksnkVolumeLabel={SUPERVISION_SOURCE_UI.gscKsnkVol}
-          sourceLens={sourceLens}
-        />
-      </section>
+      {selectedMaBk ? (
+        <p className="text-[11px] text-slate-500">
+          Đang xem {selectedMaBk}. Khoa, đối tượng và khu vực phía trên thuộc bảng kiểm này — không trộn{" "}
+          {PCT_SURFACE_LABEL.gscPool}.
+        </p>
+      ) : (
+        <>
+          <section className={`${UI.shell} w-full min-w-0 p-4`}>
+            <header className="mb-4">
+              <h2 className="bv103-type-section text-slate-800">Thống kê theo khoa · {PCT_SURFACE_LABEL.gscPool}</h2>
+              <p className="mt-1 text-[11px] text-slate-500">
+                Mọi bảng kiểm trong lọc. Chọn một BM để xem khoa của riêng bảng kiểm đó.
+                {p.khoaFilterLocked ? " Phạm vi khoa đang khóa." : ""}
+              </p>
+            </header>
+            <SupervisionKhoaAnalyticsBlock
+              rows={chartRows}
+              matrixKhoaRows={p.payload?.matrix_khoa}
+              loading={p.loading}
+              moduleLabel="GSC"
+              tgsVolumeLabel={SUPERVISION_SOURCE_UI.gscTgsVol}
+              ksnkVolumeLabel={SUPERVISION_SOURCE_UI.gscKsnkVol}
+              sourceLens={sourceLens}
+            />
+          </section>
 
-      <details className={`${UI.shell}`} open>
-        <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
-          So sánh & xu hướng
-          <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
-            Xu hướng · khối · khu vực · đối tượng — bấm để thu gọn
-          </span>
-        </summary>
-        <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
-          <SupervisionTrendChart
-            title="Xu hướng tuân thủ (gộp)"
-            data={p.payload?.trendline ?? []}
-            loading={p.loading}
-            source="gsc"
-          />
-          <SupervisionCompareAccordion
-            sections={compareSections}
-            loading={p.loading}
-            defaultOpen={false}
-            summaryLabel="So sánh theo khối · khu vực · đối tượng · hình thức"
-          />
-        </div>
-      </details>
+          <details className={`${UI.shell}`} open>
+            <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
+              So sánh và xu hướng · {PCT_SURFACE_LABEL.gscPool}
+              <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
+                Xu hướng · khối · khu vực · đối tượng của mọi BK — bấm để thu gọn
+              </span>
+            </summary>
+            <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
+              <SupervisionTrendChart
+                title="Xu hướng tuân thủ (gộp)"
+                data={p.payload?.trendline ?? []}
+                loading={p.loading}
+                source="gsc"
+              />
+              <SupervisionCompareAccordion
+                sections={compareSections}
+                loading={p.loading}
+                defaultOpen={false}
+                summaryLabel="So sánh theo khối · khu vực · đối tượng · hình thức"
+              />
+            </div>
+          </details>
+        </>
+      )}
 
       <details className={`${UI.shell} group`}>
         <summary className="cursor-pointer list-none px-4 py-3 bv103-type-section text-slate-700 marker:content-none [&::-webkit-details-marker]:hidden">
@@ -247,6 +256,11 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
           </span>
         </summary>
         <div className="space-y-[var(--bv103-space-3)] border-t border-slate-100 px-4 pb-4 pt-3">
+          {selectedMaBk ? (
+            <p className="text-[11px] text-slate-500">
+              Đối soát và ty_le_bk dưới đây là {PCT_SURFACE_LABEL.gscPool}, không phải {selectedMaBk}.
+            </p>
+          ) : null}
           <SupervisionDoiSoatPanel rows={gapKhoaRows} source="gsc" loading={p.loading} />
           <GscTgsCoverageRankingPanel
             tuNgay={p.tuNgay}
@@ -259,7 +273,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
               { label: "Phiên giám sát", value: p.payload?.kpis?.tong_phien ?? 0 },
               { label: "Tiêu chí áp dụng", value: p.payload?.kpis?.tong_quan_sat ?? 0 },
               { label: "Vi phạm", value: p.payload?.kpis?.tong_vi_pham ?? 0 },
-              { label: "ty_le_bk · pool tiêu chí", value: formatPctOrDash(poolBk.ty_le_bk, poolBk.n_ap_dung) },
+              { label: `${PCT_SURFACE_LABEL.gscPool} · ty_le_bk`, value: formatPctOrDash(poolBk.ty_le_bk, poolBk.n_ap_dung) },
             ]}
           />
         </div>

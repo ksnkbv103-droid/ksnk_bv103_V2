@@ -5,8 +5,8 @@ import React from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import type { BaoCaoChuyenDe, BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
+import { PCT_SURFACE_LABEL } from "@/lib/analytics/supervision-source-labels";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
-import { GscBaoCaoPctBlock, VeSinhTayHubCards } from "./BaoCaoPctPanels";
 
 type Props = {
   payload: BaoCaoTongHopPayload | null;
@@ -22,15 +22,6 @@ const TOPIC_TABS: { id: BaoCaoChuyenDe; label: string }[] = [
 ];
 
 export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }: Props) {
-  const f = payload?.filters;
-  const deep = f
-    ? {
-        tu_ngay: f.tu_ngay,
-        den_ngay: f.den_ngay,
-        khoa_ids: f.khoa_ids,
-      }
-    : null;
-
   return (
     <section className={`${D.shellPadded}`}>
       <div className="mb-[var(--bv103-space-3)] flex flex-wrap items-center justify-between gap-[var(--bv103-space-2)]">
@@ -57,10 +48,24 @@ export function ComprehensiveTopicHybrid({ payload, chuyenDe, onChuyenDeChange }
       </div>
 
       {(chuyenDe === "ALL" || chuyenDe === "VST") && (
-        <VeSinhTayHubCards payload={payload} deep={deep} />
+        <p className="mb-3 text-sm text-slate-600">
+          Ba KPI vệ sinh tay (WHO · BM.02 · BM.03) ở mục{" "}
+          <a href="#bc-vst" className="font-semibold text-emerald-700 hover:underline">
+            Vệ sinh tay
+          </a>
+          . Không gộp thành một %.
+        </p>
       )}
 
-      {(chuyenDe === "ALL" || chuyenDe === "GSC") && <GscBaoCaoPctBlock payload={payload} />}
+      {(chuyenDe === "ALL" || chuyenDe === "GSC") && (
+        <p className="mb-3 text-sm text-slate-600">
+          ty_le_bm và {PCT_SURFACE_LABEL.gscPool} ở mục{" "}
+          <a href="#bc-gsc" className="font-semibold text-emerald-700 hover:underline">
+            Giám sát chung
+          </a>
+          .
+        </p>
+      )}
 
       {(chuyenDe === "ALL" || chuyenDe === "NKBV") && (
         <TopicSummary

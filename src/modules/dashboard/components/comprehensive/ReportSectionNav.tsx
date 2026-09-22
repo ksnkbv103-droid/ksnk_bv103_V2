@@ -3,37 +3,17 @@
 import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
+import {
+  BCTH_MORE_SECTIONS,
+  BCTH_PRIMARY_SECTIONS,
+  type BcthReportSectionId,
+} from "../../lib/bao-cao-tong-hop-ia";
 
-export type ReportSectionId =
-  | "bc-kpi"
-  | "bc-trend"
-  | "bc-vst"
-  | "bc-gsc"
-  | "bc-gsc-bk"
-  | "bc-thoi-diem"
-  | "bc-nkbv"
-  | "bc-cssd"
-  | "bc-chuyen-de"
-  | "bc-phan-iii";
+export type ReportSectionId = BcthReportSectionId;
+export { BCTH_MORE_SECTIONS };
 
-/** Mục chính — nhìn nhanh: số + VST + GSC + nhận xét. Xu hướng/NKBV/chi tiết → Thêm. */
-const PRIMARY_SECTIONS: { id: ReportSectionId; label: string; mobileLabel?: string }[] = [
-  { id: "bc-kpi", label: "Tổng quan" },
-  { id: "bc-vst", label: "Vệ sinh tay" },
-  { id: "bc-gsc", label: "Giám sát chung" },
-  { id: "bc-phan-iii", label: "Phần III", mobileLabel: "P.III" },
-];
-
-/** Mục phụ — chỉ render khi mở «Thêm». In A4 vẫn đủ (print riêng). */
-export const BCTH_MORE_SECTIONS: { id: ReportSectionId; label: string }[] = [
-  { id: "bc-trend", label: "Xu hướng" },
-  { id: "bc-nkbv", label: "NKBV" },
-  { id: "bc-gsc-bk", label: "Bảng kiểm cần can thiệp" },
-  { id: "bc-thoi-diem", label: "Thời điểm" },
-  { id: "bc-chuyen-de", label: "Chuyên đề" },
-  { id: "bc-cssd", label: "Phụ lục CSSD" },
-];
-
+/** Mục chính: 3 KPI VST ở «Vệ sinh tay»; pool GSC ở «Giám sát chung». */
+const PRIMARY_SECTIONS = BCTH_PRIMARY_SECTIONS;
 const MORE_SECTIONS = BCTH_MORE_SECTIONS;
 
 type Props = {

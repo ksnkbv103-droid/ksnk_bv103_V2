@@ -3,6 +3,19 @@
  * Không đổi mã RPC (`vol_tgs`, `vol_ksnk`) hay công thức tỷ lệ.
  */
 
+/**
+ * Nhãn % báo cáo — khóa tên để không lẫn chỉ số.
+ * `ty_le_dung_ky_thuat` = phụ trên phiếu WHO (trong số đã tuân thủ).
+ * `ty_le_vst_ky_thuat` = BM.02 (engine bảng kiểm). Không dùng chung một nhãn.
+ */
+export const PCT_SURFACE_LABEL = {
+  gscPool: "pool GSC (mọi BK)",
+  whoPhuDungKyThuat: "WHO phụ · ty_le_dung_ky_thuat",
+  whoTyLeVst: "WHO · ty_le_vst",
+  bm02KyThuat: "BM.02 · ty_le_vst_ky_thuat",
+  bm03NgoaiKhoa: "BM.03 · ty_le_vst_ngoai_khoa",
+} as const;
+
 export const SUPERVISION_SOURCE_UI = {
   tgs: "Tự giám sát",
   ksnk: "Chuyên trách",

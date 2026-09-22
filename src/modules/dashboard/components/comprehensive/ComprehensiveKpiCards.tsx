@@ -7,6 +7,7 @@ import { complianceToneFromPercent } from "../../lib/bao-cao-tong-hop-thresholds
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import { bv103LayoutChrome as C } from "@/lib/bv103-layout-chrome";
 import { formatPercent1 } from "@/lib/analytics/supervision-percent";
+import { buildBcthVstKpiSlots } from "../../lib/bao-cao-tong-hop-ia";
 
 function prevWeekRate(
   points: BaoCaoTrendPoint[] | undefined,
@@ -65,6 +66,7 @@ function KpiCard({
   periodPrev,
   note,
   volumeNote,
+  code,
 }: {
   label: string;
   value: string;
@@ -75,12 +77,14 @@ function KpiCard({
   periodPrev?: number | null;
   note?: string | null;
   volumeNote?: string | null;
+  code?: string;
 }) {
   const pct = value.endsWith("%") ? Number.parseFloat(value) : null;
   const tone = complianceToneFromPercent(pct);
   return (
     <div className={`min-w-0 flex-1 sm:px-4 sm:first:pl-0 ${D.trafficText[tone]}`}>
       <p className={D.kpiLabel}>{label}</p>
+      {code ? <p className="font-mono text-[10px] text-slate-400">{code}</p> : null}
       <p className={`mt-[var(--bv103-space-1)] ${D.kpiValue}`}>
         {value}
         {suffix ? <span className="ml-1 bv103-type-body font-medium opacity-70">{suffix}</span> : null}
@@ -103,45 +107,36 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
   const ky = payload?.ky_truoc;
   if (!payload) return null;
 
-  const vstVol =
-    payload.vst?.kpis != null
-      ? `${payload.vst.kpis.da_tuan_thu.toLocaleString()}/${payload.vst.kpis.tong_co_hoi.toLocaleString()} tuân thủ`
-      : null;
-  const gscVol =
-    payload.gsc?.kpis != null
-      ? `${payload.gsc.kpis.tong_dat.toLocaleString()}/${payload.gsc.kpis.tong_quan_sat.toLocaleString()} đạt`
-      : null;
+  const slots = buildBcthVstKpiSlots(payload);
 
   return (
     <div className="space-y-[var(--bv103-space-2)]">
       <div className="flex flex-col gap-[var(--bv103-space-3)] sm:flex-row sm:items-start sm:divide-x sm:divide-slate-200 sm:gap-0">
-        <KpiCard
-          label="WHO 5 thời điểm"
-          value={k?.ty_le_vst != null ? formatPercent1(k.ty_le_vst) : "—"}
-          weekDelta={k?.delta_vst}
-          weekPrev={prevWeekRate(trend, "ty_le_vst")}
-          periodDelta={ky?.delta_vst}
-          periodPrev={ky?.ty_le_vst}
-          volumeNote={vstVol ? `Cơ hội: ${vstVol}` : null}
-        />
-        <KpiCard
-          label="ty_le_bk · pool tiêu chí"
-          value={k?.ty_le_gsc != null ? formatPercent1(k.ty_le_gsc) : "—"}
-          weekDelta={k?.delta_gsc}
-          weekPrev={prevWeekRate(trend, "ty_le_gsc")}
-          periodDelta={ky?.delta_gsc}
-          periodPrev={ky?.ty_le_gsc}
-          volumeNote={gscVol ? `Khảo sát: ${gscVol}` : null}
-        />
+        {slots.map((slot) => (
+          <KpiCard
+            key={slot.id}
+            label={slot.label}
+            code={slot.code}
+            value={slot.display}
+            weekDelta={slot.id === "who" ? k?.delta_vst : undefined}
+            weekPrev={slot.id === "who" ? prevWeekRate(trend, "ty_le_vst") : undefined}
+            periodDelta={slot.id === "who" ? ky?.delta_vst : undefined}
+            periodPrev={slot.id === "who" ? ky?.ty_le_vst : undefined}
+            volumeNote={slot.volume}
+            note={slot.note}
+          />
+        ))}
+      </div>
+      <div className="border-t border-slate-100 pt-[var(--bv103-space-2)]">
         <KpiCard
           label="NKBV — tỷ lệ xác nhận"
           value={k?.ti_le_xac_nhan_nkbv != null ? formatPercent1(k.ti_le_xac_nhan_nkbv) : "N/A"}
           suffix={k?.tong_phieu_nkbv != null ? `(${k.tong_phieu_nkbv} phiếu)` : undefined}
-          note="Kết quả nhiễm khuẩn — tách khỏi tỷ lệ vệ sinh tay / giám sát chung"
+          note="Kết quả nhiễm khuẩn — tách khỏi 3 KPI vệ sinh tay và pool giám sát chung"
         />
       </div>
       <p className="bv103-type-label text-slate-500">
-        Mũi tên = chênh so với kỳ gần. Xu hướng theo tuần nằm ở mục bên dưới.
+        Mũi tên trên WHO = chênh so với kỳ gần. BM.02 và BM.03 không gộp vào tỷ lệ WHO. Pool giám sát chung nằm ở mục Giám sát chung.
       </p>
       {(payload.sources.vst === "denied" ||
         payload.sources.gsc === "denied" ||

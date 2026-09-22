@@ -11,6 +11,8 @@ import { Bv103AnalyticsPageFrame, Bv103AnalyticsPageSkeleton } from "@/component
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { useBaoCaoTongHopData } from "../hooks/useBaoCaoTongHopData";
 import { ComprehensiveKpiCards } from "../components/comprehensive/ComprehensiveKpiCards";
+import { GscBaoCaoPctBlock, VeSinhTayHubCards } from "../components/comprehensive/BaoCaoPctPanels";
+import { VeSinhTayBlockCompare } from "../components/comprehensive/VeSinhTayBlockCompare";
 import { ReportPrintNarrativeControls } from "../components/comprehensive/ReportPrintNarrativeControls";
 import { ReportSection, ReportSectionNav } from "../components/comprehensive/ReportSectionNav";
 import { AnalyticsKhoaScopeBanner } from "../components/AnalyticsKhoaScopeBanner";
@@ -221,23 +223,38 @@ export function BaoCaoTongHopPage() {
       <div className={`bv103-stack-page transition-opacity ${d.loading ? "pointer-events-none opacity-50" : ""}`}>
         {d.khoaFilterLocked && d.lockedKhoaLabel ? <AnalyticsKhoaScopeBanner khoaLabel={d.lockedKhoaLabel} /> : null}
         <ReportSectionNav moreOpen={moreSectionsOpen} onMoreOpenChange={setMoreSectionsOpen} />
-        <ReportSection id="bc-kpi" title="Chỉ số tổng hợp">
+        <ReportSection id="bc-kpi" title="Ba chỉ số vệ sinh tay">
           <ComprehensiveKpiCards payload={d.payload} />
         </ReportSection>
-        <ReportSection id="bc-vst" title="Giám sát vệ sinh tay">
-          <ComprehensiveCompare
+        <ReportSection id="bc-vst" title="Vệ sinh tay — WHO, kỹ thuật, ngoại khoa">
+          <VeSinhTayHubCards payload={d.payload} />
+          <VeSinhTayBlockCompare
             payload={d.payload}
             selectedKhoaIds={d.selectedKhoaIds}
             khoaOptions={d.khoaOptions}
-            module="vst"
+            detailQuery={{
+              tuNgay: d.tuNgay,
+              denNgay: d.denNgay,
+              selectedKhoiIds: d.selectedKhoiIds,
+              selectedKhoaIds: d.selectedKhoaIds,
+              selectedNgheIds: d.selectedNgheIds,
+              selectedKhuVucIds: d.selectedKhuVucIds,
+              selectedHinhThucIds: d.selectedHinhThucIds,
+              khoiOptionCount: d.khoiOptions.length,
+              khoaOptionCount: d.khoaOptions.length,
+              ngheOptionCount: d.ngheOptions.length,
+              khuOptionCount: d.khuVucOptions.length,
+            }}
           />
         </ReportSection>
         <ReportSection id="bc-gsc" title="Giám sát chung">
+          <GscBaoCaoPctBlock payload={d.payload} />
           <ComprehensiveCompare
             payload={d.payload}
             selectedKhoaIds={d.selectedKhoaIds}
             khoaOptions={d.khoaOptions}
             module="gsc"
+            poolCaption
           />
         </ReportSection>
         {moreSectionsOpen ? (

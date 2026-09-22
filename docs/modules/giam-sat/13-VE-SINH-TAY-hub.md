@@ -25,7 +25,7 @@ Chuyên đề khác (PTPH, môi trường, …) → «Giám sát tuân thủ kh�
 
 ## Báo cáo / thống kê (3 chỉ số cạnh nhau)
 
-Trên **Báo cáo tổng hợp** (`/bao-cao-tong-hop`) tab **Vệ sinh tay** (và Tổng hợp):
+Trên **Báo cáo tổng hợp** (`/bao-cao-tong-hop`) mục chính **Vệ sinh tay** (`#bc-vst`, không chôn trong Thêm → Chuyên đề) và dải KPI mặt trước:
 
 | Khối | Engine | Field |
 |------|--------|-------|
@@ -36,6 +36,8 @@ Trên **Báo cáo tổng hợp** (`/bao-cao-tong-hop`) tab **Vệ sinh tay** (v�
 Công thức và top lỗi: [`13-BAO-CAO-PCT-SSOT.md`](./13-BAO-CAO-PCT-SSOT.md). `n_ap_dung = 0` → «—».
 
 - **Không** average ba khối thành một %.
+- Pool `ty_le_bk` toàn GSC ở mục **Giám sát chung**, nhãn «pool GSC (mọi BK)» — không xếp cạnh 3 KPI vệ sinh tay.
+- `ty_le_dung_ky_thuat` là chỉ số phụ phiếu WHO, khác BM.02 `ty_le_vst_ky_thuat`.
 - Cùng filter kỳ / khoa / lens TGS|KSNK của BCTH.
 - Tab chuyên đề VST cũng tải GSC (để có BM.02/03) — `shouldFetchSource("VST", "GSC") === true`.
 
@@ -46,4 +48,4 @@ Deep-link thống kê từng khối: `/thong-ke/vst` · `/thong-ke/gsc?bk=BM.07.
 1. `/giam-sat` → mở đủ 3 lối (cần quyền VST + GSC).
 2. BM.02/03 mở form GSC đúng mẫu preselected.
 3. Picker GSC không có BM.07.01 / WHO.
-4. BCTH → tab Vệ sinh tay → 3 card cạnh nhau («—» nếu chưa có phiên). % theo BM; top lỗi trong BM và toàn kỳ; lens TGS / chuyên trách / chéo tách, không chồng % WHO với BK.
+4. BCTH mục chính Vệ sinh tay → 3 card cạnh nhau («—» nếu chưa có phiên), mỗi khối có so sánh khoa. % theo BM ở mục Giám sát chung; top lỗi trong BM và toàn kỳ; lens TGS / chuyên trách / chéo tách, không chồng % WHO với BK.

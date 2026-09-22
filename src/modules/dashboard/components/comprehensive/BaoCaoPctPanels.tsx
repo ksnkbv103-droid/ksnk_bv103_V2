@@ -3,9 +3,9 @@
 import React from "react";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
+import { PCT_SURFACE_LABEL } from "@/lib/analytics/supervision-source-labels";
 import {
   aggregateLensRates,
-  buildVeSinhTayHub,
   formatPctOrDash,
   PCT_EMPTY,
   rankTopLoi,
@@ -13,10 +13,8 @@ import {
   type LensBundle,
   type TopLoiInput,
 } from "@/lib/domain/bao-cao-pct";
-import { pickVeSinhTayChecklistRates, VE_SINH_TAY_WHO } from "@/lib/domain/ve-sinh-tay-catalog";
-import { buildGscAnalyticsDeepLink } from "@/lib/analytics/supervision-deep-link";
-import { buildAnalyticsDeepLink } from "../../lib/bao-cao-tong-hop-core";
 import { complianceToneFromPercent } from "../../lib/bao-cao-tong-hop-thresholds";
+import { buildBcthVstKpiSlots } from "../../lib/bao-cao-tong-hop-ia";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import type { BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 
@@ -54,52 +52,9 @@ export function VeSinhTayHubCards({
   deep,
 }: {
   payload: BaoCaoTongHopPayload | null;
-  deep: Deep;
+  deep?: Deep;
 }) {
-  const vstK = payload?.vst?.kpis;
-  const checklistRows = payload?.gsc?.checklist_overview ?? payload?.gsc?.dynamic_checklists ?? [];
-  const bkRates = pickVeSinhTayChecklistRates(checklistRows);
-  const kt = bkRates.find((r) => r.slot === "BM02_KY_THUAT_TQ");
-  const nk = bkRates.find((r) => r.slot === "BM03_NGOAI_KHOA");
-  const hub = buildVeSinhTayHub({
-    so_tuan_thu: vstK?.da_tuan_thu ?? 0,
-    tong_co_hoi: vstK?.tong_co_hoi ?? 0,
-    ky_thuat: kt?.found ? { n_dat: kt.n_dat, n_kd: kt.n_kd } : null,
-    ngoai_khoa: nk?.found ? { n_dat: nk.n_dat, n_kd: nk.n_kd } : null,
-  });
-  const whoHref = deep ? buildAnalyticsDeepLink("/thong-ke/vst", deep) : "/thong-ke/vst";
-  const cards = [
-    {
-      key: "who",
-      label: VE_SINH_TAY_WHO.label,
-      code: "QT.07 BM.01 · ty_le_vst",
-      display: payload?.capabilities.topic_vst && vstK ? hub.who.display : PCT_EMPTY,
-      rate: hub.who.ty_le_vst,
-      volume: vstK ? `${hub.who.so_tuan_thu}/${hub.who.tong_co_hoi} cơ hội` : null,
-      note: hub.who.tong_co_hoi > 0 && !hub.who.du_mau ? "Dưới ngưỡng diễn giải (cơ hội < 20)" : null,
-      href: whoHref,
-    },
-    {
-      key: "bm02",
-      label: kt?.label ?? "Kỹ thuật VST thường quy",
-      code: "BM.02 · ty_le_vst_ky_thuat",
-      display: payload?.capabilities.topic_gsc ? hub.ky_thuat.display : PCT_EMPTY,
-      rate: hub.ky_thuat.ty_le_vst_ky_thuat,
-      volume: kt?.found ? `${hub.ky_thuat.n_dat}/${hub.ky_thuat.n_ap_dung} áp dụng` : "Chưa có phiên trong kỳ",
-      note: hub.ky_thuat.n_ap_dung > 0 && !hub.ky_thuat.du_mau ? "Dưới ngưỡng diễn giải (áp dụng < 30)" : null,
-      href: deep ? buildGscAnalyticsDeepLink(deep, kt?.ma_bk ?? "BM.07.02") : "/thong-ke/gsc?bk=BM.07.02",
-    },
-    {
-      key: "bm03",
-      label: nk?.label ?? "VST ngoại khoa",
-      code: "BM.03 · ty_le_vst_ngoai_khoa",
-      display: payload?.capabilities.topic_gsc ? hub.ngoai_khoa.display : PCT_EMPTY,
-      rate: hub.ngoai_khoa.ty_le_vst_ngoai_khoa,
-      volume: nk?.found ? `${hub.ngoai_khoa.n_dat}/${hub.ngoai_khoa.n_ap_dung} áp dụng` : "Chưa có phiên trong kỳ",
-      note: hub.ngoai_khoa.n_ap_dung > 0 && !hub.ngoai_khoa.du_mau ? "Dưới ngưỡng diễn giải (áp dụng < 30)" : null,
-      href: deep ? buildGscAnalyticsDeepLink(deep, nk?.ma_bk ?? "BM.07.03") : "/thong-ke/gsc?bk=BM.07.03",
-    },
-  ];
+  const cards = buildBcthVstKpiSlots(payload, deep);
   const whoLens = aggregateLensRates(payload?.vst?.matrix_hinh_thuc, "who");
 
   return (
@@ -114,14 +69,14 @@ export function VeSinhTayHubCards({
         {cards.map((c) => {
           const tone = complianceToneFromPercent(c.rate);
           return (
-            <div key={c.key} className={`rounded-xl border border-slate-200 bg-white px-3 py-3 ${D.trafficText[tone]}`}>
+            <div key={c.id} className={`rounded-xl border border-slate-200 bg-white px-3 py-3 ${D.trafficText[tone]}`}>
               <p className="bv103-type-label font-semibold text-slate-700">{c.label}</p>
               <p className="mt-0.5 font-mono text-[10px] text-slate-400">{c.code}</p>
               <p className={`mt-2 ${D.kpiValue}`}>{c.display}</p>
               {c.volume ? <p className="mt-1 bv103-type-label tabular-nums opacity-80">{c.volume}</p> : null}
               {c.note ? <p className="mt-1 text-[10px] text-slate-400">{c.note}</p> : null}
               <Link href={c.href} className="mt-2 inline-flex items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline">
-                Chi tiết <ExternalLink size={10} aria-hidden />
+                Đối tượng và khu vực <ExternalLink size={10} aria-hidden />
               </Link>
             </div>
           );
@@ -163,9 +118,12 @@ export function GscBaoCaoPctBlock({ payload }: { payload: BaoCaoTongHopPayload |
       <div>
         <h3 className="bv103-type-section text-slate-700">Giám sát chung</h3>
         <p className="mt-1 text-sm text-slate-700">
-          ty_le_bk: <strong className="tabular-nums">{formatPctOrDash(hospital?.ty_le_bk ?? null, hospital?.n_ap_dung ?? 0)}</strong>
+          <span className="font-semibold">{PCT_SURFACE_LABEL.gscPool}</span>
+          {" · ty_le_bk: "}
+          <strong className="tabular-nums">{formatPctOrDash(hospital?.ty_le_bk ?? null, hospital?.n_ap_dung ?? 0)}</strong>
           {" "}({hospital?.n_dat ?? 0}/{hospital?.n_ap_dung ?? 0} áp dụng, {k.tong_phien} phiên)
         </p>
+        <p className="text-[11px] text-slate-500">Không thuộc 3 KPI vệ sinh tay. Không xếp cạnh WHO, BM.02, BM.03.</p>
         {hospital && hospital.n_ap_dung > 0 && hospital.n_ap_dung < 30 ? (
           <p className="text-[10px] text-slate-400">Dưới ngưỡng diễn giải (áp dụng &lt; 30). Công thức không đổi.</p>
         ) : null}
