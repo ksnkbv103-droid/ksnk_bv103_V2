@@ -9,7 +9,7 @@ import {
   SupervisionTrendChart,
 } from "@/lib/analytics/supervision-analytics-charts";
 import { buildGapKhoaRows, toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
-import { formatPercent2FromRatio } from "@/lib/analytics/supervision-percent";
+import { formatPctOrDash, rankTopLoi, tyLeBkFromCounts } from "@/lib/domain/bao-cao-pct";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import type { GscStrategicPayload } from "../types/gsc-strategic.types";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
@@ -109,6 +109,27 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
     [gapKhoaRows, sourceLens],
   );
 
+  const poolBk = tyLeBkFromCounts(
+    p.payload?.kpis?.tong_dat ?? 0,
+    p.payload?.kpis?.tong_quan_sat ?? 0,
+    p.payload?.kpis?.tong_vi_pham,
+  );
+
+  const topKy = useMemo(
+    () =>
+      rankTopLoi(
+        (p.payload?.top_violations ?? []).map((v) => ({
+          id: v.criterion_id,
+          ten: v.ten_tieu_chi,
+          ma_bk: v.ma_bk,
+          n_loi: v.so_vi_pham,
+          n_ap_dung: v.tong_quan_sat,
+          ket_qua: "KHONG_DAT" as const,
+        })),
+      ).slice(0, 8),
+    [p.payload?.top_violations],
+  );
+
   const compareSections = useMemo(
     () => [
       { title: "Theo khối", rows: toCompareRows(p.payload?.matrix_khoi) },
@@ -141,6 +162,26 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
         bkLabelRecord={p.bkLabelRecord}
         limit={5}
       />
+
+      {p.payload && !p.loading ? (
+        <div className={`${UI.inset} px-4 py-3`}>
+          <p className="text-[11px] font-semibold text-slate-600">
+            Top lỗi toàn kỳ (n_loi ↓, ty_le_loi ↓, áp dụng ≥ 5)
+          </p>
+          {topKy.length === 0 ? (
+            <p className="mt-1 text-xs text-slate-500">Không có tiêu chí đủ mẫu.</p>
+          ) : (
+            <ol className="mt-1 list-decimal pl-4 text-xs text-slate-700">
+              {topKy.map((t) => (
+                <li key={`${t.ma_bk ?? ""}-${t.id}`}>
+                  {t.ten}
+                  {t.ma_bk ? ` · ${t.ma_bk}` : ""} — {t.n_loi} lỗi, {t.ty_le_loi.toFixed(1)}%
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+      ) : null}
 
       {selectedMaBk ? (
         <GscBkAnalyticsDashboard
@@ -218,7 +259,7 @@ export default function GscStrategicAnalyticsPanel(p: Props) {
               { label: "Phiên giám sát", value: p.payload?.kpis?.tong_phien ?? 0 },
               { label: "Tiêu chí áp dụng", value: p.payload?.kpis?.tong_quan_sat ?? 0 },
               { label: "Vi phạm", value: p.payload?.kpis?.tong_vi_pham ?? 0 },
-              { label: "Tỷ lệ tuân thủ", value: formatPercent2FromRatio(p.payload?.kpis?.tong_dat ?? 0, p.payload?.kpis?.tong_quan_sat ?? 0) },
+              { label: "ty_le_bk · pool tiêu chí", value: formatPctOrDash(poolBk.ty_le_bk, poolBk.n_ap_dung) },
             ]}
           />
         </div>

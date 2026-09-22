@@ -32,9 +32,10 @@ export function normalizeVstStrategicPercents(payload: VstStrategicPayload): Vst
       ? {
           ...kpis,
           ty_le_tuan_thu: rateFromTotals(kpis.da_tuan_thu, tong) ?? kpis.ty_le_tuan_thu,
-          ty_le_dung_ky_thuat: rateFromTotals(kpis.dung_ky_thuat, tong) ?? kpis.ty_le_dung_ky_thuat,
-          ty_le_du_thoi_gian: rateFromTotals(kpis.du_thoi_gian, tong) ?? kpis.ty_le_du_thoi_gian,
-          ty_le_lam_dung_gang: rateFromTotals(kpis.lam_dung_gang, tong) ?? kpis.ty_le_lam_dung_gang,
+          // KPI phụ khớp RPC: kỹ thuật/thời gian ÷ da_tuan_thu; lạm dụng găng ÷ bo_sot. Không dùng tong_co_hoi.
+          ty_le_dung_ky_thuat: rateFromTotals(kpis.dung_ky_thuat, kpis.da_tuan_thu) ?? kpis.ty_le_dung_ky_thuat,
+          ty_le_du_thoi_gian: rateFromTotals(kpis.du_thoi_gian, kpis.da_tuan_thu) ?? kpis.ty_le_du_thoi_gian,
+          ty_le_lam_dung_gang: rateFromTotals(kpis.lam_dung_gang, kpis.bo_sot) ?? kpis.ty_le_lam_dung_gang,
         }
       : kpis,
     trendline: (payload.trendline ?? []).map(withCountsPercent),

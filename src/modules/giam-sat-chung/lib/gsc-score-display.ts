@@ -219,7 +219,7 @@ export function formatGscHistoryScore(row: Record<string, unknown>): GscHistoryS
   return {
     label: `${formatPercent2(val)} · ${tier.label}${suffix}`,
     className: tier.className,
-    title: formatPercent2(val),
+    title: `% phiên ${formatPercent2(val)} — scoreTyLe DAT/(DAT+Không đạt) trên một phiên, không phải ty_le_bk`,
   };
 }
 

@@ -233,8 +233,11 @@ export default function GscFormView({
                   <span className="rounded-md bg-slate-100 px-2.5 py-1">
                     Đã đánh giá: {formProgress.evaluated}/{formProgress.total} tiêu chí
                   </span>
-                  <span className={`rounded-md bg-slate-50 px-2.5 py-1 ${formProgress.scoreClassName}`}>
-                    {formProgress.scoreLabel}
+                  <span
+                    className={`rounded-md bg-slate-50 px-2.5 py-1 ${formProgress.scoreClassName}`}
+                    title="Điểm phiên scoreTyLe — DAT/(DAT+Không đạt). Không phải ty_le_bk (pool tiêu chí kỳ)."
+                  >
+                    % phiên · {formProgress.scoreLabel}
                   </span>
                 </div>
               ) : null}

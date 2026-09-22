@@ -208,7 +208,9 @@ function GscCriterionTable({
                 <th className="px-2.5 py-1.5 text-left">Tiêu chí</th>
                 <th className="px-2.5 py-1.5 text-right">Quan sát</th>
                 <th className="px-2.5 py-1.5 text-right">Vi phạm</th>
-                <th className="px-2.5 py-1.5 text-right">Tuân thủ</th>
+                <th className="px-2.5 py-1.5 text-right" title="Pool tiêu chí trong BM — không phải % phiên">
+                  ty_le_bm
+                </th>
               </tr>
             </thead>
             <tbody>

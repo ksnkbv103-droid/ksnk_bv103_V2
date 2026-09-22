@@ -157,7 +157,7 @@ export function getGSCHistoryColumns(
       },
     },
     {
-      header: "Tuân thủ",
+      header: "% phiên",
       accessorKey: "tong_diem",
       sortable: true,
       headerClassName: "w-[4.5rem] min-w-[4.5rem] text-center",

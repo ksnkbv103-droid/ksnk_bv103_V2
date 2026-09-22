@@ -73,4 +73,26 @@ describe("normalizeVstStrategicPercents", () => {
     expect(out.gap_analysis[0]?.ty_le_ksnk).toBe(33.3);
     expect(out.gap_analysis[0]?.do_lech).toBe(33.4);
   });
+
+  it("KPI phụ chia theo RPC: kỹ thuật/thời gian ÷ da_tuan_thu, găng ÷ bo_sot", () => {
+    const p = emptyPayload();
+    p.kpis = {
+      ...p.kpis,
+      tong_co_hoi: 10,
+      da_tuan_thu: 4,
+      bo_sot: 6,
+      dung_ky_thuat: 3,
+      du_thoi_gian: 2,
+      lam_dung_gang: 3,
+      ty_le_tuan_thu: 0,
+      ty_le_dung_ky_thuat: 0,
+      ty_le_du_thoi_gian: 0,
+      ty_le_lam_dung_gang: 0,
+    };
+    const out = normalizeVstStrategicPercents(p);
+    expect(out.kpis.ty_le_tuan_thu).toBe(40);
+    expect(out.kpis.ty_le_dung_ky_thuat).toBe(75);
+    expect(out.kpis.ty_le_du_thoi_gian).toBe(50);
+    expect(out.kpis.ty_le_lam_dung_gang).toBe(50);
+  });
 });

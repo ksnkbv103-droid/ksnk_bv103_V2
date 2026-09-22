@@ -4,8 +4,9 @@ import React, { useMemo, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import ResponsiveTableShell from "@/components/shared/ResponsiveTableShell";
 import { resolveSortedChecklistOverview } from "@/lib/analytics/gsc-checklist-intervention";
-import { formatPercent2 } from "@/lib/analytics/supervision-percent";
+import { formatPercent1 } from "@/lib/analytics/supervision-percent";
 import { gscTyLeFromMatrixCounts } from "@/lib/analytics/supervision-matrix-mappers";
+import { rankTopLoi } from "@/lib/domain/bao-cao-pct";
 import { complianceToneFromPercent } from "@/lib/analytics/supervision-thresholds";
 import type { GscChecklistOverviewRow, GscStrategicPayload } from "../types/gsc-strategic.types";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
@@ -38,6 +39,24 @@ export function GscChecklistNavigator({
 }: Props) {
   const [showAll, setShowAll] = useState(limit <= 0);
   const effectiveLimit = showAll || limit <= 0 ? 0 : limit;
+  const topLoiByBk = useMemo(() => {
+    const ranked = rankTopLoi(
+      (payload?.top_violations ?? []).map((v) => ({
+        id: v.criterion_id,
+        ten: v.ten_tieu_chi,
+        ma_bk: v.ma_bk,
+        n_loi: v.so_vi_pham,
+        n_ap_dung: v.tong_quan_sat,
+        ket_qua: "KHONG_DAT" as const,
+      })),
+    );
+    const map = new Map<string, (typeof ranked)[number]>();
+    for (const item of ranked) {
+      if (item.ma_bk && !map.has(item.ma_bk)) map.set(item.ma_bk, item);
+    }
+    return map;
+  }, [payload?.top_violations]);
+
   const rows = useMemo(() => {
     const list = resolveSortedChecklistOverview(payload);
     const sliced = effectiveLimit > 0 ? list.slice(0, effectiveLimit) : list;
@@ -85,7 +104,9 @@ export function GscChecklistNavigator({
               <th className="px-3 py-2">Biểu mẫu</th>
               <th className="px-2 py-2 text-right">Phiên</th>
               <th className="px-2 py-2 text-right">Vi phạm</th>
-              <th className="px-2 py-2 text-right">Tuân thủ</th>
+              <th className="px-2 py-2 text-right" title="Pool tiêu chí kỳ — không phải % phiên">
+                ty_le_bm
+              </th>
               <th className="px-2 py-2">Lỗi nổi bật</th>
               <th className="px-2 py-2">Khoa yếu nhất</th>
             </tr>
@@ -103,6 +124,7 @@ export function GscChecklistNavigator({
                   key={r.ma_bk}
                   row={r}
                   label={r.label}
+                  topLoi={topLoiByBk.get(r.ma_bk) ?? null}
                   active={selectedMaBk === r.ma_bk}
                   onSelect={() => onSelectMaBk(selectedMaBk === r.ma_bk ? null : r.ma_bk)}
                 />
@@ -118,11 +140,13 @@ export function GscChecklistNavigator({
 function ChecklistRow({
   row,
   label,
+  topLoi,
   active,
   onSelect,
 }: {
   row: GscChecklistOverviewRow;
   label: string;
+  topLoi: { ten: string; n_loi: number; ty_le_loi: number } | null;
   active: boolean;
   onSelect: () => void;
 }) {
@@ -142,15 +166,14 @@ function ChecklistRow({
       <td className="px-2 py-2 text-right tabular-nums">{row.tong_phien}</td>
       <td className="px-2 py-2 text-right tabular-nums font-medium text-red-700">{row.tong_vi_pham}</td>
       <td className={`px-2 py-2 text-right tabular-nums font-bold ${complianceClass(row.ty_le_tuan_thu)}`}>
-        {formatPercent2(gscTyLeFromMatrixCounts(row) ?? row.ty_le_tuan_thu)}
+        {formatPercent1(gscTyLeFromMatrixCounts(row) ?? row.ty_le_tuan_thu)}
       </td>
       <td className="px-2 py-2 text-[11px] text-slate-600">
-        {row.top_violation_ten ? (
-          <span className="inline-flex items-start gap-1">
+        {topLoi ? (
+          <span className="inline-flex items-start gap-1" title="Không đạt · n_loi rồi ty_le_loi · áp dụng ≥ 5">
             <AlertTriangle size={12} className="mt-0.5 shrink-0 text-amber-600" />
             <span>
-              {row.top_violation_ten}
-              {row.top_violation_so != null ? ` (${row.top_violation_so}×)` : ""}
+              {topLoi.ten} ({topLoi.n_loi} · {topLoi.ty_le_loi.toFixed(1)}%)
             </span>
           </span>
         ) : (
@@ -161,7 +184,7 @@ function ChecklistRow({
         {row.worst_khoa_ten ? (
           <>
             {row.worst_khoa_ten}
-            {row.worst_khoa_ty_le != null ? ` · ${formatPercent2(row.worst_khoa_ty_le)}` : ""}
+            {row.worst_khoa_ty_le != null ? ` · ${formatPercent1(row.worst_khoa_ty_le)}` : ""}
           </>
         ) : (
           "—"

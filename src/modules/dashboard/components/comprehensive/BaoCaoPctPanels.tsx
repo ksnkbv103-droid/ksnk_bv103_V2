@@ -137,16 +137,10 @@ export function GscBaoCaoPctBlock({ payload }: { payload: BaoCaoTongHopPayload |
   const k = gsc?.kpis;
   const hospital = k ? tyLeBkFromCounts(k.tong_dat, k.tong_quan_sat, k.tong_vi_pham) : null;
   const overview = gsc?.checklist_overview ?? gsc?.dynamic_checklists ?? [];
-  const bmRows = overview.map((row) => {
-    const bk = tyLeBkFromCounts(row.tong_dat, row.tong_quan_sat, row.tong_vi_pham);
-    const extra = row as { top_violation_ten?: string | null; top_violation_so?: number | null };
-    return {
-      ma_bk: row.ma_bk,
-      ...bk,
-      top_violation_ten: extra.top_violation_ten ?? null,
-      top_violation_so: extra.top_violation_so ?? null,
-    };
-  });
+  const bmRows = overview.map((row) => ({
+    ma_bk: row.ma_bk,
+    ...tyLeBkFromCounts(row.tong_dat, row.tong_quan_sat, row.tong_vi_pham),
+  }));
   const loiInputs: TopLoiInput[] = (gsc?.top_violations ?? []).map((v) => ({
     id: v.criterion_id,
     ten: v.ten_tieu_chi,
@@ -180,9 +174,6 @@ export function GscBaoCaoPctBlock({ payload }: { payload: BaoCaoTongHopPayload |
         <ul className="space-y-2 text-sm text-slate-700">
           {bmRows.map((bm) => {
             const inBm = rankedLoi.filter((t) => t.ma_bk === bm.ma_bk).slice(0, 3);
-            const fallback = bm.top_violation_ten
-              ? `${bm.top_violation_ten}${bm.top_violation_so != null ? ` (${bm.top_violation_so})` : ""}`
-              : null;
             return (
               <li key={bm.ma_bk}>
                 <span className="font-semibold">{bm.ma_bk}</span>
@@ -190,10 +181,8 @@ export function GscBaoCaoPctBlock({ payload }: { payload: BaoCaoTongHopPayload |
                 <span className="tabular-nums">{formatPctOrDash(bm.ty_le_bm, bm.n_ap_dung)}</span>
                 {inBm.length > 0 ? (
                   <span className="text-slate-500">
-                    {" "}— top lỗi: {inBm.map((t) => `${t.ten} (${t.n_loi})`).join("; ")}
+                    {" "}— top lỗi: {inBm.map((t) => `${t.ten} (${t.n_loi} · ${t.ty_le_loi.toFixed(1)}%)`).join("; ")}
                   </span>
-                ) : fallback ? (
-                  <span className="text-slate-500"> — lỗi chính: {fallback}</span>
                 ) : null}
               </li>
             );

@@ -125,7 +125,7 @@ export function ComprehensiveKpiCards({ payload }: { payload: BaoCaoTongHopPaylo
           volumeNote={vstVol ? `Cơ hội: ${vstVol}` : null}
         />
         <KpiCard
-          label="Bảng kiểm (GSC)"
+          label="ty_le_bk · pool tiêu chí"
           value={k?.ty_le_gsc != null ? formatPercent1(k.ty_le_gsc) : "—"}
           weekDelta={k?.delta_gsc}
           weekPrev={prevWeekRate(trend, "ty_le_gsc")}
