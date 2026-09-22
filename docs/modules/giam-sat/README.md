@@ -4,6 +4,7 @@
 
 | Đọc khi | File |
 |---------|------|
+| **Domain giám sát tuân thủ VST/GSC (2026-09-22)** — trước khi sửa pack W1, form, RPC strategic, seed bảng kiểm. **Chỉ VST/GSC**; không NKBV | Phân tích: [`11-GIAM-SAT-TUAN-THU-domain-analysis-v1.md`](11-GIAM-SAT-TUAN-THU-domain-analysis-v1.md) · cách đọc: [`11-GIAM-SAT-TUAN-THU-README.md`](11-GIAM-SAT-TUAN-THU-README.md) |
 | **Kế hoạch chỉnh VST/GSC (2026-09-17)** | [`../../reference/reports/BV103-GSC-KE-HOACH-CHINH-20260917.md`](../../reference/reports/BV103-GSC-KE-HOACH-CHINH-20260917.md) |
 | **Chẩn đoán «đơn giản mà mãi chưa xong» (2026-09-17)** | [`../../reference/reports/BV103-GSC-CHAN-DOAN-DON-GIAN-20260917.md`](../../reference/reports/BV103-GSC-CHAN-DOAN-DON-GIAN-20260917.md) |
 | **Đề cương vận hành + biện pháp (2026-09-17)** | [`../../reference/reports/BV103-GSC-DE-CUONG-20260917.md`](../../reference/reports/BV103-GSC-DE-CUONG-20260917.md) |
@@ -15,7 +16,14 @@
 
 Rule: `13-giam-sat-spec-context.mdc`, `16-bang-kiem-spec-context.mdc`
 
+## Domain giám sát tuân thủ (2026-09-22)
 
+Đọc **trước** khi sửa pack `01`/`02`/`06`/`07`/`08` cho W1, form, RPC strategic, hoặc seed bảng kiểm. Phạm vi **chỉ** GSC · VST thường quy · VST ngoại khoa (hình thức, cách thức, KSNK vs TGS, chỉ số). **Không** gồm NKBV case-finding, CSSD, QLCV.
+
+| File | Việc |
+|------|------|
+| [`11-GIAM-SAT-TUAN-THU-domain-analysis-v1.md`](11-GIAM-SAT-TUAN-THU-domain-analysis-v1.md) | SSOT nghiệp vụ: glossary, RACI, luồng, chỉ số, gap P0 |
+| [`11-GIAM-SAT-TUAN-THU-README.md`](11-GIAM-SAT-TUAN-THU-README.md) | Thứ tự đọc (§1 → §2 → §3–4 → §6 → §8–9) và năm quyết định `[PO xác nhận]` |
 
 ## IA P.A (2026-09-17)
 
