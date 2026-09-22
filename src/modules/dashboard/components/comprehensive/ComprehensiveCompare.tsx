@@ -7,9 +7,7 @@ import { SupervisionKhoaAnalyticsBlock } from "@/lib/analytics/supervision-analy
 import { buildGapKhoaRows } from "@/lib/analytics/supervision-matrix-mappers";
 import { SUPERVISION_SOURCE_UI } from "@/lib/analytics/supervision-source-labels";
 import { SupervisionSourceLensToggle } from "@/lib/analytics/SupervisionSourceLensToggle";
-import {
-  SupervisionActionDeepLink,
-} from "@/lib/analytics/SupervisionActionBoard";
+import { SupervisionActionDeepLink } from "@/lib/analytics/SupervisionActionDeepLink";
 import {
   gapRowsWithLensData,
   maskGapRowsForLens,

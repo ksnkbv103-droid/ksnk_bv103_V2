@@ -1,4 +1,4 @@
-/** @deprecated 2026-09-17 — BCTH không còn bảng 2 cột. Dùng SupervisionActionBoard + /thong-ke/{vst,gsc}#so-sanh. */
+/** @deprecated 2026-09-17 — BCTH không còn bảng 2 cột. So sánh theo khoa nằm ở ComprehensiveCompare; chi tiết ở /thong-ke/{vst,gsc}#so-sanh. */
 "use client";
 
 import React, { useMemo, useState } from "react";
