@@ -85,7 +85,6 @@ export function GscBkAnalyticsDashboard({
       { title: "Theo chức năng phòng", rows: toCompareRows(detail?.matrix_khu_vuc) },
       { title: "Theo đối tượng", rows: toCompareRows(detail?.matrix_nghe) },
       { title: "Theo hình thức giám sát", rows: toCompareRows(detail?.matrix_hinh_thuc) },
-      { title: "Theo cách thức giám sát", rows: toCompareRows(detail?.matrix_cach_thuc) },
     ],
     [detail],
   );

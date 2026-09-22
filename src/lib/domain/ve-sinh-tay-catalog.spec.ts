@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  filterOutHubOwnedBangKiemRows,
   filterOutWhoBangKiemRows,
   isVeSinhTayGscBangKiem,
   isWhoObservationBangKiem,
@@ -32,6 +33,14 @@ describe("ve-sinh-tay-catalog", () => {
     expect(VE_SINH_TAY_BK_MAP[0]?.formHref).toContain("bk=BM.07.02");
     expect(isVeSinhTayGscBangKiem("BM.07.02")).toBe(true);
     expect(isVeSinhTayGscBangKiem("BM.08.01")).toBe(false);
+    expect(
+      filterOutHubOwnedBangKiemRows([
+        { ma_bk: "BM.07.01" },
+        { ma_bk: "BM.07.02" },
+        { ma_bk: "BM.07.03" },
+        { ma_bk: "BM.08.01" },
+      ]).map((r) => r.ma_bk),
+    ).toEqual(["BM.08.01"]);
   });
 
   it("picks checklist rates without averaging", () => {

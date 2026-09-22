@@ -11,7 +11,7 @@ import { Bv103AnalyticsPageFrame, Bv103AnalyticsPageSkeleton } from "@/component
 import { bv103DesignTokens } from "@/lib/bv103-design-tokens";
 import { useBaoCaoTongHopData } from "../hooks/useBaoCaoTongHopData";
 import { ComprehensiveKpiCards } from "../components/comprehensive/ComprehensiveKpiCards";
-import { GscBaoCaoPctBlock, VeSinhTayHubCards } from "../components/comprehensive/BaoCaoPctPanels";
+import { GscBaoCaoPctBlock } from "../components/comprehensive/BaoCaoPctPanels";
 import { VeSinhTayBlockCompare } from "../components/comprehensive/VeSinhTayBlockCompare";
 import { ReportPrintNarrativeControls } from "../components/comprehensive/ReportPrintNarrativeControls";
 import { ReportSection, ReportSectionNav } from "../components/comprehensive/ReportSectionNav";
@@ -227,7 +227,6 @@ export function BaoCaoTongHopPage() {
           <ComprehensiveKpiCards payload={d.payload} />
         </ReportSection>
         <ReportSection id="bc-vst" title="Vệ sinh tay — WHO, kỹ thuật, ngoại khoa">
-          <VeSinhTayHubCards payload={d.payload} />
           <VeSinhTayBlockCompare
             payload={d.payload}
             selectedKhoaIds={d.selectedKhoaIds}

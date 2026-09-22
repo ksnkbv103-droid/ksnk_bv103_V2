@@ -36,7 +36,8 @@ Trên **Báo cáo tổng hợp** (`/bao-cao-tong-hop`) mục chính **Vệ sinh 
 Công thức và top lỗi: [`13-BAO-CAO-PCT-SSOT.md`](./13-BAO-CAO-PCT-SSOT.md). `n_ap_dung = 0` → «—».
 
 - **Không** average ba khối thành một %.
-- Pool `ty_le_bk` toàn GSC ở mục **Giám sát chung**, nhãn «pool GSC (mọi BK)» — không xếp cạnh 3 KPI vệ sinh tay.
+- Pool `ty_le_bk` toàn GSC ở mục **Giám sát chung**, nhãn «pool GSC (mọi BK)» — không xếp cạnh 3 KPI vệ sinh tay. BM.02/03 không vào list GSC generic.
+- Mỗi khối có lens hình thức riêng (không lens chung WHO+GSC). Cách thức là lọc, không phải lens.
 - `ty_le_dung_ky_thuat` là chỉ số phụ phiếu WHO, khác BM.02 `ty_le_vst_ky_thuat`.
 - Cùng filter kỳ / khoa / lens TGS|KSNK của BCTH.
 - Tab chuyên đề VST cũng tải GSC (để có BM.02/03) — `shouldFetchSource("VST", "GSC") === true`.

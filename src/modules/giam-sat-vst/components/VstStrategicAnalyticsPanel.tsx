@@ -56,9 +56,6 @@ export default function VstStrategicAnalyticsPanel(p: Props) {
       { title: "Theo chức năng phòng", rows: toCompareRows(p.payload?.matrix_khu_vuc) },
       { title: "Theo đối tượng (nghề)", rows: toCompareRows(p.payload?.matrix_nghe) },
       { title: "Theo hình thức giám sát", rows: toCompareRows(p.payload?.matrix_hinh_thuc) },
-      ...(p.payload?.matrix_cach_thuc?.length
-        ? [{ title: "Theo cách thức giám sát", rows: toCompareRows(p.payload.matrix_cach_thuc) }]
-        : []),
     ],
     [p.payload],
   );

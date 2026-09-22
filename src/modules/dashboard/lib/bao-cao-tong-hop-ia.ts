@@ -2,6 +2,7 @@ import { buildGscAnalyticsDeepLink } from "@/lib/analytics/supervision-deep-link
 import { PCT_SURFACE_LABEL } from "@/lib/analytics/supervision-source-labels";
 import { buildVeSinhTayHub, PCT_EMPTY } from "@/lib/domain/bao-cao-pct";
 import { pickVeSinhTayChecklistRates, VE_SINH_TAY_WHO } from "@/lib/domain/ve-sinh-tay-catalog";
+import type { GscChecklistDetailPayload } from "@/modules/giam-sat-chung/types/gsc-strategic.types";
 import type { BaoCaoTongHopPayload } from "../types/bao-cao-tong-hop.types";
 import { buildAnalyticsDeepLink } from "./bao-cao-tong-hop-core";
 
@@ -40,10 +41,69 @@ export const BCTH_GSC_POOL_SURFACE = "bc-gsc" as const satisfies BcthReportSecti
 
 export const BCTH_VST_KPI_FIELDS = ["ty_le_vst", "ty_le_vst_ky_thuat", "ty_le_vst_ngoai_khoa"] as const;
 
+/** Lock S — 4 bề mặt. BM.02/03 thuộc hub, không list GSC generic. */
+export const BCTH_SURFACES = [
+  { id: "SURF_WHO", field: "ty_le_vst", section: "bc-vst", card: 1 },
+  { id: "SURF_BM02", field: "ty_le_vst_ky_thuat", section: "bc-vst", card: 2, maBk: "BM.07.02" },
+  { id: "SURF_BM03", field: "ty_le_vst_ngoai_khoa", section: "bc-vst", card: 3, maBk: "BM.07.03" },
+  { id: "SURF_GSC", field: "ty_le_bk", section: "bc-gsc", card: null },
+] as const;
+
+export type BcthSurfaceId = (typeof BCTH_SURFACES)[number]["id"];
+
+export type SurfDimFlags = {
+  khoa: boolean;
+  doiTuong: boolean;
+  khuVuc: boolean;
+  lensHt: boolean;
+};
+
+function dimFlags(counts: { khoa: number; doiTuong: number; khuVuc: number; hinhThuc: number }): SurfDimFlags {
+  return {
+    khoa: counts.khoa > 0,
+    doiTuong: counts.doiTuong > 0,
+    khuVuc: counts.khuVuc > 0,
+    lensHt: counts.hinhThuc > 0,
+  };
+}
+
+/** Cờ đối tượng / khu vực / lens HT của WHO — không đọc ma trận GSC. */
+export function whoSurfFlags(payload: BaoCaoTongHopPayload | null): SurfDimFlags {
+  const vst = payload?.vst;
+  return dimFlags({
+    khoa: vst?.gap_analysis?.length ?? 0,
+    doiTuong: vst?.matrix_nghe?.length ?? 0,
+    khuVuc: vst?.matrix_khu_vuc?.length ?? 0,
+    hinhThuc: vst?.matrix_hinh_thuc?.length ?? 0,
+  });
+}
+
+/** Cờ SURF_GSC — không đọc ma trận WHO. */
+export function gscSurfFlags(payload: BaoCaoTongHopPayload | null): SurfDimFlags {
+  const gsc = payload?.gsc;
+  return dimFlags({
+    khoa: gsc?.gap_analysis?.length ?? 0,
+    doiTuong: gsc?.matrix_nghe?.length ?? 0,
+    khuVuc: gsc?.matrix_khu_vuc?.length ?? 0,
+    hinhThuc: gsc?.matrix_hinh_thuc?.length ?? 0,
+  });
+}
+
+/** Cờ BM.02/03 — chỉ ma trận chi tiết bảng kiểm đó. */
+export function bkSurfFlags(detail: GscChecklistDetailPayload | null | undefined): SurfDimFlags {
+  return dimFlags({
+    khoa: detail?.gap_analysis?.length ?? 0,
+    doiTuong: detail?.matrix_nghe?.length ?? 0,
+    khuVuc: detail?.matrix_khu_vuc?.length ?? 0,
+    hinhThuc: detail?.matrix_hinh_thuc?.length ?? 0,
+  });
+}
+
 export type BcthVstKpiId = "who" | "bm02" | "bm03";
 
 export type BcthVstKpiSlot = {
   id: BcthVstKpiId;
+  surf: "SURF_WHO" | "SURF_BM02" | "SURF_BM03";
   field: (typeof BCTH_VST_KPI_FIELDS)[number];
   label: string;
   code: string;
@@ -101,6 +161,7 @@ export function buildBcthVstKpiSlots(
   return [
     {
       id: "who",
+      surf: "SURF_WHO",
       field: "ty_le_vst",
       label: VE_SINH_TAY_WHO.label,
       code: PCT_SURFACE_LABEL.whoTyLeVst,
@@ -112,6 +173,7 @@ export function buildBcthVstKpiSlots(
     },
     {
       id: "bm02",
+      surf: "SURF_BM02",
       field: "ty_le_vst_ky_thuat",
       label: kt?.label ?? "Kỹ thuật VST thường quy",
       code: PCT_SURFACE_LABEL.bm02KyThuat,
@@ -123,6 +185,7 @@ export function buildBcthVstKpiSlots(
     },
     {
       id: "bm03",
+      surf: "SURF_BM03",
       field: "ty_le_vst_ngoai_khoa",
       label: nk?.label ?? "VST ngoại khoa",
       code: PCT_SURFACE_LABEL.bm03NgoaiKhoa,

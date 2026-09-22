@@ -84,6 +84,15 @@ export function filterOutWhoBangKiemRows<T extends { ma_bk?: string | null }>(ro
   return rows.filter((r) => !isWhoObservationBangKiem(r.ma_bk));
 }
 
+/** Hub vệ sinh tay sở hữu BM.02/03 (và WHO). Không đưa vào list GSC generic. */
+export function isHubOwnedBangKiem(maBk: string | null | undefined): boolean {
+  return isWhoObservationBangKiem(maBk) || isVeSinhTayGscBangKiem(maBk);
+}
+
+export function filterOutHubOwnedBangKiemRows<T extends { ma_bk?: string | null }>(rows: readonly T[]): T[] {
+  return rows.filter((r) => !isHubOwnedBangKiem(r.ma_bk));
+}
+
 export function resolveVeSinhTayBkMap(maOrAlias: string | null | undefined): VeSinhTayBkMap | null {
   const ma = normalizeBangKiemMa(maOrAlias);
   if (!ma) return null;

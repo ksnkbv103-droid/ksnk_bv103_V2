@@ -7,6 +7,7 @@ import { resolveSortedChecklistOverview } from "@/lib/analytics/gsc-checklist-in
 import { formatPercent1 } from "@/lib/analytics/supervision-percent";
 import { gscTyLeFromMatrixCounts } from "@/lib/analytics/supervision-matrix-mappers";
 import { rankTopLoi } from "@/lib/domain/bao-cao-pct";
+import { filterOutHubOwnedBangKiemRows } from "@/lib/domain/ve-sinh-tay-catalog";
 import { complianceToneFromPercent } from "@/lib/analytics/supervision-thresholds";
 import type { GscChecklistOverviewRow, GscStrategicPayload } from "../types/gsc-strategic.types";
 import { gscFormChrome as UI } from "../lib/gsc-form-chrome";
@@ -58,7 +59,7 @@ export function GscChecklistNavigator({
   }, [payload?.top_violations]);
 
   const rows = useMemo(() => {
-    const list = resolveSortedChecklistOverview(payload);
+    const list = filterOutHubOwnedBangKiemRows(resolveSortedChecklistOverview(payload));
     const sliced = effectiveLimit > 0 ? list.slice(0, effectiveLimit) : list;
     return sliced.map((r) => ({
       ...r,
@@ -66,7 +67,7 @@ export function GscChecklistNavigator({
     }));
   }, [payload, bkLabelRecord, effectiveLimit]);
   const hiddenCount = useMemo(() => {
-    const total = resolveSortedChecklistOverview(payload).length;
+    const total = filterOutHubOwnedBangKiemRows(resolveSortedChecklistOverview(payload)).length;
     return effectiveLimit > 0 ? Math.max(0, total - effectiveLimit) : 0;
   }, [payload, effectiveLimit]);
 
@@ -85,7 +86,8 @@ export function GscChecklistNavigator({
         <p className="mt-0.5 text-[11px] text-slate-500">
           {effectiveLimit > 0
             ? `Năm biểu mẫu tuân thủ thấp / vi phạm nhiều${hiddenCount > 0 ? ` (còn ${hiddenCount})` : ""}.`
-            : "Sắp xếp theo rủi ro. Chọn một dòng để xem lỗi theo khoa và tiêu chí."}
+            : "Sắp xếp theo rủi ro. Chọn một dòng để xem lỗi theo khoa và tiêu chí."}{" "}
+          BM.02 và BM.03 thuộc vệ sinh tay — không nằm list này.
         </p>
         {hiddenCount > 0 ? (
           <button

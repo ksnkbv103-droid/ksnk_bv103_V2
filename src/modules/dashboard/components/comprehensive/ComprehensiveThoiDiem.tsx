@@ -26,12 +26,6 @@ export function ComprehensiveThoiDiem({ payload }: { payload: BaoCaoTongHopPaylo
         dat: Number(r.tong_dat ?? 0),
         ty_le: Number(r.ty_le_tuan_thu ?? 0),
       })),
-      ...(payload?.gsc?.matrix_cach_thuc ?? []).map((r) => ({
-        ten: String(r.ten || "Cách thức"),
-        tong: Number(r.tong_quan_sat ?? 0),
-        dat: Number(r.tong_dat ?? 0),
-        ty_le: Number(r.ty_le_tuan_thu ?? 0),
-      })),
     ]
       .filter((r) => r.tong > 0)
       .sort((a, b) => a.ty_le - b.ty_le);
@@ -65,7 +59,7 @@ export function ComprehensiveThoiDiem({ payload }: { payload: BaoCaoTongHopPaylo
           }))}
         />
         <MomentTable
-          title="GSC — hình thức / cách thức"
+          title="GSC — hình thức (HT)"
           rows={gscSlots.map((m) => ({
             ten: m.ten,
             ty_le: m.ty_le,

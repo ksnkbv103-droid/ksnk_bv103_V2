@@ -6,11 +6,15 @@ import {
   BCTH_MORE_SECTIONS,
   BCTH_PRIMARY_SECTIONS,
   BCTH_VST_KPI_FIELDS,
+  BCTH_SURFACES,
   BCTH_VST_KPI_SURFACE,
   bcthFrontProcessFields,
   bcthVstStatsHref,
+  bkSurfFlags,
   buildBcthVstKpiSlots,
+  gscSurfFlags,
   isGscPoolField,
+  whoSurfFlags,
 } from "./bao-cao-tong-hop-ia";
 
 describe("BCTH IA — 3 KPI VST tách pool GSC", () => {
@@ -98,7 +102,10 @@ describe("BCTH IA — 3 KPI VST tách pool GSC", () => {
       errors: {},
     });
     const slots = buildBcthVstKpiSlots(payload);
+    expect(slots.map((s) => s.surf)).toEqual(["SURF_WHO", "SURF_BM02", "SURF_BM03"]);
     expect(slots.map((s) => s.field)).toEqual(["ty_le_vst", "ty_le_vst_ky_thuat", "ty_le_vst_ngoai_khoa"]);
+    expect(BCTH_SURFACES.find((s) => s.id === "SURF_GSC")?.section).toBe("bc-gsc");
+    expect(BCTH_SURFACES.filter((s) => s.section === "bc-vst")).toHaveLength(3);
     expect(slots.map((s) => s.display)).toEqual(["80.0%", "75.0%", "—"]);
     expect(slots[0]?.href).toContain("/thong-ke/vst");
     expect(slots[0]?.href).not.toContain("bk=");
@@ -106,6 +113,45 @@ describe("BCTH IA — 3 KPI VST tách pool GSC", () => {
     expect(slots[2]?.href).toContain("bk=BM.07.03");
     expect(slots[1]?.note).toContain("ty_le_dung_ky_thuat");
     expect(slots.some((s) => isGscPoolField(s.field))).toBe(false);
+    expect(whoSurfFlags(payload).doiTuong).toBe(false);
+    expect(whoSurfFlags(payload).khuVuc).toBe(false);
+    const withCuts = {
+      ...payload,
+      vst: {
+        ...payload.vst!,
+        matrix_nghe: [{ id: "n", ten: "ĐD", tong_co_hoi: 4, da_tuan_thu: 3, ty_le_tuan_thu: 75 }],
+        matrix_khu_vuc: [{ ten: "Buồng", tong_co_hoi: 4, da_tuan_thu: 2, ty_le_tuan_thu: 50 }],
+        matrix_hinh_thuc: [{ ten: "Tự giám sát", tong_co_hoi: 4, da_tuan_thu: 3, ty_le_tuan_thu: 75 }],
+        gap_analysis: [{ id: "k1", ten: "A", tgs_co_hoi: 1, tgs_dat: 1, ty_le_tgs: 100, ksnk_co_hoi: 0, ksnk_dat: 0, ty_le_ksnk: null, do_lech: null }],
+      },
+      gsc: {
+        ...payload.gsc!,
+        matrix_nghe: [{ ten: "HS", tong_quan_sat: 9, tong_dat: 8, ty_le_tuan_thu: 88 }],
+        matrix_khu_vuc: [{ ten: "Hành lang", tong_quan_sat: 9, tong_dat: 1, ty_le_tuan_thu: 11 }],
+        matrix_hinh_thuc: [{ ten: "Chuyên trách", tong_quan_sat: 9, tong_dat: 8, ty_le_tuan_thu: 88 }],
+        gap_analysis: [{ id: "k9", ten: "Z", tgs_quan_sat: 2, tgs_dat: 1, ty_le_tgs: 50, ksnk_quan_sat: 2, ksnk_dat: 2, ty_le_ksnk: 100, do_lech: -50 }],
+      },
+    };
+    expect(whoSurfFlags(withCuts)).toEqual({ khoa: true, doiTuong: true, khuVuc: true, lensHt: true });
+    expect(gscSurfFlags(payload).doiTuong).toBe(false);
+    expect(gscSurfFlags(withCuts).doiTuong).toBe(true);
+    expect(gscSurfFlags(withCuts).khuVuc).toBe(true);
+    expect(whoSurfFlags({ ...withCuts, vst: { ...withCuts.vst, matrix_nghe: [] } }).doiTuong).toBe(false);
+    expect(
+      bkSurfFlags({
+        ma_bk: "BM.07.02",
+        ten_bang_kiem: "KT",
+        kpis: { tong_phien: 1, tong_quan_sat: 2, tong_dat: 1, tong_vi_pham: 1, ty_le_tuan_thu: 50 },
+        trendline: [],
+        matrix_khoa: [],
+        matrix_criterion: [],
+        criterion_khoa: [],
+        gap_analysis: [{ id: "k", ten: "A", tgs_quan_sat: 1, tgs_dat: 1, ty_le_tgs: 100, ksnk_quan_sat: 0, ksnk_dat: 0, ty_le_ksnk: null, do_lech: null }],
+        matrix_nghe: [{ ten: "ĐD", tong_quan_sat: 2, tong_dat: 1, ty_le_tuan_thu: 50 }],
+        matrix_khu_vuc: [],
+        matrix_hinh_thuc: [{ ten: "Tự giám sát", tong_quan_sat: 2, tong_dat: 1, ty_le_tuan_thu: 50 }],
+      }),
+    ).toEqual({ khoa: true, doiTuong: true, khuVuc: false, lensHt: true });
     expect(payload.kpis.ty_le_gsc).toBe(50);
     expect(slots.every((s) => s.display !== "50.0%" || s.field !== "ty_le_vst")).toBe(true);
   });

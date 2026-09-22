@@ -13,8 +13,11 @@ import {
   type LensBundle,
   type TopLoiInput,
 } from "@/lib/domain/bao-cao-pct";
+import { toCompareRows } from "@/lib/analytics/supervision-matrix-mappers";
+import type { CompareRow } from "@/lib/analytics/supervision-analytics.types";
+import { filterOutHubOwnedBangKiemRows } from "@/lib/domain/ve-sinh-tay-catalog";
 import { complianceToneFromPercent } from "../../lib/bao-cao-tong-hop-thresholds";
-import { buildBcthVstKpiSlots } from "../../lib/bao-cao-tong-hop-ia";
+import { buildBcthVstKpiSlots, type BcthVstKpiId } from "../../lib/bao-cao-tong-hop-ia";
 import { dashboardChrome as D } from "../../lib/dashboard-chrome";
 import type { BaoCaoTongHopPayload } from "../../types/bao-cao-tong-hop.types";
 
@@ -47,15 +50,43 @@ function LensStrip({ title, bundle }: { title: string; bundle: LensBundle }) {
   );
 }
 
+export function SurfaceCutList({ label, rows }: { label: string; rows: CompareRow[] }) {
+  const visible = rows.filter((r) => (r.tong ?? 0) > 0).slice(0, 8);
+  return (
+    <div>
+      <p className="text-[11px] font-semibold text-slate-600">{label}</p>
+      {visible.length === 0 ? (
+        <p className="text-xs text-slate-500">Chưa có trong kỳ.</p>
+      ) : (
+        <ul className="mt-1 space-y-0.5 text-xs text-slate-700">
+          {visible.map((r) => (
+            <li key={r.ten}>
+              {r.ten}:{" "}
+              <span className="tabular-nums">
+                {r.ty_le_tuan_thu == null ? PCT_EMPTY : `${r.ty_le_tuan_thu.toFixed(1)}%`}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function VeSinhTayHubCards({
   payload,
   deep,
+  lensById,
 }: {
   payload: BaoCaoTongHopPayload | null;
   deep?: Deep;
+  /** Lens HT riêng BM.02/03. Không truyền lens WHO vào hai card kia. */
+  lensById?: Partial<Record<BcthVstKpiId, LensBundle>>;
 }) {
   const cards = buildBcthVstKpiSlots(payload, deep);
   const whoLens = aggregateLensRates(payload?.vst?.matrix_hinh_thuc, "who");
+  const lensOf = (id: BcthVstKpiId) =>
+    id === "who" ? whoLens : (lensById?.[id] ?? aggregateLensRates([], "bk"));
 
   return (
     <div className="mb-5 border-b border-slate-100 pb-5 last:mb-0 last:border-0 last:pb-0">
@@ -69,7 +100,7 @@ export function VeSinhTayHubCards({
         {cards.map((c) => {
           const tone = complianceToneFromPercent(c.rate);
           return (
-            <div key={c.id} className={`rounded-xl border border-slate-200 bg-white px-3 py-3 ${D.trafficText[tone]}`}>
+            <div key={c.id} data-surf={c.surf} className={`rounded-xl border border-slate-200 bg-white px-3 py-3 ${D.trafficText[tone]}`}>
               <p className="bv103-type-label font-semibold text-slate-700">{c.label}</p>
               <p className="mt-0.5 font-mono text-[10px] text-slate-400">{c.code}</p>
               <p className={`mt-2 ${D.kpiValue}`}>{c.display}</p>
@@ -78,11 +109,11 @@ export function VeSinhTayHubCards({
               <Link href={c.href} className="mt-2 inline-flex items-center gap-1 bv103-type-label font-semibold text-emerald-700 hover:underline">
                 Đối tượng và khu vực <ExternalLink size={10} aria-hidden />
               </Link>
+              <LensStrip title={`Lens HT · ${c.code}`} bundle={lensOf(c.id)} />
             </div>
           );
         })}
       </div>
-      <LensStrip title="Lens WHO (ty_le_vst)" bundle={whoLens} />
     </div>
   );
 }
@@ -91,12 +122,12 @@ export function GscBaoCaoPctBlock({ payload }: { payload: BaoCaoTongHopPayload |
   const gsc = payload?.gsc;
   const k = gsc?.kpis;
   const hospital = k ? tyLeBkFromCounts(k.tong_dat, k.tong_quan_sat, k.tong_vi_pham) : null;
-  const overview = gsc?.checklist_overview ?? gsc?.dynamic_checklists ?? [];
+  const overview = filterOutHubOwnedBangKiemRows(gsc?.checklist_overview ?? gsc?.dynamic_checklists ?? []);
   const bmRows = overview.map((row) => ({
     ma_bk: row.ma_bk,
     ...tyLeBkFromCounts(row.tong_dat, row.tong_quan_sat, row.tong_vi_pham),
   }));
-  const loiInputs: TopLoiInput[] = (gsc?.top_violations ?? []).map((v) => ({
+  const loiInputs: TopLoiInput[] = filterOutHubOwnedBangKiemRows(gsc?.top_violations ?? []).map((v) => ({
     id: v.criterion_id,
     ten: v.ten_tieu_chi,
     ma_bk: v.ma_bk,
@@ -123,7 +154,9 @@ export function GscBaoCaoPctBlock({ payload }: { payload: BaoCaoTongHopPayload |
           <strong className="tabular-nums">{formatPctOrDash(hospital?.ty_le_bk ?? null, hospital?.n_ap_dung ?? 0)}</strong>
           {" "}({hospital?.n_dat ?? 0}/{hospital?.n_ap_dung ?? 0} áp dụng, {k.tong_phien} phiên)
         </p>
-        <p className="text-[11px] text-slate-500">Không thuộc 3 KPI vệ sinh tay. Không xếp cạnh WHO, BM.02, BM.03.</p>
+        <p className="text-[11px] text-slate-500">
+          Không thuộc 3 KPI vệ sinh tay. BM.02 và BM.03 do hub giữ — không có trong list này.
+        </p>
         {hospital && hospital.n_ap_dung > 0 && hospital.n_ap_dung < 30 ? (
           <p className="text-[10px] text-slate-400">Dưới ngưỡng diễn giải (áp dụng &lt; 30). Công thức không đổi.</p>
         ) : null}
@@ -164,7 +197,11 @@ export function GscBaoCaoPctBlock({ payload }: { payload: BaoCaoTongHopPayload |
           </ol>
         )}
       </div>
-      <LensStrip title="Lens bảng kiểm (ty_le_bk)" bundle={lens} />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <SurfaceCutList label="Đối tượng · SURF_GSC" rows={toCompareRows(gsc?.matrix_nghe)} />
+        <SurfaceCutList label="Khu vực · SURF_GSC" rows={toCompareRows(gsc?.matrix_khu_vuc)} />
+      </div>
+      <LensStrip title="Lens HT · ty_le_bk" bundle={lens} />
     </div>
   );
 }
