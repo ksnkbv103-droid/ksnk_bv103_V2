@@ -20,6 +20,7 @@ import {
   vaeEventPeriod,
   type NkbvTimelineSyndrome,
 } from "./nkbv-shared-timeline";
+import { resolveSsiSurveillanceDays } from "./nkbv-ssi-nhsn-catalog";
 
 export { addDays, subDays };
 
@@ -137,11 +138,24 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
     iwp_start = iwp.start;
     iwp_end = iwp.end;
   } else if (syndrome === "SSI") {
-    // SSI: surveillance period elsewhere; for symptom window still use detection ±3 for DOE pick heuristic
-    indexDate = override || ngay_phat_hien_clean;
-    const iwp = clinicalIwp(indexDate);
-    iwp_start = iwp.start;
-    iwp_end = iwp.end;
+    // P0: SP từ ngày mổ — không mượn IWP±3 Ch.2. DOE = phần tử đầu ∈ SP.
+    const surgery = String(activeForm?.surgery_date || override || "").slice(0, 10);
+    indexDate = surgery || override || ngay_phat_hien_clean;
+    const limitDays = resolveSsiSurveillanceDays({
+      depth: activeForm?.ssi_depth || "SUPERFICIAL",
+      procedureCode: activeForm?.loai_phau_thuat_nhsn,
+      hasImplantFallback: Boolean(activeForm?.has_implant),
+      eventTypeCode: activeForm?.ssi_event_type,
+    });
+    if (surgery) {
+      iwp_start = surgery;
+      // SP: ngày mổ = ngày 1; còn trong hạn khi elapsed < limitDays → end = surgery+(limitDays-1)
+      iwp_end = addDays(surgery, Math.max(0, limitDays - 1));
+    } else {
+      // Thiếu ngày mổ: fallback hẹp quanh detection (không tuyên bố IWP lâm sàng)
+      iwp_start = subDays(indexDate, 3);
+      iwp_end = addDays(indexDate, 3);
+    }
   } else if (useIwp) {
     // Index = ngày XN/CĐHA Active (override) hoặc theo pneu_trigger — không tự nhảy khi đã chọn CULTURE.
     indexDate = override || ngay_phat_hien_clean;
@@ -170,8 +184,9 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
   }
 
   if (syndrome !== "VAE") {
-    // DOE = ngày sớm nhất có yếu tố TC ∈ IWP (SSOT §3.2) — không mặc định = Index
-    // khi đã có triệu chứng/XQ sớm hơn trong cửa sổ. Index là một ứng viên (cấy/CĐHA).
+    // DOE = ngày sớm nhất có yếu tố TC ∈ IWP/SP (SSOT §3.2) — không mặc định = Index
+    // khi đã có triệu chứng/XQ sớm hơn trong cửa sổ. Index là một ứng viên (cấy/CĐHA)
+    // — trừ SSI: Index = ngày mổ, không phải phần tử tiêu chí.
     symptomKeys.forEach((k) => {
       const raw = symptomDates[k];
       const candidates = Array.isArray(raw)
@@ -186,7 +201,7 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
         }
       }
     });
-    if (indexDate && indexDate >= iwp_start && indexDate <= iwp_end) {
+    if (syndrome !== "SSI" && indexDate && indexDate >= iwp_start && indexDate <= iwp_end) {
       validDates.push(indexDate);
     }
     if (validDates.length > 0) {
@@ -194,7 +209,11 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
       doe = validDates[0];
     } else {
       // Fallback: Index (không kẹt ngày phiếu khi Index đã đổi sang XQ)
-      doe = indexDate || ngay_phat_hien_clean;
+      // SSI thiếu tiêu chí ngày → giữ detection / override, không gán DOE = ngày mổ.
+      doe =
+        syndrome === "SSI"
+          ? override || ngay_phat_hien_clean || indexDate
+          : indexDate || ngay_phat_hien_clean;
     }
   }
 
@@ -227,7 +246,11 @@ export function calculateCdcMetrics(input: CdcMetricsInput): CdcMetricsResult {
   }
 
   const ngay_vao_vien_clean = ngay_vao_vien ? ngay_vao_vien.slice(0, 10) : "";
-  const { dayOfHospitalization, haiStatus } = poaOrHai(ngay_vao_vien_clean, doe);
+  const clinicalPoa = poaOrHai(ngay_vao_vien_clean, doe);
+  // P0: SSI / VAE không dùng POA/HAI day-3 Ch.2 — không gắn nhãn POA theo ngày viện.
+  const dayOfHospitalization = clinicalPoa.dayOfHospitalization;
+  const haiStatus =
+    syndrome === "SSI" || syndrome === "VAE" ? ("HAI" as const) : clinicalPoa.haiStatus;
 
   const stays = [...treatmentHistory].sort((a, b) => a.ngay_vao.localeCompare(b.ngay_vao));
   let attributedStay: DepartmentStay | null = null;

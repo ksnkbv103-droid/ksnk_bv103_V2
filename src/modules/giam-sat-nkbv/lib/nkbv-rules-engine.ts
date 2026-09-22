@@ -15,7 +15,7 @@ import { normalizeCh17EvidenceFlags } from "./nkbv-ch17-legacy-flags";
 import { derivePneuLabTier } from "./nkbv-pneu-lab-tier";
 import { derivePneuSystemic } from "./nkbv-pneu-systemic";
 import { ADULT_VAE_IN_PLAN_REASON, isAdultVaeInPlan } from "./nkbv-pneu-vae-route";
-import { computeVacFromDailyVent } from "./nkbv-vae-vent-compute";
+import { computeVacFromDailyVent, ivacAntimicrobialGate } from "./nkbv-vae-vent-compute";
 import { evaluateSecondaryBsi } from "./nkbv-shared-secondary-bsi";
 import {
   endoExtendedIwp,
@@ -246,7 +246,13 @@ export function evaluateVaeVap(
     }
 
     const hasIvac =
-      (data.temp_fever_or_hypothermia || data.wbc_abnormal) && data.new_antimicrobial_ge_4days;
+      (data.temp_fever_or_hypothermia || data.wbc_abnormal) &&
+      ivacAntimicrobialGate({
+        doe: data.calculated_doe || null,
+        qadCount: data.qad_count,
+        antimicrobialDaily: data.antimicrobial_daily,
+        legacyTick: data.new_antimicrobial_ge_4days,
+      });
     if (!hasIvac) {
       return {
         is_positive: true,
@@ -599,6 +605,30 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
   let reason = "";
 
   if (depth === "ORGAN_SPACE") {
+    // Validate site trước tiêu chí — INVALID_SITE/INCOMPLETE không phụ thuộc matched.
+    const siteCodeEarly = (data.organ_space_site || "").trim();
+    if (!siteCodeEarly) {
+      return {
+        is_positive: false,
+        classification: "INCOMPLETE",
+        reason: "Organ/Space SSI bắt buộc chọn mã vị trí cơ quan (Chương 17 NHSN).",
+      };
+    }
+    if (!getNhsnOrganSpaceSite(siteCodeEarly)) {
+      return {
+        is_positive: false,
+        classification: "INVALID_SITE",
+        reason: `Mã vị trí Organ/Space «${siteCodeEarly}» không thuộc danh mục NHSN.`,
+      };
+    }
+    if (!isOrganSpaceSiteAllowedForProcedure(siteCodeEarly, data.loai_phau_thuat_nhsn)) {
+      return {
+        is_positive: false,
+        classification: "INVALID_SITE",
+        reason: `Mã vị trí «${siteCodeEarly}» không hợp lệ với mã phẫu thuật «${data.loai_phau_thuat_nhsn || "—"}» (PJI chỉ HPRO/KPRO; VCUF chỉ HYST/VHYS).`,
+      };
+    }
+
     const proc = String(data.loai_phau_thuat_nhsn || "").trim().toUpperCase();
     const obgynPainOk =
       !!data.organ_space_obgyn_abdominal_pain &&
@@ -618,13 +648,11 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
       data.organ_space_culture_positive ||
       data.organ_space_abscess_imaging_pathology ||
       obgynPainOk;
-    // Site có định nghĩa Ch.17 → đạt cây tiêu chuẩn hoặc tiêu chí Organ chung (purulent/culture/abscess)
+    // P0: site có định nghĩa Ch.17 → chỉ ch17.met mới vào tử số (không OR generic).
     if (ch17.applicable) {
-      if (ch17.met || genericOrgan) {
+      if (ch17.met) {
         matched = true;
-        reason = ch17.met
-          ? `Organ/Space SSI — ${ch17.reason}`
-          : "Nhiễm khuẩn cơ quan/khoang (Organ/Space SSI) đạt chuẩn CDC/NHSN.";
+        reason = `Organ/Space SSI — ${ch17.reason}`;
       }
     } else if (genericOrgan) {
       matched = true;
@@ -672,27 +700,6 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
 
   if (depth === "ORGAN_SPACE") {
     const siteCode = (data.organ_space_site || "").trim();
-    if (!siteCode) {
-      return {
-        is_positive: false,
-        classification: "INCOMPLETE",
-        reason: "Organ/Space SSI bắt buộc chọn mã vị trí cơ quan (Chương 17 NHSN).",
-      };
-    }
-    if (!getNhsnOrganSpaceSite(siteCode)) {
-      return {
-        is_positive: false,
-        classification: "INVALID_SITE",
-        reason: `Mã vị trí Organ/Space «${siteCode}» không thuộc danh mục NHSN.`,
-      };
-    }
-    if (!isOrganSpaceSiteAllowedForProcedure(siteCode, data.loai_phau_thuat_nhsn)) {
-      return {
-        is_positive: false,
-        classification: "INVALID_SITE",
-        reason: `Mã vị trí «${siteCode}» không hợp lệ với mã phẫu thuật «${data.loai_phau_thuat_nhsn || "—"}» (PJI chỉ HPRO/KPRO; VCUF chỉ HYST/VHYS).`,
-      };
-    }
     reason = `${reason} Vị trí: ${siteCode}.`;
   }
 

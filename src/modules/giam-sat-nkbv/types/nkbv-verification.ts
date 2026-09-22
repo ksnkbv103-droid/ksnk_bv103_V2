@@ -86,7 +86,12 @@ export interface VaeVerificationData extends NkbvAnalysisIndexFields {
   // IVAC criteria (5-day window: DOE +/- 2 days)
   temp_fever_or_hypothermia: boolean; // Sốt > 38°C hoặc hạ thân nhiệt < 36°C
   wbc_abnormal: boolean; // Bạch cầu >= 12,000 hoặc <= 4,000/mm3
+  /** Legacy tick — dùng khi chưa có qad_count / antimicrobial_daily. */
   new_antimicrobial_ge_4days: boolean; // Kháng sinh mới khởi đầu trong window và dùng liên tục >= 4 ngày
+  /** Số Qualifying Antimicrobial Days đã đếm trong VAE Window (ưu tiên hơn tick). */
+  qad_count?: number | null;
+  /** Lịch kháng sinh theo ngày — engine đếm QAD trong DOE±2. */
+  antimicrobial_daily?: { date: string; agent?: string | null }[] | null;
   
   // PVAP criteria (5-day window) — cấy chỉ nâng cấp, không phải cò súng VAE
   has_purulent_sputum_and_positive_culture: boolean; // Đờm mủ (Gram >= 25 BCĐN và <= 10 tb vảy) + Cấy dịch hô hấp (+)

@@ -3,7 +3,7 @@
 | Trường | Giá trị |
 |--------|---------|
 | Mã | `12-BANG-KIEM-inventory-from-KSNK-final` |
-| Phiên bản | **v1.1 local 2026-09-22** (Asia/Saigon) — **PO filter giám sát** · **chưa git commit/push** |
+| Phiên bản | **v1.2** 2026-09-22 — P0-1A: seed `gstt_dm_bang_kiem` chỉ TUÂN THỦ thực hành; OUT audit/CSSD/nhật ký |
 | Nguồn Drive | Folder `Quy trình, quy định, mô tả vị trí việc làm KSNK_final` (`10_190H0LJ551hfUFcpcMGvPPZ2ewIfyE`) |
 | Cross-check | `/workspace/ipc-updated/QT/*.md` + `QD/*.md` |
 | Phạm vi file này | **Chỉ** mẫu bảng kiểm / phiếu quan sát phục vụ **công tác giám sát tuân thủ** (digital GS) — **không** mọi BM trong QT/QĐ |
@@ -156,20 +156,38 @@ Corpus QT.01–38 + QĐ.01–21 có **135** BM có mã. Sau lọc: **69** EXCLUD
 | `KSNK.QT.07.BM.03` | Bảng kiểm đánh giá kỹ thuật vệ sinh tay ngoại khoa | **BK** | có |
 | `KSNK.QT.07.BM.04` | Biểu mẫu tổng hợp tỷ lệ tuân thủ VST và tiêu thụ ABHR | — (OUT) | không — báo cáo |
 
-## 6. Pipeline (không đổi — seed vẫn sau)
+## 6. OUT-by-tick khỏi seed thực hành lâm sàng (P0-1A)
+
+Seed `supabase/seed.sql` → `gstt_dm_bang_kiem` **chỉ** BK giám sát tuân thủ thực hành (VST/GSC bundles, PTPH, tiêm, môi trường lâm sàng…).  
+**Không** seed nhật ký/sổ vận hành, đánh giá hệ thống, CSSD vận hành.
+
+| Tick OUT | Mã short (seed cũ) | Lý do |
+|----------|--------------------|-------|
+| OUT | `BM.19.02` | Nhật ký MEC — `NHAT_KY_VAN_HANH` |
+| OUT | `BM.QĐ.08.01` | Sổ áp suất AIIR — sổ vận hành |
+| OUT | `BM.QĐ.17.01` | Nhật ký phòng sạch / BSC |
+| OUT | `BM.03.03` | ICRA — `DANH_GIA_HE_THONG` (audit) |
+| OUT | `BM.18.02` / `BM.19.01` / `BM.20.02` / `BM.21.04` / `BM.22.04` | CSSD vận hành (làm sạch / KKMĐC / đóng gói / lưu trữ / QC TK) |
+
+**IN-by-tick (giữ seed):** VST `BM.07.02`/`BM.07.03` + gói SSI/CLABSI/CAUTI/VAP + PTPH/tiêm/đường lây/VSMT/CTYT/đồ vải + QĐ khu vực lâm sàng (phòng mổ, Cathlab, PE, labo, bếp, lọc máu…).  
+WHO lưới VST = module `/giam-sat-vst` (không row `BM.07.01` trong `gstt_dm_bang_kiem`).
+
+CSSD kho / đề nghị: module CSSD — không seed vào catalog GS thực hành (liên kết: inventory § EXCLUDE nhật ký CSSD).
+
+## 7. Pipeline
 
 ```text
-1. Inventory filtered (file 12 v1.1)  ← DONE local
-2. PO tick các dòng «cần PO»
+1. Inventory filtered (file 12)     ← DONE
+2. PO tick «cần PO» còn lại          ← tùy UAT
 3. Normalize mã BM ↔ short / gstt_dm
-4. Seed / migration                  ← OUT OF SCOPE lần này
+4. Seed thực hành (P0-1A)            ← DONE — 27 BM TUÂN THỦ
 ```
 
-## 7. Gap / hạn chế
+## 8. Gap / hạn chế
 
 1. Drive folder không có file BM tách riêng — tiêu đề lấy từ mục «BIỂU MẪU» QT/QĐ + extract MD.
 2. Chưa đọc lại từng tiêu chí Đạt/KĐ/NA trong docx; conservative → `cần PO` khi mơ hồ.
 3. BDNL.* / NVKN.* = VTVL — không vào inventory GS.
-4. `canonical-36` lệch thế hệ với mã viện — normalize riêng.
+4. `canonical-36` lệch thế hệ với mã viện — normalize riêng; seed P0-1A đã cắt 9 BM OUT.
 
-*Hết inventory v1.1 local 2026-09-22 (Asia/Saigon) — filtered subset giám sát. Working tree docs only — không git commit/push.*
+*Hết inventory v1.2 — seed thực hành lâm sàng filtered.*

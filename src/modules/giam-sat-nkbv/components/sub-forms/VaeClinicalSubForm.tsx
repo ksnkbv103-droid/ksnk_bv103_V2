@@ -324,11 +324,51 @@ export default function VaeClinicalSubForm({
             <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
               <input
                 type="checkbox"
-                checked={form.new_antimicrobial_ge_4days}
+                checked={
+                  form.qad_count != null
+                    ? Number(form.qad_count) >= 4
+                    : form.new_antimicrobial_ge_4days
+                }
                 disabled={!allowedEdit || isVaeInvalid}
-                onChange={(e) => onChange({ ...form, new_antimicrobial_ge_4days: e.target.checked })}
+                onChange={(e) =>
+                  onChange({
+                    ...form,
+                    new_antimicrobial_ge_4days: e.target.checked,
+                    qad_count: e.target.checked
+                      ? Math.max(4, Number(form.qad_count) || 4)
+                      : form.qad_count != null
+                        ? 0
+                        : form.qad_count,
+                  })
+                }
               />
               Kháng sinh mới ≥4 QAD trong cửa sổ
+            </label>
+            <label className="flex flex-wrap items-center gap-2 text-xs text-slate-700">
+              <span className="font-semibold">QAD (ngày)</span>
+              <input
+                type="number"
+                min={0}
+                max={14}
+                className="w-16 rounded border border-slate-200 px-1.5 py-1 text-xs"
+                disabled={!allowedEdit || isVaeInvalid}
+                value={form.qad_count ?? ""}
+                placeholder="—"
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") {
+                    onChange({ ...form, qad_count: null });
+                    return;
+                  }
+                  const n = Math.max(0, Math.min(14, Math.floor(Number(raw) || 0)));
+                  onChange({
+                    ...form,
+                    qad_count: n,
+                    new_antimicrobial_ge_4days: n >= 4,
+                  });
+                }}
+              />
+              <span className="text-[11px] text-slate-500">Ưu tiên hơn tick · cửa sổ DOE±2</span>
             </label>
           </NkbvFormSection>
         </div>

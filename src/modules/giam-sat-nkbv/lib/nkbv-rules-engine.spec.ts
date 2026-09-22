@@ -240,6 +240,27 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.classification).toBe("MBI_LCBI");
       expect(res.reason).toMatch(/tiêu chảy nặng/i);
     });
+
+    it("P0: Pseudomonas + barrier KHÔNG MBI → CLABSI", () => {
+      const data: BsiVerificationData = {
+        is_fungi_respiratory: false,
+        pathogen_name: "Pseudomonas aeruginosa",
+        pathogen_type: "RECOGNIZED",
+        commensal_culture_count: 0,
+        commensal_drawn_separate: false,
+        symptoms_window_7days: false,
+        cvc_placed_days: 5,
+        cvc_active_on_event: true,
+        is_neutropenia: false,
+        anc_wbc_lt_500_ge_2d: true,
+        is_intestinal_pathogen: false,
+        has_localized_infection: false,
+        localized_pathogen_matches: false,
+        is_in_sbap_window: false,
+        blood_mandatory_for_localized: false,
+      };
+      expect(evaluateBsiClabsi(data).classification).toBe("CLABSI");
+    });
   });
 
   describe("evaluateVaeVap", () => {
@@ -563,6 +584,42 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.is_positive).toBe(false);
       expect(res.classification).toBe("NO_EVENT");
       expect(res.reason).toMatch(/ECMO/i);
+    });
+
+    it("P0 IVAC: QAD count ≥4 nâng VAC→IVAC; QAD 3 giữ VAC dù tick legacy", () => {
+      const base: VaeVerificationData = {
+        patient_age: 60,
+        vent_days: 6,
+        has_stable_baseline_peep_fio2: true,
+        peep_increase_ge_3: true,
+        fio2_increase_ge_20: false,
+        temp_fever_or_hypothermia: true,
+        wbc_abnormal: false,
+        new_antimicrobial_ge_4days: true,
+        has_purulent_sputum_and_positive_culture: false,
+        has_quantitative_culture_positive: false,
+        has_respiratory_viral_or_pathogen_test_positive: false,
+        has_chest_imaging_abnormal: false,
+        has_cardiopulmonary_disease_underlying: false,
+        imaging_films_count: 0,
+        fever_or_wbc_abnormal: false,
+        altered_mental_status_ge_70yo: false,
+        respiratory_symptoms_count: 0,
+        microbiology_evidence: "NONE",
+        calculated_doe: "2026-06-10",
+      };
+      expect(evaluateVaeVap({ ...base, qad_count: 4 }).classification).toBe("IVAC");
+      expect(
+        evaluateVaeVap({
+          ...base,
+          qad_count: null,
+          antimicrobial_daily: [
+            { date: "2026-06-08" },
+            { date: "2026-06-09" },
+            { date: "2026-06-10" },
+          ],
+        }).classification,
+      ).toBe("VAC");
     });
 
     it("rejects VAE pathway when not adult ventilated", () => {
@@ -1030,7 +1087,7 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
       expect(res.classification).toBe("INCOMPLETE");
     });
 
-    it("Organ/Space bắt buộc site hợp lệ; PJI chỉ sau HPRO/KPRO", () => {
+    it("Organ/Space bắt buộc site hợp lệ; PJI chỉ sau HPRO/KPRO; Ch.17 bắt buộc khi applicable", () => {
       const base: SsiVerificationData = {
         days_since_surgery: 10,
         has_implant: false,
@@ -1051,8 +1108,16 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
         loai_phau_thuat_nhsn: "COLO",
       };
       expect(evaluateSsi(base).classification).toBe("INCOMPLETE");
+      // P0: mủ/cấy/áp xe đơn không đủ khi site đã có định nghĩa Ch.17
       expect(
         evaluateSsi({ ...base, organ_space_site: "IAB" }).classification,
+      ).toBe("NO_INFECTION");
+      expect(
+        evaluateSsi({
+          ...base,
+          organ_space_site: "IAB",
+          chapter17_flags: { micro_iab_fluid_or_abscess: true },
+        }).classification,
       ).toBe("ORGAN_SPACE:IAB");
       expect(
         evaluateSsi({
@@ -1061,13 +1126,14 @@ describe("CDC/NHSN 2023 Rules Engine tests", () => {
           organ_space_site: "PJI",
         }).classification,
       ).toBe("INVALID_SITE");
+      // PJI có định nghĩa Ch.17 — mủ đơn không đủ tử số
       expect(
         evaluateSsi({
           ...base,
           loai_phau_thuat_nhsn: "KPRO",
           organ_space_site: "PJI",
         }).classification,
-      ).toBe("ORGAN_SPACE:PJI");
+      ).toBe("NO_INFECTION");
     });
 
     it("diagnoses SSI superficial with secondary blood pathogen matching", () => {

@@ -34,6 +34,11 @@ describe("Nkbv Pathogen Classification Rules", () => {
     const staphHom = classifyPathogen("Staphylococcus hominis");
     expect(staphHom.isCommensal).toBe(true);
     expect(staphHom.suggestedType).toBe("COMMON_COMMENSAL");
+
+    // P0: Pseudomonas không thuộc MBI organism list
+    const psa = classifyPathogen("Pseudomonas aeruginosa");
+    expect(psa.isIntestinal).toBe(false);
+    expect(psa.suggestedType).toBe("RECOGNIZED");
   });
 });
 
@@ -206,6 +211,45 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
     expect(metrics.doe).toBe("2026-05-14");
     expect(metrics.sbap_start).toBe("2026-05-11");
     expect(metrics.sbap_end).toBe("2026-05-27");
+  });
+
+  it("P0 SSI: SP từ ngày mổ — không IWP±3; không POA day-3", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-05-20",
+      ngay_vao_vien: "2026-05-19", // hospital day 2 tại DOE
+      checklistType: "SSI",
+      activeForm: {
+        surgery_date: "2026-05-01",
+        ssi_depth: "SUPERFICIAL",
+        ssi_event_type: "SIP",
+        superficial_purulent_drainage: true,
+        loai_phau_thuat_nhsn: "COLO",
+      },
+      symptomDates: { superficial_purulent_drainage: "2026-05-20" },
+      treatmentHistory: [],
+    });
+    expect(metrics.index_date).toBe("2026-05-01");
+    expect(metrics.iwp_start).toBe("2026-05-01");
+    expect(metrics.iwp_end).toBe("2026-05-30"); // SP 30: surgery+(30-1)
+    expect(metrics.doe).toBe("2026-05-20");
+    expect(metrics.uses_clinical_iwp).toBe(false);
+    expect(metrics.haiStatus).toBe("HAI"); // SSI không gắn POA Ch.2
+  });
+
+  it("P0 VAE: Event Period; không POA day-3 dù ngày viện 1–2", () => {
+    const metrics = calculateCdcMetrics({
+      ngay_phat_hien: "2026-06-02",
+      ngay_vao_vien: "2026-06-01",
+      checklistType: "VAE",
+      activeForm: { calculated_vac_doe: "2026-06-02" },
+      symptomDates: {},
+      treatmentHistory: [],
+    });
+    expect(metrics.doe).toBe("2026-06-02");
+    expect(metrics.iwp_start).toBe("2026-06-02");
+    expect(metrics.iwp_end).toBe("2026-06-15");
+    expect(metrics.uses_clinical_iwp).toBe(false);
+    expect(metrics.haiStatus).toBe("HAI");
   });
 
   it("CH17 IWP ±3 và uses_clinical_iwp", () => {

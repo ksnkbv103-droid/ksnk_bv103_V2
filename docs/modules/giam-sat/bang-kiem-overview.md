@@ -2,10 +2,10 @@
 
 > Chi tiết đầy đủ (machine source): [`../../data/bang-kiem/canonical-36.md`](../../data/bang-kiem/canonical-36.md)
 
-## Canonical 36 mẫu
+## Canonical seed thực hành (P0-1A)
 
-- Cutover 2026-05-29: 51 → **36** mẫu `gstt_dm_bang_kiem` seed từ `canonical-36.md`
-- Generator: `scripts/generate-canonical-36-cutover.mjs`
+- Cutover 2026-05-29: 51 → 36 mẫu; **2026-09-22 P0-1A:** seed thực hành lâm sàng còn **27** BM (`TUAN_THU`) — OUT nhật ký/audit/CSSD vận hành (xem [`12-BANG-KIEM-inventory-from-KSNK-final.md`](12-BANG-KIEM-inventory-from-KSNK-final.md) §6).
+- Generator lịch sử: `scripts/generate-canonical-36-cutover.mjs`
 - Mã ACT tiêu chí: enrich qua `scripts/enrich-bang-kiem-act-codes.mjs`
 
 ## Tiêu chí trên mẫu (field phiếu GSC)

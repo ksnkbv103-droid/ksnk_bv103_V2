@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeVacFromDailyVent, buildEmptyVentDays } from "./nkbv-vae-vent-compute";
+import { computeVacFromDailyVent, buildEmptyVentDays, computeVaeQad, ivacAntimicrobialGate } from "./nkbv-vae-vent-compute";
 
 describe("nkbv-vae-vent-compute", () => {
   it("buildEmptyVentDays sinh đủ ngày", () => {
@@ -32,5 +32,44 @@ describe("nkbv-vae-vent-compute", () => {
       { date: "2026-05-04", peep_min: 5, fio2_min: 40 },
     ]);
     expect(flat.peep_increase_ge_3 || flat.fio2_increase_ge_20).toBe(false);
+  });
+
+  it("P0 IVAC QAD: đếm ngày kháng sinh trong DOE±2", () => {
+    expect(
+      computeVaeQad({
+        doe: "2026-06-10",
+        antimicrobialDaily: [
+          { date: "2026-06-08" },
+          { date: "2026-06-09" },
+          { date: "2026-06-10" },
+          { date: "2026-06-11" },
+          { date: "2026-06-01" }, // ngoài cửa sổ
+        ],
+      }),
+    ).toBe(4);
+    expect(
+      ivacAntimicrobialGate({
+        doe: "2026-06-10",
+        antimicrobialDaily: [
+          { date: "2026-06-08" },
+          { date: "2026-06-09" },
+          { date: "2026-06-10" },
+        ],
+        legacyTick: true,
+      }),
+    ).toBe(false); // chỉ 3 QAD — tick legacy bị ghi đè khi có lịch
+    expect(
+      ivacAntimicrobialGate({
+        doe: "2026-06-10",
+        qadCount: 4,
+        legacyTick: false,
+      }),
+    ).toBe(true);
+    expect(
+      ivacAntimicrobialGate({
+        doe: "2026-06-10",
+        legacyTick: true,
+      }),
+    ).toBe(true); // fallback tick khi chưa có QAD
   });
 });

@@ -125,3 +125,52 @@ export function buildEmptyVentDays(startDate: string, count: number): VaeVentDai
   }
   return out;
 }
+
+/**
+ * Qualifying Antimicrobial Days trong cửa sổ IVAC (DOE ± 2 ngày lịch).
+ * Đếm số ngày lịch có ≥1 kháng sinh ghi nhận trong cửa sổ — đủ ≥4 QAD mới đạt IVAC.
+ */
+export function computeVaeQad(input: {
+  doe: string;
+  antimicrobialDaily?: { date: string; agent?: string | null }[] | null;
+  /** Nếu đã đếm sẵn — ưu tiên. */
+  qadCount?: number | null;
+}): number | null {
+  if (input.qadCount != null && Number.isFinite(Number(input.qadCount))) {
+    return Math.max(0, Math.floor(Number(input.qadCount)));
+  }
+  const doe = String(input.doe || "").slice(0, 10);
+  const days = input.antimicrobialDaily;
+  if (!doe || !days?.length) return null;
+
+  const windowStart = new Date(`${doe}T12:00:00`);
+  windowStart.setDate(windowStart.getDate() - 2);
+  const windowEnd = new Date(`${doe}T12:00:00`);
+  windowEnd.setDate(windowEnd.getDate() + 2);
+  const start = windowStart.toISOString().slice(0, 10);
+  const end = windowEnd.toISOString().slice(0, 10);
+
+  const unique = new Set<string>();
+  for (const row of days) {
+    const d = String(row?.date || "").slice(0, 10);
+    if (!d) continue;
+    if (d >= start && d <= end) unique.add(d);
+  }
+  return unique.size;
+}
+
+/** IVAC abx gate: QAD ≥4 khi có số liệu; ngược lại fallback tick legacy. */
+export function ivacAntimicrobialGate(input: {
+  doe?: string | null;
+  qadCount?: number | null;
+  antimicrobialDaily?: { date: string; agent?: string | null }[] | null;
+  legacyTick: boolean;
+}): boolean {
+  const qad = computeVaeQad({
+    doe: String(input.doe || ""),
+    antimicrobialDaily: input.antimicrobialDaily,
+    qadCount: input.qadCount,
+  });
+  if (qad != null) return qad >= 4;
+  return Boolean(input.legacyTick);
+}

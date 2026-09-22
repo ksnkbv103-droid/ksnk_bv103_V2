@@ -30,4 +30,9 @@ describe("prepopulate* không thổi số", () => {
     expect(d.urine_cfu_count).toBe(100000);
     expect(d.pathogen_count).toBe(1);
   });
+
+  it("P0: Pseudomonas không prefill is_intestinal_pathogen", () => {
+    const d = prepopulateBsiData({ tac_nhan_vi_khuan: "Pseudomonas aeruginosa" });
+    expect(d.is_intestinal_pathogen).toBe(false);
+  });
 });
