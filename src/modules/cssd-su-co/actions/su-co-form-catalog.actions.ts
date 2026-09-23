@@ -5,6 +5,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase-server";
 import { verifyCssdIncidentCreate } from "@/lib/cssd-server-gates";
 import { getErrorMessage } from "@/modules/cssd-erp/shared/cssd-db-utils";
 import { resolveCssdCodeWithClient } from "@/modules/cssd-erp/shared/application/cssd-qr-hub";
+import { resolveSelectableSuCoSet } from "../application/su-co-open-cycle-query";
 import { INCIDENT_STATION_OPTIONS } from "../domain/cssd-incident-taxonomy";
 import { listCyclePerformers, readFaultStationOperator } from "../domain/cssd-incident-trace";
 
@@ -79,23 +80,16 @@ export async function resolveSuCoFaultTrace(maQR: string, faultStation: Station)
     const raw = String(maQR || "").trim().toUpperCase();
     if (!raw) return { success: false as const, error: "Thiếu mã QR bộ dụng cụ." };
 
-    const resolved = await resolveCssdCodeWithClient(supabase, raw);
-    if (resolved.targetType === "MACHINE") {
-      return { success: false as const, error: "Mã quét là máy — cần mã QR bộ dụng cụ." };
-    }
-    if (resolved.targetType !== "INSTRUMENT_SET" || !resolved.workflowId) {
-      return { success: false as const, error: "Không tìm thấy chu trình cho mã QR này." };
+    const gate = await resolveSelectableSuCoSet(supabase, raw);
+    if (!gate.ok) {
+      const resolved = await resolveCssdCodeWithClient(supabase, raw);
+      if (resolved.targetType === "MACHINE") {
+        return { success: false as const, error: "Mã quét là máy — cần mã QR bộ dụng cụ." };
+      }
+      return { success: false as const, error: gate.error };
     }
 
-    const { data: quyTrinh, error } = await supabase
-      .from("v_cssd_quy_trinh_full")
-      .select("*")
-      .eq("id", resolved.workflowId)
-      .maybeSingle();
-    if (error) return { success: false as const, error: error.message };
-    if (!quyTrinh) return { success: false as const, error: "Không tìm thấy chu trình cho mã QR này." };
-
-    const row = quyTrinh as Record<string, unknown>;
+    const row = gate.row;
     const { operatorId, stationTime } = readFaultStationOperator(row, faultStation);
     const performers = listCyclePerformers(row);
     const ids = Array.from(
@@ -129,7 +123,7 @@ export async function resolveSuCoFaultTrace(maQR: string, faultStation: Station)
 
     return {
       success: true as const,
-      maQR: resolved.code,
+      maQR: gate.code,
       quyTrinhId: String(row.id || ""),
       operatorName,
       operatorId,

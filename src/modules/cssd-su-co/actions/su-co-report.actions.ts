@@ -5,6 +5,8 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import { revalidateCssdIncidentSurfaces, revalidateCssdInventorySurfaces } from "@/lib/cssd-server-common";
 import { verifyCssdIncidentCreate, verifyCssdIncidentPrint } from "@/lib/cssd-server-gates";
 import { resolveCssdCodeWithClient } from "@/modules/cssd-erp/shared/application/cssd-qr-hub";
+import { resolveSelectableSuCoSet } from "../application/su-co-open-cycle-query";
+import { normalizeSuCoSetCode } from "../domain/cssd-su-co-set-eligibility";
 import { cssdIncidentReportInputSchema } from "../contracts/su-co-report-input.schema";
 import { executeIncidentReportAndRollback } from "../application/su-co-report.application";
 import { executeConfirmIncidentReport } from "../application/confirm-incident.application";
@@ -78,35 +80,36 @@ export async function createIncidentReport(data: {
   const supabase = createAdminSupabaseClient();
   await verifyCssdIncidentCreate();
   const parsed = cssdIncidentReportInputSchema.parse(data);
-  
+
   let qr: string | undefined = undefined;
   let q: Record<string, unknown> | null = null;
-  const isSetReconcile = Boolean(parsed.setReconcilePayload);
 
   if (parsed.maQR) {
-    const resolved = await resolveCssdCodeWithClient(supabase, parsed.maQR);
-    if (resolved.targetType === "MACHINE") {
-      throw new Error("Mã vừa quét là mã máy. Báo sự cố quy trình cần mã QR bộ dụng cụ.");
+    const gate = await resolveSelectableSuCoSet(supabase, parsed.maQR);
+    if (!gate.ok) {
+      const resolved = await resolveCssdCodeWithClient(supabase, parsed.maQR);
+      if (resolved.targetType === "MACHINE") {
+        throw new Error("Mã vừa quét là mã máy. Báo sự cố quy trình cần mã QR bộ dụng cụ.");
+      }
+      throw new Error(gate.error);
     }
-    if (resolved.targetType !== "INSTRUMENT_SET") {
-      throw new Error("Mã QR không tồn tại trong hệ thống!");
+    qr = gate.code;
+    q = gate.row;
+    if (parsed.setReconcilePayload && gate.boDungCuId && !parsed.setReconcilePayload.boDungCuId) {
+      parsed.setReconcilePayload.boDungCuId = gate.boDungCuId;
     }
-    if (!isSetReconcile && !resolved.workflowId) {
-      throw new Error("Mã QR không tồn tại trong hệ thống!");
-    }
-    qr = resolved.code;
-    if (parsed.setReconcilePayload && resolved.boDungCuId && !parsed.setReconcilePayload.boDungCuId) {
-      parsed.setReconcilePayload.boDungCuId = resolved.boDungCuId;
-    }
-    if (resolved.workflowId) {
-      const { data: quyTrinh, error: qReadErr } = await supabase
-        .from("v_cssd_quy_trinh_full")
-        .select("*")
-        .eq("id", resolved.workflowId)
-        .maybeSingle();
-      if (qReadErr) throw new Error("Lỗi đọc quy trình: " + qReadErr.message);
-      if (quyTrinh) q = quyTrinh as Record<string, unknown>;
-    }
+  }
+
+  const destCodes = new Set<string>();
+  const sourceCode = normalizeSuCoSetCode(qr);
+  if (parsed.instrumentPayload?.maQrDen) destCodes.add(normalizeSuCoSetCode(parsed.instrumentPayload.maQrDen));
+  for (const line of parsed.setReconcilePayload?.lines || []) {
+    if (line.maQrDen) destCodes.add(normalizeSuCoSetCode(line.maQrDen));
+  }
+  for (const dest of destCodes) {
+    if (!dest || dest === sourceCode) continue;
+    const destGate = await resolveSelectableSuCoSet(supabase, dest);
+    if (!destGate.ok) throw new Error(`${dest} — ${destGate.error}`);
   }
 
   let reporterEmail: string | null = null;

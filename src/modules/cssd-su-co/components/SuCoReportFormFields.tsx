@@ -32,6 +32,7 @@ import {
 } from "../domain/cssd-batch-recall";
 import Link from "next/link";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { SU_CO_SET_PICKER_EMPTY } from "../domain/cssd-su-co-set-eligibility";
 import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import IncidentPrintView from "./IncidentPrintView";
@@ -177,6 +178,9 @@ export function BoSourceFields({
             />
           }
         />
+        {!boLoading && boOptions.length === 0 ? (
+          <p className="text-[11px] font-medium text-slate-500">{SU_CO_SET_PICKER_EMPTY}</p>
+        ) : null}
       </div>
       {trailing}
     </div>

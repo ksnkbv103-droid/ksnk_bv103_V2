@@ -10,7 +10,10 @@ import {
   listSuCoNhanSuOptionsAction,
   resolveSuCoFaultTrace,
 } from "../actions/su-co-form-catalog.actions";
-import { listActiveBoForInstrumentTransferAction } from "../actions/su-co-bo-picker.actions";
+import {
+  listActiveBoForInstrumentTransferAction,
+  resolveSuCoSelectableBoAction,
+} from "../actions/su-co-bo-picker.actions";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { createIncidentReport, getIncidentForPrint } from "../actions/su-co-report.actions";
 import {
@@ -166,9 +169,23 @@ export default function SuCoReportForm({
 
   useEffect(() => {
     if (!enabled) return;
-    if (initialMaQR) setMaQR(initialMaQR);
     if (initialMaLo) setMaLo(initialMaLo);
     if (initialLoTietKhuanId) setLoTietKhuanId(initialLoTietKhuanId);
+    const prefill = String(initialMaQR || "").trim();
+    if (!prefill) return;
+    let alive = true;
+    void resolveSuCoSelectableBoAction(prefill).then((res) => {
+      if (!alive) return;
+      if (!res.success) {
+        setMaQR("");
+        toast.error(res.error || "Bộ không còn trong chu trình xử lý.");
+        return;
+      }
+      setMaQR(res.code);
+    });
+    return () => {
+      alive = false;
+    };
   }, [enabled, initialMaQR, initialMaLo, initialLoTietKhuanId]);
 
   useEffect(() => {
@@ -346,30 +363,80 @@ export default function SuCoReportForm({
     void runFaultTrace(maQR, faultStation, true);
   }, [incidentGroup, maQR, faultStation, runFaultTrace]);
 
+  const rejectSetCode = (code: string, message: string) => {
+    toast.error(message);
+    setMaQR((cur) => (cur.trim().toUpperCase() === code.trim().toUpperCase() ? "" : cur));
+    setDestMa((cur) => (cur.trim().toUpperCase() === code.trim().toUpperCase() ? "" : cur));
+  };
+
+  const acceptSelectableSet = async (raw: string) => {
+    const code = raw.trim();
+    if (!code) return null;
+    const eligible = await resolveSuCoSelectableBoAction(code);
+    if (!eligible.success) {
+      const { resolveCssdCodeAction } = await import("@/modules/cssd-erp/actions/cssd-qr.actions");
+      const hub = await resolveCssdCodeAction(code);
+      if (hub.success && hub.targetType === "MACHINE") return { kind: "MACHINE" as const, hub };
+      rejectSetCode(code, eligible.error || "Bộ không còn trong chu trình xử lý.");
+      return null;
+    }
+    return { kind: "SET" as const, code: eligible.code };
+  };
+
   const processQrCode = async (raw: string, mode: "SET" | "MACHINE" = "SET") => {
     const code = raw.trim();
     if (!code) return;
 
     setLoading(true);
     try {
-      const { resolveCssdCodeAction } = await import("@/modules/cssd-erp/actions/cssd-qr.actions");
-      const res = await resolveCssdCodeAction(code);
-      if (!res.success) {
-        toast.error(res.error || "Không nhận diện được mã QR.");
-        return;
-      }
-      if (mode === "MACHINE" || res.targetType === "MACHINE") {
+      if (mode === "MACHINE") {
+        const { resolveCssdCodeAction } = await import("@/modules/cssd-erp/actions/cssd-qr.actions");
+        const res = await resolveCssdCodeAction(code);
+        if (!res.success) {
+          toast.error(res.error || "Không nhận diện được mã QR.");
+          return;
+        }
+        if (res.targetType !== "MACHINE" || !res.machineId) {
+          toast.error("Mã quét không phải máy.");
+          return;
+        }
         setIncidentGroup("EQUIPMENT");
-        setMachineId(res.machineId || "");
+        setMachineId(res.machineId);
         setMaQR("");
         toast.success(`Đã nhận diện máy: ${res.machineCode || res.machineId}`);
         return;
       }
-      setMaQR(res.code);
-      toast.success(`Đã chọn bộ: ${res.code}`);
-      if (incidentGroup === "PROCESS") await runFaultTrace(res.code, faultStation);
+
+      const accepted = await acceptSelectableSet(code);
+      if (!accepted) return;
+      if (accepted.kind === "MACHINE") {
+        setIncidentGroup("EQUIPMENT");
+        setMachineId(accepted.hub.machineId || "");
+        setMaQR("");
+        toast.success(`Đã nhận diện máy: ${accepted.hub.machineCode || accepted.hub.machineId}`);
+        return;
+      }
+      setMaQR(accepted.code);
+      toast.success(`Đã chọn bộ: ${accepted.code}`);
+      if (incidentGroup === "PROCESS") await runFaultTrace(accepted.code, faultStation);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Lỗi quét QR");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const acceptDestSet = async (raw: string) => {
+    const code = raw.trim();
+    if (!code) return;
+    setLoading(true);
+    try {
+      const eligible = await resolveSuCoSelectableBoAction(code);
+      if (!eligible.success) {
+        rejectSetCode(code, eligible.error || "Bộ đích không còn trong chu trình xử lý.");
+        return;
+      }
+      setDestMa(eligible.code);
     } finally {
       setLoading(false);
     }
@@ -729,7 +796,7 @@ export default function SuCoReportForm({
               onSourceMa={setMaQR}
               onDestMa={setDestMa}
               onScanSource={(code) => void processQrCode(code)}
-              onScanDest={(code) => setDestMa(code.trim().toUpperCase())}
+              onScanDest={(code) => void acceptDestSet(code)}
               onChange={setSetReconcileState}
               onUsesKho={setMoveUsesKho}
             />
