@@ -235,8 +235,5 @@ export async function resolveNextScanStation(maQR: string): Promise<{
   if (next === "TIET_KHUAN") {
     return { success: true, station: "DONG_GOI", needsDongGoiGate: false, needsBatchTab: true };
   }
-  if (next === "DONG_GOI") {
-    return { success: true, station: "DONG_GOI", needsDongGoiGate: true, needsBatchTab: false };
-  }
   return { success: true, station: next, needsDongGoiGate: false, needsBatchTab: false };
 }

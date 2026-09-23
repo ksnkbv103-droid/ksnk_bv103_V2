@@ -7,7 +7,6 @@ import { assertLedgerDuChoCapPhat } from "./cssd-asset-ledger";
 import { assertMergeGateForCapPhat } from "./cssd-merge-gate";
 import { fetchActiveQuyTrinhByScanCode } from "../../shared/application/cssd-workflow-resolve";
 import { assertPackIssuable } from "@/lib/domain/cssd-pack-issuance";
-import { assertPlasmaPackMaterialAllowed } from "@/lib/domain/cssd-packaging-rules";
 import {
   assertLamSachLotSoftGate,
   pickLamSachLotFromPayload,
@@ -65,21 +64,7 @@ export async function executeWorkflowStationScan(
   });
   if (!advance.ok) throw new Error(advance.message);
 
-  // 0. DONG_GOI / pack scan gate — Plasma cấm cellulose (QT.21)
-  if (targetStation === "DONG_GOI") {
-    const method =
-      opts.extraPayload?.phuong_phap_tiet_khuan ??
-      opts.extraPayload?.method ??
-      opts.extraPayload?.recommendedMethod;
-    const packMaterial =
-      opts.extraPayload?.packMaterial ??
-      opts.extraPayload?.vat_lieu_dong_goi ??
-      opts.extraPayload?.vatLieuDongGoi;
-    const plasmaGate = assertPlasmaPackMaterialAllowed({ method, packMaterial });
-    if (!plasmaGate.ok) throw new Error(plasmaGate.message || "Plasma cấm vật liệu đóng gói cellulose.");
-  }
-
-  // 0b. LAM_SACH (QT.18) — soft-warn lot enzyme / washer (không hard-block)
+  // LAM_SACH (QT.18) — soft-warn lot enzyme / washer (không hard-block)
   if (targetStation === "LAM_SACH") {
     const lotGate = assertLamSachLotSoftGate(pickLamSachLotFromPayload(opts.extraPayload));
     if ("warning" in lotGate && lotGate.warning) {
