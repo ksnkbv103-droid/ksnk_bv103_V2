@@ -8,7 +8,7 @@ import type { Station } from "../types/cssd.types";
 import { validateStationAdvance } from "../workflow/domain/cssd-state-engine";
 import { isRejectedLegacyHexBoQr } from "@/lib/domain/cssd-bo-ma";
 
-/** Xác thực mã QR trước khi mở thẻ bộ tại trạm Đóng gói. */
+/** Xác thực mã QR trước bước đóng gói (không mở checklist BOM). */
 export async function prepareDongGoiBomGateScan(
   maQR: string,
   opts?: { edit?: boolean },
@@ -56,7 +56,7 @@ export async function prepareDongGoiBomGateScan(
 
   const boDungCuId = String(qt.bo_dung_cu_id || "").trim();
   if (!boDungCuId) {
-    throw new Error("Quy trình chưa gán bộ dụng cụ — không thể mở bảng kiểm cấu phần.");
+    throw new Error("Quy trình chưa gán bộ dụng cụ — không thể đóng gói.");
   }
 
   return {

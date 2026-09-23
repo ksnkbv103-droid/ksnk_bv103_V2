@@ -84,9 +84,9 @@ export function useCSSDWorkflow() {
         boDungCuId: prep.boDungCuId,
         tenBoDungCu: prep.tenBoDungCu,
       });
-      toast.success(`Mở bảng kiểm cấu phần: ${prep.tenBoDungCu}`);
+      toast.success(`Đóng gói: ${prep.tenBoDungCu}`);
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Không mở được bảng kiểm đóng gói.");
+      toast.error(error instanceof Error ? error.message : "Không mở được bước đóng gói.");
       setDongGoiGate(null);
     } finally {
       setLoading(false);
@@ -217,7 +217,7 @@ export function useCSSDWorkflow() {
 
   const cancelDongGoiGate = useCallback(() => {
     setDongGoiGate(null);
-    toast.message("Đã đóng bảng kiểm — bộ chưa chuyển chờ tiệt khuẩn.");
+    toast.message("Đã đóng — bộ chưa chuyển chờ tiệt khuẩn.");
   }, []);
 
   useEffect(() => {

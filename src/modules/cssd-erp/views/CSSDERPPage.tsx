@@ -103,7 +103,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
 
   const requestSelectStation = (station: Station) => {
     if (showDongGoiGate && station !== currentStation) {
-      toast.message("Đang kiểm bộ — bấm «Đóng» trên thẻ bộ trước khi đổi trạm.");
+      toast.message("Đang ở bước đóng gói — bấm «Đóng (chưa chuyển)» trước khi đổi trạm.");
       return;
     }
     selectStation(station);
@@ -134,7 +134,6 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
           {showDongGoiGate && dongGoiGate ? (
             <CompositionReconcilePanel
               boDungCuId={dongGoiGate.boDungCuId}
-              quyTrinhId={dongGoiGate.quyTrinhId}
               enabled
               gateMode
               advancing={workflowLoading}
@@ -180,12 +179,14 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
         </>
       }
       actions={
-        <a
-          href={CSSD_ROUTES.suCo}
-          className="bv103-control-h inline-flex items-center text-xs font-semibold text-[var(--primary)] hover:underline"
-        >
-          Sự cố & biến động
-        </a>
+        currentStation === "DONG_GOI" ? null : (
+          <a
+            href={CSSD_ROUTES.suCo}
+            className="bv103-control-h inline-flex items-center text-xs font-semibold text-[var(--primary)] hover:underline"
+          >
+            Sự cố & biến động
+          </a>
+        )
       }
     >
       {mainContent}
