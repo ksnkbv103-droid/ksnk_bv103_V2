@@ -22,7 +22,8 @@ export const addQuyTrinhToBatchSchema = z.object({
 export const finishSterilizationBatchSchema = z.object({
   activeMeId: z.string().uuid("ID mẻ không hợp lệ"),
   maLo: z.string().min(1, "Thiếu mã lô"),
-  quyTrinhIds: z.array(z.string().uuid()),
+  /** Bỏ qua khi kết luận — server tự suy bộ trong mẻ. Giữ optional để client cũ không vỡ parse. */
+  quyTrinhIds: z.array(z.string().uuid()).optional().default([]),
   isPass: z.boolean(),
   nguoiUnload: z.string().min(2, "Tên người dỡ quá ngắn"),
   nhietDo: z.string().optional().default(""),

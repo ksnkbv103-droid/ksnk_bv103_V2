@@ -148,7 +148,10 @@ export function useMeTietKhuanWorkflow() {
 
   const assertBatchHeatAllows = async (batchId: string) => {
     const h = await fetchCssdBatchHeatRisk(batchId);
-    if (!h.success) return true;
+    if (!h.success) {
+      toast.error(h.error || "Không kiểm tra được rủi ro nhiệt — đã chặn.");
+      return false;
+    }
     if (h.risk.level === "BLOCK") {
       h.risk.messages.forEach((m) => toast.error(m, { duration: 10000 }));
       return false;
@@ -199,7 +202,6 @@ export function useMeTietKhuanWorkflow() {
     const saved = await finishCssdSterilizationBatch({
       activeMeId: activeMe.id,
       maLo: activeMe.ma_lo_tiet_khuan,
-      quyTrinhIds: items.map((i) => i.id),
       isPass,
       nguoiUnload,
       nhietDo,

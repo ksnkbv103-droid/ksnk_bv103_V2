@@ -1,6 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { appendQuyTrinhException } from "../actions/cssd-action-common";
-
 /**
  * Vào mẻ chỉ qua /cssd-erp/batch — không quét trạm TK trên trang 6 bước.
  * Chỉ bộ **ĐÓNG GÓI** (chưa gắn mẻ khác) mới được quét vào phiếu mẻ mới.
@@ -37,23 +34,4 @@ export function getBatchAddRejectionReason(
   }
 
   return null;
-}
-
-/** Ghi nhật ký: bộ được đưa vào phiếu/mẻ TK (phục vụ truy vết khi sự cố). */
-export async function logQuyTrinhVaoMeTietKhuan(
-  supabase: SupabaseClient,
-  p: { quyTrinhId: string; maVachQr: string; maLo: string; nguoiThucHien: string },
-): Promise<string | null> {
-  try {
-    await appendQuyTrinhException(supabase, p.quyTrinhId, {
-      su_kien: "VAO_ME_TIET_KHUAN",
-      tu_tram: "DONG_GOI",
-      den_tram: "TIET_KHUAN",
-      ly_do: `Phiếu TK ${p.maLo}: nhận bộ ${p.maVachQr} vào mẻ`,
-      nguoi_thao_tac: p.nguoiThucHien,
-    });
-    return null;
-  } catch (err: any) {
-    return err.message || "Lỗi ghi nhận lịch sử vào mẻ.";
-  }
 }

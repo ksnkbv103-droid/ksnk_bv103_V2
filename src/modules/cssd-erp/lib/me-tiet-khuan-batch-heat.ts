@@ -47,3 +47,27 @@ export function evaluateBatchSterilizationHeatRisk(
   messages.push(heat.reason);
   return { level: "OK", heat, messages };
 }
+
+/**
+ * Cổng nhiệt lúc nạp / bắt đầu mẻ.
+ * Lỗi tải BOM hoặc `lines == null` → chặn (fail-closed).
+ * Máy hơi nước: `is_chiu_nhiet` khác true (false, null, thiếu dòng) → chặn.
+ */
+export function assertSteamKitHeatAllowed(input: {
+  isSteam: boolean;
+  lines: Array<{ is_chiu_nhiet: boolean | null }> | null;
+  loadError?: boolean;
+}): { ok: true } | { ok: false; message: string } {
+  if (input.loadError || input.lines == null) {
+    return { ok: false, message: "Không kiểm tra được chịu nhiệt — đã chặn thao tác." };
+  }
+  if (!input.isSteam) return { ok: true };
+  const blocked = input.lines.length === 0 || input.lines.some((line) => line.is_chiu_nhiet !== true);
+  if (blocked) {
+    return {
+      ok: false,
+      message: "Bộ nhạy nhiệt hoặc thiếu dữ liệu chịu nhiệt — không thêm vào mẻ máy hơi nước.",
+    };
+  }
+  return { ok: true };
+}

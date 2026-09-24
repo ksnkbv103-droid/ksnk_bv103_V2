@@ -153,7 +153,7 @@ export async function loadBomLinesWithLoaiSpec(
     return {
       ...line,
       loai_id: String(spec?.id || line.line_key),
-      is_chiu_nhiet: spec?.is_chiu_nhiet !== false,
+      is_chiu_nhiet: spec?.is_chiu_nhiet === true,
       phan_loai_spaulding: normalizeSpaulding(spec?.phan_loai_spaulding),
       phuong_phap_tiet_khuan_chi_dinh: normalizeSteamMethod(spec?.phuong_phap_tiet_khuan_chi_dinh),
     };

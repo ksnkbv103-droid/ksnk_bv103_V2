@@ -219,15 +219,41 @@ export async function executeRejectToPreviousStation(
   const lyDo = String(opts.lyDo || "").trim();
   if (!lyDo) throw new Error("Vui lòng nhập lý do trả lui.");
 
+  let clearLoTietKhuan = false;
+  if (currentStatus === "DONG_GOI") {
+    const { data: qtRow, error: qtErr } = await supabase
+      .from("cssd_fact_quy_trinh")
+      .select("lo_tiet_khuan_id")
+      .eq("id", q.id)
+      .maybeSingle();
+    if (qtErr) throw new Error(qtErr.message);
+    const loId = String((qtRow as { lo_tiet_khuan_id?: string | null } | null)?.lo_tiet_khuan_id || "").trim();
+    if (loId) {
+      const { data: me, error: meErr } = await supabase
+        .from("cssd_fact_lo_tiet_khuan")
+        .select("tk_chot_nap_at")
+        .eq("id", loId)
+        .maybeSingle();
+      if (meErr) throw new Error(meErr.message);
+      if (!(me as { tk_chot_nap_at?: string | null } | null)?.tk_chot_nap_at) clearLoTietKhuan = true;
+    }
+  }
+
+  const fromTram = await buildQuyTrinhTramPatch(supabase, currentStatus);
   const tramPatch = await buildQuyTrinhTramPatch(supabase, prev);
-  const { error: upErr } = await supabase
+  const patch: Record<string, unknown> = {
+    ...tramPatch,
+    updated_at: new Date().toISOString(),
+  };
+  if (clearLoTietKhuan) patch.lo_tiet_khuan_id = null;
+  const { data: updatedRows, error: upErr } = await supabase
     .from("cssd_fact_quy_trinh")
-    .update({
-      ...tramPatch,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", q.id);
+    .update(patch)
+    .eq("id", q.id)
+    .eq("tram_hien_tai_id", fromTram.tram_hien_tai_id)
+    .select("id");
   if (upErr) throw new Error(upErr.message);
+  if (!updatedRows?.length) throw new Error("Bộ đã đổi trạm — không trả lui.");
 
   const lc = await insertCssdLifecycleEvent(supabase, {
     quy_trinh_id: q.id,

@@ -9,7 +9,12 @@ import {
   buildSteamDailyBdSpecsPatch,
 } from "@/lib/domain/cssd-steam-daily-bd";
 import { todayYmdInVn } from "@/lib/format-datetime-vi";
-import { getBatchAddRejectionReason, logQuyTrinhVaoMeTietKhuan } from "../helpers/me-tiet-khuan-batch-trace";
+import { getBatchAddRejectionReason } from "../helpers/me-tiet-khuan-batch-trace";
+import {
+  rejectIfMachineHasOpenBatch,
+  rejectParentBoWithSub,
+  rejectStartMember,
+} from "../lib/me-tiet-khuan-batch-integrity";
 import { persistMeTietKhuanFinishWithClient, type PersistMeTietKhuanInput } from "../helpers/persist-me-tiet-khuan";
 import { getErrorMessage, mapFkError, revalidateCssdBatchSurfaces, revalidateCssdWorkflowSurfaces } from "./cssd-action-common";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
@@ -22,9 +27,21 @@ import {
   finishSterilizationBatchSchema,
 } from "@/lib/validations/cssd-erp.validations";
 import { verifyCssdBatchEdit, verifyCssdBatchView } from "@/lib/cssd-server-gates";
-import { buildQuyTrinhTramPatch, resolveCssdTramId } from "../lib/cssd-tram-persist";
+import { resolveCssdTramId } from "../lib/cssd-tram-persist";
 import type { BomItem } from "@/lib/domain/cssd-packaging-rules";
-import { evaluateBatchSterilizationHeatRisk } from "../lib/me-tiet-khuan-batch-heat";
+import { assertSteamKitHeatAllowed, evaluateBatchSterilizationHeatRisk } from "../lib/me-tiet-khuan-batch-heat";
+
+async function requireSessionActorId(): Promise<{ ok: true; userId: string } | { ok: false; message: string }> {
+  try {
+    const uc = await createServerSupabaseUserClient();
+    const { data, error } = await uc.auth.getUser();
+    const userId = data.user?.id ? String(data.user.id) : "";
+    if (error || !userId) return { ok: false, message: "Không xác định được người thực hiện." };
+    return { ok: true, userId };
+  } catch {
+    return { ok: false, message: "Không xác định được người thực hiện." };
+  }
+}
 
 export async function fetchCssdMeListData() {
   try {
@@ -122,49 +139,85 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
     if ((me as { tk_chot_nap_at?: string | null }).tk_chot_nap_at) {
       return { success: false as const, error: "Mẻ đã bắt đầu tiệt khuẩn trước đó." };
     }
-    {
-      const tbRaw = (me as { thiet_bi?: unknown }).thiet_bi;
-      const tb = (tbRaw && Array.isArray(tbRaw) ? tbRaw[0] : tbRaw) as {
-        ten_thiet_bi?: string;
-        specs?: Record<string, unknown> | null;
-        loai_may?: { ma_loai_may?: string; ten_loai_may?: string } | { ma_loai_may?: string; ten_loai_may?: string }[] | null;
-      } | null;
-      const loaiMayRaw = tb?.loai_may;
-      const loaiMay = (
-        loaiMayRaw && Array.isArray(loaiMayRaw) ? loaiMayRaw[0] : loaiMayRaw
-      ) as { ma_loai_may?: string; ten_loai_may?: string } | null | undefined;
-      const steam = isSteamSterilizerProfile({
-        loai_thiet_bi: tb?.ten_thiet_bi || loaiMay?.ma_loai_may || null,
-        loai_ten_hien_thi: loaiMay?.ten_loai_may || null,
-      });
-      const bdGate = assertSteamDailyBdForLoad({
-        isSteam: steam,
-        specs: tb?.specs || null,
-        requireRecorded: true,
-        todayYmd: todayYmdInVn(),
-      });
-      if (!bdGate.ok) return { success: false as const, error: bdGate.message };
-    }
+    const tbRaw = (me as { thiet_bi?: unknown }).thiet_bi;
+    const tb = (tbRaw && Array.isArray(tbRaw) ? tbRaw[0] : tbRaw) as {
+      ten_thiet_bi?: string;
+      specs?: Record<string, unknown> | null;
+      loai_may?: { ma_loai_may?: string; ten_loai_may?: string } | { ma_loai_may?: string; ten_loai_may?: string }[] | null;
+    } | null;
+    const loaiMayRaw = tb?.loai_may;
+    const loaiMay = (
+      loaiMayRaw && Array.isArray(loaiMayRaw) ? loaiMayRaw[0] : loaiMayRaw
+    ) as { ma_loai_may?: string; ten_loai_may?: string } | null | undefined;
+    const steam = isSteamSterilizerProfile({
+      loai_thiet_bi: tb?.ten_thiet_bi || loaiMay?.ma_loai_may || null,
+      loai_ten_hien_thi: loaiMay?.ten_loai_may || null,
+    });
+    const bdGate = assertSteamDailyBdForLoad({
+      isSteam: steam,
+      specs: tb?.specs || null,
+      requireRecorded: true,
+      todayYmd: todayYmdInVn(),
+    });
+    if (!bdGate.ok) return { success: false as const, error: bdGate.message };
     if ((me as { ket_qua_test?: boolean | null }).ket_qua_test != null) {
       return { success: false as const, error: "Mẻ đã kết thúc đánh giá — không thể bắt đầu lại." };
     }
+    const machineId = String((me as { thiet_bi_id?: string | null }).thiet_bi_id || "").trim();
+    if (!machineId) return { success: false as const, error: "Mẻ chưa gắn máy — không bắt đầu tiệt khuẩn." };
+    const mayOk = await assertThietBiSanSangChoMeTietKhuan(supabase, machineId);
+    if (!mayOk.ok) return { success: false as const, error: mayOk.message };
+
     const { data: members, error: memErr } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("id")
-      .eq("lo_tiet_khuan_id", id)
-      .eq("is_active", true);
+      .from("v_cssd_quy_trinh_full")
+      .select("id, ma_qr_quy_trinh, ma_trang_thai_hien_tai, is_active, is_dong_bang, ma_vai_tro_bo")
+      .eq("lo_tiet_khuan_id", id);
     if (memErr) return { success: false as const, error: mapFkError(memErr.message) };
-    const ids = (members || []).map((m: { id: string }) => m.id).filter(Boolean);
-    if (!ids.length) return { success: false as const, error: "Chưa có bộ nào trong mẻ — không thể bắt đầu tiệt khuẩn." };
-    const now = new Date().toISOString();
-    const { error: upLo } = await supabase.from("cssd_fact_lo_tiet_khuan").update({ tk_chot_nap_at: now, thoi_gian_bat_dau: now, updated_at: now }).eq("id", id);
-    if (upLo) return { success: false as const, error: mapFkError(upLo.message) };
-    const tkPatch = await buildQuyTrinhTramPatch(supabase, "TIET_KHUAN");
-    const { error: upQt } = await supabase
+    const rows = (members || []) as Array<{
+      id: string;
+      ma_qr_quy_trinh?: string | null;
+      ma_trang_thai_hien_tai?: string | null;
+      is_active?: boolean | null;
+      is_dong_bang?: boolean | null;
+      ma_vai_tro_bo?: string | null;
+    }>;
+    if (!rows.length) return { success: false as const, error: "Chưa có bộ nào trong mẻ — không thể bắt đầu tiệt khuẩn." };
+
+    const memberIds = rows.map((row) => String(row.id || "")).filter(Boolean);
+    const { data: subs, error: subErr } = await supabase
       .from("cssd_fact_quy_trinh")
-      .update({ ...tkPatch, updated_at: now })
-      .in("id", ids);
-    if (upQt) return { success: false as const, error: mapFkError(upQt.message) };
+      .select("quy_trinh_cha_id")
+      .in("quy_trinh_cha_id", memberIds)
+      .eq("is_active", true)
+      .eq("ma_vai_tro_bo", "SUB");
+    if (subErr) return { success: false as const, error: "Không kiểm tra được bộ mẹ/SUB — đã chặn bắt đầu mẻ." };
+    const parentIds = new Set((subs || []).map((s) => String((s as { quy_trinh_cha_id?: string }).quy_trinh_cha_id || "")));
+
+    for (const row of rows) {
+      const code = String(row.ma_qr_quy_trinh || "").trim() || String(row.id);
+      const startReject = rejectStartMember({
+        maQr: code,
+        tram: row.ma_trang_thai_hien_tai,
+        isActive: row.is_active === true,
+        isDongBang: row.is_dong_bang === true,
+      });
+      if (startReject) return { success: false as const, error: startReject };
+      const parentMsg = rejectParentBoWithSub({
+        maVaiTroBo: row.ma_vai_tro_bo,
+        hasActiveSub: parentIds.has(String(row.id)),
+      });
+      if (parentMsg) return { success: false as const, error: `${parentMsg} Bộ ${code}.` };
+      const loaded = await loadBomLinesWithLoaiSpec(supabase, String(row.id));
+      const heat = assertSteamKitHeatAllowed({
+        isSteam: steam,
+        lines: loaded.ok ? loaded.bomLines.map((line) => ({ is_chiu_nhiet: line.is_chiu_nhiet })) : null,
+        loadError: !loaded.ok,
+      });
+      if (!heat.ok) return { success: false as const, error: `${heat.message} Bộ ${code}.` };
+    }
+
+    const { error: rpcErr } = await supabase.rpc("rpc_cssd_me_bat_dau", { p_me_id: id });
+    if (rpcErr) return { success: false as const, error: mapFkError(rpcErr.message) };
     revalidateCssdBatchSurfaces();
     return { success: true as const };
   } catch (e: unknown) {
@@ -365,6 +418,19 @@ export async function createCssdSterilizationBatch(machineId: string, nguoiLoad:
         todayYmd: todayYmdInVn(),
       });
     if (!bdGate.ok) return { success: false as const, error: bdGate.message };
+    const { data: openRow, error: openErr } = await supabase
+      .from("cssd_fact_lo_tiet_khuan")
+      .select("ma_lo_tiet_khuan")
+      .eq("thiet_bi_id", mid)
+      .eq("is_active", true)
+      .is("ket_qua_test", null)
+      .limit(1)
+      .maybeSingle();
+    if (openErr) return { success: false as const, error: mapFkError(openErr.message) };
+    const openMsg = rejectIfMachineHasOpenBatch(
+      (openRow as { ma_lo_tiet_khuan?: string | null } | null)?.ma_lo_tiet_khuan,
+    );
+    if (openMsg) return { success: false as const, error: openMsg };
     const ma = `LOT-${Date.now().toString().slice(-6)}`;
     const { data: me, error } = await supabase
       .from("cssd_fact_lo_tiet_khuan")
@@ -377,7 +443,15 @@ export async function createCssdSterilizationBatch(machineId: string, nguoiLoad:
       })
       .select()
       .single();
-    if (error) return { success: false as const, error: mapFkError(error.message) };
+    if (error) {
+      if (/uq_cssd_fact_lo_mo_mot_may/i.test(error.message)) {
+        return {
+          success: false as const,
+          error: "Máy đang có mẻ chưa kết luận. Kết thúc mẻ đó trước khi tạo mẻ mới.",
+        };
+      }
+      return { success: false as const, error: mapFkError(error.message) };
+    }
     revalidateCssdBatchSurfaces();
     return { success: true as const, data: me };
   } catch (e: unknown) {
@@ -422,21 +496,61 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
     const reject = getBatchAddRejectionReason(qtNormalized, meId, { batchLocked });
     if (reject) return { success: false as const, error: reject };
 
-    const { error: upErr } = await supabase
+    const { count: subCount, error: subErr } = await supabase
       .from("cssd_fact_quy_trinh")
-      .update({
-        lo_tiet_khuan_id: meId,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", qt.id);
-    if (upErr) return { success: false as const, error: mapFkError(upErr.message) };
-
-    const logMsg = await logQuyTrinhVaoMeTietKhuan(supabase, {
-      quyTrinhId: String(qt.id),
-      maVachQr: String(qtNormalized.ma_vach_qr || qr),
-      maLo: String(me.ma_lo_tiet_khuan || ""),
-      nguoiThucHien: "CSSD",
+      .select("id", { count: "exact", head: true })
+      .eq("quy_trinh_cha_id", String(qt.id))
+      .eq("is_active", true)
+      .eq("ma_vai_tro_bo", "SUB");
+    if (subErr) return { success: false as const, error: "Không kiểm tra được bộ mẹ/SUB — đã chặn nạp." };
+    const parentMsg = rejectParentBoWithSub({
+      maVaiTroBo: (qt as { ma_vai_tro_bo?: string | null }).ma_vai_tro_bo,
+      hasActiveSub: (subCount ?? 0) > 0,
     });
+    if (parentMsg) {
+      return { success: false as const, error: `${parentMsg} Bộ ${String(qtNormalized.ma_vach_qr || qr)}.` };
+    }
+
+    let isSteam = false;
+    if (machineId) {
+      const { data: tbRow, error: tbErr } = await supabase
+        .from("cssd_dm_thiet_bi")
+        .select("ten_thiet_bi, loai_may:cssd_dm_loai_may(ma_loai_may, ten_loai_may)")
+        .eq("id", machineId)
+        .maybeSingle();
+      if (tbErr) return { success: false as const, error: "Không kiểm tra được máy — đã chặn nạp." };
+      if (!tbRow) return { success: false as const, error: "Không tìm thấy thiết bị." };
+      const tb = tbRow as {
+        ten_thiet_bi?: string;
+        loai_may?: { ma_loai_may?: string; ten_loai_may?: string } | { ma_loai_may?: string; ten_loai_may?: string }[] | null;
+      };
+      const loaiMayRaw = tb.loai_may;
+      const loaiMay = (loaiMayRaw && Array.isArray(loaiMayRaw) ? loaiMayRaw[0] : loaiMayRaw) as
+        | { ma_loai_may?: string; ten_loai_may?: string }
+        | null
+        | undefined;
+      isSteam = isSteamSterilizerProfile({
+        loai_thiet_bi: tb.ten_thiet_bi || loaiMay?.ma_loai_may || null,
+        loai_ten_hien_thi: loaiMay?.ten_loai_may || null,
+      });
+    }
+    const loaded = await loadBomLinesWithLoaiSpec(supabase, String(qt.id));
+    const heat = assertSteamKitHeatAllowed({
+      isSteam,
+      lines: loaded.ok ? loaded.bomLines.map((line) => ({ is_chiu_nhiet: line.is_chiu_nhiet })) : null,
+      loadError: !loaded.ok,
+    });
+    if (!heat.ok) return { success: false as const, error: heat.message };
+
+    const actor = await requireSessionActorId();
+    if (!actor.ok) return { success: false as const, error: actor.message };
+    const { error: rpcErr } = await supabase.rpc("rpc_cssd_me_add_quy_trinh", {
+      p_me_id: meId,
+      p_quy_trinh_id: String(qt.id),
+      p_actor_user_id: actor.userId,
+    });
+    if (rpcErr) return { success: false as const, error: mapFkError(rpcErr.message) };
+
     const tenBo = String((qt as { bo_dung_cu_id?: string | null }).bo_dung_cu_id || "").trim()
       ? (
           await supabase
@@ -450,7 +564,6 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
     return {
       success: true as const,
       tenBo: String(tenBo || "").trim() || qr,
-      logWarning: logMsg,
     };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };

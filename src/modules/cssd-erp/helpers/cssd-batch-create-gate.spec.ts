@@ -12,7 +12,6 @@ vi.mock("@/lib/cssd-server-gates", () => ({
 }));
 
 vi.mock("../helpers/me-tiet-khuan-batch-trace", () => ({
-  logQuyTrinhVaoMeTietKhuan: vi.fn(),
   getBatchAddRejectionReason: vi.fn(),
 }));
 
