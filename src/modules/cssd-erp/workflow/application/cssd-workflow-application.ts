@@ -182,14 +182,11 @@ export async function executeWorkflowStationScan(
 
   // 3. Xử lý extraPayload (Ví dụ: Truy vết ca mổ tại trạm Cấp phát)
   if (targetStation === "CAP_PHAT" && opts.extraPayload?.ma_ca_mo_id && quyTrinh.id) {
-    await supabase
-      .from("cssd_fact_quy_trinh")
-      .update({
-        metadata: {
-          ma_ca_mo_id: String(opts.extraPayload.ma_ca_mo_id),
-        },
-      })
-      .eq("id", quyTrinh.id);
+    const { error: metaErr } = await supabase.rpc("rpc_cssd_quy_trinh_metadata_merge", {
+      p_id: quyTrinh.id,
+      p_patch: { ma_ca_mo_id: String(opts.extraPayload.ma_ca_mo_id) },
+    });
+    if (metaErr) throw new Error(metaErr.message);
   }
 
   return { tenBoDungCu: qr, ledgerWarning };

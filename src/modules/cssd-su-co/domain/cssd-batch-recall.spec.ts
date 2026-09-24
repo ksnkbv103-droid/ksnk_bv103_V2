@@ -7,17 +7,68 @@ import {
   batchRecallReasonFromTypeId,
   BATCH_RECALL_REASON_OPTIONS,
   BATCH_RECALL_ENTRY_COPY,
+  isCssdCycleUsedClinically,
+  partitionRecallMembers,
+  selectBiRecallBatchIds,
+  batchStatusAfterBiRecall,
 } from "./cssd-batch-recall";
 
 describe("cssd-batch-recall", () => {
-  it("recalls issued sets back to Tiếp nhận", () => {
+  it("sends every recalled set to Tiếp nhận", () => {
     expect(recallTargetStationForLotMember("CAP_PHAT")).toBe("TIEP_NHAN");
+    expect(recallTargetStationForLotMember("TIET_KHUAN")).toBe("TIEP_NHAN");
+    expect(recallTargetStationForLotMember("DONG_GOI")).toBe("TIEP_NHAN");
+    expect(recallTargetStationForLotMember("")).toBe("TIEP_NHAN");
   });
 
-  it("sends in-cycle sets to Đóng gói", () => {
-    expect(recallTargetStationForLotMember("TIET_KHUAN")).toBe("DONG_GOI");
-    expect(recallTargetStationForLotMember("DONG_GOI")).toBe("DONG_GOI");
-    expect(recallTargetStationForLotMember("")).toBe("DONG_GOI");
+  it("lists clinically used sets and recalls the rest", () => {
+    expect(isCssdCycleUsedClinically({ maCaMoId: "CA-1" })).toBe(true);
+    expect(isCssdCycleUsedClinically({ maCaMoId: "  " })).toBe(false);
+    const split = partitionRecallMembers([
+      { id: "a", loId: "m1", maCaMoId: null, maBo: "B01" },
+      { id: "b", loId: "m1", maCaMoId: "CA-9", maBo: "B02" },
+    ]);
+    expect(split.recall.map((row) => row.id)).toEqual(["a"]);
+    expect(split.listedOnly.map((row) => row.id)).toEqual(["b"]);
+  });
+
+  it("recalls from the batch after the latest prior BI-negative through the positive batch", () => {
+    const batches = [
+      { id: "b1", thietBiId: "may", at: "2026-09-01T01:00:00.000Z", trangThaiBi: "AM" },
+      { id: "b2", thietBiId: "may", at: "2026-09-02T01:00:00.000Z", trangThaiBi: "CHUA_CO" },
+      { id: "b3", thietBiId: "may", at: "2026-09-03T01:00:00.000Z", trangThaiBi: "AM" },
+      { id: "b4", thietBiId: "may", at: "2026-09-04T01:00:00.000Z", trangThaiBi: "CHUA_CO" },
+      { id: "b5", thietBiId: "may", at: "2026-09-05T01:00:00.000Z", trangThaiBi: "DUONG" },
+      { id: "b6", thietBiId: "may", at: "2026-09-06T01:00:00.000Z", trangThaiBi: "CHUA_CO" },
+      { id: "other", thietBiId: "may-khac", at: "2026-09-04T02:00:00.000Z", trangThaiBi: "CHUA_CO" },
+    ];
+    expect(selectBiRecallBatchIds(batches, "b5")).toEqual(["b4", "b5"]);
+    expect(selectBiRecallBatchIds(batches, "b2")).toEqual(["b2"]);
+    expect(selectBiRecallBatchIds(batches, "missing")).toEqual([]);
+    expect(
+      selectBiRecallBatchIds(
+        [
+          { id: "x", thietBiId: "may", at: "2026-09-01T00:00:00.000Z", trangThaiBi: "CHUA_CO" },
+          { id: "y", thietBiId: "may", at: "2026-09-02T00:00:00.000Z", ketQuaBi: true },
+          { id: "z", thietBiId: "may", at: "2026-09-03T00:00:00.000Z", trangThaiBi: "DUONG" },
+        ],
+        "z",
+      ),
+    ).toEqual(["z"]);
+  });
+
+  it("marks a released positive batch as recalled and an unreleased one as QC fail", () => {
+    expect(batchStatusAfterBiRecall({ id: "b5", anchorId: "b5", trangThaiMe: "HOAN_THANH" })).toEqual({
+      trangThaiMe: "THU_HOI",
+      trangThaiBi: "DUONG",
+    });
+    expect(batchStatusAfterBiRecall({ id: "b5", anchorId: "b5", trangThaiMe: "CHO_BI" })).toEqual({
+      trangThaiMe: "QC_KHONG_DAT",
+      trangThaiBi: "DUONG",
+    });
+    expect(batchStatusAfterBiRecall({ id: "b4", anchorId: "b5", trangThaiMe: "HOAN_THANH" })).toEqual({
+      trangThaiMe: "THU_HOI",
+    });
   });
 
   it("holds READY machines at HOLD_QC and leaves REPAIRING", () => {

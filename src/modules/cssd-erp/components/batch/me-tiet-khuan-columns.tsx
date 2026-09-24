@@ -74,7 +74,8 @@ export function buildMeTietKhuanBatchColumns(opts?: {
         CHO_DANH_GIA_QC: { label: "Chờ đánh giá QC", cls: "text-[11px] font-medium text-amber-800" },
         CHO_BI: { label: "Chờ BI", cls: "text-[11px] font-medium text-violet-800" },
         Quarantine_BI: { label: "Chờ BI", cls: "text-[11px] font-medium text-violet-800" },
-        QC_KHONG_DAT: { label: "Lỗi tiệt khuẩn", cls: "text-[11px] font-medium text-red-700" },
+        QC_KHONG_DAT: { label: "Không đạt", cls: "text-[11px] font-medium text-red-700" },
+        THU_HOI: { label: "Thu hồi", cls: "text-[11px] font-medium text-red-800" },
         HOAN_THANH: { label: "Đạt (chờ cấp phát)", cls: "text-[11px] font-medium text-emerald-800" },
       };
       const badge = STATE_LABELS[state] || { label: state || "—", cls: "text-[11px] font-medium text-slate-500" };
@@ -100,7 +101,7 @@ export function buildMeTietKhuanBatchColumns(opts?: {
           href={href}
           onClick={(e) => e.stopPropagation()}
           className="inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1.5 bv103-type-label font-semibold text-amber-900 hover:bg-amber-100"
-          title="Thu hồi theo mẻ — sự cố an toàn QT.24"
+          title="Thu hồi theo mẻ — sự cố an toàn"
         >
           <Undo2 size={14} /> Thu hồi
         </Link>
@@ -114,7 +115,14 @@ export function buildMeTietKhuanBatchColumns(opts?: {
       header: "In phiếu",
       accessorKey: "id",
       cell: (i: any) => {
-        const canPrint = i.ket_qua_test === true;
+        const trangThai = String(i.trang_thai || "");
+        const canPrint =
+          trangThai === "CHO_BI" ||
+          trangThai === "QC_KHONG_DAT" ||
+          trangThai === "THU_HOI" ||
+          trangThai === "HOAN_THANH" ||
+          i.ket_qua_test === true ||
+          i.ket_qua_test === false;
         if (!canPrint) return <span className={CSSD_UI_CELL_META}>—</span>;
         return (
           <button

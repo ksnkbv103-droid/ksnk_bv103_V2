@@ -120,7 +120,8 @@ export async function createIncidentReport(data: {
     /* ngoài phiên người dùng */
   }
 
-  const { incident_id, isRedAlert, deduped, recalledCount, machineHeld } = await executeIncidentReportAndRollback(
+  const { incident_id, isRedAlert, deduped, recalledCount, machineHeld, recalled, listedUsed } =
+    await executeIncidentReportAndRollback(
     supabase,
     {
       ...parsed,
@@ -144,6 +145,8 @@ export async function createIncidentReport(data: {
     deduped: Boolean(deduped),
     recalledCount: recalledCount || 0,
     machineHeld: Boolean(machineHeld),
+    recalled: recalled || [],
+    listedUsed: listedUsed || [],
   };
 }
 

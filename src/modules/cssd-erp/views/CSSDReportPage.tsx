@@ -315,7 +315,7 @@ function CSSDReportPageInner() {
         <>
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 print:hidden">
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-amber-950">Thu hồi theo mẻ (QT.24)</p>
+              <p className="text-xs font-semibold text-amber-950">Thu hồi theo mẻ</p>
               <p className="text-[11px] text-amber-900">
                 Sự cố an toàn BI+/ướt/lỗi máy — không lẫn 3 cửa biến động dụng cụ.
               </p>

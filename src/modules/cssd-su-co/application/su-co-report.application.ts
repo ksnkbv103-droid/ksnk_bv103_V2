@@ -3,15 +3,9 @@ import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { buildQuyTrinhTramPatch } from "@/modules/cssd-erp/lib/cssd-tram-persist";
 import { insertCssdLifecycleEvent } from "@/modules/cssd-erp/shared/application/cssd-lifecycle-events";
 import { mapFkError, tableHasColumn, getErrorMessage } from "@/modules/cssd-erp/shared/cssd-db-utils";
-import {
-  buildIncidentAttributes,
-  readIncidentTypeCode,
-  readLoTietKhuanId,
-  resolveProcessBatchLink,
-} from "../domain/cssd-incident-attributes";
+import { buildIncidentAttributes, resolveProcessBatchLink } from "../domain/cssd-incident-attributes";
 import { resolveIncidentPolicy } from "../domain/cssd-incident-policy";
 import { isBatchQcFailTypeId } from "../domain/cssd-incident-taxonomy";
-import { buildBatchRecallAttributePatch } from "../domain/cssd-batch-recall";
 import { applyBatchRecallAndHoldMachine } from "./batch-recall-hold.application";
 import {
   CAUSE_CLASS_LABEL,
@@ -78,6 +72,8 @@ export async function executeIncidentReportAndRollback(
   deduped?: boolean;
   recalledCount?: number;
   machineHeld?: boolean;
+  recalled?: { quyTrinhId: string; maBo: string; tenBo: string; maLo: string }[];
+  listedUsed?: { quyTrinhId: string; maBo: string; tenBo: string; maLo: string; maCaMoId?: string }[];
 }> {
   const q = quyTrinhRow;
   const causeClass = data.causeClass || defaultCauseClass(data.incidentGroup);
@@ -108,17 +104,36 @@ export async function executeIncidentReportAndRollback(
     maLo,
   };
 
-  if (q && processPayload.loTietKhuanId && typeId && !data.confirmDuplicate) {
-    const existingId = await findDuplicateBatchIncident(supabase, {
-      quyTrinhId: q.id,
-      loTietKhuanId: processPayload.loTietKhuanId,
-      typeId,
+  const batchFail = data.incidentGroup === "PROCESS" && isBatchQcFailTypeId(typeId);
+  if (batchFail && loTietKhuanId) {
+    const nguoiBaoId = await resolveCssdOperatorNhanSuId(supabase, {
+      authUserId: data.reporterAuthUserId,
+      email: data.reporterEmail,
     });
-    if (existingId) return { incident_id: existingId, isRedAlert: false, deduped: true };
+    const rec = await applyBatchRecallAndHoldMachine(supabase, {
+      loTietKhuanId,
+      mode: typeId === "PROCESS_BI_POSITIVE" ? "BI_DUONG" : "QC_FAIL",
+      actorUserId: data.reporterAuthUserId,
+      nguoiNhanSuId: nguoiBaoId,
+      typeId: typeId || "PROCESS_STERILIZATION_FAIL",
+      typeTen: data.typeTen,
+      moTa: data.desc,
+      reporterEmail: data.reporterEmail,
+      maQr: data.maQR,
+      quyTrinhId: q?.id ?? processPayload.quyTrinhId ?? null,
+    });
+    return {
+      incident_id: rec.incidentId,
+      isRedAlert: rec.isRedAlert,
+      deduped: !rec.incidentCreated,
+      recalledCount: rec.recalled.length,
+      machineHeld: rec.machineHeld,
+      recalled: rec.recalled,
+      listedUsed: rec.listedUsed,
+    };
   }
 
   const skipWorkflowRollback = data.incidentGroup === "INSTRUMENT";
-  const batchFail = data.incidentGroup === "PROCESS" && isBatchQcFailTypeId(typeId);
   const rollbackStation =
     !skipWorkflowRollback && (q || batchFail)
       ? resolveIncidentPolicy({
@@ -265,7 +280,9 @@ export async function executeIncidentReportAndRollback(
         ...rollbackPatch,
         updated_at: new Date().toISOString(),
       };
-      if (rollbackStation.clearSterilizationBatchLink) quyTrinhUpdate.lo_tiet_khuan_id = null;
+      if (rollbackStation.clearSterilizationBatchLink && !rollbackStation.recallEntireBatch) {
+        quyTrinhUpdate.lo_tiet_khuan_id = null;
+      }
 
       if (rollbackStation.freezeSafetyLock && hasDongBang) {
         quyTrinhUpdate.is_dong_bang = true;
@@ -307,37 +324,7 @@ export async function executeIncidentReportAndRollback(
       if (alertErr) throw new Error(mapFkError(alertErr.message));
     }
 
-    let recalledCount = 0;
-    let machineHeld = false;
-    if (rollbackStation?.recallEntireBatch && processPayload.loTietKhuanId) {
-      const rec = await applyBatchRecallAndHoldMachine(supabase, {
-        loTietKhuanId: processPayload.loTietKhuanId,
-        skipQuyTrinhId: q?.id ?? null,
-        holdMachineQc: rollbackStation.holdMachineQc,
-        detectionStation: data.station,
-        typeTen: data.typeTen,
-        desc: data.desc,
-        reporterEmail: data.reporterEmail,
-        reporterAuthUserId: data.reporterAuthUserId,
-      });
-      recalledCount = rec.recalledIds.length + (q && rollbackStation ? 1 : 0);
-      machineHeld = rec.machineHeld;
-      Object.assign(
-        attributes,
-        buildBatchRecallAttributePatch({
-          recalledCount,
-          machineHeld,
-          machineId: rec.machineId || data.machineId,
-        }),
-      );
-      const { error: attrErr } = await supabase
-        .from("cssd_fact_su_co")
-        .update({ attributes, updated_at: new Date().toISOString() })
-        .eq("id", incident.id);
-      if (attrErr) throw new Error("Lỗi ghi thu hồi mẻ lên phiếu: " + attrErr.message);
-    }
-
-    return { incident_id: incident.id as string, isRedAlert, recalledCount, machineHeld };
+    return { incident_id: incident.id as string, isRedAlert };
   } catch (e: unknown) {
     if (q && originalState) {
       const rollbackPayload: Record<string, unknown> = {
@@ -369,24 +356,4 @@ async function resolveLoaiSuCoLookup(
   return { id: String(data.id), name: String(data.name || "") };
 }
 
-async function findDuplicateBatchIncident(
-  supabase: SupabaseClient,
-  args: { quyTrinhId: string; loTietKhuanId: string; typeId: string },
-): Promise<string | null> {
-  const { data, error } = await supabase
-    .from("cssd_fact_su_co")
-    .select("id, attributes")
-    .eq("quy_trinh_id", args.quyTrinhId)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false })
-    .limit(30);
-  if (error || !data?.length) return null;
-  for (const row of data) {
-    const attrs = (row.attributes as Record<string, unknown>) || {};
-    const loId = readLoTietKhuanId(attrs);
-    const code = readIncidentTypeCode(attrs);
-    if (loId === args.loTietKhuanId && code === args.typeId) return String(row.id);
-  }
-  return null;
-}
 

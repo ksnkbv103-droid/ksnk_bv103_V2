@@ -4,7 +4,7 @@ import { derivePassQuyTrinhIds, type PassMemberRow } from "../lib/me-tiet-khuan-
 import { evaluateMeQcRelease, type MeQcOutcome } from "../lib/me-tiet-khuan-qc";
 import { getSterilizerMethod, type SterilizerMethod } from "./me-tiet-khuan-machine-kind";
 import { resolveCssdOperatorNhanSuId } from "../shared/application/cssd-operator-resolve";
-import { executeIncidentReportAndRollback } from "@/modules/cssd-su-co/application/su-co-report.application";
+import { applyBatchRecallAndHoldMachine } from "@/modules/cssd-su-co/application/batch-recall-hold.application";
 import { revalidateCssdIncidentSurfaces } from "@/lib/cssd-server-common";
 
 export type PersistMeTietKhuanInput = {
@@ -123,6 +123,8 @@ export async function persistMeTietKhuanFinishWithClient(
       skippedCount?: number;
       recalledCount?: number;
       machineHeld?: boolean;
+      recalled?: { maBo: string; tenBo: string; maLo: string }[];
+      listedUsed?: { maBo: string; tenBo: string; maLo: string; maCaMoId?: string }[];
     }
   | { ok: false; message: string }
 > {
@@ -199,7 +201,6 @@ export async function persistMeTietKhuanFinishWithClient(
     prev: prevJson,
   });
   const ghiChu = `Chương trình: ${payload.chuong_trinh || "—"} | VL:${p.thongSoVatLy} CI ngoài:${p.ciNgoaiGoi} CI PCD:${p.ciPcd} BI:${p.trangThaiBi} | Người dỡ: ${p.nguoiUnload}`;
-  const now = new Date().toISOString();
   const operatorId = await resolveCssdOperatorNhanSuId(client, {
     authUserId: actorUserId,
     email: p.operatorEmail,
@@ -246,82 +247,51 @@ export async function persistMeTietKhuanFinishWithClient(
     return { ok: true, outcome: "CHO_BI" };
   }
 
-  const qrRow = linked.rows[0]
-    ? {
-        id: linked.rows[0].id,
-        ma_qr_quy_trinh: linked.rows[0].ma_qr_quy_trinh,
-        tram_hien_tai_id: linked.rows[0].tram_hien_tai_id,
-        lo_tiet_khuan_id: linked.rows[0].lo_tiet_khuan_id,
-      }
-    : null;
-  const saved = await executeIncidentReportAndRollback(
-    client,
-    {
-      maQR: String(qrRow?.ma_qr_quy_trinh || "").trim() || undefined,
-      station: "TIET_KHUAN",
-      incidentGroup: "PROCESS",
+  const qrRow = linked.rows[0];
+  let saved;
+  try {
+    saved = await applyBatchRecallAndHoldMachine(client, {
+      loTietKhuanId: p.activeMeId,
+      mode: decision.bioFail ? "BI_DUONG" : "QC_FAIL",
+      actorUserId,
+      nguoiNhanSuId: operatorId,
       typeId: decision.bioFail ? "PROCESS_BI_POSITIVE" : "PROCESS_STERILIZATION_FAIL",
       typeTen: decision.bioFail ? "Chỉ thị sinh học (BI) dương tính" : "Chất lượng tiệt khuẩn / mẻ không đạt",
-      causeClass: "SC_QUY_TRINH",
-      faultStation: "TIET_KHUAN",
-      faultOperator: p.nguoiUnload || "Hệ thống tự động",
-      desc: `Mẻ tiệt khuẩn ${p.maLo} không đạt QC. Chi tiết: ${ghiChu}. Người dỡ mẻ: ${p.nguoiUnload}`,
+      moTa: `Mẻ tiệt khuẩn ${p.maLo} không đạt QC. Chi tiết: ${ghiChu}. Người dỡ mẻ: ${p.nguoiUnload}`,
+      ghiChu,
+      qcJson: payload,
+      ketQuaBi: decision.ketQuaBi,
+      ketQuaCi: decision.ketQuaCi,
+      nhietDo: decision.nhietDo,
+      apSuat: decision.apSuat,
+      thoiGianChuKy: decision.thoiGianChuKy,
+      chuongTrinh: String(p.chuongTrinh || "").trim().slice(0, 80) || null,
+      coImplant,
+      phuongPhap: method || null,
+      trangThaiBi: String(p.trangThaiBi || "").trim().toUpperCase() || null,
       reporterEmail: p.operatorEmail,
-      reporterAuthUserId: actorUserId,
-      processPayload: { loTietKhuanId: p.activeMeId, maLo: p.maLo, quyTrinhId: qrRow?.id },
-    },
-    qrRow,
-  );
-
-  const { data: loRows, error: loErr } = await client
-    .from("cssd_fact_lo_tiet_khuan")
-    .update({
-      ket_qua_test: false,
-      ghi_chu: ghiChu,
-      ghi_chu_qc: ghiChu,
-      tk_qc_json: payload,
-      thoi_gian_ket_thuc: now,
-      ket_qua_bi: decision.ketQuaBi,
-      ket_qua_ci: decision.ketQuaCi,
-      nhiet_do: decision.nhietDo,
-      ap_suat: decision.apSuat,
-      thoi_gian_chu_ky: decision.thoiGianChuKy,
-      chuong_trinh: String(p.chuongTrinh || "").trim().slice(0, 80) || null,
-      co_implant: coImplant,
-      trang_thai_bi: String(p.trangThaiBi || "").trim().toUpperCase() || null,
-      trang_thai_me: "QC_KHONG_DAT",
-      nguoi_ket_thuc_id: actorUserId,
-      phuong_phap: method || null,
-      updated_at: now,
-    })
-    .eq("id", p.activeMeId)
-    .is("ket_qua_test", null)
-    .select("id");
-  if (loErr) return { ok: false, message: loErr.message };
-  if (!loRows?.length) return { ok: false, message: "Mẻ đã có kết quả QC — không ghi đè." };
+      maQr: qrRow?.ma_qr_quy_trinh,
+      quyTrinhId: qrRow?.id,
+    });
+  } catch (e: unknown) {
+    return { ok: false, message: e instanceof Error ? e.message : "Không thu hồi được mẻ." };
+  }
 
   revalidateCssdIncidentSurfaces();
-  for (const row of linked.rows) {
-    await appendQuyTrinhException(client, row.id, {
-      su_kien: "ME_TIET_KHUAN_KHONG_DAT",
-      tu_tram: "TIET_KHUAN",
-      den_tram: "DONG_GOI",
-      ly_do: `Lô: ${p.maLo} — KHÔNG ĐẠT QC`,
-      nguoi_thao_tac: p.nguoiUnload,
-    });
-  }
   return {
     ok: true,
     outcome: "QC_KHONG_DAT",
-    incidentIds: [saved.incident_id],
-    createdCount: saved.deduped ? 0 : 1,
-    skippedCount: saved.deduped ? 1 : 0,
-    recalledCount: saved.recalledCount ?? 0,
-    machineHeld: Boolean(saved.machineHeld),
+    incidentIds: [saved.incidentId],
+    createdCount: saved.incidentCreated ? 1 : 0,
+    skippedCount: saved.incidentCreated ? 0 : 1,
+    recalledCount: saved.recalled.length,
+    machineHeld: saved.machineHeld,
+    recalled: saved.recalled,
+    listedUsed: saved.listedUsed,
   };
 }
 
-/** Mẻ CHO_BI: âm → nhả kho vô khuẩn; dương → sự cố BI dương, không nhả. */
+/** Mẻ chờ BI: âm → nhả. BI dương (kể cả mẻ đã nhả) → thu hồi cửa sổ cùng máy. */
 export async function persistMeBiResultWithClient(
   client: SupabaseClient,
   args: {
@@ -340,6 +310,8 @@ export async function persistMeBiResultWithClient(
       skippedCount?: number;
       recalledCount?: number;
       machineHeld?: boolean;
+      recalled?: { maBo: string; tenBo: string; maLo: string }[];
+      listedUsed?: { maBo: string; tenBo: string; maLo: string; maCaMoId?: string }[];
     }
   | { ok: false; message: string }
 > {
@@ -353,8 +325,13 @@ export async function persistMeBiResultWithClient(
   if (error) return { ok: false, message: error.message };
   if (!me) return { ok: false, message: "Không tìm thấy mẻ." };
   const row = me as { ma_lo_tiet_khuan?: string | null; trang_thai_me?: string | null; ket_qua_test?: boolean | null };
-  if (row.trang_thai_me !== "CHO_BI" || row.ket_qua_test != null) {
-    return { ok: false, message: "Chỉ nhập BI cho mẻ đang chờ kết quả BI." };
+  const waitingBi = row.trang_thai_me === "CHO_BI" && row.ket_qua_test == null;
+  const released = row.trang_thai_me === "HOAN_THANH" || row.ket_qua_test === true;
+  if (args.ketQua === "AM" && !waitingBi) {
+    return { ok: false, message: "Chỉ nhập BI âm cho mẻ đang chờ kết quả BI." };
+  }
+  if (args.ketQua === "DUONG" && !waitingBi && !released) {
+    return { ok: false, message: "Chỉ ghi BI dương cho mẻ đang chờ BI hoặc đã nhả." };
   }
 
   const operatorId = await resolveCssdOperatorNhanSuId(client, {
@@ -375,55 +352,36 @@ export async function persistMeBiResultWithClient(
 
   const linked = await loadLinkedBatchMembers(client, args.batchId);
   if (!linked.ok) return { ok: false, message: linked.message };
-  const qrRow = linked.rows[0]
-    ? {
-        id: linked.rows[0].id,
-        ma_qr_quy_trinh: linked.rows[0].ma_qr_quy_trinh,
-        tram_hien_tai_id: linked.rows[0].tram_hien_tai_id,
-        lo_tiet_khuan_id: linked.rows[0].lo_tiet_khuan_id,
-      }
-    : null;
+  const qrRow = linked.rows[0];
   const maLo = String(row.ma_lo_tiet_khuan || "");
-  const saved = await executeIncidentReportAndRollback(
-    client,
-    {
-      maQR: String(qrRow?.ma_qr_quy_trinh || "").trim() || undefined,
-      station: "TIET_KHUAN",
-      incidentGroup: "PROCESS",
+  let saved;
+  try {
+    saved = await applyBatchRecallAndHoldMachine(client, {
+      loTietKhuanId: args.batchId,
+      mode: "BI_DUONG",
+      actorUserId,
+      nguoiNhanSuId: operatorId,
       typeId: "PROCESS_BI_POSITIVE",
       typeTen: "Chỉ thị sinh học (BI) dương tính",
-      causeClass: "SC_QUY_TRINH",
-      faultStation: "TIET_KHUAN",
-      faultOperator: args.nguoiLabel || "Hệ thống tự động",
-      desc: `Mẻ ${maLo} BI dương sau thời gian ủ.`,
+      moTa: `Mẻ ${maLo} BI dương${released ? " sau khi đã nhả" : " sau thời gian ủ"}.`,
+      trangThaiBi: "DUONG",
       reporterEmail: args.operatorEmail,
-      reporterAuthUserId: actorUserId,
-      processPayload: { loTietKhuanId: args.batchId, maLo, quyTrinhId: qrRow?.id },
-    },
-    qrRow,
-  );
-  const now = new Date().toISOString();
-  const { error: upErr } = await client
-    .from("cssd_fact_lo_tiet_khuan")
-    .update({
-      ket_qua_test: false,
-      ket_qua_bi: false,
-      trang_thai_bi: "DUONG",
-      trang_thai_me: "QC_KHONG_DAT",
-      updated_at: now,
-    })
-    .eq("id", args.batchId)
-    .eq("trang_thai_me", "CHO_BI")
-    .is("ket_qua_test", null);
-  if (upErr) return { ok: false, message: upErr.message };
+      maQr: qrRow?.ma_qr_quy_trinh,
+      quyTrinhId: qrRow?.id,
+    });
+  } catch (e: unknown) {
+    return { ok: false, message: e instanceof Error ? e.message : "Không thu hồi được mẻ BI dương." };
+  }
   revalidateCssdIncidentSurfaces();
   return {
     ok: true,
     outcome: "QC_KHONG_DAT",
-    incidentIds: [saved.incident_id],
-    createdCount: saved.deduped ? 0 : 1,
-    skippedCount: saved.deduped ? 1 : 0,
-    recalledCount: saved.recalledCount ?? 0,
-    machineHeld: Boolean(saved.machineHeld),
+    incidentIds: [saved.incidentId],
+    createdCount: saved.incidentCreated ? 1 : 0,
+    skippedCount: saved.incidentCreated ? 0 : 1,
+    recalledCount: saved.recalled.length,
+    machineHeld: saved.machineHeld,
+    recalled: saved.recalled,
+    listedUsed: saved.listedUsed,
   };
 }

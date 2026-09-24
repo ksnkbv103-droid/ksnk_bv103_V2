@@ -5,12 +5,8 @@ import { verifyCssdBatchView, verifyCssdKhoDungCuView, verifyCssdWorkflowView } 
 import { fetchCssdBatchMembers } from "./cssd-batch.actions";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 import { getErrorMessage } from "../shared/cssd-db-utils";
-import { loadNhanSuHoTen } from "../shared/application/cssd-operator-resolve";
-import {
-  parseBatchQcJson,
-  parseBatchAnhMinhChung,
-  parseNguoiLoadFromGhiChu,
-} from "../lib/cssd-print-format";
+import { loadHoTenByAuthUserId, loadNhanSuHoTen } from "../shared/application/cssd-operator-resolve";
+import { buildCssdBatchTicket, parseBatchQcJson, parseNguoiLoadFromGhiChu } from "../lib/cssd-print-format";
 import type {
   CssdBatchPrintData,
   CssdCapPhatPrintData,
@@ -70,7 +66,7 @@ async function loadBatchRow(
   let q = supabase
     .from("cssd_fact_lo_tiet_khuan")
     .select(
-      "id, ma_lo_tiet_khuan, ket_qua_test, ghi_chu, ghi_chu_qc, tk_qc_json, thoi_gian_bat_dau, thoi_gian_ket_thuc, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)",
+      "id, ma_lo_tiet_khuan, ket_qua_test, ghi_chu, ghi_chu_qc, tk_qc_json, thoi_gian_bat_dau, thoi_gian_ket_thuc, tk_mo_form_qc_at, thoi_gian_nha, phuong_phap, chuong_trinh, nhiet_do, ap_suat, thoi_gian_chu_ky, trang_thai_me, trang_thai_bi, co_implant, nguoi_bat_dau_id, nguoi_ket_thuc_id, nguoi_nha_id, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)",
     )
     .eq("is_active", true);
   if (opts.batchId) q = q.eq("id", opts.batchId);
@@ -81,40 +77,52 @@ async function loadBatchRow(
   return data as Record<string, unknown> | null;
 }
 
-function mapBatchPrintData(
+function qcTri(raw: unknown, key: string): string | null {
+  if (!raw || typeof raw !== "object") return null;
+  const value = (raw as Record<string, unknown>)[key];
+  const text = String(value || "").trim();
+  return text || null;
+}
+
+async function mapBatchPrintData(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
   batch: Record<string, unknown>,
   members: Array<Record<string, unknown>>,
-): CssdBatchPrintData {
-  const qc = parseBatchQcJson(batch.tk_qc_json);
-  const thietBi =
-    (batch.thiet_bi as { ten_thiet_bi?: string } | null)?.ten_thiet_bi?.trim() || "—";
-
-  const mappedMembers = members.map((m, idx) => ({
-    stt: idx + 1,
-    maQrBo: String(m.ma_bo || m.ma_vach_qr || m.ma_qr_quy_trinh || "—"),
-    tenBo: String((m.bo as { ten_bo?: string } | null)?.ten_bo || m.ten_bo || "—"),
-  }));
-
-  return {
-    batchId: String(batch.id),
+): Promise<CssdBatchPrintData> {
+  const [nguoiNap, nguoiDo, nguoiNha] = await Promise.all([
+    loadHoTenByAuthUserId(supabase, batch.nguoi_bat_dau_id as string | null),
+    loadHoTenByAuthUserId(supabase, batch.nguoi_ket_thuc_id as string | null),
+    loadHoTenByAuthUserId(supabase, batch.nguoi_nha_id as string | null),
+  ]);
+  const thietBi = (batch.thiet_bi as { ten_thiet_bi?: string } | null)?.ten_thiet_bi?.trim() || "—";
+  return buildCssdBatchTicket({
+    id: String(batch.id),
     maLo: String(batch.ma_lo_tiet_khuan || ""),
-    ketQuaDat: batch.ket_qua_test === true,
-    thietBi,
-    nguoiLoad: parseNguoiLoadFromGhiChu(String(batch.ghi_chu || "")),
-    nguoiUnload: qc.nguoiUnload || "—",
-    nhietDoApSuat: qc.nhietDoApSuat || "—",
-    thongSoMay: qc.thongSoMay || "—",
-    chiThiTiepXuc: qc.chiThiTiepXuc || "—",
-    chiThiDaThongSo: qc.chiThiDaThongSo || "—",
-    testSinhHoc: qc.testSinhHoc || "NA",
-    testCI: qc.testCI || "—",
-    testBowieDick: qc.testBowieDick || "NA",
+    tenMay: thietBi,
+    phuongPhap: (batch.phuong_phap as string | null) ?? null,
+    chuongTrinh: (batch.chuong_trinh as string | null) ?? null,
+    nhietDo: batch.nhiet_do as number | null,
+    apSuat: batch.ap_suat as number | null,
+    thoiGianChuKy: batch.thoi_gian_chu_ky as number | null,
+    nguoiNap,
+    nguoiDo,
+    nguoiNha,
     thoiGianBatDau: (batch.thoi_gian_bat_dau as string | null) ?? null,
-    thoiGianKetThuc: (batch.thoi_gian_ket_thuc as string | null) ?? null,
+    tkMoFormQcAt: (batch.tk_mo_form_qc_at as string | null) ?? null,
+    thoiGianNha: (batch.thoi_gian_nha as string | null) ?? null,
+    trangThaiMe: (batch.trang_thai_me as string | null) ?? null,
+    trangThaiBi: (batch.trang_thai_bi as string | null) ?? null,
+    ketQuaTest: batch.ket_qua_test === true ? true : batch.ket_qua_test === false ? false : null,
+    coImplant: batch.co_implant === true,
+    qcVatLy: qcTri(batch.tk_qc_json, "thong_so_vat_ly"),
+    qcCiNgoai: qcTri(batch.tk_qc_json, "ci_ngoai_goi"),
+    qcCiPcd: qcTri(batch.tk_qc_json, "ci_pcd"),
     ghiChuQc: String(batch.ghi_chu_qc || batch.ghi_chu || ""),
-    anhMinhChung: parseBatchAnhMinhChung(batch.tk_qc_json),
-    members: mappedMembers,
-  };
+    members: members.map((m) => ({
+      maBo: String(m.ma_bo || m.ma_vach_qr || m.ma_qr_quy_trinh || "—"),
+      tenBo: String((m.bo as { ten_bo?: string } | null)?.ten_bo || m.ten_bo || "—"),
+    })),
+  });
 }
 
 async function buildBatchPrintPayload(
@@ -128,7 +136,7 @@ async function buildBatchPrintPayload(
   if (!memRes.success) throw new Error(memRes.error || "Không tải thành phần mẻ.");
   const members = (memRes.data || []) as Array<Record<string, unknown>>;
 
-  return mapBatchPrintData(batch, members);
+  return mapBatchPrintData(supabase, batch, members);
 }
 
 export async function fetchCssdBatchPrintData(batchId: string) {

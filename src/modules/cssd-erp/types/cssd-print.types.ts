@@ -29,8 +29,25 @@ export type CssdQcProofRow = {
 export type CssdBatchPrintData = {
   batchId: string;
   maLo: string;
+  trangThaiLabel: string;
   ketQuaDat: boolean;
+  coTheIn: boolean;
   thietBi: string;
+  phuongPhap: string;
+  chuongTrinh: string;
+  nhietDo: string;
+  apSuat: string;
+  thoiGianChuKy: string;
+  nguoiNap: string;
+  nguoiDo: string;
+  nguoiNha: string;
+  thoiGianKetThucChuTrinh: string | null;
+  thoiGianNha: string | null;
+  qcVatLy: string;
+  qcCiNgoai: string;
+  qcCiPcd: string;
+  biLabel: string;
+  coImplantLabel: string;
   nguoiLoad: string;
   nguoiUnload: string;
   nhietDoApSuat: string;

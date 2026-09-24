@@ -3,11 +3,7 @@
 import React from "react";
 import PrintLayout from "@/components/shared/PrintLayout";
 import CssdPrintQrBlock from "./CssdPrintQrBlock";
-import CssdPrintQcProofTable from "./CssdPrintQcProofTable";
-import {
-  buildCssdQcProofRows,
-  formatCssdPrintDateTime,
-} from "../../lib/cssd-print-format";
+import { formatCssdPrintDateTime } from "../../lib/cssd-print-format";
 import type { CssdBatchPrintData } from "../../types/cssd-print.types";
 import { buildPrintFileTitle } from "@/lib/print/print-file-title";
 
@@ -38,12 +34,10 @@ export default function CssdBatchPrintView({
   data: CssdBatchPrintData;
   qrDataUrl: string;
 }) {
-  const qcRows = buildCssdQcProofRows(data);
-
   return (
     <PrintLayout
       title="PHIẾU MẺ TIỆT KHUẨN DỤNG CỤ"
-      subtitle={`Mã mẻ: ${data.maLo} · ${data.ketQuaDat ? "KẾT LUẬN: ĐẠT" : "KẾT LUẬN: KHÔNG ĐẠT"}`}
+      subtitle={`Mã mẻ: ${data.maLo} · Trạng thái: ${data.trangThaiLabel}`}
       leftSignatureTitle="NHÂN VIÊN TIỆT KHUẨN"
       rightSignatureTitle="TRƯỞNG KHOA / ĐD TRƯỞNG CSSD"
       density="compact"
@@ -58,13 +52,23 @@ export default function CssdBatchPrintView({
     >
       <div style={{ marginBottom: 6, pageBreakInside: "avoid" }}>
         {labelRow("Thiết bị tiệt khuẩn", data.thietBi)}
-        {labelRow("Người load mẻ", data.nguoiLoad)}
-        {labelRow("Người dỡ mẻ / QC", data.nguoiUnload)}
-        {labelRow("Bắt đầu mẻ", formatCssdPrintDateTime(data.thoiGianBatDau))}
-        {labelRow("Kết thúc mẻ", formatCssdPrintDateTime(data.thoiGianKetThuc))}
+        {labelRow("Phương pháp", data.phuongPhap)}
+        {labelRow("Chương trình", data.chuongTrinh)}
+        {labelRow("Nhiệt độ", data.nhietDo)}
+        {labelRow("Áp suất", data.apSuat)}
+        {labelRow("Thời gian chu kỳ", data.thoiGianChuKy)}
+        {labelRow("Người nạp", data.nguoiNap)}
+        {labelRow("Người dỡ", data.nguoiDo)}
+        {labelRow("Người nhả", data.nguoiNha)}
+        {labelRow("Giờ bắt đầu", formatCssdPrintDateTime(data.thoiGianBatDau))}
+        {labelRow("Giờ kết thúc chu trình", formatCssdPrintDateTime(data.thoiGianKetThucChuTrinh))}
+        {labelRow("Giờ nhả", formatCssdPrintDateTime(data.thoiGianNha))}
+        {labelRow("Thông số vật lý", data.qcVatLy)}
+        {labelRow("CI ngoài gói", data.qcCiNgoai)}
+        {labelRow("CI PCD", data.qcCiPcd)}
+        {labelRow("BI", data.biLabel)}
+        {labelRow("Implant", data.coImplantLabel)}
       </div>
-
-      <CssdPrintQcProofTable rows={qcRows} />
 
       <p
         style={{
@@ -81,7 +85,7 @@ export default function CssdBatchPrintView({
         <thead>
           <tr>
             <th style={{ ...tableTh, width: "8%" }}>STT</th>
-            <th style={{ ...tableTh, width: "38%" }}>Mã QR bộ</th>
+            <th style={{ ...tableTh, width: "38%" }}>Mã bộ</th>
             <th style={{ ...tableTh, width: "54%" }}>Tên bộ</th>
           </tr>
         </thead>

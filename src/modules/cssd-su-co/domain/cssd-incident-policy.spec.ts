@@ -65,35 +65,35 @@ describe("cssd-incident-policy", () => {
     expect(p.kind).toBe("generic");
   });
 
-  it("PROCESS sterilization fail rolls back to DONG_GOI and freezes", () => {
+  it("PROCESS sterilization fail returns every set to Tiếp nhận and keeps the batch link", () => {
     const p = resolveIncidentPolicy({
       detectionStation: "TIET_KHUAN",
       incidentTypeTen: "Chất lượng tiệt khuẩn / mẻ không đạt",
       incidentGroup: "PROCESS",
       typeId: "PROCESS_STERILIZATION_FAIL",
     });
-    expect(p.targetStation).toBe("DONG_GOI");
-    expect(p.freezeSafetyLock).toBe(true);
-    expect(p.clearSterilizationBatchLink).toBe(true);
+    expect(p.targetStation).toBe("TIEP_NHAN");
+    expect(p.freezeSafetyLock).toBe(false);
+    expect(p.clearSterilizationBatchLink).toBe(false);
     expect(p.recallEntireBatch).toBe(true);
     expect(p.holdMachineQc).toBe(true);
   });
 
-  it("PROCESS BI+ uses same batch rollback as mẻ không đạt", () => {
+  it("PROCESS BI+ uses the same Tiếp nhận recall as mẻ không đạt", () => {
     const p = resolveIncidentPolicy({
       detectionStation: "TIET_KHUAN",
       incidentTypeTen: "Chỉ thị sinh học (BI) dương tính",
       incidentGroup: "PROCESS",
       typeId: "PROCESS_BI_POSITIVE",
     });
-    expect(p.targetStation).toBe("DONG_GOI");
-    expect(p.freezeSafetyLock).toBe(true);
-    expect(p.clearSterilizationBatchLink).toBe(true);
+    expect(p.targetStation).toBe("TIEP_NHAN");
+    expect(p.freezeSafetyLock).toBe(false);
+    expect(p.clearSterilizationBatchLink).toBe(false);
     expect(p.recallEntireBatch).toBe(true);
     expect(p.holdMachineQc).toBe(true);
   });
 
-  it("PROCESS BI+ on issued set returns to Tiếp nhận without freeze", () => {
+  it("PROCESS BI+ on an issued set still returns to Tiếp nhận", () => {
     const p = resolveIncidentPolicy({
       detectionStation: "TIET_KHUAN",
       currentStation: "CAP_PHAT",
@@ -103,6 +103,7 @@ describe("cssd-incident-policy", () => {
     });
     expect(p.targetStation).toBe("TIEP_NHAN");
     expect(p.freezeSafetyLock).toBe(false);
+    expect(p.clearSterilizationBatchLink).toBe(false);
     expect(p.recallEntireBatch).toBe(true);
   });
 

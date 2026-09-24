@@ -64,6 +64,23 @@ export async function resolveCssdOperatorNhanSuId(
   return null;
 }
 
+/** Tên người từ user id phiên (`mdm_nhan_su.auth_user_id`). */
+export async function loadHoTenByAuthUserId(
+  client: SupabaseClient,
+  authUserId: string | null | undefined,
+): Promise<string | null> {
+  const id = String(authUserId || "").trim();
+  if (!id) return null;
+  const { data } = await client
+    .from("mdm_nhan_su")
+    .select("ho_ten")
+    .eq("auth_user_id", id)
+    .eq("is_active", true)
+    .maybeSingle();
+  const name = String((data as { ho_ten?: string } | null)?.ho_ten || "").trim();
+  return name || null;
+}
+
 export async function loadNhanSuHoTen(
   client: SupabaseClient,
   nhanSuId: string | null | undefined,

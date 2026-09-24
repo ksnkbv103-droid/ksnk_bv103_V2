@@ -225,15 +225,20 @@ export function useMeTietKhuanWorkflow() {
       const skipped = saved.skippedCount ?? 0;
       const recalled = saved.recalledCount ?? 0;
       const held = saved.machineHeld;
+      const listed = saved.listedUsed || [];
       const firstId = saved.incidentIds?.[0];
-      const extra =
-        recalled || held
-          ? ` Thu hồi ${recalled} bộ cùng mẻ${held ? "; máy tạm giữ QC (HOLD_QC)" : ""}.`
-          : "";
+      const listedNames = listed.map((row) => row.maBo).filter(Boolean).join(", ");
+      const extra = [
+        recalled ? `Thu hồi ${recalled} bộ về Tiếp nhận` : "",
+        held ? "máy tạm giữ QC (HOLD_QC)" : "",
+        listed.length ? `${listed.length} bộ đã dùng chỉ liệt kê${listedNames ? `: ${listedNames}` : ""}` : "",
+      ]
+        .filter(Boolean)
+        .join("; ");
       toast.error(
         skipped > 0
-          ? `Mẻ không đạt — đã có phiếu sự cố (không lập trùng).${extra}`
-          : `Mẻ không đạt — đã lập ${created} phiếu sự cố.${extra}`,
+          ? `Mẻ không đạt — phiếu sự cố đã có, đã cập nhật thu hồi.${extra ? ` ${extra}.` : ""}`
+          : `Mẻ không đạt — đã lập ${created} phiếu sự cố.${extra ? ` ${extra}.` : ""}`,
         {
           duration: 8000,
           action: firstId
@@ -258,7 +263,15 @@ export function useMeTietKhuanWorkflow() {
     const saved = await nhapKetQuaBiMeTietKhuan(activeMe.id, ketQua);
     if (!saved.success) return toast.error(saved.error || "Không lưu được kết quả BI.");
     if (saved.outcome === "HOAN_THANH") toast.success("BI âm. Mẻ đã nhả, bộ chờ cấp phát.");
-    else toast.error("BI dương. Mẻ không đạt.");
+    else {
+      const listed = saved.listedUsed || [];
+      const names = listed.map((row) => row.maBo).filter(Boolean).join(", ");
+      toast.error(
+        `BI dương. Thu hồi ${saved.recalledCount || 0} bộ về Tiếp nhận.${
+          listed.length ? ` ${listed.length} bộ đã dùng chỉ liệt kê${names ? `: ${names}` : ""}.` : ""
+        }`,
+      );
+    }
     setStep("LIST");
     void fetchData();
   };

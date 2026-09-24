@@ -130,7 +130,11 @@ export default function IncidentPrintView({
       if (batchRecalled) {
         const n = batchRecallCount ? ` (${batchRecallCount} bộ)` : "";
         const hold = machineHoldQc ? " Máy mẻ tạm giữ QC (HOLD_QC)." : "";
-        return `Thu hồi cả mẻ${n}: bộ đã cấp phát về Tiếp nhận; bộ còn trong chu trình về Đóng gói và khóa.${hold}`;
+        const listed = detailsMap["RECALL_LISTED_USED"];
+        const moved = detailsMap["RECALL_MOVED"];
+        const listedBit = listed ? ` Đã dùng lâm sàng, không đổi trạng thái: ${listed}.` : "";
+        const movedBit = moved ? ` Về Tiếp nhận: ${moved}.` : " Bộ chưa dùng về Tiếp nhận.";
+        return `Thu hồi mẻ${n}.${movedBit}${listedBit}${hold}`;
       }
       const target = rollbackTarget ? STATION_LABEL_MAP[rollbackTarget] || rollbackTarget : "Làm sạch";
       return `Rollback domino: Tự động chuyển bộ dụng cụ về trạm [${target}] để xử lý lại từ đầu.`;
@@ -142,7 +146,7 @@ export default function IncidentPrintView({
       return "Niêm phong và loại bỏ lô hóa chất/vật tư kém chất lượng. Thay thế lô mới đạt chuẩn.";
     }
     return "Tự động ghi nhận thông tin sự cố chung phục vụ đánh giá KPI & quy trình.";
-  }, [incident.incident_group, rollbackTarget, batchRecalled, batchRecallCount, machineHoldQc]);
+  }, [incident.incident_group, rollbackTarget, batchRecalled, batchRecallCount, machineHoldQc, detailsMap]);
 
   return (
     <PrintLayout

@@ -16,30 +16,16 @@ export async function appendQuyTrinhException(
     const id = String(quyTrinhId || "").trim();
     if (!id) return;
 
-    const { data, error } = await supabase
-      .from("cssd_fact_quy_trinh")
-      .select("metadata")
-      .eq("id", id)
-      .maybeSingle();
-
-    if (error || !data) return;
-    const metadata = (data as { metadata?: Record<string, unknown> }).metadata || {};
-    const ngoaiLe = Array.isArray(metadata.ngoai_le) ? metadata.ngoai_le : [];
-    ngoaiLe.push({
-      ...event,
-      thoi_gian: new Date().toISOString(),
+    const { error } = await supabase.rpc("rpc_cssd_quy_trinh_append_ngoai_le", {
+      p_id: id,
+      p_event: {
+        ...event,
+        thoi_gian: new Date().toISOString(),
+      },
     });
-
-    await supabase
-      .from("cssd_fact_quy_trinh")
-      .update({
-        metadata: {
-          ...metadata,
-          ngoai_le: ngoaiLe,
-        },
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id);
+    if (error) {
+      console.error({ module: "cssd-erp", action: "appendQuyTrinhException", error: error.message });
+    }
   } catch {
     // Fail-soft: không chặn luồng chính nếu ghi log lỗi
   }

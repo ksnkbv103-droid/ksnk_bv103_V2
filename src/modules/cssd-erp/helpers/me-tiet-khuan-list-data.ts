@@ -9,6 +9,7 @@ const ME_TRANG_THAI = new Set([
   "CHO_BI",
   "HOAN_THANH",
   "QC_KHONG_DAT",
+  "THU_HOI",
 ]);
 
 /** Tải danh sách mẻ + máy; đếm số `quy_trinh` đang gắn từng mẻ (truy vết). */
@@ -41,8 +42,7 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
     const { data: qrows } = await supabase
       .from("cssd_fact_quy_trinh")
       .select("lo_tiet_khuan_id")
-      .in("lo_tiet_khuan_id", ids)
-      .eq("is_active", true);
+      .in("lo_tiet_khuan_id", ids);
     for (const r of qrows || []) {
       const lid = (r as { lo_tiet_khuan_id?: string }).lo_tiet_khuan_id;
       if (!lid) continue;

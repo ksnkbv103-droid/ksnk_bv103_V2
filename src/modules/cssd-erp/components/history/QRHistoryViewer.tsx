@@ -9,7 +9,7 @@ import { fetchCssdQrHistory, assignCssdCaMoTrace } from "../../actions/cssd-qr-h
 import { useCssdPrint } from "../../hooks/use-cssd-print";
 import CssdPrintPortal from "../print/CssdPrintPortal";
 import type { CssdBatchPrintData } from "../../types/cssd-print.types";
-import { formatCssdPrintDateTime, formatCssdTriLabel } from "../../lib/cssd-print-format";
+import { formatCssdPrintDateTime } from "../../lib/cssd-print-format";
 import { normalizeCssdCode } from "../../shared/domain/cssd-qr-core";
 
 interface HistoryLog {
@@ -129,20 +129,20 @@ export default function QRHistoryViewer({ initialQr }: Props) {
         <div className="bv103-layer-panel bv103-pad-panel bv103-stack-in animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div>
             <h3 className="bv103-type-title text-slate-900 mb-1">Mẻ tiệt khuẩn: {batchTrace.maLo}</h3>
-            <p className="text-sm text-emerald-700 font-medium">
-              {batchTrace.ketQuaDat ? "Đạt QC — sẵn sàng cấp phát" : "Không đạt QC"}
-            </p>
+            <p className="text-sm text-emerald-700 font-medium">Trạng thái: {batchTrace.trangThaiLabel}</p>
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600">
               <span><strong>Thiết bị:</strong> {batchTrace.thietBi}</span>
-              <span><strong>Người load:</strong> {batchTrace.nguoiLoad}</span>
-              <span><strong>Người dỡ:</strong> {batchTrace.nguoiUnload}</span>
-              <span><strong>Kết thúc:</strong> {formatCssdPrintDateTime(batchTrace.thoiGianKetThuc)}</span>
-              <span><strong>CI:</strong> {formatCssdTriLabel(batchTrace.testCI)}</span>
-              <span><strong>BI:</strong> {formatCssdTriLabel(batchTrace.testSinhHoc)}</span>
+              <span><strong>Phương pháp:</strong> {batchTrace.phuongPhap}</span>
+              <span><strong>Người nạp:</strong> {batchTrace.nguoiNap}</span>
+              <span><strong>Người dỡ:</strong> {batchTrace.nguoiDo}</span>
+              <span><strong>Người nhả:</strong> {batchTrace.nguoiNha}</span>
+              <span><strong>Kết thúc chu trình:</strong> {formatCssdPrintDateTime(batchTrace.thoiGianKetThucChuTrinh)}</span>
+              <span><strong>CI ngoài gói:</strong> {batchTrace.qcCiNgoai}</span>
+              <span><strong>BI:</strong> {batchTrace.biLabel}</span>
             </div>
             <button
               type="button"
-              disabled={isPrinting || !batchTrace.ketQuaDat}
+              disabled={isPrinting || !batchTrace.coTheIn}
               onClick={() => void onPrintBatch({ batchId: batchTrace.batchId })}
               className="bv103-control-h mt-4 w-full rounded-[var(--radius-control)] bg-[var(--primary)] text-xs font-semibold text-white disabled:opacity-50"
             >

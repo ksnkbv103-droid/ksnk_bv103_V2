@@ -142,7 +142,7 @@ export default function MeTietKhuanProcessStep({
           type="button"
           onClick={onReportIncident}
           className={`${CSSD_UI_ACTION_SECONDARY} border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100`}
-          title="Thu hồi theo mẻ — sự cố an toàn QT.24 (BI+/ướt/lỗi máy)"
+          title="Thu hồi theo mẻ — sự cố an toàn (BI dương, gói ướt, lỗi máy)"
         >
           Thu hồi theo mẻ
         </button>
@@ -202,7 +202,11 @@ export default function MeTietKhuanProcessStep({
               </button>
             )}
 
-            {phase === "HOAN_THANH" && activeMe?.ket_qua_test === true && onPrintBatch ? (
+            {(choBi ||
+              activeMe?.ket_qua_test === true ||
+              activeMe?.ket_qua_test === false ||
+              ["QC_KHONG_DAT", "THU_HOI", "HOAN_THANH"].includes(String(activeMe?.trang_thai || ""))) &&
+            onPrintBatch ? (
               <button
                 type="button"
                 disabled={isPrintBusy}

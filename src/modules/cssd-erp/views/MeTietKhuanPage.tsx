@@ -189,7 +189,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
           <Link
             href={cssdSuCoBatchRecallHref()}
             className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-5 text-[11px] font-semibold text-amber-900 shadow-sm hover:bg-amber-100 active:scale-[0.98] transition-all"
-            title="Thu hồi theo mẻ — sự cố an toàn QT.24"
+            title="Thu hồi theo mẻ — sự cố an toàn"
           >
             Thu hồi theo mẻ
           </Link>

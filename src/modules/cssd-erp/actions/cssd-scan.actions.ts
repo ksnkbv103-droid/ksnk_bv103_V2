@@ -92,9 +92,7 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       updated_at: nowCap,
     };
     if (operatorId) capUpdate.nguoi_cap_phat_id = operatorId;
-    if (extraPayload?.ma_ca_mo_id) {
-      capUpdate.metadata = { ma_ca_mo_id: String(extraPayload.ma_ca_mo_id) };
-    }
+    const maCaMoId = String(extraPayload?.ma_ca_mo_id || "").trim();
     // SSOT khoa nhận: ưu tiên payload; không có thì giữ sẵn có / bootstrap từ khoa sở hữu bộ.
     const khoaNhanPayload = String(extraPayload?.khoa_nhan_id || "").trim();
     if (khoaNhanPayload) {
@@ -108,7 +106,15 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       const kid = String((bo as { khoa_su_dung_id?: string } | null)?.khoa_su_dung_id || "").trim();
       if (kid) capUpdate.khoa_nhan_id = kid;
     }
-    await supabase.from("cssd_fact_quy_trinh").update(capUpdate).eq("id", preRow.id);
+    const { error: capErr } = await supabase.from("cssd_fact_quy_trinh").update(capUpdate).eq("id", preRow.id);
+    if (capErr) throw new Error(capErr.message);
+    if (maCaMoId) {
+      const { error: metaErr } = await supabase.rpc("rpc_cssd_quy_trinh_metadata_merge", {
+        p_id: preRow.id,
+        p_patch: { ma_ca_mo_id: maCaMoId },
+      });
+      if (metaErr) throw new Error(metaErr.message);
+    }
     let maLoTietKhuan = "";
     const loId = String(preRow.lo_tiet_khuan_id || "").trim();
     if (loId) {

@@ -304,7 +304,6 @@ export async function fetchCssdBatchMembers(batchId: string) {
       .from("v_cssd_quy_trinh_full")
       .select("*")
       .eq("lo_tiet_khuan_id", id)
-      .eq("is_active", true)
       .order("updated_at", { ascending: false });
     if (error) return { success: false as const, error: mapFkError(error.message), data: [] as unknown[] };
     const raw = (rows || []) as Array<{ bo_dung_cu_id?: string | null } & Record<string, unknown>>;
@@ -686,13 +685,15 @@ export async function finishCssdSterilizationBatch(input: PersistMeTietKhuanInpu
       skippedCount: saved.skippedCount || 0,
       recalledCount: saved.recalledCount || 0,
       machineHeld: Boolean(saved.machineHeld),
+      recalled: saved.recalled || [],
+      listedUsed: saved.listedUsed || [],
     };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
   }
 }
 
-/** Nhập BI cho mẻ CHO_BI. Quyền QC. Âm thì nhả; dương thì sự cố BI. */
+/** Nhập BI. Âm chỉ khi đang chờ BI. Dương cả mẻ đã nhả — thu hồi cửa sổ cùng máy. */
 export async function nhapKetQuaBiMeTietKhuan(batchId: string, ketQua: "AM" | "DUONG") {
   try {
     await verifyCssdBatchQc();
@@ -730,6 +731,8 @@ export async function nhapKetQuaBiMeTietKhuan(batchId: string, ketQua: "AM" | "D
       skippedCount: saved.skippedCount || 0,
       recalledCount: saved.recalledCount || 0,
       machineHeld: Boolean(saved.machineHeld),
+      recalled: saved.recalled || [],
+      listedUsed: saved.listedUsed || [],
     };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };

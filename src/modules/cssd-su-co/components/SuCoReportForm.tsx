@@ -525,9 +525,13 @@ export default function SuCoReportForm({
           toast.success("Đã ghi nhận báo cáo sự cố!");
         }
         if (res.recalledCount || res.machineHeld) {
-          const recallBit = res.recalledCount ? `đã thu hồi ${res.recalledCount} bộ cùng mẻ` : "";
+          const recallBit = res.recalledCount ? `đã thu hồi ${res.recalledCount} bộ về Tiếp nhận` : "";
           const holdBit = res.machineHeld ? "máy tạm giữ QC (HOLD_QC)" : "";
-          toast.message([recallBit, holdBit].filter(Boolean).join(" — ") + ".");
+          const listed = res.listedUsed || [];
+          const listedBit = listed.length
+            ? `${listed.length} bộ đã dùng chỉ liệt kê: ${listed.map((row) => row.maBo).filter(Boolean).join(", ")}`
+            : "";
+          toast.message([recallBit, holdBit, listedBit].filter(Boolean).join(" — ") + ".");
         }
         if (res.incident_id) {
           const printData = await getIncidentForPrint(res.incident_id);

@@ -70,14 +70,13 @@ export function resolveIncidentPolicy(args: {
   const det = args.detectionStation;
   const detIdx = stepIndex(det);
 
-  /** QC mẻ (QT.23) — không áp cho QC trạm (`PROCESS_QC_FAIL`). */
+  /** QC mẻ — không áp cho QC trạm (`PROCESS_QC_FAIL`). Không xóa liên kết mẻ. */
   if (args.incidentGroup === "PROCESS" && isBatchQcFailTypeId(args.typeId)) {
-    const target = recallTargetStationForLotMember(args.currentStation || det);
     return {
-      targetStation: target,
+      targetStation: recallTargetStationForLotMember(args.currentStation || det),
       faultStation: args.faultStation || "TIET_KHUAN",
-      clearSterilizationBatchLink: true,
-      freezeSafetyLock: target === "DONG_GOI",
+      clearSterilizationBatchLink: false,
+      freezeSafetyLock: false,
       recallEntireBatch: true,
       holdMachineQc: true,
       kind: "process_failure",
