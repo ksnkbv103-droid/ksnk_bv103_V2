@@ -101,11 +101,10 @@ export const INCIDENT_TYPE_PRESETS: Record<IncidentGroup, IncidentPreset[]> = {
     { code: "PROCESS_STERILE_QC_FAIL", label: "Nội kiểm mẻ TK hoặc Bowie-Dick không đạt" },
     { code: "PROCESS_BI_POSITIVE", label: "Chỉ thị sinh học (BI) dương tính" },
   ],
-  /** D2: chỉ 3 cửa UI. D4: legacy TRANSFER/REPLENISH/BROKEN/MISSING không đưa vào picker — giữ mã sổ qua coerce + submit bridge. */
-  /** A 2026-09-18: chỉ Hỏng/Mất + Chuyển. Đổi danh mục master → /cssd-dung-cu DE_NGHI. */
+  /** D4: legacy TRANSFER/REPLENISH/BROKEN/MISSING không đưa vào picker — giữ mã sổ qua coerce + submit bridge. */
+  /** G-P0-06: sự cố dụng cụ chỉ Hỏng/Mất. Luân chuyển số lượng → /cssd-dung-cu tab LUAN_CHUYEN. Đề nghị danh mục → DE_NGHI. */
   INSTRUMENT: [
     { code: INSTRUMENT_PHYSICAL_DOOR_ID, label: "Hỏng/Mất" },
-    { code: INSTRUMENT_MOVE_TYPE_ID, label: "Chuyển kho·bộ" },
   ],
   CHEMICAL: [
     { code: "CHEMICAL_STOCK_OUT", label: "Thiếu hóa chất / vật tư" },
@@ -129,7 +128,7 @@ export const INCIDENT_STATION_OPTIONS: Array<{ value: Station; label: string }> 
   { value: "CAP_PHAT", label: "Cấp phát" },
 ];
 
-/** Biến động: 2 cửa (A 2026-09-18). Legacy SET_RECONCILE không còn picker. */
+/** Sự cố dụng cụ: chỉ Hỏng/Mất. Luân chuyển không nằm picker này. */
 export function instrumentFormTypeOptions(): IncidentPreset[] {
   return INCIDENT_TYPE_PRESETS.INSTRUMENT;
 }

@@ -10,7 +10,7 @@ import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 
 /**
  * Bảng lịch sử giao dịch kho dụng cụ (≤ 180 dòng)
- * Hiển thị các giao dịch Luân chuyển, Báo hỏng, Báo mất và Bổ sung.
+ * Sổ giao dịch kho (nhập, xuất, điều chỉnh, hỏng/mất, bổ sung). Không phải tab đề nghị.
  */
 export default function InventoryHistoryTable() {
   const [data, setData] = useState<any[]>([]);
@@ -65,8 +65,13 @@ export default function InventoryHistoryTable() {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <h3 className="text-[11px] font-medium text-slate-500">Lịch sử giao dịch kho</h3>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <h3 className="text-[11px] font-medium text-slate-500">Lịch sử kho</h3>
+          <p className="text-[11px] text-slate-400">
+            Sổ nhập, xuất, điều chỉnh, hỏng/mất, bổ sung. Lập luân chuyển ở tab Luân chuyển; hỏng/mất lập tại Sự cố.
+          </p>
+        </div>
         <button type="button" onClick={() => void fetchHistory()} className="p-1.5 text-slate-400 hover:text-[var(--primary)]" title="Tải lại">
           <RefreshCw size={16} />
         </button>

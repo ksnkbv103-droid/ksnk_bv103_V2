@@ -38,15 +38,10 @@ describe("cssd-incident-taxonomy", () => {
     expect(coerceInstrumentFormTypeId(SET_RECONCILE_TYPE_ID)).toBe(INSTRUMENT_PHYSICAL_DOOR_ID);
   });
 
-  it("form options expose only 3 doors", () => {
-    expect(instrumentFormTypeOptions().map((x) => x.code)).toEqual([
-      INSTRUMENT_PHYSICAL_DOOR_ID,
-      INSTRUMENT_MOVE_TYPE_ID,
-    ]);
-    expect(INCIDENT_TYPE_PRESETS.INSTRUMENT.map((x) => x.code)).toEqual([
-      INSTRUMENT_PHYSICAL_DOOR_ID,
-      INSTRUMENT_MOVE_TYPE_ID,
-    ]);
+  it("sự cố picker is Hỏng/Mất only — luân chuyển is not a sự cố door", () => {
+    expect(instrumentFormTypeOptions().map((x) => x.code)).toEqual([INSTRUMENT_PHYSICAL_DOOR_ID]);
+    expect(INCIDENT_TYPE_PRESETS.INSTRUMENT.map((x) => x.code)).toEqual([INSTRUMENT_PHYSICAL_DOOR_ID]);
+    expect(instrumentFormTypeOptions().map((x) => x.code)).not.toContain(INSTRUMENT_MOVE_TYPE_ID);
   });
 
   it("physical door submits as SET_RECONCILE", () => {

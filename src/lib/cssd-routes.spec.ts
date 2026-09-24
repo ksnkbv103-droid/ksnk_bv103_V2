@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CSSD_ROUTES, cssdReportAnalyticsHref, cssdSuCoBatchRecallHref, cssdSuCoIncidentJournalHref, cssdSuCoInstrumentHref } from "./cssd-routes";
+import { CSSD_ROUTES, cssdLuanChuyenHref, cssdReportAnalyticsHref, cssdSuCoBatchRecallHref, cssdSuCoIncidentJournalHref, cssdSuCoInstrumentHref } from "./cssd-routes";
 import {
   INSTRUMENT_MOVE_TYPE_ID,
   INSTRUMENT_PHYSICAL_DOOR_ID,
@@ -14,13 +14,22 @@ describe("cssd-routes deep links", () => {
     expect(broken).not.toContain("INSTRUMENT_BROKEN");
     expect(broken).toContain("ma=B01");
 
-    const transfer = cssdSuCoInstrumentHref({ type: "INSTRUMENT_TRANSFER" });
-    expect(transfer).toContain(`type=${INSTRUMENT_MOVE_TYPE_ID}`);
+    const transfer = cssdSuCoInstrumentHref({ type: "INSTRUMENT_TRANSFER", ma: "B02" });
+    expect(transfer).toBe(cssdLuanChuyenHref({ ma: "B02" }));
+    expect(transfer).toContain("/cssd-dung-cu");
+    expect(transfer).toContain("tab=LUAN_CHUYEN");
+    expect(transfer).not.toContain("/cssd-su-co");
     expect(transfer).not.toContain("TRANSFER");
 
     const replenish = cssdSuCoInstrumentHref({ type: "INSTRUMENT_REPLENISH" });
-    expect(replenish).toContain(`type=${INSTRUMENT_MOVE_TYPE_ID}`);
+    expect(replenish).toContain("tab=LUAN_CHUYEN");
+    expect(replenish).not.toContain("/cssd-su-co");
     expect(replenish).not.toContain("REPLENISH");
+
+    const move = cssdSuCoInstrumentHref({ type: "INSTRUMENT_MOVE", ma: "B03" });
+    expect(move).toContain("tab=LUAN_CHUYEN");
+    expect(move).toContain("ma=B03");
+    expect(move).not.toContain(`type=${INSTRUMENT_MOVE_TYPE_ID}`);
 
     const missing = cssdSuCoInstrumentHref({ type: "INSTRUMENT_MISSING" });
     expect(missing).toContain(`type=${INSTRUMENT_PHYSICAL_DOOR_ID}`);

@@ -24,9 +24,9 @@ export function cssdQuyTrinhBatchTabHref(): string {
 }
 
 /**
- * Deep-link một cửa sự cố dụng cụ (`/cssd-su-co`).
- * D4 SSOT: legacy TRANSFER/REPLENISH/BROKEN/MISSING chỉ coerce → 3 cửa (SET_RECONCILE / PHYSICAL / MOVE).
- * URL mới không emit legacy; mã lịch sử sổ vẫn qua submit bridge.
+ * Deep-link cửa dụng cụ.
+ * Hỏng/Mất → `/cssd-su-co`. Đề nghị danh mục và luân chuyển số lượng → `/cssd-dung-cu`.
+ * D4: legacy TRANSFER/REPLENISH/BROKEN/MISSING không emit lên URL; mã sổ giữ qua submit bridge.
  */
 export function cssdCatalogEditProposalHref(params: {
   kind: "LOAI" | "BO" | "BOM";
@@ -47,6 +47,35 @@ export function cssdCatalogEditProposalHref(params: {
   if (targetId) q.set("targetId", targetId);
   const hint = String(params.hint || "").trim();
   if (hint) q.set("note", hint);
+  return `${CSSD_ROUTES.dungCu}?${q.toString()}`;
+}
+
+const LUAN_CHUYEN_TYPE_IDS = new Set([
+  "INSTRUMENT_MOVE",
+  "INSTRUMENT_TRANSFER",
+  "INSTRUMENT_REPLENISH",
+  "INSTRUMENT_RETURN_KHO",
+]);
+
+/** Bookmark cũ của cửa Chuyển — mở tab Luân chuyển, không mở form sự cố. */
+export function isLuanChuyenTypeId(typeId?: string | null): boolean {
+  return LUAN_CHUYEN_TYPE_IDS.has(String(typeId || "").trim().toUpperCase());
+}
+
+/** Cửa luân chuyển số lượng (kho ↔ bộ / bộ ↔ bộ) trên /cssd-dung-cu. */
+export function cssdLuanChuyenHref(params?: {
+  ma?: string | null;
+  loai?: string | null;
+  chiTiet?: string | null;
+}): string {
+  const q = new URLSearchParams();
+  q.set("tab", "LUAN_CHUYEN");
+  const ma = String(params?.ma || "").trim();
+  if (ma) q.set("ma", ma);
+  const loai = String(params?.loai || "").trim();
+  if (loai) q.set("loai", loai);
+  const chiTiet = String(params?.chiTiet || "").trim();
+  if (chiTiet) q.set("chiTiet", chiTiet);
   return `${CSSD_ROUTES.dungCu}?${q.toString()}`;
 }
 
@@ -71,6 +100,14 @@ export function cssdSuCoInstrumentHref(params?: {
       ma: params?.ma,
       loai: params?.loai,
       hint: params?.chiTiet,
+    });
+  }
+  // G-P0-06: luân chuyển số lượng ở /cssd-dung-cu, không mở cửa sự cố.
+  if (isLuanChuyenTypeId(rawType)) {
+    return cssdLuanChuyenHref({
+      ma: params?.ma,
+      loai: params?.loai,
+      chiTiet: params?.chiTiet,
     });
   }
   const q = new URLSearchParams();

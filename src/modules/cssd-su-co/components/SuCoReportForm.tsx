@@ -14,7 +14,6 @@ import { listActiveBoForInstrumentTransferAction } from "../actions/su-co-bo-pic
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import { createIncidentReport, getIncidentForPrint } from "../actions/su-co-report.actions";
 import {
-  INCIDENT_GROUP_LABEL,
   INCIDENT_TYPE_PRESETS,
   INCIDENT_STATION_OPTIONS,
   coerceInstrumentFormTypeId,
@@ -82,6 +81,8 @@ export type SuCoReportFormProps = {
   onSubmitted?: (incidentId?: string) => void;
   onDismiss?: () => void;
   layout?: "page" | "modal";
+  /** `luan-chuyen`: khóa cửa số lượng trên /cssd-dung-cu — không chrome sự cố / đề nghị. */
+  entryMode?: "incident" | "luan-chuyen";
 };
 
 const emptyMeta = (): SuCoIncidentMetaState => ({
@@ -110,8 +111,10 @@ export default function SuCoReportForm({
   onSubmitted,
   onDismiss,
   layout = "page",
+  entryMode = "incident",
 }: SuCoReportFormProps) {
   const isModal = layout === "modal";
+  const luanChuyen = entryMode === "luan-chuyen";
   const { userData } = usePermission();
   const nguoiLapLabel =
     String(userData?.ho_ten || "").trim() || String(userData?.email || "").trim() || "Nhân viên CSSD";
@@ -121,16 +124,21 @@ export default function SuCoReportForm({
   const [fLoading, setFLoading] = useState(false);
   const [fError, setFError] = useState<string | null>(null);
   const [detectionStation, setDetectionStation] = useState<Station>(initialStation);
-  const [incidentGroup, setIncidentGroup] = useState<IncidentGroup>(initialGroup || "PROCESS");
+  const [incidentGroup, setIncidentGroup] = useState<IncidentGroup>(
+    luanChuyen ? "INSTRUMENT" : initialGroup || "PROCESS",
+  );
   const [setReconcileState, setSetReconcileState] = useState<SetReconcileFormState | null>(null);
   const [destMa, setDestMa] = useState("");
   const [moveUsesKho, setMoveUsesKho] = useState(true);
   const [typeId, setTypeId] = useState(
-    initialGroup === "INSTRUMENT"
-      ? coerceInstrumentFormTypeId(initialTypeId)
-      : initialTypeId || INCIDENT_TYPE_PRESETS.PROCESS[0]?.code || "",
+    luanChuyen
+      ? INSTRUMENT_MOVE_TYPE_ID
+      : initialGroup === "INSTRUMENT"
+        ? coerceInstrumentFormTypeId(initialTypeId)
+        : initialTypeId || INCIDENT_TYPE_PRESETS.PROCESS[0]?.code || "",
   );
   const [typeTen, setTypeTen] = useState(() => {
+    if (luanChuyen) return "Luân chuyển";
     if (initialGroup === "INSTRUMENT") {
       const coerced = coerceInstrumentFormTypeId(initialTypeId);
       return INCIDENT_TYPE_PRESETS.INSTRUMENT.find((x) => x.code === coerced)?.label || "Hỏng/Mất";
@@ -265,6 +273,12 @@ export default function SuCoReportForm({
   }, [enabled, needsBoCatalog]);
 
   useEffect(() => {
+    if (entryMode === "luan-chuyen") {
+      setIncidentGroup("INSTRUMENT");
+      setTypeId(INSTRUMENT_MOVE_TYPE_ID);
+      setTypeTen("Luân chuyển");
+      return;
+    }
     const defaults = groupTypeDefaults(incidentGroup);
     if (incidentGroup === "INSTRUMENT") {
       const coerced = coerceInstrumentFormTypeId(initialTypeId);
@@ -291,7 +305,7 @@ export default function SuCoReportForm({
       setMaQR("");
     }
     if (incidentGroup !== "PROCESS") setCyclePerformers([]);
-  }, [incidentGroup, detectionStation, initialTypeId, initialMaQR]);
+  }, [incidentGroup, detectionStation, initialTypeId, initialMaQR, entryMode]);
 
   const applyFaultTraceResult = useCallback(
     (
@@ -393,8 +407,8 @@ export default function SuCoReportForm({
     if (incidentGroup === "INSTRUMENT" && !maQR.trim()) {
       return toast.error(
         isMoveDoor
-          ? "Cửa Chuyển cần chọn bộ dụng cụ (ít nhất một bên là bộ)."
-          : `Nhóm "${INCIDENT_GROUP_LABEL.INSTRUMENT}" cần chọn hoặc quét mã bộ dụng cụ.`,
+          ? "Luân chuyển cần chọn bộ dụng cụ (ít nhất một bên là bộ)."
+          : `Hỏng/Mất cần chọn hoặc quét mã bộ dụng cụ.`,
       );
     }
     if (incidentGroup === "PROCESS" && !maQR.trim() && !(batchLinked && hasBatchContext)) {
@@ -415,13 +429,15 @@ export default function SuCoReportForm({
         : isPhysicalDoor
           ? "Ghi nhận dụng cụ hỏng hoặc mất trên bộ (ghi sổ ngay)."
           : isReconcileDoor
-            ? "Đề nghị đổi mã, tên hoặc số lượng chuẩn bộ dụng cụ."
+            ? "Ghi nhận dụng cụ hỏng hoặc mất trên bộ (ghi sổ ngay)."
             : "");
     if (!descText) {
       return toast.error(
-        isInstrument
-          ? "Vui lòng điền mô tả chi tiết phiếu biến động."
-          : "Vui lòng điền mô tả chi tiết sự cố an toàn.",
+        luanChuyen
+          ? "Vui lòng ghi chú luân chuyển."
+          : isInstrument
+            ? "Vui lòng điền mô tả Hỏng/Mất."
+            : "Vui lòng điền mô tả chi tiết sự cố an toàn.",
       );
     }
     if (incidentGroup === "EQUIPMENT" && !machineId.trim()) {
@@ -464,7 +480,7 @@ export default function SuCoReportForm({
           : submitTypeId === "INSTRUMENT_REPLENISH"
             ? "Kho ↔ bộ"
             : submitTypeId === SET_RECONCILE_TYPE_ID
-              ? typeTen || (isPhysicalDoor ? "Hỏng/Mất" : isMoveDoor ? "Chuyển kho·bộ" : "Biến động dụng cụ")
+              ? typeTen || (isPhysicalDoor ? "Hỏng/Mất" : isMoveDoor ? "Luân chuyển" : "Hỏng/Mất")
               : typeTen;
 
       const payload = {
@@ -508,7 +524,15 @@ export default function SuCoReportForm({
       try {
         const res = await createIncidentReport(payload);
         confirmDuplicateRef.current = false;
-        if (res.deduped) {
+        if (luanChuyen) {
+          if (res.isRedAlert) {
+            toast.message("Đã ghi luân chuyển. Bộ này đã có từ 2 phiếu trở lên.", { duration: 8000 });
+          } else {
+            toast.success("Đã ghi luân chuyển.");
+          }
+          setSubmittedIncident({ incident: { id: res.incident_id || "" }, details: [] });
+          onSubmitted?.(res.incident_id);
+        } else if (res.deduped) {
           toast.message("Phiếu cùng mẻ và bộ đã có. Lập thêm nếu cần bổ sung mô tả.", {
             action: {
               label: "Lập phiếu mới",
@@ -524,19 +548,21 @@ export default function SuCoReportForm({
         } else {
           toast.success("Đã ghi nhận báo cáo sự cố!");
         }
-        if (res.recalledCount || res.machineHeld) {
-          const recallBit = res.recalledCount ? `đã thu hồi ${res.recalledCount} bộ cùng mẻ` : "";
-          const holdBit = res.machineHeld ? "máy tạm giữ QC (HOLD_QC)" : "";
-          toast.message([recallBit, holdBit].filter(Boolean).join(" — ") + ".");
-        }
-        if (res.incident_id) {
-          const printData = await getIncidentForPrint(res.incident_id);
-          if (printData.success) {
-            setSubmittedIncident({ incident: printData.incident, details: printData.details });
-            toast.message("Đã lưu sự cố — bấm In biên bản nếu cần.");
+        if (!luanChuyen) {
+          if (res.recalledCount || res.machineHeld) {
+            const recallBit = res.recalledCount ? `đã thu hồi ${res.recalledCount} bộ cùng mẻ` : "";
+            const holdBit = res.machineHeld ? "máy tạm giữ QC (HOLD_QC)" : "";
+            toast.message([recallBit, holdBit].filter(Boolean).join(" — ") + ".");
           }
+          if (res.incident_id) {
+            const printData = await getIncidentForPrint(res.incident_id);
+            if (printData.success) {
+              setSubmittedIncident({ incident: printData.incident, details: printData.details });
+              toast.message("Đã lưu sự cố — bấm In biên bản nếu cần.");
+            }
+          }
+          onSubmitted?.(res.incident_id);
         }
-        onSubmitted?.(res.incident_id);
       } catch (err: unknown) {
         const { isNetworkError, pushOfflineTask } = await import("@/lib/offline-sync");
         if (isNetworkError(err)) {
@@ -560,8 +586,16 @@ export default function SuCoReportForm({
     setMaLo("");
     setViTriPhatHien("");
     setCyclePerformers([]);
-    setTypeId(INCIDENT_TYPE_PRESETS.PROCESS[0]?.code || "");
-    setTypeTen(INCIDENT_TYPE_PRESETS.PROCESS[0]?.label || "");
+    setDestMa("");
+    setSetReconcileState(null);
+    if (luanChuyen) {
+      setIncidentGroup("INSTRUMENT");
+      setTypeId(INSTRUMENT_MOVE_TYPE_ID);
+      setTypeTen("Luân chuyển");
+    } else {
+      setTypeId(INCIDENT_TYPE_PRESETS.PROCESS[0]?.code || "");
+      setTypeTen(INCIDENT_TYPE_PRESETS.PROCESS[0]?.label || "");
+    }
     setFaultStation(initialStation);
     setMeta(emptyMeta());
     setSubmittedIncident(null);
@@ -574,6 +608,7 @@ export default function SuCoReportForm({
         details={submittedIncident.details}
         onReset={resetAfterSubmit}
         onClose={onDismiss}
+        tone={luanChuyen ? "luan-chuyen" : "incident"}
       />
     );
   }
@@ -606,10 +641,14 @@ export default function SuCoReportForm({
         </div>
       ) : (
         <div className={"bv103-stack-in"}>
-          {isBatchRecallEntry ? (
+          {luanChuyen ? (
+            <p className="border-b border-slate-200 pb-2 text-[12px] text-slate-600">
+              Luân chuyển số lượng — kho ↔ bộ hoặc bộ ↔ bộ.
+            </p>
+          ) : isBatchRecallEntry ? (
             <div className="flex flex-wrap items-center gap-2 border-b border-amber-200 pb-2" data-testid="batch-recall-group-lock">
               <span className="text-[12px] font-semibold text-amber-900">An toàn QT · Thu hồi theo mẻ</span>
-              <span className="text-[11px] text-slate-500">(không mở 3 cửa biến động dụng cụ)</span>
+              <span className="text-[11px] text-slate-500">(không mở cửa Hỏng/Mất)</span>
             </div>
           ) : (
             <IncidentGroupPicker incidentGroup={incidentGroup} onSelect={setIncidentGroup} />
@@ -628,7 +667,7 @@ export default function SuCoReportForm({
             {renderStationOverride}
           </div>
 
-          {incidentGroup === "INSTRUMENT" ? (
+          {incidentGroup === "INSTRUMENT" && !luanChuyen ? (
             <InstrumentDoorTabs
               typeId={typeId}
               options={activeGroupOptions}
@@ -794,6 +833,9 @@ export default function SuCoReportForm({
             relatedOptions={relatedOptions}
             relatedHint={relatedHint}
             wide={!isModal}
+            timeLabel={luanChuyen ? "Thời điểm" : undefined}
+            detectorLabel={luanChuyen ? "Người thực hiện (tùy chọn)" : undefined}
+            moTaLabel={luanChuyen ? "Ghi chú luân chuyển" : undefined}
             onChange={handleMetaChange}
             onSelectDetector={(id, label) => {
               const row = nhanSu.find((n) => n.id === id);
@@ -826,7 +868,7 @@ export default function SuCoReportForm({
               disabled={loading || tracing || !!fError || fLoading}
               className={`${bv103LayoutChrome.btnPrimaryBlock} normal-case tracking-normal touch-manipulation`}
             >
-              {loading ? <Loader2 className="animate-spin" size={16} /> : <><CheckCircle2 size={16} /> Gửi</>}
+              {loading ? <Loader2 className="animate-spin" size={16} /> : <><CheckCircle2 size={16} /> {luanChuyen ? "Ghi luân chuyển" : "Gửi"}</>}
             </button>
           </div>
         </div>

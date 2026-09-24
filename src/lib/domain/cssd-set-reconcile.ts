@@ -40,7 +40,7 @@ export const SET_RECONCILE_MOVE_ONLY_KINDS = ["BO_SUNG", "TRA_KHO", "DIEU_CHUYEN
 export type SetReconcileMoveOnlyKind = (typeof SET_RECONCILE_MOVE_ONLY_KINDS)[number];
 
 export const SET_RECONCILE_MOVE_ONLY_MESSAGE =
-  "Lấy kho, trả kho và điều chuyển chỉ dùng cửa Chuyển kho·bộ — không dùng Hỏng/Mất.";
+  "Lấy kho, trả kho và điều chuyển chỉ dùng cửa Luân chuyển trên /cssd-dung-cu — không dùng Hỏng/Mất và không dùng đề nghị danh mục.";
 
 export type SetReconcileLineInput = {
   chiTietId?: string;

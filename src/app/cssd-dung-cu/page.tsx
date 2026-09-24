@@ -1,13 +1,14 @@
 "use client";
 
-/** CSSD vận hành catalog; đề nghị sửa qua tab DE_NGHI (không sự cố). */
+/** Dụng cụ: đề nghị danh mục và luân chuyển số lượng. Hỏng/Mất ở /cssd-su-co. */
 import Link from "next/link";
-import { ClipboardList, History, Layers, Tag } from "lucide-react";
+import { ArrowLeftRight, ClipboardList, History, Layers, Tag } from "lucide-react";
 import {
   useCssdCatalogPage,
   CSSDCatalogBoTab,
   CSSDCatalogLoaiTab,
   CSSDCatalogDeNghiTab,
+  CSSDCatalogLuanChuyenTab,
 } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
 import InventoryHistoryTable from "@/modules/cssd-erp/components/inventory/InventoryHistoryTable";
 import SetCompositionCard from "@/modules/cssd-erp/components/inventory/SetCompositionCard";
@@ -63,6 +64,16 @@ export default function Page() {
     <CatalogDeNghiCartProvider>
     <CSSDPageShell title="Dụng cụ CSSD">
       <div className="space-y-3">
+        <p className="px-1 text-[11px] leading-relaxed text-slate-500">
+          <span className="font-semibold text-slate-700">Đề nghị danh mục</span>
+          {" — tạo hoặc sửa chuẩn Loại, Bộ, Thành phần. "}
+          <span className="font-semibold text-slate-700">Luân chuyển</span>
+          {" — chuyển số lượng kho ↔ bộ hoặc bộ ↔ bộ. "}
+          <Link href="/cssd-su-co?group=INSTRUMENT" className="font-semibold text-[var(--primary)] hover:underline">
+            Hỏng/Mất và sự cố an toàn
+          </Link>
+          {" — chỉ tại Sự cố."}
+        </p>
         <div className={CSSD_UI_TAB_GROUP}>
           <CssdHorizTabButton
             active={s.tab === "BO"}
@@ -86,11 +97,18 @@ export default function Page() {
             mobileLabel="Đề nghị"
           />
           <CssdHorizTabButton
+            active={s.tab === "LUAN_CHUYEN"}
+            onClick={() => s.setTab("LUAN_CHUYEN")}
+            icon={ArrowLeftRight}
+            label="Luân chuyển"
+            mobileLabel="Chuyển"
+          />
+          <CssdHorizTabButton
             active={s.tab === "HISTORY"}
             onClick={() => s.setTab("HISTORY")}
             icon={History}
-            label="Lịch sử luân chuyển"
-            mobileLabel="Lịch sử"
+            label="Lịch sử kho"
+            mobileLabel="Kho"
           />
         </div>
 
@@ -135,6 +153,8 @@ export default function Page() {
           </div>
         ) : s.tab === "DE_NGHI" ? (
           <CSSDCatalogDeNghiTab />
+        ) : s.tab === "LUAN_CHUYEN" ? (
+          <CSSDCatalogLuanChuyenTab />
         ) : (
           <InventoryHistoryTable />
         )}
