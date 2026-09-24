@@ -76,6 +76,7 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions: _loai
         : null,
       phan_loai_bo: form.phan_loai_bo,
       co_ma_dinh_danh_rieng: form.co_ma_dinh_danh_rieng,
+      is_implant: form.is_implant,
       is_active: form.is_active,
     };
     const result = await saveBoDungCuAction(payload);
@@ -175,6 +176,14 @@ export default function BoDungCuFormModal({ open, initialRow, loaiOptions: _loai
         </div>
       </div>
 
+      <label className="flex items-center gap-2 text-[12px] font-medium text-slate-600">
+        <input
+          type="checkbox"
+          checked={form.is_implant}
+          onChange={(e) => setForm({ ...form, is_implant: e.target.checked })}
+        />
+        Bộ có implant (mẻ chứa bộ này bắt buộc BI trước khi nhả)
+      </label>
       <BoDungCuTextField label="Quy cách" value={form.quy_cach} onChange={(v) => setForm({ ...form, quy_cach: v })} />
       <div className="space-y-1">
         <label className="text-[11px] font-medium text-slate-400 ml-1">Ghi chú</label>

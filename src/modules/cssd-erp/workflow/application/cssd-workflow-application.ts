@@ -7,6 +7,7 @@ import { assertLedgerDuChoCapPhat } from "./cssd-asset-ledger";
 import { assertMergeGateForCapPhat } from "./cssd-merge-gate";
 import { fetchActiveQuyTrinhByScanCode } from "../../shared/application/cssd-workflow-resolve";
 import { assertPackIssuable } from "@/lib/domain/cssd-pack-issuance";
+import { loadPackBatchReleaseGate } from "../../helpers/pack-batch-release-gate";
 import { assertPlasmaPackMaterialAllowed } from "@/lib/domain/cssd-packaging-rules";
 import {
   assertLamSachLotSoftGate,
@@ -120,12 +121,17 @@ export async function executeWorkflowStationScan(
       if (qt.is_dong_bang) {
         throw new Error("Bộ dụng cụ này đang bị KHÓA AN TOÀN do sự cố cấu phần hoặc quy trình.");
       }
+      const batchRelease = await loadPackBatchReleaseGate(supabase, {
+        quyTrinhId: String(qt.id),
+        loTietKhuanId: qt.lo_tiet_khuan_id,
+      });
       const packGate = assertPackIssuable({
         han_su_dung: qt.han_su_dung,
         ngay_het_han: qt.ngay_het_han,
         tinh_trang: qt.tinh_trang,
         is_red_alert: qt.is_red_alert,
         is_dong_bang: qt.is_dong_bang,
+        batchRelease,
       });
       if (!packGate.ok) throw new Error(packGate.message);
       if (!qt.lo_tiet_khuan_id) {

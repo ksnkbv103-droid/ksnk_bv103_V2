@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { evaluateBatchSterilizationHeatRisk } from "./me-tiet-khuan-batch-heat";
 import type { BomItem } from "@/lib/domain/cssd-packaging-rules";
 
-const steamMachine = { loai_thiet_bi: "Hấp hơi nước 134°C" };
+const steamMachine = { loai_may: { ma_loai_may: "LM_HOI_NUOC" } };
 
 const allHeatTolerant: BomItem[] = [
   {

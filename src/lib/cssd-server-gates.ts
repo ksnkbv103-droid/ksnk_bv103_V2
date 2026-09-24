@@ -54,6 +54,11 @@ export async function verifyCssdBatchEdit(): Promise<void> {
   await verifyPermission("CSSD_ME_TIET_KHUAN", "edit");
 }
 
+/** Nhả mẻ implant hoặc nhập BI cho mẻ chờ BI. */
+export async function verifyCssdBatchQc(): Promise<void> {
+  await verifyPermission("CSSD_ME_TIET_KHUAN", "qc");
+}
+
 export async function verifyCssdQrHubView(): Promise<void> {
   try {
     await verifyCssdWorkflowView();

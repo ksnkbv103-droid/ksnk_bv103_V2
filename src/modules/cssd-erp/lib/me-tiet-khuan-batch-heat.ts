@@ -16,7 +16,7 @@ export type BatchHeatRisk = {
  */
 export function evaluateBatchSterilizationHeatRisk(
   bomItems: BomItem[],
-  machine: { loai_ten_hien_thi?: string | null; loai_thiet_bi?: string | null } | null,
+  machine: unknown,
 ): BatchHeatRisk {
   const heat = evaluateHeatCompatibility(bomItems);
   const messages: string[] = [];

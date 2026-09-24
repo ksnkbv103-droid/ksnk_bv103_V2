@@ -22,7 +22,7 @@ import MeTietKhuanWaitingPanel, { type MeTkWaitingRow } from "./me-tiet-khuan-wa
 import MeTietKhuanHeatBanner from "./me-tiet-khuan-heat-banner";
 import MeTkNkbvLinkBanner from "./me-tk-nkbv-link-banner";
 import { CSSD_UI_ACTION_SECONDARY } from "../../shared/ui/cssd-ui-chrome";
-import { isSteamSterilizerProfile } from "../../helpers/me-tiet-khuan-machine-kind";
+import { getSterilizerMethod, type SterilizerMethod } from "../../helpers/me-tiet-khuan-machine-kind";
 
 type MeRow = {
   id: string;
@@ -39,37 +39,30 @@ export default function MeTietKhuanProcessStep({
   batchGate,
   items,
   waitingRows,
-  nguoiUnload,
-  setNguoiUnload,
+  chuongTrinh,
+  setChuongTrinh,
   nhietDo,
   setNhietDo,
-  thongSoMay,
-  setThongSoMay,
-  chiThiTiepXuc,
-  setChiThiTiepXuc,
-  chiThiDaThongSo,
-  setChiThiDaThongSo,
-  testSinhHoc,
-  setTestSinhHoc,
-  testCI,
-  setTestCI,
-  testBD,
-  setTestBD,
-  anhMay,
-  setAnhMay,
-  anhTiepXuc,
-  setAnhTiepXuc,
-  anhDaThongSo,
-  setAnhDaThongSo,
-  anhSinhHoc,
-  setAnhSinhHoc,
-  anhBowieDick,
-  setAnhBowieDick,
+  apSuat,
+  setApSuat,
+  thoiGianChuKy,
+  setThoiGianChuKy,
+  thongSoVatLy,
+  setThongSoVatLy,
+  ciNgoaiGoi,
+  setCiNgoaiGoi,
+  ciPcd,
+  setCiPcd,
+  trangThaiBi,
+  setTrangThaiBi,
+  anhMinhChung,
+  setAnhMinhChung,
   onBackToList,
   onAddItemByCode,
   onConfirmBatDau,
   onConfirmKetThucChuTrinh,
   onFinishQc,
+  onSubmitBi,
   onPrintBatch,
   isPrintBusy,
   onReportIncident,
@@ -79,37 +72,30 @@ export default function MeTietKhuanProcessStep({
   batchGate: MeRow | null;
   items: MeTkItemRow[];
   waitingRows: MeTkWaitingRow[];
-  nguoiUnload: string;
-  setNguoiUnload: (v: string) => void;
+  chuongTrinh: string;
+  setChuongTrinh: (v: string) => void;
   nhietDo: string;
   setNhietDo: (v: string) => void;
-  thongSoMay: string;
-  setThongSoMay: (v: string) => void;
-  chiThiTiepXuc: "DAT" | "KHONG_DAT" | "";
-  setChiThiTiepXuc: (v: "DAT" | "KHONG_DAT" | "") => void;
-  chiThiDaThongSo: "DAT" | "KHONG_DAT" | "";
-  setChiThiDaThongSo: (v: "DAT" | "KHONG_DAT" | "") => void;
-  testSinhHoc: "DAT" | "KHONG_DAT" | "NA" | "";
-  setTestSinhHoc: (v: "DAT" | "KHONG_DAT" | "NA" | "") => void;
-  testCI: "DAT" | "KHONG_DAT" | "";
-  setTestCI: (v: "DAT" | "KHONG_DAT" | "") => void;
-  testBD: "DAT" | "KHONG_DAT" | "NA";
-  setTestBD: (v: "DAT" | "KHONG_DAT" | "NA") => void;
-  anhMay: string;
-  setAnhMay: (v: string) => void;
-  anhTiepXuc: string;
-  setAnhTiepXuc: (v: string) => void;
-  anhDaThongSo: string;
-  setAnhDaThongSo: (v: string) => void;
-  anhSinhHoc: string;
-  setAnhSinhHoc: (v: string) => void;
-  anhBowieDick: string;
-  setAnhBowieDick: (v: string) => void;
+  apSuat: string;
+  setApSuat: (v: string) => void;
+  thoiGianChuKy: string;
+  setThoiGianChuKy: (v: string) => void;
+  thongSoVatLy: "DAT" | "KHONG_DAT" | "";
+  setThongSoVatLy: (v: "DAT" | "KHONG_DAT" | "") => void;
+  ciNgoaiGoi: "DAT" | "KHONG_DAT" | "";
+  setCiNgoaiGoi: (v: "DAT" | "KHONG_DAT" | "") => void;
+  ciPcd: "DAT" | "KHONG_DAT" | "";
+  setCiPcd: (v: "DAT" | "KHONG_DAT" | "") => void;
+  trangThaiBi: "CHUA_CO" | "AM" | "DUONG" | "";
+  setTrangThaiBi: (v: "CHUA_CO" | "AM" | "DUONG" | "") => void;
+  anhMinhChung: string;
+  setAnhMinhChung: (v: string) => void;
   onBackToList: () => void;
   onAddItemByCode: (code: string) => void;
   onConfirmBatDau: () => void | Promise<void>;
   onConfirmKetThucChuTrinh: () => void | Promise<void>;
-  onFinishQc: (isPass: boolean, overrideThongSoMay?: string) => void | Promise<void>;
+  onFinishQc: (isPass: boolean) => void | Promise<void>;
+  onSubmitBi: (ketQua: "AM" | "DUONG") => void | Promise<void>;
   onPrintBatch?: () => void;
   isPrintBusy?: boolean;
   onReportIncident?: () => void;
@@ -117,7 +103,13 @@ export default function MeTietKhuanProcessStep({
 }) {
   const napLocked = Boolean(batchGate?.tk_chot_nap_at);
   const qcOpen = Boolean(batchGate?.tk_mo_form_qc_at);
-  const showBowie = useMemo(() => isSteamSterilizerProfile(batchGate?.thiet_bi ?? null), [batchGate?.thiet_bi]);
+  const method = useMemo<SterilizerMethod | null>(
+    () => getSterilizerMethod(batchGate?.thiet_bi ?? activeMe?.thiet_bi ?? null) || getSterilizerMethod({ phuong_phap: (batchGate as { phuong_phap?: string | null } | null)?.phuong_phap }),
+    [batchGate, activeMe?.thiet_bi],
+  );
+  const choBi = String(activeMe?.trang_thai || (batchGate as { trang_thai_me?: string | null } | null)?.trang_thai_me || "") === "CHO_BI";
+  const coImplant = Boolean((batchGate as { co_implant?: boolean | null } | null)?.co_implant);
+  const steamBiReminder = (batchGate as { steamBiReminder?: string | null } | null)?.steamBiReminder || null;
 
   // Xác định giai đoạn hiện tại
   const phase: "CHUAN_BI" | "DANG_TK" | "DANH_GIA" | "HOAN_THANH" = qcOpen
@@ -362,35 +354,30 @@ export default function MeTietKhuanProcessStep({
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <MeTietKhuanProcessQcPanel
               showForm={qcOpen}
-              showBowieDick={showBowie}
-              thietBi={activeMe?.thiet_bi || batchGate?.thiet_bi || null}
-              nguoiUnload={nguoiUnload}
-              setNguoiUnload={setNguoiUnload}
+              method={method}
+              coImplant={coImplant}
+              steamBiReminder={steamBiReminder}
+              choBi={choBi}
+              chuongTrinh={chuongTrinh}
+              setChuongTrinh={setChuongTrinh}
               nhietDo={nhietDo}
               setNhietDo={setNhietDo}
-              thongSoMay={thongSoMay}
-              setThongSoMay={setThongSoMay}
-              chiThiTiepXuc={chiThiTiepXuc}
-              setChiThiTiepXuc={setChiThiTiepXuc}
-              chiThiDaThongSo={chiThiDaThongSo}
-              setChiThiDaThongSo={setChiThiDaThongSo}
-              testSinhHoc={testSinhHoc}
-              setTestSinhHoc={setTestSinhHoc}
-              testCI={testCI}
-              setTestCI={setTestCI}
-              testBD={testBD}
-              setTestBD={setTestBD}
-              anhMay={anhMay}
-              setAnhMay={setAnhMay}
-              anhTiepXuc={anhTiepXuc}
-              setAnhTiepXuc={setAnhTiepXuc}
-              anhDaThongSo={anhDaThongSo}
-              setAnhDaThongSo={setAnhDaThongSo}
-              anhSinhHoc={anhSinhHoc}
-              setAnhSinhHoc={setAnhSinhHoc}
-              anhBowieDick={anhBowieDick}
-              setAnhBowieDick={setAnhBowieDick}
-              onFinish={(isPass, overrideThongSoMay) => void onFinishQc(isPass, overrideThongSoMay)}
+              apSuat={apSuat}
+              setApSuat={setApSuat}
+              thoiGianChuKy={thoiGianChuKy}
+              setThoiGianChuKy={setThoiGianChuKy}
+              thongSoVatLy={thongSoVatLy}
+              setThongSoVatLy={setThongSoVatLy}
+              ciNgoaiGoi={ciNgoaiGoi}
+              setCiNgoaiGoi={setCiNgoaiGoi}
+              ciPcd={ciPcd}
+              setCiPcd={setCiPcd}
+              trangThaiBi={trangThaiBi}
+              setTrangThaiBi={setTrangThaiBi}
+              anhMinhChung={anhMinhChung}
+              setAnhMinhChung={setAnhMinhChung}
+              onFinish={(isPass) => void onFinishQc(isPass)}
+              onSubmitBi={(ketQua) => void onSubmitBi(ketQua)}
             />
           </div>
         )}

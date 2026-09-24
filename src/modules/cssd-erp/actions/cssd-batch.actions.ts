@@ -3,7 +3,7 @@
 import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib/supabase-server";
 import { fetchBatchesAndMachines } from "../helpers/me-tiet-khuan-list-data";
 import { assertThietBiSanSangChoMeTietKhuan } from "../helpers/assert-thiet-bi-cho-me-tiet-khuan";
-import { isSteamSterilizerProfile } from "../helpers/me-tiet-khuan-machine-kind";
+import { getSterilizerMethod, isSteamSterilizerProfile } from "../helpers/me-tiet-khuan-machine-kind";
 import {
   assertSteamDailyBdForLoad,
   buildSteamDailyBdSpecsPatch,
@@ -15,7 +15,12 @@ import {
   rejectParentBoWithSub,
   rejectStartMember,
 } from "../lib/me-tiet-khuan-batch-integrity";
-import { persistMeTietKhuanFinishWithClient, type PersistMeTietKhuanInput } from "../helpers/persist-me-tiet-khuan";
+import {
+  persistMeBiResultWithClient,
+  persistMeTietKhuanFinishWithClient,
+  type PersistMeTietKhuanInput,
+} from "../helpers/persist-me-tiet-khuan";
+import { evaluateMeQcRelease, steamBiWeeklyReminder } from "../lib/me-tiet-khuan-qc";
 import { getErrorMessage, mapFkError, revalidateCssdBatchSurfaces, revalidateCssdWorkflowSurfaces } from "./cssd-action-common";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
@@ -26,7 +31,7 @@ import {
   addQuyTrinhToBatchSchema,
   finishSterilizationBatchSchema,
 } from "@/lib/validations/cssd-erp.validations";
-import { verifyCssdBatchEdit, verifyCssdBatchView } from "@/lib/cssd-server-gates";
+import { verifyCssdBatchEdit, verifyCssdBatchQc, verifyCssdBatchView } from "@/lib/cssd-server-gates";
 import { resolveCssdTramId } from "../lib/cssd-tram-persist";
 import type { BomItem } from "@/lib/domain/cssd-packaging-rules";
 import { assertSteamKitHeatAllowed, evaluateBatchSterilizationHeatRisk } from "../lib/me-tiet-khuan-batch-heat";
@@ -110,13 +115,41 @@ export async function fetchCssdBatchWorkflowState(batchId: string) {
     const { data, error } = await supabase
       .from("cssd_fact_lo_tiet_khuan")
       .select(
-        "id, ma_lo_tiet_khuan, thiet_bi_id, loai_may_id, tk_chot_nap_at, tk_mo_form_qc_at, tk_qc_json, ket_qua_test, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi, loai_may_id, loai_may:cssd_dm_loai_may(ma_loai_may, ten_loai_may))",
+        "id, ma_lo_tiet_khuan, thiet_bi_id, loai_may_id, tk_chot_nap_at, tk_mo_form_qc_at, tk_qc_json, ket_qua_test, trang_thai_me, trang_thai_bi, phuong_phap, chuong_trinh, co_implant, nhiet_do, ap_suat, thoi_gian_chu_ky, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi, loai_may_id, loai_may:cssd_dm_loai_may(ma_loai_may, ten_loai_may))",
       )
       .eq("id", id)
       .maybeSingle();
     if (error) return { success: false as const, error: mapFkError(error.message) };
     if (!data) return { success: false as const, error: "Không tìm thấy mẻ." };
-    return { success: true as const, data };
+    const gate = data as { thiet_bi_id?: string | null; phuong_phap?: string | null; thiet_bi?: unknown };
+    const method = getSterilizerMethod({ phuong_phap: gate.phuong_phap }) || getSterilizerMethod(gate.thiet_bi);
+    let steamBiReminder: string | null = null;
+    if (method === "HOI_NUOC" && gate.thiet_bi_id) {
+      const { data: lastBi } = await supabase
+        .from("cssd_fact_lo_tiet_khuan")
+        .select("thoi_gian_ket_thuc, updated_at")
+        .eq("thiet_bi_id", gate.thiet_bi_id)
+        .in("trang_thai_bi", ["AM", "DUONG"])
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const lastAt = (lastBi as { thoi_gian_ket_thuc?: string | null; updated_at?: string | null } | null)?.thoi_gian_ket_thuc
+        || (lastBi as { updated_at?: string | null } | null)?.updated_at
+        || null;
+      steamBiReminder = steamBiWeeklyReminder({ method, lastBiAt: lastAt });
+    }
+    const { data: members } = await supabase
+      .from("cssd_fact_quy_trinh")
+      .select("bo_dung_cu_id")
+      .eq("lo_tiet_khuan_id", id)
+      .eq("is_active", true);
+    const boIds = [...new Set((members || []).map((m) => String((m as { bo_dung_cu_id?: string | null }).bo_dung_cu_id || "")).filter(Boolean))];
+    let coImplant = Boolean((data as { co_implant?: boolean | null }).co_implant);
+    if (boIds.length) {
+      const { data: bos } = await supabase.from("cssd_dm_bo_dung_cu").select("is_implant").in("id", boIds);
+      coImplant = (bos || []).some((b) => (b as { is_implant?: boolean | null }).is_implant === true);
+    }
+    return { success: true as const, data: { ...data, steamBiReminder, co_implant: coImplant } };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
   }
@@ -145,14 +178,7 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
       specs?: Record<string, unknown> | null;
       loai_may?: { ma_loai_may?: string; ten_loai_may?: string } | { ma_loai_may?: string; ten_loai_may?: string }[] | null;
     } | null;
-    const loaiMayRaw = tb?.loai_may;
-    const loaiMay = (
-      loaiMayRaw && Array.isArray(loaiMayRaw) ? loaiMayRaw[0] : loaiMayRaw
-    ) as { ma_loai_may?: string; ten_loai_may?: string } | null | undefined;
-    const steam = isSteamSterilizerProfile({
-      loai_thiet_bi: tb?.ten_thiet_bi || loaiMay?.ma_loai_may || null,
-      loai_ten_hien_thi: loaiMay?.ten_loai_may || null,
-    });
+    const steam = isSteamSterilizerProfile(tb);
     const bdGate = assertSteamDailyBdForLoad({
       isSteam: steam,
       specs: tb?.specs || null,
@@ -216,7 +242,12 @@ export async function confirmBatDauTietKhuanBatch(batchId: string) {
       if (!heat.ok) return { success: false as const, error: `${heat.message} Bộ ${code}.` };
     }
 
-    const { error: rpcErr } = await supabase.rpc("rpc_cssd_me_bat_dau", { p_me_id: id });
+    const actor = await requireSessionActorId();
+    if (!actor.ok) return { success: false as const, error: actor.message };
+    const { error: rpcErr } = await supabase.rpc("rpc_cssd_me_bat_dau", {
+      p_me_id: id,
+      p_actor_user_id: actor.userId,
+    });
     if (rpcErr) return { success: false as const, error: mapFkError(rpcErr.message) };
     revalidateCssdBatchSurfaces();
     return { success: true as const };
@@ -243,8 +274,18 @@ export async function confirmKetThucChuTrinhTietKhuan(batchId: string) {
     if (!m.tk_chot_nap_at) return { success: false as const, error: "Cần xác nhận bắt đầu tiệt khuẩn trước." };
     if (m.tk_mo_form_qc_at) return { success: false as const, error: "Đã mở form QC — không lặp bước này." };
     if (m.ket_qua_test != null) return { success: false as const, error: "Mẻ đã có kết quả QC." };
+    const actor = await requireSessionActorId();
+    if (!actor.ok) return { success: false as const, error: actor.message };
     const now = new Date().toISOString();
-    const { error: upLo } = await supabase.from("cssd_fact_lo_tiet_khuan").update({ tk_mo_form_qc_at: now, updated_at: now }).eq("id", id);
+    const { error: upLo } = await supabase
+      .from("cssd_fact_lo_tiet_khuan")
+      .update({
+        tk_mo_form_qc_at: now,
+        trang_thai_me: "CHO_DANH_GIA_QC",
+        nguoi_ket_thuc_id: actor.userId,
+        updated_at: now,
+      })
+      .eq("id", id);
     if (upLo) return { success: false as const, error: mapFkError(upLo.message) };
     revalidateCssdBatchSurfaces();
     return { success: true as const };
@@ -331,10 +372,7 @@ export async function fetchCssdBatchHeatRisk(batchId: string) {
 
     const tb = (me as { thiet_bi?: { ten_thiet_bi?: string; loai_may?: { ten_loai_may?: string; ma_loai_may?: string } } } | null)
       ?.thiet_bi;
-    const machine = {
-      loai_thiet_bi: tb?.ten_thiet_bi || tb?.loai_may?.ma_loai_may || null,
-      loai_ten_hien_thi: tb?.loai_may?.ten_loai_may || null,
-    };
+    const machine = tb || null;
 
     const risk = evaluateBatchSterilizationHeatRisk(bomItems, machine);
     return { success: true as const, risk, setCount: qtIds.length, lineCount: bomItems.length };
@@ -360,18 +398,29 @@ export async function recordSteamDailyBdAction(input: {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
       return { success: false as const, error: "Ngày BD không hợp lệ." };
     }
+    const actor = await requireSessionActorId();
+    if (!actor.ok) return { success: false as const, error: actor.message };
     const { data: tb, error: tbErr } = await supabase
       .from("cssd_dm_thiet_bi")
-      .select("id, specs")
+      .select("id, specs, loai_may:cssd_dm_loai_may(ma_loai_may)")
       .eq("id", id)
       .maybeSingle();
     if (tbErr) return { success: false as const, error: mapFkError(tbErr.message) };
     if (!tb) return { success: false as const, error: "Không tìm thấy máy." };
+    if (!isSteamSterilizerProfile(tb)) {
+      return { success: false as const, error: "Bowie–Dick đầu ngày chỉ áp dụng cho máy hơi nước." };
+    }
     const existing = ((tb as { specs?: Record<string, unknown> | null }).specs || null) as Record<
       string,
       unknown
     > | null;
-    const specs = buildSteamDailyBdSpecsPatch({ ymd, ketQua, existing });
+    const specs = buildSteamDailyBdSpecsPatch({
+      ymd,
+      ketQua,
+      existing,
+      actorUserId: actor.userId,
+      atIso: new Date().toISOString(),
+    });
     const { error: upErr } = await supabase
       .from("cssd_dm_thiet_bi")
       .update({ specs, updated_at: new Date().toISOString() })
@@ -403,16 +452,12 @@ export async function createCssdSterilizationBatch(machineId: string, nguoiLoad:
       specs?: Record<string, unknown> | null;
       loai_may?: { ma_loai_may?: string; ten_loai_may?: string } | { ma_loai_may?: string; ten_loai_may?: string }[] | null;
     } | null;
-    const loaiMayRaw = tb?.loai_may;
-    const loaiMay = (
-      loaiMayRaw && Array.isArray(loaiMayRaw) ? loaiMayRaw[0] : loaiMayRaw
-    ) as { ma_loai_may?: string; ten_loai_may?: string } | null | undefined;
-    const steam = isSteamSterilizerProfile({
-      loai_thiet_bi: tb?.ten_thiet_bi || loaiMay?.ma_loai_may || null,
-      loai_ten_hien_thi: loaiMay?.ten_loai_may || null,
-    });
+    const method = getSterilizerMethod(tb);
+    if (!method) {
+      return { success: false as const, error: "Chỉ máy tiệt khuẩn (hơi nước, plasma, EO) mới tạo được mẻ." };
+    }
     const bdGate = assertSteamDailyBdForLoad({
-        isSteam: steam,
+        isSteam: method === "HOI_NUOC",
         specs: tb?.specs || null,
         requireRecorded: true,
         todayYmd: todayYmdInVn(),
@@ -424,6 +469,7 @@ export async function createCssdSterilizationBatch(machineId: string, nguoiLoad:
       .eq("thiet_bi_id", mid)
       .eq("is_active", true)
       .is("ket_qua_test", null)
+      .or("trang_thai_me.is.null,trang_thai_me.neq.CHO_BI")
       .limit(1)
       .maybeSingle();
     if (openErr) return { success: false as const, error: mapFkError(openErr.message) };
@@ -431,20 +477,16 @@ export async function createCssdSterilizationBatch(machineId: string, nguoiLoad:
       (openRow as { ma_lo_tiet_khuan?: string | null } | null)?.ma_lo_tiet_khuan,
     );
     if (openMsg) return { success: false as const, error: openMsg };
-    const ma = `LOT-${Date.now().toString().slice(-6)}`;
-    const { data: me, error } = await supabase
-      .from("cssd_fact_lo_tiet_khuan")
-      .insert({
-        ma_lo_tiet_khuan: ma,
-        thiet_bi_id: mid,
-        ghi_chu: `Người load: ${nguoi}`,
-        is_active: true,
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    const actor = await requireSessionActorId();
+    if (!actor.ok) return { success: false as const, error: actor.message };
+    const { data: created, error } = await supabase.rpc("rpc_cssd_me_tao", {
+      p_thiet_bi_id: mid,
+      p_actor_user_id: actor.userId,
+      p_ghi_chu: `Người load: ${nguoi}`,
+      p_chuong_trinh: null,
+    });
     if (error) {
-      if (/uq_cssd_fact_lo_mo_mot_may/i.test(error.message)) {
+      if (/uq_cssd_fact_lo_mo_mot_may|chưa kết luận/i.test(error.message)) {
         return {
           success: false as const,
           error: "Máy đang có mẻ chưa kết luận. Kết thúc mẻ đó trước khi tạo mẻ mới.",
@@ -452,6 +494,11 @@ export async function createCssdSterilizationBatch(machineId: string, nguoiLoad:
       }
       return { success: false as const, error: mapFkError(error.message) };
     }
+    const createdId = String((created as { id?: string } | null)?.id || "").trim();
+    const { data: me, error: meErr } = createdId
+      ? await supabase.from("cssd_fact_lo_tiet_khuan").select("*").eq("id", createdId).maybeSingle()
+      : { data: created, error: null };
+    if (meErr) return { success: false as const, error: mapFkError(meErr.message) };
     revalidateCssdBatchSurfaces();
     return { success: true as const, data: me };
   } catch (e: unknown) {
@@ -524,15 +571,7 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
         ten_thiet_bi?: string;
         loai_may?: { ma_loai_may?: string; ten_loai_may?: string } | { ma_loai_may?: string; ten_loai_may?: string }[] | null;
       };
-      const loaiMayRaw = tb.loai_may;
-      const loaiMay = (loaiMayRaw && Array.isArray(loaiMayRaw) ? loaiMayRaw[0] : loaiMayRaw) as
-        | { ma_loai_may?: string; ten_loai_may?: string }
-        | null
-        | undefined;
-      isSteam = isSteamSterilizerProfile({
-        loai_thiet_bi: tb.ten_thiet_bi || loaiMay?.ma_loai_may || null,
-        loai_ten_hien_thi: loaiMay?.ten_loai_may || null,
-      });
+      isSteam = isSteamSterilizerProfile(tb);
     }
     const loaded = await loadBomLinesWithLoaiSpec(supabase, String(qt.id));
     const heat = assertSteamKitHeatAllowed({
@@ -570,24 +609,70 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
   }
 }
 
+async function previewFinishNeedsQc(
+  supabase: ReturnType<typeof createAdminSupabaseClient>,
+  p: PersistMeTietKhuanInput,
+): Promise<{ ok: true; needsQc: boolean } | { ok: false; message: string }> {
+  const { data: me, error } = await supabase
+    .from("cssd_fact_lo_tiet_khuan")
+    .select("phuong_phap, thiet_bi:cssd_dm_thiet_bi(loai_may:cssd_dm_loai_may(ma_loai_may))")
+    .eq("id", p.activeMeId)
+    .maybeSingle();
+  if (error) return { ok: false, message: error.message };
+  if (!me) return { ok: false, message: "Không tìm thấy mẻ tiệt khuẩn." };
+  const row = me as { phuong_phap?: string | null; thiet_bi?: unknown };
+  const method = getSterilizerMethod({ phuong_phap: row.phuong_phap }) || getSterilizerMethod(row.thiet_bi);
+  const { data: members } = await supabase
+    .from("cssd_fact_quy_trinh")
+    .select("bo_dung_cu_id")
+    .eq("lo_tiet_khuan_id", p.activeMeId)
+    .eq("is_active", true);
+  const boIds = [...new Set((members || []).map((m) => String((m as { bo_dung_cu_id?: string | null }).bo_dung_cu_id || "")).filter(Boolean))];
+  let coImplant = false;
+  if (boIds.length) {
+    const { data: bos, error: boErr } = await supabase.from("cssd_dm_bo_dung_cu").select("is_implant").in("id", boIds);
+    if (boErr) return { ok: false, message: boErr.message };
+    coImplant = (bos || []).some((b) => (b as { is_implant?: boolean | null }).is_implant === true);
+  }
+  const evaluated = evaluateMeQcRelease({
+    thongSoVatLy: p.thongSoVatLy,
+    ciNgoaiGoi: p.ciNgoaiGoi,
+    ciPcd: p.ciPcd,
+    trangThaiBi: p.trangThaiBi,
+    method,
+    coImplant,
+    nhietDo: p.nhietDo,
+    apSuat: p.apSuat,
+    thoiGianChuKy: p.thoiGianChuKy,
+  });
+  if (!evaluated.ok) return evaluated;
+  return { ok: true, needsQc: evaluated.decision.outcome === "HOAN_THANH" && coImplant };
+}
+
 export async function finishCssdSterilizationBatch(input: PersistMeTietKhuanInput) {
   try {
-    await verifyCssdBatchEdit();
     const supabase = createAdminSupabaseClient();
-    const validated = finishSterilizationBatchSchema.parse(input);
-    let operatorAuthUserId: string | null = null;
+    const validated = finishSterilizationBatchSchema.parse(input) as PersistMeTietKhuanInput;
+    const actor = await requireSessionActorId();
+    if (!actor.ok) return { success: false as const, error: actor.message };
     let operatorEmail: string | null = null;
     try {
       const uc = await createServerSupabaseUserClient();
       const { data } = await uc.auth.getUser();
-      operatorAuthUserId = data.user?.id ?? null;
       operatorEmail = data.user?.email?.trim() || null;
     } catch {
-      /* demo: vẫn ghi thời gian nếu không có phiên */
+      operatorEmail = null;
     }
+    const preview = await previewFinishNeedsQc(supabase, validated);
+    if (!preview.ok) {
+      await verifyCssdBatchEdit();
+      return { success: false as const, error: preview.message };
+    }
+    if (preview.needsQc) await verifyCssdBatchQc();
+    else await verifyCssdBatchEdit();
     const saved = await persistMeTietKhuanFinishWithClient(supabase, {
-      ...(validated as PersistMeTietKhuanInput),
-      operatorAuthUserId,
+      ...validated,
+      operatorAuthUserId: actor.userId,
       operatorEmail,
     });
     if (!saved.ok) return { success: false as const, error: saved.message };
@@ -595,6 +680,51 @@ export async function finishCssdSterilizationBatch(input: PersistMeTietKhuanInpu
     revalidateCssdWorkflowSurfaces();
     return {
       success: true as const,
+      outcome: saved.outcome,
+      incidentIds: saved.incidentIds || [],
+      createdCount: saved.createdCount || 0,
+      skippedCount: saved.skippedCount || 0,
+      recalledCount: saved.recalledCount || 0,
+      machineHeld: Boolean(saved.machineHeld),
+    };
+  } catch (e: unknown) {
+    return { success: false as const, error: getErrorMessage(e) };
+  }
+}
+
+/** Nhập BI cho mẻ CHO_BI. Quyền QC. Âm thì nhả; dương thì sự cố BI. */
+export async function nhapKetQuaBiMeTietKhuan(batchId: string, ketQua: "AM" | "DUONG") {
+  try {
+    await verifyCssdBatchQc();
+    const supabase = createAdminSupabaseClient();
+    const id = String(batchId || "").trim();
+    if (!id) return { success: false as const, error: "Thiếu mã mẻ." };
+    if (ketQua !== "AM" && ketQua !== "DUONG") {
+      return { success: false as const, error: "Kết quả BI chỉ nhận âm hoặc dương." };
+    }
+    const actor = await requireSessionActorId();
+    if (!actor.ok) return { success: false as const, error: actor.message };
+    let operatorEmail: string | null = null;
+    try {
+      const uc = await createServerSupabaseUserClient();
+      const { data } = await uc.auth.getUser();
+      operatorEmail = data.user?.email?.trim() || null;
+    } catch {
+      operatorEmail = null;
+    }
+    const saved = await persistMeBiResultWithClient(supabase, {
+      batchId: id,
+      ketQua,
+      operatorAuthUserId: actor.userId,
+      operatorEmail,
+      nguoiLabel: operatorEmail || "CSSD",
+    });
+    if (!saved.ok) return { success: false as const, error: saved.message };
+    revalidateCssdBatchSurfaces();
+    revalidateCssdWorkflowSurfaces();
+    return {
+      success: true as const,
+      outcome: saved.outcome,
       incidentIds: saved.incidentIds || [],
       createdCount: saved.createdCount || 0,
       skippedCount: saved.skippedCount || 0,

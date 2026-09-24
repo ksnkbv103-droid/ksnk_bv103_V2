@@ -14,12 +14,12 @@ import {
   fetchCssdTietKhuanWaitingRows,
   finishCssdSterilizationBatch,
   fetchCssdBatchHeatRisk,
+  nhapKetQuaBiMeTietKhuan,
 } from "../actions/cssd.actions";
+import { isMeMaLoScan } from "../lib/me-tiet-khuan-qc";
 
 import { usePermission } from "@/hooks/usePermission";
 import { cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
-import { isSteamSterilizerProfile } from "../helpers/me-tiet-khuan-machine-kind";
-
 export function useMeTietKhuanWorkflow() {
   const { isPrinting: isCssdPrinting, printState, onPrintBatch } = useCssdPrint();
   const { userData } = usePermission();
@@ -35,25 +35,33 @@ export function useMeTietKhuanWorkflow() {
   const [items, setItems] = useState<any[]>([]);
   const [nguoiUnload, setNguoiUnload] = useState("");
 
-  // Tự động điền người thực hiện từ thông tin đăng nhập
   useEffect(() => {
     if (userData?.ho_ten) {
       if (!nguoiLoad) setNguoiLoad(userData.ho_ten);
       if (!nguoiUnload) setNguoiUnload(userData.ho_ten);
     }
   }, [userData, nguoiLoad, nguoiUnload]);
+  const [chuongTrinh, setChuongTrinh] = useState("");
   const [nhietDo, setNhietDo] = useState("");
-  const [thongSoMay, setThongSoMay] = useState("");
-  const [chiThiTiepXuc, setChiThiTiepXuc] = useState<"DAT" | "KHONG_DAT" | "">("");
-  const [chiThiDaThongSo, setChiThiDaThongSo] = useState<"DAT" | "KHONG_DAT" | "">("");
-  const [testSinhHoc, setTestSinhHoc] = useState<"DAT" | "KHONG_DAT" | "NA" | "">("NA");
-  const [testCI, setTestCI] = useState<"DAT" | "KHONG_DAT" | "">("");
-  const [testBD, setTestBD] = useState<"DAT" | "KHONG_DAT" | "NA">("NA");
-  const [anhMay, setAnhMay] = useState("");
-  const [anhTiepXuc, setAnhTiepXuc] = useState("");
-  const [anhDaThongSo, setAnhDaThongSo] = useState("");
-  const [anhSinhHoc, setAnhSinhHoc] = useState("");
-  const [anhBowieDick, setAnhBowieDick] = useState("");
+  const [apSuat, setApSuat] = useState("");
+  const [thoiGianChuKy, setThoiGianChuKy] = useState("");
+  const [thongSoVatLy, setThongSoVatLy] = useState<"DAT" | "KHONG_DAT" | "">("");
+  const [ciNgoaiGoi, setCiNgoaiGoi] = useState<"DAT" | "KHONG_DAT" | "">("");
+  const [ciPcd, setCiPcd] = useState<"DAT" | "KHONG_DAT" | "">("");
+  const [trangThaiBi, setTrangThaiBi] = useState<"CHUA_CO" | "AM" | "DUONG" | "">("");
+  const [anhMinhChung, setAnhMinhChung] = useState("");
+
+  const resetQcFields = () => {
+    setChuongTrinh("");
+    setNhietDo("");
+    setApSuat("");
+    setThoiGianChuKy("");
+    setThongSoVatLy("");
+    setCiNgoaiGoi("");
+    setCiPcd("");
+    setTrangThaiBi("");
+    setAnhMinhChung("");
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -110,19 +118,15 @@ export function useMeTietKhuanWorkflow() {
     setItems([]);
     setBatchGate(null);
     setWaitingRows([]);
-    setNguoiUnload("");
+    setChuongTrinh(String((r.data as { chuong_trinh?: string | null })?.chuong_trinh || ""));
     setNhietDo("");
-    setThongSoMay("");
-    setChiThiTiepXuc("");
-    setChiThiDaThongSo("");
-    setTestSinhHoc("NA");
-    setTestCI("");
-    setTestBD("NA");
-    setAnhMay("");
-    setAnhTiepXuc("");
-    setAnhDaThongSo("");
-    setAnhSinhHoc("");
-    setAnhBowieDick("");
+    setApSuat("");
+    setThoiGianChuKy("");
+    setThongSoVatLy("");
+    setCiNgoaiGoi("");
+    setCiPcd("");
+    setTrangThaiBi("");
+    setAnhMinhChung("");
   };
 
   const addItem = async (code: string) => {
@@ -130,7 +134,7 @@ export function useMeTietKhuanWorkflow() {
     const raw = String(code || "").trim().toUpperCase();
     if (!raw) return;
     // Quét mã mẻ (LOT-*) khi đang PROCESS: xác nhận đúng phiếu, không coi là mã bộ.
-    if (raw.startsWith("LOT-")) {
+    if (raw.startsWith("LOT-") || isMeMaLoScan(raw)) {
       const maLo = String(activeMe.ma_lo_tiet_khuan || "").trim().toUpperCase();
       if (maLo && raw === maLo) {
         toast.success("Đúng phiếu mẻ đang mở — tiếp tục quét mã bộ để nạp vào mẻ.");
@@ -182,46 +186,40 @@ export function useMeTietKhuanWorkflow() {
     await reloadProcessContext();
   };
 
-  const finishQc = async (isPass: boolean, overrideThongSoMay?: string) => {
-    const finalThongSoMay = overrideThongSoMay ?? thongSoMay;
-    if (!nguoiUnload || !nhietDo) return toast.error("Vui lòng nhập người dỡ và nhiệt độ/áp suất");
-    if (isPass && !overrideThongSoMay && !finalThongSoMay.trim()) {
-      return toast.error("Thiếu thông số máy.");
-    }
+  const finishQc = async (isPass: boolean) => {
+    if (!nguoiUnload) return toast.error("Thiếu người dỡ mẻ.");
     if (isPass && activeMe?.id && !(await assertBatchHeatAllows(activeMe.id))) return;
 
-    const msg = isPass ? "Xác nhận mẻ ĐẠT và chuyển các bộ sang Cấp phát?" : "CẢNH BÁO: Kết luận KHÔNG ĐẠT — xác nhận?";
+    const msg = isPass
+      ? "Ghi nhận QC đạt? Nếu BI bắt buộc chưa có kết quả, mẻ chờ BI và bộ chưa sang kho vô khuẩn."
+      : "Kết luận không đạt — xác nhận?";
     if (!confirm(msg)) return;
 
-    // Phân loại máy để tự động xử lý chỉ thị đa thông số cho máy EO/Plasma
-    const isSteam = isSteamSterilizerProfile(activeMe?.thiet_bi || batchGate?.thiet_bi || null);
-    const finalChiThiDaThongSo = isSteam ? chiThiDaThongSo : "DAT";
-
-    const testBIMapped =
-      testSinhHoc === "DAT" ? "DAT" : testSinhHoc === "KHONG_DAT" ? "KHONG_DAT" : "";
     const saved = await finishCssdSterilizationBatch({
       activeMeId: activeMe.id,
       maLo: activeMe.ma_lo_tiet_khuan,
       isPass,
       nguoiUnload,
+      chuongTrinh,
       nhietDo,
-      testBI: testBIMapped,
-      testCI,
-      testBD,
-      thongSoMay: finalThongSoMay,
-      chiThiTiepXuc,
-      chiThiDaThongSo: finalChiThiDaThongSo,
-      testSinhHoc: testSinhHoc || "NA",
-      anhMinhChungMay: anhMay,
-      anhMinhChungTiepXuc: anhTiepXuc,
-      anhMinhChungDaThongSo: anhDaThongSo,
-      anhMinhChungSinhHoc: anhSinhHoc,
-      anhMinhChungBowieDick: anhBowieDick,
+      apSuat,
+      thoiGianChuKy,
+      thongSoVatLy,
+      ciNgoaiGoi,
+      ciPcd,
+      trangThaiBi,
+      anhMinhChung,
     });
     if (!saved.success) return toast.error("Không lưu được mẻ: " + saved.error);
-    if (isPass) {
+    if (saved.outcome === "CHO_BI") {
+      toast.message("Mẻ chờ kết quả BI. Bộ chưa sang kho vô khuẩn.");
+      setStep("LIST");
+      void fetchData();
+      return;
+    }
+    if (saved.outcome === "HOAN_THANH") {
       void onPrintBatch({ batchId: activeMe.id });
-      toast.success("Mẻ ĐẠT! Đã chuyển dụng cụ sang Cấp phát — mở in phiếu mẻ A4.");
+      toast.success("Mẻ đã nhả. Bộ ở kho vô khuẩn, chờ quét cấp phát.");
     } else {
       const created = saved.createdCount ?? 0;
       const skipped = saved.skippedCount ?? 0;
@@ -253,6 +251,18 @@ export function useMeTietKhuanWorkflow() {
     void fetchData();
   };
 
+  const submitBi = async (ketQua: "AM" | "DUONG") => {
+    if (!activeMe?.id) return;
+    const msg = ketQua === "AM" ? "BI âm — nhả mẻ vào kho vô khuẩn chờ cấp?" : "BI dương — lập sự cố và không nhả mẻ?";
+    if (!confirm(msg)) return;
+    const saved = await nhapKetQuaBiMeTietKhuan(activeMe.id, ketQua);
+    if (!saved.success) return toast.error(saved.error || "Không lưu được kết quả BI.");
+    if (saved.outcome === "HOAN_THANH") toast.success("BI âm. Mẻ đã nhả, bộ chờ cấp phát.");
+    else toast.error("BI dương. Mẻ không đạt.");
+    setStep("LIST");
+    void fetchData();
+  };
+
   const backToList = () => {
     setStep("LIST");
     void fetchData();
@@ -267,19 +277,9 @@ export function useMeTietKhuanWorkflow() {
     }
     setActiveMe(row);
     setStep("PROCESS");
-    setNguoiUnload("");
-    setNhietDo("");
-    setThongSoMay("");
-    setChiThiTiepXuc("");
-    setChiThiDaThongSo("");
-    setTestSinhHoc("NA");
-    setTestCI("");
-    setTestBD("NA");
-    setAnhMay("");
-    setAnhTiepXuc("");
-    setAnhDaThongSo("");
-    setAnhSinhHoc("");
-    setAnhBowieDick("");
+    setChuongTrinh(String(row.chuong_trinh || ""));
+    resetQcFields();
+    if (row.chuong_trinh) setChuongTrinh(String(row.chuong_trinh));
   };
 
   return {
@@ -296,37 +296,30 @@ export function useMeTietKhuanWorkflow() {
     batchGate,
     waitingRows,
     items,
-    nguoiUnload,
-    setNguoiUnload,
+    chuongTrinh,
+    setChuongTrinh,
     nhietDo,
     setNhietDo,
-    thongSoMay,
-    setThongSoMay,
-    chiThiTiepXuc,
-    setChiThiTiepXuc,
-    chiThiDaThongSo,
-    setChiThiDaThongSo,
-    testSinhHoc,
-    setTestSinhHoc,
-    testCI,
-    setTestCI,
-    testBD,
-    setTestBD,
-    anhMay,
-    setAnhMay,
-    anhTiepXuc,
-    setAnhTiepXuc,
-    anhDaThongSo,
-    setAnhDaThongSo,
-    anhSinhHoc,
-    setAnhSinhHoc,
-    anhBowieDick,
-    setAnhBowieDick,
+    apSuat,
+    setApSuat,
+    thoiGianChuKy,
+    setThoiGianChuKy,
+    thongSoVatLy,
+    setThongSoVatLy,
+    ciNgoaiGoi,
+    setCiNgoaiGoi,
+    ciPcd,
+    setCiPcd,
+    trangThaiBi,
+    setTrangThaiBi,
+    anhMinhChung,
+    setAnhMinhChung,
     createMe,
     addItem,
     confirmBatDau,
     confirmKetThucChuTrinh,
     finishQc,
+    submitBi,
     backToList,
     openRowForProcess,
     printState,

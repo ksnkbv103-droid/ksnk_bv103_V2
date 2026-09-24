@@ -225,6 +225,7 @@ export async function saveBoDungCuAction(input: Record<string, unknown>) {
     ngay_kiem_ke_gan_nhat: input.ngay_kiem_ke_gan_nhat || null,
     phan_loai_bo: String(input.phan_loai_bo || "PHAU_THUAT"),
     co_ma_dinh_danh_rieng: input.co_ma_dinh_danh_rieng !== false,
+    is_implant: input.is_implant === true,
     is_active: input.is_active !== false,
     updated_at: new Date().toISOString(),
   };

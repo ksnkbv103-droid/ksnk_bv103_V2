@@ -20,7 +20,7 @@ import {
 const DANH_MUC_THIET_BI_PATH = "/quan-tri-he-thong/danh-muc/thiet-bi";
 const DANH_MUC_LOAI_MAY_TK_PATH = getDanhMucAdminPath("LOAI_MAY_TIET_KHUAN");
 
-type Machine = { id: string; ten_thiet_bi?: string; loai_ten_hien_thi?: string };
+type Machine = { id: string; ten_thiet_bi?: string; loai_ten_hien_thi?: string; phuong_phap?: string | null };
 
 type Props = {
   machines: Machine[];
@@ -44,6 +44,8 @@ export default function MeTietKhuanCreateStep({
 }: Props) {
   const [bdPending, startBd] = useTransition();
   const [lastBd, setLastBd] = useState<"DAT" | "KHONG_DAT" | null>(null);
+  const selected = machines.find((m) => m.id === machineId);
+  const showBd = selected?.phuong_phap === "HOI_NUOC";
 
   const recordBd = (ketQua: "DAT" | "KHONG_DAT") => {
     if (!machineId) {
@@ -60,7 +62,7 @@ export default function MeTietKhuanCreateStep({
       toast.success(
         ketQua === "DAT"
           ? `Đã ghi BD đầu ngày ĐẠT (${r.ymd}).`
-          : `Đã ghi BD đầu ngày KHÔNG ĐẠT (${r.ymd}) — không được nạp mẻ steam.`,
+          : `Đã ghi BD đầu ngày không đạt (${r.ymd}) — không tạo mẻ hơi nước cho đến khi có BD đạt mới.`,
       );
     });
   };
@@ -108,13 +110,13 @@ export default function MeTietKhuanCreateStep({
                 ))}
               </select>
             </div>
-            {machineId ? (
+            {showBd ? (
               <div className="space-y-2 rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3">
                 <p className={`${CSSD_UI_FORM_LABEL} !ml-0 text-amber-900`}>
-                  Bowie–Dick đầu ngày (steam · QT.21)
+                  Bowie–Dick đầu ngày (máy hơi nước)
                 </p>
                 <p className="text-[11px] font-medium text-amber-800/80">
-                  Máy steam bắt buộc BD ĐẠT hôm nay trước khi tạo/chốt nạp. Không thay BD trên form QC mẻ.
+                  Máy hơi nước cần BD đạt hôm nay trước khi tạo mẻ. BD không đạt thì chặn đến khi ghi BD đạt mới.
                 </p>
                 <div className="flex flex-wrap gap-2 pt-1">
                   <button

@@ -74,37 +74,30 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         batchGate={w.batchGate}
         items={w.items}
         waitingRows={w.waitingRows}
-        nguoiUnload={w.nguoiUnload}
-        setNguoiUnload={w.setNguoiUnload}
+        chuongTrinh={w.chuongTrinh}
+        setChuongTrinh={w.setChuongTrinh}
         nhietDo={w.nhietDo}
         setNhietDo={w.setNhietDo}
-        thongSoMay={w.thongSoMay}
-        setThongSoMay={w.setThongSoMay}
-        chiThiTiepXuc={w.chiThiTiepXuc}
-        setChiThiTiepXuc={w.setChiThiTiepXuc}
-        chiThiDaThongSo={w.chiThiDaThongSo}
-        setChiThiDaThongSo={w.setChiThiDaThongSo}
-        testSinhHoc={w.testSinhHoc}
-        setTestSinhHoc={w.setTestSinhHoc}
-        testCI={w.testCI}
-        setTestCI={w.setTestCI}
-        testBD={w.testBD}
-        setTestBD={w.setTestBD}
-        anhMay={w.anhMay}
-        setAnhMay={w.setAnhMay}
-        anhTiepXuc={w.anhTiepXuc}
-        setAnhTiepXuc={w.setAnhTiepXuc}
-        anhDaThongSo={w.anhDaThongSo}
-        setAnhDaThongSo={w.setAnhDaThongSo}
-        anhSinhHoc={w.anhSinhHoc}
-        setAnhSinhHoc={w.setAnhSinhHoc}
-        anhBowieDick={w.anhBowieDick}
-        setAnhBowieDick={w.setAnhBowieDick}
+        apSuat={w.apSuat}
+        setApSuat={w.setApSuat}
+        thoiGianChuKy={w.thoiGianChuKy}
+        setThoiGianChuKy={w.setThoiGianChuKy}
+        thongSoVatLy={w.thongSoVatLy}
+        setThongSoVatLy={w.setThongSoVatLy}
+        ciNgoaiGoi={w.ciNgoaiGoi}
+        setCiNgoaiGoi={w.setCiNgoaiGoi}
+        ciPcd={w.ciPcd}
+        setCiPcd={w.setCiPcd}
+        trangThaiBi={w.trangThaiBi}
+        setTrangThaiBi={w.setTrangThaiBi}
+        anhMinhChung={w.anhMinhChung}
+        setAnhMinhChung={w.setAnhMinhChung}
         onBackToList={w.backToList}
         onAddItemByCode={(code) => void w.addItem(code)}
         onConfirmBatDau={() => void w.confirmBatDau()}
         onConfirmKetThucChuTrinh={() => void w.confirmKetThucChuTrinh()}
-        onFinishQc={(isPass, overrideThongSoMay) => void w.finishQc(isPass, overrideThongSoMay)}
+        onFinishQc={(isPass) => void w.finishQc(isPass)}
+        onSubmitBi={(ketQua) => void w.submitBi(ketQua)}
         onPrintBatch={() => w.activeMe?.id && void w.onPrintBatch({ batchId: w.activeMe.id })}
         isPrintBusy={w.isCssdPrinting}
         onReportIncident={() => setIsBatchRecallOpen(true)}

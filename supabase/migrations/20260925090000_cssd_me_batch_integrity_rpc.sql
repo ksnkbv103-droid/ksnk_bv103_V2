@@ -1,18 +1,49 @@
 -- ME-S1: toàn vẹn phiếu mẻ tiệt khuẩn (additive).
 -- Không ALTER bảng. RPC SECURITY INVOKER, chỉ service_role (action đã verify quyền).
 -- Unique index: một máy tối đa một mẻ mở (is_active, ket_qua_test null).
+-- Dữ liệu cũ có >1 mẻ mở/máy: không xóa dòng; index chỉ áp mẻ tạo từ mốc này.
 -- Rollback: DROP FUNCTION các hàm dưới + DROP INDEX uq_cssd_fact_lo_mo_mot_may.
 
 BEGIN;
 
-CREATE UNIQUE INDEX IF NOT EXISTS uq_cssd_fact_lo_mo_mot_may
-  ON public.cssd_fact_lo_tiet_khuan (thiet_bi_id)
-  WHERE is_active = true
-    AND ket_qua_test IS NULL
-    AND thiet_bi_id IS NOT NULL;
+DO $$
+DECLARE
+  v_dup int;
+BEGIN
+  SELECT count(*)::int INTO v_dup
+  FROM (
+    SELECT thiet_bi_id
+    FROM public.cssd_fact_lo_tiet_khuan
+    WHERE is_active = true
+      AND ket_qua_test IS NULL
+      AND thiet_bi_id IS NOT NULL
+    GROUP BY thiet_bi_id
+    HAVING count(*) > 1
+  ) d;
+
+  IF v_dup > 0 THEN
+    RAISE NOTICE 'ME-S1: % máy đang có hơn một mẻ mở — không xóa dữ liệu. Unique index chỉ áp mẻ tạo từ 2026-09-25 09:00+07.', v_dup;
+    EXECUTE $idx$
+      CREATE UNIQUE INDEX IF NOT EXISTS uq_cssd_fact_lo_mo_mot_may
+      ON public.cssd_fact_lo_tiet_khuan (thiet_bi_id)
+      WHERE is_active = true
+        AND ket_qua_test IS NULL
+        AND thiet_bi_id IS NOT NULL
+        AND created_at >= TIMESTAMPTZ '2026-09-25 09:00:00+07'
+    $idx$;
+  ELSE
+    EXECUTE $idx$
+      CREATE UNIQUE INDEX IF NOT EXISTS uq_cssd_fact_lo_mo_mot_may
+      ON public.cssd_fact_lo_tiet_khuan (thiet_bi_id)
+      WHERE is_active = true
+        AND ket_qua_test IS NULL
+        AND thiet_bi_id IS NOT NULL
+    $idx$;
+  END IF;
+END $$;
 
 COMMENT ON INDEX public.uq_cssd_fact_lo_mo_mot_may IS
-  'ME-S1: mỗi máy chỉ một mẻ tiệt khuẩn chưa kết luận.';
+  'ME-S1: mỗi máy chỉ một mẻ tiệt khuẩn chưa kết luận (mẻ cũ trùng thì index chỉ từ mốc migration).';
 
 CREATE OR REPLACE FUNCTION public.fn_cssd_me_may_la_hoi_nuoc(p_thiet_bi_id uuid)
 RETURNS boolean
