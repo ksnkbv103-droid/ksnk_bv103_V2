@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { isCssdCycleUsedClinically } from "@/modules/cssd-erp/shared/domain/cssd-cycle-clinical-use";
 import {
   explainSuCoSetOut,
   isOpenCycleEligibleForSuCo,
   isSuCoOpenCycleStation,
   SU_CO_OPEN_CYCLE_STATIONS,
+  toSuCoOpenCycleInput,
 } from "./cssd-su-co-set-eligibility";
 
 describe("cssd-su-co-set-eligibility", () => {
@@ -15,17 +17,27 @@ describe("cssd-su-co-set-eligibility", () => {
     }
   });
 
-  it("drops CAP_PHAT once a surgical case is linked", () => {
-    expect(
-      isOpenCycleEligibleForSuCo({
-        isActive: true,
-        stationCode: "CAP_PHAT",
-        maCaMoId: "MO-2026-014",
-      }),
-    ).toBe(false);
-    expect(
-      explainSuCoSetOut({ isActive: true, stationCode: "CAP_PHAT", maCaMoId: "MO-2026-014" }),
-    ).toMatch(/đã sử dụng tại khoa/);
+  it("keeps open CAP_PHAT when the set was issued to a khoa but not used clinically", () => {
+    const input = toSuCoOpenCycleInput({
+      is_active: true,
+      ma_trang_thai_hien_tai: "CAP_PHAT",
+      ma_ca_mo_id: null,
+      khoa_nhan_id: "khoa-phong-mo",
+    });
+    expect(isCssdCycleUsedClinically(input)).toBe(false);
+    expect(isOpenCycleEligibleForSuCo(input)).toBe(true);
+  });
+
+  it("drops CAP_PHAT once used clinically even while the station stays CAP_PHAT", () => {
+    const input = toSuCoOpenCycleInput({
+      is_active: true,
+      ma_trang_thai_hien_tai: "CAP_PHAT",
+      ma_ca_mo_id: "MO-2026-014",
+      khoa_nhan_id: "khoa-phong-mo",
+    });
+    expect(isCssdCycleUsedClinically(input)).toBe(true);
+    expect(isOpenCycleEligibleForSuCo(input)).toBe(false);
+    expect(explainSuCoSetOut(input)).toMatch(/đã sử dụng tại khoa/);
   });
 
   it("drops a cycle closed by a new reception", () => {

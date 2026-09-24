@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { CSSD_CYCLE_NOT_USED_CLINICALLY_OR } from "@/modules/cssd-erp/shared/domain/cssd-cycle-clinical-use";
 import {
   explainSuCoSetOut,
   isOpenCycleEligibleForSuCo,
@@ -24,6 +25,7 @@ type CycleRow = {
   ma_qr_quy_trinh?: string | null;
   ma_trang_thai_hien_tai?: string | null;
   ma_ca_mo_id?: string | null;
+  khoa_nhan_id?: string | null;
   is_active?: boolean | null;
   created_at?: string | null;
 };
@@ -42,7 +44,7 @@ function sanitizeSearch(raw: string | undefined): string {
   return String(raw || "").trim().replace(/[%*,()]/g, "");
 }
 
-/** Bộ còn chu trình mở, chưa gắn ca mổ, trạm thuộc vòng xử lý. */
+/** Bộ còn chu trình mở, chưa used_clinically (§17.3), trạm thuộc vòng xử lý. */
 export async function listSuCoSelectableSets(
   supabase: SupabaseClient,
   search?: string,
@@ -50,10 +52,12 @@ export async function listSuCoSelectableSets(
   const term = sanitizeSearch(search).toUpperCase();
   const { data, error } = await supabase
     .from("v_cssd_quy_trinh_full")
-    .select("id, bo_dung_cu_id, ma_bo, ten_bo, ma_trang_thai_hien_tai, ma_ca_mo_id, is_active")
+    .select(
+      "id, bo_dung_cu_id, ma_bo, ten_bo, ma_trang_thai_hien_tai, ma_ca_mo_id, khoa_nhan_id, is_active",
+    )
     .eq("is_active", true)
     .in("ma_trang_thai_hien_tai", [...SU_CO_OPEN_CYCLE_STATIONS])
-    .is("ma_ca_mo_id", null)
+    .or(CSSD_CYCLE_NOT_USED_CLINICALLY_OR)
     .order("ma_bo", { ascending: true })
     .limit(LIST_CAP);
 

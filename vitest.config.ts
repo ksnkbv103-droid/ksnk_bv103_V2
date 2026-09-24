@@ -13,6 +13,7 @@ export default defineConfig({
   test: {
     include: [
       "src/modules/cssd-erp/domain/**/*.spec.ts",
+      "src/modules/cssd-erp/shared/domain/**/*.spec.ts",
       "src/modules/cssd-erp/workflow/domain/**/*.spec.ts",
       "src/modules/cssd-erp/workflow/application/**/*.spec.ts",
       "src/modules/cssd-su-co/domain/**/*.spec.ts",
