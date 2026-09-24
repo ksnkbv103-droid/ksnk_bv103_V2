@@ -6,7 +6,7 @@ import {
 } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 
 import React, { useState } from "react";
-import { ArrowRight, List, ListChecks } from "lucide-react";
+import { ArrowRight, List } from "lucide-react";
 import SetMembersModal from "../inventory/SetMembersModal";
 import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
 
@@ -71,7 +71,7 @@ export default function MeTietKhuanWaitingPanel({
                 className={`${CSSD_UI_ACTION_PRIMARY} !h-11 !min-h-[44px] !px-3`}
               >
                 <ArrowRight size={16} aria-hidden />
-                Xử lý
+                Mở mẻ
               </button>
             </div>
           );

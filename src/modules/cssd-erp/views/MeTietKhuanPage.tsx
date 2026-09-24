@@ -15,11 +15,23 @@ import { useMeTietKhuanWorkflow } from "../hooks/use-me-tiet-khuan-workflow";
 import { CSSD_UI_ACTION_PRIMARY } from "../shared/ui/cssd-ui-chrome";
 import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
 import { cssdSuCoBatchRecallHref } from "@/lib/cssd-routes";
+import { MeTietKhuanConfirmDialog } from "../components/batch/me-tiet-khuan-slip-stepper";
 
 export default function MeTietKhuanPage({ suppressShell = false }: { suppressShell?: boolean } = {}) {
   const w = useMeTietKhuanWorkflow();
   const [isIncidentOpen, setIsIncidentOpen] = React.useState(false);
   const [isBatchRecallOpen, setIsBatchRecallOpen] = React.useState(false);
+  const confirmDialog = (
+    <MeTietKhuanConfirmDialog
+      open={Boolean(w.confirmAsk)}
+      title={w.confirmAsk?.title || ""}
+      body={w.confirmAsk?.body || ""}
+      confirmLabel={w.confirmAsk?.confirmLabel || "Xác nhận"}
+      danger={w.confirmAsk?.danger}
+      onConfirm={() => w.settleConfirm(true)}
+      onCancel={() => w.settleConfirm(false)}
+    />
+  );
 
   const batchColumns = React.useMemo(
     () =>
@@ -90,8 +102,6 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         setCiPcd={w.setCiPcd}
         trangThaiBi={w.trangThaiBi}
         setTrangThaiBi={w.setTrangThaiBi}
-        anhMinhChung={w.anhMinhChung}
-        setAnhMinhChung={w.setAnhMinhChung}
         onBackToList={w.backToList}
         onAddItemByCode={(code) => void w.addItem(code)}
         onConfirmBatDau={() => void w.confirmBatDau()}
@@ -104,6 +114,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         suppressShell={suppressShell}
       />
       {printPortal}
+      {confirmDialog}
       <IncidentReportModal
         isOpen={isBatchRecallOpen}
         onClose={() => setIsBatchRecallOpen(false)}
@@ -113,15 +124,6 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         initialMaLo={w.activeMe?.ma_lo_tiet_khuan}
         initialLoTietKhuanId={w.activeMe?.id}
         batchRecallEntry
-      />
-      <IncidentReportModal
-        isOpen={isIncidentOpen}
-        onClose={() => setIsIncidentOpen(false)}
-        station="TIET_KHUAN"
-        defaultGroup="PROCESS"
-        initialTypeId="PROCESS_STERILIZATION_FAIL"
-        initialMaLo={w.activeMe?.ma_lo_tiet_khuan}
-        initialLoTietKhuanId={w.activeMe?.id}
       />
       </>
     );
@@ -136,7 +138,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
               href={cssdSuCoBatchRecallHref()}
               className="inline-flex items-center gap-1 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-900 hover:bg-amber-100"
             >
-              Thu hồi theo mẻ
+              Thu hồi mẻ
             </Link>
             <button
               type="button"
@@ -189,9 +191,9 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
           <Link
             href={cssdSuCoBatchRecallHref()}
             className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-5 text-[11px] font-semibold text-amber-900 shadow-sm hover:bg-amber-100 active:scale-[0.98] transition-all"
-            title="Thu hồi theo mẻ — sự cố an toàn"
+            title="Thu hồi mẻ"
           >
-            Thu hồi theo mẻ
+            Thu hồi mẻ
           </Link>
           <button
             type="button"
@@ -213,16 +215,6 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         initialTypeId="PROCESS_STERILIZATION_FAIL"
         initialMaLo={w.activeMe?.ma_lo_tiet_khuan}
         initialLoTietKhuanId={w.activeMe?.id}
-      />
-      <IncidentReportModal
-        isOpen={isBatchRecallOpen}
-        onClose={() => setIsBatchRecallOpen(false)}
-        station="TIET_KHUAN"
-        defaultGroup="PROCESS"
-        initialTypeId="PROCESS_BI_POSITIVE"
-        initialMaLo={w.activeMe?.ma_lo_tiet_khuan}
-        initialLoTietKhuanId={w.activeMe?.id}
-        batchRecallEntry
       />
     </CSSDPageShell>
   );

@@ -2,27 +2,17 @@
 "use client";
 
 import React, { useMemo } from "react";
-import {
-  History,
-  Lock,
-  StopCircle,
-  Inbox,
-  Flame,
-  ClipboardCheck,
-  CheckCircle,
-  AlertCircle,
-  ChevronRight,
-  Timer,
-  Printer,
-} from "lucide-react";
+import { History, Lock, StopCircle, Timer, Printer } from "lucide-react";
 import { CSSD_PAGE_OUTER } from "../layout/cssd-page-shell";
 import MeTietKhuanProcessScanPanel, { type MeTkItemRow } from "./me-tiet-khuan-process-scan-panel";
 import MeTietKhuanProcessQcPanel from "./me-tiet-khuan-process-qc-panel";
 import MeTietKhuanWaitingPanel, { type MeTkWaitingRow } from "./me-tiet-khuan-waiting-panel";
 import MeTietKhuanHeatBanner from "./me-tiet-khuan-heat-banner";
 import MeTkNkbvLinkBanner from "./me-tk-nkbv-link-banner";
-import { CSSD_UI_ACTION_SECONDARY } from "../../shared/ui/cssd-ui-chrome";
+import { MeTietKhuanSlipStepper } from "./me-tiet-khuan-slip-stepper";
+import { CSSD_UI_ACTION_SECONDARY, CSSD_UI_CONTROL, CSSD_UI_FORM_LABEL } from "../../shared/ui/cssd-ui-chrome";
 import { getSterilizerMethod, type SterilizerMethod } from "../../helpers/me-tiet-khuan-machine-kind";
+import { currentMeSlipStep, meTrangThaiBadge, slipStatusLabel } from "../../lib/me-tiet-khuan-slip-ux";
 
 type MeRow = {
   id: string;
@@ -55,8 +45,6 @@ export default function MeTietKhuanProcessStep({
   setCiPcd,
   trangThaiBi,
   setTrangThaiBi,
-  anhMinhChung,
-  setAnhMinhChung,
   onBackToList,
   onAddItemByCode,
   onConfirmBatDau,
@@ -88,8 +76,6 @@ export default function MeTietKhuanProcessStep({
   setCiPcd: (v: "DAT" | "KHONG_DAT" | "") => void;
   trangThaiBi: "CHUA_CO" | "AM" | "DUONG" | "";
   setTrangThaiBi: (v: "CHUA_CO" | "AM" | "DUONG" | "") => void;
-  anhMinhChung: string;
-  setAnhMinhChung: (v: string) => void;
   onBackToList: () => void;
   onAddItemByCode: (code: string) => void;
   onConfirmBatDau: () => void | Promise<void>;
@@ -107,33 +93,34 @@ export default function MeTietKhuanProcessStep({
     () => getSterilizerMethod(batchGate?.thiet_bi ?? activeMe?.thiet_bi ?? null) || getSterilizerMethod({ phuong_phap: (batchGate as { phuong_phap?: string | null } | null)?.phuong_phap }),
     [batchGate, activeMe?.thiet_bi],
   );
-  const choBi = String(activeMe?.trang_thai || (batchGate as { trang_thai_me?: string | null } | null)?.trang_thai_me || "") === "CHO_BI";
+  const trangThai = String(activeMe?.trang_thai || (batchGate as { trang_thai_me?: string | null } | null)?.trang_thai_me || "");
+  const choBi = trangThai === "CHO_BI";
   const coImplant = Boolean((batchGate as { co_implant?: boolean | null } | null)?.co_implant);
   const steamBiReminder = (batchGate as { steamBiReminder?: string | null } | null)?.steamBiReminder || null;
-
-  // Xác định giai đoạn hiện tại
-  const phase: "CHUAN_BI" | "DANG_TK" | "DANH_GIA" | "HOAN_THANH" = qcOpen
-    ? activeMe?.ket_qua_test !== null && activeMe?.ket_qua_test !== undefined
-      ? "HOAN_THANH"
-      : "DANH_GIA"
-    : napLocked
-    ? "DANG_TK"
-    : "CHUAN_BI";
-
-  // Stepper State
-  const step1State = napLocked ? "COMPLETED" : "ACTIVE";
-  const step2State = !napLocked ? "PENDING" : qcOpen ? "COMPLETED" : "ACTIVE";
-  const step3State = !qcOpen
-    ? "PENDING"
-    : activeMe?.ket_qua_test === true || activeMe?.ket_qua_test === false
-    ? "COMPLETED"
-    : "ACTIVE";
-  const step4State =
-    activeMe?.ket_qua_test === true
-      ? "COMPLETED"
-      : activeMe?.ket_qua_test === false
-      ? "FAILED"
-      : "PENDING";
+  const slipStep = currentMeSlipStep({
+    chuongTrinh,
+    itemCount: items.length,
+    napLocked,
+    qcOpen,
+    choBi,
+    ketQuaTest: activeMe?.ket_qua_test,
+    trangThai,
+  });
+  const statusLabel = slipStatusLabel({
+    step: slipStep,
+    choBi,
+    ketQuaTest: activeMe?.ket_qua_test,
+    trangThai,
+  });
+  const statusBadge = meTrangThaiBadge(
+    choBi ? "CHO_BI" : activeMe?.ket_qua_test === true ? "HOAN_THANH" : activeMe?.ket_qua_test === false ? "QC_KHONG_DAT" : napLocked ? (qcOpen ? "CHO_DANH_GIA_QC" : "DANG_TIET_KHUAN") : "DANG_CHUAN_NAP",
+  );
+  const itemSig = items.map((row) => String(row.id || row.ma_vach_qr || "")).join("|");
+  const canPrint =
+    choBi ||
+    activeMe?.ket_qua_test === true ||
+    activeMe?.ket_qua_test === false ||
+    ["QC_KHONG_DAT", "THU_HOI", "HOAN_THANH", "CHO_BI"].includes(trangThai);
 
   const toolbar = (
     <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
@@ -142,9 +129,14 @@ export default function MeTietKhuanProcessStep({
           type="button"
           onClick={onReportIncident}
           className={`${CSSD_UI_ACTION_SECONDARY} border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100`}
-          title="Thu hồi theo mẻ — sự cố an toàn (BI dương, gói ướt, lỗi máy)"
         >
-          Thu hồi theo mẻ
+          Thu hồi mẻ
+        </button>
+      ) : null}
+      {canPrint && onPrintBatch ? (
+        <button type="button" disabled={isPrintBusy} onClick={onPrintBatch} className={CSSD_UI_ACTION_SECONDARY}>
+          <Printer size={16} aria-hidden="true" />
+          In phiếu mẻ
         </button>
       ) : null}
       <button type="button" onClick={onBackToList} className={CSSD_UI_ACTION_SECONDARY}>
@@ -158,27 +150,18 @@ export default function MeTietKhuanProcessStep({
     <div className={suppressShell ? "space-y-3" : `${CSSD_PAGE_OUTER} space-y-3 animate-in slide-in-from-right-6 duration-300`}>
       {toolbar}
       <div className="space-y-3">
-        {/* Header Thông Tin Mẻ + Nút theo giai đoạn */}
+        <MeTietKhuanSlipStepper current={slipStep} />
+
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-shell)] border border-emerald-800 bg-emerald-700 p-5 text-white shadow-sm">
           <div>
             <h2 className="bv103-type-title font-mono tracking-tight">{activeMe?.ma_lo_tiet_khuan}</h2>
             <p className="mt-1 text-[11px] font-medium opacity-90">
-              {items.length} bộ trong phiếu ·{" "}
-              {phase === "CHUAN_BI" && <span className="text-sky-200">Đang nạp bộ</span>}
-              {phase === "DANG_TK" && <span className="text-amber-200">Đang tiệt khuẩn</span>}
-              {phase === "DANH_GIA" && <span className="text-yellow-200">Đang đánh giá QC</span>}
-              {phase === "HOAN_THANH" && (
-                <span className={activeMe?.ket_qua_test ? "text-emerald-200" : "text-red-300"}>
-                  {activeMe?.ket_qua_test ? "Đạt — Cấp phát" : "Không đạt"}
-                </span>
-              )}
+              {activeMe?.thiet_bi?.ten_thiet_bi || batchGate?.thiet_bi?.ten_thiet_bi || "Máy"} · {items.length} bộ · {statusLabel}
             </p>
           </div>
-
-          {/* Nút hành động ẩn/hiện theo giai đoạn */}
-          <div className="flex flex-wrap gap-2">
-            {/* Giai đoạn CHUAN_BI: Nút xác nhận bắt đầu TK */}
-            {phase === "CHUAN_BI" && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={statusBadge.className}>{statusBadge.label}</span>
+            {slipStep === 4 ? (
               <button
                 type="button"
                 disabled={!items.length}
@@ -186,206 +169,100 @@ export default function MeTietKhuanProcessStep({
                 className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-amber-300 bg-amber-400 px-4 text-xs font-semibold text-slate-900 shadow-sm transition-all hover:bg-amber-300 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Lock size={16} aria-hidden="true" />
-                Xác nhận bắt đầu tiệt khuẩn
+                Bắt đầu chu trình
               </button>
-            )}
-
-            {/* Giai đoạn DANG_TK: Nút kết thúc chu trình */}
-            {phase === "DANG_TK" && (
+            ) : null}
+            {slipStep === 5 && !qcOpen ? (
               <button
                 type="button"
                 onClick={() => void onConfirmKetThucChuTrinh()}
                 className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-white/30 bg-white/15 px-4 text-xs font-semibold text-white shadow-sm transition-all hover:bg-white/25 active:scale-95"
               >
                 <StopCircle size={16} aria-hidden="true" />
-                Xong máy — mở đánh giá QC
-              </button>
-            )}
-
-            {(choBi ||
-              activeMe?.ket_qua_test === true ||
-              activeMe?.ket_qua_test === false ||
-              ["QC_KHONG_DAT", "THU_HOI", "HOAN_THANH"].includes(String(activeMe?.trang_thai || ""))) &&
-            onPrintBatch ? (
-              <button
-                type="button"
-                disabled={isPrintBusy}
-                onClick={onPrintBatch}
-                className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-amber-300 bg-amber-400 px-4 text-xs font-semibold text-slate-900 shadow-sm transition-all hover:bg-amber-300 active:scale-95 disabled:opacity-50"
-              >
-                <Printer size={16} aria-hidden="true" />
-                In phiếu mẻ A4
+                Kết thúc
               </button>
             ) : null}
-
-            {/* Giai đoạn DANH_GIA và HOAN_THANH: không hiện nút chuyển giai đoạn */}
           </div>
         </header>
 
-        {activeMe?.id ? <MeTietKhuanHeatBanner batchId={activeMe.id} /> : null}
+        {activeMe?.id ? <MeTietKhuanHeatBanner key={`${activeMe.id}:${itemSig}`} batchId={activeMe.id} /> : null}
         {activeMe?.id ? <MeTkNkbvLinkBanner loTietKhuanId={activeMe.id} /> : null}
 
-        {/* Process stepper — 4 giai đoạn thật (nạp → TK → QC → cấp phát) */}
-        <div className="my-3 rounded-[var(--radius-shell)] border border-slate-200 bg-slate-50 px-3 py-2.5">
-          <div className="grid grid-cols-1 items-center gap-2 md:grid-cols-7">
-            <div className="col-span-1 flex items-center gap-2">
-              <div
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
-                  step1State === "COMPLETED"
-                    ? "border-emerald-500 bg-emerald-50 text-emerald-600"
-                    : "animate-pulse border-sky-500 bg-white text-sky-600"
-                }`}
-              >
-                <Inbox size={14} strokeWidth={2.5} />
-              </div>
-              <p className="text-xs font-semibold text-slate-700">Chuẩn bị nạp</p>
-            </div>
-
-            <div className="col-span-1 hidden justify-center text-slate-300 md:flex">
-              <ChevronRight size={16} />
-            </div>
-
-            <div className="col-span-1 flex items-center gap-2">
-              <div
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
-                  step2State === "COMPLETED"
-                    ? "border-emerald-500 bg-emerald-50 text-emerald-600"
-                    : step2State === "ACTIVE"
-                      ? "animate-pulse border-blue-500 bg-white text-blue-600"
-                      : "border-slate-200 bg-slate-100 text-slate-400"
-                }`}
-              >
-                <Flame size={14} strokeWidth={2.5} />
-              </div>
-              <p className={`text-xs font-semibold ${step2State === "PENDING" ? "text-slate-400" : "text-slate-700"}`}>
-                Đang tiệt khuẩn
-              </p>
-            </div>
-
-            <div className="col-span-1 hidden justify-center text-slate-300 md:flex">
-              <ChevronRight size={16} />
-            </div>
-
-            <div className="col-span-1 flex items-center gap-2">
-              <div
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
-                  step3State === "COMPLETED"
-                    ? "border-emerald-500 bg-emerald-50 text-emerald-600"
-                    : step3State === "ACTIVE"
-                      ? "animate-pulse border-amber-500 bg-white text-amber-600"
-                      : "border-slate-200 bg-slate-100 text-slate-400"
-                }`}
-              >
-                <ClipboardCheck size={14} strokeWidth={2.5} />
-              </div>
-              <p className={`text-xs font-semibold ${step3State === "PENDING" ? "text-slate-400" : "text-slate-700"}`}>
-                Đánh giá QC
-              </p>
-            </div>
-
-            <div className="col-span-1 hidden justify-center text-slate-300 md:flex">
-              <ChevronRight size={16} />
-            </div>
-
-            <div className="col-span-1 flex items-center gap-2">
-              <div
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
-                  step4State === "COMPLETED"
-                    ? "border-emerald-500 bg-emerald-50 text-emerald-600"
-                    : step4State === "FAILED"
-                      ? "border-red-500 bg-red-50 text-red-600"
-                      : "border-slate-200 bg-slate-100 text-slate-400"
-                }`}
-              >
-                {step4State === "FAILED" ? (
-                  <AlertCircle size={14} strokeWidth={2.5} />
-                ) : (
-                  <CheckCircle size={14} strokeWidth={2.5} />
-                )}
-              </div>
-              <p className={`text-xs font-semibold ${step4State === "PENDING" ? "text-slate-400" : "text-slate-700"}`}>
-                {step4State === "FAILED" ? "Lỗi tiệt khuẩn" : "Chờ cấp phát"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* ===== GIAI ĐOẠN 1: Chuẩn bị nạp mẻ ===== */}
-        {phase === "CHUAN_BI" && (
-          <div className="grid grid-cols-1 gap-[var(--bv103-space-3)] lg:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="order-1 lg:order-2">
-              <MeTietKhuanProcessScanPanel
-                items={items}
-                napLocked={napLocked}
-                onAddItemByCode={onAddItemByCode}
+        {slipStep < 5 ? (
+          <div className="space-y-3">
+            <label className="block space-y-1">
+              <span className={CSSD_UI_FORM_LABEL}>Chương trình</span>
+              <input
+                className={CSSD_UI_CONTROL}
+                value={chuongTrinh}
+                maxLength={80}
+                placeholder="Tên chương trình trên máy"
+                onChange={(e) => setChuongTrinh(e.target.value)}
               />
-            </div>
-            <div className="order-2 lg:order-1">
-              <MeTietKhuanWaitingPanel
-                rows={waitingRows}
-                napLocked={napLocked}
-                onProcess={(code) => {
-                  if (!code || napLocked) return;
-                  onAddItemByCode(code);
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* ===== GIAI ĐOẠN 2: Đang tiệt khuẩn (chờ kết thúc chu trình) ===== */}
-        {phase === "DANG_TK" && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="flex flex-col items-center justify-center rounded-[var(--radius-shell)] border-2 border-dashed border-blue-200 bg-blue-50/60 p-12 text-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 border-2 border-blue-300">
-                <Timer className="h-8 w-8 text-blue-600 animate-pulse" />
+            </label>
+            <div className="grid grid-cols-1 gap-[var(--bv103-space-3)] lg:grid-cols-2">
+              <div className="order-1 lg:order-2">
+                <MeTietKhuanProcessScanPanel items={items} napLocked={napLocked} onAddItemByCode={onAddItemByCode} />
               </div>
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-blue-800">Đang tiệt khuẩn</p>
-                <p className="text-sm font-semibold text-blue-600">
-                  Đã chốt <strong>{items.length} bộ</strong> trong phiếu
-                </p>
-                <p className="max-w-md text-[11px] font-medium leading-relaxed text-blue-500">
-                  Chờ máy xong, rồi bấm «Xong máy — mở đánh giá QC» phía trên.
-                </p>
+              <div className="order-2 lg:order-1">
+                <MeTietKhuanWaitingPanel
+                  rows={waitingRows}
+                  napLocked={napLocked}
+                  onProcess={(code) => {
+                    if (!code || napLocked) return;
+                    onAddItemByCode(code);
+                  }}
+                />
               </div>
             </div>
           </div>
-        )}
+        ) : null}
 
-        {/* ===== GIAI ĐOẠN 3: Đánh giá QC — Full width ===== */}
-        {(phase === "DANH_GIA" || phase === "HOAN_THANH") && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <MeTietKhuanProcessQcPanel
-              showForm={qcOpen}
-              method={method}
-              coImplant={coImplant}
-              steamBiReminder={steamBiReminder}
-              choBi={choBi}
-              chuongTrinh={chuongTrinh}
-              setChuongTrinh={setChuongTrinh}
-              nhietDo={nhietDo}
-              setNhietDo={setNhietDo}
-              apSuat={apSuat}
-              setApSuat={setApSuat}
-              thoiGianChuKy={thoiGianChuKy}
-              setThoiGianChuKy={setThoiGianChuKy}
-              thongSoVatLy={thongSoVatLy}
-              setThongSoVatLy={setThongSoVatLy}
-              ciNgoaiGoi={ciNgoaiGoi}
-              setCiNgoaiGoi={setCiNgoaiGoi}
-              ciPcd={ciPcd}
-              setCiPcd={setCiPcd}
-              trangThaiBi={trangThaiBi}
-              setTrangThaiBi={setTrangThaiBi}
-              anhMinhChung={anhMinhChung}
-              setAnhMinhChung={setAnhMinhChung}
-              onFinish={(isPass) => void onFinishQc(isPass)}
-              onSubmitBi={(ketQua) => void onSubmitBi(ketQua)}
-            />
+        {slipStep === 5 && !qcOpen ? (
+          <div className="flex flex-col items-center justify-center gap-4 rounded-[var(--radius-shell)] border-2 border-dashed border-blue-200 bg-blue-50/60 p-12 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-blue-300 bg-blue-100">
+              <Timer className="h-8 w-8 animate-pulse text-blue-600" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-blue-800">Đang chạy</p>
+              <p className="text-sm font-semibold text-blue-600">
+                Đã chốt <strong>{items.length} bộ</strong> trong phiếu
+              </p>
+              <p className="max-w-md text-[11px] font-medium leading-relaxed text-blue-500">
+                Chờ máy xong, rồi bấm «Kết thúc».
+              </p>
+            </div>
           </div>
-        )}
+        ) : null}
 
+        {qcOpen || choBi ? (
+          <MeTietKhuanProcessQcPanel
+            showForm={qcOpen}
+            method={method}
+            coImplant={coImplant}
+            steamBiReminder={steamBiReminder}
+            choBi={choBi}
+            chuongTrinh={chuongTrinh}
+            setChuongTrinh={setChuongTrinh}
+            nhietDo={nhietDo}
+            setNhietDo={setNhietDo}
+            apSuat={apSuat}
+            setApSuat={setApSuat}
+            thoiGianChuKy={thoiGianChuKy}
+            setThoiGianChuKy={setThoiGianChuKy}
+            thongSoVatLy={thongSoVatLy}
+            setThongSoVatLy={setThongSoVatLy}
+            ciNgoaiGoi={ciNgoaiGoi}
+            setCiNgoaiGoi={setCiNgoaiGoi}
+            ciPcd={ciPcd}
+            setCiPcd={setCiPcd}
+            trangThaiBi={trangThaiBi}
+            setTrangThaiBi={setTrangThaiBi}
+            batchId={activeMe?.id || ""}
+            onFinish={(isPass) => void onFinishQc(isPass)}
+            onSubmitBi={(ketQua) => void onSubmitBi(ketQua)}
+          />
+        ) : null}
       </div>
     </div>
   );

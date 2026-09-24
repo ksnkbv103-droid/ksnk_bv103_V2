@@ -74,7 +74,7 @@ export async function fetchCssdTietKhuanWaitingRows(limit = 120) {
     if (!dongGoiId) return { success: true as const, data: [] };
     const { data, error } = await supabase
       .from("cssd_fact_quy_trinh")
-      .select("id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id")
+      .select("id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, is_dong_bang, lo_tiet_khuan_id")
       .eq("tram_hien_tai_id", dongGoiId)
       .is("lo_tiet_khuan_id", null)
       .eq("is_active", true)
@@ -86,6 +86,8 @@ export async function fetchCssdTietKhuanWaitingRows(limit = 120) {
       ma_qr_quy_trinh?: string | null;
       bo_dung_cu_id?: string | null;
       updated_at?: string | null;
+      is_dong_bang?: boolean | null;
+      lo_tiet_khuan_id?: string | null;
     }>;
     const boIds = [...new Set(raw.map((x) => String(x.bo_dung_cu_id || "").trim()).filter(Boolean))];
     let boMap = new Map<string, { ten_bo?: string | null }>();
@@ -98,6 +100,8 @@ export async function fetchCssdTietKhuanWaitingRows(limit = 120) {
       ma_vach_qr: x.ma_qr_quy_trinh || "",
       updated_at: x.updated_at || "",
       bo_dung_cu_id: x.bo_dung_cu_id ? String(x.bo_dung_cu_id) : null,
+      is_dong_bang: x.is_dong_bang === true,
+      lo_tiet_khuan_id: x.lo_tiet_khuan_id ? String(x.lo_tiet_khuan_id) : null,
       bo: x.bo_dung_cu_id ? { ten_bo: boMap.get(String(x.bo_dung_cu_id))?.ten_bo || null } : null,
     }));
     return { success: true as const, data: mapped };

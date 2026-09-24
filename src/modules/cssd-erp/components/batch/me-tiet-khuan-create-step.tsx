@@ -155,7 +155,7 @@ export default function MeTietKhuanCreateStep({
               Hủy
             </button>
             <button type="button" onClick={onStart} className={`${CSSD_UI_ACTION_PRIMARY} h-12 flex-1`}>
-              <Play size={16} /> Bắt đầu mẻ
+              <Play size={16} /> Mở mẻ
             </button>
           </div>
         </div>

@@ -5,7 +5,7 @@ import {
   CSSD_UI_PANEL_CHROME as UI,
 } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import { CheckCircle2, Scan } from "lucide-react";
 import QrScanInput from "@/components/shared/QrScanInput";
 import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
@@ -21,27 +21,12 @@ export default function MeTietKhuanProcessScanPanel({
   items,
   onAddItemByCode,
   napLocked,
-  prefillToken,
-  onPrefillConsumed,
 }: {
   items: MeTkItemRow[];
   onAddItemByCode: (code: string) => void;
   napLocked: boolean;
-  prefillToken?: string;
-  onPrefillConsumed?: () => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const raw = String(prefillToken || "").trim();
-    if (!raw || !inputRef.current) return;
-    const pipe = raw.indexOf("|");
-    const code = pipe >= 0 ? raw.slice(pipe + 1) : raw;
-    if (!code.trim()) return;
-    inputRef.current.value = code.trim();
-    inputRef.current.focus();
-    onPrefillConsumed?.();
-  }, [prefillToken, onPrefillConsumed]);
 
   const submitCurrent = () => {
     if (napLocked) return;

@@ -11,6 +11,7 @@ import {
   CSSD_UI_CELL_INDEX,
   CSSD_UI_CELL_META,
 } from "../../shared/ui/cssd-ui-chrome";
+import { meTrangThaiBadge } from "../../lib/me-tiet-khuan-slip-ux";
 
 export function buildMeTietKhuanBatchColumns(opts?: {
   onPrintBatch?: (batchId: string) => void;
@@ -66,20 +67,8 @@ export function buildMeTietKhuanBatchColumns(opts?: {
     accessorKey: "trang_thai",
     sortable: true,
     cell: (i: any) => {
-      const state = String(i.trang_thai || "");
-      // Domain: CHO_BI / Quarantine_BI = implant chờ BI (−); UI-ready map (derive full gate = P1/write path).
-      const STATE_LABELS: Record<string, { label: string; cls: string }> = {
-        DANG_CHUAN_NAP: { label: "Chuẩn bị nạp", cls: "text-[11px] font-medium text-sky-800" },
-        DANG_TIET_KHUAN: { label: "Đang tiệt khuẩn", cls: "text-[11px] font-medium text-blue-800" },
-        CHO_DANH_GIA_QC: { label: "Chờ đánh giá QC", cls: "text-[11px] font-medium text-amber-800" },
-        CHO_BI: { label: "Chờ BI", cls: "text-[11px] font-medium text-violet-800" },
-        Quarantine_BI: { label: "Chờ BI", cls: "text-[11px] font-medium text-violet-800" },
-        QC_KHONG_DAT: { label: "Không đạt", cls: "text-[11px] font-medium text-red-700" },
-        THU_HOI: { label: "Thu hồi", cls: "text-[11px] font-medium text-red-800" },
-        HOAN_THANH: { label: "Đạt (chờ cấp phát)", cls: "text-[11px] font-medium text-emerald-800" },
-      };
-      const badge = STATE_LABELS[state] || { label: state || "—", cls: "text-[11px] font-medium text-slate-500" };
-      return <span className={badge.cls}>{badge.label}</span>;
+      const badge = meTrangThaiBadge(String(i.trang_thai || ""));
+      return <span className={badge.className}>{badge.label}</span>;
     },
   },
   {
@@ -101,7 +90,7 @@ export function buildMeTietKhuanBatchColumns(opts?: {
           href={href}
           onClick={(e) => e.stopPropagation()}
           className="inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1.5 bv103-type-label font-semibold text-amber-900 hover:bg-amber-100"
-          title="Thu hồi theo mẻ — sự cố an toàn"
+          title="Thu hồi mẻ"
         >
           <Undo2 size={14} /> Thu hồi
         </Link>
