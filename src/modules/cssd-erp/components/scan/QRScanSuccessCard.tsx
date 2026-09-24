@@ -14,7 +14,6 @@ interface Props {
   /** Trạm hiện tại (từ trang cha; tránh gọi hook trùng state). */
   tramDisplay?: string;
   maLoTietKhuan?: string;
-  ledgerWarning?: string;
   /** Tem chu trình túi hấp (khác tem bộ vĩnh viễn). */
   maCycleQr?: string | null;
   /** Trạm cấp phát: in phiếu A4 (QR mã mẻ). */
@@ -33,7 +32,6 @@ export default function QRScanSuccessCard({
   buocTiepTheo,
   tramDisplay = "CSSD",
   maLoTietKhuan,
-  ledgerWarning,
   maCycleQr,
   onPrintCapPhat,
   isPrintBusy,
@@ -127,13 +125,6 @@ export default function QRScanSuccessCard({
               <div className={`${C.noticeSuccess} text-left`}>
                 <p className={T.labelBlock}>Mã mẻ tiệt khuẩn (QR trên phiếu)</p>
                 <p className="font-mono text-sm font-semibold">{maLoTietKhuan}</p>
-              </div>
-            ) : null}
-
-            {ledgerWarning ? (
-              <div className={`${C.noticeDanger} text-left`}>
-                <p className="text-[11px] font-semibold">Thiếu dụng cụ — vẫn cấp</p>
-                <p className="mt-0.5 text-[11px] font-medium leading-relaxed">{ledgerWarning}</p>
               </div>
             ) : null}
           </div>

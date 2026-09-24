@@ -22,8 +22,14 @@ type ScanResultPayload = {
   maCycleQr?: string | null;
   maLoTietKhuan?: string;
   issuanceOnly?: boolean;
-  ledgerWarning?: string;
 };
+
+/** Thẻ quét: HH:mm (formatTimeVi là hh:mm:ss). */
+function formatScanClock(value: Date): string {
+  const full = formatTimeVi(value);
+  const m = /^(\d{2}:\d{2})/.exec(full);
+  return m ? m[1] : full;
+}
 
 export type DongGoiGateState = {
   code: string;
@@ -94,25 +100,19 @@ export function useCSSDWorkflow() {
   }, []);
 
   const applyScanSuccess = useCallback(
-    (
-      station: Station,
-      code: string,
-      scanRes: ScanResultPayload,
-      opts?: { ledgerWarning?: string },
-    ) => {
+    (station: Station, code: string, scanRes: ScanResultPayload) => {
       const displayQr = String(scanRes.maQr || code).trim().toUpperCase();
       setLastScan({
         qrCode: displayQr,
         tenBoDungCu: scanRes.tenBoDungCu || "Chưa gán bộ",
         nguoiThucHien: operatorLabel,
-        thoiGianQuet: formatTimeVi(new Date()),
+        thoiGianQuet: formatScanClock(new Date()),
         buocTiepTheo: nextStationLabel(station),
         quyTrinhId: scanRes.quyTrinhId,
         boDungCuId: scanRes.boDungCuId,
         maCycleQr: scanRes.maCycleQr,
         maLoTietKhuan: scanRes.maLoTietKhuan,
         issuanceOnly: scanRes.issuanceOnly,
-        ledgerWarning: opts?.ledgerWarning,
       });
       toast.success(`Đã xử lý: ${displayQr}`);
       void fetchWaitingList(station);
@@ -125,15 +125,12 @@ export function useCSSDWorkflow() {
       station: Station,
       code: string,
       extraPayload?: Record<string, unknown>,
-      opts?: { ledgerWarning?: string },
     ) => {
       setLoading(true);
       setLastScan(null);
       try {
         const scanRes = await scanQR(code, station, extraPayload);
-        applyScanSuccess(station, code, scanRes, {
-          ledgerWarning: opts?.ledgerWarning || scanRes.ledgerWarning,
-        });
+        applyScanSuccess(station, code, scanRes);
         return scanRes;
       } catch (error: unknown) {
         const { isNetworkError, pushOfflineTask } = await import("@/lib/offline-sync");
@@ -146,7 +143,7 @@ export function useCSSDWorkflow() {
             qrCode: code,
             tenBoDungCu: "Đang chờ đồng bộ...",
             nguoiThucHien: operatorLabel,
-            thoiGianQuet: formatTimeVi(new Date()),
+            thoiGianQuet: formatScanClock(new Date()),
             buocTiepTheo: nextStationLabel(station),
             isOffline: true,
           });

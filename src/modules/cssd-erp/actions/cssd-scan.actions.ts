@@ -4,7 +4,6 @@ import { createAdminSupabaseClient, createServerSupabaseUserClient } from "@/lib
 import type { Station } from "../types/cssd.types";
 import { revalidateCssdWorkflowSurfaces } from "./cssd-action-common";
 import { executeWorkflowStationScan } from "../workflow/application/cssd-workflow-application";
-import { assertLedgerDuChoCapPhat } from "../workflow/application/cssd-asset-ledger";
 import { assertPackIssuable } from "@/lib/domain/cssd-pack-issuance";
 import { isRejectedLegacyHexBoQr, isCssdUnifiedBoMa } from "@/lib/domain/cssd-bo-ma";
 import { resolveCssdCodeWithClient } from "../shared/application/cssd-qr-hub";
@@ -114,7 +113,6 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       maLoTietKhuan = String((me as { ma_lo_tiet_khuan?: string } | null)?.ma_lo_tiet_khuan || "");
     }
     revalidateCssdWorkflowSurfaces();
-    const ledger = await assertLedgerDuChoCapPhat(supabase, String(preRow.id));
     return {
       success: true as const,
       maQr: code,
@@ -122,12 +120,11 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
       quyTrinhId: String(preRow.id),
       maLoTietKhuan,
       issuanceOnly: true as const,
-      ledgerWarning: ledger.ok && "warning" in ledger ? ledger.warning : undefined,
     };
   }
 
   // 1. Thực hiện nghiệp vụ qua RPC tập trung (Atomicity & Speed)
-  const exec = await executeWorkflowStationScan(supabase, {
+  await executeWorkflowStationScan(supabase, {
     maQR: code,
     station,
     quyTrinh: {} as any, // quyTrinh no longer needed for primary logic
@@ -194,7 +191,6 @@ export async function scanQR(maQR: string, station: Station, extraPayload?: Reco
     boDungCuId: String(fullQt?.bo_dung_cu_id || ""),
     maCycleQr,
     maLoTietKhuan,
-    ledgerWarning: exec.ledgerWarning,
   };
 }
 

@@ -42,11 +42,10 @@ export async function executeWorkflowStationScan(
     operatorLabel?: string;
     extraPayload?: Record<string, any>;
   },
-): Promise<{ tenBoDungCu: string; ledgerWarning?: string }> {
+): Promise<{ tenBoDungCu: string }> {
   const qr = String(opts.maQR || "").trim().toUpperCase();
   const operator = String(opts.operatorLabel || "").trim() || "CSSD";
   const targetStation = opts.station;
-  let ledgerWarning: string | undefined;
 
   const quyTrinh =
     opts.quyTrinh?.id
@@ -79,22 +78,17 @@ export async function executeWorkflowStationScan(
     if (!plasmaGate.ok) throw new Error(plasmaGate.message || "Plasma cấm vật liệu đóng gói cellulose.");
   }
 
-  // 0b. LAM_SACH (QT.18) — soft-warn lot enzyme / washer (không hard-block)
+  // 0b. LAM_SACH (QT.18) — soft gate lot enzyme / washer: thiếu lot vẫn qua, không đưa chuỗi cảnh báo lên FE
   if (targetStation === "LAM_SACH") {
     const lotGate = assertLamSachLotSoftGate(pickLamSachLotFromPayload(opts.extraPayload));
-    if ("warning" in lotGate && lotGate.warning) {
-      ledgerWarning = ledgerWarning
-        ? `${ledgerWarning} | ${lotGate.warning}`
-        : lotGate.warning;
-      if (quyTrinh.id) {
-        await insertCssdLifecycleEvent(supabase, {
-          quy_trinh_id: quyTrinh.id,
-          ma_su_kien: "LAM_SACH_LOT_SOFT_WARNING",
-          ma_tram: "LAM_SACH",
-          ghi_chu: lotGate.warning,
-          payload: { soft_gate: true, ...pickLamSachLotFromPayload(opts.extraPayload) },
-        });
-      }
+    if ("warning" in lotGate && lotGate.warning && quyTrinh.id) {
+      await insertCssdLifecycleEvent(supabase, {
+        quy_trinh_id: quyTrinh.id,
+        ma_su_kien: "LAM_SACH_LOT_SOFT_WARNING",
+        ma_tram: "LAM_SACH",
+        ghi_chu: lotGate.warning,
+        payload: { soft_gate: true, ...pickLamSachLotFromPayload(opts.extraPayload) },
+      });
     }
   }
 
@@ -148,7 +142,6 @@ export async function executeWorkflowStationScan(
       const ledger = await assertLedgerDuChoCapPhat(supabase, qt.id);
       if (!ledger.ok) throw new Error(ledger.message);
       if ("warning" in ledger && ledger.warning) {
-        ledgerWarning = ledger.warning;
         await insertCssdLifecycleEvent(supabase, {
           quy_trinh_id: qt.id,
           ma_su_kien: "CAP_PHAT_BOM_GAP_WARNING",
@@ -186,7 +179,7 @@ export async function executeWorkflowStationScan(
       .eq("id", quyTrinh.id);
   }
 
-  return { tenBoDungCu: qr, ledgerWarning };
+  return { tenBoDungCu: qr };
 }
 
 /** Trả bộ lui đúng 1 trạm (ngoại lệ vận hành có kiểm soát — không áp TK/CP). */

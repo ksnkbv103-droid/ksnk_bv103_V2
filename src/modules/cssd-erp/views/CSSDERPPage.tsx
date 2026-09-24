@@ -145,7 +145,6 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
             <QRScanSuccessCard
               {...lastScan}
               tramDisplay={currentStation?.replace(/_/g, " ") || "CSSD"}
-              ledgerWarning={lastScan?.ledgerWarning}
               onPrintCapPhat={
                 lastScan?.quyTrinhId
                   ? () =>
