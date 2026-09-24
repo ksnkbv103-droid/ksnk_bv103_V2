@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -22,7 +23,7 @@ type Props = {
   compact?: boolean;
 };
 
-/** Thành phần bộ: mã loại / tên loại / số — rà soát trên thanh bảng khi lệch. */
+/** Thành phần bộ (chỉ xem). Lệch số đếm → Kiểm kê. Đổi chuẩn/BOM → Đề nghị. */
 export default function SetCompositionCard({ boDungCuId, enabled = true, compact }: Props) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<CompositionReconcilePayload | null>(null);
@@ -76,6 +77,14 @@ export default function SetCompositionCard({ boDungCuId, enabled = true, compact
               ) : null}
             </p>
             {loading ? <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-slate-400" /> : null}
+            {data?.boDungCuId ? (
+              <Link
+                href={`/cssd-dung-cu?tab=KIEM_KE&bo=${encodeURIComponent(data.boDungCuId)}`}
+                className="shrink-0 text-[11px] font-semibold text-slate-700 hover:underline"
+              >
+                Kiểm kê số thực
+              </Link>
+            ) : null}
             {data?.maBo ? (
               <button
                 type="button"

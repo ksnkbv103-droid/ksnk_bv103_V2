@@ -1,6 +1,13 @@
 import type { Catalog } from "../types/catalog.types";
 
-export type CatalogTab = "BO" | "CHI_TIET" | "LOAI" | "HOA_CHAT" | "HISTORY" | "DE_NGHI";
+export type CatalogTab = "BO" | "CHI_TIET" | "LOAI" | "HOA_CHAT" | "HISTORY" | "DE_NGHI" | "KIEM_KE";
+
+const CATALOG_TABS: readonly CatalogTab[] = ["BO", "LOAI", "HISTORY", "DE_NGHI", "KIEM_KE"];
+
+export function parseCatalogTab(raw: string | null | undefined): CatalogTab | null {
+  const t = String(raw || "").trim().toUpperCase();
+  return (CATALOG_TABS as readonly string[]).includes(t) ? (t as CatalogTab) : null;
+}
 
 export function filterCatalogRows(catalog: Catalog, q: string) {
   const lowerQ = q.trim().toLowerCase();

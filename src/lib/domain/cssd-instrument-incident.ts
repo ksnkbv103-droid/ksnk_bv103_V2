@@ -2,7 +2,7 @@
 
 /** Biến động số lượng / loại / thành phần khi vận hành — chỉ qua 3 cửa (D1/D2), không lẫn «sự cố an toàn». */
 export const INSTRUMENT_CHANGE_REQUIRES_INCIDENT =
-  "Biến động vận hành dụng cụ chỉ ghi qua Hỏng/Mất hoặc Chuyển (/cssd-su-co → Biến động). Sửa danh mục Loại/Bộ/Thành phần qua Đề nghị danh mục (/cssd-dung-cu).";
+  "Biến động 3 cửa (Hỏng/Mất, luân chuyển) ghi tại /cssd-su-co. Đếm số thực ghi sổ KIEM_KE tại /cssd-dung-cu?tab=KIEM_KE — không sửa danh mục và không thay 3 cửa. Sửa Loại/Bộ/Thành phần qua Đề nghị danh mục (/cssd-dung-cu?tab=DE_NGHI).";
 
 export function instrumentChangeRequiresIncidentResult() {
   return { success: false as const, error: INSTRUMENT_CHANGE_REQUIRES_INCIDENT };
@@ -52,6 +52,7 @@ export function mapInstrumentPresetToLedgerType(
  * **Runtime SSOT tồn thực tế:** view `v_cssd_bo_dung_cu_chi_tiet_realtime.so_luong_thuc_te`
  * (dùng ở assertLedger / incident / kho). Helper này chỉ để doc + unit test công thức
  * «chuẩn − hỏng − mất + bổ sung ± DC» — **không** diverge / không thay view.
+ * Delta `KIEM_KE` nằm trong view (cộng `so_luong_thay_doi`), không phải tham số helper này.
  *
  * Docs: docs/data/qldcpt/cssd-business-notes.md · domain-overview §6.
  */

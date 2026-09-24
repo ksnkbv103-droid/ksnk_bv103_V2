@@ -2,7 +2,7 @@
 
 /** CSSD vận hành catalog; đề nghị sửa qua tab DE_NGHI (không sự cố). */
 import Link from "next/link";
-import { ClipboardList, History, Layers, Tag } from "lucide-react";
+import { ClipboardList, ClipboardCheck, History, Layers, Tag } from "lucide-react";
 import {
   useCssdCatalogPage,
   CSSDCatalogBoTab,
@@ -11,7 +11,7 @@ import {
 } from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
 import InventoryHistoryTable from "@/modules/cssd-erp/components/inventory/InventoryHistoryTable";
 import SetCompositionCard from "@/modules/cssd-erp/components/inventory/SetCompositionCard";
-import SetReconcileCampaignPanel from "@/modules/cssd-erp/components/inventory/SetReconcileCampaignPanel";
+import KiemKeCountPanel from "@/modules/cssd-erp/components/inventory/KiemKeCountPanel";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
@@ -53,7 +53,6 @@ export default function Page() {
         >
           Xem phiếu đề nghị
         </Link>
-        {s.tab === "BO" ? <SetReconcileCampaignPanel /> : null}
         <CssdQrLabelKindsNotice />
       </div>
     </div>
@@ -79,6 +78,13 @@ export default function Page() {
             mobileLabel="Loại"
           />
           <CssdHorizTabButton
+            active={s.tab === "KIEM_KE"}
+            onClick={() => s.setTab("KIEM_KE")}
+            icon={ClipboardCheck}
+            label="Kiểm kê"
+            mobileLabel="Kiểm kê"
+          />
+          <CssdHorizTabButton
             active={s.tab === "DE_NGHI"}
             onClick={() => s.setTab("DE_NGHI")}
             icon={ClipboardList}
@@ -89,8 +95,8 @@ export default function Page() {
             active={s.tab === "HISTORY"}
             onClick={() => s.setTab("HISTORY")}
             icon={History}
-            label="Lịch sử luân chuyển"
-            mobileLabel="Lịch sử"
+            label="Sổ kho"
+            mobileLabel="Sổ kho"
           />
         </div>
 
@@ -133,6 +139,8 @@ export default function Page() {
               toolbar={catalogToolbar}
             />
           </div>
+        ) : s.tab === "KIEM_KE" ? (
+          <KiemKeCountPanel boRows={s.catalog.bo} loadingCatalog={s.loading} />
         ) : s.tab === "DE_NGHI" ? (
           <CSSDCatalogDeNghiTab />
         ) : (

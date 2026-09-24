@@ -52,7 +52,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 | Lookup thống nhất (SSOT 14 loại) | `quan-tri-he-thong/danh-muc/` | **TABLE `sys_lookup_value`** (`category_type`, `code`, `name`, `metadata` JSONB) | Toàn bộ 14 loại lookup phẳng SSOT về đây. Migration `20260520000006` consolidate; `20260525000011` rename → `sys_lookup_value`. |
 | RBAC | `quan-tri-he-thong/phan-quyen/` | **TABLE `sys_roles`**, **`sys_permissions`**, **`sys_role_permissions`**, **`sys_user_roles`**; view tổng hợp **`v_sys_user_permissions`** | View compat (DROP Phase 1): `v_auth_user_permissions`. Matrix: `v_sys_role_permissions_matrix`. |
 | Module locks | `gstt_*` (VST/GSC) | **`sys_module_locks`** (`module_name` IN ('VST','GSC')) | Khóa cứng ngày báo cáo; trigger `fn_assert_vst_gsc_not_locked` (`20260525000003`). |
-| Ledger dụng cụ (CSSD vận hành) | `cssd-erp` + `danh-muc/actions/kho-dung-cu-giao-dich` | **`cssd_fact_kho_giao_dich`**, **`cssd_dm_bo_phan_bo`**, **`cssd_fact_kho_chi_tiet`** | SSOT định nghĩa: **Master CSSD** (`cssd_dm_*`); giao dịch tồn/kho: fact; RLS `000014`. |
+| Ledger dụng cụ (CSSD vận hành) | `cssd-erp` + `danh-muc/actions/kho-dung-cu-giao-dich` | **`cssd_fact_kho_giao_dich`**, **`cssd_dm_bo_phan_bo`**, **`cssd_fact_kho_chi_tiet`** | SSOT định nghĩa: **Master CSSD** (`cssd_dm_*`); giao dịch tồn/kho: fact; RLS `000014`. **`KIEM_KE`**: đếm số thực, delta, không sửa master — `20260924120000` + `rpc_cssd_post_kiem_ke`. |
 
 ---
 
@@ -143,6 +143,7 @@ DB đã tái cấu trúc theo **prefix-by-bounded-context**. **Từ 2026-06-02**
 
 | Ngày | Thay đổi |
 |------|----------|
+| 2026-09-24 | **CSSD kiểm kê (`KIEM_KE`):** cửa đếm `/cssd-dung-cu?tab=KIEM_KE` ghi delta sổ `cssd_fact_kho_giao_dich.loai_giao_dich = KIEM_KE` (`20260924120000`, `rpc_cssd_post_kiem_ke`). Suy tồn bộ (view realtime), kho lẻ (`so_luong_kho_du_phong`), tổng loại. Không sửa Loại/Bộ/BOM, `su_co_id` null, không gộp phiếu sự cố. Migration additive — chưa apply prod. |
 | 2026-09-09 | **NKBV rà soát P0 sau phương án B:** MBI không còn tick neutropenia đơn (Hub có ANC/HSCT/tiêu chảy). Prefill phiếu không thổi CFU/ống/ngày dụng cụ. ABUTI UI chỉ máu ∈ IWP. Hàng đợi «chưa PT» fallback khi RPC chưa migrate. Nháp máy chủ báo lỗi. SUTI + máu SBAP gắn Secondary khi chốt phiếu. |
 | 2026-09-09 | **NKBV phương án B — 3 lớp + một đường kết luận:** phiếu mới chỉ từ Hub (`createGiamSatNkbvCa` từ chối phiếu trống). Nháp phiên Hub lưu `nkbv_fact_ba_phan_tich` (`20260909093000`). Vá UTI A1–A5; CoNS cùng ngày không đủ LCBI-2; SSI ngày mổ = ngày 1. Tỷ lệ dashboard đọc sổ mẫu số khoa. Seed USI + engine Ch.17 người lớn (`20260909094500`). Ẩn nút LabID. |
 | 2026-09-07 | **VST biểu đồ khoa — ngưỡng 90/85:** thống kê vệ sinh tay tô vàng khi tuân thủ &lt;90%, đỏ khi &lt;85%; vạch tham chiếu 90% và 85%. GSC/BCTH giữ 80/70. Không đổi công thức KPI / mục tiêu viện. |

@@ -13,7 +13,7 @@
 | 3 | **Thành phần bộ** | DC_LE (trong bộ; **1 bộ × 1 loại** unique active — D6) | `ma_chi_tiet` (DC-*) |
 | 4 | In tem / workflow | CSSD_* | Quét `ma_bo` |
 | 5 | Biến động dụng cụ | `/cssd-su-co` (nhóm Dụng cụ) | **3 cửa (D2):** **Đổi danh mục** (`SET_RECONCILE` / BOM_PENDING → ADMIN; không ghi sổ) · **Hỏng/Mất** (ghi sổ ngay) · **Chuyển** (`MOVE` / `InstrumentMoveDualTable`: kho↔bộ / bộ↔bộ; chỉ cửa này có `BO_SUNG`/`TRA_KHO`/`DIEU_CHUYEN` — D3). Không gọi mọi biến động là «sự cố» (D1). |
-| 6 | Xem danh mục | `/cssd-dung-cu` | Read-only: thành phần dưới bộ đã chọn; rà soát khi lệch (deep-link cửa Đổi danh mục). Xuất phiếu kiểm kê trên thanh tìm. |
+| 6 | Xem danh mục | `/cssd-dung-cu` | Read-only: thành phần dưới bộ đã chọn. Lệch số đếm → tab **Kiểm kê** (`?tab=KIEM_KE`). Đổi Loại/Bộ/BOM → tab **Đề nghị**. |
 
 ## Vào app
 

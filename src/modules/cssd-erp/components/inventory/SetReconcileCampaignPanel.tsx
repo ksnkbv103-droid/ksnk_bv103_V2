@@ -1,18 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { toast } from "sonner";
 import { listSetReconcileWorksheetRowsAction } from "@/modules/cssd-su-co/actions/set-reconcile-campaign.actions";
 import { CSSD_UI_PANEL_CHROME as UI } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
-import { quanTriDungCuHref } from "@/lib/master-data/quan-tri-paths";
-import { useModulePermission } from "@/hooks/useModulePermission";
 
 const TEXT_ACTION = `${UI.formLabel} font-semibold text-[var(--primary)] hover:underline disabled:opacity-50`;
 
-/** Xuất phiếu kiểm kê + lối vào duyệt rà soát (quản trị). */
+/** Xuất phiếu giấy để đếm. Không mở duyệt danh mục. */
 export default function SetReconcileCampaignPanel() {
-  const { isAdmin } = useModulePermission("BO_DC");
   const [exporting, setExporting] = useState(false);
 
   const exportExcel = async () => {
@@ -32,8 +28,7 @@ export default function SetReconcileCampaignPanel() {
         "Số chuẩn",
         "Số hệ thống",
         "Số đếm",
-        "Loại lệch",
-        "Ghi chú",
+        "Ghi chú đếm",
       ]);
       for (const r of res.rows) {
         ws.addRow([
@@ -45,7 +40,6 @@ export default function SetReconcileCampaignPanel() {
           r.so_luong_chuan,
           r.so_luong_thuc_te,
           r.so_luong_dem,
-          r.loai_lech,
           r.ghi_chu,
         ]);
       }
@@ -62,15 +56,8 @@ export default function SetReconcileCampaignPanel() {
   };
 
   return (
-    <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1">
-      <button type="button" disabled={exporting} onClick={() => void exportExcel()} className={TEXT_ACTION}>
-        {exporting ? "Đang xuất…" : "Xuất phiếu kiểm kê"}
-      </button>
-      {isAdmin ? (
-        <Link href={quanTriDungCuHref("phieu")} className={TEXT_ACTION}>
-          Phiếu đổi danh mục (chờ duyệt)
-        </Link>
-      ) : null}
-    </span>
+    <button type="button" disabled={exporting} onClick={() => void exportExcel()} className={TEXT_ACTION}>
+      {exporting ? "Đang xuất…" : "Xuất phiếu kiểm kê"}
+    </button>
   );
 }

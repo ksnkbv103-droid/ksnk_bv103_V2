@@ -224,12 +224,13 @@ flowchart TD
 | **Đổi danh mục** (cửa 1, `SET_RECONCILE`) | BOM_PENDING → ADMIN duyệt; **không** ghi sổ kho |
 | **Hỏng / Mất** (cửa 2) | Ghi sổ `cssd_fact_kho_giao_dich` ngay |
 | **Chuyển** (cửa 3, `MOVE`) | `BO_SUNG` / `TRA_KHO` / `DIEU_CHUYEN` **chỉ** tại đây (D3); kho↔bộ / bộ↔bộ |
+| **Kiểm kê** (`KIEM_KE`, không phải cửa 1–3) | NV nhập số đếm tại `/cssd-dung-cu?tab=KIEM_KE`. Sổ `KIEM_KE` (delta). Tồn bộ = view realtime; kho lẻ = `so_luong_kho_du_phong`; tổng loại = trong bộ + kho. Không sửa Loại/Bộ/BOM, không gắn `su_co_id`. |
 | Hóa chất | Xuất / điều chỉnh kho HC |
 | Thiết bị | Mở phiếu bảo trì; máy → `REPAIRING` / `HOLD_QC` |
 
 **Công thức tồn thực tế (QLDCPT):**  
-Thực tế = tiêu chuẩn − (Hỏng + Mất) + Bổ sung ± Điều chuyển — trong đó Bổ sung / Điều chuyển **chỉ** phát sinh từ cửa Chuyển, không từ phiếu rà soát.  
-**SSOT runtime:** `v_cssd_bo_dung_cu_chi_tiet_realtime` · pure mirror: `computeSoLuongThucTeQldcpt` (không thay view).
+Thực tế = tiêu chuẩn − (Hỏng + Mất) + Bổ sung ± Điều chuyển + delta **KIEM_KE** — trong đó Bổ sung / Điều chuyển **chỉ** phát sinh từ cửa Chuyển, không từ phiếu rà soát. Kiểm kê không đổi số chuẩn.  
+**SSOT runtime:** `v_cssd_bo_dung_cu_chi_tiet_realtime` (cộng mọi `so_luong_thay_doi`, gồm `KIEM_KE`) · pure mirror sự cố/chuyển: `computeSoLuongThucTeQldcpt` (không thay view, không gồm delta kiểm kê).
 
 **Legacy (D4):** mã lịch sử `INSTRUMENT_TRANSFER` / `REPLENISH` / `BROKEN` / `MISSING` giữ trong DB; UI mới chỉ `SET_RECONCILE` + `MOVE`.
 
