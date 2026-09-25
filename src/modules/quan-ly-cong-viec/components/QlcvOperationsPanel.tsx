@@ -12,7 +12,9 @@ import { QlcvGateStats } from "./QlcvGateStats";
 import { buildQlcvCommandTableColumns } from "./qlcv-table-columns";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { deleteCongViec } from "../actions/cong-viec.actions";
+import { getQlcvFormCatalog } from "../actions/cong-viec-read.actions";
 import { isDeXuatChoDuyet } from "../lib/qlcv-workflow-display";
+import type { QlcvSelectOption } from "../lib/qlcv-form-options";
 import {
   formatBoardFilterHint,
   getKanbanFocusColumnForFilter,
@@ -96,6 +98,19 @@ export function QlcvOperationsPanel({
   gateCountsRefreshKey = 0,
 }: QlcvOperationsPanelProps) {
   const [deleteTarget, setDeleteTarget] = useState<CongViecView | null>(null);
+  const [nhanSuOptions, setNhanSuOptions] = useState<QlcvSelectOption[]>([]);
+
+  useEffect(() => {
+    void getQlcvFormCatalog()
+      .then((c) => setNhanSuOptions(c.nhanSu))
+      .catch(() => setNhanSuOptions([]));
+  }, []);
+
+  const staffLabelOpts = useMemo(
+    () => nhanSuOptions.map((o) => ({ id: o.id, label: o.label })),
+    [nhanSuOptions],
+  );
+
   const scopedTasks = useMemo(
     () => mergedTasks.filter((t) => matchesLoaiFilter(t, loaiFilter) && matchesPeriodHan(t, periodKindFilter)),
     [mergedTasks, loaiFilter, periodKindFilter],
@@ -181,8 +196,15 @@ export function QlcvOperationsPanel({
   }, [deleteTarget, onRefreshAll]);
 
   const columns = useMemo(
-    () => buildQlcvCommandTableColumns({ qlcvUi, mauSacByMa, onEdit: onEditTask, onDelete: handleDelete }),
-    [qlcvUi, mauSacByMa, onEditTask, handleDelete],
+    () =>
+      buildQlcvCommandTableColumns({
+        qlcvUi,
+        mauSacByMa,
+        staffLabelOpts,
+        onEdit: onEditTask,
+        onDelete: handleDelete,
+      }),
+    [qlcvUi, mauSacByMa, staffLabelOpts, onEditTask, handleDelete],
   );
 
   const tableData = useClientLoaiPeriod ? scopedTasks : table.tableRows;
@@ -241,6 +263,7 @@ export function QlcvOperationsPanel({
             showProposalColumn={canApprove}
             focusColumnId={kanbanFocusColumn}
             focusNonce={kanban.kanbanFocusNonce}
+            staffLabelOpts={staffLabelOpts}
             onTaskClick={(task) => {
               if (canApprove && isDeXuatChoDuyet(task)) {
                 onApproveFromKanban(task);

@@ -7,12 +7,15 @@ import { formatMucDoUuTienLabel } from "../lib/qlcv-labels";
 import { canShowDeleteTask, canShowEditTaskMetadata, type QlcvUiAccessFlags } from "../lib/qlcv-access";
 import type { CongViecView } from "../types";
 import { qlcvTableChrome as Q } from "../lib/qlcv-table-chrome";
+import { formatQlcvCiSummary } from "../lib/qlcv-staff-ids";
 import { QlcvDinhKyMauChip } from "./QlcvDinhKyMauChip";
 import { formatDateVi } from "@/lib/format-datetime-vi";
 
 export type QlcvTableColumnHandlers = {
   qlcvUi: QlcvUiAccessFlags;
   mauSacByMa?: Record<string, string | null | undefined>;
+  /** KSNK staff roster for resolving phối hợp / theo dõi names (C/I). */
+  staffLabelOpts?: { id: string; label: string }[];
   onEdit: (row: CongViecView) => void;
   onDelete: (row: CongViecView) => Promise<void>;
 };
@@ -58,6 +61,28 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
         <span className={Q.cellTitle}>{row.nguoi_phu_trach_ten || "—"}</span>
       ),
       sortable: true,
+    },
+    {
+      header: "C / I",
+      accessorKey: "nguoi_phoi_hop_ids",
+      headerClassName: "w-[10%] min-w-[4.5rem]",
+      cellClassName: "align-middle",
+      cell: (row: CongViecView) => {
+        const { text, title, empty } = formatQlcvCiSummary(
+          row.nguoi_phoi_hop_ids,
+          row.nguoi_theo_doi_ids,
+          h.staffLabelOpts ?? [],
+        );
+        return (
+          <span
+            className={`${Q.cellBody} block max-w-[9rem] truncate`}
+            title={empty ? "Chưa có phối hợp / theo dõi" : title || text}
+          >
+            {text}
+          </span>
+        );
+      },
+      sortable: false,
     },
     {
       header: "Cổng / Trách nhiệm",

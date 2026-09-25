@@ -8,6 +8,7 @@ import { formatMucDoUuTienLabel, getCongViecTrangThaiLabel } from "../lib/qlcv-l
 import { getKanbanColumnIdForTask, isQlcvBoardOverdue, type KanbanColumnId } from "../lib/qlcv-board-lanes";
 import { qlcvKanbanCardAttentionClass } from "../lib/qlcv-ux-chrome";
 import type { CongViecView } from "../types";
+import { formatQlcvCiSummary } from "../lib/qlcv-staff-ids";
 import { QlcvDinhKyMauChip } from "./QlcvDinhKyMauChip";
 
 type KanbanColId = KanbanColumnId;
@@ -20,6 +21,8 @@ interface Props {
   /** Cuộn tới cột tương ứng khi người dùng chọn thẻ thống kê (kèm `focusNonce` đổi mỗi lần bấm). */
   focusColumnId?: KanbanColumnId | null;
   focusNonce?: number;
+  /** Optional staff map to resolve C/I names in card tooltip. */
+  staffLabelOpts?: { id: string; label: string }[];
 }
 
 /** Ẩn dòng trạng thái khi trùng ý nghĩa với tiêu đề cột Kanban. */
@@ -40,6 +43,7 @@ export default function CongViecKanban({
   showProposalColumn = false,
   focusColumnId = null,
   focusNonce = 0,
+  staffLabelOpts = [],
 }: Props) {
   const columnEls = useRef<Partial<Record<KanbanColId, HTMLDivElement | null>>>({});
 
@@ -156,6 +160,22 @@ export default function CongViecKanban({
                           {task.nguoi_phu_trach_ten || "Chưa phân công"}
                           {task.to_cong_tac_ten ? ` · ${task.to_cong_tac_ten}` : ""}
                         </p>
+                        {(() => {
+                          const ci = formatQlcvCiSummary(
+                            task.nguoi_phoi_hop_ids,
+                            task.nguoi_theo_doi_ids,
+                            staffLabelOpts,
+                          );
+                          if (ci.empty) return null;
+                          return (
+                            <p
+                              className="mt-0.5 truncate text-[10px] font-medium text-slate-500"
+                              title={ci.title || ci.text}
+                            >
+                              {ci.text}
+                            </p>
+                          );
+                        })()}
                       </div>
 
                       <div className="flex shrink-0 items-center gap-1">
