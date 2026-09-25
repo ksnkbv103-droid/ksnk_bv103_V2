@@ -20,8 +20,8 @@ import SearchableSelect from "@/components/shared/SearchableSelect";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import {
   INCIDENT_GROUP_LABEL,
-  INCIDENT_GROUPS,
   INCIDENT_STATION_OPTIONS,
+  SAFETY_INCIDENT_GROUPS,
   type IncidentGroup,
 } from "../domain/cssd-incident-taxonomy";
 import { cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
@@ -301,42 +301,79 @@ export function IncidentGroupPicker({
   onSelect: (group: IncidentGroup) => void;
   compact?: boolean;
 }) {
+  const isInstrument = incidentGroup === "INSTRUMENT";
+  const family: "SAFETY" | "INSTRUMENT" = isInstrument ? "INSTRUMENT" : "SAFETY";
+
+  const familyBtn = (selected: boolean) =>
+    `${bv103LayoutChrome.navTabBtn} min-h-9 flex-1 touch-manipulation sm:min-h-10 sm:flex-initial sm:min-w-[9rem] ${
+      selected
+        ? "bg-white text-[var(--primary)] shadow-sm ring-1 ring-slate-200/80"
+        : "text-slate-500 hover:bg-white/60 hover:text-slate-800"
+    }`;
+
   return (
-    <div className="space-y-1 border-b border-slate-200 pb-2">
-      <div className="flex flex-wrap items-center gap-1">
-        {INCIDENT_GROUPS.map((g) => {
-          const IconComp = GROUP_ICONS[g];
-          const isSelected = incidentGroup === g;
-          return (
-            <button
-              key={g}
-              type="button"
-              onClick={() => onSelect(g)}
-              className={`inline-flex h-8 touch-manipulation items-center gap-1.5 px-2 text-[12px] font-semibold ${
-                isSelected
-                  ? "border-b-2 border-[var(--primary)] text-[var(--primary)]"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
-            >
-              <IconComp size={14} className="shrink-0 opacity-80" />
-              <span className="whitespace-nowrap">
-                {g === "INSTRUMENT"
-                  ? "Biến động dụng cụ"
-                  : INCIDENT_GROUP_LABEL[g].split(" (")[0]}
-              </span>
-            </button>
-          );
-        })}
+    <div className="space-y-2 border-b border-slate-200 pb-2">
+      <div
+        role="tablist"
+        aria-label="Nhóm sự cố"
+        className={`${bv103LayoutChrome.navTabStrip} w-full sm:w-fit`}
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={family === "SAFETY"}
+          onClick={() => {
+            if (isInstrument) onSelect("PROCESS");
+          }}
+          className={familyBtn(family === "SAFETY")}
+        >
+          An toàn
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={family === "INSTRUMENT"}
+          onClick={() => onSelect("INSTRUMENT")}
+          className={familyBtn(family === "INSTRUMENT")}
+        >
+          <Wrench size={14} className="shrink-0 opacity-80" aria-hidden />
+          <span className="truncate">Biến động dụng cụ</span>
+        </button>
       </div>
-      {incidentGroup === "INSTRUMENT" ? (
+
+      {!isInstrument ? (
+        <div className="flex flex-wrap items-center gap-1" role="tablist" aria-label="Nhóm an toàn">
+          {SAFETY_INCIDENT_GROUPS.map((g) => {
+            const IconComp = GROUP_ICONS[g];
+            const isSelected = incidentGroup === g;
+            return (
+              <button
+                key={g}
+                type="button"
+                role="tab"
+                aria-selected={isSelected}
+                onClick={() => onSelect(g)}
+                className={`inline-flex h-8 touch-manipulation items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold ${
+                  isSelected
+                    ? "bg-[var(--primary)]/10 text-[var(--primary)] ring-1 ring-[var(--primary)]/30"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                }`}
+              >
+                <IconComp size={14} className="shrink-0 opacity-80" aria-hidden />
+                <span className="whitespace-nowrap">{INCIDENT_GROUP_LABEL[g].split(" (")[0]}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
         <p className="px-1 text-[11px] text-slate-500">
-          Cửa Hỏng/Mất hoặc Chuyển. Sửa danh mục Loại/Bộ/Thành phần tại{" "}
+          Cửa Hỏng/Mất hoặc Chuyển. Sửa danh mục tại{" "}
           <Link href="/cssd-dung-cu?tab=DE_NGHI" className="font-semibold text-[var(--primary)] hover:underline">
             Đề nghị danh mục
           </Link>
           .
         </p>
-      ) : null}
+      )}
     </div>
   );
 }

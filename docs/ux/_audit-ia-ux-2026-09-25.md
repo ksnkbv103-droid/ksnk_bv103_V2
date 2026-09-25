@@ -189,7 +189,7 @@ Full text: [`principles.md`](./principles.md).
 | ID | Module | Focus |
 |----|--------|-------|
 | P2-1 | CSSD Quy trình | Calm station strip; one mẻ CTA; cut teachy next-station blurbs — **done** (local) |
-| P2-2 | CSSD Sự cố | Visual weight An toàn vs Biến động; mobile dual-table |
+| P2-2 | CSSD Sự cố | Visual weight An toàn vs Biến động; mobile dual-table | **Done** (local 2026-09-25 Asia/Saigon): `IncidentGroupPicker` two-tier (An toàn vs Biến động + safety chips); `DualPaneScroll` shorter mobile + `paneLabel` Nguồn/Đích on move/replenish |
 | P2-3 | QLCV | Detail sheet; keep mutate→chip refresh; empty prod copy | **Done** (local 2026-09-25 Asia/Saigon): OpsDetailSheet already shipped; Báo cáo + Nhiệm vụ empties → `Bv103EmptyState` (1 sentence + Tải lại); list ADT short emptyMessage; Kanban already wired |
 | P2-4 | BCTH | Default collapsed “more sections”; keep print |
 | P2-5 | Quản trị | Prefer routes/inline for heavy forms |
@@ -226,7 +226,9 @@ Full text: [`principles.md`](./principles.md).
 
 **P2-3 shipped** (local, 2026-09-25 Asia/Saigon): QLCV empty prod copy via `Bv103EmptyState` — Báo cáo kỳ (NGUOI/QUA_HAN/DONG_HAN) + Nhiệm vụ list; Operations list short `emptyMessage`; Kanban already used EmptyState. TRANG_THAI left (always has canonical rows). No push / Cloud / migrate.
 
-**Next:** CSSD Sự cố weight (**P2-2**) **or** shared status chips (**P1-2**) — PO picks by UAT pain.
+**P2-2 shipped** (local, 2026-09-25 Asia/Saigon): CSSD Sự cố — primary family An toàn vs Biến động dụng cụ; secondary QT·HC·Máy·Khác chips; DualPaneScroll mobile height + sticky Nguồn/Đích labels. No push / Cloud / migrate / taxonomy code change.
+
+**Next:** shared status chips (**P1-2**) **or** BCTH collapsed sections (**P2-4**) — PO picks by UAT pain.
 
 ---
 

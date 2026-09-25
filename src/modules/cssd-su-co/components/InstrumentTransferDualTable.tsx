@@ -250,6 +250,7 @@ export default function InstrumentTransferDualTable({
       {gateError ? <p className="mb-2 text-[12px] text-amber-800">{gateError}</p> : null}
       <div className="grid items-stretch gap-3 lg:grid-cols-2">
         <DualPaneScroll
+          paneLabel="Nguồn"
           toolbar={
             <MovePaneToolbar
               kind={leftKind}
@@ -301,6 +302,7 @@ export default function InstrumentTransferDualTable({
         </DualPaneScroll>
 
         <DualPaneScroll
+          paneLabel="Đích"
           toolbar={
             <MovePaneToolbar
               kind={rightKind}
