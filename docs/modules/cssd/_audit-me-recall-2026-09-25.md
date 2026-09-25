@@ -1,6 +1,6 @@
 # Rà soát phiếu mẻ + thu hồi — 2026-09-25
 
-Tip đồng bộ: `cursor/me-sync-recall-print` @ `883f697` (+ patch nhãn UI / domain-overview trong commit sau).
+Tip đồng bộ: `cursor/me-sync-recall-print` @ `3053940` (in thu hồi `883f697` + nhãn/SSOT `3053940`).
 
 Nguồn chuẩn: `docs/modules/cssd/me-s2-batch-qc-release.md`, `me-s3-batch-recall-trace.md`, AB Lead (fail→Tiếp nhận, implant BI hard-block, BI+ cửa sổ, Plasma/EO chờ BI−).
 
@@ -43,3 +43,10 @@ Nguồn chuẩn: `docs/modules/cssd/me-s2-batch-qc-release.md`, `me-s3-batch-rec
 2. Nhả hơi nước → BI+ → cửa sổ máy; bộ chưa dùng về TN; bộ có ca mổ chỉ liệt kê; In biên bản A+B.
 3. Đang nạp: filter sai phương pháp biến mất khỏi list; gỡ bộ khỏi phiếu.
 4. Không thấy mã QT trên modal/trang thu hồi.
+
+## Ghi chú executor (sau Lead)
+
+Không thấy **P0 code** thêm ngoài migrate chưa apply.
+
+- In sau thu hồi trên tip: `fetchCssdBatchMembers` → `v_cssd_quy_trinh_full` (không lọc `is_active`) + `ma_ca_mo_id` từ metadata; cột `xuLyLabel` / biên bản A+B khớp ME-S3 **set-level** (không đòi BOM line/instrument trên phiếu mẻ).
+- P1 docs còn sót (không sửa trùng Lead): `domain-overview` §3 bullet Recall + §4 BI(+) vẫn viết «Đóng gói»; §5.3 đã đúng Tiếp nhận.
