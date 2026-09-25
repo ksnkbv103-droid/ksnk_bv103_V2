@@ -2,61 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 import { applyInstrumentIncidentLedger } from "./instrument-incident.application";
 
 describe("applyInstrumentIncidentLedger write path", () => {
-  it("BAO_HONG uses rpc_cssd_apply_instrument_ledger (not direct insert)", async () => {
-    const rpc = vi.fn(async () => ({ data: { success: true }, error: null }));
-    const updates: unknown[] = [];
+  it("BAO_HONG uses one rpc_cssd_apply_instrument_lines call (note + ledger)", async () => {
+    const rpc = vi.fn(async () => ({ data: { success: true, su_co_id: "su-co-1" }, error: null }));
     const client = {
       rpc,
-      from(table: string) {
-        if (table === "v_cssd_bo_dung_cu_chi_tiet_realtime") {
-          return {
-            select: () => ({
-              eq: () => ({
-                eq: () => ({
-                  eq: () => ({
-                    limit: () => ({
-                      maybeSingle: async () => ({
-                        data: { so_luong_thuc_te: 3 },
-                        error: null,
-                      }),
-                    }),
-                  }),
-                }),
-              }),
-            }),
-          };
-        }
-        if (table === "cssd_dm_bo_dung_cu_chi_tiet") {
-          return {
-            select: () => ({
-              eq: () => ({
-                maybeSingle: async () => ({
-                  data: {
-                    ghi_chu: "",
-                    bo_dung_cu_id: "bo-1",
-                    loai_dung_cu_id: "loai-1",
-                    so_luong: 3,
-                  },
-                  error: null,
-                }),
-              }),
-            }),
-            update: (row: unknown) => ({
-              eq: async () => {
-                updates.push(row);
-                return { error: null };
-              },
-            }),
-          };
-        }
-        if (table === "cssd_fact_kho_giao_dich") {
-          return {
-            insert: async () => {
-              throw new Error("direct insert forbidden — must use RPC");
-            },
-          };
-        }
-        throw new Error("unexpected " + table);
+      from() {
+        throw new Error("direct table write forbidden — note and ledger stay in the RPC");
       },
     };
 
@@ -70,63 +21,27 @@ describe("applyInstrumentIncidentLedger write path", () => {
       note: "gãy",
     });
 
+    expect(rpc).toHaveBeenCalledTimes(1);
     expect(rpc).toHaveBeenCalledWith(
-      "rpc_cssd_apply_instrument_ledger",
+      "rpc_cssd_apply_instrument_lines",
       expect.objectContaining({
         p_su_co_id: "su-co-1",
-        p_loai_dung_cu_id: "loai-1",
-        p_bo_dung_cu_id: "bo-1",
-        p_loai_giao_dich: "BAO_HONG",
-        p_so_luong_thay_doi: -1,
+        p_lines: [
+          expect.objectContaining({
+            loai_giao_dich: "BAO_HONG",
+            so_luong_thay_doi: -1,
+            chi_tiet_id: "ct-1",
+            issue_type: "HONG",
+            ghi_chu: "gãy",
+          }),
+        ],
       }),
     );
-    expect(updates.length).toBeGreaterThan(0);
   });
 
-  it("BAO_MAT also routes via same RPC kind", async () => {
+  it("BAO_MAT also routes via the same batch RPC", async () => {
     const rpc = vi.fn(async () => ({ data: { success: true }, error: null }));
-    const client = {
-      rpc,
-      from(table: string) {
-        if (table === "v_cssd_bo_dung_cu_chi_tiet_realtime") {
-          return {
-            select: () => ({
-              eq: () => ({
-                eq: () => ({
-                  eq: () => ({
-                    limit: () => ({
-                      maybeSingle: async () => ({
-                        data: { so_luong_thuc_te: 2 },
-                        error: null,
-                      }),
-                    }),
-                  }),
-                }),
-              }),
-            }),
-          };
-        }
-        if (table === "cssd_dm_bo_dung_cu_chi_tiet") {
-          return {
-            select: () => ({
-              eq: () => ({
-                maybeSingle: async () => ({
-                  data: {
-                    ghi_chu: "",
-                    bo_dung_cu_id: "bo-1",
-                    loai_dung_cu_id: "loai-1",
-                    so_luong: 2,
-                  },
-                  error: null,
-                }),
-              }),
-            }),
-            update: () => ({ eq: async () => ({ error: null }) }),
-          };
-        }
-        throw new Error("unexpected " + table);
-      },
-    };
+    const client = { rpc, from() { throw new Error("direct write"); } };
 
     await applyInstrumentIncidentLedger(client as never, "su-co-2", {
       typeId: "INSTRUMENT_MISSING",
@@ -137,8 +52,10 @@ describe("applyInstrumentIncidentLedger write path", () => {
     });
 
     expect(rpc).toHaveBeenCalledWith(
-      "rpc_cssd_apply_instrument_ledger",
-      expect.objectContaining({ p_loai_giao_dich: "BAO_MAT", p_so_luong_thay_doi: -1 }),
+      "rpc_cssd_apply_instrument_lines",
+      expect.objectContaining({
+        p_lines: [expect.objectContaining({ loai_giao_dich: "BAO_MAT", issue_type: "MAT", so_luong_thay_doi: -1 })],
+      }),
     );
   });
 });

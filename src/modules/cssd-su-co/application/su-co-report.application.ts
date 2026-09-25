@@ -15,15 +15,19 @@ import {
 } from "../domain/cssd-incident-taxonomy";
 import { resolveCssdOperatorNhanSuId } from "@/modules/cssd-erp/shared/application/cssd-operator-resolve";
 import { appendQuyTrinhException } from "@/modules/cssd-erp/shared/application/cssd-quy-trinh-exceptions";
-import { applyInstrumentIncidentLedger } from "./instrument-incident.application";
-import type { InstrumentIncidentPayload } from "./instrument-incident.application";
+import {
+  commitInstrumentReportRpc,
+  prepareInstrumentLedgerLine,
+  type InstrumentIncidentPayload,
+  type SuCoCommitPayload,
+} from "./instrument-incident.application";
 import {
   SET_RECONCILE_TYPE_ID,
   validateInstrumentDoorLines,
   type SetReconcileLineInput,
 } from "@/lib/domain/cssd-set-reconcile";
 import { buildSetReconcileAttributePatch } from "../domain/cssd-set-reconcile-attrs";
-import { applySubmittedSetReconcile } from "./set-reconcile-incident.application";
+import { collectSubmittedSetReconcileWrite } from "./set-reconcile-incident.application";
 
 type QuyRow = Record<string, unknown> & {
   id: string;
@@ -231,27 +235,24 @@ export async function executeIncidentReportAndRollback(
   }
 
   const draftId = String(setReconcile?.draftIncidentId || "").trim();
+  const commitPayload: SuCoCommitPayload = {
+    ma_qr_quy_trinh: data.maQR || null,
+    ma_tram_phat_hien: data.station,
+    mo_ta: data.desc,
+    is_red_alert: isRedAlert,
+    ma_tram_gay_loi: (suCoPayload.ma_tram_gay_loi as string | null) ?? null,
+    attributes,
+    quy_trinh_id: q?.id ?? null,
+    loai_su_co_id: loaiSuCo?.id ?? null,
+    nguoi_bao_id: nguoiBaoId,
+  };
   let incident: { id: string } | null = null;
-  if (draftId) {
-    const { data: updated, error: updErr } = await supabase
-      .from("cssd_fact_su_co")
-      .update(suCoPayload)
-      .eq("id", draftId)
-      .select("id")
-      .maybeSingle();
-    if (updErr) throw new Error("Lỗi cập nhật phiếu rà soát: " + updErr.message);
-    if (!updated?.id) throw new Error("Không tìm thấy phiếu nháp để gửi.");
-    incident = { id: String(updated.id) };
-  } else {
-    const inserted = await supabase.from("cssd_fact_su_co").insert(suCoPayload).select("id").single();
-    if (inserted.error || !inserted.data) throw new Error("Lỗi lưu báo cáo: " + inserted.error?.message);
-    incident = { id: String(inserted.data.id) };
-  }
-  if (!incident) throw new Error("Không lưu được phiếu sự cố.");
+  let atomicWrite = false;
 
   try {
     if (setReconcile) {
-      await applySubmittedSetReconcile(supabase, incident.id, {
+      atomicWrite = true;
+      const prepared = await collectSubmittedSetReconcileWrite(supabase, draftId, {
         boDungCuId: setReconcile.boDungCuId,
         quyTrinhId: setReconcile.quyTrinhId || (q?.id as string | undefined) || null,
         maQr: data.maQR,
@@ -265,14 +266,54 @@ export async function executeIncidentReportAndRollback(
         },
         existingAttrs: attributes,
       });
+      const committed = await commitInstrumentReportRpc(supabase, {
+        draftId: draftId || null,
+        suCo: { ...commitPayload, attributes: prepared.attributes },
+        lines: prepared.lines,
+        boDungCuId: setReconcile.boDungCuId,
+        touchNgayKiemKe: true,
+        nguoiThucHienId: nguoiBaoId,
+      });
+      incident = { id: String(committed.su_co_id) };
     } else if (data.incidentGroup === "INSTRUMENT" && data.instrumentPayload) {
-      await applyInstrumentIncidentLedger(supabase, incident.id, {
+      const line = prepareInstrumentLedgerLine({
         ...data.instrumentPayload,
         typeId: data.instrumentPayload.typeId,
         note: data.instrumentPayload.note || data.desc,
         maQrNguon: data.instrumentPayload.maQrNguon || data.maQR,
       });
+      if (line) {
+        atomicWrite = true;
+        const committed = await commitInstrumentReportRpc(supabase, {
+          draftId: null,
+          suCo: commitPayload,
+          lines: [line],
+          boDungCuId: data.instrumentPayload.boDungCuId,
+          touchNgayKiemKe: false,
+          nguoiThucHienId: nguoiBaoId,
+        });
+        incident = { id: String(committed.su_co_id) };
+      }
     }
+
+    if (!incident) {
+      if (draftId) {
+        const { data: updated, error: updErr } = await supabase
+          .from("cssd_fact_su_co")
+          .update(suCoPayload)
+          .eq("id", draftId)
+          .select("id")
+          .maybeSingle();
+        if (updErr) throw new Error("Lỗi cập nhật phiếu rà soát: " + updErr.message);
+        if (!updated?.id) throw new Error("Không tìm thấy phiếu nháp để gửi.");
+        incident = { id: String(updated.id) };
+      } else {
+        const inserted = await supabase.from("cssd_fact_su_co").insert(suCoPayload).select("id").single();
+        if (inserted.error || !inserted.data) throw new Error("Lỗi lưu báo cáo: " + inserted.error?.message);
+        incident = { id: String(inserted.data.id) };
+      }
+    }
+    if (!incident) throw new Error("Không lưu được phiếu sự cố.");
 
     if (q && rollbackStation) {
       const rollbackPatch = await buildQuyTrinhTramPatch(supabase, rollbackStation.targetStation);
@@ -336,7 +377,10 @@ export async function executeIncidentReportAndRollback(
       if (hasDongBang) rollbackPayload.is_dong_bang = originalState.is_dong_bang;
       await supabase.from("cssd_fact_quy_trinh").update(rollbackPayload).eq("id", q.id);
     }
-    await supabase.from("cssd_fact_su_co").delete().eq("id", incident.id);
+    // Nháp và phiếu đã ghi sổ atomic không xóa ở đây — Postgres rollback cả transaction RPC.
+    if (!draftId && !atomicWrite && incident?.id) {
+      await supabase.from("cssd_fact_su_co").delete().eq("id", incident.id);
+    }
     throw new Error(getErrorMessage(e) || "Loi xu ly su co");
   }
 }
