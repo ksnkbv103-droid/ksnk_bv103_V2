@@ -11,6 +11,7 @@ import { congViecSchema } from "@/lib/validations/quan-ly-cong-viec.validations"
 import type { QlcvSelectOption } from "../lib/qlcv-form-options";
 import type { CongViecView } from "../types";
 
+/** loai = cách sinh; ưu tiên = urgency. Approve giữ KHAN_CAP legacy nếu đề xuất cũ có. */
 type QlcvLoaiCongViec = "DOT_XUAT" | "KHAN_CAP";
 type QlcvMucDoUuTien = "THAP" | "TRUNG_BINH" | "CAO";
 
@@ -165,19 +166,15 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
             <div className={readOnlyStyles}>{proposal.nguoi_tao_ten || "—"}</div>
           </div>
           <div>
-            <label className={labelStyles}>Loại hình</label>
-            <select value={loaiCongViec} onChange={(e) => setLoaiCongViec(e.target.value as QlcvLoaiCongViec)} className={inputStyles}>
-              <option value="DOT_XUAT">Đột xuất</option>
-              <option value="KHAN_CAP">Khẩn cấp</option>
-            </select>
-          </div>
-          <div>
             <label className={labelStyles}>Mức ưu tiên</label>
             <select value={mucDoUuTien} onChange={(e) => setMucDoUuTien(e.target.value as QlcvMucDoUuTien)} className={inputStyles}>
               <option value="CAO">Cao</option>
               <option value="TRUNG_BINH">Trung bình</option>
               <option value="THAP">Thấp</option>
             </select>
+            <p className={`mt-1 ${bv103LayoutChrome.noticeSlate}`}>
+              Urgency qua ưu tiên (CAO). Loại hình ẩn — giữ mã đề xuất ({loaiCongViec === "KHAN_CAP" ? "KHAN_CAP legacy" : "DOT_XUAT"}).
+            </p>
           </div>
           <div>
             <label className={labelStyles}>Hạn hoàn thành</label>

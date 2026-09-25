@@ -34,7 +34,6 @@ import {
 } from "@/modules/quan-ly-cong-viec/lib/qlcv-access";
 import { mergeQlcvKanbanTasks } from "@/modules/quan-ly-cong-viec/lib/qlcv-list-merge";
 import { isDeXuatChoDuyet } from "@/modules/quan-ly-cong-viec/lib/qlcv-workflow-display";
-import { QlcvDmAdminLinks } from "@/modules/quan-ly-cong-viec/components/QlcvDmAdminLinks";
 import { QlcvImportDialog } from "@/modules/quan-ly-cong-viec/components/QlcvImportDialog";
 import { getTrangThaiMauSacMap } from "@/modules/quan-ly-cong-viec/actions/cong-viec-read.actions";
 import { listDinhKyMau } from "@/modules/quan-ly-cong-viec/actions/dinh-ky.actions";
@@ -500,18 +499,15 @@ export default function QuanLyCongViecPage() {
         </Dialog>
 
         <Tabs.Content value="DIEN_HANH" className="outline-none space-y-[var(--bv103-space-3)]">
-          {isAdmin || allowed.edit || allowed.import ? (
+          {allowed.import ? (
             <div className="no-print flex flex-wrap items-center gap-2">
-              {isAdmin || allowed.edit ? <QlcvDmAdminLinks /> : null}
-              {allowed.import ? (
-                <button
-                  type="button"
-                  onClick={() => setImportOpen(true)}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:underline"
-                >
-                  <Upload size={12} aria-hidden /> Nạp Excel
-                </button>
-              ) : null}
+              <button
+                type="button"
+                onClick={() => setImportOpen(true)}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:underline"
+              >
+                <Upload size={12} aria-hidden /> Nạp Excel
+              </button>
             </div>
           ) : null}
           <QlcvOperationsPanel

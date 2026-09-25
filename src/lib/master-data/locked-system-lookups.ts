@@ -1,5 +1,6 @@
 /** Danh mục mã máy — xem được, không sửa/nạp Excel trên UI thường ngày. */
 export const LOCKED_SYSTEM_LOOKUP_LOAI = [
+  "LOAI_CONG_VIEC",
   "TRANG_THAI_CONG_VIEC",
   "TRANG_THAI_NKBV_CA",
   "TRAM_CSSD",

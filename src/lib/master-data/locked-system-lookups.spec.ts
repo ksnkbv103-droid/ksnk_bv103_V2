@@ -3,6 +3,7 @@ import { isLockedSystemLookup } from "./locked-system-lookups";
 
 describe("isLockedSystemLookup", () => {
   it("khóa trạng thái, trạm và vai trò hệ thống", () => {
+    expect(isLockedSystemLookup("LOAI_CONG_VIEC")).toBe(true);
     expect(isLockedSystemLookup("TRAM_CSSD")).toBe(true);
     expect(isLockedSystemLookup("TRANG_THAI_CONG_VIEC")).toBe(true);
     expect(isLockedSystemLookup("TRANG_THAI_NKBV_CA")).toBe(true);

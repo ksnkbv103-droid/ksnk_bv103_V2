@@ -44,7 +44,7 @@ export function DeXuatForm({ onSuccess, onCancel }: Props) {
       tieu_de: formData.get("tieu_de") as string,
       mo_ta: formData.get("mo_ta") as string,
       han_hoan_thanh: formData.get("han_hoan_thanh") as string,
-      loai_cong_viec: formData.get("loai_cong_viec") as "DINH_KY" | "DOT_XUAT" | "KHAN_CAP" | undefined,
+      loai_cong_viec: "DOT_XUAT" as const,
       muc_do_uu_tien: formData.get("muc_do_uu_tien") as "CAO" | "TRUNG_BINH" | "THAP" | undefined,
       dia_diem_khoa_id: selectedKhoa,
     };
@@ -101,24 +101,16 @@ export function DeXuatForm({ onSuccess, onCancel }: Props) {
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label className={labelStyles}>Mức độ quan trọng</label>
-            <div className="relative">
-              <BarChart size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <select name="muc_do_uu_tien" defaultValue="TRUNG_BINH" className={inputStyles}>
-                <option value="CAO">Cao</option>
-                <option value="TRUNG_BINH">Trung bình</option>
-                <option value="THAP">Thấp</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className={labelStyles}>Loại hình công việc</label>
-            <select name="loai_cong_viec" defaultValue="DOT_XUAT" className={inputPlainStyles}>
-              <option value="DOT_XUAT">Đột xuất</option>
-              <option value="KHAN_CAP">Khẩn cấp</option>
+        {/* loai_cong_viec = cách sinh (luôn DOT_XUAT khi tạo đề xuất); muc_do_uu_tien = urgency — dùng CAO thay vì loại KHAN_CAP */}
+        <input type="hidden" name="loai_cong_viec" value="DOT_XUAT" />
+        <div>
+          <label className={labelStyles}>Mức độ ưu tiên</label>
+          <div className="relative">
+            <BarChart size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <select name="muc_do_uu_tien" defaultValue="TRUNG_BINH" className={inputStyles}>
+              <option value="CAO">Cao</option>
+              <option value="TRUNG_BINH">Trung bình</option>
+              <option value="THAP">Thấp</option>
             </select>
           </div>
         </div>
