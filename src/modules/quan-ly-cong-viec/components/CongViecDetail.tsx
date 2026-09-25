@@ -579,7 +579,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
             try {
               await xacNhanHoanThanh(data.id);
               toast.success("Đã nghiệm thu và hoàn thành công việc!");
-                            fetchDetail();
+              fetchDetail();
               onRefreshList?.();
             } catch (e: unknown) {
               toast.error(getErrorMessage(e));
@@ -599,7 +599,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
             try {
               await xacNhanHoanThanh(data.id, ketQua);
               toast.success("Đã nghiệm thu và hoàn thành công việc!");
-                            fetchDetail();
+              fetchDetail();
               onRefreshList?.();
             } catch (e: unknown) {
               toast.error(getErrorMessage(e));
