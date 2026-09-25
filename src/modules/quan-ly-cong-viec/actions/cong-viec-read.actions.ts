@@ -43,18 +43,6 @@ async function getToCongTacOptions(): Promise<QlcvSelectOption[]> {
   }));
 }
 
-async function getLoaiCongViecOptions(): Promise<QlcvSelectOption[]> {
-  const { supabase } = await ensureQlcvKsnkAccess("view");
-  const query = supabase.from("qlcv_dm_loai_cong_viec").select("id, ma, ten").order("ma").limit(MAX_DM_OPTIONS);
-  const { data, error } = await query;
-
-  if (error) throw error;
-  return (data || []).map((item) => ({
-    id: String(item.ma ?? item.id),
-    label: String(item.ten ?? item.ma ?? ""),
-  }));
-}
-
 async function getKhoaPhongOptions(): Promise<QlcvSelectOption[]> {
   const rows = await getCachedDmKhoaPhong();
   return rows.map((item) => ({
@@ -63,17 +51,16 @@ async function getKhoaPhongOptions(): Promise<QlcvSelectOption[]> {
   }));
 }
 
-/** Một round-trip: tổ + nhân sự KSNK + khoa địa điểm + loại + màu trạng thái. */
+/** Một round-trip: tổ + nhân sự KSNK + khoa địa điểm + màu trạng thái. */
 export async function getQlcvFormCatalog(): Promise<QlcvFormCatalog> {
   const { ksnkKhoaId } = await ensureQlcvKsnkAccess("view");
-  const [nhanSu, toCongTac, khoaPhong, loaiCongViec, trangThaiMauSac] = await Promise.all([
+  const [nhanSu, toCongTac, khoaPhong, trangThaiMauSac] = await Promise.all([
     getKsnkNhanSuOptions(ksnkKhoaId),
     getToCongTacOptions(),
     getKhoaPhongOptions(),
-    getLoaiCongViecOptions(),
     getTrangThaiMauSacMap(),
   ]);
-  return { nhanSu, toCongTac, khoaPhong, loaiCongViec, trangThaiMauSac };
+  return { nhanSu, toCongTac, khoaPhong, trangThaiMauSac };
 }
 
 /** Map mã trạng thái → mau_sac từ MDM (qlcv_dm_trang_thai_cong_viec). */

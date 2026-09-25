@@ -9,6 +9,8 @@
 | Thanh PO | (1) Link QLCV → Quản trị Loại/Trạng thái có cần? (2) Bỏ/đơn giản bảng loại mà sau đổi được? (3) Loại vs ưu tiên trùng? (4) Tinh túy Asana / Linear / Todoist |
 | Trạng thái | **Applied — gói A** (Lead default; PO không chọn). Không link Quản trị Loại + Trạng thái từ QLCV. |
 
+> **Wave 1 Applied (2026-09-26 +07):** Đã gỡ orphan `QlcvDmAdminLinks`, loại `loaiCongViec` khỏi form catalog, bỏ preset import cho hai view `qlcv_dm_*`, và loại hai option QLCV khỏi modal duyệt MDM. Giữ nguyên các view DB và registry/CONSOLIDATED_MAPS để JOIN nhãn.
+
 > **Applied note (Lead 2026-09-26 +07):** L-AB1A + L-AB2A + L-AB3A — gỡ `QlcvDmAdminLinks` (Loại + Trạng thái); khóa `LOAI_CONG_VIEC` trong `LOCKED_SYSTEM_LOOKUP_LOAI`; form tạo ưu tiên nổi, không chọn Khẩn; không taxonomy nghiệp vụ mới.
 
 ## §1. Tinh túy thị trường (mang vào QLCV KSNK)
