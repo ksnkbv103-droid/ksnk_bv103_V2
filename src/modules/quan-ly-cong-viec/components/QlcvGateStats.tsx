@@ -9,6 +9,7 @@ import {
   type QlcvBoardGateCounts,
 } from "../actions/cong-viec-read.actions";
 import type { CongViecView } from "../types";
+import { computeQlcvMvpStats } from "../lib/qlcv-mvp-stats";
 
 interface Props {
   /** Fallback when RPC fails — prefer `rpc_qlcv_board_counts` (global SSOT). */
@@ -44,6 +45,9 @@ export function QlcvGateStats({
     const choToi = list.filter((t) => isQlcvChoToiDuyet(t as unknown as Record<string, unknown>)).length;
     return { myTasks, inProgress, overdue, choToi };
   }, [list, actorStaffId]);
+
+  /** Domain A MVP: client-side from loaded rows (RPC board_counts insufficient). */
+  const mvp = useMemo(() => computeQlcvMvpStats(list), [list]);
 
   useEffect(() => {
     let cancelled = false;
@@ -90,6 +94,26 @@ export function QlcvGateStats({
   );
 
   return (
+    <div className="flex min-w-0 flex-col gap-1.5">
+    <div
+      className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] border border-slate-200/90 bg-slate-50/80 px-2.5 py-1.5 text-[11px] text-slate-700"
+      title="Stats MVP · tính từ danh sách đã tải (rpc_qlcv_board_counts không có tổng/% HT)"
+    >
+      <span>
+        <span className="font-medium text-slate-500">Số việc</span>{" "}
+        <strong className="tabular-nums text-slate-900">{mvp.tong}</strong>
+      </span>
+      <span className="text-slate-300">·</span>
+      <span>
+        <span className="font-medium text-slate-500">% hoàn thành</span>{" "}
+        <strong className="tabular-nums text-emerald-700">{mvp.pctHoanThanh}%</strong>
+      </span>
+      <span className="text-slate-300">·</span>
+      <span>
+        <span className="font-medium text-slate-500">% quá hạn</span>{" "}
+        <strong className="tabular-nums text-red-700">{mvp.pctQuaHan}%</strong>
+      </span>
+    </div>
     <div className="scrollbar-hide flex min-w-0 flex-nowrap items-center gap-1.5 overflow-x-auto pb-1">
       {actorStaffId
         ? chip(
@@ -115,6 +139,7 @@ export function QlcvGateStats({
         <Inbox size={14} className="text-violet-600" />,
         "border-violet-200 bg-violet-50/80",
       )}
+    </div>
     </div>
   );
 }

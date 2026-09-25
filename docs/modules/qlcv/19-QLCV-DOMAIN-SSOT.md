@@ -7,7 +7,7 @@
 | Phạm vi | DOMAIN ONLY — công việc nội bộ khoa KSNK (+ deep-link analytics nếu code đã có). Không sửa code, không commit, không Cloud, không Word QĐ/QT |
 | Ngoài phạm vi | CSSD trạm/mẻ/SC · form GSC/VST (chỉ ghi liên kết menu nếu tạo việc từ analytics) · KH năm/tuần/mốc (đã DROP) |
 | Neo pack | `KSNK-DOMAIN-SSOT.md` §4 · `02-entity-list-v2-ssot.md` §4b · `06-data-dictionary-v1.md` §3c · `08-domain-coverage-map-full.md` §6 · macwork `docs/modules/qlcv/*` |
-| Trạng thái | Chờ Nghĩa chọn A/B (§7); Lead lấy **A** làm mặc định nếu Nghĩa không chọn |
+| Trạng thái | **Applied A** 2026-09-25 (Nghĩa skip widget); xem `19b-QLCV-SIMPLIFY-20260925.md` · assignee-first |
 
 ## §0. Nguồn (ký hiệu cột «Nguồn»)
 

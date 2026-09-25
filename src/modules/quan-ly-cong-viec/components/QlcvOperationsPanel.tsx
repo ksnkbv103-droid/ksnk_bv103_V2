@@ -258,7 +258,7 @@ export function QlcvOperationsPanel({
           <SearchBar
             value={kanban.searchTerm}
             onChange={kanban.setSearchTerm}
-            placeholder="Tìm tên việc, người phụ trách…"
+            placeholder="Tìm tên việc, người thực hiện…"
           />
         ) : null}
 
@@ -311,7 +311,7 @@ export function QlcvOperationsPanel({
               tableClassName="w-full min-w-0 table-fixed border-collapse text-sm"
               searchValue={table.tableSearchInput}
               onSearch={table.handleTableSearch}
-              searchPlaceholder="Tìm tiêu đề, người giao, phụ trách…"
+              searchPlaceholder="Tìm tiêu đề, người giao, thực hiện…"
               onSort={table.handleTableSort}
               serverPagination={
                 useClientLoaiPeriod

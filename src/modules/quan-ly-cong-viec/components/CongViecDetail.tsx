@@ -278,7 +278,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           role="status"
           className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"
         >
-          Người phụ trách đã ngừng hoạt động trong danh mục nhân sự. Nên giao lại việc hoặc hủy phiếu để tránh
+          Người thực hiện đã ngừng hoạt động trong danh mục nhân sự. Nên giao lại việc hoặc hủy phiếu để tránh
           việc mở bị bỏ quên.
         </div>
       )}
@@ -435,7 +435,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
                     ? `${data.nguoi_tao.ho_ten} (tạo việc)`
                     : "—"),
             },
-            { label: "Phụ trách", val: data.nguoi_phu_trach?.ho_ten || "—" },
+            { label: "Người thực hiện", val: data.nguoi_phu_trach?.ho_ten || "—" },
             { label: "Tổ công tác", val: data.to_cong_tac?.ten_to || "—" },
             {
               label: "Hạn chót",

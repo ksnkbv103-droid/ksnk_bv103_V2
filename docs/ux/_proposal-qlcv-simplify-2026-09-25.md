@@ -2,9 +2,9 @@
 
 | Trường | Giá trị |
 |--------|---------|
-| Phiên bản | v1 · chờ Nghĩa chốt A/B |
+| Phiên bản | v1.1 · **Applied A** (Nghĩa skip widget → Domain A default) |
 | Repo tip | `cursor/me-sync-recall-print` @ `42c0115` (2026-09-25 14:18 +07) |
-| Phạm vi | **Phân tích + đề xuất ONLY** — không đổi `src/`, không migrate, không push |
+| Phạm vi | **Applied A (FE)** — Zod/form/list/kanban/stats MVP; không migrate; không push |
 | Neo | `docs/modules/qlcv/19-QLCV-DOMAIN-SSOT.md` · `_audit-qlcv-2026-09-25.md` · form/list/kanban tip |
 | Tone | Quản trị khoa KSNK — rõ · gọn · quan sát được |
 
@@ -194,3 +194,21 @@ Khi FE ổn định ≥1 sprint và PO xác nhận không dùng địa điểm �
 ---
 
 *Lead executor · local Mac · 2026-09-25 Asia/Saigon · chỉ commit tài liệu này.*
+
+
+---
+
+## 8. Applied A (Lead executor · 2026-09-25 18:xx +07)
+
+Nghĩa skip chốt widget → Domain A default.
+
+| Hạng mục | Đã làm |
+|----------|--------|
+| Zod | `dia_diem_khoa_id` optional; `congViecCreateSchema` bắt buộc người thực hiện + hạn DOT_XUAT/KHAN_CAP |
+| Create SSOT | `insertQlcvTaskRow` / phê đề xuất: `assertQlcvDiaDiemKhoaValid(..., false)` |
+| Form | Primary: tiêu đề · người thực hiện · hạn · phối hợp; địa điểm/vị trí/theo dõi/tổ/NV/ưu tiên trong «Thêm chi tiết» |
+| List / Kanban | Assignee-first (avatar initials + tên); chip Phối hợp; đổi nhãn «Phụ trách»→«Người thực hiện» |
+| Stats MVP | Gate strip + Báo cáo header: số việc · % HT · % quá hạn — **client từ rows đã tải** (`rpc_qlcv_board_counts` thiếu tổng/%) |
+| Non-goals | Không push / Cloud / migrate |
+
+Xem thêm: `docs/modules/qlcv/19b-QLCV-SIMPLIFY-20260925.md`.

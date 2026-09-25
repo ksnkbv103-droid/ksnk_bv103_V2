@@ -37,10 +37,6 @@ export function DeXuatForm({ onSuccess, onCancel }: Props) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!selectedKhoa) {
-      toast.error("Chọn khoa/đơn vị địa điểm thực hiện.");
-      return;
-    }
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
@@ -84,7 +80,7 @@ export function DeXuatForm({ onSuccess, onCancel }: Props) {
         </div>
 
         <div>
-          <label className={labelStyles}>Khoa / đơn vị địa điểm *</label>
+          <label className={labelStyles}>Khoa / đơn vị địa điểm (tuỳ chọn)</label>
           <SearchableSelect
             options={khoaPhongOptions}
             placeholder={optionsLoading ? "Đang tải..." : "Chọn khoa từ danh mục MDM…"}

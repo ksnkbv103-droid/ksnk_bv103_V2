@@ -98,11 +98,7 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
       return;
     }
     if (!String(selectedNhanSu || "").trim()) {
-      toast.error("Chọn người phụ trách trước khi phê duyệt.");
-      return;
-    }
-    if (!String(selectedKhoa || "").trim()) {
-      toast.error("Chọn khoa/đơn vị địa điểm thực hiện.");
+      toast.error("Chọn người thực hiện trước khi phê duyệt.");
       return;
     }
 
@@ -196,7 +192,7 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
 
         <div className="border-t border-slate-100 pt-4 space-y-[var(--bv103-space-3)]">
           <div>
-            <label className={labelStyles}>Khoa / đơn vị địa điểm *</label>
+            <label className={labelStyles}>Khoa / đơn vị địa điểm (tuỳ chọn)</label>
             <SearchableSelect
               options={khoaPhongOptions}
               placeholder={optionsLoading ? "Đang tải..." : "Chọn khoa từ danh mục MDM…"}
@@ -218,7 +214,7 @@ export function DeXuatApproveForm({ proposal, onSuccess, onCancel }: Props) {
             />
           </div>
           <div>
-            <label className={labelStyles}>Người phụ trách *</label>
+            <label className={labelStyles}>Người thực hiện *</label>
             <SearchableSelect
               options={assigneeOptions}
               placeholder={optionsLoading ? "Đang tải..." : "Chọn nhân viên KSNK..."}

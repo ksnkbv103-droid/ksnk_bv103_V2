@@ -306,7 +306,7 @@ export function NhiemVuPanel({ onCreateCongViec, onOpenCongViec }: NhiemVuPanelP
           <input className={inp} value={nvTen} onChange={(e) => setNvTen(e.target.value)} placeholder="VD: Giám sát VST…" />
         </label>
         <label className="sm:col-span-3 space-y-1">
-          <span className={lbl}>Người phụ trách *</span>
+          <span className={lbl}>Người thực hiện *</span>
           <SearchableSelect options={nhanSu} value={nvChuTri} onChange={setNvChuTri} placeholder="Chọn…" />
         </label>
         <label className="sm:col-span-1 space-y-1">

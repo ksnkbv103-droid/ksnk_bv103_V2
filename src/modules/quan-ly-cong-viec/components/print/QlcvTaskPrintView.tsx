@@ -75,7 +75,7 @@ export function QlcvTaskPrintView({ task, phoiHopLabels = "—", theoDoiLabels =
           <tr>
             <td style={lab}>Người giao</td>
             <td style={val}>{nguoiGiao}</td>
-            <td style={lab}>Phụ trách</td>
+            <td style={lab}>Người thực hiện</td>
             <td style={val}>{phuTrach}</td>
           </tr>
           <tr>

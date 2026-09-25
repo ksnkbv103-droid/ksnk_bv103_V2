@@ -14,7 +14,7 @@ import {
   verifyQlcvDeleteCapability,
   verifyQlcvNghiemThuCapability,
 } from "../lib/qlcv-rbac";
-import { congViecSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
+import { congViecSchema, congViecCreateSchema, type CongViecInput } from "@/lib/validations/quan-ly-cong-viec.validations";
 import {
   assigneeBlockedFromTaskCrud,
 } from "../lib/qlcv-access";
@@ -45,7 +45,7 @@ import { getPendingDeXuat } from "./dexuat.actions";
 // ==================== CREATE ====================
 export async function createCongViec(input: CongViecInput) {
   const { supabase, ksnkKhoaId } = await ensureQlcvKsnkAccess("create");
-  const parsed = congViecSchema.safeParse(input);
+  const parsed = congViecCreateSchema.safeParse(input);
   if (!parsed.success) {
     throw new Error("Dữ liệu không hợp lệ: " + parsed.error.issues.map((i) => i.message).join(", "));
   }
