@@ -44,8 +44,30 @@ export function getKsnkAppHeaderBreadcrumb(pathname: string | null): KsnkHeaderB
   if (p.startsWith("/thong-ke")) return { zone: "Tra cứu", page: "Thống kê giám sát" };
   if (p.startsWith("/quan-ly-cong-viec")) return { zone: "Vận hành", page: "Công việc" };
   if (p.startsWith("/dao-tao")) return { zone: "Vận hành", page: "Thi KSNK" };
+  // CSSD — per-route page name (nav clinical short labels); Header SSOT (P0-1).
+  if (p === "/cssd-quy-trinh" || p.startsWith("/cssd-quy-trinh/")) {
+    return { zone: "CSSD", page: "Quy trình" };
+  }
+  if (p === "/cssd-dung-cu" || p.startsWith("/cssd-dung-cu/")) {
+    return { zone: "CSSD", page: "Dụng cụ" };
+  }
+  if (p === "/cssd-su-co" || p.startsWith("/cssd-su-co/")) {
+    return { zone: "CSSD", page: "Sự cố" };
+  }
+  if (p === "/cssd-thiet-bi" || p.startsWith("/cssd-thiet-bi/")) {
+    return { zone: "CSSD", page: "Thiết bị" };
+  }
+  if (p === "/cssd-hoa-chat" || p.startsWith("/cssd-hoa-chat/")) {
+    return { zone: "CSSD", page: "Hóa chất" };
+  }
+  if (p.startsWith("/cssd-erp/batch")) {
+    return { zone: "CSSD", page: "Mẻ tiệt khuẩn" };
+  }
+  if (p.startsWith("/cssd-erp/report")) {
+    return { zone: "CSSD", page: "Báo cáo" };
+  }
   if (CSSD_APP_SHELL_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`))) {
-    return { zone: "CSSD", page: "Quản lý CSSD" };
+    return { zone: "CSSD", page: "Quy trình" };
   }
   if (p.startsWith("/quan-tri-he-thong")) {
     if (p.startsWith("/quan-tri-he-thong/phan-quyen")) return { zone: "Quản trị", page: "Ma trận phân quyền" };

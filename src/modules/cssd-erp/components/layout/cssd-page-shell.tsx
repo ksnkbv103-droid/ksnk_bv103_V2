@@ -11,13 +11,18 @@ type Props = {
   title: React.ReactNode;
   actions?: React.ReactNode;
   children: React.ReactNode;
+  /**
+   * P0-2 title policy: App Header (`getKsnkAppHeaderBreadcrumb`) is SSOT for the page name.
+   * Keep false when Header already names this route (default). Pass true only if Header is still generic.
+   */
+  showTitle?: boolean;
 };
 
-/** Khung trang CSSD: hero (title/actions) + nội dung. Chuyển màn = sidebar (SSOT). */
-export default function CSSDPageShell({ title, actions, children }: Props) {
+/** Khung trang CSSD: hero (actions/tabs) + nội dung. Tên trang = App Header, không H1 đôi. */
+export default function CSSDPageShell({ title, actions, children, showTitle = false }: Props) {
   return (
     <div className={CSSD_PAGE_OUTER}>
-      <KsnkSupervisionHero title={title} actions={actions} />
+      <KsnkSupervisionHero title={title} actions={actions} showTitle={showTitle} />
       {children}
     </div>
   );

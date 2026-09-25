@@ -14,6 +14,7 @@ import {
   canSeeNavGate,
 } from "@/lib/nav/ksnk-nav-gates";
 import { pickSoleWriteHrefForMode } from "@/lib/nav/giam-sat-write-dest";
+import { Bv103EmptyState } from "@/components/shared/Bv103EmptyState";
 
 type HubLink = {
   href: string;
@@ -153,9 +154,14 @@ export default function GiamSatHubPage() {
   return (
     <div className={`${T.pageOuter} space-y-[var(--bv103-space-3)]`}>
       {!loading && !hasAny ? (
-        <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-          Tài khoản chưa có quyền giám sát. Liên hệ khoa KSNK.
-        </p>
+        <Bv103EmptyState
+          title="Tài khoản chưa có quyền giám sát. Liên hệ khoa KSNK."
+          action={
+            <Link href="/bao-cao-tong-hop" prefetch={false} className={bv103LayoutChrome.btnPrimary}>
+              Về Báo cáo chính thức
+            </Link>
+          }
+        />
       ) : null}
 
       {visiblePrimary.length > 0 ? (

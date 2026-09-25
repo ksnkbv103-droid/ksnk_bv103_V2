@@ -544,6 +544,7 @@ export default function QuanLyCongViecPage() {
             }}
             onRefreshAll={refreshAll}
             onBoardFilter={handleBoardFilter}
+            onCreateTask={() => openCreateCongViec(undefined, "DIEN_HANH")}
             mauSacByMa={mauSacByMa}
             loaiFilter={loaiFilter}
             periodKindFilter={filterBoardByPeriod ? periodKind : null}

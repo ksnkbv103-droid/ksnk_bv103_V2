@@ -7,6 +7,8 @@ import { CSSDWaitingItem } from "../../types/cssd.types";
 import SetMembersModal from "../inventory/SetMembersModal";
 import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY, CSSD_UI_PANEL } from "../../shared/ui/cssd-ui-chrome";
 import { formatDateTimeVi, formatTimeVi } from "@/lib/format-datetime-vi";
+import { Bv103EmptyState } from "@/components/shared/Bv103EmptyState";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 const ACTION_VERBS: Record<string, string> = {
   TIEP_NHAN: "Tiếp nhận bởi",
@@ -20,9 +22,11 @@ const ACTION_VERBS: Record<string, string> = {
 interface Props {
   items: CSSDWaitingItem[];
   onAction: (maQR: string) => void;
+  /** Optional empty CTA; default focuses station QR entry. */
+  emptyAction?: React.ReactNode;
 }
 
-export default function WaitingList({ items, onAction }: Props) {
+export default function WaitingList({ items, onAction, emptyAction }: Props) {
   const [detailSet, setDetailSet] = useState<{ bo_dung_cu_id: string; ten_bo?: string | null } | null>(null);
 
   return (
@@ -112,9 +116,23 @@ export default function WaitingList({ items, onAction }: Props) {
             </div>
           </div>
         )) : (
-          <div className="py-16 text-center text-slate-400">
-            <Clock size={36} className="mx-auto mb-2 opacity-20" />
-            <p className="bv103-type-note">Không có bộ chờ xử lý</p>
+          <div className="p-4">
+            <Bv103EmptyState
+              title="Không có bộ chờ xử lý tại trạm này."
+              action={
+                emptyAction ?? (
+                  <button
+                    type="button"
+                    className={bv103LayoutChrome.btnPrimary}
+                    onClick={() => {
+                      document.getElementById("cssd-workflow-station-qr")?.focus();
+                    }}
+                  >
+                    Quét QR để xử lý
+                  </button>
+                )
+              }
+            />
           </div>
         )}
       </div>

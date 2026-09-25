@@ -8,6 +8,8 @@ import { KsnkSupervisionPanel, KsnkSupervisionTabList, type SupervisionTabDef } 
 import SearchBar from "@/components/shared/SearchBar";
 import AdvancedDataTable from "@/components/shared/AdvancedDataTable";
 import { bv103PanelChrome as UI } from "@/lib/bv103-panel-chrome";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { canShowDirectCreateTask } from "../lib/qlcv-access";
 import { QlcvGateStats } from "./QlcvGateStats";
 import { buildQlcvCommandTableColumns } from "./qlcv-table-columns";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
@@ -68,6 +70,8 @@ export type QlcvOperationsPanelProps = {
   onEditTask: (row: CongViecView) => void;
   onRefreshAll: () => Promise<void>;
   onBoardFilter: (f: QlcvBoardFilter) => void;
+  /** Empty board CTA — mở form tạo việc (header «Tạo công việc»). */
+  onCreateTask?: () => void;
   /** Lọc loại — client trên danh sách điều hành. */
   loaiFilter?: QlcvLoaiFilter;
   /** Khi set: chỉ phiếu có hạn trong kỳ (client). */
@@ -91,6 +95,7 @@ export function QlcvOperationsPanel({
   onEditTask,
   onRefreshAll,
   onBoardFilter,
+  onCreateTask,
   mauSacByMa,
   loaiFilter = "ALL",
   periodKindFilter = null,
@@ -264,6 +269,29 @@ export function QlcvOperationsPanel({
             focusColumnId={kanbanFocusColumn}
             focusNonce={kanban.kanbanFocusNonce}
             staffLabelOpts={staffLabelOpts}
+            emptyAction={
+              canShowDirectCreateTask(qlcvUi) && onCreateTask ? (
+                <button type="button" className={bv103LayoutChrome.btnPrimary} onClick={onCreateTask}>
+                  Tạo công việc
+                </button>
+              ) : kanban.boardFilter ? (
+                <button
+                  type="button"
+                  className={bv103LayoutChrome.btnPrimary}
+                  onClick={() => onBoardFilter("TOTAL")}
+                >
+                  Hiện tất cả việc
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={bv103LayoutChrome.btnSecondary}
+                  onClick={() => void onRefreshAll()}
+                >
+                  Tải lại bảng
+                </button>
+              )
+            }
             onTaskClick={(task) => {
               if (canApprove && isDeXuatChoDuyet(task)) {
                 onApproveFromKanban(task);

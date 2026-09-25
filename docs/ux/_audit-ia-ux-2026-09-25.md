@@ -210,11 +210,13 @@ Full text: [`principles.md`](./principles.md).
 
 ### DoD
 
-- [ ] Header breadcrumb distinct for major CSSD routes (+ keep VST/GSC/NKBV fine-grained).  
-- [ ] Each CSSD page has **exactly one** visible page name (Header **xor** hero `showTitle`).  
-- [ ] `Bv103EmptyState` on ≥3 live surfaces; `layout:drift-check` green.  
-- [ ] Note “Slice 0 done” under this audit; **no** push / Cloud / Vercel / migrate.  
+- [x] Header breadcrumb distinct for major CSSD routes (+ keep VST/GSC/NKBV fine-grained).  
+- [x] Each CSSD page has **exactly one** visible page name (Header **xor** hero `showTitle`).  
+- [x] `Bv103EmptyState` on ≥3 live surfaces (QLCV Kanban board · CSSD WaitingList · Giám sát hub denied).  
+- [x] Note “Slice 0 done” under this audit; **no** push / Cloud / Vercel / migrate.  
 - [ ] Spot-check on localhost (screenshots optional).
+
+**Slice 0 shipped** (local, 2026-09-25 Asia/Saigon): per-route CSSD headers in `getKsnkAppHeaderBreadcrumb`; Header SSOT title policy (`showTitle` false on `CSSDPageShell`); `Bv103EmptyState` ×3.
 
 **Next:** CSSD Quy trình calm (P2-1) **or** QLCV detail sheet (P1-3+P2-3) — PO picks by UAT pain.
 

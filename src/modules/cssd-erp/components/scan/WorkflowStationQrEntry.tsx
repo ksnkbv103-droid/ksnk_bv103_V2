@@ -29,6 +29,7 @@ export default function WorkflowStationQrEntry({ disabled, onConfirm }: Props) {
 
       <div className="flex w-full items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 p-2">
         <QrScanInput
+          id="cssd-workflow-station-qr"
           inputRef={inputRef}
           disabled={disabled}
           placeholder={disabled ? "Đang xử lý…" : "Quét hoặc gõ mã bộ"}

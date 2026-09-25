@@ -10,6 +10,7 @@ import { qlcvKanbanCardAttentionClass } from "../lib/qlcv-ux-chrome";
 import type { CongViecView } from "../types";
 import { formatQlcvCiSummary } from "../lib/qlcv-staff-ids";
 import { QlcvDinhKyMauChip } from "./QlcvDinhKyMauChip";
+import { Bv103EmptyState } from "@/components/shared/Bv103EmptyState";
 
 type KanbanColId = KanbanColumnId;
 
@@ -23,6 +24,8 @@ interface Props {
   focusNonce?: number;
   /** Optional staff map to resolve C/I names in card tooltip. */
   staffLabelOpts?: { id: string; label: string }[];
+  /** Empty board — one sentence + CTA (Bv103EmptyState). */
+  emptyAction?: React.ReactNode;
 }
 
 /** Ẩn dòng trạng thái khi trùng ý nghĩa với tiêu đề cột Kanban. */
@@ -44,6 +47,7 @@ export default function CongViecKanban({
   focusColumnId = null,
   focusNonce = 0,
   staffLabelOpts = [],
+  emptyAction,
 }: Props) {
   const columnEls = useRef<Partial<Record<KanbanColId, HTMLDivElement | null>>>({});
 
@@ -78,6 +82,15 @@ export default function CongViecKanban({
         return "text-blue-600 bg-blue-50";
     }
   };
+
+  if (tasks.length === 0) {
+    return (
+      <Bv103EmptyState
+        title="Chưa có công việc trên bảng điều hành."
+        action={emptyAction}
+      />
+    );
+  }
 
   return (
     <div className="space-y-1.5">
