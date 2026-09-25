@@ -9,7 +9,7 @@ const BADGE = "inline-flex items-center rounded-full border px-2 py-0.5 text-[11
 const TRANG_THAI_BADGE: Record<string, MeTrangThaiBadge> = {
   DANG_CHUAN_NAP: { label: "Đang nạp", className: `${BADGE} border-sky-200 bg-sky-50 text-sky-800` },
   DANG_TIET_KHUAN: { label: "Đang chạy", className: `${BADGE} border-blue-200 bg-blue-50 text-blue-800` },
-  CHO_DANH_GIA_QC: { label: "Đang chạy", className: `${BADGE} border-blue-200 bg-blue-50 text-blue-800` },
+  CHO_DANH_GIA_QC: { label: "Chờ QC", className: `${BADGE} border-amber-200 bg-amber-50 text-amber-800` },
   CHO_BI: { label: "Chờ BI", className: `${BADGE} border-violet-200 bg-violet-50 text-violet-800` },
   Quarantine_BI: { label: "Chờ BI", className: `${BADGE} border-violet-200 bg-violet-50 text-violet-800` },
   HOAN_THANH: { label: "Hoàn thành", className: `${BADGE} border-emerald-200 bg-emerald-50 text-emerald-800` },
@@ -21,6 +21,31 @@ const TRANG_THAI_BADGE: Record<string, MeTrangThaiBadge> = {
 export function meTrangThaiBadge(state: string | null | undefined): MeTrangThaiBadge {
   const key = String(state || "").trim();
   return TRANG_THAI_BADGE[key] || { label: "—", className: `${BADGE} border-slate-200 bg-slate-50 text-slate-500` };
+}
+
+const ME_LIST_TERMINAL = new Set(["HOAN_THANH", "QC_KHONG_DAT", "THU_HOI"]);
+
+/**
+ * Primary CTA trên LIST theo trạng thái mẻ — mở PROCESS (không confirm từ list).
+ * Terminal → null (chỉ In / Thu hồi).
+ */
+export function meListPrimaryAction(trangThai: string): { label: string } | null {
+  const key = String(trangThai || "").trim();
+  if (!key) return { label: "Mở phiếu" };
+  if (ME_LIST_TERMINAL.has(key)) return null;
+  switch (key) {
+    case "DANG_CHUAN_NAP":
+      return { label: "Tiếp tục nạp" };
+    case "DANG_TIET_KHUAN":
+      return { label: "Kết thúc" };
+    case "CHO_DANH_GIA_QC":
+      return { label: "Nhập QC" };
+    case "CHO_BI":
+    case "Quarantine_BI":
+      return { label: "Nhập BI" };
+    default:
+      return { label: "Mở phiếu" };
+  }
 }
 
 export function slipStatusLabel(input: {

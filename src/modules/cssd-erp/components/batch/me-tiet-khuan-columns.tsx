@@ -11,11 +11,12 @@ import {
   CSSD_UI_CELL_INDEX,
   CSSD_UI_CELL_META,
 } from "../../shared/ui/cssd-ui-chrome";
-import { meTrangThaiBadge } from "../../lib/me-tiet-khuan-slip-ux";
+import { meListPrimaryAction, meTrangThaiBadge } from "../../lib/me-tiet-khuan-slip-ux";
 
 export function buildMeTietKhuanBatchColumns(opts?: {
   onPrintBatch?: (batchId: string) => void;
   isPrinting?: boolean;
+  onContinue?: (row: any) => void;
 }): Column<any>[] {
   const cols: Column<any>[] = [
   {
@@ -76,6 +77,27 @@ export function buildMeTietKhuanBatchColumns(opts?: {
     accessorKey: "ghi_chu",
     sortable: true,
     cell: (i: any) => <span className={`block max-w-[150px] truncate ${CSSD_UI_CELL_META}`}>{i.ghi_chu || "---"}</span>,
+  },
+  {
+    header: "Thao tác",
+    accessorKey: "trang_thai",
+    cell: (i: any) => {
+      const action = meListPrimaryAction(String(i.trang_thai || ""));
+      if (!action || !opts?.onContinue) return <span className={CSSD_UI_CELL_META}>—</span>;
+      return (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            opts.onContinue?.(i);
+          }}
+          className="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-2 py-1.5 bv103-type-label font-semibold text-emerald-900 hover:bg-emerald-100"
+          title={action.label}
+        >
+          {action.label}
+        </button>
+      );
+    },
   },
   {
     header: "Thu hồi",

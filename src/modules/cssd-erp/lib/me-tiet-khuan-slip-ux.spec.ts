@@ -3,6 +3,7 @@ import {
   canConfirmBatDauMeSlip,
   currentMeSlipStep,
   filterWaitingSetsForSlip,
+  meListPrimaryAction,
   meQcDraftStorageKey,
   meTrangThaiBadge,
   parseMeQcDraft,
@@ -14,13 +15,29 @@ const BATCH = "11111111-1111-4111-8111-111111111111";
 const OTHER = "22222222-2222-4222-8222-222222222222";
 
 describe("meTrangThaiBadge", () => {
-  it("đủ sáu nhãn tiếng Việt", () => {
+  it("đủ nhãn tiếng Việt (QC riêng «Chờ QC»)", () => {
     expect(meTrangThaiBadge("DANG_CHUAN_NAP").label).toBe("Đang nạp");
     expect(meTrangThaiBadge("DANG_TIET_KHUAN").label).toBe("Đang chạy");
+    expect(meTrangThaiBadge("CHO_DANH_GIA_QC").label).toBe("Chờ QC");
     expect(meTrangThaiBadge("CHO_BI").label).toBe("Chờ BI");
     expect(meTrangThaiBadge("HOAN_THANH").label).toBe("Hoàn thành");
     expect(meTrangThaiBadge("QC_KHONG_DAT").label).toBe("Không đạt");
     expect(meTrangThaiBadge("THU_HOI").label).toBe("Thu hồi");
+  });
+});
+
+describe("meListPrimaryAction", () => {
+  it("một primary CTA theo trạng thái; terminal → null", () => {
+    expect(meListPrimaryAction("DANG_CHUAN_NAP")).toEqual({ label: "Tiếp tục nạp" });
+    expect(meListPrimaryAction("DANG_TIET_KHUAN")).toEqual({ label: "Kết thúc" });
+    expect(meListPrimaryAction("CHO_DANH_GIA_QC")).toEqual({ label: "Nhập QC" });
+    expect(meListPrimaryAction("CHO_BI")).toEqual({ label: "Nhập BI" });
+    expect(meListPrimaryAction("Quarantine_BI")).toEqual({ label: "Nhập BI" });
+    expect(meListPrimaryAction("HOAN_THANH")).toBeNull();
+    expect(meListPrimaryAction("QC_KHONG_DAT")).toBeNull();
+    expect(meListPrimaryAction("THU_HOI")).toBeNull();
+    expect(meListPrimaryAction("SOMETHING_ELSE")).toEqual({ label: "Mở phiếu" });
+    expect(meListPrimaryAction("")).toEqual({ label: "Mở phiếu" });
   });
 });
 

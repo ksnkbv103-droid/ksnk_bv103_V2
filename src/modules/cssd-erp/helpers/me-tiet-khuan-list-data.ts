@@ -7,10 +7,15 @@ const ME_TRANG_THAI = new Set([
   "DANG_TIET_KHUAN",
   "CHO_DANH_GIA_QC",
   "CHO_BI",
+  "Quarantine_BI",
   "HOAN_THANH",
   "QC_KHONG_DAT",
   "THU_HOI",
 ]);
+
+/** Cột hẹp cho LIST + openRowForProcess / status derivation — không select(*). */
+const LO_LIST_SELECT =
+  "id, ma_lo_tiet_khuan, ghi_chu, created_at, is_active, trang_thai_me, ket_qua_test, tk_mo_form_qc_at, tk_chot_nap_at, chuong_trinh, thiet_bi_id, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)";
 
 /** Tải danh sách mẻ + máy; đếm số `quy_trinh` đang gắn từng mẻ (truy vết). */
 export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise<{
@@ -20,7 +25,12 @@ export async function fetchBatchesAndMachines(supabase: SupabaseClient): Promise
   machineError?: string;
 }> {
   const [bRes, mRes, loaiPack] = await Promise.all([
-    supabase.from("cssd_fact_lo_tiet_khuan").select("*, thiet_bi:cssd_dm_thiet_bi(ten_thiet_bi)").eq("is_active", true).order("created_at", { ascending: false }),
+    supabase
+      .from("cssd_fact_lo_tiet_khuan")
+      .select(LO_LIST_SELECT)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(50),
     // Form MDM dùng READY/REPAIRING/…; chỉ READY (và mã cũ HOAT_DONG nếu có) được chọn làm máy mẻ TK.
     supabase
       .from("cssd_dm_thiet_bi")

@@ -38,8 +38,9 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
       buildMeTietKhuanBatchColumns({
         onPrintBatch: (batchId) => void w.onPrintBatch({ batchId }),
         isPrinting: w.isCssdPrinting,
+        onContinue: w.openRowForProcess,
       }),
-    [w.onPrintBatch, w.isCssdPrinting],
+    [w.onPrintBatch, w.isCssdPrinting, w.openRowForProcess],
   );
 
   const printPortal = <CssdPrintPortal printState={w.printState} />;

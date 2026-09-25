@@ -202,6 +202,8 @@ PROCESS life:  poll 3× / 8s  (waiting heat every tick)
 
 **DoD:** Mỗi dòng mẻ chưa terminal có đúng một primary button trạng thái tiếp theo; click mở PROCESS đúng ngữ cảnh; Thu hồi/In giữ nguyên.
 
+**Done (2026-09-25):** `meListPrimaryAction` + badge «Chờ QC»; column «Thao tác» → `onContinue`/`openRowForProcess`; terminal null. Badge CHO_DANH_GIA_QC ≠ «Đang chạy».
+
 ### Slice 3 — One perf win LIST (pain #2)
 
 **Files (1–2):**
@@ -210,6 +212,8 @@ PROCESS life:  poll 3× / 8s  (waiting heat every tick)
 2. Optional: `use-me-tiet-khuan-workflow.ts` — expose «Tải thêm» later (out of thin slice)
 
 **DoD:** Mở tab Mẻ chỉ tải ≤50 mẻ gần nhất với select không `*`; thời gian cảm nhận giảm trên DB có nhiều lịch sử; UI list vẫn đủ cho ca làm việc trong ngày.
+
+**Done (2026-09-25):** Explicit `LO_LIST_SELECT` (no `*`) + `.limit(50)` after `created_at desc`; member count still scoped to returned ids.
 
 ### Slice 4 (P1 follow) — PROCESS poll slim
 
@@ -223,8 +227,8 @@ PROCESS life:  poll 3× / 8s  (waiting heat every tick)
 |-----|----|------------|------|------------|
 | Audit ME UX/perf | Lead executor | **Done** (doc only) | `docs/ux/_audit-me-tiet-khuan-ux-2026-09-25.md` | Đọc + chọn slice 1 |
 | Slice 1 post-load CTA | Lead executor | **Done** | process-step + slip-ux + waiting + spec | — |
-| Slice 2 list status CTAs | — | Proposed | columns + MeTietKhuanPage | After S1 |
-| Slice 3 list limit/select | — | Proposed | me-tiet-khuan-list-data | Can parallel S1 |
+| Slice 2 list status CTAs | Lead executor | **Done** | columns + MeTietKhuanPage + slip-ux | — |
+| Slice 3 list limit/select | Lead executor | **Done** | me-tiet-khuan-list-data | — |
 | cssd-su-co / P2-2 | other executor | Out of scope | — | — |
 
 ---
