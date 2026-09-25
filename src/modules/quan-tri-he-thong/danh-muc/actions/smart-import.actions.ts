@@ -14,6 +14,7 @@ import { isCssdCatalogMasterTable } from "@/lib/domain/cssd-catalog-master-write
 import { requireCssdCatalogMasterWrite } from "@/lib/master-data/require-cssd-catalog-master-write";
 import { randomUUID } from "crypto";
 import {
+  applyLoaiKhoDuPhongOnImportPayload,
   normalizeLoaiDungCuExcelImportRow,
   syncLoaiPhysicalColumnsOnImportPayload,
 } from "@/lib/master-data/cssd-loai-dung-cu-map";
@@ -273,6 +274,7 @@ export async function smartImportData(
         delete payload[config.uniqueKey];
         if (config.tableName === "cssd_dm_loai_dung_cu") {
           syncLoaiPhysicalColumnsOnImportPayload(payload, finalCode);
+          applyLoaiKhoDuPhongOnImportPayload(payload, Boolean(existingId));
         }
       }
 

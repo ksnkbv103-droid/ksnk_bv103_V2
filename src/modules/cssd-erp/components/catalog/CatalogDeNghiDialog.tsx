@@ -87,7 +87,7 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
   const [ppTk, setPpTk] = useState("STEAM_134");
   const [spaulding, setSpaulding] = useState("CRITICAL");
   const [phanLoai, setPhanLoai] = useState("PHAU_THUAT");
-  const [khoDuPhong, setKhoDuPhong] = useState(0);
+  const [khoHienTai, setKhoHienTai] = useState<number | null>(null);
   const [loaiActive, setLoaiActive] = useState(true);
 
   // BO
@@ -109,6 +109,7 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
     if (!open || !target) return;
     let cancelled = false;
     setNote("");
+    setKhoHienTai(null);
     setLoadingPrefill(true);
     if (target.kind === "BO") {
       void listKhoaOptionsForDeNghiAction().then((res) => {
@@ -168,7 +169,9 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
       setTargetTen(res.targetTen);
       if (res.kind === "LOAI") {
         const f = res.fields;
-        setBefore({ ...f });
+        const beforeRow = { ...f } as Record<string, unknown>;
+        delete beforeRow.so_luong_kho_du_phong;
+        setBefore(beforeRow);
         setMaLoai(String(f.ma_loai || ""));
         setTenLoai(String(f.ten_loai || ""));
         setMoTa(String(f.mo_ta || ""));
@@ -179,7 +182,7 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
         setPpTk(String(f.phuong_phap_tiet_khuan_chi_dinh || "STEAM_134"));
         setSpaulding(String(f.phan_loai_spaulding || "CRITICAL"));
         setPhanLoai(String(f.phan_loai || "PHAU_THUAT"));
-        setKhoDuPhong(Number(f.so_luong_kho_du_phong || 0));
+        setKhoHienTai(res.khoHienTai);
         setLoaiActive(f.is_active !== false);
       } else if (res.kind === "BO") {
         const f = res.fields;
@@ -232,7 +235,6 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
         phuong_phap_tiet_khuan_chi_dinh: ppTk,
         phan_loai_spaulding: spaulding,
         phan_loai: phanLoai,
-        so_luong_kho_du_phong: khoDuPhong,
         is_active: loaiActive,
       };
       return {
@@ -376,9 +378,10 @@ export function CatalogDeNghiDialog({ open, onOpenChange, target, onSubmitted }:
                 <option value="THU_THUAT">Thủ thuật</option>
               </select>
             </label>
-            <label className={labelCls}>Kho dự phòng
-              <input type="number" min={0} className={inputCls} value={khoDuPhong} onChange={(e) => setKhoDuPhong(parseInt(e.target.value) || 0)} />
-            </label>
+            <div className={labelCls}>Kho dự phòng
+              <p className={`${inputCls} bg-slate-50 text-slate-700`}>{khoHienTai == null ? "—" : khoHienTai}</p>
+              <span className="mt-0.5 block text-[11px] font-normal text-slate-500">Chỉ đổi qua Kho dự phòng</span>
+            </div>
             <label className={`${labelCls} flex items-center gap-2 pt-5`}>
               <input type="checkbox" checked={loaiActive} onChange={(e) => setLoaiActive(e.target.checked)} />
               Đang hoạt động

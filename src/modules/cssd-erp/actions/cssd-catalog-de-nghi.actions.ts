@@ -223,9 +223,9 @@ export async function loadCatalogDeNghiPrefillAction(input: {
           phuong_phap_tiet_khuan_chi_dinh: data.phuong_phap_tiet_khuan_chi_dinh || "STEAM_134",
           phan_loai_spaulding: data.phan_loai_spaulding || "CRITICAL",
           phan_loai: data.phan_loai || "PHAU_THUAT",
-          so_luong_kho_du_phong: Number(data.so_luong_kho_du_phong || 0),
           is_active: data.is_active !== false,
         },
+        khoHienTai: Number(data.so_luong_kho_du_phong || 0),
       };
     }
 
