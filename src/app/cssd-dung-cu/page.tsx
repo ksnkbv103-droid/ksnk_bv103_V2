@@ -13,7 +13,14 @@ import InventoryHistoryTable from "@/modules/cssd-erp/components/inventory/Inven
 import SetCompositionCard from "@/modules/cssd-erp/components/inventory/SetCompositionCard";
 import SetReconcileCampaignPanel from "@/modules/cssd-erp/components/inventory/SetReconcileCampaignPanel";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
-import { CSSD_UI_TAB_GROUP } from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
+import {
+  CSSD_UI_TAB_GROUP,
+  CSSD_UI_TOOLBAR_PRIMARY,
+  CSSD_UI_TOOLBAR_QUIET,
+  CSSD_UI_TOOLBAR_ROW,
+  CSSD_UI_LINK_QUIET,
+  CSSD_UI_ACTION_SECONDARY,
+} from "@/modules/cssd-erp/shared/ui/cssd-ui-chrome";
 import { CssdHorizTabButton } from "@/modules/cssd-erp/components/layout/CssdHorizTabButton";
 import QrScanInput from "@/components/shared/QrScanInput";
 import { CssdQrLabelKindsNotice } from "@/modules/cssd-erp/components/catalog/CssdQrLabelKindsNotice";
@@ -22,35 +29,29 @@ import {
   CatalogDeNghiCartProvider,
   CatalogDeNghiCartBar,
 } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiCart";
-
-const TEXT_ACTION = "text-[11px] font-semibold text-[var(--primary)] hover:underline";
-const SEARCH_INPUT =
-  "bv103-control-h w-full touch-manipulation rounded-[var(--radius-control)] border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400 focus:border-[var(--primary)]/50 focus:ring-2 focus:ring-[var(--primary)]/15";
-const SEARCH_CAMERA =
-  "bv103-control-h inline-flex shrink-0 items-center justify-center gap-1 rounded-[var(--radius-control)] border border-slate-200 bg-white px-2.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50";
+import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 
 export default function Page() {
   const s = useCssdCatalogPage();
   const isCatalogTab = s.tab === "BO" || s.tab === "LOAI";
 
   const catalogToolbar = (
-    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
-      <QrScanInput
-        value={s.q}
-        onChange={s.setQ}
-        placeholder="Tìm tên, mã hoặc quét QR…"
-        cameraTitle="Tìm hoặc quét QR danh mục"
-        onEnter={(code) => void s.handleScan(code)}
-        onCameraScan={(code) => void s.handleScan(code)}
-        className="min-w-[12rem] flex-1"
-        inputClassName={SEARCH_INPUT}
-        cameraClassName={SEARCH_CAMERA}
-      />
-      <div className="flex shrink-0 flex-wrap items-center gap-x-3">
-        <Link
-          href="/cssd-dung-cu?tab=DE_NGHI"
-          className={TEXT_ACTION}
-        >
+    <div className={CSSD_UI_TOOLBAR_ROW}>
+      <div className={CSSD_UI_TOOLBAR_PRIMARY}>
+        <QrScanInput
+          value={s.q}
+          onChange={s.setQ}
+          placeholder="Tìm tên, mã hoặc quét QR…"
+          cameraTitle="Tìm hoặc quét QR danh mục"
+          onEnter={(code) => void s.handleScan(code)}
+          onCameraScan={(code) => void s.handleScan(code)}
+          className="min-w-[12rem] flex-1"
+          inputClassName={bv103LayoutChrome.controlInput}
+          cameraClassName={`${CSSD_UI_ACTION_SECONDARY} px-2.5 text-[11px]`}
+        />
+      </div>
+      <div className={CSSD_UI_TOOLBAR_QUIET} aria-label="Liên kết phụ">
+        <Link href="/cssd-dung-cu?tab=DE_NGHI" className={CSSD_UI_LINK_QUIET}>
           Xem phiếu đề nghị
         </Link>
         {s.tab === "BO" ? <SetReconcileCampaignPanel /> : null}

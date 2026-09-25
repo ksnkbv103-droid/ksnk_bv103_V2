@@ -51,10 +51,10 @@ function CssdThietBiPageInner() {
       actions={
         <Link
           href="/quan-tri-he-thong/danh-muc/thiet-bi"
-          className={`${bv103LayoutChrome.btnSecondary} gap-1.5 px-2.5`}
+          className={`${bv103LayoutChrome.linkQuiet} gap-1`}
         >
           Sửa tại Quản trị
-          <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+          <ExternalLink className="h-3.5 w-3.5 opacity-60" aria-hidden />
         </Link>
       }
     >

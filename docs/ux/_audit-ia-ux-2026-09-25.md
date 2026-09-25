@@ -181,7 +181,7 @@ Full text: [`principles.md`](./principles.md).
 | P1-1 | Unify `Bv103TabList` (ModeNav + CSSD horiz) |
 | P1-2 | Shared status chip semantics (overdue / waiting / ok / locked) |
 | P1-3 | `OpsDetailSheet` for QLCV; dialog = confirm only |
-| P1-4 | Toolbar: primary cluster vs quiet links |
+| P1-4 | Toolbar: primary cluster vs quiet links | **Done** (local 2026-09-25 Asia/Saigon): `/cssd-dung-cu` scan cluster vs quiet đề nghị/reconcile/docs; shared `linkQuiet` + toolbar clusters in `bv103LayoutChrome`; light quiet on `/cssd-thiet-bi` admin door |
 | P1-5 | Toast/error copy: plain VI first, code footnote |
 
 ### P2 — Modules (after shell)
@@ -217,6 +217,8 @@ Full text: [`principles.md`](./principles.md).
 - [ ] Spot-check on localhost (screenshots optional).
 
 **Slice 0 shipped** (local, 2026-09-25 Asia/Saigon): per-route CSSD headers in `getKsnkAppHeaderBreadcrumb`; Header SSOT title policy (`showTitle` false on `CSSDPageShell`); `Bv103EmptyState` ×3.
+
+**P1-4 shipped** (local): CSSD Dụng cụ toolbar primary (Quét/tìm) vs quiet secondaries; tokens `toolbar*Cluster` + `linkQuiet`.
 
 **Next:** CSSD Quy trình calm (P2-1) **or** QLCV detail sheet (P1-3+P2-3) — PO picks by UAT pain.
 
