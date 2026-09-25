@@ -95,3 +95,38 @@ export async function getTrangThaiMauSacMap(): Promise<Record<string, string>> {
   }
   return map;
 }
+
+/** SSOT gate counts from `rpc_qlcv_board_counts` (global — no loai/period args on RPC). */
+export type QlcvBoardGateCounts = {
+  myTasks: number;
+  inProgress: number;
+  overdue: number;
+  choToi: number;
+};
+
+export async function getQlcvBoardCounts(
+  actorStaffId?: string | null,
+): Promise<QlcvBoardGateCounts> {
+  const { supabase } = await ensureQlcvKsnkAccess("view");
+  const { data, error } = await supabase.rpc("rpc_qlcv_board_counts", {
+    p_actor_staff_id: actorStaffId ?? null,
+  });
+  if (error) throw error;
+
+  const gates =
+    data && typeof data === "object" && "gates" in (data as object)
+      ? ((data as { gates?: Record<string, unknown> }).gates ?? {})
+      : {};
+
+  const n = (v: unknown) => {
+    const x = Number(v);
+    return Number.isFinite(x) ? x : 0;
+  };
+
+  return {
+    myTasks: n(gates.my_tasks),
+    inProgress: n(gates.in_progress),
+    overdue: n(gates.overdue),
+    choToi: n(gates.cho_toi),
+  };
+}

@@ -1,33 +1,68 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Clock, UserRound, Inbox } from "lucide-react";
 import { isBoardLaneDangLam, isBoardLaneQuaHan } from "../lib/qlcv-board-lanes";
 import { isMyQlcvTask, isQlcvChoToiDuyet, type QlcvBoardFilter } from "../lib/qlcv-board-filter";
+import {
+  getQlcvBoardCounts,
+  type QlcvBoardGateCounts,
+} from "../actions/cong-viec-read.actions";
 import type { CongViecView } from "../types";
 
 interface Props {
-  tasks: CongViecView[];
+  /** Fallback when RPC fails — prefer `rpc_qlcv_board_counts` (global SSOT). */
+  tasks?: CongViecView[];
   activeFilter?: QlcvBoardFilter | null;
   onFilterChange?: (filter: QlcvBoardFilter) => void;
   actorStaffId?: string | null;
+  /** Bump after create/edit/delete so counts refetch (client-fetched). */
+  refreshKey?: number;
 }
 
 const chipBase =
   "inline-flex h-9 shrink-0 touch-manipulation items-center gap-1.5 rounded-[var(--radius-control)] border px-2.5 text-[11px] font-semibold transition-colors select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-1";
 
-export function QlcvGateStats({ tasks, activeFilter, onFilterChange, actorStaffId }: Props) {
-  const list = tasks ?? [];
+const EMPTY: QlcvBoardGateCounts = { myTasks: 0, inProgress: 0, overdue: 0, choToi: 0 };
 
-  const stats = useMemo(() => {
+export function QlcvGateStats({
+  tasks,
+  activeFilter,
+  onFilterChange,
+  actorStaffId,
+  refreshKey = 0,
+}: Props) {
+  const list = tasks ?? [];
+  const [rpcCounts, setRpcCounts] = useState<QlcvBoardGateCounts | null>(null);
+
+  const clientFallback = useMemo((): QlcvBoardGateCounts => {
     const myTasks = actorStaffId
       ? list.filter((t) => isMyQlcvTask(t as unknown as Record<string, unknown>, actorStaffId)).length
       : 0;
     const inProgress = list.filter((t) => isBoardLaneDangLam(t)).length;
-    const overdueCount = list.filter((t) => isBoardLaneQuaHan(t)).length;
+    const overdue = list.filter((t) => isBoardLaneQuaHan(t)).length;
     const choToi = list.filter((t) => isQlcvChoToiDuyet(t as unknown as Record<string, unknown>)).length;
-    return { myTasks, inProgress, overdueCount, choToi };
+    return { myTasks, inProgress, overdue, choToi };
   }, [list, actorStaffId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const next = await getQlcvBoardCounts(actorStaffId ?? null);
+        if (!cancelled) setRpcCounts(next);
+      } catch (err) {
+        console.error("rpc_qlcv_board_counts failed; using client slice fallback", err);
+        if (!cancelled) setRpcCounts(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [actorStaffId, refreshKey]);
+
+  // Prefer global RPC SSOT; client slice only if RPC unavailable.
+  const stats = rpcCounts ?? (list.length > 0 ? clientFallback : EMPTY);
 
   const pick = onFilterChange;
   const isSel = (f: QlcvBoardFilter) => activeFilter === f;
@@ -69,7 +104,7 @@ export function QlcvGateStats({ tasks, activeFilter, onFilterChange, actorStaffI
       {chip(
         "OVERDUE",
         "Quá hạn",
-        stats.overdueCount,
+        stats.overdue,
         <AlertTriangle size={14} className="text-red-600" />,
         "border-red-200 bg-red-50",
       )}

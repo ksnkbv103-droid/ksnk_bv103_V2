@@ -88,6 +88,7 @@ export default function QuanLyCongViecPage() {
     import("@/modules/quan-ly-cong-viec/lib/qlcv-dinh-ky-period-match").DinhKyMauForPeriod[]
   >([]);
   const [printPeriodSnapshot, setPrintPeriodSnapshot] = useState(() => resolveQlcvPeriodRange("MONTH"));
+  const [gateCountsRefreshKey, setGateCountsRefreshKey] = useState(0);
 
   const { isAdmin, allowed, userData } = useModulePermission("CONG_VIEC");
   const qlcvUi: QlcvUiAccessFlags = useMemo(
@@ -284,6 +285,7 @@ export default function QuanLyCongViecPage() {
   const refreshAll = useCallback(async () => {
     await kanban.refreshTasks();
     if (viewMode === "BANG") await table.loadTablePage();
+    setGateCountsRefreshKey((n) => n + 1);
   }, [kanban, table, viewMode]);
 
   const navigateQlcvMain = useCallback(() => {
@@ -542,6 +544,7 @@ export default function QuanLyCongViecPage() {
             mauSacByMa={mauSacByMa}
             loaiFilter={loaiFilter}
             periodKindFilter={filterBoardByPeriod ? periodKind : null}
+            gateCountsRefreshKey={gateCountsRefreshKey}
             summarySlot={
               <QlcvDinhKySummaryBar
                 tasks={mergedTasks}

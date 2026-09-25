@@ -71,6 +71,8 @@ export type QlcvOperationsPanelProps = {
   /** Khi set: chỉ phiếu có hạn trong kỳ (client). */
   periodKindFilter?: QlcvPeriodKind | null;
   summarySlot?: React.ReactNode;
+  /** Bump after mutate so GateStats refetches rpc_qlcv_board_counts. */
+  gateCountsRefreshKey?: number;
 };
 
 export function QlcvOperationsPanel({
@@ -91,6 +93,7 @@ export function QlcvOperationsPanel({
   loaiFilter = "ALL",
   periodKindFilter = null,
   summarySlot,
+  gateCountsRefreshKey = 0,
 }: QlcvOperationsPanelProps) {
   const [deleteTarget, setDeleteTarget] = useState<CongViecView | null>(null);
   const scopedTasks = useMemo(
@@ -211,6 +214,7 @@ export function QlcvOperationsPanel({
         activeFilter={kanban.boardFilter}
         onFilterChange={onBoardFilter}
         actorStaffId={actorStaffId}
+        refreshKey={gateCountsRefreshKey}
       />
 
       <div className={`min-w-0 ${UI.shell} space-y-3 p-3 sm:p-4`}>
