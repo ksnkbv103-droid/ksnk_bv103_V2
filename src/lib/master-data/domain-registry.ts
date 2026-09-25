@@ -20,8 +20,6 @@ export type MasterSource =
   | "cssd_dm_tram"
   | "gstt_dm_hinh_thuc_giam_sat"
   | "gstt_dm_cach_thuc_giam_sat"
-  | "qlcv_dm_loai_cong_viec"
-  | "qlcv_dm_trang_thai_cong_viec"
   | "nkbv_dm_loai"
   | "nkbv_dm_trang_thai_ca";
 
@@ -48,8 +46,6 @@ const ENTRIES: RegistryEntry[] = [
   { loaiDanhMuc: "TRAM_CSSD", sourceTable: "cssd_dm_tram", idColumn: "id", maColumn: "ma_tram", tenColumn: "ten_tram" },
   { loaiDanhMuc: "HINH_THUC_GIAM_SAT", sourceTable: "gstt_dm_hinh_thuc_giam_sat", idColumn: "id", maColumn: "ma_hinh_thuc", tenColumn: "ten_hinh_thuc" },
   { loaiDanhMuc: "CACH_THUC_GIAM_SAT", sourceTable: "gstt_dm_cach_thuc_giam_sat", idColumn: "id", maColumn: "ma_cach_thuc", tenColumn: "ten_cach_thuc" },
-  { loaiDanhMuc: "LOAI_CONG_VIEC", sourceTable: "qlcv_dm_loai_cong_viec", idColumn: "id", maColumn: "ma", tenColumn: "ten" },
-  { loaiDanhMuc: "TRANG_THAI_CONG_VIEC", sourceTable: "qlcv_dm_trang_thai_cong_viec", idColumn: "id", maColumn: "ma", tenColumn: "ten" },
   { loaiDanhMuc: "LOAI_NKBV", sourceTable: "nkbv_dm_loai", idColumn: "id", maColumn: "ma_loai", tenColumn: "ten_loai" },
   {
     loaiDanhMuc: "TRANG_THAI_NKBV_CA",
@@ -116,8 +112,6 @@ export const DM_HUB_LABELS: Record<string, string> = {
   TRAM_CSSD: "Trạm workflow CSSD",
   HINH_THUC_GIAM_SAT: "Hình thức giám sát",
   CACH_THUC_GIAM_SAT: "Cách thức giám sát",
-  LOAI_CONG_VIEC: "Loại công việc",
-  TRANG_THAI_CONG_VIEC: "Trạng thái công việc",
   LOAI_NKBV: "Loại ca NKBV / HAI",
   TRANG_THAI_NKBV_CA: "Trạng thái phiếu NKBV",
 };

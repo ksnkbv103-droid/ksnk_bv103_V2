@@ -35,7 +35,7 @@ import {
 import { mergeQlcvKanbanTasks } from "@/modules/quan-ly-cong-viec/lib/qlcv-list-merge";
 import { isDeXuatChoDuyet } from "@/modules/quan-ly-cong-viec/lib/qlcv-workflow-display";
 import { QlcvImportDialog } from "@/modules/quan-ly-cong-viec/components/QlcvImportDialog";
-import { getTrangThaiMauSacMap } from "@/modules/quan-ly-cong-viec/actions/cong-viec-read.actions";
+import { QLCV_TRANG_THAI_MAU_SAC } from "@/modules/quan-ly-cong-viec/lib/qlcv-labels";
 import { listDinhKyMau } from "@/modules/quan-ly-cong-viec/actions/dinh-ky.actions";
 import { filterMauDueInPeriod } from "@/modules/quan-ly-cong-viec/lib/qlcv-dinh-ky-period-match";
 import {
@@ -78,7 +78,7 @@ export default function QuanLyCongViecPage() {
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
-  const [mauSacByMa, setMauSacByMa] = useState<Record<string, string>>({});
+  const mauSacByMa = QLCV_TRANG_THAI_MAU_SAC;
   const [loaiFilter, setLoaiFilter] = useState<QlcvLoaiFilter>("ALL");
   const [periodKind, setPeriodKind] = useState<QlcvPeriodKind>("MONTH");
   const [filterBoardByPeriod, setFilterBoardByPeriod] = useState(false);
@@ -135,12 +135,6 @@ export default function QuanLyCongViecPage() {
   useEffect(() => {
     if (userData?.id) kanban.setBoardFilter("MY_TASKS");
   }, [userData?.id, kanban.setBoardFilter]);
-
-  useEffect(() => {
-    void getTrangThaiMauSacMap()
-      .then(setMauSacByMa)
-      .catch(() => setMauSacByMa({}));
-  }, []);
 
   useEffect(() => {
     const openId = searchParams.get("id")?.trim();

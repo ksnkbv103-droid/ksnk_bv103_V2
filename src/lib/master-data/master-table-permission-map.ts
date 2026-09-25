@@ -23,8 +23,6 @@ const MASTER_TABLE_MODULE: Record<string, string> = {
   cssd_dm_loai_may: "DANH_MUC_CSSD_LOOKUP",
   gstt_dm_hinh_thuc_giam_sat: "DANH_MUC_GSTT",
   gstt_dm_cach_thuc_giam_sat: "DANH_MUC_GSTT",
-  qlcv_dm_loai_cong_viec: "CONG_VIEC",
-  qlcv_dm_trang_thai_cong_viec: "CONG_VIEC",
   nkbv_dm_loai: "GIAM_SAT_NKBV",
   nkbv_dm_trang_thai_ca: "GIAM_SAT_NKBV",
 };

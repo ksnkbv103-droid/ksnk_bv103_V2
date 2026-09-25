@@ -303,15 +303,6 @@ describe("updateCongViec", () => {
           }),
         };
       }
-      if (table === "qlcv_dm_trang_thai_cong_viec" || table === "qlcv_dm_loai_cong_viec") {
-        return {
-          select: () => ({
-            eq: () => ({
-              maybeSingle: vi.fn().mockResolvedValue({ data: { id: "tt-dang-lam" }, error: null }),
-            }),
-          }),
-        };
-      }
       return {};
     });
 

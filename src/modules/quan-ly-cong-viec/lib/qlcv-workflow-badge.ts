@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { QLCV_TRANG_THAI_MAU_SAC } from "./qlcv-labels";
 import {
   getQlcvWorkflowGate,
   getQlcvWorkflowGateBadgeClass,
@@ -55,14 +56,17 @@ export type QlcvWorkflowBadgeAppearance = {
   style?: CSSProperties;
 };
 
-/** Badge cổng workflow — ưu tiên `mau_sac` MDM, fallback Tailwind cứng. */
+/**
+ * Badge cổng workflow — ưu tiên map truyền vào, fallback hardcode SSOT,
+ * cuối cùng Tailwind class.
+ */
 export function resolveQlcvWorkflowBadgeAppearance(
   task: CongViecLike,
   mauSacByMa?: Record<string, string | null | undefined>,
 ): QlcvWorkflowBadgeAppearance {
   const gate = getQlcvWorkflowGate(task);
   const ma = GATE_MAU_SAC_MA[gate];
-  const mauSac = mauSacByMa?.[ma]?.trim();
+  const mauSac = (mauSacByMa?.[ma] ?? QLCV_TRANG_THAI_MAU_SAC[ma])?.trim();
   const style = mauSac ? pillStyleFromMauSac(mauSac) : undefined;
   if (style) {
     return { className: BADGE_BASE_CLASS, style };

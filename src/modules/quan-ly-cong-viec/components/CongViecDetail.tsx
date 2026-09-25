@@ -38,7 +38,7 @@ import {
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { getCongViecTrangThaiLabel } from "../lib/qlcv-labels";
 import { resolveQlcvWorkflowBadgeAppearance } from "../lib/qlcv-workflow-badge";
-import { getTrangThaiMauSacMap } from "../actions/cong-viec-read.actions";
+import { QLCV_TRANG_THAI_MAU_SAC } from "../lib/qlcv-labels";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
 import { hasQlcvChecklistFullResult } from "@/lib/domain/qlcv/close-requires-result";
@@ -128,7 +128,7 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const canNghiemThu = canShowQlcvApproveActions(accessFlags);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<CongViecDetailData | null>(null);
-  const [mauSacByMa, setMauSacByMa] = useState<Record<string, string>>({});
+  const mauSacByMa = QLCV_TRANG_THAI_MAU_SAC;
   const [activeId] = useState(id);
   /** Inline subpanels inside OpsDetailSheet — no nested Dialog for Edit/Approve */
   const [detailPanel, setDetailPanel] = useState<"view" | "edit" | "approve">("view");
@@ -155,12 +155,6 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   useEffect(() => {
     fetchDetail();
   }, [activeId]);
-
-  useEffect(() => {
-    void getTrangThaiMauSacMap()
-      .then(setMauSacByMa)
-      .catch(() => setMauSacByMa({}));
-  }, []);
 
   useEffect(() => {
     void getQlcvFormCatalog()

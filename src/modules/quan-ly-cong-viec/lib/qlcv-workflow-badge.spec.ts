@@ -8,12 +8,13 @@ describe("qlcv-workflow-badge", () => {
     expect(style?.borderColor).toContain("rgba(");
   });
 
-  it("falls back to tailwind when no mau_sac map", () => {
+  it("uses hardcoded SSOT mau_sac when map omitted", () => {
     const badge = resolveQlcvWorkflowBadgeAppearance({ trang_thai: "HOAN_THANH", is_active: true });
-    expect(badge.className).toContain("emerald");
+    expect(badge.style?.backgroundColor).toBeTruthy();
+    expect(badge.className).not.toContain("emerald");
   });
 
-  it("uses MDM mau_sac when map provided", () => {
+  it("uses provided mau_sac map over SSOT", () => {
     const badge = resolveQlcvWorkflowBadgeAppearance(
       { trang_thai: "HOAN_THANH", is_active: true },
       { HOAN_THANH: "#026F17" },

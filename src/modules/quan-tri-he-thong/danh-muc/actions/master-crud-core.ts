@@ -59,8 +59,6 @@ const MASTER_TABLE_ALLOWLIST = new Set([
   "cssd_dm_loai_may",
   "gstt_dm_hinh_thuc_giam_sat",
   "gstt_dm_cach_thuc_giam_sat",
-  "qlcv_dm_loai_cong_viec",
-  "qlcv_dm_trang_thai_cong_viec",
   "nkbv_dm_loai",
   "nkbv_dm_trang_thai_ca",
   "mdm_nhan_su",
@@ -89,13 +87,11 @@ const CONSOLIDATED_MAPS: Record<
   gstt_dm_hinh_thuc_giam_sat: { categoryType: "HINH_THUC_GIAM_SAT", maColumn: "ma_hinh_thuc", tenColumn: "ten_hinh_thuc" },
   mdm_dm_khoi_khoa: { categoryType: "KHOI_KHOA", maColumn: "ma_khoi", tenColumn: "ten_khoi" },
   cssd_dm_tram: { categoryType: "TRAM_CSSD", maColumn: "ma_tram", tenColumn: "ten_tram", metadataColumns: ["thu_tu"] },
-  qlcv_dm_loai_cong_viec: { categoryType: "LOAI_CONG_VIEC", maColumn: "ma", tenColumn: "ten", metadataColumns: ["thu_tu"] },
   cssd_dm_loai_may: { categoryType: "LOAI_MAY_TIET_KHUAN", maColumn: "ma_loai_may", tenColumn: "ten_loai_may" },
   nkbv_dm_loai: { categoryType: "LOAI_NKBV", maColumn: "ma_loai", tenColumn: "ten_loai" },
   cssd_dm_loai_su_co: { categoryType: "LOAI_SU_CO", maColumn: "ma_loai_su_co", tenColumn: "ten_loai_su_co" },
   mdm_dm_nghe_nghiep: { categoryType: "NGHE_NGHIEP", maColumn: "ma_nghe_nghiep", tenColumn: "ten_nghe_nghiep" },
   mdm_dm_to_cong_tac: { categoryType: "TO_CONG_TAC", maColumn: "ma_to", tenColumn: "ten_to" },
-  qlcv_dm_trang_thai_cong_viec: { categoryType: "TRANG_THAI_CONG_VIEC", maColumn: "ma", tenColumn: "ten", metadataColumns: ["mau_sac", "thu_tu"] },
   nkbv_dm_trang_thai_ca: { categoryType: "TRANG_THAI_NKBV_CA", maColumn: "ma_trang_thai", tenColumn: "ten_trang_thai", metadataColumns: ["thu_tu"] },
 };
 

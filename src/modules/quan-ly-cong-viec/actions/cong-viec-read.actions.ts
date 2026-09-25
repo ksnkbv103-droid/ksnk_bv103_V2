@@ -1,8 +1,8 @@
 "use server";
 
-import { verifyPermission } from "@/lib/server-permission";
 import { getCachedDmKhoaPhong } from "@/lib/cache/master-data-cache";
 import type { QlcvFormCatalog, QlcvSelectOption } from "../lib/qlcv-form-options";
+import { getQlcvTrangThaiMauSacMap } from "../lib/qlcv-labels";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import { formatKhoaPickerLabel } from "@/lib/domain/khoa-display";
 
@@ -51,36 +51,23 @@ async function getKhoaPhongOptions(): Promise<QlcvSelectOption[]> {
   }));
 }
 
-/** Một round-trip: tổ + nhân sự KSNK + khoa địa điểm + màu trạng thái. */
+/** Một round-trip: tổ + nhân sự KSNK + khoa địa điểm; màu trạng thái hardcode (Wave 3). */
 export async function getQlcvFormCatalog(): Promise<QlcvFormCatalog> {
   const { ksnkKhoaId } = await ensureQlcvKsnkAccess("view");
-  const [nhanSu, toCongTac, khoaPhong, trangThaiMauSac] = await Promise.all([
+  const [nhanSu, toCongTac, khoaPhong] = await Promise.all([
     getKsnkNhanSuOptions(ksnkKhoaId),
     getToCongTacOptions(),
     getKhoaPhongOptions(),
-    getTrangThaiMauSacMap(),
   ]);
-  return { nhanSu, toCongTac, khoaPhong, trangThaiMauSac };
+  return { nhanSu, toCongTac, khoaPhong, trangThaiMauSac: getQlcvTrangThaiMauSacMap() };
 }
 
-/** Map mã trạng thái → mau_sac từ MDM (qlcv_dm_trang_thai_cong_viec). */
+/**
+ * Map mã trạng thái → mau_sac (hardcode SSOT — không đọc qlcv_dm_trang_thai_cong_viec).
+ * Giữ async export cho caller cũ; Wave 3 FE nên import sync từ qlcv-labels.
+ */
 export async function getTrangThaiMauSacMap(): Promise<Record<string, string>> {
-  await verifyPermission("CONG_VIEC", "view");
-  const { supabase } = await ensureQlcvKsnkAccess("view");
-  const { data, error } = await supabase
-    .from("qlcv_dm_trang_thai_cong_viec")
-    .select("ma, mau_sac")
-    .eq("is_active", true)
-    .limit(MAX_DM_OPTIONS);
-
-  if (error) throw error;
-  const map: Record<string, string> = {};
-  for (const row of data || []) {
-    const ma = String(row.ma ?? "").trim();
-    const color = String(row.mau_sac ?? "").trim();
-    if (ma && color) map[ma] = color;
-  }
-  return map;
+  return getQlcvTrangThaiMauSacMap();
 }
 
 /** SSOT gate counts from `rpc_qlcv_board_counts` (global — no loai/period args on RPC). */
