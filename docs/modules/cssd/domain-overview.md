@@ -199,7 +199,7 @@ flowchart TD
 
 1. Thiếu cấu phần lúc đóng gói / cấp phát → **cảnh báo + tem**, **không chặn cứng** (QLDCPT Q2).
 2. Bộ lẫn chịu nhiệt / không chịu nhiệt → **bắt tách SUB** trước khi đạt đóng gói / khóa steam 134.
-3. QC mẻ không đạt → **rollback về Đóng gói + sự cố** (+ đóng băng nếu cần).
+3. QC mẻ / BI+ không đạt → **thu hồi về Tiếp nhận + sự cố** (chu kỳ cũ giữ `lo_tiet_khuan_id`; bộ đã dùng lâm sàng chỉ liệt kê; máy READY → HOLD_QC). Không về Đóng gói.
 4. Tiệt khuẩn chỉ qua **phiếu mẻ**, không quét trạm «Tiệt khuẩn» trên shell 6 bước.
 5. Master CRUD ≠ vận hành quét; hard-write loại/bộ/BOM chỉ **ADMIN**; `BO_DC.edit` = duyệt phiếu (D5). BOM **1 bộ×1 loại** unique active (D6).
 6. Cấp phát khi chưa có mẻ / mẻ chưa QC → **lỗi** (chặn).

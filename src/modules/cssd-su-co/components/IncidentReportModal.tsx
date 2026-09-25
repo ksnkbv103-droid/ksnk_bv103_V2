@@ -72,7 +72,7 @@ export default function IncidentReportModal({
             </div>
             <p className={`mt-0.5 truncate ${UI.panelSubtitle}`}>
               {batchRecallEntry
-                ? "Sự cố an toàn QT.24 — không phải biến động dụng cụ"
+                ? "Sự cố an toàn — không phải biến động dụng cụ"
                 : defaultGroup === "INSTRUMENT"
                   ? "Biến động: Hỏng/Mất · Chuyển kho·bộ"
                   : "Ghi nhận sự cố an toàn tại trạm (quy trình / HC / máy)"}

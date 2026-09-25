@@ -123,7 +123,7 @@ export default function SuCoBaoCaoPage() {
           <Link
             href={cssdSuCoBatchRecallHref()}
             className="bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-amber-300 bg-amber-50 px-2.5 text-xs font-semibold text-amber-900 hover:bg-amber-100"
-            title="Thu hồi theo mẻ — sự cố an toàn QT.24"
+            title="Thu hồi theo mẻ — sự cố an toàn"
           >
             <Undo2 size={14} aria-hidden />
             Thu hồi theo mẻ
