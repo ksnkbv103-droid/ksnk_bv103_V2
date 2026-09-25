@@ -10,6 +10,7 @@ import { Download, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
 import { bv103TableLayout } from "@/lib/bv103-table-layout";
+import { Bv103EmptyState } from "@/components/shared/Bv103EmptyState";
 import { getQlcvBaoCaoKy } from "../actions/bao-cao-ky.actions";
 import {
   ketQuaDongHanLabel,
@@ -131,8 +132,25 @@ export function QlcvBaoCaoPanel() {
     };
   }, [payload, tableId]);
 
-  const emptyMsg =
-    "Chưa có dòng phù hợp. Pilot/prod có thể đang 0 phiếu — tạo việc trên Điều hành rồi tải lại.";
+  const emptyTitle = "Chưa có dòng phù hợp kỳ này.";
+  const emptyState = (
+    <div className="p-4">
+      <Bv103EmptyState
+        title={emptyTitle}
+        action={
+          <button
+            type="button"
+            className={bv103LayoutChrome.btnPrimary}
+            disabled={loading}
+            onClick={() => void load()}
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin" : undefined} aria-hidden />
+            Tải lại
+          </button>
+        }
+      />
+    </div>
+  );
 
   return (
     <div className="bv103-stack-page space-y-[var(--bv103-space-3)]">
@@ -241,7 +259,7 @@ export function QlcvBaoCaoPanel() {
 
         {!loading && payload && tableId === "NGUOI" ? (
           payload.theoNguoi.length === 0 ? (
-            <p className="p-6 text-center text-sm text-slate-500">{emptyMsg}</p>
+            emptyState
           ) : (
             <table className={bv103TableLayout.tableFixed}>
               <thead>
@@ -299,7 +317,7 @@ export function QlcvBaoCaoPanel() {
 
         {!loading && payload && tableId === "QUA_HAN" ? (
           payload.quaHan.length === 0 ? (
-            <p className="p-6 text-center text-sm text-slate-500">{emptyMsg}</p>
+            emptyState
           ) : (
             <table className={bv103TableLayout.tableFixed}>
               <thead>
@@ -332,7 +350,7 @@ export function QlcvBaoCaoPanel() {
 
         {!loading && payload && tableId === "DONG_HAN" ? (
           payload.dongHan.length === 0 ? (
-            <p className="p-6 text-center text-sm text-slate-500">{emptyMsg}</p>
+            emptyState
           ) : (
             <table className={bv103TableLayout.tableFixed}>
               <thead>

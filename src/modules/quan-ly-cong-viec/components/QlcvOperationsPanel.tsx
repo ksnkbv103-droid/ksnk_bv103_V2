@@ -307,6 +307,7 @@ export function QlcvOperationsPanel({
               data={tableData}
               loading={table.tableLoading || kanban.loading}
               onRowClick={(item) => onSelectTask(item.id)}
+              emptyMessage="Chưa có công việc phù hợp."
               tableClassName="w-full min-w-0 table-fixed border-collapse text-sm"
               searchValue={table.tableSearchInput}
               onSearch={table.handleTableSearch}
