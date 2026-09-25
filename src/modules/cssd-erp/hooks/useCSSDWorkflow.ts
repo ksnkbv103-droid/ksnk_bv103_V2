@@ -7,7 +7,7 @@ import { scanQR, getWaitingListByStation, resolveNextScanStation } from "../acti
 import { prepareDongGoiBomGateScan } from "../actions/cssd-bom-checkpoint.actions";
 import { usePermission } from "@/hooks/usePermission";
 import { toast } from "sonner";
-import { SCAN_STATIONS, WORKFLOW_STEPS, nextStationLabel } from "../workflow/domain/cssd-stations";
+import { SCAN_STATIONS, WORKFLOW_STEPS, nextIsMeHandoff, nextStationLabel } from "../workflow/domain/cssd-stations";
 import { formatTimeVi } from "@/lib/format-datetime-vi";
 import { cssdQuyTrinhBatchTabHref } from "@/lib/cssd-routes";
 
@@ -62,7 +62,7 @@ export function useCSSDWorkflow() {
 
   const selectStation = (station: Station) => {
     if (station === "TIET_KHUAN") {
-      toast.message("Tiệt khuẩn chỉ qua tab Mẻ (phiếu hấp) — không chọn quét tại trang 6 bước.");
+      toast.message("Tiệt khuẩn chỉ qua tab Mẻ.");
       return;
     }
     setCurrentStation(station);
@@ -107,6 +107,7 @@ export function useCSSDWorkflow() {
         nguoiThucHien: operatorLabel,
         thoiGianQuet: formatTimeVi(new Date()),
         buocTiepTheo: nextStationLabel(station),
+        meHandoffHref: nextIsMeHandoff(station) ? cssdQuyTrinhBatchTabHref() : undefined,
         quyTrinhId: scanRes.quyTrinhId,
         boDungCuId: scanRes.boDungCuId,
         maCycleQr: scanRes.maCycleQr,
@@ -148,6 +149,7 @@ export function useCSSDWorkflow() {
             nguoiThucHien: operatorLabel,
             thoiGianQuet: formatTimeVi(new Date()),
             buocTiepTheo: nextStationLabel(station),
+            meHandoffHref: nextIsMeHandoff(station) ? cssdQuyTrinhBatchTabHref() : undefined,
             isOffline: true,
           });
           setWaitingList((prev) => prev.filter((item) => item.ma_vach_qr !== code));
@@ -164,10 +166,9 @@ export function useCSSDWorkflow() {
 
   const handleQRScan = async (code: string, extraPayload?: Record<string, unknown>) => {
     if (currentStation === "TIET_KHUAN") {
-      toast.error(
-        `Không quét tiệt khuẩn tại đây. Mở tab Mẻ tiệt khuẩn (${cssdQuyTrinhBatchTabHref()}): tạo phiếu, rồi quét QR bộ trong màn hình mẻ.`,
-        { duration: 9000 },
-      );
+      toast.error(`Không quét tiệt khuẩn tại đây — mở tab Mẻ (${cssdQuyTrinhBatchTabHref()}).`, {
+        duration: 6000,
+      });
       return;
     }
 
@@ -175,8 +176,8 @@ export function useCSSDWorkflow() {
       try {
         const next = await resolveNextScanStation(code);
         if (next.needsBatchTab) {
-          toast.message(`Bộ đã đóng gói — mở tab Mẻ tiệt khuẩn (${cssdQuyTrinhBatchTabHref()}).`, {
-            duration: 8000,
+          toast.message(`Bộ đã đóng gói — mở phiếu mẻ (${cssdQuyTrinhBatchTabHref()}).`, {
+            duration: 5000,
           });
           return;
         }

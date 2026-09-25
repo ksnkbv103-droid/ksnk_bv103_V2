@@ -91,7 +91,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
     const code = raw.trim().toUpperCase();
     if (!code) return;
     if (currentStation === "TIET_KHUAN") {
-      toast.error(`Không quét trạm Tiệt khuẩn tại đây. Dùng tab Mẻ tiệt khuẩn (${cssdQuyTrinhBatchTabHref()}).`, { duration: 9000 });
+      toast.error(`Không quét trạm Tiệt khuẩn tại đây — mở tab Mẻ (${cssdQuyTrinhBatchTabHref()}).`, { duration: 6000 });
       return;
     }
 
@@ -146,6 +146,7 @@ export default function CSSDERPPage({ suppressShell = false }: { suppressShell?:
               {...lastScan}
               tramDisplay={currentStation?.replace(/_/g, " ") || "CSSD"}
               ledgerWarning={lastScan?.ledgerWarning}
+              meHandoffHref={lastScan?.meHandoffHref}
               onPrintCapPhat={
                 lastScan?.quyTrinhId
                   ? () =>

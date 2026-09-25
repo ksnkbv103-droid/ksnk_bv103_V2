@@ -30,13 +30,17 @@ export function nextWorkflowStation(current: Station): Station | null {
   return WORKFLOW_STEPS[i + 1] ?? null;
 }
 
+/** Short ambient next-step label — no teachy handoff paragraphs (P2-1 / page-chrome §7). */
 export function nextStationLabel(current: Station): string {
   const i = stepIndex(current);
   if (i < 0) return "—";
   const n = WORKFLOW_STEPS[i + 1];
-  if (!n) return "Hoàn chu kỳ (sau Cấp phát có thể tiếp nhận vòng sau).";
-  if (n === "TIET_KHUAN") {
-    return "Mẻ tiệt khuẩn — tạo phiếu tại CSSD → Mẻ TK rồi quét bộ trong màn phiếu.";
-  }
+  if (!n) return "Hoàn chu kỳ";
+  if (n === "TIET_KHUAN") return "Mẻ tiệt khuẩn";
   return n.replace(/_/g, " ");
+}
+
+/** After this station, sterilisation is via phiếu mẻ (not scan). */
+export function nextIsMeHandoff(current: Station): boolean {
+  return nextWorkflowStation(current) === "TIET_KHUAN";
 }

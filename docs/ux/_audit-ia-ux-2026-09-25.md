@@ -188,7 +188,7 @@ Full text: [`principles.md`](./principles.md).
 
 | ID | Module | Focus |
 |----|--------|-------|
-| P2-1 | CSSD Quy trình | Calm station strip; one mẻ CTA; cut teachy next-station blurbs |
+| P2-1 | CSSD Quy trình | Calm station strip; one mẻ CTA; cut teachy next-station blurbs — **done** (local) |
 | P2-2 | CSSD Sự cố | Visual weight An toàn vs Biến động; mobile dual-table |
 | P2-3 | QLCV | Detail sheet; keep mutate→chip refresh; empty prod copy |
 | P2-4 | BCTH | Default collapsed “more sections”; keep print |
@@ -220,7 +220,9 @@ Full text: [`principles.md`](./principles.md).
 
 **P1-4 shipped** (local): CSSD Dụng cụ toolbar primary (Quét/tìm) vs quiet secondaries; tokens `toolbar*Cluster` + `linkQuiet`.
 
-**Next:** CSSD Quy trình calm (P2-1) **or** QLCV detail sheet (P1-3+P2-3) — PO picks by UAT pain.
+**P2-1 shipped** (local, 2026-09-25 Asia/Saigon): CSSD Quy trình calm station strip; one primary «Phiếu mẻ» CTA; cut teachy next-station blurbs / long handoff toasts. No push / Cloud / Vercel / migrate.
+
+**Next:** QLCV detail sheet (P1-3+P2-3) **or** CSSD Sự cố weight (P2-2) — PO picks by UAT pain.
 
 ---
 
