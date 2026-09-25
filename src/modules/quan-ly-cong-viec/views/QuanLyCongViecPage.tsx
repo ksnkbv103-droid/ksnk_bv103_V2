@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Plus, LayoutGrid, CalendarClock, ListChecks, Send, Upload } from "lucide-react";
+import { Plus, LayoutGrid, CalendarClock, ListChecks, Send, Upload, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import {
   KsnkSupervisionHero,
@@ -17,6 +17,7 @@ import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import { QlcvOperationsPanel } from "@/modules/quan-ly-cong-viec/components/QlcvOperationsPanel";
 import { QlcvDinhKyPanel } from "@/modules/quan-ly-cong-viec/components/QlcvDinhKyPanel";
 import { NhiemVuPanel } from "@/modules/quan-ly-cong-viec/components/NhiemVuPanel";
+import { QlcvBaoCaoPanel } from "@/modules/quan-ly-cong-viec/components/QlcvBaoCaoPanel";
 import {
   QlcvDinhKySummaryBar,
   type QlcvLoaiFilter,
@@ -151,6 +152,7 @@ export default function QuanLyCongViecPage() {
     const tab = searchParams.get("tab")?.trim().toUpperCase();
     if (tab === "DINH_KY" && canManageDinhKy) setActiveTab("DINH_KY");
     else if (tab === "NHIEM_VU" && canManageDinhKy) setActiveTab("NHIEM_VU");
+    else if (tab === "BAO_CAO" && canManageDinhKy) setActiveTab("BAO_CAO");
     else if (tab === "DIEN_HANH") setActiveTab("DIEN_HANH");
     else if (tab === "PHAN_CONG_TUAN" || tab === "TUAN" || tab === "CHUONG_TRINH" || tab === "KE_HOACH_NAM") {
       setActiveTab("DIEN_HANH");
@@ -335,6 +337,7 @@ export default function QuanLyCongViecPage() {
     if (canManageDinhKy) {
       tabs.push({ id: "NHIEM_VU", label: "Nhiệm vụ", mobileLabel: "Nhiệm vụ", icon: ListChecks });
       tabs.push({ id: "DINH_KY", label: "Danh mục định kỳ", mobileLabel: "Định kỳ", icon: CalendarClock });
+      tabs.push({ id: "BAO_CAO", label: "Báo cáo", mobileLabel: "Báo cáo", icon: BarChart3 });
     }
     return tabs;
   }, [canManageDinhKy]);
@@ -590,6 +593,12 @@ export default function QuanLyCongViecPage() {
         {canManageDinhKy ? (
           <Tabs.Content value="DINH_KY" className="outline-none">
             <QlcvDinhKyPanel highlightMauId={highlightMauId} onRequestPrintPlan={runPrintPlan} />
+          </Tabs.Content>
+        ) : null}
+
+        {canManageDinhKy ? (
+          <Tabs.Content value="BAO_CAO" className="outline-none">
+            <QlcvBaoCaoPanel />
           </Tabs.Content>
         ) : null}
       </Tabs.Root>
