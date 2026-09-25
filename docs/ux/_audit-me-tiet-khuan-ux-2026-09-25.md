@@ -190,6 +190,8 @@ PROCESS life:  poll 3× / 8s  (waiting heat every tick)
 
 **DoD (one paragraph):** Với phiếu `DANG_CHUAN_NAP` đã có ≥1 bộ, user luôn thấy nút primary «Bắt đầu chu trình» trong vùng nạp (không phụ thuộc đã gõ chương trình); bấm → confirm dialog hiện có → `confirmBatDauTietKhuanBatch`; waiting row CTA không còn chữ «Mở mẻ»; stepper vẫn hiện bước 4 khi đã có bộ. Không đụng su-co, không migrate.
 
+**Done (2026-09-25):** `canConfirmBatDauMeSlip` + `currentMeSlipStep` ungate (itemCount>0 → step 4); sticky bar + header «Bắt đầu chu trình»; waiting «Nạp vào mẻ»; unit tests. Commit message: `fix(ux): ME post-load Bắt đầu always + Nạp vào mẻ`.
+
 ### Slice 2 — Per-batch status transition CTAs on LIST (pain #4)
 
 **Files (≤3):**
@@ -220,7 +222,7 @@ PROCESS life:  poll 3× / 8s  (waiting heat every tick)
 | LÁT | Ai | Trạng thái | File | Việc Nghĩa |
 |-----|----|------------|------|------------|
 | Audit ME UX/perf | Lead executor | **Done** (doc only) | `docs/ux/_audit-me-tiet-khuan-ux-2026-09-25.md` | Đọc + chọn slice 1 |
-| Slice 1 post-load CTA | — | Proposed | process-step + slip-ux + waiting | Authorize implement |
+| Slice 1 post-load CTA | Lead executor | **Done** | process-step + slip-ux + waiting + spec | — |
 | Slice 2 list status CTAs | — | Proposed | columns + MeTietKhuanPage | After S1 |
 | Slice 3 list limit/select | — | Proposed | me-tiet-khuan-list-data | Can parallel S1 |
 | cssd-su-co / P2-2 | other executor | Out of scope | — | — |

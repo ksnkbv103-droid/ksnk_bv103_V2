@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  canConfirmBatDauMeSlip,
   currentMeSlipStep,
   filterWaitingSetsForSlip,
   meQcDraftStorageKey,
@@ -31,6 +32,19 @@ describe("currentMeSlipStep", () => {
     expect(currentMeSlipStep({ chuongTrinh: "134", itemCount: 2, napLocked: true, qcOpen: false })).toBe(5);
     expect(currentMeSlipStep({ chuongTrinh: "134", itemCount: 2, napLocked: true, qcOpen: true })).toBe(5);
     expect(currentMeSlipStep({ chuongTrinh: "134", itemCount: 2, napLocked: true, qcOpen: true, choBi: true })).toBe(6);
+  });
+
+  it("đã nạp ≥1 bộ → bước 4 dù chương trình trống", () => {
+    expect(currentMeSlipStep({ chuongTrinh: "", itemCount: 1, napLocked: false, qcOpen: false })).toBe(4);
+    expect(currentMeSlipStep({ chuongTrinh: "   ", itemCount: 3, napLocked: false, qcOpen: false })).toBe(4);
+  });
+});
+
+describe("canConfirmBatDauMeSlip", () => {
+  it("khớp server: ≥1 bộ và chưa chốt nạp; không cần chương trình", () => {
+    expect(canConfirmBatDauMeSlip({ itemCount: 0, napLocked: false })).toBe(false);
+    expect(canConfirmBatDauMeSlip({ itemCount: 1, napLocked: false })).toBe(true);
+    expect(canConfirmBatDauMeSlip({ itemCount: 2, napLocked: true })).toBe(false);
   });
 });
 

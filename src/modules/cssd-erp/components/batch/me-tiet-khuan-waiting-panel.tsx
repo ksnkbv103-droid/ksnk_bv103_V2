@@ -73,7 +73,7 @@ export default function MeTietKhuanWaitingPanel({
                 className={`${CSSD_UI_ACTION_PRIMARY} !h-11 !min-h-[44px] !px-3`}
               >
                 <ArrowRight size={16} aria-hidden />
-                Mở mẻ
+                Nạp vào mẻ
               </button>
             </div>
           );

@@ -12,7 +12,7 @@ import MeTkNkbvLinkBanner from "./me-tk-nkbv-link-banner";
 import { MeTietKhuanSlipStepper } from "./me-tiet-khuan-slip-stepper";
 import { CSSD_UI_ACTION_SECONDARY, CSSD_UI_CONTROL, CSSD_UI_FORM_LABEL } from "../../shared/ui/cssd-ui-chrome";
 import { getSterilizerMethod, type SterilizerMethod } from "../../helpers/me-tiet-khuan-machine-kind";
-import { currentMeSlipStep, meTrangThaiBadge, slipStatusLabel } from "../../lib/me-tiet-khuan-slip-ux";
+import { canConfirmBatDauMeSlip, currentMeSlipStep, meTrangThaiBadge, slipStatusLabel } from "../../lib/me-tiet-khuan-slip-ux";
 
 type MeRow = {
   id: string;
@@ -120,6 +120,8 @@ export default function MeTietKhuanProcessStep({
     choBi ? "CHO_BI" : activeMe?.ket_qua_test === true ? "HOAN_THANH" : activeMe?.ket_qua_test === false ? "QC_KHONG_DAT" : napLocked ? (qcOpen ? "CHO_DANH_GIA_QC" : "DANG_TIET_KHUAN") : "DANG_CHUAN_NAP",
   );
   const itemSig = items.map((row) => String(row.id || row.ma_vach_qr || "")).join("|");
+  const canConfirmBatDau = canConfirmBatDauMeSlip({ itemCount: items.length, napLocked });
+  const chuongTrinhEmpty = !String(chuongTrinh || "").trim();
   const canPrint =
     choBi ||
     activeMe?.ket_qua_test === true ||
@@ -165,12 +167,11 @@ export default function MeTietKhuanProcessStep({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className={statusBadge.className}>{statusBadge.label}</span>
-            {slipStep === 4 ? (
+            {canConfirmBatDau ? (
               <button
                 type="button"
-                disabled={!items.length}
                 onClick={() => void onConfirmBatDau()}
-                className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-amber-300 bg-amber-400 px-4 text-xs font-semibold text-slate-900 shadow-sm transition-all hover:bg-amber-300 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                className="bv103-control-h inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-amber-300 bg-amber-400 px-4 text-xs font-semibold text-slate-900 shadow-sm transition-all hover:bg-amber-300 active:scale-95"
               >
                 <Lock size={16} aria-hidden="true" />
                 Bắt đầu chu trình
@@ -203,6 +204,11 @@ export default function MeTietKhuanProcessStep({
                 placeholder="Tên chương trình trên máy"
                 onChange={(e) => setChuongTrinh(e.target.value)}
               />
+              {chuongTrinhEmpty && items.length > 0 ? (
+                <span className="block text-[11px] font-medium text-amber-700">
+                  Khuyến nghị ghi chương trình — không chặn «Bắt đầu chu trình».
+                </span>
+              ) : null}
             </label>
             <div className="grid grid-cols-1 gap-[var(--bv103-space-3)] lg:grid-cols-2">
               <div className="order-1 lg:order-2">
@@ -225,6 +231,28 @@ export default function MeTietKhuanProcessStep({
                 />
               </div>
             </div>
+            {canConfirmBatDau ? (
+              <div className="sticky bottom-2 z-10 flex flex-col gap-2 rounded-[var(--radius-shell)] border border-amber-200 bg-amber-50/95 p-3 shadow-md backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0 space-y-0.5">
+                  <p className="text-xs font-semibold text-slate-800">
+                    Đã nạp <strong>{items.length}</strong> bộ — sẵn sàng bắt đầu chu trình
+                  </p>
+                  {chuongTrinhEmpty ? (
+                    <p className="text-[11px] font-medium text-amber-800/90">
+                      Nên ghi chương trình trên máy (không bắt buộc để bắt đầu).
+                    </p>
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void onConfirmBatDau()}
+                  className="bv103-control-h inline-flex shrink-0 items-center justify-center gap-2 rounded-[var(--radius-control)] border border-amber-300 bg-amber-400 px-4 text-xs font-semibold text-slate-900 shadow-sm transition-all hover:bg-amber-300 active:scale-95"
+                >
+                  <Lock size={16} aria-hidden="true" />
+                  Bắt đầu chu trình
+                </button>
+              </div>
+            ) : null}
           </div>
         ) : null}
 

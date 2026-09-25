@@ -41,6 +41,7 @@ export function slipStatusLabel(input: {
 /**
  * Bước hiện tại trên phiếu: Máy → Chương trình → Quét bộ → Bắt đầu → Kết thúc → Nhả.
  * Máy đã chọn khi phiếu tồn tại.
+ * Chương trình trống không chặn bước 4 khi đã có ≥1 bộ (khớp server confirmBatDau).
  */
 export function currentMeSlipStep(input: {
   chuongTrinh?: string | null;
@@ -64,9 +65,21 @@ export function currentMeSlipStep(input: {
   }
   if (input.qcOpen || st === "CHO_DANH_GIA_QC") return 5;
   if (input.napLocked || st === "DANG_TIET_KHUAN") return 5;
+  // Đã nạp ≥1 bộ → bước Bắt đầu (chương trình chỉ soft-hint, không hard-gate).
+  if (input.itemCount > 0) return 4;
   if (!String(input.chuongTrinh || "").trim()) return 2;
-  if (input.itemCount <= 0) return 3;
-  return 4;
+  return 3;
+}
+
+/**
+ * FE gate khớp server confirmBatDau: cần ≥1 bộ và chưa chốt nạp.
+ * Không yêu cầu chuongTrinh.
+ */
+export function canConfirmBatDauMeSlip(input: {
+  itemCount: number;
+  napLocked: boolean;
+}): boolean {
+  return Number(input.itemCount) > 0 && !input.napLocked;
 }
 
 export type WaitingSetRow = {
