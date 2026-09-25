@@ -119,7 +119,6 @@ export default function MeTietKhuanProcessStep({
   const statusBadge = meTrangThaiBadge(
     choBi ? "CHO_BI" : activeMe?.ket_qua_test === true ? "HOAN_THANH" : activeMe?.ket_qua_test === false ? "QC_KHONG_DAT" : napLocked ? (qcOpen ? "CHO_DANH_GIA_QC" : "DANG_TIET_KHUAN") : "DANG_CHUAN_NAP",
   );
-  const itemSig = items.map((row) => String(row.id || row.ma_vach_qr || "")).join("|");
   const canConfirmBatDau = canConfirmBatDauMeSlip({ itemCount: items.length, napLocked });
   const chuongTrinhEmpty = !String(chuongTrinh || "").trim();
   const canPrint =
@@ -190,7 +189,7 @@ export default function MeTietKhuanProcessStep({
           </div>
         </header>
 
-        {activeMe?.id ? <MeTietKhuanHeatBanner key={`${activeMe.id}:${itemSig}`} batchId={activeMe.id} /> : null}
+        {activeMe?.id ? <MeTietKhuanHeatBanner batchId={activeMe.id} /> : null}
         {activeMe?.id ? <MeTkNkbvLinkBanner loTietKhuanId={activeMe.id} /> : null}
 
         {slipStep < 5 ? (

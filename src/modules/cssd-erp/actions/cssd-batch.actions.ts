@@ -339,6 +339,10 @@ export async function confirmKetThucChuTrinhTietKhuan(batchId: string) {
   }
 }
 
+/** Cột hẹp cho PROCESS scan + print members — không select(*). View đã join ten_bo/ma_bo. */
+const BATCH_MEMBERS_SELECT =
+  "id, ma_qr_quy_trinh, ma_bo, ten_bo, ma_trang_thai_hien_tai, bo_dung_cu_id, updated_at, is_active, ma_ca_mo_id";
+
 export async function fetchCssdBatchMembers(batchId: string) {
   try {
     await verifyCssdBatchView();
@@ -347,22 +351,22 @@ export async function fetchCssdBatchMembers(batchId: string) {
     if (!id) return { success: false as const, error: "Thiếu mã mẻ.", data: [] as unknown[] };
     const { data: rows, error } = await supabase
       .from("v_cssd_quy_trinh_full")
-      .select("*")
+      .select(BATCH_MEMBERS_SELECT)
       .eq("lo_tiet_khuan_id", id)
       .order("updated_at", { ascending: false });
     if (error) return { success: false as const, error: mapFkError(error.message), data: [] as unknown[] };
-    const raw = (rows || []) as Array<{ bo_dung_cu_id?: string | null } & Record<string, unknown>>;
-    const boIds = [...new Set(raw.map((x) => String(x.bo_dung_cu_id || "").trim()).filter(Boolean))];
-    let boMap = new Map<string, { ten_bo?: string | null }>();
-    if (boIds.length) {
-      const { data: bos } = await supabase.from("cssd_dm_bo_dung_cu").select("id, ten_bo").in("id", boIds);
-      boMap = new Map((bos || []).map((x: { id: string; ten_bo?: string | null }) => [String(x.id), x]));
-    }
+    const raw = (rows || []) as Array<{
+      ma_qr_quy_trinh?: string | null;
+      ma_bo?: string | null;
+      ten_bo?: string | null;
+      ma_trang_thai_hien_tai?: string | null;
+      bo_dung_cu_id?: string | null;
+    } & Record<string, unknown>>;
     const data = raw.map((x) => ({
       ...x,
-      ma_vach_qr: x.ma_qr_quy_trinh || "",
+      ma_vach_qr: x.ma_qr_quy_trinh || x.ma_bo || "",
       trang_thai_hien_tai: x.ma_trang_thai_hien_tai || "",
-      bo: x.bo_dung_cu_id ? { ten_bo: boMap.get(String(x.bo_dung_cu_id))?.ten_bo || null } : null,
+      bo: { ten_bo: x.ten_bo || null },
     }));
     return { success: true as const, data };
   } catch (e: unknown) {

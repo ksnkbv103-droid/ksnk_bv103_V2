@@ -170,10 +170,10 @@ PROCESS life:  poll 3× / 8s  (waiting heat every tick)
 | G1 | #3 Không có nút sau nạp xong | `process-step.tsx:168-177` gated by `slipStep===4`; `slip-ux.ts:67` requires `chuongTrinh` | **P0** |
 | G2 | #4 Không có nút chuyển TT từng mẻ (list) | `columns.tsx` — only Thu hồi + In; no «Tiếp tục / Kết thúc / Nhập BI» | **P0** |
 | G3 | #2 Load chậm LIST | `me-tiet-khuan-list-data.ts:23` `select(*)` + unbounded member count | **P0** |
-| G4 | #2 Load chậm PROCESS / poll | `workflow.ts:145-185` 3-way + 8s + waiting heat; members `select(*)` | **P1** |
+| G4 | #2 Load chậm PROCESS / poll | `workflow.ts` skip waiting when locked + 18s + vis; members narrow select | **Done** (Slice 4) |
 | G5 | #1 Không rõ ràng — badge gộp / stepper vs CTA | `slip-ux.ts:11-12`; dual QC columns | **P1** |
 | G6 | #1 Waiting mislabel «Mở mẻ» | `waiting-panel.tsx:76` | **P1** |
-| G7 | Heat remount refetch on every add/remove | `process-step.tsx:192` `key={…itemSig}` | **P2** |
+| G7 | Heat remount refetch on every add/remove | `process-step.tsx` heat banner no itemSig key | **Done** (Slice 4) |
 | G8 | CHO_BI not called out on list as actionable | columns badge only; no «Nhập BI» CTA | **P1** (subset of G2) |
 
 ---
@@ -219,6 +219,8 @@ PROCESS life:  poll 3× / 8s  (waiting heat every tick)
 
 - Skip `fetchCssdTietKhuanWaitingRows` when `napLocked`; widen poll to 15–20s or pause when tab hidden; narrow `fetchCssdBatchMembers` columns; drop heat `key` itemSig remount.
 
+**Done (2026-09-25):** `reloadProcessContext` skips waiting when `tk_chot_nap_at` / post-nap statuses; poll **18s** + skip when `document.visibilityState === 'hidden'`; `BATCH_MEMBERS_SELECT` (no `*`, drop extra bo join); heat banner no longer remounts on `itemSig`. Commit: `fix(ux): ME PROCESS poll slim + skip waiting when locked`.
+
 ---
 
 ## Status board (report to Lead)
@@ -229,6 +231,7 @@ PROCESS life:  poll 3× / 8s  (waiting heat every tick)
 | Slice 1 post-load CTA | Lead executor | **Done** | process-step + slip-ux + waiting + spec | — |
 | Slice 2 list status CTAs | Lead executor | **Done** | columns + MeTietKhuanPage + slip-ux | — |
 | Slice 3 list limit/select | Lead executor | **Done** | me-tiet-khuan-list-data | — |
+| Slice 4 PROCESS poll slim | Lead executor | **Done** | workflow + cssd-batch.actions + process-step | — |
 | cssd-su-co / P2-2 | other executor | Out of scope | — | — |
 
 ---

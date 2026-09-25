@@ -28,6 +28,18 @@ import {
 
 import { usePermission } from "@/hooks/usePermission";
 import { cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
+
+/** Trạng thái sau chốt nạp — không còn panel waiting / heat partition. */
+const ME_NAP_LOCKED_STATUSES = new Set([
+  "DANG_TIET_KHUAN",
+  "CHO_DANH_GIA_QC",
+  "CHO_BI",
+  "Quarantine_BI",
+  "HOAN_THANH",
+  "QC_KHONG_DAT",
+  "THU_HOI",
+]);
+
 export function useMeTietKhuanWorkflow() {
   const { isPrinting: isCssdPrinting, printState, onPrintBatch } = useCssdPrint();
   const { userData } = usePermission();
@@ -142,11 +154,31 @@ export function useMeTietKhuanWorkflow() {
     setLoading(false);
   }, []);
 
+  /** DANG_TIET_KHUAN trở đi / đã chốt nạp → không còn nạp bộ, bỏ fetch waiting. */
+  const batchGateRef = useRef(batchGate);
+  batchGateRef.current = batchGate;
+
+  const isProcessNapLocked = useCallback(() => {
+    const gate = batchGateRef.current as { tk_chot_nap_at?: string | null; trang_thai_me?: string | null } | null;
+    if (gate?.tk_chot_nap_at) return true;
+    if (activeMe?.tk_chot_nap_at) return true;
+    const st = String(
+      gate?.trang_thai_me || activeMe?.trang_thai_me || activeMe?.trang_thai || "",
+    ).trim();
+    return ME_NAP_LOCKED_STATUSES.has(st);
+  }, [activeMe]);
+
   const reloadProcessContext = useCallback(async () => {
     if (!activeMe?.id) return;
+    const napLocked = isProcessNapLocked();
+    const waitingStub = {
+      success: true as const,
+      data: [] as unknown[],
+      hiddenIncompatible: 0,
+    };
     const [g, w, m] = await Promise.all([
       fetchCssdBatchWorkflowState(activeMe.id),
-      fetchCssdTietKhuanWaitingRows(120, activeMe.id),
+      napLocked ? Promise.resolve(waitingStub) : fetchCssdTietKhuanWaitingRows(120, activeMe.id),
       fetchCssdBatchMembers(activeMe.id),
     ]);
     if (g.success) setBatchGate(g.data);
@@ -154,6 +186,11 @@ export function useMeTietKhuanWorkflow() {
     const members = m.success ? ((m.data as any[]) || []) : itemsRef.current;
     if (m.success) setItems(members);
     else toast.error(m.error || "Không tải thành phần mẻ");
+    if (napLocked) {
+      setWaitingRows([]);
+      setHiddenIncompatible(0);
+      return;
+    }
     if (w.success) {
       setWaitingRows(
         filterWaitingSetsForSlip((w.data as any[]) || [], {
@@ -167,7 +204,7 @@ export function useMeTietKhuanWorkflow() {
       setHiddenIncompatible(0);
       toast.error(w.error || "Không tải danh sách chờ TK");
     }
-  }, [activeMe]);
+  }, [activeMe, isProcessNapLocked]);
 
   useEffect(() => {
     void fetchData();
@@ -178,9 +215,14 @@ export function useMeTietKhuanWorkflow() {
     void reloadProcessContext();
   }, [step, activeMe?.id, reloadProcessContext]);
 
+  /** PROCESS poll: 18s; bỏ tick khi tab ẩn để giảm tải. */
   useEffect(() => {
     if (step !== "PROCESS" || !activeMe?.id) return;
-    const t = setInterval(() => void reloadProcessContext(), 8000);
+    const tick = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+      void reloadProcessContext();
+    };
+    const t = setInterval(tick, 18000);
     return () => clearInterval(t);
   }, [step, activeMe?.id, reloadProcessContext]);
 
