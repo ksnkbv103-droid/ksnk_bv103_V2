@@ -6,7 +6,7 @@ import { fetchCssdBatchMembers } from "./cssd-batch.actions";
 import { fetchActiveQuyTrinhByScanCode } from "../shared/application/cssd-workflow-resolve";
 import { getErrorMessage } from "../shared/cssd-db-utils";
 import { loadHoTenByAuthUserId, loadNhanSuHoTen } from "../shared/application/cssd-operator-resolve";
-import { buildCssdBatchTicket, parseBatchQcJson, parseNguoiLoadFromGhiChu } from "../lib/cssd-print-format";
+import { buildCssdBatchTicket, formatBatchMemberRecallXuLy, parseBatchQcJson, parseNguoiLoadFromGhiChu } from "../lib/cssd-print-format";
 import type {
   CssdBatchPrintData,
   CssdCapPhatPrintData,
@@ -121,6 +121,10 @@ async function mapBatchPrintData(
     members: members.map((m) => ({
       maBo: String(m.ma_bo || m.ma_vach_qr || m.ma_qr_quy_trinh || "—"),
       tenBo: String((m.bo as { ten_bo?: string } | null)?.ten_bo || m.ten_bo || "—"),
+      xuLyLabel: formatBatchMemberRecallXuLy({
+        maCaMoId: (m.ma_ca_mo_id as string | null | undefined) ?? null,
+        isActive: m.is_active === false ? false : m.is_active === true ? true : null,
+      }),
     })),
   });
 }

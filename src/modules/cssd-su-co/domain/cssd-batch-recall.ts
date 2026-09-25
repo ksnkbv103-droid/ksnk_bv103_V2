@@ -175,3 +175,56 @@ export function batchRecallReasonFromTypeId(typeId?: string | null): BatchRecall
   if (code === "PROCESS_STERILIZATION_FAIL") return "WET_PACK";
   return null;
 }
+
+
+export type RecallPrintRow = {
+  maBo: string;
+  maLo?: string;
+  maCaMoId?: string;
+  ghiChu: string;
+};
+
+/** Tách chuỗi RECALL_MOVED / RECALL_LISTED_USED thành hàng in A4. */
+export function parseRecallMemberListText(raw: string | null | undefined): RecallPrintRow[] {
+  const text = String(raw || "").trim();
+  if (!text) return [];
+  const parts: string[] = [];
+  let cur = "";
+  let depth = 0;
+  for (const ch of text) {
+    if (ch === "(") depth += 1;
+    if (ch === ")") depth = Math.max(0, depth - 1);
+    if (ch === "," && depth === 0) {
+      if (cur.trim()) parts.push(cur.trim());
+      cur = "";
+      continue;
+    }
+    cur += ch;
+  }
+  if (cur.trim()) parts.push(cur.trim());
+
+  const rows: RecallPrintRow[] = [];
+  for (const part of parts) {
+    const m = part.match(/^(.+?)\s*\((.+)\)\s*$/);
+    if (!m) {
+      rows.push({ maBo: part, ghiChu: "" });
+      continue;
+    }
+    const maBo = m[1].trim();
+    const inside = m[2].trim();
+    const caMatch = inside.match(/,?\s*ca\s+(.+)$/i);
+    let maLo = inside;
+    let maCaMoId: string | undefined;
+    if (caMatch) {
+      maCaMoId = caMatch[1].trim();
+      maLo = inside.slice(0, caMatch.index).trim().replace(/,$/, "").trim();
+    }
+    const ghiChu = maCaMoId
+      ? `Mẻ ${maLo || "—"} · ca mổ ${maCaMoId}`
+      : maLo
+        ? `Mẻ ${maLo}`
+        : "";
+    rows.push({ maBo, maLo: maLo || undefined, maCaMoId, ghiChu });
+  }
+  return rows;
+}

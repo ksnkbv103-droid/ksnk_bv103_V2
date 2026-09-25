@@ -8,6 +8,8 @@ export type CssdBatchPrintMember = {
   stt: number;
   maQrBo: string;
   tenBo: string;
+  /** Thu hồi / không đạt: hướng xử lý từng bộ. */
+  xuLyLabel?: string;
 };
 
 /** Ảnh minh chứng QC — lưu trong `tk_qc_json.anhMinhChung`. */

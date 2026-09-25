@@ -78,6 +78,21 @@ export function canPrintBatchTicket(input: {
   return input.ketQuaTest === true || input.ketQuaTest === false;
 }
 
+
+/** Nhãn xử lý bộ trên phiếu in khi mẻ thu hồi / không đạt. */
+export function formatBatchMemberRecallXuLy(input: {
+  maCaMoId?: string | null;
+  isActive?: boolean | null;
+}): string {
+  if (String(input.maCaMoId || "").trim()) {
+    return "Đã dùng lâm sàng — giữ nguyên, cần đánh giá / thu hồi lâm sàng";
+  }
+  if (input.isActive === false) {
+    return "Thu hồi về Tiếp nhận (xử lý lại như dụng cụ bẩn)";
+  }
+  return "Trong mẻ";
+}
+
 export type CssdBatchTicketSource = {
   id: string;
   maLo: string;
@@ -101,7 +116,7 @@ export type CssdBatchTicketSource = {
   qcCiNgoai?: string | null;
   qcCiPcd?: string | null;
   ghiChuQc?: string | null;
-  members: { maBo: string; tenBo: string }[];
+  members: { maBo: string; tenBo: string; xuLyLabel?: string }[];
 };
 
 export function buildCssdBatchTicket(source: CssdBatchTicketSource): CssdBatchPrintData {
@@ -143,6 +158,7 @@ export function buildCssdBatchTicket(source: CssdBatchTicketSource): CssdBatchPr
       stt: idx + 1,
       maQrBo: member.maBo || "—",
       tenBo: member.tenBo || "—",
+      xuLyLabel: String(member.xuLyLabel || "").trim() || undefined,
     })),
     nguoiLoad: nguoiNap,
     nguoiUnload: nguoiDo,

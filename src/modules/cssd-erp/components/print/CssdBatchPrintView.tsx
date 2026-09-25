@@ -34,6 +34,9 @@ export default function CssdBatchPrintView({
   data: CssdBatchPrintData;
   qrDataUrl: string;
 }) {
+  const showXuLy = data.members.some((m) => Boolean(m.xuLyLabel))
+    || data.trangThaiLabel === "Thu hồi"
+    || data.trangThaiLabel === "Không đạt";
   return (
     <PrintLayout
       title="PHIẾU MẺ TIỆT KHUẨN DỤNG CỤ"
@@ -80,21 +83,28 @@ export default function CssdBatchPrintView({
         }}
       >
         Danh sách bộ dụng cụ trong mẻ ({data.members.length})
+        {showXuLy ? " — dùng để thu hồi / xử lý lại" : ""}
       </p>
       <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
         <thead>
           <tr>
-            <th style={{ ...tableTh, width: "8%" }}>STT</th>
-            <th style={{ ...tableTh, width: "38%" }}>Mã bộ</th>
-            <th style={{ ...tableTh, width: "54%" }}>Tên bộ</th>
+            <th style={{ ...tableTh, width: showXuLy ? "6%" : "8%" }}>STT</th>
+            <th style={{ ...tableTh, width: showXuLy ? "22%" : "38%" }}>Mã bộ</th>
+            <th style={{ ...tableTh, width: showXuLy ? "28%" : "54%" }}>Tên bộ</th>
+            {showXuLy ? (
+              <th style={{ ...tableTh, width: "44%" }}>Hướng xử lý / thu hồi</th>
+            ) : null}
           </tr>
         </thead>
         <tbody>
           {data.members.map((m) => (
-            <tr key={m.maQrBo}>
+            <tr key={`${m.stt}-${m.maQrBo}`}>
               <td style={{ ...tableTd, textAlign: "center" }}>{m.stt}</td>
               <td style={{ ...tableTd, fontSize: 11, fontFamily: "monospace" }}>{m.maQrBo}</td>
               <td style={tableTd}>{m.tenBo}</td>
+              {showXuLy ? (
+                <td style={{ ...tableTd, fontSize: 11 }}>{m.xuLyLabel || "—"}</td>
+              ) : null}
             </tr>
           ))}
         </tbody>

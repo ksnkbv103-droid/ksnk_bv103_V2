@@ -9,6 +9,7 @@ import {
   BATCH_RECALL_ENTRY_COPY,
   isCssdCycleUsedClinically,
   partitionRecallMembers,
+  parseRecallMemberListText,
   selectBiRecallBatchIds,
   batchStatusAfterBiRecall,
 } from "./cssd-batch-recall";
@@ -108,5 +109,18 @@ describe("cssd-batch-recall", () => {
     expect(batchRecallReasonFromTypeId("PROCESS_QC_FAIL")).toBeNull();
     expect(BATCH_RECALL_ENTRY_COPY.title).toMatch(/Thu hồi/);
     expect(BATCH_RECALL_ENTRY_COPY.subtitle).toMatch(/không phải biến động dụng cụ/);
+  });
+});
+
+describe("parseRecallMemberListText", () => {
+  it("tách bộ về TN và bộ đã dùng", () => {
+    const moved = parseRecallMemberListText("B01 (ME-1), B02 (ME-1)");
+    expect(moved).toHaveLength(2);
+    expect(moved[0]).toMatchObject({ maBo: "B01", maLo: "ME-1" });
+    const mixed = parseRecallMemberListText("B01 (ME-1), B03 (ME-1, ca CA99)");
+    expect(mixed).toHaveLength(2);
+    expect(mixed[1]?.maBo).toBe("B03");
+    expect(mixed[1]?.maCaMoId).toBe("CA99");
+    expect(mixed[1]?.ghiChu).toMatch(/ca mổ/);
   });
 });
