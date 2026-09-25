@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Plus, LayoutGrid, CalendarClock, Send, Upload } from "lucide-react";
+import { Plus, LayoutGrid, CalendarClock, ListChecks, Send, Upload } from "lucide-react";
 import { toast } from "sonner";
 import {
   KsnkSupervisionHero,
@@ -329,7 +329,9 @@ export default function QuanLyCongViecPage() {
     const tabs: SupervisionTabDef[] = [
       { id: "DIEN_HANH", label: "Điều hành", mobileLabel: "Điều hành", icon: LayoutGrid },
     ];
+    // Same gate as the former buried «Kế hoạch năm» link (edit/admin).
     if (canManageDinhKy) {
+      tabs.push({ id: "NHIEM_VU", label: "Nhiệm vụ", mobileLabel: "Nhiệm vụ", icon: ListChecks });
       tabs.push({ id: "DINH_KY", label: "Danh mục định kỳ", mobileLabel: "Định kỳ", icon: CalendarClock });
     }
     return tabs;
@@ -503,7 +505,7 @@ export default function QuanLyCongViecPage() {
         </Dialog>
 
         <Tabs.Content value="DIEN_HANH" className="outline-none space-y-[var(--bv103-space-3)]">
-          {isAdmin || allowed.edit || allowed.import || canManageDinhKy ? (
+          {isAdmin || allowed.edit || allowed.import ? (
             <div className="no-print flex flex-wrap items-center gap-2">
               {isAdmin || allowed.edit ? <QlcvDmAdminLinks /> : null}
               {allowed.import ? (
@@ -513,15 +515,6 @@ export default function QuanLyCongViecPage() {
                   className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:underline"
                 >
                   <Upload size={12} aria-hidden /> Nạp Excel
-                </button>
-              ) : null}
-              {canManageDinhKy ? (
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("NHIEM_VU")}
-                  className="text-xs font-semibold text-slate-600 hover:underline"
-                >
-                  Kế hoạch năm
                 </button>
               ) : null}
             </div>

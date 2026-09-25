@@ -364,7 +364,7 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan }: Props) 
           </div>
         </div>
         <div>
-          <label className={bv103LayoutChrome.labelBlock}>Nhiệm vụ kế hoạch năm (tuỳ chọn)</label>
+          <label className={bv103LayoutChrome.labelBlock}>Nhiệm vụ (tuỳ chọn)</label>
           <div className="mt-1.5">
             <SearchableSelect
               options={nhiemVuOptions.map((o) => ({ id: o.id, label: o.label }))}
