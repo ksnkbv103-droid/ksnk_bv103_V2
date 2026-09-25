@@ -5,14 +5,6 @@ import { toast } from "sonner";
 import { CheckCircle2, MessageSquare, Ban, Printer } from "lucide-react";
 import { QlcvConfirmDialog } from "./dialogs/QlcvConfirmDialog";
 import { QlcvReasonDialog } from "./dialogs/QlcvReasonDialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { BV103_DIALOG_STACK } from "@/lib/bv103-dialog-stack";
 import { ActivityTimeline, type Activity } from "./ActivityTimeline";
 import { CongViecForm } from "./CongViecForm";
 import { HoatDongForm } from "./HoatDongForm";
@@ -96,8 +88,6 @@ const qlcvDetailChrome = {
     "bv103-control-h shrink-0 rounded-[var(--radius-control)] bg-blue-600 px-4 text-xs font-semibold text-white shadow-sm hover:bg-blue-700",
   btnGhost:
     "bv103-control-h shrink-0 rounded-[var(--radius-control)] border border-transparent px-3 text-xs font-semibold text-red-600 hover:border-red-100 hover:bg-red-50",
-  dialogContent: `flex max-h-[min(90dvh,880px)] max-w-4xl flex-col gap-0 overflow-hidden rounded-[var(--radius-shell)] border border-slate-200/90 bg-slate-50 p-0 shadow-[var(--shadow-app-soft)] sm:max-w-4xl ${BV103_DIALOG_STACK.nestedContent}`,
-  dialogOverlay: BV103_DIALOG_STACK.nestedOverlay,
 } as const;
 
 export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
@@ -115,8 +105,8 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const [data, setData] = useState<CongViecDetailData | null>(null);
   const [mauSacByMa, setMauSacByMa] = useState<Record<string, string>>({});
   const [activeId] = useState(id);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isApproveOpen, setIsApproveOpen] = useState(false);
+  /** Inline subpanels inside OpsDetailSheet — no nested Dialog for Edit/Approve */
+  const [detailPanel, setDetailPanel] = useState<"view" | "edit" | "approve">("view");
   // Dialog state — thay thế browser prompt()/confirm()
   const [confirmNghiemThuOpen, setConfirmNghiemThuOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -230,6 +220,56 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
     }
   };
 
+  const backToView = () => setDetailPanel("view");
+
+  if (detailPanel === "edit") {
+    return (
+      <div className="space-y-[var(--bv103-space-3)]">
+        <div className={`space-y-4 ${qlcvDetailChrome.panel} p-4 sm:p-5`}>
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-lg font-semibold tracking-tight text-slate-900">Chỉnh sửa nhiệm vụ</h3>
+            <button type="button" className={qlcvDetailChrome.btnOutline} onClick={backToView}>
+              Quay lại
+            </button>
+          </div>
+          <CongViecForm
+            initialData={data}
+            onSuccess={() => {
+              setDetailPanel("view");
+              fetchDetail();
+              onRefreshList?.();
+            }}
+            onCancel={backToView}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (detailPanel === "approve") {
+    return (
+      <div className="space-y-[var(--bv103-space-3)]">
+        <div className={`space-y-4 ${qlcvDetailChrome.panel} p-4 sm:p-5`}>
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-lg font-semibold tracking-tight text-slate-900">Phê duyệt đề xuất</h3>
+            <button type="button" className={qlcvDetailChrome.btnOutline} onClick={backToView}>
+              Quay lại
+            </button>
+          </div>
+          <DeXuatApproveForm
+            proposal={data}
+            onSuccess={() => {
+              setDetailPanel("view");
+              fetchDetail();
+              onRefreshList?.();
+            }}
+            onCancel={backToView}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-[var(--bv103-space-3)]">
       <div className="no-print space-y-[var(--bv103-space-3)]">
@@ -325,57 +365,23 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
           )}
 
           {showApproveDeXuat && (
-            <Dialog open={isApproveOpen} onOpenChange={setIsApproveOpen}>
-              <DialogTrigger asChild>
-                <button type="button" className={qlcvDetailChrome.btnPrimary}>Phê duyệt & giao</button>
-              </DialogTrigger>
-              <DialogContent className={qlcvDetailChrome.dialogContent} overlayClassName={qlcvDetailChrome.dialogOverlay}>
-                <DialogHeader className="shrink-0 px-6 pt-6 sm:px-8">
-                  <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">
-                    Phê duyệt đề xuất
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5 sm:px-8">
-                  <DeXuatApproveForm
-                    proposal={data}
-                    onSuccess={() => {
-                      setIsApproveOpen(false);
-                      fetchDetail();
-                      onRefreshList?.();
-                    }}
-                    onCancel={() => setIsApproveOpen(false)}
-                  />
-                </div>
-              </DialogContent>
-            </Dialog>
+            <button
+              type="button"
+              className={qlcvDetailChrome.btnPrimary}
+              onClick={() => setDetailPanel("approve")}
+            >
+              Phê duyệt & giao
+            </button>
           )}
 
           {showEditMetadata && (
-            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-              <DialogTrigger asChild>
-                <button type="button" className={qlcvDetailChrome.btnOutline}>
-                  Sửa việc
-                </button>
-              </DialogTrigger>
-              <DialogContent className={qlcvDetailChrome.dialogContent} overlayClassName={qlcvDetailChrome.dialogOverlay}>
-                <DialogHeader className="shrink-0 px-6 pt-6 sm:px-8">
-                  <DialogTitle className="text-lg font-semibold tracking-tight text-slate-900">
-                    Chỉnh sửa nhiệm vụ
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5 sm:px-8">
-                  <CongViecForm
-                    initialData={data}
-                    onSuccess={() => {
-                      setIsEditOpen(false);
-                      fetchDetail();
-                      onRefreshList?.();
-                    }}
-                    onCancel={() => setIsEditOpen(false)}
-                  />
-                </div>
-              </DialogContent>
-            </Dialog>
+            <button
+              type="button"
+              className={qlcvDetailChrome.btnOutline}
+              onClick={() => setDetailPanel("edit")}
+            >
+              Sửa việc
+            </button>
           )}
 
           {showDelete && (
