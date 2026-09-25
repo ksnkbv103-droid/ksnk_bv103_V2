@@ -24,11 +24,13 @@ export default function MeTietKhuanWaitingPanel({
   rows,
   onProcess,
   napLocked,
+  hiddenIncompatible = 0,
 }: {
   rows: MeTkWaitingRow[];
   /** Nạp bộ vào mẻ đang mở (ghi DB). */
   onProcess: (code: string) => void;
   napLocked?: boolean;
+  hiddenIncompatible?: number;
 }) {
   const [detailSet, setDetailSet] = useState<{ bo_dung_cu_id: string; ten_bo: string } | null>(null);
 
@@ -81,6 +83,11 @@ export default function MeTietKhuanWaitingPanel({
             Không có bộ chờ
           </div>
         )}
+        {hiddenIncompatible > 0 ? (
+          <p className="px-1 pt-2 text-[11px] font-medium text-slate-500">
+            {hiddenIncompatible} bộ không hợp máy này đã ẩn
+          </p>
+        ) : null}
       </div>
 
       <SetMembersModal

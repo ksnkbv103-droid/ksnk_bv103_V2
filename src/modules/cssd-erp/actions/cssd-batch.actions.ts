@@ -16,6 +16,7 @@ import {
   rejectStartMember,
 } from "../lib/me-tiet-khuan-batch-integrity";
 import {
+  loadKitHeatLinesByBoIds,
   persistMeBiResultWithClient,
   persistMeTietKhuanFinishWithClient,
   type PersistMeTietKhuanInput,
@@ -29,12 +30,19 @@ import { normalizeSpaulding, normalizeSteamMethod } from "../shared/domain/cssd-
 import {
   createSterilizationBatchSchema,
   addQuyTrinhToBatchSchema,
+  removeQuyTrinhFromBatchSchema,
   finishSterilizationBatchSchema,
 } from "@/lib/validations/cssd-erp.validations";
 import { verifyCssdBatchEdit, verifyCssdBatchQc, verifyCssdBatchView } from "@/lib/cssd-server-gates";
 import { resolveCssdTramId } from "../lib/cssd-tram-persist";
 import type { BomItem } from "@/lib/domain/cssd-packaging-rules";
-import { assertSteamKitHeatAllowed, evaluateBatchSterilizationHeatRisk } from "../lib/me-tiet-khuan-batch-heat";
+import {
+  assertKitFitsSterilizerMethod,
+  assertSteamKitHeatAllowed,
+  evaluateBatchSterilizationHeatRisk,
+  partitionWaitingKitsByMethod,
+  rejectRemoveKitFromBatch,
+} from "../lib/me-tiet-khuan-batch-heat";
 
 async function requireSessionActorId(): Promise<{ ok: true; userId: string } | { ok: false; message: string }> {
   try {
@@ -64,14 +72,14 @@ export async function fetchCssdMeListData() {
   }
 }
 
-/** Bộ đang ĐÓNG GÓI, chưa gán mẻ — chờ đưa vào phiếu tiệt khuẩn (tương tự “danh sách chờ” trạm). */
-export async function fetchCssdTietKhuanWaitingRows(limit = 120) {
+/** Bộ đang ĐÓNG GÓI, chưa gán mẻ. Có batchId thì chỉ trả bộ hợp phương pháp máy của mẻ. */
+export async function fetchCssdTietKhuanWaitingRows(limit = 120, batchId?: string) {
   try {
     await verifyCssdBatchView();
     const supabase = createAdminSupabaseClient();
     const cap = Math.min(Math.max(Number(limit) || 120, 1), 500);
     const dongGoiId = await resolveCssdTramId(supabase, "DONG_GOI");
-    if (!dongGoiId) return { success: true as const, data: [] };
+    if (!dongGoiId) return { success: true as const, data: [], hiddenIncompatible: 0 };
     const { data, error } = await supabase
       .from("cssd_fact_quy_trinh")
       .select("id, ma_qr_quy_trinh, updated_at, bo_dung_cu_id, is_dong_bang, lo_tiet_khuan_id")
@@ -80,7 +88,9 @@ export async function fetchCssdTietKhuanWaitingRows(limit = 120) {
       .eq("is_active", true)
       .order("updated_at", { ascending: true })
       .limit(cap);
-    if (error) return { success: false as const, error: mapFkError(error.message), data: [] as unknown[] };
+    if (error) {
+      return { success: false as const, error: mapFkError(error.message), data: [] as unknown[], hiddenIncompatible: 0 };
+    }
     const raw = (data || []) as Array<{
       id: string;
       ma_qr_quy_trinh?: string | null;
@@ -104,9 +114,40 @@ export async function fetchCssdTietKhuanWaitingRows(limit = 120) {
       lo_tiet_khuan_id: x.lo_tiet_khuan_id ? String(x.lo_tiet_khuan_id) : null,
       bo: x.bo_dung_cu_id ? { ten_bo: boMap.get(String(x.bo_dung_cu_id))?.ten_bo || null } : null,
     }));
-    return { success: true as const, data: mapped };
+    const eligible = mapped.filter((row) => row.is_dong_bang !== true);
+    const meId = String(batchId || "").trim();
+    if (!meId) return { success: true as const, data: eligible, hiddenIncompatible: 0 };
+
+    const { data: meRow, error: meErr } = await supabase
+      .from("cssd_fact_lo_tiet_khuan")
+      .select("phuong_phap, thiet_bi:cssd_dm_thiet_bi(loai_may:cssd_dm_loai_may(ma_loai_may))")
+      .eq("id", meId)
+      .maybeSingle();
+    if (meErr || !meRow) {
+      return { success: true as const, data: [], hiddenIncompatible: eligible.length };
+    }
+    const gate = meRow as { phuong_phap?: string | null; thiet_bi?: unknown };
+    const method = getSterilizerMethod({ phuong_phap: gate.phuong_phap }) || getSterilizerMethod(gate.thiet_bi);
+    const heat = await loadKitHeatLinesByBoIds(
+      supabase,
+      eligible.map((row) => String(row.bo_dung_cu_id || "")),
+    );
+    if (!heat.ok) {
+      return {
+        success: false as const,
+        error: "Không kiểm tra được chịu nhiệt — đã chặn thao tác.",
+        data: [] as unknown[],
+        hiddenIncompatible: eligible.length,
+      };
+    }
+    const part = partitionWaitingKitsByMethod(eligible, method, (row) => {
+      const boId = String(row.bo_dung_cu_id || "").trim();
+      if (!boId) return { lines: [] };
+      return { lines: heat.byBo.get(boId) ?? [] };
+    });
+    return { success: true as const, data: part.visible, hiddenIncompatible: part.hiddenCount };
   } catch (e: unknown) {
-    return { success: false as const, error: getErrorMessage(e), data: [] as unknown[] };
+    return { success: false as const, error: getErrorMessage(e), data: [] as unknown[], hiddenIncompatible: 0 };
   }
 }
 
@@ -523,7 +564,7 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
 
     const { data: me, error: meErr } = await supabase
       .from("cssd_fact_lo_tiet_khuan")
-      .select("id, ma_lo_tiet_khuan, thiet_bi_id, tk_chot_nap_at")
+      .select("id, ma_lo_tiet_khuan, thiet_bi_id, tk_chot_nap_at, phuong_phap")
       .eq("id", meId)
       .maybeSingle();
     if (meErr) return { success: false as const, error: mapFkError(meErr.message) };
@@ -561,7 +602,7 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
       return { success: false as const, error: `${parentMsg} Bộ ${String(qtNormalized.ma_vach_qr || qr)}.` };
     }
 
-    let isSteam = false;
+    let machineProfile: unknown = null;
     if (machineId) {
       const { data: tbRow, error: tbErr } = await supabase
         .from("cssd_dm_thiet_bi")
@@ -570,19 +611,21 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
         .maybeSingle();
       if (tbErr) return { success: false as const, error: "Không kiểm tra được máy — đã chặn nạp." };
       if (!tbRow) return { success: false as const, error: "Không tìm thấy thiết bị." };
-      const tb = tbRow as {
-        ten_thiet_bi?: string;
-        loai_may?: { ma_loai_may?: string; ten_loai_may?: string } | { ma_loai_may?: string; ten_loai_may?: string }[] | null;
-      };
-      isSteam = isSteamSterilizerProfile(tb);
+      machineProfile = tbRow;
     }
-    const loaded = await loadBomLinesWithLoaiSpec(supabase, String(qt.id));
-    const heat = assertSteamKitHeatAllowed({
-      isSteam,
-      lines: loaded.ok ? loaded.bomLines.map((line) => ({ is_chiu_nhiet: line.is_chiu_nhiet })) : null,
-      loadError: !loaded.ok,
+    const method =
+      getSterilizerMethod({ phuong_phap: (me as { phuong_phap?: string | null }).phuong_phap }) ||
+      getSterilizerMethod(machineProfile);
+    const boId = String((qt as { bo_dung_cu_id?: string | null }).bo_dung_cu_id || "").trim();
+    const loadedHeat = await loadKitHeatLinesByBoIds(supabase, boId ? [boId] : []);
+    const heat = assertKitFitsSterilizerMethod({
+      method,
+      lines: loadedHeat.ok ? (loadedHeat.byBo.get(boId) ?? []) : null,
+      loadError: !loadedHeat.ok,
     });
-    if (!heat.ok) return { success: false as const, error: heat.message };
+    if (!heat.ok) {
+      return { success: false as const, error: `${heat.message} Bộ ${String(qtNormalized.ma_vach_qr || qr)}.` };
+    }
 
     const actor = await requireSessionActorId();
     if (!actor.ok) return { success: false as const, error: actor.message };
@@ -607,6 +650,42 @@ export async function addQuyTrinhToSterilizationBatch(activeMeId: string, code: 
       success: true as const,
       tenBo: String(tenBo || "").trim() || qr,
     };
+  } catch (e: unknown) {
+    return { success: false as const, error: getErrorMessage(e) };
+  }
+}
+
+/** Gỡ một bộ khỏi phiếu khi mẻ còn Đang nạp. User id lấy từ phiên server. */
+export async function removeQuyTrinhFromSterilizationBatch(activeMeId: string, quyTrinhId: string) {
+  try {
+    await verifyCssdBatchEdit();
+    const validated = removeQuyTrinhFromBatchSchema.parse({ activeMeId, quyTrinhId });
+    const supabase = createAdminSupabaseClient();
+    const { data: me, error: meErr } = await supabase
+      .from("cssd_fact_lo_tiet_khuan")
+      .select("id, tk_chot_nap_at, trang_thai_me")
+      .eq("id", validated.activeMeId)
+      .maybeSingle();
+    if (meErr) return { success: false as const, error: mapFkError(meErr.message) };
+    if (!me) return { success: false as const, error: "Không tìm thấy mẻ." };
+    const blocked = rejectRemoveKitFromBatch({
+      tkChotNapAt: (me as { tk_chot_nap_at?: string | null }).tk_chot_nap_at,
+      trangThaiMe: (me as { trang_thai_me?: string | null }).trang_thai_me,
+    });
+    if (blocked) return { success: false as const, error: blocked };
+
+    const actor = await requireSessionActorId();
+    if (!actor.ok) return { success: false as const, error: actor.message };
+    const { data, error: rpcErr } = await supabase.rpc("rpc_cssd_me_remove_quy_trinh", {
+      p_me_id: validated.activeMeId,
+      p_quy_trinh_id: validated.quyTrinhId,
+      p_actor_user_id: actor.userId,
+    });
+    if (rpcErr) return { success: false as const, error: mapFkError(rpcErr.message) };
+    revalidateCssdBatchSurfaces();
+    revalidateCssdWorkflowSurfaces();
+    const soBo = Number((data as { so_bo?: number } | null)?.so_bo);
+    return { success: true as const, soBo: Number.isFinite(soBo) ? soBo : null };
   } catch (e: unknown) {
     return { success: false as const, error: getErrorMessage(e) };
   }

@@ -86,6 +86,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         batchGate={w.batchGate}
         items={w.items}
         waitingRows={w.waitingRows}
+        hiddenIncompatible={w.hiddenIncompatible}
         chuongTrinh={w.chuongTrinh}
         setChuongTrinh={w.setChuongTrinh}
         nhietDo={w.nhietDo}
@@ -104,6 +105,7 @@ export default function MeTietKhuanPage({ suppressShell = false }: { suppressShe
         setTrangThaiBi={w.setTrangThaiBi}
         onBackToList={w.backToList}
         onAddItemByCode={(code) => void w.addItem(code)}
+        onRemoveItem={(id) => void w.removeItem(id)}
         onConfirmBatDau={() => void w.confirmBatDau()}
         onConfirmKetThucChuTrinh={() => void w.confirmKetThucChuTrinh()}
         onFinishQc={(isPass) => void w.finishQc(isPass)}

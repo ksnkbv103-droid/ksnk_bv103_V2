@@ -16,6 +16,12 @@ export const addQuyTrinhToBatchSchema = z.object({
   code: z.string().min(3, "Mã QR không hợp lệ"),
 });
 
+/** Gỡ một bộ khỏi phiếu khi mẻ còn đang nạp. Người thực hiện lấy từ phiên, không nhận từ client. */
+export const removeQuyTrinhFromBatchSchema = z.object({
+  activeMeId: z.string().uuid("ID mẻ không hợp lệ"),
+  quyTrinhId: z.string().uuid("ID bộ không hợp lệ"),
+});
+
 /**
  * Schema cho việc kết thúc mẻ tiệt khuẩn
  */

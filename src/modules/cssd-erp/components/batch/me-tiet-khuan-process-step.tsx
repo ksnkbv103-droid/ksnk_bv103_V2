@@ -29,6 +29,7 @@ export default function MeTietKhuanProcessStep({
   batchGate,
   items,
   waitingRows,
+  hiddenIncompatible = 0,
   chuongTrinh,
   setChuongTrinh,
   nhietDo,
@@ -47,6 +48,7 @@ export default function MeTietKhuanProcessStep({
   setTrangThaiBi,
   onBackToList,
   onAddItemByCode,
+  onRemoveItem,
   onConfirmBatDau,
   onConfirmKetThucChuTrinh,
   onFinishQc,
@@ -60,6 +62,7 @@ export default function MeTietKhuanProcessStep({
   batchGate: MeRow | null;
   items: MeTkItemRow[];
   waitingRows: MeTkWaitingRow[];
+  hiddenIncompatible?: number;
   chuongTrinh: string;
   setChuongTrinh: (v: string) => void;
   nhietDo: string;
@@ -78,6 +81,7 @@ export default function MeTietKhuanProcessStep({
   setTrangThaiBi: (v: "CHUA_CO" | "AM" | "DUONG" | "") => void;
   onBackToList: () => void;
   onAddItemByCode: (code: string) => void;
+  onRemoveItem: (quyTrinhId: string) => void;
   onConfirmBatDau: () => void | Promise<void>;
   onConfirmKetThucChuTrinh: () => void | Promise<void>;
   onFinishQc: (isPass: boolean) => void | Promise<void>;
@@ -202,11 +206,17 @@ export default function MeTietKhuanProcessStep({
             </label>
             <div className="grid grid-cols-1 gap-[var(--bv103-space-3)] lg:grid-cols-2">
               <div className="order-1 lg:order-2">
-                <MeTietKhuanProcessScanPanel items={items} napLocked={napLocked} onAddItemByCode={onAddItemByCode} />
+                <MeTietKhuanProcessScanPanel
+                  items={items}
+                  napLocked={napLocked}
+                  onAddItemByCode={onAddItemByCode}
+                  onRemoveItem={onRemoveItem}
+                />
               </div>
               <div className="order-2 lg:order-1">
                 <MeTietKhuanWaitingPanel
                   rows={waitingRows}
+                  hiddenIncompatible={hiddenIncompatible}
                   napLocked={napLocked}
                   onProcess={(code) => {
                     if (!code || napLocked) return;

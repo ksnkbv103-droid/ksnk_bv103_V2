@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useCssdPrint } from "./use-cssd-print";
 import {
   addQuyTrinhToSterilizationBatch,
+  removeQuyTrinhFromSterilizationBatch,
   confirmBatDauTietKhuanBatch,
   confirmKetThucChuTrinhTietKhuan,
   createCssdSterilizationBatch,
@@ -39,6 +40,7 @@ export function useMeTietKhuanWorkflow() {
   const [activeMe, setActiveMe] = useState<any>(null);
   const [batchGate, setBatchGate] = useState<any>(null);
   const [waitingRows, setWaitingRows] = useState<any[]>([]);
+  const [hiddenIncompatible, setHiddenIncompatible] = useState(0);
   const [items, setItems] = useState<any[]>([]);
   const itemsRef = useRef<any[]>([]);
   const [nguoiUnload, setNguoiUnload] = useState("");
@@ -144,7 +146,7 @@ export function useMeTietKhuanWorkflow() {
     if (!activeMe?.id) return;
     const [g, w, m] = await Promise.all([
       fetchCssdBatchWorkflowState(activeMe.id),
-      fetchCssdTietKhuanWaitingRows(),
+      fetchCssdTietKhuanWaitingRows(120, activeMe.id),
       fetchCssdBatchMembers(activeMe.id),
     ]);
     if (g.success) setBatchGate(g.data);
@@ -159,7 +161,12 @@ export function useMeTietKhuanWorkflow() {
           inSlipCodes: members.map((row) => String(row?.ma_vach_qr || "")),
         }),
       );
-    } else toast.error(w.error || "Không tải danh sách chờ TK");
+      setHiddenIncompatible(Number(w.hiddenIncompatible) || 0);
+    } else {
+      setWaitingRows([]);
+      setHiddenIncompatible(0);
+      toast.error(w.error || "Không tải danh sách chờ TK");
+    }
   }, [activeMe]);
 
   useEffect(() => {
@@ -214,6 +221,7 @@ export function useMeTietKhuanWorkflow() {
     setItems([]);
     setBatchGate(null);
     setWaitingRows([]);
+    setHiddenIncompatible(0);
     setChuongTrinh(String((r.data as { chuong_trinh?: string | null })?.chuong_trinh || ""));
     setNhietDo("");
     setApSuat("");
@@ -244,6 +252,24 @@ export function useMeTietKhuanWorkflow() {
     toast.success(`Đã thêm vào phiếu TK: ${"tenBo" in r ? r.tenBo : raw}`);
   };
 
+  const removeItem = async (quyTrinhId: string) => {
+    if (!activeMe?.id) return toast.error("Chưa có phiếu/mẻ đang mở");
+    if (batchGate?.tk_chot_nap_at) return toast.error("Mẻ đã bắt đầu tiệt khuẩn — không bỏ bộ khỏi phiếu.");
+    const row = items.find((it) => String(it?.id || "") === quyTrinhId);
+    const code = String(row?.ma_vach_qr || row?.bo?.ten_bo || "bộ này");
+    const ok = await askConfirm({
+      title: "Bỏ khỏi phiếu",
+      body: `Bỏ ${code} khỏi phiếu? Bộ trở lại danh sách chờ tiệt khuẩn (sau Đóng gói).`,
+      confirmLabel: "Bỏ khỏi phiếu",
+      danger: true,
+    });
+    if (!ok) return;
+    const r = await removeQuyTrinhFromSterilizationBatch(activeMe.id, quyTrinhId);
+    if (!r.success) return toast.error(r.error);
+    await reloadProcessContext();
+    toast.success("Đã bỏ bộ khỏi phiếu.");
+  };
+
   const assertBatchHeatAllows = async (batchId: string) => {
     const h = await fetchCssdBatchHeatRisk(batchId);
     if (!h.success) {
@@ -263,7 +289,10 @@ export function useMeTietKhuanWorkflow() {
   const confirmBatDau = async () => {
     if (!activeMe?.id) return;
     if (!items.length) return toast.error("Chưa có bộ trong mẻ.");
-    if (!(await assertBatchHeatAllows(activeMe.id))) return;
+    const heat = await fetchCssdBatchHeatRisk(activeMe.id);
+    if (heat.success && heat.risk.level !== "OK") {
+      toast.warning(heat.risk.messages[0] || "Cảnh báo nhiệt/Spaulding", { duration: 8000 });
+    }
     const ok = await askConfirm({
       title: "Bắt đầu chu trình",
       body: "Xác nhận bắt đầu tiệt khuẩn? Sau bước này không thể nạp thêm bộ vào mẻ.",
@@ -429,6 +458,7 @@ export function useMeTietKhuanWorkflow() {
     activeMe,
     batchGate,
     waitingRows,
+    hiddenIncompatible,
     items,
     chuongTrinh,
     setChuongTrinh,
@@ -450,6 +480,7 @@ export function useMeTietKhuanWorkflow() {
     settleConfirm,
     createMe,
     addItem,
+    removeItem,
     confirmBatDau,
     confirmKetThucChuTrinh,
     finishQc,

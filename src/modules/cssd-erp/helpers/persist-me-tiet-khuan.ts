@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { KitHeatLine } from "../lib/me-tiet-khuan-batch-heat";
 import { appendQuyTrinhException } from "../actions/cssd-action-common";
 import { derivePassQuyTrinhIds, type PassMemberRow } from "../lib/me-tiet-khuan-batch-integrity";
 import { evaluateMeQcRelease, type MeQcOutcome } from "../lib/me-tiet-khuan-qc";
@@ -63,6 +64,48 @@ async function loadLinkedBatchMembers(
     };
   });
   return { ok: true, rows };
+}
+
+function unwrapRelation(value: unknown): Record<string, unknown> | null {
+  const row = Array.isArray(value) ? value[0] : value;
+  if (!row || typeof row !== "object") return null;
+  return row as Record<string, unknown>;
+}
+
+function asHeatFlag(value: unknown): boolean | null {
+  if (value === true || value === false) return value;
+  return null;
+}
+
+/** Cờ chịu nhiệt thô theo BOM bộ — null khi thiếu loại, không ép thành false. */
+export async function loadKitHeatLinesByBoIds(
+  client: SupabaseClient,
+  boIds: string[],
+): Promise<{ ok: true; byBo: Map<string, KitHeatLine[]> } | { ok: false; message: string }> {
+  const ids = [...new Set(boIds.map((id) => String(id || "").trim()).filter(Boolean))];
+  const byBo = new Map<string, KitHeatLine[]>();
+  for (const id of ids) byBo.set(id, []);
+  if (!ids.length) return { ok: true, byBo };
+
+  const { data, error } = await client
+    .from("cssd_dm_bo_dung_cu_chi_tiet")
+    .select("bo_dung_cu_id, is_active, cssd_dm_loai_dung_cu(is_chiu_nhiet)")
+    .in("bo_dung_cu_id", ids);
+  if (error) return { ok: false, message: error.message };
+
+  for (const raw of data || []) {
+    const row = raw as {
+      bo_dung_cu_id?: string | null;
+      is_active?: boolean | null;
+      cssd_dm_loai_dung_cu?: unknown;
+    };
+    if (row.is_active === false) continue;
+    const boId = String(row.bo_dung_cu_id || "").trim();
+    if (!boId || !byBo.has(boId)) continue;
+    const loai = unwrapRelation(row.cssd_dm_loai_dung_cu);
+    byBo.get(boId)?.push({ is_chiu_nhiet: loai ? asHeatFlag(loai.is_chiu_nhiet) : null });
+  }
+  return { ok: true, byBo };
 }
 
 function readRpcQuyTrinhIds(data: unknown): string[] {
