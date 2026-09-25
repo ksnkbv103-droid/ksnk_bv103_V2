@@ -224,6 +224,17 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
               minWidthClassName="w-full"
             />
           </div>
+          <div>
+            <label className={labelStyles}>Gắn Nhiệm vụ/Kế hoạch (tuỳ chọn)</label>
+            <SearchableSelect
+              options={nhiemVuOptions.map((o) => ({ id: o.id, label: o.label }))}
+              placeholder={optionsLoading ? "Đang tải..." : "— Không gắn —"}
+              value={selectedNhiemVu}
+              onChange={setSelectedNhiemVu}
+              disabled={optionsLoading}
+              searchPlaceholder="Tìm nhiệm vụ/kế hoạch…"
+            />
+          </div>
         </div>
       </div>
 
@@ -268,17 +279,6 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
               value={viTri}
               onChange={(e) => setViTri(e.target.value)}
               placeholder="VD: Phòng 302 · Kho thuốc · Hành lang tầng 2"
-            />
-          </div>
-          <div>
-            <label className={labelStyles}>Nhiệm vụ (tuỳ chọn)</label>
-            <SearchableSelect
-              options={nhiemVuOptions.map((o) => ({ id: o.id, label: o.label }))}
-              placeholder={optionsLoading ? "Đang tải..." : "— Không gắn nhiệm vụ —"}
-              value={selectedNhiemVu}
-              onChange={setSelectedNhiemVu}
-              disabled={optionsLoading}
-              searchPlaceholder="Tìm nhiệm vụ…"
             />
           </div>
           <div>

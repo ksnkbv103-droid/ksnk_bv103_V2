@@ -30,13 +30,18 @@ export function buildQlcvCommandTableColumns(h: QlcvTableColumnHandlers) {
       cell: (row: CongViecView) => (
         <div className="flex flex-col gap-0.5 py-1 text-left">
           <span className={Q.cellTitle}>{row.tieu_de}</span>
+          {row.nhiem_vu_ten ? (
+            <span className={`${Q.cellMeta} block truncate`}>NV/KH: {row.nhiem_vu_ten}</span>
+          ) : null}
           <QlcvDinhKyMauChip
             loaiCongViec={row.loai_cong_viec}
             dinhKyMauId={row.dinh_ky_mau_id}
             className={Q.cellMeta}
           />
-          {row.vi_tri_thuc_hien ? (
-            <span className={`${Q.cellMeta} block truncate`}>Vị trí: {row.vi_tri_thuc_hien}</span>
+          {row.trang_thai === "HOAN_THANH" ? (
+            <span className={`${Q.cellMeta} block truncate text-emerald-700`}>
+              Kết quả: đã đóng
+            </span>
           ) : null}
         </div>
       ),

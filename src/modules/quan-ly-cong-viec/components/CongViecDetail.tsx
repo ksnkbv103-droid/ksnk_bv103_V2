@@ -41,6 +41,7 @@ import { resolveQlcvWorkflowBadgeAppearance } from "../lib/qlcv-workflow-badge";
 import { getTrangThaiMauSacMap } from "../actions/cong-viec-read.actions";
 import { normalizeQlcvTrangThaiToCanonical } from "@/lib/domain/qlcv/trang-thai-canonical";
 import { isEligibleForNghiemThu } from "@/lib/domain/qlcv/nghiem-thu-gate";
+import { hasQlcvChecklistFullResult } from "@/lib/domain/qlcv/close-requires-result";
 import { isQlcvBoardOverdue } from "../lib/qlcv-board-lanes";
 import { labelsForStaffIds, normalizeQlcvStaffIdList } from "../lib/qlcv-staff-ids";
 import type { CongViecView } from "../types";
@@ -89,6 +90,30 @@ const qlcvDetailChrome = {
   btnGhost:
     "bv103-control-h shrink-0 rounded-[var(--radius-control)] border border-transparent px-3 text-xs font-semibold text-red-600 hover:border-red-100 hover:bg-red-50",
 } as const;
+
+
+function extractQlcvCloseResultText(data: {
+  nhat_ky?: unknown;
+  checklist?: unknown;
+  hoat_dong?: { loai_hoat_dong?: string; noi_dung?: string | null }[] | null;
+}): string | null {
+  if (hasQlcvChecklistFullResult(data.checklist)) return "Checklist đủ 100%";
+  const fromHoatDong = Array.isArray(data.hoat_dong) ? data.hoat_dong : [];
+  const fromNhatKy = Array.isArray(data.nhat_ky)
+    ? (data.nhat_ky as { loai_hoat_dong?: string; noi_dung?: string | null }[])
+    : [];
+  const entries = fromHoatDong.length ? fromHoatDong : fromNhatKy;
+  for (let i = entries.length - 1; i >= 0; i--) {
+    const e = entries[i];
+    const loai = String(e.loai_hoat_dong ?? "");
+    const noi = String(e.noi_dung ?? "").trim();
+    if (!noi) continue;
+    if (loai === "HOAN_THANH" || loai === "DUYET_HOAN_THANH" || noi.startsWith("Kết quả:")) {
+      return noi;
+    }
+  }
+  return null;
+}
 
 export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
   const { isAdmin, allowed, userData } = useModulePermission("CONG_VIEC");
@@ -449,7 +474,14 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
               }),
             },
             { label: "Vị trí chi tiết", val: data.vi_tri_thuc_hien || "—" },
-            { label: "Nhiệm vụ", val: data.nhiem_vu_ten || "—" },
+            { label: "Nằm trong (NV/KH)", val: data.nhiem_vu_ten || "—" },
+            {
+              label: "Kết quả",
+              val:
+                normalizeQlcvTrangThaiToCanonical(data.trang_thai) === "HOAN_THANH"
+                  ? extractQlcvCloseResultText(data) || "Đã hoàn thành"
+                  : "—",
+            },
             { label: "Người phối hợp", val: phoiHopLabel },
             { label: "Người theo dõi", val: theoDoiLabel },
           ].map((item) => (
@@ -536,23 +568,45 @@ export function CongViecDetail({ id, onClose, onRefreshList }: Props) {
         }}
       />
 
-      <QlcvConfirmDialog
-        open={confirmNghiemThuOpen}
-        onOpenChange={setConfirmNghiemThuOpen}
-        title="Xác nhận nghiệm thu & đóng"
-        description="Công việc sẽ được chuyển sang trạng thái Hoàn thành. Thao tác này không thể hoàn tác."
-        confirmLabel="Nghiệm thu & Đóng"
-        onConfirm={async () => {
-          try {
-            await xacNhanHoanThanh(data.id);
-            toast.success("Đã nghiệm thu và hoàn thành công việc!");
-            fetchDetail();
-            onRefreshList?.();
-          } catch (e: unknown) {
-            toast.error(getErrorMessage(e));
-          }
-        }}
-      />
+      {hasQlcvChecklistFullResult(data.checklist) ? (
+        <QlcvConfirmDialog
+          open={confirmNghiemThuOpen}
+          onOpenChange={setConfirmNghiemThuOpen}
+          title="Xác nhận nghiệm thu & đóng"
+          description="Checklist đã đủ 100% — được tính là kết quả đóng việc. Thao tác không hoàn tác."
+          confirmLabel="Nghiệm thu & Đóng"
+          onConfirm={async () => {
+            try {
+              await xacNhanHoanThanh(data.id);
+              toast.success("Đã nghiệm thu và hoàn thành công việc!");
+                            fetchDetail();
+              onRefreshList?.();
+            } catch (e: unknown) {
+              toast.error(getErrorMessage(e));
+            }
+          }}
+        />
+      ) : (
+        <QlcvReasonDialog
+          open={confirmNghiemThuOpen}
+          onOpenChange={setConfirmNghiemThuOpen}
+          title="Nghiệm thu & đóng — ghi kết quả"
+          description="Domain 19c: đóng việc cần 1 dòng kết quả đạt được (hoặc checklist đủ 100%)."
+          placeholder="Kết quả đạt được (1 dòng)…"
+          confirmLabel="Nghiệm thu & Đóng"
+          minLength={1}
+          onConfirm={async (ketQua) => {
+            try {
+              await xacNhanHoanThanh(data.id, ketQua);
+              toast.success("Đã nghiệm thu và hoàn thành công việc!");
+                            fetchDetail();
+              onRefreshList?.();
+            } catch (e: unknown) {
+              toast.error(getErrorMessage(e));
+            }
+          }}
+        />
+      )}
 
       <QlcvConfirmDialog
         open={confirmDeleteOpen}

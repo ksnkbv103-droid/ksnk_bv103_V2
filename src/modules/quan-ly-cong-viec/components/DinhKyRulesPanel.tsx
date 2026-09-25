@@ -236,7 +236,8 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan }: Props) 
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-slate-800">
             <CalendarClock className="h-4 w-4 shrink-0 text-[var(--primary)]" aria-hidden />
-            <h3 className="text-sm font-medium">Mẫu định kỳ</h3>
+            <h3 className="text-sm font-medium">Mẫu định kỳ
+            {/* 19c TAC-1A: dừng mẫu = is_active=false (không migrate ngày_dừng) */}</h3>
           </div>
         </div>
         <div className="flex flex-col gap-2 sm:items-end">
@@ -521,20 +522,20 @@ export function DinhKyRulesPanel({ highlightMauId, onRequestPrintPlan }: Props) 
                         >
                           <Pencil className="h-3 w-3" aria-hidden /> Sửa
                         </button>
-                        <button
+                        <button title="Dừng mẫu = ngừng sinh phiếu mới (19c). Không cần cột ngày_dừng."
                           type="button"
                           className="text-xs font-semibold text-[var(--primary)] hover:underline"
                           onClick={async () => {
                             try {
                               await setDinhKyMauActive(r.id, !r.is_active);
-                              toast.success(r.is_active ? "Đã tắt mẫu" : "Đã bật mẫu");
+                              toast.success(r.is_active ? "Đã dừng mẫu (ngừng sinh phiếu mới)" : "Đã bật lại mẫu");
                               await load();
                             } catch (e: unknown) {
                               toast.error(e instanceof Error ? e.message : "Lỗi");
                             }
                           }}
                         >
-                          {r.is_active ? "Tắt" : "Bật"}
+                          {r.is_active ? "Dừng" : "Bật"}
                         </button>
                         <button
                           type="button"
