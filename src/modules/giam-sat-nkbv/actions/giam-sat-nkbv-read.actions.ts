@@ -4,6 +4,7 @@ import { createServerSupabaseUserClient, createAdminSupabaseClient } from "@/lib
 import { todayYmdInVn } from "@/lib/format-datetime-vi";
 import { verifyAnyPermission, verifyPermission } from "@/lib/server-permission";
 import { fetchActiveRegistryDmRows } from "@/lib/master-data/registry-select-fetch";
+import { filterAllowedNkbvLoaiRows } from "../lib/nkbv-loai-labels";
 import type { RegistrySelectRow } from "@/lib/master-data/registry-select-fetch";
 import { buildSupabaseSearchFilter } from "@/lib/supabase-search-helper";
 import type { NkbvListSortKey } from "@/lib/validations/nkbv-list-pagination";
@@ -113,7 +114,8 @@ export async function getNkbvFormDmBundle() {
   const supabase = await createServerSupabaseUserClient();
   try {
     await verifyPermission("GIAM_SAT_NKBV", "view");
-    const loaiRows = await fetchActiveRegistryDmRows(supabase, "LOAI_NKBV");
+    const loaiRowsRaw = await fetchActiveRegistryDmRows(supabase, "LOAI_NKBV");
+    const loaiRows = filterAllowedNkbvLoaiRows(loaiRowsRaw);
     const { data: ttData, error: ttErr } = await supabase
       .from("nkbv_dm_trang_thai_ca")
       .select("id, ma_trang_thai, ten_trang_thai, thu_tu")

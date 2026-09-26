@@ -5,6 +5,9 @@ import {
   suggestNkbvTypeFromSpecimen,
   lockedCaseChecklistType,
   initialSuspectedChecklistType,
+  isAllowedNkbvMdmLoaiCode,
+  filterAllowedNkbvLoaiRows,
+  NKBV_ALLOWED_MDM_LOAI_CODES,
 } from "./nkbv-loai-labels";
 
 describe("inferChecklistTypeFromSpecimen", () => {
@@ -111,5 +114,39 @@ describe("lockedCaseChecklistType / initialSuspectedChecklistType", () => {
   it("chưa gắn loại → theo gợi ý", () => {
     expect(lockedCaseChecklistType({ loai_ma: null })).toBe(null);
     expect(initialSuspectedChecklistType(null, "BSI")).toBe("BSI");
+  });
+});
+
+
+describe("NKBV MDM allowlist (Strategy B)", () => {
+  it("allows canonical CDC codes and aliases", () => {
+    expect(isAllowedNkbvMdmLoaiCode("BSI")).toBe(true);
+    expect(isAllowedNkbvMdmLoaiCode("CLABSI")).toBe(true);
+    expect(isAllowedNkbvMdmLoaiCode("CAUTI")).toBe(true);
+    expect(isAllowedNkbvMdmLoaiCode("VAE")).toBe(true);
+    expect(isAllowedNkbvMdmLoaiCode("VAP")).toBe(true);
+    expect(isAllowedNkbvMdmLoaiCode("HAP")).toBe(true);
+    expect(isAllowedNkbvMdmLoaiCode("SSI")).toBe(true);
+    expect(isAllowedNkbvMdmLoaiCode("CH17")).toBe(true);
+    expect(isAllowedNkbvMdmLoaiCode("EMET")).toBe(true);
+    expect(isAllowedNkbvMdmLoaiCode("USI")).toBe(true);
+    expect(isAllowedNkbvMdmLoaiCode("LOAI_TRU")).toBe(true);
+    expect(isAllowedNkbvMdmLoaiCode("KHAC")).toBe(true);
+  });
+
+  it("rejects arbitrary admin-invented codes", () => {
+    expect(isAllowedNkbvMdmLoaiCode("FOOBAR")).toBe(false);
+    expect(isAllowedNkbvMdmLoaiCode("NKBV_CUSTOM")).toBe(false);
+    expect(isAllowedNkbvMdmLoaiCode("")).toBe(false);
+  });
+
+  it("filters registry rows by ma", () => {
+    const rows = [
+      { id: "1", ma: "BSI", ten: "BSI" },
+      { id: "2", ma: "FOOBAR", ten: "Lạ" },
+      { id: "3", ma: "UTI", ten: "UTI" },
+    ];
+    expect(filterAllowedNkbvLoaiRows(rows).map((r) => r.ma)).toEqual(["BSI", "UTI"]);
+    expect(NKBV_ALLOWED_MDM_LOAI_CODES.has("BSI")).toBe(true);
   });
 });

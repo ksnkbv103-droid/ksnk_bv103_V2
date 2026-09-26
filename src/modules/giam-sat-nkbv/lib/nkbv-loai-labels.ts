@@ -126,6 +126,29 @@ export const NKBV_MDM_CODE_CANDIDATES: Record<
   ],
 };
 
+/** Mã MDM được phép gắn ca (canonical CDC + alias seed + LOAI_TRU + KHAC legacy). không mở CRUD hub. */
+export const NKBV_ALLOWED_MDM_LOAI_CODES: ReadonlySet<string> = new Set([
+  ...Object.values(NKBV_MDM_CODE_CANDIDATES).flat(),
+  "LOAI_TRU",
+  "RULED_OUT",
+  "KHAC",
+]);
+
+export function isAllowedNkbvMdmLoaiCode(ma: string | null | undefined): boolean {
+  const raw = String(ma || "").trim().toUpperCase();
+  if (!raw) return false;
+  return NKBV_ALLOWED_MDM_LOAI_CODES.has(raw);
+}
+
+/** Lọc dropdown registry theo allowlist Strategy B. */
+export function filterAllowedNkbvLoaiRows<T extends { ma?: string | null; ma_loai?: string | null }>(
+  rows: T[] | null | undefined,
+): T[] {
+  if (!rows?.length) return [];
+  return rows.filter((r) => isAllowedNkbvMdmLoaiCode(r.ma ?? r.ma_loai));
+}
+
+
 /** Suy loại từ bệnh phẩm / vị trí — không đọc loai_ma. */
 export function inferChecklistTypeFromSpecimen(input: {
   loai_benh_pham?: string | null;

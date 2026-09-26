@@ -1,3 +1,4 @@
+import { isAllowedNkbvMdmLoaiCode } from "../lib/nkbv-loai-labels";
 import type { createAdminSupabaseClient } from "@/lib/supabase-server";
 
 export type Payload = Record<string, unknown>;
@@ -27,12 +28,18 @@ export async function validateLoaiTrangAndLyDo(
 
   const { data: lo, error: el } = await supabase
     .from("nkbv_dm_loai")
-    .select("id")
+    .select("id, ma_loai")
     .eq("id", loai_nkbv_id)
     .eq("is_active", true)
     .maybeSingle();
   if (el) throw new Error(el.message);
   if (!lo) throw new Error("Loại NKBV không hợp lệ.");
+  const loMa = String((lo as { ma_loai?: string }).ma_loai || "").trim();
+  if (!isAllowedNkbvMdmLoaiCode(loMa)) {
+    throw new Error(
+      `Loại NKBV «${loMa || loai_nkbv_id}» không thuộc allowlist CDC (BSI/UTI/SSI/VAE/VAP/HAP/CH17…).`,
+    );
+  }
 
   const ttMa = String((tt as { ma_trang_thai?: string }).ma_trang_thai || "");
   if (ttMa === "LOAI_TRU" && !String(ly_do_loai_tru ?? "").trim()) {

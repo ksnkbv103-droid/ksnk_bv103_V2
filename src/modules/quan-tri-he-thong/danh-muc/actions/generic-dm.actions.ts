@@ -1,4 +1,5 @@
 "use server";
+import { isLockedSystemLookup } from "@/lib/master-data/locked-system-lookups";
 
 import { genericDmMustUseDedicatedPageError } from "@/lib/master-data/danh-muc-admin-routes";
 import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
@@ -26,6 +27,14 @@ function rejectDedicatedGenericWrite(loaiDanhMuc: string) {
   return { success: false as const, error };
 }
 
+function rejectLockedSystemLookup(loaiDanhMuc: string) {
+  if (!isLockedSystemLookup(loaiDanhMuc)) return null;
+  return {
+    success: false as const,
+    error: `Danh mục «${loaiDanhMuc.trim()}» là mã hệ thống (khóa) — không thêm/sửa/xóa trên hub.`,
+  };
+}
+
 export async function listGenericDmAction(loaiDanhMuc: string) {
   await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), "view");
   const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
@@ -36,6 +45,8 @@ export async function listGenericDmAction(loaiDanhMuc: string) {
 /** Gợi ý mã dòng mới (DM-xxxx) dựa trên mã đang có trong bảng dm_* — dùng khi thêm danh mục chuyên biệt. */
 export async function suggestNextGenericDmMaAction(loaiDanhMuc: string, ten?: string) {
   await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), "view");
+  const locked = rejectLockedSystemLookup(loaiDanhMuc);
+  if (locked) return locked;
   const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
   if (!reg) return { success: false as const, error: "Loại danh mục không hợp lệ." };
   try {
@@ -56,6 +67,8 @@ export async function upsertGenericDmAction(
   isActive: boolean
 ) {
   await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), id ? "edit" : "create");
+  const locked = rejectLockedSystemLookup(loaiDanhMuc);
+  if (locked) return locked;
   const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
   if (dedicated) return dedicated;
   const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
@@ -70,6 +83,8 @@ export async function upsertGenericDmAction(
 
 export async function toggleGenericDmAction(loaiDanhMuc: string, id: string, currentActive: boolean) {
   await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), "edit");
+  const locked = rejectLockedSystemLookup(loaiDanhMuc);
+  if (locked) return locked;
   const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
   if (dedicated) return dedicated;
   const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
@@ -79,6 +94,8 @@ export async function toggleGenericDmAction(loaiDanhMuc: string, id: string, cur
 
 export async function softDeleteGenericDmAction(loaiDanhMuc: string, id: string) {
   await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), "delete");
+  const locked = rejectLockedSystemLookup(loaiDanhMuc);
+  if (locked) return locked;
   const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
   if (dedicated) return dedicated;
   const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
@@ -88,6 +105,8 @@ export async function softDeleteGenericDmAction(loaiDanhMuc: string, id: string)
 
 export async function softDeleteManyGenericDmAction(loaiDanhMuc: string, ids: string[]) {
   await verifyDanhMucLookupPermission(getPermissionModuleForLoai(loaiDanhMuc), "delete");
+  const locked = rejectLockedSystemLookup(loaiDanhMuc);
+  if (locked) return locked;
   const dedicated = rejectDedicatedGenericWrite(loaiDanhMuc);
   if (dedicated) return dedicated;
   const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
