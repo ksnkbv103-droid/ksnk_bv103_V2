@@ -1,3 +1,8 @@
+/**
+ * Resolve `ma_tram` (CODE) → UUID lookup id for fact FK `tram_hien_tai_id`.
+ * Nhãn VI: SSOT `workflow/domain/cssd-stations.ts` (không đọc ten_tram cho UI).
+ * Strategy B W4: giữ UUID persist; TEXT ma_tram trên fact = ADR sau.
+ */
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 let tramIdByMaCache: Map<string, string> | null = null;

@@ -15,3 +15,13 @@ export type LockedSystemLookupLoai = (typeof LOCKED_SYSTEM_LOOKUP_LOAI)[number];
 export function isLockedSystemLookup(loaiDanhMuc: string): boolean {
   return (LOCKED_SYSTEM_LOOKUP_LOAI as readonly string[]).includes(loaiDanhMuc.trim());
 }
+
+/** Thông báo khi gọi CRUD/import generic trên danh mục mã máy. */
+export function lockedSystemLookupMutateError(loaiDanhMuc: string): string | null {
+  if (!isLockedSystemLookup(loaiDanhMuc)) return null;
+  return (
+    `Danh mục hệ thống (${loaiDanhMuc.trim()}) — chỉ xem. ` +
+    "Không thêm, sửa, xóa hay nạp Excel (admin không được thêm mã ngoài seed Domain)."
+  );
+}
+

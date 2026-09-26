@@ -11,6 +11,7 @@ import { formatDateTimeVi } from "@/lib/format-datetime-vi";
 import { parseSetReconcileSnapshot } from "../domain/cssd-set-reconcile-attrs";
 import { parseRecallMemberListText } from "../domain/cssd-batch-recall";
 import { SET_RECONCILE_KIND_LABEL, formatLoaiDungCuLabel, type SetReconcileLineKind } from "@/lib/domain/cssd-set-reconcile";
+import { stationLabel } from "@/modules/cssd-erp/workflow/domain/cssd-stations";
 
 export interface IncidentDetailRow {
   id: string;
@@ -62,16 +63,6 @@ export function getGoogleDriveDirectLink(url: string): string {
 
   return trimmed;
 }
-
-const STATION_LABEL_MAP: Record<string, string> = {
-  TIEP_NHAN: "Tiếp nhận",
-  LAM_SACH: "Làm sạch",
-  QC: "Kiểm tra chất lượng (QC)",
-  DONG_GOI: "Đóng gói",
-  TIET_KHUAN: "Tiệt khuẩn",
-  CAP_PHAT: "Cấp phát",
-};
-
 const GROUP_LABEL_MAP: Record<string, string> = {
   PROCESS: "Quy trình xử lý",
   INSTRUMENT: "Hỏng hóc dụng cụ",
@@ -137,7 +128,7 @@ export default function IncidentPrintView({
         const movedBit = moved ? ` Về Tiếp nhận: ${moved}.` : " Bộ chưa dùng về Tiếp nhận.";
         return `Thu hồi mẻ${n}.${movedBit}${listedBit}${hold}`;
       }
-      const target = rollbackTarget ? STATION_LABEL_MAP[rollbackTarget] || rollbackTarget : "Làm sạch";
+      const target = rollbackTarget ? stationLabel(rollbackTarget) : "Làm sạch";
       return `Rollback domino: Tự động chuyển bộ dụng cụ về trạm [${target}] để xử lý lại từ đầu.`;
     }
     if (incident.incident_group === "EQUIPMENT") {
@@ -201,7 +192,7 @@ export default function IncidentPrintView({
           </div>
           <div>
             <strong>Trạm phát hiện:</strong>{" "}
-            {STATION_LABEL_MAP[incident.ma_tram_phat_hien] || incident.ma_tram_phat_hien}
+            {stationLabel(incident.ma_tram_phat_hien)}
           </div>
           <div>
             <strong>Người lập biên bản:</strong> {reporterEmail || "Nhân viên KSNK"}
@@ -369,7 +360,7 @@ export default function IncidentPrintView({
             {incident.ma_tram_gay_loi ? (
               <div>
                 <strong>Trạm gây lỗi:</strong>{" "}
-                {STATION_LABEL_MAP[incident.ma_tram_gay_loi] || incident.ma_tram_gay_loi}
+                {stationLabel(incident.ma_tram_gay_loi)}
               </div>
             ) : null}
 

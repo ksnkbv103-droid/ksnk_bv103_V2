@@ -2,6 +2,7 @@
 import { isLockedSystemLookup } from "@/lib/master-data/locked-system-lookups";
 
 import { genericDmMustUseDedicatedPageError } from "@/lib/master-data/danh-muc-admin-routes";
+import { lockedSystemLookupMutateError } from "@/lib/master-data/locked-system-lookups";
 import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
 import { getRegistryEntryOrNull } from "@/lib/master-data/domain-registry";
 import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
@@ -22,6 +23,8 @@ function getPermissionModuleForLoai(loaiDanhMuc: string): string {
 }
 
 function rejectDedicatedGenericWrite(loaiDanhMuc: string) {
+  const locked = lockedSystemLookupMutateError(loaiDanhMuc);
+  if (locked) return { success: false as const, error: locked };
   const error = genericDmMustUseDedicatedPageError(loaiDanhMuc);
   if (!error) return null;
   return { success: false as const, error };

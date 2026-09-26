@@ -1,3 +1,4 @@
+import { STATION_LABEL, WORKFLOW_STEPS } from "@/modules/cssd-erp/workflow/domain/cssd-stations";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import {
   INSTRUMENT_MOVE_TYPE_ID,
@@ -120,14 +121,9 @@ export const INCIDENT_TYPE_PRESETS: Record<IncidentGroup, IncidentPreset[]> = {
   OTHER: [{ code: "OTHER_CUSTOM", label: "Khác — mô tả chi tiết ở phần dưới" }],
 };
 
-export const INCIDENT_STATION_OPTIONS: Array<{ value: Station; label: string }> = [
-  { value: "TIEP_NHAN", label: "Tiếp nhận" },
-  { value: "LAM_SACH", label: "Làm sạch" },
-  { value: "QC", label: "Kiểm tra chất lượng (QC)" },
-  { value: "DONG_GOI", label: "Đóng gói" },
-  { value: "TIET_KHUAN", label: "Tiệt khuẩn" },
-  { value: "CAP_PHAT", label: "Cấp phát" },
-];
+export const INCIDENT_STATION_OPTIONS: Array<{ value: Station; label: string }> = WORKFLOW_STEPS.map(
+  (value) => ({ value, label: STATION_LABEL[value] }),
+);
 
 /** Biến động: 2 cửa (A 2026-09-18). Legacy SET_RECONCILE không còn picker. */
 export function instrumentFormTypeOptions(): IncidentPreset[] {

@@ -7,6 +7,7 @@ import { useMinWidth } from "@/hooks/use-min-width";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import { bv103DesignTokens as T } from "@/lib/bv103-design-tokens";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { stationLabel as cssdStationLabel } from "@/modules/cssd-erp/workflow/domain/cssd-stations";
 
 interface Props {
   filters: { from: string; to: string; station: string };
@@ -24,7 +25,7 @@ function fmtShort(iso: string) {
 
 function stationLabel(station: string) {
   if (station === "ALL") return "Tất cả trạm";
-  return station.replace(/_/g, " ");
+  return cssdStationLabel(station);
 }
 
 const btn =

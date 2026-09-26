@@ -3,17 +3,13 @@
 import React from "react";
 import { Box, Clock, Microscope, Truck, WashingMachine } from "lucide-react";
 import type { Station } from "../../types/cssd.types";
-import { SCAN_STATIONS } from "../../workflow/domain/cssd-stations";
+import { SCAN_STATIONS, STATION_LABEL } from "../../workflow/domain/cssd-stations";
 import { CSSD_UI_PANEL } from "../../shared/ui/cssd-ui-chrome";
 import CssdBatchMeLinkChip from "./cssd-batch-me-link-chip";
 
-const STATION_LABEL: Record<Station, string> = {
-  TIEP_NHAN: "Tiếp nhận",
-  LAM_SACH: "Làm sạch",
-  QC: "Kiểm bộ",
-  DONG_GOI: "Đóng gói",
-  TIET_KHUAN: "Tiệt khuẩn",
-  CAP_PHAT: "Cấp phát",
+/** Helper QT.19 — tách QC trạm vs QC mẻ (domain). */
+const STATION_HINT: Partial<Record<Station, string>> = {
+  QC: "QC trước đóng gói (QT.19) ≠ QC mẻ",
 };
 
 const STATION_ICON: Record<Exclude<Station, "TIET_KHUAN">, React.ReactNode> = {
@@ -52,7 +48,7 @@ export default function CssdStationFlowMap({ activeStation, onSelectStation, gat
         aria-pressed={isActive}
         aria-disabled={locked}
         aria-label={`Xem hàng chờ ${STATION_LABEL[station]}`}
-        title={STATION_LABEL[station]}
+        title={STATION_HINT[station] || STATION_LABEL[station]}
         className={`${CELL_BASE} ${
           isActive
             ? "border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)] ring-1 ring-[var(--primary)]/25"

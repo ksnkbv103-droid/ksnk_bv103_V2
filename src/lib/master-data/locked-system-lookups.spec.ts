@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isLockedSystemLookup } from "./locked-system-lookups";
+import { isLockedSystemLookup, lockedSystemLookupMutateError } from "./locked-system-lookups";
 
 describe("isLockedSystemLookup", () => {
   it("khóa QLCV enum, NKBV loại/TT, trạm và vai trò hệ thống", () => {
@@ -14,5 +14,10 @@ describe("isLockedSystemLookup", () => {
   it("không khóa danh mục viện sửa hàng ngày", () => {
     expect(isLockedSystemLookup("CHUC_DANH")).toBe(false);
     expect(isLockedSystemLookup("KHOA_PHONG")).toBe(false);
+  });
+
+  it("reject mutate message for TRAM_CSSD (no 7th station via hub)", () => {
+    expect(lockedSystemLookupMutateError("TRAM_CSSD")).toMatch(/chỉ xem/);
+    expect(lockedSystemLookupMutateError("CHUC_DANH")).toBeNull();
   });
 });

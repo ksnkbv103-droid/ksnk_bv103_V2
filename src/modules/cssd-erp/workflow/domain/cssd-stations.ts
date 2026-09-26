@@ -1,5 +1,7 @@
 /**
- * SSOT: thứ tự trạm CSSD 6 bước + trạm được quét tay (TK chỉ qua phiếu mẻ).
+ * SSOT: 6 mã trạm CSSD + nhãn VI + thứ tự workflow.
+ * Persist fact vẫn FK UUID (`tram_hien_tai_id`) qua `cssd-tram-persist` — CODE là khóa nghiệp vụ.
+ * Admin không thêm trạm thứ 7 (TRAM_CSSD khóa hệ thống).
  */
 import type { Station } from "../../types/cssd.types";
 
@@ -12,7 +14,28 @@ export const WORKFLOW_STEPS: readonly Station[] = [
   "CAP_PHAT",
 ] as const;
 
+/** Nhãn hiển thị — một map duy nhất; UI/in/analytics đọc từ đây. */
+export const STATION_LABEL: Record<Station, string> = {
+  TIEP_NHAN: "Tiếp nhận",
+  LAM_SACH: "Làm sạch",
+  QC: "Kiểm bộ",
+  DONG_GOI: "Đóng gói",
+  TIET_KHUAN: "Tiệt khuẩn",
+  CAP_PHAT: "Cấp phát",
+};
+
 export const SCAN_STATIONS: readonly Station[] = WORKFLOW_STEPS.filter((s) => s !== "TIET_KHUAN");
+
+export function isCssdStation(value: string): value is Station {
+  return (WORKFLOW_STEPS as readonly string[]).includes(value.trim().toUpperCase());
+}
+
+export function stationLabel(station: string | null | undefined): string {
+  const ma = String(station || "").trim().toUpperCase();
+  if (!ma) return "—";
+  if (isCssdStation(ma)) return STATION_LABEL[ma];
+  return ma.replace(/_/g, " ");
+}
 
 export function stepIndex(station: Station): number {
   return WORKFLOW_STEPS.indexOf(station);
@@ -37,7 +60,7 @@ export function nextStationLabel(current: Station): string {
   const n = WORKFLOW_STEPS[i + 1];
   if (!n) return "Hoàn chu kỳ";
   if (n === "TIET_KHUAN") return "Mẻ tiệt khuẩn";
-  return n.replace(/_/g, " ");
+  return STATION_LABEL[n];
 }
 
 /** After this station, sterilisation is via phiếu mẻ (not scan). */

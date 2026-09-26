@@ -8,6 +8,7 @@ import { useCssdPrint } from "../hooks/use-cssd-print";
 import CssdPrintPortal from "../components/print/CssdPrintPortal";
 import { fetchCssdKhoDungCuList } from "../actions/cssd-kho-read.actions";
 import { useImportExport } from "@/hooks/useImportExport";
+import { STATION_LABEL } from "../workflow/domain/cssd-stations";
 import AdvancedDataTable, { Column } from "@/components/shared/AdvancedDataTable";
 import { ImportExportToolbar } from "@/components/shared/ImportExportToolbar";
 import QrScanInput from "@/components/shared/QrScanInput";
@@ -273,13 +274,14 @@ export default function KhoDungCuPage({ suppressShell = false }: { suppressShell
           );
         const station = String(i.trang_thai_hien_tai || "");
         const STATION_BADGE: Record<string, { icon: string; label: string; cls: string }> = {
-          TIEP_NHAN: { icon: "🕐", label: "Tiếp nhận", cls: "bg-sky-50 text-sky-700 border-sky-100" },
-          LAM_SACH: { icon: "🧽", label: "Làm sạch", cls: "bg-teal-50 text-teal-700 border-teal-100" },
-          QC: { icon: "🔍", label: "QC", cls: "bg-violet-50 text-violet-700 border-violet-100" },
-          DONG_GOI: { icon: "📦", label: "Đóng gói", cls: "bg-amber-50 text-amber-700 border-amber-100" },
-          TIET_KHUAN: { icon: "🔥", label: "Tiệt khuẩn", cls: "bg-orange-50 text-orange-700 border-orange-100" },
+          TIEP_NHAN: { icon: "🕐", label: STATION_LABEL.TIEP_NHAN, cls: "bg-sky-50 text-sky-700 border-sky-100" },
+          LAM_SACH: { icon: "🧽", label: STATION_LABEL.LAM_SACH, cls: "bg-teal-50 text-teal-700 border-teal-100" },
+          QC: { icon: "🔍", label: STATION_LABEL.QC, cls: "bg-violet-50 text-violet-700 border-violet-100" },
+          DONG_GOI: { icon: "📦", label: STATION_LABEL.DONG_GOI, cls: "bg-amber-50 text-amber-700 border-amber-100" },
+          TIET_KHUAN: { icon: "🔥", label: STATION_LABEL.TIET_KHUAN, cls: "bg-orange-50 text-orange-700 border-orange-100" },
           CAP_PHAT: {
             icon: i.ma_ca_mo_id ? "📦" : "✅",
+            // CAP_PHAT badge is inventory-state, not the station noun alone.
             label: i.ma_ca_mo_id ? "Đã cấp phát" : "Sẵn sàng",
             cls: i.ma_ca_mo_id ? "bg-teal-50 text-teal-700 border-teal-100" : "bg-emerald-50 text-emerald-700 border-emerald-100",
           },

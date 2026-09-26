@@ -9,15 +9,11 @@ import { CSSD_UI_ACTION_PRIMARY, CSSD_UI_ACTION_SECONDARY, CSSD_UI_PANEL } from 
 import { formatDateTimeVi, formatTimeVi } from "@/lib/format-datetime-vi";
 import { Bv103EmptyState } from "@/components/shared/Bv103EmptyState";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+import { STATION_LABEL, WORKFLOW_STEPS } from "../../workflow/domain/cssd-stations";
 
-const ACTION_VERBS: Record<string, string> = {
-  TIEP_NHAN: "Tiếp nhận bởi",
-  LAM_SACH: "Làm sạch bởi",
-  QC: "QC bởi",
-  DONG_GOI: "Đóng gói bởi",
-  TIET_KHUAN: "Tiệt khuẩn bởi",
-  CAP_PHAT: "Cấp phát bởi",
-};
+const ACTION_VERBS: Record<string, string> = Object.fromEntries(
+  WORKFLOW_STEPS.map((s) => [s, `${STATION_LABEL[s]} bởi`]),
+);
 
 interface Props {
   items: CSSDWaitingItem[];

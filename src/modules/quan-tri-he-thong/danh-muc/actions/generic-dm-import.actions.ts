@@ -1,8 +1,7 @@
 "use server";
-import { isLockedSystemLookup } from "@/lib/master-data/locked-system-lookups";
-
 import { revalidatePath } from "next/cache";
 import { genericDmMustUseDedicatedPageError } from "@/lib/master-data/danh-muc-admin-routes";
+import { lockedSystemLookupMutateError } from "@/lib/master-data/locked-system-lookups";
 import { verifyDanhMucLookupPermission } from "@/lib/master-data/danh-muc-lookup-permission";
 import { getRegistryEntryOrNull } from "@/lib/master-data/domain-registry";
 import { resolveDanhMucViewModuleByType } from "@/lib/master-data/danh-muc-permission-map";
@@ -48,9 +47,8 @@ export async function importGenericDmExcelAction(
   const dryRun = options?.dryRun === true;
   try {
     await verifyDanhMucLookupPermission(permModule(loaiDanhMuc), "import");
-    if (isLockedSystemLookup(loaiDanhMuc)) {
-      return { success: false as const, error: `Danh mục «${loaiDanhMuc.trim()}» là mã hệ thống (khóa) — không nạp Excel.` };
-    }
+    const lockedError = lockedSystemLookupMutateError(loaiDanhMuc);
+    if (lockedError) return { success: false as const, error: lockedError };
     const dedicatedError = genericDmMustUseDedicatedPageError(loaiDanhMuc);
     if (dedicatedError) return { success: false as const, error: dedicatedError };
     const reg = getRegistryEntryOrNull(loaiDanhMuc.trim());
