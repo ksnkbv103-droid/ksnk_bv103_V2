@@ -9,7 +9,6 @@ const ClientLayoutWrapper = dynamic(() => import("../components/shared/ClientLay
   ssr: true,
 });
 
-import OfflineSyncManager from "@/components/shared/OfflineSyncManager";
 import { PermissionProvider } from "@/contexts/PermissionProvider";
 
 const inter = Inter({
@@ -53,7 +52,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <PermissionProvider>
           <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
         </PermissionProvider>
-        <OfflineSyncManager />
         <Toaster position="top-right" richColors />
       </body>
     </html>

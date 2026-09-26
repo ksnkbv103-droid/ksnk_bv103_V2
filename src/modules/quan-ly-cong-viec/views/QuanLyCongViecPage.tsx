@@ -14,16 +14,10 @@ import {
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { OpsDetailSheet } from "@/components/shared/OpsDetailSheet";
-import { QlcvOperationsPanel } from "@/modules/quan-ly-cong-viec/components/QlcvOperationsPanel";
-import { QlcvDinhKyPanel } from "@/modules/quan-ly-cong-viec/components/QlcvDinhKyPanel";
-import { NhiemVuPanel } from "@/modules/quan-ly-cong-viec/components/NhiemVuPanel";
-import { QlcvBaoCaoPanel } from "@/modules/quan-ly-cong-viec/components/QlcvBaoCaoPanel";
 import {
   QlcvDinhKySummaryBar,
   type QlcvLoaiFilter,
 } from "@/modules/quan-ly-cong-viec/components/QlcvDinhKySummaryBar";
-import { QlcvPeriodPlanPrintView } from "@/modules/quan-ly-cong-viec/components/print/QlcvPeriodPlanPrintView";
-import { QlcvPeriodExecPrintView } from "@/modules/quan-ly-cong-viec/components/print/QlcvPeriodExecPrintView";
 import { useQlcvKanban } from "@/modules/quan-ly-cong-viec/hooks/useQlcvKanban";
 import { useQlcvTable } from "@/modules/quan-ly-cong-viec/hooks/useQlcvTable";
 import {
@@ -45,6 +39,59 @@ import {
 import type { CongViecView } from "@/modules/quan-ly-cong-viec/types";
 import type { QlcvBoardFilter } from "@/modules/quan-ly-cong-viec/lib/qlcv-board-filter";
 import { buildQlcvAnalyticsPrefill } from "@/lib/analytics/qlcv-analytics-deep-link";
+
+const panelFallback = (
+  <p className="py-8 text-center text-sm text-slate-500">Đang tải…</p>
+);
+
+/** Lazy per active tab — keep shell/toolbar light (Perf P1). */
+const QlcvOperationsPanel = dynamic(
+  () =>
+    import("@/modules/quan-ly-cong-viec/components/QlcvOperationsPanel").then((m) => ({
+      default: m.QlcvOperationsPanel,
+    })),
+  { ssr: false, loading: () => panelFallback },
+);
+
+const NhiemVuPanel = dynamic(
+  () =>
+    import("@/modules/quan-ly-cong-viec/components/NhiemVuPanel").then((m) => ({
+      default: m.NhiemVuPanel,
+    })),
+  { ssr: false, loading: () => panelFallback },
+);
+
+const QlcvDinhKyPanel = dynamic(
+  () =>
+    import("@/modules/quan-ly-cong-viec/components/QlcvDinhKyPanel").then((m) => ({
+      default: m.QlcvDinhKyPanel,
+    })),
+  { ssr: false, loading: () => panelFallback },
+);
+
+const QlcvBaoCaoPanel = dynamic(
+  () =>
+    import("@/modules/quan-ly-cong-viec/components/QlcvBaoCaoPanel").then((m) => ({
+      default: m.QlcvBaoCaoPanel,
+    })),
+  { ssr: false, loading: () => panelFallback },
+);
+
+const QlcvPeriodPlanPrintView = dynamic(
+  () =>
+    import("@/modules/quan-ly-cong-viec/components/print/QlcvPeriodPlanPrintView").then((m) => ({
+      default: m.QlcvPeriodPlanPrintView,
+    })),
+  { ssr: false },
+);
+
+const QlcvPeriodExecPrintView = dynamic(
+  () =>
+    import("@/modules/quan-ly-cong-viec/components/print/QlcvPeriodExecPrintView").then((m) => ({
+      default: m.QlcvPeriodExecPrintView,
+    })),
+  { ssr: false },
+);
 
 const CongViecDetail = dynamic(
   () => import("@/modules/quan-ly-cong-viec/components/CongViecDetail").then((m) => ({ default: m.CongViecDetail })),
