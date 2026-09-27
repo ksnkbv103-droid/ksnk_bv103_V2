@@ -6,7 +6,7 @@
 | Máy | Nghĩa Mac · `6bad1c57-5c17-4e62-b661-16f3bab10f88` |
 | Repo | `/Users/drnghia/Desktop/ksnk_bv103` |
 | Branch | `cursor/me-sync-recall-print` |
-| Tip audit | `a068e6e` (IA A flatten); W1–W2+W5+**W3A**+**W3B N/A** on tip after `e12a83e` |
+| Tip audit | `a068e6e` (IA A flatten); W1–W2+W5+**W3A**+**W3B N/A**; **Soft residual P2** hygiene on tip after `3ad536e` |
 | Phạm vi | Toàn product doors + debt + overlap + perf + phased plan A/B |
 | Không | push / PR / merge / Vercel / Cloud / apply migrate / DROP / rewrite lớn |
 | Mandat | **Deep AUDIT + plan A/B** — chờ Nghĩa lock trước rewrite; Soft chỉ commit doc |
@@ -24,6 +24,21 @@
 | **W5** | **A** perf CSSD eager pages | **DONE** Soft — `next/dynamic` tab panels `/cssd-dung-cu` · `/cssd-thiet-bi` · `/cssd-hoa-chat` (shell light như QLCV Perf P1); no W3/W4/W6 |
 | Ops | Soft **may** `rm -rf .next` local | optional after code |
 | **Không** | push / PR / merge / Vercel / Cloud / apply migrate / DROP | locked |
+
+### Soft residual P2 — 2026-09-27 (post W1–W3/W5)
+
+Survey Soft-feasible leftovers from this audit (local only). Evidence on tip `3ad536e`+:
+
+| # | Item | Verdict |
+|---|------|---------|
+| 1 | **KhoDungCuPage** legacy export (#13 / L8) | **DONE W1** — view deleted `3ed708b`; residual dead `fetchCssdKhoDungCuList` (`cssd-kho-read.actions.ts`) **0 callers** → **deleted Soft residual** |
+| 2 | Eager heavy CSSD shells beyond W5 | **N/A** — dung-cu / thiet-bi / hoa-chat / quy-trinh already `dynamic()`; su-co = write form (OK eager); report Charts already dynamic; no clear extra shell win |
+| 3 | NKBV dashboard pulls while on write tabs | **N/A / already OK** — `NkbvDashboardPanel` `dynamic()`; `loadDashboard` gated `mainTab === "dashboard"`; `fetchRecords` gated `records`. **Do not** invent «Phân tích» nest. Cases list hook still mounts always — park (needs shared `enabled`, not Soft residual P2) |
+| 4 | Dead-export sweep catalog paths (W1 touch) | **DONE Soft residual** — prune unused `instrument-catalog/entrypoint` re-exports (tabs + hook; dung-cu imports views/hook directly); keep `registerPhysicalBoLabelFromDmAction` |
+| 5 | This audit status | Soft Soft-queue **empty** except **W4** (migrates Nghĩa) + **W6** (QLCV priority — needs lock) |
+
+**Soft Soft-queue empty except W4/W6?** **Y**
+
 
 DoD W1: tsc + vitest taxonomy/routes/catalog xanh; 0 caller dead writers.
 DoD W2: UAT tạo đề nghị + luân chuyển + xem BO không lệch `?tab=`.
@@ -134,7 +149,7 @@ Ký hiệu: **OK** Domain-tách đúng · **LEAK** cửa/IA lẫn · **DUAL** ha
 | L5 | NKBV 5 tab write+analytics ngang hàng | P2 residual | **W3B flatten N/A** (đã phẳng); group «Phân tích» = đề xuất *khác* (nest) — park, không làm dưới W3B |
 | L6 | BCTH phụ lục CSSD vs `/cssd-erp/report` full | P3 | Quiet link «Báo cáo CSSD đầy đủ» |
 | L7 | QLCV DB JOIN dm vs FE hardcode | P1 park | Nghĩa apply Wave3 draft |
-| L8 | `KhoDungCuPage` / `CSSDCatalogChiTietTab` / `CSSDCatalogHoaChatTab` còn export | P2 hygiene | Xóa hoặc unexport sau grep sạch |
+| L8 | `KhoDungCuPage` / ChiTiet / HoaChat exports | — | **DONE W1** + Soft residual: dead `cssd-kho-read` deleted; entrypoint tabs unexported |
 | L9 | Dead writers `reportInventoryIssue` / `recordInstrumentTransaction` | P2 | Xóa (C7) |
 | L10 | NKBV module size 2.2M / 1173-line page — gravity well | P2–P3 | Split views đã partial dynamic; tiếp tục |
 
@@ -190,7 +205,7 @@ Build on `_audit-ia-direct-doors` §5 — **verify tip `a068e6e`:**
 | `CSSDCatalogChiTietTab` | export entrypoint; page redirects CHI_TIET→BO; no page import | Unexport / delete view |
 | `CSSDCatalogHoaChatTab` | view exists; không trên strip dung-cu (HC có route riêng) | Unexport / delete hoặc embed hoa-chat only |
 | `InstrumentDoorTabs` live path | only if `options.length > 1`; INSTRUMENT presets = 1 | Remove call site / component |
-| `KhoDungCuPage` as embedded | export `CSSDInstrumentInventoryEmbeddedPage`; `?tab=kho` already redirects | Confirm 0 runtime mount → delete |
+| `KhoDungCuPage` as embedded | **deleted W1** (`3ed708b`); dead `fetchCssdKhoDungCuList` **deleted Soft residual** (0 callers) | done |
 | SAFETY hub helpers | deprecated after A | Keep short; delete when report filters stop using |
 
 ### 4.2 Dual writers / DUAL DB
@@ -261,7 +276,7 @@ Build on `_audit-ia-direct-doors` §5 — **verify tip `a068e6e`:**
 | `/cssd-thiet-bi` eager Fleet+Maintenance+VanHanh | **DONE W5** — `dynamic()` Fleet/Maintenance/VanHanh | — | W5 done |
 | `/cssd-hoa-chat` sync import chemical page | **DONE W5** — client `dynamic()` + metadata giữ | — | W5 done |
 | VST/GSC form pages | server page + form view (OK for write) | — | — |
-| NKBV records fetch on tab + cases table hook | large page; dashboard only when tab | P2 | W3 |
+| NKBV records fetch on tab + cases table hook | dashboard gated; records gated; cases hook still always-on | P3 park | Soft residual N/A |
 | QLCV list still via view with dm JOIN | DB round-trip extra joins | P1 park | Nghĩa migrate |
 | ME RPC UAT blocked | migrate unapplied | P1 park | Nghĩa |
 | Dev cache `.next/dev` 207M + long-lived next-server | observable | P3 ops | Soft: `rm -rf .next` khi Nghĩa OK local |
@@ -445,7 +460,7 @@ Trả lời ngắn (A/B) cho Soft:
 | 10 | ME-S* migrates unapplied — UAT mẻ park | P1 | Nghĩa W4 |
 | 11 | Eager cssd-dung-cu/thiet-bi pages | — | **DONE W5** Soft |
 | 12 | MDM vs ops DE_NGHI dual door (D5 đúng, IA mơ) | P2 | copy W1/W2 |
-| 13 | KhoDungCuPage legacy export sau redirect kho | P2 | Soft W1 verify+prune |
+| 13 | KhoDungCuPage legacy export sau redirect kho | — | **DONE W1** + Soft residual dead `cssd-kho-read` prune |
 | 14 | `.next/dev` ~207M + long-lived next-server | P3 ops | Soft/Nghĩa |
 | 15 | QLCV type-vs-priority proposal chưa lock | P1 Domain | Nghĩa W6 |
 
@@ -463,7 +478,7 @@ Trả lời ngắn (A/B) cho Soft:
 | **W4** | park | migrates Nghĩa only |
 | **W6** | park | QLCV type-vs-priority — cần lock |
 
-Sau đó: W3 **đóng** (A done + B N/A) → W4 khi Nghĩa apply migrate → W6 QLCV.
+Sau đó: W3 **đóng** (A done + B N/A) → Soft residual P2 **empty** (hygiene commit) → W4 khi Nghĩa apply migrate → W6 QLCV (cần lock).
 
 ---
 
