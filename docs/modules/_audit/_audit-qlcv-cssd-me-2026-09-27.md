@@ -150,3 +150,15 @@ Tip after Phase 2: `2380628` · branch `cursor/me-sync-recall-print` · ahead 31
 | Push / Vercel | **không** |
 
 Tip after W4 Soft: see git HEAD after commit · branch `cursor/me-sync-recall-print` · **không push**.
+
+## 8. W6 QLCV type-vs-priority (Soft · 2026-09-28)
+
+| Mục | Kết quả |
+|-----|---------|
+| Proposal | **A** (khuyến nghị) — đã FE qua 19d `5a447e1` |
+| DoD 19d | Ưu tiên nổi · không chọn Khẩn · không QlcvDmAdminLinks · LOAI/TT khóa |
+| Thin polish | Filter «Đột xuất» · toast hạn · lock comment Wave3 DONE · mẫu legacy ưu tiên KHAN_CAP → «Cao · legacy» |
+| Schema | Không — Wave3 dm DROP đã W4 |
+| Status | **DONE Soft** — Soft Soft-queue empty (W4+W6) |
+
+*Untracked `_proposal-qlcv-type-vs-priority-…` để yên; SSOT = `19d`.*

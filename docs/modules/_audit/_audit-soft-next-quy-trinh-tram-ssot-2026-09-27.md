@@ -23,7 +23,7 @@ Prefer order: (1) Quy trình/6 trạm · (2) su-co residual · (3) phiếu mẻ 
 | **Quy trình / 6 trạm** | **Y** — shell còn raw `QC` / `replace(/_/g)` vs SSOT `Kiểm bộ` | **PICK** |
 | Su-co residual | Y thin — PROCESS_QC_FAIL copy + dead hub exports (0 callers) | bundle cùng SSOT |
 | Phiếu mẻ UI | Blocked F5 ME migrate (missing remote cols) | park |
-| QLCV residual | W6 needs lock; Wave3 migrate Nghĩa | park |
+| QLCV residual | W6 DONE Soft (19d A + thin polish); Wave3 DONE prod | closed |
 | GSC/VST/BM | no clear thin P0 after prior IA | skip |
 
 **Module chosen:** CSSD Quy trình / 6 trạm shell (SSOT nhãn) + thin su-co residual.
@@ -76,11 +76,11 @@ Prefer order: (1) Quy trình/6 trạm · (2) su-co residual · (3) phiếu mẻ 
 ## 6. Park / blockers
 
 - **W4** ME-S* + QLCV Wave3 migrates — Nghĩa only
-- **W6** QLCV type-vs-priority — cần lock
+- **W6** QLCV type-vs-priority — **DONE Soft** 2026-09-28 (19d A + thin polish)
 - Report/print residual — **DONE** Soft next beat → `_audit-soft-next-report-print-station-ssot-2026-09-27.md`
 - Phiếu mẻ UI polish — park tới migrate remote
 - Dirty WT (`AGENTS.md`, csv, scripts, qlcv proposal) — **để yên**
 
-**Soft Soft-queue after this?** Report/print B unlocked & done next beat; empty again except W4/W6.
+**Soft Soft-queue after this?** Report/print B done; W4 DONE prod; W6 DONE Soft — Soft Soft-queue empty.
 
 *End — Soft Delivery Lead · local commit only.*

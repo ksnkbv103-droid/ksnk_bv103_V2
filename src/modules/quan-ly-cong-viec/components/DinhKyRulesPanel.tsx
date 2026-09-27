@@ -61,7 +61,8 @@ function labelMucDoUuTien(ma: string | null): { label: string; cls: string } {
     case "CAO":
       return { label: "Cao", cls: "bg-amber-50 text-amber-600" };
     case "KHAN_CAP":
-      return { label: "Khẩn cấp", cls: "bg-red-50 text-red-600" };
+      // Legacy mẫu ưu tiên = KHAN_CAP (CHECK cũ); tạo mới chỉ THAP/TB/CAO — 19d / W6
+      return { label: "Cao · legacy", cls: "bg-red-50 text-red-600" };
     default:
       return { label: "TB", cls: "bg-blue-50 text-blue-600" };
   }

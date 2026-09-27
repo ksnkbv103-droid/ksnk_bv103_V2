@@ -13,6 +13,8 @@
 
 > **Applied note (Lead 2026-09-26 +07):** L-AB1A + L-AB2A + L-AB3A — gỡ `QlcvDmAdminLinks` (Loại + Trạng thái); khóa `LOAI_CONG_VIEC` trong `LOCKED_SYSTEM_LOOKUP_LOAI`; form tạo ưu tiên nổi, không chọn Khẩn; không taxonomy nghiệp vụ mới.
 
+> **W6 Soft 2026-09-28:** Residual FE polish — filter «Đột xuất» (không gộp «khẩn»), toast hạn gọn, lock comment Wave3 DONE, mẫu định kỳ legacy ưu tiên `KHAN_CAP` → nhãn «Cao · legacy». Domain taxonomy P1 (L-05) vẫn park.
+
 ## §1. Tinh túy thị trường (mang vào QLCV KSNK)
 
 | App | Tinh túy | Áp vào BV103 |

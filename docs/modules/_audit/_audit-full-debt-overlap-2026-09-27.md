@@ -6,7 +6,7 @@
 | Máy | Nghĩa Mac · `6bad1c57-5c17-4e62-b661-16f3bab10f88` |
 | Repo | `/Users/drnghia/Desktop/ksnk_bv103` |
 | Branch | `cursor/me-sync-recall-print` |
-| Tip audit | Soft GSC H2 leftover on tip after `50f7a76` (report/print SSOT); W1–W5 done; Soft Soft-queue empty except W4/W6 |
+| Tip audit | Soft W6 QLCV type-vs-priority closed (19d A + thin FE polish); W4 DONE prod; Soft Soft-queue empty |
 | Phạm vi | Toàn product doors + debt + overlap + perf + phased plan A/B |
 | Không | push / PR / merge / Vercel / Cloud / apply migrate / DROP / rewrite lớn |
 | Mandat | **Deep AUDIT + plan A/B** — chờ Nghĩa lock trước rewrite; Soft chỉ commit doc |
@@ -20,7 +20,7 @@
 | **W1** | **A** hygiene | **DONE** Soft — dead writers + InstrumentDoorTabs + ChiTiet/HoaChat/KhoDungCu prune + HC CTA `?group=CHEMICAL` + entryMode comment |
 | **W2** | **A** dung-cu primary Việc / secondary Tra cứu | **DONE** Soft — strip regroup; deep-link `?tab=` giữ; G-P0-06 write paths giữ; no MOVE on su-co |
 | **W3** | **A** flatten CSSD báo cáo (FE) · **B** NKBV Phân tích | **A DONE**; **B N/A / already OK** Soft 2026-09-27 — survey: `/giam-sat-nkbv` đã 1 strip phẳng 5 tab (`records·cases·vi-sinh·mau-so·dashboard`); **không** có nested hub «Phân tích» như CSSD report trước W3A → không FE churn |
-| **W4** | **park** | migrates Nghĩa only — Soft không apply |
+| **W4** | **DONE** | ME+Wave3 applied prod Soft 2026-09-28 ~00:13 ICT |
 | **W5** | **A** perf CSSD eager pages | **DONE** Soft — `next/dynamic` tab panels `/cssd-dung-cu` · `/cssd-thiet-bi` · `/cssd-hoa-chat` (shell light như QLCV Perf P1); no W3/W4/W6 |
 | Ops | Soft **may** `rm -rf .next` local | optional after code |
 | **Không** | push / PR / merge / Vercel / Cloud / apply migrate / DROP | locked |
@@ -35,9 +35,9 @@ Survey Soft-feasible leftovers from this audit (local only). Evidence on tip `3a
 | 2 | Eager heavy CSSD shells beyond W5 | **N/A** — dung-cu / thiet-bi / hoa-chat / quy-trinh already `dynamic()`; su-co = write form (OK eager); report Charts already dynamic; no clear extra shell win |
 | 3 | NKBV dashboard pulls while on write tabs | **N/A / already OK** — `NkbvDashboardPanel` `dynamic()`; `loadDashboard` gated `mainTab === "dashboard"`; `fetchRecords` gated `records`. **Do not** invent «Phân tích» nest. Cases list hook still mounts always — park (needs shared `enabled`, not Soft residual P2) |
 | 4 | Dead-export sweep catalog paths (W1 touch) | **DONE Soft residual** — prune unused `instrument-catalog/entrypoint` re-exports (tabs + hook; dung-cu imports views/hook directly); keep `registerPhysicalBoLabelFromDmAction` |
-| 5 | This audit status | Soft Soft-queue **empty** except **W4** (migrates Nghĩa) + **W6** (QLCV priority — needs lock) |
+| 5 | This audit status | Soft Soft-queue **empty** — W4 DONE prod · W6 FE closed Soft |
 
-**Soft Soft-queue empty except W4/W6?** **Y** (GSC H2 leftover done this beat → `_audit-soft-next-gsc-h2-leftover-2026-09-27.md`)
+**Soft Soft-queue empty?** **Y** — W4 DONE · W6 closed Soft 2026-09-28 (19d A already on tip + thin polish).
 
 ### Soft next — Quy trình / 6 trạm SSOT (2026-09-27 post residual)
 
@@ -66,7 +66,7 @@ Liên quan (cùng ngày / tip):
 - `_audit-qlcv-cssd-me-2026-09-27.md` — F1–F3 doors/BOM done; F4/F5 park migrate
 - `_audit-code-vs-mdm-2026-09-26.md` — Strategy B CODE vs MDM
 - `docs/core/domain-decisions-cssd-instrument.md` — D1–D10
-- `docs/modules/qlcv/_proposal-qlcv-type-vs-priority-2026-09-26.md` — uncommitted proposal
+- `docs/modules/qlcv/_proposal-qlcv-type-vs-priority-2026-09-26.md` — untracked WIP (để yên); neo applied = `19d-QLCV-LOAI-UU-TIEN-20260926.md`
 
 ---
 
@@ -384,14 +384,16 @@ Supervision: /giam-sat*|/giam-sat-vst|/giam-sat-chung|/giam-sat-nkbv|/qr*
 | **Migrate?** | Không |
 | **Tip** | Soft local commit on `cursor/me-sync-recall-print` — no push |
 
-### W6 — QLCV type-vs-priority (proposal) · **cần Nghĩa lock**
+### W6 — QLCV type-vs-priority · **DONE Soft 2026-09-28**
 
 | | |
 |--|--|
-| **A** | Proposal A: gỡ QlcvDmAdminLinks · priority nổi · không chọn Khẩn như loại |
-| **B** | Proposal B nhẹ |
-| **Rec** | Sau W4b (Wave3) hoặc song song FE-only nếu không đụng migrate |
-| **Migrate?** | Không (FE) |
+| **Lock** | Proposal **A** (khuyến nghị; Lead default 19d khi PO không chọn) |
+| **FE prior** | `5a447e1` 19d — priority nổi · ẩn QlcvDmAdminLinks · không chọn Khẩn · LOAI khóa |
+| **Wave3** | DROP dm views **DONE** prod (W4 Soft) — FE hardcode `qlcv-labels` |
+| **Thin polish Soft** | Filter «Đột xuất» (bỏ «/ khẩn cấp») · toast hạn gọn · lock comment Wave3 DONE · mẫu legacy `KHAN_CAP` ưu tiên → «Cao · legacy» |
+| **Migrate?** | Không |
+| **Residual Domain** | Taxonomy chủ đề nghiệp vụ (P1 / L-05) — park; không enum mới MVP |
 
 ### W7 — Optional deeper (chỉ nếu UAT còn đau)
 
@@ -407,7 +409,7 @@ W0 lock ─┬─► W1 hygiene (Soft) ─► W5 perf CSSD
          ├─► W2 dung-cu (lock) 
          ├─► W3 report XOR NKBV (lock)
          ├─► W4 migrates (Nghĩa)
-         └─► W6 QLCV priority (lock)
+         └─► W6 QLCV priority (DONE Soft — 19d A + thin polish)
 ```
 
 ---
@@ -478,7 +480,7 @@ Trả lời ngắn (A/B) cho Soft:
 | 12 | MDM vs ops DE_NGHI dual door (D5 đúng, IA mơ) | P2 | copy W1/W2 |
 | 13 | KhoDungCuPage legacy export sau redirect kho | — | **DONE W1** + Soft residual dead `cssd-kho-read` prune |
 | 14 | `.next/dev` ~207M + long-lived next-server | P3 ops | Soft/Nghĩa |
-| 15 | QLCV type-vs-priority proposal chưa lock | P1 Domain | Nghĩa W6 |
+| 15 | QLCV type-vs-priority | **DONE** Soft | 19d A + thin polish 2026-09-28 |
 
 ---
 
@@ -491,10 +493,10 @@ Trả lời ngắn (A/B) cho Soft:
 | **W2** | **A DONE** Soft | Dung-cu primary Việc / secondary Tra cứu |
 | **W5** | **A DONE** Soft | `dynamic()` dung-cu / thiet-bi / hoa-chat shells |
 | **W3** | **A DONE** Soft (report flatten); **B N/A / already OK** Soft (NKBV đã phẳng — audit note only) | — |
-| **W4** | park | migrates Nghĩa only |
-| **W6** | park | QLCV type-vs-priority — cần lock |
+| **W4** | **DONE** | ME+Wave3 prod |
+| **W6** | **DONE** Soft | 19d A + thin FE polish |
 
-Sau đó: W3 **đóng** (A done + B N/A) → Soft residual P2 **empty** (hygiene commit) → W4 khi Nghĩa apply migrate → W6 QLCV (cần lock).
+Sau đó: W3 **đóng** → Soft residual P2 **empty** → W4 **DONE** prod → W6 **DONE** Soft (19d A + thin polish). Soft Soft-queue empty.
 
 ---
 

@@ -1,5 +1,5 @@
 /** Danh mục mã máy / CDC — xem được; không sửa/nạp Excel trên UI thường ngày.
- *  QLCV LOAI/TRANG_THAI_* giữ khóa đến khi apply migrate Wave3c DROP dm views.
+ *  QLCV LOAI/TRANG_THAI_* khóa vĩnh viễn (seed/code); Wave3 DROP dm views DONE prod.
  *  LOAI_NKBV: Strategy B lock+allowlist (giữ FK rows; không CRUD hub). */
 export const LOCKED_SYSTEM_LOOKUP_LOAI = [
   "LOAI_CONG_VIEC",

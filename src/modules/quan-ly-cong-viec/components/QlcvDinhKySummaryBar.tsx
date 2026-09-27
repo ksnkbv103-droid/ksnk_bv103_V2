@@ -113,10 +113,10 @@ export function QlcvDinhKySummaryBar({
               className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold shadow-sm"
               value={loaiFilter}
               onChange={(e) => onLoaiFilterChange(e.target.value as QlcvLoaiFilter)}
-              aria-label="Lọc loại công việc"
+              aria-label="Lọc đột xuất / định kỳ"
             >
               <option value="ALL">Tất cả loại</option>
-              <option value="DOT_XUAT">Đột xuất / khẩn cấp</option>
+              <option value="DOT_XUAT">Đột xuất</option>
               <option value="DINH_KY">Định kỳ</option>
             </select>
             <select

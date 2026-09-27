@@ -69,7 +69,7 @@ export function canShowEditTaskMetadata(row: QlcvTaskAccessRow, f: QlcvUiAccessF
 
 /**
  * Form báo cáo % — ẩn khi đề xuất chưa kích hoạt, khi chờ nghiệm thu (trừ quản trị chỉnh tay), hoặc đã đóng.
- * Cổng nghiệm thu = `isEligibleForNghiemThu` (đột xuất/khẩn; không gồm định kỳ).
+ * Cổng nghiệm thu = `isEligibleForNghiemThu` (không định kỳ; gồm legacy KHAN_CAP).
  */
 export function canShowHoatDongProgressSection(row: QlcvTaskAccessRow, f: QlcvUiAccessFlags): boolean {
   const st = normalizeQlcvTrangThaiToCanonical(row.trang_thai);

@@ -146,7 +146,7 @@ export function CongViecForm({ initialData, onSuccess, onCancel }: Props) {
       && !String(rawPayload.han_hoan_thanh || "").trim()
     ) {
       setLoading(false);
-      toast.error("Nhập hạn hoàn thành cho việc đột xuất/khẩn cấp.");
+      toast.error("Nhập hạn hoàn thành.");
       return;
     }
 
