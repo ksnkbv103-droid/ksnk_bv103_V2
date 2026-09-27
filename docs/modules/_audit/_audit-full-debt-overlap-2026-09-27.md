@@ -11,6 +11,22 @@
 | Không | push / PR / merge / Vercel / Cloud / apply migrate / DROP / rewrite lớn |
 | Mandat | **Deep AUDIT + plan A/B** — chờ Nghĩa lock trước rewrite; Soft chỉ commit doc |
 
+---
+
+## Locked package — Nghĩa 2026-09-27 (Soft execute)
+
+| Wave | Lock | Status |
+|------|------|--------|
+| **W1** | **A** hygiene | **DONE** Soft — dead writers + InstrumentDoorTabs + ChiTiet/HoaChat/KhoDungCu prune + HC CTA `?group=CHEMICAL` + entryMode comment |
+| **W2** | **A** dung-cu primary Việc / secondary Tra cứu | **DONE** Soft — strip regroup; deep-link `?tab=` giữ; G-P0-06 write paths giữ; no MOVE on su-co |
+| **W3** | **park** | report flatten XOR NKBV — chưa làm |
+| **W4** | **park** | migrates Nghĩa only — Soft không apply |
+| Ops | Soft **may** `rm -rf .next` local | optional after code |
+| **Không** | push / PR / merge / Vercel / Cloud / apply migrate / DROP | locked |
+
+DoD W1: tsc + vitest taxonomy/routes/catalog xanh; 0 caller dead writers.
+DoD W2: UAT tạo đề nghị + luân chuyển + xem BO không lệch `?tab=`.
+
 Liên quan (cùng ngày / tip):
 
 - `_audit-ia-direct-doors-2026-09-27.md` — A **LOCKED + applied** (`a068e6e`)
@@ -433,9 +449,11 @@ Trả lời ngắn (A/B) cho Soft:
 
 | Wave | Chọn | Việc |
 |------|------|------|
-| **W0** | A | Nghĩa trả lời §8 (đặc biệt Q1–Q3) |
-| **W1** | A | Hygiene: dead writers + dead tabs + InstrumentDoorTabs + CTA HC + comments — **safe thin P0** |
-| **W2** | A nếu Nghĩa lock | Dung-cu primary Việc / secondary Tra cứu |
+| **W0** | A | Nghĩa trả lời §8 (đặc biệt Q1–Q3) — **locked** |
+| **W1** | **A DONE** Soft | Hygiene: dead writers + dead tabs + InstrumentDoorTabs + CTA HC + comments |
+| **W2** | **A DONE** Soft | Dung-cu primary Việc / secondary Tra cứu |
+| **W3** | park | — |
+| **W4** | park | migrates Nghĩa only |
 
 Sau đó: W3 (1 IA) → W5 perf → W4 khi Nghĩa apply migrate → W6 QLCV.
 
