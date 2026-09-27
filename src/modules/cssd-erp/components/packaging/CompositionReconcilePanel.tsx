@@ -96,7 +96,7 @@ export default function CompositionReconcilePanel({
             ) : null}
               {gateMode ? (
               <p className="mt-1 text-[11px] font-medium leading-relaxed text-amber-800">
-                Kiểm đếm trên phiếu bộ. Biến động (đổi danh mục / hỏng-mất / chuyển) làm tại Sự cố & biến động — không ghi trên trạm đóng gói.
+                Kiểm đếm trên phiếu bộ. Đóng gói chỉ quét và chuyển bước. Đề nghị danh mục / luân chuyển / hỏng-mất làm ở Dụng cụ hoặc Sự cố — không ghi trên trạm này.
               </p>
             ) : null}
           </div>
@@ -200,7 +200,8 @@ export default function CompositionReconcilePanel({
           </ResponsiveTableShell>
         ) : null}
 
-        {data && data.items.length > 0 ? (
+        {/* gateMode (Đóng gói): scan + đối chiếu + chuyển bước only — đề nghị BOM tại /cssd-dung-cu */}
+        {data && data.items.length > 0 && !gateMode ? (
           <Link
             href={cssdCatalogEditProposalHref({
               kind: "BOM",
