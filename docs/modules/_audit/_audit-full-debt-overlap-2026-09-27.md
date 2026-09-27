@@ -51,6 +51,8 @@ Parked B from Quy trình beat unlocked: thin FE digests report/print/RCA/mẻ-sc
 
 Prefer GSC/TGS vs locked H2: thin FE leftover (breadcrumb `/` · RBAC copy · delete orphan `qlcv-brief` · SSOT docs). See `_audit-soft-next-gsc-h2-leftover-2026-09-27.md`. **No** invent IA / W4 / W6 / VST (no clear P0).
 
+Prefer Soft Soft-queue next after H2 leftover: **VST / giám sát BM hub** thin — ModeNav Thống kê sidebar active (`isGiamSatNavPath` + `/thong-ke/vst|gsc`). See `_audit-soft-next-vst-bm-hub-2026-09-27.md`. **No** invent nest IA / W4 / W6.
+
 
 
 
