@@ -2,17 +2,9 @@
 
 /** Dụng cụ: Việc (Đề nghị · Luân chuyển) + Tra cứu (Bộ · Loại · Lịch sử). Hỏng/Mất ở /cssd-su-co. */
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { ArrowLeftRight, ClipboardList, History, Layers, Tag } from "lucide-react";
-import {
-  useCssdCatalogPage,
-  CSSDCatalogBoTab,
-  CSSDCatalogLoaiTab,
-  CSSDCatalogDeNghiTab,
-  CSSDCatalogLuanChuyenTab,
-} from "@/modules/cssd-erp/contexts/instrument-catalog/entrypoint";
-import InventoryHistoryTable from "@/modules/cssd-erp/components/inventory/InventoryHistoryTable";
-import SetCompositionCard from "@/modules/cssd-erp/components/inventory/SetCompositionCard";
-import SetReconcileCampaignPanel from "@/modules/cssd-erp/components/inventory/SetReconcileCampaignPanel";
+import { useCssdCatalogPage } from "@/modules/cssd-erp/hooks/use-cssd-catalog-page";
 import CSSDPageShell from "@/modules/cssd-erp/components/layout/cssd-page-shell";
 import {
   CSSD_UI_TAB_GROUP,
@@ -31,6 +23,64 @@ import {
   CatalogDeNghiCartBar,
 } from "@/modules/cssd-erp/components/catalog/CatalogDeNghiCart";
 import { bv103LayoutChrome } from "@/lib/bv103-layout-chrome";
+
+/** Lazy per active tab — keep shell/toolbar light (Perf P1 / W5). */
+function TabPanelSkeleton() {
+  return (
+    <div className="flex h-[40vh] items-center justify-center" aria-busy="true">
+      <div className="h-10 w-10 animate-spin rounded-full border-2 border-slate-200 border-t-[var(--primary)]" />
+    </div>
+  );
+}
+
+const panelFallback = <TabPanelSkeleton />;
+
+const CSSDCatalogBoTab = dynamic(
+  () =>
+    import("@/modules/cssd-erp/views/CSSDCatalogBoTab").then((m) => ({
+      default: m.CSSDCatalogBoTab,
+    })),
+  { ssr: false, loading: () => panelFallback },
+);
+
+const CSSDCatalogLoaiTab = dynamic(
+  () =>
+    import("@/modules/cssd-erp/views/CSSDCatalogLoaiTab").then((m) => ({
+      default: m.CSSDCatalogLoaiTab,
+    })),
+  { ssr: false, loading: () => panelFallback },
+);
+
+const CSSDCatalogDeNghiTab = dynamic(
+  () =>
+    import("@/modules/cssd-erp/views/CSSDCatalogDeNghiTab").then((m) => ({
+      default: m.CSSDCatalogDeNghiTab,
+    })),
+  { ssr: false, loading: () => panelFallback },
+);
+
+const CSSDCatalogLuanChuyenTab = dynamic(
+  () =>
+    import("@/modules/cssd-erp/views/CSSDCatalogLuanChuyenTab").then((m) => ({
+      default: m.CSSDCatalogLuanChuyenTab,
+    })),
+  { ssr: false, loading: () => panelFallback },
+);
+
+const InventoryHistoryTable = dynamic(
+  () => import("@/modules/cssd-erp/components/inventory/InventoryHistoryTable"),
+  { ssr: false, loading: () => panelFallback },
+);
+
+const SetCompositionCard = dynamic(
+  () => import("@/modules/cssd-erp/components/inventory/SetCompositionCard"),
+  { ssr: false, loading: () => <p className="py-6 text-center text-sm text-slate-500">Đang tải thành phần…</p> },
+);
+
+const SetReconcileCampaignPanel = dynamic(
+  () => import("@/modules/cssd-erp/components/inventory/SetReconcileCampaignPanel"),
+  { ssr: false },
+);
 
 export default function Page() {
   const s = useCssdCatalogPage();

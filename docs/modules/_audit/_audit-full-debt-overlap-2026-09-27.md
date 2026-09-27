@@ -6,7 +6,7 @@
 | Máy | Nghĩa Mac · `6bad1c57-5c17-4e62-b661-16f3bab10f88` |
 | Repo | `/Users/drnghia/Desktop/ksnk_bv103` |
 | Branch | `cursor/me-sync-recall-print` |
-| Tip audit | `a068e6e` (IA A flatten 5 su-co doors vừa apply; ahead origin ~37) |
+| Tip audit | `a068e6e` (IA A flatten); W1–W2+W5 applied on tip after `e12a83e` |
 | Phạm vi | Toàn product doors + debt + overlap + perf + phased plan A/B |
 | Không | push / PR / merge / Vercel / Cloud / apply migrate / DROP / rewrite lớn |
 | Mandat | **Deep AUDIT + plan A/B** — chờ Nghĩa lock trước rewrite; Soft chỉ commit doc |
@@ -21,6 +21,7 @@
 | **W2** | **A** dung-cu primary Việc / secondary Tra cứu | **DONE** Soft — strip regroup; deep-link `?tab=` giữ; G-P0-06 write paths giữ; no MOVE on su-co |
 | **W3** | **park** | report flatten XOR NKBV — chưa làm |
 | **W4** | **park** | migrates Nghĩa only — Soft không apply |
+| **W5** | **A** perf CSSD eager pages | **DONE** Soft — `next/dynamic` tab panels `/cssd-dung-cu` · `/cssd-thiet-bi` · `/cssd-hoa-chat` (shell light như QLCV Perf P1); no W3/W4/W6 |
 | Ops | Soft **may** `rm -rf .next` local | optional after code |
 | **Không** | push / PR / merge / Vercel / Cloud / apply migrate / DROP | locked |
 
@@ -256,9 +257,9 @@ Build on `_audit-ia-direct-doors` §5 — **verify tip `a068e6e`:**
 
 | Hotspot | Evidence | Sev | Wave |
 |---------|----------|-----|------|
-| `/cssd-dung-cu` eager imports all tabs + SetComposition + History | `page.tsx` static imports | P2 | W2/W5 |
-| `/cssd-thiet-bi` eager Fleet+Maintenance+VanHanh | `page.tsx` | P2 | W5 |
-| `/cssd-hoa-chat` sync import chemical page | `page.tsx` | P3 | W5 |
+| `/cssd-dung-cu` eager imports all tabs + SetComposition + History | **DONE W5** — `dynamic()` per tab + SetComposition/Reconcile | — | W5 done |
+| `/cssd-thiet-bi` eager Fleet+Maintenance+VanHanh | **DONE W5** — `dynamic()` Fleet/Maintenance/VanHanh | — | W5 done |
+| `/cssd-hoa-chat` sync import chemical page | **DONE W5** — client `dynamic()` + metadata giữ | — | W5 done |
 | VST/GSC form pages | server page + form view (OK for write) | — | — |
 | NKBV records fetch on tab + cases table hook | large page; dashboard only when tab | P2 | W3 |
 | QLCV list still via view with dm JOIN | DB round-trip extra joins | P1 park | Nghĩa migrate |
@@ -337,15 +338,16 @@ Supervision: /giam-sat*|/giam-sat-vst|/giam-sat-chung|/giam-sat-nkbv|/qr*
 
 **A:** apply staging → UAT → prod. **B:** park thêm sprint. **Rec A** khi Nghĩa sẵn sàng Cloud — Soft **không** apply.
 
-### W5 — Perf P2 eager CSSD pages (Soft)
+### W5 — Perf P2 eager CSSD pages (Soft) · **DONE**
 
 | | |
 |--|--|
-| **A (rec)** | `dynamic()` tab panels dung-cu / thiet-bi giống quy-trình |
+| **A (rec)** | `dynamic()` tab panels dung-cu / thiet-bi giống quy-trình — **applied** (+ hoa-chat thin) |
 | **B** | Chỉ dung-cu (nặng nhất) |
-| **DoD** | First paint strip nhanh; tab content skeleton |
+| **DoD** | First paint strip nhanh; tab content skeleton — **met** (local tsc + vitest) |
 | **Risk** | Thấp |
 | **Migrate?** | Không |
+| **Tip** | Soft local commit on `cursor/me-sync-recall-print` — no push |
 
 ### W6 — QLCV type-vs-priority (proposal) · **cần Nghĩa lock**
 
@@ -437,7 +439,7 @@ Trả lời ngắn (A/B) cho Soft:
 | 8 | `entryMode=luan-chuyen` embed su-co shell | P1 teach | Soft W1 comment / W7 extract |
 | 9 | QLCV Wave3 migrate unapplied — DUAL DB JOIN dm | P1 | Nghĩa W4 |
 | 10 | ME-S* migrates unapplied — UAT mẻ park | P1 | Nghĩa W4 |
-| 11 | Eager cssd-dung-cu/thiet-bi pages | P2 | Soft W5 |
+| 11 | Eager cssd-dung-cu/thiet-bi pages | — | **DONE W5** Soft |
 | 12 | MDM vs ops DE_NGHI dual door (D5 đúng, IA mơ) | P2 | copy W1/W2 |
 | 13 | KhoDungCuPage legacy export sau redirect kho | P2 | Soft W1 verify+prune |
 | 14 | `.next/dev` ~207M + long-lived next-server | P3 ops | Soft/Nghĩa |
@@ -452,10 +454,12 @@ Trả lời ngắn (A/B) cho Soft:
 | **W0** | A | Nghĩa trả lời §8 (đặc biệt Q1–Q3) — **locked** |
 | **W1** | **A DONE** Soft | Hygiene: dead writers + dead tabs + InstrumentDoorTabs + CTA HC + comments |
 | **W2** | **A DONE** Soft | Dung-cu primary Việc / secondary Tra cứu |
+| **W5** | **A DONE** Soft | `dynamic()` dung-cu / thiet-bi / hoa-chat shells |
 | **W3** | park | — |
 | **W4** | park | migrates Nghĩa only |
+| **W6** | park | QLCV type-vs-priority — cần lock |
 
-Sau đó: W3 (1 IA) → W5 perf → W4 khi Nghĩa apply migrate → W6 QLCV.
+Sau đó: W3 (1 IA) → W4 khi Nghĩa apply migrate → W6 QLCV.
 
 ---
 
