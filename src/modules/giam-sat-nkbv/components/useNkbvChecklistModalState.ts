@@ -519,15 +519,16 @@ export function useNkbvChecklistModalState({
         hai_status: liveCdcMetrics?.haiStatus,
         
         ...(checklistType === 'BSI' && {
-          cvc_placed_days: liveCdcMetrics?.device_placed_days || 0,
-          cvc_active_on_event: liveCdcMetrics?.device_active_on_event || false,
+          // ?? — không silent-default 0/false khi liveCdcMetrics thiếu device (khớp preview)
+          cvc_placed_days: liveCdcMetrics?.device_placed_days ?? (activePayload as any).cvc_placed_days,
+          cvc_active_on_event: liveCdcMetrics?.device_active_on_event ?? (activePayload as any).cvc_active_on_event,
         }),
         ...(checklistType === 'UTI' && {
-          foley_placed_days: liveCdcMetrics?.device_placed_days || 0,
-          foley_active_on_event: liveCdcMetrics?.device_active_on_event || false,
+          foley_placed_days: liveCdcMetrics?.device_placed_days ?? (activePayload as any).foley_placed_days,
+          foley_active_on_event: liveCdcMetrics?.device_active_on_event ?? (activePayload as any).foley_active_on_event,
         }),
         ...(checklistType === "VAE" || checklistType === "VAP" || checklistType === "HAP"
-          ? { vent_days: liveCdcMetrics?.device_placed_days || 0 }
+          ? { vent_days: liveCdcMetrics?.device_placed_days ?? (activePayload as any).vent_days }
           : {}),
       };
 

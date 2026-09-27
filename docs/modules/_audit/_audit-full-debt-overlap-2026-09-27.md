@@ -6,7 +6,7 @@
 | Máy | Nghĩa Mac · `6bad1c57-5c17-4e62-b661-16f3bab10f88` |
 | Repo | `/Users/drnghia/Desktop/ksnk_bv103` |
 | Branch | `cursor/me-sync-recall-print` |
-| Tip audit | Soft **NKBV deep** P0 PedVAP label strip **DONE** — `_audit-soft-nkbv-deep-2026-09-28.md`; prior Soft admin P0+P1 DONE; ME polish N/A; W6+W4 DONE |
+| Tip audit | Soft **NKBV logic deep** vs SSOT v4.0 **DONE** — `_audit-soft-nkbv-logic-deep-2026-09-28.md` (prior IA/PedVAP shallow); admin P0+P1 DONE; ME polish N/A; W6+W4 DONE |
 | Phạm vi | Toàn product doors + debt + overlap + perf + phased plan A/B |
 | Không | push / PR / merge / Vercel / Cloud / apply migrate / DROP / rewrite lớn |
 | Mandat | **Deep AUDIT + plan A/B** — chờ Nghĩa lock trước rewrite; Soft chỉ commit doc |
@@ -37,7 +37,7 @@ Survey Soft-feasible leftovers from this audit (local only). Evidence on tip `3a
 | 4 | Dead-export sweep catalog paths (W1 touch) | **DONE Soft residual** — prune unused `instrument-catalog/entrypoint` re-exports (tabs + hook; dung-cu imports views/hook directly); keep `registerPhysicalBoLabelFromDmAction` |
 | 5 | This audit status | Soft Soft-queue **empty** — W4 DONE prod · W6 FE closed Soft |
 
-**Soft Soft-queue empty?** **Y** (ops residual) — W4/W6 DONE · ME polish N/A · admin hệ thống P0+P1 DONE · **NKBV deep Soft P0 DONE** 2026-09-28 (PedVAP label; Domain park engine).
+**Soft Soft-queue empty?** **Y** (ops residual) — W4/W6 DONE · ME polish N/A · admin P0+P1 DONE · **NKBV logic Soft DONE** 2026-09-28 (POA gate + FE/BE drift; Domain park Transfer/RIT/MBI).
 
 ### Soft next — Quy trình / 6 trạm SSOT (2026-09-27 post residual)
 
@@ -63,7 +63,11 @@ Survey A thin: tip **already polished** (UX 1–4 + S5 + Kiểm bộ mẻ-scan).
 
 ### Soft Soft-queue — NKBV deep (data + case determination) (2026-09-28)
 
-**DONE Soft P0** — deep AUDIT `/giam-sat-nkbv` (doors · 3-lớp data · rules-engine truth · bridges · RBAC · overlaps). Soft fix: strip **PedVAP** picker/reason (Phụ lục C adult-only). **Park Domain:** USI/EENT/SST engine · Transfer Rule · MBI full · strip `isInfantLe1` plumbing · no algorithm rewrite · no DROP LOAI_NKBV. Detail `_audit-soft-nkbv-deep-2026-09-28.md`. Soft Soft-queue: NKBV Soft P0 closed; Domain P1 park.
+**DONE Soft P0 (shallow pass)** — IA/doors + PedVAP label — `_audit-soft-nkbv-deep-2026-09-28.md`.
+
+### Soft Soft-queue — NKBV **logic** deep vs Domain SSOT adult v4.0 (2026-09-28)
+
+**DONE Soft P0/P1 logic** — tip vs `10-NKBV-diagnosis-domain-ssot-adult.md` v4.0: POA gate in rules-engine (cấm 48h/day-3); FE/BE device enrich `??` drift; Scenario2 Secondary window; UTI clinical SBAP helper; strip dead `infantGasOk`; Transfer spec titles calendar-day. **Park Domain:** multi-khoa Transfer 24h · RIT hard-stop · SSI deepest-wins auto · MBI ANC table · APRV/ECMO full · SIR · age-null=45. EENT/SST engine **present** (prior Soft «missing» stale). Detail `_audit-soft-nkbv-logic-deep-2026-09-28.md`. Soft Soft-queue: NKBV logic Soft closed; Domain P1 park.
 
 
 

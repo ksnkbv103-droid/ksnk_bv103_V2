@@ -156,7 +156,7 @@ export function assertClinicalEvidenceForSubmit(
         if (!inVae && !dateInWindow(shared, vStart, vEnd)) {
           return {
             ok: false,
-            error: `Dấu hiệu hô hấp có chọn nhưng ngày ngoài khung IWP/VAE (${iwpStart} → ${iwpEnd}).`,
+            error: `Dấu hiệu hô hấp có chọn nhưng ngày ngoài khung giám sát (${iwpStart} → ${iwpEnd}; VAE dùng cửa sổ Ch.10, không IWP±3 Ch.2).`,
           };
         }
       }

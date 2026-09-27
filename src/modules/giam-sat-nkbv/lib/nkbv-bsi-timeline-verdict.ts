@@ -10,6 +10,7 @@ import { classifyPathogen } from "./nkbv-pathogen-rules";
 import { organismsMatch } from "./nkbv-secondary-bsi-gate";
 import {
   deviceAssociationFromCanThiepDates,
+  poaOrHai,
   resolveClinicalSbap,
   ssiSbapWindow,
 } from "./nkbv-shared-timeline";
@@ -254,6 +255,10 @@ export function buildBsiTimelineVerdict(
     calculated_doe: doe || undefined,
     calculated_sbap_start: sbapStart,
     calculated_sbap_end: sbapEnd,
+    hai_status:
+      input.admissionDate && doe
+        ? poaOrHai(String(input.admissionDate).slice(0, 10), doe).haiStatus
+        : undefined,
   };
 
   const result = evaluateBsiClabsi(data);

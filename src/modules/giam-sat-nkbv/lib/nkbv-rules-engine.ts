@@ -21,6 +21,7 @@ import {
   endoExtendedIwp,
   endoRitSbapToDischarge,
   isDeviceAssociated,
+  poaOrHai,
   resolveClinicalSbap,
   ssiSbapWindow,
   vaeEventPeriod,
@@ -37,6 +38,29 @@ import {
 } from "./nkbv-ssi-nhsn-catalog";
 import { evaluateRuledOut } from "./nkbv-ruled-out";
 
+
+/** Ch.2 only: DOE POA (HD1–2) → không tính tử số HAI. SSI/VAE không gọi. */
+function applyCh2PoaGate(
+  data: { hai_status?: "HAI" | "POA"; calculated_doe?: string; ngay_vao_vien?: string; admission_date?: string },
+  result: RuleEvaluationResult,
+): RuleEvaluationResult {
+  if (!result.is_positive) return result;
+  let status = data.hai_status;
+  if (!status) {
+    const adm = (data.ngay_vao_vien || data.admission_date || "").slice(0, 10);
+    const doe = (data.calculated_doe || "").slice(0, 10);
+    if (adm && doe) status = poaOrHai(adm, doe).haiStatus;
+  }
+  if (status !== "POA") return result;
+  return {
+    is_positive: false,
+    classification: "POA",
+    lcbi_type: result.lcbi_type,
+    reason:
+      "DOE thuộc khung POA (ngày viện 1–2 / trước nhập theo Ch.2). Không tính HAI/NKBV — cấm định nghĩa 48 giờ; dùng NHSN day-3.",
+  };
+}
+
 export interface RuleEvaluationResult {
   is_positive: boolean;
   classification: string;
@@ -52,6 +76,10 @@ export function bsiHasClinicalSymptoms(data: BsiVerificationData): boolean {
 }
 
 export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResult {
+  return applyCh2PoaGate(data, evaluateBsiClabsiCore(data));
+}
+
+function evaluateBsiClabsiCore(data: BsiVerificationData): RuleEvaluationResult {
   const ruledOut = evaluateRuledOut(data, "BSI");
   if (ruledOut) return ruledOut;
 
@@ -128,7 +156,15 @@ export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResu
       isSecondary = sec.isSecondary;
     } else if (data.localized_pathogen_matches && data.is_in_sbap_window) {
       isSecondary = true;
-    } else if (data.blood_mandatory_for_localized) {
+    } else if (
+      data.blood_mandatory_for_localized &&
+      (data.is_in_sbap_window ||
+        (Boolean(bloodDate) &&
+          Boolean(sbap.start) &&
+          bloodDate >= sbap.start &&
+          (!sbap.end || bloodDate <= sbap.end)))
+    ) {
+      // Scenario 2: máu là criterion bắt buộc — vẫn phải ∈ SBAP/IWP (SSOT v4 §2.7)
       isSecondary = true;
     }
   }
@@ -196,6 +232,15 @@ export function evaluateBsiClabsi(data: BsiVerificationData): RuleEvaluationResu
 }
 
 export function evaluateVaeVap(
+  data: VaeVerificationData,
+  pathway: "VAE" | "PNEU" = "VAE",
+): RuleEvaluationResult {
+  const raw = evaluateVaeVapCore(data, pathway);
+  // POA/HAI day-3 chỉ áp PNEU lâm sàng; VAE không dùng Ch.2 POA
+  return pathway === "PNEU" ? applyCh2PoaGate(data, raw) : raw;
+}
+
+function evaluateVaeVapCore(
   data: VaeVerificationData,
   pathway: "VAE" | "PNEU" = "VAE",
 ): RuleEvaluationResult {
@@ -322,7 +367,6 @@ export function evaluateVaeVap(
   const localCount = data.respiratory_symptoms_count;
   const needLocalPnu1 = 2;
   const hasSystemic = derivePneuSystemic(data) || data.altered_mental_status_ge_70yo;
-  const infantGasOk = true;
   const wideListMet =
     localCount >= 1 || !!data.has_hemoptysis || !!data.has_pleuritic_chest_pain;
 
@@ -344,7 +388,7 @@ export function evaluateVaeVap(
   const microTier = lab.tier;
 
   if (microTier === "PNU3") {
-    if (!hasSystemic || !wideListMet || !infantGasOk) {
+    if (!hasSystemic || !wideListMet) {
       return {
         is_positive: false,
         classification: "NO_EVENT",
@@ -360,7 +404,7 @@ export function evaluateVaeVap(
   }
 
   if (microTier === "PNU2") {
-    if (!hasSystemic || localCount < 1 || !infantGasOk) {
+    if (!hasSystemic || localCount < 1) {
       return {
         is_positive: false,
         classification: "NO_EVENT",
@@ -375,7 +419,7 @@ export function evaluateVaeVap(
     };
   }
 
-  if (!hasSystemic || localCount < needLocalPnu1 || !infantGasOk) {
+  if (!hasSystemic || localCount < needLocalPnu1) {
     return {
       is_positive: false,
       classification: "NO_EVENT",
@@ -432,6 +476,10 @@ function attachUtiSecondaryBsi(
 }
 
 export function evaluateUtiCauti(data: UtiVerificationData): RuleEvaluationResult {
+  return applyCh2PoaGate(data, evaluateUtiCautiCore(data));
+}
+
+function evaluateUtiCautiCore(data: UtiVerificationData): RuleEvaluationResult {
   const ruledOut = evaluateRuledOut(data, "UTI");
   if (ruledOut) return ruledOut;
 
@@ -746,6 +794,10 @@ export function evaluateSsi(data: SsiVerificationData): RuleEvaluationResult {
 
 /** Ca Chương 17 độc lập (không SSI) — cùng cây tiêu chuẩn với Organ/Space. */
 export function evaluateCh17(data: Ch17VerificationData): RuleEvaluationResult {
+  return applyCh2PoaGate(data, evaluateCh17Core(data));
+}
+
+function evaluateCh17Core(data: Ch17VerificationData): RuleEvaluationResult {
   const code = String(data.ch17_type_code || "")
     .trim()
     .toUpperCase();

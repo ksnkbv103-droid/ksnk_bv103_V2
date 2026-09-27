@@ -17,7 +17,7 @@ import {
   labFactsFromXnCell,
 } from "./nkbv-pneu-lab-tier";
 import { countPneuRespiratoryCdcGroupsFromKeys } from "./nkbv-clinical-symptom-catalog";
-import { deviceAssociationFromCanThiepDates } from "./nkbv-shared-timeline";
+import { deviceAssociationFromCanThiepDates, poaOrHai } from "./nkbv-shared-timeline";
 import { ageYearsFromNgaySinh } from "./nkbv-uti-timeline-verdict";
 import type { PneuLabFacts } from "./nkbv-pneu-lab-tier";
 
@@ -283,6 +283,10 @@ export function buildPneuTimelineVerdict(
     has_tachypnea: hasTachypnea,
     microbiology_evidence: "NONE" as const,
     calculated_doe: doe || undefined,
+    hai_status:
+      input.admissionDate && doe
+        ? poaOrHai(String(input.admissionDate).slice(0, 10), doe).haiStatus
+        : undefined,
     respiratory_organism: input.indexXn?.vi_khuan || undefined,
     ...labPatch,
     ...(input.pneuIcAtoms || {}),

@@ -64,7 +64,7 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
     expect(metrics.attributedStay?.khoa_id).toBe("ICU");
   });
 
-  it("should enforce LOA transfer rule within 24-48 hours", () => {
+  it("LOA Transfer Rule: DOE = ngày chuyển hoặc ngày sau → khoa chuyển đi (calendar day, không 48h)", () => {
     const treatmentHistory: DepartmentStay[] = [
       { khoa_id: "CC", ten_khoa: "Cấp cứu", ngay_vao: "2026-05-10", ngay_ra: "2026-05-12" },
       { khoa_id: "ICU", ten_khoa: "ICU", ngay_vao: "2026-05-12" }
@@ -90,7 +90,7 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
     expect(metrics.attributionReason).toContain("Quy kết cho khoa chuyển đi [Cấp cứu]");
   });
 
-  it("should attribute to current department if event occurs beyond 48 hours of transfer", () => {
+  it("LOA: DOE từ ngày thứ 2 sau chuyển trở đi → khoa đang điều trị (calendar day, không 48h)", () => {
     const treatmentHistory: DepartmentStay[] = [
       { khoa_id: "CC", ten_khoa: "Cấp cứu", ngay_vao: "2026-05-10", ngay_ra: "2026-05-12" },
       { khoa_id: "ICU", ten_khoa: "ICU", ngay_vao: "2026-05-12" }
@@ -147,7 +147,7 @@ describe("Nkbv CDC Timeline & Location Attribution Math", () => {
     expect(metrics.doe).toBe("2026-05-14");
   });
 
-  it("UTI infant: ngày hạ thân nhiệt đóng góp DOE", () => {
+  it("UTI: ngày sốt trong IWP đóng góp DOE", () => {
     const metrics = calculateCdcMetrics({
       ngay_phat_hien: "2026-05-15",
       ngay_vao_vien: "2026-05-10",

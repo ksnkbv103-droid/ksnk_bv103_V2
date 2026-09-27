@@ -9,7 +9,7 @@ import {
   UTI_VOIDING_CRITERIA_KEYS,
 } from "./nkbv-ba-grid-engine";
 import { organismsMatch } from "./nkbv-secondary-bsi-gate";
-import { deviceAssociationFromCanThiepDates } from "./nkbv-shared-timeline";
+import { clinicalSbapWindow, deviceAssociationFromCanThiepDates, poaOrHai } from "./nkbv-shared-timeline";
 
 const YEAST_RE = /candida|yeast|nấm men|nam men|fungi|ký sinh/i;
 
@@ -231,6 +231,10 @@ export function buildUtiTimelineVerdict(
     calculated_doe: doe || undefined,
     calculated_iwp_start: [...input.iwpDates].sort()[0],
     calculated_iwp_end: [...input.iwpDates].sort().at(-1),
+    hai_status:
+      input.admissionDate && doe
+        ? poaOrHai(String(input.admissionDate).slice(0, 10), doe).haiStatus
+        : undefined,
   };
 
   let result = evaluateUtiCauti(data);
@@ -239,15 +243,15 @@ export function buildUtiTimelineVerdict(
     /SUTI/.test(result.classification) &&
     !result.is_secondary_bsi
   ) {
-    const sbapStart = input.indexXn?.ngay
-      ? addDay(input.indexXn.ngay, -3)
-      : doe
-        ? addDay(doe, -3)
-        : "";
-    const sbapEnd = doe ? addDay(doe, 13) : "";
+    // Clinical SBAP = IWP ∪ RIT = [Index−3, DOE+13] — KHÔNG dùng SSI-SBAP cố định khi thiếu Index
+    const indexDate = (input.indexXn?.ngay || doe || "").slice(0, 10);
+    const sbap =
+      indexDate && doe
+        ? clinicalSbapWindow(indexDate, doe)
+        : { start: "", end: "" };
     const secBlood = input.bloodXn.some((b) => {
       const d = b.ngay.slice(0, 10);
-      if (!sbapStart || !sbapEnd || d < sbapStart || d > sbapEnd) return false;
+      if (!sbap.start || !sbap.end || d < sbap.start || d > sbap.end) return false;
       if (isYeastOrganism(b.vi_khuan)) return false;
       return organismsMatch(b.vi_khuan, urineOrg);
     });

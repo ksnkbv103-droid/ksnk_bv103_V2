@@ -16,6 +16,32 @@ import {
 describe("CDC/NHSN 2023 Rules Engine tests", () => {
   
   describe("evaluateBsiClabsi", () => {
+    it("hai_status POA → không CLABSI (NHSN day-3 / cấm 48h)", () => {
+      const data = {
+        is_fungi_respiratory: false,
+        pathogen_name: "E. coli",
+        pathogen_type: "RECOGNIZED" as const,
+        commensal_culture_count: 0,
+        commensal_drawn_separate: false,
+        symptoms_window_7days: true,
+        has_fever: true,
+        cvc_placed_days: 5,
+        cvc_active_on_event: true,
+        device_placed_date: "2026-05-08",
+        calculated_doe: "2026-05-11",
+        is_neutropenia: false,
+        is_intestinal_pathogen: false,
+        has_localized_infection: false,
+        localized_pathogen_matches: false,
+        is_in_sbap_window: false,
+        blood_mandatory_for_localized: false,
+        hai_status: "POA" as const,
+      };
+      const res = evaluateBsiClabsi(data as any);
+      expect(res.is_positive).toBe(false);
+      expect(res.classification).toBe("POA");
+    });
+
     it("identifies respiratory fungi as community infection", () => {
       const data: BsiVerificationData = {
         is_fungi_respiratory: true,
