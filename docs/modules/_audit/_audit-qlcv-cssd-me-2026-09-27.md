@@ -14,10 +14,10 @@
 
 | Module | Route | Entry / hooks | RPCs / write | Docs neo |
 |--------|-------|---------------|--------------|----------|
-| QLCV | `/quan-ly-cong-viec` | `views/QuanLyCongViecPage.tsx` · `useQlcvKanban` / `useQlcvTable` · `qlcv-labels.ts` | `fn_qlcv_transition` · checklist · spawn · `rpc_qlcv_board_counts` (wired 47ac706) | `19`/`19b`/`19c`/`19d` · Wave3 draft `20260926053300` **chưa apply** |
+| QLCV | `/quan-ly-cong-viec` | `views/QuanLyCongViecPage.tsx` · `useQlcvKanban` / `useQlcvTable` · `qlcv-labels.ts` | `fn_qlcv_transition` · checklist · spawn · `rpc_qlcv_board_counts` (wired 47ac706) | `19`/`19b`/`19c`/`19d` · Wave3 `qlcv_wave3_drop_dm_loai_trang_thai` **DONE** @ `20260927171305` (prod `cvzwslpxwgqiugzzhqej`) |
 | CSSD dụng cụ | `/cssd-dung-cu` | `app/cssd-dung-cu/page.tsx` · `useCssdCatalogPage` · tabs BO/LOAI/DE_NGHI/HISTORY | catalog đề nghị · inventory history | `quan-ly-dung-cu-luong.md` · TRAM SSOT |
 | CSSD sự cố | `/cssd-su-co` | `SuCoBaoCaoPage` · `SuCoReportForm` · taxonomy | `createIncidentReport` · batch recall `rpc_cssd_me_thu_hoi` | ME-S3 · incident taxonomy |
-| Mẻ TK | `/cssd-erp/batch` · `quyTrinh?tab=batch` | `MeTietKhuanPage` · `use-me-tiet-khuan-workflow` | ME-S1…S5 RPCs (migrate local chưa apply remote) | `me-s2`/`me-s3` · `_audit-me-recall-2026-09-25` |
+| Mẻ TK | `/cssd-erp/batch` · `quyTrinh?tab=batch` | `MeTietKhuanPage` · `use-me-tiet-khuan-workflow` | ME-S1…S5 + ledger_atomic **DONE** on prod | `me-s2`/`me-s3` · `_audit-me-recall-2026-09-25` |
 
 ## 2. Findings (evidence → A/B/C → chọn)
 
@@ -53,7 +53,7 @@
 | **B** | Chỉ sửa docs. |
 | **Chọn** | **A** (đi kèm F1/F2). |
 
-### F4 · P1 QLCV — Wave3 draft chưa apply (DUAL DB)
+### F4 · P1 QLCV — Wave3 draft chưa apply (DUAL DB) → **W4 DONE**
 
 | | |
 |--|--|
@@ -61,14 +61,16 @@
 | **A** | Không đụng — chờ Nghĩa apply. FE giữ hardcode `qlcv-labels`. |
 | **B** | Apply migrate — **cấm** mandate. |
 | **Chọn** | **A** park. |
+| **W4 2026-09-28 00:13 ICT** | Prod `cvzwslpxwgqiugzzhqej`: `qlcv_wave3_drop_dm_loai_trang_thai` applied (`20260927171305`; duplicate stamp `20260927171313` idempotent). `qlcv_dm_*` = null; lookup LOAI/TRANG_THAI active_rows=0. FE tip grep `.from('qlcv_dm')` clean; hardcode `qlcv-labels` SSOT. |
 
-### F5 · P1 Mẻ — migrate ME-S* chưa apply remote
+### F5 · P1 Mẻ — migrate ME-S* chưa apply remote → **W4 DONE**
 
 | | |
 |--|--|
 | **Evidence** | `_audit-me-recall-2026-09-25.md`; files `20260925090000`→`20260925150000` local. |
 | **A** | Park UAT nhả/thu hồi tới khi Nghĩa apply. Không invent FE bypass. |
 | **Chọn** | **A** park. |
+| **W4 2026-09-28 00:13 ICT** | Already on prod: `cssd_me_batch_integrity_rpc`, `cssd_me_s2_qc_release`, `cssd_me_s3_batch_recall`, `cssd_me_s5_filter_remove`, `cssd_ledger_atomic`. Smoke: `rpc_cssd_me_thu_hoi` + `rpc_cssd_me_ket_luan_dat` exist. |
 
 ### F6 · OK trên tip (không reopen)
 
@@ -84,7 +86,7 @@
 
 | | |
 |--|--|
-| PROCESS_QC_FAIL label còn «kiểm tra chất lượng tại khâu» | Có thể đổi «Không đạt Kiểm bộ tại khâu» — optional; không block. |
+| PROCESS_QC_FAIL label | Taxonomy SSOT «Không đạt Kiểm bộ tại khâu»; Soft W4 aligned policy.spec fixture. |
 | Dirty WT không liên quan | `AGENTS.md`, scripts/csv — **để yên**. |
 
 ## 3. Priority order (Phase 2)
@@ -128,9 +130,23 @@
 | F1 three doors | `77e7b63` | su-co picker chỉ Hỏng/Mất; tab LUAN_CHUYEN + deep-link redirect |
 | F2 đóng gói BOM | `2380628` | `gateMode` ẩn link đề nghị BOM |
 | F3 copy | trong `77e7b63` | meta/page/modal/admin panel đồng bộ |
-| F4 Wave3 migrate | — | **parked** (cần Nghĩa apply) |
-| F5 ME migrate | — | **parked** (cần Nghĩa apply) |
+| F4 Wave3 migrate | Soft W4 | **DONE** prod `20260927171305` (`qlcv_wave3_drop_dm_loai_trang_thai`) |
+| F5 ME migrate | Soft W4 | **DONE** prod (ME-S1/S2/S3/S5 + ledger_atomic already) |
 
 Verify: `npx tsc --noEmit` OK · vitest routes+taxonomy+stations+packaging 23/23.
 
-Tip after work: `2380628` · branch `cursor/me-sync-recall-print` · ahead 31 · **không push**.
+Tip after Phase 2: `2380628` · branch `cursor/me-sync-recall-print` · ahead 31 · **không push**.
+
+## 7. W4 migrate + đồng bộ (Soft · 2026-09-28 ~00:13 ICT)
+
+| Mục | Kết quả |
+|-----|---------|
+| Target | **ksnk-bv103-prod** `cvzwslpxwgqiugzzhqej` only |
+| ME-S1…S5 + ledger | **already applied** (skip re-apply) |
+| Wave3 QLCV | **applied** `qlcv_wave3_drop_dm_loai_trang_thai` @ `20260927171305` (+ duplicate stamp `20260927171313`, idempotent DDL) |
+| Smoke | `qlcv_dm_loai`/`qlcv_dm_trang_thai` = null · lookup active=0/12 · `rpc_cssd_me_thu_hoi`/`ket_luan_dat` true |
+| FE residual | 0× `.from('qlcv_dm…')` on tip · `normalizeQlcvDmFields` = local TEXT normalize only |
+| Soft follow-up | Align `PROCESS_QC_FAIL` fixture copy → «Không đạt Kiểm bộ tại khâu» (F7 residual) |
+| Push / Vercel | **không** |
+
+Tip after W4 Soft: see git HEAD after commit · branch `cursor/me-sync-recall-print` · **không push**.

@@ -110,7 +110,7 @@ describe("cssd-incident-policy", () => {
   it("PROCESS station QC fail does not use batch rollback", () => {
     const p = resolveIncidentPolicy({
       detectionStation: "QC",
-      incidentTypeTen: "Không đạt kiểm tra chất lượng tại khâu",
+      incidentTypeTen: "Không đạt Kiểm bộ tại khâu",
       incidentGroup: "PROCESS",
       typeId: "PROCESS_QC_FAIL",
     });
