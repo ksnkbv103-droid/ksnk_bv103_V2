@@ -123,8 +123,8 @@ export function cssdSuCoInstrumentHref(params?: {
 }
 
 /**
- * Deep-link thu hồi theo mẻ (QT.24) — sự cố an toàn PROCESS + lo_tiet_khuan_id.
- * D1: không dùng group INSTRUMENT / 3 cửa biến động dụng cụ.
+ * Deep-link thu hồi theo mẻ (QT.24) — sự cố quy trình PROCESS + lo_tiet_khuan_id.
+ * D1: không dùng group INSTRUMENT / Hỏng/Mất.
  */
 export function cssdSuCoBatchRecallHref(params?: {
   loTietKhuanId?: string | null;

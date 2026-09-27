@@ -437,7 +437,7 @@ export default function SuCoReportForm({
           ? "Vui lòng ghi chú luân chuyển."
           : isInstrument
             ? "Vui lòng điền mô tả Hỏng/Mất."
-            : "Vui lòng điền mô tả chi tiết sự cố an toàn.",
+            : "Vui lòng điền mô tả chi tiết sự cố.",
       );
     }
     if (incidentGroup === "EQUIPMENT" && !machineId.trim()) {
@@ -651,7 +651,7 @@ export default function SuCoReportForm({
             </p>
           ) : isBatchRecallEntry ? (
             <div className="flex flex-wrap items-center gap-2 border-b border-amber-200 pb-2" data-testid="batch-recall-group-lock">
-              <span className="text-[12px] font-semibold text-amber-900">An toàn QT · Thu hồi theo mẻ</span>
+              <span className="text-[12px] font-semibold text-amber-900">Sự cố quy trình · Thu hồi theo mẻ</span>
               <span className="text-[11px] text-slate-500">(không mở cửa Hỏng/Mất)</span>
             </div>
           ) : (
@@ -671,7 +671,7 @@ export default function SuCoReportForm({
             {renderStationOverride}
           </div>
 
-          {incidentGroup === "INSTRUMENT" && !luanChuyen ? (
+          {incidentGroup === "INSTRUMENT" && !luanChuyen && activeGroupOptions.length > 1 ? (
             <InstrumentDoorTabs
               typeId={typeId}
               options={activeGroupOptions}

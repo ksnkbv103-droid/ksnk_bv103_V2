@@ -44,13 +44,23 @@ export function isAccountabilityCause(code?: string | null): boolean {
   return code === "SC_QUY_TRINH" || code === "SC_CHU_QUAN";
 }
 
+/** Nhãn cửa trực tiếp (IA A 2026-09-27) — không còn shell An toàn / Biến động. */
 export const INCIDENT_GROUP_LABEL: Record<IncidentGroup, string> = {
-  PROCESS: "Quy trình (an toàn QT)",
-  INSTRUMENT: "Biến động dụng cụ",
-  CHEMICAL: "Hóa chất (an toàn HC)",
-  EQUIPMENT: "Máy (an toàn thiết bị)",
-  OTHER: "Khác",
+  PROCESS: "Sự cố quy trình",
+  INSTRUMENT: "Hỏng/Mất",
+  CHEMICAL: "Sự cố hóa chất",
+  EQUIPMENT: "Sự cố máy",
+  OTHER: "Sự cố khác",
 };
+
+/** Thứ tự 5 cửa picker type-first (Hỏng/Mất trước — tần suất kho). */
+export const DIRECT_INCIDENT_DOORS: IncidentGroup[] = [
+  "INSTRUMENT",
+  "PROCESS",
+  "CHEMICAL",
+  "EQUIPMENT",
+  "OTHER",
+];
 
 const PROCESS_HINTS = [
   "quy trình",
@@ -129,8 +139,10 @@ export function instrumentFormTypeOptions(): IncidentPreset[] {
   return INCIDENT_TYPE_PRESETS.INSTRUMENT;
 }
 
+/** @deprecated UI A: không còn family An toàn — giữ cho bookmark/report legacy. */
 export const SAFETY_INCIDENT_GROUPS: IncidentGroup[] = ["PROCESS", "CHEMICAL", "EQUIPMENT", "OTHER"];
 
+/** @deprecated UI A: hub SAFETY|INSTRUMENT bỏ khỏi picker; giữ helper legacy. */
 export type SuCoHub = "SAFETY" | "INSTRUMENT";
 
 export function hubOfIncidentGroup(group: IncidentGroup): SuCoHub {

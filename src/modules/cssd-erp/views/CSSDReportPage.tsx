@@ -317,7 +317,7 @@ function CSSDReportPageInner() {
             <div className="min-w-0">
               <p className="text-xs font-semibold text-amber-950">Thu hồi theo mẻ</p>
               <p className="text-[11px] text-amber-900">
-                Sự cố an toàn BI+/ướt/lỗi máy — không lẫn 3 cửa biến động dụng cụ.
+                Sự cố quy trình BI+/ướt/lỗi máy — không lẫn Hỏng/Mất.
               </p>
             </div>
             <Link

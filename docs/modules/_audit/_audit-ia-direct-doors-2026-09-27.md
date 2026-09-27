@@ -220,3 +220,17 @@ Form vẫn còn `entryMode: "luan-chuyen"` + nhánh MOVE trong `SuCoReportForm` 
 - Không gộp Hỏng/Mất vào PROCESS.
 - Không đưa LUAN_CHUYEN trở lại picker su-co.
 - Không push / Cloud / migrate.
+
+---
+
+## 10. LOCKED A + applied — 2026-09-27 (Asia/Saigon)
+
+| Trường | Giá trị |
+|--------|---------|
+| Lock | **A** — flatten 5 cửa trực tiếp; drop An toàn / Biến động shells |
+| Nav | Rename sidebar «Sự cố & biến động» → **«Sự cố»** (one-line, Domain-safe; MOVE đã ở dung-cu) |
+| Doors | Hỏng/Mất · Sự cố quy trình · Sự cố hóa chất · Sự cố máy · Sự cố khác |
+| Giữ | LUAN_CHUYEN + DE_NGHI trên `/cssd-dung-cu` (G-P0-06); không đưa MOVE lại su-co |
+| FE | `IncidentGroupPicker` type/group chips; modal titles theo door; strip copy An toàn/Biến động; bookmark MOVE vẫn redirect dung-cu |
+| Không | push / PR / merge / migrate / Cloud |
+

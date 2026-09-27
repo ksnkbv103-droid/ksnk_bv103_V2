@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   coerceInstrumentFormTypeId,
   defaultCauseClass,
+  DIRECT_INCIDENT_DOORS,
+  INCIDENT_GROUP_LABEL,
   INCIDENT_TYPE_PRESETS,
   instrumentFormTypeOptions,
   isAccountabilityCause,
@@ -54,5 +56,24 @@ describe("cssd-incident-taxonomy", () => {
     expect(isBatchQcFailTypeId("PROCESS_STERILE_QC_FAIL")).toBe(true);
     expect(isBatchQcFailTypeId("PROCESS_BI_POSITIVE")).toBe(true);
     expect(isBatchQcFailTypeId("PROCESS_QC_FAIL")).toBe(false);
+  });
+
+  it("IA A: 5 direct doors — no An toàn / Biến động shell labels", () => {
+    expect(DIRECT_INCIDENT_DOORS).toEqual([
+      "INSTRUMENT",
+      "PROCESS",
+      "CHEMICAL",
+      "EQUIPMENT",
+      "OTHER",
+    ]);
+    expect(INCIDENT_GROUP_LABEL.INSTRUMENT).toBe("Hỏng/Mất");
+    expect(INCIDENT_GROUP_LABEL.PROCESS).toBe("Sự cố quy trình");
+    expect(INCIDENT_GROUP_LABEL.CHEMICAL).toBe("Sự cố hóa chất");
+    expect(INCIDENT_GROUP_LABEL.EQUIPMENT).toBe("Sự cố máy");
+    expect(INCIDENT_GROUP_LABEL.OTHER).toBe("Sự cố khác");
+    for (const label of Object.values(INCIDENT_GROUP_LABEL)) {
+      expect(label.toLowerCase()).not.toContain("biến động");
+      expect(label.toLowerCase()).not.toMatch(/\(an toàn/);
+    }
   });
 });

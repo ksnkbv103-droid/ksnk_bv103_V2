@@ -108,7 +108,7 @@ describe("cssd-batch-recall", () => {
     expect(batchRecallReasonFromTypeId("PROCESS_STERILE_QC_FAIL")).toBe("MACHINE_FAULT");
     expect(batchRecallReasonFromTypeId("PROCESS_QC_FAIL")).toBeNull();
     expect(BATCH_RECALL_ENTRY_COPY.title).toMatch(/Thu hồi/);
-    expect(BATCH_RECALL_ENTRY_COPY.subtitle).toMatch(/không phải biến động dụng cụ/);
+    expect(BATCH_RECALL_ENTRY_COPY.subtitle).toMatch(/không phải Hỏng\/Mất/);
   });
 });
 

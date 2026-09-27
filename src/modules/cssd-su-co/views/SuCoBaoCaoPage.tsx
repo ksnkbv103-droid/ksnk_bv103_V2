@@ -110,7 +110,7 @@ export default function SuCoBaoCaoPage() {
 
   if (luanChuyenBookmark) {
     return (
-      <CSSDPageShell title="Sự cố / biến động">
+      <CSSDPageShell title="Sự cố">
         <p className="px-2 py-6 text-sm text-slate-600">Đang mở Luân chuyển trên Dụng cụ…</p>
       </CSSDPageShell>
     );
@@ -118,7 +118,7 @@ export default function SuCoBaoCaoPage() {
 
   if (loading) {
     return (
-      <CSSDPageShell title="Sự cố / biến động">
+      <CSSDPageShell title="Sự cố">
         <div className="flex h-[40vh] items-center justify-center text-sm text-slate-500">Đang tải…</div>
       </CSSDPageShell>
     );
@@ -126,7 +126,7 @@ export default function SuCoBaoCaoPage() {
 
   if (!allowed.view && !allowed.create) {
     return (
-      <CSSDPageShell title="Sự cố / biến động">
+      <CSSDPageShell title="Sự cố">
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-8 text-center text-sm text-amber-900">
           Bạn không có quyền module <strong>BAO_SU_CO</strong>. Liên hệ quản trị KSNK.
         </div>
@@ -138,13 +138,13 @@ export default function SuCoBaoCaoPage() {
 
   return (
     <CSSDPageShell
-      title="Sự cố / biến động"
+      title="Sự cố"
       actions={
         <div className="flex flex-wrap items-center justify-end gap-1.5">
           <Link
             href={cssdSuCoBatchRecallHref()}
             className="bv103-control-h inline-flex items-center gap-1 rounded-[var(--radius-control)] border border-amber-300 bg-amber-50 px-2.5 text-xs font-semibold text-amber-900 hover:bg-amber-100"
-            title="Thu hồi theo mẻ — sự cố an toàn"
+            title="Thu hồi theo mẻ — sự cố quy trình"
           >
             <Undo2 size={14} aria-hidden />
             Thu hồi theo mẻ

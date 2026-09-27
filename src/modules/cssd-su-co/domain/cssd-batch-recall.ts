@@ -150,10 +150,10 @@ export const BATCH_RECALL_REASON_OPTIONS: readonly BatchRecallReasonOption[] = [
   },
 ] as const;
 
-/** Copy D1: thu hồi = sự cố an toàn, không lẫn 3 cửa biến động dụng cụ. */
+/** Copy D1: thu hồi = sự cố quy trình, không lẫn Hỏng/Mất / luân chuyển. */
 export const BATCH_RECALL_ENTRY_COPY = {
   title: "Thu hồi theo mẻ",
-  subtitle: "Sự cố an toàn — không phải biến động dụng cụ (Hỏng/Mất · Chuyển).",
+  subtitle: "Sự cố quy trình — thu hồi theo mẻ (không phải Hỏng/Mất).",
   effect:
     "Bộ chưa dùng lâm sàng về Tiếp nhận để xử lý lại như dụng cụ bẩn. Bộ đã dùng chỉ được liệt kê. Máy sẵn sàng → HOLD_QC.",
 } as const;

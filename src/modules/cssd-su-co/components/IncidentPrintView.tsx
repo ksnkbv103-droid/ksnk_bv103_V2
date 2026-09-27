@@ -64,10 +64,10 @@ export function getGoogleDriveDirectLink(url: string): string {
   return trimmed;
 }
 const GROUP_LABEL_MAP: Record<string, string> = {
-  PROCESS: "Quy trình xử lý",
-  INSTRUMENT: "Hỏng hóc dụng cụ",
-  CHEMICAL: "Hóa chất / Vật tư",
-  EQUIPMENT: "Thiết bị / Máy móc",
+  PROCESS: "Sự cố quy trình",
+  INSTRUMENT: "Hỏng/Mất",
+  CHEMICAL: "Sự cố hóa chất",
+  EQUIPMENT: "Sự cố máy",
   OTHER: "Sự cố khác",
 };
 

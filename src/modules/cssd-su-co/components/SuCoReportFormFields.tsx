@@ -19,9 +19,9 @@ import QrCameraButton from "@/components/shared/QrCameraButton";
 import SearchableSelect from "@/components/shared/SearchableSelect";
 import type { Station } from "@/modules/cssd-erp/types/cssd.types";
 import {
+  DIRECT_INCIDENT_DOORS,
   INCIDENT_GROUP_LABEL,
   INCIDENT_STATION_OPTIONS,
-  SAFETY_INCIDENT_GROUPS,
   type IncidentGroup,
 } from "../domain/cssd-incident-taxonomy";
 import { cssdSuCoIncidentJournalHref } from "@/lib/cssd-routes";
@@ -273,7 +273,7 @@ export function TypePicker({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className={bv103LayoutChrome.labelBlock}>Loại sự cố an toàn</label>
+      <label className={bv103LayoutChrome.labelBlock}>Loại sự cố</label>
       <div className="relative">
         <select
           value={typeId}
@@ -302,78 +302,41 @@ export function IncidentGroupPicker({
   compact?: boolean;
 }) {
   const isInstrument = incidentGroup === "INSTRUMENT";
-  const family: "SAFETY" | "INSTRUMENT" = isInstrument ? "INSTRUMENT" : "SAFETY";
-
-  const familyBtn = (selected: boolean) =>
-    `${bv103LayoutChrome.navTabBtn} min-h-9 flex-1 touch-manipulation sm:min-h-10 sm:flex-initial sm:min-w-[9rem] ${
-      selected
-        ? "bg-white text-[var(--primary)] shadow-sm ring-1 ring-slate-200/80"
-        : "text-slate-500 hover:bg-white/60 hover:text-slate-800"
-    }`;
 
   return (
-    <div className="space-y-2 border-b border-slate-200 pb-2">
-      <div
-        role="tablist"
-        aria-label="Nhóm sự cố"
-        className={`${bv103LayoutChrome.navTabStrip} w-full sm:w-fit`}
-      >
-        <button
-          type="button"
-          role="tab"
-          aria-selected={family === "SAFETY"}
-          onClick={() => {
-            if (isInstrument) onSelect("PROCESS");
-          }}
-          className={familyBtn(family === "SAFETY")}
-        >
-          An toàn
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={family === "INSTRUMENT"}
-          onClick={() => onSelect("INSTRUMENT")}
-          className={familyBtn(family === "INSTRUMENT")}
-        >
-          <Wrench size={14} className="shrink-0 opacity-80" aria-hidden />
-          <span className="truncate">Biến động dụng cụ</span>
-        </button>
+    <div className="space-y-2 border-b border-slate-200 pb-2" data-testid="incident-direct-doors">
+      <div className="flex flex-wrap items-center gap-1" role="tablist" aria-label="Cửa sự cố">
+        {DIRECT_INCIDENT_DOORS.map((g) => {
+          const IconComp = GROUP_ICONS[g];
+          const isSelected = incidentGroup === g;
+          return (
+            <button
+              key={g}
+              type="button"
+              role="tab"
+              aria-selected={isSelected}
+              onClick={() => onSelect(g)}
+              className={`inline-flex h-8 touch-manipulation items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold ${
+                isSelected
+                  ? "bg-[var(--primary)]/10 text-[var(--primary)] ring-1 ring-[var(--primary)]/30"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+              }`}
+            >
+              <IconComp size={14} className="shrink-0 opacity-80" aria-hidden />
+              <span className="whitespace-nowrap">{INCIDENT_GROUP_LABEL[g]}</span>
+            </button>
+          );
+        })}
       </div>
-
-      {!isInstrument ? (
-        <div className="flex flex-wrap items-center gap-1" role="tablist" aria-label="Nhóm an toàn">
-          {SAFETY_INCIDENT_GROUPS.map((g) => {
-            const IconComp = GROUP_ICONS[g];
-            const isSelected = incidentGroup === g;
-            return (
-              <button
-                key={g}
-                type="button"
-                role="tab"
-                aria-selected={isSelected}
-                onClick={() => onSelect(g)}
-                className={`inline-flex h-8 touch-manipulation items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold ${
-                  isSelected
-                    ? "bg-[var(--primary)]/10 text-[var(--primary)] ring-1 ring-[var(--primary)]/30"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-                }`}
-              >
-                <IconComp size={14} className="shrink-0 opacity-80" aria-hidden />
-                <span className="whitespace-nowrap">{INCIDENT_GROUP_LABEL[g].split(" (")[0]}</span>
-              </button>
-            );
-          })}
-        </div>
-      ) : (
+      {isInstrument ? (
         <p className="px-1 text-[11px] text-slate-500">
-          Chỉ Hỏng/Mất. Luân chuyển số lượng (kho ↔ bộ, bộ ↔ bộ) mở tại{" "}
+          Luân chuyển số lượng (kho ↔ bộ, bộ ↔ bộ) mở tại{" "}
           <Link href="/cssd-dung-cu?tab=LUAN_CHUYEN" className="font-semibold text-[var(--primary)] hover:underline">
             Dụng cụ · Luân chuyển
           </Link>
           .
         </p>
-      )}
+      ) : null}
     </div>
   );
 }

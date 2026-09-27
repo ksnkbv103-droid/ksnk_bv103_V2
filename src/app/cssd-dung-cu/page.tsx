@@ -71,7 +71,7 @@ export default function Page() {
           <span className="font-semibold text-slate-700">Luân chuyển</span>
           {" — chuyển số lượng kho ↔ bộ hoặc bộ ↔ bộ. "}
           <Link href="/cssd-su-co?group=INSTRUMENT" className="font-semibold text-[var(--primary)] hover:underline">
-            Hỏng/Mất và sự cố an toàn
+            Hỏng/Mất và sự cố
           </Link>
           {" — chỉ tại Sự cố."}
         </p>

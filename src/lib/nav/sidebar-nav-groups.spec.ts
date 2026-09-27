@@ -10,6 +10,7 @@ describe("IA menu copy lock — Vận hành / Tra cứu / Sửa danh mục", () 
     const vanHanh = SIDEBAR_NAV_GROUPS.find((g) => g.id === "cssd-ops");
     const traCuu = SIDEBAR_NAV_GROUPS.find((g) => g.id === "cssd-catalog");
     expect(vanHanh?.items.map((i) => i.href)).toEqual(["/cssd-quy-trinh", "/cssd-su-co"]);
+    expect(vanHanh?.items.map((i) => i.name)).toEqual(["Quy trình", "Sự cố"]);
     expect(traCuu?.items.map((i) => i.href)).toEqual(["/cssd-dung-cu", "/cssd-thiet-bi", "/cssd-hoa-chat"]);
   });
 
