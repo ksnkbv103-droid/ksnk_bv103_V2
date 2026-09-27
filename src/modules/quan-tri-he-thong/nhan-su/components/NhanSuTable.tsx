@@ -143,6 +143,9 @@ export default function NhanSuTable({ refreshKey: externalRefresh, permission }:
           return;
         }
         toast.success("Đã tạo tài khoản và liên kết hồ sơ.");
+        if ("roleWarning" in res && res.roleWarning) {
+          toast.error(String(res.roleWarning));
+        }
       } else if (mode === "reset") {
         const actorPw = String(payload.confirmActorPassword || "").trim();
         if (!actorPw) {

@@ -133,3 +133,34 @@
 - Invite-by-email flow (product chưa có; password-provision là lock hiện tại).
 
 *End Soft admin audit · local only.*
+
+---
+
+## 7. Verify + P1 fix (Soft thin · 2026-09-28 ~01:30 ICT)
+
+Tip trước: `add0040` (ahead 52). Scope: **2 P1 only** — no Auth ban · no dual-admin · no orphan delete · no invite · no push/PR/Cloud/migrate · dirty WT untouched.
+
+### Survey (form vs list)
+
+| Path | Provision | Role sync |
+|------|-----------|-----------|
+| Form «Thêm người» + Tạo đăng nhập | `afterSaveNhanSuLogin` → `provisionStaffAuthAccount` | **yes** — `setStaffKsnkRbacRole(vai_tro)` |
+| List **Tạo TK** (`NhanSuTable`) | `provisionStaffAuthAccount` only | **was no** → Auth-linked + role-less |
+| Duyệt REQUEST | `approveAccountAccessRequest` → provision | inherited gap |
+
+### P1-1 — Role sync on provision
+
+- Moved `resolveAssignableRoleName` → `phan-quyen/rbac.types.ts` (pure; after-save re-exports).
+- `provisionStaffAuthAccount`: after Auth link, read `vai_tro_he_thong_ksnk` → resolve → `rpc_assign_staff_ksnk_role` when assignable; best-effort `roleWarning` (không rollback Auth).
+- List / approve REQUEST / form đều đi chung path.
+
+### P1-2 — `approveForgotResetRequest` fail closed
+
+- **Trước:** reset MK trước, rồi chỉ mark DUYET nếu `CHO_DUYET`+RESET (fail open — reset vẫn chạy khi thiếu/phiếu sai).
+- **Sau:** load phiếu → bắt buộc `CHO_DUYET` + `kind=RESET` → rồi `adminResetStaffPasswordAction` → mark DUYET. UI gates giữ.
+
+### Parked (unchanged)
+
+- Auth ban on soft-disable · dual-admin live · delete orphan page files · invite-email.
+
+*End Soft P1 verify note.*

@@ -6,7 +6,7 @@
 | Máy | Nghĩa Mac · `6bad1c57-5c17-4e62-b661-16f3bab10f88` |
 | Repo | `/Users/drnghia/Desktop/ksnk_bv103` |
 | Branch | `cursor/me-sync-recall-print` |
-| Tip audit | Soft admin hệ thống P0 **DONE** (wire Đặt lại MK / duyệt RESET / Tạo TK dialog on `/nhan-su`); see `_audit-soft-admin-he-thong-2026-09-28.md`; prior ME polish N/A; W6+W4 DONE |
+| Tip audit | Soft admin hệ thống P0+P1 **DONE** (provision role sync + RESET approve fail-closed); see `_audit-soft-admin-he-thong-2026-09-28.md` §7; prior ME polish N/A; W6+W4 DONE |
 | Phạm vi | Toàn product doors + debt + overlap + perf + phased plan A/B |
 | Không | push / PR / merge / Vercel / Cloud / apply migrate / DROP / rewrite lớn |
 | Mandat | **Deep AUDIT + plan A/B** — chờ Nghĩa lock trước rewrite; Soft chỉ commit doc |
@@ -37,7 +37,7 @@ Survey Soft-feasible leftovers from this audit (local only). Evidence on tip `3a
 | 4 | Dead-export sweep catalog paths (W1 touch) | **DONE Soft residual** — prune unused `instrument-catalog/entrypoint` re-exports (tabs + hook; dung-cu imports views/hook directly); keep `registerPhysicalBoLabelFromDmAction` |
 | 5 | This audit status | Soft Soft-queue **empty** — W4 DONE prod · W6 FE closed Soft |
 
-**Soft Soft-queue empty?** **Y** (ops residual) — W4/W6 DONE · ME polish N/A · **admin hệ thống P0 DONE** Soft 2026-09-28.
+**Soft Soft-queue empty?** **Y** (ops residual) — W4/W6 DONE · ME polish N/A · **admin hệ thống P0+P1 DONE** Soft 2026-09-28 (role sync on provision + RESET approve harden).
 
 ### Soft next — Quy trình / 6 trạm SSOT (2026-09-27 post residual)
 
@@ -59,7 +59,7 @@ Survey A thin: tip **already polished** (UX 1–4 + S5 + Kiểm bộ mẻ-scan).
 
 ### Soft Soft-queue — Quản trị hệ thống admin (2026-09-28)
 
-**DONE Soft** — survey + P0/P1 thin FE: Đặt lại MK / duyệt RESET / Tạo TK dialog trên `/quan-tri-he-thong/nhan-su` (orphan `/tai-khoan-nhan-su` redirect giữ). Detail `_audit-soft-admin-he-thong-2026-09-28.md`. Soft Soft-queue: admin P0 closed; residual P2 park (Auth ban · delete orphan files · invite-email).
+**DONE Soft** — survey + P0 FE wire (Đặt lại MK / duyệt RESET / Tạo TK dialog trên `/nhan-su`) + **P1** BE: `provisionStaffAuthAccount` sync KSNK role từ `vai_tro` · `approveForgotResetRequest` fail-closed `CHO_DUYET`+RESET trước reset MK. Detail `_audit-soft-admin-he-thong-2026-09-28.md` §7. Soft Soft-queue: admin P0+P1 closed; residual P2 park (Auth ban · delete orphan files · invite-email · dual-admin).
 
 
 

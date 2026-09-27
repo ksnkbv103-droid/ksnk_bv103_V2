@@ -3,18 +3,9 @@ import {
   provisionStaffAuthAccount,
   setStaffKsnkRbacRole,
 } from "../../tai-khoan-nhan-su/actions/tai-khoan-nhan-su.actions";
-import {
-  RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER,
-  RBAC_STAFF_ASSIGNABLE_ROLE_LABEL,
-} from "@/modules/quan-tri-he-thong/phan-quyen/rbac.types";
+import { resolveAssignableRoleName } from "@/modules/quan-tri-he-thong/phan-quyen/rbac.types";
 
-export function resolveAssignableRoleName(labelOrName: string): string {
-  const raw = labelOrName.trim();
-  const upper = raw.toUpperCase();
-  if ((RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER as readonly string[]).includes(upper)) return upper;
-  const found = Object.entries(RBAC_STAFF_ASSIGNABLE_ROLE_LABEL).find(([, label]) => label === raw);
-  return found?.[0] ?? raw;
-}
+export { resolveAssignableRoleName };
 
 type AfterSaveArgs = {
   staffId: string;

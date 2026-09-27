@@ -80,6 +80,15 @@ export const RBAC_STAFF_ASSIGNABLE_ROLE_LABEL: Record<string, string> = {
   KHACH_THONG_KE_GSTT: "Khách — xem thống kê",
 };
 
+/** Map mã vai trò hoặc nhãn tiếng Việt → tên sys_roles gán được cho nhân sự. */
+export function resolveAssignableRoleName(labelOrName: string): string {
+  const raw = labelOrName.trim();
+  const upper = raw.toUpperCase();
+  if ((RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER as readonly string[]).includes(upper)) return upper;
+  const found = Object.entries(RBAC_STAFF_ASSIGNABLE_ROLE_LABEL).find(([, label]) => label === raw);
+  return found?.[0] ?? raw;
+}
+
 export function selectRolesForStaffKsnkAssignment<T extends { id: string; name: string }>(allRoles: T[]): T[] {
   const byName = new Map(allRoles.map((r) => [String(r.name ?? "").trim().toUpperCase(), r]));
   const out: T[] = [];

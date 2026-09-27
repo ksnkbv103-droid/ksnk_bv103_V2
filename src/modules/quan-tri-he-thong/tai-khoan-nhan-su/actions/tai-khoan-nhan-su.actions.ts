@@ -18,6 +18,7 @@ import {
 } from "@/lib/auth/guest-stats-pilot";
 import {
   RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER,
+  resolveAssignableRoleName,
   selectRolesForStaffKsnkAssignment,
 } from "@/modules/quan-tri-he-thong/phan-quyen/rbac.types";
 import { verifyCurrentActorPassword } from "../lib/admin-reauth";
@@ -210,7 +211,7 @@ export async function provisionStaffAuthAccount(params: {
 
     const { data: staff, error: sErr } = await supabase
       .from("v_mdm_nhan_su_full")
-      .select("id, email, ma_nv, auth_user_id, is_active, extra_data")
+      .select("id, email, ma_nv, auth_user_id, is_active, extra_data, vai_tro_he_thong_ksnk")
       .eq("id", params.staffId)
       .maybeSingle();
 
@@ -255,9 +256,38 @@ export async function provisionStaffAuthAccount(params: {
       action: "provision",
     });
 
+    // Đồng bộ vai trò KSNK từ hồ sơ (vai_tro → assignable) — cùng hành vi form «Thêm người + Tạo đăng nhập».
+    let roleWarning: string | undefined;
+    const roleRaw = String((staff as { vai_tro_he_thong_ksnk?: string | null }).vai_tro_he_thong_ksnk || "").trim();
+    if (roleRaw) {
+      const roleName = resolveAssignableRoleName(roleRaw);
+      const canonical =
+        RBAC_STAFF_ASSIGNABLE_KSNK_ROLE_ORDER.find((x) => x === roleName.toUpperCase()) ?? null;
+      if (canonical) {
+        const { data: roleData, error: roleErr } = await supabase.rpc("rpc_assign_staff_ksnk_role", {
+          p_staff_id: staff.id,
+          p_role_name: canonical,
+        });
+        if (roleErr || !roleData?.success) {
+          roleWarning =
+            (roleData && typeof roleData === "object" && "error" in roleData
+              ? String((roleData as { error?: string }).error || "")
+              : "") ||
+            roleErr?.message ||
+            "Đã tạo tài khoản nhưng chưa gán được vai trò.";
+        } else {
+          await invalidateUserPermissionsCache();
+        }
+      }
+    }
+
     revalidatePath("/quan-tri-he-thong/tai-khoan");
     revalidatePath("/quan-tri-he-thong/nhan-su");
-    return { success: true as const, userId: created.user.id };
+    return {
+      success: true as const,
+      userId: created.user.id,
+      ...(roleWarning ? { roleWarning } : {}),
+    };
   } catch (e: unknown) {
     return { success: false as const, error: err(e) };
   }

@@ -642,8 +642,8 @@ export async function approveAccountAccessRequest(params: {
 }
 
 /**
- * Admin duyệt RESET: chỉ đánh dấu DUYET trên phiếu — caller đã/ sẽ gọi adminResetStaffPasswordAction.
- * Hoặc gộp: truyền password + confirmActorPassword để reset luôn.
+ * Admin duyệt RESET: xác nhận phiếu CHO_DUYET + kind=RESET (fail closed) →
+ * adminResetStaffPasswordAction → đánh dấu DUYET.
  */
 export async function approveForgotResetRequest(params: {
   staffId: string;
@@ -652,6 +652,27 @@ export async function approveForgotResetRequest(params: {
   secondApproverEmail?: string;
 }) {
   try {
+    // Fail closed: phiếu RESET phải CHO_DUYET trước khi đụng mật khẩu (UI gate không đủ).
+    const actor = await ensureRbacAdmin();
+    const supabase = createAdminSupabaseClient();
+    const { data: staff, error: sErr } = await supabase
+      .from("mdm_nhan_su")
+      .select("id, extra_data")
+      .eq("id", params.staffId)
+      .maybeSingle();
+    if (sErr || !staff) return { success: false as const, error: "Không tìm thấy hồ sơ." };
+
+    const req = readAccountRequest(staff.extra_data as Record<string, unknown> | null);
+    if (!req || req.status !== "CHO_DUYET") {
+      return { success: false as const, error: "Không có phiếu RESET chờ duyệt." };
+    }
+    if ((req.kind || "REQUEST") !== "RESET") {
+      return {
+        success: false as const,
+        error: "Đây không phải phiếu đặt lại MK — dùng duyệt tạo TK.",
+      };
+    }
+
     const { adminResetStaffPasswordAction } = await import(
       "@/modules/quan-tri-he-thong/tai-khoan-nhan-su/actions/tai-khoan-nhan-su.actions"
     );
@@ -663,32 +684,27 @@ export async function approveForgotResetRequest(params: {
     });
     if (!reset.success) return reset;
 
-    const actor = await ensureRbacAdmin();
-    const supabase = createAdminSupabaseClient();
-    const { data: staff } = await supabase
+    const { data: fresh } = await supabase
       .from("mdm_nhan_su")
-      .select("id, extra_data")
+      .select("extra_data")
       .eq("id", params.staffId)
       .maybeSingle();
-    const req = readAccountRequest(staff?.extra_data as Record<string, unknown> | null);
-    if (req && req.status === "CHO_DUYET" && (req.kind || "REQUEST") === "RESET") {
-      const extra = mergeAccountRequest(staff?.extra_data as Record<string, unknown> | null, {
-        ...req,
-        status: "DUYET",
-        approved_at: new Date().toISOString(),
-        approved_by: actor.email ?? actor.id,
-      });
-      await supabase
-        .from("mdm_nhan_su")
-        .update({ extra_data: extra, updated_at: new Date().toISOString() })
-        .eq("id", params.staffId);
-      await decideAccessRequestRow(supabase, {
-        ticketId: req.ticket_id,
-        staffId: params.staffId,
-        status: "DUYET",
-        decidedBy: actor.email ?? actor.id,
-      });
-    }
+    const extra = mergeAccountRequest(fresh?.extra_data as Record<string, unknown> | null, {
+      ...req,
+      status: "DUYET",
+      approved_at: new Date().toISOString(),
+      approved_by: actor.email ?? actor.id,
+    });
+    await supabase
+      .from("mdm_nhan_su")
+      .update({ extra_data: extra, updated_at: new Date().toISOString() })
+      .eq("id", params.staffId);
+    await decideAccessRequestRow(supabase, {
+      ticketId: req.ticket_id,
+      staffId: params.staffId,
+      status: "DUYET",
+      decidedBy: actor.email ?? actor.id,
+    });
 
     revalidatePath("/quan-tri-he-thong/nhan-su");
     revalidatePath("/quan-tri-he-thong/tai-khoan");
