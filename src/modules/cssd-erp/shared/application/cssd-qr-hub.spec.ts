@@ -26,6 +26,18 @@ describe("cssd-qr-hub contracts", () => {
     expect(parsed.machineCode).toBe("MAY-01");
   });
 
+
+  it("parses optional maBo for instrument set (cycle → catalog)", () => {
+    const parsed = cssdQrHubResolvedSchema.parse({
+      targetType: "INSTRUMENT_SET",
+      code: "BV103-CYC-250610-AB12CD34",
+      workflowId: "wf-1",
+      boDungCuId: "bo-1",
+      maBo: "B01.SET.01",
+    });
+    expect(parsed.maBo).toBe("B01.SET.01");
+  });
+
   it("allows instrument set with only catalog bo (no active workflow)", () => {
     const parsed = cssdQrHubResolvedSchema.parse({
       targetType: "INSTRUMENT_SET",

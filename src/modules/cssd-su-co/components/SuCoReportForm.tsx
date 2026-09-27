@@ -383,8 +383,13 @@ export default function SuCoReportForm({
         toast.success(`Đã nhận diện máy: ${res.machineCode || res.machineId}`);
         return;
       }
-      setMaQR(res.code);
-      toast.success(`Đã chọn bộ: ${res.code}`);
+      // INSTRUMENT (Hỏng/Mất · LUAN_CHUYEN): composition/ledger load by ma_bo — prefer hub maBo when cycle QR scanned.
+      const setCode =
+        incidentGroup === "INSTRUMENT" && res.targetType === "INSTRUMENT_SET" && res.maBo
+          ? res.maBo
+          : res.code;
+      setMaQR(setCode);
+      toast.success(`Đã chọn bộ: ${setCode}`);
       if (incidentGroup === "PROCESS") await runFaultTrace(res.code, faultStation);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Lỗi quét QR");
@@ -393,7 +398,36 @@ export default function SuCoReportForm({
     }
   };
 
-  const handleQrKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>, mode: "SET" | "MACHINE" = "SET") => {
+  const processDestQrCode = async (raw: string) => {
+    const code = raw.trim();
+    if (!code) return;
+    setLoading(true);
+    try {
+      const { resolveCssdCodeAction } = await import("@/modules/cssd-erp/actions/cssd-qr.actions");
+      const res = await resolveCssdCodeAction(code);
+      if (!res.success) {
+        toast.error(res.error || "Không nhận diện được mã QR đích.");
+        return;
+      }
+      if (res.targetType === "MACHINE" || res.targetType === "STERILIZATION_BATCH") {
+        toast.error("Đích luân chuyển phải là mã bộ dụng cụ.");
+        return;
+      }
+      if (res.targetType !== "INSTRUMENT_SET") {
+        toast.error("Không nhận diện được bộ dụng cụ đích.");
+        return;
+      }
+      const destCode = res.maBo || res.code;
+      setDestMa(destCode);
+      toast.success(`Đã chọn bộ đích: ${destCode}`);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Lỗi quét QR đích");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+    const handleQrKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>, mode: "SET" | "MACHINE" = "SET") => {
     if (e.key !== "Enter") return;
     e.preventDefault();
     await processQrCode(maQR, mode);
@@ -761,7 +795,7 @@ export default function SuCoReportForm({
               onSourceMa={setMaQR}
               onDestMa={setDestMa}
               onScanSource={(code) => void processQrCode(code)}
-              onScanDest={(code) => setDestMa(code.trim().toUpperCase())}
+              onScanDest={(code) => void processDestQrCode(code)}
               onChange={setSetReconcileState}
               onUsesKho={setMoveUsesKho}
             />

@@ -41,6 +41,24 @@ async function resolveInstrumentSetByBoMaCatalog(
   };
 }
 
+
+async function lookupMaBoForBoId(
+  supabase: SupabaseClient,
+  boDungCuId: string | undefined,
+): Promise<string | undefined> {
+  const id = String(boDungCuId || "").trim();
+  if (!id) return undefined;
+  const { data, error } = await supabase
+    .from("cssd_dm_bo_dung_cu")
+    .select("ma_bo")
+    .eq("id", id)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  const ma = String((data as { ma_bo?: string | null } | null)?.ma_bo || "").trim().toUpperCase();
+  return ma || undefined;
+}
+
 /** SSOT nhận diện mã quét CSSD — bộ / máy / mẻ. Mọi màn quét vận hành gọi qua đây. */
 export async function resolveCssdCodeWithClient(
   supabase: SupabaseClient,
@@ -89,21 +107,25 @@ export async function resolveCssdCodeWithClient(
     const boId = workflowResult.data.bo_dung_cu_id
       ? String(workflowResult.data.bo_dung_cu_id)
       : undefined;
+    const maBo = await lookupMaBoForBoId(supabase, boId);
     return cssdQrHubResolvedSchema.parse({
       targetType: "INSTRUMENT_SET",
       code,
       workflowId: String(workflowResult.data.id),
       boDungCuId: boId,
+      maBo,
     });
   }
 
   const byBo = await resolveInstrumentSetByBoMaCatalog(supabase, code);
   if (byBo) {
+    const maBo = await lookupMaBoForBoId(supabase, byBo.boDungCuId);
     return cssdQrHubResolvedSchema.parse({
       targetType: "INSTRUMENT_SET",
       code,
       workflowId: byBo.workflowId,
       boDungCuId: byBo.boDungCuId,
+      maBo: maBo || normalizeBoMa(code),
     });
   }
 

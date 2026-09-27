@@ -6,7 +6,7 @@
 | Máy | Nghĩa Mac · `6bad1c57-5c17-4e62-b661-16f3bab10f88` |
 | Repo | `/Users/drnghia/Desktop/ksnk_bv103` |
 | Branch | `cursor/me-sync-recall-print` |
-| Tip audit | Soft **NKBV logic deep** vs SSOT v4.0 **DONE** — `_audit-soft-nkbv-logic-deep-2026-09-28.md` (prior IA/PedVAP shallow); admin P0+P1 DONE; ME polish N/A; W6+W4 DONE |
+| Tip audit | Soft **CSSD dung-cu ledger logic deep** **DONE** — `_audit-soft-cssd-dung-cu-logic-deep-2026-09-28.md`; prior QLCV/NKBV/admin Soft DONE; ME polish N/A; W6+W4 DONE |
 | Phạm vi | Toàn product doors + debt + overlap + perf + phased plan A/B |
 | Không | push / PR / merge / Vercel / Cloud / apply migrate / DROP / rewrite lớn |
 | Mandat | **Deep AUDIT + plan A/B** — chờ Nghĩa lock trước rewrite; Soft chỉ commit doc |
@@ -37,7 +37,7 @@ Survey Soft-feasible leftovers from this audit (local only). Evidence on tip `3a
 | 4 | Dead-export sweep catalog paths (W1 touch) | **DONE Soft residual** — prune unused `instrument-catalog/entrypoint` re-exports (tabs + hook; dung-cu imports views/hook directly); keep `registerPhysicalBoLabelFromDmAction` |
 | 5 | This audit status | Soft Soft-queue **empty** — W4 DONE prod · W6 FE closed Soft |
 
-**Soft Soft-queue empty?** **Y** (ops residual) — W4/W6 DONE · ME polish N/A · admin P0+P1 DONE · NKBV logic Soft DONE · **QLCV logic Soft DONE** 2026-09-28 (checklist post-Wave3 FE + HUY; draft migrate park apply; Domain park cho_toi/Q-14/AB-2).
+**Soft Soft-queue empty?** **Y** (ops residual) — W4/W6 DONE · ME polish N/A · admin P0+P1 DONE · NKBV logic Soft DONE · QLCV logic Soft DONE · **CSSD dung-cu ledger Soft DONE** 2026-09-28 (QR maBo + dest hub; BOM facade closed; orphan stock park Cloud).
 
 ### Soft next — Quy trình / 6 trạm SSOT (2026-09-27 post residual)
 
@@ -72,6 +72,10 @@ Survey A thin: tip **already polished** (UX 1–4 + S5 + Kiểm bộ mẻ-scan).
 ### Soft Soft-queue — QLCV **logic** deep vs Domain 19/19c (2026-09-28)
 
 **DONE Soft P0/P1 logic** — tip `d05275b`+ : post-Wave3 `fn_qlcv_update_checklist` still validated against dropped `qlcv_dm_trang_thai` → Soft FE writes checklist/% with null TT then `fn_qlcv_transition` SET; hủy → action `HUY`. **Draft migrate** `20260928021700_qlcv_checklist_rpc_post_wave3.sql` local — Nghĩa/W4/Cloud apply. **Park Domain:** cho_toi label vs global gates · Q-14 kỳ RPC · AB-2 duyệt cuối · NGHIEM_THU SQL block DINH_KY. Detail `_audit-soft-qlcv-logic-deep-2026-09-28.md`. Soft Soft-queue: QLCV logic Soft closed; migrate apply + Domain park.
+
+### Soft Soft-queue — CSSD **Dụng cụ + ledger** logic deep (2026-09-28)
+
+**DONE Soft P0/P1 logic** — tip `50898ff`+: QR hub `maBo` when SET resolve (cycle→catalog); INSTRUMENT scan prefer `maBo`; LUAN_CHUYEN dest scan via hub (reject MACHINE/BATCH); close orphan `dieuChuyenThanhPhanGiuaHaiQrAction` (BOM-only no ledger). **Park Cloud:** BO_SUNG/DIEU_CHUYEN vào bộ thiếu `chi_tiet` → orphan tx invisible on `v_cssd_bo_dung_cu_chi_tiet_realtime` / LOAI totals — DoD `/tmp/cloud-cssd-dung-cu-dod.md`. **Park Domain:** auto-create chi_tiet vs reject→DE_NGHI; chuẩn so_luong when ensure. Detail `_audit-soft-cssd-dung-cu-logic-deep-2026-09-28.md`. Soft Soft-queue: CSSD dung-cu ledger Soft closed; Cloud orphan + Domain park.
 
 
 
