@@ -37,7 +37,7 @@ Survey Soft-feasible leftovers from this audit (local only). Evidence on tip `3a
 | 4 | Dead-export sweep catalog paths (W1 touch) | **DONE Soft residual** — prune unused `instrument-catalog/entrypoint` re-exports (tabs + hook; dung-cu imports views/hook directly); keep `registerPhysicalBoLabelFromDmAction` |
 | 5 | This audit status | Soft Soft-queue **empty** — W4 DONE prod · W6 FE closed Soft |
 
-**Soft Soft-queue empty?** **Y** (ops residual) — W4/W6 DONE · ME polish N/A · admin P0+P1 DONE · **NKBV logic Soft DONE** 2026-09-28 (POA gate + FE/BE drift; Domain park Transfer/RIT/MBI).
+**Soft Soft-queue empty?** **Y** (ops residual) — W4/W6 DONE · ME polish N/A · admin P0+P1 DONE · NKBV logic Soft DONE · **QLCV logic Soft DONE** 2026-09-28 (checklist post-Wave3 FE + HUY; draft migrate park apply; Domain park cho_toi/Q-14/AB-2).
 
 ### Soft next — Quy trình / 6 trạm SSOT (2026-09-27 post residual)
 
@@ -68,6 +68,11 @@ Survey A thin: tip **already polished** (UX 1–4 + S5 + Kiểm bộ mẻ-scan).
 ### Soft Soft-queue — NKBV **logic** deep vs Domain SSOT adult v4.0 (2026-09-28)
 
 **DONE Soft P0/P1 logic** — tip vs `10-NKBV-diagnosis-domain-ssot-adult.md` v4.0: POA gate in rules-engine (cấm 48h/day-3); FE/BE device enrich `??` drift; Scenario2 Secondary window; UTI clinical SBAP helper; strip dead `infantGasOk`; Transfer spec titles calendar-day. **Park Domain:** multi-khoa Transfer 24h · RIT hard-stop · SSI deepest-wins auto · MBI ANC table · APRV/ECMO full · SIR · age-null=45. EENT/SST engine **present** (prior Soft «missing» stale). Detail `_audit-soft-nkbv-logic-deep-2026-09-28.md`. Soft Soft-queue: NKBV logic Soft closed; Domain P1 park.
+
+### Soft Soft-queue — QLCV **logic** deep vs Domain 19/19c (2026-09-28)
+
+**DONE Soft P0/P1 logic** — tip `d05275b`+ : post-Wave3 `fn_qlcv_update_checklist` still validated against dropped `qlcv_dm_trang_thai` → Soft FE writes checklist/% with null TT then `fn_qlcv_transition` SET; hủy → action `HUY`. **Draft migrate** `20260928021700_qlcv_checklist_rpc_post_wave3.sql` local — Nghĩa/W4/Cloud apply. **Park Domain:** cho_toi label vs global gates · Q-14 kỳ RPC · AB-2 duyệt cuối · NGHIEM_THU SQL block DINH_KY. Detail `_audit-soft-qlcv-logic-deep-2026-09-28.md`. Soft Soft-queue: QLCV logic Soft closed; migrate apply + Domain park.
+
 
 
 

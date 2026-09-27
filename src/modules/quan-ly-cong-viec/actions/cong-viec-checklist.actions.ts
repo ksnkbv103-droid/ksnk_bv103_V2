@@ -19,6 +19,57 @@ import { formatQlcvDbError } from "../lib/qlcv-supabase-error";
 import { ensureQlcvKsnkAccess } from "../lib/qlcv-action-guard";
 import { assertQlcvRowInListScope, resolveQlcvListScope } from "../lib/qlcv-list-scope";
 import { appendQlcvNhatKy } from "../lib/qlcv-nhat-ky";
+import { updateCongViecTrangThaiByMa } from "../lib/qlcv-workflow-mutate";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+
+/**
+ * Soft P0 post-Wave3: `fn_qlcv_update_checklist` still validates `p_trang_thai_ma`
+ * against dropped `qlcv_dm_trang_thai_cong_viec` (or soft-deactivated lookup).
+ * Write checklist/% with null status, then move status via `fn_qlcv_transition`.
+ */
+async function persistProgressThenMaybeTransition(
+  supabase: SupabaseClient,
+  params: {
+    congViecId: string;
+    items: QlcvChecklistItem[];
+    pct: number;
+    stMoi: string | null;
+    currentTrangThaiMa: string | null;
+    actorNhanSuId: string | null;
+  },
+): Promise<{ phan_tram_hoan_thanh: number }> {
+  const result = await persistQlcvChecklistViaRpc(supabase, {
+    congViecId: params.congViecId,
+    items: params.items,
+    phanTramHoanThanh: params.pct,
+    trangThaiMa: null,
+  });
+
+  if (params.stMoi) {
+    const { updated } = await updateCongViecTrangThaiByMa(supabase, {
+      id: params.congViecId,
+      currentTrangThaiMa: params.currentTrangThaiMa,
+      nextMa: params.stMoi,
+      actorNhanSuId: params.actorNhanSuId,
+      activityLyDo:
+        params.stMoi === "HOAN_THANH"
+          ? "Hoàn thành định kỳ — đủ tiến độ/checklist"
+          : params.stMoi === "CHO_DUYET"
+            ? "Báo đủ tiến độ — chờ nghiệm thu"
+            : "Cập nhật trạng thái theo tiến độ",
+      extra:
+        params.stMoi === "HOAN_THANH" || params.stMoi === "CHO_DUYET"
+          ? { phan_tram_hoan_thanh: params.pct }
+          : undefined,
+    });
+    if (!updated) {
+      throw new Error("Trạng thái công việc đã thay đổi — tải lại phiếu rồi thử lại.");
+    }
+  }
+
+  return result;
+}
 
 export async function updateQlcvChecklist(id: string, items: QlcvChecklistItem[]) {
   const { supabase } = await ensureQlcvKsnkAccess("view");
@@ -71,11 +122,13 @@ export async function updateQlcvChecklist(id: string, items: QlcvChecklistItem[]
 
   let result: { phan_tram_hoan_thanh: number };
   try {
-    result = await persistQlcvChecklistViaRpc(supabase, {
+    result = await persistProgressThenMaybeTransition(supabase, {
       congViecId: id,
       items: normalized,
-      phanTramHoanThanh: pct,
-      trangThaiMa: stMoi,
+      pct,
+      stMoi,
+      currentTrangThaiMa: wf.trang_thai ? String(wf.trang_thai) : null,
+      actorNhanSuId,
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Không lưu được checklist.";
@@ -166,11 +219,13 @@ export async function reportQlcvManualProgress(congViecId: string, phanTram: num
 
   let result: { phan_tram_hoan_thanh: number };
   try {
-    result = await persistQlcvChecklistViaRpc(supabase, {
+    result = await persistProgressThenMaybeTransition(supabase, {
       congViecId,
       items: [],
-      phanTramHoanThanh: pct,
-      trangThaiMa: stMoi,
+      pct,
+      stMoi,
+      currentTrangThaiMa: wf.trang_thai ? String(wf.trang_thai) : null,
+      actorNhanSuId,
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Không lưu được tiến độ.";
