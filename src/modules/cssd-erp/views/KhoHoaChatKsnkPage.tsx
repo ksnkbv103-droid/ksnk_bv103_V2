@@ -31,7 +31,8 @@ import {
   pickFefoLotKey,
 } from "@/lib/domain/cssd-kho-hoa-chat-fefo";
 import { matchesLoaiFilter, type HoaChatLoaiFilter } from "@/lib/domain/cssd-hoa-chat-loai";
-import IncidentReportModal from "@/modules/cssd-su-co/components/IncidentReportModal";
+import Link from "next/link";
+import { cssdSuCoChemicalHref } from "@/lib/cssd-routes";
 import { KsnkContextBanner } from "@/components/shared/KsnkContextBanner";
 import { formatDateVi, todayYmdInVn } from "@/lib/format-datetime-vi";
 
@@ -73,7 +74,6 @@ export default function KhoHoaChatKsnkPage() {
 
   /** Một lần khi mount — mốc ngày cho cận-date FEFO (tránh Date.now trong thân render). */
   const [todayYmd] = useState(() => todayYmdInVn());
-  const [isIncidentOpen, setIsIncidentOpen] = useState(false);
   const [suCoRows, setSuCoRows] = useState<SuCoChemicalRow[]>([]);
   const [linkedSuCoId, setLinkedSuCoId] = useState<string | null>(null);
   const [prefMaLo, setPrefMaLo] = useState<string | null>(null);
@@ -315,13 +315,12 @@ export default function KhoHoaChatKsnkPage() {
               </button>
             </>
           )}
-          <button
-            type="button"
+          <Link
+            href={cssdSuCoChemicalHref()}
             className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-5 py-2 text-[11px] font-semibold text-red-600 shadow-sm transition-all hover:bg-red-100 active:scale-[0.98]"
-            onClick={() => setIsIncidentOpen(true)}
           >
-            ⚠️ Báo sự cố
-          </button>
+            ⚠️ Báo sự cố HC
+          </Link>
         </div>
       }
     >
@@ -444,18 +443,6 @@ export default function KhoHoaChatKsnkPage() {
         linkedSuCoId={linkedSuCoId}
       />
 
-      <IncidentReportModal
-        isOpen={isIncidentOpen}
-        onClose={() => setIsIncidentOpen(false)}
-        station="TIEP_NHAN"
-        defaultGroup="CHEMICAL"
-        onSuccess={() => {
-          toast.message("Đã ghi sự cố", {
-            description: "Nếu cần trừ tồn, dùng «Ghi xuất» ở khối sự cố hóa chất phía trên.",
-          });
-          void reload();
-        }}
-      />
     </CSSDPageShell>
   );
 }

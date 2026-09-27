@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CSSD_ROUTES, cssdLuanChuyenHref, cssdReportAnalyticsHref, cssdSuCoBatchRecallHref, cssdSuCoIncidentJournalHref, cssdSuCoInstrumentHref } from "./cssd-routes";
+import { CSSD_ROUTES, cssdLuanChuyenHref, cssdReportAnalyticsHref, cssdSuCoBatchRecallHref, cssdSuCoChemicalHref, cssdSuCoIncidentJournalHref, cssdSuCoInstrumentHref } from "./cssd-routes";
 import {
   INSTRUMENT_MOVE_TYPE_ID,
   INSTRUMENT_PHYSICAL_DOOR_ID,
@@ -74,5 +74,11 @@ describe("cssd-routes deep links", () => {
 
     const machine = cssdSuCoBatchRecallHref({ reason: "MACHINE_FAULT" });
     expect(machine).toContain("type=PROCESS_STERILE_QC_FAIL");
+  });
+});
+
+describe("cssdSuCoChemicalHref", () => {
+  it("deep-links HC CTA to su-co CHEMICAL group", () => {
+    expect(cssdSuCoChemicalHref()).toBe("/cssd-su-co?group=CHEMICAL");
   });
 });

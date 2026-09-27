@@ -5,7 +5,5 @@ export { registerPhysicalBoLabelFromDmAction } from "../../actions/cssd-register
 export { useCssdCatalogPage } from "../../hooks/use-cssd-catalog-page";
 export { CSSDCatalogBoTab } from "../../views/CSSDCatalogBoTab";
 export { CSSDCatalogLoaiTab } from "../../views/CSSDCatalogLoaiTab";
-export { CSSDCatalogChiTietTab } from "../../views/CSSDCatalogChiTietTab";
-export { CSSDCatalogQuickActions } from "../../views/CSSDCatalogQuickActions";
 export { CSSDCatalogDeNghiTab } from "../../views/CSSDCatalogDeNghiTab";
 export { CSSDCatalogLuanChuyenTab } from "../../views/CSSDCatalogLuanChuyenTab";

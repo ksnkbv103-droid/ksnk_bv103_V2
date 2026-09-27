@@ -50,7 +50,6 @@ import {
   ChemicalContextFields,
   EquipmentContextFields,
   IncidentGroupPicker,
-  InstrumentDoorTabs,
   OtherContextFields,
   ProcessMaLoField,
   StationOverrideSelect,
@@ -81,7 +80,12 @@ export type SuCoReportFormProps = {
   onSubmitted?: (incidentId?: string) => void;
   onDismiss?: () => void;
   layout?: "page" | "modal";
-  /** `luan-chuyen`: khóa cửa số lượng trên /cssd-dung-cu — không chrome sự cố / đề nghị. */
+  /**
+   * Dual-shell (intentional thin reuse — not dual RPC):
+   * - `incident` (default): /cssd-su-co picker — Hỏng/Mất only for INSTRUMENT (G-P0-06; no MOVE on su-co).
+   * - `luan-chuyen`: /cssd-dung-cu tab LUAN_CHUYEN embeds same form write path; locks MOVE type; no sự cố chrome.
+   * Optional later (W7): extract LuanChuyenForm — do not add second submit RPC.
+   */
   entryMode?: "incident" | "luan-chuyen";
 };
 
@@ -621,13 +625,6 @@ export default function SuCoReportForm({
     <StationOverrideSelect value={detectionStation} onChange={setDetectionStation} embedded={!isModal} />
   ) : null;
 
-  const setInstrumentDoor = (id: string, ten: string) => {
-    setTypeId(id);
-    setTypeTen(ten);
-    setSetReconcileState(null);
-    setDestMa("");
-    setMoveUsesKho(id === INSTRUMENT_MOVE_TYPE_ID);
-  };
 
   return (
     <form onSubmit={handleSubmit} className={"bv103-stack-in"}>
@@ -670,14 +667,6 @@ export default function SuCoReportForm({
             ) : null}
             {renderStationOverride}
           </div>
-
-          {incidentGroup === "INSTRUMENT" && !luanChuyen && activeGroupOptions.length > 1 ? (
-            <InstrumentDoorTabs
-              typeId={typeId}
-              options={activeGroupOptions}
-              onChange={setInstrumentDoor}
-            />
-          ) : null}
 
           {incidentGroup === "PROCESS" && isBatchRecallEntry ? <BatchRecallEntryBanner /> : null}
 

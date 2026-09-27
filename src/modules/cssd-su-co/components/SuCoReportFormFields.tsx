@@ -341,38 +341,6 @@ export function IncidentGroupPicker({
   );
 }
 
-export function InstrumentDoorTabs({
-  typeId,
-  options,
-  onChange,
-}: {
-  typeId: string;
-  options: Array<{ code: string; label: string }>;
-  onChange: (id: string, ten: string) => void;
-}) {
-  return (
-    <div className="flex flex-wrap items-center gap-1 border-b border-slate-200 pb-1">
-      {options.map((opt) => {
-        const selected = typeId === opt.code;
-        return (
-          <button
-            key={opt.code}
-            type="button"
-            onClick={() => onChange(opt.code, opt.label)}
-            className={`inline-flex h-8 items-center px-2 text-[12px] font-semibold ${
-              selected
-                ? "border-b-2 border-[var(--primary)] text-[var(--primary)]"
-                : "text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            {opt.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 export function StationOverrideSelect({
   value,
   onChange,

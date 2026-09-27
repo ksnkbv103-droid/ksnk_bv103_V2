@@ -79,6 +79,11 @@ export function cssdLuanChuyenHref(params?: {
   return `${CSSD_ROUTES.dungCu}?${q.toString()}`;
 }
 
+/** Deep-link báo sự cố hóa chất (group CHEMICAL) — CTA từ /cssd-hoa-chat. */
+export function cssdSuCoChemicalHref(): string {
+  return `${CSSD_ROUTES.suCo}?group=CHEMICAL`;
+}
+
 export function cssdSuCoInstrumentHref(params?: {
   type?:
     | "INSTRUMENT_SET_RECONCILE"
