@@ -77,10 +77,10 @@ Prefer order: (1) Quy trình/6 trạm · (2) su-co residual · (3) phiếu mẻ 
 
 - **W4** ME-S* + QLCV Wave3 migrates — Nghĩa only
 - **W6** QLCV type-vs-priority — cần lock
-- Report/print còn vài `replace(/_/g)` residual (W3A surface) — **park** (B); Soft không reopen report strip
+- Report/print residual — **DONE** Soft next beat → `_audit-soft-next-report-print-station-ssot-2026-09-27.md`
 - Phiếu mẻ UI polish — park tới migrate remote
 - Dirty WT (`AGENTS.md`, csv, scripts, qlcv proposal) — **để yên**
 
-**Soft Soft-queue after this?** Empty again except W4/W6 — trừ khi Nghĩa mở B report label sweep hoặc lock W6.
+**Soft Soft-queue after this?** Report/print B unlocked & done next beat; empty again except W4/W6.
 
 *End — Soft Delivery Lead · local commit only.*

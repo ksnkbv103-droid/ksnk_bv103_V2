@@ -47,7 +47,7 @@ export default function ReportFilters({
   const stationOptions = useMemo(
     () => [
       { id: "ALL", label: "Tất cả trạm" },
-      ...stations.map((s) => ({ id: s, label: s.replace(/_/g, " ") })),
+      ...stations.map((s) => ({ id: s, label: stationLabel(s) })),
     ],
     [stations],
   );

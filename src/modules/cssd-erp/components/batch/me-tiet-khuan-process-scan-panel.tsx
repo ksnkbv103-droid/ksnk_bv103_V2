@@ -9,6 +9,7 @@ import React, { useRef } from "react";
 import { CheckCircle2, Scan } from "lucide-react";
 import QrScanInput from "@/components/shared/QrScanInput";
 import InlineEntityQrThumb from "@/components/shared/InlineEntityQrThumb";
+import { stationLabel } from "@/modules/cssd-erp/workflow/domain/cssd-stations";
 
 export type MeTkItemRow = {
   id: string;
@@ -74,7 +75,7 @@ export default function MeTietKhuanProcessScanPanel({
         {items.map((it) => {
           const st = String(it.trang_thai_hien_tai || "").trim();
           const label =
-            st === "TIET_KHUAN" ? "Đang TK" : st === "DONG_GOI" ? "Trong phiếu (chờ TK)" : st.replace(/_/g, " ");
+            st === "TIET_KHUAN" ? "Đang TK" : st === "DONG_GOI" ? "Trong phiếu (chờ TK)" : stationLabel(st);
           const tone =
             st === "TIET_KHUAN" ? "bg-sky-50 text-sky-700" : "bg-emerald-50 text-emerald-600";
           const code = String(it.ma_vach_qr || "").trim();

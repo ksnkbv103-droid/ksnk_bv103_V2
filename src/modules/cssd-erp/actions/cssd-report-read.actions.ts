@@ -49,6 +49,7 @@ import {
   type CssdVolumeBucket,
   type CssdVolumeTrendPoint,
   CSSD_ANALYTICS_STATIONS,
+  stationLabel,
 } from "@/lib/analytics/cssd-metrics/cssd-analytics-core";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -237,7 +238,7 @@ export type CssdAnalyticsBundle = {
 function emptyAnalyticsBundle(): CssdAnalyticsBundle {
   const stationVolume = CSSD_ANALYTICS_STATIONS.map((station) => ({
     station,
-    label: station.replace(/_/g, " "),
+    label: stationLabel(station),
     completed: 0,
   }));
   const meQc = { so_me_ky: 0, so_me_da_qc: 0, so_me_dat: 0, ty_le_qc_dat_me: null as number | null };

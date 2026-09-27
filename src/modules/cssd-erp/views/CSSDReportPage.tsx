@@ -33,6 +33,7 @@ import IncidentJournalPrintButton from "@/modules/cssd-su-co/components/Incident
 import IncidentConfirmButton from "@/modules/cssd-su-co/components/IncidentConfirmButton";
 import { INCIDENT_STATUS_CONFIRMED } from "@/modules/cssd-su-co/domain/cssd-incident-status";
 import { cssdSuCoBatchRecallHref } from "@/lib/cssd-routes";
+import { stationLabel } from "../workflow/domain/cssd-stations";
 
 const ReportCharts = dynamic(() => import("../components/report/ReportCharts"), {
   ssr: false,
@@ -155,14 +156,14 @@ function CSSDReportPageInner() {
         incidents: raw.suCo.length,
         /** Chỉ số CSSD riêng — không gộp tuân thủ VST–GSC. */
         tyLeQuyTrinhKhongSuCo: tyLe,
-        bestStation: ranked[0]?.name.replace(/_/g, " ") || "Không áp dụng",
-        worstStation: ranked[ranked.length - 1]?.name.replace(/_/g, " ") || "Không áp dụng",
+        bestStation: ranked[0] ? stationLabel(ranked[0].name) : "Không áp dụng",
+        worstStation: ranked[ranked.length - 1] ? stationLabel(ranked[ranked.length - 1].name) : "Không áp dụng",
       },
       alerts: bData
         .filter((b) => b.rate != null && b.rate > 5)
-        .map((b) => ({ name: b.name, rate: (b.rate as number).toFixed(1) })),
+        .map((b) => ({ name: stationLabel(b.name), rate: (b.rate as number).toFixed(1) })),
       pieData: Array.from(pMap).map(([name, value]) => ({ name, value })),
-      barData: bData.map((b) => ({ ...b, rate: b.rate ?? 0, name: b.name.replace(/_/g, " ") })),
+      barData: bData.map((b) => ({ ...b, rate: b.rate ?? 0, name: stationLabel(b.name) })),
       incidentGroupStats: INCIDENT_GROUPS.map((g) => ({
         group: g,
         label: INCIDENT_GROUP_LABEL[g],
@@ -276,7 +277,7 @@ function CSSDReportPageInner() {
                 {
                   header: "Trạm cuối",
                   accessorKey: "trang_thai_hien_tai",
-                  cell: (v: any) => <span className="text-[11px] font-medium text-slate-600">{v.trang_thai_hien_tai?.replace(/_/g, " ")}</span>,
+                  cell: (v: any) => <span className="text-[11px] font-medium text-slate-600">{stationLabel(v.trang_thai_hien_tai)}</span>,
                 },
                 {
                   header: "Cảnh báo",
@@ -368,8 +369,8 @@ function CSSDReportPageInner() {
                     </span>
                   ),
                 },
-                { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{String(v.tram_phat_hien || "Không áp dụng").replace(/_/g, " ")}</span> },
-                { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{String(v.tram_gay_loi || "Không áp dụng").replace(/_/g, " ")}</span> },
+                { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{v.tram_phat_hien ? stationLabel(v.tram_phat_hien) : "Không áp dụng"}</span> },
+                { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{v.tram_gay_loi ? stationLabel(v.tram_gay_loi) : "Không áp dụng"}</span> },
                 {
                   header: "In",
                   accessorKey: "id",
@@ -414,8 +415,8 @@ function CSSDReportPageInner() {
               { header: "Mã qr", accessorKey: "ma_vach_qr", cell: (v: any) => <span className="font-mono text-[11px] font-medium text-red-600">{v.ma_vach_qr || "—"}</span> },
               { header: "Bản chất", accessorKey: "cause_label", cell: (v: any) => <span className="text-[11px] font-medium">{v.cause_label || "Chưa phân loại"}</span> },
               { header: "Tình huống", accessorKey: "loai_su_co", cell: (v: any) => <span className="font-semibold text-slate-700">{v.loai_su_co || "—"}</span> },
-              { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{String(v.tram_phat_hien || "Không áp dụng").replace(/_/g, " ")}</span> },
-              { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{String(v.tram_gay_loi || "Không áp dụng").replace(/_/g, " ")}</span> },
+              { header: "Khâu phát hiện", accessorKey: "tram_phat_hien", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{v.tram_phat_hien ? stationLabel(v.tram_phat_hien) : "Không áp dụng"}</span> },
+              { header: "Khâu gây lỗi", accessorKey: "tram_gay_loi", cell: (v: any) => <span className="text-[11px] font-medium text-amber-700">{v.tram_gay_loi ? stationLabel(v.tram_gay_loi) : "Không áp dụng"}</span> },
               { header: "Người thao tác", accessorKey: "fault_operator", cell: (v: any) => <span className="font-medium text-slate-700">{v.fault_operator || "Chưa ghi nhận"}</span> },
               { header: "Thời gian", accessorKey: "created_at", cell: (v: any) => <span className="text-[11px] font-medium text-slate-500">{formatDateTimeVi(v.created_at)}</span> },
             ]}
